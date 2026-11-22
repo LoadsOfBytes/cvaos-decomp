@@ -16,6 +16,17 @@ compiler used by GBA decompilation projects), rebuilds the following ROM **byte 
 - **cvaos_us.gba** – Castlevania: Aria of Sorrow (USA),
   `sha1: abd71fe01ebb201bcc133074db1dd8c5253776c7`
 
+**Every function of the game itself has been decompiled to matching C – no game
+function is left in assembly.** The only assembly that remains is the usual GBA
+platform code that decompilation projects keep as assembly (startup code, the `m4a`
+sound mixer, BIOS call stubs, the ROM header) and the compiler's runtime library. That
+is why the C share of *all* ROM code is 97.06 % – see *Status*.
+
+The C is not finished in every respect: some functions still need compiler-steering
+tricks to match (`FAKEMATCH` lines, one-shot `do { } while (0)` blocks, see *Known
+limitations*), and names are inferred. Work now continues on removing those tricks,
+naming, and making the code read more naturally.
+
 ## How this fork was made
 
 ### Starting point: the upstream project
@@ -57,8 +68,8 @@ not estimates.
 | What | Status |
 |---|---|
 | ROM rebuilds byte for byte | **yes** (SHA-1 above) |
-| Game code in C | **all of it**, except one 8-byte assembly veneer |
-| ROM code (`.text`) produced by C | 891,340 / 918,324 bytes (**97.06 %**); the rest is the toolchain's libgcc/libc and the hand-written assembly that GBA decompilations normally keep (startup `crt0`, the `m4a` sound mixer, BIOS syscall stubs, ROM header) |
+| **Game functions decompiled to C** | **all of them.** (The only game-side assembly left is one 8-byte ARM/Thumb interworking stub, `bx pc; b Obj_InstallCallbacks`, which has no C equivalent.) Some still match only with compiler-steering tricks – see *Known limitations* |
+| All ROM code (`.text`) produced by C | 891,340 / 918,324 bytes (**97.06 %**). The remaining 2.94 % is not game code: the toolchain's libgcc/libc and the platform assembly that GBA decompilations normally keep (startup `crt0`, the `m4a` sound mixer, BIOS syscall stubs, ROM header) |
 | Functions with descriptive names | 3,827 / 3,842 (**99.6 %**) |
 | Structure fields with descriptive names | 1,838 / 1,991 declared (**92.3 %**); 73,898 / 77,610 field accesses (**95.2 %**) |
 | Per-entity work slots (generic unions `unk_4F4` … `unk_51C`) | named through 1,196 accessor macros in 86 entity/scene headers and TU-local blocks; 408 accesses inside functions still use the raw member names (see below) |

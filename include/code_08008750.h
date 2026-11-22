@@ -8,15 +8,15 @@
 s32 GameModeBossRushMenuUpdate(void);
 s32 GameModeUnk9Update(void);
 s32 GameModeIntroCutsceneUpdate(void);
-void sub_08008ED0(s32 arg0);
-void sub_08008F40(struct EwramData_EntityData *param_0);
-void sub_08008FEC(struct EwramData_EntityData *param_0);
-void sub_08009054(struct EwramData_EntityData *param_0);
-void sub_08009178(struct EwramData_EntityData *param_0);
-void sub_080092A0(struct EwramData_EntityData *param_0);
-s32 sub_080093E0(struct EwramData_EntityData *param_0);
-void sub_080094AC(struct EwramData_EntityData *param_0);
-struct EwramData_EntityData* sub_08009610(u32 *param_0, u8 param_1);
-void sub_08009648(struct EwramData_EntityData *param_0);
+void Game_SetStartPosition(s32 arg0);
+void IntroCutscene_UpdateRisingSprite(struct EwramData_EntityData *entity);
+void IntroCutscene_DrawMirrored(struct EwramData_EntityData *entity);
+void IntroCutscene_UpdateDriftingSprite(struct EwramData_EntityData *entity);
+void IntroCutscene_UpdateShrinkingSprite(struct EwramData_EntityData *entity);
+void IntroCutscene_UpdateFloatingSprite(struct EwramData_EntityData *entity);
+s32 IntroCutsceneText_PrintNextLine(struct EwramData_EntityData *entity);
+void IntroCutscene_CreateEntities(struct EwramData_EntityData *entity);
+struct EwramData_EntityData* IntroCutscene_CreateSprite(u32 *updateFunc, u8 palette);
+void IntroCutsceneText_Update(struct EwramData_EntityData *entity);
 
 #endif /* CODE_08008750_H */

@@ -119,26 +119,28 @@ static const u16 sSineTable[0x400] = {
 };
 
 /**
- * @brief 9E4 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief 9E4 | Sine from the quarter-wave table sSineTable
+ *
+ * Cos(a) is Sin(a + 0x4000).
+ *
+ * @param angle Angle (0x10000 = full turn, low 4 bits are rounded away)
+ * @return s32 sin(angle) (16.16)
  */
-s32 sub_080009E4(s32 param_0)
+s32 Sin(s32 angle)
 {
     // This function relates to angles and trig
     // Why the `>> 4`?
-    param_0 += (0x80) >> 4;
-    param_0 = param_0 & 0xFFFF;
+    angle += (0x80) >> 4;
+    angle = angle & 0xFFFF;
 
-    if (param_0 & Q_16_16(0.5f))
+    if (angle & Q_16_16(0.5f))
     {
-        param_0 -= Q_16_16(0.5f);
-        if (param_0 & Q_16_16(0.25f))
+        angle -= Q_16_16(0.5f);
+        if (angle & Q_16_16(0.25f))
         {
-            if (param_0 & 0xFFFFBFF0)
+            if (angle & 0xFFFFBFF0)
             {
-                return -sSineTable[(0x800F - param_0) >> 4];
+                return -sSineTable[(0x800F - angle) >> 4];
             }
             else
             {
@@ -147,22 +149,22 @@ s32 sub_080009E4(s32 param_0)
         }
         else
         {
-            return -sSineTable[param_0 >> 4];
+            return -sSineTable[angle >> 4];
         }
     }
 
-    if (param_0 & Q_16_16(0.25f))
+    if (angle & Q_16_16(0.25f))
     {
-        if (param_0 & 0xFFFFBFF0)
+        if (angle & 0xFFFFBFF0)
         {
-            return sSineTable[(0x800F - param_0) >> 4];
+            return sSineTable[(0x800F - angle) >> 4];
         }
         else
         {
             return Q_16_16(1);
         }
     }
-    return sSineTable[param_0 >> 4];
+    return sSineTable[angle >> 4];
 }
 
 /**
@@ -184,7 +186,7 @@ u32 RandomNumberGenerator2(void)
 {
     u32 randomNumber;
 
-    if ((gEwramData->unk_60.unk_4CC_6) != 0)
+    if ((gEwramData->gameState.linkPlay) != 0)
     {
         randomNumber = gEwramData->randomNumber2 = (gEwramData->randomNumber2 >> 0) * 0x3243F6AD + 0x1B0CB175;
     }
@@ -219,11 +221,11 @@ struct EwramData_EntityData* EntityCreate(u32 *updateFunc)
         }
 
         DMA_FILL_32(3, 0, entity, sizeof(struct EwramData_EntityData));
-        entity->unk_548 = 0xFF;
-        entity->unk_4EC = 0xFE;
-        entity->unk_4ED = 0xFE;
+        entity->spriteSlot = 0xFF;
+        entity->drawNext = 0xFE;
+        entity->drawPrev = 0xFE;
         entity->updateFunc = updateFunc;
-        entity->unk_4F4.unk_4F4_8.unk_4F4 = slot;
+        entity->unk_4F4.part8.unk_4F4 = slot;
         newEntity = entity;
         break;
     }
@@ -232,17 +234,20 @@ struct EwramData_EntityData* EntityCreate(u32 *updateFunc)
 }
 
 /**
- * @brief B64 | Update all entities
- * 
+ * @brief B64 | Update entities 0x00-0xCF, then draw all entities in draw order
+ *
+ * Updating is skipped while gEwramData->paused is set. After its update an
+ * entity with deleteRequested is freed (sprite, hit block, data). Drawing
+ * walks the draw list from drawListHead and calls each drawFunc.
  */
-void sub_08000B64(void)
+void Entity_UpdateAll(void)
 {
     struct EwramData_EntityData *entityData;
     struct EwramData_EntityData *entity;
     s32 slot;
 
     entityData = gEwramData->entityData;
-    if (gEwramData->unk_A074_0 == 0)
+    if (gEwramData->paused == 0)
     {
         entity = &entityData[0];
         for (slot = 0; slot < 0xD0; slot++, entity++)
@@ -250,19 +255,19 @@ void sub_08000B64(void)
             if (entity->updateFunc != NULL)
             {
                 ((void (*)(struct EwramData_EntityData *))entity->updateFunc)(entity);
-                sub_080426B0(entity);
-                if (entity->unk_53D_3)
+                Hit_UpdateTimers(entity);
+                if (entity->deleteRequested)
                 {
-                    sub_0803AAEC(entity, 0);
-                    sub_08042828(entity);
+                    Sprite_Free(entity, 0);
+                    Hit_Disable(entity);
                     DMA_FILL_32(3, 0, entity, sizeof(struct EwramData_EntityData));
-                    entity->unk_548 = 0xFF;
+                    entity->spriteSlot = 0xFF;
                 }
             }
         }
     }
 
-    for (slot = gEwramData->unk_13; slot < 0xD0; slot = entity->unk_4EC)
+    for (slot = gEwramData->drawListHead; slot < 0xD0; slot = entity->drawNext)
     {
         entity = &entityData[slot];
         if (entity->updateFunc != NULL)
@@ -281,42 +286,44 @@ static inline u8 EntityGetSlot_Inline(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief C28 | To document
- * 
- * @param param_0 To document
+ * @brief C28 | Unlink an entity from the draw list
+ *
+ * @param entity Entity (drawNext/drawPrev become 0xFE = not linked)
  */
-void sub_08000C28(struct EwramData_EntityData *param_0)
+void Entity_RemoveFromDrawList(struct EwramData_EntityData *entity)
 {
     u8 slot;
-    struct EwramData_EntityData *var1;
-    struct EwramData_EntityData *var2;
+    struct EwramData_EntityData *prev;
+    struct EwramData_EntityData *next;
 
-    slot = EntityGetSlot_Inline(param_0);
-    if (slot == gEwramData->unk_13)
+    slot = EntityGetSlot_Inline(entity);
+    if (slot == gEwramData->drawListHead)
     {
-        gEwramData->unk_13 = param_0->unk_4EC;
+        gEwramData->drawListHead = entity->drawNext;
     }
     else
     {
-        var1 = &gEwramData->entityData[param_0->unk_4ED];
-        var1->unk_4EC = param_0->unk_4EC;
+        prev = &gEwramData->entityData[entity->drawPrev];
+        prev->drawNext = entity->drawNext;
 
-        if (param_0->unk_4EC != 0xFF)
+        if (entity->drawNext != 0xFF)
         {
-            var2 = &gEwramData->entityData[param_0->unk_4EC];
-            var2->unk_4ED = param_0->unk_4ED;
+            next = &gEwramData->entityData[entity->drawNext];
+            next->drawPrev = entity->drawPrev;
         }
     }
 
-    param_0->unk_4EC = 0xFE;
-    param_0->unk_4ED = 0xFE;
+    entity->drawNext = 0xFE;
+    entity->drawPrev = 0xFE;
 }
 
 /**
- * @brief C94 | Update all entities
- * 
+ * @brief C94 | Update and draw only the reserved entities 0xD0-0xDF
+ *
+ * Unlike Entity_UpdateAll this ignores gEwramData->paused, so these slots
+ * keep running while the game is paused (e.g. menus).
  */
-void sub_08000C94(void)
+void Entity_UpdateReserved(void)
 {
     struct EwramData_EntityData *entityData;
     struct EwramData_EntityData *entity;
@@ -330,17 +337,17 @@ void sub_08000C94(void)
         if (entity->updateFunc != NULL)
         {
             ((void (*)(struct EwramData_EntityData *))entity->updateFunc)(entity);
-            if (entity->unk_53D_3)
+            if (entity->deleteRequested)
             {
-                sub_0803AAEC(entity, 0);
-                sub_08042828(entity);
+                Sprite_Free(entity, 0);
+                Hit_Disable(entity);
                 DMA_FILL_32(3, 0, entity, sizeof(struct EwramData_EntityData));
-                entity->unk_548 = 0xFF;
+                entity->spriteSlot = 0xFF;
             }
         }
     }
 
-    for (slot = gEwramData->unk_13; slot < 0xE0; slot = entity->unk_4EC)
+    for (slot = gEwramData->drawListHead; slot < 0xE0; slot = entity->drawNext)
     {
         entity = &entityData[slot];
         if (entity->updateFunc != NULL)
@@ -364,14 +371,14 @@ void EntityDeleteAll(void)
 
     entity = gEwramData->entityData;
 
-    gEwramData->unk_13 = 0xFF;
+    gEwramData->drawListHead = 0xFF;
 
     for (slot = 0; slot < 0xE0; slot++, entity++)
     {
         DMA_FILL_32(3, 0, entity, sizeof(struct EwramData_EntityData));
-        entity->unk_548 = 0xFF;
-        entity->unk_4EC = 0xFE;
-        entity->unk_4ED = 0xFE;
+        entity->spriteSlot = 0xFF;
+        entity->drawNext = 0xFE;
+        entity->drawPrev = 0xFE;
     }
 }
 
@@ -401,11 +408,11 @@ struct EwramData_EntityData *EntityCreateInRange(s32 minSlot, s32 maxSlot, u32 *
         }
 
         DMA_FILL_32(3, 0, entity, sizeof(struct EwramData_EntityData));
-        entity->unk_548 = 0xFF;
-        entity->unk_4EC = 0xFE;
-        entity->unk_4ED = 0xFE;
+        entity->spriteSlot = 0xFF;
+        entity->drawNext = 0xFE;
+        entity->drawPrev = 0xFE;
         entity->updateFunc = updateFunc;
-        entity->unk_4F4.unk_4F4_8.unk_4F4 = slot;
+        entity->unk_4F4.part8.unk_4F4 = slot;
         newEntity = entity;
         break;
     }
@@ -420,17 +427,16 @@ struct EwramData_EntityData *EntityCreateInRange(s32 minSlot, s32 maxSlot, u32 *
  */
 void EntityDelete(struct EwramData_EntityData *entity)
 {
-    sub_0803AAEC(entity, 0);
-    sub_08042828(entity);
+    Sprite_Free(entity, 0);
+    Hit_Disable(entity);
     DMA_FILL_32(3, 0, entity, sizeof(struct EwramData_EntityData));
-    entity->unk_548 = 0xFF;
+    entity->spriteSlot = 0xFF;
 }
 
 /**
- * @brief E50 | Delete all entities
- * 
+ * @brief E50 | Free all 224 entities including their sprites and hit blocks
  */
-void sub_08000E50(void) 
+void EntityFreeAll(void) 
 {
     struct EwramData_EntityData *entity;
     s32 slot;
@@ -439,42 +445,42 @@ void sub_08000E50(void)
     slot = 0;
     for (; slot < 0xE0; slot++, entity++)
     {
-        sub_0803AAEC(entity, 0);
-        sub_08042828(entity);
+        Sprite_Free(entity, 0);
+        Hit_Disable(entity);
         DMA_FILL_32(3, 0, entity, sizeof(struct EwramData_EntityData));
-        entity->unk_548 = 0xFF;
+        entity->spriteSlot = 0xFF;
     }
 }
 
 /**
- * @brief EA8 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief EA8 | Free every entity of a group
+ *
+ * @param group Group number (entity->group); 0 frees nothing
+ * @return s32 Number of entities freed
  */
-s32 sub_08000EA8(u8 param_0)
+s32 EntityDeleteGroup(u8 group)
 {
-    s32 var_sb;
+    s32 count;
     s32 slot;
     struct EwramData_EntityData *entity;
 
-    var_sb = 0;
-    if (param_0 != 0) 
+    count = 0;
+    if (group != 0) 
     {
         for (slot = 0xE0 - 1; slot >= 0x0; slot--)
         {
             entity = &gEwramData->entityData[slot];
-            if (entity->unk_547 == param_0)
+            if (entity->group == group)
             {
-                sub_0803AAEC(entity, 0);
-                sub_08042828(entity);
+                Sprite_Free(entity, 0);
+                Hit_Disable(entity);
                 DMA_FILL_32(3, 0, entity, sizeof(struct EwramData_EntityData));
-                entity->unk_548 = 0xFF;
-                var_sb += 1;
+                entity->spriteSlot = 0xFF;
+                count += 1;
             }
         }
     }
-    return var_sb;
+    return count;
 }
 
 /**
@@ -499,47 +505,47 @@ u8 EntityGetSlot(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief F60 | To document
- * 
- * @param param_0 To document
+ * @brief F60 | Move all scrollWithBg entities against a background's scroll velocity
+ *
+ * @param bg Background (gEwramData->bgInfo index)
  */
-void sub_08000F60(s32 param_0)
+void Entity_ScrollWithBg(s32 bg)
 {
-    s32 var_0;
-    s32 var_1;
+    s32 dx;
+    s32 dy;
     struct EwramData_EntityData *entity;
     s32 slot;
 
-    var_0 = -gEwramData->bgInfo[param_0].xVel.whole;
-    var_1 = -gEwramData->bgInfo[param_0].yVel.whole;
+    dx = -gEwramData->bgInfo[bg].xVel.whole;
+    dy = -gEwramData->bgInfo[bg].yVel.whole;
 
     entity = gEwramData->entityData;
     slot = 0;
     for(; slot < 0xD0; slot++, entity++)
     {
-        if (entity->unk_53D_1)
+        if (entity->scrollWithBg)
         {
-            entity->unk_524.unk_524_32 += var_0;
-            entity->unk_528.unk_528_32 += var_1;
+            entity->posX.whole += dx;
+            entity->posY.whole += dy;
         }
     }
 }
 
 /**
- * @brief FBC | To document
- * 
- * @param param_0 To document
+ * @brief FBC | Insert an entity at the head of the draw list
+ *
+ * @param entity Entity
  */
-void sub_08000FBC(struct EwramData_EntityData *param_0)
+void Entity_AddToDrawList(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *var_0;
+    struct EwramData_EntityData *next;
 
-    param_0->unk_4EC = gEwramData->unk_13;
-    gEwramData->unk_13 = EntityGetSlot_Inline(param_0);
+    entity->drawNext = gEwramData->drawListHead;
+    gEwramData->drawListHead = EntityGetSlot_Inline(entity);
 
-    if (param_0->unk_4EC != 0xFF)
+    if (entity->drawNext != 0xFF)
     {
-        var_0 = &gEwramData->entityData[param_0->unk_4EC];
-        var_0->unk_4ED = gEwramData->unk_13;
+        next = &gEwramData->entityData[entity->drawNext];
+        next->drawPrev = gEwramData->drawListHead;
     }
 }

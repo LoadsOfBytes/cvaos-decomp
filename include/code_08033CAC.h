@@ -5,62 +5,62 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-s32 sub_08033CAC(struct EwramData_unk1325C *param_0);
-void sub_08033DA4(void);
-s32 sub_08033DFC(s32 param_0);
-s32 sub_08033E10(struct EwramData_unk1325C *param_0);
-void sub_08033E38(s32 param_0);
-void sub_08033E6C(void);
-void sub_08033EA0(void);
-void sub_08033F58(struct EwramData_EntityData *param_0);
-void sub_0803407C(void);
+s32 Player_ApplyEarnedLevels(struct PlayerStatus *status);
+void Player_InitBaseLevelStats(void);
+s32 Player_GetExperienceForLevel(s32 level);
+s32 Player_GetExperienceToNextLevel(struct PlayerStatus *status);
+void Player_SetLevel(s32 level);
+void Player_ApplyJuliusStatGrowth(void);
+void LinkPartner_Create(void);
+void LinkPartner_Update(struct EwramData_EntityData *entity);
+void Link_ExchangePlayerState(void);
 
-struct Unk_080340F0_1 {
-    s8 unk_0;
-    s8 unk_1;
-    u8 unk_2;
-    u8 unk_3;
+struct HitBoxDef {
+    s8 x;
+    s8 y;
+    u8 width;
+    u8 height;
 };
-void sub_080340F0(struct EwramData_EntityData *param_0, struct Unk_080340F0_1 *param_1);
+void HitBox_SetHitRect(struct EwramData_EntityData *entity, struct HitBoxDef *box);
 
-void sub_080341D0(void);
-void sub_0803427C(void);
-void sub_08034498(struct EwramData_EntityData *param_0);
-void sub_080344AC(void);
+void Link_ApplyPartnerHit(void);
+void Link_UpdatePlayerSync(void);
+void Player_SetSelectedTarget(struct EwramData_EntityData *entity);
+void Link_MarkEnemyDamaged(void);
 void sub_080344E0(void);
-void sub_080344E4(struct EwramData_EntityData *param_0);
-void sub_080344F0(struct EwramData_EntityData *param_0);
-void sub_08034624(struct EwramData_EntityData *param_0);
-void sub_080347AC(struct EwramData_EntityData *param_0);
-void sub_08034A48(struct EwramData_EntityData *param_0);
-void sub_08034B18(struct EwramData_EntityData *param_0);
-void sub_08034CC4(struct EwramData_EntityData *param_0);
-void sub_08034E5C(struct EwramData_EntityData *param_0);
-void sub_08034F48(struct EwramData_EntityData *param_0);
+void LinkPartnerMarker_Update(struct EwramData_EntityData *entity);
+void Julius_UpdateSubweaponIcon(struct EwramData_EntityData *entity);
+void Julius_HandleSubweaponInput(struct EwramData_EntityData *entity);
+void JuliusCross_Update(struct EwramData_EntityData *entity);
+void JuliusHolyWaterFlame_Update(struct EwramData_EntityData *entity);
+void JuliusHolyWater_Update(struct EwramData_EntityData *entity);
+void JuliusAxeProjectile_Update(struct EwramData_EntityData *entity);
+void JuliusAxe_Update(struct EwramData_EntityData *entity);
+void JuliusGrandCross_Update(struct EwramData_EntityData *entity);
 
 // TODO: figure out struct
 struct Unk_080E1ED8 {
     u8 pad_0[0x10 - 0x0];
 };
-extern struct Unk_080E1ED8* sub_08035218(u8 param_0);
+extern struct Unk_080E1ED8* Julius_GetSubweaponInfo(u8 subweapon);
 
-void sub_08035228(struct EwramData_EntityData *param_0, s32 param_1);
-void sub_0803526C(struct EwramData_EntityData *param_0);
-void sub_08035310(struct EwramData_unk4F4_Struct_0 *param_0, struct EwramData_unk4F4_Struct_0 *param_1, s16 param_2);
-void sub_080353C0(struct EwramData_EntityData *param_0);
-void sub_08035450(struct EwramData_EntityData *param_0);
-struct EwramData_EntityData* sub_080354C8(s32 param_0, s32 param_1, u8 *param_2, struct EwramData_EntityData *param_3);
-struct EwramData_EntityData* sub_080355D0(void);
-void sub_08035618(struct EwramData_EntityData *param_0);
-void sub_08035630(struct EwramData_EntityData *param_0);
-void sub_08035638(struct EwramData_EntityData *param_0);
-void sub_08035640(struct EwramData_EntityData *param_0, s16 param_1);
-void sub_080356D4(struct EwramData_EntityData *param_0);
-void sub_08035704(struct EwramData_EntityData *param_0);
-void sub_08035738(struct EwramData_EntityData *param_0);
-void sub_08035768(struct EwramData_EntityData *param_0);
-void sub_0803579C(struct EwramData_EntityData *param_0);
-s16 sub_080357B8(struct EwramData_EntityData *param_0, s32 param_1, s32 param_2);
-void sub_08035868(struct EwramData_EntityData *param_0);
+void JuliusOverlay_AttachSprite(struct EwramData_EntityData *entity, s32 altPalette);
+void Whip_UpdateChainHitSegment(struct EwramData_EntityData *entity);
+void Whip_ConstrainChainNode(struct WhipChainNode *node, struct WhipChainNode *prev, s16 index);
+void Whip_UpdateChain(struct EwramData_EntityData *entity);
+void Whip_DrawChain(struct EwramData_EntityData *entity);
+struct EwramData_EntityData* Whip_CreateChain(s32 x, s32 y, u8 *resource, struct EwramData_EntityData *owner);
+struct EwramData_EntityData* Julius_CreateOverlaySprite(void);
+void Entity_DeleteWithChild(struct EwramData_EntityData *entity);
+void Whip_ActivateChain(struct EwramData_EntityData *entity);
+void Whip_DeactivateChain(struct EwramData_EntityData *entity);
+void Whip_LayChainStraight(struct EwramData_EntityData *entity, s16 flip);
+void Whip_SwingChainRight(struct EwramData_EntityData *entity);
+void Whip_SwingChainLeft(struct EwramData_EntityData *entity);
+void Whip_SwingChainDown(struct EwramData_EntityData *entity);
+void Whip_SwingChainUp(struct EwramData_EntityData *entity);
+void JuliusOverlay_Update(struct EwramData_EntityData *entity);
+s16 DebugPlatform_FloorCorrection(struct EwramData_EntityData *entity, s32 x, s32 y);
+void DebugPlatform_Update(struct EwramData_EntityData *entity);
 
 #endif /* CODE_08033CAC_H */

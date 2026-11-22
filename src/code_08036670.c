@@ -40,98 +40,97 @@
  */
 s32 GameModeDebug2229Update(void)
 {
-    switch (gEwramData->unk_12)
+    switch (gEwramData->gameModeSubStage)
     {
         case 0:
-            gEwramData->unk_12 = 1;
-            gEwramData->unk_60.unk_88 = (struct EwramData_unk88 *)0x08518710;
-            sub_0800C5D8();
-            sub_08012014();
+            gEwramData->gameModeSubStage = 1;
+            gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)0x08518710;
+            InGame_InitScene();
+            ScreenShake_Clear();
             break;
 
         case 1:
-            sub_080211F0();
-            if (sub_08011A44(gEwramData->unk_13110.unk_13110) == 0)
+            Debug2229_FrameHook();
+            if (Room_IsPlayerInside(gEwramData->playerState.player) == 0)
             {
-                sub_08010244(&gEwramData->unk_60);
-                gEwramData->unk_12 = 2;
+                RoomTransition_Begin(&gEwramData->gameState);
+                gEwramData->gameModeSubStage = 2;
             }
             else
             {
-                sub_0800F750();
+                RoomEntity_SpawnOnScroll();
             }
-            sub_08000B64();
+            Entity_UpdateAll();
             break;
 
         case 2:
-            if (sub_080104EC(&gEwramData->unk_60) != 0)
+            if (RoomTransition_Update(&gEwramData->gameState) != 0)
             {
-                gEwramData->unk_12 = 1;
+                gEwramData->gameModeSubStage = 1;
             }
             break;
 
         case 3:
-            sub_08000E50();
+            EntityFreeAll();
             DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x2000);
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             return GAME_MODE_KONAMI_LOGO;
     }
 
-    sub_08011CD0();
-    if (!(gEwramData->unk_A074_0))
+    ScreenShake_Update();
+    if (!(gEwramData->paused))
     {
-        sub_0800CA40();
+        InGame_UpdateTimerAndHud();
     }
-    sub_0801266C();
+    ItemIconCache_InvalidateUpload();
     return GAME_MODE_SAME_MODE;
 }
 
 /**
- * @brief 36758 | To document
- * 
- * @param param_0 To document
+ * @brief Unreferenced debug entity: show the test sprite at (0x96, 0x50) and
+ * move it randomly by one pixel per axis each frame.
  */
-void sub_08036758(struct EwramData_EntityData *param_0)
+void DebugJitterSprite_Update(struct EwramData_EntityData *entity)
 {
-    s32 var_r4;
+    s32 gfx;
 
-    switch (param_0->unk_4EE)
+    switch (entity->state)
     {
         case 0:
-            var_r4 = sub_0803B800((u8 *)0x081CBF24, 0);
-            if (var_r4 >= 0)
+            gfx = ObjGfx_LoadResource((u8 *)0x081CBF24, 0);
+            if (gfx >= 0)
             {
-                sub_0803C7B4((u8 *)0x0820A3D8, 0, 1, 2);
-                sub_0803B924(param_0, (void *)0x082121F0, var_r4, 2);
-                sub_0803F348(param_0, 0, 1);
-                param_0->drawFunc = (u32 *) sub_0803B9D0;
-                param_0->unk_524.unk_524_16.unk_526 = 0x96;
-                param_0->unk_528.unk_528_16.unk_52A = 0x50;
-                param_0->unk_53D_1 = 1;
-                param_0->unk_4EE = 1;
+                ObjPalette_LoadRange((u8 *)0x0820A3D8, 0, 1, 2);
+                Sprite_Attach(entity, (void *)0x082121F0, gfx, 2);
+                Anim_SelectScript(entity, 0, 1);
+                entity->drawFunc = (u32 *) Sprite_DrawEntity;
+                entity->posX.part16.integer = 0x96;
+                entity->posY.part16.integer = 0x50;
+                entity->scrollWithBg = 1;
+                entity->state = 1;
                 return;
             }
             return;
         case 1:
             if ((RandomNumberGenerator() >> 4) & 1)
             {
-                param_0->unk_524.unk_524_16.unk_526 += 1;
+                entity->posX.part16.integer += 1;
             }
             else
             {
-                param_0->unk_524.unk_524_16.unk_526 -= 1;
+                entity->posX.part16.integer -= 1;
             }
 
             if ((RandomNumberGenerator() >> 4) & 1)
             {
-                param_0->unk_528.unk_528_16.unk_52A += 1;
+                entity->posY.part16.integer += 1;
             }
             else
             {
-                param_0->unk_528.unk_528_16.unk_52A -= 1;
+                entity->posY.part16.integer -= 1;
             }
 
-            sub_0803F17C(param_0);
+            Anim_Update(entity);
             break;
     }
 }

@@ -5,19 +5,19 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-extern s8 sub_080681D8(void *param_0); // TODO: types?
-extern s32 sub_08068AD4(struct EwramData_EntityData *param_0, s32 param_1, s32 param_2, s32 param_3, s32 param_4);
-extern void sub_08068F48(void);
-extern void sub_0806B1FC(struct EwramData_EntityData *param_0);
-extern void sub_0806C354(void);
-extern s32 sub_0806CAF8(struct EwramData_EntityData *param_0, s32 param_1, void *param_2, s32 param_3); // TODO: param_2 type
-extern s32 sub_0806D128(struct EwramData_EntityData *param_0, s32 param_1);
-extern void sub_0806D3D8(struct EwramData_EntityData *param_0, s32 param_1);
-extern void sub_0806D430(struct EwramData_EntityData *param_0, s32 param_1);
-extern void sub_0806D460(struct EwramData_EntityData *param_0, s32 param_1);
-extern void sub_0806D4A8(struct EwramData_EntityData *param_0, s32 param_1);
-extern void sub_0806E028(void);
-extern u16 sub_0806E268(u16 param_0);
-extern void sub_0806E664(s16 param_0, s16 param_1, u16 param_2);
+extern s8 ObjPalette_FindOrLoad(void *palette); // TODO: types?
+extern s32 Entity_IsInRect(struct EwramData_EntityData *entity, s32 left, s32 top, s32 width, s32 height);
+extern void SharedObjPalette_ResetSlots(void);
+extern void Entity_UpdateBoxes(struct EwramData_EntityData *entity);
+extern void Room_ResetTransientState(void);
+extern s32 Entity_Walk(struct EwramData_EntityData *entity, s32 speed, void *profile, s32 flags); // TODO: param_2 type
+extern s32 EntityIsOutsideScreen(struct EwramData_EntityData *entity, s32 margin);
+extern void EntityAccelerateAndMove(struct EwramData_EntityData *entity, s32 maxSpeed);
+extern void EntityAccelerateAndMoveX(struct EwramData_EntityData *entity, s32 maxSpeed);
+extern void EntityAccelerateAndMoveY(struct EwramData_EntityData *entity, s32 maxSpeed);
+extern void EntityDampVelocityY(struct EwramData_EntityData *entity, s32 factor);
+extern void Heap_Reset(void);
+extern u16 Attribute_GetHighestIndex(u16 attributes);
+extern void HitEffect_Spawn(s16 x, s16 y, u16 type);
 
 #endif /* CODE_08060B98_H */

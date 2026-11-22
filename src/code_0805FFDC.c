@@ -1,0 +1,73 @@
+/* Cutscene setup with two helper entities (EventScene09_Init). The do/while (0)
+ * around Anim_Update(entity) gives entity 32 refs so it gets r4. */
+#include "code_08009A0.h"
+#include "code/code_08039340.h"
+#include "structs/ewram.h"
+extern s32 GameFlag_GetMask(s32);
+extern s32 Entity_SetupFromObjectTable(struct EwramData_EntityData *, s32);
+extern struct EwramData_EntityData *Entity_CreateFromObjectTable(s32);
+extern s32 ObjAffine_Alloc(u32 group);
+extern void ObjAffine_Set(s32, s32, s32, u16, u16, u16);
+
+/**
+ * @brief Init of event scene variant 9 (Object 0x20 unk_514 = 9,
+ * sEventSceneCreateFuncs[9]).
+ */
+void EventScene09_Init(struct EwramData_EntityData *param_0)
+{
+    struct EwramData_EntityData *entity = param_0;
+    s32 flag;
+    struct EwramData_EntityData *player;
+    struct BgLayerState *bg;
+    s32 slot;
+
+    flag = GameFlag_GetMask(0x26);
+    if (flag || (player = gEwramData->playerState.player, (s16)player->posX.part16.integer <= 0x7F))
+    {
+        entity->deleteRequested = 1;
+        return;
+    }
+    player->flipX = 1;
+    if (!Entity_SetupFromObjectTable(entity, 2))
+        goto delete;
+    Anim_StartIndexed(entity, 3, 0, 1);
+    do { Anim_Update(entity); } while (0);
+    bg = &gEwramData->bgInfo[1];
+    entity->posX.part16.integer = 0x48 - bg->xPos.part16.integer;
+    entity->posY.part16.integer = 0xA0 - bg->yPos.part16.integer;
+    entity->flipX = 1;
+    entity->spriteLayer = gEwramData->playerState.player->spriteLayer - 1;
+    entity->unk_4F8.unk_4F8_entity = Entity_CreateFromObjectTable(5);
+    if (!entity->unk_4F8.unk_4F8_entity)
+        goto delete;
+    Anim_StartIndexed(entity->unk_4F8.unk_4F8_entity, 5, 0, 0);
+    Anim_Update(entity->unk_4F8.unk_4F8_entity);
+    entity->unk_4F8.unk_4F8_entity->posX.part16.integer = entity->posX.part16.integer + 0x13;
+    entity->unk_4F8.unk_4F8_entity->posY.part16.integer = entity->posY.part16.integer;
+    entity->unk_4F8.unk_4F8_entity->velX.whole = -0x18000;
+    entity->unk_4F8.unk_4F8_entity->flipX = 1 - entity->flipX;
+    entity->unk_4F8.unk_4F8_entity->spriteLayer = entity->spriteLayer + 1;
+    slot = ObjAffine_Alloc(1);
+    if (slot < 0)
+        goto delete;
+    entity->unk_500.whole = 0x10000;
+    entity->unk_504.whole = 0x10000;
+    entity->unk_4F8.unk_4F8_entity->affineIndex = slot;
+    entity->unk_4F8.unk_4F8_entity->affine = 1;
+    ObjAffine_Set(0x10000, entity->unk_500.whole, entity->unk_504.whole, 0, flag, entity->unk_4F8.unk_4F8_entity->affineIndex);
+    entity->unk_4FC.unk_4FC_entity = Entity_CreateFromObjectTable(1);
+    if (!entity->unk_4FC.unk_4FC_entity)
+    {
+        EntityDelete(entity->unk_4F8.unk_4F8_entity);
+    delete:
+        EntityDelete(entity);
+        return;
+    }
+    Anim_StartIndexed(entity->unk_4FC.unk_4FC_entity, 0, 0, 1);
+    Anim_Update(entity->unk_4FC.unk_4FC_entity);
+    { struct EwramData_EntityData *c = entity->unk_4FC.unk_4FC_entity; struct BgLayerState *b = &gEwramData->bgInfo[1]; c->posX.part16.integer = 0xFF - b->xPos.part16.integer; }
+    entity->unk_4FC.unk_4FC_entity->posY.part16.integer = entity->posY.part16.integer;
+    entity->unk_4FC.unk_4FC_entity->velX.whole = -0x6000;
+    entity->unk_4FC.unk_4FC_entity->flipX = 0;
+    gEwramData->gameState.stateFlags |= 1;
+}

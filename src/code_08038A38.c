@@ -4,7 +4,7 @@
 #include "code_08001194.h"
 #include "code_08008750.h"
 #include "code_0800B700.h"
-// #include "code_0800CB00.h" // TODO: sub_0800D288 implicitly called with arguments (it should have none)
+// #include "code_0800CB00.h" // TODO: Bg_UpdateScrollModes implicitly called with arguments (it should have none)
 #include "code_0800F1FC.h"
 #include "code_080109F4.h"
 #include "code_08011DD0.h"
@@ -37,7 +37,7 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-const u16 sUnk_080E25E8[] = {
+const u16 sDebug4531Palette[] = {
     0x7FFF, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
     0x7FFF, 0x001F, 0x001F, 0x001F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
     0x7FFF, 0x03E0, 0x03E0, 0x03E0, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
@@ -52,7 +52,7 @@ const u16 sUnk_080E25E8[] = {
 s32 GameModeDebug4531Update(void)
 {
     s32 gameMode;
-    struct EwramData_unk1325C *temp_r4;
+    struct PlayerStatus *playerStatus;
 
     // 080E2668
     void *subroutine_arg0[] = {
@@ -77,23 +77,23 @@ s32 GameModeDebug4531Update(void)
     };
 
     gameMode = GAME_MODE_SAME_MODE;
-    if (gEwramData->unk_25550 == 0)
+    if (gEwramData->debug4531State == 0)
     {
-        gEwramData->unk_25550 = 1;
+        gEwramData->debug4531State = 1;
     }
 
-    switch (gEwramData->unk_25550)
+    switch (gEwramData->debug4531State)
     {
         case 1:
-            gEwramData->unk_25550 = sub_08038D38();
-            if (gEwramData->unk_25550 != 1)
+            gEwramData->debug4531State = Debug4531_UpdateEventMenu();
+            if (gEwramData->debug4531State != 1)
             {
-                gEwramData->unk_25551 = 0;
+                gEwramData->debug4531SubStage = 0;
             }
             break;
 
         case 2:
-            gameMode = sub_080392A4();
+            gameMode = Debug4531_SelectSaveSlot();
             break;
 
         case 3:
@@ -110,100 +110,100 @@ s32 GameModeDebug4531Update(void)
         case 14:
         case 15:
         case 19:
-            if (gEwramData->unk_25550 == 12)
+            if (gEwramData->debug4531State == 12)
             {
-                gEwramData->unk_60.unk_37E |= 1;
-                sub_08012048(0x3A);
+                gEwramData->gameState.bossEventFlags |= 1;
+                GameFlag_Set(0x3A);
             }
-            else if (gEwramData->unk_25550 == 10)
+            else if (gEwramData->debug4531State == 10)
             {
-                gEwramData->unk_60.unk_37E |= 0x40;
+                gEwramData->gameState.bossEventFlags |= 0x40;
             }
-            else if (gEwramData->unk_25550 == 19)
+            else if (gEwramData->debug4531State == 19)
             {
-                sub_08012048(0x28);
+                GameFlag_Set(0x28);
             }
 
-            sub_08012048(0x20);
-            gameMode = sub_08038F8C();
-            if (gEwramData->unk_25550 == 19 && gEwramData->unk_25551 == 1)
+            GameFlag_Set(0x20);
+            gameMode = Debug4531_RunEventGame();
+            if (gEwramData->debug4531State == 19 && gEwramData->debug4531SubStage == 1)
             {
-                gEwramData->unk_1325C.equippedRedSoul = 0x2C;
-                gEwramData->unk_1325C.equippedBlueSoul = 2;
-                gEwramData->unk_1325C.equippedYellowSoul = 7;
+                gEwramData->playerStatus.equippedRedSoul = 0x2C;
+                gEwramData->playerStatus.equippedBlueSoul = 2;
+                gEwramData->playerStatus.equippedYellowSoul = 7;
             }
             break;
 
         case 16:
-            gEwramData->unk_60.unk_42C &= ~0x4000;
-            gEwramData->unk_60.unk_42C &= ~0x8000;
-            gEwramData->unk_60.unk_42C |= 0x2000;
-            gameMode = sub_08038F8C();
+            gEwramData->gameState.stateFlags &= ~0x4000;
+            gEwramData->gameState.stateFlags &= ~0x8000;
+            gEwramData->gameState.stateFlags |= 0x2000;
+            gameMode = Debug4531_RunEventGame();
             break;
 
         case 17:
-            gEwramData->unk_60.unk_42C &= ~0x2000;
-            gEwramData->unk_60.unk_42C &= ~0x8000;
-            gEwramData->unk_60.unk_42C |= 0x4000;
-            gameMode = sub_08038F8C();
+            gEwramData->gameState.stateFlags &= ~0x2000;
+            gEwramData->gameState.stateFlags &= ~0x8000;
+            gEwramData->gameState.stateFlags |= 0x4000;
+            gameMode = Debug4531_RunEventGame();
             break;
 
         case 18:
-            gEwramData->unk_60.unk_42C &= ~0x2000;
-            gEwramData->unk_60.unk_42C &= ~0x4000;
-            gEwramData->unk_60.unk_42C |= 0x8000;
-            gameMode = sub_08038F8C();
+            gEwramData->gameState.stateFlags &= ~0x2000;
+            gEwramData->gameState.stateFlags &= ~0x4000;
+            gEwramData->gameState.stateFlags |= 0x8000;
+            gameMode = Debug4531_RunEventGame();
             break;
 
         case 20:
-            gEwramData->unk_60.unk_42C |= 0x10000;
-            gameMode = sub_08038F8C();
+            gEwramData->gameState.stateFlags |= 0x10000;
+            gameMode = Debug4531_RunEventGame();
             break;
 
         case 21:
-            gEwramData->unk_25550 = 0;
-            gEwramData->unk_25551 = 0;
-            gEwramData->unk_25550 = 0;
+            gEwramData->debug4531State = 0;
+            gEwramData->debug4531SubStage = 0;
+            gEwramData->debug4531State = 0;
             gameMode = GAME_MODE_DEBUG;
             break;
     }
 
-    sub_08012048(0x20);
-    if (gEwramData->unk_25551 == 1)
+    GameFlag_Set(0x20);
+    if (gEwramData->debug4531SubStage == 1)
     {
-        if (gEwramData->unk_25550 >= 3)
+        if (gEwramData->debug4531State >= 3)
         {
-            gEwramData->unk_60.unk_88 = subroutine_arg0[gEwramData->unk_25550 - 3];
+            gEwramData->gameState.currentRoomDefinition = subroutine_arg0[gEwramData->debug4531State - 3];
 
-            temp_r4 = &gEwramData->unk_1325C;
-            if (gEwramData->unk_25550 == 19)
+            playerStatus = &gEwramData->playerStatus;
+            if (gEwramData->debug4531State == 19)
             {
-                sub_08033E38(0x63);
+                Player_SetLevel(0x63);
             }
             else
             {
-                sub_08033E38(0x2D);
+                Player_SetLevel(0x2D);
             }
-            temp_r4->currentHP = temp_r4->maxHP;
-            temp_r4->currentMP = temp_r4->maxMP;
+            playerStatus->currentHP = playerStatus->maxHP;
+            playerStatus->currentMP = playerStatus->maxMP;
 
-            if (gEwramData->unk_25550 == 15)
+            if (gEwramData->debug4531State == 15)
             {
-                sub_08012048(0x26);
+                GameFlag_Set(0x26);
             }
         }
     }
 
-    if (gEwramData->unk_25550 == 1)
+    if (gEwramData->debug4531State == 1)
     {
         if (gEwramData->inputData.newInput & (4 | 2))
         {
-            gEwramData->unk_25550 = 21;
+            gEwramData->debug4531State = 21;
         }
 
         if (gEwramData->inputData.newInput & 8)
         {
-            gEwramData->unk_60.unk_88 = (struct EwramData_unk88 *)0x0850F01C;
+            gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)0x0850F01C;
             return 4;
         }
     }
@@ -211,184 +211,183 @@ s32 GameModeDebug4531Update(void)
     return gameMode;
 }
 
-struct Unk_080E281C {
-    u8 *unk_0; // string ptr
-    s32 unk_4;
+struct DebugEventMenuEntry {
+    u8 *label; // string ptr
+    s32 eventState;
 };
 
 /**
- * @brief 38D38 | To document
- * 
- * @return s32 To document
+ * @brief Draw the paged "DEBUG MODE --usr04531--" event list, move the cursor
+ * and return the chosen event state on A (1 while choosing).
  */
-s32 sub_08038D38(void)
+s32 Debug4531_UpdateEventMenu(void)
 {
-    s32 temp_r1;
-    s32 temp_r5;
-    s32 var_r4;
-    u16 temp_r7;
+    s32 pageStart;
+    s32 prevPageStart;
+    s32 index;
+    u16 input;
     s32 ret;
-    s32 var_0;
+    s32 row;
 
     // 080E281C
-    struct Unk_080E281C subroutine_arg0[] = {
+    struct DebugEventMenuEntry subroutine_arg0[] = {
         [0] = {
-            .unk_0 = "EVENT02:GRA :",
-            .unk_4 = 4
+            .label = "EVENT02:GRA :",
+            .eventState = 4
         },
         [1] = {
-            .unk_0 = "EVENT03:YOKO:",
-            .unk_4 = 5
+            .label = "EVENT03:YOKO:",
+            .eventState = 5
         },
         [2] = {
-            .unk_0 = "EVENT04:JB  :",
-            .unk_4 = 6
+            .label = "EVENT04:JB  :",
+            .eventState = 6
         },
         [3] = {
-            .unk_0 = "EVENT05:GRA :HYOUHEN",
-            .unk_4 = 7
+            .label = "EVENT05:GRA :HYOUHEN",
+            .eventState = 7
         },
         [4] = {
-            .unk_0 = "EVENT06:YOKO:TSUISEKI",
-            .unk_4 = 8
+            .label = "EVENT06:YOKO:TSUISEKI",
+            .eventState = 8
         },
         [5] = {
-            .unk_0 = "EVENT07:YOKO:SANGEKI",
-            .unk_4 = 9
+            .label = "EVENT07:YOKO:SANGEKI",
+            .eventState = 9
         },
         [6] = {
-            .unk_0 = "EVENT08:JB  :KIOKU",
-            .unk_4 = 10
+            .label = "EVENT08:JB  :KIOKU",
+            .eventState = 10
         },
         [7] = {
-            .unk_0 = "EVENT09:GRA :VS GRAHAM",
-            .unk_4 = 11
+            .label = "EVENT09:GRA :VS GRAHAM",
+            .eventState = 11
         },
         [8] = {
-            .unk_0 = "EVENT10:JB  :VS BELMONDO",
-            .unk_4 = 12
+            .label = "EVENT10:JB  :VS BELMONDO",
+            .eventState = 12
         },
         [9] = {
-            .unk_0 = "EVENT11:    :VS CHAOS",
-            .unk_4 = 13
+            .label = "EVENT11:    :VS CHAOS",
+            .eventState = 13
         },
         [10] = {
-            .unk_0 = "EVENT12:ENDING_BAD",
-            .unk_4 = 16
+            .label = "EVENT12:ENDING_BAD",
+            .eventState = 16
         },
         [11] = {
-            .unk_0 = "EVENT13:ENDING_TRUE",
-            .unk_4 = 17
+            .label = "EVENT13:ENDING_TRUE",
+            .eventState = 17
         },
         [12] = {
-            .unk_0 = "EVENT14:SYOUNIN",
-            .unk_4 = 14
+            .label = "EVENT14:SYOUNIN",
+            .eventState = 14
         },
         [13] = {
-            .unk_0 = "EVENT16:YOKO HINSHI",
-            .unk_4 = 15
+            .label = "EVENT16:YOKO HINSHI",
+            .eventState = 15
         },
         [14] = {
-            .unk_0 = "EVENTJB:ENDING_BELMONDO",
-            .unk_4 = 18
+            .label = "EVENTJB:ENDING_BELMONDO",
+            .eventState = 18
         },
         [15] = {
-            .unk_0 = "EVENT09_05:VS GRAHAM2",
-            .unk_4 = 19
+            .label = "EVENT09_05:VS GRAHAM2",
+            .eventState = 19
         },
         [16] = {
-            .unk_0 = "EVENTED:ENDING CHAOS",
-            .unk_4 = 20
+            .label = "EVENTED:ENDING CHAOS",
+            .eventState = 20
         },
         [17] = {
-            .unk_0 = NULL,
-            .unk_4 = 0
+            .label = NULL,
+            .eventState = 0
         },
     };
 
-    temp_r7 = gEwramData->inputData.repeatedInput;
+    input = gEwramData->inputData.repeatedInput;
     ret = 1;
 
-    DMA_COPY_16(3, &sUnk_080E25E8, PALRAM_BASE, 0x80);
+    DMA_COPY_16(3, &sDebug4531Palette, PALRAM_BASE, 0x80);
     BgCmdBuffer_WriteString(1, 1, 1, "DEBUG MODE --usr04531--"); // "DEBUG MODE --usr04531--"
 
-    temp_r5 = ((u32*)&gEwramData->unk_254D0)[0];
-    temp_r1 = (gEwramData->unk_25551 / 17) * 17;
-    ((u32*)&gEwramData->unk_254D0)[0] = temp_r1;
-    if (temp_r5 != temp_r1)
+    prevPageStart = ((u32*)&gEwramData->debugMenuWork)[0];
+    pageStart = (gEwramData->debug4531SubStage / 17) * 17;
+    ((u32*)&gEwramData->debugMenuWork)[0] = pageStart;
+    if (prevPageStart != pageStart)
     {
         DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
     }
 
-    ((u32*)&gEwramData->unk_254D0)[2] = 0;
-    for (var_r4 = ((u32*)&gEwramData->unk_254D0)[0]; subroutine_arg0[var_r4].unk_0 != NULL; var_r4++)
+    ((u32*)&gEwramData->debugMenuWork)[2] = 0;
+    for (index = ((u32*)&gEwramData->debugMenuWork)[0]; subroutine_arg0[index].label != NULL; index++)
     {
-        if (((s32*)&gEwramData->unk_254D0)[2] <= 0x10)
+        if (((s32*)&gEwramData->debugMenuWork)[2] <= 0x10)
         {
-            ((u32*)&gEwramData->unk_254D0)[2] += 1;
+            ((u32*)&gEwramData->debugMenuWork)[2] += 1;
         }
     }
-    ((u32*)&gEwramData->unk_254D0)[1] = ((u32*)&gEwramData->unk_254D0)[0] + ((u32*)&gEwramData->unk_254D0)[2];
+    ((u32*)&gEwramData->debugMenuWork)[1] = ((u32*)&gEwramData->debugMenuWork)[0] + ((u32*)&gEwramData->debugMenuWork)[2];
 
     if (gEwramData->inputData.newInput & 1)
     {
         DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
-        ret =  subroutine_arg0[gEwramData->unk_25551].unk_4;
+        ret =  subroutine_arg0[gEwramData->debug4531SubStage].eventState;
         return ret;
     }
 
-    if (temp_r7 & 0x40)
+    if (input & 0x40)
     {
-        if ((gEwramData->unk_25551 % 17) != 0)
+        if ((gEwramData->debug4531SubStage % 17) != 0)
         {
-            gEwramData->unk_25551 -= 1;
+            gEwramData->debug4531SubStage -= 1;
         }
         else
         {
-            gEwramData->unk_25551 = ((u32*)&gEwramData->unk_254D0)[1] - 1;
+            gEwramData->debug4531SubStage = ((u32*)&gEwramData->debugMenuWork)[1] - 1;
         }
     }
-    else if (temp_r7 & 0x80)
+    else if (input & 0x80)
     {
-        if ((((gEwramData->unk_25551 + 1) % 17) == 0) || ((gEwramData->unk_25551 + 1) >= ((s32*)&gEwramData->unk_254D0)[1]))
+        if ((((gEwramData->debug4531SubStage + 1) % 17) == 0) || ((gEwramData->debug4531SubStage + 1) >= ((s32*)&gEwramData->debugMenuWork)[1]))
         {
-            gEwramData->unk_25551 = ((u32*)&gEwramData->unk_254D0)[0];
+            gEwramData->debug4531SubStage = ((u32*)&gEwramData->debugMenuWork)[0];
         }
         else
         {
-            gEwramData->unk_25551 += 1;
+            gEwramData->debug4531SubStage += 1;
         }
     }
-    else if (temp_r7 & 0x100)
+    else if (input & 0x100)
     {
-        if ((gEwramData->unk_25551 + 0x11) < var_r4)
+        if ((gEwramData->debug4531SubStage + 0x11) < index)
         {
-            gEwramData->unk_25551 += 0x11;
+            gEwramData->debug4531SubStage += 0x11;
         }
         else
         {
-            gEwramData->unk_25551 = var_r4 - 1;
+            gEwramData->debug4531SubStage = index - 1;
         }
     }
-    else if (temp_r7 & 0x200)
+    else if (input & 0x200)
     {
-        if (gEwramData->unk_25551 > 0x11)
+        if (gEwramData->debug4531SubStage > 0x11)
         {
-            gEwramData->unk_25551 -= 0x11;
+            gEwramData->debug4531SubStage -= 0x11;
         }
         else
         {
-            gEwramData->unk_25551 = 0;
+            gEwramData->debug4531SubStage = 0;
         }
     }
 
-    var_r4 = ((u32*)&gEwramData->unk_254D0)[0];
-    var_0 = 0;
-    for (; var_r4 < (s32) (((u32*)&gEwramData->unk_254D0)[0] + ((u32*)&gEwramData->unk_254D0)[2]); )
+    index = ((u32*)&gEwramData->debugMenuWork)[0];
+    row = 0;
+    for (; index < (s32) (((u32*)&gEwramData->debugMenuWork)[0] + ((u32*)&gEwramData->debugMenuWork)[2]); )
     {
-        BgCmdBuffer_WriteString(4, 2 + var_0, (var_r4 == gEwramData->unk_25551) ? 1 : 3, subroutine_arg0[var_r4].unk_0);
-        var_r4++;
-        var_0++;
+        BgCmdBuffer_WriteString(4, 2 + row, (index == gEwramData->debug4531SubStage) ? 1 : 3, subroutine_arg0[index].label);
+        index++;
+        row++;
     }
     return ret;
 }
@@ -402,182 +401,181 @@ s32 sUnk_084F159C[] = {
 };
 
 /**
- * @brief 38F8C | To document
- * 
- * @return s32 To document
+ * @brief Set up a new game with all souls, items and abilities, then run
+ * GameModeInGameUpdate with the debug HP/MP/position overlay and the
+ * L+R level-up cheat.
  */
-s32 sub_08038F8C(void)
+s32 Debug4531_RunEventGame(void)
 {
-    s32 var_r4;
-    s32 var_r6;
-    s32 var_sb;
-    struct EwramData_unk1325C *temp_r7;
-    s16 temp_r4;
-    s16 temp_sb;
-    struct EwramData_unk60 *var_0;
-    struct EwramData_EntityData *var_1;
+    s32 j;
+    s32 i;
+    s32 result;
+    struct PlayerStatus *playerStatus;
+    s16 roomY;
+    s16 roomX;
+    struct GameState *gameState;
+    struct EwramData_EntityData *player;
 
-    var_0 = &gEwramData->unk_60;
-    temp_r7 = &gEwramData->unk_1325C;
-    var_1 = gEwramData->unk_13110.unk_13110;
-    var_sb = -1;
+    gameState = &gEwramData->gameState;
+    playerStatus = &gEwramData->playerStatus;
+    player = gEwramData->playerState.player;
+    result = -1;
 
-    switch (gEwramData->unk_25551)
+    switch (gEwramData->debug4531SubStage)
     {
         case 0:
-            var_0->unk_64 = 0;
+            gameState->subMode = 0;
             DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x2000);
-            sub_08014548();
-            gEwramData->unk_1325C.equippedRedSoul = 0x2D;
-            gEwramData->unk_1325C.equippedBlueSoul = 3;
-            sub_0804B26C(2, 4);
+            Player_InitNewGameIfNeeded();
+            gEwramData->playerStatus.equippedRedSoul = 0x2D;
+            gEwramData->playerStatus.equippedBlueSoul = 3;
+            Player_EquipItem(2, 4);
 
-            for (var_r6 = 0; var_r6 < 4; var_r6++)
+            for (i = 0; i < 4; i++)
             {
-                for (var_r4 = 0; var_r4 < sUnk_084F158C[var_r6]; var_r4++)
+                for (j = 0; j < sUnk_084F158C[i]; j++)
                 {
-                    SoulInventory_AddAmountToFirstGroupTotal(var_r6, var_r4, 1);
+                    SoulInventory_AddAmountToFirstGroupTotal(i, j, 1);
                 }
             }
             SoulInventory_AddAmountToSoulTotal(0, 0, 7);
 
-            for (var_r6 = 3; var_r6 < 6; var_r6++)
+            for (i = 3; i < 6; i++)
             {
-                for (var_r4 = 0; var_r4 < sUnk_084F159C[var_r6 - 3]; var_r4++)
+                for (j = 0; j < sUnk_084F159C[i - 3]; j++)
                 {
-                    switch (var_r6)
+                    switch (i)
                     {
                         case 3:
-                            gEwramData->unk_1325C.itemInventory[var_r4] = 1;
+                            gEwramData->playerStatus.itemInventory[j] = 1;
                             break;
 
                         case 4:
-                            gEwramData->unk_1325C.weaponInventory[var_r4] = 1;
+                            gEwramData->playerStatus.weaponInventory[j] = 1;
                             break;
 
                         case 5:
-                            gEwramData->unk_1325C.armorInventory[var_r4] = 1;
+                            gEwramData->playerStatus.armorInventory[j] = 1;
                             break;
                     }
                 }
             }
 
-            sub_08032ADC(0, 1);
-            sub_08032ADC(1, 1);
-            sub_08032ADC(2, 1);
-            sub_08032ADC(3, 1);
-            sub_08032ADC(4, 1);
-            sub_08032ADC(5, 1);
+            Player_SetAbility(0, 1);
+            Player_SetAbility(1, 1);
+            Player_SetAbility(2, 1);
+            Player_SetAbility(3, 1);
+            Player_SetAbility(4, 1);
+            Player_SetAbility(5, 1);
 
-            sub_08046A18();
-            gEwramData->unk_60.unk_88 = (struct EwramData_unk88 *)0x08517790;
-            gEwramData->unk_25551 = 1;
+            Player_ClearEquipmentAndSoulLists();
+            gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)0x08517790;
+            gEwramData->debug4531SubStage = 1;
             break;
 
         case 1:
-            gEwramData->unk_25551 = 2;
+            gEwramData->debug4531SubStage = 2;
             break;
 
         case 2:
-            if ((var_0->unk_64 != 6) && (gEwramData->unk_25552 & 4))
+            if ((gameState->subMode != 6) && (gEwramData->debug4531Flags & 4))
             {
-                DMA_COPY_32(3, &sUnk_080E3464, PALRAM_BASE + 0x160, 0x40);
-                temp_sb = GetEntityRoomXPositionInteger(gEwramData->unk_13110.unk_13110);
-                temp_r4 = GetEntityRoomYPositionInteger(gEwramData->unk_13110.unk_13110);
+                DMA_COPY_32(3, &sDebugPalette, PALRAM_BASE + 0x160, 0x40);
+                roomX = GetEntityRoomXPositionInteger(gEwramData->playerState.player);
+                roomY = GetEntityRoomYPositionInteger(gEwramData->playerState.player);
                 {
-                    char sp4[29];
+                    char text[29];
 
-                    sprintf(sp4, "HP=%3d MP=%3d", gEwramData->unk_1325C.currentHP, gEwramData->unk_1325C.currentMP);
-                    BgCmdBuffer_WriteString(0xE, 4, 0xC, (u8 *) sp4);
+                    sprintf(text, "HP=%3d MP=%3d", gEwramData->playerStatus.currentHP, gEwramData->playerStatus.currentMP);
+                    BgCmdBuffer_WriteString(0xE, 4, 0xC, (u8 *) text);
 
-                    sprintf(sp4, "%004x:%004x", temp_sb, temp_r4);
-                    BgCmdBuffer_WriteString(0xE, 5, 0xC, (u8 *) sp4);
+                    sprintf(text, "%004x:%004x", roomX, roomY);
+                    BgCmdBuffer_WriteString(0xE, 5, 0xC, (u8 *) text);
                 }
             }
 
-            if (gEwramData->unk_25552 & 2)
+            if (gEwramData->debug4531Flags & 2)
             {
-                temp_r7->equippedRedSoul = 0x37;
-                temp_r7->equippedBlueSoul = 3;
-                temp_r7->equippedYellowSoul = 4;
-                sub_0804AD9C();
-                temp_r7->currentExperience = 0x86470;
-                sub_08033CAC(temp_r7);
-                temp_r7->currentHP = temp_r7->maxHP;
-                temp_r7->currentMP = temp_r7->maxMP;
-                gEwramData->unk_25552 &= ~0x2;
+                playerStatus->equippedRedSoul = 0x37;
+                playerStatus->equippedBlueSoul = 3;
+                playerStatus->equippedYellowSoul = 4;
+                Player_RefreshEquipmentStats();
+                playerStatus->currentExperience = 0x86470;
+                Player_ApplyEarnedLevels(playerStatus);
+                playerStatus->currentHP = playerStatus->maxHP;
+                playerStatus->currentMP = playerStatus->maxMP;
+                gEwramData->debug4531Flags &= ~0x2;
             }
 
-            var_sb = GameModeInGameUpdate();
+            result = GameModeInGameUpdate();
             if (((gEwramData->inputData.heldInput & 0x300) == 0x300) && ((gEwramData->inputData.newInput & 0x8) == 0x8))
             {
-                if (gEwramData->unk_25552 & 4)
+                if (gEwramData->debug4531Flags & 4)
                 {
-                    gEwramData->unk_25552 &= ~4;
+                    gEwramData->debug4531Flags &= ~4;
                 }
                 else
                 {
-                    gEwramData->unk_25552 |= 4;
+                    gEwramData->debug4531Flags |= 4;
                 }
             }
 
             if (((gEwramData->inputData.heldInput & 0x300) == 0x300) && ((gEwramData->inputData.newInput & 0x2) == 0x2))
             {
-                if (gEwramData->unk_A074_0)
+                if (gEwramData->paused)
                 {
-                    gEwramData->unk_25552 |= 2;
+                    gEwramData->debug4531Flags |= 2;
                 }
             }
             break;
     }
 
-    return var_sb;
+    return result;
 }
 
 /**
- * @brief 392A4 | To document
- * 
- * @return s32 To document
+ * @brief Debug mode 4531 state 2: open the save select screen; on a choice
+ * start the game at room 0x08524020 (return 4), on cancel return 0.
  */
-s32 sub_080392A4(void)
+s32 Debug4531_SelectSaveSlot(void)
 {
-    s32 var_r6;
-    struct EwramData_EntityData *temp_r4;
+    s32 result;
+    struct EwramData_EntityData *entity;
 
-    temp_r4 = &gEwramData->entityData[0x12];
-    var_r6 = -1;
+    entity = &gEwramData->entityData[0x12];
+    result = -1;
 
-    switch (gEwramData->unk_25551)
+    switch (gEwramData->debug4531SubStage)
     {
         case 0:
-            sub_08008300(temp_r4);
-            gEwramData->unk_25551 += 1;
+            SaveSelect_Open(entity);
+            gEwramData->debug4531SubStage += 1;
             break;
 
         case 1:
-            switch (sub_080081AC(temp_r4))
+            switch (SaveSelect_Update(entity))
             {
                 case -1:
-                    var_r6 = 0;
+                    result = 0;
                     break;
 
                 case 0:
-                    var_r6 = -1;
+                    result = -1;
                     break;
 
                 case 1:
-                    gEwramData->unk_60.unk_88 = (struct EwramData_unk88 *)0x08524020;
-                    var_r6 = 4;
+                    gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)0x08524020;
+                    result = 4;
                     break;
             }
 
-            if (var_r6 != -1)
+            if (result != -1)
             {
-                gEwramData->unk_25551 = 0;
-                sub_08008314(temp_r4);
+                gEwramData->debug4531SubStage = 0;
+                SaveSelect_Close(entity);
             }
             break;
     }
 
-    return var_r6;
+    return result;
 }

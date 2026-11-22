@@ -28,7 +28,7 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-static u8 sUnk_084F0B18[0x10] = "CASTLEVANIA2-010";
+static u8 sSramSignature[0x10] = "CASTLEVANIA2-010";
 
 /**
  * @brief 1004 | Clears SRAM and writes SRAM header
@@ -42,22 +42,22 @@ u32 SramInitialize(void)
     u32 error_addr;
 
     dst = SRAM_BASE;
-    DMA_FILL_32(3, 0, gEwramData->unk_133F4, 0x1000);
+    DMA_FILL_32(3, 0, gEwramData->sharedScratchBuffer, 0x1000);
 
     for (i = 0; i < SRAM_SIZE; i += 0x1000)
     {
-        error_addr = WriteAndVerifySramFast(gEwramData->unk_133F4, dst + i, 0x1000);
+        error_addr = WriteAndVerifySramFast(gEwramData->sharedScratchBuffer, dst + i, 0x1000);
         if (error_addr != 0)
             return error_addr;
     }
 
-    dst = gEwramData->unk_133F4;
+    dst = gEwramData->sharedScratchBuffer;
     for (i = 0; i < 0x10; i += 1)
     {
-        dst[i] = sUnk_084F0B18[i];
+        dst[i] = sSramSignature[i];
     }
 
-    error_addr = WriteAndVerifySramFast(gEwramData->unk_133F4, SRAM_BASE, 0x10);
+    error_addr = WriteAndVerifySramFast(gEwramData->sharedScratchBuffer, SRAM_BASE, 0x10);
     return error_addr;
 }
 
@@ -74,11 +74,11 @@ s32 SramCheckInitialized(void)
     u8 *headerStrPtr;
 
     sramInitialized = TRUE;
-    sramPtr = gEwramData->unk_133F4;
-    gReadSramFast(SRAM_BASE, &gEwramData->unk_133F4, 0x10);
+    sramPtr = gEwramData->sharedScratchBuffer;
+    gReadSramFast(SRAM_BASE, &gEwramData->sharedScratchBuffer, 0x10);
 
     i = 0x10;
-    headerStrPtr = sUnk_084F0B18;
+    headerStrPtr = sSramSignature;
 
     for (; i > 0; i--, sramPtr++, headerStrPtr++)
     {

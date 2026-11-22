@@ -37,124 +37,124 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-static struct Unk_03000000 gUnk_03000000;
+static struct NestedDebugMenuState sDebug2739MenuState;
 
-struct Unk_084F1464 {
-    void *unk_0;
-    s32 unk_4;
+struct Debug2739TestDispatch {
+    void *runFunc;
+    s32 testIndex;
 }; /* size = 0x8 */
-struct Unk_084F1464 sUnk_084F1464[] = {
+struct Debug2739TestDispatch sDebug2739TestDispatch[] = {
     [0] = {
-        .unk_0 = sub_0803889C,
-        .unk_4 = 0
+        .runFunc = DebugObjDispTest_Run,
+        .testIndex = 0
     },
     [1] = {
-        .unk_0 = sub_08036B40,
-        .unk_4 = 0
+        .runFunc = DebugDispTest_Run,
+        .testIndex = 0
     },
     [2] = {
-        .unk_0 = sub_08036B40,
-        .unk_4 = 1
+        .runFunc = DebugDispTest_Run,
+        .testIndex = 1
     },
     [3] = {
-        .unk_0 = sub_08036B40,
-        .unk_4 = 2
+        .runFunc = DebugDispTest_Run,
+        .testIndex = 2
     },
     [4] = {
-        .unk_0 = sub_08037E9C,
-        .unk_4 = 0
+        .runFunc = DebugSioTest_Run,
+        .testIndex = 0
     },
     [5] = {
-        .unk_0 = sub_08037E9C,
-        .unk_4 = 1
+        .runFunc = DebugSioTest_Run,
+        .testIndex = 1
     },
     [6] = {
-        .unk_0 = NULL,
-        .unk_4 = 0
+        .runFunc = NULL,
+        .testIndex = 0
     }
 };
 
 const u8 sUnk_080e1fd4[] = { 0xF6, 0xE0, 0x14, 0x20 }; // TODO: what is this data?
 
-struct Unk_08036B10 sUnk_084F149C[] = {
+struct NestedDebugMenuEntry sUnk_084F149C[] = {
     [0] = {
-        .unk_0 = "DISP TEST",
-        .unk_4 = 0,
-        .unk_8 = 1
+        .label = "DISP TEST",
+        .submenu = 0,
+        .selectionId = 1
     },
     [1] = {
-        .unk_0 = "LINK TEST",
-        .unk_4 = 0,
-        .unk_8 = 2
+        .label = "LINK TEST",
+        .submenu = 0,
+        .selectionId = 2
     },
     [2] = {
-        .unk_0 = "VRAM HIT TEST",
-        .unk_4 = 0,
-        .unk_8 = 3
+        .label = "VRAM HIT TEST",
+        .submenu = 0,
+        .selectionId = 3
     },
     [3] = {
-        .unk_0 = 0,
-        .unk_4 = 0,
-        .unk_8 = 0
+        .label = 0,
+        .submenu = 0,
+        .selectionId = 0
     }
 };
 
-struct Unk_08036B10 sUnk_084F14CC[] = {
+struct NestedDebugMenuEntry sUnk_084F14CC[] = {
     [0] = {
-        .unk_0 = "DISP TEST",
-        .unk_4 = 0,
-        .unk_8 = 0
+        .label = "DISP TEST",
+        .submenu = 0,
+        .selectionId = 0
     },
     [1] = {
-        .unk_0 = 0,
-        .unk_4 = 0,
-        .unk_8 = 0
+        .label = 0,
+        .submenu = 0,
+        .selectionId = 0
     }
 };
 
-struct Unk_08036B10 sUnk_084F14E4[] = {
+struct NestedDebugMenuEntry sUnk_084F14E4[] = {
     [0] = {
-        .unk_0 = "SIO TEST 0",
-        .unk_4 = 0,
-        .unk_8 = 4
+        .label = "SIO TEST 0",
+        .submenu = 0,
+        .selectionId = 4
     },
     [1] = {
-        .unk_0 = "SIO TEST 1",
-        .unk_4 = 0,
-        .unk_8 = 5
+        .label = "SIO TEST 1",
+        .submenu = 0,
+        .selectionId = 5
     },
     [2] = {
-        .unk_0 = 0,
-        .unk_4 = 0,
-        .unk_8 = 0
+        .label = 0,
+        .submenu = 0,
+        .selectionId = 0
     }
 };
 
-struct Unk_08036B10 sUnk_084F1508[] = {
+struct NestedDebugMenuEntry sNestedDebugMenuEntries[] = {
     [0] = {
-        .unk_0 = "BG",
-        .unk_4 = sUnk_084F149C,
-        .unk_8 = 0xFE
+        .label = "BG",
+        .submenu = sUnk_084F149C,
+        .selectionId = 0xFE
     },
     [1] = {
-        .unk_0 = "OBJ",
-        .unk_4 = sUnk_084F14CC,
-        .unk_8 = 0xFE
+        .label = "OBJ",
+        .submenu = sUnk_084F14CC,
+        .selectionId = 0xFE
     },
     [2] = {
-        .unk_0 = "ETC",
-        .unk_4 = sUnk_084F14E4,
-        .unk_8 = 0xFE
+        .label = "ETC",
+        .submenu = sUnk_084F14E4,
+        .selectionId = 0xFE
     },
     [3] = {
-        .unk_0 = "EXIT",
-        .unk_4 = NULL,
-        .unk_8 = 6
+        .label = "EXIT",
+        .submenu = NULL,
+        .selectionId = 6
     },
     [4] = {
-        .unk_0 = NULL,
-        .unk_4 = NULL,
-        .unk_8 = 0
+        .label = NULL,
+        .submenu = NULL,
+        .selectionId = 0
     }
 };
 
@@ -166,28 +166,28 @@ struct Unk_08036B10 sUnk_084F1508[] = {
 s32 GameModeDebug2739Update(void)
 {
     s32 gameMode;
-    struct Unk_084F1464 *temp_r1;
+    struct Debug2739TestDispatch *entry;
 
     gameMode = GAME_MODE_SAME_MODE;
 
-    switch (gEwramData->unk_12)
+    switch (gEwramData->gameModeSubStage)
     {
         case 0:
-            DMA_FILL_32(3, 0, &gUnk_03000000, sizeof(gUnk_03000000));
-            sub_08036AD4(&gUnk_03000000, sUnk_084F1508);
-            gEwramData->unk_12 = 1;
+            DMA_FILL_32(3, 0, &sDebug2739MenuState, sizeof(sDebug2739MenuState));
+            DebugMenu_Init(&sDebug2739MenuState, sNestedDebugMenuEntries);
+            gEwramData->gameModeSubStage = 1;
             break;
 
         case 1:
-            gUnk_03000000.unk_C = sub_08036970(&gUnk_03000000, 4, 4);
-            switch (gUnk_03000000.unk_C)
+            sDebug2739MenuState.selectionResult = DebugMenu_Update(&sDebug2739MenuState, 4, 4);
+            switch (sDebug2739MenuState.selectionResult)
             {
                 case 6:
-                    gEwramData->unk_12 = 4;
+                    gEwramData->gameModeSubStage = 4;
                     break;
 
                 default:
-                    gEwramData->unk_12 = 2;
+                    gEwramData->gameModeSubStage = 2;
                     break;
                 
                 case 0xFE:
@@ -198,27 +198,27 @@ s32 GameModeDebug2739Update(void)
 
         case 2:
             DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
-            gEwramData->unk_12 = 3;
+            gEwramData->gameModeSubStage = 3;
             /* fallthrough */
         case 3:
-            temp_r1 = &sUnk_084F1464[gUnk_03000000.unk_C];
-            if (((s32 (*)(s32)) temp_r1->unk_0)(temp_r1->unk_4) != 0)
+            entry = &sDebug2739TestDispatch[sDebug2739MenuState.selectionResult];
+            if (((s32 (*)(s32)) entry->runFunc)(entry->testIndex) != 0)
             {
-                sub_08000E50();
-                DMA_COPY_32(3, &sUnk_080E3464, PALRAM_BASE, sizeof(sUnk_080E3464));
-                gUnk_03000000.unk_10 = 0;
-                gEwramData->unk_12 = 1;
+                EntityFreeAll();
+                DMA_COPY_32(3, &sDebugPalette, PALRAM_BASE, sizeof(sDebugPalette));
+                sDebug2739MenuState.testStage = 0;
+                gEwramData->gameModeSubStage = 1;
             }
             break;
 
         case 4:
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             gameMode = GAME_MODE_DEBUG;
             ResetAudio();
             break;
 
         default:
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
     }
 
@@ -226,137 +226,121 @@ s32 GameModeDebug2739Update(void)
 }
 
 /**
- * @brief 36958 | To document
- * 
- * @return u8 To document
+ * @brief Return the current debug test stage (0 init, 1 run, 2 exit).
  */
-s32 sub_08036958(void)
+s32 DebugTest_GetStage(void)
 {
-    return gUnk_03000000.unk_10;
+    return sDebug2739MenuState.testStage;
 }
 
 /**
- * @brief 36964 | To document
- * 
- * @param param_0 To document
+ * @brief Set the debug test stage.
  */
-void sub_08036964(u8 param_0)
+void DebugTest_SetStage(u8 stage)
 {
-    gUnk_03000000.unk_10 = param_0;
+    sDebug2739MenuState.testStage = stage;
 }
 
 /**
- * @brief 36970 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @return s32 To document
+ * @brief Draw and navigate the current list of the nested debug menu: Up/Down
+ * move, A returns the entry id and enters a submenu, B goes back.
+ * Return 0xFF when nothing was chosen.
  */
-s32 sub_08036970(struct Unk_03000000 *param_0, u16 param_1, u16 param_2)
+s32 DebugMenu_Update(struct NestedDebugMenuState *menu, u16 tileIndex, u16 rowOffset)
 {
-    s32 sp8;
-    s32 var_r6;
-    s32 var_sb;
-    s8 *var_r7;
-    struct Unk_08036B10 *var_r8;
-    u8 var_r2;
+    s32 chosen;
+    s32 i;
+    s32 count;
+    s8 *cursor;
+    struct NestedDebugMenuEntry *list;
+    u8 tileInfo;
 
-    var_r8 = sub_08036B10(param_0);
-    var_sb = sub_08036AF8(var_r8);
-    sp8 = 0xFF;
+    list = DebugMenu_GetCurrentList(menu);
+    count = DebugMenu_CountEntries(list);
+    chosen = 0xFF;
 
-    var_r7 = &param_0->unk_5[param_0->unk_4];
+    cursor = &menu->cursors[menu->depth];
     if (gEwramData->inputData.playerNewInput & 0x40)
     {
-        if (--*var_r7 < 0)
+        if (--*cursor < 0)
         {
-            *var_r7 = var_sb - 1;
+            *cursor = count - 1;
         }
     }
     if (gEwramData->inputData.playerNewInput & 0x80)
     {
-        if (++*var_r7 > (var_sb - 1))
+        if (++*cursor > (count - 1))
         {
-            *var_r7 = 0;
+            *cursor = 0;
         }
     }
 
     if (gEwramData->inputData.playerNewInput & 1)
     {
-        sp8 = var_r8[*var_r7].unk_8;
-        if (var_r8[*var_r7].unk_4 != NULL)
+        chosen = list[*cursor].selectionId;
+        if (list[*cursor].submenu != NULL)
         {
-            param_0->unk_4 += 1;
-            var_r8 = sub_08036B10(param_0);
-            var_sb = sub_08036AF8(var_r8);
-            var_r7 = &param_0->unk_5[param_0->unk_4];
+            menu->depth += 1;
+            list = DebugMenu_GetCurrentList(menu);
+            count = DebugMenu_CountEntries(list);
+            cursor = &menu->cursors[menu->depth];
             DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
         }
     }
-    if ((gEwramData->inputData.playerNewInput & 2) && (param_0->unk_4 > 0))
+    if ((gEwramData->inputData.playerNewInput & 2) && (menu->depth > 0))
     {
-        param_0->unk_4 -= 1;
-        var_r8 = sub_08036B10(param_0);
-        var_sb = sub_08036AF8(var_r8);
-        var_r7 = &param_0->unk_5[param_0->unk_4];
+        menu->depth -= 1;
+        list = DebugMenu_GetCurrentList(menu);
+        count = DebugMenu_CountEntries(list);
+        cursor = &menu->cursors[menu->depth];
         DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
     }
 
-    for (var_r6 = 0; var_r6 < var_sb; var_r6++)
+    for (i = 0; i < count; i++)
     {
-        var_r2 = 0;
-        if (var_r6 == *var_r7)
+        tileInfo = 0;
+        if (i == *cursor)
         {
-            var_r2 = 1;
+            tileInfo = 1;
         }
-        BgCmdBuffer_WriteString(param_1, param_2 + var_r6, var_r2, var_r8[var_r6].unk_0);
+        BgCmdBuffer_WriteString(tileIndex, rowOffset + i, tileInfo, list[i].label);
     }
 
-    return sp8;
+    return chosen;
 }
 
 /**
- * @brief 36AD4 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
+ * @brief Clear the debug menu state and set its root list.
  */
-void sub_08036AD4(struct Unk_03000000 *param_0, struct Unk_08036B10 *param_1)
+void DebugMenu_Init(struct NestedDebugMenuState *menu, struct NestedDebugMenuEntry *root)
 {
-    DMA_FILL_32(3, 0, param_0, 0xC);
-    param_0->unk_0 = param_1;
+    DMA_FILL_32(3, 0, menu, 0xC);
+    menu->rootList = root;
 }
 
 /**
- * @brief 36AF8 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Count the entries of a NULL-terminated debug menu list.
  */
-s32 sub_08036AF8(struct Unk_08036B10 *param_0)
+s32 DebugMenu_CountEntries(struct NestedDebugMenuEntry *entries)
 {
-    s32 var_r2;
+    s32 i;
 
-    for (var_r2 = 0; param_0[var_r2].unk_0 != NULL; var_r2++);
-    return var_r2;
+    for (i = 0; entries[i].label != NULL; i++);
+    return i;
 }
 
 /**
- * @brief 36B10 | To document
- * 
- * @param param_0 To document
- * @return struct Unk_08036B10* To document
+ * @brief Follow the chosen entries from the root to the current list.
  */
-struct Unk_08036B10* sub_08036B10(struct Unk_03000000 *param_0)
+struct NestedDebugMenuEntry* DebugMenu_GetCurrentList(struct NestedDebugMenuState *menu)
 {
-    struct Unk_08036B10 *var_r3;
-    s32 var_r2;
+    struct NestedDebugMenuEntry *list;
+    s32 i;
 
-    var_r3 = param_0->unk_0;
-    for (var_r2 = 0; var_r2 < param_0->unk_4; var_r2++)
+    list = menu->rootList;
+    for (i = 0; i < menu->depth; i++)
     {
-        var_r3 = var_r3[param_0->unk_5[var_r2]].unk_4;
+        list = list[menu->cursors[i]].submenu;
     }
-    return var_r3;
+    return list;
 }

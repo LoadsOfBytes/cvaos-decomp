@@ -6,8 +6,8 @@
 #include "structs/main.h"
 
 s32 GameModeDebug4531Update(void);
-s32 sub_08038D38(void);
-s32 sub_08038F8C(void);
-s32 sub_080392A4(void);
+s32 Debug4531_UpdateEventMenu(void);
+s32 Debug4531_RunEventGame(void);
+s32 Debug4531_SelectSaveSlot(void);
 
 #endif /* CODE_08038A38_H */

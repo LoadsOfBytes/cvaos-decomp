@@ -36,528 +36,504 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-struct Unk_084F140C {
-    u8 unk_0;
-    u8 unk_1;
+/*
+ * Work slots of the soul trade menu entity (this TU): own offer kind / soul
+ * id and partner offer kind / soul id (sent with SoulTrade_SetOffer /
+ * SoulTrade_SetAcknowledge, printed by SoulTrade_UpdateOfferNames); selected
+ * soul kind (list 0-2, sSoulTradeListTextBases); partner-offer-shown flag;
+ * selected soul list entry (halfword, and its low byte as read by
+ * SoulTrade_MoveListCursor); cursor row inside the eight-row window and the
+ * window's first row; link wait counter of GameModeSoulTradeMenu (counts to 6,
+ * once stores a link id). Token-identical expansion.
+ */
+#define TRADE_OWN_KIND(e) e->unk_504.part8.unk_504
+#define TRADE_OWN_SOUL(e) e->unk_504.part8.unk_505
+#define TRADE_PARTNER_KIND(e) e->unk_504.part8.unk_506
+#define TRADE_PARTNER_SOUL(e) e->unk_504.part8.unk_507
+#define TRADE_LIST_KIND(e) e->unk_4F8.part8.unk_4F8
+#define TRADE_PARTNER_SHOWN(e) e->unk_4F8.part8.unk_4F9
+#define TRADE_SELECTED(e) e->unk_4FC.part16.unk_4FC
+#define TRADE_SELECTED_BYTE(e) e->unk_4FC.part8.unk_4FC
+#define TRADE_LIST_ROW(e) e->unk_50C.part16.unk_50C
+#define TRADE_LIST_TOP(e) e->unk_50C.part16.unk_50E
+#define TRADE_WAIT_COUNTER(e) e->unk_500.part16.unk_502
+
+struct SoulKey {
+    u8 soulType;
+    u8 oneBasedSoulId;
     u8 pad_2[0x4 - 0x2];
 };
 
-extern struct Unk_084F140C sUnk_084F140C[];
+extern struct SoulKey sKeySouls[];
 
-u32 sUnk_084F0DB0[4] = {
+u32 sSoulTypeCounts[4] = {
     0x37, 0x18, 0x23, 0x8
 };
 
 /**
- * @brief 96AC | To document
- * 
- * @param param_0 To document
- * @return s16 To document
+ * @brief Fill the list at entityScratchBuffer with the owned souls of the kind, skipping
+ * the five untradeable entries of sKeySouls, and pad it with 0xFF.
+ * Return 1 when the list is not empty.
  */
-s16 sub_080096AC(s32 param_0)
+s16 SoulTrade_BuildSoulList(s32 soulType)
 {
-    s16 var_r8;
+    s16 any;
     s32 temp_r3;
-    s32 var_r2;
-    s32 var_r4;
-    s32 var_r5;
-    struct Unk_084F140C *var_r1;
-    s32 temp_r7;
-    s32 var_0;
+    s32 j;
+    s32 i;
+    s32 count;
+    struct SoulKey *excluded;
+    s32 soulCount;
+    s32 keep;
 
-    temp_r7 = sUnk_084F0DB0[param_0];
-    var_r5 = 0;
-    var_r8 = 1;
+    soulCount = sSoulTypeCounts[soulType];
+    count = 0;
+    any = 1;
 
-    for (var_r4 = 0; var_r4 < temp_r7; )
+    for (i = 0; i < soulCount; )
     {
-        if (SoulInventory_GetSoulTotal(param_0, var_r4) == 0)
+        if (SoulInventory_GetSoulTotal(soulType, i) == 0)
         {
-            var_r4++;
+            i++;
         }
         else
         {
-            var_r1 = sUnk_084F140C;
-            var_r2 = 0;
+            excluded = sKeySouls;
+            j = 0;
             
             do
             {
-                if (((param_0 == var_r1->unk_0) && (var_r4 == (var_r1->unk_1 - 1))))
+                if (((soulType == excluded->soulType) && (i == (excluded->oneBasedSoulId - 1))))
                 {
-                    var_0 = 0;
+                    keep = 0;
                     break;
                 }
-                var_r2 += 1;
-                var_r1 += 1;
-                var_0 = 1;
-            } while (var_r2 < 5);
+                j += 1;
+                excluded += 1;
+                keep = 1;
+            } while (j < 5);
 
-            if (var_0)
+            if (keep)
             {
-                var_r5[gEwramData->unk_143F4] = var_r4;
-                var_r4++;
-                var_r5++;
+                count[gEwramData->entityScratchBuffer] = i;
+                i++;
+                count++;
             }
             else
             {
-                var_r4++;
+                i++;
             }
         }
     }
 
-    if (var_r5 == 0)
+    if (count == 0)
     {
-        var_r8 = 0;
+        any = 0;
     }
 
-    for (; var_r5 < 0x80; var_r5++)
+    for (; count < 0x80; count++)
     {
-        var_r5[gEwramData->unk_143F4] = 0xFF;
+        count[gEwramData->entityScratchBuffer] = 0xFF;
     }
-    return var_r8;
+    return any;
 }
 
-// TODO: Combine inline 0 and 1
-static inline s16 sub_0800975C_inline_0(s32 cursor, s32 var_0)
+/* SoulTrade_MoveListCursor: was NONMATCH, matched.
+ * One cursor helper for all three moves; it negates its own parameter in
+ * the backward branch (the parameter copy is r4, -delta goes to the same
+ * register).  The positive branch walks an explicit byte pointer.  The slot
+ * read after the move goes through SlotAt() so the 0x143F4 offset is folded
+ * into the add (reloaded from the pool) instead of being CSE'd into a
+ * register shared with the next loop. */
+static inline u8 SlotAt(s32 i)
 {
-    s32 count;
-    u8 *ptr_0;
-
-    var_0++,var_0--;
-
-    for (count = 0; count < var_0; )
-    {
-        cursor++;
-        count++;
-        if (cursor[gEwramData->unk_143F4] == 0xFF)
-        {
-            return --cursor;
-        }
-    }
-    return cursor;
+    return i[gEwramData->entityScratchBuffer];
 }
 
-static inline s16 sub_0800975C_inline_1(s32 cursor, s32 var_0)
+static inline s16 MoveCursor(s32 cursor, s32 delta)
 {
     s32 count;
-    u8 *ptr_0;
-    s32 limit;
 
-    var_0++,var_0--;
     count = 0;
-
-    if (var_0 >= 0)
+    if (delta >= 0)
     {
-        if (count < var_0)
+        while (count < delta)
         {
-            ptr_0 = &gEwramData->unk_143F4[cursor];
-            do
-            {
-                ptr_0++;
-                cursor++;
-                count++;
-                
-                if (*ptr_0 == 0xFF)
-                {
-                    return --cursor;
-                }
-            }
-            while (count < var_0);
+            cursor++;
+            count++;
+            if (cursor[gEwramData->entityScratchBuffer] == 0xFF)
+                return cursor - 1;
         }
-        // for (; count < var_0; )
-        // {
-        //     cursor++;
-        //     count++;
-        //     if (cursor[gEwramData->unk_143F4] == 0xFF)
-        //     {
-        //         return --cursor;
-        //     }
-        // }
     }
     else
     {
-        limit = -var_0; 
-        for (; count < limit; )
+        delta = -delta;
+        while (count < delta)
         {
             cursor--;
             count++;
             if (cursor < 0)
-            {
-                return ++cursor;
-            }
+                return cursor + 1;
         }
     }
     return cursor;
 }
 
-static inline s32 sub_0800975C_inline_2(s32 cursor, u8 var_1)
+static inline s32 FindSlot(s32 top, u8 id)
 {
     s32 i;
 
     for (i = 0; i < 0x80; i++)
     {
-        if (i[gEwramData->unk_143F4] == var_1)
+        if (i[gEwramData->entityScratchBuffer] == id)
         {
-            i -= cursor;
+            i -= top;
             if (i < 0)
-            {
                 i = 0;
-            }
             return i;
         }
     }
     return -1;
 }
 
-// (97.73%) https://decomp.me/scratch/q50mA
-NONMATCH("asm/non_matching/sub_0800975C.inc", s32 sub_0800975C(struct EwramData_EntityData *param_0, s32 param_1))
+/**
+ * @brief Move the soul list cursor by delta entries, scrolling the eight-row
+ * window when needed; select the soul under it. Return 1 when the
+ * window scrolled.
+ */
+s32 SoulTrade_MoveListCursor(struct EwramData_EntityData *entity, s32 delta)
 {
     s16 pos;
 
-    if (param_1 > 0)
+    if (delta > 0)
     {
-        pos = sub_0800975C_inline_0(param_0->unk_50C.unk_50C_16.unk_50C + param_0->unk_50C.unk_50C_16.unk_50E, param_1);
+        pos = MoveCursor(TRADE_LIST_ROW(entity) + TRADE_LIST_TOP(entity), delta);
         if (pos >= 0)
         {
-            param_0->unk_4FC.unk_4FC_16.unk_4FC = pos[gEwramData->unk_143F4];
-
-            if (pos >= param_0->unk_50C.unk_50C_16.unk_50E + 8)
+            TRADE_SELECTED(entity) = SlotAt(pos);
+            if (pos >= TRADE_LIST_TOP(entity) + 8)
             {
-                pos = sub_0800975C_inline_1(param_0->unk_50C.unk_50C_16.unk_50E, param_1);
-
+                pos = MoveCursor(TRADE_LIST_TOP(entity), delta);
                 if (pos >= 0)
                 {
-                    param_0->unk_50C.unk_50C_16.unk_50E = pos;
-                    param_0->unk_50C.unk_50C_16.unk_50C = sub_0800975C_inline_2(param_0->unk_50C.unk_50C_16.unk_50E, param_0->unk_4FC.unk_4FC_8.unk_4FC);
+                    TRADE_LIST_TOP(entity) = pos;
+                    TRADE_LIST_ROW(entity) = FindSlot(TRADE_LIST_TOP(entity), TRADE_SELECTED_BYTE(entity));
                     return 1;
                 }
             }
             else
             {
-                param_0->unk_50C.unk_50C_16.unk_50C = sub_0800975C_inline_2(param_0->unk_50C.unk_50C_16.unk_50E, param_0->unk_4FC.unk_4FC_16.unk_4FC);
+                TRADE_LIST_ROW(entity) = FindSlot(TRADE_LIST_TOP(entity), TRADE_SELECTED(entity));
             }
         }
     }
-
-    else if (param_1 < 0)
+    else if (delta < 0)
     {
-        pos = sub_0800975C_inline_1(param_0->unk_50C.unk_50C_16.unk_50C + param_0->unk_50C.unk_50C_16.unk_50E, param_1);
+        pos = MoveCursor(TRADE_LIST_ROW(entity) + TRADE_LIST_TOP(entity), delta);
         if (pos >= 0)
         {
-            param_0->unk_4FC.unk_4FC_16.unk_4FC = pos[gEwramData->unk_143F4];
-
-            if (pos < param_0->unk_50C.unk_50C_16.unk_50E)
+            TRADE_SELECTED(entity) = SlotAt(pos);
+            if (pos < TRADE_LIST_TOP(entity))
             {
-                pos = sub_0800975C_inline_1(param_0->unk_50C.unk_50C_16.unk_50E, param_1);
-
+                pos = MoveCursor(TRADE_LIST_TOP(entity), delta);
                 if (pos >= 0)
                 {
-                    param_0->unk_50C.unk_50C_16.unk_50E = pos;
-                    param_0->unk_50C.unk_50C_16.unk_50C = sub_0800975C_inline_2(param_0->unk_50C.unk_50C_16.unk_50E, param_0->unk_4FC.unk_4FC_8.unk_4FC);
+                    TRADE_LIST_TOP(entity) = pos;
+                    TRADE_LIST_ROW(entity) = FindSlot(TRADE_LIST_TOP(entity), TRADE_SELECTED_BYTE(entity));
                     return 1;
                 }
             }
             else
             {
-                param_0->unk_50C.unk_50C_16.unk_50C = sub_0800975C_inline_2(param_0->unk_50C.unk_50C_16.unk_50E, param_0->unk_4FC.unk_4FC_16.unk_4FC);
+                TRADE_LIST_ROW(entity) = FindSlot(TRADE_LIST_TOP(entity), TRADE_SELECTED(entity));
             }
         }
     }
-
     return 0;
 }
-END_NONMATCH
 
-static inline void sub_0800997C_inline_0(s32 val_0, s32 val_1)
+static inline void SoulTrade_SetOffer(s32 val_0, s32 val_1)
 {
-    (&gEwramData->unk_25484[0])->unk_25484_0 = val_0;
-    (&gEwramData->unk_25484[0])->unk_25485[0] = val_1;
+    (&gEwramData->soulTradePackets[0])->offeredSoulKind = val_0;
+    (&gEwramData->soulTradePackets[0])->soulIds[0] = val_1;
 }
 
-static inline void sub_0800997C_inline_1(s32 val_0, s32 val_1)
+static inline void SoulTrade_SetAcknowledge(s32 val_0, s32 val_1)
 {
-    u8* unk_25485;
-    (&gEwramData->unk_25484[0])->unk_25484_2 = val_0;
-    unk_25485 = gEwramData->unk_25484[0].unk_25485;
-    unk_25485[1] = val_1;
+    u8* soulIds;
+    (&gEwramData->soulTradePackets[0])->acknowledgedSoulKind = val_0;
+    soulIds = gEwramData->soulTradePackets[0].soulIds;
+    soulIds[1] = val_1;
 }
 
-static inline void GameModeSoulTradeMenu_inline_0(u8 param_0)
+static inline void GameModeSoulTradeMenu_inline_0(u8 status)
 {
-    (&gEwramData->unk_25484[0])->unk_25487 = 0xD;
-    (&gEwramData->unk_25484[0])->unk_25484_4 = param_0;
-    sub_080D8020((u8*)&gEwramData->unk_25484[0], 4);
-    sub_080D8088((u8*)&gEwramData->unk_25484[1], 4);
+    (&gEwramData->soulTradePackets[0])->packetTag = 0xD;
+    (&gEwramData->soulTradePackets[0])->handshakeFlags = status;
+    Link_QueueSendBytes((u8*)&gEwramData->soulTradePackets[0], 4);
+    Link_CopyReceivedBytes((u8*)&gEwramData->soulTradePackets[1], 4);
 }
 
-static inline void GameModeSoulTradeMenu_inline_1(struct EwramData_EntityData *temp_r6, s32 temp_r4_4)
+static inline void GameModeSoulTradeMenu_inline_1(struct EwramData_EntityData *menu, s32 entry)
 {
-    s32 var_0;
-    u8 *var_1;
-    s32 var_2;
-    s32 var_3;
-    u8 *temp_r8;
-    s32 var_r4_3;
-    s32 var_r7;
+    s32 baseRow;
+    u8 *script;
+    s32 col;
+    s32 code;
+    u8 *text;
+    s32 more;
+    s32 pos;
 
-    temp_r8 = sub_08041434(temp_r4_4);
-    var_2 = 0;
-    var_0 = 1;
-    var_r4_3 = 0;
-    var_r7 = -1;
-    if (temp_r6->unk_508.unk_508_32 != temp_r4_4)
+    text = Text_GetLocalizedEntry(entry);
+    col = 0;
+    baseRow = 1;
+    more = 0;
+    pos = -1;
+    if (menu->unk_508.whole != entry)
     {
-        temp_r6->unk_508.unk_508_32 = temp_r4_4;
-        sub_08040748(0U, 1U, 0x20U, 4U);
-        sub_08040FE0();
-        sub_08040748(0U, 1U, 0x1EU, 4U);
-        sub_0804066C(0, 1);
+        menu->unk_508.whole = entry;
+        Text12_SetRegion(0U, 1U, 0x20U, 4U);
+        Text12_ClearRegion();
+        Text12_SetRegion(0U, 1U, 0x1EU, 4U);
+        Text12_SetCursor(0, 1);
         
         do
         {
-            var_1 = temp_r8;
-            var_1 += 2;
-            sub_0804066C(var_2, var_0 + var_r4_3);
-            var_r7 = sub_08041318(temp_r8, var_r7 + 1);
-            var_3 = var_1[var_r7];
-            var_r4_3 += 1;
-            if (var_3 != 6)
+            script = text;
+            script += 2;
+            Text12_SetCursor(col, baseRow + more);
+            pos = Text12_Print(text, pos + 1);
+            code = script[pos];
+            more += 1;
+            if (code != 6)
             {
-                var_r4_3 = 0;
+                more = 0;
             }
-        } while (var_r4_3 != 0);
+        } while (more != 0);
     }
 }
 
 /**
- * @brief 997C | To document
- * 
- * @param param_0 To document
+ * @brief Play the cancel sound, return to trade stage 0xA, clear the own offer,
+ * send status 2 and delete entity 6.
  */
-void sub_0800997C(struct EwramData_EntityData *param_0)
+void SoulTrade_ResetOffers(struct EwramData_EntityData *entity)
 {
-    struct EwramData_unk25484* unk_25484;
+    struct SoulTradePacket* soulTradePackets;
     PlaySong(SE_240);
     gEwramData->gameModeUpdateStage = 0xA;
-    gEwramData->unk_12 = 0;
+    gEwramData->gameModeSubStage = 0;
 
-    sub_0800997C_inline_0(0, 0);
+    SoulTrade_SetOffer(0, 0);
 
-    sub_0800B6B8(2);
-    param_0->unk_504.unk_504_8.unk_506 = 0;
-    param_0->unk_504.unk_504_8.unk_507 = 0;
-    param_0->unk_504.unk_504_8.unk_504 = 0;
-    param_0->unk_504.unk_504_8.unk_505 = 0;
+    SoulTrade_ExchangeStatus(2);
+    TRADE_PARTNER_KIND(entity) = 0;
+    TRADE_PARTNER_SOUL(entity) = 0;
+    TRADE_OWN_KIND(entity) = 0;
+    TRADE_OWN_SOUL(entity) = 0;
 
     EntityDelete(&gEwramData->entityData[6]);
 }
 
-u32 sUnk_084F0DC0[3] = {
+u32 sSoulTradeListTextBases[3] = {
     0x1E4, 0x21C, 0x234
 };
 
 /**
- * @brief 99E0 | To document
- * 
- * @param param_0 To document
+ * @brief Reset the offers, reprint the description of the selected soul and
+ * continue with the soul list (selection step 2).
  */
-void sub_080099E0(struct EwramData_EntityData *param_0)
+void SoulTrade_ReturnToSoulList(struct EwramData_EntityData *entity)
 {
-    u32 temp_r4;
+    u32 baseEntry;
 
-    temp_r4 = sUnk_084F0DC0[param_0->unk_4F8.unk_4F8_8.unk_4F8];
-    sub_0800997C(param_0);
-    sub_0800B634(param_0, temp_r4 + param_0->unk_4FC.unk_4FC_16.unk_4FC);
-    gEwramData->unk_12 = 2;
-    sub_0800997C_inline_0(0, 0);
-    sub_08040970(0, 0x12, 0xE, 1);
-    sub_08041204();
+    baseEntry = sSoulTradeListTextBases[TRADE_LIST_KIND(entity)];
+    SoulTrade_ResetOffers(entity);
+    SoulTrade_PrintDescription(entity, baseEntry + TRADE_SELECTED(entity));
+    gEwramData->gameModeSubStage = 2;
+    SoulTrade_SetOffer(0, 0);
+    Text8_SetRegion(0, 0x12, 0xE, 1);
+    Text8_ClearRegion();
 }
 
 /**
- * @brief 9A48 | To document
- * 
- * @param param_0 To document
+ * @brief Draw the kind icons of the own and the partner offer.
  */
-void sub_08009A48(struct EwramData_EntityData *param_0)
+void SoulTrade_DrawOfferIcons(struct EwramData_EntityData *entity)
 {
-    param_0->unk_524.unk_524_16.unk_526 = 0xF;
+    entity->posX.part16.integer = 0xF;
 
-    if (param_0->unk_504.unk_504_8.unk_504 != 0)
+    if (TRADE_OWN_KIND(entity) != 0)
     {
-        param_0->unk_549 = param_0->unk_504.unk_504_8.unk_504 + 0xC;
-        param_0->unk_528.unk_528_16.unk_52A = 0x38;
-        sub_0803AC40(param_0);
+        entity->animFrame = TRADE_OWN_KIND(entity) + 0xC;
+        entity->posY.part16.integer = 0x38;
+        Sprite_Draw(entity);
     }
 
-    if (param_0->unk_504.unk_504_8.unk_506 != 0)
+    if (TRADE_PARTNER_KIND(entity) != 0)
     {
-        param_0->unk_549 = param_0->unk_504.unk_504_8.unk_506 + 0xC;
-        param_0->unk_528.unk_528_16.unk_52A = 0x60;
-        sub_0803AC40(param_0);
+        entity->animFrame = TRADE_PARTNER_KIND(entity) + 0xC;
+        entity->posY.part16.integer = 0x60;
+        Sprite_Draw(entity);
     }
 }
 
-u32 sUnk_084F0DCC[] = {
+u32 sSoulNameTextBases[] = {
     0xE3, 0x11B, 0x133
 };
 
 // TODO: fake macros?
-#define unk_25484_0_32(x) (((*(u32*)&gEwramData->unk_25484[x]) << 0x1E) >> 0x1E)
-#define unk_25484_0_8(x) (((*(u8*)&gEwramData->unk_25484[x])) & 3)
+#define unk_25484_0_32(x) (((*(u32*)&gEwramData->soulTradePackets[x]) << 0x1E) >> 0x1E)
+#define unk_25484_0_8(x) (((*(u8*)&gEwramData->soulTradePackets[x])) & 3)
 
 /**
- * @brief 9A9C | To document
- * 
- * @param param_0 To document
+ * @brief Print the names of the own and the partner offered souls when they
+ * change; clear the partner line when the partner withdraws.
  */
-void sub_08009A9C(struct EwramData_EntityData *param_0)
+void SoulTrade_UpdateOfferNames(struct EwramData_EntityData *entity)
 {
-    s32 var_0;
-    s32 var_1;
+    s32 theirKind;
+    s32 myKind;
 
     if (unk_25484_0_8(0))
     {
-        var_1 = unk_25484_0_32(0);
-        if ((param_0->unk_504.unk_504_8.unk_504 != var_1) || (param_0->unk_504.unk_504_8.unk_505 != (&gEwramData->unk_25484[0])->unk_25485[0]))
+        myKind = unk_25484_0_32(0);
+        if ((TRADE_OWN_KIND(entity) != myKind) || (TRADE_OWN_SOUL(entity) != (&gEwramData->soulTradePackets[0])->soulIds[0]))
         {
-            param_0->unk_504.unk_504_8.unk_504 = var_1;
-            param_0->unk_504.unk_504_8.unk_505 = (&gEwramData->unk_25484[0])->unk_25485[0];
-            sub_08040970(0, 0x12, 0xE, 1);
-            sub_08041204();
-            sub_08041338((struct unk_08506B38 *) sub_08041434(sUnk_084F0DCC[var_1 - 1] + (&gEwramData->unk_25484[0])->unk_25485[0]), 0);
+            TRADE_OWN_KIND(entity) = myKind;
+            TRADE_OWN_SOUL(entity) = (&gEwramData->soulTradePackets[0])->soulIds[0];
+            Text8_SetRegion(0, 0x12, 0xE, 1);
+            Text8_ClearRegion();
+            Text8_Print((struct unk_08506B38 *) Text_GetLocalizedEntry(sSoulNameTextBases[myKind - 1] + (&gEwramData->soulTradePackets[0])->soulIds[0]), 0);
         }
     }
 
     if (unk_25484_0_8(1))
     {
-        var_0 = unk_25484_0_32(1);
-        if ((param_0->unk_504.unk_504_8.unk_506 != var_0) || (param_0->unk_504.unk_504_8.unk_507 != (&gEwramData->unk_25484[1])->unk_25485[0]))
+        theirKind = unk_25484_0_32(1);
+        if ((TRADE_PARTNER_KIND(entity) != theirKind) || (TRADE_PARTNER_SOUL(entity) != (&gEwramData->soulTradePackets[1])->soulIds[0]))
         {
-            param_0->unk_504.unk_504_8.unk_506 = var_0;
-            param_0->unk_504.unk_504_8.unk_507 = (&gEwramData->unk_25484[1])->unk_25485[0];
-            sub_08040970(0, 0x13, 0xE, 1);
-            sub_08041204();
-            sub_08041338((struct unk_08506B38 *) sub_08041434(sUnk_084F0DCC[var_0 - 1] + (&gEwramData->unk_25484[1])->unk_25485[0]), 0);
-            param_0->unk_4F8.unk_4F8_8.unk_4F9 = 1;
+            TRADE_PARTNER_KIND(entity) = theirKind;
+            TRADE_PARTNER_SOUL(entity) = (&gEwramData->soulTradePackets[1])->soulIds[0];
+            Text8_SetRegion(0, 0x13, 0xE, 1);
+            Text8_ClearRegion();
+            Text8_Print((struct unk_08506B38 *) Text_GetLocalizedEntry(sSoulNameTextBases[theirKind - 1] + (&gEwramData->soulTradePackets[1])->soulIds[0]), 0);
+            TRADE_PARTNER_SHOWN(entity) = 1;
         }
     }
-    else if (param_0->unk_4F8.unk_4F8_8.unk_4F9 != 0)
+    else if (TRADE_PARTNER_SHOWN(entity) != 0)
     {
-        param_0->unk_4F8.unk_4F8_8.unk_4F9 = param_0->unk_504.unk_504_8.unk_506 = unk_25484_0_8(1);
-        sub_08040970(0, 0x13, 0xE, 1);
-        sub_08041204();
+        TRADE_PARTNER_SHOWN(entity) = TRADE_PARTNER_KIND(entity) = unk_25484_0_8(1);
+        Text8_SetRegion(0, 0x13, 0xE, 1);
+        Text8_ClearRegion();
     }
 }
 
 // TODO: is the parameter ignored or does A108 call this implicitly
 /**
- * @brief 9BB0 | To document
- * 
- * @return s32 Return value ignored
+ * @brief Clear the windows and print the three soul kind entries (texts
+ * 0x36C..0x36E) and the offer frames.
  */
-s32 sub_08009BB0(struct EwramData_EntityData *param_0)
+s32 SoulTrade_DrawKindMenu(struct EwramData_EntityData *entity)
 {
-    s32 var_r4;
+    s32 i;
 
-    sub_08040748(0, 1, 0x20, 4);
-    sub_08040FE0();
-    sub_08040748(0, 1, 0x1E, 4);
+    Text12_SetRegion(0, 1, 0x20, 4);
+    Text12_ClearRegion();
+    Text12_SetRegion(0, 1, 0x1E, 4);
 
-    sub_08046E04(0, 0x11, 0x40);
-    sub_08040970(0, 8, 0xE, 8);
-    sub_08041204();
+    HudMap_ZeroTiles(0, 0x11, 0x40);
+    Text8_SetRegion(0, 8, 0xE, 8);
+    Text8_ClearRegion();
 
-    for (var_r4 = 0; var_r4 < 8; var_r4++)
+    for (i = 0; i < 8; i++)
     {
-        sub_08040970(0, var_r4 + 0x8, 0xE, 1);
-        sub_08041204();
-        sub_08046E04(0x10, var_r4 + 4, 0xD);
+        Text8_SetRegion(0, i + 0x8, 0xE, 1);
+        Text8_ClearRegion();
+        HudMap_ZeroTiles(0x10, i + 4, 0xD);
     }
 
-    for (var_r4 = 0; var_r4 < 3; var_r4++)
+    for (i = 0; i < 3; i++)
     {
-        sub_08040970(0, var_r4 + 0x6, 0xE, 1);
-        sub_08041204();
-        sub_08041338((struct unk_08506B38 *) sub_08041434(var_r4 + 0x36C), 0);
+        Text8_SetRegion(0, i + 0x6, 0xE, 1);
+        Text8_ClearRegion();
+        Text8_Print((struct unk_08506B38 *) Text_GetLocalizedEntry(i + 0x36C), 0);
     }
 
-    sub_08040970(0, 0x12, 0xE, 1);
-    sub_08041204();
-    sub_08046DD4(3, 7, 0xF240, 0xA);
+    Text8_SetRegion(0, 0x12, 0xE, 1);
+    Text8_ClearRegion();
+    HudMap_WriteTiles(3, 7, 0xF240, 0xA);
 
-    sub_08040970(0, 0x13, 0xE, 1);
-    sub_08041204();
-    sub_08046DD4(3, 0xC, 0xF260, 0xA);
+    Text8_SetRegion(0, 0x13, 0xE, 1);
+    Text8_ClearRegion();
+    HudMap_WriteTiles(3, 0xC, 0xF260, 0xA);
 }
 
 
-static inline s32 sub_08009C8C_inline_0(s32 param_1)
+static inline s32 SoulTrade_FindSoulIndex(s32 soul)
 {
-    s32 var_r2;
+    s32 index;
 
-    for (var_r2 = 0; var_r2 < 0x80; var_r2++)
+    for (index = 0; index < 0x80; index++)
     {
-        if (var_r2[gEwramData->unk_143F4] == param_1)
+        if (index[gEwramData->entityScratchBuffer] == soul)
         {
-            if (var_r2 < 0)
+            if (index < 0)
             {
-                var_r2 = 0;
+                index = 0;
             }
-            return var_r2;
+            return index;
         }
     }
     return -1;
 }
 
-// NOTE: sub_08046DD4 is implicitly called
+// NOTE: HudMap_WriteTiles is implicitly called
 /**
- * @brief 9C8C | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Choose a soul kind with Up/Down; A opens its soul list when it has
+ * tradeable souls (return 1), B cancels (return -1).
  */
-s32 sub_08009C8C(struct EwramData_EntityData *param_0)
+s32 SoulTrade_HandleKindMenuInput(struct EwramData_EntityData *entity)
 {
     s32 var_r0_2;
     s32 var_r2;
-    s32 var_r5;
-    u8 temp_r0_3;
-    s32 var_0;
-    struct EwramData *var_1;
-    s32 var_2;
-    s32 var_3;
+    s32 i;
+    u8 firstSoul;
+    s32 kind;
+    struct EwramData *ewram;
+    s32 cursorX;
+    s32 cursorY;
 
     if (gEwramData->inputData.repeatedInput & KEY_DOWN)
     {
         PlaySong(SE_241);
-        param_0->unk_4F8.unk_4F8_8.unk_4F8 += 1;
-        if (param_0->unk_4F8.unk_4F8_8.unk_4F8 > 2)
+        TRADE_LIST_KIND(entity) += 1;
+        if (TRADE_LIST_KIND(entity) > 2)
         {
-            param_0->unk_4F8.unk_4F8_8.unk_4F8 = 0;
+            TRADE_LIST_KIND(entity) = 0;
         }
     }
     else if (gEwramData->inputData.repeatedInput & KEY_UP)
     {
         PlaySong(SE_241);
-        param_0->unk_4F8.unk_4F8_8.unk_4F8 -= 1;
-        if (param_0->unk_4F8.unk_4F8_8.unk_4F8 < 0)
+        TRADE_LIST_KIND(entity) -= 1;
+        if (TRADE_LIST_KIND(entity) < 0)
         {
-            param_0->unk_4F8.unk_4F8_8.unk_4F8 = 2;
+            TRADE_LIST_KIND(entity) = 2;
         }
     }
 
     if (gEwramData->inputData.repeatedInput & KEY_A)
     {
-        if (sub_080096AC(param_0->unk_4F8.unk_4F8_8.unk_4F8) != 0)
+        if (SoulTrade_BuildSoulList(TRADE_LIST_KIND(entity)) != 0)
         {
-            param_0->unk_50C.unk_50C_16.unk_50C = 0;
-            param_0->unk_50C.unk_50C_16.unk_50E = 0;
-            temp_r0_3 = param_0->unk_4FC.unk_4FC_16.unk_4FC = gEwramData->unk_143F4[0];
-            param_0->unk_50C.unk_50C_16.unk_50C = sub_08009C8C_inline_0(temp_r0_3);
+            TRADE_LIST_ROW(entity) = 0;
+            TRADE_LIST_TOP(entity) = 0;
+            firstSoul = TRADE_SELECTED(entity) = gEwramData->entityScratchBuffer[0];
+            TRADE_LIST_ROW(entity) = SoulTrade_FindSoulIndex(firstSoul);
             
-            sub_0800B5E8(param_0);
-            sub_08009DD8(param_0);
+            SoulTrade_ClearMessageWindow(entity);
+            SoulTrade_OpenSoulList(entity);
             PlaySong(SE_243);
             return 1;
         }
@@ -569,228 +545,222 @@ s32 sub_08009C8C(struct EwramData_EntityData *param_0)
     }
 
     // TODO: what?
-    var_0 = param_0->unk_4F8.unk_4F8_8.unk_4F8;
-    var_1 = gEwramData;
-    var_2 = 0x7C;
-    var_3 = (var_0 * 8) + 0x24;
-    var_1->entityData[3].unk_524.unk_524_16.unk_526 = var_2;
-    var_1->entityData[3].unk_528.unk_528_16.unk_52A = var_3;
+    kind = TRADE_LIST_KIND(entity);
+    ewram = gEwramData;
+    cursorX = 0x7C;
+    cursorY = (kind * 8) + 0x24;
+    ewram->entityData[3].posX.part16.integer = cursorX;
+    ewram->entityData[3].posY.part16.integer = cursorY;
 
-    for (var_r5 = 0; var_r5 < 3; var_r5++)
+    for (i = 0; i < 3; i++)
     {
-        if (param_0->unk_4F8.unk_4F8_8.unk_4F8 != var_r5)
+        if (TRADE_LIST_KIND(entity) != i)
         {
-            sub_08046DD4(0x10, var_r5 + 4, var_r5 * 0x20 + 0xE0C0, 0xA);
+            HudMap_WriteTiles(0x10, i + 4, i * 0x20 + 0xE0C0, 0xA);
         }
         else
         {
-            sub_08046DD4(0x10, var_r5 + 4, var_r5 * 0x20 + 0xF0C0, 0xA);
+            HudMap_WriteTiles(0x10, i + 4, i * 0x20 + 0xF0C0, 0xA);
         }
     }
     return 0;
 }
 
-// NOTE: sub_08046DD4 is implicitly called
+// NOTE: HudMap_WriteTiles is implicitly called
 /**
- * @brief 9DD8 | To document
- * 
- * @param param_0 To document
+ * @brief Print the description of the selected soul and draw the soul list.
  */
-void sub_08009DD8(struct EwramData_EntityData *param_0)
+void SoulTrade_OpenSoulList(struct EwramData_EntityData *entity)
 {
-    s32 var_r4;
-    s32 var_1;
+    s32 i;
+    s32 baseEntry;
 
-    var_1 = sUnk_084F0DC0[param_0->unk_4F8.unk_4F8_8.unk_4F8];
+    baseEntry = sSoulTradeListTextBases[TRADE_LIST_KIND(entity)];
 
-    GameModeSoulTradeMenu_inline_1(param_0, var_1 + param_0->unk_4FC.unk_4FC_16.unk_4FC);
+    GameModeSoulTradeMenu_inline_1(entity, baseEntry + TRADE_SELECTED(entity));
 
-    for (var_r4 = 0; var_r4 < 8; var_r4++)
+    for (i = 0; i < 8; i++)
     {
-        sub_08040970(0, var_r4 + 8, 0xE, 1);
-        sub_08041204();
-        sub_08046DD4(0x10, var_r4 + 4, var_r4 * 0x20 + 0xF100, 0xA);
+        Text8_SetRegion(0, i + 8, 0xE, 1);
+        Text8_ClearRegion();
+        HudMap_WriteTiles(0x10, i + 4, i * 0x20 + 0xF100, 0xA);
     }
-    sub_08009EB8(param_0->unk_4F8.unk_4F8_8.unk_4F8, param_0->unk_50C.unk_50C_16.unk_50C);
+    SoulTrade_DrawSoulList(TRADE_LIST_KIND(entity), TRADE_LIST_ROW(entity));
 }
 
 
 /**
- * @brief 9EB8 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
+ * @brief Draw up to eight soul names with their counts from list row top, with
+ * the scroll arrows.
  */
-void sub_08009EB8(s32 param_0, s32 param_1)
+void SoulTrade_DrawSoulList(s32 soulType, s32 first)
 {
-    s32 var_r5;
-    u32 temp_sb;
+    s32 row;
+    u32 baseEntry;
 
-    var_r5 = 0;
-    temp_sb = param_0[sUnk_084F0DCC];
-    if (param_1 > 0)
+    row = 0;
+    baseEntry = soulType[sSoulNameTextBases];
+    if (first > 0)
     {
-        sub_08046DD4(0x1B, 4, 0xF24D, 1);
+        HudMap_WriteTiles(0x1B, 4, 0xF24D, 1);
     }
     else
     {
-        sub_08046E04(0x1B, 4, 1);
+        HudMap_ZeroTiles(0x1B, 4, 1);
     }
 
-    for (var_r5; var_r5 < 9; var_r5++)
+    for (row; row < 9; row++)
     {
-        if ((param_1 + var_r5)[gEwramData->unk_143F4] == 0xFF)
+        if ((first + row)[gEwramData->entityScratchBuffer] == 0xFF)
         {
             break;
         }
     }
 
-    if (var_r5 == 9)
+    if (row == 9)
     {
-        sub_08046DD4(0x1B, 0xB, 0xF24E, 1);
+        HudMap_WriteTiles(0x1B, 0xB, 0xF24E, 1);
     }
     else
     {
-        sub_08046E04(0x1B, 0xB, 1);
+        HudMap_ZeroTiles(0x1B, 0xB, 1);
     }
 
-    for (var_r5 = 0; var_r5 < 8; var_r5++)
+    for (row = 0; row < 8; row++)
     {
-        if (param_1[gEwramData->unk_143F4] == 0xFF)
+        if (first[gEwramData->entityScratchBuffer] == 0xFF)
         {
             break;
         }
-        sub_08040970(0, var_r5 + 8, 0xE, 1);
-        sub_08041204();
-        sub_08041338((struct unk_08506B38 *) sub_08041434(param_1[gEwramData->unk_143F4] + temp_sb), 0);
-        sub_08046E5C(0x1A, var_r5 + 4, SoulInventory_GetSoulTotal(param_0, param_1[gEwramData->unk_143F4]), 1, 0xF200, 0);
-        param_1++;
+        Text8_SetRegion(0, row + 8, 0xE, 1);
+        Text8_ClearRegion();
+        Text8_Print((struct unk_08506B38 *) Text_GetLocalizedEntry(first[gEwramData->entityScratchBuffer] + baseEntry), 0);
+        HudMap_PrintNumberAttr(0x1A, row + 4, SoulInventory_GetSoulTotal(soulType, first[gEwramData->entityScratchBuffer]), 1, 0xF200, 0);
+        first++;
     }
 
-    for (var_r5; var_r5 < 8; var_r5++)
+    for (row; row < 8; row++)
     {
-        sub_08040970(0, var_r5 + 0x8, 0xE, 1);
-        sub_08041204();
-        sub_08046E04(0x1A, var_r5 + 4, 1);
+        Text8_SetRegion(0, row + 0x8, 0xE, 1);
+        Text8_ClearRegion();
+        HudMap_ZeroTiles(0x1A, row + 4, 1);
     }
 }
 
 
-// NOTE: sub_08046DD4 is implicitly called
+// NOTE: HudMap_WriteTiles is implicitly called
 /**
- * @brief A00C | To document
- * 
- * @param param_0 To document
+ * @brief Set up the BG0 text layer and window frame and print trade message
+ * 0x354 + index.
  */
-void sub_0800A00C(s32 param_0)
+void SoulTrade_SetupMessageWindow(s32 choice)
 {
-    s32 var_r4;
+    s32 i;
 
     DMA_FILL_32(3, 0, 0x0600E000, 0x800);
     gDisplayRegisters.bgCnt[0] = CREATE_BGCNT(2, 28, BGCNT_HIGH_PRIORITY, BGCNT_SIZE_256x256);
-    sub_0803C918((u8 *)0x080E5C20, 4, 2, 0xD);
-    sub_0803C918((u8 *)0x080E5C20, 3, 1, 0xF);
-    sub_080412DC(VRAM_BASE + 0x8000);
-    sub_080412F0(1);
-    sub_08041304(0);
+    BgPalette_LoadRange((u8 *)0x080E5C20, 4, 2, 0xD);
+    BgPalette_LoadRange((u8 *)0x080E5C20, 3, 1, 0xF);
+    Text_SetTileBuffer(VRAM_BASE + 0x8000);
+    Text_SetForegroundColor(1);
+    Text_SetBackgroundColor(0);
 
-    switch (gEwramData->unk_60.language)
+    switch (gEwramData->gameState.language)
     {
         case 2:
-            sub_0803FD9C((u8 *)0x08277984, VRAM_BASE + 0xC000, 0);
+            Gfx_CopyResource((u8 *)0x08277984, VRAM_BASE + 0xC000, 0);
             break;
 
         case 3:
-            sub_0803FD9C((u8 *)0x0826C848, VRAM_BASE + 0xC000, 0);
+            Gfx_CopyResource((u8 *)0x0826C848, VRAM_BASE + 0xC000, 0);
             break;
 
         default:
-            sub_0803FD9C((u8 *)0x0827B200, VRAM_BASE + 0xC000, 0);
+            Gfx_CopyResource((u8 *)0x0827B200, VRAM_BASE + 0xC000, 0);
             break;
     }
 
-    sub_08040748(0, 1, 0x20, 4);
-    sub_08040FE0();
-    sub_08040748(0, 1, 0x1E, 4);
-    sub_0804066C(0, 1);
+    Text12_SetRegion(0, 1, 0x20, 4);
+    Text12_ClearRegion();
+    Text12_SetRegion(0, 1, 0x1E, 4);
+    Text12_SetCursor(0, 1);
 
-    for (var_r4 = 0; var_r4 < 4; var_r4++)
+    for (i = 0; i < 4; i++)
     {
-        sub_08046DD4(3, var_r4 + 0xF, var_r4 * 0x20 + 0xF020, 0x17);
+        HudMap_WriteTiles(3, i + 0xF, i * 0x20 + 0xF020, 0x17);
     }
 
-    sub_08041318(sub_08041434(param_0 + 0x354), 0);
+    Text12_Print(Text_GetLocalizedEntry(choice + 0x354), 0);
 }
 
 /**
- * @brief A108 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Move through the soul list (Up/Down, Left/Right/L/R by eight); A
+ * offers the soul (return 1), B goes back (return -1), Select accepts
+ * when an offer exists.
  */
-s32 sub_0800A108(struct EwramData_EntityData *param_0)
+s32 SoulTrade_HandleSoulListInput(struct EwramData_EntityData *entity)
 {
-    s32 var_sl;
-    s16 temp_r4;
-    u32 temp_r6;
-    s32 var_0_0;
-    struct EwramData *var_1;
-    s32 var_2;
-    s32 var_3;
+    s32 scrolled;
+    s16 prevSoul;
+    u32 baseEntry;
+    s32 row;
+    struct EwramData *ewram;
+    s32 cursorX;
+    s32 cursorY;
 
-    temp_r6 = sUnk_084F0DC0[param_0->unk_4F8.unk_4F8_8.unk_4F8];
-    temp_r4 = param_0->unk_4FC.unk_4FC_16.unk_4FC;
-    var_sl = 0;
+    baseEntry = sSoulTradeListTextBases[TRADE_LIST_KIND(entity)];
+    prevSoul = TRADE_SELECTED(entity);
+    scrolled = 0;
 
     if (gEwramData->inputData.repeatedInput & KEY_DOWN)
     {
-        var_sl = sub_0800975C(param_0, 1);
+        scrolled = SoulTrade_MoveListCursor(entity, 1);
     }
     else if (gEwramData->inputData.repeatedInput & KEY_UP)
     {
-        var_sl = sub_0800975C(param_0, -1);
+        scrolled = SoulTrade_MoveListCursor(entity, -1);
     }
     else if (gEwramData->inputData.repeatedInput & (KEY_RIGHT | KEY_R))
     {
-        var_sl = sub_0800975C(param_0, 8);
+        scrolled = SoulTrade_MoveListCursor(entity, 8);
     }
     else if (gEwramData->inputData.repeatedInput & (KEY_LEFT | KEY_L))
     {
-        var_sl = sub_0800975C(param_0, -8);
+        scrolled = SoulTrade_MoveListCursor(entity, -8);
     }
 
-    if (temp_r4 != param_0->unk_4FC.unk_4FC_16.unk_4FC)
+    if (prevSoul != TRADE_SELECTED(entity))
     {
         PlaySong(SE_241);
-        GameModeSoulTradeMenu_inline_1(param_0, temp_r6 + param_0->unk_4FC.unk_4FC_16.unk_4FC);
+        GameModeSoulTradeMenu_inline_1(entity, baseEntry + TRADE_SELECTED(entity));
     }
-    if (var_sl != 0)
+    if (scrolled != 0)
     {
-        sub_08009EB8(param_0->unk_4F8.unk_4F8_8.unk_4F8, param_0->unk_50C.unk_50C_16.unk_50E);
+        SoulTrade_DrawSoulList(TRADE_LIST_KIND(entity), TRADE_LIST_TOP(entity));
     }
 
     // TODO: what?
-    var_0_0 = param_0->unk_50C.unk_50C_16.unk_50C;
-    var_1 = gEwramData;
-    var_2 = 0x7C;
-    var_3 = (var_0_0 * 8) + 0x24;
-    var_1->entityData[3].unk_524.unk_524_16.unk_526 = var_2;
-    var_1->entityData[3].unk_528.unk_528_16.unk_52A = var_3;
-    // gEwramData->unk_4E4[3].unk_524.unk_524_16.unk_526 = 0x7C;
-    // gEwramData->unk_4E4[3].unk_528.unk_528_16.unk_52A = (param_0->unk_50C * 8) + 0x24;
+    row = TRADE_LIST_ROW(entity);
+    ewram = gEwramData;
+    cursorX = 0x7C;
+    cursorY = (row * 8) + 0x24;
+    ewram->entityData[3].posX.part16.integer = cursorX;
+    ewram->entityData[3].posY.part16.integer = cursorY;
+    // gEwramData->unk_4E4[3].posX.part16.integer = 0x7C;
+    // gEwramData->unk_4E4[3].posY.part16.integer = (entity->unk_50C * 8) + 0x24;
 
     if (gEwramData->inputData.repeatedInput & KEY_A)
     {
-        sub_0800997C_inline_0(param_0->unk_4F8.unk_4F8_8.unk_4F8 + 1, param_0->unk_4FC.unk_4FC_16.unk_4FC);
+        SoulTrade_SetOffer(TRADE_LIST_KIND(entity) + 1, TRADE_SELECTED(entity));
         return 1;
     }
     else if (gEwramData->inputData.repeatedInput & KEY_B)
     {
-        sub_08009BB0(param_0);
+        SoulTrade_DrawKindMenu(entity);
         PlaySong(SE_240);
         return -1;
     }
-    else if ((param_0->unk_504.unk_504_8.unk_504 != 0) && (gEwramData->inputData.repeatedInput & KEY_SELECT))
+    else if ((TRADE_OWN_KIND(entity) != 0) && (gEwramData->inputData.repeatedInput & KEY_SELECT))
     {
         return 1;
     }
@@ -798,232 +768,282 @@ s32 sub_0800A108(struct EwramData_EntityData *param_0)
 }
 
 /**
- * @brief A2AC | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Selection steps: kind menu, soul list, then store both offers and
+ * return 1; return -1 when cancelled.
  */
-s32 sub_0800A2AC(struct EwramData_EntityData *param_0)
+s32 SoulTrade_UpdateSelection(struct EwramData_EntityData *entity)
 {
-    s32 temp_r0;
-    s32 temp_r0_3;
+    s32 kindResult;
+    s32 listResult;
 
-    switch (gEwramData->unk_12)
+    switch (gEwramData->gameModeSubStage)
     {
         case 0:
-            sub_08009BB0(param_0);
-            gEwramData->unk_12 = 1;
+            SoulTrade_DrawKindMenu(entity);
+            gEwramData->gameModeSubStage = 1;
             break;
 
         case 1:
-            temp_r0 = sub_08009C8C(param_0);
-            if (temp_r0 != 1)
+            kindResult = SoulTrade_HandleKindMenuInput(entity);
+            if (kindResult != 1)
             {
-                if (temp_r0 == -1)
+                if (kindResult == -1)
                 {
                     return -1;
                 }
             }
             else
             {
-                gEwramData->unk_12 = 2;
+                gEwramData->gameModeSubStage = 2;
             }
-            sub_08009A9C(param_0);
+            SoulTrade_UpdateOfferNames(entity);
             break;
 
         case 2:
-            temp_r0_3 = sub_0800A108(param_0);
-            if (temp_r0_3 == 1)
+            listResult = SoulTrade_HandleSoulListInput(entity);
+            if (listResult == 1)
             {
-                gEwramData->unk_12 = 3;
+                gEwramData->gameModeSubStage = 3;
             }
-            else if (temp_r0_3 == -1)
+            else if (listResult == -1)
             {
-                param_0->unk_504.unk_504_8.unk_504 = 0;
-                param_0->unk_504.unk_504_8.unk_506 = 0;
-                gEwramData->unk_12 = 1;
+                TRADE_OWN_KIND(entity) = 0;
+                TRADE_PARTNER_KIND(entity) = 0;
+                gEwramData->gameModeSubStage = 1;
             }
-            sub_08009A9C(param_0);
+            SoulTrade_UpdateOfferNames(entity);
             break;
 
         case 3:
-            sub_0800997C_inline_0(param_0->unk_504.unk_504_8.unk_504, param_0->unk_504.unk_504_8.unk_505);
-            sub_0800997C_inline_1(param_0->unk_504.unk_504_8.unk_506, param_0->unk_504.unk_504_8.unk_507);
+            SoulTrade_SetOffer(TRADE_OWN_KIND(entity), TRADE_OWN_SOUL(entity));
+            SoulTrade_SetAcknowledge(TRADE_PARTNER_KIND(entity), TRADE_PARTNER_SOUL(entity));
             PlaySong(SE_243);
-            sub_08009A9C(param_0);
+            SoulTrade_UpdateOfferNames(entity);
             return 1;
     }
     return 0;
 }
 
-#define unk_25484_4_32(x) (((*(u32*)&gEwramData->unk_25484[x]) << 0x18) >> 0x1C)
-#define unk_25484_2_32(x) (((*(u32*)&gEwramData->unk_25484[x]) << 0x1C) >> 0x1E)
+#define unk_25484_4_32(x) (((*(u32*)&gEwramData->soulTradePackets[x]) << 0x18) >> 0x1C)
+#define unk_25484_2_32(x) (((*(u32*)&gEwramData->soulTradePackets[x]) << 0x1C) >> 0x1E)
 
-// sub_08046DD4 is implicitly called here
-// (99.74%) https://decomp.me/scratch/Luxz2
-NONMATCH("asm/non_matching/GameModeSoulTradeMenu.inc", s32 GameModeSoulTradeMenu(void))
+// HudMap_WriteTiles is implicitly called here
+// Matching from the upstream scratch https://decomp.me/scratch/Luxz2 (field names mapped)
+
+
+#define unk_25484_4_32(x) (((*(u32*)&gEwramData->soulTradePackets[x]) << 0x18) >> 0x1C)
+#define unk_25484_2_32(x) (((*(u32*)&gEwramData->soulTradePackets[x]) << 0x1C) >> 0x1E)
+
+static inline void SoulTrade_ExchangeStatusInline(u8 status)
 {
-    s32 spC;
-    s32 temp_r1_11;
-    s32 temp_r4;
-    s32 var_r1;
-    s32 var_r1_3;
-    s32 var_r1_4;
-    s32 var_r1_5;
-    s32 var_r1_6;
-    s32 var_r1_7;
-    s32 var_r4;
+    (&gEwramData->soulTradePackets[0])->packetTag = 0xD;
+    (&gEwramData->soulTradePackets[0])->handshakeFlags = status;
+    Link_QueueSendBytes((u8 *)&gEwramData->soulTradePackets[0], 4);
+    Link_CopyReceivedBytes((u8 *)&gEwramData->soulTradePackets[1], 4);
+}
+
+static inline void SoulTrade_DrawTextEntry(struct EwramData_EntityData *menu, s32 entry)
+{
+    s32 baseRow;
+    u8 *script;
+    s32 col;
+    s32 code;
+    u8 *text;
+    s32 more;
+    s32 pos;
+
+    text = Text_GetLocalizedEntry(entry);
+    col = 0;
+    baseRow = 1;
+    more = 0;
+    pos = -1;
+    if (menu->unk_508.whole != entry)
+    {
+        menu->unk_508.whole = entry;
+        Text12_SetRegion(0U, 1U, 0x20U, 4U);
+        Text12_ClearRegion();
+        Text12_SetRegion(0U, 1U, 0x1EU, 4U);
+        Text12_SetCursor(0, 1);
+        
+        do
+        {
+            script = text;
+            script += 2;
+            Text12_SetCursor(col, baseRow + more);
+            pos = Text12_Print(text, pos + 1);
+            code = script[pos];
+            more += 1;
+            if (code != 6)
+            {
+                more = 0;
+            }
+        } while (more != 0);
+    }
+}
+
+// HudMap_WriteTiles is implicitly called here
+s32 GameModeSoulTradeMenu(void)
+{
+    s32 result;
+    s32 linkId;
+    s32 gfx;
+    s32 ready8;
+    s32 ready10;
+    s32 ready12;
+    s32 ready13;
+    s32 ready14;
+    s32 ready15;
+    s32 status;
     s32 var_r4_16;
-    s32 var_r4_2;
-    s32 var_r4_6;
-    s32 var_r4_7;
-    struct EwramData_EntityData *temp_r0;
-    struct EwramData_EntityData *temp_r6;
-    u16 temp_r2_2;
-    u16 temp_r3;
-    u32 var_r4_10;
-    u32 var_r4_12;
-    u32 var_r4_15;
-    u32 var_r4_18;
-    s32 var_r4_5;
-    u32 var_r5_4;
+    s32 i;
+    s32 j;
+    s32 k;
+    struct EwramData_EntityData *saveSelect;
+    struct EwramData_EntityData *trade;
+    u16 fadeIn;
+    u16 fadeOut;
+    u32 linked12;
+    u32 linked13;
+    u32 linked14;
+    u32 linked15;
+    s32 linked8;
+    u32 linked10;
     u8 temp_r1_10;
-    s32 var_16;
-    struct EwramData_EntityData *var_17;
-    s32 var_18;
-    s32 var_19;
-    s32 var_0;
-    s32 var_1;
-    s32 var_2;
-    s32 var_3;
+    s32 choice;
+    struct EwramData_EntityData *cursor;
+    s32 cursorY;
+    s32 cursorX;
+    s32 peerFlags;
+    s32 peerDone;
+    s32 peerFlagsB;
+    s32 peerConfirmed;
     s32 var_4;
     s32 var_5;
-    s32 var_6;
+    s32 peerReady;
 
-    temp_r0 = &gEwramData->entityData[4];
-    temp_r6 = &gEwramData->entityData[5];
-    spC = -1;
-    gEwramData->unk_12FE0_2 = 1;
+    saveSelect = &gEwramData->entityData[4];
+    trade = &gEwramData->entityData[5];
+    result = -1;
+    gEwramData->softResetSkipOnce = 1;
     switch (gEwramData->gameModeUpdateStage)
     {
         case 0:
-            DMA_FILL_32(3, 0, &gEwramData->unk_25484[0], 4);
-            DMA_FILL_32(3, 0, &gEwramData->unk_25484[1], 4);
+            DMA_FILL_32(3, 0, &gEwramData->soulTradePackets[0], 4);
+            DMA_FILL_32(3, 0, &gEwramData->soulTradePackets[1], 4);
             gUnk_03002CB0.dispCnt = 0x1F00;
             gDisplayRegisters.bldCnt = 0x844;
             gDisplayRegisters.bldAlpha = 0xA06;
             gDisplayRegisters.bldY = 0x10;
-            gEwramData->unk_60.unk_4CC_0 = 0;
-            sub_08008300(temp_r0);
-            sub_0803D18C(0U, 0U, 0U, 0, 0x10000, 0x10);
-            sub_0803CDF0(0U, 0U, 0U, 0, 0x10000, 0x10);
+            gEwramData->gameState.bossRushMode = 0;
+            SaveSelect_Open(saveSelect);
+            BgPalette_StartColorFade(0U, 0U, 0U, 0, 0x10000, 0x10);
+            ObjPalette_StartColorFade(0U, 0U, 0U, 0, 0x10000, 0x10);
             gEwramData->gameModeUpdateStage = 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
 
         case 1:
-            sub_08000B64();
-            var_r4 = sub_0803D408();
-            if (var_r4 == 0)
+            Entity_UpdateAll();
+            status = BgPalette_GetPendingFades();
+            if (status == 0)
             {
-                sub_0803CED4();
-                sub_0803D270();
+                ObjPalette_StopColorFade();
+                BgPalette_StopColorFade();
                 gEwramData->gameModeUpdateStage = 3;
-                gEwramData->unk_12 = var_r4;
+                gEwramData->gameModeSubStage = 0;
             }
             break;
 
         case 3:
-            var_r4 = sub_080081AC(temp_r0);
-            if (var_r4 == -1)
+            status = SaveSelect_Update(saveSelect);
+            if (status == -1)
             {
                 PlaySong(0xF0U);
                 EntityDelete(&gEwramData->entityData[3]);
                 EntityDelete(&gEwramData->entityData[6]);
                 EntityDelete(&gEwramData->entityData[5]);
-                sub_08008314(&gEwramData->entityData[4]);
+                SaveSelect_Close(&gEwramData->entityData[4]);
                 gDisplayRegisters.bldCnt = 0xFF;
                 gDisplayRegisters.bldY = 0x10;
-                spC = 1;
+                result = 1;
             }
-            else if (var_r4 != 0)
+            else if (status != 0)
             {
                 PlaySong(0xF4U);
                 gUnk_03002CB0.dispCnt &= 0xFBFF;
                 gDisplayRegisters.bldCnt = 0x853;
                 gDisplayRegisters.bldAlpha = 0x10;
-                gEwramData->unk_4 = 0;
-                var_r4 = 0;
+                gEwramData->gameModeTimer = 0;
                 gEwramData->gameModeUpdateStage = 4;
-                gEwramData->unk_12 = var_r4;
+                gEwramData->gameModeSubStage = 0;
             }
             break;
 
         case 4:
             if (gDisplayRegisters.bldAlpha < 0x1000)
             {
-                gEwramData->unk_4 += 2;
-                temp_r2_2 = gEwramData->unk_4;
-                gDisplayRegisters.bldAlpha = (temp_r2_2 << 8) | (0x10 - temp_r2_2);
-                if (gEwramData->unk_4 >= 0xD)
+                gEwramData->gameModeTimer += 2;
+                fadeIn = gEwramData->gameModeTimer;
+                gDisplayRegisters.bldAlpha = (fadeIn << 8) | (0x10 - fadeIn);
+                if (gEwramData->gameModeTimer >= 0xD)
                 {
-                    temp_r0->unk_4EE = 0;
+                    saveSelect->state = 0;
                 }
             }
             else
             {
                 gEwramData->hBlankEffect.requestStop = 1;
-                sub_08008314(&gEwramData->entityData[4]);
+                SaveSelect_Close(&gEwramData->entityData[4]);
                 gDisplayRegisters.bldCnt = 0x853;
                 gUnk_03002CB0.dispCnt &= 0xFBFF;
-                sub_0800A00C(0);
+                SoulTrade_SetupMessageWindow(0);
                 EntityDelete(&gEwramData->entityData[3]);
                 EntityDelete(&gEwramData->entityData[6]);
-                EntityDelete(temp_r6);
-                switch (gEwramData->unk_60.language)
+                EntityDelete(trade);
+                switch (gEwramData->gameState.language)
                 {
                     default:
-                        temp_r4 = sub_0803B800((u8 *)0x082052D8, 0);
+                        gfx = ObjGfx_LoadResource((u8 *)0x082052D8, 0);
                         break;
                     case 2:
-                        temp_r4 = sub_0803B800((u8 *)0x0827798C, 0);
+                        gfx = ObjGfx_LoadResource((u8 *)0x0827798C, 0);
                         break;
                     case 3:
-                        temp_r4 = sub_0803B800((u8 *)0x0826C840, 0);
+                        gfx = ObjGfx_LoadResource((u8 *)0x0826C840, 0);
                         break;
                 }
-                sub_0803C7B4((u8 *)0x080E5E24, 6U, 1U, 0xDU);
-                sub_0803B924(temp_r6, (u8 *)0x082571E0, temp_r4, 0xD);
-                temp_r6->updateFunc = (u32 *) sub_08009A48;
+                ObjPalette_LoadRange((u8 *)0x080E5E24, 6U, 1U, 0xDU);
+                Sprite_Attach(trade, (u8 *)0x082571E0, gfx, 0xD);
+                trade->updateFunc = (u32 *) SoulTrade_DrawOfferIcons;
                 DMA_FILL_32(3, 0, 0x0600E000, 0x800);
-                sub_08048C74(&gEwramData->entityData[3], 0xEU);
-                sub_0803F8A8(1U, (struct EwramData_unkA078_0 *)0x080E7164, 0U, 0U);
-                sub_0803F8A8(2U, (struct EwramData_unkA078_0 *)0x080E6F24, 0U, 0U);
+                CursorSprite_Create(&gEwramData->entityData[3], 0xEU);
+                BgMap_Setup(1U, (struct BgMapMetadata *)0x080E7164, 0U, 0U);
+                BgMap_Setup(2U, (struct BgMapMetadata *)0x080E6F24, 0U, 0U);
                 gDisplayRegisters.bgCnt[1] = 0x1D01;
                 gDisplayRegisters.bgCnt[2] = 0x1E02;
                 gDisplayRegisters.bgCnt[3] = 0x1F03;
-                sub_08040748(0U, 1U, 0x20U, 4U);
-                sub_08040FE0();
-                sub_08040748(0U, 1U, 0x1EU, 4U);
-                sub_0804066C(0, 1);
-                for (var_r4_2 = 0; var_r4_2 < 4; var_r4_2++)
+                Text12_SetRegion(0U, 1U, 0x20U, 4U);
+                Text12_ClearRegion();
+                Text12_SetRegion(0U, 1U, 0x1EU, 4U);
+                Text12_SetCursor(0, 1);
+                for (i = 0; i < 4; i++)
                 {
-                    sub_08046DD4(3, var_r4_2 + 0xF, var_r4_2 * 0x20 + 0xF020, 0x17);
+                    HudMap_WriteTiles(3, i + 0xF, i * 0x20 + 0xF020, 0x17);
                 }
-                GameModeSoulTradeMenu_inline_1(temp_r6, 0x373);
-                gEwramData->unk_4 = 0x10;
+                SoulTrade_DrawTextEntry(trade, 0x373);
+                gEwramData->gameModeTimer = 0x10;
                 gEwramData->gameModeUpdateStage = 5;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
-            sub_08000B64();
+            Entity_UpdateAll();
             break;
 
         case 5:
-            if (gEwramData->unk_4 != 0)
+            if (gEwramData->gameModeTimer != 0)
             {
-                gEwramData->unk_4 -= 2;
-                temp_r3 = gEwramData->unk_4;
-                gDisplayRegisters.bldAlpha = (temp_r3 << 8) | (0x10 - temp_r3);
+                gEwramData->gameModeTimer -= 2;
+                fadeOut = gEwramData->gameModeTimer;
+                gDisplayRegisters.bldAlpha = (fadeOut << 8) | (0x10 - fadeOut);
             }
             else
             {
@@ -1031,67 +1051,67 @@ NONMATCH("asm/non_matching/GameModeSoulTradeMenu.inc", s32 GameModeSoulTradeMenu
                 gDisplayRegisters.bldCnt = 0x844;
                 gDisplayRegisters.bldAlpha = 0xA06;
                 gEwramData->gameModeUpdateStage = 6;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
             break;
 
         case 6:
             gEwramData->gameModeUpdateStage = 7;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
 
         case 7:
-            sub_080D7F78();
-            sub_080D7FB8();
+            Link_Init();
+            Link_Start();
             gEwramData->gameModeUpdateStage = 8;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
 
         case 8:
-            GameModeSoulTradeMenu_inline_1(temp_r6, 0x373);
+            SoulTrade_DrawTextEntry(trade, 0x373);
             if (gEwramData->inputData.repeatedInput & 2)
             {
                 gEwramData->gameModeUpdateStage = 9;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
             else
             {
-                GameModeSoulTradeMenu_inline_0(0);
-                var_r4_5 = 0;
-                if (sub_080D7F28() != 0)
+                SoulTrade_ExchangeStatusInline(0);
+                linked8 = 0;
+                if (Link_IsConnected() != 0)
                 {
-                    var_r4_5 = (sub_080D7F48() != var_r4_5);
+                    linked8 = (Link_IsPeerActive() != linked8);
                 }
-                if (var_r4_5 != 0)
+                if (linked8 != 0)
                 {
-                    if ((&gEwramData->unk_25484[1])->unk_25487 != 0xD)
+                    if ((&gEwramData->soulTradePackets[1])->packetTag != 0xD)
                     {
-                        var_r1 = 0;
+                        ready8 = 0;
                     }
                     else
                     {
-                        var_r1 = 1;
+                        ready8 = 1;
                     }
                 }
                 else
                 {
-                    var_r1 = 0;
+                    ready8 = 0;
                 }
-                if (var_r1 != 0)
+                if (ready8 != 0)
                 {
-                    if ((&gEwramData->unk_25484[1])->unk_25484_4 == 0)
+                    if ((&gEwramData->soulTradePackets[1])->handshakeFlags == 0)
                     {
-                        if (++gEwramData->unk_12 > 4)
+                        if (++gEwramData->gameModeSubStage > 4)
                         {
                             if (MultiSioSyncGetId() < 2)
                             {
                                 gEwramData->gameModeUpdateStage = 0xA;
-                                gEwramData->unk_12 = 0;
+                                gEwramData->gameModeSubStage = 0;
                             }
                             else
                             {
                                 gEwramData->gameModeUpdateStage = 0x14;
-                                gEwramData->unk_12 = 0;
+                                gEwramData->gameModeSubStage = 0;
                             }
                         }
                     }
@@ -1102,364 +1122,369 @@ NONMATCH("asm/non_matching/GameModeSoulTradeMenu.inc", s32 GameModeSoulTradeMenu
         case 20:
             EntityDelete(&gEwramData->entityData[3]);
             EntityDelete(&gEwramData->entityData[6]);
-            sub_08040970(0U, 8U, 0xEU, 8U);
-            sub_08041204();
-            for (var_r4_6 = 0; var_r4_6 < 8; var_r4_6++)
+            Text8_SetRegion(0U, 8U, 0xEU, 8U);
+            Text8_ClearRegion();
+            for (j = 0; j < 8; j++)
             {
-                sub_08040970(0U, var_r4_6 + 8, 0xE, 1);
-                sub_08041204();
-                sub_08046E04(0x10, var_r4_6 + 4, 0xD);
+                Text8_SetRegion(0U, j + 8, 0xE, 1);
+                Text8_ClearRegion();
+                HudMap_ZeroTiles(0x10, j + 4, 0xD);
             }
-            sub_080D7FD0();
-            sub_08040748(0U, 1U, 0x20U, 4U);
-            sub_08040FE0();
-            sub_08040748(0U, 1U, 0x1EU, 4U);
-            sub_0804066C(0, 1);
-            for (var_r4_7 = 0; var_r4_7 < 4; var_r4_7++)
+            Link_Stop();
+            Text12_SetRegion(0U, 1U, 0x20U, 4U);
+            Text12_ClearRegion();
+            Text12_SetRegion(0U, 1U, 0x1EU, 4U);
+            Text12_SetCursor(0, 1);
+            for (k = 0; k < 4; k++)
             {
-                sub_08046DD4(3, var_r4_7 + 0xF, var_r4_7 * 0x20 + 0xF020, 0x17);
+                HudMap_WriteTiles(3, k + 0xF, k * 0x20 + 0xF020, 0x17);
             }
-            GameModeSoulTradeMenu_inline_1(temp_r6, 0x372);
+            SoulTrade_DrawTextEntry(trade, 0x372);
             gEwramData->gameModeUpdateStage = 0x15;
-            gEwramData->unk_12 = 0;
-            gEwramData->unk_4 = 0;
+            gEwramData->gameModeSubStage = 0;
+            gEwramData->gameModeTimer = 0;
             /* fallthrough */
         case 21:
-            if (!(gEwramData->unk_4 & 0xF))
+            if (!(gEwramData->gameModeTimer & 0xF))
             {
-                if (gEwramData->unk_4 & 0x10)
+                if (gEwramData->gameModeTimer & 0x10)
                 {
-                    sub_08046DD4(0x1A, 0x11, 0xF22FU, 1);
-                    sub_08046DD4(0x1A, 0x12, 0xF23FU, 1);
+                    HudMap_WriteTiles(0x1A, 0x11, 0xF22FU, 1);
+                    HudMap_WriteTiles(0x1A, 0x12, 0xF23FU, 1);
                 }
                 else
                 {
-                    sub_08046DD4(0x1A, 0x11, 0xF22EU, 1);
-                    sub_08046DD4(0x1A, 0x12, 0xF23EU, 1);
+                    HudMap_WriteTiles(0x1A, 0x11, 0xF22EU, 1);
+                    HudMap_WriteTiles(0x1A, 0x12, 0xF23EU, 1);
                 }
             }
-            gEwramData->unk_4 += 1;
+            gEwramData->gameModeTimer += 1;
             if (gEwramData->inputData.repeatedInput & 3)
             {
-                gEwramData->unk_4 = 0;
+                gEwramData->gameModeTimer = 0;
                 PlaySong(0xF0U);
                 EntityDelete(&gEwramData->entityData[5]);
-                sub_08008314(&gEwramData->entityData[4]);
+                SaveSelect_Close(&gEwramData->entityData[4]);
                 gDisplayRegisters.bldCnt = 0xFF;
                 gDisplayRegisters.bldY = 0x10;
-                spC = 1;
+                result = 1;
             }
             break;
 
         case 9:
-            sub_080D7FD0();
+            Link_Stop();
             PlaySong(0xF0U);
             EntityDelete(&gEwramData->entityData[3]);
             EntityDelete(&gEwramData->entityData[6]);
             EntityDelete(&gEwramData->entityData[5]);
             gDisplayRegisters.bldCnt = 0xFF;
             gDisplayRegisters.bldY = 0x10;
-            spC = 1;
+            result = 1;
             break;
 
         case 10:
-            var_r4 = sub_0800A2AC(temp_r6);
-            GameModeSoulTradeMenu_inline_0(0);
-            var_r5_4 = 0;
-            if (sub_080D7F28() != 0)
+            status = SoulTrade_UpdateSelection(trade);
+            SoulTrade_ExchangeStatusInline(0);
+            linked10 = 0;
+            if (Link_IsConnected() != 0)
             {
-                var_r5_4 = (sub_080D7F48() != var_r5_4);
+                linked10 = (Link_IsPeerActive() != linked10);
             }
-            if (var_r5_4 != 0)
+            if (linked10 != 0)
             {
-                if ((&gEwramData->unk_25484[1])->unk_25487 != 0xD)
+                if ((&gEwramData->soulTradePackets[1])->packetTag != 0xD)
                 {
-                    var_r1_3 = 0;
+                    ready10 = 0;
                 }
                 else
                 {
-                    var_r1_3 = 1;
+                    ready10 = 1;
                 }
             }
             else
             {
-                var_r1_3 = 0;
+                ready10 = 0;
             }
 
             // TODO: get rid of gotos
-            if (var_r1_3 != 0)
+            if (ready10 != 0)
                 goto lbl_8ca;
             {
-                if (temp_r6->unk_500.unk_500_16.unk_502 >= 6)
+                if (TRADE_WAIT_COUNTER(trade) >= 6)
                     goto lbl_8d0;
                 {
-                    temp_r6->unk_500.unk_500_16.unk_502 += 1;
+                    TRADE_WAIT_COUNTER(trade) += 1;
                     goto block_81;
                 }
                 lbl_8ca:
-                temp_r6->unk_500.unk_500_16.unk_502 = 0;
+                TRADE_WAIT_COUNTER(trade) = 0;
                 goto block_81;
                 lbl_8d0:
                 gEwramData->gameModeUpdateStage = 0x14;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
                 break;
             }
     block_81:
-            if (var_r4 == -1)
+            if (status == -1)
             {
                 gEwramData->gameModeUpdateStage = 9;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
-            else if (var_r4 != 0)
+            else if (status != 0)
             {
-                sub_08048C74(&gEwramData->entityData[6], 0xEU);
+                CursorSprite_Create(&gEwramData->entityData[6], 0xEU);
                 gEwramData->gameModeUpdateStage = 0xC;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
-            sub_08000B64();
+            Entity_UpdateAll();
             break;
 
         case 12:
-            GameModeSoulTradeMenu_inline_1(temp_r6, 0x376);
-            sub_08009A9C(temp_r6);
-            GameModeSoulTradeMenu_inline_0(0);
-            var_r4_10 = 0;
-            if (sub_080D7F28() != 0)
+            SoulTrade_DrawTextEntry(trade, 0x376);
+            SoulTrade_UpdateOfferNames(trade);
+            SoulTrade_ExchangeStatusInline(0);
+            linked12 = 0;
+            if (Link_IsConnected() != 0)
             {
-                var_r4_10 = (sub_080D7F48() != var_r4_10);
+                linked12 = (Link_IsPeerActive() != linked12);
             }
-            if (var_r4_10 != 0)
+            if (linked12 != 0)
             {
-                if ((&gEwramData->unk_25484[1])->unk_25487 != 0xD)
+                if ((&gEwramData->soulTradePackets[1])->packetTag != 0xD)
                 {
-                    var_r1_4 = 0;
+                    ready12 = 0;
                 }
                 else
                 {
-                    var_r1_4 = 1;
+                    ready12 = 1;
                 }
             }
             else
             {
-                var_r1_4 = 0;
+                ready12 = 0;
             }
 
             // TODO: get rid of gotos
-            if (var_r1_4 != 0)
+            if (ready12 != 0)
                 goto lbl_a22;
             {
-                if (temp_r6->unk_500.unk_500_16.unk_502 >= 6)
+                if (TRADE_WAIT_COUNTER(trade) >= 6)
                     goto lbl_a28;
                 {
-                    temp_r6->unk_500.unk_500_16.unk_502 += 1;
+                    TRADE_WAIT_COUNTER(trade) += 1;
                     goto block_102;
                 }
                 lbl_a22:
-                temp_r6->unk_500.unk_500_16.unk_502 = 0;
+                TRADE_WAIT_COUNTER(trade) = 0;
                 goto block_102;
                 lbl_a28:
                 gEwramData->gameModeUpdateStage = 0x14;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
                 break;
             }
     block_102:
-            sub_08000B64();
+            Entity_UpdateAll();
             if (gEwramData->inputData.repeatedInput & 0x30)
             {
                 PlaySong(0xF1U);
-                gEwramData->unk_12 ^= 1;
+                gEwramData->gameModeSubStage ^= 1;
             }
     
             // TODO: what?
-            var_16 = gEwramData->unk_12;
-            var_17 = &gEwramData->entityData[6];
-            var_19 = (var_16 * 0x3C) + 0x50;
-            var_18 = 0x8E;
-            gEwramData->entityData[6].unk_524.unk_524_16.unk_526 = var_19;
-            gEwramData->entityData[6].unk_528.unk_528_16.unk_52A = var_18;
-            // gEwramData->unk_4E4[6].unk_524.unk_524_16.unk_526 = (gEwramData->unk_12 * 0x3C) + 0x50;
-            // gEwramData->unk_4E4[6].unk_528.unk_528_16.unk_52A = 0x8E;
+            choice = gEwramData->gameModeSubStage;
+            cursor = &gEwramData->entityData[6];
+            cursorX = (choice * 0x3C) + 0x50;
+            cursorY = 0x8E;
+            gEwramData->entityData[6].posX.part16.integer = cursorX;
+            gEwramData->entityData[6].posY.part16.integer = cursorY;
+            // gEwramData->entityData[6].posX.part16.integer = (gEwramData->gameModeSubStage * 0x3C) + 0x50;
+            // gEwramData->entityData[6].posY.part16.integer = 0x8E;
     
             if (gEwramData->inputData.repeatedInput & 1)
             {
-                if (gEwramData->unk_12 == 0)
+                if (gEwramData->gameModeSubStage == 0)
                 {
-                    EntityDelete(var_17);
+                    EntityDelete(cursor);
                     gEwramData->gameModeUpdateStage = 0xD;
-                    gEwramData->unk_12 = 0;
+                    gEwramData->gameModeSubStage = 0;
                 }
                 else
                 {
-                    sub_080099E0(temp_r6);
+                    SoulTrade_ReturnToSoulList(trade);
                 }
             }
             else if (gEwramData->inputData.repeatedInput & 2)
             {
-                sub_080099E0(temp_r6);
+                SoulTrade_ReturnToSoulList(trade);
             }
             break;
 
         case 13:
-            GameModeSoulTradeMenu_inline_1(temp_r6, 0x373);
-            sub_08000B64();
+            SoulTrade_DrawTextEntry(trade, 0x373);
+            Entity_UpdateAll();
             if (gEwramData->inputData.repeatedInput & 2)
             {
-                sub_0800997C(temp_r6);
+                SoulTrade_ResetOffers(trade);
             }
             else
             {
-                sub_0800997C_inline_0(temp_r6->unk_504.unk_504_8.unk_504, temp_r6->unk_504.unk_504_8.unk_505);
-                sub_0800997C_inline_1(temp_r6->unk_504.unk_504_8.unk_506, temp_r6->unk_504.unk_504_8.unk_507);
-                GameModeSoulTradeMenu_inline_0(1);
-                var_r4_12 = 0;
-                if (sub_080D7F28() != 0)
+                SoulTrade_SetOffer(TRADE_OWN_KIND(trade), TRADE_OWN_SOUL(trade));
+                SoulTrade_SetAcknowledge(TRADE_PARTNER_KIND(trade), TRADE_PARTNER_SOUL(trade));
+                SoulTrade_ExchangeStatusInline(1);
+                linked13 = 0;
+                if (Link_IsConnected() != 0)
                 {
-                    var_r4_12 = sub_080D7F48() != var_r4_12;
+                    linked13 = Link_IsPeerActive() != linked13;
                 }
-                if (var_r4_12 != 0)
+                if (linked13 != 0)
                 {
-                    if ((&gEwramData->unk_25484[1])->unk_25487 != 0xD)
+                    if ((&gEwramData->soulTradePackets[1])->packetTag != 0xD)
                     {
-                        var_r1_5 = 0;
+                        ready13 = 0;
                     }
                     else
                     {
-                        var_r1_5 = 1;
+                        ready13 = 1;
                     }
                 }
                 else
                 {
-                    var_r1_5 = 0;
+                    ready13 = 0;
                 }
 
-                // TODO: get rid of gotos
-                if (var_r1_5 == 0)
+                if (ready13 == 0)
                 {
-                    if (temp_r6->unk_500.unk_500_16.unk_502 < 6)
+                    if (TRADE_WAIT_COUNTER(trade) < 6)
                     {
-                        temp_r6->unk_500.unk_500_16.unk_502 += 1;
-                        var_r4_12 = 2;
-                        goto block_128;
+                        TRADE_WAIT_COUNTER(trade) += 1;
+                        linked13 = 2;
                     }
-                    var_r4 = 0;
-                    gEwramData->gameModeUpdateStage = 0x14;
-                    gEwramData->unk_12 = var_r4;
-                    break;
+                    else
+                    {
+                        status = 0;
+                        gEwramData->gameModeUpdateStage = 0x14;
+                        gEwramData->gameModeSubStage = status;
+                        break;
+                    }
                 }
-                temp_r6->unk_500.unk_500_16.unk_502 = 0;
-                var_r4_12 = 1;
-    block_128:
-                if (var_r4_12 == 1)
+                else
                 {
-                    sub_08009A9C(temp_r6);
+                    TRADE_WAIT_COUNTER(trade) = 0;
+                    linked13 = 1;
+                }
+
+                if (linked13 == 1)
+                {
+                    SoulTrade_UpdateOfferNames(trade);
                 }
                 // TODO: what?
-                var_0 = unk_25484_4_32(1);
-                var_1 = 1;
-                var_1 &= var_0;
-                if (var_1)
+                peerFlags = unk_25484_4_32(1);
+                peerDone = 1;
+                peerDone &= peerFlags;
+                if (peerDone)
                 {
                     gEwramData->gameModeUpdateStage = 0xE;
-                    gEwramData->unk_12 = 0;
-                    temp_r6->unk_500.unk_500_16.unk_502 = 0;
+                    gEwramData->gameModeSubStage = 0;
+                    TRADE_WAIT_COUNTER(trade) = 0;
                 }
             }
             break;
 
         case 14:
-            GameModeSoulTradeMenu_inline_1(temp_r6, 0x374);
-            gEwramData->unk_12 += 1;
-            if (gEwramData->unk_12 > 0x10)
+            SoulTrade_DrawTextEntry(trade, 0x374);
+            gEwramData->gameModeSubStage += 1;
+            if (gEwramData->gameModeSubStage > 0x10)
             {
                 gEwramData->gameModeUpdateStage = 0x14;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
             else
             {
-                sub_0800997C_inline_0(temp_r6->unk_504.unk_504_8.unk_504, temp_r6->unk_504.unk_504_8.unk_505);
-                sub_0800997C_inline_1(temp_r6->unk_504.unk_504_8.unk_506, temp_r6->unk_504.unk_504_8.unk_507);
-                GameModeSoulTradeMenu_inline_0(1);
-                var_r4_15 = 0;
-                if (sub_080D7F28() != 0)
+                SoulTrade_SetOffer(TRADE_OWN_KIND(trade), TRADE_OWN_SOUL(trade));
+                SoulTrade_SetAcknowledge(TRADE_PARTNER_KIND(trade), TRADE_PARTNER_SOUL(trade));
+                SoulTrade_ExchangeStatusInline(1);
+                linked14 = 0;
+                if (Link_IsConnected() != 0)
                 {
-                    var_r4_15 = sub_080D7F48() != var_r4_15;
+                    linked14 = Link_IsPeerActive() != linked14;
                 }
-                if (var_r4_15 != 0)
+                if (linked14 != 0)
                 {
-                    if ((&gEwramData->unk_25484[1])->unk_25487 != 0xD)
+                    if ((&gEwramData->soulTradePackets[1])->packetTag != 0xD)
                     {
-                        var_r1_6 = 0;
+                        ready14 = 0;
                     }
                     else
                     {
-                        var_r1_6 = 1;
+                        ready14 = 1;
                     }
                 }
                 else
                 {
-                    var_r1_6 = 0;
+                    ready14 = 0;
                 }
 
-                // TODO: get rid of gotos
-                if (var_r1_6 == 0)
+                if (ready14 == 0)
                 {
-                    if (temp_r6->unk_500.unk_500_16.unk_502 <= 5)
+                    if (TRADE_WAIT_COUNTER(trade) <= 5)
                     {
-                        temp_r6->unk_500.unk_500_16.unk_502 += 1;
-                        var_r4 = 2;
-                        goto block_152;
+                        TRADE_WAIT_COUNTER(trade) += 1;
+                        status = 2;
                     }
-                    var_r4 = 0;
-                    gEwramData->gameModeUpdateStage = 0x14;
-                    gEwramData->unk_12 = var_r4;
-                    break;
+                    else
+                    {
+                        status = 0;
+                        gEwramData->gameModeUpdateStage = 0x14;
+                        gEwramData->gameModeSubStage = status;
+                        break;
+                    }
                 }
-                temp_r6->unk_500.unk_500_16.unk_502 = 0;
-                var_r4 = 1;
-    block_152:
-                if (var_r4 == 1)
+                else
                 {
-                    var_4 = unk_25484_4_32(1);
-                    var_5 = var_4;
-                    var_6 = var_5;
-                    var_6 = var_6 & 1;
+                    TRADE_WAIT_COUNTER(trade) = 0;
+                    status = 1;
+                }
+
+                if (status == 1)
+                {
+                    { register u32 x_ asm("r0") = unk_25484_4_32(1); peerReady = x_ & status; } /* FAKEMATCH: pinned register (copy before the AND keeps this tail from cross-jumping with case 6) */
                     // var_4 = var_4 & 1;
                     // temp_r1_10 = unk_25484_4_32(1); // TODO
-                    if (!(var_6))
+                    if (!(peerReady))
                     {
                         gEwramData->gameModeUpdateStage = 0x14;
-                        gEwramData->unk_12 = var_6;
+                        gEwramData->gameModeSubStage = peerReady;
                     }
-                    else if ((temp_r6->unk_4F8.unk_4F8_8.unk_4F8 + 1) != unk_25484_2_32(1))
+                    else if ((TRADE_LIST_KIND(trade) + 1) != unk_25484_2_32(1))
                     {
     
                     }
-                    else if (temp_r6->unk_4FC.unk_4FC_16.unk_4FC != (&gEwramData->unk_25484[1])->unk_25485[1])
+                    else if (TRADE_SELECTED(trade) != (&gEwramData->soulTradePackets[1])->soulIds[1])
                     {
     
                     }
                     else if (MultiSioSyncGetId() == 1)
                     {
                         // TODO: what?
-                        var_2 = unk_25484_4_32(1);
-                        var_3 = 4;
-                        var_3 &= var_2;
-                        if (var_3)
+                        peerFlagsB = unk_25484_4_32(1);
+                        peerConfirmed = 4;
+                        peerConfirmed &= peerFlagsB;
+                        if (peerConfirmed)
                         {
                             gEwramData->gameModeUpdateStage = 0x10;
-                            gEwramData->unk_12 = 0;
+                            gEwramData->gameModeSubStage = 0;
                         }
                     }
                     else
                     {
-                        temp_r1_11 = MultiSioSyncGetId();
-                        if (temp_r1_11 == 0)
+                        linkId = MultiSioSyncGetId();
+                        if (linkId == 0)
                         {
-                            if (++temp_r6->unk_500.unk_500_16.unk_500 > 4)
+                            if (++trade->unk_500.part16.unk_500 > 4)
                             {
-                                temp_r6->unk_500.unk_500_16.unk_502 = temp_r1_11;
+                                TRADE_WAIT_COUNTER(trade) = linkId;
                                 gEwramData->gameModeUpdateStage = 0xF;
-                                gEwramData->unk_12 = 0;
+                                gEwramData->gameModeSubStage = 0;
                             }
                         }
                     }
@@ -1468,190 +1493,185 @@ NONMATCH("asm/non_matching/GameModeSoulTradeMenu.inc", s32 GameModeSoulTradeMenu
             break;
 
         case 15:
-            GameModeSoulTradeMenu_inline_1(temp_r6, 0x374);
-            sub_0800997C_inline_0(temp_r6->unk_504.unk_504_8.unk_504, temp_r6->unk_504.unk_504_8.unk_505);
-            sub_0800997C_inline_1(temp_r6->unk_504.unk_504_8.unk_506, temp_r6->unk_504.unk_504_8.unk_507);
-            GameModeSoulTradeMenu_inline_0(5);
-            var_r4_18 = 0;
-            if (sub_080D7F28() != 0)
+            SoulTrade_DrawTextEntry(trade, 0x374);
+            SoulTrade_SetOffer(TRADE_OWN_KIND(trade), TRADE_OWN_SOUL(trade));
+            SoulTrade_SetAcknowledge(TRADE_PARTNER_KIND(trade), TRADE_PARTNER_SOUL(trade));
+            SoulTrade_ExchangeStatusInline(5);
+            linked15 = 0;
+            if (Link_IsConnected() != 0)
             {
-                var_r4_18 = sub_080D7F48() != var_r4_18;
+                linked15 = Link_IsPeerActive() != linked15;
             }
-            if (var_r4_18 != 0)
+            if (linked15 != 0)
             {
-                if ((&gEwramData->unk_25484[1])->unk_25487 != 0xD)
+                if ((&gEwramData->soulTradePackets[1])->packetTag != 0xD)
                 {
-                    var_r1_7 = 0;
+                    ready15 = 0;
                 }
                 else
                 {
-                    var_r1_7 = 1;
+                    ready15 = 1;
                 }
             }
             else
             {
-                var_r1_7 = 0;
+                ready15 = 0;
             }
 
             // TODO: get rid of gotos
-            if (var_r1_7 != 0)
+            if (ready15 != 0)
                 goto lbl_fde;
             {
-                if (temp_r6->unk_500.unk_500_16.unk_502 >= 6)
+                if (TRADE_WAIT_COUNTER(trade) >= 6)
                     goto lbl_4e4;
                 {
-                    temp_r6->unk_500.unk_500_16.unk_502 += 1;
+                    TRADE_WAIT_COUNTER(trade) += 1;
                     goto block_186;
                 }
                 lbl_fde:
-                temp_r6->unk_500.unk_500_16.unk_502 = 0;
+                TRADE_WAIT_COUNTER(trade) = 0;
                 goto block_186;
                 lbl_4e4:
                 gEwramData->gameModeUpdateStage = 0x14;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
                 break;
             }
     block_186:
-            if (++gEwramData->unk_12 > 0x10)
+            if (++gEwramData->gameModeSubStage > 0x10)
             {
                 gEwramData->gameModeUpdateStage = 0x10;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
             break;
 
         case 16:
-            if (temp_r6->unk_504.unk_504_8.unk_506 != 0)
+            if (TRADE_PARTNER_KIND(trade) != 0)
             {
-                GameModeSoulTradeMenu_inline_1(temp_r6, sUnk_084F0DC0[temp_r6->unk_504.unk_504_8.unk_506 - 1] + temp_r6->unk_504.unk_504_8.unk_507);
+                SoulTrade_DrawTextEntry(trade, sSoulTradeListTextBases[TRADE_PARTNER_KIND(trade) - 1] + TRADE_PARTNER_SOUL(trade));
             }
             gEwramData->gameModeUpdateStage = 0x11;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
 
         case 17:
-            if (temp_r6->unk_504.unk_504_8.unk_506 != 0)
+            if (TRADE_PARTNER_KIND(trade) != 0)
             {
-                SoulInventory_AddAmountToSoulTotal(temp_r6->unk_504.unk_504_8.unk_506 - 1, temp_r6->unk_504.unk_504_8.unk_507, 1);
-                SaveData_SaveSlotToSram(gEwramData->unk_60.currentSaveSlot);
+                SoulInventory_AddAmountToSoulTotal(TRADE_PARTNER_KIND(trade) - 1, TRADE_PARTNER_SOUL(trade), 1);
+                SaveData_SaveSlotToSram(gEwramData->gameState.currentSaveSlot);
             }
-            if (temp_r6->unk_504.unk_504_8.unk_504 != 0)
+            if (TRADE_OWN_KIND(trade) != 0)
             {
-                sub_08013164(gEwramData->unk_60.currentSaveSlot, temp_r6->unk_504.unk_504_8.unk_504 - 1, temp_r6->unk_504.unk_504_8.unk_505);
+                SaveData_GiveAwaySoul(gEwramData->gameState.currentSaveSlot, TRADE_OWN_KIND(trade) - 1, TRADE_OWN_SOUL(trade));
             }
             else
             {
-                SaveData_SaveSlotToSram(gEwramData->unk_60.currentSaveSlot);
+                SaveData_SaveSlotToSram(gEwramData->gameState.currentSaveSlot);
             }
             gEwramData->gameModeUpdateStage = 0x12;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
 
         case 18:
-            GameModeSoulTradeMenu_inline_1(temp_r6, 0x375);
-            if (gEwramData->unk_12++ > 0x2F)
+            SoulTrade_DrawTextEntry(trade, 0x375);
+            if (gEwramData->gameModeSubStage++ > 0x2F)
             {
                 gEwramData->gameModeUpdateStage = 0x13;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
             break;
 
         case 19:
-            temp_r6->unk_504.unk_504_8.unk_504 = 0;
-            temp_r6->unk_504.unk_504_8.unk_506 = 0;
-            sub_0800997C_inline_0(0, 0);
+            TRADE_OWN_KIND(trade) = 0;
+            TRADE_PARTNER_KIND(trade) = 0;
+            SoulTrade_SetOffer(0, 0);
             gDisplayRegisters.bldCnt = 0x3FFF;
-            sub_08008300(temp_r0);
+            SaveSelect_Open(saveSelect);
             EntityDelete(&gEwramData->entityData[3]);
             EntityDelete(&gEwramData->entityData[6]);
-            gEwramData->unk_4 = 0;
-            sub_080D7FD0();
+            gEwramData->gameModeTimer = 0;
+            Link_Stop();
             gEwramData->gameModeUpdateStage = 3;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
     }
-    return spC;
+    return result;
 }
-END_NONMATCH
 
-// NOTE: sub_08046DD4 is implicitly called
+
+// NOTE: HudMap_WriteTiles is implicitly called
 /**
- * @brief B5E8 | To document
- * 
- * @param param_0 To document
+ * @brief Clear the message window and redraw its frame.
  */
-void sub_0800B5E8(struct EwramData_EntityData *param_0)
+void SoulTrade_ClearMessageWindow(struct EwramData_EntityData *entity)
 {
-    s32 var_r4;
+    s32 i;
     s32 var_r5;
 
-    sub_08040748(0U, 1U, 0x20U, 4U);
-    sub_08040FE0();
+    Text12_SetRegion(0U, 1U, 0x20U, 4U);
+    Text12_ClearRegion();
 
-    sub_08040748(0U, 1U, 0x1EU, 4U);
-    sub_0804066C(0U, 1U);
+    Text12_SetRegion(0U, 1U, 0x1EU, 4U);
+    Text12_SetCursor(0U, 1U);
 
-    for (var_r4 = 0; var_r4 < 4; var_r4++)
+    for (i = 0; i < 4; i++)
     {
-        sub_08046DD4(3, var_r4 + 0xF, var_r4 * 0x20 + 0xF020, 0x17);
+        HudMap_WriteTiles(3, i + 0xF, i * 0x20 + 0xF020, 0x17);
     }
 }
 
 /**
- * @brief B634 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
+ * @brief Print the multi-line text id in the message window unless it is
+ * already shown.
  */
-void sub_0800B634(struct EwramData_EntityData *param_0, s32 param_1)
+void SoulTrade_PrintDescription(struct EwramData_EntityData *entity, s32 entry)
 {
-    // TODO: sub_0800B634 is the same as GameModeSoulTradeMenu_inline_1
-    s32 var_0;
-    u8 *var_1;
-    s32 var_2;
-    s32 var_3;
-    u8 *temp_r8;
-    s32 var_r4_3;
-    s32 var_r7;
+    // TODO: SoulTrade_PrintDescription is the same as GameModeSoulTradeMenu_inline_1
+    s32 baseRow;
+    u8 *script;
+    s32 col;
+    s32 code;
+    u8 *text;
+    s32 more;
+    s32 pos;
 
-    temp_r8 = sub_08041434(param_1);
-    var_2 = 0;
-    var_0 = 1;
-    var_r4_3 = 0;
-    var_r7 = -1;
-    if (param_0->unk_508.unk_508_32 != param_1)
+    text = Text_GetLocalizedEntry(entry);
+    col = 0;
+    baseRow = 1;
+    more = 0;
+    pos = -1;
+    if (entity->unk_508.whole != entry)
     {
-        param_0->unk_508.unk_508_32 = param_1;
-        sub_08040748(0U, 1U, 0x20U, 4U);
-        sub_08040FE0();
-        sub_08040748(0U, 1U, 0x1EU, 4U);
-        sub_0804066C(0, 1);
+        entity->unk_508.whole = entry;
+        Text12_SetRegion(0U, 1U, 0x20U, 4U);
+        Text12_ClearRegion();
+        Text12_SetRegion(0U, 1U, 0x1EU, 4U);
+        Text12_SetCursor(0, 1);
         
         do
         {
-            var_1 = temp_r8;
-            var_1 += 2;
-            sub_0804066C(var_2, var_0 + var_r4_3);
-            var_r7 = sub_08041318(temp_r8, var_r7 + 1);
-            var_3 = var_1[var_r7];
-            var_r4_3 += 1;
-            if (var_3 != 6)
+            script = text;
+            script += 2;
+            Text12_SetCursor(col, baseRow + more);
+            pos = Text12_Print(text, pos + 1);
+            code = script[pos];
+            more += 1;
+            if (code != 6)
             {
-                var_r4_3 = 0;
+                more = 0;
             }
-        } while (var_r4_3 != 0);
+        } while (more != 0);
     }
 }
 
 /**
- * @brief B6B8 | To document
- * 
- * @param param_0 To document
+ * @brief Set the own trade status byte, queue the 4-byte trade record for
+ * sending and copy the partner record.
  */
-void sub_0800B6B8(u8 param_0)
+void SoulTrade_ExchangeStatus(u8 status)
 {
-    // TODO: sub_0800B6B8 is the same as GameModeSoulTradeMenu_inline_0
-    (&gEwramData->unk_25484[0])->unk_25487 = 0xD;
-    (&gEwramData->unk_25484[0])->unk_25484_4 = param_0;
-    sub_080D8020((u8*)&gEwramData->unk_25484[0], 4);
-    sub_080D8088((u8*)&gEwramData->unk_25484[1], 4);
+    // TODO: SoulTrade_ExchangeStatus is the same as GameModeSoulTradeMenu_inline_0
+    (&gEwramData->soulTradePackets[0])->packetTag = 0xD;
+    (&gEwramData->soulTradePackets[0])->handshakeFlags = status;
+    Link_QueueSendBytes((u8*)&gEwramData->soulTradePackets[0], 4);
+    Link_CopyReceivedBytes((u8*)&gEwramData->soulTradePackets[1], 4);
 }

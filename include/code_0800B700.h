@@ -5,19 +5,19 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-void sub_0800B700(s32 param_0);
+void SoundTestMenu_DrawScreen(s32 index);
 s32 GameModeSoundTestMenu(void);
 s32 GameModeInGameUpdate(void);
-s32 sub_0800C5A8(s32 param_0);
+s32 Game_SetMenusEnabled(s32 enabled);
 s32 GameModeUnk3Update(void);
-void sub_0800C5D8(void);
-void sub_0800C6F8(void);
-void sub_0800C72C(void);
-void sub_0800C778(void);
-void sub_0800C7A4(struct EwramData_unk60 *param_0);
-s32 sub_0800C8C8(void);
-s32 sub_0800CA40(void);
-s32 sub_0800CA98(void);
+void InGame_InitScene(void);
+void InGame_LoadCommonObjectPalettes(void);
+void InGame_LoadCommonObjectGraphics(void);
+void Display_SetDefaultBlend(void);
+void Game_ResetSystems(struct GameState *gameState);
+s32 InGame_UpdateDeath(void);
+s32 InGame_UpdateTimerAndHud(void);
+s32 InGame_EnterCredits(void);
 void UpdateInGameTimer(void);
 
 #endif /* CODE_0800B700_H */

@@ -29,64 +29,58 @@
 // Note: BgCmdBuffer_WriteString is implicitly called
 
 /**
- * @brief 11DD0 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Count set visited-cell bits across the 64 by 40 map grid.
  */
-s32 sub_08011DD0(struct EwramData_unk60 *param_0)
+s32 Map_CountVisitedCells(struct GameState *gameState)
 {
-    // TODO: unused? looks like code in sub_08011E24 and sub_08011E88, but probably can't be an inline
-    s32 var_r1;
-    s32 var_r3;
-    s32 var_r6;
+    // TODO: unused? looks like code in Map_GetCompletionTenths and Map_DrawCompletion, but probably can't be an inline
+    s32 i;
+    s32 j;
+    s32 count;
 
-    var_r6 = 0;
+    count = 0;
 
-    for (var_r1 = 0; var_r1 < 40; var_r1++)
+    for (i = 0; i < 40; i++)
     {
-        for (var_r3 = 0; var_r3 < 0x40; var_r3++)
+        for (j = 0; j < 0x40; j++)
         {
-            if (param_0->unk_B4[var_r3 >> 5][var_r1].unk_B8 & (1 << (var_r3 & 0x1F)))
+            if (gameState->mapCells[j >> 5][i].visited & (1 << (j & 0x1F)))
             {
-                var_r6 += 1;
+                count += 1;
             }
         }
     }
 
-    return var_r6;
+    return count;
 }
 
 /**
- * @brief 11E24 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Return visited-cell count times 1000 divided by 0x350, representing tenths of a percent; preserve the unused parameter and absence of clamping.
  */
-s32 sub_08011E24(struct EwramData_unk60 *param_0, s32 param_1)
+s32 Map_GetCompletionTenths(struct GameState *gameState, s32 param_1)
 {
-    s32 var_r1;
-    s32 var_r3;
-    s32 var_r6;
+    s32 i;
+    s32 j;
+    s32 count;
 
-    var_r6 = 0;
+    count = 0;
 
-    for (var_r1 = 0; var_r1 < 40; var_r1++)
+    for (i = 0; i < 40; i++)
     {
-        for (var_r3 = 0; var_r3 < 0x40; var_r3++)
+        for (j = 0; j < 0x40; j++)
         {
-            if (param_0->unk_B4[var_r3 >> 5][var_r1].unk_B8 & (1 << (var_r3 & 0x1F)))
+            if (gameState->mapCells[j >> 5][i].visited & (1 << (j & 0x1F)))
             {
-                var_r6 += 1;
+                count += 1;
             }
         }
     }
 
-    return Div(var_r6 * 1000, 0x350);
+    return Div(count * 1000, 0x350);
 }
 
 // TODO: is this an asset?
-const u8 sUnk_080E100C[0xE4] = {
+const u8 sMapCompletionText[0xE4] = {
 	0x2e, 0x20, 0x25, 0x00, 0xf8, 0xf0, 0x00, 0x00, 0x00, 0x70, 0x10, 0x10, 0x10, 0x00, 0x00, 0x00,
 	0xf8, 0xf0, 0x00, 0x00, 0x10, 0x70, 0x10, 0x10, 0x10, 0x00, 0x00, 0x00, 0xf8, 0xf0, 0x00, 0x00,
 	0x20, 0x70, 0x10, 0x10, 0x10, 0x00, 0x00, 0x00, 0xf8, 0xf0, 0x00, 0x00, 0x30, 0x70, 0x10, 0x10, 
@@ -105,209 +99,177 @@ const u8 sUnk_080E100C[0xE4] = {
 };
 
 /**
- * @brief 11E88 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @param param_3 To document
+ * @brief Draw map completion using visited count times 1000 divided by 0x350, with three integer digits and one fractional digit through the background command buffer.
  */
-void sub_08011E88(struct EwramData_unk60 *param_0, s32 param_1, s32 param_2, s32 param_3)
+void Map_DrawCompletion(struct GameState *gameState, s32 param_1, s32 column, s32 rowOffset)
 {
-    s32 var_r1;
-    s32 var_r3;
-    s32 var_r6;
-    s32 temp_r4;
+    s32 i;
+    s32 j;
+    s32 count;
+    s32 tenths;
 
-    var_r6 = 0;
+    count = 0;
 
-    for (var_r1 = 0; var_r1 < 40; var_r1++)
+    for (i = 0; i < 40; i++)
     {
-        for (var_r3 = 0; var_r3 < 0x40; var_r3++)
+        for (j = 0; j < 0x40; j++)
         {
-            if (param_0->unk_B4[var_r3 >> 5][var_r1].unk_B8 & (1 << (var_r3 & 0x1F)))
+            if (gameState->mapCells[j >> 5][i].visited & (1 << (j & 0x1F)))
             {
-                var_r6 += 1;
+                count += 1;
             }
         }
     }
 
-    temp_r4 = Div(var_r6 * 1000, 0x350);
-    BgCmdBuffer_WriteString(param_2 + 3, param_3, 0, sUnk_080E100C);
-    BgCmdBuffer_WriteNumber(param_2, param_3, 0, 3, Div(temp_r4, 10));
-    BgCmdBuffer_WriteNumber(param_2 + 4, param_3, 0, 1, Mod(temp_r4, 10));
+    tenths = Div(count * 1000, 0x350);
+    BgCmdBuffer_WriteString(column + 3, rowOffset, 0, sMapCompletionText);
+    BgCmdBuffer_WriteNumber(column, rowOffset, 0, 3, Div(tenths, 10));
+    BgCmdBuffer_WriteNumber(column + 4, rowOffset, 0, 1, Mod(tenths, 10));
 }
 
 /**
- * @brief 11F44 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @param param_3 To document
- * @param param_4 To document
+ * @brief Store the destination room definition, camera position and player
+ * position for the next room jump (roomJumpDestination..roomJumpPlayerY).
  */
-void sub_08011F44(void *param_0, s32 param_1, s32 param_2, s32 param_3, s32 param_4)
+void RoomJump_SetDestination(void *room, s32 cameraX, s32 cameraY, s32 playerX, s32 playerY)
 {
-    gEwramData->unk_60.unk_3F8 = (struct EwramData_unk88 *) param_0;
-    gEwramData->unk_60.unk_3FC = param_1;
-    gEwramData->unk_60.unk_3FE = param_2;
-    gEwramData->unk_60.unk_400 = param_3;
-    gEwramData->unk_60.unk_402 = param_4;
+    gEwramData->gameState.roomJumpDestination = (struct RoomDefinition *) room;
+    gEwramData->gameState.roomJumpCameraX = cameraX;
+    gEwramData->gameState.roomJumpCameraY = cameraY;
+    gEwramData->gameState.roomJumpPlayerX = playerX;
+    gEwramData->gameState.roomJumpPlayerY = playerY;
 }
 
 /**
- * @brief 11F7C | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
+ * @brief When priority is at least the current priority, store priority and signed X/Y components without changing the existing duration.
  */
-void sub_08011F7C(u8 param_0, u8 param_1, u8 param_2)
+void ScreenShake_RequestOffset(u8 priority, s8 param_1, s8 param_2)
 {
-    if (param_0 >= gEwramData->unk_60.unk_4C0)
+    if (priority >= gEwramData->gameState.screenShakePriority)
     {
-        gEwramData->unk_60.unk_4C0 = param_0;
-        gEwramData->unk_60.unk_4C2 = param_1;
-        gEwramData->unk_60.unk_4C3 = param_2;
+        gEwramData->gameState.screenShakePriority = priority;
+        gEwramData->gameState.screenShakeComponentX = param_1;
+        gEwramData->gameState.screenShakeComponentY = param_2;
     }
 }
 
 /**
- * @brief 11FC0 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @param param_3 To document
+ * @brief When priority is at least the current priority, store priority, duration and X/Y random masks.
  */
-void sub_08011FC0(u8 param_0, u8 param_1, u8 param_2, u8 param_3)
+void ScreenShake_Request(u8 priority, u8 param_1, u8 param_2, u8 param_3)
 {
-    if (param_0 >= gEwramData->unk_60.unk_4C0)
+    if (priority >= gEwramData->gameState.screenShakePriority)
     {
-        gEwramData->unk_60.unk_4C0 = param_0;
-        gEwramData->unk_60.unk_4C1 = param_1;
-        gEwramData->unk_60.unk_4C2 = param_2;
-        gEwramData->unk_60.unk_4C3 = param_3;
+        gEwramData->gameState.screenShakePriority = priority;
+        gEwramData->gameState.screenShakeTimer = param_1;
+        gEwramData->gameState.screenShakeComponentX = param_2;
+        gEwramData->gameState.screenShakeComponentY = param_3;
     }
 }
 
 /**
- * @brief 12014 | To document
- * 
+ * @brief Clear the four request-state bytes; existing output offsets are left for the update routine to replace.
  */
-void sub_08012014(void)
+void ScreenShake_Clear(void)
 {
-    gEwramData->unk_60.unk_4C0 = 0;
-    gEwramData->unk_60.unk_4C1 = 0;
-    gEwramData->unk_60.unk_4C2 = 0;
-    gEwramData->unk_60.unk_4C3 = 0;
+    gEwramData->gameState.screenShakePriority = 0;
+    gEwramData->gameState.screenShakeTimer = 0;
+    gEwramData->gameState.screenShakeComponentX = 0;
+    gEwramData->gameState.screenShakeComponentY = 0;
 }
 
 /**
- * @brief 12048 | To document
- * 
- * @param param_0 To document
+ * @brief Set the indexed flag for nonnegative indices; retain original unchecked upper indexing.
  */
-void sub_08012048(s32 param_0)
+void GameFlag_Set(s32 flag)
 {
     u32 *temp_r2;
 
-    if (param_0 >= 0)
+    if (flag >= 0)
     {
         // TODO: is temp_r2 fake or inline?
-        temp_r2 = &gEwramData->unk_60.unk_33C[param_0 >> 5];
-        *temp_r2 |= 1 << (param_0 & 0x1F);
+        temp_r2 = &gEwramData->gameState.gameFlags[flag >> 5];
+        *temp_r2 |= 1 << (flag & 0x1F);
     }
 }
 
 /**
- * @brief 12078 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Return the raw indexed bit mask, or zero for a negative index; do not normalize a set high bit to one.
  */
-s32 sub_08012078(s32 param_0)
+s32 GameFlag_GetMask(s32 flag)
 {
-    u32 *temp_r2;
+    u32 *word;
 
-    if (param_0 < 0)
+    if (flag < 0)
     {
         return 0;
     }
     else
     {
-        temp_r2 = &gEwramData->unk_60.unk_33C[param_0 >> 5];
-        return *temp_r2 & (1 << (param_0 & 0x1F));
+        word = &gEwramData->gameState.gameFlags[flag >> 5];
+        return *word & (1 << (flag & 0x1F));
     }
 }
 
-// TODO: sub_080120AC_inline_0 is the same as sub_08012048
-static inline void sub_080120AC_inline_0(s32 param_0)
+// TODO: GameFlag_SetInline is the same as GameFlag_Set
+static inline void GameFlag_SetInline(s32 flag)
 {
-    u32 *temp_r2;
+    u32 *word;
 
-    if (param_0 >= 0)
+    if (flag >= 0)
     {
-        temp_r2 = &gEwramData->unk_60.unk_33C[param_0 >> 5];
-        *temp_r2 |= 1 << (param_0 & 0x1F);
+        word = &gEwramData->gameState.gameFlags[flag >> 5];
+        *word |= 1 << (flag & 0x1F);
     }
 }
 
-// TODO: sub_080120AC_inline_1 is the same as sub_08012078
-static inline s32 sub_080120AC_inline_1(s32 param_0)
+// TODO: GameFlag_TestAndSetInline is the same as GameFlag_GetMask
+static inline s32 GameFlag_TestAndSetInline(s32 flag)
 {
-    u32 *temp_r2;
+    u32 *word;
 
-    if (param_0 < 0)
+    if (flag < 0)
     {
         return 0;
     }
     else
     {
-        temp_r2 = &gEwramData->unk_60.unk_33C[param_0 >> 5];
-        return *temp_r2 & (1 << (param_0 & 0x1F));
+        word = &gEwramData->gameState.gameFlags[flag >> 5];
+        return *word & (1 << (flag & 0x1F));
     }
 }
 
 /**
- * @brief 120AC | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Return the previous raw flag mask and set the flag when clear; a negative index returns zero without writing.
  */
-s32 sub_080120AC(s32 param_0)
+s32 GameFlag_TestAndSet(s32 flag)
 {
-    s32 var_r4;
+    s32 wasSet;
     u32 *temp_r2;
 
-    var_r4 = 0;
-    var_r4 = sub_080120AC_inline_1(param_0);
-    if (var_r4 == 0)
+    wasSet = 0;
+    wasSet = GameFlag_TestAndSetInline(flag);
+    if (wasSet == 0)
     {
-        sub_080120AC_inline_0(param_0);
+        GameFlag_SetInline(flag);
     }
-    return var_r4;
+    return wasSet;
 }
 
-extern s8 sUnk_081183B0[][2];
+extern s8 sGameFlagMapCoordinates[][2];
 
 /**
- * @brief 12104 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @return s32 To document
+ * @brief Search the signed-byte coordinate table for the supplied map X/Y pair; return its flag index or -1.
  */
-s32 sub_08012104(s32 param_0, s32 param_1)
+s32 GameFlag_FindMapCoordinate(s32 x, s32 y)
 {
-    s32 var_r1;
+    s32 i;
 
-    for (var_r1 = 0; sUnk_081183B0[var_r1][0] >= 0; var_r1++)
+    for (i = 0; sGameFlagMapCoordinates[i][0] >= 0; i++)
     {
-        if ((param_0 == sUnk_081183B0[var_r1][0]) && (param_1 == sUnk_081183B0[var_r1][1]))
+        if ((x == sGameFlagMapCoordinates[i][0]) && (y == sGameFlagMapCoordinates[i][1]))
         {
-            return var_r1;
+            return i;
         }
     }
 
@@ -315,42 +277,37 @@ s32 sub_08012104(s32 param_0, s32 param_1)
 }
 
 /**
- * @brief 12154 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @return s32 To document
+ * @brief Add room-map origin to room coordinates shifted by eight, apply the mode-dependent coordinate transform and return the matching flag index or -1.
  */
-s32 sub_08012154(s32 param_0, s32 param_1, s32 param_2)
+s32 GameFlag_FindRoomCoordinate(s32 x, s32 y, s32 side)
 {
-    s32 var_r7;
-    s32 var_r2;
-    s32 var_r1;
-    struct EwramData_unk60 *unk_60;
+    s32 cellX;
+    s32 cellY;
+    s32 i;
+    struct GameState *gameState;
 
-    unk_60 = &gEwramData->unk_60;
-    var_r7 = unk_60->roomMapXPos + (param_0 >> 8);
-    var_r2 = unk_60->roomMapYPos + (param_1 >> 8);
+    gameState = &gEwramData->gameState;
+    cellX = gameState->roomMapXPos + (x >> 8);
+    cellY = gameState->roomMapYPos + (y >> 8);
 
-    switch (param_2)
+    switch (side)
     {
         case 2:
-            var_r7 += 1;
+            cellX += 1;
             /* fallthrough */
         case 1:
-            var_r2 = -var_r2;
+            cellY = -cellY;
             break;
         case 4:
-            var_r2 += 1;
+            cellY += 1;
             break;
     }
 
-    for (var_r1 = 0; sUnk_081183B0[var_r1][0] >= 0; var_r1++)
+    for (i = 0; sGameFlagMapCoordinates[i][0] >= 0; i++)
     {
-        if ((var_r7 == sUnk_081183B0[var_r1][0]) && (var_r2 == sUnk_081183B0[var_r1][1]))
+        if ((cellX == sGameFlagMapCoordinates[i][0]) && (cellY == sGameFlagMapCoordinates[i][1]))
         {
-            return var_r1;
+            return i;
         }
     }
 
@@ -358,120 +315,108 @@ s32 sub_08012154(s32 param_0, s32 param_1, s32 param_2)
 }
 
 /**
- * @brief 121E0 | To document
- * 
- * @param param_0 To document
+ * @brief Clear the indexed flag for nonnegative indices; retain original unchecked upper indexing.
  */
-void sub_080121E0(s32 param_0)
+void GameFlag_Clear(s32 flag)
 {
-    u32 *temp_r2;
+    u32 *word;
 
-    if (param_0 >= 0)
+    if (flag >= 0)
     {
-        temp_r2 = &gEwramData->unk_60.unk_33C[param_0 >> 5];
-        *temp_r2 &= ~(1 << (param_0 & 0x1F));
+        word = &gEwramData->gameState.gameFlags[flag >> 5];
+        *word &= ~(1 << (flag & 0x1F));
     }
 }
 
 /**
- * @brief 12210 | To document
- * 
+ * @brief Unless the uploaded bit (itemIconCacheFlags bit 1) is set, queue DMA copies of
+ * both 0x200-byte cached icon tile rows to the icon object tiles and set it.
  */
-void sub_08012210(void)
+void ItemIconCache_Upload(void)
 {
-    s32 temp_r4;
-    u8 *temp_r6;
+    s32 tileOffset;
+    u8 *tiles;
 
-    if (!(gEwramData->unk_11DD9 & 2))
+    if (!(gEwramData->itemIconCacheFlags & 2))
     {
-        temp_r6 = gEwramData->unk_115D8;
-        temp_r4 = sub_0803D8B4(gEwramData->unk_11DD8) << 5;
-        DmaQueue_IndirectCopy(0x200, (u32 *) temp_r6, (u32*)(VRAM_BASE + 0x13800 + temp_r4));
-        DmaQueue_IndirectCopy(0x200, (u32 *) &temp_r6[0x200], (u32*)(VRAM_BASE + 0x13800 + 0x400 + temp_r4));
-        gEwramData->unk_11DD9 |= 2;
+        tiles = gEwramData->itemIconTiles;
+        tileOffset = ObjTiles_GetSlotTile(gEwramData->itemIconGfxEntry) << 5;
+        DmaQueue_IndirectCopy(0x200, (u32 *) tiles, (u32*)(VRAM_BASE + 0x13800 + tileOffset));
+        DmaQueue_IndirectCopy(0x200, (u32 *) &tiles[0x200], (u32*)(VRAM_BASE + 0x13800 + 0x400 + tileOffset));
+        gEwramData->itemIconCacheFlags |= 2;
     }
 }
 
 /**
- * @brief 12294 | To document
- * 
+ * @brief Find the icon object graphics slot, set itemIconCacheFlags to 1 and clear the
+ * current and saved icon IDs and both icon tile buffers.
  */
-void sub_08012294(void)
+void ItemIconCache_Init(void)
 {
-    s32 var_r1;
+    s32 i;
 
-    gEwramData->unk_11DD8 = sub_0803AFB8((u8 *)0x081C15F4);
-    gEwramData->unk_11DD9 = 1;
+    gEwramData->itemIconGfxEntry = ObjGfx_Find((u8 *)0x081C15F4);
+    gEwramData->itemIconCacheFlags = 1;
 
-    for (var_r1 = 0; var_r1 <= 7; var_r1++)
+    for (i = 0; i <= 7; i++)
     {
-        gEwramData->unk_115C8[var_r1] = 0;
-        gEwramData->unk_115D0[var_r1] = 0;
+        gEwramData->itemIconIds[i] = 0;
+        gEwramData->savedItemIconIds[i] = 0;
     }
 
-    DMA_FILL_32(3, 0, &gEwramData->unk_115D8, 0x400);
-    DMA_FILL_32(3, 0, &gEwramData->unk_119D8, 0x400);
+    DMA_FILL_32(3, 0, &gEwramData->itemIconTiles, 0x400);
+    DMA_FILL_32(3, 0, &gEwramData->savedItemIconTiles, 0x400);
 }
 
-void *sUnk_084F1060[] = {
+void *sItemIconSheetData[] = {
     [0] = (void*)0x081C5E00,
     [1] = (void*)0x081C7E04,
     [2] = (void*)0x081C9E08
 };
 
 /**
- * @brief 1232C | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Load the 16x16 icon id into one of 8 cached icon slots (reusing a slot
+ * that already holds it) and request the upload.
+ *
+ * @param id Icon id (1-based, 64 icons per sheet in sItemIconSheetData), 0 = none
+ * @return Slot index, -1 if no slot is free or id is 0
  */
-s32 sub_0801232C(s32 param_0)
+s32 ItemIconCache_Load(s32 id)
 {
-    s32 var_r5;
-    s32 var_r1;
-    s32 var_r1_2;
-    s32 temp_r1;
-    void *temp_r2;
-    void *temp_r1_3;
-    void *var_0;
-    s32 var_1;
+    s32 slot;
+    s32 i;
+    s32 sheet;
+    void *src;
+    void *dst;
+    void *sheetData;
+    s32 rowSize;
 
-    var_1 = 0x200; // Fake?
-    var_r5 = -1;
-    if (param_0 != 0)
+    rowSize = 0x200;
+    slot = -1;
+    if (id != 0)
     {
-        for (var_r1 = 0; var_r1 < 8; var_r1++)
+        for (i = 0; i < 8; i++)
         {
-            if (gEwramData->unk_115C8[var_r1] == param_0)
-            {
-                return var_r1;
-            }
-            if ((var_r5 == -1) && (gEwramData->unk_115C8[var_r1] == 0))
-            {
-                var_r5 = var_r1;
-            }
+            if (gEwramData->itemIconIds[i] == id)
+                return i;
+            if (slot == -1 && gEwramData->itemIconIds[i] == 0)
+                slot = i;
         }
 
-        if (var_r5 < 0)
-        {
+        if (slot < 0)
             return -1;
-        }
-        gEwramData->unk_115C8[var_r5] = (u8) param_0;
-        var_r1_2 = param_0 - 1;
-        if (var_r1_2 < 0)
-        {
-            var_r1_2 += 0x3F;
-        }
-        temp_r1 = var_r1_2 >> 6;
-        var_0 = sUnk_084F1060[temp_r1];
-        temp_r2 = var_0 + (((((param_0 - (temp_r1 << 6)) - 1) >> 3) << 10) + 4) + ((((param_0 - (temp_r1 << 6)) - 1) & 7) << 6);
-        temp_r1_3 = &gEwramData->unk_115D8[var_r5 << 6];
-        DMA_COPY_32(3, temp_r2, temp_r1_3, 0x40);
-        DMA_COPY_32(3, temp_r2 + var_1, temp_r1_3 + 0x200, 0x40);
-        sub_08012210();
+
+        gEwramData->itemIconIds[slot] = (u8)id;
+        sheet = (id - 1) / 64;
+        sheetData = sItemIconSheetData[sheet];
+        src = sheetData + (((((id - (sheet << 6)) - 1) >> 3) << 10) + 4) + ((((id - (sheet << 6)) - 1) & 7) << 6);
+        dst = &gEwramData->itemIconTiles[slot << 6];
+        DMA_COPY_32(3, src, dst, 0x40);
+        DMA_COPY_32(3, src + rowSize, dst + 0x200, 0x40);
+        ItemIconCache_Upload();
     }
 
-    return var_r5;
+    return slot;
 }
 
 // TODO: figure out struct
@@ -480,7 +425,7 @@ struct Unk_080E10F0 {
 };
 
 // TODO: is this asset?
-const struct Unk_080E10F0 sUnk_080E10F0[] = {
+const struct Unk_080E10F0 sItemIconSpriteSheet[] = {
     0x01, 0x00, 0x00, 0x00, 0x70, 0x10, 0x0E, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
     0x01, 0x00, 0x00, 0x00, 0x80, 0x10, 0x0E, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
     0x01, 0x00, 0x00, 0x00, 0x90, 0x10, 0x0E, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
@@ -492,39 +437,39 @@ const struct Unk_080E10F0 sUnk_080E10F0[] = {
 };
 
 /**
- * @brief 123EC | (Unused) To document
- * 
- * @param param_0 To document
+ * @brief (Unused) Icon entity: load icon unk_4F8 into the cache, attach its
+ * cache-slot sprite with palette unk_4F9 (default 6); state 3 releases the
+ * slot and frees the sprite.
  */
-void sub_080123EC(struct EwramData_EntityData *param_0)
+void ItemIconEntity_Update(struct EwramData_EntityData *entity)
 {
-    u32 temp_r0_2;
-    s32 var_0;
+    u32 slot;
+    s32 palette;
 
-    switch (param_0->unk_4EE)
+    switch (entity->state)
     {
         case 0:
-            param_0->drawFunc = (u32 *) sub_0803B9D0;
-            param_0->unk_540 = 13;
-            param_0->unk_4F8.unk_4F8_8.unk_4F9 = 6;
+            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->spriteLayer = 13;
+            entity->unk_4F8.part8.unk_4F9 = 6;
             /* fallthrough */
         case 1:
-            gEwramData->unk_11DD9 &= ~2;
-            temp_r0_2 = sub_0801232C(param_0->unk_4F8.unk_4F8_8.unk_4F8);
-            var_0 = (s8)param_0->unk_4F8.unk_4F8_8.unk_4F9;
-            if (temp_r0_2 < 8)
+            gEwramData->itemIconCacheFlags &= ~2;
+            slot = ItemIconCache_Load(entity->unk_4F8.part8.unk_4F8);
+            palette = (s8)entity->unk_4F8.part8.unk_4F9;
+            if (slot < 8)
             {
-                param_0->unk_4F4.unk_4F4_8.unk_4F4 = temp_r0_2;
-                sub_0803B924(param_0, (u8*)&sUnk_080E10F0[temp_r0_2], gEwramData->unk_11DD8, var_0);
-                param_0->unk_549 = 0;
+                entity->unk_4F4.part8.unk_4F4 = slot;
+                Sprite_Attach(entity, (u8*)&sItemIconSpriteSheet[slot], gEwramData->itemIconGfxEntry, palette);
+                entity->animFrame = 0;
             }
-            param_0->unk_53D_1 = 1;
-            param_0->unk_4EE = 2;
+            entity->scrollWithBg = 1;
+            entity->state = 2;
             break;
 
         case 3:
-            gEwramData->unk_115C8[(s8)param_0->unk_4F4.unk_4F4_8.unk_4F4] = 0;
-            sub_0803AAEC(param_0, 0);
+            gEwramData->itemIconIds[(s8)entity->unk_4F4.part8.unk_4F4] = 0;
+            Sprite_Free(entity, 0);
             /* fallthrough */
         case 2:
             break;
@@ -532,83 +477,72 @@ void sub_080123EC(struct EwramData_EntityData *param_0)
 }
 
 /**
- * @brief 124A8 | To document
- * 
+ * @brief Clear the current and saved cached icon IDs; tile buffers are kept.
  */
-void sub_080124A8(void)
+void ItemIconCache_ClearIds(void)
 {
-    DMA_FILL_16(3, 0, &gEwramData->unk_115C8, 8);
-    DMA_FILL_16(3, 0, &gEwramData->unk_115D0, 8);
+    DMA_FILL_16(3, 0, &gEwramData->itemIconIds, 8);
+    DMA_FILL_16(3, 0, &gEwramData->savedItemIconIds, 8);
 }
 
 /**
- * @brief 124F4 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @return s32 To document
+ * @brief Attach the sprite of cache slot slot (0..7) with the given palette to
+ * the entity and record the slot; return 0 for slots 8 and above.
  */
-s32 sub_080124F4(struct EwramData_EntityData *param_0, u32 param_1, s32 param_2)
+s32 ItemIcon_AttachSprite(struct EwramData_EntityData *entity, u32 slot, s32 palette)
 {
-    // TODO: inline for sub_080123EC?
-    s32 temp_r0;
+    // TODO: inline for ItemIconEntity_Update?
+    s32 result;
 
-    if (param_1 >= 8)
+    if (slot >= 8)
         return 0;
 
-    param_0->unk_4F4.unk_4F4_8.unk_4F4 = param_1;
-    temp_r0 = sub_0803B924(param_0, (u8*)&sUnk_080E10F0[param_1], gEwramData->unk_11DD8, param_2);
-    param_0->unk_549 = 0;
-    return temp_r0;
+    entity->unk_4F4.part8.unk_4F4 = slot;
+    result = Sprite_Attach(entity, (u8*)&sItemIconSpriteSheet[slot], gEwramData->itemIconGfxEntry, palette);
+    entity->animFrame = 0;
+    return result;
 }
 
 /**
- * @brief 12534 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
+ * @brief Free the icon entity's sprite, first releasing its cache slot when
+ * release is nonzero.
  */
-void sub_08012534(struct EwramData_EntityData *param_0, s32 param_1)
+void ItemIcon_Free(struct EwramData_EntityData *entity, s32 release)
 {
-    // TODO: inline for sub_080123EC?
-    if (param_1 != 0)
+    // TODO: inline for ItemIconEntity_Update?
+    if (release != 0)
     {
-        gEwramData->unk_115C8[(s8)param_0->unk_4F4.unk_4F4_8.unk_4F4] = 0;
+        gEwramData->itemIconIds[(s8)entity->unk_4F4.part8.unk_4F4] = 0;
     }
-    sub_0803AAEC(param_0, 0);
+    Sprite_Free(entity, 0);
 }
 
 /**
- * @brief 12564 | To document
- * 
- * @param param_0 To document
+ * @brief Clear the icon ID held by cache slot slot.
  */
-void sub_08012564(s32 param_0)
+void ItemIconCache_ReleaseSlot(s32 slot)
 {
-    // TODO: inline for sub_080123EC?
-    gEwramData->unk_115C8[param_0] = 0;
+    // TODO: inline for ItemIconEntity_Update?
+    gEwramData->itemIconIds[slot] = 0;
 }
 
 /**
- * @brief 1257C | (Unused) To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief (Unused) Return the cache slot holding icon id, or -1; ids of 8 and
+ * above return -1 before the search (original guard kept).
  */
-s32 sub_0801257C(u32 param_0)
+s32 ItemIconCache_FindId(u32 id)
 {
-    // TODO: inline for sub_0801232C or actually unused?
-    s32 var_r1;
+    // TODO: inline for ItemIconCache_Load or actually unused?
+    s32 slot;
 
-    if (param_0 >= 8)
+    if (id >= 8)
         return -1;
 
-    for (var_r1 = 0; var_r1 < 8; var_r1++)
+    for (slot = 0; slot < 8; slot++)
     {
-        if (gEwramData->unk_115C8[var_r1] == param_0)
+        if (gEwramData->itemIconIds[slot] == id)
         {
-            return var_r1;
+            return slot;
         }
     }
 
@@ -616,64 +550,64 @@ s32 sub_0801257C(u32 param_0)
 }
 
 /**
- * @brief 125B4 | To document
- * 
+ * @brief Copy the cached icon IDs and tiles to the saved copy, then clear the
+ * current IDs.
  */
-void sub_080125B4(void)
+void ItemIconCache_Save(void)
 {
-    DMA_COPY_16(3, &gEwramData->unk_115C8, &gEwramData->unk_115D0, 0x8);
-    DMA_COPY_16(3, &gEwramData->unk_115D8, &gEwramData->unk_119D8, 0x400);
-    DMA_FILL_16(3, 0, &gEwramData->unk_115C8, 0x8);
+    DMA_COPY_16(3, &gEwramData->itemIconIds, &gEwramData->savedItemIconIds, 0x8);
+    DMA_COPY_16(3, &gEwramData->itemIconTiles, &gEwramData->savedItemIconTiles, 0x400);
+    DMA_FILL_16(3, 0, &gEwramData->itemIconIds, 0x8);
 }
 
 /**
- * @brief 1261C | To document
- * 
+ * @brief Restore the cached icon IDs and tiles from the saved copy and request
+ * the upload.
  */
-void sub_0801261C(void)
+void ItemIconCache_Restore(void)
 {
-    DMA_COPY_16(3, &gEwramData->unk_115D0, &gEwramData->unk_115C8, 0x8);
-    DMA_COPY_16(3, &gEwramData->unk_119D8, &gEwramData->unk_115D8, 0x400);
-    sub_08012210();
+    DMA_COPY_16(3, &gEwramData->savedItemIconIds, &gEwramData->itemIconIds, 0x8);
+    DMA_COPY_16(3, &gEwramData->savedItemIconTiles, &gEwramData->itemIconTiles, 0x400);
+    ItemIconCache_Upload();
 }
 
 /**
- * @brief 1266C | To document
- * 
+ * @brief Clear the uploaded bit so the next ItemIconCache_Upload copies the tiles
+ * again.
  */
-void sub_0801266C(void)
+void ItemIconCache_InvalidateUpload(void)
 {
-    gEwramData->unk_11DD9 &= ~2;
+    gEwramData->itemIconCacheFlags &= ~2;
 }
 
 /**
- * @brief 12688 | To document
- * 
- * @param param_0 To document
+ * @brief Store the current area, room, player position and camera (BG1
+ * scroll, 0x30 higher for one-screen-high rooms) in the progress
+ * block before saving.
  */
-void sub_08012688(struct EwramData_unk60 *param_0)
+void SaveData_StorePlayerPosition(struct GameState *gameState)
 {
-    struct EwramData_unkA078_0 *temp_sl;
-    s16 temp_r4;
-    s16 temp_r5;
-    struct EwramData_unkA078 *temp_r2;
+    struct BgMapMetadata *metadata;
+    s16 roomX;
+    s16 roomY;
+    struct BgLayerState *bg;
 
-    temp_sl = gEwramData->bgInfo[1].pBgMetadata;
+    metadata = gEwramData->bgInfo[1].pBgMetadata;
 
-    temp_r4 = GetEntityRoomXPositionInteger(gEwramData->unk_13110.unk_13110);
-    temp_r5 = GetEntityRoomYPositionInteger(gEwramData->unk_13110.unk_13110);
-    param_0->currentArea = GetAreaFromMapPosition(temp_r4, temp_r5);
-    param_0->currentRoom = GetRoomFromMapPosition(temp_r4, temp_r5);
+    roomX = GetEntityRoomXPositionInteger(gEwramData->playerState.player);
+    roomY = GetEntityRoomYPositionInteger(gEwramData->playerState.player);
+    gameState->currentArea = GetAreaFromMapPosition(roomX, roomY);
+    gameState->currentRoom = GetRoomFromMapPosition(roomX, roomY);
 
-    param_0->unk_338 = gEwramData->unk_13110.unk_13110->unk_524.unk_524_16.unk_526;
-    param_0->unk_33A = gEwramData->unk_13110.unk_13110->unk_528.unk_528_16.unk_52A;
+    gameState->savedPlayerX = gEwramData->playerState.player->posX.part16.integer;
+    gameState->savedPlayerY = gEwramData->playerState.player->posY.part16.integer;
 
-    temp_r2 = &gEwramData->bgInfo[1];
-    param_0->unk_334 = temp_r2->xPos.part16.integer;
-    param_0->unk_336 = temp_r2->yPos.part16.integer;
+    bg = &gEwramData->bgInfo[1];
+    gameState->savedCameraX = bg->xPos.part16.integer;
+    gameState->savedCameraY = bg->yPos.part16.integer;
 
-    if (temp_sl->unk_1 < 2)
+    if (metadata->heightCells < 2)
     {
-        param_0->unk_336 -= 0x30;
+        gameState->savedCameraY -= 0x30;
     }
 }

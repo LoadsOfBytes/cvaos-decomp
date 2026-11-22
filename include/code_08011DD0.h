@@ -5,31 +5,31 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-extern s32 sub_08011DD0(struct EwramData_unk60 *param_0);
-extern s32 sub_08011E24(struct EwramData_unk60 *param_0, s32 param_1);
-extern void sub_08011E88(struct EwramData_unk60 *param_0, s32 param_1, s32 param_2, s32 param_3);
-extern void sub_08011F44(void *param_0, s32 param_1, s32 param_2, s32 param_3, s32 param_4);
-extern void sub_08011F7C(u8 param_0, u8 param_1, u8 param_2);
-extern void sub_08011FC0(u8 param_0, u8 param_1, u8 param_2, u8 param_3);
-extern void sub_08012014(void);
-extern void sub_08012048(s32 param_0);
-extern s32 sub_08012078(s32 param_0);
-extern s32 sub_080120AC(s32 param_0);
-extern s32 sub_08012104(s32 param_0, s32 param_1);
-extern s32 sub_08012154(s32 param_0, s32 param_1, s32 param_2);
-extern void sub_080121E0(s32 param_0);
-extern void sub_08012210(void);
-extern void sub_08012294(void);
-extern s32 sub_0801232C(s32 param_0);
-extern void sub_080123EC(struct EwramData_EntityData *param_0);
-extern void sub_080124A8(void);
-extern s32 sub_080124F4(struct EwramData_EntityData *param_0, u32 param_1, s32 param_2);
-extern void sub_08012534(struct EwramData_EntityData *param_0, s32 param_1);
-extern void sub_08012564(s32 param_0);
-extern s32 sub_0801257C(u32 param_0);
-extern void sub_080125B4(void);
-extern void sub_0801261C(void);
-extern void sub_0801266C(void);
-extern void sub_08012688(struct EwramData_unk60 *param_0);
+extern s32 Map_CountVisitedCells(struct GameState *gameState);
+extern s32 Map_GetCompletionTenths(struct GameState *gameState, s32 param_1);
+extern void Map_DrawCompletion(struct GameState *gameState, s32 param_1, s32 column, s32 rowOffset);
+extern void RoomJump_SetDestination(void *room, s32 cameraX, s32 cameraY, s32 playerX, s32 playerY);
+extern void ScreenShake_RequestOffset(u8 priority, s8 param_1, s8 param_2);
+extern void ScreenShake_Request(u8 priority, u8 param_1, u8 param_2, u8 param_3);
+extern void ScreenShake_Clear(void);
+extern void GameFlag_Set(s32 flag);
+extern s32 GameFlag_GetMask(s32 flag);
+extern s32 GameFlag_TestAndSet(s32 flag);
+extern s32 GameFlag_FindMapCoordinate(s32 x, s32 y);
+extern s32 GameFlag_FindRoomCoordinate(s32 x, s32 y, s32 side);
+extern void GameFlag_Clear(s32 flag);
+extern void ItemIconCache_Upload(void);
+extern void ItemIconCache_Init(void);
+extern s32 ItemIconCache_Load(s32 id);
+extern void ItemIconEntity_Update(struct EwramData_EntityData *entity);
+extern void ItemIconCache_ClearIds(void);
+extern s32 ItemIcon_AttachSprite(struct EwramData_EntityData *entity, u32 slot, s32 palette);
+extern void ItemIcon_Free(struct EwramData_EntityData *entity, s32 release);
+extern void ItemIconCache_ReleaseSlot(s32 slot);
+extern s32 ItemIconCache_FindId(u32 id);
+extern void ItemIconCache_Save(void);
+extern void ItemIconCache_Restore(void);
+extern void ItemIconCache_InvalidateUpload(void);
+extern void SaveData_StorePlayerPosition(struct GameState *gameState);
 
 #endif /* CODE_08011DD0_H */

@@ -28,156 +28,152 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-u16 sUnk_084F106C[] = {
+u16 sAreaSongs[] = {
     2, 8, 7, 5, 6, 9, 1, 3, 10, 4, 11, 12, 12
 };
 
-u16 sUnk_084F1086[] = {
+u16 sJuliusAreaSongs[] = {
     20, 8, 7, 5, 6, 9, 2, 3, 10, 4, 11, 12, 12
 };
 
-static inline s32 sub_08013960_inline_0(s32 param_0)
+static inline s32 Music_PlayIfChanged(s32 song)
 {
-    struct EwramData_unk60 *temp_r5;
+    struct GameState *gameState;
 
-    temp_r5 = &gEwramData->unk_60;
-    if (temp_r5->currentSong == param_0)
+    gameState = &gEwramData->gameState;
+    if (gameState->currentSong == song)
     {
         return 1;
     }
-    if (temp_r5->currentSong != 0)
+    if (gameState->currentSong != 0)
     {
-        PlaySong(temp_r5->currentSong | STOP_SONG);
+        PlaySong(gameState->currentSong | STOP_SONG);
     }
-    temp_r5->currentSong = param_0;
-    PlaySong(param_0);
+    gameState->currentSong = song;
+    PlaySong(song);
     return 0;
 }
 
 /**
- * @brief 13960 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Choose area music and room-specific overrides, apply quiet/transition rules and stop player 0 when required after a song change; return the current-song reuse result.
  */
-s32 sub_08013960(struct EwramData_unk60 *param_0)
+s32 Music_UpdateRoom(struct GameState *gameState)
 {
-    struct EwramData_unkA078 *bg1Info;
-    u8 temp_r4;
-    u8 temp_r5;
-    s32 temp_r6;
-    s32 temp_r3;
-    s32 var_r4;
-    s32 var_r5;
+    struct BgLayerState *bg1Info;
+    u8 xOffset;
+    u8 yOffset;
+    s32 area;
+    s32 room;
+    s32 alreadyPlaying;
+    s32 song;
 
     bg1Info = &gEwramData->bgInfo[1];
-    temp_r4 = bg1Info->xPos.part8.integer1;
-    temp_r5 = bg1Info->yPos.part8.integer1;
+    xOffset = bg1Info->xPos.part8.integer1;
+    yOffset = bg1Info->yPos.part8.integer1;
 
-    if (gEwramData->unk_60.unk_4CC_0)
+    if (gEwramData->gameState.bossRushMode)
     {
-        var_r5 = 0x14;
-        return sub_08013960_inline_0(var_r5);
+        song = 0x14;
+        return Music_PlayIfChanged(song);
     }
 
-    if ((GetSaveRoomFlagFromMapPosition(temp_r4, temp_r5) != 0) || (GetWarpRoomFlagFromMapPosition(temp_r4, temp_r5) != 0))
+    if ((GetSaveRoomFlagFromMapPosition(xOffset, yOffset) != 0) || (GetWarpRoomFlagFromMapPosition(xOffset, yOffset) != 0))
     {
         PlaySong(SONG_QUIET);
         return 0;
     }
 
-    if (CheckRoomTransition(temp_r4, temp_r5) != 0)
+    if (CheckRoomTransition(xOffset, yOffset) != 0)
     {
-        sub_08013F6C(0x1040);
-        param_0->currentSong = 0;
+        Music_SubmitCommandOnce(0x1040);
+        gameState->currentSong = 0;
         return 0;
     }
 
     PlaySong(SONG_LOUD);
-    temp_r6 = GetAreaFromMapPosition(temp_r4, temp_r5);
-    temp_r3 = GetRoomFromMapPosition(temp_r4, temp_r5);
+    area = GetAreaFromMapPosition(xOffset, yOffset);
+    room = GetRoomFromMapPosition(xOffset, yOffset);
 
-    if ((gEwramData->unk_1325C.currentCharacter == 0) || !(gEwramData->unk_60.unk_60 & 2))
+    if ((gEwramData->playerStatus.currentCharacter == 0) || !(gEwramData->gameState.systemFlags & 2))
     {
-        var_r5 = sUnk_084F106C[temp_r6];
+        song = sAreaSongs[area];
     }
     else
     {
-        var_r5 = sUnk_084F1086[temp_r6];
+        song = sJuliusAreaSongs[area];
     }
 
-    gEwramData->unk_254CE = 0;
-    if ((temp_r6 == 4) && (temp_r3 == 0xA))
+    gEwramData->specialRoomSong = 0;
+    if ((area == 4) && (room == 0xA))
     {
-        var_r5 = 0x2A;
-        gEwramData->unk_254CE = 0x2A;
+        song = 0x2A;
+        gEwramData->specialRoomSong = 0x2A;
     }
 
-    if (gEwramData->unk_254CE == 0)
+    if (gEwramData->specialRoomSong == 0)
     {
-        if ((temp_r6 == 7) && (temp_r3 == 0x21))
+        if ((area == 7) && (room == 0x21))
         {
-            var_r5 = 0x27;
-            gEwramData->unk_254CE = 0x27;
+            song = 0x27;
+            gEwramData->specialRoomSong = 0x27;
         }
 
-        if (gEwramData->unk_254CE == 0)
+        if (gEwramData->specialRoomSong == 0)
         {
-            if (!(gEwramData->unk_60.unk_37E & 0x20) && (temp_r6 == 7) && (temp_r3 == 0x22 || temp_r3 == 0x23 || temp_r3 == 0x24 || (temp_r3 == 0x29) || (temp_r3 == 0x10)))
+            if (!(gEwramData->gameState.bossEventFlags & 0x20) && (area == 7) && (room == 0x22 || room == 0x23 || room == 0x24 || (room == 0x29) || (room == 0x10)))
             {
-                var_r5 = 0x29;
-                gEwramData->unk_254CE = 0x29;
+                song = 0x29;
+                gEwramData->specialRoomSong = 0x29;
             }
 
-            if ((gEwramData->unk_254CE == 0) && (gEwramData->unk_60.unk_37E & 4) && (temp_r6 == 5) && ((temp_r3 == 6) || (temp_r3 == 0xE)))
+            if ((gEwramData->specialRoomSong == 0) && (gEwramData->gameState.bossEventFlags & 4) && (area == 5) && ((room == 6) || (room == 0xE)))
             {
-                var_r5 = 0x25;
-                gEwramData->unk_254CE = 0x25;
+                song = 0x25;
+                gEwramData->specialRoomSong = 0x25;
             }
         }
     }
 
-    var_r4 = sub_08013960_inline_0(var_r5);
-    if (var_r4 == 0)
+    alreadyPlaying = Music_PlayIfChanged(song);
+    if (alreadyPlaying == 0)
     {
-        if (gEwramData->unk_60.unk_4BE != 0)
+        if (gEwramData->gameState.timeStopTimer != 0)
         {
             PlaySong(MUSIC_PLAYER_STOP(0));
         }
     }
-    return var_r4;
+    return alreadyPlaying;
 }
 
 /**
- * @brief 13B44 | To document
- * 
+ * @brief Replay nonzero tracked sound IDs and issue SONG_LOUD when room and music-latch conditions allow it.
  */
-void sub_08013B44(void)
+void Sound_ReplayTrackedWithVolume(void)
 {
-    s32 var_r5;
-    u16 *var_r4;
-    u8 temp_r6;
-    u8 temp_r7;
-    struct EwramData_unkA078 *temp_r0;
+    s32 i;
+    u16 *tracked;
+    u8 yOffset;
+    u8 xOffset;
+    struct BgLayerState *bg;
 
-    temp_r0 = &gEwramData->bgInfo[1];
-    temp_r7 = temp_r0->xPos.part8.integer1;
-    temp_r6 = temp_r0->yPos.part8.integer1;
+    bg = &gEwramData->bgInfo[1];
+    xOffset = bg->xPos.part8.integer1;
+    yOffset = bg->yPos.part8.integer1;
 
-    var_r4 = &gEwramData->unk_254C4[0];
-    var_r5 = 3;
-    for (; var_r5 >= 0;)
+    tracked = &gEwramData->trackedSoundIds[0];
+    i = 3;
+    for (; i >= 0;)
     {
-        if (var_r4[var_r5] != 0)
+        if (tracked[i] != 0)
         {
-            PlaySong(var_r4[var_r5]);
+            PlaySong(tracked[i]);
         }
-        var_r5 -= 1;
+        i -= 1;
     }
 
-    if ((gEwramData->unk_60.unk_4CC_0 != 0) || ((GetSaveRoomFlagFromMapPosition(temp_r7, temp_r6) == 0) && (GetWarpRoomFlagFromMapPosition(temp_r7, temp_r6) == 0)))
+    if ((gEwramData->gameState.bossRushMode != 0) || ((GetSaveRoomFlagFromMapPosition(xOffset, yOffset) == 0) && (GetWarpRoomFlagFromMapPosition(xOffset, yOffset) == 0)))
     {
-        if (!(gEwramData->unk_60.unk_42C & 0x40000))
+        if (!(gEwramData->gameState.stateFlags & 0x40000))
         {
             PlaySong(SONG_LOUD);
         }
@@ -185,35 +181,34 @@ void sub_08013B44(void)
 }
 
 /**
- * @brief 13BCC | To document
- * 
+ * @brief Stop nonzero tracked sound IDs without clearing the list and issue SONG_QUIET when room and music-latch conditions allow it.
  */
-void sub_08013BCC(void)
+void Sound_StopTrackedWithVolume(void)
 {
-    s32 var_r5;
-    u16 *var_r4;
-    u8 temp_r6;
-    u8 temp_r7;
-    struct EwramData_unkA078 *temp_r0;
+    s32 i;
+    u16 *tracked;
+    u8 yOffset;
+    u8 xOffset;
+    struct BgLayerState *bg;
 
-    temp_r0 = &gEwramData->bgInfo[1];
-    temp_r7 = temp_r0->xPos.part8.integer1;
-    temp_r6 = temp_r0->yPos.part8.integer1;
+    bg = &gEwramData->bgInfo[1];
+    xOffset = bg->xPos.part8.integer1;
+    yOffset = bg->yPos.part8.integer1;
 
-    var_r5 = 3;
-    var_r4 = &gEwramData->unk_254C4[0];
-    for (; var_r5 >= 0;)
+    i = 3;
+    tracked = &gEwramData->trackedSoundIds[0];
+    for (; i >= 0;)
     {
-        if (var_r4[var_r5] != 0)
+        if (tracked[i] != 0)
         {
-            PlaySong(var_r4[var_r5] | STOP_SONG);
+            PlaySong(tracked[i] | STOP_SONG);
         }
-        var_r5 -= 1;
+        i -= 1;
     }
 
-    if ((gEwramData->unk_60.unk_4CC_0 != 0) || ((GetSaveRoomFlagFromMapPosition(temp_r7, temp_r6) == 0) && (GetWarpRoomFlagFromMapPosition(temp_r7, temp_r6) == 0)))
+    if ((gEwramData->gameState.bossRushMode != 0) || ((GetSaveRoomFlagFromMapPosition(xOffset, yOffset) == 0) && (GetWarpRoomFlagFromMapPosition(xOffset, yOffset) == 0)))
     {
-        if (!(gEwramData->unk_60.unk_42C & 0x40000))
+        if (!(gEwramData->gameState.stateFlags & 0x40000))
         {
             PlaySong(SONG_QUIET);
         }
@@ -221,254 +216,235 @@ void sub_08013BCC(void)
 }
 
 /**
- * @brief 13C5C | To document
- * 
- * @return s32 To document
+ * @brief Select the area table song for the current character/mode, switch current music if needed and issue SONG_QUIET; return 1 if already current, otherwise 0.
  */
-s32 sub_08013C5C(void)
+s32 Music_PlayAreaQuiet(void)
 {
-    struct EwramData_unkA078 *temp_r1;
-    s32 temp_r2;
-    s32 temp_r4;
-    s32 var_r4;
+    struct BgLayerState *bg;
+    s32 area;
+    s32 song;
+    s32 alreadyPlaying;
 
-    temp_r1 = &gEwramData->bgInfo[1];
-    temp_r2 = GetAreaFromMapPosition((u8) temp_r1->xPos.part8.integer1, (u8) temp_r1->yPos.part8.integer1);
+    bg = &gEwramData->bgInfo[1];
+    area = GetAreaFromMapPosition((u8) bg->xPos.part8.integer1, (u8) bg->yPos.part8.integer1);
 
-    if ((gEwramData->unk_1325C.currentCharacter == 0) || !(gEwramData->unk_60.unk_60 & 2))
+    if ((gEwramData->playerStatus.currentCharacter == 0) || !(gEwramData->gameState.systemFlags & 2))
     {
-        temp_r4 = sUnk_084F106C[temp_r2];
+        song = sAreaSongs[area];
     }
     else
     {
-        temp_r4 = sUnk_084F1086[temp_r2];
+        song = sJuliusAreaSongs[area];
     }
 
-    var_r4 = sub_08013960_inline_0(temp_r4);
+    alreadyPlaying = Music_PlayIfChanged(song);
     PlaySong(SONG_QUIET);
-    return var_r4;
+    return alreadyPlaying;
 }
 
 /**
- * @brief 13CF0 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Return 1 if the song is already current; otherwise stop the old nonzero song, store and play the new ID, then return 0.
  */
-s32 sub_08013CF0(s32 param_0)
+s32 Music_SetCurrent(s32 song)
 {
-    // todo: sub_08013CF0 is the same as sub_08013960_inline_0
-    struct EwramData_unk60 *temp_r5;
+    // todo: Music_SetCurrent is the same as Music_PlayIfChanged
+    struct GameState *gameState;
 
-    temp_r5 = &gEwramData->unk_60;
-    if (temp_r5->currentSong == param_0)
+    gameState = &gEwramData->gameState;
+    if (gameState->currentSong == song)
     {
         return 1;
     }
-    if (temp_r5->currentSong != 0)
+    if (gameState->currentSong != 0)
     {
-        PlaySong(temp_r5->currentSong | STOP_SONG);
+        PlaySong(gameState->currentSong | STOP_SONG);
     }
-    temp_r5->currentSong = param_0;
-    PlaySong(param_0);
+    gameState->currentSong = song;
+    PlaySong(song);
     return 0;
 }
 
 /**
- * @brief 13D30 | To document
- * 
+ * @brief Stop each nonzero tracked sound and clear all four tracking slots.
  */
-void sub_08013D30(void)
+void Sound_ClearTracked(void)
 {
-    s32 var_r5;
-    u16 *var_r4;
+    s32 i;
+    u16 *tracked;
 
-    var_r4 = &gEwramData->unk_254C4[0];
-    var_r5 = 3;
-    for (; var_r5 >= 0;)
+    tracked = &gEwramData->trackedSoundIds[0];
+    i = 3;
+    for (; i >= 0;)
     {
-        if (var_r4[var_r5] != 0)
+        if (tracked[i] != 0)
         {
-            sub_08013E18(var_r4[var_r5]);
+            Sound_StopTracked(tracked[i]);
         }
-        var_r4[var_r5] = 0;
-        var_r5 -= 1;
+        tracked[i] = 0;
+        i -= 1;
     }
 }
 
 /**
- * @brief 13D60 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Scan tracking slots from 3 to 0 until matching ID or first empty slot, register where possible and always play; return 1 only on the matching-ID path.
  */
-s32 sub_08013D60(s32 param_0)
+s32 Sound_PlayTracked(s32 song)
 {
-    u16 *var_r0;
-    s32 var_r5;
-    s32 var_r4;
+    u16 *tracked;
+    s32 found;
+    s32 i;
     
-    var_r0 = &gEwramData->unk_254C4[0];
-    var_r5 = 0;
-    var_r4 = 3;
-    for (; var_r4 >= 0; )
+    tracked = &gEwramData->trackedSoundIds[0];
+    found = 0;
+    i = 3;
+    for (; i >= 0; )
     {
-        if (var_r0[var_r4] == param_0)
+        if (tracked[i] == song)
         {
-            var_r5 = 1;
+            found = 1;
             break;
         }
-        else if (var_r0[var_r4] == 0)
+        else if (tracked[i] == 0)
         {
-            var_r0[var_r4] = param_0;
+            tracked[i] = song;
             break;
         }
-        var_r4 -= 1;
+        i -= 1;
     }
 
-    PlaySong(param_0);
-    return var_r5;
+    PlaySong(song);
+    return found;
 }
 
 /**
- * @brief 13DA8 | To document
- * 
- * @param param_0 To document
- * @return s32 Garbage
+ * @brief Search all four slots first; if absent, register where possible and play. The existing s32 function has no explicit return; its result is unspecified.
  */
-s32 sub_08013DA8(s32 param_0)
+s32 Sound_PlayTrackedIfAbsent(s32 song)
 {
-    u16 *var_0;
-    u16 *var_0_2;
-    s32 var_r5;
-    s32 var_r3;
+    u16 *tracked;
+    u16 *tracked2;
+    s32 found;
+    s32 i;
 
-    var_0 = &gEwramData->unk_254C4[0];
-    var_r5 = 0;
-    var_r3 = 3;
+    tracked = &gEwramData->trackedSoundIds[0];
+    found = 0;
+    i = 3;
 
-    for (; var_r3 >= 0; )
+    for (; i >= 0; )
     {
-        if (var_0[var_r3] == param_0)
+        if (tracked[i] == song)
         {
-            var_r5 = 1;
+            found = 1;
             break;
         }
-        var_r3 -= 1;
+        i -= 1;
     }
 
-    if (var_r5 == 0)
+    if (found == 0)
     {
-        // This looks suspicously like sub_08013D60
-        var_0_2 = &gEwramData->unk_254C4[0];
-        var_r5 = 0;
-        var_r3 = 3;
-        for (; var_r3 >= 0; )
+        // This looks suspicously like Sound_PlayTracked
+        tracked2 = &gEwramData->trackedSoundIds[0];
+        found = 0;
+        i = 3;
+        for (; i >= 0; )
         {
-            if (var_0_2[var_r3] == param_0)
+            if (tracked2[i] == song)
             {
-                var_r5 = 1;
+                found = 1;
                 break;
             }
-            if (var_0_2[var_r3] == 0)
+            if (tracked2[i] == 0)
             {
-                var_0_2[var_r3] = param_0;
+                tracked2[i] = song;
                 break;
             }
-            var_r3 -= 1;
+            i -= 1;
         }
-        PlaySong(param_0);
+        PlaySong(song);
     }
 
     // BUG: No return
 }
 
 /**
- * @brief 13E18 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Clear the first matching tracking slot and always issue the stop-song command; return 1 when a slot was cleared, otherwise 0.
  */
-s32 sub_08013E18(s32 param_0)
+s32 Sound_StopTracked(s32 song)
 {
-    u16 *temp_r1;
-    s32 var_r4;
-    s32 var_r2;
+    u16 *tracked;
+    s32 found;
+    s32 i;
 
-    temp_r1 = &gEwramData->unk_254C4[0];
-    var_r4 = 0;
+    tracked = &gEwramData->trackedSoundIds[0];
+    found = 0;
 
-    for (var_r2 = 3; var_r2 >= 0; var_r2 -= 1)
+    for (i = 3; i >= 0; i -= 1)
     {
-        if (temp_r1[var_r2] == param_0)
+        if (tracked[i] == song)
         {
-            temp_r1[var_r2] = 0;
-            var_r4 = 1;
+            tracked[i] = 0;
+            found = 1;
             break;
         }
     }
 
-    PlaySong(param_0 | STOP_SONG);
-    return var_r4;
+    PlaySong(song | STOP_SONG);
+    return found;
 }
 
 /**
- * @brief 13E74 | To document
- * 
+ * @brief Issue AUDIO_RESUME and replay all nonzero tracked sound IDs.
  */
-void sub_08013E74(void)
+void Sound_ResumeAndReplayTracked(void)
 {
-    struct EwramData *temp_r4;
-    s32 var_r5;
-    u16 *var_r4;
+    struct EwramData *ewram;
+    s32 i;
+    u16 *tracked;
 
-    temp_r4 = gEwramData; // TODO: Fake?
+    ewram = gEwramData; // TODO: Fake?
     PlaySong(AUDIO_RESUME);
 
-    var_r4 = &temp_r4->unk_254C4[0];
-    for (var_r5 = 3; var_r5 >= 0; var_r5--)
+    tracked = &ewram->trackedSoundIds[0];
+    for (i = 3; i >= 0; i--)
     {
-        if (var_r4[var_r5] != 0)
+        if (tracked[i] != 0)
         {
-            PlaySong(var_r4[var_r5]);
+            PlaySong(tracked[i]);
         }
     } 
 }
 
 /**
- * @brief 13EAC | To document
- * 
+ * @brief Issue AUDIO_PAUSE and stop all nonzero tracked sound IDs without clearing their slots.
  */
-void sub_08013EAC(void)
+void Sound_PauseAndStopTracked(void)
 {
-    struct EwramData *temp_r4;
-    s32 var_r5;
-    u16 *var_r4;
+    struct EwramData *ewram;
+    s32 i;
+    u16 *tracked;
 
-    temp_r4 = gEwramData; // TODO: Fake?
+    ewram = gEwramData; // TODO: Fake?
     PlaySong(AUDIO_PAUSE);
 
-    var_r4 = &temp_r4->unk_254C4[0];
-    for (var_r5 = 3; var_r5 >= 0; var_r5--)
+    tracked = &ewram->trackedSoundIds[0];
+    for (i = 3; i >= 0; i--)
     {
-        if (var_r4[var_r5] != 0)
+        if (tracked[i] != 0)
         {
-            PlaySong(var_r4[var_r5] | STOP_SONG);
+            PlaySong(tracked[i] | STOP_SONG);
         }
     } 
 }
 
 /**
- * @brief 13EEC | To document
- * 
- * @param param_0 To document
+ * @brief Set current music to ID 0, store the override ID separately and play it.
  */
-void sub_08013EEC(s32 param_0)
+void Music_StartOverride(s32 song)
 {
-    // struct EwramData_unk60 *temp_r4;
+    // struct GameState *temp_r4;
     // s32 var_0;
 
-    // temp_r4 = &gEwramData->unk_60;
+    // temp_r4 = &gEwramData->gameState;
     // var_0 = temp_r4->currentSong;
     // if (var_0 != 0)
     // {
@@ -479,35 +455,32 @@ void sub_08013EEC(s32 param_0)
     //     temp_r4->currentSong = 0;
     //     PlaySong(MUS_DUMMY);
     // }
-    sub_08013960_inline_0(0);
-    gEwramData->unk_254CC = param_0;
-    PlaySong(param_0);
+    Music_PlayIfChanged(0);
+    gEwramData->musicOverrideSong = song;
+    PlaySong(song);
 }
 
 /**
- * @brief 13F38 | To document
- * 
+ * @brief Stop the separately stored override song when nonzero and clear its stored ID.
  */
-void sub_08013F38(void)
+void Music_StopOverride(void)
 {
-    if (gEwramData->unk_254CC != 0)
+    if (gEwramData->musicOverrideSong != 0)
     {
-        PlaySong(gEwramData->unk_254CC | STOP_SONG);
-        gEwramData->unk_254CC = 0;
+        PlaySong(gEwramData->musicOverrideSong | STOP_SONG);
+        gEwramData->musicOverrideSong = 0;
     }
 }
 
 /**
- * @brief 13F6C | To document
- * 
- * @param param_0 To document
+ * @brief Set flag 0x40000 and submit the supplied audio command only when that flag was clear; current callers supply player-0 mute command 0x1040.
  */
-void sub_08013F6C(s32 param_0)
+void Music_SubmitCommandOnce(s32 song)
 {
-    if (!(gEwramData->unk_60.unk_42C & 0x40000))
+    if (!(gEwramData->gameState.stateFlags & 0x40000))
     {
-        gEwramData->unk_60.unk_42C |= 0x40000;
-        PlaySong(param_0);
+        gEwramData->gameState.stateFlags |= 0x40000;
+        PlaySong(song);
     }
 }
 
@@ -518,11 +491,11 @@ void sub_08013F6C(s32 param_0)
  */
 s32 GameModeGameOverUpdate(void)
 {
-    struct EwramData_EntityData *temp_r5;
+    struct EwramData_EntityData *textEntity;
     s32 gameMode;
-    s32 var_r4;
+    s32 gfx;
 
-    temp_r5 = gEwramData->entityData;
+    textEntity = gEwramData->entityData;
     gameMode = GAME_MODE_SAME_MODE;
 
     switch (gEwramData->gameModeUpdateStage)
@@ -531,112 +504,112 @@ s32 GameModeGameOverUpdate(void)
             DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
             gUnk_03002CB0.dispCnt = DCNT_OBJ | DCNT_BG1;
             gDisplayRegisters.bgCnt[1] = CREATE_BGCNT(0, 29, BGCNT_HIGH_MID_PRIORITY, BGCNT_SIZE_256x256) | BGCNT_256_COLOR;
-            sub_0803FD9C((u8 *)0x080E5C08, VRAM_BASE, 0);
-            sub_0803FD9C((u8 *)0x080E5C10, VRAM_BASE + 0x4000, 0);
-            sub_0803C8B0((u8 *)0x080E6A3C);
-            sub_0803F8A8(1, (struct EwramData_unkA078_0 *)0x080E9584, 0, 0);
-            sub_0803D18C(0, 0, 0, 0, 0x10000, 0x20);
+            Gfx_CopyResource((u8 *)0x080E5C08, VRAM_BASE, 0);
+            Gfx_CopyResource((u8 *)0x080E5C10, VRAM_BASE + 0x4000, 0);
+            BgPalette_Load((u8 *)0x080E6A3C);
+            BgMap_Setup(1, (struct BgMapMetadata *)0x080E9584, 0, 0);
+            BgPalette_StartColorFade(0, 0, 0, 0, 0x10000, 0x20);
             gDisplayRegisters.bldCnt = BLDCNT_BG1_SECOND_TARGET_PIXEL | BLDCNT_ALPHA_BLENDING_EFFECT | BLDCNT_OBJ_FIRST_TARGET_PIXEL;
             gDisplayRegisters.bldAlpha = C_16_2_8(BLDALPHA_MAX_VALUE, 0);
-            gEwramData->unk_4 = 0x20;
+            gEwramData->gameModeTimer = 0x20;
             gEwramData->gameModeUpdateStage += 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             PlaySong(MUS_15);
             break;
 
         case 1:
-            if (sub_0803D408() == 0)
+            if (BgPalette_GetPendingFades() == 0)
             {
-                sub_0803D270();
+                BgPalette_StopColorFade();
                 gEwramData->gameModeUpdateStage += 1;
-                gEwramData->unk_12 = 0;
-                gEwramData->unk_12 = 0x80;
+                gEwramData->gameModeSubStage = 0;
+                gEwramData->gameModeSubStage = 0x80;
             }
             break;
 
         case 2:
-            if (gEwramData->unk_12 == 0)
+            if (gEwramData->gameModeSubStage == 0)
             {
-                if (gEwramData->unk_4 != 0)
+                if (gEwramData->gameModeTimer != 0)
                 {
-                    gEwramData->unk_4 -= 1;
-                    gDisplayRegisters.bldAlpha = C_16_2_8(gEwramData->unk_4 >> 1, BLDALPHA_MAX_VALUE - (gEwramData->unk_4 >> 1));
+                    gEwramData->gameModeTimer -= 1;
+                    gDisplayRegisters.bldAlpha = C_16_2_8(gEwramData->gameModeTimer >> 1, BLDALPHA_MAX_VALUE - (gEwramData->gameModeTimer >> 1));
                 }
                 else
                 {
                     gEwramData->gameModeUpdateStage += 1;
-                    gEwramData->unk_12 = 0;
+                    gEwramData->gameModeSubStage = 0;
                 }
             }
             else
             {
-                if (gEwramData->unk_12 == 1)
+                if (gEwramData->gameModeSubStage == 1)
                 {
-                    EntityDelete(temp_r5);
+                    EntityDelete(textEntity);
 
-                    switch (gEwramData->unk_60.language)
+                    switch (gEwramData->gameState.language)
                     {
                         case 2:
-                            var_r4 = sub_0803B800((u8 *)0x082799A0, 0);
-                            sub_0803C7B4((u8 *)0x0825C368, 0, 1, 8);
-                            sub_0803B924(temp_r5, (u8 *)0x0827A9FC, var_r4, 8);
+                            gfx = ObjGfx_LoadResource((u8 *)0x082799A0, 0);
+                            ObjPalette_LoadRange((u8 *)0x0825C368, 0, 1, 8);
+                            Sprite_Attach(textEntity, (u8 *)0x0827A9FC, gfx, 8);
                             break;
                         case 3:
-                            var_r4 = sub_0803B800((u8 *)0x0826E85C, 0);
-                            sub_0803C7B4((u8 *)0x0825C368, 0, 1, 8);
-                            sub_0803B924(temp_r5, (u8 *)0x0826F894, var_r4, 8);
+                            gfx = ObjGfx_LoadResource((u8 *)0x0826E85C, 0);
+                            ObjPalette_LoadRange((u8 *)0x0825C368, 0, 1, 8);
+                            Sprite_Attach(textEntity, (u8 *)0x0826F894, gfx, 8);
                             break;
                         default:
-                            var_r4 = sub_0803B800((u8 *)0x0825B220, 0);
-                            sub_0803C7B4((u8 *)0x0825C368, 0, 1, 8);
-                            sub_0803B924(temp_r5, (u8 *)0x0825E06C, var_r4, 8);
+                            gfx = ObjGfx_LoadResource((u8 *)0x0825B220, 0);
+                            ObjPalette_LoadRange((u8 *)0x0825C368, 0, 1, 8);
+                            Sprite_Attach(textEntity, (u8 *)0x0825E06C, gfx, 8);
                             break;
                     }
 
-                    temp_r5->drawFunc = (u32 *) sub_080142E8;
-                    temp_r5->updateFunc = (u32 *) EntityUpdateNothing;
+                    textEntity->drawFunc = (u32 *) GameOverText_Draw;
+                    textEntity->updateFunc = (u32 *) EntityUpdateNothing;
                 }
-                gEwramData->unk_12 -= 1;
+                gEwramData->gameModeSubStage -= 1;
             }
             break;
 
         case 3:
             if (gEwramData->inputData.newInput != 0)
             {
-                sub_0803D18C(0x1F, 0x1F, 0x1F, 0x10000, 0, 0x20);
-                sub_0803CDF0(0x1F, 0x1F, 0x1F, 0x10000, 0, 0x20);
+                BgPalette_StartColorFade(0x1F, 0x1F, 0x1F, 0x10000, 0, 0x20);
+                ObjPalette_StartColorFade(0x1F, 0x1F, 0x1F, 0x10000, 0, 0x20);
                 gEwramData->gameModeUpdateStage += 1;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
                 PlaySong(SONG_MUTE);
             }
             break;
 
         case 4:
-            if (sub_0803D408() == 0)
+            if (BgPalette_GetPendingFades() == 0)
             {
-                sub_0803D270();
-                sub_0803CED4();
+                BgPalette_StopColorFade();
+                ObjPalette_StopColorFade();
                 gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_INCREASE_EFFECT;
                 gDisplayRegisters.bldY = BLDY_MAX_VALUE;
 
-                switch (gEwramData->unk_60.language)
+                switch (gEwramData->gameState.language)
                 {
                     case 2:
-                        sub_0803B980(sub_0803AFB8((u8 *)0x082799A0));
+                        ObjGfx_Unload(ObjGfx_Find((u8 *)0x082799A0));
                         break;
                     case 3:
-                        sub_0803B980(sub_0803AFB8((u8 *)0x0826E85C));
+                        ObjGfx_Unload(ObjGfx_Find((u8 *)0x0826E85C));
                         break;
                     default:
-                        sub_0803B980(sub_0803AFB8((u8 *)0x0825B220));
+                        ObjGfx_Unload(ObjGfx_Find((u8 *)0x0825B220));
                         break;
                 }
 
-                temp_r5->unk_53D_3 = 1;
+                textEntity->deleteRequested = 1;
                 gDisplayRegisters.bldCnt = 0;
                 gDisplayRegisters.bldAlpha = 0;
                 gDisplayRegisters.bldY = 0;
-                gEwramData->unk_A074_2 = gEwramData->unk_A074_4 = 0;
+                gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 0;
                 gUnk_03002CB0.dispCnt = DCNT_BLANK;
                 gameMode = GAME_MODE_KONAMI_LOGO;
                 DMA_FILL_32(3, 0, 0x06000000, 0x18000);
@@ -644,21 +617,19 @@ s32 GameModeGameOverUpdate(void)
             break;
     }
 
-    sub_08000B64();
+    Entity_UpdateAll();
     return gameMode;
 }
 
 /**
- * @brief 142E8 | To document
- * 
- * @param param_0 To document
+ * @brief Draw the game over sprite frame 0 at (0x80, 0xE).
  */
-void sub_080142E8(struct EwramData_EntityData *param_0)
+void GameOverText_Draw(struct EwramData_EntityData *entity)
 {
-    param_0->unk_524.unk_524_16.unk_526 = 0x80;
-    param_0->unk_528.unk_528_16.unk_52A = 0xE;
-    param_0->unk_549 = 0;
-    sub_0803AC40(param_0);
+    entity->posX.part16.integer = 0x80;
+    entity->posY.part16.integer = 0xE;
+    entity->animFrame = 0;
+    Sprite_Draw(entity);
 }
 
 /**
@@ -668,16 +639,16 @@ void sub_080142E8(struct EwramData_EntityData *param_0)
  */
 s32 GameModeCreditsUpdate(void)
 {
-    struct EwramData_unkA078 *temp_r6;
+    struct BgLayerState *bg;
     s32 gameMode;
 
-    temp_r6 = &gEwramData->bgInfo[1];
+    bg = &gEwramData->bgInfo[1];
     gameMode = GAME_MODE_SAME_MODE;
 
     switch (gEwramData->gameModeUpdateStage)
     {
         case 0:
-            if (gEwramData->unk_60.unk_42C & 0x4000)
+            if (gEwramData->gameState.stateFlags & 0x4000)
             {
                 gUnk_03002CB0.dispCnt = DCNT_BG3 | DCNT_BG2 | DCNT_BG1;
             }
@@ -692,65 +663,65 @@ s32 GameModeCreditsUpdate(void)
             gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT;
             gDisplayRegisters.bldY = BLDY_MAX_VALUE;
             gEwramData->gameModeUpdateStage += 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
 
         case 1:
             PlaySong(MUS_26);
-            sub_0803FD9C((u8 *)0x080E5BC8, VRAM_BASE, 0);
-            sub_0803FD9C((u8 *)0x080E5BD0, VRAM_BASE + 0x2000, 0);
-            sub_0803FD9C((u8 *)0x080E5BD8, VRAM_BASE + 0x4000, 0);
-            sub_0803C918((u8 *)0x080E6028, 0, 8, 0);
-            sub_0803F8A8(1, (struct EwramData_unkA078_0 *)0x080E8F04, 0, 0x50);
+            Gfx_CopyResource((u8 *)0x080E5BC8, VRAM_BASE, 0);
+            Gfx_CopyResource((u8 *)0x080E5BD0, VRAM_BASE + 0x2000, 0);
+            Gfx_CopyResource((u8 *)0x080E5BD8, VRAM_BASE + 0x4000, 0);
+            BgPalette_LoadRange((u8 *)0x080E6028, 0, 8, 0);
+            BgMap_Setup(1, (struct BgMapMetadata *)0x080E8F04, 0, 0x50);
 
-            if (gEwramData->unk_60.unk_42C & 0x4000)
+            if (gEwramData->gameState.stateFlags & 0x4000)
             {
-                sub_0803F8A8(2, (struct EwramData_unkA078_0 *)0x080E7B54, 0, 0x50);
-                sub_0803F8A8(3, (struct EwramData_unkA078_0 *)0x080E81E4, 0, 0x50);
+                BgMap_Setup(2, (struct BgMapMetadata *)0x080E7B54, 0, 0x50);
+                BgMap_Setup(3, (struct BgMapMetadata *)0x080E81E4, 0, 0x50);
             }
             else
             {
-                sub_0803F8A8(2, (struct EwramData_unkA078_0 *)0x080E8874, 0, 0x50);
+                BgMap_Setup(2, (struct BgMapMetadata *)0x080E8874, 0, 0x50);
             }
 
             gEwramData->gameModeUpdateStage += 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
 
         case 2:
             gDisplayRegisters.bldY = 0;
             gEwramData->gameModeUpdateStage += 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
 
         case 3:
-            sub_0803FC6C(1, 0, 0x8400);
-            sub_0803FC6C(2, 0, 0x8400);
+            BgMap_Scroll(1, 0, 0x8400);
+            BgMap_Scroll(2, 0, 0x8400);
 
-            if (gEwramData->unk_60.unk_42C & 0x4000)
+            if (gEwramData->gameState.stateFlags & 0x4000)
             {
-                sub_0803FC6C(3, 0, 0x8400);
+                BgMap_Scroll(3, 0, 0x8400);
             }
 
-            if ((temp_r6->yVel.whole == 0) && (gEwramData->inputData.newInput & (KEY_A | KEY_START)))
+            if ((bg->yVel.whole == 0) && (gEwramData->inputData.newInput & (KEY_A | KEY_START)))
             {
                 PlaySong(SONG_MUTE);
                 gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_INCREASE_EFFECT;
-                gEwramData->unk_4 = 0;
+                gEwramData->gameModeTimer = 0;
                 gEwramData->gameModeUpdateStage += 1;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
             break;
 
         case 4:
-            gDisplayRegisters.bldY = gEwramData->unk_4 >> 3;
+            gDisplayRegisters.bldY = gEwramData->gameModeTimer >> 3;
             if (gDisplayRegisters.bldY < BLDY_MAX_VALUE)
             {
-                gEwramData->unk_4 += 1;
+                gEwramData->gameModeTimer += 1;
             }
             else
             {
-                sub_0800C7A4(&gEwramData->unk_60);
+                Game_ResetSystems(&gEwramData->gameState);
                 gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_INCREASE_EFFECT;
                 gDisplayRegisters.bldY = BLDY_MAX_VALUE;
                 gameMode = GAME_MODE_KONAMI_LOGO;

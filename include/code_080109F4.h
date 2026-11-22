@@ -5,20 +5,20 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-extern void sub_080109F4(s32 param_0, s32 param_1, s32 param_2, s32 param_3, s32 param_4);
-extern void sub_08010B04(s32 param_0, s32 param_1, s32 param_2, s32 param_3, s32 param_4);
-extern void sub_08010C4C(struct EwramData_unk60 *param_0, s32 param_1, s32 param_2, s32 param_3);
-extern void sub_08010D60(struct EwramData_unk60 *param_0);
-extern void sub_08010FF4(struct EwramData_unk60 *param_0);
-extern s32 sub_080110E4(struct EwramData_unk60 *param_0);
-extern void sub_08011338(struct EwramData_unk60 *param_0);
-extern void sub_08011430(struct EwramData_unk60 *param_0);
-extern void sub_080114FC(void);
-extern void sub_080115D4(struct EwramData_unk60 *param_0);
-extern s32 sub_080116A8(struct EwramData_unk60 *param_0);
-extern s32 sub_08011A44(struct EwramData_EntityData *param_0);
-extern void sub_08011AD0(struct EwramData_unk60 *param_0);
-extern s32 sub_08011B2C(struct EwramData_unk60 *param_0);
-extern void sub_08011CD0(void);
+extern void MapScreen_DrawCellTopEdge(s32 x, s32 y, s32 color, s32 border, s32 edge);
+extern void MapScreen_DrawCellLeftEdge(s32 x, s32 y, s32 color, s32 border, s32 edge);
+extern void MapScreen_DrawCell(struct GameState *gameState, s32 x, s32 y, s32 color);
+extern void MapScreen_DrawMap(struct GameState *gameState);
+extern void MapScreen_UpdatePlayerMarker(struct GameState *gameState);
+extern s32 MapScreen_Update(struct GameState *gameState);
+extern void MapScreen_Open(struct GameState *gameState);
+extern void Map_MarkCurrentCell(struct GameState *gameState);
+extern void WarpMenu_HandleCursorInput(void);
+extern void WarpMenu_Open(struct GameState *gameState);
+extern s32 WarpMenu_Update(struct GameState *gameState);
+extern s32 Room_IsPlayerInside(struct EwramData_EntityData *entity);
+extern void RoomJump_Begin(struct GameState *gameState);
+extern s32 RoomJump_Update(struct GameState *gameState);
+extern void ScreenShake_Update(void);
 
 #endif /* CODE_080109F4_H */

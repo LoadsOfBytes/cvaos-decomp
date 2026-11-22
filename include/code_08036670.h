@@ -6,6 +6,6 @@
 #include "structs/main.h"
 
 s32 GameModeDebug2229Update(void);
-void sub_08036758(struct EwramData_EntityData *param_0);
+void DebugJitterSprite_Update(struct EwramData_EntityData *entity);
 
 #endif /* CODE_08036670_H */

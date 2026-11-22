@@ -1,0 +1,61 @@
+#include "code_08009A0.h"
+#include "code/code_08039340.h"
+#include "structs/ewram.h"
+
+extern void EventScene03Debris_Update(struct EwramData_EntityData *);
+extern const s8 sEventScene03UnusedDebris[];
+extern u8 sSkeletonSpriteSheet[];
+
+/* Seven debris pieces using the owner's graphics and palette. */
+
+
+void EventScene03_SpawnUnusedPartDebris(struct EwramData_EntityData *owner)
+{
+    s32 offset = 0;
+    s32 i, x, graphics;
+    struct EwramData_EntityData *part;
+    const s8 *info;
+    for (i = 6; i >= 0; offset += 6, i--)
+    {
+        part = EntityCreateInRange(0x49, 0xCF, (u32 *)EventScene03Debris_Update);
+        if (part != NULL)
+        {
+            info = sEventScene03UnusedDebris + offset;
+            part->unk_4F4.part8.unk_4F5 = owner->unk_4F4.part8.unk_4F4;
+            part->spriteLayer = owner->spriteLayer;
+            part->unk_510.part8.basePalette = owner->unk_510.part8.basePalette;
+            part->flipX = owner->flipX;
+            graphics = Sprite_GetTileSlot(owner);
+            Sprite_Attach(part, sSkeletonSpriteSheet, graphics, part->unk_510.part8.basePalette);
+            part->scrollWithBg = 1;
+            part->drawFunc = (u32 *)Sprite_DrawEntity;
+            part->posX.whole = owner->posX.whole;
+            part->posY.whole = owner->posY.whole;
+            x = info[0];
+            part->posY.part16.integer += info[1];
+            part->animFrame = info[2];
+            {
+                s32 r = RandomNumberGenerator();
+                s32 v = info[3] + 16;
+                part->velX.whole = (v - (r & 31)) << 12;
+            }
+            {
+                s32 r = RandomNumberGenerator();
+                s32 v = info[4] + 16;
+                part->velY.whole = -((v - (r & 31)) << 12);
+            }
+            part->timer = info[5] / 2;
+            if (part->flipX)
+            {
+                part->velX.whole = -part->velX.whole;
+                x = -x;
+            }
+            part->posX.part16.integer += x;
+        }
+    }
+}
+
+
+
+
+

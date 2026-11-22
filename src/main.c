@@ -52,25 +52,25 @@ void AgbMain(void)
 
     for (;;)
     {
-        sub_080006CC();
+        Game_ResetAll();
 
         while (SoftResetCheck() == 0)
         {
-            sub_0803DB6C();
+            Obj_ResetBuffers();
             UpdateInput();
             if (gEwramData->inputData.newInput & KEY_START)
             {
-                if (gEwramData->unk_A074_1)
+                if (gEwramData->startPauseEnabled)
                 {
-                    gEwramData->unk_A074_0 ^= 1;
+                    gEwramData->paused ^= 1;
                 }
             }
 
             GameModeUpdate();
-            sub_0803DF70();
+            Obj_BuildOamFast();
             gEwramData->frameCounter += 1;
-            sub_08000424();
-            sub_0803CDDC();
+            ScreenShake_ApplyBgOffsets();
+            Palette_Update();
 
             if (hBlankEffect->requestStart)
             {
@@ -88,8 +88,8 @@ void AgbMain(void)
                 DMA_STOP(0);
             }
 
-            sub_080D7EEC();
-            sub_080D7E94();
+            Link_WaitForFrame();
+            Link_UpdateFrame();
             DMA_COPY_32(3, &gDisplayRegisters, REG_BG0CNT, sizeof(gDisplayRegisters));
 
             if (hBlankEffect->enabled)
@@ -99,10 +99,10 @@ void AgbMain(void)
 
             DmaQueue_Process();
             BgCmdBuffer_TransferToVram();
-            sub_0803BF60();
-            sub_0803E594();
+            Palette_TransferToPalram();
+            Obj_TransferToOam();
             WRITE_16(REG_DISPCNT, gUnk_03002CB0.dispCnt);
-            sub_08000470();
+            ScreenShake_RemoveBgOffsets();
         }
         SoftReset(RESET_ALL);
     }
@@ -117,7 +117,7 @@ void VblankInterrupt(void)
     struct HBlankEffect *hBlankEffect;
 
     hBlankEffect = &gEwramData->hBlankEffect;
-    sub_080D7F1C();
+    Link_VSync();
     m4aSoundVSync();
 
     if (hBlankEffect->enabled)
@@ -126,7 +126,7 @@ void VblankInterrupt(void)
         DMA_SET(0, &hBlankEffect->hBlankBuffer[hBlankEffect->currentBuffer][hBlankEffect->writeSize >> 1], hBlankEffect->destReg,
             C_32_2_16(DMA_ENABLE | DMA_START_HBLANK | DMA_16BIT | DMA_REPEAT | DMA_SRC_INC | DMA_DEST_RELOAD, hBlankEffect->writeSize / sizeof(u16)));
 
-        gUnk_03002CB0.unk_2 = 2;
+        gUnk_03002CB0.vcountDmaMode = 2;
         WRITE_16(REG_DISPSTAT, C_16_2_8(hBlankEffect->vcountSetting, DSTAT_IF_VCOUNT | DSTAT_IF_VBLANK));
     }
 
@@ -135,49 +135,49 @@ void VblankInterrupt(void)
 }
 
 /**
- * @brief 424 | To document
- * 
+ * @brief Add the screen-shake offsets (screenShakeOffsetX/FEC1, set by ScreenShake_Update)
+ * to the BG1..BG3 scroll before the registers are copied.
  */
-void sub_08000424(void)
+void ScreenShake_ApplyBgOffsets(void)
 {
-    u32 var_0;
-    u32 var_1;
+    u32 offsetX;
+    u32 offsetY;
 
-    var_0 = gEwramData->unk_FEC0;
-    var_1 = gEwramData->unk_FEC1;
+    offsetX = gEwramData->screenShakeOffsetX;
+    offsetY = gEwramData->screenShakeOffsetY;
 
     // Move BG1-3 Offset down-right?
-    gDisplayRegisters.bgOfs[1].hOfs += var_0;
-    gDisplayRegisters.bgOfs[1].vOfs += var_1;
+    gDisplayRegisters.bgOfs[1].hOfs += offsetX;
+    gDisplayRegisters.bgOfs[1].vOfs += offsetY;
 
-    gDisplayRegisters.bgOfs[2].hOfs += var_0;
-    gDisplayRegisters.bgOfs[2].vOfs += var_1;
+    gDisplayRegisters.bgOfs[2].hOfs += offsetX;
+    gDisplayRegisters.bgOfs[2].vOfs += offsetY;
 
-    gDisplayRegisters.bgOfs[3].hOfs += var_0;
-    gDisplayRegisters.bgOfs[3].vOfs += var_1;
+    gDisplayRegisters.bgOfs[3].hOfs += offsetX;
+    gDisplayRegisters.bgOfs[3].vOfs += offsetY;
 }
 
 /**
- * @brief 470 | To document
- * 
+ * @brief Subtract the screen-shake offsets from the BG1..BG3 scroll again
+ * after the frame.
  */
-void sub_08000470(void)
+void ScreenShake_RemoveBgOffsets(void)
 {
-    u32 var_0;
-    u32 var_1;
+    u32 offsetX;
+    u32 offsetY;
 
-    var_0 = gEwramData->unk_FEC0;
-    var_1 = gEwramData->unk_FEC1;
+    offsetX = gEwramData->screenShakeOffsetX;
+    offsetY = gEwramData->screenShakeOffsetY;
 
     // Move BG1-3 Offset up-left?
-    gDisplayRegisters.bgOfs[1].hOfs -= var_0;
-    gDisplayRegisters.bgOfs[1].vOfs -= var_1;
+    gDisplayRegisters.bgOfs[1].hOfs -= offsetX;
+    gDisplayRegisters.bgOfs[1].vOfs -= offsetY;
 
-    gDisplayRegisters.bgOfs[2].hOfs -= var_0;
-    gDisplayRegisters.bgOfs[2].vOfs -= var_1;
+    gDisplayRegisters.bgOfs[2].hOfs -= offsetX;
+    gDisplayRegisters.bgOfs[2].vOfs -= offsetY;
 
-    gDisplayRegisters.bgOfs[3].hOfs -= var_0;
-    gDisplayRegisters.bgOfs[3].vOfs -= var_1;
+    gDisplayRegisters.bgOfs[3].hOfs -= offsetX;
+    gDisplayRegisters.bgOfs[3].vOfs -= offsetY;
 }
 
 /**
@@ -195,7 +195,7 @@ void EmptyInterrupt(void)
  */
 void VcountInterrupt(void)
 {
-    if (gUnk_03002CB0.unk_2 == 2)
+    if (gUnk_03002CB0.vcountDmaMode == 2)
     {
         DMA_STOP(0);
     }
@@ -301,12 +301,12 @@ void GameModeUpdate(void)
     if (gameMode == GAME_MODE_NEXT_MODE)
     {
         gEwramData->gameMode++;
-        gEwramData->gameModeUpdateStage = gEwramData->unk_12 = 0;
+        gEwramData->gameModeUpdateStage = gEwramData->gameModeSubStage = 0;
     }
     else if (gameMode != GAME_MODE_SAME_MODE)
     {
         gEwramData->gameMode = gameMode;
-        gEwramData->gameModeUpdateStage = gEwramData->unk_12 = 0;
+        gEwramData->gameModeUpdateStage = gEwramData->gameModeSubStage = 0;
     }
 }
 
@@ -318,7 +318,7 @@ void GameModeUpdate(void)
 void SetGameMode(s32 gameMode)
 {
     gEwramData->gameMode = gameMode;
-    gEwramData->gameModeUpdateStage = gEwramData->unk_12 = 0;
+    gEwramData->gameModeUpdateStage = gEwramData->gameModeSubStage = 0;
 }
 
 /**
@@ -328,14 +328,14 @@ void SetGameMode(s32 gameMode)
 void IncrementGameMode(void)
 {
     gEwramData->gameMode++;
-    gEwramData->gameModeUpdateStage = gEwramData->unk_12 = 0;
+    gEwramData->gameModeUpdateStage = gEwramData->gameModeSubStage = 0;
 }
 
 /**
- * @brief 658 | To document
- * 
+ * @brief Clear the display register copy, set identity BG2/BG3 affine
+ * scales and the default BG control values.
  */
-void sub_08000658(void)
+void Display_ResetRegisters(void)
 {
     DMA_FILL_32(3, 0, &gDisplayRegisters, sizeof(gDisplayRegisters));
 
@@ -349,42 +349,44 @@ void sub_08000658(void)
     gDisplayRegisters.bgCnt[2] = CREATE_BGCNT(0, 30, BGCNT_LOW_MID_PRIORITY, BGCNT_SIZE_256x256);
     gDisplayRegisters.bgCnt[3] = CREATE_BGCNT(0, 31, BGCNT_LOW_MID_PRIORITY, BGCNT_SIZE_256x256);
 
-    gEwramData->unk_A074_2 = gEwramData->unk_A074_4 = 0;
+    gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 0;
 }
 
 /**
- * @brief 6CC | To document
- * 
+ * @brief Start of each soft-reset loop: clear EWRAM, the BG command and DMA
+ * queues, load the base font/palette into VRAM, reset displays,
+ * interrupts and all object systems, load system flags and language
+ * and start at the Konami logo.
  */
-void sub_080006CC(void)
+void Game_ResetAll(void)
 {
     DMA_FILL_32(3, 0, gEwramData, sizeof(struct EwramData));
 
     gUnk_03002CB0.pBgCmdBuffer = &gUnk_03002CB0.bgCmdBuffer[0];
     gUnk_03002CB0.dmaQueueEnd = &gUnk_03002CB0.dmaQueue[0];
 
-    DMA_COPY_32(3, &sUnk_080E3664, VRAM_BASE + 0x6000, sizeof(sUnk_080E3664));
-    DMA_COPY_32(3, &sUnk_080E5264, VRAM_BASE + 0x8000, sizeof(sUnk_080E5264));
-    DMA_COPY_32(3, &sUnk_080E3464, PALRAM_BASE, sizeof(sUnk_080E3464));
+    DMA_COPY_32(3, &sDebugFontTiles, VRAM_BASE + 0x6000, sizeof(sDebugFontTiles));
+    DMA_COPY_32(3, &sDebugFontExtraTiles, VRAM_BASE + 0x8000, sizeof(sDebugFontExtraTiles));
+    DMA_COPY_32(3, &sDebugPalette, PALRAM_BASE, sizeof(sDebugPalette));
 
     DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
     DMA_FILL_32(3, 0, VRAM_BASE + 0xE800, 0x800);
     DMA_FILL_32(3, 0, VRAM_BASE + 0xF000, 0x800);
     DMA_FILL_32(3, 0, VRAM_BASE + 0xF800, 0x800);
 
-    sub_08000658();
+    Display_ResetRegisters();
     WRITE_16(REG_IME, TRUE);
     WRITE_16(REG_IE, IF_GAMEPAK | IF_VBLANK);
     WRITE_16(REG_DISPSTAT, DSTAT_IF_VBLANK);
 
     EntityDeleteAll();
-    sub_0803D9A8();
-    sub_0803E438();
-    sub_08039DC0();
-    sub_0803BEEC();
-    sub_0804059C();
-    sub_08042754();
-    sub_080137B8();
+    ObjTiles_Init();
+    Obj_Init();
+    Sprite_Init();
+    Palette_Init();
+    Text_Initialize();
+    HitBox_ClearAll();
+    SaveData_LoadSystemFlags();
     SaveData_LoadLanguage();
 
     gUnk_03002CB0.dispCnt = DCNT_OBJ | DCNT_BG3 | DCNT_BG2 | DCNT_BG1 | DCNT_BG0;
@@ -424,7 +426,7 @@ void UpdateInput(void)
 {
     struct InputData *inputData;
     u16 keyInput;
-    u16 tmp;
+    u16 pressed;
 
     inputData = &gEwramData->inputData;
     keyInput = READ_16(REG_KEY_INPUT) ^ KEY_MASK;
@@ -443,8 +445,8 @@ void UpdateInput(void)
     }
     inputData->repeatedInput = 0;
 
-    tmp = inputData->newInput; // Required to match
-    if (inputData->newInput != 0)
+    pressed = inputData->newInput;
+    if (pressed != 0)
     {
         inputData->repeatedInputTimer = 32;
         inputData->repeatedInput = keyInput;
@@ -470,9 +472,9 @@ u32 SoftResetCheck(void)
 
     result = 0;
 
-    if (gEwramData->unk_12FE0_2)
+    if (gEwramData->softResetSkipOnce)
     {
-        gEwramData->unk_12FE0_2 = 0;
+        gEwramData->softResetSkipOnce = 0;
         return 0;
     }
 

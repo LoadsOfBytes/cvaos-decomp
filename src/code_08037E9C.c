@@ -4,7 +4,7 @@
 // #include "code_08001194.h"
 #include "code_08008750.h"
 #include "code_0800B700.h"
-// #include "code_0800CB00.h" // TODO: sub_0800D288 implicitly called with arguments (it should have none)
+// #include "code_0800CB00.h" // TODO: Bg_UpdateScrollModes implicitly called with arguments (it should have none)
 #include "code_0800F1FC.h"
 #include "code_080109F4.h"
 #include "code_08011DD0.h"
@@ -35,70 +35,68 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-static struct Unk_03000028 gUnk_03000028;
+static struct DebugSioTestState sDebugSioTestState;
 
-struct Unk_084F1568 {
-    void *unk_0; // func ptr
-    void *unk_4; // func ptr
-    void *unk_8; // func ptr
+struct DebugSioTestCallbacks {
+    void *updateFunc; // func ptr
+    void *initFunc; // func ptr
+    void *exitFunc; // func ptr
 }; /* size = 0xC */
-struct Unk_084F1568 sUnk_084F1568[] = {
+struct DebugSioTestCallbacks sDebugSioTestCallbacks[] = {
     [0] = {
-        .unk_0 = sub_08037F60,
-        .unk_4 = sub_0803887C,
-        .unk_8 = sub_08038880
+        .updateFunc = DebugSioTest0_Update,
+        .initFunc = DebugSioTest0_Init,
+        .exitFunc = DebugSioTest0_Exit
     },
     [1] = {
-        .unk_0 = sub_08038114,
-        .unk_4 = sub_0803888C,
-        .unk_8 = sub_08038890
+        .updateFunc = DebugSioTest1_Update,
+        .initFunc = DebugSioTest1_Init,
+        .exitFunc = DebugSioTest1_Exit
     }
 };
 
 /**
- * @brief 37E9C | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Run SIO test 0 or 1 through its init/update/exit callbacks; Select+B
+ * or a finished update exits. Return 1 when done.
  */
-s32 sub_08037E9C(s32 param_0)
+s32 DebugSioTest_Run(s32 testIndex)
 {
-    s32 var_r6;
-    struct Unk_084F1568 *temp_r5;
+    s32 done;
+    struct DebugSioTestCallbacks *def;
 
-    var_r6 = 0;
-    temp_r5 = &sUnk_084F1568[param_0];
+    done = 0;
+    def = &sDebugSioTestCallbacks[testIndex];
 
     // TODO: why the cast?
-    switch ((u8)sub_08036958())
+    switch ((u8)DebugTest_GetStage())
     {
         case 0:
-            DMA_FILL_32(3, 0, &gUnk_03000028, 0x24);
+            DMA_FILL_32(3, 0, &sDebugSioTestState, 0x24);
             BgCmdBuffer_WriteString(2, 0x13, 1, "PUSH SELECT + B TO EXIT.");
-            ((void (*)(struct Unk_03000028 *)) temp_r5->unk_4)(&gUnk_03000028);
-            sub_08036964(1);
+            ((void (*)(struct DebugSioTestState *)) def->initFunc)(&sDebugSioTestState);
+            DebugTest_SetStage(1);
             break;
 
         case 1:
             if ((gEwramData->inputData.heldInput & (4 | 2)) == (4 | 2))
             {
-                sub_08036964(2);
+                DebugTest_SetStage(2);
             }
-            else if (((s32 (*)(struct Unk_03000028 *)) temp_r5->unk_0)(&gUnk_03000028) == 0)
+            else if (((s32 (*)(struct DebugSioTestState *)) def->updateFunc)(&sDebugSioTestState) == 0)
             {
-                sub_08036964(2);
+                DebugTest_SetStage(2);
             }
-            sub_08000B64();
+            Entity_UpdateAll();
             break;
 
         case 2:
-            ((void (*)(struct Unk_03000028 *)) temp_r5->unk_8)(&gUnk_03000028);
-            sub_08038820();
-            var_r6 = 1;
+            ((void (*)(struct DebugSioTestState *)) def->exitFunc)(&sDebugSioTestState);
+            Debug_ClearBgMaps();
+            done = 1;
             break;
     }
 
-    return var_r6;
+    return done;
 }
 
 struct Unk_08037F60 {
@@ -107,44 +105,42 @@ struct Unk_08037F60 {
 };
 
 /**
- * @brief 37F60 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief SIO TEST 0: start the link, load a room and play it with the input
+ * exchanged over the serial link.
  */
-s32 sub_08037F60(struct Unk_03000028 *param_0)
+s32 DebugSioTest0_Update(struct DebugSioTestState *test)
 {
-    struct Unk_08037F60 sp0;
-    struct Unk_08037F60 sp4;
-    s32 var_r7;
-    u32 var_r4;
+    struct Unk_08037F60 sent;
+    struct Unk_08037F60 received;
+    s32 running;
+    u32 connected;
 
-    var_r7 = 1;
+    running = 1;
 
-    switch (param_0->unk_0.unk_0_8)
+    switch (test->stageOrTimer.stage)
     {
         case 0:
-            sub_080D7F78();
-            param_0->unk_0.unk_0_8 = 1;
+            Link_Init();
+            test->stageOrTimer.stage = 1;
             break;
 
         case 1:
-            gEwramData->unk_A074_1 = 1;
+            gEwramData->startPauseEnabled = 1;
             PlaySong(1);
-            sub_0800C5D8();
-            sub_0800F9EC((struct EwramData_unk88 *)0x0850F15C, 0, 0);
-            sub_080D7FB8();
-            gEwramData->unk_1261C.unk_11DDC[0][0] = 0xFFFF;
-            gEwramData->unk_1261C.unk_123E1 = 0;
-            param_0->unk_0.unk_0_8 = 2;
+            InGame_InitScene();
+            Room_Load((struct RoomDefinition *)0x0850F15C, 0, 0);
+            Link_Start();
+            gEwramData->bgPalette.base[0][0] = 0xFFFF;
+            gEwramData->bgPalette.uploaded = 0;
+            test->stageOrTimer.stage = 2;
             break;
 
         case 2:
-            var_r4 = (sub_080D7F28() != 0) && (sub_080D7F48() != 0);
-            if (var_r4 != 0)
+            connected = (Link_IsConnected() != 0) && (Link_IsPeerActive() != 0);
+            if (connected != 0)
             {
                 BgCmdBuffer_WriteString(2, 2, 1, "              ");
-                param_0->unk_0.unk_0_8 = 3;
+                test->stageOrTimer.stage = 3;
             }
             else
             {
@@ -153,142 +149,136 @@ s32 sub_08037F60(struct Unk_03000028 *param_0)
             break;
 
         case 3:
-            sp0.playerHeldInput = gEwramData->inputData.playerHeldInput;
-            sp0.playerNewInput = gEwramData->inputData.playerNewInput;
-            sub_080D8020((u8 *) &sp0, 4);
-            sub_080D8088((u8 *) &sp4, 4);
-            gEwramData->inputData.playerHeldInput = sp4.playerHeldInput;
-            gEwramData->inputData.playerNewInput = sp4.playerNewInput;
+            sent.playerHeldInput = gEwramData->inputData.playerHeldInput;
+            sent.playerNewInput = gEwramData->inputData.playerNewInput;
+            Link_QueueSendBytes((u8 *) &sent, 4);
+            Link_CopyReceivedBytes((u8 *) &received, 4);
+            gEwramData->inputData.playerHeldInput = received.playerHeldInput;
+            gEwramData->inputData.playerNewInput = received.playerNewInput;
 
-            if (sub_08011A44(gEwramData->unk_13110.unk_13110) == 0)
+            if (Room_IsPlayerInside(gEwramData->playerState.player) == 0)
             {
-                sub_08010244(&gEwramData->unk_60);
-                param_0->unk_0.unk_0_8 = 4;
+                RoomTransition_Begin(&gEwramData->gameState);
+                test->stageOrTimer.stage = 4;
             }
             break;
 
         case 4:
-            sp0.playerHeldInput = gEwramData->inputData.playerHeldInput;
-            sp0.playerNewInput = gEwramData->inputData.playerNewInput;
-            sub_080D8020((u8 *) &sp0, 4);
-            sub_080D8088((u8 *) &sp4, 4);
-            gEwramData->inputData.playerHeldInput = sp4.playerHeldInput;
-            gEwramData->inputData.playerNewInput = sp4.playerNewInput;
+            sent.playerHeldInput = gEwramData->inputData.playerHeldInput;
+            sent.playerNewInput = gEwramData->inputData.playerNewInput;
+            Link_QueueSendBytes((u8 *) &sent, 4);
+            Link_CopyReceivedBytes((u8 *) &received, 4);
+            gEwramData->inputData.playerHeldInput = received.playerHeldInput;
+            gEwramData->inputData.playerNewInput = received.playerNewInput;
 
-            if (sub_080104EC(&gEwramData->unk_60) != 0)
+            if (RoomTransition_Update(&gEwramData->gameState) != 0)
             {
-                sub_08011430(&gEwramData->unk_60);
-                gEwramData->unk_1261C.unk_11DDC[0][0] = 0xFF03;
-                gEwramData->unk_1261C.unk_123E1 = 0;
-                param_0->unk_0.unk_0_8 = 3;
+                Map_MarkCurrentCell(&gEwramData->gameState);
+                gEwramData->bgPalette.base[0][0] = 0xFF03;
+                gEwramData->bgPalette.uploaded = 0;
+                test->stageOrTimer.stage = 3;
             }
             break;
 
         case 5:
-            sub_080D7FD0();
-            var_r7 = 0;
+            Link_Stop();
+            running = 0;
             break;
     }
 
-    return var_r7;
+    return running;
 }
 
 /**
- * @brief 38114 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief SIO TEST 1: title, connect check and main data-exchange screens.
  */
-s32 sub_08038114(struct Unk_03000028 *param_0)
+s32 DebugSioTest1_Update(struct DebugSioTestState *test)
 {
-    s32 temp_r0_2;
-    s32 temp_r0_3;
-    s32 var_r6;
-    u8 *var_r3;
+    s32 titleResult;
+    s32 connectResult;
+    s32 running;
+    u8 *string;
 
-    var_r6 = 1;
+    running = 1;
     
-    if (sub_080D7F28() != 0)
+    if (Link_IsConnected() != 0)
     {
-        var_r3 = "***";
+        string = "***";
     }
     else
     {
-        var_r3 = "   ";
+        string = "   ";
     }
-    BgCmdBuffer_WriteString(0, 0, 1, var_r3);
+    BgCmdBuffer_WriteString(0, 0, 1, string);
 
-    switch (param_0->unk_2)
+    switch (test->state)
     {
         case 0:
-            param_0->unk_2 = 1;
-            param_0->unk_3 = 0;
+            test->state = 1;
+            test->subState = 0;
             break;
 
         case 1:
-            temp_r0_2 = sub_08038224(param_0);
-            if (temp_r0_2 != 0)
+            titleResult = DebugSioTest1_UpdateTitle(test);
+            if (titleResult != 0)
             {
-                sub_080D7F78();
+                Link_Init();
                 DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
-                param_0->unk_0.unk_0_16 = 0;
-                param_0->unk_3 = 0;
-                param_0->unk_2 = (temp_r0_2 > 0) ? 2 : 6;
+                test->stageOrTimer.timer = 0;
+                test->subState = 0;
+                test->state = (titleResult > 0) ? 2 : 6;
             }
             break;
 
         case 2:
-            sub_080D7FB8();
-            param_0->unk_2 = 3;
-            param_0->unk_3 = 0;
+            Link_Start();
+            test->state = 3;
+            test->subState = 0;
             break;
 
         case 3:
-            temp_r0_3 = sub_080383E0(param_0);
-            if (temp_r0_3 != 0)
+            connectResult = DebugSioTest1_UpdateConnectCheck(test);
+            if (connectResult != 0)
             {
                 DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
-                param_0->unk_3 = 0;
-                param_0->unk_2 = (temp_r0_3 > 0) ? 4 : 5;
+                test->subState = 0;
+                test->state = (connectResult > 0) ? 4 : 5;
             }
             break;
 
         case 4:
-            if (sub_080384B4(param_0) != 0)
+            if (DebugSioTest1_UpdateMain(test) != 0)
             {
-                param_0->unk_2 = 5;
-                param_0->unk_3 = 0;
+                test->state = 5;
+                test->subState = 0;
             }
             break;
 
         case 5:
-            sub_080D7FD0();
-            param_0->unk_2 = 0;
+            Link_Stop();
+            test->state = 0;
             break;
 
         case 6:
-            var_r6 = 0;
+            running = 0;
             break;
     }
 
-    return var_r6;
+    return running;
 }
 
 /**
- * @brief 38224 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Draw the title banner with START/EXIT; return 1, -1 or 0.
  */
-s32 sub_08038224(struct Unk_03000028 *param_0)
+s32 DebugSioTest1_UpdateTitle(struct DebugSioTestState *test)
 {
-    s32 var_r6;
-    s32 var_r1;
-    s32 var_r1_2;
+    s32 result;
+    s32 cursorRow;
+    s32 clearRow;
 
-    var_r6 = 0;
+    result = 0;
 
-    switch (param_0->unk_3)
+    switch (test->subState)
     {
         case 0:
             DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
@@ -311,194 +301,189 @@ s32 sub_08038224(struct Unk_03000028 *param_0)
             BgCmdBuffer_WriteString(12, 15, 1, "EXIT");
             BgCmdBuffer_WriteString(11, 14, 2, ">");
 
-            param_0->unk_4 = 0;
-            param_0->unk_3 = 1;
+            test->titleChoice = 0;
+            test->subState = 1;
             break;
 
         case 1:
             if (gEwramData->inputData.newInput & (0x80 | 0x40))
             {
-                param_0->unk_4 ^= 1;
+                test->titleChoice ^= 1;
 
-                if (param_0->unk_4 == 0)
+                if (test->titleChoice == 0)
                 {
-                    var_r1 = 0xE;
+                    cursorRow = 0xE;
                 }
                 else
                 {
-                    var_r1 = 0xF;
+                    cursorRow = 0xF;
                 }
-                BgCmdBuffer_WriteString(0xB, var_r1, 2, ">");
+                BgCmdBuffer_WriteString(0xB, cursorRow, 2, ">");
                 
-                if (param_0->unk_4 == 1)
+                if (test->titleChoice == 1)
                 {
-                    var_r1_2 = 0xE;
+                    clearRow = 0xE;
                 }
                 else
                 {
-                    var_r1_2 = 0xF;
+                    clearRow = 0xF;
                 }
-                BgCmdBuffer_WriteString(0xB, var_r1_2, 2, " ");
+                BgCmdBuffer_WriteString(0xB, clearRow, 2, " ");
             }
 
             if (gEwramData->inputData.newInput & 1)
             {
-                if (param_0->unk_4 == 0)
+                if (test->titleChoice == 0)
                 {
-                    var_r6 = 1;
+                    result = 1;
                 }
                 else
                 {
-                    var_r6 = -1;
+                    result = -1;
                 }
             }
             break;
     }
 
-    return var_r6;
+    return result;
 }
 
 /**
- * @brief 38224 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Wait for a stable link connection (B cancels); return 1, -1 or 0.
  */
-s32 sub_080383E0(struct Unk_03000028 *param_0)
+s32 DebugSioTest1_UpdateConnectCheck(struct DebugSioTestState *test)
 {
-    s32 var_r6;
-    s32 var_r5;
-    s32 var_r5_2;
+    s32 result;
+    s32 connected;
+    s32 connected2;
 
-    var_r6 = 0;
+    result = 0;
 
-    switch (param_0->unk_3)
+    switch (test->subState)
     {
         case 0:
             BgCmdBuffer_WriteString(4, 4, 1, "Connect Check");
             BgCmdBuffer_WriteString(4, 7, 1, "Push B Button To Cancel");
-            param_0->unk_3 = 1;
+            test->subState = 1;
             break;
 
         case 1:
-            var_r5 = (sub_080D7F28() != 0) && (sub_080D7F48() != 0);
-            if (var_r5 != 0)
+            connected = (Link_IsConnected() != 0) && (Link_IsPeerActive() != 0);
+            if (connected != 0)
             {
                 BgCmdBuffer_WriteString(4, 4, 1, "CONNECT OK   ");
-                param_0->unk_0.unk_0_16 = 0;
-                param_0->unk_3 = 2;
+                test->stageOrTimer.timer = 0;
+                test->subState = 2;
             }
             break;
 
         case 2:
-            var_r5_2 = (sub_080D7F28() != 0) && (sub_080D7F48() != 0);
-            if (var_r5_2 == 0)
+            connected2 = (Link_IsConnected() != 0) && (Link_IsPeerActive() != 0);
+            if (connected2 == 0)
             {
                 BgCmdBuffer_WriteString(4, 4, 1, "CONNECT ERROR");
-                param_0->unk_3 = 1;
+                test->subState = 1;
                 break;
             }
 
-            if (param_0->unk_0.unk_0_16++ > 0x3C)
+            if (test->stageOrTimer.timer++ > 0x3C)
             {
-                var_r6 = 1;
+                result = 1;
             }
             break;
 
         case 3:
-            sub_080D7FD0();
-            var_r6 = -1;
+            Link_Stop();
+            result = -1;
             break;
     }
 
     if (gEwramData->inputData.newInput & 2)
     {
-        param_0->unk_3 = 3;
+        test->subState = 3;
     }
 
-    return var_r6;
+    return result;
 }
 
 // extern u16* BgCmdBuffer_WriteString(u16 tileIndex, u16 rowOffset, u8 tileInfo, u8 *string); // implicit due to no u16
 
 /**
- * @brief 384B4 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Edit six bytes, exchange them over the link and show both sides;
+ * return 1 to leave.
  */
-s32 sub_080384B4(struct Unk_03000028 *param_0)
+s32 DebugSioTest1_UpdateMain(struct DebugSioTestState *test)
 {
     char subroutine_arg0[5];
-    s32 var_r5;
-    s32 var_sb;
-    u32 var_r4;
+    s32 i;
+    s32 result;
+    u32 connected;
 
-    var_sb = 0;
+    result = 0;
 
-    switch (param_0->unk_3)
+    switch (test->subState)
     {
         case 0:
             BgCmdBuffer_WriteString(1, 1, 0, "SIO TEST MAIN");
             BgCmdBuffer_WriteString(2, 19, 1, "PUSH SELECT BUTTON TO EXIT.");
 
-            param_0->unk_0.unk_0_16 = 0;
-            param_0->unk_5 = 0;
-            param_0->unk_20 = 0;
-            param_0->unk_3 = 1;
+            test->stageOrTimer.timer = 0;
+            test->unk_5 = 0;
+            test->editIndex = 0;
+            test->subState = 1;
             break;
 
         case 1:
             if (gEwramData->inputData.heldInput & 0x20)
             {
-                param_0->unk_8[param_0->unk_20] -= 1;
+                test->sendBytes[test->editIndex] -= 1;
             }
             else if (gEwramData->inputData.heldInput & 0x10)
             {
-                param_0->unk_8[param_0->unk_20] += 1;
+                test->sendBytes[test->editIndex] += 1;
             }
 
             if (gEwramData->inputData.newInput & 1)
             {
-                param_0->unk_20 += 1;
+                test->editIndex += 1;
             }
             else if (gEwramData->inputData.newInput & 2)
             {
-                param_0->unk_20 -= 1;
+                test->editIndex -= 1;
             }
 
-            if (param_0->unk_20 < 0)
+            if (test->editIndex < 0)
             {
                 BgCmdBuffer_WriteString(2, 4, 1, "A To Exit. B To Main");
-                param_0->unk_3 = 2;
-                param_0->unk_20 = 0;
+                test->subState = 2;
+                test->editIndex = 0;
             }
-            else if (param_0->unk_20 > 5)
+            else if (test->editIndex > 5)
             {
                 BgCmdBuffer_WriteString(2, 4, 1, "OK ? (A:OK, B:NG)");
-                param_0->unk_3 = 3;
-                param_0->unk_20 = 5;
+                test->subState = 3;
+                test->editIndex = 5;
             }
 
-            param_0->unk_10 = 0;
-            sub_080D8020(param_0->unk_8, 0xC);
-            sub_080D8088(param_0->unk_14, 0xC);
+            test->sendMarker = 0;
+            Link_QueueSendBytes(test->sendBytes, 0xC);
+            Link_CopyReceivedBytes(test->receivedBytes, 0xC);
 
-            for (var_r5 = 0; var_r5 <= param_0->unk_20; var_r5++)
+            for (i = 0; i <= test->editIndex; i++)
             {
-                sprintf(subroutine_arg0, "0x%02x", param_0->unk_8[var_r5]);
-                BgCmdBuffer_WriteString(2, var_r5 + 8, 2, subroutine_arg0);
+                sprintf(subroutine_arg0, "0x%02x", test->sendBytes[i]);
+                BgCmdBuffer_WriteString(2, i + 8, 2, subroutine_arg0);
             }
 
-            for (var_r5 = param_0->unk_20 + 1; var_r5 < 6; var_r5++)
+            for (i = test->editIndex + 1; i < 6; i++)
             {
-                BgCmdBuffer_WriteString(2, var_r5 + 8, 2, "        ");
+                BgCmdBuffer_WriteString(2, i + 8, 2, "        ");
             }
 
-            for (var_r5 = 0; var_r5 < 6; var_r5++)
+            for (i = 0; i < 6; i++)
             {
-                sprintf(subroutine_arg0, "0x%02x", param_0->unk_14[var_r5]);
-                BgCmdBuffer_WriteString(0xA, var_r5 + 8, 3, subroutine_arg0);
+                sprintf(subroutine_arg0, "0x%02x", test->receivedBytes[i]);
+                BgCmdBuffer_WriteString(0xA, i + 8, 3, subroutine_arg0);
             }
             break;
 
@@ -506,12 +491,12 @@ s32 sub_080384B4(struct Unk_03000028 *param_0)
             if (gEwramData->inputData.newInput & 1)
             {
                 BgCmdBuffer_WriteString(2, 4, 1, "                              ");
-                param_0->unk_3 = 8;
+                test->subState = 8;
             }
             else if (gEwramData->inputData.newInput & 2)
             {
                 BgCmdBuffer_WriteString(2, 4, 1, "                              ");
-                param_0->unk_3 = 1;
+                test->subState = 1;
             }
             break;
 
@@ -519,29 +504,29 @@ s32 sub_080384B4(struct Unk_03000028 *param_0)
             if (gEwramData->inputData.newInput & 1)
             {
                 BgCmdBuffer_WriteString(2, 4, 1, "Please wait ...  ");
-                param_0->unk_3 = 4;
+                test->subState = 4;
             }
             else if (gEwramData->inputData.newInput & 2)
             {
                 BgCmdBuffer_WriteString(2, 4, 1, "                 ");
-                param_0->unk_3 = 1;
+                test->subState = 1;
             }
             break;
 
         case 4:
-            param_0->unk_10 = 0x01234567;
-            sub_080D8020(param_0->unk_8, 0xC);
-            sub_080D8088(param_0->unk_14, 0xC);
-            if (param_0->unk_1C == 0x01234567)
+            test->sendMarker = 0x01234567;
+            Link_QueueSendBytes(test->sendBytes, 0xC);
+            Link_CopyReceivedBytes(test->receivedBytes, 0xC);
+            if (test->receivedMarker == 0x01234567)
             {
-                param_0->unk_10 = 0;
-                param_0->unk_3 = 5;
+                test->sendMarker = 0;
+                test->subState = 5;
             }
             break;
 
         case 5:
             BgCmdBuffer_WriteString(2, 4, 1, "Now Sending      ");
-            switch ((param_0->unk_0.unk_0_16++ >> 4) & 3)
+            switch ((test->stageOrTimer.timer++ >> 4) & 3)
             {
                 case 0:
                     BgCmdBuffer_WriteString(0xF, 4, 1, ".  ");
@@ -554,47 +539,47 @@ s32 sub_080384B4(struct Unk_03000028 *param_0)
                     break;
             }
 
-            if (param_0->unk_0.unk_0_16 > 0xB4)
+            if (test->stageOrTimer.timer > 0xB4)
             {
                 BgCmdBuffer_WriteString(2, 4, 1, "Send End         ");
-                param_0->unk_0.unk_0_16 = 0;
-                param_0->unk_3 = 6;
+                test->stageOrTimer.timer = 0;
+                test->subState = 6;
             }
             break;
 
         case 6:
-            if (param_0->unk_0.unk_0_16++ > 0xB4)
+            if (test->stageOrTimer.timer++ > 0xB4)
             {
                 BgCmdBuffer_WriteString(2, 4, 1, "                 ");
-                param_0->unk_3 = 0;
+                test->subState = 0;
             }
             break;
 
         case 7:
-            if (param_0->unk_0.unk_0_16++ > 0x3C)
+            if (test->stageOrTimer.timer++ > 0x3C)
             {
-                param_0->unk_3 = 8;
+                test->subState = 8;
             }
             break;
 
         case 8:
-            var_sb = 1;
+            result = 1;
             break;
     }
 
-    if (param_0->unk_3 <= 6 || param_0->unk_3 >= 9)
+    if (test->subState <= 6 || test->subState >= 9)
     {
-        var_r4 = (sub_080D7F28() != 0) && (sub_080D7F48() != 0);
-        if (var_r4 == 0)
+        connected = (Link_IsConnected() != 0) && (Link_IsPeerActive() != 0);
+        if (connected == 0)
         {
             BgCmdBuffer_WriteString(4, 9, 1, "SIO ERROR : NOT CONNECT !!");
-            param_0->unk_5 = 0;
-            param_0->unk_0.unk_0_16 = 0;
-            param_0->unk_3 = 7;
+            test->unk_5 = 0;
+            test->stageOrTimer.timer = 0;
+            test->subState = 7;
         }
     }
 
-    return var_sb;
+    return result;
 }
 
 const u8 sUnk_080e2594[] = "../graph/dr_objhit.h";
@@ -606,10 +591,9 @@ const u8 sUnk_080e25b1[] = {
 };
 
 /**
- * @brief 38820 | To document
- * 
+ * @brief Clear the four BG maps at VRAM 0x0600E000..0x0600FFFF.
  */
-void sub_08038820(void)
+void Debug_ClearBgMaps(void)
 {
     DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
     DMA_FILL_32(3, 0, VRAM_BASE + 0xE800, 0x800);
@@ -618,37 +602,33 @@ void sub_08038820(void)
 }
 
 /**
- * @brief 3887C | To document
- * 
+ * @brief Empty init callback of SIO test 0.
  */
-void sub_0803887C(struct Unk_03000028 *param_0)
+void DebugSioTest0_Init(struct DebugSioTestState *test)
 {
     return;
 }
 
 /**
- * @brief 38880 | To document
- * 
+ * @brief Stop the serial link.
  */
-void sub_08038880(struct Unk_03000028 *param_0)
+void DebugSioTest0_Exit(struct DebugSioTestState *test)
 {
-    sub_080D7FD0();
+    Link_Stop();
 }
 
 /**
- * @brief 3888C | To document
- * 
+ * @brief Empty init callback of SIO test 1.
  */
-void sub_0803888C(struct Unk_03000028 *param_0)
+void DebugSioTest1_Init(struct DebugSioTestState *test)
 {
     return;
 }
 
 /**
- * @brief 38890 | To document
- * 
+ * @brief Stop the serial link.
  */
-void sub_08038890(struct Unk_03000028 *param_0)
+void DebugSioTest1_Exit(struct DebugSioTestState *test)
 {
-    sub_080D7FD0();
+    Link_Stop();
 }

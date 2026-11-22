@@ -38,570 +38,569 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-// NOTE: sub_08046DD4 is implicitly called
+// NOTE: HudMap_WriteTiles is implicitly called
 
 /**
- * @brief B700 | To document
- * 
- * @param param_0 To document
+ * @brief Set up BG0 text for the sound test: load fonts, print the title text
+ * id and the two selected numbers, and draw the 0x390..0x392 labels.
  */
-void sub_0800B700(s32 param_0)
+void SoundTestMenu_DrawScreen(s32 index)
 {
-    s32 var_r4;
+    s32 i;
 
     gDisplayRegisters.bgCnt[0] = CREATE_BGCNT(2, 28, BGCNT_HIGH_PRIORITY, BGCNT_SIZE_256x256);
-    sub_0803C918((u8 *)0x080E5C20, 4, 2, 0xD);
-    sub_0803C918((u8 *)0x080E5C20, 3, 1, 0xF);
-    sub_080412DC(VRAM_BASE + 0x8000);
-    sub_080412F0(1);
-    sub_08041304(0);
+    BgPalette_LoadRange((u8 *)0x080E5C20, 4, 2, 0xD);
+    BgPalette_LoadRange((u8 *)0x080E5C20, 3, 1, 0xF);
+    Text_SetTileBuffer(VRAM_BASE + 0x8000);
+    Text_SetForegroundColor(1);
+    Text_SetBackgroundColor(0);
 
-    switch (gEwramData->unk_60.language)
+    switch (gEwramData->gameState.language)
     {
         case 2:
-            sub_0803FD9C((u8 *)0x08277984, VRAM_BASE + 0xC000, 0);
+            Gfx_CopyResource((u8 *)0x08277984, VRAM_BASE + 0xC000, 0);
             break;
 
         case 3:
-            sub_0803FD9C((u8 *)0x0826C848, VRAM_BASE + 0xC000, 0);
+            Gfx_CopyResource((u8 *)0x0826C848, VRAM_BASE + 0xC000, 0);
             break;
 
         default:
-            sub_0803FD9C((u8 *)0x0827B200, VRAM_BASE + 0xC000, 0);
+            Gfx_CopyResource((u8 *)0x0827B200, VRAM_BASE + 0xC000, 0);
             break;
     }
 
     DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
     DMA_FILL_32(3, 0, VRAM_BASE + 0x8000, 0x800);
-    sub_08040748(0, 1, 0x1E, 4);
-    sub_08040FE0();
-    sub_08040748(0, 1, 0x1C, 4);
-    sub_08046E04(0, 0x11, 0x40);
+    Text12_SetRegion(0, 1, 0x1E, 4);
+    Text12_ClearRegion();
+    Text12_SetRegion(0, 1, 0x1C, 4);
+    HudMap_ZeroTiles(0, 0x11, 0x40);
 
-    for (var_r4 = 0; var_r4 < 4; var_r4++)
+    for (i = 0; i < 4; i++)
     {
-        sub_08046DD4(3, var_r4 + 0xF, var_r4 * 0x20 + 0xF020, 0x15);
+        HudMap_WriteTiles(3, i + 0xF, i * 0x20 + 0xF020, 0x15);
     }
 
-    sub_08041318(sub_08041434(param_0), 0);
+    Text12_Print(Text_GetLocalizedEntry(index), 0);
 
-    for (var_r4 = 0; var_r4 < 2; var_r4++)
+    for (i = 0; i < 2; i++)
     {
-        sub_08046E5C(0x12, var_r4 * 2 + 6, gEwramData->entityData[2].unk_4FC.unk_4FC_16.unk_4FE[var_r4], 2, 0xF200, 1);
+        HudMap_PrintNumberAttr(0x12, i * 2 + 6, gEwramData->entityData[2].unk_4FC.part16.unk_4FE[i], 2, 0xF200, 1);
     }
 
-    sub_08040970(0, 8, 8, 1);
-    sub_08041204();
-    sub_08041338((struct unk_08506B38 *) sub_08041434(0x390), 0);
+    Text8_SetRegion(0, 8, 8, 1);
+    Text8_ClearRegion();
+    Text8_Print((struct unk_08506B38 *) Text_GetLocalizedEntry(0x390), 0);
 
-    sub_08040970(0, 9, 8, 1);
-    sub_08041204();
-    sub_08041338((struct unk_08506B38 *) sub_08041434(0x391), 0);
+    Text8_SetRegion(0, 9, 8, 1);
+    Text8_ClearRegion();
+    Text8_Print((struct unk_08506B38 *) Text_GetLocalizedEntry(0x391), 0);
 
-    sub_08040970(0, 10, 8, 1);
-    sub_08041204();
-    sub_08041338((struct unk_08506B38 *) sub_08041434(0x392), 0);
+    Text8_SetRegion(0, 10, 8, 1);
+    Text8_ClearRegion();
+    Text8_Print((struct unk_08506B38 *) Text_GetLocalizedEntry(0x392), 0);
 
-    sub_08046DD4(0xB, 6, 0xF100, 6);
-    sub_08046DD4(0xB, 8, 0xF120, 6);
-    sub_08046DD4(0xB, 0xA, 0xF140, 6);
+    HudMap_WriteTiles(0xB, 6, 0xF100, 6);
+    HudMap_WriteTiles(0xB, 8, 0xF120, 6);
+    HudMap_WriteTiles(0xB, 0xA, 0xF140, 6);
 }
 
-struct Unk_080E0DEC {
-    s16 unk_0;
-    s16 unk_2;
+struct SoundTestCategoryRange {
+    s16 baseSongId;
+    s16 maxSelectionIndex;
 };
 
-const struct Unk_080E0DEC sUnk_080E0DEC[3] = {
+const struct SoundTestCategoryRange sSoundTestCategoryRanges[3] = {
     [0] = {
-        .unk_0 = 0,
-        .unk_2 = 0x1C
+        .baseSongId = 0,
+        .maxSelectionIndex = 0x1C
     },
     [1] = {
-        .unk_0 = 0x190,
-        .unk_2 = 0x56
+        .baseSongId = 0x190,
+        .maxSelectionIndex = 0x56
     },
     [2] = {
-        .unk_0 = 0,
-        .unk_2 = 0x1
+        .baseSongId = 0,
+        .maxSelectionIndex = 0x1
     }
 };
 
-struct Unk_080E0DF8 {
-    u16 unk_0;
-    u16 unk_2;
+struct SoundTestTrackRecord {
+    u16 songId;
+    u16 titleTextId;
 };
 
-// TODO: determine if all of this data is sUnk_080E0DF8
-const struct Unk_080E0DF8 sUnk_080E0DF8[95] = {
+// TODO: determine if all of this data is sSoundTestTracks
+const struct SoundTestTrackRecord sSoundTestTracks[95] = {
     [0] = {
-        .unk_0 = 0x1B,
-        .unk_2 = 0x03AC
+        .songId = 0x1B,
+        .titleTextId = 0x03AC
     },
     [1] = {
-        .unk_0 = 0x0E,
-        .unk_2 = 0x03A0
+        .songId = 0x0E,
+        .titleTextId = 0x03A0
     },
     [2] = {
-        .unk_0 = 0x15,
-        .unk_2 = 0x03A8
+        .songId = 0x15,
+        .titleTextId = 0x03A8
     },
     [3] = {
-        .unk_0 = 0x02,
-        .unk_2 = 0x0394
+        .songId = 0x02,
+        .titleTextId = 0x0394
     },
     [4] = {
-        .unk_0 = 0x08,
-        .unk_2 = 0x039A
+        .songId = 0x08,
+        .titleTextId = 0x039A
     },
     [5] = {
-        .unk_0 = 0x07,
-        .unk_2 = 0x0399
+        .songId = 0x07,
+        .titleTextId = 0x0399
     },
     [6] = {
-        .unk_0 = 0x05,
-        .unk_2 = 0x0397
+        .songId = 0x05,
+        .titleTextId = 0x0397
     },
     [7] = {
-        .unk_0 = 0x06,
-        .unk_2 = 0x0398
+        .songId = 0x06,
+        .titleTextId = 0x0398
     },
     [8] = {
-        .unk_0 = 0x09,
-        .unk_2 = 0x039B
+        .songId = 0x09,
+        .titleTextId = 0x039B
     },
     [9] = {
-        .unk_0 = 0x01,
-        .unk_2 = 0x0393
+        .songId = 0x01,
+        .titleTextId = 0x0393
     },
     [10] = {
-        .unk_0 = 0x03,
-        .unk_2 = 0x0395
+        .songId = 0x03,
+        .titleTextId = 0x0395
     },
     [11] = {
-        .unk_0 = 0x0A,
-        .unk_2 = 0x039C
+        .songId = 0x0A,
+        .titleTextId = 0x039C
     },
     [12] = {
-        .unk_0 = 0x04,
-        .unk_2 = 0x0396
+        .songId = 0x04,
+        .titleTextId = 0x0396
     },
     [13] = {
-        .unk_0 = 0x0B,
-        .unk_2 = 0x039D
+        .songId = 0x0B,
+        .titleTextId = 0x039D
     },
     [14] = {
-        .unk_0 = 0x0C,
-        .unk_2 = 0x039E
+        .songId = 0x0C,
+        .titleTextId = 0x039E
     },
     [15] = {
-        .unk_0 = 0x0D,
-        .unk_2 = 0x039F
+        .songId = 0x0D,
+        .titleTextId = 0x039F
     },
     [16] = {
-        .unk_0 = 0x0F,
-        .unk_2 = 0x03A1
+        .songId = 0x0F,
+        .titleTextId = 0x03A1
     },
     [17] = {
-        .unk_0 = 0x10,
-        .unk_2 = 0x03A2
+        .songId = 0x10,
+        .titleTextId = 0x03A2
     },
     [18] = {
-        .unk_0 = 0x11,
-        .unk_2 = 0x03A3
+        .songId = 0x11,
+        .titleTextId = 0x03A3
     },
     [19] = {
-        .unk_0 = 0x13,
-        .unk_2 = 0x03A5
+        .songId = 0x13,
+        .titleTextId = 0x03A5
     },
     [20] = {
-        .unk_0 = 0x1F,
-        .unk_2 = 0x03A6
+        .songId = 0x1F,
+        .titleTextId = 0x03A6
     },
     [21] = {
-        .unk_0 = 0x12,
-        .unk_2 = 0x03A4
+        .songId = 0x12,
+        .titleTextId = 0x03A4
     },
     [22] = {
-        .unk_0 = 0x14,
-        .unk_2 = 0x03A7
+        .songId = 0x14,
+        .titleTextId = 0x03A7
     },
     [23] = {
-        .unk_0 = 0x16,
-        .unk_2 = 0x03A9
+        .songId = 0x16,
+        .titleTextId = 0x03A9
     },
     [24] = {
-        .unk_0 = 0x21,
-        .unk_2 = 0x03AE
+        .songId = 0x21,
+        .titleTextId = 0x03AE
     },
     [25] = {
-        .unk_0 = 0x23,
-        .unk_2 = 0x03AF
+        .songId = 0x23,
+        .titleTextId = 0x03AF
     },
     [26] = {
-        .unk_0 = 0x20,
-        .unk_2 = 0x03AA
+        .songId = 0x20,
+        .titleTextId = 0x03AA
     },
     [27] = {
-        .unk_0 = 0x18,
-        .unk_2 = 0x03AD
+        .songId = 0x18,
+        .titleTextId = 0x03AD
     },
     [28] = {
-        .unk_0 = 0x1A,
-        .unk_2 = 0x03AB
+        .songId = 0x1A,
+        .titleTextId = 0x03AB
     },
     [29] = {
-        .unk_0 = 0x400,
-        .unk_2 = 0x0002
+        .songId = 0x400,
+        .titleTextId = 0x0002
     },
     [30] = {
-        .unk_0 = 0x1F,
-        .unk_2 = 0x001F
+        .songId = 0x1F,
+        .titleTextId = 0x001F
     },
     [31] = {
-        .unk_0 = 0x1F,
-        .unk_2 = 0x001F
+        .songId = 0x1F,
+        .titleTextId = 0x001F
     },
     [32] = {
-        .unk_0 = 0x1F,
-        .unk_2 = 0x001F
+        .songId = 0x1F,
+        .titleTextId = 0x001F
     },
     [33] = {
-        .unk_0 = 0x1F,
-        .unk_2 = 0x001F
+        .songId = 0x1F,
+        .titleTextId = 0x001F
     },
     [34] = {
-        .unk_0 = 0x1F,
-        .unk_2 = 0x001F
+        .songId = 0x1F,
+        .titleTextId = 0x001F
     },
     [35] = {
-        .unk_0 = 0x1F,
-        .unk_2 = 0x001F
+        .songId = 0x1F,
+        .titleTextId = 0x001F
     },
     [36] = {
-        .unk_0 = 0x1F,
-        .unk_2 = 0x001F
+        .songId = 0x1F,
+        .titleTextId = 0x001F
     },
     [37] = {
-        .unk_0 = 0x1F,
-        .unk_2 = 0x001F
+        .songId = 0x1F,
+        .titleTextId = 0x001F
     },
     [38] = {
-        .unk_0 = 0x00,
-        .unk_2 = 0x0000
+        .songId = 0x00,
+        .titleTextId = 0x0000
     },
     [39] = {
-        .unk_0 = 0x00,
-        .unk_2 = 0x0000
+        .songId = 0x00,
+        .titleTextId = 0x0000
     },
     [40] = {
-        .unk_0 = 0x00,
-        .unk_2 = 0x0000
+        .songId = 0x00,
+        .titleTextId = 0x0000
     },
     [41] = {
-        .unk_0 = 0x00,
-        .unk_2 = 0x0000
+        .songId = 0x00,
+        .titleTextId = 0x0000
     },
     [42] = {
-        .unk_0 = 0x00,
-        .unk_2 = 0x0000
+        .songId = 0x00,
+        .titleTextId = 0x0000
     },
     [43] = {
-        .unk_0 = 0x00,
-        .unk_2 = 0x0000
+        .songId = 0x00,
+        .titleTextId = 0x0000
     },
     [44] = {
-        .unk_0 = 0x00,
-        .unk_2 = 0x0000
+        .songId = 0x00,
+        .titleTextId = 0x0000
     },
     [45] = {
-        .unk_0 = 0x00,
-        .unk_2 = 0x0000
+        .songId = 0x00,
+        .titleTextId = 0x0000
     },
     [46] = {
-        .unk_0 = 0x400,
-        .unk_2 = 0x000D
+        .songId = 0x400,
+        .titleTextId = 0x000D
     },
     [47] = {
-        .unk_0 = 0x39CE,
-        .unk_2 = 0x6B5A
+        .songId = 0x39CE,
+        .titleTextId = 0x6B5A
     },
     [48] = {
-        .unk_0 = 0x04,
-        .unk_2 = 0x6400
+        .songId = 0x04,
+        .titleTextId = 0x6400
     },
     [49] = {
-        .unk_0 = 0x3BFF,
-        .unk_2 = 0x2EBF
+        .songId = 0x3BFF,
+        .titleTextId = 0x2EBF
     },
     [50] = {
-        .unk_0 = 0x23F,
-        .unk_2 = 0x0154
+        .songId = 0x23F,
+        .titleTextId = 0x0154
     },
     [51] = {
-        .unk_0 = 0x7FFF,
-        .unk_2 = 0x6F7B
+        .songId = 0x7FFF,
+        .titleTextId = 0x6F7B
     },
     [52] = {
-        .unk_0 = 0x4E73,
-        .unk_2 = 0x7C00
+        .songId = 0x4E73,
+        .titleTextId = 0x7C00
     },
     [53] = {
-        .unk_0 = 0x7E45,
-        .unk_2 = 0x001A
+        .songId = 0x7E45,
+        .titleTextId = 0x001A
     },
     [54] = {
-        .unk_0 = 0x4A5F,
-        .unk_2 = 0x355F
+        .songId = 0x4A5F,
+        .titleTextId = 0x355F
     },
     [55] = {
-        .unk_0 = 0x39CE,
-        .unk_2 = 0x001F
+        .songId = 0x39CE,
+        .titleTextId = 0x001F
     },
     [56] = {
-        .unk_0 = 0x04,
-        .unk_2 = 0x0200
+        .songId = 0x04,
+        .titleTextId = 0x0200
     },
     [57] = {
-        .unk_0 = 0x3BFF,
-        .unk_2 = 0x2EBF
+        .songId = 0x3BFF,
+        .titleTextId = 0x2EBF
     },
     [58] = {
-        .unk_0 = 0x23F,
-        .unk_2 = 0x0154
+        .songId = 0x23F,
+        .titleTextId = 0x0154
     },
     [59] = {
-        .unk_0 = 0x7FFF,
-        .unk_2 = 0x6318
+        .songId = 0x7FFF,
+        .titleTextId = 0x6318
     },
     [60] = {
-        .unk_0 = 0x4E73,
-        .unk_2 = 0x7C00
+        .songId = 0x4E73,
+        .titleTextId = 0x7C00
     },
     [61] = {
-        .unk_0 = 0x7E45,
-        .unk_2 = 0x001A
+        .songId = 0x7E45,
+        .titleTextId = 0x001A
     },
     [62] = {
-        .unk_0 = 0x4A5F,
-        .unk_2 = 0x355F
+        .songId = 0x4A5F,
+        .titleTextId = 0x355F
     },
     [63] = {
-        .unk_0 = 0x39CE,
-        .unk_2 = 0x7E02
+        .songId = 0x39CE,
+        .titleTextId = 0x7E02
     },
     [64] = {
-        .unk_0 = 0x04,
-        .unk_2 = 0x01E0
+        .songId = 0x04,
+        .titleTextId = 0x01E0
     },
     [65] = {
-        .unk_0 = 0x3BFF,
-        .unk_2 = 0x2EBF
+        .songId = 0x3BFF,
+        .titleTextId = 0x2EBF
     },
     [66] = {
-        .unk_0 = 0x23F,
-        .unk_2 = 0x0154
+        .songId = 0x23F,
+        .titleTextId = 0x0154
     },
     [67] = {
-        .unk_0 = 0x7FFF,
-        .unk_2 = 0x6318
+        .songId = 0x7FFF,
+        .titleTextId = 0x6318
     },
     [68] = {
-        .unk_0 = 0x4E73,
-        .unk_2 = 0x7C00
+        .songId = 0x4E73,
+        .titleTextId = 0x7C00
     },
     [69] = {
-        .unk_0 = 0x7E45,
-        .unk_2 = 0x001A
+        .songId = 0x7E45,
+        .titleTextId = 0x001A
     },
     [70] = {
-        .unk_0 = 0x4A5F,
-        .unk_2 = 0x355F
+        .songId = 0x4A5F,
+        .titleTextId = 0x355F
     },
     [71] = {
-        .unk_0 = 0x39CE,
-        .unk_2 = 0x03FF
+        .songId = 0x39CE,
+        .titleTextId = 0x03FF
     },
     [72] = {
-        .unk_0 = 0x04,
-        .unk_2 = 0x01E0
+        .songId = 0x04,
+        .titleTextId = 0x01E0
     },
     [73] = {
-        .unk_0 = 0x3BFF,
-        .unk_2 = 0x2EBF
+        .songId = 0x3BFF,
+        .titleTextId = 0x2EBF
     },
     [74] = {
-        .unk_0 = 0x23F,
-        .unk_2 = 0x0154
+        .songId = 0x23F,
+        .titleTextId = 0x0154
     },
     [75] = {
-        .unk_0 = 0x7FFF,
-        .unk_2 = 0x6318
+        .songId = 0x7FFF,
+        .titleTextId = 0x6318
     },
     [76] = {
-        .unk_0 = 0x4E73,
-        .unk_2 = 0x7C00
+        .songId = 0x4E73,
+        .titleTextId = 0x7C00
     },
     [77] = {
-        .unk_0 = 0x7E45,
-        .unk_2 = 0x001A
+        .songId = 0x7E45,
+        .titleTextId = 0x001A
     },
     [78] = {
-        .unk_0 = 0x4A5F,
-        .unk_2 = 0x355F
+        .songId = 0x4A5F,
+        .titleTextId = 0x355F
     },
     [79] = {
-        .unk_0 = 0x39CE,
-        .unk_2 = 0x02A0
+        .songId = 0x39CE,
+        .titleTextId = 0x02A0
     },
     [80] = {
-        .unk_0 = 0x04,
-        .unk_2 = 0x01E0
+        .songId = 0x04,
+        .titleTextId = 0x01E0
     },
     [81] = {
-        .unk_0 = 0x3BFF,
-        .unk_2 = 0x2EBF
+        .songId = 0x3BFF,
+        .titleTextId = 0x2EBF
     },
     [82] = {
-        .unk_0 = 0x23F,
-        .unk_2 = 0x0154
+        .songId = 0x23F,
+        .titleTextId = 0x0154
     },
     [83] = {
-        .unk_0 = 0x7FFF,
-        .unk_2 = 0x6318
+        .songId = 0x7FFF,
+        .titleTextId = 0x6318
     },
     [84] = {
-        .unk_0 = 0x4E73,
-        .unk_2 = 0x7C00
+        .songId = 0x4E73,
+        .titleTextId = 0x7C00
     },
     [85] = {
-        .unk_0 = 0x7E45,
-        .unk_2 = 0x001A
+        .songId = 0x7E45,
+        .titleTextId = 0x001A
     },
     [86] = {
-        .unk_0 = 0x4A5F,
-        .unk_2 = 0x355F
+        .songId = 0x4A5F,
+        .titleTextId = 0x355F
     },
     [87] = {
-        .unk_0 = 0x39CE,
-        .unk_2 = 0x294A
+        .songId = 0x39CE,
+        .titleTextId = 0x294A
     },
     [88] = {
-        .unk_0 = 0x04,
-        .unk_2 = 0x01E0
+        .songId = 0x04,
+        .titleTextId = 0x01E0
     },
     [89] = {
-        .unk_0 = 0x3BFF,
-        .unk_2 = 0x2EBF
+        .songId = 0x3BFF,
+        .titleTextId = 0x2EBF
     },
     [90] = {
-        .unk_0 = 0x23F,
-        .unk_2 = 0x0154
+        .songId = 0x23F,
+        .titleTextId = 0x0154
     },
     [91] = {
-        .unk_0 = 0x7FFF,
-        .unk_2 = 0x6318
+        .songId = 0x7FFF,
+        .titleTextId = 0x6318
     },
     [92] = {
-        .unk_0 = 0x4E73,
-        .unk_2 = 0x7C00
+        .songId = 0x4E73,
+        .titleTextId = 0x7C00
     },
     [93] = {
-        .unk_0 = 0x7E45,
-        .unk_2 = 0x001A
+        .songId = 0x7E45,
+        .titleTextId = 0x001A
     },
     [94] = {
-        .unk_0 = 0x4A5F,
-        .unk_2 = 0x355F
+        .songId = 0x4A5F,
+        .titleTextId = 0x355F
     },
 };
 
 // similar to GameModeSoulTradeMenu_inline_1, but uses unk_4FC instead of unk_508
-static inline void GameModeSoundTestMenu_inline_0(struct EwramData_EntityData *temp_r6, s32 temp_r4_4)
+static inline void GameModeSoundTestMenu_inline_0(struct EwramData_EntityData *textEntity, s32 entry)
 {
-    s32 var_0;
-    u8 *var_1;
-    s32 var_2;
-    s32 var_3;
-    u8 *temp_r8;
-    s32 var_r4_3;
-    s32 var_r7;
+    s32 baseRow;
+    u8 *script;
+    s32 col;
+    s32 code;
+    u8 *text;
+    s32 more;
+    s32 pos;
 
-    temp_r8 = sub_08041434(temp_r4_4);
-    var_2 = 0;
-    var_0 = 1;
-    var_r4_3 = 0;
-    var_r7 = -1;
-    if (temp_r6->unk_4FC.unk_4FC_32 != temp_r4_4)
+    text = Text_GetLocalizedEntry(entry);
+    col = 0;
+    baseRow = 1;
+    more = 0;
+    pos = -1;
+    if (textEntity->unk_4FC.whole != entry)
     {
-        temp_r6->unk_4FC.unk_4FC_32 = temp_r4_4;
-        sub_08040748(0, 1, 0x1E, 4);
-        sub_08040FE0();
-        sub_08040748(0, 1, 0x1C, 4);
-        sub_0804066C(0, 1);
+        textEntity->unk_4FC.whole = entry;
+        Text12_SetRegion(0, 1, 0x1E, 4);
+        Text12_ClearRegion();
+        Text12_SetRegion(0, 1, 0x1C, 4);
+        Text12_SetCursor(0, 1);
         
         do
         {
-            var_1 = temp_r8;
-            var_1 += 2;
-            sub_0804066C(var_2, var_0 + var_r4_3);
-            var_r7 = sub_08041318(temp_r8, var_r7 + 1);
-            var_3 = var_1[var_r7];
-            var_r4_3 += 1;
-            if (var_3 != 6)
+            script = text;
+            script += 2;
+            Text12_SetCursor(col, baseRow + more);
+            pos = Text12_Print(text, pos + 1);
+            code = script[pos];
+            more += 1;
+            if (code != 6)
             {
-                var_r4_3 = 0;
+                more = 0;
             }
-        } while (var_r4_3 != 0);
+        } while (more != 0);
     }
 }
 
-static inline void GameModeSoundTestMenu_inline_2(s32 var_5, s32 var_2, s16 *temp_r2, s32 var_1)
+static inline void GameModeSoundTestMenu_inline_2(s32 value, s32 max, s16 *dst, s32 wrapTo)
 {
-    if (var_5 > var_2)
+    if (value > max)
     {
-        *temp_r2 = var_1;
+        *dst = wrapTo;
     }
-    else if (var_5 < 0)
+    else if (value < 0)
     {
-        *temp_r2 = var_2;
+        *dst = max;
     }
 }
 
-static inline void GameModeSoundTestMenu_inline_1(struct Unk_080E0DEC var_3, s32 var_4, s16 *temp_r3_2)
+static inline void GameModeSoundTestMenu_inline_1(struct SoundTestCategoryRange range, s32 rightKey, s16 *value)
 {
-    s32 var_6;
-    s32 temp_r5;
+    s32 zero;
+    s32 max;
 
     do {
-        var_6 = 0;
+        zero = 0;
     } while(0);
-    temp_r5 = var_3.unk_2;
+    max = range.maxSelectionIndex;
 
-    if (gEwramData->inputData.repeatedInput & var_4) // KEY_RIGHT
+    if (gEwramData->inputData.repeatedInput & rightKey) // KEY_RIGHT
     {
-        *temp_r3_2 += 1;
+        *value += 1;
     }
-    else if (gEwramData->inputData.repeatedInput & (var_4 << 1)) // KEY_LEFT
+    else if (gEwramData->inputData.repeatedInput & (rightKey << 1)) // KEY_LEFT
     {
-        *temp_r3_2 -= 1;
-    }
-
-    if (gEwramData->inputData.repeatedInput & (var_4 << 4)) // KEY_R
-    {
-        *temp_r3_2 += 10;
-    }
-    if (gEwramData->inputData.repeatedInput & (var_4 << 5)) // KEY_L
-    {
-        *temp_r3_2 -= 10;
+        *value -= 1;
     }
 
-    GameModeSoundTestMenu_inline_2(*temp_r3_2, temp_r5, temp_r3_2, var_6);
+    if (gEwramData->inputData.repeatedInput & (rightKey << 4)) // KEY_R
+    {
+        *value += 10;
+    }
+    if (gEwramData->inputData.repeatedInput & (rightKey << 5)) // KEY_L
+    {
+        *value -= 10;
+    }
+
+    GameModeSoundTestMenu_inline_2(*value, max, value, zero);
 }
 
-static inline void GameModeSoundTestMenu_inline_3(s32 param_0, s32 param_1)
+static inline void GameModeSoundTestMenu_inline_3(s32 song, s32 channel)
 {
-    gEwramData->entityData[2].unk_504.unk_504_16.unk_506[param_1] = param_0;
+    gEwramData->entityData[2].unk_504.part16.unk_506[channel] = song;
 }
 
 /**
@@ -611,19 +610,19 @@ static inline void GameModeSoundTestMenu_inline_3(s32 param_0, s32 param_1)
  */
 s32 GameModeSoundTestMenu(void)
 {
-    struct EwramData_EntityData *temp_r7;
-    struct EwramData_EntityData *temp_sl;
+    struct EwramData_EntityData *cursor;
+    struct EwramData_EntityData *textEntity;
     s32 gameMode;
-    s32 var_r4_3;
-    u16 temp_r3;
-    u16 var_r4;
-    s16 *temp_r2;
-    s32 var_0;
-    s32 var_1;
-    s32 var_2;
+    s32 i;
+    u16 alpha;
+    u16 song;
+    s16 *selection;
+    s32 downKey;
+    s32 zero;
+    s32 max;
 
-    temp_r7 = &gEwramData->entityData[3];
-    temp_sl = &gEwramData->entityData[4];
+    cursor = &gEwramData->entityData[3];
+    textEntity = &gEwramData->entityData[4];
     gameMode = GAME_MODE_SAME_MODE;
 
     switch (gEwramData->gameModeUpdateStage)
@@ -634,7 +633,7 @@ s32 GameModeSoundTestMenu(void)
             gDisplayRegisters.bldY = BLDY_MAX_VALUE;
 
             gEwramData->gameModeUpdateStage = 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             PlaySong(AUDIO_STOP);
             EntityDelete(&gEwramData->entityData[3]);
             EntityDelete(&gEwramData->entityData[2]);
@@ -654,41 +653,41 @@ s32 GameModeSoundTestMenu(void)
             gDisplayRegisters.bgCnt[2] = CREATE_BGCNT(0, 30, BGCNT_LOW_MID_PRIORITY, BGCNT_SIZE_256x256);
             gDisplayRegisters.bgCnt[3] = CREATE_BGCNT(0, 31, BGCNT_LOW_PRIORITY, BGCNT_SIZE_256x256);
 
-            sub_0803FD9C((u8 *)0x080E5BB0, VRAM_BASE, 0);
-            sub_0803FD9C((u8 *)0x080E5BB8, VRAM_BASE + 0x2000, 0);
+            Gfx_CopyResource((u8 *)0x080E5BB0, VRAM_BASE, 0);
+            Gfx_CopyResource((u8 *)0x080E5BB8, VRAM_BASE + 0x2000, 0);
     
-            switch (gEwramData->unk_60.language)
+            switch (gEwramData->gameState.language)
             {
                 case 2:
-                    sub_0803FD9C((u8 *)0x08277994, VRAM_BASE + 0x4000, 0);
+                    Gfx_CopyResource((u8 *)0x08277994, VRAM_BASE + 0x4000, 0);
                     break;
                 case 3:
-                    sub_0803FD9C((u8 *)0x0826C850, VRAM_BASE + 0x4000, 0);
+                    Gfx_CopyResource((u8 *)0x0826C850, VRAM_BASE + 0x4000, 0);
                     break;
                 default:
-                    sub_0803FD9C((u8 *)0x080E5BC0, VRAM_BASE + 0x4000, 0);
+                    Gfx_CopyResource((u8 *)0x080E5BC0, VRAM_BASE + 0x4000, 0);
                     break;
             }
             
-            sub_0803C8B0((u8 *)0x080E5E24);
-            sub_0803F8A8(3, (struct EwramData_unkA078_0 *)0x080E74C4, 0, 0);
-            sub_0803F8A8(2, (struct EwramData_unkA078_0 *)0x080E6CE4, 0, 0);
-            sub_0803F8A8(1, (struct EwramData_unkA078_0 *)0x080E6D74, 0, 0);
-            sub_0800B700(0x3AC);
-            gEwramData->unk_4 = BLDALPHA_MAX_VALUE;
+            BgPalette_Load((u8 *)0x080E5E24);
+            BgMap_Setup(3, (struct BgMapMetadata *)0x080E74C4, 0, 0);
+            BgMap_Setup(2, (struct BgMapMetadata *)0x080E6CE4, 0, 0);
+            BgMap_Setup(1, (struct BgMapMetadata *)0x080E6D74, 0, 0);
+            SoundTestMenu_DrawScreen(0x3AC);
+            gEwramData->gameModeTimer = BLDALPHA_MAX_VALUE;
             gEwramData->gameModeUpdateStage = 2;
-            gEwramData->unk_12 = 0;
-            sub_08048C74(temp_r7, 0xE);
-            temp_r7->unk_524.unk_524_16.unk_526 = 0x52;
-            temp_r7->unk_528.unk_528_16.unk_52A = 0x34;
+            gEwramData->gameModeSubStage = 0;
+            CursorSprite_Create(cursor, 0xE);
+            cursor->posX.part16.integer = 0x52;
+            cursor->posY.part16.integer = 0x34;
             break;
     
         case 2:
-            if (gEwramData->unk_4 != 0)
+            if (gEwramData->gameModeTimer != 0)
             {
-                gEwramData->unk_4 -= 2;
-                temp_r3 = gEwramData->unk_4;
-                gDisplayRegisters.bldAlpha = (temp_r3 << 8) | (BLDALPHA_MAX_VALUE - temp_r3);
+                gEwramData->gameModeTimer -= 2;
+                alpha = gEwramData->gameModeTimer;
+                gDisplayRegisters.bldAlpha = (alpha << 8) | (BLDALPHA_MAX_VALUE - alpha);
             }
             else
             {
@@ -696,7 +695,7 @@ s32 GameModeSoundTestMenu(void)
                 gDisplayRegisters.bldCnt = BLDCNT_BG3_SECOND_TARGET_PIXEL | BLDCNT_ALPHA_BLENDING_EFFECT | BLDCNT_BG2_FIRST_TARGET_PIXEL;
                 gDisplayRegisters.bldAlpha = C_16_2_8(10, 6);
                 gEwramData->gameModeUpdateStage = 3;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
             break;
 
@@ -704,100 +703,100 @@ s32 GameModeSoundTestMenu(void)
             if (gEwramData->inputData.newInput & 8)
             {
                 gEwramData->gameModeUpdateStage = 4;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
                 break;
             }
 
-            var_0 = 0x80;
-            temp_r2 = &gEwramData->entityData[2].unk_4FC.unk_4FC_16.unk_4FC;
-            do{var_1 = 0;}while(0);
-            var_2 = 2;
-            if (gEwramData->inputData.repeatedInput & var_0) // KEY_DOWN
+            downKey = 0x80;
+            selection = &gEwramData->entityData[2].unk_4FC.part16.unk_4FC;
+            do{zero = 0;}while(0);
+            max = 2;
+            if (gEwramData->inputData.repeatedInput & downKey) // KEY_DOWN
             {
-                *temp_r2 += 1;
+                *selection += 1;
             }
             else if (gEwramData->inputData.repeatedInput & 0x40) // KEY_UP
             {
-                *temp_r2 -= 1;
+                *selection -= 1;
             }
 
-            GameModeSoundTestMenu_inline_2(*temp_r2, var_2, temp_r2, var_1);
+            GameModeSoundTestMenu_inline_2(*selection, max, selection, zero);
 
-            if (gEwramData->entityData[2].unk_4FC.unk_4FC_16.unk_4FC < 2)
+            if (gEwramData->entityData[2].unk_4FC.part16.unk_4FC < 2)
             {
-                GameModeSoundTestMenu_inline_1(sUnk_080E0DEC[gEwramData->entityData[2].unk_4FC.unk_4FC_16.unk_4FC], 0x10, &gEwramData->entityData[2].unk_4FC.unk_4FC_16.unk_4FE[gEwramData->entityData[2].unk_4FC.unk_4FC_16.unk_4FC]);
+                GameModeSoundTestMenu_inline_1(sSoundTestCategoryRanges[gEwramData->entityData[2].unk_4FC.part16.unk_4FC], 0x10, &gEwramData->entityData[2].unk_4FC.part16.unk_4FE[gEwramData->entityData[2].unk_4FC.part16.unk_4FC]);
             }
-            temp_r7->unk_528.unk_528_16.unk_52A = (gEwramData->entityData[2].unk_4FC.unk_4FC_16.unk_4FC * 0x10) + 0x34;
+            cursor->posY.part16.integer = (gEwramData->entityData[2].unk_4FC.part16.unk_4FC * 0x10) + 0x34;
 
             if (gEwramData->inputData.newInput & 1)
             {
-                switch (gEwramData->entityData[2].unk_4FC.unk_4FC_16.unk_4FC)
+                switch (gEwramData->entityData[2].unk_4FC.part16.unk_4FC)
                 {
                     case 0:
                     case 1:
-                        if (gEwramData->entityData[2].unk_4FC.unk_4FC_16.unk_4FC == 0)
+                        if (gEwramData->entityData[2].unk_4FC.part16.unk_4FC == 0)
                         {
-                            var_r4 = sUnk_080E0DF8[gEwramData->entityData[2].unk_4FC.unk_4FC_16.unk_4FE[gEwramData->entityData[2].unk_4FC.unk_4FC_16.unk_4FC]].unk_0;
+                            song = sSoundTestTracks[gEwramData->entityData[2].unk_4FC.part16.unk_4FE[gEwramData->entityData[2].unk_4FC.part16.unk_4FC]].songId;
                         }
                         else
                         {
-                            var_r4 = sUnk_080E0DEC[gEwramData->entityData[2].unk_4FC.unk_4FC_16.unk_4FC].unk_0 + gEwramData->entityData[2].unk_4FC.unk_4FC_16.unk_4FE[gEwramData->entityData[2].unk_4FC.unk_4FC_16.unk_4FC];
+                            song = sSoundTestCategoryRanges[gEwramData->entityData[2].unk_4FC.part16.unk_4FC].baseSongId + gEwramData->entityData[2].unk_4FC.part16.unk_4FE[gEwramData->entityData[2].unk_4FC.part16.unk_4FC];
                         }
 
-                        if (gEwramData->entityData[2].unk_504.unk_504_16.unk_506[gEwramData->entityData[2].unk_4FC.unk_4FC_16.unk_4FC] != 0)
+                        if (gEwramData->entityData[2].unk_504.part16.unk_506[gEwramData->entityData[2].unk_4FC.part16.unk_4FC] != 0)
                         {
-                            PlaySong(gEwramData->entityData[2].unk_504.unk_504_16.unk_506[gEwramData->entityData[2].unk_4FC.unk_4FC_16.unk_4FC] | STOP_SONG);
+                            PlaySong(gEwramData->entityData[2].unk_504.part16.unk_506[gEwramData->entityData[2].unk_4FC.part16.unk_4FC] | STOP_SONG);
                         }
 
-                        GameModeSoundTestMenu_inline_3(var_r4, gEwramData->entityData[2].unk_4FC.unk_4FC_16.unk_4FC);
-                        PlaySong(var_r4);
+                        GameModeSoundTestMenu_inline_3(song, gEwramData->entityData[2].unk_4FC.part16.unk_4FC);
+                        PlaySong(song);
                         break;
                     
                     case 2:
                         PlaySong(AUDIO_STOP);
                         gEwramData->gameModeUpdateStage = 4;
-                        gEwramData->unk_12 = 0;
+                        gEwramData->gameModeSubStage = 0;
                         break;
                 }
             }
 
-            if (gEwramData->entityData[2].unk_4FC.unk_4FC_16.unk_4FC == 0)
+            if (gEwramData->entityData[2].unk_4FC.part16.unk_4FC == 0)
             {
-                GameModeSoundTestMenu_inline_0(temp_sl, sUnk_080E0DF8[gEwramData->entityData[2].unk_4FC.unk_4FC_16.unk_4FE[gEwramData->entityData[2].unk_4FC.unk_4FC_16.unk_4FC]].unk_2);
+                GameModeSoundTestMenu_inline_0(textEntity, sSoundTestTracks[gEwramData->entityData[2].unk_4FC.part16.unk_4FE[gEwramData->entityData[2].unk_4FC.part16.unk_4FC]].titleTextId);
             }
 
             if (gEwramData->inputData.newInput & 2)
             {
-                for (var_r4_3 = 0; var_r4_3 < 3; var_r4_3++)
+                for (i = 0; i < 3; i++)
                 {
-                    GameModeSoundTestMenu_inline_3(0, var_r4_3);
+                    GameModeSoundTestMenu_inline_3(0, i);
                 }
                 PlaySong(AUDIO_STOP);
             }
 
-            for (var_r4_3 = 0; var_r4_3 < 2; var_r4_3++)
+            for (i = 0; i < 2; i++)
             {
-                sub_08046E5C(0x12, var_r4_3 * 2 + 6, gEwramData->entityData[2].unk_4FC.unk_4FC_16.unk_4FE[var_r4_3], 2, 0xF200, 1);
+                HudMap_PrintNumberAttr(0x12, i * 2 + 6, gEwramData->entityData[2].unk_4FC.part16.unk_4FE[i], 2, 0xF200, 1);
             }
             break;
 
         case 4:
             gEwramData->gameModeUpdateStage = 5;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             gUnk_03002CB0.dispCnt &= ~DCNT_BG2;
             gDisplayRegisters.bldCnt = BLDCNT_SCREEN_SECOND_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT | BLDCNT_SCREEN_FIRST_TARGET;
             gDisplayRegisters.bldY = BLDY_MAX_VALUE;
-            gEwramData->unk_4 = 0;
+            gEwramData->gameModeTimer = 0;
             gEwramData->gameModeUpdateStage = 5;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
 
         case 5:
-            if (gEwramData->unk_4 != BLDALPHA_MAX_VALUE)
+            if (gEwramData->gameModeTimer != BLDALPHA_MAX_VALUE)
             {
-                gEwramData->unk_4 += 2;
-                temp_r3 = gEwramData->unk_4;
-                gDisplayRegisters.bldAlpha = (temp_r3 << 8) | (BLDALPHA_MAX_VALUE - temp_r3);
+                gEwramData->gameModeTimer += 2;
+                alpha = gEwramData->gameModeTimer;
+                gDisplayRegisters.bldAlpha = (alpha << 8) | (BLDALPHA_MAX_VALUE - alpha);
             }
             else
             {
@@ -807,24 +806,24 @@ s32 GameModeSoundTestMenu(void)
             break;
     }
 
-    sub_08000B64();
+    Entity_UpdateAll();
     if (gameMode != GAME_MODE_SAME_MODE)
     {
         EntityDeleteAll();
-        sub_0803D9A8();
-        sub_0803E438();
-        sub_08039DC0();
-        sub_0803BEEC();
-        sub_0804059C();
-        sub_08042754();
+        ObjTiles_Init();
+        Obj_Init();
+        Sprite_Init();
+        Palette_Init();
+        Text_Initialize();
+        HitBox_ClearAll();
     }
 
     return gameMode;
 }
 
-static inline void GameModeInGameUpdate_inline_0(s32 param_0)
+static inline void GameModeInGameUpdate_inline_0(s32 enabled)
 {
-    gEwramData->unk_A074_1 = param_0;
+    gEwramData->startPauseEnabled = enabled;
 }
 
 /**
@@ -835,91 +834,91 @@ static inline void GameModeInGameUpdate_inline_0(s32 param_0)
 s32 GameModeInGameUpdate(void)
 {
     s32 gameMode;
-    struct EwramData_unk60 *temp_r7;
-    u32 var_r4;
-    s32 var_0;
-    s32 var_1;
+    struct GameState *gameState;
+    u32 connected;
+    s32 to;
+    s32 zero;
 
-    temp_r7 = &gEwramData->unk_60;
+    gameState = &gEwramData->gameState;
     gameMode = GAME_MODE_SAME_MODE;
 
-    switch (temp_r7->unk_64)
+    switch (gameState->subMode)
     {
         case 0:
             GameModeInGameUpdate_inline_0(0);
-            gEwramData->unk_A074_0 = 0;
+            gEwramData->paused = 0;
 
-            switch (temp_r7->unk_65)
+            switch (gameState->subModeStep)
             {
                 case 0:
-                    var_0 = 0;
-                    gEwramData->unk_A074_1 = 0;
-                    sub_0803D18C(0, 0, 0, 0x10000, var_0, 8);
-                    sub_0803CDF0(0, 0, 0, 0x10000, var_0, 8);
-                    temp_r7->unk_65 += 1;
+                    to = 0;
+                    gEwramData->startPauseEnabled = 0;
+                    BgPalette_StartColorFade(0, 0, 0, 0x10000, to, 8);
+                    ObjPalette_StartColorFade(0, 0, 0, 0x10000, to, 8);
+                    gameState->subModeStep += 1;
                     /* fallthrough */
                 case 1:
-                    if (sub_0803D06C() == 0)
+                    if (ObjPalette_GetPendingFades() == 0)
                     {
-                        sub_0803D270();
-                        sub_0803CED4();
+                        BgPalette_StopColorFade();
+                        ObjPalette_StopColorFade();
                         SetPlayerInput(1, 0);
-                        temp_r7->unk_65 += 1;
+                        gameState->subModeStep += 1;
                     }
                     break;
     
                 case 2:
-                    sub_0800C5D8();
-                    var_1 = 0;
-                    gEwramData->unk_A074_1 = 0;
-                    gDisplayRegisters.bldY = var_1;
+                    InGame_InitScene();
+                    zero = 0;
+                    gEwramData->startPauseEnabled = 0;
+                    gDisplayRegisters.bldY = zero;
                     /* fallthrough */
                 case 3:
-                    sub_0803D18C(0, 0, 0, 0, 0x10000, 8);
-                    sub_0803CDF0(0, 0, 0, 0, 0x10000, 8);
+                    BgPalette_StartColorFade(0, 0, 0, 0, 0x10000, 8);
+                    ObjPalette_StartColorFade(0, 0, 0, 0, 0x10000, 8);
                     SetPlayerInput(1, 0);
-                    sub_08000B64();
-                    temp_r7->unk_65 += 1;
+                    Entity_UpdateAll();
+                    gameState->subModeStep += 1;
                     break;
     
                 case 4:
-                    if ((gEwramData->unk_60.unk_42C & 1) && (gEwramData->unk_1325C.currentCharacter == 0))
+                    if ((gEwramData->gameState.stateFlags & 1) && (gEwramData->playerStatus.currentCharacter == 0))
                     {
-                        gEwramData->unk_A074_0 = 0;
+                        gEwramData->paused = 0;
                     }
                     else
                     {
-                        gEwramData->unk_A074_0 = 1;
+                        gEwramData->paused = 1;
                     }
 
-                    sub_08000B64();
-                    gEwramData->unk_A074_0 = 0;
+                    Entity_UpdateAll();
+                    gEwramData->paused = 0;
 
-                    if (sub_0803D06C() == 0)
+                    if (ObjPalette_GetPendingFades() == 0)
                     {
-                        sub_0803D270();
-                        sub_0803CED4();
+                        BgPalette_StopColorFade();
+                        ObjPalette_StopColorFade();
 
                         GameModeInGameUpdate_inline_0(1);
-                        gEwramData->unk_A074_0 = 0;
+                        gEwramData->paused = 0;
 
-                        temp_r7->unk_65 = 0;
-                        temp_r7->unk_4C8 = 0;
+                        gameState->subModeStep = 0;
+                        gameState->bgEffectFrameCounter = 0;
 
-                        if (!gEwramData->unk_60.unk_4CC_6)
+                        if (!gEwramData->gameState.linkPlay)
                         {
-                            if (temp_r7->unk_64 == 0)
+                            if (gameState->subMode == 0)
                             {
-                                temp_r7->unk_64 = 1;
+                                gameState->subMode = 1;
                             }
                         }
                         else
                         {
-                            gEwramData->unk_13110.unk_13224 = 0;
-                            temp_r7->unk_64 = 0xB;
-                            sub_080D7F78();
-                            sub_080D7FB8();
-                            temp_r7->unk_66 = 0x10;
+                            gEwramData->playerState.linkFrameCounter = 0;
+                            gameState->subMode = 0xB;
+                            Link_Init();
+                            Link_Start();
+                            gameState->subModeCounter = 0x10;
                             GameModeInGameUpdate_inline_0(1);
                         }
                     }
@@ -928,287 +927,285 @@ s32 GameModeInGameUpdate(void)
             break;
 
         case 1:
-            if (gEwramData->unk_1325C.currentCharacter != 0)
+            if (gEwramData->playerStatus.currentCharacter != 0)
             {
-                if (gEwramData->unk_A074_0 && gEwramData->unk_A074_1)
+                if (gEwramData->paused && gEwramData->startPauseEnabled)
                 {
-                     gEwramData->unk_A074_0 = 0;
+                     gEwramData->paused = 0;
                 }
             }
-            sub_08000B64();
+            Entity_UpdateAll();
 
-            if (!gEwramData->unk_A074_0)
+            if (!gEwramData->paused)
             {
-                sub_0800CA40();
+                InGame_UpdateTimerAndHud();
             }
-            sub_08011CD0();
-            sub_0800FFCC(temp_r7);
+            ScreenShake_Update();
+            AreaName_Update(gameState);
 
-            if ((sub_08011A44(gEwramData->unk_13110.unk_13110) == 0) && !gEwramData->unk_A074_0)
+            if ((Room_IsPlayerInside(gEwramData->playerState.player) == 0) && !gEwramData->paused)
             {
-                sub_08010244(temp_r7);
+                RoomTransition_Begin(gameState);
             }
             else
             {
-                sub_08011430(temp_r7);
-                sub_0800F750();
+                Map_MarkCurrentCell(gameState);
+                RoomEntity_SpawnOnScroll();
 
-                if (gEwramData->unk_A074_1)
+                if (gEwramData->startPauseEnabled)
                 {
-                    if ((gEwramData->inputData.newInput & KEY_SELECT) && (temp_r7->unk_88 != NULL))
+                    if ((gEwramData->inputData.newInput & KEY_SELECT) && (gameState->currentRoomDefinition != NULL))
                     {
-                        sub_0801093C(temp_r7);
-                        sub_08011338(temp_r7);
+                        AreaName_Dismiss(gameState);
+                        MapScreen_Open(gameState);
                     }
-                    else if (gEwramData->unk_1325C.currentCharacter == 0 && (gEwramData->inputData.newInput & KEY_START))
+                    else if (gEwramData->playerStatus.currentCharacter == 0 && (gEwramData->inputData.newInput & KEY_START))
                     {
-                        sub_0801093C(temp_r7);
-                        sub_080473F4(temp_r7);
+                        AreaName_Dismiss(gameState);
+                        PauseMenu_Enter(gameState);
                     }
                 }
             }
             break;
 
         case 2:
-            gameMode = sub_0800C8C8();
+            gameMode = InGame_UpdateDeath();
             break;
 
         case 3:
-            if (gEwramData->unk_60.unk_4CC_6)
+            if (gEwramData->gameState.linkPlay)
             {
                 SetPlayerInput(1, 0);
-                sub_0803407C();
-                sub_0803427C();
+                Link_ExchangePlayerState();
+                Link_UpdatePlayerSync();
             }
 
-            if (sub_080104EC(temp_r7) != 0)
+            if (RoomTransition_Update(gameState) != 0)
             {
-                if (!gEwramData->unk_60.unk_4CC_6)
+                if (!gEwramData->gameState.linkPlay)
                 {
-                    temp_r7->unk_64 = 1;
+                    gameState->subMode = 1;
                     GameModeInGameUpdate_inline_0(1);
                 }
                 else
                 {
-                    temp_r7->unk_64 = 0xB;
-                    temp_r7->unk_66 = 0x10;
-                    gEwramData->unk_13110.unk_13110->unk_524.unk_524_32 = 0x10000;
+                    gameState->subMode = 0xB;
+                    gameState->subModeCounter = 0x10;
+                    gEwramData->playerState.player->posX.whole = 0x10000;
                 }
             }
-            sub_08000B64();
+            Entity_UpdateAll();
             break;
 
         case 5:
-            sub_08000B64();
-            if (sub_080106DC(temp_r7) != 0)
+            Entity_UpdateAll();
+            if (RoomFadeTransition_Update(gameState) != 0)
             {
-                temp_r7->unk_64 = 1;
+                gameState->subMode = 1;
             }
             break;
 
         case 4:
             SetPlayerInput(1, 0);
-            if (sub_080110E4(temp_r7) != 0)
+            if (MapScreen_Update(gameState) != 0)
             {
                 SetPlayerInput(1, 0);
-                temp_r7->unk_64 = 1;
+                gameState->subMode = 1;
             }
             break;
 
         case 6:
             SetPlayerInput(1, 0);
-            if (sub_08047764(temp_r7) != 0)
+            if (PauseMenu_Update(gameState) != 0)
             {
-                temp_r7->unk_64 = 1;
+                gameState->subMode = 1;
             }
             break;
 
         case 7:
-            if (sub_080116A8(temp_r7) == 0)
+            if (WarpMenu_Update(gameState) == 0)
             {
                 break;
             }
 
-            if (gEwramData->unk_60.unk_3F4 < 0)
+            if (gEwramData->gameState.selectedWarpIndex < 0)
             {
-                temp_r7->unk_64 = 1;
+                gameState->subMode = 1;
                 
             }
-            else if (gEwramData->unk_60.unk_42C & 0x20000)
+            else if (gEwramData->gameState.stateFlags & 0x20000)
             {
-                temp_r7->unk_64 = 1;
-                gEwramData->unk_60.unk_42C &= ~0x20000;
+                gameState->subMode = 1;
+                gEwramData->gameState.stateFlags &= ~0x20000;
             }
             else
             {
-                sub_08011AD0(temp_r7);
+                RoomJump_Begin(gameState);
             }
             break;
 
         case 8:
-            if (sub_08011B2C(temp_r7) != 0)
+            if (RoomJump_Update(gameState) != 0)
             {
-                temp_r7->unk_64 = 1;
+                gameState->subMode = 1;
             }
             break;
 
         case 9:
-            if (sub_0805AFC0(temp_r7) != 0)
+            if (Shop_Update(gameState) != 0)
             {
-                temp_r7->unk_64 = 1;
+                gameState->subMode = 1;
             }
             break;
 
         case 10:
-            gameMode = sub_0800CA98();
+            gameMode = InGame_EnterCredits();
             break;
 
         case 11:
-            sub_0803407C();
-            sub_0803427C();
-            if (temp_r7->unk_66 != 0)
+            Link_ExchangePlayerState();
+            Link_UpdatePlayerSync();
+            if (gameState->subModeCounter != 0)
             {
-                temp_r7->unk_66 -= 1;
+                gameState->subModeCounter -= 1;
             }
             else
             {
-                temp_r7->unk_64 = 0xC;
-                gEwramData->unk_13110.unk_13224 = 0;
-                gEwramData->unk_13110.unk_13226 = 0;
+                gameState->subMode = 0xC;
+                gEwramData->playerState.linkFrameCounter = 0;
+                gEwramData->playerState.linkDisconnectCounter = 0;
                 gEwramData->randomNumber2 = 0;
             }
             break;
 
         case 12:
-            sub_0803407C();
-            sub_0803427C();
+            Link_ExchangePlayerState();
+            Link_UpdatePlayerSync();
 
-            gEwramData->unk_A074_1 = 0;
-            sub_08000B64();
+            gEwramData->startPauseEnabled = 0;
+            Entity_UpdateAll();
 
-            var_r4 = sub_080D7F28() && sub_080D7F48();
-            if (var_r4 == 0)
+            connected = Link_IsConnected() && Link_IsPeerActive();
+            if (connected == 0)
             {
-                if (++temp_r7->unk_66 > 4)
+                if (++gameState->subModeCounter > 4)
                 {
-                    sub_080D7FD0();
-                    gEwramData->unk_60.unk_64 = 2;
-                    gEwramData->unk_60.unk_65 = 0;
+                    Link_Stop();
+                    gEwramData->gameState.subMode = 2;
+                    gEwramData->gameState.subModeStep = 0;
                 }
             }
             else
             {
-                temp_r7->unk_66 = 0;
-                gEwramData->unk_13110.unk_13226 = 0;
+                gameState->subModeCounter = 0;
+                gEwramData->playerState.linkDisconnectCounter = 0;
 
-                if (gEwramData->unk_13110.unk_13224 >= 0xB && (gEwramData->unk_4DC.unk_4E1 & 0x10))
+                if (gEwramData->playerState.linkFrameCounter >= 0xB && (gEwramData->linkReceivedState.flags & 0x10))
                 {
-                    if (gEwramData->unk_13110.unk_13224 <= gEwramData->unk_4DC.unk_4E2)
+                    if (gEwramData->playerState.linkFrameCounter <= gEwramData->linkReceivedState.frameCounter)
                     {
-                        sub_080D7FD0();
-                        gEwramData->unk_60.unk_64 = 2;
-                        gEwramData->unk_60.unk_65 = 0;
+                        Link_Stop();
+                        gEwramData->gameState.subMode = 2;
+                        gEwramData->gameState.subModeStep = 0;
                     }
                     else
                     {
-                        temp_r7->unk_66 = gEwramData->unk_13110.unk_13224 - gEwramData->unk_4DC.unk_4E2;
-                        gEwramData->unk_13110.unk_13226 = 0;
-                        temp_r7->unk_64 = 0xD;
+                        gameState->subModeCounter = gEwramData->playerState.linkFrameCounter - gEwramData->linkReceivedState.frameCounter;
+                        gEwramData->playerState.linkDisconnectCounter = 0;
+                        gameState->subMode = 0xD;
                     }
                 }
             }
             break;
 
         case 13:
-            sub_0803407C();
-            sub_0803427C();
-            sub_08000B64();
+            Link_ExchangePlayerState();
+            Link_UpdatePlayerSync();
+            Entity_UpdateAll();
 
-            if (temp_r7->unk_66)
+            if (gameState->subModeCounter)
             {
-                temp_r7->unk_66 -= 1;
+                gameState->subModeCounter -= 1;
                 break;
             }
 
-            var_r4 = 0;
-            if (sub_080D7F28() != 0)
+            connected = 0;
+            if (Link_IsConnected() != 0)
             {
-                var_r4 = var_r4 != sub_080D7F48();
+                connected = connected != Link_IsPeerActive();
             }
 
-            if (var_r4 == 0)
+            if (connected == 0)
             {
-                sub_080D7FD0();
-                gEwramData->unk_60.unk_64 = 2;
-                gEwramData->unk_60.unk_65 = var_r4;
+                Link_Stop();
+                gEwramData->gameState.subMode = 2;
+                gEwramData->gameState.subModeStep = connected;
             }
             else
             {
-                temp_r7->unk_64 = 0xE;
+                gameState->subMode = 0xE;
             }
             break;
 
         case 14:
-            temp_r7->unk_66 += 1;
-            sub_0803407C();
-            sub_080341D0();
-            sub_08000B64();
+            gameState->subModeCounter += 1;
+            Link_ExchangePlayerState();
+            Link_ApplyPartnerHit();
+            Entity_UpdateAll();
 
-            var_r4 = 0;
-            if (sub_080D7F28() != 0)
+            connected = 0;
+            if (Link_IsConnected() != 0)
             {
-                var_r4 = var_r4 != sub_080D7F48();
+                connected = connected != Link_IsPeerActive();
             }
 
-            if (var_r4 == 0)
+            if (connected == 0)
             {
-                if (++gEwramData->unk_13110.unk_13226 > 0)
+                if (++gEwramData->playerState.linkDisconnectCounter > 0)
                 {
-                    sub_080D7FD0();
-                    gEwramData->unk_60.unk_64 = 2;
-                    gEwramData->unk_60.unk_65 = 0;
+                    Link_Stop();
+                    gEwramData->gameState.subMode = 2;
+                    gEwramData->gameState.subModeStep = 0;
                     break;
                 }
             }
             else
             {
-                gEwramData->unk_13110.unk_13226 = 0;
+                gEwramData->playerState.linkDisconnectCounter = 0;
             }
 
-            if (!gEwramData->unk_A074_0)
+            if (!gEwramData->paused)
             {
-                sub_0800CA40();
+                InGame_UpdateTimerAndHud();
             }
-            sub_08011CD0();
+            ScreenShake_Update();
 
-            if (sub_08011A44(gEwramData->unk_13110.unk_13110) == 0)
+            if (Room_IsPlayerInside(gEwramData->playerState.player) == 0)
             {
-                sub_08010244(temp_r7);
-                sub_08034498(NULL);
+                RoomTransition_Begin(gameState);
+                Player_SetSelectedTarget(NULL);
             }
             else
             {
-                sub_08011430(temp_r7);
-                sub_0800F750();
+                Map_MarkCurrentCell(gameState);
+                RoomEntity_SpawnOnScroll();
             }
             break;
     }
 
-    sub_0801266C();
+    ItemIconCache_InvalidateUpload();
     return gameMode;
 }
 
 /**
- * @brief C5A8 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Store enabled in startPauseEnabled, which gates Start (pause menu / pause
+ * toggle) and Select (map) during play, and return it.
  */
-s32 sub_0800C5A8(s32 param_0)
+s32 Game_SetMenusEnabled(s32 enabled)
 {
-    // TODO: sub_0800C5A8 is the same as GameModeInGameUpdate_inline_0
-    gEwramData->unk_A074_1 = param_0;
-    return param_0;
+    // TODO: Game_SetMenusEnabled is the same as GameModeInGameUpdate_inline_0
+    gEwramData->startPauseEnabled = enabled;
+    return enabled;
 }
 
 /**
@@ -1221,17 +1218,19 @@ s32 GameModeUnk3Update(void)
     return;
 }
 
-s16 sUnk_084F0DD8[] = {
+s16 sCommonObjectPaletteIndices[] = {
     -1, -1, -1, -1, 0, 1, 2, 3, 4, 6, -1, -1, -1, -1, 5, -1
 };
 
 /**
- * @brief C5D8 | To document
- * 
+ * @brief Apply the default blend, clear per-room effects, load the common
+ * object palettes and language-specific object graphics, init the item
+ * icon cache, create the player and position it for a new or loaded
+ * game, then load the starting room.
  */
-void sub_0800C5D8(void)
+void InGame_InitScene(void)
 {
-    s32 var_r5;
+    s32 i;
 
     gDisplayRegisters.bldAlpha = C_16_2_8(11, 10);
     if (gDisplayRegisters.bldCnt == 0)
@@ -1239,102 +1238,101 @@ void sub_0800C5D8(void)
         gDisplayRegisters.bldCnt = (BLDCNT_SCREEN_SECOND_TARGET & ~BLDCNT_BACKDROP_SECOND_TARGET_PIXEL) | BLDCNT_ALPHA_BLENDING_EFFECT;
         gDisplayRegisters.bldAlpha = C_16_2_8(11, 10);
     }
-    sub_0806C354();
+    Room_ResetTransientState();
 
-    for (var_r5 = 0; var_r5 < ARRAY_SIZE(sUnk_084F0DD8); var_r5++)
+    for (i = 0; i < ARRAY_SIZE(sCommonObjectPaletteIndices); i++)
     {
-        if (sUnk_084F0DD8[var_r5] >= 0)
+        if (sCommonObjectPaletteIndices[i] >= 0)
         {
-            sub_0803C7B4((u8 *)0x082099FC, sUnk_084F0DD8[var_r5], 1, var_r5);
+            ObjPalette_LoadRange((u8 *)0x082099FC, sCommonObjectPaletteIndices[i], 1, i);
         }
     }
 
-    switch (gEwramData->unk_60.language)
+    switch (gEwramData->gameState.language)
     {
         default:
-            sub_0803B800((u8 *)0x081C15F4, 0x10000);
+            ObjGfx_LoadResource((u8 *)0x081C15F4, 0x10000);
             break;
         case 2:
-            sub_0803B800((u8 *)0x0826F8A4, 0x10000);
+            ObjGfx_LoadResource((u8 *)0x0826F8A4, 0x10000);
             break;
         case 3:
-            sub_0803B800((u8 *)0x082718A8, 0x10000);
+            ObjGfx_LoadResource((u8 *)0x082718A8, 0x10000);
             break;
     }
-    sub_08012294();
-    sub_0801487C(0);
+    ItemIconCache_Init();
+    Player_Create(0);
 
-    if (gEwramData->unk_60.unk_4CC_6)
+    if (gEwramData->gameState.linkPlay)
     {
-        sub_08033EA0();
-        gEwramData->unk_13110.unk_13110->unk_524.unk_524_16.unk_526 = 0x78;
-        gEwramData->unk_13110.unk_13110->unk_528.unk_528_16.unk_52A = 0x50;
+        LinkPartner_Create();
+        gEwramData->playerState.player->posX.part16.integer = 0x78;
+        gEwramData->playerState.player->posY.part16.integer = 0x50;
     }
     else
     {
-        if (gEwramData->unk_1325C.currentLevel == 0)
+        if (gEwramData->playerStatus.currentLevel == 0)
         {
-            sub_08014548();
+            Player_InitNewGameIfNeeded();
         }
-        if (gEwramData->unk_60.unk_3CC == NULL)
+        if (gEwramData->gameState.roomData == NULL)
         {
-            gEwramData->unk_13110.unk_13110->unk_524.unk_524_16.unk_526 = 0x78;
-            gEwramData->unk_13110.unk_13110->unk_528.unk_528_16.unk_52A = 0x50;
+            gEwramData->playerState.player->posX.part16.integer = 0x78;
+            gEwramData->playerState.player->posY.part16.integer = 0x50;
         }
     }
 
-    sub_0804AD9C();
-    sub_0800EBE0();
-    gEwramData->unk_A074_1 = 1;
+    Player_RefreshEquipmentStats();
+    Room_LoadInitial();
+    gEwramData->startPauseEnabled = 1;
 }
 
 /**
- * @brief C6F8 | To document
- * 
+ * @brief Load the common object palettes listed in sCommonObjectPaletteIndices.
  */
-void sub_0800C6F8(void)
+void InGame_LoadCommonObjectPalettes(void)
 {
-    // inline for sub_0800C5D8?
-    s32 var_r5;
+    // inline for InGame_InitScene?
+    s32 i;
 
-    for (var_r5 = 0; var_r5 < ARRAY_SIZE(sUnk_084F0DD8); var_r5++)
+    for (i = 0; i < ARRAY_SIZE(sCommonObjectPaletteIndices); i++)
     {
-        if (sUnk_084F0DD8[var_r5] >= 0)
+        if (sCommonObjectPaletteIndices[i] >= 0)
         {
-            sub_0803C7B4((u8 *)0x082099FC, sUnk_084F0DD8[var_r5], 1, var_r5);
+            ObjPalette_LoadRange((u8 *)0x082099FC, sCommonObjectPaletteIndices[i], 1, i);
         }
     }
 }
 
 /**
- * @brief C72C | To document
- * 
+ * @brief Load the language-specific common object graphics and init the
+ * item icon cache.
  */
-void sub_0800C72C(void)
+void InGame_LoadCommonObjectGraphics(void)
 {
-    // inline for sub_0800C5D8?
-    switch (gEwramData->unk_60.language)
+    // inline for InGame_InitScene?
+    switch (gEwramData->gameState.language)
     {
         default:
-            sub_0803B800((u8 *)0x081C15F4, 0x10000);
+            ObjGfx_LoadResource((u8 *)0x081C15F4, 0x10000);
             break;
         case 2:
-            sub_0803B800((u8 *)0x0826F8A4, 0x10000);
+            ObjGfx_LoadResource((u8 *)0x0826F8A4, 0x10000);
             break;
         case 3:
-            sub_0803B800((u8 *)0x082718A8, 0x10000);
+            ObjGfx_LoadResource((u8 *)0x082718A8, 0x10000);
             break;
     }
-    sub_08012294();
+    ItemIconCache_Init();
 }
 
 /**
- * @brief C778 | To document
- * 
+ * @brief Set blend alpha 11/10 and, when no blend mode is active, enable
+ * alpha blending onto all second targets except the backdrop.
  */
-void sub_0800C778(void)
+void Display_SetDefaultBlend(void)
 {
-    // inline for sub_0800C5D8?
+    // inline for InGame_InitScene?
     gDisplayRegisters.bldAlpha = C_16_2_8(11, 10);
     if (gDisplayRegisters.bldCnt == 0)
     {
@@ -1344,13 +1342,14 @@ void sub_0800C778(void)
 }
 
 /**
- * @brief C7A4 | To document
- * 
- * @param param_0 To document
+ * @brief Reset display registers and BG settings, delete all entities, reset
+ * object, sprite, palette, text and hit-box systems, clear the progress,
+ * player and stats blocks, restore default buttons, reload system flags
+ * and language, stop audio and the H-blank effect.
  */
-void sub_0800C7A4(struct EwramData_unk60 *param_0)
+void Game_ResetSystems(struct GameState *gameState)
 {
-    // Is param_0 unused or implicit call?
+    // Is gameState unused or implicit call?
 
     DMA_FILL_32(3, 0, &gDisplayRegisters, sizeof(gDisplayRegisters))
 
@@ -1364,89 +1363,90 @@ void sub_0800C7A4(struct EwramData_unk60 *param_0)
     gDisplayRegisters.bgCnt[2] = CREATE_BGCNT(0, 30, BGCNT_LOW_MID_PRIORITY, BGCNT_SIZE_256x256);
     gDisplayRegisters.bgCnt[3] = CREATE_BGCNT(0, 31, BGCNT_LOW_MID_PRIORITY, BGCNT_SIZE_256x256);
 
-    sub_0803FD60();
+    Bg_SyncPriorities();
     EntityDeleteAll();
-    sub_0803D9A8();
-    sub_0803E438();
-    sub_08039DC0();
-    sub_0803BEEC();
-    sub_0804059C();
-    sub_08042754();
+    ObjTiles_Init();
+    Obj_Init();
+    Sprite_Init();
+    Palette_Init();
+    Text_Initialize();
+    HitBox_ClearAll();
 
     gUnk_03002CB0.dispCnt = DCNT_OBJ | DCNT_BG3 | DCNT_BG2 | DCNT_BG1 | DCNT_BG0;
 
-    DMA_FILL_32(3, 0, &gEwramData->unk_60, sizeof(gEwramData->unk_60));
-    DMA_FILL_32(3, 0, &gEwramData->unk_13110.unk_13110, 0x14C);
-    DMA_FILL_32(3, 0, &gEwramData->unk_1325C, sizeof(gEwramData->unk_1325C));
+    DMA_FILL_32(3, 0, &gEwramData->gameState, sizeof(gEwramData->gameState));
+    DMA_FILL_32(3, 0, &gEwramData->playerState.player, 0x14C);
+    DMA_FILL_32(3, 0, &gEwramData->playerStatus, sizeof(gEwramData->playerStatus));
 
-    sub_0804C3C8();
-    sub_080137B8();
+    ButtonConfig_ResetDefaults();
+    SaveData_LoadSystemFlags();
     SaveData_LoadLanguage();
     PlaySong(AUDIO_STOP);
 
     gEwramData->hBlankEffect.requestStop = 1;
-    gEwramData->unk_A074_2 = gEwramData->unk_A074_4 = 0;
-    gEwramData->unk_A074_0 = 0;
+    gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 0;
+    gEwramData->paused = 0;
 }
 
 /**
- * @brief C8C8 | To document
- * 
- * @return s32 To document
+ * @brief In-game sub-mode 2 (entered by Soma_StartDeath/Julius_StartDeath):
+ * close the message window, cancel souls, fade out; then either jump
+ * to room 0x085236A4 (stateFlags bit 0x200000) or reset systems and return
+ * GAME_MODE_GAME_OVER.
  */
-s32 sub_0800C8C8(void)
+s32 InGame_UpdateDeath(void)
 {
     s32 gameMode;
-    struct EwramData_unk60 *temp_r5;
-    struct EwramData_unk60 *temp_r6;
+    struct GameState *timerState;
+    struct GameState *gameState;
 
-    temp_r6 = &gEwramData->unk_60;
+    gameState = &gEwramData->gameState;
     gameMode = GAME_MODE_SAME_MODE;
 
-    gEwramData->unk_A074_0 ^= 1;
-    sub_08000B64();
+    gEwramData->paused ^= 1;
+    Entity_UpdateAll();
 
-    temp_r5 = &gEwramData->unk_60;
+    timerState = &gEwramData->gameState;
     UpdateInGameTimer();
-    temp_r5->unk_4C8 += 1;
+    timerState->bgEffectFrameCounter += 1;
 
-    if (!(gEwramData->unk_60.unk_42C & 0x20))
+    if (!(gEwramData->gameState.stateFlags & 0x20))
     {
-        sub_0800EFD4(temp_r5);
-        sub_0800DC70(temp_r5);
-        gEwramData->unk_60.unk_42C &= ~0x2000000;
+        Hud_UpdateMessageWindow(timerState);
+        Hud_UpdateHpMpGauges(timerState);
+        gEwramData->gameState.stateFlags &= ~0x2000000;
     }
 
-    switch (temp_r6->unk_65)
+    switch (gameState->subModeStep)
     {
         case 0:
-            sub_0800EB04();
-            sub_080235C8();
-            sub_0802DFF0();
-            gEwramData->unk_13110.unk_13168 = 0;
+            Hud_CloseMessageWindow();
+            RedSoul_CancelAll();
+            BlueSoul_StopAll();
+            gEwramData->playerState.enemyTarget = 0;
             PlaySong(SONG_MUTE);
-            temp_r6->inGameTimer = 0;
-            temp_r6->unk_65 += 1;
-            sub_0803D18C(0, 0, 0, 0x10000, 0, 0x40);
-            sub_0803CDF0(0, 0, 0, 0x10000, 0, 0x80);
+            gameState->inGameTimer = 0;
+            gameState->subModeStep += 1;
+            BgPalette_StartColorFade(0, 0, 0, 0x10000, 0, 0x40);
+            ObjPalette_StartColorFade(0, 0, 0, 0x10000, 0, 0x80);
             /* fallthrough */
         case 1:
-            if (sub_0803D06C() == 0)
+            if (ObjPalette_GetPendingFades() == 0)
             {
-                sub_0803D270();
-                sub_0803CED4();
-                if (gEwramData->unk_60.unk_42C & 0x200000)
+                BgPalette_StopColorFade();
+                ObjPalette_StopColorFade();
+                if (gEwramData->gameState.stateFlags & 0x200000)
                 {
-                    gEwramData->unk_A074_1 = 0;
-                    gEwramData->unk_60.unk_42C |= 0x800000;
-                    sub_08011F44((void *)0x085236A4, 0, 0, 0, 0);
-                    sub_08011AD0(&gEwramData->unk_60);
+                    gEwramData->startPauseEnabled = 0;
+                    gEwramData->gameState.stateFlags |= 0x800000;
+                    RoomJump_SetDestination((void *)0x085236A4, 0, 0, 0, 0);
+                    RoomJump_Begin(&gEwramData->gameState);
                     gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT;
                     gameMode = GAME_MODE_IN_GAME;
                 }
                 else
                 {
-                    sub_0800C7A4(temp_r6);
+                    Game_ResetSystems(gameState);
                     gameMode = GAME_MODE_GAME_OVER;
                 }
             }
@@ -1456,47 +1456,46 @@ s32 sub_0800C8C8(void)
 }
 
 /**
- * @brief CA40 | To document
- * 
- * @return s32 To document
+ * @brief Advance the play timer and frame counter and, unless the HUD is
+ * suppressed (stateFlags bit 0x20), update the message window and gauges.
+ * Return 1.
  */
-s32 sub_0800CA40(void)
+s32 InGame_UpdateTimerAndHud(void)
 {
-    // inline for sub_0800C8C8?
-    struct EwramData_unk60 *temp_r5;
+    // inline for InGame_UpdateDeath?
+    struct GameState *gameState;
 
-    temp_r5 = &gEwramData->unk_60;
+    gameState = &gEwramData->gameState;
     UpdateInGameTimer();
-    temp_r5->unk_4C8 += 1;
+    gameState->bgEffectFrameCounter += 1;
 
-    if (!(gEwramData->unk_60.unk_42C & 0x20))
+    if (!(gEwramData->gameState.stateFlags & 0x20))
     {
-        sub_0800EFD4(temp_r5);
-        sub_0800DC70(temp_r5);
-        gEwramData->unk_60.unk_42C &= ~0x2000000;
+        Hud_UpdateMessageWindow(gameState);
+        Hud_UpdateHpMpGauges(gameState);
+        gEwramData->gameState.stateFlags &= ~0x2000000;
     }
 
     return 1;
 }
 
 /**
- * @brief CA98 | To document
- * 
- * @return s32 To document
+ * @brief Reset systems while keeping stateFlags, stop colour fades, black out
+ * and return GAME_MODE_CREDITS (in-game sub-mode 10).
  */
-s32 sub_0800CA98(void)
+s32 InGame_EnterCredits(void)
 {
-    struct EwramData_unk60 *var_0;
-    u32 temp_r5;
+    struct GameState *gameState;
+    u32 savedFlags;
 
-    var_0 = &gEwramData->unk_60;
+    gameState = &gEwramData->gameState;
 
-    temp_r5 = var_0->unk_42C;
-    sub_0800C7A4(var_0);
-    var_0->unk_42C = temp_r5;
+    savedFlags = gameState->stateFlags;
+    Game_ResetSystems(gameState);
+    gameState->stateFlags = savedFlags;
 
-    sub_0803D270();
-    sub_0803CED4();
+    BgPalette_StopColorFade();
+    ObjPalette_StopColorFade();
 
     gDisplayRegisters.bldY = BLDY_MAX_VALUE;
     gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT;
@@ -1510,8 +1509,8 @@ s32 sub_0800CA98(void)
  */
 void UpdateInGameTimer(void)
 {
-    if (gEwramData->unk_60.inGameTimer < 0x014996C4)
+    if (gEwramData->gameState.inGameTimer < 0x014996C4)
     {
-        gEwramData->unk_60.inGameTimer += 1;
+        gEwramData->gameState.inGameTimer += 1;
     }
 }

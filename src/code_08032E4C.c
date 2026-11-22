@@ -30,356 +30,351 @@
 #include "structs/main.h"
 
 /**
- * @brief 32E4C | To document
- * 
- * @param param_0 To document
+ * @brief Wait for the delay, then move with the velocity and delete itself
+ * when the animation ends.
  */
-void sub_08032E4C(struct EwramData_EntityData *param_0)
+void PlayerEffectSetPart_Update(struct EwramData_EntityData *entity)
 {
-    s32 temp_r0_2;
-    s32 var_0;
+    s32 animResult;
+    s32 gfx;
 
-    switch (param_0->unk_4EE)
+    switch (entity->state)
     {
         case 0:
-            var_0 = sub_0803AFB8((u8 *)0x081C15F4);
-            sub_0803B924(param_0, (u8 *)0x0820ED60, var_0, 6);
-            param_0->drawFunc = NULL;
-            param_0->unk_540 = 0xD;
-            sub_0803F2C8(param_0, (u8) param_0->unk_4F8.unk_4F8_8.unk_4F8, 0, 0);
-            sub_0803F17C(param_0);
-            param_0->unk_53D_1 = 1;
-            param_0->unk_4EE = 1;
-            param_0->unk_4F3 = 1;
+            gfx = ObjGfx_Find((u8 *)0x081C15F4);
+            Sprite_Attach(entity, (u8 *)0x0820ED60, gfx, 6);
+            entity->drawFunc = NULL;
+            entity->spriteLayer = 0xD;
+            Anim_StartIndexed(entity, (u8) entity->unk_4F8.part8.unk_4F8, 0, 0);
+            Anim_Update(entity);
+            entity->scrollWithBg = 1;
+            entity->state = 1;
+            entity->drawSkip = 1;
             break;
 
         case 1:
-            if (param_0->unk_4F1 == 0)
+            if (entity->timer == 0)
             {
-                param_0->unk_4EE = 2;
-                param_0->drawFunc = (u32 *) sub_0803B9D0;
+                entity->state = 2;
+                entity->drawFunc = (u32 *) Sprite_DrawEntity;
             }
             else
             {
-                param_0->unk_4F1 -= 1;
+                entity->timer -= 1;
             }
             break;
 
         case 2:
-            param_0->unk_524.unk_524_32 += param_0->unk_52C.unk_52C_32;
-            param_0->unk_528.unk_528_32 += param_0->unk_530.unk_530_32;
-            temp_r0_2 = sub_0803F17C(param_0);
-            if (temp_r0_2 == 3)
+            entity->posX.whole += entity->velX.whole;
+            entity->posY.whole += entity->velY.whole;
+            animResult = Anim_Update(entity);
+            if (animResult == 3)
             {
-                param_0->unk_53D_3 = 1;
-                param_0->unk_4EE = 3;
+                entity->deleteRequested = 1;
+                entity->state = 3;
             }
             return;
     }
 }
 
-struct Unk_080E1D68_0 {
-    u8 unk_0;
-    u8 unk_1;
-    s16 unk_2;
-    s16 unk_4;
-    s16 unk_6;
-    s16 unk_8;
+struct PlayerEffectPartDefinition {
+    u8 animationAndPlacementMode;
+    u8 delay;
+    s16 offsetX;
+    s16 offsetY;
+    s16 velocityX;
+    s16 velocityY;
     u8 pad_A[0xC - 0xA];
 };
-struct Unk_080E1D68 {
-    const struct Unk_080E1D68_0 *unk_0;
-    s32 unk_4;
+struct PlayerEffectSetDefinition {
+    const struct PlayerEffectPartDefinition *parts;
+    s32 partCount;
 };
 
-const struct Unk_080E1D68_0 sUnk_080E1CD8[] = {
+const struct PlayerEffectPartDefinition sPlayerEffectParts0[] = {
     [0] = {
-        .unk_0 = 0x40,
-        .unk_1 = 0x0,
-        .unk_2 = -0x200,
-        .unk_4 = -0x300,
-        .unk_6 = -0x20,
-        .unk_8 = 0x0
+        .animationAndPlacementMode = 0x40,
+        .delay = 0x0,
+        .offsetX = -0x200,
+        .offsetY = -0x300,
+        .velocityX = -0x20,
+        .velocityY = 0x0
     },
     [1] = {
-        .unk_0 = 0x40,
-        .unk_1 = 0x0,
-        .unk_2 = 0x100,
-        .unk_4 = -0x200,
-        .unk_6 = 0x20,
-        .unk_8 = 0x0
+        .animationAndPlacementMode = 0x40,
+        .delay = 0x0,
+        .offsetX = 0x100,
+        .offsetY = -0x200,
+        .velocityX = 0x20,
+        .velocityY = 0x0
     }
 };
 
-const struct Unk_080E1D68_0 sUnk_080E1CF0[] = {
+const struct PlayerEffectPartDefinition sPlayerEffectParts1[] = {
     [0] = {
-        .unk_0 = 0x40,
-        .unk_1 = 0x0,
-        .unk_2 = -0x200,
-        .unk_4 = -0x200,
-        .unk_6 = -0x30,
-        .unk_8 = -0x8
+        .animationAndPlacementMode = 0x40,
+        .delay = 0x0,
+        .offsetX = -0x200,
+        .offsetY = -0x200,
+        .velocityX = -0x30,
+        .velocityY = -0x8
     },
     [1] = {
-        .unk_0 = 0x40,
-        .unk_1 = 0x0,
-        .unk_2 = 0x280,
-        .unk_4 = -0x200,
-        .unk_6 = -0x20,
-        .unk_8 = -0x4
+        .animationAndPlacementMode = 0x40,
+        .delay = 0x0,
+        .offsetX = 0x280,
+        .offsetY = -0x200,
+        .velocityX = -0x20,
+        .velocityY = -0x4
     }
 };
 
-const struct Unk_080E1D68_0 sUnk_080E1D08[] = {
+const struct PlayerEffectPartDefinition sPlayerEffectParts2[] = {
     [0] = {
-        .unk_0 = 0x41,
-        .unk_1 = 0x0,
-        .unk_2 = -0x500,
-        .unk_4 = 0x0,
-        .unk_6 = -0x80,
-        .unk_8 = 0x0
+        .animationAndPlacementMode = 0x41,
+        .delay = 0x0,
+        .offsetX = -0x500,
+        .offsetY = 0x0,
+        .velocityX = -0x80,
+        .velocityY = 0x0
     },
     [1] = {
-        .unk_0 = 0x41,
-        .unk_1 = 0x0,
-        .unk_2 = 0x500,
-        .unk_4 = 0x0,
-        .unk_6 = -0x80,
-        .unk_8 = 0x0
+        .animationAndPlacementMode = 0x41,
+        .delay = 0x0,
+        .offsetX = 0x500,
+        .offsetY = 0x0,
+        .velocityX = -0x80,
+        .velocityY = 0x0
     }
 };
 
-const struct Unk_080E1D68_0 sUnk_080E1D20[] = {
+const struct PlayerEffectPartDefinition sPlayerEffectParts3[] = {
     [0] = {
-        .unk_0 = 0x40,
-        .unk_1 = 0x0,
-        .unk_2 = -0x800,
-        .unk_4 = -0x800,
-        .unk_6 = -0x40,
-        .unk_8 = 0x0
+        .animationAndPlacementMode = 0x40,
+        .delay = 0x0,
+        .offsetX = -0x800,
+        .offsetY = -0x800,
+        .velocityX = -0x40,
+        .velocityY = 0x0
     },
     [1] = {
-        .unk_0 = 0x40,
-        .unk_1 = 0x0,
-        .unk_2 = 0x800,
-        .unk_4 = -0x800,
-        .unk_6 = 0x40,
-        .unk_8 = 0x0
+        .animationAndPlacementMode = 0x40,
+        .delay = 0x0,
+        .offsetX = 0x800,
+        .offsetY = -0x800,
+        .velocityX = 0x40,
+        .velocityY = 0x0
     },
     [2] = {
-        .unk_0 = 0x40,
-        .unk_1 = 0x1,
-        .unk_2 = -0xA00,
-        .unk_4 = -0x1000,
-        .unk_6 = -0x80,
-        .unk_8 = 0x0
+        .animationAndPlacementMode = 0x40,
+        .delay = 0x1,
+        .offsetX = -0xA00,
+        .offsetY = -0x1000,
+        .velocityX = -0x80,
+        .velocityY = 0x0
     },
     [3] = {
-        .unk_0 = 0x40,
-        .unk_1 = 0x1,
-        .unk_2 = 0xA00,
-        .unk_4 = -0x1000,
-        .unk_6 = 0x80,
-        .unk_8 = 0x0
+        .animationAndPlacementMode = 0x40,
+        .delay = 0x1,
+        .offsetX = 0xA00,
+        .offsetY = -0x1000,
+        .velocityX = 0x80,
+        .velocityY = 0x0
     },
     [4] = {
-        .unk_0 = 0x40,
-        .unk_1 = 0x0,
-        .unk_2 = -0x800,
-        .unk_4 = -0x1800,
-        .unk_6 = -0x80,
-        .unk_8 = 0x0
+        .animationAndPlacementMode = 0x40,
+        .delay = 0x0,
+        .offsetX = -0x800,
+        .offsetY = -0x1800,
+        .velocityX = -0x80,
+        .velocityY = 0x0
     },
     [5] = {
-        .unk_0 = 0x40,
-        .unk_1 = 0x0,
-        .unk_2 = 0x800,
-        .unk_4 = -0x1800,
-        .unk_6 = 0x80,
-        .unk_8 = 0x0
+        .animationAndPlacementMode = 0x40,
+        .delay = 0x0,
+        .offsetX = 0x800,
+        .offsetY = -0x1800,
+        .velocityX = 0x80,
+        .velocityY = 0x0
     }
 };
 
-const struct Unk_080E1D68 sUnk_080E1D68[] = {
+const struct PlayerEffectSetDefinition sPlayerEffectSets[] = {
     [0] = {
-        .unk_0 = sUnk_080E1CD8,
-        .unk_4 = ARRAY_SIZE(sUnk_080E1CD8)
+        .parts = sPlayerEffectParts0,
+        .partCount = ARRAY_SIZE(sPlayerEffectParts0)
     },
     [1] = {
-        .unk_0 = sUnk_080E1CF0,
-        .unk_4 = ARRAY_SIZE(sUnk_080E1CF0)
+        .parts = sPlayerEffectParts1,
+        .partCount = ARRAY_SIZE(sPlayerEffectParts1)
     },
     [2] = {
-        .unk_0 = sUnk_080E1D08,
-        .unk_4 = ARRAY_SIZE(sUnk_080E1D08)
+        .parts = sPlayerEffectParts2,
+        .partCount = ARRAY_SIZE(sPlayerEffectParts2)
     },
     [3] = {
-        .unk_0 = sUnk_080E1D20,
-        .unk_4 = ARRAY_SIZE(sUnk_080E1D20)
+        .parts = sPlayerEffectParts3,
+        .partCount = ARRAY_SIZE(sPlayerEffectParts3)
     }
 };
 
 /**
- * @brief 32EFC | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
+ * @brief Spawn the effect sprites of set n from sPlayerEffectSets around the
+ * player, mirrored by facing, each with its delay and velocity.
  */
-void sub_08032EFC(s32 param_0, s32 param_1)
+void Player_SpawnEffectSet(s32 set, s32 facing)
 {
-    s32 temp_r0;
-    s32 temp_r4;
-    s32 var_r8;
-    struct EwramData_EntityData *temp_r0_2;
-    const struct Unk_080E1D68_0 *temp_r2;
-    const struct Unk_080E1D68_0 *var_r5;
-    s32 var_0;
-    s32 var_1;
+    s32 remaining;
+    s32 baseY;
+    s32 dir;
+    struct EwramData_EntityData *child;
+    const struct PlayerEffectPartDefinition *parts;
+    const struct PlayerEffectPartDefinition *part;
+    s32 baseX;
+    s32 baseY2;
     
-    if (param_1 == 1)
+    if (facing == 1)
     {
-        var_r8 = 1;
+        dir = 1;
     }
     else
     {
-        var_r8 = -1;
+        dir = -1;
     }
 
-    temp_r2 = sUnk_080E1D68[param_0].unk_0;
-    if (sUnk_080E1D68[param_0].unk_4 <= 0)
+    parts = sPlayerEffectSets[set].parts;
+    if (sPlayerEffectSets[set].partCount <= 0)
     {
         return;
     }
 
-    var_r5 = temp_r2;
-    temp_r0 = sUnk_080E1D68[param_0].unk_4;
+    part = parts;
+    remaining = sPlayerEffectSets[set].partCount;
     do
     {
-        temp_r0_2 = EntityCreateInRange(0x49, 0xCF, (u32 *) sub_08032E4C);
-        var_0 = gEwramData->unk_13110.unk_13110->unk_524.unk_524_32;
-        temp_r0_2->unk_524.unk_524_32 = var_0 + ((var_r5->unk_2 << 8) * var_r8);
+        child = EntityCreateInRange(0x49, 0xCF, (u32 *) PlayerEffectSetPart_Update);
+        baseX = gEwramData->playerState.player->posX.whole;
+        child->posX.whole = baseX + ((part->offsetX << 8) * dir);
 
-        if ((var_r5->unk_0 & 0xF) == 1)
+        if ((part->animationAndPlacementMode & 0xF) == 1)
         {
-            temp_r4 = gEwramData->unk_13110.unk_13110->unk_528.unk_528_32;
-            temp_r0_2->unk_528.unk_528_32 = (temp_r4 + (var_r5->unk_4 << 8)) - ((RandomNumberGenerator() & 3) << 0x10);
+            baseY = gEwramData->playerState.player->posY.whole;
+            child->posY.whole = (baseY + (part->offsetY << 8)) - ((RandomNumberGenerator() & 3) << 0x10);
         }
         else
         {
-            var_1 = gEwramData->unk_13110.unk_13110->unk_528.unk_528_32;
-            temp_r0_2->unk_528.unk_528_32 = var_1 + (var_r5->unk_4 << 8);
+            baseY2 = gEwramData->playerState.player->posY.whole;
+            child->posY.whole = baseY2 + (part->offsetY << 8);
         }
 
-        temp_r0_2->unk_4F8.unk_4F8_8.unk_4F8 = var_r5->unk_0 >> 4;
-        temp_r0_2->unk_52C.unk_52C_32 = (var_r5->unk_6 << 8) * var_r8;
-        temp_r0_2->unk_530.unk_530_32 = var_r5->unk_8 << 8;
-        temp_r0_2->unk_4F1 = var_r5->unk_1;
+        child->unk_4F8.part8.unk_4F8 = part->animationAndPlacementMode >> 4;
+        child->velX.whole = (part->velocityX << 8) * dir;
+        child->velY.whole = part->velocityY << 8;
+        child->timer = part->delay;
 
-        var_r5++;
-        temp_r0--;
+        part++;
+        remaining--;
     }
-    while (temp_r0 != 0);
+    while (remaining != 0);
 }
 
 /**
- * @brief 32FC8 | To document
- * 
- * @param param_0 To document
+ * @brief Place the effect on the filtered surface below the player (two
+ * probes, else delete) and play its animation once.
  */
-void sub_08032FC8(struct EwramData_EntityData *param_0)
+void Effect_UpdatePlayerSurfaceEffect(struct EwramData_EntityData *entity)
 {
-    s32 var_r5;
-    s16 temp_r0_2;
-    struct EwramData_unkA078 *temp_r0_5;
-    struct EwramData_unkA078 *temp_r1;
-    s16 var_0;
-    s16 var_1;
-    s32 var_2;
-    s32 var_3;
-    s32 var_4;
-    s32 var_5;
+    s32 i;
+    s16 push;
+    struct BgLayerState *bgLayer;
+    struct BgLayerState *bg;
+    s16 x;
+    s16 y;
+    s32 gfx;
+    s32 playerX;
+    s32 playerY;
+    s32 surfaceY;
 
-    if (param_0->unk_4EE == 0)
+    if (entity->state == 0)
     {
-        var_3 = (s16) gEwramData->unk_13110.unk_13110->unk_524.unk_524_16.unk_526;
-        param_0->unk_524.unk_524_16.unk_526 = var_3;
-        var_4 = (s16) gEwramData->unk_13110.unk_13110->unk_528.unk_528_16.unk_52A;
-        param_0->unk_528.unk_528_16.unk_52A = var_4;
+        playerX = (s16) gEwramData->playerState.player->posX.part16.integer;
+        entity->posX.part16.integer = playerX;
+        playerY = (s16) gEwramData->playerState.player->posY.part16.integer;
+        entity->posY.part16.integer = playerY;
 
-        temp_r1 = &gEwramData->bgInfo[1];
-        var_0 = temp_r1->xPos.part16.integer + param_0->unk_524.unk_524_16.unk_526;
-        var_1 = temp_r1->yPos.part16.integer + var_4 - 8;
-        for (var_r5 = 0; var_r5 < 2; var_r5++)
+        bg = &gEwramData->bgInfo[1];
+        x = bg->xPos.part16.integer + entity->posX.part16.integer;
+        y = bg->yPos.part16.integer + playerY - 8;
+        for (i = 0; i < 2; i++)
         {
-            temp_r0_2 = sub_08001E58(var_0, var_1 + (var_r5 * 0x10), 2);
-            if (temp_r0_2 != 0)
+            push = Collision_GetPushUpFiltered(x, y + (i * 0x10), 2);
+            if (push != 0)
             {
-                var_5 = var_1 + temp_r0_2;
-                temp_r0_5 = &gEwramData->bgInfo[1];
-                param_0->unk_528.unk_528_16.unk_52A = (var_5 - (temp_r0_5->yPos.part16.integer - 1)) + (var_r5 * 0x10);
+                surfaceY = y + push;
+                bgLayer = &gEwramData->bgInfo[1];
+                entity->posY.part16.integer = (surfaceY - (bgLayer->yPos.part16.integer - 1)) + (i * 0x10);
                 break;
             }
         }
 
-        if (temp_r0_2 == 0)
+        if (push == 0)
         {
-            param_0->unk_53D_3 = 1;
+            entity->deleteRequested = 1;
             return;
         }
 
-        var_2 = sub_0803AFB8((u8 *)0x081C15F4);
-        sub_0803B924(param_0, (u8 *)0x0820ED60, var_2, 6);
-        sub_0803F2C8(param_0, param_0->unk_4FC.unk_4FC_16.unk_4FC, 0, 0);
-        param_0->drawFunc = (u32 *) sub_0803B9D0;
-        param_0->unk_540 = 0xF;
-        param_0->unk_53D_1 = 1;
-        param_0->unk_4EE += 1;
+        gfx = ObjGfx_Find((u8 *)0x081C15F4);
+        Sprite_Attach(entity, (u8 *)0x0820ED60, gfx, 6);
+        Anim_StartIndexed(entity, entity->unk_4FC.part16.unk_4FC, 0, 0);
+        entity->drawFunc = (u32 *) Sprite_DrawEntity;
+        entity->spriteLayer = 0xF;
+        entity->scrollWithBg = 1;
+        entity->state += 1;
     }
 
-    if (sub_0803F17C(param_0) == 3)
+    if (Anim_Update(entity) == 3)
     {
-        param_0->unk_53D_3 = 1;
+        entity->deleteRequested = 1;
     }
 }
 
 /**
- * @brief 330F4 | To document
- * 
- * @param param_0 To document
+ * @brief Debris particle: attach frame 0x40 with random horizontal flip,
+ * then move with gravity 0x2000 until it leaves the screen.
  */
-void sub_080330F4(struct EwramData_EntityData *param_0)
+void Effect_UpdateFallingDebris(struct EwramData_EntityData *entity)
 {
-    s32 var_0;
-    s32 var_1;
+    s32 gfx;
+    s32 frame;
 
-    switch (param_0->unk_4EE)
+    switch (entity->state)
     {
         case 0:
-            var_0 = sub_0803AFB8((u8 *)0x081C15F4);
-            sub_0803B924(param_0, (u8 *)0x0820ED60, var_0, 6);
-            param_0->drawFunc = (u32 *) sub_0803B9D0;
-            var_1 = 0x40;
-            param_0->unk_549 = var_1;
-            param_0->unk_53C_6 = RandomNumberGenerator() & 1;
-            param_0->unk_540 = 0xD;
-            param_0->unk_53D_1 = 1;
-            param_0->unk_4EE += 1;
+            gfx = ObjGfx_Find((u8 *)0x081C15F4);
+            Sprite_Attach(entity, (u8 *)0x0820ED60, gfx, 6);
+            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            frame = 0x40;
+            entity->animFrame = frame;
+            entity->flipX = RandomNumberGenerator() & 1;
+            entity->spriteLayer = 0xD;
+            entity->scrollWithBg = 1;
+            entity->state += 1;
             break;
 
         case 1:
-            param_0->unk_524.unk_524_32 += param_0->unk_52C.unk_52C_32;
-            param_0->unk_528.unk_528_32 += param_0->unk_530.unk_530_32;
-            param_0->unk_530.unk_530_32 += 0x2000;
+            entity->posX.whole += entity->velX.whole;
+            entity->posY.whole += entity->velY.whole;
+            entity->velY.whole += 0x2000;
             break;
     }
 
-    if (sub_0806D128(param_0, 3) != 0)
+    if (EntityIsOutsideScreen(entity, 3) != 0)
     {
-        param_0->unk_53D_3 = 1;
+        entity->deleteRequested = 1;
     }
 }
 
-const u8 sUnk_080E1D88[][2] = {
+const u8 sPlayerSurfaceEffects[][2] = {
     [0] =  { [0] = 0x0A, [1] = 0xC0 },
     [1] =  { [0] = 0x0B, [1] = 0x00 },
     [2] =  { [0] = 0x0A, [1] = 0xC1 },
@@ -399,72 +394,72 @@ const u8 sUnk_080E1D88[][2] = {
 };
 
 /**
- * @brief 3319C | To document
- * 
- * @param param_0 To document
+ * @brief Create the surface effect of the given kind (animation and optional
+ * sound from sPlayerSurfaceEffects). Kinds 0 and 2 are used when the player
+ * enters or leaves flag-0x1000000 tiles at speed, kind 1 while
+ * moving fast within them.
  */
-void sub_0803319C(s32 param_0)
+void Player_SpawnSurfaceEffect(s32 kind)
 {
-    struct EwramData_EntityData *temp_r0;
+    struct EwramData_EntityData *child;
 
-    temp_r0 = EntityCreateInRange(0x49, 0xCF, (u32 *) sub_08032FC8);
-    if (temp_r0 != NULL)
+    child = EntityCreateInRange(0x49, 0xCF, (u32 *) Effect_UpdatePlayerSurfaceEffect);
+    if (child != NULL)
     {
-        temp_r0->unk_4FC.unk_4FC_16.unk_4FC = sUnk_080E1D88[param_0][0];
-        if (sUnk_080E1D88[param_0][1] != 0)
+        child->unk_4FC.part16.unk_4FC = sPlayerSurfaceEffects[kind][0];
+        if (sPlayerSurfaceEffects[kind][1] != 0)
         {
-            PlaySong(sUnk_080E1D88[param_0][1]);
+            PlaySong(sPlayerSurfaceEffects[kind][1]);
         }
     }
 }
 
 /**
- * @brief 331D8 | To document
- * 
- * @param param_0 To document
+ * @brief Spawn up to five falling debris particles spread horizontally
+ * 16 px above the entity. Used by Soma_TryCeilingImpact.
  */
-void sub_080331D8(struct EwramData_EntityData *param_0)
+void Effect_SpawnDebrisBurst(struct EwramData_EntityData *entity)
 {
-    s32 var_r6;
-    struct EwramData_EntityData *temp_r0;
+    s32 i;
+    struct EwramData_EntityData *child;
 
-    for (var_r6 = -2; var_r6 < 3; var_r6++)
+    for (i = -2; i < 3; i++)
     {
-        temp_r0 = EntityCreateInRange(0x49, 0xCF, (u32 *) sub_080330F4);
-        if (temp_r0 != NULL)
+        child = EntityCreateInRange(0x49, 0xCF, (u32 *) Effect_UpdateFallingDebris);
+        if (child != NULL)
         {
-            temp_r0->unk_524.unk_524_32 = param_0->unk_524.unk_524_32 + (var_r6 << 0xF) + sub_0802D5EC(0x8000);
-            temp_r0->unk_528.unk_528_32 = param_0->unk_528.unk_528_32 -  0x100000 + (sub_0802D5EC(0x1000) << 8);
-            temp_r0->unk_52C.unk_52C_32 = (var_r6 << 0xF) + sub_0802D5EC(0x4000);
-            temp_r0->unk_530.unk_530_32 = sub_0802D5EC(0x4000) - 0x18000;
+            child->posX.whole = entity->posX.whole + (i << 0xF) + RandomSigned(0x8000);
+            child->posY.whole = entity->posY.whole -  0x100000 + (RandomSigned(0x1000) << 8);
+            child->velX.whole = (i << 0xF) + RandomSigned(0x4000);
+            child->velY.whole = RandomSigned(0x4000) - 0x18000;
             continue;
         }
         break;
     }
 }
 
-struct Unk_080E1DA8_4 {
-    u8 unk_0;
+struct PushBlockGroupLayout {
+    u8 blockCount;
     u8 pad_1[0x4 - 0x1];
-    u16 unk_4[2];
+    u16 roomCoordinates[2];
 };
-struct Unk_080E1DA8 {
-    u8 unk_0;
+struct PushBlockLayoutTable {
+    u8 maxGroupIndex;
     u8 pad_1[0x4 - 0x1];
-    const struct Unk_080E1DA8_4 *unk_4[2];
+    const struct PushBlockGroupLayout *layouts[2];
 };
 
-const struct Unk_080E1DA8_4 sUnk_080E1D90 = {
-    .unk_0 = 1,
-    .unk_4 = {
+const struct PushBlockGroupLayout sPushBlockGroupLayout0 = {
+    .blockCount = 1,
+    .roomCoordinates = {
         [0] = 0xE0,
         [1] = 0xBF
     }
 };
 
-const struct Unk_080E1DA8_4 sUnk_080E1D98 = {
-    .unk_0 = 3,
-    .unk_4 = {
+const struct PushBlockGroupLayout sPushBlockGroupLayout1 = {
+    .blockCount = 3,
+    .roomCoordinates = {
         [0] = 0x80,
         [1] = 0xC0
     }
@@ -475,717 +470,660 @@ const u8 sUnk_080E1DA0[] = {
     0x80, 0x00, 0xA0, 0x00, 0x00, 0x01, 0xC0, 0x00
 };
 
-const struct Unk_080E1DA8 sUnk_080E1DA8 = {
-    .unk_0 = 2,
-    .unk_4 = {
-        [0] = &sUnk_080E1D90,
-        [1] = &sUnk_080E1D98
+const struct PushBlockLayoutTable sPushBlockGroupLayouts = {
+    .maxGroupIndex = 2,
+    .layouts = {
+        [0] = &sPushBlockGroupLayout0,
+        [1] = &sPushBlockGroupLayout1
     }
 };
 
-struct Unk_080E1DB4 {
-    u32 unk_0;
-    void *unk_4;
-    void *unk_8;
-    void *unk_C;
-    void *unk_10;
-    void *unk_14;
+struct PushBlockSolidCallbacksView {
+    u32 flags;
+    void *ceilingCorrection;
+    void *floorCorrection;
+    void *wallRightCorrection;
+    void *wallLeftCorrection;
+    void *push;
 };
 
-const struct EwramData_unk1316C_10 sUnk_080E1DB4 = {
-    .unk_0 = 0,
-    .unk_4 = sub_080337EC,
-    .unk_8 = sub_080338B4,
-    .unk_C = sub_08033984,
-    .unk_10 = sub_08033AC0,
-    .unk_14 = sub_080220F4
+const struct SolidObjectCallbackStorage sPushBlockSolidCallbacks = {
+    .flags = 0,
+    .ceilingCorrection = PushBlockGroup_CeilingCorrection,
+    .floorCorrection = PushBlockGroup_FloorCorrection,
+    .wallRightCorrection = PushBlockGroup_WallRightCorrection,
+    .wallLeftCorrection = PushBlockGroup_WallLeftCorrection,
+    .push = SolidObject_NoCarry
 };
 
 /**
- * @brief 33254 | To document
- * 
- * @param param_0 To document
+ * @brief Object01 creation: register the group as the player solid object
+ * and, for a valid variant (unk_514), create its 1 or 3 blocks at
+ * the table room positions, storing their slots in unk_4F8.
  */
-void sub_08033254(struct EwramData_EntityData *param_0)
+void PushBlockGroup_Create(struct EwramData_EntityData *entity)
 {
-    s32 sp0;
-    s32 temp_r4;
-    s32 var_r7;
-    s32 temp_sl;
-    struct EwramData_EntityData *temp_r0;
-    const struct Unk_080E1DA8_4 *temp_r4_2;
-    s32 temp_sb;
-    struct EwramData_unkA078 *temp_r2;
+    s32 tileSlot;
+    s32 group;
+    s32 i;
+    s32 paletteIndex;
+    struct EwramData_EntityData *child;
+    const struct PushBlockGroupLayout *layout;
+    s32 count;
+    struct BgLayerState *bg;
 
-    temp_r4 = param_0->unk_514.unk_514_16.unk_514;
-    if ((sub_08022088(param_0, (struct EwramData_unk1316C_10*)&sUnk_080E1DB4) != 0) && (temp_r4 <= sUnk_080E1DA8.unk_0))
+    group = entity->unk_514.part16.spawnParam0;
+    if ((Player_RegisterSolidObject(entity, (struct SolidObjectCallbackStorage*)&sPushBlockSolidCallbacks) != 0) && (group <= sPushBlockGroupLayouts.maxGroupIndex))
     {
-        temp_r4_2 = sUnk_080E1DA8.unk_4[temp_r4];
-        temp_sb = temp_r4_2->unk_0;
-        sp0 = sub_0803B800((u8 *)0x081CBE14, 0);
-        temp_sl = sub_080681D8((void *)0x08209C64);
-        for (var_r7 = 0; var_r7 < temp_sb; var_r7++)
+        layout = sPushBlockGroupLayouts.layouts[group];
+        count = layout->blockCount;
+        tileSlot = ObjGfx_LoadResource((u8 *)0x081CBE14, 0);
+        paletteIndex = ObjPalette_FindOrLoad((void *)0x08209C64);
+        for (i = 0; i < count; i++)
         {
-            temp_r0 = EntityCreateInRange(0x49, 0xCF, (u32 *) sub_08033370);
-            sub_0803B924(temp_r0, (u8 *)0x0820F18C, sp0, (s32) temp_sl);
-            temp_r0->unk_549 = 0;
-            temp_r0->drawFunc = (u32 *) sub_0803B9D0;
-            temp_r0->unk_53D_1 = 1;
+            child = EntityCreateInRange(0x49, 0xCF, (u32 *) PushBlock_Update);
+            Sprite_Attach(child, (u8 *)0x0820F18C, tileSlot, (s32) paletteIndex);
+            child->animFrame = 0;
+            child->drawFunc = (u32 *) Sprite_DrawEntity;
+            child->scrollWithBg = 1;
 
-            temp_r2 = &gEwramData->bgInfo[1];
-            temp_r0->unk_524.unk_524_16.unk_526 = temp_r4_2->unk_4[var_r7 * 2] - temp_r2->xPos.part16.integer;
-            temp_r0->unk_528.unk_528_16.unk_52A = temp_r4_2->unk_4[var_r7 * 2 + 1] - temp_r2->yPos.part16.integer;
-            temp_r0->unk_538.unk_538_16.unk_53A = 0;
-            temp_r0->unk_530.unk_530_16.unk_532 = 0;
+            bg = &gEwramData->bgInfo[1];
+            child->posX.part16.integer = layout->roomCoordinates[i * 2] - bg->xPos.part16.integer;
+            child->posY.part16.integer = layout->roomCoordinates[i * 2 + 1] - bg->yPos.part16.integer;
+            child->accelY.part16.integer = 0;
+            child->velY.part16.integer = 0;
 
-            temp_r0->unk_540 = 0x11;
-            temp_r0->unk_4FC.unk_4FC_32 = 0;
-            temp_r0->unk_4F8.unk_4F8_entity = param_0;
-            temp_r0->unk_53D_2 = 1;
-            var_r7[param_0->unk_4F8.unk_4F8_arr8] = EntityGetSlot(temp_r0);
+            child->spriteLayer = 0x11;
+            child->unk_4FC.whole = 0;
+            child->unk_4F8.unk_4F8_entity = entity;
+            child->roomActive = 1;
+            i[entity->unk_4F8.bytes] = EntityGetSlot(child);
         }
-        param_0->unk_53D_2 = 1;
+        entity->roomActive = 1;
     }
 }
 
 
-static inline s32 sub_08033370_inline_0(struct EwramData_EntityData *param_0)
+/* Overlap with the nearest block of the group on the left (> 0: push right). */
+static inline s32 OverlapLeft(struct EwramData_EntityData *block)
 {
-    struct EwramData_EntityData *temp_r0_2;
-    s32 var_r7;
-    s32 temp_r4_3;
-    s32 var_r3;
-    struct EwramData_EntityData *temp_r2_2;
-    s32 var_0;
-    u32 temp_r1_5;
-    s32 temp_r0_3;
+    struct EwramData_EntityData *spawner = block->unk_4F8.unk_4F8_entity;
+    s32 push = 0;
+    s32 count = sPushBlockGroupLayouts.layouts[spawner->unk_514.part16.spawnParam0]->blockCount;
+    s32 i;
 
-    temp_r0_2 = param_0->unk_4F8.unk_4F8_entity;
-    var_r7 = 0;
-    temp_r4_3 = sUnk_080E1DA8.unk_4[temp_r0_2->unk_514.unk_514_16.unk_514]->unk_0;
-
-    for (var_r3 = 0; var_r3 < temp_r4_3; var_r3++)
+    for (i = 0; i < count; i++)
     {
-        temp_r2_2 = &gEwramData->entityData[var_r3[temp_r0_2->unk_4F8.unk_4F8_arr8]];
-        var_0 = param_0->unk_528.unk_528_32 - temp_r2_2->unk_528.unk_528_32;
-        if ((temp_r2_2 != param_0) && (var_0 >= -0x1F0000 && var_0 < 0x1F0000))
+        struct EwramData_EntityData *other = &gEwramData->entityData[*(spawner->unk_4F8.bytes + i)];
+        s32 dy = block->posY.whole - other->posY.whole;
+
+        if (other != block && (dy >= -0x1F0000 && dy < 0x1F0000))
         {
-            temp_r1_5 = param_0->unk_524.unk_524_32 - temp_r2_2->unk_524.unk_524_32;
-            if (temp_r1_5 < 0x200000)
+            u32 dx = block->posX.whole - other->posX.whole;
+
+            if (dx < 0x200000)
             {
-                temp_r0_3 = 0x200000 - temp_r1_5;
-                if (var_r7 < temp_r0_3)
-                {
-                    var_r7 = temp_r0_3;
-                }
+                s32 overlap = 0x200000 - dx;
+
+                if (push < overlap)
+                    push = overlap;
             }
         }
     }
-    return var_r7;
+    return push;
 }
 
-static inline s32 sub_08033370_inline_1(struct EwramData_EntityData *param_0)
+/* Overlap with the nearest block of the group on the right (< 0: push left). */
+static inline s32 OverlapRight(struct EwramData_EntityData *block)
 {
-    struct EwramData_EntityData *temp_r0_2;
-    s32 var_r7;
-    s32 temp_r4_3;
-    s32 var_r3;
-    struct EwramData_EntityData *temp_r2_2;
-    s32 var_0;
-    u32 temp_r1_5;
-    s32 temp_r0_3;
+    struct EwramData_EntityData *spawner = block->unk_4F8.unk_4F8_entity;
+    s32 push = 0;
+    s32 count = sPushBlockGroupLayouts.layouts[spawner->unk_514.part16.spawnParam0]->blockCount;
+    s32 i;
 
-    temp_r0_2 = param_0->unk_4F8.unk_4F8_entity;
-    var_r7 = 0;
-    temp_r4_3 = sUnk_080E1DA8.unk_4[temp_r0_2->unk_514.unk_514_16.unk_514]->unk_0;
-
-    for (var_r3 = 0; var_r3 < temp_r4_3; var_r3++)
+    for (i = 0; i < count; i++)
     {
-        temp_r2_2 = &gEwramData->entityData[var_r3[temp_r0_2->unk_4F8.unk_4F8_arr8]];
-        var_0 = param_0->unk_528.unk_528_32 - temp_r2_2->unk_528.unk_528_32;
-        if ((temp_r2_2 != param_0) && (var_0 >= -0x1F0000 && var_0 < 0x1F0000))
+        struct EwramData_EntityData *other = &gEwramData->entityData[*(spawner->unk_4F8.bytes + i)];
+        s32 dy = block->posY.whole - other->posY.whole;
+
+        if (other != block && (dy >= -0x1F0000 && dy < 0x1F0000))
         {
-            temp_r1_5 = temp_r2_2->unk_524.unk_524_32 - param_0->unk_524.unk_524_32;
-            if (temp_r1_5 < 0x200000)
+            u32 dx = other->posX.whole - block->posX.whole;
+
+            if (dx < 0x200000)
             {
-                temp_r0_3 = temp_r1_5 - 0x200000;
-                if (var_r7 > temp_r0_3)
-                {
-                    var_r7 = temp_r0_3;
-                }
+                s32 overlap = dx - 0x200000;
+
+                if (push > overlap)
+                    push = overlap;
             }
         }
     }
-    return var_r7;
+    return push;
 }
 
-static inline s32 sub_08033370_inline_2(struct EwramData_EntityData *param_0)
+/* Overlap with a block of the group right below (< 0: push up); marks that block as carrying one. */
+static inline s32 OverlapBelow(struct EwramData_EntityData *block)
 {
-    struct EwramData_EntityData *temp_r6_7;
-    s32 var_r6;
-    s32 var_4;
-    s32 var_3;
-    s32 spC;
-    s32 var_r4;
-    struct EwramData_EntityData *temp_r2_5;
-    s32 var_2;
-    u32 temp_r3;
-    s32 temp_r0_6;
+    struct EwramData_EntityData *spawner = block->unk_4F8.unk_4F8_entity;
+    s32 push = 0;
+    s32 x = block->posX.whole;
+    s32 y = block->posY.whole + 0x10000;
+    s32 count = sPushBlockGroupLayouts.layouts[spawner->unk_514.part16.spawnParam0]->blockCount;
+    s32 i;
 
-    temp_r6_7 = param_0->unk_4F8.unk_4F8_entity;
-    var_r6 = 0;
-    var_4 = param_0->unk_524.unk_524_32;
-    var_3 = param_0->unk_528.unk_528_32 + 0x10000;
-    spC = sUnk_080E1DA8.unk_4[temp_r6_7->unk_514.unk_514_16.unk_514]->unk_0;
-
-    for (var_r4 = 0; var_r4 < spC; var_r4++)
+    for (i = 0; i < count; i++)
     {
-        temp_r2_5 = &gEwramData->entityData[var_r4[temp_r6_7->unk_4F8.unk_4F8_arr8]];
-        var_2 = temp_r2_5->unk_524.unk_524_32 - var_4;
-        temp_r3 = temp_r2_5->unk_528.unk_528_32 - var_3;
-        if ((temp_r2_5 != param_0) && (var_2 >= -0x1F0000 && var_2 < 0x1F0000) && (temp_r3 < 0x200000))
+        struct EwramData_EntityData *other = &gEwramData->entityData[*(spawner->unk_4F8.bytes + i)];
+        s32 dx = other->posX.whole - x;
+        u32 dy = other->posY.whole - y;
+
+        if (other != block && (dx >= -0x1F0000 && dx < 0x1F0000) && dy < 0x200000)
         {
-            temp_r2_5->unk_4FC.unk_4FC_32 |= 4;
-            temp_r0_6 = temp_r3 - 0x200000;
-            if (var_r6 > temp_r0_6)
-            {
-                var_r6 = temp_r0_6;
-            }
+            s32 overlap;
+
+            other->unk_4FC.whole |= 4;
+            overlap = dy - 0x200000;
+            if (push > overlap)
+                push = overlap;
         }
     }
-    if (var_r6 != 0)
-    {
-        var_r6 += 0x10000;
-    }
-    return var_r6;
+    if (push != 0)
+        push += 0x10000;
+    return push;
 }
 
 /**
- * @brief 33370 | To document
- * 
- * @param param_0 To document
+ * @brief Block of a push-block group: move 0.5 px per update while marked
+ * by the wall callbacks or its own player/wall probes, unless it is
+ * falling or carrying a block;
+ * resolve overlap with group blocks and walls, fall with gravity
+ * onto blocks or floor, and play the landing and scrape sounds.
  */
-void sub_08033370(struct EwramData_EntityData *param_0)
+void PushBlock_Update(struct EwramData_EntityData *block)
 {
-    s32 sp0;
-    s32 sp4;
-    s32 var_r1_2;
-    s32 var_r1_4;
-    s32 temp_r2;
-    s32 temp_r7;
-    s32 var_r7;
-    struct EwramData_EntityData *temp_r1;
-    s16 temp_r1_2;
-    s16 temp_r6;
-    u32 temp_r4;
+    s32 falling;
+    s32 startX;
+    s32 x;
+    s32 dx;
+    s32 push;
+    struct EwramData_EntityData *player;
+    s16 roomY;
+    s16 roomX;
+    u32 dy;
 
-    temp_r1 = gEwramData->unk_13110.unk_13110;
-    temp_r2 = param_0->unk_524.unk_524_32;
-    temp_r7 = temp_r2 - temp_r1->unk_524.unk_524_32;
-    temp_r4 = param_0->unk_528.unk_528_32 - temp_r1->unk_528.unk_528_32;
-    sp4 = temp_r2;
+    player = gEwramData->playerState.player;
+    x = block->posX.whole;
+    dx = x - player->posX.whole;
+    dy = block->posY.whole - player->posY.whole;
+    startX = x;
 
-    temp_r6 = GetEntityRoomXPositionInteger(param_0);
-    temp_r1_2 = GetEntityRoomYPositionInteger(param_0);
-    if (temp_r4 < 0x1E0000)
+    roomX = GetEntityRoomXPositionInteger(block);
+    roomY = GetEntityRoomYPositionInteger(block);
+    if (dy < 0x1E0000)
     {
-        if (sub_08002058(temp_r6 + 0x1E, temp_r1_2 - 0x10) != 0)
+        if (Collision_GetPushLeft(roomX + 0x1E, roomY - 0x10) != 0)
         {
-            if ((temp_r7 > -0x190000) && (temp_r7 < 0))
-            {
-                param_0->unk_4FC.unk_4FC_32 |= 1;
-            }
+            if (dx > -0x190000 && dx < 0)
+                block->unk_4FC.whole |= 1;
         }
-        else if (sub_0800207C(temp_r6 - 0x1E, temp_r1_2 - 0x10) != 0)
+        else if (Collision_GetPushRight(roomX - 0x1E, roomY - 0x10) != 0)
         {
-            if ((temp_r7 > 0) && (temp_r7 < 0x190000))
-            {
-                param_0->unk_4FC.unk_4FC_32 |= 2;
-            }
+            if (dx > 0 && dx < 0x190000)
+                block->unk_4FC.whole |= 2;
         }
     }
 
-    if (!(param_0->unk_4FC.unk_4FC_32 & 0xC))
+    if (!(block->unk_4FC.whole & 0xC))
     {
-        if (param_0->unk_4FC.unk_4FC_32 & 1)
+        if (block->unk_4FC.whole & 1)
+            block->posX.whole -= 0x8000;
+        if (block->unk_4FC.whole & 2)
+            block->posX.whole += 0x8000;
+    }
+
+    block->velY.whole += block->accelY.whole;
+    if (block->velY.whole > 0x60000)
+        block->velY.whole = 0x60000;
+    block->posY.whole += block->velY.whole;
+
+    if (block->unk_4FC.whole & 1)
+    {
+        push = OverlapLeft(block);
+        if (push != 0)
+            block->posX.whole += push;
+
+        roomX = GetEntityRoomXPositionInteger(block);
+        roomY = GetEntityRoomYPositionInteger(block);
+        if (push = Collision_GetPushRight(roomX - 0x11, roomY), push != 0)
         {
-            param_0->unk_524.unk_524_32 -= 0x8000;
+            block->posX.part16.integer -= 1;
+            block->posX.part16.integer += push;
         }
-        if (param_0->unk_4FC.unk_4FC_32 & 2)
+        else if (push = Collision_GetPushRight(roomX - 0x11, roomY - 0x18), push != 0)
         {
-            param_0->unk_524.unk_524_32 += 0x8000;
+            block->posX.part16.integer -= 1;
+            block->posX.part16.integer += push;
+        }
+    }
+    if (block->unk_4FC.whole & 2)
+    {
+        push = OverlapRight(block);
+        if (push != 0)
+            block->posX.whole += push;
+
+        roomX = GetEntityRoomXPositionInteger(block);
+        roomY = GetEntityRoomYPositionInteger(block);
+        if (push = Collision_GetPushLeft(roomX + 0x11, roomY), push != 0)
+        {
+            block->posX.part16.integer += 1;
+            block->posX.part16.integer += push;
+        }
+        else if (push = Collision_GetPushLeft(roomX + 0xF, roomY - 0x18), push != 0)
+        {
+            block->posX.part16.integer -= 1;
+            block->posX.part16.integer += push;
         }
     }
 
-    param_0->unk_530.unk_530_32 += param_0->unk_538.unk_538_32;
-    if (param_0->unk_530.unk_530_32 > 0x60000)
+    falling = TRUE;
+    push = OverlapBelow(block);
+    if (push != 0)
     {
-        param_0->unk_530.unk_530_32 = 0x60000;
-    }
-    param_0->unk_528.unk_528_32 += param_0->unk_530.unk_530_32;
-
-    if (param_0->unk_4FC.unk_4FC_32 & 1)
-    {
-        var_r7 = sub_08033370_inline_0(param_0);
-        if (var_r7 != 0)
-        {
-            param_0->unk_524.unk_524_32 += var_r7;
-        }
-
-        temp_r6 = GetEntityRoomXPositionInteger(param_0);
-        temp_r1_2 = GetEntityRoomYPositionInteger(param_0);
-        if (var_r1_2 = sub_0800207C(temp_r6 - 0x11, temp_r1_2), var_r1_2 != 0)
-        {
-            param_0->unk_524.unk_524_16.unk_526 -= 1;
-            param_0->unk_524.unk_524_16.unk_526 += var_r1_2;
-        }
-        else if (var_r1_2 = sub_0800207C(temp_r6 - 0x11, temp_r1_2 - 0x18), var_r1_2 != 0)
-        {
-            param_0->unk_524.unk_524_16.unk_526 -= 1;
-            param_0->unk_524.unk_524_16.unk_526 += var_r1_2;
-        }
-    }
-    if (param_0->unk_4FC.unk_4FC_32 & 2)
-    {
-        var_r7 = sub_08033370_inline_1(param_0);
-        if (var_r7 != 0)
-        {
-            param_0->unk_524.unk_524_32 += var_r7;
-        }
-
-        temp_r6 = GetEntityRoomXPositionInteger(param_0);
-        temp_r1_2 = GetEntityRoomYPositionInteger(param_0);
-        if (var_r1_4 = sub_08002058(temp_r6 + 0x11, temp_r1_2), var_r1_4 != 0)
-        {
-            param_0->unk_524.unk_524_16.unk_526 += 1;
-            param_0->unk_524.unk_524_16.unk_526 += var_r1_4;
-        }
-        else if (var_r1_4 = sub_08002058(temp_r6 + 0xF, temp_r1_2 - 0x18), var_r1_4 != 0)
-        {
-            param_0->unk_524.unk_524_16.unk_526 -= 1;
-            param_0->unk_524.unk_524_16.unk_526 += var_r1_4;
-        }
+        block->posY.whole += push;
+        block->accelY.whole = 0;
+        block->velY.whole = 0;
+        falling = FALSE;
     }
 
-    sp0 = 1;
-    var_r7 = sub_08033370_inline_2(param_0);
-    var_r7++,var_r7--; // Fake
-    if (var_r7 != 0)
+    roomX = GetEntityRoomXPositionInteger(block);
+    roomY = GetEntityRoomYPositionInteger(block);
+    if (push = Collision_GetPushUp(roomX + 0xF, roomY + 1), push != 0)
     {
-        param_0->unk_528.unk_528_32 += var_r7;
-        param_0->unk_538.unk_538_32 = 0;
-        param_0->unk_530.unk_530_32 = 0;
-        sp0 = 0;
+        block->posY.whole += (push + 1) << 0x10;
+        block->accelY.whole = 0;
+        block->velY.whole = 0;
+        falling = FALSE;
+    }
+    else if (push = Collision_GetPushUp(roomX - 0xF, roomY + 1), push != 0)
+    {
+        block->posY.whole += (push + 1) << 0x10;
+        block->accelY.whole = 0;
+        block->velY.whole = 0;
+        falling = FALSE;
+    }
+    else if (push = Collision_GetPushUp(roomX, roomY + 1), push != 0)
+    {
+        block->posY.whole += (push + 1) << 0x10;
+        block->accelY.whole = 0;
+        block->velY.whole = 0;
+        falling = FALSE;
     }
 
-    temp_r6 = GetEntityRoomXPositionInteger(param_0);
-    temp_r1_2 = GetEntityRoomYPositionInteger(param_0);
-    if (var_r1_4 = sub_08001D94(temp_r6 + 0xF, temp_r1_2 + 1), var_r1_4 != 0)
+    if (falling)
     {
-        param_0->unk_528.unk_528_32 += (var_r1_4 + 1) << 0x10;
-        param_0->unk_538.unk_538_32 = 0;
-        param_0->unk_530.unk_530_32 = 0;
-        sp0 = 0;
-    }
-    else if (var_r1_4 = sub_08001D94(temp_r6 - 0xF, temp_r1_2 + 1), var_r1_4 != 0)
-    {
-        param_0->unk_528.unk_528_32 += (var_r1_4 + 1) << 0x10;
-        param_0->unk_538.unk_538_32 = 0;
-        param_0->unk_530.unk_530_32 = 0;
-        sp0 = 0;
-    }
-    else if (var_r1_4 = sub_08001D94(temp_r6, temp_r1_2 + 1), var_r1_4 != 0)
-    {
-        param_0->unk_528.unk_528_32 += (var_r1_4 + 1) << 0x10;
-        param_0->unk_538.unk_538_32 = 0;
-        param_0->unk_530.unk_530_32 = 0;
-        sp0 = 0;
-    }
-
-    if (sp0 != 0)
-    {
-        param_0->unk_538.unk_538_32 = 0x2000;
-        param_0->unk_4FC.unk_4FC_32 |= 8;
+        block->accelY.whole = 0x2000;
+        block->unk_4FC.whole |= 8;
     }
     else
     {
-        if (param_0->unk_4FC.unk_4FC_32 & 0x8)
-        {
+        if (block->unk_4FC.whole & 8)
             PlaySong(0x14D);
-        }
-        param_0->unk_4FC.unk_4FC_32 &= ~0x8;
+        block->unk_4FC.whole &= ~8;
     }
 
-    if (sp4 != param_0->unk_524.unk_524_32)
+    if (startX != block->posX.whole)
     {
-        if (!(param_0->unk_4FC.unk_4FC_32 & 0x10))
+        if (!(block->unk_4FC.whole & 0x10))
         {
-            sub_08013D60(0x136);
-            param_0->unk_4FC.unk_4FC_32 |= 0x10;
+            Sound_PlayTracked(0x136);
+            block->unk_4FC.whole |= 0x10;
         }
     }
     else
     {
-        if (param_0->unk_4FC.unk_4FC_32 & 0x10)
-        {
-            sub_08013E18(0x136);
-        }
-        param_0->unk_4FC.unk_4FC_32 &= ~0x10;
+        if (block->unk_4FC.whole & 0x10)
+            Sound_StopTracked(0x136);
+        block->unk_4FC.whole &= ~0x10;
     }
 
-    param_0->unk_4FC.unk_4FC_32 &= ~7;
-    param_0->unk_53D_2 = 1;
+    block->unk_4FC.whole &= ~7;
+    block->roomActive = 1;
 }
 
 
-static inline s32 sub_080337EC_inline_0(struct EwramData_EntityData *param_0, s16 param_1, s16 param_2)
+static inline s32 PushBlockGroup_CeilingCorrectionInline(struct EwramData_EntityData *entity, s16 x, s16 y)
 {
-    s32 var_r2;
-    s32 var_r4;
-    struct EwramData_EntityData *temp_r1;
-    u32 temp_r0;
-    s32 temp_r3_2;
-    struct EwramData_unkA078 *temp_r3;
-    s32 var_0;
-    s32 var_1;
-    s32 var_2;
-    s32 var_3;
-    s32 var_4;
+    s32 i;
+    s32 correction;
+    struct EwramData_EntityData *block;
+    u32 dy;
+    s32 count;
+    struct BgLayerState *bg;
+    s32 screenY;
+    s32 screenX;
+    s32 dx;
+    s32 roomX;
+    s32 offset;
 
-    var_r4 = 0;
-    var_3 = param_1;
-    temp_r3 = &gEwramData->bgInfo[1];
-    var_1 = (var_3 - (s16) temp_r3->xPos.part16.integer) << 0x10;
-    var_0 = (param_2 - (s16) temp_r3->yPos.part16.integer) << 0x10;
+    correction = 0;
+    roomX = x;
+    bg = &gEwramData->bgInfo[1];
+    screenX = (roomX - (s16) bg->xPos.part16.integer) << 0x10;
+    screenY = (y - (s16) bg->yPos.part16.integer) << 0x10;
     
-    if (param_0 == NULL)
+    if (entity == NULL)
     {
         return 0;
     }
-    else if (temp_r3_2 = sUnk_080E1DA8.unk_4[param_0->unk_514.unk_514_16.unk_514]->unk_0, temp_r3_2 == 0)
+    else if (count = sPushBlockGroupLayouts.layouts[entity->unk_514.part16.spawnParam0]->blockCount, count == 0)
     {
         return 0;
     }
 
-    for (var_r2 = 0; var_r2 < temp_r3_2; var_r2++)
+    for (i = 0; i < count; i++)
     {
-        temp_r1 = &gEwramData->entityData[var_r2[param_0->unk_4F8.unk_4F8_arr8]];
-        var_2 = temp_r1->unk_524.unk_524_32 - var_1;
-        if (var_2 >= -0x100000 && var_2 < 0x100000)
+        block = &gEwramData->entityData[i[entity->unk_4F8.bytes]];
+        dx = block->posX.whole - screenX;
+        if (dx >= -0x100000 && dx < 0x100000)
         {
-            temp_r0 = temp_r1->unk_528.unk_528_32 - var_0;
-            if (temp_r0 < 0x200000)
+            dy = block->posY.whole - screenY;
+            if (dy < 0x200000)
             {
-                var_4 = temp_r0 - 0;
-                if (var_r4 < var_4)
+                offset = dy - 0;
+                if (correction < offset)
                 {
-                    var_r4 = var_4;
+                    correction = offset;
                 }
             }
         }
     }
 
-    return (var_r4 < 0) ? (s16)(-(-var_r4 >> 0x10)) : (s16)(var_r4 >> 0x10);
+    return (correction < 0) ? (s16)(-(-correction >> 0x10)) : (s16)(correction >> 0x10);
 }
 
 /**
- * @brief 337EC | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @return s16 To document
+ * @brief Solid-object ceiling callback: return the downward push needed to
+ * move the room point out of the bottom of any group block.
  */
-s16 sub_080337EC(struct EwramData_EntityData *param_0, s16 param_1, s16 param_2)
+s16 PushBlockGroup_CeilingCorrection(struct EwramData_EntityData *entity, s16 x, s16 y)
 {
-    return sub_080337EC_inline_0(param_0, param_1, param_2);
+    return PushBlockGroup_CeilingCorrectionInline(entity, x, y);
 }
 
 
-static inline s32 sub_080338B4_inline_0(struct EwramData_EntityData *param_0, s16 param_1, s16 param_2)
+static inline s32 PushBlockGroup_FloorCorrectionInline(struct EwramData_EntityData *entity, s16 x, s16 y)
 {
-    s32 var_r2;
-    s32 var_r4;
-    struct EwramData_EntityData *temp_r1;
-    u32 temp_r0;
-    s32 temp_r3_2;
-    struct EwramData_unkA078 *temp_r3;
-    s32 var_0;
-    s32 var_1;
-    s32 var_2;
-    s32 var_3;
-    s32 var_4;
+    s32 i;
+    s32 correction;
+    struct EwramData_EntityData *block;
+    u32 dy;
+    s32 count;
+    struct BgLayerState *bg;
+    s32 screenY;
+    s32 screenX;
+    s32 dx;
+    s32 roomX;
+    s32 offset;
 
-    var_r4 = 0;
-    var_3 = param_1;
-    temp_r3 = &gEwramData->bgInfo[1];
-    var_1 = (var_3 - (s16) temp_r3->xPos.part16.integer) << 0x10;
-    var_0 = (param_2 - (s16) temp_r3->yPos.part16.integer) << 0x10;
+    correction = 0;
+    roomX = x;
+    bg = &gEwramData->bgInfo[1];
+    screenX = (roomX - (s16) bg->xPos.part16.integer) << 0x10;
+    screenY = (y - (s16) bg->yPos.part16.integer) << 0x10;
     
-    if (param_0 == NULL)
+    if (entity == NULL)
     {
         return 0;
     }
-    else if (temp_r3_2 = sUnk_080E1DA8.unk_4[param_0->unk_514.unk_514_16.unk_514]->unk_0, temp_r3_2 == 0)
+    else if (count = sPushBlockGroupLayouts.layouts[entity->unk_514.part16.spawnParam0]->blockCount, count == 0)
     {
         return 0;
     }
 
-    for (var_r2 = 0; var_r2 < temp_r3_2; var_r2++)
+    for (i = 0; i < count; i++)
     {
-        temp_r1 = &gEwramData->entityData[var_r2[param_0->unk_4F8.unk_4F8_arr8]];
-        var_2 = temp_r1->unk_524.unk_524_32 - var_1;
-        if (var_2 >= -0x100000 && var_2 < 0x100000)
+        block = &gEwramData->entityData[i[entity->unk_4F8.bytes]];
+        dx = block->posX.whole - screenX;
+        if (dx >= -0x100000 && dx < 0x100000)
         {
-            temp_r0 = temp_r1->unk_528.unk_528_32 - var_0;
-            if (temp_r0 < 0x200000)
+            dy = block->posY.whole - screenY;
+            if (dy < 0x200000)
             {
-                var_4 = temp_r0 - 0x200000;
-                if (var_r4 > var_4)
+                offset = dy - 0x200000;
+                if (correction > offset)
                 {
-                    var_r4 = var_4;
+                    correction = offset;
                 }
             }
         }
     }
 
-    return (var_r4 < 0) ? (s16)(-(-var_r4 >> 0x10)) : (s16)(var_r4 >> 0x10);
+    return (correction < 0) ? (s16)(-(-correction >> 0x10)) : (s16)(correction >> 0x10);
 }
 
 /**
- * @brief 338B4 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @return s16 To document
+ * @brief Solid-object floor callback: return the upward push needed to
+ * place the room point on top of any group block.
  */
-s16 sub_080338B4(struct EwramData_EntityData *param_0, s16 param_1, s16 param_2)
+s16 PushBlockGroup_FloorCorrection(struct EwramData_EntityData *entity, s16 x, s16 y)
 {
-    return sub_080338B4_inline_0(param_0, param_1, param_2);
+    return PushBlockGroup_FloorCorrectionInline(entity, x, y);
 }
 
 
-static inline s32 sub_08033984_inline_0(struct EwramData_EntityData *param_0, s16 param_1, s16 param_2)
+static inline s32 PushBlockGroup_WallRightCorrectionInline(struct EwramData_EntityData *entity, s16 x, s16 y)
 {
-    s32 var_r2;
-    s32 var_r4;
-    struct EwramData_EntityData *temp_r1;
-    struct EwramData_EntityData *temp_r4_2;
-    struct EwramData_EntityData *var_sb;
-    s32 temp_r0;
-    s32 temp_r3_2;
-    struct EwramData_unkA078 *temp_r3;
-    s32 var_0;
-    s32 var_1;
-    u32 var_2;
-    s32 var_3;
-    s32 var_4;
-    struct EwramData_EntityData *var_5;
-    s32 var_6;
+    s32 i;
+    s32 correction;
+    struct EwramData_EntityData *block;
+    struct EwramData_EntityData *playerEntity;
+    struct EwramData_EntityData *nearest;
+    s32 dx;
+    s32 count;
+    struct BgLayerState *bg;
+    s32 screenY;
+    s32 screenX;
+    u32 dy;
+    s32 roomX;
+    s32 offset;
+    struct EwramData_EntityData *player;
+    s32 pushing;
 
-    var_5 = gEwramData->unk_13110.unk_13110;
-    var_6 = var_5->unk_4F4.unk_4F4_32 & 0x100000;
-    var_sb = NULL;
-    var_r4 = 0;
-    var_3 = param_1;
-    temp_r3 = &gEwramData->bgInfo[1];
-    var_1 = (var_3 - (s16) temp_r3->xPos.part16.integer) << 0x10;
-    var_0 = (param_2 - (s16) temp_r3->yPos.part16.integer) << 0x10;
+    player = gEwramData->playerState.player;
+    pushing = player->unk_4F4.whole & 0x100000;
+    nearest = NULL;
+    correction = 0;
+    roomX = x;
+    bg = &gEwramData->bgInfo[1];
+    screenX = (roomX - (s16) bg->xPos.part16.integer) << 0x10;
+    screenY = (y - (s16) bg->yPos.part16.integer) << 0x10;
     
-    if (param_0 == NULL)
+    if (entity == NULL)
     {
         return 0;
     }
-    else if (temp_r3_2 = sUnk_080E1DA8.unk_4[param_0->unk_514.unk_514_16.unk_514]->unk_0, temp_r3_2 == 0)
+    else if (count = sPushBlockGroupLayouts.layouts[entity->unk_514.part16.spawnParam0]->blockCount, count == 0)
     {
         return 0;
     }
 
-    for (var_r2 = 0; var_r2 < temp_r3_2; var_r2++)
+    for (i = 0; i < count; i++)
     {
-        temp_r1 = &gEwramData->entityData[var_r2[param_0->unk_4F8.unk_4F8_arr8]];
-        var_2 = temp_r1->unk_528.unk_528_32 - var_0;
-        if (var_2 < 0x200000)
+        block = &gEwramData->entityData[i[entity->unk_4F8.bytes]];
+        dy = block->posY.whole - screenY;
+        if (dy < 0x200000)
         {
-            temp_r0 = temp_r1->unk_524.unk_524_32 - var_1;
-            if (temp_r0 >= -0x100000 && temp_r0 < 0x100000)
+            dx = block->posX.whole - screenX;
+            if (dx >= -0x100000 && dx < 0x100000)
             {
-                var_4 = temp_r0 - 0x100000;
-                if (var_r4 > var_4)
+                offset = dx - 0x100000;
+                if (correction > offset)
                 {
-                    var_r4 = var_4;
-                    var_sb = temp_r1;
+                    correction = offset;
+                    nearest = block;
                 }
             }
         }
     }
 
-    temp_r4_2 = gEwramData->unk_13110.unk_13110;
-    if ((temp_r4_2->unk_4F4.unk_4F4_32 & 0x400) && (temp_r4_2->unk_4EE != 3))
+    playerEntity = gEwramData->playerState.player;
+    if ((playerEntity->unk_4F4.whole & 0x400) && (playerEntity->state != 3))
     {
-        var_r4 = 0;
+        correction = 0;
     }
-    if ((var_6) && (var_sb != NULL))
+    if ((pushing) && (nearest != NULL))
     {
-        var_sb->unk_4FC.unk_4FC_32 |= 2;
+        nearest->unk_4FC.whole |= 2;
     }
 
-    return (var_r4 < 0) ? (s16)(-(-var_r4 >> 0x10)) : (s16)(var_r4 >> 0x10);
+    return (correction < 0) ? (s16)(-(-correction >> 0x10)) : (s16)(correction >> 0x10);
 }
 
 /**
- * @brief 33984 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @return s16 To document
+ * @brief Solid-object right-wall callback: return the leftward push out of
+ * the nearest group block and mark it to move right. No push
+ * while the player is crouching outside state 3.
  */
-s16 sub_08033984(struct EwramData_EntityData *param_0, s16 param_1, s16 param_2)
+s16 PushBlockGroup_WallRightCorrection(struct EwramData_EntityData *entity, s16 x, s16 y)
 {
-    return sub_08033984_inline_0(param_0, param_1, param_2);
+    return PushBlockGroup_WallRightCorrectionInline(entity, x, y);
 }
 
 
-static inline s32 sub_08033AC0_inline_0(struct EwramData_EntityData *param_0, s16 param_1, s16 param_2)
+static inline s32 PushBlockGroup_WallLeftCorrectionInline(struct EwramData_EntityData *entity, s16 x, s16 y)
 {
-    s32 var_r3;
-    s32 var_r6;
-    struct EwramData_EntityData *temp_r2;
-    struct EwramData_EntityData *temp_r4_2;
-    struct EwramData_EntityData *var_sb;
-    s32 temp_r0;
-    s32 temp_r3_2;
-    struct EwramData_unkA078 *temp_r3;
-    s32 var_0;
-    s32 var_1;
-    u32 var_2;
-    s32 var_3;
-    s32 var_4;
-    struct EwramData_EntityData *var_5;
-    s32 var_6;
+    s32 i;
+    s32 correction;
+    struct EwramData_EntityData *block;
+    struct EwramData_EntityData *playerEntity;
+    struct EwramData_EntityData *nearest;
+    s32 dx;
+    s32 count;
+    struct BgLayerState *bg;
+    s32 screenY;
+    s32 screenX;
+    u32 dy;
+    s32 roomX;
+    s32 offset;
+    struct EwramData_EntityData *player;
+    s32 pushing;
 
-    var_5 = gEwramData->unk_13110.unk_13110;
-    var_6 = var_5->unk_4F4.unk_4F4_32 & 0x100000;
-    var_sb = NULL;
-    var_r6 = 0;
-    var_3 = param_1;
-    temp_r3 = &gEwramData->bgInfo[1];
-    var_1 = (var_3 - (s16) temp_r3->xPos.part16.integer) << 0x10;
-    var_0 = (param_2 - (s16) temp_r3->yPos.part16.integer) << 0x10;
+    player = gEwramData->playerState.player;
+    pushing = player->unk_4F4.whole & 0x100000;
+    nearest = NULL;
+    correction = 0;
+    roomX = x;
+    bg = &gEwramData->bgInfo[1];
+    screenX = (roomX - (s16) bg->xPos.part16.integer) << 0x10;
+    screenY = (y - (s16) bg->yPos.part16.integer) << 0x10;
     
-    if (param_0 == NULL)
+    if (entity == NULL)
     {
         return 0;
     }
-    else if (temp_r3_2 = sUnk_080E1DA8.unk_4[param_0->unk_514.unk_514_16.unk_514]->unk_0, temp_r3_2 == 0)
+    else if (count = sPushBlockGroupLayouts.layouts[entity->unk_514.part16.spawnParam0]->blockCount, count == 0)
     {
         return 0;
     }
 
-    for (var_r3 = 0; var_r3 < temp_r3_2; var_r3++)
+    for (i = 0; i < count; i++)
     {
-        temp_r2 = &gEwramData->entityData[var_r3[param_0->unk_4F8.unk_4F8_arr8]];
-        var_2 = temp_r2->unk_528.unk_528_32 - var_0;
-        if (var_2 < 0x200000)
+        block = &gEwramData->entityData[i[entity->unk_4F8.bytes]];
+        dy = block->posY.whole - screenY;
+        if (dy < 0x200000)
         {
-            temp_r0 = temp_r2->unk_524.unk_524_32 - var_1;
-            if (temp_r0 >= -0x100000 && temp_r0 < 0x100000)
+            dx = block->posX.whole - screenX;
+            if (dx >= -0x100000 && dx < 0x100000)
             {
-                var_4 = temp_r0 + 0x100000;
-                if (var_r6 <= var_4)
+                offset = dx + 0x100000;
+                if (correction <= offset)
                 {
-                    var_r6 = var_4 - 1;
-                    var_sb = temp_r2;
+                    correction = offset - 1;
+                    nearest = block;
                 }
             }
         }
     }
 
-    temp_r4_2 = gEwramData->unk_13110.unk_13110;
-    if ((temp_r4_2->unk_4F4.unk_4F4_32 & 0x400) && (temp_r4_2->unk_4EE != 3))
+    playerEntity = gEwramData->playerState.player;
+    if ((playerEntity->unk_4F4.whole & 0x400) && (playerEntity->state != 3))
     {
-        var_r6 = 0;
+        correction = 0;
     }
-    if ((var_6) && (var_sb != NULL))
+    if ((pushing) && (nearest != NULL))
     {
-        var_sb->unk_4FC.unk_4FC_32 |= 1;
+        nearest->unk_4FC.whole |= 1;
     }
 
-    return (var_r6 < 0) ? (s16)(-(-var_r6 >> 0x10)) : (s16)(var_r6 >> 0x10);
+    return (correction < 0) ? (s16)(-(-correction >> 0x10)) : (s16)(correction >> 0x10);
 }
 
 /**
- * @brief 33AC0 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @return s16 To document
+ * @brief Solid-object left-wall callback: return the rightward push out of
+ * the nearest group block and mark it to move left. No push
+ * while the player is crouching outside state 3.
  */
-s16 sub_08033AC0(struct EwramData_EntityData *param_0, s16 param_1, s16 param_2)
+s16 PushBlockGroup_WallLeftCorrection(struct EwramData_EntityData *entity, s16 x, s16 y)
 {
-    return sub_08033AC0_inline_0(param_0, param_1, param_2);
+    return PushBlockGroup_WallLeftCorrectionInline(entity, x, y);
 }
 
 /**
- * @brief 33BFC | To document
- * 
- * @param param_0 To document
+ * @brief Unreferenced: delete the push-block group unless its 0x53D bit 2
+ * (keep-alive) is set.
  */
-void sub_08033BFC(struct EwramData_EntityData *param_0)
+void PushBlockGroup_DeleteIfOffscreen(struct EwramData_EntityData *entity)
 {
-    if (!(param_0->unk_53D_2))
+    if (!(entity->roomActive))
     {
-        sub_08033C18(param_0);
+        PushBlockGroup_Delete(entity);
     }
 }
 
 /**
- * @brief 33C18 | To document
- * 
- * @param param_0 To document
+ * @brief Request deletion of all group blocks and the group, and clear
+ * the player solid-object slot.
  */
-void sub_08033C18(struct EwramData_EntityData *param_0)
+void PushBlockGroup_Delete(struct EwramData_EntityData *entity)
 {
-    s32 var_r2;
-    s32 temp_r4;
-    struct EwramData_EntityData *temp_r1;
+    s32 i;
+    s32 count;
+    struct EwramData_EntityData *block;
 
-    if (param_0 != NULL)
+    if (entity != NULL)
     {
-        temp_r4 = sUnk_080E1DA8.unk_4[param_0->unk_514.unk_514_16.unk_514]->unk_0;
+        count = sPushBlockGroupLayouts.layouts[entity->unk_514.part16.spawnParam0]->blockCount;
 
-        for (var_r2 = 0; var_r2 < temp_r4; var_r2++)
+        for (i = 0; i < count; i++)
         {
-            temp_r1 = &gEwramData->entityData[var_r2[param_0->unk_4F8.unk_4F8_arr8]];
-            temp_r1->unk_53D_3 = 1;
+            block = &gEwramData->entityData[i[entity->unk_4F8.bytes]];
+            block->deleteRequested = 1;
         }
-        param_0->unk_53D_3 = 1;
-        sub_080220B4();
+        entity->deleteRequested = 1;
+        Player_ClearSolidObject();
     }
 }
 
 /**
  * @brief 33C84 | To document
  * 
- * @param param_0 To document
+ * @param entity To document
  */
-void Object01Create(struct EwramData_EntityData *param_0)
+void Object01Create(struct EwramData_EntityData *entity)
 {
-    sub_08033254(param_0);
+    PushBlockGroup_Create(entity);
 }
 
 /**
  * @brief 33C90 | To document
  * 
- * @param param_0 To document
+ * @param entity To document
  */
-void Object01Update(struct EwramData_EntityData *param_0)
+void Object01Update(struct EwramData_EntityData *entity)
 {
-    if (!(param_0->unk_53D_2))
+    if (!(entity->roomActive))
     {
-        sub_08033C18(param_0);
+        PushBlockGroup_Delete(entity);
     }
 }

@@ -34,22 +34,22 @@
 #include "structs/main.h"
 
 /**
- * @brief CB00 | To document
- * 
+ * @brief BG scroll mode 14: H-blank BG3 horizontal offsets scaled by the play
+ * timer, decreasing down the top 80% of the screen and zero below.
  */
-void sub_0800CB00(void)
+void BgEffect_Bg3ScanlineParallax(void)
 {
     s16 *hBlankBuf;
-    s32 temp_r5;
+    s32 timer;
     s32 scanline;
 
-    temp_r5 = gEwramData->unk_60.unk_4C8;
+    timer = gEwramData->gameState.bgEffectFrameCounter;
     hBlankBuf = gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer];
     HBlankEffectSetup(0, SCREEN_SIZE_Y, 2, REG_BG3HOFS);
 
     for (scanline = 0; scanline < (s32)(SCREEN_SIZE_Y * 0.8f); scanline++)
     {
-        *hBlankBuf++ = (temp_r5 * (0x40 - scanline / 2)) / 0x10;
+        *hBlankBuf++ = (timer * (0x40 - scanline / 2)) / 0x10;
     }
 
     for (scanline = 0; scanline < (s32)(SCREEN_SIZE_Y * 0.2f); scanline++)
@@ -61,72 +61,66 @@ void sub_0800CB00(void)
 }
 
 /**
- * @brief CB8C | To document
- * 
- * @param bgNum To document
- * @param param_1 To document
- * @param param_2 To document
- * @param param_3 To document
+ * @brief H-blank sine wave on the BG horizontal offset for scanlines
+ * [start, start + length); the wave grows with depth up to the
+ * amplitude step count. Other lines keep the BG offset.
  */
-void sub_0800CB8C(s32 bgNum, s32 param_1, s32 param_2, s32 param_3)
+void BgEffect_DeepeningHWave(s32 bgNum, s32 top, s32 height, s32 depth)
 {
     u32 frameCtr;
-    struct EwramData_unkA078 *sp8;
-    s32 temp_r0;
+    struct BgLayerState *bg;
+    s32 level;
     s32 scanline;
-    s32 var_sb;
-    struct BgOffset *temp_r7;
+    s32 bottom;
+    struct BgOffset *bgOfs;
     u16 *hBlankBuf;
 
     frameCtr = gEwramData->frameCounter;
-    var_sb = param_1 + param_2;
+    bottom = top + height;
     hBlankBuf = gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer];
 
-    temp_r7 = &gDisplayRegisters.bgOfs[bgNum];
-    sp8 = &gEwramData->bgInfo[bgNum];
+    bgOfs = &gDisplayRegisters.bgOfs[bgNum];
+    bg = &gEwramData->bgInfo[bgNum];
 
-    if (var_sb > SCREEN_SIZE_Y)
+    if (bottom > SCREEN_SIZE_Y)
     {
-        var_sb = SCREEN_SIZE_Y;
+        bottom = SCREEN_SIZE_Y;
     }
     HBlankEffectSetup(0, SCREEN_SIZE_Y, 2, (struct BgOffset *)REG_BG0HOFS + bgNum);
 
-    for (scanline = 0; scanline < param_1; scanline++)
+    for (scanline = 0; scanline < top; scanline++)
     {
-        *hBlankBuf++ = temp_r7->hOfs;
+        *hBlankBuf++ = bgOfs->hOfs;
     }
 
-    for (scanline = param_1; scanline < var_sb; scanline++)
+    for (scanline = top; scanline < bottom; scanline++)
     {
-        temp_r0 = (param_3 * (scanline - param_1)) / param_2;
-        *hBlankBuf++ = (sub_080009E4(((sp8->yPos.part16.integer + scanline) << 13) + (frameCtr << (10 - temp_r0))) >> ((temp_r0 >> 1) + 15)) + temp_r7->hOfs;
+        level = (depth * (scanline - top)) / height;
+        *hBlankBuf++ = (Sin(((bg->yPos.part16.integer + scanline) << 13) + (frameCtr << (10 - level))) >> ((level >> 1) + 15)) + bgOfs->hOfs;
     }
 
     for (; scanline < SCREEN_SIZE_Y; scanline++)
     {
-        *hBlankBuf++ = temp_r7->hOfs;
+        *hBlankBuf++ = bgOfs->hOfs;
     }
     
     gEwramData->hBlankEffect.requestStart = 1;
 }
 
 /**
- * @brief CC90 | To document
- * 
- * @param bgNum To document
- * @param param_1 To document
- * @param param_2 To document
- * @param param_3 To document
+ * @brief H-blank sine wave of the given amplitude on the BG horizontal
+ * offset between map rows top..bottom (clipped to the screen),
+ * animated by the frame counter.
  */
-void sub_0800CC90(s32 bgNum, s32 param_1, s32 param_2, s32 param_3)
+void BgEffect_HWaveInRange(s32 bgNum, s32 top, s32 bottom, s32 amplitude)
 {
-    s32 var_r2;
+    s32 height;
     s32 scanline;
     struct BgOffset *bgOfs;
     u16 *hBlankBuf;
     s32 frameCtr;
-    struct EwramData_unkA078 *bgInfo;
-    s32 var_0;
+    struct BgLayerState *bgInfo;
+    s32 wave;
 
     frameCtr = gEwramData->frameCounter;
     hBlankBuf = gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer];
@@ -134,39 +128,39 @@ void sub_0800CC90(s32 bgNum, s32 param_1, s32 param_2, s32 param_3)
     bgOfs = &gDisplayRegisters.bgOfs[bgNum];
     bgInfo = &gEwramData->bgInfo[bgNum];
 
-    var_r2 = param_2 - param_1;
-    param_1 = param_1 - bgInfo->yPos.part16.integer;
-    if (param_1 < 0)
+    height = bottom - top;
+    top = top - bgInfo->yPos.part16.integer;
+    if (top < 0)
     {
-        param_1 = 0;
+        top = 0;
     }
-    else if (param_1 > SCREEN_SIZE_Y)
+    else if (top > SCREEN_SIZE_Y)
     {
-        param_1 = SCREEN_SIZE_Y;
-    }
-
-    if ((param_1 + var_r2) > SCREEN_SIZE_Y)
-    {
-        var_r2 = SCREEN_SIZE_Y - param_1;
+        top = SCREEN_SIZE_Y;
     }
 
-    param_2 = param_1 + var_r2;
-    if (param_2 > SCREEN_SIZE_Y)
+    if ((top + height) > SCREEN_SIZE_Y)
     {
-        param_2 = SCREEN_SIZE_Y;
+        height = SCREEN_SIZE_Y - top;
+    }
+
+    bottom = top + height;
+    if (bottom > SCREEN_SIZE_Y)
+    {
+        bottom = SCREEN_SIZE_Y;
     }
     HBlankEffectSetup(0, SCREEN_SIZE_Y, 2, (struct BgOffset *)REG_BG0HOFS + bgNum);
 
-    for (scanline = 0; scanline < param_1; scanline++)
+    for (scanline = 0; scanline < top; scanline++)
     {
         *hBlankBuf++ = bgOfs->hOfs;
     }
     frameCtr = frameCtr << 9;
 
-    for (scanline = param_1; scanline < param_2; scanline++)
+    for (scanline = top; scanline < bottom; scanline++)
     {
-        var_0 = sub_080009E4(((bgInfo->yPos.part16.integer + scanline) << 0xC) + (frameCtr));
-        *hBlankBuf++ = ((param_3 * var_0) >> 0x10) + bgOfs->hOfs;
+        wave = Sin(((bgInfo->yPos.part16.integer + scanline) << 0xC) + (frameCtr));
+        *hBlankBuf++ = ((amplitude * wave) >> 0x10) + bgOfs->hOfs;
     }
 
     for (; scanline < SCREEN_SIZE_Y; scanline++)
@@ -178,59 +172,56 @@ void sub_0800CC90(s32 bgNum, s32 param_1, s32 param_2, s32 param_3)
 }
 
 /**
- * @brief CDAC | To document
- * 
- * @param bgNum To document
- * @param param_1 To document
- * @param param_2 To document
+ * @brief H-blank horizontal skew growing linearly between map rows
+ * top..bottom, modulated by a sine of the frame counter (slope 8).
  */
-void sub_0800CDAC(s32 bgNum, s32 param_1, s32 param_2)
+void BgEffect_SkewWave(s32 bgNum, s32 top, s32 bottom)
 {
     u32 frameCtr;
-    s32 sp8;
+    s32 baseWave;
     s16 *hBlankBuf;
     s32 scanline;
-    s32 var_sb;
+    s32 height;
     struct BgOffset *bgOfs;
-    struct EwramData_unkA078 *bgInfo;
-    s32 var_0;
-    s32 var_1;
+    struct BgLayerState *bgInfo;
+    s32 wave;
+    s32 offset;
 
     frameCtr = gEwramData->frameCounter;
     hBlankBuf = gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer];
     bgOfs = &gDisplayRegisters.bgOfs[bgNum];
     bgInfo = &gEwramData->bgInfo[bgNum];
 
-    var_sb = param_2 - param_1;
-    param_1 = param_1 - bgInfo->yPos.part16.integer;
-    if (param_1 < 0)
+    height = bottom - top;
+    top = top - bgInfo->yPos.part16.integer;
+    if (top < 0)
     {
-        param_1 = 0;
+        top = 0;
     }
-    else if (param_1 > SCREEN_SIZE_Y)
+    else if (top > SCREEN_SIZE_Y)
     {
-        param_1 = SCREEN_SIZE_Y;
+        top = SCREEN_SIZE_Y;
     }
-    if ((param_1 + var_sb) > SCREEN_SIZE_Y)
+    if ((top + height) > SCREEN_SIZE_Y)
     {
-        var_sb = SCREEN_SIZE_Y - param_1;
+        height = SCREEN_SIZE_Y - top;
     }
-    param_2 = param_1 + var_sb;
+    bottom = top + height;
 
     HBlankEffectSetup(0, SCREEN_SIZE_Y, 2, (struct BgOffset *)REG_BG0HOFS + bgNum);
-    sp8 = sub_080009E4(frameCtr << 0xC);
+    baseWave = Sin(frameCtr << 0xC);
 
     for (scanline = 0; scanline < SCREEN_SIZE_Y; scanline++)
     {
-        if ((scanline < param_1) || (scanline > param_2))
+        if ((scanline < top) || (scanline > bottom))
         {
             *hBlankBuf = bgOfs->hOfs;
         }
         else
         {
-            var_0 = sub_080009E4((s32) (((-(param_1 << 0xC)) + 0x1000 * scanline) + (frameCtr << 0xD)) >> 2);
-            var_1 = 8 * scanline + param_1 * -8;
-            *hBlankBuf = bgOfs->hOfs + ((var_1 - ((var_1 * (var_0 + sp8)) >> 0x13)) / var_sb);
+            wave = Sin((s32) (((-(top << 0xC)) + 0x1000 * scanline) + (frameCtr << 0xD)) >> 2);
+            offset = 8 * scanline + top * -8;
+            *hBlankBuf = bgOfs->hOfs + ((offset - ((offset * (wave + baseWave)) >> 0x13)) / height);
         }
         hBlankBuf++;
     }
@@ -239,68 +230,64 @@ void sub_0800CDAC(s32 bgNum, s32 param_1, s32 param_2)
 }
 
 /**
- * @brief CED4 | To document
- * 
- * @param bgNum To document
- * @param param_1 To document
- * @param param_2 To document
+ * @brief Like BgEffect_SkewWave with slope 12, animated by the play timer.
  */
-void sub_0800CED4(s32 bgNum, s32 param_1, s32 param_2)
+void BgEffect_SkewWaveSteep(s32 bgNum, s32 top, s32 bottom)
 {
-    s32 sp4;
+    s32 baseWave;
     s16 *hBlankBuf;
     s32 temp_r4_2;
     s32 var_r4;
     s32 scanline;
     s32 var_r7;
-    s32 var_sb;
+    s32 height;
     struct BgOffset *bgOfs;
-    s32 temp_r4;
+    s32 phase;
     u8 *temp_r1_2;
-    struct EwramData_unkA078 *bgInfo;
-    s32 var_1;
-    s32 var_2;
-    s32 var_3;
-    s32 var_4;
+    struct BgLayerState *bgInfo;
+    s32 offset;
+    s32 angle;
+    s32 wave;
+    s32 skew;
 
-    temp_r4 = gEwramData->unk_60.unk_4C8;
+    phase = gEwramData->gameState.bgEffectFrameCounter;
     hBlankBuf = gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer];
     bgOfs = &gDisplayRegisters.bgOfs[bgNum];
     bgInfo = &gEwramData->bgInfo[bgNum];
 
-    var_sb = param_2 - param_1;
-    param_1 = param_1 - bgInfo->yPos.part16.integer;
-    if (param_1 < 0)
+    height = bottom - top;
+    top = top - bgInfo->yPos.part16.integer;
+    if (top < 0)
     {
-        param_1 = 0;
+        top = 0;
     }
-    else if (param_1 > SCREEN_SIZE_Y)
+    else if (top > SCREEN_SIZE_Y)
     {
-        param_1 = SCREEN_SIZE_Y;
+        top = SCREEN_SIZE_Y;
     }
-    if ((param_1 + var_sb) > SCREEN_SIZE_Y)
+    if ((top + height) > SCREEN_SIZE_Y)
     {
-        var_sb = SCREEN_SIZE_Y - param_1;
+        height = SCREEN_SIZE_Y - top;
     }
-    param_2 = param_1 + var_sb;
+    bottom = top + height;
 
     HBlankEffectSetup(0, SCREEN_SIZE_Y, 2, (struct BgOffset *)REG_BG0HOFS + bgNum);
-    temp_r4 = temp_r4 << 9;
-    sp4 = sub_080009E4(temp_r4);
+    phase = phase << 9;
+    baseWave = Sin(phase);
 
     for (scanline = 0; scanline < SCREEN_SIZE_Y; scanline++)
     {
-        if ((scanline < param_1) || (scanline > param_2))
+        if ((scanline < top) || (scanline > bottom))
         {
             *hBlankBuf = bgOfs->hOfs;
         }
         else
         {
-            var_1 = (scanline - param_1) * 0xC;
-            var_2 = (scanline - param_1) << 0xC;
-            var_3 = sub_080009E4((temp_r4 + var_2) >> 2);
-            var_4 = (var_1 * (var_3 + sp4)) >> 0x13;
-            *hBlankBuf = bgOfs->hOfs + ((var_1 - var_4) / var_sb);
+            offset = (scanline - top) * 0xC;
+            angle = (scanline - top) << 0xC;
+            wave = Sin((phase + angle) >> 2);
+            skew = (offset * (wave + baseWave)) >> 0x13;
+            *hBlankBuf = bgOfs->hOfs + ((offset - skew) / height);
         }
         *hBlankBuf++;
     }
@@ -309,293 +296,290 @@ void sub_0800CED4(s32 bgNum, s32 param_1, s32 param_2)
 }
 
 /**
- * @brief D000 | To document
- * 
+ * @brief BG scroll mode 18: H-blank BG2 affine parameters giving a scrolling
+ * ceiling (upper 128 lines) and floor perspective.
  */
-void sub_0800D000(void)
+void BgEffect_Bg2Perspective(void)
 {
-    s32 temp_r0;
-    s32 temp_r0_2;
+    s32 sx;
+    s32 dist;
     s32 scanline;
-    s32 var_r6;
+    s32 texY;
     struct BgAffineDstData *hBlankBuf;
-    u32 temp_r8;
+    u32 scroll;
     struct BgAffineSrcData src;
 
-    temp_r8 = gEwramData->unk_60.unk_4C8;
+    scroll = gEwramData->gameState.bgEffectFrameCounter;
     hBlankBuf = (struct BgAffineDstData *)&gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer];
-    var_r6 = 0;
+    texY = 0;
     HBlankEffectSetup(0, SCREEN_SIZE_Y, 0x10, REG_BG2PA);
 
     for (scanline = 0; scanline < SCREEN_SIZE_Y; scanline++)
     {
-        src.texX = 0x8000 - (0x100 * temp_r8);
+        src.texX = 0x8000 - (0x100 * scroll);
         src.scrX = 0x78;
         src.scrY = 0;
         if (scanline < 0x80)
         {
-            temp_r0 = (0x80 - scanline) << 5; // Fake?
-            temp_r0 = Div(0x80000, ((0x80 - scanline) << 5) + 0x400);
-            src.sx = temp_r0;
-            var_r6 -= temp_r0;
-            src.texY = var_r6 - (temp_r8 << 7);
+            dist = (0x80 - scanline) << 5;
+            sx = Div(0x80000, dist + 0x400);
+            src.sx = sx;
+            texY -= sx;
+            src.texY = texY - (scroll << 7);
         }
         else
         {
-            temp_r0_2 = (scanline << 7); // Fake?
-            temp_r0_2 = Div(0x80000, (scanline << 7) - 0x3C00);
-            src.sx = temp_r0_2;
-            var_r6 -= temp_r0_2 * 2;
-            src.texY = var_r6 + (temp_r8 << 7);
+            dist = scanline << 7;
+            sx = Div(0x80000, dist - 0x3C00);
+            src.sx = sx;
+            texY -= sx * 2;
+            src.texY = texY + (scroll << 7);
         }
         src.sy = 0x100;
         src.alpha = 0;
         BgAffineSet(&src, hBlankBuf, 1);
-        hBlankBuf += 1;
+        hBlankBuf++;
     }
 
     gEwramData->hBlankEffect.requestStart = 1;
 }
 
 /**
- * @brief D0F8 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
+ * @brief Set the BG2 affine transform around (x, y): rotate by
+ * play timer * speed and pulse the horizontal scale.
  */
-void sub_0800D0F8(s32 param_0, s32 param_1, s32 param_2)
+void BgEffect_Bg2RotateAndPulse(s32 scrX, s32 scrY, s32 rotateSpeed)
 {
-    u32 temp_r4;
+    u32 timer;
     struct BgAffineSrcData src;
 
-    temp_r4 = gEwramData->unk_60.unk_4C8;
+    timer = gEwramData->gameState.bgEffectFrameCounter;
     src.texX = 0x8000;
     src.texY = 0x8000;
-    src.scrX = param_0;
-    src.scrY = param_1;
-    src.sx = (sub_080009E4(temp_r4 << 7) >> 8) + 0x100;
+    src.scrX = scrX;
+    src.scrY = scrY;
+    src.sx = (Sin(timer << 7) >> 8) + 0x100;
     src.sy = 0x100;
-    src.alpha = (temp_r4 * param_2) << 7;
+    src.alpha = (timer * rotateSpeed) << 7;
     BgAffineSet(&src, (struct BgAffineDstData *) &gDisplayRegisters.bg2PA, 1);
 }
 
 /**
- * @brief D154 | To document
- * 
+ * @brief Save display control, blend settings, H-blank state, BG control and
+ * window registers in gameState.unk_68/unk_78 before a menu screen.
  */
-void sub_0800D154(void)
+void Display_SaveState(void)
 {
-    struct EwramData_unk60 *unk_60;
-    struct EwramData_unk68 *unk_68;
+    struct GameState *gameState;
+    struct SavedDisplayState *saved;
 
-    unk_60 = &gEwramData->unk_60;
-    unk_68 = &unk_60->unk_68;
+    gameState = &gEwramData->gameState;
+    saved = &gameState->savedDisplay;
 
-    unk_68->unk_68 = gUnk_03002CB0.dispCnt;
-    unk_68->unk_6A = gDisplayRegisters.bldCnt;
-    unk_68->unk_6C = gDisplayRegisters.bldAlpha;
-    unk_68->unk_6E_0 = gUnk_03002CB0.unk_2;
-    unk_68->unk_6E_7 = gEwramData->hBlankEffect.requestStart;
-    unk_68->unk_6F = gEwramData->hBlankEffect.vcountSetting;
+    saved->displayControl = gUnk_03002CB0.dispCnt;
+    saved->blendControl = gDisplayRegisters.bldCnt;
+    saved->blendAlpha = gDisplayRegisters.bldAlpha;
+    saved->vcountDmaMode = gUnk_03002CB0.vcountDmaMode;
+    saved->hBlankRequestStart = gEwramData->hBlankEffect.requestStart;
+    saved->hBlankVcountSetting = gEwramData->hBlankEffect.vcountSetting;
 
-    DMA_COPY_32(3, &gDisplayRegisters.bgCnt, &unk_60->unk_68.unk_70, sizeof(gDisplayRegisters.bgCnt));
-    DMA_COPY_32(3, &gDisplayRegisters.win0H, &unk_60->unk_78, sizeof(unk_60->unk_78));
+    DMA_COPY_32(3, &gDisplayRegisters.bgCnt, &gameState->savedDisplay.bgControlBytes, sizeof(gDisplayRegisters.bgCnt));
+    DMA_COPY_32(3, &gDisplayRegisters.win0H, &gameState->savedWindowRegisters, sizeof(gameState->savedWindowRegisters));
 }
 
 /**
- * @brief D1F0 | To document
- * 
+ * @brief Restore the display state saved by Display_SaveState.
  */
-void sub_0800D1F0(void)
+void Display_RestoreState(void)
 {
-    struct EwramData_unk60 *unk_60;
-    struct EwramData_unk68 *unk_68;
+    struct GameState *gameState;
+    struct SavedDisplayState *saved;
 
-    unk_60 = &gEwramData->unk_60;
-    unk_68 = &unk_60->unk_68;
+    gameState = &gEwramData->gameState;
+    saved = &gameState->savedDisplay;
 
-    gUnk_03002CB0.dispCnt = unk_68->unk_68;
-    gDisplayRegisters.bldCnt = unk_68->unk_6A;
-    gDisplayRegisters.bldAlpha = unk_68->unk_6C;
-    gUnk_03002CB0.unk_2 = unk_68->unk_6E_0;
-    gEwramData->hBlankEffect.requestStart = unk_68->unk_6E_7;
-    gEwramData->hBlankEffect.vcountSetting = unk_68->unk_6F;
+    gUnk_03002CB0.dispCnt = saved->displayControl;
+    gDisplayRegisters.bldCnt = saved->blendControl;
+    gDisplayRegisters.bldAlpha = saved->blendAlpha;
+    gUnk_03002CB0.vcountDmaMode = saved->vcountDmaMode;
+    gEwramData->hBlankEffect.requestStart = saved->hBlankRequestStart;
+    gEwramData->hBlankEffect.vcountSetting = saved->hBlankVcountSetting;
     
-    DMA_COPY_32(3, &unk_60->unk_68.unk_70, &gDisplayRegisters.bgCnt, sizeof(unk_60->unk_68.unk_70));
-    DMA_COPY_32(3, &unk_60->unk_78, &gDisplayRegisters.win0H, sizeof(unk_60->unk_78));
+    DMA_COPY_32(3, &gameState->savedDisplay.bgControlBytes, &gDisplayRegisters.bgCnt, sizeof(gameState->savedDisplay.bgControlBytes));
+    DMA_COPY_32(3, &gameState->savedWindowRegisters, &gDisplayRegisters.win0H, sizeof(gameState->savedWindowRegisters));
 }
 
-static inline s32 sub_0800D288_inline_0(s32 param_0, s32 param_1, s32 param_2, s32 param_3, s32 param_4)
+static inline s32 Bg_ScaleScroll(s32 value, s32 range, s32 scale, s32 valueOffset, s32 rangeOffset)
 {
-    return (param_2 * (param_0 - param_3)) / (param_1 - param_4);
+    return (scale * (value - valueOffset)) / (range - rangeOffset);
 }
 
 /**
- * @brief D288 | To document
- * 
+ * @brief Per-frame BG update: apply the scroll mode (bgInfo unk_18) of BG1
+ * (mode 0x1A) and BG2/BG3 - parallax ratios, autoscroll, H-blank
+ * waves and affine effects - from the BG1 scroll velocity.
  */
-void sub_0800D288(void)
+void Bg_UpdateScrollModes(void)
 {
-    struct EwramData_unkA078 *sp28;
-    s32 sp2C;
-    s32 sp30;
-    s32 sp34;
-    u16 *sp38;
-    s16 *var_r4;
-    s16 *var_r4_2;
+    struct BgLayerState *bg;
+    s32 scrollX;
+    s32 scrollY;
+    s32 waveShift;
+    u16 *waveBase;
+    s16 *hblank;
+    s16 *waveLine;
     s16 *var_r4_3;
-    s16 *var_r6_2;
-    s32 temp_r2_2;
-    s32 var_r1;
-    s32 var_r1_5;
-    s32 var_r1_6;
-    s32 var_r1_7;
-    s32 var_r2_2;
-    s32 var_r2_3;
-    s32 var_r6;
-    s32 var_r6_3;
-    s32 var_r6_4;
-    s32 var_r7;
+    s16 *swayLine;
+    s32 sway;
+    s32 i;
+    s32 waveFreq;
+    s32 k;
+    s32 rippleFreq;
+    s32 direction;
+    s32 rippleShift;
+    s32 j;
+    s32 centerY;
+    s32 line;
+    s32 centerX;
     s32 bgNum;
-    struct BgOffset *temp_r3;
-    u16 *temp_r4;
-    u32 temp_r5;
-    s32 temp_r6;
-    u32 temp_sb;
-    u32 temp_sl;
-    struct EwramData_unkA078 *temp_r7_2;
+    struct BgOffset *ofs;
+    u16 *vOfs;
+    u32 spin;
+    s32 step;
+    u32 wavePhase;
+    u32 ripplePhase;
+    struct BgLayerState *layer;
     struct BgAffineSrcData src;
     struct BgAffineSrcData src1;
-    u16 *var_0;
-    u16 *var_1;
+    u16 *swayBase;
+    u16 *rippleBase;
 
-    temp_r7_2 = sp28 = &gEwramData->bgInfo[1];
-    sp2C = sp28->xVel.whole;
-    sp30 = sp28->yVel.whole;
-    if (sp28->unk_18 == 0x1A)
+    layer = bg = &gEwramData->bgInfo[1];
+    scrollX = bg->xVel.whole;
+    scrollY = bg->yVel.whole;
+    if (bg->scrollMode == 0x1A)
     {
-        sub_0800CDAC(1, 0x450, 0x4A0);
+        BgEffect_SkewWave(1, 0x450, 0x4A0);
     }
 
     for (bgNum = 2; bgNum < 4; bgNum++)
     {
-        temp_r7_2 = &gEwramData->bgInfo[bgNum];
-        temp_r3 = &gDisplayRegisters.bgOfs[bgNum];
-        temp_r4 = &gDisplayRegisters.bgOfs[bgNum].vOfs;
-        switch (temp_r7_2->unk_18)
+        layer = &gEwramData->bgInfo[bgNum];
+        ofs = &gDisplayRegisters.bgOfs[bgNum];
+        vOfs = &gDisplayRegisters.bgOfs[bgNum].vOfs;
+        switch (layer->scrollMode)
         {
             case 1:
-                sub_0803FBBC(bgNum, sp2C, sp30);
+                BgMap_ScrollWithMargin(bgNum, scrollX, scrollY);
                 break;
 
             case 5:
-                sub_0803FBBC(bgNum, sp2C * 2, sp30);
+                BgMap_ScrollWithMargin(bgNum, scrollX * 2, scrollY);
                 break;
 
             case 6:
-                sub_0803FBBC(bgNum, sp2C, sp30 * 2);
+                BgMap_ScrollWithMargin(bgNum, scrollX, scrollY * 2);
                 break;
 
             case 7:
-                sub_0803FBBC(bgNum, sp2C * 2, sp30 * 2);
+                BgMap_ScrollWithMargin(bgNum, scrollX * 2, scrollY * 2);
                 break;
 
             case 2:
-                sub_0803FBBC(bgNum, sp2C >> 1, sp30);
+                BgMap_ScrollWithMargin(bgNum, scrollX >> 1, scrollY);
                 break;
 
             case 3:
-                sub_0803FBBC(bgNum, sp2C, sp30 >> 1);
+                BgMap_ScrollWithMargin(bgNum, scrollX, scrollY >> 1);
                 break;
 
             case 4:
-                sub_0803FBBC(bgNum, sp2C >> 1, sp30 >> 1);
+                BgMap_ScrollWithMargin(bgNum, scrollX >> 1, scrollY >> 1);
                 break;
 
             case 8:
-                temp_r3->hOfs += 1;
+                ofs->hOfs += 1;
                 break;
 
             case 9:
-                temp_r3->hOfs += ~sp2C;
+                ofs->hOfs += ~scrollX;
                 break;
 
             case 10:
-                if ((gEwramData->unk_60.unk_33C[3] & 0x02000000) != 0)
+                if ((gEwramData->gameState.gameFlagsTail[1] & 0x02000000) != 0)
                 {
-                    *temp_r4 -= 2;
+                    *vOfs -= 2;
                 }
                 break;
 
             case 11:
-                sub_0803FBBC(bgNum, sub_0800D288_inline_0(temp_r7_2->unk_14, sp28->unk_14, sp2C, 0xF0, 0xF0), sp30);
+                BgMap_ScrollWithMargin(bgNum, Bg_ScaleScroll(layer->pixelWidth, bg->pixelWidth, scrollX, 0xF0, 0xF0), scrollY);
                 break;
 
             case 12:
-                sub_0803FBBC(bgNum, sp2C, sub_0800D288_inline_0(temp_r7_2->unk_16, sp28->unk_16, sp30, 0xD0, 0xD0));
+                BgMap_ScrollWithMargin(bgNum, scrollX, Bg_ScaleScroll(layer->pixelHeight, bg->pixelHeight, scrollY, 0xD0, 0xD0));
                 break;
 
             case 13:
-                sub_0803FBBC(bgNum, sub_0800D288_inline_0(temp_r7_2->unk_14, sp28->unk_14, sp2C, 0xF0, 0xF0), sub_0800D288_inline_0(temp_r7_2->unk_16, sp28->unk_16, sp30, 0xD0, 0xD0));
+                BgMap_ScrollWithMargin(bgNum, Bg_ScaleScroll(layer->pixelWidth, bg->pixelWidth, scrollX, 0xF0, 0xF0), Bg_ScaleScroll(layer->pixelHeight, bg->pixelHeight, scrollY, 0xD0, 0xD0));
                 break;
 
             case 14:
-                sub_0800CB00();
+                BgEffect_Bg3ScanlineParallax();
                 break;
 
             case 15:
-                sub_0803FBBC(bgNum, sub_0800D288_inline_0(temp_r7_2->unk_14, sp28->unk_14, sp2C, 0xF0, 0xF0), sub_0800D288_inline_0(temp_r7_2->unk_16, sp28->unk_16, sp30, 0xD0, 0xD0));
-                sub_0800CB8C(bgNum, 0, SCREEN_SIZE_Y, 1);
+                BgMap_ScrollWithMargin(bgNum, Bg_ScaleScroll(layer->pixelWidth, bg->pixelWidth, scrollX, 0xF0, 0xF0), Bg_ScaleScroll(layer->pixelHeight, bg->pixelHeight, scrollY, 0xD0, 0xD0));
+                BgEffect_DeepeningHWave(bgNum, 0, SCREEN_SIZE_Y, 1);
                 break;
 
             case 16:
-                sub_0803FBBC(bgNum, sub_0800D288_inline_0(temp_r7_2->unk_14, sp28->unk_14, sp2C, 0xF0, 0xF0), sub_0800D288_inline_0(temp_r7_2->unk_16, sp28->unk_16, sp30, 0xD0, 0xD0));
-                sub_0800CC90(bgNum, 0, SCREEN_SIZE_Y, 2);
+                BgMap_ScrollWithMargin(bgNum, Bg_ScaleScroll(layer->pixelWidth, bg->pixelWidth, scrollX, 0xF0, 0xF0), Bg_ScaleScroll(layer->pixelHeight, bg->pixelHeight, scrollY, 0xD0, 0xD0));
+                BgEffect_HWaveInRange(bgNum, 0, SCREEN_SIZE_Y, 2);
                 break;
 
             case 18:
-                sub_0800D000();
+                BgEffect_Bg2Perspective();
                 break;
 
             case 19:
-                if (!(gEwramData->unk_60.unk_4CC_0) && (gEwramData->unk_60.unk_33C[3] & 0x40000))
+                if (!(gEwramData->gameState.bossRushMode) && (gEwramData->gameState.gameFlagsTail[1] & 0x40000))
                 {
                     gUnk_03002CB0.dispCnt &= ~DCNT_BG2;
                 }
-                sub_0803FBBC(bgNum, sp2C, sp30);
+                BgMap_ScrollWithMargin(bgNum, scrollX, scrollY);
                 break;
 
             case 20:
-                temp_r6 = gEwramData->unk_60.unk_4C8;
-                var_r4 = (s16*)&gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer];
+                step = gEwramData->gameState.bgEffectFrameCounter;
+                hblank = (s16*)&gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer];
                 HBlankEffectSetup(0, SCREEN_SIZE_Y, 2, REG_BG3HOFS);
 
-                for (var_r1 = 0; var_r1 < 0x80; var_r1++)
+                for (i = 0; i < 0x80; i++)
                 {
-                    *var_r4++ = 0;
+                    *hblank++ = 0;
                 }
 
-                for (var_r1 = 0; var_r1 < 8; var_r1++)
+                for (i = 0; i < 8; i++)
                 {
-                    *var_r4++ = temp_r6;
+                    *hblank++ = step;
                 }
 
-                for (var_r1 = 0; var_r1 < 8; var_r1++)
+                for (i = 0; i < 8; i++)
                 {
-                    *var_r4++ = (temp_r6 * 3) >> 1;
+                    *hblank++ = (step * 3) >> 1;
                 }
 
-                for (var_r1 = 0; var_r1 < 0x14; var_r1++)
+                for (i = 0; i < 0x14; i++)
                 {
-                    *var_r4++ = temp_r6 * 2;
+                    *hblank++ = step * 2;
                 }
 
                 gEwramData->hBlankEffect.requestStart = 1;
                 break;
 
             case 21:
-                if (gEwramData->unk_60.unk_33C[3] & 0x02000000)
+                if (gEwramData->gameState.gameFlagsTail[1] & 0x02000000)
                 {
                     src.texX = 0x8000;
                     src.texY = 0x8000;
@@ -603,7 +587,7 @@ void sub_0800D288(void)
                     src.scrY = 0x38;
                     src.sx = 0x80;
                     src.sy = 0x80;
-                    src.alpha = -gEwramData->unk_60.unk_4C8 << 9;
+                    src.alpha = -gEwramData->gameState.bgEffectFrameCounter << 9;
                     BgAffineSet(&src, (struct BgAffineDstData *) &gDisplayRegisters.bg2PA, 1);
                 }
                 else
@@ -613,136 +597,136 @@ void sub_0800D288(void)
                 break;
 
             case 23:
-                sub_0803FBBC(bgNum, sub_0800D288_inline_0(temp_r7_2->unk_14, sp28->unk_14, sp2C, 0xF0, 0xF0), sp30);
-                sub_0800CB8C(bgNum, (s32)(SCREEN_SIZE_Y * 0.7f), (s32)(SCREEN_SIZE_Y * 0.3f), 3);
+                BgMap_ScrollWithMargin(bgNum, Bg_ScaleScroll(layer->pixelWidth, bg->pixelWidth, scrollX, 0xF0, 0xF0), scrollY);
+                BgEffect_DeepeningHWave(bgNum, (s32)(SCREEN_SIZE_Y * 0.7f), (s32)(SCREEN_SIZE_Y * 0.3f), 3);
                 break;
 
             case 24:
-                sub_0803FBBC(bgNum, sp2C, sp30);
-                sub_0800CC90(bgNum, 0xB0, 0x200, 1);
+                BgMap_ScrollWithMargin(bgNum, scrollX, scrollY);
+                BgEffect_HWaveInRange(bgNum, 0xB0, 0x200, 1);
                 break;
 
             case 25:
-                sub_0800CC90(bgNum, 0x70, 0x100, 1);
+                BgEffect_HWaveInRange(bgNum, 0x70, 0x100, 1);
                 break;
 
             case 26:
-                sub_0803FBBC(bgNum, sp2C, sp30);
+                BgMap_ScrollWithMargin(bgNum, scrollX, scrollY);
                 break;
 
             case 27:
-                temp_r5 = gEwramData->unk_60.unk_4C8;
+                spin = gEwramData->gameState.bgEffectFrameCounter;
                 src1.texX = 0x8000;
                 src1.texY = 0x8000;
-                src1.scrX = 0x100 - sp28->xPos.part16.integer;
-                src1.scrY = 0x100 - sp28->yPos.part16.integer;
-                src1.sy = src1.sx = ((sub_080009E4(temp_r5 * 0x10) * 3) >> 0xD) + 0x58;
-                src1.alpha = -temp_r5 << 7;
+                src1.scrX = 0x100 - bg->xPos.part16.integer;
+                src1.scrY = 0x100 - bg->yPos.part16.integer;
+                src1.sy = src1.sx = ((Sin(spin * 0x10) * 3) >> 0xD) + 0x58;
+                src1.alpha = -spin << 7;
                 BgAffineSet(&src1, (struct BgAffineDstData *) &gDisplayRegisters.bg2PA, 1);
                 break;
 
             case 28:
-                sub_0800CED4(bgNum, 0x38, 0x90);
+                BgEffect_SkewWaveSteep(bgNum, 0x38, 0x90);
                 break;
 
             case 29:
-                sub_0800CED4(bgNum, 0x70, 0xCC);
+                BgEffect_SkewWaveSteep(bgNum, 0x70, 0xCC);
                 break;
 
             case 30:
-                sp34 = 1;
-                temp_sb = gEwramData->unk_60.unk_4C8;
-                sp38 = &gDisplayRegisters.bgOfs[bgNum].vOfs;
-                var_r4_2 = (s16*)&gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer];
+                waveShift = 1;
+                wavePhase = gEwramData->gameState.bgEffectFrameCounter;
+                waveBase = &gDisplayRegisters.bgOfs[bgNum].vOfs;
+                waveLine = (s16*)&gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer];
                 HBlankEffectSetup(0, SCREEN_SIZE_Y, 2, (struct BgOffset *)REG_BG0VOFS + bgNum);
 
-                sp34 = 0xD;
-                temp_sb <<= 0xA;
-                var_r1_5 = 0xB;
-                for (var_r6 = 0; var_r6 < SCREEN_SIZE_Y; var_r6++)
+                waveShift = 0xD;
+                wavePhase <<= 0xA;
+                waveFreq = 0xB;
+                for (j = 0; j < SCREEN_SIZE_Y; j++)
                 {
-                    *var_r4_2++ = (sub_080009E4((var_r6 << var_r1_5) + temp_sb) >> sp34) + *sp38;
+                    *waveLine++ = (Sin((j << waveFreq) + wavePhase) >> waveShift) + *waveBase;
                 }
 
                 gEwramData->hBlankEffect.requestStart = 1;
-                temp_r7_2->xPos.whole += sp2C;
-                temp_r3->hOfs = temp_r7_2->xPos.part16.integer;
+                layer->xPos.whole += scrollX;
+                ofs->hOfs = layer->xPos.part16.integer;
                 break;
 
             case 31:
-                sub_0803FBBC(bgNum, sp2C, sp30);
-                var_r6_2 = (s16*)&gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer];
-                var_0 = &gDisplayRegisters.bgOfs[bgNum].hOfs;
+                BgMap_ScrollWithMargin(bgNum, scrollX, scrollY);
+                swayLine = (s16*)&gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer];
+                swayBase = &gDisplayRegisters.bgOfs[bgNum].hOfs;
                 HBlankEffectSetup(0, SCREEN_SIZE_Y, 2, (struct BgOffset *)REG_BG0HOFS + bgNum);
 
-                temp_r2_2 = sub_080009E4(gEwramData->frameCounter << 8) >> 0xF;
-                for (var_r1_6 = 0; var_r1_6 < SCREEN_SIZE_Y; var_r1_6++)
+                sway = Sin(gEwramData->frameCounter << 8) >> 0xF;
+                for (k = 0; k < SCREEN_SIZE_Y; k++)
                 {
-                    *var_r6_2++ = *var_0 + temp_r2_2;
+                    *swayLine++ = *swayBase + sway;
                 }
 
                 gEwramData->hBlankEffect.requestStart = 1;
                 break;
 
             case 32:
-                var_r7 = 0x78;
-                var_r6_3 = 0x50;
-                var_r2_2 = 1;
+                centerX = 0x78;
+                centerY = 0x50;
+                direction = 1;
                 
-                switch (GetRoomFromMapPosition(GetEntityRoomXPositionInteger(gEwramData->unk_13110.unk_13110), GetEntityRoomYPositionInteger(gEwramData->unk_13110.unk_13110)))
+                switch (GetRoomFromMapPosition(GetEntityRoomXPositionInteger(gEwramData->playerState.player), GetEntityRoomYPositionInteger(gEwramData->playerState.player)))
                 {
                     case 0:
-                        var_r7 = 0xD0;
-                        var_r6_3 = 0x30;
-                        var_r2_2 = 1;
+                        centerX = 0xD0;
+                        centerY = 0x30;
+                        direction = 1;
                         break;
 
                     case 16:
-                        var_r7 = 0x78;
-                        var_r6_3 = 0x78;
-                        var_r2_2 = 1;
+                        centerX = 0x78;
+                        centerY = 0x78;
+                        direction = 1;
                         break;
 
                     case 33:
-                        var_r7 = 0x20;
-                        var_r6_3 = 0x68;
-                        var_r2_2 = -1;
+                        centerX = 0x20;
+                        centerY = 0x68;
+                        direction = -1;
                         break;
 
                     case 34:
-                        var_r7 = 0x20;
-                        var_r6_3 = 0x50;
-                        var_r2_2 = -1;
+                        centerX = 0x20;
+                        centerY = 0x50;
+                        direction = -1;
                         break;
 
                     case 35:
-                        var_r7 = 0x20;
-                        var_r6_3 = 0x50;
-                        var_r2_2 = -1;
+                        centerX = 0x20;
+                        centerY = 0x50;
+                        direction = -1;
                         break;
 
                     case 39:
-                        var_r7 = 0x20;
-                        var_r6_3 = 0x10;
-                        var_r2_2 = -1;
+                        centerX = 0x20;
+                        centerY = 0x10;
+                        direction = -1;
                         break;
                 }
-                sub_0800D0F8(var_r7, var_r6_3, var_r2_2);
+                BgEffect_Bg2RotateAndPulse(centerX, centerY, direction);
                 break;
 
             case 36:
-                sub_0803FBBC(bgNum, sp2C, sp30);
-                temp_sl = gEwramData->unk_60.unk_4C8;
-                var_1 = &gDisplayRegisters.bgOfs[bgNum].vOfs;
-                var_r4_2 = (s16*)&gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer];
+                BgMap_ScrollWithMargin(bgNum, scrollX, scrollY);
+                ripplePhase = gEwramData->gameState.bgEffectFrameCounter;
+                rippleBase = &gDisplayRegisters.bgOfs[bgNum].vOfs;
+                waveLine = (s16*)&gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer];
                 HBlankEffectSetup(0, SCREEN_SIZE_Y, 2, (struct BgOffset *)REG_BG0VOFS + bgNum);
 
-                var_r2_3 = 0xE;
-                temp_sl <<= 0xA;
-                var_r1_7 = 0xC;
-                for (var_r6_4 = 0; var_r6_4 < 160; var_r6_4++)
+                rippleShift = 0xE;
+                ripplePhase <<= 0xA;
+                rippleFreq = 0xC;
+                for (line = 0; line < 160; line++)
                 {
-                    *var_r4_2++ = (sub_080009E4((var_r6_4 << var_r1_7) + temp_sl) >> var_r2_3) + *var_1;
+                    *waveLine++ = (Sin((line << rippleFreq) + ripplePhase) >> rippleShift) + *rippleBase;
                 }
 
                 gEwramData->hBlankEffect.requestStart = 1;
@@ -752,13 +736,14 @@ void sub_0800D288(void)
 }
 
 /**
- * @brief DA50 | To document
- * 
+ * @brief Set up BG0 as the HUD/text layer (font graphics, text buffer and
+ * colors), draw the gauge frames, copy current/max HP and MP into the
+ * displayed values and draw both gauges.
  */
-void sub_0800DA50(void)
+void Hud_Init(void)
 {
-    struct EwramData_unk1325C *unk_1325c;
-    struct EwramData_unk60 *unk_60;
+    struct PlayerStatus *status;
+    struct GameState *gameState;
 
     DMA_FILL_32(3, 0, 0x0600E000, 0x800);
     DMA_FILL_32(3, 0, 0x06000000, 0x20);
@@ -767,969 +752,946 @@ void sub_0800DA50(void)
     gDisplayRegisters.bgOfs[0].hOfs = 0;
     gDisplayRegisters.bgOfs[0].vOfs = 6;
 
-    sub_080412DC(VRAM_BASE + 0x5000);
-    sub_08040970(0, 0, 0x1A, 1);
-    sub_080412F0(0xF);
-    sub_08041304(1);
-    sub_0803FD9C((u8 *)0x0827B208, VRAM_BASE + 0x4000, 0);
+    Text_SetTileBuffer(VRAM_BASE + 0x5000);
+    Text8_SetRegion(0, 0, 0x1A, 1);
+    Text_SetForegroundColor(0xF);
+    Text_SetBackgroundColor(1);
+    Gfx_CopyResource((u8 *)0x0827B208, VRAM_BASE + 0x4000, 0);
 
     DMA_FILL_32(3, 0, 0x06005800, 0x1954);
     DMA_FILL_32(3, 0, 0x06005000, 0x2000);
 
-    sub_0803C918((u8 *)0x0820C428, 0, 2, 0xD);
-    sub_0800DB78();
+    BgPalette_LoadRange((u8 *)0x0820C428, 0, 2, 0xD);
+    Hud_DrawGaugeFrames();
 
-    unk_1325c = &gEwramData->unk_1325C;
-    unk_60 = &gEwramData->unk_60;
+    status = &gEwramData->playerStatus;
+    gameState = &gEwramData->gameState;
 
-    unk_60->unk_404 = unk_1325c->currentHP;
-    unk_60->unk_406 = unk_1325c->currentMP;
-    unk_60->unk_408 = unk_1325c->maxHP;
-    unk_60->unk_40A = unk_1325c->maxMP;
+    gameState->hudHP = status->currentHP;
+    gameState->hudMP = status->currentMP;
+    gameState->hudMaxHP = status->maxHP;
+    gameState->hudMaxMP = status->maxMP;
 
-    sub_0800F138(4, 1, unk_60->unk_404, unk_1325c->maxHP, 0);
-    sub_0800F138(4, 2, unk_60->unk_406, unk_1325c->maxMP, 1);
+    Hud_DrawGauge(4, 1, gameState->hudHP, status->maxHP, 0);
+    Hud_DrawGauge(4, 2, gameState->hudMP, status->maxMP, 1);
 }
 
-struct Unk_080E0F74 {
-    s32 unk_0;
-    s32 unk_4;
-    s32 unk_8;
-    s32 unk_C;
-    s32 unk_10;
-    s32 unk_14;
+struct HudGaugeFrameBlock {
+    s32 destinationX;
+    s32 destinationY;
+    s32 sourceTileX;
+    s32 sourceTileY;
+    s32 width;
+    s32 height;
 };
 
-const struct Unk_080E0F74 sUnk_080E0F74[2] = {
+const struct HudGaugeFrameBlock sHudGaugeFrameBlocks[2] = {
     [0] = {
-        .unk_0 = 0,
-        .unk_4 = 0,
-        .unk_8 = 9,
-        .unk_C = 0,
-        .unk_10 = 4,
-        .unk_14 = 5
+        .destinationX = 0,
+        .destinationY = 0,
+        .sourceTileX = 9,
+        .sourceTileY = 0,
+        .width = 4,
+        .height = 5
     },
     [1] = {
-        .unk_0 = 12,
-        .unk_4 = 0,
-        .unk_8 = 13,
-        .unk_C = 0,
-        .unk_10 = 2,
-        .unk_14 = 4
+        .destinationX = 12,
+        .destinationY = 0,
+        .sourceTileX = 13,
+        .sourceTileY = 0,
+        .width = 2,
+        .height = 4
     }
 };
 
 // #define VRAM_E000 ((u16 (*)[0x20])(VRAM_BASE + 0xE000))
 
 /**
- * @brief DB78 | To document
- * 
+ * @brief Write the two gauge frame tile blocks described by sHudGaugeFrameBlocks
+ * into the BG0 tilemap with palette 13.
  */
-void sub_0800DB78(void)
+void Hud_DrawGaugeFrames(void)
 {
     s32 i;
     s32 j;
     s32 k;
-    s32 var_0;
-    s32 var_1;
-    s32 var_2;
-    s32 var_3;
+    s32 x;
+    s32 y;
+    s32 tileX;
+    s32 tileY;
     s32 palette = 0xD;
-    struct Unk_080E0F74 unk_080E0F74[2];
+    struct HudGaugeFrameBlock unk_080E0F74[2];
 
-    memcpy(unk_080E0F74, sUnk_080E0F74, sizeof(unk_080E0F74));
+    memcpy(unk_080E0F74, sHudGaugeFrameBlocks, sizeof(unk_080E0F74));
 
     for (i = 0; i < 2; i++)
     {
-        var_0 = unk_080E0F74[i].unk_0;
-        var_1 = unk_080E0F74[i].unk_4;
-        var_2 = unk_080E0F74[i].unk_8;
-        var_3 = unk_080E0F74[i].unk_C;
-        for (j = 0; j < unk_080E0F74[i].unk_14; j++, var_1++)
+        x = unk_080E0F74[i].destinationX;
+        y = unk_080E0F74[i].destinationY;
+        tileX = unk_080E0F74[i].sourceTileX;
+        tileY = unk_080E0F74[i].sourceTileY;
+        for (j = 0; j < unk_080E0F74[i].height; j++, y++)
         {
-            for (k = 0; k < unk_080E0F74[i].unk_10; k++, var_0++)
+            for (k = 0; k < unk_080E0F74[i].width; k++, x++)
             {
-                *((u16*)(VRAM_BASE + 0xE000) + var_0 + var_1 * 0x20) = (0x200 + k + var_2 + (var_3 + j) * 0x10) | (palette << 12);
+                *((u16*)(VRAM_BASE + 0xE000) + x + y * 0x20) = (0x200 + k + tileX + (tileY + j) * 0x10) | (palette << 12);
                 // VRAM_E000[var_1][var_0] = (0x200 + k + var_2 + (var_3 + j) * 0x10) | (palette << 12);
             }
-            var_0 = unk_080E0F74[i].unk_0;
+            x = unk_080E0F74[i].destinationX;
         }
     }
 }
 
-static inline void sub_0800DC70_inline_0(s32 param_0, s32 param_1, s32 param_2, s32 param_3, s32 param_4)
+/* Draw an 8-tile gauge at (x, y) in BG map 0x0600E000 filled to value/max. */
+static inline void DrawStatGauge(s32 x, s32 y, s32 value, s32 max, s32 isMp)
 {
-    s32 var_r1;
-    u16 *var_r2;
-    s32 var_r3;
-    s32 var_r7;
+    s32 i;
+    u16 *dst;
+    s32 fill;
+    s32 tileBase;
     s32 palette;
 
     palette = 0xD;
-    if (param_4 == 0)
+    if (isMp == 0)
+        tileBase = 0x200;
+    else
+        tileBase = 0x210;
+
+    if (value > 0)
     {
-        var_r7 = 0x200;
+        fill = Div(Div(value * 100, max) << 6, 100);
+        if (fill == 0)
+            fill = 1;
     }
     else
     {
-        var_r7 = 0x210;
+        fill = 0;
     }
 
-    if (param_2 > 0)
+    dst = (u16 *)(0x0600E000 + (x * 2) + (y << 6));
+    for (i = 0; i < 8; i++)
     {
-        var_r3 = Div(Div(param_2 * 100, param_3) << 6, 100);
-        if (var_r3 == 0)
-        {
-            var_r3 = 1;
-        }
-    }
-    else
-    {
-        var_r3 = 0;
-    }
-
-    var_r2 = (u16*)(0x0600E000 + (param_0 * 2) + (param_1 << 6));
-    for (var_r1 = 0; var_r1 < 8; var_r1++)
-    {
-        if (var_r1 == var_r3 / 8)
-        {
-            *var_r2 = (var_r7 + (var_r3 - (var_r1 * 8))) | (palette << 12);
-        }
+        if (i == fill / 8)
+            *dst = (tileBase + (fill - (i * 8))) | (palette << 12);
+        else if (fill >= (i + 1) * 8)
+            *dst = (tileBase + 8) | (palette << 12);
         else
-        {
-            if (var_r3 >= (( var_r1 + 1) * 8))
-            {
-                *var_r2 = (var_r7 + 8) | (palette << 12);
-            }
-            else
-            {
-                *var_r2 = (var_r7) | (palette << 12);
-            }
-        }
-        var_r2 += 1;
+            *dst = tileBase | (palette << 12);
+        dst += 1;
     }
 }
 
 // fakematch: https://decomp.me/scratch/6f0Up
-void sub_0800DC70(struct EwramData_unk60 *param_0)
+/* Move the displayed HP/MP values one step per iteration towards the real
+ * player stats and redraw the gauge when anything changed. */
+/**
+ * @brief Move the displayed HP and MP (and their maxima) toward the player
+ * stats by a few points per update and redraw the changed gauge.
+ */
+void Hud_UpdateHpMpGauges(struct GameState *gameState)
 {
-    s16 *temp_r4;
-    s16 *temp_r4_2;
-    s32 temp_r0_4;
-    s32 temp_r2_3;
-    s32 var_r3;
-    s32 var_r5;
-    s32 var_r5_2;
-    struct EwramData_unk1325C *temp_r7;
-    s16 *temp_r6;
-    s16 *temp_r6_2;
-    s32 var_sl;
-    s32 temp_r2;
-    s32 temp_r0_2;
-    s16 var_0;
+    struct PlayerStatus *stats;
+    s32 changed;
+    s32 speed;
+    s32 i, j;
+    s16 *hp, *maxHp, *mp, *maxMp;
 
-    temp_r7 = &gEwramData->unk_1325C;
-
-    var_r3 = 0;
-    var_sl = 2;
-    temp_r4 = &param_0->unk_404;
-    temp_r6 = &param_0->unk_408;
-
+    stats = &gEwramData->playerStatus;
+    changed = 0;
+    speed = 2;
+    hp = &gameState->hudHP;
+    maxHp = &gameState->hudMaxHP;
     #ifndef NON_MATCHING
-    asm("":::"r5");
+    asm("" ::: "r5"); /* FAKEMATCH: keeps maxHp out of r5 (the counter gets it) */
     #endif
-    for (var_r5 = 0; var_r5 < var_sl; var_r5++)
+    for (i = 0; i < speed; i++)
     {
-        if (*temp_r4 != temp_r7->currentHP)
+        if (*hp != stats->currentHP)
         {
-            temp_r2 = *temp_r4;
-            var_0 = temp_r7->currentHP;
-            if (*temp_r4 < var_0)
+            s32 value = *hp;
+            s16 target = stats->currentHP;
+            if (*hp < target)
             {
-                *temp_r4 = temp_r2 + 1;
-                var_r3 = 1;
+                *hp = value + 1;
+                changed = 1;
             }
             else
             {
-                *temp_r4 = temp_r2 - 1;
-                var_r3 = 1;
+                *hp = value - 1;
+                changed = 1;
             }
         }
-
-        if (*temp_r6 != temp_r7->maxHP)
+        if (*maxHp != stats->maxHP)
         {
-            temp_r0_2 = *temp_r6;
-            if (*temp_r6 < temp_r7->maxHP)
+            s32 value = *maxHp;
+            if (*maxHp < stats->maxHP)
             {
-                *temp_r6 = temp_r0_2 + 1;
-                var_r3 = 1;
+                *maxHp = value + 1;
+                changed = 1;
             }
             else
             {
-                *temp_r6 = temp_r0_2 - 1;
-                var_r3 = 1;
+                *maxHp = value - 1;
+                changed = 1;
             }
         }
     }
+    if (changed)
+        DrawStatGauge(4, 1, gameState->hudHP, gameState->hudMaxHP, 0);
 
-    if (var_r3 != 0)
+    changed = 0;
+    #ifndef NON_MATCHING
+    asm("" ::: "r4"); /* FAKEMATCH: restores the r4/r5 assignment of the second loop */
+    #endif
+    for (j = 0; j < speed; j++)
     {
-        sub_0800DC70_inline_0(4, 1, param_0->unk_404, param_0->unk_408, 0);
-    }
-
-    var_r3 = 0;
-    if (var_r3 < var_sl)
-    {
-        #ifndef NON_MATCHING
-        asm("":::"r4");
-        #endif
-        temp_r4_2 = &param_0->unk_406;
-        temp_r6_2 = &param_0->unk_40A;
-        for (var_r5_2 = 0; var_r5_2 < var_sl; var_r5_2++)
+        mp = &gameState->hudMP;
+        maxMp = &gameState->hudMaxMP;
+        if (*mp != stats->currentMP)
         {
-            if (*temp_r4_2 != temp_r7->currentMP)
+            s32 value = *mp;
+            s16 target = stats->currentMP;
+            if (*mp < target)
             {
-                temp_r2_3 = *temp_r4_2;
-                var_0 = temp_r7->currentMP;
-                if (*temp_r4_2 < var_0)
-                {
-                    *temp_r4_2 = temp_r2_3 + 1;
-                    var_r3 = 1;
-                }
-                else
-                {
-                    *temp_r4_2 = temp_r2_3 - 1;
-                    var_r3 = 1;
-                }
+                *mp = value + 1;
+                changed = 1;
             }
-            
-            if (*temp_r6_2 != temp_r7->maxMP)
+            else
             {
-                temp_r0_4 = *temp_r6_2;
-                if (*temp_r6_2 < temp_r7->maxMP)
-                {
-                    *temp_r6_2 = temp_r0_4 + 1;
-                    var_r3 = 1;
-                }
-                else
-                {
-                    *temp_r6_2 = temp_r0_4 - 1;
-                    var_r3 = 1;
-                }
+                *mp = value - 1;
+                changed = 1;
+            }
+        }
+        if (*maxMp != stats->maxMP)
+        {
+            s32 value = *maxMp;
+            if (*maxMp < stats->maxMP)
+            {
+                *maxMp = value + 1;
+                changed = 1;
+            }
+            else
+            {
+                *maxMp = value - 1;
+                changed = 1;
             }
         }
     }
-
-    if (var_r3 != 0)
-    {
-        sub_0800DC70_inline_0(4, 2, param_0->unk_406, param_0->unk_40A, 1);
-    }
+    if (changed)
+        DrawStatGauge(4, 2, gameState->hudMP, gameState->hudMaxMP, 1);
 }
 
 /**
- * @brief DE4C | To document
- * 
- * @param param_0 To document
+ * @brief Draw the enemy name window for the text id and start its
+ * 0xF0-update display timer, or keep the request pending while the
+ * DMA queue is full.
  */
-void sub_0800DE4C(s32 param_0)
+void Hud_ShowEnemyName(s32 hudMessageId)
 {
-    u16 *var_r4_6;
-    u8* temp_r4;
-    s32 temp_r4_2;
-    s32 var_r3;
-    struct EwramData_unk60 *temp_r6;
-    u8 temp_r8;
-    s32 var_0;
-    s32 var_1;
+    u16 *dst;
+    u8* text;
+    s32 textWidth;
+    s32 i;
+    struct GameState *gameState;
+    u8 bufferIndex;
+    s32 row;
+    s32 width;
 
-    temp_r6 = &gEwramData->unk_60;
-    temp_r8 = gEwramData->unk_60.unk_424;
+    gameState = &gEwramData->gameState;
+    bufferIndex = gEwramData->gameState.hudTextBufferIndex;
 
-    temp_r4 = sub_08041434(param_0);
-    sub_08041304(1);
-    sub_0804090C(0, 0);
+    text = Text_GetLocalizedEntry(hudMessageId);
+    Text_SetBackgroundColor(1);
+    Text8_SetPixelCursor(0, 0);
 
-    if (temp_r8 == 0)
+    if (bufferIndex == 0)
     {
-        sub_08040970(0, 0, 0x14, 1);
-        sub_08040898(0, 0);
+        Text8_SetRegion(0, 0, 0x14, 1);
+        Text8_SetCursor(0, 0);
     }
     else
     {
-        sub_08040970(0, 1, 0x14, 1);
-        sub_08040898(0, 1);
+        Text8_SetRegion(0, 1, 0x14, 1);
+        Text8_SetCursor(0, 1);
     }
 
-    var_0 = 0x12;
-    sub_08041338((struct unk_08506B38 *) temp_r4, 0);
-    temp_r4_2 = (sub_0804136C() + 7) >> 3;
-    sub_08041338((struct unk_08506B38 *) sub_08041434(0x35E), 0);
-    var_1 = temp_r4_2;
-    var_r4_6 = (u16*)&gEwramData->unk_133F4;
+    row = 0x12;
+    Text8_Print((struct unk_08506B38 *) text, 0);
+    textWidth = (Text8_GetPixelX() + 7) >> 3;
+    Text8_Print((struct unk_08506B38 *) Text_GetLocalizedEntry(0x35E), 0);
+    width = textWidth;
+    dst = (u16*)&gEwramData->sharedScratchBuffer;
 
-    if (gEwramData->unk_60.unk_42C & 0x03000200)
+    if (gEwramData->gameState.stateFlags & 0x03000200)
     {
-        temp_r6->unk_423 = 0;
+        gameState->hudMessageRequest = 0;
         return;
     }
-    sub_0800EB04();
+    Hud_CloseMessageWindow();
 
-    for (var_r3 = 0x1A - var_1; var_r3 > 0; var_r3--)
+    for (i = 0x1A - width; i > 0; i--)
     {
-        *var_r4_6++ = 0;
+        *dst++ = 0;
     }
 
-    *var_r4_6++ = 0xE220;
-    *var_r4_6++ = 0xE221;
-    *var_r4_6++ = 0xE222;
+    *dst++ = 0xE220;
+    *dst++ = 0xE221;
+    *dst++ = 0xE222;
 
-    for (var_r3 = var_1 - 2; var_r3 > 0; var_r3--)
+    for (i = width - 2; i > 0; i--)
     {
-        *var_r4_6++ = 0xE223;
+        *dst++ = 0xE223;
     }
 
-    *var_r4_6++ = 0xE622;
-    *var_r4_6++ = 0xE621;
-    *var_r4_6++ = 0xE620;
+    *dst++ = 0xE622;
+    *dst++ = 0xE621;
+    *dst++ = 0xE620;
 
-    for (var_r3 = 0x1C - var_1; var_r3 > 0; var_r3--)
+    for (i = 0x1C - width; i > 0; i--)
     {
-        *var_r4_6++ = 0;
+        *dst++ = 0;
     }
 
-    *var_r4_6++ = 0xE230;
-    *var_r4_6++ = 0xE231;
+    *dst++ = 0xE230;
+    *dst++ = 0xE231;
 
-    for (var_r3 = 0; var_r3 < var_1; var_r3++)
+    for (i = 0; i < width; i++)
     {
-        *var_r4_6++ = (var_r3 + (temp_r8 << 5) + 0x80) | 0xE200;
+        *dst++ = (i + (bufferIndex << 5) + 0x80) | 0xE200;
     }
 
-    *var_r4_6++ = 0xE631;
-    *var_r4_6++ = 0xE630;
+    *dst++ = 0xE631;
+    *dst++ = 0xE630;
 
-    for (var_r3 = 0x1C - var_1; var_r3 > 0; var_r3--)
+    for (i = 0x1C - width; i > 0; i--)
     {
-        *var_r4_6++ = 0;
+        *dst++ = 0;
     }
 
-    *var_r4_6++ = 0xE240;
-    *var_r4_6++ = 0xE241;
-    *var_r4_6++ = 0xE242;
+    *dst++ = 0xE240;
+    *dst++ = 0xE241;
+    *dst++ = 0xE242;
 
-    for (var_r3 = var_1 - 2; var_r3 > 0; var_r3--)
+    for (i = width - 2; i > 0; i--)
     {
-        *var_r4_6++ = 0xE243;
+        *dst++ = 0xE243;
     }
 
-    *var_r4_6++ = 0xE642;
-    *var_r4_6++ = 0xE641;
-    *var_r4_6++ = 0xE640;
+    *dst++ = 0xE642;
+    *dst++ = 0xE641;
+    *dst++ = 0xE640;
 
-    if (DmaQueue_DirectCopy(0xC0, (u32 *)gEwramData->unk_133F4, (u32 *)(VRAM_BASE + 0xE000 + var_0 * 0x40)) != NULL)
+    if (DmaQueue_DirectCopy(0xC0, (u32 *)gEwramData->sharedScratchBuffer, (u32 *)(VRAM_BASE + 0xE000 + row * 0x40)) != NULL)
     {
-        sub_0803C918((u8 *)0x0820C428, 5, 1, 0xE);
-        sub_0803C918((u8 *)0x081183F4, 1, 1, 0xF);
+        BgPalette_LoadRange((u8 *)0x0820C428, 5, 1, 0xE);
+        BgPalette_LoadRange((u8 *)0x081183F4, 1, 1, 0xF);
 
-        temp_r6->unk_422 = 0xF0;
-        temp_r6->unk_423 = 0;
-        temp_r6->unk_424 = 1 - temp_r6->unk_424;
+        gameState->hudMessageTimer = 0xF0;
+        gameState->hudMessageRequest = 0;
+        gameState->hudTextBufferIndex = 1 - gameState->hudTextBufferIndex;
     }
     else
     {
-        temp_r6->unk_423 = 2;
+        gameState->hudMessageRequest = 2;
     }
-    temp_r6->unk_420 = param_0;
+    gameState->hudMessageId = hudMessageId;
 }
 
 /**
- * @brief E0E8 | To document
- * 
- * @param param_0 To document
+ * @brief Draw the pickup message window for the text id and start its
+ * 0xF0-update display timer, or keep the request pending while the
+ * DMA queue is full.
  */
-void sub_0800E0E8(s32 param_0)
+void Hud_ShowPickupMessage(s32 hudMessageId)
 {
-    u8 *temp_r4;
-    s32 temp_r4_2;
-    s32 var_r3;
-    struct EwramData_unk60 *temp_r6;
-    u16 *temp_r5;
-    u8 temp_r7;
-    s32 var_0;
-    s32 var_1;
-    s32 var_2;
+    u8 *text;
+    s32 textWidth;
+    s32 i;
+    struct GameState *gameState;
+    u16 *dst;
+    u8 bufferIndex;
+    s32 palette;
+    s32 row;
+    s32 width;
 
-    temp_r6 = &gEwramData->unk_60;
-    temp_r7 = gEwramData->unk_60.unk_424;
-    temp_r5 = (u16*)&gEwramData->unk_133F4;
-    var_0 = 4;
-    if (gEwramData->unk_60.unk_42C & 0x03000200)
+    gameState = &gEwramData->gameState;
+    bufferIndex = gEwramData->gameState.hudTextBufferIndex;
+    dst = (u16*)&gEwramData->sharedScratchBuffer;
+    palette = 4;
+    if (gEwramData->gameState.stateFlags & 0x03000200)
     {
-        gEwramData->unk_60.unk_423 = 0;
+        gEwramData->gameState.hudMessageRequest = 0;
         return;
     }
-    temp_r4 = sub_08041434(param_0);
-    sub_08041304(1);
-    sub_0804090C(0, 0);
-    if (temp_r7 == 0)
+    text = Text_GetLocalizedEntry(hudMessageId);
+    Text_SetBackgroundColor(1);
+    Text8_SetPixelCursor(0, 0);
+    if (bufferIndex == 0)
     {
-        sub_08040970(0, 0, 0x14, 1);
-        sub_08040898(0, 0);
+        Text8_SetRegion(0, 0, 0x14, 1);
+        Text8_SetCursor(0, 0);
     }
     else
     {
-        sub_08040970(0, 1, 0x14, 1);
-        sub_08040898(0, 1);
+        Text8_SetRegion(0, 1, 0x14, 1);
+        Text8_SetCursor(0, 1);
     }
-    var_1 = 0x12;
-    sub_08041338((struct unk_08506B38 *) temp_r4, 0);
-    temp_r4_2 = (sub_0804136C() + 7) >> 3;
-    sub_08041338((struct unk_08506B38 *) sub_08041434(0x35E), 0);
-    var_2 = temp_r4_2;
-    sub_0801093C(&gEwramData->unk_60);
-    sub_0800EB04();
+    row = 0x12;
+    Text8_Print((struct unk_08506B38 *) text, 0);
+    textWidth = (Text8_GetPixelX() + 7) >> 3;
+    Text8_Print((struct unk_08506B38 *) Text_GetLocalizedEntry(0x35E), 0);
+    width = textWidth;
+    AreaName_Dismiss(&gEwramData->gameState);
+    Hud_CloseMessageWindow();
 
-    *temp_r5++ = 0xE220;
-    if (var_0 == 4)
+    *dst++ = 0xE220;
+    if (palette == 4)
     {
-        *temp_r5++ = 0xE221;
-        *temp_r5++ = 0xE222;
+        *dst++ = 0xE221;
+        *dst++ = 0xE222;
     }
     else
     {
-        *temp_r5++ = 0xE234;
-        *temp_r5++ = 0xE235;
+        *dst++ = 0xE234;
+        *dst++ = 0xE235;
     }
 
-    for (var_r3 = var_2 - 2; var_r3 > 0; var_r3--)
+    for (i = width - 2; i > 0; i--)
     {
-        *temp_r5++ = 0xE223;
+        *dst++ = 0xE223;
     }
 
-    *temp_r5++ = 0xE622;
-    *temp_r5++ = 0xE621;
-    *temp_r5++ = 0xE620;
+    *dst++ = 0xE622;
+    *dst++ = 0xE621;
+    *dst++ = 0xE620;
 
-    for (var_r3 = 0x1C - var_2; var_r3 > 0; var_r3--)
+    for (i = 0x1C - width; i > 0; i--)
     {
-        *temp_r5++ = 0;
+        *dst++ = 0;
     }
 
-    *temp_r5++ = 0xE230;
-    *temp_r5++ = 0xE231;
+    *dst++ = 0xE230;
+    *dst++ = 0xE231;
 
-    for (var_r3 = 0; var_r3 < var_2; var_r3++)
+    for (i = 0; i < width; i++)
     {
-        *temp_r5++ = (var_r3 + (temp_r7 << 5) + 0x80) | 0xE200;
+        *dst++ = (i + (bufferIndex << 5) + 0x80) | 0xE200;
     }
 
-    *temp_r5++ = 0xE631;
-    *temp_r5++ = 0xE630;
+    *dst++ = 0xE631;
+    *dst++ = 0xE630;
 
-    for (var_r3 = 0x1C - var_2; var_r3 > 0; var_r3--)
+    for (i = 0x1C - width; i > 0; i--)
     {
-        *temp_r5++ = 0;
+        *dst++ = 0;
     }
 
-    *temp_r5++ = 0xE240;
-    if (var_0 == 4)
+    *dst++ = 0xE240;
+    if (palette == 4)
     {
-        *temp_r5++ = 0xE241;
-        *temp_r5++ = 0xE242;
+        *dst++ = 0xE241;
+        *dst++ = 0xE242;
     }
     else
     {
-        *temp_r5++ = 0xE254;
-        *temp_r5++ = 0xE255;
+        *dst++ = 0xE254;
+        *dst++ = 0xE255;
     }
 
-    for (var_r3 = (var_2 - 2); var_r3 > 0; var_r3--)
+    for (i = (width - 2); i > 0; i--)
     {
-        *temp_r5++ = 0xE243;
+        *dst++ = 0xE243;
     }
 
-    *temp_r5++ = 0xE642;
-    *temp_r5++ = 0xE641;
-    *temp_r5++ = 0xE640;
+    *dst++ = 0xE642;
+    *dst++ = 0xE641;
+    *dst++ = 0xE640;
 
-    if (DmaQueue_DirectCopy(0xC0, (u32 *)gEwramData->unk_133F4, (u32 *)(VRAM_BASE + 0xE000 + var_1 * 0x40)) != NULL)
+    if (DmaQueue_DirectCopy(0xC0, (u32 *)gEwramData->sharedScratchBuffer, (u32 *)(VRAM_BASE + 0xE000 + row * 0x40)) != NULL)
     {
-        sub_0803C918((u8 *)0x0820C428, var_0, 1, 0xE);
-        sub_0803C918((u8 *)0x081183F4, 1, 1, 0xF);
+        BgPalette_LoadRange((u8 *)0x0820C428, palette, 1, 0xE);
+        BgPalette_LoadRange((u8 *)0x081183F4, 1, 1, 0xF);
 
-        temp_r6->unk_422 = 0xF0;
-        temp_r6->unk_423 = 0;
-        temp_r6->unk_424 = 1 - temp_r6->unk_424;
+        gameState->hudMessageTimer = 0xF0;
+        gameState->hudMessageRequest = 0;
+        gameState->hudTextBufferIndex = 1 - gameState->hudTextBufferIndex;
     }
     else
     {
-        temp_r6->unk_423 = 1;
+        gameState->hudMessageRequest = 1;
     }
-    temp_r6->unk_420 = param_0;
+    gameState->hudMessageId = hudMessageId;
 }
 
 // #define VRAM_5C00 ((u32 (*)[0x10][8])(VRAM_BASE + 0x5C00))
 
 /**
- * @brief E380 | To document
- * 
+ * @brief Fill the large message window text tiles (VRAM 0x06005C00) with
+ * colour 2 and draw its two border tiles at 0x06005600/0x06005620.
  */
-void sub_0800E380(void)
+void Hud_ClearLargeWindowTiles(void)
 {
-    s32 var_r0;
-    s32 var_r1;
-    s32 var_r2;
-    s32 var_r5;
-    s32 var_0;
+    s32 j;
+    s32 k;
+    s32 i;
+    s32 fillWord;
+    s32 color;
 
-    var_0 = 2;
-    var_r5 = 0;
+    color = 2;
+    fillWord = 0;
 
-    for (var_r2 = 0; var_r2 < 8; var_r2++)
+    for (i = 0; i < 8; i++)
     {
-        var_r5 |= var_0 << (var_r2 * 4);
+        fillWord |= color << (i * 4);
     }
 
-    for (var_r0 = 0; var_r0 < 5; var_r0++)
+    for (j = 0; j < 5; j++)
     {
-        for (var_r1 = 0; var_r1 < 0x1E; var_r1++)
+        for (k = 0; k < 0x1E; k++)
         {
-            for (var_r2 = 0; var_r2 < 8; var_r2++)
+            for (i = 0; i < 8; i++)
             {
-                *(u32*)((u32*)0x06005C00 + (var_r0 << 7) + (var_r1 << 3) + 1 * var_r2) = var_r5;
-                // VRAM_5C00[var_r0][var_r1][var_r2] = var_r5;
+                *(u32*)((u32*)0x06005C00 + (j << 7) + (k << 3) + 1 * i) = fillWord;
+                // VRAM_5C00[j][k][i] = var_r5;
             }
         }
     }
 
-    for (var_r2 = 0; var_r2 < 8; var_r2++)
+    for (i = 0; i < 8; i++)
     {
-        if (var_r2 == 0)
+        if (i == 0)
         {
             *(s32* )0x06005600 = -1;
         }
         else
         {
-            *((u32* )0x06005600 + var_r2) = var_r5;
+            *((u32* )0x06005600 + i) = fillWord;
         }
     }
 
-    for (var_r2 = 0; var_r2 < 8; var_r2++)
+    for (i = 0; i < 8; i++)
     {
-        if (var_r2 == 7)
+        if (i == 7)
         {
-            *((u32* )0x06005620 + var_r2) = -1;
+            *((u32* )0x06005620 + i) = -1;
         }
         else
         {
-            *((u32* )0x06005620 + var_r2) = var_r5;
+            *((u32* )0x06005620 + i) = fillWord;
         }
     }
 }
 
-static inline s32 sub_0800E40C_inline_0()
+static inline s32 Hud_IsWindowAreaFree()
 {
     s32 res;
     res = 1;
-    if ((gEwramData->unk_60.unk_42C & 1) && (gEwramData->unk_13110.unk_13110->unk_528.unk_528_16.unk_52A > 0x70))
+    if ((gEwramData->gameState.stateFlags & 1) && (gEwramData->playerState.player->posY.part16.integer > 0x70))
         res = 0;
     return res;
 }
 
 /**
- * @brief E40C | To document
- * 
+ * @brief Draw the two prompt tiles at the window edge: blinking with the
+ * play timer while the large window is open (stateFlags bit 0x01000000),
+ * static otherwise; the row depends on the player height check.
  */
-void sub_0800E40C(void)
+void Hud_DrawWindowPrompt(void)
 {
-    s32 var_r7;
-    u8 *temp_r0;
-    s32 var_1;
-    u16 *var_2;
+    s32 row;
+    u8 *buffer;
+    s32 column;
+    u16 *tile;
 
-    temp_r0 = gEwramData->unk_133F4;
-    var_1 = 0x1C;
+    buffer = gEwramData->sharedScratchBuffer;
+    column = 0x1C;
     
-    if (sub_0800E40C_inline_0() != 0)
+    if (Hud_IsWindowAreaFree() != 0)
     {
-        var_r7 = 0x11;
+        row = 0x11;
     }
     else
     {
-        var_r7 = 8;
+        row = 8;
     }
 
-    if (!(gEwramData->unk_60.unk_42C & 0x01000000))
+    if (!(gEwramData->gameState.stateFlags & 0x01000000))
     {
-        var_2 = ((u16*)gEwramData->unk_133F4);
-        *var_2 = 0xF228;
-        DmaQueue_DirectCopy(2, (u32 *)temp_r0, (u32 *) (VRAM_BASE + 0xE000 + (var_1 * 2) + (var_r7 * 0x40)));
-        var_r7++;
+        tile = ((u16*)gEwramData->sharedScratchBuffer);
+        *tile = 0xF228;
+        DmaQueue_DirectCopy(2, (u32 *)buffer, (u32 *) (VRAM_BASE + 0xE000 + (column * 2) + (row * 0x40)));
+        row++;
 
-        var_2 = ((u16*)gEwramData->unk_133F4);
-        *var_2 = 0xF238;
-        DmaQueue_DirectCopy(2, (u32 *)temp_r0, (u32 *) (VRAM_BASE + 0xE000 + (var_1 * 2) + (var_r7 * 0x40)));
+        tile = ((u16*)gEwramData->sharedScratchBuffer);
+        *tile = 0xF238;
+        DmaQueue_DirectCopy(2, (u32 *)buffer, (u32 *) (VRAM_BASE + 0xE000 + (column * 2) + (row * 0x40)));
     }
     else
     {
-        var_2 = ((u16*)gEwramData->unk_133F4);
-        *var_2 = (gEwramData->unk_60.inGameTimer & 8) ? 0xF226 : 0xF227;
-        DmaQueue_DirectCopy(2, (u32 *)temp_r0, (u32 *) (VRAM_BASE + 0xE000 + (var_1 * 2) + (var_r7 * 0x40)));
-        var_r7++;
+        tile = ((u16*)gEwramData->sharedScratchBuffer);
+        *tile = (gEwramData->gameState.inGameTimer & 8) ? 0xF226 : 0xF227;
+        DmaQueue_DirectCopy(2, (u32 *)buffer, (u32 *) (VRAM_BASE + 0xE000 + (column * 2) + (row * 0x40)));
+        row++;
 
-        var_2 = ((u16*)gEwramData->unk_133F4);
-        *var_2 = (gEwramData->unk_60.inGameTimer & 8) ? 0xF236 : 0xF237;
-        DmaQueue_DirectCopy(2, (u32 *)temp_r0, (u32 *) (VRAM_BASE + 0xE000 + (var_1 * 2) + (var_r7 * 0x40)));
+        tile = ((u16*)gEwramData->sharedScratchBuffer);
+        *tile = (gEwramData->gameState.inGameTimer & 8) ? 0xF236 : 0xF237;
+        DmaQueue_DirectCopy(2, (u32 *)buffer, (u32 *) (VRAM_BASE + 0xE000 + (column * 2) + (row * 0x40)));
     }
 }
 
 /**
- * @brief 3540 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
+ * @brief Open the large message window (stateFlags bit 0x01000000) and print
+ * menu text base[kind] + n - 1 (n > 0) or text 0x361 (n == 0),
+ * then draw the window frame rows.
  */
-void sub_0800E540(s32 param_0, s32 param_1)
+void Hud_ShowLargeSoulWindow(s32 soulType, s32 soulId)
 {
-    s32 var_r1_2;
-    s32 var_r2;
-    s32 var_r1;
-    s32 var_r6;
-    u8 *temp_sb;
-    u16 *var_r3_2;
-    s32 var_0;
-    s32 var_2;
-    s32 var_3;
-    s32 var_5;
-    s32 var_7;
-    s32 var_8;
+    s32 j;
+    s32 row;
+    s32 i;
+    s32 index;
+    u8 *buffer;
+    u16 *dst;
+    s32 width;
+    s32 firstRow;
+    s32 copyRow;
+    s32 column;
+    s32 textX;
+    s32 textY;
 
-    var_7 = 7;
-    var_8 = 2;
-    var_5 = 0;
+    textX = 7;
+    textY = 2;
+    column = 0;
 
-    var_r6 = 0x361;
-    gEwramData->unk_60.unk_42C |= 0x01000000;
-    sub_0803C918((u8 *)0x0820C428, 7, 1, 0xF);
+    index = 0x361;
+    gEwramData->gameState.stateFlags |= 0x01000000;
+    BgPalette_LoadRange((u8 *)0x0820C428, 7, 1, 0xF);
 
-    if (param_1 != 0)
+    if (soulId != 0)
     {
-        switch (param_0)
+        switch (soulType)
         {
             case 0:
-                var_r6 = 0x1E4;
+                index = 0x1E4;
                 break;
             case 1:
-                var_r6 = 0x21C;
+                index = 0x21C;
                 break;
             case 2:
-                var_r6 = 0x234;
+                index = 0x234;
                 break;
             case 3:
-                var_r6 = 0x257;
+                index = 0x257;
                 break;
         }
-        var_r6 -= 1 - param_1;
+        index -= 1 - soulId;
     }
 
-    sub_080412F0(0xF);
-    sub_08041304(2);
-    sub_08040748(var_7, var_8, 0x1E, 2);
-    sub_0804066C(0, 2);
-    sub_08040FE0();
-    sub_0800E380();
-    sub_08046BC8(var_r6);
-    sub_0804066C(var_7, var_8);
-    sub_08041304(1);
+    Text_SetForegroundColor(0xF);
+    Text_SetBackgroundColor(2);
+    Text12_SetRegion(textX, textY, 0x1E, 2);
+    Text12_SetCursor(0, 2);
+    Text12_ClearRegion();
+    Hud_ClearLargeWindowTiles();
+    MenuText_Print(index);
+    Text12_SetCursor(textX, textY);
+    Text_SetBackgroundColor(1);
 
-    var_0 = 0x1E;
-    temp_sb = gEwramData->unk_133F4;
+    width = 0x1E;
+    buffer = gEwramData->sharedScratchBuffer;
     
-    if (sub_0800E40C_inline_0() == 0)
+    if (Hud_IsWindowAreaFree() == 0)
     {
-        var_r2 = 7;
+        row = 7;
     }
     else
     {
-        var_r2 = 0x10;
+        row = 0x10;
     }
 
-    var_2 = var_r2;
-    for (var_r1 = 0; var_r1 < 3; var_r1++)
+    firstRow = row;
+    for (i = 0; i < 3; i++)
     {
-        var_r3_2 = (u16*)&gEwramData->unk_133F4;
-        var_3 = var_r2;
-        for (var_r1_2 = 0; var_r1_2 < var_0; var_r1_2++)
+        dst = (u16*)&gEwramData->sharedScratchBuffer;
+        copyRow = row;
+        for (j = 0; j < width; j++)
         {
-            *var_r3_2++ = var_r1_2 + (var_r1 << 5) + 0xE2E0;
+            *dst++ = j + (i << 5) + 0xE2E0;
         }
 
-        DmaQueue_DirectCopy(var_0 << 1, (u32 *)temp_sb, (u32 *) (VRAM_BASE + 0xE000 + (var_5 * 2) + (var_3 * 0x40)));
-        var_r2++;
+        DmaQueue_DirectCopy(width << 1, (u32 *)buffer, (u32 *) (VRAM_BASE + 0xE000 + (column * 2) + (copyRow * 0x40)));
+        row++;
     }
 
-    var_r3_2 = (u16*)&gEwramData->unk_133F4;
-    var_3 = var_2 - 1;
-    for (var_r1_2 = 0; var_r1_2 < var_0; var_r1_2++)
+    dst = (u16*)&gEwramData->sharedScratchBuffer;
+    copyRow = firstRow - 1;
+    for (j = 0; j < width; j++)
     {
-        *var_r3_2++ = 0xE2B0;
+        *dst++ = 0xE2B0;
     }
-    DmaQueue_DirectCopy(var_0 << 1, (u32 *)temp_sb, (u32 *) (VRAM_BASE + 0xE000 + (var_5 * 2) + (var_3 * 0x40)));
+    DmaQueue_DirectCopy(width << 1, (u32 *)buffer, (u32 *) (VRAM_BASE + 0xE000 + (column * 2) + (copyRow * 0x40)));
 
-    var_r3_2 = (u16*)&gEwramData->unk_133F4;
-    var_3 = var_2 + 3;
-    for (var_r1_2 = 0; var_r1_2 < var_0; var_r1_2++)
+    dst = (u16*)&gEwramData->sharedScratchBuffer;
+    copyRow = firstRow + 3;
+    for (j = 0; j < width; j++)
     {
-        *var_r3_2++ = 0xE2B1;
+        *dst++ = 0xE2B1;
     }
-    DmaQueue_DirectCopy(var_0 << 1, (u32 *)temp_sb, (u32 *) (VRAM_BASE + 0xE000 + (var_5 * 2) + (var_3 * 0x40)));
+    DmaQueue_DirectCopy(width << 1, (u32 *)buffer, (u32 *) (VRAM_BASE + 0xE000 + (column * 2) + (copyRow * 0x40)));
 }
 
-// (94.64%) https://decomp.me/scratch/iF3mv
-NONMATCH("asm/non_matching/sub_0800E708.inc", void sub_0800E708(s32 arg0, s32 arg1, s32 arg2))
+// Matches (from decomp.me scratch iF3mv, 94.64 %: var_4/var_2 copies)
+/**
+ * @brief Show the soul name for (soul, kind) in the message window, with
+ * text ids offset per soul kind; for a newly acquired soul also show
+ * the extended window. Called by Pickup_Collect.
+ */
+void Hud_ShowSoulAcquiredMessage(s32 arg0, s32 arg1, s32 arg2)
 {
-    struct EwramData_unk60 *sp4;
-    s32 sp8;
-    u8 *spC;
-    s32 sp10;
-    s32 sp14;
-    u8 *temp_r4;
-    s32 temp_r4_2;
-    s32 var_r1;
-    s32 var_r1_2;
-    s32 var_r7;
-    u16 *var_r3_2;
-    s32 var_0;
-    s32 var_1;
-    s32 var_2;
-    s32 var_3;
-    s32 var_4;
-    s32 var_5;
-    s32 var_6;
+    struct GameState *gameState;
+    s32 bufferIndex;
+    u8 *buffer;
+    s32 first;
+    s32 soulIndex;
+    u8 *text;
+    s32 textWidth;
+    s32 row;
+    s32 i;
+    s32 column;
+    u16 *dst;
+    s32 width;
+    s32 topX;
+    s32 midY;
+    s32 bottomY;
+    s32 midX;
+    s32 bottomX;
+    s32 topY;
 
-    sp4 = &gEwramData->unk_60;
-    sp8 = gEwramData->unk_60.unk_424;
-    spC = gEwramData->unk_133F4;
-    sp10 = 4;
-    sp14 = arg0;
+    gameState = &gEwramData->gameState;
+    bufferIndex = gEwramData->gameState.hudTextBufferIndex;
+    buffer = gEwramData->sharedScratchBuffer;
+    first = 4;
+    soulIndex = arg0;
 
     switch (arg1)
     {
         case 0:
-            sp10 = 1;
+            first = 1;
             arg0 += 0xE3;
             break;
         case 1:
-            sp10 = 2;
+            first = 2;
             arg0 += 0x11B;
             break;
         case 2:
-            sp10 = 3;
+            first = 3;
             arg0 += 0x133;
             break;
         case 3:
-            sp10 = 6;
+            first = 6;
             arg0 += 0x156;
             break;
     }
 
-    if (gEwramData->unk_60.unk_42C & 0x200)
+    if (gEwramData->gameState.stateFlags & 0x200)
     {
         return;
     }
-    if ((arg2 == 0) && (gEwramData->unk_60.unk_42C & 0x02000000))
+    if ((arg2 == 0) && (gEwramData->gameState.stateFlags & 0x02000000))
     {
         return;
     }
 
-    sub_0800EB04();
-    temp_r4 = sub_08041434(arg0);
-    sub_08041304(1);
-    sub_0804090C(0, 0);
-    if (sp8 == 0)
+    Hud_CloseMessageWindow();
+    text = Text_GetLocalizedEntry(arg0);
+    Text_SetBackgroundColor(1);
+    Text8_SetPixelCursor(0, 0);
+    if (bufferIndex == 0)
     {
-        sub_08040970(0, 0, 0x14, 1);
-        sub_08040898(0, 0);
+        Text8_SetRegion(0, 0, 0x14, 1);
+        Text8_SetCursor(0, 0);
     }
     else
     {
-        sub_08040970(0, 1, 0x14, 1);
-        sub_08040898(0, 1);
+        Text8_SetRegion(0, 1, 0x14, 1);
+        Text8_SetCursor(0, 1);
     }
-    sub_08041338((struct unk_08506B38 *) temp_r4, 0);
-    temp_r4_2 = (sub_0804136C() + 7) >> 3;
-    sub_08041338((struct unk_08506B38 *) sub_08041434(0x35E), 0);
-    var_0 = temp_r4_2;
+    Text8_Print((struct unk_08506B38 *) text, 0);
+    textWidth = (Text8_GetPixelX() + 7) >> 3;
+    Text8_Print((struct unk_08506B38 *) Text_GetLocalizedEntry(0x35E), 0);
+    width = textWidth;
 
     if (arg2 != 0)
     {
-        var_r7 = 0xF - ((var_0 + 4) >> 1);
+        column = 0xF - ((width + 4) >> 1);
         
-        if (sub_0800E40C_inline_0() != 0)
+        if (Hud_IsWindowAreaFree() != 0)
         {
-            var_r1 = 0xC;
+            row = 0xC;
         }
         else
         {
-            var_r1 = 3;
+            row = 3;
         }
     }
     else
     {
-        var_r7 = 0x1A - var_0;
-        var_r1 = 1;
+        column = 0x1A - width;
+        row = 1;
     }
-    var_1 = var_r7;
-    var_6 = var_r1;
+    topX = column;
+    topY = row;
 
-    var_r3_2 = (u16*)&gEwramData->unk_133F4[0];
-    *var_r3_2++ = 0xE220;
-    *var_r3_2++ = 0xE234;
-    *var_r3_2++ = 0xE235;
-    for (var_r1_2 = var_0 - 2; var_r1_2 > 0; var_r1_2--)
+    dst = (u16*)&gEwramData->sharedScratchBuffer[0];
+    *dst++ = 0xE220;
+    *dst++ = 0xE234;
+    *dst++ = 0xE235;
+    for (i = width - 2; i > 0; i--)
     {
-        *var_r3_2++ = 0xE223;
+        *dst++ = 0xE223;
     }
-    *var_r3_2++ = 0xE622;
-    *var_r3_2++ = 0xE621;
-    *var_r3_2++ = 0xE620;
-    DmaQueue_DirectCopy((var_0 + 4) << 1, (u32 *)spC, (u32 *) (VRAM_BASE + 0xE000 + (var_1 * 2) + (var_6 * 0x40)));
-    var_1 = var_r7;
+    *dst++ = 0xE622;
+    *dst++ = 0xE621;
+    *dst++ = 0xE620;
+    DmaQueue_DirectCopy((width + 4) << 1, (u32 *)buffer, (u32 *) (VRAM_BASE + 0xE000 + (topX * 2) + (topY * 0x40)));
+    midX = column;
+    midY = row + 1;
 
-    var_r3_2 = (u16*)&gEwramData->unk_133F4[0];
-    *var_r3_2++ = 0xE230;
-    *var_r3_2++ = 0xE231;
-    for (var_r1_2 = 0; var_r1_2 < var_0; var_r1_2++)
+    dst = (u16*)&gEwramData->sharedScratchBuffer[0];
+    *dst++ = 0xE230;
+    *dst++ = 0xE231;
+    for (i = 0; i < width; i++)
     {
-        *var_r3_2++ = (var_r1_2 + (sp8 << 5) + 0x80) | 0xE200;
+        *dst++ = (i + (bufferIndex << 5) + 0x80) | 0xE200;
     }
-    *var_r3_2++ = 0xE631;
-    *var_r3_2++ = 0xE630;
-    DmaQueue_DirectCopy((var_0 + 4) << 1, (u32 *)spC, (u32 *) (VRAM_BASE + 0xE000 + (var_1 * 2) + ((var_r1 + 1) * 0x40)));
-    var_5 = var_r7;
-    var_3 = var_r1 + 2;
+    *dst++ = 0xE631;
+    *dst++ = 0xE630;
+    DmaQueue_DirectCopy((width + 4) << 1, (u32 *)buffer, (u32 *) (VRAM_BASE + 0xE000 + (midX * 2) + (midY * 0x40)));
+    bottomX = column;
+    bottomY = row + 2;
 
-    var_r3_2 = (u16*)&gEwramData->unk_133F4[0];
-    *var_r3_2++ = 0xE240;
-    *var_r3_2++ = 0xE254;
-    *var_r3_2++ = 0xE255;
-    for (var_r1_2 = var_0 - 2; var_r1_2 > 0; var_r1_2--)
+    dst = (u16*)&gEwramData->sharedScratchBuffer[0];
+    *dst++ = 0xE240;
+    *dst++ = 0xE254;
+    *dst++ = 0xE255;
+    for (i = width - 2; i > 0; i--)
     {
-        *var_r3_2++ = 0xE243;
+        *dst++ = 0xE243;
     }
-    *var_r3_2++ = 0xE642;
-    *var_r3_2++ = 0xE641;
-    *var_r3_2++ = 0xE640;
-    DmaQueue_DirectCopy((var_0 + 4) << 1, (u32 *)spC, (u32 *) (VRAM_BASE + 0xE000 + (var_5 * 2) + ((var_3) * 0x40)));
+    *dst++ = 0xE642;
+    *dst++ = 0xE641;
+    *dst++ = 0xE640;
+    DmaQueue_DirectCopy((width + 4) << 1, (u32 *)buffer, (u32 *) (VRAM_BASE + 0xE000 + (bottomX * 2) + ((bottomY) * 0x40)));
 
-    sub_0803C918((u8 *)0x0820C428, sp10, 1, 0xE);
-    sub_0803C918((u8 *)0x081183F4, 1, 1, 0xF);
+    BgPalette_LoadRange((u8 *)0x0820C428, first, 1, 0xE);
+    BgPalette_LoadRange((u8 *)0x081183F4, 1, 1, 0xF);
     if (arg2 != 0)
     {
-        sub_0800E540(arg1, sp14 + 1);
-        sp4->unk_422 = 2;
+        Hud_ShowLargeSoulWindow(arg1, soulIndex + 1);
+        gameState->hudMessageTimer = 2;
     }
     else
     {
-        sp4->unk_422 = 0xF0;
+        gameState->hudMessageTimer = 0xF0;
     }
 
-    sp4->unk_423 = 0;
-    sp4->unk_424 = 1 - sp4->unk_424;
-    sp4->unk_420 = arg0;
+    gameState->hudMessageRequest = 0;
+    gameState->hudTextBufferIndex = 1 - gameState->hudTextBufferIndex;
+    gameState->hudMessageId = arg0;
 }
-END_NONMATCH
 
-extern u16 sUnk_080EA628[];
+extern u16 sEnemyNameTextIds[];
 
 /**
- * @brief EA98 | To document
- * 
- * @param param_0 To document
+ * @brief Once per enemy (flag unk_3E bit 0), dismiss the area-name banner
+ * and request the enemy name text from sEnemyNameTextIds[enemy id] unless
+ * messages are blocked. Called by Hit_ResolveDamage.
  */
-void sub_0800EA98(struct Unk_sub_0800EA98 *param_0)
+void Hud_RequestEnemyName(struct EnemyHudNameView *enemy)
 {
-    u16 var_0;
-    struct EwramData_unk60 *unk_60;
+    u16 hudMessageId;
+    struct GameState *gameState;
 
-    if (!(param_0->unk_3E & 1))
+    if (!(enemy->enemyFlags & 1))
     {
-        sub_0801093C(&gEwramData->unk_60);
-        var_0 = sUnk_080EA628[param_0->unk_36];
-        unk_60 = &gEwramData->unk_60;
-        if (!(unk_60->unk_42C & 0x03000200))
+        AreaName_Dismiss(&gEwramData->gameState);
+        hudMessageId = sEnemyNameTextIds[enemy->enemyId];
+        gameState = &gEwramData->gameState;
+        if (!(gameState->stateFlags & 0x03000200))
         {
-            unk_60->unk_423 = 2;
-            unk_60->unk_420 = var_0;
+            gameState->hudMessageRequest = 2;
+            gameState->hudMessageId = hudMessageId;
         }
-        param_0->unk_3E |= 1;
+        enemy->enemyFlags |= 1;
     }
 }
 
 /**
- * @brief EB04 | To document
- * 
+ * @brief If the window is open, mark it closed (stateFlags bit 0x02000000),
+ * clear its tilemap rows through the DMA queue and reset the request
+ * and timer.
  */
-void sub_0800EB04(void)
+void Hud_CloseMessageWindow(void)
 {
-    s32 var_r4;
-    s32 var_r5;
+    s32 vramAddr;
+    s32 row;
     s32 var_r5_2;
-    struct EwramData_unk60 *temp_r8;
-    u8 *temp_r6;
-    u32 var_0;
-    u32 var_1;
-    temp_r8 = &gEwramData->unk_60;
-    temp_r6 = gEwramData->unk_133F4;
+    struct GameState *gameState;
+    u8 *buffer;
+    u32 size;
+    u32 rows;
+    gameState = &gEwramData->gameState;
+    buffer = gEwramData->sharedScratchBuffer;
 
-    if (!(gEwramData->unk_60.unk_42C & 0x02000000))
+    if (!(gEwramData->gameState.stateFlags & 0x02000000))
     {
-        gEwramData->unk_60.unk_42C |= 0x02000000;
+        gEwramData->gameState.stateFlags |= 0x02000000;
         gEwramData->hBlankEffect.requestStop = 1;
 
-        var_0 = 0x26;
-        DMA_FILL_32(3, 0, temp_r6, var_0);
-        var_r4 = 0x0600E01A;
-        for (var_r5 = 0; var_r5 < 4; var_r5++)
+        size = 0x26;
+        DMA_FILL_32(3, 0, buffer, size);
+        vramAddr = 0x0600E01A;
+        for (row = 0; row < 4; row++)
         {
-            DmaQueue_DirectCopy(var_0, (u32 *)temp_r6, (u32 *) var_r4);
-            var_r4 += 0x40;
+            DmaQueue_DirectCopy(size, (u32 *)buffer, (u32 *) vramAddr);
+            vramAddr += 0x40;
         }
-        var_r4 = 0;
+        vramAddr = 0;
 
-        var_r5 = 5;
-        var_1 = 0x11;
-        DMA_FILL_32(3, 0, temp_r6, var_1 * 64);
-        DmaQueue_DirectCopy(var_1 * 64, (u32 *)temp_r6, (u32 *)(VRAM_BASE + 0xE000 + var_r5 * 0x40));
-        temp_r8->unk_423 = 0;
-        temp_r8->unk_422 = 0;
-        gEwramData->unk_60.unk_42C &= ~0x01000000;
+        row = 5;
+        rows = 0x11;
+        DMA_FILL_32(3, 0, buffer, rows * 64);
+        DmaQueue_DirectCopy(rows * 64, (u32 *)buffer, (u32 *)(VRAM_BASE + 0xE000 + row * 0x40));
+        gameState->hudMessageRequest = 0;
+        gameState->hudMessageTimer = 0;
+        gEwramData->gameState.stateFlags &= ~0x01000000;
     }
 }
 
 /**
- * @brief EBE0 | To document
- * 
+ * @brief Enter the saved room (roomData) at the saved player and camera
+ * positions and start its music, or load room data at (0, 0); clear
+ * the H-blank buffer.
  */
-void sub_0800EBE0(void)
+void Room_LoadInitial(void)
 {
-    if (gEwramData->unk_60.unk_3CC != NULL)
+    if (gEwramData->gameState.roomData != NULL)
     {
-        gEwramData->unk_60.unk_88 = (struct EwramData_unk88 *)gEwramData->unk_60.unk_3CC;
-        gEwramData->unk_13110.unk_13110->unk_524.unk_524_16.unk_526 = gEwramData->unk_60.unk_338;
-        gEwramData->unk_13110.unk_13110->unk_528.unk_528_16.unk_52A = gEwramData->unk_60.unk_33A;
+        gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)gEwramData->gameState.roomData;
+        gEwramData->playerState.player->posX.part16.integer = gEwramData->gameState.savedPlayerX;
+        gEwramData->playerState.player->posY.part16.integer = gEwramData->gameState.savedPlayerY;
 
-        sub_0800ECA0(gEwramData->unk_60.unk_334, gEwramData->unk_60.unk_336);
-        if (sub_08013960(&gEwramData->unk_60) == 0)
+        Room_LoadAtCamera(gEwramData->gameState.savedCameraX, gEwramData->gameState.savedCameraY);
+        if (Music_UpdateRoom(&gEwramData->gameState) == 0)
         {
-            sub_08013C5C();
-            sub_08013CF0(0);
+            Music_PlayAreaQuiet();
+            Music_SetCurrent(0);
             PlaySong(AUDIO_STOP);
         }
     }
     else
     {
-        sub_0800ECA0(0U, 0U);
+        Room_LoadAtCamera(0U, 0U);
     }
 
     gEwramData->hBlankEffect.requestStop = 1;
@@ -1737,74 +1699,64 @@ void sub_0800EBE0(void)
 }
 
 /**
- * @brief ECA0 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
+ * @brief Clamp the camera position to the current room size, load the room
+ * layers there, apply its display/blend settings and refresh the map.
  */
-void sub_0800ECA0(u16 param_0, u16 param_1)
+void Room_LoadAtCamera(u16 cameraX, u16 cameraY)
 {
-    struct EwramData_unk88 *temp_r4;
+    struct RoomDefinition *room;
 
-    temp_r4 = gEwramData->unk_60.unk_88;
-    gEwramData->unk_60.unk_8E_4 = 0;
-    if (temp_r4 != NULL)
+    room = gEwramData->gameState.currentRoomDefinition;
+    gEwramData->gameState.spawnCameraOffsetMode = 0;
+    if (room != NULL)
     {
-        if ((param_0 >> 8) >= temp_r4->unk_8->unk_8->unk_0)
+        if ((cameraX >> 8) >= room->bgLayers->dimensions->widthCells)
         {
-            param_0 = (temp_r4->unk_8->unk_8->unk_0 << 0x8) + 0xFF00;
+            cameraX = (room->bgLayers->dimensions->widthCells << 0x8) + 0xFF00;
         }
-        if ((param_1 >> 8) >= temp_r4->unk_8->unk_8->unk_1)
+        if ((cameraY >> 8) >= room->bgLayers->dimensions->heightCells)
         {
-            param_1 = (temp_r4->unk_8->unk_8->unk_1 << 0x8) + 0xFF00;
+            cameraY = (room->bgLayers->dimensions->heightCells << 0x8) + 0xFF00;
         }
-        sub_0800F9EC(temp_r4, param_0, param_1);
-        gUnk_03002CB0.dispCnt = temp_r4->unk_0;
-        gDisplayRegisters.bldCnt = temp_r4->unk_1E;
-        sub_0800C778();
-        sub_0800D288();
+        Room_Load(room, cameraX, cameraY);
+        gUnk_03002CB0.dispCnt = room->displayControl;
+        gDisplayRegisters.bldCnt = room->blendControl;
+        Display_SetDefaultBlend();
+        Bg_UpdateScrollModes();
     }
-    sub_0800DA50();
+    Hud_Init();
 }
 
 /**
- * @brief ED24 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @return s32 To document
+ * @brief When gameState.cameraScrollMinPriority does not exceed priority, apply
+ * the signed 16.16 deltas to BG1 with margins, scroll entities with it, refresh the map and
+ * return 1; otherwise return 0.
  */
-s32 sub_0800ED24(s32 param_0, s32 param_1, s32 param_2)
+s32 Camera_ScrollWithPriority(s32 priority, s32 deltaX, s32 deltaY)
 {
-    if (gEwramData->unk_60.unk_427 > param_0)
+    if (gEwramData->gameState.cameraScrollMinPriority > priority)
         return 0;
 
-    sub_0803FBBC(1, param_1, param_2);
-    sub_08000F60(1);
-    sub_0800D288();
+    BgMap_ScrollWithMargin(1, deltaX, deltaY);
+    Entity_ScrollWithBg(1);
+    Bg_UpdateScrollModes();
     return 1;
 }
 
 /**
- * @brief ED5C | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @param param_3 To document
- * @return u16 To document
+ * @brief Initial BG X scroll for a room layer from the BG1 X scroll and the
+ * layer scroll mode: zero, doubled, halved or scaled by layer width.
  */
-u16 sub_0800ED5C(u16 param_0, u8 param_1, u8 param_2, u16 param_3)
+u16 BgLayer_GetInitialScrollX(u16 bg1ScrollX, u8 scrollMode, u8 widthCells, u16 pixelWidth)
 {
-    struct EwramData_unkA078 *var_0;
-    s32 var_1;
-    u16 var_2;
+    struct BgLayerState *bg;
+    s32 bg1Width;
+    u16 scrollX;
 
-    var_2 = param_0;
-    var_0 = &gEwramData->bgInfo[1];
+    scrollX = bg1ScrollX;
+    bg = &gEwramData->bgInfo[1];
 
-    switch (param_1)
+    switch (scrollMode)
     {
         case 0:
         case 8:
@@ -1823,23 +1775,23 @@ u16 sub_0800ED5C(u16 param_0, u8 param_1, u8 param_2, u16 param_3)
         case 32:
         case 33:
         case 35:
-            var_2 = 0;
+            scrollX = 0;
             break;
 
         case 5:
         case 7:
-            var_2 *= 2;
+            scrollX *= 2;
             break;
 
         case 2:
         case 4:
-            if (param_2 > 1)
+            if (widthCells > 1)
             {
-                var_2 /= 2;
+                scrollX /= 2;
             }
             else
             {
-                var_2 = 0;
+                scrollX = 0;
             }
             break;
 
@@ -1849,42 +1801,37 @@ u16 sub_0800ED5C(u16 param_0, u8 param_1, u8 param_2, u16 param_3)
         case 16:
         case 23:
         case 31:
-            if (param_2 > 1)
+            if (widthCells > 1)
             {
-                var_1 = var_0->unk_14;
-                var_2 = (var_2 * (param_3 - 0xF0)) / (var_1 - 0xF0);
+                bg1Width = bg->pixelWidth;
+                scrollX = (scrollX * (pixelWidth - 0xF0)) / (bg1Width - 0xF0);
             }
             else
             {
-                var_2 = 0;
+                scrollX = 0;
             }
             break;
 
         case 36:
             break;
     }
-    return var_2;
+    return scrollX;
 }
 
 /**
- * @brief EE54 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @param param_3 To document
- * @return u16 To document
+ * @brief Initial BG Y scroll for a room layer from the BG1 Y scroll and the
+ * layer scroll mode, plus 0x30.
  */
-u16 sub_0800EE54(u16 param_0, u8 param_1, u8 param_2, u16 param_3)
+u16 BgLayer_GetInitialScrollY(u16 bg1ScrollY, u8 scrollMode, u8 heightCells, u16 pixelHeight)
 {
-    struct EwramData_unkA078 *var_0;
-    s32 var_1;
-    u16 var_2;
+    struct BgLayerState *bg;
+    s32 bg1Height;
+    u16 scrollY;
 
-    var_2 = param_0;
-    var_0 = &gEwramData->bgInfo[1];
+    scrollY = bg1ScrollY;
+    bg = &gEwramData->bgInfo[1];
 
-    switch (param_1)
+    switch (scrollMode)
     {
         case 0:
         case 8:
@@ -1902,131 +1849,126 @@ u16 sub_0800EE54(u16 param_0, u8 param_1, u8 param_2, u16 param_3)
         case 32:
         case 33:
         case 35:
-            var_2 = 0;
+            scrollY = 0;
             break;
 
         case 10:
-            var_2 = 0xFFD0;
+            scrollY = 0xFFD0;
             break;
 
         case 6:
         case 7:
-            var_2 *= 2;
+            scrollY *= 2;
             break;
 
         case 3:
         case 4:
-            if (param_2 > 1U)
+            if (heightCells > 1U)
             {
-                var_2 /= 2;
+                scrollY /= 2;
             }
             else
             {
-                var_2 = 0;
+                scrollY = 0;
             }
             break;
 
         case 12:
         case 13:
-            if (param_2 <= 1U)
+            if (heightCells <= 1U)
             {
-                var_2 = 0;
+                scrollY = 0;
             }
             else
             {
-                var_1 = var_0->unk_16;
-                var_2 = (var_2 * (param_3 - 0xD0)) / (var_1 - 0xD0);
+                bg1Height = bg->pixelHeight;
+                scrollY = (scrollY * (pixelHeight - 0xD0)) / (bg1Height - 0xD0);
             }
             break;
 
         case 15:
         case 16:
-            var_1 = var_0->unk_16;
-            var_2 = (var_2 * (param_3 - 0xD0)) / (var_1 - 0xD0);
+            bg1Height = bg->pixelHeight;
+            scrollY = (scrollY * (pixelHeight - 0xD0)) / (bg1Height - 0xD0);
             break;
 
         case 36:
             break;
     }
 
-    return var_2 + 0x30;
+    return scrollY + 0x30;
 }
 
 /**
- * @brief EF58 | To document
- * 
+ * @brief Set text foreground color 15 and background color 1.
  */
-void sub_0800EF58(void)
+void Text_SetDefaultColors(void)
 {
-    sub_080412F0(0xF);
-    sub_08041304(1);
+    Text_SetForegroundColor(0xF);
+    Text_SetBackgroundColor(1);
 }
 
 /**
- * @brief EF6C | To document
- * 
+ * @brief Clear the HUD font graphics at VRAM 0x06004000 (0x2000 bytes).
  */
-void sub_0800EF6C(void)
+void Hud_ClearGraphics(void)
 {
     DMA_FILL_32(3, 0, 0x06004000, 0x2000);
 }
 
 /**
- * @brief EF94 | To document
- * 
- * @param param_0 To document
+ * @brief Empty hook called at the end of Room_Load.
  */
-void sub_0800EF94(struct EwramData_unk60 *param_0)
+void Room_OnLoaded(struct GameState *gameState)
 {
-    // TODO: is param_0 unused or an implicit call?
+    // TODO: is gameState unused or an implicit call?
     return;
 }
 
 /**
- * @brief EF98 | To document
- * 
- * @param param_0 To document
+ * @brief Unless messages are blocked (stateFlags & 0x03000200), request pickup
+ * message text id for the message window (Pickup_Collect).
  */
-void sub_0800EF98(s32 param_0)
+void Hud_RequestPickupMessage(s32 hudMessageId)
 {
-    struct EwramData_unk60 *unk_60;
+    struct GameState *gameState;
 
-    unk_60 = &gEwramData->unk_60;
-    if (!(unk_60->unk_42C & 0x03000200))
+    gameState = &gEwramData->gameState;
+    if (!(gameState->stateFlags & 0x03000200))
     {
-        unk_60->unk_423 = 1;
-        unk_60->unk_420 = param_0;
+        gameState->hudMessageRequest = 1;
+        gameState->hudMessageId = hudMessageId;
     }
 }
 
 /**
- * @brief EFD4 | To document
- * 
- * @param param_0 To document
+ * @brief Process the pending message request hudMessageRequest: 1 shows a pickup
+ * message, 2 an enemy name, 3 closes the window; otherwise count down
+ * the display timer hudMessageTimer and close the window when it expires.
  */
-void sub_0800EFD4(struct EwramData_unk60 *param_0)
+void Hud_UpdateMessageWindow(struct GameState *gameState)
 {
-    switch (param_0->unk_423)
+    switch (gameState->hudMessageRequest)
     {
         case 1:
-            sub_0800E0E8(param_0->unk_420);
+            Hud_ShowPickupMessage(gameState->hudMessageId);
             return;
 
         case 2:
-            sub_0800DE4C(param_0->unk_420);
+            Hud_ShowEnemyName(gameState->hudMessageId);
             return;
 
         case 3:
-            sub_0800EB04();
+            Hud_CloseMessageWindow();
             return;
 
         default:
-            if (param_0->unk_422 != 0)
+            if (gameState->hudMessageTimer != 0)
             {
-                param_0->unk_422 -= 1;
-                if (param_0->unk_422 == 0)
+                gameState->hudMessageTimer -= 1;
+                if (gameState->hudMessageTimer == 0)
                 {
-                    sub_0800EB04();
+                    Hud_CloseMessageWindow();
                 }
             }
             return;
@@ -2034,109 +1976,104 @@ void sub_0800EFD4(struct EwramData_unk60 *param_0)
 }
 
 /**
- * @brief F038 | To document
- * 
+ * @brief Restore BG0 as the HUD text layer (font at VRAM 0x06004000, text
+ * tiles at 0x06005000) and clear stateFlags bit 0x200.
  */
-void sub_0800F038(void)
+void Hud_EndEventTextLayer(void)
 {
     DMA_FILL_32(3, 0, 0x0600E000, 0x800);
     gDisplayRegisters.bgCnt[0] = CREATE_BGCNT(0, 28, BGCNT_HIGH_PRIORITY, BGCNT_SIZE_256x256);
     gDisplayRegisters.bgOfs[0].hOfs = 0;
     gDisplayRegisters.bgOfs[0].vOfs = 6;
-    sub_080412DC(VRAM_BASE + 0x5000);
-    sub_0803FD9C((u8 *)0x0827B208, VRAM_BASE + 0x4000, 0);
-    gEwramData->unk_60.unk_42C &= ~0x200;
+    Text_SetTileBuffer(VRAM_BASE + 0x5000);
+    Gfx_CopyResource((u8 *)0x0827B208, VRAM_BASE + 0x4000, 0);
+    gEwramData->gameState.stateFlags &= ~0x200;
 }
 
 /**
- * @brief F0AC | To document
- * 
+ * @brief Switch BG0 to the event text layout (text tiles at 0x06004000),
+ * clear its VRAM and set stateFlags bit 0x200, which blocks HUD messages.
  */
-void sub_0800F0AC(void)
+void Hud_BeginEventTextLayer(void)
 {
     gDisplayRegisters.bgCnt[0] = CREATE_BGCNT(1, 28, BGCNT_HIGH_PRIORITY, BGCNT_SIZE_256x256);
-    gEwramData->unk_60.unk_42C |= 0x200;
-    sub_080412DC(VRAM_BASE + 0x4000);
-    sub_08041304(0);
+    gEwramData->gameState.stateFlags |= 0x200;
+    Text_SetTileBuffer(VRAM_BASE + 0x4000);
+    Text_SetBackgroundColor(0);
     DMA_FILL_32(3, 0, 0x06004000, 0x2000);
     DMA_FILL_32(3, 0, 0x06006000, 0x2000);
     DMA_FILL_32(3, 0, 0x0600E000, 0x800);
 }
 
 /**
- * @brief F138 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @param param_3 To document
- * @param param_4 To document
+ * @brief Draw a HUD gauge row for value/max at the given tile position;
+ * the last argument selects the HP (0) or MP (1) tile set.
  */
-void sub_0800F138(s32 param_0, s32 param_1, s32 param_2, s32 param_3, s32 param_4)
+void Hud_DrawGauge(s32 x, s32 y, s32 value, s32 max, s32 style)
 {
-    // TODO: sub_0800F138 is the same as sub_0800DC70_inline_0
-    s32 var_r1;
-    u16 *var_r2;
-    s32 var_r3;
-    s32 var_r7;
+    // TODO: Hud_DrawGauge is the same as DrawStatGauge
+    s32 i;
+    u16 *dst;
+    s32 fill;
+    s32 baseTile;
     s32 palette;
 
     palette = 0xD;
-    if (param_4 == 0)
+    if (style == 0)
     {
-        var_r7 = 0x200;
+        baseTile = 0x200;
     }
     else
     {
-        var_r7 = 0x210;
+        baseTile = 0x210;
     }
 
-    if (param_2 > 0)
+    if (value > 0)
     {
-        var_r3 = Div(Div(param_2 * 100, param_3) << 6, 100);
-        if (var_r3 == 0)
+        fill = Div(Div(value * 100, max) << 6, 100);
+        if (fill == 0)
         {
-            var_r3 = 1;
+            fill = 1;
         }
     }
     else
     {
-        var_r3 = 0;
+        fill = 0;
     }
 
-    var_r2 = (u16*)(0x0600E000 + (param_0 * 2) + (param_1 << 6));
-    for (var_r1 = 0; var_r1 < 8; var_r1++)
+    dst = (u16*)(0x0600E000 + (x * 2) + (y << 6));
+    for (i = 0; i < 8; i++)
     {
-        if (var_r1 == var_r3 / 8)
+        if (i == fill / 8)
         {
-            *var_r2 = (var_r7 + (var_r3 - (var_r1 * 8))) | (palette << 12);
+            *dst = (baseTile + (fill - (i * 8))) | (palette << 12);
         }
         else
         {
-            if (var_r3 >= ((var_r1 + 1) * 8))
+            if (fill >= ((i + 1) * 8))
             {
-                *var_r2 = (var_r7 + 8) | (palette << 12);
+                *dst = (baseTile + 8) | (palette << 12);
             }
             else
             {
-                *var_r2 = (var_r7) | (palette << 12);
+                *dst = (baseTile) | (palette << 12);
             }
         }
-        var_r2 += 1;
+        dst += 1;
     }
 }
 
 /**
- * @brief F1C4 | To document
- * 
- * @return s32 To document
+ * @brief Unreferenced copy of the window placement test: 0 when an event
+ * (stateFlags bit 0) runs with the player below y 0x70, else 1.
  */
-s32 sub_0800F1C4(void)
+s32 Hud_UseBottomWindow(void)
 {
-    // TODO: sub_0800F1C4 is the same as sub_0800E40C_inline_0
+    // TODO: Hud_UseBottomWindow is the same as Hud_IsWindowAreaFree
     s32 res;
     res = 1;
-    if ((gEwramData->unk_60.unk_42C & 1) && (gEwramData->unk_13110.unk_13110->unk_528.unk_528_16.unk_52A > 0x70))
+    if ((gEwramData->gameState.stateFlags & 1) && (gEwramData->playerState.player->posY.part16.integer > 0x70))
         res = 0;
     return res;
 }
+

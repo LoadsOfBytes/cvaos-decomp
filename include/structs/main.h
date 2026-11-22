@@ -36,11 +36,11 @@ struct DisplayRegisters {
     /* 0x42 */ u8 winOut_L;
     /* 0x43 */ u8 winOut_H;
     /* 0x44 */ u16 mosaic;
-    /* 0x46 */ u16 unk_4e;
+    /* 0x46 */ u16 unused4E;
     /* 0x48 */ u16 bldCnt;
     /* 0x4A */ u16 bldAlpha;
     /* 0x4C */ u16 bldY;
-    /* 0x4E */ u16 unk_56;
+    /* 0x4E */ u16 unused56;
 }; /* size = 0x50 */
 
 extern struct DisplayRegisters gDisplayRegisters;
@@ -53,20 +53,20 @@ struct DmaQueueInfo {
     union {
         u32 directData; // 34C8
         u32 indirectSize; // 34C8
-    } unk_818;
+    } dataOrSize;
 };
 
 struct Unk_03002CB0 {
     /* 0x0000 */ u16 dispCnt;
-    /* 0x0002 */ u8 unk_2;
+    /* 0x0002 */ u8 vcountDmaMode;
     /* 0x0003 */ u8 pad_3[0x4 - 0x3];
     /* 0x0004 */ u16 *pBgCmdBuffer;
     /* 0x0008 */ u16 bgCmdBuffer[0x400];
     /* 0x0808 */ struct DmaQueueInfo *dmaQueueEnd;
     /* 0x080C */ struct DmaQueueInfo dmaQueue[0x80];
-    /* 0x100C */ u8 unk_100C;
-    /* 0x100D */ u8 unk_100D;
-    /* 0x100E */ u8 unk_100E;
+    /* 0x100C */ u8 blockFlipFlags;
+    /* 0x100D */ u8 collisionProbeFlags;
+    /* 0x100E */ u8 objectFloorContact;
 };
 
 extern struct Unk_03002CB0 gUnk_03002CB0;

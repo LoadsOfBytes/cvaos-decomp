@@ -27,31 +27,34 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-static inline void sub_080135C0_inline(struct EwramData_unk60 *param_0)
+static inline void SaveData_StoreHeaderSummary(struct GameState *gameState)
 {
-    param_0->unk_A8 = gEwramData->unk_1325C.currentGold;
-    param_0->unk_A0 = gEwramData->unk_1325C.currentLevel;
-    param_0->unk_A6 = sub_08011E24(param_0, 2);
-    param_0->unk_A4 = gEwramData->unk_1325C.currentCharacter;
-    param_0->unk_A5 = gEwramData->unk_1325C.unk_13267;
+    gameState->saveGold = gEwramData->playerStatus.currentGold;
+    gameState->saveLevel = gEwramData->playerStatus.currentLevel;
+    gameState->saveMapCompletionTenths = Map_GetCompletionTenths(gameState, 2);
+    gameState->saveCharacter = gEwramData->playerStatus.currentCharacter;
+    gameState->unk_A5 = gEwramData->playerStatus.unk_13267;
 }
 
+/* Keep the address of the global pointer, rather than a snapshot of its
+ * value, so buffer accesses still reload it after SRAM calls. The local
+ * also preserves agbcc's early symbol-address materialization. */
 static inline u32 SaveData_SaveSlotToSram_inline(s32 saveSlot)
 {
+    struct EwramData **ewramAddress = &gEwramData;
     void *sramSaveSlot;
     u32 error_addr;
 
-    if (gEwramData) {} // TODO: Why?
 
     sramSaveSlot = SRAM_BASE + 0x10 + saveSlot * 0x47C;
     SramLockSaveSlot(saveSlot);
-    error_addr = WriteAndVerifySramFast(&gEwramData->unk_1325C, sramSaveSlot, 0x190);
+    error_addr = WriteAndVerifySramFast(&(*ewramAddress)->playerStatus, sramSaveSlot, 0x190);
     if (error_addr == 0)
     {
-        error_addr = WriteAndVerifySramFast(&gEwramData->unk_60.unk_94, sramSaveSlot + 0x190, 0x20);
+        error_addr = WriteAndVerifySramFast(&(*ewramAddress)->gameState.playerName, sramSaveSlot + 0x190, 0x20);
         if (error_addr == 0)
         {
-            error_addr = WriteAndVerifySramFast(&gEwramData->unk_60.unk_B4, sramSaveSlot + 0x190 + 0x20, 0x2CC);
+            error_addr = WriteAndVerifySramFast(&(*ewramAddress)->gameState.mapCells, sramSaveSlot + 0x190 + 0x20, 0x2CC);
         }
     }
     SramUnlockSaveSlot(saveSlot);
@@ -64,7 +67,7 @@ static inline s32 SaveData_ClearSlotInSram_inline(s32 saveSlot)
     void *zeroBuf;
     void *sramSaveSlot;
 
-    zeroBuf = gEwramData->unk_133F4;
+    zeroBuf = gEwramData->sharedScratchBuffer;
     DMA_FILL_32(3, 0, zeroBuf, 0x47C);
     sramSaveSlot = SRAM_BASE + 0x10 + saveSlot * 0x47C;
     SramLockSaveSlot(saveSlot);
@@ -73,12 +76,10 @@ static inline s32 SaveData_ClearSlotInSram_inline(s32 saveSlot)
     return error_addr;
 }
 
-static inline s32 sub_08013700_inline(s32 saveSlot, s32 param_1)
+static inline s32 SaveSlot_ReadHeader(s32 saveSlot, s32 bufferIndex)
 {
     s32 saveValid;
     s32 sramSaveSlotOffset;
-
-    if (gEwramData) {}
 
     saveValid = SramCheckInitialized();
     if (saveValid)
@@ -87,11 +88,11 @@ static inline s32 sub_08013700_inline(s32 saveSlot, s32 param_1)
         saveValid = SramCheckSaveSlotUnlocked(saveSlot);
         if (saveValid)
         {
-            gReadSramFast(SRAM_BASE + 0x10 + sramSaveSlotOffset + 0x190, &gEwramData->unk_20[param_1], sizeof(gEwramData->unk_20[param_1]));
+            gReadSramFast(SRAM_BASE + 0x10 + sramSaveSlotOffset + 0x190, &gEwramData->saveHeaders[bufferIndex], sizeof(gEwramData->saveHeaders[bufferIndex]));
         }
         else
         {
-            DMA_FILL_32(3, 0, &gEwramData->unk_20[param_1], sizeof(gEwramData->unk_20[param_1]));
+            DMA_FILL_32(3, 0, &gEwramData->saveHeaders[bufferIndex], sizeof(gEwramData->saveHeaders[bufferIndex]));
         }
     }
     return saveValid;
@@ -106,10 +107,10 @@ static inline s32 sub_08013700_inline(s32 saveSlot, s32 param_1)
  */
 s32 SaveData_LoadSlotFromSram(s32 saveSlot)
 {
+    struct EwramData **ewramAddress = &gEwramData;
     s32 saveValid;
     void *sramSaveSlot;
 
-    if (gEwramData) {}
 
     saveValid = SramCheckInitialized();
     if (saveValid)
@@ -118,11 +119,11 @@ s32 SaveData_LoadSlotFromSram(s32 saveSlot)
         saveValid = SramCheckSaveSlotUnlocked(saveSlot);
         if (saveValid)
         {
-            gReadSramFast(sramSaveSlot, &gEwramData->unk_1325C, 0x190);
-            gReadSramFast(sramSaveSlot + 0x190, &gEwramData->unk_60.unk_94, 0x20);
-            gReadSramFast(sramSaveSlot + 0x190 + 0x20, &gEwramData->unk_60.unk_B4, 0x2CC);
+            gReadSramFast(sramSaveSlot, &(*ewramAddress)->playerStatus, 0x190);
+            gReadSramFast(sramSaveSlot + 0x190, &(*ewramAddress)->gameState.playerName, 0x20);
+            gReadSramFast(sramSaveSlot + 0x190 + 0x20, &(*ewramAddress)->gameState.mapCells, 0x2CC);
 
-            if ((gEwramData->unk_60.unk_338 | gEwramData->unk_60.unk_33A) != 0)
+            if (((*ewramAddress)->gameState.savedPlayerX | (*ewramAddress)->gameState.savedPlayerY) != 0)
                return saveValid;
         }
         saveValid = FALSE;
@@ -130,63 +131,62 @@ s32 SaveData_LoadSlotFromSram(s32 saveSlot)
     return saveValid;
 }
 
-const u32 sUnk_080E1170[] = {
+const u32 sFlagsClearedAfterEnding[] = {
     (1 << 5) | 12, (1 << 5) | 13, 0
 };
 
 /**
- * @brief 127F0 | To document
- * 
- * @param saveSlot Save slot index into SRAM
- * @param param_1 To document
- * @return s32 To document
+ * @brief Reload the slot (or the default first save room when empty), keep
+ * the current play time, restore HP/MP, apply the ending-specific flag
+ * resets (afterClear: listed game flags; else flag 0x28 and bossEventFlags
+ * bit 0), refresh the summary and save. Return the SRAM error.
  */
-s32 sub_080127F0(s32 saveSlot, s32 param_1)
+s32 SaveData_ResaveSlotAfterEnding(s32 saveSlot, s32 fullClear)
 {
-    struct EwramData_unk20 *unk_20;
-    struct EwramData_unk60 *unk_60;
+    struct SaveHeader *header;
+    struct GameState *gameState;
     s32 inGameTimerBackup;
-    s32 var_2;
+    s32 i;
     u32 error_addr;
 
-    unk_60 = &gEwramData->unk_60;
-    unk_20 = &gEwramData->unk_20[1];
-    inGameTimerBackup = unk_60->inGameTimer;
+    gameState = &gEwramData->gameState;
+    header = &gEwramData->saveHeaders[1];
+    inGameTimerBackup = gameState->inGameTimer;
 
-    if (sub_08013700_inline(saveSlot, 1) && unk_20->unk_38)
+    if (SaveSlot_ReadHeader(saveSlot, 1) && header->playTime)
     {
         SaveData_LoadSlotFromSram(saveSlot);
     }
     else
     {
-        unk_60->currentArea = 0;
-        unk_60->currentRoom = 0x24; // First save room
-        unk_60->unk_334 = 0;
-        unk_60->unk_336 = 0x30;
-        unk_60->unk_338 = 0x78;
-        unk_60->unk_33A = 0x9F;
+        gameState->currentArea = 0;
+        gameState->currentRoom = 0x24; // First save room
+        gameState->savedCameraX = 0;
+        gameState->savedCameraY = 0x30;
+        gameState->savedPlayerX = 0x78;
+        gameState->savedPlayerY = 0x9F;
     }
 
-    unk_60->inGameTimer = inGameTimerBackup;
-    sub_080213BC();
+    gameState->inGameTimer = inGameTimerBackup;
+    Player_RestoreHPAndMP();
 
-    if (param_1 != 0)
+    if (fullClear != 0)
     {
-        unk_60->unk_A1_0 = 1;
-        gEwramData->unk_60.unk_37E &= ~0x80; // clear Chaos death flag?
+        gameState->gameCleared = 1;
+        gEwramData->gameState.bossEventFlags &= ~0x80; // clear Chaos death flag?
 
-        for (var_2 = 0; sUnk_080E1170[var_2] != 0; var_2++)
+        for (i = 0; sFlagsClearedAfterEnding[i] != 0; i++)
         {
-            sub_080121E0(sUnk_080E1170[var_2]);
+            GameFlag_Clear(sFlagsClearedAfterEnding[i]);
         }
     }
     else
     {
-        gEwramData->unk_60.unk_37E &= ~1; // clear Graham death flag?
-        sub_080121E0((1 << 5) | 8);
+        gEwramData->gameState.bossEventFlags &= ~1; // clear Graham death flag?
+        GameFlag_Clear((1 << 5) | 8);
     }
 
-    sub_080135C0_inline(&gEwramData->unk_60);
+    SaveData_StoreHeaderSummary(&gEwramData->gameState);
     error_addr = SaveData_SaveSlotToSram_inline(saveSlot);
     return error_addr;
 }
@@ -194,109 +194,108 @@ s32 sub_080127F0(s32 saveSlot, s32 param_1)
 // deletes a file?
 // copies a file?
 /**
- * @brief 12A08 | To document
- * 
- * @param saveSlot Save slot index into SRAM
- * @return s32 To document
+ * @brief Delete a save slot from the file menu. If another slot is linked to
+ * it, rewrite that slot without the link (also unlinking other slots
+ * that referred to it); otherwise clear the slot. Return the SRAM error.
  */
-s32 sub_08012A08(s32 saveSlot)
+s32 SaveData_DeleteSlot(s32 saveSlot)
 {
-    s32 sp4;
-    s32 temp_r1_4;
+    s32 newSource;
+    s32 otherSlot;
     u32 error_addr;
-    u32 var_r0_2;
-    s32 var_r7;
-    s32 temp_r1_2;
-    struct EwramData_unk20 *var_7;
-    struct EwramData_unk20 *var_0;
-    s32 var_1;
-    struct EwramData_unk20 *var_2;
-    struct EwramData_unk20 *var_4;
+    u32 valid;
+    s32 i;
+    s32 sourceLink;
+    struct SaveHeader *header;
+    struct SaveHeader *header0;
+    s32 used;
+    struct SaveHeader *header1;
+    struct SaveHeader *header0b;
 
-    var_0 = &gEwramData->unk_20[0];
-    var_r0_2 = sub_08013700_inline(saveSlot, 0);
-    var_1 = var_r0_2 && var_0->unk_38;
-    if (var_1 == 0)
+    header0 = &gEwramData->saveHeaders[0];
+    valid = SaveSlot_ReadHeader(saveSlot, 0);
+    used = valid && header0->playTime;
+    if (used == 0)
     {
         return 0;
     }
 
-    var_7 = gEwramData->unk_20;
-    temp_r1_2 = var_7->unk_2E;
+    header = gEwramData->saveHeaders;
+    sourceLink = header->sourceSlotLink;
 
-    if (temp_r1_2 != 0)
+    if (sourceLink != 0)
     {
-        temp_r1_4 = temp_r1_2 - 1;
+        otherSlot = sourceLink - 1;
 
         SaveData_ClearSlotInSram_inline(saveSlot);
-        SaveData_LoadSlotFromSram(temp_r1_4);
-        sub_08032CD0();
+        SaveData_LoadSlotFromSram(otherSlot);
+        SaveLink_ClearCopySlot();
 
-        for (var_r7 = 0; var_r7 < 6; var_r7 += 2)
+        for (i = 0; i < 6; i += 2)
         {
-            if ((var_r7 != saveSlot) && (temp_r1_4 != var_r7))
+            if ((i != saveSlot) && (otherSlot != i))
             {
-                var_2 = &gEwramData->unk_20[1];
-                var_r0_2 = sub_08013700_inline(var_r7, 0);
-                var_1 = var_r0_2 && var_2->unk_38;
-                if (var_1 != 0)
+                header1 = &gEwramData->saveHeaders[1];
+                valid = SaveSlot_ReadHeader(i, 0);
+                used = valid && header1->playTime;
+                if (used != 0)
                 {
-                    var_7 = &gEwramData->unk_20[1];
-                    if (var_7->unk_2E == (temp_r1_4 + 1))
+                    header = &gEwramData->saveHeaders[1];
+                    if (header->sourceSlotLink == (otherSlot + 1))
                     {
-                        sub_08032CBC(1, var_r7 + 1);
+                        SaveLink_SetSlot(1, i + 1);
                     }
                 }
             }
         }
 
-        error_addr = SaveData_SaveSlotToSram_inline(temp_r1_4);
+        error_addr = SaveData_SaveSlotToSram_inline(otherSlot);
         return error_addr;
     }
 
     else
     {
-        temp_r1_4 = var_7->unk_2F;
+        otherSlot = header->copySlotLink;
 
         error_addr = SaveData_ClearSlotInSram_inline(saveSlot);
-        if (temp_r1_4 == 0)
+        if (otherSlot == 0)
         {
             return error_addr;
         }
-        temp_r1_4 -= 1;
-        sp4 = -1;
+        otherSlot -= 1;
+        newSource = -1;
 
-        for (var_r7 = 0; var_r7 < 6; var_r7 += 2)
+        for (i = 0; i < 6; i += 2)
         {
-            if ((var_r7 != saveSlot) && (temp_r1_4 != var_r7))
+            if ((i != saveSlot) && (otherSlot != i))
             {
-                var_4 = &gEwramData->unk_20[0];
-                var_r0_2 = sub_08013700_inline(var_r7, 0);
-                var_1 = var_r0_2 && var_4->unk_38;
-                if (var_1 != 0)
+                header0b = &gEwramData->saveHeaders[0];
+                valid = SaveSlot_ReadHeader(i, 0);
+                used = valid && header0b->playTime;
+                if (used != 0)
                 {
-                    var_7 = &gEwramData->unk_20[0];
-                    if (var_7->unk_2E == (saveSlot + 1))
+                    header = &gEwramData->saveHeaders[0];
+                    if (header->sourceSlotLink == (saveSlot + 1))
                     {
-                        sp4 = var_r7;
+                        newSource = i;
                     }
                 }
             }
         }
 
-        SaveData_LoadSlotFromSram(temp_r1_4);
-        sub_08032CE0();
-        if (sp4 >= 0)
+        SaveData_LoadSlotFromSram(otherSlot);
+        SaveLink_DetachFromSource();
+        if (newSource >= 0)
         {
-            sub_08032CBC(1, sp4 + 1);
+            SaveLink_SetSlot(1, newSource + 1);
         }
 
-        error_addr = SaveData_SaveSlotToSram_inline(temp_r1_4);
-        if (sp4 >= 0)
+        error_addr = SaveData_SaveSlotToSram_inline(otherSlot);
+        if (newSource >= 0)
         {
-            SaveData_LoadSlotFromSram(sp4);
-            sub_08032CA8(temp_r1_4 + 1, 0);
-            error_addr = SaveData_SaveSlotToSram_inline(sp4);
+            SaveData_LoadSlotFromSram(newSource);
+            SaveLink_SetSlots(otherSlot + 1, 0);
+            error_addr = SaveData_SaveSlotToSram_inline(newSource);
         }
         return error_addr;
     }
@@ -304,251 +303,240 @@ s32 sub_08012A08(s32 saveSlot)
 
 // copies file?
 /**
- * @brief 12E30 | To document
- * 
- * @param srcSaveSlot Save slot to copy from
- * @param dstSaveSlot Save slot to copy to
- * @return s32 To document
+ * @brief Copy save slot src to dst: delete dst, relink src (and its odd
+ * companion slot when used) to dst, then write src data to dst.
+ * Return the SRAM error of the final write.
  */
-s32 sub_08012E30(s32 srcSaveSlot, s32 dstSaveSlot)
+s32 SaveData_CopySlot(s32 srcSaveSlot, s32 dstSaveSlot)
 {
-    s32 var_2;
-    struct EwramData_unk20 *unk_20;
-    u32 var_r0;
-    s32 var_1;
+    s32 saveSlot;
+    struct SaveHeader *header;
+    u32 valid;
+    s32 hasBackup;
     u32 error_addr;
 
-    sub_08012A08(dstSaveSlot);
+    SaveData_DeleteSlot(dstSaveSlot);
     SaveData_LoadSlotFromSram(srcSaveSlot);
-    sub_08032CBC(1, dstSaveSlot + 1);
+    SaveLink_SetSlot(1, dstSaveSlot + 1);
 
     SaveData_SaveSlotToSram_inline(srcSaveSlot);
-    var_2 = srcSaveSlot + 1;
-    unk_20 = &gEwramData->unk_20[0];
-    var_r0 = sub_08013700_inline(var_2, 0);
-    var_1 = var_r0 && unk_20->unk_38;
-    if (var_1)
+    saveSlot = srcSaveSlot + 1;
+    header = &gEwramData->saveHeaders[0];
+    valid = SaveSlot_ReadHeader(saveSlot, 0);
+    hasBackup = valid && header->playTime;
+    if (hasBackup)
     {
         SaveData_LoadSlotFromSram(srcSaveSlot + 1);
-        sub_08032CBC(1, dstSaveSlot + 1);
+        SaveLink_SetSlot(1, dstSaveSlot + 1);
         SaveData_SaveSlotToSram_inline(srcSaveSlot + 1);
     }
 
     SaveData_LoadSlotFromSram(srcSaveSlot);
-    sub_08032D18(srcSaveSlot + 1);
+    SaveLink_AttachToSource(srcSaveSlot + 1);
     error_addr = SaveData_SaveSlotToSram_inline(dstSaveSlot);
     return error_addr;
 }
 
 /**
- * @brief 13038 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @param param_3 To document
- * @return s32 To document
+ * @brief When the slot holds data, load it, subtract one soul of the given
+ * group/type/id, unequip the soul if no longer owned, save it and
+ * return 1; otherwise return 0.
  */
-s32 sub_08013038(s32 param_0, s32 param_1, s32 param_2, s32 param_3)
+s32 SaveData_RemoveSoulInSlot(s32 saveSlot, s32 soulGroupOffset, s32 soulType, s32 soulIndex)
 {
-    struct EwramData_unk20 *unk_20;
-    u32 var_r0;
-    s32 var_0;
+    struct SaveHeader *header;
+    u32 valid;
+    s32 used;
 
-    unk_20 = &gEwramData->unk_20[0];
-    var_r0 = sub_08013700_inline(param_0, 0);
-    var_0 = var_r0 && unk_20->unk_38;
-    if (var_0 != 0)
+    header = &gEwramData->saveHeaders[0];
+    valid = SaveSlot_ReadHeader(saveSlot, 0);
+    used = valid && header->playTime;
+    if (used != 0)
     {
-        SaveData_LoadSlotFromSram(param_0);
-        SoulInventory_AddAmountToGroupTotal(param_1, param_2, param_3, -1);
-        sub_08032D58(param_2, param_3);
-        SaveData_SaveSlotToSram_inline(param_0);
+        SaveData_LoadSlotFromSram(saveSlot);
+        SoulInventory_AddAmountToGroupTotal(soulGroupOffset, soulType, soulIndex, -1);
+        SoulInventory_UnequipIfUnowned(soulType, soulIndex);
+        SaveData_SaveSlotToSram_inline(saveSlot);
         return 1;
     }
     return 0;
 }
 
 /**
- * @brief 13164 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @return s32 Garbage
+ * @brief Remove one soul (type, id) given away in a trade from the save slot,
+ * resaving it and every slot linked to it.
  */
-s32 sub_08013164(s32 param_0, s32 param_1, s32 param_2)
+s32 SaveData_GiveAwaySoul(s32 saveSlot, s32 soulType, s32 soulId)
 {
-    struct EwramData_unk60 *temp_r4;
-    struct EwramData_unk20 *temp_r8;
-    struct EwramData **temp_r8_2;
-    u32 var_r0;
-    u32 error_addr;
-    s32 var_r7;
-    s32 temp_r4_5;
-    struct EwramData_unk20 *var_0;
-    s32 var_1;
-    s32 var_2;
+    struct GameState *gameState;
+    struct SaveHeader *slotData;
+    struct EwramData **ewramAddress;
+    u32 loaded;
+    u32 errorAddress;
+    s32 slot;
+    s32 linkedSlot;
+    struct SaveHeader *metadata;
+    s32 undefinedResult;
+    s32 occupied;
 
-    temp_r4 = &gEwramData->unk_60;
-    if ((SoulInventory_GetGroupSoulTotal(0, param_1, param_2) != 0) && (temp_r4->unk_A2[1] == 0))
+    gameState = &gEwramData->gameState;
+    if ((SoulInventory_GetGroupSoulTotal(0, soulType, soulId) != 0) && (gameState->slotLinks[1] == 0))
     {
-        SoulInventory_AddAmountToSoulTotal(param_1, param_2, -1);
-        sub_08032D58(param_1, param_2);
-        error_addr = SaveData_SaveSlotToSram_inline(param_0);
-        return error_addr;
+        SoulInventory_AddAmountToSoulTotal(soulType, soulId, -1);
+        SoulInventory_UnequipIfUnowned(soulType, soulId);
+        errorAddress = SaveData_SaveSlotToSram_inline(saveSlot);
+        return errorAddress;
     }
 
-    param_0 = param_0 + 1;
+    saveSlot = saveSlot + 1;
     while(TRUE)
     {
-        temp_r8_2 = &gEwramData; // Fake?
-        sub_08013700_inline(param_0 - 1, 0);
-        var_0 = &(*temp_r8_2)->unk_20[0];
-        if (var_0->unk_2E == 0)
+        ewramAddress = &gEwramData;
+        SaveSlot_ReadHeader(saveSlot - 1, 0);
+        metadata = &(*ewramAddress)->saveHeaders[0];
+        if (metadata->sourceSlotLink == 0)
             break;
-        param_0 = var_0->unk_2E;
+        saveSlot = metadata->sourceSlotLink;
     }
 
-    param_0 = param_0 - 1;
-    SaveData_LoadSlotFromSram(param_0);
-    SoulInventory_AddAmountToGroupTotal(0, param_1, param_2, -1);
-    sub_08032D58(param_1, param_2);
-    SaveData_SaveSlotToSram_inline(param_0);
-    sub_08013038(param_0 + 1, 0, param_1, param_2);
+    saveSlot = saveSlot - 1;
+    SaveData_LoadSlotFromSram(saveSlot);
+    SoulInventory_AddAmountToGroupTotal(0, soulType, soulId, -1);
+    SoulInventory_UnequipIfUnowned(soulType, soulId);
+    SaveData_SaveSlotToSram_inline(saveSlot);
+    SaveData_RemoveSoulInSlot(saveSlot + 1, 0, soulType, soulId);
     
-    for(var_r7 = 0; var_r7 < 6; var_r7 += 2)
+    for(slot = 0; slot < 6; slot += 2)
     {
-        if (var_r7 != param_0)
+        if (slot != saveSlot)
         {
-            temp_r8 = &gEwramData->unk_20[0];
-            var_r0 = sub_08013700_inline(var_r7, 0);
-            var_2 = var_r0 && temp_r8->unk_38;
-            if (var_2)
+            slotData = &gEwramData->saveHeaders[0];
+            loaded = SaveSlot_ReadHeader(slot, 0);
+            occupied = loaded && slotData->playTime;
+            if (occupied)
             {
-                var_0 = &gEwramData->unk_20[0];
-                if (var_0->unk_2E == (param_0 + 1))
+                metadata = &gEwramData->saveHeaders[0];
+                if (metadata->sourceSlotLink == (saveSlot + 1))
                 {
-                    sub_08013038(var_r7, 1, param_1, param_2);
-                    sub_08013038(var_r7 + 1, 1, param_1, param_2);
-                    temp_r4_5 = var_0->unk_2F;
-                    if (temp_r4_5 != 0)
+                    SaveData_RemoveSoulInSlot(slot, 1, soulType, soulId);
+                    SaveData_RemoveSoulInSlot(slot + 1, 1, soulType, soulId);
+                    linkedSlot = metadata->copySlotLink;
+                    if (linkedSlot != 0)
                     {
-                        sub_08013038(temp_r4_5 - 1, 1, param_1, param_2);
-                        sub_08013038(temp_r4_5, 1, param_1, param_2);
+                        SaveData_RemoveSoulInSlot(linkedSlot - 1, 1, soulType, soulId);
+                        SaveData_RemoveSoulInSlot(linkedSlot, 1, soulType, soulId);
                     }
                 }
             }
         }
     }
 
-    // BUG: returns uninitialized variable
-    return var_1;
+    // The original returns an undefined value on this path; preserve it for matching.
+    return undefinedResult;
 }
 
-struct Unk_084F140C {
-    u8 unk_0;
-    u8 unk_1;
+struct SoulKey {
+    u8 soulType;
+    u8 oneBasedSoulId;
     u8 pad_2[0x4 - 0x2];
 };
 
-extern struct Unk_084F140C sUnk_084F140C[];
+extern struct SoulKey sKeySouls[];
 
 /**
- * @brief 13404 | To document
- * 
+ * @brief Clear the progress block (preserving gameFlagsTail bits 0x100000 and
+ * 0x200000), set game flag 0x3B, zero soul totals and visitedThisRun, clear
+ * abilities, set level 1, restore HP/MP and unequip all souls.
  */
-void sub_08013404(void)
+void Game_ResetProgressForNewGame(void)
 {
-    s32 var_r0;
-    s32 var_r4;
-    struct Unk_084F140C *var_r5;
-    u32 temp_r4;
-    u32 temp_r7;
+    s32 j;
+    s32 i;
+    struct SoulKey *soul;
+    u32 keepFlag20;
+    u32 keepFlag21;
 
-    var_r5 = sUnk_084F140C;
+    soul = sKeySouls;
 
-    if (gEwramData->unk_60.unk_33C[2] & 0x100000)
-        temp_r4 = 1;
+    if (gEwramData->gameState.gameFlagsTail[0] & 0x100000)
+        keepFlag20 = 1;
     else
-        temp_r4 = 0;
+        keepFlag20 = 0;
 
-    if (gEwramData->unk_60.unk_33C[2] & 0x200000)
-        temp_r7 = 1;
+    if (gEwramData->gameState.gameFlagsTail[0] & 0x200000)
+        keepFlag21 = 1;
     else
-        temp_r7 = 0;
+        keepFlag21 = 0;
 
-    DMA_FILL_32(3, 0, &gEwramData->unk_60.unk_33C, 0x44);
-    sub_08012048((1 << 5) | 0x1B);
+    DMA_FILL_32(3, 0, &gEwramData->gameState.gameFlags, 0x44);
+    GameFlag_Set((1 << 5) | 0x1B);
 
-    if (temp_r4 != 0)
+    if (keepFlag20 != 0)
     {
-        gEwramData->unk_60.unk_33C[2] |= 0x100000;
+        gEwramData->gameState.gameFlagsTail[0] |= 0x100000;
     }
-    if (temp_r7 != 0)
+    if (keepFlag21 != 0)
     {
-        gEwramData->unk_60.unk_33C[2] |= 0x200000;
-    }
-
-    for (var_r4 = 0; var_r4 < 11; var_r4++, var_r5 += 1)
-    {
-        SoulInventory_SetGroupTotalAmount(0, var_r5->unk_0, var_r5->unk_1 - 1, 0);
-        SoulInventory_SetGroupTotalAmount(1, var_r5->unk_0, var_r5->unk_1 - 1, 0);
+        gEwramData->gameState.gameFlagsTail[0] |= 0x200000;
     }
 
-    for (var_r0 = 0; var_r0 < 40; var_r0++)
+    for (i = 0; i < 11; i++, soul += 1)
     {
-        for (var_r4 = 0; var_r4 < 2; var_r4++)
+        SoulInventory_SetGroupTotalAmount(0, soul->soulType, soul->oneBasedSoulId - 1, 0);
+        SoulInventory_SetGroupTotalAmount(1, soul->soulType, soul->oneBasedSoulId - 1, 0);
+    }
+
+    for (j = 0; j < 40; j++)
+    {
+        for (i = 0; i < 2; i++)
         {
-            gEwramData->unk_60.unk_B4[var_r4][var_r0].unk_B4 = 0;
+            gEwramData->gameState.mapCells[i][j].visitedThisRun = 0;
         }
     }
 
-    for (var_r4 = 0; var_r4 < 8; var_r4++)
+    for (i = 0; i < 8; i++)
     {
-        sub_08032ADC(var_r4, 0);
+        Player_SetAbility(i, 0);
     } 
 
-    sub_08033E38(1);
-    sub_080213BC();
-    gEwramData->unk_1325C.equippedRedSoul = 0;
-    gEwramData->unk_1325C.equippedBlueSoul = 0;
-    gEwramData->unk_1325C.equippedYellowSoul = 0;
+    Player_SetLevel(1);
+    Player_RestoreHPAndMP();
+    gEwramData->playerStatus.equippedRedSoul = 0;
+    gEwramData->playerStatus.equippedBlueSoul = 0;
+    gEwramData->playerStatus.equippedYellowSoul = 0;
 }
 
 /**
- * @brief 1325C | To document
- * 
- * @return s32 Garbage
+ * @brief Unreferenced: set the start position, start the play timer and save
+ * the current slot (no return value).
  */
-s32 sub_0801352C(void)
+s32 SaveData_CreateNewGameSlot(void)
 {
-    struct EwramData_unk60 *unk_60;
+    struct GameState *gameState;
 
-    unk_60 = &gEwramData->unk_60;
-    sub_08008ED0(0);
-    unk_60->inGameTimer = 1;
-    unk_60->unk_A6 = 0;
-    unk_60->unk_A0 = 1;
-    SaveData_SaveSlotToSram_inline(unk_60->currentSaveSlot);
+    gameState = &gEwramData->gameState;
+    Game_SetStartPosition(0);
+    gameState->inGameTimer = 1;
+    gameState->saveMapCompletionTenths = 0;
+    gameState->saveLevel = 1;
+    SaveData_SaveSlotToSram_inline(gameState->currentSaveSlot);
     // BUG: no return value
 }
 
 // creates quick save?
 // called on save?
 /**
- * @brief 135C0 | To document
- * 
- * @param param_0 To document
+ * @brief Store gold, level, map completion tenths, character and unk_13267
+ * in the slot summary fields of the given gameState block.
  */
-void sub_080135C0(struct EwramData_unk60 *param_0)
+void SaveData_UpdateSlotSummary(struct GameState *gameState)
 {
-    // TODO: sub_080135C0 is the same as sub_080135C0_inline
-    param_0->unk_A8 = gEwramData->unk_1325C.currentGold;
-    param_0->unk_A0 = gEwramData->unk_1325C.currentLevel;
-    param_0->unk_A6 = sub_08011E24(param_0, 2);
-    param_0->unk_A4 = gEwramData->unk_1325C.currentCharacter;
-    param_0->unk_A5 = gEwramData->unk_1325C.unk_13267;
+    // TODO: SaveData_UpdateSlotSummary is the same as SaveData_StoreHeaderSummary
+    gameState->saveGold = gEwramData->playerStatus.currentGold;
+    gameState->saveLevel = gEwramData->playerStatus.currentLevel;
+    gameState->saveMapCompletionTenths = Map_GetCompletionTenths(gameState, 2);
+    gameState->saveCharacter = gEwramData->playerStatus.currentCharacter;
+    gameState->unk_A5 = gEwramData->playerStatus.unk_13267;
 }
 
 /**
@@ -559,21 +547,21 @@ void sub_080135C0(struct EwramData_unk60 *param_0)
  */
 u32 SaveData_SaveSlotToSram(s32 saveSlot)
 {
+    struct EwramData **ewramAddress = &gEwramData;
     // todo: SaveData_SaveSlotToSram is the same as SaveData_SaveSlotToSram_inline
     void *sramSaveSlot;
     u32 error_addr;
 
-    if (gEwramData) {} // TODO: Why?
 
     sramSaveSlot = SRAM_BASE + 0x10 + saveSlot * 0x47C;
     SramLockSaveSlot(saveSlot);
-    error_addr = WriteAndVerifySramFast(&gEwramData->unk_1325C, sramSaveSlot, 0x190);
+    error_addr = WriteAndVerifySramFast(&(*ewramAddress)->playerStatus, sramSaveSlot, 0x190);
     if (error_addr == 0)
     {
-        error_addr = WriteAndVerifySramFast(&gEwramData->unk_60.unk_94, sramSaveSlot + 0x190, 0x20);
+        error_addr = WriteAndVerifySramFast(&(*ewramAddress)->gameState.playerName, sramSaveSlot + 0x190, 0x20);
         if (error_addr == 0)
         {
-            error_addr = WriteAndVerifySramFast(&gEwramData->unk_60.unk_B4, sramSaveSlot + 0x190 + 0x20, 0x2CC);
+            error_addr = WriteAndVerifySramFast(&(*ewramAddress)->gameState.mapCells, sramSaveSlot + 0x190 + 0x20, 0x2CC);
         }
     }
     SramUnlockSaveSlot(saveSlot);
@@ -593,7 +581,7 @@ s32 SaveData_ClearSlotInSram(s32 saveSlot)
     void *zeroBuf;
     void *sramSaveSlot;
 
-    zeroBuf = gEwramData->unk_133F4;
+    zeroBuf = gEwramData->sharedScratchBuffer;
     DMA_FILL_32(3, 0, zeroBuf, 0x47C);
     sramSaveSlot = SRAM_BASE + 0x10 + saveSlot * 0x47C;
     SramLockSaveSlot(saveSlot);
@@ -603,19 +591,19 @@ s32 SaveData_ClearSlotInSram(s32 saveSlot)
 }
 
 /**
- * @brief 13700 | To document
- * 
+ * @brief Read the SRAM header of saveSlot into menu buffer unk_20[bufferIndex], or
+ * clear that buffer when the slot is locked.
+ *
  * @param saveSlot Save slot index into SRAM
- * @param param_1 To document
- * @return s32 To document
+ * @param bufferIndex Destination menu-buffer index
+ * @return Nonzero when SRAM is initialized and the slot is unlocked
  */
-s32 sub_08013700(s32 saveSlot, s32 param_1)
+s32 SaveData_ReadSlotHeader(s32 saveSlot, s32 bufferIndex)
 {
-    // todo: sub_08013700 is the same as sub_08013700_inline
+    struct EwramData **ewramAddress = &gEwramData;
+    // todo: SaveData_ReadSlotHeader is the same as SaveSlot_ReadHeader
     s32 saveValid;
     s32 sramSaveSlotOffset;
-
-    if (gEwramData) {}
 
     saveValid = SramCheckInitialized();
     if (saveValid)
@@ -624,93 +612,87 @@ s32 sub_08013700(s32 saveSlot, s32 param_1)
         saveValid = SramCheckSaveSlotUnlocked(saveSlot);
         if (saveValid)
         {
-            gReadSramFast(SRAM_BASE + 0x10 + 0x190 + sramSaveSlotOffset, &gEwramData->unk_20[param_1], sizeof(gEwramData->unk_20[param_1]));
+            gReadSramFast(SRAM_BASE + 0x10 + 0x190 + sramSaveSlotOffset, &(*ewramAddress)->saveHeaders[bufferIndex], sizeof((*ewramAddress)->saveHeaders[bufferIndex]));
         }
         else
         {
-            DMA_FILL_32(3, 0, &gEwramData->unk_20[param_1], sizeof(gEwramData->unk_20[param_1]));
+            DMA_FILL_32(3, 0, &(*ewramAddress)->saveHeaders[bufferIndex], sizeof((*ewramAddress)->saveHeaders[bufferIndex]));
         }
     }
     return saveValid;
 }
 
 /**
- * @brief 13788 | To document
- * 
- * @return u32 To document
+ * @brief Write the 4-byte system flags gameState.systemFlags to system slot 6.
+ * Return the SRAM error.
  */
-u32 sub_08013788(void)
+u32 SaveData_SaveSystemFlags(void)
 {
+    struct EwramData **ewramAddress = &gEwramData;
     u32 error_addr;
-    void *var_0;
+    void *dst;
 
-    if (gEwramData) {}
 
-    var_0 = SRAM_BASE + 0x10 + 0x47C * 6 + 0;
+    dst = SRAM_BASE + 0x10 + 0x47C * 6 + 0;
     SramLockSaveSlot(6);
-    error_addr = WriteAndVerifySramFast(&gEwramData->unk_60, var_0, 4);
+    error_addr = WriteAndVerifySramFast(&(*ewramAddress)->gameState, dst, 4);
     SramUnlockSaveSlot(6);
     return error_addr;
 }
 
 /**
- * @brief 137B8 | To document
- * 
- * @return u32 To document
+ * @brief When SRAM is initialized and system slot 6 is unlocked, read its
+ * system flags into gameState.systemFlags. Return the validity result.
  */
-u32 sub_080137B8(void)
+u32 SaveData_LoadSystemFlags(void)
 {
+    struct EwramData **ewramAddress = &gEwramData;
     s32 saveValid;
-    void *var_0;
+    void *sramAddr;
 
-    if (gEwramData) {}
 
     saveValid = SramCheckInitialized();
     if (saveValid)
     {
-        var_0 = SRAM_BASE + 0x10 + 0x47C * 6 + 0;
+        sramAddr = SRAM_BASE + 0x10 + 0x47C * 6 + 0;
         saveValid = SramCheckSaveSlotUnlocked(6);
         if (saveValid)
         {
-            gReadSramFast(var_0, &gEwramData->unk_60.unk_60, sizeof(gEwramData->unk_60.unk_60));
+            gReadSramFast(sramAddr, &(*ewramAddress)->gameState.systemFlags, sizeof((*ewramAddress)->gameState.systemFlags));
         }
     }
     return saveValid;
 }
 
 /**
- * @brief 137F8 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Return the linked slot field sourceSlotLink of a save summary.
  */
-s32 sub_080137F8(struct EwramData_unk20 *param_0)
+s32 SaveSummary_GetLinkedSlot(struct SaveHeader *header)
 {
-    return param_0->unk_2E;
+    return header->sourceSlotLink;
 }
 
 /**
- * @brief 137FC | To document
- * 
- * @return s32 To document
+ * @brief Set system flags 1|2 in gameState.systemFlags, write them to system slot 6
+ * and resave the current slot with SaveData_ResaveSlotAfterEnding(..,1).
  */
-s32 sub_080137FC(void)
+s32 SaveData_RecordFullClear(void)
 {
-    s32 var_r0;
+    s32 resaveError;
     u32 error_addr;
 
-    gEwramData->unk_60.unk_60 |= 3;
+    gEwramData->gameState.systemFlags |= 3;
 
     SramLockSaveSlot(6);
-    error_addr = WriteAndVerifySramFast(&gEwramData->unk_60.unk_60, SRAM_BASE + 0x10 + 0x47C * 6 + 0, sizeof(gEwramData->unk_60.unk_60));
+    error_addr = WriteAndVerifySramFast(&gEwramData->gameState.systemFlags, SRAM_BASE + 0x10 + 0x47C * 6 + 0, sizeof(gEwramData->gameState.systemFlags));
     SramUnlockSaveSlot(6);
     if (error_addr != 0)
     {
         return 0;
     }
 
-    var_r0 = sub_080127F0(gEwramData->unk_60.currentSaveSlot, 1);
-    if (var_r0 != 0)
+    resaveError = SaveData_ResaveSlotAfterEnding(gEwramData->gameState.currentSaveSlot, 1);
+    if (resaveError != 0)
     {
         return 0;
     }
@@ -718,19 +700,17 @@ s32 sub_080137FC(void)
 }
 
 /**
- * @brief 13854 | To document
- * 
- * @param saveSlot Save slot index into SRAM
- * @param param_1 To document
- * @return s32 To document
+ * @brief Read the slot header into menu buffer 0 (cleared when locked) and
+ * return 1 when SRAM is valid and buffer[index].unk_38 marks data.
+ * No source caller.
  */
-s32 sub_08013854(s32 saveSlot, s32 param_1)
+s32 SaveData_IsSlotUsed(s32 saveSlot, s32 headerIndex)
 {
-    struct EwramData_unk20 *unk_20;
+    struct SaveHeader *header;
     u32 saveValid;
     s32 sramSaveSlotOffset;
 
-    unk_20 = &gEwramData->unk_20[param_1];
+    header = &gEwramData->saveHeaders[headerIndex];
 
     saveValid = SramCheckInitialized();
     if (saveValid)
@@ -739,14 +719,14 @@ s32 sub_08013854(s32 saveSlot, s32 param_1)
         saveValid = SramCheckSaveSlotUnlocked(saveSlot);
         if (saveValid)
         {
-            gReadSramFast(SRAM_BASE + 0x10 + sramSaveSlotOffset + 0x190, &gEwramData->unk_20[0], sizeof(gEwramData->unk_20[0]));
+            gReadSramFast(SRAM_BASE + 0x10 + sramSaveSlotOffset + 0x190, &gEwramData->saveHeaders[0], sizeof(gEwramData->saveHeaders[0]));
         }
         else
         {
-            DMA_FILL_32(3, 0, &gEwramData->unk_20[0], sizeof(gEwramData->unk_20[0]));
+            DMA_FILL_32(3, 0, &gEwramData->saveHeaders[0], sizeof(gEwramData->saveHeaders[0]));
         }
 
-        if (saveValid && (unk_20->unk_38 != 0))
+        if (saveValid && (header->playTime != 0))
         {
             return 1;
         }
@@ -761,14 +741,14 @@ s32 sub_08013854(s32 saveSlot, s32 param_1)
  */
 u32 SaveData_SaveLanguage(void)
 {
+    struct EwramData **ewramAddress = &gEwramData;
     u32 error_addr;
     void *sramLanguageOffset;
 
-    if (gEwramData) {}
 
     sramLanguageOffset = SRAM_BASE + 0x10 + 0x47C * 6 + 4;
     SramLockSaveSlot(6);
-    error_addr = WriteAndVerifySramFast(&gEwramData->unk_60.language, sramLanguageOffset, sizeof(gEwramData->unk_60.language));
+    error_addr = WriteAndVerifySramFast(&(*ewramAddress)->gameState.language, sramLanguageOffset, sizeof((*ewramAddress)->gameState.language));
     SramUnlockSaveSlot(6);
     return error_addr;
 }
@@ -780,10 +760,10 @@ u32 SaveData_SaveLanguage(void)
  */
 s32 SaveData_LoadLanguage(void)
 {
+    struct EwramData **ewramAddress = &gEwramData;
     s32 saveValid;
     void *sramLanguageOffset;
 
-    if (gEwramData) {}
 
     saveValid = SramCheckInitialized();
     if (saveValid)
@@ -792,7 +772,7 @@ s32 SaveData_LoadLanguage(void)
         saveValid = SramCheckSaveSlotUnlocked(6);
         if (saveValid)
         {
-            gReadSramFast(sramLanguageOffset, &gEwramData->unk_60.language, sizeof(gEwramData->unk_60.language));
+            gReadSramFast(sramLanguageOffset, &(*ewramAddress)->gameState.language, sizeof((*ewramAddress)->gameState.language));
         }
     }
     return saveValid;

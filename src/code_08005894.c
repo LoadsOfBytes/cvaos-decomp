@@ -33,18 +33,37 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-// TODO: sub_08046DD4 is implicitly called in other files, except this one
-extern void sub_08046DD4(s32 param_0, s32 param_1, u16 param_2, s32 param_3);
+/*
+ * Work slots of the main menu / save select entity (this TU only):
+ * cursor: slot cursor (0-5 = save slots, 6+ = menu items) or name-entry grid
+ *   cursor; savedSlots: bit per slot whose header has a play time
+ *   (MainMenu_InitEntity); copy source / destination slots of Data Copy;
+ *   slotEmpty: 1 when the shown slot cannot be loaded/copied; name cursor:
+ *   character position 0-7 in the name entry; confirm open / cursor: the
+ *   yes/no box of the game start / copy / delete flow; blink timer / phase of
+ *   the confirmation marker; base frame: animFrame saved at init.
+ * The macros expand to the original member chains (token-identical).
+ */
+#define MENU_CURSOR(e) e->unk_4F8.part8.unk_4F9
+#define MENU_SAVED_SLOTS(e) e->unk_4F4.part8.unk_4F5
+#define MENU_COPY_SOURCE(e) e->unk_4F4.part8.unk_4F6
+#define MENU_COPY_DEST(e) e->unk_4F4.part8.unk_4F7
+#define MENU_SLOT_EMPTY(e) e->unk_4F4.part8.unk_4F4
+#define MENU_NAME_CURSOR(e) e->unk_4F8.part8.unk_4FB
+#define MENU_CONFIRM_OPEN(e) e->unk_4FC.part8.unk_4FD
+#define MENU_CONFIRM_CURSOR(e) e->unk_4FC.part8.unk_4FE
+#define MENU_BLINK_TIMER(e) e->unk_504.part8.unk_504
+#define MENU_BLINK_PHASE(e) e->unk_504.part8.unk_505
+#define MENU_BASE_FRAME(e) e->unk_500.part8.unk_500
+
+// TODO: HudMap_WriteTiles is implicitly called in other files, except this one
+extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
 
 /**
- * @brief 5894 | (Unused) To document
- * 
- * @param arg0 To document
- * @param arg1 To document
- * @param arg2 To document
- * @param arg3 To document
+ * @brief Unreferenced: enable window 0 over (x1..x2, y1..y2) with a pulsing
+ * brightness increase outside it.
  */
-void sub_08005894(u8 arg0, u8 arg1, u8 arg2, u8 arg3)
+void MainMenu_SetHighlightWindow(u8 arg0, u8 arg1, u8 arg2, u8 arg3)
 {
     gUnk_03002CB0.dispCnt |= DCNT_WIN0;
     gDisplayRegisters.bldCnt = BLDCNT_SCREEN_SECOND_TARGET | BLDCNT_BRIGHTNESS_INCREASE_EFFECT | BLDCNT_SCREEN_FIRST_TARGET;
@@ -55,7 +74,7 @@ void sub_08005894(u8 arg0, u8 arg1, u8 arg2, u8 arg3)
     gDisplayRegisters.win0H = C_16_2_8(arg0, arg1);
     gDisplayRegisters.win0V = C_16_2_8(arg2, arg3);
 
-    gDisplayRegisters.bldY = (sub_080009E4(gEwramData->frameCounter << 0xA) >> 0xE) + 4;
+    gDisplayRegisters.bldY = (Sin(gEwramData->frameCounter << 0xA) >> 0xE) + 4;
     if (gDisplayRegisters.bldY < 2)
     {
         gDisplayRegisters.bldY = 2;
@@ -63,370 +82,346 @@ void sub_08005894(u8 arg0, u8 arg1, u8 arg2, u8 arg3)
 }
 
 /**
- * @brief 5908 | To document
- * 
- * @param param_0 To document
+ * @brief Clear the 12-pixel text region and, for a nonnegative id, print the
+ * localized text entry.
  */
-void sub_08005908(s32 param_0)
+void MainMenu_PrintMessage(s32 entry)
 {
-    sub_08040FE0();
-    if (param_0 >= 0)
+    Text12_ClearRegion();
+    if (entry >= 0)
     {
-        sub_08041318(sub_08041434(param_0), 0);
+        Text12_Print(Text_GetLocalizedEntry(entry), 0);
     }
 }
 
-struct Unk_080E0CC0 {
-    u32 *unk_0; // type?
-    u32 *unk_4; // type?
-    u32 unk_8; // type?
+struct SaveMenuSpriteResources {
+    u32 *spriteSheet; // type?
+    u32 *graphics; // type?
+    u32 paletteIndex; // type?
 };
-// extern struct Unk_080E0CC0 sUnk_080E0CC0[18];
+// extern struct SaveMenuSpriteResources sSaveMenuSpriteResources[18];
 
-const struct Unk_080E0CC0 sUnk_080E0CC0[] = {
+const struct SaveMenuSpriteResources sSaveMenuSpriteResources[] = {
     [0] = {
-        .unk_0 = (u32*)0x082571E0,
-        .unk_4 = (u32*)0x082052D8,
-        .unk_8 = 1
+        .spriteSheet = (u32*)0x082571E0,
+        .graphics = (u32*)0x082052D8,
+        .paletteIndex = 1
     },
     [1] = {
-        .unk_0 = (u32*)0x082571E0,
-        .unk_4 = (u32*)0x082052D8,
-        .unk_8 = 2
+        .spriteSheet = (u32*)0x082571E0,
+        .graphics = (u32*)0x082052D8,
+        .paletteIndex = 2
     },
     [2] = {
-        .unk_0 = (u32*)0x08259120,
-        .unk_4 = (u32*)0x082052E0,
-        .unk_8 = 7
+        .spriteSheet = (u32*)0x08259120,
+        .graphics = (u32*)0x082052E0,
+        .paletteIndex = 7
     },
     [3] = {
-        .unk_0 = (u32*)0x08267A38,
-        .unk_4 = (u32*)0x080E5BC0,
-        .unk_8 = 5
+        .spriteSheet = (u32*)0x08267A38,
+        .graphics = (u32*)0x080E5BC0,
+        .paletteIndex = 5
     },
     [4] = {
-        .unk_0 = (u32*)0x08267A38,
-        .unk_4 = (u32*)0x080E5BC0,
-        .unk_8 = 15
+        .spriteSheet = (u32*)0x08267A38,
+        .graphics = (u32*)0x080E5BC0,
+        .paletteIndex = 15
     },
     [5] = {
-        .unk_0 = (u32*)0x082571E0,
-        .unk_4 = (u32*)0x082052D8,
-        .unk_8 = 14
+        .spriteSheet = (u32*)0x082571E0,
+        .graphics = (u32*)0x082052D8,
+        .paletteIndex = 14
     },
     [6] = {
-        .unk_0 = (u32*)0x082571E0,
-        .unk_4 = (u32*)0x0827798C,
-        .unk_8 = 1
+        .spriteSheet = (u32*)0x082571E0,
+        .graphics = (u32*)0x0827798C,
+        .paletteIndex = 1
     },
     [7] = {
-        .unk_0 = (u32*)0x082571E0,
-        .unk_4 = (u32*)0x0827798C,
-        .unk_8 = 2
+        .spriteSheet = (u32*)0x082571E0,
+        .graphics = (u32*)0x0827798C,
+        .paletteIndex = 2
     },
     [8] = {
-        .unk_0 = (u32*)0x08259120,
-        .unk_4 = (u32*)0x0827AA14,
-        .unk_8 = 7
+        .spriteSheet = (u32*)0x08259120,
+        .graphics = (u32*)0x0827AA14,
+        .paletteIndex = 7
     },
     [9] = {
-        .unk_0 = (u32*)0x08267A38,
-        .unk_4 = (u32*)0x08277994,
-        .unk_8 = 5
+        .spriteSheet = (u32*)0x08267A38,
+        .graphics = (u32*)0x08277994,
+        .paletteIndex = 5
     },
     [10] = {
-        .unk_0 = (u32*)0x08267A38,
-        .unk_4 = (u32*)0x08277994,
-        .unk_8 = 15
+        .spriteSheet = (u32*)0x08267A38,
+        .graphics = (u32*)0x08277994,
+        .paletteIndex = 15
     },
     [11] = {
-        .unk_0 = (u32*)0x082571E0,
-        .unk_4 = (u32*)0x0827798C,
-        .unk_8 = 14
+        .spriteSheet = (u32*)0x082571E0,
+        .graphics = (u32*)0x0827798C,
+        .paletteIndex = 14
     },
     [12] = {
-        .unk_0 = (u32*)0x082571E0,
-        .unk_4 = (u32*)0x0826C840,
-        .unk_8 = 1
+        .spriteSheet = (u32*)0x082571E0,
+        .graphics = (u32*)0x0826C840,
+        .paletteIndex = 1
     },
     [13] = {
-        .unk_0 = (u32*)0x082571E0,
-        .unk_4 = (u32*)0x0826C840,
-        .unk_8 = 2
+        .spriteSheet = (u32*)0x082571E0,
+        .graphics = (u32*)0x0826C840,
+        .paletteIndex = 2
     },
     [14] = {
-        .unk_0 = (u32*)0x08259120,
-        .unk_4 = (u32*)0x0827AA0C,
-        .unk_8 = 7
+        .spriteSheet = (u32*)0x08259120,
+        .graphics = (u32*)0x0827AA0C,
+        .paletteIndex = 7
     },
     [15] = {
-        .unk_0 = (u32*)0x08267A38,
-        .unk_4 = (u32*)0x0826C850,
-        .unk_8 = 5
+        .spriteSheet = (u32*)0x08267A38,
+        .graphics = (u32*)0x0826C850,
+        .paletteIndex = 5
     },
     [16] = {
-        .unk_0 = (u32*)0x08267A38,
-        .unk_4 = (u32*)0x0826C850,
-        .unk_8 = 15
+        .spriteSheet = (u32*)0x08267A38,
+        .graphics = (u32*)0x0826C850,
+        .paletteIndex = 15
     },
     [17] = {
-        .unk_0 = (u32*)0x082571E0,
-        .unk_4 = (u32*)0x0826C840,
-        .unk_8 = 14
+        .spriteSheet = (u32*)0x082571E0,
+        .graphics = (u32*)0x0826C840,
+        .paletteIndex = 14
     },
 };
 
-static inline void sub_08005928_inline(struct EwramData_EntityData *param_0, s32 param_1, s32 param_2, u8 *param_3)
+static inline void SaveMenu_PlaceNameSprites(struct EwramData_EntityData *entity, s32 x, s32 y, u8 *name)
 {
-    s32 var_r6;
+    s32 i;
 
-    param_0->unk_524.unk_524_16.unk_526 = param_1;
-    param_0->unk_528.unk_528_16.unk_52A = param_2;
+    entity->posX.part16.integer = x;
+    entity->posY.part16.integer = y;
 
-    for (var_r6 = 0; var_r6 < 8; var_r6++)
+    for (i = 0; i < 8; i++)
     {
-        if (*param_3 >= 0x2 && *param_3 <= 0x22)
+        if (*name >= 0x2 && *name <= 0x22)
         {
-            param_0->unk_549 = *param_3;
-            sub_0803AC40(param_0);
+            entity->animFrame = *name;
+            Sprite_Draw(entity);
         }
-        param_3 += 1;
-        param_0->unk_524.unk_524_16.unk_526 += 0xC;
+        name += 1;
+        entity->posX.part16.integer += 0xC;
     }
 }
 
-static inline void sub_08005928_inline_2(struct EwramData_EntityData *param_0, s32 param_1)
+static inline void SaveMenu_AttachLanguageSprite(struct EwramData_EntityData *entity, s32 sprite)
 {
-    struct Unk_080E0CC0 var_0[18];
+    struct SaveMenuSpriteResources table[18];
 
-    memcpy(var_0, sUnk_080E0CC0, sizeof(sUnk_080E0CC0));
-    switch (gEwramData->unk_60.language)
+    memcpy(table, sSaveMenuSpriteResources, sizeof(sSaveMenuSpriteResources));
+    switch (gEwramData->gameState.language)
     {
         case 2:
-            param_1 = param_1 + 6;
+            sprite = sprite + 6;
             break;
         case 3:
-            param_1 = param_1 + 12;
+            sprite = sprite + 12;
             break;
     }
-    sub_0803AAEC(param_0, 0);
-    sub_0803B924(param_0, (u8*)var_0[param_1].unk_0, sub_0803AFB8((u8*)var_0[param_1].unk_4), var_0[param_1].unk_8);
+    Sprite_Free(entity, 0);
+    Sprite_Attach(entity, (u8*)table[sprite].spriteSheet, ObjGfx_Find((u8*)table[sprite].graphics), table[sprite].paletteIndex);
+}
+
+/* The frame counter is unsigned; phase is the shifted intermediate.
+ * Keeping them separate preserves agbcc's load and shift registers. */
+static inline s32 SaveMenuCursorOffset(u32 frame)
+{
+    s32 offset;
+    s32 phase = frame >> 1;
+    if (phase & 8)
+        offset = -((phase & 7) - 3);
+    else
+        offset = (phase & 7) - 3;
+    return offset;
 }
 
 /**
- * @brief 5928 | To document
- * 
- * @param param_0 To document
+ * @brief Draw the save slot list with the cursor and slot summaries for the
+ * game start (state 2) and data delete (state 5) screens.
  */
-void sub_08005928(struct EwramData_EntityData *param_0)
+void MainMenu_DrawSlotList(struct EwramData_EntityData *entity)
 {
-    struct EwramData_unk20 *unk_20;
-    s32 var_r1;
-    s32 var_r2;
-    s32 var_r5_4;
-    s32 var_r6_2;
-    s32 temp_r1_2;
-    s32 var_r2_2;
+    struct SaveHeader *menuData;
+    s32 cursorOffset;
+    s32 slot;
+    s32 copy;
+    s32 selectedSlot;
     
 
-    unk_20 = &gEwramData->unk_20[0];
-    if (param_0->unk_4EF == 0)
+    menuData = &gEwramData->saveHeaders[0];
+    if (entity->subState == 0)
     {
-        sub_08006910(param_0, 8, 0x10);
+        MainMenu_DrawSelectionMarkers(entity, 8, 0x10);
     }
     else
     {
-        sub_08006910(param_0, 8, 0x18);
+        MainMenu_DrawSelectionMarkers(entity, 8, 0x18);
     }
-    sub_08005928_inline_2(param_0, 0);
-    param_0->unk_549 = 0x10;
+    SaveMenu_AttachLanguageSprite(entity, 0);
+    entity->animFrame = 0x10;
 
-    if (param_0->unk_4F0 == 0)
+    if (entity->stage == 0)
     {
-        if (param_0->unk_4FC.unk_4FC_8.unk_4FD != 0)
+        if (MENU_CONFIRM_OPEN(entity) != 0)
         {
-            temp_r1_2 = gEwramData->frameCounter >> 1;
-            if (temp_r1_2 & 8)
-            {
-                var_r1 = -((temp_r1_2 & 7) - 3);
-            }
-            else
-            {
-                var_r1 = (temp_r1_2 & 7) - 3;
-            }
-            param_0->unk_524.unk_524_16.unk_526 = (param_0->unk_4FC.unk_4FC_8.unk_4FE * 0x60) + 0x24 + var_r1;
-            param_0->unk_528.unk_528_16.unk_52A = 0x8C;
-            sub_0803AC40(param_0);
+            cursorOffset = SaveMenuCursorOffset(gEwramData->frameCounter);
+            entity->posX.part16.integer = (MENU_CONFIRM_CURSOR(entity) * 0x60) + 0x24 + cursorOffset;
+            entity->posY.part16.integer = 0x8C;
+            Sprite_Draw(entity);
             if (gEwramData->frameCounter & 2)
             {
-                if (param_0->unk_4F8.unk_4F8_8.unk_4F9 < 6)
+                if (MENU_CURSOR(entity) < 6)
                 {
-                    param_0->unk_524.unk_524_16.unk_526 = ((param_0->unk_4F8.unk_4F8_8.unk_4F9 * 0x10) + 0x10);
-                    param_0->unk_528.unk_528_16.unk_52A = 0x48;
-                    if (param_0->unk_4F8.unk_4F8_8.unk_4F9 & 1)
+                    entity->posX.part16.integer = ((MENU_CURSOR(entity) * 0x10) + 0x10);
+                    entity->posY.part16.integer = 0x48;
+                    if (MENU_CURSOR(entity) & 1)
                     {
-                        param_0->unk_524.unk_524_16.unk_526 -= 0x10;
-                        param_0->unk_528.unk_528_16.unk_52A += 0x18;
+                        entity->posX.part16.integer -= 0x10;
+                        entity->posY.part16.integer += 0x18;
                     }
                 }
                 else
                 {
-                    param_0->unk_524.unk_524_16.unk_526 = (param_0->unk_4F8.unk_4F8_8.unk_4F9 * 0x10) - 0x50;
-                    param_0->unk_528.unk_528_16.unk_52A = 0x30;
+                    entity->posX.part16.integer = (MENU_CURSOR(entity) * 0x10) - 0x50;
+                    entity->posY.part16.integer = 0x30;
                 }
-                sub_0803AC40(param_0);
+                Sprite_Draw(entity);
             }
         }
         else {
-            if (param_0->unk_4F8.unk_4F8_8.unk_4F9 < 6)
+            if (MENU_CURSOR(entity) < 6)
             {
-                temp_r1_2 = gEwramData->frameCounter >> 1;
-                if (temp_r1_2 & 8)
+                cursorOffset = SaveMenuCursorOffset(gEwramData->frameCounter);
+                entity->posX.part16.integer = (MENU_CURSOR(entity) * 0x10) + 0x10 + cursorOffset;
+                entity->posY.part16.integer = 0x48;
+                if (MENU_CURSOR(entity) & 1)
                 {
-                    var_r2 = -((temp_r1_2 & 7) - 3);
-                }
-                else
-                {
-                    var_r2 = (temp_r1_2 & 7) - 3;
-                }
-                param_0->unk_524.unk_524_16.unk_526 = (param_0->unk_4F8.unk_4F8_8.unk_4F9 * 0x10) + 0x10 + var_r2;
-                param_0->unk_528.unk_528_16.unk_52A = 0x48;
-                if (param_0->unk_4F8.unk_4F8_8.unk_4F9 & 1)
-                {
-                    param_0->unk_524.unk_524_16.unk_526 -= 0x10;
-                    param_0->unk_528.unk_528_16.unk_52A += 0x18;
+                    entity->posX.part16.integer -= 0x10;
+                    entity->posY.part16.integer += 0x18;
                 }
             }
             else
             {
-                temp_r1_2 = gEwramData->frameCounter >> 1;
-                if (temp_r1_2 & 8)
-                {
-                    var_r2 = -((temp_r1_2 & 7) - 3);
-                }
-                else
-                {
-                    var_r2 = (temp_r1_2 & 7) - 3;
-                }
-                param_0->unk_524.unk_524_16.unk_526 = (param_0->unk_4F8.unk_4F8_8.unk_4F9 * 0x10) - 0x50 + var_r2;
-                param_0->unk_528.unk_528_16.unk_52A = 0x30;
+                cursorOffset = SaveMenuCursorOffset(gEwramData->frameCounter);
+                entity->posX.part16.integer = (MENU_CURSOR(entity) * 0x10) - 0x50 + cursorOffset;
+                entity->posY.part16.integer = 0x30;
             }
-            sub_0803AC40(param_0);
+            Sprite_Draw(entity);
         }
     }
     else
     {
-        temp_r1_2 = gEwramData->frameCounter >> 1;
-        if (temp_r1_2 & 8)
-        {
-            var_r2 = -((temp_r1_2 & 7) - 3);
-        }
-        else
-        {
-            var_r2 = (temp_r1_2 & 7) - 3;
-        }
-        param_0->unk_524.unk_524_16.unk_526 = ((param_0->unk_4F8.unk_4F8_8.unk_4F9 * 0x40) + 0x46) + var_r2;
-        param_0->unk_528.unk_528_16.unk_52A = 0x90;
-        sub_0803AC40(param_0);
+        cursorOffset = SaveMenuCursorOffset(gEwramData->frameCounter);
+        entity->posX.part16.integer = ((MENU_CURSOR(entity) * 0x40) + 0x46) + cursorOffset;
+        entity->posY.part16.integer = 0x90;
+        Sprite_Draw(entity);
 
         if (gEwramData->frameCounter & 2)
         {
-            param_0->unk_524.unk_524_16.unk_526 = (u16) ((param_0->unk_4F4.unk_4F4_8.unk_4F6 * 0x10) + 0x10);
-            param_0->unk_528.unk_528_16.unk_52A = 0x48;
-            sub_0803AC40(param_0);
+            entity->posX.part16.integer = (u16) ((MENU_COPY_SOURCE(entity) * 0x10) + 0x10);
+            entity->posY.part16.integer = 0x48;
+            Sprite_Draw(entity);
         }
     }
 
-    if (param_0->unk_4FC.unk_4FC_8.unk_4FD == 0)
+    if (MENU_CONFIRM_OPEN(entity) == 0)
     {
-        sub_08005928_inline_2(param_0, 2);
-        sub_08005928_inline(param_0, 0x80, 0x20, unk_20->unk_20);
+        SaveMenu_AttachLanguageSprite(entity, 2);
+        SaveMenu_PlaceNameSprites(entity, 0x80, 0x20, menuData->name);
         
     }
-    sub_08005928_inline_2(param_0, 1);
+    SaveMenu_AttachLanguageSprite(entity, 1);
 
-    for (var_r5_4 = 0; var_r5_4 < 3; var_r5_4++)
+    for (slot = 0; slot < 3; slot++)
     {
-        for (var_r6_2 = 0; var_r6_2 < 2; var_r6_2++)
+        for (copy = 0; copy < 2; copy++)
         {
-            if (var_r6_2 != 1 || param_0->unk_4EF != 2)
+            if (copy != 1 || entity->subState != 2)
             {
-                if (var_r6_2 == 0)
+                if (copy == 0)
                 {
-                    sub_08013700(var_r5_4 * 2, 1);
-                    if (sub_080137F8(unk_20 + 1) != 0)
+                    SaveData_ReadSlotHeader(slot * 2, 1);
+                    if (SaveSummary_GetLinkedSlot(menuData + 1) != 0)
                     {
-                        param_0->unk_549 = var_r5_4 + 3;
+                        entity->animFrame = slot + 3;
                     }
                     else
                     {
-                        param_0->unk_549 = var_r5_4;
+                        entity->animFrame = slot;
                     }
-                    param_0->unk_524.unk_524_16.unk_526 = (var_r5_4 << 5) + 0x10;
-                    param_0->unk_528.unk_528_16.unk_52A = 0x40;
-                    sub_0803AC40(param_0);
-                    if (unk_20->unk_38 == 0)
+                    entity->posX.part16.integer = (slot << 5) + 0x10;
+                    entity->posY.part16.integer = 0x40;
+                    Sprite_Draw(entity);
+                    if (menuData->playTime == 0)
                     {
-                        param_0->unk_524.unk_524_16.unk_526 = 0x90;
-                        param_0->unk_528.unk_528_16.unk_52A = 0x38;
-                        if (param_0->unk_4EF == 2)
+                        entity->posX.part16.integer = 0x90;
+                        entity->posY.part16.integer = 0x38;
+                        if (entity->subState == 2)
                         {
-                            param_0->unk_549 = 9;
+                            entity->animFrame = 9;
                         }
                         else
                         {
-                            param_0->unk_549 = 0xA;
+                            entity->animFrame = 0xA;
                         }
-                        sub_0803AC40(param_0);
+                        Sprite_Draw(entity);
                     }
-                    else if (param_0->unk_4F8.unk_4F8_8.unk_4F9 > 5)
+                    else if (MENU_CURSOR(entity) > 5)
                     {
-                        var_r2++,var_r2--; // Fake
-                        param_0->unk_524.unk_524_16.unk_526 = 0x90;
-                        param_0->unk_528.unk_528_16.unk_52A = 0x38;
-                        param_0->unk_549 = 0xA;
-                        sub_0803AC40(param_0);
+                        entity->posX.part16.integer = 0x90;
+                        entity->posY.part16.integer = 0x38;
+                        entity->animFrame = 0xA;
+                        Sprite_Draw(entity);
                     }
-                    if ((param_0->unk_4EF != 2) && (gEwramData->unk_20[1].unk_2D & 0xF))
+                    if ((entity->subState != 2) && (gEwramData->saveHeaders[1].clearAndDifficulty & 0xF))
                     {
-                        param_0->unk_549 = 8;
-                        param_0->unk_524.unk_524_16.unk_526 = (var_r5_4 << 5) + 0x10;
-                        param_0->unk_528.unk_528_16.unk_52A = 0x28;
-                        sub_0803AC40(param_0);
-                        param_0->unk_549 = 6;
-                        param_0->unk_524.unk_524_16.unk_526 = (var_r5_4 << 5) + 0x18;
-                        param_0->unk_528.unk_528_16.unk_52A = 0x38;
-                        sub_0803AC40(param_0);
+                        entity->animFrame = 8;
+                        entity->posX.part16.integer = (slot << 5) + 0x10;
+                        entity->posY.part16.integer = 0x28;
+                        Sprite_Draw(entity);
+                        entity->animFrame = 6;
+                        entity->posX.part16.integer = (slot << 5) + 0x18;
+                        entity->posY.part16.integer = 0x38;
+                        Sprite_Draw(entity);
                     }
-                    if (param_0->unk_4F0 == 0)
+                    if (entity->stage == 0)
                     {
-                        var_r2_2 = param_0->unk_4F8.unk_4F8_8.unk_4F9;
+                        selectedSlot = MENU_CURSOR(entity);
                     }
                     else
                     {
-                        var_r2_2 = param_0->unk_4F4.unk_4F4_8.unk_4F6;
+                        selectedSlot = MENU_COPY_SOURCE(entity);
                     }
-                    if ((unk_20->unk_2D & 0xF) && (unk_20->unk_38 != 0) && !(var_r2_2 & 1) && (var_r2_2 < 6))
+                    if ((menuData->clearAndDifficulty & 0xF) && (menuData->playTime != 0) && !(selectedSlot & 1) && (selectedSlot < 6))
                     {
-                        param_0->unk_549 = 0xB;
-                        param_0->unk_524.unk_524_16.unk_526 = 0x80;
-                        param_0->unk_528.unk_528_16.unk_52A = 0x60;
-                        sub_0803AC40(param_0);
+                        entity->animFrame = 0xB;
+                        entity->posX.part16.integer = 0x80;
+                        entity->posY.part16.integer = 0x60;
+                        Sprite_Draw(entity);
                     }
                 }
                 else
                 {
-                    sub_08013700((var_r5_4 * 2) + var_r6_2, 1);
-                    if (gEwramData->unk_20[1].unk_38 != 0)
+                    SaveData_ReadSlotHeader((slot * 2) + copy, 1);
+                    if (gEwramData->saveHeaders[1].playTime != 0)
                     {
-                        param_0->unk_549 = 6;
-                        param_0->unk_524.unk_524_16.unk_526 = (var_r5_4 << 5) + 0x18;
-                        param_0->unk_528.unk_528_16.unk_52A = 0x50;
-                        sub_0803AC40(param_0);
-                        param_0->unk_549 = 7;
-                        param_0->unk_524.unk_524_16.unk_526 = (var_r5_4 << 5) + 0x10;
-                        param_0->unk_528.unk_528_16.unk_52A = 0x58;
-                        sub_0803AC40(param_0);
+                        entity->animFrame = 6;
+                        entity->posX.part16.integer = (slot << 5) + 0x18;
+                        entity->posY.part16.integer = 0x50;
+                        Sprite_Draw(entity);
+                        entity->animFrame = 7;
+                        entity->posX.part16.integer = (slot << 5) + 0x10;
+                        entity->posY.part16.integer = 0x58;
+                        Sprite_Draw(entity);
                     }
                 }
             }
@@ -435,265 +430,262 @@ void sub_08005928(struct EwramData_EntityData *param_0)
 }
 
 /**
- * @brief 5E28 | To document
- * 
- * @param param_0 To document
+ * @brief Draw the save slot list of the data copy screen (state 4) with the
+ * source and destination cursors.
  */
-void sub_08005E28(struct EwramData_EntityData *param_0)
+void MainMenu_DrawCopySlotList(struct EwramData_EntityData *entity)
 {
-    struct EwramData_unk20 unk_20_0;
-    struct EwramData_unk20 *unk_20;
-    s32 var_r1;
-    u32 temp_r1_2;
-    s32 var_r4_2;
+    struct SaveHeader unk_20_0;
+    struct SaveHeader *header;
+    s32 bob;
+    u32 phase;
+    s32 i;
 
-    unk_20 = &gEwramData->unk_20[0];
-    sub_08006910(param_0, 8, 0x10);
-    sub_08005928_inline_2(param_0, 0);
-    param_0->unk_549 = 0x10;
-    if (param_0->unk_4F0 != 2)
+    header = &gEwramData->saveHeaders[0];
+    MainMenu_DrawSelectionMarkers(entity, 8, 0x10);
+    SaveMenu_AttachLanguageSprite(entity, 0);
+    entity->animFrame = 0x10;
+    if (entity->stage != 2)
     {
-        temp_r1_2 = gEwramData->frameCounter >> 1;
-        if (temp_r1_2 & 8)
+        phase = gEwramData->frameCounter >> 1;
+        if (phase & 8)
         {
-            var_r1 = -((temp_r1_2 & 7) - 3);
+            bob = -((phase & 7) - 3);
         }
         else
         {
-            var_r1 = (temp_r1_2 & 7) - 3;
+            bob = (phase & 7) - 3;
         }
-        param_0->unk_524.unk_524_16.unk_526 = (param_0->unk_4F8.unk_4F8_8.unk_4F9 * 0x10) + 0x88 + var_r1;
-        param_0->unk_528.unk_528_16.unk_52A = 0x10;
-        sub_0803AC40(param_0);
+        entity->posX.part16.integer = (MENU_CURSOR(entity) * 0x10) + 0x88 + bob;
+        entity->posY.part16.integer = 0x10;
+        Sprite_Draw(entity);
     }
     else
     {
-        temp_r1_2 = gEwramData->frameCounter >> 1;
-        if (temp_r1_2 & 8)
+        phase = gEwramData->frameCounter >> 1;
+        if (phase & 8)
         {
-            var_r1 = -((temp_r1_2 & 7) - 3);
+            bob = -((phase & 7) - 3);
         }
         else
         {
-            var_r1 = (temp_r1_2 & 7) - 3;
+            bob = (phase & 7) - 3;
         }
-        param_0->unk_524.unk_524_16.unk_526 = (param_0->unk_4F8.unk_4F8_8.unk_4F9 << 6) + 0x46 + var_r1;
-        param_0->unk_528.unk_528_16.unk_52A = 0x90;
-        sub_0803AC40(param_0);
+        entity->posX.part16.integer = (MENU_CURSOR(entity) << 6) + 0x46 + bob;
+        entity->posY.part16.integer = 0x90;
+        Sprite_Draw(entity);
         if (gEwramData->frameCounter & 2)
         {
-            param_0->unk_524.unk_524_16.unk_526 = (param_0->unk_4F4.unk_4F4_8.unk_4F7 * 0x10) + 0x88;
-            param_0->unk_528.unk_528_16.unk_52A = 0x10;
-            sub_0803AC40(param_0);
+            entity->posX.part16.integer = (MENU_COPY_DEST(entity) * 0x10) + 0x88;
+            entity->posY.part16.integer = 0x10;
+            Sprite_Draw(entity);
         }
     }
-    sub_08005928_inline_2(param_0, 2);
-    sub_08005928_inline(param_0, 0x8, 0x20, unk_20->unk_20);
-    if ((unk_20->unk_2D & 0xF) && (unk_20->unk_38 != 0))
+    SaveMenu_AttachLanguageSprite(entity, 2);
+    SaveMenu_PlaceNameSprites(entity, 0x8, 0x20, header->name);
+    if ((header->clearAndDifficulty & 0xF) && (header->playTime != 0))
     {
-        sub_08005928_inline_2(param_0, 1);
-        param_0->unk_549 = 0xB;
-        param_0->unk_524.unk_524_16.unk_526 = 0x8;
-        param_0->unk_528.unk_528_16.unk_52A = 0x60;
-        sub_0803AC40(param_0);
+        SaveMenu_AttachLanguageSprite(entity, 1);
+        entity->animFrame = 0xB;
+        entity->posX.part16.integer = 0x8;
+        entity->posY.part16.integer = 0x60;
+        Sprite_Draw(entity);
     }
 
-    sub_08005928_inline_2(param_0, 1);
-    for (var_r4_2 = 0; var_r4_2 <= 2; var_r4_2 += 1)
+    SaveMenu_AttachLanguageSprite(entity, 1);
+    for (i = 0; i <= 2; i += 1)
     {
-        unk_20_0 = *unk_20;
-        sub_08013700(var_r4_2 * 2, 0);
-        if (sub_080137F8(unk_20) != 0)
+        unk_20_0 = *header;
+        SaveData_ReadSlotHeader(i * 2, 0);
+        if (SaveSummary_GetLinkedSlot(header) != 0)
         {
-            param_0->unk_549 = var_r4_2 + 3;
+            entity->animFrame = i + 3;
         }
         else
         {
-            param_0->unk_549 = var_r4_2;
+            entity->animFrame = i;
         }
-        param_0->unk_524.unk_524_16.unk_526 = var_r4_2 * 0x20 + 0x88;
-        param_0->unk_528.unk_528_16.unk_52A = 8;
-        sub_0803AC40(param_0);
-        *unk_20 = unk_20_0;
+        entity->posX.part16.integer = i * 0x20 + 0x88;
+        entity->posY.part16.integer = 8;
+        Sprite_Draw(entity);
+        *header = unk_20_0;
     }
 
-    unk_20++;
-    if (param_0->unk_4F4.unk_4F4_8.unk_4F4 == 0)
+    header++;
+    if (MENU_SLOT_EMPTY(entity) == 0)
     {
-        sub_08005928_inline_2(param_0, 2);
-        sub_08005928_inline(param_0, 0x88, 0x20, unk_20->unk_20);
+        SaveMenu_AttachLanguageSprite(entity, 2);
+        SaveMenu_PlaceNameSprites(entity, 0x88, 0x20, header->name);
 
 
-        if ((unk_20->unk_2D & 0xF))
+        if ((header->clearAndDifficulty & 0xF))
         {
-            if (unk_20->unk_38 != 0)
+            if (header->playTime != 0)
             {
-                sub_08005928_inline_2(param_0, 1);
-                param_0->unk_549 = 0xB;
-                param_0->unk_524.unk_524_16.unk_526 = 0x88;
-                param_0->unk_528.unk_528_16.unk_52A = 0x60;
-                sub_0803AC40(param_0);
+                SaveMenu_AttachLanguageSprite(entity, 1);
+                entity->animFrame = 0xB;
+                entity->posX.part16.integer = 0x88;
+                entity->posY.part16.integer = 0x60;
+                Sprite_Draw(entity);
             }
         }
     }
     else
     {
-        if (param_0->unk_4F0 != 0)
+        if (entity->stage != 0)
         {
-            sub_08005928_inline_2(param_0, 1);
-            param_0->unk_524.unk_524_16.unk_526 = 0x98;
-            param_0->unk_528.unk_528_16.unk_52A = 0x38;
-            param_0->unk_549 = 9;
-            sub_0803AC40(param_0);
+            SaveMenu_AttachLanguageSprite(entity, 1);
+            entity->posX.part16.integer = 0x98;
+            entity->posY.part16.integer = 0x38;
+            entity->animFrame = 9;
+            Sprite_Draw(entity);
         }
     }
 }
 
 /**
- * @brief 6318 | To document
- * 
- * @param param_0 To document
+ * @brief Draw the name entry screen (state 6): frame, blinking text cursor,
+ * keyboard cursor, the entered name and the 9x4 character grid.
  */
-void sub_08006318(struct EwramData_EntityData *param_0)
+void MainMenu_DrawNameEntry(struct EwramData_EntityData *entity)
 {
-    struct EwramData_unk20 *unk_20;
-    s32 var_r4_2;
-    s32 var_r5_3;
-    s32 temp_r0_4;
+    struct SaveHeader *header;
+    s32 i;
+    s32 j;
+    s32 glyph;
 
-    unk_20 = gEwramData->unk_20;
-    sub_08005928_inline_2(param_0, 5);
+    header = gEwramData->saveHeaders;
+    SaveMenu_AttachLanguageSprite(entity, 5);
 
-    param_0->unk_549 = param_0->unk_500.unk_500_8.unk_500;
-    sub_0803F17C(param_0);
+    entity->animFrame = MENU_BASE_FRAME(entity);
+    Anim_Update(entity);
 
-    param_0->unk_524.unk_524_16.unk_526 = 0x37;
-    param_0->unk_528.unk_528_16.unk_52A = 0x18;
-    sub_0803AC40(param_0);
+    entity->posX.part16.integer = 0x37;
+    entity->posY.part16.integer = 0x18;
+    Sprite_Draw(entity);
 
-    param_0->unk_524.unk_524_16.unk_526 += 0x82;
-    sub_0803AC40(param_0);
-    sub_08005928_inline_2(param_0, 2);
+    entity->posX.part16.integer += 0x82;
+    Sprite_Draw(entity);
+    SaveMenu_AttachLanguageSprite(entity, 2);
 
     if (gEwramData->frameCounter & 0x10)
     {
-        param_0->unk_524.unk_524_16.unk_526 = (param_0->unk_4F8.unk_4F8_8.unk_4FB * 0xC) + 0x48;
-        param_0->unk_528.unk_528_16.unk_52A = 0x10;
-        param_0->unk_549 = 0x23;
-        sub_0803AC40(param_0);
+        entity->posX.part16.integer = (MENU_NAME_CURSOR(entity) * 0xC) + 0x48;
+        entity->posY.part16.integer = 0x10;
+        entity->animFrame = 0x23;
+        Sprite_Draw(entity);
     }
 
-    sub_08005928_inline_2(param_0, 2);
-    param_0->unk_524.unk_524_16.unk_526 = (Mod(param_0->unk_4F8.unk_4F8_8.unk_4F9, 9) * 0x18) + 0x18;
-    param_0->unk_528.unk_528_16.unk_52A = (Div(param_0->unk_4F8.unk_4F8_8.unk_4F9, 9) * 0x18) + 0x40;
-    param_0->unk_549 = 1;
+    SaveMenu_AttachLanguageSprite(entity, 2);
+    entity->posX.part16.integer = (Mod(MENU_CURSOR(entity), 9) * 0x18) + 0x18;
+    entity->posY.part16.integer = (Div(MENU_CURSOR(entity), 9) * 0x18) + 0x40;
+    entity->animFrame = 1;
 
-    sub_0803AC40(param_0);
-    sub_08005928_inline(param_0, 0x48, 0x10, unk_20->unk_20);
-    for (var_r4_2 = 0; var_r4_2 < 4; var_r4_2++)
+    Sprite_Draw(entity);
+    SaveMenu_PlaceNameSprites(entity, 0x48, 0x10, header->name);
+    for (i = 0; i < 4; i++)
     {
-        param_0->unk_528.unk_528_16.unk_52A = (var_r4_2 * 0x18) + 0x38;
-        for (var_r5_3 = 0; var_r5_3 < 9; var_r5_3++)
+        entity->posY.part16.integer = (i * 0x18) + 0x38;
+        for (j = 0; j < 9; j++)
         {
-            param_0->unk_524.unk_524_16.unk_526 = var_r5_3 * 0x18 + 0x12;
-            temp_r0_4 = (var_r4_2 * 9) + var_r5_3 + 2;
-            if (temp_r0_4 != 0x23)
+            entity->posX.part16.integer = j * 0x18 + 0x12;
+            glyph = (i * 9) + j + 2;
+            if (glyph != 0x23)
             {
-                param_0->unk_549 = temp_r0_4;
-                sub_0803AC40(param_0);
+                entity->animFrame = glyph;
+                Sprite_Draw(entity);
             }
         }
     }
 }
 
 /**
- * @brief 656C | To document
- * 
- * @param param_0 To document
+ * @brief Draw the save select screen (state 7): the slot cursor and the slot
+ * markers, including linked slots and the soul trade variant.
  */
-void sub_0800656C(struct EwramData_EntityData *param_0)
+void SaveSelect_Draw(struct EwramData_EntityData *entity)
 {
-    struct EwramData_unk20 *unk_20;
-    s32 var_r1;
-    s32 var_r6_3;
-    s32 var_sb;
-    u32 temp_r2;
+    struct SaveHeader *header;
+    s32 offset;
+    s32 i;
+    s32 j;
+    u32 phase;
 
-    unk_20 = gEwramData->unk_20;
-    sub_08006910(param_0, 8, 0x10);
-    sub_08005928_inline_2(param_0, 0);
-    param_0->unk_549 = 0x10;
-    temp_r2 = gEwramData->frameCounter >> 1;
-    if (temp_r2 & 8)
+    header = gEwramData->saveHeaders;
+    MainMenu_DrawSelectionMarkers(entity, 8, 0x10);
+    SaveMenu_AttachLanguageSprite(entity, 0);
+    entity->animFrame = 0x10;
+    phase = gEwramData->frameCounter >> 1;
+    if (phase & 8)
     {
-        var_r1 = -((temp_r2 & 7) - 3);
+        offset = -((phase & 7) - 3);
     }
     else
     {
-        var_r1 = (temp_r2 & 7) - 3;
+        offset = (phase & 7) - 3;
     }
-    param_0->unk_524.unk_524_16.unk_526 = (u16) ((param_0->unk_4F8.unk_4F8_8.unk_4F9 * 0x10) + 0x10 + var_r1);
-    param_0->unk_528.unk_528_16.unk_52A = 0x48;
-    sub_0803AC40(param_0);
-    sub_08005928_inline_2(param_0, 2);
-    sub_08005928_inline(param_0, 0x80, 0x20, unk_20->unk_20);
-    if ((unk_20->unk_2D & 0xF) && (unk_20->unk_38 != 0))
+    entity->posX.part16.integer = (u16) ((MENU_CURSOR(entity) * 0x10) + 0x10 + offset);
+    entity->posY.part16.integer = 0x48;
+    Sprite_Draw(entity);
+    SaveMenu_AttachLanguageSprite(entity, 2);
+    SaveMenu_PlaceNameSprites(entity, 0x80, 0x20, header->name);
+    if ((header->clearAndDifficulty & 0xF) && (header->playTime != 0))
     {
-        if (!(param_0->unk_4F8.unk_4F8_8.unk_4F9 & 1) && (param_0->unk_4F8.unk_4F8_8.unk_4F9 < 6))
+        if (!(MENU_CURSOR(entity) & 1) && (MENU_CURSOR(entity) < 6))
         {
-            sub_08005928_inline_2(param_0, 1);
-            param_0->unk_549 = 0xB;
-            param_0->unk_524.unk_524_16.unk_526 = 0x80;
-            param_0->unk_528.unk_528_16.unk_52A = 0x60;
-            sub_0803AC40(param_0);
+            SaveMenu_AttachLanguageSprite(entity, 1);
+            entity->animFrame = 0xB;
+            entity->posX.part16.integer = 0x80;
+            entity->posY.part16.integer = 0x60;
+            Sprite_Draw(entity);
         }
     }
 
-    for (var_r6_3 = 0; var_r6_3 < 3; var_r6_3++)
+    for (i = 0; i < 3; i++)
     {
-        for (var_sb = 0; var_sb < 2; var_sb++)
+        for (j = 0; j < 2; j++)
         {
-            if (var_sb == 0)
+            if (j == 0)
             {
-                sub_08005928_inline_2(param_0, 1);
-                sub_08013700(var_r6_3 * 2, 1);
+                SaveMenu_AttachLanguageSprite(entity, 1);
+                SaveData_ReadSlotHeader(i * 2, 1);
                 
-                if (sub_080137F8(unk_20 + 1) != 0)
+                if (SaveSummary_GetLinkedSlot(header + 1) != 0)
                 {
-                    var_r1 = 3;
+                    offset = 3;
                 }
                 else
                 {
-                    var_r1 = 0;
+                    offset = 0;
                 }
-                param_0->unk_549 = var_r1 + var_r6_3;
-                param_0->unk_524.unk_524_16.unk_526 = (var_r6_3 << 5) + 0x10;
-                param_0->unk_528.unk_528_16.unk_52A = 0x40;
-                sub_0803AC40(param_0);
-                if (unk_20->unk_38 == 0)
+                entity->animFrame = offset + i;
+                entity->posX.part16.integer = (i << 5) + 0x10;
+                entity->posY.part16.integer = 0x40;
+                Sprite_Draw(entity);
+                if (header->playTime == 0)
                 {
-                    sub_08005928_inline_2(param_0, 1);
-                    param_0->unk_524.unk_524_16.unk_526 = 0x90;
-                    param_0->unk_528.unk_528_16.unk_52A = 0x38;
-                    param_0->unk_549 = 9;
-                    sub_0803AC40(param_0);
+                    SaveMenu_AttachLanguageSprite(entity, 1);
+                    entity->posX.part16.integer = 0x90;
+                    entity->posY.part16.integer = 0x38;
+                    entity->animFrame = 9;
+                    Sprite_Draw(entity);
                 }
             }
             else
             {
                 if (gEwramData->gameMode == GAME_MODE_SOUL_TRADE_MENU)
                 {
-                    sub_08013700((var_r6_3 * 2) + var_sb, 1);
-                    if (gEwramData->unk_20[1].unk_38 != 0)
+                    SaveData_ReadSlotHeader((i * 2) + j, 1);
+                    if (gEwramData->saveHeaders[1].playTime != 0)
                     {
-                        param_0->unk_549 = 6;
-                        param_0->unk_524.unk_524_16.unk_526 = (var_r6_3 << 5) + 0x18;
-                        param_0->unk_528.unk_528_16.unk_52A = 0x50;
-                        sub_0803AC40(param_0);
-                        param_0->unk_549 = 7;
-                        param_0->unk_524.unk_524_16.unk_526 = (var_r6_3 << 5) + 0x10;
-                        param_0->unk_528.unk_528_16.unk_52A = 0x58;
-                        sub_0803AC40(param_0);
+                        entity->animFrame = 6;
+                        entity->posX.part16.integer = (i << 5) + 0x18;
+                        entity->posY.part16.integer = 0x50;
+                        Sprite_Draw(entity);
+                        entity->animFrame = 7;
+                        entity->posX.part16.integer = (i << 5) + 0x10;
+                        entity->posY.part16.integer = 0x58;
+                        Sprite_Draw(entity);
                     }
                 }
             }
@@ -702,580 +694,568 @@ void sub_0800656C(struct EwramData_EntityData *param_0)
 }
 
 /**
- * @brief 6910 | To document
- * 
- * @param param_0 To document
+ * @brief Draw the animated selection marker at (x - 1, y) and again 0x62
+ * pixels to the right.
  */
-void sub_08006910(struct EwramData_EntityData *param_0, s16 param_1, s16 param_2)
+void MainMenu_DrawSelectionMarkers(struct EwramData_EntityData *entity, s16 x, s16 y)
 {
-    sub_08005928_inline_2(param_0, 5);
-    param_0->unk_549 = param_0->unk_500.unk_500_8.unk_500;
-    sub_0803F17C(param_0);
-    param_0->unk_524.unk_524_16.unk_526 = param_1 - 1;
-    param_0->unk_528.unk_528_16.unk_52A = param_2;
-    sub_0803AC40(param_0);
-    param_0->unk_524.unk_524_16.unk_526 += 0x62;;
-    sub_0803AC40(param_0);
+    SaveMenu_AttachLanguageSprite(entity, 5);
+    entity->animFrame = MENU_BASE_FRAME(entity);
+    Anim_Update(entity);
+    entity->posX.part16.integer = x - 1;
+    entity->posY.part16.integer = y;
+    Sprite_Draw(entity);
+    entity->posX.part16.integer += 0x62;;
+    Sprite_Draw(entity);
 }
 
 /**
- * @brief 69C4 | To document
- * 
- * @param param_0 To document
+ * @brief Draw callback: in state 1 draw the three menu entries with the
+ * selected one highlighted and its markers; in later states delegate
+ * to the slot and submenu draw helpers.
  */
-void sub_080069C4(struct EwramData_EntityData *param_0)
+void MainMenu_Draw(struct EwramData_EntityData *entity)
 {
-    s32 var_r6;
+    s32 i;
 
-    sub_08005928_inline_2(param_0, 0);
-    param_0->unk_549 = 0x10;
-    switch (param_0->unk_4EE - 1)
+    SaveMenu_AttachLanguageSprite(entity, 0);
+    entity->animFrame = 0x10;
+    switch (entity->state - 1)
     {
         case 0:
-            for (var_r6 = 0; var_r6 < 3; var_r6++)
+            for (i = 0; i < 3; i++)
             {
-                if (param_0->unk_4EF == var_r6)
+                if (entity->subState == i)
                 {
-                    sub_08005928_inline_2(param_0, 3);
+                    SaveMenu_AttachLanguageSprite(entity, 3);
                 }
                 else
                 {
-                    sub_08005928_inline_2(param_0, 4);
+                    SaveMenu_AttachLanguageSprite(entity, 4);
                 }
-                param_0->unk_524.unk_524_16.unk_526 = var_r6 * 0x30 + 0x20;
-                param_0->unk_528.unk_528_16.unk_52A = (var_r6 << 5) + 0x10;
-                param_0->unk_549 = var_r6;
-                sub_0803AC40(param_0);
-                if (param_0->unk_4EF == var_r6)
+                entity->posX.part16.integer = i * 0x30 + 0x20;
+                entity->posY.part16.integer = (i << 5) + 0x10;
+                entity->animFrame = i;
+                Sprite_Draw(entity);
+                if (entity->subState == i)
                 {
-                    sub_08006910(param_0, (var_r6 * 0x300000 + 0x180000) >> 0x10, (var_r6 << 5) + 0x18);
+                    MainMenu_DrawSelectionMarkers(entity, (i * 0x300000 + 0x180000) >> 0x10, (i << 5) + 0x18);
                 }
             }
             break;
 
         case 1:
         case 4:
-            sub_08005928(param_0);
+            MainMenu_DrawSlotList(entity);
             break;
 
         case 3:
-            sub_08005E28(param_0);
+            MainMenu_DrawCopySlotList(entity);
             break;
 
         case 5:
-            sub_08006318(param_0);
+            MainMenu_DrawNameEntry(entity);
             break;
 
         case 6:
-            sub_0800656C(param_0);
+            SaveSelect_Draw(entity);
             break;
     }
 }
 
 /**
- * @brief 6BC0 | To document
- * 
- * @param param_0 To document
+ * @brief Load the language-specific menu graphics and palette, attach the
+ * menu sprite with draw callback MainMenu_Draw and record in unk_4F5 a
+ * bit for each of the six save slots that holds data.
  */
-void sub_08006BC0(struct EwramData_EntityData *param_0)
+void MainMenu_InitEntity(struct EwramData_EntityData *entity)
 {
-    s32 temp_r4;
-    s32 var_r4;
-    struct EwramData_unk20 *unk_20;
+    s32 gfx;
+    s32 i;
+    struct SaveHeader *header;
 
-    EntityDelete(param_0);
-    switch (gEwramData->unk_60.language)
+    EntityDelete(entity);
+    switch (gEwramData->gameState.language)
     {
         default:
-            sub_0803B800((u8 *)0x080E5BC0, 0);
+            ObjGfx_LoadResource((u8 *)0x080E5BC0, 0);
             break;
         case 2:
-            sub_0803B800((u8 *)0x08277994, 0);
+            ObjGfx_LoadResource((u8 *)0x08277994, 0);
             break;
         case 3:
-            sub_0803B800((u8 *)0x0826C850, 0);
+            ObjGfx_LoadResource((u8 *)0x0826C850, 0);
             break;
     }
-    switch (gEwramData->unk_60.language)
+    switch (gEwramData->gameState.language)
     {
         default:
-            sub_0803B800((u8 *)0x082052E0, 0);
+            ObjGfx_LoadResource((u8 *)0x082052E0, 0);
             break;
         case 2:
-            sub_0803B800((u8 *)0x0827AA14, 0);
+            ObjGfx_LoadResource((u8 *)0x0827AA14, 0);
             break;
         case 3:
-            sub_0803B800((u8 *)0x0827AA0C, 0);
+            ObjGfx_LoadResource((u8 *)0x0827AA0C, 0);
             break;
     }
-    switch (gEwramData->unk_60.language)
+    switch (gEwramData->gameState.language)
     {
         default:
-            temp_r4 = sub_0803B800((u8 *)0x082052D8, 0);
+            gfx = ObjGfx_LoadResource((u8 *)0x082052D8, 0);
             break;
         case 2:
-            temp_r4 = sub_0803B800((u8 *)0x0827798C, 0);
+            gfx = ObjGfx_LoadResource((u8 *)0x0827798C, 0);
             break;
         case 3:
-            temp_r4 = sub_0803B800((u8 *)0x0826C840, 0);
+            gfx = ObjGfx_LoadResource((u8 *)0x0826C840, 0);
             break;
     }
-    param_0->unk_546 = 0xFF;
-    sub_0803C74C((u8 *)0x080E5E24);
-    sub_0803B924(param_0, (u8 *)0x082571E0, temp_r4, 0);
-    param_0->unk_549 = 0;
-    sub_0803F2C8(param_0, 0, 0, 1);
-    sub_0803F17C(param_0);
-    param_0->unk_500.unk_500_8.unk_500 = param_0->unk_549;
-    param_0->drawFunc = (u32 *) sub_080069C4;
-    unk_20 = gEwramData->unk_20;
+    entity->paletteMask = 0xFF;
+    ObjPalette_Load((u8 *)0x080E5E24);
+    Sprite_Attach(entity, (u8 *)0x082571E0, gfx, 0);
+    entity->animFrame = 0;
+    Anim_StartIndexed(entity, 0, 0, 1);
+    Anim_Update(entity);
+    MENU_BASE_FRAME(entity) = entity->animFrame;
+    entity->drawFunc = (u32 *) MainMenu_Draw;
+    header = gEwramData->saveHeaders;
 
-    for (var_r4 = 0; var_r4 < 6; var_r4++)
+    for (i = 0; i < 6; i++)
     {
-        sub_08013700(var_r4, 0);
-        if (unk_20->unk_38 != 0)
+        SaveData_ReadSlotHeader(i, 0);
+        if (header->playTime != 0)
         {
-            param_0->unk_4F4.unk_4F4_8.unk_4F5 |= 1 << var_r4;
+            MENU_SAVED_SLOTS(entity) |= 1 << i;
         }
     }
-    param_0->updateFunc = (u32 *) EntityUpdateNothing;
-    param_0->unk_4EE = 1;
+    entity->updateFunc = (u32 *) EntityUpdateNothing;
+    entity->state = 1;
 }
 
 /**
- * @brief 6CFC | To document
- * 
- * @param param_0 To document
+ * @brief Unload the language-specific menu graphics and request deletion
+ * of the menu entity.
  */
-void sub_08006CFC(struct EwramData_EntityData *param_0)
+void MainMenu_FreeEntity(struct EwramData_EntityData *entity)
 {
-    switch (gEwramData->unk_60.language)
+    switch (gEwramData->gameState.language)
     {
         case 2:
-            sub_0803B980(sub_0803AFB8((u8 *)0x0827798C));
-            sub_0803B980(sub_0803AFB8((u8 *)0x08277994));
-            sub_0803B980(sub_0803AFB8((u8 *)0x0827AA14));
+            ObjGfx_Unload(ObjGfx_Find((u8 *)0x0827798C));
+            ObjGfx_Unload(ObjGfx_Find((u8 *)0x08277994));
+            ObjGfx_Unload(ObjGfx_Find((u8 *)0x0827AA14));
             break;
         case 3:
-            sub_0803B980(sub_0803AFB8((u8 *)0x0826C840));
-            sub_0803B980(sub_0803AFB8((u8 *)0x0826C850));
-            sub_0803B980(sub_0803AFB8((u8 *)0x0827AA0C));
+            ObjGfx_Unload(ObjGfx_Find((u8 *)0x0826C840));
+            ObjGfx_Unload(ObjGfx_Find((u8 *)0x0826C850));
+            ObjGfx_Unload(ObjGfx_Find((u8 *)0x0827AA0C));
             break;
         default:
-            sub_0803B980(sub_0803AFB8((u8 *)0x082052D8));
-            sub_0803B980(sub_0803AFB8((u8 *)0x080E5BC0));
-            sub_0803B980(sub_0803AFB8((u8 *)0x082052E0));
+            ObjGfx_Unload(ObjGfx_Find((u8 *)0x082052D8));
+            ObjGfx_Unload(ObjGfx_Find((u8 *)0x080E5BC0));
+            ObjGfx_Unload(ObjGfx_Find((u8 *)0x082052E0));
             break;
     }
-    param_0->unk_53D_3 = 1;
+    entity->deleteRequested = 1;
 }
 
 const u32 sUnk_080E0D98[0xD] = {
     0xD, 0x10, 0x22, 0x23, 0x29, 0x24, 0x25, 0x34, 0x33, 0x35, 0x36, 0x37, 0x16
 };
 
-static inline void sub_08006D9C_inline_0(s32 temp_r6_3, s32 param_2, s32 param_3)
+static inline void MainMenu_PrintPlayTime(s32 time, s32 x, s32 y)
 {
-    sub_08046E5C(param_2 + 0xB, param_3 + 4, Div(0x64 * Mod(temp_r6_3, 0x3C), 0x3C), 2, 0xD100, 1);
-    sub_08046E5C(param_2 + 8, param_3 + 4, Mod(Div(temp_r6_3, 0x3C), 0x3C), 2, 0xD100, 1);
-    sub_08046E5C(param_2 + 5, param_3 + 4, Div(temp_r6_3, 0xE10), 2, 0xD100, 1);
+    HudMap_PrintNumberAttr(x + 0xB, y + 4, Div(0x64 * Mod(time, 0x3C), 0x3C), 2, 0xD100, 1);
+    HudMap_PrintNumberAttr(x + 8, y + 4, Mod(Div(time, 0x3C), 0x3C), 2, 0xD100, 1);
+    HudMap_PrintNumberAttr(x + 5, y + 4, Div(time, 0xE10), 2, 0xD100, 1);
 }
 
-static inline s32 sub_08006D9C_inline_1(struct EwramData_unk20 *param_1)
+static inline s32 SaveHeader_GetDisplayArea(struct SaveHeader *header)
 {
-    s32 var_r2_6;
-    s32 var_r3_4;
-    u32 var_0[0xD];
+    s32 i;
+    s32 area;
+    u32 rooms[0xD];
 
-    memcpy(var_0, sUnk_080E0D98, 0x34);
-    var_r3_4 = param_1->unk_2A;
-    if (var_r3_4 == 7)
+    memcpy(rooms, sUnk_080E0D98, 0x34);
+    area = header->area;
+    if (area == 7)
     {
-        for (var_r2_6 = 0; var_r2_6 < 0xD; var_r2_6++)
+        for (i = 0; i < 0xD; i++)
         {
-            if (param_1->unk_2B == var_0[var_r2_6])
+            if (header->room == rooms[i])
             {
-                var_r3_4 = 0xC;
+                area = 0xC;
                 break;
             }
         }
     }
-    return var_r3_4;
+    return area;
 }
 
 /**
- * @brief 6D9C | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @param param_3 To document
- * @param param_4 To document
+ * @brief Draw a save-slot summary (header buffer) at the given tile position
+ * into the given text buffer.
  */
-void sub_08006D9C(struct EwramData_EntityData *param_0, struct EwramData_unk20 *param_1, s32 param_2, s32 param_3, s32 param_4)
+void MainMenu_DrawSlotSummary(struct EwramData_EntityData *entity, struct SaveHeader *header, s32 tileX, s32 tileY, s32 panel)
 {
-    s32 temp_r0_2;
-    s32 temp_r0_3;
-    s32 var_r1;
-    s32 var_r2_7;
-    s32 var_r3;
-    s32 var_r3_4;
-    s32 var_4;
-    s32 var_5;
-    s32 sp44;
-    s32 sp48;
-    s32 sp4C;
+    s32 seconds;
+    s32 minutes;
+    s32 i;
+    s32 showClear;
+    s32 areaIndex;
+    s32 area;
+    s32 frames;
+    s32 y;
+    s32 completion;
+    s32 completionX;
+    s32 x;
 
-    sub_08046E5C(param_2 + 3, param_3, (param_1->unk_2C < 0x64) ? param_1->unk_2C : 0, 2, 0xD100, 0);
-    sp44 = param_1->unk_32;
-    sp48 = param_2 + 9;
-    sub_08046E5C(sp48, param_3, Mod(sp44, 0xA), 3, 0xD100, 0);
-    sub_08046E5C(sp48 - 2, param_3, Div(sp44, 0xA), 1, 0xD100, 0);
+    HudMap_PrintNumberAttr(tileX + 3, tileY, (header->level < 0x64) ? header->level : 0, 2, 0xD100, 0);
+    completion = header->mapCompletionTenths;
+    completionX = tileX + 9;
+    HudMap_PrintNumberAttr(completionX, tileY, Mod(completion, 0xA), 3, 0xD100, 0);
+    HudMap_PrintNumberAttr(completionX - 2, tileY, Div(completion, 0xA), 1, 0xD100, 0);
 
-    var_4 = param_1->unk_38;
-    sp4C = param_2 + 0xB;
-    var_5 = param_3 + 1;
-    temp_r0_2 = Div(var_4, 0x3C);
-    sub_08046E5C(sp4C, var_5, Mod(temp_r0_2, 0x3C), 2, 0xD100, 1);
-    temp_r0_3 = Div(temp_r0_2, 0x3C);
-    sub_08046E5C(param_2 + 8, param_3 + 1, Mod(temp_r0_3, 0x3C), 2, 0xD100, 1);
-    sub_08046E5C(param_2 + 5, param_3 + 1, Div(temp_r0_3, 0x3C), 2, 0xD100, 1);
-    sub_08046E5C(param_2 + 9, param_3 + 2, param_1->unk_34, 6, 0xD100, 0);
+    frames = header->playTime;
+    x = tileX + 0xB;
+    y = tileY + 1;
+    seconds = Div(frames, 0x3C);
+    HudMap_PrintNumberAttr(x, y, Mod(seconds, 0x3C), 2, 0xD100, 1);
+    minutes = Div(seconds, 0x3C);
+    HudMap_PrintNumberAttr(tileX + 8, tileY + 1, Mod(minutes, 0x3C), 2, 0xD100, 1);
+    HudMap_PrintNumberAttr(tileX + 5, tileY + 1, Div(minutes, 0x3C), 2, 0xD100, 1);
+    HudMap_PrintNumberAttr(tileX + 9, tileY + 2, header->gold, 6, 0xD100, 0);
 
-    switch (gEwramData->unk_60.language)
+    switch (gEwramData->gameState.language)
     {
         case 2:
-            sub_08046DD4(param_2, param_3 - 1, (param_4 << 0x5) + 0xC0C0, 0xC);
-            sub_08040970(0, param_4 + 6, 0x1E, 1);
-            sub_08041204();
-            var_r3_4 = sub_08006D9C_inline_1(param_1);
-            sub_08041338((struct unk_08506B38 *) sub_08041434(var_r3_4 + 0x3B7), 0);
+            HudMap_WriteTiles(tileX, tileY - 1, (panel << 0x5) + 0xC0C0, 0xC);
+            Text8_SetRegion(0, panel + 6, 0x1E, 1);
+            Text8_ClearRegion();
+            area = SaveHeader_GetDisplayArea(header);
+            Text8_Print((struct unk_08506B38 *) Text_GetLocalizedEntry(area + 0x3B7), 0);
             break;
 
         case 3:
-            if (sub_08006D9C_inline_1(param_1) == 7 || sub_08006D9C_inline_1(param_1) == 0xC)
+            if (SaveHeader_GetDisplayArea(header) == 7 || SaveHeader_GetDisplayArea(header) == 0xC)
             {
-                sub_08046DD4(param_2, param_3 - 2, (param_4 << 5) - 0x3F40, 8);
-                sub_08046DD4(param_2 + 6, param_3 - 1, (param_4 << 5) - 0x3F38, 0xC);
+                HudMap_WriteTiles(tileX, tileY - 2, (panel << 5) - 0x3F40, 8);
+                HudMap_WriteTiles(tileX + 6, tileY - 1, (panel << 5) - 0x3F38, 0xC);
             }
             else
             {
-                sub_08046DD4(param_2, param_3 - 1, (param_4 << 5) - 0x3F40, 0xC);
+                HudMap_WriteTiles(tileX, tileY - 1, (panel << 5) - 0x3F40, 0xC);
             }
 
-            sub_08040970(0, param_4 + 6, 0x1E, 1);
-            sub_08041204();
-            var_r3_4 = sub_08006D9C_inline_1(param_1);
-            sub_08041338((struct unk_08506B38 *) sub_08041434(var_r3_4 + 0x3B7), 0);
+            Text8_SetRegion(0, panel + 6, 0x1E, 1);
+            Text8_ClearRegion();
+            area = SaveHeader_GetDisplayArea(header);
+            Text8_Print((struct unk_08506B38 *) Text_GetLocalizedEntry(area + 0x3B7), 0);
             break;
 
         default:
-            switch (param_1->unk_2A)
+            switch (header->area)
             {
                 case 7:
                 case 12:
-                    sub_08046DD4(param_2, param_3 - 2, (param_4 << 5) - 0x3F40, 7);
-                    sub_08046DD4(param_2 + 4, param_3 - 1, (param_4 << 5) - 0x3F39, 0xC);
+                    HudMap_WriteTiles(tileX, tileY - 2, (panel << 5) - 0x3F40, 7);
+                    HudMap_WriteTiles(tileX + 4, tileY - 1, (panel << 5) - 0x3F39, 0xC);
                     break;
                 default:
-                    sub_08046DD4(param_2, param_3 - 1, (param_4 << 0x5) + 0xC0C0, 0xC);
+                    HudMap_WriteTiles(tileX, tileY - 1, (panel << 0x5) + 0xC0C0, 0xC);
                     break;
             }
 
-            sub_08040970(0, param_4 + 6, 0x1E, 1);
-            sub_08041204();
-            var_r3 = sub_08006D9C_inline_1(param_1);
-            sub_08041338((struct unk_08506B38 *) sub_08041434(var_r3 + 0x3B7), 0);
+            Text8_SetRegion(0, panel + 6, 0x1E, 1);
+            Text8_ClearRegion();
+            areaIndex = SaveHeader_GetDisplayArea(header);
+            Text8_Print((struct unk_08506B38 *) Text_GetLocalizedEntry(areaIndex + 0x3B7), 0);
             break;
     }
 
-    var_r2_7 = 0;
-    if (param_0->unk_4EF == 0)
+    showClear = 0;
+    if (entity->subState == 0)
     {
-        if ((param_1->unk_2D & 0xF) && (param_1->unk_38 != 0))
+        if ((header->clearAndDifficulty & 0xF) && (header->playTime != 0))
         {
-            if (!(param_0->unk_4F8.unk_4F8_8.unk_4F9 & 1) && (param_0->unk_4F8.unk_4F8_8.unk_4F9 < 6))
+            if (!(MENU_CURSOR(entity) & 1) && (MENU_CURSOR(entity) < 6))
             {
-                var_r2_7 = 1;
+                showClear = 1;
             }
         }
     }
-    else if ((param_1->unk_2D & 0xF) && (param_1->unk_38 != 0))
+    else if ((header->clearAndDifficulty & 0xF) && (header->playTime != 0))
     {
-        var_r2_7 = 1;
+        showClear = 1;
     }
-    if (var_r2_7 != 0)
+    if (showClear != 0)
     {
-        for (var_r1 = 0; var_r1 < 8; var_r1++)
+        for (i = 0; i < 8; i++)
         {
-            if ((var_r1 == 2) || (var_r1 == 5))
+            if ((i == 2) || (i == 5))
             {
-                WRITE_32(0x0600A200 + var_r1 * 4, 0x10000);
+                WRITE_32(0x0600A200 + i * 4, 0x10000);
             }
             else
             {
-                WRITE_32(0x0600A200 + var_r1 * 4, 0);
+                WRITE_32(0x0600A200 + i * 4, 0);
             }
         }
-        sub_08006D9C_inline_0(param_1->unk_3C, param_2, param_3);
-        sub_08046DD4(param_2 + 9, param_3 + 4, 0xD110U, 1);
-        sub_08046DD4(param_2 + 6, param_3 + 4, 0xD110U, 1);
+        MainMenu_PrintPlayTime(header->bestBossRushTimeFrames, tileX, tileY);
+        HudMap_WriteTiles(tileX + 9, tileY + 4, 0xD110U, 1);
+        HudMap_WriteTiles(tileX + 6, tileY + 4, 0xD110U, 1);
     }
 }
 
 /**
- * @brief 7204 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
+ * @brief Select save slot n, read its header and draw its summary when it
+ * holds data; record whether the slot is empty for the menu logic and
+ * update the slot cursor display.
  */
-void sub_08007204(struct EwramData_EntityData *param_0, s32 param_1)
+void MainMenu_ShowSlotInfo(struct EwramData_EntityData *entity, s32 slot)
 {
-    struct EwramData_unk20 *unk_20;
-    struct EwramData_unk60 *unk_60;
-    s16 *var_r3;
-    s32 var_r1_2;
-    s32 temp_r0;
-    s32 var_r0_2;
-    s32 var_r1_3;
-    s32 var_r1_4;
+    struct SaveHeader *header;
+    struct GameState *gameState;
+    s16 *dst;
+    s32 scroll;
+    s32 valid;
+    s32 i;
+    s32 index;
+    s32 arg;
 
-    unk_60 = &gEwramData->unk_60;
-    unk_20 = gEwramData->unk_20;
-    gEwramData->unk_60.currentSaveSlot = (u8) param_1;
-    temp_r0 = sub_08013700(param_1, 0);
+    gameState = &gEwramData->gameState;
+    header = gEwramData->saveHeaders;
+    gEwramData->gameState.currentSaveSlot = (u8) slot;
+    valid = SaveData_ReadSlotHeader(slot, 0);
     DMA_FILL_32(3, 0, 0x0600E000, 0x340);
 
-    if ((temp_r0 != 0) && (unk_20->unk_38 != 0))
+    if ((valid != 0) && (header->playTime != 0))
     {
-        if (param_0->unk_4F8.unk_4F8_8.unk_4F9 < 6)
+        if (MENU_CURSOR(entity) < 6)
         {
-            sub_08006D9C(param_0, unk_20, 0x10, 8, 0);
-            param_0->unk_4F4.unk_4F4_8.unk_4F4 = 0;
-            unk_60->unk_4CC_3 = 2;
+            MainMenu_DrawSlotSummary(entity, header, 0x10, 8, 0);
+            MENU_SLOT_EMPTY(entity) = 0;
+            gameState->unk_4CC_3 = 2;
         }
     }
     else
     {
-        param_0->unk_4F4.unk_4F4_8.unk_4F4 = 1;
-        unk_60->unk_4CC_3 = 1;
+        MENU_SLOT_EMPTY(entity) = 1;
+        gameState->unk_4CC_3 = 1;
     }
 
-    if (param_0->unk_4F8.unk_4F8_8.unk_4F9 > 5)
+    if (MENU_CURSOR(entity) > 5)
     {
-        if (unk_20->unk_2D & 0xF)
+        if (header->clearAndDifficulty & 0xF)
         {
-            param_0->unk_4F4.unk_4F4_8.unk_4F4 = 1;
-            unk_60->unk_4CC_3 = 1;
+            MENU_SLOT_EMPTY(entity) = 1;
+            gameState->unk_4CC_3 = 1;
         }
     }
 
-    if (param_0->unk_4EF == 0)
+    if (entity->subState == 0)
     {
-        sub_0804066C(0, 1);
-        var_r3 = &gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer][0x18];
+        Text12_SetCursor(0, 1);
+        dst = &gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer][0x18];
         
-        if (param_0->unk_4F4.unk_4F4_8.unk_4F4 != 0)
+        if (MENU_SLOT_EMPTY(entity) != 0)
         {
-            var_r1_2 = 0x88;
+            scroll = 0x88;
         }
         else
         {
-            var_r1_2 = 0;
+            scroll = 0;
         }
 
-        for (var_r0_2 = 0; var_r0_2 < 0x50; var_r0_2++)
+        for (i = 0; i < 0x50; i++)
         {
-            *var_r3++ = var_r1_2;
+            *dst++ = scroll;
         }
-        *var_r3 = 0;
+        *dst = 0;
         gEwramData->hBlankEffect.requestStart = 1;
 
-        if (param_0->unk_4F8.unk_4F8_8.unk_4F9 < 6)
+        if (MENU_CURSOR(entity) < 6)
         {
-            if (param_0->unk_4F8.unk_4F8_8.unk_4F9 & 1)
+            if (MENU_CURSOR(entity) & 1)
             {
-                sub_0804728C(0x381);
+                MenuText_ClearAndPrint(0x381);
                 return;
             }
         }
         else
         {
-            if (param_0->unk_4F8.unk_4F8_8.unk_4F9 == 6)
+            if (MENU_CURSOR(entity) == 6)
             {
-                var_r1_4 = 1;
+                arg = 1;
             }
-            else if (param_0->unk_4F8.unk_4F8_8.unk_4F9 == 8)
+            else if (MENU_CURSOR(entity) == 8)
             {
-                var_r1_4 = 2;
+                arg = 2;
             }
             else
             {
-                var_r1_4 = 3;
+                arg = 3;
             }
-            sub_08046A6C(0x38B, var_r1_4);
+            MenuText_PrintWithInsertedEntry(0x38B, arg);
             return;
         }
 
-        if (param_0->unk_4F4.unk_4F4_8.unk_4F4 != 0)
+        if (MENU_SLOT_EMPTY(entity) != 0)
         {
-            var_r1_3 = 0x35B;
+            index = 0x35B;
         }
         else
         {
-            var_r1_3 = 0x35C;
+            index = 0x35C;
         }
-        sub_0804728C(var_r1_3);
+        MenuText_ClearAndPrint(index);
     }
 }
 
 /**
- * @brief 737C | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
+ * @brief Draw the summary of the source slot and, once a destination is
+ * being chosen, of the destination slot; mark whether it is empty and
+ * fill the highlight scanline buffer accordingly.
  */
-void sub_0800737C(struct EwramData_EntityData *param_0, s32 param_1, s32 param_2)
+void MainMenu_ShowCopySlots(struct EwramData_EntityData *entity, s32 srcSlot, s32 dstSlot)
 {
-    struct EwramData_unk20 *unk_20;
-    s16 *var_r1;
-    s16 var_r2;
-    s32 var_r0;
+    struct SaveHeader *header;
+    s16 *dst;
+    s16 scroll;
+    s32 i;
 
-    unk_20 = gEwramData->unk_20;
+    header = gEwramData->saveHeaders;
     DMA_FILL_32(3, 0, 0x0600E000, 0x340);
-    sub_08013700(param_1, 0);
-    sub_08006D9C(param_0, unk_20, 1, 8, 0);
+    SaveData_ReadSlotHeader(srcSlot, 0);
+    MainMenu_DrawSlotSummary(entity, header, 1, 8, 0);
 
-    if (param_0->unk_4F0 != 0)
+    if (entity->stage != 0)
     {
-        sub_08013700(param_2, 1);
-        unk_20++;
-        if (unk_20->unk_38 != 0)
+        SaveData_ReadSlotHeader(dstSlot, 1);
+        header++;
+        if (header->playTime != 0)
         {
-            sub_08006D9C(param_0, unk_20, 0x11, 8, 1);
-            param_0->unk_4F4.unk_4F4_8.unk_4F4 = 0;
+            MainMenu_DrawSlotSummary(entity, header, 0x11, 8, 1);
+            MENU_SLOT_EMPTY(entity) = 0;
         }
         else
         {
-            param_0->unk_4F4.unk_4F4_8.unk_4F4 = 1;
+            MENU_SLOT_EMPTY(entity) = 1;
         }
     }
     else
     {
-        param_0->unk_4F4.unk_4F4_8.unk_4F4 = 1;
+        MENU_SLOT_EMPTY(entity) = 1;
     }
 
-    var_r1 = &gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer][0x18];
-    if (param_0->unk_4F4.unk_4F4_8.unk_4F4 == 0)
+    dst = &gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer][0x18];
+    if (MENU_SLOT_EMPTY(entity) == 0)
     {
-        var_r2 = 0x88;
+        scroll = 0x88;
     }
     else
     {
-        var_r2 = 0;
+        scroll = 0;
     }
 
-    for (var_r0 = 0; var_r0 < 0x40; var_r0++)
+    for (i = 0; i < 0x40; i++)
     {
-        *var_r1++ = var_r2;
+        *dst++ = scroll;
     }
     gEwramData->hBlankEffect.requestStart = 1;
 }
 
 /**
- * @brief 744C | To document
- * 
- * @param param_0 To document
+ * @brief Init entry 0 of sMainMenuSubmenuInitFuncs: read the current slot header and
+ * show the slot information for the game-start submenu.
  */
-void sub_0800744C(struct EwramData_EntityData *param_0)
+void MainMenu_InitGameStart(struct EwramData_EntityData *entity)
 {
-    sub_0803F8A8(1, (struct EwramData_unkA078_0 *)0x080E7314, 0, 0);
-    sub_0803F8A8(2, (struct EwramData_unkA078_0 *)0x080E7044, 0, 0);
+    BgMap_Setup(1, (struct BgMapMetadata *)0x080E7314, 0, 0);
+    BgMap_Setup(2, (struct BgMapMetadata *)0x080E7044, 0, 0);
     HBlankEffectSetup(160, (s32)(SCREEN_SIZE_Y * 0.65f), 2, REG_BG1VOFS);
 
-    param_0->unk_4F8.unk_4F8_8.unk_4F9 = 0;
-    if ((sub_08013700(1, 1) != 0) && (gEwramData->unk_20[1].unk_38 != 0))
+    MENU_CURSOR(entity) = 0;
+    if ((SaveData_ReadSlotHeader(1, 1) != 0) && (gEwramData->saveHeaders[1].playTime != 0))
     {
-        param_0->unk_4F8.unk_4F8_8.unk_4F9 = 1;
+        MENU_CURSOR(entity) = 1;
     }
 
-    sub_08007204(param_0, (s32) param_0->unk_4F8.unk_4F8_8.unk_4F9);
-    param_0->unk_4EE = 2;
-    param_0->unk_504.unk_504_8.unk_505 = 0;
-    param_0->unk_504.unk_504_8.unk_504 = 0;
+    MainMenu_ShowSlotInfo(entity, (s32) MENU_CURSOR(entity));
+    entity->state = 2;
+    MENU_BLINK_PHASE(entity) = 0;
+    MENU_BLINK_TIMER(entity) = 0;
 }
 
 /**
- * @brief 74C0 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Update entry 0 of sMainMenuSubmenuUpdateFuncs: choose a slot, then load it or
+ * start a new game (Game_ResetProgressForNewGame). Return -1 to go
+ * back, 1 or a negative mode code to leave the main menu.
  */
-s32 sub_080074C0(struct EwramData_EntityData *param_0)
+s32 MainMenu_UpdateGameStart(struct EwramData_EntityData *entity)
 {
-    s32 sp0;
+    s32 result;
     s32 repeatedInput;
-    s32 var_r0_2;
-    s32 var_r4;
-    s32 var_r4_2;
-    s32 var_r5;
-    u8 var_0;
-    struct EwramData_unk60 *unk_60;
+    s32 saveSlot;
+    s32 backSlot;
+    s32 shownSlot;
+    s32 cursor;
+    u8 blinkTimer;
+    struct GameState *gameState;
 
     repeatedInput = gEwramData->inputData.repeatedInput;
-    var_r5 = param_0->unk_4F8.unk_4F8_8.unk_4F9;
-    sp0 = 0;
-    if (param_0->unk_4FC.unk_4FC_8.unk_4FD != 0)
+    cursor = MENU_CURSOR(entity);
+    result = 0;
+    if (MENU_CONFIRM_OPEN(entity) != 0)
     {
-        var_r5 = param_0->unk_4FC.unk_4FC_8.unk_4FE;
+        cursor = MENU_CONFIRM_CURSOR(entity);
         if (repeatedInput & KEY_B)
         {
-            var_r4 = param_0->unk_4F8.unk_4F8_8.unk_4F9;
-            if (var_r4 > 5)
+            backSlot = MENU_CURSOR(entity);
+            if (backSlot > 5)
             {
-                var_r4 -= 6;
+                backSlot -= 6;
             }
             PlaySong(SE_240);
-            sub_08007204(param_0, var_r4);
-            param_0->unk_4FC.unk_4FC_8.unk_4FD = 0;
-            param_0->unk_4FC.unk_4FC_8.unk_4FE = 0;
+            MainMenu_ShowSlotInfo(entity, backSlot);
+            MENU_CONFIRM_OPEN(entity) = 0;
+            MENU_CONFIRM_CURSOR(entity) = 0;
         }
         else if (repeatedInput & KEY_A)
         {
-            if (var_r5 != 0)
+            if (cursor != 0)
             {
-                gEwramData->unk_60.unk_A1_4 = 1;
+                gEwramData->gameState.difficultyMode = 1;
             }
             else
             {
-                gEwramData->unk_60.unk_A1_4 = 0;
+                gEwramData->gameState.difficultyMode = 0;
             }
             
-            if (param_0->unk_4F8.unk_4F8_8.unk_4F9 < 6)
+            if (MENU_CURSOR(entity) < 6)
             {
-                sp0 = 1;
+                result = 1;
             }
             else
             {
-                gEwramData->unk_60.unk_3CC = GetRoomPointer(0, 0);
-                sub_08013404();
-                sp0 = -3;
+                gEwramData->gameState.roomData = GetRoomPointer(0, 0);
+                Game_ResetProgressForNewGame();
+                result = -3;
             }
-            param_0->unk_4FC.unk_4FC_8.unk_4FD = 0;
+            MENU_CONFIRM_OPEN(entity) = 0;
         }
         else if (repeatedInput & KEY_RIGHT)
         {
-            var_r5 = 1;
+            cursor = 1;
         }
         else if (repeatedInput & KEY_LEFT)
         {
-            var_r5 = 0;
+            cursor = 0;
         }
-        if (param_0->unk_4FC.unk_4FC_8.unk_4FE != var_r5)
+        if (MENU_CONFIRM_CURSOR(entity) != cursor)
         {
-            param_0->unk_4FC.unk_4FC_8.unk_4FE = var_r5;
+            MENU_CONFIRM_CURSOR(entity) = cursor;
             PlaySong(SE_241);
         }
     }
@@ -1283,249 +1263,246 @@ s32 sub_080074C0(struct EwramData_EntityData *param_0)
     {
         if (repeatedInput & KEY_B)
         {
-            sp0 = -1;
+            result = -1;
         }
         else if (repeatedInput & KEY_A)
         {
-            unk_60 = &gEwramData->unk_60; // fake?
+            gameState = &gEwramData->gameState;
 
-            if (var_r5 >= 6)
+            if (cursor >= 6)
             {
-                var_r0_2 = var_r5 - 6;
+                saveSlot = cursor - 6;
             }
             else
             {
-                var_r0_2 = var_r5;
+                saveSlot = cursor;
             }
-            SaveData_LoadSlotFromSram(var_r0_2);
-            if (param_0->unk_4F4.unk_4F4_8.unk_4F4 != 0)
+            SaveData_LoadSlotFromSram(saveSlot);
+            if (MENU_SLOT_EMPTY(entity) != 0)
             {
-                gEwramData->unk_60.unk_3CC = NULL;
-                if (unk_60->unk_60 & 2)
+                gEwramData->gameState.roomData = NULL;
+                if (gameState->systemFlags & 2)
                 {
-                    param_0->unk_4FC.unk_4FC_8.unk_4FD = 1;
+                    MENU_CONFIRM_OPEN(entity) = 1;
                 }
-                else if ((param_0->unk_4F8.unk_4F8_8.unk_4F9 > 5) && (unk_60->unk_60 & 1))
+                else if ((MENU_CURSOR(entity) > 5) && (gameState->systemFlags & 1))
                 {
-                    gEwramData->unk_60.unk_3CC = GetRoomPointer(0, 0);
-                    sub_08013404();
-                    sp0 = -3;
+                    gEwramData->gameState.roomData = GetRoomPointer(0, 0);
+                    Game_ResetProgressForNewGame();
+                    result = -3;
                 }
                 else
                 {
-                    sp0 = 1;
+                    result = 1;
                 }
             }
-            else if (param_0->unk_4F8.unk_4F8_8.unk_4F9 < 6)
+            else if (MENU_CURSOR(entity) < 6)
             {
-                if (var_r5 & 1)
+                if (cursor & 1)
                 {
-                    SaveData_ClearSlotInSram(var_r5);
-                    param_0->unk_4F4.unk_4F4_8.unk_4F5 &= ~(1 << var_r5);
-                    gEwramData->unk_60.currentSaveSlot = var_r5 - 1;
+                    SaveData_ClearSlotInSram(cursor);
+                    MENU_SAVED_SLOTS(entity) &= ~(1 << cursor);
+                    gEwramData->gameState.currentSaveSlot = cursor - 1;
                 }
-                gEwramData->unk_60.unk_3CC = GetRoomPointer(gEwramData->unk_60.currentArea, gEwramData->unk_60.currentRoom);
-                sp0 = -2;
+                gEwramData->gameState.roomData = GetRoomPointer(gEwramData->gameState.currentArea, gEwramData->gameState.currentRoom);
+                result = -2;
             }
             else
             {
-                gEwramData->unk_60.unk_3CC = GetRoomPointer(0, 0);
-                sub_08013404();
-                param_0->unk_4FC.unk_4FC_8.unk_4FD = 1;
+                gEwramData->gameState.roomData = GetRoomPointer(0, 0);
+                Game_ResetProgressForNewGame();
+                MENU_CONFIRM_OPEN(entity) = 1;
             }
         }
         else if (repeatedInput & KEY_RIGHT)
         {
-            var_r5 = Mod(var_r5 + 2, 6);
+            cursor = Mod(cursor + 2, 6);
         }
         else if (repeatedInput & KEY_LEFT)
         {
-            var_r5 = Mod(var_r5 + 4, 6);
+            cursor = Mod(cursor + 4, 6);
         }
         else if (repeatedInput & KEY_DOWN)
         {
-            if (var_r5 > 5)
+            if (cursor > 5)
             {
-                var_r5 -= 6;
+                cursor -= 6;
             }
-            else if (!(var_r5 & 1))
+            else if (!(cursor & 1))
             {
-                var_r5 += 1;
+                cursor += 1;
             }
         }
         else if (repeatedInput & KEY_UP)
         {
-            if (var_r5 & 1)
+            if (cursor & 1)
             {
-                var_r5 -= 1;
+                cursor -= 1;
             }
-            else if (var_r5 < 6)
+            else if (cursor < 6)
             {
-                var_r5 += 6;
+                cursor += 6;
             }
         }
 
-        if (var_r5 < 6)
+        if (cursor < 6)
         {
-            if (!(var_r5 & 1))
+            if (!(cursor & 1))
             {
-                if ((param_0->unk_4F8.unk_4F8_8.unk_4F9 != (var_r5 + 1)) && (param_0->unk_4F8.unk_4F8_8.unk_4F9 != var_r5) && (sub_08013700(var_r5 + 1, 1) != 0) && (gEwramData->unk_20[1].unk_38 != 0))
+                if ((MENU_CURSOR(entity) != (cursor + 1)) && (MENU_CURSOR(entity) != cursor) && (SaveData_ReadSlotHeader(cursor + 1, 1) != 0) && (gEwramData->saveHeaders[1].playTime != 0))
                 {
-                    var_r5 = var_r5 + 1;
+                    cursor = cursor + 1;
                 }
             }
-            if (var_r5 < 6)
+            if (cursor < 6)
             {
-                if ((var_r5 & 1) && ((sub_08013700(var_r5, 1) == 0) || (gEwramData->unk_20[1].unk_38 == 0)))
+                if ((cursor & 1) && ((SaveData_ReadSlotHeader(cursor, 1) == 0) || (gEwramData->saveHeaders[1].playTime == 0)))
                 {
-                    var_r5 -= 1;
+                    cursor -= 1;
                 }
             }
         }
-        if (var_r5 >= 6)
+        if (cursor >= 6)
         {
-            if (!(var_r5 & 1) && ((sub_08013700(var_r5 - 6, 1) == 0) || !(gEwramData->unk_20[1].unk_2D & 0xF)))
+            if (!(cursor & 1) && ((SaveData_ReadSlotHeader(cursor - 6, 1) == 0) || !(gEwramData->saveHeaders[1].clearAndDifficulty & 0xF)))
             {
-                var_r5 = param_0->unk_4F8.unk_4F8_8.unk_4F9;
+                cursor = MENU_CURSOR(entity);
             }
         }
-        if (param_0->unk_4F8.unk_4F8_8.unk_4F9 != var_r5)
+        if (MENU_CURSOR(entity) != cursor)
         {
-            param_0->unk_4F8.unk_4F8_8.unk_4F9 = var_r5;
-            var_r4_2 = param_0->unk_4F8.unk_4F8_8.unk_4F9;
-            if (var_r4_2 > 5)
+            MENU_CURSOR(entity) = cursor;
+            shownSlot = MENU_CURSOR(entity);
+            if (shownSlot > 5)
             {
-                var_r4_2 -= 6;
+                shownSlot -= 6;
             }
             PlaySong(SE_241);
-            sub_08007204(param_0, var_r4_2);
-            param_0->unk_504.unk_504_8.unk_505 = 1;
-            param_0->unk_504.unk_504_8.unk_504 = 0;
+            MainMenu_ShowSlotInfo(entity, shownSlot);
+            MENU_BLINK_PHASE(entity) = 1;
+            MENU_BLINK_TIMER(entity) = 0;
         }
-        else if (param_0->unk_4FC.unk_4FC_8.unk_4FD != 0)
+        else if (MENU_CONFIRM_OPEN(entity) != 0)
         {
-            sub_0804066C(0, 1);
-            sub_0804728C(0x385);
+            Text12_SetCursor(0, 1);
+            MenuText_ClearAndPrint(0x385);
             PlaySong(SE_243);
         }
-        if ((gEwramData->unk_60.unk_60 & 1) && (param_0->unk_4F4.unk_4F4_8.unk_4F4 != 0) && (param_0->unk_4F8.unk_4F8_8.unk_4F9 < 6))
+        if ((gEwramData->gameState.systemFlags & 1) && (MENU_SLOT_EMPTY(entity) != 0) && (MENU_CURSOR(entity) < 6))
         {
-            var_0 = param_0->unk_504.unk_504_8.unk_504++;
-            if (!(var_0 & 0x7F))
+            blinkTimer = MENU_BLINK_TIMER(entity)++;
+            if (!(blinkTimer & 0x7F))
             {
-                if (param_0->unk_504.unk_504_8.unk_505 != 0)
+                if (MENU_BLINK_PHASE(entity) != 0)
                 {
-                    sub_0804066C(0, 1);
-                    sub_0804728C(0x3B0);
+                    Text12_SetCursor(0, 1);
+                    MenuText_ClearAndPrint(0x3B0);
                 }
                 else
                 {
-                    sub_08005908(0x35B);
+                    MainMenu_PrintMessage(0x35B);
                 }
-                param_0->unk_504.unk_504_8.unk_505 = 1 - param_0->unk_504.unk_504_8.unk_505;
+                MENU_BLINK_PHASE(entity) = 1 - MENU_BLINK_PHASE(entity);
             }
         }
     }
-    return sp0;
+    return result;
 }
 
-extern u32 *sUnk_080E7284;
-extern u32 *sUnk_080E6FB4;
+extern u32 *sMainMenuCopyBg1Map;
+extern u32 *sMainMenuCopyBg2Map;
 
 /**
- * @brief 7820 | To document
- * 
- * @param param_0 To document
+ * @brief Init entry 1 of sMainMenuSubmenuInitFuncs: show the source/destination slot
+ * information for the data-copy submenu.
  */
-void sub_08007820(struct EwramData_EntityData *param_0)
+void MainMenu_InitDataCopy(struct EwramData_EntityData *entity)
 {
-    s16 *var_r3;
-    s16 var_r4;
+    s16 *dst;
+    s16 scroll;
     s32 var_r0;
-    s32 var_r1;
-    s32 var_r2;
-    s32 var_r2_2;
+    s32 k;
+    s32 i;
+    s32 j;
 
-    param_0->unk_4F4.unk_4F4_8.unk_4F7 = 0;
-    param_0->unk_4F4.unk_4F4_8.unk_4F6 = 0;
-    for (var_r2 = 0; var_r2 < 6; var_r2 += 2)
+    MENU_COPY_DEST(entity) = 0;
+    MENU_COPY_SOURCE(entity) = 0;
+    for (i = 0; i < 6; i += 2)
     {
-        if ((param_0->unk_4F4.unk_4F4_8.unk_4F5 >> var_r2) & 1)
+        if ((MENU_SAVED_SLOTS(entity) >> i) & 1)
         {
-            param_0->unk_4F4.unk_4F4_8.unk_4F6 = var_r2;
+            MENU_COPY_SOURCE(entity) = i;
             break;
         }
     }
-    for (var_r2_2 = 0; var_r2_2 < 6; var_r2_2 += 2)
+    for (j = 0; j < 6; j += 2)
     {
-        if (!((param_0->unk_4F4.unk_4F4_8.unk_4F5 >> var_r2_2) & 1))
+        if (!((MENU_SAVED_SLOTS(entity) >> j) & 1))
         {
-            param_0->unk_4F4.unk_4F4_8.unk_4F7 = var_r2_2;
+            MENU_COPY_DEST(entity) = j;
             break;
         }
     }
-    param_0->unk_4F8.unk_4F8_8.unk_4F9 = param_0->unk_4F4.unk_4F4_8.unk_4F6;
-    sub_0803F8A8(1, (struct EwramData_unkA078_0*)&sUnk_080E7284, 0, 0);
-    sub_0803F8A8(2, (struct EwramData_unkA078_0*)&sUnk_080E6FB4, 0, 0);
+    MENU_CURSOR(entity) = MENU_COPY_SOURCE(entity);
+    BgMap_Setup(1, (struct BgMapMetadata*)&sMainMenuCopyBg1Map, 0, 0);
+    BgMap_Setup(2, (struct BgMapMetadata*)&sMainMenuCopyBg2Map, 0, 0);
     HBlankEffectSetup(160, (s32)(SCREEN_SIZE_Y * 0.95f), 2, REG_BG1VOFS);
-    sub_0800737C(param_0, param_0->unk_4F4.unk_4F4_8.unk_4F6, param_0->unk_4F4.unk_4F4_8.unk_4F7);
-    sub_0804728C(0x358);
-    param_0->unk_4EE = 4;
-    param_0->unk_4F0 = 0;
-    var_r3 = &gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer][0x18];
-    if (param_0->unk_4F4.unk_4F4_8.unk_4F4 == 0)
+    MainMenu_ShowCopySlots(entity, MENU_COPY_SOURCE(entity), MENU_COPY_DEST(entity));
+    MenuText_ClearAndPrint(0x358);
+    entity->state = 4;
+    entity->stage = 0;
+    dst = &gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer][0x18];
+    if (MENU_SLOT_EMPTY(entity) == 0)
     {
-        var_r4 = 0x88;
+        scroll = 0x88;
     }
     else
     {
-        var_r4 = 0;
+        scroll = 0;
     }
-    for (var_r1 = 0; var_r1 < 0x40; var_r1++)
+    for (k = 0; k < 0x40; k++)
     {
-        *var_r3++ = var_r4;
+        *dst++ = scroll;
     }
     gEwramData->hBlankEffect.requestStart = 1;
 }
 
 /**
- * @brief 7914 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Update entry 1 of sMainMenuSubmenuUpdateFuncs: choose source and destination
+ * slots, confirm with messages and copy with SaveData_CopySlot.
  */
-s32 sub_08007914(struct EwramData_EntityData *param_0)
+s32 MainMenu_UpdateDataCopy(struct EwramData_EntityData *entity)
 {
-    s16 *var_r1;
-    s16 var_r2;
-    s32 var_r0;
-    s32 var_r0_2;
-    s32 var_r0_3;
-    s32 var_r7;
+    s16 *dst;
+    s16 scroll;
+    s32 next;
+    s32 next2;
+    s32 i;
+    s32 result;
     u32 repeatedInput;
-    s32 var_r6;
+    s32 cursor;
 
-    var_r6 = param_0->unk_4F8.unk_4F8_8.unk_4F9;
+    cursor = MENU_CURSOR(entity);
     repeatedInput = gEwramData->inputData.repeatedInput;
-    var_r7 = 0;
-    switch (param_0->unk_4F0)
+    result = 0;
+    switch (entity->stage)
     {
         case 0:
             if (repeatedInput & KEY_A)
             {
                 PlaySong(SE_243);
-                sub_0804728C(0x359);
-                if (var_r6 == param_0->unk_4F4.unk_4F4_8.unk_4F7)
+                MenuText_ClearAndPrint(0x359);
+                if (cursor == MENU_COPY_DEST(entity))
                 {
-                    param_0->unk_4F4.unk_4F4_8.unk_4F7 = Mod(var_r6 + 2, 6);
+                    MENU_COPY_DEST(entity) = Mod(cursor + 2, 6);
                 }
-                var_r6 = param_0->unk_4F4.unk_4F4_8.unk_4F7;
-                param_0->unk_4F8.unk_4F8_8.unk_4F9 = 0xFE;
-                param_0->unk_4F0 += 1;
+                cursor = MENU_COPY_DEST(entity);
+                MENU_CURSOR(entity) = 0xFE;
+                entity->stage += 1;
             }
             else if (repeatedInput & KEY_B)
             {
-                var_r7 = -1;
+                result = -1;
             }
             else if (repeatedInput & (KEY_LEFT | KEY_RIGHT))
             {
@@ -1533,14 +1510,14 @@ s32 sub_08007914(struct EwramData_EntityData *param_0)
                 {
                     if (repeatedInput & KEY_RIGHT)
                     {
-                        var_r0 = var_r6 + 2;
+                        next = cursor + 2;
                     }
                     else
                     {
-                        var_r0 = var_r6 + 4;
+                        next = cursor + 4;
                     }
-                    var_r6 = Mod(var_r0, 6);
-                } while (!((param_0->unk_4F4.unk_4F4_8.unk_4F5 >> var_r6) & 1));
+                    cursor = Mod(next, 6);
+                } while (!((MENU_SAVED_SLOTS(entity) >> cursor) & 1));
             }
             break;
 
@@ -1548,26 +1525,26 @@ s32 sub_08007914(struct EwramData_EntityData *param_0)
             if (repeatedInput & KEY_A)
             {
                 PlaySong(SE_243);
-                sub_08005908(-1);
-                param_0->unk_4F8.unk_4F8_8.unk_4F9 = 1;
-                var_r6 = 1;
-                param_0->unk_4F0 += 1;
-                sub_08040FE0();
-                sub_0804066C(0, 1);
-                sub_08041318(sub_08041434(0x379), 0);
-                sub_0804066C(9, 2);
-                sub_08041318(sub_08041434(0x34B), 0);
-                sub_0804066C(0x14, 2);
-                sub_08041318(sub_08041434(0x34D), 0);
-                sub_0804066C(0, 1);
+                MainMenu_PrintMessage(-1);
+                MENU_CURSOR(entity) = 1;
+                cursor = 1;
+                entity->stage += 1;
+                Text12_ClearRegion();
+                Text12_SetCursor(0, 1);
+                Text12_Print(Text_GetLocalizedEntry(0x379), 0);
+                Text12_SetCursor(9, 2);
+                Text12_Print(Text_GetLocalizedEntry(0x34B), 0);
+                Text12_SetCursor(0x14, 2);
+                Text12_Print(Text_GetLocalizedEntry(0x34D), 0);
+                Text12_SetCursor(0, 1);
             }
             else if (repeatedInput & KEY_B)
             {
                 PlaySong(SE_240);
-                sub_08005908(0x358);
-                var_r6 = param_0->unk_4F8.unk_4F8_8.unk_4F9 = param_0->unk_4F4.unk_4F4_8.unk_4F6;
-                param_0->unk_4F0 -= 1;
-                sub_0800737C(param_0, param_0->unk_4F4.unk_4F4_8.unk_4F6, param_0->unk_4F4.unk_4F4_8.unk_4F7);
+                MainMenu_PrintMessage(0x358);
+                cursor = MENU_CURSOR(entity) = MENU_COPY_SOURCE(entity);
+                entity->stage -= 1;
+                MainMenu_ShowCopySlots(entity, MENU_COPY_SOURCE(entity), MENU_COPY_DEST(entity));
             }
             else if (repeatedInput & (KEY_LEFT | KEY_RIGHT))
             {
@@ -1575,334 +1552,328 @@ s32 sub_08007914(struct EwramData_EntityData *param_0)
                 {
                     if (repeatedInput & KEY_RIGHT)
                     {
-                        var_r0_2 = var_r6 + 2;
+                        next2 = cursor + 2;
                     }
                     else
                     {
-                        var_r0_2 = var_r6 + 4;
+                        next2 = cursor + 4;
                     }
-                    var_r6 = Mod(var_r0_2, 6);
-                } while (var_r6 == param_0->unk_4F4.unk_4F4_8.unk_4F6);
+                    cursor = Mod(next2, 6);
+                } while (cursor == MENU_COPY_SOURCE(entity));
             }
             break;
 
         case 2:
-            if ((repeatedInput & KEY_A) && (var_r6 == 0))
+            if ((repeatedInput & KEY_A) && (cursor == 0))
             {
                 PlaySong(SE_244);
-                sub_08012E30(param_0->unk_4F4.unk_4F4_8.unk_4F6, param_0->unk_4F4.unk_4F4_8.unk_4F7);
-                param_0->unk_4F4.unk_4F4_8.unk_4F5 |= 1 << param_0->unk_4F4.unk_4F4_8.unk_4F7;
-                sub_08005908(0x358);
-                var_r6 = param_0->unk_4F8.unk_4F8_8.unk_4F9 = param_0->unk_4F4.unk_4F4_8.unk_4F6;
-                sub_0800737C(param_0, param_0->unk_4F4.unk_4F4_8.unk_4F6, param_0->unk_4F4.unk_4F4_8.unk_4F7);
-                param_0->unk_4F0 = 0;
-                SaveData_ClearSlotInSram(param_0->unk_4F4.unk_4F4_8.unk_4F7 + 1);
-                param_0->unk_4F4.unk_4F4_8.unk_4F5 &= ~(1 << (param_0->unk_4F4.unk_4F4_8.unk_4F7 + 1));
+                SaveData_CopySlot(MENU_COPY_SOURCE(entity), MENU_COPY_DEST(entity));
+                MENU_SAVED_SLOTS(entity) |= 1 << MENU_COPY_DEST(entity);
+                MainMenu_PrintMessage(0x358);
+                cursor = MENU_CURSOR(entity) = MENU_COPY_SOURCE(entity);
+                MainMenu_ShowCopySlots(entity, MENU_COPY_SOURCE(entity), MENU_COPY_DEST(entity));
+                entity->stage = 0;
+                SaveData_ClearSlotInSram(MENU_COPY_DEST(entity) + 1);
+                MENU_SAVED_SLOTS(entity) &= ~(1 << (MENU_COPY_DEST(entity) + 1));
             }
             else if (repeatedInput & (KEY_A | KEY_B))
             {
                 PlaySong(SE_240);
-                sub_08005908(0x359);
-                var_r6 = param_0->unk_4F8.unk_4F8_8.unk_4F9 = param_0->unk_4F4.unk_4F4_8.unk_4F7;
-                param_0->unk_4F0 -= 1;
+                MainMenu_PrintMessage(0x359);
+                cursor = MENU_CURSOR(entity) = MENU_COPY_DEST(entity);
+                entity->stage -= 1;
             }
             else if (repeatedInput & (KEY_LEFT | KEY_RIGHT))
             {
-                var_r6 = (repeatedInput >> 4) & 1; // repeatedInput & KEY_RIGHT
+                cursor = (repeatedInput >> 4) & 1; // repeatedInput & KEY_RIGHT
             }
             break;
     }
 
-    if (param_0->unk_4F8.unk_4F8_8.unk_4F9 != var_r6)
+    if (MENU_CURSOR(entity) != cursor)
     {
-        param_0->unk_4F8.unk_4F8_8.unk_4F9 = var_r6;
+        MENU_CURSOR(entity) = cursor;
         PlaySong(SE_241);
-        if (param_0->unk_4F0 == 0)
+        if (entity->stage == 0)
         {
-            param_0->unk_4F4.unk_4F4_8.unk_4F6 = var_r6;
+            MENU_COPY_SOURCE(entity) = cursor;
         }
-        else if (param_0->unk_4F0 == 1)
+        else if (entity->stage == 1)
         {
-            param_0->unk_4F4.unk_4F4_8.unk_4F7 = var_r6;
+            MENU_COPY_DEST(entity) = cursor;
         }
-        sub_0800737C(param_0, param_0->unk_4F4.unk_4F4_8.unk_4F6, param_0->unk_4F4.unk_4F4_8.unk_4F7);
+        MainMenu_ShowCopySlots(entity, MENU_COPY_SOURCE(entity), MENU_COPY_DEST(entity));
     }
-    var_r1 = &gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer][0x18];
-    if (param_0->unk_4F4.unk_4F4_8.unk_4F4 == 0)
+    dst = &gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer][0x18];
+    if (MENU_SLOT_EMPTY(entity) == 0)
     {
-        var_r2 = 0x88;
+        scroll = 0x88;
     }
     else
     {
-        var_r2 = 0;
+        scroll = 0;
     }
-    for (var_r0_3 = 0; var_r0_3 < 0x40; var_r0_3++)
+    for (i = 0; i < 0x40; i++)
     {
-        *var_r1++ = var_r2;
+        *dst++ = scroll;
     }
     gEwramData->hBlankEffect.requestStart = 1;
-    return var_r7;
+    return result;
 }
 
 /**
- * @brief 7B8C | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Update entry 2 of sMainMenuSubmenuUpdateFuncs: choose a slot, confirm with
+ * messages and delete it with SaveData_DeleteSlot.
  */
-s32 sub_08007B8C(struct EwramData_EntityData *param_0)
+s32 MainMenu_UpdateDataDelete(struct EwramData_EntityData *entity)
 {
-    s16 *var_r1;
-    s16 var_r2;
-    s32 var_r0;
-    s32 var_r0_2;
-    s32 var_r7;
+    s16 *dst;
+    s16 scroll;
+    s32 next;
+    s32 i;
+    s32 result;
     u32 repeatedInput;
-    s32 var_r6;
+    s32 cursor;
 
     repeatedInput = gEwramData->inputData.repeatedInput;
-    var_r6 = param_0->unk_4F8.unk_4F8_8.unk_4F9;
-    var_r7 = 0;
-    switch (param_0->unk_4F0)
+    cursor = MENU_CURSOR(entity);
+    result = 0;
+    switch (entity->stage)
     {
         case 0:
             if (repeatedInput & KEY_B)
             {
-                var_r7 = -1;
+                result = -1;
             }
             else if (repeatedInput & KEY_A)
             {
-                if (param_0->unk_4F4.unk_4F4_8.unk_4F4 != 0)
+                if (MENU_SLOT_EMPTY(entity) != 0)
                 {
                     PlaySong(SE_239);
                 }
                 else
                 {
                     PlaySong(SE_243);
-                    sub_08005908(-1);
-                    param_0->unk_4F4.unk_4F4_8.unk_4F6 = param_0->unk_4F8.unk_4F8_8.unk_4F9;
-                    param_0->unk_4F8.unk_4F8_8.unk_4F9 = 1;
-                    var_r6 = 1;
-                    param_0->unk_4F0 += 1;
-                    sub_08040FE0();
-                    sub_0804066C(0, 1);
-                    sub_08041318(sub_08041434(0x377), 0);
-                    sub_0804066C(0xA, 2);
-                    sub_08041318(sub_08041434(0x34B), 0);
-                    sub_0804066C(0x15, 2);
-                    sub_08041318(sub_08041434(0x34D), 0);
-                    sub_0804066C(0, 1);
+                    MainMenu_PrintMessage(-1);
+                    MENU_COPY_SOURCE(entity) = MENU_CURSOR(entity);
+                    MENU_CURSOR(entity) = 1;
+                    cursor = 1;
+                    entity->stage += 1;
+                    Text12_ClearRegion();
+                    Text12_SetCursor(0, 1);
+                    Text12_Print(Text_GetLocalizedEntry(0x377), 0);
+                    Text12_SetCursor(0xA, 2);
+                    Text12_Print(Text_GetLocalizedEntry(0x34B), 0);
+                    Text12_SetCursor(0x15, 2);
+                    Text12_Print(Text_GetLocalizedEntry(0x34D), 0);
+                    Text12_SetCursor(0, 1);
                 }
             }
             else if (repeatedInput & (KEY_LEFT | KEY_RIGHT))
             {
                 if (repeatedInput & KEY_RIGHT)
                 {
-                    var_r0 = var_r6 + 2;
+                    next = cursor + 2;
                 }
                 else
                 {
-                    var_r0 = var_r6 + 4;
+                    next = cursor + 4;
                 }
-                var_r6 = Mod(var_r0, 6);
+                cursor = Mod(next, 6);
             }
             break;
 
         case 1:
-            if ((repeatedInput & KEY_A) && (var_r6 == 0))
+            if ((repeatedInput & KEY_A) && (cursor == 0))
             {
                 PlaySong(SE_244);
-                if (!(param_0->unk_4F4.unk_4F4_8.unk_4F6 & 1))
+                if (!(MENU_COPY_SOURCE(entity) & 1))
                 {
-                    sub_08012A08(param_0->unk_4F4.unk_4F4_8.unk_4F6);
+                    SaveData_DeleteSlot(MENU_COPY_SOURCE(entity));
                 }
                 else
                 {
-                    SaveData_ClearSlotInSram(param_0->unk_4F4.unk_4F4_8.unk_4F6);
+                    SaveData_ClearSlotInSram(MENU_COPY_SOURCE(entity));
                 }
-                param_0->unk_4F4.unk_4F4_8.unk_4F5 &= ~(1 << param_0->unk_4F4.unk_4F4_8.unk_4F6);
-                sub_0804728C(0x35A);
-                var_r6 = param_0->unk_4F8.unk_4F8_8.unk_4F9 = param_0->unk_4F4.unk_4F4_8.unk_4F6;
-                sub_08007204(param_0, param_0->unk_4F4.unk_4F4_8.unk_4F6);
-                param_0->unk_4F0 -= 1;
-                if (!(param_0->unk_4F4.unk_4F4_8.unk_4F6 & 1))
+                MENU_SAVED_SLOTS(entity) &= ~(1 << MENU_COPY_SOURCE(entity));
+                MenuText_ClearAndPrint(0x35A);
+                cursor = MENU_CURSOR(entity) = MENU_COPY_SOURCE(entity);
+                MainMenu_ShowSlotInfo(entity, MENU_COPY_SOURCE(entity));
+                entity->stage -= 1;
+                if (!(MENU_COPY_SOURCE(entity) & 1))
                 {
-                    SaveData_ClearSlotInSram(param_0->unk_4F4.unk_4F4_8.unk_4F6 + 1);
-                    param_0->unk_4F4.unk_4F4_8.unk_4F5 &= ~(1 << (param_0->unk_4F4.unk_4F4_8.unk_4F6 + 1));
+                    SaveData_ClearSlotInSram(MENU_COPY_SOURCE(entity) + 1);
+                    MENU_SAVED_SLOTS(entity) &= ~(1 << (MENU_COPY_SOURCE(entity) + 1));
                 }
             }
             else if (repeatedInput & (KEY_A | KEY_B))
             {
                 PlaySong(SE_240);
-                sub_0804728C(0x35A);
-                var_r6 = param_0->unk_4F8.unk_4F8_8.unk_4F9 = param_0->unk_4F4.unk_4F4_8.unk_4F6;
-                param_0->unk_4F0 -= 1;
+                MenuText_ClearAndPrint(0x35A);
+                cursor = MENU_CURSOR(entity) = MENU_COPY_SOURCE(entity);
+                entity->stage -= 1;
             }
             else if (repeatedInput & (KEY_LEFT | KEY_RIGHT))
             {
-                var_r6 = (repeatedInput >> 4) & 1; // repeatedInput & KEY_RIGHT
+                cursor = (repeatedInput >> 4) & 1; // repeatedInput & KEY_RIGHT
             }
             break;
     }
-    if (param_0->unk_4F8.unk_4F8_8.unk_4F9 != var_r6)
+    if (MENU_CURSOR(entity) != cursor)
     {
-        param_0->unk_4F8.unk_4F8_8.unk_4F9 = var_r6;
+        MENU_CURSOR(entity) = cursor;
         PlaySong(SE_241);
-        if (param_0->unk_4F0 == 0)
+        if (entity->stage == 0)
         {
-            sub_08007204(param_0, param_0->unk_4F8.unk_4F8_8.unk_4F9);
+            MainMenu_ShowSlotInfo(entity, MENU_CURSOR(entity));
         }
     }
-    var_r1 = &gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer][0x18];
-    if (param_0->unk_4F4.unk_4F4_8.unk_4F4 != 0)
+    dst = &gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer][0x18];
+    if (MENU_SLOT_EMPTY(entity) != 0)
     {
-        var_r2 = 0x88;
+        scroll = 0x88;
     }
     else
     {
-        var_r2 = 0;
+        scroll = 0;
     }
-    for (var_r0_2 = 0; var_r0_2 < 0x50; var_r0_2++)
+    for (i = 0; i < 0x50; i++)
     {
-        *var_r1++ = var_r2;
+        *dst++ = scroll;
     }
     gEwramData->hBlankEffect.requestStart = 1;
-    return var_r7;
+    return result;
 }
 
 /**
- * @brief 7D84 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
+ * @brief Select save slot n, draw its summary or mark it empty and print the
+ * matching prompt (the soul trade menu checks the paired slot).
  */
-void sub_08007D84(struct EwramData_EntityData *param_0, s32 param_1)
+void SaveSelect_ShowSlot(struct EwramData_EntityData *entity, s32 slot)
 {
-    s16 *var_r1_2;
-    s16 var_r2_2;
-    s32 temp_r2;
-    s32 var_r0_2;
-    s32 var_r1_3;
-    s32 var_r1_4;
-    struct EwramData_unk20 *unk_20;
-    struct EwramData_unk60 *unk_60;
+    s16 *dst;
+    s16 scroll;
+    s32 valid;
+    s32 i;
+    s32 message;
+    s32 message2;
+    struct SaveHeader *header;
+    struct GameState *gameState;
 
-    unk_60 = &gEwramData->unk_60;
-    unk_20 = gEwramData->unk_20;
-    gEwramData->unk_60.currentSaveSlot = param_1;
-    temp_r2 = sub_08013700(param_1, 0);
+    gameState = &gEwramData->gameState;
+    header = gEwramData->saveHeaders;
+    gEwramData->gameState.currentSaveSlot = slot;
+    valid = SaveData_ReadSlotHeader(slot, 0);
     DMA_FILL_32(3, 0, 0x0600E000, 0x340);
-    if ((temp_r2 != 0) && (unk_20->unk_38 != 0))
+    if ((valid != 0) && (header->playTime != 0))
     {
-        sub_08006D9C(param_0, unk_20, 0x10, 8, 0);
-        param_0->unk_4F4.unk_4F4_8.unk_4F4 = 0;
-        unk_60->unk_4CC_3 = 2;
+        MainMenu_DrawSlotSummary(entity, header, 0x10, 8, 0);
+        MENU_SLOT_EMPTY(entity) = 0;
+        gameState->unk_4CC_3 = 2;
     }
     else
     {
-        param_0->unk_4F4.unk_4F4_8.unk_4F4 = 1;
-        unk_60->unk_4CC_3 = 1;
+        MENU_SLOT_EMPTY(entity) = 1;
+        gameState->unk_4CC_3 = 1;
     }
-    if (param_0->unk_4EF == 0)
+    if (entity->subState == 0)
     {
-        sub_0804066C(0, 1);
-        var_r1_2 = &gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer][0x18];
+        Text12_SetCursor(0, 1);
+        dst = &gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer][0x18];
         
-        if (param_0->unk_4F4.unk_4F4_8.unk_4F4 != 0)
+        if (MENU_SLOT_EMPTY(entity) != 0)
         {
-            var_r2_2 = 0x88;
+            scroll = 0x88;
         }
         else
         {
-            var_r2_2 = 0;
+            scroll = 0;
         }
-        for (var_r0_2 = 0; var_r0_2 < 0x50; var_r0_2++)
+        for (i = 0; i < 0x50; i++)
         {
-            *var_r1_2++ = var_r2_2;
+            *dst++ = scroll;
         }
-        *var_r1_2 = 0;
+        *dst = 0;
         gEwramData->hBlankEffect.requestStart = 1;
         if (gEwramData->gameMode == GAME_MODE_SOUL_TRADE_MENU)
         {
-            temp_r2 = sub_08013700(param_1 + 1, 1);
-            if ((unk_20[1].unk_38 != 0) && (temp_r2 != 0))
+            valid = SaveData_ReadSlotHeader(slot + 1, 1);
+            if ((header[1].playTime != 0) && (valid != 0))
             {
-                sub_0804728C(0x38F);
+                MenuText_ClearAndPrint(0x38F);
                 return;
             }
-            if (param_0->unk_4F4.unk_4F4_8.unk_4F4 != 0)
+            if (MENU_SLOT_EMPTY(entity) != 0)
             {
-                var_r1_3 = 0x37B;
+                message = 0x37B;
             }
             else
             {
-                var_r1_3 = 0x37C;
+                message = 0x37C;
             }
-            sub_0804728C(var_r1_3);
+            MenuText_ClearAndPrint(message);
             return;
         }
         
-        if (param_0->unk_4F4.unk_4F4_8.unk_4F4 != 0)
+        if (MENU_SLOT_EMPTY(entity) != 0)
         {
-            var_r1_4 = 0x37B;
+            message2 = 0x37B;
         }
         else
         {
-            var_r1_4 = 0x37C;
+            message2 = 0x37C;
         }
-        sub_0804728C(var_r1_4);
+        MenuText_ClearAndPrint(message2);
     }
 }
 
 /**
- * @brief 7EE0 | To document
- * 
- * @param param_0 To document
+ * @brief Set up the BG0 text layer and window and print message 0x354 +
+ * index.
  */
-void sub_08007EE0(s32 param_0)
+void SaveSelect_SetupMessageWindow(s32 choice)
 {
-    s16 *var_r5;
-    s32 var_r1;
+    s16 *tilemap;
+    s32 i;
     u8 *var_r0;
 
-    var_r5 = (s16 *)0x0600E3C4;
+    tilemap = (s16 *)0x0600E3C4;
     DMA_FILL_32(3, 0, 0x0600E000, 0x800);
     DMA_FILL_32(3, 0, 0x06008000, 0x2000);
     gDisplayRegisters.bgCnt[0] = CREATE_BGCNT(2, 28, BGCNT_HIGH_PRIORITY, BGCNT_SIZE_256x256);
-    sub_0803C918((u8*)0x081183F4, 0, 1, 0xC);
-    sub_080412DC(VRAM_BASE + 0x8000);
-    sub_080412F0(8);
-    sub_08041304(0);
-    sub_0803C918((u8*)0x080E5C20, 3, 1, 0xD);
-    switch (gEwramData->unk_60.language)
+    BgPalette_LoadRange((u8*)0x081183F4, 0, 1, 0xC);
+    Text_SetTileBuffer(VRAM_BASE + 0x8000);
+    Text_SetForegroundColor(8);
+    Text_SetBackgroundColor(0);
+    BgPalette_LoadRange((u8*)0x080E5C20, 3, 1, 0xD);
+    switch (gEwramData->gameState.language)
     {
         case 2:
-            sub_0803FD9C((u8 *)0x08277984, VRAM_BASE + 0xA000, 0);
+            Gfx_CopyResource((u8 *)0x08277984, VRAM_BASE + 0xA000, 0);
             break;
         case 3:
-            sub_0803FD9C((u8 *)0x0826C848, VRAM_BASE + 0xA000, 0);
+            Gfx_CopyResource((u8 *)0x0826C848, VRAM_BASE + 0xA000, 0);
             break;
         default:
-            sub_0803FD9C((u8 *)0x0827B200, VRAM_BASE + 0xA000, 0);
+            Gfx_CopyResource((u8 *)0x0827B200, VRAM_BASE + 0xA000, 0);
             break;
     }
-    sub_08040748(0, 0, 0x29, 3);
-    sub_08040FE0();
-    sub_08040748(0, 1, 0x25, 3);
-    sub_0804066C(0, 1);
-    for (var_r1 = 0; var_r1 < 0x80; var_r1++)
+    Text12_SetRegion(0, 0, 0x29, 3);
+    Text12_ClearRegion();
+    Text12_SetRegion(0, 1, 0x25, 3);
+    Text12_SetCursor(0, 1);
+    for (i = 0; i < 0x80; i++)
     {
-        *var_r5++ = var_r1 - 0x3FE0;
+        *tilemap++ = i - 0x3FE0;
     }
-    sub_08041318(sub_08041434(param_0 + 0x354), 0);
+    Text12_Print(Text_GetLocalizedEntry(choice + 0x354), 0);
 }
 
 /**
- * @brief 7FF0 | To document
- * 
- * @param param_0 To document
+ * @brief Clear the BG maps and display registers, load the menu backgrounds,
+ * init the menu entity and show slot 0.
  */
-void sub_08007FF0(struct EwramData_EntityData *param_0)
+void SaveSelect_InitScreen(struct EwramData_EntityData *entity)
 {
     u32 temp_r0;
     u8 *temp_r1;
@@ -1925,530 +1896,528 @@ void sub_08007FF0(struct EwramData_EntityData *param_0)
     gDisplayRegisters.bgCnt[2] = CREATE_BGCNT(0, 30, BGCNT_LOW_MID_PRIORITY, BGCNT_SIZE_256x256);
     gDisplayRegisters.bgCnt[3] = CREATE_BGCNT(0, 31, BGCNT_LOW_PRIORITY, BGCNT_SIZE_256x256);
 
-    gEwramData->unk_A074_2 = gEwramData->unk_A074_4 = 0;
+    gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 0;
     gUnk_03002CB0.dispCnt = DCNT_OBJ | DCNT_BG3 | DCNT_BG2 | DCNT_BG1 | DCNT_BG0;
     gDisplayRegisters.bldCnt = BLDCNT_BG3_SECOND_TARGET_PIXEL | BLDCNT_ALPHA_BLENDING_EFFECT | BLDCNT_BG2_FIRST_TARGET_PIXEL;
     gDisplayRegisters.bldAlpha = C_16_2_8(10, 6);
     gDisplayRegisters.bldY = 0;
-    gEwramData->unk_60.unk_4CC_0 = 0;
+    gEwramData->gameState.bossRushMode = 0;
 
-    sub_0803FD9C((u8 *)0x080E5BB0, VRAM_BASE, 0);
-    sub_0803FD9C((u8 *)0x080E5BB8, VRAM_BASE + 0x2000, 0);
+    Gfx_CopyResource((u8 *)0x080E5BB0, VRAM_BASE, 0);
+    Gfx_CopyResource((u8 *)0x080E5BB8, VRAM_BASE + 0x2000, 0);
 
-    switch (gEwramData->unk_60.language)
+    switch (gEwramData->gameState.language)
     {
         case 2:
-            sub_0803FD9C((u8 *)0x08277994, VRAM_BASE + 0x4000, 0);
+            Gfx_CopyResource((u8 *)0x08277994, VRAM_BASE + 0x4000, 0);
             break;
         case 3:
-            sub_0803FD9C((u8 *)0x0826C850, VRAM_BASE + 0x4000, 0);
+            Gfx_CopyResource((u8 *)0x0826C850, VRAM_BASE + 0x4000, 0);
             break;
         default:
-            sub_0803FD9C((u8 *)0x080E5BC0, VRAM_BASE + 0x4000, 0);
+            Gfx_CopyResource((u8 *)0x080E5BC0, VRAM_BASE + 0x4000, 0);
             break;
     }
 
-    sub_0803C8B0((u8 *)0x080E5E24);
-    sub_0803F8A8(3, (struct EwramData_unkA078_0 *)0x080E74C4, 0, 0);
-    sub_0803F8A8(2, (struct EwramData_unkA078_0 *)0x080E7044, 0, 0);
-    sub_0803F8A8(1, (struct EwramData_unkA078_0 *)0x080E7314, 0, 0);
-    sub_08006BC0(param_0);
-    sub_08007EE0(0);
+    BgPalette_Load((u8 *)0x080E5E24);
+    BgMap_Setup(3, (struct BgMapMetadata *)0x080E74C4, 0, 0);
+    BgMap_Setup(2, (struct BgMapMetadata *)0x080E7044, 0, 0);
+    BgMap_Setup(1, (struct BgMapMetadata *)0x080E7314, 0, 0);
+    MainMenu_InitEntity(entity);
+    SaveSelect_SetupMessageWindow(0);
     HBlankEffectSetup(160, (s32)(SCREEN_SIZE_Y * 0.65f), 2, REG_BG1VOFS);
-    param_0->unk_4F8.unk_4F8_8.unk_4F9 = 0;
-    sub_08007D84(param_0, 0);
-    param_0->unk_4EE = 7;
+    MENU_CURSOR(entity) = 0;
+    SaveSelect_ShowSlot(entity, 0);
+    entity->state = 7;
 }
 
 /**
- * @brief 81AC | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Choose a save slot: B returns -1; A loads it and returns 1 when it
+ * suits the caller (soul trade or boss rush), else plays the error
+ * sound.
  */
-s32 sub_080081AC(struct EwramData_EntityData *param_0)
+s32 SaveSelect_Update(struct EwramData_EntityData *entity)
 {
-    s32 temp_r2;
-    s32 var_r7;
+    s32 hasBackup;
+    s32 result;
     s32 repeatedInput;
-    s32 var_r4;
-    s32 var_0;
+    s32 cursor;
+    s32 canLoad;
 
     repeatedInput = gEwramData->inputData.repeatedInput;
-    var_r4 = param_0->unk_4F8.unk_4F8_8.unk_4F9;
-    var_r7 = 0;
+    cursor = MENU_CURSOR(entity);
+    result = 0;
     if (repeatedInput & KEY_B)
     {
-        var_r7 = -1;
+        result = -1;
     }
     else if (repeatedInput & KEY_A)
     {
-        SaveData_LoadSlotFromSram(var_r4);
-        if (param_0->unk_4F4.unk_4F4_8.unk_4F4 != 0)
+        SaveData_LoadSlotFromSram(cursor);
+        if (MENU_SLOT_EMPTY(entity) != 0)
         {
-            var_0 = 0;
+            canLoad = 0;
         }
         else
         {
-            temp_r2 = sub_08013700(var_r4 + 1, 1);
+            hasBackup = SaveData_ReadSlotHeader(cursor + 1, 1);
             if (gEwramData->gameMode == GAME_MODE_SOUL_TRADE_MENU)
             {
-                if (!(gEwramData->unk_20[0].unk_30 == 0 && ((gEwramData->unk_20[1].unk_38 == 0) || (temp_r2 == 0))))
+                if (!(gEwramData->saveHeaders[0].character == 0 && ((gEwramData->saveHeaders[1].playTime == 0) || (hasBackup == 0))))
                 {
-                    var_0 = 0;
+                    canLoad = 0;
                 }
                 else
                 {
-                    var_0 = 1;
+                    canLoad = 1;
                 }
             }
-            else if ((gEwramData->unk_20[0].unk_2D & 0xF))
+            else if ((gEwramData->saveHeaders[0].clearAndDifficulty & 0xF))
             {
-                var_0 = 1;
+                canLoad = 1;
             }
             else
             {
-                var_0 = 0;
+                canLoad = 0;
             }
         }
 
-        if (var_0 == 0)
+        if (canLoad == 0)
         {
             PlaySong(SE_239);
         }
         else
         {
-            if (var_r4 & 1)
+            if (cursor & 1)
             {
-                var_r4 -= 1;
+                cursor -= 1;
             }
-            gEwramData->unk_60.currentSaveSlot = var_r4;
-            gEwramData->unk_60.unk_3CC = NULL;
+            gEwramData->gameState.currentSaveSlot = cursor;
+            gEwramData->gameState.roomData = NULL;
             PlaySong(SE_243);
-            var_r7 = 1;
+            result = 1;
         }
     }
     else if (repeatedInput & KEY_RIGHT)
     {
-        var_r4 = Mod(var_r4 + 2, 6);
+        cursor = Mod(cursor + 2, 6);
     }
     else if (repeatedInput & KEY_LEFT)
     {
-        var_r4 = Mod(var_r4 + 4, 6);
+        cursor = Mod(cursor + 4, 6);
     }
 
-    if (param_0->unk_4F8.unk_4F8_8.unk_4F9 != var_r4)
+    if (MENU_CURSOR(entity) != cursor)
     {
-        param_0->unk_4F8.unk_4F8_8.unk_4F9 = var_r4;
+        MENU_CURSOR(entity) = cursor;
         PlaySong(SE_241);
-        sub_08007D84(param_0, param_0->unk_4F8.unk_4F8_8.unk_4F9);
+        SaveSelect_ShowSlot(entity, MENU_CURSOR(entity));
     }
-    sub_08000B64();
-    return var_r7;
+    Entity_UpdateAll();
+    return result;
 }
 
-extern u32 *sUnk_080E71F4;
-extern u32 *sUnk_080E6E04;
+extern u32 *sMainMenuDeleteBg1Map;
+extern u32 *sMainMenuDeleteBg2Map;
 
 /**
- * @brief 8290 | To document
- * 
- * @param param_0 To document
+ * @brief Init entry 2 of sMainMenuSubmenuInitFuncs: show the slot information for the
+ * data-delete submenu.
  */
-void sub_08008290(struct EwramData_EntityData *param_0)
+void MainMenu_InitDataDelete(struct EwramData_EntityData *entity)
 {
-    s32 var_r2;
+    s32 i;
 
-    for (var_r2 = 0; var_r2 < 6; var_r2 += 2)
+    for (i = 0; i < 6; i += 2)
     {
-        if ((param_0->unk_4F4.unk_4F4_8.unk_4F5 >> var_r2) & 1)
+        if ((MENU_SAVED_SLOTS(entity) >> i) & 1)
         {
-            param_0->unk_4F8.unk_4F8_8.unk_4F9 = var_r2;
+            MENU_CURSOR(entity) = i;
             break;
         }
     }
-    sub_0803F8A8(1, (struct EwramData_unkA078_0 *)&sUnk_080E71F4, 0, 0);
-    sub_0803F8A8(2, (struct EwramData_unkA078_0 *)&sUnk_080E6E04, 0, 0);
+    BgMap_Setup(1, (struct BgMapMetadata *)&sMainMenuDeleteBg1Map, 0, 0);
+    BgMap_Setup(2, (struct BgMapMetadata *)&sMainMenuDeleteBg2Map, 0, 0);
     HBlankEffectSetup(160, (s32)(SCREEN_SIZE_Y * 0.95f), 2, REG_BG1VOFS);
-    sub_08007204(param_0, param_0->unk_4F8.unk_4F8_8.unk_4F9);
-    sub_0804728C(0x35A);
-    param_0->unk_4EE = 5;
+    MainMenu_ShowSlotInfo(entity, MENU_CURSOR(entity));
+    MenuText_ClearAndPrint(0x35A);
+    entity->state = 5;
 }
 
 /**
- * @brief 8300 | To document
- * 
- * @param param_0 To document
+ * @brief Save the display state and open the save select screen (boss rush,
+ * soul trade, debug mode 4531).
  */
-void sub_08008300(struct EwramData_EntityData *param_0)
+void SaveSelect_Open(struct EwramData_EntityData *entity)
 {
-    sub_0800D154();
-    sub_08007FF0(param_0);
+    Display_SaveState();
+    SaveSelect_InitScreen(entity);
 }
 
 /**
- * @brief 8314 | To document
- * 
- * @param param_0 To document
+ * @brief Free the menu entity and restore the display state.
  */
-void sub_08008314(struct EwramData_EntityData *param_0)
+void SaveSelect_Close(struct EwramData_EntityData *entity)
 {
-    sub_08006CFC(param_0);
-    sub_0800D1F0();
+    MainMenu_FreeEntity(entity);
+    Display_RestoreState();
 }
 
 /**
- * @brief 8324 | To document
- * 
- * @param param_0 To document
+ * @brief Load the name entry backgrounds and windows and enter menu state 6.
  */
-void sub_08008324(struct EwramData_EntityData *param_0)
+void MainMenu_OpenNameEntry(struct EwramData_EntityData *entity)
 {
     s16 *hBlankBuf;
-    s16 var_r3;
+    s16 scroll;
     s32 scanline;
 
-    sub_0803F8A8(1, (struct EwramData_unkA078_0 *)0x080E70D4, 0, 0);
-    sub_0803F8A8(2, (struct EwramData_unkA078_0 *)0x080E6E94, 0, 0);
+    BgMap_Setup(1, (struct BgMapMetadata *)0x080E70D4, 0, 0);
+    BgMap_Setup(2, (struct BgMapMetadata *)0x080E6E94, 0, 0);
     HBlankEffectSetup(160, (s32)(SCREEN_SIZE_Y * 0.1f), 2, REG_BG1VOFS);
     hBlankBuf = gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer];
-    if (param_0->unk_4EF != 0)
+    if (entity->subState != 0)
     {
-        var_r3 = 0xA0;
+        scroll = 0xA0;
     }
     else
     {
-        var_r3 = 0;
+        scroll = 0;
     }
     for (scanline = 0; scanline < (s32)(SCREEN_SIZE_Y * 0.1f); scanline++)
     {
-        *hBlankBuf++ = var_r3;
+        *hBlankBuf++ = scroll;
     }
     gUnk_03002CB0.dispCnt = DCNT_WIN1 | DCNT_WIN0 | DCNT_OBJ | DCNT_BG3 | DCNT_BG1;
     gDisplayRegisters.bldCnt = BLDCNT_SCREEN_SECOND_TARGET | BLDCNT_ALPHA_BLENDING_EFFECT | BLDCNT_OBJ_FIRST_TARGET_PIXEL | BLDCNT_BG1_FIRST_TARGET_PIXEL;
-    param_0->unk_4F8.unk_4F8_8.unk_4FB = 0;
-    param_0->unk_4F8.unk_4F8_8.unk_4F9 = 0;
-    param_0->unk_4EE = 6;
+    MENU_NAME_CURSOR(entity) = 0;
+    MENU_CURSOR(entity) = 0;
+    entity->state = 6;
 }
 
-u8 sUnk_084F0D84[8] = {
+u8 sDefaultPlayerName[8] = {
     0x14, 0x10, 0xE, 0x2, 0, 0, 0, 0
 };
 
-const u8 sUnk_080E0DCC[8] = {
+const u8 sNameCodeJulius[8] = {
     0xB, 0x16, 0xD, 0xA, 0x16, 0x14, 0, 0
 };
 
-const u8 sUnk_080E0DD4[8] = {
+const u8 sNameCodeNoUse[8] = {
     0xF, 0x10, 0x16, 0x14, 0x6, 0, 0, 0
 };
 
-const u8 sUnk_080E0DDC[8] = {
+const u8 sNameCodeNoSoul[8] = {
     0xF, 0x10, 0x14, 0x10, 0x16, 0xD, 0, 0
 };
 
-// (96.51%) https://decomp.me/scratch/vf8yR
-NONMATCH("asm/non_matching/sub_080083C8.inc", s32 sub_080083C8(struct EwramData_EntityData *param_0))
+/* gameState.playerName is declared as u8 * in ewram.h but holds the 8-byte player name;
+ * indexing it through this view gives the original base + 0x94 + i order. */
+struct EwramPlayerName { u8 pad[0x94]; u8 name[8]; };
+
+// Matches (from decomp.me scratch vf8yR, 96.51 %: goto loops, name view)
+/**
+ * @brief Name entry keyboard: move on the 9x4 grid, A types a character (up
+ * to eight), L/R move the text cursor, B deletes; return 1 when done,
+ * -1 when cancelled.
+ */
+s32 MainMenu_UpdateNameEntry(struct EwramData_EntityData *entity)
 {
-    s32 temp_r6;
-    s32 var_r0_10;
-    s32 var_r0_3;
-    s32 var_r0_4;
-    s32 var_r0_6;
-    s32 var_r0_8;
-    s32 var_r0_9;
+    s32 row;
+    s32 secret;
+    s32 nextColumn;
+    s32 nextKey;
+    s32 delEmpty;
+    s32 backEmpty;
+    s32 blank;
     s32 var_r1_6;
-    s32 var_r2;
+    s32 delIndex;
     s32 var_r2_11;
-    s32 var_r2_2;
-    s32 var_r2_3;
-    s32 var_r2_4;
-    s32 var_r2_5;
-    s32 var_r2_6;
-    s32 var_r2_7;
-    s32 var_r3;
+    s32 delShift;
+    s32 backIndex;
+    s32 backShift;
+    s32 i;
+    s32 j;
+    s32 k;
+    s32 index;
     s32 var_r3_2;
     s32 var_r3_3;
-    s32 var_r4;
-    s32 var_r5;
-    s32 var_r8;
-    s32 var_sl;
-    struct EwramData_unk20 *temp_r5;
-    u8 *var_r1;
-    u8 *var_r1_3;
-    u16 temp_r4;
-    u16 var_r8_2;
-    u8 *var_r2_10;
-    u8 *var_r2_8;
-    u8 *var_r2_9;
-    u8 temp_r1;
-    s32 var_sb;
-    u8 *var_0;
+    s32 flagMatch;
+    s32 characterMatch;
+    s32 action;
+    s32 result;
+    struct SaveHeader *header;
+    u8 *delScan;
+    u8 *backScan;
+    s32 input;
+    u16 song;
+    u8 *cmpC;
+    u8 *cmpA;
+    u8 *cmpB;
+    u8 textCursor;
+    s32 key;
+    u8 *ch;
 
-    temp_r5 = gEwramData->unk_20;
-    temp_r4 = gEwramData->inputData.repeatedInput;
-    var_sb = param_0->unk_4F8.unk_4F8_8.unk_4F9;
-    var_r8 = 0;
-    var_sl = 0;
-    if (temp_r4 & 8)
+    header = gEwramData->saveHeaders;
+    input = gEwramData->inputData.repeatedInput;
+    key = MENU_CURSOR(entity);
+    action = 0;
+    result = 0;
+
+    if (input & 8)
     {
-        var_r8 = 1;
+        action = 1;
     }
-    else if (temp_r4 & 1)
+    else if (input & 1)
     {
-        if (var_sb < 0x22)
+        if (key < 0x22)
         {
             PlaySong(0xF3);
-            temp_r5->unk_20[param_0->unk_4F8.unk_4F8_8.unk_4FB] = var_sb + 2;
-            param_0->unk_4F8.unk_4F8_8.unk_4FB += 1;
-            if (param_0->unk_4F8.unk_4F8_8.unk_4FB > 7)
+            header->name[MENU_NAME_CURSOR(entity)] = key + 2;
+            MENU_NAME_CURSOR(entity) += 1;
+            if (MENU_NAME_CURSOR(entity) > 7)
             {
-                param_0->unk_4F8.unk_4F8_8.unk_4F9 = 0x23;
-                var_sb = 0x23;
+                MENU_CURSOR(entity) = 0x23;
+                key = 0x23;
             }
+        }
+        else if (key == 0x22)
+        {
+            action = 4;
         }
         else
         {
-            var_r8 = 1;
-            if (var_sb == 0x22)
-            {
-                var_r8 = 4;
-            }
+            action = 1;
         }
     }
-    else if (temp_r4 & 2)
+    else if (input & 2)
     {
-        var_r8 = 3;
+        action = 3;
     }
-    else if (temp_r4 & 0x300)
+    else if (input & 0x300)
     {
         PlaySong(0xF2);
-        temp_r1 = param_0->unk_4F8.unk_4F8_8.unk_4FB;
-        param_0->unk_4F8.unk_4F8_8.unk_4FB = (temp_r4 & 0x100) ? (temp_r1 + 1) : (temp_r1 - 1);
+        textCursor = MENU_NAME_CURSOR(entity);
+        MENU_NAME_CURSOR(entity) = (input & 0x100) ? (textCursor + 1) : (textCursor - 1);
     }
-    else if (temp_r4 & 0x30)
+    else if (input & 0x30)
     {
-        temp_r6 = Div(var_sb, 9);
+        row = Div(key, 9);
         
-        if (temp_r4 & 0x10)
+        if (input & 0x10)
         {
-            var_r0_3 = var_sb + 1;
+            nextColumn = key + 1;
         }
         else
         {
-            var_r0_3 = var_sb + 8;
+            nextColumn = key + 8;
         }
-        var_sb = (temp_r6 * 9) + Mod(var_r0_3, 9);
+        key = (row * 9) + Mod(nextColumn, 9);
     }
-    else if (temp_r4 & 0xC0)
+    else if (input & 0xC0)
     {
-        if (temp_r4 & 0x40)
+        if (input & 0x40)
         {
-            var_r0_4 = var_sb + 27;
+            nextKey = key + 27;
         }
         else
         {
-            var_r0_4 = var_sb + 9;
+            nextKey = key + 9;
         }
-        var_sb = Mod(var_r0_4, 0x24);
+        key = Mod(nextKey, 0x24);
     }
-    switch (var_r8)
+
+    switch (action)
     {
         case 1:
-            var_r8_2 = 0xF4;
-            var_0 = temp_r5->unk_20;
-            for (var_r2_5 = 0; var_r2_5 < 8; var_r2_5++)
+            song = 0xF4;
+
+            ch = header->name;
+            for (i = 0; i < 8; i++)
             {
-                if (*var_0 >= 0x2 && *var_0 <= 0x22)
+                if (*ch >= 0x2 && *ch <= 0x22)
                 {
                     break;
                 }
-                var_0++;
+                ch++;
             }
-            if (var_r2_5 > 7)
+            if (i > 7)
             {
-                var_r0_9 = 1;
+                blank = 1;
             }
             else
             {
-                var_r0_9 = 0;
+                blank = 0;
             }
-            if (var_r0_9 != 0)
+            if (blank != 0)
             {
-                for (var_r2_6 = 0; var_r2_6 < 8; var_r2_6++)
+                for (j = 0; j < 8; j++)
                 {
-                    temp_r5->unk_20[var_r2_6] = sUnk_084F0D84[var_r2_6];
+                    header->name[j] = sDefaultPlayerName[j];
                 }
             }
-            for (var_r2_7 = 0; var_r2_7 < 8; var_r2_7++)
+
+            for (k = 0; k < 8; k++)
             {
-                gEwramData->unk_60.unk_94[var_r2_7] = temp_r5->unk_20[var_r2_7];
+                ((struct EwramPlayerName *)gEwramData)->name[k] = header->name[k];
             }
-            if (gEwramData->unk_60.unk_60 & 1)
+
+            if (gEwramData->gameState.systemFlags & 1)
             {
-                if (param_0->unk_4EF == 0)
+                if (entity->subState == 0)
                 {
-                    gEwramData->unk_1325C.currentCharacter = param_0->unk_4EF;
-                    var_r5 = 1;
-                    var_r3 = 0;
-                    var_r2_8 = (u8*)&gEwramData->unk_60.unk_94;
-                    for (; var_r3 < 8; )
+                    gEwramData->playerStatus.currentCharacter = 0;
+                    characterMatch = 1;
+                    index = 0;
+                    cmpA = (u8*)&gEwramData->gameState.playerName;
+                    for (; index < 8; )
                     {
-                        if (*var_r2_8 != sUnk_080E0DCC[var_r3])
+                        if (*cmpA != sNameCodeJulius[index])
                         {
-                            var_r5 = 0;
+                            characterMatch = 0;
                             break;
                         }
-                        var_r3 += 1;
-                        var_r2_8 += 1;
+                        index += 1;
+                        cmpA += 1;
                     }
-                    if (var_r5 != 0)
+                    if (characterMatch != 0)
                     {
-                        var_r8_2 = 0x1E5;
-                        gEwramData->unk_1325C.currentCharacter = 1;
+                        song = 0x1E5;
+                        gEwramData->playerStatus.currentCharacter = 1;
                     }
                     else
                     {
-                        var_r4 = 1;
-                        var_r3_2 = 0;
-                        var_r2_9 = (u8*)&gEwramData->unk_60.unk_94;
-                        for (;;)
+                        flagMatch = 1;
+                        index = 0;
+                        cmpB = (u8*)&gEwramData->gameState.playerName;
+                        goto t9_;
+                    e9_:
+                        if (index == 7)
                         {
-                            if ((var_r3_2 > 7) || (*var_r2_9 != sUnk_080E0DDC[var_r3_2]))
-                            {
-                                var_r3_3 = 0;
-                                var_r2_10 = (u8*)&gEwramData->unk_60.unk_94;
-                                for (; var_r3_3 < 8;)
-                                {
-                                    if (*var_r2_10 != sUnk_080E0DD4[var_r3_3])
-                                    {
-                                        var_r4 = 0;
-                                        break;
-                                    }
-                                    var_r3_3 += 1;
-                                    var_r2_10 += 1;
-                                }
-                                var_r0_10 = var_r4;
-                                break;
-                            }
-                            if (var_r3_2 == 7)
-                            {
-                                var_r0_10 = 2;
-                                break;
-                            }
-                            else
-                            {
-                                var_r3_2 += 1;
-                                var_r2_9 += 1;
-                            }
+                            secret = 2;
+                            goto sw_;
                         }
-                        switch (var_r0_10)
+                        index += 1;
+                        cmpB += 1;
+                    t9_:
+                        if (index > 7) goto f9_;
+                        if (*cmpB == sNameCodeNoSoul[index]) goto e9_;
+                    f9_:
+                        index = 0;
+                        cmpC = (u8*)&gEwramData->gameState.playerName;
+                        goto t_; i_: index += 1; cmpC += 1; t_:
+                        if (index > 7) goto d_;
+                        if (*cmpC == sNameCodeNoUse[index]) goto i_;
+                        flagMatch = 0;
+                    d_:
+                        secret = flagMatch;
+                    sw_:
+                        switch (secret)
                         {
                             case 1:
-                                var_r8_2 = 0x1B5;
-                                gEwramData->unk_60.unk_33C[2] |= 0x100000;
+                                song = 0x1B5;
+                                gEwramData->gameState.gameFlags[2] |= 0x100000;
                                 break;
 
                             case 2:
-                                var_r8_2 = 0x199;
-                                gEwramData->unk_60.unk_33C[2] |= 0x200000;
+                                song = 0x199;
+                                gEwramData->gameState.gameFlags[2] |= 0x200000;
                                 break;
                         }
                     }
                 }
             }
-            PlaySong(var_r8_2);
-            var_sl = 1;
+            PlaySong(song);
+            result = 1;
             break;
 
         case 4:
-            if (param_0->unk_4F8.unk_4F8_8.unk_4FB != 0)
+            if (MENU_NAME_CURSOR(entity) != 0)
             {
-                param_0->unk_4F8.unk_4F8_8.unk_4FB -= 1;
+                MENU_NAME_CURSOR(entity) -= 1;
             }
-            var_r1 = temp_r5->unk_20;
-            var_r2 = 0;
-            for (; var_r2 < 8; )
+            delScan = header->name;
+            delIndex = 0;
+            for (; delIndex < 8; )
             {
-                if ((*var_r1 >= 0x2 && *var_r1 <= 0x22))
+                if ((*delScan >= 0x2 && *delScan <= 0x22))
                 {
                     break;
                 }
-                var_r1 += 1;
-                var_r2 += 1;
+                delScan += 1;
+                delIndex += 1;
             }
-            if (var_r2 > 7)
+            if (delIndex > 7)
             {
-                var_r0_6 = 1;
+                delEmpty = 1;
             }
             else
             {
-                var_r0_6 = 0;
+                delEmpty = 0;
             }
-            if (var_r0_6 == 0)
+            if (delEmpty == 0)
             {
                 PlaySong(0xF0);
-                var_r2_2 = param_0->unk_4F8.unk_4F8_8.unk_4FB + 1;
-                for (; var_r2_2 < 8; var_r2_2++)
+                delShift = MENU_NAME_CURSOR(entity) + 1;
+                for (; delShift < 8; delShift++)
                 {
-                    temp_r5->unk_20[var_r2_2 - 1] = temp_r5->unk_20[var_r2_2];
+                    header->name[delShift - 1] = header->name[delShift];
                 }
-                temp_r5->unk_20[7] = 0;
+                header->name[7] = 0;
             }
             break;
         
         case 3:
-            if (param_0->unk_4F8.unk_4F8_8.unk_4FB != 0)
+            if (MENU_NAME_CURSOR(entity) != 0)
             {
-                param_0->unk_4F8.unk_4F8_8.unk_4FB -= 1;
+                MENU_NAME_CURSOR(entity) -= 1;
             }
             /* fallthrough */
         case 2:
-            var_r1_3 = temp_r5->unk_20;
-            var_r2_3 = 0;
-            for (; var_r2_3 < 8; )
+            backScan = header->name;
+            backIndex = 0;
+            for (; backIndex < 8; )
             {
-                if (*var_r1_3 >= 0x2 && *var_r1_3 <= 0x22)
+                if (*backScan >= 0x2 && *backScan <= 0x22)
                 {
                     break;
                 }
-                var_r1_3 += 1;
-                var_r2_3 += 1;
+                backScan += 1;
+                backIndex += 1;
             }
-            if (var_r2_3 > 7)
+            if (backIndex > 7)
             {
-                var_r0_8 = 1;
+                backEmpty = 1;
             }
             else
             {
-                var_r0_8 = 0;
+                backEmpty = 0;
             }
-            if (var_r0_8 != 0)
+            if (backEmpty != 0)
             {
-                var_sl = -1;
+                result = -1;
             }
             else
             {
                 PlaySong(0xF0);
-                var_r2_4 = param_0->unk_4F8.unk_4F8_8.unk_4FB + 1;
-                for (; var_r2_4 < 8; var_r2_4++)
+                backShift = MENU_NAME_CURSOR(entity) + 1;
+                for (; backShift < 8; backShift++)
                 {
-                    temp_r5->unk_20[var_r2_4 - 1] = temp_r5->unk_20[var_r2_4];
+                    header->name[backShift - 1] = header->name[backShift];
                 }
-                temp_r5->unk_20[7] = 0;
+                header->name[7] = 0;
             }
             break;
     }
 
-    param_0->unk_4F8.unk_4F8_8.unk_4FB &= 7;
-    if (param_0->unk_4F8.unk_4F8_8.unk_4F9 != var_sb)
+    MENU_NAME_CURSOR(entity) &= 7;
+    if (MENU_CURSOR(entity) != key)
     {
-        param_0->unk_4F8.unk_4F8_8.unk_4F9 = var_sb;
+        MENU_CURSOR(entity) = key;
         PlaySong(0xF1);
     }
-    return var_sl;
+    return result;
 }
-END_NONMATCH
 
 /**
  * @brief 8720 | To document
@@ -2456,13 +2425,13 @@ END_NONMATCH
  */
 void sub_08008720(void)
 {
-    struct EwramData_unk60 *var_0;
-    s32 var_r1;
+    struct GameState *gameState;
+    s32 i;
 
-    var_0 = &gEwramData->unk_60;
+    gameState = &gEwramData->gameState;
 
-    for (var_r1 = 0; var_r1 < 8; var_r1++)
+    for (i = 0; i < 8; i++)
     {
-        var_0->unk_33C[var_r1] = (var_r1 != 1) ? -1 : 0;
+        gameState->gameFlags[i] = (i != 1) ? -1 : 0;
     }
 }

@@ -6,22 +6,22 @@
 #include "structs/main.h"
 
 extern s32 SaveData_LoadSlotFromSram(s32 saveSlot);
-extern s32 sub_080127F0(s32 saveSlot, s32 param_1);
-extern s32 sub_08012A08(s32 saveSlot);
-extern s32 sub_08012E30(s32 srcSaveSlot, s32 dstSaveSlot);
-extern s32 sub_08013038(s32 param_0, s32 param_1, s32 param_2, s32 param_3);
-extern s32 sub_08013164(s32 param_0, s32 param_1, s32 param_2);
-extern void sub_08013404(void);
-extern s32 sub_0801352C(void);
-extern void sub_080135C0(struct EwramData_unk60 *param_0);
+extern s32 SaveData_ResaveSlotAfterEnding(s32 saveSlot, s32 fullClear);
+extern s32 SaveData_DeleteSlot(s32 saveSlot);
+extern s32 SaveData_CopySlot(s32 srcSaveSlot, s32 dstSaveSlot);
+extern s32 SaveData_RemoveSoulInSlot(s32 saveSlot, s32 soulGroupOffset, s32 soulType, s32 soulIndex);
+extern s32 SaveData_GiveAwaySoul(s32 saveSlot, s32 soulType, s32 soulId);
+extern void Game_ResetProgressForNewGame(void);
+extern s32 SaveData_CreateNewGameSlot(void);
+extern void SaveData_UpdateSlotSummary(struct GameState *gameState);
 extern u32 SaveData_SaveSlotToSram(s32 saveSlot);
 extern s32 SaveData_ClearSlotInSram(s32 saveSlot);
-extern s32 sub_08013700(s32 saveSlot, s32 param_1);
-extern u32 sub_08013788(void);
-extern u32 sub_080137B8(void);
-extern s32 sub_080137F8(struct EwramData_unk20 *param_0);
-extern s32 sub_080137FC(void);
-extern s32 sub_08013854(s32 saveSlot, s32 param_1);
+extern s32 SaveData_ReadSlotHeader(s32 saveSlot, s32 bufferIndex);
+extern u32 SaveData_SaveSystemFlags(void);
+extern u32 SaveData_LoadSystemFlags(void);
+extern s32 SaveSummary_GetLinkedSlot(struct SaveHeader *header);
+extern s32 SaveData_RecordFullClear(void);
+extern s32 SaveData_IsSlotUsed(s32 saveSlot, s32 headerIndex);
 extern u32 SaveData_SaveLanguage(void);
 extern s32 SaveData_LoadLanguage(void);
 

@@ -1,7 +1,10 @@
 #include "code/code_080211F0.h"
+#include "player_entity.h"
 #include "code_08009A0.h"
 #include "code_08001004.h"
 #include "code_08001194.h"
+#include "code_0800B700.h"
+#include "code_08013960.h"
 #include "code_08008750.h"
 #include "code_0800CB00.h"
 #include "code_0800F1FC.h"
@@ -28,187 +31,169 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
+// ROM data passed as pointers; previously hard-coded addresses in the draft.
+extern u8 sCommonObjectGfx[];
+extern u8 sWeaponPalettes[];
+extern u8 sCommonObjectSpriteSheet[];
+
 /**
- * @brief 211F0 | To document
- * 
+ * @brief Empty per-frame hook of debug mode 2229.
  */
-void sub_080211F0(void)
+void Debug2229_FrameHook(void)
 {
     return;
 }
 
 /**
- * @brief 211F4 | To document
- * 
+ * @brief Hit callback (player body and Julius whip strike): set player
+ * contact flag 0x80000.
  */
-void sub_080211F4(void)
+void Player_MarkAttackContact(void)
 {
-    struct EwramData_EntityData *temp_r2;
+    struct EwramData_EntityData *player;
 
-    temp_r2 = gEwramData->unk_13110.unk_13110;
-    temp_r2->unk_4F4.unk_4F4_32 |= 0x80000;
+    player = gEwramData->playerState.player;
+    player->unk_4F4.whole |= 0x80000;
 }
 
 /**
- * @brief 21214 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
+ * @brief Set player X/Y velocity and horizontal acceleration 0x1000 opposing the horizontal sign.
  */
-void sub_08021214(s32 param_0, s32 param_1)
+void Player_SetVelocityWithBraking(s32 velocityX, s32 velocityY)
 {
-    gEwramData->unk_13110.unk_13110->unk_52C.unk_52C_32 = param_0;
-    gEwramData->unk_13110.unk_13110->unk_530.unk_530_32 = param_1;
+    gEwramData->playerState.player->velX.whole = velocityX;
+    gEwramData->playerState.player->velY.whole = velocityY;
  
-    gEwramData->unk_13110.unk_13110->unk_534.unk_534_32 = (gEwramData->unk_13110.unk_13110->unk_52C.unk_52C_32 < 0) ? 0x1000 : -0x1000;
+    gEwramData->playerState.player->accelX.whole = (gEwramData->playerState.player->velX.whole < 0) ? 0x1000 : -0x1000;
 }
 
 /**
- * @brief 21248 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
+ * @brief When the player hit reaction hitReaction is 3, set its velocity
+ * knockbackVelocityX / knockbackVelocityY to (vx, vy); other reactions are left unchanged.
  */
-void sub_08021248(s32 param_0, s32 param_1)
+void Player_SetKnockbackVelocity(s32 vx, s32 vy)
 {
-    if (gEwramData->unk_13110.unk_131D4 == 3)
+    if (gEwramData->playerState.hitReaction == 3)
     {
-        gEwramData->unk_13110.unk_131E0 = param_0;
-        gEwramData->unk_13110.unk_131E4 = param_1;
+        gEwramData->playerState.knockbackVelocityX = vx;
+        gEwramData->playerState.knockbackVelocityY = vy;
     }
 }
 
 /**
- * @brief 21278 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
+ * @brief Append an entity and byte value to the seven-entry player queue when capacity remains; otherwise do nothing.
  */
-void sub_08021278(struct EwramData_EntityData *param_0, u8 param_1)
+void Player_QueueEntity(struct EwramData_EntityData *entity, u8 collisionFlags)
 {
-    if (gEwramData->unk_13110.unk_131B4 < 7)
+    if (gEwramData->playerState.collisionQueueCount < 7)
     {
-        gEwramData->unk_13110.unk_13170[gEwramData->unk_13110.unk_131B4] = param_0;
-        gEwramData->unk_13110.unk_131AC[gEwramData->unk_13110.unk_131B4] = param_1;
-        gEwramData->unk_13110.unk_131B4 += 1;
+        gEwramData->playerState.collisionQueueEntities[gEwramData->playerState.collisionQueueCount] = entity;
+        gEwramData->playerState.collisionQueueFlags[gEwramData->playerState.collisionQueueCount] = collisionFlags;
+        gEwramData->playerState.collisionQueueCount += 1;
     }
 }
 
 /**
- * @brief 212C8 | To document
- * 
- * @return s32 To document
+ * @brief Return the player state flags (unk_4F4) when the control focus
+ * enemyTarget is the player itself, else 0. Enemies test them for attack
+ * flags.
  */
-s32 sub_080212C8(void)
+s32 Player_GetFocusedActionFlags(void)
 {
-    if (gEwramData->unk_13110.unk_13168 == gEwramData->unk_13110.unk_13110)
+    if (gEwramData->playerState.enemyTarget == gEwramData->playerState.player)
     {
-        return gEwramData->unk_13110.unk_13168->unk_4F4.unk_4F4_32;
+        return gEwramData->playerState.enemyTarget->unk_4F4.whole;
     }
     return 0;
 }
 
 
 /**
- * @brief 212F4 | To document
- * 
- * @param param_0 To document
- * @return u8 To document
+ * @brief Return Player_HasAbility(n - 1).
  */
-u8 sub_080212F4(s32 param_0)
+u8 Player_HasAbilityOneBased(s32 abilityIndexOneBased)
 {
-    return sub_08032AB8(param_0 - 1);
+    return Player_HasAbility(abilityIndexOneBased - 1);
 }
 
 /**
- * @brief 21304 | To document
- * 
- * @return s32 To document
+ * @brief Return 0 only when the player is in state 0 with |velX| at most
+ * 0x8000 and flags 0x30000120 clear; otherwise nonzero.
  */
-s32 sub_08021304(void)
+s32 Player_IsBusy(void)
 {
-    struct EwramData_EntityData *temp_r2;
-    s32 var_r1;
+    struct EwramData_EntityData *player;
+    s32 speed;
 
-    temp_r2 = gEwramData->unk_13110.unk_13110;
-    if (temp_r2->unk_4EE == 0)
+    player = gEwramData->playerState.player;
+    if (player->state == 0)
     {
-        var_r1 = temp_r2->unk_52C.unk_52C_32;
-        if (var_r1 < 0)
+        speed = player->velX.whole;
+        if (speed < 0)
         {
-            var_r1 = -var_r1;
+            speed = -speed;
         }
-        if (var_r1 <= 0x8000)
+        if (speed <= 0x8000)
         {
-            return temp_r2->unk_4F4.unk_4F4_32 & 0x30000120;
+            return player->unk_4F4.whole & 0x30000120;
         }
     }
     return 1;
 }
 
 /**
- * @brief 21344 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
+ * @brief Run the equipment preparation helper, equip red/blue/yellow soul IDs and restore HP/MP while clearing status effects.
  */
-void sub_08021344(u8 param_0, u8 param_1, u8 param_2)
+void Player_EquipSoulsAndRestore(u8 redSoulId, u8 blueSoulId, u8 yellowSoulId)
 {
-    sub_0804C3C8();
-    gEwramData->unk_1325C.equippedRedSoul = param_0;
-    gEwramData->unk_1325C.equippedBlueSoul = param_1;
-    gEwramData->unk_1325C.equippedYellowSoul = param_2;
-    sub_080213BC();
+    ButtonConfig_ResetDefaults();
+    gEwramData->playerStatus.equippedRedSoul = redSoulId;
+    gEwramData->playerStatus.equippedBlueSoul = blueSoulId;
+    gEwramData->playerStatus.equippedYellowSoul = yellowSoulId;
+    Player_RestoreHPAndMP();
 }
 
 /**
- * @brief 2138C | To document
- * 
- * @param param_0 To document
+ * @brief Set the player fixed-point X fractional halfword.
  */
-void sub_0802138C(s32 param_0)
+void Player_SetXFraction(s32 fraction)
 {
-    gEwramData->unk_13110.unk_13110->unk_524.unk_524_16.unk_524 = param_0;
+    gEwramData->playerState.player->posX.part16.fraction = fraction;
 }
 
 /**
- * @brief 213A4 | To document
- * 
- * @param param_0 To document
+ * @brief Set the player fixed-point Y fractional halfword.
  */
-void sub_080213A4(s32 param_0)
+void Player_SetYFraction(s32 fraction)
 {
-    gEwramData->unk_13110.unk_13110->unk_528.unk_528_16.unk_528 = param_0;
+    gEwramData->playerState.player->posY.part16.fraction = fraction;
 }
 
 /**
- * @brief 213BC | To document
- * 
+ * @brief Set current HP and MP to their maxima and clear all three status-effect bits and timers.
  */
-void sub_080213BC(void)
+void Player_RestoreHPAndMP(void)
 {
-    gEwramData->unk_1325C.currentHP = gEwramData->unk_1325C.maxHP;
-    gEwramData->unk_1325C.currentMP = gEwramData->unk_1325C.maxMP;
-    sub_08021E50(7);
+    gEwramData->playerStatus.currentHP = gEwramData->playerStatus.maxHP;
+    gEwramData->playerStatus.currentMP = gEwramData->playerStatus.maxMP;
+    Player_ClearStatusEffects(7);
 }
 
 /**
- * @brief 213F4 | To document
- * 
- * @return s32 To document
+ * @brief Return 1 during a boss fight (stateFlags bit 2) when the selected target
+ * has 1..199 HP.
  */
-s32 sub_080213F4(void)
+s32 Player_IsBossTargetLowHp(void)
 {
-    if (!(gEwramData->unk_60.unk_42C & 2))
+    if (!(gEwramData->gameState.stateFlags & 2))
     {
         return 0;
     }
-    if (gEwramData->unk_13110.unk_13220 == NULL)
+    if (gEwramData->playerState.selectedTarget == NULL)
     {
         return 0;
     }
-    if (gEwramData->unk_13110.unk_13220->unk_518.unk_518_16.unk_518 > 0 && gEwramData->unk_13110.unk_13220->unk_518.unk_518_16.unk_518 < 200)
+    if (gEwramData->playerState.selectedTarget->unk_518.part16.hp > 0 && gEwramData->playerState.selectedTarget->unk_518.part16.hp < 200)
     {
         return 1;
     }
@@ -216,481 +201,462 @@ s32 sub_080213F4(void)
 }
 
 /**
- * @brief 21438 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @return s32 To document
+ * @brief If flag 0x800 is clear and the animation index differs, start the requested animation and reset the associated attack markers; return 1 only when started.
  */
-s32 sub_08021438(struct EwramData_EntityData *param_0, u8 param_1, u8 param_2)
+s32 Player_TryStartAnimation(struct EwramData_EntityData *entity, u8 animationIndex, u8 flags)
 {
-    if (gEwramData->unk_13110.unk_131B8 & 0x800)
+    if (gEwramData->playerState.actionLockFlags & 0x800)
     {
         return 0;
     }
-    if (param_0->unk_551 != param_1)
+    if (entity->animScriptIndex != animationIndex)
     {
-        sub_0803F2C8(param_0, param_1, 1, param_2);
-        param_0->unk_504.unk_504_16.unk_504 = 0xFF;
-        param_0->unk_4F4.unk_4F4_32 &= ~0x200000;
+        Anim_StartIndexed(entity, animationIndex, 1, flags);
+        entity->unk_504.part16.unk_504 = 0xFF;
+        entity->unk_4F4.whole &= ~0x200000;
         return 1;
     }
     return 0;
 }
 
 /**
- * @brief 21494 | To document
- * 
- * @param param_0 To document
+ * @brief Temporarily add signed byte offsets from unk_508 to position, draw the entity and restore its full fixed-point coordinates.
  */
-void sub_08021494(struct EwramData_EntityData *param_0)
+void Player_DrawWithOffset(struct EwramData_EntityData *entity)
 {
-    s32 temp_r4;
-    s32 temp_r5;
+    s32 oldX;
+    s32 oldY;
 
-    temp_r4 = param_0->unk_524.unk_524_32;
-    temp_r5 = param_0->unk_528.unk_528_32;
+    oldX = entity->posX.whole;
+    oldY = entity->posY.whole;
 
-    param_0->unk_524.unk_524_16.unk_526 += (s8) param_0->unk_508.unk_508_8.unk_508;
-    param_0->unk_528.unk_528_16.unk_52A += (s8) param_0->unk_508.unk_508_8.unk_509;
-    sub_0803B9D0(param_0);
+    entity->posX.part16.integer += (s8) entity->unk_508.part8.unk_508;
+    entity->posY.part16.integer += (s8) entity->unk_508.part8.unk_509;
+    Sprite_DrawEntity(entity);
 
-    param_0->unk_524.unk_524_32 = temp_r4;
-    param_0->unk_528.unk_528_32 = temp_r5;
+    entity->posX.whole = oldX;
+    entity->posY.whole = oldY;
 }
 
 /**
- * @brief 214D0 | To document
- * 
+ * @brief Unreferenced: ButtonConfig_ResetDefaults.
  */
-void sub_080214D0(void)
+void ButtonConfig_ResetDefaultsWrapper(void)
 {
-    sub_0804C3C8();
+    ButtonConfig_ResetDefaults();
 }
 
 /**
- * @brief 214DC | To document
- * 
- * @param param_0 To document
+ * @brief Toggle horizontal flip for one entity draw, then restore it.
  */
-void sub_080214DC(struct EwramData_EntityData *param_0)
+void Player_DrawMirrored(struct EwramData_EntityData *entity)
 {
-    param_0->unk_53C_6 ^= 1;
-    sub_0803B9D0(param_0);
-    param_0->unk_53C_6 ^= 1;
+    entity->flipX ^= 1;
+    Sprite_DrawEntity(entity);
+    entity->flipX ^= 1;
 }
 
 /**
- * @brief 21518 | To document
- * 
- * @param param_0 To document
+ * @brief Set the player contact-immunity value unk_502;
+ * Player_ApplyContactDamage ignores contact damage while it is nonzero.
  */
-void sub_08021518(s32 param_0)
+void Player_SetContactImmunity(s32 immunityValue)
 {
-    gEwramData->unk_13110.unk_13110->unk_500.unk_500_8.unk_502 = param_0;
+    PLAYER_INVULNERABLE_TIMER(gEwramData->playerState.player) = immunityValue;
 }
 
-extern u16 sUnk_080E1320[]; // array or struct?
+extern u16 sAttackPowerMultipliers[]; // array or struct?
 
 /**
- * @brief 21430 | To document
- * 
- * @param param_0 To document
- * @return u16 To document
+ * @brief Calculate outgoing base attack power from the supplied category, player stats and mode/equipment data, applying the mode reduction when enabled.
  */
-u16 sub_08021530(u16 param_0)
+u16 Player_CalculateAttackPower(u16 attackCategory)
 {
-    u32 var_r4;
-    struct Unk_0802D244 *temp_r5;
+    u32 power;
+    struct RedSoulAttackView *info;
 
-    if (param_0 == 3)
+    if (attackCategory == 3)
     {
-        var_r4 = gEwramData->unk_13110.currentATK * sUnk_080E1320[3];
-        var_r4 /= 16;
+        power = gEwramData->playerState.currentATK * sAttackPowerMultipliers[3];
+        power /= 16;
     }
-    else if (param_0 == 5)
+    else if (attackCategory == 5)
     {
-        if (gEwramData->unk_60.unk_4CC_6 == 0)
+        if (gEwramData->gameState.linkPlay == 0)
         {
-            temp_r5 = sub_0802D244();
-            var_r4 = ((gEwramData->unk_13110.currentStats[0] * temp_r5->unk_A) / 10) + (gEwramData->unk_13110.currentStats[2] >> 2) + (temp_r5->unk_A * 4) + (temp_r5->unk_A * 2);
+            info = RedSoul_GetLastUsedInfo();
+            power = ((gEwramData->playerState.currentStats[0] * info->baseAttack) / 10) + (gEwramData->playerState.currentStats[2] >> 2) + (info->baseAttack * 4) + (info->baseAttack * 2);
         }
         else
         {
-            var_r4 = gEwramData->unk_133EE * sUnk_080E1320[3];
+            power = gEwramData->unk_133EE * sAttackPowerMultipliers[3];
         }
-        var_r4 /= 16;
+        power /= 16;
     }
-    else if (param_0 == 6)
+    else if (attackCategory == 6)
     {
-        var_r4 = gEwramData->unk_13110.unk_131C2 + ((gEwramData->unk_13110.unk_131C2 >> 3) * (gEwramData->unk_13110.currentStats[2] >> 1));
+        power = gEwramData->playerState.skillBaseAttack + ((gEwramData->playerState.skillBaseAttack >> 3) * (gEwramData->playerState.currentStats[2] >> 1));
     }
     else
     {
-        var_r4 = gEwramData->unk_13110.currentStats[0] * sUnk_080E1320[param_0];
-        var_r4 /= 16;
+        power = gEwramData->playerState.currentStats[0] * sAttackPowerMultipliers[attackCategory];
+        power /= 16;
     }
 
-    if (gEwramData->unk_60.unk_A1_4)
+    if (gEwramData->gameState.difficultyMode)
     {
-        var_r4 = (var_r4 * 8) / 10;
+        power = (power * 8) / 10;
     }
-    return var_r4;
+    return power;
 }
 
-struct Unk_080E1338 {
-    u16 unk_0;
-    u16 unk_1;
+struct StatusEffectApplication {
+    u16 initialCounter;
+    u16 soundId;
 };
-extern struct Unk_080E1338 sUnk_080E1338[];
+extern struct StatusEffectApplication sStatusEffectApplications[];
 
-static inline s16 sub_08021654_inline_0()
+static inline s16 Player_GetX()
 {
-    return gEwramData->unk_13110.unk_13110->unk_524.unk_524_16.unk_526;
+    return gEwramData->playerState.player->posX.part16.integer;
 }
 
-void sub_08021654(struct Unk_08021654 *param_0)
+/**
+ * @brief Resolve incoming damage and avoidance against player defense, update HP and hit metadata, and apply nonresisted status effects.
+ */
+void Player_ApplyContactDamage(struct PlayerContactDamage *contactDamage)
 {
-    s16 temp_r4;
-    u16 temp_r5;
-    s16 var_sb;
-    u16 temp_r0;
-    s32 temp_r3;
-    s32 var_r3;
-    s32 var_r4;
-    s32 var_r4_2;
-    struct Unk_080E1338 *var_r5;
+    s16 y;
+    u16 x;
+    s16 blocked;
+    u16 defenseBonus;
+    s32 reduced;
+    s32 raw;
+    s32 damage;
+    s32 i;
+    struct StatusEffectApplication *var_r5;
     s32 temp_r5_2;
-    u16 temp_r6;
-    s32 temp_r6_2;
+    u16 hitAttribute;
+    s32 inflicted;
 
-    var_sb = 0;
-    if (gEwramData->unk_13110.unk_13110->unk_500.unk_500_8.unk_502 != 0)
+    blocked = 0;
+    if (PLAYER_INVULNERABLE_TIMER(gEwramData->playerState.player) != 0)
     {
         return;
     }
-    temp_r6 = sub_0806E268(param_0->unk_2);
-    if (temp_r6 != 0)
+    hitAttribute = Attribute_GetHighestIndex(contactDamage->attributes);
+    if (hitAttribute != 0)
     {
-        // temp_r5_2 = (s16) gEwramData->unk_13110.unk_13110->unk_524.unk_524_16.unk_526;
-        // temp_r5 = temp_r5_2 + sub_0802D5EC(8);
-        temp_r5 = sub_08021654_inline_0() + sub_0802D5EC(8);
-        temp_r4 = sub_0801CFB0() + sub_0802D5EC(4);
-        sub_0806E664(temp_r5, temp_r4, temp_r6);
+        // temp_r5_2 = (s16) gEwramData->playerState.player->posX.part16.integer;
+        // temp_r5 = temp_r5_2 + RandomSigned(8);
+        x = Player_GetX() + RandomSigned(8);
+        y = Player_GetOverheadY() + RandomSigned(4);
+        HitEffect_Spawn(x, y, hitAttribute);
     }
-    if (!gEwramData->unk_60.unk_A1_4)
+    if (!gEwramData->gameState.difficultyMode)
     {
-        var_r3 = param_0->unk_0 * 4;
+        raw = contactDamage->attack * 4;
     }
     else
     {
-        temp_r0 = (gEwramData->unk_13110.unk_131FE >> 0x1) + (gEwramData->unk_13110.unk_131FE >> 0x2) + (gEwramData->unk_1325C.maxHP >> 4);
-        var_r3 = (param_0->unk_0 * 5) + (temp_r0 >> 1);
+        defenseBonus = (gEwramData->playerState.equipmentDefenseBonus >> 0x1) + (gEwramData->playerState.equipmentDefenseBonus >> 0x2) + (gEwramData->playerStatus.maxHP >> 4);
+        raw = (contactDamage->attack * 5) + (defenseBonus >> 1);
     }
-    temp_r3 = var_r3 - (gEwramData->unk_13110.currentDEF * 2);
-    var_r4 = temp_r3 >> 1;
-    if ((gEwramData->unk_13110.unk_131FA != 0) && (param_0->unk_2 & gEwramData->unk_13110.unk_131FA))
+    reduced = raw - (gEwramData->playerState.currentDEF * 2);
+    damage = reduced >> 1;
+    if ((gEwramData->playerState.resistances != 0) && (contactDamage->attributes & gEwramData->playerState.resistances))
     {
-        var_r4 = temp_r3 >> 2;
+        damage = reduced >> 2;
     }
-    if (gEwramData->unk_1325C.unk_13270 & 4)
+    if (gEwramData->playerStatus.statusEffects & 4)
     {
-        var_r4 *= 2;
+        damage *= 2;
     }
-    if (var_r4 <= 0)
+    if (damage <= 0)
     {
-        var_r4 = 1;
+        damage = 1;
     }
 
-    if ((gEwramData->unk_1325C.unk_13260 & 0x2000))
+    if ((gEwramData->playerStatus.soulStateFlags & 0x2000))
     {
         PlaySong(0x13B);
-        sub_08042A7C(0, 0);
+        Player_ShowDamage(0, 0);
         return;
     }
-    if ((gEwramData->unk_1325C.equippedArmor == 0x17) && ((RandomNumberGenerator() & 0xF) < 4))
+    if ((gEwramData->playerStatus.equippedArmor == 0x17) && ((RandomNumberGenerator() & 0xF) < 4))
     {
-        var_sb = 1;
+        blocked = 1;
     }
-    if (var_sb != 0)
+    if (blocked != 0)
     {
         PlaySong(0x13B);
-        sub_08042A7C(0, 0);
+        Player_ShowDamage(0, 0);
         return;
     }
 
-    gEwramData->unk_1325C.currentHP -= var_r4;
-    if (gEwramData->unk_1325C.currentHP <= 0)
+    gEwramData->playerStatus.currentHP -= damage;
+    if (gEwramData->playerStatus.currentHP <= 0)
     {
-        gEwramData->unk_1325C.currentHP = var_sb;
-        gEwramData->unk_60.unk_42C |= 0x10;
-        sub_08021E50(7);
-        sub_0800C5A8(0);
-        gEwramData->unk_A074_0 = 0;
+        gEwramData->playerStatus.currentHP = blocked;
+        gEwramData->gameState.stateFlags |= 0x10;
+        Player_ClearStatusEffects(7);
+        Game_SetMenusEnabled(0);
+        gEwramData->paused = 0;
     }
-    gEwramData->unk_13110.unk_131D6 = var_r4;
-    gEwramData->unk_13110.unk_131D8 = param_0->unk_8;
-    gEwramData->unk_13110.unk_131DC = param_0->unk_C;
-    gEwramData->unk_13110.unk_131D4 = param_0->unk_6;
-    if (gEwramData->unk_1325C.unk_13260 & 0x40000)
+    gEwramData->playerState.pendingHitDamage = damage;
+    gEwramData->playerState.hitSourceX = contactDamage->sourceX;
+    gEwramData->playerState.hitSourceY = contactDamage->sourceY;
+    gEwramData->playerState.hitReaction = contactDamage->reaction;
+    if (gEwramData->playerStatus.soulStateFlags & 0x40000)
     {
-        sub_08044F80(var_r4 * 5);
+        Player_AddGold(damage * 5);
     }
-    if (gEwramData->unk_1325C.unk_13260 & 0x80000)
+    if (gEwramData->playerStatus.soulStateFlags & 0x80000)
     {
-        sub_08022028(var_r4 * 2);
+        Player_RestoreMP(damage * 2);
     }
-    if ((gEwramData->unk_13110.unk_131D4 == 0) && (var_r4 > (gEwramData->unk_1325C.maxHP >> 2)))
+    if ((gEwramData->playerState.hitReaction == 0) && (damage > (gEwramData->playerStatus.maxHP >> 2)))
     {
-        gEwramData->unk_13110.unk_131D4 = 1;
+        gEwramData->playerState.hitReaction = 1;
     }
-    sub_08042A7C(var_r4, 0);
+    Player_ShowDamage(damage, 0);
     PlaySong(0xB3);
-    if ((gEwramData->unk_1325C.currentCharacter == 0) && (gEwramData->unk_1325C.unk_13276 == 0))
+    if ((gEwramData->playerStatus.currentCharacter == 0) && (gEwramData->playerStatus.petrifyCounter == 0))
     {
-        temp_r6_2 = (param_0->unk_2 & (7 << 6)) >> 6;
-        if (((gEwramData->unk_13110.unk_131FA >> 6) & temp_r6_2) != temp_r6_2)
+        inflicted = (contactDamage->attributes & (7 << 6)) >> 6;
+        if (((gEwramData->playerState.resistances >> 6) & inflicted) != inflicted)
         {
-            gEwramData->unk_1325C.unk_13270 |= temp_r6_2;
-            for (var_r4_2 = 2; var_r4_2 >= 0; var_r4_2--)
+            gEwramData->playerStatus.statusEffects |= inflicted;
+            for (i = 2; i >= 0; i--)
             {
-                if ((temp_r6_2 >> var_r4_2) & 1)
+                if ((inflicted >> i) & 1)
                 {
                     PlaySong(0x198);
-                    sub_080220F8(var_r4_2);
-                    gEwramData->unk_1325C.unk_13272[var_r4_2] = sUnk_080E1338[var_r4_2].unk_0;
-                    PlaySong(sUnk_080E1338[var_r4_2].unk_1);
+                    Player_SpawnStatusIcon(i);
+                    gEwramData->playerStatus.statusEffectTimers[i] = sStatusEffectApplications[i].initialCounter;
+                    PlaySong(sStatusEffectApplications[i].soundId);
                 }
             }
-            param_0->unk_8++,param_0->unk_8--; // Fake
+            contactDamage->sourceX++,contactDamage->sourceX--; // Fake
         }
     }
     return;
 }
 
 /**
- * @brief 21924 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Refresh the counter of an existing entity in the four-entry player list or use the first free slot; return 0 only when full and absent.
  */
-s32 sub_08021924(struct EwramData_EntityData *param_0)
+s32 Player_TrackEntity(struct EwramData_EntityData *entity)
 {
-    s32 var_r3;
-    s32 var_r4;
-    u8 *temp_r6;
+    s32 i;
+    s32 freeSlot;
+    u8 *counters;
 
-    var_r4 = -1;
-    temp_r6 = gEwramData->unk_13110.unk_131A4;
+    freeSlot = -1;
+    counters = gEwramData->playerState.trackedEntityRefreshCounters;
 
-    for (var_r3 = 0; var_r3 < 4; var_r3++)
+    for (i = 0; i < 4; i++)
     {
-        if (gEwramData->unk_13110.unk_13194[var_r3] == param_0)
+        if (gEwramData->playerState.trackedEntities[i] == entity)
         {
-            temp_r6[var_r3 * 2 + 1] += 1;
+            counters[i * 2 + 1] += 1;
             return 1;
         }
 
-        if ((var_r4 < 0) && (gEwramData->unk_13110.unk_13194[var_r3] == 0))
+        if ((freeSlot < 0) && (gEwramData->playerState.trackedEntities[i] == 0))
         {
-            var_r4 = var_r3;
+            freeSlot = i;
         }
     }
 
-    if (var_r4 >= 0)
+    if (freeSlot >= 0)
     {
-        gEwramData->unk_13110.unk_13194[var_r4] = param_0;
-        temp_r6[var_r4 * 2 + 1] = 1;
-        temp_r6[var_r4 * 2 + 0] = 0;
+        gEwramData->playerState.trackedEntities[freeSlot] = entity;
+        counters[freeSlot * 2 + 1] = 1;
+        counters[freeSlot * 2 + 0] = 0;
         return 1;
     }
     return 0;
 }
 
 /**
- * @brief 21994 | To document
- * 
- * @param param_0 To document
+ * @brief Process status-escape input, status countdowns and stat penalties, then apply equipment-dependent MP regeneration or drain.
  */
-void sub_08021994(struct EwramData_EntityData *param_0)
+void Player_UpdateStatusAndRegen(struct EwramData_EntityData *entity)
 {
     s32 playerNewInput;
-    s32 temp_r5;
-    s32 var_r7;
-    struct EwramData_EntityData *temp_r0;
-    struct EwramData_EntityData *temp_r0_3;
+    s32 amount;
+    s32 i;
+    struct EwramData_EntityData *dust;
+    struct EwramData_EntityData *shard;
 
     playerNewInput = gEwramData->inputData.playerNewInput & (KEY_DOWN | KEY_UP | KEY_LEFT | KEY_RIGHT | KEY_B | KEY_A);
-    if (gEwramData->unk_1325C.unk_13276 != 0)
+    if (gEwramData->playerStatus.petrifyCounter != 0)
     {
-        temp_r5 = ((playerNewInput & KEY_A) >> 0) + ((playerNewInput & KEY_B) >> 1) + ((playerNewInput & KEY_RIGHT) >> 4) + ((playerNewInput & KEY_LEFT) >> 5) + ((playerNewInput & KEY_UP) >> 6) + ((playerNewInput & KEY_DOWN) >> 7);
-        if (temp_r5 & 1)
+        amount = ((playerNewInput & KEY_A) >> 0) + ((playerNewInput & KEY_B) >> 1) + ((playerNewInput & KEY_RIGHT) >> 4) + ((playerNewInput & KEY_LEFT) >> 5) + ((playerNewInput & KEY_UP) >> 6) + ((playerNewInput & KEY_DOWN) >> 7);
+        if (amount & 1)
         {
-            temp_r0 = sub_08045CEC(param_0->unk_524.unk_524_32, param_0->unk_528.unk_528_32, 4, 6);
-            if (temp_r0 != NULL)
+            dust = Effect_SpawnShared(entity->posX.whole, entity->posY.whole, 4, 6);
+            if (dust != NULL)
             {
-                temp_r0->unk_524.unk_524_16.unk_526 += sub_0802D5EC(0x10);
-                temp_r0->unk_528.unk_528_16.unk_52A += sub_0802D5EC(8) - 4;
-                temp_r0->unk_4F3 = 1;
-                temp_r0->unk_530.unk_530_32 = sub_0802D5EC(0x1000) - 0x8000;
-                temp_r0->unk_538.unk_538_32 = 0x400;
+                dust->posX.part16.integer += RandomSigned(0x10);
+                dust->posY.part16.integer += RandomSigned(8) - 4;
+                dust->drawSkip = 1;
+                dust->velY.whole = RandomSigned(0x1000) - 0x8000;
+                dust->accelY.whole = 0x400;
             }
-            if (gEwramData->unk_1325C.unk_13276 & 1)
+            if (gEwramData->playerStatus.petrifyCounter & 1)
             {
                 PlaySong(0xB0);
             }
         }
-        gEwramData->unk_1325C.unk_13276 -= temp_r5;
-        if (gEwramData->unk_1325C.unk_13276 <= 0)
+        gEwramData->playerStatus.petrifyCounter -= amount;
+        if (gEwramData->playerStatus.petrifyCounter <= 0)
         {
-            gEwramData->unk_1325C.unk_13276 = 0;
-            gEwramData->unk_1325C.unk_13270 &= ~0x4;
+            gEwramData->playerStatus.petrifyCounter = 0;
+            gEwramData->playerStatus.statusEffects &= ~0x4;
             PlaySong(0xAF);
 
-            for (var_r7 = 0; var_r7 < 4; var_r7++)
+            for (i = 0; i < 4; i++)
             {
-                temp_r0_3 = sub_08045DC8(param_0->unk_524.unk_524_32, param_0->unk_528.unk_528_32, (1 & var_r7) + 0x40, 6);
-                if (temp_r0_3 == NULL)
+                shard = Effect_CreateSharedFrame(entity->posX.whole, entity->posY.whole, (1 & i) + 0x40, 6);
+                if (shard == NULL)
                     break;
 
-                temp_r0_3->unk_524.unk_524_16.unk_526 += sub_0802D5EC(0x10);
-                temp_r0_3->unk_528.unk_528_16.unk_52A += sub_0802D5EC(0x10) - 0x10;
-                temp_r0_3->unk_53C_6 = RandomNumberGenerator() & 1;
-                temp_r0_3->unk_52C.unk_52C_32 = sub_0802D5EC(0x8000) + 0x8000;
-                if (temp_r0_3->unk_53C_6)
+                shard->posX.part16.integer += RandomSigned(0x10);
+                shard->posY.part16.integer += RandomSigned(0x10) - 0x10;
+                shard->flipX = RandomNumberGenerator() & 1;
+                shard->velX.whole = RandomSigned(0x8000) + 0x8000;
+                if (shard->flipX)
                 {
-                    temp_r0_3->unk_52C.unk_52C_32 = -temp_r0_3->unk_52C.unk_52C_32;
+                    shard->velX.whole = -shard->velX.whole;
                 }
-                temp_r0_3->unk_530.unk_530_32 = sub_0802D5EC(0x4000) - 0x20000;
-                temp_r0_3->unk_538.unk_538_32 = 0x2000;
+                shard->velY.whole = RandomSigned(0x4000) - 0x20000;
+                shard->accelY.whole = 0x2000;
             }
         }
     }
 
-    for (var_r7 = 1; var_r7 >= 0; var_r7--)
+    for (i = 1; i >= 0; i--)
     {
-        if (gEwramData->unk_1325C.unk_13272[var_r7] != 0)
+        if (gEwramData->playerStatus.statusEffectTimers[i] != 0)
         {
-            gEwramData->unk_1325C.unk_13272[var_r7] -= 1;
-            if (gEwramData->unk_1325C.unk_13272[var_r7] <= 0)
+            gEwramData->playerStatus.statusEffectTimers[i] -= 1;
+            if (gEwramData->playerStatus.statusEffectTimers[i] <= 0)
             {
-                gEwramData->unk_1325C.unk_13270 &= ~(1 << var_r7);
+                gEwramData->playerStatus.statusEffects &= ~(1 << i);
             }
         }
     }
 
-    if (gEwramData->unk_1325C.unk_13270 & 1)
+    if (gEwramData->playerStatus.statusEffects & 1)
     {
-        gEwramData->unk_13110.currentStats[0] >>= 2;
-        gEwramData->unk_13110.currentStats[1] >>= 2;
-        gEwramData->unk_13110.currentStats[2] >>= 2;
+        gEwramData->playerState.currentStats[0] >>= 2;
+        gEwramData->playerState.currentStats[1] >>= 2;
+        gEwramData->playerState.currentStats[2] >>= 2;
     }
 
-    if (gEwramData->unk_1325C.unk_13270 & 2)
+    if (gEwramData->playerStatus.statusEffects & 2)
     {
-        if (!(gEwramData->unk_1325C.unk_13272[1] & 3))
+        if (!(gEwramData->playerStatus.statusEffectTimers[1] & 3))
         {
-            temp_r5 = gEwramData->unk_1325C.maxMP >> 7;
-            if (temp_r5 == 0)
+            amount = gEwramData->playerStatus.maxMP >> 7;
+            if (amount == 0)
             {
-                temp_r5 = 1;
+                amount = 1;
             }
-            sub_08022060(temp_r5);
+            Player_ConsumeMP(amount);
         }
     }
-    else if (gEwramData->unk_1325C.equippedAccessory != 0x29)
+    else if (gEwramData->playerStatus.equippedAccessory != 0x29)
     {
-        if (!(param_0->unk_504.unk_504_16.unk_506[0] & 0x3F))
+        if (!(entity->unk_504.part16.unk_506[0] & 0x3F))
         {
-            sub_08022028(1);
+            Player_RestoreMP(1);
         }
     }
-    else if (!(param_0->unk_504.unk_504_16.unk_506[0] & 0xF))
+    else if (!(entity->unk_504.part16.unk_506[0] & 0xF))
     {
-        sub_08022028(1);
+        Player_RestoreMP(1);
     }
 
-    if (gEwramData->unk_1325C.equippedAccessory == 0x2C)
+    if (gEwramData->playerStatus.equippedAccessory == 0x2C)
     {
-        gEwramData->unk_1325C.currentMP = gEwramData->unk_1325C.maxMP;
+        gEwramData->playerStatus.currentMP = gEwramData->playerStatus.maxMP;
     }
 }
 
 /**
- * @brief 21C44 | To document
- * 
+ * @brief Compute current attack and defense from the corresponding stats and stored bonuses, clamping negative results to zero.
  */
-void sub_08021C44(void)
+void Player_RecalculateAttackDefense(void)
 {
-    gEwramData->unk_13110.currentATK = sub_08021F64(gEwramData->unk_13110.currentStats[0]);
-    gEwramData->unk_13110.currentDEF = sub_08021F84(gEwramData->unk_13110.currentStats[1]);
+    gEwramData->playerState.currentATK = Player_CalculateAttack(gEwramData->playerState.currentStats[0]);
+    gEwramData->playerState.currentDEF = Player_CalculateDefense(gEwramData->playerState.currentStats[1]);
 
-    if (gEwramData->unk_13110.currentATK < 0)
+    if (gEwramData->playerState.currentATK < 0)
     {
-        gEwramData->unk_13110.currentATK = 0;
+        gEwramData->playerState.currentATK = 0;
     }
 
-    if (gEwramData->unk_13110.currentDEF < 0)
+    if (gEwramData->playerState.currentDEF < 0)
     {
-        gEwramData->unk_13110.currentDEF = 0;
+        gEwramData->playerState.currentDEF = 0;
     }
 }
 
-extern u8 sUnk_084F10BC[];
+extern u8 sPlayerStatusIconPalettes[];
 
 /**
- * @brief 21CA8 | To document
- * 
- * @param param_0 To document
+ * @brief Attach the indexed status icon, converge its horizontal oscillation on the player and delete it when the corresponding status timer clears.
  */
-void sub_08021CA8(struct EwramData_EntityData *param_0)
+void PlayerStatusIcon_Update(struct EwramData_EntityData *entity)
 {
-    s32 var_r1;
-    s32 temp_r2_3;
-    s32 var_0;
+    s32 shake;
+    s32 playerX;
+    s32 gfx;
 
-    switch (param_0->unk_4EE)
+    switch (entity->state)
     {
         case 0:
-            var_0 = sub_0803AFB8((u8 *)0x081C15F4);
-            sub_0803B924(param_0, (u8 *)0x0820ED60, var_0, sUnk_084F10BC[(u16) param_0->unk_4FC.unk_4FC_16.unk_4FC]);
-            param_0->drawFunc = (u32 *) sub_0803B9D0;
-            param_0->unk_549 = param_0->unk_4FC.unk_4FC_8.unk_4FC + 0x59;
-            param_0->unk_540 = 0xD;
-            param_0->unk_53D_1 = 1;
-            param_0->unk_4EE = 1;
-            param_0->unk_52C.unk_52C_32 = 0x01000000;
+            gfx = ObjGfx_Find(sCommonObjectGfx);
+            Sprite_Attach(entity, sCommonObjectSpriteSheet, gfx, sPlayerStatusIconPalettes[(u16) entity->unk_4FC.part16.unk_4FC]);
+            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->animFrame = entity->unk_4FC.part8.unk_4FC + 0x59;
+            entity->spriteLayer = 0xD;
+            entity->scrollWithBg = 1;
+            entity->state = 1;
+            entity->velX.whole = 0x01000000;
             /* fallthrough */
         case 1:
-            if (param_0->unk_52C.unk_52C_32 > 0)
+            if (entity->velX.whole > 0)
             {
-                param_0->unk_52C.unk_52C_32 -= 0x80000;
+                entity->velX.whole -= 0x80000;
             }
-            var_r1 = param_0->unk_52C.unk_52C_32;
-            if (param_0->unk_4F1 & 1)
+            shake = entity->velX.whole;
+            if (entity->timer & 1)
             {
-                var_r1 = -var_r1;
+                shake = -shake;
             }
-            param_0->unk_4F1 = param_0->unk_4F1 + 1;
-            temp_r2_3 = (s16) gEwramData->unk_13110.unk_13110->unk_524.unk_524_16.unk_526;
-            param_0->unk_524.unk_524_16.unk_526 = (var_r1 < 0) ? (temp_r2_3 - (-var_r1 >> 0x10)) : (temp_r2_3 + (var_r1 >> 0x10));
-            param_0->unk_528.unk_528_16.unk_52A = sub_0801CFB0() - 4;
-            param_0->unk_53D_2 = 1;
-            if (gEwramData->unk_1325C.unk_13272[(u16) param_0->unk_4FC.unk_4FC_16.unk_4FC] != 0)
+            entity->timer = entity->timer + 1;
+            playerX = (s16) gEwramData->playerState.player->posX.part16.integer;
+            entity->posX.part16.integer = (shake < 0) ? (playerX - (-shake >> 0x10)) : (playerX + (shake >> 0x10));
+            entity->posY.part16.integer = Player_GetOverheadY() - 4;
+            entity->roomActive = 1;
+            if (gEwramData->playerStatus.statusEffectTimers[(u16) entity->unk_4FC.part16.unk_4FC] != 0)
             {
-                if (gEwramData->unk_1325C.unk_13272[(u16) param_0->unk_4FC.unk_4FC_16.unk_4FC] < 30)
+                if (gEwramData->playerStatus.statusEffectTimers[(u16) entity->unk_4FC.part16.unk_4FC] < 30)
                 {
-                    param_0->unk_4F3 = 1;
+                    entity->drawSkip = 1;
                 }
                 else
                 {
-                    param_0->unk_4F3 = 0;
+                    entity->drawSkip = 0;
                 }
             }
             else
             {
-                EntityDelete(param_0);
+                EntityDelete(entity);
             }
             break;
     }
@@ -703,50 +669,47 @@ void sub_08021CA8(struct EwramData_EntityData *param_0)
  */
 s32 sub_08021DB0(void)
 {
-    return gEwramData->unk_13110.unk_131BC;
+    return gEwramData->playerState.unk_131BC;
 }
 
 /**
- * @brief 21DC4 | To document
- * 
+ * @brief Remove four-list entities whose refresh counter has not changed since the last sample; otherwise record the new counter.
  */
-void sub_08021DC4(void)
+void Player_PruneTrackedEntities(void)
 {
-    s32 var_r6;
-    struct EwramData_EntityData **var_r1;
-    u8 *var_r2;
+    s32 i;
+    struct EwramData_EntityData **tracked;
+    u8 *counters;
     u8 *var_r4;
 
     
-    var_r2 = gEwramData->unk_13110.unk_131A4;
-    var_r1 = gEwramData->unk_13110.unk_13194;
+    counters = gEwramData->playerState.trackedEntityRefreshCounters;
+    tracked = gEwramData->playerState.trackedEntities;
 
-    for (var_r6 = 0; var_r6 < 4; var_r6++)
+    for (i = 0; i < 4; i++)
     {
-        if (var_r1[var_r6] != 0)
+        if (tracked[i] != 0)
         {
-            if (var_r2[var_r6 * 2 + 0] == var_r2[var_r6 * 2 + 1])
+            if (counters[i * 2 + 0] == counters[i * 2 + 1])
             {
-                var_r1[var_r6] = NULL;
-                var_r2[var_r6 * 2 + 0] = 0;
-                var_r2[var_r6 * 2 + 1] = 0;
+                tracked[i] = NULL;
+                counters[i * 2 + 0] = 0;
+                counters[i * 2 + 1] = 0;
             }
             else
             {
-                var_r2[var_r6 * 2 + 0] = var_r2[var_r6 * 2 + 1];
+                counters[i * 2 + 0] = counters[i * 2 + 1];
             }
         }
     } 
 }
 
 /**
- * @brief 21E10 | To document
- * 
- * @param param_0 To document
+ * @brief Unreferenced: clear bit n of playerStatus.inputOverrides.
  */
-void sub_08021E10(s32 param_0)
+void Player_ClearStatusBit(s32 bitIndex)
 {
-    gEwramData->unk_1325C.unk_1325C &= ~(1 << param_0);
+    gEwramData->playerStatus.inputOverrides &= ~(1 << bitIndex);
 }
 
 /**
@@ -777,307 +740,272 @@ void sub_08021E34(void)
 }
 
 /**
- * @brief 21E38 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Return playerStatus.soulStateFlags masked by the argument (soul state
+ * bits such as 0x200 bat form and 0x1000 transformation dash).
  */
-s32 sub_08021E38(s32 param_0)
+s32 Player_TestSoulStateFlags(s32 mask)
 {
-    return gEwramData->unk_1325C.unk_13260 & param_0;
+    return gEwramData->playerStatus.soulStateFlags & mask;
 }
 
 /**
- * @brief 21E50 | To document
- * 
- * @param param_0 To document
+ * @brief For each selected bit among the three status effects, clear its timer and active flag.
  */
-void sub_08021E50(s32 param_0)
+void Player_ClearStatusEffects(s32 mask)
 {
-    s32 var_r4;
-    s32 temp_r3;
+    s32 i;
+    s32 bit;
 
-    for (var_r4 = 0; var_r4 < 3; var_r4++)
+    for (i = 0; i < 3; i++)
     {
-        temp_r3 = (1 << var_r4);
-        if (param_0 & temp_r3)
+        bit = (1 << i);
+        if (mask & bit)
         {
-            gEwramData->unk_1325C.unk_13272[var_r4] = 0;
-            gEwramData->unk_1325C.unk_13270 &= ~temp_r3;
+            gEwramData->playerStatus.statusEffectTimers[i] = 0;
+            gEwramData->playerStatus.statusEffects &= ~bit;
         }
     } 
 }
 
 /**
- * @brief 21EB4 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
+ * @brief For each selected bit among the three status effects, store the supplied timer and set its active flag.
  */
-void sub_08021EB4(s32 param_0, u16 param_1)
+void Player_SetStatusEffects(s32 mask, u16 timerValue)
 {
-    s32 var_r4;
-    s32 temp_r3;
+    s32 i;
+    s32 bit;
 
-    for (var_r4 = 0; var_r4 < 3; var_r4++)
+    for (i = 0; i < 3; i++)
     {
-        temp_r3 = (1 << var_r4);
-        if (param_0 & temp_r3)
+        bit = (1 << i);
+        if (mask & bit)
         {
-            gEwramData->unk_1325C.unk_13272[var_r4] = param_1;
-            gEwramData->unk_1325C.unk_13270 |= temp_r3;
+            gEwramData->playerStatus.statusEffectTimers[i] = timerValue;
+            gEwramData->playerStatus.statusEffects |= bit;
         }
     } 
 }
 
 /**
- * @brief 21F18 | To document
- * 
+ * @brief Copy four saved base stats into the player prepared-stat array.
  */
-void sub_08021F18(void)
+void Player_CopyBaseStats(void)
 {
-    s32 var_r3;
-    u16 *var_r1;
-    u16 *var_r2;
+    s32 i;
+    u16 *src;
+    u16 *dst;
 
-    var_r2 = gEwramData->unk_13110.unk_13200;
-    var_r1 = gEwramData->unk_1325C.baseStats;
+    dst = gEwramData->playerState.preparedStats;
+    src = gEwramData->playerStatus.baseStats;
 
-    for (var_r3 = 0; var_r3 < 4; var_r3++)
+    for (i = 0; i < 4; i++)
     {
-        *var_r2++ = *var_r1++;
+        *dst++ = *src++;
     } 
 }
 
 /**
- * @brief 21F44 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
+ * @brief Add the supplied unsigned halfword to one prepared stat, retaining the original halfword arithmetic.
  */
-void sub_08021F44(u16 param_0, u16 param_1)
+void Player_AddPreparedStat(u16 statIndex, u16 amount)
 {
-    u16 *var_0;
+    u16 *stat;
 
-    var_0 = gEwramData->unk_13110.unk_13200 + param_0;
-    *var_0 += param_1;
-    // gEwramData->unk_13110.unk_13200[param_0] += param_1;
+    stat = gEwramData->playerState.preparedStats + statIndex;
+    *stat += amount;
+    // gEwramData->playerState.preparedStats[statIndex] += amount;
 }
 
 /**
- * @brief 21F64 | To document
- * 
- * @param param_0 To document
- * @return s16 To document
+ * @brief Return the supplied signed stat plus the stored attack bonus, as a signed halfword.
  */
-s16 sub_08021F64(s16 param_0)
+s16 Player_CalculateAttack(s16 statValue)
 {
-    return gEwramData->unk_13110.unk_131FC + param_0;
+    return gEwramData->playerState.equipmentAttackBonus + statValue;
 }
 
 /**
- * @brief 21F84 | To document
- * 
- * @param param_0 To document
- * @return s16 To document
+ * @brief Return half the supplied signed stat plus the stored defense bonus, as a signed halfword.
  */
-s16 sub_08021F84(s16 param_0)
+s16 Player_CalculateDefense(s16 statValue)
 {
-    return (param_0 >> 1) + gEwramData->unk_13110.unk_131FE;
+    return (statValue >> 1) + gEwramData->playerState.equipmentDefenseBonus;
 }
 
 /**
- * @brief 21FA4 | To document
- * 
+ * @brief Copy four prepared stats into current stats and copy the prepared resistance mask into the current mask.
  */
-void sub_08021FA4(void)
+void Player_ApplyPreparedStats(void)
 {
-    u16 *var_r3;
-    u16 *var_r2;
-    s32 var_r1;
+    u16 *dst;
+    u16 *src;
+    s32 i;
 
-    var_r3 = gEwramData->unk_13110.currentStats;
-    var_r2 = gEwramData->unk_13110.unk_13200;
+    dst = gEwramData->playerState.currentStats;
+    src = gEwramData->playerState.preparedStats;
 
-    for (var_r1 = 0; var_r1 < 4; var_r1++)
+    for (i = 0; i < 4; i++)
     {
-        *var_r3++ = *var_r2++;
+        *dst++ = *src++;
     } 
 
-    gEwramData->unk_13110.unk_131FA = gEwramData->unk_13110.unk_13208;
+    gEwramData->playerState.resistances = gEwramData->playerState.preparedResistances;
 }
 
 /**
- * @brief 21FEC | To document
- * 
- * @param param_0 To document
+ * @brief Add HP with upper clamping to maxHP and submit a healing number; retain the original behavior for negative input.
  */
-void sub_08021FEC(s32 param_0)
+void Player_RestoreHP(s32 amount)
 {
-    gEwramData->unk_1325C.currentHP += param_0;
-    if (gEwramData->unk_1325C.currentHP > gEwramData->unk_1325C.maxHP)
+    gEwramData->playerStatus.currentHP += amount;
+    if (gEwramData->playerStatus.currentHP > gEwramData->playerStatus.maxHP)
     {
-        gEwramData->unk_1325C.currentHP = gEwramData->unk_1325C.maxHP;
+        gEwramData->playerStatus.currentHP = gEwramData->playerStatus.maxHP;
     }
 
-    sub_08042A7C(param_0, 1);
+    Player_ShowDamage(amount, 1);
 }
 
 /**
- * @brief 22028 | To document
- * 
- * @param param_0 To document
+ * @brief Treat zero as one, add MP and clamp only to maxMP; retain the original behavior for negative input.
  */
-void sub_08022028(s32 param_0)
+void Player_RestoreMP(s32 amount)
 {
-    if (param_0 == 0)
+    if (amount == 0)
     {
-        param_0 = 1;
+        amount = 1;
     }
 
-    gEwramData->unk_1325C.currentMP += param_0;
-    if (gEwramData->unk_1325C.currentMP > gEwramData->unk_1325C.maxMP)
+    gEwramData->playerStatus.currentMP += amount;
+    if (gEwramData->playerStatus.currentMP > gEwramData->playerStatus.maxMP)
     {
-        gEwramData->unk_1325C.currentMP = gEwramData->unk_1325C.maxMP;
+        gEwramData->playerStatus.currentMP = gEwramData->playerStatus.maxMP;
     }
 }
 
 /**
- * @brief 22060 | To document
- * 
- * @param param_0 To document
+ * @brief Subtract the supplied value from MP and clamp only at zero; retain the original behavior for negative input.
  */
-void sub_08022060(s32 param_0)
+void Player_ConsumeMP(s32 amount)
 {
-    gEwramData->unk_1325C.currentMP -= param_0;
-    if (gEwramData->unk_1325C.currentMP < 0)
+    gEwramData->playerStatus.currentMP -= amount;
+    if (gEwramData->playerStatus.currentMP < 0)
     {
-        gEwramData->unk_1325C.currentMP = 0;
+        gEwramData->playerStatus.currentMP = 0;
     }
 }
 
 /**
- * @brief 22088 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @return s32 To document
+ * @brief If playerState.solidObject is empty, store the entity there with
+ * its collision-callback table in unk_4F4 and return 1; otherwise
+ * return 0. Player world collision consults this object.
  */
-s32 sub_08022088(struct EwramData_EntityData *param_0, void *param_1)
+s32 Player_RegisterSolidObject(struct EwramData_EntityData *entity, void *callbackTable)
 {
-    if (gEwramData->unk_13110.unk_1316C == NULL)
+    if (gEwramData->playerState.solidObject == NULL)
     {
-        gEwramData->unk_13110.unk_1316C = param_0;
-        param_0->unk_4F4.unk_4F4_entity = param_1;
+        gEwramData->playerState.solidObject = entity;
+        entity->unk_4F4.unk_4F4_entity = callbackTable;
         return 1;
     }
     return 0;
 }
 
 /**
- * @brief 220B4 | To document
- * 
+ * @brief Clear playerState.solidObject.
  */
-void sub_080220B4(void)
+void Player_ClearSolidObject(void)
 {
-    gEwramData->unk_13110.unk_1316C = NULL;
+    gEwramData->playerState.solidObject = NULL;
 }
 
 /**
- * @brief 220CC | To document
- * 
- * @return s32 To document
+ * @brief Return the flags word of the callback table of the registered solid
+ * object, or 0 without one.
  */
-s32 sub_080220CC(void)
+s32 Player_GetSolidObjectFlags(void)
 {
-    if (gEwramData->unk_13110.unk_1316C != NULL)
+    if (gEwramData->playerState.solidObject != NULL)
     {
-        return *gEwramData->unk_13110.unk_1316C->unk_4F4.unk_4F4_p32; // TODO: investigate
+        return *gEwramData->playerState.solidObject->unk_4F4.unk_4F4_p32; // TODO: investigate
     }
     return 0;
 }
 
 /**
- * @brief 220F0 | To document
- * 
- * @return s32 To document
+ * @brief Empty solid-object correction callback used by the debug platform
+ * table sUnk_080E1F74.
  */
-s32 sub_080220F0(void)
+s32 SolidObject_NoCorrection(void)
 {
     return 0;
 }
 
 /**
- * @brief 220F4 | To document
- * 
- * @return s32 To document
+ * @brief Solid-object callback slot 5 that reports no carry velocity (returns
+ * 0); used by the push-block group table.
  */
-s32 sub_080220F4(void)
+s32 SolidObject_NoCarry(void)
 {
     return 0;
 }
 
 /**
- * @brief 220F8 | To document
- * 
- * @return param_0 To document
+ * @brief If the indexed status timer is zero, attempt to create its icon in slots 0x16..0x19 and store the status index.
  */
-void sub_080220F8(s32 param_0)
+void Player_SpawnStatusIcon(s32 statusIndex)
 {
-    struct EwramData_EntityData *temp_r0;
+    struct EwramData_EntityData *child;
 
-    if (gEwramData->unk_1325C.unk_13272[param_0] == 0)
+    if (gEwramData->playerStatus.statusEffectTimers[statusIndex] == 0)
     {
-        temp_r0 = EntityCreateInRange(0x16, 0x19, (u32 *) sub_08021CA8);
-        if (temp_r0 != NULL)
+        child = EntityCreateInRange(0x16, 0x19, (u32 *) PlayerStatusIcon_Update);
+        if (child != NULL)
         {
-            temp_r0->unk_4FC.unk_4FC_16.unk_4FC = param_0;
+            child->unk_4FC.part16.unk_4FC = statusIndex;
         }
     }
 }
 
 /**
- * @brief 22134 | To document
- * 
- * @param param_0 To document
+ * @brief Set the contact-immunity value and its timer (unk_518) to n frames
+ * (used by the Kyoma Demon soul).
  */
-void sub_08022134(u8 param_0)
+void Player_StartContactImmunity(u8 frames)
 {
-    sub_08021518(param_0);
-    gEwramData->unk_13110.unk_13110->unk_518.unk_518_16.unk_518 = param_0;
+    Player_SetContactImmunity(frames);
+    gEwramData->playerState.player->unk_518.part16.hp = frames;
 }
 
 /**
- * @brief 2215C | To document
- * 
+ * @brief Set the contact-immunity value to 1, clear its timer and the draw skip
+ * (RedSoul_CancelAll).
  */
-void sub_0802215C(void)
+void Player_ResetContactImmunity(void)
 {
-    sub_08021518(1);
-    gEwramData->unk_13110.unk_13110->unk_518.unk_518_16.unk_518 = 0;
-    gEwramData->unk_13110.unk_13110->unk_4F3 = 0;
+    Player_SetContactImmunity(1);
+    gEwramData->playerState.player->unk_518.part16.hp = 0;
+    gEwramData->playerState.player->drawSkip = 0;
 }
 
 /**
- * @brief 22184 | To document
- * 
+ * @brief Set playerState.actionLockFlags bits 0x700 and cancel all red, blue
+ * and yellow soul effects.
  */
-void sub_08022184(void)
+void Player_LockAndCancelAllSouls(void)
 {
-    gEwramData->unk_13110.unk_131B8 |= 0x700;
-    sub_080235C8();
-    sub_0802DFF0();
-    sub_080321C4();
+    gEwramData->playerState.actionLockFlags |= 0x700;
+    RedSoul_CancelAll();
+    BlueSoul_StopAll();
+    YellowSoul_Stop();
 }
 
 /**
- * @brief 221B0 | To document
- * 
- * @return s32 To document
+ * @brief Unreferenced: clear the given flags of playerStatus.inputOverrides.
  */
-void sub_080221B0(s32 param_0)
+void Player_ClearStatusFlags(s32 mask)
 {
-    gEwramData->unk_1325C.unk_1325C &= ~param_0;
+    gEwramData->playerStatus.inputOverrides &= ~mask;
 }
 
 /**
@@ -1089,1248 +1017,1242 @@ void sub_080221C8(void)
     return;
 }
 
-extern void *sUnk_084F10C0[];
-extern void *sUnk_084F117C[];
-extern u16 sUnk_084F1264[];
+extern void *sWeaponGfxTable[];
+extern void *sWeaponSpriteSheetTable[];
+extern u16 sWeaponSwingSounds[];
+extern u16 sJuliusWhipSounds[];
 extern const u8 sUnk_080E13B8[];
 
 /**
- * @brief 221CC | To document
- * 
- * @param param_0 To document
+ * @brief Attack entity for weapon types 0, 2 and 3 (swords, thrusting
+ * weapons, fists): load the weapon sprite and sound, follow the owner
+ * and take attack boxes from the animation frames until it ends.
  */
-void sub_080221CC(struct EwramData_EntityData *param_0)
+void WeaponMelee_Update(struct EwramData_EntityData *entity)
 {
-    s32 temp_r7;
-    s32 var_r1_2;
-    s32 var_r4_2;
-    struct EwramData_EntityData *temp_r0;
-    struct EwramData_EntityData *temp_r3;
-    struct Unk_08023368 *temp_r6_2;
-    u32 var_r4;
-    u8 temp_r6;
-    union EwramData_unk50C *temp_r4_3;
-    s32 var_0;
+    s32 gfx;
+    s32 type;
+    s32 index;
+    struct EwramData_EntityData *owner;
+    struct EwramData_EntityData *spawner;
+    struct WeaponInfo *attackerInfo;
+    u32 paletteSlot;
+    u8 frame;
+    union EwramData_unk50C *ownerSlot;
+    s32 spriteSlot;
 
-    temp_r0 = param_0->unk_4F8.unk_4F8_entity;
-    switch (param_0->unk_4EE)
+    owner = entity->unk_4F8.unk_4F8_entity;
+    switch (entity->state)
     {
         case 0:
-            temp_r3 = param_0->unk_4F8.unk_4F8_entity;
-            temp_r6_2 = sub_08023368(temp_r3->unk_50C.unk_50C_8.unk_50C);
-            param_0->unk_4FC.unk_4FC_8.unk_4FC = gEwramData->unk_1325C.equippedWeapon;
-            if (temp_r3->unk_50C.unk_50C_8.unk_50C == 0)
+            spawner = entity->unk_4F8.unk_4F8_entity;
+            attackerInfo = Weapon_GetAttackerInfo(spawner->unk_50C.part8.unk_50C);
+            entity->unk_4FC.part8.unk_4FC = gEwramData->playerStatus.equippedWeapon;
+            if (spawner->unk_50C.part8.unk_50C == 0)
             {
-                if (gEwramData->unk_13110.lastUsedWeapon[0] != temp_r6_2->unk_12)
+                if (gEwramData->playerState.cachedWeaponGraphicsIndices[0] != attackerInfo->graphicsIndex)
                 {
-                    if (gEwramData->unk_13110.unk_131C8 != -1)
+                    if (gEwramData->playerState.weaponGfx != -1)
                     {
-                        sub_0803B980(gEwramData->unk_13110.unk_131C8);
-                        gEwramData->unk_13110.unk_131C8 = -1;
+                        ObjGfx_Unload(gEwramData->playerState.weaponGfx);
+                        gEwramData->playerState.weaponGfx = -1;
                     }
                 }
-                var_r4 = 1;
-                param_0->unk_540 = 0xE;
+                paletteSlot = 1;
+                entity->spriteLayer = 0xE;
             }
             else
             {
-                if (gEwramData->unk_13110.unk_131C1 != temp_r6_2->unk_12)
+                if (gEwramData->playerState.cachedWeaponGraphicsIndex1 != attackerInfo->graphicsIndex)
                 {
-                    if (gEwramData->unk_13110.unk_131CC != -1)
+                    if (gEwramData->playerState.redSoulGfx != -1)
                     {
-                        sub_0803B980(gEwramData->unk_13110.unk_131CC);
-                        gEwramData->unk_13110.unk_131CC = -1;
+                        ObjGfx_Unload(gEwramData->playerState.redSoulGfx);
+                        gEwramData->playerState.redSoulGfx = -1;
                     }
                 }
-                var_r4 = 2;
-                param_0->unk_540 = 0xF;
+                paletteSlot = 2;
+                entity->spriteLayer = 0xF;
             }
-            temp_r7 = sub_0803B800((u8 *) sUnk_084F10C0[temp_r6_2->unk_12], 0x10000);
-            sub_0803C7B4((u8 *)0x082098B8, (u16) temp_r6_2->unk_15, 1, var_r4);
-            sub_0803B924(param_0, (u8 *) sUnk_084F117C[temp_r6_2->unk_13], temp_r7, (s32) var_r4);
-            sub_0803F2C8(param_0, (u16) temp_r6_2->unk_14, 0, 0);
-            gEwramData->unk_13110.lastUsedWeapon[temp_r3->unk_50C.unk_50C_8.unk_50C] = temp_r6_2->unk_12;
-            if (temp_r3->unk_50C.unk_50C_8.unk_50C == 0)
+            gfx = ObjGfx_LoadResource((u8 *) sWeaponGfxTable[attackerInfo->graphicsIndex], 0x10000);
+            ObjPalette_LoadRange(sWeaponPalettes, (u16) attackerInfo->paletteIndex, 1, paletteSlot);
+            Sprite_Attach(entity, (u8 *) sWeaponSpriteSheetTable[attackerInfo->spriteSheetIndex], gfx, (s32) paletteSlot);
+            Anim_StartIndexed(entity, (u16) attackerInfo->animScriptIndex, 0, 0);
+            gEwramData->playerState.cachedWeaponGraphicsIndices[spawner->unk_50C.part8.unk_50C] = attackerInfo->graphicsIndex;
+            if (spawner->unk_50C.part8.unk_50C == 0)
             {
-                gEwramData->unk_13110.unk_131C8 = temp_r7;
-                var_r1_2 = 3;
-                var_r4_2 = 0;
+                gEwramData->playerState.weaponGfx = gfx;
+                type = 3;
+                index = 0;
             }
             else
             {
-                gEwramData->unk_13110.unk_131CC = temp_r7;
-                var_r1_2 = 5;
-                var_r4_2 = 1;
+                gEwramData->playerState.redSoulGfx = gfx;
+                type = 5;
+                index = 1;
             }
-            sub_0804277C(param_0, var_r1_2, sub_0802346C, 0);
-            param_0->unk_554.unk_556 |= 2;
-            param_0->unk_554.unk_556 |= 4;
-            sub_08042A54(var_r4_2, temp_r6_2->unk_17);
-            temp_r4_3 = &param_0->unk_4F8.unk_4F8_entity->unk_50C;
-            PlaySong(sub_08023368(temp_r4_3->unk_50C_8.unk_50C)->unk_18);
-            if ((temp_r4_3->unk_50C_8.unk_50C == 0) && (1 & RandomNumberGenerator()))
+            Hit_Enable(entity, type, WeaponAttack_OnHit, 0);
+            entity->hit.flags |= 2;
+            entity->hit.flags |= 4;
+            Hit_SetTimerOverride(index, attackerInfo->hitTimer);
+            ownerSlot = &entity->unk_4F8.unk_4F8_entity->unk_50C;
+            PlaySong(Weapon_GetAttackerInfo(ownerSlot->part8.unk_50C)->attackSound);
+            if ((ownerSlot->part8.unk_50C == 0) && (1 & RandomNumberGenerator()))
             {
-                PlaySong(sUnk_084F1264[RandomNumberGenerator() & 3]);
+                PlaySong(sWeaponSwingSounds[RandomNumberGenerator() & 3]);
             }
-            param_0->drawFunc = (u32 *) sub_0803B9D0;
-            param_0->unk_4F1 = 0;
-            param_0->unk_4EE += 1;
-            if (temp_r0->unk_4F4.unk_4F4_32 & 0x400)
+            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->timer = 0;
+            entity->state += 1;
+            if (owner->unk_4F4.whole & 0x400)
             {
-                param_0->unk_530.unk_530_16.unk_532 = 0xD;
+                entity->velY.part16.integer = 0xD;
             }
             /* fallthrough */
         case 1:
-            param_0->unk_53D_2 = 1;
-            if ((temp_r0->unk_4F4.unk_4F4_32 & 0x20) == 0)
+            entity->roomActive = 1;
+            if ((owner->unk_4F4.whole & 0x20) == 0)
             {
-                gEwramData->unk_13110.unk_1311C[temp_r0->unk_50C.unk_50C_8.unk_50C] = 0;
-                EntityDelete(param_0);
+                gEwramData->playerState.weaponEntities[owner->unk_50C.part8.unk_50C] = 0;
+                EntityDelete(entity);
                 return;
             }
-            param_0->unk_524.unk_524_32 = temp_r0->unk_524.unk_524_32;
-            param_0->unk_528.unk_528_16.unk_52A = (u16) temp_r0->unk_528.unk_528_16.unk_52A + (u16) param_0->unk_530.unk_530_16.unk_532;
+            entity->posX.whole = owner->posX.whole;
+            entity->posY.part16.integer = (u16) owner->posY.part16.integer + (u16) entity->velY.part16.integer;
             /* fallthrough */
         default:
-            param_0->unk_4F3 = temp_r0->unk_4F3;
-            temp_r6 = param_0->unk_549;
-            if (sub_0803F17C(param_0) != 3)
+            entity->drawSkip = owner->drawSkip;
+            frame = entity->animFrame;
+            if (Anim_Update(entity) != 3)
             {
-                if (!(gEwramData->unk_60.unk_4CC_6) && ((u8) param_0->unk_4FC.unk_4FC_8.unk_4FC != gEwramData->unk_1325C.equippedWeapon))
+                if (!(gEwramData->gameState.linkPlay) && ((u8) entity->unk_4FC.part8.unk_4FC != gEwramData->playerStatus.equippedWeapon))
                 {
-                    param_0->unk_554.unk_556 |= 2;
+                    entity->hit.flags |= 2;
                 }
-                else if (temp_r6 != param_0->unk_549)
+                else if (frame != entity->animFrame)
                 {
-                    var_0 = param_0->unk_548;
-                    if (gEwramData->unk_10170[param_0->unk_548].unk_C->var_4[param_0->unk_549].unk_4)
+                    spriteSlot = entity->spriteSlot;
+                    if (gEwramData->spriteSlots[entity->spriteSlot].sheet->frames[entity->animFrame].boxCount)
                     {
-                        sub_08042848(param_0, gEwramData->unk_10170[param_0->unk_548].unk_C->var_4[param_0->unk_549].unk_8);
-                        param_0->unk_554.unk_556 &= ~2;
+                        HitBox_SetAttack(entity, gEwramData->spriteSlots[entity->spriteSlot].sheet->frames[entity->animFrame].boxes);
+                        entity->hit.flags &= ~2;
                     }
                     else
                     {
-                        param_0->unk_554.unk_556 |= 2;
+                        entity->hit.flags |= 2;
                     }
                 }
             }
             else
             {
-                gEwramData->unk_13110.unk_1311C[temp_r0->unk_50C.unk_50C_8.unk_50C] = 0;
-                EntityDelete(param_0);
+                gEwramData->playerState.weaponEntities[owner->unk_50C.part8.unk_50C] = 0;
+                EntityDelete(entity);
             }
             break;
     }
 }
 
 /**
- * @brief 224BC | To document
- * 
- * @param param_0 To document
+ * @brief Attack entity for weapon type 1 (great swords, katanas, axes and
+ * hammers): rotate the affine weapon sprite through its swing arc
+ * (angle step unk_504 for subState updates) while stepping up to 3 px
+ * forward, taking frame attack boxes; free the affine slot on exit.
  */
-void sub_080224BC(struct EwramData_EntityData *param_0)
+void WeaponHeavy_Update(struct EwramData_EntityData *entity)
 {
-    struct Unk_08023368 *sp8;
-    s32 temp_r5_3;
-    s32 var_r1_2;
-    s32 var_r4_2;
-    struct EwramData_EntityData *temp_r0;
-    struct EwramData_EntityData *temp_r3;
-    struct Unk_08023368 *temp_r7;
-    u16 temp_r0_2;
-    u16 temp_r0_5;
-    u32 var_r2;
-    u32 var_r4;
-    u8 temp_r5_4;
-    union EwramData_unk50C *temp_r4_3;
-    s32 var_0;
+    struct WeaponInfo *info;
+    s32 gfx;
+    s32 type;
+    s32 index;
+    struct EwramData_EntityData *owner;
+    struct EwramData_EntityData *spawner;
+    struct WeaponInfo *attackerInfo;
+    u16 affineIndex;
+    u16 step;
+    u32 offsetX;
+    u32 paletteSlot;
+    u8 frame;
+    union EwramData_unk50C *ownerSlot;
+    s32 spriteSlot;
 
-    temp_r0 = param_0->unk_4F8.unk_4F8_entity;
-    sp8 = sub_08023368(temp_r0->unk_50C.unk_50C_8.unk_50C);
+    owner = entity->unk_4F8.unk_4F8_entity;
+    info = Weapon_GetAttackerInfo(owner->unk_50C.part8.unk_50C);
 
-    switch (param_0->unk_4EE)
+    switch (entity->state)
     {
         case 0:
-            temp_r0_2 = sub_0803E654(0);
-            if ((s32) (temp_r0_2 << 0x10) < 0)
+            affineIndex = ObjAffine_Alloc(0);
+            if ((s32) (affineIndex << 0x10) < 0)
             {
-                gEwramData->unk_13110.unk_1311C[temp_r0->unk_50C.unk_50C_8.unk_50C] = 0;
-                EntityDelete(param_0);
+                gEwramData->playerState.weaponEntities[owner->unk_50C.part8.unk_50C] = 0;
+                EntityDelete(entity);
                 return;
             }
-            param_0->unk_53C_0 = temp_r0_2;
-            param_0->unk_53D_4 = 1;
-            temp_r3 = param_0->unk_4F8.unk_4F8_entity;
-            temp_r7 = sub_08023368(temp_r3->unk_50C.unk_50C_8.unk_50C);
-            param_0->unk_4FC.unk_4FC_8.unk_4FC = gEwramData->unk_1325C.equippedWeapon;
-            if (temp_r3->unk_50C.unk_50C_8.unk_50C == 0)
+            entity->affineIndex = affineIndex;
+            entity->affine = 1;
+            spawner = entity->unk_4F8.unk_4F8_entity;
+            attackerInfo = Weapon_GetAttackerInfo(spawner->unk_50C.part8.unk_50C);
+            entity->unk_4FC.part8.unk_4FC = gEwramData->playerStatus.equippedWeapon;
+            if (spawner->unk_50C.part8.unk_50C == 0)
             {
-                if (gEwramData->unk_13110.lastUsedWeapon[0] != temp_r7->unk_12)
+                if (gEwramData->playerState.cachedWeaponGraphicsIndices[0] != attackerInfo->graphicsIndex)
                 {
-                    if (gEwramData->unk_13110.unk_131C8 != -1)
+                    if (gEwramData->playerState.weaponGfx != -1)
                     {
-                        sub_0803B980(gEwramData->unk_13110.unk_131C8);
-                        gEwramData->unk_13110.unk_131C8 = -1;
+                        ObjGfx_Unload(gEwramData->playerState.weaponGfx);
+                        gEwramData->playerState.weaponGfx = -1;
                     }
                 }
-                var_r4 = 1;
-                param_0->unk_540 = 0xE;
+                paletteSlot = 1;
+                entity->spriteLayer = 0xE;
             }
             else
             {
-                if (gEwramData->unk_13110.unk_131C1 != temp_r7->unk_12)
+                if (gEwramData->playerState.cachedWeaponGraphicsIndex1 != attackerInfo->graphicsIndex)
                 {
-                    if (gEwramData->unk_13110.unk_131CC != -1)
+                    if (gEwramData->playerState.redSoulGfx != -1)
                     {
-                        sub_0803B980(gEwramData->unk_13110.unk_131CC);
-                        gEwramData->unk_13110.unk_131CC = -1;
+                        ObjGfx_Unload(gEwramData->playerState.redSoulGfx);
+                        gEwramData->playerState.redSoulGfx = -1;
                     }
                 }
-                var_r4 = 2;
-                param_0->unk_540 = 0xF;
+                paletteSlot = 2;
+                entity->spriteLayer = 0xF;
             }
-            temp_r5_3 = sub_0803B800((u8 *) sUnk_084F10C0[temp_r7->unk_12], 0x10000);
-            sub_0803C7B4((u8 *)0x082098B8, temp_r7->unk_15, 1, var_r4);
-            sub_0803B924(param_0, (u8 *) sUnk_084F117C[temp_r7->unk_13], temp_r5_3, var_r4);
-            sub_0803F2C8(param_0, temp_r7->unk_14, 0, 0);
-            gEwramData->unk_13110.lastUsedWeapon[temp_r3->unk_50C.unk_50C_8.unk_50C] = temp_r7->unk_12;
-            if (temp_r3->unk_50C.unk_50C_8.unk_50C == 0)
+            gfx = ObjGfx_LoadResource((u8 *) sWeaponGfxTable[attackerInfo->graphicsIndex], 0x10000);
+            ObjPalette_LoadRange(sWeaponPalettes, attackerInfo->paletteIndex, 1, paletteSlot);
+            Sprite_Attach(entity, (u8 *) sWeaponSpriteSheetTable[attackerInfo->spriteSheetIndex], gfx, paletteSlot);
+            Anim_StartIndexed(entity, attackerInfo->animScriptIndex, 0, 0);
+            gEwramData->playerState.cachedWeaponGraphicsIndices[spawner->unk_50C.part8.unk_50C] = attackerInfo->graphicsIndex;
+            if (spawner->unk_50C.part8.unk_50C == 0)
             {
-                gEwramData->unk_13110.unk_131C8 = temp_r5_3;
-                var_r1_2 = 3;
-                var_r4_2 = 0;
+                gEwramData->playerState.weaponGfx = gfx;
+                type = 3;
+                index = 0;
             }
             else
             {
-                gEwramData->unk_13110.unk_131CC = temp_r5_3;
-                var_r1_2 = 5;
-                var_r4_2 = 1;
+                gEwramData->playerState.redSoulGfx = gfx;
+                type = 5;
+                index = 1;
             }
-            sub_0804277C(param_0, var_r1_2, sub_0802346C, 0);
-            param_0->unk_554.unk_556 |= 2;
-            param_0->unk_554.unk_556 |= 4;
-            sub_08042A54(var_r4_2, temp_r7->unk_17);
-            temp_r4_3 = &param_0->unk_4F8.unk_4F8_entity->unk_50C;
-            PlaySong(sub_08023368(temp_r4_3->unk_50C_8.unk_50C)->unk_18);
-            if ((temp_r4_3->unk_50C_8.unk_50C == 0) && (RandomNumberGenerator() & 1))
+            Hit_Enable(entity, type, WeaponAttack_OnHit, 0);
+            entity->hit.flags |= 2;
+            entity->hit.flags |= 4;
+            Hit_SetTimerOverride(index, attackerInfo->hitTimer);
+            ownerSlot = &entity->unk_4F8.unk_4F8_entity->unk_50C;
+            PlaySong(Weapon_GetAttackerInfo(ownerSlot->part8.unk_50C)->attackSound);
+            if ((ownerSlot->part8.unk_50C == 0) && (RandomNumberGenerator() & 1))
             {
-                PlaySong(sUnk_084F1264[RandomNumberGenerator() & 3]);
+                PlaySong(sWeaponSwingSounds[RandomNumberGenerator() & 3]);
             }
-            param_0->drawFunc = (u32 *) sub_0803B9D0;
-            param_0->unk_500.unk_500_32 = -0x3000;
-            if (sp8->unk_16 == 0)
+            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->unk_500.whole = -0x3000;
+            if (info->attackVariant == 0)
             {
-                param_0->unk_4EF = 0x10;
-                param_0->unk_4F0 = 5;
-                param_0->unk_504.unk_504_32 = 0x980;
+                entity->subState = 0x10;
+                entity->stage = 5;
+                entity->unk_504.whole = 0x980;
             }
             else
             {
-                param_0->unk_4EF = 0xC;
-                param_0->unk_4F0 = 4;
-                param_0->unk_504.unk_504_32 = 0xCC0;
+                entity->subState = 0xC;
+                entity->stage = 4;
+                entity->unk_504.whole = 0xCC0;
             }
-            param_0->unk_4FC.unk_4FC_8.unk_4FD = sUnk_080E13B8[sp8->unk_16];
-            if (param_0->unk_53C_6)
+            entity->unk_4FC.part8.unk_4FD = sUnk_080E13B8[info->attackVariant];
+            if (entity->flipX)
             {
-                param_0->unk_500.unk_500_32 = -param_0->unk_500.unk_500_32;
-                param_0->unk_504.unk_504_32 = -param_0->unk_504.unk_504_32;
+                entity->unk_500.whole = -entity->unk_500.whole;
+                entity->unk_504.whole = -entity->unk_504.whole;
             }
-            param_0->unk_530.unk_530_16.unk_532 = -0x19;
-            if (temp_r0->unk_4F4.unk_4F4_32 & 0x400)
+            entity->velY.part16.integer = -0x19;
+            if (owner->unk_4F4.whole & 0x400)
             {
-                param_0->unk_530.unk_530_16.unk_532 += 0xC;
+                entity->velY.part16.integer += 0xC;
             }
-            param_0->unk_4F1 = 0;
-            param_0->unk_4EE += 1;
+            entity->timer = 0;
+            entity->state += 1;
             /* fallthrough */
         case 1:
-            param_0->unk_53D_2 = 1;
-            if ((temp_r0->unk_4F4.unk_4F4_32 & 0x20) == 0)
+            entity->roomActive = 1;
+            if ((owner->unk_4F4.whole & 0x20) == 0)
             {
-                gEwramData->unk_13110.unk_1311C[temp_r0->unk_50C.unk_50C_8.unk_50C] = 0;
-                sub_0803E6BC(param_0->unk_53C_0);
-                EntityDelete(param_0);
+                gEwramData->playerState.weaponEntities[owner->unk_50C.part8.unk_50C] = 0;
+                ObjAffine_Free(entity->affineIndex);
+                EntityDelete(entity);
                 return;
             }
-            param_0->unk_528.unk_528_16.unk_52A = (u16) temp_r0->unk_528.unk_528_16.unk_52A + (u16) param_0->unk_530.unk_530_16.unk_532;
-            param_0->unk_4F1 += 1;
-            temp_r0_5 = Div(param_0->unk_4F1, param_0->unk_4F0) + 1;
-            var_r2 = temp_r0_5;
-            if ((s32) (s16) temp_r0_5 > 3)
+            entity->posY.part16.integer = (u16) owner->posY.part16.integer + (u16) entity->velY.part16.integer;
+            entity->timer += 1;
+            step = Div(entity->timer, entity->stage) + 1;
+            offsetX = step;
+            if ((s32) (s16) step > 3)
             {
-                var_r2 = 3;
+                offsetX = 3;
             }
-            if (param_0->unk_53C_6)
+            if (entity->flipX)
             {
-                var_r2 = (u16) ((u32) (0 - (var_r2 << 0x10)) >> 0x10);
+                offsetX = (u16) ((u32) (0 - (offsetX << 0x10)) >> 0x10);
             }
-            param_0->unk_524.unk_524_16.unk_526 = temp_r0->unk_524.unk_524_16.unk_526 + var_r2;
-            if (param_0->unk_4F1 < param_0->unk_4EF)
+            entity->posX.part16.integer = owner->posX.part16.integer + offsetX;
+            if (entity->timer < entity->subState)
             {
-                param_0->unk_500.unk_500_32 += param_0->unk_504.unk_504_32;
+                entity->unk_500.whole += entity->unk_504.whole;
             }
             /* fallthrough */
         default:
-            param_0->unk_4F3 = temp_r0->unk_4F3;
-            temp_r5_4 = param_0->unk_549;
-            sub_0803F17C(param_0);
-            if (!(gEwramData->unk_60.unk_4CC_6) && ((u8) param_0->unk_4FC.unk_4FC_8.unk_4FC != gEwramData->unk_1325C.equippedWeapon))
+            entity->drawSkip = owner->drawSkip;
+            frame = entity->animFrame;
+            Anim_Update(entity);
+            if (!(gEwramData->gameState.linkPlay) && ((u8) entity->unk_4FC.part8.unk_4FC != gEwramData->playerStatus.equippedWeapon))
             {
-                param_0->unk_554.unk_556 |= 2;
+                entity->hit.flags |= 2;
                 break;
             }
-            if (param_0->unk_4F1 != param_0->unk_4FC.unk_4FC_8.unk_4FD)
+            if (entity->timer != entity->unk_4FC.part8.unk_4FD)
             {
-                if (temp_r5_4 != param_0->unk_549)
+                if (frame != entity->animFrame)
                 {
-                    var_0 = param_0->unk_548;
-                    if (gEwramData->unk_10170[param_0->unk_548].unk_C->var_4[param_0->unk_549].unk_4)
+                    spriteSlot = entity->spriteSlot;
+                    if (gEwramData->spriteSlots[entity->spriteSlot].sheet->frames[entity->animFrame].boxCount)
                     {
-                        sub_08042848(param_0, gEwramData->unk_10170[param_0->unk_548].unk_C->var_4[param_0->unk_549].unk_8);
-                        param_0->unk_554.unk_556 &= ~2;
+                        HitBox_SetAttack(entity, gEwramData->spriteSlots[entity->spriteSlot].sheet->frames[entity->animFrame].boxes);
+                        entity->hit.flags &= ~2;
                     }
                     else
                     {
-                        param_0->unk_554.unk_556 |= 2;
+                        entity->hit.flags |= 2;
                     }
                 }
                 break;
             }
-            gEwramData->unk_13110.unk_1311C[temp_r0->unk_50C.unk_50C_8.unk_50C] = 0;
-            sub_0803E6BC(param_0->unk_53C_0);
-            EntityDelete(param_0);
+            gEwramData->playerState.weaponEntities[owner->unk_50C.part8.unk_50C] = 0;
+            ObjAffine_Free(entity->affineIndex);
+            EntityDelete(entity);
             return;
     }
-    sub_0803E058(param_0->unk_500.unk_500_32, 0x10000, 0x10000, param_0->unk_53C_6, 0U, param_0->unk_53C_0);
+    ObjAffine_Set(entity->unk_500.whole, 0x10000, 0x10000, entity->flipX, 0U, entity->affineIndex);
     return;
 }
 
 /**
- * @brief 228F8 | To document
- * 
- * @param param_0 To document
+ * @brief Ejected casing (frame 0x35): delete inside solid tiles, fall with
+ * gravity, bounce once with sound 0x14F, then drift until it leaves
+ * the screen.
  */
-void sub_080228F8(struct EwramData_EntityData *param_0)
+void Effect_UpdateGunCasing(struct EwramData_EntityData *entity)
 {
-    s32 temp_r1;
-    s32 var_r1;
-    struct EwramData_unkA078 *temp_r2;
-    struct EwramData_unkA078 *temp_r2_2;
-    s32 var_0;
-    s32 var_1;
-    s32 var_2;
+    s32 tile;
+    s32 solid;
+    struct BgLayerState *bg;
+    struct BgLayerState *bgLayer;
+    s32 spawnX;
+    s32 x;
+    s32 gfx;
 
-    switch (param_0->unk_4EE)
+    switch (entity->state)
     {
         case 0:
-            var_0 = (s16)param_0->unk_524.unk_524_16.unk_526;
-            temp_r2 = &gEwramData->bgInfo[1];
-            temp_r1 = sub_08002028(var_0 + (s16)temp_r2->xPos.part16.integer, param_0->unk_528.unk_528_16.unk_52A + (s16)temp_r2->yPos.part16.integer);
-            if (temp_r1 != 0)
+            spawnX = (s16)entity->posX.part16.integer;
+            bg = &gEwramData->bgInfo[1];
+            tile = Collision_GetTileOnScreen(spawnX + (s16)bg->xPos.part16.integer, entity->posY.part16.integer + (s16)bg->yPos.part16.integer);
+            if (tile != 0)
             {
-                if (temp_r1 & 8)
+                if (tile & 8)
                 {
-                    if (temp_r1 & 1)
+                    if (tile & 1)
                     {
-                        var_r1 = 1;
+                        solid = 1;
                     }
                     else
                     {
-                        var_r1 = 1;
+                        solid = 1;
                     }
                 }
                 else
                 {
-                    var_r1 = 0;
+                    solid = 0;
                 }
 
-                if (var_r1 != 0)
+                if (solid != 0)
                 {
-                    param_0->unk_53D_3 = 1;
+                    entity->deleteRequested = 1;
                     return;
                 }
             }
 
-            var_2 = sub_0803AFB8((u8 *)0x081C15F4);
-            sub_0803B924(param_0, (u8 *)0x0820ED60, var_2, 8);
-            param_0->drawFunc = (u32 *) sub_0803B9D0;
-            param_0->unk_549 = 0x35;
-            param_0->unk_4EE = 1;
-            param_0->unk_538.unk_538_32 = 0x3000;
+            gfx = ObjGfx_Find(sCommonObjectGfx);
+            Sprite_Attach(entity, sCommonObjectSpriteSheet, gfx, 8);
+            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->animFrame = 0x35;
+            entity->state = 1;
+            entity->accelY.whole = 0x3000;
             /*fallthrough */
         case 1:
-            sub_0806D430(param_0, 0x40000);
-            sub_0806D460(param_0, 0x40000);
+            EntityAccelerateAndMoveX(entity, 0x40000);
+            EntityAccelerateAndMoveY(entity, 0x40000);
 
-            var_1 = (s16)param_0->unk_524.unk_524_16.unk_526;
-            temp_r2_2 = &gEwramData->bgInfo[1];
-            if (sub_080020A0(var_1 + (s16)temp_r2_2->xPos.part16.integer, param_0->unk_528.unk_528_16.unk_52A + (s16)temp_r2_2->yPos.part16.integer + 2) != 0)
+            x = (s16)entity->posX.part16.integer;
+            bgLayer = &gEwramData->bgInfo[1];
+            if (Collision_GetGroundOffset(x + (s16)bgLayer->xPos.part16.integer, entity->posY.part16.integer + (s16)bgLayer->yPos.part16.integer + 2) != 0)
             {
                 PlaySong(0x14F);
-                param_0->unk_530.unk_530_32 = -(param_0->unk_530.unk_530_32 / 2);
-                param_0->unk_52C.unk_52C_32 += sub_0802D5EC(0x4000);
-                param_0->unk_4EE = 2;
+                entity->velY.whole = -(entity->velY.whole / 2);
+                entity->velX.whole += RandomSigned(0x4000);
+                entity->state = 2;
             }
             break;
 
         case 2:
-            sub_0806D430(param_0, 0x40000);
-            sub_0806D460(param_0, 0x40000);
+            EntityAccelerateAndMoveX(entity, 0x40000);
+            EntityAccelerateAndMoveY(entity, 0x40000);
             break;
     }
 
-    if (sub_08068AD4(param_0, -0x10, -0x10, 0x110, 0xC0) == 0)
+    if (Entity_IsInRect(entity, -0x10, -0x10, 0x110, 0xC0) == 0)
     {
-        param_0->unk_53D_3 = 1;
+        entity->deleteRequested = 1;
     }
 }
 
-static inline void sub_08022A54_inline_0(struct EwramData_EntityData *param_0, s32 param_1)
+static inline void WeaponGun_SetAttackBox(struct EwramData_EntityData *entity, s32 box)
 {
-    sub_08042884(param_0, param_1);
+    HitBox_SetAttackRaw(entity, box);
 }
 
 /**
- * @brief 22A54 | To document
- * 
- * @param param_0
+ * @brief Attack entity for weapon type 4 (Handgun, Silver Gun): eject a
+ * casing, extend the hit position from the owner by 0x80000 per
+ * update, stop at a wall with a spark and sound 0x14E, and end with
+ * the animation or when the owner attack flag clears.
  */
-void sub_08022A54(struct EwramData_EntityData *param_0)
+void WeaponGun_Update(struct EwramData_EntityData *entity)
 {
-    s16 var_r0;
-    s32 temp_r7;
-    s32 var_r1_2;
-    s32 var_r4_2;
-    struct EwramData_EntityData *temp_r0;
-    struct EwramData_EntityData *temp_r0_7;
-    struct EwramData_EntityData *temp_r1_4;
-    struct Unk_08023368 *temp_r1;
-    struct Unk_08023368 *temp_r5;
-    s16 temp_r1_3;
-    s16 temp_r4_2;
-    s32 var_r4;
+    s16 push;
+    s32 gfx;
+    s32 type;
+    s32 index;
+    struct EwramData_EntityData *owner;
+    struct EwramData_EntityData *child;
+    struct EwramData_EntityData *spawner;
+    struct WeaponInfo *info;
+    struct WeaponInfo *attackerInfo;
+    s16 roomY;
+    s16 roomX;
+    s32 paletteSlot;
 
-    temp_r0 = param_0->unk_4F8.unk_4F8_entity;
-    temp_r1 = sub_08023368(temp_r0->unk_50C.unk_50C_8.unk_50C);
+    owner = entity->unk_4F8.unk_4F8_entity;
+    info = Weapon_GetAttackerInfo(owner->unk_50C.part8.unk_50C);
 
-    switch (param_0->unk_4EE)
+    switch (entity->state)
     {
         case 0:
-            if (temp_r0->unk_50C.unk_50C_8.unk_50C == 0)
+            if (owner->unk_50C.part8.unk_50C == 0)
             {
-                PlaySong(temp_r1->unk_18);
+                PlaySong(info->attackSound);
             }
-            temp_r1_4 = param_0->unk_4F8.unk_4F8_entity;
-            temp_r5 = sub_08023368(temp_r1_4->unk_50C.unk_50C_8.unk_50C);
-            param_0->unk_4FC.unk_4FC_8.unk_4FC = gEwramData->unk_1325C.equippedWeapon;
+            spawner = entity->unk_4F8.unk_4F8_entity;
+            attackerInfo = Weapon_GetAttackerInfo(spawner->unk_50C.part8.unk_50C);
+            entity->unk_4FC.part8.unk_4FC = gEwramData->playerStatus.equippedWeapon;
 
-            if (temp_r1_4->unk_50C.unk_50C_8.unk_50C == 0)
+            if (spawner->unk_50C.part8.unk_50C == 0)
             {
-                if (gEwramData->unk_13110.lastUsedWeapon[0] != temp_r5->unk_12)
+                if (gEwramData->playerState.cachedWeaponGraphicsIndices[0] != attackerInfo->graphicsIndex)
                 {
-                    if (gEwramData->unk_13110.unk_131C8 != -1)
+                    if (gEwramData->playerState.weaponGfx != -1)
                     {
-                        sub_0803B980(gEwramData->unk_13110.unk_131C8);
-                        gEwramData->unk_13110.unk_131C8 = -1;
+                        ObjGfx_Unload(gEwramData->playerState.weaponGfx);
+                        gEwramData->playerState.weaponGfx = -1;
                     }
                 }
-                var_r4 = 1;
-                param_0->unk_540 = 0xE;
+                paletteSlot = 1;
+                entity->spriteLayer = 0xE;
             }
             else
             {
-                if (gEwramData->unk_13110.unk_131C1 != temp_r5->unk_12)
+                if (gEwramData->playerState.cachedWeaponGraphicsIndex1 != attackerInfo->graphicsIndex)
                 {
-                    if (gEwramData->unk_13110.unk_131CC != -1)
+                    if (gEwramData->playerState.redSoulGfx != -1)
                     {
-                        sub_0803B980(gEwramData->unk_13110.unk_131CC);
-                        gEwramData->unk_13110.unk_131CC = -1;
+                        ObjGfx_Unload(gEwramData->playerState.redSoulGfx);
+                        gEwramData->playerState.redSoulGfx = -1;
                     }
                 }
-                var_r4 = 2;
-                param_0->unk_540 = 0xF;
+                paletteSlot = 2;
+                entity->spriteLayer = 0xF;
             }
             
-            temp_r7 = sub_0803B800((u8 *) sUnk_084F10C0[temp_r5->unk_12], 0x10000);
-            sub_0803C7B4((u8 *)0x082098B8, (u16) temp_r5->unk_15, 1U, var_r4);
-            sub_0803B924(param_0, (u8 *) sUnk_084F117C[temp_r5->unk_13], temp_r7, (s32) var_r4);
-            sub_0803F2C8(param_0, (u16) temp_r5->unk_14, 0U, 0U);
-            gEwramData->unk_13110.lastUsedWeapon[temp_r1_4->unk_50C.unk_50C_8.unk_50C] = temp_r5->unk_12;
+            gfx = ObjGfx_LoadResource((u8 *) sWeaponGfxTable[attackerInfo->graphicsIndex], 0x10000);
+            ObjPalette_LoadRange(sWeaponPalettes, (u16) attackerInfo->paletteIndex, 1U, paletteSlot);
+            Sprite_Attach(entity, (u8 *) sWeaponSpriteSheetTable[attackerInfo->spriteSheetIndex], gfx, (s32) paletteSlot);
+            Anim_StartIndexed(entity, (u16) attackerInfo->animScriptIndex, 0U, 0U);
+            gEwramData->playerState.cachedWeaponGraphicsIndices[spawner->unk_50C.part8.unk_50C] = attackerInfo->graphicsIndex;
 
-            if (temp_r1_4->unk_50C.unk_50C_8.unk_50C == 0)
+            if (spawner->unk_50C.part8.unk_50C == 0)
             {
-                gEwramData->unk_13110.unk_131C8 = (u32) temp_r7;
-                var_r1_2 = 3;
-                var_r4_2 = 0;
+                gEwramData->playerState.weaponGfx = (u32) gfx;
+                type = 3;
+                index = 0;
             }
             else
             {
-                gEwramData->unk_13110.unk_131CC = (u32) temp_r7;
-                var_r1_2 = 5;
-                var_r4_2 = 1;
+                gEwramData->playerState.redSoulGfx = (u32) gfx;
+                type = 5;
+                index = 1;
             }
-            sub_0804277C(param_0, var_r1_2, sub_080234B0, 0);
-            sub_08022A54_inline_0(param_0, 0x0810FCF8);
-            param_0->unk_554.unk_556 |= 2;
-            param_0->unk_554.unk_556 |= 4;
-            sub_08042A54(var_r4_2, (s32) temp_r5->unk_17);
+            Hit_Enable(entity, type, WeaponGun_OnHit, 0);
+            WeaponGun_SetAttackBox(entity, 0x0810FCF8);
+            entity->hit.flags |= 2;
+            entity->hit.flags |= 4;
+            Hit_SetTimerOverride(index, (s32) attackerInfo->hitTimer);
 
-            param_0->drawFunc = (u32 *) sub_08023508;
-            param_0->unk_534.unk_534_32 = 0x80000;
-            if (param_0->unk_53C_6)
+            entity->drawFunc = (u32 *) WeaponGun_Draw;
+            entity->accelX.whole = 0x80000;
+            if (entity->flipX)
             {
-                param_0->unk_500.unk_500_32 = -param_0->unk_500.unk_500_32;
-                param_0->unk_504.unk_504_32 = -param_0->unk_504.unk_504_32;
-                param_0->unk_534.unk_534_32 = -param_0->unk_534.unk_534_32;
+                entity->unk_500.whole = -entity->unk_500.whole;
+                entity->unk_504.whole = -entity->unk_504.whole;
+                entity->accelX.whole = -entity->accelX.whole;
             }
-            param_0->unk_52C.unk_52C_32 += param_0->unk_534.unk_534_32;
-            if ((temp_r0->unk_4F4.unk_4F4_32 & 0x400) != 0)
+            entity->velX.whole += entity->accelX.whole;
+            if ((owner->unk_4F4.whole & 0x400) != 0)
             {
-                param_0->unk_530.unk_530_16.unk_532 = 0xC;
+                entity->velY.part16.integer = 0xC;
             }
             else
             {
-                param_0->unk_530.unk_530_16.unk_532 = 0x0;
+                entity->velY.part16.integer = 0x0;
             }
 
-            temp_r0_7 = EntityCreateInRange(0x49, 0xCF, (u32 *) sub_080228F8);
-            if (temp_r0_7 != NULL)
+            child = EntityCreateInRange(0x49, 0xCF, (u32 *) Effect_UpdateGunCasing);
+            if (child != NULL)
             {
-                sub_08031EA4(temp_r0_7, temp_r0, 8U, param_0->unk_530.unk_530_16.unk_532 - 0x1A);
-                temp_r0_7->unk_52C.unk_52C_32 = (RandomNumberGenerator() & 0x7FFF) - 0x10000;
-                temp_r0_7->unk_530.unk_530_32 = -0x14000 - (RandomNumberGenerator() & 0x7FFF);
-                if (temp_r0_7->unk_53C_6)
+                Entity_PlaceRelativeTo(child, owner, 8U, entity->velY.part16.integer - 0x1A);
+                child->velX.whole = (RandomNumberGenerator() & 0x7FFF) - 0x10000;
+                child->velY.whole = -0x14000 - (RandomNumberGenerator() & 0x7FFF);
+                if (child->flipX)
                 {
-                    temp_r0_7->unk_52C.unk_52C_32 = -temp_r0_7->unk_52C.unk_52C_32;
+                    child->velX.whole = -child->velX.whole;
                 }
-                temp_r0_7->unk_53D_1 = 1;
+                child->scrollWithBg = 1;
             }
 
-            param_0->unk_4F1 = 0;
-            param_0->unk_4EE += 1;
+            entity->timer = 0;
+            entity->state += 1;
             /* fallthrough */
         case 1:
-            param_0->unk_53D_2 = 1;
-            if ((temp_r0->unk_4F4.unk_4F4_32 & 0x20) == 0)
+            entity->roomActive = 1;
+            if ((owner->unk_4F4.whole & 0x20) == 0)
             {
-                gEwramData->unk_13110.unk_1311C[temp_r0->unk_50C.unk_50C_8.unk_50C] = 0;
-                EntityDelete(param_0);
+                gEwramData->playerState.weaponEntities[owner->unk_50C.part8.unk_50C] = 0;
+                EntityDelete(entity);
                 break;
             }
 
-            param_0->unk_4F1 += 1;
-            if ((param_0->unk_500.unk_500_32 == 0) && (param_0->unk_4F1 == 3))
+            entity->timer += 1;
+            if ((entity->unk_500.whole == 0) && (entity->timer == 3))
             {
-                param_0->unk_554.unk_556 &= ~2;
+                entity->hit.flags &= ~2;
             }
-            if (param_0->unk_4F1 > 3)
+            if (entity->timer > 3)
             {
-                param_0->unk_52C.unk_52C_32 += param_0->unk_534.unk_534_32;
+                entity->velX.whole += entity->accelX.whole;
             }
 
-            param_0->unk_524.unk_524_32 = temp_r0->unk_524.unk_524_32 + param_0->unk_52C.unk_52C_32;
-            param_0->unk_528.unk_528_32 = temp_r0->unk_528.unk_528_32 + param_0->unk_530.unk_530_32 - 0x1C0000;
-            if (param_0->unk_500.unk_500_32 == 0)
+            entity->posX.whole = owner->posX.whole + entity->velX.whole;
+            entity->posY.whole = owner->posY.whole + entity->velY.whole - 0x1C0000;
+            if (entity->unk_500.whole == 0)
             {
-                temp_r4_2 = GetEntityRoomXPositionInteger(param_0);
-                temp_r1_3 = GetEntityRoomYPositionInteger(param_0);
-                if (param_0->unk_534.unk_534_32 > 0)
+                roomX = GetEntityRoomXPositionInteger(entity);
+                roomY = GetEntityRoomYPositionInteger(entity);
+                if (entity->accelX.whole > 0)
                 {
-                    var_r0 = sub_080020D8(temp_r4_2, temp_r1_3, 0);
+                    push = Collision_GetPushLeftFiltered(roomX, roomY, 0);
                 }
                 else
                 {
-                    var_r0 = sub_0800210C(temp_r4_2, temp_r1_3, 0);
+                    push = Collision_GetPushRightFiltered(roomX, roomY, 0);
                 }
-                if (var_r0 != 0)
+                if (push != 0)
                 {
-                    sub_08045CEC(param_0->unk_524.unk_524_32 + (var_r0 << 0x10), param_0->unk_528.unk_528_32, 7, 8);
-                    param_0->unk_500.unk_500_32 = 1;
+                    Effect_SpawnShared(entity->posX.whole + (push << 0x10), entity->posY.whole, 7, 8);
+                    entity->unk_500.whole = 1;
                     PlaySong(0x14E);
                 }
             }
             else
             {
-                param_0->unk_554.unk_556 |= 2;
+                entity->hit.flags |= 2;
             }
             /* fallthrough */
         default:
-            param_0->unk_4F3 = temp_r0->unk_4F3;
-            if (sub_0803F17C(param_0) == 3)
+            entity->drawSkip = owner->drawSkip;
+            if (Anim_Update(entity) == 3)
             {
-                gEwramData->unk_13110.unk_1311C[temp_r0->unk_50C.unk_50C_8.unk_50C] = 0;
-                EntityDelete(param_0);
+                gEwramData->playerState.weaponEntities[owner->unk_50C.part8.unk_50C] = 0;
+                EntityDelete(entity);
             }
             break;
     }
 }
 
 /**
- * @brief 22DEC | To document
- * 
- * @param param_0 To document
+ * @brief Attack entity for weapon type 5, used only by table entry 58
+ * (Valmanway): follow the owner without a player attack animation and
+ * take frame attack boxes while the weapon stays equipped.
  */
-void sub_08022DEC(struct EwramData_EntityData *param_0)
+void WeaponValmanway_Update(struct EwramData_EntityData *entity)
 {
-    s32 temp_r7;
-    s32 var_r1_2;
-    s32 var_r4_2;
-    struct EwramData_EntityData *temp_r0;
-    struct Unk_08023368 *temp_r6;
-    s32 var_r4;
-    u8 temp_r6_2;
-    union EwramData_unk50C *temp_r4_2;
-    s32 var_0;
-    struct EwramData_EntityData *var_1;
+    s32 gfx;
+    s32 type;
+    s32 index;
+    struct EwramData_EntityData *owner;
+    struct WeaponInfo *attackerInfo;
+    s32 paletteSlot;
+    u8 frame;
+    union EwramData_unk50C *ownerSlot;
+    s32 spriteSlot;
+    struct EwramData_EntityData *spawner;
 
-    temp_r0 = param_0->unk_4F8.unk_4F8_entity;
+    owner = entity->unk_4F8.unk_4F8_entity;
 
-    switch (param_0->unk_4EE)
+    switch (entity->state)
     {
         case 0:
-            var_1 = param_0->unk_4F8.unk_4F8_entity;
-            temp_r6 = sub_08023368(var_1->unk_50C.unk_50C_8.unk_50C);
-            param_0->unk_4FC.unk_4FC_8.unk_4FC = gEwramData->unk_1325C.equippedWeapon;
+            spawner = entity->unk_4F8.unk_4F8_entity;
+            attackerInfo = Weapon_GetAttackerInfo(spawner->unk_50C.part8.unk_50C);
+            entity->unk_4FC.part8.unk_4FC = gEwramData->playerStatus.equippedWeapon;
 
-            if (var_1->unk_50C.unk_50C_8.unk_50C == 0)
+            if (spawner->unk_50C.part8.unk_50C == 0)
             {
-                if (gEwramData->unk_13110.lastUsedWeapon[0] != temp_r6->unk_12)
+                if (gEwramData->playerState.cachedWeaponGraphicsIndices[0] != attackerInfo->graphicsIndex)
                 {
-                    if (gEwramData->unk_13110.unk_131C8 != -1)
+                    if (gEwramData->playerState.weaponGfx != -1)
                     {
-                        sub_0803B980(gEwramData->unk_13110.unk_131C8);
-                        gEwramData->unk_13110.unk_131C8 = -1;
+                        ObjGfx_Unload(gEwramData->playerState.weaponGfx);
+                        gEwramData->playerState.weaponGfx = -1;
                     }
                 }
-                var_r4 = 1;
-                param_0->unk_540 = 0xE;
+                paletteSlot = 1;
+                entity->spriteLayer = 0xE;
             }
             else
             {
-                if (gEwramData->unk_13110.unk_131C1 != temp_r6->unk_12)
+                if (gEwramData->playerState.cachedWeaponGraphicsIndex1 != attackerInfo->graphicsIndex)
                 {
-                    if (gEwramData->unk_13110.unk_131CC != -1)
+                    if (gEwramData->playerState.redSoulGfx != -1)
                     {
-                        sub_0803B980(gEwramData->unk_13110.unk_131CC);
-                        gEwramData->unk_13110.unk_131CC = -1;
+                        ObjGfx_Unload(gEwramData->playerState.redSoulGfx);
+                        gEwramData->playerState.redSoulGfx = -1;
                     }
                 }
-                var_r4 = 2;
-                param_0->unk_540 = 0xF;
+                paletteSlot = 2;
+                entity->spriteLayer = 0xF;
             }
 
-            temp_r7 = sub_0803B800((u8 *) sUnk_084F10C0[temp_r6->unk_12], 0x10000);
-            sub_0803C7B4((u8 *)0x082098B8, temp_r6->unk_15, 1, var_r4);
-            sub_0803B924(param_0, (u8 *) sUnk_084F117C[temp_r6->unk_13], temp_r7, var_r4);
-            sub_0803F2C8(param_0, temp_r6->unk_14, 0, 0);
-            gEwramData->unk_13110.lastUsedWeapon[var_1->unk_50C.unk_50C_8.unk_50C] = temp_r6->unk_12;
+            gfx = ObjGfx_LoadResource((u8 *) sWeaponGfxTable[attackerInfo->graphicsIndex], 0x10000);
+            ObjPalette_LoadRange(sWeaponPalettes, attackerInfo->paletteIndex, 1, paletteSlot);
+            Sprite_Attach(entity, (u8 *) sWeaponSpriteSheetTable[attackerInfo->spriteSheetIndex], gfx, paletteSlot);
+            Anim_StartIndexed(entity, attackerInfo->animScriptIndex, 0, 0);
+            gEwramData->playerState.cachedWeaponGraphicsIndices[spawner->unk_50C.part8.unk_50C] = attackerInfo->graphicsIndex;
 
-            if (var_1->unk_50C.unk_50C_8.unk_50C == 0)
+            if (spawner->unk_50C.part8.unk_50C == 0)
             {
-                gEwramData->unk_13110.unk_131C8 = temp_r7;
-                var_r1_2 = 3;
-                var_r4_2 = 0;
+                gEwramData->playerState.weaponGfx = gfx;
+                type = 3;
+                index = 0;
             }
             else
             {
-                gEwramData->unk_13110.unk_131CC = temp_r7;
-                var_r1_2 = 5;
-                var_r4_2 = 1;
+                gEwramData->playerState.redSoulGfx = gfx;
+                type = 5;
+                index = 1;
             }
-            sub_0804277C(param_0, var_r1_2, sub_0802346C, 0);
-            param_0->unk_554.unk_556 |= 2;
-            param_0->unk_554.unk_556 |= 4;
-            sub_08042A54(var_r4_2, temp_r6->unk_17);
+            Hit_Enable(entity, type, WeaponAttack_OnHit, 0);
+            entity->hit.flags |= 2;
+            entity->hit.flags |= 4;
+            Hit_SetTimerOverride(index, attackerInfo->hitTimer);
 
-            temp_r4_2 = &param_0->unk_4F8.unk_4F8_entity->unk_50C;
-            PlaySong(sub_08023368(temp_r4_2->unk_50C_8.unk_50C)->unk_18);
-            if ((temp_r4_2->unk_50C_8.unk_50C == 0) && (1 & RandomNumberGenerator()))
+            ownerSlot = &entity->unk_4F8.unk_4F8_entity->unk_50C;
+            PlaySong(Weapon_GetAttackerInfo(ownerSlot->part8.unk_50C)->attackSound);
+            if ((ownerSlot->part8.unk_50C == 0) && (1 & RandomNumberGenerator()))
             {
-                PlaySong(sUnk_084F1264[3 & RandomNumberGenerator()]);
+                PlaySong(sWeaponSwingSounds[3 & RandomNumberGenerator()]);
             }
 
-            param_0->drawFunc = (u32 *) sub_0803B9D0;
-            if (temp_r0->unk_4F4.unk_4F4_32 & 0x400)
+            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            if (owner->unk_4F4.whole & 0x400)
             {
-                param_0->unk_530.unk_530_16.unk_532 = 0xD;
+                entity->velY.part16.integer = 0xD;
             }
 
-            param_0->unk_4F1 = 0;
-            param_0->unk_4EE += 1;
+            entity->timer = 0;
+            entity->state += 1;
             /* fallthrough */
         case 1:
-            param_0->unk_53D_2 = 1;
-            param_0->unk_524.unk_524_32 = temp_r0->unk_524.unk_524_32;
-            param_0->unk_528.unk_528_16.unk_52A = (u16) temp_r0->unk_528.unk_528_16.unk_52A + (u16) param_0->unk_530.unk_530_16.unk_532;
+            entity->roomActive = 1;
+            entity->posX.whole = owner->posX.whole;
+            entity->posY.part16.integer = (u16) owner->posY.part16.integer + (u16) entity->velY.part16.integer;
             break;
     }
 
-    param_0->unk_4F3 = temp_r0->unk_4F3;
-    temp_r6_2 = param_0->unk_549;
+    entity->drawSkip = owner->drawSkip;
+    frame = entity->animFrame;
 
-    if (sub_0803F17C(param_0) != 3)
+    if (Anim_Update(entity) != 3)
     {
-        if (!(gEwramData->unk_60.unk_4CC_6) && ((u8) param_0->unk_4FC.unk_4FC_8.unk_4FC != gEwramData->unk_1325C.equippedWeapon))
+        if (!(gEwramData->gameState.linkPlay) && ((u8) entity->unk_4FC.part8.unk_4FC != gEwramData->playerStatus.equippedWeapon))
         {
-            param_0->unk_554.unk_556 |= 2;
+            entity->hit.flags |= 2;
         }
-        else if (temp_r6_2 != param_0->unk_549)
+        else if (frame != entity->animFrame)
         {
-            var_0 = param_0->unk_548;
-            if (gEwramData->unk_10170[param_0->unk_548].unk_C->var_4[param_0->unk_549].unk_4)
+            spriteSlot = entity->spriteSlot;
+            if (gEwramData->spriteSlots[entity->spriteSlot].sheet->frames[entity->animFrame].boxCount)
             {
-                sub_08042848(param_0, gEwramData->unk_10170[param_0->unk_548].unk_C->var_4[param_0->unk_549].unk_8);
-                param_0->unk_554.unk_556 &= ~2;
+                HitBox_SetAttack(entity, gEwramData->spriteSlots[entity->spriteSlot].sheet->frames[entity->animFrame].boxes);
+                entity->hit.flags &= ~2;
             }
             else
             {
-                param_0->unk_554.unk_556 |= 2;
+                entity->hit.flags |= 2;
             }
         }
     }
     else
     {
-        gEwramData->unk_13110.unk_1311C[temp_r0->unk_50C.unk_50C_8.unk_50C] = 0;
-        EntityDelete(param_0);
+        gEwramData->playerState.weaponEntities[owner->unk_50C.part8.unk_50C] = 0;
+        EntityDelete(entity);
     }
 }
 
-extern void (*sUnk_084F124C[])(struct EwramData_EntityData *);
+extern void (*sWeaponAttackUpdateFuncs[])(struct EwramData_EntityData *);
 
 /**
- * @brief 230A8 | To document
- * 
- * @param param_0 To document
+ * @brief Create the attack entity for the attacker slot (unk_50C) from
+ * sWeaponAttackUpdateFuncs indexed by the weapon type (info unk_8), store it in
+ * playerState.weaponEntities[slot] with owner and facing, and return it.
  */
-struct EwramData_EntityData* sub_080230A8(struct EwramData_EntityData *param_0)
+struct EwramData_EntityData* Weapon_CreateAttackEntity(struct EwramData_EntityData *entity)
 {
-    struct Unk_08023368 *temp_r0;
+    struct WeaponInfo *attackerInfo;
 
-    temp_r0 = sub_08023368(param_0->unk_50C.unk_50C_8.unk_50C);
-    if (temp_r0 == NULL)
+    attackerInfo = Weapon_GetAttackerInfo(entity->unk_50C.part8.unk_50C);
+    if (attackerInfo == NULL)
     {
         return 0;
     }
 
-    gEwramData->unk_13110.unk_1311C[param_0->unk_50C.unk_50C_8.unk_50C] = EntityCreateInRange(2, 0x10, (u32 *) sUnk_084F124C[temp_r0->unk_8]);
-    if (gEwramData->unk_13110.unk_1311C[param_0->unk_50C.unk_50C_8.unk_50C] != NULL)
+    gEwramData->playerState.weaponEntities[entity->unk_50C.part8.unk_50C] = EntityCreateInRange(2, 0x10, (u32 *) sWeaponAttackUpdateFuncs[attackerInfo->attackAnimKind]);
+    if (gEwramData->playerState.weaponEntities[entity->unk_50C.part8.unk_50C] != NULL)
     {
-        gEwramData->unk_13110.unk_1311C[param_0->unk_50C.unk_50C_8.unk_50C]->unk_4F8.unk_4F8_entity = param_0;
-        gEwramData->unk_13110.unk_1311C[param_0->unk_50C.unk_50C_8.unk_50C]->unk_53C_6 = param_0->unk_53C_6;
-        gEwramData->unk_13110.unk_1311C[param_0->unk_50C.unk_50C_8.unk_50C]->unk_53D_1 = 1;
+        gEwramData->playerState.weaponEntities[entity->unk_50C.part8.unk_50C]->unk_4F8.unk_4F8_entity = entity;
+        gEwramData->playerState.weaponEntities[entity->unk_50C.part8.unk_50C]->flipX = entity->flipX;
+        gEwramData->playerState.weaponEntities[entity->unk_50C.part8.unk_50C]->scrollWithBg = 1;
     }
 
-    return gEwramData->unk_13110.unk_1311C[param_0->unk_50C.unk_50C_8.unk_50C];
+    return gEwramData->playerState.weaponEntities[entity->unk_50C.part8.unk_50C];
 }
 
 /**
- * @brief 23144 | To document
- * 
- * @param param_0 To document
+ * @brief Julius whip strike hit entity: follow Julius with mirrored facing,
+ * use the second attack box of his current frame and play a random
+ * voice after 10 updates; delete when his attack flag clears.
  */
-void sub_08023144(struct EwramData_EntityData *param_0)
+void JuliusWhipAttack_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *temp_r6;
-    s32 var_0;
+    struct EwramData_EntityData *owner;
+    s32 spriteSlot;
 
-    temp_r6 = param_0->unk_4F8.unk_4F8_entity;
+    owner = entity->unk_4F8.unk_4F8_entity;
 
-    switch (param_0->unk_4EE)
+    switch (entity->state)
     {
         case 0:
-            sub_0804277C(param_0, 3, sub_080211F4, 0);
-            param_0->unk_554.unk_556 |= 2;
-            param_0->unk_554.unk_556 |= 4;
-            sub_08042A54(0, 0x14);
-            param_0->unk_4F1 = 0xA;
-            param_0->unk_4EE += 1;
+            Hit_Enable(entity, 3, Player_MarkAttackContact, 0);
+            entity->hit.flags |= 2;
+            entity->hit.flags |= 4;
+            Hit_SetTimerOverride(0, 0x14);
+            entity->timer = 0xA;
+            entity->state += 1;
             /* fallthrough */
         case 1:
-            if (param_0->unk_4F1 != 0)
+            if (entity->timer != 0)
             {
-                param_0->unk_4F1 -= 1;
-                if (param_0->unk_4F1 == 0)
+                entity->timer -= 1;
+                if (entity->timer == 0)
                 {
-                    PlaySong(sUnk_084F1264[RandomNumberGenerator() & 1]);
+                    // Original reads the 2-entry table at 0x084F126C, not sWeaponSwingSounds (draft bug).
+                    PlaySong(sJuliusWhipSounds[RandomNumberGenerator() & 1]);
                 }
             }
 
-            param_0->unk_53D_2 = 1;
-            if ((temp_r6->unk_4F4.unk_4F4_32 & 0x20) == 0)
+            entity->roomActive = 1;
+            if ((owner->unk_4F4.whole & 0x20) == 0)
             {
-                gEwramData->unk_13110.unk_1311C[temp_r6->unk_50C.unk_50C_8.unk_50C] = 0;
-                EntityDelete(param_0);
+                gEwramData->playerState.weaponEntities[owner->unk_50C.part8.unk_50C] = 0;
+                EntityDelete(entity);
                 break;
             }
 
-            param_0->unk_524.unk_524_32 = temp_r6->unk_524.unk_524_32;
-            param_0->unk_528.unk_528_32 = temp_r6->unk_528.unk_528_32;
-            param_0->unk_53C_6 = temp_r6->unk_53C_6 ^ 1;
+            entity->posX.whole = owner->posX.whole;
+            entity->posY.whole = owner->posY.whole;
+            entity->flipX = owner->flipX ^ 1;
 
-            var_0 = temp_r6->unk_548;
-            if (gEwramData->unk_10170[temp_r6->unk_548].unk_C->var_4[temp_r6->unk_549].unk_4 == 2)
+            spriteSlot = owner->spriteSlot;
+            if (gEwramData->spriteSlots[owner->spriteSlot].sheet->frames[owner->animFrame].boxCount == 2)
             {
-                sub_08042848(param_0, gEwramData->unk_10170[temp_r6->unk_548].unk_C->var_4[temp_r6->unk_549].unk_8 + 4);
-                param_0->unk_554.unk_556 &= ~2;
+                // Next 4-byte record (+4 bytes in the original); the draft predates unk_8 becoming a typed pointer.
+                HitBox_SetAttack(entity, gEwramData->spriteSlots[owner->spriteSlot].sheet->frames[owner->animFrame].boxes + 1);
+                entity->hit.flags &= ~2;
             }
             else
             {
-                param_0->unk_554.unk_556 |= 2;
+                entity->hit.flags |= 2;
             }
             break;
     }
 }
 
 /**
- * @brief 2326C | To document
- * 
- * @param param_0 To document
+ * @brief Create the whip strike hit entity in playerState.weaponEntities[slot]
+ * with owner and facing, and return it.
  */
-struct EwramData_EntityData* sub_0802326C(struct EwramData_EntityData *param_0)
+struct EwramData_EntityData* Julius_CreateWhipAttackEntity(struct EwramData_EntityData *entity)
 {
-    gEwramData->unk_13110.unk_1311C[param_0->unk_50C.unk_50C_8.unk_50C] = EntityCreateInRange(2, 0x10, (u32 *) sub_08023144);
+    gEwramData->playerState.weaponEntities[entity->unk_50C.part8.unk_50C] = EntityCreateInRange(2, 0x10, (u32 *) JuliusWhipAttack_Update);
 
-    if (gEwramData->unk_13110.unk_1311C[param_0->unk_50C.unk_50C_8.unk_50C] != NULL)
+    if (gEwramData->playerState.weaponEntities[entity->unk_50C.part8.unk_50C] != NULL)
     {
-        gEwramData->unk_13110.unk_1311C[param_0->unk_50C.unk_50C_8.unk_50C]->unk_4F8.unk_4F8_entity = param_0;
-        gEwramData->unk_13110.unk_1311C[param_0->unk_50C.unk_50C_8.unk_50C]->unk_53C_6 = param_0->unk_53C_6;
-        gEwramData->unk_13110.unk_1311C[param_0->unk_50C.unk_50C_8.unk_50C]->unk_53D_1 = 1;
-        gEwramData->unk_13110.unk_1311C[param_0->unk_50C.unk_50C_8.unk_50C]->unk_53D_2 = 1;
+        gEwramData->playerState.weaponEntities[entity->unk_50C.part8.unk_50C]->unk_4F8.unk_4F8_entity = entity;
+        gEwramData->playerState.weaponEntities[entity->unk_50C.part8.unk_50C]->flipX = entity->flipX;
+        gEwramData->playerState.weaponEntities[entity->unk_50C.part8.unk_50C]->scrollWithBg = 1;
+        gEwramData->playerState.weaponEntities[entity->unk_50C.part8.unk_50C]->roomActive = 1;
     }
 
-    return gEwramData->unk_13110.unk_1311C[param_0->unk_50C.unk_50C_8.unk_50C];
+    return gEwramData->playerState.weaponEntities[entity->unk_50C.part8.unk_50C];
 }
 
-extern struct Unk_08023368 sUnk_084F1270;
-extern struct Unk_08023368 sUnk_08505D3C[];
+extern struct WeaponInfo sUnarmedWeaponInfo;
+extern struct WeaponInfo sWeaponInfo[];
 
-static inline struct Unk_08023368 *sub_08023368_inline_0(s32 equippedWeapon)
+static inline struct WeaponInfo *Weapon_GetInfoInline(s32 equippedWeapon)
 {
     if (equippedWeapon != 0xFF)
     {
-        return &sUnk_08505D3C[equippedWeapon];
+        return &sWeaponInfo[equippedWeapon];
     }
-    return &sUnk_084F1270;
+    return &sUnarmedWeaponInfo;
 }
 
 /**
- * @brief 2330C | To document
- * 
- * @return struct Unk_08023368* To document
+ * @brief Return the weapon table entry for id, or the bare-hand entry
+ * sUnarmedWeaponInfo for 0xFF.
  */
-struct Unk_08023368* sub_0802330C(u8 param_0)
+struct WeaponInfo* Weapon_GetInfo(u8 weaponId)
 {
-    if (param_0 != 0xFF)
+    if (weaponId != 0xFF)
     {
-        return &sUnk_08505D3C[param_0];
+        return &sWeaponInfo[weaponId];
     }
-    return &sUnk_084F1270;
+    return &sUnarmedWeaponInfo;
 }
 
 /**
  * @brief 23334 | To document
  * 
- * @return struct Unk_08023368* To document
+ * @return struct WeaponInfo* To document
  */
 
-struct Unk_08023368* sub_08023334(void)
+/**
+ * @brief Return Weapon_GetInfo of the equipped weapon.
+ */
+struct WeaponInfo* Weapon_GetEquippedInfo(void)
 {
-    return sub_08023368_inline_0(gEwramData->unk_1325C.equippedWeapon);
+    return Weapon_GetInfoInline(gEwramData->playerStatus.equippedWeapon);
 }
 
 /**
- * @brief 23368 | To document
- * 
- * @param param_0 To document
- * @return struct Unk_08023368* To document
+ * @brief Return the weapon info for attacker slot 0 (equipped weapon) or
+ * another slot (unk_133F2).
  */
-struct Unk_08023368* sub_08023368(s32 param_0)
+struct WeaponInfo* Weapon_GetAttackerInfo(s32 slot)
 {
-    if (param_0 == 0)
+    if (slot == 0)
     {
-        return sub_08023368_inline_0(gEwramData->unk_1325C.equippedWeapon);
+        return Weapon_GetInfoInline(gEwramData->playerStatus.equippedWeapon);
         
     }
-    return sub_08023368_inline_0(gEwramData->unk_133F2);
+    return Weapon_GetInfoInline(gEwramData->unk_133F2);
 }
 
-extern u8 *sUnk_084F1238[];
+extern u8 *sWeaponAttackAnims[];
 
 /**
- * @brief 233BC | To document
- * 
- * @param param_0 To document
- * @return u8 To document
+ * @brief Return the player animation for the equipped weapon from table
+ * sWeaponAttackAnims[pose]: poses 0..2 (standing, crouching, airborne)
+ * also depend on info attackVariant; other poses only on the weapon type.
  */
-u8 sub_080233BC(s32 param_0)
+u8 Weapon_GetPlayerAttackAnim(s32 attackType)
 {
-    struct Unk_08023368 *var_r2;
-    u8 *temp_r3;
+    struct WeaponInfo *attackerInfo;
+    u8 *anims;
     u8 temp_r1;
 
-    var_r2 = sub_08023368_inline_0(gEwramData->unk_1325C.equippedWeapon);
+    attackerInfo = Weapon_GetInfoInline(gEwramData->playerStatus.equippedWeapon);
 
-    temp_r3 = sUnk_084F1238[param_0];
-    if (var_r2 == NULL)
+    anims = sWeaponAttackAnims[attackType];
+    if (attackerInfo == NULL)
     {
-        return *temp_r3;
+        return *anims;
     }
 
-    if (param_0 <= 2)
+    if (attackType <= 2)
     {
-        return temp_r3[(var_r2->unk_8 * 3) + var_r2->unk_16];
+        return anims[(attackerInfo->attackAnimKind * 3) + attackerInfo->attackVariant];
     }
     else
     {
-        return temp_r3[var_r2->unk_8];
+        return anims[attackerInfo->attackAnimKind];
     }
 }
 
 /**
- * @brief 23424 | To document
- * 
- * @return s32 To document
+ * @brief Return equipped weapon flag 0x2000; when set, landing keeps the
+ * attack flags 0x20/0x40 instead of clearing them.
  */
-s32 sub_08023424(void)
+s32 Weapon_KeepsAttackOnLanding(void)
 {
-    struct Unk_08023368 *var_r0;
+    struct WeaponInfo *attackerInfo;
 
-    var_r0 = sub_08023368_inline_0(gEwramData->unk_1325C.equippedWeapon);
-    if (var_r0 != NULL)
+    attackerInfo = Weapon_GetInfoInline(gEwramData->playerStatus.equippedWeapon);
+    if (attackerInfo != NULL)
     {
-        return var_r0->unk_10 & 0x2000;
+        return attackerInfo->attackAttributes & 0x2000;
         
     }
     return 0;
 }
 
 /**
- * @brief 2346C | To document
- * 
- * @param param_0 (Unused) To document
- * @param param_1 To document
+ * @brief Hit callback of melee attack entities: set player contact flag
+ * 0x80000 (used by the dive-attack rebound), restricted to the
+ * selected target when gameState.linkPlay is set.
  */
-void sub_0802346C(struct EwramData_EntityData *param_0, struct EwramData_EntityData *param_1)
+void WeaponAttack_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker)
 {
-    if (!(gEwramData->unk_60.unk_4CC_6) || (param_1 == gEwramData->unk_13110.unk_13220))
+    if (!(gEwramData->gameState.linkPlay) || (attacker == gEwramData->playerState.selectedTarget))
     {
-        gEwramData->unk_13110.unk_13110->unk_4F4.unk_4F4_32 |= 0x80000;
+        gEwramData->playerState.player->unk_4F4.whole |= 0x80000;
     }
 }
 
 /**
- * @brief 234B0 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
+ * @brief Gun hit callback: disable further hits, mark the shot as stopped
+ * and set the player contact flag as WeaponAttack_OnHit.
  */
-void sub_080234B0(struct EwramData_EntityData *param_0, struct EwramData_EntityData *param_1)
+void WeaponGun_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker)
 {
-    param_0->unk_554.unk_556 |= 2;
-    param_0->unk_500.unk_500_32 = 1;
+    entity->hit.flags |= 2;
+    entity->unk_500.whole = 1;
 
-    if (!(gEwramData->unk_60.unk_4CC_6) || (param_1 == gEwramData->unk_13110.unk_13220))
+    if (!(gEwramData->gameState.linkPlay) || (attacker == gEwramData->playerState.selectedTarget))
     {
-        gEwramData->unk_13110.unk_13110->unk_4F4.unk_4F4_32 |= 0x80000;
+        gEwramData->playerState.player->unk_4F4.whole |= 0x80000;
     }
 }
 
 /**
- * @brief 23508 | To document
- * 
- * @param param_0 To document
+ * @brief Draw the gun sprite at the owner position offset by velY,
+ * restoring the extended hit position afterwards.
  */
-void sub_08023508(struct EwramData_EntityData *param_0)
+void WeaponGun_Draw(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *temp_r1;
-    s32 temp_r5;
-    s32 temp_r6;
+    struct EwramData_EntityData *owner;
+    s32 oldX;
+    s32 oldY;
 
-    temp_r1 = param_0->unk_4F8.unk_4F8_entity;
-    temp_r5 = param_0->unk_524.unk_524_32;
-    temp_r6 = param_0->unk_528.unk_528_32;
+    owner = entity->unk_4F8.unk_4F8_entity;
+    oldX = entity->posX.whole;
+    oldY = entity->posY.whole;
 
-    param_0->unk_524.unk_524_32 = temp_r1->unk_524.unk_524_32;
-    param_0->unk_528.unk_528_32 = temp_r1->unk_528.unk_528_32 + param_0->unk_530.unk_530_32;
-    sub_0803B9D0(param_0);
+    entity->posX.whole = owner->posX.whole;
+    entity->posY.whole = owner->posY.whole + entity->velY.whole;
+    Sprite_DrawEntity(entity);
 
-    param_0->unk_524.unk_524_32 = temp_r5;
-    param_0->unk_528.unk_528_32 = temp_r6;
+    entity->posX.whole = oldX;
+    entity->posY.whole = oldY;
 }
 
-static inline s8 sub_08023530_inline_0()
+static inline s8 RedSoul_FindFreeSlot()
 {
-    s8 var_r1;
+    s8 i;
 
-    for (var_r1 = 0; var_r1 < 8; var_r1++)
+    for (i = 0; i < 8; i++)
     {
-        if (gEwramData->unk_13110.activeRedSoulEntities[var_r1] == NULL)
+        if (gEwramData->playerState.activeRedSoulEntities[i] == NULL)
         {
-            return var_r1;
+            return i;
         }
     }
     return -1;
 }
 
 /**
- * @brief 23530 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @return struct EwramData_EntityData* To document
+ * @brief Create a red soul entity with the given update in slots 2..0x10 and
+ * register it in the first free active red soul slot (owner, slot index,
+ * count); NULL when no entity or list slot is free.
  */
-struct EwramData_EntityData* sub_08023530(struct EwramData_EntityData *param_0, u32 *param_1)
+struct EwramData_EntityData* RedSoul_CreateEntity(struct EwramData_EntityData *owner, u32 *update)
 {
-    struct EwramData_EntityData *temp_r0;
-    s8 var_r0;
+    struct EwramData_EntityData *entity;
+    s8 slot;
 
-    temp_r0 = EntityCreateInRange(2, 0x10, param_1);
-    if (temp_r0 == NULL)
+    entity = EntityCreateInRange(2, 0x10, update);
+    if (entity == NULL)
     {
         return NULL;
     }
 
-    var_r0 = sub_08023530_inline_0();
-    if (var_r0 < 0)
+    slot = RedSoul_FindFreeSlot();
+    if (slot < 0)
     {
-        EntityDelete(temp_r0);
+        EntityDelete(entity);
         return NULL;
     }
 
-    gEwramData->unk_13110.activeRedSoulEntities[var_r0] = temp_r0;
-    temp_r0->unk_4F8.unk_4F8_entity = param_0;
-    temp_r0->unk_4FC.unk_4FC_16.unk_4FE[0] = var_r0;
-    temp_r0->unk_53D_2 = 1;
-    temp_r0->unk_53D_1 = 1;
-    gEwramData->unk_13110.nbrActiveRedSoulEntities += 1;
-    return temp_r0;
+    gEwramData->playerState.activeRedSoulEntities[slot] = entity;
+    entity->unk_4F8.unk_4F8_entity = owner;
+    entity->unk_4FC.part16.unk_4FE[0] = slot;
+    entity->roomActive = 1;
+    entity->scrollWithBg = 1;
+    gEwramData->playerState.nbrActiveRedSoulEntities += 1;
+    return entity;
 }
 
 /**
- * @brief 235C8 | To document
- * 
+ * @brief Delete every active red soul entity (freeing affine slots) and clear the
+ * list; end a running time stop (timeStopTimer) and restore its sounds; reset the
+ * tracked sounds, the red soul count and enemyTarget, and for Soma end an
+ * active soul-use substate.
  */
-void sub_080235C8(void)
+void RedSoul_CancelAll(void)
 {
-    s8 var_r2;
-    struct EwramData_EntityData *temp_r4;
+    s8 i;
+    struct EwramData_EntityData *soul;
 
-    for (var_r2 = 0; var_r2 < 8; var_r2++)
+    for (i = 0; i < 8; i++)
     {
-        temp_r4 = gEwramData->unk_13110.activeRedSoulEntities[var_r2];
-        if (temp_r4 != NULL)
+        soul = gEwramData->playerState.activeRedSoulEntities[i];
+        if (soul != NULL)
         {
-            if (temp_r4->updateFunc != NULL)
+            if (soul->updateFunc != NULL)
             {
-                if (temp_r4->unk_53C_0 || temp_r4->unk_53D_4)
+                if (soul->affineIndex || soul->affine)
                 {
-                    sub_0803E6BC(temp_r4->unk_53C_0);
+                    ObjAffine_Free(soul->affineIndex);
                 }
-                EntityDelete(temp_r4);
+                EntityDelete(soul);
             }
-            gEwramData->unk_13110.activeRedSoulEntities[var_r2] = 0;
+            gEwramData->playerState.activeRedSoulEntities[i] = 0;
         }
     }
 
-    if (gEwramData->unk_12FE4 != 0)
+    if (gEwramData->paletteInvert != 0)
     {
-        gEwramData->unk_12FE4 = 1;
+        gEwramData->paletteInvert = 1;
     }
 
-    if (gEwramData->unk_60.unk_4BE != 0)
+    if (gEwramData->gameState.timeStopTimer != 0)
     {
-        gEwramData->unk_60.unk_4BE = 0;
-        if (!(gEwramData->unk_60.unk_42C & 0x40000))
+        gEwramData->gameState.timeStopTimer = 0;
+        if (!(gEwramData->gameState.stateFlags & 0x40000))
         {
             PlaySong(0x1038);
         }
-        sub_08013E74();
+        Sound_ResumeAndReplayTracked();
 
-        if (gEwramData->unk_254CC != 0)
+        if (gEwramData->musicOverrideSong != 0)
         {
-            PlaySong(gEwramData->unk_254CC);
+            PlaySong(gEwramData->musicOverrideSong);
         }
 
-        if (gEwramData->unk_254CE != 0)
+        if (gEwramData->specialRoomSong != 0)
         {
-            PlaySong(gEwramData->unk_254CE);
+            PlaySong(gEwramData->specialRoomSong);
         }
-        sub_08013E18(0x16E);
+        Sound_StopTracked(0x16E);
     }
 
-    sub_08013D30();
-    gEwramData->unk_13110.unk_13168 = gEwramData->unk_13110.unk_13110;
-    gEwramData->unk_13110.nbrActiveRedSoulEntities = 0;
-    sub_0802215C();
+    Sound_ClearTracked();
+    gEwramData->playerState.enemyTarget = gEwramData->playerState.player;
+    gEwramData->playerState.nbrActiveRedSoulEntities = 0;
+    Player_ResetContactImmunity();
 
-    if (gEwramData->unk_1325C.currentCharacter == 0)
+    if (gEwramData->playerStatus.currentCharacter == 0)
     {
-        if ((gEwramData->unk_13110.unk_13110->unk_4EE == 2) && (gEwramData->unk_13110.unk_13110->unk_4EF != 0))
+        if ((gEwramData->playerState.player->state == 2) && (gEwramData->playerState.player->subState != 0))
         {
-            gEwramData->unk_13110.unk_13110->unk_4EF = gEwramData->unk_1325C.currentCharacter;
-            gEwramData->unk_13110.unk_13110->unk_4F4.unk_4F4_32 |= 0x200000;
-            gEwramData->unk_13110.unk_13110->unk_4F4.unk_4F4_32 &= ~0x100;
+            gEwramData->playerState.player->subState = gEwramData->playerStatus.currentCharacter;
+            gEwramData->playerState.player->unk_4F4.whole |= 0x200000;
+            gEwramData->playerState.player->unk_4F4.whole &= ~0x100;
         }
     }
 }
 
-static inline s32 sub_08023724_inline_0()
+static inline s32 RedSoul_NoneActive()
 {
-    s32 var_r1;
+    s32 noneActive;
 
-    if ((gEwramData->unk_13110.nbrActiveRedSoulEntities == 0) && (gEwramData->unk_13110.activeRedSoulEntities[0] == NULL))
+    if ((gEwramData->playerState.nbrActiveRedSoulEntities == 0) && (gEwramData->playerState.activeRedSoulEntities[0] == NULL))
     {
-        var_r1 = 1;
+        noneActive = 1;
     }
     else
     {
-        var_r1 = 0;
+        noneActive = 0;
     }
-    return var_r1;
+    return noneActive;
 }
 
 /**
- * @brief 23724 | To document
- * 
- * @param param_0 To document
+ * @brief Shift the 8-entry history, record the source soul position and
+ * frame, and show the entry selected by subState. Delete when no red
+ * soul is active or the source slot is empty.
  */
-void sub_08023724(struct EwramData_EntityData *param_0)
+void RedSoulTrail_Update(struct EwramData_EntityData *entity)
 {
-    u16 *temp_r6;
-    struct EwramData_EntityData *temp_r5;
-    u8 *temp_r7;
-    s32 var_r1;
-    s32 var_r3;
-    struct EwramData_unkA078 *temp_r2;
-    s32 var_0;
-    s32 var_1;
+    u16 *posHistory;
+    struct EwramData_EntityData *source;
+    u8 *frameHistory;
+    s32 noneActive;
+    s32 i;
+    struct BgLayerState *bg;
+    s32 histX;
+    s32 curState;
 
     // TODO: what is happening with these fields?
-    temp_r6 = &param_0->unk_4F8.unk_4F8_16.unk_4F8;
-    temp_r5 = gEwramData->unk_13110.activeRedSoulEntities[param_0->unk_4F0];
-    temp_r7 = &param_0->unk_52C.unk_52C_8.unk_52C;
+    posHistory = &entity->unk_4F8.part16.unk_4F8;
+    source = gEwramData->playerState.activeRedSoulEntities[entity->stage];
+    frameHistory = &entity->velX.part8.fraction0;
 
-    var_r1 = sub_08023724_inline_0();
-    if ((var_r1 != 0) || (gEwramData->unk_13110.activeRedSoulEntities[param_0->unk_4F0] == NULL))
+    noneActive = RedSoul_NoneActive();
+    if ((noneActive != 0) || (gEwramData->playerState.activeRedSoulEntities[entity->stage] == NULL))
     {
-        EntityDelete(param_0);
+        EntityDelete(entity);
         return;
     }
 
-    var_1 = param_0->unk_4EE;
-    if (var_1 == 0)
+    curState = entity->state;
+    if (curState == 0)
     {
-        param_0->drawFunc = (u32*) sub_0803B9D0;
-        param_0->unk_4EE += 1;
+        entity->drawFunc = (u32*) Sprite_DrawEntity;
+        entity->state += 1;
     }
 
-    for (var_r3 = 7; var_r3 > 0; var_r3--)
+    for (i = 7; i > 0; i--)
     {
-        temp_r7[var_r3 * 1 + 0] = temp_r7[var_r3 * 1 - 1];
+        frameHistory[i * 1 + 0] = frameHistory[i * 1 - 1];
 
-        temp_r6[var_r3 * 2 + 0] = temp_r6[var_r3 * 2 - 2];
-        temp_r6[var_r3 * 2 + 1] = temp_r6[var_r3 * 2 - 1];
+        posHistory[i * 2 + 0] = posHistory[i * 2 - 2];
+        posHistory[i * 2 + 1] = posHistory[i * 2 - 1];
     }
 
-    temp_r6[0] = GetEntityRoomXPositionInteger(temp_r5);
-    temp_r6[1] = GetEntityRoomYPositionInteger(temp_r5);
-    temp_r7[0] = temp_r5->unk_549;
-    param_0->unk_549 = temp_r7[param_0->unk_4EF];
+    posHistory[0] = GetEntityRoomXPositionInteger(source);
+    posHistory[1] = GetEntityRoomYPositionInteger(source);
+    frameHistory[0] = source->animFrame;
+    entity->animFrame = frameHistory[entity->subState];
 
-    var_0 = temp_r6[param_0->unk_4EF * 2 + 0];
-    temp_r2 = &gEwramData->bgInfo[1];
-    param_0->unk_524.unk_524_16.unk_526 = temp_r6[param_0->unk_4EF * 2 + 0] - temp_r2->xPos.part16.integer;
-    param_0->unk_528.unk_528_16.unk_52A = temp_r6[param_0->unk_4EF * 2 + 1] - temp_r2->yPos.part16.integer;
+    histX = posHistory[entity->subState * 2 + 0];
+    bg = &gEwramData->bgInfo[1];
+    entity->posX.part16.integer = posHistory[entity->subState * 2 + 0] - bg->xPos.part16.integer;
+    entity->posY.part16.integer = posHistory[entity->subState * 2 + 1] - bg->yPos.part16.integer;
 }
 
 /**
- * @brief 2383C | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @return struct EwramData_EntityData* To document
+ * @brief Create a sprite copy of a red-soul entity that replays its room
+ * position and frame `delay` updates late from an 8-entry history,
+ * primed with the current state. Return NULL on failure.
  */
-struct EwramData_EntityData* sub_0802383C(struct EwramData_EntityData *param_0, u8 param_1)
+struct EwramData_EntityData* RedSoul_CreateTrailCopy(struct EwramData_EntityData *entity, u8 delay)
 {
-    s32 temp_r8;
-    u32 var_r5;
-    struct EwramData_EntityData *temp_r0;
-    struct EwramData_unk10170_C *temp_r4;
-    struct EwramData_unk10170_C *temp_r5;
-    u8 *var_0;
-    u8 *var_1;
+    s32 tileSlot;
+    u32 i;
+    struct EwramData_EntityData *trail;
+    struct SpriteSheet *sheet;
+    struct SpriteSheet *attachSheet;
+    u8 *frames;
+    u8 *spriteSlot;
 
-    temp_r8 = sub_0803B998(param_0);
-    var_1 = &param_0->unk_548;
-    temp_r4 = (gEwramData->unk_10170[*var_1].unk_C);
-    temp_r5 = temp_r4;
+    tileSlot = Sprite_GetTileSlot(entity);
+    spriteSlot = &entity->spriteSlot;
+    sheet = (gEwramData->spriteSlots[*spriteSlot].sheet);
+    attachSheet = sheet;
 
-    temp_r0 = EntityCreateInRange(0x49, 0xCF, (u32 *) sub_08023724);
-    if (temp_r0 == NULL)
+    trail = EntityCreateInRange(0x49, 0xCF, (u32 *) RedSoulTrail_Update);
+    if (trail == NULL)
     {
         return NULL;
     }
 
-    if (temp_r4 == NULL)
+    if (sheet == NULL)
     {
-        EntityDelete(temp_r0);
+        EntityDelete(trail);
         return NULL;
     }
 
-    sub_0803B924(temp_r0, (u8*)temp_r5, temp_r8, param_0->unk_53E_3);
-    temp_r0->unk_549 = param_0->unk_549;
-    temp_r0->unk_540 = param_0->unk_540 + 1;
-    var_0 = (u8*)&temp_r0->unk_52C;
+    Sprite_Attach(trail, (u8*)attachSheet, tileSlot, entity->palette);
+    trail->animFrame = entity->animFrame;
+    trail->spriteLayer = entity->spriteLayer + 1;
+    frames = (u8*)&trail->velX;
 
-    temp_r0->unk_53C_6 = param_0->unk_53C_6;
-    temp_r0->unk_4EF = param_1;
-    temp_r0->unk_4F0 = (u8) (u16) param_0->unk_4FC.unk_4FC_16.unk_4FE[0];
+    trail->flipX = entity->flipX;
+    trail->subState = delay;
+    trail->stage = (u8) (u16) entity->unk_4FC.part16.unk_4FE[0];
 
-    for (var_r5 = 7; var_r5 > 0; var_r5--)
+    for (i = 7; i > 0; i--)
     {
-        var_0[var_r5] = param_0->unk_549;
-        ((u16*)&temp_r0->unk_4F8.unk_4F8_16.unk_4F8)[var_r5 * 2] = GetEntityRoomXPositionInteger(param_0);
-        ((u16*)&temp_r0->unk_4F8.unk_4F8_16.unk_4FA)[var_r5 * 2] = GetEntityRoomYPositionInteger(param_0);
+        frames[i] = entity->animFrame;
+        ((u16*)&trail->unk_4F8.part16.unk_4F8)[i * 2] = GetEntityRoomXPositionInteger(entity);
+        ((u16*)&trail->unk_4F8.part16.unk_4FA)[i * 2] = GetEntityRoomYPositionInteger(entity);
     }
 
-    temp_r0->unk_53D_1 = 1;
-    return temp_r0;
+    trail->scrollWithBg = 1;
+    return trail;
 }
 
 /**
- * @brief 2393C | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Move the entity down in 8 px steps (up to five probes) onto the
+ * first floor. Return 1 when it landed and is not embedded, else 0.
  */
-s32 sub_0802393C(struct EwramData_EntityData *param_0)
+s32 Entity_DropToFloor(struct EwramData_EntityData *entity)
 {
-    s32 var_r6;
-    s32 var_sl;
-    s16 temp_r0;
-    s16 temp_r1_2;
-    s16 temp_r4;
-    s16 var_r1;
+    s32 i;
+    s32 found;
+    s16 push;
+    s16 roomY;
+    s16 roomX;
+    s16 y;
 
-    var_sl = 0;
-    temp_r4 = GetEntityRoomXPositionInteger(param_0);
-    var_r1 = GetEntityRoomYPositionInteger(param_0);
+    found = 0;
+    roomX = GetEntityRoomXPositionInteger(entity);
+    y = GetEntityRoomYPositionInteger(entity);
 
-    for (var_r6 = 0; var_r6 < 5; var_r6++)
+    for (i = 0; i < 5; i++)
     {
-        if ((temp_r0 = sub_08001D94(temp_r4, var_r1)) != 0)
+        if ((push = Collision_GetPushUp(roomX, y)) != 0)
         {
-            param_0->unk_528.unk_528_16.unk_52A += temp_r0;
-            var_sl = 1;
+            entity->posY.part16.integer += push;
+            found = 1;
             break;
         }
-        var_r1 += 8;
-        param_0->unk_528.unk_528_16.unk_52A += 8;
+        y += 8;
+        entity->posY.part16.integer += 8;
     }
 
-    temp_r1_2 = GetEntityRoomYPositionInteger(param_0);
-    if ((var_sl == 0) || (sub_08001D94(temp_r4, temp_r1_2) != 0))
+    roomY = GetEntityRoomYPositionInteger(entity);
+    if ((found == 0) || (Collision_GetPushUp(roomX, roomY) != 0))
     {
         return 0;
     }
@@ -2338,891 +2260,892 @@ s32 sub_0802393C(struct EwramData_EntityData *param_0)
 }
 
 /**
- * @brief 239E4 | To document
- * 
- * @param param_0 To document
+ * @brief Keep the owner soul entity at its hit target plus the stored offset
+ * (accelX/accelY). Delete when no red soul is active, the owner is
+ * gone or reused; when the target HP (unk_518) is not positive, set
+ * unk_508 to signal the owner instead.
  */
-void sub_080239E4(struct EwramData_EntityData *param_0)
+void RedSoulAnchor_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *temp_r4;
-    struct EwramData_EntityData *temp_r1;
-    s32 var_r5;
+    struct EwramData_EntityData *follower;
+    struct EwramData_EntityData *target;
+    s32 noneActive;
 
-    temp_r4 = param_0->unk_4F8.unk_4F8_entity;
-    temp_r1 = param_0->unk_504.unk_504_entity;
+    follower = entity->unk_4F8.unk_4F8_entity;
+    target = entity->unk_504.unk_504_entity;
     
-    if ((gEwramData->unk_13110.nbrActiveRedSoulEntities == 0) && (gEwramData->unk_13110.activeRedSoulEntities[0] == NULL))
+    if ((gEwramData->playerState.nbrActiveRedSoulEntities == 0) && (gEwramData->playerState.activeRedSoulEntities[0] == NULL))
     {
-        var_r5 = 1;
+        noneActive = 1;
     }
     else
     {
-        var_r5 = 0;
+        noneActive = 0;
     }
 
-    if ((var_r5 != 0) || (temp_r4->updateFunc == NULL) || (temp_r4->unk_4F4.unk_4F4_8.unk_4F4 != param_0->unk_4F4.unk_4F4_8.unk_4F4))
+    if ((noneActive != 0) || (follower->updateFunc == NULL) || (follower->unk_4F4.part8.unk_4F4 != entity->unk_4F4.part8.unk_4F4))
     {
-        EntityDelete(param_0);
+        EntityDelete(entity);
         return;
     }
 
-    if ((s16) temp_r1->unk_518.unk_518_16.unk_518 <= 0)
+    if ((s16) target->unk_518.part16.hp <= 0)
     {
-        param_0->unk_508.unk_508_8.unk_508 = 1;
+        entity->unk_508.part8.unk_508 = 1;
         return;
     }
-    temp_r4->unk_524.unk_524_16.unk_526 = temp_r1->unk_524.unk_524_16.unk_526 + param_0->unk_534.unk_534_16.unk_536;
-    temp_r4->unk_528.unk_528_16.unk_52A = temp_r1->unk_528.unk_528_16.unk_52A + param_0->unk_538.unk_538_16.unk_53A;
+    follower->posX.part16.integer = target->posX.part16.integer + entity->accelX.part16.integer;
+    follower->posY.part16.integer = target->posY.part16.integer + entity->accelY.part16.integer;
 }
 
-struct Unk_084F128C {
-    void *unk_0;
-    void *unk_4;
-    void *unk_8;
-    u8 unk_C;
+struct BladeSoulVariant {
+    void *graphics;
+    void *palette;
+    void *spriteSheet;
+    u8 animFrame;
     u8 unk_D;
-    u8 unk_E;
+    u8 paletteIndex;
     u8 unk_F;
 };
-extern struct Unk_084F128C sUnk_084F128C[];
+extern struct BladeSoulVariant sBladeSoulVariants[];
 
-static inline void SkillLoadGraphicsInline(struct EwramData_EntityData *param_0, u8 temp_r6, void *temp_r0_10, void *temp_r5, void *temp_r8)
+static inline void SkillLoadGraphicsInline(struct EwramData_EntityData *entity, u8 first, void *resource, void *palette, void *sheet)
 {
-    gEwramData->unk_13110.unk_131CC = sub_0803B800(temp_r0_10, 0x10000);
-    sub_0803C7B4(temp_r5, temp_r6, 1, 2);
-    sub_0803B924(param_0, temp_r8, gEwramData->unk_13110.unk_131CC, 2);
+    gEwramData->playerState.redSoulGfx = ObjGfx_LoadResource(resource, 0x10000);
+    ObjPalette_LoadRange(palette, first, 1, 2);
+    Sprite_Attach(entity, sheet, gEwramData->playerState.redSoulGfx, 2);
 }
 
 /**
  * @brief 23A70 | To document
  * 
- * @param param_0 To document
+ * @param entity To document
  */
-void Skill_EvilButcher_Ripper_Use(struct EwramData_EntityData *param_0)
+void Skill_EvilButcher_Ripper_Use(struct EwramData_EntityData *entity)
 {
-    s32 var_r0_2;
-    struct EwramData_EntityData *temp_r1_2;
-    struct EwramData_EntityData *temp_r3;
-    struct Unk_084F128C *temp_r0;
-    u16 temp_r0_3;
-    s16 temp_r3_2;
-    s16 temp_r4_2;
-    struct EwramData_EntityData *temp_r2_9;
+    s32 push;
+    struct EwramData_EntityData *anchor;
+    struct EwramData_EntityData *owner;
+    struct BladeSoulVariant *info;
+    u16 affineIndex;
+    s16 roomY;
+    s16 roomX;
+    struct EwramData_EntityData *target;
 
-    temp_r0 = &sUnk_084F128C[(u16)param_0->unk_500.unk_500_16.unk_502];
+    info = &sBladeSoulVariants[(u16)entity->unk_500.part16.unk_502];
 
-    switch (param_0->unk_4EE)
+    switch (entity->state)
     {
         case 0:
-            SkillLoadGraphicsInline(param_0, temp_r0->unk_E, temp_r0->unk_0, temp_r0->unk_4, temp_r0->unk_8);
-            param_0->unk_549 = temp_r0->unk_C;
-            if ((u16) param_0->unk_500.unk_500_16.unk_502 == 0)
+            SkillLoadGraphicsInline(entity, info->paletteIndex, info->graphics, info->palette, info->spriteSheet);
+            entity->animFrame = info->animFrame;
+            if ((u16) entity->unk_500.part16.unk_502 == 0)
             {
-                sub_08042A54(1, 0xA);
+                Hit_SetTimerOverride(1, 0xA);
             }
             else
             {
-                sub_08042A54(1, 0x14);
+                Hit_SetTimerOverride(1, 0x14);
             }
-            temp_r0_3 = sub_0803E654(0);
-            if ((s32) (temp_r0_3 << 0x10) < 0)
+            affineIndex = ObjAffine_Alloc(0);
+            if ((s32) (affineIndex << 0x10) < 0)
             {
-                gEwramData->unk_13110.activeRedSoulEntities[param_0->unk_4FC.unk_4FC_16.unk_4FE[0]] = NULL;
-                EntityDelete(param_0);
+                gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+                EntityDelete(entity);
                 return;
             }
-            param_0->drawFunc = (u32 *) sub_0803B9D0;
-            param_0->unk_540 = 0xD;
-            param_0->unk_53C_0 = temp_r0_3;
-            param_0->unk_53D_4 = 1;
-            temp_r3 = param_0->unk_4F8.unk_4F8_entity;
-            param_0->unk_524.unk_524_16.unk_526 = temp_r3->unk_524.unk_524_16.unk_526;
-            param_0->unk_528.unk_528_16.unk_52A = (u16) temp_r3->unk_528.unk_528_16.unk_52A + 0xFFE6;
-            param_0->unk_53D_1 = 1;
-            param_0->unk_4EE += 1;
-            param_0->unk_53C_6 = temp_r3->unk_53C_6 == 1;
-            sub_0803E058(0, 0x10000, 0x10000, param_0->unk_53C_6, 0, param_0->unk_53C_0);
-            if (param_0->unk_53C_6)
+            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->spriteLayer = 0xD;
+            entity->affineIndex = affineIndex;
+            entity->affine = 1;
+            owner = entity->unk_4F8.unk_4F8_entity;
+            entity->posX.part16.integer = owner->posX.part16.integer;
+            entity->posY.part16.integer = (u16) owner->posY.part16.integer + 0xFFE6;
+            entity->scrollWithBg = 1;
+            entity->state += 1;
+            entity->flipX = owner->flipX == 1;
+            ObjAffine_Set(0, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
+            if (entity->flipX)
             {
-                param_0->unk_52C.unk_52C_32 = -0x60000;
+                entity->velX.whole = -0x60000;
             }
             else
             {
-                param_0->unk_52C.unk_52C_32 = 0x60000;
+                entity->velX.whole = 0x60000;
             }
-            sub_0804277C(param_0, 5, sub_0802D9BC, 0);
-            sub_08042884(param_0, 0x0202FFFF);
-            param_0->unk_554.unk_556 |= 4;
+            Hit_Enable(entity, 5, RedSoul_AnchorToHitTargetTimed, 0);
+            HitBox_SetAttackRaw(entity, 0x0202FFFF);
+            entity->hit.flags |= 4;
             PlaySong(0xE6U);
-            gEwramData->unk_13110.nbrActiveRedSoulEntities += 1;
+            gEwramData->playerState.nbrActiveRedSoulEntities += 1;
             /* fallthrough */
         case 1:
-            temp_r1_2 = param_0->unk_504.unk_504_entity;
-            if (temp_r1_2 != NULL)
+            anchor = entity->unk_504.unk_504_entity;
+            if (anchor != NULL)
             {
-                if (temp_r1_2->unk_508.unk_508_8.unk_508 == 0)
+                if (anchor->unk_508.part8.unk_508 == 0)
                 {
-                    temp_r2_9 = temp_r1_2->unk_504.unk_504_entity;
-                    if (param_0->unk_508.unk_508_16.unk_50A++ > 20)
+                    target = anchor->unk_504.unk_504_entity;
+                    if (entity->unk_508.part16.unk_50A++ > 20)
                     {
-                        param_0->unk_4EE = 4;
+                        entity->state = 4;
                     }
-                    else if ((temp_r2_9->unk_554.unk_556 & 4) || ((u16) param_0->unk_500.unk_500_16.unk_502 == 0))
+                    else if ((target->hit.flags & 4) || ((u16) entity->unk_500.part16.unk_502 == 0))
                     {
-                        param_0->unk_4EE = 4;
+                        entity->state = 4;
                     }
                     else
                     {
-                        param_0->unk_4F1 -= 1;
-                        if (param_0->unk_4F1 == 0)
+                        entity->timer -= 1;
+                        if (entity->timer == 0)
                         {
-                            param_0->unk_554.unk_556 |= 2;
-                            param_0->unk_4EE = 3;
-                            param_0->unk_4F1 = 15;
+                            entity->hit.flags |= 2;
+                            entity->state = 3;
+                            entity->timer = 15;
                         }
                         goto block_33;
                     }
                 }
                 else
                 {
-                    param_0->unk_4EE = 4;
+                    entity->state = 4;
                     goto block_33;
                 }
             }
             else
             {
-                param_0->unk_524.unk_524_32 += param_0->unk_52C.unk_52C_32;
-                temp_r4_2 = GetEntityRoomXPositionInteger(param_0);
-                temp_r3_2 = GetEntityRoomYPositionInteger(param_0);
-                if (param_0->unk_53C_6)
+                entity->posX.whole += entity->velX.whole;
+                roomX = GetEntityRoomXPositionInteger(entity);
+                roomY = GetEntityRoomYPositionInteger(entity);
+                if (entity->flipX)
                 {
-                    var_r0_2 = sub_0800207C(temp_r4_2 - 6, temp_r3_2);
+                    push = Collision_GetPushRight(roomX - 6, roomY);
                 }
                 else
                 {
-                    var_r0_2 = sub_08002058(temp_r4_2 + 6, temp_r3_2);
+                    push = Collision_GetPushLeft(roomX + 6, roomY);
                 }
-                if (var_r0_2 != 0)
+                if (push != 0)
                 {
-                    param_0->unk_524.unk_524_32 += var_r0_2 << 0x10;
-                    param_0->unk_4F1 = 50;
-                    param_0->unk_554.unk_556 |= 2;
-                    if (temp_r0->unk_F == 0)
+                    entity->posX.whole += push << 0x10;
+                    entity->timer = 50;
+                    entity->hit.flags |= 2;
+                    if (info->unk_F == 0)
                     {
                         PlaySong(0x138);
-                        param_0->unk_4EE = 2;
+                        entity->state = 2;
                     }
                     else
                     {
-                        param_0->unk_4EE = 3;
+                        entity->state = 3;
                     }
-                    if (param_0->unk_53C_6)
+                    if (entity->flipX)
                     {
-                        param_0->unk_52C.unk_52C_32 = 0x18000;
+                        entity->velX.whole = 0x18000;
                     }
                     else
                     {
-                        param_0->unk_52C.unk_52C_32 = -0x18000;
+                        entity->velX.whole = -0x18000;
                     }
-                    param_0->unk_530.unk_530_32 = -0x20000;
-                    param_0->unk_538.unk_538_32 = 0x2000;
+                    entity->velY.whole = -0x20000;
+                    entity->accelY.whole = 0x2000;
                 }
 block_33:
-                if ((sub_0806D128(param_0, 4) != 0) || !(param_0->unk_53D_2))
+                if ((EntityIsOutsideScreen(entity, 4) != 0) || !(entity->roomActive))
                 {
-                    param_0->unk_53D_2 = 1;
-                    param_0->unk_53C_5 = 1;
-                    param_0->unk_4EE = 4;
+                    entity->roomActive = 1;
+                    entity->hidden = 1;
+                    entity->state = 4;
                 }
             }
             break;
 
         case 2:
-            param_0->unk_524.unk_524_32 += param_0->unk_52C.unk_52C_32;
-            param_0->unk_528.unk_528_32 += param_0->unk_530.unk_530_32;
-            param_0->unk_530.unk_530_32 += param_0->unk_538.unk_538_32;
-            sub_0803E058((param_0->unk_508.unk_508_16.unk_508 << 0x10) / 20, 0x10000, 0x10000, param_0->unk_53C_6, 0, param_0->unk_53C_0);
-            if (param_0->unk_53C_6)
+            entity->posX.whole += entity->velX.whole;
+            entity->posY.whole += entity->velY.whole;
+            entity->velY.whole += entity->accelY.whole;
+            ObjAffine_Set((entity->unk_508.part16.unk_508 << 0x10) / 20, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
+            if (entity->flipX)
             {
-                param_0->unk_508.unk_508_16.unk_508 += 1;
+                entity->unk_508.part16.unk_508 += 1;
             }
             else
             {
-                param_0->unk_508.unk_508_16.unk_508 -= 1;
+                entity->unk_508.part16.unk_508 -= 1;
             }
             /* fallthrough */
         case 3:
-            if (param_0->unk_4F1 > 10)
+            if (entity->timer > 10)
             {
-                param_0->unk_4F3 = 1;
+                entity->drawSkip = 1;
             }
             else
             {
-                param_0->unk_4F3 = 2;
+                entity->drawSkip = 2;
             }
-            if (param_0->unk_4F1 != 0)
+            if (entity->timer != 0)
             {
-                param_0->unk_4F1 -= 1;
+                entity->timer -= 1;
                 break;
             }
             /* fallthrough */
         case 4:
-            sub_0803E6BC(param_0->unk_53C_0);
-            gEwramData->unk_13110.activeRedSoulEntities[param_0->unk_4FC.unk_4FC_16.unk_4FE[0]] = NULL;
-            gEwramData->unk_13110.nbrActiveRedSoulEntities -= 1;
-            EntityDelete(param_0);
+            ObjAffine_Free(entity->affineIndex);
+            gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+            gEwramData->playerState.nbrActiveRedSoulEntities -= 1;
+            EntityDelete(entity);
             return;
     }
 
-    param_0->unk_53D_2 = 1;
+    entity->roomActive = 1;
 }
 
-struct Unk_080E13BC {
-    void *unk_0;
-    void *unk_4;
-    void *unk_8;
+struct SoulGraphicsResources {
+    void *graphics;
+    void *palette;
+    void *spriteSheet;
 };
-extern struct Unk_080E13BC sUnk_080E13BC[];
+extern struct SoulGraphicsResources sSkillGraphicsSets[];
 
 /**
- * @brief 23E50 | To document
- * 
- * @param param_0 To document
+ * @brief Unreferenced red-soul projectile: thrown horizontally from the
+ * caster's head, spinning; it decelerates, turns back and accelerates up
+ * to 8 px/frame, and is freed off screen.
  */
-void sub_08023E50(struct EwramData_EntityData *param_0)
+void SkillBoomerangProjectileUpdate(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *temp_r4;
-    u16 temp_r0_2;
+    struct EwramData_EntityData *owner;
+    u16 affineIndex;
 
-    switch (param_0->unk_4EE)
+    switch (entity->state)
     {
         case 0:
-            SkillLoadGraphicsInline(param_0, 0, sUnk_080E13BC->unk_0, sUnk_080E13BC->unk_4, sUnk_080E13BC->unk_8);
-            sub_0803F2C8(param_0, (u16) param_0->unk_500.unk_500_16.unk_502, 0, 1);
-            if ((u16) param_0->unk_500.unk_500_16.unk_502 == 0)
+            SkillLoadGraphicsInline(entity, 0, sSkillGraphicsSets->graphics, sSkillGraphicsSets->palette, sSkillGraphicsSets->spriteSheet);
+            Anim_StartIndexed(entity, (u16) entity->unk_500.part16.unk_502, 0, 1);
+            if ((u16) entity->unk_500.part16.unk_502 == 0)
             {
-                sub_08042A54(1, 0xF);
+                Hit_SetTimerOverride(1, 0xF);
             }
             else
             {
-                sub_08042A54(1, 0x1E);
+                Hit_SetTimerOverride(1, 0x1E);
             }
-            temp_r0_2 = sub_0803E654(0);
-            if ((temp_r0_2 << 0x10) < 0)
+            affineIndex = ObjAffine_Alloc(0);
+            if ((affineIndex << 0x10) < 0)
             {
-                gEwramData->unk_13110.activeRedSoulEntities[param_0->unk_4FC.unk_4FC_16.unk_4FE[0]] = NULL;
-                EntityDelete(param_0);
+                gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+                EntityDelete(entity);
                 return;
             }
-            param_0->drawFunc = (u32 *) sub_0803B9D0;
-            param_0->unk_53C_0 = temp_r0_2;
-            param_0->unk_53D_4 = 1;
-            temp_r4 = param_0->unk_4F8.unk_4F8_entity;
-            param_0->unk_524.unk_524_16.unk_526 = temp_r4->unk_524.unk_524_16.unk_526;
-            param_0->unk_528.unk_528_16.unk_52A = (u16) temp_r4->unk_528.unk_528_16.unk_52A + 0xFFE6;
-            param_0->unk_53D_1 = 1;
-            param_0->unk_50C.unk_50C_16.unk_50E = 0;
-            param_0->unk_540 = 0xD;
-            param_0->unk_4EE += 1;
-            if (temp_r4->unk_53C_6)
+            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->affineIndex = affineIndex;
+            entity->affine = 1;
+            owner = entity->unk_4F8.unk_4F8_entity;
+            entity->posX.part16.integer = owner->posX.part16.integer;
+            entity->posY.part16.integer = (u16) owner->posY.part16.integer + 0xFFE6;
+            entity->scrollWithBg = 1;
+            entity->unk_50C.part16.unk_50E = 0;
+            entity->spriteLayer = 0xD;
+            entity->state += 1;
+            if (owner->flipX)
             {
-                param_0->unk_52C.unk_52C_32 = -0x34000;
-                param_0->unk_534.unk_534_32 = 0x1000;
-                param_0->unk_508.unk_508_16.unk_508 = -1;
+                entity->velX.whole = -0x34000;
+                entity->accelX.whole = 0x1000;
+                entity->unk_508.part16.unk_508 = -1;
             }
             else
             {
-                param_0->unk_52C.unk_52C_32 = 0x34000;
-                param_0->unk_534.unk_534_32 = -0x1000;
-                param_0->unk_508.unk_508_16.unk_508 = 1;
+                entity->velX.whole = 0x34000;
+                entity->accelX.whole = -0x1000;
+                entity->unk_508.part16.unk_508 = 1;
             }
-            sub_0804277C(param_0, 5, NULL, 0);
-            sub_08042884(param_0, 0x1414F6F6);
-            param_0->unk_554.unk_556 |= 4;
-            gEwramData->unk_13110.nbrActiveRedSoulEntities += 1;
+            Hit_Enable(entity, 5, NULL, 0);
+            HitBox_SetAttackRaw(entity, 0x1414F6F6);
+            entity->hit.flags |= 4;
+            gEwramData->playerState.nbrActiveRedSoulEntities += 1;
             /* fallthrough */
         case 1:
-            param_0->unk_524.unk_524_32 += param_0->unk_52C.unk_52C_32;
-            if ((param_0->unk_534.unk_534_32 < 0) && (param_0->unk_52C.unk_52C_32 > -0x80000))
+            entity->posX.whole += entity->velX.whole;
+            if ((entity->accelX.whole < 0) && (entity->velX.whole > -0x80000))
             {
-                param_0->unk_52C.unk_52C_32 += param_0->unk_534.unk_534_32;
+                entity->velX.whole += entity->accelX.whole;
             }
-            else if ((param_0->unk_534.unk_534_32 > 0) && (param_0->unk_52C.unk_52C_32 < 0x80000))
+            else if ((entity->accelX.whole > 0) && (entity->velX.whole < 0x80000))
             {
-                param_0->unk_52C.unk_52C_32 += param_0->unk_534.unk_534_32;
+                entity->velX.whole += entity->accelX.whole;
             }
-            sub_0803E058(param_0->unk_50C.unk_50C_16.unk_50E << 7, 0x10000, 0x10000, 0, 0, param_0->unk_53C_0);
-            param_0->unk_50C.unk_50C_16.unk_50E += param_0->unk_508.unk_508_16.unk_508;
-            if (sub_0806D128(param_0, 4) != 0)
+            ObjAffine_Set(entity->unk_50C.part16.unk_50E << 7, 0x10000, 0x10000, 0, 0, entity->affineIndex);
+            entity->unk_50C.part16.unk_50E += entity->unk_508.part16.unk_508;
+            if (EntityIsOutsideScreen(entity, 4) != 0)
             {
-                param_0->unk_4EE = 2;
+                entity->state = 2;
             }
-            param_0->unk_53D_2 = 1;
+            entity->roomActive = 1;
             break;
 
         case 2:
-            sub_0803E6BC(param_0->unk_53C_0);
-            gEwramData->unk_13110.activeRedSoulEntities[param_0->unk_4FC.unk_4FC_16.unk_4FE[0]] = NULL;
-            gEwramData->unk_13110.nbrActiveRedSoulEntities -= 1;
-            EntityDelete(param_0);
+            ObjAffine_Free(entity->affineIndex);
+            gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+            gEwramData->playerState.nbrActiveRedSoulEntities -= 1;
+            EntityDelete(entity);
             return;
     }
-    sub_0803F17C(param_0);
+    Anim_Update(entity);
 }
 
 /**
- * @brief 240A0 | To document
- * 
- * @param param_0 To document
+ * @brief Affine trail sprite created by SkillAxeArmorUse that copies the owner
+ * frame and follows its position history.
  */
-void sub_080240A0(struct EwramData_EntityData *param_0)
+void SkillAxeArmorTrailUpdate(struct EwramData_EntityData *entity)
 {
-    s32 var_r3;
-    struct EwramData_EntityData *temp_sb;
-    u16 *temp_r1;
-    u16 temp_r0;
-    struct EwramData_unkA078 *temp_r2;
-    s32 var_0;
+    s32 i;
+    struct EwramData_EntityData *owner;
+    u16 *history;
+    u16 affineIndex;
+    struct BgLayerState *bg;
+    s32 x;
 
-    temp_sb = param_0->unk_4F8.unk_4F8_entity;
-    temp_r1 = &param_0->unk_504.unk_504_16.unk_504;
+    owner = entity->unk_4F8.unk_4F8_entity;
+    history = &entity->unk_504.part16.unk_504;
 
-    switch (param_0->unk_4EE)
+    switch (entity->state)
     {
         case 0:
-            temp_r0 = sub_0803E654(0);
-            if ((temp_r0 << 0x10) < 0)
+            affineIndex = ObjAffine_Alloc(0);
+            if ((affineIndex << 0x10) < 0)
             {
-                gEwramData->unk_13110.activeRedSoulEntities[param_0->unk_4FC.unk_4FC_16.unk_4FE[0]] = NULL;
-                gEwramData->unk_13110.nbrActiveRedSoulEntities -= 1;
-                EntityDelete(param_0);
+                gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+                gEwramData->playerState.nbrActiveRedSoulEntities -= 1;
+                EntityDelete(entity);
                 return;
             }
 
-            SkillLoadGraphicsInline(param_0, 0, sUnk_080E13BC->unk_0, sUnk_080E13BC->unk_4, sUnk_080E13BC->unk_8);
-            param_0->unk_549 = temp_sb->unk_500.unk_500_16.unk_502;
-            param_0->drawFunc = (u32 *) sub_0803B9D0;
-            param_0->unk_53C_0 = temp_r0;
-            param_0->unk_53D_4 = 1;
-            param_0->unk_53E_1 = 1;
-            param_0->unk_524.unk_524_16.unk_526 = GetEntityRoomXPositionInteger(temp_sb);
+            SkillLoadGraphicsInline(entity, 0, sSkillGraphicsSets->graphics, sSkillGraphicsSets->palette, sSkillGraphicsSets->spriteSheet);
+            entity->animFrame = owner->unk_500.part16.unk_502;
+            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->affineIndex = affineIndex;
+            entity->affine = 1;
+            entity->objMode = 1;
+            entity->posX.part16.integer = GetEntityRoomXPositionInteger(owner);
 
-            for (var_r3 = 0; var_r3 < 10; var_r3++)
+            for (i = 0; i < 10; i++)
             {
-                temp_r1[var_r3] = param_0->unk_524.unk_524_16.unk_526;
+                history[i] = entity->posX.part16.integer;
             }
-            param_0->unk_4EE += 1;
+            entity->state += 1;
             /* fallthrough */
         case 1:
-            if (temp_sb->unk_4EE == 2)
+            if (owner->state == 2)
             {
-                sub_0803E6BC(param_0->unk_53C_0);
-                gEwramData->unk_13110.activeRedSoulEntities[param_0->unk_4FC.unk_4FC_16.unk_4FE[0]] = NULL;
-                gEwramData->unk_13110.nbrActiveRedSoulEntities -= 1;
-                EntityDelete(param_0);
+                ObjAffine_Free(entity->affineIndex);
+                gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+                gEwramData->playerState.nbrActiveRedSoulEntities -= 1;
+                EntityDelete(entity);
                 return;
             }
 
-            for (var_r3 = 9; var_r3 > 0; var_r3--)
+            for (i = 9; i > 0; i--)
             {
-                temp_r1[var_r3 + 0] = temp_r1[var_r3 - 1];
+                history[i + 0] = history[i - 1];
             }
-            temp_r1[0] = GetEntityRoomXPositionInteger(temp_sb);
+            history[0] = GetEntityRoomXPositionInteger(owner);
 
-            var_0 = temp_r1[param_0->unk_4EF];
-            temp_r2 = &gEwramData->bgInfo[1];
-            param_0->unk_524.unk_524_16.unk_526 = temp_r1[param_0->unk_4EF] - temp_r2->xPos.part16.integer;
-            param_0->unk_528.unk_528_16.unk_52A = temp_sb->unk_528.unk_528_16.unk_52A;
+            x = history[entity->subState];
+            bg = &gEwramData->bgInfo[1];
+            entity->posX.part16.integer = history[entity->subState] - bg->xPos.part16.integer;
+            entity->posY.part16.integer = owner->posY.part16.integer;
 
-            param_0->unk_52C.unk_52C_32 += param_0->unk_534.unk_534_32;
+            entity->velX.whole += entity->accelX.whole;
             break;
     }
 
-    param_0->unk_53D_2 = 1;
-    sub_0803E058(param_0->unk_52C.unk_52C_32, 0x10000, 0x10000, 0U, 0U, param_0->unk_53C_0);
+    entity->roomActive = 1;
+    ObjAffine_Set(entity->velX.whole, 0x10000, 0x10000, 0U, 0U, entity->affineIndex);
 }
 
 /**
  * @brief 24274 | To document
  * 
- * @param param_0 To document
+ * @param entity To document
  */
-void SkillAxeArmorUse(struct EwramData_EntityData *param_0)
+void SkillAxeArmorUse(struct EwramData_EntityData *entity)
 {
-    s32 var_r4;
-    struct EwramData_EntityData *temp_r0_4;
-    struct EwramData_EntityData *temp_r6_2;
-    u16 temp_r0_3;
+    s32 i;
+    struct EwramData_EntityData *child;
+    struct EwramData_EntityData *owner;
+    u16 affineIndex;
 
-    switch (param_0->unk_4EE)
+    switch (entity->state)
     {
         case 0:
-            SkillLoadGraphicsInline(param_0, 0, sUnk_080E13BC->unk_0, sUnk_080E13BC->unk_4, sUnk_080E13BC->unk_8);
-            param_0->unk_549 = param_0->unk_500.unk_500_16.unk_502;
-            if ((u16) param_0->unk_500.unk_500_16.unk_502 == 0)
+            SkillLoadGraphicsInline(entity, 0, sSkillGraphicsSets->graphics, sSkillGraphicsSets->palette, sSkillGraphicsSets->spriteSheet);
+            entity->animFrame = entity->unk_500.part16.unk_502;
+            if ((u16) entity->unk_500.part16.unk_502 == 0)
             {
-                sub_08042A54(1, 0xF);
+                Hit_SetTimerOverride(1, 0xF);
             }
             else
             {
-                sub_08042A54(1, 0x1E);
+                Hit_SetTimerOverride(1, 0x1E);
             }
 
-            temp_r0_3 = sub_0803E654(0);
-            if ((temp_r0_3 << 0x10) < 0)
+            affineIndex = ObjAffine_Alloc(0);
+            if ((affineIndex << 0x10) < 0)
             {
-                gEwramData->unk_13110.activeRedSoulEntities[param_0->unk_4FC.unk_4FC_16.unk_4FE[0]] = NULL;
-                EntityDelete(param_0);
+                gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+                EntityDelete(entity);
                 return;
             }
 
-            param_0->drawFunc = (u32 *) sub_0803B9D0;
-            param_0->unk_53C_0 = temp_r0_3;
-            param_0->unk_53D_4 = 1;
-            temp_r6_2 = param_0->unk_4F8.unk_4F8_entity;
-            param_0->unk_524.unk_524_16.unk_526 = temp_r6_2->unk_524.unk_524_16.unk_526;
-            param_0->unk_528.unk_528_16.unk_52A = (u16) temp_r6_2->unk_528.unk_528_16.unk_52A + 0xFFE6;
-            param_0->unk_53D_1 = 1;
-            param_0->unk_50C.unk_50C_16.unk_50E = 0;
-            param_0->unk_540 = 0xD;
-            param_0->unk_4EE += 1;
-            if (temp_r6_2->unk_53C_6)
+            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->affineIndex = affineIndex;
+            entity->affine = 1;
+            owner = entity->unk_4F8.unk_4F8_entity;
+            entity->posX.part16.integer = owner->posX.part16.integer;
+            entity->posY.part16.integer = (u16) owner->posY.part16.integer + 0xFFE6;
+            entity->scrollWithBg = 1;
+            entity->unk_50C.part16.unk_50E = 0;
+            entity->spriteLayer = 0xD;
+            entity->state += 1;
+            if (owner->flipX)
             {
-                param_0->unk_52C.unk_52C_32 = -0x34000;
-                param_0->unk_534.unk_534_32 = 0x1000;
-                param_0->unk_508.unk_508_16.unk_508 = -1;
+                entity->velX.whole = -0x34000;
+                entity->accelX.whole = 0x1000;
+                entity->unk_508.part16.unk_508 = -1;
             }
             else
             {
-                param_0->unk_52C.unk_52C_32 = 0x34000;
-                param_0->unk_534.unk_534_32 = -0x1000;
-                param_0->unk_508.unk_508_16.unk_508 = 1;
+                entity->velX.whole = 0x34000;
+                entity->accelX.whole = -0x1000;
+                entity->unk_508.part16.unk_508 = 1;
             }
 
-            sub_0804277C(param_0, 5, NULL, 0);
-            sub_08042884(param_0, 0x1414F6F6);
-            param_0->unk_554.unk_556 |= 4;
+            Hit_Enable(entity, 5, NULL, 0);
+            HitBox_SetAttackRaw(entity, 0x1414F6F6);
+            entity->hit.flags |= 4;
             PlaySong(0xE3);
-            gEwramData->unk_13110.nbrActiveRedSoulEntities += 1;
+            gEwramData->playerState.nbrActiveRedSoulEntities += 1;
 
-            for (var_r4 = 1; var_r4 < 3; var_r4++)
+            for (i = 1; i < 3; i++)
             {
-                temp_r0_4 = sub_08023530(param_0, (u32 *) sub_080240A0);
-                if (temp_r0_4 != NULL)
+                child = RedSoul_CreateEntity(entity, (u32 *) SkillAxeArmorTrailUpdate);
+                if (child != NULL)
                 {
-                    temp_r0_4->unk_524.unk_524_32 = param_0->unk_524.unk_524_32;
-                    temp_r0_4->unk_528.unk_528_32 = param_0->unk_528.unk_528_32;
-                    temp_r0_4->unk_534.unk_534_32 = 0x800;
-                    temp_r0_4->unk_4EF = var_r4 * 3;
-                    if (temp_r6_2->unk_53C_6)
+                    child->posX.whole = entity->posX.whole;
+                    child->posY.whole = entity->posY.whole;
+                    child->accelX.whole = 0x800;
+                    child->subState = i * 3;
+                    if (owner->flipX)
                     {
-                        temp_r0_4->unk_534.unk_534_32 = -temp_r0_4->unk_534.unk_534_32;
+                        child->accelX.whole = -child->accelX.whole;
                     }
-                    temp_r0_4->unk_52C.unk_52C_32 = -temp_r0_4->unk_534.unk_534_32 * temp_r0_4->unk_4EF;
-                    temp_r0_4->unk_540 = param_0->unk_540 + var_r4;
+                    child->velX.whole = -child->accelX.whole * child->subState;
+                    child->spriteLayer = entity->spriteLayer + i;
                 }
             }
             /* fallthrough */
         case 1:
-            param_0->unk_524.unk_524_32 += param_0->unk_52C.unk_52C_32;
-            if ((param_0->unk_534.unk_534_32 < 0) && (param_0->unk_52C.unk_52C_32 > -0x80000))
+            entity->posX.whole += entity->velX.whole;
+            if ((entity->accelX.whole < 0) && (entity->velX.whole > -0x80000))
             {
-                param_0->unk_52C.unk_52C_32 = param_0->unk_52C.unk_52C_32 + param_0->unk_534.unk_534_32;
+                entity->velX.whole = entity->velX.whole + entity->accelX.whole;
             }
-            else if ((param_0->unk_534.unk_534_32 > 0) && (param_0->unk_52C.unk_52C_32 < 0x80000))
+            else if ((entity->accelX.whole > 0) && (entity->velX.whole < 0x80000))
             {
-                param_0->unk_52C.unk_52C_32 = param_0->unk_52C.unk_52C_32 + param_0->unk_534.unk_534_32;
+                entity->velX.whole = entity->velX.whole + entity->accelX.whole;
             }
 
-            sub_0803E058(param_0->unk_50C.unk_50C_16.unk_50E << 0xB, 0x10000, 0x10000, 0, 0, param_0->unk_53C_0);
-            param_0->unk_50C.unk_50C_16.unk_50E += param_0->unk_508.unk_508_16.unk_508;
-            if (sub_0806D128(param_0, 4) != 0)
+            ObjAffine_Set(entity->unk_50C.part16.unk_50E << 0xB, 0x10000, 0x10000, 0, 0, entity->affineIndex);
+            entity->unk_50C.part16.unk_50E += entity->unk_508.part16.unk_508;
+            if (EntityIsOutsideScreen(entity, 4) != 0)
             {
-                param_0->unk_4EE = 2;
+                entity->state = 2;
             }
-            param_0->unk_53D_2 = 1;
+            entity->roomActive = 1;
             break;
 
         case 2:
-            if (param_0->unk_53C_0 || param_0->unk_53D_4)
+            if (entity->affineIndex || entity->affine)
             {
-                sub_0803E6BC(param_0->unk_53C_0);
+                ObjAffine_Free(entity->affineIndex);
             }
-            gEwramData->unk_13110.activeRedSoulEntities[param_0->unk_4FC.unk_4FC_16.unk_4FE[0]] = NULL;
-            gEwramData->unk_13110.nbrActiveRedSoulEntities -= 1;
-            EntityDelete(param_0);
+            gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+            gEwramData->playerState.nbrActiveRedSoulEntities -= 1;
+            EntityDelete(entity);
             break;
     }
 }
 
-static inline s16 sub_08024530_inline_0(s32 param_0, s32 param_1)
+/* Convert the target from 16.16 with truncation toward zero, then subtract
+ * the integer origin. Retain the explicit sign branches for agbcc matching. */
+static inline s16 ProjectileIntegerDelta(s32 targetFixed, s32 originInteger)
 {
-    s32 var_0;
+    s32 delta;
 
-    if (param_0 < 0)
+    if (targetFixed < 0)
     {
-        var_0 = -(-param_0 >> 0x10) - param_1;
+        delta = -(-targetFixed >> 0x10) - originInteger;
     }
     else
     {
-        var_0 = (param_0 >> 0x10) - param_1;
+        delta = (targetFixed >> 0x10) - originInteger;
     }
-    return var_0;
+    return delta;
 }
 
-static inline s32 CheckUnk_53C_6(struct EwramData_EntityData *param_0)
+static inline s32 CheckUnk_53C_6(struct EwramData_EntityData *entity)
 {
-    return param_0->unk_53C_6 == 0;
+    return entity->flipX == 0;
 }
 
 /**
- * @brief 24530 | To document
- * 
- * @param param_0 To document
+ * @brief Unreferenced: initialize, steer, move, and release a homing red-soul
+ * projectile.
  */
-void sub_08024530(struct EwramData_EntityData *param_0)
+void HomingSoulProjectile_Update(struct EwramData_EntityData *entity)
 {
-    u32 sp8;
-    s32 temp_r0_5;
-    s32 temp_r1_2;
-    s32 temp_r1_3;
-    s32 temp_r1_6;
-    s32 temp_r2_5;
-    s32 temp_r2_7;
-    s32 temp_r4_2;
-    s32 var_r0;
-    s32 var_r0_2;
-    s32 var_r0_4;
-    s32 var_r0_5;
-    s32 var_r2;
-    s32 var_r3;
-    s32 var_r4_2;
-    struct EwramData_EntityData *temp_r0_4;
-    struct EwramData_EntityData *temp_r1;
-    struct EwramData_EntityData *temp_r3;
-    struct EwramData_EntityData *var_r0_3;
-    struct EwramData_EntityData *var_r8;
-    struct Unk_080E13BC *temp_r1_4;
-    struct Unk_080E13BC *temp_r1_4_2;
-    u16 temp_r0_3;
-    s32 var_r4;
-    u32 temp_r2_6;
-    s32 var_4;
-    s32 var_5;
-    s32 var_6;
-    s32 var_7;
+    u32 nearestDistanceSquared;
+    s32 initialTargetX;
+    s32 angleDelta;
+    s32 moveY;
+    s32 candidateDy;
+    s32 candidateDx;
+    s32 initialTargetY;
+    s32 moveX;
+    s32 steeringDx;
+    s32 steeringComponent;
+    s32 initialDx;
+    s32 initialComponent;
+    s32 targetY;
+    s32 targetX;
+    s32 targetIndex;
+    struct EwramData_EntityData *owner;
+    struct EwramData_EntityData *target;
+    struct EwramData_EntityData *player;
+    struct EwramData_EntityData *selectedTarget;
+    struct EwramData_EntityData *nearestTarget;
+    struct SoulGraphicsResources *graphicsEntry;
+    struct SoulGraphicsResources *graphicsTable;
+    u16 affineSlot;
+    s32 angle;
+    u32 distanceSquared;
+    s32 cosine;
+    s32 speed;
+    s32 sine;
+    s32 collisionFlags;
 
-    switch (param_0->unk_4EE)
+    switch (entity->state)
     {
         case 0:
-            temp_r1_4_2 = sUnk_080E13BC; // Fake?
-            temp_r1_4 = &temp_r1_4_2[4];
-            SkillLoadGraphicsInline(param_0, 0, temp_r1_4->unk_0, temp_r1_4->unk_4, temp_r1_4->unk_8);
-            sub_0803F2C8(param_0, param_0->unk_500.unk_500_16.unk_502, 0U, 1U);
-            temp_r0_3 = sub_0803E654(0);
-            if ((temp_r0_3 << 0x10) < 0)
+            /* Keep the table base distinct from its selected entry. */
+            graphicsTable = sSkillGraphicsSets;
+            graphicsEntry = &graphicsTable[4];
+            SkillLoadGraphicsInline(entity, 0, graphicsEntry->graphics, graphicsEntry->palette, graphicsEntry->spriteSheet);
+            Anim_StartIndexed(entity, entity->unk_500.part16.unk_502, 0U, 1U);
+            affineSlot = ObjAffine_Alloc(0);
+            if ((affineSlot << 0x10) < 0)
             {
-                gEwramData->unk_13110.activeRedSoulEntities[param_0->unk_4FC.unk_4FC_16.unk_4FE[0]] = 0;
-                EntityDelete(param_0);
+                gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = 0;
+                EntityDelete(entity);
                 return;
             }
-            param_0->drawFunc = (u32 *) sub_0803B9D0;
-            param_0->unk_53C_0 = temp_r0_3;
-            param_0->unk_53D_4 = 1;
-            temp_r0_4 = param_0->unk_4F8.unk_4F8_entity;
-            param_0->unk_524.unk_524_16.unk_526 = temp_r0_4->unk_524.unk_524_16.unk_526;
-            param_0->unk_528.unk_528_16.unk_52A = temp_r0_4->unk_528.unk_528_16.unk_52A - 0x10;
-            param_0->unk_53D_1 = 1;
-            param_0->unk_50C.unk_50C_16.unk_50E = 0;
-            param_0->unk_540 = 0xD;
-            sub_08042A54(1, 0x1E);
-            sub_0804277C(param_0, 5, sub_0802DA14, 0);
-            sub_08042884(param_0, 0x1414F6F6);
-            var_7 = param_0->unk_554.unk_556; // Fake?
-            param_0->unk_554.unk_556 = var_7 | 4;
-            gEwramData->unk_13110.nbrActiveRedSoulEntities += 1;
-            param_0->unk_4EE += 1;
-            sp8 = -1;
-            var_r8 = NULL;
-            var_r0_3 = gEwramData->unk_13110.unk_13220;
-            if (var_r0_3 == NULL)
+            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->affineIndex = affineSlot;
+            entity->affine = 1;
+            owner = entity->unk_4F8.unk_4F8_entity;
+            entity->posX.part16.integer = owner->posX.part16.integer;
+            entity->posY.part16.integer = owner->posY.part16.integer - 0x10;
+            entity->scrollWithBg = 1;
+            entity->unk_50C.part16.unk_50E = 0;
+            entity->spriteLayer = 0xD;
+            Hit_SetTimerOverride(1, 0x1E);
+            Hit_Enable(entity, 5, HomingSoulProjectile_OnPlayerContact, 0);
+            HitBox_SetAttackRaw(entity, 0x1414F6F6);
+            collisionFlags = entity->hit.flags;
+            entity->hit.flags = collisionFlags | 4;
+            gEwramData->playerState.nbrActiveRedSoulEntities += 1;
+            entity->state += 1;
+            nearestDistanceSquared = -1;
+            nearestTarget = NULL;
+            selectedTarget = gEwramData->playerState.selectedTarget;
+            if (selectedTarget == NULL)
             {
-                for (var_r4_2 = 0; var_r4_2 < 4; var_r4_2++)
+                for (targetIndex = 0; targetIndex < 4; targetIndex++)
                 {
-                    if (gEwramData->unk_13110.unk_13194[var_r4_2] != NULL)
+                    if (gEwramData->playerState.trackedEntities[targetIndex] != NULL)
                     {
-                        temp_r2_5 = (s16) gEwramData->unk_13110.unk_13194[var_r4_2]->unk_524.unk_524_16.unk_526 - (s16) param_0->unk_524.unk_524_16.unk_526;
-                        temp_r1_6 = gEwramData->unk_13110.unk_13194[var_r4_2]->unk_528.unk_528_16.unk_52A - param_0->unk_528.unk_528_16.unk_52A;
-                        temp_r2_6 = (temp_r2_5 * temp_r2_5) + (temp_r1_6 * temp_r1_6);
-                        if (sp8 > temp_r2_6)
+                        candidateDx = (s16) gEwramData->playerState.trackedEntities[targetIndex]->posX.part16.integer - (s16) entity->posX.part16.integer;
+                        candidateDy = gEwramData->playerState.trackedEntities[targetIndex]->posY.part16.integer - entity->posY.part16.integer;
+                        distanceSquared = (candidateDx * candidateDx) + (candidateDy * candidateDy);
+                        if (nearestDistanceSquared > distanceSquared)
                         {
-                            sp8 = temp_r2_6;
-                            var_r8 = gEwramData->unk_13110.unk_13194[var_r4_2];
+                            nearestDistanceSquared = distanceSquared;
+                            nearestTarget = gEwramData->playerState.trackedEntities[targetIndex];
                         }
                     }
                 }
-                var_r0_3 = var_r8;
+                selectedTarget = nearestTarget;
             }
-            param_0->unk_504.unk_504_entity = var_r0_3;
-            temp_r1 = param_0->unk_504.unk_504_entity;
-            if (temp_r1 != NULL)
+            entity->unk_504.unk_504_entity = selectedTarget;
+            target = entity->unk_504.unk_504_entity;
+            if (target != NULL)
             {
-                temp_r0_5 = temp_r1->unk_524.unk_524_32;
-                temp_r2_7 = temp_r1->unk_528.unk_528_32;
+                initialTargetX = target->posX.whole;
+                initialTargetY = target->posY.whole;
 
-                var_r0_4 = sub_08024530_inline_0(temp_r0_5, (s16) (var_r0_5 = param_0->unk_524.unk_524_16.unk_526)); // Fake assignment?
-                var_r0_5 = sub_08024530_inline_0(temp_r2_7, (s16) param_0->unk_528.unk_528_16.unk_52A);
-                param_0->unk_510.unk_510_32 = ArcTan2(var_r0_4, var_r0_5) + 0x8000;
+                /* The component temporary holds origin X first, then delta Y.
+                 * Sharing it preserves the inline-result copy in agbcc. */
+                initialDx = ProjectileIntegerDelta(initialTargetX, (s16) (initialComponent = entity->posX.part16.integer));
+                initialComponent = ProjectileIntegerDelta(initialTargetY, (s16) entity->posY.part16.integer);
+                entity->unk_510.whole = ArcTan2(initialDx, initialComponent) + 0x8000;
             }
-            else if (CheckUnk_53C_6(gEwramData->unk_13110.unk_13110) == 1)
+            else if (CheckUnk_53C_6(gEwramData->playerState.player) == 1)
             {
-                param_0->unk_510.unk_510_32 = 0x8000;
+                entity->unk_510.whole = 0x8000;
             }
             /* fallthrough */
         case 1:
-            temp_r1 = param_0->unk_504.unk_504_entity;
-            if ((temp_r1 != NULL) && ((s16) temp_r1->unk_518.unk_518_16.unk_518 > 0))
+            target = entity->unk_504.unk_504_entity;
+            if ((target != NULL) && ((s16) target->unk_518.part16.hp > 0))
             {
-                var_r3 = temp_r1->unk_524.unk_524_32;
-                var_r2 = temp_r1->unk_528.unk_528_32;
+                targetX = target->posX.whole;
+                targetY = target->posY.whole;
             }
             else
             {
-                temp_r3 = gEwramData->unk_13110.unk_13110;
-                if (CheckUnk_53C_6(temp_r3) == 1)
+                player = gEwramData->playerState.player;
+                if (CheckUnk_53C_6(player) == 1)
                 {
-                    var_r3 = temp_r3->unk_524.unk_524_32 + 0xC00000;
+                    targetX = player->posX.whole + 0xC00000;
                 }
                 else
                 {
-                    var_r3 = temp_r3->unk_524.unk_524_32 - 0xC00000;
+                    targetX = player->posX.whole - 0xC00000;
                 }
-                var_r2 = gEwramData->unk_13110.unk_13110->unk_528.unk_528_32;
+                targetY = gEwramData->playerState.player->posY.whole;
             }
-            var_r4 = param_0->unk_510.unk_510_32;
+            angle = entity->unk_510.whole;
 
-            var_r0 = sub_08024530_inline_0(var_r3, (s16) (var_r0_2 = param_0->unk_524.unk_524_16.unk_526)); // Fake assignment?
-            var_r0_2 = sub_08024530_inline_0(var_r2, (s16) param_0->unk_528.unk_528_16.unk_52A);
-            temp_r1_2 = ArcTan2(var_r0, var_r0_2) - var_r4;
-            if (temp_r1_2 > 0)
+            /* As above, reuse the component temporary for the Y result. */
+            steeringDx = ProjectileIntegerDelta(targetX, (s16) (steeringComponent = entity->posX.part16.integer));
+            steeringComponent = ProjectileIntegerDelta(targetY, (s16) entity->posY.part16.integer);
+            angleDelta = ArcTan2(steeringDx, steeringComponent) - angle;
+            if (angleDelta > 0)
             {
-                if (temp_r1_2 < 0x8000)
+                if (angleDelta < 0x8000)
                 {
-                    var_r4 += 0x400;
+                    angle += 0x400;
                 }
                 else
                 {
-                    var_r4 -= 0x400;
+                    angle -= 0x400;
                 }
             }
-            else if (temp_r1_2 < -0x8000)
+            else if (angleDelta < -0x8000)
             {
-                var_r4 += 0x400;
+                angle += 0x400;
             }
             else
             {
-                var_r4 -= 0x400;
+                angle -= 0x400;
             }
-            param_0->unk_510.unk_510_32 = var_r4 & 0xFFFF;
-            param_0->unk_518.unk_518_32 += 0x2000;
-            if (param_0->unk_518.unk_518_32 > 0x60000)
+            entity->unk_510.whole = angle & 0xFFFF;
+            entity->unk_518.whole += 0x2000;
+            if (entity->unk_518.whole > 0x60000)
             {
-                param_0->unk_518.unk_518_32 = 0x60000;
+                entity->unk_518.whole = 0x60000;
             }
-            if (param_0->unk_4F1++ > 0x78)
+            if (entity->timer++ > 0x78)
             {
-                param_0->unk_4EE = 2;
+                entity->state = 2;
             }
 
         case 2:
             break;
 
         case 3:
-            sub_0803E6BC(param_0->unk_53C_0);
-            gEwramData->unk_13110.activeRedSoulEntities[param_0->unk_4FC.unk_4FC_16.unk_4FE[0]] = NULL;
-            gEwramData->unk_13110.nbrActiveRedSoulEntities -= 1;
-            EntityDelete(param_0);
+            ObjAffine_Free(entity->affineIndex);
+            gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+            gEwramData->playerState.nbrActiveRedSoulEntities -= 1;
+            EntityDelete(entity);
             return;
     }
 
-    // TODO: inline?
-    var_4 = sub_080009E4(param_0->unk_510.unk_510_32 + 0x4000);
-    var_5 = param_0->unk_518.unk_518_32;
-    temp_r4_2 = (var_4 >> 8) * (var_5 >> 8);
-    var_6 = sub_080009E4(param_0->unk_510.unk_510_32);
-    var_5 = param_0->unk_518.unk_518_32;
-    temp_r1_3 = (var_6 >> 8) * (var_5 >> 8);
-    param_0->unk_524.unk_524_32 += temp_r4_2;
-    param_0->unk_528.unk_528_32 += temp_r1_3;
+    cosine = Sin(entity->unk_510.whole + 0x4000);
+    speed = entity->unk_518.whole;
+    moveX = (cosine >> 8) * (speed >> 8);
+    sine = Sin(entity->unk_510.whole);
+    speed = entity->unk_518.whole;
+    moveY = (sine >> 8) * (speed >> 8);
+    entity->posX.whole += moveX;
+    entity->posY.whole += moveY;
 
-    sub_0803E058(param_0->unk_510.unk_510_32 + 0x4000, 0x10000, 0x10000, 0U, 0U, param_0->unk_53C_0);
-    if (sub_08068AD4(param_0, -0x20, -0x20, 0x130, 0xE0) == 0)
+    ObjAffine_Set(entity->unk_510.whole + 0x4000, 0x10000, 0x10000, 0U, 0U, entity->affineIndex);
+    if (Entity_IsInRect(entity, -0x20, -0x20, 0x130, 0xE0) == 0)
     {
-        param_0->unk_4EE = 3;
+        entity->state = 3;
     }
-    if (!(param_0->unk_53D_2))
+    if (!(entity->roomActive))
     {
-        param_0->unk_4EE = 3;
+        entity->state = 3;
     }
-    sub_0803F17C(param_0);
+    Anim_Update(entity);
     return;
 }
 
 /**
  * @brief 24950 | To document
  * 
- * @param param_0 To document
+ * @param entity To document
  */
-void SkillChronomageUse(struct EwramData_EntityData *param_0)
+void SkillChronomageUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *temp_sl;
-    struct Unk_080E13BC *temp_r1_3;
-    struct Unk_080E13BC *temp_r1_3_2;
-    u16 temp_r0_3;
+    struct EwramData_EntityData *owner;
+    struct SoulGraphicsResources *info;
+    struct SoulGraphicsResources *infos;
+    u16 affineIndex;
 
-    temp_sl = param_0->unk_4F8.unk_4F8_entity;
-    param_0->unk_53D_2 = 1;
+    owner = entity->unk_4F8.unk_4F8_entity;
+    entity->roomActive = 1;
 
-    switch (param_0->unk_4EE)
+    switch (entity->state)
     {
         case 0:
-            temp_r0_3 = sub_0803E654(0);
-            if ((temp_r0_3 << 0x10) < 0)
+            affineIndex = ObjAffine_Alloc(0);
+            if ((affineIndex << 0x10) < 0)
             {
-                gEwramData->unk_13110.activeRedSoulEntities[param_0->unk_4FC.unk_4FC_16.unk_4FE[0]] = NULL;
-                EntityDelete(param_0);
+                gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+                EntityDelete(entity);
                 return;
             }
 
-            temp_r1_3_2 = sUnk_080E13BC;
-            temp_r1_3 = &temp_r1_3_2[1];
-            SkillLoadGraphicsInline(param_0, 0, temp_r1_3->unk_0, temp_r1_3->unk_4, temp_r1_3->unk_8);
-            sub_0803F2C8(param_0, 0U, 0U, 0U);
-            param_0->drawFunc = (u32 *) sub_0802DA1C;
-            param_0->unk_540 = 0xD;
-            param_0->unk_53C_0 = temp_r0_3;
-            param_0->unk_53D_4 = 1;
-            param_0->unk_53D_1 = 1;
+            infos = sSkillGraphicsSets;
+            info = &infos[1];
+            SkillLoadGraphicsInline(entity, 0, info->graphics, info->palette, info->spriteSheet);
+            Anim_StartIndexed(entity, 0U, 0U, 0U);
+            entity->drawFunc = (u32 *) Soul_DrawWithPaletteInvert;
+            entity->spriteLayer = 0xD;
+            entity->affineIndex = affineIndex;
+            entity->affine = 1;
+            entity->scrollWithBg = 1;
 
-            gEwramData->unk_60.unk_4BE = param_0->unk_500.unk_500_16.unk_502;
-            gEwramData->unk_13110.nbrActiveRedSoulEntities += 1;
+            gEwramData->gameState.timeStopTimer = entity->unk_500.part16.unk_502;
+            gEwramData->playerState.nbrActiveRedSoulEntities += 1;
             PlaySong(0x1030);
             PlaySong(0x19D);
             PlaySong(0xEC);
-            param_0->unk_4EE += 1;
+            entity->state += 1;
             /* fallthorugh */
         case 1:
-            param_0->unk_524.unk_524_32 = temp_sl->unk_524.unk_524_32;
-            param_0->unk_528.unk_528_16.unk_52A = temp_sl->unk_528.unk_528_16.unk_52A - 0x30;
-            param_0->unk_504.unk_504_32 += 0x1000;
-            param_0->unk_508.unk_508_32 += 0x2000;
-            if (param_0->unk_504.unk_504_32 > 0x10000)
+            entity->posX.whole = owner->posX.whole;
+            entity->posY.part16.integer = owner->posY.part16.integer - 0x30;
+            entity->unk_504.whole += 0x1000;
+            entity->unk_508.whole += 0x2000;
+            if (entity->unk_504.whole > 0x10000)
             {
-                param_0->unk_504.unk_504_32 = 0x10000;
+                entity->unk_504.whole = 0x10000;
             }
-            if (param_0->unk_508.unk_508_32 > 0x10000)
+            if (entity->unk_508.whole > 0x10000)
             {
-                param_0->unk_508.unk_508_32 = 0x10000;
+                entity->unk_508.whole = 0x10000;
             }
-            param_0->unk_50C.unk_50C_32 = param_0->unk_504.unk_504_32;
+            entity->unk_50C.whole = entity->unk_504.whole;
 
-            if (gEwramData->unk_60.unk_4BE != 0)
+            if (gEwramData->gameState.timeStopTimer != 0)
             {
-                if (!(gEwramData->unk_60.unk_4BE & 0xF))
+                if (!(gEwramData->gameState.timeStopTimer & 0xF))
                 {
-                    sub_08013DA8(0x16E);
+                    Sound_PlayTrackedIfAbsent(0x16E);
                 }
-                gEwramData->unk_60.unk_4BE -= 1;
+                gEwramData->gameState.timeStopTimer -= 1;
                 break;
             }
 
-            if (!(gEwramData->unk_60.unk_42C & 0x40000))
+            if (!(gEwramData->gameState.stateFlags & 0x40000))
             {
                 PlaySong(0x1038);
             }
-            sub_08013E74();
+            Sound_ResumeAndReplayTracked();
 
-            if (gEwramData->unk_254CC != 0)
+            if (gEwramData->musicOverrideSong != 0)
             {
-                PlaySong(gEwramData->unk_254CC);
+                PlaySong(gEwramData->musicOverrideSong);
             }
 
-            if (gEwramData->unk_254CE != 0)
+            if (gEwramData->specialRoomSong != 0)
             {
-                PlaySong(gEwramData->unk_254CE);
+                PlaySong(gEwramData->specialRoomSong);
             }
-            sub_08013E18(0x16E);
+            Sound_StopTracked(0x16E);
 
-            param_0->unk_4EE += 1;
-            param_0->unk_4F1 = 0x20;
+            entity->state += 1;
+            entity->timer = 0x20;
             /* fallthrough */
         case 2:
-            param_0->unk_504.unk_504_32 -= 0x1000;
-            param_0->unk_508.unk_508_32 -= 0x800;
-            if (param_0->unk_504.unk_504_32 < 0)
+            entity->unk_504.whole -= 0x1000;
+            entity->unk_508.whole -= 0x800;
+            if (entity->unk_504.whole < 0)
             {
-                param_0->unk_504.unk_504_32 = 0;
+                entity->unk_504.whole = 0;
             }
-            if (param_0->unk_508.unk_508_32 < 0)
+            if (entity->unk_508.whole < 0)
             {
-                param_0->unk_508.unk_508_32 = 0;
+                entity->unk_508.whole = 0;
             }
 
-            if (param_0->unk_4F1 == 0)
+            if (entity->timer == 0)
             {
-                gEwramData->unk_12FE4 = 1;
-                sub_0803E6BC(param_0->unk_53C_0);
-                gEwramData->unk_13110.activeRedSoulEntities[param_0->unk_4FC.unk_4FC_16.unk_4FE[0]] = NULL;
-                gEwramData->unk_13110.nbrActiveRedSoulEntities -= 1;
-                EntityDelete(param_0);
+                gEwramData->paletteInvert = 1;
+                ObjAffine_Free(entity->affineIndex);
+                gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+                gEwramData->playerState.nbrActiveRedSoulEntities -= 1;
+                EntityDelete(entity);
                 return;
             }
 
-            param_0->unk_4F1 -= 1;
-            param_0->unk_50C.unk_50C_32 = param_0->unk_4F1 << 0xB;
+            entity->timer -= 1;
+            entity->unk_50C.whole = entity->timer << 0xB;
             break;
     }
 
-    gEwramData->unk_12FE4 = param_0->unk_50C.unk_50C_32;
-    sub_0803E058(0, param_0->unk_504.unk_504_32, param_0->unk_504.unk_504_32, param_0->unk_53C_6, 0, param_0->unk_53C_0);
-    sub_0803F17C(param_0);
+    gEwramData->paletteInvert = entity->unk_50C.whole;
+    ObjAffine_Set(0, entity->unk_504.whole, entity->unk_504.whole, entity->flipX, 0, entity->affineIndex);
+    Anim_Update(entity);
 }
 
 /**
- * @brief 24C18 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @return s32 To document
+ * @brief Unreferenced: compute the centre of the first box of the current
+ * animation frame (mirrored by the flip flags) as 16.16 screen
+ * coordinates into x/y and return 1; return 0 without boxes.
  */
-s32 sub_08024C18(struct EwramData_EntityData *param_0, u32 *param_1, u32 *param_2)
+s32 Sprite_GetFirstBoxCenter(struct EwramData_EntityData *entity, u32 *outX, u32 *outY)
 {
-    struct EwramData_unk10170_C_4_8 *temp_r3;
-    s32 var_2;
-    s16 var_r4;
-    s16 var_r1;
+    struct SpriteBox *boxes;
+    s32 spriteSlot;
+    s16 x;
+    s16 y;
 
-    var_2 = param_0->unk_548;
-    temp_r3 = gEwramData->unk_10170[param_0->unk_548].unk_C->var_4[param_0->unk_549].unk_8;
-    if (temp_r3 != NULL)
+    spriteSlot = entity->spriteSlot;
+    boxes = gEwramData->spriteSlots[entity->spriteSlot].sheet->frames[entity->animFrame].boxes;
+    if (boxes != NULL)
     {
-        var_r4 = temp_r3->unk_0 + (temp_r3->unk_2 >> 1);
-        if (param_0->unk_53C_6)
+        x = boxes->x + (boxes->width >> 1);
+        if (entity->flipX)
         {
-            var_r4 = -var_r4;
+            x = -x;
         }
-        var_r4 += (s16) param_0->unk_524.unk_524_16.unk_526;
+        x += (s16) entity->posX.part16.integer;
 
-        var_r1 = temp_r3->unk_1 + (temp_r3->unk_3 >> 1);
-        if (param_0->unk_53C_7)
+        y = boxes->y + (boxes->height >> 1);
+        if (entity->flipY)
         {
-            var_r1 = -var_r1;
+            y = -y;
         }
-        var_r1 += (s16) param_0->unk_528.unk_528_16.unk_52A;
+        y += (s16) entity->posY.part16.integer;
 
-        *param_1 = var_r4 << 0x10;
-        *param_2 = var_r1 << 0x10;
+        *outX = x << 0x10;
+        *outY = y << 0x10;
         return 1;
     }
     return 0;
@@ -3231,316 +3154,316 @@ s32 sub_08024C18(struct EwramData_EntityData *param_0, u32 *param_1, u32 *param_
 /**
  * @brief 24CBC | To document
  * 
- * @param param_0 To document
+ * @param entity To document
  */
-void SkillValkyrieUse(struct EwramData_EntityData *param_0)
+void SkillValkyrieUse(struct EwramData_EntityData *entity)
 {
-    s32 temp_r5;
-    s32 temp_r5_2;
-    s32 temp_r6_2;
-    s32 temp_r6_3;
-    s32 var_r2_2;
-    struct EwramData_EntityData *temp_r8;
-    struct Unk_080E13BC *temp_r1;
-    struct Unk_080E13BC *temp_r1_5;
-    struct EwramData_unk10170_C_4_8 *temp_r3_2;
-    s32 var_0;
-    s32 var_1;
+    s32 baseY;
+    s32 y;
+    s32 baseX;
+    s32 x;
+    s32 offsetX;
+    struct EwramData_EntityData *anchor;
+    struct SoulGraphicsResources *info;
+    struct SoulGraphicsResources *infos;
+    struct SpriteBox *boxes;
+    s32 spriteSlot;
+    s32 offsetY;
 
-    temp_r8 = param_0->unk_4F8.unk_4F8_entity;
+    anchor = entity->unk_4F8.unk_4F8_entity;
 
-    switch (param_0->unk_4EE)
+    switch (entity->state)
     {
         case 0:
-            temp_r1_5 = sUnk_080E13BC;
-            temp_r1 = &temp_r1_5[2];
-            SkillLoadGraphicsInline(param_0, 0, temp_r1->unk_0, temp_r1->unk_4, temp_r1->unk_8);
-            sub_0803F2C8(param_0, 0, 0, 0);
-            param_0->drawFunc = (u32 *) sub_0803B9D0;
-            param_0->unk_540 = 0xD;
-            param_0->unk_53D_1 = 1;
+            infos = sSkillGraphicsSets;
+            info = &infos[2];
+            SkillLoadGraphicsInline(entity, 0, info->graphics, info->palette, info->spriteSheet);
+            Anim_StartIndexed(entity, 0, 0, 0);
+            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->spriteLayer = 0xD;
+            entity->scrollWithBg = 1;
 
-            sub_08031EA4(param_0, temp_r8, 0x14, -0x10);
-            sub_08042A54(1, 0x3C);
-            gEwramData->unk_13110.nbrActiveRedSoulEntities += 1;
-            sub_0804277C(param_0, 5, NULL, 0);
-            param_0->unk_554.unk_556 |= 4;
-            param_0->unk_554.unk_556 &= ~2;
+            Entity_PlaceRelativeTo(entity, anchor, 0x14, -0x10);
+            Hit_SetTimerOverride(1, 0x3C);
+            gEwramData->playerState.nbrActiveRedSoulEntities += 1;
+            Hit_Enable(entity, 5, NULL, 0);
+            entity->hit.flags |= 4;
+            entity->hit.flags &= ~2;
             PlaySong(0x1AF);
-            param_0->unk_4EE += 1;
+            entity->state += 1;
             /* fallthrough */
         case 1:
-            param_0->unk_4F1 += 1;
-            if (param_0->unk_4F1 > 0x13)
+            entity->timer += 1;
+            if (entity->timer > 0x13)
             {
-                if ((param_0->unk_4F1 & 3) == 0)
+                if ((entity->timer & 3) == 0)
                 {
-                    var_r2_2 = (param_0->unk_4F1 * 0xC000) + 0x200000;
-                    var_1 = 0x380000 - (param_0->unk_4F1 * 0x1F000);
-                    if (param_0->unk_53C_6)
+                    offsetX = (entity->timer * 0xC000) + 0x200000;
+                    offsetY = 0x380000 - (entity->timer * 0x1F000);
+                    if (entity->flipX)
                     {
-                        var_r2_2 = -var_r2_2;
+                        offsetX = -offsetX;
                     }
-                    temp_r6_2 = param_0->unk_524.unk_524_32 + var_r2_2;
-                    temp_r5 = param_0->unk_528.unk_528_32 + var_1;
-                    temp_r6_3 = temp_r6_2 + (((RandomNumberGenerator() & 0x1F) - 0x10) << 0x10);
-                    temp_r5_2 = temp_r5 + (((RandomNumberGenerator() & 0x1F) - 0x10) << 0x10);
-                    sub_08045B44(temp_r6_3, temp_r5_2, 0, ((RandomNumberGenerator() & 0x1F) * 0x10) - 0x2000, 0, 6);
+                    baseX = entity->posX.whole + offsetX;
+                    baseY = entity->posY.whole + offsetY;
+                    x = baseX + (((RandomNumberGenerator() & 0x1F) - 0x10) << 0x10);
+                    y = baseY + (((RandomNumberGenerator() & 0x1F) - 0x10) << 0x10);
+                    Effect_CreateFromTable(x, y, 0, ((RandomNumberGenerator() & 0x1F) * 0x10) - 0x2000, 0, 6);
                 }
 
-                if (sub_08068AD4(param_0, -0x40, -8, 0x170, 0xB0) != 0)
+                if (Entity_IsInRect(entity, -0x40, -8, 0x170, 0xB0) != 0)
                 {
-                    param_0->unk_53C_5 = 0;
+                    entity->hidden = 0;
                 }
                 else
                 {
-                    param_0->unk_53C_5 = 1;
+                    entity->hidden = 1;
                 }
             }
             break;
 
         case 2:
-            if (param_0->unk_4F1 != 0)
+            if (entity->timer != 0)
             {
-                param_0->unk_4F1 -= 1;
+                entity->timer -= 1;
             }
             else
             {
-                gEwramData->unk_13110.activeRedSoulEntities[param_0->unk_4FC.unk_4FC_16.unk_4FE[0]] = 0;
-                gEwramData->unk_13110.nbrActiveRedSoulEntities -= 1;
-                param_0->unk_53D_3 = 1;
+                gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = 0;
+                gEwramData->playerState.nbrActiveRedSoulEntities -= 1;
+                entity->deleteRequested = 1;
             }
             break;
     }
-    param_0->unk_53D_2 = 1;
-    if ((sub_0803F17C(param_0) == 3) && (param_0->unk_4EE != 2))
+    entity->roomActive = 1;
+    if ((Anim_Update(entity) == 3) && (entity->state != 2))
     {
-        param_0->unk_4EE = 2;
-        param_0->unk_4F1 = 0xA;
-        param_0->unk_4F3 = 1;
+        entity->state = 2;
+        entity->timer = 0xA;
+        entity->drawSkip = 1;
     }
 
-    var_0 = param_0->unk_548;
-    temp_r3_2 = gEwramData->unk_10170[param_0->unk_548].unk_C->var_4[param_0->unk_549].unk_8;
-    if (temp_r3_2 != NULL)
+    spriteSlot = entity->spriteSlot;
+    boxes = gEwramData->spriteSlots[entity->spriteSlot].sheet->frames[entity->animFrame].boxes;
+    if (boxes != NULL)
     {
-        param_0->unk_554.unk_556 &= ~2;
-        sub_08042848(param_0, temp_r3_2);
+        entity->hit.flags &= ~2;
+        HitBox_SetAttack(entity, boxes);
     }
     else
     {
-        param_0->unk_554.unk_556 |= 2;
+        entity->hit.flags |= 2;
     }
 }
 
 /**
  * @brief 24F38 | To document
  * 
- * @param param_0 To document
+ * @param entity To document
  */
-void SkillKillerDollUse(struct EwramData_EntityData *param_0)
+void SkillKillerDollUse(struct EwramData_EntityData *entity)
 {
-    s16 temp_r1_3;
-    s16 temp_r1_4;
-    s32 temp_r2_5;
-    s32 var_sb;
-    struct EwramData_EntityData *temp_r8;
-    struct Unk_080E13BC *temp_r1;
-    struct Unk_080E13BC *temp_r1_6;
-    s16 temp_r4;
-    s16 temp_r5_2;
-    s16 var_r1;
+    s16 pushUp;
+    s16 pushDown;
+    s32 newX;
+    s32 friction;
+    struct EwramData_EntityData *anchor;
+    struct SoulGraphicsResources *info;
+    struct SoulGraphicsResources *infos;
+    s16 roomY;
+    s16 roomX;
+    s16 push;
 
-    temp_r8 = param_0->unk_4F8.unk_4F8_entity;
-    var_sb = 0x100;
+    anchor = entity->unk_4F8.unk_4F8_entity;
+    friction = 0x100;
 
-    switch (param_0->unk_4EE)
+    switch (entity->state)
     {
         case 0:
-            temp_r1_6 = sUnk_080E13BC;
-            temp_r1 = &temp_r1_6[6];
-            SkillLoadGraphicsInline(param_0, 0, temp_r1->unk_0, temp_r1->unk_4, temp_r1->unk_8);
-            sub_0803F2C8(param_0, RandomNumberGenerator() & 1, 0U, 1U);
-            param_0->drawFunc = (u32 *) sub_0803B9D0;
-            param_0->unk_540 = 0xD;
-            param_0->unk_53D_1 = 1;
+            infos = sSkillGraphicsSets;
+            info = &infos[6];
+            SkillLoadGraphicsInline(entity, 0, info->graphics, info->palette, info->spriteSheet);
+            Anim_StartIndexed(entity, RandomNumberGenerator() & 1, 0U, 1U);
+            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->spriteLayer = 0xD;
+            entity->scrollWithBg = 1;
 
             PlaySong(0xE5);
-            gEwramData->unk_13110.nbrActiveRedSoulEntities += 1;
-            gEwramData->unk_13110.unk_13168 = param_0;
-            sub_08031EA4(param_0, temp_r8, 8, -0x10);
-            param_0->unk_52C.unk_52C_32 = 0x18000;
-            if (param_0->unk_53C_6)
+            gEwramData->playerState.nbrActiveRedSoulEntities += 1;
+            gEwramData->playerState.enemyTarget = entity;
+            Entity_PlaceRelativeTo(entity, anchor, 8, -0x10);
+            entity->velX.whole = 0x18000;
+            if (entity->flipX)
             {
-                param_0->unk_52C.unk_52C_32 = -param_0->unk_52C.unk_52C_32;
+                entity->velX.whole = -entity->velX.whole;
             }
 
-            param_0->unk_530.unk_530_32 = -0x28000;
-            param_0->unk_4F1 = 0xB4;
-            param_0->unk_4EE += 1;
+            entity->velY.whole = -0x28000;
+            entity->timer = 0xB4;
+            entity->state += 1;
             /* fallthrough */
         case 1:
-            param_0->unk_524.unk_524_32 += param_0->unk_52C.unk_52C_32;
-            param_0->unk_528.unk_528_32 += param_0->unk_530.unk_530_32;
-            temp_r5_2 = GetEntityRoomXPositionInteger(param_0);
-            temp_r4 = GetEntityRoomYPositionInteger(param_0);
-            param_0->unk_530.unk_530_32 = param_0->unk_530.unk_530_32 + 0x2000;
-            if (param_0->unk_530.unk_530_32 > 0x80000)
+            entity->posX.whole += entity->velX.whole;
+            entity->posY.whole += entity->velY.whole;
+            roomX = GetEntityRoomXPositionInteger(entity);
+            roomY = GetEntityRoomYPositionInteger(entity);
+            entity->velY.whole = entity->velY.whole + 0x2000;
+            if (entity->velY.whole > 0x80000)
             {
-                param_0->unk_530.unk_530_32 = 0x80000;
+                entity->velY.whole = 0x80000;
             }
 
-            if (param_0->unk_530.unk_530_32 >= 0)
+            if (entity->velY.whole >= 0)
             {
-                temp_r1_3 = sub_08001D94(temp_r5_2, temp_r4 + 1);
-                if (temp_r1_3 != 0)
+                pushUp = Collision_GetPushUp(roomX, roomY + 1);
+                if (pushUp != 0)
                 {
-                    param_0->unk_528.unk_528_16.unk_52A += temp_r1_3 + 2;
-                    param_0->unk_530.unk_530_32 = 0;
-                    var_sb = 0x4000;
+                    entity->posY.part16.integer += pushUp + 2;
+                    entity->velY.whole = 0;
+                    friction = 0x4000;
                 }
             }
             else
             {
-                temp_r1_4 = sub_08001C1C(temp_r5_2, temp_r4 - 0x20);
-                if (temp_r1_4 != 0)
+                pushDown = Collision_GetPushDown(roomX, roomY - 0x20);
+                if (pushDown != 0)
                 {
-                    param_0->unk_528.unk_528_16.unk_52A += temp_r1_4;
-                    param_0->unk_530.unk_530_32 = 0;
+                    entity->posY.part16.integer += pushDown;
+                    entity->velY.whole = 0;
                 }
             }
 
-            if (param_0->unk_52C.unk_52C_32 > 0)
+            if (entity->velX.whole > 0)
             {
-                var_r1 = sub_08002058(temp_r5_2 + 8, temp_r4 - 0x10);
-                param_0->unk_52C.unk_52C_32 -= var_sb;
-                if (param_0->unk_52C.unk_52C_32 <= 0)
+                push = Collision_GetPushLeft(roomX + 8, roomY - 0x10);
+                entity->velX.whole -= friction;
+                if (entity->velX.whole <= 0)
                 {
-                    param_0->unk_52C.unk_52C_32 = 0;
+                    entity->velX.whole = 0;
                 }
 
-                if (var_r1 != 0)
+                if (push != 0)
                 {
-                    param_0->unk_524.unk_524_16.unk_526 = temp_r2_5 = var_r1 + param_0->unk_524.unk_524_16.unk_526;
-                    param_0->unk_52C.unk_52C_32 = -(param_0->unk_52C.unk_52C_32 >> 1);
+                    entity->posX.part16.integer = newX = push + entity->posX.part16.integer;
+                    entity->velX.whole = -(entity->velX.whole >> 1);
                 }
             }
-            else if (param_0->unk_52C.unk_52C_32 < 0)
+            else if (entity->velX.whole < 0)
             {
-                var_r1 = sub_0800207C(temp_r5_2 - 8, temp_r4 - 0x10);
-                param_0->unk_52C.unk_52C_32 += var_sb;
-                if (param_0->unk_52C.unk_52C_32 >= 0)
+                push = Collision_GetPushRight(roomX - 8, roomY - 0x10);
+                entity->velX.whole += friction;
+                if (entity->velX.whole >= 0)
                 {
-                    param_0->unk_52C.unk_52C_32 = 0;
+                    entity->velX.whole = 0;
                 }
 
-                if (var_r1 != 0)
+                if (push != 0)
                 {
-                    param_0->unk_524.unk_524_16.unk_526 = temp_r2_5 = var_r1 + param_0->unk_524.unk_524_16.unk_526;
-                    param_0->unk_52C.unk_52C_32 = -(param_0->unk_52C.unk_52C_32 >> 1);
+                    entity->posX.part16.integer = newX = push + entity->posX.part16.integer;
+                    entity->velX.whole = -(entity->velX.whole >> 1);
                 }
             }
 
-            if (param_0->unk_4F1 == 0)
+            if (entity->timer == 0)
             {
-                param_0->unk_4F3 = 1;
-                param_0->unk_4F1 = 0x1E;
-                param_0->unk_4EE += 1;
+                entity->drawSkip = 1;
+                entity->timer = 0x1E;
+                entity->state += 1;
             }
             else
             {
-                param_0->unk_4F1 -= 1;
+                entity->timer -= 1;
                 break;
             }
             /* fallthrough */
         case 2:
-            if (param_0->unk_4F1 == 0)
+            if (entity->timer == 0)
             {
-                gEwramData->unk_13110.unk_13168 = gEwramData->unk_13110.unk_13110;
-                gEwramData->unk_13110.activeRedSoulEntities[param_0->unk_4FC.unk_4FC_16.unk_4FE[0]] = NULL;
-                gEwramData->unk_13110.nbrActiveRedSoulEntities -= 1;
-                EntityDelete(param_0);
+                gEwramData->playerState.enemyTarget = gEwramData->playerState.player;
+                gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+                gEwramData->playerState.nbrActiveRedSoulEntities -= 1;
+                EntityDelete(entity);
                 return;
             }
-            param_0->unk_4F1 -= 1;
+            entity->timer -= 1;
             break;
     }
 
-    if ((sub_0806D128(param_0, 2) != 0) || !(param_0->unk_53D_2))
+    if ((EntityIsOutsideScreen(entity, 2) != 0) || !(entity->roomActive))
     {
-        param_0->unk_53D_2 = 1;
-        gEwramData->unk_13110.unk_13168 = gEwramData->unk_13110.unk_13110;
-        gEwramData->unk_13110.activeRedSoulEntities[param_0->unk_4FC.unk_4FC_16.unk_4FE[0]] = NULL;
-        gEwramData->unk_13110.nbrActiveRedSoulEntities -= 1;
-        EntityDelete(param_0);
+        entity->roomActive = 1;
+        gEwramData->playerState.enemyTarget = gEwramData->playerState.player;
+        gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+        gEwramData->playerState.nbrActiveRedSoulEntities -= 1;
+        EntityDelete(entity);
     }
     else
     {
-        sub_0803F17C(param_0);
+        Anim_Update(entity);
     }
 }
 
 /**
  * @brief 251F0 | To document
  * 
- * @param param_0 To document
+ * @param entity To document
  */
-void SkillNemesisUse(struct EwramData_EntityData *param_0)
+void SkillNemesisUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *temp_sb;
-    struct Unk_080E13BC *temp_r1;
-    struct Unk_080E13BC *temp_r1_3;
+    struct EwramData_EntityData *anchor;
+    struct SoulGraphicsResources *info;
+    struct SoulGraphicsResources *infos;
 
-    temp_sb = param_0->unk_4F8.unk_4F8_entity;
+    anchor = entity->unk_4F8.unk_4F8_entity;
 
-    switch (param_0->unk_4EE)
+    switch (entity->state)
     {
         case 0:
-            temp_r1_3 = sUnk_080E13BC;
-            temp_r1 = &temp_r1_3[21];
-            SkillLoadGraphicsInline(param_0, 0, temp_r1->unk_0, temp_r1->unk_4, temp_r1->unk_8);
-            sub_0803F2C8(param_0, 2U, 0U, 1U);
-            param_0->drawFunc = (u32 *) sub_0803B9D0;
-            param_0->unk_540 = 0xF;
-            param_0->unk_53D_1 = 1;
+            infos = sSkillGraphicsSets;
+            info = &infos[21];
+            SkillLoadGraphicsInline(entity, 0, info->graphics, info->palette, info->spriteSheet);
+            Anim_StartIndexed(entity, 2U, 0U, 1U);
+            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->spriteLayer = 0xF;
+            entity->scrollWithBg = 1;
 
-            gEwramData->unk_13110.nbrActiveRedSoulEntities += 1;
+            gEwramData->playerState.nbrActiveRedSoulEntities += 1;
             PlaySong(0x97);
-            gEwramData->unk_13110.unk_13168 = 0;
-            param_0->unk_508.unk_508_16.unk_508 = 0x12C;
-            param_0->unk_4EE += 1;
+            gEwramData->playerState.enemyTarget = 0;
+            entity->unk_508.part16.unk_508 = 0x12C;
+            entity->state += 1;
             /* fallthrough */
         case 1:
-            if (param_0->unk_508.unk_508_16.unk_508 != 0)
+            if (entity->unk_508.part16.unk_508 != 0)
             {
-                param_0->unk_508.unk_508_16.unk_508 -= 1;
+                entity->unk_508.part16.unk_508 -= 1;
                 break;
             }
 
-            param_0->unk_4F3 = 1;
-            param_0->unk_4F1 = 0x1E;
-            param_0->unk_4EE += 1;
+            entity->drawSkip = 1;
+            entity->timer = 0x1E;
+            entity->state += 1;
             /* fallthrough */
         case 2:
-            if (param_0->unk_4F1 == 0)
+            if (entity->timer == 0)
             {
-                gEwramData->unk_13110.unk_13168 = gEwramData->unk_13110.unk_13110;
-                gEwramData->unk_13110.activeRedSoulEntities[param_0->unk_4FC.unk_4FC_16.unk_4FE[0]] = 0;
-                gEwramData->unk_13110.nbrActiveRedSoulEntities -= 1;
-                EntityDelete(param_0);
+                gEwramData->playerState.enemyTarget = gEwramData->playerState.player;
+                gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = 0;
+                gEwramData->playerState.nbrActiveRedSoulEntities -= 1;
+                EntityDelete(entity);
                 return;
             }
 
-            param_0->unk_4F1 -= 1;
+            entity->timer -= 1;
             break;
     }
 
-    if (param_0->unk_4EF < 0x1E)
+    if (entity->subState < 0x1E)
     {
-        param_0->unk_4EF += 1;
+        entity->subState += 1;
     }
 
-    sub_08031EA4(param_0, temp_sb, 0, -8 - param_0->unk_4EF);
-    sub_0803F17C(param_0);
-    param_0->unk_53D_2 = 1;
+    Entity_PlaceRelativeTo(entity, anchor, 0, -8 - entity->subState);
+    Anim_Update(entity);
+    entity->roomActive = 1;
 }

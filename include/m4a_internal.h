@@ -336,7 +336,7 @@ struct MusicPlayer {
     struct MP2KPlayerState *info;
     struct MP2KTrack *track;
     u8 numTracks;
-    u16 unk_A;
+    u16 checkSongPriority;
 };
 
 struct Song {

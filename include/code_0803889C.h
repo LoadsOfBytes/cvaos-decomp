@@ -5,14 +5,14 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-struct Unk_03000050 {
-    struct EwramData_EntityData *unk_0[2];
+struct DebugObjTestState {
+    struct EwramData_EntityData *entities[2];
 }; /* size = 0x8 */
-s32 sub_0803889C(s32 param_0);
-void sub_0803896C(struct EwramData_EntityData *param_0);
-void sub_080389EC(struct Unk_03000050 *param_0);
-void sub_080389F0(struct Unk_03000050 *param_0);
-void sub_08038A14(struct Unk_03000050 *param_0);
-void sub_08038A34(struct EwramData_EntityData *param_0);
+s32 DebugObjDispTest_Run(s32 test);
+void DebugObjDispTestSprite_Update(struct EwramData_EntityData *entity);
+void DebugObjDispTest_Update(struct DebugObjTestState *state);
+void DebugObjDispTest_Init(struct DebugObjTestState *state);
+void DebugObjDispTest_Exit(struct DebugObjTestState *state);
+void DebugObjDispTestDummy_Update(struct EwramData_EntityData *entity);
 
 #endif /* CODE_0803889C_H */

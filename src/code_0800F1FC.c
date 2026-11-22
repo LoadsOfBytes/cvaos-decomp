@@ -34,17 +34,18 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-struct Unk_080E9644 {
-    u32 *unk_0;
-    u32 *unk_4; // TODO: function prototype
+/* Local 0x24-byte template-table view: retain this TU's types and padding. */
+struct EnemyTemplateView {
+    u32 *createFunc;
+    u32 *updateFunc; // TODO: function prototype
     u8 pad_8[0xC - 0x8];
-    u16 unk_C;
+    u16 hp;
     u8 pad_E[0x24 - 0xE];
 };
 
-extern struct Unk_080E9644 sUnk_080E9644[];
+extern struct EnemyTemplateView sEnemyData[];
 
-void (*sUnk_084F0DF8[56])(struct EwramData_EntityData *) = {
+void (*sObjectCreateFuncs[56])(struct EwramData_EntityData *) = {
     [0] = Object00Create,
     [1] = Object01Create,
     [2] = Object02Create,
@@ -103,7 +104,7 @@ void (*sUnk_084F0DF8[56])(struct EwramData_EntityData *) = {
     [55] = Object37Create,
 };
 
-void (*sUnk_084F0ED8[56])(struct EwramData_EntityData *) = {
+void (*sObjectUpdateFuncs[56])(struct EwramData_EntityData *) = {
     [0] = Object00Update,
     [1] = Object01Update,
     [2] = Object02Update,
@@ -163,750 +164,719 @@ void (*sUnk_084F0ED8[56])(struct EwramData_EntityData *) = {
 };
 
 /**
- * @brief F1FC | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Spawn one room entity record unless its spawned bit (roomEntitySpawn.spawnedFlags)
+ * is set or its type is 0: 1 enemy (sEnemyData), 2 object, 3 pickup
+ * source, 4..6 conditional item/soul pickups (Soma only; 5 also needs
+ * difficultyMode, 6 an unowned item and 100.0% soul completion). Mark the
+ * record spawned and return 1 when an entity slot was available.
  */
-s32 sub_0800F1FC(struct EwramData_unk_3DC *param_0)
+s32 RoomEntity_Spawn(struct RoomEntityRecord *record)
 {
-    struct EwramData_EntityData *temp_r0;
-    struct EwramData_EntityData *temp_r0_3;
+    struct EwramData_EntityData *child;
+    struct EwramData_EntityData *bonusItem;
     struct EwramData_EntityData *temp_r1_4;
-    struct EwramData_EntityData *var_r0_2;
-    struct EwramData_EntityData *var_r8;
-    struct Unk_080E9644 *var_r0;
-    struct EwramData_unkA078 *temp_r1_2;
-    s32 var_r1;
-    s32 var_r7;
-    s32 temp_r6;
-    s32 temp_r7;
-    s32 var_0;
-    s32 var_1;
+    struct EwramData_EntityData *pickup;
+    struct EwramData_EntityData *modeItem;
+    struct EnemyTemplateView *enemy;
+    struct BgLayerState *bg;
+    s32 flip;
+    s32 spawned;
+    s32 itemType;
+    s32 itemId;
+    s32 x;
+    s32 alreadySpawned;
 
-    var_r7 = 0;
-    var_1 = gEwramData->unk_60.unk_3D0.unk_4[param_0->unk_4 >> 5] & (1 << (param_0->unk_4 & 0x1F));
-    if (var_1 || (param_0->unk_5 == 0))
+    spawned = 0;
+    alreadySpawned = gEwramData->gameState.roomEntitySpawn.spawnedFlags[record->spawnIndex >> 5] & (1 << (record->spawnIndex & 0x1F));
+    if (alreadySpawned || (record->kind == 0))
     {
         return 0;
     }
 
-    temp_r0 = EntityCreateInRange(0x1B, 0x48, (u32 *) EntityUpdateNothing);
-    if (temp_r0 != 0)
+    child = EntityCreateInRange(0x1B, 0x48, (u32 *) EntityUpdateNothing);
+    if (child != 0)
     {
-        var_0 = param_0->unk_0 << 0x10;
-        temp_r1_2 = &gEwramData->bgInfo[1];
-        temp_r0->unk_524.unk_524_32 = var_0 - temp_r1_2->xPos.whole;
-        temp_r0->unk_528.unk_528_32 = (param_0->unk_2 << 0x10) - temp_r1_2->yPos.whole;
-        var_r1 = 0;
-        if (temp_r0->unk_524.unk_524_32 < gEwramData->unk_13110.unk_13110->unk_524.unk_524_32)
+        x = record->x << 0x10;
+        bg = &gEwramData->bgInfo[1];
+        child->posX.whole = x - bg->xPos.whole;
+        child->posY.whole = (record->y << 0x10) - bg->yPos.whole;
+        flip = 0;
+        if (child->posX.whole < gEwramData->playerState.player->posX.whole)
         {
-            var_r1 = 1;
+            flip = 1;
         }
-        temp_r0->unk_53C_6 = var_r1;
-        temp_r0->unk_53D_1 = 1;
-        temp_r0->unk_514.unk_514_16.unk_514 = param_0->unk_8;
-        temp_r0->unk_514.unk_514_16.unk_516 = param_0->unk_A;
-        temp_r0->unk_518.unk_518_8.unk_51B = param_0->unk_4;
-        temp_r0->unk_518.unk_518_8.unk_51A = param_0->unk_6;
-        temp_r0->drawFunc = (u32*)sub_0803B9D0;
-        switch (param_0->unk_5)
+        child->flipX = flip;
+        child->scrollWithBg = 1;
+        child->unk_514.part16.spawnParam0 = record->spawnParam0;
+        child->unk_514.part16.spawnParam1 = record->spawnParam1;
+        child->unk_518.part8.spawnIndex = record->spawnIndex;
+        child->unk_518.part8.enemyId = record->entityId;
+        child->drawFunc = (u32*)Sprite_DrawEntity;
+        switch (record->kind)
         {
             case 1:
-                var_r0 = &sUnk_080E9644[param_0->unk_6];
-                temp_r0->unk_518.unk_518_16.unk_518 = var_r0->unk_C;
-                temp_r0->updateFunc = var_r0->unk_4;
-                ((void (*)(struct EwramData_EntityData *))var_r0->unk_0)(temp_r0);
+                enemy = &sEnemyData[record->entityId];
+                child->unk_518.part16.hp = enemy->hp;
+                child->updateFunc = enemy->updateFunc;
+                ((void (*)(struct EwramData_EntityData *))enemy->createFunc)(child);
                 break;
 
             case 2:
-                temp_r0->updateFunc = (u32*)sUnk_084F0ED8[param_0->unk_6];
-                sUnk_084F0DF8[param_0->unk_6](temp_r0);
+                child->updateFunc = (u32*)sObjectUpdateFuncs[record->entityId];
+                sObjectCreateFuncs[record->entityId](child);
                 break;
 
             case 3:
-                temp_r0->updateFunc = (u32*)sub_08045EE0;
-                sub_08046080((struct EwramData_EntityData *) temp_r0);
+                child->updateFunc = (u32*)PickupSource_Update;
+                PickupSource_Init((struct EwramData_EntityData *) child);
                 break;
 
             case 4:
-                if (gEwramData->unk_1325C.currentCharacter != 0)
+                if (gEwramData->playerStatus.currentCharacter != 0)
                 {
-                    EntityDelete((struct EwramData_EntityData *) temp_r0);
+                    EntityDelete((struct EwramData_EntityData *) child);
                     break;
                 }
 
-                if (!(gEwramData->unk_60.unk_360[temp_r0->unk_514.unk_514_16.unk_514 >> 5] & (1 << (temp_r0->unk_514.unk_514_16.unk_514 & 0x1F))))
+                if (!(gEwramData->gameState.collectedPickupFlags[child->unk_514.part16.spawnParam0 >> 5] & (1 << (child->unk_514.part16.spawnParam0 & 0x1F))))
                 {
-                    if (temp_r0->unk_518.unk_518_8.unk_51A < 5)
+                    if (child->unk_518.part8.enemyId < 5)
                     {
-                        var_r0_2 = sub_08044054(temp_r0->unk_524.unk_524_16.unk_526, (u16)temp_r0->unk_528.unk_528_16.unk_52A, temp_r0->unk_518.unk_518_8.unk_51A, temp_r0->unk_514.unk_514_16.unk_516, 1);
+                        pickup = Pickup_CreateItem(child->posX.part16.integer, (u16)child->posY.part16.integer, child->unk_518.part8.enemyId, child->unk_514.part16.spawnParam1, 1);
                     }
                     else
                     {
-                        var_r0_2 = sub_08044980(temp_r0->unk_524.unk_524_16.unk_526, (u16)temp_r0->unk_528.unk_528_16.unk_52A, temp_r0->unk_518.unk_518_8.unk_51A - 5, temp_r0->unk_514.unk_514_16.unk_516 - 1);
+                        pickup = SoulPickup_CreateContainer(child->posX.part16.integer, (u16)child->posY.part16.integer, child->unk_518.part8.enemyId - 5, child->unk_514.part16.spawnParam1 - 1);
                     }
-                    if (var_r0_2 != 0)
+                    if (pickup != 0)
                     {
-                        var_r0_2->unk_514.unk_514_16.unk_514 = temp_r0->unk_514.unk_514_16.unk_514;
+                        pickup->unk_514.part16.spawnParam0 = child->unk_514.part16.spawnParam0;
                     }
                 }
-                EntityDelete((struct EwramData_EntityData *) temp_r0);
+                EntityDelete((struct EwramData_EntityData *) child);
                 break;
 
             case 5:
-                if ((gEwramData->unk_60.unk_A1_4) && (gEwramData->unk_1325C.currentCharacter == 0))
+                if ((gEwramData->gameState.difficultyMode) && (gEwramData->playerStatus.currentCharacter == 0))
                 {
-                    if (!(gEwramData->unk_60.unk_360[temp_r0->unk_514.unk_514_16.unk_514 >> 5] & (1 << (temp_r0->unk_514.unk_514_16.unk_514 & 0x1F))))
+                    if (!(gEwramData->gameState.collectedPickupFlags[child->unk_514.part16.spawnParam0 >> 5] & (1 << (child->unk_514.part16.spawnParam0 & 0x1F))))
                     {
-                        if (temp_r0->unk_518.unk_518_8.unk_51A < 5)
+                        if (child->unk_518.part8.enemyId < 5)
                         {
-                            var_r8 = sub_08044054(temp_r0->unk_524.unk_524_16.unk_526, (u16)temp_r0->unk_528.unk_528_16.unk_52A, temp_r0->unk_518.unk_518_8.unk_51A, temp_r0->unk_514.unk_514_16.unk_516, 1);
+                            modeItem = Pickup_CreateItem(child->posX.part16.integer, (u16)child->posY.part16.integer, child->unk_518.part8.enemyId, child->unk_514.part16.spawnParam1, 1);
                         }
-                        if (var_r8 != 0)
+                        if (modeItem != 0)
                         {
-                            var_r8->unk_514.unk_514_16.unk_514 = temp_r0->unk_514.unk_514_16.unk_514;
+                            modeItem->unk_514.part16.spawnParam0 = child->unk_514.part16.spawnParam0;
                         }
                     }
                 }
-                EntityDelete((struct EwramData_EntityData *) temp_r0);
+                EntityDelete((struct EwramData_EntityData *) child);
                 break;
 
             case 6:
-                if (gEwramData->unk_1325C.currentCharacter != 0)
+                if (gEwramData->playerStatus.currentCharacter != 0)
                 {
-                    EntityDelete((struct EwramData_EntityData *) temp_r0);
+                    EntityDelete((struct EwramData_EntityData *) child);
                     break;
                 }
 
-                if (!(gEwramData->unk_60.unk_360[temp_r0->unk_514.unk_514_16.unk_514 >> 5] & (1 << (temp_r0->unk_514.unk_514_16.unk_514 & 0x1F))))
+                if (!(gEwramData->gameState.collectedPickupFlags[child->unk_514.part16.spawnParam0 >> 5] & (1 << (child->unk_514.part16.spawnParam0 & 0x1F))))
                 {
-                    temp_r6 = temp_r0->unk_518.unk_518_8.unk_51A;
-                    temp_r7 = temp_r0->unk_514.unk_514_16.unk_516;
-                    if ((*sub_08044FA8((s32) temp_r6, (s32) temp_r7) == 0) && (sub_08032DF0() == 0x3E8))
+                    itemType = child->unk_518.part8.enemyId;
+                    itemId = child->unk_514.part16.spawnParam1;
+                    if ((*ItemInventory_GetCountPtr((s32) itemType, (s32) itemId) == 0) && (SoulInventory_GetCompletionTenths() == 0x3E8))
                     {
-                        temp_r0_3 = sub_08044054(temp_r0->unk_524.unk_524_16.unk_526, (u16)temp_r0->unk_528.unk_528_16.unk_52A, (s32) temp_r6, (s32) temp_r7, 1);
-                        if (temp_r0_3 != 0)
+                        bonusItem = Pickup_CreateItem(child->posX.part16.integer, (u16)child->posY.part16.integer, (s32) itemType, (s32) itemId, 1);
+                        if (bonusItem != 0)
                         {
-                            temp_r0_3->unk_514.unk_514_16.unk_514 = temp_r0->unk_514.unk_514_16.unk_514;
+                            bonusItem->unk_514.part16.spawnParam0 = child->unk_514.part16.spawnParam0;
                         }
                     }
                 }
-                EntityDelete((struct EwramData_EntityData *) temp_r0);
+                EntityDelete((struct EwramData_EntityData *) child);
                 break;
         }
-        var_r7 = 1;
+        spawned = 1;
     }
 
-    gEwramData->unk_60.unk_3D0.unk_4[param_0->unk_4 >> 5] |= 1 << (param_0->unk_4 & 0x1F);
-    return var_r7;
+    gEwramData->gameState.roomEntitySpawn.spawnedFlags[record->spawnIndex >> 5] |= 1 << (record->spawnIndex & 0x1F);
+    return spawned;
 }
 
 /**
- * @brief F4F8 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
+ * @brief For an X-sorted list, spawn records within the camera X window
+ * (-80..+320 px), store the scan index and spawn records flagged
+ * always-active (flags & 0xF).
  */
-void sub_0800F4F8(struct EwramData_unk3D0 *param_0, struct EwramData_unk_3DC *param_1)
+void RoomEntity_SpawnVisibleByX(struct RoomEntitySpawnState *spawnState, struct RoomEntityRecord *records)
 {
-    s32 var_sb;
-    s16 var_1;
-    s16 var_2;
+    s32 i;
+    s16 minX;
+    s16 maxX;
 
-    var_sb = 0;
-    var_1 = gEwramData->bgInfo[1].xPos.part16.integer - 80;
-    var_2 = gEwramData->bgInfo[1].xPos.part16.integer + 320;
+    i = 0;
+    minX = gEwramData->bgInfo[1].xPos.part16.integer - 80;
+    maxX = gEwramData->bgInfo[1].xPos.part16.integer + 320;
     while (TRUE)
     {
-        if ((param_1[var_sb].unk_0 >= (var_2)) || (param_1[var_sb].unk_5 == 0))
+        if ((records[i].x >= (maxX)) || (records[i].kind == 0))
         {
             break;
         }
-        if (param_1[var_sb].unk_0 >= (var_1) && param_1[var_sb].unk_0 <= (var_2))
+        if (records[i].x >= (minX) && records[i].x <= (maxX))
         {
-            sub_0800F1FC(&param_1[var_sb]);
+            RoomEntity_Spawn(&records[i]);
         }
-        var_sb++;
+        i++;
     }
-    param_0->unk_1 = var_sb;
+    spawnState->scanIndex = i;
 
-    for (var_sb = 0; param_1[var_sb].unk_0 < 0x7FFF; var_sb++)
+    for (i = 0; records[i].x < 0x7FFF; i++)
     {
-        if (param_1[var_sb].unk_7 & 0xF)
+        if (records[i].flags & 0xF)
         {
-            sub_0800F1FC(&param_1[var_sb]);
+            RoomEntity_Spawn(&records[i]);
         }
     }
 }
 
 /**
- * @brief F5BC | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
+ * @brief For a Y-sorted list, spawn records within the camera Y window
+ * (-80..+240 px), store the scan index and spawn records flagged
+ * always-active (flags & 0xF).
  */
-void sub_0800F5BC(struct EwramData_unk3D0 *param_0, struct EwramData_unk_3DC *param_1)
+void RoomEntity_SpawnVisibleByY(struct RoomEntitySpawnState *spawnState, struct RoomEntityRecord *records)
 {
-    s32 var_sb;
-    s16 var_1;
-    s16 var_2;
+    s32 i;
+    s16 minY;
+    s16 maxY;
 
-    var_sb = 0;
-    var_1 = gEwramData->bgInfo[1].yPos.part16.integer - 80;
-    var_2 = gEwramData->bgInfo[1].yPos.part16.integer + 240;
+    i = 0;
+    minY = gEwramData->bgInfo[1].yPos.part16.integer - 80;
+    maxY = gEwramData->bgInfo[1].yPos.part16.integer + 240;
     while (TRUE)
     {
-        if ((param_1[var_sb].unk_2 >= (var_2)) || (param_1[var_sb].unk_5 == 0))
+        if ((records[i].y >= (maxY)) || (records[i].kind == 0))
         {
             break;
         }
-        if (param_1[var_sb].unk_2 >= (var_1) && param_1[var_sb].unk_2 <= (var_2))
+        if (records[i].y >= (minY) && records[i].y <= (maxY))
         {
-            sub_0800F1FC(&param_1[var_sb]);
+            RoomEntity_Spawn(&records[i]);
         }
-        var_sb++;
+        i++;
     }
-    param_0->unk_1 = var_sb;
+    spawnState->scanIndex = i;
 
-    for (var_sb = 0; param_1[var_sb].unk_0 < 0x7FFF; var_sb++)
+    for (i = 0; records[i].x < 0x7FFF; i++)
     {
-        if (param_1[var_sb].unk_7 & 0xF)
+        if (records[i].flags & 0xF)
         {
-            sub_0800F1FC(&param_1[var_sb]);
+            RoomEntity_Spawn(&records[i]);
         }
     }
 }
 /**
- * @brief F678 | To document
- * 
- * @param param_0 To document
+ * @brief Install the room entity list, clear the spawned bits, preload enemy
+ * resources and spawn the visible records along the room's longer axis
+ * (X when width >= height), compensating the camera offset flag.
  */
-void sub_0800F678(struct EwramData_unk_3DC *param_0)
+void RoomEntity_InitList(struct RoomEntityRecord *records)
 {
-    struct EwramData_unk_3DC *sp4;
-    struct EwramData_unk3D0 *temp_r5;
-    struct EwramData_unkA078_0 *temp_r7;
-    struct EwramData_unkA078 *temp_r1;
-    struct EwramData_unkA078 *temp_r2;
+    struct RoomEntityRecord *list;
+    struct RoomEntitySpawnState *spawnState;
+    struct BgMapMetadata *metadata;
+    struct BgLayerState *bgLayer;
+    struct BgLayerState *bg;
 
-    sp4 = param_0;
-    temp_r5 = &gEwramData->unk_60.unk_3D0;
-    temp_r5->unk_C = (struct EwramData_unk_3DC *) param_0;
+    list = records;
+    spawnState = &gEwramData->gameState.roomEntitySpawn;
+    spawnState->records = (struct RoomEntityRecord *) records;
 
-    if (param_0 != NULL)
+    if (records != NULL)
     {
-        DMA_FILL_32(3, 0, &temp_r5->unk_4, sizeof(temp_r5->unk_4));
-        temp_r2 = &gEwramData->bgInfo[1];
-        temp_r7 = temp_r2->pBgMetadata;
-        if (gEwramData->unk_60.unk_8E_4)
+        DMA_FILL_32(3, 0, &spawnState->spawnedFlags, sizeof(spawnState->spawnedFlags));
+        bg = &gEwramData->bgInfo[1];
+        metadata = bg->pBgMetadata;
+        if (gEwramData->gameState.spawnCameraOffsetMode)
         {
-            temp_r2->yPos.part16.integer += 0x30;
+            bg->yPos.part16.integer += 0x30;
         }
-        sub_0800F92C(param_0);
-        DMA_FILL_32(3, 0, &temp_r5->unk_4, sizeof(temp_r5->unk_4));
+        RoomEntity_PreloadEnemies(records);
+        DMA_FILL_32(3, 0, &spawnState->spawnedFlags, sizeof(spawnState->spawnedFlags));
 
-        if (temp_r7->unk_0 >= temp_r7->unk_1)
+        if (metadata->widthCells >= metadata->heightCells)
         {
-            temp_r5->unk_0 = 0;
-            sub_0800F4F8(temp_r5, (struct EwramData_unk_3DC *) param_0);
+            spawnState->scanAxis = 0;
+            RoomEntity_SpawnVisibleByX(spawnState, (struct RoomEntityRecord *) records);
         }
         else
         {
-            temp_r5->unk_0 = 1;
-            sub_0800F5BC(temp_r5, sp4);
+            spawnState->scanAxis = 1;
+            RoomEntity_SpawnVisibleByY(spawnState, list);
         }
 
-        if (gEwramData->unk_60.unk_8E_4)
+        if (gEwramData->gameState.spawnCameraOffsetMode)
         {
-            temp_r1 = &gEwramData->bgInfo[1];
-            temp_r1->yPos.part16.integer -= 0x30;
+            bgLayer = &gEwramData->bgInfo[1];
+            bgLayer->yPos.part16.integer -= 0x30;
         }
     }
 }
 
 
 /**
- * @brief F750 | To document
- * 
+ * @brief Per-frame spawner: advance the scan index along the list axis in
+ * the camera scroll direction and spawn records entering the window.
  */
-void sub_0800F750(void)
+void RoomEntity_SpawnOnScroll(void)
 {
-    s32 temp_r6;
-    s32 temp_r6_2;
-    s32 temp_r6_3;
-    s32 temp_r6_4;
-    struct EwramData_unk3D0 *temp_r7;
-    struct EwramData_unk_3DC *temp_r3;
-    s32 temp_r1_2;
-    s32 temp_r1_5;
-    s32 var_r0;
-    s32 var_r5;
-    s32 var_r5_2;
-    struct EwramData_unkA078 *temp_r0;
+    s32 spawnRight;
+    s32 spawnLeft;
+    s32 spawnBottom;
+    s32 spawnTop;
+    struct RoomEntitySpawnState *spawnState;
+    struct RoomEntityRecord *records;
+    s32 scrollX;
+    s32 scrollY;
+    s32 clamped;
+    s32 index;
+    s32 upIndex;
+    struct BgLayerState *bg;
 
-    temp_r7 = &gEwramData->unk_60.unk_3D0;
-    temp_r3 = temp_r7->unk_C;
-    temp_r0 = &gEwramData->bgInfo[1];
-    if (temp_r3 == NULL)
+    spawnState = &gEwramData->gameState.roomEntitySpawn;
+    records = spawnState->records;
+    bg = &gEwramData->bgInfo[1];
+    if (records == NULL)
     {
         return;
     }
 
-    switch (temp_r7->unk_0)
+    switch (spawnState->scanAxis)
     {
         case 0:
-            temp_r1_2 = temp_r0->xVel.whole;
-            if (temp_r1_2 > 0)
+            scrollX = bg->xVel.whole;
+            if (scrollX > 0)
             {
-                var_r5 = temp_r7->unk_1;
-                temp_r6 = temp_r0->xPos.whole + 0x1200000;
-                while ((temp_r6 - temp_r1_2) > (temp_r3[var_r5].unk_0 << 0x10))
+                index = spawnState->scanIndex;
+                spawnRight = bg->xPos.whole + 0x1200000;
+                while ((spawnRight - scrollX) > (records[index].x << 0x10))
                 {
-                    var_r5++;
+                    index++;
                 }
 
-                for (; temp_r6 >= (temp_r3[var_r5].unk_0 << 0x10); var_r5++)
+                for (; spawnRight >= (records[index].x << 0x10); index++)
                 {
-                    sub_0800F1FC(&temp_r3[var_r5]);
+                    RoomEntity_Spawn(&records[index]);
                 }
-                temp_r7->unk_1 = var_r5;
+                spawnState->scanIndex = index;
             }
 
-            else if (temp_r1_2 < 0)
+            else if (scrollX < 0)
             {
-                var_r5 = temp_r7->unk_1;
-                temp_r6_2 = temp_r0->xPos.whole - 0x300000;
-                while ((((temp_r6_2 - temp_r1_2) < (temp_r3[var_r5].unk_0 << 0x10)) && (var_r5 > 0)))
+                index = spawnState->scanIndex;
+                spawnLeft = bg->xPos.whole - 0x300000;
+                while ((((spawnLeft - scrollX) < (records[index].x << 0x10)) && (index > 0)))
                 {
-                    var_r5--;
+                    index--;
                 }
 
-                for (; (temp_r6_2 <= (temp_r3[var_r5].unk_0 << 0x10)) && (temp_r3[var_r5].unk_0 < 0x7FFF); var_r5--)
+                for (; (spawnLeft <= (records[index].x << 0x10)) && (records[index].x < 0x7FFF); index--)
                 {
-                    sub_0800F1FC(&temp_r3[var_r5]);
-                    if (var_r5 == 0)
+                    RoomEntity_Spawn(&records[index]);
+                    if (index == 0)
                     {
                         break;
                     }
                 }
-                temp_r7->unk_1 = var_r5;
+                spawnState->scanIndex = index;
             }
             break;
 
         case 1:
-            temp_r1_5 = temp_r0->yVel.whole;
-            if (temp_r1_5 > 0)
+            scrollY = bg->yVel.whole;
+            if (scrollY > 0)
             {
-                var_r5 = temp_r7->unk_1;
-                temp_r6_3 = temp_r0->yPos.whole + 0xD00000;
-                while ((temp_r6_3 - temp_r1_5) > (temp_r3[var_r5].unk_2 << 0x10))
+                index = spawnState->scanIndex;
+                spawnBottom = bg->yPos.whole + 0xD00000;
+                while ((spawnBottom - scrollY) > (records[index].y << 0x10))
                 {
-                    var_r5++;
+                    index++;
                 }
 
-                for (; temp_r6_3 >= (temp_r3[var_r5].unk_2 << 0x10); var_r5++)
+                for (; spawnBottom >= (records[index].y << 0x10); index++)
                 {
-                    sub_0800F1FC(&temp_r3[var_r5]);
+                    RoomEntity_Spawn(&records[index]);
                 }
-                temp_r7->unk_1 = var_r5;
+                spawnState->scanIndex = index;
             }
 
-            else if (temp_r1_5 < 0)
+            else if (scrollY < 0)
             {
-                var_r5_2 = temp_r7->unk_1;
-                temp_r6_4 = temp_r0->yPos.whole - 0x300000;
-                while (((s32) (temp_r6_4 - temp_r1_5) < (s32) (temp_r3[var_r5_2].unk_2 << 0x10)) && (var_r5_2 > 0))
+                upIndex = spawnState->scanIndex;
+                spawnTop = bg->yPos.whole - 0x300000;
+                while (((s32) (spawnTop - scrollY) < (s32) (records[upIndex].y << 0x10)) && (upIndex > 0))
                 {
-                    var_r5_2--;
+                    upIndex--;
                 }
 
-                for (; (temp_r6_4 <= (temp_r3[var_r5_2].unk_2 << 0x10)) && (temp_r3[var_r5_2].unk_2 < 0x7FFF); var_r5_2--)
+                for (; (spawnTop <= (records[upIndex].y << 0x10)) && (records[upIndex].y < 0x7FFF); upIndex--)
                 {
-                    sub_0800F1FC(&temp_r3[var_r5_2]);
-                    if (var_r5_2 == 0)
+                    RoomEntity_Spawn(&records[upIndex]);
+                    if (upIndex == 0)
                     {
                         break;
                     }
                 }
 
-                var_r0 = var_r5_2;
-                if (var_r0 < 0)
+                clamped = upIndex;
+                if (clamped < 0)
                 {
-                    var_r0 = 0;
+                    clamped = 0;
                 }
-                temp_r7->unk_1 = var_r0;
+                spawnState->scanIndex = clamped;
             }
             break;
     }
 }
 
 /**
- * @brief F92C | To document
- * 
- * @param param_0 To document
+ * @brief Spawn every enemy record, run each spawned entity once (deleting
+ * those not marked active) and delete them all, then reset the heap.
+ * This primes enemy resources before the real spawn pass.
  */
-void sub_0800F92C(struct EwramData_unk_3DC *param_0)
+void RoomEntity_PreloadEnemies(struct RoomEntityRecord *records)
 {
-    s32 var_r7;
-    s32 var_sb;
-    struct EwramData_EntityData *var_0;
+    s32 j;
+    s32 i;
+    struct EwramData_EntityData *entity;
 
-    for (var_sb = 0; param_0[var_sb].unk_0 < 0x7FFF; var_sb++)
+    for (i = 0; records[i].x < 0x7FFF; i++)
     {
-        if (param_0[var_sb].unk_5 == 1)
+        if (records[i].kind == 1)
         {
-            sub_0800F1FC(&param_0[var_sb]);
+            RoomEntity_Spawn(&records[i]);
         }
     }
 
-    var_0 = &gEwramData->entityData[0x1B];
-    for (var_r7 = 0; var_r7 < 0xB5; var_r7++)
+    entity = &gEwramData->entityData[0x1B];
+    for (j = 0; j < 0xB5; j++)
     {
-        if (var_0->updateFunc != NULL)
+        if (entity->updateFunc != NULL)
         {
-            if (!(var_0->unk_53D_2))
+            if (!(entity->roomActive))
             {
-                if (var_0->unk_53C_0 || var_0->unk_53D_4)
+                if (entity->affineIndex || entity->affine)
                 {
-                    sub_0803E6BC(var_0->unk_53C_0);
+                    ObjAffine_Free(entity->affineIndex);
                 }
-                EntityDelete(&gEwramData->entityData[0x1B + var_r7]);
+                EntityDelete(&gEwramData->entityData[0x1B + j]);
             }
             else
             {
-                var_0->unk_53D_2 = 0;
-                ((void (*)(struct EwramData_EntityData *)) var_0->updateFunc)(var_0);
-                EntityDelete(&gEwramData->entityData[0x1B + var_r7]);
+                entity->roomActive = 0;
+                ((void (*)(struct EwramData_EntityData *)) entity->updateFunc)(entity);
+                EntityDelete(&gEwramData->entityData[0x1B + j]);
             }
         }
-        var_0++;
+        entity++;
     }
-    sub_0806E028();
+    Heap_Reset();
 }
 
 /**
- * @brief F9EC | To document
- * 
- * @param arg0 To document
- * @param arg1 To document
- * @param arg2 To document
+ * @brief Load a room definition (following its variant chain to the active
+ * entry): graphics, palettes, BG1..BG3 layers at the camera position,
+ * map coordinates, collision blocks and music; mark the room visited
+ * and install its entity list.
  */
-void sub_0800F9EC(struct EwramData_unk88 *arg0, u16 arg1, u16 arg2)
+void Room_Load(struct RoomDefinition *room, u16 cameraX, u16 cameraY)
 {
-    u16 *sp18;
-    s32 var_r7;
-    struct EwramData_unk60 *temp_r0;
-    struct EwramData_unk88 *var_r1;
-    struct EwramData_unk_88_8 *var_r6;
-    struct EwramData_unk_88_C *var_r4_2;
-    struct EwramData_unk_88_C *var_r4;
+    u16 *bgControl;
+    s32 i;
+    struct GameState *gameState;
+    struct RoomDefinition *def;
+    struct RoomBgLayerDefinition *layerDef;
+    struct RoomResourceLoad *paletteLoad;
+    struct RoomResourceLoad *graphicsLoad;
 
-    temp_r0 = &gEwramData->unk_60;
+    gameState = &gEwramData->gameState;
 
-    var_r1 = arg0;
-    while (var_r1->unk_2 != 0xFFFF)
+    def = room;
+    while (def->definitionChainMarker != 0xFFFF)
     {
-        var_r1 = var_r1->unk_4;
+        def = def->nextDefinition;
     }
-    arg0 = var_r1;
+    room = def;
 
-    gUnk_03002CB0.dispCnt = arg0->unk_0;
+    gUnk_03002CB0.dispCnt = room->displayControl;
 
-    var_r4 = arg0->unk_C;
-    while (var_r4->unk_0 != 0)
+    graphicsLoad = room->graphicsLoads;
+    while (graphicsLoad->resource != 0)
     {
-        sub_0803FE0C(var_r4->unk_0, var_r4->unk_4, var_r4->unk_5, var_r4->unk_6);
-        var_r4 += 1;
-    }
-
-    var_r4_2 = arg0->unk_10;
-    while (var_r4_2->unk_0 != 0)
-    {
-        sub_0803C918((u8*)var_r4_2->unk_0, var_r4_2->unk_5, var_r4_2->unk_6, var_r4_2->unk_4);
-        var_r4_2 += 1;
-    }
-    if (gEwramData->unk_60.unk_42C & 0x800)
-    {
-        sub_0803C674();
+        Gfx_CopyResourceBlocks(graphicsLoad->resource, graphicsLoad->destinationIndex, graphicsLoad->sourceIndex, graphicsLoad->count);
+        graphicsLoad += 1;
     }
 
-    var_r6 = arg0->unk_8;
-    sp18 = gDisplayRegisters.bgCnt;
-    for (var_r7 = 1; var_r7 < 4; var_r7++)
+    paletteLoad = room->paletteLoads;
+    while (paletteLoad->resource != 0)
     {
-        sp18[var_r7] = var_r6->unk_2;
-        gEwramData->bgInfo[var_r7].unk_18 = var_r6->unk_1;
-        gEwramData->bgInfo[var_r7].unk_14 = var_r6->unk_4;
-        gEwramData->bgInfo[var_r7].unk_16 = var_r6->unk_6;
-        sub_0803DD14(var_r6->unk_0, var_r7);
-        sub_0803F8A8(var_r7, (struct EwramData_unkA078_0*)var_r6->unk_8, sub_0800ED5C(arg1, var_r6->unk_1, var_r6->unk_8->unk_0, var_r6->unk_4), sub_0800EE54(arg2, var_r6->unk_1, var_r6->unk_8->unk_1, var_r6->unk_6));
-        var_r6++;
+        BgPalette_LoadRange((u8*)paletteLoad->resource, paletteLoad->sourceIndex, paletteLoad->count, paletteLoad->destinationIndex);
+        paletteLoad += 1;
+    }
+    if (gEwramData->gameState.stateFlags & 0x800)
+    {
+        BgPalette_ApplyTintedGrayscale();
     }
 
-    sub_0803DD14(0, 0);
-    sub_0803FD60();
+    layerDef = room->bgLayers;
+    bgControl = gDisplayRegisters.bgCnt;
+    for (i = 1; i < 4; i++)
+    {
+        bgControl[i] = layerDef->control;
+        gEwramData->bgInfo[i].scrollMode = layerDef->scrollMode;
+        gEwramData->bgInfo[i].pixelWidth = layerDef->pixelWidth;
+        gEwramData->bgInfo[i].pixelHeight = layerDef->pixelHeight;
+        Obj_SetBgLayer(layerDef->layer, i);
+        BgMap_Setup(i, (struct BgMapMetadata*)layerDef->dimensions, BgLayer_GetInitialScrollX(cameraX, layerDef->scrollMode, layerDef->dimensions->widthCells, layerDef->pixelWidth), BgLayer_GetInitialScrollY(cameraY, layerDef->scrollMode, layerDef->dimensions->heightCells, layerDef->pixelHeight));
+        layerDef++;
+    }
 
-    temp_r0->roomMapXPos = arg0->unk_22_0;
-    temp_r0->roomMapYPos = arg0->unk_22_7;
-    temp_r0->unk_8E_0 = arg0->unk_23_0;
-    gEwramData->unk_A074_6 = arg0->unk_23_1;
+    Obj_SetBgLayer(0, 0);
+    Bg_SyncPriorities();
 
-    sub_08002278();
-    sub_08013960(temp_r0);
-    sub_0804F7A4();
-    temp_r0->unk_88 = arg0;
-    sub_0800F678(arg0->unk_14);
-    sub_0800EF94(temp_r0);
+    gameState->roomMapXPos = room->mapX;
+    gameState->roomMapYPos = room->mapY;
+    gameState->unk_8E_0 = room->unk_23_0;
+    gEwramData->collisionBlocksActive = room->collisionBlocksEnabled;
+
+    Collision_ClearAllBlocks();
+    Music_UpdateRoom(gameState);
+    Warp_ActivateCurrentRoom();
+    gameState->currentRoomDefinition = room;
+    RoomEntity_InitList(room->entityRecords);
+    Room_OnLoaded(gameState);
 }
 
 /**
- * @brief FBD8 | To document
- * 
+ * @brief Delete inactive entities in slots 2..0xCF, run active non-system
+ * entities once before deleting them, free affine slots 8..31 and
+ * unload object graphics without a lifetime.
  */
-void sub_0800FBD8(void)
+void Room_UnloadEntities(void)
 {
     s32 var_r4_2;
-    s32 var_r6;
+    s32 i;
     s32 var_r6_2;
-    struct EwramData_EntityData *var_r4;
+    struct EwramData_EntityData *entity;
 
-    var_r4 = &gEwramData->entityData[2];
-    for (var_r6 = 2; var_r6 < 0xD0; var_r6++)
+    entity = &gEwramData->entityData[2];
+    for (i = 2; i < 0xD0; i++)
     {
-        if (var_r4->updateFunc != NULL)
+        if (entity->updateFunc != NULL)
         {
-            if (!var_r4->unk_53D_2)
+            if (!entity->roomActive)
             {
-                if (var_r4->unk_53C_0 || var_r4->unk_53D_4)
+                if (entity->affineIndex || entity->affine)
                 {
-                    sub_0803E6BC(var_r4->unk_53C_0);
+                    ObjAffine_Free(entity->affineIndex);
                 }
-                EntityDelete(&gEwramData->entityData[var_r6]);
+                EntityDelete(&gEwramData->entityData[i]);
             }
             else
             {
-                var_r4->unk_53D_2 = 0;
-                if (var_r6 > 0x1A)
+                entity->roomActive = 0;
+                if (i > 0x1A)
                 {
-                    ((void (*)(struct EwramData_EntityData *)) var_r4->updateFunc)(var_r4);
-                    EntityDelete(var_r4);
+                    ((void (*)(struct EwramData_EntityData *)) entity->updateFunc)(entity);
+                    EntityDelete(entity);
                 }
             }
         }
-        var_r4++;
+        entity++;
     }
 
-    for (var_r6 = 8; var_r6 < 0x20; var_r6++)
+    for (i = 8; i < 0x20; i++)
     {
-        sub_0803E6BC(var_r6);
+        ObjAffine_Free(i);
     }
 
-    for (var_r6 = 0; var_r6 < 0x10; var_r6++)
+    for (i = 0; i < 0x10; i++)
     {
-        if (gEwramData->unk_FEC4[var_r6].unk_FEC8 != -1 && gEwramData->unk_FEC4[var_r6].unk_FECD == 0)
+        if (gEwramData->objGfx[i].tileSlot != -1 && gEwramData->objGfx[i].lifetime == 0)
         {
-            sub_0803B980(gEwramData->unk_FEC4[var_r6].unk_FEC8);
+            ObjGfx_Unload(gEwramData->objGfx[i].tileSlot);
         }
     }
 }
 
-struct Unk_080E0FA4 {
-    s32 unk_0;
-    s32 unk_4;
+struct AreaNameSuppressedRoom {
+    s32 area;
+    s32 room;
 };
 
-const struct Unk_080E0FA4 sUnk_080E0FA4[13] = {
+const struct AreaNameSuppressedRoom sAreaNameSuppressedRooms[13] = {
     [0] = {
-        .unk_0 = 0,
-        .unk_4 = 0
+        .area = 0,
+        .room = 0
     },
     [1] = {
-        .unk_0 = 0,
-        .unk_4 = 26
+        .area = 0,
+        .room = 26
     },
     [2] = {
-        .unk_0 = 2,
-        .unk_4 = 4
+        .area = 2,
+        .room = 4
     },
     [3] = {
-        .unk_0 = 2,
-        .unk_4 = 8
+        .area = 2,
+        .room = 8
     },
     [4] = {
-        .unk_0 = 2,
-        .unk_4 = 5
+        .area = 2,
+        .room = 5
     },
     [5] = {
-        .unk_0 = 4,
-        .unk_4 = 6
+        .area = 4,
+        .room = 6
     },
     [6] = {
-        .unk_0 = 4,
-        .unk_4 = 14
+        .area = 4,
+        .room = 14
     },
     [7] = {
-        .unk_0 = 5,
-        .unk_4 = 6
+        .area = 5,
+        .room = 6
     },
     [8] = {
-        .unk_0 = 6,
-        .unk_4 = 30
+        .area = 6,
+        .room = 30
     },
     [9] = {
-        .unk_0 = 7,
-        .unk_4 = 7
+        .area = 7,
+        .room = 7
     },
     [10] = {
-        .unk_0 = 8,
-        .unk_4 = 12
+        .area = 8,
+        .room = 12
     },
     [11] = {
-        .unk_0 = 11,
-        .unk_4 = 11
+        .area = 11,
+        .room = 11
     },
     [12] = {
-        .unk_0 = 11,
-        .unk_4 = 32
+        .area = 11,
+        .room = 32
     },
 };
 
-static inline s32 sub_0800FCB8_inline_0(s32 temp_r8, s32 temp_r3, struct Unk_080E0FA4 *unk_080E0FA4)
+static inline struct BgLayerState *GetBg1(void) { return &gEwramData->bgInfo[1]; }
+/* TRUE if the room under the camera is one of the 13 (area, room) pairs of LIST. */
+static inline s32 IsCurrentRoomListed(struct AreaNameSuppressedRoom *list)
 {
-    s32 var_r2;
+    u8 x = GetBg1()->xPos.part8.integer1;
+    u8 y = GetBg1()->yPos.part8.integer1;
+    s32 area = GetAreaFromMapPosition(x, y);
+    s32 room = GetRoomFromMapPosition(x, y);
+    s32 i;
 
-    for (var_r2 = 0; var_r2 < 13; var_r2++)
+    for (i = 0; i < 13; i++)
     {
-        if ((temp_r8 == unk_080E0FA4[var_r2].unk_0) && (temp_r3 == unk_080E0FA4[var_r2].unk_4))
-        {
+        if (area == list[i].area && room == list[i].room)
             return TRUE;
-        }
     }
     return FALSE;
 }
 
 /**
- * @brief FCB8 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Return the area index whose name banner should be shown for the room
+ * under the camera (with four room-specific overrides), or -1 for
+ * transition, save and warp rooms, 13 listed rooms and areas already
+ * announced (shownAreaNameFlags bit).
  */
-s32 sub_0800FCB8(struct EwramData_unk60 *param_0)
+s32 AreaName_GetPendingArea(struct GameState *gameState)
 {
-    s32 room;
     s32 area;
-    s32 var_r1;
-    s32 area_;
-    u8 temp_r4;
-    u8 temp_r5;
-    u8 temp_r6;
-    u8 temp_r7;
-    struct EwramData_unkA078 *bg1Info;
-    struct Unk_080E0FA4 unk_080E0FA4[13];
-    s32 var_0;
+    s32 result;
+    u8 y;
+    u8 x;
+    struct AreaNameSuppressedRoom list[13];
 
-    gEwramData++,gEwramData--; // Fake
-    bg1Info = &gEwramData->bgInfo[1];
-    temp_r7 = bg1Info->xPos.part8.integer1;
-    temp_r6 = bg1Info->yPos.part8.integer1;
+    x = GetBg1()->xPos.part8.integer1;
+    y = GetBg1()->yPos.part8.integer1;
 
-    if (CheckRoomTransition(temp_r7, temp_r6) != 0)
-    {
+    if (CheckRoomTransition(x, y) != 0)
         return -1;
-    }
-
-    if ((GetSaveRoomFlagFromMapPosition(temp_r7, temp_r6) != 0) || (GetWarpRoomFlagFromMapPosition(temp_r7, temp_r6) != 0))
-    {
+    if (GetSaveRoomFlagFromMapPosition(x, y) != 0 || GetWarpRoomFlagFromMapPosition(x, y) != 0)
         return -1;
-    }
-    
-    memcpy(&unk_080E0FA4, sUnk_080E0FA4, 0x68);
-    bg1Info = &gEwramData->bgInfo[1];
-    temp_r4 = bg1Info->xPos.part8.integer1;
-    temp_r5 = bg1Info->yPos.part8.integer1;
-    area_ = GetAreaFromMapPosition(temp_r4, temp_r5);
-    room = GetRoomFromMapPosition(temp_r4, temp_r5);
 
-    if (sub_0800FCB8_inline_0(area_, room, unk_080E0FA4))
-    {
+    memcpy(list, sAreaNameSuppressedRooms, 0x68);
+    if (IsCurrentRoomListed(list))
         return -1;
-    }
 
-    area = GetAreaFromMapPosition(temp_r7, temp_r6);
+    area = GetAreaFromMapPosition(x, y);
 
-    if ((GetRoomFromMapPosition(temp_r7, temp_r6) == 13) && (area == 7))
-    {
+    if (GetRoomFromMapPosition(x, y) == 13 && area == 7)
         area = 12;
-    }
-    else if ((GetRoomFromMapPosition(temp_r7, temp_r6) == 9) && (area == 8))
-    {
+    else if (GetRoomFromMapPosition(x, y) == 9 && area == 8)
         area = 13;
-    }
-    else if ((GetRoomFromMapPosition(temp_r7, temp_r6) == 10) && (area == 8))
-    {
+    else if (GetRoomFromMapPosition(x, y) == 10 && area == 8)
         area = 14;
-    }
-    else if ((GetRoomFromMapPosition(temp_r7, temp_r6) == 11) && (area == 8))
-    {
+    else if (GetRoomFromMapPosition(x, y) == 11 && area == 8)
         area = 15;
-    }
     
-    if (!((param_0->unk_37C >> area) & 1))
-    {
-        var_r1 = area;
-    }
+    if (!((gameState->shownAreaNameFlags >> area) & 1))
+        result = area;
     else
-    {
-        var_r1 = -1;
-    }
-    return var_r1;
+        result = -1;
+    return result;
 }
 
 /**
- * @brief FDC8 | To document
- * 
- * @param param_0 To document
+ * @brief When the banner H-blank effect is active, fill 16 BG0 scroll lines
+ * with a sine wave whose amplitude follows the banner timer.
  */
-void sub_0800FDC8(s32 param_0)
+void AreaName_UpdateWave(s32 subModeCounter)
 {
-    s16 *temp_r6;
-    s32 temp_r1;
-    s32 var_r4;
-    s32 var_r8;
+    s16 *dst;
+    s32 sine;
+    s32 amplitude;
+    s32 i;
 
-    temp_r6 = (s16*)&gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer][0x49];
+    dst = (s16*)&gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer][0x49];
 
-    if (gEwramData->unk_60.unk_4CC_2)
+    if (gEwramData->gameState.areaNameOwnsHBlank)
     {
-        *temp_r6++ = 0;
-        for (var_r8 = 0; var_r8 < 0x10; var_r8++)
+        *dst++ = 0;
+        for (i = 0; i < 0x10; i++)
         {
-            if (param_0 >= (var_r8 * 3))
+            if (subModeCounter >= (i * 3))
             {
-                var_r4 = (param_0 - var_r8 * 3) * 2;
+                amplitude = (subModeCounter - i * 3) * 2;
             }
             else
             {
-                var_r4 = 0;
+                amplitude = 0;
             }
-            temp_r1 = sub_080009E4(param_0 * 0x400 - var_r8 * 0x1000);
-            temp_r1 = sub_080009E4(param_0 * 0x400 - var_r8 * 0x1000);
-            if (var_r4 <= 0xC0)
+            sine = Sin(subModeCounter * 0x400 - i * 0x1000);
+            sine = Sin(subModeCounter * 0x400 - i * 0x1000);
+            if (amplitude <= 0xC0)
             {
-                *temp_r6 = (temp_r1 * (var_r4 >> 1)) >> 0x10;
+                *dst = (sine * (amplitude >> 1)) >> 0x10;
             }
             else
             {
-                *temp_r6 = (u32)(temp_r1 * 3) >> 0xB;
+                *dst = (u32)(sine * 3) >> 0xB;
             }
-            temp_r6++;
+            dst++;
         }
 
         gEwramData->hBlankEffect.requestStart = 1;
     }
 }
 
-u8 *sUnk_084F0FB8[13] = {
+u8 *sAreaNameGfx[13] = {
     (u8*)0x08260328,
     (u8*)0x08260330,
     (u8*)0x08260338,
@@ -922,7 +892,7 @@ u8 *sUnk_084F0FB8[13] = {
     (u8*)0x08260368,
 };
 
-u8 *sUnk_084F0FEC[13] = {
+u8 *sAreaNameGfxLanguage3[13] = {
     (u8*)0x082738AC,
     (u8*)0x082738B4,
     (u8*)0x082738BC,
@@ -938,7 +908,7 @@ u8 *sUnk_084F0FEC[13] = {
     (u8*)0x082738EC,
 };
 
-u8 *sUnk_084F1020[13] = {
+u8 *sAreaNameGfxLanguage2[13] = {
     (u8*)0x08273914,
     (u8*)0x0827391C,
     (u8*)0x08273924,
@@ -955,16 +925,14 @@ u8 *sUnk_084F1020[13] = {
 };
 
 /**
- * @brief FE98 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
+ * @brief Open the area-name banner window, start its wave effect, load the
+ * language-specific name graphics for the area and mark it announced.
  */
-void sub_0800FE98(struct EwramData_unk60 *param_0, s32 param_1)
+void AreaName_Show(struct GameState *gameState, s32 area)
 {
     u16 var_0;
 
-    if (param_1 >= 13)
+    if (area >= 13)
     {
         return;
     }
@@ -982,112 +950,110 @@ void sub_0800FE98(struct EwramData_unk60 *param_0, s32 param_1)
 
     if (!gEwramData->hBlankEffect.requestStart)
     {
-        param_0->unk_4CC_2 = 1;
+        gameState->areaNameOwnsHBlank = 1;
         HBlankEffectSetup(240, (s32)(SCREEN_SIZE_Y * 0.6f), 2, REG_BG0HOFS);
-        sub_0800FDC8(param_0->unk_66);
+        AreaName_UpdateWave(gameState->subModeCounter);
     }
     else
     {
-        param_0->unk_4CC_2 = 0;
+        gameState->areaNameOwnsHBlank = 0;
     }
 
-    sub_0803C918((u8 *)0x08266520, 0, 1, 0xC);
-    switch (gEwramData->unk_60.language)
+    BgPalette_LoadRange((u8 *)0x08266520, 0, 1, 0xC);
+    switch (gEwramData->gameState.language)
     {
         case 2:
-            sub_0803FD9C(sUnk_084F1020[param_1], VRAM_BASE + 0x6000, 0);
+            Gfx_CopyResource(sAreaNameGfxLanguage2[area], VRAM_BASE + 0x6000, 0);
             break;
 
         case 3:
-            sub_0803FD9C(sUnk_084F0FEC[param_1], VRAM_BASE + 0x6000, 0);
+            Gfx_CopyResource(sAreaNameGfxLanguage3[area], VRAM_BASE + 0x6000, 0);
             break;
 
         default:
-            sub_0803FD9C(sUnk_084F0FB8[param_1], VRAM_BASE + 0x6000, 0);
+            Gfx_CopyResource(sAreaNameGfx[area], VRAM_BASE + 0x6000, 0);
             break;
     }
 
-    sub_08046DD4(0, 0xA, 0xC300U, 0x40);
-    param_0->unk_37C |= 1 << param_1;
+    HudMap_WriteTiles(0, 0xA, 0xC300U, 0x40);
+    gameState->shownAreaNameFlags |= 1 << area;
 }
 
 /**
- * @brief FFCC | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Banner state machine while stateFlags bit 0x80 is set: pause, show,
+ * wave in, hold, wave out with fade and hide; return 1 when finished.
  */
-s32 sub_0800FFCC(struct EwramData_unk60 *param_0)
+s32 AreaName_Update(struct GameState *gameState)
 {
-    if (!(gEwramData->unk_60.unk_42C & 0x80))
+    if (!(gEwramData->gameState.stateFlags & 0x80))
     {
         return;
     }
 
     UpdateInGameTimer();
-    if ((gEwramData->unk_60.unk_42C & 0x101) == 1)
+    if ((gEwramData->gameState.stateFlags & 0x101) == 1)
     {
-        sub_0801093C(param_0);
+        AreaName_Dismiss(gameState);
         return;
     }
 
-    if (param_0->unk_4CD == 0)
+    if (gameState->areaNameState == 0)
     {
-        gEwramData->unk_60.unk_42C |= 0x80;
-        gUnk_03002CB0.dispCnt = param_0->unk_88->unk_0;
-        sub_0800C5A8(0);
-        gEwramData->unk_A074_0 = 1;
-        param_0->unk_66 = 0x3E;
-        sub_0800FE98(param_0, sub_0800FCB8(param_0));
-        param_0->unk_4CD += 1;
+        gEwramData->gameState.stateFlags |= 0x80;
+        gUnk_03002CB0.dispCnt = gameState->currentRoomDefinition->displayControl;
+        Game_SetMenusEnabled(0);
+        gEwramData->paused = 1;
+        gameState->subModeCounter = 0x3E;
+        AreaName_Show(gameState, AreaName_GetPendingArea(gameState));
+        gameState->areaNameState += 1;
     }
 
-    else if (param_0->unk_4CD == 1)
+    else if (gameState->areaNameState == 1)
     {
-        param_0->unk_66 -= 2;
-        sub_0800FDC8(param_0->unk_66);
-        if (param_0->unk_66 == 0)
+        gameState->subModeCounter -= 2;
+        AreaName_UpdateWave(gameState->subModeCounter);
+        if (gameState->subModeCounter == 0)
         {
-            param_0->unk_66 = 0x3C;
-            param_0->unk_4CD += 1;
+            gameState->subModeCounter = 0x3C;
+            gameState->areaNameState += 1;
         }
     }
 
-    else if (param_0->unk_4CD == 2)
+    else if (gameState->areaNameState == 2)
     {
-        if (param_0->unk_66 != 0)
+        if (gameState->subModeCounter != 0)
         {
-            param_0->unk_66 -= 1;
+            gameState->subModeCounter -= 1;
         }
         else
         {
-            param_0->unk_4CD += 1;
+            gameState->areaNameState += 1;
         }
     }
 
-    else if (param_0->unk_4CD == 3)
+    else if (gameState->areaNameState == 3)
     {
-        param_0->unk_66 += 1;
-        sub_0800FDC8(param_0->unk_66);
-        if (param_0->unk_66 > 0x1F)
+        gameState->subModeCounter += 1;
+        AreaName_UpdateWave(gameState->subModeCounter);
+        if (gameState->subModeCounter > 0x1F)
         {
-            gDisplayRegisters.bldY = (0x60 - param_0->unk_66) >> 3;
+            gDisplayRegisters.bldY = (0x60 - gameState->subModeCounter) >> 3;
         }
-        if (param_0->unk_66 > 0x5F)
+        if (gameState->subModeCounter > 0x5F)
         {
-            sub_08010144(param_0);
-            gEwramData->unk_A074_1 = 0;
-            gEwramData->unk_A074_0 = 1;
-            param_0->unk_4CD = 4;
+            AreaName_Hide(gameState);
+            gEwramData->startPauseEnabled = 0;
+            gEwramData->paused = 1;
+            gameState->areaNameState = 4;
         }
     }
 
-    else if (param_0->unk_4CD == 4)
+    else if (gameState->areaNameState == 4)
     {
-        gEwramData->unk_60.unk_42C &= ~0x80;
-        gEwramData->unk_A074_1 = 1;
-        gEwramData->unk_A074_0 = 0;
-        param_0->unk_4CD = 0;
+        gEwramData->gameState.stateFlags &= ~0x80;
+        gEwramData->startPauseEnabled = 1;
+        gEwramData->paused = 0;
+        gameState->areaNameState = 0;
         return 1;
     }
 
@@ -1095,356 +1061,353 @@ s32 sub_0800FFCC(struct EwramData_unk60 *param_0)
 }
 
 /**
- * @brief 10144 | To document
- * 
- * @param param_0 To document
+ * @brief Clear the banner tiles and wave buffer, restore window, blend and
+ * menu state and unpause.
  */
-void sub_08010144(struct EwramData_unk60 *param_0)
+void AreaName_Hide(struct GameState *gameState)
 {
     DMA_FILL_32(3, 0, 0x0600E280, 0x80);
     DMA_FILL_32(3, 0, &gEwramData->hBlankEffect.hBlankBuffer, sizeof(gEwramData->hBlankEffect.hBlankBuffer[0]));
 
     gUnk_03002CB0.dispCnt &= ~DCNT_WIN0;
-    if (param_0->unk_4CC_2)
+    if (gameState->areaNameOwnsHBlank)
     {
         gEwramData->hBlankEffect.requestStop = 1;
     }
-    sub_0800C5A8(1);
+    Game_SetMenusEnabled(1);
 
-    param_0->unk_4CD = 0;
-    gEwramData->unk_A074_0 = 0;
+    gameState->areaNameState = 0;
+    gEwramData->paused = 0;
     gDisplayRegisters.bldCnt |= BLDCNT_SCREEN_SECOND_TARGET;
     gDisplayRegisters.bgOfs[0].hOfs = 0;
-    gEwramData->unk_A074_2 = gEwramData->unk_A074_4 = 0;
-    gDisplayRegisters.bldCnt = param_0->unk_88->unk_1E;
+    gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 0;
+    gDisplayRegisters.bldCnt = gameState->currentRoomDefinition->blendControl;
     gDisplayRegisters.bldY = 0;
-    sub_0800C778();
+    Display_SetDefaultBlend();
     gDisplayRegisters.winIn_L = WIN0_ALL;
     gDisplayRegisters.winOut_L = WIN0_ALL;
 }
 
-static inline void sub_08010244_inline_0()
+static inline void GameState_ClearFlag80()
 {
-    gEwramData->unk_60.unk_42C &= ~0x80;
+    gEwramData->gameState.stateFlags &= ~0x80;
 }
 
-static inline void sub_08010244_inline_1()
+static inline void GameState_SetFlag100000()
 {
-    gEwramData->unk_60.unk_42C |= 0x100000;
+    gEwramData->gameState.stateFlags |= 0x100000;
 }
 
 /**
- * @brief 10244 | To document
- * 
- * @param param_0 To document
+ * @brief Called when the player leaves the room bounds: dismiss the area
+ * banner, enter in-game sub-mode 3, black out and pause, and clamp the
+ * player velocity so the transition does not carry it back.
  */
-void sub_08010244(struct EwramData_unk60 *param_0)
+void RoomTransition_Begin(struct GameState *gameState)
 {
-    if (gEwramData->unk_60.unk_42C & 0x80)
+    if (gEwramData->gameState.stateFlags & 0x80)
     {
-        sub_08010144(param_0);
-        sub_08010244_inline_0();
+        AreaName_Hide(gameState);
+        GameState_ClearFlag80();
     }
-    param_0->unk_64 = 3;
-    param_0->unk_65 = 0;
+    gameState->subMode = 3;
+    gameState->subModeStep = 0;
 
-    gEwramData->unk_FEC0 = gEwramData->unk_FEC1 = 0;
+    gEwramData->screenShakeOffsetX = gEwramData->screenShakeOffsetY = 0;
     gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT;
     gUnk_03002CB0.dispCnt &= ~DCNT_WIN0;
     gDisplayRegisters.bldY = BLDY_MAX_VALUE;
 
-    gEwramData->unk_A074_1 = 0;
-    gEwramData->unk_A074_0 = 1;
-    sub_08010244_inline_1();
+    gEwramData->startPauseEnabled = 0;
+    gEwramData->paused = 1;
+    GameState_SetFlag100000();
 
-    if (gEwramData->unk_13110.unk_13110->unk_528.unk_528_16.unk_52A >= 0x31 && gEwramData->unk_13110.unk_13110->unk_528.unk_528_16.unk_52A <= 0xCF)
+    if (gEwramData->playerState.player->posY.part16.integer >= 0x31 && gEwramData->playerState.player->posY.part16.integer <= 0xCF)
     {
-        if ((s16)gEwramData->unk_13110.unk_13110->unk_524.unk_524_16.unk_526 < 0x78)
+        if ((s16)gEwramData->playerState.player->posX.part16.integer < 0x78)
         {
-            if (gEwramData->unk_13110.unk_13110->unk_52C.unk_52C_32 > 0)
+            if (gEwramData->playerState.player->velX.whole > 0)
             {
-                gEwramData->unk_13110.unk_13110->unk_52C.unk_52C_32 = 0;
-                gEwramData->unk_13110.unk_13110->unk_534.unk_534_32 = 0;
+                gEwramData->playerState.player->velX.whole = 0;
+                gEwramData->playerState.player->accelX.whole = 0;
             }
         }
 
-        else if (gEwramData->unk_13110.unk_13110->unk_52C.unk_52C_32 < 0)
+        else if (gEwramData->playerState.player->velX.whole < 0)
         {
-            gEwramData->unk_13110.unk_13110->unk_52C.unk_52C_32 = 0;
-            gEwramData->unk_13110.unk_13110->unk_534.unk_534_32 = 0;
+            gEwramData->playerState.player->velX.whole = 0;
+            gEwramData->playerState.player->accelX.whole = 0;
         }
 
-        if (gEwramData->unk_13110.unk_13110->unk_530.unk_530_32 < -0x50000)
+        if (gEwramData->playerState.player->velY.whole < -0x50000)
         {
-            gEwramData->unk_13110.unk_13110->unk_530.unk_530_32 = -0x10000;
+            gEwramData->playerState.player->velY.whole = -0x10000;
         }
     }
 }
 
 /**
- * @brief 10350 | To document
- * 
- * @param param_0 To document
+ * @brief Find the room part whose cell matches the player position, set
+ * the camera scroll needed to frame the player and load that room part.
  */
-void sub_08010350(struct EwramData_unk60 *param_0)
+void Room_LoadAtPlayerPosition(struct GameState *gameState)
 {
-    s32 var_r6;
-    struct EwramData_EntityData *temp_r5;
-    struct EwramData_unk88 *temp_sb;
-    struct EwramData_unk88_18 *var_r4;
-    struct EwramData_unkA078_0 *temp_r4_2;
-    s16 temp_r6;
-    s16 temp_r7;
-    s8 var_r1;
-    s8 var_r3;
-    struct EwramData_unkA078 *temp_r4;
-    struct EwramData_unkA078 *temp_r8;
+    s32 screenX;
+    struct EwramData_EntityData *player;
+    struct RoomDefinition *room;
+    struct RoomTransitionPart *part;
+    struct BgMapMetadata *metadata;
+    s16 roomX;
+    s16 roomY;
+    s8 cellX;
+    s8 cellY;
+    struct BgLayerState *bg;
+    struct BgLayerState *scrollBg;
 
-    temp_r5 = gEwramData->unk_13110.unk_13110;
-    temp_sb = param_0->unk_88;
-    temp_r4 = &gEwramData->bgInfo[1];
-    temp_r8 = temp_r4;
-    temp_r4_2 = temp_r4->pBgMetadata;
+    player = gEwramData->playerState.player;
+    room = gameState->currentRoomDefinition;
+    bg = &gEwramData->bgInfo[1];
+    scrollBg = bg;
+    metadata = bg->pBgMetadata;
 
     DMA_FILL_32(3, 0, 0x0600E800, 0x1800);
-    temp_r6 = GetEntityRoomXPositionInteger(temp_r5);
-    temp_r7 = GetEntityRoomYPositionInteger(temp_r5);
-    var_r1 = temp_r6 >> 8;
-    if (temp_r4_2->unk_0 == 1 && (s16)temp_r5->unk_524.unk_524_16.unk_526 > 0xF0)
+    roomX = GetEntityRoomXPositionInteger(player);
+    roomY = GetEntityRoomYPositionInteger(player);
+    cellX = roomX >> 8;
+    if (metadata->widthCells == 1 && (s16)player->posX.part16.integer > 0xF0)
     {
-        var_r1 = 1;
+        cellX = 1;
     }
 
-    if (temp_r4_2->unk_1 > 1)
+    if (metadata->heightCells > 1)
     {
-        if (temp_r7 < 0x30)
+        if (roomY < 0x30)
         {
-            var_r3 = (temp_r7 - 0x30) >> 8;
+            cellY = (roomY - 0x30) >> 8;
         }
         else
         {
-            if (temp_r7 > ((temp_r4_2->unk_1 << 8) - 0x30))
+            if (roomY > ((metadata->heightCells << 8) - 0x30))
             {
-                var_r3 = (temp_r7 + 0x30) >> 8;
+                cellY = (roomY + 0x30) >> 8;
             }
             else
             {
-                var_r3 = temp_r7 >> 8;
+                cellY = roomY >> 8;
             }
         }
     }
     else
     {
-        var_r3 = (temp_r7 - 0x30) >> 8;
-        if (temp_r5->unk_528.unk_528_16.unk_52A > 0xA0)
+        cellY = (roomY - 0x30) >> 8;
+        if (player->posY.part16.integer > 0xA0)
         {
-            var_r3 += 1;
+            cellY += 1;
         }
     }
 
-    var_r4 = temp_sb->unk_18;
-    while (var_r4->unk_4 != var_r1 || var_r4->unk_5 != var_r3)
+    part = room->roomParts;
+    while (part->cellX != cellX || part->cellY != cellY)
     {
-        var_r4++;
+        part++;
     }
 
-    if (temp_r6 < 0)
+    if (roomX < 0)
     {
-        temp_r6 = temp_r6 + 0xF0;
+        roomX = roomX + 0xF0;
     }
     else
     {
-        temp_r6 = temp_r6 & 0xFF;
-        if (temp_r6 > 0xF0)
+        roomX = roomX & 0xFF;
+        if (roomX > 0xF0)
         {
-            temp_r6 = temp_r6 - 0xF0;
+            roomX = roomX - 0xF0;
         }
     }
-    var_r6 = temp_r6 + var_r4->unk_6;
-    temp_r8->xVel.whole = ((s16)temp_r5->unk_524.unk_524_16.unk_526 - (s16)var_r6) << 0x10;
+    screenX = roomX + part->entryXOffset;
+    scrollBg->xVel.whole = ((s16)player->posX.part16.integer - (s16)screenX) << 0x10;
 
-    if (temp_r7 < 0x30)
+    if (roomY < 0x30)
     {
-        temp_r7 = temp_r7 + 0x70;
+        roomY = roomY + 0x70;
     }
     else
     {
-        temp_r7 = (temp_r7 - 0x30) & 0xFF;
-        if (temp_r7 > 0xA0)
+        roomY = (roomY - 0x30) & 0xFF;
+        if (roomY > 0xA0)
         {
-            temp_r7 = temp_r7 - 0xA0;
+            roomY = roomY - 0xA0;
         }
     }
-    temp_r8->yVel.whole = (temp_r5->unk_528.unk_528_16.unk_52A - temp_r7) << 0x10;
+    scrollBg->yVel.whole = (player->posY.part16.integer - roomY) << 0x10;
 
-    sub_08000F60(1);
+    Entity_ScrollWithBg(1);
     VBlankIntrWait();
-    sub_0800F9EC(var_r4->unk_0, var_r4->unk_A, var_r4->unk_C);
+    Room_Load(part->destination, part->cameraX, part->cameraY);
 }
 
 /**
- * @brief 104EC | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Sub-mode 3 steps: clear the old room, load the room part at the
+ * player position, scroll the camera into place, arm the area banner
+ * for a new area, store the entry position and set two area flags;
+ * return 1 when done.
  */
-s32 sub_080104EC(struct EwramData_unk60 *param_0)
+s32 RoomTransition_Update(struct GameState *gameState)
 {
-    s32 temp_r6;
-    struct EwramData_EntityData *temp_r2_2;
-    s32 var_r4;
-    u8 temp_r4;
-    u8 temp_r5_2;
-    struct EwramData_unkA078 *temp_r2_4;
-    struct EwramData_unkA078 *temp_r5;
-    struct EwramData_unk88 *var_0;
+    s32 area;
+    struct EwramData_EntityData *player;
+    s32 i;
+    u8 yOffset;
+    u8 xOffset;
+    struct BgLayerState *bgLayer;
+    struct BgLayerState *bg;
+    struct RoomDefinition *display;
 
-    temp_r5 = &gEwramData->bgInfo[1];
-    if (param_0->unk_65 == 0)
+    bg = &gEwramData->bgInfo[1];
+    if (gameState->subModeStep == 0)
     {
-        gEwramData->unk_A074_2 = gEwramData->unk_A074_4 = 3;
+        gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 3;
         gDisplayRegisters.bldY = BLDY_MAX_VALUE;
-        sub_0800FBD8();
+        Room_UnloadEntities();
 
-        for (var_r4 = 10; var_r4 < 14; var_r4++)
+        for (i = 10; i < 14; i++)
         {
-            sub_0803CCBC(var_r4);
+            PaletteAnim_Stop(i);
         }
 
-        sub_0806C354();
-        sub_080124A8();
+        Room_ResetTransientState();
+        ItemIconCache_ClearIds();
         gEwramData->hBlankEffect.requestStop = 1;
-        param_0->unk_65 += 1;
+        gameState->subModeStep += 1;
     }
 
-    else if (param_0->unk_65 == 1)
+    else if (gameState->subModeStep == 1)
     {
-        sub_08010350(param_0);
+        Room_LoadAtPlayerPosition(gameState);
         gUnk_03002CB0.dispCnt = 0;
-        param_0->unk_65 += 1;
+        gameState->subModeStep += 1;
     }
 
-    else if (param_0->unk_65 == 2)
+    else if (gameState->subModeStep == 2)
     {
-        temp_r2_2 = gEwramData->unk_13110.unk_13110;
-        sub_0800ED24(0, ((s16)temp_r2_2->unk_524.unk_524_16.unk_526 - gEwramData->unk_13110.unk_13214) << 0x10, (temp_r2_2->unk_528.unk_528_16.unk_52A - gEwramData->unk_13110.unk_13216) << 0x10);
+        player = gEwramData->playerState.player;
+        Camera_ScrollWithPriority(0, ((s16)player->posX.part16.integer - gEwramData->playerState.cameraAnchorX) << 0x10, (player->posY.part16.integer - gEwramData->playerState.cameraAnchorY) << 0x10);
 
-        if (temp_r5->xVel.whole == 0 && temp_r5->yVel.whole == 0)
+        if (bg->xVel.whole == 0 && bg->yVel.whole == 0)
         {
-            if ((sub_0800FCB8(param_0) >= 0) && (sub_0800FCB8(param_0) <= 0xC))
+            if ((AreaName_GetPendingArea(gameState) >= 0) && (AreaName_GetPendingArea(gameState) <= 0xC))
             {
-                gEwramData->unk_60.unk_42C |= 0x80;
+                gEwramData->gameState.stateFlags |= 0x80;
             }
 
-            gUnk_03002CB0.dispCnt = param_0->unk_88->unk_0;
-            gEwramData->unk_A074_2 = gEwramData->unk_A074_4 = 0;
-            var_0 = param_0->unk_88; // Fake?
-            gDisplayRegisters.bldCnt = var_0->unk_1E;
-            sub_0800C778();
+            gUnk_03002CB0.dispCnt = gameState->currentRoomDefinition->displayControl;
+            gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 0;
+            display = gameState->currentRoomDefinition;
+            gDisplayRegisters.bldCnt = display->blendControl;
+            Display_SetDefaultBlend();
             gDisplayRegisters.winIn_L = WIN0_ALL;
             gDisplayRegisters.winOut_L = WIN0_ALL;
 
-            gEwramData->unk_A074_0 = 0;
-            param_0->unk_65 += 1;
-            sub_0801083C(param_0);
-            gEwramData->unk_60.unk_42C &= 0xFFEFFFFF;
+            gEwramData->paused = 0;
+            gameState->subModeStep += 1;
+            Room_StoreEntryPosition(gameState);
+            gEwramData->gameState.stateFlags &= 0xFFEFFFFF;
 
-            temp_r2_4 = &gEwramData->bgInfo[1];
-            temp_r5_2 = temp_r2_4->xPos.part8.integer1;
-            temp_r4 = temp_r2_4->yPos.part8.integer1;
-            temp_r6 = GetAreaFromMapPosition(temp_r5_2, temp_r4);
-            if ((GetRoomFromMapPosition(temp_r5_2, temp_r4) == 5) && (temp_r6 == 5))
+            bgLayer = &gEwramData->bgInfo[1];
+            xOffset = bgLayer->xPos.part8.integer1;
+            yOffset = bgLayer->yPos.part8.integer1;
+            area = GetAreaFromMapPosition(xOffset, yOffset);
+            if ((GetRoomFromMapPosition(xOffset, yOffset) == 5) && (area == 5))
             {
-                sub_08012048((1 << 5) | 0x1D);
+                GameFlag_Set((1 << 5) | 0x1D);
             }
-            else if ((GetRoomFromMapPosition(temp_r5_2, temp_r4) == 1) && (temp_r6 == 5))
+            else if ((GetRoomFromMapPosition(xOffset, yOffset) == 1) && (area == 5))
             {
-                sub_08012048((1 << 5) | 0x1C);
+                GameFlag_Set((1 << 5) | 0x1C);
             }
         }
     }
 
-    else if (param_0->unk_65 == 3)
+    else if (gameState->subModeStep == 3)
     {
         gDisplayRegisters.bldY = 0;
-        gEwramData->unk_A074_1 = 1;
-        param_0->unk_65 = 0;
+        gEwramData->startPauseEnabled = 1;
+        gameState->subModeStep = 0;
         return 1;
     }
     return 0;
 }
 
 /**
- * @brief 106DC | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Sub-mode 5 steps: fade out, clear the old room, load the room part
+ * at the player position, center the camera on the player and fade
+ * back in; player input is held. Return 1 when done.
  */
-s32 sub_080106DC(struct EwramData_unk60 *param_0)
+s32 RoomFadeTransition_Update(struct GameState *gameState)
 {
-    struct EwramData_EntityData *temp_r4;
-    struct EwramData_unkA078 *temp_r6;
-    s32 var_r4;
+    struct EwramData_EntityData *player;
+    struct BgLayerState *bg;
+    s32 i;
 
-    temp_r4 = gEwramData->unk_13110.unk_13110;
-    temp_r6 = &gEwramData->bgInfo[1];
+    player = gEwramData->playerState.player;
+    bg = &gEwramData->bgInfo[1];
     SetPlayerInput(1, 0);
 
-    if (param_0->unk_65 == 0)
+    if (gameState->subModeStep == 0)
     {
-        gEwramData->unk_A074_2 = gEwramData->unk_A074_4 = 3;
+        gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 3;
         if (gDisplayRegisters.bldY < BLDY_MAX_VALUE)
         {
-            if (!(param_0->unk_66 & 3))
+            if (!(gameState->subModeCounter & 3))
             {
                 gDisplayRegisters.bldY += 1;
             }
-            param_0->unk_66 += 1;
+            gameState->subModeCounter += 1;
         }
         else
         {
-            sub_0800FBD8();
-            for (var_r4 = 10; var_r4 < 14; var_r4++)
+            Room_UnloadEntities();
+            for (i = 10; i < 14; i++)
             {
-                sub_0803CCBC(var_r4);
+                PaletteAnim_Stop(i);
             }
-            sub_0806C354();
-            sub_080124A8();
+            Room_ResetTransientState();
+            ItemIconCache_ClearIds();
             gEwramData->hBlankEffect.requestStop = 1;
-            gEwramData->unk_13110.unk_13110->unk_53C_5 = 0;
-            param_0->unk_65 += 1;
+            gEwramData->playerState.player->hidden = 0;
+            gameState->subModeStep += 1;
         }
     }
 
-    else if (param_0->unk_65 == 1)
+    else if (gameState->subModeStep == 1)
     {
-        sub_08010350(param_0);
-        sub_0801083C(param_0);
-        param_0->unk_65 += 1;
+        Room_LoadAtPlayerPosition(gameState);
+        Room_StoreEntryPosition(gameState);
+        gameState->subModeStep += 1;
     }
 
-    else if (param_0->unk_65 == 2)
+    else if (gameState->subModeStep == 2)
     {
-        sub_0803FBBC(1, ((s16)temp_r4->unk_524.unk_524_16.unk_526 - 0x78) << 0x10, (temp_r4->unk_528.unk_528_16.unk_52A - 0x70) << 0x10);
-        sub_08000F60(1);
-        sub_0800D288();
-        if ((temp_r6->xVel.whole == 0) && (temp_r6->yVel.whole == 0))
+        BgMap_ScrollWithMargin(1, ((s16)player->posX.part16.integer - 0x78) << 0x10, (player->posY.part16.integer - 0x70) << 0x10);
+        Entity_ScrollWithBg(1);
+        Bg_UpdateScrollModes();
+        if ((bg->xVel.whole == 0) && (bg->yVel.whole == 0))
         {
-            param_0->unk_65 += 1;
+            gameState->subModeStep += 1;
         }
     }
 
-    else if (param_0->unk_65 == 3)
+    else if (gameState->subModeStep == 3)
     {
-        param_0->unk_66 += 1;
-        if (!(param_0->unk_66 & 1))
+        gameState->subModeCounter += 1;
+        if (!(gameState->subModeCounter & 1))
         {
             gDisplayRegisters.bldY -= 1;
         }
         if (gDisplayRegisters.bldY == 0)
         {
-            param_0->unk_65 = 0;
-            gEwramData->unk_A074_2 = gEwramData->unk_A074_4 = 0;
+            gameState->subModeStep = 0;
+            gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 0;
             return 1;
         }
     }
@@ -1453,126 +1416,117 @@ s32 sub_080106DC(struct EwramData_unk60 *param_0)
 }
 
 /**
- * @brief 1083C | To document
- * 
- * @param param_0 To document
+ * @brief Store the current area and room, the player position and the
+ * camera position (Y minus 0x30) in the gameState progress block.
  */
-void sub_0801083C(struct EwramData_unk60 *param_0)
+void Room_StoreEntryPosition(struct GameState *gameState)
 {
-    s16 temp_r4;
-    s16 temp_r5;
-    struct EwramData_unkA078 *temp_r2;
-    s32 var_0;
-    u16 *var_1;
+    s16 roomX;
+    s16 roomY;
+    struct BgLayerState *bg;
+    s32 cameraY;
+    u16 *savedY;
 
-    temp_r4 = GetEntityRoomXPositionInteger(gEwramData->unk_13110.unk_13110);
-    temp_r5 = GetEntityRoomYPositionInteger(gEwramData->unk_13110.unk_13110);
-    param_0->currentArea = GetAreaFromMapPosition(temp_r4, temp_r5);
-    param_0->currentRoom = GetRoomFromMapPosition(temp_r4, temp_r5);
+    roomX = GetEntityRoomXPositionInteger(gEwramData->playerState.player);
+    roomY = GetEntityRoomYPositionInteger(gEwramData->playerState.player);
+    gameState->currentArea = GetAreaFromMapPosition(roomX, roomY);
+    gameState->currentRoom = GetRoomFromMapPosition(roomX, roomY);
 
-    param_0->unk_338 = gEwramData->unk_13110.unk_13110->unk_524.unk_524_16.unk_526;
-    param_0->unk_33A = gEwramData->unk_13110.unk_13110->unk_528.unk_528_16.unk_52A;
+    gameState->savedPlayerX = gEwramData->playerState.player->posX.part16.integer;
+    gameState->savedPlayerY = gEwramData->playerState.player->posY.part16.integer;
 
-    temp_r2 = &gEwramData->bgInfo[1];
-    param_0->unk_334 = temp_r2->xPos.part16.integer;
+    bg = &gEwramData->bgInfo[1];
+    gameState->savedCameraX = bg->xPos.part16.integer;
 
     // TODO: Fake?
-    var_0 = temp_r2->yPos.part16.integer;
-    var_1 = &param_0->unk_336;
-    *var_1 = var_0 - 0x30;
+    cameraY = bg->yPos.part16.integer;
+    savedY = &gameState->savedCameraY;
+    *savedY = cameraY - 0x30;
 }
 
 /**
- * @brief 108DC | To document
- * 
- * @param param_0 To document
+ * @brief Copy every graphics block listed by the room definition.
  */
-void sub_080108DC(struct EwramData_unk88 *param_0)
+void Room_LoadGraphics(struct RoomDefinition *room)
 {
-    // TODO: Inline for sub_0800F9EC?
-    struct EwramData_unk_88_C *var_r4;
+    // TODO: Inline for Room_Load?
+    struct RoomResourceLoad *load;
 
-    var_r4 = param_0->unk_C;
-    while (var_r4->unk_0 != NULL)
+    load = room->graphicsLoads;
+    while (load->resource != NULL)
     {
-        sub_0803FE0C(var_r4->unk_0, var_r4->unk_4, var_r4->unk_5, var_r4->unk_6);
-        var_r4 += 1;
+        Gfx_CopyResourceBlocks(load->resource, load->destinationIndex, load->sourceIndex, load->count);
+        load += 1;
     }
 }
 
 /**
- * @brief 108FC | To document
- * 
- * @param param_0 To document
+ * @brief Load every BG palette range listed by the room definition and apply
+ * the tinted grayscale when stateFlags bit 0x800 is set.
  */
-void sub_080108FC(struct EwramData_unk88 *param_0)
+void Room_LoadPalettes(struct RoomDefinition *room)
 {
-    // TODO: Inline for sub_0800F9EC?
-    struct EwramData_unk_88_C *var_r4;
+    // TODO: Inline for Room_Load?
+    struct RoomResourceLoad *load;
 
-    var_r4 = param_0->unk_10;
-    while (var_r4->unk_0 != NULL)
+    load = room->paletteLoads;
+    while (load->resource != NULL)
     {
-        sub_0803C918((u8 *)var_r4->unk_0, var_r4->unk_5, var_r4->unk_6, var_r4->unk_4);
-        var_r4 += 1;
+        BgPalette_LoadRange((u8 *)load->resource, load->sourceIndex, load->count, load->destinationIndex);
+        load += 1;
     }
-    if (gEwramData->unk_60.unk_42C & 0x800)
+    if (gEwramData->gameState.stateFlags & 0x800)
     {
-        sub_0803C674();
-    }
-}
-
-/**
- * @brief 1093C | To document
- * 
- * @param param_0 To document
- */
-void sub_0801093C(struct EwramData_unk60 *param_0)
-{
-    // TODO: Inline for sub_08010244?
-    if (gEwramData->unk_60.unk_42C & 0x80)
-    {
-        sub_08010144(param_0);
-        // TODO: does this use sub_08010244_inline_0?
-        gEwramData->unk_60.unk_42C &= ~0x80;
+        BgPalette_ApplyTintedGrayscale();
     }
 }
 
 /**
- * @brief 10978 | To document
- * 
- * @param param_0 To document
+ * @brief If the banner is active, hide it and clear stateFlags bit 0x80.
  */
-void sub_08010978(struct EwramData_unk60 *param_0)
+void AreaName_Dismiss(struct GameState *gameState)
 {
-    // TODO: Inline for sub_08010244? But unk_64 is set to 3 there
-    param_0->unk_64 = 5;
-    param_0->unk_65 = 0;
+    // TODO: Inline for RoomTransition_Begin?
+    if (gEwramData->gameState.stateFlags & 0x80)
+    {
+        AreaName_Hide(gameState);
+        // TODO: does this use GameState_ClearFlag80?
+        gEwramData->gameState.stateFlags &= ~0x80;
+    }
+}
 
-    gEwramData->unk_FEC0 = gEwramData->unk_FEC1 = 0;
+/**
+ * @brief Enter in-game sub-mode 5 with a brightness fade.
+ */
+void RoomFadeTransition_Begin(struct GameState *gameState)
+{
+    // TODO: Inline for RoomTransition_Begin? But subMode is set to 3 there
+    gameState->subMode = 5;
+    gameState->subModeStep = 0;
+
+    gEwramData->screenShakeOffsetX = gEwramData->screenShakeOffsetY = 0;
     gDisplayRegisters.bldCnt = BLDCNT_SCREEN_SECOND_TARGET | BLDCNT_BRIGHTNESS_INCREASE_EFFECT | BLDCNT_SCREEN_FIRST_TARGET;
-    param_0->unk_66 = 0;
+    gameState->subModeCounter = 0;
 }
 
 /**
- * @brief 109B8 | To document
- * 
- * @param param_0 (Unused) To document
+ * @brief Unload room entities, stop palette animations 10..13, clear
+ * per-room effects and item icons and stop the H-blank effect.
  */
-void sub_080109B8(struct EwramData_unk60 *param_0)
+void Room_ClearForTransition(struct GameState *gameState)
 {
-    // TODO: Inline for sub_080104EC and sub_080106DC?
-    s32 var_r4;
+    // TODO: Inline for RoomTransition_Update and RoomFadeTransition_Update?
+    s32 i;
 
-    sub_0800FBD8();
+    Room_UnloadEntities();
 
-    for (var_r4 = 10; var_r4 < 14; var_r4++)
+    for (i = 10; i < 14; i++)
     {
-        sub_0803CCBC(var_r4);
+        PaletteAnim_Stop(i);
     }
 
-    sub_0806C354();
-    sub_080124A8();
+    Room_ResetTransientState();
+    ItemIconCache_ClearIds();
     gEwramData->hBlankEffect.requestStop = 1;
 }
-
+// #include

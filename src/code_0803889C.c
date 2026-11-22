@@ -4,7 +4,7 @@
 #include "code_08001194.h"
 #include "code_08008750.h"
 #include "code_0800B700.h"
-// #include "code_0800CB00.h" // TODO: sub_0800D288 implicitly called with arguments (it should have none)
+// #include "code_0800CB00.h" // TODO: Bg_UpdateScrollModes implicitly called with arguments (it should have none)
 #include "code_0800F1FC.h"
 #include "code_080109F4.h"
 #include "code_08011DD0.h"
@@ -36,142 +36,130 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-static struct Unk_03000050 gUnk_03000050;
+static struct DebugObjTestState sDebugObjTestState;
 
-struct Unk_084F1580 {
-    void *unk_0; // func ptr
-    void *unk_4; // func ptr
-    void *unk_8; // func ptr
+struct DebugObjTestCallbacks {
+    void *updateFunc; // func ptr
+    void *initFunc; // func ptr
+    void *exitFunc; // func ptr
 }; /* size = 0xC */
-struct Unk_084F1580 sUnk_084F1580[] = {
+struct DebugObjTestCallbacks sDebugObjTestCallbacks[] = {
     [0] = {
-        .unk_0 = sub_080389EC,
-        .unk_4 = sub_080389F0,
-        .unk_8 = sub_08038A14
+        .updateFunc = DebugObjDispTest_Update,
+        .initFunc = DebugObjDispTest_Init,
+        .exitFunc = DebugObjDispTest_Exit
     }
 };
 
 /**
- * @brief 3889C | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Run the OBJ display test through its init/update/exit callbacks;
+ * Select+B exits. Return 1 when done.
  */
-s32 sub_0803889C(s32 param_0)
+s32 DebugObjDispTest_Run(s32 test)
 {
-    s32 var_r6;
-    struct Unk_084F1580 *temp_r5;
+    s32 done;
+    struct DebugObjTestCallbacks *def;
 
-    var_r6 = 0;
-    temp_r5 = &sUnk_084F1580[param_0];
+    done = 0;
+    def = &sDebugObjTestCallbacks[test];
 
-    switch (sub_08036958())
+    switch (DebugTest_GetStage())
     {
         case 0:
-            DMA_FILL_32(3, 0, &gUnk_03000050, 0x8);
+            DMA_FILL_32(3, 0, &sDebugObjTestState, 0x8);
             BgCmdBuffer_WriteString(2, 0x13, 1, "PUSH SELECT + B TO EXIT.");
-            ((void (*)(struct Unk_03000050 *)) temp_r5->unk_4)(&gUnk_03000050);
-            sub_08036964(1);
+            ((void (*)(struct DebugObjTestState *)) def->initFunc)(&sDebugObjTestState);
+            DebugTest_SetStage(1);
             break;
 
         case 1:
-            ((void (*)(struct Unk_03000050 *)) temp_r5->unk_0)(&gUnk_03000050);
-            sub_08000B64();
+            ((void (*)(struct DebugObjTestState *)) def->updateFunc)(&sDebugObjTestState);
+            Entity_UpdateAll();
             if ((gEwramData->inputData.heldInput & (4 | 2)) == (4 | 2))
             {
-                sub_08036964(2);
+                DebugTest_SetStage(2);
             }
             break;
 
         case 2:
-            ((void (*)(struct Unk_03000050 *)) temp_r5->unk_8)(&gUnk_03000050);
+            ((void (*)(struct DebugObjTestState *)) def->exitFunc)(&sDebugObjTestState);
             DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
-            var_r6 = 1;
+            done = 1;
             break;
     }
 
-    return var_r6;
+    return done;
 }
 
 /**
- * @brief 3896C | To document
- * 
- * @param param_0 To document
+ * @brief Show the animated test sprite at (0x96, 0x50).
  */
-void sub_0803896C(struct EwramData_EntityData *param_0)
+void DebugObjDispTestSprite_Update(struct EwramData_EntityData *entity)
 {
-    s32 temp_r0_2;
+    s32 gfx;
 
-    switch (param_0->unk_4EE)
+    switch (entity->state)
     {
         case 0:
-            temp_r0_2 = sub_0803B800((u8 *)0x081CBF24, 0);
-            if (temp_r0_2 >= 0)
+            gfx = ObjGfx_LoadResource((u8 *)0x081CBF24, 0);
+            if (gfx >= 0)
             {
-                sub_0803C7B4((u8 *)0x0820A3D8, 0, 1, 2);
-                sub_0803B924(param_0, (void *)0x082121F0, temp_r0_2, 2);
-                sub_0803F348(param_0, 0, 1);
-                param_0->drawFunc = (u32 *) sub_0803B9D0;
-                param_0->unk_524.unk_524_16.unk_526 = 0x96;
-                param_0->unk_528.unk_528_16.unk_52A = 0x50;
-                param_0->unk_53D_1 = 1;
-                param_0->unk_4EE = 1;
+                ObjPalette_LoadRange((u8 *)0x0820A3D8, 0, 1, 2);
+                Sprite_Attach(entity, (void *)0x082121F0, gfx, 2);
+                Anim_SelectScript(entity, 0, 1);
+                entity->drawFunc = (u32 *) Sprite_DrawEntity;
+                entity->posX.part16.integer = 0x96;
+                entity->posY.part16.integer = 0x50;
+                entity->scrollWithBg = 1;
+                entity->state = 1;
             }
             break;
 
         case 1:
-            sub_0803F17C(param_0);
+            Anim_Update(entity);
             break;
     }
 }
 
 /**
- * @brief 389EC | To document
- * 
- * @param param_0 To document
+ * @brief Empty update callback of the OBJ display test.
  */
-void sub_080389EC(struct Unk_03000050 *param_0)
+void DebugObjDispTest_Update(struct DebugObjTestState *state)
 {
     return;
 }
 
 /**
- * @brief 389F0 | To document
- * 
- * @param param_0 To document
+ * @brief Create the two test entities.
  */
-void sub_080389F0(struct Unk_03000050 *param_0)
+void DebugObjDispTest_Init(struct DebugObjTestState *state)
 {
-    param_0->unk_0[0] = EntityCreate((u32*) &sub_08038A34);
-    param_0->unk_0[1] = EntityCreate((u32*) &sub_0803896C);
+    state->entities[0] = EntityCreate((u32*) &DebugObjDispTestDummy_Update);
+    state->entities[1] = EntityCreate((u32*) &DebugObjDispTestSprite_Update);
 }
 
 /**
- * @brief 38A14 | To document
- * 
- * @param param_0 To document
+ * @brief Delete the two test entities.
  */
-void sub_08038A14(struct Unk_03000050 *param_0)
+void DebugObjDispTest_Exit(struct DebugObjTestState *state)
 {
-    s32 var_r5;
-    struct EwramData_EntityData *temp_r0;
+    s32 i;
+    struct EwramData_EntityData *entity;
 
-    for (var_r5 = 0; var_r5 < 2; var_r5++)
+    for (i = 0; i < 2; i++)
     {
-        temp_r0 = param_0->unk_0[var_r5];
-        if (temp_r0 != NULL)
+        entity = state->entities[i];
+        if (entity != NULL)
         {
-            EntityDelete(temp_r0);
+            EntityDelete(entity);
         }
     }
 }
 
 /**
- * @brief 38A34 | To document
- * 
- * @param param_0 To document
+ * @brief Empty update function of the first test entity.
  */
-void sub_08038A34(struct EwramData_EntityData *param_0)
+void DebugObjDispTestDummy_Update(struct EwramData_EntityData *entity)
 {
     return;
 }

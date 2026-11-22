@@ -34,6 +34,23 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
+/*
+ * Work slots of the title screen menu entity (entity slot 0x14, this TU):
+ * cursor within the visible entries, number of visible entries, confirmed
+ * (input locked after Start/A), first entry index (0 = main entries,
+ * 3 = extra entries), number of extra entries (2 with systemFlags bit 1),
+ * slide active / slide phase (1 = slide out, 2 = slide back) and the 16.16
+ * slide offset of alternate rows. Token-identical expansion.
+ */
+#define TITLE_MENU_CURSOR(e) e->unk_4FC.part8.unk_4FC
+#define TITLE_MENU_COUNT(e) e->unk_4FC.part8.unk_4FD
+#define TITLE_MENU_CONFIRMED(e) e->unk_4FC.part8.unk_4FE
+#define TITLE_MENU_FIRST(e) e->unk_500.part8.unk_500
+#define TITLE_MENU_EXTRA_COUNT(e) e->unk_500.part8.unk_501
+#define TITLE_MENU_SLIDING(e) e->unk_500.part8.unk_502
+#define TITLE_MENU_SLIDE_PHASE(e) e->unk_500.part8.unk_503
+#define TITLE_MENU_SLIDE_OFFSET(e) e->unk_504.whole
+
 // Note: BgCmdBuffer_WriteString is implicitly called
 
 struct DebugMenuOptions {
@@ -83,7 +100,7 @@ struct DebugMenuOptions sDebugMenuOptions[] = {
 struct DebugExitOptions {
     s32 gameMode;
     s32 saveFile;
-    u32* unk_8; // Type?
+    u32* roomDefinition; // Type?
     const u8* text;
 };
 
@@ -91,103 +108,103 @@ struct DebugExitOptions sDebugExitOptions[] = {
     [0] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .unk_8 = (u32*)0x0850F15C,
+        .roomDefinition = (u32*)0x0850F15C,
         .text = "0.Entrance"
     },
     [1] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .unk_8 = (u32*)0x085122FC,
+        .roomDefinition = (u32*)0x085122FC,
         .text = "1.Adoration Hall"
     },
     [2] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .unk_8 = (u32*)0x085132D4,
+        .roomDefinition = (u32*)0x085132D4,
         .text = "2.Library"
     },
     [3] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .unk_8 = (u32*)0x08514AB0,
+        .roomDefinition = (u32*)0x08514AB0,
         .text = "3.Dance Hall"
     },
     [4] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .unk_8 = (u32*)0x08516768,
+        .roomDefinition = (u32*)0x08516768,
         .text = "4.Harem"
     },
     [5] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .unk_8 = (u32*)0x08517790,
+        .roomDefinition = (u32*)0x08517790,
         .text = "5.Babylon"
     },
     [6] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .unk_8 = (u32*)0x085196E0,
+        .roomDefinition = (u32*)0x085196E0,
         .text = "6.Clock Tower"
     },
     [7] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .unk_8 = (u32*)0x0851ADD4,
+        .roomDefinition = (u32*)0x0851ADD4,
         .text = "7.Water Vein"
     },
     [8] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .unk_8 = (u32*)0x0851E7F8,
+        .roomDefinition = (u32*)0x0851E7F8,
         .text = "8.Arena"
     },
     [9] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .unk_8 = (u32*)0x085209B8,
+        .roomDefinition = (u32*)0x085209B8,
         .text = "9.Saijo-kai"
     },
     [10] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .unk_8 = (u32*)0x08523064,
+        .roomDefinition = (u32*)0x08523064,
         .text = " Chaos Start"
     },
     [11] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .unk_8 = (u32*)0x08522ABC,
+        .roomDefinition = (u32*)0x08522ABC,
         .text = " Chaos Boss"
     },
     [12] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .unk_8 = (u32*)0x08524E5C,
+        .roomDefinition = (u32*)0x08524E5C,
         .text = " Boss Rush 1P"
     },
     [13] = {
         .gameMode = GAME_MODE_BOSS_RUSH_MENU,
         .saveFile = 0,
-        .unk_8 = (u32*)0x08524020,
+        .roomDefinition = (u32*)0x08524020,
         .text = " Boss Rush 2P"
     },
     [14] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .unk_8 = (u32*)0x0851BF1C,
+        .roomDefinition = (u32*)0x0851BF1C,
         .text = "  VS Legion"
     },
     [15] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .unk_8 = (u32*)0x0851E490,
+        .roomDefinition = (u32*)0x0851E490,
         .text = "  VS Balor"
     },
     [16] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .unk_8 = (u32*)0x08515EF0,
+        .roomDefinition = (u32*)0x08515EF0,
         .text = "  VS Collector"
     },
 };
@@ -219,7 +236,7 @@ s32 GameModeDebugUpdate(void)
             DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
             BgCmdBuffer_WriteString(1, 1, 0, sDebugMenuSelectText);
             gEwramData->gameModeUpdateStage += 1;
-            gEwramData->unk_12 = 0; // unk_12 is used as the current option here
+            gEwramData->gameModeSubStage = 0; // gameModeSubStage is used as the current option here
             break;
 
         case 1:
@@ -228,12 +245,12 @@ s32 GameModeDebugUpdate(void)
             if (gEwramData->inputData.newInput & (KEY_START | KEY_A))
             {
                 DMA_FILL_32(3, 0, 0x0600E000, 0x800);
-                gameMode = sDebugMenuOptions[gEwramData->unk_12].gameMode;
+                gameMode = sDebugMenuOptions[gEwramData->gameModeSubStage].gameMode;
 
                 // Only slot 8 has Konami Logo mode, which is not possible to reach
                 if ((gameMode == GAME_MODE_KONAMI_LOGO) && (repeatedInput & KEY_SELECT))
                 {
-                    sub_08008ED0(0);
+                    Game_SetStartPosition(0);
                     gameMode = GAME_MODE_IN_GAME;
                 }
             }
@@ -241,29 +258,29 @@ s32 GameModeDebugUpdate(void)
             {
                 if (repeatedInput & KEY_UP)
                 {
-                    if (gEwramData->unk_12 != 0)
+                    if (gEwramData->gameModeSubStage != 0)
                     {
-                        gEwramData->unk_12 -= 1;
+                        gEwramData->gameModeSubStage -= 1;
                     }
                     else
                     {
                         // Wrap around
-                        gEwramData->unk_12 = optionEnd - 1;
+                        gEwramData->gameModeSubStage = optionEnd - 1;
                     }
                 }
                 else if (repeatedInput & KEY_DOWN)
                 {
-                    gEwramData->unk_12 += 1;
-                    if (gEwramData->unk_12 >= optionEnd)
+                    gEwramData->gameModeSubStage += 1;
+                    if (gEwramData->gameModeSubStage >= optionEnd)
                     {
                         // Wrap around
-                        gEwramData->unk_12 = 0;
+                        gEwramData->gameModeSubStage = 0;
                     }
                 }
 
                 for (option = 0; option < optionEnd; option++)
                 {
-                    BgCmdBuffer_WriteString(4, option + 3, (option == gEwramData->unk_12) ? 1 : 3, sDebugMenuOptions[option].text);
+                    BgCmdBuffer_WriteString(4, option + 3, (option == gEwramData->gameModeSubStage) ? 1 : 3, sDebugMenuOptions[option].text);
                 }
             }
             break;
@@ -280,10 +297,10 @@ extern u32* GetRoomPointer(s32 area, s32 room);
  */
 s32 GameModeDebugExitUpdate(void)
 {
-    s32 temp_r3_2;
+    s32 hasBackup;
     s32 option;
     s32 gameMode;
-    u32 var_r5_2;
+    u32 slotOffset;
 
     gameMode = GAME_MODE_SAME_MODE;
 
@@ -291,11 +308,11 @@ s32 GameModeDebugExitUpdate(void)
     {
         case 0:
             gUnk_03002CB0.dispCnt = DCNT_BG0;
-            DMA_COPY_32(3, &sUnk_080E3664, VRAM_BASE + 0x6000, sizeof(sUnk_080E3664));
-            DMA_COPY_32(3, &sUnk_080E5264, VRAM_BASE + 0x8000, sizeof(sUnk_080E5264));
-            DMA_COPY_32(3, &sUnk_080E3464, PALRAM_BASE, sizeof(sUnk_080E3464));
+            DMA_COPY_32(3, &sDebugFontTiles, VRAM_BASE + 0x6000, sizeof(sDebugFontTiles));
+            DMA_COPY_32(3, &sDebugFontExtraTiles, VRAM_BASE + 0x8000, sizeof(sDebugFontExtraTiles));
+            DMA_COPY_32(3, &sDebugPalette, PALRAM_BASE, sizeof(sDebugPalette));
             DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
-            gEwramData->unk_12 = 0; // unk_12 is used as the current option here
+            gEwramData->gameModeSubStage = 0; // gameModeSubStage is used as the current option here
 
             for (option = 0; option < sDebugExitOptionsLength; option++)
             {
@@ -303,91 +320,91 @@ s32 GameModeDebugExitUpdate(void)
             }
 
             gEwramData->gameModeUpdateStage += 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
 
         case 1:
             gEwramData->gameModeUpdateStage += 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             /* fallthrough */
 
         case 2:
             if (gEwramData->inputData.newInput & KEY_UP)
             {
-                BgCmdBuffer_WriteString(4, gEwramData->unk_12 + 2, 2, (u8 *) sDebugExitEmptyText);
-                if (--gEwramData->unk_12 > sDebugExitOptionsLength)
+                BgCmdBuffer_WriteString(4, gEwramData->gameModeSubStage + 2, 2, (u8 *) sDebugExitEmptyText);
+                if (--gEwramData->gameModeSubStage > sDebugExitOptionsLength)
                 {
-                    gEwramData->unk_12 = sDebugExitOptionsLength - 1;
+                    gEwramData->gameModeSubStage = sDebugExitOptionsLength - 1;
                 }
             }
             else if (gEwramData->inputData.newInput & KEY_DOWN)
             {
-                BgCmdBuffer_WriteString(4, gEwramData->unk_12 + 2, 2, (u8 *) sDebugExitEmptyText);
-                if (++gEwramData->unk_12 >= sDebugExitOptionsLength)
+                BgCmdBuffer_WriteString(4, gEwramData->gameModeSubStage + 2, 2, (u8 *) sDebugExitEmptyText);
+                if (++gEwramData->gameModeSubStage >= sDebugExitOptionsLength)
                 {
-                    gEwramData->unk_12 = 0;
+                    gEwramData->gameModeSubStage = 0;
                 }
             }
 
-            BgCmdBuffer_WriteString(4, gEwramData->unk_12 + 2, 2, (u8 *) sDebugExitCursorText);
+            BgCmdBuffer_WriteString(4, gEwramData->gameModeSubStage + 2, 2, (u8 *) sDebugExitCursorText);
             if (gEwramData->inputData.newInput & KEY_A)
             {
                 // If entrance option picked
-                if (gEwramData->unk_12 == 0)
+                if (gEwramData->gameModeSubStage == 0)
                 {
                     if (gEwramData->inputData.heldInput & KEY_LEFT)
                     {
-                        gEwramData->unk_60.currentSaveSlot = 2;
+                        gEwramData->gameState.currentSaveSlot = 2;
                     }
                     else if (gEwramData->inputData.heldInput & KEY_RIGHT)
                     {
-                        gEwramData->unk_60.currentSaveSlot = 4;
+                        gEwramData->gameState.currentSaveSlot = 4;
                     }
                     
-                    sub_08014548();
-                    gEwramData->unk_60.currentArea = 0;
-                    gEwramData->unk_60.currentRoom = 0;
-                    gEwramData->unk_60.unk_334 = 0;
-                    gEwramData->unk_60.unk_336 = 0x200;
-                    gEwramData->unk_60.unk_338 = 0x78;
-                    gEwramData->unk_60.unk_33A = 0x8D;
-                    gEwramData->unk_60.unk_3CC = GetRoomPointer(gEwramData->unk_60.currentArea, gEwramData->unk_60.currentRoom);
-                    gEwramData->unk_60.unk_88 = 0;
+                    Player_InitNewGameIfNeeded();
+                    gEwramData->gameState.currentArea = 0;
+                    gEwramData->gameState.currentRoom = 0;
+                    gEwramData->gameState.savedCameraX = 0;
+                    gEwramData->gameState.savedCameraY = 0x200;
+                    gEwramData->gameState.savedPlayerX = 0x78;
+                    gEwramData->gameState.savedPlayerY = 0x8D;
+                    gEwramData->gameState.roomData = GetRoomPointer(gEwramData->gameState.currentArea, gEwramData->gameState.currentRoom);
+                    gEwramData->gameState.currentRoomDefinition = 0;
                 }
                 else
                 {
-                    gEwramData->unk_60.unk_88 = (struct EwramData_unk88 *)sDebugExitOptions[gEwramData->unk_12].unk_8;
-                    gEwramData->unk_60.unk_37C = -1;
-                    sub_08014548();
-                    sub_0804B26C(2, 0x3a);
-                    sub_0804B26C(0, 8);
-                    sub_0804B26C(1, 0x24);
-                    sub_08033E38(0x63);
-                    sub_08021344(5, 3, 2);
-                    sub_0804AD9C();
+                    gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)sDebugExitOptions[gEwramData->gameModeSubStage].roomDefinition;
+                    gEwramData->gameState.shownAreaNameFlags = -1;
+                    Player_InitNewGameIfNeeded();
+                    Player_EquipItem(2, 0x3a);
+                    Player_EquipItem(0, 8);
+                    Player_EquipItem(1, 0x24);
+                    Player_SetLevel(0x63);
+                    Player_EquipSoulsAndRestore(5, 3, 2);
+                    Player_RefreshEquipmentStats();
                 }
 
-                if ((gEwramData->unk_60.unk_88 == 0) && (gEwramData->unk_60.unk_3CC == 0))
+                if ((gEwramData->gameState.currentRoomDefinition == 0) && (gEwramData->gameState.roomData == 0))
                 {
-                    var_r5_2 = 0;
-                    gEwramData->unk_60.currentSaveSlot = sDebugExitOptions[gEwramData->unk_12].saveFile * 2;
-                    temp_r3_2 = sub_08013700(gEwramData->unk_60.currentSaveSlot + 1, 0);
-                    if ((gEwramData->inputData.heldInput & KEY_RIGHT) && (temp_r3_2 != 0))
+                    slotOffset = 0;
+                    gEwramData->gameState.currentSaveSlot = sDebugExitOptions[gEwramData->gameModeSubStage].saveFile * 2;
+                    hasBackup = SaveData_ReadSlotHeader(gEwramData->gameState.currentSaveSlot + 1, 0);
+                    if ((gEwramData->inputData.heldInput & KEY_RIGHT) && (hasBackup != 0))
                     {
-                        var_r5_2 = gEwramData->unk_20[0].unk_38 != var_r5_2;
+                        slotOffset = gEwramData->saveHeaders[0].playTime != slotOffset;
                     }
 
-                    if (SaveData_LoadSlotFromSram(gEwramData->unk_60.currentSaveSlot + var_r5_2) != 0)
+                    if (SaveData_LoadSlotFromSram(gEwramData->gameState.currentSaveSlot + slotOffset) != 0)
                     {
-                        gEwramData->unk_60.unk_3CC = GetRoomPointer(gEwramData->unk_60.currentArea, gEwramData->unk_60.currentRoom);
+                        gEwramData->gameState.roomData = GetRoomPointer(gEwramData->gameState.currentArea, gEwramData->gameState.currentRoom);
                     }
                     else
                     {
-                        gEwramData->unk_60.unk_88 = (struct EwramData_unk88 *)0x0850F15C;
+                        gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)0x0850F15C;
                     }
                 }
 
-                gEwramData->unk_A074_2 = gEwramData->unk_A074_4 = 3;
+                gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 3;
                 gDisplayRegisters.bldCnt = BLDCNT_SCREEN_SECOND_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT | BLDCNT_SCREEN_FIRST_TARGET;
                 gDisplayRegisters.bldY = BLDY_MAX_VALUE;
                 gEwramData->gameModeUpdateStage += 1;
@@ -395,14 +412,14 @@ s32 GameModeDebugExitUpdate(void)
             break;
 
         case 3:
-            gameMode = sDebugExitOptions[gEwramData->unk_12].gameMode;
-            gEwramData->unk_60.unk_4CC_6 = 0;
-            gEwramData->unk_60.unk_4CC_0 = 0;
-            gEwramData->unk_60.unk_378[0] = -1;
+            gameMode = sDebugExitOptions[gEwramData->gameModeSubStage].gameMode;
+            gEwramData->gameState.linkPlay = 0;
+            gEwramData->gameState.bossRushMode = 0;
+            gEwramData->gameState.activatedWarpFlags[0] = -1;
 
-            if (sDebugExitOptions[gEwramData->unk_12].unk_8 != (u32*)0x0850F15C)
+            if (sDebugExitOptions[gEwramData->gameModeSubStage].roomDefinition != (u32*)0x0850F15C)
             {
-                sub_08012048((1 << 5) | 0);
+                GameFlag_Set((1 << 5) | 0);
             }
             break;
     }
@@ -455,13 +472,13 @@ s32 GameModeKonamiLogoUpdate(void)
             gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_INCREASE_EFFECT;
             gDisplayRegisters.bldY = BLDY_MAX_VALUE;
             EntityDeleteAll();
-            sub_0803D9A8();
-            sub_0803E438();
-            sub_08039DC0();
-            sub_0803BEEC();
-            sub_0804059C();
-            sub_08042754();
-            if ((gEwramData->unk_60.unk_380 & 0x3F) && (gEwramData->konamiCodeInputsCounter != UCHAR_MAX))
+            ObjTiles_Init();
+            Obj_Init();
+            Sprite_Init();
+            Palette_Init();
+            Text_Initialize();
+            HitBox_ClearAll();
+            if ((gEwramData->gameState.unk_380 & 0x3F) && (gEwramData->konamiCodeInputsCounter != UCHAR_MAX))
             {
                 gEwramData->konamiCodeInputsCounter = 1;
             }
@@ -470,15 +487,15 @@ s32 GameModeKonamiLogoUpdate(void)
                 gEwramData->konamiCodeInputsCounter = 0;
             }
             gEwramData->gameModeUpdateStage += 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
 
         case 1:
-            sub_0803FD9C((u8 *)0x080E5C18, VRAM_BASE, 0);
-            sub_0803C918((u8 *)0x080E6C40, 0, 1, 0);
-            sub_0803F8A8(0, (struct EwramData_unkA078_0 *)0x080E9614, 0, 0);
+            Gfx_CopyResource((u8 *)0x080E5C18, VRAM_BASE, 0);
+            BgPalette_LoadRange((u8 *)0x080E6C40, 0, 1, 0);
+            BgMap_Setup(0, (struct BgMapMetadata *)0x080E9614, 0, 0);
             gEwramData->gameModeUpdateStage += 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
 
         case 2:
@@ -489,19 +506,19 @@ s32 GameModeKonamiLogoUpdate(void)
             else
             {
                 gDisplayRegisters.bldY = 0;
-                gEwramData->unk_4 = 4 * 60; // Display for 4 seconds
+                gEwramData->gameModeTimer = 4 * 60; // Display for 4 seconds
                 gEwramData->gameModeUpdateStage += 1;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
             break;
 
         case 3:
             KonamiCodeCheck();
-            if ((--gEwramData->unk_4 == 0) || (gEwramData->inputData.newInput & (KEY_START | KEY_A)))
+            if ((--gEwramData->gameModeTimer == 0) || (gEwramData->inputData.newInput & (KEY_START | KEY_A)))
             {
                 gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT;
                 gEwramData->gameModeUpdateStage += 1;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
             break;
     
@@ -544,15 +561,15 @@ s32 GameModeLicensedByNintendoUpdate(void)
             gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_INCREASE_EFFECT;
             gDisplayRegisters.bldY = BLDY_MAX_VALUE;
             gEwramData->gameModeUpdateStage += 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
 
         case 1:
-            sub_0803FD9C((u8 *)0x080E5C00, VRAM_BASE, 0);
-            sub_0803C8B0((u8 *)0x080E6838);
-            sub_0803F8A8(0, (struct EwramData_unkA078_0 *)0x080E94F4, 0, 0);
+            Gfx_CopyResource((u8 *)0x080E5C00, VRAM_BASE, 0);
+            BgPalette_Load((u8 *)0x080E6838);
+            BgMap_Setup(0, (struct BgMapMetadata *)0x080E94F4, 0, 0);
             gEwramData->gameModeUpdateStage += 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
 
         case 2:
@@ -563,18 +580,18 @@ s32 GameModeLicensedByNintendoUpdate(void)
             else
             {
                 gDisplayRegisters.bldY = 0;
-                gEwramData->unk_4 = 2 * 60; // Display for 2 seconds
+                gEwramData->gameModeTimer = 2 * 60; // Display for 2 seconds
                 gEwramData->gameModeUpdateStage += 1;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
             break;
 
         case 3:
-            if (--gEwramData->unk_4 == 0)
+            if (--gEwramData->gameModeTimer == 0)
             {
                 gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_INCREASE_EFFECT;
                 gEwramData->gameModeUpdateStage += 1;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
             break;
 
@@ -593,7 +610,7 @@ s32 GameModeLicensedByNintendoUpdate(void)
     return gameMode;
 }
 
-extern struct unk_08506B38 *sUnk_08506B38[0xB4F];
+extern struct unk_08506B38 *sTextEntries[0xB4F];
 
 /**
  * @brief 2C88 | Handle reset game mode
@@ -602,24 +619,24 @@ extern struct unk_08506B38 *sUnk_08506B38[0xB4F];
  */
 s32 GameModeResetUpdate(void)
 {
-    s32 temp_r3;
-    s32 var_r4;
+    s32 prevSelected;
+    s32 selected;
     s32 gameMode;
-    struct EwramData_unk60 *unk_60;
-    u32 var_0;
-    u32 var_1;
+    struct GameState *gameState;
+    u32 first;
+    u32 last;
 
-    unk_60 = &gEwramData->unk_60;
+    gameState = &gEwramData->gameState;
     gameMode = GAME_MODE_SAME_MODE;
-    var_0 = 1;
-    var_1 = 3;
+    first = 1;
+    last = 3;
 
     switch (gEwramData->gameModeUpdateStage)
     {
         case 0:
-            if (unk_60->language != 1)
+            if (gameState->language != 1)
             {
-                unk_60->language = 1;
+                gameState->language = 1;
                 SaveData_SaveLanguage();
             }
             gameMode = GAME_MODE_LICENSED_BY_NINTENDO;
@@ -633,34 +650,34 @@ s32 GameModeResetUpdate(void)
             DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
             DMA_FILL_32(3, 0, VRAM_BASE + 0x0000, 0x2000);
             gEwramData->gameModeUpdateStage += 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
 
         case 2:
-            sub_08046DD4(0xA, 5, 0xF020, 0xA);
-            sub_08046DD4(0xA, 7, 0xF040, 0xA);
-            sub_08046DD4(0xA, 9, 0xF060, 0xA);
-            sub_0803C918((u8 *)0x081183F4, 0, 1, 0xF);
-            sub_0804059C();
-            sub_080412F0(8);
-            sub_08041304(0);
-            sub_08040970(0, 0, 0x1E, 4);
-            sub_08041204();
-            sub_08040898(2, 1);
-            sub_08041338(sUnk_08506B38[0xB4C], 0); // "English\n"
-            sub_08040898(2, 2);
-            sub_08041338(sUnk_08506B38[0xB4D], 0); // "Français\n"
-            sub_08040898(2, 3);
-            sub_08041338(sUnk_08506B38[0xB4E], 0); // "Deutsch\n"
+            HudMap_WriteTiles(0xA, 5, 0xF020, 0xA);
+            HudMap_WriteTiles(0xA, 7, 0xF040, 0xA);
+            HudMap_WriteTiles(0xA, 9, 0xF060, 0xA);
+            BgPalette_LoadRange((u8 *)0x081183F4, 0, 1, 0xF);
+            Text_Initialize();
+            Text_SetForegroundColor(8);
+            Text_SetBackgroundColor(0);
+            Text8_SetRegion(0, 0, 0x1E, 4);
+            Text8_ClearRegion();
+            Text8_SetCursor(2, 1);
+            Text8_Print(sTextEntries[0xB4C], 0); // "English\n"
+            Text8_SetCursor(2, 2);
+            Text8_Print(sTextEntries[0xB4D], 0); // "Français\n"
+            Text8_SetCursor(2, 3);
+            Text8_Print(sTextEntries[0xB4E], 0); // "Deutsch\n"
 
-            if ((unk_60->language == 0) || (unk_60->language > var_1))
+            if ((gameState->language == 0) || (gameState->language > last))
             {
-                unk_60->language = var_0;
+                gameState->language = first;
             }
-            sub_08040898(0, unk_60->language);
-            sub_08040C60(0x3E);
+            Text8_SetCursor(0, gameState->language);
+            Text8_PutChar(0x3E);
             gEwramData->gameModeUpdateStage += 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
 
         case 3:
@@ -671,56 +688,56 @@ s32 GameModeResetUpdate(void)
             else
             {
                 gDisplayRegisters.bldY = 0;
-                gEwramData->unk_4 = 2 * 60; // 2 second timer? Seems unused
+                gEwramData->gameModeTimer = 2 * 60; // 2 second timer? Seems unused
                 gEwramData->gameModeUpdateStage += 1;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
             break;
 
         case 4:
-            var_r4 = unk_60->language;
-            temp_r3 = var_r4;
+            selected = gameState->language;
+            prevSelected = selected;
             if (gEwramData->inputData.newInput & KEY_A)
             {
                 gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_INCREASE_EFFECT;
                 gEwramData->gameModeUpdateStage += 1;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
             else if (gEwramData->inputData.newInput & KEY_B)
             {
-                var_r4 = var_0;
+                selected = first;
             }
             else if (gEwramData->inputData.newInput & KEY_UP)
             {
-                if (var_r4 == var_0)
+                if (selected == first)
                 {
-                    var_r4 = var_1;
+                    selected = last;
                 }
                 else
                 {
-                    var_r4 -= 1;
+                    selected -= 1;
                 }
             }
             else if (gEwramData->inputData.newInput & KEY_DOWN)
             {
-                if (var_r4 == var_1)
+                if (selected == last)
                 {
-                    var_r4 = var_0;
+                    selected = first;
                 }
                 else
                 {
-                    var_r4 += 1;
+                    selected += 1;
                 }
             }
 
-            if (temp_r3 != var_r4)
+            if (prevSelected != selected)
             {
-                unk_60->language = var_r4;
-                sub_08040898(0, temp_r3);
-                sub_08040C60(0x20);
-                sub_08040C60(0x20);
-                sub_08040898(0, var_r4);
-                sub_08040C60(0x3E);
+                gameState->language = selected;
+                Text8_SetCursor(0, prevSelected);
+                Text8_PutChar(0x20);
+                Text8_PutChar(0x20);
+                Text8_SetCursor(0, selected);
+                Text8_PutChar(0x3E);
             }
             break;
 
@@ -747,105 +764,105 @@ s32 GameModeResetUpdate(void)
 void TitleScreen_sub_08002F44(s32 arg0)
 {
     s16 *hBlankBuf;
-    s32 var_r4;
+    s32 angle;
     s32 scanline;
-    u16 var_r0;
-    u16 var_r1;
+    u16 offset;
+    u16 value;
 
     hBlankBuf = gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer];
-    var_r4 = gEwramData->frameCounter << 10;
+    angle = gEwramData->frameCounter << 10;
     HBlankEffectSetup(0, (s32)(SCREEN_SIZE_Y * 0.75f), 2, REG_BG1HOFS);
     
     for (scanline = 0; scanline < (s32)(SCREEN_SIZE_Y * 0.75f); scanline++)
     {
-        if ((arg0 * (sub_080009E4(var_r4) >> 8)) < 0)
+        if ((arg0 * (Sin(angle) >> 8)) < 0)
         {
-            var_r0 = -(-(arg0 * (sub_080009E4(var_r4) >> 8)) >> 0x10);
+            offset = -(-(arg0 * (Sin(angle) >> 8)) >> 0x10);
         }
         else
         {
-            var_r0 = (arg0 * (sub_080009E4(var_r4) >> 8)) >> 0x10;
+            offset = (arg0 * (Sin(angle) >> 8)) >> 0x10;
         }
 
-        var_r1 = var_r0;
+        value = offset;
         if (scanline & 1)
         {
-            var_r1 = -(var_r1 << 0x10) >> 0x10;
+            value = -(value << 0x10) >> 0x10;
         }
-        *hBlankBuf = var_r1;
-        var_r4 += 0x1000;
+        *hBlankBuf = value;
+        angle += 0x1000;
         hBlankBuf += 1;
     }
 
     gEwramData->hBlankEffect.requestStart = 1;
 }
 
-struct Unk_084F0C84 {
-    u16* unk_0; // Type?
-    u16 unk_4;
-    u16 unk_6;
+struct TitlePaletteBlendStep {
+    u16* paletteResource; // Type?
+    u16 sourcePalette;
+    u16 duration;
 };
 
-struct Unk_084F0C84 sUnk_084F0C84[12] = {
+struct TitlePaletteBlendStep sTitlePaletteBlendSteps[12] = {
     [0] = {
-        .unk_0 = (void*)0x80E622C,
-        .unk_4 = 0x0,
-        .unk_6 = 0x30
+        .paletteResource = (void*)0x80E622C,
+        .sourcePalette = 0x0,
+        .duration = 0x30
     },
     [1] = {
-        .unk_0 = (void*)0x80E622C,
-        .unk_4 = 0x5,
-        .unk_6 = 0x30
+        .paletteResource = (void*)0x80E622C,
+        .sourcePalette = 0x5,
+        .duration = 0x30
     },
     [2] = {
-        .unk_0 = (void*)0x80E622C,
-        .unk_4 = 0x6,
-        .unk_6 = 0x30
+        .paletteResource = (void*)0x80E622C,
+        .sourcePalette = 0x6,
+        .duration = 0x30
     },
     [3] = {
-        .unk_0 = (void*)0x80E622C,
-        .unk_4 = 0x7,
-        .unk_6 = 0x30
+        .paletteResource = (void*)0x80E622C,
+        .sourcePalette = 0x7,
+        .duration = 0x30
     },
     [4] = {
-        .unk_0 = (void*)0x80E622C,
-        .unk_4 = 0x8,
-        .unk_6 = 0x30
+        .paletteResource = (void*)0x80E622C,
+        .sourcePalette = 0x8,
+        .duration = 0x30
     },
     [5] = {
-        .unk_0 = (void*)0x80E622C,
-        .unk_4 = 0x9,
-        .unk_6 = 0x30
+        .paletteResource = (void*)0x80E622C,
+        .sourcePalette = 0x9,
+        .duration = 0x30
     },
     [6] = {
-        .unk_0 = (void*)0x80E622C,
-        .unk_4 = 0xA,
-        .unk_6 = 0x30
+        .paletteResource = (void*)0x80E622C,
+        .sourcePalette = 0xA,
+        .duration = 0x30
     },
     [7] = {
-        .unk_0 = (void*)0x80E622C,
-        .unk_4 = 0xB,
-        .unk_6 = 0x30
+        .paletteResource = (void*)0x80E622C,
+        .sourcePalette = 0xB,
+        .duration = 0x30
     },
     [8] = {
-        .unk_0 = (void*)0x80E622C,
-        .unk_4 = 0xC,
-        .unk_6 = 0x30
+        .paletteResource = (void*)0x80E622C,
+        .sourcePalette = 0xC,
+        .duration = 0x30
     },
     [9] = {
-        .unk_0 = (void*)0x80E622C,
-        .unk_4 = 0xD,
-        .unk_6 = 0x30
+        .paletteResource = (void*)0x80E622C,
+        .sourcePalette = 0xD,
+        .duration = 0x30
     },
     [10] = {
-        .unk_0 = (void*)0x80E622C,
-        .unk_4 = 0xE,
-        .unk_6 = 0x30
+        .paletteResource = (void*)0x80E622C,
+        .sourcePalette = 0xE,
+        .duration = 0x30
     },
     [11] = {
-        .unk_0 = (void*)0x80E622C,
-        .unk_4 = 0xF,
-        .unk_6 = 0x30
+        .paletteResource = (void*)0x80E622C,
+        .sourcePalette = 0xF,
+        .duration = 0x30
     },
 };
 
@@ -856,24 +873,24 @@ struct Unk_084F0C84 sUnk_084F0C84[12] = {
 void TitleScreen_sub_08002FF8(void)
 {
     struct EwramData_EntityData *unk_4E4;
-    struct Unk_084F0C84 *temp_r4;
+    struct TitlePaletteBlendStep *step;
 
     unk_4E4 = &gEwramData->entityData[0x12];
-    temp_r4 = &sUnk_084F0C84[unk_4E4->unk_508.unk_508_8.unk_508];
+    step = &sTitlePaletteBlendSteps[unk_4E4->unk_508.part8.unk_508];
 
-    if (unk_4E4->unk_4F8.unk_4F8_32++ > temp_r4->unk_6)
+    if (unk_4E4->unk_4F8.whole++ > step->duration)
     {
-        unk_4E4->unk_4F8.unk_4F8_32 = 0;
-        sub_0803C918((void*)temp_r4->unk_0, temp_r4->unk_4, 1, 0);
+        unk_4E4->unk_4F8.whole = 0;
+        BgPalette_LoadRange((void*)step->paletteResource, step->sourcePalette, 1, 0);
 
-        unk_4E4->unk_508.unk_508_8.unk_508 += 1;
-        if (unk_4E4->unk_508.unk_508_8.unk_508 >= ARRAY_SIZE(sUnk_084F0C84))
+        unk_4E4->unk_508.part8.unk_508 += 1;
+        if (unk_4E4->unk_508.part8.unk_508 >= ARRAY_SIZE(sTitlePaletteBlendSteps))
         {
-            unk_4E4->unk_508.unk_508_8.unk_508 = 0;
+            unk_4E4->unk_508.part8.unk_508 = 0;
         }
 
-        temp_r4 = &sUnk_084F0C84[unk_4E4->unk_508.unk_508_8.unk_508];
-        sub_0803D2D0(0, (void*)temp_r4->unk_0, temp_r4->unk_4, 0x10000, 0, temp_r4->unk_6);
+        step = &sTitlePaletteBlendSteps[unk_4E4->unk_508.part8.unk_508];
+        BgPalette_StartBlend(0, (void*)step->paletteResource, step->sourcePalette, 0x10000, 0, step->duration);
     }
 }
 
@@ -884,15 +901,15 @@ void TitleScreen_sub_08002FF8(void)
 void TitleScreen_sub_08003080(void)
 {
     gEwramData->hBlankEffect.requestStop = 1;
-    sub_0803D3A0(0);
-    sub_0800466C(&gEwramData->entityData[0x12]);
+    BgPalette_StopBlend(0);
+    TitleScreen_FreeGraphics(&gEwramData->entityData[0x12]);
     EntityDeleteAll();
-    sub_0803D9A8();
-    sub_0803E438();
-    sub_08039DC0();
-    sub_0803BEEC();
-    sub_0804059C();
-    sub_08042754();
+    ObjTiles_Init();
+    Obj_Init();
+    Sprite_Init();
+    Palette_Init();
+    Text_Initialize();
+    HitBox_ClearAll();
 
     DMA_FILL_32(3, 0, VRAM_BASE + 0xE800, 0x800);
     DMA_FILL_32(3, 0, VRAM_BASE + 0xF000, 0x800);
@@ -925,30 +942,26 @@ static inline void TitleScreenSetAffine_inline(s16 scale)
     BgAffineSet(&src, (struct BgAffineDstData *) &gDisplayRegisters.bg2PA, 1);
 }
 
-// Title screen game mode
-// fakematch https://decomp.me/scratch/s3HhS
+/* Per-frame update of the title logo (palette cycling). */
+static inline void TitleScreenStep(struct EwramData_EntityData *logo)
+{
+    TitleScreen_sub_08002FF8();
+}
+// Title screen game mode (upstream fakematch https://decomp.me/scratch/s3HhS)
 s32 GameModeTitleScreenUpdate(void)
 {
-    s32 temp_r0_5;
-    s32 temp_r4;
-    s32 var_r0;
-    s32 var_r0_2;
-    s32 var_r0_3;
-    s32 var_r0_4;
-    s32 var_r0_5;
-    s32 var_r0_6;
-    s32 var_r0_7;
-    s32 var_r2;
-    struct EwramData_EntityData* temp_r6;
-    struct EwramData_EntityData* temp_r7;
-    struct EwramData_EntityData* temp_r8;
+    s32 fade;
+    s32 alpha;
+    struct EwramData_EntityData *menu;
+    struct EwramData_EntityData *logo;
+    struct EwramData_EntityData *overlay;
     s32 gameMode;
     u16 tmp;
     u16 tmp2;
 
-    temp_r7 = (struct EwramData_EntityData*)&gEwramData->entityData[0x12];
-    temp_r8 = (struct EwramData_EntityData*)&gEwramData->entityData[0x13];
-    temp_r6 = (struct EwramData_EntityData*)&gEwramData->entityData[0x14];
+    logo = &gEwramData->entityData[0x12];
+    overlay = &gEwramData->entityData[0x13];
+    menu = &gEwramData->entityData[0x14];
     gameMode = GAME_MODE_SAME_MODE;
 
     switch (gEwramData->gameModeUpdateStage)
@@ -966,300 +979,250 @@ s32 GameModeTitleScreenUpdate(void)
             tmp = C_16_2_8(BLDALPHA_MAX_VALUE, 0);
             gDisplayRegisters.bldAlpha = tmp;
 
-            gEwramData->unk_6 = 0;
-            gEwramData->unk_4 = 0;
-            gEwramData->unk_A074_1 = 0;
-            gEwramData->unk_A074_0 = 0;
+            gEwramData->gameModeCounter = 0;
+            gEwramData->gameModeTimer = 0;
+            gEwramData->startPauseEnabled = 0;
+            gEwramData->paused = 0;
             gEwramData->gameModeUpdateStage = 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
     
         case 1:
             PlaySong(MUS_27);
             EntityDeleteAll();
-            sub_0803D9A8();
-            sub_0803E438();
-            sub_08039DC0();
-            sub_0803BEEC();
-            sub_0804059C();
-            sub_08042754();
-            sub_0803CED4();
-            sub_0803D270();
+            ObjTiles_Init();
+            Obj_Init();
+            Sprite_Init();
+            Palette_Init();
+            Text_Initialize();
+            HitBox_ClearAll();
+            ObjPalette_StopColorFade();
+            BgPalette_StopColorFade();
 
             gUnk_03002CB0.dispCnt = DCNT_WINOBJ | DCNT_OBJ | DCNT_BG2 | DCNT_MODE_1;
             gDisplayRegisters.bgCnt[0] = CREATE_BGCNT(2, 28, BGCNT_HIGH_PRIORITY, BGCNT_SIZE_256x256);
             gDisplayRegisters.bgCnt[1] = CREATE_BGCNT(2, 29, BGCNT_HIGH_MID_PRIORITY, BGCNT_SIZE_256x256);
             gDisplayRegisters.bgCnt[2] = CREATE_BGCNT(0, 30, BGCNT_LOW_MID_PRIORITY, BGCNT_SIZE_512x256) | BGCNT_256_COLOR;
 
-            sub_0803DD14(7, 0);
-            sub_0803DD14(6, 1);
-            sub_0803DD14(0x16, 2);
-            sub_0803FD60();
-            sub_0803FD9C((u8 *)0x080E5BE0, VRAM_BASE, 0);
-            sub_0803FD9C((u8 *)0x080E5BE8, VRAM_BASE + 0x8000, 0);
-            sub_0803C8B0((u8 *)0x080E6430);
-            sub_0803F8A8(0, (struct EwramData_unkA078_0 *)0x080E9024, 0, 0);
-            sub_0803F8A8(1, (struct EwramData_unkA078_0 *)0x080E90B4, 0, 0);
-            sub_0803F8A8(2, (struct EwramData_unkA078_0 *)0x080E8F94, 0, 0);
-            sub_08004160(temp_r7);
-            sub_08003DBC(temp_r8);
+            Obj_SetBgLayer(7, 0);
+            Obj_SetBgLayer(6, 1);
+            Obj_SetBgLayer(0x16, 2);
+            Bg_SyncPriorities();
+            Gfx_CopyResource((u8 *)0x080E5BE0, VRAM_BASE, 0);
+            Gfx_CopyResource((u8 *)0x080E5BE8, VRAM_BASE + 0x8000, 0);
+            BgPalette_Load((u8 *)0x080E6430);
+            BgMap_Setup(0, (struct BgMapMetadata *)0x080E9024, 0, 0);
+            BgMap_Setup(1, (struct BgMapMetadata *)0x080E90B4, 0, 0);
+            BgMap_Setup(2, (struct BgMapMetadata *)0x080E8F94, 0, 0);
+            TitleScreenLogo_Create(logo);
+            TitleScreen_CreateEffects(overlay);
 
-            temp_r7->unk_524.unk_524_32 = 0x980000;
-            temp_r7->unk_528.unk_528_32 = 0x700000;
-            var_r0 = temp_r7->unk_500.unk_500_32;
-            if (var_r0 < 0)
-            {
-                var_r0 += 0x7FFF;
-            }
-            TitleScreenSetAffine_inline(0x108 - (var_r0 >> 0xF));
+            logo->posX.whole = 0x980000;
+            logo->posY.whole = 0x700000;
+            TitleScreenSetAffine_inline(0x108 - logo->unk_500.whole / 0x8000);
 
             gEwramData->gameModeUpdateStage = 2;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             /* fallthrough */
         case 2:
-            gEwramData += 0;
-            TitleScreen_sub_08002FF8();
+            TitleScreenStep(&gEwramData->entityData[0x12]);
 
-            gDisplayRegisters.bldY = BLDY_MAX_VALUE - (gEwramData->unk_4 >> 1);
-            #ifndef NON_MATCHING
-            asm("":::"r0");
-            #endif
+            gDisplayRegisters.bldY = BLDY_MAX_VALUE - (gEwramData->gameModeTimer >> 1);
             if (gDisplayRegisters.bldY > 0)
             {
-                gEwramData->unk_4 += 1;
+                gEwramData->gameModeTimer += 1;
             }
             else
             {
                 gDisplayRegisters.bldCnt = BLDCNT_SCREEN_SECOND_TARGET | BLDCNT_ALPHA_BLENDING_EFFECT;
                 gEwramData->gameModeUpdateStage = 3;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
             break;
     
         case 3:
-            gEwramData += 0;
-            TitleScreen_sub_08002FF8();
+            TitleScreenStep(&gEwramData->entityData[0x12]);
 
-            if (temp_r7->unk_500.unk_500_32 != 0)
+            if (logo->unk_500.whole != 0)
             {
-                temp_r7->unk_500.unk_500_32 -= 0x2000;
-                temp_r7->unk_524.unk_524_32 -= 0x2000;
-                temp_r7->unk_528.unk_528_32 -= 0x2000;
+                logo->unk_500.whole -= 0x2000;
+                logo->posX.whole -= 0x2000;
+                logo->posY.whole -= 0x2000;
 
-                if (temp_r7->unk_500.unk_500_32 == 0x40000)
+                if (logo->unk_500.whole == 0x40000)
                 {
                     gDisplayRegisters.bldY = BLDY_MAX_VALUE;
-                    sub_08003F08(0, 0x18, 0xEF);
-                    sub_08003F08(1, 0x20, 0x89);
+                    TitleScreen_SpawnFlash(0, 0x18, 0xEF);
+                    TitleScreen_SpawnFlash(1, 0x20, 0x89);
                 }
 
-                if (temp_r7->unk_500.unk_500_32 < 0x30000)
+                if (logo->unk_500.whole < 0x30000)
                 {
-                    temp_r7->unk_4FC.unk_4FC_16.unk_4FC |= 1;
+                    logo->unk_4FC.part16.unk_4FC |= 1;
                     gEwramData->gameModeUpdateStage = 4;
-                    gEwramData->unk_12 = 0;
+                    gEwramData->gameModeSubStage = 0;
                 }
 
-                var_r0_2 = temp_r7->unk_500.unk_500_32;
-                if (var_r0_2 < 0)
-                {
-                    var_r0_2 += 0x7FFF;
-                }
-                TitleScreenSetAffine_inline(0x108 - (var_r0_2 >> 0xF));
+                TitleScreenSetAffine_inline(0x108 - logo->unk_500.whole / 0x8000);
             }
             break;
     
         case 4:
-            gEwramData += 0;
-            TitleScreen_sub_08002FF8();
+            TitleScreenStep(&gEwramData->entityData[0x12]);
 
-            if (temp_r7->unk_500.unk_500_32 != 0)
+            if (logo->unk_500.whole != 0)
             {
-                temp_r7->unk_500.unk_500_32 -= 0x2000;
-                temp_r7->unk_524.unk_524_32 -= 0x2000;
-                temp_r7->unk_528.unk_528_32 -= 0x2000;
+                logo->unk_500.whole -= 0x2000;
+                logo->posX.whole -= 0x2000;
+                logo->posY.whole -= 0x2000;
 
-                var_r2 = temp_r7->unk_500.unk_500_32;
-                if (var_r2 < 0)
-                {
-                    var_r2 += 0x7FFF;
-                }
-                TitleScreenSetAffine_inline(0x108 - (var_r2 >> 0xF));
+                TitleScreenSetAffine_inline(0x108 - logo->unk_500.whole / 0x8000);
             }
 
-            if ((temp_r7->unk_4FC.unk_4FC_16.unk_4FC & 2))
+            if ((logo->unk_4FC.part16.unk_4FC & 2))
             {
                 gEwramData->gameModeUpdateStage = 5;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
 
             case 5:
-                gEwramData += 0;
-                TitleScreen_sub_08002FF8();
-                TitleScreenSetAffine_inline(0x118 - temp_r7->unk_4FC.unk_4FC_16.unk_4FE[0]);
-                if (temp_r7->unk_4FC.unk_4FC_16.unk_4FC & 2)
+                TitleScreenStep(&gEwramData->entityData[0x12]);
+                TitleScreenSetAffine_inline(0x118 - logo->unk_4FC.part16.unk_4FE[0]);
+                if (logo->unk_4FC.part16.unk_4FC & 2)
                 {
-                    temp_r7->unk_53E_1 = 2;
+                    logo->objMode = 2;
                 }
 
-                if (temp_r7->unk_4FC.unk_4FC_16.unk_4FE[0] < 0x40)
+                if (logo->unk_4FC.part16.unk_4FE[0] < 0x40)
                 {
-                    temp_r7->unk_4FC.unk_4FC_16.unk_4FE[0] += 1;
+                    logo->unk_4FC.part16.unk_4FE[0] += 1;
                 }
                 else
                 {
-                    temp_r8->unk_4F8.unk_4F8_32 = 0x88;
+                    overlay->unk_4F8.whole = 0x88;
                     gDisplayRegisters.bldAlpha = C_16_2_8(BLDALPHA_MAX_VALUE, 0);
-                    temp_r8->unk_4FC.unk_4FC_16.unk_4FC |= 1;
+                    overlay->unk_4FC.part16.unk_4FC |= 1;
                     gEwramData->gameModeUpdateStage = 6;
-                    gEwramData->unk_12 = 0;
+                    gEwramData->gameModeSubStage = 0;
                 }
             }
             break;
     
         case 6:
-            gEwramData += 0;
-            TitleScreen_sub_08002FF8();
+            TitleScreenStep(&gEwramData->entityData[0x12]);
 
-            temp_r7->unk_508.unk_508_16.unk_50A += 0x40;
-            var_r0_3 = sub_080009E4(temp_r7->unk_508.unk_508_16.unk_50A & 0x7FFF);
-            if (var_r0_3 < 0)
-            {
-                var_r0_3 += 0xFFF;
-            }
-            TitleScreenSetAffine_inline((var_r0_3 >> 12) - (temp_r7->unk_4FC.unk_4FC_16.unk_4FE[0] - 0x118));
+            logo->unk_508.part16.unk_50A += 0x40;
+            TitleScreenSetAffine_inline(Sin(logo->unk_508.part16.unk_50A & 0x7FFF) / 0x1000 - (logo->unk_4FC.part16.unk_4FE[0] - 0x118));
 
-            if (temp_r8->unk_4F8.unk_4F8_32 != 0)
+            if (overlay->unk_4F8.whole != 0)
             {
-                var_r0_4 = temp_r8->unk_4F8.unk_4F8_32 -= 1;
-                if (var_r0_4 < 0)
-                {
-                    var_r0_4 = temp_r8->unk_4F8.unk_4F8_32 + 7;
-                }
-                gDisplayRegisters.bldAlpha = C_16_2_8(var_r0_4 >> 3, BLDALPHA_MAX_VALUE - (var_r0_4 >> 3));
+                overlay->unk_4F8.whole--;
+                alpha = overlay->unk_4F8.whole / 8;
+                gDisplayRegisters.bldAlpha = C_16_2_8(alpha, BLDALPHA_MAX_VALUE - alpha);
             }
             else
             {
-                temp_r8->unk_4FC.unk_4FC_16.unk_4FC |= 4;
+                overlay->unk_4FC.part16.unk_4FC |= 4;
                 gDisplayRegisters.bldAlpha = C_16_2_8(BLDALPHA_MAX_VALUE, 0);
                 gDisplayRegisters.bldCnt = BLDCNT_SCREEN_SECOND_TARGET | BLDCNT_ALPHA_BLENDING_EFFECT | BLDCNT_BG1_FIRST_TARGET_PIXEL;
                 gUnk_03002CB0.dispCnt |= DCNT_BG1;
                 gEwramData->gameModeUpdateStage = 7;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
             break;
     
         case 7:
-            gEwramData += 0;
-            TitleScreen_sub_08002FF8();
+            TitleScreenStep(&gEwramData->entityData[0x12]);
 
-            temp_r7->unk_508.unk_508_16.unk_50A += 0x40;
-            var_r0_5 = sub_080009E4(temp_r7->unk_508.unk_508_16.unk_50A & 0x7FFF);
-            if (var_r0_5 < 0)
+            logo->unk_508.part16.unk_50A += 0x40;
+            TitleScreenSetAffine_inline(Sin(logo->unk_508.part16.unk_50A & 0x7FFF) / 0x1000 - (logo->unk_4FC.part16.unk_4FE[0] - 0x118));
+
+            if (logo->unk_504.whole != 0)
             {
-                var_r0_5 += 0xFFF;
-            }
-            TitleScreenSetAffine_inline((var_r0_5 >> 12) - (temp_r7->unk_4FC.unk_4FC_16.unk_4FE[0] - 0x118));
-
-            if (temp_r7->unk_504.unk_504_32 != 0)
-            {
-                if (!(temp_r8->unk_4FC.unk_4FC_16.unk_4FC & 2) && (temp_r7->unk_504.unk_504_32 <= 0x37F))
+                if (!(overlay->unk_4FC.part16.unk_4FC & 2) && (logo->unk_504.whole <= 0x37F))
                 {
-                    temp_r8->unk_4FC.unk_4FC_16.unk_4FC |= 2;
+                    overlay->unk_4FC.part16.unk_4FC |= 2;
                 }
 
-                var_r0_6 = temp_r7->unk_504.unk_504_32;
-                temp_r4 = var_r0_6 - 2;
-                if (var_r0_6 < 0)
-                {
-                    var_r0_6 += 0xFF;
-                }
-                temp_r7->unk_504.unk_504_32 = temp_r4 - (((var_r0_6 >> 8) << 8) / 80);
+                logo->unk_504.whole -= 2 + logo->unk_504.whole / 256 * 256 / 80;
 
-                if (temp_r7->unk_504.unk_504_32 < 0xC0)
+                if (logo->unk_504.whole < 0xC0)
                 {
-                    temp_r7->unk_504.unk_504_32 = 0;
+                    logo->unk_504.whole = 0;
                 }
-                temp_r0_5 = temp_r7->unk_504.unk_504_32 / 1280;
-                gDisplayRegisters.bldAlpha = C_16_2_8(temp_r0_5, BLDALPHA_MAX_VALUE - temp_r0_5);
-                TitleScreen_sub_08002F44(temp_r7->unk_504.unk_504_32);
+                fade = logo->unk_504.whole / 1280;
+                gDisplayRegisters.bldAlpha = C_16_2_8(fade, BLDALPHA_MAX_VALUE - fade);
+                TitleScreen_sub_08002F44(logo->unk_504.whole);
             }
             else
             {
-                sub_08000EA8(1);
+                EntityDeleteGroup(1);
                 gUnk_03002CB0.dispCnt |= DCNT_BG0;
-                temp_r7->unk_53C_5 = 1;
-                temp_r7->unk_53E_1 = 0;
-                sub_080043CC();
-                sub_0800459C();
-                sub_0803D18C(0x1F, 0x1F, 0x1F, 0, 0x10000, 0x20);
-                sub_0803CDF0(0x1F, 0x12, 0x12, 0x2000, 0x10000, 0x20);
-                gEwramData->unk_4 = 0x258;
+                logo->hidden = 1;
+                logo->objMode = 0;
+                TitleScreenMenu_Create();
+                TitleScreenFrame_Create();
+                BgPalette_StartColorFade(0x1F, 0x1F, 0x1F, 0, 0x10000, 0x20);
+                ObjPalette_StartColorFade(0x1F, 0x12, 0x12, 0x2000, 0x10000, 0x20);
+                gEwramData->gameModeTimer = 0x258;
                 gEwramData->gameModeUpdateStage = 8;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
             break;
     
         case 8:
             gDisplayRegisters.bldY = BLDY_MAX_VALUE;
-            gEwramData += 0;
-            TitleScreen_sub_08002FF8();
+            TitleScreenStep(&gEwramData->entityData[0x12]);
 
-            temp_r7->unk_508.unk_508_16.unk_50A += 0x40;
-            var_r0_7 = sub_080009E4(temp_r7->unk_508.unk_508_16.unk_50A & 0x7FFF);
-            if (var_r0_7 < 0)
-            {
-                var_r0_7 += 0xFFF;
-            }
-            TitleScreenSetAffine_inline((var_r0_7 >> 12) - (temp_r7->unk_4FC.unk_4FC_16.unk_4FE[0] - 0x118));
+            logo->unk_508.part16.unk_50A += 0x40;
+            TitleScreenSetAffine_inline(Sin(logo->unk_508.part16.unk_50A & 0x7FFF) / 0x1000 - (logo->unk_4FC.part16.unk_4FE[0] - 0x118));
 
             if (gEwramData->inputData.repeatedInput & (KEY_DOWN | KEY_UP))
             {
-                gEwramData->unk_4 = 10 * 60; // 10 second timer
+                gEwramData->gameModeTimer = 10 * 60; // 10 second timer
             }
 
-            if (--gEwramData->unk_4 == 0)
+            if (--gEwramData->gameModeTimer == 0)
             {
-                gEwramData->unk_6 = 1;
+                gEwramData->gameModeCounter = 1;
             }
 
             if (gEwramData->inputData.newInput & (KEY_START | KEY_A))
             {
-                if (sTitleScreenNextGameMode[temp_r6->unk_4FC.unk_4FC_8.unk_4FC + temp_r6->unk_500.unk_500_8.unk_500] == GAME_MODE_KONAMI_LOGO)
+                if (sTitleScreenNextGameMode[TITLE_MENU_CURSOR(menu) + TITLE_MENU_FIRST(menu)] == GAME_MODE_KONAMI_LOGO)
                 {
-                    sub_08004648(temp_r6);
+                    TitleScreenMenu_StartSlide(menu);
                     break;
                 }
             }
-            else if ((gEwramData->inputData.newInput & KEY_B) && (temp_r6->unk_500.unk_500_8.unk_500 != 0))
+            else if ((gEwramData->inputData.newInput & KEY_B) && (TITLE_MENU_FIRST(menu) != 0))
             {
-                sub_08004648(temp_r6);
+                TitleScreenMenu_StartSlide(menu);
                 break;
             }
 
-            if ((temp_r6->unk_500.unk_500_8.unk_502 == 0) && ((gEwramData->unk_6 != 0) || (gEwramData->inputData.newInput & (KEY_START | KEY_A))))
+            if ((TITLE_MENU_SLIDING(menu) == 0) && ((gEwramData->gameModeCounter != 0) || (gEwramData->inputData.newInput & (KEY_START | KEY_A))))
             {
                 PlaySong(SONG_MUTE);
-                temp_r6->unk_4FC.unk_4FC_8.unk_4FE = 1;
+                TITLE_MENU_CONFIRMED(menu) = 1;
                 gEwramData->gameModeUpdateStage = 9;
-                gEwramData->unk_12 = 0;
-                gEwramData->unk_4 = 0;
+                gEwramData->gameModeSubStage = 0;
+                gEwramData->gameModeTimer = 0;
                 gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT;
                 gDisplayRegisters.bldY = 0;
             }
             break;
     
         case 9:
-            gEwramData += 0;
-            TitleScreen_sub_08002FF8();
+            TitleScreenStep(&gEwramData->entityData[0x12]);
 
-            gDisplayRegisters.bldY = gEwramData->unk_4 >> 1;
+            gDisplayRegisters.bldY = gEwramData->gameModeTimer >> 1;
             if (gDisplayRegisters.bldY == BLDY_MAX_VALUE)
             {
-                gameMode = sTitleScreenNextGameMode[temp_r6->unk_4FC.unk_4FC_8.unk_4FC + temp_r6->unk_500.unk_500_8.unk_500];
+                gameMode = sTitleScreenNextGameMode[TITLE_MENU_CURSOR(menu) + TITLE_MENU_FIRST(menu)];
                 TitleScreen_sub_08003080();
                 gDisplayRegisters.bldY = BLDY_MAX_VALUE;
                 gEwramData->gameModeUpdateStage = 0;
-                if (gEwramData->unk_6 != 0)
+                if (gEwramData->gameModeCounter != 0)
                 {
                     gameMode = GAME_MODE_INTRO_CUTSCENE;
                 }
@@ -1267,7 +1230,7 @@ s32 GameModeTitleScreenUpdate(void)
             }
             else
             {
-                gEwramData->unk_4 += 1;
+                gEwramData->gameModeTimer += 1;
             }
             break;
     }
@@ -1276,1139 +1239,1107 @@ s32 GameModeTitleScreenUpdate(void)
     {
         gDisplayRegisters.bldCnt = BLDCNT_OBJ_SECOND_TARGET_PIXEL | BLDCNT_BG2_SECOND_TARGET_PIXEL | BLDCNT_ALPHA_BLENDING_EFFECT | BLDCNT_BG1_FIRST_TARGET_PIXEL;
         gUnk_03002CB0.dispCnt |= DCNT_BG1 | DCNT_BG0;
-        temp_r7->unk_524.unk_524_16.unk_526 = 0x78;
-        temp_r7->unk_528.unk_528_16.unk_52A = 0x50;
-        temp_r7->unk_500.unk_500_32 = 0;
-        temp_r7->unk_4FC.unk_4FC_16.unk_4FE[0] = 0x40;
+        logo->posX.part16.integer = 0x78;
+        logo->posY.part16.integer = 0x50;
+        logo->unk_500.whole = 0;
+        logo->unk_4FC.part16.unk_4FE[0] = 0x40;
         tmp2 = C_16_2_8(0, BLDALPHA_MAX_VALUE);
         gDisplayRegisters.bldAlpha = tmp2;
 
         TitleScreen_sub_08002F44(0);
-        sub_08000EA8(1);
-        temp_r7->unk_53C_5 = 1;
-        temp_r7->unk_53E_1 = 0;
-        sub_080043CC();
-        sub_0800459C();
-        sub_0803D18C(0x1F, 0x1F, 0x1F, 0, 0x10000, 0x20);
-        sub_0803CDF0(0x1F, 0x17, 0x17, 0x2000, 0x10000, 0x20);
-        gEwramData->unk_4 = 10 * 60; // 10 second timer
+        EntityDeleteGroup(1);
+        logo->hidden = 1;
+        logo->objMode = 0;
+        TitleScreenMenu_Create();
+        TitleScreenFrame_Create();
+        BgPalette_StartColorFade(0x1F, 0x1F, 0x1F, 0, 0x10000, 0x20);
+        ObjPalette_StartColorFade(0x1F, 0x17, 0x17, 0x2000, 0x10000, 0x20);
+        gEwramData->gameModeTimer = 10 * 60; // 10 second timer
         gEwramData->gameModeUpdateStage = 8;
-        gEwramData->unk_12 = 0;
+        gEwramData->gameModeSubStage = 0;
     }
-    sub_08000F60(1);
-    sub_08000B64();
+    Entity_ScrollWithBg(1);
+    Entity_UpdateAll();
     
     return gameMode;
 }
 
 /**
- * @brief 39D4 | To document
- * 
- * @param param_0 To document
+ * @brief Drift a title particle with its velocity and a slow acceleration
+ * towards the screen.
  */
-void sub_080039D4(struct EwramData_EntityData *param_0)
+void TitleScreenParticle_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *temp_r5;
-    s32 var_r0;
-    s32 var_r1;
-    s32 var_0;
+    struct EwramData_EntityData *logo;
+    s32 waveY;
+    s32 waveX;
+    s32 y;
 
-    temp_r5 = &gEwramData->entityData[0x13];
-    if (param_0->unk_4EE == 0 && !(temp_r5->unk_4FC.unk_4FC_16.unk_4FC & 1))
+    logo = &gEwramData->entityData[0x13];
+    if (entity->state == 0 && !(logo->unk_4FC.part16.unk_4FC & 1))
         return;
 
-    else if (param_0->unk_4EE == 0 && (temp_r5->unk_4FC.unk_4FC_16.unk_4FC & 1))
+    else if (entity->state == 0 && (logo->unk_4FC.part16.unk_4FC & 1))
     {
-        param_0->unk_4EE = 1;
-        param_0->unk_53C_5 = 0;
+        entity->state = 1;
+        entity->hidden = 0;
     }
 
-    if ((param_0->unk_53E_1 != 0) && (temp_r5->unk_4FC.unk_4FC_16.unk_4FC & 4))
+    if ((entity->objMode != 0) && (logo->unk_4FC.part16.unk_4FC & 4))
     {
-        param_0->unk_53E_1 = 0;
+        entity->objMode = 0;
     }
 
-    param_0->unk_50C.unk_50C_16.unk_50C += param_0->unk_52C.unk_52C_16.unk_52E;
-    param_0->unk_50C.unk_50C_16.unk_50E += param_0->unk_530.unk_530_16.unk_532;
+    entity->unk_50C.part16.unk_50C += entity->velX.part16.integer;
+    entity->unk_50C.part16.unk_50E += entity->velY.part16.integer;
 
-    var_r1 = param_0->unk_534.unk_534_32 * sub_080009E4(param_0->unk_50C.unk_50C_16.unk_50C + 0x4000);
-    if (var_r1 < 0)
+    waveX = entity->accelX.whole * Sin(entity->unk_50C.part16.unk_50C + 0x4000);
+    if (waveX < 0)
     {
-        var_r1 += 0xFFF;
+        waveX += 0xFFF;
     }
-    param_0->unk_524.unk_524_32 += var_r1 >> 0xC;
+    entity->posX.whole += waveX >> 0xC;
 
-    var_r0 = param_0->unk_538.unk_538_32 * sub_080009E4(param_0->unk_50C.unk_50C_16.unk_50E);
-    if (var_r0 < 0)
+    waveY = entity->accelY.whole * Sin(entity->unk_50C.part16.unk_50E);
+    if (waveY < 0)
     {
-        var_r0 += 0xFFF;
+        waveY += 0xFFF;
     }
-    var_0 = param_0->unk_528.unk_528_32 + (var_r0 >> 0xC);
-    param_0->unk_524.unk_524_32 += param_0->unk_4FC.unk_4FC_32;
-    param_0->unk_528.unk_528_32 = var_0 + param_0->unk_504.unk_504_32;
+    y = entity->posY.whole + (waveY >> 0xC);
+    entity->posX.whole += entity->unk_4FC.whole;
+    entity->posY.whole = y + entity->unk_504.whole;
 
-    sub_0803F17C(param_0);
+    Anim_Update(entity);
 }
 
-extern u8 *sUnk_08160480;
-extern u8 *sUnk_0820C8A8;
+extern u8 *sTitleScreenGfx;
+extern u8 *sTitleScreenSpriteSheet;
 
 // TODO: combine/figure out inlines
-static inline sub_08003A9C_inline_0(u8 *ptr0, u8 *ptr1, struct EwramData_EntityData *param_0, s32 var_0)
+static inline TitleObject_LoadGraphics(u8 *ptr0, u8 *ptr1, struct EwramData_EntityData *entity, s32 palette)
 {
-    s32 temp_r0;
-    u8 var_r0;
-    s32 var_1;
+    s32 gfx;
+    u8 loaded;
+    s32 none;
 
-    var_1 = 0;
-    temp_r0 = sub_0803B800(ptr0, 0);
-    if (temp_r0 < 0)
+    none = 0;
+    gfx = ObjGfx_LoadResource(ptr0, 0);
+    if (gfx < 0)
     {
-        var_r0 = 0;
+        loaded = 0;
     }
     else
     {
-        param_0->unk_510.unk_510_8.unk_510 = var_0;
-        sub_0803B924(param_0, ptr1, temp_r0, var_0);
-        param_0->drawFunc = (u32 *)sub_0803B9D0;
-        var_r0 = param_0->unk_547 = 1;
+        entity->unk_510.part8.basePalette = palette;
+        Sprite_Attach(entity, ptr1, gfx, palette);
+        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        loaded = entity->group = 1;
     }
-    return var_r0 != var_1;
+    return loaded != none;
 }
 
-static inline sub_08003A9C_inline_1(u8 *ptr0, u8 *ptr1, struct EwramData_EntityData *param_0, s32 var_0)
+static inline TitleObject_LoadGraphicsAlt(u8 *ptr0, u8 *ptr1, struct EwramData_EntityData *entity, s32 palette)
 {
-    s32 temp_r0;
-    u8 var_r0;
+    s32 gfx;
+    u8 loaded;
 
-    temp_r0 = sub_0803B800(ptr0, 0);
-    if (temp_r0 < 0)
+    gfx = ObjGfx_LoadResource(ptr0, 0);
+    if (gfx < 0)
     {
-        var_r0 = 0;
+        loaded = 0;
     }
     else
     {
-        param_0->unk_510.unk_510_8.unk_510 = var_0;
-        sub_0803B924(param_0, ptr1, temp_r0, var_0);
-        param_0->drawFunc = (u32 *)sub_0803B9D0;
-        var_r0 = param_0->unk_547 = 1;
+        entity->unk_510.part8.basePalette = palette;
+        Sprite_Attach(entity, ptr1, gfx, palette);
+        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        loaded = entity->group = 1;
     }
-    return var_r0 != 0;
+    return loaded != 0;
 }
 
 /**
- * @brief 3A9C | To document
- * 
- * @param param_0 To document
+ * @brief Attach the particle sprite (random animation phase, hidden, layer 7)
+ * and give it an outward start offset, an inward velocity and random
+ * motion parameters from its angle to the screen centre.
  */
-void sub_08003A9C(struct EwramData_EntityData *param_0)
+void TitleScreenParticle_Init(struct EwramData_EntityData *entity)
 {
-    s16 temp_r4;
+    s16 angle;
     s32 temp_r0;
     s32 var_r0;
-    s32 var_r0_2;
-    s32 var_r0_3;
+    s32 driftX;
+    s32 driftY;
     u8* tmp;
     u8* tmp2;
-    s32 var_0;
+    s32 loaded;
 
-    var_0 = sub_08003A9C_inline_0((u8*)&sUnk_08160480, (u8*)&sUnk_0820C8A8, param_0, 0xD);
+    loaded = TitleObject_LoadGraphics((u8*)&sTitleScreenGfx, (u8*)&sTitleScreenSpriteSheet, entity, 0xD);
 
-    if (!var_0)
+    if (!loaded)
     {
-        EntityDelete(param_0);
+        EntityDelete(entity);
         return;
     }
 
-    sub_0803F2C8(param_0, 0, 0, 1);
-    sub_0803F17C(param_0);
-    param_0->unk_552 = RandomNumberGenerator() & 3;
-    param_0->unk_553 = RandomNumberGenerator() & 3;
+    Anim_StartIndexed(entity, 0, 0, 1);
+    Anim_Update(entity);
+    entity->animStep = RandomNumberGenerator() & 3;
+    entity->animTimer = RandomNumberGenerator() & 3;
 
-    param_0->unk_53E_1 = 1;
-    param_0->unk_53C_5 = 1;
-    param_0->unk_53D_1 = 1;
-    param_0->unk_540 = 7;
+    entity->objMode = 1;
+    entity->hidden = 1;
+    entity->scrollWithBg = 1;
+    entity->spriteLayer = 7;
 
-    param_0->unk_534.unk_534_32 = ((RandomNumberGenerator() & 0xFF) * 0x10) + 0x400;
-    param_0->unk_538.unk_538_32 = ((RandomNumberGenerator() & 0xFF) * 0x10) + 0x400;
+    entity->accelX.whole = ((RandomNumberGenerator() & 0xFF) * 0x10) + 0x400;
+    entity->accelY.whole = ((RandomNumberGenerator() & 0xFF) * 0x10) + 0x400;
 
-    temp_r4 = ArcTan2(param_0->unk_524.unk_524_16.unk_526 - 0x78, param_0->unk_528.unk_528_16.unk_52A - 0x60);
-    param_0->unk_4FC.unk_4FC_32 = sub_080009E4(temp_r4 + 0x4000);
-    param_0->unk_504.unk_504_32 = sub_080009E4(temp_r4);
-    param_0->unk_524.unk_524_32 += param_0->unk_4FC.unk_4FC_32 << 5;
-    param_0->unk_528.unk_528_32 += param_0->unk_504.unk_504_32 << 5;
+    angle = ArcTan2(entity->posX.part16.integer - 0x78, entity->posY.part16.integer - 0x60);
+    entity->unk_4FC.whole = Sin(angle + 0x4000);
+    entity->unk_504.whole = Sin(angle);
+    entity->posX.whole += entity->unk_4FC.whole << 5;
+    entity->posY.whole += entity->unk_504.whole << 5;
 
-    var_r0_2 = -param_0->unk_4FC.unk_4FC_32;
-    if (var_r0_2 < 0)
+    driftX = -entity->unk_4FC.whole;
+    if (driftX < 0)
     {
-        var_r0_2 += 0xF;
+        driftX += 0xF;
     }
-    param_0->unk_4FC.unk_4FC_32 = var_r0_2 >> 4;
+    entity->unk_4FC.whole = driftX >> 4;
 
-    var_r0_3 = -param_0->unk_504.unk_504_32;
-    if (var_r0_3 < 0)
+    driftY = -entity->unk_504.whole;
+    if (driftY < 0)
     {
-        var_r0_3 += 0xF;
+        driftY += 0xF;
     }
-    param_0->unk_504.unk_504_32 = var_r0_3 >> 4;
+    entity->unk_504.whole = driftY >> 4;
 
-    param_0->unk_50C.unk_50C_16.unk_50C = (RandomNumberGenerator() & 0xFF) << 8;
-    param_0->unk_50C.unk_50C_16.unk_50E = param_0->unk_50C.unk_50C_16.unk_50C + 0x8000 + ((RandomNumberGenerator() & 0x1F) << 4);
-    param_0->unk_52C.unk_52C_16.unk_52E = (RandomNumberGenerator() & 0xFF) + 0x800;
-    param_0->unk_530.unk_530_16.unk_532 = (RandomNumberGenerator() & 0xFF) + 0xA00;
+    entity->unk_50C.part16.unk_50C = (RandomNumberGenerator() & 0xFF) << 8;
+    entity->unk_50C.part16.unk_50E = entity->unk_50C.part16.unk_50C + 0x8000 + ((RandomNumberGenerator() & 0x1F) << 4);
+    entity->velX.part16.integer = (RandomNumberGenerator() & 0xFF) + 0x800;
+    entity->velY.part16.integer = (RandomNumberGenerator() & 0xFF) + 0xA00;
 }
 
 /**
- * @brief 3C18 | To document
- * 
- * @param param_0 To document
+ * @brief Once the overlay sets flag 2, show the sprite and spiral it in
+ * towards (0x7A, 0x1A) while its affine scale shrinks.
  */
-void sub_08003C18(struct EwramData_EntityData *param_0)
+void TitleScreenSpiralSprite_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *unk_4E4;
-    s16 temp_r4;
-    s32 var_r0;
-    s32 temp_r0;
-    s32 var_0;
-    s32 var_1;
-    s32 var_2;
-    s32 var_3;
-    s32 var_4;
+    s16 angle;
+    s32 shrunk;
+    s32 radius;
+    s32 decay;
+    s32 cosA;
+    s32 radiusX;
+    s32 sinA;
+    s32 radiusY;
 
     unk_4E4 = &gEwramData->entityData[0x13];
-    temp_r4 = param_0->unk_4FC.unk_4FC_16.unk_4FC;
-    switch (param_0->unk_4EE)
+    angle = entity->unk_4FC.part16.unk_4FC;
+    switch (entity->state)
     {
         case 0:
-            if (unk_4E4->unk_4FC.unk_4FC_16.unk_4FC & 2)
+            if (unk_4E4->unk_4FC.part16.unk_4FC & 2)
             {
-                param_0->unk_53C_5 = 0;
-                param_0->unk_4EE = 1;
+                entity->hidden = 0;
+                entity->state = 1;
         case 1:
-                if (param_0->unk_500.unk_500_32 != 0)
+                if (entity->unk_500.whole != 0)
                 {
-                    param_0->unk_4FC.unk_4FC_16.unk_4FC -= 0xA0;
-                    var_r0 = param_0->unk_500.unk_500_32 - 0x8000;
-                    var_0 = param_0->unk_500.unk_500_32;
-                    if (var_0 < 0)
+                    entity->unk_4FC.part16.unk_4FC -= 0xA0;
+                    shrunk = entity->unk_500.whole - 0x8000;
+                    decay = entity->unk_500.whole;
+                    if (decay < 0)
                     {
-                        var_0 += 0x3F;
+                        decay += 0x3F;
                     }
-                    temp_r0 = var_r0 - (var_0 >> 6);
-                    param_0->unk_500.unk_500_32 = temp_r0;
-                    if (temp_r0 <= 0xFFF)
+                    radius = shrunk - (decay >> 6);
+                    entity->unk_500.whole = radius;
+                    if (radius <= 0xFFF)
                     {
-                        param_0->unk_500.unk_500_32 = 0;
+                        entity->unk_500.whole = 0;
                     }
                 }
-                param_0->unk_504.unk_504_32 = (param_0->unk_500.unk_500_32 / 160) + 0x10000;
+                entity->unk_504.whole = (entity->unk_500.whole / 160) + 0x10000;
                 // inlines?
-                var_1 = sub_080009E4(temp_r4 + 0x4000);
-                var_2 = param_0->unk_500.unk_500_32;
-                param_0->unk_524.unk_524_32 = ((var_1 >> 8) * (var_2 >> 8)) + 0x7A0000;
-                var_3 = sub_080009E4(temp_r4);
-                var_4 = param_0->unk_500.unk_500_32;
-                param_0->unk_528.unk_528_32 = ((var_3 >> 8) * (var_4 >> 8)) + 0x1A0000;
-                sub_0803F17C(param_0);
-                sub_0803E058(0, param_0->unk_504.unk_504_32, param_0->unk_504.unk_504_32, 0, 0, param_0->unk_53C_0);
+                cosA = Sin(angle + 0x4000);
+                radiusX = entity->unk_500.whole;
+                entity->posX.whole = ((cosA >> 8) * (radiusX >> 8)) + 0x7A0000;
+                sinA = Sin(angle);
+                radiusY = entity->unk_500.whole;
+                entity->posY.whole = ((sinA >> 8) * (radiusY >> 8)) + 0x1A0000;
+                Anim_Update(entity);
+                ObjAffine_Set(0, entity->unk_504.whole, entity->unk_504.whole, 0, 0, entity->affineIndex);
             }
         }
 }
 
 /**
- * @brief 3CF8 | To document
- * 
- * @param param_0 To document
+ * @brief Attach the hidden affine sprite (animation 4, layer 6) with its
+ * start angle and radius.
  */
-void sub_08003CF8(struct EwramData_EntityData *param_0)
+void TitleScreenSpiralSprite_Init(struct EwramData_EntityData *entity)
 {
     s32 temp_r0;
     s32 var_r0;
-    u16 temp_r0_2;
+    u16 affineIndex;
     u8* tmp;
     u8* tmp2;
-    u8 var_0;
+    u8 loaded;
 
-    var_0 = sub_08003A9C_inline_0((u8 *)&sUnk_08160480, (u8 *)&sUnk_0820C8A8, param_0, 0xC);
+    loaded = TitleObject_LoadGraphics((u8 *)&sTitleScreenGfx, (u8 *)&sTitleScreenSpriteSheet, entity, 0xC);
 
-    if (!var_0 || ((s32) ((temp_r0_2 = sub_0803E654(1)) << 0x10) < 0))
+    if (!loaded || ((s32) ((affineIndex = ObjAffine_Alloc(1)) << 0x10) < 0))
     {
-        EntityDelete(param_0);
+        EntityDelete(entity);
         return;
     }
 
-    param_0->unk_53D_5 = 1;
-    param_0->unk_53C_0 = temp_r0_2;
-    param_0->unk_53D_4 = 1;
-    sub_0803F2C8(param_0, 4, 0, 1);
-    sub_0803F17C(param_0);
-    param_0->unk_53C_5 = 1;
-    param_0->unk_53D_1 = 1;
-    param_0->unk_540 = 6;
-    param_0->unk_4FC.unk_4FC_16.unk_4FC = 0x9800;
-    param_0->unk_500.unk_500_32 = 0xC00000;
-    param_0->unk_4FC.unk_4FC_16.unk_4FE[0] = 0;
+    entity->doubleSize = 1;
+    entity->affineIndex = affineIndex;
+    entity->affine = 1;
+    Anim_StartIndexed(entity, 4, 0, 1);
+    Anim_Update(entity);
+    entity->hidden = 1;
+    entity->scrollWithBg = 1;
+    entity->spriteLayer = 6;
+    entity->unk_4FC.part16.unk_4FC = 0x9800;
+    entity->unk_500.whole = 0xC00000;
+    entity->unk_4FC.part16.unk_4FE[0] = 0;
 }
 
 /**
- * @brief 3DBC | To document
- * 
- * @param param_0 To document
+ * @brief Turn the overlay entity into the effect group: load the title
+ * graphics, create the spiral sprite and 34 particles.
  */
-void sub_08003DBC(struct EwramData_EntityData *param_0)
+void TitleScreen_CreateEffects(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *temp_r0;
+    struct EwramData_EntityData *child;
     struct EwramData_EntityData *temp_r0_2;
-    s32 var_r5;
+    s32 i;
 
-    EntityDelete(param_0);
-    sub_0803B800((u8 *)0x08160480, 0);
-    sub_0803B800((u8 *)0x08160488, 0);
-    sub_0803B800((u8 *)0x0825EAD4, 0);
-    param_0->updateFunc = (u32 *) sub_080046CC;
-    param_0->unk_547 = 1;
-    temp_r0 = EntityCreateInRange(0x49, 0xCF, (u32 *) sub_08003C18);
-    if (temp_r0 != 0)
+    EntityDelete(entity);
+    ObjGfx_LoadResource((u8 *)0x08160480, 0);
+    ObjGfx_LoadResource((u8 *)0x08160488, 0);
+    ObjGfx_LoadResource((u8 *)0x0825EAD4, 0);
+    entity->updateFunc = (u32 *) TitleScreenEffects_Update;
+    entity->group = 1;
+    child = EntityCreateInRange(0x49, 0xCF, (u32 *) TitleScreenSpiralSprite_Update);
+    if (child != 0)
     {
-        sub_08003CF8(temp_r0);
+        TitleScreenSpiralSprite_Init(child);
     }
 
-    for (var_r5 = 0; var_r5 < 0x22 && (temp_r0 = EntityCreateInRange(0x49, 0xCF, (u32 *) sub_080039D4)) != 0; var_r5++)
+    for (i = 0; i < 0x22 && (child = EntityCreateInRange(0x49, 0xCF, (u32 *) TitleScreenParticle_Update)) != 0; i++)
     {
-        temp_r0->unk_524.unk_524_32 = (var_r5 * 0x3C3C3) + 0x380000 + (sub_0802D5EC(0x10) << 0x10);
-        temp_r0->unk_528.unk_528_16.unk_52A = (sub_0802D5EC(0x20) + 0x60);
-        sub_08003A9C(temp_r0);
+        child->posX.whole = (i * 0x3C3C3) + 0x380000 + (RandomSigned(0x10) << 0x10);
+        child->posY.part16.integer = (RandomSigned(0x20) + 0x60);
+        TitleScreenParticle_Init(child);
     }
 }
 
 /**
- * @brief 3E64 | To document
- * 
- * @param param_0 To document
+ * @brief Rotate and scale the flash sprite; the first flash also fades the
+ * blend alpha. Delete it when its timer runs out.
  */
-void sub_08003E64(struct EwramData_EntityData *param_0)
+void TitleScreenFlash_Update(struct EwramData_EntityData *entity)
 {
-    s32 temp_r1;
+    s32 alpha;
 
-    switch (param_0->unk_4EE)
+    switch (entity->state)
     {
         case 0:
-            param_0->unk_4EE = 1;
-            param_0->unk_504.unk_504_32 = 0x20000;
-            param_0->unk_4F8.unk_4F8_32 = 0x8000;
+            entity->state = 1;
+            entity->unk_504.whole = 0x20000;
+            entity->unk_4F8.whole = 0x8000;
             /* fallthrough */
         case 1:
-            param_0->unk_504.unk_504_32 = param_0->unk_500.unk_500_32 << 0xC;
-            if (param_0->unk_508.unk_508_8.unk_508 == 0)
+            entity->unk_504.whole = entity->unk_500.whole << 0xC;
+            if (entity->unk_508.part8.unk_508 == 0)
             {
-                temp_r1 = 0x10 - (sub_080009E4(param_0->unk_4F8.unk_4F8_32) >> 0xC);
-                gDisplayRegisters.bldAlpha = C_16_2_8(temp_r1, BLDALPHA_MAX_VALUE - temp_r1);
+                alpha = 0x10 - (Sin(entity->unk_4F8.whole) >> 0xC);
+                gDisplayRegisters.bldAlpha = C_16_2_8(alpha, BLDALPHA_MAX_VALUE - alpha);
             }
 
-            param_0->unk_4FC.unk_4FC_16.unk_4FC += param_0->unk_4FC.unk_4FC_16.unk_4FE[0];
-            sub_0803F17C(param_0);
-            sub_0803E058((s32) param_0->unk_4FC.unk_4FC_16.unk_4FC, param_0->unk_504.unk_504_32, param_0->unk_504.unk_504_32, 0, 0, param_0->unk_53C_0);
+            entity->unk_4FC.part16.unk_4FC += entity->unk_4FC.part16.unk_4FE[0];
+            Anim_Update(entity);
+            ObjAffine_Set((s32) entity->unk_4FC.part16.unk_4FC, entity->unk_504.whole, entity->unk_504.whole, 0, 0, entity->affineIndex);
 
-            if (param_0->unk_4F8.unk_4F8_32 > 0)
+            if (entity->unk_4F8.whole > 0)
             {
-                param_0->unk_4F8.unk_4F8_32 -= 0x180;
+                entity->unk_4F8.whole -= 0x180;
             }
             else
             {
-                param_0->unk_53D_3 = 1;
+                entity->deleteRequested = 1;
             }
     }
 }
 
-extern u8 *sUnk_08160488;
-extern u8 *sUnk_0820CB1C;
+extern u8 *sTitleFlashGfx;
+extern u8 *sTitleFlashSpriteSheet;
 
 /**
- * @brief 3F08 | To document
- * 
- * @param param_0 To document
+ * @brief Create a semi-transparent rotating flash sprite at (0x4E, 0x26) with
+ * the given blend flag, scale and rotation speed.
  */
-void sub_08003F08(s32 param_0, s32 param_1, u16 param_2)
+void TitleScreen_SpawnFlash(s32 skipBlend, s32 scale, u16 spin)
 {
-    struct EwramData_EntityData *temp_r0;
+    struct EwramData_EntityData *child;
     s32 temp_r0_2;
     s32 temp_r1;
     s32 temp_r2;
     s32 temp_r3;
     s32 temp_r5;
     s32 var_r0;
-    u16 temp_r0_3;
+    u16 affineIndex;
     u8* tmp;
     u8* tmp2;
-    u8 var_0;
+    u8 loaded;
 
-    temp_r0 = EntityCreateInRange(0x49, 0xCF, (u32 *) sub_08003E64);
-    if (temp_r0 == 0)
+    child = EntityCreateInRange(0x49, 0xCF, (u32 *) TitleScreenFlash_Update);
+    if (child == 0)
         return;
 
-    var_0 = sub_08003A9C_inline_0((u8 *)&sUnk_08160488, (u8 *)&sUnk_0820CB1C, temp_r0, 0xB);
+    loaded = TitleObject_LoadGraphics((u8 *)&sTitleFlashGfx, (u8 *)&sTitleFlashSpriteSheet, child, 0xB);
 
-    if (!var_0 || ((s32) ((temp_r0_3 = sub_0803E654(1)) << 0x10) < 0))
+    if (!loaded || ((s32) ((affineIndex = ObjAffine_Alloc(1)) << 0x10) < 0))
     {
-        EntityDelete((struct EwramData_EntityData *) temp_r0);
+        EntityDelete((struct EwramData_EntityData *) child);
         return;
     }
 
-    temp_r0->unk_53D_5 = 1;
-    temp_r0->unk_53C_0 = temp_r0_3;
-    temp_r0->unk_53D_4 = 1;
-    sub_0803F2C8(temp_r0, 4, 0, 0);
-    sub_0803F17C(temp_r0);
-    temp_r0->unk_53D_1 = 1;
-    temp_r0->unk_540 = 6;
-    temp_r0->unk_508.unk_508_8.unk_508 = param_0;
-    temp_r0->unk_500.unk_500_32 = param_1;
-    temp_r0->unk_4FC.unk_4FC_16.unk_4FE[0] = param_2;
-    temp_r0->unk_53E_1 = 1;
-    temp_r0->unk_524.unk_524_16.unk_526 = 0x4E;
-    temp_r0->unk_528.unk_528_16.unk_52A = 0x26;
+    child->doubleSize = 1;
+    child->affineIndex = affineIndex;
+    child->affine = 1;
+    Anim_StartIndexed(child, 4, 0, 0);
+    Anim_Update(child);
+    child->scrollWithBg = 1;
+    child->spriteLayer = 6;
+    child->unk_508.part8.unk_508 = skipBlend;
+    child->unk_500.whole = scale;
+    child->unk_4FC.part16.unk_4FE[0] = spin;
+    child->objMode = 1;
+    child->posX.part16.integer = 0x4E;
+    child->posY.part16.integer = 0x26;
 }
 
 /**
- * @brief 4004 | To document
- * 
- * @param param_0 To document
+ * @brief After the logo start flag, cycle the logo palettes 4..7 through the
+ * fade-in ramp, then set flag 2.
  */
-void sub_08004004(struct EwramData_EntityData *param_0)
+void TitleScreenLogo_Update(struct EwramData_EntityData *entity)
 {
-    u8 temp_r4;
-    u8 temp_r4_2;
-    u8 temp_r6;
+    u8 tick;
+    u8 tick3;
+    u8 tick2;
 
-    if (param_0->unk_53C_5)
+    if (entity->hidden)
     {
-        param_0->unk_4EE = 0x63;
+        entity->state = 0x63;
     }
 
-    switch (param_0->unk_4EE)
+    switch (entity->state)
     {
         case 0:
-            if (!(param_0->unk_4FC.unk_4FC_16.unk_4FC & 1))
+            if (!(entity->unk_4FC.part16.unk_4FC & 1))
             {
                 break;
             }
-            param_0->unk_4EE = 1;
+            entity->state = 1;
             /* fallthrough */
         case 1:
-            temp_r4 = param_0->unk_4F1;
-            if (temp_r4 == 0)
+            tick = entity->timer;
+            if (tick == 0)
             {
-                sub_0803C7B4((u8 *)0x08209308, param_0->unk_4EF + 3, 1, 4);
-                param_0->unk_4EF += 1;
-                param_0->unk_4F1 = 1;
-                if (param_0->unk_4EF > 0xE)
+                ObjPalette_LoadRange((u8 *)0x08209308, entity->subState + 3, 1, 4);
+                entity->subState += 1;
+                entity->timer = 1;
+                if (entity->subState > 0xE)
                 {
-                    param_0->unk_4EF = temp_r4;
-                    param_0->unk_4F1 = temp_r4;
-                    param_0->unk_4EE = 2;
+                    entity->subState = tick;
+                    entity->timer = tick;
+                    entity->state = 2;
                     break;
                 }
             }
-            param_0->unk_4F1 -= 1;
+            entity->timer -= 1;
             break;
         case 2:
-            temp_r6 = param_0->unk_4F1;
-            if (temp_r6 == 0)
+            tick2 = entity->timer;
+            if (tick2 == 0)
             {
-                sub_0803C7B4((u8 *)0x08209308, param_0->unk_4EF + 0x12, 1, 5);
-                sub_0803C7B4((u8 *)0x08209308, param_0->unk_4EF + 3, 1, 6);
-                param_0->unk_4EF += 1;
-                param_0->unk_4F1 = 1;
-                if (param_0->unk_4EF > 0xE)
+                ObjPalette_LoadRange((u8 *)0x08209308, entity->subState + 0x12, 1, 5);
+                ObjPalette_LoadRange((u8 *)0x08209308, entity->subState + 3, 1, 6);
+                entity->subState += 1;
+                entity->timer = 1;
+                if (entity->subState > 0xE)
                 {
-                    param_0->unk_4EF = temp_r6;
-                    param_0->unk_4F1 = temp_r6;
-                    param_0->unk_4EE = 3;
+                    entity->subState = tick2;
+                    entity->timer = tick2;
+                    entity->state = 3;
                     break;
                 }
             }
-            param_0->unk_4F1 -= 1;
+            entity->timer -= 1;
             break;
 
         case 3:
-            temp_r4_2 = param_0->unk_4F1;
-            if (temp_r4_2 == 0)
+            tick3 = entity->timer;
+            if (tick3 == 0)
             {
-                sub_0803C7B4((u8 *)0x08209308, param_0->unk_4EF + 0x12, 1, 7);
-                param_0->unk_4EF += 1;
-                param_0->unk_4F1 = 1;
-                if (param_0->unk_4EF > 0xE)
+                ObjPalette_LoadRange((u8 *)0x08209308, entity->subState + 0x12, 1, 7);
+                entity->subState += 1;
+                entity->timer = 1;
+                if (entity->subState > 0xE)
                 {
-                    param_0->unk_4EF = temp_r4_2;
-                    param_0->unk_4F1 = temp_r4_2;
-                    param_0->unk_4FC.unk_4FC_16.unk_4FC |= 2;
-                    param_0->unk_4EE = 4;
+                    entity->subState = tick3;
+                    entity->timer = tick3;
+                    entity->unk_4FC.part16.unk_4FC |= 2;
+                    entity->state = 4;
                     break;
                 }
             }
-            param_0->unk_4F1 -= 1;
+            entity->timer -= 1;
             break;
 
         case 4:
-            if (param_0->unk_4F1 != 0)
+            if (entity->timer != 0)
             {
-                param_0->unk_4F1 -= 1;
+                entity->timer -= 1;
                 break;
             }
-            sub_0803C7B4((u8 *)0x08209308, 3, 1, 4);
-            sub_0803C7B4((u8 *)0x08209308, 3, 1, 5);
-            sub_0803C7B4((u8 *)0x08209308, 3, 1, 6);
-            sub_0803C7B4((u8 *)0x08209308, 3, 1, 7);
-            param_0->unk_4EE = 5;
+            ObjPalette_LoadRange((u8 *)0x08209308, 3, 1, 4);
+            ObjPalette_LoadRange((u8 *)0x08209308, 3, 1, 5);
+            ObjPalette_LoadRange((u8 *)0x08209308, 3, 1, 6);
+            ObjPalette_LoadRange((u8 *)0x08209308, 3, 1, 7);
+            entity->state = 5;
             break;
     }
 }
 
 /**
- * @brief 4160 | To document
- * 
- * @param param_0 To document
+ * @brief Reset the object heap, load the logo graphics and palettes and set
+ * the logo update/draw functions and start scale.
  */
-void sub_08004160(struct EwramData_EntityData *param_0)
+void TitleScreenLogo_Create(struct EwramData_EntityData *entity)
 {
     s32 temp_r0;
     s32 var_r0;
     u8 *temp_r2;
     u8 *temp_r4;
-    u8 var_0;
+    u8 result;
     u8* tmp;
     u8* tmp2;
 
     gEwramData->randomNumber = 0x1967;
-    sub_0803D9A8();
-    sub_08068F48();
-    sub_0806E028();
-    sub_0803C7B4((u8 *)0x08209308, 3, 1, var_0 = 4);
-    param_0->unk_510.unk_510_8.unk_510 = var_0;
+    ObjTiles_Init();
+    SharedObjPalette_ResetSlots();
+    Heap_Reset();
+    ObjPalette_LoadRange((u8 *)0x08209308, 3, 1, result = 4);
+    entity->unk_510.part8.basePalette = result;
 
-    var_0 = sub_08003A9C_inline_0((u8*)&sUnk_08160488, (u8*)&sUnk_0820CB1C, param_0, 4);
+    result = TitleObject_LoadGraphics((u8*)&sTitleFlashGfx, (u8*)&sTitleFlashSpriteSheet, entity, 4);
     
-    if (var_0 == 0)
+    if (result == 0)
     {
-        EntityDelete(param_0);
+        EntityDelete(entity);
         return;
     }
 
-    param_0->unk_547 = 0;
-    sub_0803C7B4((u8 *)0x08209308, 1, 1, 0xC);
-    sub_0803C7B4((u8 *)0x08209308, 0, 1, 0xD);
-    sub_0803C7B4((u8 *)0x08209308, 2, 1, 0xB);
-    sub_0803C7B4((u8 *)0x08209308, 3, 1, 5);
-    sub_0803C7B4((u8 *)0x08209308, 3, 1, 6);
-    sub_0803C7B4((u8 *)0x08209308, 3, 1, 7);
-    param_0->updateFunc = (u32 *) sub_08004004;
-    param_0->drawFunc = (u32 *) sub_080046D0;
-    param_0->unk_53D_1 = 1;
-    param_0->unk_540 = 0x11;
-    param_0->unk_500.unk_500_32 = 0x200000;
-    param_0->unk_504.unk_504_32 = 0x5000;
+    entity->group = 0;
+    ObjPalette_LoadRange((u8 *)0x08209308, 1, 1, 0xC);
+    ObjPalette_LoadRange((u8 *)0x08209308, 0, 1, 0xD);
+    ObjPalette_LoadRange((u8 *)0x08209308, 2, 1, 0xB);
+    ObjPalette_LoadRange((u8 *)0x08209308, 3, 1, 5);
+    ObjPalette_LoadRange((u8 *)0x08209308, 3, 1, 6);
+    ObjPalette_LoadRange((u8 *)0x08209308, 3, 1, 7);
+    entity->updateFunc = (u32 *) TitleScreenLogo_Update;
+    entity->drawFunc = (u32 *) TitleScreenLogo_Draw;
+    entity->scrollWithBg = 1;
+    entity->spriteLayer = 0x11;
+    entity->unk_500.whole = 0x200000;
+    entity->unk_504.whole = 0x5000;
     gDisplayRegisters.winOut_L = WIN0_ALL;
     gDisplayRegisters.winOut_H = (WIN1_ALL >> 8) & ~WIN0_BG2;
 }
 
-struct Unk_084F0CEC {
-    u8 unk_0;
-    u8 unk_1;
-    s16 unk_2;
-    s16 unk_4;
+struct TitleSpritePart {
+    u8 animFrame;
+    u8 palette;
+    s16 offsetX;
+    s16 offsetY;
     u8 pad_6[0x8 - 0x6];
 };
 
-struct Unk_084F0CEC sUnk_084F0CEC[8] = {
+struct TitleSpritePart sTitleSpriteParts[8] = {
     [0] = {
-        .unk_0 = 0x0,
-        .unk_1 = 0x4,
-        .unk_2 = -32,
-        .unk_4 = -32
+        .animFrame = 0x0,
+        .palette = 0x4,
+        .offsetX = -32,
+        .offsetY = -32
     },
     [1] = {
-        .unk_0 = 0x1,
-        .unk_1 = 0x5,
-        .unk_2 = 32,
-        .unk_4 = -32
+        .animFrame = 0x1,
+        .palette = 0x5,
+        .offsetX = 32,
+        .offsetY = -32
     },
     [2] = {
-        .unk_0 = 0x2,
-        .unk_1 = 0x6,
-        .unk_2 = -32,
-        .unk_4 = 32
+        .animFrame = 0x2,
+        .palette = 0x6,
+        .offsetX = -32,
+        .offsetY = 32
     },
     [3] = {
-        .unk_0 = 0x3,
-        .unk_1 = 0x7,
-        .unk_2 = 32,
-        .unk_4 = 32
+        .animFrame = 0x3,
+        .palette = 0x7,
+        .offsetX = 32,
+        .offsetY = 32
     },
     [4] = {
-        .unk_0 = 0xC,
-        .unk_1 = 0xB,
-        .unk_2 = -32,
-        .unk_4 = -32
+        .animFrame = 0xC,
+        .palette = 0xB,
+        .offsetX = -32,
+        .offsetY = -32
     },
     [5] = {
-        .unk_0 = 0xD,
-        .unk_1 = 0xB,
-        .unk_2 = 32,
-        .unk_4 = -32
+        .animFrame = 0xD,
+        .palette = 0xB,
+        .offsetX = 32,
+        .offsetY = -32
     },
     [6] = {
-        .unk_0 = 0xE,
-        .unk_1 = 0xB,
-        .unk_2 = -32,
-        .unk_4 = 32
+        .animFrame = 0xE,
+        .palette = 0xB,
+        .offsetX = -32,
+        .offsetY = 32
     },
     [7] = {
-        .unk_0 = 0xF,
-        .unk_1 = 0xB,
-        .unk_2 = 32,
-        .unk_4 = 32
+        .animFrame = 0xF,
+        .palette = 0xB,
+        .offsetX = 32,
+        .offsetY = 32
     },
 };
 
-u8 sUnk_084F0D2C[] = {
+u8 sTitleMenuFrames[] = {
     0, 1, 2, 3, 4, 4,
     // padding?
     0, 0
 };
 
 /**
- * @brief 427C | To document
- * 
- * @param param_0 To document
+ * @brief Draw the visible menu entries, highlighting the selected one and
+ * offsetting alternate rows by the slide distance.
  */
-void sub_0800427C(struct EwramData_EntityData *param_0)
+void TitleScreenMenu_Draw(struct EwramData_EntityData *entity)
 {
-    s32 temp_r7;
-    s32 temp_r8;
-    s32 temp_sb;
-    s32 var_r5;
+    s32 end;
+    s32 oldX;
+    s32 oldY;
+    s32 i;
 
-    temp_r8 = param_0->unk_524.unk_524_32;
-    temp_sb = param_0->unk_528.unk_528_32;
+    oldX = entity->posX.whole;
+    oldY = entity->posY.whole;
 
-    param_0->unk_524.unk_524_16.unk_526 = 0x78;
-    param_0->unk_528.unk_528_16.unk_52A = 0x8C - (4 * param_0->unk_4FC.unk_4FC_8.unk_4FD);
+    entity->posX.part16.integer = 0x78;
+    entity->posY.part16.integer = 0x8C - (4 * TITLE_MENU_COUNT(entity));
 
-    temp_r7 = param_0->unk_500.unk_500_8.unk_500 + param_0->unk_4FC.unk_4FC_8.unk_4FD;
+    end = TITLE_MENU_FIRST(entity) + TITLE_MENU_COUNT(entity);
 
-    for (var_r5 = param_0->unk_500.unk_500_8.unk_500; var_r5 < temp_r7; var_r5++)
+    for (i = TITLE_MENU_FIRST(entity); i < end; i++)
     {
-        param_0->unk_549 = sUnk_084F0D2C[var_r5];
-        if ((param_0->unk_4FC.unk_4FC_8.unk_4FC + param_0->unk_500.unk_500_8.unk_500) == var_r5)
+        entity->animFrame = sTitleMenuFrames[i];
+        if ((TITLE_MENU_CURSOR(entity) + TITLE_MENU_FIRST(entity)) == i)
         {
-            param_0->unk_53E_3 = 0xB;
+            entity->palette = 0xB;
         }
         else
         {
-            param_0->unk_53E_3 = 0xC;
+            entity->palette = 0xC;
         }
-        param_0->unk_524.unk_524_32 = (temp_r8 + param_0->unk_504.unk_504_32) - (2 * param_0->unk_504.unk_504_32 * (var_r5 & 1));
-        sub_0803AC40(param_0);
-        param_0->unk_528.unk_528_16.unk_52A += 9;
+        entity->posX.whole = (oldX + TITLE_MENU_SLIDE_OFFSET(entity)) - (2 * TITLE_MENU_SLIDE_OFFSET(entity) * (i & 1));
+        Sprite_Draw(entity);
+        entity->posY.part16.integer += 9;
     }
-    param_0->unk_524.unk_524_32 = temp_r8;
-    param_0->unk_528.unk_528_32 = temp_sb;
+    entity->posX.whole = oldX;
+    entity->posY.whole = oldY;
 }
 
 /**
- * @brief 432C | To document
- * 
- * @param param_0 To document
+ * @brief Slide between the main and the extra entries and move the cursor
+ * with Up/Down.
  */
-void sub_0800432C(struct EwramData_EntityData *param_0)
+void TitleScreenMenu_Update(struct EwramData_EntityData *entity)
 {
-    u8 temp_r2;
+    u8 busy;
 
-    temp_r2 = param_0->unk_4FC.unk_4FC_8.unk_4FE;
-    if (temp_r2 == 0)
+    busy = TITLE_MENU_CONFIRMED(entity);
+    if (busy == 0)
     {
-        switch (param_0->unk_500.unk_500_8.unk_503)
+        switch (TITLE_MENU_SLIDE_PHASE(entity))
         {
             case 1:
-                param_0->unk_504.unk_504_32 += 0x180000;
-                if (param_0->unk_504.unk_504_32 > 0x9FFFFF)
+                TITLE_MENU_SLIDE_OFFSET(entity) += 0x180000;
+                if (TITLE_MENU_SLIDE_OFFSET(entity) > 0x9FFFFF)
                 {
-                    if (param_0->unk_500.unk_500_8.unk_500 == 0)
+                    if (TITLE_MENU_FIRST(entity) == 0)
                     {
-                        param_0->unk_500.unk_500_8.unk_500 = 3;
-                        param_0->unk_4FC.unk_4FC_8.unk_4FD = param_0->unk_500.unk_500_8.unk_501;
+                        TITLE_MENU_FIRST(entity) = 3;
+                        TITLE_MENU_COUNT(entity) = TITLE_MENU_EXTRA_COUNT(entity);
                     }
                     else
                     {
-                        param_0->unk_500.unk_500_8.unk_500 = temp_r2;
-                        param_0->unk_4FC.unk_4FC_8.unk_4FD = 3;
+                        TITLE_MENU_FIRST(entity) = busy;
+                        TITLE_MENU_COUNT(entity) = 3;
                     }
 
-                    param_0->unk_4FC.unk_4FC_8.unk_4FC = 0;
-                    param_0->unk_500.unk_500_8.unk_503 += 1;
+                    TITLE_MENU_CURSOR(entity) = 0;
+                    TITLE_MENU_SLIDE_PHASE(entity) += 1;
                 }
                 break;
             case 2:
-                param_0->unk_504.unk_504_32 -= 0x100000;
-                if (param_0->unk_504.unk_504_32 <= 0)
+                TITLE_MENU_SLIDE_OFFSET(entity) -= 0x100000;
+                if (TITLE_MENU_SLIDE_OFFSET(entity) <= 0)
                 {
-                    param_0->unk_504.unk_504_32 = temp_r2;
-                    param_0->unk_500.unk_500_8.unk_503 = temp_r2;
-                    param_0->unk_500.unk_500_8.unk_502 = temp_r2;
+                    TITLE_MENU_SLIDE_OFFSET(entity) = busy;
+                    TITLE_MENU_SLIDE_PHASE(entity) = busy;
+                    TITLE_MENU_SLIDING(entity) = busy;
                 }
                 break;
         }
 
         if (gEwramData->inputData.repeatedInput & KEY_DOWN)
         {
-            param_0->unk_4FC.unk_4FC_8.unk_4FC = Mod(param_0->unk_4FC.unk_4FC_8.unk_4FC + 1, param_0->unk_4FC.unk_4FC_8.unk_4FD);
+            TITLE_MENU_CURSOR(entity) = Mod(TITLE_MENU_CURSOR(entity) + 1, TITLE_MENU_COUNT(entity));
         }
 
         else if (gEwramData->inputData.repeatedInput & KEY_UP)
         {
-            param_0->unk_4FC.unk_4FC_8.unk_4FC -= 1;
-            if (param_0->unk_4FC.unk_4FC_8.unk_4FC < 0)
+            TITLE_MENU_CURSOR(entity) -= 1;
+            if (TITLE_MENU_CURSOR(entity) < 0)
             {
-                param_0->unk_4FC.unk_4FC_8.unk_4FC = param_0->unk_4FC.unk_4FC_8.unk_4FD - 1;
+                TITLE_MENU_CURSOR(entity) = TITLE_MENU_COUNT(entity) - 1;
             }
         }
     }
 }
 
-extern u8 *sUnk_0825EAD4;
-extern u8 *sUnk_0826693C;
-extern u8 *sUnk_0826823C;
-extern u8 *sUnk_08268244;
-extern u8 *sUnk_08268344;
-extern u8 *sUnk_08268440;
+extern u8 *sTitleMenuGfx;
+extern u8 *sTitleMenuSpriteSheet;
+extern u8 *sTitleMenuGfxLanguage2;
+extern u8 *sTitleMenuGfxLanguage3;
+extern u8 *sTitleMenuSpriteSheetLanguage2;
+extern u8 *sTitleMenuSpriteSheetLanguage3;
 
 /**
- * @brief 43CC | To document
- * 
+ * @brief Create the menu entity (slot 0x14) with the language-specific entry
+ * graphics; two entries, or three with gameState.systemFlags bit 1.
  */
-void sub_080043CC(void)
+void TitleScreenMenu_Create(void)
 {
-    struct EwramData_EntityData *temp_r5;
-    u8 var_0;
+    struct EwramData_EntityData *menu;
+    u8 loaded;
 
-    temp_r5 = &gEwramData->entityData[0x14];
+    menu = &gEwramData->entityData[0x14];
 
-    sub_0803C7B4((u8 *)0x08209308, 3, 1, 4);
-    temp_r5->unk_500.unk_500_8.unk_500 = 0;
-    temp_r5->unk_500.unk_500_8.unk_501 = 0;
+    ObjPalette_LoadRange((u8 *)0x08209308, 3, 1, 4);
+    TITLE_MENU_FIRST(menu) = 0;
+    TITLE_MENU_EXTRA_COUNT(menu) = 0;
 
-    if (!(gEwramData->unk_60.unk_60 & 2))
+    if (!(gEwramData->gameState.systemFlags & 2))
     {
-        temp_r5->unk_4FC.unk_4FC_8.unk_4FD = 2;
+        TITLE_MENU_COUNT(menu) = 2;
     }
     else
     {
-        temp_r5->unk_4FC.unk_4FC_8.unk_4FD = 3;
-        temp_r5->unk_500.unk_500_8.unk_501 = 2;
+        TITLE_MENU_COUNT(menu) = 3;
+        TITLE_MENU_EXTRA_COUNT(menu) = 2;
     }
 
-    switch (gEwramData->unk_60.language)
+    switch (gEwramData->gameState.language)
     {
         case 2:
-            var_0 = sub_08003A9C_inline_1((u8*)&sUnk_0826823C, (u8*)&sUnk_08268344, temp_r5, 0xB);
+            loaded = TitleObject_LoadGraphicsAlt((u8*)&sTitleMenuGfxLanguage2, (u8*)&sTitleMenuSpriteSheetLanguage2, menu, 0xB);
             break;
 
         case 3:
-            var_0 = sub_08003A9C_inline_1((u8*)&sUnk_08268244, (u8*)&sUnk_08268440, temp_r5, 0xB);
+            loaded = TitleObject_LoadGraphicsAlt((u8*)&sTitleMenuGfxLanguage3, (u8*)&sTitleMenuSpriteSheetLanguage3, menu, 0xB);
             break;
 
         default:
-            var_0 = sub_08003A9C_inline_1((u8*)&sUnk_0825EAD4, (u8*)&sUnk_0826693C, temp_r5, 0xB);
+            loaded = TitleObject_LoadGraphicsAlt((u8*)&sTitleMenuGfx, (u8*)&sTitleMenuSpriteSheet, menu, 0xB);
             break;
     }
 
-    if (var_0 == 0)
+    if (loaded == 0)
     {
-        EntityDelete(temp_r5);
+        EntityDelete(menu);
         return;
     }
 
-    temp_r5->unk_547 = 0;
-    temp_r5->updateFunc = (u32 *) sub_0800432C;
-    temp_r5->drawFunc = (u32 *) sub_0800427C;
-    temp_r5->unk_53D_1 = 1;
-    temp_r5->unk_540 = 0x11;
-    temp_r5->unk_524.unk_524_16.unk_526 = 0x78;
-    temp_r5->unk_528.unk_528_16.unk_52A = 0x50;
+    menu->group = 0;
+    menu->updateFunc = (u32 *) TitleScreenMenu_Update;
+    menu->drawFunc = (u32 *) TitleScreenMenu_Draw;
+    menu->scrollWithBg = 1;
+    menu->spriteLayer = 0x11;
+    menu->posX.part16.integer = 0x78;
+    menu->posY.part16.integer = 0x50;
 }
 
 /**
- * @brief 44DC | To document
- * 
- * @param param_0 To document
+ * @brief Draw the four frame parts around the centre and the bottom part.
  */
-void sub_080044DC(struct EwramData_EntityData *param_0)
+void TitleScreenFrame_Draw(struct EwramData_EntityData *entity)
 {
-    s32 sp0;
-    s32 sp4;
-    s32 temp_r0;
-    s32 temp_r1;
-    s32 var_r2;
-    struct Unk_084F0CEC *var_r5;
+    s32 oldX;
+    s32 oldY;
+    s32 baseX;
+    s32 baseY;
+    s32 i;
+    struct TitleSpritePart *part;
 
-    sp0 = param_0->unk_524.unk_524_32;
-    sp4 = param_0->unk_528.unk_528_32;
-    temp_r0 = sp0;
-    temp_r1 = sp4;
-    var_r5 = &sUnk_084F0CEC[param_0->unk_4F0];
+    oldX = entity->posX.whole;
+    oldY = entity->posY.whole;
+    baseX = oldX;
+    baseY = oldY;
+    part = &sTitleSpriteParts[entity->stage];
     
-    // for (var_r2 = 0; var_r2 < 4; var_r2++)
-    for (var_r2 = 3; var_r2 >= 0; var_r2--)
+    // for (i = 0; i < 4; i++)
+    for (i = 3; i >= 0; i--)
     {
-        param_0->unk_524.unk_524_32 = (var_r5->unk_2 << 0x10) + temp_r0;
-        param_0->unk_528.unk_528_32 = (var_r5->unk_4 << 0x10) + temp_r1;
-        param_0->unk_549 = var_r5->unk_0;
-        param_0->unk_53E_3 = var_r5->unk_1;
-        sub_0803AC40(param_0);
-        var_r5 += 1;
+        entity->posX.whole = (part->offsetX << 0x10) + baseX;
+        entity->posY.whole = (part->offsetY << 0x10) + baseY;
+        entity->animFrame = part->animFrame;
+        entity->palette = part->palette;
+        Sprite_Draw(entity);
+        part += 1;
     }
-    param_0->unk_524.unk_524_32 = temp_r0;
-    param_0->unk_528.unk_528_32 = temp_r1;
-    param_0->unk_524.unk_524_16.unk_526 = SCREEN_SIZE_X / 2;
-    param_0->unk_528.unk_528_16.unk_52A = SCREEN_SIZE_Y;
-    param_0->unk_549 = 0xB;
-    param_0->unk_53E_3 = 0xB;
-    sub_0803AC40(param_0);
-    param_0->unk_524.unk_524_32 = sp0;
-    param_0->unk_528.unk_528_32 = sp4;
+    entity->posX.whole = baseX;
+    entity->posY.whole = baseY;
+    entity->posX.part16.integer = SCREEN_SIZE_X / 2;
+    entity->posY.part16.integer = SCREEN_SIZE_Y;
+    entity->animFrame = 0xB;
+    entity->palette = 0xB;
+    Sprite_Draw(entity);
+    entity->posX.whole = oldX;
+    entity->posY.whole = oldY;
 }
 
 /**
- * @brief 459C | To document
- * 
- * @param param_0 To document
+ * @brief Create the frame entity (slot 0x15) drawn by TitleScreenFrame_Draw.
  */
-void sub_0800459C(void)
+void TitleScreenFrame_Create(void)
 {
-    s32 var_r0;
-    struct EwramData_EntityData *temp_r4;
+    s32 loaded;
+    struct EwramData_EntityData *frame;
 
-    temp_r4 = &gEwramData->entityData[0x15];
+    frame = &gEwramData->entityData[0x15];
 
-    var_r0 = sub_08003A9C_inline_0((u8*)&sUnk_08160480, (u8*)&sUnk_0820C8A8, temp_r4, 0xB);
-    if (var_r0 == 0)
+    loaded = TitleObject_LoadGraphics((u8*)&sTitleScreenGfx, (u8*)&sTitleScreenSpriteSheet, frame, 0xB);
+    if (loaded == 0)
     {
-        EntityDelete(temp_r4);
+        EntityDelete(frame);
         return;
     }
 
-    temp_r4->unk_547 = 0;
-    temp_r4->updateFunc = (u32 *) EntityUpdateNothing;
-    temp_r4->drawFunc = (u32 *) sub_080044DC;
-    temp_r4->unk_53D_1 = 1;
-    temp_r4->unk_540 = 0x12;
-    temp_r4->unk_524.unk_524_16.unk_526 = 0x78;
-    temp_r4->unk_528.unk_528_16.unk_52A = 0x50;
-    temp_r4->unk_4F0 = 4;
+    frame->group = 0;
+    frame->updateFunc = (u32 *) EntityUpdateNothing;
+    frame->drawFunc = (u32 *) TitleScreenFrame_Draw;
+    frame->scrollWithBg = 1;
+    frame->spriteLayer = 0x12;
+    frame->posX.part16.integer = 0x78;
+    frame->posY.part16.integer = 0x50;
+    frame->stage = 4;
 }
 
 /**
- * @brief 4648 | To document
- * 
- * @param param_0 To document
+ * @brief Start sliding to the other menu page unless a slide or the exit runs.
  */
-void sub_08004648(struct EwramData_EntityData *param_0)
+void TitleScreenMenu_StartSlide(struct EwramData_EntityData *entity)
 {
-    if ((param_0->unk_4FC.unk_4FC_8.unk_4FD != 0) && (param_0->unk_4FC.unk_4FC_8.unk_4FE == 0))
+    if ((TITLE_MENU_COUNT(entity) != 0) && (TITLE_MENU_CONFIRMED(entity) == 0))
     {
-        if (param_0->unk_500.unk_500_8.unk_502 == 0)
+        if (TITLE_MENU_SLIDING(entity) == 0)
         {
-            param_0->unk_504.unk_504_32 = param_0->unk_500.unk_500_8.unk_502;
-            param_0->unk_500.unk_500_8.unk_503 = 1;
-            param_0->unk_500.unk_500_8.unk_502 = 1;
+            TITLE_MENU_SLIDE_OFFSET(entity) = TITLE_MENU_SLIDING(entity);
+            TITLE_MENU_SLIDE_PHASE(entity) = 1;
+            TITLE_MENU_SLIDING(entity) = 1;
         }
     }
 }
 
 /**
- * @brief 466C | To document
- * 
- * @param param_0 To document
+ * @brief Unload the title graphics, reset objects and delete the logo, menu
+ * and frame entities.
  */
-void sub_0800466C(struct EwramData_EntityData *param_0)
+void TitleScreen_FreeGraphics(struct EwramData_EntityData *entity)
 {
-    sub_0803B980(sub_0803AFB8((u8 *)0x08160480));
-    sub_0803B980(sub_0803AFB8((u8 *)0x08160488));
-    sub_0803B980(sub_0803AFB8((u8 *)0x0825EAD4));
-    sub_0803E438();
-    EntityDelete(param_0);
+    ObjGfx_Unload(ObjGfx_Find((u8 *)0x08160480));
+    ObjGfx_Unload(ObjGfx_Find((u8 *)0x08160488));
+    ObjGfx_Unload(ObjGfx_Find((u8 *)0x0825EAD4));
+    Obj_Init();
+    EntityDelete(entity);
     EntityDelete(&gEwramData->entityData[0x14]);
     EntityDelete(&gEwramData->entityData[0x15]);
 }
 
 /**
- * @brief 46CC | To document
- * 
- * @param param_0 To document
+ * @brief Empty update of the effect group entity.
  */
-void sub_080046CC(struct EwramData_EntityData *param_0)
+void TitleScreenEffects_Update(struct EwramData_EntityData *entity)
 {
     return;
 }
 
 /**
- * @brief 46D0 | To document
- * 
- * @param param_0 To document
+ * @brief Draw the four logo quadrants around the logo position.
  */
-void sub_080046D0(struct EwramData_EntityData *param_0)
+void TitleScreenLogo_Draw(struct EwramData_EntityData *entity)
 {
-    s32 temp_r0;
-    s32 temp_r1;
-    s32 var_r2;
-    struct Unk_084F0CEC *var_r5;
+    s32 oldX;
+    s32 oldY;
+    s32 i;
+    struct TitleSpritePart *part;
 
-    temp_r0 = param_0->unk_524.unk_524_32;
-    temp_r1 = param_0->unk_528.unk_528_32;
-    var_r5 = &sUnk_084F0CEC[param_0->unk_4F0];
+    oldX = entity->posX.whole;
+    oldY = entity->posY.whole;
+    part = &sTitleSpriteParts[entity->stage];
     
-    // for (var_r2 = 0; var_r2 < 4; var_r2++)
-    for (var_r2 = 3; var_r2 >= 0; var_r2--)
+    // for (i = 0; i < 4; i++)
+    for (i = 3; i >= 0; i--)
     {
-        param_0->unk_524.unk_524_32 = (var_r5->unk_2 << 0x10) + temp_r0;
-        param_0->unk_528.unk_528_32 = (var_r5->unk_4 << 0x10) + temp_r1;
-        param_0->unk_549 = var_r5->unk_0;
-        param_0->unk_53E_3 = var_r5->unk_1;
-        sub_0803AC40(param_0);
-        var_r5 += 1;
+        entity->posX.whole = (part->offsetX << 0x10) + oldX;
+        entity->posY.whole = (part->offsetY << 0x10) + oldY;
+        entity->animFrame = part->animFrame;
+        entity->palette = part->palette;
+        Sprite_Draw(entity);
+        part += 1;
     }
-    param_0->unk_524.unk_524_32 = temp_r0;
-    param_0->unk_528.unk_528_32 = temp_r1;
+    entity->posX.whole = oldX;
+    entity->posY.whole = oldY;
 }
 
 // End of title screen functions
 
 /**
- * @brief 4750 | To document
- * 
+ * @brief Unreferenced: H-blank sine wave on BG2 horizontal offsets for
+ * alternating lines, flipping every 16 frames.
  */
-void sub_08004750(void)
+void BgEffect_Bg2InterlacedWave(void)
 {
+    s32 angle;
     s16 *hBlankBuf;
-    s32 temp_r2;
-    s32 var_r4;
+    s32 y;
     s32 scanline;
-    s32 var_r7;
-    u16 temp_r8;
+    s32 zeroIndex;
+    u16 vOfs;
 
-    hBlankBuf = (s16*)&gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer];
-    var_r4 = gEwramData->frameCounter << 0xA;
+    hBlankBuf = gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer];
+    angle = gEwramData->frameCounter;
+    angle <<= 0xA;
+    vOfs = gDisplayRegisters.bgOfs[2].vOfs;
+    HBlankEffectSetup(0, SCREEN_SIZE_Y, 2, REG_BG2HOFS);
 
-    // Fake
-    var_r4 = gEwramData->frameCounter;
-    var_r4 <<= 0xA;
-
-    temp_r8 = gDisplayRegisters.bgOfs[2].vOfs;
-    HBlankEffectSetup(0, SCREEN_SIZE_Y, 2, REG_BG2HOFS); 
-
-    for (scanline = 0, var_r7 = 2; scanline < SCREEN_SIZE_Y; scanline += 1, var_r7 += 3)
+    for (scanline = 0, zeroIndex = 2; scanline < SCREEN_SIZE_Y; scanline++, zeroIndex += 3)
     {
-        temp_r2 = scanline + temp_r8;
-        if ((temp_r2 > 0x120) || ((temp_r2 & 1) == ((gEwramData->frameCounter & 0x10) / 0x10)))
-        {
-            hBlankBuf[var_r7] = 0;
-        }
+        y = scanline + vOfs;
+        if (y > 0x120 || (y & 1) == (gEwramData->frameCounter & 0x10) / 0x10)
+            hBlankBuf[zeroIndex] = 0;
         else
-        {
-            *hBlankBuf = sub_080009E4(var_r4) >> 0xF;
-        }
+            *hBlankBuf = Sin(angle) >> 0xF;
 
-        hBlankBuf += 1;
-        var_r4 -= 0x2000;
+        hBlankBuf++;
+        angle -= 0x2000;
     }
 
     gEwramData->hBlankEffect.requestStart = 1;
 }
 
 /**
- * @brief 480C | To document
- * 
- * @param param_0 To document
+ * @brief Set up the BG0 text layer and window of the main menu and print
+ * message 0x354 + index.
  */
-void sub_0800480C(s32 param_0)
+void MainMenu_SetupMessageWindow(s32 choice)
 {
-    s16 *var_r5;
-    s32 var_r1;
+    s16 *tilemap;
+    s32 i;
 
-    var_r5 = VRAM_BASE + 0xE3C4;
+    tilemap = VRAM_BASE + 0xE3C4;
 
     DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
     DMA_FILL_32(3, 0, VRAM_BASE + 0x8000, 0x2000);
 
     gDisplayRegisters.bgCnt[0] = CREATE_BGCNT(2, 28, BGCNT_HIGH_PRIORITY, BGCNT_SIZE_256x256);
-    sub_0803C8B0((u8 *)0x080E5E24);
-    sub_0803C918((u8 *)0x081183F4, 0, 1, 0xC);
-    sub_080412DC(VRAM_BASE + 0x8000);
-    sub_080412F0(8);
-    sub_08041304(0);
-    sub_0803C918((u8 *)0x080E5C20, 3, 1, 0xD);
+    BgPalette_Load((u8 *)0x080E5E24);
+    BgPalette_LoadRange((u8 *)0x081183F4, 0, 1, 0xC);
+    Text_SetTileBuffer(VRAM_BASE + 0x8000);
+    Text_SetForegroundColor(8);
+    Text_SetBackgroundColor(0);
+    BgPalette_LoadRange((u8 *)0x080E5C20, 3, 1, 0xD);
 
-    switch (gEwramData->unk_60.language)
+    switch (gEwramData->gameState.language)
     {
         case 2:
-            sub_0803FD9C((u8 *)0x08277984, VRAM_BASE + 0xA000, 0);
+            Gfx_CopyResource((u8 *)0x08277984, VRAM_BASE + 0xA000, 0);
             break;
 
         case 3:
-            sub_0803FD9C((u8 *)0x0826C848, VRAM_BASE + 0xA000, 0);
+            Gfx_CopyResource((u8 *)0x0826C848, VRAM_BASE + 0xA000, 0);
             break;
 
         default:
-            sub_0803FD9C((u8 *)0x0827B200, VRAM_BASE + 0xA000, 0);
+            Gfx_CopyResource((u8 *)0x0827B200, VRAM_BASE + 0xA000, 0);
             break;
     }
 
     
-    sub_08040748(0, 0, 0x29, 3);
-    sub_08040FE0();
-    sub_08040748(0, 1, 0x25, 3);
-    sub_0804066C(0, 1);
+    Text12_SetRegion(0, 0, 0x29, 3);
+    Text12_ClearRegion();
+    Text12_SetRegion(0, 1, 0x25, 3);
+    Text12_SetCursor(0, 1);
 
-    for (var_r1 = 0; var_r1 < 0x80; var_r1++)
+    for (i = 0; i < 0x80; i++)
     {
-        *var_r5++ = var_r1 - 0x3FE0;
+        *tilemap++ = i - 0x3FE0;
     }
 
-    sub_08041318(sub_08041434(param_0 + 0x354), 0);
+    Text12_Print(Text_GetLocalizedEntry(choice + 0x354), 0);
 }
 
 /**
- * @brief 4928 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Return 1 on A/Start and -1 on B. When any slot holds data, move the
+ * choice (subState 0..2, wrapping) with up/down and print the entry
+ * description text 0x354 + choice.
  */
-s32 sub_08004928(struct EwramData_EntityData *param_0)
+s32 MainMenu_HandleChoiceInput(struct EwramData_EntityData *entity)
 {
-    s32 var_r6;
+    s32 result;
     u16 repeatedInput;
 
     repeatedInput = gEwramData->inputData.repeatedInput;
-    var_r6 = 0;
+    result = 0;
 
     if (repeatedInput & (KEY_START | KEY_A))
     {
         PlaySong(SE_243);
-        var_r6 = 1;
+        result = 1;
     }
     else if (repeatedInput & KEY_B)
     {
         PlaySong(SE_240);
-        var_r6 = -1;
+        result = -1;
     }
 
-    if ((param_0->unk_4F4.unk_4F4_8.unk_4F5 != 0) && (var_r6 == 0))
+    if ((entity->unk_4F4.part8.unk_4F5 != 0) && (result == 0))
     {
         if (repeatedInput & KEY_DOWN)
         {
-            param_0->unk_4EF += 1;
+            entity->subState += 1;
         }
         else if (repeatedInput & KEY_UP)
         {
-            param_0->unk_4EF -= 1;
+            entity->subState -= 1;
         }
 
         if (repeatedInput & (KEY_DOWN | KEY_UP))
         {
-            if (param_0->unk_4EF == 3)
+            if (entity->subState == 3)
             {
-                param_0->unk_4EF = 0;
+                entity->subState = 0;
             }
-            if (param_0->unk_4EF > 3)
+            if (entity->subState > 3)
             {
-                param_0->unk_4EF = 2;
+                entity->subState = 2;
             }
             PlaySong(SE_241);
-            sub_08040FE0();
-            sub_08041318(sub_08041434(param_0->unk_4EF + 0x354), 0);
+            Text12_ClearRegion();
+            Text12_Print(Text_GetLocalizedEntry(entity->subState + 0x354), 0);
         }
     }
 
-    return var_r6;
+    return result;
 }
 
 /**
- * @brief 49C4 | To document
- * 
- * @param param_0 To document
+ * @brief Blank the display, clear two screen blocks, free the menu entity,
+ * stop the menu music and clear gameState.subMode/subModeStep.
  */
-void sub_080049C4(struct EwramData_EntityData *param_0)
+void MainMenu_Close(struct EwramData_EntityData *entity)
 {
     gUnk_03002CB0.dispCnt &= ~(DCNT_OBJ | DCNT_BG3 | DCNT_BG2 | DCNT_BG1 | DCNT_BG0 | DCNT_BLANK | DCNT_OBJ_1D | DCNT_OAM_HBL | DCNT_PAGE | DCNT_CGB | 7);
     gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT;
     gDisplayRegisters.bldY = BLDY_MAX_VALUE;
     DMA_FILL_32(3, 0, 0x0600F000, 0x800);
     DMA_FILL_32(3, 0, 0x0600F800, 0x800);
-    sub_08006CFC(param_0);
+    MainMenu_FreeEntity(entity);
     PlaySong(STOP_SONG | MUS_14);
-    gEwramData->unk_60.unk_64 = gEwramData->unk_60.unk_65 = 0;
+    gEwramData->gameState.subMode = gEwramData->gameState.subModeStep = 0;
 }
 
-typedef void (*Unk_084F0D34_Func_T)(struct EwramData_EntityData *);
+typedef void (*MainMenuSubmenuInitFunc)(struct EwramData_EntityData *);
 
-Unk_084F0D34_Func_T sUnk_084F0D34[3] = {
-    sub_0800744C,
-    sub_08007820,
-    sub_08008290,
+MainMenuSubmenuInitFunc sMainMenuSubmenuInitFuncs[3] = {
+    MainMenu_InitGameStart,
+    MainMenu_InitDataCopy,
+    MainMenu_InitDataDelete,
 };
 
-typedef s32 (*Unk_084F0D40_Func_T)(struct EwramData_EntityData *);
+typedef s32 (*MainMenuSubmenuUpdateFunc)(struct EwramData_EntityData *);
 
-Unk_084F0D40_Func_T sUnk_084F0D40[3] = {
-    sub_080074C0,
-    sub_08007914,
-    sub_08007B8C
+MainMenuSubmenuUpdateFunc sMainMenuSubmenuUpdateFuncs[3] = {
+    MainMenu_UpdateGameStart,
+    MainMenu_UpdateDataCopy,
+    MainMenu_UpdateDataDelete
 };
 
-// Unused data, corresponds to .unk_0 in sUnk_084F0D54
+// Unused data, corresponds to .sourcePalette in sMainMenuPaletteCycleSteps
 u8 sUnk_084F0D4C[8] = {
     0, 8, 9, 10, 11, 10, 9, 8
 };
 
-struct Unk_084F0D54 {
-    u8 unk_0;
-    u8 unk_1;
+struct MainMenuPaletteCycleStep {
+    u8 sourcePalette;
+    u8 duration;
     u8 pad_2[0x4 - 0x2];
 };
 
-struct Unk_084F0D54 sUnk_084F0D54[8] = {
+struct MainMenuPaletteCycleStep sMainMenuPaletteCycleSteps[8] = {
     [0] = {
-        .unk_0 = 0,
-        .unk_1 = 0x10
+        .sourcePalette = 0,
+        .duration = 0x10
     },
     [1] = {
-        .unk_0 = 8,
-        .unk_1 = 0x10
+        .sourcePalette = 8,
+        .duration = 0x10
     },
     [2] = {
-        .unk_0 = 9,
-        .unk_1 = 0x10
+        .sourcePalette = 9,
+        .duration = 0x10
     },
     [3] = {
-        .unk_0 = 10,
-        .unk_1 = 0x10
+        .sourcePalette = 10,
+        .duration = 0x10
     },
     [4] = {
-        .unk_0 = 11,
-        .unk_1 = 0x40
+        .sourcePalette = 11,
+        .duration = 0x40
     },
     [5] = {
-        .unk_0 = 10,
-        .unk_1 = 0x10
+        .sourcePalette = 10,
+        .duration = 0x10
     },
     [6] = {
-        .unk_0 = 9,
-        .unk_1 = 0x10
+        .sourcePalette = 9,
+        .duration = 0x10
     },
     [7] = {
-        .unk_0 = 8,
-        .unk_1 = 0x10
+        .sourcePalette = 8,
+        .duration = 0x10
     },
 };
 
@@ -2418,9 +2349,9 @@ u8 sUnk_084F0D74[] = {
     0, 0, 0
 };
 
-static inline void GameModeMainMenuUpdate_inline(s32 param_0)
+static inline void GameModeMainMenuUpdate_inline(s32 alpha)
 {
-    gDisplayRegisters.bldAlpha = C_16_2_8(param_0, BLDALPHA_MAX_VALUE - param_0);
+    gDisplayRegisters.bldAlpha = C_16_2_8(alpha, BLDALPHA_MAX_VALUE - alpha);
 }
 
 /**
@@ -2430,18 +2361,18 @@ static inline void GameModeMainMenuUpdate_inline(s32 param_0)
  */
 s32 GameModeMainMenuUpdate(void)
 {
-    s32 temp_r0_10;
-    s32 temp_r0_3;
-    s32 temp_r0_7;
-    s32 temp_r5;
+    s32 nameResult;
+    s32 choice;
+    s32 submenuResult;
+    s32 nextSlot;
     s32 gameMode;
-    struct EwramData_EntityData *temp_r7;
-    struct EwramData_unk60 *temp_r4;
-    struct EwramData_unk60 *temp_r4_1;
-    struct Unk_084F0D54 *var_0;
-    s32 var_1;
+    struct EwramData_EntityData *menu;
+    struct GameState *gameState;
+    struct GameState *nameGameState;
+    struct MainMenuPaletteCycleStep *paletteCycle;
+    s32 slotOffset;
 
-    temp_r7 = gEwramData->entityData;
+    menu = gEwramData->entityData;
     gameMode = GAME_MODE_SAME_MODE;
 
     switch (gEwramData->gameModeUpdateStage)
@@ -2451,135 +2382,135 @@ s32 GameModeMainMenuUpdate(void)
             gDisplayRegisters.bldCnt = BLDCNT_SCREEN_SECOND_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT | BLDCNT_SCREEN_FIRST_TARGET;
             gDisplayRegisters.bldY = BLDY_MAX_VALUE;
             PlaySong(MUS_14);
-            gEwramData->unk_60.unk_4CC_0 = 0;
+            gEwramData->gameState.bossRushMode = 0;
             gEwramData->gameModeUpdateStage += 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
     
         case 0x1:
             DMA_FILL_32(3, 0, 0x0600F000, 0x800);
-            sub_0803FD9C((u8 *)0x080E5BB0, VRAM_BASE, 0);
-            sub_0803FD9C((u8 *)0x080E5BB8, VRAM_BASE + 0x2000, 0);
+            Gfx_CopyResource((u8 *)0x080E5BB0, VRAM_BASE, 0);
+            Gfx_CopyResource((u8 *)0x080E5BB8, VRAM_BASE + 0x2000, 0);
     
-            switch (gEwramData->unk_60.language)
+            switch (gEwramData->gameState.language)
             {
                 case 2:
-                    sub_0803FD9C((u8 *)0x08277994, VRAM_BASE + 0x4000, 0);
+                    Gfx_CopyResource((u8 *)0x08277994, VRAM_BASE + 0x4000, 0);
                     break;
                 case 3:
-                    sub_0803FD9C((u8 *)0x0826C850, VRAM_BASE + 0x4000, 0);
+                    Gfx_CopyResource((u8 *)0x0826C850, VRAM_BASE + 0x4000, 0);
                     break;
                 default:
-                    sub_0803FD9C((u8 *)0x080E5BC0, VRAM_BASE + 0x4000, 0);
+                    Gfx_CopyResource((u8 *)0x080E5BC0, VRAM_BASE + 0x4000, 0);
                     break;
             }
 
-            sub_0803C8B0((u8 *)0x080E5E24);
-            sub_0803F8A8(3, (struct EwramData_unkA078_0 *)0x080E74C4, 0, 0);
-            sub_0803F8A8(2, (struct EwramData_unkA078_0 *)0x080E7434, 0, 0);
-            sub_0803F8A8(1, (struct EwramData_unkA078_0 *)0x080E73A4, 0, 0);
-            sub_08006BC0(temp_r7);
-            sub_0800480C(0);
-            gEwramData->unk_4 = 0;
+            BgPalette_Load((u8 *)0x080E5E24);
+            BgMap_Setup(3, (struct BgMapMetadata *)0x080E74C4, 0, 0);
+            BgMap_Setup(2, (struct BgMapMetadata *)0x080E7434, 0, 0);
+            BgMap_Setup(1, (struct BgMapMetadata *)0x080E73A4, 0, 0);
+            MainMenu_InitEntity(menu);
+            MainMenu_SetupMessageWindow(0);
+            gEwramData->gameModeTimer = 0;
             gEwramData->gameModeUpdateStage += 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
     
         case 0x2:
-            sub_0803D18C(0, 0, 0, 0, 0x10000, 0x20);
-            sub_0803CDF0(0, 0, 0, 0, 0x10000, 0x20);
+            BgPalette_StartColorFade(0, 0, 0, 0, 0x10000, 0x20);
+            ObjPalette_StartColorFade(0, 0, 0, 0, 0x10000, 0x20);
             gUnk_03002CB0.dispCnt &= ~(DCNT_WINOBJ | DCNT_WIN1 | DCNT_WIN0); 
             gUnk_03002CB0.dispCnt |= DCNT_BG3 | DCNT_BG2 | DCNT_BG1 | DCNT_BG0;
             gDisplayRegisters.bldAlpha = C_16_2_8(10, 6);
             gDisplayRegisters.bldY = 0;
             gEwramData->gameModeUpdateStage += 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             gDisplayRegisters.bldCnt = BLDCNT_BG3_SECOND_TARGET_PIXEL | BLDCNT_ALPHA_BLENDING_EFFECT | BLDCNT_BG2_FIRST_TARGET_PIXEL;
-            gEwramData->unk_4 = 0;
+            gEwramData->gameModeTimer = 0;
             break;
     
         case 0x3:
-            temp_r0_3 = sub_08004928(temp_r7);
-            if (temp_r0_3 < 0)
+            choice = MainMenu_HandleChoiceInput(menu);
+            if (choice < 0)
             {
                 PlaySong(SONG_MUTE);
                 gUnk_03002CB0.dispCnt &= ~(DCNT_WIN1 | DCNT_WIN0);
                 gDisplayRegisters.bldY = BLDY_MAX_VALUE;
-                sub_0803D18C(0, 0, 0, 0x10000, 0, 0x20);
-                sub_0803CDF0(0, 0, 0, 0x10000, 0, 0x20);
-                temp_r7->unk_4EE = 0;
-                gEwramData->unk_4 = 0;
+                BgPalette_StartColorFade(0, 0, 0, 0x10000, 0, 0x20);
+                ObjPalette_StartColorFade(0, 0, 0, 0x10000, 0, 0x20);
+                menu->state = 0;
+                gEwramData->gameModeTimer = 0;
                 gEwramData->gameModeUpdateStage = 0x63;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
-            else if (temp_r0_3 != 0)
+            else if (choice != 0)
             {
-                temp_r7->unk_4EE = 0;
+                menu->state = 0;
                 gDisplayRegisters.bldY = 0;
-                gEwramData->unk_4 = 0;
+                gEwramData->gameModeTimer = 0;
                 gEwramData->gameModeUpdateStage = 0x28;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
             break;
     
         case 0x28:
             gUnk_03002CB0.dispCnt &= ~DCNT_BG2;
             gDisplayRegisters.bldAlpha = C_16_2_8(BLDALPHA_MAX_VALUE, 0);
-            gEwramData->unk_4 = 0x10;
+            gEwramData->gameModeTimer = 0x10;
             gEwramData->gameModeUpdateStage = 0x29;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             gUnk_03002CB0.dispCnt &= ~DCNT_BG2;
             gDisplayRegisters.bldCnt = BLDCNT_BG3_SECOND_TARGET_PIXEL | BLDCNT_ALPHA_BLENDING_EFFECT | BLDCNT_OBJ_FIRST_TARGET_PIXEL | BLDCNT_BG1_FIRST_TARGET_PIXEL | BLDCNT_BG0_FIRST_TARGET_PIXEL;
             gDisplayRegisters.bldAlpha = C_16_2_8(0, BLDALPHA_MAX_VALUE);
-            gEwramData->unk_4 = 0;
+            gEwramData->gameModeTimer = 0;
             gEwramData->gameModeUpdateStage = 0x2A;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
     
         case 0x29:
             if (gDisplayRegisters.bldAlpha < C_16_2_8(BLDALPHA_MAX_VALUE, 0))
             {
-                gEwramData->unk_4 += 2;
-                GameModeMainMenuUpdate_inline(gEwramData->unk_4);
+                gEwramData->gameModeTimer += 2;
+                GameModeMainMenuUpdate_inline(gEwramData->gameModeTimer);
             }
             else
             {
                 gUnk_03002CB0.dispCnt &= ~DCNT_BG2;
                 gDisplayRegisters.bldCnt = BLDCNT_BG3_SECOND_TARGET_PIXEL | BLDCNT_ALPHA_BLENDING_EFFECT | BLDCNT_OBJ_FIRST_TARGET_PIXEL | BLDCNT_BG1_FIRST_TARGET_PIXEL | BLDCNT_BG0_FIRST_TARGET_PIXEL;
                 gDisplayRegisters.bldAlpha = C_16_2_8(0, BLDALPHA_MAX_VALUE);
-                gEwramData->unk_4 = 0;
+                gEwramData->gameModeTimer = 0;
                 gEwramData->gameModeUpdateStage += 1;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
             break;
     
         case 0x2A:
             if (gDisplayRegisters.bldAlpha < C_16_2_8(BLDALPHA_MAX_VALUE, 0))
             {
-                gEwramData->unk_4 += 2;
-                GameModeMainMenuUpdate_inline(gEwramData->unk_4);
-                if (gEwramData->unk_4 > 0xC)
+                gEwramData->gameModeTimer += 2;
+                GameModeMainMenuUpdate_inline(gEwramData->gameModeTimer);
+                if (gEwramData->gameModeTimer > 0xC)
                 {
-                    temp_r7->unk_4EE = 0;
+                    menu->state = 0;
                 }
             }
             else
             {
                 gUnk_03002CB0.dispCnt |= DCNT_BG0;
-                temp_r7->unk_4EE = 1;
+                menu->state = 1;
                 gEwramData->hBlankEffect.requestStop = 1;
-                sUnk_084F0D34[temp_r7->unk_4EF](temp_r7);
-                temp_r7->unk_4F0 = 0;
+                sMainMenuSubmenuInitFuncs[menu->subState](menu);
+                menu->stage = 0;
                 gEwramData->gameModeUpdateStage += 1;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
             break;
     
         case 0x2B:
-            if (gEwramData->unk_4 != 0)
+            if (gEwramData->gameModeTimer != 0)
             {
-                gEwramData->unk_4 -= 2;
-                GameModeMainMenuUpdate_inline(gEwramData->unk_4);
+                gEwramData->gameModeTimer -= 2;
+                GameModeMainMenuUpdate_inline(gEwramData->gameModeTimer);
             }
             else
             {
@@ -2587,134 +2518,134 @@ s32 GameModeMainMenuUpdate(void)
                 gDisplayRegisters.bldCnt = BLDCNT_BG3_SECOND_TARGET_PIXEL | BLDCNT_ALPHA_BLENDING_EFFECT | BLDCNT_BG2_FIRST_TARGET_PIXEL;
                 gDisplayRegisters.bldAlpha = C_16_2_8(10, 6);
                 gEwramData->gameModeUpdateStage = 6;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
             break;
     
         case 0x2C:
-            if (gEwramData->unk_4 < 0xB)
+            if (gEwramData->gameModeTimer < 0xB)
             {
                 gDisplayRegisters.bldAlpha = C_16_2_8(10, 6);
                 gEwramData->gameModeUpdateStage = 6;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
             else
             {
-                gEwramData->unk_4 -= 2;
-                GameModeMainMenuUpdate_inline(gEwramData->unk_4);
+                gEwramData->gameModeTimer -= 2;
+                GameModeMainMenuUpdate_inline(gEwramData->gameModeTimer);
             }
             break;
     
         case 0x33:
             if (gDisplayRegisters.bldAlpha < C_16_2_8(BLDALPHA_MAX_VALUE, 0))
             {
-                gEwramData->unk_4 += 2;
-                GameModeMainMenuUpdate_inline(gEwramData->unk_4);
+                gEwramData->gameModeTimer += 2;
+                GameModeMainMenuUpdate_inline(gEwramData->gameModeTimer);
                 break;
             }
             gEwramData->hBlankEffect.requestStop = 1;
-            sUnk_084F0D34[temp_r7->unk_4EF](temp_r7);
-            temp_r7->unk_4F0 = 0;
+            sMainMenuSubmenuInitFuncs[menu->subState](menu);
+            menu->stage = 0;
             gDisplayRegisters.bldAlpha = C_16_2_8(BLDALPHA_MAX_VALUE, 0);
-            gEwramData->unk_4 = 0x10;
+            gEwramData->gameModeTimer = 0x10;
             gDisplayRegisters.bldCnt = BLDCNT_BG3_SECOND_TARGET_PIXEL | BLDCNT_ALPHA_BLENDING_EFFECT | BLDCNT_OBJ_FIRST_TARGET_PIXEL | BLDCNT_BG2_FIRST_TARGET_PIXEL | BLDCNT_BG1_FIRST_TARGET_PIXEL | BLDCNT_BG0_FIRST_TARGET_PIXEL;
             gEwramData->gameModeUpdateStage += 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
     
         case 0x34:
-            if (gEwramData->unk_4 > 0xA)
+            if (gEwramData->gameModeTimer > 0xA)
             {
-                gEwramData->unk_4 -= 2;
-                GameModeMainMenuUpdate_inline(gEwramData->unk_4);
+                gEwramData->gameModeTimer -= 2;
+                GameModeMainMenuUpdate_inline(gEwramData->gameModeTimer);
                 break;
             }
             gDisplayRegisters.bldCnt = BLDCNT_BG3_SECOND_TARGET_PIXEL | BLDCNT_ALPHA_BLENDING_EFFECT | BLDCNT_BG2_FIRST_TARGET_PIXEL;
             gDisplayRegisters.bldAlpha = C_16_2_8(10, 6);
             gEwramData->gameModeUpdateStage = 6;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
     
         case 0x4:
             if (gDisplayRegisters.bldAlpha < C_16_2_8(BLDALPHA_MAX_VALUE, 0))
             {
-                gEwramData->unk_4 += 2;
-                GameModeMainMenuUpdate_inline(gEwramData->unk_4);
-                if (gEwramData->unk_4 > 0xC)
+                gEwramData->gameModeTimer += 2;
+                GameModeMainMenuUpdate_inline(gEwramData->gameModeTimer);
+                if (gEwramData->gameModeTimer > 0xC)
                 {
-                    temp_r7->unk_4EE = 0;
+                    menu->state = 0;
                 }
                 break;
             }
             gUnk_03002CB0.dispCnt |= DCNT_BG0;
             gEwramData->hBlankEffect.requestStop = 1;
-            sUnk_084F0D34[temp_r7->unk_4EF](temp_r7);
-            temp_r7->unk_4F0 = 0;
+            sMainMenuSubmenuInitFuncs[menu->subState](menu);
+            menu->stage = 0;
             gEwramData->gameModeUpdateStage += 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
     
         case 0x5:
-            if (gEwramData->unk_4 != 0)
+            if (gEwramData->gameModeTimer != 0)
             {
-                gEwramData->unk_4 -= 2;
-                GameModeMainMenuUpdate_inline(gEwramData->unk_4);
+                gEwramData->gameModeTimer -= 2;
+                GameModeMainMenuUpdate_inline(gEwramData->gameModeTimer);
                 break;
             }
             gDisplayRegisters.bldAlpha = C_16_2_8(10, 6);
             gDisplayRegisters.bldCnt &= ~(BLDCNT_OBJ_FIRST_TARGET_PIXEL | BLDCNT_BG1_FIRST_TARGET_PIXEL | BLDCNT_BG0_FIRST_TARGET_PIXEL);
             gEwramData->gameModeUpdateStage += 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
     
         case 0x6:
-            temp_r0_7 = sUnk_084F0D40[temp_r7->unk_4EF](temp_r7);
+            submenuResult = sMainMenuSubmenuUpdateFuncs[menu->subState](menu);
     
-            if (temp_r0_7 == -1)
+            if (submenuResult == -1)
             {
                 PlaySong(SE_240);
                 gEwramData->gameModeUpdateStage = 0x46;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
-            else if (temp_r0_7 == 1)
+            else if (submenuResult == 1)
             {
                 PlaySong(SE_244);
                 gUnk_03002CB0.dispCnt &= ~DCNT_BG2;
                 gDisplayRegisters.bldCnt |= (BLDCNT_OBJ_FIRST_TARGET_PIXEL | BLDCNT_BG1_FIRST_TARGET_PIXEL | BLDCNT_BG0_FIRST_TARGET_PIXEL);
                 gEwramData->gameModeUpdateStage += 1;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
-            else if (temp_r0_7 == -2)
+            else if (submenuResult == -2)
             {
                 PlaySong(SE_244);
                 gUnk_03002CB0.dispCnt &= ~DCNT_BG2;
                 gDisplayRegisters.bldCnt = BLDCNT_SCREEN_SECOND_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT | BLDCNT_SCREEN_FIRST_TARGET;
                 gEwramData->gameModeUpdateStage = 0x14;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
-            else if (temp_r0_7 == -3)
+            else if (submenuResult == -3)
             {
                 PlaySong(SE_244);
                 gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT;
                 gDisplayRegisters.winIn_H = (WIN1_ALL >> 8) & ~WIN0_BG1;
                 gDisplayRegisters.winIn_L = WIN0_ALL & ~WIN0_BG1;
                 gDisplayRegisters.winOut_L = WIN0_ALL;
-                temp_r4 = &gEwramData->unk_60;
-                sub_0804C3C8();
-                temp_r4->unk_88 = (struct EwramData_unk88 *)0x0850F01C;
+                gameState = &gEwramData->gameState;
+                ButtonConfig_ResetDefaults();
+                gameState->currentRoomDefinition = (struct RoomDefinition *)0x0850F01C;
                 gEwramData->gameModeUpdateStage = 0x1E;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
             break;
     
         case 0x7:
             if (gDisplayRegisters.bldAlpha < C_16_2_8(BLDALPHA_MAX_VALUE, 0))
             {
-                gEwramData->unk_4 += 2;
-                GameModeMainMenuUpdate_inline(gEwramData->unk_4);
-                if (gEwramData->unk_4 > 0xC)
+                gEwramData->gameModeTimer += 2;
+                GameModeMainMenuUpdate_inline(gEwramData->gameModeTimer);
+                if (gEwramData->gameModeTimer > 0xC)
                 {
-                    temp_r7->unk_4EE = 0;
+                    menu->state = 0;
                 }
                 if (gDisplayRegisters.bldAlpha == C_16_2_8(BLDALPHA_MAX_VALUE, 0))
                 {
@@ -2724,17 +2655,17 @@ s32 GameModeMainMenuUpdate(void)
             else
             {
                 gEwramData->hBlankEffect.requestStop = 1;
-                sub_08008324(temp_r7);
+                MainMenu_OpenNameEntry(menu);
                 gEwramData->gameModeUpdateStage += 1;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
             break;
     
         case 0x8:
-            if (gEwramData->unk_4 != 0)
+            if (gEwramData->gameModeTimer != 0)
             {
-                gEwramData->unk_4 -= 2;
-                GameModeMainMenuUpdate_inline(gEwramData->unk_4);
+                gEwramData->gameModeTimer -= 2;
+                GameModeMainMenuUpdate_inline(gEwramData->gameModeTimer);
                 break;
             }
             gUnk_03002CB0.dispCnt |= DCNT_BG2;
@@ -2742,31 +2673,31 @@ s32 GameModeMainMenuUpdate(void)
             gDisplayRegisters.bldCnt = BLDCNT_BG3_SECOND_TARGET_PIXEL | BLDCNT_ALPHA_BLENDING_EFFECT | BLDCNT_BACKDROP_FIRST_TARGET_PIXEL | BLDCNT_BG3_FIRST_TARGET_PIXEL | BLDCNT_BG2_FIRST_TARGET_PIXEL | BLDCNT_BG0_FIRST_TARGET_PIXEL;
             gEwramData->hBlankEffect.requestStop = 1;
             gEwramData->gameModeUpdateStage += 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
     
         case 0x9:
-            temp_r0_10 = sub_080083C8(temp_r7);
-            if (temp_r0_10 < 0)
+            nameResult = MainMenu_UpdateNameEntry(menu);
+            if (nameResult < 0)
             {
                 PlaySong(SE_240);
                 gEwramData->gameModeUpdateStage += 1;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
-            else if (temp_r0_10 > 0)
+            else if (nameResult > 0)
             {
-                if (temp_r7->unk_4EF != 0)
+                if (menu->subState != 0)
                 {
-                    SaveData_SaveSlotToSram(gEwramData->unk_60.currentSaveSlot);
+                    SaveData_SaveSlotToSram(gEwramData->gameState.currentSaveSlot);
                     gEwramData->gameModeUpdateStage += 1;
-                    gEwramData->unk_12 = 0;
-                    temp_r5 = gEwramData->unk_60.currentSaveSlot + 1;
-                    if (sub_08013700(temp_r5, 1) != 0 && gEwramData->unk_20[1].unk_38 != 0)
+                    gEwramData->gameModeSubStage = 0;
+                    nextSlot = gEwramData->gameState.currentSaveSlot + 1;
+                    if (SaveData_ReadSlotHeader(nextSlot, 1) != 0 && gEwramData->saveHeaders[1].playTime != 0)
                     {
-                        var_1 = temp_r5 * 0x47C;
-                        SramLockSaveSlot(temp_r5);
-                        WriteAndVerifySramFast(&gEwramData->unk_60.unk_94, SRAM_BASE + 0x10 + 0x190 + var_1, 8);
-                        SramUnlockSaveSlot(temp_r5);
+                        slotOffset = nextSlot * 0x47C;
+                        SramLockSaveSlot(nextSlot);
+                        WriteAndVerifySramFast(&gEwramData->gameState.playerName, SRAM_BASE + 0x10 + 0x190 + slotOffset, 8);
+                        SramUnlockSaveSlot(nextSlot);
                     }
                 }
                 else
@@ -2775,11 +2706,11 @@ s32 GameModeMainMenuUpdate(void)
                     gDisplayRegisters.winIn_H = (WIN1_ALL >> 8) & ~WIN0_BG1;
                     gDisplayRegisters.winIn_L = WIN0_ALL & ~WIN0_BG1;
                     gDisplayRegisters.winOut_L = WIN0_ALL;
-                    temp_r4_1 = &gEwramData->unk_60;
-                    sub_0804C3C8();
-                    temp_r4_1->unk_88 = (struct EwramData_unk88 *)0x0850F01C;
+                    nameGameState = &gEwramData->gameState;
+                    ButtonConfig_ResetDefaults();
+                    nameGameState->currentRoomDefinition = (struct RoomDefinition *)0x0850F01C;
                     gEwramData->gameModeUpdateStage = 0x1E;
-                    gEwramData->unk_12 = 0;
+                    gEwramData->gameModeSubStage = 0;
                 }
             }
             break;
@@ -2790,50 +2721,50 @@ s32 GameModeMainMenuUpdate(void)
             gUnk_03002CB0.dispCnt &= ~DCNT_BG0;
             gDisplayRegisters.bldCnt = BLDCNT_BG3_SECOND_TARGET_PIXEL | BLDCNT_ALPHA_BLENDING_EFFECT | BLDCNT_BG2_FIRST_TARGET_PIXEL;
             gDisplayRegisters.bldAlpha = C_16_2_8(10, 6);
-            gEwramData->unk_4 = 0xA;
+            gEwramData->gameModeTimer = 0xA;
             gEwramData->gameModeUpdateStage = 0x29;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
     
         case 0xF:
             if (gDisplayRegisters.bldAlpha < C_16_2_8(BLDALPHA_MAX_VALUE, 0))
             {
-                gEwramData->unk_4 += 2;
-                GameModeMainMenuUpdate_inline(gEwramData->unk_4);
-                if (gEwramData->unk_4 > 0xC)
+                gEwramData->gameModeTimer += 2;
+                GameModeMainMenuUpdate_inline(gEwramData->gameModeTimer);
+                if (gEwramData->gameModeTimer > 0xC)
                 {
-                    temp_r7->unk_4EE = 0;
+                    menu->state = 0;
                 }
                 break;
             }
             gUnk_03002CB0.dispCnt &= ~(DCNT_WINOBJ | DCNT_WIN1 | DCNT_WIN0);
             gUnk_03002CB0.dispCnt |= DCNT_BG0;
             gEwramData->hBlankEffect.requestStop = 1;
-            sub_0803F8A8(1, (struct EwramData_unkA078_0 *)0x080E73A4, 0, 0);
-            sub_0803F8A8(2, (struct EwramData_unkA078_0 *)0x080E7434, 0, 0);
-            sub_0800480C(temp_r7->unk_4EF);
-            temp_r7->unk_4EE = 1;
-            temp_r7->unk_4F0 = 0;
+            BgMap_Setup(1, (struct BgMapMetadata *)0x080E73A4, 0, 0);
+            BgMap_Setup(2, (struct BgMapMetadata *)0x080E7434, 0, 0);
+            MainMenu_SetupMessageWindow(menu->subState);
+            menu->state = 1;
+            menu->stage = 0;
             gEwramData->gameModeUpdateStage += 1;
-            gEwramData->unk_12 = 0;
-            if (temp_r7->unk_4F4.unk_4F4_8.unk_4F5 == 0)
+            gEwramData->gameModeSubStage = 0;
+            if (menu->unk_4F4.part8.unk_4F5 == 0)
             {
-                temp_r7->unk_4EF = 0;
+                menu->subState = 0;
             }
             break;
     
         case 0x10:
-            if (gEwramData->unk_4 != 0)
+            if (gEwramData->gameModeTimer != 0)
             {
-                gEwramData->unk_4 -= 2;
-                GameModeMainMenuUpdate_inline(gEwramData->unk_4);
+                gEwramData->gameModeTimer -= 2;
+                GameModeMainMenuUpdate_inline(gEwramData->gameModeTimer);
                 break;
             }
             gUnk_03002CB0.dispCnt |= DCNT_BG2;
             gDisplayRegisters.bldAlpha = C_16_2_8(10, 6);
             gDisplayRegisters.bldCnt &= ~(BLDCNT_OBJ_FIRST_TARGET_PIXEL | BLDCNT_BG1_FIRST_TARGET_PIXEL | BLDCNT_BG0_FIRST_TARGET_PIXEL);
             gEwramData->gameModeUpdateStage = 3;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
     
         case 0x32:
@@ -2841,173 +2772,175 @@ s32 GameModeMainMenuUpdate(void)
             gUnk_03002CB0.dispCnt = (gUnk_03002CB0.dispCnt & 0x1FFF) | 0xF00;
             gDisplayRegisters.bldCnt = BLDCNT_BG3_SECOND_TARGET_PIXEL | BLDCNT_ALPHA_BLENDING_EFFECT | BLDCNT_OBJ_FIRST_TARGET_PIXEL | BLDCNT_BG2_FIRST_TARGET_PIXEL | BLDCNT_BG1_FIRST_TARGET_PIXEL | BLDCNT_BG0_FIRST_TARGET_PIXEL;
             gDisplayRegisters.bldAlpha = C_16_2_8(10, 6);
-            gEwramData->unk_4 = 0xA;
+            gEwramData->gameModeTimer = 0xA;
             gEwramData->gameModeUpdateStage += 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
     
         case 0x3D:
             if (gDisplayRegisters.bldAlpha < C_16_2_8(BLDALPHA_MAX_VALUE, 0))
             {
-                gEwramData->unk_4 += 2;
-                GameModeMainMenuUpdate_inline(gEwramData->unk_4);
-                if (gEwramData->unk_4 > 0xC)
+                gEwramData->gameModeTimer += 2;
+                GameModeMainMenuUpdate_inline(gEwramData->gameModeTimer);
+                if (gEwramData->gameModeTimer > 0xC)
                 {
-                    temp_r7->unk_4EE = 0;
+                    menu->state = 0;
                 }
                 break;
             }
             gEwramData->hBlankEffect.requestStop = 1;
-            sub_0803F8A8(1, (struct EwramData_unkA078_0 *)0x080E73A4, 0, 0);
-            sub_0803F8A8(2, (struct EwramData_unkA078_0 *)0x080E7434, 0, 0);
-            sub_0800480C(temp_r7->unk_4EF);
-            temp_r7->unk_4EE = 1;
-            temp_r7->unk_4F0 = 0;
+            BgMap_Setup(1, (struct BgMapMetadata *)0x080E73A4, 0, 0);
+            BgMap_Setup(2, (struct BgMapMetadata *)0x080E7434, 0, 0);
+            MainMenu_SetupMessageWindow(menu->subState);
+            menu->state = 1;
+            menu->stage = 0;
             gDisplayRegisters.bldAlpha = C_16_2_8(BLDALPHA_MAX_VALUE, 0);
-            gEwramData->unk_4 = 0x10;
+            gEwramData->gameModeTimer = 0x10;
             gDisplayRegisters.bldCnt = BLDCNT_BG3_SECOND_TARGET_PIXEL | BLDCNT_ALPHA_BLENDING_EFFECT | BLDCNT_OBJ_FIRST_TARGET_PIXEL | BLDCNT_BG2_FIRST_TARGET_PIXEL | BLDCNT_BG1_FIRST_TARGET_PIXEL | BLDCNT_BG0_FIRST_TARGET_PIXEL;
             gEwramData->gameModeUpdateStage += 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
     
         case 0x3E:
-            if (gEwramData->unk_4 > 0xA)
+            if (gEwramData->gameModeTimer > 0xA)
             {
-                gEwramData->unk_4 -= 2;
-                GameModeMainMenuUpdate_inline(gEwramData->unk_4);
+                gEwramData->gameModeTimer -= 2;
+                GameModeMainMenuUpdate_inline(gEwramData->gameModeTimer);
                 break;
             }
             gDisplayRegisters.bldCnt = BLDCNT_BG3_SECOND_TARGET_PIXEL | BLDCNT_ALPHA_BLENDING_EFFECT | BLDCNT_BG2_FIRST_TARGET_PIXEL;
             gDisplayRegisters.bldAlpha = C_16_2_8(10, 6);
             gEwramData->gameModeUpdateStage = 3;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
     
         case 0x46:
             gUnk_03002CB0.dispCnt &= ~DCNT_BG2;
             gDisplayRegisters.bldAlpha = C_16_2_8(BLDALPHA_MAX_VALUE, 0);
-            gEwramData->unk_4 = 0x10;
+            gEwramData->gameModeTimer = 0x10;
             gEwramData->gameModeUpdateStage = 0x29;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             gUnk_03002CB0.dispCnt &= ~DCNT_BG2;
             gDisplayRegisters.bldCnt = BLDCNT_BG3_SECOND_TARGET_PIXEL | BLDCNT_ALPHA_BLENDING_EFFECT | BLDCNT_OBJ_FIRST_TARGET_PIXEL | BLDCNT_BG1_FIRST_TARGET_PIXEL | BLDCNT_BG0_FIRST_TARGET_PIXEL;
             gDisplayRegisters.bldAlpha = C_16_2_8(0, BLDALPHA_MAX_VALUE);
-            gEwramData->unk_4 = 0;
+            gEwramData->gameModeTimer = 0;
             gEwramData->gameModeUpdateStage = 0x48;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
     
         case 0x47:
             if (gDisplayRegisters.bldAlpha < C_16_2_8(BLDALPHA_MAX_VALUE, 0))
             {
-                gEwramData->unk_4 += 2;
-                GameModeMainMenuUpdate_inline(gEwramData->unk_4);
+                gEwramData->gameModeTimer += 2;
+                GameModeMainMenuUpdate_inline(gEwramData->gameModeTimer);
                 break;
             }
             gUnk_03002CB0.dispCnt &= ~DCNT_BG2;
             gDisplayRegisters.bldCnt = BLDCNT_BG3_SECOND_TARGET_PIXEL | BLDCNT_ALPHA_BLENDING_EFFECT | BLDCNT_OBJ_FIRST_TARGET_PIXEL | BLDCNT_BG1_FIRST_TARGET_PIXEL | BLDCNT_BG0_FIRST_TARGET_PIXEL;
             gDisplayRegisters.bldAlpha = C_16_2_8(0, BLDALPHA_MAX_VALUE);
-            gEwramData->unk_4 = 0;
+            gEwramData->gameModeTimer = 0;
             gEwramData->gameModeUpdateStage += 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
     
         case 0x48:
             if (gDisplayRegisters.bldAlpha < C_16_2_8(BLDALPHA_MAX_VALUE, 0))
             {
-                gEwramData->unk_4 += 2;
-                GameModeMainMenuUpdate_inline(gEwramData->unk_4);
-                if (gEwramData->unk_4 > 0xC)
+                gEwramData->gameModeTimer += 2;
+                GameModeMainMenuUpdate_inline(gEwramData->gameModeTimer);
+                if (gEwramData->gameModeTimer > 0xC)
                 {
-                    temp_r7->unk_4EE = 0;
+                    menu->state = 0;
                 }
                 break;
             }
             gEwramData->hBlankEffect.requestStop = 1;
-            sub_0800480C((s32) temp_r7->unk_4EF);
-            sub_0803F8A8(1, (struct EwramData_unkA078_0 *)0x080E73A4, 0, 0);
-            sub_0803F8A8(2, (struct EwramData_unkA078_0 *)0x080E7434, 0, 0);
-            if (temp_r7->unk_4F4.unk_4F4_8.unk_4F5 == 0)
+            MainMenu_SetupMessageWindow((s32) menu->subState);
+            BgMap_Setup(1, (struct BgMapMetadata *)0x080E73A4, 0, 0);
+            BgMap_Setup(2, (struct BgMapMetadata *)0x080E7434, 0, 0);
+            if (menu->unk_4F4.part8.unk_4F5 == 0)
             {
-                temp_r7->unk_4EF = 0;
+                menu->subState = 0;
             }
-            temp_r7->unk_4EE = 1;
+            menu->state = 1;
             gEwramData->gameModeUpdateStage += 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
     
         case 0x49:
-            if (gEwramData->unk_4 != 0)
+            if (gEwramData->gameModeTimer != 0)
             {
-                gEwramData->unk_4 -= 2;
-                GameModeMainMenuUpdate_inline(gEwramData->unk_4);
+                gEwramData->gameModeTimer -= 2;
+                GameModeMainMenuUpdate_inline(gEwramData->gameModeTimer);
                 break;
             }
             gUnk_03002CB0.dispCnt |= DCNT_BG3 | DCNT_BG2 | DCNT_BG1 | DCNT_BG0;
             gDisplayRegisters.bldCnt = BLDCNT_BG3_SECOND_TARGET_PIXEL | BLDCNT_ALPHA_BLENDING_EFFECT | BLDCNT_BG2_FIRST_TARGET_PIXEL;
             gDisplayRegisters.bldAlpha = C_16_2_8(10, 6);
             gEwramData->gameModeUpdateStage = 3;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
     
         case 0x4A:
-            if (gEwramData->unk_4 > 0xA)
+            if (gEwramData->gameModeTimer > 0xA)
             {
-                gEwramData->unk_4 -= 2;
-                GameModeMainMenuUpdate_inline(gEwramData->unk_4);
+                gEwramData->gameModeTimer -= 2;
+                GameModeMainMenuUpdate_inline(gEwramData->gameModeTimer);
                 break;
             }
             gDisplayRegisters.bldAlpha = C_16_2_8(10, 6);
             gEwramData->gameModeUpdateStage = 3;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
     
         case 0x14:
-            gEwramData->unk_4 += 1;
-            gDisplayRegisters.bldY = gEwramData->unk_4;
+            gEwramData->gameModeTimer += 1;
+            gDisplayRegisters.bldY = gEwramData->gameModeTimer;
             if (gDisplayRegisters.bldY >= BLDY_MAX_VALUE)
             {
                 gEwramData->hBlankEffect.requestStop = 1;
-                sub_080049C4(temp_r7);
+                MainMenu_Close(menu);
                 gameMode = GAME_MODE_IN_GAME;
             }
             break;
     
         case 0x1E:
-            gEwramData->unk_4 += 1;
-            gDisplayRegisters.bldY = gEwramData->unk_4;
+            gEwramData->gameModeTimer += 1;
+            gDisplayRegisters.bldY = gEwramData->gameModeTimer;
             if (gDisplayRegisters.bldY >= BLDY_MAX_VALUE)
             {
-                sub_080049C4(temp_r7);
+                MainMenu_Close(menu);
                 gameMode = GAME_MODE_INTRO_CUTSCENE;
             }
             break;
     
         case 0x63:
-            if (sub_0803D06C() == 0)
+            if (ObjPalette_GetPendingFades() == 0)
             {
-                sub_0803D270();
-                sub_0803CED4();
-                sub_080049C4(temp_r7);
+                BgPalette_StopColorFade();
+                ObjPalette_StopColorFade();
+                MainMenu_Close(menu);
                 gameMode = GAME_MODE_TITLE_SCREEN;
             }
             break;
     }
 
-    var_0 = sUnk_084F0D54;
+    paletteCycle = sMainMenuPaletteCycleSteps;
     if (gEwramData->gameModeUpdateStage > 1)
     {
-        if (temp_r7->unk_500.unk_500_8.unk_501++ >= var_0[(s8)temp_r7->unk_500.unk_500_8.unk_502].unk_1)
+        if (menu->unk_500.part8.unk_501++ >= paletteCycle[(s8)menu->unk_500.part8.unk_502].duration)
         {
-            temp_r7->unk_500.unk_500_8.unk_501 = 0;
-            temp_r7->unk_500.unk_500_8.unk_502 += 1;
-            if ((s8)temp_r7->unk_500.unk_500_8.unk_502 == 8)
+            menu->unk_500.part8.unk_501 = 0;
+            menu->unk_500.part8.unk_502 += 1;
+            if ((s8)menu->unk_500.part8.unk_502 == 8)
             {
-                temp_r7->unk_500.unk_500_8.unk_502 = 0;
+                menu->unk_500.part8.unk_502 = 0;
             }
         }
-        sub_0803C918((u8 *)0x080E5E24, var_0[(s8)temp_r7->unk_500.unk_500_8.unk_502].unk_0, 1, 0);
+        BgPalette_LoadRange((u8 *)0x080E5E24, paletteCycle[(s8)menu->unk_500.part8.unk_502].sourcePalette, 1, 0);
     }
-    sub_08000B64();
+    Entity_UpdateAll();
     return gameMode;
 }
+// #include
+// #include

@@ -4,7 +4,7 @@
 #include "code_08001194.h"
 #include "code_08008750.h"
 #include "code_0800B700.h"
-// #include "code_0800CB00.h" // TODO: sub_0800D288 implicitly called with arguments (it should have none)
+// #include "code_0800CB00.h" // TODO: Bg_UpdateScrollModes implicitly called with arguments (it should have none)
 #include "code_0800F1FC.h"
 #include "code_080109F4.h"
 #include "code_08011DD0.h"
@@ -42,233 +42,232 @@ const u8 sUnk_080e2044[] = "obj_";
 const u8 sUnk_080e204c[] = "../graph/dr_objhit.h";
 const u8 sUnk_080e2064[] = "obj_";
 
-static struct Unk_03000018 gUnk_03000018;
+static struct DebugDisplayTestState sDebugDisplayTestState;
 
-struct Unk_084F1544 {
-    void *unk_0; // func ptr
-    void *unk_4; // func ptr
-    void *unk_8; // func ptr
+struct DebugDisplayTestCallbacks {
+    void *updateFunc; // func ptr
+    void *initFunc; // func ptr
+    void *exitFunc; // func ptr
 }; /* size = 0xC */
-struct Unk_084F1544 sUnk_084F1544[] = {
+struct DebugDisplayTestCallbacks sDebugDisplayTestCallbacks[] = {
     [0] = {
-        .unk_0 = sub_08036C40,
-        .unk_4 = sub_08037CE4,
-        .unk_8 = sub_08037D44
+        .updateFunc = DebugBgDispTest_Update,
+        .initFunc = DebugBgDispTest_Init,
+        .exitFunc = DebugBgDispTest_Exit
     },
     [1] = {
-        .unk_0 = sub_08037D84,
-        .unk_4 = sub_08036CB4,
-        .unk_8 = sub_08037DD8
+        .updateFunc = DebugLinkTest_Update,
+        .initFunc = DebugLinkTest_Init,
+        .exitFunc = DebugLinkTest_Exit
     },
     [2] = {
-        .unk_0 = sub_08037E14,
-        .unk_4 = sub_08036D44,
-        .unk_8 = sub_08037E5C
+        .updateFunc = DebugHitTest_Update,
+        .initFunc = DebugHitTest_Init,
+        .exitFunc = DebugHitTest_Exit
     }
 };
 
-const u16 sUnk_080E206A[] = {
+const u16 sDebugDispTestPalette[] = {
     0x7FFF, 0xFFFF, 0xFFFF, 0xFFFF, 0x0000, 0x0000, 0x0000, 0x0000
 };
 
 const u8 sUnk_080e207a[0x080e226c - 0x080e207a] = { 0 };
 
 /**
- * @brief 36B40 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Run BG test 0 (DISP), 1 (LINK) or 2 (VRAM HIT) through its
+ * init/update/exit callbacks; Select+B exits. Return 1 when done.
  */
-s32 sub_08036B40(s32 param_0)
+s32 DebugDispTest_Run(s32 testIndex)
 {
-    s32 var_r7;
-    struct Unk_084F1544 *temp_r6;
+    s32 done;
+    struct DebugDisplayTestCallbacks *def;
 
-    var_r7 = 0;
-    temp_r6 = &sUnk_084F1544[param_0];
+    done = 0;
+    def = &sDebugDisplayTestCallbacks[testIndex];
 
-    switch (sub_08036958())
+    switch (DebugTest_GetStage())
     {
         case 0:
-            DMA_FILL_32(3, 0, &gUnk_03000018, sizeof(gUnk_03000018));
+            DMA_FILL_32(3, 0, &sDebugDisplayTestState, sizeof(sDebugDisplayTestState));
             BgCmdBuffer_WriteString(2, 0x13, 0xF, "PUSH SELECT + B TO EXIT.");
-            ((void (*)(struct Unk_03000018 *)) temp_r6->unk_4)(&gUnk_03000018);
-            DMA_COPY_16(3, &sUnk_080E206A, &gEwramData->unk_1261C.unk_11DDC[0xF], 0x10);
-            gEwramData->unk_1261C.unk_123E1 = 0;
-            sub_08036964(1);
+            ((void (*)(struct DebugDisplayTestState *)) def->initFunc)(&sDebugDisplayTestState);
+            DMA_COPY_16(3, &sDebugDispTestPalette, &gEwramData->bgPalette.base[0xF], 0x10);
+            gEwramData->bgPalette.uploaded = 0;
+            DebugTest_SetStage(1);
             break;
 
         case 1:
-            sub_08000B64();
-            ((void (*)(struct Unk_03000018 *)) temp_r6->unk_0)(&gUnk_03000018);
+            Entity_UpdateAll();
+            ((void (*)(struct DebugDisplayTestState *)) def->updateFunc)(&sDebugDisplayTestState);
             if ((gEwramData->inputData.heldInput & (4 | 2)) == (4 | 2))
             {
-                sub_08036964(2);
+                DebugTest_SetStage(2);
             }
             break;
 
         case 2:
-            ((void (*)(struct Unk_03000018 *)) temp_r6->unk_8)(&gUnk_03000018);
+            ((void (*)(struct DebugDisplayTestState *)) def->exitFunc)(&sDebugDisplayTestState);
             DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
-            var_r7 = 1;
+            done = 1;
             break;
     }
 
-    return var_r7;
+    return done;
 }
 
 /**
- * @brief 36C40 | To document
- * 
- * @param param_0 To document
+ * @brief Scroll the test BG with the D-pad (faster with R).
  */
-void sub_08036C40(struct Unk_03000018 *param_0)
+void DebugBgDispTest_Update(struct DebugDisplayTestState *test)
 {
     u8 pad[0x14];
-    s32 var_r2;
-    s32 var_r4;
-    s32 var_r5;
+    s32 speed;
+    s32 deltaY;
+    s32 deltaX;
 
-    var_r5 = 0;
-    var_r4 = 0;
+    deltaX = 0;
+    deltaY = 0;
 
-    var_r2 = 0x20000;
+    speed = 0x20000;
     if (gEwramData->inputData.playerHeldInput & 0x100)
     {
-        var_r2 *= 2;
+        speed *= 2;
     }
 
     if (gEwramData->inputData.playerHeldInput & 0x20)
     {
-        var_r5 = -var_r2;
+        deltaX = -speed;
     }
     else if (gEwramData->inputData.playerHeldInput & 0x10)
     {
-        var_r5 = var_r2;
+        deltaX = speed;
     }
 
     if (gEwramData->inputData.playerHeldInput & 0x40)
     {
-        var_r4 -= var_r2;
+        deltaY -= speed;
     }
     else if (gEwramData->inputData.playerHeldInput & 0x80)
     {
-        var_r4 += var_r2;
+        deltaY += speed;
     }
 
-    sub_0803FBBC(param_0->unk_0.val, var_r5, var_r4);
-    sub_08000F60(param_0->unk_0.val);
-    sub_0800D288(0);
+    BgMap_ScrollWithMargin(test->target.bgIndex, deltaX, deltaY);
+    Entity_ScrollWithBg(test->target.bgIndex);
+    Bg_UpdateScrollModes(0);
 }
 
 /**
- * @brief 36CB4 | To document
- * 
- * @param param_0 To document
+ * @brief Load the object graphics and room 0x0850F01C and create the
+ * DebugLinkTestWalker player stand-in.
  */
-void sub_08036CB4(struct Unk_03000018 *param_0)
+void DebugLinkTest_Init(struct DebugDisplayTestState *test)
 {
-    sub_0800C778();
-    sub_0806C354();
-    sub_0800C6F8();
-    sub_0800C72C();
+    Display_SetDefaultBlend();
+    Room_ResetTransientState();
+    InGame_LoadCommonObjectPalettes();
+    InGame_LoadCommonObjectGraphics();
 
-    param_0->unk_4 = EntityCreate((u32 *) sub_080370F0);
-    param_0->unk_0.ptr = (void*)0x0850F01C;
-    param_0->unk_8 = 1;
-    sub_0800F9EC((struct EwramData_unk88 *)0x0850F01C, 0, 0);
-    gEwramData->unk_13110.unk_13110 = param_0->unk_4;
-    gEwramData->unk_13110.unk_131EA = 0x100;
-    gEwramData->unk_13110.unk_131EC = 0x100;
+    test->player = EntityCreate((u32 *) DebugLinkTestWalker_Update);
+    test->target.roomDefinition = (void*)0x0850F01C;
+    test->clearBgIndex = 1;
+    Room_Load((struct RoomDefinition *)0x0850F01C, 0, 0);
+    gEwramData->playerState.player = test->player;
+    gEwramData->playerState.unk_131EA = 0x100;
+    gEwramData->playerState.unk_131EC = 0x100;
 
-    gEwramData->unk_13110.currentStats[0] = 0x40;
-    gEwramData->unk_13110.currentDEF = 0x40;
-    gEwramData->unk_13110.unk_13214 = 0x78;
-    gEwramData->unk_13110.unk_13216 = 0x60;
+    gEwramData->playerState.currentStats[0] = 0x40;
+    gEwramData->playerState.currentDEF = 0x40;
+    gEwramData->playerState.cameraAnchorX = 0x78;
+    gEwramData->playerState.cameraAnchorY = 0x60;
 }
 
 /**
- * @brief 36D44 | To document
- * 
- * @param param_0 To document
+ * @brief Load room 0x0850EF9C and create the DebugHitTestCursor.
  */
-void sub_08036D44(struct Unk_03000018 *param_0)
+void DebugHitTest_Init(struct DebugDisplayTestState *test)
 {
-    param_0->unk_4 = EntityCreate((u32 *) sub_08036DC4);
-    param_0->unk_0.ptr = (void *)0x0850EF9C;
-    param_0->unk_8 = 1;
-    sub_0800F9EC((struct EwramData_unk88 *)0x0850EF9C, 0, 0);
-    gEwramData->unk_13110.unk_13110 = param_0->unk_4;
-    gEwramData->unk_13110.unk_131EA = 0x100;
-    gEwramData->unk_13110.unk_131EC = 0x100;
+    test->player = EntityCreate((u32 *) DebugHitTestCursor_Update);
+    test->target.roomDefinition = (void *)0x0850EF9C;
+    test->clearBgIndex = 1;
+    Room_Load((struct RoomDefinition *)0x0850EF9C, 0, 0);
+    gEwramData->playerState.player = test->player;
+    gEwramData->playerState.unk_131EA = 0x100;
+    gEwramData->playerState.unk_131EC = 0x100;
 
-    gEwramData->unk_13110.currentStats[0] = 0x40;
-    gEwramData->unk_13110.currentDEF = 0x40;
-    gEwramData->unk_13110.unk_13214 = 0x78;
-    gEwramData->unk_13110.unk_13216 = 0x60;
+    gEwramData->playerState.currentStats[0] = 0x40;
+    gEwramData->playerState.currentDEF = 0x40;
+    gEwramData->playerState.cameraAnchorX = 0x78;
+    gEwramData->playerState.cameraAnchorY = 0x60;
 }
 
-void * const sUnk_080E2288[4] = {
+void * const sDebugTestExitArgs[4] = {
     VRAM_BASE + 0xE000, VRAM_BASE + 0xE800, VRAM_BASE + 0xF000, VRAM_BASE + 0xF800
 };
 
-// extern void sub_0800D288(); // implicit (should have no arguments)
-// extern s32 sub_08001F3C(s32 param_0, s32 param_1); // implicit (should return s16)
+// extern void Bg_UpdateScrollModes(); // implicit (should have no arguments)
+// extern s32 Collision_IsPointSolid(s32 param_0, s32 param_1); // implicit (should return s16)
 
-void sub_08036DC4(struct EwramData_EntityData *param_0)
+const char sDebugHexByteFormat[] = "0x%02x";
+
+/**
+ * @brief Move freely with the D-pad, scroll BG1 to follow and print the
+ * collision tile, position and push-out values at the cursor.
+ */
+void DebugHitTestCursor_Update(struct EwramData_EntityData *entity)
 {
     char subroutine_arg0[0x10];
-    s32 temp_r4;
-    s32 var_r1;
-    s16 temp_r7;
-    s16 temp_r8;
+    s32 gfx;
+    s32 speed;
+    s16 roomX;
+    s16 roomY;
 
-    temp_r8 = GetEntityRoomYPositionInteger(param_0);
-    temp_r7 = GetEntityRoomXPositionInteger(param_0);
+    roomY = GetEntityRoomYPositionInteger(entity);
+    roomX = GetEntityRoomXPositionInteger(entity);
 
-    switch (param_0->unk_4EE)
+    switch (entity->state)
     {
         case 0:
-            temp_r4 = sub_0803B800((u8 *)0x081CBF24, 0);
-            sub_0803C7B4((u8 *)0x0820A3D8, 0, 1, 1);
-            sub_0803B924(param_0, (void *)0x082121F0, temp_r4, 1);
-            sub_0803F348(param_0, 0, 1);
-            param_0->unk_524.unk_524_16.unk_526 = 0x64;
-            param_0->unk_528.unk_528_16.unk_52A = 0x90;
-            param_0->unk_53D_1 = 1;
-            param_0->unk_52C.unk_52C_32 = 0x18000;
-            param_0->unk_530.unk_530_32 = 0;
-            param_0->unk_4EE += 1;
-            param_0->unk_540 = 0x10;
+            gfx = ObjGfx_LoadResource((u8 *)0x081CBF24, 0);
+            ObjPalette_LoadRange((u8 *)0x0820A3D8, 0, 1, 1);
+            Sprite_Attach(entity, (void *)0x082121F0, gfx, 1);
+            Anim_SelectScript(entity, 0, 1);
+            entity->posX.part16.integer = 0x64;
+            entity->posY.part16.integer = 0x90;
+            entity->scrollWithBg = 1;
+            entity->velX.whole = 0x18000;
+            entity->velY.whole = 0;
+            entity->state += 1;
+            entity->spriteLayer = 0x10;
             break;
 
         case 1:
-            param_0->unk_534.unk_534_32 = 0;
+            entity->accelX.whole = 0;
             if (gEwramData->inputData.playerHeldInput & 0x20)
             {
-                param_0->unk_524.unk_524_32 -= param_0->unk_52C.unk_52C_32;
-                param_0->unk_534.unk_534_32 = -param_0->unk_52C.unk_52C_32;
-                param_0->unk_53C_6 = 1;
+                entity->posX.whole -= entity->velX.whole;
+                entity->accelX.whole = -entity->velX.whole;
+                entity->flipX = 1;
             }
             else if (gEwramData->inputData.playerHeldInput & 0x10)
             {
-                param_0->unk_524.unk_524_32 += param_0->unk_52C.unk_52C_32;
-                param_0->unk_534.unk_534_32 = param_0->unk_52C.unk_52C_32;
-                param_0->unk_53C_6 = 0;
+                entity->posX.whole += entity->velX.whole;
+                entity->accelX.whole = entity->velX.whole;
+                entity->flipX = 0;
             }
 
-            param_0->unk_538.unk_538_32 = 0;
+            entity->accelY.whole = 0;
             if (gEwramData->inputData.playerHeldInput & 0x40)
             {
-                param_0->unk_528.unk_528_32 -= param_0->unk_530.unk_530_32;
-                param_0->unk_538.unk_538_32 = -param_0->unk_530.unk_530_32;                
+                entity->posY.whole -= entity->velY.whole;
+                entity->accelY.whole = -entity->velY.whole;                
             }
             else
             {
                 if (gEwramData->inputData.playerHeldInput & 0x80)
                 {
-                    param_0->unk_528.unk_528_32 += param_0->unk_530.unk_530_32;
-                    param_0->unk_538.unk_538_32 = param_0->unk_530.unk_530_32;
+                    entity->posY.whole += entity->velY.whole;
+                    entity->accelY.whole = entity->velY.whole;
                 }
             }
             break;
@@ -276,213 +275,893 @@ void sub_08036DC4(struct EwramData_EntityData *param_0)
     
     if (gEwramData->inputData.playerHeldInput & 0x100)
     {
-        var_r1 = 0x40000;
+        speed = 0x40000;
     }
     else
     {
-        var_r1 = 0x18000;
+        speed = 0x18000;
     }
-    param_0->unk_52C.unk_52C_32 = var_r1;
-    param_0->unk_530.unk_530_32 = var_r1;
+    entity->velX.whole = speed;
+    entity->velY.whole = speed;
 
-    param_0->unk_4F1 += 1;
-    sub_0803FBBC(1, ((s16) param_0->unk_524.unk_524_16.unk_526 - 0x78) << 0x10, (param_0->unk_528.unk_528_16.unk_52A - 0x60) << 0x10);
-    sub_08000F60(1);
-    sub_0800D288(0);
-    sub_08000F60(1);
-    sub_0803AC40(param_0);
+    entity->timer += 1;
+    BgMap_ScrollWithMargin(1, ((s16) entity->posX.part16.integer - 0x78) << 0x10, (entity->posY.part16.integer - 0x60) << 0x10);
+    Entity_ScrollWithBg(1);
+    Bg_UpdateScrollModes(0);
+    Entity_ScrollWithBg(1);
+    Sprite_Draw(entity);
 
-    sprintf(subroutine_arg0, "0x%02x", sub_08001A00(temp_r7, temp_r8));
+    sprintf(subroutine_arg0, sDebugHexByteFormat, Collision_GetTile(roomX, roomY));
     BgCmdBuffer_WriteString(2, 2, 0xF, subroutine_arg0);
 
-    sprintf(subroutine_arg0, "0x%02x,0x%02x      ", temp_r7, temp_r8);
+    sprintf(subroutine_arg0, "0x%02x,0x%02x      ", roomX, roomY);
     BgCmdBuffer_WriteString(7, 2, 0xF, subroutine_arg0);
 
-    sprintf(subroutine_arg0, "R:%d    ", sub_080020D8(temp_r7, temp_r8, 0));
+    sprintf(subroutine_arg0, "R:%d    ", Collision_GetPushLeftFiltered(roomX, roomY, 0));
     BgCmdBuffer_WriteString(3, 3, 0xF, subroutine_arg0);
 
-    sprintf(subroutine_arg0, "L:%d    ", sub_0800210C(temp_r7, temp_r8, 0));
+    sprintf(subroutine_arg0, "L:%d    ", Collision_GetPushRightFiltered(roomX, roomY, 0));
     BgCmdBuffer_WriteString(3, 4, 0xF, subroutine_arg0);
 
-    sprintf(subroutine_arg0, "U:%d    ", sub_08001CCC(temp_r7, temp_r8, 0));
+    sprintf(subroutine_arg0, "U:%d    ", Collision_GetPushDownFiltered(roomX, roomY, 0));
     BgCmdBuffer_WriteString(3, 5, 0xF, subroutine_arg0);
 
-    sprintf(subroutine_arg0, "D:%d    ", sub_08001E58(temp_r7, temp_r8, 0));
+    sprintf(subroutine_arg0, "D:%d    ", Collision_GetPushUpFiltered(roomX, roomY, 0));
     BgCmdBuffer_WriteString(3, 6, 0xF, subroutine_arg0);
 
-    sprintf(subroutine_arg0, "%d", sub_08001F3C(temp_r7, temp_r8 - 8));
+    sprintf(subroutine_arg0, "%d", Collision_IsPointSolid(roomX, roomY - 8));
     BgCmdBuffer_WriteString(3, 7, 0xF, subroutine_arg0);
 }
 
 /**
- * @brief 37070 | To document
- * 
- * @param param_0 To document
+ * @brief Scroll BG1 to centre the entity, clamped near the top and bottom
+ * map edges.
  */
-void sub_08037070(struct EwramData_EntityData *param_0)
+void DebugLinkTest_CenterCamera(struct EwramData_EntityData *entity)
 {
-    s32 var_r4;
-    s32 var_r5;
-    s32 var_r6;
-    struct EwramData_unkA078 *bg1Info;
-    struct EwramData_unkA078_0 *temp_r3;
-    u32 temp_r1;
-    u32 temp_r2;
-    u32 temp_r3_2;
+    s32 deltaY;
+    s32 deltaX;
+    s32 bgIndex;
+    struct BgLayerState *bg1Info;
+    struct BgMapMetadata *metadata;
+    u32 scrollY;
+    u32 scrollPx;
+    u32 maxY;
 
-    var_r6 = 1;
-    var_r5 = ((s16) param_0->unk_524.unk_524_16.unk_526 - 0x78) << 0x10;
-    var_r4 = (param_0->unk_528.unk_528_16.unk_52A - 0x60) << 0x10;
+    bgIndex = 1;
+    deltaX = ((s16) entity->posX.part16.integer - 0x78) << 0x10;
+    deltaY = (entity->posY.part16.integer - 0x60) << 0x10;
 
     bg1Info = &gEwramData->bgInfo[1];
-    temp_r3 = bg1Info->pBgMetadata;
-    if (temp_r3->unk_1 > 1)
+    metadata = bg1Info->pBgMetadata;
+    if (metadata->heightCells > 1)
     {
-        temp_r1 = bg1Info->yPos.whole;
-        temp_r2 = temp_r1 >> 0x10;
-        if (temp_r2 < 0x20)
+        scrollY = bg1Info->yPos.whole;
+        scrollPx = scrollY >> 0x10;
+        if (scrollPx < 0x20)
         {
-            var_r4 = 0x200000 - temp_r1;
+            deltaY = 0x200000 - scrollY;
         }
         else
         {
-            temp_r3_2 = (temp_r3->unk_1 << 5) - 0x40;
-            if (temp_r2 > temp_r3_2)
+            maxY = (metadata->heightCells << 5) - 0x40;
+            if (scrollPx > maxY)
             {
-                var_r4 = temp_r3_2 << (0x10 - temp_r1);
+                deltaY = maxY << (0x10 - scrollY);
             }
         }
     }
 
-    param_0->unk_528.unk_528_16.unk_528 += var_r4;
-    sub_0803FBBC(var_r6, var_r5, var_r4);
-    sub_08000F60(var_r6);
-    sub_0800D288(0);
+    entity->posY.part16.fraction += deltaY;
+    BgMap_ScrollWithMargin(bgIndex, deltaX, deltaY);
+    Entity_ScrollWithBg(bgIndex);
+    Bg_UpdateScrollModes(0);
 }
 
-const char sUnk_080E22E8[] = "%d, %d";
-const char sUnk_080E22F0[] = "%d,%d,%d";
+const char sDebugPairFormat[] = "%d, %d";
+const char sDebugTripleFormat[] = "%d,%d,%d";
 
 // (99.63%) https://decomp.me/scratch/UoIYN
-NONMATCH("asm/non_matching/sub_080370F0.inc", void sub_080370F0(struct EwramData_EntityData *param_0))
+/* DebugLinkTestWalker_Update: was NONMATCH, matched (same case-1 dead store as DebugTestWalkerUnused_Update). */
+static inline s32 DebugWalker_TestBit1(s32 val)
 {
+    return val & 0x2;
 }
-END_NONMATCH
+
+static inline s32 DebugWalker_TestSlopeBits(s32 val)
+{
+    return val & 0xC0;
+}
+
+/**
+ * @brief Simple walking/jumping player stand-in for the link test that
+ * prints the collision tile and floor values under it.
+ */
+void DebugLinkTestWalker_Update(struct EwramData_EntityData *entity)
+{
+    char text[13];
+    s16 ground;
+    s16 groundLeft;
+    s16 groundRight;
+    s16 ceilingLeft;
+    s32 filter;
+    s16 wallLeft;
+    s16 wallRightBody;
+    s16 wallLeftBody;
+    s16 wallRight;
+    s16 roomX;
+    s32 gfx;
+    s32 blockKind;
+    s32 sloped;
+    s32 solid;
+    s32 slopeDir;
+    s16 roomY;
+    s16 ceilingRight;
+    u8 tile;
+    s32 slopeType;
+    struct EwramData *e;
+
+    entity->roomActive = 1;
+    roomY = GetEntityRoomYPositionInteger(entity);
+    roomX = GetEntityRoomXPositionInteger(entity);
+
+    filter = gEwramData->inputData.playerHeldInput >> 1;
+    filter &= 1;
+    ground = Collision_GetPushUpFiltered(roomX, roomY, filter);
+    groundLeft = Collision_GetPushUpFiltered(roomX - 8, roomY + 1, filter);
+    groundRight = Collision_GetPushUpFiltered(roomX + 8, roomY + 1, filter);
+    ceilingLeft = Collision_GetPushDownFiltered(roomX - 8, roomY - 0x20, 0);
+    ceilingRight = Collision_GetPushDownFiltered(roomX + 8, roomY - 0x20, 0);
+
+    roomY = GetEntityRoomYPositionInteger(entity);
+    roomX = GetEntityRoomXPositionInteger(entity);
+    tile = Collision_GetTile(roomX, roomY + 1);
+
+    sprintf(text, sDebugHexByteFormat, tile);
+    BgCmdBuffer_WriteString(2, 2, 0xF, (u8 *) text);
+
+    sprintf(text, sDebugPairFormat, roomX, roomY);
+    BgCmdBuffer_WriteString(3, 3, 0xF, (u8 *) text);
+    BgCmdBuffer_WriteString(3, 4, 0xF, (u8 *) text);
+
+    solid = 0;
+    if (DebugWalker_TestBit1(tile) || DebugWalker_TestSlopeBits(tile))
+    {
+        if (tile & 8)
+        {
+            if (tile & 1)
+            {
+                blockKind = 2;
+            }
+            else
+            {
+                blockKind = 1;
+            }
+        }
+        else
+        {
+            blockKind = 0;
+        }
+
+        if (blockKind != 1)
+        {
+            solid = 1;
+        }
+    }
+
+    if (tile & 0xC0)
+    {
+        if (tile & 2)
+        {
+            sloped = 1;
+        }
+        else
+        {
+            sloped = 1;
+        }
+    }
+    else
+    {
+        sloped = 0;
+    }
+
+    if (sloped != 0)
+    {
+        if (tile & 4)
+        {
+            slopeDir = 3;
+        }
+        else
+        {
+            slopeDir = 4;
+        }
+    }
+    else
+    {
+        slopeDir = 0;
+    }
+
+    slopeType = tile >> 6;
+    sprintf(text, sDebugTripleFormat, solid, slopeDir, slopeType);
+    BgCmdBuffer_WriteString(3, 4, 0xF, text);
+
+    switch (entity->state)
+    {
+        case 0:
+            gfx = ObjGfx_LoadResource((u8 *)0x081CF0DC, 0x10000);
+            ObjPalette_LoadRange((u8 *)0x0820B11C, 0, 1, 1);
+            Sprite_Attach(entity, (void *)0x08231578, gfx, 1);
+            Anim_StartIndexed(entity, 0, 0, 1);
+
+            entity->posX.part16.integer = 0x64;
+            entity->posY.part16.integer = 0x90;
+            entity->scrollWithBg = 1;
+            entity->velX.whole = 0x18000;
+            entity->velY.whole = 0;
+            entity->state += 1;
+            entity->spriteLayer = 0x10;
+            DebugLinkTest_CenterCamera(entity);
+            break;
+
+        case 1:
+            e = gEwramData;
+            if (e)
+                slopeType = 0;
+            entity->accelX.whole = 0;
+            if (e->inputData.playerHeldInput & 0x20)
+            {
+                entity->posX.whole -= entity->velX.whole;
+                entity->accelX.whole = -entity->velX.whole;
+                entity->flipX = 1;
+            }
+            if (gEwramData->inputData.playerHeldInput & 0x10)
+            {
+                entity->posX.whole += entity->velX.whole;
+                entity->accelX.whole = entity->velX.whole;
+                entity->flipX = 0;
+            }
+
+            // TODO: is double check real?
+            if (entity->unk_4F4.whole == 1)
+            {
+                if ((entity->unk_4F4.whole == 1) && (gEwramData->inputData.playerNewInput & 1))
+                {
+                    entity->unk_4F4.whole = 2;
+                    entity->velY.whole = -0x40000;
+                    entity->accelY.whole = 0;           
+                }
+            }
+            if ((gEwramData->inputData.playerNewInput & 1) && (gEwramData->inputData.playerHeldInput & 0x40))
+            {
+                entity->unk_4F4.whole = 1;
+                entity->velY.whole = -0xA0000;
+                entity->accelY.whole = 0;
+            }
+
+            if (entity->unk_4F4.whole == 0)
+            {
+                if (groundLeft == 0)
+                {
+                    if (groundRight == 0)
+                    {
+                        entity->unk_4F4.whole = 1;
+                        entity->velY.whole = 0;
+                        entity->accelY.whole = -0x1000;
+                    }
+                }
+                if (entity->unk_4F4.whole == 0)
+                {
+                    if (gEwramData->inputData.playerNewInput & 1)
+                    {
+                        entity->unk_4F4.whole = 1;
+                        entity->velY.whole = -0x52000;
+                        entity->accelY.whole = 0;
+                    }
+                    if (entity->unk_4F4.whole == 0)
+                    {
+                        goto here;
+                    }
+                }
+            }
+
+            if (entity->velY.whole < 0)
+            {
+                if ((ceilingLeft != 0) || (ceilingRight != 0))
+                {
+                    s32 sum = entity->posY.part16.integer + ((ceilingLeft == 0) ? ceilingRight : ceilingLeft);
+                    register s32 z_ asm("r2") = 0; /* FAKEMATCH: zero constant in r2, loaded before the store */
+                    entity->posY.part16.integer = sum;
+                    entity->velY.whole = z_;
+                }
+            }
+
+            if (entity->velY.whole < -0x4000)
+            {
+                if (!(gEwramData->inputData.playerHeldInput & 1))
+                {
+                    entity->velY.whole = -0x4000;
+                    entity->accelY.whole = -0x2000;
+                }
+            }
+            if (entity->velY.whole < 0x2000)
+            {
+                entity->velY.whole += 0x2000;
+            }
+            if (entity->velY.whole > -0x20000 && entity->velY.whole < 0x2000)
+            {
+                if (gEwramData->inputData.playerHeldInput & 1)
+                {
+                    entity->accelY.whole -= 0x800;
+                    if (entity->accelY.whole < -0x2800)
+                    {
+                        entity->accelY.whole = -0x2800;
+                    }
+                }
+            }
+
+            entity->velY.whole += 0x2000;
+            if (entity->velY.whole > 0)
+            {
+                entity->velY.whole += entity->accelY.whole;
+                entity->accelY.whole += 0x400;
+                if (entity->accelY.whole > 0x1000)
+                {
+                    entity->accelY.whole = 0x1000;
+                }
+            }
+            if (entity->velY.whole > 0x80000)
+            {
+                entity->velY.whole = 0x80000;
+            }
+            entity->posY.whole += entity->velY.whole;
+
+            roomY = GetEntityRoomYPositionInteger(entity);
+            roomX = GetEntityRoomXPositionInteger(entity);
+            ground = Collision_GetPushUpFiltered(roomX, roomY, filter);
+            if ((gUnk_03002CB0.blockFlipFlags & 3) == 3)
+            {
+                if ((Collision_GetPushDown(roomX, roomY - 0x20) == 0) && (Collision_GetPushDown(roomX, roomY - 0x10) == 0))
+                {
+                    entity->posY.part16.integer += ground;
+                    entity->posY.part16.fraction = 0;
+                }
+                else
+                {
+                    ground = 0;
+                }
+            }
+
+            if (ground == 0)
+            {
+                if (entity->accelX.whole > 0)
+                {
+                    wallRight = Collision_GetPushLeftFiltered(roomX + 8, roomY, filter);
+                    if (wallRight != 0)
+                    {
+                        entity->posX.part16.integer = (s16)entity->posX.part16.integer + wallRight;
+                        entity->posX.part16.fraction = 0;
+                    }
+                }
+                if (entity->accelX.whole < 0)
+                {
+                    wallLeft = Collision_GetPushRightFiltered(roomX - 8, roomY, filter);
+                    if (wallLeft != 0)
+                    {
+                        entity->posX.part16.integer = (s16)entity->posX.part16.integer + wallLeft;
+                        entity->posX.part16.fraction = 0;
+                    }
+                }
+            }
+
+            if (((ground << 0x10) != 0) && (entity->velY.part16.integer >= 0))
+            {
+                entity->posY.part16.fraction = 0;
+                entity->velY.whole = 0;
+                entity->accelY.whole = 0;
+                entity->unk_4F4.whole = 0;
+            }
+            break;
+    }
+
+    goto skip;
+    here:
+    entity->posY.whole += entity->velX.whole;
+    skip:
+
+    roomY = GetEntityRoomYPositionInteger(entity);
+    roomX = GetEntityRoomXPositionInteger(entity);
+
+    if (entity->unk_4F4.whole == 0)
+    {
+        if ((Collision_GetPushDown(roomX, roomY - 0x20) == 0) && (Collision_GetPushDown(roomX, roomY - 0x10) == 0))
+        {
+            ground = Collision_GetPushUpFiltered(roomX, roomY, filter);
+        }
+        entity->posY.part16.integer += ground;
+    }
+
+    if (entity->accelX.whole > 0)
+    {
+        wallRightBody = Collision_GetPushLeftFiltered(roomX + 8, roomY - 0x10, filter);
+        if (wallRightBody != 0)
+        {
+            entity->posX.part16.integer = (s16)entity->posX.part16.integer + wallRightBody;
+            entity->posX.part16.fraction = 0;
+        }
+    }
+    if (entity->accelX.whole < 0)
+    {
+        wallLeftBody = Collision_GetPushRightFiltered(roomX - 8, roomY - 0x10, filter);
+        if (wallLeftBody != 0)
+        {
+            entity->posX.part16.integer = (s16)entity->posX.part16.integer + wallLeftBody;
+            entity->posX.part16.fraction = 0;
+        }
+    }
+
+    if (gEwramData->inputData.playerHeldInput & 0x100)
+    {
+        entity->velX.whole = 0x40000;
+    }
+    else
+    {
+        entity->velX.whole = 0x18000;
+    }
+
+    entity->timer += 1;
+    BgMap_ScrollWithMargin(1, ((s16) entity->posX.part16.integer - 0x78) << 0x10, (entity->posY.part16.integer - 0x70) << 0x10);
+    Entity_ScrollWithBg(1);
+    Bg_UpdateScrollModes(0);
+    Anim_Update(entity);
+    Sprite_Draw(entity);
+}
 // #endif
 
 // (99.63%) https://decomp.me/scratch/GYFCy
-NONMATCH("asm/non_matching/sub_08037738.inc", void sub_08037738(struct EwramData_EntityData *param_0))
-{
-}
-END_NONMATCH
+/* DebugTestWalkerUnused_Update: was NONMATCH, matched (case 1: dead store in if (e) gives the PRE block boundary). */
+// Bg_UpdateScrollModes(); implicit (should have no arguments)
+
+
+
 
 /**
- * @brief 37CE4 | To document
- * 
- * @param param_0 To document
+ * @brief Unreferenced variant of DebugLinkTestWalker_Update.
  */
-void sub_08037CE4(struct Unk_03000018 *param_0)
+void DebugTestWalkerUnused_Update(struct EwramData_EntityData *entity)
 {
-    param_0->unk_0.val = 2;
-    sub_0803C918((u8 *)0x080E537C, 0x10, 0xA, 0);
-    sub_0803FE0C((void *)0x080E5364, 0, 0, 4);
-    sub_0803FE0C((void *)0x080E536C, 4, 0, 4);
-    sub_0803FE0C((void *)0x080E5374, 8, 0, 4);
-    sub_0803F8A8(param_0->unk_0.val, (struct EwramData_unkA078_0 *)0x080E5BA0, 0, 0);
+    char text[13];
+    s16 groundLeft;
+    s16 ceilingLeft;
+    s16 ceilingRight;
+    s32 filter;
+    s16 wallRight;
+    s16 wallLeft;
+    s16 wallRightBody;
+    s16 wallLeftBody;
+    s16 roomX;
+    s32 gfx;
+    s32 blockKind;
+    s32 sloped;
+    s32 solid;
+    s32 slopeDir;
+    s16 ground;
+    s16 roomY;
+    s16 groundRight;
+    u8 tile;
+    s32 slopeType;
+    struct EwramData *e;
+
+    entity->roomActive = 1;
+    roomY = GetEntityRoomYPositionInteger(entity);
+    roomX = GetEntityRoomXPositionInteger(entity);
+
+    filter = gEwramData->inputData.playerHeldInput >> 1;
+    filter &= 1;
+    Collision_GetPushDownFiltered(roomX, roomY, 0);
+    groundLeft = Collision_GetPushDownFiltered(roomX - 8, roomY - 1, 0);
+    groundRight = Collision_GetPushDownFiltered(roomX + 8, roomY - 1, 0);
+    ceilingLeft = Collision_GetPushUpFiltered(roomX - 8, roomY + 0x20, filter);
+    ceilingRight = Collision_GetPushUpFiltered(roomX + 8, roomY + 0x20, filter);
+
+    roomY = GetEntityRoomYPositionInteger(entity);
+    roomX = GetEntityRoomXPositionInteger(entity);
+    tile = Collision_GetTile(roomX, roomY - 1);
+
+    sprintf(text, sDebugHexByteFormat, tile);
+    BgCmdBuffer_WriteString(2, 2, 0xF, text);
+
+    sprintf(text, sDebugPairFormat, roomX, roomY);
+    BgCmdBuffer_WriteString(3, 3, 0xF, text);
+
+    solid = 0;
+    if (DebugWalker_TestBit1(tile) || DebugWalker_TestSlopeBits(tile))
+    {
+        if (tile & 8)
+        {
+            if (tile & 1)
+            {
+                blockKind = 2;
+            }
+            else
+            {
+                blockKind = 1;
+            }
+        }
+        else
+        {
+            blockKind = 0;
+        }
+
+        if (blockKind != 1)
+        {
+            solid = 1;
+        }
+    }
+
+    if (tile & 0xC0)
+    {
+        if (tile & 2)
+        {
+            sloped = 1;
+        }
+        else
+        {
+            sloped = 1;
+        }
+    }
+    else
+    {
+        sloped = 0;
+    }
+
+    if (sloped != 0)
+    {
+        if (tile & 4)
+        {
+            slopeDir = 3;
+        }
+        else
+        {
+            slopeDir = 4;
+        }
+    }
+    else
+    {
+        slopeDir = 0;
+    }
+
+    slopeType = tile >> 6;
+    sprintf(text, sDebugTripleFormat, solid, slopeDir, slopeType);
+    BgCmdBuffer_WriteString(3, 4, 0xF, text);
+
+    switch (entity->state)
+    {
+        case 0:
+            gfx = ObjGfx_LoadResource((u8 *)0x081CF0DC, 0x10000);
+            ObjPalette_LoadRange((u8 *)0x0820B11C, 0, 1, 1);
+            Sprite_Attach(entity, (void *)0x08231578, gfx, 1);
+            Anim_StartIndexed(entity, 0, 0, 1);
+
+            entity->posX.part16.integer = 0x64;
+            entity->posY.part16.integer = 0x80;
+            entity->scrollWithBg = 1;
+            entity->velX.whole = 0x18000;
+            entity->velY.whole = 0;
+            entity->state += 1;
+            entity->spriteLayer = 0x10;
+            entity->flipY = 1;
+            DebugLinkTest_CenterCamera(entity);
+            break;
+
+        case 1:
+            e = gEwramData;
+            // Dead store in a real branch: the block boundary makes gcse PRE put the
+            // &gEwramData copy (r8) right after this load; flow deletes the store and
+            // jump2 the empty branch, so no code is left.
+            if (e)
+                slopeType = 0;
+            entity->accelX.whole = 0;
+            if (e->inputData.playerHeldInput & 0x20)
+            {
+                entity->posX.whole -= entity->velX.whole;
+                entity->accelX.whole = -entity->velX.whole;
+                entity->flipX = 1;
+            }
+            if (gEwramData->inputData.playerHeldInput & 0x10)
+            {
+                entity->posX.whole += entity->velX.whole;
+                entity->accelX.whole = entity->velX.whole;
+                entity->flipX = 0;
+            }
+
+            // TODO: is double check real?
+            if (entity->unk_4F4.whole == 1)
+            {
+                if ((entity->unk_4F4.whole == 1) && (gEwramData->inputData.playerNewInput & 1))
+                {
+                    entity->unk_4F4.whole = 2;
+                    entity->velY.whole = -0x40000;
+                    entity->accelY.whole = 0;
+                }
+            }
+            if ((gEwramData->inputData.playerNewInput & 1) && (gEwramData->inputData.playerHeldInput & 0x80))
+            {
+                entity->unk_4F4.whole = 1;
+                entity->velY.whole = -0xA0000;
+                entity->accelY.whole = 0;
+            }
+            
+            if (entity->unk_4F4.whole == 0)
+            {
+                if (groundLeft == 0)
+                {
+                    if (groundRight == 0)
+                    {
+                        entity->unk_4F4.whole = 1;
+                        entity->velY.whole = 0;
+                        entity->accelY.whole = -0x1000;
+                    }
+                }
+                if (entity->unk_4F4.whole == 0)
+                {
+                    if (gEwramData->inputData.playerNewInput & 1)
+                    {
+                        entity->unk_4F4.whole = 1;
+                        entity->velY.whole = -0x52000;
+                        entity->accelY.whole = 0;
+                    }
+                    if (entity->unk_4F4.whole == 0)
+                    {
+                        goto here; // should be deleted when rest of code figured out
+                        entity->posY.whole -= entity->velX.whole;
+                        break;
+                    }
+                }
+            }
+
+            if (entity->velY.whole < 0)
+            {
+                if ((ceilingLeft != 0) || (ceilingRight != 0))
+                {
+                    if (ceilingLeft == 0)
+                    {
+                        entity->posY.part16.integer += ceilingRight;
+                    }
+                    else
+                    {
+                        entity->posY.part16.integer += ceilingLeft;
+                    }
+                    { register s32 z_ asm("r2") = 0; entity->velY.whole = z_; } /* FAKEMATCH: zero constant in r2 */
+                }
+            }
+
+            if (entity->velY.whole < -0x4000)
+            {
+                if (!(gEwramData->inputData.playerHeldInput & 1))
+                {
+                    entity->velY.whole = -0x4000;
+                    entity->accelY.whole = -0x2000;
+                }
+            }
+            if (entity->velY.whole < 0x2000)
+            {
+                entity->velY.whole += 0x2000;
+            }
+            if (entity->velY.whole > -0x20000 && entity->velY.whole < 0x2000)
+            {
+                if (gEwramData->inputData.playerHeldInput & 1)
+                {
+                    entity->accelY.whole -= 0x800;
+                    if (entity->accelY.whole < -0x2800)
+                    {
+                        entity->accelY.whole = -0x2800;
+                    }
+                }
+            }
+
+            entity->velY.whole += 0x2000;
+            if (entity->velY.whole > 0)
+            {
+                entity->velY.whole += entity->accelY.whole;
+                entity->accelY.whole += 0x400;
+                if (entity->accelY.whole > 0x1000)
+                {
+                    entity->accelY.whole = 0x1000;
+                }
+            }
+            if (entity->velY.whole > 0x80000)
+            {
+                entity->velY.whole = 0x80000;
+            }
+            entity->posY.whole -= entity->velY.whole;
+
+            roomY = GetEntityRoomYPositionInteger(entity);
+            roomX = GetEntityRoomXPositionInteger(entity);
+            ground = Collision_GetPushDownFiltered(roomX, roomY, 0);
+            if ((gUnk_03002CB0.blockFlipFlags & 3) == 3)
+            {
+                entity->posY.part16.integer += ground;
+                entity->posY.part16.fraction = 0;
+            }
+
+            if (ground == 0)
+            {
+                if (entity->accelX.whole > 0)
+                {
+                    wallRight = Collision_GetPushLeftFiltered(roomX + 8, roomY, filter);
+                    if (wallRight != 0)
+                    {
+                        entity->posX.part16.integer = (s16)entity->posX.part16.integer + wallRight;
+                        entity->posX.part16.fraction = 0;
+                    }
+                }
+                if (entity->accelX.whole < 0)
+                {
+                    wallLeft = Collision_GetPushRightFiltered(roomX - 8, roomY, filter);
+                    if (wallLeft != 0)
+                    {
+                        entity->posX.part16.integer = (s16)entity->posX.part16.integer + wallLeft;
+                        entity->posX.part16.fraction = 0;
+                    }
+                }
+            }
+
+            if (((ground << 0x10) != 0) && (entity->velY.part16.integer >= 0))
+            {
+                entity->posY.part16.fraction = 0;
+                entity->velY.whole = 0;
+                entity->accelY.whole = 0;
+                entity->unk_4F4.whole = 0;
+            }
+            break;
+    }
+
+    goto skip;
+    here:
+    entity->posY.whole -= entity->velX.whole;
+    skip:
+
+    roomY = GetEntityRoomYPositionInteger(entity);
+    roomX = GetEntityRoomXPositionInteger(entity);
+
+    if (entity->unk_4F4.whole == 0)
+    {
+        s32 var = Collision_GetPushDownFiltered(roomX, roomY, 0);
+        entity->posY.part16.integer += var;
+    }
+
+    if (entity->accelX.whole > 0)
+    {
+        wallRightBody = Collision_GetPushLeftFiltered(roomX + 8, roomY + 0x10, filter);
+        if (wallRightBody != 0)
+        {
+            entity->posX.part16.integer = (s16)entity->posX.part16.integer + wallRightBody;
+            entity->posX.part16.fraction = 0;
+        }
+    }
+    if (entity->accelX.whole < 0)
+    {
+        wallLeftBody = Collision_GetPushRightFiltered(roomX - 8, roomY + 0x10, filter);
+        if (wallLeftBody != 0)
+        {
+            entity->posX.part16.integer = (s16)entity->posX.part16.integer + wallLeftBody;
+            entity->posX.part16.fraction = 0;
+        }
+    }
+
+    if (gEwramData->inputData.playerHeldInput & 0x100)
+    {
+        entity->velX.whole = 0x40000;
+    }
+    else
+    {
+        entity->velX.whole = 0x18000;
+    }
+
+    entity->timer += 1;
+    BgMap_ScrollWithMargin(1, ((s16) entity->posX.part16.integer - 0x78) << 0x10, (entity->posY.part16.integer - 0x70) << 0x10);
+    Entity_ScrollWithBg(1);
+    Bg_UpdateScrollModes(0);
+    Anim_Update(entity);
+    Sprite_Draw(entity);
 }
 
 /**
- * @brief 37D44 | To document
- * 
- * @param param_0 To document
+ * @brief Load the test graphics, palettes and map into BG2.
  */
-void sub_08037D44(struct Unk_03000018 *param_0)
+void DebugBgDispTest_Init(struct DebugDisplayTestState *test)
+{
+    test->target.bgIndex = 2;
+    BgPalette_LoadRange((u8 *)0x080E537C, 0x10, 0xA, 0);
+    Gfx_CopyResourceBlocks((void *)0x080E5364, 0, 0, 4);
+    Gfx_CopyResourceBlocks((void *)0x080E536C, 4, 0, 4);
+    Gfx_CopyResourceBlocks((void *)0x080E5374, 8, 0, 4);
+    BgMap_Setup(test->target.bgIndex, (struct BgMapMetadata *)0x080E5BA0, 0, 0);
+}
+
+/**
+ * @brief Clear the test BG map.
+ */
+void DebugBgDispTest_Exit(struct DebugDisplayTestState *test)
 {
     void *subroutine_arg0[4];
 
-    memcpy(subroutine_arg0, sUnk_080E2288, sizeof(sUnk_080E2288));
-    DMA_FILL_32(3, 0, subroutine_arg0[param_0->unk_0.val], 0x800);
+    memcpy(subroutine_arg0, sDebugTestExitArgs, sizeof(sDebugTestExitArgs));
+    DMA_FILL_32(3, 0, subroutine_arg0[test->target.bgIndex], 0x800);
 }
 
 /**
- * @brief 37D84 | To document
- * 
- * @param param_0 To document
+ * @brief Follow room exits with room transitions and recentre the camera
+ * afterwards.
  */
-void sub_08037D84(struct Unk_03000018 *param_0)
+void DebugLinkTest_Update(struct DebugDisplayTestState *test)
 {
-    struct EwramData_EntityData *temp_r5;
+    struct EwramData_EntityData *entity;
 
-    temp_r5 = param_0->unk_4;
-    switch (param_0->unk_C)
+    entity = test->player;
+    switch (test->transitionState)
     {
         case 0:
-            if (sub_08011A44(temp_r5) == 0)
+            if (Room_IsPlayerInside(entity) == 0)
             {
-                sub_08010244(&gEwramData->unk_60);
-                param_0->unk_C = 1;
+                RoomTransition_Begin(&gEwramData->gameState);
+                test->transitionState = 1;
             }
             break;
 
         case 1:
-            if (sub_080104EC(&gEwramData->unk_60) != 0)
+            if (RoomTransition_Update(&gEwramData->gameState) != 0)
             {
-                sub_08037070(temp_r5);
-                param_0->unk_C = 0;
+                DebugLinkTest_CenterCamera(entity);
+                test->transitionState = 0;
             }
             break;
     }
 }
 
 /**
- * @brief 37DD8 | To document
- * 
- * @param param_0 To document
+ * @brief Clear the BG1..BG3 maps.
  */
-void sub_08037DD8(struct Unk_03000018 *param_0)
+void DebugLinkTest_Exit(struct DebugDisplayTestState *test)
 {
     void *subroutine_arg0[4];
 
-    memcpy(subroutine_arg0, sUnk_080E2288, sizeof(sUnk_080E2288));
+    memcpy(subroutine_arg0, sDebugTestExitArgs, sizeof(sDebugTestExitArgs));
     DMA_FILL_32(3, 0, VRAM_BASE + 0xE800, 0x1800);
 }
 
 /**
- * @brief 37E14 | To document
- * 
- * @param param_0 To document
+ * @brief Follow room exits with room transitions.
  */
-void sub_08037E14(struct Unk_03000018 *param_0)
+void DebugHitTest_Update(struct DebugDisplayTestState *test)
 {
-    switch (param_0->unk_C)
+    switch (test->transitionState)
     {
         case 0:
-            if (sub_08011A44(param_0->unk_4) == 0)
+            if (Room_IsPlayerInside(test->player) == 0)
             {
-                sub_08010244(&gEwramData->unk_60);
-                param_0->unk_C = 1;
+                RoomTransition_Begin(&gEwramData->gameState);
+                test->transitionState = 1;
             }
             break;
 
         case 1:
-            if (sub_080104EC(&gEwramData->unk_60) != 0)
+            if (RoomTransition_Update(&gEwramData->gameState) != 0)
             {
-                param_0->unk_C = 0;
+                test->transitionState = 0;
             }
             break;
     }
 }
 
 /**
- * @brief 37E5C | To document
- * 
- * @param param_0 To document
+ * @brief Clear the BG map selected by the test state.
  */
-void sub_08037E5C(struct Unk_03000018 *param_0)
+void DebugHitTest_Exit(struct DebugDisplayTestState *test)
 {
     void *subroutine_arg0[4];
 
-    memcpy(subroutine_arg0, sUnk_080E2288, sizeof(sUnk_080E2288));
-    DMA_FILL_32(3, 0, subroutine_arg0[param_0->unk_8], 0x800);
+    memcpy(subroutine_arg0, sDebugTestExitArgs, sizeof(sDebugTestExitArgs));
+    DMA_FILL_32(3, 0, subroutine_arg0[test->clearBgIndex], 0x800);
 }
 

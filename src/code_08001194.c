@@ -114,7 +114,7 @@ u16* BgCmdBuffer_WriteString(u16 tileIndex, u16 rowOffset, u8 tileInfo, u8 *stri
     u32 vramTileBase;
 
     palNum = tileInfo << 12;
-    strDst = (u16*)gEwramData->unk_133F4;
+    strDst = (u16*)gEwramData->sharedScratchBuffer;
     
     for (length = 0; string[length] != 0; length++)
     {
@@ -135,7 +135,7 @@ u16* BgCmdBuffer_WriteString(u16 tileIndex, u16 rowOffset, u8 tileInfo, u8 *stri
     {
         vramAddr = vramTileBase + (rowOffset << 6);
     }
-    src = gEwramData->unk_133F4;
+    src = gEwramData->sharedScratchBuffer;
     dst = gUnk_03002CB0.pBgCmdBuffer;
 
     if ((u32) (&dst[length] + 2) >= (u32) &gUnk_03002CB0.bgCmdBuffer[sizeof(gUnk_03002CB0.bgCmdBuffer)/sizeof(u16)])
@@ -225,7 +225,7 @@ u16* BgCmdBuffer_WriteNumber(u16 tileIndex, u16 rowOffset, u8 palNum, s32 numCha
         vramAddr = vramTileBase + (rowOffset << 6);
     }
     length = numChars;
-    src = gEwramData->unk_133F4;
+    src = gEwramData->sharedScratchBuffer;
     dst = gUnk_03002CB0.pBgCmdBuffer;
 
     if ((u32) (&dst[length] + 2) >= (u32) &gUnk_03002CB0.bgCmdBuffer[sizeof(gUnk_03002CB0.bgCmdBuffer)/sizeof(u16)])
@@ -266,7 +266,7 @@ u16* BgCmdBuffer_WriteString_Duplicate(u16 tileIndex, u16 rowOffset, u8 tileInfo
     u32 vramTileBase;
 
     palNum = tileInfo << 12;
-    strDst = (u16*)gEwramData->unk_133F4;
+    strDst = (u16*)gEwramData->sharedScratchBuffer;
     
     for (length = 0; string[length] != 0; length++)
     {
@@ -287,7 +287,7 @@ u16* BgCmdBuffer_WriteString_Duplicate(u16 tileIndex, u16 rowOffset, u8 tileInfo
     {
         vramAddr = vramTileBase + (rowOffset << 6);
     }
-    src = gEwramData->unk_133F4;
+    src = gEwramData->sharedScratchBuffer;
     dst = gUnk_03002CB0.pBgCmdBuffer;
 
     if ((u32) (&dst[length] + 2) >= (u32) &gUnk_03002CB0.bgCmdBuffer[sizeof(gUnk_03002CB0.bgCmdBuffer)/sizeof(u16)])
@@ -353,13 +353,13 @@ void DmaQueue_Process(void)
         if (dmaQueueInfo->directSize != 0)
         {
             // Direct transfer (data is embedded)
-            DMA_COPY_16(3, &dmaQueueInfo->unk_818.directData, dmaQueueInfo->dst, dmaQueueInfo->directSize);
+            DMA_COPY_16(3, &dmaQueueInfo->dataOrSize.directData, dmaQueueInfo->dst, dmaQueueInfo->directSize);
             nextDmaEntry = (u8*)dmaQueueInfo + dmaQueueInfo->directSize + 0xC;
         }
         else
         {
             // Indirect transfer (data comes from pointer)
-            DMA_COPY_16(3, dmaQueueInfo->src, dmaQueueInfo->dst, dmaQueueInfo->unk_818.indirectSize);
+            DMA_COPY_16(3, dmaQueueInfo->src, dmaQueueInfo->dst, dmaQueueInfo->dataOrSize.indirectSize);
             nextDmaEntry = (u8*)dmaQueueInfo + 0x10;
         }
         dmaQueueInfo = (struct DmaQueueInfo *)((s32)(nextDmaEntry + 3) & ~3);
@@ -388,7 +388,7 @@ struct DmaQueueInfo* DmaQueue_DirectCopy(u16 size, u32 *src, u32 *dst)
         return NULL;
     }
 
-    dmaQueueInfo->src = (u32*)&dmaQueueInfo->unk_818.directData;
+    dmaQueueInfo->src = (u32*)&dmaQueueInfo->dataOrSize.directData;
     dmaQueueInfo->dst = dst;
     dmaQueueInfo->directSize = size;
     DMA_COPY_16(3, src, dmaQueueInfo->src, size);
@@ -420,7 +420,7 @@ struct DmaQueueInfo* DmaQueue_IndirectCopy(u32 size, u32 *src, u32 *dst)
     dmaQueueInfo->src = src;
     dmaQueueInfo->dst = dst;
     dmaQueueInfo->directSize = 0;
-    dmaQueueInfo->unk_818.indirectSize = size;
+    dmaQueueInfo->dataOrSize.indirectSize = size;
 
     gUnk_03002CB0.dmaQueueEnd = (struct DmaQueueInfo*)((u32)((u8*)dmaQueueInfo + 0x10 + 3) & ~3);
     return gUnk_03002CB0.dmaQueueEnd;
@@ -451,8 +451,8 @@ void HBlankEffectSetup(u8 numEntries, u8 vcountSetting, u8 writeSize, void *dest
     }
 }
 
-extern u32 *sUnk_0850E968[]; // transition rooms list
-extern u16 sUnk_08116650[]; // map info
+extern u32 *sTransitionRooms[]; // transition rooms list
+extern u16 sMapCellRoomInfo[]; // map info
 
 /**
  * @brief 1780 | Check if incoming room is a transition room
@@ -471,16 +471,16 @@ s32 CheckRoomTransition(s32 xOffset, s32 yOffset)
 
     isTransitionRoom = FALSE;
 
-    area = sUnk_08116650[(gEwramData->unk_60.roomMapXPos + (xOffset >> 8)) + ((gEwramData->unk_60.roomMapYPos + (yOffset >> 8)) << 6)];
+    area = sMapCellRoomInfo[(gEwramData->gameState.roomMapXPos + (xOffset >> 8)) + ((gEwramData->gameState.roomMapYPos + (yOffset >> 8)) << 6)];
     area = (area >> 6) & 0xF;
 
-    room = sUnk_08116650[(gEwramData->unk_60.roomMapXPos + (xOffset >> 8)) + ((gEwramData->unk_60.roomMapYPos + (yOffset >> 8)) << 6)];
+    room = sMapCellRoomInfo[(gEwramData->gameState.roomMapXPos + (xOffset >> 8)) + ((gEwramData->gameState.roomMapYPos + (yOffset >> 8)) << 6)];
     room = room & 0x3F;
 
     roomPtr = GetRoomPointer(area, room);
-    for (i = 0; sUnk_0850E968[i] != 0; i++)
+    for (i = 0; sTransitionRooms[i] != 0; i++)
     {
-        if (sUnk_0850E968[i] == roomPtr)
+        if (sTransitionRooms[i] == roomPtr)
         {
             isTransitionRoom = TRUE;
             break;
@@ -490,51 +490,48 @@ s32 CheckRoomTransition(s32 xOffset, s32 yOffset)
 }
 
 /**
- * @brief 1800 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @return s32 To document
+ * @brief Return the 8x8 tile index inside the 4x4 block at map tile (x, y),
+ * honouring the block flip bits (stored in blockFlipFlags); -1 for an empty
+ * block.
  */
-s32 sub_08001800(struct EwramData_unkA078_0 *param_0, u16 param_1, u16 param_2)
+s32 BgMap_GetBlockTileIndex(struct BgMapMetadata *metadata, u16 tileX, u16 tileY)
 {
-    u16 temp_r2_2;
-    u16 temp_r5;
-    u8 var_r1;
-    u8 var_r3;
-    u8 var_0;
-    u8 var_1;
-    u8 var_2;
+    u16 block;
+    u16 flip;
+    u8 mask;
+    u8 subX;
+    u8 blockX;
+    u8 blockY;
+    u8 subY;
 
-    var_0 = param_1 >> 0x2;
-    var_1 = param_2 >> 0x2;
-    temp_r2_2 = param_0->unk_C[var_0 + ((var_1 << 0x3) * param_0->unk_0)];
-    temp_r5 = temp_r2_2 & 0xC000;
-    gUnk_03002CB0.unk_100C = temp_r5 >> 0xC;
+    blockX = tileX >> 0x2;
+    blockY = tileY >> 0x2;
+    block = metadata->blockMap[blockX + ((blockY << 0x3) * metadata->widthCells)];
+    flip = block & 0xC000;
+    gUnk_03002CB0.blockFlipFlags = flip >> 0xC;
 
-    temp_r2_2 = temp_r2_2 & 0x3FFF;
-    if (temp_r2_2 == 0)
+    block = block & 0x3FFF;
+    if (block == 0)
     {
         return -1;
     }
 
-    temp_r2_2 -= 1;
-    var_r1 = 3; // TODO: static inline also works
+    block -= 1;
+    mask = 3; // TODO: static inline also works
 
-    var_r3 = param_1 & var_r1;
-    if (temp_r5 & 0x4000)
+    subX = tileX & mask;
+    if (flip & 0x4000)
     {
-        var_r3 = 3 - var_r3;
+        subX = 3 - subX;
     }
 
-    var_2 = param_2 & var_r1;
-    if (temp_r5 & 0x8000)
+    subY = tileY & mask;
+    if (flip & 0x8000)
     {
-        var_2 = 3 - var_2;
+        subY = 3 - subY;
     }
 
-    return (temp_r2_2 << 4) + var_r3 + (var_2 << 2);
+    return (block << 4) + subX + (subY << 2);
 }
 
 /**
@@ -548,7 +545,7 @@ s32 GetAreaFromMapPosition(s32 xOffset, s32 yOffset)
 {
     u16 tmp;
 
-    tmp = sUnk_08116650[gEwramData->unk_60.roomMapXPos + (xOffset >> 8) + ((gEwramData->unk_60.roomMapYPos + (yOffset >> 8)) << 6)];
+    tmp = sMapCellRoomInfo[gEwramData->gameState.roomMapXPos + (xOffset >> 8) + ((gEwramData->gameState.roomMapYPos + (yOffset >> 8)) << 6)];
     return (tmp >> 6) & 0xF;
 }
 
@@ -563,7 +560,7 @@ s32 GetRoomFromMapPosition(s32 xOffset, s32 yOffset)
 {
     u16 tmp;
 
-    tmp = sUnk_08116650[gEwramData->unk_60.roomMapXPos + (xOffset >> 8) + ((gEwramData->unk_60.roomMapYPos + (yOffset >> 8)) << 6)];
+    tmp = sMapCellRoomInfo[gEwramData->gameState.roomMapXPos + (xOffset >> 8) + ((gEwramData->gameState.roomMapYPos + (yOffset >> 8)) << 6)];
     return tmp & 0x3F;
 }
 
@@ -578,7 +575,7 @@ s32 GetSaveRoomFlagFromMapPosition(s32 xOffset, s32 yOffset)
 {
     u16 tmp;
 
-    tmp = sUnk_08116650[gEwramData->unk_60.roomMapXPos + (xOffset >> 8) + ((gEwramData->unk_60.roomMapYPos + (yOffset >> 8)) << 6)];
+    tmp = sMapCellRoomInfo[gEwramData->gameState.roomMapXPos + (xOffset >> 8) + ((gEwramData->gameState.roomMapYPos + (yOffset >> 8)) << 6)];
     return tmp >> 0xF;
 }
 
@@ -593,11 +590,11 @@ s32 GetWarpRoomFlagFromMapPosition(s32 xOffset, s32 yOffset)
 {
     u16 tmp;
 
-    tmp = sUnk_08116650[gEwramData->unk_60.roomMapXPos + (xOffset >> 8) + ((gEwramData->unk_60.roomMapYPos + (yOffset >> 8)) << 6)];
+    tmp = sMapCellRoomInfo[gEwramData->gameState.roomMapXPos + (xOffset >> 8) + ((gEwramData->gameState.roomMapYPos + (yOffset >> 8)) << 6)];
     return (tmp >> 0xE) & 1;
 }
 
-extern u32 **sUnk_0850EF08[]; // List of room pointers
+extern u32 **sAreaRoomTables[]; // List of room pointers
 
 /**
  * @brief 1980 | Get the pointer to the room
@@ -608,834 +605,809 @@ extern u32 **sUnk_0850EF08[]; // List of room pointers
  */
 u32* GetRoomPointer(s32 area, s32 room)
 {
-    return sUnk_0850EF08[area][room];
+    return sAreaRoomTables[area][room];
 }
 
 /**
- * @brief 1994 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @return u32 To document
+ * @brief Resolve tile coordinates through the map index helper, select raw or cached tile data and XOR the room flip bits; return zero for an invalid map index.
  */
-u32 sub_08001994(struct EwramData_unkA078_0 *param_0, u16 param_1, u16 param_2)
+u32 BgMap_GetTileEntry(struct BgMapMetadata *metadata, u16 tileX, u16 tileY)
 {
     s32 temp_r0;
     u16 *var_r0;
     u16 *var_r1;
 
-    temp_r0 = sub_08001800(param_0, param_1, param_2);
+    temp_r0 = BgMap_GetBlockTileIndex(metadata, tileX, tileY);
     if (temp_r0 < 0)
     {
         return 0;
     }
 
-    if (!(param_0->unk_2 & 2))
+    if (!(metadata->formatFlags & 2))
     {
-        var_r0 = param_0->unk_4;
+        var_r0 = metadata->tileData;
     }
-    else if (param_0 == gEwramData->bgInfo[1].pBgMetadata)
+    else if (metadata == gEwramData->bgInfo[1].pBgMetadata)
     {
-        var_r0 = gEwramData->unk_A108;
+        var_r0 = gEwramData->bg1TileCache;
     }
     else
     {
-        var_r0 = gEwramData->unk_C0EC;
+        var_r0 = gEwramData->sharedBgTileCache;
     }
     // var_r1 = (void*)(temp_r0*2 + (u32)var_r0); // alternative
     var_r1 = var_r0 - - temp_r0; // - - instead of + to match
-    return (gUnk_03002CB0.unk_100C << 8) ^ *var_r1;
+    return (gUnk_03002CB0.blockFlipFlags << 8) ^ *var_r1;
 }
 
 /**
- * @brief 1A00 | To document
- * 
- * @param arg0 To document
- * @param arg1 To document
- * @return u8 To document
+ * @brief 1A00 | Collision flags of the BG1 tile at a room position
+ *
+ * Flags: bit 1 solid, bit 3 (with bit 0) platform-like, bits 6-7 slope
+ * steepness, bit 2 slope mirrored, bits 4-5 slope base; 0xFF = solid 16x16.
+ * Slopes are mirrored by the room flip flags (gUnk_03002CB0.blockFlipFlags).
+ * Collision_SetBlock cells make empty or platform tiles solid (3).
+ *
+ * @param x Room x in pixels
+ * @param y Room y in pixels
+ * @return u8 Tile collision flags
  */
-u8 sub_08001A00(s32 arg0, s32 arg1)
+u8 Collision_GetTile(s32 x, s32 y)
 {
-    s32 var_r0;
-    s32 var_r1;
-    s32 var_r5;
-    s32 var_r6;
-    struct EwramData_unkA078_0 *temp_r3;
-    u8 *var_r4;
-    u8 var_r3;
+    s32 limit;
+    s32 flag;
+    s32 tileX;
+    s32 tileY;
+    struct BgMapMetadata *bg;
+    u8 *map;
+    u8 tile;
 
-    temp_r3 = gEwramData->bgInfo[1].pBgMetadata;
-    if (temp_r3->unk_8 == NULL)
+    bg = gEwramData->bgInfo[1].pBgMetadata;
+    if (bg->collisionData == NULL)
     {
-        var_r3 = 0;
+        tile = 0;
     }
     else
     {
-        var_r5 = arg0 >> 3;
-        if (temp_r3->unk_0 != 1)
+        tileX = x >> 3;
+        if (bg->widthCells != 1)
         {
-            var_r0 = temp_r3->unk_0 << 5;
+            limit = bg->widthCells << 5;
         }
         else
         {
-            var_r0 = 0x1E;
+            limit = 0x1E;
         }
 
-        if (var_r5 < 0)
+        if (tileX < 0)
         {
-            var_r5 = 0;
+            tileX = 0;
         }
-        else if (var_r5 >= var_r0)
+        else if (tileX >= limit)
         {
-            var_r5 = var_r0 - 1;
+            tileX = limit - 1;
         }
 
-        var_r6 = arg1 >> 3;
-        if (temp_r3->unk_1 != 1)
+        tileY = y >> 3;
+        if (bg->heightCells != 1)
         {
-            var_r0 = temp_r3->unk_1 << 5;
+            limit = bg->heightCells << 5;
         }
         else
         {
-            var_r0 = 0x1A;
+            limit = 0x1A;
         }
 
-        if (var_r6 < 0)
+        if (tileY < 0)
         {
-            var_r6 = 0;
+            tileY = 0;
         }
-        else if (var_r6 >= var_r0)
+        else if (tileY >= limit)
         {
-            var_r6 = var_r0 - 1;
+            tileY = limit - 1;
         }
 
-        if (temp_r3->unk_2 & 2)
+        if (bg->formatFlags & 2)
         {
-            var_r4 = gEwramData->unk_E0D0;
+            map = gEwramData->bg1CollisionCache;
         }
         else
         {
-            var_r4 = temp_r3->unk_8;
+            map = bg->collisionData;
         }
 
-        var_r3 = var_r4[sub_08001800(temp_r3, var_r5, var_r6)];
-        if (var_r3 & 0xC0)
+        tile = map[BgMap_GetBlockTileIndex(bg, tileX, tileY)];
+        if (tile & 0xC0)
         {
-            if (var_r3 & 2)
+            if (tile & 2)
             {
-                var_r1 = 1;
+                flag = 1;
             }
             else
             {
-                var_r1 = 1;
+                flag = 1;
             }
         }
         else
         {
-            var_r1 = 0;
+            flag = 0;
         }
 
-        if (var_r1 != 0)
+        if (flag != 0)
         {
-            if (gUnk_03002CB0.unk_100C & 4)
+            if (gUnk_03002CB0.blockFlipFlags & 4)
             {
-                var_r3 ^= 4;
+                tile ^= 4;
             }
-            if (gUnk_03002CB0.unk_100C & 3)
+            if (gUnk_03002CB0.blockFlipFlags & 3)
             {
-                var_r3 ^= 2;
+                tile ^= 2;
             }
         }
     }
 
-    if (gEwramData->unk_A074_6)
+    if (gEwramData->collisionBlocksActive)
     {
-        if (var_r3 == 0)
+        if (tile == 0)
         {
-            var_r1 = 1;
+            flag = 1;
         }
         else
         {
-            if (var_r3 & 8)
+            if (tile & 8)
             {
-                if (var_r3 & 1)
+                if (tile & 1)
                 {
-                    var_r1 = 1;
+                    flag = 1;
                 }
                 else
                 {
-                    var_r1 = 1;
+                    flag = 1;
                 }
             }
 
             else
             {
-                var_r1 = 0;
+                flag = 0;
             }
         }
 
-        if (var_r1 != 0)
+        if (flag != 0)
         {
-            var_r5 = var_r5 >> 1;
-            var_r6 = var_r6 >> 1;
-            if (gEwramData->unk_F0C0[((var_r6 << 2) + ((var_r5 >> 5) << 9)) >> 2] & (1 << (var_r5 & 0x1F)))
+            tileX = tileX >> 1;
+            tileY = tileY >> 1;
+            if (gEwramData->collisionBlocks[((tileY << 2) + ((tileX >> 5) << 9)) >> 2] & (1 << (tileX & 0x1F)))
             {
-                var_r3 = 3;
+                tile = 3;
             }
         }
     }
 
-    return var_r3;
+    return tile;
 }
 
 /**
- * @brief 1B40 | To document
- * 
- * @param arg0 To document
- * @param arg1 To document
- * @return s16 To document
+ * @brief 1B40 | Height offset of a slope tile at a pixel column
+ *
+ * @param tile Collision flags
+ * @param x Pixel x (only the position inside the tile matters)
+ * @return s16 Offset in pixels
  */
-s16 sub_08001B40(u8 arg0, s16 arg1)
+s16 Collision_GetSlopeHeight(u8 tile, s16 x)
 {
     s32 var_r0;
-    s32 var_r3;
+    s32 isSlope;
     s16 var_r1;
     u32 tmp;
     s32 var_0;
 
-    var_r1 = (arg0 & 0x30) >> 3;
+    var_r1 = (tile & 0x30) >> 3;
 
-    if (arg0 & 0xC0)
+    if (tile & 0xC0)
     {
-        if (arg0 & 2)
+        if (tile & 2)
         {
-            var_r3 = 1;
+            isSlope = 1;
         }
         else
         {
-            var_r3 = 1;
+            isSlope = 1;
         }
     }
     else
     {
-        var_r3 = 0;
+        isSlope = 0;
     }
 
-    if (var_r3 != 0)
+    if (isSlope != 0)
     {
-        // tmp = (arg0 >> 6) - 1;
+        // tmp = (tile >> 6) - 1;
         // var_0 = var_r1;
-        // if (arg0 & 4)
+        // if (tile & 4)
         // {
-        //     var_r0 = 7 - arg1;
+        //     var_r0 = 7 - x;
         // }
         // else
         // {
-        //     var_r0 = arg1;
+        //     var_r0 = x;
         // }
         // var_r1 = var_0 + ((var_r0 & 7) >> tmp);
-        var_r1 = var_r1 + ((((arg0 & 4) ? (7 - arg1) : arg1) & 7) >> ((arg0 >> 6) - 1));
+        var_r1 = var_r1 + ((((tile & 4) ? (7 - x) : x) & 7) >> ((tile >> 6) - 1));
     }
     return var_r1;
 }
 
 /**
- * @brief 1BA0 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @return u8 To document
+ * @brief 1BA0 | Adjust tile flags for a collision mode (platform handling)
+ *
+ * @param tile Collision flags
+ * @param mode 1 or 2 (other values keep the flags)
+ * @return u8 Adjusted flags
  */
-u8 sub_08001BA0(u8 param_0, s16 param_1)
+u8 Collision_FilterTile(u8 tile, s16 mode)
 {
-    s32 var_1;
+    s32 kind;
 
-    switch (param_1)
+    switch (mode)
     {
         case 1:
-            if (param_0 & 8)
+            if (tile & 8)
             {
-                if (param_0 & param_1)
+                if (tile & mode)
                 {
-                    var_1 = 2;
+                    kind = 2;
                 }
                 else
                 {
-                    var_1 = 1;
+                    kind = 1;
                 }
             }
             else
             {
-                var_1 = 0;
+                kind = 0;
             }
 
-            switch (var_1)
+            switch (kind)
             {
                 case 1:
-                    param_0 = (param_0 & ~8) | 1;
+                    tile = (tile & ~8) | 1;
                     break;
 
                 case 2:
-                    param_0 = 9;
+                    tile = 9;
                     break;
             }
             break;
 
         case 2:
-            if (param_0 & 8)
+            if (tile & 8)
             {
-                if (param_0 & 1)
+                if (tile & 1)
                 {
-                    var_1 = 2;
+                    kind = 2;
                 }
                 else
                 {
-                    var_1 = 1;
+                    kind = 1;
                 }
             }
             else
             {
-                var_1 = 0;
+                kind = 0;
             }
 
-            switch (var_1)
+            switch (kind)
             {
                 case 1:
-                    param_0 = (param_0 & ~8) | 1;
+                    tile = (tile & ~8) | 1;
                     break;
 
                 case 2:
-                    param_0 = param_0 ^ 10;
+                    tile = tile ^ 10;
                     break;
 
                 case 0:
-                    param_0 = 0;
+                    tile = 0;
                     break;
             }
             break;
     }
-    return param_0;
+    return tile;
 }
 
 /**
- * @brief 1C1C | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @return s16 To document
+ * @brief 1C1C | Pixels to move down until the point leaves solid tiles (max ~8)
+ *
+ * Also stores the first tile's flags in gUnk_03002CB0.collisionProbeFlags.
+ *
+ * @param x Room x
+ * @param y Room y
+ * @return s16 Distance (0 when not inside a solid tile)
  */
-s16 sub_08001C1C(s32 param_0, s32 param_1)
+s16 Collision_GetPushDown(s32 x, s32 y)
 {
-    s16 var_r1;
-    s16 var_r5;
-    u32 var_r0_2;
-    u8 temp_r2;
+    s16 step;
+    s16 push;
+    u32 slope;
+    u8 tile;
     u32 var_0;
 
-    for (var_r5 = 0; var_r5 < 9;)
+    for (push = 0; push < 9;)
     {
-        temp_r2 = sub_08001A00(param_0, param_1);
+        tile = Collision_GetTile(x, y);
 
-        if (var_r5 == 0)
+        if (push == 0)
         {
-            gUnk_03002CB0.unk_100D = temp_r2;
+            gUnk_03002CB0.collisionProbeFlags = tile;
         }
 
-        if ((temp_r2 & 2) == 0)
+        if ((tile & 2) == 0)
             break;
 
-        if (temp_r2 == 0xFF)
+        if (tile == 0xFF)
         {
-            var_r1 = 0x10 - (param_1 & 0xF);
-            var_r5 += var_r1;
-            param_1 += var_r1;
+            step = 0x10 - (y & 0xF);
+            push += step;
+            y += step;
             continue;
         }
 
-        if (temp_r2 & 0xC0)
+        if (tile & 0xC0)
         {
-            if (temp_r2 & 2)
+            if (tile & 2)
             {
-                var_r0_2 = 2;
+                slope = 2;
             }
             else
             {
-                var_r0_2 = 1;
+                slope = 1;
             }
         }
         else
         {
-            var_r0_2 = 0;
+            slope = 0;
         }
 
-        if (var_r0_2 == 2)
+        if (slope == 2)
         {
-            var_r5 += 1 - (param_1 & 7) + sub_08001B40(temp_r2, param_0);
+            push += 1 - (y & 7) + Collision_GetSlopeHeight(tile, x);
 
-            if (var_r5 < 0)
+            if (push < 0)
             {
-                var_r5 = 0;
+                push = 0;
             }
             break;
         }
 
-        var_r1 = 8 - (param_1 & 7);
-        var_r5 += var_r1;
-        param_1 += var_r1;
+        step = 8 - (y & 7);
+        push += step;
+        y += step;
     }
-    return var_r5;
+    return push;
 }
 
 /**
- * @brief 1CCC | To document
- * 
- * @param arg0 To document
- * @param arg1 To document
- * @param arg2 To document
- * @return s16 To document
+ * @brief 1CCC | Collision_GetPushDown with Collision_FilterTile(mode)
+ *
+ * @return s16 Distance
  */
-s16 sub_08001CCC(s32 param_0, s32 param_1, s32 param_2)
+s16 Collision_GetPushDownFiltered(s32 x, s32 y, s32 mode)
 {
-    s16 var_r1;
-    s16 var_r5;
-    u32 var_r0_2;
-    u8 temp_r2;
-    u32 var_0;
-    u8 var_1;
-
-    for (var_r5 = 0; var_r5 < 9;)
-    {
-        temp_r2 = sub_08001A00(param_0, param_1);
-
-        if (var_r5 == 0)
-        {
-            gUnk_03002CB0.unk_100D = temp_r2;
-        }
-
-        temp_r2 = sub_08001BA0(temp_r2, param_2);
-        if ((temp_r2 & 2) == 0)
-            break;
-
-        if (temp_r2 == 0xFF)
-        {
-            var_r1 = 0x10 - (param_1 & 0xF);
-            var_r5 += var_r1;
-            param_1 += var_r1;
-            continue;
-        }
-
-        if (temp_r2 & 0xC0)
-        {
-            if (temp_r2 & 2)
-            {
-                var_r0_2 = 2;
-            }
-            else
-            {
-                var_r0_2 = 1;
-            }
-        }
-        else
-        {
-            var_r0_2 = 0;
-        }
-
-        if (var_r0_2 == 2)
-        {
-            var_r5 += 1 - (param_1 & 7) + sub_08001B40(temp_r2, param_0);
-
-            if (var_r5 < 0)
-            {
-                var_r5 = 0;
-            }
-            break;
-        }
-
-        var_r1 = 8 - (param_1 & 7);
-        var_r5 += var_r1;
-        param_1 += var_r1;
-    }
-    return var_r5;
-}
-
-/**
- * @brief 1D94 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @return s16 To document
- */
-s16 sub_08001D94(s32 param_0, s32 param_1)
-{
-    s16 var_r1;
-    s16 var_r5;
-    u32 var_r0_2;
-    u8 temp_r2;
-    u32 var_0;
-
-    for (var_r5 = 0; var_r5 >= -8;)
-    {
-        temp_r2 = sub_08001A00(param_0, param_1);
-
-        if (var_r5 == 0)
-        {
-            gUnk_03002CB0.unk_100D = temp_r2;
-        }
-
-        if ((temp_r2 & 1) == 0)
-            break;
-
-        if (temp_r2 == 0xFF)
-        {
-            var_r1 = -(param_1 & 0xF) - 1;
-            var_r5 += var_r1;
-            param_1 += var_r1;
-            continue;
-        }
-
-        if (temp_r2 & 0xC0)
-        {
-            if (temp_r2 & 2)
-            {
-                var_r0_2 = 2;
-            }
-            else
-            {
-                var_r0_2 = 1;
-            }
-        }
-        else
-        {
-            var_r0_2 = 0;
-        }
-
-        if (var_r0_2 == 1)
-        {
-            var_r5 += -(param_1 & 7) - 1 + sub_08001B40(temp_r2, param_0);
-
-            if (var_r5 > 0)
-            {
-                var_r5 = 0;
-            }
-            break;
-        }
-
-        var_r1 = -(param_1 & 7) - 1;
-        var_r5 += var_r1;
-        param_1 += var_r1;
-    }
-    return var_r5;
-}
-
-/**
- * @brief 1E58 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @return s16 To document
- */
-s16 sub_08001E58(s32 param_0, s32 param_1, s32 param_2)
-{
-    s16 var_r1;
-    s16 var_r5;
-    u32 var_r0_2;
-    u8 temp_r2;
+    s16 step;
+    s16 push;
+    u32 slope;
+    u8 tile;
     u32 var_0;
     u8 var_1;
 
-    for (var_r5 = 0; var_r5 >= -8;)
+    for (push = 0; push < 9;)
     {
-        temp_r2 = sub_08001A00(param_0, param_1);
+        tile = Collision_GetTile(x, y);
 
-        if (var_r5 == 0)
+        if (push == 0)
         {
-            gUnk_03002CB0.unk_100D = temp_r2;
+            gUnk_03002CB0.collisionProbeFlags = tile;
         }
 
-        temp_r2 = sub_08001BA0(temp_r2, param_2);
-        if ((temp_r2 & 1) == 0)
+        tile = Collision_FilterTile(tile, mode);
+        if ((tile & 2) == 0)
             break;
 
-        if (temp_r2 == 0xFF)
+        if (tile == 0xFF)
         {
-            var_r1 = ~(param_1 & 0xF);
-            var_r5 += var_r1;
-            param_1 += var_r1;
+            step = 0x10 - (y & 0xF);
+            push += step;
+            y += step;
             continue;
         }
 
-        if (temp_r2 & 0xC0)
+        if (tile & 0xC0)
         {
-            if (temp_r2 & 2)
+            if (tile & 2)
             {
-                var_r0_2 = 2;
+                slope = 2;
             }
             else
             {
-                var_r0_2 = 1;
+                slope = 1;
             }
         }
         else
         {
-            var_r0_2 = 0;
+            slope = 0;
         }
 
-        if (var_r0_2 == 1)
+        if (slope == 2)
         {
-            var_r5 += -(param_1 & 7) - 1 + sub_08001B40(temp_r2, param_0);
+            push += 1 - (y & 7) + Collision_GetSlopeHeight(tile, x);
 
-            if (var_r5 > 0)
+            if (push < 0)
             {
-                var_r5 = 0;
+                push = 0;
             }
             break;
         }
 
-        var_r1 = -(param_1 & 7) - 1;
-        var_r5 += var_r1;
-        param_1 += var_r1;
+        step = 8 - (y & 7);
+        push += step;
+        y += step;
     }
-    return var_r5;
+    return push;
 }
 
 /**
- * @brief 1F3C | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @return s16 To document
+ * @brief 1D94 | Pixels to move up (negative) until the point leaves solid tiles
+ *
+ * @param x Room x
+ * @param y Room y
+ * @return s16 Distance (<= 0)
  */
-s32 sub_08001F3C(s32 param_0, s32 param_1)
+s16 Collision_GetPushUp(s32 x, s32 y)
 {
-    s16 var_r5;
-    u32 var_r0_2;
-    u8 temp_r2;
-    s16 var_0;
-    s32 var_1;
-    u32 var_3;
-    u32 var_4;
+    s16 step;
+    s16 push;
+    u32 slope;
+    u8 tile;
+    u32 var_0;
 
-    var_r5 = 0;
-
-    temp_r2 = sub_08001A00(param_0, param_1);
-
-    if (temp_r2 & 0xC0)
+    for (push = 0; push >= -8;)
     {
-        if (temp_r2 & 2)
+        tile = Collision_GetTile(x, y);
+
+        if (push == 0)
         {
-            var_r0_2 = 2;
+            gUnk_03002CB0.collisionProbeFlags = tile;
+        }
+
+        if ((tile & 1) == 0)
+            break;
+
+        if (tile == 0xFF)
+        {
+            step = -(y & 0xF) - 1;
+            push += step;
+            y += step;
+            continue;
+        }
+
+        if (tile & 0xC0)
+        {
+            if (tile & 2)
+            {
+                slope = 2;
+            }
+            else
+            {
+                slope = 1;
+            }
         }
         else
         {
-            var_r0_2 = 1;
+            slope = 0;
+        }
+
+        if (slope == 1)
+        {
+            push += -(y & 7) - 1 + Collision_GetSlopeHeight(tile, x);
+
+            if (push > 0)
+            {
+                push = 0;
+            }
+            break;
+        }
+
+        step = -(y & 7) - 1;
+        push += step;
+        y += step;
+    }
+    return push;
+}
+
+/**
+ * @brief 1E58 | Collision_GetPushUp with Collision_FilterTile(mode)
+ *
+ * @return s16 Distance (<= 0)
+ */
+s16 Collision_GetPushUpFiltered(s32 x, s32 y, s32 mode)
+{
+    s16 step;
+    s16 push;
+    u32 slope;
+    u8 tile;
+    u32 var_0;
+    u8 var_1;
+
+    for (push = 0; push >= -8;)
+    {
+        tile = Collision_GetTile(x, y);
+
+        if (push == 0)
+        {
+            gUnk_03002CB0.collisionProbeFlags = tile;
+        }
+
+        tile = Collision_FilterTile(tile, mode);
+        if ((tile & 1) == 0)
+            break;
+
+        if (tile == 0xFF)
+        {
+            step = ~(y & 0xF);
+            push += step;
+            y += step;
+            continue;
+        }
+
+        if (tile & 0xC0)
+        {
+            if (tile & 2)
+            {
+                slope = 2;
+            }
+            else
+            {
+                slope = 1;
+            }
+        }
+        else
+        {
+            slope = 0;
+        }
+
+        if (slope == 1)
+        {
+            push += -(y & 7) - 1 + Collision_GetSlopeHeight(tile, x);
+
+            if (push > 0)
+            {
+                push = 0;
+            }
+            break;
+        }
+
+        step = -(y & 7) - 1;
+        push += step;
+        y += step;
+    }
+    return push;
+}
+
+/**
+ * @brief Return 1 when the room point is inside solid collision, taking the
+ * slope height of slope tiles into account.
+ */
+s32 Collision_IsPointSolid(s32 x, s32 y)
+{
+    s16 solid;
+    u32 kind;
+    u8 tile;
+    s16 height;
+    s32 diff;
+    u32 slope;
+    u32 platform;
+
+    solid = 0;
+
+    tile = Collision_GetTile(x, y);
+
+    if (tile & 0xC0)
+    {
+        if (tile & 2)
+        {
+            kind = 2;
+        }
+        else
+        {
+            kind = 1;
         }
     }
     else
     {
-        var_r0_2 = 0;
+        kind = 0;
     }
-    var_3 = var_r0_2;
+    slope = kind;
 
-    if (temp_r2 & 8)
+    if (tile & 8)
     {
-        if (temp_r2 & 1)
+        if (tile & 1)
         {
-            var_r0_2 = 2;
+            kind = 2;
         }
         else
         {
-            var_r0_2 = 1;
+            kind = 1;
         }
     }
     else
     {
-        var_r0_2 = 0;
+        kind = 0;
     }
-    var_4 = var_r0_2;
+    platform = kind;
 
-    if (var_3 != 0 && var_4 != 0)
+    if (slope != 0 && platform != 0)
     {
-        var_0 = sub_08001B40(temp_r2, param_0);
-        temp_r2 = param_1 & 7;
-        if (var_3 == 1)
+        height = Collision_GetSlopeHeight(tile, x);
+        tile = y & 7;
+        if (slope == 1)
         {
-            var_0++,var_0--; // Fake
-            var_1 = var_0 - temp_r2;
+            height++,height--; // Fake
+            diff = height - tile;
         }
         else
         {
-            var_1 = temp_r2 - var_0;
+            diff = tile - height;
         }
-        var_0 = var_1;
+        height = diff;
 
-        switch (var_4)
+        switch (platform)
         {
             case 1:
-                if (var_0 <= 0)
+                if (height <= 0)
                 {
-                    var_r5 = 1;
+                    solid = 1;
                 }
                 break;
 
             case 2:
-                if (var_0 >= 0)
+                if (height >= 0)
                 {
-                    var_r5 = 1;
+                    solid = 1;
                 }
                 break;
         }
     }
 
-    else if (var_4 != 0)
+    else if (platform != 0)
     {
-        var_r5 = 1;
+        solid = 1;
     }
 
-    return var_r5;
+    return solid;
 }
 
 /**
- * @brief 1FE8 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @return u8 To document
+ * @brief 1FE8 | Collision_GetTile at an offset from an entity (screen to room)
+ *
+ * @param entity Entity
+ * @param dx X offset in pixels
+ * @param dy Y offset in pixels
+ * @return u8 Tile collision flags
  */
-u8 sub_08001FE8(struct EwramData_EntityData *param_0, s32 param_1, s32 param_2)
+u8 Collision_GetTileAtEntity(struct EwramData_EntityData *entity, s32 dx, s32 dy)
 {
-    struct EwramData_unkA078 *bg1Info;
+    struct BgLayerState *bg1Info;
 
     bg1Info = &gEwramData->bgInfo[1];
-    return sub_08001A00((s16)bg1Info->xPos.part16.integer + (s16)param_0->unk_524.unk_524_16.unk_526 + param_1, (s16)bg1Info->yPos.part16.integer + param_0->unk_528.unk_528_16.unk_52A + param_2);
+    return Collision_GetTile((s16)bg1Info->xPos.part16.integer + (s16)entity->posX.part16.integer + dx, (s16)bg1Info->yPos.part16.integer + entity->posY.part16.integer + dy);
 }
 
 /**
- * @brief 2028 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @return u8 To document
+ * @brief 2028 | Collision_GetTile at a screen position
+ *
+ * @return u8 Tile collision flags
  */
-u8 sub_08002028(s32 param_0, s32 param_1)
+u8 Collision_GetTileOnScreen(s32 x, s32 y)
 {
-    struct EwramData_unkA078 *bg1Info;
+    struct BgLayerState *bg1Info;
 
     bg1Info = &gEwramData->bgInfo[1];
-    return sub_08001A00((s16)bg1Info->xPos.part16.integer + param_0, (s16)bg1Info->yPos.part16.integer + param_1);
+    return Collision_GetTile((s16)bg1Info->xPos.part16.integer + x, (s16)bg1Info->yPos.part16.integer + y);
 }
 
 /**
- * @brief 2058 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @return s16 To document
+ * @brief 2058 | Pixels to move left (negative) out of a solid non-slope tile
+ *
+ * @return s16 Distance (<= 0)
  */
-s16 sub_08002058(s32 param_0, s32 param_1)
+s16 Collision_GetPushLeft(s32 x, s32 y)
 {
-    return sub_080022E8(param_0, param_1, sub_08001A00(param_0, param_1));
+    return Collision_TileEdgeLeft(x, y, Collision_GetTile(x, y));
 }
 
 /**
- * @brief 207C | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @return s16 To document
+ * @brief 207C | Pixels to move right out of a solid non-slope tile
+ *
+ * @return s16 Distance (>= 0)
  */
-s16 sub_0800207C(s32 param_0, s32 param_1)
+s16 Collision_GetPushRight(s32 x, s32 y)
 {
-    return sub_080022A8(param_0, param_1, sub_08001A00(param_0, param_1));
+    return Collision_TileEdgeRight(x, y, Collision_GetTile(x, y));
 }
 
 /**
- * @brief 20A0 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @return s16 To document
+ * @brief For a tile with bit 0 (top surface) at room position (x, y), return the
+ * negative distance -(y mod 16) - 1 for a solid 16x16 block (0xFF) or
+ * -(y mod 8) - 1 otherwise; 0 when the tile has no top surface.
  */
-s16 sub_080020A0(s32 param_0, s32 param_1)
+s16 Collision_GetGroundOffset(s32 x, s32 y)
 {
-    s16 var_r4;
-    s32 temp_r1;
+    s16 offset;
+    s32 tile;
 
-    var_r4 = 0;
+    offset = 0;
 
-    temp_r1 = sub_08001A00(param_0, param_1);
-    if (temp_r1 & 1)
+    tile = Collision_GetTile(x, y);
+    if (tile & 1)
     {
-        if (temp_r1 == 0xFF)
+        if (tile == 0xFF)
         {
-            var_r4 = ~MOD_AND(param_1, 16);
+            offset = ~MOD_AND(y, 16);
         }
         else
         {
-            var_r4 = ~MOD_AND(param_1, 8);
+            offset = ~MOD_AND(y, 8);
         }
     }
 
-    return var_r4;
+    return offset;
 }
 
 /**
- * @brief 20D8 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @return s16 To document
+ * @brief 20D8 | Collision_GetPushLeft with Collision_FilterTile(mode)
+ *
+ * @return s16 Distance
  */
-s16 sub_080020D8(s32 param_0, s32 param_1, s32 param_2)
+s16 Collision_GetPushLeftFiltered(s32 x, s32 y, s32 mode)
 {
-    return sub_080022E8(param_0, param_1, sub_08001BA0(sub_08001A00(param_0, param_1), param_2));
+    return Collision_TileEdgeLeft(x, y, Collision_FilterTile(Collision_GetTile(x, y), mode));
 }
 
 /**
- * @brief 210C | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @return s16 To document
+ * @brief 210C | Collision_GetPushRight with Collision_FilterTile(mode)
+ *
+ * @return s16 Distance
  */
-s16 sub_0800210C(s32 param_0, s32 param_1, s32 param_2)
+s16 Collision_GetPushRightFiltered(s32 x, s32 y, s32 mode)
 {
-    return sub_080022A8(param_0, param_1, sub_08001BA0(sub_08001A00(param_0, param_1), param_2));
+    return Collision_TileEdgeRight(x, y, Collision_FilterTile(Collision_GetTile(x, y), mode));
 }
 
 /**
- * @brief 2140 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @return s16 To document
+ * @brief Collision_GetGroundOffset with the tile flags passed through
+ * Collision_FilterTile(mode).
  */
-s16 sub_08002140(s32 param_0, s32 param_1, s32 param_2)
+s16 Collision_GetGroundOffsetFiltered(s32 x, s32 y, s32 mode)
 {
-    s16 var_r4;
-    s32 temp_r1;
+    s16 offset;
+    s32 tile;
 
-    var_r4 = 0;
+    offset = 0;
 
-    temp_r1 = sub_08001BA0( sub_08001A00(param_0, param_1), param_2);
-    if (temp_r1 & 1)
+    tile = Collision_FilterTile( Collision_GetTile(x, y), mode);
+    if (tile & 1)
     {
-        if (temp_r1 == 0xFF)
+        if (tile == 0xFF)
         {
-            var_r4 = ~MOD_AND(param_1, 16);
+            offset = ~MOD_AND(y, 16);
         }
         else
         {
-            var_r4 = ~MOD_AND(param_1, 8);
+            offset = ~MOD_AND(y, 8);
         }
     }
 
-    return var_r4;
+    return offset;
 }
 
 /**
@@ -1446,7 +1418,7 @@ s16 sub_08002140(s32 param_0, s32 param_1, s32 param_2)
  */
 s16 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity)
 {
-    return gEwramData->bgInfo[1].xPos.part16.integer + entity->unk_524.unk_524_16.unk_526;
+    return gEwramData->bgInfo[1].xPos.part16.integer + entity->posX.part16.integer;
 }
 
 /**
@@ -1457,7 +1429,7 @@ s16 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity)
  */
 s16 GetEntityRoomYPositionInteger(struct EwramData_EntityData *entity)
 {
-    return gEwramData->bgInfo[1].yPos.part16.integer + entity->unk_528.unk_528_16.unk_52A;
+    return gEwramData->bgInfo[1].yPos.part16.integer + entity->posY.part16.integer;
 }
 
 /**
@@ -1468,7 +1440,7 @@ s16 GetEntityRoomYPositionInteger(struct EwramData_EntityData *entity)
  */
 u32 GetEntityRoomXPositionWhole(struct EwramData_EntityData *entity)
 {
-    return gEwramData->bgInfo[1].xPos.whole + entity->unk_524.unk_524_32;
+    return gEwramData->bgInfo[1].xPos.whole + entity->posX.whole;
 }
 
 /**
@@ -1479,169 +1451,175 @@ u32 GetEntityRoomXPositionWhole(struct EwramData_EntityData *entity)
  */
 u32 GetEntityRoomYPositionWhole(struct EwramData_EntityData *entity)
 {
-    return gEwramData->bgInfo[1].yPos.whole + entity->unk_528.unk_528_32;
-}
-
-void sub_08002200(s32 arg0, s32 arg1)
-{
-    arg0 >>= 4;
-    arg1 >>= 4;
-
-    // TODO: cleanup
-    gEwramData->unk_F0C0[((arg1 << 2) + ((arg0 >> 5) << 9)) >> 2] |= 1 << (arg0 & 0x1F);
-    gEwramData->unk_A074_6 = 1;
-}
-
-void sub_08002248(s32 arg0, s32 arg1)
-{
-    arg0 >>= 4;
-    arg1 >>= 4;
-
-    // TODO: cleanup
-    gEwramData->unk_F0C0[((arg1 << 2) + ((arg0 >> 5) << 9)) >> 2] &= ~(1 << (arg0 & 0x1F));
+    return gEwramData->bgInfo[1].yPos.whole + entity->posY.whole;
 }
 
 /**
- * @brief 2278 | To document
- * 
+ * @brief 2200 | Make the 16x16 cell at a room position solid (collisionBlocks)
+ *
+ * @param x Room x
+ * @param y Room y
  */
-void sub_08002278(void)
+void Collision_SetBlock(s32 x, s32 y)
 {
-    DMA_FILL_32(3, 0, gEwramData->unk_F0C0, sizeof(gEwramData->unk_F0C0));
+    x >>= 4;
+    y >>= 4;
+
+    // TODO: cleanup
+    gEwramData->collisionBlocks[((y << 2) + ((x >> 5) << 9)) >> 2] |= 1 << (x & 0x1F);
+    gEwramData->collisionBlocksActive = 1;
 }
 
 /**
- * @brief 22A8 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @return s16 To document
+ * @brief 2248 | Clear the solid 16x16 cell at a room position
+ *
+ * @param x Room x
+ * @param y Room y
  */
-s16 sub_080022A8(s32 param_0, s32 param_1, u8 param_2)
+void Collision_ClearBlock(s32 x, s32 y)
 {
-    s16 var_r4;
+    x >>= 4;
+    y >>= 4;
 
-    var_r4 = 0;
+    // TODO: cleanup
+    gEwramData->collisionBlocks[((y << 2) + ((x >> 5) << 9)) >> 2] &= ~(1 << (x & 0x1F));
+}
 
-    if (param_2 & 2)
+/**
+ * @brief 2278 | Clear all solid cells of collisionBlocks
+ */
+void Collision_ClearAllBlocks(void)
+{
+    DMA_FILL_32(3, 0, gEwramData->collisionBlocks, sizeof(gEwramData->collisionBlocks));
+}
+
+/**
+ * @brief 22A8 | Distance from x to the right edge of a solid tile (8 or 16 px grid)
+ *
+ * @param x Room x
+ * @param y Room y (unused)
+ * @param tile Collision flags of the tile
+ * @return s16 Distance, 0 for non-solid or slope tiles
+ */
+s16 Collision_TileEdgeRight(s32 x, s32 y, u8 tile)
+{
+    s16 push;
+
+    push = 0;
+
+    if (tile & 2)
     {
-        if (param_2 == 0xFF)
+        if (tile == 0xFF)
         {
-            var_r4 = 16 - MOD_AND(param_0, 16);
+            push = 16 - MOD_AND(x, 16);
         }
-        else if (!(param_2 & 0xC0))
+        else if (!(tile & 0xC0))
         {
-            var_r4 = 8 - MOD_AND(param_0, 8);
+            push = 8 - MOD_AND(x, 8);
         }
     }
 
-    return var_r4;
+    return push;
 }
 
 /**
- * @brief 22E8 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @return s16 To document
+ * @brief 22E8 | Negative distance from x to the left edge of a solid tile
+ *
+ * @param x Room x
+ * @param y Room y (unused)
+ * @param tile Collision flags of the tile
+ * @return s16 Distance (<= -1), 0 for non-solid or slope tiles
  */
-s16 sub_080022E8(s32 param_0, s32 param_1, u8 param_2)
+s16 Collision_TileEdgeLeft(s32 x, s32 y, u8 tile)
 {
-    s16 var_r4;
+    s16 push;
 
-    var_r4 = 0;
+    push = 0;
 
-    if (param_2 & 2)
+    if (tile & 2)
     {
-        if (param_2 == 0xFF)
+        if (tile == 0xFF)
         {
-            var_r4 = ~MOD_AND(param_0, 16);
+            push = ~MOD_AND(x, 16);
         }
-        else if (!(param_2 & 0xC0))
+        else if (!(tile & 0xC0))
         {
-            var_r4 = ~MOD_AND(param_0, 8);
+            push = ~MOD_AND(x, 8);
         }
     }
 
-    return var_r4;
+    return push;
 }
 
 /**
- * @brief 2324 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
+ * @brief Fill the H-blank buffer with WIN1 horizontal bounds of a circle at
+ * (x, y) with radius r and set WIN1V.
  */
-void sub_08002324(s16 param_0, s16 param_1, s16 param_2)
+void Window1_SetCircle(s16 centerX, s16 centerY, s16 radius)
 {
     s16 *hBlankBuf;
-    s32 var_r0;
-    u16 temp_r5;
-    u16 temp_r7;
+    s32 clamped;
+    u16 top;
+    u16 bottom;
     s32 scanline;
-    u16 temp_r0_2;
-    u16 var_0;
-    u16 var_1;
+    u16 halfWidth;
+    u16 left;
+    u16 right;
     
     hBlankBuf = (s16*)&gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer];
 
-    var_r0 = param_1 - param_2;
-    if (var_r0 < 0)
+    clamped = centerY - radius;
+    if (clamped < 0)
     {
-        var_r0 = 0;
+        clamped = 0;
     }
-    temp_r5 = var_r0;
+    top = clamped;
 
-    var_r0 = param_1 + param_2 + 1;
-    if (var_r0 > SCREEN_SIZE_Y)
+    clamped = centerY + radius + 1;
+    if (clamped > SCREEN_SIZE_Y)
     {
-        var_r0 = SCREEN_SIZE_Y;
+        clamped = SCREEN_SIZE_Y;
     }
-    temp_r7 = var_r0;
+    bottom = clamped;
 
-    gDisplayRegisters.win1V = (temp_r5 << 8) | temp_r7;
+    gDisplayRegisters.win1V = (top << 8) | bottom;
 
-    for (scanline = temp_r5; scanline < temp_r7; scanline += 1)
+    for (scanline = top; scanline < bottom; scanline += 1)
     {
-        temp_r0_2 = Sqrt(((param_2 * param_2) - ((param_1 - scanline) * (param_1 - scanline))) << 8) >> 4;
-        var_r0 = param_0 - temp_r0_2;
-        if (var_r0 < 0)
+        halfWidth = Sqrt(((radius * radius) - ((centerY - scanline) * (centerY - scanline))) << 8) >> 4;
+        clamped = centerX - halfWidth;
+        if (clamped < 0)
         {
-            var_r0 = 0;
+            clamped = 0;
         }
-        var_0 = var_r0;
+        left = clamped;
 
-        var_r0 = param_0 + temp_r0_2 + 1;
-        if (var_r0 > SCREEN_SIZE_X)
+        clamped = centerX + halfWidth + 1;
+        if (clamped > SCREEN_SIZE_X)
         {
-            var_r0 = SCREEN_SIZE_X;
+            clamped = SCREEN_SIZE_X;
         }
-        var_1 = var_r0;
+        right = clamped;
 
-        hBlankBuf[scanline] = (var_0 << 8) | var_1;
+        hBlankBuf[scanline] = (left << 8) | right;
     }
 
     gEwramData->hBlankEffect.requestStart = 1;
 }
 
 /**
- * @brief 2400 | To document
- * 
+ * @brief Enable window 1 and its per-line H-blank WIN1H updates.
  */
-void sub_08002400(void)
+void Window1_EnableHBlank(void)
 {
     gUnk_03002CB0.dispCnt |= DCNT_WIN1;
     HBlankEffectSetup(160, SCREEN_SIZE_Y - 1, 2, REG_WIN1H);
 }
 
 /**
- * @brief 2428 | To document
- * 
+ * @brief Disable window 1 and stop the H-blank effect.
  */
-void sub_08002428(void)
+void Window1_Disable(void)
 {
     gUnk_03002CB0.dispCnt &= ~DCNT_WIN1;
     gEwramData->hBlankEffect.requestStop = 1;

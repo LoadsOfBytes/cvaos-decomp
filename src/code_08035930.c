@@ -29,32 +29,32 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-struct Unk_084F1444 {
-    u8 *unk_0; // pointer to string
-    void *unk_4; // func ptr
+struct Debug1967MenuEntry {
+    u8 *label; // pointer to string
+    void *handler; // func ptr
 }; /* size = 0x8 */
-struct Unk_084F1444 sUnk_084F1444[] = {
+struct Debug1967MenuEntry sDebug1967MenuEntries[] = {
     [0] = {
-        .unk_0 = "ENEMY",
-        .unk_4 = sub_08035D00
+        .label = "ENEMY",
+        .handler = Debug1967_EnemyTest
     },
     [1] = {
-        .unk_0 = "SDTEST",
-        .unk_4 = sub_080361B4
+        .label = "SDTEST",
+        .handler = Debug1967_SoundTest
     },
     [2] = {
-        .unk_0 = "START",
-        .unk_4 = sub_08035B3C
+        .label = "START",
+        .handler = Debug1967_StartGame
     },
     [3] = {
-        .unk_0 = "OBJTEST",
-        .unk_4 = sub_0803630C
+        .label = "OBJTEST",
+        .handler = Debug1967_ObjTest
     }
 };
 
 const u8 pad_080e1f72[] = {0, 0};
 
-// TODO: used by sub_08035868, so seemingly externed?
+// TODO: used by DebugPlatform_Update, so seemingly externed?
 const u8 sUnk_080E1F74[24] = {
     0x01, 0x00, 0x00, 0x00, 0xF1, 0x20, 0x02, 0x08, 0xB9, 0x57, 0x03, 0x08, 0xF1, 0x20, 0x02, 0x08, 
     0xF1, 0x20, 0x02, 0x08, 0x6D, 0x63, 0x03, 0x08, 
@@ -68,23 +68,23 @@ const u8 sUnk_080E1F74[24] = {
 s32 GameModeDebug1967Update(void)
 {
     s32 gameMode;
-    struct Unk_084F1444 *var_r6;
-    u32 var_r4;
+    struct Debug1967MenuEntry *option;
+    u32 i;
 
     gameMode = GAME_MODE_SAME_MODE;
-    var_r6 = sUnk_084F1444;
+    option = sDebug1967MenuEntries;
 
     switch (gEwramData->gameModeUpdateStage)
     {
         case 0:
-            gEwramData->unk_1261C.unk_11DDC[0][0] = 0xFFFF;
-            gEwramData->unk_1261C.unk_123E1 = 0;
+            gEwramData->bgPalette.base[0][0] = 0xFFFF;
+            gEwramData->bgPalette.uploaded = 0;
             gDisplayRegisters.bgCnt[0] = 0x1C00;
 
-            for (var_r4 = 0; var_r4 < 4; var_r4++)
+            for (i = 0; i < 4; i++)
             {
-                BgCmdBuffer_WriteString(8, var_r4 * 2 + 4, 1, var_r6->unk_0);
-                var_r6 += 1;
+                BgCmdBuffer_WriteString(8, i * 2 + 4, 1, option->label);
+                option += 1;
             }
 
             gEwramData->gameModeUpdateStage += 1;
@@ -93,29 +93,29 @@ s32 GameModeDebug1967Update(void)
         case 1:
             if (gEwramData->inputData.repeatedInput & 0x80)
             {
-                if (gEwramData->unk_12 < 3)
+                if (gEwramData->gameModeSubStage < 3)
                 {
-                    gEwramData->unk_12 += 1;
+                    gEwramData->gameModeSubStage += 1;
                 }
             }
             else if (gEwramData->inputData.repeatedInput & 0x40)
             {
-                if (gEwramData->unk_12 != 0)
+                if (gEwramData->gameModeSubStage != 0)
                 {
-                    gEwramData->unk_12 -= 1;
+                    gEwramData->gameModeSubStage -= 1;
                 }
             }
 
-            for (var_r4 = 0; var_r4 < 4; var_r4++)
+            for (i = 0; i < 4; i++)
             {
-                BgCmdBuffer_WriteString(6, var_r4 * 2 + 4, 1, " ");
+                BgCmdBuffer_WriteString(6, i * 2 + 4, 1, " ");
             }
 
-            BgCmdBuffer_WriteString(6, gEwramData->unk_12 * 2 + 4, 1, "+");
+            BgCmdBuffer_WriteString(6, gEwramData->gameModeSubStage * 2 + 4, 1, "+");
             if (gEwramData->inputData.newInput & 1)
             {
-                DMA_FILL_32(3, 0, &gEwramData->unk_254D0, sizeof(gEwramData->unk_254D0));
-                gEwramData->unk_60.unk_64 = gEwramData->unk_60.unk_65 = gEwramData->unk_60.unk_66 = 0;
+                DMA_FILL_32(3, 0, &gEwramData->debugMenuWork, sizeof(gEwramData->debugMenuWork));
+                gEwramData->gameState.subMode = gEwramData->gameState.subModeStep = gEwramData->gameState.subModeCounter = 0;
                 gEwramData->gameModeUpdateStage += 1;
             }
             break;
@@ -126,7 +126,7 @@ s32 GameModeDebug1967Update(void)
             break;
 
         case 3:
-            gameMode = ((s32 (*)(void))sUnk_084F1444[gEwramData->unk_12].unk_4)();
+            gameMode = ((s32 (*)(void))sDebug1967MenuEntries[gEwramData->gameModeSubStage].handler)();
             break;
     }
 
@@ -136,48 +136,47 @@ s32 GameModeDebug1967Update(void)
 const u8 pad_080e1f92[] = {0,0};
 
 /**
- * @brief 35AB0 | To document
- * 
- * @param param_0 To document
+ * @brief Unreferenced: every 100 calls create a DebugTestEnemy entity in the
+ * first free of five slots, forgetting slots whose entity was freed.
  */
-void sub_08035AB0(struct Unk_08035AB0 *param_0)
+void Debug1967_UpdateTestEnemySpawner(struct DebugEnemySpawnerState *spawner)
 {
-    s32 var_r5;
-    struct EwramData_EntityData *temp_r0_5;
+    s32 i;
+    struct EwramData_EntityData *child;
 
-    switch (param_0->unk_A)
+    switch (spawner->state)
     {
         case 0:
-            for (var_r5 = 0; var_r5 < 5; var_r5++)
+            for (i = 0; i < 5; i++)
             {
-                param_0->unk_10[var_r5] = NULL;
+                spawner->spawnedEntities[i] = NULL;
             }
-            param_0->unk_D = 100;
-            param_0->unk_A += 1;
+            spawner->spawnCounter = 100;
+            spawner->state += 1;
             break;
 
         case 1:
-            if (param_0->unk_D++ < 100)
+            if (spawner->spawnCounter++ < 100)
                 break;
 
-            param_0->unk_D = 0;
+            spawner->spawnCounter = 0;
 
-            for (var_r5 = 0; var_r5 < 5; var_r5++)
+            for (i = 0; i < 5; i++)
             {
-                if (param_0->unk_10[var_r5] == NULL)
+                if (spawner->spawnedEntities[i] == NULL)
                 {
-                    temp_r0_5 = EntityCreateInRange(0x1B, 0x48, (u32*)&sub_0803647C);
-                    if (temp_r0_5 != NULL)
+                    child = EntityCreateInRange(0x1B, 0x48, (u32*)&DebugTestEnemy_Update);
+                    if (child != NULL)
                     {
-                        temp_r0_5->unk_524.unk_524_16.unk_526 = 160 + var_r5 * 10;
-                        temp_r0_5->unk_528.unk_528_16.unk_52A = 0x50;
-                        param_0->unk_10[var_r5] = temp_r0_5;
+                        child->posX.part16.integer = 160 + i * 10;
+                        child->posY.part16.integer = 0x50;
+                        spawner->spawnedEntities[i] = child;
                         break;
                     }
                 }
-                else if (param_0->unk_10[var_r5]->updateFunc == NULL)
+                else if (spawner->spawnedEntities[i]->updateFunc == NULL)
                 {
-                    param_0->unk_10[var_r5] = NULL;
+                    spawner->spawnedEntities[i] = NULL;
                 }
             }
 
@@ -186,316 +185,316 @@ void sub_08035AB0(struct Unk_08035AB0 *param_0)
 }
 
 /**
- * @brief 35B3C | To document
- * 
- * @return s32 To document
+ * @brief START entry: load room 0x0852269C with level 99 and fixed souls and
+ * equipment, then run entities, HUD and room transitions.
  */
-s32 sub_08035B3C(void)
+s32 Debug1967_StartGame(void)
 {
-    switch ((&gEwramData->unk_254D0)->unk_254D0)
+    switch ((&gEwramData->debugMenuWork)->state)
     {
         case 0:
-            gEwramData->unk_60.unk_88 = (struct EwramData_unk88 *)0x0852269C;
-            sub_08033E38(0x63);
-            sub_08021344(5, 3, 2);
-            sub_0804B26C(2, 0x19);
-            sub_0804B26C(0, 8);
-            sub_0804B26C(1, 0x24);
+            gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)0x0852269C;
+            Player_SetLevel(0x63);
+            Player_EquipSoulsAndRestore(5, 3, 2);
+            Player_EquipItem(2, 0x19);
+            Player_EquipItem(0, 8);
+            Player_EquipItem(1, 0x24);
             return 4;
 
         case 1:
-            sub_08000B64();
-            if (!gEwramData->unk_A074_0)
+            Entity_UpdateAll();
+            if (!gEwramData->paused)
             {
-                sub_0800CA40();
+                InGame_UpdateTimerAndHud();
             }
-            sub_08011CD0();
+            ScreenShake_Update();
 
-            if (sub_08011A44(gEwramData->unk_13110.unk_13110) == 0)
+            if (Room_IsPlayerInside(gEwramData->playerState.player) == 0)
             {
-                sub_08010244(&gEwramData->unk_60);
-                (&gEwramData->unk_254D0)->unk_254D0 = 2;
+                RoomTransition_Begin(&gEwramData->gameState);
+                (&gEwramData->debugMenuWork)->state = 2;
             }
             else
             {
-                sub_0800F750();
+                RoomEntity_SpawnOnScroll();
             }
             break;
 
         case 2:
-            sub_08000B64();
-            if (sub_080104EC(&gEwramData->unk_60) != 0)
+            Entity_UpdateAll();
+            if (RoomTransition_Update(&gEwramData->gameState) != 0)
             {
-                sub_08011430(&gEwramData->unk_60);
-                (&gEwramData->unk_254D0)->unk_254D0 = 1;
+                Map_MarkCurrentCell(&gEwramData->gameState);
+                (&gEwramData->debugMenuWork)->state = 1;
             }
             break;
     }
 
-    sub_0801266C();
+    ItemIconCache_InvalidateUpload();
     return -1;
 }
 
-extern const u16 sUnk_080EA628[];
+extern const u16 sEnemyNameTextIds[];
 
 // TODO: very similar to GameModeSoundTestMenu_inlines
 // TODO: also clean all this mess up
-static inline void sub_08035C14_inline_2(s32 var_5, s32 var_2, s16 *temp_r2, s32 var_1)
+static inline void Debug1967_WrapEnemyValue(s32 value, s32 max, s16 *dst, s32 wrapTo)
 {
-    if (var_5 > var_2)
+    if (value > max)
     {
-        *temp_r2 = var_1;
+        *dst = wrapTo;
     }
-    else if (var_5 < 0)
+    else if (value < 0)
     {
-        *temp_r2 = var_2;
+        *dst = max;
     }
 }
 
-static inline s32 sub_08035C14_inline_1(s16 *temp_r3_2)
+static inline s32 Debug1967_AdjustEnemySelection(s16 *value)
 {
-    s32 var_6;
-    s32 temp_r5;
+    s32 zero;
+    s32 max;
     u16 var;
-    u32 var_1;
-    u32 var_3;
+    u32 upKey;
+    u32 rightKey;
 
-    var = (&gEwramData->unk_254D0)->unk_254D6;
-    var_1 = 0x40;
+    var = (&gEwramData->debugMenuWork)->selection;
+    upKey = 0x40;
     do {
-        var_6 = 0;
+        zero = 0;
     } while(0);
-    temp_r5 = 0x70;
+    max = 0x70;
 
-    if (gEwramData->inputData.repeatedInput & var_1) // KEY_UP
+    if (gEwramData->inputData.repeatedInput & upKey) // KEY_UP
     {
-        *temp_r3_2 += 1;
+        *value += 1;
     }
-    else if (gEwramData->inputData.repeatedInput & (var_1 << 1)) // KEY_DOWN
+    else if (gEwramData->inputData.repeatedInput & (upKey << 1)) // KEY_DOWN
     {
-        *temp_r3_2 -= 1;
-    }
-
-    if (gEwramData->inputData.repeatedInput & (var_3 = 0x10)) // KEY_RIGHT
-    {
-        *temp_r3_2 += 10;
-    }
-    if (gEwramData->inputData.repeatedInput & (var_3 << 1)) // KEY_LEFT
-    {
-        *temp_r3_2 -= 10;
+        *value -= 1;
     }
 
-    sub_08035C14_inline_2(*temp_r3_2, temp_r5, temp_r3_2, var_6);
+    if (gEwramData->inputData.repeatedInput & (rightKey = 0x10)) // KEY_RIGHT
+    {
+        *value += 10;
+    }
+    if (gEwramData->inputData.repeatedInput & (rightKey << 1)) // KEY_LEFT
+    {
+        *value -= 10;
+    }
+
+    Debug1967_WrapEnemyValue(*value, max, value, zero);
     return var;
 }
 
 /**
- * @brief 35C14 | To document
- * 
- * @return s32 To document
+ * @brief Change the selected enemy id (0..0x70) with Up/Down/Left/Right,
+ * reprint its name, and on A or B choose 1 or 5 enemies; return 1 on a
+ * choice.
  */
-s32 sub_08035C14(void)
+s32 Debug1967_HandleEnemySelectInput(void)
 {
     u8 pad[0x40];
-    s16 var_0;
+    s16 prevEnemy;
 
-    var_0 = sub_08035C14_inline_1(&(&gEwramData->unk_254D0)->unk_254D6);
+    prevEnemy = Debug1967_AdjustEnemySelection(&(&gEwramData->debugMenuWork)->selection);
 
-    if (var_0 != (&gEwramData->unk_254D0)->unk_254D6)
+    if (prevEnemy != (&gEwramData->debugMenuWork)->selection)
     {
-        sub_08040970(0, 1, 0xF, 1);
-        sub_08041204();
-        sub_08041338((struct unk_08506B38 *) sub_08041434(sUnk_080EA628[(&gEwramData->unk_254D0)->unk_254D6]), 0);
+        Text8_SetRegion(0, 1, 0xF, 1);
+        Text8_ClearRegion();
+        Text8_Print((struct unk_08506B38 *) Text_GetLocalizedEntry(sEnemyNameTextIds[(&gEwramData->debugMenuWork)->selection]), 0);
     }
 
     if (gEwramData->inputData.newInput & 1)
     {
-        (&gEwramData->unk_254D0)->unk_254D1 = 1;
+        (&gEwramData->debugMenuWork)->spawnCount = 1;
         return 1;
     }
 
     if (gEwramData->inputData.newInput & 2)
     {
-        (&gEwramData->unk_254D0)->unk_254D1 = 5;
+        (&gEwramData->debugMenuWork)->spawnCount = 5;
         return 1;
     }
 
     return 0;
 }
 
-struct Unk_080E9644 {
-    void *unk_0;
-    void *unk_4;
+/* Local 0x24-byte template-table view: retain this TU's types and padding. */
+struct EnemyTemplateView {
+    void *createFunc;
+    void *updateFunc;
     u8 pad_8[0xC - 0x8];
-    u16 unk_C;
+    u16 hp;
     u8 pad_E[0x24 - 0xE];
 }; /* size = 0x24 */
-extern const struct Unk_080E9644 sUnk_080E9644[];
+extern const struct EnemyTemplateView sEnemyData[];
 
-// TODO: sub_08046DD4 is implicitly called in other files, it may be implicit here too
+// TODO: HudMap_WriteTiles is implicitly called in other files, it may be implicit here too
 
 /**
- * @brief 35D00 | To document
- * 
- * @return s32 To document
+ * @brief ENEMY entry: choose an enemy from sEnemyData, load the test room
+ * with a levelled player and spawn the chosen number of that enemy;
+ * L+R returns to the selection.
  */
-s32 sub_08035D00(void)
+s32 Debug1967_EnemyTest(void)
 {
     u8 pad[0x40];
-    s32 var_r3;
-    s32 var_r8;
-    struct EwramData_EntityData *temp_r0_2;
-    struct EwramData_unk1325C *temp_r7;
-    struct EwramData_unk60 *temp_r6;
-    const struct Unk_080E9644 *temp_r0_3;
-    s32 var_5;
-    s32 var_6;
-    struct EwramData_unkA078 *bg1Info;
+    s32 flip;
+    s32 i;
+    struct EwramData_EntityData *child;
+    struct PlayerStatus *playerStatus;
+    struct GameState *gameState;
+    const struct EnemyTemplateView *enemy;
+    s32 x;
+    s32 halfWidth;
+    struct BgLayerState *bg1Info;
 
-    temp_r6 = &gEwramData->unk_60;
-    temp_r7 = &gEwramData->unk_1325C;
+    gameState = &gEwramData->gameState;
+    playerStatus = &gEwramData->playerStatus;
 
-    switch ((&gEwramData->unk_254D0)->unk_254D0)
+    switch ((&gEwramData->debugMenuWork)->state)
     {
         case 0:
-            sub_080412DC(VRAM_BASE);
-            sub_080412F0(1);
-            sub_08041304(0);
-            sub_08040970(0, 1, 0x10, 1);
-            sub_08041204();
-            sub_08041338((struct unk_08506B38 *) sub_08041434(sUnk_080EA628[(&gEwramData->unk_254D0)->unk_254D6]), 0);
-            sub_08046DD4(8, 0xC, 0x1020, 0xA);
-            (&gEwramData->unk_254D0)->unk_254D0 = 1;
+            Text_SetTileBuffer(VRAM_BASE);
+            Text_SetForegroundColor(1);
+            Text_SetBackgroundColor(0);
+            Text8_SetRegion(0, 1, 0x10, 1);
+            Text8_ClearRegion();
+            Text8_Print((struct unk_08506B38 *) Text_GetLocalizedEntry(sEnemyNameTextIds[(&gEwramData->debugMenuWork)->selection]), 0);
+            HudMap_WriteTiles(8, 0xC, 0x1020, 0xA);
+            (&gEwramData->debugMenuWork)->state = 1;
             /* fallthrough */
         case 1:
-            if (sub_08035C14() == 0)
+            if (Debug1967_HandleEnemySelectInput() == 0)
             {
                 break;
             }
 
-            (&gEwramData->unk_254D0)->unk_254D0 = 2;
+            (&gEwramData->debugMenuWork)->state = 2;
         case 2:
-            gEwramData->unk_60.unk_88 = (struct EwramData_unk88 *)0x085241E0;
-            temp_r7->currentLevel = 0;
-            sub_0800C5D8();
-            (&gEwramData->unk_254D0)->unk_254D0 = 3;
+            gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)0x085241E0;
+            playerStatus->currentLevel = 0;
+            InGame_InitScene();
+            (&gEwramData->debugMenuWork)->state = 3;
 
             if (gEwramData->inputData.heldInput & 0x100)
             {
-                sub_08033E38(0x1E);
+                Player_SetLevel(0x1E);
             }
             else if (gEwramData->inputData.heldInput & 0x200)
             {
-                sub_08033E38(0x14);
+                Player_SetLevel(0x14);
             }
             else if (gEwramData->inputData.heldInput & 8)
             {
-                sub_08033E38(0xA);
+                Player_SetLevel(0xA);
             }
             else if (gEwramData->inputData.heldInput & 4)
             {
-                sub_08033E38(0x32);
+                Player_SetLevel(0x32);
             }
             else
             {
-                sub_08033E38(0x63);
+                Player_SetLevel(0x63);
             }
 
-            sub_08021344(5, 4, 0);
-            sub_0804B26C(2, 8);
-            sub_0804B26C(0, 5);
-            sub_0804B26C(1, 0x27);
+            Player_EquipSoulsAndRestore(5, 4, 0);
+            Player_EquipItem(2, 8);
+            Player_EquipItem(0, 5);
+            Player_EquipItem(1, 0x27);
             break;
 
         case 3:
-            sub_080213BC();
+            Player_RestoreHPAndMP();
 
-            for (var_r8 = 0; var_r8 < (&gEwramData->unk_254D0)->unk_254D1; var_r8++)
+            for (i = 0; i < (&gEwramData->debugMenuWork)->spawnCount; i++)
             {
-                temp_r0_2 = EntityCreateInRange(0x1B, 0x48, (u32 *) EntityUpdateNothing);
-                if (temp_r0_2 == NULL)
+                child = EntityCreateInRange(0x1B, 0x48, (u32 *) EntityUpdateNothing);
+                if (child == NULL)
                     continue;
 
-                var_5 = (var_r8 << 5) + 0x100;
-                var_6 = ((u32)(&gEwramData->unk_254D0)->unk_254D1 >> 1) << 5;
-                var_5 -= var_6;
+                x = (i << 5) + 0x100;
+                halfWidth = ((u32)(&gEwramData->debugMenuWork)->spawnCount >> 1) << 5;
+                x -= halfWidth;
                 bg1Info = &gEwramData->bgInfo[1];
-                temp_r0_2->unk_524.unk_524_16.unk_526 = var_5 - bg1Info->xPos.part16.integer;
-                temp_r0_2->unk_528.unk_528_16.unk_52A = 0x90 - bg1Info->yPos.part16.integer;
+                child->posX.part16.integer = x - bg1Info->xPos.part16.integer;
+                child->posY.part16.integer = 0x90 - bg1Info->yPos.part16.integer;
 
-                var_r3 = 0;
-                if (temp_r0_2->unk_524.unk_524_32 < gEwramData->unk_13110.unk_13110->unk_524.unk_524_32)
+                flip = 0;
+                if (child->posX.whole < gEwramData->playerState.player->posX.whole)
                 {
-                    var_r3 = 1;
+                    flip = 1;
                 }
-                temp_r0_2->unk_53C_6 = var_r3;
-                temp_r0_2->unk_53D_1 = 1;
+                child->flipX = flip;
+                child->scrollWithBg = 1;
 
-                temp_r0_2->unk_514.unk_514_16.unk_514 = 0;
-                temp_r0_2->unk_514.unk_514_16.unk_516 = 0;
-                temp_r0_2->unk_518.unk_518_8.unk_51B = 0;
-                temp_r0_2->unk_518.unk_518_8.unk_51A = (&gEwramData->unk_254D0)->unk_254D6;
-                temp_r0_2->drawFunc = (u32 *) sub_0803B9D0;
-                temp_r0_3 = &sUnk_080E9644[(&gEwramData->unk_254D0)->unk_254D6];
-                temp_r0_2->unk_518.unk_518_16.unk_518 = temp_r0_3->unk_C;
-                temp_r0_2->updateFunc = (u32 *) temp_r0_3->unk_4;
-                ((void (*)(struct EwramData_EntityData *)) temp_r0_3->unk_0)(temp_r0_2);
+                child->unk_514.part16.spawnParam0 = 0;
+                child->unk_514.part16.spawnParam1 = 0;
+                child->unk_518.part8.spawnIndex = 0;
+                child->unk_518.part8.enemyId = (&gEwramData->debugMenuWork)->selection;
+                child->drawFunc = (u32 *) Sprite_DrawEntity;
+                enemy = &sEnemyData[(&gEwramData->debugMenuWork)->selection];
+                child->unk_518.part16.hp = enemy->hp;
+                child->updateFunc = (u32 *) enemy->updateFunc;
+                ((void (*)(struct EwramData_EntityData *)) enemy->createFunc)(child);
             }
 
-            (&gEwramData->unk_254D0)->unk_254D0 = 4;
+            (&gEwramData->debugMenuWork)->state = 4;
             break;
 
         case 4:
-            sub_08000B64();
-            if (!(gEwramData->unk_A074_0))
+            Entity_UpdateAll();
+            if (!(gEwramData->paused))
             {
-                sub_0800CA40();
+                InGame_UpdateTimerAndHud();
             }
-            sub_08011CD0();
+            ScreenShake_Update();
 
-            if (sub_08011A44(gEwramData->unk_13110.unk_13110) == 0)
+            if (Room_IsPlayerInside(gEwramData->playerState.player) == 0)
             {
-                sub_08010244(&gEwramData->unk_60);
-                (&gEwramData->unk_254D0)->unk_254D0 = 5;
+                RoomTransition_Begin(&gEwramData->gameState);
+                (&gEwramData->debugMenuWork)->state = 5;
             }
             else
             {
-                sub_0800F750();
+                RoomEntity_SpawnOnScroll();
             }
 
             if ((gEwramData->inputData.heldInput & (0x200 | 0x100)) == (0x200 | 0x100))
             {
-                (&gEwramData->unk_254D0)->unk_254D0 = 7;
+                (&gEwramData->debugMenuWork)->state = 7;
                 EntityDeleteAll();
-                sub_0803D9A8();
-                sub_0803E438();
-                sub_08039DC0();
-                sub_0803BEEC();
-                sub_0804059C();
+                ObjTiles_Init();
+                Obj_Init();
+                Sprite_Init();
+                Palette_Init();
+                Text_Initialize();
             }
-            else if ((gEwramData->inputData.newInput & 1) && gEwramData->unk_A074_0)
+            else if ((gEwramData->inputData.newInput & 1) && gEwramData->paused)
             {
-                sub_080473F4(temp_r6);
-                (&gEwramData->unk_254D0)->unk_254D0 = 6;
+                PauseMenu_Enter(gameState);
+                (&gEwramData->debugMenuWork)->state = 6;
             }
             else
             {
-                sub_0801266C();
+                ItemIconCache_InvalidateUpload();
             }
             break;
 
         case 5:
-            sub_08000B64();
-            if (sub_080104EC(&gEwramData->unk_60) != 0)
+            Entity_UpdateAll();
+            if (RoomTransition_Update(&gEwramData->gameState) != 0)
             {
-                (&gEwramData->unk_254D0)->unk_254D0 = 3;
+                (&gEwramData->debugMenuWork)->state = 3;
             }
             break;
 
         case 6:
-            if (sub_08047764(temp_r6) != 0)
+            if (PauseMenu_Update(gameState) != 0)
             {
-                (&gEwramData->unk_254D0)->unk_254D0 = 4;
+                (&gEwramData->debugMenuWork)->state = 4;
             }
             break;
 
@@ -504,9 +503,9 @@ s32 sub_08035D00(void)
             DMA_FILL_32(3, 0, VRAM_BASE + 0xE800, 0x800);
             DMA_FILL_32(3, 0, VRAM_BASE + 0xF000, 0x800);
             DMA_FILL_32(3, 0, VRAM_BASE + 0xF800, 0x800);
-            gEwramData->unk_1261C.unk_11DDC[0][0] = 0xFFFF;
-            gEwramData->unk_1261C.unk_123E1 = 0;
-            (&gEwramData->unk_254D0)->unk_254D0 = 0;
+            gEwramData->bgPalette.base[0][0] = 0xFFFF;
+            gEwramData->bgPalette.uploaded = 0;
+            (&gEwramData->debugMenuWork)->state = 0;
             break;
     }
 
@@ -514,178 +513,176 @@ s32 sub_08035D00(void)
 }
 
 // TODO: proper struct
-const u8 sUnk_080E1F94[] = {
+const u8 sDebug1967Gfx[] = {
     0x02, 0x04, 0x02, 0x01, 0xA4, 0x42, 0x1F, 0x08, 0xA8, 0x52, 0x1F, 0x08, 0xAC, 0x62, 0x1F, 0x08, 
     0xB0, 0x72, 0x1F, 0x08, 
 };
 
 /**
- * @brief 3610C | To document
- * 
- * @param param_0 TO document
+ * @brief OBJTEST viewer entity: show the sprite at 0x08252748 and step its
+ * animation index with Up/Down.
  */
-void sub_0803610C(struct EwramData_EntityData *param_0)
+void Debug1967ObjTestViewer_Update(struct EwramData_EntityData *entity)
 {
-    s32 temp_r4;
+    s32 gfx;
 
-    switch (param_0->unk_4EE)
+    switch (entity->state)
     {
         case 0:
-            temp_r4 = sub_0803B800((u8 *)sUnk_080E1F94, 0);
-            sub_0803C7B4((u8 *)0x0820C028, 0, 1, 0xA);
-            sub_0803B924(param_0, (void *)0x08252748, temp_r4, 0xA);
-            param_0->drawFunc = (u32 *) sub_0803B9D0;
-            param_0->unk_4EF = 0;
-            sub_0803F2C8(param_0, 0, 1, 1);
-            param_0->unk_4EE += 1;
+            gfx = ObjGfx_LoadResource((u8 *)sDebug1967Gfx, 0);
+            ObjPalette_LoadRange((u8 *)0x0820C028, 0, 1, 0xA);
+            Sprite_Attach(entity, (void *)0x08252748, gfx, 0xA);
+            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->subState = 0;
+            Anim_StartIndexed(entity, 0, 1, 1);
+            entity->state += 1;
             /* fallthrough */
         case 1:
             if (gEwramData->inputData.newInput & 0x40)
             {
-                param_0->unk_4EF -= 1;
+                entity->subState -= 1;
             }
             if (gEwramData->inputData.newInput & 0x80)
             {
-                param_0->unk_4EF += 1;
+                entity->subState += 1;
             }
 
-            if (param_0->unk_551 != param_0->unk_4EF)
+            if (entity->animScriptIndex != entity->subState)
             {
-                sub_0803F2C8(param_0, param_0->unk_4EF, 1, 1);
+                Anim_StartIndexed(entity, entity->subState, 1, 1);
             }
             break;
     }
 
-    sub_0803F17C(param_0);
+    Anim_Update(entity);
 }
 
-struct Unk_080E1FA8 {
-    u8 *unk_0;
-    s16 unk_4;
-    s16 unk_6;
+struct DebugSoundCategory {
+    u8 *label;
+    s16 minSoundId;
+    s16 maxSoundId;
 }; /* size = 0x8 */
-const struct Unk_080E1FA8 sUnk_080E1FA8[] = {
+const struct DebugSoundCategory sDebugSoundCategories[] = {
     [0] = {
-        .unk_0 = "BGM",
-        .unk_4 = 0,
-        .unk_6 = 0x24
+        .label = "BGM",
+        .minSoundId = 0,
+        .maxSoundId = 0x24
     },
     [1] = {
-        .unk_0 = "EFF1",
-        .unk_4 = 0x64,
-        .unk_6 = 0x170
+        .label = "EFF1",
+        .minSoundId = 0x64,
+        .maxSoundId = 0x170
     },
     [2] = {
-        .unk_0 = "VOICE",
-        .unk_4 = 0x190,
-        .unk_6 = 0x1EE
+        .label = "VOICE",
+        .minSoundId = 0x190,
+        .maxSoundId = 0x1EE
     }
 };
 
-static inline void sub_080361B4_inline_3(s32 var_5, s32 var_2, s16 *temp_r2, s32 var_1)
+static inline void Debug1967_WrapToRange(s32 value, s32 max, s16 *dst, s32 min)
 {
-    if (var_5 > var_2)
+    if (value > max)
     {
-        *temp_r2 = var_1;
+        *dst = min;
     }
-    else if (var_5 < var_1)
+    else if (value < min)
     {
-        *temp_r2 = var_2;
+        *dst = max;
     }
 }
 
-static inline void sub_080361B4_inline_2(s32 var_5, s32 var_2, s16 *temp_r2, s32 var_1)
+static inline void Debug1967_WrapValue(s32 value, s32 max, s16 *dst, s32 wrapTo)
 {
-    if (var_5 > var_2)
+    if (value > max)
     {
-        *temp_r2 = var_1;
+        *dst = wrapTo;
     }
-    else if (var_5 < 0)
+    else if (value < 0)
     {
-        *temp_r2 = var_2;
+        *dst = max;
     }
 }
 
-static inline void sub_080361B4_inline_1(const struct Unk_080E1FA8 *temp_r1_2, u32 var_1, s16 *temp_r3_2)
+static inline void Debug1967_AdjustSoundId(const struct DebugSoundCategory *entry, u32 rightKey, s16 *value)
 {
-    s32 var_6;
-    s32 temp_r5;
+    s32 min;
+    s32 max;
 
-    var_6 = temp_r1_2->unk_4;
-    temp_r5 = temp_r1_2->unk_6;
+    min = entry->minSoundId;
+    max = entry->maxSoundId;
 
-    if (gEwramData->inputData.repeatedInput & var_1) // KEY_RIGHT
+    if (gEwramData->inputData.repeatedInput & rightKey) // KEY_RIGHT
     {
-        *temp_r3_2 += 1;
+        *value += 1;
     }
-    else if (gEwramData->inputData.repeatedInput & (var_1 << 1)) // KEY_LEFT
+    else if (gEwramData->inputData.repeatedInput & (rightKey << 1)) // KEY_LEFT
     {
-        *temp_r3_2 -= 1;
-    }
-
-    if (gEwramData->inputData.repeatedInput & (var_1 << 4)) // KEY_R
-    {
-        *temp_r3_2 += 10;
-    }
-    if (gEwramData->inputData.repeatedInput & (var_1 << 5)) // KEY_L
-    {
-        *temp_r3_2 -= 10;
+        *value -= 1;
     }
 
-    sub_080361B4_inline_3(*temp_r3_2, temp_r5, temp_r3_2, var_6);
+    if (gEwramData->inputData.repeatedInput & (rightKey << 4)) // KEY_R
+    {
+        *value += 10;
+    }
+    if (gEwramData->inputData.repeatedInput & (rightKey << 5)) // KEY_L
+    {
+        *value -= 10;
+    }
+
+    Debug1967_WrapToRange(*value, max, value, min);
 }
 
-static inline void sub_080361B4_inline_0(u32 var_1, s16 *temp_r3_2)
+static inline void Debug1967_AdjustSoundCategory(u32 upKey, s16 *value)
 {
-    s32 var_6;
-    s32 temp_r5;
+    s32 zero;
+    s32 max;
 
     do {
-        var_6 = 0;
+        zero = 0;
     } while(0);
-    temp_r5 = 2;
+    max = 2;
 
-    if (gEwramData->inputData.repeatedInput & var_1) // KEY_UP
+    if (gEwramData->inputData.repeatedInput & upKey) // KEY_UP
     {
-        *temp_r3_2 += 1;
+        *value += 1;
     }
-    else if (gEwramData->inputData.repeatedInput & (var_1 >> 1)) // KEY_DOWN
+    else if (gEwramData->inputData.repeatedInput & (upKey >> 1)) // KEY_DOWN
     {
-        *temp_r3_2 -= 1;
+        *value -= 1;
     }
 
-    sub_080361B4_inline_2(*temp_r3_2, temp_r5, temp_r3_2, var_6);
+    Debug1967_WrapValue(*value, max, value, zero);
 }
 
 /**
- * @brief 361B4 | To document
- * 
- * @return s32 To document
+ * @brief SDTEST entry: pick BGM/EFF1/VOICE with Up/Down, change the id within
+ * the category range, A plays it and B stops audio.
  */
-s32 sub_080361B4(void)
+s32 Debug1967_SoundTest(void)
 {
     u8 pad[0x40];
-    s32 var_r2;
-    const struct Unk_080E1FA8 *temp_r1_2;
-    s32 var_0;
+    s32 i;
+    const struct DebugSoundCategory *entries;
+    s32 selected;
 
-    switch (gEwramData->unk_254D0.unk_254D0)
+    switch (gEwramData->debugMenuWork.state)
     {
         case 0:
-            gEwramData->unk_254D0.unk_254D0 = 1;
-            for (var_r2 = 0; var_r2 < 3; var_r2++)
+            gEwramData->debugMenuWork.state = 1;
+            for (i = 0; i < 3; i++)
             {
-                (&gEwramData->unk_254D0)->unk_254D8[var_r2] = sUnk_080E1FA8[var_r2].unk_4;
+                (&gEwramData->debugMenuWork)->entryValues[i] = sDebugSoundCategories[i].minSoundId;
             }
             /* fallthrough */
         case 1:
-            sub_080361B4_inline_0(0x80, &(&gEwramData->unk_254D0)->unk_254D6);
-            var_0 = (&gEwramData->unk_254D0)->unk_254D6;
-            temp_r1_2 = sUnk_080E1FA8;
-            sub_080361B4_inline_1(&temp_r1_2[var_0], 0x10, &(&gEwramData->unk_254D0)->unk_254D8[(&gEwramData->unk_254D0)->unk_254D6]);
+            Debug1967_AdjustSoundCategory(0x80, &(&gEwramData->debugMenuWork)->selection);
+            selected = (&gEwramData->debugMenuWork)->selection;
+            entries = sDebugSoundCategories;
+            Debug1967_AdjustSoundId(&entries[selected], 0x10, &(&gEwramData->debugMenuWork)->entryValues[(&gEwramData->debugMenuWork)->selection]);
             if (gEwramData->inputData.newInput & 1)
             {
-                PlaySong((&gEwramData->unk_254D0)->unk_254D8[(&gEwramData->unk_254D0)->unk_254D6]);
+                PlaySong((&gEwramData->debugMenuWork)->entryValues[(&gEwramData->debugMenuWork)->selection]);
             }
             if (gEwramData->inputData.newInput & 2)
             {
@@ -697,28 +694,26 @@ s32 sub_080361B4(void)
 }
 
 /**
- * @brief 3630C | To document
- * 
- * @return s32 To document
+ * @brief OBJTEST entry: create the viewer entity and update entities.
  */
-s32 sub_0803630C(void)
+s32 Debug1967_ObjTest(void)
 {
     u8 pad[0x40];
-    struct EwramData_EntityData *temp_r0_2;
+    struct EwramData_EntityData *child;
 
-    switch (gEwramData->unk_254D0.unk_254D0)
+    switch (gEwramData->debugMenuWork.state)
     {
         case 0:
-            temp_r0_2 = EntityCreateInRange(0x1B, 0x48, (u32 *) sub_0803610C);
-            if (temp_r0_2 != NULL)
+            child = EntityCreateInRange(0x1B, 0x48, (u32 *) Debug1967ObjTestViewer_Update);
+            if (child != NULL)
             {
-                temp_r0_2->unk_524.unk_524_16.unk_526 = 0x80;
-                temp_r0_2->unk_528.unk_528_16.unk_52A = 0x50;
+                child->posX.part16.integer = 0x80;
+                child->posY.part16.integer = 0x50;
             }
-            gEwramData->unk_254D0.unk_254D0 = 1;
+            gEwramData->debugMenuWork.state = 1;
             /* fallthrough */
         case 1:
-            sub_08000B64();
+            Entity_UpdateAll();
             break;
     }
 
@@ -735,74 +730,67 @@ void sub_08036368(void)
 }
 
 /**
- * @brief 3636C | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Carry callback of the debug platform: when flagged, copy its x
+ * fraction to the player and return its x velocity.
  */
-s32 sub_0803636C(struct EwramData_EntityData *param_0)
+s32 DebugPlatform_GetCarryVelocity(struct EwramData_EntityData *entity)
 {
-    if ((u8) param_0->unk_4FC.unk_4FC_8.unk_4FC == 0)
+    if ((u8) entity->unk_4FC.part8.unk_4FC == 0)
         return 0;
 
-    gEwramData->unk_13110.unk_13110->unk_524.unk_524_16.unk_524 = param_0->unk_524.unk_524_16.unk_524;
-    param_0->unk_4FC.unk_4FC_8.unk_4FC = 0;
-    return param_0->unk_52C.unk_52C_32;
+    gEwramData->playerState.player->posX.part16.fraction = entity->posX.part16.fraction;
+    entity->unk_4FC.part8.unk_4FC = 0;
+    return entity->velX.whole;
 }
 
 // TODO: function declarations
-// void sub_08042B8C(struct EwramData_EntityData *, s16, s32);
-// s16 sub_0806B7D8(struct EwramData_EntityData *, s32, u16 *, s32);
+// void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
+// s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 
 /**
- * @brief 363A4 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
+ * @brief Take player attack damage; at zero HP start the falling death state
+ * 2. Show the damage number.
  */
-void sub_080363A4(struct EwramData_EntityData *param_0, s32 param_1, u16 *param_2)
+void DebugTestEnemy_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    s32 temp_r7;
+    s32 attackPower;
 
-    temp_r7 = (s16) sub_08021530(param_2[2]);
-    sub_0806B7D8(param_0, param_1, param_2, temp_r7);
-    param_0->unk_510.unk_510_8.unk_511 = 8;
+    attackPower = (s16) Player_CalculateAttackPower(hit[2]);
+    Hit_ResolveDamage(entity, attacker, hit, attackPower);
+    entity->unk_510.part8.hitFlashTimer = 8;
 
-    param_0->unk_518.unk_518_16.unk_518 -= temp_r7;
-    if ((s16)param_0->unk_518.unk_518_16.unk_518 <= 0)
+    entity->unk_518.part16.hp -= attackPower;
+    if ((s16)entity->unk_518.part16.hp <= 0)
     {
-        param_0->unk_4F1 = 0x3C;
-        param_0->unk_4EE = 2;
-        param_0->unk_530.unk_530_32 = -0x4000;
-        param_0->unk_538.unk_538_32 = 0x1000;
-        param_0->unk_53E_3 = param_0->unk_510.unk_510_8.unk_510;
-        sub_0803F348(param_0, 2, 1);
+        entity->timer = 0x3C;
+        entity->state = 2;
+        entity->velY.whole = -0x4000;
+        entity->accelY.whole = 0x1000;
+        entity->palette = entity->unk_510.part8.basePalette;
+        Anim_SelectScript(entity, 2, 1);
     }
 
-    sub_08042B8C(param_0, temp_r7, 0);
+    Entity_ShowDamage(entity, attackPower, 0);
 }
 
 /**
- * @brief 36420 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief While alive and the hit-flash timer runs, alternate palette 4 and
+ * return 1.
  */
-s32 sub_08036420(struct EwramData_EntityData *param_0)
+s32 DebugTestEnemy_UpdateHitFlash(struct EwramData_EntityData *entity)
 {
-    if ((s16)param_0->unk_518.unk_518_16.unk_518 > 0)
+    if ((s16)entity->unk_518.part16.hp > 0)
     {
-        if (param_0->unk_510.unk_510_8.unk_511 != 0)
+        if (entity->unk_510.part8.hitFlashTimer != 0)
         {
-            param_0->unk_510.unk_510_8.unk_511 -= 1;
-            if (param_0->unk_510.unk_510_8.unk_511 & 1)
+            entity->unk_510.part8.hitFlashTimer -= 1;
+            if (entity->unk_510.part8.hitFlashTimer & 1)
             {
-                param_0->unk_53E_3 = 4;
+                entity->palette = 4;
             }
             else
             {
-                param_0->unk_53E_3 = param_0->unk_510.unk_510_8.unk_510;
+                entity->palette = entity->unk_510.part8.basePalette;
             }
             return 1;
         }
@@ -811,119 +799,116 @@ s32 sub_08036420(struct EwramData_EntityData *param_0)
 }
 
 // TODO: function declarations
-// ? sub_080421AC(? *, struct EwramData_EntityData *);
-// ? sub_080428F0(struct EwramData_EntityData *, s32);
-// ? sub_0806D5C0(s32, s32, s32, s32, s32);
+// ? Hit_CheckWithPlayer(? *, struct EwramData_EntityData *);
+// ? HitBox_SetBodyRaw(struct EwramData_EntityData *, s32);
+// ? Effect_SpawnRandom(s32, s32, s32, s32, s32);
 
 /**
- * @brief 3647C | To document
- * 
- * @param param_0 To document
+ * @brief Debug test enemy (100 HP): circle with a knockback impulse, on death
+ * fall with random effects and delete itself.
  */
-void sub_0803647C(struct EwramData_EntityData *param_0)
+void DebugTestEnemy_Update(struct EwramData_EntityData *entity)
 {
-    u32 sp4[0x4];
-    s32 temp_r4;
+    u32 hitInfo[0x4];
+    s32 gfx;
 
-    if (sub_08036420(param_0) != 0)
+    if (DebugTestEnemy_UpdateHitFlash(entity) != 0)
     {
-        sub_080421AC(&sp4, param_0);
+        Hit_CheckWithPlayer(&hitInfo, entity);
         return;
     }
 
-    switch (param_0->unk_4EE)
+    switch (entity->state)
     {
         case 0:
-            temp_r4 = sub_0803B800((u8 *)0x081CBF2C, 0);
-            param_0->unk_510.unk_510_8.unk_510 = (u8) sub_080681D8((void *)0x0820A3FC);
-            sub_0803B924(param_0, (void *)0x0821285C, temp_r4, (u32) param_0->unk_510.unk_510_8.unk_510);
-            sub_0803F0E4(param_0, (struct EwramData_unk54C *)(*(s32 *)0x086391C0), 0, 1);
-            param_0->unk_4EE = 1;
-            param_0->unk_53D_1 = 1;
+            gfx = ObjGfx_LoadResource((u8 *)0x081CBF2C, 0);
+            entity->unk_510.part8.basePalette = (u8) ObjPalette_FindOrLoad((void *)0x0820A3FC);
+            Sprite_Attach(entity, (void *)0x0821285C, gfx, (u32) entity->unk_510.part8.basePalette);
+            Anim_Start(entity, (struct AnimScript *)(*(s32 *)0x086391C0), 0, 1);
+            entity->state = 1;
+            entity->scrollWithBg = 1;
 
-            sub_0804277C(param_0, 9, &sub_08036618, (s32) sub_080363A4);
-            sub_08042A54(3, 0xA);
-            sub_080428F0(param_0, 0x2014E0F6);
-            sub_08042884(param_0, 0x2014E0F6);
+            Hit_Enable(entity, 9, &DebugTestEnemy_OnPlayerContact, (s32) DebugTestEnemy_OnHit);
+            Hit_SetTimerOverride(3, 0xA);
+            HitBox_SetBodyRaw(entity, 0x2014E0F6);
+            HitBox_SetAttackRaw(entity, 0x2014E0F6);
 
-            param_0->drawFunc = (u32 *) sub_0803B9D0;
-            param_0->unk_518.unk_518_16.unk_518 = 0x64;
-            param_0->unk_540 = 0x12;
+            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->unk_518.part16.hp = 0x64;
+            entity->spriteLayer = 0x12;
             break;
 
         case 1:
-            param_0->unk_524.unk_524_32 += param_0->unk_52C.unk_52C_32;
-            param_0->unk_528.unk_528_32 += param_0->unk_530.unk_530_32;
-            param_0->unk_4F8.unk_4F8_32 += 0x400;
-            param_0->unk_530.unk_530_32 = sub_080009E4(param_0->unk_4F8.unk_4F8_32);
-            param_0->unk_52C.unk_52C_32 = sub_080009E4(param_0->unk_4F8.unk_4F8_32 + 0x4000);
+            entity->posX.whole += entity->velX.whole;
+            entity->posY.whole += entity->velY.whole;
+            entity->unk_4F8.whole += 0x400;
+            entity->velY.whole = Sin(entity->unk_4F8.whole);
+            entity->velX.whole = Sin(entity->unk_4F8.whole + 0x4000);
 
-            if (param_0->unk_534.unk_534_32 > 0)
+            if (entity->accelX.whole > 0)
             {
-                param_0->unk_52C.unk_52C_32 += param_0->unk_534.unk_534_32;
-                param_0->unk_534.unk_534_32 -= 0x8000;
-                if (param_0->unk_534.unk_534_32 < 0)
+                entity->velX.whole += entity->accelX.whole;
+                entity->accelX.whole -= 0x8000;
+                if (entity->accelX.whole < 0)
                 {
-                    param_0->unk_534.unk_534_32 = 0;
+                    entity->accelX.whole = 0;
                 }
             }
-            else if (param_0->unk_534.unk_534_32 < 0)
+            else if (entity->accelX.whole < 0)
             {
-                param_0->unk_52C.unk_52C_32 += param_0->unk_534.unk_534_32;
-                param_0->unk_534.unk_534_32 += 0x8000;
-                if (param_0->unk_534.unk_534_32 > 0)
+                entity->velX.whole += entity->accelX.whole;
+                entity->accelX.whole += 0x8000;
+                if (entity->accelX.whole > 0)
                 {
-                    param_0->unk_534.unk_534_32 = 0;
+                    entity->accelX.whole = 0;
                 }
             }
             break;
 
         case 2:
-            param_0->unk_530.unk_530_32 += param_0->unk_538.unk_538_32;
-            param_0->unk_528.unk_528_32 += param_0->unk_530.unk_530_32;
-            if (!(param_0->unk_4F1 & 7))
+            entity->velY.whole += entity->accelY.whole;
+            entity->posY.whole += entity->velY.whole;
+            if (!(entity->timer & 7))
             {
-                sub_0806D5C0(param_0->unk_524.unk_524_32, param_0->unk_528.unk_528_32, 0x80000, 0x80000, param_0->unk_540 - 1);
+                Effect_SpawnRandom(entity->posX.whole, entity->posY.whole, 0x80000, 0x80000, entity->spriteLayer - 1);
             }
 
-            param_0->unk_4F1 -= 1;
-            if (param_0->unk_4F1 == 0)
+            entity->timer -= 1;
+            if (entity->timer == 0)
             {
-                param_0->unk_53D_3 = 1;
+                entity->deleteRequested = 1;
             }
             break;
     }
 
-    if (param_0->unk_4EE != 2)
+    if (entity->state != 2)
     {
-        sub_080421AC(&sp4, param_0);
+        Hit_CheckWithPlayer(&hitInfo, entity);
     }
-    sub_08021924(param_0);
-    sub_0803F17C(param_0);
+    Player_TrackEntity(entity);
+    Anim_Update(entity);
 }
 
 /**
- * @brief 36618 | To document
- * 
- * @param param_0 To document
+ * @brief Knock the player away and apply contact damage.
  */
-void sub_08036618(struct EwramData_EntityData *param_0)
+void DebugTestEnemy_OnPlayerContact(struct EwramData_EntityData *entity)
 {
-    struct Unk_08021654 subroutine_arg0;
-    s32 var_r3;
+    struct PlayerContactDamage subroutine_arg0;
+    s32 knockbackX;
 
-    subroutine_arg0.unk_0 = 10;
-    subroutine_arg0.unk_2 = 2;
+    subroutine_arg0.attack = 10;
+    subroutine_arg0.attributes = 2;
     subroutine_arg0.unk_4 = 0;
-    subroutine_arg0.unk_8 = param_0->unk_524.unk_524_32;
-    subroutine_arg0.unk_C = param_0->unk_528.unk_528_32;
-    subroutine_arg0.unk_6 = 3;
+    subroutine_arg0.sourceX = entity->posX.whole;
+    subroutine_arg0.sourceY = entity->posY.whole;
+    subroutine_arg0.reaction = 3;
 
-    var_r3 = -0x68000;
-    if (gEwramData->unk_13110.unk_13110->unk_524.unk_524_32 > param_0->unk_524.unk_524_32)
+    knockbackX = -0x68000;
+    if (gEwramData->playerState.player->posX.whole > entity->posX.whole)
     {
-        var_r3 = -var_r3;
+        knockbackX = -knockbackX;
     }
-    sub_08021214(var_r3, -0x30000);
-    sub_08021654(&subroutine_arg0);
+    Player_SetVelocityWithBraking(knockbackX, -0x30000);
+    Player_ApplyContactDamage(&subroutine_arg0);
 }

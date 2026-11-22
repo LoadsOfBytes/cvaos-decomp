@@ -1,0 +1,43 @@
+#include "code/code_08039340.h"
+#include "structs/ewram.h"
+
+extern struct EwramData_EntityData *Entity_CreateFromObjectTable(s32);
+extern void EventScene03UnusedPart_Update(struct EwramData_EntityData *);
+extern void EventScene03AttachedEffect_Update(struct EwramData_EntityData *);
+extern void Entity_SnapToGround(struct EwramData_EntityData *);
+
+/* Spawn an entity and an attached animated part in event slot group 9. */
+struct EwramData_EntityData *EventScene03_SpawnUnusedPart(struct EwramData_EntityData *owner, s32 x, s32 y, s32 flags)
+{
+    struct EwramData_EntityData *entity = Entity_CreateFromObjectTable(9);
+    struct EwramData_EntityData *part;
+    s32 i, facing;
+    entity->updateFunc = (u32 *)EventScene03UnusedPart_Update;
+    entity->posX.part16.integer = x;
+    entity->posY.part16.integer = y;
+    entity->unk_4F4.part8.unk_4F5 = owner->unk_4F4.part8.unk_4F4;
+    entity->unk_4F4.part8.unk_4F7 = flags;
+    entity->unk_518.part8.enemyId = 0xFF;
+    Entity_SnapToGround(entity);
+    Anim_StartIndexed(entity, 0, 0, 1);
+    if (entity->unk_4F4.part8.unk_4F7 & 4)
+    {
+        for (i = 16; i != 0; i--)
+            entity->posY.whole += 0x8000;
+        entity->spriteLayer = 0x17;
+    }
+    facing = 0;
+    if (entity->posX.whole < gEwramData->playerState.player->posX.whole)
+        facing = 1;
+    entity->flipX = facing;
+    part = Entity_CreateFromObjectTable(9);
+    part->updateFunc = (u32 *)EventScene03AttachedEffect_Update;
+    part->unk_4F4.part8.unk_4F5 = entity->unk_4F4.part8.unk_4F4;
+    part->posX.part16.integer = entity->posX.part16.integer;
+    part->posY.part16.integer = entity->posY.part16.integer;
+    Anim_StartIndexed(part, 16, 0, 1);
+    part->spriteLayer = entity->spriteLayer;
+    entity->unk_4F4.part8.unk_4F6 = part->unk_4F4.part8.unk_4F4;
+    part->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
+    return entity;
+}

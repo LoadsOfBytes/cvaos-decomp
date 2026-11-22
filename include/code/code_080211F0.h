@@ -5,144 +5,145 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-extern void sub_080211F0(void);
-extern void sub_080211F4(void); // TODO: Unused param_0 and param_1, both struct EwramData_EntityData *
-extern void sub_08021214(s32 param_0, s32 param_1);
-extern void sub_08021248(s32 param_0, s32 param_1);
-extern void sub_08021278(struct EwramData_EntityData *param_0, u8 param_1);
-extern s32 sub_080212C8(void);
-extern u8 sub_080212F4(s32 param_0);
-extern s32 sub_08021304(void);
-extern void sub_08021344(u8 param_0, u8 param_1, u8 param_2);
-extern void sub_0802138C(s32 param_0);
-extern void sub_080213A4(s32 param_0);
-extern void sub_080213BC(void);
-extern s32 sub_080213F4(void);
-extern s32 sub_08021438(struct EwramData_EntityData *param_0, u8 param_1, u8 param_2);
-extern void sub_08021494(struct EwramData_EntityData *param_0);
-extern void sub_080214D0(void);
-extern void sub_080214DC(struct EwramData_EntityData *param_0);
-extern void sub_08021518(s32 param_0);
-extern u16 sub_08021530(u16 param_0);
+extern void Debug2229_FrameHook(void);
+extern void Player_MarkAttackContact(void); // TODO: Unused param_0 and param_1, both struct EwramData_EntityData *
+extern void Player_SetVelocityWithBraking(s32 velocityX, s32 velocityY);
+extern void Player_SetKnockbackVelocity(s32 vx, s32 vy);
+extern void Player_QueueEntity(struct EwramData_EntityData *entity, u8 collisionFlags);
+extern s32 Player_GetFocusedActionFlags(void);
+extern u8 Player_HasAbilityOneBased(s32 abilityIndexOneBased);
+extern s32 Player_IsBusy(void);
+extern void Player_EquipSoulsAndRestore(u8 redSoulId, u8 blueSoulId, u8 yellowSoulId);
+extern void Player_SetXFraction(s32 fraction);
+extern void Player_SetYFraction(s32 fraction);
+extern void Player_RestoreHPAndMP(void);
+extern s32 Player_IsBossTargetLowHp(void);
+extern s32 Player_TryStartAnimation(struct EwramData_EntityData *entity, u8 animationIndex, u8 flags);
+extern void Player_DrawWithOffset(struct EwramData_EntityData *entity);
+extern void ButtonConfig_ResetDefaultsWrapper(void);
+extern void Player_DrawMirrored(struct EwramData_EntityData *entity);
+extern void Player_SetContactImmunity(s32 immunityValue);
+extern u16 Player_CalculateAttackPower(u16 attackCategory);
 
-struct Unk_08021654 {
-    u16 unk_0;
-    u16 unk_2;
+struct PlayerContactDamage {
+    u16 attack;
+    u16 attributes;
     u16 unk_4;
-    u16 unk_6;
-    u32 unk_8; // type?
-    u32 unk_C; // type?
+    u16 reaction;
+    u32 sourceX; /* 16.16 coordinate bits; original unsigned storage */
+    u32 sourceY; /* 16.16 coordinate bits; original unsigned storage */
 };
-extern void sub_08021654(struct Unk_08021654 *param_0);
+extern void Player_ApplyContactDamage(struct PlayerContactDamage *contactDamage);
 
-extern s32 sub_08021924(struct EwramData_EntityData *param_0);
-extern void sub_08021994(struct EwramData_EntityData *param_0);
-extern void sub_08021C44(void);
-extern void sub_08021CA8(struct EwramData_EntityData *param_0);
+extern s32 Player_TrackEntity(struct EwramData_EntityData *entity);
+extern void Player_UpdateStatusAndRegen(struct EwramData_EntityData *entity);
+extern void Player_RecalculateAttackDefense(void);
+extern void PlayerStatusIcon_Update(struct EwramData_EntityData *entity);
 extern s32 sub_08021DB0(void);
-extern void sub_08021DC4(void);
-extern void sub_08021E10(s32 param_0);
+extern void Player_PruneTrackedEntities(void);
+extern void Player_ClearStatusBit(s32 bitIndex);
 extern void sub_08021E2C(void);
 extern void sub_08021E30(void);
 extern void sub_08021E34(void);
-extern s32 sub_08021E38(s32 param_0);
-extern void sub_08021E50(s32 param_0);
-extern void sub_08021EB4(s32 param_0, u16 param_1);
-extern void sub_08021F18(void);
-extern void sub_08021F44(u16 param_0, u16 param_1);
-extern s16 sub_08021F64(s16 param_0);
-extern s16 sub_08021F84(s16 param_0);
-extern void sub_08021FA4(void);
-extern void sub_08021FEC(s32 param_0);
-extern void sub_08022028(s32 param_0);
-extern void sub_08022060(s32 param_0);
-extern s32 sub_08022088(struct EwramData_EntityData *param_0, void *param_1);
-extern void sub_080220B4(void);
-extern s32 sub_080220CC(void);
-extern s32 sub_080220F0(void);
-extern s32 sub_080220F4(void);
-extern void sub_080220F8(s32 param_0);
-extern void sub_08022134(u8 param_0);
-extern void sub_0802215C(void);
-extern void sub_08022184(void);
-extern void sub_080221B0(s32 param_0);
+extern s32 Player_TestSoulStateFlags(s32 mask);
+extern void Player_ClearStatusEffects(s32 mask);
+extern void Player_SetStatusEffects(s32 mask, u16 timerValue);
+extern void Player_CopyBaseStats(void);
+extern void Player_AddPreparedStat(u16 statIndex, u16 amount);
+extern s16 Player_CalculateAttack(s16 statValue);
+extern s16 Player_CalculateDefense(s16 statValue);
+extern void Player_ApplyPreparedStats(void);
+extern void Player_RestoreHP(s32 amount);
+extern void Player_RestoreMP(s32 amount);
+extern void Player_ConsumeMP(s32 amount);
+extern s32 Player_RegisterSolidObject(struct EwramData_EntityData *entity, void *callbackTable);
+extern void Player_ClearSolidObject(void);
+extern s32 Player_GetSolidObjectFlags(void);
+extern s32 SolidObject_NoCorrection(void);
+extern s32 SolidObject_NoCarry(void);
+extern void Player_SpawnStatusIcon(s32 statusIndex);
+extern void Player_StartContactImmunity(u8 frames);
+extern void Player_ResetContactImmunity(void);
+extern void Player_LockAndCancelAllSouls(void);
+extern void Player_ClearStatusFlags(s32 mask);
 extern void sub_080221C8(void);
-extern void sub_080221CC(struct EwramData_EntityData *param_0);
-extern void sub_080224BC(struct EwramData_EntityData *param_0);
-extern void sub_080228F8(struct EwramData_EntityData *param_0);
-extern void sub_08022A54(struct EwramData_EntityData *param_0);
-extern void sub_08022DEC(struct EwramData_EntityData *param_0);
-extern struct EwramData_EntityData* sub_080230A8(struct EwramData_EntityData *param_0);
-extern void sub_08023144(struct EwramData_EntityData *param_0);
-extern struct EwramData_EntityData* sub_0802326C(struct EwramData_EntityData *param_0);
+extern void WeaponMelee_Update(struct EwramData_EntityData *entity);
+extern void WeaponHeavy_Update(struct EwramData_EntityData *entity);
+extern void Effect_UpdateGunCasing(struct EwramData_EntityData *entity);
+extern void WeaponGun_Update(struct EwramData_EntityData *entity);
+extern void WeaponValmanway_Update(struct EwramData_EntityData *entity);
+extern struct EwramData_EntityData* Weapon_CreateAttackEntity(struct EwramData_EntityData *entity);
+extern void JuliusWhipAttack_Update(struct EwramData_EntityData *entity);
+extern struct EwramData_EntityData* Julius_CreateWhipAttackEntity(struct EwramData_EntityData *entity);
 
-struct Unk_08023368 {
-    u8 pad_0[0x8 - 0x0];
-    u8 unk_8;
+struct WeaponInfo {
+    u16 name; // index into sItemDescriptionTextIds (EquipmentMenu_ShowSlotDescription)
+    u8 pad_2[0x8 - 0x2];
+    u8 attackAnimKind;
     u8 pad_9[0x10 - 0x9];
-    u16 unk_10;
-    u8 unk_12;
-    u8 unk_13;
-    u8 unk_14;
-    u8 unk_15;
-    u8 unk_16;
-    u8 unk_17;
-    u16 unk_18;
+    u16 attackAttributes;
+    u8 graphicsIndex;
+    u8 spriteSheetIndex;
+    u8 animScriptIndex;
+    u8 paletteIndex;
+    u8 attackVariant;
+    u8 hitTimer;
+    u16 attackSound;
     u8 pad_1A[0x1C - 0x1A];
 };
-extern struct Unk_08023368* sub_0802330C(u8 param_0);
-extern struct Unk_08023368* sub_08023334(void);
-extern struct Unk_08023368* sub_08023368(s32 param_0);
+extern struct WeaponInfo* Weapon_GetInfo(u8 weaponId);
+extern struct WeaponInfo* Weapon_GetEquippedInfo(void);
+extern struct WeaponInfo* Weapon_GetAttackerInfo(s32 slot);
 
-extern u8 sub_080233BC(s32 param_0);
-extern s32 sub_08023424(void);
-extern void sub_0802346C(struct EwramData_EntityData *param_0, struct EwramData_EntityData *param_1); // TODO: param_0?
-extern void sub_080234B0(struct EwramData_EntityData *param_0, struct EwramData_EntityData *param_1);
-extern void sub_08023508(struct EwramData_EntityData *param_0);
-extern struct EwramData_EntityData* sub_08023530(struct EwramData_EntityData *param_0, u32 *param_1);
-extern void sub_080235C8(void);
-extern void sub_08023724(struct EwramData_EntityData *param_0);
-extern struct EwramData_EntityData* sub_0802383C(struct EwramData_EntityData *param_0, u8 param_1);
-extern s32 sub_0802393C(struct EwramData_EntityData *param_0);
-extern void sub_080239E4(struct EwramData_EntityData *param_0);
-extern void Skill_EvilButcher_Ripper_Use(struct EwramData_EntityData *param_0);
-extern void sub_08023E50(struct EwramData_EntityData *param_0);
-extern void sub_080240A0(struct EwramData_EntityData *param_0);
-extern void SkillAxeArmorUse(struct EwramData_EntityData *param_0);
-extern void sub_08024530(struct EwramData_EntityData *param_0);
-extern void SkillChronomageUse(struct EwramData_EntityData *param_0);
-extern s32 sub_08024C18(struct EwramData_EntityData *param_0, u32 *param_1, u32 *param_2);
-extern void SkillValkyrieUse(struct EwramData_EntityData *param_0);
-extern void SkillKillerDollUse(struct EwramData_EntityData *param_0);
-extern void SkillNemesisUse(struct EwramData_EntityData *param_0);
-extern u8 sub_0802D208(void);
+extern u8 Weapon_GetPlayerAttackAnim(s32 attackType);
+extern s32 Weapon_KeepsAttackOnLanding(void);
+extern void WeaponAttack_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker); // TODO: param_0?
+extern void WeaponGun_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker);
+extern void WeaponGun_Draw(struct EwramData_EntityData *entity);
+extern struct EwramData_EntityData* RedSoul_CreateEntity(struct EwramData_EntityData *owner, u32 *update);
+extern void RedSoul_CancelAll(void);
+extern void RedSoulTrail_Update(struct EwramData_EntityData *entity);
+extern struct EwramData_EntityData* RedSoul_CreateTrailCopy(struct EwramData_EntityData *entity, u8 delay);
+extern s32 Entity_DropToFloor(struct EwramData_EntityData *entity);
+extern void RedSoulAnchor_Update(struct EwramData_EntityData *entity);
+extern void Skill_EvilButcher_Ripper_Use(struct EwramData_EntityData *entity);
+extern void SkillBoomerangProjectileUpdate(struct EwramData_EntityData *entity);
+extern void SkillAxeArmorTrailUpdate(struct EwramData_EntityData *entity);
+extern void SkillAxeArmorUse(struct EwramData_EntityData *entity);
+extern void HomingSoulProjectile_Update(struct EwramData_EntityData *entity);
+extern void SkillChronomageUse(struct EwramData_EntityData *entity);
+extern s32 Sprite_GetFirstBoxCenter(struct EwramData_EntityData *entity, u32 *outX, u32 *outY);
+extern void SkillValkyrieUse(struct EwramData_EntityData *entity);
+extern void SkillKillerDollUse(struct EwramData_EntityData *entity);
+extern void SkillNemesisUse(struct EwramData_EntityData *entity);
+extern u8 RedSoul_FindFreeEntitySlot(void);
 
-struct Unk_0802D244 {
+struct RedSoulAttackView {
     u8 pad_0[0xA - 0x0];
-    u16 unk_A;
+    u16 baseAttack;
 };
-extern struct Unk_0802D244 *sub_0802D244(void); // type?
+extern struct RedSoulAttackView *RedSoul_GetLastUsedInfo(void); // type?
 
-struct Unk_0802D284 {
-    void *unk_0; // TODO: function signature
-    u16 unk_4;
-    s16 unk_6;
+struct RedSoulActivationView {
+    void *updateFunc; // TODO: function signature
+    u16 castAnimKind;
+    s16 mpCost;
     u8 pad_8[0xE - 0x8];
     u16 unk_E;
 };
-extern struct Unk_0802D284* sub_0802D284(u8 param_0);
+extern struct RedSoulActivationView* RedSoul_GetInfo(u8 soul);
 
-extern u8 sub_0802D2BC(void);
-extern s32 sub_0802D55C(struct EwramData_EntityData *param_0, s32 param_1);
-extern void sub_0802D590(struct EwramData_EntityData *param_0);
-extern s32 sub_0802D5EC(s32 param_0);
-extern void sub_0802D724(struct EwramData_EntityData *param_0);
-extern void sub_0802D9BC(struct EwramData_EntityData *param_0, struct EwramData_EntityData *param_1); // TODO: verify types
-extern void sub_0802DA14(struct EwramData_EntityData *param_0, struct EwramData_EntityData *param_1); // TODO: verify types
-extern void sub_0802DA1C(struct EwramData_EntityData *param_0);
-extern struct EwramData_EntityData *sub_0802DD00(struct EwramData_EntityData *param_0, void *param_1);
-extern void sub_0802DFF0(void);
-extern void sub_08031EA4(struct EwramData_EntityData *param_0, struct EwramData_EntityData *param_1, s32 param_2, s32 param_3); // TODO: param_2/param_3 should be u16
-extern void sub_080321C4(void);
+extern u8 RedSoul_GetActiveLimit(void);
+extern s32 Entity_IsOffscreenOrInactive(struct EwramData_EntityData *entity, s32 margin);
+extern void Entity_SetAttackBoxFromFrame(struct EwramData_EntityData *entity);
+extern s32 RandomSigned(s32 range);
+extern void RedSoul_RemoveActiveEntity(struct EwramData_EntityData *soul);
+extern void RedSoul_AnchorToHitTargetTimed(struct EwramData_EntityData *entity, struct EwramData_EntityData *target); // TODO: verify types
+extern void HomingSoulProjectile_OnPlayerContact(struct EwramData_EntityData *param_0, struct EwramData_EntityData *param_1); // TODO: verify types
+extern void Soul_DrawWithPaletteInvert(struct EwramData_EntityData *entity);
+extern struct EwramData_EntityData *BlueSoul_CreateEntity(struct EwramData_EntityData *owner, void *update);
+extern void BlueSoul_StopAll(void);
+extern void Entity_PlaceRelativeTo(struct EwramData_EntityData *entity, struct EwramData_EntityData *anchor, s32 offsetX, s32 offsetY); // TODO: param_2/param_3 should be u16
+extern void YellowSoul_Stop(void);
 
 #endif /* CODE_080211F0_H */

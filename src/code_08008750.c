@@ -33,7 +33,7 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-const u8 sUnk_080E0DE4[] = {
+const u8 sBossRushStartItems[] = {
     0x3, 0x4, 0x5, 0x6, 0x17, 0x18, 0xFF,
 };
 
@@ -44,49 +44,49 @@ const u8 sUnk_080E0DE4[] = {
  */
 s32 GameModeBossRushMenuUpdate(void)
 {
-    struct EwramData_EntityData *temp_r3;
+    struct EwramData_EntityData *entity;
     s32 gameMode;
-    s32 temp_r0_2;
-    s32 temp_r0_3;
-    s32 var_0;
+    s32 pendingFades;
+    s32 choice;
+    s32 i;
 
-    temp_r3 = &gEwramData->entityData[4];
+    entity = &gEwramData->entityData[4];
     gameMode = GAME_MODE_SAME_MODE;
 
     switch (gEwramData->gameModeUpdateStage)
     {
         case 0:
-            sub_08008300(temp_r3);
-            sub_0803D18C(0, 0, 0, 0, 0x10000, 0x10);
-            sub_0803CDF0(0, 0, 0, 0, 0x10000, 0x10);
+            SaveSelect_Open(entity);
+            BgPalette_StartColorFade(0, 0, 0, 0, 0x10000, 0x10);
+            ObjPalette_StartColorFade(0, 0, 0, 0, 0x10000, 0x10);
             gEwramData->gameModeUpdateStage = 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
     
         case 1:
-            sub_08000B64();
-            temp_r0_2 = sub_0803D408();
-            if (temp_r0_2 == 0)
+            Entity_UpdateAll();
+            pendingFades = BgPalette_GetPendingFades();
+            if (pendingFades == 0)
             {
-                sub_0803CED4();
-                sub_0803D270();
+                ObjPalette_StopColorFade();
+                BgPalette_StopColorFade();
                 gEwramData->gameModeUpdateStage = 3;
-                gEwramData->unk_12 = temp_r0_2;
+                gEwramData->gameModeSubStage = pendingFades;
             }
             break;
     
         case 3:
-            temp_r0_3 = sub_080081AC(temp_r3);
-            if (temp_r0_3 == -1)
+            choice = SaveSelect_Update(entity);
+            if (choice == -1)
             {
                 PlaySong(SE_240);
                 gameMode = GAME_MODE_TITLE_SCREEN;
             }
-            else if (temp_r0_3 != 0)
+            else if (choice != 0)
             {
                 PlaySong(SE_244);
                 gEwramData->gameModeUpdateStage = 4;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
             break;
     
@@ -94,50 +94,50 @@ s32 GameModeBossRushMenuUpdate(void)
             EntityDelete(&gEwramData->entityData[4]);
             PlaySong(AUDIO_STOP);
             EntityDeleteAll();
-            sub_0803D9A8();
-            sub_0803E438();
-            sub_08039DC0();
-            sub_0803BEEC();
-            sub_0804059C();
-            sub_08042754();
-            gEwramData->unk_A074_2 = gEwramData->unk_A074_4 = 3;
+            ObjTiles_Init();
+            Obj_Init();
+            Sprite_Init();
+            Palette_Init();
+            Text_Initialize();
+            HitBox_ClearAll();
+            gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 3;
             gUnk_03002CB0.dispCnt = DCNT_BG0;
             gDisplayRegisters.bldCnt = BLDCNT_SCREEN_SECOND_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT | BLDCNT_SCREEN_FIRST_TARGET;
             gDisplayRegisters.bldY = BLDY_MAX_VALUE;
             gEwramData->gameModeUpdateStage = 5;
-            gEwramData->unk_12 = 0;
-            gEwramData->unk_60.unk_A1_4 = 1;
-            gEwramData->unk_60.unk_37C = -1;
-            gEwramData->unk_60.unk_33C[3] &= ~0x40000;
-            DMA_FILL_32(3, 0, gEwramData->unk_1325C.itemInventory, 0x20);
-            if (gEwramData->unk_1325C.currentCharacter == 0)
+            gEwramData->gameModeSubStage = 0;
+            gEwramData->gameState.difficultyMode = 1;
+            gEwramData->gameState.shownAreaNameFlags = -1;
+            gEwramData->gameState.gameFlagsTail[1] &= ~0x40000;
+            DMA_FILL_32(3, 0, gEwramData->playerStatus.itemInventory, 0x20);
+            if (gEwramData->playerStatus.currentCharacter == 0)
             {
-                for (var_0 = 0; sUnk_080E0DE4[var_0] != 0xFF; var_0++)
+                for (i = 0; sBossRushStartItems[i] != 0xFF; i++)
                 {
-                    gEwramData->unk_1325C.itemInventory[sUnk_080E0DE4[var_0]] = 1;
+                    gEwramData->playerStatus.itemInventory[sBossRushStartItems[i]] = 1;
                 }
-                sub_08033E38(0x28);
+                Player_SetLevel(0x28);
             }
             else
             {
-                sub_08033DA4();
-                sub_08033E6C();
-                sub_08033E6C();
-                sub_08033E6C();
-                sub_08033E6C();
-                sub_08033E6C();
-                sub_08033E6C();
-                sub_08033E6C();
-                sub_08033E6C();
+                Player_InitBaseLevelStats();
+                Player_ApplyJuliusStatGrowth();
+                Player_ApplyJuliusStatGrowth();
+                Player_ApplyJuliusStatGrowth();
+                Player_ApplyJuliusStatGrowth();
+                Player_ApplyJuliusStatGrowth();
+                Player_ApplyJuliusStatGrowth();
+                Player_ApplyJuliusStatGrowth();
+                Player_ApplyJuliusStatGrowth();
             }
-            gEwramData->unk_1325C.currentHP = gEwramData->unk_1325C.maxHP;
-            gEwramData->unk_1325C.currentMP = gEwramData->unk_1325C.maxMP;
-            sub_0804AD9C();
+            gEwramData->playerStatus.currentHP = gEwramData->playerStatus.maxHP;
+            gEwramData->playerStatus.currentMP = gEwramData->playerStatus.maxMP;
+            Player_RefreshEquipmentStats();
             break;
     
         case 5:
-            gEwramData->unk_60.unk_4CC_0 = 1;
-            gEwramData->unk_60.unk_88 = (struct EwramData_unk88 *)0x085247B4;
+            gEwramData->gameState.bossRushMode = 1;
+            gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)0x085247B4;
             gameMode = GAME_MODE_IN_GAME;
             break;
     }
@@ -156,9 +156,9 @@ s32 GameModeUnk9Update(void)
 }
 
 // TODO: No inline?
-static inline void GameModeIntroCutsceneUpdate_inline(s32 temp_r0_2)
+static inline void GameModeIntroCutsceneUpdate_inline(s32 alpha)
 {
-    gDisplayRegisters.bldAlpha = C_16_2_8(temp_r0_2, BLDALPHA_MAX_VALUE - temp_r0_2);
+    gDisplayRegisters.bldAlpha = C_16_2_8(alpha, BLDALPHA_MAX_VALUE - alpha);
 }
 
 /**
@@ -168,19 +168,19 @@ static inline void GameModeIntroCutsceneUpdate_inline(s32 temp_r0_2)
  */
 s32 GameModeIntroCutsceneUpdate(void)
 {
-    s16 *var_r2;
-    s32 temp_r1_5;
-    s32 var_r1;
+    s16 *tilemap;
+    s32 alpha;
+    s32 i;
     s32 gameMode;
-    struct EwramData *temp_r5_2;
-    struct EwramData *temp_r5_3;
-    struct EwramData_EntityData *temp_r7;
-    s32 temp_r2_3;
-    struct EwramData_unk68 *temp_r5;
-    struct EwramData_unkA078 *temp_r4;
+    struct EwramData *ewram;
+    struct EwramData *ewram2;
+    struct EwramData_EntityData *textEntity;
+    s32 step;
+    struct SavedDisplayState *saved;
+    struct BgLayerState *bg;
 
-    temp_r5 = &gEwramData->unk_60.unk_68;
-    temp_r7 = gEwramData->entityData;
+    saved = &gEwramData->gameState.savedDisplay;
+    textEntity = gEwramData->entityData;
     gameMode = GAME_MODE_SAME_MODE;
 
     switch (gEwramData->gameModeUpdateStage)
@@ -188,138 +188,138 @@ s32 GameModeIntroCutsceneUpdate(void)
         case 0:
             gEwramData->hBlankEffect.requestStop = 1;
             EntityDeleteAll();
-            sub_0803D9A8();
-            sub_0803E438();
-            sub_08039DC0();
-            sub_0803BEEC();
-            sub_0804059C();
-            sub_08042754();
-            DMA_COPY_32(3, &gDisplayRegisters.bgCnt[1], temp_r5->unk_70, sizeof(temp_r5->unk_70));
+            ObjTiles_Init();
+            Obj_Init();
+            Sprite_Init();
+            Palette_Init();
+            Text_Initialize();
+            HitBox_ClearAll();
+            DMA_COPY_32(3, &gDisplayRegisters.bgCnt[1], saved->bgControlBytes, sizeof(saved->bgControlBytes));
             gUnk_03002CB0.dispCnt = DCNT_OBJ | DCNT_BG3 | DCNT_BG2 | DCNT_BG1 | DCNT_BG0;
-            sub_0803C8B0((u8 *)0x080E6634);
-            sub_0803FD9C((u8 *)0x080E5BF0, VRAM_BASE + 0x8000, 0);
-            sub_0803FD9C((u8 *)0x080E5BF8, VRAM_BASE + 0xA000, 0);
-            sub_0803F8A8(1, (struct EwramData_unkA078_0 *)0x080E9464, 0, 0x160);
-            sub_0803F8A8(2, (struct EwramData_unkA078_0 *)0x080E9244, 0, 0x260);
-            sub_0803F8A8(3, (struct EwramData_unkA078_0 *)0x080E9354, 0, 0xC9);
+            BgPalette_Load((u8 *)0x080E6634);
+            Gfx_CopyResource((u8 *)0x080E5BF0, VRAM_BASE + 0x8000, 0);
+            Gfx_CopyResource((u8 *)0x080E5BF8, VRAM_BASE + 0xA000, 0);
+            BgMap_Setup(1, (struct BgMapMetadata *)0x080E9464, 0, 0x160);
+            BgMap_Setup(2, (struct BgMapMetadata *)0x080E9244, 0, 0x260);
+            BgMap_Setup(3, (struct BgMapMetadata *)0x080E9354, 0, 0xC9);
             gDisplayRegisters.bgCnt[0] = CREATE_BGCNT(0, 28, BGCNT_HIGH_PRIORITY, BGCNT_SIZE_256x256);
             gDisplayRegisters.bgCnt[1] = CREATE_BGCNT(2, 29, BGCNT_HIGH_MID_PRIORITY, BGCNT_SIZE_256x256);
             gDisplayRegisters.bgCnt[2] = CREATE_BGCNT(2, 30, BGCNT_LOW_MID_PRIORITY, BGCNT_SIZE_256x256);
             gDisplayRegisters.bgCnt[3] = CREATE_BGCNT(2, 31, BGCNT_LOW_PRIORITY, BGCNT_SIZE_256x256);
-            var_r2 = (s16 *)0x0600E000;
-            var_r1 = 0;
-            for ( ; var_r1 < 0x400; )
+            tilemap = (s16 *)0x0600E000;
+            i = 0;
+            for ( ; i < 0x400; )
             {
-                *var_r2 = var_r1 - 0x1000;
-                var_r2 += 1;
-                var_r1 += 1;
+                *tilemap = i - 0x1000;
+                tilemap += 1;
+                i += 1;
             }
-            sub_080412DC(VRAM_BASE);
-            sub_08040748(0, 0, 0x29, 0x15);
+            Text_SetTileBuffer(VRAM_BASE);
+            Text12_SetRegion(0, 0, 0x29, 0x15);
             DMA_FILL_32(3, 0, 0x06000000, 0x8000);
-            sub_0803C918((u8 *)0x081183F4, 0, 1, 0xF);
-            sub_080412F0(8);
-            sub_08041304(0);
-            sub_0803DC18(0, 0x18, 0x14, 0x1F);
-            sub_0803FD60();
-            sub_080094AC(temp_r7);
+            BgPalette_LoadRange((u8 *)0x081183F4, 0, 1, 0xF);
+            Text_SetForegroundColor(8);
+            Text_SetBackgroundColor(0);
+            Obj_SetBgLayers(0, 0x18, 0x14, 0x1F);
+            Bg_SyncPriorities();
+            IntroCutscene_CreateEntities(textEntity);
             gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT;
             gDisplayRegisters.bldY = BLDY_MAX_VALUE;
-            gEwramData->unk_4 = 0;
+            gEwramData->gameModeTimer = 0;
             gEwramData->gameModeUpdateStage += 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
     
         case 1:
-            gDisplayRegisters.bldY = BLDY_MAX_VALUE - (gEwramData->unk_4 >> 3);
+            gDisplayRegisters.bldY = BLDY_MAX_VALUE - (gEwramData->gameModeTimer >> 3);
             if (gDisplayRegisters.bldY != 0)
             {
-                if (gEwramData->unk_4 == 0)
+                if (gEwramData->gameModeTimer == 0)
                 {
                     PlaySong(MUS_21);
                 }
-                gEwramData->unk_4 += 1;
+                gEwramData->gameModeTimer += 1;
             }
             else
             {
                 gDisplayRegisters.bldCnt = BLDCNT_SCREEN_SECOND_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT;
-                gEwramData->unk_4 = 0;
+                gEwramData->gameModeTimer = 0;
                 gEwramData->gameModeUpdateStage += 1;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
             break;
     
         case 2:
             gEwramData->gameModeUpdateStage += 1;
-            gEwramData->unk_12 = 0;
+            gEwramData->gameModeSubStage = 0;
             break;
     
         case 3:
-            temp_r4 = &gEwramData->bgInfo[1];
+            bg = &gEwramData->bgInfo[1];
             gDisplayRegisters.bgOfs[1].hOfs = 0;
-            sub_0803FC6C(1, 0, -0x1C00);
-            sub_0803FC6C(2, 0, -0x3200);
-            sub_0803FC6C(3, 0, -0x1000);
-            if (temp_r4->yVel.whole == 0)
+            BgMap_Scroll(1, 0, -0x1C00);
+            BgMap_Scroll(2, 0, -0x3200);
+            BgMap_Scroll(3, 0, -0x1000);
+            if (bg->yVel.whole == 0)
             {
                 gDisplayRegisters.bldCnt = BLDCNT_SCREEN_SECOND_TARGET | BLDCNT_ALPHA_BLENDING_EFFECT;
-                gEwramData->unk_4 = 0;
-                temp_r7->unk_53C_5 = 0;
+                gEwramData->gameModeTimer = 0;
+                textEntity->hidden = 0;
                 gEwramData->gameModeUpdateStage += 1;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
             break;
     
         case 4:
-            gEwramData->unk_4 += 1;
-            if (!(gEwramData->unk_4 & 7))
+            gEwramData->gameModeTimer += 1;
+            if (!(gEwramData->gameModeTimer & 7))
             {
-                temp_r2_3 = gEwramData->unk_4 >> 3;
-                temp_r1_5 = (gEwramData->unk_4 & 2) + (0x10 - (gEwramData->unk_4 >> 0x4));
-                gDisplayRegisters.bldAlpha = C_16_2_8(temp_r1_5, BLDALPHA_MAX_VALUE - temp_r1_5);
-                if (temp_r2_3 > 0xA)
+                step = gEwramData->gameModeTimer >> 3;
+                alpha = (gEwramData->gameModeTimer & 2) + (0x10 - (gEwramData->gameModeTimer >> 0x4));
+                gDisplayRegisters.bldAlpha = C_16_2_8(alpha, BLDALPHA_MAX_VALUE - alpha);
+                if (step > 0xA)
                 {
-                    gEwramData->unk_4 = 0;
+                    gEwramData->gameModeTimer = 0;
                     gEwramData->gameModeUpdateStage += 1;
-                    gEwramData->unk_12 = 0;
+                    gEwramData->gameModeSubStage = 0;
                 }
             }
             break;
     
         case 5:
-            gEwramData->unk_4 += 1;
-            GameModeIntroCutsceneUpdate_inline((gEwramData->unk_4 & 1) + ((RandomNumberGenerator() & 1) * 2) + 0xD);
-            if ((gEwramData->unk_4 > 0x77) || (gEwramData->inputData.newInput & (KEY_A | KEY_START)))
+            gEwramData->gameModeTimer += 1;
+            GameModeIntroCutsceneUpdate_inline((gEwramData->gameModeTimer & 1) + ((RandomNumberGenerator() & 1) * 2) + 0xD);
+            if ((gEwramData->gameModeTimer > 0x77) || (gEwramData->inputData.newInput & (KEY_A | KEY_START)))
             {
-                sub_0803D18C(0, 0, 0, 0x10000, 0, 0x78);
-                sub_0803CDF0(0, 0, 0, 0x10000, 0, 0x78);
+                BgPalette_StartColorFade(0, 0, 0, 0x10000, 0, 0x78);
+                ObjPalette_StartColorFade(0, 0, 0, 0x10000, 0, 0x78);
                 PlaySong(SONG_MUTE);
                 gEwramData->gameModeUpdateStage += 1;
-                gEwramData->unk_12 = 0;
+                gEwramData->gameModeSubStage = 0;
             }
             break;
     
         case 6:
-            if (sub_0803D408() == 0)
+            if (BgPalette_GetPendingFades() == 0)
             {
-                temp_r5_3 = gEwramData;
-                sub_0803D270();
-                sub_0803CED4();
+                ewram2 = gEwramData;
+                BgPalette_StopColorFade();
+                ObjPalette_StopColorFade();
                 gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT;
                 gDisplayRegisters.bldY = BLDY_MAX_VALUE;
                 gEwramData->hBlankEffect.requestStop = 1;
                 EntityDeleteAll();
-                sub_0803D9A8();
-                sub_0803E438();
-                sub_08039DC0();
-                sub_0803BEEC();
-                sub_0804059C();
-                sub_08042754();
-                DMA_COPY_32(3, &temp_r5_3->unk_60.unk_68.unk_70, &gDisplayRegisters.bgCnt[1], sizeof(temp_r5_3->unk_60.unk_68.unk_70));
+                ObjTiles_Init();
+                Obj_Init();
+                Sprite_Init();
+                Palette_Init();
+                Text_Initialize();
+                HitBox_ClearAll();
+                DMA_COPY_32(3, &ewram2->gameState.savedDisplay.bgControlBytes, &gDisplayRegisters.bgCnt[1], sizeof(ewram2->gameState.savedDisplay.bgControlBytes));
                 PlaySong(SONG_MUTE);
                 gEwramData->gameModeUpdateStage += 1;
-                gEwramData->unk_12 = 0;
-                if (gEwramData->unk_6 == 0)
+                gEwramData->gameModeSubStage = 0;
+                if (gEwramData->gameModeCounter == 0)
                 {
                     gameMode = GAME_MODE_IN_GAME;
                 }
@@ -334,23 +334,23 @@ s32 GameModeIntroCutsceneUpdate(void)
     if ((gEwramData->inputData.newInput & (KEY_A | KEY_START)) && (gEwramData->gameModeUpdateStage < 6))
     {
         gEwramData->gameModeUpdateStage = 0x63;
-        gEwramData->unk_12 = 0;
-        temp_r5_2 = gEwramData;
-        sub_0803D270();
-        sub_0803CED4();
+        gEwramData->gameModeSubStage = 0;
+        ewram = gEwramData;
+        BgPalette_StopColorFade();
+        ObjPalette_StopColorFade();
         gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT;
         gDisplayRegisters.bldY = BLDY_MAX_VALUE;
         gEwramData->hBlankEffect.requestStop = 1;
         EntityDeleteAll();
-        sub_0803D9A8();
-        sub_0803E438();
-        sub_08039DC0();
-        sub_0803BEEC();
-        sub_0804059C();
-        sub_08042754();
-        DMA_COPY_32(3, &temp_r5_2->unk_60.unk_68.unk_70, &gDisplayRegisters.bgCnt[1], sizeof(temp_r5_2->unk_60.unk_68.unk_70));
+        ObjTiles_Init();
+        Obj_Init();
+        Sprite_Init();
+        Palette_Init();
+        Text_Initialize();
+        HitBox_ClearAll();
+        DMA_COPY_32(3, &ewram->gameState.savedDisplay.bgControlBytes, &gDisplayRegisters.bgCnt[1], sizeof(ewram->gameState.savedDisplay.bgControlBytes));
         PlaySong(SONG_MUTE);
-        if (gEwramData->unk_6 == 0)
+        if (gEwramData->gameModeCounter == 0)
         {
             gameMode = GAME_MODE_IN_GAME;
         }
@@ -361,41 +361,41 @@ s32 GameModeIntroCutsceneUpdate(void)
             gameMode = GAME_MODE_TITLE_SCREEN;
         }
     }
-    sub_08000B64();
+    Entity_UpdateAll();
     if (gameMode == GAME_MODE_IN_GAME)
     {
-        sub_08008ED0(0);
+        Game_SetStartPosition(0);
     }
     return gameMode;
 }
 
-struct Unk_084F0D8C {
-    u8 unk_0;
-    u8 unk_1;
-    u16 unk_2;
-    u16 unk_4;
-    u16 unk_6;
-    u16 unk_8;
+struct GameStartPosition {
+    u8 area;
+    u8 room;
+    u16 cameraX;
+    u16 cameraY;
+    u16 playerX;
+    u16 playerY;
     u8 pad_A[0xC - 0xA];
 };
 
 // Second entry seems to be unused
-struct Unk_084F0D8C sUnk_084F0D8C[2] = {
+struct GameStartPosition sGameStartPositions[2] = {
     [0] = {
-        .unk_0 = 0x00,
-        .unk_1 = 0x00,
-        .unk_2 = 0x0020,
-        .unk_4 = 0x0200,
-        .unk_6 = 0x0078,
-        .unk_8 = 0x008D
+        .area = 0x00,
+        .room = 0x00,
+        .cameraX = 0x0020,
+        .cameraY = 0x0200,
+        .playerX = 0x0078,
+        .playerY = 0x008D
     },
     [1] = {
-        .unk_0 = 0x00,
-        .unk_1 = 0x00,
-        .unk_2 = 0x0000,
-        .unk_4 = 0x0200,
-        .unk_6 = 0x0078,
-        .unk_8 = 0x008D
+        .area = 0x00,
+        .room = 0x00,
+        .cameraX = 0x0000,
+        .cameraY = 0x0200,
+        .playerX = 0x0078,
+        .playerY = 0x008D
     },
 };
 
@@ -405,432 +405,418 @@ u8 sUnk_084F0DA4[] = {
 };
 
 /**
- * @brief 8ED0 | To document
- * 
- * @param arg0 To document
+ * @brief Init a new game if needed and set the start area, room and position
+ * from entry n of sGameStartPositions.
  */
-void sub_08008ED0(s32 arg0)
+void Game_SetStartPosition(s32 arg0)
 {
-    sub_08014548();
-    gEwramData->unk_60.currentArea =  sUnk_084F0D8C[arg0].unk_0;
-    gEwramData->unk_60.currentRoom =  sUnk_084F0D8C[arg0].unk_1;
-    gEwramData->unk_60.unk_334 = sUnk_084F0D8C[arg0].unk_2;
-    gEwramData->unk_60.unk_336 = sUnk_084F0D8C[arg0].unk_4;
-    gEwramData->unk_60.unk_338 = sUnk_084F0D8C[arg0].unk_6;
-    gEwramData->unk_60.unk_33A = sUnk_084F0D8C[arg0].unk_8;
-    gEwramData->unk_60.unk_3CC = GetRoomPointer(gEwramData->unk_60.currentArea, gEwramData->unk_60.currentRoom);
+    Player_InitNewGameIfNeeded();
+    gEwramData->gameState.currentArea =  sGameStartPositions[arg0].area;
+    gEwramData->gameState.currentRoom =  sGameStartPositions[arg0].room;
+    gEwramData->gameState.savedCameraX = sGameStartPositions[arg0].cameraX;
+    gEwramData->gameState.savedCameraY = sGameStartPositions[arg0].cameraY;
+    gEwramData->gameState.savedPlayerX = sGameStartPositions[arg0].playerX;
+    gEwramData->gameState.savedPlayerY = sGameStartPositions[arg0].playerY;
+    gEwramData->gameState.roomData = GetRoomPointer(gEwramData->gameState.currentArea, gEwramData->gameState.currentRoom);
 }
 
 /**
- * @brief 8F40 | To document
- * 
- * @param param_0 To document
+ * @brief Intro sprite at (0x78, 0x9E) that rises in steps with its animation
+ * and the BG1 scroll; deleted when the scroll passes 0x20.
  */
-void sub_08008F40(struct EwramData_EntityData *param_0)
+void IntroCutscene_UpdateRisingSprite(struct EwramData_EntityData *entity)
 {
-    struct EwramData_unkA078 *temp_r5;
+    struct BgLayerState *bg;
 
-    temp_r5 = &gEwramData->bgInfo[1];
-    switch (param_0->unk_4EE)
+    bg = &gEwramData->bgInfo[1];
+    switch (entity->state)
     {
         case 0:
-            param_0->drawFunc = (u32 *) sub_0803B9D0;
-            param_0->unk_540 = 0x16;
-            sub_0803F2C8(param_0, 0, 0, 1);
-            param_0->unk_524.unk_524_16.unk_526 = 0x78;
-            param_0->unk_528.unk_528_16.unk_52A = 0x9E;
-            param_0->unk_4EE += 1;
+            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->spriteLayer = 0x16;
+            Anim_StartIndexed(entity, 0, 0, 1);
+            entity->posX.part16.integer = 0x78;
+            entity->posY.part16.integer = 0x9E;
+            entity->state += 1;
             /* fallthrough */
         case 1:
-            if ((u32)temp_r5->yPos.whole < 0x200000)
+            if ((u32)bg->yPos.whole < 0x200000)
             {
-                param_0->unk_53D_3 = 1;
+                entity->deleteRequested = 1;
             }
-            switch (param_0->unk_552)
+            switch (entity->animStep)
             {
                 case 2:
                 case 0:
-                    param_0->unk_530.unk_530_32 = 0;
+                    entity->velY.whole = 0;
                     break;
                 case 1:
                 case 3:
-                    param_0->unk_530.unk_530_32 = -0x2E00;
+                    entity->velY.whole = -0x2E00;
                     break;
             }
-            param_0->unk_528.unk_528_32 += (param_0->unk_530.unk_530_32 - temp_r5->yVel.whole);
-            sub_0803F17C(param_0);
+            entity->posY.whole += (entity->velY.whole - bg->yVel.whole);
+            Anim_Update(entity);
             break;
     }
 }
 
 /**
- * @brief 8FEC | To document
- * 
- * @param param_0 To document
+ * @brief Draw the sprite and a mirrored copy 0x80 px to the side.
  */
-void sub_08008FEC(struct EwramData_EntityData *param_0)
+void IntroCutscene_DrawMirrored(struct EwramData_EntityData *entity)
 {
-    s32 temp_r7;
-    u32 temp_r6;
+    s32 oldX;
+    u32 flipX;
 
-    temp_r7 = param_0->unk_524.unk_524_32;
-    temp_r6 = param_0->unk_53C_6;
-    sub_0803AC40(param_0);
-    param_0->unk_53C_6 ^= 1;
-    if (param_0->unk_4EF == 0)
+    oldX = entity->posX.whole;
+    flipX = entity->flipX;
+    Sprite_Draw(entity);
+    entity->flipX ^= 1;
+    if (entity->subState == 0)
     {
-        param_0->unk_524.unk_524_16.unk_526 -= 0x80;
+        entity->posX.part16.integer -= 0x80;
     }
     else
     {
-        param_0->unk_524.unk_524_16.unk_526 += 0x80;
+        entity->posX.part16.integer += 0x80;
     }
-    sub_0803AC40(param_0);
-    param_0->unk_524.unk_524_32 = temp_r7;
-    param_0->unk_53C_6 = temp_r6;
+    Sprite_Draw(entity);
+    entity->posX.whole = oldX;
+    entity->flipX = flipX;
 }
 
 /**
- * @brief 9054 | To document
- * 
- * @param param_0 To document
+ * @brief Semi-transparent mirrored sprite drifting sideways; the first one
+ * fades the blend alpha after the scroll passes 0x20.
  */
-void sub_08009054(struct EwramData_EntityData *param_0)
+void IntroCutscene_UpdateDriftingSprite(struct EwramData_EntityData *entity)
 {
-    struct EwramData_unkA078 *temp_r3;
-    s32 temp_r1_2;
-    s32 temp_r1_3;
+    struct BgLayerState *bg;
+    s32 alpha;
+    s32 alpha2;
 
-    temp_r3 = &gEwramData->bgInfo[1];
+    bg = &gEwramData->bgInfo[1];
 
-    switch (param_0->unk_4EE)
+    switch (entity->state)
     {
         case 0:
-            param_0->unk_549 = param_0->unk_4EF + 8;
-            param_0->drawFunc = (u32 *) sub_08008FEC;
-            param_0->unk_53E_1 = 1;
-            param_0->unk_540 = 0x19;
-            param_0->unk_530.unk_530_32 = 0x1000;
-            param_0->unk_52C.unk_52C_32 = -0x1000;
-            if (param_0->unk_4EF == 0)
+            entity->animFrame = entity->subState + 8;
+            entity->drawFunc = (u32 *) IntroCutscene_DrawMirrored;
+            entity->objMode = 1;
+            entity->spriteLayer = 0x19;
+            entity->velY.whole = 0x1000;
+            entity->velX.whole = -0x1000;
+            if (entity->subState == 0)
             {
-                param_0->unk_524.unk_524_16.unk_526 = 0xF8;
-                temp_r1_2 = 10;
-                gDisplayRegisters.bldAlpha = C_16_2_8(temp_r1_2,  BLDALPHA_MAX_VALUE - temp_r1_2);
+                entity->posX.part16.integer = 0xF8;
+                alpha = 10;
+                gDisplayRegisters.bldAlpha = C_16_2_8(alpha,  BLDALPHA_MAX_VALUE - alpha);
             }
             else
             {
-                param_0->unk_524.unk_524_16.unk_526 = 0xFFF8;
-                param_0->unk_52C.unk_52C_32 = -param_0->unk_52C.unk_52C_32;
+                entity->posX.part16.integer = 0xFFF8;
+                entity->velX.whole = -entity->velX.whole;
             }
-            param_0->unk_4EE += 1;
+            entity->state += 1;
             /* fallthrough */
         case 1:
-            param_0->unk_524.unk_524_32 += param_0->unk_52C.unk_52C_32;
-            if ((u32)temp_r3->yPos.whole < 0x200000)
+            entity->posX.whole += entity->velX.whole;
+            if ((u32)bg->yPos.whole < 0x200000)
             {
-                param_0->unk_4F8.unk_4F8_32 = 0x120;
-                param_0->unk_4EE += 1;
+                entity->unk_4F8.whole = 0x120;
+                entity->state += 1;
             }
             break;
 
         case 2:
-            param_0->unk_524.unk_524_32 += param_0->unk_52C.unk_52C_32;
-            if (param_0->unk_4F8.unk_4F8_32 != 0)
+            entity->posX.whole += entity->velX.whole;
+            if (entity->unk_4F8.whole != 0)
             {
-                param_0->unk_4F8.unk_4F8_32 -= 1;
-                if (param_0->unk_4EF == 0)
+                entity->unk_4F8.whole -= 1;
+                if (entity->subState == 0)
                 {
-                    temp_r1_3 = 0x10 - (param_0->unk_4F8.unk_4F8_32 / 48);
-                    gDisplayRegisters.bldAlpha = C_16_2_8(temp_r1_3,  BLDALPHA_MAX_VALUE - temp_r1_3);
+                    alpha2 = 0x10 - (entity->unk_4F8.whole / 48);
+                    gDisplayRegisters.bldAlpha = C_16_2_8(alpha2,  BLDALPHA_MAX_VALUE - alpha2);
                 }
             }
             else
             {
-                param_0->unk_53D_3 = 1;
+                entity->deleteRequested = 1;
             }
             break;
     }
 
-    temp_r3 = &gEwramData->bgInfo[3];
-    param_0->unk_528.unk_528_32 = 0x5A0000 - temp_r3->yPos.whole;
+    bg = &gEwramData->bgInfo[3];
+    entity->posY.whole = 0x5A0000 - bg->yPos.whole;
 }
 
 /**
- * @brief 9178 | To document
- * 
- * @param param_0 To document
+ * @brief Affine sprite that appears with sound 318 when the scroll passes
+ * 0x1E, rises with damping and shrinks to nothing.
  */
-void sub_08009178(struct EwramData_EntityData *param_0)
+void IntroCutscene_UpdateShrinkingSprite(struct EwramData_EntityData *entity)
 {
-    struct EwramData_unkA078 *temp_r5;
-    s16 temp_r0_2;
+    struct BgLayerState *bg;
+    s16 affineIndex;
 
-    temp_r5 = &gEwramData->bgInfo[1];
+    bg = &gEwramData->bgInfo[1];
 
-    switch (param_0->unk_4EE)
+    switch (entity->state)
     {
         case 0:
-            temp_r0_2 = sub_0803E654(1);
-            if (temp_r0_2 < 0)
+            affineIndex = ObjAffine_Alloc(1);
+            if (affineIndex < 0)
             {
-                EntityDelete(param_0);
+                EntityDelete(entity);
                 break;
             }
-            param_0->unk_53C_0 = temp_r0_2 & 0xFFFF;
-            param_0->unk_53D_5 = param_0->unk_53D_4 = 1;
-            param_0->unk_540 = 0x1A;
-            sub_0803F2C8(param_0, 1, 0, 1);
-            sub_0803F17C(param_0);
-            param_0->unk_500.unk_500_32 = 0x20000;
-            param_0->unk_524.unk_524_16.unk_526 = 0x78;
-            param_0->unk_528.unk_528_16.unk_52A = 0xB4;
-            param_0->unk_530.unk_530_32 = -0x16000;
-            param_0->unk_4EE += 1;
+            entity->affineIndex = affineIndex;
+            entity->doubleSize = entity->affine = 1;
+            entity->spriteLayer = 0x1A;
+            Anim_StartIndexed(entity, 1, 0, 1);
+            Anim_Update(entity);
+            entity->unk_500.whole = 0x20000;
+            entity->posX.part16.integer = 0x78;
+            entity->posY.part16.integer = 0xB4;
+            entity->velY.whole = -0x16000;
+            entity->state += 1;
             /* fallthrough */
         case 1:
-            if ((u32)temp_r5->yPos.whole > 0x1E0000)
+            if ((u32)bg->yPos.whole > 0x1E0000)
                 break;
 
             PlaySong(SE_318);
-            param_0->drawFunc = (u32 *) sub_0803B9D0;
-            param_0->unk_4EE += 1;
+            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->state += 1;
             /* fallthrough */
         case 2:
-            sub_0806D4A8(param_0, 0x50);
-            param_0->unk_528.unk_528_32 += param_0->unk_530.unk_530_32;
-            sub_0803F17C(param_0);
-            sub_0803E058(0, param_0->unk_500.unk_500_32, param_0->unk_500.unk_500_32, 0, 0, param_0->unk_53C_0);
-            if (param_0->unk_500.unk_500_32 != 0)
+            EntityDampVelocityY(entity, 0x50);
+            entity->posY.whole += entity->velY.whole;
+            Anim_Update(entity);
+            ObjAffine_Set(0, entity->unk_500.whole, entity->unk_500.whole, 0, 0, entity->affineIndex);
+            if (entity->unk_500.whole != 0)
             {
-                param_0->unk_500.unk_500_32 -= 0x200;
+                entity->unk_500.whole -= 0x200;
             }
             else
             {
-                sub_0803E6BC(param_0->unk_53C_0);
-                param_0->unk_53D_3 = 1;
+                ObjAffine_Free(entity->affineIndex);
+                entity->deleteRequested = 1;
             }
             break;
     }
 }
 
 /**
- * @brief 92A0 | To document
- * 
- * @param param_0 To document
+ * @brief Affine sprite that floats upwards on a Lissajous path and is freed
+ * below y 0x12C.
  */
-void sub_080092A0(struct EwramData_EntityData *param_0)
+void IntroCutscene_UpdateFloatingSprite(struct EwramData_EntityData *entity)
 {
-    struct EwramData_unkA078 *temp_r5;
-    s32 var_r0;
-    s32 var_r1;
-    s16 temp_r0_2;
+    struct BgLayerState *bg;
+    s32 swayX;
+    s32 swayY;
+    s16 affineIndex;
 
-    temp_r5 = &gEwramData->bgInfo[1];
+    bg = &gEwramData->bgInfo[1];
 
-    switch (param_0->unk_4EE)
+    switch (entity->state)
     {
         case 0:
-            temp_r0_2 = sub_0803E654(1);
-            if (temp_r0_2 < 0)
+            affineIndex = ObjAffine_Alloc(1);
+            if (affineIndex < 0)
             {
-                EntityDelete(param_0);
+                EntityDelete(entity);
                 break;
             }
-            param_0->unk_53C_0 = temp_r0_2 & 0xFFFF;
-            param_0->unk_53D_5 = param_0->unk_53D_4 = 1;
-            param_0->unk_524.unk_524_16.unk_526 = 0xD2;
-            param_0->unk_528.unk_528_16.unk_52A = 0x87;
-            param_0->unk_500.unk_500_32 = 0x10000;
-            param_0->drawFunc = (u32 *) sub_0803B9D0;
-            param_0->unk_540 = 0x16;
-            sub_0803F2C8(param_0, 1, 0, 1);
-            param_0->unk_4EE += 1;
+            entity->affineIndex = affineIndex;
+            entity->doubleSize = entity->affine = 1;
+            entity->posX.part16.integer = 0xD2;
+            entity->posY.part16.integer = 0x87;
+            entity->unk_500.whole = 0x10000;
+            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->spriteLayer = 0x16;
+            Anim_StartIndexed(entity, 1, 0, 1);
+            entity->state += 1;
             /* fallthrough */
         case 1:
-            param_0->unk_4F8.unk_4F8_32 += 0x600;
-            param_0->unk_4FC.unk_4FC_32 += 0x800;
-            var_r0 = sub_080009E4(param_0->unk_4F8.unk_4F8_32 + 0x4000) * 0xA0;
-            if (var_r0 < 0)
+            entity->unk_4F8.whole += 0x600;
+            entity->unk_4FC.whole += 0x800;
+            swayX = Sin(entity->unk_4F8.whole + 0x4000) * 0xA0;
+            if (swayX < 0)
             {
-                var_r0 += 0xFF;
+                swayX += 0xFF;
             }
-            param_0->unk_52C.unk_52C_32 = var_r0 >> 8;
-            var_r1 = sub_080009E4(param_0->unk_4FC.unk_4FC_32) * 0xA0;
-            if (var_r1 < 0)
+            entity->velX.whole = swayX >> 8;
+            swayY = Sin(entity->unk_4FC.whole) * 0xA0;
+            if (swayY < 0)
             {
-                var_r1 += 0xFF;
+                swayY += 0xFF;
             }
-            param_0->unk_530.unk_530_32 = var_r1 >> 8;
-            param_0->unk_528.unk_528_32 -= 0x1400 - (param_0->unk_530.unk_530_32 - temp_r5->yVel.whole);
-            param_0->unk_524.unk_524_32 += param_0->unk_52C.unk_52C_32;
-            sub_0803F17C(param_0);
-            sub_0803E058(0, param_0->unk_500.unk_500_32, param_0->unk_500.unk_500_32, 0, 0, param_0->unk_53C_0);
-            if (param_0->unk_528.unk_528_16.unk_52A > 0x12C)
+            entity->velY.whole = swayY >> 8;
+            entity->posY.whole -= 0x1400 - (entity->velY.whole - bg->yVel.whole);
+            entity->posX.whole += entity->velX.whole;
+            Anim_Update(entity);
+            ObjAffine_Set(0, entity->unk_500.whole, entity->unk_500.whole, 0, 0, entity->affineIndex);
+            if (entity->posY.part16.integer > 0x12C)
             {
-                sub_0803E6BC(param_0->unk_53C_0);
-                param_0->unk_53D_3 = 1;
+                ObjAffine_Free(entity->affineIndex);
+                entity->deleteRequested = 1;
             }
             return;
     }
 }
 
 /**
- * @brief 93E0 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Print the next line of the intro story text (text 0xB) into the
+ * scrolling text window.
  */
-s32 sub_080093E0(struct EwramData_EntityData *param_0)
+s32 IntroCutsceneText_PrintNextLine(struct EwramData_EntityData *entity)
 {
-    s32 var_r4;
-    u8 *temp_r6;
-    u8 *temp_r7;
-    s32 temp_r0_2;
-    s32 var_0;
-    s32 var_1;
+    s32 pos;
+    u8 *script;
+    u8 *text;
+    s32 index;
+    s32 more;
+    s32 argPos;
 
-    temp_r7 = sub_08041434(0xB);
-    var_0 = 1;
-    sub_08040748(4, Mod(param_0->unk_4F8.unk_4F8_8.unk_4F9, 0x15), 0x25, 1);
-    sub_08040FE0();
-    var_r4 = param_0->unk_4FC.unk_4FC_16.unk_4FC;
-    if (var_r4 < 0)
+    text = Text_GetLocalizedEntry(0xB);
+    more = 1;
+    Text12_SetRegion(4, Mod(entity->unk_4F8.part8.unk_4F9, 0x15), 0x25, 1);
+    Text12_ClearRegion();
+    pos = entity->unk_4FC.part16.unk_4FC;
+    if (pos < 0)
     {
-        param_0->unk_4F8.unk_4F8_8.unk_4F9 += 1;
+        entity->unk_4F8.part8.unk_4F9 += 1;
     }
     else
     {
-        temp_r6 = temp_r7 + 2;
-        while (var_0 != 0)
+        script = text + 2;
+        while (more != 0)
         {
-            switch (temp_r6[var_r4] - 1)
+            switch (script[pos] - 1)
             {
                 case 0:
-                    var_1 = var_r4 + 1;
-                    temp_r0_2 = temp_r6[var_1];
-                    var_r4 += 2;
-                    sub_08041318(sub_08041434(temp_r0_2), 0);
+                    argPos = pos + 1;
+                    index = script[argPos];
+                    pos += 2;
+                    Text12_Print(Text_GetLocalizedEntry(index), 0);
                     break;
                 case 4:
-                    var_r4 += 1;
+                    pos += 1;
                     break;
                 case 5:
                 case 8:
-                    var_r4 += 1;
-                    var_0 = 0;
+                    pos += 1;
+                    more = 0;
                     break;
                 case 9:
-                    var_r4 = -1;
-                    var_0 = 0;
+                    pos = -1;
+                    more = 0;
                     break;
                 default:
-                    var_r4 = sub_08041318(temp_r7, var_r4);
+                    pos = Text12_Print(text, pos);
                     break;
             }
         }
 
-        param_0->unk_4F8.unk_4F8_8.unk_4F9 += 1;
-        param_0->unk_4FC.unk_4FC_16.unk_4FC = var_r4;
+        entity->unk_4F8.part8.unk_4F9 += 1;
+        entity->unk_4FC.part16.unk_4FC = pos;
     }
-    return var_r4;
+    return pos;
 }
 
 /**
- * @brief 94AC | To document
- * 
- * @param param_0 To document
+ * @brief Turn the entity into the story text scroller and create the five
+ * intro sprites.
  */
-void sub_080094AC(struct EwramData_EntityData *param_0)
+void IntroCutscene_CreateEntities(struct EwramData_EntityData *entity)
 {
     // TODO: cleanup
-    s32 temp_r4;
-    struct EwramData_EntityData *temp_r4_2;
-    struct EwramData_EntityData *temp_r4_3;
-    struct EwramData_EntityData *temp_r4_4;
-    struct EwramData_EntityData *temp_r4_5;
-    struct EwramData_EntityData *temp_r4_6;
-    s32 var_0;
+    s32 gfx;
+    struct EwramData_EntityData *rising;
+    struct EwramData_EntityData *shrinking;
+    struct EwramData_EntityData *floating;
+    struct EwramData_EntityData *drifting;
+    struct EwramData_EntityData *drifting2;
+    s32 spriteGfx;
 
-    EntityDelete(param_0);
-    temp_r4 = sub_0803B800((u8 *)0x08160490, 0);
-    sub_0803C7B4((u8 *)0x0820972C, 0, 4, 0);
-    sub_0803B924(param_0, (u8 *)0x0820CB60, temp_r4, 0);
-    param_0->unk_549 = 0;
-    param_0->drawFunc = (u32 *) sub_0803B9D0;
-    param_0->unk_524.unk_524_16.unk_526 = 0x78;
-    param_0->unk_528.unk_528_16.unk_52A = 0x50;
-    param_0->unk_530.unk_530_32 = 0x1000;
-    param_0->unk_540 = 0x1A;
-    param_0->unk_53E_1 = 1;
-    param_0->updateFunc = (u32 *) sub_08009648;
-    param_0->unk_53C_5 = 1;
-    gDisplayRegisters.bgOfs[0].vOfs = param_0->unk_4FC.unk_4FC_16.unk_4FE[0] = -0xA4;
+    EntityDelete(entity);
+    gfx = ObjGfx_LoadResource((u8 *)0x08160490, 0);
+    ObjPalette_LoadRange((u8 *)0x0820972C, 0, 4, 0);
+    Sprite_Attach(entity, (u8 *)0x0820CB60, gfx, 0);
+    entity->animFrame = 0;
+    entity->drawFunc = (u32 *) Sprite_DrawEntity;
+    entity->posX.part16.integer = 0x78;
+    entity->posY.part16.integer = 0x50;
+    entity->velY.whole = 0x1000;
+    entity->spriteLayer = 0x1A;
+    entity->objMode = 1;
+    entity->updateFunc = (u32 *) IntroCutsceneText_Update;
+    entity->hidden = 1;
+    gDisplayRegisters.bgOfs[0].vOfs = entity->unk_4FC.part16.unk_4FE[0] = -0xA4;
 
-    temp_r4_2 = EntityCreateInRange(0x49, 0xCF, (u32*)sub_08008F40);
-    var_0 = sub_0803B800((u8 *)0x08160498, 0);
-    sub_0803B924(temp_r4_2, (u8 *)0x0820CD00, var_0, 2);
+    rising = EntityCreateInRange(0x49, 0xCF, (u32*)IntroCutscene_UpdateRisingSprite);
+    spriteGfx = ObjGfx_LoadResource((u8 *)0x08160498, 0);
+    Sprite_Attach(rising, (u8 *)0x0820CD00, spriteGfx, 2);
 
-    temp_r4_3 = EntityCreateInRange(0x49, 0xCF, (u32*)sub_08009178);
-    var_0 = sub_0803B800((u8 *)0x08160498, 0);
-    sub_0803B924(temp_r4_3, (u8 *)0x0820CD00, var_0, 3);
+    shrinking = EntityCreateInRange(0x49, 0xCF, (u32*)IntroCutscene_UpdateShrinkingSprite);
+    spriteGfx = ObjGfx_LoadResource((u8 *)0x08160498, 0);
+    Sprite_Attach(shrinking, (u8 *)0x0820CD00, spriteGfx, 3);
 
-    temp_r4_4 = EntityCreateInRange(0x49, 0xCF, (u32*)sub_080092A0);
-    var_0 = sub_0803B800((u8 *)0x08160498, 0);
-    sub_0803B924(temp_r4_4, (u8 *)0x0820CD00, var_0, 3);
+    floating = EntityCreateInRange(0x49, 0xCF, (u32*)IntroCutscene_UpdateFloatingSprite);
+    spriteGfx = ObjGfx_LoadResource((u8 *)0x08160498, 0);
+    Sprite_Attach(floating, (u8 *)0x0820CD00, spriteGfx, 3);
 
-    temp_r4_5 = EntityCreateInRange(0x49, 0xCF, (u32*)sub_08009054);
-    var_0 = sub_0803B800((u8 *)0x08160498, 0);
-    sub_0803B924(temp_r4_5, (u8 *)0x0820CD00, var_0, 1);
+    drifting = EntityCreateInRange(0x49, 0xCF, (u32*)IntroCutscene_UpdateDriftingSprite);
+    spriteGfx = ObjGfx_LoadResource((u8 *)0x08160498, 0);
+    Sprite_Attach(drifting, (u8 *)0x0820CD00, spriteGfx, 1);
 
-    temp_r4_6 = EntityCreateInRange(0x49, 0xCF, (u32*)sub_08009054);
-    var_0 = sub_0803B800((u8 *)0x08160498, 0);
-    sub_0803B924(temp_r4_6, (u8 *)0x0820CD00, var_0, 1);
-    temp_r4_6->unk_4EF = 1;
+    drifting2 = EntityCreateInRange(0x49, 0xCF, (u32*)IntroCutscene_UpdateDriftingSprite);
+    spriteGfx = ObjGfx_LoadResource((u8 *)0x08160498, 0);
+    Sprite_Attach(drifting2, (u8 *)0x0820CD00, spriteGfx, 1);
+    drifting2->subState = 1;
 }
 
 /**
- * @brief 9610 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @return struct EwramData_EntityData* To document
+ * @brief Unreferenced: create an intro sprite with the given update and
+ * palette.
  */
-struct EwramData_EntityData* sub_08009610(u32 *param_0, u8 param_1)
+struct EwramData_EntityData* IntroCutscene_CreateSprite(u32 *updateFunc, u8 palette)
 {
     // TODO: inlined function for 94AC?
-    struct EwramData_EntityData *var_0;
-    s32 var_1;
+    struct EwramData_EntityData *child;
+    s32 gfx;
 
-    var_0 = EntityCreateInRange(0x49, 0xCF, param_0);
-    var_1 = sub_0803B800((u8 *)0x08160498, 0);
-    sub_0803B924(var_0, (u8 *)0x0820CD00, var_1, param_1);
-    return var_0;
+    child = EntityCreateInRange(0x49, 0xCF, updateFunc);
+    gfx = ObjGfx_LoadResource((u8 *)0x08160498, 0);
+    Sprite_Attach(child, (u8 *)0x0820CD00, gfx, palette);
+    return child;
 }
 
 /**
- * @brief 9648 | To document
- * 
- * @param param_0 To document
+ * @brief Scroll the story text one line every 5 frames, printing a new line
+ * every 12 pixels; unload when the cutscene ends.
  */
-void sub_08009648(struct EwramData_EntityData *param_0)
+void IntroCutsceneText_Update(struct EwramData_EntityData *entity)
 {
-    s32 temp_r4;
+    s32 scroll;
 
-    param_0->unk_4F1 = Mod(param_0->unk_4F1 + 1, 5);
-    if (param_0->unk_4F1 == 0)
+    entity->timer = Mod(entity->timer + 1, 5);
+    if (entity->timer == 0)
     {
-        temp_r4 = gDisplayRegisters.bgOfs[0].vOfs;
-        temp_r4++;
-        if (Mod(temp_r4 + 0xF0, 0xC) == 0)
+        scroll = gDisplayRegisters.bgOfs[0].vOfs;
+        scroll++;
+        if (Mod(scroll + 0xF0, 0xC) == 0)
         {
-            sub_080093E0(param_0);
+            IntroCutsceneText_PrintNextLine(entity);
         }
-        gDisplayRegisters.bgOfs[0].vOfs = temp_r4;
+        gDisplayRegisters.bgOfs[0].vOfs = scroll;
     }
     if (gEwramData->gameModeUpdateStage > 6)
     {
-        sub_0803B980(sub_0803AFB8((u8 *)0x08160490));
-        param_0->unk_53D_3 = 1;
+        ObjGfx_Unload(ObjGfx_Find((u8 *)0x08160490));
+        entity->deleteRequested = 1;
     }
 }

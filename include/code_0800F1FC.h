@@ -5,28 +5,28 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-s32 sub_0800F1FC(struct EwramData_unk_3DC *param_0);
-void sub_0800F4F8(struct EwramData_unk3D0 *param_0, struct EwramData_unk_3DC *param_1);
-void sub_0800F5BC(struct EwramData_unk3D0 *param_0, struct EwramData_unk_3DC *param_1);
-void sub_0800F678(struct EwramData_unk_3DC *param_0);
-void sub_0800F750(void);
-void sub_0800F92C(struct EwramData_unk_3DC *param_0);
-void sub_0800F9EC(struct EwramData_unk88 *arg0, u16 arg1, u16 arg2);
-void sub_0800FBD8(void);
-s32 sub_0800FCB8(struct EwramData_unk60 *param_0);
-void sub_0800FDC8(s32 param_0);
-void sub_0800FE98(struct EwramData_unk60 *param_0, s32 param_1);
-s32 sub_0800FFCC(struct EwramData_unk60 *param_0);
-void sub_08010144(struct EwramData_unk60 *param_0);
-void sub_08010244(struct EwramData_unk60 *param_0);
-void sub_08010350(struct EwramData_unk60 *param_0);
-s32 sub_080104EC(struct EwramData_unk60 *param_0);
-s32 sub_080106DC(struct EwramData_unk60 *param_0);
-void sub_0801083C(struct EwramData_unk60 *param_0);
-void sub_080108DC(struct EwramData_unk88 *param_0);
-void sub_080108FC(struct EwramData_unk88 *param_0);
-void sub_0801093C(struct EwramData_unk60 *param_0);
-void sub_08010978(struct EwramData_unk60 *param_0);
-void sub_080109B8(struct EwramData_unk60 *param_0);
+s32 RoomEntity_Spawn(struct RoomEntityRecord *record);
+void RoomEntity_SpawnVisibleByX(struct RoomEntitySpawnState *spawnState, struct RoomEntityRecord *records);
+void RoomEntity_SpawnVisibleByY(struct RoomEntitySpawnState *spawnState, struct RoomEntityRecord *records);
+void RoomEntity_InitList(struct RoomEntityRecord *records);
+void RoomEntity_SpawnOnScroll(void);
+void RoomEntity_PreloadEnemies(struct RoomEntityRecord *records);
+void Room_Load(struct RoomDefinition *room, u16 cameraX, u16 cameraY);
+void Room_UnloadEntities(void);
+s32 AreaName_GetPendingArea(struct GameState *gameState);
+void AreaName_UpdateWave(s32 subModeCounter);
+void AreaName_Show(struct GameState *gameState, s32 area);
+s32 AreaName_Update(struct GameState *gameState);
+void AreaName_Hide(struct GameState *gameState);
+void RoomTransition_Begin(struct GameState *gameState);
+void Room_LoadAtPlayerPosition(struct GameState *gameState);
+s32 RoomTransition_Update(struct GameState *gameState);
+s32 RoomFadeTransition_Update(struct GameState *gameState);
+void Room_StoreEntryPosition(struct GameState *gameState);
+void Room_LoadGraphics(struct RoomDefinition *room);
+void Room_LoadPalettes(struct RoomDefinition *room);
+void AreaName_Dismiss(struct GameState *gameState);
+void RoomFadeTransition_Begin(struct GameState *gameState);
+void Room_ClearForTransition(struct GameState *gameState);
 
 #endif /* CODE_0800F1FC_H */

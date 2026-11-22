@@ -30,293 +30,280 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-extern u16 sUnk_08116650[];
+extern u16 sMapCellRoomInfo[];
 
-static inline u16* sub_080109F4_inline_0(s32 var_3, s32 param_0, s32 param_1)
+static inline u16* MapScreen_GetCellTileAddress(s32 tile, s32 x, s32 y)
 {
-    return (u16*)0x06000000 + ((var_3 + 0x22) << 4) + ((param_1 & 1) << 3) + (param_0 & 1);
+    return (u16*)0x06000000 + ((tile + 0x22) << 4) + ((y & 1) << 3) + (x & 1);
 }
 
 /**
- * @brief 109F4 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @param param_3 To document
- * @param param_4 To document
+ * @brief Draw the top edge of map cell (x, y) on the map screen: wall, door or
+ * open, using the edge type nibble; flag-gated doors use the event flag
+ * of the cell.
  */
-void sub_080109F4(s32 param_0, s32 param_1, s32 param_2, s32 param_3, s32 param_4)
+void MapScreen_DrawCellTopEdge(s32 x, s32 y, s32 color, s32 border, s32 edge)
 {
-    s32 temp_r1_2;
-    s32 var_r4;
-    u16 *temp_r2;
-    s32 var_3;
+    s32 current;
+    s32 pattern;
+    u16 *pixel;
+    s32 tile;
 
-    if (sUnk_08116650[(param_1 << 6) + param_0] == 0xFFFF)
+    if (sMapCellRoomInfo[(y << 6) + x] == 0xFFFF)
     {
-        param_2 = 0;
+        color = 0;
     }
 
-    var_3 = (param_0 >> 1) + ((param_1 >> 1) << 5);
-    param_4 = param_4 >> 2;
-    if (param_4 == 1)
+    tile = (x >> 1) + ((y >> 1) << 5);
+    edge = edge >> 2;
+    if (edge == 1)
     {
-        if (sub_08012078(sub_08012104(param_0, param_1)) != 0)
+        if (GameFlag_GetMask(GameFlag_FindMapCoordinate(x, y)) != 0)
         {
-            param_4 = 2;
+            edge = 2;
         }
         else
         {
-            param_4 = 3;
+            edge = 3;
         }
     }
 
-    switch (param_4)
+    switch (edge)
     {
         case 0:
-            var_r4 = (param_2 << 4) | (param_2 << 8) | (param_2 << 12);
+            pattern = (color << 4) | (color << 8) | (color << 12);
             break;
 
         case 2:
-            var_r4 = 0xBBB0;
+            pattern = 0xBBB0;
             break;
 
         case 3:
-            var_r4 = (param_3 << 4) | (param_3 << 8) | (param_3 << 12);
+            pattern = (border << 4) | (border << 8) | (border << 12);
             break;
     }
 
-    temp_r2 = sub_080109F4_inline_0(var_3, param_0, param_1);
-    temp_r1_2 = *temp_r2 & 0xF;
-    if ((temp_r1_2 == param_3) || (param_4 & 2))
+    pixel = MapScreen_GetCellTileAddress(tile, x, y);
+    current = *pixel & 0xF;
+    if ((current == border) || (edge & 2))
     {
-        *temp_r2 = var_r4 | param_3;
+        *pixel = pattern | border;
     }
     else
     {
-        *temp_r2 = var_r4 | temp_r1_2;
+        *pixel = pattern | current;
     }
 
-    if (param_4 & 2)
+    if (edge & 2)
     {
-        var_3 = ((param_0 + 1) >> 1) + ((param_1 >> 1) << 5);
-        temp_r2 = sub_080109F4_inline_0(var_3, param_0 + 1, param_1);
-        *temp_r2 = (*temp_r2 & 0xFFF0) | param_3;
+        tile = ((x + 1) >> 1) + ((y >> 1) << 5);
+        pixel = MapScreen_GetCellTileAddress(tile, x + 1, y);
+        *pixel = (*pixel & 0xFFF0) | border;
     }
 }
 
 /**
- * @brief 10B04 | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @param param_3 To document
- * @param param_4 To document
+ * @brief Draw the left edge (four pixel rows) of map cell (x, y) on the map
+ * screen from its edge type nibble.
  */
-void sub_08010B04(s32 param_0, s32 param_1, s32 param_2, s32 param_3, s32 param_4)
+void MapScreen_DrawCellLeftEdge(s32 x, s32 y, s32 color, s32 border, s32 edge)
 {
-    s32 temp_r1_2;
-    s32 var_r2;
-    s32 var_r2_2;
-    s32 var_r6;
-    u16 *var_r5;
-    s32 var_0;
-    s32 var_1;
+    s32 current;
+    s32 value;
+    s32 value2;
+    s32 i;
+    u16 *pixel;
+    s32 tile;
+    s32 below;
 
-    if (sUnk_08116650[(param_1 << 6) + param_0] == 0xFFFF)
+    if (sMapCellRoomInfo[(y << 6) + x] == 0xFFFF)
     {
-        param_2 = 0;
+        color = 0;
     }
 
-    param_4 = param_4 & 3;
-    if (param_4 == 1)
+    edge = edge & 3;
+    if (edge == 1)
     {
-        if (sub_08012078(sub_08012104(param_0, -param_1)) != 0)
+        if (GameFlag_GetMask(GameFlag_FindMapCoordinate(x, -y)) != 0)
         {
-            param_4 = 2;
+            edge = 2;
         }
         else
         {
-            param_4 = 3;
+            edge = 3;
         }
     }
 
-    var_0 = (param_0 >> 1) + ((param_1 >> 1) << 5);
-    var_r5 = sub_080109F4_inline_0(var_0, param_0, param_1);
+    tile = (x >> 1) + ((y >> 1) << 5);
+    pixel = MapScreen_GetCellTileAddress(tile, x, y);
     
-    for (var_r6 = 0; var_r6 < 4; var_r6++)
+    for (i = 0; i < 4; i++)
     {
-        temp_r1_2 = *var_r5 & 0xF;
+        current = *pixel & 0xF;
 
-        switch (var_r6)
+        switch (i)
         {
             case 0:
-                if (param_4 != 2)
+                if (edge != 2)
                 {
-                    if (((param_4 & 2) || (temp_r1_2 == 5)))
+                    if (((edge & 2) || (current == 5)))
                     {
-                        var_r2 = param_3;
+                        value = border;
                     }
                     else
                     {
-                        var_r2 = param_2;
+                        value = color;
                     }
                 }
                 else
                 {
-                    var_r2 = 0xB;
+                    value = 0xB;
                 }
                 break;
 
             case 2:
-                if (param_4 == 2)
+                if (edge == 2)
                 {
-                   var_r2 = 0xB;
+                   value = 0xB;
                 }
                 else
                 {
-                    if (param_4 == 3)
+                    if (edge == 3)
                     {
-                        var_r2 = param_3;
+                        value = border;
                     }
                     else
                     {
-                        var_r2 = param_2;
+                        value = color;
                     }
                 }
                 break;
 
             default:
-                if (param_4 == 2)
+                if (edge == 2)
                 {
-                    var_r2 = 0xB;
+                    value = 0xB;
                 }
                 else
                 {
-                    if (param_4 & 2)
+                    if (edge & 2)
                     {
-                        var_r2 = param_3;
+                        value = border;
                     }
                     else
                     {
-                        var_r2 = param_2;
+                        value = color;
                     }
                 }
                 break;
         }
 
-        if (temp_r1_2 != param_3)
+        if (current != border)
         {
-            *var_r5 = (*var_r5 & 0xFFF0) | var_r2;
+            *pixel = (*pixel & 0xFFF0) | value;
         }
-        var_r5 += 2;
+        pixel += 2;
     }
 
-    var_0 = (param_0 >> 1) + (((param_1 + 1) >> 1) << 5);
-    var_r5 = sub_080109F4_inline_0(var_0, param_0, param_1 + 1);
+    tile = (x >> 1) + (((y + 1) >> 1) << 5);
+    pixel = MapScreen_GetCellTileAddress(tile, x, y + 1);
 
-    var_1 = *var_r5 & 0xF;
-    if (var_1)
+    below = *pixel & 0xF;
+    if (below)
     {
-        if (var_1 == 5 || var_1 == 1)
+        if (below == 5 || below == 1)
         {
-            var_r2_2 = param_3;
+            value2 = border;
         }
         else
         {
-            var_r2_2 = param_2;
+            value2 = color;
         }
     }
     else
     {
-        if (param_4 & 2)
+        if (edge & 2)
         {
-            var_r2_2 = param_3;
+            value2 = border;
         }
         else
         {
-            var_r2_2 = param_2;
+            value2 = color;
         }
     }
-    *var_r5 = (*var_r5 & 0xFFF0) | var_r2_2;
+    *pixel = (*pixel & 0xFFF0) | value2;
 }
 
 
-extern u8 sUnk_08117DD0[];
+extern u8 sMapCellEdges[];
 
 /**
- * @brief 10C4C | To document
- * 
- * @param param_0 To document
- * @param param_1 To document
- * @param param_2 To document
- * @param param_3 To document
+ * @brief Fill map cell (x, y) with colour and draw its four edges from
+ * sMapCellEdges.
  */
-void sub_08010C4C(struct EwramData_unk60 *param_0, s32 param_1, s32 param_2, s32 param_3)
+void MapScreen_DrawCell(struct GameState *gameState, s32 x, s32 y, s32 color)
 {
-    u16 *var_r1;
-    s32 var_r0;
-    s32 var_r4;
-    s32 var_sb;
+    u16 *pixels;
+    s32 i;
+    s32 edges;
+    s32 border;
     s32 var_0;
-    s32 var_1;
+    s32 tile;
     
-    if (param_3 == 4)
+    if (color == 4)
     {
-        var_sb = 5;
+        border = 5;
     }
     else
     {
-        var_sb = 1;
+        border = 1;
     }
 
-    var_1 = (param_1 >> 1) + ((param_2 >> 1) << 5);
-    var_r1 = sub_080109F4_inline_0(var_1, param_1, param_2);
+    tile = (x >> 1) + ((y >> 1) << 5);
+    pixels = MapScreen_GetCellTileAddress(tile, x, y);
 
-    var_r4 = param_3 | (param_3 << 4) | (param_3 << 8) | (param_3 << 12);
-    for (var_r0 = 1; var_r0 < 4; var_r0++)
+    edges = color | (color << 4) | (color << 8) | (color << 12);
+    for (i = 1; i < 4; i++)
     {
-        var_r1[var_r0 * 2] = var_r4;
+        pixels[i * 2] = edges;
     }
 
-    var_r4 = sUnk_08117DD0[(param_2 << 5) + (param_1 >> 1)];
-    if (param_1 & 1)
+    edges = sMapCellEdges[(y << 5) + (x >> 1)];
+    if (x & 1)
     {
-        var_r4 = var_r4 & 0xF;
+        edges = edges & 0xF;
     }
     else
     {
-        var_r4 = var_r4 >> 4;
+        edges = edges >> 4;
     }
-    sub_080109F4(param_1, param_2, param_3, var_sb, var_r4);
-    sub_08010B04(param_1, param_2, param_3, var_sb, var_r4);
+    MapScreen_DrawCellTopEdge(x, y, color, border, edges);
+    MapScreen_DrawCellLeftEdge(x, y, color, border, edges);
 
-    var_r4 = sUnk_08117DD0[((param_2 + 1) << 5) + (param_1 >> 1)];
-    if (param_1 & 1)
+    edges = sMapCellEdges[((y + 1) << 5) + (x >> 1)];
+    if (x & 1)
     {
-        var_r4 = var_r4 & 0xF;
+        edges = edges & 0xF;
     }
     else
     {
-        var_r4 = var_r4 >> 4;
+        edges = edges >> 4;
     }
-    sub_080109F4(param_1, param_2 + 1, param_3, var_sb, var_r4);
+    MapScreen_DrawCellTopEdge(x, y + 1, color, border, edges);
 
-    var_r4 = sUnk_08117DD0[((param_1 + 1) >> 1) + (param_2 << 5)];
-    if (!(param_1 & 1))
+    edges = sMapCellEdges[((x + 1) >> 1) + (y << 5)];
+    if (!(x & 1))
     {
-        var_r4 = var_r4 & 0xF;
+        edges = edges & 0xF;
     }
     else
     {
-        var_r4 = var_r4 >> 4;
+        edges = edges >> 4;
     }
-    sub_08010B04(param_1 + 1, param_2, param_3, var_sb, var_r4);
+    MapScreen_DrawCellLeftEdge(x + 1, y, color, border, edges);
 }
 
-u8 sUnk_084F1054[][2] = {
+u8 sMapScreenExcludedCells[][2] = {
     [0] = {
         4, 13
     },
@@ -339,102 +326,101 @@ u8 sUnk_084F1054[][2] = {
 
 static inline struct EwramData_EntityData* Get_unk_13110()
 {
-    return gEwramData->unk_13110.unk_13110;
+    return gEwramData->playerState.player;
 }
 
-static inline s32 sub_08010D60_inline_0(struct EwramData_unk60 *param_0, s32 var_r5, s32 var_r7)
+static inline s32 MapScreen_IsCellNotExcluded(struct GameState *gameState, s32 cellX, s32 cellY)
 {
-    s32 var_r3;
+    s32 i;
 
-    for (var_r3 = 0; sUnk_084F1054[var_r3][0] != 0; var_r3 += 1)
+    for (i = 0; sMapScreenExcludedCells[i][0] != 0; i += 1)
     {
-        if ((var_r5 == sUnk_084F1054[var_r3][0]) && (var_r7 == sUnk_084F1054[var_r3][1]))
+        if ((cellX == sMapScreenExcludedCells[i][0]) && (cellY == sMapScreenExcludedCells[i][1]))
             return FALSE;
     }
     return TRUE;
 }
 
 /**
- * @brief 10D60 | To document
- * 
- * @param param_0 To document
+ * @brief Set up the map tilemap, print the completion and draw every visited
+ * cell, plus the cells revealed by map items 0x1D/0x1E.
  */
-void sub_08010D60(struct EwramData_unk60 *param_0)
+void MapScreen_DrawMap(struct GameState *gameState)
 {
-    u16 *var_r1;
-    s32 var_r0;
-    s32 var_r1_5;
-    s32 var_r3_4;
-    s32 var_r5;
-    s32 var_r7;
-    s32 temp_r4_2;
-    s32 temp_r4_4;
+    u16 *tilemap;
+    s32 tile;
+    s32 roomColor;
+    s32 color;
+    s32 j;
+    s32 i;
+    s32 cellType;
+    s32 cellInfo;
 
-    var_r1 = (u16 *)0x0600E000;
-    var_r0 = 0;
+    tilemap = (u16 *)0x0600E000;
+    tile = 0;
 
-    for (var_r7 = 0; var_r7 < 20; var_r7++)
+    for (i = 0; i < 20; i++)
     {
-        for (var_r5 = 0; var_r5 < 0x20; var_r5++)
+        for (j = 0; j < 0x20; j++)
         {
-            *var_r1 = var_r0;
-            var_r0++;
-            var_r1++;
+            *tilemap = tile;
+            tile++;
+            tilemap++;
         }
     }
 
     DMA_FILL_32(3, 0, 0x06000000, 0x6000);
-    sub_08011E88(param_0, param_0->unk_8D_6, 0x18, 1);
+    Map_DrawCompletion(gameState, gameState->unk_8D_6, 0x18, 1);
     if (GetAreaFromMapPosition(GetEntityRoomXPositionInteger(Get_unk_13110()), GetEntityRoomYPositionInteger(Get_unk_13110())) == 11)
     {
         return;
     }
 
-    if (gEwramData->unk_60.unk_4CC_0)
+    if (gEwramData->gameState.bossRushMode)
     {
         return;
     }
 
-    for (var_r7 = 0; var_r7 < 0x23; var_r7++)
+    for (i = 0; i < 0x23; i++)
     {
-        for (var_r5 = 0; var_r5 < 0x40; var_r5++)
+        for (j = 0; j < 0x40; j++)
         {
-            temp_r4_2 = sUnk_08116650[var_r5 + (var_r7 << 6)];
-            if (temp_r4_2 == 0xFFFF)
+            cellType = sMapCellRoomInfo[j + (i << 6)];
+            if (cellType == 0xFFFF)
             {
                 continue;
             }
 
-            temp_r4_2 = (temp_r4_2 >> 6) & 0xF;
-            if (param_0->unk_B4[var_r5 >> 5][var_r7].unk_B8 & (1 << (var_r5 & 0x1F)))
+            cellType = (cellType >> 6) & 0xF;
+            if (gameState->mapCells[j >> 5][i].visited & (1 << (j & 0x1F)))
             {
-                sub_08010C4C(param_0, var_r5, var_r7, 4);
+                MapScreen_DrawCell(gameState, j, i, 4);
             }
             else
             {
-                if ((gEwramData->unk_1325C.itemInventory[0x1D] != 0) && (temp_r4_2 == 0 || temp_r4_2 == 1))
+                if ((gEwramData->playerStatus.itemInventory[0x1D] != 0) && (cellType == 0 || cellType == 1))
                 {
-                    if (sub_08010D60_inline_0(param_0, var_r5, var_r7))
+                    if (MapScreen_IsCellNotExcluded(gameState, j, i))
                     {
-                        sub_08010C4C(param_0, var_r5, var_r7, 4);
+                        MapScreen_DrawCell(gameState, j, i, 4);
                         continue;
                     }
                 }
 
-                if ((gEwramData->unk_1325C.itemInventory[0x1E] != 0) && (temp_r4_2 == 3))
+                if ((gEwramData->playerStatus.itemInventory[0x1E] != 0) && (cellType == 3))
                 {
-                    if (sub_08010D60_inline_0(param_0, var_r5, var_r7))
+                    if (MapScreen_IsCellNotExcluded(gameState, j, i))
                     {
-                        sub_08010C4C(param_0, var_r5, var_r7, 4);
+                        MapScreen_DrawCell(gameState, j, i, 4);
                         continue;
                     }
                 }
 
-                if ((gEwramData->unk_1325C.itemInventory[0x1F] != 0) && (temp_r4_2 == 5))
+                if ((gEwramData->playerStatus.itemInventory[0x1F] != 0) && (cellType == 5))
                 {
-                    if (sub_08010D60_inline_0(param_0, var_r5, var_r7))
+                    if (MapScreen_IsCellNotExcluded(gameState, j, i))
                     {
-                        sub_08010C4C(param_0, var_r5, var_r7, 4);
+                        MapScreen_DrawCell(gameState, j, i, 4);
                         continue;
                     }
                 }
@@ -443,36 +429,36 @@ void sub_08010D60(struct EwramData_unk60 *param_0)
     }
 
     
-    for (var_r7 = 0; var_r7 < 35; var_r7++)
+    for (i = 0; i < 35; i++)
     {
-        for (var_r5 = 0; var_r5 < 0x40; var_r5++)
+        for (j = 0; j < 0x40; j++)
         {
-            temp_r4_4 = sUnk_08116650[(var_r7 << 6) + var_r5];
-            if (temp_r4_4 == 0xFFFF)
+            cellInfo = sMapCellRoomInfo[(i << 6) + j];
+            if (cellInfo == 0xFFFF)
                 continue;
 
-            if (param_0->unk_B4[var_r5 >> 5][var_r7].unk_B4 & (1 << (var_r5 & 0x1F)))
+            if (gameState->mapCells[j >> 5][i].visitedThisRun & (1 << (j & 0x1F)))
             {
                 // Is save room
-                if (temp_r4_4 & 0x4000)
+                if (cellInfo & 0x4000)
                 {
-                    var_r1_5 = 3;
+                    roomColor = 3;
                 }
                 else
                 {
-                    var_r1_5 = 9;
+                    roomColor = 9;
                 }
 
                 // Is warp room
-                if (!(temp_r4_4 & 0x8000))
+                if (!(cellInfo & 0x8000))
                 {
-                    var_r3_4 = var_r1_5;
+                    color = roomColor;
                 }
                 else
                 {
-                    var_r3_4 = 2;
+                    color = 2;
                 }
-                sub_08010C4C(param_0, var_r5, var_r7, var_r3_4);
+                MapScreen_DrawCell(gameState, j, i, color);
             }
         }
     }
@@ -483,74 +469,71 @@ void sub_08010D60(struct EwramData_unk60 *param_0)
 
 
 /**
- * @brief 10FF4 | To document
- * 
- * @param param_0 To document
+ * @brief Draw the blinking circular window marker at the player cell when the
+ * player is in the shown area.
  */
-void sub_08010FF4(struct EwramData_unk60 *param_0)
+void MapScreen_UpdatePlayerMarker(struct GameState *gameState)
 {
-    s32 temp_r4_2;
-    s32 temp_sb;
-    struct EwramData_EntityData *temp_r7;
-    s32 temp_r0;
-    s32 temp_r3;
-    s32 var_0;
+    s32 markerY;
+    s32 markerX;
+    struct EwramData_EntityData *entity;
+    s32 bossRush;
+    s32 phase;
+    s32 radius;
 
-    temp_r7 = Get_unk_13110();
-    if (GetAreaFromMapPosition(GetEntityRoomXPositionInteger(gEwramData->unk_13110.unk_13110), GetEntityRoomYPositionInteger(Get_unk_13110())) != 11)
+    entity = Get_unk_13110();
+    if (GetAreaFromMapPosition(GetEntityRoomXPositionInteger(gEwramData->playerState.player), GetEntityRoomYPositionInteger(Get_unk_13110())) != 11)
     {
-        temp_r0 = gEwramData->unk_60.unk_4CC_0 != 0;
-        if (!temp_r0)
+        bossRush = gEwramData->gameState.bossRushMode != 0;
+        if (!bossRush)
         {
-            temp_sb = (param_0->roomMapXPos + (GetEntityRoomXPositionInteger(temp_r7) >> 8) + 4) * 4;
-            temp_r4_2 = ((param_0->roomMapYPos + (GetEntityRoomYPositionInteger(temp_r7) >> 8) + 2) * 4) + 2;
-            temp_r3 = gEwramData->frameCounter >> 2;
-            var_0 = 0x10 - (temp_r3 & 0xF);
-            if ((param_0->unk_8D_6 == 1 && param_0->unk_8E_0) || (param_0->unk_8D_6 == 3 && !param_0->unk_8E_0))
+            markerX = (gameState->roomMapXPos + (GetEntityRoomXPositionInteger(entity) >> 8) + 4) * 4;
+            markerY = ((gameState->roomMapYPos + (GetEntityRoomYPositionInteger(entity) >> 8) + 2) * 4) + 2;
+            phase = gEwramData->frameCounter >> 2;
+            radius = 0x10 - (phase & 0xF);
+            if ((gameState->unk_8D_6 == 1 && gameState->unk_8E_0) || (gameState->unk_8D_6 == 3 && !gameState->unk_8E_0))
             {
                 gDisplayRegisters.bldY = 0;
             }
             else
             {
-                gDisplayRegisters.bldY = (temp_r3 & 0xF) + 1;
+                gDisplayRegisters.bldY = (phase & 0xF) + 1;
             }
-            sub_08002324(temp_sb, temp_r4_2, var_0);
+            Window1_SetCircle(markerX, markerY, radius);
         }
     }
 }
 
 /**
- * @brief 110E4 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Sub-mode 4 steps: draw the castle map, handle scrolling input until
+ * B or Select, then restore the room display; return 1 when closed.
  */
-s32 sub_080110E4(struct EwramData_unk60 *param_0)
+s32 MapScreen_Update(struct GameState *gameState)
 {
-    struct EwramData_unk88 *temp_r6;
+    struct RoomDefinition *room;
     s32 new_input;
-    s32 var_r7;
-    struct EwramData_unkA078 *temp_r0_4;
+    s32 done;
+    struct BgLayerState *bg;
 
-    temp_r6 = param_0->unk_88;
+    room = gameState->currentRoomDefinition;
     new_input = gEwramData->inputData.newInput;
-    var_r7 = 0;
+    done = 0;
 
-    switch (param_0->unk_65)
+    switch (gameState->subModeStep)
     {
         case 0:
-            sub_08000B64();
-            gEwramData->unk_A074_2 = gEwramData->unk_A074_4 = 3;
-            param_0->unk_65 = 8;
+            Entity_UpdateAll();
+            gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 3;
+            gameState->subModeStep = 8;
             break;
 
         case 8:
             gDisplayRegisters.bgOfs[0].hOfs = 0;
             gDisplayRegisters.bgOfs[0].vOfs = 0;
-            sub_0803C294();
-            sub_0803C8B0((u8 *)0x081183CC);
-            sub_08010D60(param_0);
-            param_0->unk_65 = 1;
+            Palette_SaveState();
+            BgPalette_Load((u8 *)0x081183CC);
+            MapScreen_DrawMap(gameState);
+            gameState->subModeStep = 1;
             break;
 
         case 1:
@@ -564,20 +547,20 @@ s32 sub_080110E4(struct EwramData_unk60 *param_0)
                 gDisplayRegisters.winOut_L = WIN0_ALL_NO_COLOR_EFFECT;
                 gDisplayRegisters.win1H = C_16_2_8(SCREEN_SIZE_X, SCREEN_SIZE_X + 1);
                 gDisplayRegisters.win1V = C_16_2_8(SCREEN_SIZE_Y, SCREEN_SIZE_Y + 1);
-                sub_08002400();
-                param_0->unk_65 += 1;
+                Window1_EnableHBlank();
+                gameState->subModeStep += 1;
             }
             break;
 
         case 2:
-            sub_08010FF4(param_0);
+            MapScreen_UpdatePlayerMarker(gameState);
             if (new_input & (KEY_B | KEY_SELECT))
             {
                 gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT;
                 gDisplayRegisters.winIn_H = 0;
                 gDisplayRegisters.bldY = 0;
-                sub_08002428();
-                param_0->unk_65 += 1;
+                Window1_Disable();
+                gameState->subModeStep += 1;
             }
             break;
 
@@ -585,33 +568,33 @@ s32 sub_080110E4(struct EwramData_unk60 *param_0)
             gDisplayRegisters.bldY += 4;
             if (gDisplayRegisters.bldY == BLDY_MAX_VALUE)
             {
-                param_0->unk_65 += 1;
+                gameState->subModeStep += 1;
             }
             break;
         case 4:
-            sub_0803C3E0();
-            sub_0800DA50();
-            temp_r0_4 = &gEwramData->bgInfo[1];
+            Palette_RestoreState();
+            Hud_Init();
+            bg = &gEwramData->bgInfo[1];
             // TODO: A094 types
-            sub_0803F8A8(1, (struct EwramData_unkA078_0 *) temp_r0_4->pBgMetadata, temp_r0_4->xPos.part16.integer, temp_r0_4->yPos.part16.integer);
+            BgMap_Setup(1, (struct BgMapMetadata *) bg->pBgMetadata, bg->xPos.part16.integer, bg->yPos.part16.integer);
             gUnk_03002CB0.dispCnt = 0;
-            sub_080108DC(temp_r6);
-            sub_080108FC(temp_r6);
-            param_0->unk_65 += 1;
+            Room_LoadGraphics(room);
+            Room_LoadPalettes(room);
+            gameState->subModeStep += 1;
             break;
 
         case 5:
-            sub_0800D1F0();
+            Display_RestoreState();
             // TODO: 7864 and 8C6C
             DMA_COPY_32(3, &gEwramData->hBlankEffect_backup, &gEwramData->hBlankEffect, sizeof(gEwramData->hBlankEffect));
-            sub_08000B64();
+            Entity_UpdateAll();
             gDisplayRegisters.bldY = 0;
             gDisplayRegisters.bldCnt |= BLDCNT_SCREEN_SECOND_TARGET;
-            gEwramData->unk_A074_1 = 1;
-            gEwramData->unk_A074_0 = 0;
-            sub_08013B44();
-            gEwramData->unk_A074_2 = gEwramData->unk_A074_4 = 0;
-            var_r7 = 1;
+            gEwramData->startPauseEnabled = 1;
+            gEwramData->paused = 0;
+            Sound_ReplayTrackedWithVolume();
+            gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 0;
+            done = 1;
             break;
 
         case 6:
@@ -621,85 +604,83 @@ s32 sub_080110E4(struct EwramData_unk60 *param_0)
             }
             else
             {
-                sub_08010D60(param_0);
-                param_0->unk_65 = 1;
+                MapScreen_DrawMap(gameState);
+                gameState->subModeStep = 1;
             }
             break;
     }
 
     gEwramData->hBlankEffect.requestStop = 1;
-    return var_r7;
+    return done;
 }
 
 /**
- * @brief 11338 | To document
- * 
- * @param param_0 To document
+ * @brief Select in game: dismiss effects, black out and pause, enter in-game
+ * sub-mode 4, back up the H-blank state, stop tracked sounds and load
+ * the map tile graphics.
  */
-void sub_08011338(struct EwramData_unk60 *param_0)
+void MapScreen_Open(struct GameState *gameState)
 {
-    sub_0800D154();
+    Display_SaveState();
     gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT;
     gUnk_03002CB0.dispCnt &= ~DCNT_WIN0;
     gDisplayRegisters.bldY = BLDY_MAX_VALUE;
-    gEwramData->unk_A074_1 = 0;
-    gEwramData->unk_A074_0 = 1;
-    param_0->unk_64 = 4;
-    param_0->unk_65 = 0;
+    gEwramData->startPauseEnabled = 0;
+    gEwramData->paused = 1;
+    gameState->subMode = 4;
+    gameState->subModeStep = 0;
     gDisplayRegisters.bldY = BLDY_MAX_VALUE;
     DMA_COPY_32(3, &gEwramData->hBlankEffect, &gEwramData->hBlankEffect_backup, sizeof(gEwramData->hBlankEffect_backup));
     gDisplayRegisters.bgOfs[0].hOfs = 0;
     gDisplayRegisters.bgOfs[0].vOfs = 0;
     gEwramData->hBlankEffect.requestStop = 1;
     DMA_FILL_32(3, 0, &gEwramData->hBlankEffect.hBlankBuffer, sizeof(gEwramData->hBlankEffect.hBlankBuffer[0]));
-    sub_08013BCC();
-    DMA_COPY_32(3, sUnk_080E3664, VRAM_BASE + 0x6000, sizeof(sUnk_080E3664));
+    Sound_StopTrackedWithVolume();
+    DMA_COPY_32(3, sDebugFontTiles, VRAM_BASE + 0x6000, sizeof(sDebugFontTiles));
 }
 
 /**
- * @brief 11430 | To document
- * 
- * @param param_0 To document
+ * @brief Under the original screen-X, area and mode guards, mark the player map cell in both map bit planes using room-map origin plus room position.
  */
-void sub_08011430(struct EwramData_unk60 *param_0)
+void Map_MarkCurrentCell(struct GameState *gameState)
 {
-    struct EwramData_EntityData *temp_r4;
-    s32 temp_r7;
-    s32 temp_r8;
-    s32 temp_r1;
-    s16 temp_r2;
+    struct EwramData_EntityData *player;
+    s32 roomX;
+    s32 roomY;
+    s32 cellX;
+    s16 cellY;
 
-    temp_r4 = gEwramData->unk_13110.unk_13110;
-    if ((s16)temp_r4->unk_524.unk_524_16.unk_526 < SCREEN_SIZE_X)
+    player = gEwramData->playerState.player;
+    if ((s16)player->posX.part16.integer < SCREEN_SIZE_X)
     {
-        temp_r7 = GetEntityRoomXPositionInteger(temp_r4);
-        temp_r8 = GetEntityRoomYPositionInteger(temp_r4);
-        if ((GetAreaFromMapPosition(GetEntityRoomXPositionInteger(gEwramData->unk_13110.unk_13110), GetEntityRoomYPositionInteger(gEwramData->unk_13110.unk_13110)) != 11))
+        roomX = GetEntityRoomXPositionInteger(player);
+        roomY = GetEntityRoomYPositionInteger(player);
+        if ((GetAreaFromMapPosition(GetEntityRoomXPositionInteger(gEwramData->playerState.player), GetEntityRoomYPositionInteger(gEwramData->playerState.player)) != 11))
         {
-            if (!gEwramData->unk_60.unk_4CC_0)
+            if (!gEwramData->gameState.bossRushMode)
             {
-                temp_r1 = param_0->roomMapXPos + (temp_r7 >> 8);
-                temp_r2 = param_0->roomMapYPos + (temp_r8 >> 8);
-                param_0->unk_B4[temp_r1 >> 5][temp_r2].unk_B4 |= 1 << (temp_r1 & 0x1F);
-                param_0->unk_B4[temp_r1 >> 5][temp_r2].unk_B8 |= 1 << (temp_r1 & 0x1F);
+                cellX = gameState->roomMapXPos + (roomX >> 8);
+                cellY = gameState->roomMapYPos + (roomY >> 8);
+                gameState->mapCells[cellX >> 5][cellY].visitedThisRun |= 1 << (cellX & 0x1F);
+                gameState->mapCells[cellX >> 5][cellY].visited |= 1 << (cellX & 0x1F);
             }
         }
     }
 }
 
 /**
- * @brief 114FC | To document
- * 
+ * @brief Move the warp choice selectedWarpIndex to the previous/next activated warp room
+ * (bits of activatedWarpFlags); 0 when none is activated.
  */
-void sub_080114FC(void)
+void WarpMenu_HandleCursorInput(void)
 {
     u16 repeatedInput;
 
     repeatedInput = gEwramData->inputData.repeatedInput;
 
-    if (gEwramData->unk_60.unk_378[0] == 0)
+    if (gEwramData->gameState.activatedWarpFlags[0] == 0)
     {
-        gEwramData->unk_60.unk_3F4 = gEwramData->unk_60.unk_378[0];
+        gEwramData->gameState.selectedWarpIndex = gEwramData->gameState.activatedWarpFlags[0];
         return;
     }
 
@@ -708,12 +689,12 @@ void sub_080114FC(void)
         PlaySong(SE_241);
         do
         {
-            if (--gEwramData->unk_60.unk_3F4 < 0)
+            if (--gEwramData->gameState.selectedWarpIndex < 0)
             {
-                gEwramData->unk_60.unk_3F4 = 7;
+                gEwramData->gameState.selectedWarpIndex = 7;
             }
         }
-        while (!(gEwramData->unk_60.unk_378[gEwramData->unk_60.unk_3F4 >> 5] & (1 << (gEwramData->unk_60.unk_3F4 & 0x1F))));
+        while (!(gEwramData->gameState.activatedWarpFlags[gEwramData->gameState.selectedWarpIndex >> 5] & (1 << (gEwramData->gameState.selectedWarpIndex & 0x1F))));
     }
 
     if (repeatedInput & (KEY_DOWN | KEY_RIGHT))
@@ -721,85 +702,84 @@ void sub_080114FC(void)
         PlaySong(SE_241);
         do
         {
-            if (++gEwramData->unk_60.unk_3F4 > 7)
+            if (++gEwramData->gameState.selectedWarpIndex > 7)
             {
-                gEwramData->unk_60.unk_3F4 = 0;
+                gEwramData->gameState.selectedWarpIndex = 0;
             }
         }
-        while (!(gEwramData->unk_60.unk_378[gEwramData->unk_60.unk_3F4 >> 5] & (1 << (gEwramData->unk_60.unk_3F4 & 0x1F))));
+        while (!(gEwramData->gameState.activatedWarpFlags[gEwramData->gameState.selectedWarpIndex >> 5] & (1 << (gEwramData->gameState.selectedWarpIndex & 0x1F))));
     }
 }
 
 /**
- * @brief 115D4 | To document
- * 
- * @param param_0 To document
+ * @brief Enter in-game sub-mode 7 from the warp-room object: black out,
+ * pause, back up the H-blank state, stop tracked sounds and load the
+ * map tile graphics.
  */
-void sub_080115D4(struct EwramData_unk60 *param_0)
+void WarpMenu_Open(struct GameState *gameState)
 {
-    sub_0800D154();
+    Display_SaveState();
     gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT;
-    gEwramData->unk_A074_1 = 0;
-    gEwramData->unk_A074_0 = 1;
-    param_0->unk_64 = 7;
-    param_0->unk_65 = 0;
+    gEwramData->startPauseEnabled = 0;
+    gEwramData->paused = 1;
+    gameState->subMode = 7;
+    gameState->subModeStep = 0;
     gDisplayRegisters.bldY = BLDY_MAX_VALUE;
     DMA_COPY_32(3, &gEwramData->hBlankEffect, &gEwramData->hBlankEffect_backup, sizeof(gEwramData->hBlankEffect_backup));
     gDisplayRegisters.bgOfs[0].hOfs = 0;
     gDisplayRegisters.bgOfs[0].vOfs = 0;
     gEwramData->hBlankEffect.requestStop = 1;
     DMA_FILL_32(3, 0, &gEwramData->hBlankEffect.hBlankBuffer, sizeof(gEwramData->hBlankEffect.hBlankBuffer[0]));
-    sub_08013BCC();
-    DMA_COPY_32(3, sUnk_080E3664, VRAM_BASE + 0x6000, sizeof(sUnk_080E3664));
+    Sound_StopTrackedWithVolume();
+    DMA_COPY_32(3, sDebugFontTiles, VRAM_BASE + 0x6000, sizeof(sDebugFontTiles));
 }
 
 /**
- * @brief 116A8 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Sub-mode 7 steps: draw the map, preselect the current warp room, let
+ * the player cycle through the activated warp rooms (activatedWarpFlags bits) and
+ * set the destination; selectedWarpIndex = -1 means cancelled. Return 1 when done.
  */
-s32 sub_080116A8(struct EwramData_unk60 *param_0)
+s32 WarpMenu_Update(struct GameState *gameState)
 {
-    s32 sp4;
-    u16 temp_r0_4;
-    u16 temp_r1_4;
-    s32 temp_r4_4;
-    u16 temp_r8;
-    struct EwramData_unk88 *temp_r4;
-    struct Unk_08525FBC *temp_r7;
-    struct EwramData_unkA078 *temp_r0_6;
-    s32 var_0;
+    s32 done;
+    u16 markerX;
+    u16 y;
+    s32 phase;
+    u16 input;
+    struct RoomDefinition *room;
+    struct WarpRoomEntry *warp;
+    struct BgLayerState *bg;
+    s32 radius;
 
-    temp_r4 = param_0->unk_88;
-    temp_r8 = gEwramData->inputData.newInput;
-    sp4 = 0;
+    room = gameState->currentRoomDefinition;
+    input = gEwramData->inputData.newInput;
+    done = 0;
 
-    switch (param_0->unk_65)
+    switch (gameState->subModeStep)
     {
         case 0:
-            sub_08000B64();
-            gEwramData->unk_A074_2 = gEwramData->unk_A074_4 = 3;
+            Entity_UpdateAll();
+            gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 3;
             if (gDisplayRegisters.bldY == BLDY_MAX_VALUE)
             {
-                temp_r8 = gEwramData->unk_60.roomMapXPos + (GetEntityRoomXPositionInteger(gEwramData->unk_13110.unk_13110) >> 8);
-                temp_r1_4 = gEwramData->unk_60.roomMapYPos + (GetEntityRoomYPositionInteger(gEwramData->unk_13110.unk_13110) >> 8);
-                sub_0803C8B0((u8 *)0x081183CC);
-                sub_08010D60(param_0);
-                param_0->unk_65 += 1;
-                gEwramData->unk_60.unk_3F4 = sub_0804F85C(temp_r8, temp_r1_4);
-                if (gEwramData->unk_60.unk_3F4 <= -1)
+                input = gEwramData->gameState.roomMapXPos + (GetEntityRoomXPositionInteger(gEwramData->playerState.player) >> 8);
+                y = gEwramData->gameState.roomMapYPos + (GetEntityRoomYPositionInteger(gEwramData->playerState.player) >> 8);
+                BgPalette_Load((u8 *)0x081183CC);
+                MapScreen_DrawMap(gameState);
+                gameState->subModeStep += 1;
+                gEwramData->gameState.selectedWarpIndex = Warp_FindRoomIndex(input, y);
+                if (gEwramData->gameState.selectedWarpIndex <= -1)
                 {
-                    gEwramData->unk_60.unk_3F4 = 0;
+                    gEwramData->gameState.selectedWarpIndex = 0;
                 }
-                if (!(gEwramData->unk_60.unk_378[0] & 1))
+                if (!(gEwramData->gameState.activatedWarpFlags[0] & 1))
                 {
-                    gEwramData->unk_60.unk_378[0] |= 1;
-                    gEwramData->unk_60.unk_3F4 = 0;
+                    gEwramData->gameState.activatedWarpFlags[0] |= 1;
+                    gEwramData->gameState.selectedWarpIndex = 0;
                 }
                 gDisplayRegisters.bgOfs[0].hOfs = 0;
                 gDisplayRegisters.bgOfs[0].vOfs = 0;
-                sub_0803C294();
+                Palette_SaveState();
             }
             break;
 
@@ -813,39 +793,39 @@ s32 sub_080116A8(struct EwramData_unk60 *param_0)
                 gDisplayRegisters.winOut_L = WIN0_ALL_NO_COLOR_EFFECT;
                 gDisplayRegisters.win1H = C_16_2_8(SCREEN_SIZE_X, SCREEN_SIZE_X + 1);
                 gDisplayRegisters.win1V = C_16_2_8(SCREEN_SIZE_Y, SCREEN_SIZE_Y + 1);
-                sub_08002400();
-                param_0->unk_65 += 1;
+                Window1_EnableHBlank();
+                gameState->subModeStep += 1;
             }
             break;
 
         case 2:
-            sub_080114FC();
-            temp_r7 = sub_0804F84C(gEwramData->unk_60.unk_3F4);
-            temp_r0_4 = ((temp_r7->unk_0 + 4) * 4) + 2;
-            temp_r1_4 = ((temp_r7->unk_2 + 2) * 4) + 2;
-            temp_r4_4 = gEwramData->frameCounter >> 2;
-            var_0 = 8 - (temp_r4_4 & 3);
-            gDisplayRegisters.bldY = (temp_r4_4 & 7) + 8;
-            sub_08002324(temp_r0_4, temp_r1_4, var_0);
-            if (temp_r8 & (KEY_B | KEY_SELECT))
+            WarpMenu_HandleCursorInput();
+            warp = Warp_GetRoomEntry(gEwramData->gameState.selectedWarpIndex);
+            markerX = ((warp->mapX + 4) * 4) + 2;
+            y = ((warp->mapY + 2) * 4) + 2;
+            phase = gEwramData->frameCounter >> 2;
+            radius = 8 - (phase & 3);
+            gDisplayRegisters.bldY = (phase & 7) + 8;
+            Window1_SetCircle(markerX, y, radius);
+            if (input & (KEY_B | KEY_SELECT))
             {
                 PlaySong(SE_240);
                 gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT;
                 gDisplayRegisters.winIn_H = 0;
                 gDisplayRegisters.bldY = 0;
-                sub_08002428();
-                param_0->unk_65 += 1;
-                gEwramData->unk_60.unk_3F4 = -1;
+                Window1_Disable();
+                gameState->subModeStep += 1;
+                gEwramData->gameState.selectedWarpIndex = -1;
             }
-            else if (temp_r8 & KEY_A)
+            else if (input & KEY_A)
             {
                 PlaySong(SE_244);
-                sub_08011F44(temp_r7->var_4, 0, 0, 0x78, 0x80);
+                RoomJump_SetDestination(warp->roomDefinition, 0, 0, 0x78, 0x80);
                 gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT;
                 gDisplayRegisters.winIn_H = 0;
                 gDisplayRegisters.bldY = 0;
-                sub_08002428();
-                param_0->unk_65 += 1;
+                Window1_Disable();
+                gameState->subModeStep += 1;
             }
             break;
 
@@ -853,32 +833,32 @@ s32 sub_080116A8(struct EwramData_unk60 *param_0)
             gDisplayRegisters.bldY += 4;
             if (gDisplayRegisters.bldY == BLDY_MAX_VALUE)
             {
-                param_0->unk_65 += 1;
+                gameState->subModeStep += 1;
             }
             break;
 
         case 4:
-            sub_0803C3E0();
-            sub_0800DA50();
-            temp_r0_6 = &gEwramData->bgInfo[1];
-            sub_0803F8A8(1, (struct EwramData_unkA078_0 *) temp_r0_6->pBgMetadata, temp_r0_6->xPos.part16.integer, temp_r0_6->yPos.part16.integer);
+            Palette_RestoreState();
+            Hud_Init();
+            bg = &gEwramData->bgInfo[1];
+            BgMap_Setup(1, (struct BgMapMetadata *) bg->pBgMetadata, bg->xPos.part16.integer, bg->yPos.part16.integer);
             gUnk_03002CB0.dispCnt = 0;
-            sub_080108DC(temp_r4);
-            sub_080108FC(temp_r4);
-            param_0->unk_65 += 1;
+            Room_LoadGraphics(room);
+            Room_LoadPalettes(room);
+            gameState->subModeStep += 1;
             break;
 
         case 5:
-            sub_0800D1F0();
+            Display_RestoreState();
             DMA_COPY_32(3, &gEwramData->hBlankEffect_backup, &gEwramData->hBlankEffect, sizeof(gEwramData->hBlankEffect));
-            sub_08000B64();
+            Entity_UpdateAll();
             gDisplayRegisters.bldY = 0;
             gDisplayRegisters.bldCnt |= BLDCNT_SCREEN_SECOND_TARGET;
-            gEwramData->unk_A074_1 = 1;
-            gEwramData->unk_A074_0 = 0;
-            sub_08013B44();
-            gEwramData->unk_A074_2 = gEwramData->unk_A074_4 = 0;
-            sp4 = 1;
+            gEwramData->startPauseEnabled = 1;
+            gEwramData->paused = 0;
+            Sound_ReplayTrackedWithVolume();
+            gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 0;
+            done = 1;
             break;
 
         case 6:
@@ -888,179 +868,174 @@ s32 sub_080116A8(struct EwramData_unk60 *param_0)
             }
             else
             {
-                sub_08010D60(param_0);
-                param_0->unk_65 = 1;
+                MapScreen_DrawMap(gameState);
+                gameState->subModeStep = 1;
             }
             break;
     }
 
     gEwramData->hBlankEffect.requestStop = 1;
-    return sp4;
+    return done;
 }
 
 /**
- * @brief 11A44 | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Return 0 when the living player is beyond the room width, above
+ * 0x30 or below the room height, or stands on exit tile 0xF0; else 1.
  */
-s32 sub_08011A44(struct EwramData_EntityData *param_0)
+s32 Room_IsPlayerInside(struct EwramData_EntityData *entity)
 {
-    struct EwramData_unkA078 *temp_r2;
-    struct EwramData_unkA078_0 *temp_r6;
-    u32 temp_r1;
-    u32 var_0;
-    u32 var_r0;
-    u32 var_r2;
+    struct BgLayerState *bg;
+    struct BgMapMetadata *metadata;
+    u32 x;
+    u32 y;
+    u32 maxY;
+    u32 maxX;
 
-    temp_r2 = &gEwramData->bgInfo[1];
-    temp_r6 = temp_r2->pBgMetadata;
-    temp_r1 = (s16)param_0->unk_524.unk_524_16.unk_526 + (s16)temp_r2->xPos.part16.integer;
-    var_0 = (s16)param_0->unk_528.unk_528_16.unk_52A + (s16)temp_r2->yPos.part16.integer;
-    if (gEwramData->unk_1325C.currentHP != 0)
+    bg = &gEwramData->bgInfo[1];
+    metadata = bg->pBgMetadata;
+    x = (s16)entity->posX.part16.integer + (s16)bg->xPos.part16.integer;
+    y = (s16)entity->posY.part16.integer + (s16)bg->yPos.part16.integer;
+    if (gEwramData->playerStatus.currentHP != 0)
     {
-        if (temp_r6->unk_0 > 1)
+        if (metadata->widthCells > 1)
         {
-            var_r2 = temp_r6->unk_0 << 8;
+            maxX = metadata->widthCells << 8;
         }
         else
         {
-            var_r2 = 0xF0;
+            maxX = 0xF0;
         }
 
-        if (temp_r6->unk_1 > 1)
+        if (metadata->heightCells > 1)
         {
-            var_r0 = (temp_r6->unk_1 << 8) - 0x30;
+            maxY = (metadata->heightCells << 8) - 0x30;
         }
         else
         {
-            var_r0 = 0xD0;
+            maxY = 0xD0;
         }
 
-        if (temp_r1 > var_r2)
+        if (x > maxX)
             return 0;
 
-        if (var_0 < 0x30 || var_0 > var_r0)
+        if (y < 0x30 || y > maxY)
             return 0;
 
-        if (sub_08001FE8(gEwramData->unk_13110.unk_13110, 0, 0) == 0xF0)
+        if (Collision_GetTileAtEntity(gEwramData->playerState.player, 0, 0) == 0xF0)
             return 0;
     }
     return 1;
 }
 
 /**
- * @brief 11AD0 | To document
- * 
- * @param param_0 To document
+ * @brief Black out, pause and enter in-game sub-mode 8 to jump to the stored
+ * destination (warp rooms, objects and boss defeat scripts).
  */
-void sub_08011AD0(struct EwramData_unk60 *param_0)
+void RoomJump_Begin(struct GameState *gameState)
 {
     gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT;
     gDisplayRegisters.bldY = BLDY_MAX_VALUE;
     gUnk_03002CB0.dispCnt &= ~DCNT_WIN0;
-    gEwramData->unk_A074_1 = 0;
-    gEwramData->unk_A074_0 = 1;
-    param_0->unk_64 = 8;
-    param_0->unk_65 = 0;
+    gEwramData->startPauseEnabled = 0;
+    gEwramData->paused = 1;
+    gameState->subMode = 8;
+    gameState->subModeStep = 0;
 }
 
 /**
- * @brief 11B2C | To document
- * 
- * @param param_0 To document
- * @return s32 To document
+ * @brief Sub-mode 8 steps: clear the old room, place the player, load the
+ * destination room at the stored camera position, store the entry
+ * position and restore the display; return 1 when done.
  */
-s32 sub_08011B2C(struct EwramData_unk60 *param_0)
+s32 RoomJump_Update(struct GameState *gameState)
 {
-    s32 var_r4;
-    struct EwramData_unk88 *temp_r6;
+    s32 done;
+    struct RoomDefinition *room;
 
-    var_r4 = 0;
+    done = 0;
 
-    switch (param_0->unk_65)
+    switch (gameState->subModeStep)
     {
         case 0:
-            sub_08000B64();
-            gEwramData->unk_A074_2 = gEwramData->unk_A074_4 = 3;
-            param_0->unk_65 += 1;
+            Entity_UpdateAll();
+            gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 3;
+            gameState->subModeStep += 1;
             break;
 
         case 1:
-            sub_080109B8(param_0);
+            Room_ClearForTransition(gameState);
             DMA_FILL_32(3, 0, 0x0600E800, 0x800);
             DMA_FILL_32(3, 0, 0x0600F000, 0x800);
             DMA_FILL_32(3, 0, 0x0600F800, 0x800);
-            gEwramData->unk_13110.unk_13110->unk_524.unk_524_16.unk_526 = gEwramData->unk_60.unk_400;
-            gEwramData->unk_13110.unk_13110->unk_528.unk_528_16.unk_52A = gEwramData->unk_60.unk_402;
-            gEwramData->unk_13110.unk_13110->unk_52C.unk_52C_32 = 0;
-            gEwramData->unk_13110.unk_13110->unk_530.unk_530_32 = 0;
-            gEwramData->unk_60.unk_88 = gEwramData->unk_60.unk_3F8;
-            sub_0800ECA0(gEwramData->unk_60.unk_3FC, gEwramData->unk_60.unk_3FE);
-            sub_0801083C(param_0);
-            gEwramData->unk_A074_0 = 0;
-            sub_08000B64();
-            gEwramData->unk_A074_0 = 1;
-            param_0->unk_65 += 1;
+            gEwramData->playerState.player->posX.part16.integer = gEwramData->gameState.roomJumpPlayerX;
+            gEwramData->playerState.player->posY.part16.integer = gEwramData->gameState.roomJumpPlayerY;
+            gEwramData->playerState.player->velX.whole = 0;
+            gEwramData->playerState.player->velY.whole = 0;
+            gEwramData->gameState.currentRoomDefinition = gEwramData->gameState.roomJumpDestination;
+            Room_LoadAtCamera(gEwramData->gameState.roomJumpCameraX, gEwramData->gameState.roomJumpCameraY);
+            Room_StoreEntryPosition(gameState);
+            gEwramData->paused = 0;
+            Entity_UpdateAll();
+            gEwramData->paused = 1;
+            gameState->subModeStep += 1;
             /* fallthrough */
         case 2:
-            temp_r6 = param_0->unk_88;
-            if (!(gEwramData->unk_60.unk_42C & 0x800000))
+            room = gameState->currentRoomDefinition;
+            if (!(gEwramData->gameState.stateFlags & 0x800000))
             {
-                gEwramData->unk_A074_1 = 1;
+                gEwramData->startPauseEnabled = 1;
             }
-            gEwramData->unk_60.unk_42C &= ~0x800000;
-            gEwramData->unk_A074_0 = 0;
-            gEwramData->unk_A074_2 = gEwramData->unk_A074_4 = 0;
-            gUnk_03002CB0.dispCnt = temp_r6->unk_0;
+            gEwramData->gameState.stateFlags &= ~0x800000;
+            gEwramData->paused = 0;
+            gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 0;
+            gUnk_03002CB0.dispCnt = room->displayControl;
             gDisplayRegisters.bldY = BLDY_MAX_VALUE / 2;
-            gDisplayRegisters.bldCnt = temp_r6->unk_1E;
-            sub_0800C778();
+            gDisplayRegisters.bldCnt = room->blendControl;
+            Display_SetDefaultBlend();
             gDisplayRegisters.mosaic = 0;
-            var_r4 = 1;
+            done = 1;
             break;
     }
 
-    return var_r4;
+    return done;
 }
 
 /**
- * @brief 11CD0 | To document
- * 
+ * @brief Unless paused, update output offsets from duration and random masks or one-shot signed components, then expire the request state as in the original.
  */
-void sub_08011CD0(void)
+void ScreenShake_Update(void)
 {
-    if (gEwramData->unk_A074_0)
+    if (gEwramData->paused)
         return;
 
-    if (gEwramData->unk_60.unk_4C1 != 0)
+    if (gEwramData->gameState.screenShakeTimer != 0)
     {
-        gEwramData->unk_60.unk_4C1 -= 1;
+        gEwramData->gameState.screenShakeTimer -= 1;
 
-        if (gEwramData->unk_60.unk_4C2 != 0)
+        if (gEwramData->gameState.screenShakeComponentX != 0)
         {
-            gEwramData->unk_FEC0 = RandomNumberGenerator() & gEwramData->unk_60.unk_4C2;
+            gEwramData->screenShakeOffsetX = RandomNumberGenerator() & gEwramData->gameState.screenShakeComponentX;
         }
-        if (gEwramData->unk_60.unk_4C3 != 0)
+        if (gEwramData->gameState.screenShakeComponentY != 0)
         {
-            gEwramData->unk_FEC1 = RandomNumberGenerator() & gEwramData->unk_60.unk_4C3;
+            gEwramData->screenShakeOffsetY = RandomNumberGenerator() & gEwramData->gameState.screenShakeComponentY;
         }
 
-        if (gEwramData->unk_60.unk_4C1 == 0)
+        if (gEwramData->gameState.screenShakeTimer == 0)
         {
-            gEwramData->unk_60.unk_4C2 = 0;
-            gEwramData->unk_60.unk_4C3 = 0;
-            gEwramData->unk_FEC0 = gEwramData->unk_60.unk_4C2;
-            gEwramData->unk_FEC1 = gEwramData->unk_60.unk_4C3;
-            gEwramData->unk_60.unk_4C0 = 0;
+            gEwramData->gameState.screenShakeComponentX = 0;
+            gEwramData->gameState.screenShakeComponentY = 0;
+            gEwramData->screenShakeOffsetX = gEwramData->gameState.screenShakeComponentX;
+            gEwramData->screenShakeOffsetY = gEwramData->gameState.screenShakeComponentY;
+            gEwramData->gameState.screenShakePriority = 0;
         }
     }
     else
     {
-        gEwramData->unk_FEC0 = gEwramData->unk_60.unk_4C2;
-        gEwramData->unk_FEC1 = gEwramData->unk_60.unk_4C3;
-        gEwramData->unk_60.unk_4C0 = 0;
-        gEwramData->unk_60.unk_4C2 = 0;
-        gEwramData->unk_60.unk_4C3 = 0;
+        gEwramData->screenShakeOffsetX = gEwramData->gameState.screenShakeComponentX;
+        gEwramData->screenShakeOffsetY = gEwramData->gameState.screenShakeComponentY;
+        gEwramData->gameState.screenShakePriority = 0;
+        gEwramData->gameState.screenShakeComponentX = 0;
+        gEwramData->gameState.screenShakeComponentY = 0;
     }
 }

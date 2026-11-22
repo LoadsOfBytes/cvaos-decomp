@@ -1,6 +1,7 @@
 /* Creaking Skull movement: alternating strides, pauses, and attack selection.
  * for compiler constraints and matching evidence. */
 #include "code_08009A0.h"
+#include "creaking_skull_entity.h"
 #include "joint_entity.h"
 #include "code_080D73B8.h"
 #include "structs/ewram.h"
@@ -21,8 +22,6 @@ extern const s8 sUnk_08119063[13];
 #define SUBPHASE entity->stage
 #define TIMER entity->timer
 #define FRAME JOINT_POSE(entity)
-#define INDEX entity->unk_508.whole
-#define HALF_TIMER entity->unk_4FC.part8.unk_4FD
 #define ARMS(A) \
     CreakingSkull_AttachJointSetAngle(entity, 1, 0, A, 0x1E0000); \
     CreakingSkull_AttachJointSetAngle(entity, 2, 1, A, 0x1C0000);
@@ -58,16 +57,16 @@ extern const s8 sUnk_08119063[13];
 #define BACKWARD_POSE() \
     SPEED() \
     entity->velX.whole = -entity->velX.whole; \
-    PHASE = 10; FRAME = 9; HALF_TIMER = TIMER >> 1; \
+    PHASE = 10; FRAME = 9; CREAKING_SKULL_POSE_DELAY(entity) = TIMER >> 1; \
     POSE(0x1000, 0x1800)
 #define BACKWARD_EXISTING() BACKWARD_POSE() GRAVITY()
-#define BACKWARD() TIMER = times0[INDEX]; BACKWARD_EXISTING()
+#define BACKWARD() TIMER = times0[CREAKING_SKULL_VARIANT(entity)]; BACKWARD_EXISTING()
 #define STOP() \
-    TIMER = times0[INDEX]; entity->velX.whole = 0; PHASE = 7; FRAME = 8; \
+    TIMER = times0[CREAKING_SKULL_VARIANT(entity)]; entity->velX.whole = 0; PHASE = 7; FRAME = 8; \
     POSE(-0x1000, 0x800) \
     GRAVITY()
 #define FORWARD() \
-    TIMER = times0[INDEX]; PHASE = 1; FRAME = 9; HALF_TIMER = TIMER >> 1; \
+    TIMER = times0[CREAKING_SKULL_VARIANT(entity)]; PHASE = 1; FRAME = 9; CREAKING_SKULL_POSE_DELAY(entity) = TIMER >> 1; \
     POSE(-0x1000, 0x1800) \
     SPEED()
 #define PROBES(BLOCKED) \
@@ -105,7 +104,7 @@ void CreakingSkull_UpdateMovement(struct EwramData_EntityData *entity)
         CreakingSkull_FaceTarget(entity);
         if (Target_IsNearEntity(entity, 200, 160) || Enemy_IsDamaged(entity))
         {
-            PHASE = 2; SUBPHASE = 0; TIMER = times0[INDEX]; FRAME = 5;
+            PHASE = 2; SUBPHASE = 0; TIMER = times0[CREAKING_SKULL_VARIANT(entity)]; FRAME = 5;
             CreakingSkull_AttachJointSetAngle(entity, 12, 11, -0x1000, 0x1F0000);
             CreakingSkull_AttachJointSetAngle(entity, 1, 0, -0x800, 0x1E0000);
             CreakingSkull_AttachJointSetAngle(entity, 2, 1, -0x1000, 0x1C0000);
@@ -114,18 +113,18 @@ void CreakingSkull_UpdateMovement(struct EwramData_EntityData *entity)
         break;
     case 1:
         UPDATE() FALL()
-        if ((s8)--HALF_TIMER <= 0) FRAME = 4;
+        if ((s8)--CREAKING_SKULL_POSE_DELAY(entity) <= 0) FRAME = 4;
         DEBRIS(0)
         COUNTDOWN()
-        TIMER = times0[INDEX]; PHASE++; FRAME = 10; HALF_TIMER = TIMER >> 1;
+        TIMER = times0[CREAKING_SKULL_VARIANT(entity)]; PHASE++; FRAME = 10; CREAKING_SKULL_POSE_DELAY(entity) = TIMER >> 1;
         POSE(-0x1000, -0x1800)
         break;
     case 2:
         UPDATE() FALL()
-        if ((s8)--HALF_TIMER <= 0) FRAME = 5;
+        if ((s8)--CREAKING_SKULL_POSE_DELAY(entity) <= 0) FRAME = 5;
         DEBRIS(0)
         if ((s8)--TIMER > 4) break;
-        TIMER = times2[INDEX]; PHASE++; SUBPHASE = 0; FRAME = 5;
+        TIMER = times2[CREAKING_SKULL_VARIANT(entity)]; PHASE++; SUBPHASE = 0; FRAME = 5;
         break;
     case 3:
         UPDATE() COUNTDOWN()
@@ -154,20 +153,20 @@ void CreakingSkull_UpdateMovement(struct EwramData_EntityData *entity)
             { BACKWARD() break; }
         }
         CreakingSkull_FaceTarget(entity);
-        TIMER = times1[INDEX]; PHASE++; FRAME = 8;
+        TIMER = times1[CREAKING_SKULL_VARIANT(entity)]; PHASE++; FRAME = 8;
         POSE(0x1000, 0x800)
         entity->velX.whole = 0;
-        PROBES(TIMER = times0[INDEX]; BACKWARD_POSE())
+        PROBES(TIMER = times0[CREAKING_SKULL_VARIANT(entity)]; BACKWARD_POSE())
         break;
     case 4:
         UPDATE() FALL() COUNTDOWN()
-        TIMER = times1[INDEX]; PHASE++; FRAME = 7;
+        TIMER = times1[CREAKING_SKULL_VARIANT(entity)]; PHASE++; FRAME = 7;
         POSE(0x1000, -0x800)
         break;
     case 5:
         UPDATE() FALL()
         if ((s8)--TIMER > 4) break;
-        TIMER = times3[INDEX]; PHASE++; SUBPHASE = 0; FRAME = 7;
+        TIMER = times3[CREAKING_SKULL_VARIANT(entity)]; PHASE++; SUBPHASE = 0; FRAME = 7;
         PlaySong(0x7C);
         break;
     case 6:
@@ -202,13 +201,13 @@ void CreakingSkull_UpdateMovement(struct EwramData_EntityData *entity)
         break;
     case 7:
         UPDATE() FALL() COUNTDOWN()
-        TIMER = times0[INDEX]; PHASE++; FRAME = 5;
+        TIMER = times0[CREAKING_SKULL_VARIANT(entity)]; PHASE++; FRAME = 5;
         POSE(-0x1000, -0x800)
         break;
     case 8:
         UPDATE() FALL()
         if ((s8)--TIMER > 4) break;
-        TIMER = times2[INDEX]; PHASE++; SUBPHASE = 0; FRAME = 5;
+        TIMER = times2[CREAKING_SKULL_VARIANT(entity)]; PHASE++; SUBPHASE = 0; FRAME = 5;
         break;
     case 9:
         UPDATE() COUNTDOWN()
@@ -225,25 +224,25 @@ void CreakingSkull_UpdateMovement(struct EwramData_EntityData *entity)
         else if ((RandomNumberGenerator2() & 0x7F) <= 0x1F && entity->unk_518.part8.enemyId == 0x21)
         { ATTACK(20) break; }
         CreakingSkull_FaceTarget(entity);
-        TIMER = times0[INDEX]; PHASE = 4; FRAME = 8;
+        TIMER = times0[CREAKING_SKULL_VARIANT(entity)]; PHASE = 4; FRAME = 8;
         POSE(0x1000, 0x800)
         entity->velX.whole = 0;
         PROBES(BACKWARD_POSE())
         break;
     case 10:
         UPDATE() FALL()
-        if ((s8)--HALF_TIMER <= 0) FRAME = 4;
+        if ((s8)--CREAKING_SKULL_POSE_DELAY(entity) <= 0) FRAME = 4;
         DEBRIS(1)
         COUNTDOWN()
-        TIMER = times0[INDEX]; PHASE++; FRAME = 12; HALF_TIMER = TIMER >> 1;
+        TIMER = times0[CREAKING_SKULL_VARIANT(entity)]; PHASE++; FRAME = 12; CREAKING_SKULL_POSE_DELAY(entity) = TIMER >> 1;
         POSE(0x1000, -0x1800)
         break;
     case 11:
         UPDATE() FALL()
-        if ((s8)--HALF_TIMER <= 0) FRAME = 7;
+        if ((s8)--CREAKING_SKULL_POSE_DELAY(entity) <= 0) FRAME = 7;
         DEBRIS(1)
         if ((s8)--TIMER > 4) break;
-        TIMER = times2[INDEX]; PHASE++; FRAME = 7;
+        TIMER = times2[CREAKING_SKULL_VARIANT(entity)]; PHASE++; FRAME = 7;
         break;
     case 12:
         UPDATE() COUNTDOWN()
@@ -289,7 +288,7 @@ void CreakingSkull_UpdateMovement(struct EwramData_EntityData *entity)
         PHASE = 21; TIMER = 14; FRAME = 1;
         if (Target_IsNearEntity(entity, 250, 160) || Enemy_IsDamaged(entity) == 1)
         {
-            PHASE = 2; SUBPHASE = 0; TIMER = times0[INDEX]; FRAME = 5;
+            PHASE = 2; SUBPHASE = 0; TIMER = times0[CREAKING_SKULL_VARIANT(entity)]; FRAME = 5;
             CreakingSkull_AttachJointSetAngle(entity, 12, 11, -0x1000, 0x1F0000);
             CreakingSkull_AttachJointSetAngle(entity, 1, 0, -0x800, 0x1E0000);
             CreakingSkull_AttachJointSetAngle(entity, 2, 1, -0x1000, 0x1C0000);

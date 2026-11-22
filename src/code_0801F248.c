@@ -1,5 +1,6 @@
 /* Julius_UpdateDiveAttack. */
 #include "code_08009A0.h"
+#include "player_entity.h"
 #include "code_080D73B8.h"
 
 /**
@@ -9,7 +10,7 @@
  */
 void Julius_UpdateDiveAttack(struct EwramData_EntityData *entity)
 {
-    if (entity->unk_4F4.whole & 0x400000)
+    if (PLAYER_ACTION_FLAGS(entity) & 0x400000)
     {
         entity->state = 0;
         return;
@@ -19,10 +20,10 @@ void Julius_UpdateDiveAttack(struct EwramData_EntityData *entity)
         entity->hit.type = two;
     }
     entity->hit.flags &= ~2;
-    if (entity->unk_4F4.whole & 0x80000)
+    if (PLAYER_ACTION_FLAGS(entity) & 0x80000)
     {
-        entity->unk_4F4.whole = (entity->unk_4F4.whole | 8) & ~4;
-        entity->unk_504.part16.unk_504 = 3;
+        PLAYER_ACTION_FLAGS(entity) = (PLAYER_ACTION_FLAGS(entity) | 8) & ~4;
+        PLAYER_REQUESTED_ANIM(entity) = 3;
         PlaySong(0xB9);
         entity->velY.whole = -0x3C000;
         entity->accelY.whole = -0x2000;

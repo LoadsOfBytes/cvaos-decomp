@@ -20,7 +20,7 @@ void WhiteDragon_SpawnBreath(struct EwramData_EntityData *owner)
         projectile->scrollWithBg=1;
         WhiteDragonBreath_EnableHitBoxes(projectile);
         projectile->spriteLayer=owner->spriteLayer-1;
-        projectile->unk_4F4.unk_4F4_entity=owner;
+        ENTITY_CREATOR(projectile)=owner;
         projectile->flipX=owner->flipX;
         if(owner->flipX)
             projectile->posX.part16.integer=owner->posX.part16.integer;

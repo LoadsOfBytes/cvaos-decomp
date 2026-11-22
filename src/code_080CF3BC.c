@@ -14,8 +14,8 @@ static inline s32 Tick(struct EwramData_EntityData *e) { s32 timer=e->timer; if(
  */
 void MandragoraTerminalPart_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *part=&gEwramData->entityData[entity->unk_4F4.part8.unk_4F5];
-    struct EwramData_EntityData *owner=&gEwramData->entityData[part->unk_4F4.part8.unk_4F5];
+    struct EwramData_EntityData *part=&gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
+    struct EwramData_EntityData *owner=&gEwramData->entityData[ENTITY_PARENT_INDEX(part)];
     if(!entity->roomActive)
     {
         BgPalette_StopColorFade();

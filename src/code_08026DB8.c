@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -80,7 +81,7 @@ void SkillMermanProjectileUpdate(struct EwramData_EntityData *entity)
         EntityAccelerateAndMove(entity, 0x80000);
         break;
     case 3:
-        gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;

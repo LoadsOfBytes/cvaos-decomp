@@ -3,6 +3,8 @@
    written parameter). */
 /* Resolve damage modifiers and create the shared hit effect. */
 #include "code_08009A0.h"
+#include "particle_effect.h"
+#include "enemy_status.h"
 #include "code_0800CB00.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
@@ -45,7 +47,7 @@ static inline void SpawnHitSpark(s16 x, s16 y, u16 effect)
         child->posX.part16.integer = x;
         child->posY.part16.integer = y;
         child->flipX = RandomNumberGenerator() & 1;
-        child->unk_4F8.part16.unk_4F8 = effect;
+        PARTICLE_HIT_TYPE(child) = effect;
         child->subState = effect;
     }
 }
@@ -101,13 +103,13 @@ static inline u16 ResolveDamage(struct EwramData_EntityData *entity, s32 damage,
     weakness = ((u16 *)t)[13] & attributes;
     if (weakness != 0)
     {
-        if (*(u16 *)&entity->unk_51C == 0)
+        if (ENEMY_STATUS(entity) == 0)
         {
             /* SImode mask register (a plain constant is narrowed to HImode). */
-            *(u16 *)&entity->unk_51C = weakness & ({ u32 k_ = 0xFC0; k_; });
-            if (*(u16 *)&entity->unk_51C & 0x100)
+            ENEMY_STATUS(entity) = weakness & ({ u32 k_ = 0xFC0; k_; });
+            if (ENEMY_STATUS(entity) & ENEMY_STATUS_PETRIFIED)
                 return 0;
-            if (*(u16 *)&entity->unk_51C & 0x800)
+            if (ENEMY_STATUS(entity) & 0x800)
             {
                 s16 old = entity->unk_518.part16.hp;
                 s16 delta;
@@ -120,7 +122,7 @@ static inline u16 ResolveDamage(struct EwramData_EntityData *entity, s32 damage,
                 else
                     Entity_ShowDamage(entity, delta, 2);
             }
-            if (*(u16 *)&entity->unk_51C & 0x40)
+            if (ENEMY_STATUS(entity) & 0x40)
             {
                 entity->defense = 0;
                 entity->attack -= entity->attack >> 2;
@@ -172,7 +174,7 @@ s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, struct EwramData_Enti
     damage = ((damage - (entity->defense >> 1)) * (256 - entity->defense)) >> 8;
     if (damage <= 0)
         damage = 1;
-    if (*(u16 *)&entity->unk_51C & 0x100)
+    if (ENEMY_STATUS(entity) & ENEMY_STATUS_PETRIFIED)
     {
         damage <<= 1;
         effect = 0;

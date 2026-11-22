@@ -1,5 +1,6 @@
 /* Update a Zombie or its controller that maintains a population of children. */
 #include "code_08009A0.h"
+#include "zombie_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "code/code_080211F0.h"
@@ -41,10 +42,10 @@ void EnemyZombieUpdate(struct EwramData_EntityData *entity)
         Enemy_UpdateFragmentDeath(entity);
         if (entity->deleteRequested)
         {
-            struct EwramData_EntityData *controller = entity->unk_4FC.unk_4FC_entity;
+            struct EwramData_EntityData *controller = ZOMBIE_SPAWNER(entity);
             if (controller && controller->updateFunc && controller->unk_518.part8.enemyId == 1
-                && controller->unk_4FC.whole != 0)
-                controller->unk_4FC.whole--;
+                && ZOMBIE_CHILD_COUNT(controller) != 0)
+                ZOMBIE_CHILD_COUNT(controller)--;
         }
         break;
     case 2:
@@ -53,13 +54,13 @@ void EnemyZombieUpdate(struct EwramData_EntityData *entity)
         goto finished;
     case 3:
         if ((RandomNumberGenerator() & 31) == 0
-            && (s32)entity->unk_4FC.whole < entity->unk_514.part16.spawnParam0)
+            && (s32)ZOMBIE_CHILD_COUNT(entity) < entity->unk_514.part16.spawnParam0)
         {
             struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
             if (child)
             {
                 s32 distance;
-                entity->unk_4FC.whole++;
+                ZOMBIE_CHILD_COUNT(entity)++;
                 do
                 {
                     child->posX.part16.integer = RandomNumberGenerator() % 240;
@@ -76,7 +77,7 @@ void EnemyZombieUpdate(struct EwramData_EntityData *entity)
                 child->unk_510.part16.unk_512 = sEnemyData[entity->unk_518.part8.enemyId].unk_E;
                 child->updateFunc = entity->updateFunc;
                 EnemyZombieCreate(child);
-                child->unk_4FC.unk_4FC_entity = entity;
+                ZOMBIE_SPAWNER(child) = entity;
             }
         }
         goto finished;

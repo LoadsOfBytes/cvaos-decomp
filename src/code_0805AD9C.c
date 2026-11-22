@@ -1,5 +1,6 @@
 /* Helpers 0x0805AD9C..0x0805AFBF (object 0x37 and screen setup). */
 #include "gba.h"
+#include "room_object_entity.h"
 #include "code_08009A0.h"
 #include "code_0800CB00.h"
 #include "code/code_08039340.h"
@@ -32,27 +33,27 @@ extern u8 sTextBgPalette[];
  */
 void Object37Child_Update(struct EwramData_EntityData *entity)
 {
-    entity->subState = entity->unk_4F8.unk_4F8_entity->subState;
+    entity->subState = ENTITY_OWNER(entity)->subState;
     switch (entity->subState)
     {
         case 0:
-            if ((s32)entity->unk_4FC.whole < 0)
+            if ((s32)OBJECT37_CHILD_ANGLE(entity) < 0)
             {
-                entity->unk_4FC.whole += 0xAA;
-                if ((s32)entity->unk_4FC.whole > 0)
-                    entity->unk_4FC.whole = 0;
+                OBJECT37_CHILD_ANGLE(entity) += 0xAA;
+                if ((s32)OBJECT37_CHILD_ANGLE(entity) > 0)
+                    OBJECT37_CHILD_ANGLE(entity) = 0;
             }
             break;
         case 1:
-            if ((s32)entity->unk_4FC.whole > -0x2000)
+            if ((s32)OBJECT37_CHILD_ANGLE(entity) > -0x2000)
             {
-                entity->unk_4FC.whole -= 0xAA;
-                if ((s32)entity->unk_4FC.whole < -0x2000)
-                    entity->unk_4FC.whole = -0x2000;
+                OBJECT37_CHILD_ANGLE(entity) -= 0xAA;
+                if ((s32)OBJECT37_CHILD_ANGLE(entity) < -0x2000)
+                    OBJECT37_CHILD_ANGLE(entity) = -0x2000;
             }
             break;
     }
-    ObjAffine_Set(entity->unk_4FC.whole, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
+    ObjAffine_Set(OBJECT37_CHILD_ANGLE(entity), 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
 }
 
 /**

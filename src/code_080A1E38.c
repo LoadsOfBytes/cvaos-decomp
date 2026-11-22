@@ -1,5 +1,6 @@
 /* Chaos core creation. */
 #include "code_08009A0.h"
+#include "chaos_entity.h"
 #include "code_08013960.h"
 #include "code_08033CAC.h"
 #include "code/code_08039340.h"
@@ -43,7 +44,7 @@ void EnemyChaosCreate(struct EwramData_EntityData *core)
         && (gEwramData->gameState.bossEventFlags & 0x80))
         goto delete;
     data = Heap_Alloc(10);
-    core->unk_504.whole = (s32)data;
+    CHAOS_DATA(core) = (s32)data;
     if (data == NULL) goto delete;
     if (!Chaos_LoadGraphics(core)) goto delete;
     {
@@ -78,9 +79,9 @@ void EnemyChaosCreate(struct EwramData_EntityData *core)
         gEwramData->startPauseEnabled = 0;
         core->timer = 0;
         core->unk_4F8.part8.unk_4FA = RandomNumberGenerator() % 64;
-        core->unk_4FC.part8.unk_4FD = (RandomNumberGenerator() & 0x7F) + 60;
-        core->unk_4FC.part8.unk_4FE = (RandomNumberGenerator() & 0x7F) + 120;
-        core->unk_4FC.part8.unk_4FF = (RandomNumberGenerator() & 0x7F) + 60;
+        CHAOS_ATTACK_TIMER_0(core) = (RandomNumberGenerator() & 0x7F) + 60;
+        CHAOS_ATTACK_TIMER_1(core) = (RandomNumberGenerator() & 0x7F) + 120;
+        CHAOS_ATTACK_TIMER_2(core) = (RandomNumberGenerator() & 0x7F) + 60;
         Music_SetCurrent(0x1F);
         data->bgScale = 0xC0;
         data->bgRadius = 0x40000;

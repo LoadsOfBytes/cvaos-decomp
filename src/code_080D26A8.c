@@ -1,5 +1,6 @@
 /* Graham scene setup, player-input pause and return after the scene finishes. */
 #include "code_08009A0.h"
+#include "graham_entity.h"
 #include "structs/ewram.h"
 extern s32 Game_SetMenusEnabled(s32);
 extern struct EwramData_EntityData *Entity_CreateFromObjectTable(s32);
@@ -12,8 +13,8 @@ extern void EnemyGrahamCreate(struct EwramData_EntityData *);
  */
 void Graham_UpdateIntro(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *object=&gEwramData->entityData[(u8)entity->unk_4F8.part8.unk_4F8];
-    struct EwramData_EntityData *helper=&gEwramData->entityData[entity->unk_4F4.part8.unk_4F7];
+    struct EwramData_EntityData *object=&gEwramData->entityData[(u8)GRAHAM_SCENE_OBJECT_INDEX(entity)];
+    struct EwramData_EntityData *helper=&gEwramData->entityData[GRAHAM_SCENE_HELPER_INDEX(entity)];
     Game_SetMenusEnabled(0);
     switch(entity->stage)
     {
@@ -21,7 +22,7 @@ void Graham_UpdateIntro(struct EwramData_EntityData *entity)
         {
             struct BgLayerState *camera;
             helper=Entity_CreateFromObjectTable(4);
-            entity->unk_4F4.part8.unk_4F7=helper->unk_4F4.part8.unk_4F4;
+            GRAHAM_SCENE_HELPER_INDEX(entity)=ENTITY_INDEX(helper);
             helper->flipX=1;
             camera=&gEwramData->bgInfo[1];
             helper->posX.part16.integer=120-camera->xPos.part16.integer;

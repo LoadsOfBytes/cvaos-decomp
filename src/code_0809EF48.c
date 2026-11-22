@@ -1,6 +1,7 @@
 /* Take damage; on death start the death state, otherwise occasionally emit
  * a piece (at most four pieces counted by the owner). */
 #include "code/code_080211F0.h"
+#include "legion_entity.h"
 #include "code_08009A0.h"
 #include "structs/ewram.h"
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
@@ -12,9 +13,9 @@ extern void Legion_SpawnDestructibleFragment(struct EwramData_EntityData *owner,
  * Hit_ResolveDamage is narrowed only at its use. */
 void LegionCorePart_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
-    struct EwramData_EntityData *base = entity->unk_4F4.unk_4F4_entity;
+    struct EwramData_EntityData *base = LEGION_PART_OWNER(entity);
     s16 scale = Player_CalculateAttackPower(hit[2]);
-    struct EwramData_EntityData *owner = base->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *owner = ENTITY_OWNER(base);
     s32 damage = Hit_ResolveDamage(entity, attacker, hit, scale);
 
     entity->unk_510.part8.hitFlashTimer = 8;
@@ -38,7 +39,7 @@ void LegionCorePart_OnHit(struct EwramData_EntityData *entity, struct EwramData_
         u8 type;
 
         owner->unk_500.whole++;
-        type = entity->unk_504.part8.unk_504;
+        type = LEGION_PART_KIND(entity);
         if (type == 0)
             goto negative;
         if (type == 1)
@@ -47,7 +48,7 @@ void LegionCorePart_OnHit(struct EwramData_EntityData *entity, struct EwramData_
             y = (RandomNumberGenerator() & 0x1FFFFF) + ({ s32 t = entity->posY.whole - 0x100000; t; });
             vx = RandomNumberGenerator() & 0x7FFF;
             vy = -(RandomNumberGenerator() & 0x7FFF);
-            Legion_SpawnDestructibleFragment(entity->unk_4F4.unk_4F4_entity, x, y, vx, vy, entity->unk_500.whole);
+            Legion_SpawnDestructibleFragment(LEGION_PART_OWNER(entity), x, y, vx, vy, LEGION_PART_TILES(entity));
         }
         else if (type == 2)
         {
@@ -56,7 +57,7 @@ void LegionCorePart_OnHit(struct EwramData_EntityData *entity, struct EwramData_
             y = (RandomNumberGenerator() & 0x1FFFFF) + ({ s32 t = entity->posY.whole - 0x100000; t; });
             vx = -(RandomNumberGenerator() & 0x7FFF);
             vy = -(RandomNumberGenerator() & 0x7FFF);
-            Legion_SpawnDestructibleFragment(entity->unk_4F4.unk_4F4_entity, x, y, vx, vy, entity->unk_500.whole);
+            Legion_SpawnDestructibleFragment(LEGION_PART_OWNER(entity), x, y, vx, vy, LEGION_PART_TILES(entity));
         }
         else
         {
@@ -64,7 +65,7 @@ void LegionCorePart_OnHit(struct EwramData_EntityData *entity, struct EwramData_
             y = (RandomNumberGenerator() & 0x1FFFFF) + ({ s32 t = entity->posY.whole - 0x100000; t; });
             vx = RandomNumberGenerator() & 0x7FFF;
             vy = -(RandomNumberGenerator() & 0x7FFF);
-            Legion_SpawnDestructibleFragment(entity->unk_4F4.unk_4F4_entity, x, y, vx, vy, entity->unk_500.whole);
+            Legion_SpawnDestructibleFragment(LEGION_PART_OWNER(entity), x, y, vx, vy, LEGION_PART_TILES(entity));
         }
     }
 }

@@ -1,5 +1,6 @@
 /* Spawn a translucent copy of Alastor with the current frame/angle. */
 #include "code_08009A0.h"
+#include "alastor_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern void AlastorAfterimage_Update(struct EwramData_EntityData *);
@@ -38,9 +39,9 @@ struct EwramData_EntityData *Alastor_CreateAfterimage(struct EwramData_EntityDat
     if(copy->affine)
     {
         copy->affineIndex=affine;
-        ObjAffine_Set(entity->unk_500.part16.unk_500,0x10000,0x10000,copy->flipX,0,copy->affineIndex);
+        ObjAffine_Set(ALASTOR_ANGLE(entity),0x10000,0x10000,copy->flipX,0,copy->affineIndex);
     }
-    copy->unk_4F4.part8.unk_4F5=entity->unk_4F4.part8.unk_4F4;
+    ENTITY_PARENT_INDEX(copy)=ENTITY_INDEX(entity);
     copy->timer=timer;
     return copy;
 }

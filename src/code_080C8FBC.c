@@ -1,5 +1,6 @@
 /* Lightning Doll helpers reconstructed from the original assembly. */
 #include "code_08009A0.h"
+#include "doll_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -33,7 +34,7 @@ void LightningDoll_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 *data
         entity->palette = entity->unk_510.part8.basePalette;
         entity->state = 0xFF;
         entity->subState++;
-        if (entity->unk_500.part8.unk_500 == 0)
+        if (DOLL_DEATH_PART_COUNT(entity) == 0)
             entity->deleteRequested = 1;
     }
 }

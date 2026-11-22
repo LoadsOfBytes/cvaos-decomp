@@ -1,5 +1,6 @@
 ﻿/* Belmont projectile wave: nineteen delayed entities around the owner. */
 #include "code_08009A0.h"
+#include "belmont_entity.h"
 #include "structs/ewram.h"
 extern struct EwramData_EntityData *Entity_CreateObject(void *);
 extern void BelmontWaveProjectile_Update(struct EwramData_EntityData *);
@@ -36,7 +37,7 @@ void Belmont_SpawnProjectileWave(struct EwramData_EntityData *entity)
         projectile->posX.whole=entity->posX.whole+offset;
         projectile->posY.whole=entity->posY.whole+0x200000;
         projectile->timer=ABS(i);
-        projectile->unk_4F4.part8.unk_4F5=entity->unk_4F4.part8.unk_4F4;
+        ENTITY_PARENT_INDEX(projectile)=ENTITY_INDEX(entity);
         projectile->spriteLayer=25;
         projectile->flipX=entity->flipX;
         projectile->scrollWithBg=1;
@@ -44,8 +45,8 @@ void Belmont_SpawnProjectileWave(struct EwramData_EntityData *entity)
         projectile->hidden=1;
         Entity_EnableBoxes(projectile,Enemy_OnContact,0);
         projectile->hit.flags|=4;
-        projectile->unk_500.part8.unk_500=entity->unk_500.part8.unk_500;
-        projectile->attack=entity->unk_500.part8.unk_500;
+        projectile->unk_500.part8.unk_500=BELMONT_ATTACK(entity);
+        projectile->attack=BELMONT_ATTACK(entity);
         }
         offset+=0xE0000;
         i++;

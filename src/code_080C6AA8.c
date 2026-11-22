@@ -1,6 +1,7 @@
 /* Nemesis_UpdatePositioning: twin of Alastor_UpdateApproach (approach a point near the player and rock);
  * deeper vertical target (+48/16), palette call in state 0; matched. */
 #include "code_08009A0.h"
+#include "nemesis_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -11,9 +12,9 @@ extern u8 Angle_TurnTowards(s16 *,s32,s32);
 #define DX(e) ((s16)Entity_GetTargetDistanceX(e))
 #define DY(e) ((s16)Entity_GetTargetDistanceY(e))
 #define ABS(x) ((x)<0?-(x):(x))
-#define ANGLE(e) ((e)->unk_500.part16.unk_500)
-#define PHASE(e) ((e)->unk_4FC.part16.unk_4FE[0])
-#define FLAGS(e) ((e)->unk_4FC.part16.unk_4FC)
+#define ANGLE(e) (NEMESIS_ANGLE((e)))
+#define PHASE(e) (NEMESIS_PHASE((e)))
+#define FLAGS(e) (NEMESIS_FLAGS((e)))
 static inline s32 Both(s32 x,s32 y) { return (x&y)==1; }
 /**
  * @brief Turn and approach a point near the target, rock the affine angle and enter attack selection when both axis tolerances are reached.
@@ -40,7 +41,7 @@ void Nemesis_UpdatePositioning(struct EwramData_EntityData *entity)
             if (DY(entity)>0)
                 entity->velY.whole=-entity->velY.whole;
             PHASE(entity)=0;
-            entity->unk_500.part16.unk_502=-100;
+            NEMESIS_TURN(entity)=-100;
             entity->subState=2;
             break;
         case 1:
@@ -97,10 +98,10 @@ void Nemesis_UpdatePositioning(struct EwramData_EntityData *entity)
                 PHASE(entity)=phase+0x200;
             }
             ObjAffine_Set(ANGLE(entity),0x10000,0x10000,0,0,entity->affineIndex);
-            if ((s16)entity->unk_4F8.part16.unk_4F8!=0)
-                entity->unk_4F8.part16.unk_4F8--;
+            if ((s16)NEMESIS_WAIT_TIMER(entity)!=0)
+                NEMESIS_WAIT_TIMER(entity)--;
             else
-                entity->unk_4F8.part16.unk_4F8=RandomNumberGenerator()%180+10;
+                NEMESIS_WAIT_TIMER(entity)=RandomNumberGenerator()%180+10;
             break;
     }
 }

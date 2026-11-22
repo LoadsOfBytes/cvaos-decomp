@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "manticore_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern struct EwramData_EntityData *Entity_CreateObject(void *);
@@ -24,10 +25,10 @@ struct EwramData_EntityData *Manticore_CreateTailSegment(struct EwramData_Entity
             entity->unk_518.part8.enemyId = part->unk_518.part8.enemyId;
             entity->scrollWithBg = 0;
             entity->drawFunc = (u32 *)Sprite_DrawEntity;
-            entity->unk_4F8.unk_4F8_entity = owner;
-            entity->unk_4FC.unk_4FC_entity = part;
-            entity->unk_500.part8.unk_500 = kind;
-            entity->unk_504.whole = value;
+            ENTITY_OWNER(entity) = owner;
+            MANTICORE_TAIL_ANCHOR(entity) = part;
+            MANTICORE_TAIL_KIND(entity) = kind;
+            MANTICORE_TAIL_VALUE(entity) = value;
             return entity;
         }
         EntityDelete(entity);

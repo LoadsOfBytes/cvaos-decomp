@@ -1,6 +1,7 @@
 /* Object 15 interaction: capture player input, animate, show one of two
  * messages, switch UI state and restore the palette transition. */
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code_0800B700.h"
 #include "code_080109F4.h"
 #include "code_08011DD0.h"
@@ -24,17 +25,17 @@ void Object15Update(struct EwramData_EntityData *entity)
         SetPlayerInput(1, 0);
         break;
     case 2:
-        if (entity->unk_500.whole > 0x90000) SetPlayerInput(1, 0);
+        if (OBJECT15_RADIUS(entity) > 0x90000) SetPlayerInput(1, 0);
         else SetPlayerInput(1, gEwramData->playerStatus.jumpButton);
-        entity->unk_4FC.part16.unk_4FC += 0x40;
-        if (entity->unk_500.whole != 0)
+        OBJECT15_ANGLE(entity) += 0x40;
+        if (OBJECT15_RADIUS(entity) != 0)
         {
-            if (entity->unk_500.whole == 0x100000)
+            if (OBJECT15_RADIUS(entity) == 0x100000)
             {
                 BgPalette_StartColorFade(31, 7, 7, 0x10000, 0, 64);
                 ObjPalette_StartColorFade(31, 7, 7, 0x10000, 0, 64);
             }
-            entity->unk_500.whole -= 0x4000;
+            OBJECT15_RADIUS(entity) -= 0x4000;
         }
         else entity->state = 3;
         break;

@@ -39,7 +39,7 @@ struct EwramData_EntityData *Belmont_CreateSubweapon(struct EwramData_EntityData
         return NULL;
     }
     weapon->unk_510.part8.basePalette=kind;
-    weapon->unk_4F4.part8.unk_4F5=entity->unk_4F4.part8.unk_4F4;
+    ENTITY_PARENT_INDEX(weapon)=ENTITY_INDEX(entity);
     weapon->spriteLayer=entity->spriteLayer-1;
     weapon->flipX=entity->flipX;
     weapon->posX.whole=entity->posX.whole;

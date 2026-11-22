@@ -1,5 +1,6 @@
 /* Row of 32 child entities. */
 #include "code_08009A0.h"
+#include "balore_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -15,9 +16,9 @@ static inline u8 LoadGfx(struct EwramData_EntityData *entity)
 
     if (slot < 0)
         return 0;
-    entity->unk_4F8.part8.unk_4F8 = ObjPalette_FindOrLoadVariant(sBalorePalette, 0x11);
-    entity->unk_4F8.part8.unk_4FB = slot;
-    entity->unk_510.part8.basePalette = entity->unk_4F8.part8.unk_4F8;
+    BALORE_PALETTE(entity) = ObjPalette_FindOrLoadVariant(sBalorePalette, 0x11);
+    BALORE_GFX(entity) = slot;
+    entity->unk_510.part8.basePalette = BALORE_PALETTE(entity);
     Sprite_Attach(entity, sBaloreSpriteSheet2, slot, entity->unk_510.part8.basePalette);
     entity->scrollWithBg = 1;
     return 1;
@@ -54,8 +55,8 @@ void Balore_CreateIntro(struct EwramData_EntityData *entity)
         e = EntityCreateInRange(0x49, 0xCF, (u32 *)BaloreIntroPiece_Update);
         if (e == NULL)
             return;
-        e->unk_4FC.unk_4FC_entity = entity;
-        e->unk_504.part8.unk_504 = i;
+        BALORE_PIECE_OWNER(e) = entity;
+        BALORE_PIECE_INDEX(e) = i;
         e->posX.part16.integer = *x + offset;
         e->posY.part16.integer = 0x20;
         e->scrollWithBg = 1;

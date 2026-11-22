@@ -1,6 +1,7 @@
 /* Golem attack state machine (state == 1): overhead punches (states 0-17), ground smashes with rocks
    (20-35) and the repeated jab (40-56). */
 #include "code_08009A0.h"
+#include "golem_entity.h"
 #include "joint_entity.h"
 #include "code_080D73B8.h"
 #include "code_08011DD0.h"
@@ -21,7 +22,7 @@ extern const u8 sUnk_08118EEB[4], sUnk_08118EEF[4], sUnk_08118EF3[4], sUnk_08118
 #define FRAME JOINT_POSE(entity)
 #define SWING JOINT_HURT_MASK(entity)
 #define COUNT entity->unk_504.part8.unk_505
-#define IDX entity->unk_508.whole
+#define IDX GOLEM_VARIANT(entity)
 #define UPDATE() Golem_UpdateParts(entity, chain);
 #define COUNTDOWN() if ((s8)--TIMER > 0) break;
 #define J(A, B, ANGLE, LEN) Golem_AttachPart(entity, A, B, ANGLE, LEN);
@@ -88,13 +89,13 @@ void Golem_UpdateAttack(struct EwramData_EntityData *entity)
         {
             FRAME = 11; STATE = 1;
             J(3, 2, 0x1C00, 0) J(9, 5, 0, 0) J(10, 9, 0x4800, 0) J(4, 5, 0x400, 0)
-            SWING = 0x400; entity->unk_4FC.part8.unk_4FC = 0;
+            SWING = 0x400; GOLEM_ATTACK_PHASE(entity) = 0;
         }
         else
         {
             FRAME = 16; STATE = 10;
             J(3, 2, 0x4800, 0) J(10, 9, 0x1000, 0) J(4, 5, 0x400, 0)
-            SWING = 8; entity->unk_4FC.part8.unk_4FC = 0;
+            SWING = 8; GOLEM_ATTACK_PHASE(entity) = 0;
         }
         TIMER = t0[IDX];
         break;
@@ -168,13 +169,13 @@ void Golem_UpdateAttack(struct EwramData_EntityData *entity)
             FRAME = 21; STATE = 31;
             J(8, 7, -0x1000, 0xD0000) J(7, 6, 0x14000, 0x50000) J(5, 6, -0x1000, 0) J(4, 5, -0x1000, 0)
             J(9, 6, -0x1000, 0) J(10, 9, -0x2000, 0) J(2, 6, -0x1000, 0) J(3, 2, -0x1000, 0)
-            SWING = 0x100; entity->unk_4FC.part8.unk_4FC = 0;
+            SWING = 0x100; GOLEM_ATTACK_PHASE(entity) = 0;
         }
         else
         {
             FRAME = 23; STATE = 21;
             J(1, 6, -0x1000, 0x120000) J(5, 6, -0x1000, 0) J(4, 5, -0x1000, 0) J(9, 6, -0x1000, 0) J(10, 9, -0x1000, 0)
-            SWING = 2; entity->unk_4FC.part8.unk_4FC = 0;
+            SWING = 2; GOLEM_ATTACK_PHASE(entity) = 0;
         }
         TIMER = t3[IDX];
         break;
@@ -233,7 +234,7 @@ void Golem_UpdateAttack(struct EwramData_EntityData *entity)
             J(9, 5, 0, 0) J(2, 5, 0, 0) J(3, 2, 0x8000, 0)
             SWING = 8;
         }
-        entity->unk_4FC.part8.unk_4FC = 1; TIMER = 12;
+        GOLEM_ATTACK_PHASE(entity) = 1; TIMER = 12;
         break;
     case 41:
         UPDATE() COUNTDOWN() TIMER = 12 - (s8)COUNT * 2; STATE++; FRAME = 26;

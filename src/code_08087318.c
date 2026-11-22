@@ -1,4 +1,5 @@
 #include <string.h>
+#include "triton_entity.h"
 #include "code_08009A0.h"
 #include "code_080D73B8.h"
 #include "syscalls.h"
@@ -15,13 +16,13 @@ extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void EntityMove(struct EwramData_EntityData *);
 extern void TritonSpear_SpawnEffect(struct EwramData_EntityData *, s32, s32);
 extern s8 sTritonSpearOffsets[32];
-#define PART_ANGLE(e) ((e)->unk_504.whole)
+#define PART_ANGLE(e) (TRITON_SPEAR_ANGLE((e)))
 #define PART_TARGET_ANGLE(e) ((e)->accelX.whole)
 #define PIXEL(v) ((v) < 0 ? -((-(v)) >> 16) : (v) >> 16)
 /* Triton spear update. Angle targets are derived from a point 24 pixels below the spear. */
 void TritonSpear_Update(struct EwramData_EntityData *spear)
 {
-    struct EwramData_EntityData *owner = spear->unk_500.unk_500_entity;
+    struct EwramData_EntityData *owner = TRITON_SPEAR_OWNER(spear);
     s32 bounds[4];
     s8 offsets[32];
     struct HitBoxRecord box;
@@ -57,7 +58,7 @@ restart:
                 if (owner->animFrame == 13) spear->posX.whole = ownerX - 0xB0000;
                 else spear->posX.whole = ownerX - 0x130000;
             }
-            if (*(u8 *)&owner->unk_4FC.part8.unk_4FC)
+            if (*(u8 *)&TRITON_THRUST(owner))
             {
                 spear->subState = 1;
                 spear->timer = 0;
@@ -202,8 +203,8 @@ restart:
                 {
                     /* Keep the shared zero to reproduce the original stores. */
                     s32 zero = 0;
-                    *(u8 *)&spear->unk_4FC.part8.unk_4FC = 1;
-                    *(u8 *)&owner->unk_4FC.part8.unk_4FC = zero;
+                    *(u8 *)&TRITON_THRUST(spear) = 1;
+                    *(u8 *)&TRITON_THRUST(owner) = zero;
                     spear->subState = zero;
                     spear->scrollWithBg = 0;
                     goto restart;

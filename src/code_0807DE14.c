@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "giant_ghost_entity.h"
 #include "code/code_08039340.h"
 #include "syscalls.h"
 extern s32 Enemy_IsStunnedNoFlash(struct EwramData_EntityData *);
@@ -16,7 +17,7 @@ extern s32 Target_GetY(struct EwramData_EntityData *);
 void GiantGhostHandB_Update(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = ENTITY_OWNER(entity);
     s32 x;
     s32 y;
     u16 angle;
@@ -32,30 +33,30 @@ void GiantGhostHandB_Update(struct EwramData_EntityData *entity)
         entity->flipX = parent->flipX;
         if (gEwramData->gameState.bestiaryPreview)
         {
-            if (entity->unk_504.part8.unk_506)
+            if (GIANT_GHOST_HAND_SWAY_DIR(entity))
             {
-                entity->unk_4FC.whole -= 0x10000;
-                entity->unk_500.whole -= 0x10000;
-                if ((s8)++entity->unk_504.part8.unk_507 > 0x3B)
+                GIANT_GHOST_HAND_POINT_X(entity) -= 0x10000;
+                GIANT_GHOST_HAND_POINT_Y(entity) -= 0x10000;
+                if ((s8)++GIANT_GHOST_HAND_SWAY_FRAME(entity) > 0x3B)
                 {
-                    entity->unk_504.part8.unk_507 = 0;
-                    entity->unk_504.part8.unk_506 ^= 1;
+                    GIANT_GHOST_HAND_SWAY_FRAME(entity) = 0;
+                    GIANT_GHOST_HAND_SWAY_DIR(entity) ^= 1;
                 }
             }
             else
             {
-                entity->unk_4FC.whole += 0x10000;
-                entity->unk_500.whole += 0x10000;
-                if ((s8)++entity->unk_504.part8.unk_507 > 0x3B)
+                GIANT_GHOST_HAND_POINT_X(entity) += 0x10000;
+                GIANT_GHOST_HAND_POINT_Y(entity) += 0x10000;
+                if ((s8)++GIANT_GHOST_HAND_SWAY_FRAME(entity) > 0x3B)
                 {
-                    entity->unk_504.part8.unk_507 = 0;
-                    entity->unk_504.part8.unk_506 ^= 1;
+                    GIANT_GHOST_HAND_SWAY_FRAME(entity) = 0;
+                    GIANT_GHOST_HAND_SWAY_DIR(entity) ^= 1;
                 }
             }
             x = parent->posX.whole - 0x40000;
             y = parent->posY.whole - 0x240000;
-            x = entity->unk_4FC.whole - x;
-            y = entity->unk_500.whole - y;
+            x = GIANT_GHOST_HAND_POINT_X(entity) - x;
+            y = GIANT_GHOST_HAND_POINT_Y(entity) - y;
             angle = ArcTan2(FIXED_TO_INT(x), FIXED_TO_INT(y));
             x = Sin(angle + 0x4000);
             y = Sin(angle);

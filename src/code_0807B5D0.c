@@ -34,7 +34,7 @@ void EnemyPersephoneCreate(struct EwramData_EntityData *entity)
     Entity_SnapToGround(entity);
     entity->flipX = Entity_IsTargetRight(entity);
     entity->state = 0;
-    entity->unk_4F8.unk_4F8_entity = entity;
+    ENTITY_OWNER(entity) = entity;
 finished:
     return;
 }

@@ -1,5 +1,6 @@
 /* Belmont backward dodge with timed flashing and collision handling. */
 #include "code/code_08039340.h"
+#include "belmont_entity.h"
 #include "code/code_08040A38.h"
 #include "code_080D73B8.h"
 #include "structs/ewram.h"
@@ -21,8 +22,8 @@ void Belmont_UpdateDodge(struct EwramData_EntityData *entity)
         case 0:
             entity->palette=entity->unk_510.part8.basePalette;
             entity->unk_510.part8.hitFlashTimer=state;
-            entity->unk_4F8.part8.unk_4F9=state;
-            entity->unk_504.part8.unk_504=state;
+            BELMONT_FLASH(entity)=state;
+            BELMONT_HITS(entity)=state;
             if(entity->animScriptIndex!=3)
                 Anim_StartIndexed(entity,3,1,1);
             Anim_Update(entity);

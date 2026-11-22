@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "manticore_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -33,7 +34,7 @@ void EnemyManticoreUpdate(struct EwramData_EntityData *entity)
         if (entity->state != 2)
         {
             Hit_CheckWithPlayer(collision, entity);
-            Hit_CheckWithPlayer(collision, entity->unk_4F8.unk_4F8_entity);
+            Hit_CheckWithPlayer(collision, MANTICORE_TAIL_TIP(entity));
         }
         return;
     }
@@ -62,6 +63,6 @@ void EnemyManticoreUpdate(struct EwramData_EntityData *entity)
     if (entity->state != 2)
     {
         Hit_CheckWithPlayer(collision, entity);
-        Hit_CheckWithPlayer(collision, entity->unk_4F8.unk_4F8_entity);
+        Hit_CheckWithPlayer(collision, MANTICORE_TAIL_TIP(entity));
     }
 }

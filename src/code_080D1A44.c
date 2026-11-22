@@ -1,5 +1,6 @@
 /* Belmont hit response, defeat notification and repeated-hit stun. */
 #include "code_08009A0.h"
+#include "belmont_entity.h"
 #include "code_080D73B8.h"
 #include "code_08013960.h"
 #include "structs/ewram.h"
@@ -24,24 +25,24 @@ void Belmont_OnHit(struct EwramData_EntityData *entity,s32 kind,u16 *hit)
     }
     else
     {
-        u8 mask=entity->unk_4F8.part8.unk_4F8 & 8;
+        u8 mask=BELMONT_FLAGS(entity) & 8;
         if(mask==0 && hit[0]==2)
         {
-            if(entity->unk_504.part8.unk_504>2)
+            if(BELMONT_HITS(entity)>2)
             {
-                entity->unk_4F8.part8.unk_4F9=32;
-                entity->unk_504.part8.unk_504=mask;
+                BELMONT_FLASH(entity)=32;
+                BELMONT_HITS(entity)=mask;
                 entity->state=11;
                 entity->stage=mask;
                 entity->subState=mask;
-                entity->attack=entity->unk_500.part8.unk_501;
+                entity->attack=BELMONT_ATTACK_OFF(entity);
                 if(RandomNumberGenerator()%2==0)
                     PlaySong(0x1E3);
                 else
                     PlaySong(0x1E2);
             }
             else
-                entity->unk_504.part8.unk_504++;
+                BELMONT_HITS(entity)++;
         }
     }
 }

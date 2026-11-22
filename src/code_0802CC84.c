@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "red_soul_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08040A38.h"
@@ -6,7 +7,7 @@ extern void SkillHarpyProjectileUpdate(struct EwramData_EntityData *);
 
 void SkillHarpyUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
     s32 i;
     switch (entity->state)
     {
@@ -29,7 +30,7 @@ void SkillHarpyUse(struct EwramData_EntityData *entity)
         entity->state = 2;
         break;
     case 2:
-        gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;

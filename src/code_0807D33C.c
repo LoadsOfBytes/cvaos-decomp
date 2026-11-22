@@ -1,6 +1,7 @@
 /* Flying enemy that circles the player: approach / coast / brake, and after
  * being hit (unk_505) the same three phases away from the player. */
 #include "code_08009A0.h"
+#include "giant_ghost_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -11,8 +12,8 @@ extern s32 Target_IsInRect(s16, s16, s16, s16);
 extern s32 Entity_AimVelocityAtPoint(struct EwramData_EntityData *entity, s32 x, s32 y, s32 speed);
 extern void EntityMove(struct EwramData_EntityData *entity);
 
-#define SPEED(e) ((e)->unk_4F8.whole)
-#define HIT(e) ((e)->unk_504.part8.unk_505)
+#define SPEED(e) (GIANT_GHOST_SPEED((e)))
+#define HIT(e) (GIANT_GHOST_HIT_PLAYER((e)))
 
 /* Aim the velocity at a point 0x30 px above the player.  `px` must be a
  * block-local variable: it lives inside one basic block, so local-alloc

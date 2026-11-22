@@ -1,4 +1,6 @@
 #include "code_08009A0.h"
+#include "soul_skill_entity.h"
+#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -35,7 +37,7 @@ static inline struct SoulGraphicsResources *GetSet(s32 index)
  */
 void SkillDiscArmorScaledSpriteUpdate(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
     s32 scale;
     u16 slot;
     s32 dx, dy, d;
@@ -54,7 +56,7 @@ void SkillDiscArmorScaledSpriteUpdate(struct EwramData_EntityData *entity)
         slot = ObjAffine_Alloc(0);
         if ((s16)slot < 0)
         {
-            gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
             gEwramData->playerState.nbrActiveRedSoulEntities--;
             EntityDelete(entity);
             return;
@@ -77,18 +79,18 @@ void SkillDiscArmorScaledSpriteUpdate(struct EwramData_EntityData *entity)
         if (d > 0x400000)
             d = 0x400000;
         scale = (d >> 1) / 32;
-        entity->velX.whole = Sin(parent->unk_510.part16.unk_510 + 0x4000) << 5;
-        entity->velY.whole = Sin(parent->unk_510.part16.unk_510) << 5;
+        entity->velX.whole = Sin(SKILL_DISC_ARMOR_ANGLE(parent) + 0x4000) << 5;
+        entity->velY.whole = Sin(SKILL_DISC_ARMOR_ANGLE(parent)) << 5;
         entity->velX.whole = entity->velX.whole / 0x10000 * scale;
         entity->velY.whole = entity->velY.whole / 0x10000 * scale;
         if (parent->state != 2)
             break;
     case 2:
         ObjAffine_Free(entity->affineIndex);
-        gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;
     }
-    ObjAffine_Set(parent->unk_510.part16.unk_510, scale, 0x10000, entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set(SKILL_DISC_ARMOR_ANGLE(parent), scale, 0x10000, entity->flipX, 0, entity->affineIndex);
 }

@@ -4,6 +4,15 @@
 #include "code_08009A0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
+
+/*
+ * Number watch (NumberWatch_Create; same aliases as NumberWatch_Update):
+ * width of the watched value in bits (8 / 16 / 32), its address and the last
+ * shown value. Token-identical expansion.
+ */
+#define NUMBER_WATCH_BITS(e) e->unk_508.part8.unk_509
+#define NUMBER_WATCH_ADDRESS(e) e->unk_50C.whole
+#define NUMBER_WATCH_LAST(e) e->unk_510.whole
 extern void NumberIndicator_Format(struct EwramData_EntityData *, s32);
 extern void NumberWatch_Update(struct EwramData_EntityData *);
 extern void NumberIndicator_Draw(struct EwramData_EntityData *);
@@ -19,15 +28,15 @@ struct EwramData_EntityData *NumberWatch_Create(void *value, s32 x, s32 y, u8 pa
     Sprite_Attach(entity, sCommonObjectSpriteSheet, graphics, (s8)palette);
     entity->posX.whole = x;
     entity->posY.whole = y;
-    entity->unk_508.part8.unk_509 = bits;
+    NUMBER_WATCH_BITS(entity) = bits;
     if ((s8)bits == 8)
-        entity->unk_510.whole = *(s8 *)value;
+        NUMBER_WATCH_LAST(entity) = *(s8 *)value;
     else if ((s8)bits == 16)
-        entity->unk_510.whole = *(s16 *)value;
+        NUMBER_WATCH_LAST(entity) = *(s16 *)value;
     else
-        entity->unk_510.whole = *(s32 *)value;
-    entity->unk_50C.whole = (s32)value;
-    NumberIndicator_Format(entity, entity->unk_510.whole);
+        NUMBER_WATCH_LAST(entity) = *(s32 *)value;
+    NUMBER_WATCH_ADDRESS(entity) = (s32)value;
+    NumberIndicator_Format(entity, NUMBER_WATCH_LAST(entity));
     entity->drawFunc = (u32 *)NumberIndicator_Draw;
     entity->spriteLayer = 2;
     return entity;

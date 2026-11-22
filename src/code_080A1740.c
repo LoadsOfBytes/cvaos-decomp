@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "gladiator_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -27,14 +28,14 @@ void GladiatorShot_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if ((u16)entity->unk_500.part16.unk_502 > 0x4000)
-            entity->unk_500.part16.unk_502 -= 0x100;
-        else if ((u16)entity->unk_500.part16.unk_502 < 0x4000)
-            entity->unk_500.part16.unk_502 += 0x100;
-        EntitySetVelocityFromAngle(entity, (u16)entity->unk_500.part16.unk_502, 0x30000);
+        if ((u16)GLADIATOR_SHOT_ANGLE(entity) > 0x4000)
+            GLADIATOR_SHOT_ANGLE(entity) -= 0x100;
+        else if ((u16)GLADIATOR_SHOT_ANGLE(entity) < 0x4000)
+            GLADIATOR_SHOT_ANGLE(entity) += 0x100;
+        EntitySetVelocityFromAngle(entity, (u16)GLADIATOR_SHOT_ANGLE(entity), 0x30000);
         EntityMove(entity);
-        x = FixedMultiply(Sin((u16)entity->unk_500.part16.unk_502 + 0x4000), 0x80000);
-        y = FixedMultiply(Sin((u16)entity->unk_500.part16.unk_502), 0x80000);
+        x = FixedMultiply(Sin((u16)GLADIATOR_SHOT_ANGLE(entity) + 0x4000), 0x80000);
+        y = FixedMultiply(Sin((u16)GLADIATOR_SHOT_ANGLE(entity)), 0x80000);
         x = FIXED_TO_INT(x + entity->posX.whole + bg->xPos.whole);
         y = FIXED_TO_INT(y + entity->posY.whole + bg->yPos.whole);
         if (Tile_Classify(x, y) != 1)
@@ -69,5 +70,5 @@ void GladiatorShot_Update(struct EwramData_EntityData *entity)
         break;
     }
     d = -0x8000;
-    ObjAffine_Set((u16)entity->unk_500.part16.unk_502 + d, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
+    ObjAffine_Set((u16)GLADIATOR_SHOT_ANGLE(entity) + d, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
 }

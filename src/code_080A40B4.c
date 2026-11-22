@@ -1,5 +1,6 @@
 /* Chaos: orb aura (40B4/4184) and the core's companion entity (4238). */
 #include "code_08009A0.h"
+#include "chaos_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -9,7 +10,7 @@ extern s32 Entity_GetVisibilityPattern(s32);
 extern void ChaosBackground_Update(struct EwramData_EntityData *);
 void ChaosAura_Update(struct EwramData_EntityData *entity);
 
-#define KIND(e) (*(u8 *)&(e)->unk_504.part8.unk_506)
+#define KIND(e) (*(u8 *)&CHAOS_ORB_KIND((e)))
 
 /* Create the aura of an orb (palette 6 + pal, random start frame). */
 struct EwramData_EntityData *ChaosOrb_CreateAura(struct EwramData_EntityData *orb, s32 pal, s32 kind, s32 timer)
@@ -30,7 +31,7 @@ struct EwramData_EntityData *ChaosOrb_CreateAura(struct EwramData_EntityData *or
         Anim_Update(aura);
         aura->animTimer = RandomNumberGenerator() % 8;
         aura->unk_518.part8.enemyId = orb->unk_518.part8.enemyId;
-        aura->unk_4F4.unk_4F4_entity = orb;
+        CHAOS_LINK(aura) = orb;
         aura->scrollWithBg = 0;
         KIND(aura) = kind;
         aura->timer = timer;
@@ -45,7 +46,7 @@ struct EwramData_EntityData *ChaosOrb_CreateAura(struct EwramData_EntityData *or
 /* Aura: blink in at the orb, then flicker with it until it breaks. */
 void ChaosAura_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *orb = entity->unk_4F4.unk_4F4_entity;
+    struct EwramData_EntityData *orb = CHAOS_LINK(entity);
 
     if (orb == NULL || orb->updateFunc == NULL
         || orb->unk_518.part8.enemyId != entity->unk_518.part8.enemyId)
@@ -81,7 +82,7 @@ struct EwramData_EntityData *Chaos_CreateBackground(struct EwramData_EntityData 
         helper->posX.whole = core->posX.whole;
         helper->posY.whole = core->posY.whole;
         helper->unk_518.part8.enemyId = core->unk_518.part8.enemyId;
-        helper->unk_4F4.unk_4F4_entity = core;
+        CHAOS_LINK(helper) = core;
         return helper;
     }
     return NULL;

@@ -1,11 +1,12 @@
 /* BlueSoul_CheckEndCondition. */
 #include "code_08009A0.h"
+#include "blue_soul_entity.h"
 #include "structs/ewram.h"
 
 /* Blue soul info, indexed by equippedBlueSoul (as in code_08031D6C.c). */
 struct BlueSoulInfo {
     void *updateFunc;
-    u8 unk_4;
+    u8 mpPerSecond;
     u8 activationFlags;
     u8 pad_6[0xC - 0x6];
 };
@@ -22,8 +23,8 @@ s32 BlueSoul_CheckEndCondition(struct EwramData_EntityData *entity)
     s32 rem;
 
     entity->roomActive = 1;
-    entity->unk_504.part16.unk_506[0]++;
-    rem = (u16)entity->unk_504.part16.unk_506[0] % entity->unk_504.part8.unk_504;
+    BLUE_SOUL_MP_COUNTER(entity)++;
+    rem = (u16)BLUE_SOUL_MP_COUNTER(entity) % BLUE_SOUL_MP_INTERVAL(entity);
     if (rem == 0 && --ew->playerStatus.currentMP <= 0)
     {
         ew->playerStatus.currentMP = rem;

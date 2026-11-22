@@ -7,7 +7,7 @@ extern struct SpriteSheet sBaloreSpriteSheet;
 void BaloreOverlay_UpdateSprite(struct EwramData_EntityData *entity)
 {
     s32 count;
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = ENTITY_OWNER(entity);
     u8 idx_ = parent->animFrame;
     struct SpriteFrame *frames = sBaloreSpriteSheet.frames;
     struct SpritePart *src = frames[idx_].parts;

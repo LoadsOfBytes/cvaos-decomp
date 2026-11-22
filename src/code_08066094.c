@@ -1,4 +1,5 @@
 #include "structs/ewram.h"
+#include "event_scene_entity.h"
 #include "code_08009A0.h"
 #include "code/code_08039340.h"
 #include "code_0800CB00.h"
@@ -54,7 +55,7 @@ s32 EventScene27_Update(struct EwramData_EntityData *entity)
             actors->player->accelX.whole = 0;
             if (actors->player->velY.whole < 0)
                 actors->player->velY.whole = 0;
-            if (entity->unk_4FC.bytes[0])
+            if (EVENT27_HEAL(entity))
             {
                 Player_RestoreHPAndMP();
                 PlaySong(0x1B6);
@@ -63,7 +64,7 @@ s32 EventScene27_Update(struct EwramData_EntityData *entity)
             else if (GameFlag_Is3ASet())
             {
                 Conversation_Reset();
-                entity->unk_4F8.part16.unk_4F8 = 0x44;
+                EVENT27_TEXT_ID(entity) = 0x44;
             }
             else
                 EventScene27_SelectScript36(entity);
@@ -74,7 +75,7 @@ s32 EventScene27_Update(struct EwramData_EntityData *entity)
             entity->flipX = facing;
             entity->flipX = 1 - entity->flipX;
             data->gameState.stateFlags |= 1;
-            TextWindow_Begin(entity->unk_4F8.part16.unk_4F8);
+            TextWindow_Begin(EVENT27_TEXT_ID(entity));
             entity->state++;
             entity->stage = 0;
             entity->subState = 0;
@@ -88,8 +89,8 @@ s32 EventScene27_Update(struct EwramData_EntityData *entity)
             struct EwramData *data;
             u16 *song;
             s32 zero;
-            if (entity->unk_4FC.bytes[0])
-                entity->unk_4FC.bytes[0] = result;
+            if (EVENT27_HEAL(entity))
+                EVENT27_HEAL(entity) = result;
             PlaySong(0x1B5);
             data = gEwramData;
             song = &data->musicOverrideSong;

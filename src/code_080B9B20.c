@@ -1,5 +1,6 @@
 /* Witch charge, guard and recovery sequence. */
 #include "code_08009A0.h"
+#include "witch_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -45,7 +46,7 @@ void Witch_UpdateCharge(struct EwramData_EntityData *entity)
             child = Entity_CreateObject((u32 *)WitchCastEffect_Update);
             if (child != NULL)
             {
-                child->unk_50C.part8.unk_50C = entity->unk_4F4.part8.unk_4F4;
+                WITCH_SPELL_OWNER_INDEX(child) = ENTITY_INDEX(entity);
                 child->scrollWithBg = 1;
                 child->flipX = entity->flipX;
                 child->attack = entity->attack;

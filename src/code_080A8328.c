@@ -1,5 +1,6 @@
 /* Big Golem create: allocates the 14-joint skeleton and one part entity per joint. */
 #include "code_08009A0.h"
+#include "big_golem_entity.h"
 #include "joint_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -109,7 +110,7 @@ void EnemyBigGolemCreate(struct EwramData_EntityData *entity)
             part->hidden = 0;
             part->attack = entity->attack;
             part->drawFunc = (u32 *)Sprite_DrawEntity;
-            part->unk_500.unk_500_entity = entity;
+            JOINT_PART_OWNER(part) = entity;
             JOINT_PART_INDEX(part) = index;
             JOINT_PART_ANCHOR(part) = anchors[index];
             part->posX.whole = entity->posX.whole;
@@ -215,7 +216,7 @@ void EnemyBigGolemCreate(struct EwramData_EntityData *entity)
     BigGolem_ResetPartAngles(entity, 13);
     Hit_Enable(entity, 8, BigGolem_DamagePlayerOnContact, (s32)BigGolem_OnHit);
     BigGolem_FaceTarget(entity);
-    entity->unk_504.part8.unk_505 = entity->flipX;
+    BIG_GOLEM_HEADING(entity) = entity->flipX;
     Entity_SnapToGround(entity);
     entity->state = frozen;
     entity->subState = frozen;

@@ -3,6 +3,7 @@
  * byte.
  * Witch_OnHit and WitchGroundProjectile_OnHit decompiled locally. */
 #include "code_08009A0.h"
+#include "witch_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -34,7 +35,7 @@ void StudentWitch_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *
  */
 void Witch_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    s32 invulnerable = entity->unk_4F8.part8.unk_4F8 & 1;
+    s32 invulnerable = WITCH_FLAGS(entity) & 1;
 
     if (invulnerable)
     {

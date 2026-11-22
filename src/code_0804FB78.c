@@ -1,6 +1,7 @@
 /* Spawn falling pieces around the entity, then finish. (flipX written through an s8 byte pointer so the
  * mask stays before the address; drawSkip = 1 shares the flipY constant). */
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_080211F0.h"
 #include "structs/ewram.h"
@@ -19,7 +20,7 @@ void BreakableBlock_SpawnDust(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        entity->unk_4FC.whole = ObjGfx_Find((u8 *)0x081C15F4);
+        OBJECT08_DUST_GFX(entity) = ObjGfx_Find((u8 *)0x081C15F4);
         entity->timer = 0x20;
         entity->state++;
     case 1:
@@ -28,11 +29,11 @@ void BreakableBlock_SpawnDust(struct EwramData_EntityData *entity)
             piece = EntityCreateInRange(0x49, 0xCF, (u32 *)BreakableBlockDust_Update);
             if (piece != NULL)
             {
-                Sprite_Attach(piece, (void *)0x0820ED60, entity->unk_4FC.whole, 6);
+                Sprite_Attach(piece, (void *)0x0820ED60, OBJECT08_DUST_GFX(entity), 6);
                 Anim_StartIndexed(piece, 5, 0, 0);
                 Anim_Update(piece);
                 piece->spriteLayer = entity->spriteLayer;
-                switch ((u8)entity->unk_4F8.part8.unk_4F8)
+                switch ((u8)OBJECT08_KIND(entity))
                 {
                 case 1:
                 case 2:

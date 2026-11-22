@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "stolas_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -44,7 +45,7 @@ void EnemyStolasUpdate(struct EwramData_EntityData *entity)
     struct EwramData_EntityData **slot;
     struct EwramData_EntityData *child;
 
-    entity->unk_4FC.part8.unk_4FC = 0;
+    STOLAS_FLAGS(entity) = 0;
     parts = (s32 *)entity->unk_500.jointParts;
     entity->unk_508.part16.unk_50A = 3;
     cursor = parts;
@@ -108,10 +109,10 @@ boxes:
     box.h = 0x48;
     HitBox_SetAttack(entity, &box);
     HitBox_SetBody(entity, &box);
-    if (entity->unk_4FC.part8.unk_4FC & 1)
+    if (STOLAS_FLAGS(entity) & 1)
     {
         Anim_Start(entity, (struct AnimScript *)&anim, 0, 1);
-        anim.frame = entity->unk_4FC.part8.unk_4FD;
+        anim.frame = STOLAS_HELD_FRAME(entity);
         Anim_Update(entity);
     }
     else

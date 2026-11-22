@@ -1,6 +1,7 @@
 /* DeathFloatingWeapon_Update: matched (case 4 posY value pinned to r2 keeps r3 out of the spill
    register set; operand order of mul/and/or as in the target). */
 #include "code_08009A0.h"
+#include "death_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -45,7 +46,7 @@ extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
         struct EwramData_EntityData *child = Entity_CreateObject(fn);                           \
         if (child != NULL)                                                               \
         {                                                                                \
-            child->unk_4F8.part8.unk_4F8 = entity->unk_4F4.part8.unk_4F4;        \
+            DEATH_OWNER_INDEX(child) = ENTITY_INDEX(entity);        \
             child->scrollWithBg = 1;                                                        \
         }                                                                                \
     }
@@ -62,7 +63,7 @@ extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
  */
 void DeathFloatingWeapon_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = &gEwramData->entityData[(u8)entity->unk_4F8.part8.unk_4F8];
+    struct EwramData_EntityData *parent = &gEwramData->entityData[(u8)DEATH_OWNER_INDEX(entity)];
     struct HitResult res;
     s32 b;
     s32 sx, sy;
@@ -92,7 +93,7 @@ void DeathFloatingWeapon_Update(struct EwramData_EntityData *entity)
             entity->posX.part16.integer = 0xE8 - bg->xPos.part16.integer;
             entity->posY.part16.integer = 0x64 - bg->yPos.part16.integer;
             entity->state = 1;
-            entity->unk_4FC.part16.unk_4FC = 0x1000;
+            DEATH_WEAPON_ANGLE(entity) = 0x1000;
             SPAWN(DeathFloatingWeaponWindow_Update);
             entity->hit.flags |= 4;
         }
@@ -106,10 +107,10 @@ void DeathFloatingWeapon_Update(struct EwramData_EntityData *entity)
         break;
     }
     case 1:
-        if (parent->unk_4F8.part16.unk_4F8 & 0x20)
+        if (DEATH_FLAGS(parent) & 0x20)
         {
             entity->state = 2;
-            entity->unk_4F8.part16.unk_4FA = 0x20;
+            DEATH_WEAPON_TIMER(entity) = 0x20;
             PlaySong(0x124);
         }
         break;
@@ -118,14 +119,14 @@ void DeathFloatingWeapon_Update(struct EwramData_EntityData *entity)
         s32 x0, y0;
         s32 tx = parent->posX.whole + 0x500000;
         MOVE_TO(x0, y0, tx, 0x200000, 5);
-        entity->unk_4FC.part16.unk_4FC -= 0x66;
-        if (entity->unk_4F8.part16.unk_4FA != 0)
+        DEATH_WEAPON_ANGLE(entity) -= 0x66;
+        if (DEATH_WEAPON_TIMER(entity) != 0)
         {
-            entity->unk_4F8.part16.unk_4FA--;
+            DEATH_WEAPON_TIMER(entity)--;
             break;
         }
         entity->state = 3;
-        entity->unk_4F8.part16.unk_4FA = 0x60;
+        DEATH_WEAPON_TIMER(entity) = 0x60;
         break;
     }
     case 3:
@@ -133,10 +134,10 @@ void DeathFloatingWeapon_Update(struct EwramData_EntityData *entity)
         s32 x0, y0;
         s32 tx = parent->posX.whole + 0x200000;
         MOVE_TO(x0, y0, tx, 0x300000, 4);
-        entity->unk_4FC.part16.unk_4FC -= 0x616;
-        if (entity->unk_4F8.part16.unk_4FA != 0)
+        DEATH_WEAPON_ANGLE(entity) -= 0x616;
+        if (DEATH_WEAPON_TIMER(entity) != 0)
         {
-            entity->unk_4F8.part16.unk_4FA--;
+            DEATH_WEAPON_TIMER(entity)--;
             break;
         }
         entity->hit.flags &= ~4;
@@ -148,8 +149,8 @@ void DeathFloatingWeapon_Update(struct EwramData_EntityData *entity)
 
         s32 off, y0;
         s32 tx, ty;
-        if (!(parent->unk_4F8.part16.unk_4F8 & 0x40) && (s16)entity->unk_518.part16.hp <= 0x4AF)
-            parent->unk_4F8.part16.unk_4F8 |= 0x40;
+        if (!(DEATH_FLAGS(parent) & 0x40) && (s16)entity->unk_518.part16.hp <= 0x4AF)
+            DEATH_FLAGS(parent) |= 0x40;
         off = 0x200000;
         {
             s32 px = gEwramData->playerState.player->posX.whole;
@@ -159,24 +160,24 @@ void DeathFloatingWeapon_Update(struct EwramData_EntityData *entity)
         tx = parent->posX.whole + off;
         ty = parent->posY.whole - 0x200000;
         MOVE_TO_A(off, y0, tx, ty, 4, ANGLE3);
-        entity->unk_4FC.part16.unk_4FC += (entity->velX.whole + entity->velY.whole) / 256;
-        if (parent->unk_4F8.part16.unk_4F8 & 4)
+        DEATH_WEAPON_ANGLE(entity) += (entity->velX.whole + entity->velY.whole) / 256;
+        if (DEATH_FLAGS(parent) & 4)
         {
             entity->state = 5;
-            entity->unk_4F8.part16.unk_4FA = 0x40;
+            DEATH_WEAPON_TIMER(entity) = 0x40;
         }
         break;
     }
     case 5:
-        entity->unk_4FC.part16.unk_4FC += 0x789;
+        DEATH_WEAPON_ANGLE(entity) += 0x789;
         if (!(entity->timer & 0x1F))
             PlaySong(0x135);
-        if (entity->unk_4F8.part16.unk_4FA != 0)
+        if (DEATH_WEAPON_TIMER(entity) != 0)
         {
-            entity->unk_4F8.part16.unk_4FA--;
+            DEATH_WEAPON_TIMER(entity)--;
             break;
         }
-        entity->unk_4F8.part16.unk_4FA = 0x80;
+        DEATH_WEAPON_TIMER(entity) = 0x80;
         entity->state = 6;
         break;
     case 6:
@@ -186,12 +187,12 @@ void DeathFloatingWeapon_Update(struct EwramData_EntityData *entity)
         s32 ty = player->posY.whole;
         s32 x0, y0;
         MOVE_TO(x0, y0, tx, ty, 7);
-        entity->unk_4FC.part16.unk_4FC += 0x789;
+        DEATH_WEAPON_ANGLE(entity) += 0x789;
         if (!(entity->timer & 0x1F))
             PlaySong(0x135);
-        if (entity->unk_4F8.part16.unk_4FA != 0)
+        if (DEATH_WEAPON_TIMER(entity) != 0)
         {
-            entity->unk_4F8.part16.unk_4FA--;
+            DEATH_WEAPON_TIMER(entity)--;
             break;
         }
         entity->state = 4;
@@ -202,7 +203,7 @@ void DeathFloatingWeapon_Update(struct EwramData_EntityData *entity)
         u8 t = entity->timer;
         if (t & 1)
         {
-            u16 a = entity->unk_4FC.part16.unk_4FC - 0x4000;
+            u16 a = DEATH_WEAPON_ANGLE(entity) - 0x4000;
             if (({ s32 m_ = 2; m_ &= t; m_; }))
                 a = (u32)((a << 16) + 0x80000000) >> 16;
             sx = (entity->timer >> 1) * Sin((s16)a + 0x4000);
@@ -231,29 +232,29 @@ void DeathFloatingWeapon_Update(struct EwramData_EntityData *entity)
             child = Entity_CreateObject(DeathWeaponTrail_Update);
             if (child != NULL)
             {
-                child->unk_4F8.part8.unk_4F8 = entity->unk_4F4.part8.unk_4F4;
+                DEATH_OWNER_INDEX(child) = ENTITY_INDEX(entity);
                 child->scrollWithBg = 1;
                 { register struct EwramData_EntityData *c asm("r1") = child; /* FAKEMATCH: copy of the new child in r1 */
-                c->unk_4FC.part16.unk_4FC = entity->unk_4FC.part16.unk_4FC;
+                DEATH_WEAPON_ANGLE(c) = DEATH_WEAPON_ANGLE(entity);
                 c->posX.whole = entity->posX.whole;
                 c->posY.whole = entity->posY.whole; }
             }
         }
     }
-    ObjAffine_Set(entity->unk_4FC.part16.unk_4FC, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set(DEATH_WEAPON_ANGLE(entity), 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
     if (entity->state > 6)
         return;
     {
-        s32 a = (s16)(entity->unk_4FC.part16.unk_4FC - 0x4000);
+        s32 a = (s16)(DEATH_WEAPON_ANGLE(entity) - 0x4000);
         sx = ((entity->timer & 3) * 16 - 0x20) * Sin(a + 0x4000);
         sy = ((entity->timer & 3) * 16 - 0x20) * Sin(a);
         HitBox_SetBodyRaw(entity, BOX(sx, sy));
     }
     {
-        s32 a = (s16)(entity->unk_4FC.part16.unk_4FC - 0x4000);
+        s32 a = (s16)(DEATH_WEAPON_ANGLE(entity) - 0x4000);
         sx = Sin(a + 0x4000) * 24;
         sy = Sin(a) * 24;
-        b = entity->unk_4FC.part16.unk_4FC;
+        b = DEATH_WEAPON_ANGLE(entity);
         sx += (entity->timer & 3) * (Sin(b + 0x4000) << 3);
         sy += (entity->timer & 3) * (Sin(b) << 3);
         HitBox_SetAttackRaw(entity, BOX(sx, sy));
@@ -266,7 +267,7 @@ void DeathFloatingWeapon_Update(struct EwramData_EntityData *entity)
         return;
     }
     PlaySong(0x6E);
-    parent->unk_4F8.part16.unk_4F8 |= 1;
+    DEATH_FLAGS(parent) |= 1;
     entity->state = 7;
     entity->timer = 0;
 }

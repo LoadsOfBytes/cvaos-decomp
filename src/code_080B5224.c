@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "balore_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_080211F0.h"
 #include "code/code_08040A38.h"
@@ -18,7 +19,7 @@ extern void BaloreSpark_DamagePlayerOnContact(struct EwramData_EntityData *entit
 void BaloreSpark_Update(struct EwramData_EntityData *entity)
 {
     u8 hit[0x10];
-    struct EwramData_EntityData *parent = entity->unk_4FC.unk_4FC_entity;
+    struct EwramData_EntityData *parent = BALORE_BODY(entity);
     struct EwramData_EntityData *spark;
     u8 timer;
 

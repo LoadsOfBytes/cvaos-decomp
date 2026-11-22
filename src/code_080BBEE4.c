@@ -1,6 +1,7 @@
 /* Shared Cockatrice/Basilisk death and creation.
  * Decompiled locally; patrol and attack helpers are now matching C. */
 #include "code_08009A0.h"
+#include "cockatrice_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -69,7 +70,7 @@ s32 CockatriceFamily_UpdateDeath(struct EwramData_EntityData *entity)
                 break;
             }
             entity->subState = 2;
-            entity->unk_4FC.whole |= 1;
+            COCKATRICE_DEATH_FLAGS(entity) |= 1;
             break;
         case 2:
             return 1;
@@ -91,7 +92,7 @@ void CockatriceFamily_Create(struct EwramData_EntityData *entity, s32 paletteSlo
         EntityDelete(entity);
         return;
     }
-    entity->unk_4F8.part8.unk_4F8 = paletteSlot;
+    COCKATRICE_PALETTE_SLOT(entity) = paletteSlot;
     Enemy_ResetFromTemplate(entity);
     entity->spriteLayer = 0x11;
     Anim_StartIndexed(entity, 0, 0, 1);
@@ -99,7 +100,7 @@ void CockatriceFamily_Create(struct EwramData_EntityData *entity, s32 paletteSlo
     part = Entity_CreateObject((u32 *)CockatriceFamilyPart_Update);
     if (part != NULL)
     {
-        part->unk_4F8.unk_4F8_entity = entity;
+        ENTITY_OWNER(part) = entity;
         part->scrollWithBg = 1;
     }
     if (gEwramData->gameState.bestiaryPreview)

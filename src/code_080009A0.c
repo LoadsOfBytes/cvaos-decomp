@@ -225,7 +225,7 @@ struct EwramData_EntityData* EntityCreate(u32 *updateFunc)
         entity->drawNext = 0xFE;
         entity->drawPrev = 0xFE;
         entity->updateFunc = updateFunc;
-        entity->unk_4F4.part8.unk_4F4 = slot;
+        ENTITY_INDEX(entity) = slot;
         newEntity = entity;
         break;
     }
@@ -412,7 +412,7 @@ struct EwramData_EntityData *EntityCreateInRange(s32 minSlot, s32 maxSlot, u32 *
         entity->drawNext = 0xFE;
         entity->drawPrev = 0xFE;
         entity->updateFunc = updateFunc;
-        entity->unk_4F4.part8.unk_4F4 = slot;
+        ENTITY_INDEX(entity) = slot;
         newEntity = entity;
         break;
     }

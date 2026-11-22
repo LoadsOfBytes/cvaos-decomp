@@ -2,6 +2,8 @@
  * -fno-cse-follow-jumps (Makefile): the target recomputes ew + 0x13110 after
  * the range check instead of reusing it across the jump. */
 #include "code_08009A0.h"
+#include "kyoma_demon_entity.h"
+#include "player_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 #include "structs/entity_render_flags.h"
@@ -45,24 +47,24 @@ void KyomaDemon_UpdateLurk(struct EwramData_EntityData *entity)
         entity->posY.whole = ew->playerState.player->posY.whole;
         ppx = &entity->posX.part16.integer;
         px = *ppx + (s16)bg->xPos.part16.integer;
-        x = (s16)entity->unk_4F8.part16.unk_4F8;
+        x = (s16)KYOMA_DEMON_HOME_X(entity);
         if (px < x - 0x20 || px > x + 0x20)
         {
             entity->hidden = 1;
             break;
         }
         entity->hidden = 0;
-        if (ew->playerState.player->unk_4F4.whole & 2)
+        if (PLAYER_ACTION_FLAGS(ew->playerState.player) & 2)
         {
             Anim_Start(entity, (struct AnimScript *)(sUnk_08528340 + 0x24), 0, 0);
             entity->subState = one;
             break;
         }
-        if (entity->unk_4FC.part16.unk_4FE[0] <= 0)
+        if (KYOMA_DEMON_LURK_TIMER(entity) <= 0)
         {
-            entity->unk_4FC.part16.unk_4FE[0] = RandomNumberGenerator() % 64 + 64;
+            KYOMA_DEMON_LURK_TIMER(entity) = RandomNumberGenerator() % 64 + 64;
             px = *ppx + (s16)bg->xPos.part16.integer;
-            x = (s16)entity->unk_4F8.part16.unk_4F8;
+            x = (s16)KYOMA_DEMON_HOME_X(entity);
             if (px > x - 10 && px < x + 10)
             {
                 entity->state = one;
@@ -72,10 +74,10 @@ void KyomaDemon_UpdateLurk(struct EwramData_EntityData *entity)
         }
         else
         {
-            entity->unk_4FC.part16.unk_4FE[0]--;
+            KYOMA_DEMON_LURK_TIMER(entity)--;
         }
-        if (entity->posX.whole + bg->xPos.whole == entity->unk_500.whole
-            && entity->posY.whole + bg->yPos.whole == entity->unk_504.whole)
+        if (entity->posX.whole + bg->xPos.whole == KYOMA_DEMON_ROOM_X(entity)
+            && entity->posY.whole + bg->yPos.whole == KYOMA_DEMON_ROOM_Y(entity))
         {
             if (entity->animScriptIndex)
                 Anim_StartIndexed(entity, 0, 0, 1);
@@ -93,12 +95,12 @@ void KyomaDemon_UpdateLurk(struct EwramData_EntityData *entity)
         entity->posX.whole = ew->playerState.player->posX.whole + 0x100000;
         entity->posY.whole = ew->playerState.player->posY.whole;
         px = (s16)entity->posX.part16.integer + (s16)bg->xPos.part16.integer;
-        x = (s16)entity->unk_4F8.part16.unk_4F8;
+        x = (s16)KYOMA_DEMON_HOME_X(entity);
         if (px < x - 0x20 || px > x + 0x20)
             entity->hidden = 1;
         else
             entity->hidden = 0;
-        if (!(gEwramData->playerState.player->unk_4F4.whole & 2))
+        if (!(PLAYER_ACTION_FLAGS(gEwramData->playerState.player) & 2))
         {
             Anim_StartIndexed(entity, 1, 0, 1);
             entity->subState = 0;

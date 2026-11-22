@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "graham_projectile.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
@@ -20,30 +21,30 @@ s32 Graham_SpawnSpiralProjectiles(struct EwramData_EntityData *owner, s32 revers
     s32 i;
     struct EwramData_EntityData *parts[6];
     struct EwramData_EntityData **p;
-    owner->unk_4F8.part8.unk_4F9 = 3;
+    GRAHAM_SPIRAL_COUNT(owner) = 3;
     i = 0;
     p = parts;
-    while (i < owner->unk_4F8.part8.unk_4F9)
+    while (i < GRAHAM_SPIRAL_COUNT(owner))
     {
         *p = Entity_CreateObject((u32 *)GrahamSpiralProjectile_Update);
         if (!*p) { success = 0; break; }
         if (!Entity_LoadGraphics(*p, sGrahamGfx1, sGrahamShotPalette, 0, animation))
         { success = 0; goto fail; }
-        (*p)->unk_4F4.part8.unk_4F5 = owner->unk_4F4.part8.unk_4F4;
+        ENTITY_PARENT_INDEX((*p)) = ENTITY_INDEX(owner);
         (*p)->spriteLayer = owner->spriteLayer - 1;
         (*p)->flipX = owner->flipX;
         (*p)->posX.whole = owner->posX.whole;
         (*p)->posY.whole = owner->posY.whole - 0x200000;
         (*p)->scrollWithBg = 1;
-        (*p)->unk_4F8.part8.unk_4F9 = owner->unk_4F8.part8.unk_4F9;
+        GRAHAM_SPIRAL_COUNT((*p)) = GRAHAM_SPIRAL_COUNT(owner);
         (*p)->attack = 0x50;
-        (*p)->unk_4F8.part8.unk_4F8 = i;
-        (*p)->unk_510.whole = 0xAA;
-        (*p)->unk_500.part16.unk_502 = 0x2C0;
+        GRAHAM_SPIRAL_INDEX((*p)) = i;
+        GRAHAM_SPIRAL_SPIN((*p)) = 0xAA;
+        GRAHAM_SPIRAL_ROTATION_SPEED((*p)) = 0x2C0;
         if (reverse)
         {
-            (*p)->unk_510.whole = -(*p)->unk_510.whole;
-            (*p)->unk_500.part16.unk_502 = -(*p)->unk_500.part16.unk_502;
+            GRAHAM_SPIRAL_SPIN((*p)) = -GRAHAM_SPIRAL_SPIN((*p));
+            GRAHAM_SPIRAL_ROTATION_SPEED((*p)) = -GRAHAM_SPIRAL_ROTATION_SPEED((*p));
         }
         {
             s32 matrix = ObjAffine_Alloc(1);
@@ -67,7 +68,7 @@ s32 Graham_SpawnSpiralProjectiles(struct EwramData_EntityData *owner, s32 revers
     {
     fail:
         i = 0;
-        if (i < owner->unk_4F8.part8.unk_4F9)
+        if (i < GRAHAM_SPIRAL_COUNT(owner))
         {
             p = parts;
             do
@@ -75,7 +76,7 @@ s32 Graham_SpawnSpiralProjectiles(struct EwramData_EntityData *owner, s32 revers
                 if (*p != NULL) EntityDelete(*p);
                 p++;
                 i++;
-            } while (i < owner->unk_4F8.part8.unk_4F9);
+            } while (i < GRAHAM_SPIRAL_COUNT(owner));
         }
     }
     return success;

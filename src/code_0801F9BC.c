@@ -18,11 +18,11 @@ void Julius_StartDeath(struct EwramData_EntityData *entity)
     if (!(gEwramData->playerState.actionLockFlags & 0x800) && entity->animScriptIndex != 0xC)
     {
         Anim_StartIndexed(entity, 0xC, 1, 0);
-        entity->unk_504.part16.unk_504 = 0xFF;
-        entity->unk_4F4.whole &= 0xFFDFFFFF;
+        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
+        PLAYER_ACTION_FLAGS(entity) &= 0xFFDFFFFF;
     }
     BlueSoul_StopAll();
-    entity->unk_4F4.whole &= 0xEFFFFE9F;
+    PLAYER_ACTION_FLAGS(entity) &= 0xEFFFFE9F;
     gEwramData->playerState.actionLockFlags |= 0xE;
     gEwramData->playerState.pendingHitDamage = 0;
     if (!entity->flipX)

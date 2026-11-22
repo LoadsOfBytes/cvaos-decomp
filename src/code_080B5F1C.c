@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "balore_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -19,7 +20,7 @@ extern const struct OrbitSpeed sBaloreIntroPieceOrbitSpeeds[16];
  */
 void BaloreIntroPiece_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4FC.unk_4FC_entity;
+    struct EwramData_EntityData *parent = BALORE_PIECE_OWNER(entity);
     s32 i;
     s32 angle;
     u8 timer;
@@ -38,7 +39,7 @@ void BaloreIntroPiece_Update(struct EwramData_EntityData *entity)
     case 1:
         if (parent->state != 3)
             break;
-        i = entity->unk_504.part8.unk_504;
+        i = BALORE_PIECE_INDEX(entity);
         if (i > 15)
             i = 31 - i;
         angle = i << 11;
@@ -47,7 +48,7 @@ void BaloreIntroPiece_Update(struct EwramData_EntityData *entity)
         entity->velY.whole = Sin(angle) / 2;
         entity->accelY.whole = entity->velY.whole / 4;
         entity->state = 2;
-        entity->timer = entity->unk_504.part8.unk_504;
+        entity->timer = BALORE_PIECE_INDEX(entity);
         break;
     case 2:
         timer = entity->timer;
@@ -70,21 +71,21 @@ void BaloreIntroPiece_Update(struct EwramData_EntityData *entity)
     case 4:
         if (parent->state != 4)
             break;
-        entity->unk_500.part16.unk_500 = RandomNumberGenerator();
-        entity->unk_500.part16.unk_502 = entity->unk_504.part8.unk_504 + 0x80;
-        entity->velX.part16.integer = sBaloreIntroPieceOrbitSpeeds[entity->unk_504.part8.unk_504 & 0xF].x;
-        entity->velY.part16.integer = ORBIT_SPEED_Y[(entity->unk_504.part8.unk_504 & 0xF) * 2];
+        BALORE_PIECE_ANGLE(entity) = RandomNumberGenerator();
+        BALORE_PIECE_RADIUS(entity) = BALORE_PIECE_INDEX(entity) + 0x80;
+        entity->velX.part16.integer = sBaloreIntroPieceOrbitSpeeds[BALORE_PIECE_INDEX(entity) & 0xF].x;
+        entity->velY.part16.integer = ORBIT_SPEED_Y[(BALORE_PIECE_INDEX(entity) & 0xF) * 2];
         entity->state = 5;
         break;
     case 5:
-        entity->unk_500.part16.unk_500 += 0x300;
+        BALORE_PIECE_ANGLE(entity) += 0x300;
         entity->posX.whole = parent->posX.whole + entity->velX.whole
-            + Sin(entity->unk_500.part16.unk_500 + 0x4000) * entity->unk_500.part16.unk_502;
+            + Sin(BALORE_PIECE_ANGLE(entity) + 0x4000) * BALORE_PIECE_RADIUS(entity);
         entity->posY.whole = parent->posY.whole + entity->velY.whole
-            + Sin(entity->unk_500.part16.unk_500) * entity->unk_500.part16.unk_502;
-        if (entity->unk_500.part16.unk_502 > 0x20)
-            entity->unk_500.part16.unk_502 -= entity->unk_500.part16.unk_502 >> 5;
-        if (--entity->unk_500.part16.unk_502 <= 0)
+            + Sin(BALORE_PIECE_ANGLE(entity)) * BALORE_PIECE_RADIUS(entity);
+        if (BALORE_PIECE_RADIUS(entity) > 0x20)
+            BALORE_PIECE_RADIUS(entity) -= BALORE_PIECE_RADIUS(entity) >> 5;
+        if (--BALORE_PIECE_RADIUS(entity) <= 0)
             entity->state = 6;
         break;
     case 6:

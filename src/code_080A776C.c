@@ -21,7 +21,7 @@ void Tsuchinoko_SpitShot(struct EwramData_EntityData *parent)
         Anim_Update(child);
         TsuchinokoShot_EnableHitBoxes(child);
         child->spriteLayer = parent->spriteLayer + 1;
-        child->unk_4F4.unk_4F4_entity = parent;
+        ENTITY_CREATOR(child) = parent;
         child->flipX = parent->flipX;
         if (parent->flipX)
             child->posX.part16.integer = parent->posX.part16.integer;

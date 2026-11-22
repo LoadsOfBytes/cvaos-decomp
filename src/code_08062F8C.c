@@ -1,5 +1,6 @@
 /* Create a falling affine particle linked to the parent's entity slot. */
 #include "code_08009A0.h"
+#include "event_scene30.h"
 #include "structs/ewram.h"
 extern struct EwramData_EntityData *EventScene30_CreateEffectSprite(s32);
 extern void EventScene30FloatingFragment_Update(struct EwramData_EntityData *);
@@ -14,9 +15,9 @@ void EventScene30_SpawnFloatingFragment(struct EwramData_EntityData *owner,s16 x
     {
         u8 zero;
         entity->updateFunc=(u32 *)EventScene30FloatingFragment_Update;
-        entity->unk_4F4.part8.unk_4F5=owner->unk_4F4.part8.unk_4F4;
+        ENTITY_PARENT_INDEX(entity)=ENTITY_INDEX(owner);
         zero=0;
-        entity->unk_500.whole=0x12000;
+        EVENT30_EFFECT_SCALE(entity)=0x12000;
         entity->posX.part16.integer=x;entity->posY.part16.integer=y;
         entity->velX.whole=zero;entity->velY.whole=0x4000;
         entity->accelX.whole=zero;entity->accelY.whole=0x800;

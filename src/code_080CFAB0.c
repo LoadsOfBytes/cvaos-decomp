@@ -1,5 +1,6 @@
 ﻿/* Belmont initialization distinguishes scene entry and combat entry. */
 #include "code_08009A0.h"
+#include "belmont_entity.h"
 #include "code_0800B700.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -25,7 +26,7 @@ void EnemyBelmontCreate(struct EwramData_EntityData *entity)
         if(!gEwramData->gameState.bestiaryPreview)
         {
             u16 completed;
-            entity->unk_4F8.part8.unk_4F8|=0x10;
+            BELMONT_FLAGS(entity)|=0x10;
             completed=gEwramData->gameState.bossEventFlags & 4;
             if(completed)
             {
@@ -69,8 +70,8 @@ void EnemyBelmontCreate(struct EwramData_EntityData *entity)
     entity->state=3;
     entity->stage=display;
     entity->subState=display;
-    entity->unk_500.part8.unk_500=entity->attack;
-    entity->unk_500.part8.unk_501=display;
+    BELMONT_ATTACK(entity)=entity->attack;
+    BELMONT_ATTACK_OFF(entity)=display;
     entity->attack=display;
     Entity_SnapToGround(entity);
     Entity_EnableBoxes(entity,Enemy_OnContact,(s32)Belmont_OnHit);

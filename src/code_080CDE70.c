@@ -1,12 +1,13 @@
 /* Alastor horizontal rush, braking turn, rising slash and recovery. */
 #include "code_08009A0.h"
+#include "alastor_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *);
 extern s32 Alastor_IsTargetInUpperBox(struct EwramData_EntityData *,u16,u16);
 extern void Afterimage_Create(struct EwramData_EntityData *,s32,s32,s32);
-#define ANGLE(e) ((e)->unk_500.part16.unk_500)
+#define ANGLE(e) (ALASTOR_ANGLE((e)))
 #define DX(e) ((s16)Entity_GetTargetDistanceX(e))
 #define ABS(x) ((x)<0?-(x):(x))
 static inline u16 SubtractMargin(s32 distance,s32 margin) { return distance-margin; }

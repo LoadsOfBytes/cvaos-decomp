@@ -1,5 +1,6 @@
 /* Nightmare_Draw. */
 #include "code/code_08039340.h"
+#include "nightmare_entity.h"
 #include "structs/ewram.h"
 
 /**
@@ -12,8 +13,8 @@ void Nightmare_Draw(struct EwramData_EntityData *entity)
     s32 oldY = entity->posY.whole;
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
 
-    entity->posX.part16.integer = entity->unk_504.part16.unk_504 - bg->xPos.part16.integer;
-    entity->posY.part16.integer = entity->unk_504.part16.unk_506[0] - bg->yPos.part16.integer;
+    entity->posX.part16.integer = NIGHTMARE_ROOM_X(entity) - bg->xPos.part16.integer;
+    entity->posY.part16.integer = NIGHTMARE_ROOM_Y(entity) - bg->yPos.part16.integer;
     Sprite_DrawEntity(entity);
     entity->posX.whole = oldX;
     entity->posY.whole = oldY;

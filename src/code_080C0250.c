@@ -1,5 +1,6 @@
 /* Kicker Skeleton breaks into seven sprite fragments (frames 26..32). */
 #include "code_08009A0.h"
+#include "kicker_skeleton_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 
@@ -23,7 +24,7 @@ s32 KickerSkeleton_UpdateDeath(struct EwramData_EntityData *entity)
         if (fragment == NULL) continue;
         fragment->posX.whole = entity->posX.whole;
         fragment->posY.whole = entity->posY.whole;
-        fragment->velX.whole = entity->unk_504.whole * (((RandomNumberGenerator() & 7) << 14) + 0x8000);
+        fragment->velX.whole = KICKER_SKELETON_HIT_SIDE(entity) * (((RandomNumberGenerator() & 7) << 14) + 0x8000);
         fragment->velY.whole = (((RandomNumberGenerator() & 0xF) - 8) << 12) - 0x28000;
         fragment->accelY.whole = 0x2000;
         fragment->spriteLayer = entity->spriteLayer;

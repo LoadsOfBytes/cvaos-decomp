@@ -1,5 +1,6 @@
 /* Beam Skeleton patrol and selection of the attack state. */
 #include "code_08009A0.h"
+#include "beam_skeleton_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -16,8 +17,8 @@ extern s16 sBeamSkeletonWalkProfile[];
 void BeamSkeleton_UpdatePatrol(struct EwramData_EntityData *entity)
 {
     s32 blocked = 0;
-    u16 left = entity->unk_4F8.part16.unk_4FA;
-    u16 right = entity->unk_4F8.part16.unk_4F8;
+    u16 left = BEAM_SKELETON_PATROL_LEFT(entity);
+    u16 right = BEAM_SKELETON_PATROL_RIGHT(entity);
 
     switch (entity->subState)
     {
@@ -28,7 +29,7 @@ void BeamSkeleton_UpdatePatrol(struct EwramData_EntityData *entity)
             break;
         case 1:
         {
-            u16 distance = entity->unk_504.part16.unk_506[0] - GetEntityRoomXPositionInteger(entity);
+            u16 distance = BEAM_SKELETON_HOME_X(entity) - GetEntityRoomXPositionInteger(entity);
             if (entity->flipX)
             {
                 if ((s16)right < GetEntityRoomXPositionInteger(entity) || (s16)distance < -40)

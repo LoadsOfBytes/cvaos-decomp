@@ -1,5 +1,6 @@
 /* Graham encounter setup, including character/event dependent scene paths. */
 #include "code_08009A0.h"
+#include "graham_entity.h"
 #include "code_0800B700.h"
 #include "code_08013960.h"
 #include "code_08033CAC.h"
@@ -25,7 +26,7 @@ void EnemyGrahamCreate(struct EwramData_EntityData *entity)
         if(!gEwramData->gameState.bestiaryPreview && gEwramData->playerStatus.currentCharacter!=1)
         {
             s32 zero;
-            entity->unk_4F8.part16.unk_4FA|=0x80;
+            GRAHAM_FLAGS(entity)|=0x80;
             zero=0;
             if(gEwramData->gameState.bossEventFlags & 1)
             {

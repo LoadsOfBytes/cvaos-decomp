@@ -1,6 +1,7 @@
 /* Great Armor body-part helpers 0x0808E94C..0x0808EB3B (same code as the Big Golem helpers in
  * code_080ACEC4.c with 0x28-byte parts). */
 #include "code_08009A0.h"
+#include "great_armor_entity.h"
 #include "particle_effect.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -152,7 +153,7 @@ void GreatArmorSlashEffect_Spawn(struct EwramData_EntityData *entity, s32 x, s32
     Sprite_Attach(child, sCommonObjectSpriteSheet, gfx, 7);
     Anim_StartIndexed(child, 0x10, 0, 0);
     Anim_Update(child);
-    child->unk_500.unk_500_entity = entity;
+    GREAT_ARMOR_SLASH_OWNER(child) = entity;
     child->scrollWithBg = 0;
     child->drawFunc = (u32 *)Sprite_DrawEntity;
 }

@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "save_point_entity.h"
 #include "code_0800CB00.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -33,12 +34,12 @@ void Object1CCreate(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    entity->unk_4FC.part16.unk_4FC = graphics;
+    SAVE_POINT_GRAPHICS(entity) = graphics;
     ObjPalette_LoadRange(pal, 0, 4, 10);
-    entity->unk_4FC.part16.unk_4FE[0] = 10;
-    entity->unk_4F8.part8.unk_4FB = ObjAffine_Alloc(1);
-    entity->affineIndex = entity->unk_4F8.part8.unk_4FB;
-    ObjAffine_Set(0, entity->unk_500.whole, entity->unk_500.whole, 0, 0, entity->unk_4F8.part8.unk_4FB);
+    SAVE_POINT_FRAME_BASE(entity) = 10;
+    SAVE_POINT_AFFINE(entity) = ObjAffine_Alloc(1);
+    entity->affineIndex = SAVE_POINT_AFFINE(entity);
+    ObjAffine_Set(0, SAVE_POINT_SCALE(entity), SAVE_POINT_SCALE(entity), 0, 0, SAVE_POINT_AFFINE(entity));
     entity->posX.part16.integer = 0x78;
     entity->posY.part16.integer = 0x50;
     entity->spriteLayer = 0x11;
@@ -49,10 +50,10 @@ void Object1CCreate(struct EwramData_EntityData *entity)
     {
         child->hidden = 1;
         child->spriteLayer = 3;
-        entity->unk_518.part8.unk_519 = child->unk_4F4.part8.unk_4F4;
-        child->unk_4F4.part8.unk_4F5 = entity->unk_4F4.part8.unk_4F4;
+        SAVE_POINT_MARKERS_INDEX(entity) = ENTITY_INDEX(child);
+        ENTITY_PARENT_INDEX(child) = ENTITY_INDEX(entity);
         child->drawFunc = (u32 *)SavePoint_DrawPromptMarkers;
         child->updateFunc = (u32 *)EntityUpdateNothing;
-        Sprite_Attach(child, sSaveWarpRoomSpriteSheet, entity->unk_4FC.part16.unk_4FC, 0xE);
+        Sprite_Attach(child, sSaveWarpRoomSpriteSheet, SAVE_POINT_GRAPHICS(entity), 0xE);
     }
 }

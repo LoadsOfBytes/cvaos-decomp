@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "kyoma_demon_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -26,13 +27,13 @@ void EnemyKyomaDemonCreate(struct EwramData_EntityData *entity)
     Entity_SnapToGround(entity);
     entity->spriteLayer = 29;
     entity->state = 0;
-    entity->unk_4FC.part8.unk_4FC = 1;
+    KYOMA_DEMON_HIDDEN(entity) = 1;
     entity->scrollWithBg = 0;
     random = RandomNumberGenerator() % 32;
     random += 32;
-    entity->unk_4FC.part16.unk_4FE[0] = random;
-    entity->unk_4F8.part16.unk_4F8 = entity->posX.part16.integer + camera->xPos.part16.integer;
-    entity->unk_4F8.part16.unk_4FA = entity->posY.part16.integer + camera->yPos.part16.integer;
+    KYOMA_DEMON_LURK_TIMER(entity) = random;
+    KYOMA_DEMON_HOME_X(entity) = entity->posX.part16.integer + camera->xPos.part16.integer;
+    KYOMA_DEMON_HOME_Y(entity) = entity->posY.part16.integer + camera->yPos.part16.integer;
     if (entity->unk_514.part16.spawnParam0 != 0)
     {
         entity->state = 2;

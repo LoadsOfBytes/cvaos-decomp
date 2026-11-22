@@ -1,5 +1,6 @@
 /* Homing projectile, including impact and its particle trail. */
 #include "code_08009A0.h"
+#include "event_scene03.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "code_080D73B8.h"
@@ -19,14 +20,14 @@ void EventScene03SoulOrb_Update(struct EwramData_EntityData *entity)
     if (entity->state <= 1)
     {
         struct EwramData_EntityData *target = gEwramData->playerState.player;
-        entity->unk_4FC.whole = Entity_StepAngleTowardPoint(entity, target->posX.whole, target->posY.whole - 0x100000,
-                                               entity->unk_4FC.whole, entity->unk_500.whole);
-        entity->unk_500.whole += 42;
-        if (entity->unk_500.whole > 0x4000) entity->unk_500.whole = 0x4000;
-        entity->unk_504.whole += 0x1800;
-        if (entity->unk_504.whole > 0x80000) entity->unk_504.whole = 0x80000;
-        entity->velX.whole = FixedMulFast(Sin(entity->unk_4FC.whole + 0x4000), entity->unk_504.whole);
-        entity->velY.whole = FixedMulFast(Sin(entity->unk_4FC.whole), entity->unk_504.whole);
+        EVENT03_ORB_HEADING(entity) = Entity_StepAngleTowardPoint(entity, target->posX.whole, target->posY.whole - 0x100000,
+                                               EVENT03_ORB_HEADING(entity), EVENT03_ORB_TURN_RATE(entity));
+        EVENT03_ORB_TURN_RATE(entity) += 42;
+        if (EVENT03_ORB_TURN_RATE(entity) > 0x4000) EVENT03_ORB_TURN_RATE(entity) = 0x4000;
+        EVENT03_ORB_SPEED(entity) += 0x1800;
+        if (EVENT03_ORB_SPEED(entity) > 0x80000) EVENT03_ORB_SPEED(entity) = 0x80000;
+        entity->velX.whole = FixedMulFast(Sin(EVENT03_ORB_HEADING(entity) + 0x4000), EVENT03_ORB_SPEED(entity));
+        entity->velY.whole = FixedMulFast(Sin(EVENT03_ORB_HEADING(entity)), EVENT03_ORB_SPEED(entity));
         entity->posX.whole += entity->velX.whole;
         entity->posY.whole += entity->velY.whole;
     }

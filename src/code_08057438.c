@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "layer_object.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -21,13 +22,13 @@ void Object2ACreate(struct EwramData_EntityData *entity)
     Anim_Update(entity);
     entity->spriteLayer = 18;
     entity->state = 0;
-    entity->unk_4FC.whole = entity->posX.whole + camera->xPos.whole;
-    entity->unk_500.whole = entity->unk_514.part16.spawnParam0 << 16;
-    entity->unk_4F4.whole = entity->posX.whole + camera->xPos.whole;
-    entity->unk_4F8.whole = entity->posY.whole + camera->yPos.whole;
-    entity->unk_508.whole = entity->unk_4F4.whole - camera->xPos.whole;
-    entity->unk_50C.whole = entity->unk_4F8.whole - camera->yPos.whole;
+    SHUTTLE_START(entity) = entity->posX.whole + camera->xPos.whole;
+    SHUTTLE_END(entity) = entity->unk_514.part16.spawnParam0 << 16;
+    BG1_OBJECT_X(entity) = entity->posX.whole + camera->xPos.whole;
+    BG1_OBJECT_Y(entity) = entity->posY.whole + camera->yPos.whole;
+    BG1_OBJECT_DRAW_X(entity) = BG1_OBJECT_X(entity) - camera->xPos.whole;
+    BG1_OBJECT_DRAW_Y(entity) = BG1_OBJECT_Y(entity) - camera->yPos.whole;
     entity->scrollWithBg = 0;
-    if ((s32)entity->unk_4FC.whole > entity->unk_500.whole) entity->unk_504.part8.unk_504 = 1;
-    else entity->unk_504.part8.unk_504 = 0;
+    if ((s32)SHUTTLE_START(entity) > SHUTTLE_END(entity)) SHUTTLE_DIR(entity) = 1;
+    else SHUTTLE_DIR(entity) = 0;
 }

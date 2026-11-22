@@ -1,6 +1,8 @@
 /* Soma_TryCastRedSoulUnused (Soma variant
  * of Julius_HandleSubweaponInput in src/code_08033CAC.c). */
 #include "code_08009A0.h"
+#include "red_soul_entity.h"
+#include "player_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 
@@ -16,7 +18,7 @@ void Soma_TryCastRedSoulUnused(struct EwramData_EntityData *entity)
     s8 slot;
     struct RedSoulActivationView *info;
 
-    if (entity->unk_4F4.whole & 0x540)
+    if (PLAYER_ACTION_FLAGS(entity) & 0x540)
         return;
     if (!(gEwramData->inputData.playerHeldInput & 0x40))
         return;
@@ -54,15 +56,15 @@ void Soma_TryCastRedSoulUnused(struct EwramData_EntityData *entity)
     if (!(gEwramData->playerState.actionLockFlags & 0x800) && entity->animScriptIndex != 0x17)
     {
         Anim_StartIndexed(entity, 0x17, 1, 0);
-        entity->unk_504.part16.unk_504 = 0xFF;
-        entity->unk_4F4.whole &= 0xFFDFFFFF;
+        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
+        PLAYER_ACTION_FLAGS(entity) &= 0xFFDFFFFF;
     }
-    entity->unk_4F4.whole |= 0x100;
+    PLAYER_ACTION_FLAGS(entity) |= 0x100;
     entity->state = 2;
-    child->unk_4F8.unk_4F8_entity = entity;
-    child->unk_4FC.part16.unk_4FE[0] = slot;
-    child->unk_500.part16.unk_500 = gEwramData->playerStatus.equippedRedSoul;
-    child->unk_500.part16.unk_502 = info->unk_E;
+    RED_SOUL_OWNER(child) = entity;
+    RED_SOUL_SLOT(child) = slot;
+    RED_SOUL_ID(child) = gEwramData->playerStatus.equippedRedSoul;
+    RED_SOUL_PARAM(child) = info->param;
     child->roomActive = 1;
-    entity->unk_4F4.whole &= ~0x200060;
+    PLAYER_ACTION_FLAGS(entity) &= ~0x200060;
 }

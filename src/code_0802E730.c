@@ -1,4 +1,7 @@
 #include "code_08009A0.h"
+#include "soul_skill_entity.h"
+#include "blue_soul_entity.h"
+#include "player_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -39,14 +42,14 @@ extern s32 sSkillProjectileLaunchVelocities[];
  */
 void SkillBonePillarUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = BLUE_SOUL_OWNER(entity);
 
     if (BlueSoul_ShouldEnd(entity))
     {
         EntityDelete(entity);
         return;
     }
-    if ((parent->unk_4F4.whole & 0x1001A2) != 0x100000)
+    if ((PLAYER_ACTION_FLAGS(parent) & 0x1001A2) != 0x100000)
     {
         BlueSoul_ReleaseActiveResources(entity);
         EntityDelete(entity);
@@ -72,7 +75,7 @@ void SkillBonePillarUse(struct EwramData_EntityData *entity)
         }
         gEwramData->playerState.player->state = 0xA;
         Anim_StartIndexed(gEwramData->playerState.player, 0x35, 3, 1);
-        parent->unk_4F4.whole &= 0xEFFFFBFF;
+        PLAYER_ACTION_FLAGS(parent) &= 0xEFFFFBFF;
         entity->state++;
     case 1:
         Follow(entity, parent, 0x10, -0x1C);
@@ -87,10 +90,10 @@ void SkillBonePillarUse(struct EwramData_EntityData *entity)
                     PlaySong(0x91);
                 if (++entity->subState > 4)
                     entity->subState = 0;
-                child->unk_4F8.unk_4F8_entity = entity;
+                ENTITY_OWNER(child) = entity;
                 child->posX.whole = entity->posX.whole;
                 child->posY.whole = entity->posY.whole;
-                child->unk_4F4.part8.unk_4F4 = entity->unk_4F4.part8.unk_4F4;
+                ENTITY_INDEX(child) = ENTITY_INDEX(entity);
                 if (parent->flipX)
                 {
                     child->velX.whole = -0x18000;
@@ -103,11 +106,11 @@ void SkillBonePillarUse(struct EwramData_EntityData *entity)
                 }
                 child->velX.whole += parent->velX.whole;
                 child->flipX = parent->flipX;
-                child->velY.whole = sSkillProjectileLaunchVelocities[entity->unk_508.part16.unk_50A] + 0x14000;
+                child->velY.whole = sSkillProjectileLaunchVelocities[SKILL_BONE_PILLAR_SHOT(entity)] + 0x14000;
                 child->accelY.whole = -0x1800;
             }
-            if (++entity->unk_508.part16.unk_50A > 2)
-                entity->unk_508.part16.unk_50A = 0;
+            if (++SKILL_BONE_PILLAR_SHOT(entity) > 2)
+                SKILL_BONE_PILLAR_SHOT(entity) = 0;
             entity->timer = 5;
         }
         entity->timer--;

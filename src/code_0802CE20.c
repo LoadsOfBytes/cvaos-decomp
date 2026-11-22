@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "soul_skill_entity.h"
 #include "code_08001194.h"
 #include "code_080D73B8.h"
 #include "structs/main.h"
@@ -91,8 +92,8 @@ void SkillSlimeMoveAndBounce(struct EwramData_EntityData *entity)
     else
         PlaySong(0x16B);
     if (wall == 1)
-        entity->unk_510.part16.unk_510 = -0x8000 - entity->unk_510.part16.unk_510;
+        SKILL_SLIME_ANGLE(entity) = -0x8000 - SKILL_SLIME_ANGLE(entity);
     else
-        entity->unk_510.part16.unk_510 = -entity->unk_510.part16.unk_510;
-    entity->unk_510.part16.unk_510 += ({ s32 t_ = (s16)slope; t_; });
+        SKILL_SLIME_ANGLE(entity) = -SKILL_SLIME_ANGLE(entity);
+    SKILL_SLIME_ANGLE(entity) += ({ s32 t_ = (s16)slope; t_; });
 }

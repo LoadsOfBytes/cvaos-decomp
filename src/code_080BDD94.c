@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "death_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -16,7 +17,7 @@ extern void DeathPillar_DamagePlayerOnContact(struct EwramData_EntityData *);
 void DeathPillar_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData **ew = &gEwramData;
-    struct EwramData_EntityData *parent = &(*ew)->entityData[(u8)entity->unk_4F8.part8.unk_4F8];
+    struct EwramData_EntityData *parent = &(*ew)->entityData[(u8)DEATH_OWNER_INDEX(entity)];
     struct HitResult res;
     u16 slot;
 
@@ -37,25 +38,25 @@ void DeathPillar_Update(struct EwramData_EntityData *entity)
         entity->spriteLayer = 0x11;
         Anim_StartIndexed(entity, 0xD, 2, 0);
         Anim_Update(entity);
-        entity->unk_500.whole = 0x1000;
+        DEATH_PILLAR_SCALE_X(entity) = 0x1000;
         Hit_Enable(entity, 8, DeathPillar_DamagePlayerOnContact, 0);
         HitBox_SetAttackRaw(entity, 0x800880FC);
         entity->hit.flags |= 4;
         PlaySong(0x11F);
         entity->state = 1;
     case 1:
-        ObjAffine_Set(0, entity->unk_500.whole, entity->unk_504.whole, entity->flipX, 0, entity->affineIndex);
-        if (entity->unk_504.whole <= 0xFFFF)
+        ObjAffine_Set(0, DEATH_PILLAR_SCALE_X(entity), DEATH_PILLAR_SCALE_Y(entity), entity->flipX, 0, entity->affineIndex);
+        if (DEATH_PILLAR_SCALE_Y(entity) <= 0xFFFF)
         {
-            entity->unk_504.whole += 0x1000;
+            DEATH_PILLAR_SCALE_Y(entity) += 0x1000;
             break;
         }
         entity->timer = 0x20;
         entity->state = 2;
         break;
     case 2:
-        entity->unk_500.whole = Sin(entity->timer << 10);
-        ObjAffine_Set(0, entity->unk_500.whole, 0x10000, entity->flipX, 0, entity->affineIndex);
+        DEATH_PILLAR_SCALE_X(entity) = Sin(entity->timer << 10);
+        ObjAffine_Set(0, DEATH_PILLAR_SCALE_X(entity), 0x10000, entity->flipX, 0, entity->affineIndex);
         if (!(entity->timer & 7))
         {
             s32 x = entity->posX.whole + RandomSigned(0x100000);

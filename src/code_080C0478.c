@@ -2,6 +2,7 @@
  * a cloning script (constants adjusted where needed), checked byte for
  * byte. */
 #include "structs/ewram.h"
+#include "kicker_skeleton_entity.h"
 
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
@@ -18,9 +19,9 @@ void KickerSkeleton_OnHit(struct EwramData_EntityData *entity, struct EwramData_
         {
             s32 speed = 1;
 
-            entity->unk_504.whole = speed;
+            KICKER_SKELETON_HIT_SIDE(entity) = speed;
             if (entity->posX.whole < attacker->posX.whole)
-                entity->unk_504.whole = -speed;
+                KICKER_SKELETON_HIT_SIDE(entity) = -speed;
         }
         entity->palette = entity->unk_510.part8.basePalette;
         entity->state = 2;

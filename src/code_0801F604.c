@@ -1,5 +1,6 @@
 /* Julius_UpdateVerticalMovement. */
 #include "code_08009A0.h"
+#include "player_entity.h"
 #include "code_08001194.h"
 #include "code_08011DD0.h"
 #include "code_080D73B8.h"
@@ -18,8 +19,8 @@ static inline void SetPlayerAnim(struct EwramData_EntityData *entity, s32 anim)
     if (!(gEwramData->playerState.actionLockFlags & 0x800) && entity->animScriptIndex != anim)
     {
         Anim_StartIndexed(entity, anim, 1, 1);
-        entity->unk_504.part16.unk_504 = 0xFF;
-        entity->unk_4F4.whole &= 0xFFDFFFFF;
+        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
+        PLAYER_ACTION_FLAGS(entity) &= 0xFFDFFFFF;
     }
 }
 
@@ -50,22 +51,22 @@ void Julius_UpdateVerticalMovement(struct EwramData_EntityData *entity)
     u16 x = GetEntityRoomXPositionInteger(entity);
     u32 flags;
 
-    if (!(entity->unk_4F4.whole & 0x100002))
+    if (!(PLAYER_ACTION_FLAGS(entity) & 0x100002))
     {
-        entity->unk_4F4.whole |= 2;
+        PLAYER_ACTION_FLAGS(entity) |= 2;
         entity->velY.whole = corr;
         entity->accelY.whole = -0x2000;
     }
-    if (!(entity->unk_4F4.whole & 0x1E))
+    if (!(PLAYER_ACTION_FLAGS(entity) & 0x1E))
         return;
-    entity->unk_4F4.whole &= 0xEFEFFBFF;
-    if (entity->unk_4F4.whole & 0x4000000)
+    PLAYER_ACTION_FLAGS(entity) &= 0xEFEFFBFF;
+    if (PLAYER_ACTION_FLAGS(entity) & 0x4000000)
     {
         entity->velY.whole += 0x6000;
         entity->accelY.whole = corr;
     }
-    if (entity->unk_4F8.part16.unk_4F8 <= 0xF)
-        entity->unk_4F8.part16.unk_4F8++;
+    if (PLAYER_AIR_TIME(entity) <= 0xF)
+        PLAYER_AIR_TIME(entity)++;
     if (entity->velY.whole <= 0 || entity->velX.whole != 0)
     {
         /* (x - 5, y - 0x20) and (x + 5, y - 0x20), written in 16.16 as in the
@@ -76,7 +77,7 @@ void Julius_UpdateVerticalMovement(struct EwramData_EntityData *entity)
         if (corr != 0)
         {
             entity->posY.part16.integer += corr;
-            if (entity->velY.whole <= -0x4F000 && (entity->unk_4F4.whole & 0x10))
+            if (entity->velY.whole <= -0x4F000 && (PLAYER_ACTION_FLAGS(entity) & 0x10))
             {
                 PlaySong(0xB8);
                 entity->state = 0;
@@ -99,18 +100,18 @@ void Julius_UpdateVerticalMovement(struct EwramData_EntityData *entity)
         if (entity->accelY.whole > 0x1000)
             entity->accelY.whole = 0x1000;
     }
-    flags = entity->unk_4F4.whole;
+    flags = PLAYER_ACTION_FLAGS(entity);
     if (flags & 0x10)
     {
         if (!(flags & 0x400000))
         {
             if (entity->velY.whole > 0x12000)
-                entity->unk_4F4.whole = flags & ~0x10;
+                PLAYER_ACTION_FLAGS(entity) = flags & ~0x10;
         }
         else if (entity->velY.whole > 0x2000)
-            entity->unk_4F4.whole = flags & ~0x10;
+            PLAYER_ACTION_FLAGS(entity) = flags & ~0x10;
     }
-    flags = entity->unk_4F4.whole;
+    flags = PLAYER_ACTION_FLAGS(entity);
     if (flags & 0x1E0)
         return;
     if (gEwramData->playerState.actionLockFlags & 4)

@@ -1,4 +1,5 @@
 #include "structs/ewram.h"
+#include "balore_entity.h"
 
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
 extern void BaloreHand_Update(struct EwramData_EntityData *);
@@ -17,10 +18,10 @@ void Balore_CreateHand(struct EwramData_EntityData *owner, u16 x, u16 y, u8 flip
     else part = Entity_CreateObject((u32 *)BaloreHandB_Update);
     if (part != NULL)
     {
-        part->unk_4FC.unk_4FC_entity = owner;
-        part->unk_4F4.whole = 0;
-        part->unk_508.part16.unk_508 = x;
-        part->unk_508.part16.unk_50A = y;
+        BALORE_BODY(part) = owner;
+        BALORE_ARM_LENGTH(part) = 0;
+        BALORE_HAND_HOME_X(part) = x;
+        BALORE_HAND_HOME_Y(part) = y;
         bg = &gEwramData->bgInfo[1];
         part->posX.part16.integer = Sub16(x, bg->xPos.part16.integer);
         part->posY.part16.integer = Sub16(y, bg->yPos.part16.integer);
@@ -35,8 +36,8 @@ void Balore_CreateHand(struct EwramData_EntityData *owner, u16 x, u16 y, u8 flip
         else part = Entity_CreateObject((u32 *)BaloreHandBHitBox_Update);
         if (part != NULL)
         {
-            part->unk_4FC.unk_4FC_entity = owner;
-            part->unk_4F8.unk_4F8_entity = hand;
+            BALORE_BODY(part) = owner;
+            BALORE_HAND(part) = hand;
             part->scrollWithBg = 1;
             if (kind == 0) part->hidden = 1;
         }

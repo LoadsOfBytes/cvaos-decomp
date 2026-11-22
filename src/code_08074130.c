@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "une_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -60,14 +61,14 @@ void EnemyUneUpdate(struct EwramData_EntityData *entity)
             entity->deleteRequested = 1;
         if (entity->deleteRequested)
         {
-            parent = entity->unk_4FC.unk_4FC_entity;
+            parent = UNE_SPAWNER(entity);
             if (parent != NULL && parent->updateFunc != NULL && parent->unk_518.part8.enemyId == 0x3D
-                && parent->unk_4FC.whole != 0)
-                parent->unk_4FC.whole--;
+                && UNE_COUNT(parent) != 0)
+                UNE_COUNT(parent)--;
         }
         break;
     case 3:
-        if (entity->unk_4FC.whole == 0)
+        if (UNE_COUNT(entity) == 0)
             entity->deleteRequested = 1;
         break;
     case 4:

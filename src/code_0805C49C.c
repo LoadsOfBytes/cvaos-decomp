@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "event_scene_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -36,7 +37,7 @@ void EventScene31_Init(struct EwramData_EntityData *entity)
     }
     entity->flipX = 0;
     child = Entity_CreateFromObjectTable(0xB);
-    entity->unk_4F8.unk_4F8_entity = child;
+    EVENT31_BLOCK_HOLDER(entity) = child;
     if (child == NULL)
     {
     fail:
@@ -46,11 +47,11 @@ void EventScene31_Init(struct EwramData_EntityData *entity)
     {
     struct BgLayerState *bg2 = &gEwramData->bgInfo[1];
     child->posX.part16.integer = 0x78 - bg2->xPos.part16.integer;
-    entity->unk_4F8.unk_4F8_entity->posY.part16.integer = 0xB0 - bg2->yPos.part16.integer;
+    EVENT31_BLOCK_HOLDER(entity)->posY.part16.integer = 0xB0 - bg2->yPos.part16.integer;
     }
-    Anim_StartIndexed(entity->unk_4F8.unk_4F8_entity, 0, 0, 1);
+    Anim_StartIndexed(EVENT31_BLOCK_HOLDER(entity), 0, 0, 1);
     Anim_Update(entity);
-    entity->unk_4F8.unk_4F8_entity->updateFunc = (u32 *)EventScene31BlockHolder_Update;
+    EVENT31_BLOCK_HOLDER(entity)->updateFunc = (u32 *)EventScene31BlockHolder_Update;
     gEwramData->playerState.player->hidden = 1;
     ewram = gEwramData;
     ewram->playerState.player->posX.part16.integer = 0xA0 - (bg = &ewram->bgInfo[1])->xPos.part16.integer;

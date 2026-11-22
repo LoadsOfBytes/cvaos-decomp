@@ -34,7 +34,7 @@ void BigGolem_SpawnRock(struct EwramData_EntityData *parent, s32 x, s32 y, s32 v
         shot->hit.flags &= ~2;
         shot->scrollWithBg = 1;
         shot->spriteLayer = parent->spriteLayer + 1;
-        shot->unk_4F8.unk_4F8_entity = parent;
+        ENTITY_OWNER(shot) = parent;
         shot->posX.whole = x;
         shot->posY.whole = y;
         shot->velX.whole = vx;

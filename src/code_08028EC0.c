@@ -1,6 +1,7 @@
 /* SkillArachneUse: matched (bone loop as in the skeleton skill:
    SpawnBone + scatter; one variable holds the linked entity pointer and its flag). */
 #include "code_08009A0.h"
+#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -83,8 +84,8 @@ static inline struct EwramData_EntityData *SpawnBone(s32 x, s32 y, u8 frame)
 
 void SkillArachneUse(struct EwramData_EntityData *entity)
 {
-    struct SkillShotInfo *info = &sUnk_084F12C8[(u16)entity->unk_500.part16.unk_502];
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct SkillShotInfo *info = &sUnk_084F12C8[(u16)RED_SOUL_PARAM(entity)];
+    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
     u32 v;
     s32 i;
 
@@ -121,7 +122,7 @@ void SkillArachneUse(struct EwramData_EntityData *entity)
         EntityAccelerateAndMove(entity, 0x80000);
         Anim_Update(entity);
         SetFrameBox(entity);
-        if (entity->unk_504.unk_504_entity == NULL)
+        if (RED_SOUL_ANCHOR(entity) == NULL)
             break;
         if (!(info->flags & 0x100))
         {
@@ -155,8 +156,8 @@ void SkillArachneUse(struct EwramData_EntityData *entity)
         entity->state = 3;
         break;
     case 2:
-        v = (u32)entity->unk_504.unk_504_entity;
-        if (((struct EwramData_EntityData *)v)->unk_508.part8.unk_508 != 0)
+        v = (u32)RED_SOUL_ANCHOR(entity);
+        if (RED_SOUL_ANCHOR_TARGET_DEAD(((struct EwramData_EntityData *)v)) != 0)
         {
             DEL(entity);
             return;
@@ -169,8 +170,8 @@ void SkillArachneUse(struct EwramData_EntityData *entity)
         DEL(entity);
         return;
     case 3:
-        v = (u32)entity->unk_504.unk_504_entity;
-        v = ((struct EwramData_EntityData *)v)->unk_508.part8.unk_508;
+        v = (u32)RED_SOUL_ANCHOR(entity);
+        v = RED_SOUL_ANCHOR_TARGET_DEAD(((struct EwramData_EntityData *)v));
         if (v != 0)
         {
             DEL(entity);

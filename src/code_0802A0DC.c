@@ -1,4 +1,6 @@
 #include "code_08009A0.h"
+#include "soul_skill_entity.h"
+#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -35,7 +37,7 @@ static inline struct SoulGraphicsResources *GetSet(s32 index)
  */
 void SkillUkobackUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
     u16 slot;
 
     switch (entity->state)
@@ -44,7 +46,7 @@ void SkillUkobackUse(struct EwramData_EntityData *entity)
         slot = ObjAffine_Alloc(0);
         if ((s16)slot < 0)
         {
-            gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
             EntityDelete(entity);
             return;
         }
@@ -71,9 +73,9 @@ void SkillUkobackUse(struct EwramData_EntityData *entity)
         gEwramData->playerState.nbrActiveRedSoulEntities++;
         entity->state = 1;
     case 1:
-        if (entity->unk_508.whole <= 0xFFFF)
-            entity->unk_508.whole += 0x1000;
-        if ((u8)entity->unk_4FC.part8.unk_4FC != 0)
+        if (SKILL_UKOBACK_SCALE(entity) <= 0xFFFF)
+            SKILL_UKOBACK_SCALE(entity) += 0x1000;
+        if ((u8)RED_SOUL_HIT(entity) != 0)
             entity->timer = 0;
         if (entity->timer != 0)
         {
@@ -82,24 +84,24 @@ void SkillUkobackUse(struct EwramData_EntityData *entity)
         }
         entity->state = 2;
     case 2:
-        if (entity->unk_508.whole <= 0)
+        if (SKILL_UKOBACK_SCALE(entity) <= 0)
         {
             ObjAffine_Free(entity->affineIndex);
-            gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
             gEwramData->playerState.nbrActiveRedSoulEntities--;
             EntityDelete(entity);
             return;
         }
-        entity->unk_508.whole -= 0x2000;
+        SKILL_UKOBACK_SCALE(entity) -= 0x2000;
         break;
     }
     Anim_Update(entity);
-    ObjAffine_Set(0, entity->unk_508.whole, entity->unk_508.whole, entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set(0, SKILL_UKOBACK_SCALE(entity), SKILL_UKOBACK_SCALE(entity), entity->flipX, 0, entity->affineIndex);
     if (EntityIsOutsideScreen(entity, 2) || !entity->roomActive)
     {
         entity->roomActive = 1;
         ObjAffine_Free(entity->affineIndex);
-        gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
     }

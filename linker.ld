@@ -99,7 +99,7 @@ SECTIONS {
         src/code_08011DD0.o(.text);
         src/code_08012744.o(.text);
         src/code_08013960.o(.text);
-        src/code/code_08014548.o(.text);
+        src/code_08014548.o(.text);
         src/code_08014A04.o(.text);
         src/code_080168F0.o(.text);
         src/code_08016DE4.o(.text);
@@ -138,7 +138,7 @@ SECTIONS {
         src/code_0801FCAC.o(.text);
         src/code_0801FD24.o(.text);
         src/code_0801FEF8.o(.text);
-        src/code/code_080211F0.o(.text);
+        src/code_080211F0.o(.text);
         src/code_08025360.o(.text);
         src/code_08025540.o(.text);
         src/code_08025620.o(.text);

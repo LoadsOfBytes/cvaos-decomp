@@ -34,7 +34,7 @@ void Tsuchinoko_SpawnDroplet(struct EwramData_EntityData *parent)
             child->hit.flags = flags;
         }
         child->spriteLayer = parent->spriteLayer - 1;
-        child->unk_4F4.unk_4F4_entity = parent;
+        ENTITY_CREATOR(child) = parent;
         child->flipX = RandomNumberGenerator() % 2;
         child->flipY = RandomNumberGenerator() % 2;
         child->posX.part16.integer = parent->posX.part16.integer;

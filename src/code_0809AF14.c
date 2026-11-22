@@ -1,5 +1,6 @@
 /* Stolas attack substates and return to the movement pose. */
 #include <string.h>
+#include "stolas_entity.h"
 #include "joint_entity.h"
 #include "code_08009A0.h"
 #include "code_080D73B8.h"
@@ -18,10 +19,10 @@ struct StolasParts {
     struct EwramData_EntityData *children[3];
     s32 ids[3];
 };
-#define POSE(e) ((e)->unk_504.part8.unk_504)
-#define FLAGS(e) ((e)->unk_4FC.part8.unk_4FC)
-#define FRAME(e) ((e)->unk_4FC.part8.unk_4FD)
-#define DISTANCE(e) ((e)->unk_508.part16.unk_508)
+#define POSE(e) (JOINT_POSE((e)))
+#define FLAGS(e) (STOLAS_FLAGS((e)))
+#define FRAME(e) (STOLAS_HELD_FRAME((e)))
+#define DISTANCE(e) (STOLAS_BEAM_LENGTH((e)))
 #define TYPE_A(e) ((e)->unk_514.part16.spawnParam0)
 #define TYPE_B(e) ((e)->unk_514.part16.spawnParam1)
 /**

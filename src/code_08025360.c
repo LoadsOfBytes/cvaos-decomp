@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "red_soul_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -15,7 +16,7 @@ static inline u8 Enable(u8 value) { return value | 4; }
  * release its active-soul slot. */
 void SkillStudentWitchUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
     s32 collision;
     switch (entity->state)
     {
@@ -70,7 +71,7 @@ void SkillStudentWitchUse(struct EwramData_EntityData *entity)
         else entity->state = 3;
         break;
     case 3:
-        CONTEXT->activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+        CONTEXT->activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
         CONTEXT->nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;

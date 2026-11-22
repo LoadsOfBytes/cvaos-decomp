@@ -1,5 +1,6 @@
 /* Dispatch Gorgon/Catoblepas states and support an overridden single frame. */
 #include "code_08009A0.h"
+#include "gorgon_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "code/code_080211F0.h"
@@ -24,7 +25,7 @@ void EnemyGorgonUpdate(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
     struct SingleFrameAnimation animation = sGorgonFrameAnim;
-    entity->unk_4FC.part8.unk_4FC = (u8)entity->unk_4FC.part8.unk_4FC & 0xFE;
+    GORGON_FLAGS(entity) = (u8)GORGON_FLAGS(entity) & 0xFE;
     if (entity->state != 2)
     {
         if (EntityIsOutsideScreen(entity, 4)) goto finished;
@@ -53,8 +54,8 @@ void EnemyGorgonUpdate(struct EwramData_EntityData *entity)
             entity->stage = 1;
             Gorgon_SpawnDeathPieces(entity);
         }
-        entity->unk_4FC.part8.unk_4FC |= 1;
-        entity->unk_4FC.part8.unk_4FE = 23;
+        GORGON_FLAGS(entity) |= 1;
+        GORGON_FORCED_FRAME(entity) = 23;
         if ((entity->timer & 3) == 0)
         {
             s32 x = RandomNumberGenerator() % 0x280000 - 0x140000;
@@ -71,18 +72,18 @@ void EnemyGorgonUpdate(struct EwramData_EntityData *entity)
     {
         u8 *initial = &entity->animFrame;
         u8 previous = *initial;
-        s32 override = entity->unk_4FC.part8.unk_4FC & 1;
+        s32 override = GORGON_FLAGS(entity) & 1;
         u8 *frame = initial;
         if (override)
         {
             Anim_Start(entity, (struct AnimScript *)&animation, 0, 1);
-            animation.frame = entity->unk_4FC.part8.unk_4FE;
+            animation.frame = GORGON_FORCED_FRAME(entity);
             Anim_Update(entity);
         }
         else Anim_Update(entity);
         if (previous != *frame) Entity_UpdateBoxes(entity);
     }
-    entity->unk_500.part8.unk_500 = 0;
+    GORGON_HIT(entity) = 0;
     Enemy_CheckHitPlayer(entity);
 finished:
     return;

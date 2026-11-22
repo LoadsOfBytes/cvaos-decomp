@@ -1,5 +1,6 @@
 /* Object16Update: affine zoom-out cutscene object with rising dust particles; matched. */
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code/code_08039340.h"
 #include "code_080109F4.h"
 #include "code_08011DD0.h"
@@ -28,8 +29,8 @@ void Object16Update(struct EwramData_EntityData *entity)
     src.texY = 0x8000;
     src.scrX = 0x80;
     src.scrY = 0x50;
-    src.alpha = entity->unk_504.whole;
-    entity->unk_504.whole += entity->unk_508.whole;
+    src.alpha = OBJECT16_ANGLE(entity);
+    OBJECT16_ANGLE(entity) += OBJECT16_SPIN(entity);
     switch (entity->state)
     {
     case 0:
@@ -59,15 +60,15 @@ void Object16Update(struct EwramData_EntityData *entity)
         break;
     case 3:
         SetPlayerInput(1, 0);
-        if (entity->unk_4F8.whole > 0)
+        if (OBJECT16_TIMER(entity) > 0)
         {
-            entity->unk_500.whole = 0x1000 - Sin((entity->unk_4F8.whole << 6) + 0x4000) / 16;
-            entity->unk_4F8.whole--;
-            entity->unk_508.whole += 2;
-            if (entity->unk_4F8.whole == 0x40)
+            OBJECT16_SCALE(entity) = 0x1000 - Sin((OBJECT16_TIMER(entity) << 6) + 0x4000) / 16;
+            OBJECT16_TIMER(entity)--;
+            OBJECT16_SPIN(entity) += 2;
+            if (OBJECT16_TIMER(entity) == 0x40)
             {
                 PlaySong(0x1AE);
-                t = entity->unk_4F8.whole;
+                t = OBJECT16_TIMER(entity);
                 if (t == 0x40)
                 {
                     BgPalette_StartColorFade(0x1F, 0x1F, 0x1F, 0x10000, 0, t);
@@ -88,8 +89,8 @@ void Object16Update(struct EwramData_EntityData *entity)
         gEwramData->gameState.stateFlags |= 0x800000;
         break;
     }
-    src.sx = entity->unk_500.whole;
-    src.sy = entity->unk_500.whole;
+    src.sx = OBJECT16_SCALE(entity);
+    src.sy = OBJECT16_SCALE(entity);
     BgAffineSet(&src, (struct BgAffineDstData *)0x03002C78, 1);
     entity->timer++;
     if (entity->timer & 1)

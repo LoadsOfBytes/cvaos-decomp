@@ -23,7 +23,7 @@ void WingedSkeleton_ThrowShot(struct EwramData_EntityData *entity)
     child->scrollWithBg = 1;
     WingedSkeletonShot_EnableHitBoxes(child);
     child->spriteLayer = entity->spriteLayer + 1;
-    child->unk_4F4.unk_4F4_entity = entity;
+    ENTITY_CREATOR(child) = entity;
     child->flipX = entity->flipX;
     if (entity->flipX)
     {

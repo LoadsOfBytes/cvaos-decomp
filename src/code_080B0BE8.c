@@ -1,5 +1,6 @@
 /* Minotaur update: pause handling, state dispatch, contact and animation. */
 #include "code_08009A0.h"
+#include "minotaur_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern void Entity_HideAboveY(struct EwramData_EntityData *, s32);
@@ -50,6 +51,6 @@ void Minotaur_Update(struct EwramData_EntityData *entity)
     }
     if (entity->state != 3)
         Hit_CheckWithPlayer(collision, entity);
-    entity->unk_4F8.part8.unk_4F8 = entity->animStep;
+    MINOTAUR_ANIM_STEP(entity) = entity->animStep;
     Entity_AnimateWithBoxes(entity);
 }

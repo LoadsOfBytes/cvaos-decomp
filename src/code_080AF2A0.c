@@ -1,5 +1,6 @@
 /* Waiter Skeleton walking/approach states and breakup animation. */
 #include "code_08009A0.h"
+#include "waiter_skeleton_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -38,10 +39,10 @@ void WaiterSkeleton_UpdateWalk(struct EwramData_EntityData *entity)
         break;
     case 2:
         if (entity->animStep == 2)
-            entity->unk_504.whole |= 4;
+            WAITER_SKELETON_FLAGS(entity) |= 4;
         if (entity->animFlags & 4)
         {
-            entity->unk_504.whole &= ~5;
+            WAITER_SKELETON_FLAGS(entity) &= ~5;
             entity->subState = 5;
             Anim_StartIndexed(entity, 1, 0, 1);
             entity->timer = (RandomNumberGenerator() & 15) + 60;
@@ -91,7 +92,7 @@ s32 WaiterSkeleton_SpawnDeathPieces(struct EwramData_EntityData *entity)
             s32 frame;
             PlaySong(0x6B);
             frame = 10;
-            if (!(entity->unk_504.whole & 2))
+            if (!(WAITER_SKELETON_FLAGS(entity) & 2))
                 frame = 11;
             for (; frame <= 16; frame++)
             {

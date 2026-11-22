@@ -1,5 +1,6 @@
 /* Weapon carried by an enemy: follows the parent's animation, falls and breaks. */
 #include "code_08009A0.h"
+#include "minotaur_entity.h"
 #include "code_080D73B8.h"
 #include "syscalls.h"
 #include "code_08001194.h"
@@ -36,7 +37,7 @@ static inline struct WeaponFrame *FindFrame(struct WeaponFrame *frame, struct Ew
     if (frame == NULL)
         return NULL;
     {
-        u8 key = parent->unk_4F8.part8.unk_4F8;
+        u8 key = MINOTAUR_ANIM_STEP(parent);
         while (frame->frame != -1)
         {
             if (key <= frame->frame)
@@ -50,14 +51,14 @@ static inline struct WeaponFrame *FindFrame(struct WeaponFrame *frame, struct Ew
 static inline s32 ScreenY(u16 y) { struct BgLayerState *bg = &gEwramData->bgInfo[1]; s32 b = bg->yPos.part16.integer; return (s16)y - b; }
 static inline s32 ScreenX(s32 x) { struct BgLayerState *bg = &gEwramData->bgInfo[1]; return x - bg->xPos.part16.integer; }
 
-#define SPIN(e) ((e)->unk_4FC.part16.unk_4FC)
-#define SPIN_SPEED(e) ((e)->unk_500.part16.unk_500)
-#define DROPPED(e) ((e)->unk_500.part16.unk_502)
+#define SPIN(e) (MINOTAUR_AXE_SPIN((e)))
+#define SPIN_SPEED(e) (MINOTAUR_AXE_SPIN_SPEED((e)))
+#define DROPPED(e) (MINOTAUR_AXE_DROPPED((e)))
 #define TO_PIXELS(d) ((d) < 0 ? -(-(d) >> 16) : (d) >> 16)
 
 void MinotaurAxe_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = ENTITY_OWNER(entity);
     s16 offset[2];
     s32 angle;
 
@@ -66,8 +67,8 @@ void MinotaurAxe_Update(struct EwramData_EntityData *entity)
         if ((s16)parent->unk_518.part16.hp <= 0)
             DROPPED(entity) = 1;
         if (DROPPED(entity) == 0 && entity->state == 4
-            && parent->unk_4F4.part8.unk_4F4 == entity->unk_4F4.part8.unk_4F5
-            && (parent->unk_4FC.whole & 1))
+            && ENTITY_INDEX(parent) == ENTITY_PARENT_INDEX(entity)
+            && (MINOTAUR_FLAGS(parent) & 1))
         {
             entity->state = 1;
             PlaySong(0x69);
@@ -90,8 +91,8 @@ void MinotaurAxe_Update(struct EwramData_EntityData *entity)
             hitbox = Entity_CreateObject((u32 *)MinotaurAxeHitBox_Update);
             if (hitbox != NULL)
             {
-                hitbox->unk_4F8.unk_4F8_entity = entity;
-                hitbox->unk_4F4.part8.unk_4F5 = entity->unk_4F4.part8.unk_4F4;
+                ENTITY_OWNER(hitbox) = entity;
+                ENTITY_PARENT_INDEX(hitbox) = ENTITY_INDEX(entity);
                 hitbox->attack = entity->attack;
                 hitbox->unk_518.part16.hp = entity->unk_518.part16.hp;
             }
@@ -105,7 +106,7 @@ void MinotaurAxe_Update(struct EwramData_EntityData *entity)
         entity->state++;
     }
     case 1:
-        if (parent->unk_4F4.part8.unk_4F4 != entity->unk_4F4.part8.unk_4F5)
+        if (ENTITY_INDEX(parent) != ENTITY_PARENT_INDEX(entity))
         {
             entity->state = 6;
             break;
@@ -116,7 +117,7 @@ void MinotaurAxe_Update(struct EwramData_EntityData *entity)
             break;
         }
 
-        if (!(parent->unk_4FC.whole & 1))
+        if (!(MINOTAUR_FLAGS(parent) & 1))
         {
             entity->state = 2;
             break;
@@ -171,7 +172,7 @@ void MinotaurAxe_Update(struct EwramData_EntityData *entity)
         if (entity->velY.whole > 0x60000 && EntityIsOutsideScreen(entity, 4))
         {
             if (DROPPED(entity) == 0)
-                parent->unk_4FC.whole &= ~2;
+                MINOTAUR_FLAGS(parent) &= ~2;
             goto lost;
         }
         angle = (u16)SPIN(entity);
@@ -210,8 +211,8 @@ void MinotaurAxe_Update(struct EwramData_EntityData *entity)
     test:
         if (i <= 3 && (piece = EntityCreateInRange(0x49, 0xCF, (u32 *)MinotaurAxePiece_Update)) != NULL)
             goto loop;
-        if (parent->unk_4F4.part8.unk_4F4 == entity->unk_4F4.part8.unk_4F5)
-            parent->unk_4FC.whole &= ~2;
+        if (ENTITY_INDEX(parent) == ENTITY_PARENT_INDEX(entity))
+            MINOTAUR_FLAGS(parent) &= ~2;
         entity->posY.whole += drop;
         entity->state = 5;
         entity->timer = 0xC0;
@@ -244,6 +245,6 @@ void MinotaurAxe_Update(struct EwramData_EntityData *entity)
     angle = SPIN(entity);
     if (entity->flipX)
         angle = -angle;
-    entity->unk_4FC.part16.unk_4FE[0] = angle;
+    MINOTAUR_AXE_ANGLE(entity) = angle;
     ObjAffine_Set(angle, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
 }

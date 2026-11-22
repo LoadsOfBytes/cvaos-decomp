@@ -1,5 +1,6 @@
 /* Soma_HandleJumpInput. */
 #include "code_08009A0.h"
+#include "player_entity.h"
 #include "code_08032444.h"
 #include "code_080D73B8.h"
 #include "structs/ewram.h"
@@ -15,7 +16,7 @@ void Soma_TryStartDiveAttack(struct EwramData_EntityData *entity);
  */
 void Soma_HandleJumpInput(struct EwramData_EntityData *entity)
 {
-    u32 flags = entity->unk_4F4.whole;
+    u32 flags = PLAYER_ACTION_FLAGS(entity);
     u32 zero;
 
     if (flags & 0x20000000)
@@ -26,25 +27,25 @@ void Soma_HandleJumpInput(struct EwramData_EntityData *entity)
         && (gEwramData->inputData.playerHeldInput & 0x80)
         && (gEwramData->inputData.playerNewInput & gEwramData->playerStatus.jumpButton))
     {
-        entity->unk_4F8.part16.unk_4FA = 0x10;
+        PLAYER_DROP_THROUGH_TIMER(entity) = 0x10;
         if (flags & 0x1000000)
-            entity->unk_4F8.part16.unk_4FA = 0x20;
-        entity->unk_4F4.whole = (entity->unk_4F4.whole | 2) & ~0x11000;
+            PLAYER_DROP_THROUGH_TIMER(entity) = 0x20;
+        PLAYER_ACTION_FLAGS(entity) = (PLAYER_ACTION_FLAGS(entity) | 2) & ~0x11000;
         entity->velX.whole = zero;
         entity->velY.whole = zero;
         entity->accelY.whole = -0x1000;
     }
     if (Player_HasAbility(4) && (gEwramData->inputData.playerNewInput & gEwramData->playerStatus.abilityButton))
     {
-        flags = entity->unk_4F4.whole;
+        flags = PLAYER_ACTION_FLAGS(entity);
         if (((flags & 2) || (gEwramData->inputData.playerHeldInput & 0x40)) && !(zero = flags & 0x10))
         {
-            entity->unk_504.part16.unk_504 = 0xFF;
+            PLAYER_REQUESTED_ANIM(entity) = 0xFF;
             entity->state = 5;
             PlaySong(0xBA);
-            entity->unk_4F4.whole = (entity->unk_4F4.whole | 0x12) & ~0x100404;
+            PLAYER_ACTION_FLAGS(entity) = (PLAYER_ACTION_FLAGS(entity) | 0x12) & ~0x100404;
             entity->accelY.whole = zero;
-            if (!(entity->unk_4F4.whole & 0x4000000))
+            if (!(PLAYER_ACTION_FLAGS(entity) & 0x4000000))
                 entity->velY.whole = -0xA0000;
             else
                 entity->velY.whole = -0x28000;
@@ -53,20 +54,20 @@ void Soma_HandleJumpInput(struct EwramData_EntityData *entity)
             return;
         }
     }
-    if ((u16)entity->unk_4F8.part16.unk_4FA != 0)
+    if ((u16)PLAYER_DROP_THROUGH_TIMER(entity) != 0)
         return;
-    flags = entity->unk_4F4.whole;
+    flags = PLAYER_ACTION_FLAGS(entity);
     if (!(zero = flags & 0x800000))
     {
-        if (!(flags & 2) || entity->unk_4F8.part16.unk_4F8 <= 3)
+        if (!(flags & 2) || PLAYER_AIR_TIME(entity) <= 3)
         {
             if (gEwramData->inputData.playerNewInput & gEwramData->playerStatus.jumpButton)
             {
                 PlaySong(0xB9);
-                entity->unk_4F4.whole = (entity->unk_4F4.whole | 2) & ~0x100400;
-                entity->unk_4F8.part16.unk_4F8 = 0x10;
+                PLAYER_ACTION_FLAGS(entity) = (PLAYER_ACTION_FLAGS(entity) | 2) & ~0x100400;
+                PLAYER_AIR_TIME(entity) = 0x10;
                 entity->accelY.whole = zero;
-                if (!(entity->unk_4F4.whole & 0x4000000))
+                if (!(PLAYER_ACTION_FLAGS(entity) & 0x4000000))
                     entity->velY.whole = -0x4F400;
                 else
                     entity->velY.whole = -0x13C00;
@@ -80,7 +81,7 @@ void Soma_HandleJumpInput(struct EwramData_EntityData *entity)
         if (gEwramData->inputData.playerNewInput & gEwramData->playerStatus.jumpButton)
         {
             entity->accelY.whole = zero;
-            entity->unk_4F4.whole = (flags | 0x02000002) & ~0x100408;
+            PLAYER_ACTION_FLAGS(entity) = (flags | 0x02000002) & ~0x100408;
             if (entity->velY.whole > 0x10000)
                 entity->velY.whole -= 0x4E000;
             else

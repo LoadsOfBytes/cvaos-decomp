@@ -18,8 +18,8 @@ struct SolidObjectCallbacks {
     s32 (*push)(struct EwramData_EntityData *object, s16 x, s16 y);
 };
 
-#define FUNCS(object) ((struct SolidObjectCallbacks *)(object)->unk_4F4.unk_4F4_p32)
-#define FLAGS(e) ((e)->unk_4F4.whole)
+#define FUNCS(object) ((struct SolidObjectCallbacks *)SOLID_OBJECT_CALLBACKS((object)))
+#define FLAGS(e) (PLAYER_ACTION_FLAGS((e)))
 #define TILE_FLAGS (gUnk_03002CB0.collisionProbeFlags)
 #define X ((s16)x)
 #define Y ((s16)y)
@@ -200,7 +200,7 @@ static inline u16 FloorProbe(s16 x, s16 y, s32 flag)
     {
         struct EwramData_EntityData *player = gEwramData->playerState.player;
 
-        if (player->velY.whole >= 0 && (!(player->unk_4F4.whole & 2) || player->unk_4F8.part16.unk_4F8 == 0x10))
+        if (player->velY.whole >= 0 && (!(PLAYER_ACTION_FLAGS(player) & 2) || PLAYER_AIR_TIME(player) == 0x10))
             c = PlatformFloor(x, y, c);
     }
     UpdateFloorKind(c);
@@ -258,7 +258,7 @@ void Soma_ResolveBatFormCollision(struct EwramData_EntityData *entity)
 {
     s32 hits = 0;
     s16 x;
-    s32 velX = entity->velX.whole + entity->unk_510.whole;
+    s32 velX = entity->velX.whole + PLAYER_CONVEYOR_VELOCITY(entity);
     s32 side = 0;
     s32 off;
     s16 y;
@@ -269,12 +269,12 @@ void Soma_ResolveBatFormCollision(struct EwramData_EntityData *entity)
 
     gUnk_03002CB0.objectFloorContact = side;
     FLAGS(entity) = (FLAGS(entity) & 0xFEEFFBFF) | 2;
-    entity->unk_500.part8.unk_500 = side;
+    PLAYER_ON_STAIRS(entity) = side;
     x = GetEntityRoomXPositionInteger(entity);
     y = GetEntityRoomYPositionInteger(entity);
     if (Collision_IsPointSolid(X, Y - 8) != 0)
         FLAGS(entity) |= 0x1000000;
-    offsets = (s8 *)entity->unk_4FC.whole;
+    offsets = (s8 *)PLAYER_WALL_PROBES(entity);
     count = offsets[0];
     if (velX < 0)
     {

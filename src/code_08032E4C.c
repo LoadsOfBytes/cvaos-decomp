@@ -1,4 +1,7 @@
 #include "code_08032E4C.h"
+#include "particle_effect.h"
+#include "push_block_entity.h"
+#include "player_entity.h"
 #include "code_08009A0.h"
 #include "code_08001004.h"
 #include "code_08001194.h"
@@ -45,7 +48,7 @@ void PlayerEffectSetPart_Update(struct EwramData_EntityData *entity)
             Sprite_Attach(entity, (u8 *)0x0820ED60, gfx, 6);
             entity->drawFunc = NULL;
             entity->spriteLayer = 0xD;
-            Anim_StartIndexed(entity, (u8) entity->unk_4F8.part8.unk_4F8, 0, 0);
+            Anim_StartIndexed(entity, (u8) PARTICLE_EFFECT_SET_ANIM(entity), 0, 0);
             Anim_Update(entity);
             entity->scrollWithBg = 1;
             entity->state = 1;
@@ -267,7 +270,7 @@ void Player_SpawnEffectSet(s32 set, s32 facing)
             child->posY.whole = baseY2 + (part->offsetY << 8);
         }
 
-        child->unk_4F8.part8.unk_4F8 = part->animationAndPlacementMode >> 4;
+        PARTICLE_EFFECT_SET_ANIM(child) = part->animationAndPlacementMode >> 4;
         child->velX.whole = (part->velocityX << 8) * dir;
         child->velY.whole = part->velocityY << 8;
         child->timer = part->delay;
@@ -325,7 +328,7 @@ void Effect_UpdatePlayerSurfaceEffect(struct EwramData_EntityData *entity)
 
         gfx = ObjGfx_Find((u8 *)0x081C15F4);
         Sprite_Attach(entity, (u8 *)0x0820ED60, gfx, 6);
-        Anim_StartIndexed(entity, entity->unk_4FC.part16.unk_4FC, 0, 0);
+        Anim_StartIndexed(entity, PARTICLE_SURFACE_ANIM(entity), 0, 0);
         entity->drawFunc = (u32 *) Sprite_DrawEntity;
         entity->spriteLayer = 0xF;
         entity->scrollWithBg = 1;
@@ -406,7 +409,7 @@ void Player_SpawnSurfaceEffect(s32 kind)
     child = EntityCreateInRange(0x49, 0xCF, (u32 *) Effect_UpdatePlayerSurfaceEffect);
     if (child != NULL)
     {
-        child->unk_4FC.part16.unk_4FC = sPlayerSurfaceEffects[kind][0];
+        PARTICLE_SURFACE_ANIM(child) = sPlayerSurfaceEffects[kind][0];
         if (sPlayerSurfaceEffects[kind][1] != 0)
         {
             PlaySong(sPlayerSurfaceEffects[kind][1]);
@@ -534,10 +537,10 @@ void PushBlockGroup_Create(struct EwramData_EntityData *entity)
             child->velY.part16.integer = 0;
 
             child->spriteLayer = 0x11;
-            child->unk_4FC.whole = 0;
-            child->unk_4F8.unk_4F8_entity = entity;
+            PUSH_BLOCK_FLAGS(child) = 0;
+            ENTITY_OWNER(child) = entity;
             child->roomActive = 1;
-            i[entity->unk_4F8.bytes] = EntityGetSlot(child);
+            i[PUSH_BLOCK_GROUP_SLOTS(entity)] = EntityGetSlot(child);
         }
         entity->roomActive = 1;
     }
@@ -547,14 +550,14 @@ void PushBlockGroup_Create(struct EwramData_EntityData *entity)
 /* Overlap with the nearest block of the group on the left (> 0: push right). */
 static inline s32 OverlapLeft(struct EwramData_EntityData *block)
 {
-    struct EwramData_EntityData *spawner = block->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *spawner = ENTITY_OWNER(block);
     s32 push = 0;
     s32 count = sPushBlockGroupLayouts.layouts[spawner->unk_514.part16.spawnParam0]->blockCount;
     s32 i;
 
     for (i = 0; i < count; i++)
     {
-        struct EwramData_EntityData *other = &gEwramData->entityData[*(spawner->unk_4F8.bytes + i)];
+        struct EwramData_EntityData *other = &gEwramData->entityData[*(PUSH_BLOCK_GROUP_SLOTS(spawner) + i)];
         s32 dy = block->posY.whole - other->posY.whole;
 
         if (other != block && (dy >= -0x1F0000 && dy < 0x1F0000))
@@ -576,14 +579,14 @@ static inline s32 OverlapLeft(struct EwramData_EntityData *block)
 /* Overlap with the nearest block of the group on the right (< 0: push left). */
 static inline s32 OverlapRight(struct EwramData_EntityData *block)
 {
-    struct EwramData_EntityData *spawner = block->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *spawner = ENTITY_OWNER(block);
     s32 push = 0;
     s32 count = sPushBlockGroupLayouts.layouts[spawner->unk_514.part16.spawnParam0]->blockCount;
     s32 i;
 
     for (i = 0; i < count; i++)
     {
-        struct EwramData_EntityData *other = &gEwramData->entityData[*(spawner->unk_4F8.bytes + i)];
+        struct EwramData_EntityData *other = &gEwramData->entityData[*(PUSH_BLOCK_GROUP_SLOTS(spawner) + i)];
         s32 dy = block->posY.whole - other->posY.whole;
 
         if (other != block && (dy >= -0x1F0000 && dy < 0x1F0000))
@@ -605,7 +608,7 @@ static inline s32 OverlapRight(struct EwramData_EntityData *block)
 /* Overlap with a block of the group right below (< 0: push up); marks that block as carrying one. */
 static inline s32 OverlapBelow(struct EwramData_EntityData *block)
 {
-    struct EwramData_EntityData *spawner = block->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *spawner = ENTITY_OWNER(block);
     s32 push = 0;
     s32 x = block->posX.whole;
     s32 y = block->posY.whole + 0x10000;
@@ -614,7 +617,7 @@ static inline s32 OverlapBelow(struct EwramData_EntityData *block)
 
     for (i = 0; i < count; i++)
     {
-        struct EwramData_EntityData *other = &gEwramData->entityData[*(spawner->unk_4F8.bytes + i)];
+        struct EwramData_EntityData *other = &gEwramData->entityData[*(PUSH_BLOCK_GROUP_SLOTS(spawner) + i)];
         s32 dx = other->posX.whole - x;
         u32 dy = other->posY.whole - y;
 
@@ -622,7 +625,7 @@ static inline s32 OverlapBelow(struct EwramData_EntityData *block)
         {
             s32 overlap;
 
-            other->unk_4FC.whole |= 4;
+            PUSH_BLOCK_FLAGS(other) |= 4;
             overlap = dy - 0x200000;
             if (push > overlap)
                 push = overlap;
@@ -665,20 +668,20 @@ void PushBlock_Update(struct EwramData_EntityData *block)
         if (Collision_GetPushLeft(roomX + 0x1E, roomY - 0x10) != 0)
         {
             if (dx > -0x190000 && dx < 0)
-                block->unk_4FC.whole |= 1;
+                PUSH_BLOCK_FLAGS(block) |= 1;
         }
         else if (Collision_GetPushRight(roomX - 0x1E, roomY - 0x10) != 0)
         {
             if (dx > 0 && dx < 0x190000)
-                block->unk_4FC.whole |= 2;
+                PUSH_BLOCK_FLAGS(block) |= 2;
         }
     }
 
-    if (!(block->unk_4FC.whole & 0xC))
+    if (!(PUSH_BLOCK_FLAGS(block) & 0xC))
     {
-        if (block->unk_4FC.whole & 1)
+        if (PUSH_BLOCK_FLAGS(block) & 1)
             block->posX.whole -= 0x8000;
-        if (block->unk_4FC.whole & 2)
+        if (PUSH_BLOCK_FLAGS(block) & 2)
             block->posX.whole += 0x8000;
     }
 
@@ -687,7 +690,7 @@ void PushBlock_Update(struct EwramData_EntityData *block)
         block->velY.whole = 0x60000;
     block->posY.whole += block->velY.whole;
 
-    if (block->unk_4FC.whole & 1)
+    if (PUSH_BLOCK_FLAGS(block) & 1)
     {
         push = OverlapLeft(block);
         if (push != 0)
@@ -706,7 +709,7 @@ void PushBlock_Update(struct EwramData_EntityData *block)
             block->posX.part16.integer += push;
         }
     }
-    if (block->unk_4FC.whole & 2)
+    if (PUSH_BLOCK_FLAGS(block) & 2)
     {
         push = OverlapRight(block);
         if (push != 0)
@@ -763,31 +766,31 @@ void PushBlock_Update(struct EwramData_EntityData *block)
     if (falling)
     {
         block->accelY.whole = 0x2000;
-        block->unk_4FC.whole |= 8;
+        PUSH_BLOCK_FLAGS(block) |= 8;
     }
     else
     {
-        if (block->unk_4FC.whole & 8)
+        if (PUSH_BLOCK_FLAGS(block) & 8)
             PlaySong(0x14D);
-        block->unk_4FC.whole &= ~8;
+        PUSH_BLOCK_FLAGS(block) &= ~8;
     }
 
     if (startX != block->posX.whole)
     {
-        if (!(block->unk_4FC.whole & 0x10))
+        if (!(PUSH_BLOCK_FLAGS(block) & 0x10))
         {
             Sound_PlayTracked(0x136);
-            block->unk_4FC.whole |= 0x10;
+            PUSH_BLOCK_FLAGS(block) |= 0x10;
         }
     }
     else
     {
-        if (block->unk_4FC.whole & 0x10)
+        if (PUSH_BLOCK_FLAGS(block) & 0x10)
             Sound_StopTracked(0x136);
-        block->unk_4FC.whole &= ~0x10;
+        PUSH_BLOCK_FLAGS(block) &= ~0x10;
     }
 
-    block->unk_4FC.whole &= ~7;
+    PUSH_BLOCK_FLAGS(block) &= ~7;
     block->roomActive = 1;
 }
 
@@ -823,7 +826,7 @@ static inline s32 PushBlockGroup_CeilingCorrectionInline(struct EwramData_Entity
 
     for (i = 0; i < count; i++)
     {
-        block = &gEwramData->entityData[i[entity->unk_4F8.bytes]];
+        block = &gEwramData->entityData[i[PUSH_BLOCK_GROUP_SLOTS(entity)]];
         dx = block->posX.whole - screenX;
         if (dx >= -0x100000 && dx < 0x100000)
         {
@@ -883,7 +886,7 @@ static inline s32 PushBlockGroup_FloorCorrectionInline(struct EwramData_EntityDa
 
     for (i = 0; i < count; i++)
     {
-        block = &gEwramData->entityData[i[entity->unk_4F8.bytes]];
+        block = &gEwramData->entityData[i[PUSH_BLOCK_GROUP_SLOTS(entity)]];
         dx = block->posX.whole - screenX;
         if (dx >= -0x100000 && dx < 0x100000)
         {
@@ -931,7 +934,7 @@ static inline s32 PushBlockGroup_WallRightCorrectionInline(struct EwramData_Enti
     s32 pushing;
 
     player = gEwramData->playerState.player;
-    pushing = player->unk_4F4.whole & 0x100000;
+    pushing = PLAYER_ACTION_FLAGS(player) & 0x100000;
     nearest = NULL;
     correction = 0;
     roomX = x;
@@ -950,7 +953,7 @@ static inline s32 PushBlockGroup_WallRightCorrectionInline(struct EwramData_Enti
 
     for (i = 0; i < count; i++)
     {
-        block = &gEwramData->entityData[i[entity->unk_4F8.bytes]];
+        block = &gEwramData->entityData[i[PUSH_BLOCK_GROUP_SLOTS(entity)]];
         dy = block->posY.whole - screenY;
         if (dy < 0x200000)
         {
@@ -968,13 +971,13 @@ static inline s32 PushBlockGroup_WallRightCorrectionInline(struct EwramData_Enti
     }
 
     playerEntity = gEwramData->playerState.player;
-    if ((playerEntity->unk_4F4.whole & 0x400) && (playerEntity->state != 3))
+    if ((PLAYER_ACTION_FLAGS(playerEntity) & 0x400) && (playerEntity->state != 3))
     {
         correction = 0;
     }
     if ((pushing) && (nearest != NULL))
     {
-        nearest->unk_4FC.whole |= 2;
+        PUSH_BLOCK_FLAGS(nearest) |= 2;
     }
 
     return (correction < 0) ? (s16)(-(-correction >> 0x10)) : (s16)(correction >> 0x10);
@@ -1010,7 +1013,7 @@ static inline s32 PushBlockGroup_WallLeftCorrectionInline(struct EwramData_Entit
     s32 pushing;
 
     player = gEwramData->playerState.player;
-    pushing = player->unk_4F4.whole & 0x100000;
+    pushing = PLAYER_ACTION_FLAGS(player) & 0x100000;
     nearest = NULL;
     correction = 0;
     roomX = x;
@@ -1029,7 +1032,7 @@ static inline s32 PushBlockGroup_WallLeftCorrectionInline(struct EwramData_Entit
 
     for (i = 0; i < count; i++)
     {
-        block = &gEwramData->entityData[i[entity->unk_4F8.bytes]];
+        block = &gEwramData->entityData[i[PUSH_BLOCK_GROUP_SLOTS(entity)]];
         dy = block->posY.whole - screenY;
         if (dy < 0x200000)
         {
@@ -1047,13 +1050,13 @@ static inline s32 PushBlockGroup_WallLeftCorrectionInline(struct EwramData_Entit
     }
 
     playerEntity = gEwramData->playerState.player;
-    if ((playerEntity->unk_4F4.whole & 0x400) && (playerEntity->state != 3))
+    if ((PLAYER_ACTION_FLAGS(playerEntity) & 0x400) && (playerEntity->state != 3))
     {
         correction = 0;
     }
     if ((pushing) && (nearest != NULL))
     {
-        nearest->unk_4FC.whole |= 1;
+        PUSH_BLOCK_FLAGS(nearest) |= 1;
     }
 
     return (correction < 0) ? (s16)(-(-correction >> 0x10)) : (s16)(correction >> 0x10);
@@ -1097,7 +1100,7 @@ void PushBlockGroup_Delete(struct EwramData_EntityData *entity)
 
         for (i = 0; i < count; i++)
         {
-            block = &gEwramData->entityData[i[entity->unk_4F8.bytes]];
+            block = &gEwramData->entityData[i[PUSH_BLOCK_GROUP_SLOTS(entity)]];
             block->deleteRequested = 1;
         }
         entity->deleteRequested = 1;

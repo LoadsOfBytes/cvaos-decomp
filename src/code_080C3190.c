@@ -1,5 +1,6 @@
 /* Horizontal and vertical sine motion, alternating frames at turning points. */
 #include "code_08009A0.h"
+#include "ghost_dancer_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *);
@@ -25,7 +26,7 @@ void GhostDancer_UpdateMovement(struct EwramData_EntityData *entity)
             if(!entity->flipX)
                 entity->velX.whole=-entity->velX.whole;
             PHASE(entity)=0;
-            entity->unk_4F8.part8.unk_4FA=0;
+            GHOST_DANCER_CYCLES(entity)=0;
             entity->timer=0;
             entity->subState++;
             break;
@@ -35,18 +36,18 @@ void GhostDancer_UpdateMovement(struct EwramData_EntityData *entity)
             entity->posY.whole+=entity->velY.whole+Sin(PHASE(entity)*4);
             PHASE(entity)+=128;
             if(!PHASE(entity))
-                entity->unk_4F8.part8.unk_4FA++;
+                GHOST_DANCER_CYCLES(entity)++;
             if(!entity->velX.whole)
                 Anim_StartIndexed(entity,(u16)(1-entity->animScriptIndex),0,1);
             { s32 phase=PHASE(entity);
             s32 period=0x8000;
             if(phase%period==0)
-            { u32 mode=(u8)entity->unk_4FC.part8.unk_4FC;
+            { u32 mode=(u8)GHOST_DANCER_MODE(entity);
             if(!(state &= mode))
             {
-                entity->unk_4F8.part8.unk_4FB=1-entity->unk_4F8.part8.unk_4FB;
-                entity->unk_4FC.part8.unk_4FC=mode+1;
-                entity->unk_4FC.part8.unk_4FD=0;
+                GHOST_DANCER_SIDE(entity)=1-GHOST_DANCER_SIDE(entity);
+                GHOST_DANCER_MODE(entity)=mode+1;
+                GHOST_DANCER_TIMER(entity)=0;
             }
             }
             }

@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "disc_armor_entity.h"
 #include "code/code_08039340.h"
 extern s32 Enemy_PreUpdate(struct EwramData_EntityData *);
 extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
@@ -10,11 +11,11 @@ extern s32 DiscArmor_UpdateDeath(struct EwramData_EntityData *);
 void EnemyDiscArmorUpdate(struct EwramData_EntityData *entity)
 {
     u32 box[4];
-    s32 y = entity->unk_504.part16.unk_506[0];
-    s32 x = (s16)entity->unk_504.part16.unk_504;
+    s32 y = DISC_ARMOR_HAND_OFFSET_Y(entity);
+    s32 x = (s16)DISC_ARMOR_HAND_OFFSET_X(entity);
     if (entity->flipX) x = (u16)-x;
-    entity->unk_4FC.whole = entity->posX.whole + (x << 16);
-    entity->unk_500.whole = entity->posY.whole + (y << 16);
+    DISC_ARMOR_HAND_X(entity) = entity->posX.whole + (x << 16);
+    DISC_ARMOR_HAND_Y(entity) = entity->posY.whole + (y << 16);
     if (Enemy_PreUpdate(entity)) return;
     switch (entity->state)
     {

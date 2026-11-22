@@ -3,6 +3,7 @@
  * slot unk_510 on the first frame and grows the scale by 0x1000 per frame for
  * 16 frames, then disables the affine flag; both draw via Sprite_Draw. */
 #include "code/code_08039340.h"
+#include "menu_page.h"
 #include "structs/ewram.h"
 #include "structs/entity_render_flags.h"
 
@@ -13,7 +14,7 @@ void MenuPageTitle_Update(struct EwramData_EntityData *entity)
 {
     s32 t;
 
-    switch (entity->unk_508.part8.unk_508)
+    switch (MENU_TITLE_STATE(entity))
     {
         case 0:
             break;
@@ -21,20 +22,20 @@ void MenuPageTitle_Update(struct EwramData_EntityData *entity)
             entity->posX.part16.integer = 0x35;
             entity->posY.part16.integer = 9;
             entity->timer = 0;
-            entity->unk_508.part8.unk_508 = 2;
+            MENU_TITLE_STATE(entity) = 2;
         case 2:
             if (entity->timer == 0)
             {
                 entity->palette = 14;
                 {
-                    entity->affineIndex = entity->unk_510.part16.unk_510;
+                    entity->affineIndex = MENU_TITLE_AFFINE_SLOT(entity);
                 }
                 entity->affine = 1;
             }
             if (entity->timer < 16)
             {
                 t = entity->timer++;
-                ObjAffine_Set(0, t << 12, t << 12, 0, 0, entity->unk_510.part16.unk_510);
+                ObjAffine_Set(0, t << 12, t << 12, 0, 0, MENU_TITLE_AFFINE_SLOT(entity));
             }
             else
             {

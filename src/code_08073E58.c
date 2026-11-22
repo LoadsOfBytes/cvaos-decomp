@@ -23,7 +23,7 @@ void ManticoreTail_EnableHitBoxes(struct EwramData_EntityData *entity)
 void ManticoreTail_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 {
     struct PlayerContactDamage effect;
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = ENTITY_OWNER(entity);
     if (parent->state == 1 && parent->subState <= 4)
         effect.attack = parent->attack;
     else

@@ -1,5 +1,6 @@
 /* Chaos-fight helper entities 0x080A6F58..0x080A712B. */
 #include "code_08009A0.h"
+#include "chaos_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code_080D73B8.h"
@@ -71,12 +72,12 @@ void Chaos2Spark_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData **target = &gEwramData->playerState.enemyTarget;
 
-    entity->posX.whole = (*target)->posX.whole + entity->unk_4F8.whole;
-    entity->posY.whole = (*target)->posY.whole + entity->unk_4FC.whole;
+    entity->posX.whole = (*target)->posX.whole + CHAOS_OFFSET_X(entity);
+    entity->posY.whole = (*target)->posY.whole + CHAOS_OFFSET_Y(entity);
     entity->velX.whole += entity->accelX.whole;
     entity->velY.whole += entity->accelY.whole;
-    entity->unk_4F8.whole += entity->velX.whole;
-    entity->unk_4FC.whole += entity->velY.whole;
+    CHAOS_OFFSET_X(entity) += entity->velX.whole;
+    CHAOS_OFFSET_Y(entity) += entity->velY.whole;
     Anim_Update(entity);
     if ((s8)--entity->timer <= 0)
         EntityDelete(entity);

@@ -1,4 +1,6 @@
 #include "code_08009A0.h"
+#include "soul_skill_entity.h"
+#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -36,7 +38,7 @@ static inline struct SoulGraphicsResources *GetSet(s32 index)
  */
 void SkillRedMinotaurUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
     struct EwramData_EntityData *child;
     s32 zero;
     u16 slot;
@@ -57,7 +59,7 @@ void SkillRedMinotaurUse(struct EwramData_EntityData *entity)
         slot = ObjAffine_Alloc(0);
         if ((s16)slot < 0)
         {
-            gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = (void *)zero;
+            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = (void *)zero;
             EntityDelete(entity);
             return;
         }
@@ -65,7 +67,7 @@ void SkillRedMinotaurUse(struct EwramData_EntityData *entity)
         if (child == NULL)
         {
             ObjAffine_Free(entity->affineIndex);
-            gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = child;
+            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = child;
             EntityDelete(entity);
             return;
         }
@@ -78,45 +80,45 @@ void SkillRedMinotaurUse(struct EwramData_EntityData *entity)
         entity->scrollWithBg = 1;
         entity->state++;
         angle = 0x4000;
-        entity->unk_510.part16.unk_510 = angle;
+        SKILL_RED_MINOTAUR_ANGLE(entity) = angle;
         speed = 0xF800;
-        entity->unk_510.part16.unk_512 = speed;
+        SKILL_RED_MINOTAUR_SWING_SPEED(entity) = speed;
         accel = 0x40;
-        entity->unk_50C.whole = accel;
+        SKILL_RED_MINOTAUR_SWING_ACCEL(entity) = accel;
         if (entity->flipX)
         {
-            entity->unk_510.part16.unk_510 = -angle;
-            entity->unk_510.part16.unk_512 = -speed;
-            entity->unk_50C.whole = -accel;
+            SKILL_RED_MINOTAUR_ANGLE(entity) = -angle;
+            SKILL_RED_MINOTAUR_SWING_SPEED(entity) = -speed;
+            SKILL_RED_MINOTAUR_SWING_ACCEL(entity) = -accel;
         }
         entity->timer = 0x50;
         gEwramData->playerState.nbrActiveRedSoulEntities++;
         PlaySong(0x1A0);
         PlaySong(0xCF);
     case 1:
-        if (entity->unk_508.whole <= 0x1FFFF)
-            entity->unk_508.whole += 0x2000;
+        if (SKILL_RED_MINOTAUR_SCALE(entity) <= 0x1FFFF)
+            SKILL_RED_MINOTAUR_SCALE(entity) += 0x2000;
         else
             entity->state = 2;
     case 2:
-        entity->unk_510.part16.unk_510 += entity->unk_510.part16.unk_512;
-        entity->unk_510.part16.unk_512 += entity->unk_50C.whole;
+        SKILL_RED_MINOTAUR_ANGLE(entity) += SKILL_RED_MINOTAUR_SWING_SPEED(entity);
+        SKILL_RED_MINOTAUR_SWING_SPEED(entity) += SKILL_RED_MINOTAUR_SWING_ACCEL(entity);
         if (entity->timer != 0)
             entity->timer--;
         else
             entity->state = 3;
         break;
     case 3:
-        entity->unk_510.part16.unk_510 += entity->unk_510.part16.unk_512;
-        entity->unk_510.part16.unk_512 -= entity->unk_50C.whole * 2;
-        if (entity->unk_508.whole > 0)
-            entity->unk_508.whole -= 0x2000;
+        SKILL_RED_MINOTAUR_ANGLE(entity) += SKILL_RED_MINOTAUR_SWING_SPEED(entity);
+        SKILL_RED_MINOTAUR_SWING_SPEED(entity) -= SKILL_RED_MINOTAUR_SWING_ACCEL(entity) * 2;
+        if (SKILL_RED_MINOTAUR_SCALE(entity) > 0)
+            SKILL_RED_MINOTAUR_SCALE(entity) -= 0x2000;
         else
             entity->state = 4;
         break;
     case 4:
         ObjAffine_Free(entity->affineIndex);
-        gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;
@@ -127,5 +129,5 @@ void SkillRedMinotaurUse(struct EwramData_EntityData *entity)
         entity->state = 4;
         entity->hidden = 1;
     }
-    ObjAffine_Set(entity->unk_510.part16.unk_510, entity->unk_508.whole, entity->unk_508.whole, entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set(SKILL_RED_MINOTAUR_ANGLE(entity), SKILL_RED_MINOTAUR_SCALE(entity), SKILL_RED_MINOTAUR_SCALE(entity), entity->flipX, 0, entity->affineIndex);
 }

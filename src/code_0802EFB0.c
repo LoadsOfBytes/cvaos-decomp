@@ -1,4 +1,6 @@
 #include "code_08009A0.h"
+#include "blue_soul_entity.h"
+#include "player_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -10,7 +12,7 @@ extern void BlueSoul_ReleaseActiveResources(struct EwramData_EntityData *);
 
 struct BlueSoulInfo {
     u32 updateFunc;
-    u32 unk_4;
+    u32 mpPerSecond; /* u8 mpPerSecond, u8 activationFlags, u16 effectParam; unused here */
     u32 effectValue;
 };
 
@@ -46,7 +48,7 @@ extern struct BlueSoulForm sBlueSoulForms[];
  */
 void Skill_Devil_Manticore_Curly_Use(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = BLUE_SOUL_OWNER(entity);
     struct BlueSoulInfo *info = &sBlueSoulInfo[gEwramData->playerStatus.equippedBlueSoul];
     struct BlueSoulInfo *info2 = info;
     struct PlayerState *ctx;
@@ -58,7 +60,7 @@ void Skill_Devil_Manticore_Curly_Use(struct EwramData_EntityData *entity)
         return;
     }
     ctx = &gEwramData->playerState;
-    if (ctx->player->unk_4F4.whole & 0x81A2)
+    if (PLAYER_ACTION_FLAGS(ctx->player) & 0x81A2)
     {
         BlueSoul_ReleaseActiveResources(entity);
         EntityDelete(entity);
@@ -70,7 +72,7 @@ void Skill_Devil_Manticore_Curly_Use(struct EwramData_EntityData *entity)
     case 0:
         ctx->player->accelX.whole = 0;
         ctx->player->accelY.whole = 0;
-        ctx->player->unk_4F4.whole &= ~0x20;
+        PLAYER_ACTION_FLAGS(ctx->player) &= ~0x20;
         entity->state = 1;
         ctx->player->subState = 0;
         gEwramData->playerState.player->unk_508.part8.unk_50B = info->effectValue;

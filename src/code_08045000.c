@@ -2,6 +2,7 @@
  * animation), graphics 081C15F4 / 0820ED60 with their own palette
  * (palette). */
 #include "code_08009A0.h"
+#include "particle_effect.h"
 #include "code/code_08039340.h"
 #include "code_080D73B8.h"
 #include "structs/ewram.h"
@@ -18,15 +19,15 @@ extern u8 sTimedParticleFrames[];
  */
 void Effect_UpdateTimedDoubleParticle(struct EwramData_EntityData *entity)
 {
-    struct Unk_085251A8 *info = &sUnk_085251A8[entity->unk_4FC.whole];
+    struct Unk_085251A8 *info = &sUnk_085251A8[PARTICLE_TABLE_INDEX(entity)];
     switch (entity->state)
     {
     case 0:
     {
         s32 graphics = ObjGfx_Find(sCommonObjectGfx);
         Sprite_Attach(entity, sCommonObjectSpriteSheet, graphics, entity->palette);
-        entity->unk_500.whole = ((RandomNumberGenerator() & 0x1F) << 16) - 0x100000;
-        entity->unk_504.whole = ((RandomNumberGenerator() & 0x1F) << 16) - 0x100000;
+        PARTICLE_PAIR_OFFSET_X(entity) = ((RandomNumberGenerator() & 0x1F) << 16) - 0x100000;
+        PARTICLE_PAIR_OFFSET_Y(entity) = ((RandomNumberGenerator() & 0x1F) << 16) - 0x100000;
         entity->drawFunc = (u32 *)Effect_DrawAtOffsetPair;
         entity->animFrame = info->frame;
         entity->velY.whole = -0x10000;
@@ -52,7 +53,7 @@ void Effect_UpdateTimedDoubleParticle(struct EwramData_EntityData *entity)
  */
 void Effect_UpdateTableAnimation(struct EwramData_EntityData *entity)
 {
-    struct Unk_085251A8 *info = &sUnk_085251A8[entity->unk_4FC.whole];
+    struct Unk_085251A8 *info = &sUnk_085251A8[PARTICLE_TABLE_INDEX(entity)];
     switch (entity->state)
     {
     case 0:
@@ -84,7 +85,7 @@ void Effect_UpdateTableAnimation(struct EwramData_EntityData *entity)
  */
 void Effect_UpdateAttachedAnimation(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4FC.unk_4FC_entity;
+    struct EwramData_EntityData *parent = PARTICLE_ATTACH_PARENT(entity);
     if (parent == NULL)
     {
         entity->deleteRequested = 1;
@@ -98,7 +99,7 @@ void Effect_UpdateAttachedAnimation(struct EwramData_EntityData *entity)
         PlaySong(0xBF);
         graphics = ObjGfx_Find(sCommonObjectGfx);
         Sprite_Attach(entity, sCommonObjectSpriteSheet, graphics, entity->palette);
-        Anim_StartIndexed(entity, (u8)entity->unk_4F8.part8.unk_4F8, 0, 0);
+        Anim_StartIndexed(entity, (u8)PARTICLE_ATTACH_ANIM(entity), 0, 0);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         entity->scrollWithBg = 1;
         entity->state++;
@@ -121,7 +122,7 @@ void Effect_UpdateAttachedAnimation(struct EwramData_EntityData *entity)
 void Effect_DrawTimedParticle(struct EwramData_EntityData *entity)
 {
     u8 timer = entity->timer;
-    if (timer > entity->unk_4FC.part8.unk_4FD)
+    if (timer > PARTICLE_LIFETIME(entity))
     {
         entity->deleteRequested = 1;
         return;
@@ -131,7 +132,7 @@ void Effect_DrawTimedParticle(struct EwramData_EntityData *entity)
     entity->velX.whole += entity->accelX.whole;
     entity->velY.whole += entity->accelY.whole;
     entity->timer = timer + 1;
-    if (entity->unk_4FC.part8.unk_4FE == 0)
+    if (PARTICLE_STEP_FRAMES(entity) == 0)
         entity->velY.whole -= 0x1000;
     else if (((timer + 1) & 7) == 0 && entity->subState != 0)
     {
@@ -161,7 +162,7 @@ void Effect_SpawnPlayerOutwardParticle(u8 frame, u8 palette)
     entity->drawFunc = (u32 *)Effect_DrawTimedParticle;
     entity->animFrame = frame;
     entity->spriteLayer = 3;
-    entity->unk_4FC.part8.unk_4FD = 0x14;
+    PARTICLE_LIFETIME(entity) = 0x14;
     {
         struct PlayerState *player = &(*ewram)->playerState;
         entity->posX.whole = player->player->posX.whole;
@@ -189,7 +190,7 @@ void Effect_SpawnPlayerInwardParticle(u8 palette)
 
     if (entity == NULL)
         return;
-    entity->unk_4FC.part8.unk_4FE = 1;
+    PARTICLE_STEP_FRAMES(entity) = 1;
     entity->subState = 3;
     entity->spriteLayer = 2;
     graphics = ObjGfx_Find(sCommonObjectGfx);
@@ -197,7 +198,7 @@ void Effect_SpawnPlayerInwardParticle(u8 palette)
     entity->drawFunc = (u32 *)Effect_DrawTimedParticle;
     entity->animFrame = sTimedParticleFrames[entity->subState];
     entity->spriteLayer = 3;
-    entity->unk_4FC.part8.unk_4FD = 0x14;
+    PARTICLE_LIFETIME(entity) = 0x14;
     angle = (RandomNumberGenerator() & 0xFF) << 8;
     c = Sin(angle + 0x4000);
     s = Sin(angle);

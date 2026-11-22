@@ -1,5 +1,6 @@
 /* Entity with rise/fall states whose affine sprite is scaled and turned by the player distance. */
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -48,10 +49,10 @@ void Object14Variant0_Update(struct EwramData_EntityData *entity)
         entity->affineIndex = slot;
         entity->affine = 1;
         entity->drawFunc = (u32 *)Object14_Draw;
-        entity->unk_4FC.part16.unk_4FC = GetEntityRoomXPositionInteger(entity);
-        entity->unk_4FC.part16.unk_4FE[0] = GetEntityRoomYPositionInteger(entity);
-        entity->unk_500.part16.unk_500 = entity->unk_4FC.part16.unk_4FC;
-        entity->unk_500.part16.unk_502 = entity->unk_4FC.part16.unk_4FE[0];
+        OBJECT14_ROOM_X(entity) = GetEntityRoomXPositionInteger(entity);
+        OBJECT14_ROOM_Y(entity) = GetEntityRoomYPositionInteger(entity);
+        OBJECT14_PREV_X(entity) = OBJECT14_ROOM_X(entity);
+        OBJECT14_PREV_Y(entity) = OBJECT14_ROOM_Y(entity);
         entity->velX.whole = 0x8000;
         Hit_Enable(entity, 8, 0, 0);
         HitBox_SetBodyRaw(entity, 0x103000E8);
@@ -61,10 +62,10 @@ void Object14Variant0_Update(struct EwramData_EntityData *entity)
     }
     case 1:
         entity->animFrame = 0;
-        entity->unk_508.whole += 0x400;
-        if (entity->unk_508.whole > 0xFFFF) {
+        OBJECT14_SCALE(entity) += 0x400;
+        if (OBJECT14_SCALE(entity) > 0xFFFF) {
             entity->animFrame = 2;
-            entity->unk_508.whole = 0x10000;
+            OBJECT14_SCALE(entity) = 0x10000;
             entity->state = 2;
         }
         break;
@@ -92,13 +93,13 @@ void Object14Variant0_Update(struct EwramData_EntityData *entity)
             Object14_SpawnDebris(entity);
             PlaySong(0xAC);
         }
-        entity->unk_508.whole = 0;
-        entity->unk_504.part16.unk_504 = 0;
+        OBJECT14_SCALE(entity) = 0;
+        OBJECT14_ANGLE(entity) = 0;
         entity->velY.whole = 0;
         entity->accelY.whole = 0;
         bg = &gEwramData->bgInfo[1];
-        entity->posX.part16.integer = entity->unk_4FC.part16.unk_4FC - bg->xPos.part16.integer;
-        entity->posY.part16.integer = entity->unk_4FC.part16.unk_4FE[0] - bg->yPos.part16.integer;
+        entity->posX.part16.integer = OBJECT14_ROOM_X(entity) - bg->xPos.part16.integer;
+        entity->posY.part16.integer = OBJECT14_ROOM_Y(entity) - bg->yPos.part16.integer;
         entity->state = 1;
         break;
     }
@@ -108,9 +109,9 @@ void Object14Variant0_Update(struct EwramData_EntityData *entity)
         length = 0xC0000;
     if (Player(&gEwramData)->posX.whole < entity->posX.whole)
         length = -length;
-    radius = entity->unk_504.part16.unk_504 == 0 ? 10 : 12;
-    x = (length < 0 ? -(-length >> 16) : length >> 16) * Sin(entity->unk_504.part16.unk_504 + 0x4000);
-    y = (length < 0 ? -(-length >> 16) : length >> 16) * Sin(entity->unk_504.part16.unk_504);
+    radius = OBJECT14_ANGLE(entity) == 0 ? 10 : 12;
+    x = (length < 0 ? -(-length >> 16) : length >> 16) * Sin(OBJECT14_ANGLE(entity) + 0x4000);
+    y = (length < 0 ? -(-length >> 16) : length >> 16) * Sin(OBJECT14_ANGLE(entity));
     { s32 left = -radius;
       length = radius << 16;
       if (x < 0) left -= -x >> 16; else left += x >> 16;
@@ -118,6 +119,6 @@ void Object14Variant0_Update(struct EwramData_EntityData *entity)
       { register u8 mask asm("r3") = 0xFF; /* FAKEMATCH: pinned register */
       length <<= 1;
       { s32 sum = left + PackY(y, mask) + length; { s32 k = 0x14000000; asm("" :: "r"(k)); left = sum + k; } HitBox_SetBodyRaw(entity, left); } } } /* FAKEMATCH: k stays a pseudo (no combine/equiv fold), sum chain stays in r0 */
-    ObjAffine_Set(entity->unk_504.part16.unk_504, entity->unk_508.whole, entity->unk_508.whole,
+    ObjAffine_Set(OBJECT14_ANGLE(entity), OBJECT14_SCALE(entity), OBJECT14_SCALE(entity),
                 entity->flipX, 0, entity->affineIndex);
 }

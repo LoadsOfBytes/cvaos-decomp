@@ -1,5 +1,6 @@
 /* Object 0x05 (door / gate opening near the player), 0x0804F00C..0x0804F15F. */
 #include "code_080D73B8.h"
+#include "door_entity.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -41,19 +42,19 @@ void Object05Update(struct EwramData_EntityData *entity)
 
     if ((u32)((s16)entity->posX.part16.integer - (s16)player->posX.part16.integer + 0x28) <= 0x4F)
     {
-        if (entity->unk_4F8.whole == 0 && Entity_IsInRect(entity, -0x10, 0, 0x110, 0xC0))
+        if (DOOR_OPEN_HEIGHT(entity) == 0 && Entity_IsInRect(entity, -0x10, 0, 0x110, 0xC0))
             PlaySong(0x113);
-        entity->unk_4F8.whole += 2;
-        if (entity->unk_4F8.whole > 0x2F)
-            entity->unk_4F8.whole = 0x30;
+        DOOR_OPEN_HEIGHT(entity) += 2;
+        if (DOOR_OPEN_HEIGHT(entity) > 0x2F)
+            DOOR_OPEN_HEIGHT(entity) = 0x30;
     }
     else
     {
-        if (entity->unk_4F8.whole == 0x30 && Entity_IsInRect(entity, -0x10, 0, 0x110, 0xC0))
+        if (DOOR_OPEN_HEIGHT(entity) == 0x30 && Entity_IsInRect(entity, -0x10, 0, 0x110, 0xC0))
             PlaySong(0x113);
-        if (entity->unk_4F8.whole <= 2)
-            entity->unk_4F8.whole = 0;
+        if (DOOR_OPEN_HEIGHT(entity) <= 2)
+            DOOR_OPEN_HEIGHT(entity) = 0;
         else
-            entity->unk_4F8.whole -= 2;
+            DOOR_OPEN_HEIGHT(entity) -= 2;
     }
 }

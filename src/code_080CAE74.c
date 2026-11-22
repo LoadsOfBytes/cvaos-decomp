@@ -1,5 +1,6 @@
 /* Beam Skeleton moving beam and sound maintenance. */
 #include "structs/ewram.h"
+#include "beam_skeleton_entity.h"
 extern void Hit_CheckWithPlayer(void *buffer,struct EwramData_EntityData *entity);
 extern void Sound_PlayTracked(s32 id);
 extern void Sound_StopTracked(s32 id);
@@ -30,8 +31,8 @@ static inline void ResetBeam(struct EwramData_EntityData *entity)
 void BeamSkeletonBeam_Update(struct EwramData_EntityData *entity)
 {
     u8 buffer[16];
-    struct EwramData_EntityData *owner = &gEwramData->entityData[entity->unk_4F4.part8.unk_4F6];
-    if ((u16)owner->unk_504.part16.unk_504 > 0x400)
+    struct EwramData_EntityData *owner = &gEwramData->entityData[BEAM_OWNER_INDEX(entity)];
+    if ((u16)BEAM_SKELETON_BEAM_LEVEL(owner) > 0x400)
         Hit_CheckWithPlayer(buffer,entity);
     switch (entity->state)
     {
@@ -46,7 +47,7 @@ void BeamSkeletonBeam_Update(struct EwramData_EntityData *entity)
             }
             break;
         case 2:
-            if ((u16)owner->unk_504.part16.unk_504 > 0xFFFE)
+            if ((u16)BEAM_SKELETON_BEAM_LEVEL(owner) > 0xFFFE)
             {
                 if (--entity->timer == 0xFF)
                 {
@@ -68,7 +69,7 @@ void BeamSkeletonBeam_Update(struct EwramData_EntityData *entity)
             }
             break;
     }
-    if ((u16)owner->unk_504.part16.unk_504 == 0xFFFF)
+    if ((u16)BEAM_SKELETON_BEAM_LEVEL(owner) == 0xFFFF)
     {
         entity->affine = 0;
         ((u8 *)entity)[0x59] &= 0x7F;
@@ -79,14 +80,14 @@ void BeamSkeletonBeam_Update(struct EwramData_EntityData *entity)
         entity->affine = 1;
         ((u8 *)entity)[0x59] |= 0x80;
     }
-    if (!(owner->unk_4FC.part8.unk_4FE & 1) || owner->hidden)
+    if (!(BEAM_SKELETON_FIRING(owner) & 1) || owner->hidden)
     {
         Sound_StopTracked(0x66);
         entity->deleteRequested = 1;
     }
     else
     {
-        if (entity->unk_4F8.part8.unk_4F8 & 3)
+        if (BEAM_COUNTER(entity) & 3)
         {
             u16 *sounds = gEwramData->trackedSoundIds;
             s32 i;
@@ -96,6 +97,6 @@ void BeamSkeletonBeam_Update(struct EwramData_EntityData *entity)
             if (i==4)
                 Sound_PlayTracked(0x66);
         }
-        entity->unk_4F8.part8.unk_4F8++;
+        BEAM_COUNTER(entity)++;
     }
 }

@@ -1,5 +1,6 @@
 /* Create a linked part and copy the owner's position and combat fields. */
 #include "code_08009A0.h"
+#include "graham_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -25,13 +26,13 @@ struct EwramData_EntityData *GrahamAttacker_CreateAttackEffect(struct EwramData_
         return NULL;
     if (Entity_LoadGraphics(part, graphics, palette, 1, animation))
     {
-    part->unk_4F4.part8.unk_4F5 = owner->unk_4F4.part8.unk_4F4;
+    ENTITY_PARENT_INDEX(part) = ENTITY_INDEX(owner);
     part->spriteLayer = owner->spriteLayer - 1;
     part->flipX = owner->flipX;
     part->posX.whole = owner->posX.whole;
     part->posY.whole = owner->posY.whole;
     part->scrollWithBg = 1;
-    owner->unk_4F4.part8.unk_4F6 = part->unk_4F4.part8.unk_4F4;
+    GRAHAM_CHILD_INDEX(owner) = ENTITY_INDEX(part);
     { u8 v_ = part->enemyFlags; { register u32 z_ asm("r7"); asm("" : "=r"(z_) : "0"(0)); } part->enemyFlags = v_ | 1; } /* FAKEMATCH: dead "movs r7, #0" of the original (graphics = 0) */
 
     part->enemyFlags |= 4;

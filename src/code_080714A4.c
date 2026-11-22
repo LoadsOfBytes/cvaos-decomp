@@ -1,5 +1,6 @@
 /* Play the Merman attack, emit its projectile and restart movement. */
 #include "code/code_08039340.h"
+#include "merman_entity.h"
 #include "code_080D73B8.h"
 extern void Merman_SpawnShot(struct EwramData_EntityData *);
 extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
@@ -10,9 +11,9 @@ static inline void RestartJump(struct EwramData_EntityData *entity)
     entity->accelX.whole = 0;
     entity->velY.whole = 0x40000;
     entity->accelY.whole = 0x1800;
-    entity->unk_4F8.part8.unk_4F8 = 0;
-    entity->unk_4F8.part8.unk_4F9 = 0;
-    entity->unk_4F8.part8.unk_4FA = 0;
+    MERMAN_LEAP_SPLASHED(entity) = 0;
+    MERMAN_SWIM_MODE(entity) = 0;
+    MERMAN_LAND_SPLASHED(entity) = 0;
     Anim_StartIndexed(entity, 2, 0, 1);
     entity->flipX = Entity_IsTargetRight(entity);
     if (entity->flipX) entity->velX.whole = 0x8000;
@@ -26,9 +27,9 @@ static inline void RestartSwim(struct EwramData_EntityData *entity)
     entity->accelX.whole = 0;
     entity->velY.whole = 0x20000;
     entity->accelY.whole = 0x1800;
-    entity->unk_4F8.part8.unk_4F8 = 0;
-    entity->unk_4F8.part8.unk_4F9 = 0;
-    entity->unk_4F8.part8.unk_4FA = 0;
+    MERMAN_LEAP_SPLASHED(entity) = 0;
+    MERMAN_SWIM_MODE(entity) = 0;
+    MERMAN_LAND_SPLASHED(entity) = 0;
     Anim_StartIndexed(entity, 2, 0, 1);
     entity->flipX = Entity_IsTargetRight(entity);
     if (entity->flipX) entity->velX.whole = 0x8000;

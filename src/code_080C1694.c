@@ -1,5 +1,6 @@
 /* Altair flight, carried-object release and screen exit. */
 #include "code_08009A0.h"
+#include "altair_entity.h"
 #include "code/code_08039340.h"
 extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *);
 
@@ -10,7 +11,7 @@ extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *);
  */
 void Altair_UpdateFlight(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *child = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *child = ALTAIR_CARRIED(entity);
     s32 distance;
     switch (entity->subState)
     {
@@ -18,12 +19,12 @@ void Altair_UpdateFlight(struct EwramData_EntityData *entity)
         if (child != NULL)
         {
             Anim_StartIndexed(entity, 0, 0, 1);
-            entity->unk_4FC.part8.unk_4FC = 0;
+            ALTAIR_FLIGHT_PHASE(entity) = 0;
         }
         else
         {
             Anim_StartIndexed(entity, 1, 0, 1);
-            entity->unk_4FC.part8.unk_4FC = 1;
+            ALTAIR_FLIGHT_PHASE(entity) = 1;
         }
         entity->velX.whole = 0xA000;
         entity->velY.whole = 0;
@@ -42,19 +43,19 @@ void Altair_UpdateFlight(struct EwramData_EntityData *entity)
         {
             if (distance > 0x50)
             {
-                if (!(RandomNumberGenerator() & 0x1F)) entity->unk_500.part8.unk_501 = 1;
+                if (!(RandomNumberGenerator() & 0x1F)) ALTAIR_DROP_READY(entity) = 1;
             }
-            else if (distance < -4) entity->unk_500.part8.unk_501 = 1;
+            else if (distance < -4) ALTAIR_DROP_READY(entity) = 1;
         }
         else
         {
             if (distance < -0x50)
             {
-                if (!(RandomNumberGenerator() & 0x1F)) entity->unk_500.part8.unk_501 = 1;
+                if (!(RandomNumberGenerator() & 0x1F)) ALTAIR_DROP_READY(entity) = 1;
             }
-            else if (distance > 4) entity->unk_500.part8.unk_501 = 1;
+            else if (distance > 4) ALTAIR_DROP_READY(entity) = 1;
         }
-        if ((u8)entity->unk_500.part8.unk_501 == 1 && (u16)(entity->posX.part16.integer - 0x21) <= 0xAE)
+        if ((u8)ALTAIR_DROP_READY(entity) == 1 && (u16)(entity->posX.part16.integer - 0x21) <= 0xAE)
         {
             entity->subState++;
             entity->timer = 0;
@@ -62,7 +63,7 @@ void Altair_UpdateFlight(struct EwramData_EntityData *entity)
         break;
     case 2:
         Anim_StartIndexed(entity, 2, 0, 1);
-        entity->unk_4FC.part8.unk_4FC = 2;
+        ALTAIR_FLIGHT_PHASE(entity) = 2;
         entity->subState++;
         entity->timer = 0;
         /* fall through */
@@ -78,17 +79,17 @@ void Altair_UpdateFlight(struct EwramData_EntityData *entity)
                 child->flipX = entity->flipX;
             }
         }
-        if ((u8)entity->unk_4FC.part8.unk_4FC == 2 && entity->animFrame == 7 && entity->animTimer == 0)
+        if ((u8)ALTAIR_FLIGHT_PHASE(entity) == 2 && entity->animFrame == 7 && entity->animTimer == 0)
         {
             if (child != NULL) child->subState++;
-            entity->unk_500.part8.unk_500 = 0;
+            ALTAIR_CARRYING(entity) = 0;
             entity->subState++;
             entity->timer = 0;
         }
         break;
     case 4:
         Anim_StartIndexed(entity, 1, 0, 1);
-        entity->unk_4FC.part8.unk_4FC = 1;
+        ALTAIR_FLIGHT_PHASE(entity) = 1;
         entity->subState++;
         entity->timer = 0;
         /* fall through */
@@ -106,7 +107,7 @@ void Altair_UpdateFlight(struct EwramData_EntityData *entity)
         {
             struct EwramData_EntityData *attached;
             entity->deleteRequested = 1;
-            attached = entity->unk_4F8.unk_4F8_entity;
+            attached = ALTAIR_CARRIED(entity);
             if (attached != NULL && entity->subState <= 2)
             {
                 attached->state = 0xFF;

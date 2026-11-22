@@ -1,5 +1,6 @@
 /* Chaos_UpdateIdle. */
 #include "code_08009A0.h"
+#include "chaos_entity.h"
 #include "code_08013960.h"
 #include "code_08033CAC.h"
 #include "code_080D73B8.h"
@@ -52,7 +53,7 @@ s32 Chaos_StartSecondForm(struct EwramData_EntityData *core)
 
     core->updateFunc = (u32 *)EnemyChaos2Update;
     data = Heap_Alloc(10);
-    core->unk_504.whole = (s32)data;
+    CHAOS_DATA(core) = (s32)data;
     if (data != NULL)
     {
         if (EnemyChaos2Create(core))
@@ -104,7 +105,7 @@ extern void Chaos_StartPaletteSequence(struct EwramData_EntityData *, void *);
  */
 void Chaos2_UpdateAttack(struct EwramData_EntityData *core)
 {
-    struct Chaos2Data *data = (struct Chaos2Data *)core->unk_504.whole;
+    struct Chaos2Data *data = (struct Chaos2Data *)CHAOS_DATA(core);
 
     switch (core->subState)
     {

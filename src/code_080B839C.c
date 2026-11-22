@@ -1,5 +1,6 @@
 /* Nightmare initialisation and state dispatch. */
 #include "code_08009A0.h"
+#include "nightmare_entity.h"
 #include "code_08001194.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -57,7 +58,7 @@ void EnemyNightmareCreate(struct EwramData_EntityData *entity)
     entity->posY.part16.integer++;
     entity->scrollWithBg = 1;
     entity->state = 0;
-    entity->unk_500.part8.unk_500 = 0x28;
+    NIGHTMARE_RUN_TIMER(entity) = 0x28;
 }
 
 void EnemyNightmareUpdate(struct EwramData_EntityData *entity)
@@ -65,8 +66,8 @@ void EnemyNightmareUpdate(struct EwramData_EntityData *entity)
     u32 box[4];
     s32 enabled = 1;
     struct EwramData_EntityData *effect;
-    entity->unk_504.part16.unk_504 = GetEntityRoomXPositionInteger(entity);
-    entity->unk_504.part16.unk_506[0] = GetEntityRoomYPositionInteger(entity);
+    NIGHTMARE_ROOM_X(entity) = GetEntityRoomXPositionInteger(entity);
+    NIGHTMARE_ROOM_Y(entity) = GetEntityRoomYPositionInteger(entity);
     Entity_HideAboveY(entity, -0x20);
     if (!(entity->enemyFlags & 2))
     {
@@ -89,9 +90,9 @@ void EnemyNightmareUpdate(struct EwramData_EntityData *entity)
     {
     case 0:
         effect = Afterimage_Create(entity, 0, 0xC, 1);
-        if (effect != NULL) entity->unk_4F8.part8.unk_4F8 = effect->unk_4F4.part8.unk_4F4;
+        if (effect != NULL) NIGHTMARE_EFFECT_INDEX_0(entity) = ENTITY_INDEX(effect);
         effect = Afterimage_Create(entity, 0, 6, 0);
-        if (effect != NULL) entity->unk_4F8.part8.unk_4F9 = effect->unk_4F4.part8.unk_4F4;
+        if (effect != NULL) NIGHTMARE_EFFECT_INDEX_1(entity) = ENTITY_INDEX(effect);
         entity->state = 1;
         entity->stage = 0;
         entity->subState = 0;

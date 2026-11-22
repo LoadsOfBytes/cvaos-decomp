@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "blue_soul_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -19,7 +20,7 @@ static inline void FollowParent(struct EwramData_EntityData *entity, struct Ewra
 
 void SkillCagnazzoUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *owner = BLUE_SOUL_OWNER(entity);
 
     u8 state;
 

@@ -1,5 +1,6 @@
 /* Mimic initialization, including the dormant and alternate room-start paths. */
 #include "code_08009A0.h"
+#include "mimic_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -29,8 +30,8 @@ void EnemyMimicCreate(struct EwramData_EntityData *entity)
     else Hit_Enable(entity, 8, Mimic_DamagePlayerOnContact, (s32)Mimic_OnHit);
     if (entity->unk_514.part16.spawnParam0 != 0)
     {
-        entity->unk_4FC.part8.unk_4FC |= 2;
-        entity->unk_4FC.part8.unk_4FD = 0;
+        MIMIC_FLAGS(entity) |= 2;
+        MIMIC_HELD_FRAME(entity) = 0;
         entity->animFrame = 0;
         HitBox_SetBody(entity, &box);
         HitBox_SetAttack(entity, &box);

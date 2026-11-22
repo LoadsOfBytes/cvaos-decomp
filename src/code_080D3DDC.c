@@ -1,6 +1,7 @@
 /* GrahamAttacker_UpdateDeath: matched (plain --x == 0xFF / ++x == 0x20: the QImode 255 mask is shared
    by CSE and spilled to the stack, as in the original). */
 #include "code_08009A0.h"
+#include "graham_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -54,7 +55,7 @@ static inline void SpawnSpark2(struct EwramData_EntityData *entity, s32 dx, s32 
 void GrahamAttacker_UpdateDeath(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *part = &gEwramData->entityData[entity->unk_4F4.part8.unk_4F6];
-    struct EwramData_EntityData *owner = &gEwramData->entityData[entity->unk_4F4.part8.unk_4F5];
+    struct EwramData_EntityData *owner = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
     s16 positions[32][2];
 
     memcpy(positions, sGrahamAttackerPositions, sizeof(positions));
@@ -69,7 +70,7 @@ void GrahamAttacker_UpdateDeath(struct EwramData_EntityData *entity)
         entity->subState++;
         entity->stage = 0;
     case 1:
-        if (!(owner->enemyFlags & 2) || owner == NULL || (owner->unk_4F8.part16.unk_4FA & 0x20))
+        if (!(owner->enemyFlags & 2) || owner == NULL || (GRAHAM_FLAGS(owner) & 0x20))
         {
             entity->subState++;
             entity->stage = 0;

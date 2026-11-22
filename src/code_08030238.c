@@ -2,6 +2,8 @@
  * number goes into its own block variable: a block-local value ties with the
  * shifted bit in local-alloc, as in the target. */
 #include "code_08009A0.h"
+#include "soul_skill_entity.h"
+#include "blue_soul_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -24,7 +26,7 @@ static inline void EndBlueSoul(struct EwramData_EntityData *entity)
 {
     if (entity->affineIndex != 0 || entity->affine)
         ObjAffine_Free(entity->affineIndex);
-    gEwramData->playerState.activeBlueSoulEntities[entity->unk_508.part16.unk_508] = NULL;
+    gEwramData->playerState.activeBlueSoulEntities[BLUE_SOUL_SLOT(entity)] = NULL;
     EntityDelete(entity);
 }
 extern s32 Entity_StepAngleTowardPoint(struct EwramData_EntityData *, s32, s32, s32, s32);
@@ -33,13 +35,13 @@ extern struct EwramData_EntityData *Player_GetSelectedOrNearestTarget(struct Ewr
 static inline void SetVelocity(struct EwramData_EntityData *entity)
 {
     {
-        s32 s = Sin((s16)entity->unk_518.part16.hp + 0x4000);
-        s32 r = entity->unk_500.whole;
+        s32 s = Sin((s16)SKILL_DEATH_SICKLE_HEADING(entity) + 0x4000);
+        s32 r = SKILL_DEATH_SICKLE_SPEED(entity);
         entity->velX.whole = (s >> 8) * (r >> 8);
     }
     {
-        s32 s = Sin((s16)entity->unk_518.part16.hp);
-        s32 r = entity->unk_500.whole;
+        s32 s = Sin((s16)SKILL_DEATH_SICKLE_HEADING(entity));
+        s32 r = SKILL_DEATH_SICKLE_SPEED(entity);
         entity->velY.whole = (s >> 8) * (r >> 8);
     }
 }
@@ -73,26 +75,26 @@ void SkillDeathSickleUpdate(struct EwramData_EntityData *entity)
     {
         s32 r = RandomNumberGenerator();
         s32 one;
-        entity->unk_510.part16.unk_510 = r;
-        entity->unk_518.part16.hp = r;
-        entity->unk_510.part16.unk_512 = 0xF700;
+        SKILL_DEATH_SICKLE_SPIN_ANGLE(entity) = r;
+        SKILL_DEATH_SICKLE_HEADING(entity) = r;
+        SKILL_DEATH_SICKLE_SPIN_SPEED(entity) = 0xF700;
         { s32 r2 = RandomNumberGenerator(); s32 f = r2 & (one = 1); entity->flipX = f; }
         if (*(ENTITY_RENDER_FLAGS_ADDRESS(entity)) & 0x40)
-            entity->unk_510.part16.unk_512 = -entity->unk_510.part16.unk_512;
+            SKILL_DEATH_SICKLE_SPIN_SPEED(entity) = -SKILL_DEATH_SICKLE_SPIN_SPEED(entity);
         PlaySong(0x96);
         entity->state = one;
     }
     case 1:
     {
         s32 r;
-        if (entity->unk_50C.whole <= 0xFFFF)
-            entity->unk_50C.whole += 0x2000;
-        entity->unk_510.part16.unk_510 += entity->unk_510.part16.unk_512;
+        if (SKILL_DEATH_SICKLE_SCALE(entity) <= 0xFFFF)
+            SKILL_DEATH_SICKLE_SCALE(entity) += 0x2000;
+        SKILL_DEATH_SICKLE_SPIN_ANGLE(entity) += SKILL_DEATH_SICKLE_SPIN_SPEED(entity);
         r = Anim_Update(entity);
         if (r != 3)
             break;
-        entity->unk_514.unk_514_32 = Player_GetSelectedOrNearestTarget(entity);
-        if (entity->unk_514.unk_514_32 != NULL)
+        SKILL_DEATH_SICKLE_TARGET(entity) = Player_GetSelectedOrNearestTarget(entity);
+        if (SKILL_DEATH_SICKLE_TARGET(entity) != NULL)
             entity->state = 2;
         else
             entity->state = r;
@@ -106,11 +108,11 @@ void SkillDeathSickleUpdate(struct EwramData_EntityData *entity)
     {
         struct EwramData_EntityData *target;
         s32 timer;
-        if (entity->unk_500.whole <= 0x1FFFF)
-            entity->unk_500.whole += 0x2000;
-        target = entity->unk_514.unk_514_32;
-        entity->unk_518.part16.hp = Entity_StepAngleTowardPoint(entity, target->posX.whole, target->posY.whole, (s16)entity->unk_518.part16.hp, 0x555);
-        entity->unk_510.part16.unk_510 += entity->unk_510.part16.unk_512;
+        if (SKILL_DEATH_SICKLE_SPEED(entity) <= 0x1FFFF)
+            SKILL_DEATH_SICKLE_SPEED(entity) += 0x2000;
+        target = SKILL_DEATH_SICKLE_TARGET(entity);
+        SKILL_DEATH_SICKLE_HEADING(entity) = Entity_StepAngleTowardPoint(entity, target->posX.whole, target->posY.whole, (s16)SKILL_DEATH_SICKLE_HEADING(entity), 0x555);
+        SKILL_DEATH_SICKLE_SPIN_ANGLE(entity) += SKILL_DEATH_SICKLE_SPIN_SPEED(entity);
         SetVelocity(entity);
         EntityAccelerateAndMove(entity, 0x80000);
         timer = entity->timer - 1;
@@ -120,10 +122,10 @@ void SkillDeathSickleUpdate(struct EwramData_EntityData *entity)
         break;
     }
     case 3:
-        if (entity->unk_500.whole <= 0x1FFFF)
-            entity->unk_500.whole += 0x2000;
-        entity->unk_518.part16.hp += entity->unk_510.part16.unk_512 / 16;
-        entity->unk_510.part16.unk_510 += entity->unk_510.part16.unk_512;
+        if (SKILL_DEATH_SICKLE_SPEED(entity) <= 0x1FFFF)
+            SKILL_DEATH_SICKLE_SPEED(entity) += 0x2000;
+        SKILL_DEATH_SICKLE_HEADING(entity) += SKILL_DEATH_SICKLE_SPIN_SPEED(entity) / 16;
+        SKILL_DEATH_SICKLE_SPIN_ANGLE(entity) += SKILL_DEATH_SICKLE_SPIN_SPEED(entity);
         SetVelocity(entity);
         EntityAccelerateAndMove(entity, 0x80000);
         break;
@@ -132,7 +134,7 @@ void SkillDeathSickleUpdate(struct EwramData_EntityData *entity)
         EndBlueSoul(entity);
         return;
     }
-    ObjAffine_Set(entity->unk_510.part16.unk_510, entity->unk_50C.whole, entity->unk_50C.whole, entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set(SKILL_DEATH_SICKLE_SPIN_ANGLE(entity), SKILL_DEATH_SICKLE_SCALE(entity), SKILL_DEATH_SICKLE_SCALE(entity), entity->flipX, 0, entity->affineIndex);
     if (EntityIsOutsideScreen(entity, 1))
         entity->state = 4;
 }

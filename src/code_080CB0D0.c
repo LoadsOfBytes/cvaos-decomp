@@ -1,4 +1,5 @@
 #include "structs/ewram.h"
+#include "beam_skeleton_entity.h"
 
 /**
  * @brief Toggle the stationary beam sprite affine mode from owner scale;
@@ -7,8 +8,8 @@
  */
 void BeamSkeletonBeamSprite_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = &gEwramData->entityData[entity->unk_4F4.part8.unk_4F6];
-    if ((u16)owner->unk_504.part16.unk_504 > 0xFFFE)
+    struct EwramData_EntityData *owner = &gEwramData->entityData[BEAM_OWNER_INDEX(entity)];
+    if ((u16)BEAM_SKELETON_BEAM_LEVEL(owner) > 0xFFFE)
     {
         entity->affine = 0;
         ((u8 *)entity)[0x59] &= 0x7F;
@@ -18,6 +19,6 @@ void BeamSkeletonBeamSprite_Update(struct EwramData_EntityData *entity)
         entity->affine = 1;
         ((u8 *)entity)[0x59] |= 0x80;
     }
-    if (!(owner->unk_4FC.part8.unk_4FE & 1) || owner->hidden)
+    if (!(BEAM_SKELETON_FIRING(owner) & 1) || owner->hidden)
         entity->deleteRequested = 1;
 }

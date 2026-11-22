@@ -1,5 +1,6 @@
 /* Turning attack: three passes, then return to the ordinary state. */
 #include "code_08009A0.h"
+#include "nemesis_entity.h"
 #include "code/code_08039340.h"
 #include "code_080D73B8.h"
 #include "structs/ewram.h"
@@ -9,11 +10,11 @@ extern void Nemesis_UpdateRotatedBoxes(struct EwramData_EntityData *);
 extern void EntitySetVelocityFromAngle(struct EwramData_EntityData *, s32, s32);
 extern void *memcpy(void *, const void *, unsigned long);
 
-#define FLAGS(e) ((e)->unk_4FC.part16.unk_4FC)
+#define FLAGS(e) (NEMESIS_FLAGS((e)))
 #define LEFT(e) ((e)->unk_4F4.part8.unk_4F7)
 
 static inline s16 GetTurn(struct EwramData_EntityData *e)
-{ return e->unk_500.part16.unk_502; }
+{ return NEMESIS_TURN(e); }
 /**
  * @brief Run three table-driven turning passes with translation and affine rotation, then pause and return to positioning state 1.
  */
@@ -30,10 +31,10 @@ void Nemesis_UpdateTurningAttack(struct EwramData_EntityData *entity)
         LEFT(entity) = 3;
         entity->subState++;
     case 1:
-        entity->unk_500.part16.unk_502 = turn[3 - LEFT(entity)];
+        NEMESIS_TURN(entity) = turn[3 - LEFT(entity)];
         if (!(FLAGS(entity) & 2))
-            entity->unk_500.part16.unk_502 = -GetTurn(entity);
-        EntitySetVelocityFromAngle(entity, entity->unk_500.part16.unk_500 + 0x4000, 0x10000);
+            NEMESIS_TURN(entity) = -GetTurn(entity);
+        EntitySetVelocityFromAngle(entity, NEMESIS_ANGLE(entity) + 0x4000, 0x10000);
         entity->timer = 0;
         entity->subState++;
     case 2:
@@ -66,9 +67,9 @@ void Nemesis_UpdateTurningAttack(struct EwramData_EntityData *entity)
                 entity->subState = 1;
             break;
         }
-        entity->unk_500.part16.unk_500 += entity->unk_500.part16.unk_502;
-        ObjAffine_Set(entity->unk_500.part16.unk_500, 0x10000, 0x10000, 0, 0, entity->affineIndex);
-        EntitySetVelocityFromAngle(entity, entity->unk_500.part16.unk_500 + 0x4000, 0x10000);
+        NEMESIS_ANGLE(entity) += NEMESIS_TURN(entity);
+        ObjAffine_Set(NEMESIS_ANGLE(entity), 0x10000, 0x10000, 0, 0, entity->affineIndex);
+        EntitySetVelocityFromAngle(entity, NEMESIS_ANGLE(entity) + 0x4000, 0x10000);
         entity->posX.whole -= entity->velX.whole * 6;
         entity->posY.whole -= entity->velY.whole * 6;
         break;

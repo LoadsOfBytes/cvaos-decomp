@@ -1,5 +1,6 @@
 /* Belmont attached weapon entity and its independent graphics slot. */
 #include "code_08009A0.h"
+#include "belmont_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern struct EwramData_EntityData *Entity_CreateObject(void *);
@@ -25,8 +26,8 @@ s32 Belmont_CreateAttachedWeapon(struct EwramData_EntityData *entity)
     {
             Anim_StartIndexed(weapon,0,0,1);
             Anim_Update(weapon);
-            weapon->unk_4F4.part8.unk_4F5=entity->unk_4F4.part8.unk_4F4;
-            entity->unk_4F4.part8.unk_4F6=weapon->unk_4F4.part8.unk_4F4;
+            ENTITY_PARENT_INDEX(weapon)=ENTITY_INDEX(entity);
+            BELMONT_WEAPON_INDEX(entity)=ENTITY_INDEX(weapon);
             weapon->spriteLayer=entity->spriteLayer+1;
             weapon->flipX=entity->flipX;
             weapon->posX.whole=entity->posX.whole;

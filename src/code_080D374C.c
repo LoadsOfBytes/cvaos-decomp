@@ -1,6 +1,7 @@
 /* Child entity that follows its owner: copies the owner flags and runs a
  * timed rise/wait state machine (wait tables sUnk_08119580..). */
 #include "code_08009A0.h"
+#include "graham_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -21,7 +22,7 @@ extern struct Wait8 sUnk_081195E0;
  */
 void GrahamSidePart_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = &gEwramData->entityData[entity->unk_4F4.part8.unk_4F5];
+    struct EwramData_EntityData *owner = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
     struct Wait16 rise = sUnk_08119580;
     s32 m = 0x10;
     struct Wait8 waitA = sUnk_081195C0;
@@ -44,9 +45,9 @@ void GrahamSidePart_Update(struct EwramData_EntityData *entity)
             return;
         }
         
-        flags = (u16)owner->unk_4F8.part16.unk_4FA;
+        flags = (u16)GRAHAM_FLAGS(owner);
         zero = 0;
-        entity->unk_4F8.part16.unk_4FA = flags;
+        GRAHAM_FLAGS(entity) = flags;
         if ((flags & m) && mode <= 0xDF)
         {
             entity->state = 0xE0;
@@ -80,14 +81,14 @@ void GrahamSidePart_Update(struct EwramData_EntityData *entity)
                 goto wait;
             case 1:
             {
-                if (entity->unk_4FC.part16.unk_4FE[0])
-                    entity->timer = waitA.t[entity->unk_4FC.part16.unk_4FC];
+                if (GRAHAM_PART_SIDE(entity))
+                    entity->timer = waitA.t[GRAHAM_PART_STEP(entity)];
                 else
-                    entity->timer = waitB.t[entity->unk_4FC.part16.unk_4FC];
-                if (++entity->unk_4FC.part16.unk_4FC != 1 && entity->unk_4FC.part16.unk_4FC > 7)
+                    entity->timer = waitB.t[GRAHAM_PART_STEP(entity)];
+                if (++GRAHAM_PART_STEP(entity) != 1 && GRAHAM_PART_STEP(entity) > 7)
                 {
-                    entity->unk_4FC.part16.unk_4FC = 0;
-                    entity->unk_4FC.part16.unk_4FE[0] = 1 - entity->unk_4FC.part16.unk_4FE[0];
+                    GRAHAM_PART_STEP(entity) = 0;
+                    GRAHAM_PART_SIDE(entity) = 1 - GRAHAM_PART_SIDE(entity);
                 }
                 entity->subState++;
                 entity->stage = 0;
@@ -122,14 +123,14 @@ void GrahamSidePart_Update(struct EwramData_EntityData *entity)
                 entity->velY.whole = 0x10000;
                 entity->stage = 0;
                 entity->subState++;
-                entity->unk_500.part16.unk_500 = 16;
+                GRAHAM_PART_FLASH(entity) = 16;
             case 1:
                 entity->timer = rise.t[entity->stage] - 1;
                 entity->subState++;
             case 2:
-                if (entity->unk_500.part16.unk_500)
+                if (GRAHAM_PART_FLASH(entity))
                 {
-                    if ((s16)(entity->unk_500.part16.unk_500 % 3) == 0)
+                    if ((s16)(GRAHAM_PART_FLASH(entity) % 3) == 0)
                     {
                         dx = -0x380000;
                         if (!entity->flipX)
@@ -144,14 +145,14 @@ void GrahamSidePart_Update(struct EwramData_EntityData *entity)
                         y += r & 0x7FFFF;
                         Effect_CreateFromTable(x, y, 0, -0x2000, 4, 9);
                     }
-                    entity->unk_500.part16.unk_500--;
+                    GRAHAM_PART_FLASH(entity)--;
                 }
                 if (--entity->timer == 0xFF)
                 {
                     entity->posY.whole += entity->velY.whole;
                     if ((u8)++entity->stage == m)
                     {
-                        entity->unk_500.part16.unk_500 = 0;
+                        GRAHAM_PART_FLASH(entity) = 0;
                         if (entity->animScriptIndex)
                             Anim_StartIndexed(entity, 0, 0, 1);
                         entity->state = 1;
@@ -169,7 +170,7 @@ void GrahamSidePart_Update(struct EwramData_EntityData *entity)
             }
             break;
         case 0xE0:
-            if (entity->unk_4F8.part16.unk_4FA & 0x20)
+            if (GRAHAM_FLAGS(entity) & 0x20)
                 entity->objMode = 1;
             return;
         }

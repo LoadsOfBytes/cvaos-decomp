@@ -2,6 +2,7 @@
  * The r6 visibility pointer preserves agbcc's field-pointer allocation.
  * This constraint does not establish original source spelling. */
 #include "code_08009A0.h"
+#include "white_dragon_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 #include "structs/entity_render_flags.h"
@@ -9,7 +10,7 @@ extern void WhiteDragon_SpawnSpark(struct EwramData_EntityData *,s32,s32,s32);
 extern void WhiteDragon_SpawnDeathPiece(struct EwramData_EntityData *,s32,s32,s32);
 extern s32 Enemy_IsStunnedNoFlash(struct EwramData_EntityData *);
 #define STATE_WORD(e) (*(u16 *)&(e)->state)
-#define SEGMENT(e) (*(s8 *)&(e)->unk_500.part8.unk_500)
+#define SEGMENT(e) (*(s8 *)&WHITE_DRAGON_SEGMENT_INDEX((e)))
 struct SegmentFlags { u8 slot:5; u8 hidden:1; u8 flipX:1; u8 flipY:1; };
 /**
  * @brief Neck segment update: copy the owner's (type 11) visibility and palette,
@@ -17,7 +18,7 @@ struct SegmentFlags { u8 slot:5; u8 hidden:1; u8 flipX:1; u8 flipY:1; };
  */
 void WhiteDragonSegment_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
     if (owner && owner->updateFunc && owner->unk_518.part8.enemyId==11)
     {
         struct SegmentFlags *visibility;

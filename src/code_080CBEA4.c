@@ -1,5 +1,6 @@
 ﻿/* Buer death: shaking head, slowing rotation, smoke and final fragments. */
 #include "code_080D73B8.h"
+#include "wheel_enemy_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 #include <string.h>
@@ -9,17 +10,17 @@ extern s32 Entity_Walk(struct EwramData_EntityData *entity,s32 speed,void *profi
 extern void Buer_MoveAndRotate(struct EwramData_EntityData *entity,s32 mode);
 extern s16 sBuerWalkProfile[];
 extern s16 sBuerPositions[8][2];
-#define SPEED(e) ((e)->unk_4FC.whole)
-#define ANGLE(e) ((e)->unk_4F8.whole)
-#define SHAKE_X(e) ((e)->unk_4F8.bytes[0])
-#define SHAKE_Y(e) ((e)->unk_4F8.bytes[1])
+#define SPEED(e) (WHEEL_SPEED((e)))
+#define ANGLE(e) (WHEEL_ANGLE((e)))
+#define SHAKE_X(e) (WHEEL_SHAKE((e))[0])
+#define SHAKE_Y(e) (WHEEL_SHAKE((e))[1])
 
 /**
  * @brief Shake the linked head, slow rotation, emit effects, delete the head, then free the affine slot after the final fragment burst.
  */
 void Buer_UpdateDeath(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *part = &gEwramData->entityData[entity->unk_4F4.part8.unk_4F5];
+    struct EwramData_EntityData *part = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
     s32 oldX = entity->posX.whole;
     s32 oldY = entity->posY.whole;
     switch (entity->subState)

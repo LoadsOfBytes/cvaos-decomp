@@ -5,6 +5,13 @@
 #include "code_080D73B8.h"
 #include "code_08001194.h"
 
+/*
+ * Sprite debris (Effect_UpdateSpriteDebris): pixel offset of its ground probe
+ * from the position. Token-identical expansion.
+ */
+#define SPRITE_DEBRIS_PROBE_X(e) e->unk_4FC.part16.unk_4FC
+#define SPRITE_DEBRIS_PROBE_Y(e) e->unk_4FC.part16.unk_4FE[0]
+
 extern void Sprite_GetPartCenterOffset(struct EwramData_EntityData *, s32, s16 *);
 extern s32 RandomSigned(s32);
 extern s32 Entity_IsInRect(struct EwramData_EntityData *, s16, s16, u16, u16);
@@ -45,18 +52,18 @@ void Effect_UpdateSpriteDebris(struct EwramData_EntityData *entity)
     {
         s16 *point = offset;
         Sprite_GetPartCenterOffset(entity, 0, point);
-        entity->unk_4FC.part16.unk_4FC = offset[0];
-        entity->unk_4FC.part16.unk_4FE[0] = point[1] + 4;
+        SPRITE_DEBRIS_PROBE_X(entity) = offset[0];
+        SPRITE_DEBRIS_PROBE_Y(entity) = point[1] + 4;
     }
     {
         s32 x = (s16)entity->posX.part16.integer;
         struct BgLayerState *background = &gEwramData->bgInfo[1];
-        if ((s16)Collision_GetGroundOffset(x + (s16)background->xPos.part16.integer + entity->unk_4FC.part16.unk_4FC,
-                             entity->posY.part16.integer + (s16)background->yPos.part16.integer + entity->unk_4FC.part16.unk_4FE[0]))
+        if ((s16)Collision_GetGroundOffset(x + (s16)background->xPos.part16.integer + SPRITE_DEBRIS_PROBE_X(entity),
+                             entity->posY.part16.integer + (s16)background->yPos.part16.integer + SPRITE_DEBRIS_PROBE_Y(entity)))
         {
             struct EwramData_EntityData *particle = Effect_SpawnShared(
-                entity->posX.whole + (entity->unk_4FC.part16.unk_4FC << 16),
-                entity->posY.whole + (entity->unk_4FC.part16.unk_4FE[0] << 16) - 0x40000, 4, 6);
+                entity->posX.whole + (SPRITE_DEBRIS_PROBE_X(entity) << 16),
+                entity->posY.whole + (SPRITE_DEBRIS_PROBE_Y(entity) << 16) - 0x40000, 4, 6);
             if (particle != NULL)
             {
                 s32 random;

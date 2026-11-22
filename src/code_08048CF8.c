@@ -117,7 +117,7 @@ void SoulMenu_Open(struct EwramData_EntityData *entity)
         tile += 0x10;
     }
     SoulMenu_DrawEquippedNames(entity);
-    SoulMenu_DrawList(entity, entity->unk_4F8.bytes[1]);
+    SoulMenu_DrawList(entity, MENU_PAGE_BYTES(entity)[1]);
     SoulMenu_PrintEquippedName(entity);
     SoulMenu_DrawEquippedSoulValue(entity);
 }
@@ -165,7 +165,7 @@ s32 SoulMenu_Update(struct EwramData_EntityData *entity)
                 SoulMenu_ShowSelection(entity);
                 SoulMenu_DrawSelectedSoulValue(entity);
                 Cursor_SetTilePosition((MENU_PAGE_CURSOR(entity) & 1) ? 0x10 : 2,
-                             ((entity->unk_4F8.bytes[1] - entity->unk_4F8.bytes[2]) >> 1) + 10);
+                             ((MENU_PAGE_BYTES(entity)[1] - MENU_PAGE_BYTES(entity)[2]) >> 1) + 10);
             }
             else if (pressed & KEY_B)
             {
@@ -188,13 +188,13 @@ s32 SoulMenu_Update(struct EwramData_EntityData *entity)
                 else if (repeated & KEY_DOWN)
                 {
                     MENU_PAGE_CURSOR(entity)++;
-                    if (entity->unk_4F8.bytes[1] > entity->unk_4F8.bytes[0] - 1)
+                    if (MENU_PAGE_BYTES(entity)[1] > MENU_PAGE_BYTES(entity)[0] - 1)
                         MENU_PAGE_CURSOR(entity) = dir;
                     dir = 1;
                 }
                 SoulTypeSelector_SetDirection(&gEwramData->entityData[21], dir);
                 SoulMenu_DrawEquippedNames(entity);
-                SoulMenu_DrawList(entity, entity->unk_4F8.bytes[1]);
+                SoulMenu_DrawList(entity, MENU_PAGE_BYTES(entity)[1]);
                 SoulMenu_PrintEquippedName(entity);
                 SoulMenu_DrawEquippedSoulValue(entity);
                 PlaySong(0xF1);
@@ -231,14 +231,14 @@ s32 SoulMenu_Update(struct EwramData_EntityData *entity)
             }
             else
             {
-                s32 row = entity->unk_4F8.bytes[1];
+                s32 row = MENU_PAGE_BYTES(entity)[1];
                 u8 last = MENU_PAGE_ITEM(entity);
-                s32 top = entity->unk_4F8.bytes[2];
+                s32 top = MENU_PAGE_BYTES(entity)[2];
 
-                if (MenuGrid_MoveCursor(entity, repeated) != 0 && row != entity->unk_4F8.bytes[1])
+                if (MenuGrid_MoveCursor(entity, repeated) != 0 && row != MENU_PAGE_BYTES(entity)[1])
                 {
                     PlaySong(0xF1);
-                    if (top != entity->unk_4F8.bytes[2])
+                    if (top != MENU_PAGE_BYTES(entity)[2])
                         SoulMenu_DrawList(entity, MENU_PAGE_CATEGORY(entity));
                     else
                         SoulMenu_CountList(entity, MENU_PAGE_CATEGORY(entity));
@@ -247,7 +247,7 @@ s32 SoulMenu_Update(struct EwramData_EntityData *entity)
                         SoulMenu_ShowSelection(entity);
                         SoulMenu_DrawSelectedSoulValue(entity);
                         Cursor_SetTilePosition((MENU_PAGE_CURSOR(entity) & 1) ? 0x10 : 2,
-                                     ((entity->unk_4F8.bytes[1] - entity->unk_4F8.bytes[2]) >> 1) + 10);
+                                     ((MENU_PAGE_BYTES(entity)[1] - MENU_PAGE_BYTES(entity)[2]) >> 1) + 10);
                     }
                 }
                 Cursor_Draw();
@@ -319,20 +319,20 @@ void SoulMenu_CountList(struct EwramData_EntityData *entity, s32 kind)
             break;
     }
 
-    if (entity->unk_4F8.bytes[2] == 0)
+    if (MENU_PAGE_BYTES(entity)[2] == 0)
         shown = 1;
     else
         shown = 0;
     pos = 1;
     MENU_PAGE_ITEM(entity) = 0;
 
-    for (i = 0; pos < entity->unk_4F8.bytes[2] && i < n; i++)
+    for (i = 0; pos < MENU_PAGE_BYTES(entity)[2] && i < n; i++)
     {
         if (equipped[i] != 0xFF && SoulInventory_GetSoulTotal(type, equipped[i] - 1))
             pos++;
     }
 
-    for (soul = 1; pos < entity->unk_4F8.bytes[2] && soul < max; soul++)
+    for (soul = 1; pos < MENU_PAGE_BYTES(entity)[2] && soul < max; soul++)
     {
         if (SoulInventory_GetSoulTotal(type, soul - 1))
         {
@@ -351,7 +351,7 @@ void SoulMenu_CountList(struct EwramData_EntityData *entity, s32 kind)
     {
         if (equipped[i] != 0xFF && SoulInventory_GetSoulTotal(type, equipped[i] - 1))
         {
-            if (pos == entity->unk_4F8.bytes[1])
+            if (pos == MENU_PAGE_BYTES(entity)[1])
                 MENU_PAGE_ITEM(entity) = equipped[i];
             pos++;
             shown++;
@@ -373,7 +373,7 @@ void SoulMenu_CountList(struct EwramData_EntityData *entity, s32 kind)
             }
             if (!dup)
             {
-                if (pos == entity->unk_4F8.bytes[1])
+                if (pos == MENU_PAGE_BYTES(entity)[1])
                     MENU_PAGE_ITEM(entity) = soul;
                 pos++;
                 shown++;

@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "skeleton_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -20,7 +21,7 @@ static inline u8 BelowScreen(struct EwramData_EntityData *entity)
  */
 void SkeletonDeathPiece_UpdateUnused(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = &gEwramData->entityData[(u8)entity->unk_4F8.part8.unk_4F8];
+    struct EwramData_EntityData *owner = &gEwramData->entityData[(u8)SKELETON_PIECE_OWNER_INDEX(entity)];
     s32 x, graphics, reason, below;
     switch (entity->state)
     {
@@ -35,13 +36,13 @@ void SkeletonDeathPiece_UpdateUnused(struct EwramData_EntityData *entity)
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         entity->posX.whole = owner->posX.whole;
         entity->posY.whole = owner->posY.whole;
-        x = sSkeletonDeathPieceOffsets[entity->unk_4F4.part8.unk_4F5][0];
-        entity->posY.part16.integer += sSkeletonDeathPieceOffsets[entity->unk_4F4.part8.unk_4F5][1];
+        x = sSkeletonDeathPieceOffsets[SKELETON_PIECE_INDEX(entity)][0];
+        entity->posY.part16.integer += sSkeletonDeathPieceOffsets[SKELETON_PIECE_INDEX(entity)][1];
         entity->posY.part16.integer += 16;
-        entity->animFrame = sSkeletonDeathPieceOffsets[entity->unk_4F4.part8.unk_4F5][2];
-        entity->velX.whole = (u8)sSkeletonDeathPieceOffsets[entity->unk_4F4.part8.unk_4F5][3] << 12;
-        entity->velY.whole = -(sSkeletonDeathPieceOffsets[entity->unk_4F4.part8.unk_4F5][4] << 12) - 16;
-        entity->timer = sSkeletonDeathPieceOffsets[entity->unk_4F4.part8.unk_4F5][5];
+        entity->animFrame = sSkeletonDeathPieceOffsets[SKELETON_PIECE_INDEX(entity)][2];
+        entity->velX.whole = (u8)sSkeletonDeathPieceOffsets[SKELETON_PIECE_INDEX(entity)][3] << 12;
+        entity->velY.whole = -(sSkeletonDeathPieceOffsets[SKELETON_PIECE_INDEX(entity)][4] << 12) - 16;
+        entity->timer = sSkeletonDeathPieceOffsets[SKELETON_PIECE_INDEX(entity)][5];
         entity->flipX = owner->flipX;
         if (Entity_GetTargetDirection(owner) > 0)
         {
@@ -57,7 +58,7 @@ void SkeletonDeathPiece_UpdateUnused(struct EwramData_EntityData *entity)
         if (below) reason = 2;
         if (reason != 0)
         {
-            owner->unk_4FC.part8.unk_4FC--;
+            SKELETON_DEATH_PIECES(owner)--;
             entity->deleteRequested = 1;
         }
         break;

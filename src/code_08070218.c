@@ -9,6 +9,7 @@
  * - `distance` is reused for the collision flags of Entity_MoveWithBoxCollision; the longer
  *   live range moves it to r5 and velocityX to r4. */
 #include "code_08009A0.h"
+#include "killer_fish_entity.h"
 #include "syscalls.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -24,9 +25,9 @@ extern s32 Target_GetY(struct EwramData_EntityData *);
 extern s32 Tile_Classify(s16, s16);
 extern s32 Entity_GetVisibilityPattern(s32);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-#define FLAG_A(e) ((e)->unk_4FC.part8.unk_4FC)
-#define FLAG_B(e) (*(s8 *)&(e)->unk_4FC.part8.unk_4FD)
-#define TIMER(e) ((e)->unk_4F8.whole)
+#define SCATTER(e) (KILLER_FISH_SWARM_SCATTER((e)))
+#define OWNER_LOST(e) (*(s8 *)&KILLER_FISH_SWARM_OWNER_LOST((e)))
+#define STEER_TIMER(e) (KILLER_FISH_SWARM_STEER_TIMER((e)))
 #define ROOM_X(e) ((s16)(camera->xPos.part16.integer + Target_GetPixelX(e)))
 #define ROOM_Y(e) ((s16)(camera->yPos.part16.integer + Target_GetPixelY(e)))
 
@@ -50,7 +51,7 @@ static inline s32 CoordinateDelta(s32 target, s32 base)
  */
 void KillerFishSwarm_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = entity->unk_4F4.unk_4F4_entity;
+    struct EwramData_EntityData *owner = ENTITY_CREATOR(entity);
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
     u32 bounds[4];
     s32 targetX, targetY, dx, dy, velocityX, velocityY;
@@ -65,9 +66,9 @@ void KillerFishSwarm_Update(struct EwramData_EntityData *entity)
     else entity->hidden = 0;
     if (owner && owner->updateFunc && owner->unk_518.part8.enemyId == 7)
     {
-        if (owner->state == 4) FLAG_A(entity) = 1;
+        if (owner->state == 4) SCATTER(entity) = 1;
         if ((s16)owner->unk_518.part16.hp <= 0 || entity->unk_518.part8.spawnIndex != owner->unk_518.part8.spawnIndex)
-            FLAG_B(entity) = 1;
+            OWNER_LOST(entity) = 1;
     }
     if (entity->state != 2 && gEwramData->gameState.timeStopTimer)
     {
@@ -83,20 +84,20 @@ restart:
         entity->velY.whole = 0;
         entity->accelX.whole = 0;
         entity->accelY.whole = 0;
-        TIMER(entity) = 0;
+        STEER_TIMER(entity) = 0;
         entity->subState = 0;
         /* fall through */
     case 1:
     case 4:
-        if (FLAG_A(entity) == 1 || FLAG_B(entity) == 1)
+        if (SCATTER(entity) == 1 || OWNER_LOST(entity) == 1)
         {
             entity->state = 3;
             entity->subState = 0;
             goto restart;
         }
-        if (--TIMER(entity) <= 0)
+        if (--STEER_TIMER(entity) <= 0)
         {
-            TIMER(entity) = RandomNumberGenerator() % 20 + 20;
+            STEER_TIMER(entity) = RandomNumberGenerator() % 20 + 20;
             {
                 s32 random = RandomNumberGenerator();
                 s32 base = owner->posX.whole;
@@ -151,9 +152,9 @@ restart:
         switch (entity->subState)
         {
         case 0:
-            entity->unk_500.whole = 0;
+            KILLER_FISH_SWARM_BIT_PLAYER(entity) = 0;
             entity->subState++;
-            TIMER(entity) = 0;
+            STEER_TIMER(entity) = 0;
             entity->velX.whole = 0;
             entity->velY.whole = 0;
             entity->accelX.whole = 0;
@@ -161,10 +162,10 @@ restart:
             entity->timer = 0;
             /* fall through */
         case 1:
-            if (--TIMER(entity) <= 0)
+            if (--STEER_TIMER(entity) <= 0)
             {
                 entity->timer++;
-                TIMER(entity) = RandomNumberGenerator() % 20 + 20;
+                STEER_TIMER(entity) = RandomNumberGenerator() % 20 + 20;
                 targetX = 0;
                 if (gEwramData->playerState.enemyTarget)
                 {
@@ -186,7 +187,7 @@ restart:
                         }
                     }
                 }
-                if (!targetX || FLAG_A(entity) == 1)
+                if (!targetX || SCATTER(entity) == 1)
                 {
                     s32 random = RandomNumberGenerator() & 0xFFFFF;
                     { s32 base = entity->posX.whole; base -= 0x80000; targetX = random + base; }
@@ -215,7 +216,7 @@ restart:
                 entity->velY.whole = distance;
             }
             if (entity->timer > 5) entity->state = 4;
-            if (entity->unk_500.whole) entity->state = 4;
+            if (KILLER_FISH_SWARM_BIT_PLAYER(entity)) entity->state = 4;
             Hit_CheckWithPlayer(bounds, entity);
             break;
         }

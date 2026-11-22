@@ -1,5 +1,6 @@
 /* Object36_FloorCorrection: landing depth of a point on top of a round object; matched. */
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "syscalls.h"
 #include "structs/ewram.h"
 #define TO_PIXELS(d) ((d) < 0 ? -(-(d) >> 16) : (d) >> 16)
@@ -49,7 +50,7 @@ s16 Object36_FloorCorrection(struct EwramData_EntityData *entity, u16 tx, u16 ty
     dy = ey - sy;
     if (dx < 0)
         dx = -dx;
-    r = (s16)entity->unk_4FC.part16.unk_4FC;
+    r = (s16)OBJECT36_RADIUS(entity);
     if (dx > r - 6)
         return 0;
     if (dist < r - 8)

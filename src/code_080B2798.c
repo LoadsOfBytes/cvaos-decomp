@@ -5,6 +5,12 @@
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
 
+/*
+ * Rock Armor rock (RockArmorRock_Update): 16.16 walk speed (from the target
+ * distance; reversed on a bounce). Token-identical expansion.
+ */
+#define ROCK_ARMOR_ROCK_SPEED(e) e->unk_4FC.whole
+
 void PlaySong(u32 song);
 extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, void *graphics, void *sprite, u8 palette, void *paletteData);
@@ -46,17 +52,17 @@ void RockArmorRock_Update(struct EwramData_EntityData *entity)
         box = 0x2020F0F0;
         HitBox_SetAttackRaw(entity, box);
         HitBox_SetBodyRaw(entity, box);
-        entity->unk_4FC.whole = -0x2000 - (Entity_GetTargetDistance(entity) << 10);
+        ROCK_ARMOR_ROCK_SPEED(entity) = -0x2000 - (Entity_GetTargetDistance(entity) << 10);
         entity->posY.whole += -0x3A0000;
         if (entity->flipX)
-            entity->unk_4FC.whole = -entity->unk_4FC.whole;
+            ROCK_ARMOR_ROCK_SPEED(entity) = -ROCK_ARMOR_ROCK_SPEED(entity);
         entity->velY.whole = -0x20000;
         entity->accelY.whole = 0x2000;
         entity->attack += entity->attack >> 2;
         entity->scrollWithBg = 1;
         entity->state = 1;
     case 1:
-        if (Entity_Walk(entity, entity->unk_4FC.whole, (void *)0x08528738, 2))
+        if (Entity_Walk(entity, ROCK_ARMOR_ROCK_SPEED(entity), (void *)0x08528738, 2))
             entity->state = 2;
         break;
     case 2:

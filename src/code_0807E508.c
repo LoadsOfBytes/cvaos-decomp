@@ -1,5 +1,6 @@
 /* Golem create: allocates the 11-joint skeleton and one part entity per joint. */
 #include "code_08009A0.h"
+#include "golem_entity.h"
 #include "joint_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -95,7 +96,7 @@ void EnemyGolemCreate(struct EwramData_EntityData *entity)
         part->hidden = 0;
         part->attack = entity->attack;
         part->drawFunc = (u32 *)Sprite_DrawEntity;
-        part->unk_500.unk_500_entity = entity;
+        JOINT_PART_OWNER(part) = entity;
         JOINT_PART_INDEX(part) = index;
         JOINT_PART_ANCHOR(part) = anchors[index];
         part->posX.whole = entity->posX.whole;
@@ -192,5 +193,5 @@ void EnemyGolemCreate(struct EwramData_EntityData *entity)
     default:
         return;
     }
-    entity->unk_508.whole = kindIndex;
+    GOLEM_VARIANT(entity) = kindIndex;
 }

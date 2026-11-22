@@ -1,5 +1,7 @@
 /* Big Golem damage and contact callbacks. */
 #include "code_08009A0.h"
+#include "big_golem_entity.h"
+#include "joint_entity.h"
 #include "code_080D73B8.h"
 #include "code_08033CAC.h"
 #include "code/code_080211F0.h"
@@ -16,9 +18,9 @@ void BigGolem_OnDamaged(struct EwramData_EntityData *entity, s32 attacker, u16 *
 {
     entity->unk_510.part8.hitFlashTimer = 8;
     entity->unk_518.part16.hp -= damage;
-    if ((s8)entity->unk_4FC.part8.unk_4FD < 10)
-        entity->unk_4FC.part8.unk_4FD++;
-    entity->unk_4FC.part8.unk_4FE = 1;
+    if ((s8)BIG_GOLEM_HIT_COUNT(entity) < 10)
+        BIG_GOLEM_HIT_COUNT(entity)++;
+    BIG_GOLEM_HIT(entity) = 1;
     if ((s16)entity->unk_518.part16.hp <= 0)
     {
         Enemy_DropRewards(entity);
@@ -42,7 +44,7 @@ void BigGolem_OnDamaged(struct EwramData_EntityData *entity, s32 attacker, u16 *
 void BigGolemPart_OnContact(struct EwramData_EntityData *entity)
 {
     struct PlayerContactDamage contact;
-    struct EwramData_EntityData *parent = entity->unk_500.unk_500_entity;
+    struct EwramData_EntityData *parent = JOINT_PART_OWNER(entity);
     contact.attack = entity->attack;
     contact.attributes = 0;
     contact.unk_4 = 0;

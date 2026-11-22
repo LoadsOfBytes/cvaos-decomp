@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "event_scene03.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -17,7 +18,7 @@ struct EwramData_EntityData *EventScene03_SpawnTargetOrb(s32 x, s32 y, s32 varia
     if (entity != NULL)
     {
         s32 graphics, targetX, offset;
-        entity->unk_508.unk_508_entity = target;
+        EVENT03_ORB_TARGET(entity) = target;
         entity->spriteLayer = 0x13;
         graphics = ObjGfx_Find(sCommonObjectGfx);
         Sprite_Attach(entity, sCommonObjectSpriteSheet, graphics, 6);
@@ -33,9 +34,9 @@ struct EwramData_EntityData *EventScene03_SpawnTargetOrb(s32 x, s32 y, s32 varia
         entity->scrollWithBg = 1;
         targetX = target->posX.whole;
         offset = ((RandomNumberGenerator() & 0x7F) << 12) + 0x80000;
-        entity->unk_4FC.whole = (Entity_AngleToPoint(entity, targetX, target->posY.whole - offset) + 0x8000) & 0xFFFF;
-        entity->unk_500.whole = 0;
-        entity->unk_504.whole = 0x30000;
+        EVENT03_ORB_HEADING(entity) = (Entity_AngleToPoint(entity, targetX, target->posY.whole - offset) + 0x8000) & 0xFFFF;
+        EVENT03_ORB_TURN_RATE(entity) = 0;
+        EVENT03_ORB_SPEED(entity) = 0x30000;
         entity->unk_518.part8.enemyId = variant + 5;
         entity->unk_514.part16.spawnParam1 = index;
         entity->timer = 200;

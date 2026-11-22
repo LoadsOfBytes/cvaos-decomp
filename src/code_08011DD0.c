@@ -17,6 +17,15 @@
 #include "agb_sram.h"
 #include "syscalls.h"
 
+/*
+ * Item icon entities (ItemIconEntity_Update, ItemIcon_AttachSprite /
+ * _Free): item id, palette and the itemIconIds cache slot it uses.
+ * Token-identical expansion.
+ */
+#define ITEM_ICON_ID(e) e->unk_4F8.part8.unk_4F8
+#define ITEM_ICON_PALETTE(e) e->unk_4F8.part8.unk_4F9
+#define ITEM_ICON_SLOT(e) e->unk_4F4.part8.unk_4F4
+
 #include "constants/main.h"
 
 #include "data/data_0E0334.h"
@@ -451,15 +460,15 @@ void ItemIconEntity_Update(struct EwramData_EntityData *entity)
         case 0:
             entity->drawFunc = (u32 *) Sprite_DrawEntity;
             entity->spriteLayer = 13;
-            entity->unk_4F8.part8.unk_4F9 = 6;
+            ITEM_ICON_PALETTE(entity) = 6;
             /* fallthrough */
         case 1:
             gEwramData->itemIconCacheFlags &= ~2;
-            slot = ItemIconCache_Load(entity->unk_4F8.part8.unk_4F8);
-            palette = (s8)entity->unk_4F8.part8.unk_4F9;
+            slot = ItemIconCache_Load(ITEM_ICON_ID(entity));
+            palette = (s8)ITEM_ICON_PALETTE(entity);
             if (slot < 8)
             {
-                entity->unk_4F4.part8.unk_4F4 = slot;
+                ITEM_ICON_SLOT(entity) = slot;
                 Sprite_Attach(entity, (u8*)&sItemIconSpriteSheet[slot], gEwramData->itemIconGfxEntry, palette);
                 entity->animFrame = 0;
             }
@@ -468,7 +477,7 @@ void ItemIconEntity_Update(struct EwramData_EntityData *entity)
             break;
 
         case 3:
-            gEwramData->itemIconIds[(s8)entity->unk_4F4.part8.unk_4F4] = 0;
+            gEwramData->itemIconIds[(s8)ITEM_ICON_SLOT(entity)] = 0;
             Sprite_Free(entity, 0);
             /* fallthrough */
         case 2:
@@ -497,7 +506,7 @@ s32 ItemIcon_AttachSprite(struct EwramData_EntityData *entity, u32 slot, s32 pal
     if (slot >= 8)
         return 0;
 
-    entity->unk_4F4.part8.unk_4F4 = slot;
+    ITEM_ICON_SLOT(entity) = slot;
     result = Sprite_Attach(entity, (u8*)&sItemIconSpriteSheet[slot], gEwramData->itemIconGfxEntry, palette);
     entity->animFrame = 0;
     return result;
@@ -512,7 +521,7 @@ void ItemIcon_Free(struct EwramData_EntityData *entity, s32 release)
     // TODO: inline for ItemIconEntity_Update?
     if (release != 0)
     {
-        gEwramData->itemIconIds[(s8)entity->unk_4F4.part8.unk_4F4] = 0;
+        gEwramData->itemIconIds[(s8)ITEM_ICON_SLOT(entity)] = 0;
     }
     Sprite_Free(entity, 0);
 }

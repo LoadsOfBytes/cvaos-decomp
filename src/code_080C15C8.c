@@ -1,5 +1,6 @@
 /* Altair creation, update, graphics setup and hit response. */
 #include "code_08009A0.h"
+#include "altair_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -33,7 +34,7 @@ extern void EnemyAltairCreate(struct EwramData_EntityData *);
 void EnemyAltairUpdate(struct EwramData_EntityData *entity)
 {
     u32 box[4];
-    struct EwramData_EntityData *child = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *child = ALTAIR_CARRIED(entity);
     struct EwramData_EntityData *parent;
     if (entity->state == 4)
     {
@@ -63,8 +64,8 @@ hit:
     if (entity->state != 2) Hit_CheckWithPlayer(box, entity);
     if (entity->deleteRequested)
     {
-        parent = entity->unk_504.unk_504_entity;
-        if (parent != NULL && parent->updateFunc != NULL && parent->unk_518.part8.enemyId == 0x2C && parent->unk_500.part16.unk_502 != 0)
-            parent->unk_500.part16.unk_502--;
+        parent = ALTAIR_SPAWNER(entity);
+        if (parent != NULL && parent->updateFunc != NULL && parent->unk_518.part8.enemyId == 0x2C && ALTAIR_SPAWN_COUNT(parent) != 0)
+            ALTAIR_SPAWN_COUNT(parent)--;
     }
 }

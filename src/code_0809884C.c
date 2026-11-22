@@ -47,7 +47,7 @@ void CreakingSkull_SpawnProjectile(struct EwramData_EntityData *owner, s32 x, s3
         entity->hit.flags &= 0xFD;
         entity->scrollWithBg = 1;
         entity->spriteLayer = owner->spriteLayer - 1;
-        entity->unk_4F8.unk_4F8_entity = owner;
+        ENTITY_OWNER(entity) = owner;
         entity->posX.whole = owner->posX.whole + x;
         entity->posY.whole = owner->posY.whole + y;
         entity->velX.whole = vx;

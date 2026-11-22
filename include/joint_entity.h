@@ -20,4 +20,17 @@
 #define JOINT_PART_INDEX(e) e->unk_504.part8.unk_504
 #define JOINT_PART_ANCHOR(e) e->unk_504.part8.unk_505
 
+/*
+ * Part owner: every part entity points back to its owner (set by the owner's
+ * create function).
+ */
+#define JOINT_PART_OWNER(e) e->unk_500.unk_500_entity
+
+/*
+ * Attack phase: reset to 0 when a swing / attack step starts (Great Armor,
+ * Creaking Skull, Big Golem); only the Golem also sets it to 1 when the punch
+ * lands and reads it in its segments (GOLEM_ATTACK_PHASE, same byte).
+ */
+#define JOINT_ATTACK_PHASE(e) e->unk_4FC.part8.unk_4FC
+
 #endif /* JOINT_ENTITY_H */

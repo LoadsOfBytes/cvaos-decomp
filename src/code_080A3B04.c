@@ -1,5 +1,6 @@
 /* ChaosSoulShot_Update: Chaos soul shot update (created by ChaosOrb_SpawnSoulShot). */
 #include "code_08009A0.h"
+#include "chaos_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -18,9 +19,9 @@ extern void Afterimage_Create(struct EwramData_EntityData *, s32, s32, s32);
 extern s32 Entity_AimVelocityAtPoint(struct EwramData_EntityData *, s32, s32, s32);
 extern void ChaosSoulShot_DamagePlayerOnContact(struct EwramData_EntityData *);
 
-#define OFFSET_X(e) ((e)->unk_4F8.whole)
-#define OFFSET_Y(e) ((e)->unk_4FC.whole)
-#define SPREAD(e) ((e)->unk_504.whole)
+#define OFFSET_X(e) (CHAOS_OFFSET_X((e)))
+#define OFFSET_Y(e) (CHAOS_OFFSET_Y((e)))
+#define SPREAD(e) (CHAOS_SHOT_SPREAD((e)))
 
 
 /**
@@ -30,7 +31,7 @@ extern void ChaosSoulShot_DamagePlayerOnContact(struct EwramData_EntityData *);
 void ChaosSoulShot_Update(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
-    struct EwramData_EntityData *orb = entity->unk_4F4.unk_4F4_entity;
+    struct EwramData_EntityData *orb = CHAOS_LINK(entity);
     struct EwramData *ewram = gEwramData;
     struct BgLayerState *camera = &ewram->bgInfo[1];
     s32 x, y;
@@ -138,7 +139,7 @@ void ChaosSoulShot_Update(struct EwramData_EntityData *entity)
             entity->posY.whole = orb->posY.whole;
             if (entity->animDone)
             {
-                orb->unk_504.part8.unk_507 = 1;
+                CHAOS_ORB_SHOT_DONE(orb) = 1;
                 EntityDelete(entity);
                 return;
             }

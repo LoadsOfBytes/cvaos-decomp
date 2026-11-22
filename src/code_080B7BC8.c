@@ -1,5 +1,6 @@
 /* Attack and death states shared by Skull Millione, Cagnazzo and Lubicant. */
 #include "code_08009A0.h"
+#include "skull_millione_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -18,7 +19,7 @@ extern void Enemy_UpdateFragmentDeath(struct EwramData_EntityData *);
  */
 void SkullMillioneFamily_UpdateAttack(struct EwramData_EntityData *entity)
 {
-    const struct SkullMillioneFamilyVariant *info = &sSkullMillioneFamilyVariants[(u8)entity->unk_4F8.part8.unk_4F8];
+    const struct SkullMillioneFamilyVariant *info = &sSkullMillioneFamilyVariants[(u8)SKULL_MILLIONE_VARIANT(entity)];
     switch (entity->subState)
     {
     case 0:
@@ -53,7 +54,7 @@ void SkullMillioneFamily_UpdateAttack(struct EwramData_EntityData *entity)
             entity->velY.whole = info->diveSpeed;
             entity->accelY.whole = -0x2000;
             PlaySong(0x87);
-            if ((u8)entity->unk_4F8.part8.unk_4F8 == 1) PlaySong(0x1BA);
+            if ((u8)SKULL_MILLIONE_VARIANT(entity) == 1) PlaySong(0x1BA);
         }
         break;
     case 3:

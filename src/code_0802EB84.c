@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "player_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -24,7 +25,7 @@ void SkillGiantBatUse(struct EwramData_EntityData *entity)
 
     if (BlueSoul_ShouldEnd(entity))
         goto delete;
-    if (PLAYER->unk_4F4.whole & 0x010001A0)
+    if (PLAYER_ACTION_FLAGS(PLAYER) & 0x010001A0)
     {
         BlueSoul_ReleaseActiveResources(entity);
     delete:
@@ -43,7 +44,7 @@ void SkillGiantBatUse(struct EwramData_EntityData *entity)
             PLAYER->velY.whole = -0x40000;
         PLAYER->accelX.whole = 0;
         PLAYER->accelY.whole = 0;
-        PLAYER->unk_4F4.whole &= ~0x20;
+        PLAYER_ACTION_FLAGS(PLAYER) &= ~0x20;
         PlaySong(0x8F);
         entity->state = 1;
         PLAYER->subState = 0;

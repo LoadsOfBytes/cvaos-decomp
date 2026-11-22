@@ -1,6 +1,7 @@
 /* Killer Doll child visibility/deletion helpers, reconstructed from the
  * original assembly. */
 #include "code_08009A0.h"
+#include "nemesis_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -24,9 +25,9 @@ extern void KillerDoll_UpdateDeath(struct EwramData_EntityData *entity);
 void Nemesis_SetAfterimagesHidden(struct EwramData_EntityData *entity, s32 hidden)
 {
     u8 children[3] = {
-        entity->unk_504.part8.unk_505,
-        entity->unk_504.part8.unk_506,
-        entity->unk_504.part8.unk_507
+        NEMESIS_AFTERIMAGE_0(entity),
+        NEMESIS_AFTERIMAGE_1(entity),
+        NEMESIS_AFTERIMAGE_2(entity)
     };
     s32 i;
 
@@ -44,9 +45,9 @@ void Nemesis_SetAfterimagesHidden(struct EwramData_EntityData *entity, s32 hidde
 void Nemesis_DeleteAfterimages(struct EwramData_EntityData *entity)
 {
     u8 children[3] = {
-        entity->unk_504.part8.unk_505,
-        entity->unk_504.part8.unk_506,
-        entity->unk_504.part8.unk_507
+        NEMESIS_AFTERIMAGE_0(entity),
+        NEMESIS_AFTERIMAGE_1(entity),
+        NEMESIS_AFTERIMAGE_2(entity)
     };
     s32 i;
 

@@ -1,6 +1,7 @@
 /* Screen-fixed effect: wait for the owner's flag, then rise and leave a trail
  * of DeathBlinkEffect_Update sparks before deleting itself. */
 #include "code_08009A0.h"
+#include "death_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -13,7 +14,7 @@ extern u8 sDeathGfx[], sDeathPalette[], sDeathSpriteSheet[];
  * original allocation; this does not establish the original source form. */
 void DeathIntroEffect_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = &gEwramData->entityData[(u8)entity->unk_4F8.part8.unk_4F8];
+    struct EwramData_EntityData *owner = &gEwramData->entityData[(u8)DEATH_OWNER_INDEX(entity)];
 
     switch (entity->state)
     {
@@ -62,7 +63,7 @@ void DeathIntroEffect_Update(struct EwramData_EntityData *entity)
                 struct EwramData_EntityData *spark = Entity_CreateObject((u32 *)DeathBlinkEffect_Update);
                 if (spark)
                 {
-                    spark->unk_4F8.part8.unk_4F8 = entity->unk_4F4.part8.unk_4F4;
+                    DEATH_OWNER_INDEX(spark) = ENTITY_INDEX(entity);
                     spark->scrollWithBg = 1;
                     {
                         register struct EwramData_EntityData *placed asm("r1") = spark; /* FAKEMATCH: pinned register */

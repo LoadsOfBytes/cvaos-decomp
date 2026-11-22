@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "manticore_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern void ManticoreTail_UpdateSwing(struct EwramData_EntityData *);
@@ -9,19 +10,19 @@ extern void ManticoreTail_UpdateSwing(struct EwramData_EntityData *);
  */
 void ManticoreTailTip_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
     if (owner == NULL || owner->updateFunc == NULL || owner->unk_518.part8.enemyId != 0x36)
         goto remove;
     entity->posX.whole = owner->posX.whole;
     entity->posY.whole = owner->posY.whole;
     if (owner->flipX)
     {
-        entity->velX.whole = -(((u8)entity->unk_500.part8.unk_500 << 19) + 0xC0000);
+        entity->velX.whole = -(((u8)MANTICORE_TAIL_KIND(entity) << 19) + 0xC0000);
         entity->posX.whole -= 0xC0000;
     }
     else
     {
-        entity->velX.whole = ((u8)entity->unk_500.part8.unk_500 << 19) + 0xC0000;
+        entity->velX.whole = ((u8)MANTICORE_TAIL_KIND(entity) << 19) + 0xC0000;
         entity->posX.whole += 0xC0000;
     }
     entity->posY.whole -= 0xE0000;

@@ -9,7 +9,7 @@ extern void Entity_FaceTarget(struct EwramData_EntityData *);
  */
 void AlastorPart_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner=&gEwramData->entityData[entity->unk_4F4.part8.unk_4F5];
+    struct EwramData_EntityData *owner=&gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
     if (Enemy_IsStunned(entity))
         return;
     switch (entity->state)

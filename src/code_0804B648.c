@@ -40,7 +40,7 @@ void ItemMenu_CountList(struct PlayerStatus *menu, struct EwramData_EntityData *
 
     MENU_PAGE_ITEM(entity) = 0xFF;
     i = 0;
-    while (pos < entity->unk_4F8.bytes[2] && i <= 0x1F)
+    while (pos < MENU_PAGE_BYTES(entity)[2] && i <= 0x1F)
     {
         if (menu->itemInventory[i] != 0)
             pos++;
@@ -50,7 +50,7 @@ void ItemMenu_CountList(struct PlayerStatus *menu, struct EwramData_EntityData *
     {
         if (menu->itemInventory[i] != 0)
         {
-            if (pos == entity->unk_4F8.bytes[1])
+            if (pos == MENU_PAGE_BYTES(entity)[1])
                 MENU_PAGE_ITEM(entity) = i;
             pos++;
             shown++;
@@ -105,7 +105,7 @@ void ItemMenu_Open(struct EwramData_EntityData *entity)
     MenuPage_SetMode(entity, 0);
     ItemMenu_DrawList(menu, entity);
     Text12_ClearRegion();
-    if (entity->unk_4F8.bytes[0] != 0)
+    if (MENU_PAGE_BYTES(entity)[0] != 0)
     {
         const struct UsableItemInfo *info = &sConsumableInfo[MENU_PAGE_ITEM(entity)];
         s32 text = sItemDescriptionTextIds[info->name];
@@ -120,6 +120,6 @@ void ItemMenu_Open(struct EwramData_EntityData *entity)
     }
     MenuPageTitle_Create(&gEwramData->entityData[20], 0x21);
     Cursor_SetTilePosition((MENU_PAGE_CURSOR(entity) & 1) ? 0x10 : 1,
-                 ((entity->unk_4F8.bytes[1] - entity->unk_4F8.bytes[2]) >> 1) + 11);
+                 ((MENU_PAGE_BYTES(entity)[1] - MENU_PAGE_BYTES(entity)[2]) >> 1) + 11);
     Cursor_Draw();
 }

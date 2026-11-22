@@ -1,5 +1,6 @@
 /* Chaos: mark on the player (3D40). */
 #include "code_08009A0.h"
+#include "chaos_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -28,7 +29,7 @@ extern void ChaosMark_Update(struct EwramData_EntityData *);
 void ChaosHalo_Update(struct EwramData_EntityData *entity);
 extern void ChaosAura_Update(struct EwramData_EntityData *);
 
-#define KIND(e) (*(u8 *)&(e)->unk_504.part8.unk_506)
+#define KIND(e) (*(u8 *)&CHAOS_ORB_KIND((e)))
 
 /* Create the mark of orb kind `kind` next to the player. */
 void Chaos_CreateMark(struct EwramData_EntityData *core, s32 kind)
@@ -39,7 +40,7 @@ void Chaos_CreateMark(struct EwramData_EntityData *core, s32 kind)
     struct ChaosData *data;
 
     frames = sChaosMarkFrames;
-    data = (struct ChaosData *)core->unk_504.whole;
+    data = (struct ChaosData *)CHAOS_DATA(core);
     if (mark != NULL)
     {
         s32 graphics;
@@ -53,7 +54,7 @@ void Chaos_CreateMark(struct EwramData_EntityData *core, s32 kind)
         mark->animMode = 2;
         mark->animFrame = frames.v[kind] + 0x14;
         mark->unk_518.part8.enemyId = core->unk_518.part8.enemyId;
-        mark->unk_4F4.unk_4F4_entity = core;
+        CHAOS_LINK(mark) = core;
         mark->scrollWithBg = 0;
         KIND(mark) = kind;
         mark->timer = 40;

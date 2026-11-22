@@ -1,6 +1,7 @@
 /* Object19 init: motion table entry, flip and launch angle (Object19Create).
  * Needs -fno-cse-skip-blocks (Makefile); the volatile read keeps the reload of unk_4FC. */
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -31,10 +32,10 @@ fail:
     Hit_Enable(entity, 8, Object19_OnPlayerContact, (s32)Object19_OnHit);
     HitBox_SetAttackRaw(entity, 0x0C0CFAFA);
     HitBox_SetBodyRaw(entity, 0x0C0CFAFA);
-    entity->unk_4F8.part16.unk_4FA = 0x400;
+    OBJECT19_SPIN(entity) = 0x400;
     entity->flipX = entity->unk_514.part16.spawnParam1;
     entity->unk_514.part16.spawnParam1 = entity->flipX;
-    if (entity->unk_514.part16.spawnParam1 != 0) entity->unk_4F8.part16.unk_4FA = -entity->unk_4F8.part16.unk_4FA;
+    if (entity->unk_514.part16.spawnParam1 != 0) OBJECT19_SPIN(entity) = -OBJECT19_SPIN(entity);
     entity->unk_514.part16.spawnParam0 += 14;
     motion = &sObject19Steps[entity->state];
     entity->velX.whole = motion->vx;

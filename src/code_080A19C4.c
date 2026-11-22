@@ -1,6 +1,7 @@
 /* GladiatorShot_CreateTip: spawn the follower; GladiatorShotTip_Update: follow a live owner
  * (type byte 0x5D) at an eight-pixel angular offset. */
 #include "code_08009A0.h"
+#include "gladiator_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -45,10 +46,10 @@ void GladiatorShot_CreateTip(struct EwramData_EntityData *owner)
     *((u8 *)&child->accelY + 5) = mask;
     child->spriteLayer = owner->spriteLayer - 1;
     child->unk_510.part8.basePalette = owner->unk_510.part8.basePalette;
-    child->unk_4F8.unk_4F8_entity = owner;
+    ENTITY_OWNER(child) = owner;
     child->attack = owner->attack;
-    x = FixedMultiply(Sin((u16)owner->unk_500.part16.unk_502 + 0x4000), 0x80000);
-    y = FixedMultiply(Sin((u16)owner->unk_500.part16.unk_502), 0x80000);
+    x = FixedMultiply(Sin((u16)GLADIATOR_SHOT_ANGLE(owner) + 0x4000), 0x80000);
+    y = FixedMultiply(Sin((u16)GLADIATOR_SHOT_ANGLE(owner)), 0x80000);
     child->posX.whole = x + owner->posX.whole;
     child->posY.whole = y + owner->posY.whole;
 }
@@ -56,7 +57,7 @@ void GladiatorShot_CreateTip(struct EwramData_EntityData *owner)
 void GladiatorShotTip_Update(struct EwramData_EntityData *entity)
 {
     u32 buffer[4];
-    struct EwramData_EntityData *owner = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
     if (owner != NULL && owner->updateFunc != NULL
         && owner->unk_518.part8.enemyId == 0x5D && entity->state == 0)
     {
@@ -64,8 +65,8 @@ void GladiatorShotTip_Update(struct EwramData_EntityData *entity)
         entity->hidden = owner->hidden;
         Anim_Update(entity);
         Hit_CheckWithPlayer(buffer, entity);
-        x = FixedMultiply(Sin((u16)owner->unk_500.part16.unk_502 + 0x4000), 0x80000);
-        y = FixedMultiply(Sin((u16)owner->unk_500.part16.unk_502), 0x80000);
+        x = FixedMultiply(Sin((u16)GLADIATOR_SHOT_ANGLE(owner) + 0x4000), 0x80000);
+        y = FixedMultiply(Sin((u16)GLADIATOR_SHOT_ANGLE(owner)), 0x80000);
         entity->posX.whole = x + owner->posX.whole;
         entity->posY.whole = y + owner->posY.whole;
     }

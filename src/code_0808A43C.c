@@ -1,5 +1,6 @@
 /* Great Armor create: allocates the 14-joint skeleton and one part entity per joint. */
 #include "code_08009A0.h"
+#include "great_armor_entity.h"
 #include "joint_entity.h"
 #include "code_08013960.h"
 #include "code_08033CAC.h"
@@ -112,7 +113,7 @@ void EnemyGreatArmorCreate(struct EwramData_EntityData *entity)
             part->hidden = 0;
             part->attack = entity->attack;
             part->drawFunc = (u32 *)Sprite_DrawEntity;
-            part->unk_500.unk_500_entity = entity;
+            JOINT_PART_OWNER(part) = entity;
             JOINT_PART_INDEX(part) = index;
             JOINT_PART_ANCHOR(part) = anchors[index];
             part->posX.whole = entity->posX.whole;
@@ -203,13 +204,13 @@ void EnemyGreatArmorCreate(struct EwramData_EntityData *entity)
     switch (entity->unk_518.part8.enemyId)
     {
     case 0x3C:
-        entity->unk_508.part8.unk_508 = 0;
+        GREAT_ARMOR_VARIANT(entity) = 0;
         break;
     case 0x67:
-        entity->unk_508.part8.unk_508 = 1;
+        GREAT_ARMOR_VARIANT(entity) = 1;
         break;
     case 0x69:
-        entity->unk_508.part8.unk_508 = 2;
+        GREAT_ARMOR_VARIANT(entity) = 2;
         break;
     }
 }

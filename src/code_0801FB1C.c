@@ -1,5 +1,6 @@
 /* Julius_UpdateKnockbackFromImpulse (variant of Julius_UpdateKnockback with an animation switch). */
 #include "code_08009A0.h"
+#include "player_entity.h"
 #include "code_08001194.h"
 
 void Julius_UpdateVerticalMovement(struct EwramData_EntityData *entity);
@@ -16,12 +17,12 @@ void Julius_UpdateKnockbackFromImpulse(struct EwramData_EntityData *entity)
     u16 x;
     s16 y;
 
-    entity->unk_4F4.whole &= 0xEFFFFE9F;
+    PLAYER_ACTION_FLAGS(entity) &= 0xEFFFFE9F;
     if (!(gEwramData->playerState.actionLockFlags & 0x800) && entity->animScriptIndex != 0xC)
     {
         Anim_StartIndexed(entity, 0xC, 1, 0);
-        entity->unk_504.part16.unk_504 = 0xFF;
-        entity->unk_4F4.whole &= 0xFFDFFFFF;
+        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
+        PLAYER_ACTION_FLAGS(entity) &= 0xFFDFFFFF;
     }
     x = GetEntityRoomXPositionInteger(entity);
     y = GetEntityRoomYPositionInteger(entity);
@@ -43,9 +44,9 @@ clear:
     entity->velX.whole = 0;
     entity->accelX.whole = 0;
 done:
-    if (!(entity->unk_4F4.whole & 2))
+    if (!(PLAYER_ACTION_FLAGS(entity) & 2))
     {
-        entity->unk_4F4.whole &= ~0x80;
+        PLAYER_ACTION_FLAGS(entity) &= ~0x80;
         entity->state = 0;
     }
     Julius_UpdateVerticalMovement(entity);

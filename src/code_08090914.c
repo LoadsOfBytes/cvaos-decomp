@@ -1,5 +1,6 @@
 /* Devil (08220A38 skeleton enemy) main state machine. */
 #include "code_08009A0.h"
+#include "devil_entity.h"
 #include "joint_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
@@ -124,12 +125,12 @@ void Devil_UpdateAttack(struct EwramData_EntityData *entity)
         entity->subState = 2;
         entity->stage = 0;
         JOINT_POSE(entity) = 1;
-        entity->unk_4FC.whole = 0;
+        DEVIL_SPEED(entity) = 0;
         if (entity->flipX)
-            entity->unk_4F4.whole = Target_GetX(entity) + ({ s32 t = bg->xPos.whole + -0x280000; t; });
+            DEVIL_TARGET_X(entity) = Target_GetX(entity) + ({ s32 t = bg->xPos.whole + -0x280000; t; });
         else
-            entity->unk_4F4.whole = Target_GetX(entity) + ({ s32 t = bg->xPos.whole + 0x280000; t; });
-        entity->unk_4F8.whole = Target_GetY(entity) - (RandomNumberGenerator() & 0x7FFFF) + bg->yPos.whole;
+            DEVIL_TARGET_X(entity) = Target_GetX(entity) + ({ s32 t = bg->xPos.whole + 0x280000; t; });
+        DEVIL_TARGET_Y(entity) = Target_GetY(entity) - (RandomNumberGenerator() & 0x7FFFF) + bg->yPos.whole;
         DevilPart_Attach(entity, 1, 0, -0xA00, 0xA0000);
         DevilPart_Attach(entity, 2, 0, -0xA00, 0xD0000);
         DevilPart_Attach(entity, 3, 2, -0x800, 0xB0000);
@@ -224,12 +225,12 @@ void Devil_UpdateAttack(struct EwramData_EntityData *entity)
         entity->state = 0;
         entity->subState = 1;
         JOINT_POSE(entity) = 1;
-        entity->unk_4FC.whole = 0;
+        DEVIL_SPEED(entity) = 0;
         if (entity->flipX)
-            entity->unk_4F4.whole = Target_GetX(entity) + ({ s32 t = bg->xPos.whole + -0x280000; t; });
+            DEVIL_TARGET_X(entity) = Target_GetX(entity) + ({ s32 t = bg->xPos.whole + -0x280000; t; });
         else
-            entity->unk_4F4.whole = Target_GetX(entity) + ({ s32 t = bg->xPos.whole + 0x280000; t; });
-        entity->unk_4F8.whole = Target_GetY(entity) - (RandomNumberGenerator() & 0x7FFFF) + bg->yPos.whole;
+            DEVIL_TARGET_X(entity) = Target_GetX(entity) + ({ s32 t = bg->xPos.whole + 0x280000; t; });
+        DEVIL_TARGET_Y(entity) = Target_GetY(entity) - (RandomNumberGenerator() & 0x7FFFF) + bg->yPos.whole;
         DevilPart_Attach(entity, 1, 0, -0xA00, 0xA0000);
         DevilPart_Attach(entity, 2, 0, -0xA00, 0xD0000);
         DevilPart_Attach(entity, 3, 2, -0x800, 0xB0000);

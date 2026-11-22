@@ -1,5 +1,6 @@
 /* Creaking Skull create: allocates the 13-joint skeleton and one part entity per joint. */
 #include "code_08009A0.h"
+#include "creaking_skull_entity.h"
 #include "joint_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -93,7 +94,7 @@ void EnemyCreakingSkullCreate(struct EwramData_EntityData *entity)
             part->hidden = 0;
             part->attack = entity->attack;
             part->drawFunc = (u32 *)Sprite_DrawEntity;
-            part->unk_500.unk_500_entity = entity;
+            JOINT_PART_OWNER(part) = entity;
             JOINT_PART_INDEX(part) = index;
             JOINT_PART_ANCHOR(part) = anchors[index];
             part->posX.whole = entity->posX.whole;
@@ -162,10 +163,10 @@ void EnemyCreakingSkullCreate(struct EwramData_EntityData *entity)
     switch (entity->unk_518.part8.enemyId)
     {
     case 0x21:
-        entity->unk_508.whole = 0;
+        CREAKING_SKULL_VARIANT(entity) = 0;
         break;
     case 0x5C:
-        entity->unk_508.whole = 1;
+        CREAKING_SKULL_VARIANT(entity) = 1;
         break;
     }
     if (entity->unk_514.part16.spawnParam0 != 0)

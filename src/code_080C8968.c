@@ -1,5 +1,6 @@
 /* KillerDoll_SpawnDeathParts. */
 #include "code_08009A0.h"
+#include "doll_entity.h"
 #include "structs/ewram.h"
 
 extern void KillerDollPart_Update(struct EwramData_EntityData *entity);
@@ -18,9 +19,9 @@ void KillerDoll_SpawnDeathParts(struct EwramData_EntityData *entity)
 
         if (child != NULL)
         {
-            child->unk_4F4.part8.unk_4F5 = entity->unk_4F4.part8.unk_4F4;
-            child->unk_500.part8.unk_501 = i;
-            entity->unk_500.part8.unk_500++;
+            ENTITY_PARENT_INDEX(child) = ENTITY_INDEX(entity);
+            DOLL_PART_INDEX(child) = i;
+            DOLL_DEATH_PART_COUNT(entity)++;
             child->spriteLayer = entity->spriteLayer;
         }
     }

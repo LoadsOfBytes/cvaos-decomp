@@ -1,4 +1,7 @@
 #include "code_08009A0.h"
+#include "soul_skill_entity.h"
+#include "blue_soul_entity.h"
+#include "player_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08040A38.h"
@@ -21,7 +24,7 @@ extern void SkillBuerOrbitUpdate(struct EwramData_EntityData *entity);
  */
 void SkillBuerUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = BLUE_SOUL_OWNER(entity);
     struct EwramData_EntityData *child;
     s32 speed;
     u8 state;
@@ -51,14 +54,14 @@ void SkillBuerUse(struct EwramData_EntityData *entity)
         child = BlueSoul_CreateEntity(entity, SkillBuerOrbitUpdate);
         if (child != NULL)
         {
-            child->unk_510.part16.unk_510 = state;
-            child->unk_510.part16.unk_512 = speed;
+            SKILL_BUER_ANGLE(child) = state;
+            SKILL_BUER_SPEED(child) = speed;
         }
         child = BlueSoul_CreateEntity(entity, SkillBuerOrbitUpdate);
         if (child != NULL)
         {
-            child->unk_510.part16.unk_510 = 0x8000;
-            child->unk_510.part16.unk_512 = speed;
+            SKILL_BUER_ANGLE(child) = 0x8000;
+            SKILL_BUER_SPEED(child) = speed;
         }
         PlaySong(0x1A5);
         PlaySong(0x92);
@@ -68,7 +71,7 @@ void SkillBuerUse(struct EwramData_EntityData *entity)
             SIZE(entity)++;
         entity->posX.part16.integer = parent->posX.part16.integer;
         entity->posY.part16.integer = parent->posY.part16.integer + entity->velY.part16.integer;
-        if (parent->unk_4F4.whole & 0x400)
+        if (PLAYER_ACTION_FLAGS(parent) & 0x400)
         {
             if (entity->velY.whole < -0x80000)
                 entity->velY.whole += 0x4000;

@@ -1,5 +1,7 @@
 /* Hopping minion (sibling of Fleaman_UpdateMovement): jumps toward the player, flaps while airborne. */
 #include "code_08009A0.h"
+#include "ripper_entity.h"
+#include "altair_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern s32 Collision_GetTileOnScreen(s32, s32);
@@ -19,7 +21,7 @@ extern s16 GetEntityRoomYPositionInteger(struct EwramData_EntityData *entity);
  */
 void Ripper_UpdateMovement(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *link = &gEwramData->entityData[entity->unk_4F4.part16.unk_4F6];
+    struct EwramData_EntityData *link = &gEwramData->entityData[ALTAIR_DROP_SPAWNER_INDEX(entity)];
     u8 st;
     u16 x;
     u16 y;
@@ -32,14 +34,14 @@ void Ripper_UpdateMovement(struct EwramData_EntityData *entity)
     case 0:
         entity->spriteLayer = 0x14;
         Anim_StartIndexed(entity, 0, 0, 1);
-        entity->unk_4F8.part8.unk_4F9 = 0;
+        RIPPER_ANIM(entity) = 0;
         {
             s32 v = 0x8000;
             entity->velX.whole = v;
             if (!entity->flipX)
                 entity->velX.whole = -v;
         }
-        st = entity->unk_4F8.part8.unk_4F8;
+        st = RIPPER_AIRBORNE(entity);
         if (st != 1)
             st = 4;
         entity->subState = st;
@@ -51,10 +53,10 @@ void Ripper_UpdateMovement(struct EwramData_EntityData *entity)
         entity->subState++;
         break;
     case 2:
-        if (entity->unk_4F8.part8.unk_4F9 != 3)
+        if (RIPPER_ANIM(entity) != 3)
         {
             Anim_StartIndexed(entity, 3, 0, 1);
-            entity->unk_4F8.part8.unk_4F9 = 3;
+            RIPPER_ANIM(entity) = 3;
             entity->animTimer = 0;
             entity->animStep = 3;
             entity->animFlags |= 2;
@@ -77,7 +79,7 @@ void Ripper_UpdateMovement(struct EwramData_EntityData *entity)
         {
             entity->subState++;
             Anim_StartIndexed(entity, 0, 0, 1);
-            entity->unk_4F8.part8.unk_4F9 = 0;
+            RIPPER_ANIM(entity) = 0;
         }
         break;
     case 4:
@@ -100,7 +102,7 @@ void Ripper_UpdateMovement(struct EwramData_EntityData *entity)
             entity->velY.whole = -0x30000;
             entity->accelY.whole = 0x2800;
             Anim_StartIndexed(entity, 3, 0, 1);
-            entity->unk_4F8.part8.unk_4F9 = 3;
+            RIPPER_ANIM(entity) = 3;
             entity->animFlags |= 2;
             st = 5;
             break;
@@ -109,7 +111,7 @@ void Ripper_UpdateMovement(struct EwramData_EntityData *entity)
             entity->velY.whole = -0x30000;
             entity->accelY.whole = 0x1400;
             Anim_StartIndexed(entity, 3, 0, 1);
-            entity->unk_4F8.part8.unk_4F9 = 3;
+            RIPPER_ANIM(entity) = 3;
             entity->animFlags |= 2;
             st = 5;
             break;
@@ -136,7 +138,7 @@ void Ripper_UpdateMovement(struct EwramData_EntityData *entity)
         entity->velY.whole += entity->accelY.whole;
         if (entity->subState == 5)
         {
-            if (entity->unk_4F8.part8.unk_4F9 == 3)
+            if (RIPPER_ANIM(entity) == 3)
             {
                 if (entity->velY.whole >= -entity->accelY.whole && entity->velY.whole <= entity->accelY.whole)
                 {
@@ -157,7 +159,7 @@ void Ripper_UpdateMovement(struct EwramData_EntityData *entity)
                     entity->animFlags |= 2;
                 }
             }
-            if (entity->unk_4F8.part8.unk_4F9 == 1)
+            if (RIPPER_ANIM(entity) == 1)
             {
                 /* m doubles as the mask and the second reading (register allocation) */
                 u16 *p = (u16 *)&entity->animStep;
@@ -166,21 +168,21 @@ void Ripper_UpdateMovement(struct EwramData_EntityData *entity)
                 if (a == 3)
                 {
                     Anim_StartIndexed(entity, 3, 0, 1);
-                    entity->unk_4F8.part8.unk_4F9 = a;
+                    RIPPER_ANIM(entity) = a;
                 }
-                if ((m &= *p) == 2 && entity->unk_504.part8.unk_504 != 0)
+                if ((m &= *p) == 2 && RIPPER_THROWN(entity) != 0)
                 {
                     Ripper_CreateProjectile(entity);
-                    entity->unk_504.part8.unk_504 = 0;
+                    RIPPER_THROWN(entity) = 0;
                 }
             }
-            if (entity->unk_4F8.part8.unk_4F9 == 3 && RandomNumberGenerator() % 3 == 0
+            if (RIPPER_ANIM(entity) == 3 && RandomNumberGenerator() % 3 == 0
                 && (u32)(entity->velY.whole + 0x1FFF) <= 0x3FFE
-                && entity->unk_504.part8.unk_504 == 0)
+                && RIPPER_THROWN(entity) == 0)
             {
-                entity->unk_504.part8.unk_504 = 1;
+                RIPPER_THROWN(entity) = 1;
                 Anim_StartIndexed(entity, 1, 0, 0);
-                entity->unk_4F8.part8.unk_4F9 = 1;
+                RIPPER_ANIM(entity) = 1;
             }
         }
         y = GetEntityRoomYPositionInteger(entity);

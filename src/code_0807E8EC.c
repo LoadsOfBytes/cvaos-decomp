@@ -1,5 +1,6 @@
 /* Golem main state machine: hops towards the player (turning at walls), landing dust, attacks. */
 #include "code_08009A0.h"
+#include "golem_entity.h"
 #include "joint_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
@@ -34,7 +35,7 @@ static inline s32 ABS(s32 x)
 
 /* Wait on the ground, then attack when the player is close or hop on (turning at walls). */
 #define GOLEM_WAIT(NEXT, ANIM, TURN_STATE, TURN_ANIM)\
-    if (entity->timer >= (s8)landTimes[entity->unk_508.whole] - 10 && !(entity->timer & 3))\
+    if (entity->timer >= (s8)landTimes[GOLEM_VARIANT(entity)] - 10 && !(entity->timer & 3))\
         ScreenShake_RequestOffset(0, 0, 1);\
     if ((s8)--entity->timer > 0)\
         break;\
@@ -51,7 +52,7 @@ static inline s32 ABS(s32 x)
         entity->subState = 0x14;\
         break;\
     }\
-    entity->timer = hopTimes[entity->unk_508.whole];\
+    entity->timer = hopTimes[GOLEM_VARIANT(entity)];\
     NEXT;\
     JOINT_POSE(entity) = ANIM;\
     Golem_FaceTarget(entity);\
@@ -75,7 +76,7 @@ static inline s32 ABS(s32 x)
     Entity_MoveWithCollisionDefault(entity, 0x10000, -0x300000);\
     if ((s8)--entity->timer > 0)\
         break;\
-    entity->timer = TIMES[entity->unk_508.whole];\
+    entity->timer = TIMES[GOLEM_VARIANT(entity)];\
     entity->subState++;
 
 #define GOLEM_PAUSE()\
@@ -112,7 +113,7 @@ void Golem_UpdateMovement(struct EwramData_EntityData *entity)
             && !Enemy_IsDamaged(entity))
             break;
         entity->subState = 2;
-        entity->timer = hopTimes[entity->unk_508.whole];
+        entity->timer = hopTimes[GOLEM_VARIANT(entity)];
         JOINT_POSE(entity) = 2;
         GOLEM_HOP_SPEED(entity)
         goto hop;
@@ -246,7 +247,7 @@ void Golem_UpdateMovement(struct EwramData_EntityData *entity)
         Golem_UpdateAllParts(entity);
         if ((s8)--entity->timer > 0)
             break;
-        entity->timer = hopTimes[entity->unk_508.whole];
+        entity->timer = hopTimes[GOLEM_VARIANT(entity)];
         entity->subState = 2;
         JOINT_POSE(entity) = 2;
         GOLEM_HOP_SPEED(entity)
@@ -261,7 +262,7 @@ void Golem_UpdateMovement(struct EwramData_EntityData *entity)
             || Enemy_IsDamaged(entity))
         {
             entity->subState = 2;
-            entity->timer = hopTimes[entity->unk_508.whole];
+            entity->timer = hopTimes[GOLEM_VARIANT(entity)];
             JOINT_POSE(entity) = 2;
             GOLEM_HOP_SPEED(entity)
         hop:

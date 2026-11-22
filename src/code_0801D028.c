@@ -39,8 +39,8 @@ s32 Player_StartScriptedAnimation(u16 anim, u16 flags, s32 velX, s32 velY)
         {
             Anim_StartIndexed(player, a, 3, mode);
             HitBox_SetBody(player, &box);
-            player->unk_504.part16.unk_504 = 0xFF;
-            player->unk_4F4.whole &= ~0x200000;
+            PLAYER_REQUESTED_ANIM(player) = 0xFF;
+            PLAYER_ACTION_FLAGS(player) &= ~0x200000;
             pal = sSomaAnimPalettes[a];
             if (PLAYER_ANIM_PALETTE(player) != pal)
             {
@@ -74,7 +74,7 @@ s32 Player_StartScriptedAnimation(u16 anim, u16 flags, s32 velX, s32 velY)
     if (right)
         gEwramData->playerState.player->flipX = 0;
     gEwramData->playerState.player->state = 0x11;
-    gEwramData->playerState.player->unk_4F4.whole |= 0x40000000;
+    PLAYER_ACTION_FLAGS(gEwramData->playerState.player) |= 0x40000000;
     if (left)
         gEwramData->playerState.player->flipX = 1;
     else if (right)

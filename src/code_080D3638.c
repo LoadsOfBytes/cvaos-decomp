@@ -3,6 +3,7 @@
  * ordinary success path. Graphics failure and the special 0xD0 mode
  * leave the return value unspecified; preserve those original paths. */
 #include "code_08009A0.h"
+#include "graham_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -31,7 +32,7 @@ struct EwramData_EntityData *Graham_CreateSidePart(struct EwramData_EntityData *
         EntityDelete(e);
         return;
     }
-    e->unk_4F4.part8.unk_4F5 = owner->unk_4F4.part8.unk_4F4;
+    ENTITY_PARENT_INDEX(e) = ENTITY_INDEX(owner);
     e->spriteLayer = owner->spriteLayer - 3;
     e->flipX = side;
     e->posX.whole = owner->posX.whole;
@@ -40,7 +41,7 @@ struct EwramData_EntityData *Graham_CreateSidePart(struct EwramData_EntityData *
     e->enemyFlags |= 4;
     e->attack = owner->attack;
     e->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
-    e->unk_4FC.part16.unk_4FE[0] = side;
+    GRAHAM_PART_SIDE(e) = side;
     Anim_StartIndexed(e, 0, 0, 1);
     Anim_Update(e);
     if (gEwramData->gameState.bestiaryPreview)

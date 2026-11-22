@@ -62,7 +62,7 @@ void CockatriceFamily_UpdateAttack(struct EwramData_EntityData *entity)
         case 2:
             if (*(u16 *)&entity->animStep == 10 && (child = Entity_CreateObject((u32 *)CockatriceFamilyAttack_Update)) != NULL)
             {
-                child->unk_4F8.unk_4F8_entity = entity;
+                ENTITY_OWNER(child) = entity;
                 child->scrollWithBg = 1;
                 child->attack = entity->attack - (entity->attack >> 3);
             }

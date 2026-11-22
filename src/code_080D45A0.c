@@ -1,5 +1,6 @@
 /* Graham attack selection, animation turns and timed projectile volleys. */
 #include "code_08009A0.h"
+#include "graham_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -80,9 +81,9 @@ void GrahamFirstForm_UpdateAttacks(struct EwramData_EntityData *entity)
                     entity->subState=6;
                     entity->stage=2;
                     if(!(RandomNumberGenerator() & 1))
-                        entity->unk_504.part8.unk_507=0;
+                        GRAHAM_VOLLEY_SIDE(entity)=0;
                     else
-                        entity->unk_504.part8.unk_507=1;
+                        GRAHAM_VOLLEY_SIDE(entity)=1;
                 }
             }
             break;
@@ -108,7 +109,7 @@ void GrahamFirstForm_UpdateAttacks(struct EwramData_EntityData *entity)
             }
             else if(entity->timer<=7 && entity->stage && !Entity_IsFacingTarget(entity))
             {
-                entity->unk_500.part8.unk_500=5;
+                GRAHAM_TURN_RESUME(entity)=5;
                 entity->subState=7;
             }
             break;
@@ -124,7 +125,7 @@ finish_volley:
                     entity->timer=32;
                     break;
                 }
-                if(entity->unk_504.part8.unk_507)
+                if(GRAHAM_VOLLEY_SIDE(entity))
                 {
                     if(remaining==2) goto shot_one;
                     Graham_CreateShotPair(entity,0);
@@ -142,7 +143,7 @@ shot_done:
             }
             else if(entity->timer<=7 && entity->stage && !Entity_IsFacingTarget(entity))
             {
-                entity->unk_500.part8.unk_500=6;
+                GRAHAM_TURN_RESUME(entity)=6;
                 entity->subState=7;
             }
             break;
@@ -156,7 +157,7 @@ shot_done:
                 if(*animation!=1)
                     Anim_StartIndexed(entity,1,0,1);
                 entity->flipX=1-entity->flipX;
-                entity->subState=entity->unk_500.part8.unk_500;
+                entity->subState=GRAHAM_TURN_RESUME(entity);
             }
             break;
         }

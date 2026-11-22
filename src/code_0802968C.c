@@ -1,4 +1,6 @@
 #include "code_08009A0.h"
+#include "soul_skill_entity.h"
+#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -41,7 +43,7 @@ static inline struct SoulGraphicsResources *GetSet(s32 index)
  */
 void SkillCockatriceUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
     u16 slot;
     u16 bx, by;
 
@@ -51,7 +53,7 @@ void SkillCockatriceUse(struct EwramData_EntityData *entity)
         slot = ObjAffine_Alloc(0);
         if ((s16)slot < 0)
         {
-            gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
             EntityDelete(entity);
             return;
         }
@@ -68,15 +70,15 @@ void SkillCockatriceUse(struct EwramData_EntityData *entity)
         entity->animFrame = 1;
         entity->drawFunc = (u32 *)SkillCockatriceDraw;
         entity->spriteLayer = 0xD;
-        entity->unk_510.part16.unk_510 = 0x2800;
-        entity->unk_510.part16.unk_512 = -0x40;
+        SKILL_COCKATRICE_ANGLE(entity) = 0x2800;
+        SKILL_COCKATRICE_TURN(entity) = -0x40;
         entity->velX.part16.integer = 8;
         entity->velY.part16.integer = -0x1A;
         if (parent->flipX)
         {
             entity->velX.part16.integer = -entity->velX.part16.integer;
-            entity->unk_510.part16.unk_510 = -0x8000 - entity->unk_510.part16.unk_510;
-            entity->unk_510.part16.unk_512 = -entity->unk_510.part16.unk_512;
+            SKILL_COCKATRICE_ANGLE(entity) = -0x8000 - SKILL_COCKATRICE_ANGLE(entity);
+            SKILL_COCKATRICE_TURN(entity) = -SKILL_COCKATRICE_TURN(entity);
         }
         entity->flipX = 0;
         Hit_SetTimerOverride(1, 60);
@@ -88,12 +90,12 @@ void SkillCockatriceUse(struct EwramData_EntityData *entity)
         entity->state++;
         RedSoul_CreateEntity(entity, (u32 *)SkillCockatriceEffectUpdate);
     case 1:
-        entity->unk_508.whole = Sin(entity->timer << 10);
-        entity->unk_510.part16.unk_510 += entity->unk_510.part16.unk_512;
+        SKILL_COCKATRICE_SCALE_Y(entity) = Sin(entity->timer << 10);
+        SKILL_COCKATRICE_ANGLE(entity) += SKILL_COCKATRICE_TURN(entity);
         entity->posX.whole = parent->posX.whole + entity->velX.whole;
         entity->posY.whole = parent->posY.whole + entity->velY.whole;
-        entity->accelX.whole = Sin(entity->unk_510.part16.unk_510 + 0x4000) << 5;
-        entity->accelY.whole = Sin(entity->unk_510.part16.unk_510) << 5;
+        entity->accelX.whole = Sin(SKILL_COCKATRICE_ANGLE(entity) + 0x4000) << 5;
+        entity->accelY.whole = Sin(SKILL_COCKATRICE_ANGLE(entity)) << 5;
         bx = FIXED_TO_INT(entity->accelX.whole) * (entity->timer & 7);
         by = FIXED_TO_INT(entity->accelY.whole) * (entity->timer & 7);
         HitBox_SetAttackRaw(entity, (((s16)bx - 8) & 0xFF) + ((((s16)by - 8) & 0xFF) << 8) + 0x10100000);
@@ -105,18 +107,18 @@ void SkillCockatriceUse(struct EwramData_EntityData *entity)
     case 2:
         Sound_StopTracked(0xCD);
         ObjAffine_Free(entity->affineIndex);
-        gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;
     }
-    ObjAffine_Set(entity->unk_510.part16.unk_510, 0x10000, entity->unk_508.whole, 0, 0, entity->affineIndex);
+    ObjAffine_Set(SKILL_COCKATRICE_ANGLE(entity), 0x10000, SKILL_COCKATRICE_SCALE_Y(entity), 0, 0, entity->affineIndex);
     if (EntityIsOutsideScreen(entity, 2) || !entity->roomActive)
     {
         entity->roomActive = 1;
         Sound_StopTracked(0xCD);
         ObjAffine_Free(entity->affineIndex);
-        gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
     }

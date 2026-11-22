@@ -1,5 +1,6 @@
 /* Belmont melee strike: animation choice, sound cues and active hitbox. */
 #include "code_08009A0.h"
+#include "belmont_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -37,7 +38,7 @@ void Belmont_UpdateMeleeAttack(struct EwramData_EntityData *entity)
             if(*frame==8)
                 PlaySong(0xFC);
             if(*frame>7)
-                entity->attack=entity->unk_500.part8.unk_500;
+                entity->attack=BELMONT_ATTACK(entity);
             else
                 entity->attack=0;
             if(entity->animDone)
@@ -45,7 +46,7 @@ void Belmont_UpdateMeleeAttack(struct EwramData_EntityData *entity)
                 entity->state=2;
                 entity->stage=0;
                 entity->subState=0;
-                entity->attack=entity->unk_500.part8.unk_501;
+                entity->attack=BELMONT_ATTACK_OFF(entity);
             }
             break;
         }

@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "chaos_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -37,7 +38,7 @@ void Chaos2_SpawnShot(struct EwramData_EntityData *parent, s32 dx, s32 dy, s32 a
         if (frames.entries[index][1] & 2)
             child->flipY = 1;
         child->unk_518.part8.enemyId = parent->unk_518.part8.enemyId;
-        child->unk_4F4.unk_4F4_entity = parent;
+        CHAOS_LINK(child) = parent;
         zero = 0;
         child->scrollWithBg = zero;
         child->attack = 0x64;

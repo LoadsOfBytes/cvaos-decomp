@@ -1,10 +1,11 @@
 /* Six legs select delayed gait frames from their owner's phase. */
 #include "code_08009A0.h"
+#include "arachne_entity.h"
 #include "structs/ewram.h"
 #include <string.h>
 extern u8 sArachneLegsFrames[];
-#define LEG(e) (*(s8 *)&(e)->unk_504.part8.unk_504)
-#define GAIT(e) (*(s8 *)&(e)->unk_504.part8.unk_505)
+#define LEG(e) (*(s8 *)&ARACHNE_LEG_INDEX((e)))
+#define GAIT(e) (*(s8 *)&ARACHNE_GAIT((e)))
 #define FIXED_INTEGER(x) ((x)<0 ? -(-(x)>>16) : (x)>>16)
 /**
  * @brief Leg sprite update: follow the owner (type 0x17) with its visibility,
@@ -13,7 +14,7 @@ extern u8 sArachneLegsFrames[];
  */
 void ArachneLegs_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner=entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *owner=ENTITY_OWNER(entity);
     u8 scratch[16]; /* Stack workspace reserved by the original routine. */
     u8 frames[36];
     s32 step;
@@ -33,7 +34,7 @@ void ArachneLegs_Update(struct EwramData_EntityData *entity)
         if(entity->flipX) entity->posX.part16.integer-=entity->velX.part16.integer;
         else entity->posX.part16.integer+=entity->velX.part16.integer;
         gait=GAIT(owner);
-        ownerGait=(s8 *)&owner->unk_504.part8.unk_505;
+        ownerGait=(s8 *)&ARACHNE_GAIT(owner);
         switch(gait)
         {
         case 0:
@@ -42,8 +43,8 @@ void ArachneLegs_Update(struct EwramData_EntityData *entity)
             current=*ownerGait; GAIT(entity)=current;
             break;
         case 1:
-            step=FIXED_INTEGER((s32)owner->unk_4FC.whole);
-            index=(s8 *)&entity->unk_504.part8.unk_504;
+            step=FIXED_INTEGER((s32)ARACHNE_WALK_PHASE(owner));
+            index=(s8 *)&ARACHNE_LEG_INDEX(entity);
             step-=(*index/2)*7;
             if(GAIT(entity)==2) entity->subState=1;
             if(entity->subState==0)
@@ -56,8 +57,8 @@ void ArachneLegs_Update(struct EwramData_EntityData *entity)
             current=*ownerGait; GAIT(entity)=current;
             break;
         case 2:
-            step=FIXED_INTEGER((s32)owner->unk_4FC.whole);
-            index=(s8 *)&entity->unk_504.part8.unk_504;
+            step=FIXED_INTEGER((s32)ARACHNE_WALK_PHASE(owner));
+            index=(s8 *)&ARACHNE_LEG_INDEX(entity);
             step-=(*index/2)*7;
             if(GAIT(entity)==1) entity->subState=1;
             if(entity->subState==0)
@@ -70,15 +71,15 @@ void ArachneLegs_Update(struct EwramData_EntityData *entity)
             current=*ownerGait; GAIT(entity)=current;
             break;
         case 3:
-            step=FIXED_INTEGER((s32)owner->unk_4FC.whole);
-            index=(s8 *)&entity->unk_504.part8.unk_504;
+            step=FIXED_INTEGER((s32)ARACHNE_WALK_PHASE(owner));
+            index=(s8 *)&ARACHNE_LEG_INDEX(entity);
             step-=(*index/2)*7;
             if(step<0)step+=36;
             entity->animFrame=frames[step];
             current=*ownerGait; GAIT(entity)=current;
             break;
         }
-        index=(s8 *)&entity->unk_504.part8.unk_504;
+        index=(s8 *)&ARACHNE_LEG_INDEX(entity);
         if(*index&1) entity->animFrame+=4;
         if(owner->state==2) { entity->state=1; entity->subState=0; entity->timer=90; }
         return;

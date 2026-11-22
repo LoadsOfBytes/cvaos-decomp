@@ -2,6 +2,7 @@
  * a cloning script (constants adjusted where needed), checked byte for
  * byte. */
 #include "code_08009A0.h"
+#include "ukoback_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -97,7 +98,7 @@ void EnemyUkobackCreate(struct EwramData_EntityData *entity)
     entity->velX.whole = 0;
     entity->accelY.whole = 0;
     entity->velY.whole = 0;
-    entity->unk_504.part8.unk_506 = 0;
+    UKOBACK_FIREBALL_COUNT(entity) = 0;
     Entity_FaceTarget(entity);
     entity->state = 0;
     entity->stage = 0;

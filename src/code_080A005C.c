@@ -1,5 +1,6 @@
 /* Legion_UpdatePreview. */
 #include "code_08009A0.h"
+#include "legion_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -14,7 +15,7 @@ void Legion_UpdatePreview(struct EwramData_EntityData *entity)
 {
     if (entity->subState == 0)
     {
-        PaletteAnim_Start(sLegionObject25Palette, sLegionPaletteAnim1, (s8)entity->unk_504.part8.unk_504);
+        PaletteAnim_Start(sLegionObject25Palette, sLegionPaletteAnim1, (s8)LEGION_ANIM_PALETTE(entity));
         entity->subState++;
     }
     entity->velX.whole += 0x200;

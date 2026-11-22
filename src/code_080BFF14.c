@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "kicker_skeleton_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 
@@ -42,7 +43,7 @@ void KickerSkeleton_DamagePlayerOnContact(struct EwramData_EntityData *entity)
     s32 speed;
     effect.attributes = 0;
     effect.unk_4 = 0;
-    if (entity->unk_4F8.whole & 1)
+    if (KICKER_SKELETON_FLAGS(entity) & 1)
     {
         effect.attack = entity->attack + (entity->attack >> 2);
         effect.reaction = 3;

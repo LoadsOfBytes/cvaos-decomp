@@ -1,12 +1,13 @@
 #include "code_08009A0.h"
+#include "manticore_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern s32 Enemy_IsStunnedNoFlash(struct EwramData_EntityData *);
 extern void PlaySong(u16 song);
-#define KIND(e) ((u8)(e)->unk_500.part8.unk_500)
-#define TIMER(e) ((e)->unk_500.part8.unk_502)
-#define STEP(e) ((e)->unk_500.part8.unk_503)
-#define VALUE(e) ((e)->unk_504.whole)
+#define KIND(e) ((u8)MANTICORE_TAIL_KIND((e)))
+#define TIMER(e) (MANTICORE_TAIL_TIMER((e)))
+#define STEP(e) (MANTICORE_TAIL_STEP((e)))
+#define VALUE(e) (MANTICORE_TAIL_VALUE((e)))
 #define SETANGLE(e) \
     do { \
         if ((e)->flipX) angle = -0x2000 - VALUE(e); \
@@ -17,8 +18,8 @@ extern void PlaySong(u16 song);
 /* Swing a linked part (chain link of ManticoreTailSegment_Update) around its owner depending on the owner's state. */
 void ManticoreTail_UpdateSwing(struct EwramData_EntityData *e)
 {
-    struct EwramData_EntityData *owner = e->unk_4F8.unk_4F8_entity;
-    struct EwramData_EntityData *part = e->unk_4FC.unk_4FC_entity;
+    struct EwramData_EntityData *owner = ENTITY_OWNER(e);
+    struct EwramData_EntityData *part = MANTICORE_TAIL_ANCHOR(e);
     s32 angle, x, y, r;
 
     if (Enemy_IsStunnedNoFlash(owner) == 0)

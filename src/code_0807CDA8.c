@@ -11,7 +11,7 @@ static inline s32 Flipped(s32 facing) { return facing ^ 1; }
 void AluraUneRootWave_Update(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = ENTITY_OWNER(entity);
     switch (entity->state)
     {
     case 0:

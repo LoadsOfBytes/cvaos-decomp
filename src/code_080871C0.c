@@ -1,5 +1,6 @@
 /* Triton spear creation. */
 #include "code_08009A0.h"
+#include "triton_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -9,7 +10,7 @@ extern void TritonSpear_Update(struct EwramData_EntityData *);
 extern void TritonSpear_DamagePlayerOnContact(struct EwramData_EntityData *);
 extern u8 sTritonGfx[];
 extern u8 sTritonSpriteSheet[];
-#define PART_ANGLE(e) ((e)->unk_504.whole)
+#define PART_ANGLE(e) (TRITON_SPEAR_ANGLE((e)))
 /* Create the Triton's spear (TritonSpear_Update) with its own affine slot,
  * hit box -3, -15, 6x6 and contact callback TritonSpear_DamagePlayerOnContact. */
 struct EwramData_EntityData *Triton_CreateSpear(struct EwramData_EntityData *owner)
@@ -51,7 +52,7 @@ struct EwramData_EntityData *Triton_CreateSpear(struct EwramData_EntityData *own
             part->hit.flags &= ~2;
             Hit_Enable(part, 8, TritonSpear_DamagePlayerOnContact, 0);
         }
-        part->unk_500.unk_500_entity = owner;
+        TRITON_SPEAR_OWNER(part) = owner;
         part->scrollWithBg = 0;
         part->drawFunc = (u32 *)Sprite_DrawEntity;
     }

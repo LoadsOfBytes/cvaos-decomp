@@ -1,5 +1,6 @@
 /* Steered flight towards a point next to entity unk_508. */
 #include "code/code_08039340.h"
+#include "balore_entity.h"
 #include "structs/ewram.h"
 
 /* Flight parameters, e.g. sBaloreHandSteeringParams1 (BaloreHand_FadeIn). */
@@ -53,17 +54,17 @@ s32 Entity_SteerToPoint(struct EwramData_EntityData *entity, const struct Balore
     }
     target = p->targetRadius;
     rate = p->radiusStep;
-    if (entity->unk_4F4.whole != target)
+    if (BALORE_ARM_LENGTH(entity) != target)
     {
-        if (entity->unk_4F4.whole > target)
+        if (BALORE_ARM_LENGTH(entity) > target)
         {
-            if ((entity->unk_4F4.whole -= rate) < target)
-                entity->unk_4F4.whole = target;
+            if ((BALORE_ARM_LENGTH(entity) -= rate) < target)
+                BALORE_ARM_LENGTH(entity) = target;
         }
-        else if (entity->unk_4F4.whole < target)
+        else if (BALORE_ARM_LENGTH(entity) < target)
         {
-            if ((entity->unk_4F4.whole += rate) > target)
-                entity->unk_4F4.whole = target;
+            if ((BALORE_ARM_LENGTH(entity) += rate) > target)
+                BALORE_ARM_LENGTH(entity) = target;
         }
     }
     dx = p->offsetX;
@@ -75,8 +76,8 @@ s32 Entity_SteerToPoint(struct EwramData_EntityData *entity, const struct Balore
         angle = -angle;
     }
     /* separate s16 offsets and u16 results decide the register allocation */
-    x = dx + entity->unk_508.part16.unk_508;
-    y = dy + entity->unk_508.part16.unk_50A;
+    x = dx + BALORE_HAND_HOME_X(entity);
+    y = dy + BALORE_HAND_HOME_Y(entity);
     Angle_TurnTowards((u16 *)&entity->unk_500, p->turnStep, angle);
     if (Entity_AimVelocityAtPoint(entity, x << 16, y << 16, SPEED(entity)) != 0)
         return 1;

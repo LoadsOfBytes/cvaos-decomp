@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "manticore_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
@@ -27,9 +28,9 @@ struct EwramData_EntityData *Manticore_CreateTailTip(struct EwramData_EntityData
         entity->unk_518.part16.hp = 1;
         entity->scrollWithBg = 0;
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
-        entity->unk_4F8.unk_4F8_entity = owner;
-        entity->unk_500.part8.unk_500 = 6;
-        entity->unk_504.whole = 0x4000;
+        ENTITY_OWNER(entity) = owner;
+        MANTICORE_TAIL_KIND(entity) = 6;
+        MANTICORE_TAIL_VALUE(entity) = 0x4000;
         entity->attack = owner->attack;
         slot = ObjAffine_Alloc(1);
         if ((s16)slot < 0) { EntityDelete(entity); return NULL; }

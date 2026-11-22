@@ -21,7 +21,7 @@ void Werewolf_SpawnShockwave(struct EwramData_EntityData *entity, s32 offsetX)
         WerewolfShockwave_EnableHitBoxes(child);
         child->scrollWithBg = 1;
         child->spriteLayer = 0x12;
-        child->unk_4F4.unk_4F4_entity = entity;
+        ENTITY_CREATOR(child) = entity;
         if (entity->flipX)
             child->posX.part16.integer = entity->posX.part16.integer + offsetX;
         else

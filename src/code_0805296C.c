@@ -19,7 +19,7 @@ fail:
         return;
     }
     child->scrollWithBg = 1;
-    child->unk_4F8.unk_4F8_entity = entity;
+    ENTITY_OWNER(child) = entity;
     entity->unk_4FC.part16.unk_4FC = 0x6000;
     entity->unk_500.whole = 0x200000;
     if ((gEwramData->gameState.gameFlagsTail[1] & 0x0A000000) == 0x02000000)

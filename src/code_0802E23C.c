@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "blue_soul_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -20,7 +21,7 @@ static inline void FollowParent(struct EwramData_EntityData *entity, struct Ewra
 /* Flying Armor guardian: follows the owner and emits drifting particles. */
 void SkillFlyingArmorUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = BLUE_SOUL_OWNER(entity);
     struct EwramData_EntityData *particle;
     u32 timer;
     s32 x, y, r;

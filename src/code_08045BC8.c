@@ -1,5 +1,6 @@
 /* Spawners 0x08045BC8..0x08045C9B. */
 #include "code_08009A0.h"
+#include "particle_effect.h"
 #include "code_08032444.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
@@ -22,8 +23,8 @@ void Effect_SpawnAttachedAnimation(struct EwramData_EntityData *parent, u8 param
     child = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateAttachedAnimation);
     if (child == NULL)
         return;
-    child->unk_4F8.part8.unk_4F8 = param_1;
-    child->unk_4FC.unk_4FC_entity = parent;
+    PARTICLE_ATTACH_ANIM(child) = param_1;
+    PARTICLE_ATTACH_PARENT(child) = parent;
     child->palette = palette;
     child->accelX.whole = offsetX;
     child->accelY.whole = offsetY;

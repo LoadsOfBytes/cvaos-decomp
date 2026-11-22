@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "legion_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "code/code_080211F0.h"
@@ -37,6 +38,6 @@ void EnemyLegionUpdate(struct EwramData_EntityData *entity)
     case 3: Legion_UpdatePreview(entity); Anim_Update(entity); return;
     }
     Anim_Update(entity);
-    if (entity->state != 2 && !(entity->unk_504.part8.unk_506 & 1))
+    if (entity->state != 2 && !(LEGION_FLAGS(entity) & 1))
         Hit_CheckWithPlayer(box, entity);
 }

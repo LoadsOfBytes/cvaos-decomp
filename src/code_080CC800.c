@@ -3,6 +3,7 @@
  * direct posX/posY reads (loop keeps the addresses), rowOffset declared in the
  * inner loop body (hoisted by loop.c), literal zeros, ABS through an inline. */
 #include "code_08009A0.h"
+#include "wheel_enemy_entity.h"
 #include "structs/ewram.h"
 extern s32 Bael_CheckCleanup(struct EwramData_EntityData *entity);
 extern s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *entity,s32 x,s32 y);
@@ -11,7 +12,7 @@ extern s32 Target_IsNearEntity(struct EwramData_EntityData *entity,s32 x,s32 y);
 extern s8 Entity_GetTargetDirection(struct EwramData_EntityData *entity);
 extern s32 Collision_GetPushUp(s32 x,s32 y);
 extern void Bael_UpdateCharge(struct EwramData_EntityData *entity);
-#define SPEED(e) ((e)->unk_4FC.whole)
+#define SPEED(e) (WHEEL_SPEED((e)))
 #define ABS(x) ((x)<0?-(x):(x))
 static inline s32 AbsI(s32 x) { if (x<0) x=-x; return x; }
 static inline s32 RoomX(s32 pos) { struct BgLayerState *bg=&gEwramData->bgInfo[1]; return pos+(s16)bg->xPos.part16.integer; }
@@ -22,7 +23,7 @@ static inline s32 RoomY(s32 pos) { struct BgLayerState *bg=&gEwramData->bgInfo[1
  */
 void Bael_UpdateActive(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *part=&gEwramData->entityData[entity->unk_4F4.part8.unk_4F5];
+    struct EwramData_EntityData *part=&gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
     if (Bael_CheckCleanup(entity))
         return;
     switch (entity->subState)

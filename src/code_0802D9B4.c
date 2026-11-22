@@ -1,5 +1,6 @@
 /* Soul helpers 0x0802D9B4..0x0802DAD3. */
 #include "code_08009A0.h"
+#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -15,7 +16,7 @@ extern s32 EntityIsOutsideScreen(struct EwramData_EntityData *entity, s32 margin
  */
 void SoulAttack_MarkHit(struct EwramData_EntityData *entity)
 {
-    entity->unk_4FC.part8.unk_4FC = 1;
+    RED_SOUL_HIT(entity) = 1;
 }
 
 /**
@@ -27,14 +28,14 @@ void RedSoul_AnchorToHitTargetTimed(struct EwramData_EntityData *entity, struct 
 {
     struct EwramData_EntityData *child;
 
-    if (entity->unk_504.unk_504_entity == NULL)
+    if (RED_SOUL_ANCHOR(entity) == NULL)
     {
         child = EntityCreateInRange(0x49, 0xCF, (u32 *)RedSoulAnchor_Update);
         if (child == NULL)
             return;
-        entity->unk_504.unk_504_entity = child;
-        child->unk_4F8.unk_4F8_entity = entity;
-        child->unk_504.unk_504_entity = target;
+        RED_SOUL_ANCHOR(entity) = child;
+        ENTITY_OWNER(child) = entity;
+        RED_SOUL_ANCHOR_TARGET(child) = target;
         child->unk_4F4.part8.unk_4F4 = entity->unk_4F4.part8.unk_4F4;
         entity->timer = 0x78;
         HitBox_SetAttackRaw(entity, 0x1014F8F6);
@@ -43,7 +44,7 @@ void RedSoul_AnchorToHitTargetTimed(struct EwramData_EntityData *entity, struct 
     }
     else
     {
-        entity->unk_508.part16.unk_50A = 0;
+        RED_SOUL_ANCHOR_TIMER(entity) = 0;
     }
 }
 

@@ -1,5 +1,6 @@
 ﻿/* Alastor linked part, sharing the owner's graphics. */
 #include "code_08009A0.h"
+#include "alastor_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern s8 ObjPalette_FindOrLoad(void *);
@@ -23,10 +24,10 @@ s32 Alastor_CreateLinkedPart(struct EwramData_EntityData *entity)
         s32 slot=ObjPalette_FindOrLoad(palette);
         if (Sprite_Attach(part,sprite,graphic,slot))
         {
-            s32 index=entity->unk_4F4.part8.unk_4F4;
+            s32 index=ENTITY_INDEX(entity);
             s32 zero=0;
             part->unk_4F4.part8.unk_4F5=index;
-            entity->unk_4F4.part8.unk_4F6=part->unk_4F4.part8.unk_4F4;
+            ALASTOR_PART_INDEX(entity)=ENTITY_INDEX(part);
             part->objMode=1;
             part->drawFunc=(u32 *)Sprite_DrawEntity;
             part->scrollWithBg=1;

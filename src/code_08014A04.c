@@ -31,10 +31,10 @@ struct SolidObjectCallbacks {
     s32 (*push)(struct EwramData_EntityData *object, s16 x, s16 y);
 };
 
-#define FUNCS(object) ((struct SolidObjectCallbacks *)(object)->unk_4F4.unk_4F4_p32)
-#define FLAGS(e) ((e)->unk_4F4.whole)
+#define FUNCS(object) ((struct SolidObjectCallbacks *)SOLID_OBJECT_CALLBACKS((object)))
+#define FLAGS(e) (PLAYER_ACTION_FLAGS((e)))
 #define TILE_FLAGS (gUnk_03002CB0.collisionProbeFlags)
-#define TIMER(e) (*(u16 *)&(e)->unk_4F8.part16.unk_4FA)
+#define TIMER(e) (*(u16 *)&PLAYER_DROP_THROUGH_TIMER((e)))
 #define X ((s16)x)
 #define Y ((s16)y)
 
@@ -47,8 +47,8 @@ static inline void SetPlayerAnimBox(struct EwramData_EntityData *entity, u8 anim
     {
         Anim_StartIndexed(entity, anim, 3, flag);
         HitBox_SetBody(entity, &box);
-        entity->unk_504.part16.unk_504 = 0xFF;
-        entity->unk_4F4.whole &= ~0x200000;
+        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
+        PLAYER_ACTION_FLAGS(entity) &= ~0x200000;
         pal = sSomaAnimPalettes[anim];
         if (PLAYER_ANIM_PALETTE(entity) != pal)
         {
@@ -62,7 +62,7 @@ static inline void SetPlayerBox(struct EwramData_EntityData *entity, s32 value, 
 {
     struct PlayerBodyBox box = table[0];
 
-    entity->unk_504.part16.unk_504 = value;
+    PLAYER_REQUESTED_ANIM(entity) = value;
     HitBox_SetBody(entity, &box);
 }
 
@@ -193,8 +193,8 @@ static inline void UpdateFloorFlags(struct EwramData_EntityData *entity)
         else
             FLAGS(entity) |= 0x2000;
     }
-    if ((u8)entity->unk_500.part8.unk_501 < (TILE_FLAGS >> 6))
-        entity->unk_500.part8.unk_501 = TILE_FLAGS >> 6;
+    if ((u8)PLAYER_SLOPE_LEVEL(entity) < (TILE_FLAGS >> 6))
+        PLAYER_SLOPE_LEVEL(entity) = TILE_FLAGS >> 6;
 }
 
 static inline s16 PlatformFloor(s16 x, s16 y, u16 c)
@@ -284,7 +284,7 @@ static inline u16 FloorProbe(s16 x, s16 y, s32 flag)
     {
         struct EwramData_EntityData *player = gEwramData->playerState.player;
 
-        if (player->velY.whole >= 0 && (!(player->unk_4F4.whole & 2) || player->unk_4F8.part16.unk_4F8 == 0x10))
+        if (player->velY.whole >= 0 && (!(PLAYER_ACTION_FLAGS(player) & 2) || PLAYER_AIR_TIME(player) == 0x10))
             c = PlatformFloor(x, y, c);
     }
     UpdateFloorKind(c);
@@ -429,7 +429,7 @@ static inline void PlayerCollision(struct EwramData_EntityData *entity)
             }
         }
     }
-    offsets = (s8 *)entity->unk_4FC.whole;
+    offsets = (s8 *)PLAYER_WALL_PROBES(entity);
     count = offsets[0];
     if (velX < 0)
     {
@@ -537,7 +537,7 @@ static inline void PlayerCollision(struct EwramData_EntityData *entity)
         else
             FLAGS(entity) = flagsD & ~0x400;
     }
-    entity->unk_500.part8.unk_500 = 0;
+    PLAYER_ON_STAIRS(entity) = 0;
     if (dir != 0)
     {
         /* The stair search reuses the wall loop counter. */
@@ -548,7 +548,7 @@ static inline void PlayerCollision(struct EwramData_EntityData *entity)
             {
                 if (StairKind(TILE_FLAGS) == 1)
                 {
-                    entity->unk_500.part8.unk_500 = 1;
+                    PLAYER_ON_STAIRS(entity) = 1;
                     break;
                 }
             }
@@ -571,7 +571,7 @@ static inline void PlayerCollision(struct EwramData_EntityData *entity)
         return;
     dir = 0;
     FLAGS(entity) = (FLAGS(entity) & 0xFFFF9FFF) | 0x1000;
-    entity->unk_500.part8.unk_501 = 0;
+    PLAYER_SLOPE_LEVEL(entity) = 0;
     c = FloorProbe(X, Y + 1, flag);
     UpdateFloorFlags(entity);
     if (c == 0)
@@ -666,7 +666,7 @@ static inline void PlayerCollision(struct EwramData_EntityData *entity)
         if (!IsLanding(entity, sc))
             return;
         FLAGS(entity) |= 0x100000;
-        entity->unk_4F8.part16.unk_4F8 = 0;
+        PLAYER_AIR_TIME(entity) = 0;
         if (Weapon_KeepsAttackOnLanding() == 0)
             goto plainLanding;
         FLAGS(entity) &= 0xFFDFFCE1;

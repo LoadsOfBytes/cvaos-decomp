@@ -5,6 +5,7 @@
  * either enters state 4 (bestiaryPreview set) or registers the hit/death callbacks
  * and enters state 0. */
 #include "code_08009A0.h"
+#include "minotaur_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, u8 *, void *, u8, void *);
@@ -24,8 +25,8 @@ extern u8 sMinotaurGfx[], sMinotaurPalette[], sMinotaurSpriteSheet[];
  * and the unk_518 value of the Minotaur. */
 static inline void AttachChild(struct EwramData_EntityData *child, struct EwramData_EntityData *entity)
 {
-    child->unk_4F8.unk_4F8_entity = entity;
-    child->unk_4F4.part8.unk_4F5 = entity->unk_4F4.part8.unk_4F4;
+    ENTITY_OWNER(child) = entity;
+    ENTITY_PARENT_INDEX(child) = ENTITY_INDEX(entity);
     child->attack = entity->attack;
     /* Signed 16-bit view of unk_518; the u16 field allocates registers differently. */
     *(s16 *)&child->unk_518 = *(s16 *)&entity->unk_518;
@@ -36,7 +37,7 @@ void Minotaur_Init(struct EwramData_EntityData *entity, s32 variant)
     struct EwramData_EntityData *child;
     if (!Entity_LoadGraphics(entity, sMinotaurGfx, sMinotaurPalette, variant, sMinotaurSpriteSheet))
         goto fail;
-    entity->unk_4F8.part8.unk_4F9 = variant;
+    MINOTAUR_VARIANT(entity) = variant;
     Enemy_ResetFromTemplate(entity);
     entity->spriteLayer = 0x13;
     child = Entity_CreateObject((u32 *)MinotaurAxe_Update);
@@ -51,7 +52,7 @@ void Minotaur_Init(struct EwramData_EntityData *entity, s32 variant)
         return;
     }
     AttachChild(child, entity);
-    entity->unk_4FC.whole |= 3;
+    MINOTAUR_FLAGS(entity) |= 3;
     Anim_StartIndexed(entity, 1, 0, 1);
     Anim_Update(entity);
     if (gEwramData->gameState.bestiaryPreview)

@@ -1,5 +1,6 @@
 /* BuerChargeEffect_Update. */
 #include "code_08009A0.h"
+#include "wheel_enemy_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -26,7 +27,7 @@ void BuerChargeEffect_Update(struct EwramData_EntityData *entity)
             entity->unk_510.part8.basePalette = 6;
             Sprite_Attach(entity, sBaelBuerSpriteSheet, gfx, 6);
             entity->drawFunc = (u32 *)Sprite_DrawEntity;
-            Anim_StartIndexed(entity, entity->unk_4F4.part8.unk_4F6, 0, 0);
+            Anim_StartIndexed(entity, WHEEL_EFFECT_ANIM(entity), 0, 0);
             entity->spriteLayer = 0x11;
             entity->scrollWithBg = 1;
             entity->state++;

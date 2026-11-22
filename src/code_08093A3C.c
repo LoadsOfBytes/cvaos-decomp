@@ -1,5 +1,6 @@
 /* Oscillate vertical acceleration and select the rising/falling animation. */
 #include "code_08009A0.h"
+#include "medusa_head_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -11,12 +12,12 @@ extern void EntityMove(struct EwramData_EntityData *);
 void MedusaHead_UpdateFly(struct EwramData_EntityData *entity)
 {
     if (entity->subState != 0) return;
-    if ((s8)entity->unk_504.part8.unk_504 != 0) entity->velY.whole -= entity->accelY.whole;
+    if ((s8)MEDUSA_HEAD_WAVE_UP(entity) != 0) entity->velY.whole -= entity->accelY.whole;
     else entity->velY.whole += entity->accelY.whole;
-    if ((s8)++entity->unk_504.part8.unk_505 >= entity->unk_504.part8.unk_506)
+    if ((s8)++MEDUSA_HEAD_WAVE_FRAME(entity) >= MEDUSA_HEAD_WAVE_LENGTH(entity))
     {
-        entity->unk_504.part8.unk_505 = 0;
-        entity->unk_504.part8.unk_504 ^= 1;
+        MEDUSA_HEAD_WAVE_FRAME(entity) = 0;
+        MEDUSA_HEAD_WAVE_UP(entity) ^= 1;
     }
     EntityMove(entity);
     if (entity->velY.whole >= 0)

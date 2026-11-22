@@ -2,6 +2,15 @@
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
+
+/*
+ * Lilith's shot: flight angle (curves by 0x400 per frame during the first
+ * frames) and its two afterimage entities (ended together with the shot).
+ * Token-identical expansion.
+ */
+#define LILITH_SHOT_ANGLE(e) e->unk_500.whole
+#define LILITH_SHOT_TRAIL_0(e) e->unk_4F8.unk_4F8_entity
+#define LILITH_SHOT_TRAIL_1(e) e->unk_4FC.unk_4FC_entity
 extern struct EwramData_EntityData *Afterimage_Create(struct EwramData_EntityData *, s32, s32, s32);
 extern void LilithShot_Update(struct EwramData_EntityData *);
 extern void LilithShot_DamagePlayerOnContact(struct EwramData_EntityData *);
@@ -36,15 +45,15 @@ void Lilith_SpawnShot(struct EwramData_EntityData *owner, s32 dx, s32 dy)
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         if (owner->flipX)
         {
-            entity->unk_500.whole = 0;
+            LILITH_SHOT_ANGLE(entity) = 0;
             entity->timer = 21;
         }
         else
         {
-            entity->unk_500.whole = 0x8000;
+            LILITH_SHOT_ANGLE(entity) = 0x8000;
             entity->timer = 7;
         }
-        entity->unk_4F8.unk_4F8_entity = Afterimage_Create(entity, 0, 10, 0);
-        entity->unk_4FC.unk_4FC_entity = Afterimage_Create(entity, 0, 5, 0);
+        LILITH_SHOT_TRAIL_0(entity) = Afterimage_Create(entity, 0, 10, 0);
+        LILITH_SHOT_TRAIL_1(entity) = Afterimage_Create(entity, 0, 5, 0);
     }
 }

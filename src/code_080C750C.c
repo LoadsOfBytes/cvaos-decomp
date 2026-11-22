@@ -1,5 +1,6 @@
 /* Falling-away death of a linked part. */
 #include "code/code_08039340.h"
+#include "nemesis_entity.h"
 #include "code_080D73B8.h"
 #include "structs/ewram.h"
 
@@ -28,7 +29,7 @@ void Nemesis_UpdateDeath(struct EwramData_EntityData *entity)
         {
             ObjAffine_Free(entity->affineIndex);
             entity->deleteRequested = 1;
-            (gEwramData->entityData + entity->unk_4F4.part8.unk_4F6)->deleteRequested = 1;
+            (gEwramData->entityData + NEMESIS_PARTNER_INDEX(entity))->deleteRequested = 1;
         }
         break;
     }

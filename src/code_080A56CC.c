@@ -1,5 +1,6 @@
 /* Chaos second form: spark burst (56CC). */
 #include "code_08009A0.h"
+#include "chaos_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -8,8 +9,8 @@ extern u8 sCommonObjectSpriteSheet[];
 extern struct AnimScript sChaos2SparkAnimScript;
 extern void Chaos2Spark_Update(struct EwramData_EntityData *);
 
-#define OFFSET_X(e) ((e)->unk_4F8.whole)
-#define OFFSET_Y(e) ((e)->unk_4FC.whole)
+#define OFFSET_X(e) (CHAOS_OFFSET_X((e)))
+#define OFFSET_Y(e) (CHAOS_OFFSET_Y((e)))
 
 /* Create a spark (animation sChaos2SparkAnimScript) at a random angle on a circle
  * of radius 48 around the core, flying inwards and slowing down. */

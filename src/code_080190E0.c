@@ -1,5 +1,6 @@
 /* Soma_TryAirJump. */
 #include "code_08009A0.h"
+#include "player_entity.h"
 #include "code/code_08040A38.h"
 #include "code_080D73B8.h"
 
@@ -22,18 +23,18 @@ s32 Soma_TryAirJump(struct EwramData_EntityData *entity)
     struct PlayerBodyBox box;
     u16 zero;
 
-    if ((entity->unk_4F4.whole & 0x800000) || !(entity->unk_4F4.whole & 0x04000004))
+    if ((PLAYER_ACTION_FLAGS(entity) & 0x800000) || !(PLAYER_ACTION_FLAGS(entity) & 0x04000004))
     {
         if ((gEwramData->inputData.playerNewInput & gEwramData->playerStatus.jumpButton)
-            && (zero = entity->unk_4F8.part16.unk_4FA) == 0)
+            && (zero = PLAYER_DROP_THROUGH_TIMER(entity)) == 0)
         {
             u16 time = 0x14;
             box = sSomaAirborneBodyBox[0];
-            entity->unk_504.part16.unk_504 = time;
+            PLAYER_REQUESTED_ANIM(entity) = time;
             HitBox_SetBody(entity, &box);
             PlaySong(0xB9);
-            entity->unk_4F4.whole = (entity->unk_4F4.whole | 4) & ~0x10;
-            if (!(entity->unk_4F4.whole & 0x400000))
+            PLAYER_ACTION_FLAGS(entity) = (PLAYER_ACTION_FLAGS(entity) | 4) & ~0x10;
+            if (!(PLAYER_ACTION_FLAGS(entity) & 0x400000))
             {
                 entity->velY.whole = -0x42000;
                 entity->accelY.whole = 0x1400;

@@ -22,7 +22,7 @@ static inline s32 Rem(s32 a, s32 b) { return a % b; }
  */
 void WarpRoom_UpdateSideLight(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *other = &gEwramData->entityData[entity->unk_4F4.part8.unk_4F5];
+    struct EwramData_EntityData *other = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
     struct WarpLightPaletteStep frames[12];
     s32 found;
     s32 m;

@@ -71,7 +71,7 @@ void Object17Create(struct EwramData_EntityData *entity)
         }
         Anim_StartIndexed(e, 1, 0, 1);
         Anim_Update(e);
-        e->unk_4F8.unk_4F8_entity = entity;
+        ENTITY_OWNER(e) = entity;
         e->scrollWithBg = 1;
         e->posX.whole = entity->posX.whole;
         e->posY.whole = entity->posY.whole;
@@ -86,7 +86,7 @@ void Object17Create(struct EwramData_EntityData *entity)
             goto delete;
         Anim_StartIndexed(e, 3, 0, 0);
         Anim_Update(e);
-        e->unk_4F8.unk_4F8_entity = entity;
+        ENTITY_OWNER(e) = entity;
         e->scrollWithBg = 1;
         e->flipX = i;
         e->hidden = 1;

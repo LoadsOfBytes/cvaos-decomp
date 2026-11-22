@@ -1,4 +1,7 @@
 #include "code_08009A0.h"
+#include "soul_skill_entity.h"
+#include "blue_soul_entity.h"
+#include "player_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -37,14 +40,14 @@ static inline void LoadGfx(struct EwramData_EntityData *entity, u8 paletteSlot, 
  */
 void SkillCatoblepasUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = BLUE_SOUL_OWNER(entity);
 
     if (BlueSoul_ShouldEnd(entity))
     {
         EntityDelete(entity);
         return;
     }
-    if ((parent->unk_4F4.whole & 0x1001A2) != 0x100000)
+    if ((PLAYER_ACTION_FLAGS(parent) & 0x1001A2) != 0x100000)
     {
         BlueSoul_ReleaseActiveResources(entity);
         EntityDelete(entity);
@@ -70,7 +73,7 @@ void SkillCatoblepasUse(struct EwramData_EntityData *entity)
         }
         gEwramData->playerState.player->state = 0xA;
         Anim_StartIndexed(gEwramData->playerState.player, 0x35, 3, 1);
-        parent->unk_4F4.whole &= 0xEFFFFBFF;
+        PLAYER_ACTION_FLAGS(parent) &= 0xEFFFFBFF;
         entity->state++;
     case 1:
         Follow(entity, parent, 0x10, -0x1C);
@@ -95,11 +98,11 @@ void SkillCatoblepasUse(struct EwramData_EntityData *entity)
                 }
                 child->velX.whole += parent->velX.whole;
                 child->flipX = parent->flipX;
-                child->velY.whole = sSkillProjectileLaunchVelocities[entity->unk_508.part16.unk_50A] + 0x8000;
+                child->velY.whole = sSkillProjectileLaunchVelocities[SKILL_CATOBLEPAS_SHOT_INDEX(entity)] + 0x8000;
                 child->accelY.whole = 0x200;
             }
-            if (++entity->unk_508.part16.unk_50A > 2)
-                entity->unk_508.part16.unk_50A = 0;
+            if (++SKILL_CATOBLEPAS_SHOT_INDEX(entity) > 2)
+                SKILL_CATOBLEPAS_SHOT_INDEX(entity) = 0;
             entity->timer = 5;
         }
         entity->timer--;

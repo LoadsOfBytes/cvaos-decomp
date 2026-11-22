@@ -1,4 +1,7 @@
 #include "code_08033CAC.h"
+#include "blue_soul_entity.h"
+#include "red_soul_entity.h"
+#include "player_entity.h"
 #include "code_08009A0.h"
 #include "code_08001004.h"
 #include "code_08001194.h"
@@ -250,7 +253,7 @@ void LinkPartner_Update(struct EwramData_EntityData *entity)
 
     frame = 0;
     receivedState = &gEwramData->linkReceivedState;
-    prevFlags = entity->unk_4F4.whole;
+    prevFlags = PLAYER_ACTION_FLAGS(entity);
     entity->roomActive = 1;
 
     switch (entity->state)
@@ -261,16 +264,16 @@ void LinkPartner_Update(struct EwramData_EntityData *entity)
             entity->state = 1;
             /* fallthrough */
         case 1:
-            entity->unk_4F4.whole = 0;
+            PLAYER_ACTION_FLAGS(entity) = 0;
             if (receivedState->flags & 2)
             {
-                entity->unk_4F4.whole = 0x20;
+                PLAYER_ACTION_FLAGS(entity) = 0x20;
             }
             if (receivedState->flags & 4)
             {
-                entity->unk_4F4.whole |= 0x400;
+                PLAYER_ACTION_FLAGS(entity) |= 0x400;
             }
-            if ((entity->unk_4F4.whole & 0x20) && !(prevFlags & 0x20) && (gEwramData->playerState.weaponEntities[entity->unk_50C.part8.unk_50C] == NULL))
+            if ((PLAYER_ACTION_FLAGS(entity) & 0x20) && !(prevFlags & 0x20) && (gEwramData->playerState.weaponEntities[PLAYER_WEAPON_SLOT(entity)] == NULL))
             {
                 Weapon_CreateAttackEntity(entity);
             }
@@ -307,7 +310,7 @@ void Link_ExchangePlayerState(void)
     player = gEwramData->playerState.player;
 
     receivedState->flags = 0;
-    if (player->unk_4F4.whole & 0x80000)
+    if (PLAYER_ACTION_FLAGS(player) & 0x80000)
     {
         sendState->flags |= 8;
     }
@@ -434,11 +437,11 @@ void Link_UpdatePlayerSync(void)
     sendState->animFrame = player->animFrame;
 
     sendState->flags = player->flipX;
-    if ((player->state != 3) && (player->unk_4F4.whole & 0x20))
+    if ((player->state != 3) && (PLAYER_ACTION_FLAGS(player) & 0x20))
     {
         sendState->flags |= 2;
     }
-    if (player->unk_4F4.whole & 0x400)
+    if (PLAYER_ACTION_FLAGS(player) & 0x400)
     {
         sendState->flags |= 4;
     }
@@ -515,7 +518,7 @@ void Link_MarkEnemyDamaged(void)
 {
     if (gEwramData->gameState.linkPlay)
     {
-        gEwramData->playerState.player->unk_4F4.whole |= 0x80000;
+        PLAYER_ACTION_FLAGS(gEwramData->playerState.player) |= 0x80000;
     }
 }
 
@@ -630,7 +633,7 @@ void Julius_HandleSubweaponInput(struct EwramData_EntityData *entity)
     s8 slot;
     struct RedSoulActivationView *info;
 
-    if (entity->unk_4F4.whole & 0x540)
+    if (PLAYER_ACTION_FLAGS(entity) & 0x540)
     {
         return;
     }
@@ -704,13 +707,13 @@ void Julius_HandleSubweaponInput(struct EwramData_EntityData *entity)
         entity->timer = 0x20;
     }
 
-    entity->unk_4F4.whole |= 0x100;
-    child->unk_4F8.unk_4F8_entity = entity;
-    child->unk_4FC.part16.unk_4FE[0] = slot;
-    child->unk_500.part16.unk_500 = gEwramData->playerStatus.equippedRedSoul;
-    child->unk_500.part16.unk_502 = info->unk_E;
+    PLAYER_ACTION_FLAGS(entity) |= 0x100;
+    RED_SOUL_OWNER(child) = entity;
+    RED_SOUL_SLOT(child) = slot;
+    RED_SOUL_ID(child) = gEwramData->playerStatus.equippedRedSoul;
+    RED_SOUL_PARAM(child) = info->param;
     child->roomActive = 1;
-    entity->unk_4F4.whole &= ~0x200060;
+    PLAYER_ACTION_FLAGS(entity) &= ~0x200060;
 }
 
 /**
@@ -726,7 +729,7 @@ void JuliusCross_Update(struct EwramData_EntityData *entity)
     u16 affineIndex;
     u8 temp_r4;
 
-    owner = entity->unk_4F8.unk_4F8_entity;
+    owner = RED_SOUL_OWNER(entity);
 
     switch (entity->state)
     {
@@ -736,7 +739,7 @@ void JuliusCross_Update(struct EwramData_EntityData *entity)
             entity->state = 1;
             /* fallthrough */
         case 1:
-            if (owner->unk_4F4.whole & 0x80)
+            if (PLAYER_ACTION_FLAGS(owner) & 0x80)
             {
                 RedSoul_RemoveActiveEntity(entity);
                 EntityDelete(entity);
@@ -896,7 +899,7 @@ void JuliusHolyWater_Update(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *owner;
     s32 tmp = 0x10000;
 
-    owner = entity->unk_4F8.unk_4F8_entity;
+    owner = RED_SOUL_OWNER(entity);
 
     switch (entity->state)
     {
@@ -906,7 +909,7 @@ void JuliusHolyWater_Update(struct EwramData_EntityData *entity)
             entity->state = 1;
             /* fallthrough */
         case 1:
-            if (owner->unk_4F4.whole & 0x80)
+            if (PLAYER_ACTION_FLAGS(owner) & 0x80)
             {
                 RedSoul_RemoveActiveEntity(entity);
                 EntityDelete(entity);
@@ -1063,7 +1066,7 @@ void JuliusAxe_Update(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *child;
     struct EwramData_EntityData *owner;
 
-    owner = entity->unk_4F8.unk_4F8_entity;
+    owner = RED_SOUL_OWNER(entity);
 
     switch (entity->state)
     {
@@ -1074,7 +1077,7 @@ void JuliusAxe_Update(struct EwramData_EntityData *entity)
             break;
 
         case 1:
-            if ((owner->unk_4F4.whole & 0x80))
+            if ((PLAYER_ACTION_FLAGS(owner) & 0x80))
             {
                 RedSoul_RemoveActiveEntity(entity);
                 EntityDelete(entity);
@@ -1133,7 +1136,7 @@ void JuliusGrandCross_Update(struct EwramData_EntityData *entity)
     u16 affineIndex;
     s32 tmp = 0x10000;
 
-    owner = entity->unk_4F8.unk_4F8_entity;
+    owner = RED_SOUL_OWNER(entity);
 
     switch (entity->state)
     {
@@ -1144,7 +1147,7 @@ void JuliusGrandCross_Update(struct EwramData_EntityData *entity)
             entity->state = 1;
             /* fallthrough */
         case 1:
-            if (owner->unk_4F4.whole & 0x80)
+            if (PLAYER_ACTION_FLAGS(owner) & 0x80)
             {
                 RedSoul_RemoveActiveEntity(entity);
                 EntityDelete(entity);
@@ -1300,7 +1303,7 @@ void Whip_UpdateChainHitSegment(struct EwramData_EntityData *entity)
     struct WhipChainNode *nodes;
     struct EwramData_EntityData *chain;
 
-    chain = entity->unk_4F8.unk_4F8_entity;
+    chain = BLUE_SOUL_OWNER(entity);
 
     switch (entity->state)
     {
@@ -1488,7 +1491,7 @@ struct EwramData_EntityData* Whip_CreateChain(s32 x, s32 y, u8 *resource, struct
         segment = BlueSoul_CreateEntity(chain, Whip_UpdateChainHitSegment);
         if (segment != NULL)
         {
-            segment->unk_50C.part8.unk_50C = i;
+            WHIP_SEGMENT_NODE(segment) = i;
             segment->timer = i;
         }
 
@@ -1503,8 +1506,8 @@ struct EwramData_EntityData* Whip_CreateChain(s32 x, s32 y, u8 *resource, struct
 
     chain->animFrame = 3;
     chain->spriteLayer = 0xE;
-    chain->unk_500.part16.unk_500 = 1;
-    chain->unk_500.part16.unk_502 = 0;
+    WHIP_CHAIN_ACTIVE(chain) = 1;
+    WHIP_CHAIN_SETTLE(chain) = 0;
     chain->roomActive = chain->scrollWithBg = 1;
     return chain;
 }

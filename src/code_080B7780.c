@@ -1,6 +1,7 @@
 /* Rotating attached part: follow the parent during animation 3, then fall
  * and release its affine slot when the parent dies. */
 #include "code_08009A0.h"
+#include "skull_millione_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -13,7 +14,7 @@
  */
 void SkullMillioneFamilyPart_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = ENTITY_OWNER(entity);
     u16 offset;
     s32 rotation;
     s32 value;
@@ -30,7 +31,7 @@ void SkullMillioneFamilyPart_Update(struct EwramData_EntityData *entity)
     {
     case 0:
         if (parent->animScriptIndex != 3) break;
-        entity->unk_4FC.part16.unk_4FE[0] = 0;
+        SKULL_MILLIONE_PART_ANGLE(entity) = 0;
         entity->hidden = 0;
         entity->state = 1;
         /* fall through */
@@ -57,8 +58,8 @@ void SkullMillioneFamilyPart_Update(struct EwramData_EntityData *entity)
         }
         entity->posY.part16.integer = parent->posY.part16.integer - 6;
         value = (s16)rotation;
-        value += (u16)entity->unk_4FC.part16.unk_4FE[0];
-        entity->unk_4FC.part16.unk_4FE[0] = value;
+        value += (u16)SKULL_MILLIONE_PART_ANGLE(entity);
+        SKULL_MILLIONE_PART_ANGLE(entity) = value;
         break;
     case 2:
         entity->hidden = 0;
@@ -76,15 +77,15 @@ void SkullMillioneFamilyPart_Update(struct EwramData_EntityData *entity)
         entity->accelY.whole = 0x2000;
         entity->velX.whole = RandomSigned(0x40) << 12;
         entity->accelX.whole = 0;
-        entity->unk_4FC.part16.unk_4FE[0] = 0;
+        SKULL_MILLIONE_PART_ANGLE(entity) = 0;
         entity->state = 3;
         /* fall through */
     case 3:
         rotation = 0xB00;
         if (entity->flipX) rotation = (u16)-rotation;
         value = (s16)rotation;
-        value += (u16)entity->unk_4FC.part16.unk_4FE[0];
-        entity->unk_4FC.part16.unk_4FE[0] = value;
+        value += (u16)SKULL_MILLIONE_PART_ANGLE(entity);
+        SKULL_MILLIONE_PART_ANGLE(entity) = value;
         EntityAccelerateAndMove(entity, 0x80000);
         if (!EntityIsOutsideScreen(entity, 4)) break;
         /* fall through */
@@ -93,5 +94,5 @@ void SkullMillioneFamilyPart_Update(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    ObjAffine_Set(entity->unk_4FC.part16.unk_4FE[0], 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set(SKULL_MILLIONE_PART_ANGLE(entity), 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
 }

@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "chaos_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -10,16 +11,16 @@ extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern s32 Entity_AimVelocityAtPoint(struct EwramData_EntityData *, s32, s32, s32);
 extern s32 Entity_AimAccelerationAtPoint(struct EwramData_EntityData *, s32, s32, s32);
 
-#define OFFSET_X(e) ((e)->unk_4F8.whole)
-#define OFFSET_Y(e) ((e)->unk_4FC.whole)
-#define SPREAD(e) ((e)->unk_504.whole)
+#define OFFSET_X(e) (CHAOS_OFFSET_X((e)))
+#define OFFSET_Y(e) (CHAOS_OFFSET_Y((e)))
+#define SPREAD(e) (CHAOS_SHOT_SPREAD((e)))
 #define MASH(e) (((u8 *)&(e)->unk_500)[1])
 
 /* Chaos soul grab: holds the player, who can mash buttons to break free. */
 void ChaosSpark_Update(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
-    struct EwramData_EntityData *orb = entity->unk_4F4.unk_4F4_entity;
+    struct EwramData_EntityData *orb = CHAOS_LINK(entity);
     struct EwramData *ewram = gEwramData;
     struct BgLayerState *camera = &ewram->bgInfo[1];
     struct EwramData_EntityData *target;

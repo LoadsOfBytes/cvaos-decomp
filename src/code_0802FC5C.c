@@ -1,5 +1,7 @@
 /* Final Guard soul: once the parent is idle and in the right state, load the shield graphics and keep it until the state changes. */
 #include "code_08009A0.h"
+#include "blue_soul_entity.h"
+#include "player_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -32,7 +34,7 @@ static inline void LoadGfx(struct EwramData_EntityData *entity, u8 paletteSlot, 
 
 void SkillFinalGuardUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = BLUE_SOUL_OWNER(entity);
 
     if (BlueSoul_ShouldEnd(entity))
     {
@@ -48,7 +50,7 @@ void SkillFinalGuardUse(struct EwramData_EntityData *entity)
             EntityDelete(entity);
             return;
         }
-        if ((parent->unk_4F4.whole & 0x1001A2) != 0x100000)
+        if ((PLAYER_ACTION_FLAGS(parent) & 0x1001A2) != 0x100000)
             goto end;
     {
         u8 *graphics = sSkillFinalGuardGfx;
@@ -62,13 +64,13 @@ void SkillFinalGuardUse(struct EwramData_EntityData *entity)
         entity->scrollWithBg = 1;
         gEwramData->playerState.player->state = 10;
         Anim_StartIndexed(gEwramData->playerState.player, 0x35, 3, 1);
-        parent->unk_4F4.whole &= 0xEFFFFBFF;
+        PLAYER_ACTION_FLAGS(parent) &= 0xEFFFFBFF;
         PlaySong(0x1A7);
         entity->state++;
     case 1:
         entity->state++;
     default:
-        if ((parent->unk_4F4.whole & 0x1001A2) != 0x100000)
+        if ((PLAYER_ACTION_FLAGS(parent) & 0x1001A2) != 0x100000)
         {
         end:
             BlueSoul_ReleaseActiveResources(entity);

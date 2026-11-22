@@ -1,5 +1,6 @@
 /* Belmont leap and airborne attack selection, with landing recovery. */
 #include "code_08009A0.h"
+#include "belmont_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -121,7 +122,7 @@ void Belmont_UpdateJumpAttack(struct EwramData_EntityData *entity)
                 entity->velY.whole=0;
                 entity->subState++;
                 entity->stage=0;
-                entity->attack=entity->unk_500.part8.unk_501;
+                entity->attack=BELMONT_ATTACK_OFF(entity);
             }
             break;
         case 4:
@@ -188,7 +189,7 @@ void Belmont_UpdateJumpAttack(struct EwramData_EntityData *entity)
             {
                 entity->subState=6;
                 entity->stage=0;
-                entity->attack=entity->unk_500.part8.unk_500;
+                entity->attack=BELMONT_ATTACK(entity);
             }
             break;
         }
@@ -206,7 +207,7 @@ void Belmont_UpdateJumpAttack(struct EwramData_EntityData *entity)
                 entity->velY.whole=0;
                 entity->subState=4;
                 entity->stage=0;
-                entity->attack=entity->unk_500.part8.unk_501;
+                entity->attack=BELMONT_ATTACK_OFF(entity);
             }
             else
             {
@@ -238,7 +239,7 @@ void Belmont_UpdateJumpAttack(struct EwramData_EntityData *entity)
                                 entity->subState=3;
                                 entity->stage=0;
                             }
-                            entity->attack=entity->unk_500.part8.unk_501;
+                            entity->attack=BELMONT_ATTACK_OFF(entity);
                         }
                         break;
                 }

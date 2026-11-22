@@ -1,5 +1,6 @@
 /* Disc Armor throw. */
 #include "code/code_08039340.h"
+#include "disc_armor_entity.h"
 #include "structs/ewram.h"
 extern void Entity_FaceTarget(struct EwramData_EntityData *);
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *updateFunc);
@@ -24,9 +25,9 @@ void DiscArmor_UpdateThrow(struct EwramData_EntityData *entity)
         Entity_FaceTarget(entity);
         Anim_StartIndexed(entity, 2, 0, 0);
         entity->subState = 1;
-        entity->unk_4F8.whole = 1;
-        entity->unk_504.part16.unk_504 = -20;
-        entity->unk_504.part16.unk_506[0] = -36;
+        DISC_ARMOR_FLAGS(entity) = 1;
+        DISC_ARMOR_HAND_OFFSET_X(entity) = -20;
+        DISC_ARMOR_HAND_OFFSET_Y(entity) = -36;
         break;
     case 1:
         if (*(u16 *)&entity->animStep == 0x10C)
@@ -34,25 +35,25 @@ void DiscArmor_UpdateThrow(struct EwramData_EntityData *entity)
             disc = Entity_CreateObject((u32 *)DiscArmorDisc_Update);
             if (disc != NULL)
             {
-                disc->unk_4F4.unk_4F4_entity = entity;
+                DISC_ARMOR_DISC_OWNER(disc) = entity;
                 disc->flipX = entity->flipX;
                 disc->attack = entity->attack + (entity->attack >> 2);
             }
         }
-        if (entity->unk_4F8.whole & 2)
+        if (DISC_ARMOR_FLAGS(entity) & 2)
         {
             Anim_StartIndexed(entity, 3, 0, 0);
             entity->subState = 2;
         }
         break;
     case 2:
-        if (entity->unk_504.part16.unk_504 < -10)
-            entity->unk_504.part16.unk_504++;
-        if (entity->unk_504.part16.unk_506[0] < -16)
-            entity->unk_504.part16.unk_506[0]++;
+        if (DISC_ARMOR_HAND_OFFSET_X(entity) < -10)
+            DISC_ARMOR_HAND_OFFSET_X(entity)++;
+        if (DISC_ARMOR_HAND_OFFSET_Y(entity) < -16)
+            DISC_ARMOR_HAND_OFFSET_Y(entity)++;
         if (entity->animFlags & 4)
         {
-            entity->unk_4F8.whole = 0;
+            DISC_ARMOR_FLAGS(entity) = 0;
             entity->state = 0;
             entity->stage = 0;
             entity->subState = 0;

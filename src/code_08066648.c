@@ -1,6 +1,7 @@
 /* Conversation text setup, decompiled from assembly.
  * The temporary state occupies 0x138F4 in the shared 0x133F4 buffer. */
 #include "structs/ewram.h"
+#include "event_scene_entity.h"
 #include "code_08009A0.h"
 #include "code_08011DD0.h"
 #include "code/code_08040A38.h"
@@ -53,7 +54,7 @@ void EventScene27_SelectScript36(struct EwramData_EntityData *entity)
 {
     struct ConversationState *state = (struct ConversationState *)&gEwramData->sharedScratchBuffer[0x500];
     s32 zero = 0;
-    entity->unk_4F8.part16.unk_4F8 = 0x36;
+    EVENT27_TEXT_ID(entity) = 0x36;
     state->script = 0x36;
     state->step = zero;
     state->entry = zero;
@@ -100,7 +101,7 @@ s32 EventScene28_Update(struct EwramData_EntityData *entity)
                     actors->player->velY.whole = 0;
                 EventScene28_PickScript(entity);
                 gEwramData->gameState.stateFlags |= 1;
-                TextWindow_Begin(entity->unk_4F8.whole);
+                TextWindow_Begin(EVENT28_TEXT_ID(entity));
                 entity->state++;
                 entity->stage = 0;
                 entity->subState = 0;
@@ -123,13 +124,13 @@ s32 EventScene28_Update(struct EwramData_EntityData *entity)
 /* Occasionally select script 0x59, otherwise initialize script 0x54. */
 void EventScene28_PickScript(struct EwramData_EntityData *entity)
 {
-    entity->unk_4F8.whole = 0;
+    EVENT28_TEXT_ID(entity) = 0;
     if (GameFlag_Is3ASet() && (RandomNumberGenerator() & 15) <= 3)
-        entity->unk_4F8.whole = 0x59;
-    if (entity->unk_4F8.whole == 0)
+        EVENT28_TEXT_ID(entity) = 0x59;
+    if (EVENT28_TEXT_ID(entity) == 0)
     {
         struct ConversationState *state = (struct ConversationState *)&gEwramData->sharedScratchBuffer[0x500];
-        entity->unk_4F8.whole = 0x54;
+        EVENT28_TEXT_ID(entity) = 0x54;
         state->script = 0x54;
         state->step = 0;
         state->group = 5;

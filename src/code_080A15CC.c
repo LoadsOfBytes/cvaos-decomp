@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "gladiator_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -41,7 +42,7 @@ void GladiatorArm_FireShot(struct EwramData_EntityData *entity, s32 dx, s32 dy, 
     shot->spriteLayer = entity->spriteLayer - 1;
     shot->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
     shot->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
-    shot->unk_4F8.unk_4F8_entity = entity;
+    ENTITY_OWNER(shot) = entity;
     shot->posX.whole = entity->posX.whole + dx;
     shot->posY.whole = entity->posY.whole + dy;
     shot->velX.whole = vx;
@@ -49,9 +50,9 @@ void GladiatorArm_FireShot(struct EwramData_EntityData *entity, s32 dx, s32 dy, 
     shot->unk_4FC.part8.unk_4FD = entity->flipX;
     shot->attack = entity->attack;
     if (entity->flipX)
-        shot->unk_500.part16.unk_502 = 0;
+        GLADIATOR_SHOT_ANGLE(shot) = 0;
     else
-        shot->unk_500.part16.unk_502 = 0x8000;
+        GLADIATOR_SHOT_ANGLE(shot) = 0x8000;
     palette = ObjAffine_Alloc(1);
     if ((s16)palette < 0)
     {
@@ -61,6 +62,6 @@ void GladiatorArm_FireShot(struct EwramData_EntityData *entity, s32 dx, s32 dy, 
     }
     shot->affineIndex = palette;
     shot->affine = 1;
-    ObjAffine_Set((u16)shot->unk_500.part16.unk_502 - 0x8000, 0x10000, 0x10000, shot->flipX, shot->flipY, shot->affineIndex);
+    ObjAffine_Set((u16)GLADIATOR_SHOT_ANGLE(shot) - 0x8000, 0x10000, 0x10000, shot->flipX, shot->flipY, shot->affineIndex);
     GladiatorShot_CreateTip(shot);
 }

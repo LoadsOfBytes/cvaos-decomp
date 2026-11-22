@@ -1,5 +1,6 @@
 /* Enemy helpers decompiled from assembly. */
 #include "structs/ewram.h"
+#include "skull_archer_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code_08009A0.h"
@@ -44,7 +45,7 @@ void SkullArcher_SpawnDeathPieces(struct EwramData_EntityData *entity)
             s32 graphics;
             fragment->posX.whole = entity->posX.whole;
             fragment->posY.whole = entity->posY.whole;
-            fragment->velX.whole = entity->unk_504.whole * (((RandomNumberGenerator() & 15) << 13) + 0x8000);
+            fragment->velX.whole = SKULL_ARCHER_HIT_SIDE(entity) * (((RandomNumberGenerator() & 15) << 13) + 0x8000);
             fragment->velY.whole = ((RandomNumberGenerator() & 31) << 12) - 0x38000;
             fragment->accelY.whole = 0x2000;
             fragment->spriteLayer = entity->spriteLayer;

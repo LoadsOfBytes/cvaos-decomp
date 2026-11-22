@@ -1,4 +1,5 @@
 #include "code/code_08039340.h"
+#include "ghost_dancer_entity.h"
 #include "structs/ewram.h"
 extern u8 GhostDancer_LoadGraphics(struct EwramData_EntityData *);
 extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
@@ -26,12 +27,12 @@ void EnemyGhostDancerCreate(struct EwramData_EntityData *input)
             entity->state = 5;
         else
         {
-            entity->unk_4F8.part16.unk_4F8 = flags;
-            entity->unk_4F8.part8.unk_4FA = 0;
-            entity->unk_4F8.part8.unk_4FB = 1;
+            GHOST_DANCER_PHASE(entity) = flags;
+            GHOST_DANCER_CYCLES(entity) = 0;
+            GHOST_DANCER_SIDE(entity) = 1;
             entity->objMode = 1;
-            entity->unk_4FC.part8.unk_4FC = 0;
-            entity->unk_4FC.part8.unk_4FD = 0;
+            GHOST_DANCER_MODE(entity) = 0;
+            GHOST_DANCER_TIMER(entity) = 0;
             Entity_EnableBoxes(entity, GhostDancer_DamagePlayerOnContact, GhostDancer_OnHit);
         }
     }

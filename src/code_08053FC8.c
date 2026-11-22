@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -28,14 +29,14 @@ void Object1BUpdate(struct EwramData_EntityData *entity)
         if (gEwramData->gameState.conveyorSpeed < 0x14000) gEwramData->gameState.conveyorSpeed += 0x1000;
         break;
     }
-    entity->unk_4F8.whole += gEwramData->gameState.conveyorSpeed;
+    OBJECT1B_SCROLL(entity) += gEwramData->gameState.conveyorSpeed;
     colors = sObject1BColors;
-    index = ((entity->unk_4F8.whole / 8) >> 16) % 3;
+    index = ((OBJECT1B_SCROLL(entity) / 8) >> 16) % 3;
     if (index < 0) index = -index;
     color = colors[index];
-    if ((u8)entity->unk_4FC.part8.unk_4FC != color)
+    if ((u8)OBJECT1B_COLOR(entity) != color)
     {
-        entity->unk_4FC.part8.unk_4FC = color;
+        OBJECT1B_COLOR(entity) = color;
         BgPalette_LoadRange(sObject1BBgPalette, color, 1, 8);
     }
     Anim_Update(entity);

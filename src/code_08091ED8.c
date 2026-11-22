@@ -1,6 +1,7 @@
 /* Devil helpers 0x08091ED8..0x08092173 (also used by Flame Demon, Arc Demon
  * and Demon Lord). */
 #include "code_08009A0.h"
+#include "devil_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -166,8 +167,8 @@ void DevilChargeEffect_Update(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *devil = entity->unk_500.unk_500_entity;
     u32 var_1[4];
 
-    entity->posX.whole = devil->posX.whole + entity->unk_4F8.whole;
-    entity->posY.whole = devil->posY.whole + entity->unk_4FC.whole;
+    entity->posX.whole = devil->posX.whole + DEVIL_CHARGE_OFFSET_X(entity);
+    entity->posY.whole = devil->posY.whole + DEVIL_CHARGE_OFFSET_Y(entity);
     if ((s8)--entity->timer <= 0)
         EntityDelete(entity);
 }
@@ -177,7 +178,7 @@ void DevilChargeEffect_Update(struct EwramData_EntityData *entity)
  */
 void Devil_Draw(struct EwramData_EntityData *entity)
 {
-    if ((s8)entity->unk_508.part8.unk_50B == 0)
+    if ((s8)DEVIL_PARTS_HIDDEN(entity) == 0)
         Sprite_DrawEntity(entity);
 }
 

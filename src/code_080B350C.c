@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "head_stack_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -25,13 +26,13 @@ void HeadStackProjectile_Update(struct EwramData_EntityData *entity)
     u8 collision[16];
     s32 vx;
     u32 timer;
-    struct EwramData_EntityData *owner = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
     struct EwramData_EntityData *child;
     switch (entity->state)
     {
     case 0:
     {
-        const struct EffectGraphics *t = &sUnk_081193DC[owner->unk_4F4.part8.unk_4F6];
+        const struct EffectGraphics *t = &sUnk_081193DC[HEAD_STACK_TYPE(owner)];
         if (!Entity_LoadGraphics(entity, t->graphics, t->palette, 0, t->sprite))
         {
             EntityDelete(entity);
@@ -64,7 +65,7 @@ void HeadStackProjectile_Update(struct EwramData_EntityData *entity)
                 child->velY.whole = -0x1000;
                 child->accelX.whole = -0x100;
                 child->scrollWithBg = 1;
-                child->subState = entity->unk_4F4.part8.unk_4F6;
+                child->subState = HEAD_STACK_TYPE(entity);
             }
         }
         EntityAccelerateAndMove(entity, 0x80000);

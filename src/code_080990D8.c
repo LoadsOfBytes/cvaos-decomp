@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "mimic_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -21,7 +22,7 @@ void Mimic_UpdateWait(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
     case 0:
-        entity->unk_4FC.part8.unk_4FC |= 1;
+        MIMIC_FLAGS(entity) |= 1;
         entity->hidden = 1;
         break;
     case 1:
@@ -29,8 +30,8 @@ void Mimic_UpdateWait(struct EwramData_EntityData *entity)
         entity->hidden = 0;
         entity->accelY.whole = 0x2000;
     case 2:
-        entity->unk_4FC.part8.unk_4FC |= 3;
-        entity->unk_4FC.part8.unk_4FD = 0;
+        MIMIC_FLAGS(entity) |= 3;
+        MIMIC_HELD_FRAME(entity) = 0;
         entity->animFrame = 0;
         if (Entity_MoveWithCollisionAlt(entity, 0x10000, -0x100000, 0x40000) & 4)
         {
@@ -42,12 +43,12 @@ void Mimic_UpdateWait(struct EwramData_EntityData *entity)
         }
         break;
     case 3:
-        entity->unk_4FC.part8.unk_4FC |= 2;
-        entity->unk_4FC.part8.unk_4FD = 0;
+        MIMIC_FLAGS(entity) |= 2;
+        MIMIC_HELD_FRAME(entity) = 0;
         entity->animFrame = 0;
         if (Target_IsInRect(entity->posX.part16.integer - 0x10, entity->posY.part16.integer - 0x14, 0x20, 0x14))
         {
-            entity->unk_4FC.part8.unk_4FC = 0;
+            MIMIC_FLAGS(entity) = 0;
             Anim_StartIndexed(entity, 0, 0, 0);
             entity->subState++;
         }

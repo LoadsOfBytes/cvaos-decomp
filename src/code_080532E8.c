@@ -1,6 +1,7 @@
 /* Elevator movement and floor input. The r0 timer locals retain the original
  * load/copy sequence; case 1 keeps its zero copy across the sound call. */
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code/code_08039340.h"
 #include "code_08011DD0.h"
 #include "code_080D73B8.h"
@@ -40,20 +41,20 @@ void Object17Update(struct EwramData_EntityData *entity)
     case 0:
         if (Player_IsBusy())
         {
-            entity->unk_4FC.part8.unk_4FC = 0;
+            OBJECT17_HOLD_FRAMES(entity) = 0;
             break;
         }
         player = gEwramData->playerState.player;
         if (!Entity_IsInRect(entity, player->posX.part16.integer - 0x20, player->posY.part16.integer - 0x20, 0x40, 0x10))
         {
-            entity->unk_4FC.part8.unk_4FC = 0;
+            OBJECT17_HOLD_FRAMES(entity) = 0;
             break;
         }
         if (gEwramData->inputData.playerHeldInput & 0xC0)
-            entity->unk_4FC.part8.unk_4FC++;
+            OBJECT17_HOLD_FRAMES(entity)++;
         else
-            entity->unk_4FC.part8.unk_4FC = 0;
-        if ((u8)entity->unk_4FC.part8.unk_4FC <= 2)
+            OBJECT17_HOLD_FRAMES(entity) = 0;
+        if ((u8)OBJECT17_HOLD_FRAMES(entity) <= 2)
             break;
         if ((gEwramData->inputData.playerHeldInput & 0x80) && entity->subState <= 1)
         {

@@ -1,5 +1,6 @@
 /* Boss arm segment: hangs from its owner, swings, is thrown and flies off. */
 #include "code_08009A0.h"
+#include "death_entity.h"
 #include "code_08013960.h"
 #include "code_08033CAC.h"
 #include "code_080D73B8.h"
@@ -27,9 +28,9 @@ extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern struct ArmPose sDeathWeaponArmPoses[];
 extern u8 sDeathGfx[], sDeathPalette[], sDeathSpriteSheet[];
 
-#define SPIN(e) ((e)->unk_4FC.part16.unk_4FC)
-#define SPEED(e) ((e)->unk_4FC.part16.unk_4FE[0])
-#define FLAGS(e) ((e)->unk_4F8.part16.unk_4F8)
+#define SPIN(e) (DEATH_WEAPON_ANGLE((e)))
+#define SPEED(e) (DEATH_WEAPON_SPIN((e)))
+#define FLAGS(e) (DEATH_FLAGS((e)))
 #define TO_PIXELS(d) ((d) < 0 ? -(-(d) >> 16) : (d) >> 16)
 
 static inline s32 Id(s32 v) { return v; }
@@ -46,8 +47,8 @@ static inline s32 SparkOffset(s32 a, s32 k)
 void DeathWeapon_Update(struct EwramData_EntityData *entity)
 {
     u8 box[16];
-    struct EwramData_EntityData *owner = &gEwramData->entityData[(u8)entity->unk_4F8.part8.unk_4F8];
-    struct ArmPose *pose = &sDeathWeaponArmPoses[(u8)owner->unk_4FC.part8.unk_4FC];
+    struct EwramData_EntityData *owner = &gEwramData->entityData[(u8)DEATH_OWNER_INDEX(entity)];
+    struct ArmPose *pose = &sDeathWeaponArmPoses[(u8)DEATH_DASH_STEP(owner)];
     s32 dx, dy, angle;
     s32 zero;
     u8 t;
@@ -84,7 +85,7 @@ void DeathWeapon_Update(struct EwramData_EntityData *entity)
         entity->hit.flags |= 4;
         entity->attack = 0x3C;
         SPIN(entity) = 0x4000;
-        if (entity->unk_4F8.part8.unk_4FA)
+        if (DEATH_WEAPON_MIRROR(entity))
         {
             entity->state = 8;
             goto tail;
@@ -224,13 +225,13 @@ void DeathWeapon_Update(struct EwramData_EntityData *entity)
     case 8:
     default:
     tail:
-    if ((zero = entity->unk_4F8.part8.unk_4FA) == 0)
+    if ((zero = DEATH_WEAPON_MIRROR(entity)) == 0)
     {
         ObjAffine_Set(SPIN(entity), 0x10000, 0x10000, entity->flipX, zero, entity->affineIndex);
     }
     else
     {
-        owner = &gEwramData->entityData[entity->unk_4F8.part8.unk_4F9];
+        owner = &gEwramData->entityData[DEATH_WEAPON_PRIMARY_INDEX(entity)];
         if (owner->state == 10)
         {
     case 10:

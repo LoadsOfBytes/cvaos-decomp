@@ -2,6 +2,7 @@
  *: one function-level u16 (angle) holds both the
  * segment index and the ArcTan2 result, as in the original allocation. */
 #include "code_08009A0.h"
+#include "man_eater_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/entity_render_flags.h"
@@ -34,8 +35,8 @@ extern const struct OrbitPoint sManEaterHeadOrbitPoints[];
 
 void ManEaterHead_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = &gEwramData->entityData[(u8)entity->unk_4F8.part8.unk_4F8];
-    const struct OrbitPoint *orbit = &sManEaterHeadOrbitPoints[entity->unk_4F8.part8.unk_4FB];
+    struct EwramData_EntityData *parent = &gEwramData->entityData[(u8)MAN_EATER_OWNER_INDEX(entity)];
+    const struct OrbitPoint *orbit = &sManEaterHeadOrbitPoints[MAN_EATER_ORBIT_SLOT(entity)];
     struct EwramData_EntityData *prev, *link, *base, *fx;
     s32 i;
     s16 a, b;
@@ -46,7 +47,7 @@ void ManEaterHead_Update(struct EwramData_EntityData *entity)
 
     if (entity->enemyFlags & 2)
     {
-        if (entity->unk_4F4.part8.unk_4F5 & 4)
+        if (MAN_EATER_HEAD_FLAGS(entity) & 4)
         {
             if (entity->subState == 0)
                 goto delete;
@@ -54,7 +55,7 @@ void ManEaterHead_Update(struct EwramData_EntityData *entity)
         }
         else
         {
-            entity->unk_4F4.part8.unk_4F5 |= 4;
+            MAN_EATER_HEAD_FLAGS(entity) |= 4;
             entity->subState = 0x18;
         }
     }
@@ -81,23 +82,23 @@ void ManEaterHead_Update(struct EwramData_EntityData *entity)
         i = 0;
         while (i <= 5 && (link = Entity_CreateObject(ManEaterSegment_Update)) != NULL)
         {
-            angle = i + entity->unk_4F8.part8.unk_4FB * 4;
-            link->unk_4F8.part8.unk_4F8 = entity->unk_4F4.part8.unk_4F4;
-            link->unk_4F8.part8.unk_4F9 = prev->unk_4F4.part8.unk_4F4;
-            link->unk_4FC.part16.unk_4FC = 0xAAA * angle - 0x2000;
-            link->unk_4F8.part8.unk_4FB = i;
-            link->unk_4F8.part8.unk_4FA = base->unk_4F4.part8.unk_4F4;
+            angle = i + MAN_EATER_ORBIT_SLOT(entity) * 4;
+            MAN_EATER_OWNER_INDEX(link) = ENTITY_INDEX(entity);
+            MAN_EATER_PREV_INDEX(link) = ENTITY_INDEX(prev);
+            MAN_EATER_ANGLE(link) = 0xAAA * angle - 0x2000;
+            MAN_EATER_ORBIT_SLOT(link) = i;
+            MAN_EATER_BASE_INDEX(link) = ENTITY_INDEX(base);
             prev = link;
             i++;
         }
         link = base;
-        link->unk_4F8.part8.unk_4F8 = entity->unk_4F4.part8.unk_4F4;
-        link->unk_4F8.part8.unk_4F9 = prev->unk_4F4.part8.unk_4F4;
+        MAN_EATER_OWNER_INDEX(link) = ENTITY_INDEX(entity);
+        MAN_EATER_PREV_INDEX(link) = ENTITY_INDEX(prev);
         entity->scrollWithBg = 1;
         entity->state = 1;
         break;
     case 1:
-        if (entity->unk_504.whole < 0x60000)
+        if (MAN_EATER_LUNGE_SPEED(entity) < 0x60000)
         {
             if (!(entity->timer & 0xF))
             {
@@ -109,31 +110,31 @@ void ManEaterHead_Update(struct EwramData_EntityData *entity)
                 }
             }
             entity->timer++;
-            entity->unk_504.whole += 0x1800;
+            MAN_EATER_LUNGE_SPEED(entity) += 0x1800;
         }
         else if ((RandomNumberGenerator() & 0x3FF) < 0x10 && Target_IsNearEntity(entity, 0xC8, 0x78))
         {
             entity->state = 2;
-            entity->unk_4F4.part8.unk_4F5 |= 1;
+            MAN_EATER_HEAD_FLAGS(entity) |= 1;
             entity->timer = 0x80;
         }
         dx = (s16)(Target_GetPixelX(entity) - entity->posX.part16.integer);
         dy = (s16)(Target_GetPixelY(entity) - entity->posY.part16.integer);
         angle = ArcTan2(dx, dy);
-        Angle_TurnTowards((u16 *)&entity->unk_4FC.part16.unk_4FC, 0x40, angle);
-        if (entity->unk_4FC.part16.unk_4FC > entity->unk_4FC.part16.unk_4FE[0] + 0x2000)
-            entity->unk_4FC.part16.unk_4FC = entity->unk_4FC.part16.unk_4FE[0] + 0x2000;
-        else if (entity->unk_4FC.part16.unk_4FC < entity->unk_4FC.part16.unk_4FE[0] - 0x2000)
-            entity->unk_4FC.part16.unk_4FC = entity->unk_4FC.part16.unk_4FE[0] - 0x2000;
+        Angle_TurnTowards((u16 *)&MAN_EATER_ANGLE(entity), 0x40, angle);
+        if (MAN_EATER_ANGLE(entity) > MAN_EATER_HOME_ANGLE(entity) + 0x2000)
+            MAN_EATER_ANGLE(entity) = MAN_EATER_HOME_ANGLE(entity) + 0x2000;
+        else if (MAN_EATER_ANGLE(entity) < MAN_EATER_HOME_ANGLE(entity) - 0x2000)
+            MAN_EATER_ANGLE(entity) = MAN_EATER_HOME_ANGLE(entity) - 0x2000;
         break;
     case 2:
-        if ((RandomNumberGenerator() & 1) && (entity->unk_4F4.part8.unk_4F5 & 2))
+        if ((RandomNumberGenerator() & 1) && (MAN_EATER_HEAD_FLAGS(entity) & 2))
             entity->timer = 0;
         if (entity->timer == 0)
         {
             entity->timer = 0x30;
             entity->state = 3;
-            entity->unk_4F4.part8.unk_4F5 &= ~1;
+            MAN_EATER_HEAD_FLAGS(entity) &= ~1;
             break;
         }
         entity->timer--;
@@ -145,11 +146,11 @@ void ManEaterHead_Update(struct EwramData_EntityData *entity)
             entity->state = 1;
         break;
     }
-    entity->unk_4F4.part8.unk_4F5 &= ~2;
+    MAN_EATER_HEAD_FLAGS(entity) &= ~2;
     a = parent->unk_4FC.part16.unk_4FC + orbit->angle;
     x = parent->posX.whole + Sin(a + 0x4000) * orbit->radius;
     y = parent->posY.whole + Sin(a) * orbit->radius;
-    b = entity->unk_508.part16.unk_508 + parent->unk_4FC.part16.unk_4FC;
+    b = MAN_EATER_BASE_ANGLE(entity) + parent->unk_4FC.part16.unk_4FC;
     entity->posX.whole = x + Sin(b + 0x4000) * 10;
     entity->posY.whole = y + Sin(b) * 10;
     Anim_Update(entity);

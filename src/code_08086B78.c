@@ -1,6 +1,7 @@
 /* Triton movement (Triton_UpdateMove) and attack: fire the homing shot, or raise the spear and emit wave
  * particles until the spear comes back. */
 #include "code_08009A0.h"
+#include "triton_entity.h"
 #include "code/code_08039340.h"
 #include "code_080D73B8.h"
 #include "structs/ewram.h"
@@ -16,7 +17,7 @@ extern s32 Target_IsWithinDistance(struct EwramData_EntityData *, s32);
 extern s32 Tile_Classify(s16, s16);
 extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
 extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
-#define NEXT_STATE(e) ((e)->unk_4FC.part8.unk_4FD)
+#define NEXT_STATE(e) (TRITON_NEXT_STATE((e)))
 #define ACCEL_X(e) ((e)->accelX.whole)
 #define ACCEL_Y(e) ((e)->accelY.whole)
 /* Sink slowly in water (tile type 3), faster elsewhere. */
@@ -115,7 +116,7 @@ void Triton_UpdateMove(struct EwramData_EntityData *entity)
 }
 
 #define FRAME_PAIR(e) (*(u16 *)&(e)->animStep)
-#define SPEAR_FLAG(e) (*(u8 *)&(e)->unk_4FC.part8.unk_4FC)
+#define SPEAR_FLAG(e) (*(u8 *)&TRITON_THRUST((e)))
 /**
  * @brief Attack state machine (state 1): randomly thrust the spear, fire a homing
  * shot (Triton_SpawnHomingShot) or send wave particles
@@ -123,7 +124,7 @@ void Triton_UpdateMove(struct EwramData_EntityData *entity)
  */
 void Triton_UpdateAttack(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *spear = entity->unk_500.unk_500_entity;
+    struct EwramData_EntityData *spear = TRITON_SPEAR(entity);
     switch (entity->subState)
     {
     case 0:
@@ -178,8 +179,8 @@ void Triton_UpdateAttack(struct EwramData_EntityData *entity)
         Entity_MoveWithCollision(entity, 0x10000, 0, 0x8000, 32);
         if (entity->timer++ > 29)
         {
-            entity->unk_4FC.part8.unk_4FC = 1;
-            spear->unk_4FC.part8.unk_4FC = 0;
+            TRITON_THRUST(entity) = 1;
+            TRITON_THRUST(spear) = 0;
             entity->subState++;
         }
         break;

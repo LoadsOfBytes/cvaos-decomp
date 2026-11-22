@@ -1,5 +1,6 @@
 /* Enemy update: counted hops with random/target-based facing, knockback fall and despawn states. */
 #include "code_08009A0.h"
+#include "worm_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern void Player_TrackEntity(struct EwramData_EntityData *);
@@ -43,38 +44,38 @@ void Worm_Update(struct EwramData_EntityData *entity)
     case 0:
         entity->state = 0;
     case 1:
-        { register u32 raw_ asm("r0") = *(vu8 *)&entity->unk_500.part8.unk_501; u8 t_; n = raw_; t_ = raw_; /* FAKEMATCH: pinned register */
+        { register u32 raw_ asm("r0") = *(vu8 *)&WORM_TURN_TIMER(entity); u8 t_; n = raw_; t_ = raw_; /* FAKEMATCH: pinned register */
         if (n)
         {
             entity->state = 2;
             if (n == 4)
             {
-                if (entity->unk_500.part8.unk_503)
-                    entity->unk_500.part8.unk_503 = 0;
+                if (WORM_CRAWL_DIR(entity))
+                    WORM_CRAWL_DIR(entity) = 0;
                 else
-                    entity->unk_500.part8.unk_503 = 1;
+                    WORM_CRAWL_DIR(entity) = 1;
             }
-            entity->unk_500.part8.unk_501=t_-1;
+            WORM_TURN_TIMER(entity)=t_-1;
             break;
         } }
         if (!Target_IsInRect(entity->posX.part16.integer - 0xA0, entity->posY.part16.integer - 0x3C, 0x140, 0x78))
-            entity->unk_500.part8.unk_503 = RandomNumberGenerator() & 1;
+            WORM_CRAWL_DIR(entity) = RandomNumberGenerator() & 1;
         else if (!(ew = gEwramData)->playerState.enemyTarget)
-            entity->unk_500.part8.unk_503 = RandomNumberGenerator() & 1;
+            WORM_CRAWL_DIR(entity) = RandomNumberGenerator() & 1;
         else if (CurV(ew)->posX.whole < entity->posX.whole)
-            entity->unk_500.part8.unk_503 = n;
+            WORM_CRAWL_DIR(entity) = n;
         else
-            entity->unk_500.part8.unk_503 = 1;
+            WORM_CRAWL_DIR(entity) = 1;
         entity->state = 2;
         break;
     case 2:
-        Worm_StepCrawl(entity, entity->unk_500.part8.unk_503, 0, 0);
+        Worm_StepCrawl(entity, WORM_CRAWL_DIR(entity), 0, 0);
         Worm_FollowGround(entity);
         if (!entity->subState)
             entity->state = 1;
         break;
     case 3:
-        entity->unk_500.part8.unk_500 = 1;
+        WORM_AGGRESSIVE(entity) = 1;
         entity->posX.whole += entity->velX.whole;
         entity->posY.whole += entity->velY.whole;
         entity->velY.whole += 0x2000;

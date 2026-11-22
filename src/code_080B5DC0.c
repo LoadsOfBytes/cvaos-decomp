@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "balore_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
@@ -33,9 +34,9 @@ void EnemyBaloreUpdate(struct EwramData_EntityData *entity)
         }
         break;
     }
-    *(u16 *)&entity->unk_500.part16.unk_502 &= 0xFFFE;
+    *(u16 *)&BALORE_FLAGS(entity) &= 0xFFFE;
     if (entity->state != 4 && Entity_IsInRect(entity, -8, 0, 0x100, 0xB0))
         Hit_CheckWithPlayer(box, entity);
-    Anim_StartIndexed(entity, sBaloreEyeAnimOffsets[(s8)entity->unk_4F4.part8.unk_4F6], 2, 0);
+    Anim_StartIndexed(entity, sBaloreEyeAnimOffsets[(s8)BALORE_EYE_ANIM(entity)], 2, 0);
     Anim_Update(entity);
 }

@@ -1,5 +1,6 @@
 /* Slime setup, dispatch and shrinking death animation. */
 #include "code_08009A0.h"
+#include "slime_entity.h"
 #include "code_08001194.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
@@ -24,7 +25,7 @@ extern u8 sSlimeGfx[], sSlimePalette[], sSlimeSpriteSheet[], sSlimeWalkProfile[]
  */
 s32 Slime_UpdateDeath(struct EwramData_EntityData *entity)
 {
-    s32 angle = entity->unk_504.part16.unk_504 + 0x4000;
+    s32 angle = SLIME_ANGLE(entity) + 0x4000;
     s32 timer;
     s32 dx;
     s32 dy;
@@ -34,29 +35,29 @@ s32 Slime_UpdateDeath(struct EwramData_EntityData *entity)
     case 0:
         PlaySong(0x70);
         Anim_StartIndexed(entity, 0, 0, 1);
-        if (entity->unk_4F4.part8.unk_4F5 & 4)
+        if (SLIME_FLAGS(entity) & 4)
         {
             entity->accelY.whole = 0x2000;
-            entity->unk_504.part16.unk_504 = 0;
+            SLIME_ANGLE(entity) = 0;
         }
         entity->subState = 1;
         /* fall through */
     case 1:
-        if (entity->unk_4F4.part8.unk_4F5 & 4)
+        if (SLIME_FLAGS(entity) & 4)
         {
-            if (Entity_Walk(entity, entity->unk_4F8.whole, sSlimeWalkProfile, 0x22) & 8)
+            if (Entity_Walk(entity, SLIME_SPEED(entity), sSlimeWalkProfile, 0x22) & 8)
             {
-                entity->unk_4F4.part8.unk_4F5 &= ~4;
-                entity->unk_4F8.whole = 0;
+                SLIME_FLAGS(entity) &= ~4;
+                SLIME_SPEED(entity) = 0;
                 {
-                    s32 correction = (0x10000 - entity->unk_500.whole) >> 8;
+                    s32 correction = (0x10000 - SLIME_SCALE_Y(entity)) >> 8;
                     s32 factor = 0x500;
                     factor *= correction;
                     entity->posY.whole += factor;
                 }
             }
         }
-        if (entity->unk_500.whole > 0)
+        if (SLIME_SCALE_Y(entity) > 0)
         {
             {
                 s32 value = Sin(angle + 0x4000) >> 8;
@@ -82,7 +83,7 @@ s32 Slime_UpdateDeath(struct EwramData_EntityData *entity)
             entity->timer = timer;
             if (!(timer & 3)) Slime_SpawnParticles(entity, 1, 0, -0x20000);
             if (!(entity->timer & 0xF)) PlaySong(0x165);
-            entity->unk_500.whole -= 0x400;
+            SLIME_SCALE_Y(entity) -= 0x400;
         }
         else return 1;
         break;
@@ -105,16 +106,16 @@ remove:
     }
     entity->affineIndex = affine;
     entity->affine = 1;
-    entity->unk_504.part16.unk_504 = 0;
-    entity->unk_4FC.whole = 0x10000;
-    entity->unk_500.whole = 0x10000;
+    SLIME_ANGLE(entity) = 0;
+    SLIME_SCALE_X(entity) = 0x10000;
+    SLIME_SCALE_Y(entity) = 0x10000;
     Enemy_ResetFromTemplate(entity);
     entity->spriteLayer = 0x11;
     Anim_StartIndexed(entity, 0, 0, 1);
     Anim_Update(entity);
     if (gEwramData->gameState.bestiaryPreview)
     {
-        ObjAffine_Set(entity->unk_504.part16.unk_504, entity->unk_4FC.whole, entity->unk_500.whole, entity->flipX, 0, entity->affineIndex);
+        ObjAffine_Set(SLIME_ANGLE(entity), SLIME_SCALE_X(entity), SLIME_SCALE_Y(entity), entity->flipX, 0, entity->affineIndex);
         entity->state = 3;
         return;
     }
@@ -136,9 +137,9 @@ remove:
         }
         entity->posY.part16.integer = height + ((u16)entity->posY.part16.integer + 5);
         entity->stage = 2;
-        entity->unk_504.part16.unk_504 = 0x8000;
+        SLIME_ANGLE(entity) = 0x8000;
     }
-    ObjAffine_Set(entity->unk_504.part16.unk_504, entity->unk_4FC.whole, entity->unk_500.whole, entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set(SLIME_ANGLE(entity), SLIME_SCALE_X(entity), SLIME_SCALE_Y(entity), entity->flipX, 0, entity->affineIndex);
     entity->scrollWithBg = 1;
     entity->state = 0;
 }
@@ -162,7 +163,7 @@ void EnemySlimeUpdate(struct EwramData_EntityData *entity)
         Anim_Update(entity);
         return;
     }
-    ObjAffine_Set(entity->unk_504.part16.unk_504, entity->unk_4FC.whole, entity->unk_500.whole, entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set(SLIME_ANGLE(entity), SLIME_SCALE_X(entity), SLIME_SCALE_Y(entity), entity->flipX, 0, entity->affineIndex);
     Enemy_CheckHitPlayer(entity);
     Anim_Update(entity);
 }

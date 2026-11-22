@@ -3,6 +3,7 @@
  * unk_502/unk_503 or the controller byte 0x1F); flag 4 in controller 0x1D
  * when airborne or blocked. */
 #include "code_08001194.h"
+#include "worm_entity.h"
 #include "structs/ewram.h"
 
 /**
@@ -10,7 +11,7 @@
  */
 void Worm_FollowGround(struct EwramData_EntityData *entity)
 {
-    u8 *ctl = (u8 *)entity->unk_4F8.unk_4F8_entity;
+    u8 *ctl = (u8 *)WORM_ROOT(entity);
     u16 x = GetEntityRoomXPositionInteger(entity);
     u16 y = GetEntityRoomYPositionInteger(entity);
     s16 d = Collision_GetPushUp((s16)x, (s16)y + 10);
@@ -21,14 +22,14 @@ void Worm_FollowGround(struct EwramData_EntityData *entity)
     else if (ctl[0x1D] == 0)
         ctl[0x1D] = 4;
     hit = 0;
-    if (entity->unk_500.part8.unk_502 == 0)
+    if (WORM_SEGMENT_INDEX(entity) == 0)
     {
-        if (entity->unk_500.part8.unk_503 == 0 && !entity->flipX)
+        if (WORM_CRAWL_DIR(entity) == 0 && !entity->flipX)
             hit = Collision_GetPushRight((s16)x - 0x18, (s16)y - 8);
-        if (entity->unk_500.part8.unk_503 != 0 && entity->flipX)
+        if (WORM_CRAWL_DIR(entity) != 0 && entity->flipX)
             hit = Collision_GetPushLeft((s16)x + 0x18, (s16)y - 8);
     }
-    else if (entity->unk_500.part8.unk_502 == 4)
+    else if (WORM_SEGMENT_INDEX(entity) == 4)
     {
         if (ctl[0x1F] != 0 && !entity->flipX)
             hit = Collision_GetPushLeft((s16)x + 0x18, (s16)y - 8);

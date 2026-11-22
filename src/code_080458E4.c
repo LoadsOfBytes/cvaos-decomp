@@ -2,6 +2,7 @@
    so the copy anim2 survives - FAKEMATCH). */
 /* The canonical field now supplies the halfword mode; the animation pin remains. */
 #include "code_08009A0.h"
+#include "afterimage_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 #include "structs/entity_render_flags.h"
@@ -40,7 +41,7 @@ struct EwramData_EntityData *Afterimage_Create(struct EwramData_EntityData *enti
     e = EntityCreateInRange(0x49, 0xCF, (u32 *)Afterimage_Update);
     if (e == NULL)
         return NULL;
-    if (anim == NULL || (e->unk_4F8.whole = (s32)Heap_Alloc(0x31)) == 0)
+    if (anim == NULL || (AFTERIMAGE_HISTORY(e) = (s32)Heap_Alloc(0x31)) == 0)
     {
         EntityDelete(e);
         return NULL;
@@ -50,8 +51,8 @@ struct EwramData_EntityData *Afterimage_Create(struct EwramData_EntityData *enti
     e->spriteLayer = entity->spriteLayer + 1;
     e->posX.part16.integer = GetEntityRoomXPositionInteger(entity);
     e->posY.part16.integer = GetEntityRoomYPositionInteger(entity);
-    e->unk_4FC.unk_4FC_entity = entity;
-    e->unk_500.part16.unk_502 = delay;
+    AFTERIMAGE_OWNER(e) = entity;
+    AFTERIMAGE_DELAY(e) = delay;
     if (count > 0x17)
         count = 0x17;
     e->subState = count;
@@ -65,7 +66,7 @@ struct EwramData_EntityData *Afterimage_Create(struct EwramData_EntityData *enti
         e->affine = entity->affine;
         e->affineIndex = entity->affineIndex;
     }
-    p = (struct AfterimageFrame *)e->unk_4F8.whole;
+    p = (struct AfterimageFrame *)AFTERIMAGE_HISTORY(e);
     for (i = 0; i < 24; i++, p++)
     {
         p->x = e->posX.part16.integer;
@@ -73,7 +74,7 @@ struct EwramData_EntityData *Afterimage_Create(struct EwramData_EntityData *enti
         p->frame = entity->animFrame;
         p->flipX = entity->flipX;
     }
-    e->unk_504.whole = flags;
+    AFTERIMAGE_FLAGS(e) = flags;
     if (flags & 0x20)
         e->animMode = 2;
     if (flags & 0x40)

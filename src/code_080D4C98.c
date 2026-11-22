@@ -1,5 +1,6 @@
 /* Hit callback with an equipped-souls check. */
 #include "code_080D73B8.h"
+#include "graham_entity.h"
 #include "structs/ewram.h"
 
 extern s32 GrahamPart_TakeDamage(struct EwramData_EntityData *, s32, u16 *);
@@ -33,20 +34,20 @@ static inline s32 SoulsDiffer(u8 red, u8 blue, u8 yellow)
  */
 void GrahamFirstForm_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 *data)
 {
-    struct EwramData_EntityData *owner = &gEwramData->entityData[(u8)entity->unk_4F4.part8.unk_4F5];
+    struct EwramData_EntityData *owner = &gEwramData->entityData[(u8)ENTITY_PARENT_INDEX(entity)];
 
     if (GrahamPart_TakeDamage(entity, hit, data))
     {
-        if (!(entity->unk_4F8.part16.unk_4FA & 2))
+        if (!(GRAHAM_FLAGS(entity) & 2))
         {
-            entity->unk_4F8.part16.unk_4FA |= 2;
+            GRAHAM_FLAGS(entity) |= 2;
             SET_STATE(entity, 3);
         }
         else
         {
             SET_STATE(entity, 5);
             if (!SoulsDiffer(0x2C, 2, 7))
-                owner->unk_4F8.part16.unk_4FA |= 8;
+                GRAHAM_FLAGS(owner) |= 8;
         }
     }
     PlaySong(0x1DA);

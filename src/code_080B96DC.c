@@ -1,5 +1,6 @@
 /* Witch_UpdateCast. */
 #include "code_08009A0.h"
+#include "witch_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -36,7 +37,7 @@ static inline u8 Near(s32 dx, s32 dy)
     return r;
 }
 #define ABSM(x) ((x) < 0 ? -(x) : (x))
-#define TIMER entity->unk_4FC.part16.unk_4FC
+#define TIMER WITCH_CAST_TIMER(entity)
 #define STEER(f, d) \
     if ((d) > 0x40000) \
         f = 0x1000; \
@@ -69,7 +70,7 @@ static inline u8 PlayerIsRight(struct EwramData_EntityData *e)
     child = Entity_CreateObject((u32 *)func); \
     if (child != NULL) \
     { \
-        child->unk_50C.part8.unk_50C = entity->unk_4F4.part8.unk_4F4; \
+        WITCH_SPELL_OWNER_INDEX(child) = ENTITY_INDEX(entity); \
         child->scrollWithBg = 1; \
         child->flipX = entity->flipX; \
         child->attack = entity->attack; \
@@ -96,10 +97,10 @@ void Witch_UpdateCast(struct EwramData_EntityData *entity)
         TIMER++;
         dx = (-(Entity_IsTargetRight(entity) << 6) + 0x20) << 16;
         dy = (Sin(TIMER << 9) << 3) - 0x300000;
-        entity->unk_500.whole = Target_GetX(entity) + dx;
-        entity->unk_504.whole = Target_GetY(entity) + dy;
-        dx = entity->unk_500.whole - entity->posX.whole;
-        dy = entity->unk_504.whole - entity->posY.whole;
+        WITCH_MOVE_X(entity) = Target_GetX(entity) + dx;
+        WITCH_MOVE_Y(entity) = Target_GetY(entity) + dy;
+        dx = WITCH_MOVE_X(entity) - entity->posX.whole;
+        dy = WITCH_MOVE_Y(entity) - entity->posY.whole;
         if (Home(entity, dx, dy) || Target_IsNearEntity(entity, 0x50, 0x36))
         {
             entity->timer = 0x20;
@@ -119,10 +120,10 @@ void Witch_UpdateCast(struct EwramData_EntityData *entity)
         break;
     case 2:
         dx = (-(Entity_IsTargetRight(entity) << 6) + 0x20) << 16;
-        entity->unk_500.whole = Target_GetX(entity) + dx;
-        entity->unk_504.whole = Target_GetY(entity) - 0x380000;
-        dx = entity->unk_500.whole - entity->posX.whole;
-        Home(entity, dx, entity->unk_504.whole - entity->posY.whole);
+        WITCH_MOVE_X(entity) = Target_GetX(entity) + dx;
+        WITCH_MOVE_Y(entity) = Target_GetY(entity) - 0x380000;
+        dx = WITCH_MOVE_X(entity) - entity->posX.whole;
+        Home(entity, dx, WITCH_MOVE_Y(entity) - entity->posY.whole);
         if (entity->animFlags & 4)
         {
             Anim_StartIndexed(entity, 0, 0, 1);

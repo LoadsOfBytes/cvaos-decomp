@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "succubus_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -15,7 +16,7 @@ void Succubus_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
     s32 damage = Player_CalculateAttackPower(hit[2]);
     damage = Hit_ResolveDamage(entity, (s32)attacker, hit, (s16)damage);
     entity->unk_510.part8.hitFlashTimer = 8;
-    entity->unk_4FC.part8.unk_4FC = 1;
+    SUCCUBUS_PROVOKED(entity) = 1;
     {
         u16 hp = entity->unk_518.part16.hp;
         damage <<= 16;
@@ -25,7 +26,7 @@ void Succubus_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
     Entity_ShowDamage(entity, damage, 0);
     if ((s8)entity->unk_4FC.part8.unk_4FE != 0)
     {
-        entity->unk_4FC.part8.unk_4FF = 1;
+        SUCCUBUS_HOLDING(entity) = 1;
         if ((s16)entity->unk_518.part16.hp > 0) return;
         entity->unk_518.part16.hp = 1;
     }

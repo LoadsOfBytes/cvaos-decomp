@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "door_entity.h"
 #include "code_08001194.h"
 #include "code_08013960.h"
 #include "code/code_08039340.h"
@@ -51,13 +52,13 @@ void Object04Update(struct EwramData_EntityData *entity)
             Collision_ClearBlock(x, y - 0x18);
             y -= 0x28;
             Collision_ClearBlock(x, y);
-            if (entity->unk_4F8.whole == 0 && Entity_IsInRect(entity, -0x10, 0, 0x110, 0xC0))
+            if (DOOR_OPEN_HEIGHT(entity) == 0 && Entity_IsInRect(entity, -0x10, 0, 0x110, 0xC0))
                 PlaySong(0x113);
-            if ((entity->unk_4F8.whole += 2) > 0x2F)
-                entity->unk_4F8.whole = 0x30;
+            if ((DOOR_OPEN_HEIGHT(entity) += 2) > 0x2F)
+                DOOR_OPEN_HEIGHT(entity) = 0x30;
             break;
         }
-        t = entity->unk_4F8.whole;
+        t = DOOR_OPEN_HEIGHT(entity);
         if (t <= 2)
         {
             struct BgLayerState *bg2 = BG;
@@ -69,12 +70,12 @@ void Object04Update(struct EwramData_EntityData *entity)
                 Collision_SetBlock(x, y - 0x18);
                 Collision_SetBlock(x, y - 0x28);
             }
-            entity->unk_4F8.whole = 0;
+            DOOR_OPEN_HEIGHT(entity) = 0;
             break;
         }
         if (t == 0x30 && Entity_IsInRect(entity, -0x10, 0, 0x110, 0xC0))
             PlaySong(0x113);
-        entity->unk_4F8.whole -= 2;
+        DOOR_OPEN_HEIGHT(entity) -= 2;
         break;
     }
     case 21:
@@ -82,7 +83,7 @@ void Object04Update(struct EwramData_EntityData *entity)
         struct BgLayerState *bg;
         s32 x, y;
 
-        if (++entity->unk_4F8.whole <= 0x2F)
+        if (++DOOR_OPEN_HEIGHT(entity) <= 0x2F)
             break;
         x = (s16)entity->posX.part16.integer;
         bg = BG;
@@ -97,14 +98,14 @@ void Object04Update(struct EwramData_EntityData *entity)
         break;
     }
     case 2:
-        SetPlayerInput(1, entity->unk_4FC.part8.unk_4FE ? 0x10 : 0x20);
+        SetPlayerInput(1, DOOR_ON_RIGHT(entity) ? 0x10 : 0x20);
         break;
     case 10:
     {
         struct BgLayerState *bg;
         s32 x, y;
 
-        SetPlayerInput(1, entity->unk_4FC.part8.unk_4FE ? 0x20 : 0x10);
+        SetPlayerInput(1, DOOR_ON_RIGHT(entity) ? 0x20 : 0x10);
         if (IsBeside(entity))
             break;
         x = (s16)entity->posX.part16.integer;
@@ -122,7 +123,7 @@ void Object04Update(struct EwramData_EntityData *entity)
     }
     case 11:
         SetPlayerInput(1, 0);
-        if (--entity->unk_4F8.whole != 0)
+        if (--DOOR_OPEN_HEIGHT(entity) != 0)
             break;
         gEwramData->gameState.stateFlags &= 0xFFFFFEFE;
         if (entity->unk_514.part16.spawnParam0 > 1)

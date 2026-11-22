@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "door_entity.h"
 #include "code_08001194.h"
 #include "code/code_080211F0.h"
 #include "code/code_08060B98.h"
@@ -41,14 +42,14 @@ void Object02Create(struct EwramData_EntityData *entity)
     }
     if (entity->unk_514.part16.spawnParam1 == 7)
     {
-        entity->unk_4FC.part8.unk_4FF = 9;
-        entity->palette = entity->unk_4FC.part8.unk_4FF;
+        DOOR_PALETTE(entity) = 9;
+        entity->palette = DOOR_PALETTE(entity);
     }
     found = Entity_IsInRect(entity, (s16)(gEwramData->playerState.player->posX.part16.integer - 0x1C),
                          gEwramData->playerState.player->posY.part16.integer, 0x38, 0x22);
     if (found)
     {
-        entity->unk_4F8.whole = 0x30;
+        DOOR_OPEN_HEIGHT(entity) = 0x30;
         entity->state = 10;
         SetPlayerInput(1, 0);
         RedSoul_CancelAll();
@@ -72,7 +73,7 @@ void Object02Create(struct EwramData_EntityData *entity)
     Collision_SetBlock(x, y - 8);
     Collision_SetBlock(x, y - 0x18);
     Collision_SetBlock(x, y - 0x28);
-    entity->unk_4F8.whole = found;
+    DOOR_OPEN_HEIGHT(entity) = found;
     switch (entity->unk_514.part16.spawnParam0)
     {
     case 1:

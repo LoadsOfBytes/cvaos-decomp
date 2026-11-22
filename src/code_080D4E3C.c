@@ -12,7 +12,7 @@ extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
  */
 void GrahamSpreadProjectile_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner=&gEwramData->entityData[entity->unk_4F4.part8.unk_4F5];
+    struct EwramData_EntityData *owner=&gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
     s32 state;
     if((s16)owner->unk_518.part16.hp<=0)
     {

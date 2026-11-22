@@ -1,4 +1,5 @@
 #include "code/code_08039340.h"
+#include "room_object_entity.h"
 #include "code_08009A0.h"
 #include "code_08001194.h"
 #include "code_080D73B8.h"
@@ -46,11 +47,11 @@ void Object37_UpdateState(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
     case 0:
-        if ((s32)entity->unk_4FC.whole > 0)
+        if ((s32)OBJECT37_ANGLE(entity) > 0)
         {
-            entity->unk_4FC.whole -= 0x100;
-            if ((s32)entity->unk_4FC.whole < 0)
-                entity->unk_4FC.whole = 0;
+            OBJECT37_ANGLE(entity) -= 0x100;
+            if ((s32)OBJECT37_ANGLE(entity) < 0)
+                OBJECT37_ANGLE(entity) = 0;
         }
         if (Abs(distance) >= 0x300000 && FlipMask(player))
         {
@@ -59,15 +60,15 @@ void Object37_UpdateState(struct EwramData_EntityData *entity)
         }
         break;
     case 1:
-        if ((s32)entity->unk_4FC.whole < 0x3000)
+        if ((s32)OBJECT37_ANGLE(entity) < 0x3000)
         {
-            entity->unk_4FC.whole += 0x100;
-            if ((s32)entity->unk_4FC.whole > 0x3000)
-                entity->unk_4FC.whole = 0x3000;
+            OBJECT37_ANGLE(entity) += 0x100;
+            if ((s32)OBJECT37_ANGLE(entity) > 0x3000)
+                OBJECT37_ANGLE(entity) = 0x3000;
         }
-        else if (entity->unk_500.whole != 0)
+        else if (OBJECT37_CLOSED(entity) != 0)
         {
-            entity->unk_500.whole = 0;
+            OBJECT37_CLOSED(entity) = 0;
             x = EntityRoomX(entity, &gEwramData);
             y = EntityRoomY(entity, &gEwramData);
             x -= 0x10;
@@ -80,7 +81,7 @@ void Object37_UpdateState(struct EwramData_EntityData *entity)
         if (Abs(distance) >= 0x300000 && !FlipMask(player))
         {
             entity->subState = 0;
-            entity->unk_500.whole = 1;
+            OBJECT37_CLOSED(entity) = 1;
 {
                 s32 px = (s16)entity->posX.part16.integer;
                 struct BgLayerState *bg = &gEwramData->bgInfo[1];
@@ -97,5 +98,5 @@ void Object37_UpdateState(struct EwramData_EntityData *entity)
         }
         break;
     }
-    ObjAffine_Set(entity->unk_4FC.whole, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
+    ObjAffine_Set(OBJECT37_ANGLE(entity), 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
 }

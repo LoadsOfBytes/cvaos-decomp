@@ -1,5 +1,6 @@
 /* EventScene31_SpawnBlockDebris..sub_0805C49B. */
 #include "code_080D73B8.h"
+#include "event_scene_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -114,18 +115,18 @@ s32 EventScene31FallingBlock_Update(struct EwramData_EntityData *entity)
  */
 s32 EventScene31_StepPaletteAnim(struct EwramData_EntityData *entity)
 {
-    const struct EventScene31PaletteStep *anim = &sEventScene31PaletteSteps[entity->unk_4FC.part16.unk_4FE[0]];
+    const struct EventScene31PaletteStep *anim = &sEventScene31PaletteSteps[EVENT31_PALETTE_STEP(entity)];
 
-    if (entity->unk_4FC.part16.unk_4FC++ > anim->duration)
+    if (EVENT31_PALETTE_TICK(entity)++ > anim->duration)
     {
-        entity->unk_4FC.part16.unk_4FC = 0;
+        EVENT31_PALETTE_TICK(entity) = 0;
         ObjPalette_LoadRange(anim->palette, anim->sourcePalette, 1, entity->unk_510.part8.basePalette);
-        if (++entity->unk_4FC.part16.unk_4FE[0] > 3)
+        if (++EVENT31_PALETTE_STEP(entity) > 3)
         {
-            entity->unk_4FC.part16.unk_4FE[0] = 0;
+            EVENT31_PALETTE_STEP(entity) = 0;
             return 0;
         }
-        anim = &sEventScene31PaletteSteps[entity->unk_4FC.part16.unk_4FE[0]];
+        anim = &sEventScene31PaletteSteps[EVENT31_PALETTE_STEP(entity)];
         ObjPalette_StartBlend(0, (u16 *)anim->palette, anim->sourcePalette, 0x10000, 0, anim->duration);
     }
     return 1;

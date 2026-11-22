@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "beam_skeleton_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern void BeamSkeletonBeamSprite_Update(struct EwramData_EntityData *entity);
@@ -30,7 +31,7 @@ void BeamSkeleton_CreateBeam(struct EwramData_EntityData *entity)
             beam->posX.whole = -beam->posX.whole;
         beam->posX.whole += entity->posX.whole;
         beam->posY.whole += entity->posY.whole;
-        beam->unk_4F4.part8.unk_4F6 = entity->unk_4F4.part8.unk_4F4;
+        BEAM_OWNER_INDEX(beam) = ENTITY_INDEX(entity);
         beam->scrollWithBg = 1;
         beam->drawFunc = (u32 *)Sprite_DrawEntity;
         sprite = sBeamSkeletonSpriteSheet;
@@ -58,7 +59,7 @@ void BeamSkeleton_CreateBeam(struct EwramData_EntityData *entity)
                 beam->posX.whole = -beam->posX.whole;
             beam->posX.whole += entity->posX.whole;
             beam->posY.whole += entity->posY.whole;
-            beam->unk_4F4.part8.unk_4F6 = entity->unk_4F4.part8.unk_4F4;
+            BEAM_OWNER_INDEX(beam) = ENTITY_INDEX(entity);
             beam->scrollWithBg = 1;
             beam->drawFunc = (u32 *)Sprite_DrawEntity;
             graphics = Sprite_GetTileSlot(entity);

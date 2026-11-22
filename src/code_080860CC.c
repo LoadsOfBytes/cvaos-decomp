@@ -1,6 +1,7 @@
 /* Headhunter lightning-burst flicker. The creator does not allocate an
  * affine slot; retain the existing affine-free call on owner cancel. */
 #include "code_08009A0.h"
+#include "headhunter_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -13,7 +14,7 @@ struct SingleFrameAnimation {
 };
 extern struct SingleFrameAnimation sHeadhunterFrameAnim;
 /* bit 0 of the owner's unk_4FE ends its effects (TODO: meaning) */
-#define OWNER_DONE(o) ((o)->unk_4FC.part8.unk_4FE & 1)
+#define OWNER_DONE(o) (HEADHUNTER_FLAGS((o)) & 1)
 
 /**
  * @brief Randomize among three frames through signed timer 49, then
@@ -22,10 +23,10 @@ extern struct SingleFrameAnimation sHeadhunterFrameAnim;
  */
 void HeadhunterLightningBurstFlicker_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
     struct SingleFrameAnimation animation = sHeadhunterFrameAnim;
     Anim_Start(entity, (struct AnimScript *)&animation, 2, 1);
-    animation.frame = entity->unk_4FC.part8.unk_4FF + RandomNumberGenerator() % 3;
+    animation.frame = HEADHUNTER_EFFECT_FRAME(entity) + RandomNumberGenerator() % 3;
     Anim_Update(entity);
     if ((s8)entity->timer++ > 49)
         EntityDelete(entity);

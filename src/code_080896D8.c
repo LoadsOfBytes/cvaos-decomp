@@ -1,5 +1,6 @@
 /* Apply damage and signal a hit to the body's current behavior. */
 #include "code/code_080211F0.h"
+#include "gorgon_entity.h"
 #include "code/code_08039340.h"
 #include "code_080D73B8.h"
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
@@ -21,7 +22,7 @@ void Gorgon_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
         entity->unk_518.part16.hp = hp - damage;
     }
     Entity_ShowDamage(entity, damage, 0);
-    entity->unk_500.part8.unk_500 = 1;
+    GORGON_HIT(entity) = 1;
     if ((s16)entity->unk_518.part16.hp <= 0)
     {
         Enemy_DropRewards(entity);

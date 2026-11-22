@@ -1,6 +1,7 @@
 /* Helpers around fixed entity slots 18, 19 and 0xD0..0xD2
  * (0x08048A64..0x08048C43). */
 #include "code_08009A0.h"
+#include "menu_page.h"
 #include "code_08011DD0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -43,7 +44,7 @@ void Cursor_StartAnimation(void)
 {
     struct EwramData_EntityData *cursor = &gEwramData->entityData[18];
 
-    Sprite_Attach(cursor, sMenuSpriteSheet, cursor->unk_4F4.part8.unk_4F5, 0xD);
+    Sprite_Attach(cursor, sMenuSpriteSheet, MENU_GFX_SLOT(cursor), 0xD);
     cursor->animFrame = 0x1E;
 }
 
@@ -77,15 +78,15 @@ void MenuPageTitle_Create(struct EwramData_EntityData *title, s32 frame)
 {
     u8 *sheet = sMenuSpriteSheet;
     struct EwramData_EntityData *cursor = &gEwramData->entityData[18];
-    s32 tileSlot = cursor->unk_4F4.part8.unk_4F5;
+    s32 tileSlot = MENU_GFX_SLOT(cursor);
 
     if (gEwramData->gameState.language == 3)
         sheet = sMenuPageTitleSpriteSheet;
 
     Sprite_Attach(title, sheet, tileSlot, 0xE);
-    title->unk_510.whole = ObjAffine_Alloc(2);
+    MENU_TITLE_AFFINE(title) = ObjAffine_Alloc(2);
     title->animFrame = frame;
-    title->unk_508.part8.unk_508++;
+    MENU_TITLE_STATE(title)++;
 }
 
 /**
@@ -94,9 +95,9 @@ void MenuPageTitle_Create(struct EwramData_EntityData *title, s32 frame)
  */
 void MenuPageTitle_Delete(struct EwramData_EntityData *title)
 {
-    ObjAffine_Free(title->unk_510.whole);
+    ObjAffine_Free(MENU_TITLE_AFFINE(title));
     title->deleteRequested = 1;
-    title->unk_508.part8.unk_508 = 0;
+    MENU_TITLE_STATE(title) = 0;
 }
 
 /**

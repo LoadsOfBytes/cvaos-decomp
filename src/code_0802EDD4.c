@@ -6,7 +6,7 @@
 extern void SkillDevilManticoreSparkUpdate(struct EwramData_EntityData *);
 void SkillDevilManticoreSparksUpdate(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
     entity->roomActive = 1;
     if (!(entity->timer & 7)) PlaySong(0x90);
     if (!(entity->timer & 3))

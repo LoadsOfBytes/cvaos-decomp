@@ -4,6 +4,7 @@
  * stage++ is cross-jumped; the decrement in step 5/3 goes through an s32
  * temporary; step 8 has an empty case 2. */
 #include "code_08009A0.h"
+#include "event_scene03.h"
 #include "code_080D73B8.h"
 #include "code_0800CB00.h"
 #include "code_08013960.h"
@@ -58,7 +59,7 @@ s32 EventScene03_RunSequence(struct EwramData_EntityData *entity)
         {
         case 0:
         {
-            struct EwramData_EntityData *p = entity->unk_4F8.unk_4F8_entity;
+            struct EwramData_EntityData *p = EVENT03_ACTOR0(entity);
             if (p->animScriptIndex != 1)
                 Anim_StartIndexed(p, 1, 0, 0);
             gEwramData->gameState.cameraScrollMinPriority = 1;
@@ -85,8 +86,8 @@ s32 EventScene03_RunSequence(struct EwramData_EntityData *entity)
     case 2:
         if (entity->stage == 0)
         {
-            entity->unk_4F8.unk_4F8_entity->flipX = 0;
-            entity->unk_4FC.unk_4FC_entity->flipX = 1;
+            EVENT03_ACTOR0(entity)->flipX = 0;
+            EVENT03_ACTOR1(entity)->flipX = 1;
             Music_SetCurrent(0x10);
             entity->stage++;
             break;
@@ -97,7 +98,7 @@ s32 EventScene03_RunSequence(struct EwramData_EntityData *entity)
         {
         case 0:
             EventScene03_SpawnPartsA(entity);
-            entity->unk_504.part16.unk_504 |= 8;
+            EVENT03_PROGRESS(entity) |= 8;
             save->textWindowPause = 1;
             entity->stage++;
             STEP = 2;
@@ -119,11 +120,11 @@ s32 EventScene03_RunSequence(struct EwramData_EntityData *entity)
             struct EwramData_EntityData *p;
             struct EwramData_EntityData *q;
             EventScene03_SpawnPartsB(entity);
-            p = entity->unk_4F8.unk_4F8_entity;
+            p = EVENT03_ACTOR0(entity);
             if (p->animScriptIndex != 5)
                 Anim_StartIndexed(p, 5, 0, 0);
             PlaySong(0x1B4);
-            q = entity->unk_4FC.unk_4FC_entity;
+            q = EVENT03_ACTOR1(entity);
             q->flipX = 1 - q->flipX;
             entity->timer = 0x20;
             entity->stage++;
@@ -157,17 +158,17 @@ s32 EventScene03_RunSequence(struct EwramData_EntityData *entity)
         case 2:
             if ((u8)--entity->timer == 0xFF)
             {
-                entity->unk_504.part16.unk_504 |= 0x10;
+                EVENT03_PROGRESS(entity) |= 0x10;
                 PlaySong(0x1DF);
-                Anim_StartIndexed(entity->unk_4FC.unk_4FC_entity, 2, 0, 0);
+                Anim_StartIndexed(EVENT03_ACTOR1(entity), 2, 0, 0);
                 entity->stage++;
                 break;
             }
             break;
         case 3:
-            if (entity->unk_4FC.unk_4FC_entity->animDone)
+            if (EVENT03_ACTOR1(entity)->animDone)
             {
-                entity->unk_504.part16.unk_504 |= 2;
+                EVENT03_PROGRESS(entity) |= 2;
                 entity->stage++;
                 entity->timer = 0x10;
             }
@@ -178,13 +179,13 @@ s32 EventScene03_RunSequence(struct EwramData_EntityData *entity)
                 struct EwramData_EntityData *q;
                 entity->stage++;
                 PlaySong(0x1E0);
-                q = entity->unk_4FC.unk_4FC_entity;
+                q = EVENT03_ACTOR1(entity);
                 if (q->animScriptIndex != 3)
                     Anim_StartIndexed(q, 3, 0, 0);
             }
             break;
         case 5:
-            if (entity->unk_4FC.unk_4FC_entity->animDone)
+            if (EVENT03_ACTOR1(entity)->animDone)
             {
                 entity->timer = 0x58;
                 entity->stage++;
@@ -222,11 +223,11 @@ s32 EventScene03_RunSequence(struct EwramData_EntityData *entity)
             if (entity->timer == 0xD0)
             {
                 struct EwramData_EntityData *o;
-                EventScene03_SpawnSoulOrb((s16)entity->unk_500.unk_500_entity->posX.part16.integer, (s16)entity->unk_500.unk_500_entity->posY.part16.integer, 0, 0, 0);
-                entity->unk_500.unk_500_entity->hidden = 1;
-                o = entity->unk_500.unk_500_entity;
+                EventScene03_SpawnSoulOrb((s16)EVENT03_ACTOR8(entity)->posX.part16.integer, (s16)EVENT03_ACTOR8(entity)->posY.part16.integer, 0, 0, 0);
+                EVENT03_ACTOR8(entity)->hidden = 1;
+                o = EVENT03_ACTOR8(entity);
                 Effect_SpawnAt(o->posX.whole, o->posY.whole, o->spriteLayer - 1);
-                EventScene03_SpawnPartDebris(entity->unk_500.unk_500_entity);
+                EventScene03_SpawnPartDebris(EVENT03_ACTOR8(entity));
                 PlaySong(0x6B);
                 gUnk_03002CB0.dispCnt &= 0xFEFF;
             }

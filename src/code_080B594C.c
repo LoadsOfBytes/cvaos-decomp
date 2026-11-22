@@ -1,5 +1,6 @@
 /* Boss part effect: sparks, debris bursts and a fading palette countdown. */
 #include "code_08009A0.h"
+#include "balore_entity.h"
 #include "code_08011DD0.h"
 #include "code_080D73B8.h"
 #include "structs/ewram.h"
@@ -96,8 +97,8 @@ s32 Balore_UpdateDeath(struct EwramData_EntityData *entity)
                     PlaySong(0x77);
             }
         }
-        if (entity->unk_504.whole > 0x8000)
-            entity->unk_504.whole -= 0x100;
+        if (BALORE_BODY_SCALE(entity) > 0x8000)
+            BALORE_BODY_SCALE(entity) -= 0x100;
         if (entity->timer)
         {
             entity->timer--;
@@ -114,7 +115,7 @@ s32 Balore_UpdateDeath(struct EwramData_EntityData *entity)
             break;
             }
         }
-        entity->unk_500.part16.unk_502 |= 4;
+        BALORE_FLAGS(entity) |= 4;
         entity->subState = 5;
         entity->timer = 0x20;
         break;

@@ -1,10 +1,11 @@
 /* Vertical platform: accelerate between two room-space endpoints,
  * slow near each endpoint and wait for the per-variant delay. */
 #include "code_08009A0.h"
+#include "layer_object.h"
 #include "structs/ewram.h"
 struct PlatformVariant { u8 *graphics; void *palette; void *sprites; u8 animation; u8 paletteIndex; u16 delay; };
 extern struct PlatformVariant sObject29Variants[];
-#define DIRECTION(e) ((e)->unk_504.part8.unk_504)
+#define DIRECTION(e) (SHUTTLE_DIR((e)))
 void Object29_UpdateMovement(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
@@ -12,15 +13,15 @@ void Object29_UpdateMovement(struct EwramData_EntityData *entity)
     s32 v, k;
     
 
-    entity->unk_508.whole = entity->unk_4F4.whole - camera->xPos.whole;
+    BG1_OBJECT_DRAW_X(entity) = BG1_OBJECT_X(entity) - camera->xPos.whole;
 
-    y = entity->unk_4F8.whole;
-    entity->unk_50C.whole = y - camera->yPos.whole;
+    y = BG1_OBJECT_Y(entity);
+    BG1_OBJECT_DRAW_Y(entity) = y - camera->yPos.whole;
     switch (entity->subState)
     {
     case 0:
     {
-        s32 target = entity->unk_500.whole;
+        s32 target = SHUTTLE_END(entity);
         register s32 current asm("r2") = y; /* FAKEMATCH: current in r2 */
         s32 distance = target - current;
         
@@ -69,7 +70,7 @@ void Object29_UpdateMovement(struct EwramData_EntityData *entity)
         break;
     case 2:
     {
-        s32 target = entity->unk_4FC.whole;
+        s32 target = SHUTTLE_START(entity);
         register s32 current asm("r2") = y; /* FAKEMATCH: current in r2 */
         s32 distance = target - current;
         if (distance < 0) distance = -distance;
@@ -108,7 +109,7 @@ void Object29_UpdateMovement(struct EwramData_EntityData *entity)
             else entity->velY.whole = -((distance / 0x10000) << 16) / 16 - 0x1000;
         }
     move:
-        entity->unk_4F8.whole += entity->velY.whole;
+        BG1_OBJECT_Y(entity) += entity->velY.whole;
         break;
     }
     case 3:
@@ -119,6 +120,6 @@ void Object29_UpdateMovement(struct EwramData_EntityData *entity)
         }
         break;
     }
-    entity->posX.whole = entity->unk_4F4.whole - camera->xPos.whole;
-    entity->posY.whole = entity->unk_4F8.whole - camera->yPos.whole;
+    entity->posX.whole = BG1_OBJECT_X(entity) - camera->xPos.whole;
+    entity->posY.whole = BG1_OBJECT_Y(entity) - camera->yPos.whole;
 }

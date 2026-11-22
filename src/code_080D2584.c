@@ -1,5 +1,6 @@
 /* Create a Graham scene object and set its event bit. */
 #include "code_08009A0.h"
+#include "graham_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08050A3C.h"
 #include "structs/ewram.h"
@@ -15,15 +16,15 @@ s32 Graham_CreateSceneObject(struct EwramData_EntityData *entity,s32 index)
     struct GrahamSceneObject *info=&sGrahamSceneObjects[index];
     struct EwramData_EntityData *object;
     s32 facing;
-    if(!(entity->unk_4F8.part16.unk_4FA & 0x80))
+    if(!(GRAHAM_FLAGS(entity) & 0x80))
         return 0;
     if(gEwramData->gameState.stateFlags & 0x10)
         return 0;
     object=EntityCreateInRange(0x1B,0x48,(u32 *)EntityUpdateNothing);
     if(!object)
         return 0;
-    entity->unk_4F8.part8.unk_4F8=object->unk_4F4.part8.unk_4F4;
-    object->unk_4F4.part8.unk_4F5=entity->unk_4F4.part8.unk_4F4;
+    GRAHAM_SCENE_OBJECT_INDEX(entity)=ENTITY_INDEX(object);
+    ENTITY_PARENT_INDEX(object)=ENTITY_INDEX(entity);
     if(index==0 || index==5)
     {
         s32 x=info->x<<16;

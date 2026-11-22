@@ -1,6 +1,7 @@
 /* Devil part update: follows its joint of the parent's skeleton, aims the
  * sprite along the bone, maintains the hit box and blinks away on death. */
 #include "code_08009A0.h"
+#include "devil_entity.h"
 #include "joint_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -20,7 +21,7 @@ extern s32 Entity_GetVisibilityPattern(s32);
 extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
 extern const u8 sDevilPartTimers[8];
 
-#define JOINT(e) ((s8)(e)->unk_504.part8.unk_504)
+#define JOINT(e) ((s8)JOINT_PART_INDEX((e)))
 #define FIX_INT(v) ((v) < 0 ? -(-(v) >> 16) : (v) >> 16)
 #define HAS_SPRITE(e) (JOINT(e) == 0 || JOINT(e) == 2 || JOINT(e) == 3 || JOINT(e) == 4 || JOINT(e) == 6 || JOINT(e) == 7)
 
@@ -33,7 +34,7 @@ void DevilPart_Update(struct EwramData_EntityData *entity)
     u8 hit[16];
     u8 timers[8];
     struct DevilBox box;
-    struct EwramData_EntityData *parent = entity->unk_500.unk_500_entity;
+    struct EwramData_EntityData *parent = JOINT_PART_OWNER(entity);
     struct DevilPart *parts;
     s32 size;
     s32 x;
@@ -47,7 +48,7 @@ void DevilPart_Update(struct EwramData_EntityData *entity)
         {
             parts = parent->unk_500.devilParts;
             entity->palette = parent->palette;
-            if (!parent->hidden && (s8)parent->unk_508.part8.unk_50B == 0)
+            if (!parent->hidden && (s8)DEVIL_PARTS_HIDDEN(parent) == 0)
                 entity->hidden = 0;
             else
                 entity->hidden = 1;
@@ -55,9 +56,9 @@ void DevilPart_Update(struct EwramData_EntityData *entity)
             entity->posY.whole = parent->posY.whole + parts[JOINT(entity)].offsetY;
             if (JOINT(entity) == 2 || JOINT(entity) == 6)
             {
-                x = parts[(s8)entity->unk_504.part8.unk_505].offsetX;
+                x = parts[(s8)JOINT_PART_ANCHOR(entity)].offsetX;
                 x -= parts[JOINT(entity)].offsetX;
-                y = parts[(s8)entity->unk_504.part8.unk_505].offsetY;
+                y = parts[(s8)JOINT_PART_ANCHOR(entity)].offsetY;
                 y -= parts[JOINT(entity)].offsetY;
                 entity->velX.whole = ArcTan2(FIX_INT(x), FIX_INT(y)) - 0x4000;
             }
@@ -69,7 +70,7 @@ void DevilPart_Update(struct EwramData_EntityData *entity)
             {
                 entity->state = 1;
                 entity->subState = 0;
-                entity->unk_4FC.whole = entity->velX.whole;
+                DEVIL_PART_ANGLE(entity) = entity->velX.whole;
                 entity->timer = timers[JOINT(entity)];
                 return;
             }
@@ -102,7 +103,7 @@ void DevilPart_Update(struct EwramData_EntityData *entity)
                 HitBox_SetAttack(entity, &box);
                 entity->hit.flags &= 0xFD;
                 entity->hit.flags &= 0xFB;
-                if ((s8)parent->unk_508.part8.unk_50A != 1)
+                if ((s8)DEVIL_INTANGIBLE(parent) != 1)
                     Hit_CheckWithPlayerSharedHistory(hit, entity, parent);
             }
             else
@@ -129,7 +130,7 @@ void DevilPart_Update(struct EwramData_EntityData *entity)
         if ((u8)(entity->timer - 0x14) <= 0x14 && (entity->timer & 3) == 0)
             Effect_SpawnRandom(entity->posX.whole, entity->posY.whole, 0x100000, 0x100000, entity->spriteLayer - 1);
         if (HAS_SPRITE(entity))
-            ObjAffine_Set(entity->unk_4FC.whole, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
+            ObjAffine_Set(DEVIL_PART_ANGLE(entity), 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
         if ((s8)--entity->timer <= 0)
         {
             if (HAS_SPRITE(entity))

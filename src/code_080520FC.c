@@ -1,5 +1,6 @@
 /* Object14_WallLeftCorrection. */
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "structs/ewram.h"
 
 static inline s32 Object14_WallLeftCorrectionInline(struct EwramData_EntityData *entity, s16 x, s16 y)
@@ -20,7 +21,7 @@ static inline s32 Object14_WallLeftCorrectionInline(struct EwramData_EntityData 
         return 0;
     if (band > 0x80000)
         return 0;
-    entity->unk_4F8.part16.unk_4F8 |= 2;
+    OBJECT14_FLAGS(entity) |= 2;
     {
         s32 v = band;
         return (v < 0) ? (s16)(-(-v >> 0x10)) : (s16)(v >> 0x10);

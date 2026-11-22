@@ -1,5 +1,6 @@
 /* Allocate an affine effect attached to an owner's entity slot. */
 #include "code_08009A0.h"
+#include "event_scene30.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern void EventScene30Halo_Update(struct EwramData_EntityData *);
@@ -20,8 +21,8 @@ void EventScene30_CreateHalo(struct EwramData_EntityData *owner)
         zero=0;
         Sprite_Attach(effect,sEventScene30SpriteSheet,slot,14);
         effect->drawFunc=(u32 *)Sprite_DrawEntity;
-        effect->unk_4F4.part8.unk_4F5=owner->unk_4F4.part8.unk_4F4;
-        effect->unk_500.whole=0x1A000;
+        ENTITY_PARENT_INDEX(effect)=ENTITY_INDEX(owner);
+        EVENT30_EFFECT_SCALE(effect)=0x1A000;
         slot=ObjAffine_Alloc(1);
         if(slot<0)
         {
@@ -31,16 +32,16 @@ fail:
         }
         effect->affineIndex=slot;
         effect->affine=1;
-        ObjAffine_Set(0x10000,effect->unk_500.whole,effect->unk_500.whole,0,zero,effect->affineIndex);
-        effect->unk_4FC.part16.unk_4FC=zero;
-        effect->posX.part16.integer=(*(s8 *)&owner->unk_508.part16.unk_50A-48)+owner->unk_504.part16.unk_504;
-        effect->posY.part16.integer=(s16)((s8)owner->unk_508.part8.unk_50B+8)+owner->unk_504.part16.unk_506[0];
+        ObjAffine_Set(0x10000,EVENT30_EFFECT_SCALE(effect),EVENT30_EFFECT_SCALE(effect),0,zero,effect->affineIndex);
+        EVENT30_FRAGMENT_PHASE(effect)=zero;
+        effect->posX.part16.integer=(*(s8 *)&owner->unk_508.part16.unk_50A-48)+EVENT30_CENTER_X(owner);
+        effect->posY.part16.integer=(s16)((s8)EVENT30_JITTER_Y(owner)+8)+EVENT30_CENTER_Y(owner);
         effect->velX.whole=-1000;
         effect->velY.whole=0x1000;
         effect->accelX.whole=-0x800;
         effect->accelY.whole=0x600;
-        effect->unk_51C=zero;
-        effect->unk_508.part16.unk_50A=(s16)0xFF56;
+        EVENT30_EFFECT_ANGLE(effect)=zero;
+        EVENT30_EFFECT_SPIN(effect)=(s16)0xFF56;
         effect->spriteLayer=3;
         effect->animFrame=24;
     }

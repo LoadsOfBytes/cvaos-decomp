@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -35,7 +36,7 @@ static inline struct SoulGraphicsResources *GetSet(s32 index)
  */
 void SkillDemonLordUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
     struct EwramData_EntityData *child;
 
     switch (entity->state)
@@ -79,7 +80,7 @@ void SkillDemonLordUse(struct EwramData_EntityData *entity)
         }
         if (Anim_Update(entity) == 3)
         {
-            gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
             gEwramData->playerState.nbrActiveRedSoulEntities--;
             EntityDelete(entity);
             return;

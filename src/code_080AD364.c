@@ -4,6 +4,9 @@
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 
+/* Bat flight: phase of the vertical bob (Sin / 4 added to y). */
+#define BAT_BOB_PHASE(e) e->unk_4F8.part16.unk_4F8
+
 extern void Entity_FaceTarget(struct EwramData_EntityData *);
 extern s32 Bat_IsTargetBelow(struct EwramData_EntityData *, u16, u16);
 extern void Entity_SetVelocityXFromFacing(struct EwramData_EntityData *, s32);
@@ -131,12 +134,12 @@ void Bat_UpdateFlight(struct EwramData_EntityData *entity)
                 entity->velX.whole = -entity->velX.whole;
                 entity->accelX.whole = -entity->accelX.whole;
             }
-            entity->unk_4F8.part16.unk_4F8 = 0;
+            BAT_BOB_PHASE(entity) = 0;
             entity->stage++;
             /* fall through */
         case 1:
-            entity->posY.whole += Sin(entity->unk_4F8.part16.unk_4F8) / 4;
-            entity->unk_4F8.part16.unk_4F8 += 0x200;
+            entity->posY.whole += Sin(BAT_BOB_PHASE(entity)) / 4;
+            BAT_BOB_PHASE(entity) += 0x200;
             if ((s16)entity->posX.part16.integer < (s16)entity->velX.part16.integer - 0x28
                 || (s16)entity->posX.part16.integer > (s16)entity->velX.part16.integer + 0xF0)
                 entity->deleteRequested = 1;

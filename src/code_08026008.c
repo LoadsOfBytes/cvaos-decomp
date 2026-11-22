@@ -1,4 +1,6 @@
 #include "code_08009A0.h"
+#include "soul_skill_entity.h"
+#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -57,7 +59,7 @@ void SkillWingedSkeletonUse(struct EwramData_EntityData *entity)
         slot = ObjAffine_Alloc(0);
         if ((s16)slot < 0)
         {
-            gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
             EntityDelete(entity);
             return;
         }
@@ -69,12 +71,12 @@ void SkillWingedSkeletonUse(struct EwramData_EntityData *entity)
         if (child == NULL)
         {
             ObjAffine_Free(entity->affineIndex);
-            gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = child;
+            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = child;
             EntityDelete(entity);
             return;
         }
     }
-        Entity_PlaceRelativeTo(entity, entity->unk_4F8.unk_4F8_entity, 8, -0x1A);
+        Entity_PlaceRelativeTo(entity, RED_SOUL_OWNER(entity), 8, -0x1A);
         entity->scrollWithBg = 1;
         entity->spriteLayer = 0xD;
         entity->state++;
@@ -82,17 +84,17 @@ void SkillWingedSkeletonUse(struct EwramData_EntityData *entity)
         u16 angle, step;
         s32 vx;
         angle = 0xF800;
-        entity->unk_510.part16.unk_510 = angle;
+        SKILL_WINGED_SKELETON_ANGLE(entity) = angle;
         step = 0x100;
-        entity->unk_510.part16.unk_512 = step;
+        SKILL_WINGED_SKELETON_TURN_STEP(entity) = step;
         vx = 0x40000;
         entity->velX.whole = vx;
         entity->velY.whole = -0x12000;
         entity->accelY.whole = 0x2000;
         if (entity->flipX)
         {
-            entity->unk_510.part16.unk_510 = -angle;
-            entity->unk_510.part16.unk_512 = -step;
+            SKILL_WINGED_SKELETON_ANGLE(entity) = -angle;
+            SKILL_WINGED_SKELETON_TURN_STEP(entity) = -step;
             entity->velX.whole = -vx;
         }
     }
@@ -109,28 +111,28 @@ void SkillWingedSkeletonUse(struct EwramData_EntityData *entity)
     {
         s32 angle;
         u16 x, y;
-        u16 step = entity->unk_510.part16.unk_512;
-        if (entity->unk_510.part16.unk_512 != 0)
+        u16 step = SKILL_WINGED_SKELETON_TURN_STEP(entity);
+        if (SKILL_WINGED_SKELETON_TURN_STEP(entity) != 0)
         {
-            u16 cur = entity->unk_510.part16.unk_510;
-            if (entity->unk_510.part16.unk_510 <= 0x3FFF)
-                entity->unk_510.part16.unk_510 = cur + step;
+            u16 cur = SKILL_WINGED_SKELETON_ANGLE(entity);
+            if (SKILL_WINGED_SKELETON_ANGLE(entity) <= 0x3FFF)
+                SKILL_WINGED_SKELETON_ANGLE(entity) = cur + step;
         }
         else
         {
-            u16 cur = entity->unk_510.part16.unk_510;
-            if (entity->unk_510.part16.unk_510 > 0x4000)
-                entity->unk_510.part16.unk_510 = cur + step;
+            u16 cur = SKILL_WINGED_SKELETON_ANGLE(entity);
+            if (SKILL_WINGED_SKELETON_ANGLE(entity) > 0x4000)
+                SKILL_WINGED_SKELETON_ANGLE(entity) = cur + step;
         }
-        angle = entity->unk_510.part16.unk_510;
+        angle = SKILL_WINGED_SKELETON_ANGLE(entity);
         if (entity->flipX)
             angle += -0x8000;
-        entity->unk_508.whole = Sin(angle + 0x4000) << 4;
-        entity->unk_50C.whole = Sin(angle) << 4;
+        SKILL_WINGED_SKELETON_TIP_X(entity) = Sin(angle + 0x4000) << 4;
+        SKILL_WINGED_SKELETON_TIP_Y(entity) = Sin(angle) << 4;
         EntityAccelerateAndMoveX(entity, 0x80000);
         EntityAccelerateAndMoveY(entity, 0x80000);
-        x = (s16)gEwramData->bgInfo[1].xPos.part16.integer + (s16)entity->posX.part16.integer + FIXED_TO_INT(entity->unk_508.whole);
-        y = (s16)gEwramData->bgInfo[1].yPos.part16.integer + (s16)entity->posY.part16.integer + FIXED_TO_INT(entity->unk_50C.whole);
+        x = (s16)gEwramData->bgInfo[1].xPos.part16.integer + (s16)entity->posX.part16.integer + FIXED_TO_INT(SKILL_WINGED_SKELETON_TIP_X(entity));
+        y = (s16)gEwramData->bgInfo[1].yPos.part16.integer + (s16)entity->posY.part16.integer + FIXED_TO_INT(SKILL_WINGED_SKELETON_TIP_Y(entity));
         if (Collision_GetTile((s16)x, (s16)y) && !Collision_IsPointSolid((s16)x, (s16)y))
         {
             entity->state = 2;
@@ -149,11 +151,11 @@ void SkillWingedSkeletonUse(struct EwramData_EntityData *entity)
         break;
     case 3:
         ObjAffine_Free(entity->affineIndex);
-        gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;
     }
     entity->roomActive = 1;
-    ObjAffine_Set(entity->unk_510.part16.unk_510, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set(SKILL_WINGED_SKELETON_ANGLE(entity), 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
 }

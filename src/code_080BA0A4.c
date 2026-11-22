@@ -1,5 +1,6 @@
 /* Man Eater projectile and effect controllers. */
 #include "code_08009A0.h"
+#include "man_eater_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -107,12 +108,12 @@ remove:
  */
 void ManEaterChainAnchor_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = &gEwramData->entityData[(u8)entity->unk_4F8.part8.unk_4F8];
-    struct EwramData_EntityData *target = &gEwramData->entityData[entity->unk_4F8.part8.unk_4F9];
+    struct EwramData_EntityData *parent = &gEwramData->entityData[(u8)MAN_EATER_OWNER_INDEX(entity)];
+    struct EwramData_EntityData *target = &gEwramData->entityData[MAN_EATER_PREV_INDEX(entity)];
     s32 dx;
     s32 dy;
     u16 angle;
-    if ((parent->unk_4F4.part8.unk_4F5 & 4) && parent->subState == 1)
+    if ((MAN_EATER_HEAD_FLAGS(parent) & 4) && parent->subState == 1)
     {
         EntityDelete(entity);
         return;
@@ -124,7 +125,7 @@ void ManEaterChainAnchor_Update(struct EwramData_EntityData *entity)
         entity->state = 1;
         break;
     case 1:
-        if (parent->unk_4F4.part8.unk_4F5 & 1)
+        if (MAN_EATER_HEAD_FLAGS(parent) & 1)
         {
             entity->unk_500.part8.unk_500 = 1;
             entity->state = 2;

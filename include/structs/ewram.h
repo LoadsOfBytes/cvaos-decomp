@@ -317,6 +317,33 @@ union EwramData_unk4F4 {
     struct EwramData_unk4F4_8 part8;
 };
 
+/*
+ * Entity index convention: EntityCreate / EntityCreateInRange store the slot
+ * index of a new entity (gEwramData->entityData[index]) in unk_4F4.part8.unk_4F4;
+ * child entities of many families keep their parent's index in
+ * unk_4F4.part8.unk_4F5 and look the parent up with
+ * gEwramData->entityData[ENTITY_PARENT_INDEX(e)]. Some entity types reuse these
+ * bytes for other data, so the macros are only used where the code follows the
+ * convention. Token-identical expansion.
+ */
+#define ENTITY_INDEX(e) e->unk_4F4.part8.unk_4F4
+#define ENTITY_PARENT_INDEX(e) e->unk_4F4.part8.unk_4F5
+
+/*
+ * Owner pointer convention: many entity types created by another entity keep
+ * their owner / parent in unk_4F8.unk_4F8_entity (weapons, souls, enemy parts,
+ * effects). Used where the code reads it as the owner or stores the creator.
+ */
+#define ENTITY_OWNER(e) e->unk_4F8.unk_4F8_entity
+
+/*
+ * Creator pointer convention: projectiles, attack effects and parts spawned
+ * by many enemies keep their creator in unk_4F4.unk_4F4_entity (family headers
+ * name the same member e.g. CHAOS_LINK, LEGION_PART_OWNER). Used where the
+ * code stores the creator or reads it back as the parent.
+ */
+#define ENTITY_CREATOR(e) e->unk_4F4.unk_4F4_entity
+
 struct EwramData_unk50C_8 {
     u8 unk_50C;
     u8 unk_50D;

@@ -2,6 +2,7 @@
  * a cloning script (constants adjusted where needed), checked byte for
  * byte. */
 #include "code/code_08039340.h"
+#include "disc_armor_entity.h"
 #include "structs/ewram.h"
 
 /**
@@ -13,13 +14,13 @@ void DiscArmorRing_Draw(struct EwramData_EntityData *entity)
     s32 oldY = entity->posY.whole;
     s32 i;
 
-    entity->posX.whole = oldX + (s32)entity->unk_4FC.whole / 2;
-    entity->posY.whole = oldY + entity->unk_500.whole / 2;
+    entity->posX.whole = oldX + (s32)DISC_ARMOR_RING_STEP_X(entity) / 2;
+    entity->posY.whole = oldY + DISC_ARMOR_RING_STEP_Y(entity) / 2;
     for (i = 3; i != 0; i--)
     {
         Sprite_Draw(entity);
-        entity->posX.whole += (s32)entity->unk_4FC.whole;
-        entity->posY.whole += entity->unk_500.whole;
+        entity->posX.whole += (s32)DISC_ARMOR_RING_STEP_X(entity);
+        entity->posY.whole += DISC_ARMOR_RING_STEP_Y(entity);
     }
     entity->posX.whole = oldX;
     entity->posY.whole = oldY;

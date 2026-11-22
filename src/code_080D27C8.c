@@ -1,5 +1,6 @@
 /* Wait for the attached entity to signal the transition to the next phase. */
 #include "code_080D73B8.h"
+#include "graham_entity.h"
 #include "structs/ewram.h"
 extern void Graham_CreateCombatBody(struct EwramData_EntityData *);
 extern void Enemy_DropRewards(struct EwramData_EntityData *);
@@ -10,12 +11,12 @@ extern void Enemy_DropRewards(struct EwramData_EntityData *);
  */
 void Graham_UpdatePhaseMonitor(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *child=&gEwramData->entityData[entity->unk_4F4.part8.unk_4F6];
+    struct EwramData_EntityData *child=&gEwramData->entityData[GRAHAM_CHILD_INDEX(entity)];
     s32 state=entity->subState;
     switch(state)
     {
         case 0:
-            if(entity->unk_4F8.part16.unk_4FA & 4)
+            if(GRAHAM_FLAGS(entity) & 4)
             {
                 PlaySong(0x1DD);
                 Graham_CreateCombatBody(entity);

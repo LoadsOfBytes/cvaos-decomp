@@ -1,5 +1,6 @@
 /* Disc Armor disc aiming. */
 #include "gba.h"
+#include "disc_armor_entity.h"
 #include "syscalls.h"
 #include "structs/ewram.h"
 
@@ -29,16 +30,16 @@ s32 DiscArmorRing_Aim(struct EwramData_EntityData *disc, struct EwramData_Entity
     {
         /* X via the inline helper, Y via the macro: this mix gives the
          * original register allocation. */
-        disc->unk_4F8.whole = ArcTan2(PixelDelta(entity->posX.part16.integer, owner->unk_4FC.whole),
-                                           entity->posY.part16.integer - INT_TOWARD_ZERO(owner->unk_500.whole));
-        dx = (entity->posX.whole - (s32)owner->unk_4FC.whole) >> 16;
+        DISC_ARMOR_RING_ANGLE(disc) = ArcTan2(PixelDelta(entity->posX.part16.integer, DISC_ARMOR_HAND_X(owner)),
+                                           entity->posY.part16.integer - INT_TOWARD_ZERO(DISC_ARMOR_HAND_Y(owner)));
+        dx = (entity->posX.whole - (s32)DISC_ARMOR_HAND_X(owner)) >> 16;
         dx *= dx;
-        dy = (entity->posY.whole - owner->unk_500.whole) >> 16;
+        dy = (entity->posY.whole - DISC_ARMOR_HAND_Y(owner)) >> 16;
         dy *= dy;
         distance = Sqrt(dx + dy) << 16;
-        disc->unk_504.whole = distance;
-        disc->posX.whole = owner->unk_4FC.whole;
-        disc->posY.whole = owner->unk_500.whole;
+        DISC_ARMOR_RING_LENGTH(disc) = distance;
+        disc->posX.whole = DISC_ARMOR_HAND_X(owner);
+        disc->posY.whole = DISC_ARMOR_HAND_Y(owner);
         return distance;
     }
     return 0;

@@ -31,8 +31,8 @@ void RockArmor_UpdateAttack(struct EwramData_EntityData *entity)
             child = Entity_CreateObject((u32 *)RockArmorRock_Update);
             if (child != NULL)
             {
-                child->unk_4F4.part8.unk_4F4 = entity->unk_4F4.part8.unk_4F4;
-                child->unk_4F8.unk_4F8_entity = entity;
+                ENTITY_INDEX(child) = ENTITY_INDEX(entity);
+                ENTITY_OWNER(child) = entity;
                 child->posX.whole = entity->posX.whole;
                 child->posY.whole = entity->posY.whole;
                 child->flipX = entity->flipX;

@@ -1,5 +1,6 @@
 /* Ground activation, timed gait, turning and backward retreat. */
 #include "code_08009A0.h"
+#include "gorgon_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include <string.h>
@@ -48,7 +49,7 @@ void Gorgon_UpdateWalk(struct EwramData_EntityData *entity)
     case 1:
     {
         s32 offset;
-        entity->unk_4FC.part8.unk_4FC |= 1;
+        GORGON_FLAGS(entity) |= 1;
         CLOCK(entity)++;
         if (CLOCK(entity) >= walk[(s8)GAIT(entity) * 2 + 1])
         {
@@ -57,7 +58,7 @@ void Gorgon_UpdateWalk(struct EwramData_EntityData *entity)
             if ((s8)GAIT(entity) > 7) GAIT(entity) = 0;
         }
         FRAME(entity) = walk[(s8)GAIT(entity) * 2];
-        if ((u16)entity->unk_4FC.part16.unk_4FE[0] == 7)
+        if ((u16)GORGON_FRAME_CLOCK(entity) == 7)
         {
             s32 facing;
             offset = entity->flipX ? 32 : -32;
@@ -78,7 +79,7 @@ void Gorgon_UpdateWalk(struct EwramData_EntityData *entity)
             if (facing) offset = 0;
             if (Target_IsInRect((s16)(entity->posX.part16.integer - offset),
                              (s16)(entity->posY.part16.integer - 24), 80, 24)
-                && (u16)entity->unk_4FC.part16.unk_4FE[0] == 0x805)
+                && (u16)GORGON_FRAME_CLOCK(entity) == 0x805)
             {
                 entity->state = 1;
                 entity->subState = 0;
@@ -87,7 +88,7 @@ void Gorgon_UpdateWalk(struct EwramData_EntityData *entity)
                 break;
             }
         }
-        if (entity->unk_500.part8.unk_500)
+        if (GORGON_HIT(entity))
         {
             offset = entity->flipX ? -32 : 32;
             if (!TileAhead(entity, background, offset))
@@ -106,7 +107,7 @@ void Gorgon_UpdateWalk(struct EwramData_EntityData *entity)
     }
     case 2:
     {
-        entity->unk_4FC.part8.unk_4FC |= 1;
+        GORGON_FLAGS(entity) |= 1;
         CLOCK(entity)++;
         if (CLOCK(entity) >= turn[(s8)GAIT(entity) * 2 + 1])
         {
@@ -120,36 +121,36 @@ void Gorgon_UpdateWalk(struct EwramData_EntityData *entity)
                 entity->accelX.whole = 0;
                 entity->accelY.whole = 0;
                 entity->flipX ^= 1;
-                entity->unk_4FC.part8.unk_4FC |= 1;
+                GORGON_FLAGS(entity) |= 1;
                 FRAME(entity) = walk[(s8)GAIT(entity) * 2];
                 break;
             }
         }
         FRAME(entity) = turn[(s8)GAIT(entity) * 2];
         entity->velX.whole = 0;
-        if ((entity->unk_4FC.whole & 0xFF00FF00) == 0x100)
+        if ((GORGON_WALK_WORD(entity) & 0xFF00FF00) == 0x100)
         {
             entity->accelX.whole = (gEwramData->playerState.player->posX.whole - entity->posX.whole) / 2;
             entity->velX.whole = -entity->accelX.whole;
             FRAME(entity)--;
         }
-        if ((entity->unk_4FC.whole & 0xFF00FF00) == 0x200)
+        if ((GORGON_WALK_WORD(entity) & 0xFF00FF00) == 0x200)
         {
             entity->accelY.whole = gEwramData->playerState.player->posX.whole - entity->posX.whole;
             entity->velX.whole = -entity->accelY.whole;
             FRAME(entity)--;
         }
-        if ((entity->unk_4FC.whole & 0xFF00FF00) == 0x300)
+        if ((GORGON_WALK_WORD(entity) & 0xFF00FF00) == 0x300)
         {
             entity->velX.whole = entity->flipX ? 0x10000 : -0x10000;
             FRAME(entity)--;
         }
-        if ((entity->unk_4FC.whole & 0xFF00FF00) == 0x400)
+        if ((GORGON_WALK_WORD(entity) & 0xFF00FF00) == 0x400)
         {
             entity->velX.whole = -(entity->accelX.whole + entity->accelY.whole);
             FRAME(entity)--;
         }
-        if ((entity->unk_4FC.whole & 0xFF00FF00) == 0x500)
+        if ((GORGON_WALK_WORD(entity) & 0xFF00FF00) == 0x500)
         {
             entity->velX.whole = entity->flipX ? -0x10000 : 0x10000;
             FRAME(entity)--;
@@ -157,7 +158,7 @@ void Gorgon_UpdateWalk(struct EwramData_EntityData *entity)
         break;
     }
     case 3:
-        entity->unk_4FC.part8.unk_4FC |= 1;
+        GORGON_FLAGS(entity) |= 1;
         CLOCK(entity)++;
         if (CLOCK(entity) >= walk[(s8)GAIT(entity) * 2 + 1])
         {

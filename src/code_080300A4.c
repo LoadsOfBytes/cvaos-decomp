@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "blue_soul_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -18,7 +19,7 @@ static inline void EndBlueSoul(struct EwramData_EntityData *entity)
 {
     if (entity->affineIndex != 0 || entity->affine)
         ObjAffine_Free(entity->affineIndex);
-    gEwramData->playerState.activeBlueSoulEntities[entity->unk_508.part16.unk_508] = NULL;
+    gEwramData->playerState.activeBlueSoulEntities[BLUE_SOUL_SLOT(entity)] = NULL;
     EntityDelete(entity);
 }
 
@@ -47,7 +48,7 @@ extern void PersephoneSoul_OnHit(struct EwramData_EntityData *);
  */
 void SkillPersephoneUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = BLUE_SOUL_OWNER(entity);
 
     entity->roomActive = 1;
     {

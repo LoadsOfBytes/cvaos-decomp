@@ -30,7 +30,7 @@ s32 WarpRoom_CreateSideLights(struct EwramData_EntityData *owner)
             entity->animFrame = 9;
             entity->spriteLayer = 0x15;
             entity->updateFunc = (u32 *)WarpRoom_UpdateSideLight;
-            entity->unk_4F4.part8.unk_4F5 = owner->unk_4F4.part8.unk_4F4;
+            ENTITY_PARENT_INDEX(entity) = ENTITY_INDEX(owner);
             entity->unk_4F4.part8.unk_4F6 = 0;
             entity->state = 0;
             entity->drawFunc = (u32 *)Sprite_DrawEntity;

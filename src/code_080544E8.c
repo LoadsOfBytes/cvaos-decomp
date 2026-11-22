@@ -1,5 +1,6 @@
 /* SavePoint_DrawPromptMarkers (0x080544E8..0x08054573). */
 #include "code/code_08039340.h"
+#include "save_point_entity.h"
 #include "structs/ewram.h"
 
 /**
@@ -9,7 +10,7 @@
  */
 void SavePoint_DrawPromptMarkers(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *prompt = &gEwramData->entityData[entity->unk_4F4.part8.unk_4F5];
+    struct EwramData_EntityData *prompt = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
 
     if (prompt != NULL)
     {
@@ -19,13 +20,13 @@ void SavePoint_DrawPromptMarkers(struct EwramData_EntityData *entity)
         Sprite_Draw(entity);
         entity->posX.part16.integer = 0x39;
         entity->posY.part16.integer = 0x3E;
-        if (prompt->unk_4F8.part8.unk_4FA)
+        if (SAVE_POINT_YES_SELECTED(prompt))
             entity->animFrame = 0x16;
         else
             entity->animFrame = 0x17;
         Sprite_Draw(entity);
         entity->posX.part16.integer = 0x99;
-        if (prompt->unk_4F8.part8.unk_4FA)
+        if (SAVE_POINT_YES_SELECTED(prompt))
             entity->animFrame = 0x19;
         else
             entity->animFrame = 0x18;

@@ -1,6 +1,7 @@
 /* Linked scene part: wait for the scene object, replace graphics,
  * animate the transition and coordinate its partner. */
 #include "code_080D73B8.h"
+#include "graham_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -16,9 +17,9 @@ extern u8 sGrahamFirstFormGfx[], sGrahamPalette2[], sGrahamFirstFormSpriteSheet[
  */
 void GrahamFirstForm_UpdateTransition(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *part = &gEwramData->entityData[entity->unk_4F4.part8.unk_4F6];
-    struct EwramData_EntityData *owner = &gEwramData->entityData[entity->unk_4F4.part8.unk_4F5];
-    struct EwramData_EntityData *object = &gEwramData->entityData[(u8)owner->unk_4F8.part8.unk_4F8];
+    struct EwramData_EntityData *part = &gEwramData->entityData[GRAHAM_CHILD_INDEX(entity)];
+    struct EwramData_EntityData *owner = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
+    struct EwramData_EntityData *object = &gEwramData->entityData[(u8)GRAHAM_SCENE_OBJECT_INDEX(owner)];
     switch (entity->subState)
     {
     case 0:
@@ -34,7 +35,7 @@ void GrahamFirstForm_UpdateTransition(struct EwramData_EntityData *entity)
         case 2:
             {
                 s32 created;
-                if (owner->unk_4F8.part16.unk_4FA & 8)
+                if (GRAHAM_FLAGS(owner) & 8)
                     created = Graham_CreateSceneObject(owner, 2);
                 else
                     created = Graham_CreateSceneObject(owner, 6);
@@ -122,7 +123,7 @@ void GrahamFirstForm_UpdateTransition(struct EwramData_EntityData *entity)
     case 3:
         if (part->animDone)
         {
-            owner->unk_4F8.part16.unk_4FA |= 4;
+            GRAHAM_FLAGS(owner) |= 4;
             entity->subState = 4;
             entity->stage = 0;
             Sprite_Free(entity, 1);

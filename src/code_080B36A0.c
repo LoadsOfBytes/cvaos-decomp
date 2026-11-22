@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "head_stack_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_080211F0.h"
 #include "structs/ewram.h"
@@ -33,7 +34,7 @@ void HeadStackSegment_UpdateAttack(struct EwramData_EntityData *entity)
         if (!(entity->animFlags & 4))
             break;
         Anim_StartIndexed(entity, 3, 0, 0);
-        if (!(entity->unk_4F4.part8.unk_4F5 & 1))
+        if (!(HEAD_STACK_LEVEL(entity) & 1))
         {
             entity->subState = 2;
             return;
@@ -60,7 +61,7 @@ void HeadStackSegment_UpdateAttack(struct EwramData_EntityData *entity)
                 spawned->posY.part16.integer = entity->posY.part16.integer - 10;
                 spawned->scrollWithBg = 1;
                 spawned->attack = entity->attack;
-                spawned->unk_4F8.unk_4F8_entity = entity;
+                ENTITY_OWNER(spawned) = entity;
             }
         }
         if (FRAME_PAIR(entity) == 0x2802)
@@ -79,7 +80,7 @@ void HeadStackSegment_UpdateAttack(struct EwramData_EntityData *entity)
                     spawned->velY.whole = RandomSigned(0x4000) - 0x1000;
                     spawned->accelY.whole = -0x800;
                     spawned->scrollWithBg = 1;
-                    spawned->subState = entity->unk_4F4.part8.unk_4F6;
+                    spawned->subState = HEAD_STACK_TYPE(entity);
                 }
                 offset += dx;
             }
@@ -99,7 +100,7 @@ void HeadStackSegment_UpdateAttack(struct EwramData_EntityData *entity)
             {
                 spawned->scrollWithBg = 1;
                 spawned->attack = entity->attack;
-                spawned->unk_4F8.unk_4F8_entity = entity;
+                ENTITY_OWNER(spawned) = entity;
             }
         }
         if (entity->animFlags & 4)

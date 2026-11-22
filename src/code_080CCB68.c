@@ -1,5 +1,6 @@
 /* Bael accelerated charge, rotation, and sparks. */
 #include "code_08009A0.h"
+#include "wheel_enemy_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -9,16 +10,16 @@ extern void Bael_RestoreXAtProbe(struct EwramData_EntityData *entity,s32 work);
 extern void Bael_SpawnChargeEffect(s32 x,s32 y,s32 index,s32 facing);
 extern s32 Bael_OffsetBySign(s32 value,s32 step);
 extern s16 sBaelWalkProfile[];
-#define SPEED(e) ((e)->unk_4FC.whole)
-#define ANGLE(e) ((e)->unk_4F8.whole)
-#define DIRECTION(e) ((e)->unk_4F4.part8.unk_4F7)
+#define SPEED(e) (WHEEL_SPEED((e)))
+#define ANGLE(e) (WHEEL_ANGLE((e)))
+#define DIRECTION(e) (WHEEL_DIRECTION((e)))
 
 /**
  * @brief Accelerate and rotate toward the sampled side, emit effects and count completed charges in the linked head.
  */
 void Bael_UpdateCharge(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *part = &gEwramData->entityData[entity->unk_4F4.part8.unk_4F5];
+    struct EwramData_EntityData *part = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
     s32 work = entity->stage;
     s32 reset;
     switch (work)

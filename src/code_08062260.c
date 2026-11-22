@@ -1,5 +1,6 @@
 /* Prepare the event actor, player and companion for the scene. */
 #include "code_08009A0.h"
+#include "event_scene_entity.h"
 #include "code_08013960.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -24,16 +25,16 @@ void EventScene23_Init(struct EwramData_EntityData *entity)
     ram->playerState.player->posX.part16.integer=entity->posX.part16.integer+32;
     ram->playerState.player->posY.part16.integer=entity->posY.part16.integer;
     ram->playerState.player->flipX=0;
-    entity->unk_4F8.unk_4F8_entity=Entity_CreateFromObjectTable(1);
-    if(!entity->unk_4F8.unk_4F8_entity)
+    EVENT23_ACTOR(entity)=Entity_CreateFromObjectTable(1);
+    if(!EVENT23_ACTOR(entity))
     {
 fail:
         EntityDelete(entity);return;
     }
-    entity->unk_4F8.unk_4F8_entity->posX.part16.integer=entity->posX.part16.integer+96;
-    entity->unk_4F8.unk_4F8_entity->posY.part16.integer=entity->posY.part16.integer+1;
-    Anim_StartIndexed(entity->unk_4F8.unk_4F8_entity,1,0,1);
-    entity->unk_4F8.unk_4F8_entity->flipX=0;
+    EVENT23_ACTOR(entity)->posX.part16.integer=entity->posX.part16.integer+96;
+    EVENT23_ACTOR(entity)->posY.part16.integer=entity->posY.part16.integer+1;
+    Anim_StartIndexed(EVENT23_ACTOR(entity),1,0,1);
+    EVENT23_ACTOR(entity)->flipX=0;
     gEwramData->gameState.stateFlags|=1;
     BgPalette_StartColorFade(31,31,31,0,0x10000,128);
     ObjPalette_StartColorFade(31,31,31,0,0x10000,128);

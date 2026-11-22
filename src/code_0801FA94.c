@@ -1,5 +1,6 @@
 /* Julius_UpdateKnockback. */
 #include "code_08009A0.h"
+#include "player_entity.h"
 #include "code_08001194.h"
 
 void Julius_UpdateVerticalMovement(struct EwramData_EntityData *entity);
@@ -15,7 +16,7 @@ void Julius_UpdateKnockback(struct EwramData_EntityData *entity)
     u16 x;
     s16 y;
 
-    entity->unk_4F4.whole &= 0xEFFFFE9F;
+    PLAYER_ACTION_FLAGS(entity) &= 0xEFFFFE9F;
     x = GetEntityRoomXPositionInteger(entity);
     y = GetEntityRoomYPositionInteger(entity);
     if (Collision_IsPointSolid((s16)x, y))
@@ -36,9 +37,9 @@ clear:
     entity->velX.whole = 0;
     entity->accelX.whole = 0;
 done:
-    if (!(entity->unk_4F4.whole & 2))
+    if (!(PLAYER_ACTION_FLAGS(entity) & 2))
     {
-        entity->unk_4F4.whole &= ~0x80;
+        PLAYER_ACTION_FLAGS(entity) &= ~0x80;
         entity->state = 0;
     }
     Julius_UpdateVerticalMovement(entity);

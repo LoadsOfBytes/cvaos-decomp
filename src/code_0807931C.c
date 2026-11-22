@@ -1,5 +1,6 @@
 /* Select attack damage and knockback, then use the current frame's hitbox. */
 #include "code_08009A0.h"
+#include "werejaguar_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -21,7 +22,7 @@ void Werejaguar_DamagePlayerOnContact(struct EwramData_EntityData *entity)
     hit.attributes=0; hit.unk_4=0; hit.reaction=0;
     hit.sourceX=entity->posX.whole; hit.sourceY=entity->posY.whole;
     attack->type=8;
-    kind=(s8)entity->unk_4F8.part8.unk_4F9;
+    kind=(s8)WEREJAGUAR_CONTACT_KIND(entity);
     switch(kind)
     {
         case 0: hit.reaction=kind; Player_ApplyContactDamage(&hit); break;
@@ -51,6 +52,6 @@ void Werejaguar_DamagePlayerOnContact(struct EwramData_EntityData *entity)
             break;
         }
     }
-    entity->unk_4F8.part8.unk_4FB=1;
+    WEREJAGUAR_CONTACT_HIT(entity)=1;
     HitBox_SetAttack(entity,GetSprite(entity->spriteSlot)->frames[entity->animFrame].boxes);
 }

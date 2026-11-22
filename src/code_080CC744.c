@@ -2,6 +2,7 @@
  * a cloning script and checked byte for byte:
  *   Bael_CreateHead = Buer_CreateHead */
 #include "code/code_08039340.h"
+#include "wheel_enemy_entity.h"
 #include "structs/ewram.h"
 
 extern void BaelHead_Update(struct EwramData_EntityData *entity);
@@ -17,8 +18,8 @@ void Bael_CreateHead(struct EwramData_EntityData *entity)
 
     if (child != NULL)
     {
-        child->unk_4F4.part8.unk_4F5 = entity->unk_4F4.part8.unk_4F4;
-        entity->unk_4F4.part8.unk_4F5 = child->unk_4F4.part8.unk_4F4;
+        ENTITY_PARENT_INDEX(child) = ENTITY_INDEX(entity);
+        ENTITY_PARENT_INDEX(entity) = ENTITY_INDEX(child);
         child->spriteLayer = entity->spriteLayer - 1;
         child->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
         child->flipX = entity->flipX;
@@ -28,7 +29,7 @@ void Bael_CreateHead(struct EwramData_EntityData *entity)
         child->drawFunc = (u32 *)Sprite_DrawEntity;
         child->posX.whole = entity->posX.whole;
         child->posY.whole = entity->posY.whole;
-        if ((s32)entity->unk_4FC.whole >= 0)
+        if ((s32)WHEEL_SPEED(entity) >= 0)
             child->flipX = 1;
         else
             child->flipX = 0;

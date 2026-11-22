@@ -24,7 +24,7 @@ s32 WarpRoom_CreateGateParts(struct EwramData_EntityData *owner)
             Sprite_Attach(entity, sWarpRoomSpriteSheet, graphics, 0xA);
             entity->scrollWithBg = 1;
             entity->animFrame = i;
-            entity->unk_4F4.part8.unk_4F5 = owner->unk_4F4.part8.unk_4F4;
+            ENTITY_PARENT_INDEX(entity) = ENTITY_INDEX(owner);
             if (i == 0)
             {
                 register u8 *layer asm("r0") = &entity->spriteLayer; /* FAKEMATCH: pinned register */

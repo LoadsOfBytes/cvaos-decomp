@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "gladiator_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -24,7 +25,7 @@ void GladiatorArm_Update(struct EwramData_EntityData *entity)
     u8 box[0x10];
     s16 dy[4];
     s16 dx[12];
-    struct EwramData_EntityData *owner = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
 
     memcpy(dy, sUnk_08119174, sizeof(dy));
     memcpy(dx, sGladiatorArmDx, sizeof(dx));
@@ -42,20 +43,20 @@ void GladiatorArm_Update(struct EwramData_EntityData *entity)
         entity->posX.part16.integer = owner->posX.part16.integer;
         entity->posY.part16.integer = owner->posY.part16.integer;
         if (entity->flipX)
-            entity->posX.part16.integer = entity->posX.part16.integer - entity->unk_4F4.part16.unk_4F4;
+            entity->posX.part16.integer = entity->posX.part16.integer - GLADIATOR_PART_OFFSET_X(entity);
         else
-            entity->posX.part16.integer += entity->unk_4F4.part16.unk_4F4;
-        entity->posY.part16.integer += entity->unk_4F4.part16.unk_4F6;
+            entity->posX.part16.integer += GLADIATOR_PART_OFFSET_X(entity);
+        entity->posY.part16.integer += GLADIATOR_PART_OFFSET_Y(entity);
         if (owner->animScriptIndex == 0xC)
         {
             if (owner->animTimer)
             {
                 entity->posY.part16.integer = entity->posY.part16.integer + dy[owner->animStep];
-                entity->unk_4FC.part16.unk_4FE[0] = dy[owner->animStep];
+                GLADIATOR_PART_BOB_Y(entity) = dy[owner->animStep];
             }
             else
             {
-                entity->posY.part16.integer = entity->posY.part16.integer + entity->unk_4FC.part16.unk_4FE[0];
+                entity->posY.part16.integer = entity->posY.part16.integer + GLADIATOR_PART_BOB_Y(entity);
             }
         }
         if (owner->state == 1)
@@ -78,9 +79,9 @@ void GladiatorArm_Update(struct EwramData_EntityData *entity)
                 entity->hidden = 0;
                 if (entity->animScriptIndex == 0)
                 {
-                    if (entity->unk_500.part16.unk_500-- <= 1)
+                    if (GLADIATOR_ARM_TIMER(entity)-- <= 1)
                     {
-                        entity->unk_500.part16.unk_500 = (u32)RandomNumberGenerator() % 64;
+                        GLADIATOR_ARM_TIMER(entity) = (u32)RandomNumberGenerator() % 64;
                         if ((RandomNumberGenerator() & 0x7F) < 0x20)
                             Anim_StartIndexed(entity, 3, 0, 0);
                         else

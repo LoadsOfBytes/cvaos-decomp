@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "medusa_head_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -59,20 +60,20 @@ void EnemyMedusaHeadUpdate(struct EwramData_EntityData *entity)
         Enemy_UpdateFragmentDeath(entity);
         if (entity->deleteRequested)
         {
-            parent = entity->unk_500.unk_500_entity;
+            parent = MEDUSA_HEAD_SPAWNER(entity);
             if (parent != NULL && parent->updateFunc != NULL && parent->unk_518.part8.enemyId == 0x39
-                && parent->unk_4FC.whole != 0)
-                parent->unk_4FC.whole--;
+                && MEDUSA_HEAD_CHILD_COUNT(parent) != 0)
+                MEDUSA_HEAD_CHILD_COUNT(parent)--;
         }
         break;
     case 3:
         entity->posX.whole = 0x780000;
-        if ((RandomNumberGenerator() & 0x1F) == 0 && (s32)entity->unk_4FC.whole < entity->unk_514.part16.spawnParam0)
+        if ((RandomNumberGenerator() & 0x1F) == 0 && (s32)MEDUSA_HEAD_CHILD_COUNT(entity) < entity->unk_514.part16.spawnParam0)
         {
             head = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
             if (head != NULL)
             {
-                entity->unk_4FC.whole++;
+                MEDUSA_HEAD_CHILD_COUNT(entity)++;
                 if ((s16)Target_GetPixelX(entity) <= 0x67)
                     head->posX.whole = 0x1000000;
                 else if ((s16)Target_GetPixelX(entity) <= 0x88 && (u8)Target_GetFlipXOrOpposite(entity) == 0)
@@ -90,7 +91,7 @@ void EnemyMedusaHeadUpdate(struct EwramData_EntityData *entity)
                 head->unk_510.part16.unk_512 = sEnemyData[entity->unk_518.part8.enemyId].unk_E;
                 head->updateFunc = entity->updateFunc;
                 EnemyMedusaHeadCreate(head);
-                head->unk_500.unk_500_entity = entity;
+                MEDUSA_HEAD_SPAWNER(head) = entity;
             }
         }
         return;

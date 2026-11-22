@@ -1,5 +1,6 @@
 /* Graphics setup. */
 #include "code/code_08039340.h"
+#include "balore_entity.h"
 #include "structs/ewram.h"
 extern u8 ObjPalette_FindOrLoadVariant(void *, s32);
 extern u8 sBaloreGfx[], sBalorePalette[], sBaloreSpriteSheet[];
@@ -18,11 +19,11 @@ u8 Balore_LoadGraphics(struct EwramData_EntityData *entity)
     if (slot < 0)
         return 0;
     if (!gEwramData->gameState.bestiaryPreview)
-        entity->unk_4F8.part8.unk_4F8 = ObjPalette_FindOrLoadVariant(sBalorePalette, 7);
+        BALORE_PALETTE(entity) = ObjPalette_FindOrLoadVariant(sBalorePalette, 7);
     else
-        entity->unk_4F8.part8.unk_4F8 = ObjPalette_FindOrLoadVariant(sBalorePalette, 0);
-    entity->unk_4F8.part8.unk_4FB = slot;
-    entity->unk_510.part8.basePalette = entity->unk_4F8.part8.unk_4F8;
+        BALORE_PALETTE(entity) = ObjPalette_FindOrLoadVariant(sBalorePalette, 0);
+    BALORE_GFX(entity) = slot;
+    entity->unk_510.part8.basePalette = BALORE_PALETTE(entity);
     Sprite_Attach(entity, sBaloreSpriteSheet, slot, entity->unk_510.part8.basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     entity->scrollWithBg = 1;

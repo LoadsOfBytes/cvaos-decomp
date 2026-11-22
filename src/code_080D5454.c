@@ -1,6 +1,7 @@
 /* GrahamSpiralProjectile_Update: matched (index/sin/cos/radius shared at function level,
    SCALE <= 0, angle loaded before adding 0x4000). */
 #include "code_08009A0.h"
+#include "graham_projectile.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -9,9 +10,9 @@
 extern void Effect_SpawnAt(s32, s32, s32);
 extern void Effect_SpawnRisingParticle(s32, s32, s32, s32);
 extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
-#define SCALE(e) ((e)->unk_504.whole)
-#define RADIUS(e) ((e)->unk_508.whole)
-#define ANGLE(e) ((e)->unk_50C.whole)
+#define SCALE(e) (GRAHAM_SPIRAL_SCALE((e)))
+#define RADIUS(e) (GRAHAM_SPIRAL_RADIUS((e)))
+#define ANGLE(e) (GRAHAM_SPIRAL_ANGLE((e)))
 #define STATE(e, value) { (e)->state = value; (e)->stage = 0; (e)->subState = 0; }
 
 /**
@@ -23,7 +24,7 @@ extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
 void GrahamSpiralProjectile_Update(struct EwramData_EntityData *entity)
 {
     s32 index, sin, cos, radius;
-    struct EwramData_EntityData *owner = &gEwramData->entityData[entity->unk_4F4.part8.unk_4F5];
+    struct EwramData_EntityData *owner = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
     if (entity->state != 0xF0 && entity->state != 4 && owner->state == 5 && owner != NULL)
     {
         entity->hit.flags |= 2;
@@ -54,10 +55,10 @@ void GrahamSpiralProjectile_Update(struct EwramData_EntityData *entity)
 
                 RADIUS(entity) = 0x200000;
                 ANGLE(entity) = 0;
-                index = (u8)entity->unk_4F8.part8.unk_4F8;
-                sin = Sin(index * (0x10000 / entity->unk_4F8.part8.unk_4F9));
-                cos = Sin(index * (0x10000 / entity->unk_4F8.part8.unk_4F9) + ({ s32 a_ = ANGLE(entity); a_ + 0x4000; }));
-                radius = entity->unk_508.part16.unk_50A;
+                index = (u8)GRAHAM_SPIRAL_INDEX(entity);
+                sin = Sin(index * (0x10000 / GRAHAM_SPIRAL_COUNT(entity)));
+                cos = Sin(index * (0x10000 / GRAHAM_SPIRAL_COUNT(entity)) + ({ s32 a_ = ANGLE(entity); a_ + 0x4000; }));
+                radius = GRAHAM_SPIRAL_RADIUS_PIXELS(entity);
                 sin *= radius;
                 cos *= radius;
                 entity->posX.whole = owner->posX.whole + cos;
@@ -65,7 +66,7 @@ void GrahamSpiralProjectile_Update(struct EwramData_EntityData *entity)
                 entity->subState++;
             }
             if (SCALE(entity) <= 0xFFFF) SCALE(entity) += 0x800;
-            ObjAffine_Set(entity->unk_500.part16.unk_500, SCALE(entity), SCALE(entity), entity->flipX, 0, entity->affineIndex);
+            ObjAffine_Set(GRAHAM_SPIRAL_ROTATION(entity), SCALE(entity), SCALE(entity), entity->flipX, 0, entity->affineIndex);
             if (SCALE(entity) == 0x10000)
             {
                 STATE(entity, 3);
@@ -76,19 +77,19 @@ void GrahamSpiralProjectile_Update(struct EwramData_EntityData *entity)
         case 3:
             {
 
-                index = (u8)entity->unk_4F8.part8.unk_4F8;
-                sin = Sin(index * (0x10000 / entity->unk_4F8.part8.unk_4F9) + ANGLE(entity));
-                cos = Sin(index * (0x10000 / entity->unk_4F8.part8.unk_4F9) + ({ s32 a_ = ANGLE(entity); a_ + 0x4000; }));
+                index = (u8)GRAHAM_SPIRAL_INDEX(entity);
+                sin = Sin(index * (0x10000 / GRAHAM_SPIRAL_COUNT(entity)) + ANGLE(entity));
+                cos = Sin(index * (0x10000 / GRAHAM_SPIRAL_COUNT(entity)) + ({ s32 a_ = ANGLE(entity); a_ + 0x4000; }));
                 radius = RADIUS(entity) >> 16;
                 sin *= radius;
                 cos *= radius;
                 entity->posX.whole = owner->posX.whole + cos;
                 entity->posY.whole = sin + owner->posY.whole - 0x200000;
                 RADIUS(entity) += 0x8000;
-                ANGLE(entity) += entity->unk_510.whole;
+                ANGLE(entity) += GRAHAM_SPIRAL_SPIN(entity);
                 if (SCALE(entity) <= 0xFFFF) SCALE(entity) += 0x800;
-                entity->unk_500.part16.unk_500 += entity->unk_500.part16.unk_502;
-                ObjAffine_Set(entity->unk_500.part16.unk_500, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
+                GRAHAM_SPIRAL_ROTATION(entity) += GRAHAM_SPIRAL_ROTATION_SPEED(entity);
+                ObjAffine_Set(GRAHAM_SPIRAL_ROTATION(entity), 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
                 if (EntityIsOutsideScreen(entity, 4)) STATE(entity, 0xF0);
                 if (!(entity->timer & 0xF) && entity->timer > 0x20)
                 {
@@ -106,7 +107,7 @@ void GrahamSpiralProjectile_Update(struct EwramData_EntityData *entity)
             if (SCALE(entity) >= 0)
             {
                 if (SCALE(entity) <= 0) STATE(entity, 0xF0);
-                ObjAffine_Set(entity->unk_500.part16.unk_500, SCALE(entity), SCALE(entity), entity->flipX, 0, entity->affineIndex);
+                ObjAffine_Set(GRAHAM_SPIRAL_ROTATION(entity), SCALE(entity), SCALE(entity), entity->flipX, 0, entity->affineIndex);
             }
             break;
         case 0xF0:

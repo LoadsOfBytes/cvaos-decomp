@@ -1,5 +1,6 @@
 /* Apply damage and choose full destruction or a short reaction to selected attacks. */
 #include "code_080D73B8.h"
+#include "werejaguar_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_080211F0.h"
 #include "structs/ewram.h"
@@ -22,7 +23,7 @@ void Werejaguar_OnHit(struct EwramData_EntityData *entity,struct EwramData_Entit
         entity->unk_518.part16.hp=hp;
     }
     Entity_ShowDamage(entity,damage,0);
-    entity->unk_4F8.part8.unk_4F8=zero;
+    WEREJAGUAR_MANUAL_ANIM(entity)=zero;
     if((s16)entity->unk_518.part16.hp<=0)
     {
         Enemy_DropRewards(entity);

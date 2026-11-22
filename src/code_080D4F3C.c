@@ -29,7 +29,7 @@ s32 Graham_CreateShotPair(struct EwramData_EntityData *owner, s32 low)
         if (!spawned) { success = 0; break; }
         if (!Entity_LoadGraphics(spawned, graphics, sGrahamShotPalette, 0, pal))
         { success = 0; goto fail; } }
-        (*p)->unk_4F4.part8.unk_4F5 = owner->unk_4F4.part8.unk_4F4;
+        ENTITY_PARENT_INDEX((*p)) = ENTITY_INDEX(owner);
         (*p)->spriteLayer = owner->spriteLayer - 1;
         (*p)->flipX = owner->flipX;
         (*p)->posX.whole = owner->posX.whole;

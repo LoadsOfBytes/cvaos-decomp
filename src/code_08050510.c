@@ -3,6 +3,7 @@
  * the player pointer, which is then reloaded as in the target. */
 /* Object 0x0C: rectangular interaction regions with a callback table. */
 #include "structs/ewram.h"
+#include "player_entity.h"
 #include "code_08001194.h"
 #include "code/code_080211F0.h"
 
@@ -30,10 +31,10 @@ void Object0C_LaunchPlayerTrigger(struct EwramData_EntityData *entity, struct Ob
     s32 speed = 0x30000;
     struct EwramData *ewram = gEwramData;
     if ((ewram->playerStatus.soulStateFlags & 0x200)
-        || (ewram->playerState.player->unk_4F4.whole & 0x400000))
+        || (PLAYER_ACTION_FLAGS(ewram->playerState.player) & 0x400000))
     {
         struct EwramData_EntityData **player = &ewram->playerState.player;
-        (*player)->unk_4F4.whole |= 0x4000000;
+        PLAYER_ACTION_FLAGS((*player)) |= 0x4000000;
         if ((*player)->unk_500.part8.unk_502 != 0)
             (*player)->unk_500.part8.unk_502 = 1;
         else

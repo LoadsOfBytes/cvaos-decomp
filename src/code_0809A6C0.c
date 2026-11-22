@@ -1,5 +1,6 @@
 /* Stolas create: allocates the 6-joint skeleton and one part entity per joint. */
 #include "code_08009A0.h"
+#include "stolas_entity.h"
 #include "joint_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -82,7 +83,7 @@ void EnemyStolasCreate(struct EwramData_EntityData *entity)
             part->hidden = 0;
             part->attack = entity->attack;
             part->drawFunc = (u32 *)Sprite_DrawEntity;
-            part->unk_500.unk_500_entity = entity;
+            JOINT_PART_OWNER(part) = entity;
             JOINT_PART_INDEX(part) = index;
             JOINT_PART_ANCHOR(part) = anchors[index];
             part->posX.whole = entity->posX.whole;
@@ -140,15 +141,15 @@ void EnemyStolasCreate(struct EwramData_EntityData *entity)
     {
         entity->state = 3;
         entity->timer = 0;
-        entity->unk_4F8.part16.unk_4F8 = 0;
-        entity->unk_4F8.part16.unk_4FA = -29;
+        STOLAS_DRAW_OFFSET_X(entity) = 0;
+        STOLAS_DRAW_OFFSET_Y(entity) = -29;
         return;
     }
     Hit_Enable(entity, 8, Stolas_DamagePlayerOnContact, (s32)Stolas_OnHit);
     Stolas_FaceTarget(entity);
     Entity_SnapToGround(entity);
-    entity->unk_4F8.part16.unk_4F8 = frozen;
-    entity->unk_4F8.part16.unk_4FA = -29;
+    STOLAS_DRAW_OFFSET_X(entity) = frozen;
+    STOLAS_DRAW_OFFSET_Y(entity) = -29;
     JOINT_HURT_MASK(entity) = 1;
     if (entity->unk_514.part16.spawnParam0 == 0)
         entity->unk_514.part16.spawnParam0 = 13;

@@ -1,4 +1,6 @@
 #include "code_08009A0.h"
+#include "gate_entity.h"
+#include "player_entity.h"
 #include "code_08001194.h"
 #include "code_0800B700.h"
 #include "code/code_08039340.h"
@@ -48,7 +50,7 @@ void Object00Update(struct EwramData_EntityData *entity)
             break;
         if (gEwramData->playerStatus.soulStateFlags & 0x200)
             break;
-        if (gEwramData->playerState.player->unk_4F4.whole & 0x10000000)
+        if (PLAYER_ACTION_FLAGS(gEwramData->playerState.player) & 0x10000000)
             break;
         SetPlayerInput(1, 0);
         gEwramData->gameState.stateFlags |= 0x101;
@@ -60,7 +62,7 @@ void Object00Update(struct EwramData_EntityData *entity)
     {
         s32 x1, y1;
         SetPlayerInput(1, 0);
-        if ((entity->unk_4F8.whole += 0x100) <= 0x3FFF)
+        if ((GATE_OPEN_ANGLE(entity) += 0x100) <= 0x3FFF)
             break;
         x1 = (s16)entity->posX.part16.integer;
         /* &gEwramData->bgInfo[1], loaded straight into the bg register */
@@ -91,9 +93,9 @@ void Object00Update(struct EwramData_EntityData *entity)
     {
         s32 x2, y2;
         SetPlayerInput(1, 0);
-        if ((entity->unk_4F8.whole += -0x1A0) > 0)
+        if ((GATE_OPEN_ANGLE(entity) += -0x1A0) > 0)
             break;
-        entity->unk_4F8.whole = 0;
+        GATE_OPEN_ANGLE(entity) = 0;
         gEwramData->gameState.stateFlags &= 0xFFFFFEFE;
         Game_SetMenusEnabled(1);
         x2 = (s16)entity->posX.part16.integer;
@@ -106,7 +108,7 @@ void Object00Update(struct EwramData_EntityData *entity)
         Collision_SetBlock(x2, y2 - 0x18);
         y2 -= 0x28;
         Collision_SetBlock(x2, y2);
-        entity->unk_4F8.whole = 0;
+        GATE_OPEN_ANGLE(entity) = 0;
         entity->state = 0;
         break;
     }
@@ -114,8 +116,8 @@ void Object00Update(struct EwramData_EntityData *entity)
         SetPlayerInput(1, 0);
         gEwramData->gameState.stateFlags &= 0xFFFFFEFE;
         entity->deleteRequested = 1;
-        ObjAffine_Free((u8)entity->unk_4FC.part8.unk_4FC);
-        ObjAffine_Free(entity->unk_4FC.part8.unk_4FD);
+        ObjAffine_Free((u8)GATE_AFFINE_0(entity));
+        ObjAffine_Free(GATE_AFFINE_1(entity));
         break;
     }
 }

@@ -1,5 +1,6 @@
 /* Draw the entity twice with mirrored affine matrices (rotation from unk_4F8), restoring position, frame and flip. */
 #include "code_08009A0.h"
+#include "gate_entity.h"
 #include "code/code_08039340.h"
 #include "structs/entity_render_flags.h"
 
@@ -22,26 +23,26 @@ void Gate_Draw(struct EwramData_EntityData *e)
     p549 = &e->animFrame;
     saved549 = *p549;
     savedFlip = e->flipX;
-    if (e->unk_4F8.whole == 0x4000)
+    if (GATE_OPEN_ANGLE(e) == 0x4000)
     {
         e->affine = 0;
         e->flipX ^= 1;
     }
     else
     {
-        if (e->unk_4F8.whole != 0)
+        if (GATE_OPEN_ANGLE(e) != 0)
         {
             e->affine = 1;
-            ObjAffine_Set(0, Sin(e->unk_4F8.whole), 0x10000, e->flipX ^ 1, 0, e->unk_4FC.bytes[0]);
+            ObjAffine_Set(0, Sin(GATE_OPEN_ANGLE(e)), 0x10000, e->flipX ^ 1, 0, GATE_AFFINE_BYTES(e)[0]);
             m = 0x1F;
             
-            e->affineIndex = ({ u32 b_ = e->unk_4FC.bytes[0]; asm("" ::: "r0"); /* FAKEMATCH: forget r0 == mask so reload copies it from r8 */ b_; }) & m;
+            e->affineIndex = ({ u32 b_ = GATE_AFFINE_BYTES(e)[0]; asm("" ::: "r0"); /* FAKEMATCH: forget r0 == mask so reload copies it from r8 */ b_; }) & m;
             Sprite_Draw(e);
-            ObjAffine_Set(0, Sin(e->unk_4F8.whole + 0x4000), 0x10000, e->flipX, 0, e->unk_4FC.bytes[1]);
-            e->affineIndex = ({ u32 b_ = e->unk_4FC.bytes[1]; b_; }) & m;
+            ObjAffine_Set(0, Sin(GATE_OPEN_ANGLE(e) + 0x4000), 0x10000, e->flipX, 0, GATE_AFFINE_BYTES(e)[1]);
+            e->affineIndex = ({ u32 b_ = GATE_AFFINE_BYTES(e)[1]; b_; }) & m;
             
             asm("" :: "r"(m)); /* FAKEMATCH: lengthen mask life so zero wins r5 in local-alloc */
-            d = (Sin(e->unk_4F8.whole) << 5) - 0x10000;
+            d = (Sin(GATE_OPEN_ANGLE(e)) << 5) - 0x10000;
             {
                 s32 v;
                 s32 x = e->posX.whole;

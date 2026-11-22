@@ -1,4 +1,7 @@
 #include "code_08009A0.h"
+#include "soul_skill_entity.h"
+#include "blue_soul_entity.h"
+#include "player_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -20,7 +23,7 @@ static inline void EndBlueSoul(struct EwramData_EntityData *entity)
 {
     if (entity->affineIndex != 0 || entity->affine)
         ObjAffine_Free(entity->affineIndex);
-    gEwramData->playerState.activeBlueSoulEntities[entity->unk_508.part16.unk_508] = NULL;
+    gEwramData->playerState.activeBlueSoulEntities[BLUE_SOUL_SLOT(entity)] = NULL;
     EntityDelete(entity);
 }
 
@@ -45,7 +48,7 @@ static inline void Follow(struct EwramData_EntityData *entity, struct EwramData_
  */
 void SkillShadowKnightUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = BLUE_SOUL_OWNER(entity);
     u16 slot;
 
     if (BlueSoul_ShouldEnd(entity))
@@ -89,11 +92,11 @@ void SkillShadowKnightUse(struct EwramData_EntityData *entity)
         }
         PlaySong(0x1A6);
     case 1:
-        if (entity->unk_50C.whole <= 0xFFFF)
-            entity->unk_50C.whole += 0x1000;
-        if (entity->unk_510.whole <= 0xFFFF)
-            entity->unk_510.whole += 0x800;
-        ObjAffine_Set(0, entity->unk_50C.whole, entity->unk_510.whole, entity->flipX, 0, entity->affineIndex);
+        if (SKILL_SHADOW_KNIGHT_SCALE_X(entity) <= 0xFFFF)
+            SKILL_SHADOW_KNIGHT_SCALE_X(entity) += 0x1000;
+        if (SKILL_SHADOW_KNIGHT_SCALE_Y(entity) <= 0xFFFF)
+            SKILL_SHADOW_KNIGHT_SCALE_Y(entity) += 0x800;
+        ObjAffine_Set(0, SKILL_SHADOW_KNIGHT_SCALE_X(entity), SKILL_SHADOW_KNIGHT_SCALE_Y(entity), entity->flipX, 0, entity->affineIndex);
         if (entity->timer != 0)
         {
             entity->timer--;
@@ -104,7 +107,7 @@ void SkillShadowKnightUse(struct EwramData_EntityData *entity)
         entity->affineIndex = 0;
         entity->state++;
     case 2:
-        if (gEwramData->playerState.weaponEntities[parent->unk_50C.part8.unk_50C] != NULL)
+        if (gEwramData->playerState.weaponEntities[PLAYER_WEAPON_SLOT(parent)] != NULL)
         {
             Anim_StartIndexed(entity, 0, 0, 0);
             entity->state = 3;

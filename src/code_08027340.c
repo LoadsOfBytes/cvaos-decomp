@@ -1,4 +1,6 @@
 #include "code_08009A0.h"
+#include "soul_skill_entity.h"
+#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -38,7 +40,7 @@ static inline struct SoulGraphicsResources *GetSet(s32 index)
  */
 void SkillDiscArmorUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
     u16 slot;
     s32 dx, dy;
     s32 scale, rot;
@@ -58,7 +60,7 @@ void SkillDiscArmorUse(struct EwramData_EntityData *entity)
         slot = ObjAffine_Alloc(0);
         if ((s16)slot < 0)
         {
-            gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
             EntityDelete(entity);
             return;
         }
@@ -68,12 +70,12 @@ void SkillDiscArmorUse(struct EwramData_EntityData *entity)
         entity->affineIndex = slot;
         entity->affine = 1;
         entity->flipX = parent->flipX ? 1 : 0;
-        entity->unk_510.part16.unk_510 = 0x2000;
-        entity->unk_510.part16.unk_512 = -0x276;
+        SKILL_DISC_ARMOR_ANGLE(entity) = 0x2000;
+        SKILL_DISC_ARMOR_TURN(entity) = -0x276;
         if (entity->flipX)
         {
-            entity->unk_510.part16.unk_510 = 0x6000;
-            entity->unk_510.part16.unk_512 = -entity->unk_510.part16.unk_512;
+            SKILL_DISC_ARMOR_ANGLE(entity) = 0x6000;
+            SKILL_DISC_ARMOR_TURN(entity) = -SKILL_DISC_ARMOR_TURN(entity);
         }
         Hit_SetTimerOverride(1, 10);
         Hit_Enable(entity, 5, 0, 0);
@@ -87,11 +89,11 @@ void SkillDiscArmorUse(struct EwramData_EntityData *entity)
     case 1:
         entity->accelX.whole = parent->posX.whole;
         entity->accelY.whole = parent->posY.whole - 0x180000;
-        entity->unk_508.whole = FIXED_TO_INT(Sin(entity->timer * 1260) * 60);
-        entity->unk_510.part16.unk_510 += entity->unk_510.part16.unk_512;
+        SKILL_DISC_ARMOR_RADIUS(entity) = FIXED_TO_INT(Sin(entity->timer * 1260) * 60);
+        SKILL_DISC_ARMOR_ANGLE(entity) += SKILL_DISC_ARMOR_TURN(entity);
         entity->unk_514.part16.spawnParam0 += 0x1B00;
-        dx = entity->unk_508.whole * Sin(entity->unk_510.part16.unk_510 + 0x4000);
-        dy = entity->unk_508.whole * Sin(entity->unk_510.part16.unk_510);
+        dx = SKILL_DISC_ARMOR_RADIUS(entity) * Sin(SKILL_DISC_ARMOR_ANGLE(entity) + 0x4000);
+        dy = SKILL_DISC_ARMOR_RADIUS(entity) * Sin(SKILL_DISC_ARMOR_ANGLE(entity));
         entity->posX.whole = entity->accelX.whole + dx;
         entity->posY.whole = entity->accelY.whole + dy;
         if (entity->timer != 0)
@@ -101,14 +103,14 @@ void SkillDiscArmorUse(struct EwramData_EntityData *entity)
         break;
     case 2:
         ObjAffine_Free(entity->affineIndex);
-        gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;
     }
-    entity->unk_50C.whole = Sin(entity->timer * 1260);
+    SKILL_DISC_ARMOR_SCALE(entity) = Sin(entity->timer * 1260);
     rot = entity->unk_514.part16.spawnParam0;
     if (entity->flipX)
         rot = -rot;
-    ObjAffine_Set(rot, entity->unk_50C.whole, entity->unk_50C.whole, entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set(rot, SKILL_DISC_ARMOR_SCALE(entity), SKILL_DISC_ARMOR_SCALE(entity), entity->flipX, 0, entity->affineIndex);
 }

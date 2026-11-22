@@ -1,5 +1,7 @@
 /* Disc Armor thrown disc. */
 #include "code_08009A0.h"
+#include "enemy_status.h"
+#include "disc_armor_entity.h"
 #include "code_080D73B8.h"
 #include "code_08001194.h"
 #include "code/code_08039340.h"
@@ -63,8 +65,8 @@ static inline void SpawnSpark(struct EwramData_EntityData *entity, u8 type)
  */
 void DiscArmorDisc_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = entity->unk_4F4.unk_4F4_entity;
-    struct EwramData_EntityData *ring = entity->unk_4FC.unk_4FC_entity;
+    struct EwramData_EntityData *owner = DISC_ARMOR_DISC_OWNER(entity);
+    struct EwramData_EntityData *ring = DISC_ARMOR_DISC_RING(entity);
     s32 oldX = entity->posX.whole;
     s32 oldY = entity->posY.whole;
     struct HitResult hit;
@@ -76,30 +78,30 @@ void DiscArmorDisc_Update(struct EwramData_EntityData *entity)
         amp = DiscArmorRing_Aim(ring, entity, owner);
         if (amp <= 0x600000)
         {
-            if ((s16)owner->unk_518.part16.hp > 0 && !(*(u16 *)&owner->unk_51C & 0x100))
+            if ((s16)owner->unk_518.part16.hp > 0 && !(ENEMY_STATUS(owner) & ENEMY_STATUS_PETRIFIED))
                 goto check;
         }
         else
-            owner->unk_4F8.whole |= 2;
+            DISC_ARMOR_FLAGS(owner) |= 2;
         if (entity->flipX)
-            entity->unk_510.whole += -0x10000;
+            DISC_ARMOR_DISC_LAST_DX(entity) += -0x10000;
         else
-            entity->unk_510.whole += 0x10000;
+            DISC_ARMOR_DISC_LAST_DX(entity) += 0x10000;
         if (entity->state == 5)
-            entity->unk_510.whole = 0;
+            DISC_ARMOR_DISC_LAST_DX(entity) = 0;
         entity->state = 6;
-        entity->unk_50C.whole = entity->unk_510.whole;
-        entity->velY.whole = (s32)entity->unk_514.unk_514_32;
+        DISC_ARMOR_DISC_PHASE(entity) = DISC_ARMOR_DISC_LAST_DX(entity);
+        entity->velY.whole = (s32)DISC_ARMOR_DISC_LAST_DY(entity);
         entity->accelY.whole = 0x4000;
         entity->accelX.whole = 0;
         goto run;
     check:
-        if (!(owner->unk_4F8.whole & 1))
+        if (!(DISC_ARMOR_FLAGS(owner) & 1))
         {
             if (entity->affine)
                 ObjAffine_Free(entity->affineIndex);
-            if (entity->unk_4FC.unk_4FC_entity != NULL)
-                entity->unk_4FC.unk_4FC_entity->state = 2;
+            if (DISC_ARMOR_DISC_RING(entity) != NULL)
+                DISC_ARMOR_DISC_RING(entity)->state = 2;
             goto delete;
         }
     }
@@ -125,20 +127,20 @@ run:
         entity->affine = 1;
         entity->spriteLayer = 0x13;
         ring = Entity_CreateObject((u32 *)DiscArmorRing_Update);
-        entity->unk_4FC.unk_4FC_entity = ring;
-        entity->unk_500.whole = 0x8000;
+        DISC_ARMOR_DISC_RING(entity) = ring;
+        DISC_ARMOR_DISC_ORBIT_ANGLE(entity) = 0x8000;
         {
             s32 turn = 0x80;
 
-            entity->unk_504.whole = turn;
+            DISC_ARMOR_DISC_TURN(entity) = turn;
             if (entity->flipX)
             {
-                entity->unk_500.whole = 0;
-                entity->unk_504.whole = -turn;
+                DISC_ARMOR_DISC_ORBIT_ANGLE(entity) = 0;
+                DISC_ARMOR_DISC_TURN(entity) = -turn;
             }
         }
-        entity->posX.whole = owner->unk_4FC.whole;
-        entity->posY.whole = owner->unk_500.whole;
+        entity->posX.whole = DISC_ARMOR_HAND_X(owner);
+        entity->posY.whole = DISC_ARMOR_HAND_Y(owner);
         Hit_Enable(entity, 8, DiscArmorDisc_DamagePlayerOnContact, 0);
         HitBox_SetAttackRaw(entity, 0x1818F4F4);
         HitBox_SetBodyRaw(entity, 0x1818F4F4);
@@ -154,22 +156,22 @@ run:
         s16 x, y;
         s16 push, push2, push3;
 
-        amp = INT_TOWARD_ZERO(Sin(entity->unk_50C.whole) * 0x60);
-        entity->unk_50C.whole += 0x200;
-        entity->unk_500.whole += entity->unk_504.whole;
-        if (entity->unk_50C.whole > 0x4000)
+        amp = INT_TOWARD_ZERO(Sin(DISC_ARMOR_DISC_PHASE(entity)) * 0x60);
+        DISC_ARMOR_DISC_PHASE(entity) += 0x200;
+        DISC_ARMOR_DISC_ORBIT_ANGLE(entity) += DISC_ARMOR_DISC_TURN(entity);
+        if (DISC_ARMOR_DISC_PHASE(entity) > 0x4000)
         {
-            entity->unk_50C.whole = 0x4000;
+            DISC_ARMOR_DISC_PHASE(entity) = 0x4000;
             entity->accelY.whole += 0x4000;
             if (entity->accelY.whole > 0x80000)
                 entity->accelY.whole = 0x80000;
             entity->velY.whole += entity->accelY.whole;
         }
         else
-            entity->velY.whole = Sin(entity->unk_500.whole) * amp;
-        entity->velX.whole = amp * Sin(entity->unk_500.whole + 0x4000);
-        entity->posX.whole = owner->unk_4FC.whole + entity->velX.whole;
-        entity->posY.whole = owner->unk_500.whole + entity->velY.whole;
+            entity->velY.whole = Sin(DISC_ARMOR_DISC_ORBIT_ANGLE(entity)) * amp;
+        entity->velX.whole = amp * Sin(DISC_ARMOR_DISC_ORBIT_ANGLE(entity) + 0x4000);
+        entity->posX.whole = DISC_ARMOR_HAND_X(owner) + entity->velX.whole;
+        entity->posY.whole = DISC_ARMOR_HAND_Y(owner) + entity->velY.whole;
         xu = GetEntityRoomXPositionInteger(entity);
         y = GetEntityRoomYPositionInteger(entity);
         x = xu;
@@ -177,7 +179,7 @@ run:
         if (push != 0)
         {
             entity->posX.whole += push << 16;
-            entity->unk_50C.whole = 0;
+            DISC_ARMOR_DISC_PHASE(entity) = 0;
             entity->state = 2;
             break;
         }
@@ -185,7 +187,7 @@ run:
         if (push3 != 0)
         {
             entity->posX.whole += push3 << 16;
-            entity->unk_50C.whole = push;
+            DISC_ARMOR_DISC_PHASE(entity) = push;
             entity->state = 2;
         }
         else
@@ -194,12 +196,12 @@ run:
             if (push2 == 0)
                 break;
             entity->velY.whole += push2 << 16;
-            if (entity->unk_50C.whole < 0x4000)
+            if (DISC_ARMOR_DISC_PHASE(entity) < 0x4000)
             {
                 entity->accelY.whole = -0x30000;
-                entity->unk_50C.whole = push3;
+                DISC_ARMOR_DISC_PHASE(entity) = push3;
             }
-            entity->unk_50C.whole = push3;
+            DISC_ARMOR_DISC_PHASE(entity) = push3;
             entity->state = 3;
         }
         break;
@@ -213,13 +215,13 @@ run:
         if (entity->accelY.whole > 0x80000)
             entity->accelY.whole = 0x80000;
         entity->velY.whole += entity->accelY.whole;
-        entity->posX.whole = owner->unk_4FC.whole + entity->velX.whole;
-        entity->posY.whole = owner->unk_500.whole + entity->velY.whole;
+        entity->posX.whole = DISC_ARMOR_HAND_X(owner) + entity->velX.whole;
+        entity->posY.whole = DISC_ARMOR_HAND_Y(owner) + entity->velY.whole;
         xu = GetEntityRoomXPositionInteger(entity);
         yu = GetEntityRoomYPositionInteger(entity);
         if (PushOutOfFloor(entity, xu, yu + 16) == 0)
             break;
-        entity->unk_50C.whole = 0;
+        DISC_ARMOR_DISC_PHASE(entity) = 0;
         entity->state = 3;
         break;
     }
@@ -232,8 +234,8 @@ run:
         if (entity->accelY.whole > 0x80000)
             entity->accelY.whole = 0x80000;
         entity->velY.whole += entity->accelY.whole;
-        entity->posX.whole = owner->unk_4FC.whole + entity->velX.whole;
-        entity->posY.whole = owner->unk_500.whole + entity->velY.whole;
+        entity->posX.whole = DISC_ARMOR_HAND_X(owner) + entity->velX.whole;
+        entity->posY.whole = DISC_ARMOR_HAND_Y(owner) + entity->velY.whole;
         xu = GetEntityRoomXPositionInteger(entity);
         yu = GetEntityRoomYPositionInteger(entity);
         push = PushOutOfFloor(entity, xu, yu + 16);
@@ -264,14 +266,14 @@ run:
         if (!(entity->timer & 0xF))
             PlaySong(0x73);
         entity->timer++;
-        if (entity->unk_50C.whole < 0x40000)
-            entity->unk_50C.whole += 0x1000;
-        res = Entity_Walk(entity, -entity->unk_50C.whole, sDiscArmorWalkProfile + 12, 8);
+        if (DISC_ARMOR_DISC_PHASE(entity) < 0x40000)
+            DISC_ARMOR_DISC_PHASE(entity) += 0x1000;
+        res = Entity_Walk(entity, -DISC_ARMOR_DISC_PHASE(entity), sDiscArmorWalkProfile + 12, 8);
         {
             s8 three = 3; /* the mask is a variable: and in QImode puts it first */
             if (res & three)
             {
-                owner->unk_4F8.whole |= 2;
+                DISC_ARMOR_FLAGS(owner) |= 2;
                 entity->state = 5;
             }
             asm("" :: "r"(three)); /* FAKEMATCH: extra ref so the mask outranks res (r2) */
@@ -280,23 +282,23 @@ run:
         }
         if (ABS_DIFF((s16)owner->posX.part16.integer, (s16)entity->posX.part16.integer) <= 0x2F)
         {
-            owner->unk_4F8.whole |= 2;
+            DISC_ARMOR_FLAGS(owner) |= 2;
             entity->state = 5;
-            entity->unk_500.whole = ArcTan2(
-                PixelDelta(entity->posX.part16.integer, owner->unk_4FC.whole),
+            DISC_ARMOR_DISC_ORBIT_ANGLE(entity) = ArcTan2(
+                PixelDelta(entity->posX.part16.integer, DISC_ARMOR_HAND_X(owner)),
                 ({
-                    s32 d_ = PixelDelta(entity->posY.part16.integer, owner->unk_500.whole);
+                    s32 d_ = PixelDelta(entity->posY.part16.integer, DISC_ARMOR_HAND_Y(owner));
                     register s32 s_ asm("r0") = d_ << 16; /* FAKEMATCH */
                     asm("" : "+r"(s_)); /* FAKEMATCH: shift temp of the s16 argument in r0 */
                     s_ >> 16;
                 }));
-            dx = (entity->posX.whole - (s32)owner->unk_4FC.whole) >> 16;
+            dx = (entity->posX.whole - (s32)DISC_ARMOR_HAND_X(owner)) >> 16;
             dx *= dx;
-            dy = (entity->posY.whole - owner->unk_500.whole) >> 16;
+            dy = (entity->posY.whole - DISC_ARMOR_HAND_Y(owner)) >> 16;
             dy *= dy;
-            entity->unk_508.whole = Sqrt(dx + dy) << 16;
-            entity->unk_508.whole = entity->unk_508.whole * 2 / 3;
-            entity->unk_504.whole = 0;
+            DISC_ARMOR_DISC_RADIUS(entity) = Sqrt(dx + dy) << 16;
+            DISC_ARMOR_DISC_RADIUS(entity) = DISC_ARMOR_DISC_RADIUS(entity) * 2 / 3;
+            DISC_ARMOR_DISC_TURN(entity) = 0;
             entity->timer = 0;
             PlaySong(0x103);
         }
@@ -306,25 +308,25 @@ run:
     {
         s32 turn;
 
-        entity->unk_508.whole += -0x10000;
+        DISC_ARMOR_DISC_RADIUS(entity) += -0x10000;
         if (++entity->timer > 4)
         {
             amp = entity->timer - 4;
 
             if (amp <= 3)
-                entity->unk_508.whole += Sin(amp << 12) << 3;
+                DISC_ARMOR_DISC_RADIUS(entity) += Sin(amp << 12) << 3;
         }
-        if (entity->unk_508.whole < 0x20000)
-            entity->unk_508.whole = 0x20000;
-        amp = INT_TOWARD_ZERO(entity->unk_508.whole);
-        entity->velY.whole = Sin(entity->unk_500.whole) * amp;
-        entity->velX.whole = amp * Sin(entity->unk_500.whole + 0x4000);
-        entity->posX.whole = owner->unk_4FC.whole + entity->velX.whole;
-        entity->posY.whole = owner->unk_500.whole + entity->velY.whole;
-        amp = entity->unk_504.whole += -0x140;
+        if (DISC_ARMOR_DISC_RADIUS(entity) < 0x20000)
+            DISC_ARMOR_DISC_RADIUS(entity) = 0x20000;
+        amp = INT_TOWARD_ZERO(DISC_ARMOR_DISC_RADIUS(entity));
+        entity->velY.whole = Sin(DISC_ARMOR_DISC_ORBIT_ANGLE(entity)) * amp;
+        entity->velX.whole = amp * Sin(DISC_ARMOR_DISC_ORBIT_ANGLE(entity) + 0x4000);
+        entity->posX.whole = DISC_ARMOR_HAND_X(owner) + entity->velX.whole;
+        entity->posY.whole = DISC_ARMOR_HAND_Y(owner) + entity->velY.whole;
+        amp = DISC_ARMOR_DISC_TURN(entity) += -0x140;
         if (entity->flipX)
             amp = -amp;
-        entity->unk_500.whole += amp;
+        DISC_ARMOR_DISC_ORBIT_ANGLE(entity) += amp;
         break;
     }
     case 6:
@@ -332,41 +334,41 @@ run:
         s32 res;
         s32 speed;
 
-        if (entity->unk_4FC.unk_4FC_entity != NULL)
+        if (DISC_ARMOR_DISC_RING(entity) != NULL)
         {
-            ring = entity->unk_4FC.unk_4FC_entity;
+            ring = DISC_ARMOR_DISC_RING(entity);
             ring->state = 2;
-            entity->unk_4FC.unk_4FC_entity = NULL;
+            DISC_ARMOR_DISC_RING(entity) = NULL;
         }
         if (EntityIsOutsideScreen(entity, 4))
             goto free_delete;
-        res = Entity_Walk(entity, entity->unk_50C.whole, sDiscArmorWalkProfile + 12, 2);
+        res = Entity_Walk(entity, DISC_ARMOR_DISC_PHASE(entity), sDiscArmorWalkProfile + 12, 2);
         if (res & 0x40)
-            entity->unk_50C.whole = entity->unk_50C.whole > 0 ? entity->unk_50C.whole - 0x2000 : entity->unk_50C.whole + 0x2000;
+            DISC_ARMOR_DISC_PHASE(entity) = DISC_ARMOR_DISC_PHASE(entity) > 0 ? DISC_ARMOR_DISC_PHASE(entity) - 0x2000 : DISC_ARMOR_DISC_PHASE(entity) + 0x2000;
         else if (res & 0x20)
-            entity->unk_50C.whole = entity->unk_50C.whole > 0 ? entity->unk_50C.whole + 0x2000 : entity->unk_50C.whole - 0x2000;
-        else if (entity->unk_50C.whole >= 0)
+            DISC_ARMOR_DISC_PHASE(entity) = DISC_ARMOR_DISC_PHASE(entity) > 0 ? DISC_ARMOR_DISC_PHASE(entity) + 0x2000 : DISC_ARMOR_DISC_PHASE(entity) - 0x2000;
+        else if (DISC_ARMOR_DISC_PHASE(entity) >= 0)
         {
-            if ((entity->unk_50C.whole += -0x100) <= 0)
+            if ((DISC_ARMOR_DISC_PHASE(entity) += -0x100) <= 0)
             {
-                entity->unk_50C.whole = 0;
+                DISC_ARMOR_DISC_PHASE(entity) = 0;
                 entity->timer = 0x20;
                 entity->state = 7;
             }
         }
         else
         {
-            if ((entity->unk_50C.whole += 0x100) > 0)
+            if ((DISC_ARMOR_DISC_PHASE(entity) += 0x100) > 0)
             {
-                entity->unk_50C.whole = 0;
+                DISC_ARMOR_DISC_PHASE(entity) = 0;
                 entity->timer = 0x20;
                 entity->state = 7;
             }
         }
-        speed = entity->unk_50C.whole;
-        entity->unk_4F8.whole += speed / 64;
+        speed = DISC_ARMOR_DISC_PHASE(entity);
+        DISC_ARMOR_DISC_ANGLE(entity) += speed / 64;
         if (res & 3)
-            entity->unk_50C.whole = -speed / 2;
+            DISC_ARMOR_DISC_PHASE(entity) = -speed / 2;
         break;
     }
     case 7:
@@ -388,11 +390,11 @@ run:
     {
         DiscArmorRing_Aim(ring, entity, owner);
         if (entity->flipX)
-            entity->unk_4F8.whole += -0x2F00;
+            DISC_ARMOR_DISC_ANGLE(entity) += -0x2F00;
         else
-            entity->unk_4F8.whole += 0x2F00;
+            DISC_ARMOR_DISC_ANGLE(entity) += 0x2F00;
     }
-    entity->unk_510.whole = entity->posX.whole - oldX;
-    entity->unk_514.unk_514_32 = (struct EwramData_EntityData *)(entity->posY.whole - oldY);
-    ObjAffine_Set(entity->unk_4F8.whole, 0x10000, 0x10000, 0, 0, entity->affineIndex);
+    DISC_ARMOR_DISC_LAST_DX(entity) = entity->posX.whole - oldX;
+    DISC_ARMOR_DISC_LAST_DY(entity) = (struct EwramData_EntityData *)(entity->posY.whole - oldY);
+    ObjAffine_Set(DISC_ARMOR_DISC_ANGLE(entity), 0x10000, 0x10000, 0, 0, entity->affineIndex);
 }

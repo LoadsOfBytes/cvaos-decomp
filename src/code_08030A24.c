@@ -1,4 +1,7 @@
 #include "code_08009A0.h"
+#include "soul_skill_entity.h"
+#include "blue_soul_entity.h"
+#include "player_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -34,7 +37,7 @@ struct SkullFrame {
  */
 void SkillCreakingSkullUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = BLUE_SOUL_OWNER(entity);
     struct EwramData_EntityData *prev, *child;
     struct SkullFrame *frame;
     s32 i;
@@ -44,10 +47,10 @@ void SkillCreakingSkullUse(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    entity->unk_514.part8.unk_514 = 0;
-    if (entity->stage != 0 && gEwramData->playerState.weaponEntities[parent->unk_50C.part8.unk_50C] != NULL)
+    SKILL_CREAKING_SKULL_ACTIVE(entity) = 0;
+    if (entity->stage != 0 && gEwramData->playerState.weaponEntities[PLAYER_WEAPON_SLOT(parent)] != NULL)
     {
-        entity->unk_518.whole = 0x084F13E8;
+        SKILL_CREAKING_SKULL_FRAMES(entity) = 0x084F13E8;
         entity->state = 3;
         entity->stage = 0;
     }
@@ -70,8 +73,8 @@ void SkillCreakingSkullUse(struct EwramData_EntityData *entity)
                 child = BlueSoul_CreateEntity(prev, SkillCreakingSkullHitBoxUpdate);
             if (child != NULL)
             {
-                child->unk_514.part8.unk_514 = entity->unk_4F4.part8.unk_4F4;
-                child->unk_514.part8.unk_515 = i;
+                SKILL_CREAKING_SKULL_SOUL_INDEX(child) = ENTITY_INDEX(entity);
+                SKILL_CREAKING_SKULL_SEGMENT(child) = i;
                 prev = child;
             }
         }
@@ -81,24 +84,24 @@ void SkillCreakingSkullUse(struct EwramData_EntityData *entity)
             gEwramData->playerState.skillBaseAttack = a;
             gEwramData->playerState.skillAttackAttributes = 0;
         }
-        entity->unk_510.whole = 0x080E1AA8;
-        entity->unk_518.whole = 0x084F13DC;
+        SKILL_CREAKING_SKULL_ANGLES(entity) = 0x080E1AA8;
+        SKILL_CREAKING_SKULL_FRAMES(entity) = 0x084F13DC;
         entity->flipX = 1 ^ parent->flipX;
         entity->state = 1;
     case 1:
-        if (entity->unk_50C.whole <= 0xFFFF)
-            entity->unk_50C.whole += 0x1000;
+        if (SKILL_CREAKING_SKULL_SCALE(entity) <= 0xFFFF)
+            SKILL_CREAKING_SKULL_SCALE(entity) += 0x1000;
         else
             entity->state = 2;
         break;
     case 2:
-        entity->unk_518.whole = 0x084F13DC;
+        SKILL_CREAKING_SKULL_FRAMES(entity) = 0x084F13DC;
         entity->state = 3;
         entity->stage = 1;
         break;
     case 3:
         {
-            struct SkullFrame **list = (struct SkullFrame **)entity->unk_518.whole;
+            struct SkullFrame **list = (struct SkullFrame **)SKILL_CREAKING_SKULL_FRAMES(entity);
             frame = list[entity->subState];
         }
         if (frame == NULL)
@@ -107,10 +110,10 @@ void SkillCreakingSkullUse(struct EwramData_EntityData *entity)
             entity->subState = 0;
             break;
         }
-        entity->unk_510.whole = (s32)frame;
-        entity->unk_514.part8.unk_514 = 1;
+        SKILL_CREAKING_SKULL_ANGLES(entity) = (s32)frame;
+        SKILL_CREAKING_SKULL_ACTIVE(entity) = 1;
         entity->timer = frame->duration - 1;
-        entity->unk_514.part8.unk_515 = frame->frame;
+        SKILL_CREAKING_SKULL_FRAME(entity) = frame->frame;
         entity->state = 4;
     case 4:
         if (entity->timer != 0)
@@ -118,7 +121,7 @@ void SkillCreakingSkullUse(struct EwramData_EntityData *entity)
             entity->timer--;
             break;
         }
-        if (entity->unk_518.whole == 0x084F13E8 && entity->subState == 3)
+        if (SKILL_CREAKING_SKULL_FRAMES(entity) == 0x084F13E8 && entity->subState == 3)
             PlaySong(0x9B);
         entity->state = 3;
         entity->subState++;

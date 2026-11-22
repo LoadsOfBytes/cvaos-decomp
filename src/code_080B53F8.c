@@ -1,6 +1,7 @@
 /* Spinning breath/beam emitter attached to its parent: spawns pieces along
  * the sweep and draws itself through an affine slot. */
 #include "code_08009A0.h"
+#include "balore_entity.h"
 #include "code/code_08039340.h"
 #include "code_08013960.h"
 #include "structs/ewram.h"
@@ -35,7 +36,7 @@ static inline struct EwramData_EntityData *SpawnAtEntity(void *update, struct Ew
  */
 void BaloreEmitter_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4FC.unk_4FC_entity;
+    struct EwramData_EntityData *parent = BALORE_BODY(entity);
     u16 slot;
     struct EwramData_EntityData *piece;
     s32 scale;
@@ -43,7 +44,7 @@ void BaloreEmitter_Update(struct EwramData_EntityData *entity)
 
     if (entity->state != 0)
     {
-        if (entity->state <= 1 && (parent->unk_500.part16.unk_502 & 2))
+        if (entity->state <= 1 && (BALORE_FLAGS(parent) & 2))
             entity->state = 2;
     }
     switch (entity->state)
@@ -88,7 +89,7 @@ void BaloreEmitter_Update(struct EwramData_EntityData *entity)
                 if (entity->flipX)
                     piece->velX.whole = -piece->velX.whole;
                 piece->accelX.whole = -piece->velX.whole / 64;
-                piece->unk_4FC.unk_4FC_entity = parent;
+                BALORE_BODY(piece) = parent;
                 piece->timer = ((0x40 - entity->timer) >> 2) + 8;
             }
         }

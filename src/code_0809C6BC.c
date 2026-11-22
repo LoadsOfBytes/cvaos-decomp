@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "legion_entity.h"
 #include "code_08013960.h"
 #include "code_08033CAC.h"
 #include "code/code_08039340.h"
@@ -46,13 +47,13 @@ void EnemyLegionCreate(struct EwramData_EntityData *entity)
     if (entity->unk_514.part16.spawnParam0 != 0 && !gEwramData->gameState.bossRushMode
         && (gEwramData->gameState.bossEventFlags & 0x20))
         goto delete;
-    entity->unk_4F8.whole = (s32)Heap_Alloc(0x1C);
-    if (entity->unk_4F8.whole == 0)
+    LEGION_DATA(entity) = (s32)Heap_Alloc(0x1C);
+    if (LEGION_DATA(entity) == 0)
         goto delete;
     if ((u8)Legion_LoadGraphics(entity) == 0)
     {
-        if (entity->unk_4F8.whole != 0)
-            Heap_Free((void *)entity->unk_4F8.whole);
+        if (LEGION_DATA(entity) != 0)
+            Heap_Free((void *)LEGION_DATA(entity));
         goto delete;
     }
     Anim_Start(entity, (struct AnimScript *)sLegionAnimScript0, 2, 1);
@@ -64,7 +65,7 @@ void EnemyLegionCreate(struct EwramData_EntityData *entity)
     entity->affine = 1;
     ObjAffine_Set(0, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
     Enemy_ResetFromTemplate(entity);
-    data = (struct LegionData *)entity->unk_4F8.whole;
+    data = (struct LegionData *)LEGION_DATA(entity);
     if (!Legion_CreateCorePart(entity, -0x180000, 0x180000, 2))
         goto delete;
     if (gEwramData->gameState.bestiaryPreview || entity->unk_514.part16.spawnParam0 == 0)
@@ -98,7 +99,7 @@ void EnemyLegionCreate(struct EwramData_EntityData *entity)
     Music_SetCurrent(0x10);
     if (entity->unk_514.part16.spawnParam0 == 0)
     {
-        entity->unk_504.part8.unk_506 = 6;
+        LEGION_FLAGS(entity) = 6;
         data->roomX = entity->posX.whole + bg->xPos.whole;
         data->roomY = entity->posY.whole + bg->yPos.whole;
         data->bobPhase = 0;
@@ -125,7 +126,7 @@ void EnemyLegionCreate(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    entity->unk_504.part8.unk_506 = 6;
+    LEGION_FLAGS(entity) = 6;
     data->roomX = entity->posX.whole + bg->xPos.whole;
     data->roomY = entity->posY.whole + bg->yPos.whole;
     data->bobPhase = 0;

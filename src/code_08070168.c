@@ -29,7 +29,7 @@ void KillerFish_SpawnSwarmFish(struct EwramData_EntityData *parent)
             part->spriteLayer = parent->spriteLayer + 1;
         else
             part->spriteLayer = parent->spriteLayer - 1;
-        part->unk_4F4.unk_4F4_entity = parent;
+        ENTITY_CREATOR(part) = parent;
         SetRelativePosition(parent, part, 0, 0);
         part->unk_518.part8.spawnIndex = parent->unk_518.part8.spawnIndex;
         part->unk_510.part8.basePalette = parent->unk_510.part8.basePalette;

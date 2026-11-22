@@ -13,7 +13,7 @@ extern u8 sUnk_081E116C[], sUnk_0820B64C[], sUnk_0823760C[];
  */
 void SkillBlueSoulForm2Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
     entity->roomActive = 1;
     switch (entity->state)
     {

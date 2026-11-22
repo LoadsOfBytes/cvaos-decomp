@@ -1,5 +1,6 @@
 ﻿/* Alastor wind-up and aimed charge. */
 #include "code_08009A0.h"
+#include "alastor_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -8,8 +9,8 @@ extern s32 Target_GetY(struct EwramData_EntityData *);
 extern s32 GetEntityRoomXPositionWhole(struct EwramData_EntityData *);
 extern s32 GetEntityRoomYPositionWhole(struct EwramData_EntityData *);
 extern s32 Entity_GetTargetAngleAbove16(struct EwramData_EntityData *);
-#define ANGLE(e) ((e)->unk_500.part16.unk_500)
-#define STEP(e) ((e)->unk_500.part16.unk_502)
+#define ANGLE(e) (ALASTOR_ANGLE((e)))
+#define STEP(e) (ALASTOR_TURN((e)))
 #define ABS(x) ((x)<0?-(x):(x))
 /**
  * @brief Attack state (5): spin during wind-up, aim velocity toward the

@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "blue_soul_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -12,7 +13,7 @@ static inline void EndBlueSoul(struct EwramData_EntityData *entity)
 {
     if (entity->affineIndex != 0 || entity->affine)
         ObjAffine_Free(entity->affineIndex);
-    gEwramData->playerState.activeBlueSoulEntities[entity->unk_508.part16.unk_508] = NULL;
+    gEwramData->playerState.activeBlueSoulEntities[BLUE_SOUL_SLOT(entity)] = NULL;
     EntityDelete(entity);
 }
 

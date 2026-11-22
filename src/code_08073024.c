@@ -22,7 +22,7 @@ struct EwramData_EntityData *Manticore_CreateOverlay(struct EwramData_EntityData
         child->animFrame = parent->animFrame;
         child->scrollWithBg = 0;
         child->drawFunc = (u32 *)Sprite_DrawEntity;
-        child->unk_4F4.unk_4F4_entity = parent;
+        ENTITY_CREATOR(child) = parent;
         }
     else return NULL;
     return child;
@@ -34,7 +34,7 @@ struct EwramData_EntityData *Manticore_CreateOverlay(struct EwramData_EntityData
  */
 void ManticoreOverlay_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F4.unk_4F4_entity;
+    struct EwramData_EntityData *parent = ENTITY_CREATOR(entity);
     if (parent != NULL && parent->updateFunc != NULL && parent->unk_518.part8.enemyId == 0x36)
     {
         entity->posX.whole = parent->posX.whole;

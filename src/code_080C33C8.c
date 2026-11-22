@@ -1,5 +1,6 @@
 /* Skeleton enemy: graphics, child entity and patrol range around the spawn X. */
 #include "code_08009A0.h"
+#include "skeleton_entity.h"
 extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -28,7 +29,7 @@ void EnemySkeletonCreate(struct EwramData_EntityData *entity)
 
     if (!Entity_LoadGraphics(entity, graphics, palette, 0, sprite))
         goto delete;
-    entity->unk_4FC.part8.unk_4FE |= 1;
+    SKELETON_FLAGS(entity) |= 1;
     zero = 0;
     if (Entity_CreateLinkedAndHide(entity, (u32 *)SkeletonLinkedPart_Update) == NULL)
     {
@@ -64,14 +65,14 @@ void EnemySkeletonCreate(struct EwramData_EntityData *entity)
     Entity_EnableBoxes(entity, Enemy_OnContact, Skeleton_OnHit);
     Entity_SnapToGround(entity);
     x = GetEntityRoomXPositionInteger(entity);
-    entity->unk_504.part16.unk_506[0] = x;
-    entity->unk_4F8.part16.unk_4F8 = x + 0x20;
-    entity->unk_4F8.part16.unk_4FA = x - 0x20;
+    SKELETON_HOME_X(entity) = x;
+    SKELETON_PATROL_RIGHT(entity) = x + 0x20;
+    SKELETON_PATROL_LEFT(entity) = x - 0x20;
     child = Entity_CreateLinkedAndHide(entity, (u32 *)SkeletonAttachedPart_Update);
     if (child == NULL)
         return;
     child->hidden = 0;
-    entity->unk_4FC.part8.unk_4FE |= 4;
+    SKELETON_FLAGS(entity) |= 4;
     if (RandomNumberGenerator() & 1)
         entity->state = 1;
     else

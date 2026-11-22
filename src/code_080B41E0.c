@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "balore_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -22,18 +23,18 @@ extern const u8 sBaloreEyeAnimOffsets[];
  */
 void BaloreEye_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = entity->unk_4FC.unk_4FC_entity;
+    struct EwramData_EntityData *owner = BALORE_BODY(entity);
     s32 dy = 0;
     s32 dx = 0;
     s32 o;
     s16 angle;
 
-    if (owner->unk_500.part16.unk_502 & 4)
+    if (BALORE_FLAGS(owner) & 4)
         entity->state = 5;
     switch (entity->state)
     {
     case 0:
-        Sprite_Attach(entity, sBaloreSpriteSheet, (s8)owner->unk_4F8.part8.unk_4FB, owner->unk_510.part8.basePalette);
+        Sprite_Attach(entity, sBaloreSpriteSheet, (s8)BALORE_GFX(owner), owner->unk_510.part8.basePalette);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         entity->spriteLayer = 0x1F;
         if (gEwramData->gameState.bestiaryPreview)
@@ -45,7 +46,7 @@ void BaloreEye_Update(struct EwramData_EntityData *entity)
     case 1:
         if (owner->state == 3)
             entity->state = 2;
-        if (owner->unk_500.part16.unk_502 & 2)
+        if (BALORE_FLAGS(owner) & 2)
             entity->state = 4;
         o = (s16)owner->posX.part16.integer;
         dx = (s16)(FIXED_TO_INT(Target_GetX(owner)) - o - 0x20);
@@ -53,8 +54,8 @@ void BaloreEye_Update(struct EwramData_EntityData *entity)
         angle = ArcTan2(dx, (s16)(FIXED_TO_INT(Target_GetY(owner)) - o - 0x10));
         dx = Sin(angle + 0x4000) * 3;
         dy = Sin(angle) * 2 + 0x20000;
-        dx = FIXED_TO_INT(dx) * owner->unk_504.whole;
-        dy = FIXED_TO_INT(dy) * owner->unk_504.whole;
+        dx = FIXED_TO_INT(dx) * BALORE_BODY_SCALE(owner);
+        dy = FIXED_TO_INT(dy) * BALORE_BODY_SCALE(owner);
         break;
     case 2:
     case 3:
@@ -66,6 +67,6 @@ void BaloreEye_Update(struct EwramData_EntityData *entity)
     }
     entity->posX.whole = owner->posX.whole + dx;
     entity->posY.whole = owner->posY.whole + dy;
-    Anim_StartIndexed(entity, sBaloreEyeAnimOffsets[(s8)owner->unk_4F4.part8.unk_4F6] + 0x24, 2, 0);
+    Anim_StartIndexed(entity, sBaloreEyeAnimOffsets[(s8)BALORE_EYE_ANIM(owner)] + 0x24, 2, 0);
     Anim_Update(entity);
 }

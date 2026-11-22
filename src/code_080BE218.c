@@ -3,6 +3,20 @@
 #include "structs/ewram.h"
 #include "syscalls.h"
 
+/*
+ * Death debris (spawned when Death is defeated): it spirals into the room
+ * point (0x100, 0x80) while shrinking: sprite rotation and orbit angle (both
+ * advanced by the growing spin speed), orbit radius and its change per frame,
+ * affine scale and its change per frame. Token-identical expansion.
+ */
+#define DEBRIS_ROTATION(e) e->unk_4FC.part16.unk_4FC
+#define DEBRIS_ORBIT_ANGLE(e) e->unk_4FC.part16.unk_4FE[0]
+#define DEBRIS_SPIN(e) e->unk_50C.part16.unk_50C
+#define DEBRIS_RADIUS(e) e->unk_504.whole
+#define DEBRIS_RADIUS_STEP(e) e->unk_510.whole
+#define DEBRIS_SCALE(e) e->unk_500.whole
+#define DEBRIS_SCALE_STEP(e) e->unk_508.whole
+
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 extern s32 Entity_GetRoomPointDistance(struct EwramData_EntityData *entity, s32 param_1, s32 param_2);
 
@@ -30,16 +44,16 @@ void DeathDebris_Update(struct EwramData_EntityData *entity)
         entity->spriteLayer = 0x13;
         Anim_StartIndexed(entity, entity->subState + 0x14, 2, 0);
         Anim_Update(entity);
-        entity->unk_4FC.part16.unk_4FE[0] = ArcTan2(entity->posX.part16.integer - 0x100, entity->posY.part16.integer - 0x80);
+        DEBRIS_ORBIT_ANGLE(entity) = ArcTan2(entity->posX.part16.integer - 0x100, entity->posY.part16.integer - 0x80);
     {
         struct BgLayerState *camera = &gEwramData->bgInfo[1];
         entity->posX.whole -= camera->xPos.whole;
         entity->posY.whole -= camera->yPos.whole;
     }
-        entity->unk_504.whole = Entity_GetRoomPointDistance(entity, 0x1000000, 0x800000);
-        entity->unk_500.whole = 0x10000;
-        entity->unk_508.whole = -0x155;
-        entity->unk_510.whole = -(entity->unk_504.whole / 0xC0);
+        DEBRIS_RADIUS(entity) = Entity_GetRoomPointDistance(entity, 0x1000000, 0x800000);
+        DEBRIS_SCALE(entity) = 0x10000;
+        DEBRIS_SCALE_STEP(entity) = -0x155;
+        DEBRIS_RADIUS_STEP(entity) = -(DEBRIS_RADIUS(entity) / 0xC0);
         entity->state = 1;
     case 1:
         if (entity->timer != 0)
@@ -49,16 +63,16 @@ void DeathDebris_Update(struct EwramData_EntityData *entity)
         }
         entity->state = 2;
     case 2:
-        if (entity->unk_50C.part16.unk_50C <= 0x5FF)
-            entity->unk_50C.part16.unk_50C += 0x10;
-        entity->unk_4FC.part16.unk_4FC += entity->unk_50C.part16.unk_50C;
-        entity->unk_4FC.part16.unk_4FE[0] += entity->unk_50C.part16.unk_50C;
-        entity->unk_500.whole += entity->unk_508.whole;
-        if (entity->unk_500.whole < 0)
-            entity->unk_500.whole = 0;
-        if (entity->unk_504.whole > 0)
+        if (DEBRIS_SPIN(entity) <= 0x5FF)
+            DEBRIS_SPIN(entity) += 0x10;
+        DEBRIS_ROTATION(entity) += DEBRIS_SPIN(entity);
+        DEBRIS_ORBIT_ANGLE(entity) += DEBRIS_SPIN(entity);
+        DEBRIS_SCALE(entity) += DEBRIS_SCALE_STEP(entity);
+        if (DEBRIS_SCALE(entity) < 0)
+            DEBRIS_SCALE(entity) = 0;
+        if (DEBRIS_RADIUS(entity) > 0)
         {
-            entity->unk_504.whole += entity->unk_510.whole;
+            DEBRIS_RADIUS(entity) += DEBRIS_RADIUS_STEP(entity);
             break;
         }
     case 3:
@@ -68,13 +82,13 @@ void DeathDebris_Update(struct EwramData_EntityData *entity)
         return;
     }
     {
-        s32 s = Sin(entity->unk_4FC.part16.unk_4FE[0] + 0x4000);
-        s32 r = entity->unk_504.whole;
+        s32 s = Sin(DEBRIS_ORBIT_ANGLE(entity) + 0x4000);
+        s32 r = DEBRIS_RADIUS(entity);
         entity->velX.whole = (s >> 8) * (r >> 8);
     }
     {
-        s32 s = Sin(entity->unk_4FC.part16.unk_4FE[0]);
-        s32 r = entity->unk_504.whole;
+        s32 s = Sin(DEBRIS_ORBIT_ANGLE(entity));
+        s32 r = DEBRIS_RADIUS(entity);
         entity->velY.whole = (s >> 8) * (r >> 8);
     }
     {
@@ -84,6 +98,6 @@ void DeathDebris_Update(struct EwramData_EntityData *entity)
         entity->posX.part16.integer = *velXInt - (u16)(camera->xPos.part16.integer - 0x100);
         entity->posY.part16.integer = entity->velY.part16.integer - (s16)(camera->yPos.part16.integer - 0x80);
     }
-    ObjAffine_Set(entity->unk_4FC.part16.unk_4FC, entity->unk_500.whole, entity->unk_500.whole,
+    ObjAffine_Set(DEBRIS_ROTATION(entity), DEBRIS_SCALE(entity), DEBRIS_SCALE(entity),
                  entity->flipX, 0, entity->affineIndex);
 }

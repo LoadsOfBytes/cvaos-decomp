@@ -12,7 +12,7 @@ extern void Sprite_GetPartCornerOffset(struct EwramData_EntityData *entity, s32 
  */
 void EventScene03AttachedEffect_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = &gEwramData->entityData[entity->unk_4F4.part8.unk_4F5];
+    struct EwramData_EntityData *parent = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
     struct { s16 x; s16 y; } point;
 
     if (parent == NULL || parent->unk_518.part8.enemyId != entity->unk_518.part8.enemyId)

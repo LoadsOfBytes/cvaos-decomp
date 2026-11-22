@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "particle_effect.h"
 #include "code_0800B700.h"
 #include "code_0800CB00.h"
 #include "structs/ewram.h"
@@ -15,8 +16,8 @@ static inline void CreateAttachedEffect(struct EwramData_EntityData *parent, u8 
     child = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateAttachedAnimation);
     if (child == NULL)
         return;
-    child->unk_4F8.part8.unk_4F8 = animation;
-    child->unk_4FC.unk_4FC_entity = parent;
+    PARTICLE_ATTACH_ANIM(child) = animation;
+    PARTICLE_ATTACH_PARENT(child) = parent;
     child->palette = palette;
     child->accelX.whole = dx;
     child->accelY.whole = dy;

@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code/code_08039340.h"
 #include "code_080D73B8.h"
 #include "structs/ewram.h"
@@ -11,7 +12,7 @@ static inline s32 FixedMulFast(s32 a, s32 b) { return (a >> 8) * (b >> 8); }
  */
 void Object15Orbiter_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
     if (entity->state == 0)
     {
         if (!Entity_LoadGraphics(entity, sObject15Gfx, sUnk_0820A1C4, 8, sObject15SpriteSheet)) { EntityDelete(entity); return; }
@@ -19,8 +20,8 @@ void Object15Orbiter_Update(struct EwramData_EntityData *entity)
         entity->spriteLayer = 31;
         entity->state = 1;
     }
-    entity->velX.whole = FixedMulFast(Sin(owner->unk_4FC.part16.unk_4FC + 0x4000), owner->unk_500.whole);
-    entity->velY.whole = FixedMulFast(Sin(owner->unk_4FC.part16.unk_4FC), owner->unk_500.whole);
+    entity->velX.whole = FixedMulFast(Sin(OBJECT15_ANGLE(owner) + 0x4000), OBJECT15_RADIUS(owner));
+    entity->velY.whole = FixedMulFast(Sin(OBJECT15_ANGLE(owner)), OBJECT15_RADIUS(owner));
     entity->posX.whole = owner->posX.whole + entity->velX.whole;
     entity->posY.whole = owner->posY.whole + entity->velY.whole;
 }

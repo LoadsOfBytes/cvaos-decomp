@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "legion_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -19,19 +20,19 @@ struct EwramData_EntityData *Legion_CreateCorpse(struct EwramData_EntityData *en
 {
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
     struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)LegionCorpse_Update);
-    u32 *data = (u32 *)entity->unk_4F8.whole;
+    u32 *data = (u32 *)LEGION_DATA(entity);
     u32 tiles, r;
 
     if (child != NULL)
     {
     child->posX.whole = x - bg->xPos.whole;
     child->posY.whole = y - bg->yPos.whole;
-    child->unk_4F8.whole = x;
-    child->unk_4FC.whole = x;
-    child->unk_504.part8.unk_504 = index;
+    LEGION_CORPSE_TARGET_X(child) = x;
+    LEGION_CORPSE_TARGET_Y(child) = x;
+    LEGION_CORPSE_FRAME(child) = index;
     child->spriteLayer = entity->spriteLayer - 3;
     tiles = *data;
-    child->unk_510.part8.basePalette = entity->unk_504.part8.unk_504;
+    child->unk_510.part8.basePalette = LEGION_ANIM_PALETTE(entity);
     Sprite_Attach(child, sLegionSpriteSheet, tiles, child->unk_510.part8.basePalette);
     Anim_Start(child, (struct AnimScript *)sLegionAnimScript1, 2, 1);
     Anim_Update(child);

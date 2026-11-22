@@ -2,6 +2,7 @@
  * read goes through the inline Player() (base kept, offset constant reloaded
  * as in the target); case 3 uses its own block variable for the radius. */
 #include "code_08009A0.h"
+#include "death_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -19,7 +20,7 @@ static inline void SpawnChild(struct EwramData_EntityData *e, void *func)
     struct EwramData_EntityData *child = Entity_CreateObject((u32 *)func);
     if (child != NULL)
     {
-        child->unk_4F8.part8.unk_4F8 = e->unk_4F4.part8.unk_4F4;
+        DEATH_OWNER_INDEX(child) = ENTITY_INDEX(e);
         child->scrollWithBg = 1;
     }
 }
@@ -67,9 +68,9 @@ void Death_UpdateFirstPhase(struct EwramData_EntityData *e)
             }
         }
         EntityAccelerateAndMove(e, 0x10000);
-        if ((++e->unk_4F8.part16.unk_4FA & 0xFF) != 0)
+        if ((++DEATH_WEAPON_TIMER(e) & 0xFF) != 0)
             break;
-        if ((e->unk_4F8.part16.unk_4F8 & 0x40) && (RandomNumberGenerator() & 7))
+        if ((DEATH_FLAGS(e) & 0x40) && (RandomNumberGenerator() & 7))
         {
             e->subState = 2;
             Anim_StartIndexed(e, 3, 2, 0);
@@ -78,7 +79,7 @@ void Death_UpdateFirstPhase(struct EwramData_EntityData *e)
         e->subState = 7;
         e->stage = 0;
         Anim_StartIndexed(e, sDeathFirstPhaseAnims[0], 2, 0);
-        e->unk_4F8.part16.unk_4F8 |= 4;
+        DEATH_FLAGS(e) |= 4;
         break;
     case 2:
         e->accelX.whole = 0;
@@ -88,7 +89,7 @@ void Death_UpdateFirstPhase(struct EwramData_EntityData *e)
         EntityAccelerateAndMove(e, 0x10000);
         if (!(e->animFlags & 4))
             break;
-        e->unk_4F8.part16.unk_4FA = 0x40;
+        DEATH_WEAPON_TIMER(e) = 0x40;
         PlaySong(0x111);
         e->subState = 3;
         Anim_StartIndexed(e, 4, 2, 1);
@@ -104,28 +105,28 @@ void Death_UpdateFirstPhase(struct EwramData_EntityData *e)
         x = (((s16)e->posX.part16.integer - 0xC) << 16) + vx;
         { s32 y = (((s16)e->posY.part16.integer - 0x30) << 16) + vy;
         Effect_CreateFromTable(x, y, -vx / 0xC0, -vy / 0xC0, 4, 6); }
-        if (e->unk_4F8.part16.unk_4FA == 0)
+        if (DEATH_WEAPON_TIMER(e) == 0)
         {
             e->subState = 4;
             Anim_StartIndexed(e, 5, 2, 0);
             break;
         }
-        e->unk_4F8.part16.unk_4FA--;
+        DEATH_WEAPON_TIMER(e)--;
         break;
     }
     case 4:
         if (!(e->animFlags & 4))
             break;
         Anim_StartIndexed(e, 0x12, 2, 1);
-        e->unk_4F8.part16.unk_4FA = 0x40;
+        DEATH_WEAPON_TIMER(e) = 0x40;
         e->subState = 5;
         break;
     case 5:
-        if (!(e->unk_4F8.part16.unk_4FA & 0xF))
+        if (!(DEATH_WEAPON_TIMER(e) & 0xF))
             SpawnChild(e, DeathPillar_Update);
-        if (e->unk_4F8.part16.unk_4FA != 0)
+        if (DEATH_WEAPON_TIMER(e) != 0)
         {
-            e->unk_4F8.part16.unk_4FA--;
+            DEATH_WEAPON_TIMER(e)--;
             break;
         }
         e->subState = 6;
@@ -153,7 +154,7 @@ void Death_UpdateFirstPhase(struct EwramData_EntityData *e)
             break;
         }
         Anim_StartIndexed(e, sDeathFirstPhaseAnims[e->stage], 2, 0);
-        e->unk_4F8.part16.unk_4F8 &= ~4;
+        DEATH_FLAGS(e) &= ~4;
         break;
     }
     {
@@ -162,7 +163,7 @@ void Death_UpdateFirstPhase(struct EwramData_EntityData *e)
         if (!(t & (gEwramData->gameState.difficultyMode == 0 ? 0x7F : 0x3F)))
             SpawnChild(e, DeathBlade_Update);
     }
-    if (e->unk_4F8.part16.unk_4F8 & 1)
+    if (DEATH_FLAGS(e) & 1)
     {
         e->state = 2;
         e->stage = 0;

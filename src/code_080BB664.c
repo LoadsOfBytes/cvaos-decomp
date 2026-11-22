@@ -95,7 +95,7 @@ void EnemyKillerMantleCreate(struct EwramData_EntityData *entity)
     if (child != NULL)
     {
         child->scrollWithBg = 1;
-        child->unk_4F8.unk_4F8_entity = entity;
+        ENTITY_OWNER(child) = entity;
     }
     entity->scrollWithBg = 1;
     entity->state = 0;

@@ -2,6 +2,7 @@
  * the given angle; graphics and palette come from the owner's parent data,
  * the frame and flip from a 24-entry table indexed by the angle. */
 #include "code_08009A0.h"
+#include "legion_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -35,7 +36,7 @@ void LegionShellPart_FireShot(struct EwramData_EntityData *owner, s32 dx, s32 dy
     struct HitBoxRecord box = {-4, -4, 8, 8};
     struct EwramData_EntityData *shot = EntityCreateInRange(0x49, 0xCF, (u32 *)LegionShot_Update);
     struct ShotFrames frames = sLegionShotFrames;
-    struct EwramData_EntityData *parent = owner->unk_4F4.unk_4F4_entity;
+    struct EwramData_EntityData *parent = LEGION_PART_OWNER(owner);
     struct ShotData *data = (struct ShotData *)parent->unk_4F8.unk_4F8_entity;
     s32 vx, vy, graphics, index;
     u16 *flags;
@@ -66,7 +67,7 @@ void LegionShellPart_FireShot(struct EwramData_EntityData *owner, s32 dx, s32 dy
     if (*flags & 2)
         shot->flipY = 1;
     shot->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
-    shot->unk_4F4.unk_4F4_entity = owner;
+    LEGION_PART_OWNER(shot) = owner;
     shot->scrollWithBg = 1;
     shot->attack = parent->attack + (parent->attack >> 2);
     Hit_Enable(shot, 8, LegionShot_DamagePlayerOnContact, 0);

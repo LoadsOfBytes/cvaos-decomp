@@ -1,5 +1,6 @@
 /* The caller selects one of five valid directions (0..4) for a spread shot. */
 #include "code_08009A0.h"
+#include "harpy_entity.h"
 #include "structs/ewram.h"
 #include "structs/entity_render_flags.h"
 extern void HarpyFeather_Update(struct EwramData_EntityData *);
@@ -18,7 +19,7 @@ void Harpy_ThrowFeather(struct EwramData_EntityData *owner,s32 kind)
         projectile->scrollWithBg=1;
         HarpyFeather_EnableHitBoxes(projectile);
         projectile->spriteLayer=owner->spriteLayer+1;
-        projectile->unk_4F4.unk_4F4_entity=owner;
+        ENTITY_CREATOR(projectile)=owner;
         projectile->flipX=owner->flipX;
         if(owner->flipX)
             projectile->posX.part16.integer=owner->posX.part16.integer+1;
@@ -56,7 +57,7 @@ void Harpy_ThrowFeather(struct EwramData_EntityData *owner,s32 kind)
                 projectile->animFrame=8;
                 break;
         }
-        projectile->unk_4F8.whole=angle;
+        HARPY_FEATHER_ANGLE(projectile)=angle;
         EntitySetVelocityFromAngle(projectile,angle,0x30000);
         projectile->unk_518.part8.spawnIndex=owner->unk_518.part8.spawnIndex;
         projectile->unk_510.part8.basePalette=owner->unk_510.part8.basePalette;

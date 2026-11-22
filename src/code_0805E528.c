@@ -1,5 +1,6 @@
 /* EventScene03_SpawnRisingPart. */
 #include "code_08009A0.h"
+#include "event_scene03.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -22,11 +23,11 @@ struct EwramData_EntityData *EventScene03_SpawnRisingPart(struct EwramData_Entit
     entity->posX.part16.integer = x;
     entity->posY.part16.integer = y;
     Entity_SnapToGround(entity);
-    entity->unk_4F4.part8.unk_4F5 = parent->unk_4F4.part8.unk_4F4;
-    entity->unk_4F4.part8.unk_4F7 = flags;
+    ENTITY_PARENT_INDEX(entity) = ENTITY_INDEX(parent);
+    EVENT03_PART_FLAGS(entity) = flags;
     entity->unk_518.part8.enemyId = 0xFF;
     Anim_StartIndexed(entity, 0, 0, 1);
-    if (entity->unk_4F4.part8.unk_4F7 & 4)
+    if (EVENT03_PART_FLAGS(entity) & 4)
     {
         s32 i;
 

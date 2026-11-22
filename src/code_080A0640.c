@@ -1,4 +1,5 @@
 #include "code/code_080211F0.h"
+#include "kyoma_demon_entity.h"
 #include "code/code_08039340.h"
 
 /* Draw the player inside this effect's horizontal window, with a temporary
@@ -11,7 +12,7 @@ void KyomaDemon_Draw(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *player = ewram->playerState.player;
     if (entity->state == 2)
     {
-        s32 center = entity->unk_4F8.part16.unk_4F8;
+        s32 center = KYOMA_DEMON_HOME_X(entity);
         s32 x = CtxV()->posX.whole;
         s32 b_ = bg->xPos.whole;
         s32 offset = 0x80000;

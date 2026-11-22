@@ -51,7 +51,7 @@ void Object17Effect_Update(struct EwramData_EntityData *entity)
  */
 void Object17Follower_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = ENTITY_OWNER(entity);
     entity->posX.whole = parent->posX.whole;
     entity->posY.whole = parent->posY.whole;
     Anim_Update(entity);

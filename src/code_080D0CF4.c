@@ -12,7 +12,7 @@
 void BelmontPowerParticle_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *owner =
-        &gEwramData->entityData[entity->unk_4F4.part8.unk_4F5];
+        &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
     s8 step = entity->unk_4FC.part8.unk_4FC;
     u16 initialYMinus32 = entity->posY.part16.integer - 32;
 

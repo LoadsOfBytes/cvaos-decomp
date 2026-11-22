@@ -1,5 +1,6 @@
 /* Belmont subweapon variants 2 and 3: ground impact and repeated flames. */
 #include "code_08009A0.h"
+#include "belmont_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -21,7 +22,7 @@ void BelmontSubweapon2_Update(struct EwramData_EntityData *entity)
         case 0:
         {
             s32 speed=0x24000;
-            entity->unk_514.unk_514_32=(void *)(u32)speed;
+            BELMONT_SUBWEAPON_SPEED(entity)=(void *)(u32)speed;
             entity->velX.whole=speed;
             if(!entity->flipX)
                 entity->velX.whole=-speed;
@@ -33,9 +34,9 @@ void BelmontSubweapon2_Update(struct EwramData_EntityData *entity)
         }
         case 1:
         {
-            s32 collision=Entity_Walk(entity,(s32)entity->unk_514.unk_514_32,sBelmontMoveProfile,0);
+            s32 collision=Entity_Walk(entity,(s32)BELMONT_SUBWEAPON_SPEED(entity),sBelmontMoveProfile,0);
             if(collision & 3)
-                entity->unk_514.unk_514_32=NULL;
+                BELMONT_SUBWEAPON_SPEED(entity)=NULL;
             if(collision & 8)
                 entity->state=3;
             break;
@@ -74,13 +75,13 @@ void BelmontSubweapon3_Update(struct EwramData_EntityData *entity)
     if(entity->state==0)
     {
         Anim_StartIndexed(entity,2,0,0);
-        entity->unk_514.unk_514_32=(void *)0x12000;
+        BELMONT_SUBWEAPON_SPEED(entity)=(void *)0x12000;
         entity->hidden=0;
         entity->state++;
         PlaySong(0x91);
     }
-    if(Entity_Walk(entity,(s32)entity->unk_514.unk_514_32,sBelmontMoveProfile,0) & 3)
-        entity->unk_514.unk_514_32=NULL;
+    if(Entity_Walk(entity,(s32)BELMONT_SUBWEAPON_SPEED(entity),sBelmontMoveProfile,0) & 3)
+        BELMONT_SUBWEAPON_SPEED(entity)=NULL;
     if(entity->animDone || EntityIsOutsideScreen(entity,4))
         EntityDelete(entity);
     else

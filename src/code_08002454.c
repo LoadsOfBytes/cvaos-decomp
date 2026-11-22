@@ -51,6 +51,60 @@
 #define TITLE_MENU_SLIDE_PHASE(e) e->unk_500.part8.unk_503
 #define TITLE_MENU_SLIDE_OFFSET(e) e->unk_504.whole
 
+/*
+ * Title logo entity (entityData[0x12], TitleScreenLogo_*): flags (1 = the
+ * approach is nearly done, start the palette fade-in; 2 = fade-in done), the
+ * approach distance that GameModeTitleScreenUpdate reduces to 0 while the BG2
+ * affine scale grows (0x108 - distance / 0x8000), the zoom step that then
+ * shrinks the scale to 0x118 - step (counts to 0x40), the wobble phase of the
+ * idle scale, the amplitude of the BG1 h-blank wave (TitleScreen_sub_08002F44)
+ * that fades out at the end of the intro, and the background palette blend
+ * step / timer (sTitlePaletteBlendSteps, TitleScreen_sub_08002FF8).
+ */
+#define TITLE_LOGO_FLAGS(e) e->unk_4FC.part16.unk_4FC
+#define TITLE_LOGO_DISTANCE(e) e->unk_500.whole
+#define TITLE_LOGO_ZOOM_STEP(e) e->unk_4FC.part16.unk_4FE[0]
+#define TITLE_LOGO_WOBBLE_PHASE(e) e->unk_508.part16.unk_50A
+#define TITLE_LOGO_WAVE_AMPLITUDE(e) e->unk_504.whole
+#define TITLE_LOGO_PALETTE_STEP(e) e->unk_508.part8.unk_508
+#define TITLE_LOGO_PALETTE_TIMER(e) e->unk_4F8.whole
+
+/*
+ * Title effect group (entityData[0x13], TitleScreen_CreateEffects): flags
+ * read by its children (1 = show the particles, 2 = start the spiral sprite,
+ * 4 = particles become opaque) and the fade timer of the blend in front of
+ * them.
+ */
+#define TITLE_EFFECTS_FLAGS(e) e->unk_4FC.part16.unk_4FC
+#define TITLE_EFFECTS_FADE_TIMER(e) e->unk_4F8.whole
+
+/*
+ * Title particles: 16.16 drift added to the position every frame and the two
+ * sine phases of the wobble (advanced by velX / velY, amplitudes accelX /
+ * accelY).
+ */
+#define TITLE_PARTICLE_DRIFT_X(e) e->unk_4FC.whole
+#define TITLE_PARTICLE_DRIFT_Y(e) e->unk_504.whole
+#define TITLE_PARTICLE_PHASE_X(e) e->unk_50C.part16.unk_50C
+#define TITLE_PARTICLE_PHASE_Y(e) e->unk_50C.part16.unk_50E
+
+/* Title spiral sprite: angle and radius around (0x7A, 0x1A), affine scale. */
+#define TITLE_SPIRAL_ANGLE(e) e->unk_4FC.part16.unk_4FC
+#define TITLE_SPIRAL_RADIUS(e) e->unk_500.whole
+#define TITLE_SPIRAL_SCALE(e) e->unk_504.whole
+
+/*
+ * Title flash sprites (TitleScreen_SpawnFlash): rotation angle and spin per
+ * frame, size (scale = size << 12), lifetime (sine phase of the blend fade,
+ * counts down by 0x180), and the flag that leaves the blend alpha alone.
+ */
+#define TITLE_FLASH_ANGLE(e) e->unk_4FC.part16.unk_4FC
+#define TITLE_FLASH_SPIN(e) e->unk_4FC.part16.unk_4FE[0]
+#define TITLE_FLASH_SIZE(e) e->unk_500.whole
+#define TITLE_FLASH_SCALE(e) e->unk_504.whole
+#define TITLE_FLASH_LIFE(e) e->unk_4F8.whole
+#define TITLE_FLASH_NO_BLEND(e) e->unk_508.part8.unk_508
+
 // Note: BgCmdBuffer_WriteString is implicitly called
 
 struct DebugMenuOptions {
@@ -876,20 +930,20 @@ void TitleScreen_sub_08002FF8(void)
     struct TitlePaletteBlendStep *step;
 
     unk_4E4 = &gEwramData->entityData[0x12];
-    step = &sTitlePaletteBlendSteps[unk_4E4->unk_508.part8.unk_508];
+    step = &sTitlePaletteBlendSteps[TITLE_LOGO_PALETTE_STEP(unk_4E4)];
 
-    if (unk_4E4->unk_4F8.whole++ > step->duration)
+    if (TITLE_LOGO_PALETTE_TIMER(unk_4E4)++ > step->duration)
     {
-        unk_4E4->unk_4F8.whole = 0;
+        TITLE_LOGO_PALETTE_TIMER(unk_4E4) = 0;
         BgPalette_LoadRange((void*)step->paletteResource, step->sourcePalette, 1, 0);
 
-        unk_4E4->unk_508.part8.unk_508 += 1;
-        if (unk_4E4->unk_508.part8.unk_508 >= ARRAY_SIZE(sTitlePaletteBlendSteps))
+        TITLE_LOGO_PALETTE_STEP(unk_4E4) += 1;
+        if (TITLE_LOGO_PALETTE_STEP(unk_4E4) >= ARRAY_SIZE(sTitlePaletteBlendSteps))
         {
-            unk_4E4->unk_508.part8.unk_508 = 0;
+            TITLE_LOGO_PALETTE_STEP(unk_4E4) = 0;
         }
 
-        step = &sTitlePaletteBlendSteps[unk_4E4->unk_508.part8.unk_508];
+        step = &sTitlePaletteBlendSteps[TITLE_LOGO_PALETTE_STEP(unk_4E4)];
         BgPalette_StartBlend(0, (void*)step->paletteResource, step->sourcePalette, 0x10000, 0, step->duration);
     }
 }
@@ -1019,7 +1073,7 @@ s32 GameModeTitleScreenUpdate(void)
 
             logo->posX.whole = 0x980000;
             logo->posY.whole = 0x700000;
-            TitleScreenSetAffine_inline(0x108 - logo->unk_500.whole / 0x8000);
+            TitleScreenSetAffine_inline(0x108 - TITLE_LOGO_DISTANCE(logo) / 0x8000);
 
             gEwramData->gameModeUpdateStage = 2;
             gEwramData->gameModeSubStage = 0;
@@ -1043,64 +1097,64 @@ s32 GameModeTitleScreenUpdate(void)
         case 3:
             TitleScreenStep(&gEwramData->entityData[0x12]);
 
-            if (logo->unk_500.whole != 0)
+            if (TITLE_LOGO_DISTANCE(logo) != 0)
             {
-                logo->unk_500.whole -= 0x2000;
+                TITLE_LOGO_DISTANCE(logo) -= 0x2000;
                 logo->posX.whole -= 0x2000;
                 logo->posY.whole -= 0x2000;
 
-                if (logo->unk_500.whole == 0x40000)
+                if (TITLE_LOGO_DISTANCE(logo) == 0x40000)
                 {
                     gDisplayRegisters.bldY = BLDY_MAX_VALUE;
                     TitleScreen_SpawnFlash(0, 0x18, 0xEF);
                     TitleScreen_SpawnFlash(1, 0x20, 0x89);
                 }
 
-                if (logo->unk_500.whole < 0x30000)
+                if (TITLE_LOGO_DISTANCE(logo) < 0x30000)
                 {
-                    logo->unk_4FC.part16.unk_4FC |= 1;
+                    TITLE_LOGO_FLAGS(logo) |= 1;
                     gEwramData->gameModeUpdateStage = 4;
                     gEwramData->gameModeSubStage = 0;
                 }
 
-                TitleScreenSetAffine_inline(0x108 - logo->unk_500.whole / 0x8000);
+                TitleScreenSetAffine_inline(0x108 - TITLE_LOGO_DISTANCE(logo) / 0x8000);
             }
             break;
     
         case 4:
             TitleScreenStep(&gEwramData->entityData[0x12]);
 
-            if (logo->unk_500.whole != 0)
+            if (TITLE_LOGO_DISTANCE(logo) != 0)
             {
-                logo->unk_500.whole -= 0x2000;
+                TITLE_LOGO_DISTANCE(logo) -= 0x2000;
                 logo->posX.whole -= 0x2000;
                 logo->posY.whole -= 0x2000;
 
-                TitleScreenSetAffine_inline(0x108 - logo->unk_500.whole / 0x8000);
+                TitleScreenSetAffine_inline(0x108 - TITLE_LOGO_DISTANCE(logo) / 0x8000);
             }
 
-            if ((logo->unk_4FC.part16.unk_4FC & 2))
+            if ((TITLE_LOGO_FLAGS(logo) & 2))
             {
                 gEwramData->gameModeUpdateStage = 5;
                 gEwramData->gameModeSubStage = 0;
 
             case 5:
                 TitleScreenStep(&gEwramData->entityData[0x12]);
-                TitleScreenSetAffine_inline(0x118 - logo->unk_4FC.part16.unk_4FE[0]);
-                if (logo->unk_4FC.part16.unk_4FC & 2)
+                TitleScreenSetAffine_inline(0x118 - TITLE_LOGO_ZOOM_STEP(logo));
+                if (TITLE_LOGO_FLAGS(logo) & 2)
                 {
                     logo->objMode = 2;
                 }
 
-                if (logo->unk_4FC.part16.unk_4FE[0] < 0x40)
+                if (TITLE_LOGO_ZOOM_STEP(logo) < 0x40)
                 {
-                    logo->unk_4FC.part16.unk_4FE[0] += 1;
+                    TITLE_LOGO_ZOOM_STEP(logo) += 1;
                 }
                 else
                 {
-                    overlay->unk_4F8.whole = 0x88;
+                    TITLE_EFFECTS_FADE_TIMER(overlay) = 0x88;
                     gDisplayRegisters.bldAlpha = C_16_2_8(BLDALPHA_MAX_VALUE, 0);
-                    overlay->unk_4FC.part16.unk_4FC |= 1;
+                    TITLE_EFFECTS_FLAGS(overlay) |= 1;
                     gEwramData->gameModeUpdateStage = 6;
                     gEwramData->gameModeSubStage = 0;
                 }
@@ -1110,18 +1164,18 @@ s32 GameModeTitleScreenUpdate(void)
         case 6:
             TitleScreenStep(&gEwramData->entityData[0x12]);
 
-            logo->unk_508.part16.unk_50A += 0x40;
-            TitleScreenSetAffine_inline(Sin(logo->unk_508.part16.unk_50A & 0x7FFF) / 0x1000 - (logo->unk_4FC.part16.unk_4FE[0] - 0x118));
+            TITLE_LOGO_WOBBLE_PHASE(logo) += 0x40;
+            TitleScreenSetAffine_inline(Sin(TITLE_LOGO_WOBBLE_PHASE(logo) & 0x7FFF) / 0x1000 - (TITLE_LOGO_ZOOM_STEP(logo) - 0x118));
 
-            if (overlay->unk_4F8.whole != 0)
+            if (TITLE_EFFECTS_FADE_TIMER(overlay) != 0)
             {
-                overlay->unk_4F8.whole--;
-                alpha = overlay->unk_4F8.whole / 8;
+                TITLE_EFFECTS_FADE_TIMER(overlay)--;
+                alpha = TITLE_EFFECTS_FADE_TIMER(overlay) / 8;
                 gDisplayRegisters.bldAlpha = C_16_2_8(alpha, BLDALPHA_MAX_VALUE - alpha);
             }
             else
             {
-                overlay->unk_4FC.part16.unk_4FC |= 4;
+                TITLE_EFFECTS_FLAGS(overlay) |= 4;
                 gDisplayRegisters.bldAlpha = C_16_2_8(BLDALPHA_MAX_VALUE, 0);
                 gDisplayRegisters.bldCnt = BLDCNT_SCREEN_SECOND_TARGET | BLDCNT_ALPHA_BLENDING_EFFECT | BLDCNT_BG1_FIRST_TARGET_PIXEL;
                 gUnk_03002CB0.dispCnt |= DCNT_BG1;
@@ -1133,25 +1187,25 @@ s32 GameModeTitleScreenUpdate(void)
         case 7:
             TitleScreenStep(&gEwramData->entityData[0x12]);
 
-            logo->unk_508.part16.unk_50A += 0x40;
-            TitleScreenSetAffine_inline(Sin(logo->unk_508.part16.unk_50A & 0x7FFF) / 0x1000 - (logo->unk_4FC.part16.unk_4FE[0] - 0x118));
+            TITLE_LOGO_WOBBLE_PHASE(logo) += 0x40;
+            TitleScreenSetAffine_inline(Sin(TITLE_LOGO_WOBBLE_PHASE(logo) & 0x7FFF) / 0x1000 - (TITLE_LOGO_ZOOM_STEP(logo) - 0x118));
 
-            if (logo->unk_504.whole != 0)
+            if (TITLE_LOGO_WAVE_AMPLITUDE(logo) != 0)
             {
-                if (!(overlay->unk_4FC.part16.unk_4FC & 2) && (logo->unk_504.whole <= 0x37F))
+                if (!(TITLE_EFFECTS_FLAGS(overlay) & 2) && (TITLE_LOGO_WAVE_AMPLITUDE(logo) <= 0x37F))
                 {
-                    overlay->unk_4FC.part16.unk_4FC |= 2;
+                    TITLE_EFFECTS_FLAGS(overlay) |= 2;
                 }
 
-                logo->unk_504.whole -= 2 + logo->unk_504.whole / 256 * 256 / 80;
+                TITLE_LOGO_WAVE_AMPLITUDE(logo) -= 2 + TITLE_LOGO_WAVE_AMPLITUDE(logo) / 256 * 256 / 80;
 
-                if (logo->unk_504.whole < 0xC0)
+                if (TITLE_LOGO_WAVE_AMPLITUDE(logo) < 0xC0)
                 {
-                    logo->unk_504.whole = 0;
+                    TITLE_LOGO_WAVE_AMPLITUDE(logo) = 0;
                 }
-                fade = logo->unk_504.whole / 1280;
+                fade = TITLE_LOGO_WAVE_AMPLITUDE(logo) / 1280;
                 gDisplayRegisters.bldAlpha = C_16_2_8(fade, BLDALPHA_MAX_VALUE - fade);
-                TitleScreen_sub_08002F44(logo->unk_504.whole);
+                TitleScreen_sub_08002F44(TITLE_LOGO_WAVE_AMPLITUDE(logo));
             }
             else
             {
@@ -1173,8 +1227,8 @@ s32 GameModeTitleScreenUpdate(void)
             gDisplayRegisters.bldY = BLDY_MAX_VALUE;
             TitleScreenStep(&gEwramData->entityData[0x12]);
 
-            logo->unk_508.part16.unk_50A += 0x40;
-            TitleScreenSetAffine_inline(Sin(logo->unk_508.part16.unk_50A & 0x7FFF) / 0x1000 - (logo->unk_4FC.part16.unk_4FE[0] - 0x118));
+            TITLE_LOGO_WOBBLE_PHASE(logo) += 0x40;
+            TitleScreenSetAffine_inline(Sin(TITLE_LOGO_WOBBLE_PHASE(logo) & 0x7FFF) / 0x1000 - (TITLE_LOGO_ZOOM_STEP(logo) - 0x118));
 
             if (gEwramData->inputData.repeatedInput & (KEY_DOWN | KEY_UP))
             {
@@ -1241,8 +1295,8 @@ s32 GameModeTitleScreenUpdate(void)
         gUnk_03002CB0.dispCnt |= DCNT_BG1 | DCNT_BG0;
         logo->posX.part16.integer = 0x78;
         logo->posY.part16.integer = 0x50;
-        logo->unk_500.whole = 0;
-        logo->unk_4FC.part16.unk_4FE[0] = 0x40;
+        TITLE_LOGO_DISTANCE(logo) = 0;
+        TITLE_LOGO_ZOOM_STEP(logo) = 0x40;
         tmp2 = C_16_2_8(0, BLDALPHA_MAX_VALUE);
         gDisplayRegisters.bldAlpha = tmp2;
 
@@ -1276,38 +1330,38 @@ void TitleScreenParticle_Update(struct EwramData_EntityData *entity)
     s32 y;
 
     logo = &gEwramData->entityData[0x13];
-    if (entity->state == 0 && !(logo->unk_4FC.part16.unk_4FC & 1))
+    if (entity->state == 0 && !(TITLE_EFFECTS_FLAGS(logo) & 1))
         return;
 
-    else if (entity->state == 0 && (logo->unk_4FC.part16.unk_4FC & 1))
+    else if (entity->state == 0 && (TITLE_EFFECTS_FLAGS(logo) & 1))
     {
         entity->state = 1;
         entity->hidden = 0;
     }
 
-    if ((entity->objMode != 0) && (logo->unk_4FC.part16.unk_4FC & 4))
+    if ((entity->objMode != 0) && (TITLE_EFFECTS_FLAGS(logo) & 4))
     {
         entity->objMode = 0;
     }
 
-    entity->unk_50C.part16.unk_50C += entity->velX.part16.integer;
-    entity->unk_50C.part16.unk_50E += entity->velY.part16.integer;
+    TITLE_PARTICLE_PHASE_X(entity) += entity->velX.part16.integer;
+    TITLE_PARTICLE_PHASE_Y(entity) += entity->velY.part16.integer;
 
-    waveX = entity->accelX.whole * Sin(entity->unk_50C.part16.unk_50C + 0x4000);
+    waveX = entity->accelX.whole * Sin(TITLE_PARTICLE_PHASE_X(entity) + 0x4000);
     if (waveX < 0)
     {
         waveX += 0xFFF;
     }
     entity->posX.whole += waveX >> 0xC;
 
-    waveY = entity->accelY.whole * Sin(entity->unk_50C.part16.unk_50E);
+    waveY = entity->accelY.whole * Sin(TITLE_PARTICLE_PHASE_Y(entity));
     if (waveY < 0)
     {
         waveY += 0xFFF;
     }
     y = entity->posY.whole + (waveY >> 0xC);
-    entity->posX.whole += entity->unk_4FC.whole;
-    entity->posY.whole = y + entity->unk_504.whole;
+    entity->posX.whole += TITLE_PARTICLE_DRIFT_X(entity);
+    entity->posY.whole = y + TITLE_PARTICLE_DRIFT_Y(entity);
 
     Anim_Update(entity);
 }
@@ -1396,27 +1450,27 @@ void TitleScreenParticle_Init(struct EwramData_EntityData *entity)
     entity->accelY.whole = ((RandomNumberGenerator() & 0xFF) * 0x10) + 0x400;
 
     angle = ArcTan2(entity->posX.part16.integer - 0x78, entity->posY.part16.integer - 0x60);
-    entity->unk_4FC.whole = Sin(angle + 0x4000);
-    entity->unk_504.whole = Sin(angle);
-    entity->posX.whole += entity->unk_4FC.whole << 5;
-    entity->posY.whole += entity->unk_504.whole << 5;
+    TITLE_PARTICLE_DRIFT_X(entity) = Sin(angle + 0x4000);
+    TITLE_PARTICLE_DRIFT_Y(entity) = Sin(angle);
+    entity->posX.whole += TITLE_PARTICLE_DRIFT_X(entity) << 5;
+    entity->posY.whole += TITLE_PARTICLE_DRIFT_Y(entity) << 5;
 
-    driftX = -entity->unk_4FC.whole;
+    driftX = -TITLE_PARTICLE_DRIFT_X(entity);
     if (driftX < 0)
     {
         driftX += 0xF;
     }
-    entity->unk_4FC.whole = driftX >> 4;
+    TITLE_PARTICLE_DRIFT_X(entity) = driftX >> 4;
 
-    driftY = -entity->unk_504.whole;
+    driftY = -TITLE_PARTICLE_DRIFT_Y(entity);
     if (driftY < 0)
     {
         driftY += 0xF;
     }
-    entity->unk_504.whole = driftY >> 4;
+    TITLE_PARTICLE_DRIFT_Y(entity) = driftY >> 4;
 
-    entity->unk_50C.part16.unk_50C = (RandomNumberGenerator() & 0xFF) << 8;
-    entity->unk_50C.part16.unk_50E = entity->unk_50C.part16.unk_50C + 0x8000 + ((RandomNumberGenerator() & 0x1F) << 4);
+    TITLE_PARTICLE_PHASE_X(entity) = (RandomNumberGenerator() & 0xFF) << 8;
+    TITLE_PARTICLE_PHASE_Y(entity) = TITLE_PARTICLE_PHASE_X(entity) + 0x8000 + ((RandomNumberGenerator() & 0x1F) << 4);
     entity->velX.part16.integer = (RandomNumberGenerator() & 0xFF) + 0x800;
     entity->velY.part16.integer = (RandomNumberGenerator() & 0xFF) + 0xA00;
 }
@@ -1438,41 +1492,41 @@ void TitleScreenSpiralSprite_Update(struct EwramData_EntityData *entity)
     s32 radiusY;
 
     unk_4E4 = &gEwramData->entityData[0x13];
-    angle = entity->unk_4FC.part16.unk_4FC;
+    angle = TITLE_SPIRAL_ANGLE(entity);
     switch (entity->state)
     {
         case 0:
-            if (unk_4E4->unk_4FC.part16.unk_4FC & 2)
+            if (TITLE_EFFECTS_FLAGS(unk_4E4) & 2)
             {
                 entity->hidden = 0;
                 entity->state = 1;
         case 1:
-                if (entity->unk_500.whole != 0)
+                if (TITLE_SPIRAL_RADIUS(entity) != 0)
                 {
-                    entity->unk_4FC.part16.unk_4FC -= 0xA0;
-                    shrunk = entity->unk_500.whole - 0x8000;
-                    decay = entity->unk_500.whole;
+                    TITLE_SPIRAL_ANGLE(entity) -= 0xA0;
+                    shrunk = TITLE_SPIRAL_RADIUS(entity) - 0x8000;
+                    decay = TITLE_SPIRAL_RADIUS(entity);
                     if (decay < 0)
                     {
                         decay += 0x3F;
                     }
                     radius = shrunk - (decay >> 6);
-                    entity->unk_500.whole = radius;
+                    TITLE_SPIRAL_RADIUS(entity) = radius;
                     if (radius <= 0xFFF)
                     {
-                        entity->unk_500.whole = 0;
+                        TITLE_SPIRAL_RADIUS(entity) = 0;
                     }
                 }
-                entity->unk_504.whole = (entity->unk_500.whole / 160) + 0x10000;
+                TITLE_SPIRAL_SCALE(entity) = (TITLE_SPIRAL_RADIUS(entity) / 160) + 0x10000;
                 // inlines?
                 cosA = Sin(angle + 0x4000);
-                radiusX = entity->unk_500.whole;
+                radiusX = TITLE_SPIRAL_RADIUS(entity);
                 entity->posX.whole = ((cosA >> 8) * (radiusX >> 8)) + 0x7A0000;
                 sinA = Sin(angle);
-                radiusY = entity->unk_500.whole;
+                radiusY = TITLE_SPIRAL_RADIUS(entity);
                 entity->posY.whole = ((sinA >> 8) * (radiusY >> 8)) + 0x1A0000;
                 Anim_Update(entity);
-                ObjAffine_Set(0, entity->unk_504.whole, entity->unk_504.whole, 0, 0, entity->affineIndex);
+                ObjAffine_Set(0, TITLE_SPIRAL_SCALE(entity), TITLE_SPIRAL_SCALE(entity), 0, 0, entity->affineIndex);
             }
         }
 }
@@ -1506,8 +1560,8 @@ void TitleScreenSpiralSprite_Init(struct EwramData_EntityData *entity)
     entity->hidden = 1;
     entity->scrollWithBg = 1;
     entity->spriteLayer = 6;
-    entity->unk_4FC.part16.unk_4FC = 0x9800;
-    entity->unk_500.whole = 0xC00000;
+    TITLE_SPIRAL_ANGLE(entity) = 0x9800;
+    TITLE_SPIRAL_RADIUS(entity) = 0xC00000;
     entity->unk_4FC.part16.unk_4FE[0] = 0;
 }
 
@@ -1553,24 +1607,24 @@ void TitleScreenFlash_Update(struct EwramData_EntityData *entity)
     {
         case 0:
             entity->state = 1;
-            entity->unk_504.whole = 0x20000;
-            entity->unk_4F8.whole = 0x8000;
+            TITLE_FLASH_SCALE(entity) = 0x20000;
+            TITLE_FLASH_LIFE(entity) = 0x8000;
             /* fallthrough */
         case 1:
-            entity->unk_504.whole = entity->unk_500.whole << 0xC;
-            if (entity->unk_508.part8.unk_508 == 0)
+            TITLE_FLASH_SCALE(entity) = TITLE_FLASH_SIZE(entity) << 0xC;
+            if (TITLE_FLASH_NO_BLEND(entity) == 0)
             {
-                alpha = 0x10 - (Sin(entity->unk_4F8.whole) >> 0xC);
+                alpha = 0x10 - (Sin(TITLE_FLASH_LIFE(entity)) >> 0xC);
                 gDisplayRegisters.bldAlpha = C_16_2_8(alpha, BLDALPHA_MAX_VALUE - alpha);
             }
 
-            entity->unk_4FC.part16.unk_4FC += entity->unk_4FC.part16.unk_4FE[0];
+            TITLE_FLASH_ANGLE(entity) += TITLE_FLASH_SPIN(entity);
             Anim_Update(entity);
-            ObjAffine_Set((s32) entity->unk_4FC.part16.unk_4FC, entity->unk_504.whole, entity->unk_504.whole, 0, 0, entity->affineIndex);
+            ObjAffine_Set((s32) TITLE_FLASH_ANGLE(entity), TITLE_FLASH_SCALE(entity), TITLE_FLASH_SCALE(entity), 0, 0, entity->affineIndex);
 
-            if (entity->unk_4F8.whole > 0)
+            if (TITLE_FLASH_LIFE(entity) > 0)
             {
-                entity->unk_4F8.whole -= 0x180;
+                TITLE_FLASH_LIFE(entity) -= 0x180;
             }
             else
             {
@@ -1619,9 +1673,9 @@ void TitleScreen_SpawnFlash(s32 skipBlend, s32 scale, u16 spin)
     Anim_Update(child);
     child->scrollWithBg = 1;
     child->spriteLayer = 6;
-    child->unk_508.part8.unk_508 = skipBlend;
-    child->unk_500.whole = scale;
-    child->unk_4FC.part16.unk_4FE[0] = spin;
+    TITLE_FLASH_NO_BLEND(child) = skipBlend;
+    TITLE_FLASH_SIZE(child) = scale;
+    TITLE_FLASH_SPIN(child) = spin;
     child->objMode = 1;
     child->posX.part16.integer = 0x4E;
     child->posY.part16.integer = 0x26;
@@ -1645,7 +1699,7 @@ void TitleScreenLogo_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
         case 0:
-            if (!(entity->unk_4FC.part16.unk_4FC & 1))
+            if (!(TITLE_LOGO_FLAGS(entity) & 1))
             {
                 break;
             }
@@ -1698,7 +1752,7 @@ void TitleScreenLogo_Update(struct EwramData_EntityData *entity)
                 {
                     entity->subState = tick3;
                     entity->timer = tick3;
-                    entity->unk_4FC.part16.unk_4FC |= 2;
+                    TITLE_LOGO_FLAGS(entity) |= 2;
                     entity->state = 4;
                     break;
                 }
@@ -1761,8 +1815,8 @@ void TitleScreenLogo_Create(struct EwramData_EntityData *entity)
     entity->drawFunc = (u32 *) TitleScreenLogo_Draw;
     entity->scrollWithBg = 1;
     entity->spriteLayer = 0x11;
-    entity->unk_500.whole = 0x200000;
-    entity->unk_504.whole = 0x5000;
+    TITLE_LOGO_DISTANCE(entity) = 0x200000;
+    TITLE_LOGO_WAVE_AMPLITUDE(entity) = 0x5000;
     gDisplayRegisters.winOut_L = WIN0_ALL;
     gDisplayRegisters.winOut_H = (WIN1_ALL >> 8) & ~WIN0_BG2;
 }

@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "legion_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -20,41 +21,41 @@ struct EwramData_EntityData *LegionCorePart_CreateDetail(struct EwramData_Entity
 
     if (part != NULL)
     {
-    part->unk_4F8.whole = x;
-    part->unk_4FC.whole = y;
+    LEGION_PART_OFFSET_X(part) = x;
+    LEGION_PART_OFFSET_Y(part) = y;
     switch (kind)
     {
     case 0:
-        part->unk_4F8.whole += 0x10000;
-        part->unk_4FC.whole += -0x250000;
+        LEGION_PART_OFFSET_X(part) += 0x10000;
+        LEGION_PART_OFFSET_Y(part) += -0x250000;
         break;
     case 1:
-        part->unk_4F8.whole += -0x160000;
-        part->unk_4FC.whole += 0x20000;
+        LEGION_PART_OFFSET_X(part) += -0x160000;
+        LEGION_PART_OFFSET_Y(part) += 0x20000;
         break;
     case 2:
-        part->unk_4F8.whole += -0x30000;
-        part->unk_4FC.whole += -0x150000;
+        LEGION_PART_OFFSET_X(part) += -0x30000;
+        LEGION_PART_OFFSET_Y(part) += -0x150000;
         break;
     case 3:
-        part->unk_4F8.whole += 0x1C0000;
-        part->unk_4FC.whole += -0x10000;
+        LEGION_PART_OFFSET_X(part) += 0x1C0000;
+        LEGION_PART_OFFSET_Y(part) += -0x10000;
         break;
     case 4:
-        part->unk_4F8.whole += -0x30000;
-        part->unk_4FC.whole += 0x140000;
+        LEGION_PART_OFFSET_X(part) += -0x30000;
+        LEGION_PART_OFFSET_Y(part) += 0x140000;
         break;
     }
-    part->posX.whole = entity->posX.whole + part->unk_4F8.whole;
-    part->posY.whole = entity->posY.whole + part->unk_4FC.whole;
-    part->unk_504.part8.unk_504 = kind;
+    part->posX.whole = entity->posX.whole + LEGION_PART_OFFSET_X(part);
+    part->posY.whole = entity->posY.whole + LEGION_PART_OFFSET_Y(part);
+    LEGION_PART_KIND(part) = kind;
     part->spriteLayer = entity->spriteLayer + 4;
     part->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
     Sprite_Attach(part, sLegionSpriteSheet, tiles, part->unk_510.part8.basePalette);
     part->animFrame = kind + 4;
     part->animMode = 2;
     part->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
-    part->unk_4F4.unk_4F4_entity = entity;
+    LEGION_PART_OWNER(part) = entity;
     part->scrollWithBg = 0;
     part->flipX = 0;
     part->hit.flags |= 4;

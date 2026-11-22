@@ -1,5 +1,6 @@
 /* Related-entity animation and particle helpers, 0x0805F008..0x0805F11F. */
 #include "code_080D73B8.h"
+#include "event_scene03.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -12,12 +13,12 @@ extern struct EwramData_EntityData *Effect_SpawnAttachedAnimation(struct EwramDa
  */
 s32 EventScene03_EndParts(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *actor = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *actor = EVENT03_ACTOR0(entity);
     s32 result;
     if (actor->animScriptIndex != 5)
         Anim_StartIndexed(actor, 5, 0, 0);
-    result = Anim_StartIndexed(entity->unk_4FC.unk_4FC_entity, 1, 0, 1);
-    entity->unk_500.unk_500_entity->deleteRequested = 1;
+    result = Anim_StartIndexed(EVENT03_ACTOR1(entity), 1, 0, 1);
+    EVENT03_ACTOR8(entity)->deleteRequested = 1;
     return result;
 }
 

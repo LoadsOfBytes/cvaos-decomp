@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "golem_entity.h"
 #include "joint_entity.h"
 #include "structs/ewram.h"
 #include "string.h"
@@ -20,14 +21,14 @@ void Golem_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
     case 0:
         if ((u8)entity->timer++ > 59) {
             entity->subState++;
-            entity->timer = delay[entity->unk_508.whole];
+            entity->timer = delay[GOLEM_VARIANT(entity)];
             JOINT_POSE(entity) = 2;
         }
         break;
     case 1:
         Golem_UpdateAllParts(entity);
         if ((s8)--entity->timer <= 0) {
-            entity->timer = delay[entity->unk_508.whole];
+            entity->timer = delay[GOLEM_VARIANT(entity)];
             entity->subState++;
             JOINT_POSE(entity) = 2;
         }
@@ -42,7 +43,7 @@ void Golem_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
         break;
     case 3:
         if ((s8)--entity->timer <= 0) {
-            entity->timer = delay[entity->unk_508.whole];
+            entity->timer = delay[GOLEM_VARIANT(entity)];
             entity->subState++;
             JOINT_POSE(entity) = 3;
         }
@@ -50,7 +51,7 @@ void Golem_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
     case 4:
         Golem_UpdateAllParts(entity);
         if ((s8)--entity->timer <= 0) {
-            entity->timer = delay[entity->unk_508.whole];
+            entity->timer = delay[GOLEM_VARIANT(entity)];
             entity->subState++;
             JOINT_POSE(entity) = 4;
         }
@@ -65,7 +66,7 @@ void Golem_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
         break;
     case 6:
         if ((s8)--entity->timer <= 0) {
-            entity->timer = delay[entity->unk_508.whole];
+            entity->timer = delay[GOLEM_VARIANT(entity)];
             entity->subState = 1;
             JOINT_POSE(entity) = 1;
         }
@@ -153,14 +154,14 @@ void Golem_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
     case 32:
         Golem_UpdateAllParts(entity);
         if ((s8)--entity->timer <= 0) {
-            entity->timer = delay[entity->unk_508.whole];
+            entity->timer = delay[GOLEM_VARIANT(entity)];
             entity->subState = 2;
             JOINT_POSE(entity) = 2;
         }
         break;
     case 40:
         if ((s8)entity->unk_4FC.part8.unk_4FD > 1) {
-            entity->timer = delay[entity->unk_508.whole];
+            entity->timer = delay[GOLEM_VARIANT(entity)];
             entity->subState = 2;
             JOINT_POSE(entity) = 2;
         } else {

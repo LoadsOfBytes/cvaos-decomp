@@ -1,5 +1,6 @@
 /* Aerial approach, braking, volleys and the return to ordinary flight. */
 #include "code_08009A0.h"
+#include "harpy_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -40,9 +41,9 @@ void Harpy_UpdateAttack(struct EwramData_EntityData *entity)
                 PlaySong(0x87);
                 entity->subState++;
                 camera=&gEwramData->bgInfo[1];
-                entity->unk_4F8.whole=Target_GetX(entity)+camera->xPos.whole;
-                entity->unk_4FC.whole=Target_GetY(entity)+camera->yPos.whole-0x180000;
-                entity->unk_500.whole=entity->posY.whole;
+                HARPY_DIVE_X(entity)=Target_GetX(entity)+camera->xPos.whole;
+                HARPY_DIVE_Y(entity)=Target_GetY(entity)+camera->yPos.whole-0x180000;
+                HARPY_START_Y(entity)=entity->posY.whole;
             }
             else
             {
@@ -54,7 +55,7 @@ void Harpy_UpdateAttack(struct EwramData_EntityData *entity)
             break;
         }
         case 1:
-            if(Entity_AimVelocityAtPoint(entity,entity->unk_4F8.whole,entity->unk_4FC.whole,0x30000))
+            if(Entity_AimVelocityAtPoint(entity,HARPY_DIVE_X(entity),HARPY_DIVE_Y(entity),0x30000))
             {
                 entity->subState++;
                 Anim_StartIndexed(entity,1,0,1);

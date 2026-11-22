@@ -2,6 +2,7 @@
  * a cloning script and checked byte for byte:
  *   GladiatorPart_OnHit = ManticoreTail_OnHit */
 #include "code_08009A0.h"
+#include "gladiator_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_080211F0.h"
@@ -27,7 +28,7 @@ void Gladiator_UpdateDeath(struct EwramData_EntityData *entity);
  */
 void GladiatorPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    struct EwramData_EntityData *gladiator = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *gladiator = ENTITY_OWNER(entity);
     s32 oldX = gladiator->posX.whole;
     s32 oldY = gladiator->posY.whole;
     s16 damage;
@@ -36,11 +37,11 @@ void GladiatorPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 
     gladiator->posX.whole = entity->posX.whole;
     gladiator->posY.whole = entity->posY.whole;
     attackPower = Player_CalculateAttackPower(hit[2]);
-    damage = Hit_ResolveDamage(entity->unk_4F8.unk_4F8_entity, attacker, hit, attackPower);
+    damage = Hit_ResolveDamage(ENTITY_OWNER(entity), attacker, hit, attackPower);
     gladiator->posX.whole = oldX;
     gladiator->posY.whole = oldY;
     Entity_ShowDamage(entity, damage, 0);
-    Gladiator_OnDamaged(entity->unk_4F8.unk_4F8_entity, attacker, hit, damage);
+    Gladiator_OnDamaged(ENTITY_OWNER(entity), attacker, hit, damage);
 }
 
 /* Gladiator: dispatch the AI (0), the death (1) and a frozen state (2). */
@@ -70,7 +71,7 @@ void EnemyGladiatorUpdate(struct EwramData_EntityData *entity)
         Anim_Update(entity);
         return;
     }
-    if (entity->unk_4F8.part8.unk_4F8 == 0) Entity_AnimateWithBoxes(entity);
+    if (GLADIATOR_FLINCH(entity) == 0) Entity_AnimateWithBoxes(entity);
     Enemy_CheckHitPlayer(entity);
 }
 

@@ -21,7 +21,7 @@ void EventScene03_SpawnUnusedPartDebris(struct EwramData_EntityData *owner)
         if (part != NULL)
         {
             info = sEventScene03UnusedDebris + offset;
-            part->unk_4F4.part8.unk_4F5 = owner->unk_4F4.part8.unk_4F4;
+            ENTITY_PARENT_INDEX(part) = ENTITY_INDEX(owner);
             part->spriteLayer = owner->spriteLayer;
             part->unk_510.part8.basePalette = owner->unk_510.part8.basePalette;
             part->flipX = owner->flipX;

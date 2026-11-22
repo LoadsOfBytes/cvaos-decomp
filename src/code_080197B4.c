@@ -29,8 +29,8 @@ static inline void SetPlayerAnimBox(struct EwramData_EntityData *entity, u8 anim
     {
         Anim_StartIndexed(entity, anim, 3, 0);
         HitBox_SetBody(entity, &box);
-        entity->unk_504.part16.unk_504 = 0xFF;
-        entity->unk_4F4.whole &= ~0x200000;
+        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
+        PLAYER_ACTION_FLAGS(entity) &= ~0x200000;
         pal = sSomaAnimPalettes[anim];
         if (PLAYER_ANIM_PALETTE(entity) != pal)
         {
@@ -52,7 +52,7 @@ void Soma_HandleWeaponAttackInput(struct EwramData_EntityData *entity)
         return;
     if (!(gEwramData->inputData.playerNewInput & gEwramData->playerStatus.attackButton) && !(gEwramData->playerStatus.inputOverrides & 2))
         return;
-    if (entity->unk_4F4.whole & 0x160)
+    if (PLAYER_ACTION_FLAGS(entity) & 0x160)
         return;
     if (gEwramData->playerState.weaponEntities[0] != NULL)
         return;
@@ -60,12 +60,12 @@ void Soma_HandleWeaponAttackInput(struct EwramData_EntityData *entity)
         return;
     if (Weapon_GetEquippedInfo()->attackAnimKind == 5)
         return;
-    if (entity->unk_4F4.whole & 2)
+    if (PLAYER_ACTION_FLAGS(entity) & 2)
     {
-        entity->unk_4F4.whole |= 0x40;
+        PLAYER_ACTION_FLAGS(entity) |= 0x40;
         SetPlayerAnimBox(entity, Weapon_GetPlayerAttackAnim(2), sSomaAirborneBodyBox);
     }
-    else if (!(entity->unk_4F4.whole & 0x400))
+    else if (!(PLAYER_ACTION_FLAGS(entity) & 0x400))
     {
         SetPlayerAnimBox(entity, Weapon_GetPlayerAttackAnim(0), sSomaStandingBodyBox);
     }
@@ -73,6 +73,6 @@ void Soma_HandleWeaponAttackInput(struct EwramData_EntityData *entity)
     {
         SetPlayerAnimBox(entity, Weapon_GetPlayerAttackAnim(1), sSomaCrouchBodyBoxes);
     }
-    entity->unk_4F4.whole |= 0x20;
+    PLAYER_ACTION_FLAGS(entity) |= 0x20;
     entity->state = 1;
 }

@@ -25,7 +25,7 @@ void Manticore_SpawnShot(struct EwramData_EntityData *entity)
     shot->scrollWithBg = 1;
     ManticoreShot_EnableHitBoxes(shot);
     shot->spriteLayer = entity->spriteLayer - 1;
-    shot->unk_4F4.unk_4F4_entity = entity;
+    ENTITY_CREATOR(shot) = entity;
     shot->flipX = entity->flipX;
     if (entity->flipX)
     {

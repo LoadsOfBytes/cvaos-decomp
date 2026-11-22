@@ -1,12 +1,13 @@
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
-#define DIST(e) ((e)->unk_4F8.whole)
-#define SPEED(e) ((e)->unk_4FC.part16.unk_4FE[0])
-#define ACCEL(e) ((e)->unk_4FC.part16.unk_4FC)
-#define POS(e) ((e)->unk_504.part16.unk_504)
-#define STEP(e) ((e)->unk_504.part16.unk_506[0])
+#define DIST(e) (WARP_GATE_DIST((e)))
+#define SPEED(e) (WARP_GATE_SPEED((e)))
+#define ACCEL(e) (WARP_GATE_ACCEL((e)))
+#define POS(e) (WARP_GATE_POS((e)))
+#define STEP(e) (WARP_GATE_STEP((e)))
 
 /**
  * @brief Reset a gate part to its closed animation; on arrival (stateFlags bit

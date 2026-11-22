@@ -1,5 +1,6 @@
 /* Objects 0x35 / 0x36 helpers 0x0805A590..0x0805A747. */
 #include "gba.h"
+#include "room_object_entity.h"
 #include "syscalls.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -50,11 +51,11 @@ void Object35_Draw(struct EwramData_EntityData *entity)
 {
     s32 oldY = entity->posY.whole;
 
-    if (entity->unk_500.whole != 0)
+    if (OBJECT35_PRESSED(entity) != 0)
     {
         entity->objMode = 2;
         gUnk_03002CB0.dispCnt |= DCNT_WINOBJ;
-        entity->posY.whole = entity->unk_4F8.whole + 0x300000;
+        entity->posY.whole = OBJECT35_HOME_Y(entity) + 0x300000;
         Sprite_Draw(entity);
         entity->objMode = 0;
     }
@@ -94,11 +95,11 @@ void Object36Update(struct EwramData_EntityData *entity)
     affineSrc.texY = 0x8000;
     affineSrc.scrX = entity->posX.part16.integer;
     affineSrc.scrY = entity->posY.part16.integer;
-    affineSrc.sx = entity->unk_500.part16.unk_500;
-    affineSrc.sy = entity->unk_500.part16.unk_500;
-    affineSrc.alpha = entity->unk_4F8.whole;
+    affineSrc.sx = OBJECT36_SCALE(entity);
+    affineSrc.sy = OBJECT36_SCALE(entity);
+    affineSrc.alpha = OBJECT36_ANGLE(entity);
     BgAffineSet(&affineSrc, (struct BgAffineDstData *)&gDisplayRegisters.bg2PA, 1);
-    entity->unk_4F8.whole += entity->unk_4FC.part16.unk_4FE[0];
+    OBJECT36_ANGLE(entity) += OBJECT36_SPIN(entity);
 }
 
 /**
@@ -113,8 +114,8 @@ void Object36Create(struct EwramData_EntityData *entity)
     entity->hit.flags |= 4;
     entity->hit.flags |= 2;
     entity->hidden = 1;
-    entity->unk_4FC.part16.unk_4FC = shapes[entity->unk_514.part16.spawnParam0][0] / 2;
-    entity->unk_4FC.part16.unk_4FE[0] = shapes[entity->unk_514.part16.spawnParam0][1];
-    entity->unk_500.part16.unk_500 = 0x200 - shapes[entity->unk_514.part16.spawnParam0][0] * 2;
+    OBJECT36_RADIUS(entity) = shapes[entity->unk_514.part16.spawnParam0][0] / 2;
+    OBJECT36_SPIN(entity) = shapes[entity->unk_514.part16.spawnParam0][1];
+    OBJECT36_SCALE(entity) = 0x200 - shapes[entity->unk_514.part16.spawnParam0][0] * 2;
     Player_RegisterSolidObject(entity, sObject36SolidCallbacks);
 }

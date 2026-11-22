@@ -1,5 +1,6 @@
 /* Link the animated overhead object back to the boss. */
 #include "code_08009A0.h"
+#include "graham_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
@@ -21,14 +22,14 @@ void GrahamFirstForm_CreateTransitionPart(struct EwramData_EntityData *entity)
         EntityDelete(effect);
         return;
     }
-    effect->unk_4F4.part8.unk_4F5=entity->unk_4F4.part8.unk_4F4;
+    ENTITY_PARENT_INDEX(effect)=ENTITY_INDEX(entity);
     effect->spriteLayer=entity->spriteLayer-1;
     effect->flipX=entity->flipX;
     effect->posX.whole=entity->posX.whole;
     effect->posY.whole=entity->posY.whole-0x300000;
     effect->scrollWithBg=1;
     effect->hidden=1;
-    entity->unk_4F4.part8.unk_4F6=effect->unk_4F4.part8.unk_4F4;
+    GRAHAM_CHILD_INDEX(entity)=ENTITY_INDEX(effect);
     Anim_StartIndexed(effect,1,1,0);
     Anim_Update(effect);
 }

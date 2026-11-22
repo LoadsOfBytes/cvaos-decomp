@@ -1,5 +1,6 @@
 /* Chaos core: intro (20D0). (signed modulo through a separate variable). */
 #include "code_08009A0.h"
+#include "chaos_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -24,7 +25,7 @@ extern void Chaos_CreateMark(struct EwramData_EntityData *, s32);
  * marks and let the three orbs fire at the player, then start the fight. */
 void Chaos_UpdateIntro(struct EwramData_EntityData *core)
 {
-    struct ChaosData *data = (struct ChaosData *)core->unk_504.whole;
+    struct ChaosData *data = (struct ChaosData *)CHAOS_DATA(core);
 
     SetPlayerInput(2, 0);
     switch (core->subState)

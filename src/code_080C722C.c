@@ -1,5 +1,6 @@
 /* Lunge towards the target. */
 #include "code/code_08039340.h"
+#include "nemesis_entity.h"
 #include "code_080D73B8.h"
 #include "code_08009A0.h"
 #include "code_08001194.h"
@@ -33,7 +34,7 @@ void Nemesis_UpdateSpinLunge(struct EwramData_EntityData *entity)
         entity->accelX.whole = 0;
         entity->velY.whole = 0;
         entity->velX.whole = 0;
-        entity->unk_500.part16.unk_502 = 0x1000;
+        NEMESIS_TURN(entity) = 0x1000;
         entity->timer = 0;
         entity->subState++;
     case 1:
@@ -41,10 +42,10 @@ void Nemesis_UpdateSpinLunge(struct EwramData_EntityData *entity)
             PlaySong(0x85);
         if (entity->timer++ > 0x40)
         {
-            entity->unk_500.part16.unk_502 = 0;
-            entity->unk_500.part16.unk_500 = (u32)Entity_GetTargetAngleAbove16(entity) + 0xC000;
-            entity->velX.whole = FixedMultiply(Sin(entity->unk_500.part16.unk_500 + 0x8000), 0x20000);
-            entity->velY.whole = FixedMultiply(Sin(entity->unk_500.part16.unk_500 + 0x4000), 0x20000);
+            NEMESIS_TURN(entity) = 0;
+            NEMESIS_ANGLE(entity) = (u32)Entity_GetTargetAngleAbove16(entity) + 0xC000;
+            entity->velX.whole = FixedMultiply(Sin(NEMESIS_ANGLE(entity) + 0x8000), 0x20000);
+            entity->velY.whole = FixedMultiply(Sin(NEMESIS_ANGLE(entity) + 0x4000), 0x20000);
             entity->timer = ABS((Target_GetX(entity) - entity->posX.whole) / entity->velX.whole);
             entity->subState++;
             PlaySong(0x85);
@@ -71,6 +72,6 @@ void Nemesis_UpdateSpinLunge(struct EwramData_EntityData *entity)
     entity->posY.whole += entity->velY.whole;
     entity->velX.whole += entity->accelX.whole;
     entity->velY.whole += entity->accelY.whole;
-    entity->unk_500.part16.unk_500 += entity->unk_500.part16.unk_502;
-    ObjAffine_Set(entity->unk_500.part16.unk_500, 0x10000, 0x10000, 0, 0, entity->affineIndex);
+    NEMESIS_ANGLE(entity) += NEMESIS_TURN(entity);
+    ObjAffine_Set(NEMESIS_ANGLE(entity), 0x10000, 0x10000, 0, 0, entity->affineIndex);
 }

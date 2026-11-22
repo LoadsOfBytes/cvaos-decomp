@@ -2,6 +2,13 @@
 #include "code/code_080211F0.h"
 #include "structs/ewram.h"
 
+/*
+ * Axe Armor's thrown axe (AxeArmorAxe_Update): affine angle and spin step.
+ * Token-identical expansion.
+ */
+#define AXE_ARMOR_AXE_ANGLE(e) e->unk_4F8.whole
+#define AXE_ARMOR_AXE_SPIN(e) e->unk_4FC.whole
+
 extern void Minotaur_Init(struct EwramData_EntityData *entity, s32 variant);
 extern void Minotaur_Update(struct EwramData_EntityData *entity);
 
@@ -141,17 +148,17 @@ void AxeArmorAxe_Update(struct EwramData_EntityData *entity)
             entity->scrollWithBg = 1;
             entity->velX.whole = -0x28000;
             entity->accelX.whole = 0x800;
-            entity->unk_4FC.whole = 0x800;
+            AXE_ARMOR_AXE_SPIN(entity) = 0x800;
             if (entity->stage == 1)
             {
                 entity->posY.part16.integer -= 20;
-                entity->unk_4FC.whole = -entity->unk_4FC.whole;
+                AXE_ARMOR_AXE_SPIN(entity) = -AXE_ARMOR_AXE_SPIN(entity);
             }
             if (entity->flipX)
             {
                 entity->velX.whole = -entity->velX.whole;
                 entity->accelX.whole = -entity->accelX.whole;
-                entity->unk_4FC.whole = -entity->unk_4FC.whole;
+                AXE_ARMOR_AXE_SPIN(entity) = -AXE_ARMOR_AXE_SPIN(entity);
             }
             entity->state = 1;
             PlaySong(0x86);
@@ -169,8 +176,8 @@ void AxeArmorAxe_Update(struct EwramData_EntityData *entity)
             EntityDelete(entity);
             return;
     }
-    entity->unk_4F8.whole += entity->unk_4FC.whole;
-    ObjAffine_Set(entity->unk_4F8.whole, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
+    AXE_ARMOR_AXE_ANGLE(entity) += AXE_ARMOR_AXE_SPIN(entity);
+    ObjAffine_Set(AXE_ARMOR_AXE_ANGLE(entity), 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
     if (EntityIsOutsideScreen(entity, 4))
         entity->state = 2;
 }

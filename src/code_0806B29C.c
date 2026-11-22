@@ -4,6 +4,13 @@
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
+/*
+ * Animation viewer (debug): frame mode (0 = play animation scripts, 1 = step
+ * single frames) and the selected frame. Token-identical expansion.
+ */
+#define ANIM_VIEWER_FRAME_MODE(e) e->unk_504.part8.unk_504
+#define ANIM_VIEWER_FRAME(e) e->unk_504.part8.unk_505
+
 struct AnimViewerFrame
 {
     u32 scriptHeader;
@@ -25,7 +32,7 @@ void AnimationViewer_Update(struct EwramData_EntityData *entity)
 
     anim.raw = *(const u64 *)&sAnimViewerInitialFrame;
 
-    if ((s8)entity->unk_504.part8.unk_504 == 0)
+    if ((s8)ANIM_VIEWER_FRAME_MODE(entity) == 0)
     {
         if ((gEwramData->inputData.playerNewInput & 0x40) && entity->animScriptIndex != 0)
             Anim_StartIndexed(entity, entity->animScriptIndex - 1, 0, 0);
@@ -36,8 +43,8 @@ void AnimationViewer_Update(struct EwramData_EntityData *entity)
         Anim_Update(entity);
         if (gEwramData->inputData.playerNewInput & 0x104)
         {
-            entity->unk_504.part8.unk_504 = 1;
-            entity->unk_504.part8.unk_505 = 0;
+            ANIM_VIEWER_FRAME_MODE(entity) = 1;
+            ANIM_VIEWER_FRAME(entity) = 0;
             Anim_Start(entity, (struct AnimScript *)&anim, 0, 1);
         }
     }
@@ -46,28 +53,28 @@ void AnimationViewer_Update(struct EwramData_EntityData *entity)
         entity->animTimer = 0;
         if (gEwramData->inputData.playerNewInput & 0x40)
         {
-            if ((s8)entity->unk_504.part8.unk_505 != 0)
-                entity->unk_504.part8.unk_505--;
+            if ((s8)ANIM_VIEWER_FRAME(entity) != 0)
+                ANIM_VIEWER_FRAME(entity)--;
             entity->animTimer = 100;
         }
         if (gEwramData->inputData.playerNewInput & 0x80)
         {
-            entity->unk_504.part8.unk_505++;
+            ANIM_VIEWER_FRAME(entity)++;
             entity->animTimer = 100;
         }
         ewram = gEwramData;
         if (ewram->inputData.playerNewInput & 1)
         {
-            entity->unk_504.part8.unk_505 = 0;
+            ANIM_VIEWER_FRAME(entity) = 0;
             entity->animTimer = 100;
         }
         if (ewram->inputData.playerNewInput & 0x208)
         {
-            entity->unk_504.part8.unk_504 = 0;
+            ANIM_VIEWER_FRAME_MODE(entity) = 0;
             Anim_StartIndexed(entity, 0, 0, 0);
         }
         {
-            s32 index = entity->unk_504.part8.unk_505;
+            s32 index = ANIM_VIEWER_FRAME(entity);
             u8 frame = index;
             anim.f.frame = frame;
         }

@@ -1,6 +1,8 @@
 /* SkillTinyDevilUpdate: homing bat of SkillTinyDevilUse; matched.
  * Case 2 uses its own target variable (otherwise the case 1 one lives across calls). */
 #include "code_08009A0.h"
+#include "soul_skill_entity.h"
+#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -83,7 +85,7 @@ void SkillTinyDevilUpdate(struct EwramData_EntityData *entity)
             target = NULL;
         }
     found:
-        entity->unk_504.unk_504_entity = target;
+        SKILL_TINY_DEVIL_TARGET(entity) = target;
         if (target != NULL)
             entity->state = 2;
         else
@@ -104,13 +106,13 @@ void SkillTinyDevilUpdate(struct EwramData_EntityData *entity)
         PlaySong(0x134);
         break;
     case 2:
-        if (entity->unk_508.whole <= 0x4FFFF)
-            entity->unk_508.whole += 0x4000;
-        victim = entity->unk_504.unk_504_entity;
+        if (SKILL_TINY_DEVIL_SPEED(entity) <= 0x4FFFF)
+            SKILL_TINY_DEVIL_SPEED(entity) += 0x4000;
+        victim = SKILL_TINY_DEVIL_TARGET(entity);
         {
             s32 tx = victim->posX.whole;
             s32 ty = victim->posY.whole;
-            angle = (s16)entity->unk_510.part16.unk_510;
+            angle = (s16)SKILL_TINY_DEVIL_HEADING(entity);
             diff = (u16)ArcTan2((s16)(FIXED_TO_INT(tx) - (s16)entity->posX.part16.integer),
                                 (s16)(FIXED_TO_INT(ty) - (s16)entity->posY.part16.integer)) - angle;
         }
@@ -128,24 +130,24 @@ void SkillTinyDevilUpdate(struct EwramData_EntityData *entity)
             else
                 angle -= 0x100;
         }
-        entity->unk_510.part16.unk_510 = angle;
-        entity->velX.whole = FixedMul(Sin((s16)entity->unk_510.part16.unk_510 + 0x4000), entity->unk_508.whole);
-        entity->velY.whole = FixedMul(Sin((s16)entity->unk_510.part16.unk_510), entity->unk_508.whole);
+        SKILL_TINY_DEVIL_HEADING(entity) = angle;
+        entity->velX.whole = FixedMul(Sin((s16)SKILL_TINY_DEVIL_HEADING(entity) + 0x4000), SKILL_TINY_DEVIL_SPEED(entity));
+        entity->velY.whole = FixedMul(Sin((s16)SKILL_TINY_DEVIL_HEADING(entity)), SKILL_TINY_DEVIL_SPEED(entity));
         EntityAccelerateAndMove(entity, 0x80000);
         timer = entity->timer - 1;
         entity->timer = timer;
-        if ((s16)victim->unk_518.part16.hp <= 0 || (u8)entity->unk_4FC.part8.unk_4FC != 0 || (u8)timer == 0)
+        if ((s16)victim->unk_518.part16.hp <= 0 || (u8)RED_SOUL_HIT(entity) != 0 || (u8)timer == 0)
             entity->state = 3;
         break;
     case 3:
-        if (entity->unk_508.whole <= 0x4FFFF)
-            entity->unk_508.whole += 0x4000;
-        entity->velX.whole = FixedMul(Sin((s16)entity->unk_510.part16.unk_510 + 0x4000), entity->unk_508.whole);
-        entity->velY.whole = FixedMul(Sin((s16)entity->unk_510.part16.unk_510), entity->unk_508.whole);
+        if (SKILL_TINY_DEVIL_SPEED(entity) <= 0x4FFFF)
+            SKILL_TINY_DEVIL_SPEED(entity) += 0x4000;
+        entity->velX.whole = FixedMul(Sin((s16)SKILL_TINY_DEVIL_HEADING(entity) + 0x4000), SKILL_TINY_DEVIL_SPEED(entity));
+        entity->velY.whole = FixedMul(Sin((s16)SKILL_TINY_DEVIL_HEADING(entity)), SKILL_TINY_DEVIL_SPEED(entity));
         EntityAccelerateAndMove(entity, 0x80000);
         break;
     case 4:
-        gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;
@@ -153,11 +155,11 @@ void SkillTinyDevilUpdate(struct EwramData_EntityData *entity)
     if (EntityIsOutsideScreen(entity, 2) || !entity->roomActive)
     {
         entity->roomActive = 1;
-        gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;
     }
     if (entity->state > 1)
-        entity->animFrame = (((s16)entity->unk_510.part16.unk_510 + 0x4000) / 0x1000) & 0xF;
+        entity->animFrame = (((s16)SKILL_TINY_DEVIL_HEADING(entity) + 0x4000) / 0x1000) & 0xF;
 }

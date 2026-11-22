@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "head_stack_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -25,14 +26,14 @@ extern void HeadStackProjectile_DamagePlayerOnContact(struct EwramData_EntityDat
 void HeadStackEffect_UpdateAttack(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
-    struct EwramData_EntityData *owner = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
     struct EwramData_EntityData *child;
 
     switch (entity->state)
     {
     case 0:
     {
-        const struct HeadStackDebrisVariant *t = &sUnk_081193DC[owner->unk_4F4.part8.unk_4F6];
+        const struct HeadStackDebrisVariant *t = &sUnk_081193DC[HEAD_STACK_TYPE(owner)];
         if (!Entity_LoadGraphics(entity, t->graphics, t->palette, 0, t->spriteSheet))
         {
             EntityDelete(entity);
@@ -42,7 +43,7 @@ void HeadStackEffect_UpdateAttack(struct EwramData_EntityData *entity)
         Anim_StartIndexed(entity, 4, 0, 0);
         entity->spriteLayer = 9;
         entity->objMode = 1;
-        if (owner->unk_4F4.part8.unk_4F6 != 0)
+        if (HEAD_STACK_TYPE(owner) != 0)
         {
             child = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadStackEffect_UpdateEmitter);
             if (child != NULL)

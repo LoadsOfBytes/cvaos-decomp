@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "event_scene03.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -13,10 +14,10 @@ extern void EventScene03_SpawnUnusedPartDebris(struct EwramData_EntityData *);
  * shake (optionally spawning a EventScene03AttachedHelper_Update helper), blink, then break apart. */
 void EventScene03UnusedPart_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = &gEwramData->entityData[entity->unk_4F4.part8.unk_4F5];
-    struct EwramData_EntityData *other = &gEwramData->entityData[entity->unk_4F4.part8.unk_4F6];
+    struct EwramData_EntityData *owner = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
+    struct EwramData_EntityData *other = &gEwramData->entityData[EVENT03_PART_LINK_INDEX(entity)];
     struct EwramData_EntityData *child;
-    if ((u16)owner->unk_504.part16.unk_504 & 4)
+    if ((u16)EVENT03_PROGRESS(owner) & 4)
     {
         entity->state = 4;
         entity->stage = 0;
@@ -25,11 +26,11 @@ void EventScene03UnusedPart_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if ((u16)owner->unk_504.part16.unk_504 & 8)
+        if ((u16)EVENT03_PROGRESS(owner) & 8)
         {
             if (RandomNumberGenerator() % 7 == entity->attack)
             {
-                if ((u8)(entity->unk_4F4.part8.unk_4F7 & 2))
+                if ((u8)(EVENT03_PART_FLAGS(entity) & 2))
                 {
                     entity->state = 2;
                     entity->stage = 0;
@@ -71,16 +72,16 @@ void EventScene03UnusedPart_Update(struct EwramData_EntityData *entity)
         }
         break;
     case 2:
-        if (entity->unk_4F4.part8.unk_4F7 & 8)
+        if (EVENT03_PART_FLAGS(entity) & 8)
         {
             switch (entity->subState)
             {
             case 0:
-                if (entity->unk_4F4.part8.unk_4F7 & 16)
+                if (EVENT03_PART_FLAGS(entity) & 16)
                 {
                     child = Entity_CreateFromObjectTable(9);
                     child->updateFunc = (u32 *)EventScene03AttachedHelper_Update;
-                    child->unk_4F4.part8.unk_4F5 = entity->unk_4F4.part8.unk_4F4;
+                    ENTITY_PARENT_INDEX(child) = ENTITY_INDEX(entity);
                     child->posX.part16.integer = entity->posX.part16.integer;
                     child->posY.part16.integer = entity->posY.part16.integer;
                     Anim_StartIndexed(child, 8, 0, 1);
@@ -106,7 +107,7 @@ void EventScene03UnusedPart_Update(struct EwramData_EntityData *entity)
                 break;
             }
         }
-        if ((u16)owner->unk_504.part16.unk_504 & 2)
+        if ((u16)EVENT03_PROGRESS(owner) & 2)
         {
             entity->state = 3;
             entity->stage = 0;

@@ -2,6 +2,8 @@
  * (NO_2003_PATCH_SRCS in ../Makefile). (flipX test mask kept in a variable across the
  * position copies, explicit u32 negation of dx). */
 #include "code_08009A0.h"
+#include "soul_skill_entity.h"
+#include "blue_soul_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -29,7 +31,7 @@ static inline void LoadGfx(struct EwramData_EntityData *entity, u8 paletteSlot, 
 
 void SkillAlastorUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = BLUE_SOUL_OWNER(entity);
     s32 x = Target_GetX(entity);
     s32 y = Target_GetY(entity) - 0x280000;
     s32 dist;
@@ -49,7 +51,7 @@ void SkillAlastorUse(struct EwramData_EntityData *entity)
         {
             if (entity->affineIndex || entity->affine)
                 ObjAffine_Free(entity->affineIndex);
-            gEwramData->playerState.activeBlueSoulEntities[entity->unk_508.part16.unk_508] = NULL;
+            gEwramData->playerState.activeBlueSoulEntities[BLUE_SOUL_SLOT(entity)] = NULL;
             EntityDelete(entity);
             return;
         }
@@ -71,10 +73,10 @@ void SkillAlastorUse(struct EwramData_EntityData *entity)
             m = 0x40;
             entity->posX.part16.integer = parent->posX.part16.integer;
             entity->posY.part16.integer = parent->posY.part16.integer - 0x10;
-            entity->unk_510.part16.unk_512 = 0x100;
+            SKILL_ALASTOR_SPIN(entity) = 0x100;
             m &= ((u8 *)entity)[0x58];
         if (m)
-            entity->unk_510.part16.unk_512 = -entity->unk_510.part16.unk_512;
+            SKILL_ALASTOR_SPIN(entity) = -SKILL_ALASTOR_SPIN(entity);
         }
         entity->flipX ^= 1;
         Hit_Enable(entity, 6, 0, 0);
@@ -90,13 +92,13 @@ void SkillAlastorUse(struct EwramData_EntityData *entity)
         entity->state = 1;
         PlaySong(0x19E);
     case 1:
-        entity->unk_510.part16.unk_510 += entity->unk_510.part16.unk_512;
-        if (entity->unk_50C.whole > 0xFFFF)
+        SKILL_ALASTOR_ANGLE(entity) += SKILL_ALASTOR_SPIN(entity);
+        if (SKILL_ALASTOR_SCALE(entity) > 0xFFFF)
         {
             entity->state = 2;
             break;
         }
-        entity->unk_50C.whole += 0x1000;
+        SKILL_ALASTOR_SCALE(entity) += 0x1000;
         break;
     case 2:
     {
@@ -109,16 +111,16 @@ void SkillAlastorUse(struct EwramData_EntityData *entity)
         }
         dist = Entity_StepTowardPoint(entity, x, y, 5);
         entity->timer++;
-        entity->unk_510.part16.unk_510 += Sin(entity->timer << 9) / 512;
+        SKILL_ALASTOR_ANGLE(entity) += Sin(entity->timer << 9) / 512;
         if (entity->velX.whole >= 0)
         {
-            if (entity->unk_510.part16.unk_510 <= 0x1FFF)
-                entity->unk_510.part16.unk_510 += (entity->velX.whole >> 8);
+            if (SKILL_ALASTOR_ANGLE(entity) <= 0x1FFF)
+                SKILL_ALASTOR_ANGLE(entity) += (entity->velX.whole >> 8);
         }
         else
         {
-            if (entity->unk_510.part16.unk_510 > -0x2000)
-                entity->unk_510.part16.unk_510 += ((entity->velX.whole + 0xFF) >> 8);
+            if (SKILL_ALASTOR_ANGLE(entity) > -0x2000)
+                SKILL_ALASTOR_ANGLE(entity) += ((entity->velX.whole + 0xFF) >> 8);
         }
         if (dist <= 0x7FFF)
             entity->state = 3;
@@ -140,27 +142,27 @@ void SkillAlastorUse(struct EwramData_EntityData *entity)
             entity->state = 2;
         break;
     case 4:
-        entity->unk_514.unk_514_32 = Player_GetSelectedOrNearestTarget(entity);
-        if (entity->unk_514.unk_514_32 == NULL)
+        SKILL_ALASTOR_TARGET(entity) = Player_GetSelectedOrNearestTarget(entity);
+        if (SKILL_ALASTOR_TARGET(entity) == NULL)
         {
             entity->state = 2;
             entity->timer = 0x80;
             break;
         }
-        entity->unk_518.whole = -((RandomNumberGenerator() & 0xF) << 16);
+        SKILL_ALASTOR_AIM_Y(entity) = -((RandomNumberGenerator() & 0xF) << 16);
         entity->state = 5;
     case 5:
     {
         struct EwramData_EntityData *target;
         s32 timer;
         entity->hit.flags &= ~2;
-        target = entity->unk_514.unk_514_32;
+        target = SKILL_ALASTOR_TARGET(entity);
         timer = entity->timer - 1;
         entity->timer = timer;
         if ((s16)target->unk_518.part16.hp > 0 && (u8)timer != 0)
         {
-            dist = Entity_StepTowardPoint(entity, target->posX.whole, target->posY.whole + entity->unk_518.whole, 5);
-            entity->unk_510.part16.unk_510 = entity->velX.whole / 64 + entity->unk_510.part16.unk_510 + entity->unk_510.part16.unk_512 * 4;
+            dist = Entity_StepTowardPoint(entity, target->posX.whole, target->posY.whole + SKILL_ALASTOR_AIM_Y(entity), 5);
+            SKILL_ALASTOR_ANGLE(entity) = entity->velX.whole / 64 + SKILL_ALASTOR_ANGLE(entity) + SKILL_ALASTOR_SPIN(entity) * 4;
             if (dist > 0x1FFF)
                 break;
         }
@@ -168,24 +170,24 @@ void SkillAlastorUse(struct EwramData_EntityData *entity)
         break;
     }
     case 6:
-        entity->unk_510.part16.unk_510 = entity->unk_510.part16.unk_512 * 16 + entity->unk_510.part16.unk_510;
-        if (entity->unk_50C.whole <= 0)
+        SKILL_ALASTOR_ANGLE(entity) = SKILL_ALASTOR_SPIN(entity) * 16 + SKILL_ALASTOR_ANGLE(entity);
+        if (SKILL_ALASTOR_SCALE(entity) <= 0)
         {
             BlueSoul_ReleaseActiveResources(entity);
             EntityDelete(entity);
             return;
         }
-        entity->unk_50C.whole -= 0x1000;
+        SKILL_ALASTOR_SCALE(entity) -= 0x1000;
         break;
     }
     if (entity->state == 5)
     {
-        u16 a = entity->unk_510.part16.unk_510 - 0x4000;
+        u16 a = SKILL_ALASTOR_ANGLE(entity) - 0x4000;
         u16 dx = FIXED_TO_INT(Sin((s16)a + 0x4000) << 4);
         u16 dy = FIXED_TO_INT(Sin((s16)a) << 4);
         if (entity->flipX)
             dx = (u32)-(s32)(dx << 16) >> 16;
         HitBox_SetAttackRaw(entity, ((((s16)dx - 10) & 0xFF) + ((((s16)dy - 10) & 0xFF) << 8)) + 0x14140000);
     }
-    ObjAffine_Set(entity->unk_510.part16.unk_510, entity->unk_50C.whole, entity->unk_50C.whole, entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set(SKILL_ALASTOR_ANGLE(entity), SKILL_ALASTOR_SCALE(entity), SKILL_ALASTOR_SCALE(entity), entity->flipX, 0, entity->affineIndex);
 }

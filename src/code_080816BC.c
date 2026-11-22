@@ -41,7 +41,7 @@ void Golem_ThrowDebris(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx,
     debris->hit.flags &= ~2;
     debris->scrollWithBg = 1;
     debris->spriteLayer = owner->spriteLayer;
-    debris->unk_4F8.unk_4F8_entity = owner;
+    ENTITY_OWNER(debris) = owner;
     debris->posX.whole = x;
     debris->posY.whole = y;
     debris->velX.whole = vx;
@@ -57,7 +57,7 @@ void Golem_ThrowDebris(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx,
 void GolemDebris_Update(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
-    struct EwramData_EntityData *owner = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
     s32 hit, vx, vy;
 
     if (entity->state != 0)

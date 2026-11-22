@@ -16,7 +16,7 @@ void EventScene03AttachedHelper_Update(struct EwramData_EntityData *entity)
 {
     struct { s16 x; s16 y; } point;
     s32 dx, dy;
-    struct EwramData_EntityData *parent = &gEwramData->entityData[entity->unk_4F4.part8.unk_4F5];
+    struct EwramData_EntityData *parent = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
 
     dx = 8;
     dy = -8;

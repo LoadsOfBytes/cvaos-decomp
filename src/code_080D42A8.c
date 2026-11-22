@@ -1,5 +1,6 @@
 /* Graham core: vanish/reappear palette sequence, reposition, then combat. */
 #include "code_08009A0.h"
+#include "graham_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern void GrahamFirstForm_UpdateTransition(struct EwramData_EntityData *);
@@ -31,7 +32,7 @@ void GrahamFirstForm_Update(struct EwramData_EntityData *entity)
                 case 0:
                     if(entity->animScriptIndex!=0)
                         Anim_StartIndexed(entity,0,0,1);
-                    if(entity->unk_4F8.part16.unk_4FA & 2)
+                    if(GRAHAM_FLAGS(entity) & 2)
                     {
                         entity->unk_518.part16.hp=1500;
                         entity->subState+=2;
@@ -70,7 +71,7 @@ void GrahamFirstForm_Update(struct EwramData_EntityData *entity)
                             if(entity->animDone)
                             {
                                 Entity_FaceTarget(entity);
-                                if(entity->unk_4F8.part16.unk_4FA & 2)
+                                if(GRAHAM_FLAGS(entity) & 2)
                                 {
                                     struct BgLayerState *camera=&gEwramData->bgInfo[1];
                                     entity->posX.whole=0x780000-camera->xPos.whole;
@@ -115,7 +116,7 @@ void GrahamFirstForm_Update(struct EwramData_EntityData *entity)
                         case 3:
                             if(--entity->timer==255)
                             {
-                                u32 flags=*(volatile u16 *)&entity->unk_4F8.part16.unk_4FA;
+                                u32 flags=*(volatile u16 *)&GRAHAM_FLAGS(entity);
                                 s32 mask=flags & state;
                                 if(mask)
                                 {

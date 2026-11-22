@@ -4,6 +4,7 @@
  * The state is read into a local before &gEwramData is copied into its own
  * register. */
 #include "code_08009A0.h"
+#include "save_point_entity.h"
 #include "code_080D73B8.h"
 #include "code_0800CB00.h"
 #include "code_08011DD0.h"
@@ -63,7 +64,7 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
                 SavePoint_ShowSavePrompt();
                 Player_RestoreHPAndMP();
                 gEwramData->startPauseEnabled = 0;
-                entity->unk_4F8.part8.unk_4FA = 1;
+                SAVE_POINT_YES_SELECTED(entity) = 1;
                 entity->subState = r;
                 goto next;
             }
@@ -84,7 +85,7 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
         s32 ab = pressed & 3;
         if (ab)
         {
-            if ((held & 1) && entity->unk_4F8.part8.unk_4FA)
+            if ((held & 1) && SAVE_POINT_YES_SELECTED(entity))
             {
                 struct EwramData *base = *ew;
                 s32 res;
@@ -97,7 +98,7 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
                     Text_SetDefaultColors();
                     entity->timer = res;
                     entity->state = 0x14;
-                    entity->unk_508.part16.unk_508 |= 2;
+                    SAVE_POINT_FLAGS(entity) |= 2;
                     PlaySong(0xF3);
                     owner = OWNER(entity);
                     ObjPalette_LoadRange(sSavePointPalette, 5, 1, 0xE);
@@ -121,18 +122,18 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
             PlaySong(0xF0);
             goto next;
         }
-        if ((held & 0x10) && entity->unk_4F8.part8.unk_4FA)
+        if ((held & 0x10) && SAVE_POINT_YES_SELECTED(entity))
         {
             PlaySong(0xF1);
-            entity->unk_4F8.part8.unk_4FA = ab;
+            SAVE_POINT_YES_SELECTED(entity) = ab;
             break;
         }
         if (!(held & 0x20))
             break;
-        if (entity->unk_4F8.part8.unk_4FA)
+        if (SAVE_POINT_YES_SELECTED(entity))
             break;
         PlaySong(0xF1);
-        entity->unk_4F8.part8.unk_4FA = 1;
+        SAVE_POINT_YES_SELECTED(entity) = 1;
         break;
     }
     case 3:
@@ -153,14 +154,14 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
         {
             if (entity->unk_514.part8.unk_517 == 0)
             {
-                entity->unk_500.whole += 0x800;
-                if (entity->unk_500.whole > 0xFFFF)
-                    entity->unk_500.whole = 0x10000;
+                SAVE_POINT_SCALE(entity) += 0x800;
+                if (SAVE_POINT_SCALE(entity) > 0xFFFF)
+                    SAVE_POINT_SCALE(entity) = 0x10000;
                 break;
             }
-            entity->unk_500.whole -= 0xCC;
-            if (entity->unk_500.whole <= 0)
-                entity->unk_500.whole = 0;
+            SAVE_POINT_SCALE(entity) -= 0xCC;
+            if (SAVE_POINT_SCALE(entity) <= 0)
+                SAVE_POINT_SCALE(entity) = 0;
             break;
         }
         Bg_SetControlIfLevelAllows(3, 0x50, 0x3FBF);
@@ -202,9 +203,9 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
         {
             if (entity->unk_514.part8.unk_517 == 0)
             {
-                entity->unk_500.whole += 0x800;
-                if (entity->unk_500.whole > 0xFFFF)
-                    entity->unk_500.whole = 0x10000;
+                SAVE_POINT_SCALE(entity) += 0x800;
+                if (SAVE_POINT_SCALE(entity) > 0xFFFF)
+                    SAVE_POINT_SCALE(entity) = 0x10000;
                 if (entity->subState == 0)
                 {
                     entity->subState = 1;
@@ -213,9 +214,9 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
             }
             else
             {
-                entity->unk_500.whole -= 0xCC;
-                if (entity->unk_500.whole <= 0)
-                    entity->unk_500.whole = 0;
+                SAVE_POINT_SCALE(entity) -= 0xCC;
+                if (SAVE_POINT_SCALE(entity) <= 0)
+                    SAVE_POINT_SCALE(entity) = 0;
             }
         }
         switch (entity->subState)
@@ -272,11 +273,11 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
 
     if (entity->state != 0)
         SetPlayerInput(1, 0x40);
-    ObjAffine_Set(0, entity->unk_500.whole, entity->unk_500.whole, 0, 0, entity->unk_4F8.part8.unk_4FB);
+    ObjAffine_Set(0, SAVE_POINT_SCALE(entity), SAVE_POINT_SCALE(entity), 0, 0, SAVE_POINT_AFFINE(entity));
     entity->timer++;
     if ((u8)(entity->timer % 3) == 0 && entity->unk_514.part8.unk_515 != 1)
     {
-        u8 *blink = &entity->unk_518.part8.unk_518;
+        u8 *blink = &SAVE_POINT_BLINK(entity);
         *blink = 1 - *blink;
         if (*blink)
             BgPalette_LoadRange(sUnk_08119898 + 0x378, 0xA, 2, 2);

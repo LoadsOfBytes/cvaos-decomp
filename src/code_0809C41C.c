@@ -1,5 +1,7 @@
 /* Stolas helpers 0x0809C41C..0x0809C5E7. */
 #include "code_08009A0.h"
+#include "stolas_entity.h"
+#include "joint_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -27,7 +29,7 @@ void Stolas_Draw(struct EwramData_EntityData *entity);
  */
 void StolasPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    struct EwramData_EntityData *stolas = entity->unk_500.unk_500_entity;
+    struct EwramData_EntityData *stolas = JOINT_PART_OWNER(entity);
     s32 oldX = stolas->posX.whole;
     s32 oldY = stolas->posY.whole;
     s32 damage;
@@ -35,11 +37,11 @@ void StolasPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hi
     stolas->posX.whole = entity->posX.whole;
     stolas->posY.whole = entity->posY.whole;
     damage = Player_CalculateAttackPower(hit[2]);
-    damage = Hit_ResolveDamage(entity->unk_500.unk_500_entity, attacker, hit, (s16)damage);
+    damage = Hit_ResolveDamage(JOINT_PART_OWNER(entity), attacker, hit, (s16)damage);
     stolas->posX.whole = oldX;
     stolas->posY.whole = oldY;
     Entity_ShowDamage(entity, damage, 0);
-    Stolas_OnDamaged(entity->unk_500.unk_500_entity, attacker, hit, damage);
+    Stolas_OnDamaged(JOINT_PART_OWNER(entity), attacker, hit, damage);
 }
 
 /**
@@ -120,9 +122,9 @@ void Stolas_Draw(struct EwramData_EntityData *entity)
     s32 oldX = entity->posX.whole;
     s32 oldY = entity->posY.whole;
 
-    entity->posX.part16.integer += entity->unk_4F8.part16.unk_4F8;
+    entity->posX.part16.integer += STOLAS_DRAW_OFFSET_X(entity);
     entity->posX.part16.fraction = 0;
-    entity->posY.part16.integer += entity->unk_4F8.part16.unk_4FA;
+    entity->posY.part16.integer += STOLAS_DRAW_OFFSET_Y(entity);
     entity->posY.part16.fraction = 0;
     Sprite_DrawEntity(entity);
     entity->posX.whole = oldX;

@@ -1,5 +1,6 @@
 /* Object 19: move along a timed path of steps, then despawn. */
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -53,7 +54,7 @@ void Object19Update(struct EwramData_EntityData *entity)
         return;
     }
     entity->hidden = 0;
-    entity->unk_4F8.part16.unk_4F8 += entity->unk_4F8.part16.unk_4FA;
+    OBJECT19_ANGLE(entity) += OBJECT19_SPIN(entity);
     switch (entity->state)
     {
     case 0:
@@ -70,5 +71,5 @@ void Object19Update(struct EwramData_EntityData *entity)
         break;
     }
     Hit_CheckWithPlayer(hit, entity);
-    ObjAffine_Set((s16)entity->unk_4F8.part16.unk_4F8, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set((s16)OBJECT19_ANGLE(entity), 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
 }

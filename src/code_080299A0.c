@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code_080D73B8.h"
@@ -55,7 +56,7 @@ static inline void SetFrameBox(struct EwramData_EntityData *entity)
  */
 void SkillFleamanUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
     s32 r;
 
     switch (entity->state)
@@ -126,7 +127,7 @@ void SkillFleamanUse(struct EwramData_EntityData *entity)
         Anim_Update(entity);
         if (entity->timer == 0)
         {
-            gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
             gEwramData->playerState.nbrActiveRedSoulEntities--;
             EntityDelete(entity);
             return;
@@ -137,7 +138,7 @@ void SkillFleamanUse(struct EwramData_EntityData *entity)
     if (EntityIsOutsideScreen(entity, 2) || !entity->roomActive)
     {
         entity->roomActive = 1;
-        gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;

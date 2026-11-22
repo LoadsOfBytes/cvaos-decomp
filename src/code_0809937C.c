@@ -1,5 +1,6 @@
 /* MimicTrigger_Update and MimicTrigger_OnHit. */
 #include "code/code_080211F0.h"
+#include "mimic_entity.h"
 #include "structs/ewram.h"
 
 /* state and subState read as one halfword (as in code_080D34FC.c). */
@@ -39,7 +40,7 @@ void MimicTrigger_Update(struct EwramData_EntityData *entity)
  */
 void MimicTrigger_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    struct EwramData_EntityData *mimic = entity->unk_500.unk_500_entity;
+    struct EwramData_EntityData *mimic = MIMIC_TRIGGER_OWNER(entity);
 
     Player_CalculateAttackPower(hit[2]);
     entity->state = 1;

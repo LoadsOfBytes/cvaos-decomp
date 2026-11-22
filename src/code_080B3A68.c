@@ -1,5 +1,6 @@
 /* Column member settling. */
 #include "structs/ewram.h"
+#include "head_stack_entity.h"
 
 /* old + (s16)(target - old): move a u16 coordinate onto target. */
 static inline s32 Approach(s32 target, u16 old) { return (s16)(target - old) + old; }
@@ -16,13 +17,13 @@ static inline s32 SlotY(u32 idx)
  */
 void HeadStackSegment_Settle(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = entity->unk_4F8.unk_4F8_entity;
-    u8 *slots = owner->unk_4FC.bytes;
+    struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
+    u8 *slots = HEAD_STACK_SLOTS(owner);
     s32 i;
     s32 y;
     u16 old;
 
-    for (i = entity->unk_4F4.part8.unk_4F5; i > 0; i--)
+    for (i = HEAD_STACK_LEVEL(entity); i > 0; i--)
     {
         if (slots[i - 1] != 0)
         {

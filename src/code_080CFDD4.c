@@ -1,5 +1,6 @@
 /* Belmont scene setup and player position at the room boundary. */
 #include "code_08009A0.h"
+#include "belmont_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *,u8 *,void *,u8,void *);
@@ -42,7 +43,7 @@ active:
                     Belmont_CreateSceneObject(entity,2);
                     entity->stage++;
                 }
-                object=&gEwramData->entityData[entity->unk_4F8.part8.unk_4FB];
+                object=&gEwramData->entityData[BELMONT_SCENE_OBJECT_INDEX(entity)];
                 if(object->updateFunc!=NULL)
                 {
                     PLAYER->posX.part16.integer=boundary;

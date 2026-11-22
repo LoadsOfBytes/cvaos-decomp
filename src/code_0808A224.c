@@ -1,5 +1,6 @@
 /* Great Armor update. */
 #include "code_08009A0.h"
+#include "great_armor_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -24,7 +25,7 @@ struct ArmorBox {
 
 #define TO_PIXELS(d) ((d) < 0 ? -(-(d) >> 16) : (d) >> 16)
 /* set by the AI when the shield arm (part 4) is up: makes box 2 harmless */
-#define GUARD(e) (*(s8 *)&(e)->unk_504.part8.unk_505)
+#define GUARD(e) (*(s8 *)&GREAT_ARMOR_GUARD((e)))
 
 /* Great Armor: dispatch AI (0) / attacks (1), crumble when killed (2,
  * dust, free the parts), frozen (3); the second box follows part 4. */
@@ -87,5 +88,5 @@ boxes:
     }
     Entity_ClampXToRoom(entity, 1);
     if ((RandomNumberGenerator() & 0x7F) <= 3)
-        entity->unk_4FC.part8.unk_4FE = 0;
+        GREAT_ARMOR_HIT(entity) = 0;
 }

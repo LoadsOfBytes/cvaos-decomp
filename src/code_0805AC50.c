@@ -1,4 +1,5 @@
 #include "code/code_08039340.h"
+#include "room_object_entity.h"
 #include "code_08009A0.h"
 #include "structs/ewram.h"
 
@@ -36,12 +37,12 @@ void Object37_SpawnChild(struct EwramData_EntityData *owner)
     entity->affineIndex = transform;
     entity->affine = 1;
     ObjAffine_Set(0, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
-    entity->unk_4F8.unk_4F8_entity = owner;
+    ENTITY_OWNER(entity) = owner;
     entity->scrollWithBg = 1;
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     if (Abs(entity->posX.whole - (*ewram)->playerState.player->posX.whole) < 0x300000)
     {
-        entity->unk_4FC.whole = -0x2000;
+        OBJECT37_CHILD_ANGLE(entity) = -0x2000;
         entity->subState = 1;
         ObjAffine_Set(-0x2000, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
     }

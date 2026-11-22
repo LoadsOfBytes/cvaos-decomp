@@ -42,7 +42,7 @@ s32 Graham_SpawnSpreadProjectiles(struct EwramData_EntityData *entity)
             ok = 0;
             goto fail;
         }
-        (*p)->unk_4F4.part8.unk_4F5 = entity->unk_4F4.part8.unk_4F4;
+        ENTITY_PARENT_INDEX((*p)) = ENTITY_INDEX(entity);
         (*p)->spriteLayer = entity->spriteLayer - 1;
         (*p)->flipX = 1 - entity->flipX;
         (*p)->posX.whole = entity->posX.whole;

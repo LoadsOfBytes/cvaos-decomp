@@ -1,5 +1,7 @@
 /* Big Golem part update: joint following, weapon collision and death motion. */
 #include "code_08009A0.h"
+#include "big_golem_entity.h"
+#include "joint_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -14,7 +16,7 @@ extern const s16 sBigGolemPartOffsets[14];
 extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
 extern s32 Entity_GetVisibilityPattern(s32);
 extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
-#define JOINT(e) ((s8)(e)->unk_504.part8.unk_504)
+#define JOINT(e) ((s8)JOINT_PART_INDEX((e)))
 #define FIX_INT(v) ((v) < 0 ? -(-(v) >> 16) : (v) >> 16)
 #define HAS_SPRITE(e) (JOINT(e) == 2 || JOINT(e) == 4 || JOINT(e) == 5 || JOINT(e) == 8 || JOINT(e) == 12 || JOINT(e) == 13)
 #define HAD_SPRITE(e) (JOINT(e) == 2 || JOINT(e) == 5 || JOINT(e) == 8 || JOINT(e) == 11 || JOINT(e) == 12 || JOINT(e) == 13)
@@ -29,7 +31,7 @@ void BigGolemPart_Update(struct EwramData_EntityData *entity)
     u8 timers[14];
     s16 offsets[14];
     struct GolemBox box;
-    struct EwramData_EntityData *parent = entity->unk_500.unk_500_entity;
+    struct EwramData_EntityData *parent = BIG_GOLEM_PART_OWNER(entity);
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
     struct BigGolemPart *parts;
     s32 x, y, size;
@@ -54,9 +56,9 @@ void BigGolemPart_Update(struct EwramData_EntityData *entity)
             {
                 u16 angle;
 
-                x = parts[(s8)entity->unk_504.part8.unk_505].offsetX;
+                x = parts[(s8)JOINT_PART_ANCHOR(entity)].offsetX;
                 x -= parts[JOINT(entity)].offsetX;
-                y = parts[(s8)entity->unk_504.part8.unk_505].offsetY;
+                y = parts[(s8)JOINT_PART_ANCHOR(entity)].offsetY;
                 y -= parts[JOINT(entity)].offsetY;
                 angle = ArcTan2(FIX_INT(x), FIX_INT(y));
                 if (JOINT(entity) == 4)
@@ -76,9 +78,9 @@ void BigGolemPart_Update(struct EwramData_EntityData *entity)
             {
                 entity->state = 1;
                 entity->subState = 0;
-                entity->unk_4FC.whole = entity->velX.whole;
-                entity->unk_4F4.whole = (RandomNumberGenerator() & 0xFF) - 0x80;
-                entity->unk_508.whole = parent->posY.part16.integer + (s16)camera->yPos.part16.integer + offsets[JOINT(entity)];
+                BIG_GOLEM_PART_ANGLE(entity) = entity->velX.whole;
+                BIG_GOLEM_PART_SPIN(entity) = (RandomNumberGenerator() & 0xFF) - 0x80;
+                BIG_GOLEM_PART_FLOOR_Y(entity) = parent->posY.part16.integer + (s16)camera->yPos.part16.integer + offsets[JOINT(entity)];
                 entity->accelY.whole = 0x1800;
                 entity->accelX.whole = 0;
                 entity->velX.whole = (RandomNumberGenerator() & 0x3FFF) - 0x2000;
@@ -86,7 +88,7 @@ void BigGolemPart_Update(struct EwramData_EntityData *entity)
                 entity->timer = timers[JOINT(entity)];
                 return;
             }
-            if ((parent->unk_504.part16.unk_506[0] >> JOINT(entity)) & 1)
+            if ((JOINT_HURT_MASK(parent) >> JOINT(entity)) & 1)
             {
                 if (JOINT(entity) == 2 || JOINT(entity) == 8 || JOINT(entity) == 13)
                 {
@@ -186,25 +188,25 @@ void BigGolemPart_Update(struct EwramData_EntityData *entity)
         if (entity->timer <= 60)
         {
             EntityAccelerateAndMove(entity, 0x60000);
-            entity->unk_4FC.whole += entity->unk_4F4.whole;
+            BIG_GOLEM_PART_ANGLE(entity) += BIG_GOLEM_PART_SPIN(entity);
             if (entity->subState == 1
-                && entity->posY.part16.integer + (s16)camera->yPos.part16.integer >= entity->unk_508.whole)
+                && entity->posY.part16.integer + (s16)camera->yPos.part16.integer >= BIG_GOLEM_PART_FLOOR_Y(entity))
             {
                 entity->velX.whole = 0;
                 entity->accelX.whole = 0;
                 entity->velY.whole = 0;
                 entity->accelY.whole = 0;
-                entity->unk_4F4.whole = 0;
+                BIG_GOLEM_PART_SPIN(entity) = 0;
                 entity->subState++;
-                if ((u8)(entity->unk_504.part8.unk_504 - 1) > 2
-                    && entity->unk_504.part8.unk_504 != 7)
+                if ((u8)(JOINT_PART_INDEX(entity) - 1) > 2
+                    && JOINT_PART_INDEX(entity) != 7)
                     PlaySong(0x71);
             }
         }
         if (entity->subState == 2 && parent->unk_514.part16.spawnParam0 == 0 && (entity->timer & 7) == 0)
             Effect_SpawnRandom(entity->posX.whole, entity->posY.whole - 0x40000, 0x100000, 0x100000, entity->spriteLayer - 1);
         if (HAS_SPRITE(entity))
-            ObjAffine_Set(entity->unk_4FC.whole, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
+            ObjAffine_Set(BIG_GOLEM_PART_ANGLE(entity), 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
         if (--entity->timer <= 1)
         {
             if (HAS_SPRITE(entity)) ObjAffine_Free(entity->affineIndex);

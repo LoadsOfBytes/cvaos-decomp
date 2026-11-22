@@ -1,6 +1,7 @@
 /* Soma_UpdateKnockback (Soma_UpdateKnockbackFromImpulse
  * without the animation switch). */
 #include "code_08009A0.h"
+#include "player_entity.h"
 #include "code_08001194.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -31,7 +32,7 @@ void Soma_UpdateKnockback(struct EwramData_EntityData *entity)
     u16 x;
     s16 y;
 
-    entity->unk_4F4.whole &= 0xEFFFFE9F;
+    PLAYER_ACTION_FLAGS(entity) &= 0xEFFFFE9F;
     x = GetEntityRoomXPositionInteger(entity);
     y = GetEntityRoomYPositionInteger(entity);
     hit = 0;
@@ -56,17 +57,17 @@ clear:
     entity->velX.whole = 0;
     entity->accelX.whole = 0;
 done:
-    if (!(entity->unk_4F4.whole & 2) || (hit && (entity->unk_4F4.whole & 0x200000)))
+    if (!(PLAYER_ACTION_FLAGS(entity) & 2) || (hit && (PLAYER_ACTION_FLAGS(entity) & 0x200000)))
     {
-        entity->unk_4F4.whole = entity->unk_4F4.whole & 0xFFFEFF7F;
+        PLAYER_ACTION_FLAGS(entity) = PLAYER_ACTION_FLAGS(entity) & 0xFFFEFF7F;
         entity->state = 0;
     }
     else if ((gEwramData->playerStatus.soulStateFlags & 0x400000) && (gEwramData->inputData.playerNewInput & gEwramData->playerStatus.jumpButton))
     {
         entity->accelY.whole = 0;
-        entity->unk_4F4.whole = entity->unk_4F4.whole & 0xFFEFFB7F;
+        PLAYER_ACTION_FLAGS(entity) = PLAYER_ACTION_FLAGS(entity) & 0xFFEFFB7F;
         PlaySong(0xB9);
-        entity->unk_4F4.whole |= 6;
+        PLAYER_ACTION_FLAGS(entity) |= 6;
         entity->velY.whole = 0;
         entity->state = 0;
     }

@@ -1,5 +1,6 @@
 /* Object35Create (0x0805A18C). */
 #include "code_08001194.h"
+#include "room_object_entity.h"
 #include "code_08009A0.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -82,6 +83,6 @@ void Object35Create(struct EwramData_EntityData *entity)
     }
     entity->scrollWithBg = 1;
     entity->flipX = 0;
-    entity->unk_4F4.whole = entity->posX.whole;
-    entity->unk_4F8.whole = entity->posY.whole;
+    OBJECT35_HOME_X(entity) = entity->posX.whole;
+    OBJECT35_HOME_Y(entity) = entity->posY.whole;
 }

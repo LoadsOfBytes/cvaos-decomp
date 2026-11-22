@@ -1,5 +1,6 @@
 /* Beam Skeleton firing sequence and vertical affine scale. */
 #include "code/code_08039340.h"
+#include "beam_skeleton_entity.h"
 #include "structs/ewram.h"
 extern void BeamSkeleton_CreateBeam(struct EwramData_EntityData *entity);
 #define ANIM(e,n,loop) do { if ((e)->animScriptIndex != (n)) Anim_StartIndexed((e),(n),0,(loop)); } while (0)
@@ -35,7 +36,7 @@ void BeamSkeleton_UpdateFire(struct EwramData_EntityData *entity)
                 case 1:
                     if (--entity->timer == 0xFF)
                     {
-                        entity->unk_4FC.part8.unk_4FE |= 1;
+                        BEAM_SKELETON_FIRING(entity) |= 1;
                         entity->subState = 2;
                         entity->stage = 0;
                     }
@@ -98,7 +99,7 @@ void BeamSkeleton_UpdateFire(struct EwramData_EntityData *entity)
             }
             break;
         case 4:
-            entity->unk_4FC.part8.unk_4FE &= 0xFE;
+            BEAM_SKELETON_FIRING(entity) &= 0xFE;
             if (--entity->timer == 0xFF)
             {
                 entity->state = 1;

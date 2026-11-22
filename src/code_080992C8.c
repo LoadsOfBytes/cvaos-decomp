@@ -3,6 +3,7 @@
  * y -8, w 12, h 16; not an address), hit callback MimicTrigger_OnHit; it keeps the
  * owner (unk_500) and its type byte. */
 #include "code_08009A0.h"
+#include "mimic_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -35,7 +36,7 @@ void Mimic_SpawnTrigger(struct EwramData_EntityData *owner, s32 x, s32 y)
     HitBox_SetBody(child, &box);
     child->hit.flags &= ~4;
     child->hit.flags |= 2;
-    child->unk_500.unk_500_entity = owner;
+    MIMIC_TRIGGER_OWNER(child) = owner;
     child->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
     child->scrollWithBg = 1;
     child->drawFunc = (u32 *)PickupSource_Draw;

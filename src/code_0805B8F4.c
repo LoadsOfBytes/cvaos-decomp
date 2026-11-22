@@ -2,6 +2,7 @@
  * number has its own block variable and its offset is summed in a statement
  * expression before the player Y is added, as in the target. */
 #include "code_08009A0.h"
+#include "event_scene30.h"
 #include "code_080109F4.h"
 #include "code_08011DD0.h"
 #include "code_08013960.h"
@@ -45,7 +46,7 @@ s32 EventScene30_Update(struct EwramData_EntityData *entity)
         if (entity->stage == 0)
             entity->stage++;
         if (EventScene30_PlayTransformation(entity)) {
-            entity->unk_4FC.part16.unk_4FC = 0;
+            EVENT30_FLOAT_PHASE(entity) = 0;
             gEwramData->playerState.player->hidden = 0;
             Music_SetCurrent(32);
             entity->state++;
@@ -122,9 +123,9 @@ s32 EventScene30_Update(struct EwramData_EntityData *entity)
         break;
     }
     if (entity->state > 1) {
-        s32 sine = Sin((u16)entity->unk_4FC.part16.unk_4FC + 0x4000);
+        s32 sine = Sin((u16)EVENT30_FLOAT_PHASE(entity) + 0x4000);
         Player_StartScriptedAnimation(51, 0, 0, sine / 4);
-        entity->unk_4FC.part16.unk_4FC += 0x200;
+        EVENT30_FLOAT_PHASE(entity) += 0x200;
         { u8 previous = entity->timer--;
         if ((previous % 16) == 0) {
             u32 random = RandomNumberGenerator();

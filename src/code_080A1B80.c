@@ -15,7 +15,7 @@ extern s32 Entity_GetVisibilityPattern(s32 step);
 void GladiatorShotTip_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
     Player_CalculateAttackPower(hit[2]);
-    entity->unk_4F8.unk_4F8_entity->state = 1;
+    ENTITY_OWNER(entity)->state = 1;
 }
 
 /**

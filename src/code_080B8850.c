@@ -2,6 +2,13 @@
 #include "code_08009A0.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
+
+/*
+ * Student Witch: 16.16 walk speed passed to Entity_Walk (eased per step) and
+ * the frame counter of the current attack step. Token-identical expansion.
+ */
+#define STUDENT_WITCH_SPEED(e) e->unk_4F8.whole
+#define STUDENT_WITCH_TIMER(e) e->unk_4FC.part16.unk_4FC
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *, s32, s32);
 extern u8 sStudentWitchWalkProfile[];
 
@@ -26,17 +33,17 @@ void StudentWitch_UpdateWalk(struct EwramData_EntityData *entity)
         frame = &entity->animStep;
         switch (currentFrame)
         {
-        case 0: entity->unk_4F8.whole = 0xC000; break;
+        case 0: STUDENT_WITCH_SPEED(entity) = 0xC000; break;
         case 1:
         case 2:
-            entity->unk_4F8.whole -= 0x1200;
-            if (entity->unk_4F8.whole < 0) entity->unk_4F8.whole = 0;
+            STUDENT_WITCH_SPEED(entity) -= 0x1200;
+            if (STUDENT_WITCH_SPEED(entity) < 0) STUDENT_WITCH_SPEED(entity) = 0;
             break;
         case 3:
-            if (entity->unk_4F8.whole <= 0xBFFF) entity->unk_4F8.whole += 0x4000;
+            if (STUDENT_WITCH_SPEED(entity) <= 0xBFFF) STUDENT_WITCH_SPEED(entity) += 0x4000;
             break;
         }
-        flags = Entity_Walk(entity, entity->unk_4F8.whole, sStudentWitchWalkProfile, 8);
+        flags = Entity_Walk(entity, STUDENT_WITCH_SPEED(entity), sStudentWitchWalkProfile, 8);
         if (flags & 3) entity->flipX ^= 1;
         result = flags & 8;
         if (result)

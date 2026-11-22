@@ -3,6 +3,13 @@
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
+
+/*
+ * Soul container: palette of the soul variant and the soul sprite entity it
+ * shows inside. Token-identical expansion.
+ */
+#define SOUL_CONTAINER_PALETTE(e) e->unk_500.part8.unk_500
+#define SOUL_CONTAINER_SOUL(e) e->unk_4FC.unk_4FC_entity
 extern void SoulPickup_UpdateContainer(struct EwramData_EntityData *);
 extern void SoulPickup_UpdateContainerAnimation(struct EwramData_EntityData *);
 extern void Entity_SnapToGround(struct EwramData_EntityData *);
@@ -32,7 +39,7 @@ struct EwramData_EntityData *SoulPickup_CreateContainer(s32 x, s32 y, s32 varian
         entity->posX.part16.integer = x;
         entity->posY.part16.integer = y;
         Entity_SnapToGround(entity);
-        entity->unk_500.part8.unk_500 = Soul_GetPickupPalette(variant);
+        SOUL_CONTAINER_PALETTE(entity) = Soul_GetPickupPalette(variant);
         child = EntityCreateInRange(0x49, 0xCF, (u32 *)SoulPickup_UpdateContainerAnimation);
         if (child != NULL)
         {
@@ -41,11 +48,11 @@ struct EwramData_EntityData *SoulPickup_CreateContainer(s32 x, s32 y, s32 varian
             child->posX.whole = entity->posX.whole;
             child->posY.whole = entity->posY.whole;
             graphics = ObjGfx_Find(sCommonObjectGfx);
-            Sprite_Attach(child, sCommonObjectSpriteSheet, graphics, (u8)entity->unk_500.part8.unk_500);
+            Sprite_Attach(child, sCommonObjectSpriteSheet, graphics, (u8)SOUL_CONTAINER_PALETTE(entity));
             Anim_StartIndexed(child, 0x12, 0, 1);
             Anim_Update(child);
             child->drawFunc = (u32 *)Sprite_DrawEntity;
-            entity->unk_4FC.unk_4FC_entity = child;
+            SOUL_CONTAINER_SOUL(entity) = child;
         }
     }
     return entity;

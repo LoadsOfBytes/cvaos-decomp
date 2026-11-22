@@ -129,7 +129,7 @@ struct RedSoulActivationView {
     u16 castAnimKind;
     s16 mpCost;
     u8 pad_8[0xE - 0x8];
-    u16 unk_E;
+    u16 param;
 };
 extern struct RedSoulActivationView* RedSoul_GetInfo(u8 soul);
 

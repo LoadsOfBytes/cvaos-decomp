@@ -1,5 +1,6 @@
 /* Delayed fragments spiral away, alternating their direction of rotation. */
 #include "code_08009A0.h"
+#include "event_scene30.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern u8 sEventScene30Gfx[],sEventScene30Palette[],sEventScene30SpriteSheet[];
@@ -30,25 +31,25 @@ void EventScene30OrbitFragment_Update(struct EwramData_EntityData *entity)
     case 0:
         if(--entity->timer==255)
         {
-            entity->timer=stage;entity->unk_51C=0x10000;entity->state++;
+            entity->timer=stage;EVENT30_EFFECT_ANGLE(entity)=0x10000;entity->state++;
             entity->stage=stage;entity->subState=stage;entity->hidden=0;
             flashAt(entity->posX.part16.integer,entity->posY.part16.integer);
         }
         break;
     case 1:
     {
-        u32 angle=(u16)((u16)entity->unk_4FC.part16.unk_4FC<<11);
+        u32 angle=(u16)((u16)EVENT30_FRAGMENT_PHASE(entity)<<11);
         entity->velX.whole=(Sin(angle+0x4000)>>8)<<10;
         entity->velY.whole=(Sin(angle)>>8)<<10;
         entity->posX.whole+=entity->velX.whole;entity->posY.whole+=entity->velY.whole;
         if(++entity->timer>32)entity->spriteLayer=17;else entity->spriteLayer=3;
         if(entity->timer%2==0)
         {
-            if(entity->unk_4F8.part8.unk_4FA)
-            {entity->unk_4FC.part16.unk_4FC++;entity->unk_51C+=0x200;}
-            else {entity->unk_4FC.part16.unk_4FC--;entity->unk_51C-=0x200;}
+            if(EVENT30_FRAGMENT_DIR(entity))
+            {EVENT30_FRAGMENT_PHASE(entity)++;EVENT30_EFFECT_ANGLE(entity)+=0x200;}
+            else {EVENT30_FRAGMENT_PHASE(entity)--;EVENT30_EFFECT_ANGLE(entity)-=0x200;}
         }
-        ObjAffine_Set(entity->unk_51C,0x12000,0x12000,0,0,entity->affineIndex);
+        ObjAffine_Set(EVENT30_EFFECT_ANGLE(entity),0x12000,0x12000,0,0,entity->affineIndex);
         if(entity->timer>63){ObjAffine_Free(entity->affineIndex);entity->deleteRequested=1;}
         break;
     }

@@ -20,8 +20,8 @@ struct SolidObjectCallbacks {
     s32 (*push)(struct EwramData_EntityData *object, s16 x, s16 y);
 };
 
-#define FUNCS(object) ((struct SolidObjectCallbacks *)(object)->unk_4F4.unk_4F4_p32)
-#define FLAGS(e) ((e)->unk_4F4.whole)
+#define FUNCS(object) ((struct SolidObjectCallbacks *)SOLID_OBJECT_CALLBACKS((object)))
+#define FLAGS(e) (PLAYER_ACTION_FLAGS((e)))
 #define TILE_FLAGS (gUnk_03002CB0.collisionProbeFlags)
 static inline s16 CeilingCorrection(s16 x, s16 y)
 {
@@ -150,7 +150,7 @@ static inline u16 FloorProbe(s16 x, s16 y, s32 flag)
     {
         struct EwramData_EntityData *player = gEwramData->playerState.player;
 
-        if (player->velY.whole >= 0 && (!(player->unk_4F4.whole & 2) || player->unk_4F8.part16.unk_4F8 == 0x10))
+        if (player->velY.whole >= 0 && (!(PLAYER_ACTION_FLAGS(player) & 2) || PLAYER_AIR_TIME(player) == 0x10))
             c = PlatformFloor(x, y, c);
     }
     UpdateFloorKind(c);
@@ -182,7 +182,7 @@ static inline void SetAnim(struct EwramData_EntityData *entity, u8 anim, s32 mod
         s32 pal;
         Anim_StartIndexed(entity, anim, 3, mode);
         HitBox_SetBody(entity, &box);
-        entity->unk_504.part16.unk_504 = 0xFF;
+        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
         FLAGS(entity) &= ~0x200000;
         pal = sSomaAnimPalettes[anim];
         if (PLAYER_ANIM_PALETTE(entity) != pal)
@@ -324,7 +324,7 @@ void Soma_UpdateVerticalMovement(struct EwramData_EntityData *entity)
         }
         if (FLAGS(entity) & 0x1E0)
             return;
-        if ((u16)entity->unk_504.part16.unk_504 == 0x29)
+        if ((u16)PLAYER_REQUESTED_ANIM(entity) == 0x29)
             return;
         SetAnim(entity, 0x28, 1, 0);
     }
@@ -338,8 +338,8 @@ void Soma_UpdateVerticalMovement(struct EwramData_EntityData *entity)
             entity->velY.whole += 0x6000;
             entity->accelY.whole = corr;
         }
-        if (entity->unk_4F8.part16.unk_4F8 <= 0xF)
-            entity->unk_4F8.part16.unk_4F8++;
+        if (PLAYER_AIR_TIME(entity) <= 0xF)
+            PLAYER_AIR_TIME(entity)++;
         if (entity->velY.whole <= 0 || entity->velX.whole != 0)
         {
             cs = FC(-0x50000, -0x200000);
@@ -437,7 +437,7 @@ void Soma_UpdateVerticalMovement(struct EwramData_EntityData *entity)
         }
         else if (entity->velY.whole <= 0x3FFF)
         {
-            if ((f2 & 4) && (u16)entity->unk_504.part16.unk_504 != 0xFF)
+            if ((f2 & 4) && (u16)PLAYER_REQUESTED_ANIM(entity) != 0xFF)
                 return;
             if (!(f2 & 0x10))
             {

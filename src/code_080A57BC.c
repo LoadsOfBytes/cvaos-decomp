@@ -1,5 +1,6 @@
 /* Chaos second form: body creation (57BC). */
 #include "code_08009A0.h"
+#include "chaos_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -26,8 +27,8 @@ extern void Chaos2SnakeSegment_Update(struct EwramData_EntityData *);
 extern void Chaos2SnakeSegment_EnableHitBoxes(struct EwramData_EntityData *);
 extern void Chaos2SnakeHead_DamagePlayerOnContact(struct EwramData_EntityData *);
 
-#define ANGLE(e) ((e)->unk_504.part16.unk_504)
-#define INDEX(e) ((e)->unk_4FC.part8.unk_4FE)
+#define ANGLE(e) (CHAOS_SNAKE_ANGLE((e)))
+#define INDEX(e) (CHAOS_SNAKE_INDEX((e)))
 
 /* Create the snake-like body at the core + (x, y): the head (Chaos2SnakeHead_Update)
  * with a 120-entry position history and 8 segments (Chaos2SnakeSegment_Update). */
@@ -41,11 +42,11 @@ void Chaos2_CreateSnake(struct EwramData_EntityData *core, s32 x, s32 y)
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
     struct EwramData_EntityData *head = EntityCreateInRange(0x49, 0xCF, (u32 *)Chaos2SnakeHead_Update);
     struct HitBox box = { -8, -8, 16, 16 };
-    struct Chaos2Data *data = (struct Chaos2Data *)core->unk_504.whole;
+    struct Chaos2Data *data = (struct Chaos2Data *)CHAOS_DATA(core);
 
     if (head != NULL)
     {
-        if ((head->unk_508.whole = (s32)Heap_Alloc(0xB4)) == 0)
+        if ((CHAOS_SNAKE_TRAIL(head) = (s32)Heap_Alloc(0xB4)) == 0)
         {
             EntityDelete(head);
             return;
@@ -59,13 +60,13 @@ void Chaos2_CreateSnake(struct EwramData_EntityData *core, s32 x, s32 y)
         head->animFrame = 0xB;
         head->animMode = 2;
         head->unk_518.part8.enemyId = core->unk_518.part8.enemyId;
-        head->unk_4F4.unk_4F4_entity = core;
+        CHAOS_LINK(head) = core;
         head->scrollWithBg = 0;
         head->attack = 0x55;
-        head->unk_4FC.part8.unk_4FC = bg->xPos.part16.integer;
-        head->unk_4FC.part8.unk_4FD = bg->yPos.part16.integer;
-        head->unk_4F8.part8.unk_4FB = 0;
-        head->unk_4FC.part8.unk_4FF = 4;
+        CHAOS_SNAKE_CAMERA_X(head) = bg->xPos.part16.integer;
+        CHAOS_SNAKE_CAMERA_Y(head) = bg->yPos.part16.integer;
+        CHAOS_SNAKE_MODE(head) = 0;
+        CHAOS_SNAKE_POINT(head) = 4;
         Hit_Enable(head, 8, Chaos2SnakeHead_DamagePlayerOnContact, 0);
         HitBox_SetAttack(head, &box);
         head->hit.flags |= 4;
@@ -82,7 +83,7 @@ void Chaos2_CreateSnake(struct EwramData_EntityData *core, s32 x, s32 y)
         head->affineIndex = slot;
         head->affine = 1;
         ObjAffine_Set(0, 0x10000, 0x10000, head->flipX, head->flipY, head->affineIndex);
-        trail = (u8 *)head->unk_508.whole;
+        trail = (u8 *)CHAOS_SNAKE_TRAIL(head);
         for (i = 119; i >= 0; i--)
         {
             trail[i * 6 + 0] = 0;
@@ -106,12 +107,12 @@ void Chaos2_CreateSnake(struct EwramData_EntityData *core, s32 x, s32 y)
             seg->scrollWithBg = 0;
             seg->spriteLayer = head->spriteLayer + 1;
             seg->drawFunc = (u32 *)Sprite_DrawEntity;
-            seg->unk_4F4.unk_4F4_entity = head;
+            CHAOS_LINK(seg) = head;
             INDEX(seg) = i;
             seg->timer = i;
             seg->attack = head->attack;
-            seg->unk_4FC.part8.unk_4FC = head->unk_4FC.part8.unk_4FC;
-            seg->unk_4FC.part8.unk_4FD = head->unk_4FC.part8.unk_4FD;
+            CHAOS_SNAKE_CAMERA_X(seg) = CHAOS_SNAKE_CAMERA_X(head);
+            CHAOS_SNAKE_CAMERA_Y(seg) = CHAOS_SNAKE_CAMERA_Y(head);
             seg->posX.whole = head->posX.whole;
             seg->posY.whole = head->posY.whole;
             seg->animFrame = 0xE;

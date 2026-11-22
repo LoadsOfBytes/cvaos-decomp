@@ -2,6 +2,7 @@
  * affine bursts in four mirrored corners that launch the rolling waves
  * (84B20/84C7C) or the lightning (84DB8/84F14). */
 #include "code_08009A0.h"
+#include "headhunter_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -29,9 +30,9 @@ void HeadhunterFallingPart_Update(struct EwramData_EntityData *entity);
 void HeadhunterWaveBurst_Update(struct EwramData_EntityData *entity);
 void HeadhunterLightningBurst_Update(struct EwramData_EntityData *entity);
 /* bit 0 of the owner's unk_4FE ends its effects (TODO: meaning) */
-#define OWNER_DONE(o) ((o)->unk_4FC.part8.unk_4FE & 1)
-#define FRAME(e) ((e)->unk_4FC.part8.unk_4FF)
-#define KIND(e) (*(s8 *)&(e)->unk_504.part8.unk_504) /* also the burst corner 0-3 */
+#define OWNER_DONE(o) (HEADHUNTER_FLAGS((o)) & 1)
+#define FRAME(e) (HEADHUNTER_EFFECT_FRAME((e)))
+#define KIND(e) (*(s8 *)&HEADHUNTER_KIND((e))) /* also the burst corner 0-3 */
 #define CORNER(e) KIND(e)
 #define OFFSET_X(e) ((e)->velX.whole)
 #define OFFSET_Y(e) ((e)->velY.whole)
@@ -55,21 +56,21 @@ void Headhunter_SpawnFallingPart(struct EwramData_EntityData *owner, s32 x, s32 
     OFFSET_Y(part) = y;
     part->flipX = owner->flipX;
     part->spriteLayer = owner->spriteLayer - 1;
-    graphics = owner->unk_500.whole;
+    graphics = HEADHUNTER_GRAPHICS(owner);
     switch (kind)
     {
     case 0:
-        part->unk_510.part8.basePalette = owner->unk_504.part8.unk_504;
+        part->unk_510.part8.basePalette = HEADHUNTER_PALETTE_0(owner);
         FRAME(part) = 1;
         part->timer = 8;
         break;
     case 1:
-        part->unk_510.part8.basePalette = owner->unk_504.part8.unk_505;
+        part->unk_510.part8.basePalette = HEADHUNTER_PALETTE_1(owner);
         FRAME(part) = 0x6C;
         part->timer = 8;
         break;
     case 2:
-        part->unk_510.part8.basePalette = owner->unk_504.part8.unk_506;
+        part->unk_510.part8.basePalette = HEADHUNTER_PALETTE_2(owner);
         FRAME(part) = 0x4F;
         part->timer = 60;
         break;
@@ -83,7 +84,7 @@ void Headhunter_SpawnFallingPart(struct EwramData_EntityData *owner, s32 x, s32 
     part->affineIndex = slot;
     part->affine = 1;
     ObjAffine_SetBiased(0, 0x10000, 0x10000, part->flipX, part->flipY, part->affineIndex);
-    part->unk_4F8.unk_4F8_entity = owner;
+    ENTITY_OWNER(part) = owner;
     KIND(part) = kind;
     part->scrollWithBg = 0;
     part->drawFunc = (u32 *)Sprite_DrawEntity;
@@ -99,7 +100,7 @@ void Headhunter_SpawnFallingPart(struct EwramData_EntityData *owner, s32 x, s32 
 void HeadhunterFallingPart_Update(struct EwramData_EntityData *entity)
 {
     struct SingleFrameAnimation animation = sHeadhunterFrameAnim;
-    struct EwramData_EntityData *owner = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
     Anim_Start(entity, (struct AnimScript *)&animation, 2, 1);
     animation.frame = FRAME(entity);
@@ -196,9 +197,9 @@ void Headhunter_SpawnWaveBurst(struct EwramData_EntityData *owner, s32 x, s32 y,
     }
     CORNER(effect) = corner;
     effect->spriteLayer = owner->spriteLayer - 1;
-    graphics = owner->unk_500.whole;
-    effect->unk_500.whole = graphics;
-    effect->unk_510.part8.basePalette = owner->unk_504.part8.unk_507;
+    graphics = HEADHUNTER_GRAPHICS(owner);
+    HEADHUNTER_EFFECT_GRAPHICS(effect) = graphics;
+    effect->unk_510.part8.basePalette = HEADHUNTER_PALETTE_3(owner);
     Sprite_Attach(effect, sHeadhunterSpriteSheet, graphics, effect->unk_510.part8.basePalette);
     FRAME(effect) = 0x59;
     if ((s32)((slot = ObjAffine_Alloc(1)) << 16) < 0)
@@ -214,7 +215,7 @@ void Headhunter_SpawnWaveBurst(struct EwramData_EntityData *owner, s32 x, s32 y,
     ObjAffine_SetBiased(0, 0x10000, 0, effect->flipX, effect->flipY, effect->affineIndex);
     effect->timer = 0x6C;
     effect->attack = owner->attack;
-    effect->unk_4F8.unk_4F8_entity = owner;
+    ENTITY_OWNER(effect) = owner;
     effect->scrollWithBg = 1;
     effect->drawFunc = (u32 *)Sprite_DrawEntity;
 }
@@ -229,7 +230,7 @@ void Headhunter_SpawnWaveBurst(struct EwramData_EntityData *owner, s32 x, s32 y,
 void HeadhunterWaveBurst_Update(struct EwramData_EntityData *entity)
 {
     struct SingleFrameAnimation animation = sHeadhunterFrameAnim;
-    struct EwramData_EntityData *owner = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
     s32 i;
     if (entity->timer > 67)
     {
@@ -306,9 +307,9 @@ void Headhunter_SpawnLightningBurst(struct EwramData_EntityData *owner, s32 x, s
     /* the zero for the transform fields is set together with the corner */
     CORNER(effect) = (zero = 0, corner);
     effect->spriteLayer = owner->spriteLayer - 1;
-    graphics = owner->unk_500.whole;
-    effect->unk_500.whole = graphics;
-    effect->unk_510.part8.basePalette = owner->unk_504.part8.unk_507;
+    graphics = HEADHUNTER_GRAPHICS(owner);
+    HEADHUNTER_EFFECT_GRAPHICS(effect) = graphics;
+    effect->unk_510.part8.basePalette = HEADHUNTER_PALETTE_3(owner);
     Sprite_Attach(effect, sHeadhunterSpriteSheet, graphics, effect->unk_510.part8.basePalette);
     FRAME(effect) = 0x59;
     if ((s32)((slot = ObjAffine_Alloc(1)) << 16) < 0)
@@ -324,7 +325,7 @@ void Headhunter_SpawnLightningBurst(struct EwramData_EntityData *owner, s32 x, s
     ROTATION(effect) = zero;
     ObjAffine_SetBiased(0, 0, 0, effect->flipX, effect->flipY, effect->affineIndex);
     effect->attack = owner->attack;
-    effect->unk_4F8.unk_4F8_entity = owner;
+    ENTITY_OWNER(effect) = owner;
     effect->scrollWithBg = 1;
     effect->drawFunc = (u32 *)Sprite_DrawEntity;
 }
@@ -339,7 +340,7 @@ void Headhunter_SpawnLightningBurst(struct EwramData_EntityData *owner, s32 x, s
 void HeadhunterLightningBurst_Update(struct EwramData_EntityData *entity)
 {
     struct SingleFrameAnimation animation = sHeadhunterFrameAnim;
-    struct EwramData_EntityData *owner = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
     if (entity->timer++ <= 32)
     {

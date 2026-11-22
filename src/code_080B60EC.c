@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "balore_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -14,7 +15,7 @@ extern const u8 sUnk_085287D6[4];
  */
 void BaloreIntroPart_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4FC.unk_4FC_entity;
+    struct EwramData_EntityData *parent = BALORE_PIECE_OWNER(entity);
 
     if (parent->state == 10)
         entity->state = 5;

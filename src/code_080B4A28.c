@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "balore_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -15,8 +16,8 @@ extern s32 Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 void BaloreHandHitBox_Update(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
-    struct EwramData_EntityData *body = entity->unk_4FC.unk_4FC_entity;
-    struct EwramData_EntityData *hand = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *body = BALORE_BODY(entity);
+    struct EwramData_EntityData *hand = BALORE_HAND(entity);
     u16 matrix;
     s32 angle, radius, x, y;
     u8 flags;
@@ -33,7 +34,7 @@ void BaloreHandHitBox_Update(struct EwramData_EntityData *entity)
         entity->affineIndex = matrix;
         entity->affine = 1;
         entity->spriteLayer = 0x19;
-        Sprite_Attach(entity, sBaloreSpriteSheet, (s8)body->unk_4F8.part8.unk_4FB, hand->unk_510.part8.basePalette);
+        Sprite_Attach(entity, sBaloreSpriteSheet, (s8)BALORE_GFX(body), hand->unk_510.part8.basePalette);
         Anim_StartIndexed(entity, 0x30, 2, 0);
         Anim_Update(entity);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
@@ -69,10 +70,10 @@ void BaloreHandHitBox_Update(struct EwramData_EntityData *entity)
     HIT_FLAGS(entity) = flags;
     if (entity->hidden) return;
     if (hand->flipX)
-        angle = hand->unk_500.part16.unk_500;
+        angle = BALORE_ARM_ANGLE(hand);
     else
-        angle = hand->unk_500.part16.unk_500 + 0x8000;
-    radius = TO_PIXELS(hand->unk_4F4.whole);
+        angle = BALORE_ARM_ANGLE(hand) + 0x8000;
+    radius = TO_PIXELS(BALORE_ARM_LENGTH(hand));
     x = radius * Sin(angle + 0x4000);
     entity->posX.whole = hand->posX.whole + x;
     y = Sin(angle) * radius;
@@ -81,7 +82,7 @@ void BaloreHandHitBox_Update(struct EwramData_EntityData *entity)
     entity->velY.whole = entity->posY.whole - entity->accelY.whole;
     if (HIT_FLAGS(entity) & 4) Player_QueueEntity(entity, 3);
     Hit_CheckWithPlayer(collision, entity);
-    ObjAffine_Set(hand->unk_500.part16.unk_500, 0x10000, 0x10000, hand->flipX, 0, entity->affineIndex);
+    ObjAffine_Set(BALORE_ARM_ANGLE(hand), 0x10000, 0x10000, hand->flipX, 0, entity->affineIndex);
     if (entity->animScriptIndex != ((u8 *)&hand->unk_51C)[0])
         Anim_StartIndexed(entity, ((u8 *)&hand->unk_51C)[0], 2, 0);
     Anim_Update(entity);

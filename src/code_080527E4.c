@@ -1,5 +1,6 @@
 /* Object 0x14 and helpers 0x080527E4..0x080528DF. */
 #include "code_08001194.h"
+#include "room_object_entity.h"
 #include "code_08009A0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -25,13 +26,13 @@ void Object14_Draw(struct EwramData_EntityData *entity)
     s32 oldY = entity->posY.whole;
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
 
-    entity->posX.part16.integer = entity->unk_500.part16.unk_500 - bg->xPos.part16.integer;
-    entity->posY.part16.integer = entity->unk_500.part16.unk_502 - bg->yPos.part16.integer;
+    entity->posX.part16.integer = OBJECT14_PREV_X(entity) - bg->xPos.part16.integer;
+    entity->posY.part16.integer = OBJECT14_PREV_Y(entity) - bg->yPos.part16.integer;
     Sprite_DrawEntity(entity);
     entity->posX.whole = oldX;
     entity->posY.whole = oldY;
-    entity->unk_500.part16.unk_500 = GetEntityRoomXPositionInteger(entity);
-    entity->unk_500.part16.unk_502 = GetEntityRoomYPositionInteger(entity);
+    OBJECT14_PREV_X(entity) = GetEntityRoomXPositionInteger(entity);
+    OBJECT14_PREV_Y(entity) = GetEntityRoomYPositionInteger(entity);
 }
 
 /**

@@ -1,5 +1,6 @@
 /* Death_UpdateDeath: boss death sequence (flash, debris parts); matched. */
 #include "code_08009A0.h"
+#include "death_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 #include "structs/entity_render_flags.h"
@@ -13,7 +14,7 @@ static inline struct EwramData_EntityData *SpawnPart(struct EwramData_EntityData
     struct EwramData_EntityData *c = Entity_CreateObject(func);
     if (c == NULL)
         return NULL;
-    c->unk_4F8.part8.unk_4F8 = owner->unk_4F4.part8.unk_4F4;
+    DEATH_OWNER_INDEX(c) = ENTITY_INDEX(owner);
     c->scrollWithBg = 1;
     return c;
 }

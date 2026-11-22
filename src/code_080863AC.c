@@ -16,7 +16,7 @@ extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32
  */
 void HeadhunterAttackSegment_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    struct EwramData_EntityData *headhunter = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *headhunter = ENTITY_OWNER(entity);
     s32 oldX = headhunter->posX.whole;
     s32 oldY = headhunter->posY.whole;
     s16 damage;
@@ -25,9 +25,9 @@ void HeadhunterAttackSegment_OnHit(struct EwramData_EntityData *entity, s32 atta
     headhunter->posX.whole = entity->posX.whole;
     headhunter->posY.whole = entity->posY.whole;
     attackPower = Player_CalculateAttackPower(hit[2]);
-    damage = Hit_ResolveDamage(entity->unk_4F8.unk_4F8_entity, attacker, hit, attackPower);
+    damage = Hit_ResolveDamage(ENTITY_OWNER(entity), attacker, hit, attackPower);
     headhunter->posX.whole = oldX;
     headhunter->posY.whole = oldY;
     Entity_ShowDamage(entity, damage, 0);
-    Headhunter_ApplyResolvedDamage(entity->unk_4F8.unk_4F8_entity, attacker, hit, damage);
+    Headhunter_ApplyResolvedDamage(ENTITY_OWNER(entity), attacker, hit, damage);
 }

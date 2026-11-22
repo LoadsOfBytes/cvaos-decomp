@@ -3,6 +3,7 @@
  * (fail:) and the state 10 attack start sit where the original keeps their
  * cross-jumped copies; the hit test results use a function-level d. */
 #include "code_08009A0.h"
+#include "werejaguar_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "code/code_080211F0.h"
@@ -44,8 +45,8 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
         {
             entity->timer = 0;
             entity->subState++;
-            entity->unk_4F8.part8.unk_4FB = 0;
-            entity->unk_4F8.part8.unk_4F8 = 1;
+            WEREJAGUAR_CONTACT_HIT(entity) = 0;
+            WEREJAGUAR_MANUAL_ANIM(entity) = 1;
             entity->unk_4F8.part8.unk_4FA = 0;
             entity->animFrame = 0x10;
             Entity_UpdateBoxes(entity);
@@ -67,7 +68,7 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
         }
         break;
     case 1:
-        entity->unk_4F8.part8.unk_4F8 = 1;
+        WEREJAGUAR_MANUAL_ANIM(entity) = 1;
         r = Entity_MoveWithCollision(entity, 0x40000, -0x200000, 0x80000, 8) & 4;
         if (!r)
             goto fail;
@@ -104,10 +105,10 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
             }
             else
                 Anim_StartIndexed(entity, 3, 0, 0);
-            entity->unk_4F8.part8.unk_4F8 = 0;
+            WEREJAGUAR_MANUAL_ANIM(entity) = 0;
             break;
         }
-        entity->unk_4F8.part8.unk_4F8 = r;
+        WEREJAGUAR_MANUAL_ANIM(entity) = r;
         Anim_StartIndexed(entity, 6, 0, 1);
         entity->state = r;
         entity->subState = 1;
@@ -118,7 +119,7 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
         close:
             entity->timer = 0;
             entity->subState = 6;
-            entity->unk_4F8.part8.unk_4F8 = 1;
+            WEREJAGUAR_MANUAL_ANIM(entity) = 1;
             entity->animFrame = 0x10;
             Entity_UpdateBoxes(entity);
             entity->accelX.whole = 0;
@@ -144,7 +145,7 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
                 }
                 entity->timer = 0;
                 entity->subState = 0xD;
-                entity->unk_4F8.part8.unk_4F8 = 1;
+                WEREJAGUAR_MANUAL_ANIM(entity) = 1;
                 entity->animFrame = 0x10;
                 Entity_UpdateBoxes(entity);
                 entity->accelX.whole = 0;
@@ -162,10 +163,10 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
             Anim_StartIndexed(entity, 6, 0, 1);
             entity->state = hop;
             entity->subState = 1;
-            entity->unk_4F8.part8.unk_4F8 = hop;
+            WEREJAGUAR_MANUAL_ANIM(entity) = hop;
             break;
         }
-        entity->unk_4F8.part8.unk_4F9 = 1;
+        WEREJAGUAR_CONTACT_KIND(entity) = 1;
         if (entity->animTimer == 0 && (entity->animStep == 1 || entity->animStep == 3 || entity->animStep == 5))
             PlaySong(0x85);
         break;
@@ -178,9 +179,9 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
             break;
         }
         if (entity->animStep == 5)
-            entity->unk_4F8.part8.unk_4F9 = 2;
+            WEREJAGUAR_CONTACT_KIND(entity) = 2;
         else
-            entity->unk_4F8.part8.unk_4F9 = 1;
+            WEREJAGUAR_CONTACT_KIND(entity) = 1;
         if (entity->animTimer == 0 && (entity->animStep == 1 || entity->animStep == 3 || entity->animStep == 5))
             PlaySong(0x85);
         break;
@@ -212,11 +213,11 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
             entity->subState = 10;
             break;
         }
-        entity->unk_4F8.part8.unk_4F9 = 1;
+        WEREJAGUAR_CONTACT_KIND(entity) = 1;
         break;
     case 6:
         zero = 0;
-        entity->unk_4F8.part8.unk_4F8 = 1;
+        WEREJAGUAR_MANUAL_ANIM(entity) = 1;
         r = Entity_MoveWithCollision(entity, 0x40000, -0x200000, 0x80000, 8) & 4;
         if (!r)
             goto fail;
@@ -240,7 +241,7 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
         else
             entity->velX.whole = -0x100000;
         EntityAccelerateAndMove(entity, 0x100000);
-        entity->unk_4F8.part8.unk_4F9 = 3;
+        WEREJAGUAR_CONTACT_KIND(entity) = 3;
         if (entity->flipX)
             entity->velX.whole = 0x10000;
         else
@@ -255,11 +256,11 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
         {
             s32 z = 0;
             s32 v;
-            entity->unk_4F8.part8.unk_4F9 = 3;
+            WEREJAGUAR_CONTACT_KIND(entity) = 3;
             if (entity->animStep == 3)
             {
                 entity->animFlags |= 2;
-                entity->unk_4F8.part8.unk_4F9 = z;
+                WEREJAGUAR_CONTACT_KIND(entity) = z;
             }
             v = 0x20000;
             d = Entity_MoveWithCollision(entity, v, -0x200000, 0x80000, 8);
@@ -284,7 +285,7 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
         break;
     case 13:
         zero = 0;
-        entity->unk_4F8.part8.unk_4F8 = 1;
+        WEREJAGUAR_MANUAL_ANIM(entity) = 1;
         r = Entity_MoveWithCollision(entity, 0x40000, -0x200000, 0x80000, 8) & 4;
         if (!r)
             goto fail;
@@ -293,13 +294,13 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
         entity->subState = 5;
         entity->timer = zero;
         Anim_StartIndexed(entity, 0, 0, 0);
-        entity->unk_4F8.part8.unk_4F8 = zero;
+        WEREJAGUAR_MANUAL_ANIM(entity) = zero;
         break;
     fail:
         entity->state = r;
         entity->subState = r;
         Anim_StartIndexed(entity, 0, 0, 1);
-        entity->unk_4F8.part8.unk_4F8 = r;
+        WEREJAGUAR_MANUAL_ANIM(entity) = r;
         break;
     }
 }

@@ -2,6 +2,7 @@
    Target_IsInRect calls, u8 parameter of BeginSinking). */
 /* Zombie's emerging, walking and sinking states. */
 #include "code_08009A0.h"
+#include "zombie_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 extern void EntityDampVelocityX(struct EwramData_EntityData *entity, s32 amount);
@@ -40,7 +41,7 @@ void Zombie_UpdateEmergingWalkingSinking(struct EwramData_EntityData *entity)
             if (RandomNumberGenerator() & 1) Anim_StartIndexed(entity, 1, 0, 1);
             else Anim_StartIndexed(entity, 4, 0, 1);
             WalkVelocity(entity);
-            entity->unk_500.whole = (RandomNumberGenerator() & 511) + 600;
+            ZOMBIE_TIMER(entity) = (RandomNumberGenerator() & 511) + 600;
         }
         break;
     case 1:
@@ -65,7 +66,7 @@ void Zombie_UpdateEmergingWalkingSinking(struct EwramData_EntityData *entity)
             BeginSinking(entity, previousX, previousY, impact);
             break;
         }
-        if (entity->unk_500.whole-- <= 0)
+        if (ZOMBIE_TIMER(entity)-- <= 0)
         {
             BeginSinking(entity, previousX, previousY, tile);
             break;
@@ -73,9 +74,9 @@ void Zombie_UpdateEmergingWalkingSinking(struct EwramData_EntityData *entity)
         }
         if (entity->animStep == 0)
         {
-            if (entity->unk_4F8.part8.unk_4F8 == 0)
+            if (ZOMBIE_DEBRIS_SPAWNED(entity) == 0)
             {
-                entity->unk_4F8.part8.unk_4F8 = 1;
+                ZOMBIE_DEBRIS_SPAWNED(entity) = 1;
                 if (entity->animScriptIndex == 4)
                 {
                     previousX = entity->flipX ? -0x90000 : 0x90000;
@@ -93,9 +94,9 @@ void Zombie_UpdateEmergingWalkingSinking(struct EwramData_EntityData *entity)
         }
         if (entity->animStep == 0 || entity->animStep == 2)
         {
-            if ((s8)entity->unk_4F8.part8.unk_4F9 == 0)
+            if ((s8)ZOMBIE_SPRITE_SPAWNED(entity) == 0)
             {
-                entity->unk_4F8.part8.unk_4F9 = 1;
+                ZOMBIE_SPRITE_SPAWNED(entity) = 1;
                 previousX = entity->posX.whole;
                 previousY = entity->posY.whole;
                 Zombie_SpawnTemporarySprite(entity, previousX, previousY);
@@ -103,8 +104,8 @@ void Zombie_UpdateEmergingWalkingSinking(struct EwramData_EntityData *entity)
         }
         if (entity->animStep == 1 || entity->animStep == 3)
         {
-            entity->unk_4F8.part8.unk_4F8 = 0;
-            entity->unk_4F8.part8.unk_4F9 = 0;
+            ZOMBIE_DEBRIS_SPAWNED(entity) = 0;
+            ZOMBIE_SPRITE_SPAWNED(entity) = 0;
         }
         {
             s32 hit;
@@ -114,7 +115,7 @@ void Zombie_UpdateEmergingWalkingSinking(struct EwramData_EntityData *entity)
                 hit = Target_IsInRect((s16)(entity->posX.part16.integer - 80), (s16)(entity->posY.part16.integer - 32), 80, 64);
             if (!hit) break;
         }
-        if (!(entity->unk_500.whole & 1)) entity->animTimer++;
+        if (!(ZOMBIE_TIMER(entity) & 1)) entity->animTimer++;
         break;
     }
     case 2:

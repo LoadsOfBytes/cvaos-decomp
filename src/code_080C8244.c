@@ -1,5 +1,6 @@
 /* KillerDollPartEffect_Update. */
 #include "code/code_08039340.h"
+#include "doll_entity.h"
 #include "structs/ewram.h"
 
 extern u8 sCommonObjectGfx[];
@@ -12,7 +13,7 @@ extern s8 sKillerDollPartOffsets[][6];
  */
 void KillerDollPartEffect_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *doll = &gEwramData->entityData[entity->unk_4F4.part8.unk_4F5];
+    struct EwramData_EntityData *doll = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
 
     switch (entity->state)
     {
@@ -30,7 +31,7 @@ void KillerDollPartEffect_Update(struct EwramData_EntityData *entity)
         case 1:
             entity->posX.whole = doll->posX.whole;
             entity->posY.whole = doll->posY.whole - 0x100000;
-            entity->posY.part16.integer += sKillerDollPartOffsets[(u8)doll->unk_500.part8.unk_501][1];
+            entity->posY.part16.integer += sKillerDollPartOffsets[(u8)DOLL_PART_INDEX(doll)][1];
             break;
     }
     Anim_Update(entity);

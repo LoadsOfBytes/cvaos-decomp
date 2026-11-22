@@ -1,6 +1,8 @@
 /* SkillGhostUse; structure as
  * SkillHarpyUse (src/code_0802CC84.c). */
 #include "code_08009A0.h"
+#include "soul_skill_entity.h"
+#include "red_soul_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08040A38.h"
@@ -14,7 +16,7 @@ extern void SkillGhostSpiritUpdate(struct EwramData_EntityData *);
  */
 void SkillGhostUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
     s32 i;
     s32 angle;
 
@@ -36,15 +38,15 @@ void SkillGhostUse(struct EwramData_EntityData *entity)
                 break;
             {
                 s32 offset = (s32)(RandomNumberGenerator() % 0x1000) - 0x7800;
-                child->unk_510.part16.unk_510 = angle + offset;
+                SKILL_GHOST_HEADING(child) = angle + offset;
             }
-            child->posX.whole = entity->posX.whole + (Sin(child->unk_510.part16.unk_510 + 0x4000) << 4);
-            child->posY.whole = entity->posY.whole + (Sin(child->unk_510.part16.unk_510) << 4);
+            child->posX.whole = entity->posX.whole + (Sin(SKILL_GHOST_HEADING(child) + 0x4000) << 4);
+            child->posY.whole = entity->posY.whole + (Sin(SKILL_GHOST_HEADING(child)) << 4);
         }
         entity->state = 2;
         break;
     case 2:
-        gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         break;

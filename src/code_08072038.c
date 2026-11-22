@@ -17,7 +17,7 @@ void Mudman_ThrowShot(struct EwramData_EntityData *parent)
         projectile->scrollWithBg = 1;
         MudmanShot_EnableHitBoxes(projectile);
         projectile->spriteLayer = parent->spriteLayer + 1;
-        projectile->unk_4F4.unk_4F4_entity = parent;
+        ENTITY_CREATOR(projectile) = parent;
         projectile->flipX = parent->flipX;
         if (parent->flipX)
         {

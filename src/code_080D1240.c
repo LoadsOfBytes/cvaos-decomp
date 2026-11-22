@@ -1,5 +1,6 @@
 /* Belmont_UpdateJumpSlide: Belmont jump, landing and following attack/recovery sequence. */
 #include "code/code_08039340.h"
+#include "belmont_entity.h"
 #include "code_080D73B8.h"
 #include "structs/ewram.h"
 extern s32 Entity_MoveWithCollisionProfile(struct EwramData_EntityData *,s16 *,u16,s32);
@@ -145,7 +146,7 @@ void Belmont_UpdateJumpSlide(struct EwramData_EntityData *entity)
             }
             if(--entity->timer==255)
             {
-                *damage=entity->unk_500.part8.unk_501;
+                *damage=BELMONT_ATTACK_OFF(entity);
                 entity->state=2;
                 entity->stage=0;
                 entity->subState=0;

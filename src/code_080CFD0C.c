@@ -1,5 +1,6 @@
 /* Belmont introduction waits, creates the scene object, then starts combat. */
 #include "structs/ewram.h"
+#include "belmont_entity.h"
 #include "code_08009A0.h"
 #include "code_0800B700.h"
 extern void Belmont_CreateSceneObject(struct EwramData_EntityData *,s32);
@@ -11,7 +12,7 @@ extern void EnemyBelmontCreate(struct EwramData_EntityData *);
  */
 void Belmont_UpdateIntro(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *object=&gEwramData->entityData[entity->unk_4F8.part8.unk_4FB];
+    struct EwramData_EntityData *object=&gEwramData->entityData[BELMONT_SCENE_OBJECT_INDEX(entity)];
     Game_SetMenusEnabled(0);
     if(entity->stage<=3)
         SetPlayerInput(1,0x20);

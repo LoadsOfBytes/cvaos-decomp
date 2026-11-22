@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "bg_particle_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -21,34 +22,34 @@ s32 BgParticle_SpawnAll(struct EwramData_EntityData *owner)
                 entity = EntityCreateInRange(0x49, 0xCF, (u32 *)BgParticle_Update);
         if (!entity)
             continue;
-        entity->unk_500.part8.unk_501 = owner->unk_4F4.part8.unk_4F4;
-        entity->unk_500.part8.unk_500 = RandomNumberGenerator() & 0xF;
-        if (entity->unk_500.part8.unk_500 > 8)
+        BG_PARTICLE_OWNER_INDEX(entity) = ENTITY_INDEX(owner);
+        BG_PARTICLE_KIND(entity) = RandomNumberGenerator() & 0xF;
+        if (BG_PARTICLE_KIND(entity) > 8)
         {
-            entity->unk_500.part8.unk_500 = 2;
+            BG_PARTICLE_KIND(entity) = 2;
             entity->spriteLayer = 0x1D;
         }
-        else if (entity->unk_500.part8.unk_500 > 5)
+        else if (BG_PARTICLE_KIND(entity) > 5)
         {
-            entity->unk_500.part8.unk_500 = 1;
+            BG_PARTICLE_KIND(entity) = 1;
             entity->spriteLayer = 0x1A;
         }
-        else if (entity->unk_500.part8.unk_500 > 1)
+        else if (BG_PARTICLE_KIND(entity) > 1)
         {
-            entity->unk_500.part8.unk_500 = 0;
+            BG_PARTICLE_KIND(entity) = 0;
             entity->spriteLayer = 0x19;
         }
         else
         {
-            entity->unk_500.part8.unk_500 = 3;
+            BG_PARTICLE_KIND(entity) = 3;
             entity->spriteLayer = 0x1D;
         }
-        if (entity->unk_500.part8.unk_500 != 3)
+        if (BG_PARTICLE_KIND(entity) != 3)
         {
             entity->posX.part16.integer = (RandomNumberGenerator() & 0x3F) * 4 + 0xFFE0;
             entity->posY.part16.integer = (RandomNumberGenerator() & 0x7F) + 1;
-            entity->accelX.whole = ((RandomNumberGenerator() & 0x3FFF) + 0xC000) >> entity->unk_500.part8.unk_500;
-            entity->accelY.whole = ((RandomNumberGenerator() & 0x1FFF) + 0x8000) >> entity->unk_500.part8.unk_500;
+            entity->accelX.whole = ((RandomNumberGenerator() & 0x3FFF) + 0xC000) >> BG_PARTICLE_KIND(entity);
+            entity->accelY.whole = ((RandomNumberGenerator() & 0x1FFF) + 0x8000) >> BG_PARTICLE_KIND(entity);
         }
         else
         {
@@ -56,10 +57,10 @@ s32 BgParticle_SpawnAll(struct EwramData_EntityData *owner)
             entity->posY.part16.integer = (RandomNumberGenerator() & 0x3F) + 0x21;
             entity->accelX.whole = ((RandomNumberGenerator() & 0x7F) << 4) + 0x800;
             entity->accelY.whole = ((RandomNumberGenerator() & 0x7F) << 4) + 0x800;
-            entity->unk_4FC.whole = (RandomNumberGenerator() & 0x1F) << 12;
+            BG_PARTICLE_ANGLE_Y(entity) = (RandomNumberGenerator() & 0x1F) << 12;
         }
         if (entity->flipX)
             entity->accelX.whole = -entity->accelX.whole;
-        entity->unk_4F8.whole = (RandomNumberGenerator() & 0x1F) << 12;
+        BG_PARTICLE_ANGLE_X(entity) = (RandomNumberGenerator() & 0x1F) << 12;
     }
 }

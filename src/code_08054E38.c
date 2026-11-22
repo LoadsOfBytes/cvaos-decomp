@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "save_point_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern void SavePoint_UpdateAnimPart(struct EwramData_EntityData *);
@@ -23,10 +24,10 @@ s32 SavePoint_SpawnAnimParts(struct EwramData_EntityData *parent)
     s32 created = 0;
     s32 i;
     struct PartInit parts[4] = {
-        { 0, parent->unk_4FC.part16.unk_4FE[0] + 2, SavePoint_UpdateAnimPart, 0x13 },
-        { 2, parent->unk_4FC.part16.unk_4FE[0] + 3, SavePoint_UpdateAnimPart, 0x14 },
-        { 7, parent->unk_4FC.part16.unk_4FE[0] + 3, SavePoint_UpdateAnimPart, 0x14 },
-        { 4, parent->unk_4FC.part16.unk_4FE[0] + 1, SavePoint_UpdateAnimPart, 0x14 },
+        { 0, SAVE_POINT_FRAME_BASE(parent) + 2, SavePoint_UpdateAnimPart, 0x13 },
+        { 2, SAVE_POINT_FRAME_BASE(parent) + 3, SavePoint_UpdateAnimPart, 0x14 },
+        { 7, SAVE_POINT_FRAME_BASE(parent) + 3, SavePoint_UpdateAnimPart, 0x14 },
+        { 4, SAVE_POINT_FRAME_BASE(parent) + 1, SavePoint_UpdateAnimPart, 0x14 },
     };
 
     for (i = 0; i <= 3; i++)
@@ -48,12 +49,12 @@ s32 SavePoint_SpawnAnimParts(struct EwramData_EntityData *parent)
         }
         entity->scrollWithBg = 1;
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
-        Sprite_Attach(entity, sSaveWarpRoomSpriteSheet, parent->unk_4FC.part16.unk_4FC, parts[i].palette);
+        Sprite_Attach(entity, sSaveWarpRoomSpriteSheet, SAVE_POINT_GRAPHICS(parent), parts[i].palette);
         Anim_StartIndexed(entity, parts[i].anim, 0, 1);
         Anim_Update(entity);
         entity->spriteLayer = parts[i].layer;
         entity->updateFunc = (u32 *)parts[i].update;
-        entity->unk_500.unk_500_entity = parent;
+        SAVE_POINT_PART_OWNER(entity) = parent;
         entity->timer = 4;
         created = 1;
     }

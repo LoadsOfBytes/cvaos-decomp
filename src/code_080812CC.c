@@ -1,6 +1,7 @@
 /* Golem part update: follows its skeleton joint, maintains collision,
  * then falls and spins after the parent enters state 2. */
 #include "code_08009A0.h"
+#include "golem_entity.h"
 #include "joint_entity.h"
 #include "syscalls.h"
 #include "code/code_08039340.h"
@@ -18,11 +19,11 @@ struct SegmentBox {
     s8 h;
 };
 
-#define PART(e) (*(s8 *)&(e)->unk_504.part8.unk_504)   /* own part index */
-#define NEXT_PART(e) (*(s8 *)&(e)->unk_504.part8.unk_505)
+#define PART(e) (*(s8 *)&JOINT_PART_INDEX((e)))   /* own part index */
+#define NEXT_PART(e) (*(s8 *)&JOINT_PART_ANCHOR((e)))
 #define ANGLE(e) ((e)->velX.whole)
-#define SPIN(e) ((e)->unk_4F8.whole)
-#define FALL_ANGLE(e) ((e)->unk_4FC.whole)
+#define SPIN(e) (GOLEM_SEGMENT_SPIN((e)))
+#define FALL_ANGLE(e) (GOLEM_SEGMENT_FALL_ANGLE((e)))
 #define TO_PIXELS(d) ((d) < 0 ? -(-(d) >> 16) : (d) >> 16)
 /* parts 0-5 and 7-10 have an affine sprite */
 #define HAS_AFFINE(i) (((i) >= 0 && (i) <= 5) || (i) == 7 || (i) == 8 || (i) == 9 || (i) == 10)
@@ -36,7 +37,7 @@ void GolemSegment_Update(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
     struct SegmentBox box;
-    struct EwramData_EntityData *owner = entity->unk_500.unk_500_entity;
+    struct EwramData_EntityData *owner = JOINT_PART_OWNER(entity);
 
     /* Share these temporaries with the collision calculation: agbcc register allocation. */
     s32 dx, dy;

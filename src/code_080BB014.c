@@ -1,5 +1,6 @@
 /* Man Eater projectile callbacks and Killer Mantle attached effects. */
 #include "code_08009A0.h"
+#include "killer_mantle_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -46,7 +47,7 @@ void ManEaterProjectile_OnHit(struct EwramData_EntityData *entity)
  */
 void KillerMantleLandingEffect_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
 
     switch (entity->state)
     {
@@ -76,7 +77,7 @@ void KillerMantleLandingEffect_Update(struct EwramData_EntityData *entity)
  */
 void KillerMantlePart_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
     u16 slot;
     s16 angle;
 
@@ -100,28 +101,28 @@ void KillerMantlePart_Update(struct EwramData_EntityData *entity)
             entity->hidden = 1;
             entity->state = 1;
         case 1:
-            if (!(owner->unk_4FC.part16.unk_4FE[0] & 1))
+            if (!(KILLER_MANTLE_FLAGS(owner) & 1))
                 return;
-            entity->unk_500.whole = 0;
-            entity->unk_4FC.part16.unk_4FE[0] = -0x3000; // 0xD000
+            KILLER_MANTLE_PART_SCALE_X(entity) = 0;
+            KILLER_MANTLE_PART_ANGLE(entity) = -0x3000; // 0xD000
             entity->hidden = 0;
             entity->state = 2;
         case 2:
-            if (!(owner->unk_4FC.part16.unk_4FE[0] & 1))
+            if (!(KILLER_MANTLE_FLAGS(owner) & 1))
             {
                 entity->timer = 8;
                 entity->state = 3;
                 break;
             }
-            if (entity->unk_500.whole <= 0xFFFF)
-                entity->unk_500.whole += 0x1000;
-            entity->unk_4FC.part16.unk_4FE[0] += 0x300;
+            if (KILLER_MANTLE_PART_SCALE_X(entity) <= 0xFFFF)
+                KILLER_MANTLE_PART_SCALE_X(entity) += 0x1000;
+            KILLER_MANTLE_PART_ANGLE(entity) += 0x300;
             Entity_PlaceRelativeToCopy(entity, owner, 8, 0);
             break;
         case 3:
-            if (entity->unk_500.whole > 0)
-                entity->unk_500.whole -= 0x2000;
-            entity->unk_4FC.part16.unk_4FE[0] += 0x200;
+            if (KILLER_MANTLE_PART_SCALE_X(entity) > 0)
+                KILLER_MANTLE_PART_SCALE_X(entity) -= 0x2000;
+            KILLER_MANTLE_PART_ANGLE(entity) += 0x200;
             Entity_PlaceRelativeToCopy(entity, owner, 8, 0);
             if (entity->timer != 0)
             {
@@ -137,8 +138,8 @@ void KillerMantlePart_Update(struct EwramData_EntityData *entity)
             EntityDelete(entity);
             return;
     }
-    angle = entity->unk_4FC.part16.unk_4FE[0];
+    angle = KILLER_MANTLE_PART_ANGLE(entity);
     if (entity->flipX)
         angle = -angle;
-    ObjAffine_Set(angle, entity->unk_500.whole, 0x10000, entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set(angle, KILLER_MANTLE_PART_SCALE_X(entity), 0x10000, entity->flipX, 0, entity->affineIndex);
 }

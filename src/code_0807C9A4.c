@@ -43,7 +43,7 @@ void AluraUne_SpawnThorn(struct EwramData_EntityData *parent, s32 xOffset, s32 d
             projectile->state = 2;
             projectile->hidden = 0;
         }
-        projectile->unk_4F8.unk_4F8_entity = parent;
+        ENTITY_OWNER(projectile) = parent;
         projectile->posX.part16.integer = parent->posX.part16.integer + xOffset;
         projectile->posY.part16.integer = parent->posY.part16.integer;
         projectile->flipX = parent->flipX;

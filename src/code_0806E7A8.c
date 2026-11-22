@@ -5,6 +5,12 @@
 #include "code_080D73B8.h"
 #include "code_08001194.h"
 
+/*
+ * Valkyrie spear attack (Valkyrie_UpdateAttack): frame counter of the current
+ * attack step. Token-identical expansion.
+ */
+#define VALKYRIE_ATTACK_FRAME(e) e->unk_4F4.whole
+
 extern void EntityDampVelocityX(struct EwramData_EntityData *, s32);
 extern void EntityMove(struct EwramData_EntityData *);
 extern u8 sValkyrieGfx[], sValkyriePalette[], sValkyrieSpriteSheet[];
@@ -124,7 +130,7 @@ void Valkyrie_UpdateAttack(struct EwramData_EntityData *entity)
         {
             entity->subState++;
             Anim_StartIndexed(entity, 0, 0, 1);
-            entity->unk_4F4.whole = 0;
+            VALKYRIE_ATTACK_FRAME(entity) = 0;
         }
         break;
     case 5:
@@ -133,13 +139,13 @@ void Valkyrie_UpdateAttack(struct EwramData_EntityData *entity)
         if (!Target_IsWithinDistance(entity, 0x780000))
         {
             entity->subState++;
-            entity->unk_4F4.whole = 0;
+            VALKYRIE_ATTACK_FRAME(entity) = 0;
             entity->accelY.whole = 0;
         }
-        if (++entity->unk_4F4.whole > 0x13)
+        if (++VALKYRIE_ATTACK_FRAME(entity) > 0x13)
         {
             entity->subState++;
-            entity->unk_4F4.whole = 0;
+            VALKYRIE_ATTACK_FRAME(entity) = 0;
             entity->accelY.whole = 0;
         }
         break;
@@ -148,7 +154,7 @@ void Valkyrie_UpdateAttack(struct EwramData_EntityData *entity)
         EntityDampVelocityX(entity, 8);
         EntityDampVelocityY(entity, 8);
         EntityAccelerateAndMove(entity, 0x30000);
-        if (++entity->unk_4F4.whole > 0x2F)
+        if (++VALKYRIE_ATTACK_FRAME(entity) > 0x2F)
         {
             entity->state = 0;
             entity->subState = 1;

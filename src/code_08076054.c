@@ -1,5 +1,6 @@
 /* The caller selects one of three valid directions (0..2) for a spread shot. */
 #include "code_08009A0.h"
+#include "harpy_entity.h"
 #include "structs/ewram.h"
 #include "structs/entity_render_flags.h"
 extern void HarpyWavyFeather_Update(struct EwramData_EntityData *);
@@ -18,7 +19,7 @@ void Harpy_ThrowWavyFeather(struct EwramData_EntityData *owner,s32 kind)
         projectile->scrollWithBg=1;
         HarpyFeather_EnableHitBoxes(projectile);
         projectile->spriteLayer=owner->spriteLayer+1;
-        projectile->unk_4F4.unk_4F4_entity=owner;
+        ENTITY_CREATOR(projectile)=owner;
         projectile->flipX=owner->flipX;
         if(owner->flipX)
             projectile->posX.part16.integer=owner->posX.part16.integer+1;
@@ -46,7 +47,7 @@ void Harpy_ThrowWavyFeather(struct EwramData_EntityData *owner,s32 kind)
                 projectile->animFrame=14;
                 break;
         }
-        projectile->unk_4F8.whole=angle;
+        HARPY_FEATHER_ANGLE(projectile)=angle;
         if(projectile->flipX) projectile->timer=24;
         else projectile->timer=8;
         projectile->flipX=0;

@@ -1,5 +1,6 @@
 /* Slime terrain support points and angle interpolation. */
 #include "code_08009A0.h"
+#include "slime_entity.h"
 #include "code_08001194.h"
 #include "syscalls.h"
 extern s32 Slime_GetFloorCorrection(s32, s32);
@@ -13,7 +14,7 @@ extern u8 Angle_TurnTowards(u16 *, u16, u16);
  */
 s32 Slime_UpdateSurfaceSupport(struct EwramData_EntityData *entity, u16 step)
 {
-    u16 angle = entity->unk_504.part16.unk_504;
+    u16 angle = SLIME_ANGLE(entity);
     u16 roomX;
     u16 roomY;
     s32 lostGround = 0;
@@ -40,7 +41,7 @@ s32 Slime_UpdateSurfaceSupport(struct EwramData_EntityData *entity, u16 step)
     angle = (((u32)angle << 16) + 0x40000000) >> 16;
     normalX = SLIME_FIXED_INTEGER(6 * Sin((s16)angle + 0x4000));
     normalY = SLIME_FIXED_INTEGER(6 * Sin((s16)angle));
-    if (entity->unk_4F8.whole <= 0)
+    if (SLIME_SPEED(entity) <= 0)
     {
         dx = -(u32)((u32)dx << 16) >> 16;
         dy = -(u32)((u32)dy << 16) >> 16;
@@ -49,14 +50,14 @@ s32 Slime_UpdateSurfaceSupport(struct EwramData_EntityData *entity, u16 step)
     tangentX = (s16)dx;
     rightX = centerX + tangentX;
     perpendicularX = (s16)normalX;
-    entity->unk_508.part16.unk_508 = (u32)((perpendicularX + rightX) << 16) >> 16;
+    SLIME_FRONT_SUPPORT_X(entity) = (u32)((perpendicularX + rightX) << 16) >> 16;
     centerY = (s16)roomY;
     tangentY = (s16)dy;
     rightY = centerY + tangentY;
     perpendicularY = (s16)normalY;
-    entity->unk_508.part16.unk_50A = (u32)((perpendicularY + rightY) << 16) >> 16;
-    entity->unk_50C.part16.unk_50C = perpendicularX + (centerX - tangentX);
-    entity->unk_50C.part16.unk_50E = perpendicularY + (centerY - tangentY);
+    SLIME_FRONT_SUPPORT_Y(entity) = (u32)((perpendicularY + rightY) << 16) >> 16;
+    SLIME_BACK_SUPPORT_X(entity) = perpendicularX + (centerX - tangentX);
+    SLIME_BACK_SUPPORT_Y(entity) = perpendicularY + (centerY - tangentY);
     switch (entity->stage)
     {
     case 0:
@@ -72,10 +73,10 @@ s32 Slime_UpdateSurfaceSupport(struct EwramData_EntityData *entity, u16 step)
         }
         GetEntityRoomXPositionInteger(entity);
         GetEntityRoomYPositionInteger(entity);
-        height = (s16)Slime_GetFloorCorrection(entity->unk_508.part16.unk_508, entity->unk_508.part16.unk_50A + 6);
-        if (height != 0) entity->unk_508.part16.unk_50A = (u32)((height + (u16)entity->unk_508.part16.unk_50A) << 16) >> 16;
-        height = (s16)Slime_GetFloorCorrection(entity->unk_50C.part16.unk_50C, entity->unk_50C.part16.unk_50E + 6);
-        if (height != 0) entity->unk_50C.part16.unk_50E = (u32)((height + (u16)entity->unk_50C.part16.unk_50E) << 16) >> 16;
+        height = (s16)Slime_GetFloorCorrection(SLIME_FRONT_SUPPORT_X(entity), SLIME_FRONT_SUPPORT_Y(entity) + 6);
+        if (height != 0) SLIME_FRONT_SUPPORT_Y(entity) = (u32)((height + (u16)SLIME_FRONT_SUPPORT_Y(entity)) << 16) >> 16;
+        height = (s16)Slime_GetFloorCorrection(SLIME_BACK_SUPPORT_X(entity), SLIME_BACK_SUPPORT_Y(entity) + 6);
+        if (height != 0) SLIME_BACK_SUPPORT_Y(entity) = (u32)((height + (u16)SLIME_BACK_SUPPORT_Y(entity)) << 16) >> 16;
         break;
     case 2:
         {
@@ -90,10 +91,10 @@ s32 Slime_UpdateSurfaceSupport(struct EwramData_EntityData *entity, u16 step)
         }
         GetEntityRoomXPositionInteger(entity);
         GetEntityRoomYPositionInteger(entity);
-        height = (s16)Collision_GetPushDown(entity->unk_508.part16.unk_508, entity->unk_508.part16.unk_50A - 6);
-        if (height != 0) entity->unk_508.part16.unk_50A = (u32)((height + (u16)entity->unk_508.part16.unk_50A) << 16) >> 16;
-        height = (s16)Collision_GetPushDown(entity->unk_50C.part16.unk_50C, entity->unk_50C.part16.unk_50E - 6);
-        if (height != 0) entity->unk_50C.part16.unk_50E = (u32)((height + (u16)entity->unk_50C.part16.unk_50E) << 16) >> 16;
+        height = (s16)Collision_GetPushDown(SLIME_FRONT_SUPPORT_X(entity), SLIME_FRONT_SUPPORT_Y(entity) - 6);
+        if (height != 0) SLIME_FRONT_SUPPORT_Y(entity) = (u32)((height + (u16)SLIME_FRONT_SUPPORT_Y(entity)) << 16) >> 16;
+        height = (s16)Collision_GetPushDown(SLIME_BACK_SUPPORT_X(entity), SLIME_BACK_SUPPORT_Y(entity) - 6);
+        if (height != 0) SLIME_BACK_SUPPORT_Y(entity) = (u32)((height + (u16)SLIME_BACK_SUPPORT_Y(entity)) << 16) >> 16;
         break;
     case 1:
         {
@@ -108,10 +109,10 @@ s32 Slime_UpdateSurfaceSupport(struct EwramData_EntityData *entity, u16 step)
         }
         GetEntityRoomXPositionInteger(entity);
         GetEntityRoomYPositionInteger(entity);
-        height = (s16)Collision_GetPushLeft(entity->unk_508.part16.unk_508 + 6, entity->unk_508.part16.unk_50A);
-        if (height != 0) entity->unk_508.part16.unk_508 = (u32)((height + (u16)entity->unk_508.part16.unk_508) << 16) >> 16;
-        height = (s16)Collision_GetPushLeft(entity->unk_50C.part16.unk_50C + 6, entity->unk_50C.part16.unk_50E);
-        if (height != 0) entity->unk_50C.part16.unk_50C = (u32)((height + (u16)entity->unk_50C.part16.unk_50C) << 16) >> 16;
+        height = (s16)Collision_GetPushLeft(SLIME_FRONT_SUPPORT_X(entity) + 6, SLIME_FRONT_SUPPORT_Y(entity));
+        if (height != 0) SLIME_FRONT_SUPPORT_X(entity) = (u32)((height + (u16)SLIME_FRONT_SUPPORT_X(entity)) << 16) >> 16;
+        height = (s16)Collision_GetPushLeft(SLIME_BACK_SUPPORT_X(entity) + 6, SLIME_BACK_SUPPORT_Y(entity));
+        if (height != 0) SLIME_BACK_SUPPORT_X(entity) = (u32)((height + (u16)SLIME_BACK_SUPPORT_X(entity)) << 16) >> 16;
         break;
     case 3:
         {
@@ -126,30 +127,30 @@ s32 Slime_UpdateSurfaceSupport(struct EwramData_EntityData *entity, u16 step)
         }
         GetEntityRoomXPositionInteger(entity);
         GetEntityRoomYPositionInteger(entity);
-        height = (s16)Collision_GetPushRight(entity->unk_508.part16.unk_508 - 6, entity->unk_508.part16.unk_50A);
-        if (height != 0) entity->unk_508.part16.unk_508 = (u32)((height + (u16)entity->unk_508.part16.unk_508) << 16) >> 16;
-        height = (s16)Collision_GetPushRight(entity->unk_50C.part16.unk_50C - 6, entity->unk_50C.part16.unk_50E);
-        if (height != 0) entity->unk_50C.part16.unk_50C = (u32)((height + (u16)entity->unk_50C.part16.unk_50C) << 16) >> 16;
+        height = (s16)Collision_GetPushRight(SLIME_FRONT_SUPPORT_X(entity) - 6, SLIME_FRONT_SUPPORT_Y(entity));
+        if (height != 0) SLIME_FRONT_SUPPORT_X(entity) = (u32)((height + (u16)SLIME_FRONT_SUPPORT_X(entity)) << 16) >> 16;
+        height = (s16)Collision_GetPushRight(SLIME_BACK_SUPPORT_X(entity) - 6, SLIME_BACK_SUPPORT_Y(entity));
+        if (height != 0) SLIME_BACK_SUPPORT_X(entity) = (u32)((height + (u16)SLIME_BACK_SUPPORT_X(entity)) << 16) >> 16;
         break;
     }
-    if (entity->unk_4F8.whole > 0)
+    if (SLIME_SPEED(entity) > 0)
     {
-        edgeX = (s16)((u16)entity->unk_508.part16.unk_508 - (u16)entity->unk_50C.part16.unk_50C);
+        edgeX = (s16)((u16)SLIME_FRONT_SUPPORT_X(entity) - (u16)SLIME_BACK_SUPPORT_X(entity));
         {
-            firstY = (u16)entity->unk_508.part16.unk_50A;
-            secondY = (u16)entity->unk_50C.part16.unk_50E;
+            firstY = (u16)SLIME_FRONT_SUPPORT_Y(entity);
+            secondY = (u16)SLIME_BACK_SUPPORT_Y(entity);
         }
     }
     else
     {
-        edgeX = (s16)((u16)entity->unk_50C.part16.unk_50C - (u16)entity->unk_508.part16.unk_508);
+        edgeX = (s16)((u16)SLIME_BACK_SUPPORT_X(entity) - (u16)SLIME_FRONT_SUPPORT_X(entity));
         {
-            firstY = (u16)entity->unk_50C.part16.unk_50E;
-            secondY = (u16)entity->unk_508.part16.unk_50A;
+            firstY = (u16)SLIME_BACK_SUPPORT_Y(entity);
+            secondY = (u16)SLIME_FRONT_SUPPORT_Y(entity);
         }
     }
     firstY -= secondY;
     angle = ArcTan2(edgeX, (s16)firstY);
-    Angle_TurnTowards((u16 *)&entity->unk_504.part16.unk_504, step, angle);
+    Angle_TurnTowards((u16 *)&SLIME_ANGLE(entity), step, angle);
     return lostGround;
 }

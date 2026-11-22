@@ -1,4 +1,5 @@
 #include "code/code_08039340.h"
+#include "room_object_entity.h"
 #include "code_08009A0.h"
 #include "code_08001194.h"
 #include "structs/ewram.h"
@@ -57,14 +58,14 @@ void Object37Create(struct EwramData_EntityData *entity)
     x = entity->posX.whole - (*ewram)->playerState.player->posX.whole;
     if (Abs(x) < 0x300000)
     {
-        entity->unk_4FC.whole = 0x3000;
+        OBJECT37_ANGLE(entity) = 0x3000;
         entity->subState = 1;
         ObjAffine_Set(0x3000, scale, scale, entity->flipX, entity->flipY, entity->affineIndex);
-        entity->unk_500.whole = 0;
+        OBJECT37_CLOSED(entity) = 0;
     }
     else
     {
-        entity->unk_500.whole = 1;
+        OBJECT37_CLOSED(entity) = 1;
         x = EntityRoomX(entity, ewram);
         y = EntityRoomY(entity, ewram);
         x -= 0x10;

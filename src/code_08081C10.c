@@ -1,5 +1,6 @@
 /* Headhunter (entity type 0x6A): update and create. */
 #include "code_08009A0.h"
+#include "headhunter_entity.h"
 #include "code_08013960.h"
 #include "code_08033CAC.h"
 #include "code/code_08039340.h"
@@ -37,7 +38,7 @@ extern void HeadhunterTransformationPart_Update(struct EwramData_EntityData *);
 extern void Headhunter_DamagePlayerOnContact(struct EwramData_EntityData *);
 extern void Headhunter_OnHit(struct EwramData_EntityData *);
 
-#define KIND(e) (*(s8 *)&(e)->unk_504.part8.unk_504)
+#define KIND(e) (*(s8 *)&HEADHUNTER_KIND((e)))
 
 /* Create the Headhunter (unless already defeated) with its three
  * transformation parts (HeadhunterTransformationPart_Update, kinds 2..0) at fixed room positions;
@@ -61,7 +62,7 @@ void EnemyHeadhunterCreate(struct EwramData_EntityData *entity)
         entity->state = 3;
         Anim_StartIndexed(entity, 9, 2, 1);
         Anim_Update(entity);
-        entity->unk_510.part8.basePalette = entity->unk_504.part8.unk_506;
+        entity->unk_510.part8.basePalette = HEADHUNTER_PALETTE_2(entity);
         entity->palette = entity->unk_510.part8.basePalette;
         return;
     }
@@ -77,26 +78,26 @@ void EnemyHeadhunterCreate(struct EwramData_EntityData *entity)
         part = Entity_CreateObject((u32 *)HeadhunterTransformationPart_Update);
         if (part == NULL) goto delete;
         part->spriteLayer = entity->spriteLayer + 1;
-        graphics = entity->unk_500.whole;
+        graphics = HEADHUNTER_GRAPHICS(entity);
         switch (kind)
         {
         case 0:
-            Sprite_Attach(part, sHeadhunterSpriteSheet, graphics, *(s8 *)&entity->unk_504.part8.unk_504);
-            part->unk_510.part8.basePalette = entity->unk_504.part8.unk_504;
+            Sprite_Attach(part, sHeadhunterSpriteSheet, graphics, *(s8 *)&HEADHUNTER_PALETTE_0(entity));
+            part->unk_510.part8.basePalette = HEADHUNTER_PALETTE_0(entity);
             Anim_Start(part, &sHeadhunterAnimScript0, 2, 1);
             part->posX.part16.integer = 0xF0 - camera->xPos.part16.integer;
             part->posY.part16.integer = 0x7C - camera->yPos.part16.integer;
             break;
         case 1:
-            Sprite_Attach(part, sHeadhunterSpriteSheet, graphics, *(s8 *)&entity->unk_504.part8.unk_505);
-            part->unk_510.part8.basePalette = entity->unk_504.part8.unk_505;
+            Sprite_Attach(part, sHeadhunterSpriteSheet, graphics, *(s8 *)&HEADHUNTER_PALETTE_1(entity));
+            part->unk_510.part8.basePalette = HEADHUNTER_PALETTE_1(entity);
             Anim_Start(part, &sHeadhunterAnimScript1, 2, 1);
             part->posX.part16.integer = 0x110 - camera->xPos.part16.integer;
             part->posY.part16.integer = 0x80 - camera->yPos.part16.integer;
             break;
         case 2:
-            Sprite_Attach(part, sHeadhunterSpriteSheet, graphics, *(s8 *)&entity->unk_504.part8.unk_506);
-            part->unk_510.part8.basePalette = entity->unk_504.part8.unk_506;
+            Sprite_Attach(part, sHeadhunterSpriteSheet, graphics, *(s8 *)&HEADHUNTER_PALETTE_2(entity));
+            part->unk_510.part8.basePalette = HEADHUNTER_PALETTE_2(entity);
             Anim_Start(part, &sHeadhunterAnimScript2, 2, 1);
             part->posX.part16.integer = 0x100 - camera->xPos.part16.integer;
             part->posY.part16.integer = 0x60 - camera->yPos.part16.integer;
@@ -106,7 +107,7 @@ void EnemyHeadhunterCreate(struct EwramData_EntityData *entity)
         part->scrollWithBg = 1;
         part->drawFunc = (u32 *)Sprite_DrawEntity;
         part->flipX = entity->flipX;
-        part->unk_4F8.unk_4F8_entity = entity;
+        ENTITY_OWNER(part) = entity;
         KIND(part) = kind;
         Anim_Update(part);
     }

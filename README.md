@@ -60,8 +60,9 @@ not estimates.
 | Game code in C | **all of it**, except one 8-byte assembly veneer |
 | ROM code (`.text`) produced by C | 891,340 / 918,324 bytes (**97.06 %**); the rest is the toolchain's libgcc/libc and the hand-written assembly that GBA decompilations normally keep (startup `crt0`, the `m4a` sound mixer, BIOS syscall stubs, ROM header) |
 | Functions with descriptive names | 3,827 / 3,842 (**99.6 %**) |
-| Structure fields with descriptive names | 1,835 / 1,991 declared (**92.2 %**); 85.5 % of all field accesses |
-| Local variables and parameters named | **98.8 %** |
+| Structure fields with descriptive names | 1,838 / 1,991 declared (**92.3 %**); 73,898 / 77,610 field accesses (**95.2 %**) |
+| Per-entity work slots (generic unions `unk_4F4` … `unk_51C`) | named through 1,196 accessor macros in 86 entity/scene headers and TU-local blocks; 408 accesses inside functions still use the raw member names (see below) |
+| Local variables and parameters named | 16,931 / 17,131 (**98.8 %**) |
 | Lines marked `FAKEMATCH` | 197 lines in 85 of 1,710 C files (see below) |
 
 ## Known limitations
@@ -73,16 +74,26 @@ not estimates.
   certainly did not contain them; they are needed because no natural C variant was
   found that matches. Every such line is marked with a `/* FAKEMATCH: reason */`
   comment.
-- **Other unmarked matching tricks.** 59 statements in 37 files are wrapped in a
-  `do { ... } while (0)` that runs exactly once (sometimes nested), and 13 reads go
-  through a `volatile` pointer cast. Neither changes what the code does; both only
+- **Entity work slots are named by macros, not by fields.** Every entity has a block
+  of generic per-type unions (`unk_4F4` … `unk_518`, `unk_51C`) that each entity type
+  uses differently. Instead of one structure per entity type, the code reads them
+  through accessor macros such as `GREAT_ARMOR_HIT_COUNT(e)` or `CHAOS_SNAKE_TRAIL(e)`
+  (in `include/*_entity.h` and in local blocks of single files). The macros expand to
+  exactly the original member chains (`e->unk_4FC.part8.unk_4FD`); every such change
+  was checked to give a token-identical preprocessed file. 408 accesses inside
+  functions still use the raw member names, mostly where the meaning is unclear or a
+  byte is used for different things by different attacks.
+- **Other unmarked matching tricks.** 63 statements in 35 files (outside macro
+  definitions) are wrapped in a `do { ... } while (0)` that runs exactly once
+  (sometimes nested), and 13 reads in 11 files go through a `volatile` pointer cast. Neither changes what the code does; both only
   steer the compiler towards the original instructions. Unlike `FAKEMATCH`, they are
   not marked with a comment yet, and like it they are open points for cleanup.
 - **Matching-driven style.** Some functions use `goto`, unusual temporaries or casts
   because they reproduce the original instruction order. They are correct but not
   always how a person would write the code.
-- **File layout.** The source is still split into 1,701 files named by ROM address
-  (`src/code_XXXXXXXX.c`), inherited from the early splitting of the ROM. The original
+- **File layout.** The game source is still split into 1,701 files named by ROM address
+  (`src/code_XXXXXXXX.c`, 1,710 C files in total), inherited from the early splitting
+  of the ROM. The original
   game was certainly organized into far fewer files. Regrouping into logical modules is
   planned.
 

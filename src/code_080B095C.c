@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "minotaur_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -14,7 +15,7 @@ void Minotaur_UpdateAttack(struct EwramData_EntityData *entity)
     {
     case 0:
         {
-            s32 flag = entity->unk_4FC.whole & 2;
+            s32 flag = MINOTAUR_FLAGS(entity) & 2;
             if (flag == 0)
             {
                 Anim_StartIndexed(entity, 5, 0, 1);
@@ -23,7 +24,7 @@ void Minotaur_UpdateAttack(struct EwramData_EntityData *entity)
             }
             else
             {
-                entity->unk_4FC.whole &= ~1;
+                MINOTAUR_FLAGS(entity) &= ~1;
                 Anim_StartIndexed(entity, 7, 0, 0);
                 entity->subState = 1;
             }
@@ -54,7 +55,7 @@ void Minotaur_UpdateAttack(struct EwramData_EntityData *entity)
             Anim_StartIndexed(entity, 6, 0, 0);
         if (entity->timer > 40)
         {
-            if (!(entity->unk_4FC.whole & 2))
+            if (!(MINOTAUR_FLAGS(entity) & 2))
             {
                 entity->subState = 4;
                 entity->timer = 48;
@@ -63,7 +64,7 @@ void Minotaur_UpdateAttack(struct EwramData_EntityData *entity)
             {
                 entity->subState = 5;
                 Anim_StartIndexed(entity, 4, 0, 0);
-                entity->unk_4FC.whole |= 1;
+                MINOTAUR_FLAGS(entity) |= 1;
             }
         }
         break;

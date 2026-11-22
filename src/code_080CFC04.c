@@ -1,5 +1,6 @@
 /* Spawn Belmont's scene object from a table and mark its event bit. */
 #include "code_08009A0.h"
+#include "belmont_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08050A3C.h"
 #include "structs/ewram.h"
@@ -13,14 +14,14 @@ extern struct BelmontSceneObject sBelmontSceneObjects[];
 void Belmont_CreateSceneObject(struct EwramData_EntityData *entity,s32 index)
 {
     struct BelmontSceneObject *info=&sBelmontSceneObjects[index];
-    if(entity->unk_4F8.part8.unk_4F8 & 0x10)
+    if(BELMONT_FLAGS(entity) & 0x10)
     {
         struct EwramData_EntityData *object=EntityCreateInRange(0x1B,0x48,(u32 *)EntityUpdateNothing);
         if(object)
         {
             s32 facing;
-            entity->unk_4F8.part8.unk_4FB=object->unk_4F4.part8.unk_4F4;
-            object->unk_4F4.part8.unk_4F5=entity->unk_4F4.part8.unk_4F4;
+            BELMONT_SCENE_OBJECT_INDEX(entity)=ENTITY_INDEX(object);
+            ENTITY_PARENT_INDEX(object)=ENTITY_INDEX(entity);
             if(index==0)
             {
                 s32 x=info->x<<16;

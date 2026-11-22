@@ -46,10 +46,10 @@ extern void HitBox_UpdatePlayerRects(void);
 extern void YellowSoul_CreateEquippedEntity(struct EwramData_EntityData *entity);
 extern u8 sUnk_080E12C8[];
 
-#define FLAGS(e) ((e)->unk_4F4.whole)
+#define FLAGS(e) (PLAYER_ACTION_FLAGS((e)))
 #define HELD (gEwramData->inputData.playerHeldInput)
 #define NEW (gEwramData->inputData.playerNewInput)
-#define REQ(e) (*(u16 *)&(e)->unk_504.part16.unk_504)
+#define REQ(e) (*(u16 *)&PLAYER_REQUESTED_ANIM((e)))
 
 static inline void SetPlayerAnimBox(struct EwramData_EntityData *entity, u8 anim, struct PlayerBodyBox *table, s32 flag)
 {
@@ -60,8 +60,8 @@ static inline void SetPlayerAnimBox(struct EwramData_EntityData *entity, u8 anim
     {
         Anim_StartIndexed(entity, anim, 3, flag);
         HitBox_SetBody(entity, &box);
-        entity->unk_504.part16.unk_504 = 0xFF;
-        entity->unk_4F4.whole &= ~0x200000;
+        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
+        PLAYER_ACTION_FLAGS(entity) &= ~0x200000;
         pal = sSomaAnimPalettes[anim];
         if (PLAYER_ANIM_PALETTE(entity) != pal)
         {
@@ -75,7 +75,7 @@ static inline void SetPlayerBox(struct EwramData_EntityData *entity, s32 value, 
 {
     struct PlayerBodyBox box = table[0];
 
-    entity->unk_504.part16.unk_504 = value;
+    PLAYER_REQUESTED_ANIM(entity) = value;
     HitBox_SetBody(entity, &box);
 }
 
@@ -164,7 +164,7 @@ static inline void ApplyAccelX(struct EwramData_EntityData *entity)
 
 static inline void SlopeSlowdown(struct EwramData_EntityData *entity, s32 d1, s32 d2, s32 d3)
 {
-    switch ((u8)entity->unk_500.part8.unk_501)
+    switch ((u8)PLAYER_SLOPE_LEVEL(entity))
     {
         case 1:
             entity->velX.whole = entity->velX.whole / d1 * 16;
@@ -188,8 +188,8 @@ static inline void SetPlayerAnimBoxKeep(struct EwramData_EntityData *entity, u8 
     {
         Anim_StartIndexed(entity, anim, 3, flag);
         HitBox_SetBody(entity, &box);
-        entity->unk_504.part16.unk_504 = 0xFF;
-        entity->unk_4F4.whole &= ~0x200000;
+        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
+        PLAYER_ACTION_FLAGS(entity) &= ~0x200000;
         pal = sSomaAnimPalettes[anim];
         if (PLAYER_ANIM_PALETTE(entity) != pal)
         {
@@ -207,7 +207,7 @@ static inline void SetPlayerBoxIfFree(struct EwramData_EntityData *entity, u8 va
 
     if (REQ(entity) == 0xFF)
     {
-        entity->unk_504.part16.unk_504 = value;
+        PLAYER_REQUESTED_ANIM(entity) = value;
         HitBox_SetBody(entity, &box);
     }
 }
@@ -300,7 +300,7 @@ static inline void TrySlide(struct EwramData_EntityData *entity)
     {
         entity->state = 3;
         entity->subState = 0;
-        entity->unk_504.part16.unk_504 = 0xFF;
+        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
         SetPlayerAnimBox(entity, 0x1F, &sSomaCrouchBodyBoxes[1], 0);
         if (!entity->flipX)
             entity->velX.whole = 0x32000;
@@ -347,7 +347,7 @@ static inline void SetJuliusAnimF(struct EwramData_EntityData *entity, u8 anim, 
     if (!(gEwramData->playerState.actionLockFlags & 0x800) && entity->animScriptIndex != anim)
     {
         Anim_StartIndexed(entity, anim, 1, flag);
-        entity->unk_504.part16.unk_504 = 0xFF;
+        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
         FLAGS(entity) &= ~0x200000;
     }
 }
@@ -473,7 +473,7 @@ void Julius_Update(struct EwramData_EntityData *entity)
         if (!(gEwramData->playerState.actionLockFlags & 0x800) && entity->animScriptIndex != 0xC)
         {
             Anim_StartIndexed(entity, 0xC, 1, 0);
-            entity->unk_504.part16.unk_504 = 0xFF;
+            PLAYER_REQUESTED_ANIM(entity) = 0xFF;
             FLAGS(entity) &= ~0x200000;
         }
         SetHitTimer(entity, 8, 50);
@@ -571,9 +571,9 @@ collide:
                 entity->timer++;
                 if ((FLAGS(entity) & 0x1000) && (HELD & 0x80) && (NEW & gEwramData->playerStatus.jumpButton))
                 {
-                    entity->unk_4F8.part16.unk_4FA = 0x10;
+                    PLAYER_DROP_THROUGH_TIMER(entity) = 0x10;
                     if (FLAGS(entity) & 0x1000000)
-                        entity->unk_4F8.part16.unk_4FA = 0x20;
+                        PLAYER_DROP_THROUGH_TIMER(entity) = 0x20;
                     FLAGS(entity) = (FLAGS(entity) | 2) & ~0x1000;
                     entity->velX.whole = 0;
                     entity->velY.whole = 0;
@@ -586,7 +586,7 @@ collide:
                         if (!(FLAGS(entity) & 0x400))
                         {
                             FLAGS(entity) = (FLAGS(entity) | 0x400) & ~0x10000000;
-                            entity->unk_504.part16.unk_504 = 0xE;
+                            PLAYER_REQUESTED_ANIM(entity) = 0xE;
                         }
                         if (REQ(entity) == 0xFF)
                             SetJuliusAnimF(entity, 4, 1);
@@ -596,7 +596,7 @@ collide:
                     else
                     {
                         if (!(FLAGS(entity) & 0x10000000) && entity->animScriptIndex != 0 && speed > 0xFFFF)
-                            entity->unk_504.part16.unk_504 = 2;
+                            PLAYER_REQUESTED_ANIM(entity) = 2;
                         if (REQ(entity) == 0xFF)
                         {
                             FLAGS(entity) &= ~0x10000000;
@@ -607,7 +607,7 @@ collide:
                         && !(HELD & 0x80))
                     {
                         FLAGS(entity) &= ~0x400;
-                        entity->unk_504.part16.unk_504 = 0xF;
+                        PLAYER_REQUESTED_ANIM(entity) = 0xF;
                     }
                 }
             }
@@ -617,7 +617,7 @@ collide:
             {
                 entity->state = 3;
                 entity->subState = 0;
-                entity->unk_504.part16.unk_504 = 0xFF;
+                PLAYER_REQUESTED_ANIM(entity) = 0xFF;
                 SetJuliusAnim(entity, 8);
                 if (!entity->flipX)
                     entity->velX.whole = 0x38000;
@@ -883,10 +883,10 @@ collide:
 
         PLAYER_INVULNERABLE_TIMER(gEwramData->playerState.player) = two;
     }
-    if (entity->unk_518.part16.hp != 0)
+    if (PLAYER_BLINK_TIMER(entity) != 0)
     {
         entity->drawSkip = 1;
-        if (--entity->unk_518.part16.hp == 0)
+        if (--PLAYER_BLINK_TIMER(entity) == 0)
             entity->drawSkip = 0;
     }
     if (!(gEwramData->playerState.actionLockFlags & 2))
@@ -901,7 +901,7 @@ collide:
             ptr = (u32)(sUnk_080E12C8 + 0x14);
         else
         {
-            if (entity->unk_500.part8.unk_500 != 0)
+            if (PLAYER_ON_STAIRS(entity) != 0)
                 gEwramData->playerState.wallProbeY0 = -12;
             else
             {
@@ -915,7 +915,7 @@ collide:
             }
             ptr = (u32)&gEwramData->playerState.wallProbeCount;
         }
-        entity->unk_4FC.whole = ptr;
+        PLAYER_WALL_PROBES(entity) = ptr;
     }
     if (!(gEwramData->playerState.actionLockFlags & 0x800) && REQ(entity) != 0xFF)
     {
@@ -925,7 +925,7 @@ collide:
             FLAGS(entity) &= ~0x200000;
         }
         else if (FLAGS(entity) & 0x200000)
-            entity->unk_504.part16.unk_504 = 0xFF;
+            PLAYER_REQUESTED_ANIM(entity) = 0xFF;
     }
     Anim_Update(entity);
     Entity_UpdateBoxes(entity);
@@ -946,7 +946,7 @@ collide:
     gEwramData->playerStatus.inputOverrides = 0;
     Camera_ScrollWithPriority(0, ((s16)entity->posX.part16.integer - gEwramData->playerState.cameraAnchorX) << 16,
         ((s16)entity->posY.part16.integer - gEwramData->playerState.cameraAnchorY) << 16);
-    entity->unk_504.part16.unk_506[0]++;
+    PLAYER_FRAME_COUNTER(entity)++;
     if (NEW & gEwramData->playerStatus.guardianButton)
     {
         gEwramData->playerStatus.equippedRedSoul++;

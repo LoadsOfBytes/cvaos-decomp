@@ -26,7 +26,7 @@ void Entity_SpawnFragmentSet(struct EwramData_EntityData *entity)
             break;
         spec=&sFragmentSpecs[i];
         entity->unk_4F4.part8.unk_4F7++;
-        fragment->unk_4F4.part8.unk_4F5=entity->unk_4F4.part8.unk_4F4;
+        ENTITY_PARENT_INDEX(fragment)=ENTITY_INDEX(entity);
         fragment->spriteLayer=entity->spriteLayer;
         fragment->unk_510.part8.basePalette=entity->unk_510.part8.basePalette;
         fragment->flipX=entity->flipX;
@@ -57,7 +57,7 @@ void Entity_SpawnFragmentSet(struct EwramData_EntityData *entity)
  */
 void FragmentSet_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner=&gEwramData->entityData[entity->unk_4F4.part8.unk_4F5];
+    struct EwramData_EntityData *owner=&gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
     if(!Entity_IsInRect(entity,-128,-64,496,288) || --entity->timer==0xFF || (s16)entity->posY.part16.integer>170)
     {
         owner->unk_4F4.part8.unk_4F7--;

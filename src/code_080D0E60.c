@@ -1,5 +1,6 @@
 /* Belmont's powered sequence with its attached weapon and rising particles. */
 #include "code_08013960.h"
+#include "belmont_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -15,12 +16,12 @@ extern u8 sBelmontWeaponSolidCallbacks[];
  */
 void Belmont_UpdatePoweredPhase(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *weapon=&gEwramData->entityData[entity->unk_4F4.part8.unk_4F6];
+    struct EwramData_EntityData *weapon=&gEwramData->entityData[BELMONT_WEAPON_INDEX(entity)];
     s32 state=entity->subState;
     switch(state)
     {
         case 0:
-            entity->unk_4F8.part8.unk_4FA++;
+            BELMONT_POWER_STEP(entity)++;
             if(!Belmont_CreateAttachedWeapon(entity))
             {
                 entity->state=2;
@@ -34,7 +35,7 @@ void Belmont_UpdatePoweredPhase(struct EwramData_EntityData *entity)
             entity->velY.whole=-0x2000;
             entity->subState++;
             entity->stage=state;
-            weapon=&gEwramData->entityData[entity->unk_4F4.part8.unk_4F6];
+            weapon=&gEwramData->entityData[BELMONT_WEAPON_INDEX(entity)];
             if(weapon->unk_518.part8.enemyId==entity->unk_518.part8.enemyId && weapon)
                 Player_RegisterSolidObject(weapon,sBelmontWeaponSolidCallbacks);
             break;
@@ -117,7 +118,7 @@ void Belmont_UpdatePoweredPhase(struct EwramData_EntityData *entity)
                 entity->state=2;
                 entity->stage=0;
                 entity->subState=0;
-                entity->unk_4F4.part8.unk_4F6=0;
+                BELMONT_WEAPON_INDEX(entity)=0;
                 weapon->deleteRequested=1;
                 Player_ClearSolidObject();
               }

@@ -1,6 +1,8 @@
 /* Door transition and effects. Explicit register locals retain agbcc output;
  * they do not establish the original source spelling. */
 #include "code_08009A0.h"
+#include "door_entity.h"
+#include "player_entity.h"
 #include "code_08001194.h"
 #include "code/code_08039340.h"
 #include "code_080D73B8.h"
@@ -55,7 +57,7 @@ void Object06Update(struct EwramData_EntityData *entity)
         if (fx != NULL)
             fx->spriteLayer = 0xE;
         p2 = gEwramData->playerState.player;
-        if (p2->unk_4F4.whole & 0x80)
+        if (PLAYER_ACTION_FLAGS(p2) & 0x80)
             break;
         if (!Entity_IsInRect(entity, p2->posX.part16.integer - 0x1C, p2->posY.part16.integer, 0x38, 0x22))
             break;
@@ -83,7 +85,7 @@ void Object06Update(struct EwramData_EntityData *entity)
     case 2:
         if (gEwramData->gameState.linkPlay)
             SetPlayerInput(1, entity->flipX ? 0x20 : 0x10);
-        if (entity->unk_4F8.whole == 0)
+        if (DOOR_OPEN_HEIGHT(entity) == 0)
         {
             x = (s16)entity->posX.part16.integer;
             bg = &gEwramData->bgInfo[1];
@@ -93,7 +95,7 @@ void Object06Update(struct EwramData_EntityData *entity)
             Collision_ClearBlock(x, y - 0x18);
             Collision_ClearBlock(x, y - 0x28);
         }
-        if (++entity->unk_4F8.whole > 0x2F)
+        if (++DOOR_OPEN_HEIGHT(entity) > 0x2F)
         {
             gEwramData->gameState.stateFlags &= 0xFFFFFEFE;
             if (gEwramData->gameState.linkPlay)

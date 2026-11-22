@@ -1,6 +1,14 @@
 /* Handle projectile impacts, debris and attachment to a moving entity. */
 #include "code_08009A0.h"
 #include "code/code_08039340.h"
+
+/*
+ * Mudman shot (MudmanShot_Update): the owner's 16.16 room position of the
+ * previous frame (the shot moves along with the owner). Token-identical
+ * expansion.
+ */
+#define MUDMAN_SHOT_OWNER_X(e) e->unk_4FC.whole
+#define MUDMAN_SHOT_OWNER_Y(e) e->unk_500.whole
 extern s32 Entity_MoveWithCollisionDefault(struct EwramData_EntityData *, s32, s32);
 extern s32 EntityIsOutsideScreen(struct EwramData_EntityData *, s32);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
@@ -73,13 +81,13 @@ void MudmanShot_Update(struct EwramData_EntityData *entity)
             /* fall through */
         case 1:
         {
-            struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+            struct EwramData_EntityData *parent = ENTITY_OWNER(entity);
             if (parent && parent->updateFunc)
             {
-                entity->posX.whole += parent->posX.whole + background->xPos.whole - entity->unk_4FC.whole;
-                entity->posY.whole += parent->posY.whole + background->yPos.whole - entity->unk_500.whole;
-                entity->unk_4FC.whole = parent->posX.whole + background->xPos.whole;
-                entity->unk_500.whole = parent->posY.whole + background->yPos.whole;
+                entity->posX.whole += parent->posX.whole + background->xPos.whole - MUDMAN_SHOT_OWNER_X(entity);
+                entity->posY.whole += parent->posY.whole + background->yPos.whole - MUDMAN_SHOT_OWNER_Y(entity);
+                MUDMAN_SHOT_OWNER_X(entity) = parent->posX.whole + background->xPos.whole;
+                MUDMAN_SHOT_OWNER_Y(entity) = parent->posY.whole + background->yPos.whole;
             }
             if (entity->animDone) goto remove;
             break;

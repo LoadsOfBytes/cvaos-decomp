@@ -1,4 +1,5 @@
 #include "code_080D73B8.h"
+#include "graham_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern void GrahamAttacker_UpdateDeath(struct EwramData_EntityData *);
@@ -16,7 +17,7 @@ extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
  */
 void GrahamAttacker_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = &gEwramData->entityData[entity->unk_4F4.part8.unk_4F5];
+    struct EwramData_EntityData *owner = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
     u32 mode = entity->state;
     if (mode == 0xD0) { Anim_Update(entity); return; }
     if (mode == 0xF0) { GrahamAttacker_UpdateDeath(entity); return; }
@@ -24,7 +25,7 @@ void GrahamAttacker_Update(struct EwramData_EntityData *entity)
     {
         if (owner->unk_518.part8.enemyId != entity->unk_518.part8.enemyId)
         { entity->deleteRequested = 1; return; }
-        if ((owner->unk_4F8.part16.unk_4FA & 0x10) && mode <= 0xDF)
+        if ((GRAHAM_FLAGS(owner) & 0x10) && mode <= 0xDF)
             STATE(entity, 0xE0);
     }
     {

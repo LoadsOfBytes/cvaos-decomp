@@ -1,5 +1,6 @@
 /* Object 0x1C palette transition, returning one when the transition is done. */
 #include "code/code_08039340.h"
+#include "save_point_entity.h"
 #include "structs/ewram.h"
 extern u8 sSaveWarpRoomPalette[], sSavePointPalette[];
 /**
@@ -17,12 +18,12 @@ s32 SavePoint_StepPromptFade(struct EwramData_EntityData *entity)
         {
         case 0:
             entity->hidden = 0;
-            entity->unk_4F8.whole = 0;
+            SAVE_POINT_PROMPT_FADE(entity) = 0;
             ObjPalette_LoadRange(sSaveWarpRoomPalette, 5, 1, 14);
             goto advance;
         case 1:
-            entity->unk_4F8.whole += 0x2000;
-            if ((s32)entity->unk_4F8.whole <= 0xFFFF) goto end;
+            SAVE_POINT_PROMPT_FADE(entity) += 0x2000;
+            if ((s32)SAVE_POINT_PROMPT_FADE(entity) <= 0xFFFF) goto end;
             goto full;
         case 2:
             done = 1;
@@ -35,15 +36,15 @@ s32 SavePoint_StepPromptFade(struct EwramData_EntityData *entity)
         case 0:
             entity->hidden = 0;
         full:
-            entity->unk_4F8.whole = 0x10000;
+            SAVE_POINT_PROMPT_FADE(entity) = 0x10000;
         advance:
             entity->subState++;
             break;
         case 1:
-            entity->unk_4F8.whole -= 0x2000;
-            if ((s32)entity->unk_4F8.whole <= 0)
+            SAVE_POINT_PROMPT_FADE(entity) -= 0x2000;
+            if ((s32)SAVE_POINT_PROMPT_FADE(entity) <= 0)
             {
-                entity->unk_4F8.whole = 0;
+                SAVE_POINT_PROMPT_FADE(entity) = 0;
                 entity->subState++;
                 ObjPalette_LoadRange(sSavePointPalette, 14, 1, 14);
             }

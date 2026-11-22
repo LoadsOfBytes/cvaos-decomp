@@ -1,4 +1,5 @@
 #include "code/code_08039340.h"
+#include "event_scene03.h"
 #include "structs/ewram.h"
 
 extern struct EwramData_EntityData *Entity_CreateFromObjectTable(s32);
@@ -15,12 +16,12 @@ struct EwramData_EntityData *EventScene03_SpawnUnusedPart(struct EwramData_Entit
     entity->updateFunc = (u32 *)EventScene03UnusedPart_Update;
     entity->posX.part16.integer = x;
     entity->posY.part16.integer = y;
-    entity->unk_4F4.part8.unk_4F5 = owner->unk_4F4.part8.unk_4F4;
-    entity->unk_4F4.part8.unk_4F7 = flags;
+    ENTITY_PARENT_INDEX(entity) = ENTITY_INDEX(owner);
+    EVENT03_PART_FLAGS(entity) = flags;
     entity->unk_518.part8.enemyId = 0xFF;
     Entity_SnapToGround(entity);
     Anim_StartIndexed(entity, 0, 0, 1);
-    if (entity->unk_4F4.part8.unk_4F7 & 4)
+    if (EVENT03_PART_FLAGS(entity) & 4)
     {
         for (i = 16; i != 0; i--)
             entity->posY.whole += 0x8000;
@@ -32,12 +33,12 @@ struct EwramData_EntityData *EventScene03_SpawnUnusedPart(struct EwramData_Entit
     entity->flipX = facing;
     part = Entity_CreateFromObjectTable(9);
     part->updateFunc = (u32 *)EventScene03AttachedEffect_Update;
-    part->unk_4F4.part8.unk_4F5 = entity->unk_4F4.part8.unk_4F4;
+    ENTITY_PARENT_INDEX(part) = ENTITY_INDEX(entity);
     part->posX.part16.integer = entity->posX.part16.integer;
     part->posY.part16.integer = entity->posY.part16.integer;
     Anim_StartIndexed(part, 16, 0, 1);
     part->spriteLayer = entity->spriteLayer;
-    entity->unk_4F4.part8.unk_4F6 = part->unk_4F4.part8.unk_4F4;
+    EVENT03_PART_LINK_INDEX(entity) = ENTITY_INDEX(part);
     part->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
     return entity;
 }

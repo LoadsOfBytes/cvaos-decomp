@@ -1,5 +1,6 @@
 /* Chaos second form: summoned part update (537C). */
 #include "code_08009A0.h"
+#include "chaos_entity.h"
 #include "syscalls.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -31,9 +32,9 @@ void Chaos2SummonedPart_Update(struct EwramData_EntityData *part)
 {
     u8 collision[16];
     struct PlayerContactDamage fx;
-    struct EwramData_EntityData *core = part->unk_4F4.unk_4F4_entity;
+    struct EwramData_EntityData *core = CHAOS_LINK(part);
     struct EwramData **ewram = &gEwramData;
-    struct Chaos2Data *data = (struct Chaos2Data *)core->unk_504.whole;
+    struct Chaos2Data *data = (struct Chaos2Data *)CHAOS_DATA(core);
 
     data->summoned = 1;
     if (part->state == 0)

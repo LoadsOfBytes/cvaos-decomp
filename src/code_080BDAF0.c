@@ -2,6 +2,7 @@
  * is read through s32 statement expressions so it stays ldrsh, and dx is
  * narrowed to s16 before dy is computed. */
 #include "code_08009A0.h"
+#include "death_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -24,7 +25,7 @@ static inline u16 AngleTo(s32 dx, s32 dy)
 void DeathBlade_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData **ew = &gEwramData;
-    struct EwramData_EntityData *parent = &(*ew)->entityData[(u8)entity->unk_4F8.part8.unk_4F8];
+    struct EwramData_EntityData *parent = &(*ew)->entityData[(u8)DEATH_OWNER_INDEX(entity)];
     struct HitResult res;
     u16 slot;
     s16 angle;
@@ -57,7 +58,7 @@ void DeathBlade_Update(struct EwramData_EntityData *entity)
         player = gEwramData->playerState.player;
         {
             s16 dx = ({ s32 px = (s16)player->posX.part16.integer; px; }) - entity->posX.part16.integer;
-            entity->unk_4FC.part16.unk_4FC = ArcTan2(dx, ({ s32 py = (s16)player->posY.part16.integer; py; }) - y - 0x10);
+            DEATH_BLADE_HEADING(entity) = ArcTan2(dx, ({ s32 py = (s16)player->posY.part16.integer; py; }) - y - 0x10);
         }
     }
         entity->flipX = RandomNumberGenerator() & 1;
@@ -74,23 +75,23 @@ void DeathBlade_Update(struct EwramData_EntityData *entity)
         entity->state = 3;
         break;
     case 2:
-        if (entity->unk_504.whole <= 0x17FFF)
-            entity->unk_504.whole += 0x800;
+        if (DEATH_BLADE_SPEED(entity) <= 0x17FFF)
+            DEATH_BLADE_SPEED(entity) += 0x800;
         {
-            s32 s = Sin(entity->unk_4FC.part16.unk_4FC + 0x4000);
-            s32 r = entity->unk_504.whole;
+            s32 s = Sin(DEATH_BLADE_HEADING(entity) + 0x4000);
+            s32 r = DEATH_BLADE_SPEED(entity);
             entity->velX.whole = (s >> 8) * (r >> 8);
         }
         {
-            s32 s = Sin(entity->unk_4FC.part16.unk_4FC);
-            s32 r = entity->unk_504.whole;
+            s32 s = Sin(DEATH_BLADE_HEADING(entity));
+            s32 r = DEATH_BLADE_SPEED(entity);
             entity->velY.whole = (s >> 8) * (r >> 8);
         }
         EntityAccelerateAndMove(entity, 0x80000);
         Hit_CheckWithPlayer(&res, (u8 *)entity);
         if ((s16)entity->unk_518.part16.hp == 0)
             entity->state = 3;
-        if (parent->unk_4F8.part16.unk_4F8 & 1)
+        if (DEATH_FLAGS(parent) & 1)
             entity->state = 3;
         break;
     case 3:
@@ -103,8 +104,8 @@ void DeathBlade_Update(struct EwramData_EntityData *entity)
     }
     if (EntityIsOutsideScreen(entity, 3))
         entity->state = 4;
-    entity->unk_4FC.part16.unk_4FE[0] += 0x7A0;
-    angle = entity->unk_4FC.part16.unk_4FE[0];
+    DEATH_BLADE_SPIN(entity) += 0x7A0;
+    angle = DEATH_BLADE_SPIN(entity);
     if (entity->flipX)
         angle = -angle;
     ObjAffine_Set((s16)angle, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);

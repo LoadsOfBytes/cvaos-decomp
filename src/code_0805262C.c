@@ -1,5 +1,6 @@
 /* Object14Variant2_Update. */
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -52,21 +53,21 @@ void Object14Variant2_Update(struct EwramData_EntityData *entity)
         entity->spriteLayer = 0xC;
         entity->animFrame = 2;
         entity->drawFunc = (u32 *)Object14_Draw;
-        entity->unk_4FC.part16.unk_4FC = GetEntityRoomXPositionInteger(entity);
-        entity->unk_4FC.part16.unk_4FE[0] = GetEntityRoomYPositionInteger(entity);
-        entity->unk_500.part16.unk_500 = entity->unk_4FC.part16.unk_4FC;
-        entity->unk_500.part16.unk_502 = entity->unk_4FC.part16.unk_4FE[0];
+        OBJECT14_ROOM_X(entity) = GetEntityRoomXPositionInteger(entity);
+        OBJECT14_ROOM_Y(entity) = GetEntityRoomYPositionInteger(entity);
+        OBJECT14_PREV_X(entity) = OBJECT14_ROOM_X(entity);
+        OBJECT14_PREV_Y(entity) = OBJECT14_ROOM_Y(entity);
         Hit_Enable(entity, 8, NULL, 0);
         HitBox_SetBodyRaw(entity, 0x103000E8);
         entity->hit.flags |= 2;
         entity->hit.flags |= 4;
         if (RandomNumberGenerator() & 1)
-            entity->unk_508.part16.unk_508 = 0x8000;
-        entity->unk_508.part16.unk_50A = (RandomNumberGenerator() & 0x3F) + 0x40;
+            OBJECT14_SWING_ANGLE(entity) = 0x8000;
+        OBJECT14_SWING_SPEED(entity) = (RandomNumberGenerator() & 0x3F) + 0x40;
         entity->state = 1;
     case 1:
-        entity->unk_508.part16.unk_508 += entity->unk_508.part16.unk_50A;
-        entity->velX.whole = Sin(entity->unk_508.part16.unk_508) / 3;
+        OBJECT14_SWING_ANGLE(entity) += OBJECT14_SWING_SPEED(entity);
+        entity->velX.whole = Sin(OBJECT14_SWING_ANGLE(entity)) / 3;
         entity->posX.whole += entity->velX.whole;
         break;
     case 2:

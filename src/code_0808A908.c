@@ -1,5 +1,6 @@
 /* Great Armor walk state machine (state == 0): steps with dust and shake, turns at ledges and walls, starts attacks. */
 #include "code_08009A0.h"
+#include "great_armor_entity.h"
 #include "joint_entity.h"
 #include "code_080D73B8.h"
 #include "code_08011DD0.h"
@@ -30,9 +31,9 @@ static inline s32 ABS(s32 x)
 #define STATE entity->subState
 #define TIMER entity->timer
 #define FRAME JOINT_POSE(entity)
-#define VARIANT ((s8)entity->unk_508.part8.unk_508)
-#define EDGE_A (*(s8 *)&entity->unk_4FC.part8.unk_4FE)
-#define EDGE_B ((s8)entity->unk_4FC.part8.unk_4FD)
+#define VARIANT ((s8)GREAT_ARMOR_VARIANT(entity))
+#define WAS_HIT (*(s8 *)&GREAT_ARMOR_HIT(entity))
+#define HIT_COUNT ((s8)GREAT_ARMOR_HIT_COUNT(entity))
 #define UPDATE() GreatArmor_UpdateParts(entity, chain);
 #define GRAVITY() Entity_MoveWithCollisionDefault(entity, 0x10000, -0x300000);
 #define COUNTDOWN() if ((s8)--TIMER > 0) break;
@@ -55,12 +56,12 @@ static inline s32 ABS(s32 x)
     ScreenShake_RequestOffset(0, 1, 2);
 /* turn around at a ledge */
 #define EDGE_TURN(S, F, A) \
-    if (EDGE_A != 0 && EDGE_B > 3) \
+    if (WAS_HIT != 0 && HIT_COUNT > 3) \
     { \
         dx = entity->flipX ? -30 : 30; \
         if (PROBE(dx) == 0) \
         { \
-            entity->unk_4FC.part8.unk_4FF = 0; entity->unk_4FC.part8.unk_4FE = 0; entity->unk_4FC.part8.unk_4FD = 0; \
+            GREAT_ARMOR_HOP_TURNS(entity) = 0; GREAT_ARMOR_HIT(entity) = 0; GREAT_ARMOR_HIT_COUNT(entity) = 0; \
             GreatArmor_FaceTarget(entity); \
             TIMER = t0[VARIANT]; VELX() entity->velX.whole = -entity->velX.whole; \
             STATE = S; FRAME = F; POSE3(A) LAND() \
@@ -128,7 +129,7 @@ static inline s32 ABS(s32 x)
 #define HOP_END(S, F, A, NS, NF) \
     SHAKE() COUNTDOWN() \
     GreatArmor_FaceTarget(entity); \
-    if (++*(s8 *)&entity->unk_4FC.part8.unk_4FF <= 1) \
+    if (++*(s8 *)&GREAT_ARMOR_HOP_TURNS(entity) <= 1) \
     { \
         dx = entity->flipX ? -30 : 30; \
         if (PROBE(dx) == 0) \
@@ -139,7 +140,7 @@ static inline s32 ABS(s32 x)
         } \
     } \
     TIMER = t0[VARIANT]; STATE = NS; FRAME = NF; POSE3(A) VELX() LAND() \
-    entity->unk_4FC.part8.unk_4FF = 0; entity->unk_4FC.part8.unk_4FE = 0; entity->unk_4FC.part8.unk_4FD = 0; \
+    GREAT_ARMOR_HOP_TURNS(entity) = 0; GREAT_ARMOR_HIT(entity) = 0; GREAT_ARMOR_HIT_COUNT(entity) = 0; \
     break;
 
 /**
@@ -218,45 +219,45 @@ void GreatArmor_UpdateWalk(struct EwramData_EntityData *entity)
         break;
     case 30:
         GreatArmor_FaceTarget(entity); GreatArmor_SaveParts(entity);
-        entity->unk_504.part8.unk_505 = 1;
+        GREAT_ARMOR_GUARD(entity) = 1;
         if ((s8)FRAME == 3)
         {
             FRAME = 14; STATE = 31; POSE(-0x800, -0x2000)
-            entity->unk_4FC.part8.unk_4FC = 0; TIMER = t2[0];
+            JOINT_ATTACK_PHASE(entity) = 0; TIMER = t2[0];
         }
         else
         {
             FRAME = 15; STATE = 36; POSE(0x1800, 0)
-            entity->unk_4FC.part8.unk_4FC = 0; TIMER = t2[0] / 2 + (u8)t2[0];
+            JOINT_ATTACK_PHASE(entity) = 0; TIMER = t2[0] / 2 + (u8)t2[0];
         }
         break;
     case 31:
-        entity->unk_504.part8.unk_505 = 1; UPDATE() COUNTDOWN() STATE++; TIMER = 120; POSE3(0)
+        GREAT_ARMOR_GUARD(entity) = 1; UPDATE() COUNTDOWN() STATE++; TIMER = 120; POSE3(0)
         break;
     case 32:
-        entity->unk_504.part8.unk_505 = 1; UPDATE() COUNTDOWN() FRAME = 3; STATE++; TIMER = 20; POSE(0x800, 0x2000)
+        GREAT_ARMOR_GUARD(entity) = 1; UPDATE() COUNTDOWN() FRAME = 3; STATE++; TIMER = 20; POSE(0x800, 0x2000)
         break;
     case 34:
-        entity->unk_504.part8.unk_505 = 1; UPDATE() COUNTDOWN() RECOVER(3)
+        GREAT_ARMOR_GUARD(entity) = 1; UPDATE() COUNTDOWN() RECOVER(3)
         break;
     case 36:
-        entity->unk_504.part8.unk_505 = 1; UPDATE() COUNTDOWN() STATE++; TIMER = 120; POSE3(0)
+        GREAT_ARMOR_GUARD(entity) = 1; UPDATE() COUNTDOWN() STATE++; TIMER = 120; POSE3(0)
         break;
     case 37:
-        entity->unk_504.part8.unk_505 = 1; UPDATE() COUNTDOWN() FRAME = 5; STATE++; TIMER = 20; POSE(-0x1800, 0)
+        GREAT_ARMOR_GUARD(entity) = 1; UPDATE() COUNTDOWN() FRAME = 5; STATE++; TIMER = 20; POSE(-0x1800, 0)
         break;
     case 33: case 38:
-        entity->unk_504.part8.unk_505 = 1; UPDATE() if ((s8)--TIMER > 4) break;
+        GREAT_ARMOR_GUARD(entity) = 1; UPDATE() if ((s8)--TIMER > 4) break;
         TIMER = 10; STATE++;
         break;
     case 39:
-        entity->unk_504.part8.unk_505 = 1; UPDATE() COUNTDOWN() RECOVER(6)
+        GREAT_ARMOR_GUARD(entity) = 1; UPDATE() COUNTDOWN() RECOVER(6)
         break;
     case 47:
         UPDATE() GRAVITY() COUNTDOWN() TIMER = 20; STATE++; FRAME = 0x21; POSE3(0x1000)
         break;
     case 48:
-        UPDATE() GRAVITY() COUNTDOWN() if ((s8)entity->unk_4FC.part8.unk_4FF == 0) TIMER = 14; else TIMER = 30; STATE++; FRAME = 0x21;
+        UPDATE() GRAVITY() COUNTDOWN() if ((s8)GREAT_ARMOR_HOP_TURNS(entity) == 0) TIMER = 14; else TIMER = 30; STATE++; FRAME = 0x21;
         STOMP(entity->flipX ? -0x80000 : 0x80000) POSE3(0) PlaySong(0x7C);
         break;
     case 49:
@@ -265,7 +266,7 @@ void GreatArmor_UpdateWalk(struct EwramData_EntityData *entity)
         UPDATE() GRAVITY() COUNTDOWN() TIMER = 20; STATE++; FRAME = 0x23; POSE3(-0x1000)
         break;
     case 51:
-        UPDATE() GRAVITY() COUNTDOWN() if ((s8)entity->unk_4FC.part8.unk_4FF == 0) TIMER = 14; else TIMER = 30; STATE++; FRAME = 0x23;
+        UPDATE() GRAVITY() COUNTDOWN() if ((s8)GREAT_ARMOR_HOP_TURNS(entity) == 0) TIMER = 14; else TIMER = 30; STATE++; FRAME = 0x23;
         STOMP(entity->flipX ? -0x80000 : 0x80000) POSE3(0) PlaySong(0x7C);
         break;
     case 52:

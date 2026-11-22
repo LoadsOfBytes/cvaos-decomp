@@ -2,6 +2,7 @@
    Built without -f2003-patch; the callback table of emitCenter is this file's
    .rodata and is linked at 0x08118B34. */
 #include "code_08009A0.h"
+#include "event_scene30.h"
 #include "code_08001194.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -22,17 +23,17 @@ extern void EventScene30PieceEmitter_Update(struct EwramData_EntityData *);
 extern void EventScene30_SpawnOrbitRing(struct EwramData_EntityData *,s16,s16);
 extern void EventScene30_SpawnDriftFragment(s16,s16,s32,s32);
 extern void PlaySong(u16);
-#define PHASE(e) ((e)->unk_4F8.part8.unk_4F9)
-#define INIT(e) ((e)->unk_4F8.part8.unk_4FA)
-#define ANGLE(e) ((e)->unk_4F8.part8.unk_4F8)
-#define CENTER_X(e) ((e)->unk_504.part16.unk_504)
-#define CENTER_Y(e) ((e)->unk_504.part16.unk_506[0])
-#define SCALE_X(e) ((e)->unk_500.part16.unk_500)
-#define SCALE_Y(e) ((e)->unk_500.part16.unk_502)
-#define SWEEP(e) ((e)->unk_4FC.part16.unk_4FC)
-#define TIMER(e) ((e)->unk_508.part16.unk_508)
+#define PHASE(e) (EVENT30_PHASE((e)))
+#define INIT(e) (EVENT30_PHASE_INIT((e)))
+#define ANGLE(e) (EVENT30_ANGLE((e)))
+#define CENTER_X(e) (EVENT30_CENTER_X((e)))
+#define CENTER_Y(e) (EVENT30_CENTER_Y((e)))
+#define SCALE_X(e) (EVENT30_SCALE((e)))
+#define SCALE_Y(e) (EVENT30_SCALE_Y((e)))
+#define SWEEP(e) (EVENT30_SWEEP((e)))
+#define TIMER(e) (EVENT30_TIMER((e)))
 #define JITTER_X(e) ((e)->unk_508.part8.unk_50A)
-#define JITTER_Y(e) ((e)->unk_508.part8.unk_50B)
+#define JITTER_Y(e) (EVENT30_JITTER_Y((e)))
 static inline void emitCenter(s16 x,s16 y,u32 index)
 {
     u32 *callbacks[5]={(u32 *)EventScene30EmitterA_Update,(u32 *)EventScene30EmitterB_Update,(u32 *)EventScene30EmitterC_Update,(u32 *)EventScene30EmitterD_Update,(u32 *)EventScene30EmitterE_Update};

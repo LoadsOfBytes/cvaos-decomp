@@ -1,5 +1,6 @@
 /* Alastor spinning leap, conditional dive, and recovery. */
 #include "code_080D73B8.h"
+#include "alastor_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern struct EwramData_EntityData *Alastor_CreateAfterimage(struct EwramData_EntityData *,u8);
@@ -8,8 +9,8 @@ extern s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *,s32,s32);
 extern s32 Collision_GetPushUp(s32,s32);
 static inline s32 RoomX(s32 pos) { struct BgLayerState *bg=&gEwramData->bgInfo[1]; return pos+(s16)bg->xPos.part16.integer; }
 static inline s32 RoomY(s32 pos) { struct BgLayerState *bg=&gEwramData->bgInfo[1]; return pos+(s16)bg->yPos.part16.integer; }
-#define ANGLE(e) ((e)->unk_500.part16.unk_500)
-#define STEP(e) ((e)->unk_500.part16.unk_502)
+#define ANGLE(e) (ALASTOR_ANGLE((e)))
+#define STEP(e) (ALASTOR_TURN((e)))
 static inline void Advance(struct EwramData_EntityData *e,s32 amount,u8 zero) { e->subState+=amount; e->stage=zero; }
 /**
  * @brief Attack state (6): spin through a leap while spawning copies,

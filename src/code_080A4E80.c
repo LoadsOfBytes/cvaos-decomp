@@ -1,5 +1,6 @@
 /* Chaos second form: part update (4E80). */
 #include "code_08009A0.h"
+#include "chaos_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -15,7 +16,7 @@ extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
 void Chaos2Part_Update(struct EwramData_EntityData *part)
 {
     u8 collision[16];
-    struct EwramData_EntityData *core = part->unk_4F4.unk_4F4_entity;
+    struct EwramData_EntityData *core = CHAOS_LINK(part);
 
     if (part->state == 0)
     {

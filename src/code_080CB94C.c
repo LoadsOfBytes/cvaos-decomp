@@ -1,6 +1,7 @@
 /* Buer: load graphics, create its linked parts and set initial collision
  * and movement state. */
 #include "code_08009A0.h"
+#include "wheel_enemy_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -32,7 +33,7 @@ void EnemyBuerCreate(struct EwramData_EntityData *entity)
     Enemy_ResetFromTemplate(entity);
     entity->animFrame = 0;
     entity->scrollWithBg = 1;
-    entity->unk_4FC.whole = 0x8000;
+    WHEEL_SPEED(entity) = 0x8000;
     entity->accelY.whole = 0x4000;
     if (entity->unk_514.part16.spawnParam0 == 0) SetState(entity, 0, 1);
     else SetState(entity, 0, 2);

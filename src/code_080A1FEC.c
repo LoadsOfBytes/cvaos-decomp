@@ -1,5 +1,6 @@
 /* Chaos core: fight loop (1FEC). */
 #include "code_08009A0.h"
+#include "chaos_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -20,14 +21,14 @@ extern void Player_StartScriptedAnimation(s32, s32, s32, s32);
 extern void Effect_CreateHomingOrb(struct EwramData_EntityData *, s32, s32, s32, s32);
 extern void Chaos_CreateMark(struct EwramData_EntityData *, s32);
 
-#define ACTIVE(e) ((e)->unk_4F8.part8.unk_4F9)  /* orbs currently attacking */
-#define BROKEN(e) ((e)->unk_4FC.part8.unk_4FC)  /* orbs destroyed */
+#define ACTIVE(e) (CHAOS_ACTIVE_ORBS((e)))  /* orbs currently attacking */
+#define BROKEN(e) (CHAOS_BROKEN_ORBS((e)))  /* orbs destroyed */
 
 /* Fight: turn the background, let each living orb attack after a random
  * pause; when all three orbs are broken switch to state 3. */
 void Chaos_UpdateFight(struct EwramData_EntityData *core)
 {
-    struct ChaosData *data = (struct ChaosData *)core->unk_504.whole;
+    struct ChaosData *data = (struct ChaosData *)CHAOS_DATA(core);
 
     if (core->subState != 0)
         return;
@@ -35,35 +36,35 @@ void Chaos_UpdateFight(struct EwramData_EntityData *core)
     data->bgAngle += 0x200;
     if (!(BROKEN(core) & 1) && !(ACTIVE(core) & 1))
     {
-        if (core->unk_4FC.part8.unk_4FD != 0)
-            core->unk_4FC.part8.unk_4FD--;
+        if (CHAOS_ATTACK_TIMER_0(core) != 0)
+            CHAOS_ATTACK_TIMER_0(core)--;
         else
         {
-            core->unk_4FC.part8.unk_4FD = RandomNumberGenerator() % 128 + 60;
+            CHAOS_ATTACK_TIMER_0(core) = RandomNumberGenerator() % 128 + 60;
             ACTIVE(core) |= 1;
-            core->unk_4F8.part8.unk_4FB = 0;
+            CHAOS_BUSY(core) = 0;
         }
     }
     if (!(BROKEN(core) & 2) && !(ACTIVE(core) & 2))
     {
-        if (core->unk_4FC.part8.unk_4FE != 0)
-            core->unk_4FC.part8.unk_4FE--;
+        if (CHAOS_ATTACK_TIMER_1(core) != 0)
+            CHAOS_ATTACK_TIMER_1(core)--;
         else
         {
-            core->unk_4FC.part8.unk_4FE = RandomNumberGenerator() % 128 + 120;
+            CHAOS_ATTACK_TIMER_1(core) = RandomNumberGenerator() % 128 + 120;
             ACTIVE(core) |= 2;
-            core->unk_4F8.part8.unk_4FB = 0;
+            CHAOS_BUSY(core) = 0;
         }
     }
     if (!(BROKEN(core) & 4) && !(ACTIVE(core) & 4))
     {
-        if (core->unk_4FC.part8.unk_4FF != 0)
-            core->unk_4FC.part8.unk_4FF--;
+        if (CHAOS_ATTACK_TIMER_2(core) != 0)
+            CHAOS_ATTACK_TIMER_2(core)--;
         else
         {
-            core->unk_4FC.part8.unk_4FF = RandomNumberGenerator() % 128 + 60;
+            CHAOS_ATTACK_TIMER_2(core) = RandomNumberGenerator() % 128 + 60;
             ACTIVE(core) |= 4;
-            core->unk_4F8.part8.unk_4FB = 0;
+            CHAOS_BUSY(core) = 0;
         }
     }
     if ((BROKEN(core) & 7) == 7)

@@ -1,5 +1,6 @@
 /* Giant Worm / Poison Worm: create the root and four linked affine segments. */
 #include "code_08009A0.h"
+#include "worm_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -35,7 +36,7 @@ void Worm_Init(struct EwramData_EntityData *root, s32 variant)
     root->affine = 1;
     Worm_SettleOnGround(root);
     previous = root;
-    root->unk_4F8.unk_4F8_entity = root;
+    WORM_ROOT(root) = root;
     spacing = 0xA0000;
     if (root->flipX)
         spacing = -spacing;
@@ -56,10 +57,10 @@ void Worm_Init(struct EwramData_EntityData *root, s32 variant)
         part->affineIndex = matrix;
         part->affine = 1;
         i++;
-        part->unk_504.part16.unk_506[0] = i << 12;
-        part->unk_4F8.unk_4F8_entity = root;
-        part->unk_4FC.unk_4FC_entity = previous;
-        part->unk_500.part8.unk_502 = i;
+        WORM_WAVE_PHASE(part) = i << 12;
+        WORM_ROOT(part) = root;
+        WORM_PREVIOUS(part) = previous;
+        WORM_SEGMENT_INDEX(part) = i;
         part->posX.whole = previous->posX.whole + spacing;
         part->posY.whole = previous->posY.whole;
         part->scrollWithBg = 1;
@@ -80,21 +81,21 @@ void Worm_Init(struct EwramData_EntityData *root, s32 variant)
         Anim_StartIndexed(root, 0, 0, 1);
     Anim_Update(root);
     ObjAffine_Set(0, 0x10000, 0x10000, root->flipX, 0, root->affineIndex);
-    root->unk_504.part8.unk_505 = variant;
+    WORM_VARIANT(root) = variant;
     root->spriteLayer = 17;
     if (gEwramData->gameState.bestiaryPreview)
     {
         root->state = 6;
         return;
     }
-    if (root->unk_504.part8.unk_505 == 0)
+    if (WORM_VARIANT(root) == 0)
         Hit_Enable(root, 8, Worm_DamagePlayerOnContact, (s32)Worm_OnHit);
     else
     {
         if (0)
         {
         fail:
-            root->unk_500.part8.unk_500 = 1;
+            WORM_AGGRESSIVE(root) = 1;
             root->state = 4;
             return;
         }

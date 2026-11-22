@@ -28,7 +28,7 @@ struct EwramData_EntityData *GrahamFirstForm_Create(struct EwramData_EntityData 
         EntityDelete(e);
         return NULL;
     }
-    e->unk_4F4.part8.unk_4F5 = owner->unk_4F4.part8.unk_4F4;
+    ENTITY_PARENT_INDEX(e) = ENTITY_INDEX(owner);
     e->spriteLayer = owner->spriteLayer - 1;
     e->flipX = owner->flipX;
     e->posX.whole = owner->posX.whole;

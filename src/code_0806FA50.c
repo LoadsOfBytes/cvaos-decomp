@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "killer_fish_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern s32 Entity_MoveAndCollide(struct EwramData_EntityData *, s32, s32, s32, s32);
@@ -46,9 +47,9 @@ void KillerFish_UpdateSwimming(struct EwramData_EntityData *entity)
         entity->accelX.whole = 0;
         entity->velY.whole = 0;
         entity->accelY.whole = 0x400;
-        entity->unk_4F8.whole = 0;
-        entity->unk_4FC.part16.unk_4FC = 0;
-        entity->unk_4FC.part16.unk_4FE[0] = 0;
+        KILLER_FISH_STALL_TIMER(entity) = 0;
+        KILLER_FISH_LAST_X(entity) = 0;
+        KILLER_FISH_EFFECT_TIMER(entity) = 0;
         entity->subState++;
         break;
     case 1:
@@ -66,48 +67,48 @@ void KillerFish_UpdateSwimming(struct EwramData_EntityData *entity)
         }
         if (entity->velX.whole > 0)
         {
-            if (entity->unk_4FC.part16.unk_4FC == (s16)bg->xPos.part16.integer + (s16)entity->posX.part16.integer)
+            if (KILLER_FISH_LAST_X(entity) == (s16)bg->xPos.part16.integer + (s16)entity->posX.part16.integer)
             {
-                if (entity->unk_4F8.whole++ > 0x3B)
+                if (KILLER_FISH_STALL_TIMER(entity)++ > 0x3B)
                 {
                     entity->flipX ^= 1;
                     if (entity->flipX)
                         entity->velX.whole = 0x4000;
                     else
                         entity->velX.whole = -0x4000;
-                    entity->unk_4F8.whole = 0;
-                    entity->unk_4FC.part16.unk_4FC = 0;
+                    KILLER_FISH_STALL_TIMER(entity) = 0;
+                    KILLER_FISH_LAST_X(entity) = 0;
                     entity->velY.whole = 0;
                     entity->accelY.whole = 0x400;
                 }
             }
             else
             {
-                entity->unk_4FC.part16.unk_4FC = bg->xPos.part16.integer + entity->posX.part16.integer;
-                entity->unk_4F8.whole = 0;
+                KILLER_FISH_LAST_X(entity) = bg->xPos.part16.integer + entity->posX.part16.integer;
+                KILLER_FISH_STALL_TIMER(entity) = 0;
             }
         }
         else
         {
-            if (entity->unk_4FC.part16.unk_4FC == (s16)bg->xPos.part16.integer + (s16)entity->posX.part16.integer)
+            if (KILLER_FISH_LAST_X(entity) == (s16)bg->xPos.part16.integer + (s16)entity->posX.part16.integer)
             {
-                if (entity->unk_4F8.whole++ > 0x3B)
+                if (KILLER_FISH_STALL_TIMER(entity)++ > 0x3B)
                 {
                     entity->flipX ^= 1;
                     if (entity->flipX)
                         entity->velX.whole = 0x4000;
                     else
                         entity->velX.whole = -0x4000;
-                    entity->unk_4F8.whole = 0;
-                    entity->unk_4FC.part16.unk_4FC = 0;
+                    KILLER_FISH_STALL_TIMER(entity) = 0;
+                    KILLER_FISH_LAST_X(entity) = 0;
                     entity->velY.whole = 0;
                     entity->accelY.whole = 0x400;
                 }
             }
             else
             {
-                entity->unk_4FC.part16.unk_4FC = bg->xPos.part16.integer + entity->posX.part16.integer;
-                entity->unk_4F8.whole = 0;
+                KILLER_FISH_LAST_X(entity) = bg->xPos.part16.integer + entity->posX.part16.integer;
+                KILLER_FISH_STALL_TIMER(entity) = 0;
             }
         }
         if (!(res & 0x80))
@@ -115,10 +116,10 @@ void KillerFish_UpdateSwimming(struct EwramData_EntityData *entity)
             entity->posY.part16.integer += Collision_FindWaterSurfaceOffset((s16)entity->posX.part16.integer, (s16)entity->posY.part16.integer - 7);
             entity->accelY.whole = 0x400;
         }
-        if ((s16)--entity->unk_4FC.part16.unk_4FE[0] <= 0)
+        if ((s16)--KILLER_FISH_EFFECT_TIMER(entity) <= 0)
         {
             KillerFish_SpawnOscillatingEffect(entity, entity->flipX ? entity->posX.whole + 0x100000 : entity->posX.whole - 0x100000, entity->posY.whole, 0x10, 0, -0x4000);
-            entity->unk_4FC.part16.unk_4FE[0] = RandomNumberGenerator() % 0x78 + 0x78;
+            KILLER_FISH_EFFECT_TIMER(entity) = RandomNumberGenerator() % 0x78 + 0x78;
         }
         if (gEwramData->playerState.enemyTarget)
         {

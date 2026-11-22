@@ -1,5 +1,6 @@
 /* Big Golem walk state machine (state == 0): shifts weight from foot to foot, stomps (dust, shake), turns at walls. */
 #include "code_08009A0.h"
+#include "big_golem_entity.h"
 #include "joint_entity.h"
 #include "code_080D73B8.h"
 #include "structs/ewram.h"
@@ -121,7 +122,7 @@ static inline s32 ABS(s32 x)
 
 /* res = 0: walk on, res = 1: turn around. */
 #define WALL_CHECK()\
-    if ((s8)entity->unk_504.part8.unk_505 == entity->flipX)\
+    if ((s8)BIG_GOLEM_HEADING(entity) == entity->flipX)\
     {\
         dx = entity->flipX ? 0x6E : -0x6E;\
         if (Tile_Classify(bg->xPos.part16.integer + entity->posX.part16.integer + dx,\
@@ -130,7 +131,7 @@ static inline s32 ABS(s32 x)
             || (entity->flipX && Entity_GetHorizontalRoomEdge(entity, 0x18) == 2))\
         {\
             res = 1;\
-            entity->unk_504.part8.unk_505 = entity->flipX ^ 1;\
+            BIG_GOLEM_HEADING(entity) = entity->flipX ^ 1;\
         }\
         else\
             res = 0;\
@@ -145,7 +146,7 @@ static inline s32 ABS(s32 x)
         if (hit)\
         {\
             res = 0;\
-            entity->unk_504.part8.unk_505 = entity->flipX;\
+            BIG_GOLEM_HEADING(entity) = entity->flipX;\
         }\
     }
 
@@ -155,13 +156,13 @@ static inline s32 ABS(s32 x)
         if ((RandomNumberGenerator2() & 0x7F) < 0x30)\
             ATTACK()\
         if ((RandomNumberGenerator2() & 0x7F) < CHANCE)\
-            entity->unk_504.part8.unk_505 = entity->flipX ^ 1;\
+            BIG_GOLEM_HEADING(entity) = entity->flipX ^ 1;\
     }\
-    if (*(s8 *)&entity->unk_4FC.part8.unk_4FE && (s8)entity->unk_4FC.part8.unk_4FD > 3)\
+    if (*(s8 *)&BIG_GOLEM_HIT(entity) && (s8)BIG_GOLEM_HIT_COUNT(entity) > 3)\
     {\
-        entity->unk_4FC.part8.unk_4FE = 0;\
-        entity->unk_4FC.part8.unk_4FD = 0;\
-        entity->unk_504.part8.unk_505 = entity->flipX ^ 1;\
+        BIG_GOLEM_HIT(entity) = 0;\
+        BIG_GOLEM_HIT_COUNT(entity) = 0;\
+        BIG_GOLEM_HEADING(entity) = entity->flipX ^ 1;\
     }
 
 /**

@@ -1,5 +1,6 @@
 /* Witch homing motion and orbiting particle. */
 #include "code_08009A0.h"
+#include "witch_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "macros.h"
@@ -15,8 +16,8 @@ extern u8 sWitchGfx[], sWitchPalette[], sWitchSpriteSheet[];
 s32 WitchSpell_MoveTowardStoredPoint(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *bg = (struct BgLayerState *)((u8 *)gEwramData + OFFSET_OF(struct EwramData, bgInfo[1]));
-    s32 dx = entity->unk_500.whole - (entity->posX.whole + bg->xPos.whole);
-    s32 dy = entity->unk_504.whole - (entity->posY.whole + bg->yPos.whole);
+    s32 dx = WITCH_SPELL_TARGET_X(entity) - (entity->posX.whole + bg->xPos.whole);
+    s32 dy = WITCH_SPELL_TARGET_Y(entity) - (entity->posY.whole + bg->yPos.whole);
     if (dx > 0x40000) entity->accelX.whole = 0x1000;
     else if (dx < -0x40000) entity->accelX.whole = -0x1000;
     else entity->accelX.whole = 0;
@@ -52,28 +53,28 @@ void WitchOrbitParticle_Update(struct EwramData_EntityData *entity)
         Anim_StartIndexed(entity, 0xD, 0, 0);
         entity->spriteLayer = 3;
         entity->timer = 0x20;
-        entity->unk_4F4.whole = 0x500000;
+        WITCH_ORBIT_RADIUS(entity) = 0x500000;
         entity->state++;
         /* fall through */
     case 1:
         bg = (struct BgLayerState *)((u8 *)gEwramData + OFFSET_OF(struct EwramData, bgInfo[1]));
         entity->accelX.whole -= bg->xVel.whole;
         entity->accelY.whole -= bg->yVel.whole;
-        radiusValue = entity->unk_4F4.whole;
+        radiusValue = WITCH_ORBIT_RADIUS(entity);
         if (radiusValue < 0) radiusValue = -((-radiusValue) >> 16) << 16;
         radius = (u32)radiusValue >> 16;
-        value = Sin((s16)entity->unk_4F8.part16.unk_4F8 + 0x4000);
+        value = Sin((s16)WITCH_ORBIT_ANGLE(entity) + 0x4000);
         radius = (s16)radius;
         product = radius * value;
         value = product;
         entity->posX.whole = entity->accelX.whole + value;
-        value = Sin((s16)entity->unk_4F8.part16.unk_4F8);
+        value = Sin((s16)WITCH_ORBIT_ANGLE(entity));
         product = radius * value;
         value = product;
         entity->posY.whole = entity->accelY.whole + value;
         entity->velX.whole -= 0x2800;
-        entity->unk_4F4.whole += entity->velX.whole;
-        entity->unk_4F8.part16.unk_4F8 += entity->unk_4F8.part16.unk_4FA;
+        WITCH_ORBIT_RADIUS(entity) += entity->velX.whole;
+        WITCH_ORBIT_ANGLE(entity) += WITCH_ORBIT_SPIN(entity);
         Anim_Update(entity);
         if (entity->timer != 0)
         {

@@ -1,5 +1,6 @@
 /* Devil flight state machine; DEVIL_WINGS is a macro (an inline function loses constant CSE and gets cross-jumped). */
 #include "code_08009A0.h"
+#include "devil_entity.h"
 #include "joint_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
@@ -86,9 +87,9 @@ void Devil_UpdateApproach(struct EwramData_EntityData *entity)
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
 
     if (entity->posY.part16.integer < -0x18)
-        entity->unk_508.part8.unk_50B = 1;
+        DEVIL_PARTS_HIDDEN(entity) = 1;
     else
-        entity->unk_508.part8.unk_50B = 0;
+        DEVIL_PARTS_HIDDEN(entity) = 0;
 
     switch (entity->subState)
     {
@@ -100,10 +101,10 @@ void Devil_UpdateApproach(struct EwramData_EntityData *entity)
         entity->subState++;
         entity->stage = 0;
         if (entity->flipX)
-            entity->unk_4F4.whole = Target_GetX(entity) + ({ s32 t = bg->xPos.whole + -0x280000; t; });
+            DEVIL_TARGET_X(entity) = Target_GetX(entity) + ({ s32 t = bg->xPos.whole + -0x280000; t; });
         else
-            entity->unk_4F4.whole = Target_GetX(entity) + ({ s32 t = bg->xPos.whole + 0x280000; t; });
-        entity->unk_4F8.whole = Target_GetY(entity) - (RandomNumberGenerator() & 0x7FFFF) + bg->yPos.whole;
+            DEVIL_TARGET_X(entity) = Target_GetX(entity) + ({ s32 t = bg->xPos.whole + 0x280000; t; });
+        DEVIL_TARGET_Y(entity) = Target_GetY(entity) - (RandomNumberGenerator() & 0x7FFFF) + bg->yPos.whole;
         Anim_StartIndexed(entity, entity->animScriptIndex + 1, 0, 1);
         entity->timer = 0x16;
         JOINT_POSE(entity) = 1;
@@ -120,11 +121,11 @@ void Devil_UpdateApproach(struct EwramData_EntityData *entity)
         s32 d;
 
         entity->flipX = Entity_IsTargetRight(entity);
-        entity->unk_4FC.whole += 0x1000;
-        if ((s32)entity->unk_4FC.whole > 0x1FFFF)
-            entity->unk_4FC.whole = 0x20000;
-        done = Entity_MoveTowardPoint(entity, entity->unk_4F4.whole - bg->xPos.whole,
-                            entity->unk_4F8.whole - bg->yPos.whole, entity->unk_4FC.whole);
+        DEVIL_SPEED(entity) += 0x1000;
+        if ((s32)DEVIL_SPEED(entity) > 0x1FFFF)
+            DEVIL_SPEED(entity) = 0x20000;
+        done = Entity_MoveTowardPoint(entity, DEVIL_TARGET_X(entity) - bg->xPos.whole,
+                            DEVIL_TARGET_Y(entity) - bg->yPos.whole, DEVIL_SPEED(entity));
         if (done)
         {
             entity->state = 1;
@@ -158,14 +159,14 @@ void Devil_UpdateApproach(struct EwramData_EntityData *entity)
             entity->accelX.whole = 0x800;
         entity->accelY.whole = -0x800;
         entity->subState++;
-        entity->unk_508.part16.unk_508 = 0;
+        DEVIL_TIMER(entity) = 0;
     case 3:
         entity->flipX = Entity_IsTargetRight(entity);
         EntityAccelerateAndMove(entity, 0x20000);
-        if (entity->unk_508.part16.unk_508++ > 0x1D)
+        if (DEVIL_TIMER(entity)++ > 0x1D)
         {
             entity->subState++;
-            entity->unk_508.part16.unk_508 = 0;
+            DEVIL_TIMER(entity) = 0;
         }
         DEVIL_WINGS(entity)
         break;
@@ -173,21 +174,21 @@ void Devil_UpdateApproach(struct EwramData_EntityData *entity)
         EntityDampVelocityX(entity, 0x18);
         EntityDampVelocityY(entity, 0x18);
         EntityMove(entity);
-        if (entity->unk_508.part16.unk_508++ > 0x1D)
+        if (DEVIL_TIMER(entity)++ > 0x1D)
         {
             entity->subState = 1;
             if (entity->flipX)
-                entity->unk_4F4.whole = Target_GetX(entity) + ({ s32 t = bg->xPos.whole + -0x280000; t; });
+                DEVIL_TARGET_X(entity) = Target_GetX(entity) + ({ s32 t = bg->xPos.whole + -0x280000; t; });
             else
-                entity->unk_4F4.whole = Target_GetX(entity) + ({ s32 t = bg->xPos.whole + 0x280000; t; });
-            entity->unk_4F8.whole = Target_GetY(entity) - (RandomNumberGenerator() & 0x7FFFF) + bg->yPos.whole;
-            entity->unk_4FC.whole = 0;
+                DEVIL_TARGET_X(entity) = Target_GetX(entity) + ({ s32 t = bg->xPos.whole + 0x280000; t; });
+            DEVIL_TARGET_Y(entity) = Target_GetY(entity) - (RandomNumberGenerator() & 0x7FFFF) + bg->yPos.whole;
+            DEVIL_SPEED(entity) = 0;
         }
         DEVIL_WINGS(entity)
         break;
     case 10:
         entity->flipX = Entity_IsTargetRight(entity);
-        entity->unk_508.part8.unk_50A = 1;
+        DEVIL_INTANGIBLE(entity) = 1;
         if (Target_IsInRect(entity->posX.part16.integer - 0x50, entity->posY.part16.integer - 0x50, 0xA0, 0xA0))
         {
             entity->subState++;
@@ -201,14 +202,14 @@ void Devil_UpdateApproach(struct EwramData_EntityData *entity)
         register u8 one asm("r3") = 1; /* FAKEMATCH: pinned register; constant shared with the unk_50A store */
 
         entity->hidden = r ^ one;
-        entity->unk_508.part8.unk_50A = one;
+        DEVIL_INTANGIBLE(entity) = one;
     }
         if ((s8)--entity->timer > 0)
             break;
         entity->subState++;
         entity->timer = 8;
         entity->hidden = 0;
-        entity->unk_508.part8.unk_50A = 0;
+        DEVIL_INTANGIBLE(entity) = 0;
         JOINT_POSE(entity) = 3;
         Anim_StartIndexed(entity, entity->animScriptIndex + 1, 0, 1);
         DevilPart_Attach(entity, 1, 0, 0x10000, 0xA0000);
@@ -265,10 +266,10 @@ void Devil_UpdateApproach(struct EwramData_EntityData *entity)
         entity->timer = 0x16;
         entity->subState = 1;
         if (entity->flipX)
-            entity->unk_4F4.whole = Target_GetX(entity) + ({ s32 t = bg->xPos.whole + -0x280000; t; });
+            DEVIL_TARGET_X(entity) = Target_GetX(entity) + ({ s32 t = bg->xPos.whole + -0x280000; t; });
         else
-            entity->unk_4F4.whole = Target_GetX(entity) + ({ s32 t = bg->xPos.whole + 0x280000; t; });
-        entity->unk_4F8.whole = Target_GetY(entity) - (RandomNumberGenerator() & 0x7FFFF) + bg->yPos.whole;
+            DEVIL_TARGET_X(entity) = Target_GetX(entity) + ({ s32 t = bg->xPos.whole + 0x280000; t; });
+        DEVIL_TARGET_Y(entity) = Target_GetY(entity) - (RandomNumberGenerator() & 0x7FFFF) + bg->yPos.whole;
         JOINT_POSE(entity) = 1;
         DevilPart_Attach(entity, 1, 0, -0xA00, 0xA0000);
         DevilPart_Attach(entity, 2, 0, -0xA00, 0xD0000);

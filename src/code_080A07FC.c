@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "gladiator_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -52,15 +53,15 @@ void EnemyGladiatorCreate(struct EwramData_EntityData *entity)
         {
         case 0:
             part = Entity_CreateObject((u32 *)GladiatorBody_Update);
-            part->unk_510.part8.basePalette = entity->unk_504.part8.unk_504;
+            part->unk_510.part8.basePalette = GLADIATOR_PALETTE(entity);
             break;
         case 1:
             part = Entity_CreateObject((u32 *)GladiatorArm_Update);
-            part->unk_510.part8.basePalette = entity->unk_504.part8.unk_504;
+            part->unk_510.part8.basePalette = GLADIATOR_PALETTE(entity);
             break;
         case 2:
             part = Entity_CreateObject((u32 *)GladiatorSpinner_Update);
-            part->unk_510.part8.basePalette = entity->unk_504.part8.unk_505;
+            part->unk_510.part8.basePalette = GLADIATOR_PALETTE_1(entity);
             break;
         }
         if (part != NULL)
@@ -74,30 +75,30 @@ void EnemyGladiatorCreate(struct EwramData_EntityData *entity)
             part->scrollWithBg = 0;
             part->drawFunc = (u32 *)Sprite_DrawEntity;
             part->attack = entity->attack;
-            part->unk_4F8.unk_4F8_entity = entity;
-            part->unk_4FC.part8.unk_4FC = i;
+            ENTITY_OWNER(part) = entity;
+            GLADIATOR_SPINNER_INDEX(part) = i;
             part->posX.whole = entity->posX.whole;
             part->posY.whole = entity->posY.whole;
             switch (i)
             {
             case 0:
                 Anim_StartIndexed(part, 4, 0, 1);
-                part->unk_4F4.part16.unk_4F4 = 0x24;
-                part->unk_4F4.part16.unk_4F6 = -0x11;
+                GLADIATOR_SPINNER_OFFSET_X(part) = 0x24;
+                GLADIATOR_SPINNER_OFFSET_Y(part) = -0x11;
                 break;
             case 1:
                 Anim_StartIndexed(part, 0, 0, 1);
-                part->unk_4F4.part16.unk_4F4 = -0x38;
-                part->unk_4F4.part16.unk_4F6 = -0x11;
+                GLADIATOR_SPINNER_OFFSET_X(part) = -0x38;
+                GLADIATOR_SPINNER_OFFSET_Y(part) = -0x11;
                 r = RandomNumberGenerator() & 0x3F;
-                part->unk_500.part16.unk_500 = r;
+                GLADIATOR_SPINNER_ANGLE(part) = r;
                 break;
             case 2:
                 Anim_StartIndexed(part, 0x10, 0, 1);
-                part->unk_4F4.part16.unk_4F4 = 0x3C;
-                part->unk_4F4.part16.unk_4F6 = -0xF;
+                GLADIATOR_SPINNER_OFFSET_X(part) = 0x3C;
+                GLADIATOR_SPINNER_OFFSET_Y(part) = -0xF;
                 if (gEwramData->gameState.bestiaryPreview)
-                    part->unk_500.part16.unk_502 = 0x800;
+                    GLADIATOR_SPINNER_SPIN(part) = 0x800;
                 break;
             }
             Anim_Update(part);

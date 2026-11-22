@@ -1,6 +1,7 @@
 /* Death helpers 0x080BF504..0x080BF5A7 (Death_OnHit is in code_080BF4AC.c,
  * DeathFloatingWeaponHitBox_OnHit). */
 #include "code/code_080211F0.h"
+#include "death_entity.h"
 #include "structs/ewram.h"
 
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
@@ -65,7 +66,7 @@ void DeathWeapon_DamagePlayerOnContact(struct EwramData_EntityData *entity)
  */
 void DeathFloatingWeaponHitBox_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    struct EwramData_EntityData *weapon = &gEwramData->entityData[(u8)entity->unk_4F8.part8.unk_4F8];
+    struct EwramData_EntityData *weapon = &gEwramData->entityData[(u8)DEATH_OWNER_INDEX(entity)];
 
     if (Enemy_TakeDamage(weapon, attacker, hit))
     {

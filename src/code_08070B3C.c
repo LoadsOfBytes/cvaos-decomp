@@ -1,5 +1,6 @@
 /* Dispatch Merman states, including the hidden instance's child spawning. */
 #include "code_08009A0.h"
+#include "merman_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_080211F0.h"
 #include "code/code_08060B98.h"
@@ -46,10 +47,10 @@ void EnemyMermanUpdate(struct EwramData_EntityData *entity)
             Enemy_UpdateFragmentDeath(entity);
             if (entity->deleteRequested)
             {
-                parent = entity->unk_4FC.unk_4FC_entity;
+                parent = MERMAN_SPAWNER(entity);
                 if (parent && parent->updateFunc && parent->unk_518.part8.enemyId == 3)
                 {
-                    if (parent->unk_4FC.whole) parent->unk_4FC.whole--;
+                    if (MERMAN_CHILD_COUNT(parent)) MERMAN_CHILD_COUNT(parent)--;
                 }
             }
         }
@@ -60,14 +61,14 @@ void EnemyMermanUpdate(struct EwramData_EntityData *entity)
             struct EwramData_EntityData *child;
             s32 mode;
             if (zero != 0) goto finished;
-            if ((s32)entity->unk_4FC.whole > 2) goto finished;
+            if ((s32)MERMAN_CHILD_COUNT(entity) > 2) goto finished;
             child = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
             if (child == NULL) goto finished;
             mode = entity->unk_514.part16.spawnParam0;
             if (mode != 1) goto finished;
-            entity->unk_4FC.whole++;
+            MERMAN_CHILD_COUNT(entity)++;
             child->posX.whole = (((RandomNumberGenerator() & 0xFF) + 144) << 16) - background->xPos.whole;
-            child->posY.whole = ((entity->unk_500.part16.unk_502 + 32) << 16) - background->yPos.whole;
+            child->posY.whole = ((MERMAN_HOME_Y(entity) + 32) << 16) - background->yPos.whole;
             child->scrollWithBg = 1;
             child->unk_518.part8.spawnIndex = zero;
             child->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
@@ -79,9 +80,9 @@ void EnemyMermanUpdate(struct EwramData_EntityData *entity)
             child->updateFunc = entity->updateFunc;
             EnemyMermanCreate(child);
             entity->timer = 60;
-            child->unk_4FC.unk_4FC_entity = entity;
-            child->unk_500.part16.unk_500 = entity->unk_500.part16.unk_500;
-            child->unk_500.part16.unk_502 = entity->unk_500.part16.unk_502;
+            MERMAN_SPAWNER(child) = entity;
+            MERMAN_HOME_X(child) = MERMAN_HOME_X(entity);
+            MERMAN_HOME_Y(child) = MERMAN_HOME_Y(entity);
         }
         goto finished;
     case 4: Anim_Update(entity); goto finished;

@@ -1,5 +1,6 @@
 /* Death_OnHit (Death). */
 #include "structs/ewram.h"
+#include "death_entity.h"
 
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
@@ -12,7 +13,7 @@ extern void BossDefeatEffect_Spawn(s32 x, s32 y);
  */
 void Death_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    entity->unk_4F8.part16.unk_4F8 |= 2;
+    DEATH_FLAGS(entity) |= 2;
     if (Enemy_TakeDamage(entity, attacker, hit))
     {
         Enemy_DropRewards(entity);

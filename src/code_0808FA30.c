@@ -1,5 +1,6 @@
 /* Devil create: allocates the 8-joint skeleton and one part entity per joint. */
 #include "code_08009A0.h"
+#include "devil_entity.h"
 #include "joint_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -100,7 +101,7 @@ void EnemyDevilCreate(struct EwramData_EntityData *entity)
             part->hidden = 0;
             part->attack = entity->attack;
             part->drawFunc = (u32 *)Sprite_DrawEntity;
-            part->unk_500.unk_500_entity = entity;
+            JOINT_PART_OWNER(part) = entity;
             JOINT_PART_INDEX(part) = index;
             JOINT_PART_ANCHOR(part) = anchors[index];
             part->posX.whole = entity->posX.whole;
@@ -171,5 +172,5 @@ void EnemyDevilCreate(struct EwramData_EntityData *entity)
     entity->subState = 10;
     entity->hidden = 1;
     JOINT_HURT_MASK(entity) = 0x88;
-    entity->unk_508.part8.unk_50A = 1;
+    DEVIL_INTANGIBLE(entity) = 1;
 }

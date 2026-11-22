@@ -1,5 +1,6 @@
 /* Place nine timed affine fragments from the owner's saved origin. */
 #include "code_08009A0.h"
+#include "event_scene30.h"
 #include "structs/ewram.h"
 struct TimedFragment {u32 frame;s16 x,y;u8 delay;u8 pad[3];};
 extern struct TimedFragment sEventScene30TimedFragments[9];
@@ -19,13 +20,13 @@ void EventScene30_SpawnOrbitFragments(struct EwramData_EntityData *owner)
         if(entity)
         {
             entity->updateFunc=(u32 *)EventScene30OrbitFragment_Update;
-            entity->posX.part16.integer=owner->unk_504.part16.unk_504+item->x;
-            entity->posY.part16.integer=owner->unk_504.part16.unk_506[0]+item->y+32;
+            entity->posX.part16.integer=EVENT30_CENTER_X(owner)+item->x;
+            entity->posY.part16.integer=EVENT30_CENTER_Y(owner)+item->y+32;
             entity->timer=item->delay;
             entity->animFrame=item->frame;
-            entity->unk_4FC.part16.unk_4FC=RandomNumberGenerator();
-            entity->unk_4F8.part8.unk_4FA=index&1;
-            entity->unk_4F8.part8.unk_4FB=index;
+            EVENT30_FRAGMENT_PHASE(entity)=RandomNumberGenerator();
+            EVENT30_FRAGMENT_DIR(entity)=index&1;
+            EVENT30_FRAGMENT_INDEX(entity)=index;
             entity->hidden=1;
         }
     }

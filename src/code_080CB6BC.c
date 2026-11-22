@@ -49,7 +49,7 @@ void Needles_SpawnDeathParts(struct EwramData_EntityData *entity)
             continue;
         needle = sNeedlesDeathParts[i];
         entity->unk_4F4.part8.unk_4F7++;
-        child->unk_4F4.part8.unk_4F5 = entity->unk_4F4.part8.unk_4F4;
+        ENTITY_PARENT_INDEX(child) = ENTITY_INDEX(entity);
         child->spriteLayer = entity->spriteLayer;
         child->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
         child->flipX = entity->flipX;
@@ -79,7 +79,7 @@ void Needles_SpawnDeathParts(struct EwramData_EntityData *entity)
  */
 void NeedlesPart_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = &gEwramData->entityData[entity->unk_4F4.part8.unk_4F5];
+    struct EwramData_EntityData *parent = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
 
     if (!Entity_IsInRect(entity, -0x80, -0x40, 0x1F0, 0x120) || (u8)--entity->timer == 0xFF
         || entity->posY.part16.integer > 0xAA)

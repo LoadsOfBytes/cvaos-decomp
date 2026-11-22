@@ -3,6 +3,7 @@
  *   Gargoyle_DamagePlayerOnContact = Enemy_DamagePlayerOnContact
  * Gargoyle/Triton update and creation. */
 #include "code_08009A0.h"
+#include "triton_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -127,7 +128,7 @@ void EnemyTritonCreate(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    entity->unk_500.unk_500_entity = spear;
+    TRITON_SPEAR(entity) = spear;
     if (gEwramData->gameState.bestiaryPreview)
     {
         entity->state = 4;

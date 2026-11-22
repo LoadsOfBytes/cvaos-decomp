@@ -23,6 +23,21 @@
 #include "agb_sram.h"
 #include "syscalls.h"
 
+/*
+ * Intro cutscene entities (token-identical expansion):
+ * - drifting sprite: fade timer (0x120 frames, sets the blend);
+ * - shrinking / floating sprite: affine scale; floating sprite: x / y sway
+ *   phases;
+ * - text (IntroCutsceneText_PrintNextLine): next text row and the position in
+ *   the script.
+ */
+#define INTRO_DRIFT_FADE(e) e->unk_4F8.whole
+#define INTRO_SPRITE_SCALE(e) e->unk_500.whole
+#define INTRO_SWAY_X(e) e->unk_4F8.whole
+#define INTRO_SWAY_Y(e) e->unk_4FC.whole
+#define INTRO_TEXT_ROW(e) e->unk_4F8.part8.unk_4F9
+#define INTRO_TEXT_POS(e) e->unk_4FC.part16.unk_4FC
+
 #include "constants/main.h"
 #include "constants/songs.h"
 
@@ -524,19 +539,19 @@ void IntroCutscene_UpdateDriftingSprite(struct EwramData_EntityData *entity)
             entity->posX.whole += entity->velX.whole;
             if ((u32)bg->yPos.whole < 0x200000)
             {
-                entity->unk_4F8.whole = 0x120;
+                INTRO_DRIFT_FADE(entity) = 0x120;
                 entity->state += 1;
             }
             break;
 
         case 2:
             entity->posX.whole += entity->velX.whole;
-            if (entity->unk_4F8.whole != 0)
+            if (INTRO_DRIFT_FADE(entity) != 0)
             {
-                entity->unk_4F8.whole -= 1;
+                INTRO_DRIFT_FADE(entity) -= 1;
                 if (entity->subState == 0)
                 {
-                    alpha2 = 0x10 - (entity->unk_4F8.whole / 48);
+                    alpha2 = 0x10 - (INTRO_DRIFT_FADE(entity) / 48);
                     gDisplayRegisters.bldAlpha = C_16_2_8(alpha2,  BLDALPHA_MAX_VALUE - alpha2);
                 }
             }
@@ -576,7 +591,7 @@ void IntroCutscene_UpdateShrinkingSprite(struct EwramData_EntityData *entity)
             entity->spriteLayer = 0x1A;
             Anim_StartIndexed(entity, 1, 0, 1);
             Anim_Update(entity);
-            entity->unk_500.whole = 0x20000;
+            INTRO_SPRITE_SCALE(entity) = 0x20000;
             entity->posX.part16.integer = 0x78;
             entity->posY.part16.integer = 0xB4;
             entity->velY.whole = -0x16000;
@@ -594,10 +609,10 @@ void IntroCutscene_UpdateShrinkingSprite(struct EwramData_EntityData *entity)
             EntityDampVelocityY(entity, 0x50);
             entity->posY.whole += entity->velY.whole;
             Anim_Update(entity);
-            ObjAffine_Set(0, entity->unk_500.whole, entity->unk_500.whole, 0, 0, entity->affineIndex);
-            if (entity->unk_500.whole != 0)
+            ObjAffine_Set(0, INTRO_SPRITE_SCALE(entity), INTRO_SPRITE_SCALE(entity), 0, 0, entity->affineIndex);
+            if (INTRO_SPRITE_SCALE(entity) != 0)
             {
-                entity->unk_500.whole -= 0x200;
+                INTRO_SPRITE_SCALE(entity) -= 0x200;
             }
             else
             {
@@ -634,22 +649,22 @@ void IntroCutscene_UpdateFloatingSprite(struct EwramData_EntityData *entity)
             entity->doubleSize = entity->affine = 1;
             entity->posX.part16.integer = 0xD2;
             entity->posY.part16.integer = 0x87;
-            entity->unk_500.whole = 0x10000;
+            INTRO_SPRITE_SCALE(entity) = 0x10000;
             entity->drawFunc = (u32 *) Sprite_DrawEntity;
             entity->spriteLayer = 0x16;
             Anim_StartIndexed(entity, 1, 0, 1);
             entity->state += 1;
             /* fallthrough */
         case 1:
-            entity->unk_4F8.whole += 0x600;
-            entity->unk_4FC.whole += 0x800;
-            swayX = Sin(entity->unk_4F8.whole + 0x4000) * 0xA0;
+            INTRO_SWAY_X(entity) += 0x600;
+            INTRO_SWAY_Y(entity) += 0x800;
+            swayX = Sin(INTRO_SWAY_X(entity) + 0x4000) * 0xA0;
             if (swayX < 0)
             {
                 swayX += 0xFF;
             }
             entity->velX.whole = swayX >> 8;
-            swayY = Sin(entity->unk_4FC.whole) * 0xA0;
+            swayY = Sin(INTRO_SWAY_Y(entity)) * 0xA0;
             if (swayY < 0)
             {
                 swayY += 0xFF;
@@ -658,7 +673,7 @@ void IntroCutscene_UpdateFloatingSprite(struct EwramData_EntityData *entity)
             entity->posY.whole -= 0x1400 - (entity->velY.whole - bg->yVel.whole);
             entity->posX.whole += entity->velX.whole;
             Anim_Update(entity);
-            ObjAffine_Set(0, entity->unk_500.whole, entity->unk_500.whole, 0, 0, entity->affineIndex);
+            ObjAffine_Set(0, INTRO_SPRITE_SCALE(entity), INTRO_SPRITE_SCALE(entity), 0, 0, entity->affineIndex);
             if (entity->posY.part16.integer > 0x12C)
             {
                 ObjAffine_Free(entity->affineIndex);
@@ -683,12 +698,12 @@ s32 IntroCutsceneText_PrintNextLine(struct EwramData_EntityData *entity)
 
     text = Text_GetLocalizedEntry(0xB);
     more = 1;
-    Text12_SetRegion(4, Mod(entity->unk_4F8.part8.unk_4F9, 0x15), 0x25, 1);
+    Text12_SetRegion(4, Mod(INTRO_TEXT_ROW(entity), 0x15), 0x25, 1);
     Text12_ClearRegion();
-    pos = entity->unk_4FC.part16.unk_4FC;
+    pos = INTRO_TEXT_POS(entity);
     if (pos < 0)
     {
-        entity->unk_4F8.part8.unk_4F9 += 1;
+        INTRO_TEXT_ROW(entity) += 1;
     }
     else
     {
@@ -721,8 +736,8 @@ s32 IntroCutsceneText_PrintNextLine(struct EwramData_EntityData *entity)
             }
         }
 
-        entity->unk_4F8.part8.unk_4F9 += 1;
-        entity->unk_4FC.part16.unk_4FC = pos;
+        INTRO_TEXT_ROW(entity) += 1;
+        INTRO_TEXT_POS(entity) = pos;
     }
     return pos;
 }

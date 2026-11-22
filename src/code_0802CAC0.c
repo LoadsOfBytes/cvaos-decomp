@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -61,7 +62,7 @@ void SkillHarpyProjectileUpdate(struct EwramData_EntityData *entity)
         RedSoul_CreateHistoryTrail(entity, (u32 *)RedSoulHistoryTrail_UpdateUnhide, (u32 *)SkillHarpyTrailDraw);
     case 1:
         EntityAccelerateAndMove(entity, 0x80000);
-        if ((u8)entity->unk_4FC.part8.unk_4FC != 0)
+        if ((u8)RED_SOUL_HIT(entity) != 0)
         {
             entity->state = 4;
             break;
@@ -89,7 +90,7 @@ void SkillHarpyProjectileUpdate(struct EwramData_EntityData *entity)
         entity->state = 4;
         break;
     case 4:
-        gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;

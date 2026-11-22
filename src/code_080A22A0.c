@@ -1,5 +1,6 @@
 /* Chaos core defeat (22A0). */
 #include "code_08009A0.h"
+#include "chaos_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -29,7 +30,7 @@ extern void Chaos_SpawnDefeatEffect(s32, s32);
  * fades to black and the ending sequence sChaosDestinationRoom starts. */
 void Chaos_UpdateDefeat(struct EwramData_EntityData *core)
 {
-    struct ChaosData *data = (struct ChaosData *)core->unk_504.whole;
+    struct ChaosData *data = (struct ChaosData *)CHAOS_DATA(core);
 
     SetPlayerInput(2, 0);
     switch (core->subState)

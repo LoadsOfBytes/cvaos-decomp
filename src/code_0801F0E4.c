@@ -1,6 +1,7 @@
 /* Julius_TryStartDiveAttack
  * (dive attack as in Soma_TryStartDiveAttack without hitboxes). */
 #include "code_08009A0.h"
+#include "player_entity.h"
 #include "code_080D73B8.h"
 
 void Anim_StartIndexed(struct EwramData_EntityData *entity, s32 script, s32 mode, s32 flags);
@@ -11,8 +12,8 @@ static inline void SetPlayerAnim(struct EwramData_EntityData *entity, s32 anim)
     if (!(gEwramData->playerState.actionLockFlags & 0x800) && entity->animScriptIndex != anim)
     {
         Anim_StartIndexed(entity, anim, 1, 1);
-        entity->unk_504.part16.unk_504 = 0xFF;
-        entity->unk_4F4.whole &= 0xFFDFFFFF;
+        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
+        PLAYER_ACTION_FLAGS(entity) &= 0xFFDFFFFF;
     }
 }
 
@@ -29,7 +30,7 @@ void Julius_TryStartDiveAttack(struct EwramData_EntityData *entity)
     u16 key;
     s32 speed;
 
-    if ((entity->unk_4F4.whole & 0xC00002) != 2)
+    if ((PLAYER_ACTION_FLAGS(entity) & 0xC00002) != 2)
         return;
     ew = gEwramData;
     if (!(ew->inputData.playerHeldInput & 0x80))

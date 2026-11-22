@@ -11,8 +11,8 @@ static inline void SetPlayerAnim(struct EwramData_EntityData *entity, s32 anim)
     if (!(gEwramData->playerState.actionLockFlags & 0x800) && entity->animScriptIndex != anim)
     {
         Anim_StartIndexed(entity, anim, 1, 1);
-        entity->unk_504.part16.unk_504 = 0xFF;
-        entity->unk_4F4.whole &= 0xFFDFFFFF;
+        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
+        PLAYER_ACTION_FLAGS(entity) &= 0xFFDFFFFF;
     }
 }
 
@@ -81,7 +81,7 @@ void Julius_UpdateGrandCrossCast(struct EwramData_EntityData *entity)
         else
         {
             entity->state = 0;
-            entity->unk_4F4.whole &= 0xFFDFFEFF;
+            PLAYER_ACTION_FLAGS(entity) &= 0xFFDFFEFF;
         }
         break;
     }

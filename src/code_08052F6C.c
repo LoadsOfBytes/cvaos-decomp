@@ -1,5 +1,6 @@
 /* Object 0x16 helpers 0x08052F6C..0x0805305B. */
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08050A3C.h"
 #include "structs/ewram.h"
@@ -26,10 +27,10 @@ void Object16Create(struct EwramData_EntityData *entity)
     PaletteAnim_Start(sObject16Palette, sObject16PaletteAnim, entity->unk_510.part8.basePalette);
     entity->animFrame = 0;
     entity->spriteLayer = 0x12;
-    entity->unk_500.whole = 0xF00;
-    entity->unk_504.whole = 0;
-    entity->unk_508.whole = 0x40;
-    entity->unk_4F8.whole = 0x100;
+    OBJECT16_SCALE(entity) = 0xF00;
+    OBJECT16_ANGLE(entity) = 0;
+    OBJECT16_SPIN(entity) = 0x40;
+    OBJECT16_TIMER(entity) = 0x100;
 }
 
 /**
@@ -38,7 +39,7 @@ void Object16Create(struct EwramData_EntityData *entity)
  */
 void Object17Overlay_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
 
     entity->posX.whole = owner->posX.whole;
     entity->posY.whole = owner->posY.whole;

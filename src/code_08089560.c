@@ -1,5 +1,6 @@
 /* Sweep the attack direction while emitting effects on alternate frames. */
 #include "code/code_08039340.h"
+#include "gorgon_entity.h"
 #include "code_080D73B8.h"
 extern s32 Sin(s32);
 extern s32 FixedMultiply(s32, s32);
@@ -24,15 +25,15 @@ void Gorgon_UpdateAttack(struct EwramData_EntityData *entity)
             entity->subState = 2;
             if (entity->flipX)
             {
-                entity->unk_504.part16.unk_506[0] = 0;
-                entity->unk_504.part8.unk_504 = phase;
+                GORGON_BREATH_ANGLE(entity) = 0;
+                GORGON_BREATH_DIR(entity) = phase;
             }
             else
             {
-                entity->unk_504.part16.unk_506[0] = 0x8000;
-                entity->unk_504.part8.unk_504 = 0;
+                GORGON_BREATH_ANGLE(entity) = 0x8000;
+                GORGON_BREATH_DIR(entity) = 0;
             }
-            entity->unk_504.part8.unk_505 = 3;
+            GORGON_BREATH_STEP(entity) = 3;
         }
         break;
     case 2:
@@ -44,19 +45,19 @@ void Gorgon_UpdateAttack(struct EwramData_EntityData *entity)
             if (entity->flipX) x = 0x2A0000;
             else x = -0x2A0000;
             y = -0x120000;
-            vx = Sin((u16)entity->unk_504.part16.unk_506[0] + 0x4000);
-            vy = Sin((u16)entity->unk_504.part16.unk_506[0]);
+            vx = Sin((u16)GORGON_BREATH_ANGLE(entity) + 0x4000);
+            vy = Sin((u16)GORGON_BREATH_ANGLE(entity));
             speed = 0x30000;
             vx = FixedMultiply(vx, speed);
             vy = FixedMultiply(vy, speed);
             GorgonBreath_Spawn(entity, x, y, vx, vy);
-            if ((s8)entity->unk_504.part8.unk_504 == 0)
-                entity->unk_504.part16.unk_506[0] += 0x400;
-            else entity->unk_504.part16.unk_506[0] -= 0x400;
-            if ((s8)++entity->unk_504.part8.unk_505 > 6)
+            if ((s8)GORGON_BREATH_DIR(entity) == 0)
+                GORGON_BREATH_ANGLE(entity) += 0x400;
+            else GORGON_BREATH_ANGLE(entity) -= 0x400;
+            if ((s8)++GORGON_BREATH_STEP(entity) > 6)
             {
-                entity->unk_504.part8.unk_505 = 0;
-                entity->unk_504.part8.unk_504 ^= 1;
+                GORGON_BREATH_STEP(entity) = 0;
+                GORGON_BREATH_DIR(entity) ^= 1;
             }
         }
         if (entity->animDone)

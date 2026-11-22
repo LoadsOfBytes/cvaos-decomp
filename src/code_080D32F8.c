@@ -1,5 +1,6 @@
 /* Linked combat body mirrors event flags and transitions to its fade state. */
 #include "code/code_08039340.h"
+#include "graham_entity.h"
 #include "structs/ewram.h"
 extern s32 GrahamPart_UpdatePaletteSequence(struct EwramData_EntityData *,s32);
 extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
@@ -10,7 +11,7 @@ extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
  */
 void GrahamCombatBody_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner=&gEwramData->entityData[entity->unk_4F4.part8.unk_4F5];
+    struct EwramData_EntityData *owner=&gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
     if(entity->state==0xD0)
     {
         Anim_Update(entity);
@@ -20,8 +21,8 @@ void GrahamCombatBody_Update(struct EwramData_EntityData *entity)
     {
         if(owner->unk_518.part8.enemyId!=entity->unk_518.part8.enemyId)
             entity->deleteRequested=1;
-        entity->unk_4F8.part16.unk_4FA=owner->unk_4F8.part16.unk_4FA;
-        if(entity->unk_4F8.part16.unk_4FA & 0x40)
+        GRAHAM_FLAGS(entity)=GRAHAM_FLAGS(owner);
+        if(GRAHAM_FLAGS(entity) & 0x40)
             entity->deleteRequested=1;
         if(entity->deleteRequested)
             return;
@@ -39,7 +40,7 @@ void GrahamCombatBody_Update(struct EwramData_EntityData *entity)
                 }
                 break;
             case 1:
-                if(entity->unk_4F8.part16.unk_4FA & 0x10)
+                if(GRAHAM_FLAGS(entity) & 0x10)
                 {
                     entity->state=0xE0;
                     entity->stage=0;
@@ -49,7 +50,7 @@ void GrahamCombatBody_Update(struct EwramData_EntityData *entity)
                 Enemy_CheckHitPlayer(entity);
                 break;
             case 0xE0:
-                if(entity->unk_4F8.part16.unk_4FA & 0x20)
+                if(GRAHAM_FLAGS(entity) & 0x20)
                     entity->objMode=1;
                 break;
         }

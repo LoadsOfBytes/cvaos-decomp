@@ -33,14 +33,14 @@ void Soma_UpdateKnockbackFromImpulse(struct EwramData_EntityData *entity)
     u16 x;
     s16 y;
 
-    entity->unk_4F4.whole &= 0xEFFFFE9F;
+    PLAYER_ACTION_FLAGS(entity) &= 0xEFFFFE9F;
     box = sSomaStandingBodyBox[0];
     if (!(gEwramData->playerState.actionLockFlags & 0x800) && entity->animScriptIndex != 0x11)
     {
         Anim_StartIndexed(entity, 0x11, 3, 0);
         HitBox_SetBody(entity, &box);
-        entity->unk_504.part16.unk_504 = 0xFF;
-        entity->unk_4F4.whole &= ~0x200000;
+        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
+        PLAYER_ACTION_FLAGS(entity) &= ~0x200000;
         pal = sSomaAnimPalettes[0x11];
         if (PLAYER_ANIM_PALETTE(entity) != pal)
         {
@@ -72,9 +72,9 @@ clear:
     entity->velX.whole = 0;
     entity->accelX.whole = 0;
 done:
-    if (!(entity->unk_4F4.whole & 2) || (hit && (entity->unk_4F4.whole & 0x200000)))
+    if (!(PLAYER_ACTION_FLAGS(entity) & 2) || (hit && (PLAYER_ACTION_FLAGS(entity) & 0x200000)))
     {
-        entity->unk_4F4.whole &= 0xFFFEFF7F;
+        PLAYER_ACTION_FLAGS(entity) &= 0xFFFEFF7F;
         entity->state = 0;
     }
     Soma_UpdateVerticalMovement(entity);

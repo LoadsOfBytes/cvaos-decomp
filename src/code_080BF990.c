@@ -1,6 +1,7 @@
 /* Bouncing fragment (EvilButcherDebris_Update): falls until it hits the floor, then
  * flies off spinning with a random speed and direction; deleted off screen. */
 #include "code_08009A0.h"
+#include "evil_butcher_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_080211F0.h"
 #include "code/code_08060B98.h"
@@ -34,7 +35,7 @@ void EvilButcherDebris_Update(struct EwramData_EntityData *entity)
             entity->animFrame = 8;
             entity->spriteLayer = 0x12;
             entity->scrollWithBg = 1;
-            entity->unk_4FC.part16.unk_4FC = 0xC000;
+            EVIL_BUTCHER_DEBRIS_ANGLE(entity) = 0xC000;
             entity->state = 1;
             entity->velY.whole = 0;
             entity->accelY.whole = 0x2000;
@@ -54,18 +55,18 @@ void EvilButcherDebris_Update(struct EwramData_EntityData *entity)
                     break;
             }
             PlaySong(0x13A);
-            entity->unk_4FC.part16.unk_4FE[0] = RandomSigned(0x800) + 0x1000;
+            EVIL_BUTCHER_DEBRIS_SPIN(entity) = RandomSigned(0x800) + 0x1000;
             entity->velX.whole = (RandomNumberGenerator() & 0x3FFF) + 0x8000;
             if (RandomNumberGenerator() & 1)
             {
-                entity->unk_4FC.part16.unk_4FE[0] = -entity->unk_4FC.part16.unk_4FE[0];
+                EVIL_BUTCHER_DEBRIS_SPIN(entity) = -EVIL_BUTCHER_DEBRIS_SPIN(entity);
                 entity->velX.whole = -entity->velX.whole;
             }
             entity->velY.whole = RandomSigned(0x8000) - 0x20000;
             entity->state = 2;
         case 2:
             EntityAccelerateAndMove(entity, 0x80000);
-            entity->unk_4FC.part16.unk_4FC += entity->unk_4FC.part16.unk_4FE[0];
+            EVIL_BUTCHER_DEBRIS_ANGLE(entity) += EVIL_BUTCHER_DEBRIS_SPIN(entity);
             if (!EntityIsOutsideScreen(entity, 3))
                 break;
         case 3:
@@ -75,5 +76,5 @@ void EvilButcherDebris_Update(struct EwramData_EntityData *entity)
             EntityDelete(entity);
             return;
     }
-    ObjAffine_Set(entity->unk_4FC.part16.unk_4FC, 0x10000, 0x10000, 0, 0, entity->affineIndex);
+    ObjAffine_Set(EVIL_BUTCHER_DEBRIS_ANGLE(entity), 0x10000, 0x10000, 0, 0, entity->affineIndex);
 }

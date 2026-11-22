@@ -1,5 +1,6 @@
 /* Linked part mirrors its parent, fades, and coordinates the two limb sounds. */
 #include "code_080D73B8.h"
+#include "graham_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern s32 GrahamPart_UpdatePaletteSequence(struct EwramData_EntityData *,s32);
@@ -12,7 +13,7 @@ extern s32 GrahamPart_UpdatePaletteSequence(struct EwramData_EntityData *,s32);
  */
 void GrahamBodyOverlay_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner=&gEwramData->entityData[entity->unk_4F4.part8.unk_4F5];
+    struct EwramData_EntityData *owner=&gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
     u32 mode=entity->state;
     if(mode==0xD0)
     { Anim_Update(entity); return; }
@@ -23,8 +24,8 @@ void GrahamBodyOverlay_Update(struct EwramData_EntityData *entity)
         if(owner->unk_518.part8.enemyId!=entity->unk_518.part8.enemyId)
         { entity->deleteRequested=1; return; }
         zero=0;
-        entity->unk_4F8.part16.unk_4FA=owner->unk_4F8.part16.unk_4FA;
-        if((entity->unk_4F8.part16.unk_4FA & 0x10) && mode<=0xDF)
+        GRAHAM_FLAGS(entity)=GRAHAM_FLAGS(owner);
+        if((GRAHAM_FLAGS(entity) & 0x10) && mode<=0xDF)
         {
             entity->enemyFlags|=2;
             entity->state=0xE0;
@@ -45,7 +46,7 @@ void GrahamBodyOverlay_Update(struct EwramData_EntityData *entity)
                 }
                 break;
             case 1:
-                if(entity->unk_4F8.part16.unk_4FA & 0x10)
+                if(GRAHAM_FLAGS(entity) & 0x10)
                 {
                     entity->state=0xE0;
                     entity->stage=0;
@@ -55,13 +56,13 @@ void GrahamBodyOverlay_Update(struct EwramData_EntityData *entity)
                     Anim_Update(entity);
                 break;
             case 0xE0:
-                if(entity->unk_4F8.part16.unk_4FA & 0x20)
+                if(GRAHAM_FLAGS(entity) & 0x20)
                     entity->objMode=1;
                 return;
         }
     }
     {
-        struct EwramData_EntityData *first=(void *)entity->unk_50C.whole;
+        struct EwramData_EntityData *first=(void *)GRAHAM_SIDE_PART_0(entity);
         struct EwramData_EntityData *second;
         if(first->stage==8)
         {
@@ -69,7 +70,7 @@ void GrahamBodyOverlay_Update(struct EwramData_EntityData *entity)
             u32 firstState=(u16)(STATE_WORD(first)&mask);
             if(firstState==0x102)
             {
-                second=(void *)entity->unk_510.whole;
+                second=(void *)GRAHAM_SIDE_PART_1(entity);
                 if(second->stage==8 && (mask &= STATE_WORD(second))==firstState)
                     PlaySong(0x10E);
                 else
@@ -77,7 +78,7 @@ void GrahamBodyOverlay_Update(struct EwramData_EntityData *entity)
                 return;
             }
         }
-        second=(void *)entity->unk_510.whole;
+        second=(void *)GRAHAM_SIDE_PART_1(entity);
         if(second->stage==8 && STATE_WORD(second)==0x102)
             PlaySong(0x10F);
     }

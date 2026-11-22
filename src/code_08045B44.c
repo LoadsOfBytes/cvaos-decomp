@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "particle_effect.h"
 #include "structs/ewram.h"
 struct Unk_085251A8 { u8 frame; u8 life; u16 pad; struct AnimScript *anim; };
 extern struct Unk_085251A8 sUnk_085251A8[];
@@ -20,7 +21,7 @@ struct EwramData_EntityData *Effect_CreateFromTable(s32 x, s32 y, s32 ax, s32 ay
         entity->posY.whole = y;
         entity->accelX.whole = ax;
         entity->accelY.whole = ay;
-        entity->unk_4FC.whole = index;
+        PARTICLE_TABLE_INDEX(entity) = index;
         entity->palette = palette;
     }
     return entity;

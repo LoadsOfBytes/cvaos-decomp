@@ -1,5 +1,6 @@
 /* Chaos second form: ring shot update (51C0). */
 #include "code_08009A0.h"
+#include "chaos_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -25,7 +26,7 @@ extern void EntityMove(struct EwramData_EntityData *);
 void Chaos2Shot_Update(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
-    struct EwramData_EntityData *core = entity->unk_4F4.unk_4F4_entity;
+    struct EwramData_EntityData *core = CHAOS_LINK(entity);
 
     if (entity->state == 0)
     {

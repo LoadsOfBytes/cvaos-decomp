@@ -1,6 +1,7 @@
 /* EnemySkeletonUpdate. */
 /* Skeleton update dispatch and affine rotation. */
 #include "code_08009A0.h"
+#include "skeleton_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern s32 Enemy_PreUpdate(struct EwramData_EntityData *);
@@ -23,10 +24,10 @@ void EnemySkeletonUpdate(struct EwramData_EntityData *entity)
     else
         delta = 0x708;
     step = delta; }
-    { register u32 old asm("r1") = (u16)entity->unk_500.part16.unk_502; /* FAKEMATCH: pinned register */
+    { register u32 old asm("r1") = (u16)SKELETON_SPIN_ANGLE(entity); /* FAKEMATCH: pinned register */
     step += old; }
-    entity->unk_500.part16.unk_502 = step; }
-    { register s32 z asm("r1") = 0; ObjAffine_Set(entity->unk_500.part16.unk_502, 0x10000, 0x10000, 0, z, (u16)entity->unk_504.part16.unk_504); } /* FAKEMATCH: pinned register */
+    SKELETON_SPIN_ANGLE(entity) = step; }
+    { register s32 z asm("r1") = 0; ObjAffine_Set(SKELETON_SPIN_ANGLE(entity), 0x10000, 0x10000, 0, z, (u16)SKELETON_AFFINE(entity)); } /* FAKEMATCH: pinned register */
     if (entity->state == 5)
         Skeleton_UpdateState5Animation(entity);
     else if (entity->state == 0xFF)

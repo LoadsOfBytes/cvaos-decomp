@@ -1,6 +1,7 @@
 /* Headhunter lightning-impact flicker and orbiting-particle creation.
  * The particle follows a stored anchor with an expanding radius. */
 #include "code_08009A0.h"
+#include "headhunter_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -16,7 +17,7 @@ extern void HeadhunterOrbitingParticle_Update(struct EwramData_EntityData *);
 extern u8 sCommonObjectGfx[];
 extern u8 sCommonObjectSpriteSheet[];
 /* bit 0 of the owner's unk_4FE ends its effects (TODO: meaning) */
-#define OWNER_DONE(o) ((o)->unk_4FC.part8.unk_4FE & 1)
+#define OWNER_DONE(o) (HEADHUNTER_FLAGS((o)) & 1)
 
 /**
  * @brief Randomize between two frames and remove after signed timer 7
@@ -25,9 +26,9 @@ extern u8 sCommonObjectSpriteSheet[];
 void HeadhunterLightningImpactFlicker_Update(struct EwramData_EntityData *entity)
 {
     struct SingleFrameAnimation animation = sHeadhunterFrameAnim;
-    struct EwramData_EntityData *owner = entity->unk_4F4.unk_4F4_entity;
+    struct EwramData_EntityData *owner = HEADHUNTER_EFFECT_SOURCE(entity);
     Anim_Start(entity, (struct AnimScript *)&animation, 2, 1);
-    animation.frame = RandomNumberGenerator() % 2 + entity->unk_4FC.part8.unk_4FF;
+    animation.frame = RandomNumberGenerator() % 2 + HEADHUNTER_EFFECT_FRAME(entity);
     Anim_Update(entity);
     if ((s8)entity->timer++ > 7)
         EntityDelete(entity);
@@ -50,8 +51,8 @@ void Headhunter_SpawnOrbitingParticle(struct EwramData_EntityData *owner, struct
         effect->velY.whole = owner->posY.whole + y;
         effect->accelX.whole = speed;
         effect->accelY.whole = 0x100;
-        effect->unk_4FC.whole = camera->xPos.whole;
-        effect->unk_500.whole = camera->yPos.whole;
+        HEADHUNTER_ORBIT_CAMERA_X(effect) = camera->xPos.whole;
+        HEADHUNTER_ORBIT_CAMERA_Y(effect) = camera->yPos.whole;
         effect->flipX = RandomNumberGenerator() % 2;
         effect->flipY = 1;
         effect->spriteLayer = owner->spriteLayer - 1;
@@ -59,8 +60,8 @@ void Headhunter_SpawnOrbitingParticle(struct EwramData_EntityData *owner, struct
         Sprite_Attach(effect, sCommonObjectSpriteSheet, graphics, 7);
         Anim_StartIndexed(effect, 0, 0, 0);
         Anim_Update(effect);
-        effect->unk_4F8.unk_4F8_entity = owner;
-        effect->unk_4F4.unk_4F4_entity = source;
+        ENTITY_OWNER(effect) = owner;
+        HEADHUNTER_EFFECT_SOURCE(effect) = source;
         effect->scrollWithBg = 0;
         effect->drawFunc = (u32 *)Sprite_DrawEntity;
     }

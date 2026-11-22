@@ -1,5 +1,6 @@
 /* Altair child creation and feather motion. */
 #include "code_08009A0.h"
+#include "altair_entity.h"
 #include "code/code_08039340.h"
 #include "structs/entity_template.h"
 
@@ -12,13 +13,13 @@ s32 Altair_CreateCarriedEnemy(struct EwramData_EntityData *entity, u8 type, u16 
 {
     u8 result = 0;
     struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
-    entity->unk_4F8.unk_4F8_entity = child;
+    ALTAIR_CARRIED(entity) = child;
     if (child != NULL)
     {
         struct EntityTemplate *entry;
         struct EwramData_EntityData *parent;
         s32 x;
-        entity->unk_500.part8.unk_500 = 1;
+        ALTAIR_CARRYING(entity) = 1;
         x = entity->posX.whole;
         child->posX.whole = x;
         child->posY.whole = entity->posY.whole + 0x130000;
@@ -34,12 +35,12 @@ s32 Altair_CreateCarriedEnemy(struct EwramData_EntityData *entity, u8 type, u16 
         child->updateFunc = entry->updateFunc;
         entry->createFunc(child);
         result = child->updateFunc != NULL;
-        parent = entity->unk_504.unk_504_entity;
+        parent = ALTAIR_SPAWNER(entity);
         if (parent != NULL)
         {
-            parent->unk_4FC.part8.unk_4FD++;
-            child->unk_4FC.part8.unk_4FD++;
-            child->unk_4F4.part16.unk_4F6 = (u16)entity->unk_504.unk_504_entity->unk_4F4.part16.unk_4F4;
+            ALTAIR_DROP_COUNT(parent)++;
+            ALTAIR_DROP_COUNTED(child)++;
+            ALTAIR_DROP_SPAWNER_INDEX(child) = (u16)ALTAIR_SPAWNER(entity)->unk_4F4.part16.unk_4F4;
         }
     }
     return result;

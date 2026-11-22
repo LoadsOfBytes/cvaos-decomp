@@ -1,5 +1,7 @@
 /* Soul effect helpers 0x0802DB84..0x0802DCFF. */
 #include "code_08009A0.h"
+#include "soul_skill_entity.h"
+#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -12,16 +14,16 @@ extern void RedSoulAnchor_Update(struct EwramData_EntityData *entity);
  */
 void RedSoul_AnchorToHitTarget(struct EwramData_EntityData *entity, struct EwramData_EntityData *target)
 {
-    if (entity->unk_504.unk_504_entity == NULL)
+    if (RED_SOUL_ANCHOR(entity) == NULL)
     {
         struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)RedSoulAnchor_Update);
 
         if (child != NULL)
         {
-            entity->unk_504.unk_504_entity = child;
-            child->unk_4F8.unk_4F8_entity = entity;
-            child->unk_504.unk_504_entity = target;
-            child->unk_4F4.part8.unk_4F4 = entity->unk_4F4.part8.unk_4F4;
+            RED_SOUL_ANCHOR(entity) = child;
+            ENTITY_OWNER(child) = entity;
+            RED_SOUL_ANCHOR_TARGET(child) = target;
+            ENTITY_INDEX(child) = ENTITY_INDEX(entity);
             entity->hit.flags |= 2;
             child->accelX.whole = entity->posX.whole - target->posX.whole;
             child->accelY.whole = entity->posY.whole - target->posY.whole;
@@ -42,7 +44,7 @@ void SkillCockatriceDraw(struct EwramData_EntityData *entity)
     {
         s32 baseY = oldY + 0x80000;
 
-        entity->posY.whole = baseY - entity->unk_508.whole * 8;
+        entity->posY.whole = baseY - SKILL_COCKATRICE_SCALE_Y(entity) * 8;
     }
     for (i = 8; i != 0; i--)
     {

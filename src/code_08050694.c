@@ -1,5 +1,6 @@
 /* Object helpers decompiled from assembly. */
 #include "structs/ewram.h"
+#include "player_entity.h"
 #include "code/code_080211F0.h"
 
 extern u8 sObject0CSolidCallbacks[];
@@ -8,7 +9,7 @@ extern u8 sObject0CSolidCallbacks[];
  * unk_4F4 flag 0x400000 is active. */
 void Object0C_ApplyTriggerVelocity(struct EwramData_EntityData *entity, s32 *data)
 {
-    if (gEwramData->playerState.player->unk_4F4.whole & 0x400000)
+    if (PLAYER_ACTION_FLAGS(gEwramData->playerState.player) & 0x400000)
         entity->velX.whole = data[1];
 }
 
@@ -19,8 +20,8 @@ void Object0C_ApplyTriggerVelocity(struct EwramData_EntityData *entity, s32 *dat
 void Object0C_SetPlayerTriggerFlag(void)
 {
     struct EwramData_EntityData *player = gEwramData->playerState.player;
-    if (player->unk_4F4.whole & 0x400000)
-        player->unk_4F4.whole |= 0x4000000;
+    if (PLAYER_ACTION_FLAGS(player) & 0x400000)
+        PLAYER_ACTION_FLAGS(player) |= 0x4000000;
 }
 
 /**

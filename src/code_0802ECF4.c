@@ -1,6 +1,7 @@
 /* Animated blue-soul effect; release its affine and active-entity slots
  * once the animation finishes. */
 #include "code_08009A0.h"
+#include "blue_soul_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 #include "macros.h"
@@ -37,7 +38,7 @@ void SkillDevilManticoreSparkUpdate(struct EwramData_EntityData *entity)
     if (Anim_Update(entity) == 3)
     {
         ReleaseAffineSlot(entity);
-        gEwramData->playerState.activeBlueSoulEntities[entity->unk_508.part16.unk_508] = NULL;
+        gEwramData->playerState.activeBlueSoulEntities[BLUE_SOUL_SLOT(entity)] = NULL;
         EntityDelete(entity);
     }
 }

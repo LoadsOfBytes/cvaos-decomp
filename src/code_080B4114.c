@@ -1,5 +1,6 @@
 /* Affine overlay following its parent. */
 #include "code_08009A0.h"
+#include "balore_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -17,9 +18,9 @@ extern void BaloreOverlay_UpdateSprite(struct EwramData_EntityData *);
  */
 void BaloreOverlay_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = ENTITY_OWNER(entity);
 
-    if (parent->unk_500.part16.unk_502 & 4)
+    if (BALORE_FLAGS(parent) & 4)
         entity->state = 2;
     switch (entity->state)
     {
@@ -50,6 +51,6 @@ void BaloreOverlay_Update(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    ObjAffine_Set(parent->unk_500.part16.unk_500, parent->unk_504.whole, parent->unk_504.whole,
+    ObjAffine_Set(BALORE_BODY_ANGLE(parent), BALORE_BODY_SCALE(parent), BALORE_BODY_SCALE(parent),
                  entity->unk_4F4.part8.unk_4F7, 0, entity->affineIndex);
 }

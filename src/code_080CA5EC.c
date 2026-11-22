@@ -1,5 +1,6 @@
 /* Beam Skeleton creation and update dispatcher. */
 #include "code_08009A0.h"
+#include "beam_skeleton_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -65,9 +66,9 @@ void EnemyBeamSkeletonCreate(struct EwramData_EntityData *entity)
     Entity_EnableBoxes(entity,Enemy_OnContact,(s32)BeamSkeleton_OnHit);
     Entity_SnapToGround(entity);
     x = GetEntityRoomXPositionInteger(entity);
-    entity->unk_504.part16.unk_506[0] = x;
-    entity->unk_4F8.part16.unk_4F8 = x + 64;
-    entity->unk_4F8.part16.unk_4FA = x - 64;
+    BEAM_SKELETON_HOME_X(entity) = x;
+    BEAM_SKELETON_PATROL_RIGHT(entity) = x + 64;
+    BEAM_SKELETON_PATROL_LEFT(entity) = x - 64;
 }
 
 void EnemyBeamSkeletonUpdate(struct EwramData_EntityData *entity)

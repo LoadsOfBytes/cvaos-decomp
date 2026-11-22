@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "event_scene03.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -9,8 +10,8 @@ extern void EventScene03_SpawnTargetOrb(s32, s32, s32, s32, s32);
 /* Event part: wait for its owner, rise, blink, then emit debris. */
 void EventScene03RisingPart_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = &gEwramData->entityData[entity->unk_4F4.part8.unk_4F5];
-    if ((u16)owner->unk_504.part16.unk_504 & 4)
+    struct EwramData_EntityData *owner = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
+    if ((u16)EVENT03_PROGRESS(owner) & 4)
     {
         entity->state = 4;
         entity->stage = 0;
@@ -19,11 +20,11 @@ void EventScene03RisingPart_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if ((u16)owner->unk_504.part16.unk_504 & 8)
+        if ((u16)EVENT03_PROGRESS(owner) & 8)
         {
             if (RandomNumberGenerator() % 7 == entity->attack)
             {
-                if ((u8)(entity->unk_4F4.part8.unk_4F7 & 2))
+                if ((u8)(EVENT03_PART_FLAGS(entity) & 2))
                 {
                     entity->state = 2;
                     entity->stage = 0;
@@ -65,7 +66,7 @@ void EventScene03RisingPart_Update(struct EwramData_EntityData *entity)
         }
         break;
     case 2:
-        if (entity->unk_4F4.part8.unk_4F7 & 8)
+        if (EVENT03_PART_FLAGS(entity) & 8)
         {
             switch (entity->subState)
             {
@@ -85,7 +86,7 @@ void EventScene03RisingPart_Update(struct EwramData_EntityData *entity)
                 break;
             }
         }
-        else if (entity->unk_4F4.part8.unk_4F7 & 16)
+        else if (EVENT03_PART_FLAGS(entity) & 16)
         {
             if (entity->subState == 0)
             {
@@ -93,7 +94,7 @@ void EventScene03RisingPart_Update(struct EwramData_EntityData *entity)
                 entity->subState++;
             }
         }
-        if ((u16)owner->unk_504.part16.unk_504 & 2)
+        if ((u16)EVENT03_PROGRESS(owner) & 2)
         {
             entity->state = 3;
             entity->stage = 0;

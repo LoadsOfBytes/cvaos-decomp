@@ -1,5 +1,6 @@
 /* Emit four accelerating fragments at four-frame intervals. */
 #include "code_08009A0.h"
+#include "event_scene30.h"
 #include "structs/ewram.h"
 #include <string.h>
 extern u8 sEventScene30PieceEmitterAltFrames[];
@@ -39,8 +40,8 @@ void EventScene30PieceEmitterAlt_Update(struct EwramData_EntityData *entity)
             effect->velY.whole=step*ySpeed;
             effect->spriteLayer=17;
             effect->animFrame=frames[entity->stage];
-            effect->unk_508.part16.unk_50A=0x200;
-            effect->unk_500.whole=step*0x9000;
+            EVENT30_EFFECT_SPIN(effect)=0x200;
+            EVENT30_EFFECT_SCALE(effect)=step*0x9000;
             entity->stage++;
             entity->state=zero;
             entity->timer=16;

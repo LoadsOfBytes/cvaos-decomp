@@ -1,5 +1,6 @@
 /* Creaking Skull main state machine: arm swings, ground smash debris, bone spit. */
 #include "code_08009A0.h"
+#include "creaking_skull_entity.h"
 #include "joint_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
@@ -215,14 +216,14 @@ void CreakingSkull_UpdateAttack(struct EwramData_EntityData *entity)
         }
         CreakingSkull_AttachJointSetAngle(entity, 0xC, 0xB, 0, 0x1F0000);
         ARMS(0x5000, 0x1000, , )
-        entity->unk_4FC.part8.unk_4FC = zero;
-        entity->timer = swingTimes[entity->unk_508.whole];
+        JOINT_ATTACK_PHASE(entity) = zero;
+        entity->timer = swingTimes[CREAKING_SKULL_VARIANT(entity)];
         break;
     case 1:
         COUNTDOWN()
         JOINT_POSE(entity) = 0xE;
         entity->subState++;
-        entity->timer = armTimes[entity->unk_508.whole];
+        entity->timer = armTimes[CREAKING_SKULL_VARIANT(entity)];
         ARMS(0x200, 0x200, , )
         break;
     case 2:
@@ -261,7 +262,7 @@ void CreakingSkull_UpdateAttack(struct EwramData_EntityData *entity)
         break;
     case 6:
         COUNTDOWN()
-        entity->timer = waitTimes[entity->unk_508.whole];
+        entity->timer = waitTimes[CREAKING_SKULL_VARIANT(entity)];
         entity->subState++;
         JOINT_POSE(entity) = 0xF;
         ARMS(0, 0, , )
@@ -277,7 +278,7 @@ void CreakingSkull_UpdateAttack(struct EwramData_EntityData *entity)
         COUNTDOWN()
         JOINT_POSE(entity) = 0x12;
         entity->subState++;
-        entity->timer = armTimes[entity->unk_508.whole];
+        entity->timer = armTimes[CREAKING_SKULL_VARIANT(entity)];
         ARMS(0x200, 0x200, , )
         break;
     case 12:
@@ -316,7 +317,7 @@ void CreakingSkull_UpdateAttack(struct EwramData_EntityData *entity)
         break;
     case 16:
         COUNTDOWN()
-        entity->timer = waitTimes[entity->unk_508.whole];
+        entity->timer = waitTimes[CREAKING_SKULL_VARIANT(entity)];
         entity->subState++;
         JOINT_POSE(entity) = 0x13;
         ARMS(0, 0, , )
@@ -359,12 +360,12 @@ void CreakingSkull_UpdateAttack(struct EwramData_EntityData *entity)
         }
         CreakingSkull_AttachJointSetAngle(entity, 0xC, 0xB, 0, 0x1F0000);
         ARMS(0, 0, , )
-        entity->unk_4FC.part8.unk_4FC = zero;
-        entity->timer = spitTimes[entity->unk_508.whole];
-        entity->unk_4FC.part8.unk_4FD = entity->timer / 2;
+        JOINT_ATTACK_PHASE(entity) = zero;
+        entity->timer = spitTimes[CREAKING_SKULL_VARIANT(entity)];
+        CREAKING_SKULL_POSE_DELAY(entity) = entity->timer / 2;
         break;
     case 21:
-        if ((s8)--*(s8 *)&entity->unk_4FC.part8.unk_4FD <= 0)
+        if ((s8)--*(s8 *)&CREAKING_SKULL_POSE_DELAY(entity) <= 0)
             JOINT_POSE(entity) = 0x15;
         COUNTDOWN()
         entity->subState++;
@@ -379,7 +380,7 @@ void CreakingSkull_UpdateAttack(struct EwramData_EntityData *entity)
             break;
         entity->subState++;
         entity->timer = 0xA;
-        entity->unk_4FC.part8.unk_4FD = 5;
+        CREAKING_SKULL_POSE_DELAY(entity) = 5;
         JOINT_POSE(entity) = 0x17;
         break;
     case 24:
@@ -407,7 +408,7 @@ void CreakingSkull_UpdateAttack(struct EwramData_EntityData *entity)
         RECOVER(3)
         break;
     case 31:
-        if ((s8)--*(s8 *)&entity->unk_4FC.part8.unk_4FD <= 0)
+        if ((s8)--*(s8 *)&CREAKING_SKULL_POSE_DELAY(entity) <= 0)
             JOINT_POSE(entity) = 0x19;
         COUNTDOWN()
         entity->subState++;
@@ -422,7 +423,7 @@ void CreakingSkull_UpdateAttack(struct EwramData_EntityData *entity)
             break;
         entity->subState++;
         entity->timer = 0xA;
-        entity->unk_4FC.part8.unk_4FD = 5;
+        CREAKING_SKULL_POSE_DELAY(entity) = 5;
         JOINT_POSE(entity) = 0x1B;
         break;
     case 23:

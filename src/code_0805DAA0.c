@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "event_scene03.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -14,10 +15,10 @@ extern void EventScene03_SpawnPartDebris(struct EwramData_EntityData *owner);
  */
 void EventScene03MainPart_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = &gEwramData->entityData[entity->unk_4F4.part8.unk_4F5];
+    struct EwramData_EntityData *owner = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
     s32 wave;
 
-    if ((u16)owner->unk_504.part16.unk_504 & 4)
+    if ((u16)EVENT03_PROGRESS(owner) & 4)
     {
         entity->state = 5;
         entity->stage = 0;
@@ -26,7 +27,7 @@ void EventScene03MainPart_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if ((u16)owner->unk_504.part16.unk_504 & 8)
+        if ((u16)EVENT03_PROGRESS(owner) & 8)
         {
             entity->state = 1;
             entity->stage = 0;
@@ -34,11 +35,11 @@ void EventScene03MainPart_Update(struct EwramData_EntityData *entity)
         }
         break;
     case 1:
-        wave = Sin(entity->unk_508.part16.unk_50A + 0x4000) / 4;
-        entity->unk_508.part16.unk_50A += 0x200;
+        wave = Sin(EVENT03_PART_WAVE(entity) + 0x4000) / 4;
+        EVENT03_PART_WAVE(entity) += 0x200;
         entity->posY.whole += wave;
         entity->velY.whole = wave + entity->accelY.whole;
-        if ((u16)owner->unk_504.part16.unk_504 & 0x10)
+        if ((u16)EVENT03_PROGRESS(owner) & 0x10)
         {
             entity->state = 2;
             entity->stage = 0;

@@ -1,5 +1,6 @@
 /* Big Golem attack state machine (state == 1): punch (states 0-19, two variants) and rock throw (20-39). */
 #include "code_08009A0.h"
+#include "big_golem_entity.h"
 #include "joint_entity.h"
 #include "code_080D73B8.h"
 #include "structs/ewram.h"
@@ -19,7 +20,7 @@ extern const s8 sBigGolemOrderA[14], sBigGolemOrderB[14], sBigGolemOrderC[14];
 #define A(A, B, ANGLE, LEN) BigGolem_AttachPartEased(entity, A, B, ANGLE, LEN, entity->timer)
 #define AT(A, B, ANGLE, LEN, T) BigGolem_AttachPartEased(entity, A, B, ANGLE, LEN, T)
 
-#define VARIANT (*(s8 *)&entity->unk_4F4.part8.unk_4F4)
+#define VARIANT (*(s8 *)&BIG_GOLEM_ATTACK_VARIANT(entity))
 #define ANIM JOINT_POSE(entity)
 
 #define WAIT(ORDER)\
@@ -143,9 +144,9 @@ void BigGolem_UpdateAttack(struct EwramData_EntityData *entity)
     case 0:
         BigGolem_SaveParts(entity);
         if ((RandomNumberGenerator() & 0x7F) < 0x2A)
-            entity->unk_4F4.part8.unk_4F4 = 0;
+            BIG_GOLEM_ATTACK_VARIANT(entity) = 0;
         else if ((RandomNumberGenerator() & 0x7F) < 0x2A)
-            entity->unk_4F4.part8.unk_4F4 = 1;
+            BIG_GOLEM_ATTACK_VARIANT(entity) = 1;
         else
         {
             entity->subState = 0x14;
@@ -154,7 +155,7 @@ void BigGolem_UpdateAttack(struct EwramData_EntityData *entity)
         if ((s8)ANIM == 3)
         {
             entity->subState = 1;
-            entity->unk_4FC.part8.unk_4FC = 0;
+            JOINT_ATTACK_PHASE(entity) = 0;
             entity->timer = 0x78;
             WINDUP_LEGS(6, 8, 7, 1, 2)
             A(4, 3, 0x19000, 0x80000);
@@ -177,7 +178,7 @@ void BigGolem_UpdateAttack(struct EwramData_EntityData *entity)
         else
         {
             entity->subState = 0xB;
-            entity->unk_4FC.part8.unk_4FC = 0;
+            JOINT_ATTACK_PHASE(entity) = 0;
             entity->timer = 0x78;
             WINDUP_LEGS(0, 2, 1, 7, 8)
             A(4, 3, 0x19000, 0x80000);
@@ -382,7 +383,7 @@ void BigGolem_UpdateAttack(struct EwramData_EntityData *entity)
         if ((s8)ANIM == 3)
         {
             entity->subState = 0x15;
-            entity->unk_4FC.part8.unk_4FC = 0;
+            JOINT_ATTACK_PHASE(entity) = 0;
             entity->timer = 0x78;
             WINDUP_LEGS(6, 8, 7, 1, 2)
             A(4, 3, 0x1B000, 0x80000);
@@ -396,7 +397,7 @@ void BigGolem_UpdateAttack(struct EwramData_EntityData *entity)
         else
         {
             entity->subState = 0x1F;
-            entity->unk_4FC.part8.unk_4FC = 0;
+            JOINT_ATTACK_PHASE(entity) = 0;
             entity->timer = 0x78;
             WINDUP_LEGS(0, 2, 1, 7, 8)
             A(4, 3, 0x1B000, 0x80000);

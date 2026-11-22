@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "blue_soul_entity.h"
 #include "structs/ewram.h"
 static inline s8 FindFreeSoulSlot(void)
 {
@@ -23,8 +24,8 @@ fail:
     }
     entity = EntityCreateInRange(2, 16, update);
     if (entity == NULL) goto fail;
-    entity->unk_4F8.unk_4F8_entity = owner;
-    entity->unk_508.part16.unk_508 = slot;
+    BLUE_SOUL_OWNER(entity) = owner;
+    BLUE_SOUL_SLOT(entity) = slot;
     gEwramData->playerState.activeBlueSoulEntities[slot] = entity;
     entity->roomActive = 1;
     return entity;

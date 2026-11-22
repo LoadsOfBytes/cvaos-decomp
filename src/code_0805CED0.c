@@ -1,5 +1,6 @@
 /* EventScene03_Update: event script step (room event state machine); matched. */
 #include "gba.h"
+#include "event_scene03.h"
 #include "code_08009A0.h"
 #include "code_08013960.h"
 #include "code_08032444.h"
@@ -89,11 +90,11 @@ s32 EventScene03_Update(struct EwramData_EntityData *entity)
             Interaction_End(entity, 0);
             GameFlag_Set(0x20);
             {
-                u16 f = entity->unk_504.part16.unk_504;
+                u16 f = EVENT03_PROGRESS(entity);
                 s32 k = 4;
                 z = 0;
                 k |= f;
-                entity->unk_504.part16.unk_504 = k;
+                EVENT03_PROGRESS(entity) = k;
             }
             Music_StartOverride(0x26);
             goto set10;
@@ -101,12 +102,12 @@ s32 EventScene03_Update(struct EwramData_EntityData *entity)
         ret = EventScene03_RunSequence(entity);
         break;
     case 10:
-        if (Entity_IsInRect(gEwramData->playerState.player, entity->unk_4FC.unk_4FC_entity->posX.part16.integer - 0x20, entity->unk_4FC.unk_4FC_entity->posY.part16.integer - 0x20, 0x40, sz = 0x40))
+        if (Entity_IsInRect(gEwramData->playerState.player, EVENT03_ACTOR1(entity)->posX.part16.integer - 0x20, EVENT03_ACTOR1(entity)->posY.part16.integer - 0x20, 0x40, sz = 0x40))
         {
             found = 1;
             convo = 0xE;
         }
-        else if (Entity_IsInRect(gEwramData->playerState.player, entity->unk_4F8.unk_4F8_entity->posX.part16.integer - 0x20, entity->unk_4F8.unk_4F8_entity->posY.part16.integer - 0x20, 0x40, sz))
+        else if (Entity_IsInRect(gEwramData->playerState.player, EVENT03_ACTOR0(entity)->posX.part16.integer - 0x20, EVENT03_ACTOR0(entity)->posY.part16.integer - 0x20, 0x40, sz))
         {
             found = 1;
             convo = 0xD;
@@ -126,7 +127,7 @@ s32 EventScene03_Update(struct EwramData_EntityData *entity)
             player->velY.whole = z;
         gEwramData->gameState.stateFlags |= 1;
         TextWindow_Begin(convo);
-        other = entity->unk_4FC.unk_4FC_entity;
+        other = EVENT03_ACTOR1(entity);
         other->flipX = other->posX.whole < gEwramData->playerState.player->posX.whole;
         v = entity->state + 1;
         goto set;

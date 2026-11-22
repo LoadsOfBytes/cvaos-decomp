@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "giant_ghost_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -67,8 +68,8 @@ void EnemyGiantGhostCreate(struct EwramData_EntityData *entity)
         part->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
         part->scrollWithBg = 0;
         part->drawFunc = (u32 *)Sprite_DrawEntity;
-        part->unk_4F8.unk_4F8_entity = entity;
-        part->unk_504.part8.unk_504 = i;
+        ENTITY_OWNER(part) = entity;
+        GIANT_GHOST_HAND_INDEX(part) = i;
         part->posX.whole = entity->posX.whole;
         part->posY.whole = entity->posY.whole;
         switch (i)
@@ -100,9 +101,9 @@ void EnemyGiantGhostCreate(struct EwramData_EntityData *entity)
         }
         if (gEwramData->gameState.bestiaryPreview)
         {
-            part->unk_4FC.whole = part->posX.whole - 0x200000;
-            part->unk_500.whole = part->posY.whole - 0x280000;
-            part->unk_504.part8.unk_506 = 0;
+            GIANT_GHOST_HAND_POINT_X(part) = part->posX.whole - 0x200000;
+            GIANT_GHOST_HAND_POINT_Y(part) = part->posY.whole - 0x280000;
+            GIANT_GHOST_HAND_SWAY_DIR(part) = 0;
         }
         continue;
         }

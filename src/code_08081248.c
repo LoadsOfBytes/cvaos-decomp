@@ -1,5 +1,7 @@
 /* Report contact effects and apply the parent's selected knockback response. */
 #include "code/code_080211F0.h"
+#include "joint_entity.h"
+#include "golem_entity.h"
 /**
  * @brief Contact callback of a golem segment: Player_ApplyContactDamage with the
  * segment's attack attack at its position; reaction 1, or in the parent's
@@ -8,7 +10,7 @@
  */
 void GolemSegment_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_500.unk_500_entity;
+    struct EwramData_EntityData *parent = JOINT_PART_OWNER(entity);
     struct PlayerContactDamage effect;
     effect.attack = entity->attack;
     effect.attributes = 0;
@@ -16,7 +18,7 @@ void GolemSegment_DamagePlayerOnContact(struct EwramData_EntityData *entity)
     effect.reaction = 1;
     effect.sourceX = entity->posX.whole;
     effect.sourceY = entity->posY.whole;
-    switch (parent->unk_4FC.part8.unk_4FC)
+    switch (GOLEM_ATTACK_PHASE(parent))
     {
     case 0:
         effect.reaction = 1;

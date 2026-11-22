@@ -24,7 +24,7 @@ void Persephone_SpawnAttackBox(struct EwramData_EntityData *parent, s32 x, s32 y
         graphics = ObjGfx_Find(sPersephoneGfx);
         Sprite_Attach(part, sPersephoneSpriteSheet, graphics, parent->unk_510.part8.basePalette);
         part->attack = parent->attack;
-        part->unk_4F8.unk_4F8_entity = parent;
+        ENTITY_OWNER(part) = parent;
         part->animFrame = 20;
         part->unk_500.whole = 1;
         part->scrollWithBg = 1;

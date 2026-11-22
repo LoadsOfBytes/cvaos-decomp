@@ -1,4 +1,6 @@
 #include "code_08009A0.h"
+#include "soul_skill_entity.h"
+#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -62,7 +64,7 @@ void SkillFlameDemonUpdate(struct EwramData_EntityData *entity)
         slot = ObjAffine_Alloc(0);
         if ((s16)slot < 0)
         {
-            gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
             gEwramData->playerState.nbrActiveRedSoulEntities--;
             EntityDelete(entity);
             return;
@@ -84,14 +86,14 @@ void SkillFlameDemonUpdate(struct EwramData_EntityData *entity)
         SetFrameBox(entity);
     }
         spin = 0x234;
-        entity->unk_510.part16.unk_512 = spin;
+        SKILL_FLAME_DEMON_SPIN(entity) = spin;
         if (entity->flipX)
-            entity->unk_510.part16.unk_512 = -spin;
+            SKILL_FLAME_DEMON_SPIN(entity) = -spin;
         entity->state++;
     case 1:
-        entity->unk_510.part16.unk_510 += entity->unk_510.part16.unk_512;
+        SKILL_FLAME_DEMON_ANGLE(entity) += SKILL_FLAME_DEMON_SPIN(entity);
         EntityAccelerateAndMove(entity, 0x80000);
-        ObjAffine_Set(entity->unk_510.part16.unk_510, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
+        ObjAffine_Set(SKILL_FLAME_DEMON_ANGLE(entity), 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
         timer = entity->timer + 1;
         entity->timer = timer;
         if ((timer & 7) == 0)
@@ -114,7 +116,7 @@ void SkillFlameDemonUpdate(struct EwramData_EntityData *entity)
     {
         entity->roomActive = 1;
         ObjAffine_Free(entity->affineIndex);
-        gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
     }

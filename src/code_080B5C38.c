@@ -3,6 +3,7 @@
  * repeated masks must not be hoisted into an extra saved register.
  * This reconstruction does not establish original source spelling. */
 #include "code_08009A0.h"
+#include "balore_entity.h"
 #include "code_08033CAC.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -45,15 +46,15 @@ void EnemyBaloreCreate(struct EwramData_EntityData *entity)
     Anim_StartIndexed(entity, 0, 2, 1);
     Enemy_ResetFromTemplate(entity);
     entity->spriteLayer = 0x1E;
-    entity->unk_4F4.part8.unk_4F6 = 4;
-    entity->unk_504.whole = 0x10000;
+    BALORE_EYE_ANIM(entity) = 4;
+    BALORE_BODY_SCALE(entity) = 0x10000;
     part = Entity_CreateObject((u32 *)BaloreEye_Update);
     if (part != NULL)
     {
         part->posX.whole = entity->posX.whole;
         part->posY.whole = entity->posY.whole;
         part->scrollWithBg = 1;
-        part->unk_4FC.unk_4FC_entity = entity;
+        BALORE_BODY(part) = entity;
     }
     part = Entity_CreateObject((u32 *)BalorePart_Update);
     if (part != NULL)
@@ -61,7 +62,7 @@ void EnemyBaloreCreate(struct EwramData_EntityData *entity)
         part->posX.whole = entity->posX.whole;
         part->posY.whole = entity->posY.whole;
         part->scrollWithBg = 1;
-        part->unk_4FC.unk_4FC_entity = entity;
+        BALORE_BODY(part) = entity;
     }
     part = Entity_CreateObject((u32 *)BaloreBodyPart_Update);
     if (part != NULL)
@@ -69,7 +70,7 @@ void EnemyBaloreCreate(struct EwramData_EntityData *entity)
         part->posX.whole = entity->posX.whole;
         part->posY.whole = entity->posY.whole;
         part->scrollWithBg = 1;
-        part->unk_4FC.unk_4FC_entity = entity;
+        BALORE_BODY(part) = entity;
     }
     entity->flipX = 0;
     {

@@ -1,5 +1,8 @@
 /* Blue and yellow soul helpers 0x08031D6C..0x08032443. */
 #include "code_08009A0.h"
+#include "yellow_soul_entity.h"
+#include "blue_soul_entity.h"
+#include "player_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -58,7 +61,7 @@ void BlueSoul_DeleteEntity(struct EwramData_EntityData *entity)
 {
     if (entity->affineIndex != 0 || entity->affine)
         ObjAffine_Free(entity->affineIndex);
-    gEwramData->playerState.activeBlueSoulEntities[entity->unk_508.part16.unk_508] = NULL;
+    gEwramData->playerState.activeBlueSoulEntities[BLUE_SOUL_SLOT(entity)] = NULL;
     EntityDelete(entity);
 }
 
@@ -174,9 +177,9 @@ void YellowSoul_CreateEquippedEntity(struct EwramData_EntityData *entity)
     if (yellowSoul->updateFunc == NULL || gEwramData->playerState.activeYellowSoulEntity != NULL)
         return;
     child = EntityCreateInRange(0x11, 0x11, yellowSoul->updateFunc);
-    child->unk_4F8.unk_4F8_entity = entity;
-    child->unk_4FC.part16.unk_4FE[0] = yellowSoul->effectParam;
-    child->unk_500.whole = yellowSoul->effectValue;
+    ENTITY_OWNER(child) = entity;
+    YELLOW_SOUL_PARAM(child) = yellowSoul->effectParam;
+    YELLOW_SOUL_VALUE(child) = yellowSoul->effectValue;
     gEwramData->playerState.activeYellowSoulEntity = child;
 }
 
@@ -198,9 +201,9 @@ void YellowSoul_Restart(u8 soul, s32 force)
         return;
     StopYellowSoul();
     child = EntityCreateInRange(0x11, 0x11, yellowSoul->updateFunc);
-    child->unk_4F8.unk_4F8_entity = gEwramData->playerState.player;
-    child->unk_4FC.part16.unk_4FE[0] = yellowSoul->effectParam;
-    child->unk_500.whole = yellowSoul->effectValue;
+    YELLOW_SOUL_OWNER(child) = gEwramData->playerState.player;
+    YELLOW_SOUL_PARAM(child) = yellowSoul->effectParam;
+    YELLOW_SOUL_VALUE(child) = yellowSoul->effectValue;
     gEwramData->playerState.activeYellowSoulEntity = child;
     if (soul == 0xC && (gEwramData->playerStatus.statusEffects & 1))
     {
@@ -225,7 +228,7 @@ void SkillGiantWormUse(struct EwramData_EntityData *entity)
     if (gEwramData->playerStatus.currentHP >= gEwramData->playerStatus.maxHP)
         return;
     player = gEwramData->playerState.player;
-    if (player->velX.whole != 0 || (player->unk_4F4.whole & 0x360))
+    if (player->velX.whole != 0 || (PLAYER_ACTION_FLAGS(player) & 0x360))
         return;
     if ((u8)++entity->timer > 0x3C)
     {
@@ -266,7 +269,7 @@ void YellowSoul_Stop(void)
 void Skill_Undine_Skula_ZombieOfficer_IronGolem_DeadWarrior_PeepingEye_Succubus_FleshGolem_Tsuchinoko_Erinys_Mimic_ArcDemon_Use(struct EwramData_EntityData *entity)
 {
     entity->roomActive = 1;
-    gEwramData->playerStatus.soulStateFlags |= entity->unk_500.whole;
+    gEwramData->playerStatus.soulStateFlags |= YELLOW_SOUL_VALUE(entity);
 }
 
 /**
@@ -275,7 +278,7 @@ void Skill_Undine_Skula_ZombieOfficer_IronGolem_DeadWarrior_PeepingEye_Succubus_
 void YellowSoul_DoubleAttackOrDefense(struct EwramData_EntityData *entity)
 {
     entity->roomActive = 1;
-    if (entity->unk_500.whole == 0)
+    if (YELLOW_SOUL_VALUE(entity) == 0)
         gEwramData->playerState.currentATK *= 2;
     else
         gEwramData->playerState.currentDEF *= 2;
@@ -288,8 +291,8 @@ void Skill_SkeletonKnight_Minotaur_Golem_Triton_WhiteDragon_Quezlcoatl_Gorgon_De
 {
     s16 *stat = gEwramData->playerState.currentStats;
 
-    stat += (u16)entity->unk_4FC.part16.unk_4FE[0];
-    *stat += entity->unk_500.whole;
+    stat += (u16)YELLOW_SOUL_PARAM(entity);
+    *stat += YELLOW_SOUL_VALUE(entity);
     entity->roomActive = 1;
     Player_RecalculateAttackDefense();
 }
@@ -300,7 +303,7 @@ void Skill_SkeletonKnight_Minotaur_Golem_Triton_WhiteDragon_Quezlcoatl_Gorgon_De
  */
 void Skill_PoisonWorm_Ectoplasm_Gargoyle_Use(struct EwramData_EntityData *entity)
 {
-    s32 resist = entity->unk_500.whole;
+    s32 resist = YELLOW_SOUL_VALUE(entity);
 
     gEwramData->playerState.resistances |= resist;
     if (gEwramData->playerStatus.statusEffects != 0)

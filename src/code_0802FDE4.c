@@ -1,4 +1,6 @@
 #include "code_08009A0.h"
+#include "soul_skill_entity.h"
+#include "blue_soul_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -16,7 +18,7 @@ extern u8 sSkillBuerOrbitGfx[], sSkillBuerOrbitPalette[], sSkillBuerOrbitSpriteS
  */
 void SkillBuerOrbitUpdate(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = BLUE_SOUL_OWNER(entity);
     struct EwramData_EntityData *flame;
     s32 x, y;
 
@@ -40,11 +42,11 @@ void SkillBuerOrbitUpdate(struct EwramData_EntityData *entity)
         entity->hit.flags |= 4;
         entity->state++;
     case 1:
-        x = RADIUS(parent) * Sin(entity->unk_510.part16.unk_510 + 0x4000);
-        y = RADIUS(parent) * Sin(entity->unk_510.part16.unk_510);
+        x = RADIUS(parent) * Sin(SKILL_BUER_ANGLE(entity) + 0x4000);
+        y = RADIUS(parent) * Sin(SKILL_BUER_ANGLE(entity));
         entity->posX.whole = parent->posX.whole + x;
         entity->posY.whole = parent->posY.whole + y;
-        entity->unk_510.part16.unk_510 += entity->unk_510.part16.unk_512;
+        SKILL_BUER_ANGLE(entity) += SKILL_BUER_SPEED(entity);
         entity->timer++;
         if ((entity->timer & 3) == 0)
         {

@@ -1,5 +1,6 @@
 /* Move the red-soul effect and release its slot when it expires. */
 #include "code_08009A0.h"
+#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -16,7 +17,7 @@ void BoneSoulEffect_Update(struct EwramData_EntityData *entity)
     if (!entity->roomActive) entity->state = 1;
     if (entity->state != 0)
     {
-        gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
     }

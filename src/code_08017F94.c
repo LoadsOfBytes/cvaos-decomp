@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "player_entity.h"
 #include "code/code_08040A38.h"
 #include "code_080D73B8.h"
 
@@ -14,7 +15,7 @@ extern struct PlayerBodyBox sSomaAirborneBodyBox[];
 static inline void SetBox(struct EwramData_EntityData *entity, s16 n)
 {
     struct PlayerBodyBox box = sSomaAirborneBodyBox[0];
-    entity->unk_504.part16.unk_504 = n;
+    PLAYER_REQUESTED_ANIM(entity) = n;
     HitBox_SetBody(entity, &box);
 }
 
@@ -29,16 +30,16 @@ static inline void SetBox(struct EwramData_EntityData *entity, s16 n)
  */
 void Soma_UpdateDiveAttack(struct EwramData_EntityData *entity)
 {
-    if (entity->unk_4F4.whole & 0x400000)
+    if (PLAYER_ACTION_FLAGS(entity) & 0x400000)
     {
         entity->state = 0;
         return;
     }
     entity->hit.flags &= ~2;
-    if (entity->unk_4F4.whole & 0x80000)
+    if (PLAYER_ACTION_FLAGS(entity) & 0x80000)
     {
         register s32 zero asm("r4"); /* FAKEMATCH: pinned register */
-        entity->unk_4F4.whole = (entity->unk_4F4.whole | 8) & ~4;
+        PLAYER_ACTION_FLAGS(entity) = (PLAYER_ACTION_FLAGS(entity) | 8) & ~4;
         zero = 0;
         SetBox(entity, 0x14);
         PlaySong(0xB9);

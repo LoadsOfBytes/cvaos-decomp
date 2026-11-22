@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "player_entity.h"
 
 #include "macros.h"
 static inline struct EwramData_EntityData *ReadPlayer(struct EwramData *ew)
@@ -25,7 +26,7 @@ s16 Player_GetOverheadY(void)
         y = (s16)ReadPlayer(ew)->posY.part16.integer - 0x10;
         goto end;
     }
-    if (ReadPlayer(ew)->unk_4F4.whole & 0x400)
+    if (PLAYER_ACTION_FLAGS(ReadPlayer(ew)) & 0x400)
     {
         y = (s16)ReadPlayer(ew)->posY.part16.integer - 0x16;
         goto end;

@@ -1,5 +1,6 @@
 /* Hovering phase of the Balore-area body. */
 #include "code_08009A0.h"
+#include "balore_entity.h"
 #include "structs/ewram.h"
 
 extern s32 Target_GetX(struct EwramData_EntityData *);
@@ -36,16 +37,16 @@ void Balore_UpdateHover(struct EwramData_EntityData *entity)
             TILT(entity) = 0;
         else if ((s8)TILT(entity) > 8)
             TILT(entity) = 8;
-        entity->unk_4FC.part8.unk_4FC = 5;
+        BALORE_HAND_COMMAND(entity) = 5;
         if ((s16)entity->unk_518.part16.hp <= 1999)
             entity->subState = 2;
         break;
     case 2:
-        entity->unk_4FC.part8.unk_4FC = 7;
-        if (entity->unk_500.part16.unk_502 & 0x20)
+        BALORE_HAND_COMMAND(entity) = 7;
+        if (BALORE_FLAGS(entity) & 0x20)
         {
             /* u16 view of the flags keeps the 0xFFDF mask */
-            entity->unk_500.part16.unk_502 = (u16)entity->unk_500.part16.unk_502 & 0xFFDF;
+            BALORE_FLAGS(entity) = (u16)BALORE_FLAGS(entity) & 0xFFDF;
             TILT(entity) = 4;
             entity->state = 3;
             entity->subState = 0;
@@ -56,7 +57,7 @@ void Balore_UpdateHover(struct EwramData_EntityData *entity)
             entity->timer--;
         else
         {
-            entity->unk_4FC.part8.unk_4FC = 1;
+            BALORE_HAND_COMMAND(entity) = 1;
             entity->subState = 1;
             entity->timer = 0xF0;
         }

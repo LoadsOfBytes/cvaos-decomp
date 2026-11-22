@@ -13,7 +13,7 @@ struct RedSoulInfo {
     s16 mpCost;
     u8 activeEntityLimit;
     u8 pad_9[0xE - 0x9];
-    u16 unk_E;
+    u16 param;
 }; /* size = 0x10 */
 
 extern const struct RedSoulInfo sSomaRedSoulInfo[]; // Soma (currentCharacter == 0)

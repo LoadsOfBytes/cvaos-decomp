@@ -16,7 +16,7 @@ extern s32 HeadStackSegment_UpdateDeath(struct EwramData_EntityData *);
 void HeadStackSegment_Update(struct EwramData_EntityData *entity)
 {
     u32 buf[4];
-    struct EwramData_EntityData *owner = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
 
     if (entity->state != 2)
     {

@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code_080D73B8.h"
 #include "code_08013960.h"
 #include "code/code_080211F0.h"
@@ -42,10 +43,10 @@ void Object14Variant1_Update(struct EwramData_EntityData *entity)
         entity->affine = 1;
         entity->drawFunc = (u32 *)Object14_Draw;
         entity->animFrame = 2;
-        entity->unk_4FC.part16.unk_4FC = GetEntityRoomXPositionInteger(entity);
-        entity->unk_4FC.part16.unk_4FE[0] = GetEntityRoomYPositionInteger(entity);
-        entity->unk_500.part16.unk_500 = entity->unk_4FC.part16.unk_4FC;
-        entity->unk_500.part16.unk_502 = entity->unk_4FC.part16.unk_4FE[0];
+        OBJECT14_ROOM_X(entity) = GetEntityRoomXPositionInteger(entity);
+        OBJECT14_ROOM_Y(entity) = GetEntityRoomYPositionInteger(entity);
+        OBJECT14_PREV_X(entity) = OBJECT14_ROOM_X(entity);
+        OBJECT14_PREV_Y(entity) = OBJECT14_ROOM_Y(entity);
         Hit_Enable(entity, 8, 0, 0);
         HitBox_SetBodyRaw(entity, 0x102EFEE8);
         entity->hit.flags |= 2;
@@ -54,7 +55,7 @@ void Object14Variant1_Update(struct EwramData_EntityData *entity)
         entity->state = 1;
     }
     case 1:
-        if (entity->unk_4F8.part16.unk_4F8 & 1) {
+        if (OBJECT14_FLAGS(entity) & 1) {
             if (entity->velX.whole == 0)
                 Sound_PlayTracked(0x136);
             entity->stage++;
@@ -65,9 +66,9 @@ void Object14Variant1_Update(struct EwramData_EntityData *entity)
             entity->velX.whole = 0;
         }
         Object14_MoveOnTerrainSolid(entity, 0);
-        if (entity->unk_504.part16.unk_504 != 0) {
+        if (OBJECT14_ANGLE(entity) != 0) {
             Sound_PlayTracked(0x136);
-            entity->unk_504.part16.unk_504 = 0;
+            OBJECT14_ANGLE(entity) = 0;
             entity->state = 2;
             entity->timer = 8;
         }
@@ -77,10 +78,10 @@ void Object14Variant1_Update(struct EwramData_EntityData *entity)
             Player_ClearSolidObject();
         entity->stage++;
         if (entity->velX.whole <= 0x7FFFF)
-            entity->velX.whole += entity->unk_504.part16.unk_504 / 2;
+            entity->velX.whole += OBJECT14_ANGLE(entity) / 2;
         entity->velY.whole = entity->velX.whole;
         Object14_MoveOnTerrainSolid(entity, 0);
-        if (entity->unk_504.part16.unk_504 < 0) {
+        if (OBJECT14_ANGLE(entity) < 0) {
             Sound_StopTracked(0x136);
             entity->state = 3;
             entity->accelY.whole = 0x400;
@@ -95,7 +96,7 @@ void Object14Variant1_Update(struct EwramData_EntityData *entity)
         entity->posY.whole += entity->velY.whole;
         entity->velY.whole += entity->accelY.whole;
         Player_QueueEntity(entity, 7);
-        Angle_TurnTowards(&entity->unk_504.part16.unk_504, 0x80, 0xE000);
+        Angle_TurnTowards(&OBJECT14_ANGLE(entity), 0x80, 0xE000);
         x = GetEntityRoomXPositionInteger(entity) + 26;
         y = GetEntityRoomYPositionInteger(entity);
         if (Collision_GetPushLeftFiltered(x, y, 0)) {
@@ -109,8 +110,8 @@ delete:
         break;
     }
     }
-    entity->unk_4F8.part16.unk_4F8 = 0;
-    ObjAffine_Set(entity->unk_504.part16.unk_504, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
+    OBJECT14_FLAGS(entity) = 0;
+    ObjAffine_Set(OBJECT14_ANGLE(entity), 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
     if (entity->state > 1) {
         length = Entity_DistanceToPoint(entity, Player(&gEwramData)->posX.whole,
                             Player(&gEwramData)->posY.whole);
@@ -118,8 +119,8 @@ delete:
             length = 0xC0000;
         if (Player(&gEwramData)->posX.whole < entity->posX.whole)
             length = -length;
-        x = (length < 0 ? -(-length >> 16) : length >> 16) * Sin(entity->unk_504.part16.unk_504 + 0x4000);
-        y = Sin(entity->unk_504.part16.unk_504) * (length < 0 ? -(-length >> 16) : length >> 16);
+        x = (length < 0 ? -(-length >> 16) : length >> 16) * Sin(OBJECT14_ANGLE(entity) + 0x4000);
+        y = Sin(OBJECT14_ANGLE(entity)) * (length < 0 ? -(-length >> 16) : length >> 16);
         HitBox_SetBodyRaw(entity, (((x < 0 ? -(-x >> 16) : x >> 16) - 8) & 0xFF) + (((y < 0 ? -(-y >> 16) : y >> 16) & 0xFF) << 8) + 0x14140000);
     }
 }

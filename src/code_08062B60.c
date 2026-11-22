@@ -1,5 +1,6 @@
 /* Allocate a shared effect, optionally reserving an affine sprite slot. */
 #include "code_08009A0.h"
+#include "event_scene30.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern u8 sEventScene30Gfx[],sEventScene30SpriteSheet[];
@@ -20,7 +21,7 @@ struct EwramData_EntityData *EventScene30_CreateEffectSprite(s32 affine)
         entity->drawFunc=(u32 *)Sprite_DrawEntity;
         if(affine)
         {
-            entity->unk_500.whole=0x12000;
+            EVENT30_EFFECT_SCALE(entity)=0x12000;
             slot=ObjAffine_Alloc(1);
             if(slot<0)
             {
@@ -28,7 +29,7 @@ fail:
                 EntityDelete(entity);return 0;
             }
             entity->affineIndex=slot;entity->affine=1;
-            ObjAffine_Set(0x10000,entity->unk_500.whole,entity->unk_500.whole,0,0,entity->affineIndex);
+            ObjAffine_Set(0x10000,EVENT30_EFFECT_SCALE(entity),EVENT30_EFFECT_SCALE(entity),0,0,entity->affineIndex);
         }
         entity->spriteLayer=17;
     }

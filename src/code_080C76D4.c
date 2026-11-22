@@ -1,5 +1,6 @@
 /* Linked child creation. */
 #include "code_08009A0.h"
+#include "nemesis_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -19,8 +20,8 @@ s32 Nemesis_CreatePartner(struct EwramData_EntityData *parent)
         return 0;
     if (!Sprite_Attach(e, sNemesisSpriteSheet, ObjGfx_Find(sNemesisGfx), ObjPalette_FindOrLoad(sNemesisPalette)))
         return 0;
-    e->unk_4F4.part8.unk_4F5 = parent->unk_4F4.part8.unk_4F4;
-    parent->unk_4F4.part8.unk_4F6 = e->unk_4F4.part8.unk_4F4;
+    ENTITY_PARENT_INDEX(e) = ENTITY_INDEX(parent);
+    NEMESIS_PARTNER_INDEX(parent) = ENTITY_INDEX(e);
     e->objMode = 1;
     e->drawFunc = (u32 *)Sprite_DrawEntity;
     e->scrollWithBg = 1;

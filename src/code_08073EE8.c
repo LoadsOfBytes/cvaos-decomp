@@ -14,7 +14,7 @@ extern void Manticore_OnDamaged(struct EwramData_EntityData *entity, s32 attacke
  */
 void ManticoreTail_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    struct EwramData_EntityData *manticore = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *manticore = ENTITY_OWNER(entity);
     s32 oldX = manticore->posX.whole;
     s32 oldY = manticore->posY.whole;
     s16 damage;
@@ -23,9 +23,9 @@ void ManticoreTail_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 
     manticore->posX.whole = entity->posX.whole;
     manticore->posY.whole = entity->posY.whole;
     attackPower = Player_CalculateAttackPower(hit[2]);
-    damage = Hit_ResolveDamage(entity->unk_4F8.unk_4F8_entity, attacker, hit, attackPower);
+    damage = Hit_ResolveDamage(ENTITY_OWNER(entity), attacker, hit, attackPower);
     manticore->posX.whole = oldX;
     manticore->posY.whole = oldY;
     Entity_ShowDamage(entity, damage, 0);
-    Manticore_OnDamaged(entity->unk_4F8.unk_4F8_entity, attacker, hit, damage);
+    Manticore_OnDamaged(ENTITY_OWNER(entity), attacker, hit, damage);
 }

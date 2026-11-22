@@ -15,7 +15,7 @@ void Effect_FollowParentHitBoxCopy(struct EwramData_EntityData *entity)
 {
     struct HitBoxRecord attackBox;
     struct HitBoxRecord bodyBox;
-    struct EwramData_EntityData *parent = &gEwramData->entityData[entity->unk_4F4.part8.unk_4F5];
+    struct EwramData_EntityData *parent = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
 
     HitBox_GetBoxes(&attackBox, &bodyBox, parent);
     switch (entity->state)

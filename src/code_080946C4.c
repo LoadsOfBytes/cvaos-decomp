@@ -3,6 +3,7 @@
  *   Succubus_LoadGraphics = Object25_LoadGraphics
  * plus Succubus_DamagePlayerOnContact (decompiled locally). */
 #include "code_08009A0.h"
+#include "succubus_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -28,14 +29,15 @@ u8 Succubus_LoadGraphics(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief 94710 | When (s8)unk_500 is 0, Player_ApplyContactDamage with (attack, 0, 0, 0)
- * at the entity position; otherwise set unk_501 = unk_4FF = 1, unk_502 = 0.
+ * @brief 94710 | When not lunging, Player_ApplyContactDamage with (attack, 0, 0, 0)
+ * at the entity position; otherwise grab the player (grabbed = holding = 1,
+ * escape presses = 0).
  */
 void Succubus_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 {
     struct PlayerContactDamage contactDamage;
 
-    if ((s8)entity->unk_500.part8.unk_500 == 0)
+    if ((s8)SUCCUBUS_LUNGING(entity) == 0)
     {
         contactDamage.attack = entity->attack;
         contactDamage.attributes = 0;
@@ -47,8 +49,8 @@ void Succubus_DamagePlayerOnContact(struct EwramData_EntityData *entity)
     }
     else
     {
-        entity->unk_500.part8.unk_501 = 1;
-        entity->unk_4FC.part8.unk_4FF = 1;
-        entity->unk_500.part8.unk_502 = 0;
+        SUCCUBUS_GRABBED(entity) = 1;
+        SUCCUBUS_HOLDING(entity) = 1;
+        SUCCUBUS_ESCAPE_PRESSES(entity) = 0;
     }
 }

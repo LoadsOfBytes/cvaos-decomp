@@ -2,6 +2,7 @@
  * velocity are re-read from the entity each time (the CSE copies match only
  * that way). */
 #include "code_08009A0.h"
+#include "player_entity.h"
 
 void Julius_UpdateVerticalMovement(struct EwramData_EntityData *entity);
 
@@ -16,7 +17,7 @@ void Julius_UpdateJumpControl(struct EwramData_EntityData *entity)
 
     if (ew->playerState.actionLockFlags & 0x10)
         return;
-    if ((entity->unk_4F4.whole & 0x1E) && !(entity->unk_4F4.whole & 0x18))
+    if ((PLAYER_ACTION_FLAGS(entity) & 0x1E) && !(PLAYER_ACTION_FLAGS(entity) & 0x18))
     {
         if (entity->velY.whole < -0x4000 && !(ew->inputData.playerHeldInput & ew->playerStatus.jumpButton))
         {
@@ -29,7 +30,7 @@ void Julius_UpdateJumpControl(struct EwramData_EntityData *entity)
             if (entity->accelY.whole < -0x2000)
                 entity->accelY.whole = -0x2000;
         }
-        if ((entity->unk_4F4.whole & 0x400000) && entity->velY.whole > 0x1800)
+        if ((PLAYER_ACTION_FLAGS(entity) & 0x400000) && entity->velY.whole > 0x1800)
             entity->velY.whole -= 0x1800;
     }
     Julius_UpdateVerticalMovement(entity);

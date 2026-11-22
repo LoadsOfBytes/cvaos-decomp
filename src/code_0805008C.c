@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code_08001194.h"
 #include "code_08011DD0.h"
 #include "code_080D73B8.h"
@@ -50,7 +51,7 @@ void Object08Update(struct EwramData_EntityData *entity)
     child = EntityCreateInRange(0x49, 0xCF, (u32 *)BreakableBlock_SpawnDust);
     if (child != NULL)
     {
-        child->unk_4F8.part8.unk_4F8 = entity->unk_4F8.part8.unk_4F8;
+        OBJECT08_KIND(child) = OBJECT08_KIND(entity);
         child->spriteLayer = entity->spriteLayer - 1;
         child->posX.part16.integer = entity->posX.part16.integer;
         child->posY.part16.integer = entity->posY.part16.integer;
@@ -68,7 +69,7 @@ void Object08Update(struct EwramData_EntityData *entity)
     gEwramData->gameState.gameFlagsTail[entity->unk_514.part16.spawnParam1 >> 5] |= 1 << (entity->unk_514.part16.spawnParam1 & 0x1F);
     x = GetEntityRoomXPositionInteger(entity);
     y = GetEntityRoomYPositionInteger(entity);
-    r = GameFlag_FindRoomCoordinate((s16)x, (s16)y, (u8)entity->unk_4F8.part8.unk_4F8);
+    r = GameFlag_FindRoomCoordinate((s16)x, (s16)y, (u8)OBJECT08_KIND(entity));
     if (r >= 0)
         GameFlag_Set(r);
     entity->deleteRequested = 1;

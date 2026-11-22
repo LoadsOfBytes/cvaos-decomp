@@ -1,4 +1,6 @@
 #include "code_08009A0.h"
+#include "soul_skill_entity.h"
+#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -34,7 +36,7 @@ static inline struct SoulGraphicsResources *GetSet(s32 index)
  * when it stops. */
 void SkillGladiatorUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
     s32 oldVelY = entity->velY.whole;
     s32 result;
     s32 v;
@@ -46,7 +48,7 @@ void SkillGladiatorUse(struct EwramData_EntityData *entity)
         slot = ObjAffine_Alloc(0);
         if ((s16)slot < 0)
         {
-            gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
             EntityDelete(entity);
             return;
         }
@@ -72,9 +74,9 @@ void SkillGladiatorUse(struct EwramData_EntityData *entity)
         Entity_PlaceRelativeTo(entity, parent, 8, -0x1A);
         entity->accelY.whole = 0x2000;
         entity->velY.whole = -0x28000;
-        entity->unk_508.whole = -0x20000;
+        SKILL_GLADIATOR_SPEED(entity) = -0x20000;
         if (entity->flipX)
-            entity->unk_508.whole = -entity->unk_508.whole;
+            SKILL_GLADIATOR_SPEED(entity) = -SKILL_GLADIATOR_SPEED(entity);
         Hit_SetTimerOverride(1, 30);
         Hit_Enable(entity, 5, 0, 0);
         HitBox_SetAttackRaw(entity, 0x2020F0F0);
@@ -84,10 +86,10 @@ void SkillGladiatorUse(struct EwramData_EntityData *entity)
     }
         PlaySong(0xC5);
     case 1:
-        result = Entity_Walk(entity, -entity->unk_508.whole, sSkillGladiatorWalkProfile, 2);
+        result = Entity_Walk(entity, -SKILL_GLADIATOR_SPEED(entity), sSkillGladiatorWalkProfile, 2);
         if (result & 0x40)
         {
-            v = entity->unk_508.whole;
+            v = SKILL_GLADIATOR_SPEED(entity);
             if (v > 0)
                 goto dec;
             { register u32 z_ asm("r3"); asm("" : "=r"(z_)); /* FAKEMATCH: occupy r3 for reload rotation */
@@ -97,7 +99,7 @@ void SkillGladiatorUse(struct EwramData_EntityData *entity)
         }
         else if (result & 0x20)
         {
-            v = entity->unk_508.whole;
+            v = SKILL_GLADIATOR_SPEED(entity);
             if (v > 0)
                 v += 0x1000;
             else
@@ -106,16 +108,16 @@ void SkillGladiatorUse(struct EwramData_EntityData *entity)
                 v -= 0x1000;
             }
         store:
-            entity->unk_508.whole = v;
+            SKILL_GLADIATOR_SPEED(entity) = v;
         }
         else
         {
-            if (entity->unk_508.whole >= 0)
+            if (SKILL_GLADIATOR_SPEED(entity) >= 0)
             {
-                entity->unk_508.whole -= 0x200;
-                if (entity->unk_508.whole <= 0)
+                SKILL_GLADIATOR_SPEED(entity) -= 0x200;
+                if (SKILL_GLADIATOR_SPEED(entity) <= 0)
                 {
-                    entity->unk_508.whole = 0;
+                    SKILL_GLADIATOR_SPEED(entity) = 0;
                     entity->timer = 0x10;
                     entity->drawSkip = 1;
                     entity->state = 2;
@@ -123,10 +125,10 @@ void SkillGladiatorUse(struct EwramData_EntityData *entity)
             }
             else
             {
-                entity->unk_508.whole += 0x200;
-                if (entity->unk_508.whole > 0)
+                SKILL_GLADIATOR_SPEED(entity) += 0x200;
+                if (SKILL_GLADIATOR_SPEED(entity) > 0)
                 {
-                    entity->unk_508.whole = 0;
+                    SKILL_GLADIATOR_SPEED(entity) = 0;
                     entity->timer = 0x10;
                     entity->drawSkip = 1;
                     entity->state = 2;
@@ -134,11 +136,11 @@ void SkillGladiatorUse(struct EwramData_EntityData *entity)
             }
         }
     roll:
-        entity->unk_510.part16.unk_510 += -entity->unk_508.whole / 64;
+        SKILL_GLADIATOR_ANGLE(entity) += -SKILL_GLADIATOR_SPEED(entity) / 64;
         if (result & 3)
         {
             PlaySong(0x15F);
-            entity->unk_508.whole = -entity->unk_508.whole / 2;
+            SKILL_GLADIATOR_SPEED(entity) = -SKILL_GLADIATOR_SPEED(entity) / 2;
         }
         if ((result & 8) && entity->velY.whole == 0 && oldVelY > 0)
             PlaySong(0x15F);
@@ -159,7 +161,7 @@ void SkillGladiatorUse(struct EwramData_EntityData *entity)
         if (entity->timer == 0)
         {
             ObjAffine_Free(entity->affineIndex);
-            gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
             gEwramData->playerState.nbrActiveRedSoulEntities--;
             EntityDelete(entity);
             return;
@@ -171,10 +173,10 @@ void SkillGladiatorUse(struct EwramData_EntityData *entity)
     {
         entity->roomActive = 1;
         ObjAffine_Free(entity->affineIndex);
-        gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;
     }
-    do { do { do { ObjAffine_Set(entity->unk_510.part16.unk_510, 0x10000, 0x10000, 0, 0, entity->affineIndex); } while (0); } while (0); } while (0);
+    do { do { do { ObjAffine_Set(SKILL_GLADIATOR_ANGLE(entity), 0x10000, 0x10000, 0, 0, entity->affineIndex); } while (0); } while (0); } while (0);
 }

@@ -113,8 +113,8 @@ void Soma_InitEntity(struct EwramData_EntityData *entity)
     {
         Anim_StartIndexed(entity, 0, 3, 1);
         HitBox_SetBody(entity, &unk_0);
-        entity->unk_504.part16.unk_504 = 0xFF;
-        entity->unk_4F4.whole &= ~0x200000;
+        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
+        PLAYER_ACTION_FLAGS(entity) &= ~0x200000;
         palette = sSomaAnimPalettes.anim00Palette;
         if (PLAYER_ANIM_PALETTE(entity) != palette)
         {
@@ -221,20 +221,19 @@ void Player_Create(s32 unused)
     Player_ClearStatusEffects(7);
     player->scrollWithBg = 1;
     player->spriteLayer = 0xE;
-    player->unk_4F4.whole = 0x300000;
-    // Uh oh, whole is normally a number, but here it's a pointer
-    // TODO: investigate, possible there are several different entitity structs
-    player->unk_4FC.whole = 0x080E12DC;
+    PLAYER_ACTION_FLAGS(player) = 0x300000;
+    /* address of the default wall probe offset list (s8 offsets) */
+    PLAYER_WALL_PROBES(player) = 0x080E12DC;
 
     Player_CopyBaseStats();
     gEwramData->playerState.cameraAnchorX = 0x78;
     gEwramData->playerState.cameraAnchorY = 0x6F;
     gEwramData->playerState.collisionQueueCount = 0;
-    player->unk_504.part16.unk_504 = 0xFF;
-    player->unk_508.part8.unk_508 = 0;
-    player->unk_508.part8.unk_509 = 0;
+    PLAYER_REQUESTED_ANIM(player) = 0xFF;
+    PLAYER_DRAW_OFFSET_X(player) = 0;
+    PLAYER_DRAW_OFFSET_Y(player) = 0;
     PLAYER_FLOOR_KIND(player) = 0xFF;
-    player->unk_50C.part8.unk_50C = 0;
+    PLAYER_WEAPON_SLOT(player) = 0;
     gEwramData->playerState.wallProbeCount = 4;
     gEwramData->playerState.wallProbeY0 = 0xF8;
     gEwramData->playerState.wallProbeY1 = 0xF4;
@@ -248,12 +247,12 @@ void Player_Create(s32 unused)
 
 static inline s32 Entity_TestFlag100000(struct EwramData_EntityData *entity)
 {
-    return entity->unk_4F4.whole & 0x100000;
+    return PLAYER_ACTION_FLAGS(entity) & 0x100000;
 }
 
 static inline s32 Entity_TestFlag1000(struct EwramData_EntityData *entity)
 {
-    return entity->unk_4F4.whole & 0x1000;
+    return PLAYER_ACTION_FLAGS(entity) & 0x1000;
 }
 
 static inline s32 CollisionProbe_TestBit1()
@@ -599,7 +598,7 @@ void Soma_ResolveWorldCollision(struct EwramData_EntityData *entity)
 
     temp_r8 = (u16) GetEntityRoomXPositionInteger(entity);
     temp_r0 = GetEntityRoomYPositionInteger(entity);
-    entity->unk_4F4.whole &= ~0x28000800;
+    PLAYER_ACTION_FLAGS(entity) &= ~0x28000800;
 
     temp_r1 = temp_r0;
     temp_r6 = (s16) temp_r8;
@@ -622,7 +621,7 @@ void Soma_ResolveWorldCollision(struct EwramData_EntityData *entity)
 
     if ((var_r0 << 0x10) != 0)
     {
-        entity->unk_4F4.whole |= 0x20000000;
+        PLAYER_ACTION_FLAGS(entity) |= 0x20000000;
     }
 
     spDC = temp_r8 << 0x10;
@@ -656,7 +655,7 @@ void Soma_ResolveWorldCollision(struct EwramData_EntityData *entity)
     if (gEwramData->playerState.collisionQueueCount != 0)
     {
         temp_r2 = gEwramData->playerState.player;
-        if ((s32) temp_r2->velY.whole >= 0 && (!(temp_r2->unk_4F4.whole & 2) || ((u16) temp_r2->unk_4F8.part16.unk_4F8 == 0x10)))
+        if ((s32) temp_r2->velY.whole >= 0 && (!(PLAYER_ACTION_FLAGS(temp_r2) & 2) || ((u16) PLAYER_AIR_TIME(temp_r2) == 0x10)))
         {
             sp54 = temp_r3;
             sp58 = temp_r0_3;
@@ -811,7 +810,7 @@ block_71:
         }
     }
 
-    temp_r5_4 = (u8*)&entity->unk_4FC.whole;
+    temp_r5_4 = (u8*)&PLAYER_WALL_PROBES(entity);
     temp_r0_7 = *temp_r5_4;
     if (sp50 < 0)
     {
@@ -841,7 +840,7 @@ loop_76:
             if (temp_r0_9 != 0)
             {
                 entity->posX.whole += temp_r0_9 << 0x10;
-                temp_r1_7 = entity->unk_4F4.whole;
+                temp_r1_7 = PLAYER_ACTION_FLAGS(entity);
                 if (0x80 & temp_r1_7)
                 {
                     entity->accelX.whole = 0;
@@ -858,7 +857,7 @@ loop_76:
                     entity->velX.whole = var_r0_4 >> 2;
                     entity->accelX.whole = 0 - entity->accelX.whole;
                 }
-                entity->unk_4F4.whole = temp_r1_7 | 0x40000;
+                PLAYER_ACTION_FLAGS(entity) = temp_r1_7 | 0x40000;
             }
             else
             {
@@ -902,7 +901,7 @@ loop_93:
             if (temp_r0_11 != 0)
             {
                 entity->posX.whole += temp_r0_11 << 0x10;
-                temp_r1_9 = entity->unk_4F4.whole;
+                temp_r1_9 = PLAYER_ACTION_FLAGS(entity);
                 if (!(0x80 & temp_r1_9))
                 {
                     var_r0_6 = 0 - entity->velX.whole;
@@ -919,7 +918,7 @@ loop_93:
                     entity->accelX.whole = 0;
                     entity->velX.whole = 0;
                 }
-                entity->unk_4F4.whole = temp_r1_9 | 0x40000;
+                PLAYER_ACTION_FLAGS(entity) = temp_r1_9 | 0x40000;
             }
             else
             {
@@ -982,19 +981,19 @@ block_106:
         {
             goto block_119;
         }
-        var_r0_9 = entity->unk_4F4.whole & 0xFFFF7FFF;
+        var_r0_9 = PLAYER_ACTION_FLAGS(entity) & 0xFFFF7FFF;
     }
     else
     {
 block_119:
-        var_r0_9 = entity->unk_4F4.whole | 0x20008000;
+        var_r0_9 = PLAYER_ACTION_FLAGS(entity) | 0x20008000;
     }
 
-    entity->unk_4F4.whole = var_r0_9;
-    temp_r0_15 = (u16) entity->unk_4F8.part16.unk_4FA;
+    PLAYER_ACTION_FLAGS(entity) = var_r0_9;
+    temp_r0_15 = (u16) PLAYER_DROP_THROUGH_TIMER(entity);
     if (temp_r0_15 != 0)
     {
-        entity->unk_4F8.part16.unk_4FA = temp_r0_15 - 1;
+        PLAYER_DROP_THROUGH_TIMER(entity) = temp_r0_15 - 1;
     }
 
     temp_r4_11 = spDC >> 0x10;
@@ -1013,7 +1012,7 @@ block_119:
     temp_r6_7 = (spE0 >> 0x10) - 8;
     if ((Collision_IsPointSolid(temp_r5_10 - 5, temp_r6_7) != 0) || (temp_r0_17 = Collision_IsPointSolid(temp_r5_10 + 5, temp_r6_7), ((s32) ((0 - temp_r0_17) | temp_r0_17) < 0)))
     {
-        temp_r5_11 = entity->unk_4F4.whole & 0x01000000;
+        temp_r5_11 = PLAYER_ACTION_FLAGS(entity) & 0x01000000;
         if (temp_r5_11 == 0)
         {
             if ((s32) entity->velY.whole > 0x18000)
@@ -1027,54 +1026,54 @@ block_119:
                 entity->accelY.whole = temp_r5_11;
             }
         }
-        entity->unk_4F4.whole |= 0x01000000;
+        PLAYER_ACTION_FLAGS(entity) |= 0x01000000;
         var_r4_3 = var_r0_10 << 0x10;
     }
     else
     {
         var_r4_3 = var_r0_10 << 0x10;
-        if ((var_r4_3 == 0) && (entity->unk_4F4.whole & 0x01000000) && ((s32) entity->velY.whole < 0xFFFE8000))
+        if ((var_r4_3 == 0) && (PLAYER_ACTION_FLAGS(entity) & 0x01000000) && ((s32) entity->velY.whole < 0xFFFE8000))
         {
             Player_SpawnSurfaceEffect(2);
         }
-        entity->unk_4F4.whole &= 0xFEFFFFFF;
+        PLAYER_ACTION_FLAGS(entity) &= 0xFEFFFFFF;
     }
 
     if (var_r4_3 != 0)
     {
-        entity->unk_4F4.whole = (entity->unk_4F4.whole & 0xFF7FFFFB) | 0xC00000;
+        PLAYER_ACTION_FLAGS(entity) = (PLAYER_ACTION_FLAGS(entity) & 0xFF7FFFFB) | 0xC00000;
         if (Collision_IsPointSolid(spDC >> 0x10, (spE0 >> 0x10) - 0x1A) == 0)
         {
-            entity->unk_4F4.whole = entity->unk_4F4.whole | 0x800;
+            PLAYER_ACTION_FLAGS(entity) = PLAYER_ACTION_FLAGS(entity) | 0x800;
         }
     }
     else
     {
-        temp_r1_12 = entity->unk_4F4.whole;
+        temp_r1_12 = PLAYER_ACTION_FLAGS(entity);
         if ((0x800000 & temp_r1_12) && !(0x10 & temp_r1_12))
         {
             if ((0x02000000 & temp_r1_12) == 0)
             {
                 entity->velY.whole = 0;
             }
-            entity->unk_4F4.whole &= ~0x2000000;
+            PLAYER_ACTION_FLAGS(entity) &= ~0x2000000;
         }
-        entity->unk_4F4.whole = entity->unk_4F4.whole & ~0xC00000;
+        PLAYER_ACTION_FLAGS(entity) = PLAYER_ACTION_FLAGS(entity) & ~0xC00000;
     }
 
-    temp_r2_7 = entity->unk_4F4.whole;
+    temp_r2_7 = PLAYER_ACTION_FLAGS(entity);
     if (0x800000 & temp_r2_7)
     {
         if ((gEwramData->playerStatus.soulStateFlags & 0x8000) || (0x04000000 & temp_r2_7))
         {
-            entity->unk_4F4.whole = temp_r2_7 & ~0x800000;
+            PLAYER_ACTION_FLAGS(entity) = temp_r2_7 & ~0x800000;
         }
         else
         {
-            entity->unk_4F4.whole = temp_r2_7 & ~0x400;
+            PLAYER_ACTION_FLAGS(entity) = temp_r2_7 & ~0x400;
         }
     }
-    entity->unk_500.part8.unk_500 = 0;
+    PLAYER_ON_STAIRS(entity) = 0;
 
     if (sp48 != 0)
     {
@@ -1100,7 +1099,7 @@ loop_159:
             {
                 goto block_165;
             }
-            entity->unk_500.part8.unk_500 = var_r0_13;
+            PLAYER_ON_STAIRS(entity) = var_r0_13;
         }
         else
         {
@@ -1114,7 +1113,7 @@ block_165:
         }
     }
 
-    if (entity->unk_4F4.whole & 0x100000)
+    if (PLAYER_ACTION_FLAGS(entity) & 0x100000)
     {
         goto block_226;
     }
@@ -1146,7 +1145,7 @@ block_165:
         {
 
         }
-        else if ((temp_r2_9->unk_4F4.whole & 2) && ((u16) temp_r2_9->unk_4F8.part16.unk_4F8 != 0x10))
+        else if ((PLAYER_ACTION_FLAGS(temp_r2_9) & 2) && ((u16) PLAYER_AIR_TIME(temp_r2_9) != 0x10))
         {
 
         }
@@ -1279,12 +1278,12 @@ block_226:
         return;
 
 block_227:
-    if ((u16) entity->unk_4F8.part16.unk_4FA != 0)
+    if ((u16) PLAYER_DROP_THROUGH_TIMER(entity) != 0)
         return;
 
     sp48 = 0;
-    entity->unk_4F4.whole = (entity->unk_4F4.whole & 0xFFFF9FFF) | 0x1000;
-    entity->unk_500.part8.unk_501 = 0;
+    PLAYER_ACTION_FLAGS(entity) = (PLAYER_ACTION_FLAGS(entity) & 0xFFFF9FFF) | 0x1000;
+    PLAYER_SLOPE_LEVEL(entity) = 0;
     temp_r3_5 = spDC >> 0x10;
     temp_r0_21 = (s32) (spE0 + 0x10000) >> 0x10;
     temp_r0_22 = (u16) Collision_GetPushUpFiltered(temp_r3_5, temp_r0_21, sp3C);
@@ -1308,7 +1307,7 @@ block_227:
         {
 
         }
-        else if ((temp_r2_13->unk_4F4.whole & 2) && ((u16) temp_r2_13->unk_4F8.part16.unk_4F8 != 0x10))
+        else if ((PLAYER_ACTION_FLAGS(temp_r2_13) & 2) && ((u16) PLAYER_AIR_TIME(temp_r2_13) != 0x10))
         {
 
         }
@@ -1430,24 +1429,24 @@ block_270:
     }
     if (var_r2_8 != 0)
     {
-        entity->unk_4F4.whole &= ~0x1000;
+        PLAYER_ACTION_FLAGS(entity) &= ~0x1000;
     }
     temp_r1_23 = gUnk_03002CB0.collisionProbeFlags;
     if (0xC0 & temp_r1_23)
     {
         if (4 & temp_r1_23)
         {
-            entity->unk_4F4.whole |= 0x4000;
+            PLAYER_ACTION_FLAGS(entity) |= 0x4000;
         }
         else
         {
-            entity->unk_4F4.whole |= 0x2000;
+            PLAYER_ACTION_FLAGS(entity) |= 0x2000;
         }
     }
     temp_r1_24 = (u8) gUnk_03002CB0.collisionProbeFlags >> 6;
-    if ((u32) (u8) entity->unk_500.part8.unk_501 < temp_r1_24)
+    if ((u32) (u8) PLAYER_SLOPE_LEVEL(entity) < temp_r1_24)
     {
-        entity->unk_500.part8.unk_501 = (s8) temp_r1_24;
+        PLAYER_SLOPE_LEVEL(entity) = (s8) temp_r1_24;
     }
     if (sp6C == 0)
     {
@@ -1483,7 +1482,7 @@ block_270:
             {
 
             }
-            else if ((temp_r2_17->unk_4F4.whole & 2) && ((u16) temp_r2_17->unk_4F8.part16.unk_4F8 != 0x10))
+            else if ((PLAYER_ACTION_FLAGS(temp_r2_17) & 2) && ((u16) PLAYER_AIR_TIME(temp_r2_17) != 0x10))
             {
 
             }
@@ -1603,24 +1602,24 @@ block_390:
         }
         if (var_r2_9 != 0)
         {
-            entity->unk_4F4.whole &= ~0x1000;
+            PLAYER_ACTION_FLAGS(entity) &= ~0x1000;
         }
         temp_r1_30 = gUnk_03002CB0.collisionProbeFlags;
         if (0xC0 & temp_r1_30)
         {
             if (4 & temp_r1_30)
             {
-                entity->unk_4F4.whole |= 0x4000;
+                PLAYER_ACTION_FLAGS(entity) |= 0x4000;
             }
             else
             {
-                entity->unk_4F4.whole |= 0x2000;
+                PLAYER_ACTION_FLAGS(entity) |= 0x2000;
             }
         }
         temp_r1_31 = (u8) gUnk_03002CB0.collisionProbeFlags >> 6;
-        if ((u32) (u8) entity->unk_500.part8.unk_501 < temp_r1_31)
+        if ((u32) (u8) PLAYER_SLOPE_LEVEL(entity) < temp_r1_31)
         {
-            entity->unk_500.part8.unk_501 = (s8) temp_r1_31;
+            PLAYER_SLOPE_LEVEL(entity) = (s8) temp_r1_31;
         }
         temp_r0_27 = (s32) (spDC + 0x50000) >> 0x10;
         temp_r1_32 = (s32) (spE0 + 0x10000) >> 0x10;
@@ -1650,7 +1649,7 @@ block_390:
             {
 
             }
-            else if ((temp_r2_21->unk_4F4.whole & 2) && ((u16) temp_r2_21->unk_4F8.part16.unk_4F8 != 0x10))
+            else if ((PLAYER_ACTION_FLAGS(temp_r2_21) & 2) && ((u16) PLAYER_AIR_TIME(temp_r2_21) != 0x10))
             {
 
             }
@@ -1770,18 +1769,18 @@ block_451:
         }
         if (var_r2_10 != 0)
         {
-            entity->unk_4F4.whole &= 0xFFFFEFFF;
+            PLAYER_ACTION_FLAGS(entity) &= 0xFFFFEFFF;
         }
         temp_r1_37 = gUnk_03002CB0.collisionProbeFlags;
         if (0xC0 & temp_r1_37)
         {
             if (4 & temp_r1_37)
             {
-                entity->unk_4F4.whole |= 0x4000;
+                PLAYER_ACTION_FLAGS(entity) |= 0x4000;
             }
             else
             {
-                entity->unk_4F4.whole |= 0x2000;
+                PLAYER_ACTION_FLAGS(entity) |= 0x2000;
             }
         }
     }
@@ -1837,24 +1836,24 @@ block_302:
         }
         if (var_r3_7 != 0)
         {
-            entity->unk_4F4.whole &= ~0x1000;
+            PLAYER_ACTION_FLAGS(entity) &= ~0x1000;
         }
         temp_r1_38 = gUnk_03002CB0.collisionProbeFlags;
         if (0xC0 & temp_r1_38)
         {
             if (4 & temp_r1_38)
             {
-                entity->unk_4F4.whole |= 0x4000;
+                PLAYER_ACTION_FLAGS(entity) |= 0x4000;
             }
             else
             {
-                entity->unk_4F4.whole |= 0x2000;
+                PLAYER_ACTION_FLAGS(entity) |= 0x2000;
             }
         }
         temp_r1_39 = (u8) gUnk_03002CB0.collisionProbeFlags >> 6;
-        if ((u32) (u8) entity->unk_500.part8.unk_501 < temp_r1_39)
+        if ((u32) (u8) PLAYER_SLOPE_LEVEL(entity) < temp_r1_39)
         {
-            entity->unk_500.part8.unk_501 = (s8) temp_r1_39;
+            PLAYER_SLOPE_LEVEL(entity) = (s8) temp_r1_39;
         }
         temp_r0_31 = (u16) Collision_GetPushUpFiltered((s32) (spDC + 0x50000) >> 0x10, (s32) (spE0 + 0x10000) >> 0x10, sp3C);
         if (((temp_r0_31 << 0x10) != 0) && (PLAYER_FLOOR_KIND(gEwramData->playerState.player) == 0xFF))
@@ -1908,34 +1907,34 @@ block_330:
         }
         if (var_r3_8 != 0)
         {
-            entity->unk_4F4.whole &= ~0x1000;
+            PLAYER_ACTION_FLAGS(entity) &= ~0x1000;
         }
         if (gUnk_03002CB0.collisionProbeFlags & 0xC0)
         {
             if (gUnk_03002CB0.collisionProbeFlags & 4)
             {
-                entity->unk_4F4.whole |=  0x4000;
+                PLAYER_ACTION_FLAGS(entity) |=  0x4000;
             }
             else
             {
-                entity->unk_4F4.whole |=  0x2000;
+                PLAYER_ACTION_FLAGS(entity) |=  0x2000;
             }
         }
     }
     temp_r1_41 = (u8) gUnk_03002CB0.collisionProbeFlags >> 6;
-    if ((u8)entity->unk_500.part8.unk_501 < temp_r1_41)
+    if ((u8)PLAYER_SLOPE_LEVEL(entity) < temp_r1_41)
     {
-        entity->unk_500.part8.unk_501 = temp_r1_41;
+        PLAYER_SLOPE_LEVEL(entity) = temp_r1_41;
     }
-    temp_r1_42 = entity->unk_4F4.whole;
+    temp_r1_42 = PLAYER_ACTION_FLAGS(entity);
     if (0x800000 & temp_r1_42)
     {
-        entity->unk_4F4.whole = temp_r1_42 | 2;
+        PLAYER_ACTION_FLAGS(entity) = temp_r1_42 | 2;
         temp_r5_16 = spDC >> 0x10;
         temp_r4_16 = spE0 >> 0x10;
         if (Collision_IsPointSolid(temp_r5_16, temp_r4_16) != 0)
         {
-            if (entity->unk_4F4.whole & 0x800)
+            if (PLAYER_ACTION_FLAGS(entity) & 0x800)
             {
                 return;
             }
@@ -1972,10 +1971,10 @@ block_330:
 block_484:
             entity->posY.whole += (sp6C << 0x10) + 0x10000;
             sp48 = 1;
-            entity->unk_4F4.whole |= 0x08000000;
+            PLAYER_ACTION_FLAGS(entity) |= 0x08000000;
         }
     }
-    if (entity->unk_4F4.whole & 2)
+    if (PLAYER_ACTION_FLAGS(entity) & 2)
     {
         goto block_534;
     }
@@ -1997,7 +1996,7 @@ block_484:
     if (gEwramData->playerState.collisionQueueCount != 0)
     {
         temp_r2_31 = gEwramData->playerState.player;
-        if (temp_r2_31->velY.whole >= 0 && (!(temp_r2_31->unk_4F4.whole & 2) || ((u16) temp_r2_31->unk_4F8.part16.unk_4F8 == 0x10)))
+        if (temp_r2_31->velY.whole >= 0 && (!(PLAYER_ACTION_FLAGS(temp_r2_31) & 2) || ((u16) PLAYER_AIR_TIME(temp_r2_31) == 0x10)))
         {
             spC8 = temp_r4_17;
             spCC = temp_r0_32;
@@ -2101,7 +2100,7 @@ block_518:
         {
             entity->posY.whole += (temp_r0_35 + 7) << 0x10;
             sp48 = 1;
-            entity->unk_4F4.whole |= 0x08000000;
+            PLAYER_ACTION_FLAGS(entity) |= 0x08000000;
         }
 block_534:
         if (sp48 == 0)
@@ -2131,7 +2130,7 @@ block_534:
                 else
                 {
 block_542:
-                    if (!(0x6000 & entity->unk_4F4.whole))
+                    if (!(0x6000 & PLAYER_ACTION_FLAGS(entity)))
                     {
                         entity->posY.whole += (sp40 << 0x10) + 0x10000;
                         sp48 = 1;
@@ -2165,7 +2164,7 @@ block_542:
                     else
                     {
 block_552:
-                        if (!(entity->unk_4F4.whole & 0x6000))
+                        if (!(PLAYER_ACTION_FLAGS(entity) & 0x6000))
                         {
                             entity->posY.whole += (sp44 << 0x10) + 0x10000;
                         }
@@ -2200,7 +2199,7 @@ block_552:
         if ((s32) entity->velY.whole > 0)
         {
             var_r1_23 = 1;
-            if ((temp_r4_19 == 0) && (entity->unk_4F4.whole & 0x6000))
+            if ((temp_r4_19 == 0) && (PLAYER_ACTION_FLAGS(entity) & 0x6000))
             {
                 return;
             }
@@ -2213,15 +2212,15 @@ block_552:
         {
             return;
         }
-        entity->unk_4F4.whole |= 0x100000;
-        entity->unk_4F8.part16.unk_4F8 = 0;
+        PLAYER_ACTION_FLAGS(entity) |= 0x100000;
+        PLAYER_AIR_TIME(entity) = 0;
         if (Weapon_KeepsAttackOnLanding() != 0)
         {
-            entity->unk_4F4.whole &= ~0x20031E;
+            PLAYER_ACTION_FLAGS(entity) &= ~0x20031E;
         }
         else
         {
-            entity->unk_4F4.whole &= ~0x20017E;
+            PLAYER_ACTION_FLAGS(entity) &= ~0x20017E;
         }
         entity->timer = 0;
         PlaySong(0xBBU);
@@ -2232,12 +2231,12 @@ block_552:
             entity->accelY.whole = 0;
             return;
         }
-        if (((s32) entity->velY.whole > 0x64000) || (entity->unk_4F4.whole & 0x80))
+        if (((s32) entity->velY.whole > 0x64000) || (PLAYER_ACTION_FLAGS(entity) & 0x80))
         {
-            entity->unk_4F4.whole |= 0x10000;
+            PLAYER_ACTION_FLAGS(entity) |= 0x10000;
             if (Weapon_KeepsAttackOnLanding() != 0)
             {
-                entity->unk_4F4.whole &= ~0x160;
+                PLAYER_ACTION_FLAGS(entity) &= ~0x160;
             }
             PlaySong(0xBBU);
             sp30 = *(s32 *)0x080E1300;
@@ -2245,8 +2244,8 @@ block_552:
             {
                 Anim_StartIndexed(entity, 0x13U, 3U, 0U);
                 HitBox_SetBody(entity, &sp30);
-                entity->unk_504.part16.unk_504 = 0xFF;
-                entity->unk_4F4.whole &= ~0x200000;
+                PLAYER_REQUESTED_ANIM(entity) = 0xFF;
+                PLAYER_ACTION_FLAGS(entity) &= ~0x200000;
                 var_0 = sSomaAnimPalettes.unk_13;
                 if (PLAYER_ANIM_PALETTE(entity) != var_0)
                 {
@@ -2256,12 +2255,12 @@ block_552:
             }
             entity->state = 4;
         }
-        else if (!(entity->unk_4F4.whole & 0x20) || (Weapon_KeepsAttackOnLanding() == 0))
+        else if (!(PLAYER_ACTION_FLAGS(entity) & 0x20) || (Weapon_KeepsAttackOnLanding() == 0))
         {
             if (!(gEwramData->inputData.playerHeldInput & 0xF0) && !((gEwramData->playerStatus.jumpButton | gEwramData->playerStatus.attackButton | gEwramData->playerStatus.abilityButton | gEwramData->playerStatus.guardianButton) & gEwramData->inputData.playerNewInput))
             {
                 sp34 = *(s32 *)0x080E12FC;
-                entity->unk_504.part16.unk_504 = 0xD;
+                PLAYER_REQUESTED_ANIM(entity) = 0xD;
                 HitBox_SetBody(entity, &sp34);
             }
             if (gEwramData->inputData.playerHeldInput & 0x30)
@@ -2271,8 +2270,8 @@ block_552:
                 {
                     Anim_StartIndexed(entity, 1U, 3U, 1U);
                     HitBox_SetBody(entity, &sp38);
-                    entity->unk_504.part16.unk_504 = 0xFF;
-                    entity->unk_4F4.whole &= ~0x200000;
+                    PLAYER_REQUESTED_ANIM(entity) = 0xFF;
+                    PLAYER_ACTION_FLAGS(entity) &= ~0x200000;
                     temp_r2_38 = &PLAYER_ANIM_PALETTE(entity);
                     if (*temp_r2_38 != sSomaAnimPalettes.unk_1)
                     {
@@ -2288,7 +2287,7 @@ block_552:
     }
     else
     {
-        entity->unk_4F4.whole &= ~0x100000;
+        PLAYER_ACTION_FLAGS(entity) &= ~0x100000;
     }
 }
 */

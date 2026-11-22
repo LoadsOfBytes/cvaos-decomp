@@ -2,6 +2,7 @@
  * a cloning script and checked byte for byte:
  *   CockatriceFamily_OnHit = HeadStackSegment_OnHit */
 #include "code_08009A0.h"
+#include "cockatrice_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -59,8 +60,8 @@ void CockatriceFamilyAttack_Draw(struct EwramData_EntityData *entity)
     for (i = 16; i != 0; i--)
     {
         Sprite_Draw(entity);
-        entity->posX.whole += entity->unk_50C.whole;
-        entity->posY.whole += entity->unk_510.whole;
+        entity->posX.whole += COCKATRICE_BEAM_STEP_X(entity);
+        entity->posY.whole += COCKATRICE_BEAM_STEP_Y(entity);
     }
     entity->posX.whole = x;
     entity->posY.whole = y;

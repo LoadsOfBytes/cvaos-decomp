@@ -1,5 +1,6 @@
 /* BlueSoul_StopAll. */
 #include "code_08009A0.h"
+#include "player_entity.h"
 #include "code_08013960.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -29,7 +30,7 @@ void BlueSoul_StopAll(void)
     }
     Sound_StopTracked(0x9C);
     gEwramData->playerStatus.soulStateFlags &= ~0x3F00;
-    gEwramData->playerState.player->unk_4F4.whole &= ~0x200;
+    PLAYER_ACTION_FLAGS(gEwramData->playerState.player) &= ~0x200;
     if (gEwramData->playerState.blueSoulGfx != -1)
     {
         ObjGfx_Unload(gEwramData->playerState.blueSoulGfx);

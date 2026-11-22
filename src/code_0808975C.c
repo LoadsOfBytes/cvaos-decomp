@@ -30,7 +30,7 @@ void GorgonBreath_Spawn(struct EwramData_EntityData *parent, s32 x, s32 y, s32 v
         part->hit.flags |= 4;
         part->hit.flags &= ~2;
         part->attack = parent->attack;
-        part->unk_4F8.unk_4F8_entity = parent;
+        ENTITY_OWNER(part) = parent;
         part->scrollWithBg = 1;
         part->drawFunc = (u32 *)Sprite_DrawEntity;
         part->timer = 10;

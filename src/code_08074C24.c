@@ -1,5 +1,6 @@
 /* Patrolling enemy (Entity_GetTargetDistanceX/BDEC distance checks, Tile_Classify probe); per-copy pinned bg->xPos reads keep the three tracking copies distinct. */
 #include "code_08009A0.h"
+#include "winged_skeleton_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 #include "structs/entity_render_flags.h"
@@ -43,13 +44,13 @@ static inline s32 Abs(s32 v)
         {                                                                         \
             if ((s16)Entity_GetTargetDistanceX(entity) >= 0)                                        \
                 break;                                                            \
-            if (Tile_Classify(({ s32 t_ = entity->posX.part16.integer + ({ register u32 b_ asm("r2") = bg->xPos.part16.integer; b_; }); t_; }) + 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) entity->unk_500.part8.unk_500 = 1; /* FAKEMATCH: pinned register */ \
+            if (Tile_Classify(({ s32 t_ = entity->posX.part16.integer + ({ register u32 b_ asm("r2") = bg->xPos.part16.integer; b_; }); t_; }) + 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) WINGED_SKELETON_BLOCKED(entity) = 1; /* FAKEMATCH: pinned register */ \
         }                                                                         \
         else                                                                      \
         {                                                                         \
             if ((s16)Entity_GetTargetDistanceX(entity) <= 0)                                        \
                 break;                                                            \
-            if (Tile_Classify(({ s32 t_ = entity->posX.part16.integer + (bg->xPos.part16.integer); t_; }) - 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) entity->unk_500.part8.unk_500 = 1; \
+            if (Tile_Classify(({ s32 t_ = entity->posX.part16.integer + (bg->xPos.part16.integer); t_; }) - 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) WINGED_SKELETON_BLOCKED(entity) = 1; \
         }                                                                         \
     }
 
@@ -66,13 +67,13 @@ static inline s32 Abs(s32 v)
         {                                                                         \
             if ((s16)Entity_GetTargetDistanceX(entity) >= 0)                                        \
                 break;                                                            \
-            if (Tile_Classify(({ s32 t_ = entity->posX.part16.integer + (bg->xPos.part16.integer); t_; }) + 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) entity->unk_500.part8.unk_500 = 1; \
+            if (Tile_Classify(({ s32 t_ = entity->posX.part16.integer + (bg->xPos.part16.integer); t_; }) + 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) WINGED_SKELETON_BLOCKED(entity) = 1; \
         }                                                                         \
         else                                                                      \
         {                                                                         \
             if ((s16)Entity_GetTargetDistanceX(entity) <= 0)                                        \
                 break;                                                            \
-            if (Tile_Classify(({ s32 t_ = entity->posX.part16.integer + ({ register u32 b_ asm("r2") = bg->xPos.part16.integer; b_; }); t_; }) - 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) entity->unk_500.part8.unk_500 = 1; /* FAKEMATCH: pinned register */ \
+            if (Tile_Classify(({ s32 t_ = entity->posX.part16.integer + ({ register u32 b_ asm("r2") = bg->xPos.part16.integer; b_; }); t_; }) - 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) WINGED_SKELETON_BLOCKED(entity) = 1; /* FAKEMATCH: pinned register */ \
         }                                                                         \
     }
 
@@ -89,13 +90,13 @@ static inline s32 Abs(s32 v)
         {                                                                         \
             if ((s16)Entity_GetTargetDistanceX(entity) >= 0)                                        \
                 break;                                                            \
-            if (Tile_Classify(({ s32 t_ = entity->posX.part16.integer + (bg->xPos.part16.integer); t_; }) + 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) entity->unk_500.part8.unk_500 = 1; \
+            if (Tile_Classify(({ s32 t_ = entity->posX.part16.integer + (bg->xPos.part16.integer); t_; }) + 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) WINGED_SKELETON_BLOCKED(entity) = 1; \
         }                                                                         \
         else                                                                      \
         {                                                                         \
             if ((s16)Entity_GetTargetDistanceX(entity) <= 0)                                        \
                 break;                                                            \
-            if (Tile_Classify(({ s32 t_ = entity->posX.part16.integer + ({ register u32 b_ asm("r2") = bg->xPos.part16.integer; b_; }); t_; }) - 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) entity->unk_500.part8.unk_500 = 1; /* FAKEMATCH: pinned register */ \
+            if (Tile_Classify(({ s32 t_ = entity->posX.part16.integer + ({ register u32 b_ asm("r2") = bg->xPos.part16.integer; b_; }); t_; }) - 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) WINGED_SKELETON_BLOCKED(entity) = 1; /* FAKEMATCH: pinned register */ \
         }                                                                         \
     }
 
@@ -114,7 +115,7 @@ static inline s32 Abs(s32 v)
                 entity->subState = next;                                           \
                 break;                                                            \
             }                                                                     \
-            entity->unk_500.part8.unk_500 = 0;                                \
+            WINGED_SKELETON_BLOCKED(entity) = 0;                                \
         }                                                                         \
         else                                                                      \
         {                                                                         \
@@ -124,7 +125,7 @@ static inline s32 Abs(s32 v)
                 entity->subState = next;                                           \
                 break;                                                            \
             }                                                                     \
-            entity->unk_500.part8.unk_500 = 0;                                \
+            WINGED_SKELETON_BLOCKED(entity) = 0;                                \
         }                                                                         \
     }
 
@@ -148,7 +149,7 @@ void WingedSkeleton_UpdateFly(struct EwramData_EntityData *entity)
             entity->animDone = 0;
             break;
         }
-        if (entity->unk_500.part8.unk_500 == 0)
+        if (WINGED_SKELETON_BLOCKED(entity) == 0)
             TRACK0()
         else
             TURN(10)
@@ -181,7 +182,7 @@ void WingedSkeleton_UpdateFly(struct EwramData_EntityData *entity)
             break;
         }
     track2:
-        if (entity->unk_500.part8.unk_500 == 0)
+        if (WINGED_SKELETON_BLOCKED(entity) == 0)
             TRACK1()
         else
             TURN(0)
@@ -189,7 +190,7 @@ void WingedSkeleton_UpdateFly(struct EwramData_EntityData *entity)
     case 3:
         EntityMove(entity);
         ANIMATE()
-        if (entity->unk_500.part8.unk_500 == 0)
+        if (WINGED_SKELETON_BLOCKED(entity) == 0)
             TRACK2()
         else
             TURN(10)

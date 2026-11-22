@@ -1,5 +1,6 @@
 /* EventScene03_Init. */
 #include "code_08009A0.h"
+#include "event_scene03.h"
 #include "structs/ewram.h"
 
 extern s32 GameFlag_GetMask(s32 flag);
@@ -22,18 +23,18 @@ void EventScene03_Init(struct EwramData_EntityData *entity)
 
     if (done == 0)
     {
-        entity->unk_4F8.unk_4F8_entity = Entity_CreateFromObjectTable(0);
-        entity->unk_4FC.unk_4FC_entity = Entity_CreateFromObjectTable(1);
-        entity->unk_500.unk_500_entity = Entity_CreateFromObjectTable(8);
-        if (entity->unk_4F8.unk_4F8_entity != NULL && entity->unk_4FC.unk_4FC_entity != NULL
-            && entity->unk_500.unk_500_entity != NULL)
+        EVENT03_ACTOR0(entity) = Entity_CreateFromObjectTable(0);
+        EVENT03_ACTOR1(entity) = Entity_CreateFromObjectTable(1);
+        EVENT03_ACTOR8(entity) = Entity_CreateFromObjectTable(8);
+        if (EVENT03_ACTOR0(entity) != NULL && EVENT03_ACTOR1(entity) != NULL
+            && EVENT03_ACTOR8(entity) != NULL)
             goto created;
-        if (entity->unk_4F8.unk_4F8_entity != NULL)
-            EntityDelete(entity->unk_4F8.unk_4F8_entity);
-        if (entity->unk_4FC.unk_4FC_entity != NULL)
-            EntityDelete(entity->unk_4FC.unk_4FC_entity);
-        if (entity->unk_500.unk_500_entity != NULL)
-            EntityDelete(entity->unk_500.unk_500_entity);
+        if (EVENT03_ACTOR0(entity) != NULL)
+            EntityDelete(EVENT03_ACTOR0(entity));
+        if (EVENT03_ACTOR1(entity) != NULL)
+            EntityDelete(EVENT03_ACTOR1(entity));
+        if (EVENT03_ACTOR8(entity) != NULL)
+            EntityDelete(EVENT03_ACTOR8(entity));
     }
     entity->deleteRequested = 1;
     return;

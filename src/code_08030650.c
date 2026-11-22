@@ -1,5 +1,7 @@
 /* SkillCreakingSkullHitBoxUpdate. */
 #include "code_08009A0.h"
+#include "soul_skill_entity.h"
+#include "blue_soul_entity.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
 
@@ -10,8 +12,8 @@
  */
 void SkillCreakingSkullHitBoxUpdate(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *target = &gEwramData->entityData[entity->unk_514.part8.unk_514];
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *target = &gEwramData->entityData[SKILL_CREAKING_SKULL_SOUL_INDEX(entity)];
+    struct EwramData_EntityData *parent = BLUE_SOUL_OWNER(entity);
     u16 angle;
     s32 radius;
     s32 timer;
@@ -25,7 +27,7 @@ void SkillCreakingSkullHitBoxUpdate(struct EwramData_EntityData *entity)
         entity->state++;
         entity->scrollWithBg = 1;
     }
-    if (target->unk_514.part8.unk_515 == 0)
+    if (SKILL_CREAKING_SKULL_FRAME(target) == 0)
     {
         entity->hit.flags |= 2;
         return;
@@ -38,9 +40,9 @@ void SkillCreakingSkullHitBoxUpdate(struct EwramData_EntityData *entity)
     else
         entity->unk_514.part16.spawnParam1 = 0x10;
     if (!parent->flipX)
-        angle = -0x8000 + parent->unk_510.part16.unk_510;
+        angle = -0x8000 + SKILL_CREAKING_SKULL_ANGLE(parent);
     else
-        angle = -parent->unk_510.part16.unk_510;
+        angle = -SKILL_CREAKING_SKULL_ANGLE(parent);
     radius = entity->unk_514.part16.spawnParam1;
     entity->posX.whole = parent->posX.whole + radius * Sin((s16)angle + 0x4000);
     entity->posY.whole = parent->posY.whole + radius * Sin((s16)angle);

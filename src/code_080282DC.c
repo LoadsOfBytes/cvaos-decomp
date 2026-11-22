@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -37,7 +38,7 @@ static inline struct SoulGraphicsResources *GetSet(s32 index)
  */
 void SkillDryadUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
     struct EwramData_EntityData *link;
     struct EwramData_EntityData *target;
     s32 zero;
@@ -74,23 +75,23 @@ void SkillDryadUse(struct EwramData_EntityData *entity)
         PlaySong(0xE5);
     case 1:
         EntityAccelerateAndMove(entity, 0x40000);
-        if (entity->unk_504.unk_504_entity == NULL)
+        if (RED_SOUL_ANCHOR(entity) == NULL)
             break;
         entity->state = 2;
         Anim_StartIndexed(entity, 0, 0, 0);
     case 2:
-        link = entity->unk_504.unk_504_entity;
+        link = RED_SOUL_ANCHOR(entity);
         if (link == NULL)
             goto animate;
-        if (link->unk_508.part8.unk_508 != 0)
+        if (RED_SOUL_ANCHOR_TARGET_DEAD(link) != 0)
             goto stop;
-        target = link->unk_504.unk_504_entity;
-        if (entity->unk_508.part16.unk_50A == 0)
+        target = RED_SOUL_ANCHOR_TARGET(link);
+        if (RED_SOUL_ANCHOR_TIMER(entity) == 0)
         {
             PlaySong(0xD5);
             Player_RestoreHP(8);
         }
-        if (entity->unk_508.part16.unk_50A++ > 0x14)
+        if (RED_SOUL_ANCHOR_TIMER(entity)++ > 0x14)
             goto stop;
         if (!(target->hit.flags & 4))
             goto animate;
@@ -115,7 +116,7 @@ void SkillDryadUse(struct EwramData_EntityData *entity)
             break;
         }
     case 4:
-        gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;

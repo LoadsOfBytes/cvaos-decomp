@@ -1,5 +1,6 @@
 /* Mandragora proximity trigger, scream animation and linked-part timing. */
 #include "code_080D73B8.h"
+#include "mandragora_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *,s32,s32);
@@ -39,7 +40,7 @@ void Mandragora_UpdateWait(struct EwramData_EntityData *entity)
 void Mandragora_UpdateScream(struct EwramData_EntityData *entity)
 {
     struct EwramData *ram=gEwramData;
-    struct EwramData_EntityData *part=&ram->entityData[entity->unk_4F4.part8.unk_4F6];
+    struct EwramData_EntityData *part=&ram->entityData[MANDRAGORA_LINK_INDEX(entity)];
     switch(entity->subState)
     {
         case 0:

@@ -38,6 +38,18 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
+/*
+ * Sound test menu (GameModeSoundTestMenu) keeps its state in the slots of
+ * entityData[2]: the selected row (category), the selected track of each
+ * category and the song currently playing per category; the text entity
+ * remembers which entry it shows. The arguments are entity lvalues
+ * (gEwramData->entityData[2]) or pointers. Token-identical expansion.
+ */
+#define SOUND_TEST_ROW(s) s.unk_4FC.part16.unk_4FC
+#define SOUND_TEST_TRACK(s, i) s.unk_4FC.part16.unk_4FE[i]
+#define SOUND_TEST_PLAYING(s, i) s.unk_504.part16.unk_506[i]
+#define SOUND_TEST_TEXT_ENTRY(e) e->unk_4FC.whole
+
 // NOTE: HudMap_WriteTiles is implicitly called
 
 /**
@@ -86,7 +98,7 @@ void SoundTestMenu_DrawScreen(s32 index)
 
     for (i = 0; i < 2; i++)
     {
-        HudMap_PrintNumberAttr(0x12, i * 2 + 6, gEwramData->entityData[2].unk_4FC.part16.unk_4FE[i], 2, 0xF200, 1);
+        HudMap_PrintNumberAttr(0x12, i * 2 + 6, SOUND_TEST_TRACK(gEwramData->entityData[2], i), 2, 0xF200, 1);
     }
 
     Text8_SetRegion(0, 8, 8, 1);
@@ -531,9 +543,9 @@ static inline void GameModeSoundTestMenu_inline_0(struct EwramData_EntityData *t
     baseRow = 1;
     more = 0;
     pos = -1;
-    if (textEntity->unk_4FC.whole != entry)
+    if (SOUND_TEST_TEXT_ENTRY(textEntity) != entry)
     {
-        textEntity->unk_4FC.whole = entry;
+        SOUND_TEST_TEXT_ENTRY(textEntity) = entry;
         Text12_SetRegion(0, 1, 0x1E, 4);
         Text12_ClearRegion();
         Text12_SetRegion(0, 1, 0x1C, 4);
@@ -600,7 +612,7 @@ static inline void GameModeSoundTestMenu_inline_1(struct SoundTestCategoryRange 
 
 static inline void GameModeSoundTestMenu_inline_3(s32 song, s32 channel)
 {
-    gEwramData->entityData[2].unk_504.part16.unk_506[channel] = song;
+    SOUND_TEST_PLAYING(gEwramData->entityData[2], channel) = song;
 }
 
 /**
@@ -708,7 +720,7 @@ s32 GameModeSoundTestMenu(void)
             }
 
             downKey = 0x80;
-            selection = &gEwramData->entityData[2].unk_4FC.part16.unk_4FC;
+            selection = &SOUND_TEST_ROW(gEwramData->entityData[2]);
             do{zero = 0;}while(0);
             max = 2;
             if (gEwramData->inputData.repeatedInput & downKey) // KEY_DOWN
@@ -722,33 +734,33 @@ s32 GameModeSoundTestMenu(void)
 
             GameModeSoundTestMenu_inline_2(*selection, max, selection, zero);
 
-            if (gEwramData->entityData[2].unk_4FC.part16.unk_4FC < 2)
+            if (SOUND_TEST_ROW(gEwramData->entityData[2]) < 2)
             {
-                GameModeSoundTestMenu_inline_1(sSoundTestCategoryRanges[gEwramData->entityData[2].unk_4FC.part16.unk_4FC], 0x10, &gEwramData->entityData[2].unk_4FC.part16.unk_4FE[gEwramData->entityData[2].unk_4FC.part16.unk_4FC]);
+                GameModeSoundTestMenu_inline_1(sSoundTestCategoryRanges[SOUND_TEST_ROW(gEwramData->entityData[2])], 0x10, &SOUND_TEST_TRACK(gEwramData->entityData[2], SOUND_TEST_ROW(gEwramData->entityData[2])));
             }
-            cursor->posY.part16.integer = (gEwramData->entityData[2].unk_4FC.part16.unk_4FC * 0x10) + 0x34;
+            cursor->posY.part16.integer = (SOUND_TEST_ROW(gEwramData->entityData[2]) * 0x10) + 0x34;
 
             if (gEwramData->inputData.newInput & 1)
             {
-                switch (gEwramData->entityData[2].unk_4FC.part16.unk_4FC)
+                switch (SOUND_TEST_ROW(gEwramData->entityData[2]))
                 {
                     case 0:
                     case 1:
-                        if (gEwramData->entityData[2].unk_4FC.part16.unk_4FC == 0)
+                        if (SOUND_TEST_ROW(gEwramData->entityData[2]) == 0)
                         {
-                            song = sSoundTestTracks[gEwramData->entityData[2].unk_4FC.part16.unk_4FE[gEwramData->entityData[2].unk_4FC.part16.unk_4FC]].songId;
+                            song = sSoundTestTracks[SOUND_TEST_TRACK(gEwramData->entityData[2], SOUND_TEST_ROW(gEwramData->entityData[2]))].songId;
                         }
                         else
                         {
-                            song = sSoundTestCategoryRanges[gEwramData->entityData[2].unk_4FC.part16.unk_4FC].baseSongId + gEwramData->entityData[2].unk_4FC.part16.unk_4FE[gEwramData->entityData[2].unk_4FC.part16.unk_4FC];
+                            song = sSoundTestCategoryRanges[SOUND_TEST_ROW(gEwramData->entityData[2])].baseSongId + SOUND_TEST_TRACK(gEwramData->entityData[2], SOUND_TEST_ROW(gEwramData->entityData[2]));
                         }
 
-                        if (gEwramData->entityData[2].unk_504.part16.unk_506[gEwramData->entityData[2].unk_4FC.part16.unk_4FC] != 0)
+                        if (SOUND_TEST_PLAYING(gEwramData->entityData[2], SOUND_TEST_ROW(gEwramData->entityData[2])) != 0)
                         {
-                            PlaySong(gEwramData->entityData[2].unk_504.part16.unk_506[gEwramData->entityData[2].unk_4FC.part16.unk_4FC] | STOP_SONG);
+                            PlaySong(SOUND_TEST_PLAYING(gEwramData->entityData[2], SOUND_TEST_ROW(gEwramData->entityData[2])) | STOP_SONG);
                         }
 
-                        GameModeSoundTestMenu_inline_3(song, gEwramData->entityData[2].unk_4FC.part16.unk_4FC);
+                        GameModeSoundTestMenu_inline_3(song, SOUND_TEST_ROW(gEwramData->entityData[2]));
                         PlaySong(song);
                         break;
                     
@@ -760,9 +772,9 @@ s32 GameModeSoundTestMenu(void)
                 }
             }
 
-            if (gEwramData->entityData[2].unk_4FC.part16.unk_4FC == 0)
+            if (SOUND_TEST_ROW(gEwramData->entityData[2]) == 0)
             {
-                GameModeSoundTestMenu_inline_0(textEntity, sSoundTestTracks[gEwramData->entityData[2].unk_4FC.part16.unk_4FE[gEwramData->entityData[2].unk_4FC.part16.unk_4FC]].titleTextId);
+                GameModeSoundTestMenu_inline_0(textEntity, sSoundTestTracks[SOUND_TEST_TRACK(gEwramData->entityData[2], SOUND_TEST_ROW(gEwramData->entityData[2]))].titleTextId);
             }
 
             if (gEwramData->inputData.newInput & 2)
@@ -776,7 +788,7 @@ s32 GameModeSoundTestMenu(void)
 
             for (i = 0; i < 2; i++)
             {
-                HudMap_PrintNumberAttr(0x12, i * 2 + 6, gEwramData->entityData[2].unk_4FC.part16.unk_4FE[i], 2, 0xF200, 1);
+                HudMap_PrintNumberAttr(0x12, i * 2 + 6, SOUND_TEST_TRACK(gEwramData->entityData[2], i), 2, 0xF200, 1);
             }
             break;
 

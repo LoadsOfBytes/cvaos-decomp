@@ -1,6 +1,7 @@
 /* Headhunter attacks: rolling wave (850A0-8524C), lightning bolt with its
  * impact (8538C-855C8) and the flicker effect (85694). */
 #include "code_08009A0.h"
+#include "headhunter_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -29,8 +30,8 @@ void Headhunter_SpawnLightningImpact(struct EwramData_EntityData *owner, struct 
 void HeadhunterLightningImpact_Update(struct EwramData_EntityData *entity);
 void Headhunter_SpawnLightningImpactFlicker(struct EwramData_EntityData *owner, struct EwramData_EntityData *source, s32 x, s32 y);
 /* bit 0 of the owner's unk_4FE ends its effects (TODO: meaning) */
-#define OWNER_DONE(o) ((o)->unk_4FC.part8.unk_4FE & 1)
-#define FRAME(e) ((e)->unk_4FC.part8.unk_4FF)
+#define OWNER_DONE(o) (HEADHUNTER_FLAGS((o)) & 1)
+#define FRAME(e) (HEADHUNTER_EFFECT_FRAME((e)))
 #define ACCEL(e) ((e)->accelX.whole)
 
 /* Create the effect HeadhunterLightningBurstFlicker_Update at the owner + (x, y). */
@@ -48,13 +49,13 @@ void Headhunter_SpawnLightningBurstFlicker(struct EwramData_EntityData *owner, s
         effect->posX.whole = owner->posX.whole + x;
         effect->posY.whole = owner->posY.whole + y;
         effect->spriteLayer = owner->spriteLayer - 2;
-        graphics = owner->unk_500.whole;
-        effect->unk_500.whole = graphics;
-        effect->unk_510.part8.basePalette = owner->unk_504.part8.unk_507;
+        graphics = HEADHUNTER_GRAPHICS(owner);
+        HEADHUNTER_EFFECT_GRAPHICS(effect) = graphics;
+        effect->unk_510.part8.basePalette = HEADHUNTER_PALETTE_3(owner);
         Sprite_Attach(effect, sHeadhunterSpriteSheet, graphics, effect->unk_510.part8.basePalette);
         FRAME(effect) = 0x23;
         effect->attack = owner->attack;
-        effect->unk_4F8.unk_4F8_entity = owner;
+        ENTITY_OWNER(effect) = owner;
         effect->scrollWithBg = 1;
         effect->drawFunc = (u32 *)Sprite_DrawEntity;
     }
@@ -92,9 +93,9 @@ void Headhunter_SpawnWave(struct EwramData_EntityData *owner, s32 x, s32 y, s32 
         }
         wave->velY.whole = (0xB00000 - (wave->posY.whole + camera->yPos.whole)) / 128;
         wave->spriteLayer = owner->spriteLayer - 1;
-        graphics = owner->unk_500.whole;
-        wave->unk_500.whole = graphics;
-        wave->unk_510.part8.basePalette = owner->unk_504.part8.unk_507;
+        graphics = HEADHUNTER_GRAPHICS(owner);
+        HEADHUNTER_EFFECT_GRAPHICS(wave) = graphics;
+        wave->unk_510.part8.basePalette = HEADHUNTER_PALETTE_3(owner);
         Sprite_Attach(wave, sHeadhunterSpriteSheet, graphics, wave->unk_510.part8.basePalette);
         FRAME(wave) = 0x26;
         Hit_Enable(wave, 8, HeadhunterWave_DamagePlayerOnContact, 0);
@@ -102,7 +103,7 @@ void Headhunter_SpawnWave(struct EwramData_EntityData *owner, s32 x, s32 y, s32 
         wave->hit.flags |= 4;
         wave->hit.flags &= ~2;
         wave->attack = owner->attack + (owner->attack >> 2);
-        wave->unk_4F8.unk_4F8_entity = owner;
+        ENTITY_OWNER(wave) = owner;
         wave->scrollWithBg = 1;
         wave->drawFunc = (u32 *)Sprite_DrawEntity;
     }
@@ -117,7 +118,7 @@ void Headhunter_SpawnWave(struct EwramData_EntityData *owner, s32 x, s32 y, s32 
  */
 void HeadhunterWave_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
     s32 bounds[4];
     struct SingleFrameAnimation animation = sHeadhunterFrameAnim;
     if ((entity->timer & 3) == 0)
@@ -175,14 +176,14 @@ void Headhunter_SpawnLightningBolt(struct EwramData_EntityData *owner, s32 x, s3
             bolt->posX.whole = 0x1970000 - camera->xPos.whole;
         bolt->flipX = RandomNumberGenerator() % 2;
         bolt->spriteLayer = owner->spriteLayer - 3;
-        graphics = owner->unk_500.whole;
-        bolt->unk_500.whole = graphics;
-        bolt->unk_510.part8.basePalette = owner->unk_504.part8.unk_507;
+        graphics = HEADHUNTER_GRAPHICS(owner);
+        HEADHUNTER_EFFECT_GRAPHICS(bolt) = graphics;
+        bolt->unk_510.part8.basePalette = HEADHUNTER_PALETTE_3(owner);
         Sprite_Attach(bolt, sHeadhunterSpriteSheet, graphics, bolt->unk_510.part8.basePalette);
-        bolt->unk_4FC.part8.unk_4FF = 0x1A;
+        HEADHUNTER_EFFECT_FRAME(bolt) = 0x1A;
         bolt->objMode = 1;
         bolt->attack = owner->attack;
-        bolt->unk_4F8.unk_4F8_entity = owner;
+        ENTITY_OWNER(bolt) = owner;
         bolt->scrollWithBg = 1;
         bolt->drawFunc = (u32 *)Sprite_DrawEntity;
     }
@@ -195,7 +196,7 @@ void Headhunter_SpawnLightningBolt(struct EwramData_EntityData *owner, s32 x, s3
  */
 void HeadhunterLightningBolt_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
     struct SingleFrameAnimation animation = sHeadhunterFrameAnim;
     if (entity->timer > 8) entity->objMode = 0;
@@ -205,7 +206,7 @@ void HeadhunterLightningBolt_Update(struct EwramData_EntityData *entity)
         PlaySong(0x75);
     }
     Anim_Start(entity, (struct AnimScript *)&animation, 2, 1);
-    animation.frame = RandomNumberGenerator() % 2 + entity->unk_4FC.part8.unk_4FF;
+    animation.frame = RandomNumberGenerator() % 2 + HEADHUNTER_EFFECT_FRAME(entity);
     Anim_Update(entity);
     if ((s8)entity->timer++ > 34)
         EntityDelete(entity);
@@ -229,18 +230,18 @@ void Headhunter_SpawnLightningImpact(struct EwramData_EntityData *owner, struct 
         impact->posX.whole = x;
         impact->posY.whole = y;
         impact->spriteLayer = owner->spriteLayer + 1;
-        graphics = owner->unk_500.whole;
-        impact->unk_500.whole = graphics;
+        graphics = HEADHUNTER_GRAPHICS(owner);
+        HEADHUNTER_EFFECT_GRAPHICS(impact) = graphics;
         impact->unk_510.part8.basePalette = owner->unk_510.part8.basePalette;
         Sprite_Attach(impact, sHeadhunterSpriteSheet, graphics, impact->unk_510.part8.basePalette);
-        impact->unk_4FC.part8.unk_4FF = 0x1C;
+        HEADHUNTER_EFFECT_FRAME(impact) = 0x1C;
         Hit_Enable(impact, 8, HeadhunterLightningImpact_DamagePlayerOnContact, 0);
         HitBox_SetAttack(impact, &box);
         impact->hit.flags |= 2;
         impact->hit.flags |= 4;
         impact->attack = owner->attack + (owner->attack >> 2);
-        impact->unk_4F8.unk_4F8_entity = owner;
-        impact->unk_4F4.unk_4F4_entity = source;
+        ENTITY_OWNER(impact) = owner;
+        HEADHUNTER_EFFECT_SOURCE(impact) = source;
         impact->scrollWithBg = 1;
         impact->drawFunc = (u32 *)Sprite_DrawEntity;
     }
@@ -254,7 +255,7 @@ void Headhunter_SpawnLightningImpact(struct EwramData_EntityData *owner, struct 
  */
 void HeadhunterLightningImpact_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = entity->unk_4F4.unk_4F4_entity;
+    struct EwramData_EntityData *owner = HEADHUNTER_EFFECT_SOURCE(entity);
     s32 bounds[4];
     struct SingleFrameAnimation animation = sHeadhunterFrameAnim;
     if (++entity->timer == 5)
@@ -301,14 +302,14 @@ void Headhunter_SpawnLightningImpactFlicker(struct EwramData_EntityData *owner, 
         effect->posY.whole = y;
         effect->flipX = RandomNumberGenerator() % 2;
         effect->spriteLayer = owner->spriteLayer - 1;
-        graphics = owner->unk_500.whole;
-        effect->unk_500.whole = graphics;
+        graphics = HEADHUNTER_GRAPHICS(owner);
+        HEADHUNTER_EFFECT_GRAPHICS(effect) = graphics;
         effect->unk_510.part8.basePalette = owner->unk_510.part8.basePalette;
         Sprite_Attach(effect, sHeadhunterSpriteSheet, graphics, effect->unk_510.part8.basePalette);
-        effect->unk_4FC.part8.unk_4FF = 0x20;
+        HEADHUNTER_EFFECT_FRAME(effect) = 0x20;
         effect->attack = owner->attack;
-        effect->unk_4F8.unk_4F8_entity = owner;
-        effect->unk_4F4.unk_4F4_entity = source;
+        ENTITY_OWNER(effect) = owner;
+        HEADHUNTER_EFFECT_SOURCE(effect) = source;
         effect->scrollWithBg = 1;
         effect->drawFunc = (u32 *)Sprite_DrawEntity;
     }

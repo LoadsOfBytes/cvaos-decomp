@@ -1,5 +1,6 @@
 /* Object 0x25 (Object25Update / Object25Create). */
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -46,12 +47,12 @@ void Object25Update(struct EwramData_EntityData *entity)
             randomValue = RandomNumberGenerator() % 2;
             if (randomValue != 0)
                 break;
-            if ((s32)entity->unk_4FC.whole > 9)
+            if ((s32)OBJECT25_CHILD_COUNT(entity) > 9)
                 break;
             child = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
             if (child == NULL)
                 break;
-            entity->unk_4FC.whole++;
+            OBJECT25_CHILD_COUNT(entity)++;
             points = sObject25Points[entity->unk_514.part16.spawnParam0];
             pointIndex = sObject25PointIndices[entity->unk_514.part16.spawnParam0];
             pointIndex = RandomNumberGenerator() % pointIndex;
@@ -65,7 +66,7 @@ void Object25Update(struct EwramData_EntityData *entity)
             child->drawFunc = (u32 *)Sprite_DrawEntity;
             child->updateFunc = entity->updateFunc;
             Object25Create(child);
-            child->unk_500.unk_500_entity = entity;
+            OBJECT25_SPAWNER(child) = entity;
             break;
     }
 }

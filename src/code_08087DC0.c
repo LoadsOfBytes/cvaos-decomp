@@ -10,6 +10,31 @@
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
 
+/*
+ * Plain-chain names for the raw accesses (the ANIM_* / LINK_* aliases below
+ * add casts / parentheses): chain links point to their owner eye and the
+ * previous link and keep their link index; the eye's animation flags
+ * (bit 1 = eye open), animation step index and animation set.
+ * Token-identical expansion.
+ */
+#define PEEPING_EYE_OWNER(e) e->unk_500.unk_500_entity
+#define PEEPING_EYE_PREV_LINK(e) e->unk_504.unk_504_entity
+#define PEEPING_EYE_LINK_INDEX(e) e->unk_4F4.part8.unk_4F5
+#define PEEPING_EYE_ANIM_FLAGS(e) e->unk_4FC.part8.unk_4FC
+#define PEEPING_EYE_ANIM_INDEX(e) e->unk_4FC.part8.unk_4FE
+#define PEEPING_EYE_ANIM_SET(e) e->unk_4F8.part8.unk_4F8
+/* Eye: animation frame and clock, hit flag (PeepingEye_OnHit), room-space
+ * movement target. Links: timer, angle, length and maximum length. */
+#define PEEPING_EYE_ANIM_FRAME(e) e->unk_4FC.part8.unk_4FD
+#define PEEPING_EYE_ANIM_CLOCK(e) e->unk_4FC.part8.unk_4FF
+#define PEEPING_EYE_HIT_FLAG(e) e->unk_4F8.part8.unk_4F9
+#define PEEPING_EYE_TARGET_X(e) e->unk_500.whole
+#define PEEPING_EYE_TARGET_Y(e) e->unk_504.whole
+#define PEEPING_EYE_LINK_TIMER(e) e->unk_4F4.part8.unk_4F4
+#define PEEPING_EYE_LINK_ANGLE(e) e->unk_4F4.part16.unk_4F6
+#define PEEPING_EYE_LINK_LENGTH(e) e->unk_4F8.whole
+#define PEEPING_EYE_LINK_MAX_LENGTH(e) e->unk_4FC.whole
+
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s32, s32);
 extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
@@ -61,14 +86,14 @@ extern u8 *sPeepingEyeAnimSets[];
 #define STEP_DURATION(a, i) ((a)[(i) * 2 + 1])
 
 /* Peeping Eye body */
-#define ANIM_FLAGS(e) ((e)->unk_4FC.part8.unk_4FC) /* bit 0: frame override, bit 1: eye open */
-#define ANIM_FRAME(e) ((e)->unk_4FC.part8.unk_4FD)
-#define ANIM_INDEX(e) (*(s8 *)&(e)->unk_4FC.part8.unk_4FE)
-#define ANIM_CLOCK(e) ((e)->unk_4FC.part8.unk_4FF)
-#define ANIM_SET(e) (*(u8 *)&(e)->unk_4F8.part8.unk_4F8)
-#define HIT_FLAG(e) ((e)->unk_4F8.part8.unk_4F9) /* set by PeepingEye_OnHit */
-#define TARGET_X(e) ((e)->unk_500.whole) /* room coordinates */
-#define TARGET_Y(e) ((e)->unk_504.whole)
+#define ANIM_FLAGS(e) (PEEPING_EYE_ANIM_FLAGS((e))) /* bit 0: frame override, bit 1: eye open */
+#define ANIM_FRAME(e) (PEEPING_EYE_ANIM_FRAME((e)))
+#define ANIM_INDEX(e) (*(s8 *)&PEEPING_EYE_ANIM_INDEX((e)))
+#define ANIM_CLOCK(e) (PEEPING_EYE_ANIM_CLOCK((e)))
+#define ANIM_SET(e) (*(u8 *)&PEEPING_EYE_ANIM_SET((e)))
+#define HIT_FLAG(e) (PEEPING_EYE_HIT_FLAG((e))) /* set by PeepingEye_OnHit */
+#define TARGET_X(e) (PEEPING_EYE_TARGET_X((e))) /* room coordinates */
+#define TARGET_Y(e) (PEEPING_EYE_TARGET_Y((e)))
 #define ACCEL_X(e) ((e)->accelX.whole)
 #define ACCEL_Y(e) ((e)->accelY.whole)
 /* Spawn parameter (EnemyPeepingEyeCreate also picks layer 0x1D when it is
@@ -79,11 +104,11 @@ extern u8 *sPeepingEyeAnimSets[];
 #define NOT_DYING(e) ((u8)((e)->state - 2) > 1)
 
 /* Chain links */
-#define LINK_INDEX(e) ((s8)(e)->unk_4F4.part8.unk_4F5)
-#define LINK_TIMER(e) ((e)->unk_4F4.part8.unk_4F4)
-#define LINK_ANGLE(e) ((e)->unk_4F4.part16.unk_4F6)
-#define LINK_LENGTH(e) ((e)->unk_4F8.whole)
-#define LINK_MAX_LENGTH(e) (*(s32 *)&(e)->unk_4FC.whole)
+#define LINK_INDEX(e) ((s8)PEEPING_EYE_LINK_INDEX((e)))
+#define LINK_TIMER(e) (PEEPING_EYE_LINK_TIMER((e)))
+#define LINK_ANGLE(e) (PEEPING_EYE_LINK_ANGLE((e)))
+#define LINK_LENGTH(e) (PEEPING_EYE_LINK_LENGTH((e)))
+#define LINK_MAX_LENGTH(e) (*(s32 *)&PEEPING_EYE_LINK_MAX_LENGTH((e)))
 
 /* Peeping Eye: dispatch the states, draw the frame chosen by the movement
  * code and fall apart when killed. */
@@ -264,8 +289,8 @@ void PeepingEye_UpdateMove(struct EwramData_EntityData *entity)
         if (ANIM_CLOCK(entity) >= STEP_DURATION(sPeepingEyeMoveSteps, ANIM_INDEX(entity)))
         {
             ANIM_CLOCK(entity) = 0;
-            index = entity->unk_4FC.part8.unk_4FE;
-            entity->unk_4FC.part8.unk_4FE = index + 1;
+            index = PEEPING_EYE_ANIM_INDEX(entity);
+            PEEPING_EYE_ANIM_INDEX(entity) = index + 1;
             if (STEP_FRAME(sPeepingEyeMoveSteps, ANIM_INDEX(entity)) == 0xFF)
             {
                 entity->subState++;
@@ -361,7 +386,7 @@ void PeepingEye_UpdateMove(struct EwramData_EntityData *entity)
             {
                 entity->flipX = Entity_IsTargetRight(entity);
                 /* stored through the signed member, unlike the other writes */
-                entity->unk_4F8.part8.unk_4F8 = 1;
+                PEEPING_EYE_ANIM_SET(entity) = 1;
                 ANIM_INDEX(entity) = 0;
                 ANIM_CLOCK(entity) = 0;
             }
@@ -407,8 +432,8 @@ void PeepingEye_UpdatePreview(struct EwramData_EntityData *entity)
         if (ANIM_CLOCK(entity) >= STEP_DURATION(sPeepingEyeMoveSteps, ANIM_INDEX(entity)))
         {
             ANIM_CLOCK(entity) = 0;
-            index = entity->unk_4FC.part8.unk_4FE;
-            entity->unk_4FC.part8.unk_4FE = index + 1;
+            index = PEEPING_EYE_ANIM_INDEX(entity);
+            PEEPING_EYE_ANIM_INDEX(entity) = index + 1;
             if (STEP_FRAME(sPeepingEyeMoveSteps, ANIM_INDEX(entity)) == 0xFF)
             {
                 entity->subState++;
@@ -497,7 +522,7 @@ void PeepingEye_OnHit(struct EwramData_EntityData *entity, struct EwramData_Enti
  * moving the offset from the owner by at most 0x4000 per frame. */
 void PeepingEyePupil_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = entity->unk_500.unk_500_entity;
+    struct EwramData_EntityData *owner = PEEPING_EYE_OWNER(entity);
     s32 bounds[4];
     if (entity->state == 0)
     {
@@ -510,7 +535,7 @@ void PeepingEyePupil_Update(struct EwramData_EntityData *entity)
             entity->posX.whole = owner->posX.whole;
             entity->posY.whole = owner->posY.whole;
         }
-        else if (owner->unk_4FC.part8.unk_4FC & 2)
+        else if (PEEPING_EYE_ANIM_FLAGS(owner) & 2)
         {
             s32 x = owner->posX.whole + 0x10000;
             /* y holds the owner Y first, later the distance on each axis */
@@ -568,7 +593,7 @@ void PeepingEyePupil_Update(struct EwramData_EntityData *entity)
 /* Peeping Eye eyeball: follow the owner while it is in state 6. */
 void PeepingEyeEyeball_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = entity->unk_500.unk_500_entity;
+    struct EwramData_EntityData *owner = PEEPING_EYE_OWNER(entity);
     s32 bounds[4];
     if (entity->state == 0)
     {
@@ -629,9 +654,9 @@ struct EwramData_EntityData *PeepingEye_CreateChainLink(struct EwramData_EntityD
             ObjAffine_SetBiased(LINK_ANGLE(link), 0x10000, 0x10000, link->flipX, link->flipY, link->affineIndex);
         }
         link->hidden = 1;
-        link->unk_500.unk_500_entity = owner;
-        link->unk_504.unk_504_entity = previous;
-        link->unk_4F4.part8.unk_4F5 = index; /* LINK_INDEX */
+        PEEPING_EYE_OWNER(link) = owner;
+        PEEPING_EYE_PREV_LINK(link) = previous;
+        PEEPING_EYE_LINK_INDEX(link) = index; /* LINK_INDEX */
         link->scrollWithBg = 0;
         link->drawFunc = (u32 *)Sprite_DrawEntity;
     }
@@ -643,8 +668,8 @@ struct EwramData_EntityData *PeepingEye_CreateChainLink(struct EwramData_EntityD
  * break apart (with a debris effect) once the owner dies. */
 void PeepingEyeChainLink_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = entity->unk_500.unk_500_entity;
-    struct EwramData_EntityData *previous = entity->unk_504.unk_504_entity;
+    struct EwramData_EntityData *owner = PEEPING_EYE_OWNER(entity);
+    struct EwramData_EntityData *previous = PEEPING_EYE_PREV_LINK(entity);
     s32 angle;
     s32 x, y;
     s32 bounds[4];
@@ -656,7 +681,7 @@ void PeepingEyeChainLink_Update(struct EwramData_EntityData *entity)
         switch (entity->subState)
         {
         case 0:
-            if (owner->unk_4FC.part8.unk_4FC & 2) entity->subState = 1;
+            if (PEEPING_EYE_ANIM_FLAGS(owner) & 2) entity->subState = 1;
             break;
         case 1:
             LINK_ANGLE(entity) += 500;
@@ -675,7 +700,7 @@ void PeepingEyeChainLink_Update(struct EwramData_EntityData *entity)
             }
             break;
         }
-        if (owner->unk_4FC.part8.unk_4FC & 2)
+        if (PEEPING_EYE_ANIM_FLAGS(owner) & 2)
         {
             entity->hidden = 0;
             if (LINK_LENGTH(entity) < LINK_MAX_LENGTH(entity))

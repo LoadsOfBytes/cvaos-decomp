@@ -1,5 +1,6 @@
 /* Stack keeper. */
 #include "code_08009A0.h"
+#include "head_stack_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -15,11 +16,11 @@ void HeadStack_Update(struct EwramData_EntityData *entity)
 
     if (!Entity_IsInRect(entity, -32, -32, 0x130, (u16)(entity->unk_514.part16.spawnParam0 * 32 + 0xE0)))
     {
-        entity->unk_4F8.part8.unk_4F9 = 0;
+        HEAD_STACK_ON_SCREEN(entity) = 0;
         return;
     }
-    entity->unk_4F8.part8.unk_4F9 = 1;
-    slot = (entity->unk_514.part16.spawnParam0 + entity->unk_4FC.bytes) - 1;
+    HEAD_STACK_ON_SCREEN(entity) = 1;
+    slot = (entity->unk_514.part16.spawnParam0 + HEAD_STACK_SLOTS(entity)) - 1;
     for (i = entity->unk_514.part16.spawnParam0; i > 0; slot--, i--)
     {
         if (*slot != 0)

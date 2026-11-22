@@ -1,5 +1,6 @@
 /* Menu item-icon helpers 0x08048804..0x08048A63. */
 #include "code_08009A0.h"
+#include "menu_page.h"
 #include "code_08011DD0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -51,8 +52,8 @@ void MenuItemIcon_Show(s32 x, s32 y, s32 type, s32 item)
             info = Item_GetInfoByGlobalId(item);
             type = Item_GetTypeByGlobalId(item);
         }
-        entity->unk_4F4.part8.unk_4F5 = ItemIconCache_Load(info[2]);
-        ItemIcon_AttachSprite(entity, entity->unk_4F4.part8.unk_4F5, (s8)info[3]);
+        MENU_GFX_SLOT(entity) = ItemIconCache_Load(info[2]);
+        ItemIcon_AttachSprite(entity, MENU_GFX_SLOT(entity), (s8)info[3]);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         entity->posX.part16.integer = x;
         entity->posY.part16.integer = y;
@@ -96,8 +97,8 @@ void MenuSlotIcon_Show(s32 x, s32 y, s32 type, s32 item, s32 slot)
             info = Item_GetInfoByGlobalId(item);
             type = Item_GetTypeByGlobalId(item);
         }
-        entity->unk_4F4.part8.unk_4F5 = ItemIconCache_Load(info[2]);
-        ItemIcon_AttachSprite(entity, entity->unk_4F4.part8.unk_4F5, (s8)info[3]);
+        MENU_GFX_SLOT(entity) = ItemIconCache_Load(info[2]);
+        ItemIcon_AttachSprite(entity, MENU_GFX_SLOT(entity), (s8)info[3]);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         entity->posX.part16.integer = x;
         entity->posY.part16.integer = y;

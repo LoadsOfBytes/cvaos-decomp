@@ -2,6 +2,7 @@
  * pointer with a u8 masked copy (keeps the mask before the address and the
  * global-allocation priority of entity/child as in the original). */
 #include "code_08009A0.h"
+#include "man_eater_entity.h"
 #include "code_08013960.h"
 #include "code_08033CAC.h"
 #include "code/code_08039340.h"
@@ -38,7 +39,7 @@ void EnemyManEaterUpdate(struct EwramData_EntityData *entity)
     s32 x;
     s32 y;
     s32 offset;
-    if (entity->state != 3 && (s8)entity->unk_500.part8.unk_500 == 0)
+    if (entity->state != 3 && (s8)MAN_EATER_HEAD_COUNT(entity) == 0)
     {
         entity->animFrame = 0x11;
         Enemy_DropRewards(entity);
@@ -67,23 +68,23 @@ void EnemyManEaterUpdate(struct EwramData_EntityData *entity)
         {
             child = Entity_CreateObject(ManEaterHead_Update);
             if (child == NULL) return;
-            child->unk_4F8.part8.unk_4F8 = entity->unk_4F4.part8.unk_4F4;
+            MAN_EATER_OWNER_INDEX(child) = ENTITY_INDEX(entity);
             {
                 s32 value = ((entity->subState + 1) << 16) / 3;
                 value -= 0x4000;
-                child->unk_4FC.part16.unk_4FC = value;
-                child->unk_508.part16.unk_508 = value;
-                child->unk_4FC.part16.unk_4FE[0] = value;
+                MAN_EATER_ANGLE(child) = value;
+                MAN_EATER_BASE_ANGLE(child) = value;
+                MAN_EATER_HOME_ANGLE(child) = value;
             }
-            child->unk_4F8.part8.unk_4FB = entity->subState;
+            MAN_EATER_ORBIT_SLOT(child) = entity->subState;
             {
-                s32 offsetX = Sin(child->unk_4FC.part16.unk_4FC + 0x4000) << 4;
+                s32 offsetX = Sin(MAN_EATER_ANGLE(child) + 0x4000) << 4;
                 s32 x = entity->posX.whole;
                 x += offsetX;
                 child->posX.whole = x;
             }
             {
-                s32 offsetY = Sin(child->unk_4FC.part16.unk_4FC) << 4;
+                s32 offsetY = Sin(MAN_EATER_ANGLE(child)) << 4;
                 s32 y = entity->posY.whole;
                 y += offsetY;
                 child->posY.whole = y;
@@ -140,7 +141,7 @@ void EnemyManEaterUpdate(struct EwramData_EntityData *entity)
         if (--entity->timer == 0x30) entity->drawSkip = 1;
         break;
     }
-    entity->unk_500.part16.unk_502 += 0x80;
-    entity->unk_4FC.part16.unk_4FC = (Sin(entity->unk_500.part16.unk_502) / 256) << 4;
-    ObjAffine_Set(entity->unk_4FC.part16.unk_4FC, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
+    MAN_EATER_SWAY_PHASE(entity) += 0x80;
+    MAN_EATER_BODY_ANGLE(entity) = (Sin(MAN_EATER_SWAY_PHASE(entity)) / 256) << 4;
+    ObjAffine_Set(MAN_EATER_BODY_ANGLE(entity), 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
 }

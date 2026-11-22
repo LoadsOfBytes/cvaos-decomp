@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "balore_entity.h"
 #include "code_0800B700.h"
 #include "code_08013960.h"
 #include "code/code_08039340.h"
@@ -70,7 +71,7 @@ void BaloreIntro_Update(struct EwramData_EntityData *entity)
         e = EntityCreateInRange(0x49, 0xCF, (u32 *)BaloreIntroPart_Update);
         if (e)
         {
-            e->unk_4FC.unk_4FC_entity = entity;
+            BALORE_PIECE_OWNER(e) = entity;
             e->posX.whole = entity->posX.whole;
             e->posY.whole = entity->posY.whole;
             e->scrollWithBg = 1;
@@ -124,7 +125,7 @@ void BaloreIntro_Update(struct EwramData_EntityData *entity)
         gEwramData->gameState.stateFlags &= ~1;
         Game_SetMenusEnabled(1);
         SharedObjPalette_ResetSlots();
-        ObjGfx_Unload((s8)entity->unk_4F8.part8.unk_4FB);
+        ObjGfx_Unload((s8)BALORE_GFX(entity));
         e = Entity_CreateObject(EnemyBaloreUpdate);
         if (e)
         {

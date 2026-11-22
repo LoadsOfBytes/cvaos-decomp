@@ -1,5 +1,6 @@
 /* Chaos second form: part damage (4FA0). */
 #include "code_08009A0.h"
+#include "chaos_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -12,7 +13,7 @@ extern void Entity_ShowDamage(struct EwramData_EntityData *, s32, s32);
  * lower the core's part counter unk_500. */
 void Chaos2Part_OnHit(struct EwramData_EntityData *part, s32 attacker, u16 *hit)
 {
-    struct EwramData_EntityData *core = part->unk_4F4.unk_4F4_entity;
+    struct EwramData_EntityData *core = CHAOS_LINK(part);
     s32 damage = Hit_ResolveDamage(part, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
     s32 zero;
 

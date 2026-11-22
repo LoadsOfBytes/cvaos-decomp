@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "balore_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -9,10 +10,10 @@ extern s32 ObjPalette_FindOrLoadVariant(void *, s32);
 /* Affine effect following the owner; grows and rotates, then shrinks. */
 void BaloreAffineEffect_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = entity->unk_4FC.unk_4FC_entity;
+    struct EwramData_EntityData *owner = BALORE_BODY(entity);
     u16 matrix;
     s32 state = entity->state;
-    if (state != 0 && entity->state <= 2 && (owner->unk_500.part16.unk_502 & 2))
+    if (state != 0 && entity->state <= 2 && (BALORE_FLAGS(owner) & 2))
         entity->state = 3;
     switch (entity->state)
     {
@@ -23,7 +24,7 @@ void BaloreAffineEffect_Update(struct EwramData_EntityData *entity)
         entity->affine = 1;
         entity->spriteLayer = 0x13;
         entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sBalorePalette, 0x10);
-        Sprite_Attach(entity, sBaloreSpriteSheet, (s8)owner->unk_4F8.part8.unk_4FB, entity->unk_510.part8.basePalette);
+        Sprite_Attach(entity, sBaloreSpriteSheet, (s8)BALORE_GFX(owner), entity->unk_510.part8.basePalette);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         Anim_StartIndexed(entity, 0x31, 2, 0);
         Anim_Update(entity);
@@ -32,31 +33,31 @@ void BaloreAffineEffect_Update(struct EwramData_EntityData *entity)
         {
             entity->drawSkipCounter = 1;
             entity->flipX = 1;
-            entity->unk_500.part16.unk_500 = 0x5000;
-            entity->unk_500.part16.unk_502 = 0xE0;
+            BALORE_EFFECT_ANGLE(entity) = 0x5000;
+            BALORE_EFFECT_SPIN(entity) = 0xE0;
             entity->state = 2;
         }
         else
         {
-            entity->unk_500.part16.unk_500 = 0x3000;
-            entity->unk_500.part16.unk_502 = 0x80;
+            BALORE_EFFECT_ANGLE(entity) = 0x3000;
+            BALORE_EFFECT_SPIN(entity) = 0x80;
             entity->state = 1;
         }
         break;
     case 1:
-        if (entity->unk_504.whole < 0x10000)
-            entity->unk_504.whole += 0x400;
-        entity->unk_500.part16.unk_500 += entity->unk_500.part16.unk_502;
+        if (BALORE_EFFECT_SCALE(entity) < 0x10000)
+            BALORE_EFFECT_SCALE(entity) += 0x400;
+        BALORE_EFFECT_ANGLE(entity) += BALORE_EFFECT_SPIN(entity);
         break;
     case 2:
-        if (entity->unk_504.whole < 0xC000)
-            entity->unk_504.whole += 0x200;
-        entity->unk_500.part16.unk_500 += entity->unk_500.part16.unk_502;
+        if (BALORE_EFFECT_SCALE(entity) < 0xC000)
+            BALORE_EFFECT_SCALE(entity) += 0x200;
+        BALORE_EFFECT_ANGLE(entity) += BALORE_EFFECT_SPIN(entity);
         break;
     case 3:
-        if (entity->unk_504.whole > 0)
+        if (BALORE_EFFECT_SCALE(entity) > 0)
         {
-            entity->unk_504.whole += -0x400;
+            BALORE_EFFECT_SCALE(entity) += -0x400;
             break;
         }
     case 4:
@@ -67,7 +68,7 @@ void BaloreAffineEffect_Update(struct EwramData_EntityData *entity)
     }
     entity->posX.part16.integer = owner->posX.part16.integer - 21;
     entity->posY.part16.integer = owner->posY.part16.integer - 9;
-    ObjAffine_Set(entity->unk_500.part16.unk_500, entity->unk_504.whole, entity->unk_504.whole, entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set(BALORE_EFFECT_ANGLE(entity), BALORE_EFFECT_SCALE(entity), BALORE_EFFECT_SCALE(entity), entity->flipX, 0, entity->affineIndex);
 }
 
 

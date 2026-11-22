@@ -35,7 +35,7 @@ void Object13Create(struct EwramData_EntityData *entity)
         child->unk_4FC.unk_4FC_entity = previous;
         *(s32 *)(data + 4) = 0;
         data[0x14] = i;
-        data[0x15] = entity->unk_4F4.part8.unk_4F4;
+        data[0x15] = ENTITY_INDEX(entity);
         previous = child;
     }
 

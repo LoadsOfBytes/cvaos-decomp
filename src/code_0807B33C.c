@@ -1,5 +1,6 @@
 /* Zombie debris and temporary effects. */
 #include "code_08009A0.h"
+#include "zombie_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
@@ -25,7 +26,7 @@ void Zombie_SpawnTemporarySprite(struct EwramData_EntityData *parent, s32 x, s32
         graphics = ObjGfx_Find(sZombieGfx);
         Sprite_Attach(part, sZombieSpriteSheet, graphics, parent->unk_510.part8.basePalette);
         part->animFrame = zero;
-        part->unk_500.whole = 120;
+        ZOMBIE_SPRITE_LIFETIME(part) = 120;
         part->scrollWithBg = 1;
         part->drawFunc = (u32 *)Sprite_DrawEntity;
     }

@@ -3,6 +3,7 @@
  * graphics slot and both variants in the shared data block at unk_4F8;
  * 0 when the graphics are not loaded. */
 #include "code_08009A0.h"
+#include "legion_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
@@ -20,11 +21,11 @@ s32 Legion_LoadGraphics(struct EwramData_EntityData *entity)
     graphics = ObjGfx_LoadResource(sLegionGfx, 0);
     if (graphics < 0)
         return 0;
-    entity->unk_504.part8.unk_504 = ObjPalette_FindOrLoadVariant(sLegionObject25Palette, 0);
-    entity->unk_510.part8.basePalette = entity->unk_504.part8.unk_505 = ObjPalette_FindOrLoadVariant(sLegionObject25Palette, 1);
+    LEGION_ANIM_PALETTE(entity) = ObjPalette_FindOrLoadVariant(sLegionObject25Palette, 0);
+    entity->unk_510.part8.basePalette = LEGION_BODY_PALETTE(entity) = ObjPalette_FindOrLoadVariant(sLegionObject25Palette, 1);
     data[0] = graphics;
-    data[8] = (s8)entity->unk_504.part8.unk_504;
-    data[9] = (s8)entity->unk_504.part8.unk_505;
+    data[8] = (s8)LEGION_ANIM_PALETTE(entity);
+    data[9] = (s8)LEGION_BODY_PALETTE(entity);
     Sprite_Attach(entity, sLegionSpriteSheet, graphics, entity->unk_510.part8.basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;

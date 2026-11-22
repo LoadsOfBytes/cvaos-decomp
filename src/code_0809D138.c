@@ -1,5 +1,6 @@
 /* Legion (state == 1): rises, bounces around the room, sinks back. */
 #include "code_08009A0.h"
+#include "legion_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -58,7 +59,7 @@ extern u8 sLegionAnimScript0[];
 void Legion_UpdateBounce(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
-    struct LegionState *data = (struct LegionState *)entity->unk_4F8.whole;
+    struct LegionState *data = (struct LegionState *)LEGION_DATA(entity);
     s32 r;
 
     switch (entity->subState)
@@ -166,18 +167,18 @@ void Legion_UpdateBounce(struct EwramData_EntityData *entity)
             if (dir == 0)
             {
                 if (Entity_IsTargetRight(entity))
-                    entity->unk_500.part8.unk_500 = two;
+                    LEGION_CIRCLE_DIR(entity) = two;
                 else
-                    entity->unk_500.part8.unk_500 = 1;
+                    LEGION_CIRCLE_DIR(entity) = 1;
             }
             else if (dir == 2)
             {
                 if (Entity_IsTargetRight(entity))
-                    entity->unk_500.part8.unk_500 = 1;
+                    LEGION_CIRCLE_DIR(entity) = 1;
                 else
-                    entity->unk_500.part8.unk_500 = dir;
+                    LEGION_CIRCLE_DIR(entity) = dir;
             }
-            entity->unk_500.part8.unk_502 = (RandomNumberGenerator() % 64) + 0x3C;
+            LEGION_RETARGET_TIMER(entity) = (RandomNumberGenerator() % 64) + 0x3C;
             data->shellActionTimer = (RandomNumberGenerator() % 128) + 0x78;
         }
         break;
@@ -187,7 +188,7 @@ void Legion_UpdateBounce(struct EwramData_EntityData *entity)
     data->shells[2].angleOffset += 0xC3;
     data->rotationAngle += data->angularVelocity;
     ObjAffine_Set(data->rotationAngle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
-    if (entity->unk_504.part8.unk_506 & 2)
+    if (LEGION_FLAGS(entity) & 2)
     {
         data->bobPhase += 0x180;
         entity->posX.whole = data->roomX - bg->xPos.whole;

@@ -1,5 +1,6 @@
 /* Graham projectile: sprite, collision, direction and optional homing. */
 #include "code_08009A0.h"
+#include "graham_projectile.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -51,16 +52,16 @@ struct EwramData_EntityData *Graham_CreateSceneProjectile(s32 xInput,s32 yInput,
         effect->posY.part16.integer=y;
         effect->scrollWithBg=1;
         effect->group=64;
-        kind=&effect->unk_508.part8.unk_508;
+        kind=&GRAHAM_SHOT_HOMING(effect);
         *kind=homing;
         targetX=gEwramData->playerState.player->posX.whole;
         targetY=gEwramData->playerState.player->posY.whole;
         targetY-=((RandomNumberGenerator()&0x7F)<<12);
         targetY-=0x80000;
-        effect->unk_4FC.whole=Entity_AngleToPoint(effect,targetX,targetY);
-        effect->unk_4FC.whole=(effect->unk_4FC.whole+(RandomNumberGenerator()&0xFFFF))&0xFFFF;
-        effect->unk_500.whole=turn;
-        effect->unk_504.whole=0x30000;
+        GRAHAM_SHOT_ANGLE(effect)=Entity_AngleToPoint(effect,targetX,targetY);
+        GRAHAM_SHOT_ANGLE(effect)=(GRAHAM_SHOT_ANGLE(effect)+(RandomNumberGenerator()&0xFFFF))&0xFFFF;
+        GRAHAM_SHOT_TURN(effect)=turn;
+        GRAHAM_SHOT_SPEED(effect)=0x30000;
         if(*kind)
             effect->timer=200;
         else

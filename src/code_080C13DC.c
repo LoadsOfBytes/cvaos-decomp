@@ -1,5 +1,6 @@
 /* Slime helpers 0x080C13DC..0x080C148F. */
 #include "code/code_080211F0.h"
+#include "slime_entity.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
 
@@ -29,7 +30,7 @@ void Slime_DamagePlayerOnContact(struct EwramData_EntityData *entity)
  */
 void Slime_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    entity->unk_4F4.part8.unk_4F5 |= 1;
+    SLIME_FLAGS(entity) |= 1;
     if (Enemy_TakeDamage(entity, attacker, hit))
     {
         Enemy_DropRewards(entity);

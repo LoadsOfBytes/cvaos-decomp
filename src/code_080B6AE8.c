@@ -1,5 +1,6 @@
 /* Enemy helpers 0x080B6AE8..0x080B6B7F. */
 #include "code_08033CAC.h"
+#include "balore_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "syscalls.h"
@@ -18,10 +19,10 @@ extern void HitEffect_SpawnAtContact(s32 attacker, struct EwramData_EntityData *
  */
 void Balore_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    entity->unk_500.part16.unk_502 |= 1;
+    BALORE_FLAGS(entity) |= 1;
     if (Enemy_TakeDamage(entity, attacker, hit))
     {
-        entity->unk_500.part16.unk_502 |= 2;
+        BALORE_FLAGS(entity) |= 2;
         Enemy_DropRewards(entity);
         entity->palette = entity->unk_510.part8.basePalette;
         entity->state = 4;

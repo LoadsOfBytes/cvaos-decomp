@@ -1,5 +1,6 @@
 /* Object2A_UpdateMovement: horizontal moving platform; matched. */
 #include "code_08009A0.h"
+#include "layer_object.h"
 #include "structs/ewram.h"
 extern void Player_SetXFraction(s32 fraction);
 
@@ -14,14 +15,14 @@ void Object2A_UpdateMovement(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
     case 0:
-        target = entity->unk_500.whole;
-        x = entity->unk_4F4.whole;
+        target = SHUTTLE_END(entity);
+        x = BG1_OBJECT_X(entity);
         dist = target - x;
         if (dist < 0)
             dist = -dist;
         vel = entity->velX.whole;
-        entity->unk_4F4.whole = x + vel;
-        if (!entity->unk_504.part8.unk_504)
+        BG1_OBJECT_X(entity) = x + vel;
+        if (!SHUTTLE_DIR(entity))
         {
             if (x >= target)
             {
@@ -62,17 +63,17 @@ void Object2A_UpdateMovement(struct EwramData_EntityData *entity)
         if ((s8)--entity->timer > 0)
             break;
         entity->subState++;
-        entity->unk_504.part8.unk_504 ^= 1;
+        SHUTTLE_DIR(entity) ^= 1;
         break;
     case 2:
-        target = entity->unk_4FC.whole;
-        x = entity->unk_4F4.whole;
+        target = SHUTTLE_START(entity);
+        x = BG1_OBJECT_X(entity);
         dist = target - x;
         if (dist < 0)
             dist = -dist;
         vel2 = entity->velX.whole;
-        entity->unk_4F4.whole = x + vel2;
-        if (!entity->unk_504.part8.unk_504)
+        BG1_OBJECT_X(entity) = x + vel2;
+        if (!SHUTTLE_DIR(entity))
         {
             if (x >= target)
             {
@@ -113,13 +114,13 @@ void Object2A_UpdateMovement(struct EwramData_EntityData *entity)
         if ((s8)--entity->timer > 0)
             break;
         entity->subState = 0;
-        entity->unk_504.part8.unk_504 ^= 1;
+        SHUTTLE_DIR(entity) ^= 1;
         break;
     }
-    entity->posX.whole = entity->unk_4F4.whole - camera->xPos.whole;
-    entity->posY.whole = entity->unk_4F8.whole - camera->yPos.whole;
-    entity->unk_508.whole = entity->unk_4F4.whole - camera->xPos.whole;
-    entity->unk_50C.whole = entity->unk_4F8.whole - camera->yPos.whole;
+    entity->posX.whole = BG1_OBJECT_X(entity) - camera->xPos.whole;
+    entity->posY.whole = BG1_OBJECT_Y(entity) - camera->yPos.whole;
+    BG1_OBJECT_DRAW_X(entity) = BG1_OBJECT_X(entity) - camera->xPos.whole;
+    BG1_OBJECT_DRAW_Y(entity) = BG1_OBJECT_Y(entity) - camera->yPos.whole;
     if (gEwramData->playerState.standingPlatform == entity)
         Player_SetXFraction((s16)entity->posX.part16.fraction);
 }

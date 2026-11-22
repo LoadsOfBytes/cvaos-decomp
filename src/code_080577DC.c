@@ -2,6 +2,7 @@
  * a cloning script and checked byte for byte:
  *   Object2A_Draw = Object34Part_Draw */
 #include "code_08009A0.h"
+#include "layer_object.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -16,8 +17,8 @@ void Object2A_Draw(struct EwramData_EntityData *entity)
     s32 oldX = entity->posX.whole;
     s32 oldY = entity->posY.whole;
 
-    entity->posX.whole = entity->unk_508.whole;
-    entity->posY.whole = entity->unk_50C.whole;
+    entity->posX.whole = BG1_OBJECT_DRAW_X(entity);
+    entity->posY.whole = BG1_OBJECT_DRAW_Y(entity);
     Sprite_Draw(entity);
     entity->posX.whole = oldX;
     entity->posY.whole = oldY;

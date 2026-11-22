@@ -1,5 +1,6 @@
 /* Aim, release four effects, approach the sampled target and recover. */
 #include "code_08009A0.h"
+#include "killer_fish_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
@@ -39,8 +40,8 @@ void KillerFish_UpdateAttack(struct EwramData_EntityData *entity)
             entity->accelY.whole = 0;
             entity->timer = 0;
             targetX = Target_GetPixelX(entity);
-            { s32 t_ = targetX + ({ register u32 bx_ asm("r2") = background->xPos.part16.integer; bx_; }) + (RandomNumberGenerator() & 7); entity->unk_500.part16.unk_500 = t_ - 4; } /* FAKEMATCH: pinned register */
-            { s32 v_ = Target_GetPixelY(entity); { register u32 by_ asm("r6") = background->yPos.part16.integer; v_ += by_; } entity->unk_500.part16.unk_502 = v_ - 16; } /* FAKEMATCH: pinned register */
+            { s32 t_ = targetX + ({ register u32 bx_ asm("r2") = background->xPos.part16.integer; bx_; }) + (RandomNumberGenerator() & 7); KILLER_FISH_ATTACK_X(entity) = t_ - 4; } /* FAKEMATCH: pinned register */
+            { s32 v_ = Target_GetPixelY(entity); { register u32 by_ asm("r6") = background->yPos.part16.integer; v_ += by_; } KILLER_FISH_ATTACK_Y(entity) = v_ - 16; } /* FAKEMATCH: pinned register */
             entity->subState++;
         }
         break;
@@ -91,8 +92,8 @@ void KillerFish_UpdateAttack(struct EwramData_EntityData *entity)
         }
         break;
     case 3:
-        if (Entity_AimVelocityAtPointByDistance(entity, (s16)entity->unk_500.part16.unk_500 << 16,
-                         (s16)entity->unk_500.part16.unk_502 << 16, 0x20000))
+        if (Entity_AimVelocityAtPointByDistance(entity, (s16)KILLER_FISH_ATTACK_X(entity) << 16,
+                         (s16)KILLER_FISH_ATTACK_Y(entity) << 16, 0x20000))
         {
             entity->subState++;
             entity->timer = 0;

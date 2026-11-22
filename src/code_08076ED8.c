@@ -1,5 +1,6 @@
 /* Ease two motion parameters back to rest and leave the reaction state. */
 #include "structs/ewram.h"
+#include "white_dragon_entity.h"
 /**
  * @brief Recoil state (state 3): pull the neck in for 30 frames, then back to
  * state 0.
@@ -9,9 +10,9 @@ void WhiteDragon_UpdateRecoil(struct EwramData_EntityData *entity)
     u16 old=(u16)entity->velY.part16.integer;
     if(entity->velY.part16.integer>48)
         entity->velY.part16.integer=old-2;
-    { u16 angle=(u16)entity->unk_500.part16.unk_500;
-    if(entity->unk_500.part16.unk_500<=255)
-        entity->unk_500.part16.unk_500=angle+2;
+    { u16 angle=(u16)WHITE_DRAGON_SWAY(entity);
+    if(WHITE_DRAGON_SWAY(entity)<=255)
+        WHITE_DRAGON_SWAY(entity)=angle+2;
     }
     if(entity->timer++>29)
     {

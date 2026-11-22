@@ -108,7 +108,7 @@ s32 EventScene20_Update(struct EwramData_EntityData *entity)
                 break;
             {
                 struct EwramData **e2 = &gEwramData;
-                other = &(*e2)->entityData[entity->unk_4F4.part8.unk_4F5];
+                other = &(*e2)->entityData[ENTITY_PARENT_INDEX(entity)];
                 other->flipX = other->posX.whole < (*e2)->playerState.player->posX.whole;
                 player = (*e2)->playerState.player;
             }

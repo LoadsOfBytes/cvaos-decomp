@@ -1,5 +1,6 @@
 ﻿/* Quezlcoatl dispatch and staged destruction of the parent entity. */
 #include "code_08009A0.h"
+#include "quezlcoatl_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -47,7 +48,7 @@ void EnemyQuezlcoatlUpdate(struct EwramData_EntityData *entity)
             else if(entity->subState==1)
             {
                 entity->subState++;
-                if(entity->unk_504.whole) Heap_Free((void *)entity->unk_504.whole);
+                if(QUEZLCOATL_HISTORY(entity)) Heap_Free((void *)QUEZLCOATL_HISTORY(entity));
             }
             else entity->deleteRequested=1;
             break;

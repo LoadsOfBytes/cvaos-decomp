@@ -1,5 +1,6 @@
 /* HitEffect_Spawn / HitEffect_SpawnAtContact (effect spawners). */
 #include "code_08009A0.h"
+#include "particle_effect.h"
 #include "structs/ewram.h"
 
 extern void HitEffect_Update(struct EwramData_EntityData *entity);
@@ -19,7 +20,7 @@ void HitEffect_Spawn(u16 x, u16 y, u16 type)
         effect->posX.part16.integer = x;
         effect->posY.part16.integer = y;
         effect->flipX = RandomNumberGenerator() & 1;
-        effect->unk_4F8.part16.unk_4F8 = type;
+        PARTICLE_HIT_TYPE(effect) = type;
         effect->subState = type;
     }
 }
@@ -35,7 +36,7 @@ static inline void SpawnHitEffect(s16 x, s16 y, u16 type)
         child->posX.part16.integer = x;
         child->posY.part16.integer = y;
         child->flipX = RandomNumberGenerator() & 1;
-        child->unk_4F8.part16.unk_4F8 = type;
+        PARTICLE_HIT_TYPE(child) = type;
         child->subState = type;
     }
 }

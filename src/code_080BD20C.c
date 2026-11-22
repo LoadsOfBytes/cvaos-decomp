@@ -1,5 +1,6 @@
 /* OBJ-window sprite bound to an owner slot. */
 #include "code_08009A0.h"
+#include "death_entity.h"
 #include "code/code_08039340.h"
 #include "structs/main.h"
 #include "structs/ewram.h"
@@ -16,7 +17,7 @@ extern u8 sCommonObjectGfx[], sCommonObjectSpriteSheet[];
  */
 void DeathFloatingWeaponWindow_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = &gEwramData->entityData[(u8)entity->unk_4F8.part8.unk_4F8];
+    struct EwramData_EntityData *owner = &gEwramData->entityData[(u8)DEATH_OWNER_INDEX(entity)];
     s32 slot;
 
     gUnk_03002CB0.dispCnt |= 0x8000; /* OBJ window on */

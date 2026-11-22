@@ -1,5 +1,6 @@
 /* Chaos second form: create a moving child from angle and shared graphics. */
 #include "code_08009A0.h"
+#include "chaos_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -17,7 +18,7 @@ void Chaos2SnakeHead_FireShot(struct EwramData_EntityData *parent, s32 angle)
     /* Packed box: x=-4, y=-4, width=8, height=8. */
     u32 collision = 0x0808FCFC;
     struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)Chaos2SnakeShot_Update);
-    struct ChaosChildGfx *gfx = (struct ChaosChildGfx *)parent->unk_4F4.unk_4F4_entity->unk_504.unk_504_entity;
+    struct ChaosChildGfx *gfx = (struct ChaosChildGfx *)CHAOS_LINK(parent)->unk_504.unk_504_entity;
     angle -= 0x1300;
     if (child != NULL)
     {
@@ -44,7 +45,7 @@ void Chaos2SnakeHead_FireShot(struct EwramData_EntityData *parent, s32 angle)
         child->animFrame = 0x1E;
         child->animMode = 2;
         child->unk_518.part8.enemyId = parent->unk_518.part8.enemyId;
-        child->unk_4F4.unk_4F4_entity = parent;
+        CHAOS_LINK(child) = parent;
         child->scrollWithBg = 1;
         child->attack = 0x82;
         Hit_Enable(child, 8, Chaos2SnakeShot_DamagePlayerOnContact, 0);

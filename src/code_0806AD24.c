@@ -1,5 +1,6 @@
 /* Common update gates and palette changes after an enemy takes damage. */
 #include "structs/ewram.h"
+#include "enemy_status.h"
 #include "structs/entity_template.h"
 
 s32 Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
@@ -25,7 +26,7 @@ s32 Enemy_IsStunned(struct EwramData_EntityData *entity)
         if (TemplateBlocksUpdate(entity))
             return 1;
     }
-    if (0x100 & *(u16 *)&entity->unk_51C)
+    if (ENEMY_STATUS_PETRIFIED & ENEMY_STATUS(entity))
     {
         entity->palette = 14;
         entity->unk_510.part8.basePalette = entity->palette;
@@ -45,7 +46,7 @@ s32 Enemy_IsStunnedNoFlash(struct EwramData_EntityData *entity)
         if (TemplateBlocksUpdate(entity))
             return 1;
     }
-    if (0x100 & *(u16 *)&entity->unk_51C)
+    if (ENEMY_STATUS_PETRIFIED & ENEMY_STATUS(entity))
     {
         entity->palette = 14;
         entity->unk_510.part8.basePalette = entity->palette;

@@ -53,7 +53,7 @@ void BeamSkeleton_SpawnDeathPieces(struct EwramData_EntityData *entity)
         {
             s32 graphics;
             s32 x;
-            part->unk_4F4.part8.unk_4F6 = entity->unk_4F4.part8.unk_4F4;
+            part->unk_4F4.part8.unk_4F6 = ENTITY_INDEX(entity);
             INDEX(part) = i;
             entity->unk_4FC.part8.unk_4FC++;
             part->spriteLayer = entity->spriteLayer;

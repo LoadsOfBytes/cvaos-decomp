@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "event_scene09.h"
 #include "code_080D73B8.h"
 #include "code_08013960.h"
 #include "code_08011DD0.h"
@@ -47,17 +48,17 @@ s32 EventScene09_Update(struct EwramData_EntityData *entity)
                 context->textWindowPause = 1;
                 entity->stage++;
             case 1: {
-                struct EwramData_EntityData *other = entity->unk_4F8.unk_4F8_entity;
+                struct EwramData_EntityData *other = EVENT09_ACTOR5(entity);
                 if (other->updateFunc) {
                     Anim_StartIndexed(other, 6, 0, 0);
-                    { struct EwramData_EntityData *updated = entity->unk_4F8.unk_4F8_entity;
+                    { struct EwramData_EntityData *updated = EVENT09_ACTOR5(entity);
                       updated->flipX = 1 - updated->flipX; }
                 }
                 Anim_StartIndexed(entity, 5, 0, 1);
                 entity->stage++;
             }
             case 2: {
-                struct EwramData_EntityData *other2 = entity->unk_4F8.unk_4F8_entity;
+                struct EwramData_EntityData *other2 = EVENT09_ACTOR5(entity);
                 if (other2->animDone) {
                     if (other2->animScriptIndex != 7)
                         Anim_StartIndexed(other2, 7, 0, 1);
@@ -112,13 +113,13 @@ s32 EventScene09_Update(struct EwramData_EntityData *entity)
                 context->textWindowPause = 0;
                 break;
             }
-            if (entity->unk_500.whole != 0) {
-                entity->unk_500.whole -= 0x800;
-                entity->unk_504.whole += 0x400;
-                ObjAffine_Set(0x10000, entity->unk_500.whole, entity->unk_504.whole,
-                            0, 0, entity->unk_4F8.unk_4F8_entity->affineIndex);
+            if (EVENT09_SCALE_X(entity) != 0) {
+                EVENT09_SCALE_X(entity) -= 0x800;
+                EVENT09_SCALE_Y(entity) += 0x400;
+                ObjAffine_Set(0x10000, EVENT09_SCALE_X(entity), EVENT09_SCALE_Y(entity),
+                            0, 0, EVENT09_ACTOR5(entity)->affineIndex);
             } else
-                entity->unk_4F8.unk_4F8_entity->hidden = 1;
+                EVENT09_ACTOR5(entity)->hidden = 1;
             break;
         case 3:
             switch (entity->stage) {
@@ -168,7 +169,7 @@ s32 EventScene09_Update(struct EwramData_EntityData *entity)
             case 1:
                 if (entity->timer == 0) {
                     context->textWindowPause = 0;
-                    entity->unk_4FC.unk_4FC_entity->state = 1;
+                    EVENT09_ACTOR1(entity)->state = 1;
                 } else
                     entity->timer--;
                 break;
@@ -180,15 +181,15 @@ s32 EventScene09_Update(struct EwramData_EntityData *entity)
             entity->spriteLayer = gEwramData->playerState.player->spriteLayer + 1;
             break;
         }
-        { struct EwramData_EntityData *other = entity->unk_4FC.unk_4FC_entity;
+        { struct EwramData_EntityData *other = EVENT09_ACTOR1(entity);
         if (other->state) {
             s32 x = entity->posX.whole + 0x600000;
             if (other->posX.whole < x) {
                 other->posX.whole = x;
-                other = entity->unk_4FC.unk_4FC_entity;
+                other = EVENT09_ACTOR1(entity);
                 if (other->animScriptIndex != 1)
                     Anim_StartIndexed(other, 1, 0, 1);
-                entity->unk_4FC.unk_4FC_entity->state = 0;
+                EVENT09_ACTOR1(entity)->state = 0;
             } else
                 other->posX.whole += other->velX.whole;
         }

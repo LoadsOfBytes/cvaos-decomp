@@ -2,6 +2,13 @@
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
+/*
+ * Stolas cast effect (StolasCastEffect_Update): its owner and the affine
+ * angle (turns to +-0x10000). Token-identical expansion.
+ */
+#define STOLAS_CAST_OWNER(e) e->unk_500.unk_500_entity
+#define STOLAS_CAST_ANGLE(e) e->unk_4F8.whole
+
 /**
  * @brief 9BE78 | Effect created by Stolas_SpawnCastEffect: freed (palette and
  * entity) when its owner is gone or no longer entity 0x61; copies the
@@ -13,7 +20,7 @@
 void StolasCastEffect_Update(struct EwramData_EntityData *entity)
 {
     u8 unused[16];
-    struct EwramData_EntityData *owner = entity->unk_500.unk_500_entity;
+    struct EwramData_EntityData *owner = STOLAS_CAST_OWNER(entity);
 
     if (owner == NULL || owner->updateFunc == NULL || owner->unk_518.part8.enemyId != 0x61)
         goto free;
@@ -27,11 +34,11 @@ void StolasCastEffect_Update(struct EwramData_EntityData *entity)
         {
             if (entity->flipX)
             {
-                if (entity->unk_4F8.whole <= 0xFFFF)
-                    entity->unk_4F8.whole += 0x800;
+                if (STOLAS_CAST_ANGLE(entity) <= 0xFFFF)
+                    STOLAS_CAST_ANGLE(entity) += 0x800;
             }
-            else if (entity->unk_4F8.whole > -0x10000)
-                entity->unk_4F8.whole += -0x800;
+            else if (STOLAS_CAST_ANGLE(entity) > -0x10000)
+                STOLAS_CAST_ANGLE(entity) += -0x800;
         }
         if (entity->timer++ > 0x3B || owner->state == 2)
         {
@@ -40,7 +47,7 @@ void StolasCastEffect_Update(struct EwramData_EntityData *entity)
             return;
         }
     }
-    ObjAffine_Set(entity->unk_4F8.whole, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
+    ObjAffine_Set(STOLAS_CAST_ANGLE(entity), 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
     return;
 free:
     ObjAffine_Free(entity->affineIndex);

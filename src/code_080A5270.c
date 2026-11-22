@@ -1,5 +1,6 @@
 /* Chaos second form: summoned part (create 5270). */
 #include "code_08009A0.h"
+#include "chaos_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -28,7 +29,7 @@ void Chaos2_SummonPart(struct EwramData_EntityData *core, s32 x, s32 y, s32 vx, 
 {
     struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, (u32 *)Chaos2SummonedPart_Update);
     struct HitBox box = { -3, -3, 6, 6 };
-    struct Chaos2Data *data = (struct Chaos2Data *)core->unk_504.whole;
+    struct Chaos2Data *data = (struct Chaos2Data *)CHAOS_DATA(core);
 
     if (part != NULL)
     {
@@ -46,7 +47,7 @@ void Chaos2_SummonPart(struct EwramData_EntityData *core, s32 x, s32 y, s32 vx, 
         part->animMode = 2;
         part->animTimer = RandomNumberGenerator() % 6;
         part->unk_518.part8.enemyId = core->unk_518.part8.enemyId;
-        part->unk_4F4.unk_4F4_entity = core;
+        CHAOS_LINK(part) = core;
         part->scrollWithBg = 0;
         part->attack = 0x6E;
         part->unk_518.part16.hp = 600;

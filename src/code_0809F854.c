@@ -1,5 +1,6 @@
 /* Legion shell part: orbits the core at a radius set by the shell state, fires, falls off. */
 #include "code_08009A0.h"
+#include "legion_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -34,18 +35,18 @@ extern void LegionShellPart_FireShot(struct EwramData_EntityData *owner, s32 dx,
 extern s32 Entity_GetVisibilityPattern(s32);
 extern const struct ShellRadii sLegionShellRadii;
 
-#define KIND ((s8)entity->unk_500.part8.unk_501)
-#define ANGLE entity->unk_500.part16.unk_502
-#define RADIUS entity->unk_4F8.whole
+#define KIND ((s8)LEGION_SHELL_KIND(entity))
+#define ANGLE LEGION_SHELL_ANGLE(entity)
+#define RADIUS LEGION_SHELL_RADIUS(entity)
 
 void LegionShellPart_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = entity->unk_4F4.unk_4F4_entity;
-    struct EwramData_EntityData *center = entity->unk_504.unk_504_entity;
+    struct EwramData_EntityData *owner = LEGION_PART_OWNER(entity);
+    struct EwramData_EntityData *center = LEGION_SHELL_CENTER(entity);
     u8 unused[0x10];
     struct ShellRadii radii = sLegionShellRadii;
-    struct LegionState *data = (struct LegionState *)owner->unk_4F8.whole;
-    s32 k = (s8)entity->unk_4FC.part8.unk_4FC * 6 + 10;
+    struct LegionState *data = (struct LegionState *)LEGION_DATA(owner);
+    s32 k = (s8)LEGION_SHELL_INDEX(entity) * 6 + 10;
 #define shell ((struct LegionShell *)((s32 *)data + k))
     s32 limit;
     s32 a;
@@ -156,7 +157,7 @@ void LegionShellPart_Update(struct EwramData_EntityData *entity)
         }
         if (KIND == 5)
             ObjAffine_SetBiased(ANGLE + ({ s32 t = shell->angleOffset - 0x4000; t; }), 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
-        if (entity->state == 0 && owner->state == 2 && --entity->unk_500.part8.unk_500 == 0)
+        if (entity->state == 0 && owner->state == 2 && --LEGION_SHELL_DELAY(entity) == 0)
         {
             entity->state = 1;
             entity->subState = 0;

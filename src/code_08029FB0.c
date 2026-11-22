@@ -1,6 +1,8 @@
 /* SkillTinyDevilUse; graphics
  * loading as SkillFlameDemonProjectileUpdate, spawning as SkillHarpyUse. */
 #include "code_08009A0.h"
+#include "soul_skill_entity.h"
+#include "red_soul_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -35,7 +37,7 @@ static inline struct SoulGraphicsResources *GetSet(s32 index)
  */
 void SkillTinyDevilUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
     s32 i;
     s32 angle;
 
@@ -63,14 +65,14 @@ void SkillTinyDevilUse(struct EwramData_EntityData *entity)
             child->posX.whole = entity->posX.whole;
             child->posY.whole = entity->posY.whole;
             a = angle - 0x1800;
-            child->unk_510.part16.unk_510 = a;
+            SKILL_TINY_DEVIL_HEADING(child) = a;
             if (entity->flipX)
-                child->unk_510.part16.unk_510 = -0x8000 - a;
+                SKILL_TINY_DEVIL_HEADING(child) = -0x8000 - a;
         }
         entity->state = 1;
         break;
     case 1:
-        gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         break;

@@ -2,6 +2,7 @@
  * The affine tip extends and retracts along an angle with ten linked
  * segments. */
 #include "code_08009A0.h"
+#include "headhunter_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -35,13 +36,13 @@ void HeadhunterBurstShot_Update(struct EwramData_EntityData *entity);
 void HeadhunterAttackTip_Update(struct EwramData_EntityData *head);
 struct EwramData_EntityData *Headhunter_CreateAttackSegment(struct EwramData_EntityData *owner, struct EwramData_EntityData *parent, s32 index);
 void HeadhunterAttackSegment_Update(struct EwramData_EntityData *segment);
-#define BASE_X(e) ((e)->unk_4FC.whole) /* room coordinates */
-#define BASE_Y(e) ((e)->unk_500.whole)
-#define OFFSET_X(e) ((e)->unk_504.whole)
-#define OFFSET_Y(e) ((e)->unk_4F4.whole)
+#define BASE_X(e) (HEADHUNTER_WHIP_BASE_X((e))) /* room coordinates */
+#define BASE_Y(e) (HEADHUNTER_WHIP_BASE_Y((e)))
+#define OFFSET_X(e) (HEADHUNTER_WHIP_OFFSET_X((e)))
+#define OFFSET_Y(e) (HEADHUNTER_WHIP_OFFSET_Y((e)))
 #define ANGLE(e) ((e)->velX.whole)
 #define SPEED(e) ((e)->accelX.whole)
-#define SEGMENT_INDEX(e) (*(s8 *)&(e)->unk_504.part8.unk_504)
+#define SEGMENT_INDEX(e) (*(s8 *)&HEADHUNTER_WHIP_INDEX((e)))
 
 /* Create the follower effect HeadhunterAttackFollower_Update for `timer` frames. */
 /**
@@ -56,13 +57,13 @@ void Headhunter_SpawnAttackFollower(struct EwramData_EntityData *owner, s32 time
         s32 graphics;
         effect->flipX = owner->flipX;
         effect->spriteLayer = owner->spriteLayer;
-        graphics = owner->unk_500.whole;
-        effect->unk_510.part8.basePalette = owner->unk_504.part8.unk_507;
+        graphics = HEADHUNTER_GRAPHICS(owner);
+        effect->unk_510.part8.basePalette = HEADHUNTER_PALETTE_3(owner);
         Sprite_Attach(effect, sHeadhunterSpriteSheet, graphics, effect->unk_510.part8.basePalette);
         Anim_StartIndexed(effect, 0x16, 2, 0);
         Anim_Update(effect);
         effect->timer = timer;
-        effect->unk_4F8.unk_4F8_entity = owner;
+        ENTITY_OWNER(effect) = owner;
         effect->scrollWithBg = 0;
         effect->drawFunc = (u32 *)Sprite_DrawEntity;
     }
@@ -85,17 +86,17 @@ void Headhunter_SpawnBurstShot(struct EwramData_EntityData *owner, s32 x, s32 y,
         shot->velX.whole = vx;
         shot->velY.whole = vy;
         shot->spriteLayer = owner->spriteLayer - 1;
-        graphics = owner->unk_500.whole;
-        shot->unk_500.whole = graphics;
-        shot->unk_510.part8.basePalette = owner->unk_504.part8.unk_507;
+        graphics = HEADHUNTER_GRAPHICS(owner);
+        HEADHUNTER_EFFECT_GRAPHICS(shot) = graphics;
+        shot->unk_510.part8.basePalette = HEADHUNTER_PALETTE_3(owner);
         Sprite_Attach(shot, sHeadhunterSpriteSheet, graphics, shot->unk_510.part8.basePalette);
-        shot->unk_4FC.part8.unk_4FF = 0x54;
+        HEADHUNTER_EFFECT_FRAME(shot) = 0x54;
         Hit_Enable(shot, 8, HeadhunterBurstShot_DamagePlayerOnContact, 0);
         HitBox_SetAttack(shot, &box);
         shot->hit.flags |= 4;
         shot->hit.flags &= ~2;
         shot->attack = owner->attack;
-        shot->unk_4F8.unk_4F8_entity = owner;
+        ENTITY_OWNER(shot) = owner;
         shot->scrollWithBg = 1;
         shot->drawFunc = (u32 *)Sprite_DrawEntity;
     }
@@ -119,16 +120,16 @@ void HeadhunterBurstShot_Update(struct EwramData_EntityData *entity)
     EntityAccelerateAndMove(entity, 0x40000);
     if (entity->timer == 20)
     {
-        entity->unk_4FC.part8.unk_4FF = 0x55;
+        HEADHUNTER_EFFECT_FRAME(entity) = 0x55;
         HitBox_SetAttack(entity, &box1);
     }
     if (entity->timer == 40)
     {
-        entity->unk_4FC.part8.unk_4FF = 0x56;
+        HEADHUNTER_EFFECT_FRAME(entity) = 0x56;
         HitBox_SetAttack(entity, &box2);
     }
     Anim_Start(entity, (struct AnimScript *)&animation, 2, 1);
-    animation.frame = entity->unk_4FC.part8.unk_4FF;
+    animation.frame = HEADHUNTER_EFFECT_FRAME(entity);
     Anim_Update(entity);
     if (entity->timer++ > 59)
         EntityDelete(entity);
@@ -161,8 +162,8 @@ void Headhunter_SpawnExtendingAttack(struct EwramData_EntityData *owner, s32 x, 
     ANGLE(head) = angle;
     SPEED(head) = 0x40000;
     head->spriteLayer = owner->spriteLayer - 1;
-    graphics = owner->unk_500.whole;
-    head->unk_510.part8.basePalette = owner->unk_504.part8.unk_506;
+    graphics = HEADHUNTER_GRAPHICS(owner);
+    head->unk_510.part8.basePalette = HEADHUNTER_PALETTE_2(owner);
     Sprite_Attach(head, sHeadhunterSpriteSheet, graphics, head->unk_510.part8.basePalette);
     Anim_Start(head, (struct AnimScript *)&animation, 2, 1);
     Anim_Update(head);
@@ -180,7 +181,7 @@ void Headhunter_SpawnExtendingAttack(struct EwramData_EntityData *owner, s32 x, 
     head->hit.flags &= ~4;
     head->hit.flags &= ~2;
     head->attack = owner->attack;
-    head->unk_4F8.unk_4F8_entity = owner;
+    ENTITY_OWNER(head) = owner;
     head->scrollWithBg = 0;
     head->drawFunc = (u32 *)Sprite_DrawEntity;
     for (i = 0; i < 10; i++)
@@ -203,7 +204,7 @@ void Headhunter_SpawnExtendingAttack(struct EwramData_EntityData *owner, s32 x, 
  */
 void HeadhunterAttackTip_Update(struct EwramData_EntityData *head)
 {
-    struct EwramData_EntityData *owner = head->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *owner = ENTITY_OWNER(head);
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
     s32 bounds[4];
     struct SingleFrameAnimation animation = sHeadhunterAttackTipFrameAnim;
@@ -306,8 +307,8 @@ struct EwramData_EntityData *Headhunter_CreateAttackSegment(struct EwramData_Ent
     segment->posY.whole = parent->posY.whole;
     SEGMENT_INDEX(segment) = index;
     segment->spriteLayer = parent->spriteLayer + 1;
-    graphics = owner->unk_500.whole;
-    segment->unk_510.part8.basePalette = owner->unk_504.part8.unk_506;
+    graphics = HEADHUNTER_GRAPHICS(owner);
+    segment->unk_510.part8.basePalette = HEADHUNTER_PALETTE_2(owner);
     Sprite_Attach(segment, sHeadhunterSpriteSheet, graphics, segment->unk_510.part8.basePalette);
     Anim_Start(segment, (struct AnimScript *)&animation, 2, 1);
     Anim_Update(segment);
@@ -325,8 +326,8 @@ struct EwramData_EntityData *Headhunter_CreateAttackSegment(struct EwramData_Ent
     segment->hit.flags &= ~4;
     segment->hit.flags &= ~2;
     segment->attack = owner->attack;
-    segment->unk_4F8.unk_4F8_entity = owner;
-    segment->unk_4FC.unk_4FC_entity = parent;
+    ENTITY_OWNER(segment) = owner;
+    HEADHUNTER_WHIP_TIP(segment) = parent;
     segment->scrollWithBg = 0;
     segment->drawFunc = (u32 *)Sprite_DrawEntity;
     return segment;
@@ -342,8 +343,8 @@ fail:
  */
 void HeadhunterAttackSegment_Update(struct EwramData_EntityData *segment)
 {
-    struct EwramData_EntityData *owner = segment->unk_4F8.unk_4F8_entity;
-    struct EwramData_EntityData *parent = segment->unk_4FC.unk_4FC_entity;
+    struct EwramData_EntityData *owner = ENTITY_OWNER(segment);
+    struct EwramData_EntityData *parent = HEADHUNTER_WHIP_TIP(segment);
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
     s32 bounds[4];
     struct SingleFrameAnimation animation = sHeadhunterAttackSegmentFrameAnim;
@@ -353,8 +354,8 @@ void HeadhunterAttackSegment_Update(struct EwramData_EntityData *segment)
         EntityDelete(segment);
         return;
     }
-    segment->posX.whole = parent->unk_4FC.whole + parent->unk_504.whole * SEGMENT_INDEX(segment) / 10 - camera->xPos.whole;
-    segment->posY.whole = parent->unk_500.whole + parent->unk_4F4.whole * SEGMENT_INDEX(segment) / 10 - camera->yPos.whole;
+    segment->posX.whole = HEADHUNTER_WHIP_BASE_X(parent) + HEADHUNTER_WHIP_OFFSET_X(parent) * SEGMENT_INDEX(segment) / 10 - camera->xPos.whole;
+    segment->posY.whole = HEADHUNTER_WHIP_BASE_Y(parent) + HEADHUNTER_WHIP_OFFSET_Y(parent) * SEGMENT_INDEX(segment) / 10 - camera->yPos.whole;
     Anim_Start(segment, (struct AnimScript *)&animation, 2, 1);
     Anim_Update(segment);
     ObjAffine_SetBiased(parent->velX.whole, 0x10000, 0x10000, segment->flipX, segment->flipY, segment->affineIndex);

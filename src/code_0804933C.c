@@ -19,7 +19,7 @@ void SoulMenu_DrawCategoryIcon(struct EwramData_EntityData *entity)
     if (entity->subState == 2)
         kind = MENU_PAGE_CATEGORY(entity);
     else
-        kind = entity->unk_4F8.bytes[1];
+        kind = MENU_PAGE_BYTES(entity)[1];
     switch (kind)
     {
         case 0:

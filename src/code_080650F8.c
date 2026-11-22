@@ -1,5 +1,6 @@
 /* Per-scanline affine transition driven by the owner's event phase. */
 #include "code_08009A0.h"
+#include "event_scene30.h"
 #include "code_08001194.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -7,12 +8,12 @@
 #include "syscalls.h"
 extern u8 sEventScene30TransformationPalette[],sEventScene30Palette[];
 extern void EventScene30_SpawnFloatingFragment(struct EwramData_EntityData *,s16,s16,s32);
-#define PHASE(e) ((e)->unk_4F8.part8.unk_4F9)
-#define CENTER_X(e) ((e)->unk_504.part16.unk_504)
-#define CENTER_Y(e) ((e)->unk_504.part16.unk_506[0])
-#define SCALE_X(e) ((e)->unk_500.part16.unk_500)
-#define SCALE_Y(e) ((e)->unk_500.part16.unk_502)
-#define SWEEP(e) ((e)->unk_4FC.part16.unk_4FC)
+#define PHASE(e) (EVENT30_PHASE((e)))
+#define CENTER_X(e) (EVENT30_CENTER_X((e)))
+#define CENTER_Y(e) (EVENT30_CENTER_Y((e)))
+#define SCALE_X(e) (EVENT30_SCALE((e)))
+#define SCALE_Y(e) (EVENT30_SCALE_Y((e)))
+#define SWEEP(e) (EVENT30_SWEEP((e)))
 /**
  * @brief Unreferenced: H-blank BG2 affine zoom sequence in phases that also
  * spawns EventScene30 floating fragments.
@@ -34,7 +35,7 @@ void EventScene30_UpdateUnusedZoom(struct EwramData_EntityData *entity)
         SCALE_X(entity)=208;
         SCALE_Y(entity)=208;
         entity->unk_50C.part16.unk_50C=0;
-        entity->unk_50C.part16.unk_50E=128;
+        EVENT30_ZOOM_TEX_Y(entity)=128;
         break;
     case 1:
         entity->timer=32;
@@ -80,7 +81,7 @@ void EventScene30_UpdateUnusedZoom(struct EwramData_EntityData *entity)
         {
             if(line<80)
             {
-                src.texX=0;src.texY=(s16)entity->unk_50C.part16.unk_50E<<8;
+                src.texX=0;src.texY=(s16)EVENT30_ZOOM_TEX_Y(entity)<<8;
                 src.scrX=0;src.scrY=CENTER_Y(entity)-line;
                 dx=0;
                 if(line<(u16)SWEEP(entity))dx=(u16)SWEEP(entity)-line;
@@ -88,7 +89,7 @@ void EventScene30_UpdateUnusedZoom(struct EwramData_EntityData *entity)
             }
             else
             {
-                src.texX=0xA000;src.texY=(s16)entity->unk_50C.part16.unk_50E<<8;
+                src.texX=0xA000;src.texY=(s16)EVENT30_ZOOM_TEX_Y(entity)<<8;
                 src.scrX=200;src.scrY=CENTER_Y(entity)-line;
                 dx=0;
                 if(160-line<(u16)SWEEP(entity)){ s32 amount=(u16)SWEEP(entity)-160; dx=amount+line; }
@@ -100,7 +101,7 @@ void EventScene30_UpdateUnusedZoom(struct EwramData_EntityData *entity)
         SWEEP(entity)++;
         if((entity->timer%16)==0)SCALE_Y(entity)++;
         entity->timer++;
-        entity->unk_508.part16.unk_508++;
+        EVENT30_TIMER(entity)++;
         break;
     case 5:
         BgPalette_LoadRange(sEventScene30TransformationPalette,8,1,0);
@@ -109,7 +110,7 @@ void EventScene30_UpdateUnusedZoom(struct EwramData_EntityData *entity)
             src.texX=0x8000;src.texY=0x8000;
             src.scrX=CENTER_X(entity);src.scrY=CENTER_Y(entity)-line;
             src.sx=SCALE_X(entity);src.sy=SCALE_Y(entity);
-            src.alpha=(u8)entity->unk_4F8.part8.unk_4F8<<8;
+            src.alpha=(u8)EVENT30_ANGLE(entity)<<8;
             BgAffineSet(&src,out,1);
             out++;
         }
@@ -124,7 +125,7 @@ void EventScene30_UpdateUnusedZoom(struct EwramData_EntityData *entity)
             src.texX=0x8000;src.texY=0x8000;
             src.scrX=CENTER_X(entity)+dx;src.scrY=CENTER_Y(entity)-line;
             src.sx=SCALE_X(entity);src.sy=SCALE_Y(entity);
-            src.alpha=(u8)entity->unk_4F8.part8.unk_4F8<<8;
+            src.alpha=(u8)EVENT30_ANGLE(entity)<<8;
             BgAffineSet(&src,out,1);
             out++;
         }

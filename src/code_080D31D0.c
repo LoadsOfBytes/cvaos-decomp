@@ -2,6 +2,7 @@
  * The special 0xD0 path, as in the
  * original, does not define a return value. */
 #include "code_08009A0.h"
+#include "graham_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -30,7 +31,7 @@ struct EwramData_EntityData *Graham_CreateCombatBody(struct EwramData_EntityData
         EntityDelete(e);
         return NULL;
     }
-    e->unk_4F4.part8.unk_4F5 = owner->unk_4F4.part8.unk_4F4;
+    ENTITY_PARENT_INDEX(e) = ENTITY_INDEX(owner);
     e->spriteLayer = owner->spriteLayer;
     e->flipX = owner->flipX;
     e->posX.whole = owner->posX.whole;
@@ -42,7 +43,7 @@ struct EwramData_EntityData *Graham_CreateCombatBody(struct EwramData_EntityData
     e->attack = owner->attack;
     e->defense = 110;
     e->enemyFlags |= 4;
-    owner->unk_4F4.part8.unk_4F6 = e->unk_4F4.part8.unk_4F4;
+    GRAHAM_CHILD_INDEX(owner) = ENTITY_INDEX(e);
     Anim_StartIndexed(e, 1, 0, 1);
     Anim_Update(e);
     Graham_CreateBodyOverlay(e);

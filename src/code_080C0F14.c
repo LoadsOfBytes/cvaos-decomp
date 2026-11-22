@@ -1,5 +1,6 @@
 /* Slime setup, dispatch and shrinking death animation. */
 #include "code_08009A0.h"
+#include "slime_entity.h"
 #include "code_08001194.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
@@ -39,11 +40,11 @@ void Slime_UpdateDetach(struct EwramData_EntityData *entity)
     case 1:
         if (!(entity->animFlags & 4)) break;
         Anim_StartIndexed(entity, 2, 0, 1);
-        entity->unk_4F4.part8.unk_4F5 |= 4;
+        SLIME_FLAGS(entity) |= 4;
         switch (entity->stage)
         {
         case 2:
-            entity->unk_4F8.whole = 0;
+            SLIME_SPEED(entity) = 0;
             entity->velY.whole = 0;
             break;
         case 1:
@@ -51,7 +52,7 @@ void Slime_UpdateDetach(struct EwramData_EntityData *entity)
                 u32 random = RandomNumberGenerator();
                 s32 mask = 0x1FFF;
                 mask &= random;
-                entity->unk_4F8.whole = -(baseSpeed + mask);
+                SLIME_SPEED(entity) = -(baseSpeed + mask);
             }
             goto randomY;
         case 3:
@@ -59,7 +60,7 @@ void Slime_UpdateDetach(struct EwramData_EntityData *entity)
                 u32 random = RandomNumberGenerator();
                 s32 mask = 0x1FFF;
                 mask &= random;
-                entity->unk_4F8.whole = baseSpeed + mask;
+                SLIME_SPEED(entity) = baseSpeed + mask;
             }
 randomY:
             entity->velY.whole = RandomSigned(0x8000) - 0x10000;
@@ -70,7 +71,7 @@ randomY:
         entity->subState = 2;
         /* fall through */
     case 2:
-        flags = Entity_Walk(entity, entity->unk_4F8.whole, sSlimeWalkProfile, 0x22);
+        flags = Entity_Walk(entity, SLIME_SPEED(entity), sSlimeWalkProfile, 0x22);
         if (flags & 8)
         {
             Slime_SpawnParticles(entity, 3, 0, -0x20000);
@@ -94,8 +95,8 @@ landed:
         break;
     case 3:
         PlaySong(0x163);
-        entity->unk_504.part16.unk_504 = sSlimeSurfaceTurnTargets[entity->stage];
-        entity->unk_4F4.part8.unk_4F5 &= ~4;
+        SLIME_ANGLE(entity) = sSlimeSurfaceTurnTargets[entity->stage];
+        SLIME_FLAGS(entity) &= ~4;
         Slime_UpdateSurfaceSupport(entity, 0x4000);
         Anim_StartIndexed(entity, 3, 0, 0);
         entity->subState = 4;
@@ -106,7 +107,7 @@ landed:
             Anim_StartIndexed(entity, 0, 0, 1);
             entity->state = 0;
             entity->subState = 0;
-            entity->unk_4F4.part8.unk_4F6 = 0;
+            SLIME_TURN_COOLDOWN(entity) = 0;
         }
         break;
     }

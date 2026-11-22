@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "legion_entity.h"
 #include "code_0800CB00.h"
 #include "code_08033CAC.h"
 #include "code/code_08039340.h"
@@ -6,9 +7,9 @@
 extern s32 Sin(s32);
 extern u8 sLegionObject25Palette[], sLegionPaletteAnim0[], sLegionPaletteAnim1[];
 
-#define STAGE entity->unk_504.part8.unk_507
-#define POSE entity->unk_4FC.part8.unk_4FC
-#define CYCLE entity->unk_4FC.part8.unk_4FD
+#define STAGE LEGION_INTRO_STAGE(entity)
+#define POSE LEGION_INTRO_STEP(entity)
+#define CYCLE LEGION_INTRO_ARRIVED(entity)
 
 /**
  * @brief Intro sequence run by Legion_UpdateCircle before the fight; returns
@@ -83,7 +84,7 @@ s32 Legion_UpdateIntro(struct EwramData_EntityData *entity)
             POSE = 5;
         }
         if (entity->stage == 5 && (u8)CYCLE > 4) {
-            PaletteAnim_Start(sLegionObject25Palette, sLegionPaletteAnim0, (s8)entity->unk_504.part8.unk_504);
+            PaletteAnim_Start(sLegionObject25Palette, sLegionPaletteAnim0, (s8)LEGION_ANIM_PALETTE(entity));
             entity->stage++;
             entity->timer = 0;
         }
@@ -124,7 +125,7 @@ s32 Legion_UpdateIntro(struct EwramData_EntityData *entity)
         if ((u8)CYCLE != 0) {
             STAGE++;
             entity->timer = 0;
-            PaletteAnim_Start(sLegionObject25Palette, sLegionPaletteAnim1, (s8)entity->unk_504.part8.unk_504);
+            PaletteAnim_Start(sLegionObject25Palette, sLegionPaletteAnim1, (s8)LEGION_ANIM_PALETTE(entity));
         }
         break;
     case 8:

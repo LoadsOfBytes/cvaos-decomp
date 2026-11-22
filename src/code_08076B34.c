@@ -1,6 +1,7 @@
 /* Segmented boss head: aim at the target point while the body history shifts,
  * charge, then fire a straight (10-12) or sweeping (20-22) volley. */
 #include "code_08009A0.h"
+#include "white_dragon_entity.h"
 #include "code_080D73B8.h"
 #include "syscalls.h"
 #include "structs/ewram.h"
@@ -14,8 +15,8 @@ extern void WhiteDragon_SpawnBreath(struct EwramData_EntityData *);
 #define SPIN_SPEED(e) ((e)->velY.part16.fraction)
 #define SPIN(e) ((e)->velX.part16.fraction)
 #define HEAD_ANGLE(e) ((e)->velX.part16.integer)
-#define SWAY(e) ((e)->unk_500.part16.unk_500)
-#define SWAY_PHASE(e) ((e)->unk_500.part16.unk_502)
+#define SWAY(e) (WHITE_DRAGON_SWAY((e)))
+#define SWAY_PHASE(e) (WHITE_DRAGON_SWAY_PHASE((e)))
 #define SWEEP_DIR(e) ((e)->accelX.part16.fraction)
 #define SHOT_ANGLE(e) ((e)->accelX.part16.integer)
 
@@ -30,7 +31,7 @@ extern void WhiteDragon_SpawnBreath(struct EwramData_EntityData *);
  */
 void WhiteDragon_UpdateAttack(register struct EwramData_EntityData *entity)
 {
-    u16 *history=(u16 *)entity->unk_504.whole;
+    u16 *history=(u16 *)WHITE_DRAGON_HISTORY(entity);
     s32 i;
     u32 angle,target;
     switch(entity->subState)
@@ -59,8 +60,8 @@ void WhiteDragon_UpdateAttack(register struct EwramData_EntityData *entity)
         }
         else if((u16)SWAY_PHASE(entity)<0x7EB0)
         { SWAY_PHASE(entity)+=320; changing++; }
-        dx=entity->unk_4F4.part16.unk_4F4-(entity->unk_4FC.part16.unk_4FC+(s16)entity->unk_4F8.part16.unk_4F8);
-        dy=entity->unk_4F4.part16.unk_4F6-(entity->unk_4FC.part16.unk_4FE[0]+entity->unk_4F8.part16.unk_4FA);
+        dx=WHITE_DRAGON_AIM_X(entity)-(WHITE_DRAGON_ANCHOR_X(entity)+(s16)WHITE_DRAGON_OFFSET_X(entity));
+        dy=WHITE_DRAGON_AIM_Y(entity)-(WHITE_DRAGON_ANCHOR_Y(entity)+WHITE_DRAGON_OFFSET_Y(entity));
         target=ArcTan2(dx,dy);
         if(entity->flipX)
         {
@@ -131,8 +132,8 @@ aimed:
         {
             entity->state=0; entity->subState=0; entity->animFrame=0;
  cooldown:
-            entity->unk_4F4.part16.unk_4F4=RandomNumberGenerator()%60+60;
-            entity->unk_4F4.part16.unk_4F6=RandomNumberGenerator()%60;
+            WHITE_DRAGON_MOVE_TIMER(entity)=RandomNumberGenerator()%60+60;
+            WHITE_DRAGON_SHOT_TIMER(entity)=RandomNumberGenerator()%60;
         }
         else if(entity->timer<30 && (entity->timer&3)==1)
         {

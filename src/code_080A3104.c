@@ -1,5 +1,6 @@
 /* Chaos orb damage (3104) and the shell pieces (3178/3210). */
 #include "code_08009A0.h"
+#include "chaos_entity.h"
 #include "code_080D73B8.h"
 #include "syscalls.h"
 #include "code/code_08039340.h"
@@ -28,8 +29,8 @@ struct HitBox {
     u8 w;
     u8 h;
 };
-#define OFFSET_X(e) ((e)->unk_4F8.whole)
-#define OFFSET_Y(e) ((e)->unk_4FC.whole)
+#define OFFSET_X(e) (CHAOS_OFFSET_X((e)))
+#define OFFSET_Y(e) (CHAOS_OFFSET_Y((e)))
 void ChaosSeedShot_Update(struct EwramData_EntityData *entity);
 void ChaosSeedShot_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 extern void ChaosSpark_Update(struct EwramData_EntityData *);
@@ -40,9 +41,9 @@ extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
 extern s32 Entity_AimVelocityAtPoint(struct EwramData_EntityData *, s32, s32, s32);
 
-#define OFFSET_X(e) ((e)->unk_4F8.whole)
-#define OFFSET_Y(e) ((e)->unk_4FC.whole)
-#define REFLECTED(e) ((e)->unk_504.part8.unk_504)
+#define OFFSET_X(e) (CHAOS_OFFSET_X((e)))
+#define OFFSET_Y(e) (CHAOS_OFFSET_Y((e)))
+#define REFLECTED(e) (CHAOS_SHOT_REFLECTED((e)))
 #define TO_PIXELS(d) ((d) < 0 ? -(-(d) >> 16) : (d) >> 16)
 
 /* Orb hit: lose HP; at 0 switch to the breaking state 10. */
@@ -68,9 +69,9 @@ void ChaosOrb_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 /* Create a shell piece (frame 3 + frame) over the orb for `timer` frames. */
 void ChaosOrb_CreateShellPiece(struct EwramData_EntityData *orb, s32 frame, s32 timer)
 {
-    struct EwramData_EntityData *owner = orb->unk_4F4.unk_4F4_entity;
+    struct EwramData_EntityData *owner = CHAOS_LINK(orb);
     struct EwramData_EntityData *piece = EntityCreateInRange(0x49, 0xCF, (u32 *)ChaosShellPiece_Update);
-    struct ChaosData *data = (struct ChaosData *)owner->unk_504.whole;
+    struct ChaosData *data = (struct ChaosData *)CHAOS_DATA(owner);
 
     if (piece != NULL)
     {
@@ -85,7 +86,7 @@ void ChaosOrb_CreateShellPiece(struct EwramData_EntityData *orb, s32 frame, s32 
         piece->animMode = 2;
         piece->animFrame = frame + 3;
         piece->unk_518.part8.enemyId = orb->unk_518.part8.enemyId;
-        piece->unk_4F4.unk_4F4_entity = orb;
+        CHAOS_LINK(piece) = orb;
         piece->scrollWithBg = 0;
         piece->timer = timer;
         piece->drawFunc = (u32 *)Sprite_DrawEntity;
@@ -96,7 +97,7 @@ void ChaosOrb_CreateShellPiece(struct EwramData_EntityData *orb, s32 frame, s32 
 void ChaosShellPiece_Update(struct EwramData_EntityData *entity)
 {
     u8 unused[16];
-    struct EwramData_EntityData *orb = entity->unk_4F4.unk_4F4_entity;
+    struct EwramData_EntityData *orb = CHAOS_LINK(entity);
 
     if (entity->state == 0)
     {
@@ -127,10 +128,10 @@ void ChaosShellPiece_Update(struct EwramData_EntityData *entity)
  * ChaosSeedShot_OnHit). */
 void ChaosOrb_SpawnSeedShot(struct EwramData_EntityData *orb, s32 x, s32 y, s32 delay)
 {
-    struct EwramData_EntityData *owner = orb->unk_4F4.unk_4F4_entity;
+    struct EwramData_EntityData *owner = CHAOS_LINK(orb);
     struct EwramData_EntityData *shot = EntityCreateInRange(0x49, 0xCF, (u32 *)ChaosSeedShot_Update);
     struct HitBox box = { -3, -3, 6, 10 };
-    struct ChaosData *data = (struct ChaosData *)owner->unk_504.whole;
+    struct ChaosData *data = (struct ChaosData *)CHAOS_DATA(owner);
     if (shot != NULL)
     {
         s32 graphics;
@@ -151,7 +152,7 @@ void ChaosOrb_SpawnSeedShot(struct EwramData_EntityData *orb, s32 x, s32 y, s32 
         shot->hit.flags &= ~4;
         shot->hit.flags &= ~2;
         shot->unk_518.part8.enemyId = orb->unk_518.part8.enemyId;
-        shot->unk_4F4.unk_4F4_entity = orb;
+        CHAOS_LINK(shot) = orb;
         shot->scrollWithBg = 0;
         shot->timer = delay;
         shot->hidden = 1;

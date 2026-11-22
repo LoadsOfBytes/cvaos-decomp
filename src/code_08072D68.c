@@ -1,5 +1,6 @@
 /* Manticore_UpdateAttack: enemy attack sequence that spawns two projectiles on frame 14. */
 #include "code_08009A0.h"
+#include "manticore_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -19,7 +20,7 @@ struct FramePairBits32 { u32 value:16; };
  */
 void Manticore_UpdateAttack(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = ENTITY_OWNER(entity);
 
     switch (entity->subState)
     {
@@ -60,11 +61,11 @@ void Manticore_UpdateAttack(struct EwramData_EntityData *entity)
         entity->subState++;
         parent->unk_500.part8.unk_503 = 0;
         entity->timer = 0;
-        entity->unk_508.part8.unk_508 = 0;
+        MANTICORE_SHOT_COUNT(entity) = 0;
         if ((RandomNumberGenerator() & 0xFF) <= 0x7F)
-            entity->unk_508.part8.unk_509 = 1;
+            MANTICORE_SHOT_TOTAL(entity) = 1;
         else
-            entity->unk_508.part8.unk_509 = (RandomNumberGenerator() % 2) + 2;
+            MANTICORE_SHOT_TOTAL(entity) = (RandomNumberGenerator() % 2) + 2;
         break;
     case 11:
     {
@@ -79,7 +80,7 @@ void Manticore_UpdateAttack(struct EwramData_EntityData *entity)
         m &= FRAME_PAIR(entity);
         if (m == 0x14)
         {
-            if ((s8)++entity->unk_508.part8.unk_508 < (s8)entity->unk_508.part8.unk_509)
+            if ((s8)++MANTICORE_SHOT_COUNT(entity) < (s8)MANTICORE_SHOT_TOTAL(entity))
             {
                 Anim_StartIndexed(entity, 4, 0, 0);
                 entity->animTimer = 0;

@@ -1,5 +1,6 @@
 /* Chronomage casting and transition sequence. */
 #include "code_08009A0.h"
+#include "player_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
@@ -36,7 +37,7 @@ void Chronomage_UpdateCast(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
     case 0:
-        if (gEwramData->playerState.player->unk_4F4.whole & 0x360)
+        if (PLAYER_ACTION_FLAGS(gEwramData->playerState.player) & 0x360)
         {
             entity->subState = 2;
             break;

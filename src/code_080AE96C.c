@@ -38,7 +38,7 @@ void Dryad_ThrowSeed(struct EwramData_EntityData *parent)
     {
         u16 x, y;
         s32 vx, velocity;
-        shot->unk_4F8.unk_4F8_entity = parent;
+        ENTITY_OWNER(shot) = parent;
         shot->flipX = parent->flipX;
         /* Signed spread -10..5, stored modulo 65536 before mirroring. */
         x = (RandomNumberGenerator() & 15) + 0xFFF6;

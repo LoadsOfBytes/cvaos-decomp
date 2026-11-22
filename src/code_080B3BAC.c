@@ -1,5 +1,6 @@
 /* HeadStack_Create: create a stack of child segments from table sUnk_081193DC; matched. */
 #include "code_08009A0.h"
+#include "head_stack_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -58,16 +59,16 @@ void HeadStack_Create(struct EwramData_EntityData *entity, s32 type)
     else if (entity->unk_514.part16.spawnParam0 > 8)
         entity->unk_514.part16.spawnParam0 = 8;
     savedY = entity->posY.whole;
-    slot = entity->unk_4FC.bytes;
+    slot = HEAD_STACK_SLOTS(entity);
     i = 1;
     slots = slot;
     goto test;
 body:
 
-        *slot = child->unk_4F4.part8.unk_4F4;
-        child->unk_4F4.part8.unk_4F5 = i - 1;
-        child->unk_4F8.unk_4F8_entity = entity;
-        child->unk_4F4.part8.unk_4F6 = type;
+        *slot = ENTITY_INDEX(child);
+        HEAD_STACK_LEVEL(child) = i - 1;
+        ENTITY_OWNER(child) = entity;
+        HEAD_STACK_TYPE(child) = type;
         {
             register s32 off asm("r3") = type << 4; /* FAKEMATCH: pinned register */
             struct HeadStackGraphicsView *info = (void *)(off + (u32)sUnk_081193DC);

@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -50,7 +51,7 @@ struct Unk_08028018_Block {
  */
 void SkillNeedlesUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
     struct Unk_08028018_Block *block;
     s32 i;
     s32 angle;
@@ -82,8 +83,8 @@ void SkillNeedlesUse(struct EwramData_EntityData *entity)
     case 1:
         Anim_Update(entity);
         if (--entity->timer == 0)
-            entity->unk_4FC.part8.unk_4FC = 1;
-        if ((u8)entity->unk_4FC.part8.unk_4FC == 0)
+            RED_SOUL_HIT(entity) = 1;
+        if ((u8)RED_SOUL_HIT(entity) == 0)
             break;
         entity->velY.whole = -0x10000 - (RandomNumberGenerator() & 0x7FFF);
         entity->accelY.whole = 0x2000;
@@ -110,7 +111,7 @@ void SkillNeedlesUse(struct EwramData_EntityData *entity)
             break;
         }
     case 3:
-        gEwramData->playerState.activeRedSoulEntities[entity->unk_4FC.part16.unk_4FE[0]] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         break;

@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "dead_warrior_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
@@ -31,6 +32,6 @@ void EnemyDeadWarriorCreate(struct EwramData_EntityData *entity)
         entity->posY.part16.integer++;
         entity->scrollWithBg = 1;
         entity->state = 0;
-        entity->unk_500.part8.unk_500 = 0x32;
+        DEAD_WARRIOR_CHARGE_FRAME(entity) = 0x32;
     }
 }

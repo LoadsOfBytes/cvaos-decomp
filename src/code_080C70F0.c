@@ -1,5 +1,6 @@
 /* Scripted movement along a step table. */
 #include "code/code_08039340.h"
+#include "nemesis_entity.h"
 #include "code_080D73B8.h"
 #include "structs/ewram.h"
 
@@ -14,7 +15,7 @@ struct Unk_C70F0_Step {
 extern struct Unk_C70F0_Step sNemesisScriptedAttackSteps[];
 extern void Nemesis_UpdateRotatedBoxes(struct EwramData_EntityData *);
 
-#define FLAGS(e) ((e)->unk_4FC.part16.unk_4FC)
+#define FLAGS(e) (NEMESIS_FLAGS((e)))
 #define STEP(e) ((e)->unk_4F4.part8.unk_4F7)
 
 /**
@@ -45,15 +46,15 @@ void Nemesis_UpdateScriptedAttack(struct EwramData_EntityData *entity)
         dx <<= 16;
         entity->velX.whole = dx / frames;
         entity->velY.whole = (step->dy << 16) / frames;
-        entity->unk_500.part16.unk_502 = step->rotation / frames;
+        NEMESIS_TURN(entity) = step->rotation / frames;
         if (!mirrored)
-            entity->unk_500.part16.unk_502 = -entity->unk_500.part16.unk_502;
+            NEMESIS_TURN(entity) = -NEMESIS_TURN(entity);
         entity->subState++;
     case 2:
         entity->posX.whole += entity->velX.whole;
         entity->posY.whole += entity->velY.whole;
-        entity->unk_500.part16.unk_500 += entity->unk_500.part16.unk_502;
-        ObjAffine_Set(entity->unk_500.part16.unk_500, 0x10000, 0x10000, 0, 0, entity->affineIndex);
+        NEMESIS_ANGLE(entity) += NEMESIS_TURN(entity);
+        ObjAffine_Set(NEMESIS_ANGLE(entity), 0x10000, 0x10000, 0, 0, entity->affineIndex);
         if (--entity->timer == 0)
         {
             STEP(entity)++;

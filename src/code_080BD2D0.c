@@ -1,5 +1,6 @@
 /* Hitbox entity bound to an owner slot. */
 #include "code_08009A0.h"
+#include "death_entity.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
 
@@ -17,7 +18,7 @@ extern void DeathFloatingWeaponHitBox_OnHit(void);
 void DeathFloatingWeaponHitBox_Update(struct EwramData_EntityData *entity)
 {
     u32 buf[4];
-    struct EwramData_EntityData *owner = &gEwramData->entityData[(u8)entity->unk_4F8.part8.unk_4F8];
+    struct EwramData_EntityData *owner = &gEwramData->entityData[(u8)DEATH_OWNER_INDEX(entity)];
 
     if ((s16)owner->unk_518.part16.hp <= 0)
     {

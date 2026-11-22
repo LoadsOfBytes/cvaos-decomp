@@ -1,5 +1,6 @@
 /* EventScene03_SpawnFlyingPart. */
 #include "code_08009A0.h"
+#include "event_scene03.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -20,8 +21,8 @@ struct EwramData_EntityData *EventScene03_SpawnFlyingPart(struct EwramData_Entit
     entity->updateFunc = (u32 *)EventScene03FlyingPart_Update;
     entity->posX.part16.integer = x;
     entity->posY.part16.integer = y;
-    entity->unk_4F4.part8.unk_4F5 = parent->unk_4F4.part8.unk_4F4;
-    entity->unk_508.part16.unk_50A = (RandomNumberGenerator() % 128) << 9;
+    ENTITY_PARENT_INDEX(entity) = ENTITY_INDEX(parent);
+    EVENT03_PART_WAVE(entity) = (RandomNumberGenerator() % 128) << 9;
     Anim_StartIndexed(entity, 4, 0, 1);
     flip = 0;
     if (entity->posX.whole < gEwramData->playerState.player->posX.whole)

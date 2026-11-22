@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "minotaur_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -12,13 +13,13 @@ extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, void *graphic
  */
 void MinotaurSwingTrail_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *parent = ENTITY_OWNER(entity);
     u16 slot;
     s32 angle;
     s32 rot;
     s32 dx, dy;
 
-    if (entity->state != 0 && parent->unk_4F4.part8.unk_4F4 != entity->unk_4F4.part8.unk_4F5)
+    if (entity->state != 0 && ENTITY_INDEX(parent) != ENTITY_PARENT_INDEX(entity))
         entity->state = 2;
     switch (entity->state)
     {
@@ -38,11 +39,11 @@ void MinotaurSwingTrail_Update(struct EwramData_EntityData *entity)
     case 1:
         if (parent->animScriptIndex != 4)
             goto hide;
-        if ((u8)(parent->unk_4F8.part8.unk_4F8 - 4) > 1)
+        if ((u8)(MINOTAUR_ANIM_STEP(parent) - 4) > 1)
         {
             entity->timer = 0;
             entity->hidden = 1;
-            entity->unk_4FC.part16.unk_4FC = 0;
+            MINOTAUR_TRAIL_ANGLE(entity) = 0;
             return;
         }
         if (entity->timer > 6)
@@ -53,12 +54,12 @@ void MinotaurSwingTrail_Update(struct EwramData_EntityData *entity)
         }
         entity->timer++;
         entity->hidden = 0;
-        entity->subState = parent->unk_4F8.part8.unk_4F8 - 4;
+        entity->subState = MINOTAUR_ANIM_STEP(parent) - 4;
         entity->flipX = parent->flipX;
         entity->posX.part16.integer = parent->posX.part16.integer;
         entity->posY.part16.integer = parent->posY.part16.integer - 0x10;
-        entity->unk_4FC.part16.unk_4FC += -0x400;
-        rot = entity->unk_4FC.part16.unk_4FC;
+        MINOTAUR_TRAIL_ANGLE(entity) += -0x400;
+        rot = MINOTAUR_TRAIL_ANGLE(entity);
         angle = (rot - 0x6000) & 0xFFFF;
         dx = Sin(angle + 0x4000) * 56;
         dy = Sin(angle) << 6;

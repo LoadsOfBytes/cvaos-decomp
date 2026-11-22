@@ -49,7 +49,7 @@ s32 Alastor_IsTargetInUpperBox(struct EwramData_EntityData *entity, u16 width, u
  */
 void AlastorAfterimage_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = &gEwramData->entityData[entity->unk_4F4.part8.unk_4F5];
+    struct EwramData_EntityData *owner = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
 
     if (--entity->timer == 0xFF || owner->updateFunc == NULL)
     {

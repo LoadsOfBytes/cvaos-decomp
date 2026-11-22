@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "afterimage_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -13,11 +14,11 @@ extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *);
  */
 void Afterimage_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = entity->unk_4FC.unk_4FC_entity;
-    struct TrailSample *history = (struct TrailSample *)entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *owner = AFTERIMAGE_OWNER(entity);
+    struct TrailSample *history = (struct TrailSample *)AFTERIMAGE_HISTORY_PTR(entity);
     s32 i;
     struct BgLayerState *bg;
-    if (!owner || !owner->updateFunc || ((entity->unk_504.whole & 0x20) && (s16)owner->unk_518.part16.hp <= 0))
+    if (!owner || !owner->updateFunc || ((AFTERIMAGE_FLAGS(entity) & 0x20) && (s16)owner->unk_518.part16.hp <= 0))
         entity->state = 3;
     switch (entity->state)
     {
@@ -36,7 +37,7 @@ void Afterimage_Update(struct EwramData_EntityData *entity)
         break;
     case 3:
     destroy:
-        Heap_Free(entity->unk_4F8.unk_4F8_entity);
+        Heap_Free(AFTERIMAGE_HISTORY_PTR(entity));
         EntityDelete(entity);
         return;
     }
@@ -53,7 +54,7 @@ void Afterimage_Update(struct EwramData_EntityData *entity)
     history[0].frame = owner->animFrame;
     history[0].flip = owner->flipX;
     entity->timer++;
-    if ((entity->unk_504.whole & 0x10) && (entity->timer & 3) == 0)
+    if ((AFTERIMAGE_FLAGS(entity) & 0x10) && (entity->timer & 3) == 0)
     {
         if (entity->subState == 0 || --entity->subState == 0)
         {
@@ -61,12 +62,12 @@ void Afterimage_Update(struct EwramData_EntityData *entity)
             return;
         }
     }
-    if (entity->unk_504.whole & 4)
+    if (AFTERIMAGE_FLAGS(entity) & 4)
         entity->animFrame = owner->animFrame;
     else
         entity->animFrame = history[entity->subState].frame;
     entity->flipX = history[entity->subState].flip;
-    if (entity->unk_504.whole & 0x80)
+    if (AFTERIMAGE_FLAGS(entity) & 0x80)
         entity->flipX ^= 1;
     {
         s32 offset = entity->subState * 8; struct TrailSample *sample; offset += (u32)history; sample = (struct TrailSample *)offset;

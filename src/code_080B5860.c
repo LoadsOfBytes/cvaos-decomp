@@ -2,6 +2,7 @@
  * The local register bindings preserve agbcc's callback reloads and child
  * stores. Matching does not establish the original source spelling. */
 #include "code/code_08040A38.h"
+#include "balore_entity.h"
 #include "code_080D73B8.h"
 #include "structs/ewram.h"
 
@@ -30,7 +31,7 @@ void Balore_UpdateAttack(struct EwramData_EntityData *entity)
             effect->posX.whole = entity->posX.whole;
             effect->posY.whole = entity->posY.whole;
             effect->scrollWithBg = 1;
-            effect->unk_4FC.unk_4FC_entity = entity;
+            BALORE_BODY(effect) = entity;
         }
         {
             u32 *callback = (u32 *)BaloreAffineEffect_Update;
@@ -44,7 +45,7 @@ void Balore_UpdateAttack(struct EwramData_EntityData *entity)
             {
                 register struct EwramData_EntityData *child asm("r1") = effect; /* FAKEMATCH: pinned register */
                 child->subState = 1;
-                child->unk_4FC.unk_4FC_entity = entity;
+                BALORE_BODY(child) = entity;
             }
         }
         PlaySong(0x1D5);
@@ -64,7 +65,7 @@ void Balore_UpdateAttack(struct EwramData_EntityData *entity)
             effect->posX.whole = entity->posX.whole;
             effect->posY.whole = entity->posY.whole;
             effect->scrollWithBg = 1;
-            effect->unk_4FC.unk_4FC_entity = entity;
+            BALORE_BODY(effect) = entity;
         }
         entity->subState = 2;
         break;

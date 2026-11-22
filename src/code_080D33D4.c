@@ -2,6 +2,7 @@
  * The special 0xD0 path, as in the
  * original, does not define a return value. */
 #include "code_08009A0.h"
+#include "graham_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -29,7 +30,7 @@ struct EwramData_EntityData *Graham_CreateBodyOverlay(struct EwramData_EntityDat
         EntityDelete(e);
         return NULL;
     }
-    e->unk_4F4.part8.unk_4F5 = owner->unk_4F4.part8.unk_4F4;
+    ENTITY_PARENT_INDEX(e) = ENTITY_INDEX(owner);
     e->spriteLayer = owner->spriteLayer + 1;
     e->flipX = owner->flipX;
     e->posX.whole = owner->posX.whole;
@@ -44,8 +45,8 @@ struct EwramData_EntityData *Graham_CreateBodyOverlay(struct EwramData_EntityDat
     e->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
     Anim_StartIndexed(e, 0, 0, 1);
     Anim_Update(e);
-    e->unk_50C.whole = (s32)Graham_CreateSidePart(e, 0);
-    e->unk_510.whole = (s32)Graham_CreateSidePart(e, 1);
+    GRAHAM_SIDE_PART_0(e) = (s32)Graham_CreateSidePart(e, 0);
+    GRAHAM_SIDE_PART_1(e) = (s32)Graham_CreateSidePart(e, 1);
     Graham_CreateAttacker(e);
 
     if (gEwramData->gameState.bestiaryPreview)

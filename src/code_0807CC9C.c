@@ -31,7 +31,7 @@ void AluraUne_SpawnRootWave(struct EwramData_EntityData *parent, s32 index, s32 
         part->hit.flags |= 4;
         part->scrollWithBg = 1;
         part->spriteLayer = parent->spriteLayer;
-        part->unk_4F8.unk_4F8_entity = parent;
+        ENTITY_OWNER(part) = parent;
         part->posX.part16.integer = parent->posX.part16.integer;
         part->posY.part16.integer = parent->posY.part16.integer;
         part->flipX = facing;

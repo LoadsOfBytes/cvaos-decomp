@@ -1,8 +1,22 @@
 /* Tiny Devil update and states from 0x080C47F8. */
 #include "code_08009A0.h"
+#include "imp_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
+
+/*
+ * Imp work slots: bob phase of the hovering, frames until the next attack,
+ * braking bits (1 = braking horizontally, 2 = vertically) and the two
+ * "in position" flags (x / y) that start the attack when both are set, and
+ * the frame counter of the grab. Token-identical expansion.
+ */
+#define IMP_BOB_PHASE(e) e->unk_500.part16.unk_500
+#define IMP_ATTACK_TIMER(e) e->unk_4F8.part16.unk_4FA
+#define IMP_BRAKING(e) e->unk_4FC.part16.unk_4FC
+#define IMP_IN_POSITION_X(e) e->unk_504.part8.unk_504
+#define IMP_IN_POSITION_Y(e) e->unk_504.part8.unk_505
+#define IMP_GRAB_TIMER(e) e->unk_504.part8.unk_506
 
 extern void Imp_UpdateState4Animation(struct EwramData_EntityData *entity);
 extern s32 Enemy_IsStunned(struct EwramData_EntityData *entity);
@@ -96,8 +110,8 @@ void Imp_UpdateFlight(struct EwramData_EntityData *entity)
                 entity->accelY.whole = 0;
                 entity->stage++;
             case 1:
-                entity->velY.whole = Sin((u16)entity->unk_500.part16.unk_500 + 0x4000) / 4;
-                entity->unk_500.part16.unk_500 += 0x200;
+                entity->velY.whole = Sin((u16)IMP_BOB_PHASE(entity) + 0x4000) / 4;
+                IMP_BOB_PHASE(entity) += 0x200;
                 entity->posY.whole += entity->velY.whole;
                 entity->velY.whole += entity->accelY.whole;
                 return;
@@ -107,17 +121,17 @@ void Imp_UpdateFlight(struct EwramData_EntityData *entity)
     {
         entity->stage = 0;
     }
-    if (entity->unk_4F8.part16.unk_4FA != 0)
-        entity->unk_4F8.part16.unk_4FA--;
+    if (IMP_ATTACK_TIMER(entity) != 0)
+        IMP_ATTACK_TIMER(entity)--;
     Entity_FaceTarget(entity);
     switch (entity->subState)
     {
         case 0:
-            entity->unk_4F8.part16.unk_4FA = RandomNumberGenerator() % 360 + 100;
-            entity->unk_4FC.part16.unk_4FC = 0;
+            IMP_ATTACK_TIMER(entity) = RandomNumberGenerator() % 360 + 100;
+            IMP_BRAKING(entity) = 0;
             entity->subState++;
-            entity->unk_504.part8.unk_504 = 0;
-            entity->unk_504.part8.unk_505 = 0;
+            IMP_IN_POSITION_X(entity) = 0;
+            IMP_IN_POSITION_Y(entity) = 0;
             entity->velX.whole = 0;
             entity->accelY.whole = 0;
             entity->velY.whole = 0;
@@ -128,21 +142,21 @@ void Imp_UpdateFlight(struct EwramData_EntityData *entity)
             if (dy > -45)
                 entity->accelY.whole = -entity->accelY.whole;
         case 1:
-            if (entity->unk_4FC.part16.unk_4FC & 1)
+            if (IMP_BRAKING(entity) & 1)
             {
                 s32 hi = ABS(entity->accelX.whole);
                 s32 lo = -ABS(entity->accelX.whole);
 
                 if ((entity->velX.whole >= lo && entity->velX.whole <= hi) || entity->velX.whole == 0)
                 {
-                    entity->unk_4FC.part16.unk_4FC &= ~1;
+                    IMP_BRAKING(entity) &= ~1;
                     entity->velX.whole = 0;
                     entity->accelX.whole = 0;
-                    entity->unk_504.part8.unk_504 = 1;
+                    IMP_IN_POSITION_X(entity) = 1;
                 }
                 else
                 {
-                    entity->unk_504.part8.unk_504 = 0;
+                    IMP_IN_POSITION_X(entity) = 0;
                 }
             }
             else if (dx > 70 || dx < -70)
@@ -157,31 +171,31 @@ void Imp_UpdateFlight(struct EwramData_EntityData *entity)
             }
             else if (entity->velX.whole != 0 && entity->accelX.whole != 0)
             {
-                entity->unk_4FC.part16.unk_4FC |= 1;
+                IMP_BRAKING(entity) |= 1;
                 entity->accelX.whole = -entity->accelX.whole;
             }
             else
             {
                 entity->velX.whole = 0;
                 entity->accelX.whole = 0;
-                entity->unk_504.part8.unk_504 = 1;
+                IMP_IN_POSITION_X(entity) = 1;
             }
 
-            if (entity->unk_4FC.part16.unk_4FC & 2)
+            if (IMP_BRAKING(entity) & 2)
             {
                 s32 hi = ABS(entity->accelY.whole);
                 s32 lo = -ABS(entity->accelY.whole);
 
                 if ((entity->velY.whole >= lo && entity->velY.whole <= hi) || entity->velY.whole == 0)
                 {
-                    entity->unk_4FC.part16.unk_4FC &= ~2;
+                    IMP_BRAKING(entity) &= ~2;
                     entity->velY.whole = 0;
                     entity->accelY.whole = 0;
-                    entity->unk_504.part8.unk_505 = 1;
+                    IMP_IN_POSITION_Y(entity) = 1;
                 }
                 else
                 {
-                    entity->unk_504.part8.unk_505 = 0;
+                    IMP_IN_POSITION_Y(entity) = 0;
                 }
             }
             else if (dy > -60 || dy < -80)
@@ -196,17 +210,17 @@ void Imp_UpdateFlight(struct EwramData_EntityData *entity)
             }
             else if (entity->velY.whole != 0 && entity->accelY.whole != 0)
             {
-                entity->unk_4FC.part16.unk_4FC |= 2;
+                IMP_BRAKING(entity) |= 2;
                 entity->accelY.whole = -entity->accelY.whole;
             }
             else
             {
                 entity->velY.whole = 0;
                 entity->accelY.whole = 0;
-                entity->unk_504.part8.unk_505 = 1;
+                IMP_IN_POSITION_Y(entity) = 1;
             }
 
-            if (entity->unk_504.part8.unk_504 && entity->unk_504.part8.unk_505)
+            if (IMP_IN_POSITION_X(entity) && IMP_IN_POSITION_Y(entity))
             {
                 entity->velX.whole = 0;
                 entity->accelX.whole = 0;
@@ -216,15 +230,15 @@ void Imp_UpdateFlight(struct EwramData_EntityData *entity)
             }
             break;
         case 2:
-            entity->velY.whole = Sin((u16)entity->unk_500.part16.unk_500 + 0x4000) / 4;
-            entity->unk_500.part16.unk_500 += 0x200;
+            entity->velY.whole = Sin((u16)IMP_BOB_PHASE(entity) + 0x4000) / 4;
+            IMP_BOB_PHASE(entity) += 0x200;
             if (dx > 70 || dx < -70 || dy < -80 || dy > 0)
             {
                 entity->subState = 1;
-                entity->unk_504.part8.unk_504 = 0;
-                entity->unk_504.part8.unk_505 = 0;
+                IMP_IN_POSITION_X(entity) = 0;
+                IMP_IN_POSITION_Y(entity) = 0;
             }
-            if (entity->unk_4F8.part16.unk_4FA == 0 && !EntityIsOutsideScreen(entity, 4))
+            if (IMP_ATTACK_TIMER(entity) == 0 && !EntityIsOutsideScreen(entity, 4))
             {
                 entity->velX.whole = 0;
                 entity->accelX.whole = 0;
@@ -354,7 +368,7 @@ void Imp_UpdateGrab(struct EwramData_EntityData *entity)
     s32 targetX = Target_GetX(entity) + bg->xPos.whole;
     s32 targetY = Target_GetY(entity) + bg->yPos.whole - 0x200000;
     struct InputData *input = &gEwramData->inputData;
-    struct EwramData_EntityData *other = &gEwramData->entityData[entity->unk_4F4.part16.unk_4F6];
+    struct EwramData_EntityData *other = &gEwramData->entityData[IMP_LINK_INDEX(entity)];
 
     Entity_FaceTarget(entity);
     switch (entity->subState)
@@ -368,7 +382,7 @@ void Imp_UpdateGrab(struct EwramData_EntityData *entity)
             entity->velY.whole = 0;
             entity->accelY.whole = 0;
             entity->timer = 0;
-            entity->unk_504.part8.unk_506 = 0;
+            IMP_GRAB_TIMER(entity) = 0;
             entity->subState = 1;
         case 1:
             if (IsNotFlippedX(gEwramData->playerState.player))
@@ -387,7 +401,7 @@ void Imp_UpdateGrab(struct EwramData_EntityData *entity)
             else
                 SetPlayerInput(1, 0);
             if (input->newInput != 0 && input->newInput != 4 && input->newInput != 8
-                && (u8)entity->unk_504.part8.unk_506++ > 19)
+                && (u8)IMP_GRAB_TIMER(entity)++ > 19)
             {
                 if (entity->velX.whole > 0)
                     entity->velX.whole = -0x10000;
@@ -431,7 +445,7 @@ extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *entity);
  */
 void Imp_UpdateDeath(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *other = &gEwramData->entityData[entity->unk_4F4.part16.unk_4F6];
+    struct EwramData_EntityData *other = &gEwramData->entityData[IMP_LINK_INDEX(entity)];
 
     switch (entity->subState)
     {
@@ -541,7 +555,7 @@ void ImpDeathPiece_Update(struct EwramData_EntityData *entity)
     void *palette = sImpTinyDevilPalette;
     void *sprite = sImpTinyDevilSpriteSheet;
     u8 *graphics = sImpTinyDevilGfx;
-    struct EwramData_EntityData *other = &gEwramData->entityData[entity->unk_4F4.part16.unk_4F6];
+    struct EwramData_EntityData *other = &gEwramData->entityData[IMP_LINK_INDEX(entity)];
     s32 gfx;
 
     switch (entity->state)

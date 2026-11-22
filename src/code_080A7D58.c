@@ -1,5 +1,6 @@
 /* Sky Fish: normal movement and death sequence. */
 #include "code_08009A0.h"
+#include "sky_fish_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern void EntityMove(struct EwramData_EntityData *);
@@ -19,7 +20,7 @@ void SkyFish_UpdateFly(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
     case 0:
-        if ((s8)entity->unk_4FC.part8.unk_4FD != 0)
+        if ((s8)SKY_FISH_FROM_RIGHT(entity) != 0)
             entity->posX.whole = 0x1000000;
         else
             entity->posX.whole = -0x100000;
@@ -27,7 +28,7 @@ void SkyFish_UpdateFly(struct EwramData_EntityData *entity)
         entity->flipX = Entity_IsTargetRight(entity);
         if (gEwramData->gameState.timeStopTimer != 0)
             entity->deleteRequested = 1;
-        else if (entity->unk_4FC.part16.unk_4FE[0]-- <= 1)
+        else if (SKY_FISH_DELAY(entity)-- <= 1)
         {
             entity->subState++;
             entity->hidden = 0;
@@ -46,7 +47,7 @@ void SkyFish_UpdateFly(struct EwramData_EntityData *entity)
             if (gEwramData->gameState.timeStopTimer != 0)
             {
                 entity->subState++;
-                entity->unk_4FC.part8.unk_4FC = 0;
+                SKY_FISH_DARTING(entity) = 0;
                 Anim_StartIndexed(entity, 0, 0, 1);
                 if (entity->flipX)
                     entity->velX.whole = 0x10000;
@@ -63,7 +64,7 @@ void SkyFish_UpdateFly(struct EwramData_EntityData *entity)
         {
             Anim_Start(entity, &sSkyFishFlyAnimScript, 0, 0);
             entity->subState = 1;
-            entity->unk_4FC.part8.unk_4FC = 1;
+            SKY_FISH_DARTING(entity) = 1;
             if (entity->flipX)
                 entity->velX.whole = 0x1A0000;
             else

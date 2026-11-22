@@ -26,8 +26,8 @@ static inline void SetPlayerAnim(struct EwramData_EntityData *entity, s32 anim)
     {
         Anim_StartIndexed(entity, anim, 3, 0);
         HitBox_SetBody(entity, &box);
-        entity->unk_504.part16.unk_504 = 0xFF;
-        entity->unk_4F4.whole &= ~0x200000;
+        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
+        PLAYER_ACTION_FLAGS(entity) &= ~0x200000;
         pal = sSomaAnimPalettes[anim];
         if (PLAYER_ANIM_PALETTE(entity) != pal)
         {
@@ -52,7 +52,7 @@ void Soma_StartDeath(struct EwramData_EntityData *entity)
     SetPlayerAnim(entity, 0x33);
     entity->hit.flags |= 4;
     BlueSoul_StopAll();
-    entity->unk_4F4.whole &= 0xEFFFFE9F;
+    PLAYER_ACTION_FLAGS(entity) &= 0xEFFFFE9F;
     gEwramData->playerState.actionLockFlags |= 0xE;
     gEwramData->playerState.pendingHitDamage = 0;
     if (!entity->flipX)

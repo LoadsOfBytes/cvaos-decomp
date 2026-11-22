@@ -1,5 +1,6 @@
 /* Disc Armor disc ring. */
 #include "code_08009A0.h"
+#include "disc_armor_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, u8 *, void *, u8, void *);
@@ -47,15 +48,15 @@ void DiscArmorRing_Update(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    dist = entity->unk_504.whole;
+    dist = DISC_ARMOR_RING_LENGTH(entity);
     if (dist > 0x600000)
         dist = 0x600000;
     dist /= 3;
     scale = dist / 32;
-    entity->unk_4FC.whole = Sin(entity->unk_4F8.whole + 0x4000) << 5;
-    y = Sin(entity->unk_4F8.whole) << 5;
-    entity->unk_500.whole = y;
-    entity->unk_4FC.whole = (s32)entity->unk_4FC.whole / 0x10000 * scale;
-    entity->unk_500.whole = y / 0x10000 * scale;
-    ObjAffine_Set(entity->unk_4F8.whole, scale, 0x10000, 0, 0, entity->affineIndex);
+    DISC_ARMOR_RING_STEP_X(entity) = Sin(DISC_ARMOR_RING_ANGLE(entity) + 0x4000) << 5;
+    y = Sin(DISC_ARMOR_RING_ANGLE(entity)) << 5;
+    DISC_ARMOR_RING_STEP_Y(entity) = y;
+    DISC_ARMOR_RING_STEP_X(entity) = (s32)DISC_ARMOR_RING_STEP_X(entity) / 0x10000 * scale;
+    DISC_ARMOR_RING_STEP_Y(entity) = y / 0x10000 * scale;
+    ObjAffine_Set(DISC_ARMOR_RING_ANGLE(entity), scale, 0x10000, 0, 0, entity->affineIndex);
 }

@@ -1,5 +1,6 @@
 /* Objects 0x25..0x28 0x08057BAC..0x08058507. */
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -32,7 +33,7 @@ extern u8 sObject25SpriteSheet[];
 void Object25_UpdateState(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
-    struct EwramData_EntityData *spawner = entity->unk_500.unk_500_entity;
+    struct EwramData_EntityData *spawner = OBJECT25_SPAWNER(entity);
     u32 hitInfo[4];
 
     switch (entity->subState)
@@ -88,8 +89,8 @@ void Object25_UpdateState(struct EwramData_EntityData *entity)
             if ((s8)--entity->timer > 0)
                 break;
             entity->deleteRequested = 1;
-            if (spawner != NULL && spawner->updateFunc != NULL && spawner->unk_4FC.whole != 0)
-                spawner->unk_4FC.whole--;
+            if (spawner != NULL && spawner->updateFunc != NULL && OBJECT25_CHILD_COUNT(spawner) != 0)
+                OBJECT25_CHILD_COUNT(spawner)--;
             return;
     }
     Anim_Update(entity);
@@ -174,8 +175,8 @@ void Object26Create(struct EwramData_EntityData *entity)
     entity->flipX = 0;
     entity->scrollWithBg = 1;
     entity->hidden = 1;
-    entity->unk_4FC.part16.unk_4FE[0] = 0x5A;
-    entity->unk_4FC.part16.unk_4FC = 0x1E;
+    OBJECT26_CLOCK_28(entity) = 0x5A;
+    OBJECT26_CLOCK_27(entity) = 0x1E;
     entity->state = 0;
     child = EntityCreateInRange(0x1B, 0x48, (u32 *)Object28Update);
     if (child != NULL)
@@ -183,7 +184,7 @@ void Object26Create(struct EwramData_EntityData *entity)
         child->posX.part16.integer = entity->posX.part16.integer - 0x15;
         child->posY.part16.integer = entity->posY.part16.integer + 0x44;
         Object28Create(child);
-        child->unk_4F8.unk_4F8_entity = entity;
+        ENTITY_OWNER(child) = entity;
     }
     child = EntityCreateInRange(0x1B, 0x48, (u32 *)Object27Update);
     if (child != NULL)
@@ -191,7 +192,7 @@ void Object26Create(struct EwramData_EntityData *entity)
         child->posX.part16.integer = entity->posX.part16.integer + 0x12;
         child->posY.part16.integer = entity->posY.part16.integer + 0x2C;
         Object27Create(child);
-        child->unk_4F8.unk_4F8_entity = entity;
+        ENTITY_OWNER(child) = entity;
     }
 }
 
@@ -234,8 +235,8 @@ void Object26_UpdateState(struct EwramData_EntityData *entity)
     if (Target_IsInRect(entity->posX.part16.integer - 0x46, entity->posY.part16.integer - 0x64, 0x8C, 0xC8))
     {
         entity->hidden = 1;
-        entity->unk_4FC.part16.unk_4FC++;
-        entity->unk_4FC.part16.unk_4FE[0]++;
+        OBJECT26_CLOCK_27(entity)++;
+        OBJECT26_CLOCK_28(entity)++;
     }
     else
     {
@@ -298,16 +299,16 @@ void Object28Create(struct EwramData_EntityData *entity)
  */
 void Object28_UpdateState(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *controller = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *controller = ENTITY_OWNER(entity);
     s32 zero = 0;
     u32 hitBox = 0x1010FCF8;
 
     switch (entity->subState)
     {
         case 0:
-            if (controller->unk_4FC.part16.unk_4FE[0] < 0x78)
+            if (OBJECT26_CLOCK_28(controller) < 0x78)
                 break;
-            controller->unk_4FC.part16.unk_4FE[0] = zero;
+            OBJECT26_CLOCK_28(controller) = zero;
             entity->subState++;
             entity->hidden = 0;
             entity->velX.whole = 0xC000;
@@ -442,16 +443,16 @@ void Object27Create(struct EwramData_EntityData *entity)
  */
 void Object27_UpdateState(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *controller = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *controller = ENTITY_OWNER(entity);
     s32 zero = 0;
     u32 hitBox = 0x2010F0F8;
 
     switch (entity->subState)
     {
         case 0:
-            if (controller->unk_4FC.part16.unk_4FC < 0x78)
+            if (OBJECT26_CLOCK_27(controller) < 0x78)
                 break;
-            controller->unk_4FC.part16.unk_4FC = zero;
+            OBJECT26_CLOCK_27(controller) = zero;
             entity->subState++;
             entity->hidden = 0;
             entity->velX.whole = 0xC000;

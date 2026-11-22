@@ -17,7 +17,7 @@ struct EwramData_EntityData *Belmont_CreatePowerParticle(struct EwramData_Entity
         s32 graphics=ObjGfx_Find(sCommonObjectGfx);
         Sprite_Attach(effect,sCommonObjectSpriteSheet,graphics,6);
         effect->animFrame=64;
-        effect->unk_4F4.part8.unk_4F5=entity->unk_4F4.part8.unk_4F4;
+        ENTITY_PARENT_INDEX(effect)=ENTITY_INDEX(entity);
         effect->unk_4FC.part8.unk_4FC=1;
         {
             u32 jitter=RandomNumberGenerator();

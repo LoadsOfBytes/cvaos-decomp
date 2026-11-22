@@ -1,5 +1,6 @@
 /* Allocate an affine effect attached to an owner's entity slot. */
 #include "code_08009A0.h"
+#include "event_scene30.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern void EventScene30CenterEffect_Update(struct EwramData_EntityData *);
@@ -21,8 +22,8 @@ void EventScene30_CreateCenterEffect(struct EwramData_EntityData *owner)
         zero=0;
         Sprite_Attach(effect,sEventScene30SpriteSheet,slot,14);
         effect->drawFunc=(u32 *)Sprite_DrawEntity;
-        effect->unk_4F4.part8.unk_4F5=owner->unk_4F4.part8.unk_4F4;
-        effect->unk_500.whole=0x1A000;
+        ENTITY_PARENT_INDEX(effect)=ENTITY_INDEX(owner);
+        EVENT30_EFFECT_SCALE(effect)=0x1A000;
         slot=ObjAffine_Alloc(1);
         if(slot<0)
         {
@@ -32,7 +33,7 @@ fail:
         }
         effect->affineIndex=slot;
         effect->affine=1;
-        ObjAffine_Set(0x10000,effect->unk_500.whole,effect->unk_500.whole,0,zero,effect->affineIndex);
+        ObjAffine_Set(0x10000,EVENT30_EFFECT_SCALE(effect),EVENT30_EFFECT_SCALE(effect),0,zero,effect->affineIndex);
         effect->updateFunc=callback;
         effect->timer=32;
         effect->unk_4FC.part16.unk_4FC=zero;
@@ -42,7 +43,7 @@ fail:
         effect->velY.whole=0x800;
         effect->accelX.whole=-0x100;
         effect->accelY.whole=0x100;
-        effect->unk_508.part16.unk_50A=(s16)0xFE00;
+        EVENT30_EFFECT_SPIN(effect)=(s16)0xFE00;
         effect->spriteLayer=3;
         effect->animFrame=zero;
     }

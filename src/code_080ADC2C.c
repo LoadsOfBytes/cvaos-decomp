@@ -1,5 +1,6 @@
 /* Thrown hand weapon of an enemy: follows the owner, flies off in an arc once released. */
 #include "code_08009A0.h"
+#include "worm_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_080211F0.h"
@@ -23,8 +24,8 @@ extern u8 sWormGfx[], sWormSpriteSheet[];
 
 void WormSegment_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *target = entity->unk_4FC.unk_4FC_entity;
-    struct EwramData_EntityData *owner = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *target = WORM_PREVIOUS(entity);
+    struct EwramData_EntityData *owner = WORM_ROOT(entity);
     u8 buf[0x10];
     s32 angle = 0;
     s32 amp = 0;
@@ -45,7 +46,7 @@ void WormSegment_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if (owner->unk_500.part8.unk_500 != 0)
+        if (WORM_AGGRESSIVE(owner) != 0)
             goto delete;
         {
             s32 tiles = ObjGfx_LoadResource(sWormGfx, 0);
@@ -53,7 +54,7 @@ void WormSegment_Update(struct EwramData_EntityData *entity)
         }
         entity->unk_510.part8.basePalette = owner->unk_510.part8.basePalette;
         entity->flipX = owner->flipX;
-        if (entity->unk_500.part8.unk_502 != 4)
+        if (WORM_SEGMENT_INDEX(entity) != 4)
             Anim_StartIndexed(entity, 1, 0, 1);
         else
             Anim_StartIndexed(entity, 2, 0, 1);
@@ -64,7 +65,7 @@ void WormSegment_Update(struct EwramData_EntityData *entity)
             entity->state = 4;
             break;
         }
-        if (owner->unk_504.part8.unk_505 == 0)
+        if (WORM_VARIANT(owner) == 0)
             Hit_Enable(entity, 8, Worm_DamagePlayerOnContact, (s32)Worm_OnHit);
         else
             Hit_Enable(entity, 8, PoisonWorm_DamagePlayerOnContact, (s32)Worm_OnHit);
@@ -72,16 +73,16 @@ void WormSegment_Update(struct EwramData_EntityData *entity)
         HitBox_SetAttackRaw(entity, 0x1010F8F8);
         entity->state++;
     case 1:
-        Worm_StepCrawl(entity, owner->unk_500.part8.unk_503, target->timer, 1);
+        Worm_StepCrawl(entity, WORM_CRAWL_DIR(owner), target->timer, 1);
         Worm_FollowGround(entity);
         if (!entity->flipX)
             angle = 0x8000;
-        if (owner->unk_500.part8.unk_500 != 0)
+        if (WORM_AGGRESSIVE(owner) != 0)
         {
             entity->state = 2;
             entity->timer = 0x38;
             entity->accelY.whole = angle;
-            entity->velX.whole = (entity->unk_500.part8.unk_502 << 15) - 0x6000;
+            entity->velX.whole = (WORM_SEGMENT_INDEX(entity) << 15) - 0x6000;
             if (gEwramData->playerState.player->posX.whole > entity->posX.whole)
                 entity->velX.whole = -entity->velX.whole;
             entity->velY.whole = -0x30000;
@@ -114,20 +115,20 @@ void WormSegment_Update(struct EwramData_EntityData *entity)
     {
         if (!entity->flipX)
             angle = 0x8000;
-        if (owner->unk_504.part8.unk_505 != 0)
+        if (WORM_VARIANT(owner) != 0)
         {
-            amp = ABS(Sin((u16)entity->unk_504.part16.unk_506[0]) * 0x6000 / 0x10000);
-            entity->unk_504.part16.unk_506[0] += 0x200;
+            amp = ABS(Sin((u16)WORM_WAVE_PHASE(entity)) * 0x6000 / 0x10000);
+            WORM_WAVE_PHASE(entity) += 0x200;
         }
         ObjAffine_Set((u16)EntityAngleTo(entity, target) + angle, 0x10000, amp + 0x10000, entity->flipX, 0, entity->affineIndex);
         Anim_Update(entity);
     }
     else
     {
-        if (owner->unk_504.part8.unk_505 != 0)
+        if (WORM_VARIANT(owner) != 0)
         {
-            amp = ABS(Sin((u16)entity->unk_504.part16.unk_506[0]) * 0x6000 / 0x10000);
-            entity->unk_504.part16.unk_506[0] += 0x200;
+            amp = ABS(Sin((u16)WORM_WAVE_PHASE(entity)) * 0x6000 / 0x10000);
+            WORM_WAVE_PHASE(entity) += 0x200;
         }
         ObjAffine_Set((u16)EntityAngleTo(entity, target) + angle, 0x10000, amp + 0x10000, entity->flipX, 0, entity->affineIndex);
         if (owner->state != 3)

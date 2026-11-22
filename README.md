@@ -80,7 +80,6 @@ not estimates.
   (`src/code_XXXXXXXX.c`), inherited from the early splitting of the ROM. The original
   game was certainly organized into far fewer files. Regrouping into logical modules is
   planned.
-- **No PC port.** This repository only rebuilds the GBA ROM.
 
 ## Building
 
@@ -137,8 +136,9 @@ game data.
   takes all game data from your own copy of the game.
 - Castlevania and Aria of Sorrow are trademarks of Konami. Game Boy Advance is a
   trademark of Nintendo. This project is not affiliated with either company.
-- The sound engine (`m4a`) and GBA library code were decompiled from the ROM in the
-  same way as the game code; no leaked or proprietary SDK source was used.
+- The sound engine (`m4a`) and GBA library code were already part of the upstream
+  repository and follow the community decompilations of these libraries used by other
+  GBA decompilation projects.
 
 ## Credits
 

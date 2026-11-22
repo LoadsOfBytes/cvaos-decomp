@@ -73,6 +73,11 @@ not estimates.
   certainly did not contain them; they are needed because no natural C variant was
   found that matches. Every such line is marked with a `/* FAKEMATCH: reason */`
   comment.
+- **Other unmarked matching tricks.** 59 statements in 37 files are wrapped in a
+  `do { ... } while (0)` that runs exactly once (sometimes nested), and 13 reads go
+  through a `volatile` pointer cast. Neither changes what the code does; both only
+  steer the compiler towards the original instructions. Unlike `FAKEMATCH`, they are
+  not marked with a comment yet, and like it they are open points for cleanup.
 - **Matching-driven style.** Some functions use `goto`, unusual temporaries or casts
   because they reproduce the original instruction order. They are correct but not
   always how a person would write the code.

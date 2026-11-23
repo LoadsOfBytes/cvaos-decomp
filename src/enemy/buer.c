@@ -8,18 +8,20 @@
 #include "structs/ewram.h"
 #include "sound.h"
 #include <string.h>
-#include "entity_util.h"
 #include "player_core.h"
+#include "bael.h"
+#include "buer.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
 
 /* Buer: load graphics, create its linked parts and set initial collision
  * and movement state. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 extern void Buer_CreateHead(struct EwramData_EntityData *);
-extern void Buer_AllocateAffine(struct EwramData_EntityData *);
-extern void Buer_DamagePlayerOnContact(struct EwramData_EntityData *);
-extern void Buer_OnHit(struct EwramData_EntityData *);
 extern u8 sBaelBuerGfx[], sBaelBuerPalette[], sBaelBuerSpriteSheet[];
 static inline void SetState(struct EwramData_EntityData *entity, s8 value4F0, u8 state)
 {
@@ -63,8 +65,6 @@ void EnemyBuerCreate(struct EwramData_EntityData *entity)
 
 /* Buer_CreateHead. */
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *updateFunc);
-extern void BuerHead_Update(struct EwramData_EntityData *entity);
-extern u8 sBaelBuerSpriteSheet[];
 
 /**
  * @brief Create the linked frame-1 head sharing graphics and palette; store mutual slot indices and face it according to movement speed.
@@ -94,8 +94,6 @@ void Buer_CreateHead(struct EwramData_EntityData *entity)
 }
 
 /* Bael/Alastor part behaviour 0x080CBAEC; only matches without -f2003-patch. */
-extern s32 Buer_CheckCleanup(struct EwramData_EntityData *entity);
-extern void Buer_MoveAndRotate(struct EwramData_EntityData *entity, s32 mode);
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *entity, u16 width, u16 height);
 extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *entity);
 extern void Buer_UpdateCharge(struct EwramData_EntityData *entity);
@@ -181,10 +179,7 @@ restart:
 
 /* Buer accelerated charge, rotation, and sparks. */
 extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *entity);
-extern s32 Entity_Walk(struct EwramData_EntityData *entity,s32 speed,void *profile,s32 flags);
-extern void Buer_RestoreXAtProbe(struct EwramData_EntityData *entity,s32 work);
 extern void Buer_SpawnChargeEffect(s32 x,s32 y,s32 index,s32 facing);
-extern s32 Buer_OffsetBySign(s32 value,s32 step);
 extern s16 sBuerWalkProfile[];
 #define SPEED(e) (e->ext.wheel.speed)
 #define ANGLE(e) (e->ext.wheel.angle)
@@ -289,8 +284,6 @@ void Buer_UpdateCharge(struct EwramData_EntityData *entity)
 
 /* Buer death: shaking head, slowing rotation, smoke and final fragments. */
 extern void Effect_SpawnRandom(s32 x,s32 y,s32 scaleX,s32 scaleY,s32 layer);
-extern void Effect_SpawnAt(s32 x,s32 y,s32 layer);
-extern void Buer_MoveAndRotate(struct EwramData_EntityData *entity,s32 mode);
 extern s16 sBuerPositions[8][2];
 #define SHAKE_X(e) (e->ext.wheelDeath.shake[0])
 #define SHAKE_Y(e) (e->ext.wheelDeath.shake[1])
@@ -393,7 +386,6 @@ void Buer_UpdateDeath(struct EwramData_EntityData *entity)
 }
 
 /* BuerChargeEffect_Update. */
-extern u8 sBaelBuerGfx[];
 
 /**
  * @brief Use cached Buer graphics and palette 6, run the selected animation with acceleration, then request deletion when animation finishes.
@@ -429,12 +421,7 @@ void BuerChargeEffect_Update(struct EwramData_EntityData *entity)
 
 /* Buer collision motion, rotation, and update dispatcher. */
 extern s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *entity,s32 x,s32 y);
-extern void Buer_UpdateState4Rotation(struct EwramData_EntityData *entity);
-extern void Buer_UpdateEntry(struct EwramData_EntityData *entity);
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *entity);
 extern void Hit_CheckWithPlayer(void *buffer,struct EwramData_EntityData *entity);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *entity);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *entity);
 
 /**
  * @brief Walk with the selected collision mode, adjust speed from contact flags, rotate and update the linked head facing.

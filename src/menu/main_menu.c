@@ -1,26 +1,13 @@
 #include "main_menu.h"
 #include "core.h"
-#include "sram.h"
 #include "bg_and_collision.h"
-#include "game_modes.h"
-#include "intro_cutscene.h"
-#include "soul_trade.h"
-#include "in_game.h"
 #include "bg_effects.h"
-#include "room_entities.h"
 #include "save_data.h"
-#include "player_init.h"
-#include "player_core.h"
-#include "soul_inventory.h"
-#include "player_effects.h"
-#include "player_level.h"
-#include "debug_1967.h"
 #include "graphics.h"
 #include "gameplay.h"
 #include "sound.h"
 #include "gba.h"
 #include "macros.h"
-#include "agb_sram.h"
 #include "syscalls.h"
 
 #include "constants/main.h"
@@ -32,6 +19,12 @@
 #include "structs/agb_sram.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
+#include "math_anim.h"
+#include "menu_common.h"
+#include "obj_gfx.h"
+#include "palette.h"
+#include "pause_menu.h"
+#include "text12.h"
 
 // TODO: HudMap_WriteTiles is implicitly called in other files, except this one
 extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
@@ -233,7 +226,6 @@ void MainMenu_DrawSlotList(struct EwramData_EntityData *entity)
     s32 copy;
     s32 selectedSlot;
     
-
     menuData = &gEwramData->saveHeaders[0];
     if (entity->subState == 0)
     {
@@ -493,7 +485,6 @@ void MainMenu_DrawCopySlotList(struct EwramData_EntityData *entity)
     {
         SaveMenu_AttachLanguageSprite(entity, 2);
         SaveMenu_PlaceNameSprites(entity, 0x88, 0x20, header->name);
-
 
         if ((header->clearAndDifficulty & 0xF))
         {

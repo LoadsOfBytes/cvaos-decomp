@@ -7,6 +7,11 @@
 #include "structs/ewram.h"
 #include "sound.h"
 #include "player_core.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
@@ -16,7 +21,6 @@ extern s32 LightningDoll_LoadGraphics(struct EwramData_EntityData *entity);
 extern void LightningDoll_ResetActive(struct EwramData_EntityData *entity);
 extern void LightningDoll_OnContact(struct EwramData_EntityData *entity);
 void LightningDoll_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 *data);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, s32 onHurt);
 
 /**
@@ -83,14 +87,12 @@ s32 LightningDoll_LoadGraphics(struct EwramData_EntityData *entity)
 }
 
 /* Lightning Doll helpers reconstructed from the original assembly. */
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *entity);
 extern void Hit_CheckWithPlayer(void *buffer, struct EwramData_EntityData *entity);
 extern void LightningDoll_UpdateState2Animation(struct EwramData_EntityData *entity);
 extern void LightningDoll_UpdateActive(struct EwramData_EntityData *entity);
 extern void LightningDoll_UpdateDeath(struct EwramData_EntityData *entity);
 extern void Sound_StopTracked(s32 id);
 extern void HitBox_SetAttackRaw(struct EwramData_EntityData *entity, s32 flags);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *entity);
 
 void EnemyLightningDollUpdate(struct EwramData_EntityData *entity)
 {
@@ -131,12 +133,9 @@ void EnemyLightningDollUpdate(struct EwramData_EntityData *entity)
 }
 
 /* Lightning Doll movement and electrical attack states. */
-extern s32 Target_GetX(struct EwramData_EntityData *entity);
-extern s32 Target_GetY(struct EwramData_EntityData *entity);
 extern u8 Entity_IsTargetWithinRange(struct EwramData_EntityData *entity, s32 range);
 extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
 extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *entity);
-extern s32 Entity_GetTargetDistanceY(struct EwramData_EntityData *entity);
 extern u16 Entity_GetTargetAngleAbove16(struct EwramData_EntityData *entity);
 extern void LightningDoll_ResolveMovementBounds(struct EwramData_EntityData *entity);
 extern s32 Collision_GetTileOnScreen(s32 x, s32 y);
@@ -336,11 +335,9 @@ void LightningDoll_UpdateActive(struct EwramData_EntityData *entity)
 }
 
 /* Lightning Doll helpers reconstructed from the original assembly. */
-extern u16 Player_CalculateAttackPower(u16 value);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 hit, u16 *data, s32 kind);
 extern void Entity_ShowDamage(struct EwramData_EntityData *entity, s16 damage, s32 flags);
 extern void LightningDoll_SpawnDeathParts(struct EwramData_EntityData *entity);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 
 /**
  * @brief Resolve damage and flash; on lethal damage stop sound 0x75, spawn counted body parts, drop rewards and wait for all parts to finish.
@@ -475,7 +472,6 @@ extern s32 Collision_GetPushDown(s32 x, s32 y);
 extern s32 Collision_GetPushLeft(s32 x, s32 y);
 extern s32 Collision_GetPushRight(s32 x, s32 y);
 extern void Effect_SpawnRandom(s32 x, s32 y, s32 p2, s32 p3, s32 layer);
-extern void Effect_SpawnRisingParticleInBox(s32 x, s32 y, s32 p2, s32 p3, s32 layer, s32 p5);
 
 static inline s32 RoomX(s32 pos)
 {
@@ -768,7 +764,6 @@ void LightningDoll_ResolveMovementBounds(struct EwramData_EntityData *entity)
 }
 
 /* Lightning Doll helpers reconstructed from the original assembly. */
-extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
 
 /**
  * @brief Clear velocity and acceleration, snap to ground and enter state 1 with randomized movement and floor-wait countdowns.

@@ -2,25 +2,15 @@
 #include "soul_skill_entity.h"
 #include "player_entity.h"
 #include "core.h"
-#include "sram.h"
 #include "bg_and_collision.h"
 #include "in_game.h"
 #include "music.h"
-#include "intro_cutscene.h"
-#include "bg_effects.h"
-#include "room_entities.h"
-#include "player_init.h"
 #include "soul_inventory.h"
-#include "player_effects.h"
-#include "player_level.h"
-#include "debug_1967.h"
 #include "graphics.h"
 #include "gameplay.h"
 #include "entity_util.h"
 #include "sound.h"
 #include "gba.h"
-#include "macros.h"
-#include "agb_sram.h"
 #include "syscalls.h"
 
 #include "constants/main.h"
@@ -31,6 +21,19 @@
 #include "structs/agb_sram.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
+#include "blue_souls.h"
+#include "damage_numbers.h"
+#include "effects.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "palette.h"
+#include "red_souls_b.h"
+#include "soul_pickup.h"
+#include "system_menus.h"
+#include "player_soma.h"
 
 // ROM data passed as pointers; previously hard-coded addresses in the draft.
 extern u8 sCommonObjectGfx[];
@@ -107,7 +110,6 @@ s32 Player_GetFocusedActionFlags(void)
     }
     return 0;
 }
-
 
 /**
  * @brief Return Player_HasAbility(n - 1).
@@ -678,7 +680,6 @@ void Player_PruneTrackedEntities(void)
     struct EwramData_EntityData **tracked;
     u8 *counters;
 
-    
     counters = gEwramData->playerState.trackedEntityRefreshCounters;
     tracked = gEwramData->playerState.trackedEntities;
 

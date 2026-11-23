@@ -9,10 +9,15 @@
 #include "macros.h"
 #include "gameplay.h"
 #include "structs/ewram.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_palette.h"
 
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 
 void Dryad_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
@@ -41,7 +46,6 @@ void Dryad_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDat
 }
 
 /* Dryad activation and attack selection. */
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
 extern s32 Target_IsInRect(s32, s32, s32, s32);
 extern void Dryad_ThrowSeed(struct EwramData_EntityData *);
 
@@ -124,7 +128,6 @@ void Dryad_UpdateAttack(struct EwramData_EntityData *entity)
 }
 
 /* Dryad death: palette flashes, smoke, shrinking affine sprite. */
-extern s32 Entity_GetVisibilityPattern(s32);
 extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
 
 /**
@@ -187,7 +190,6 @@ void DryadSeed_OnContact(struct EwramData_EntityData *entity, struct EwramData_E
 
 /* Dryad projectile: ballistic launch, animation sequence, then a timed
  * player-following effect with contact damage every sixteen frames. */
-extern s32 EntityIsOutsideScreen(struct EwramData_EntityData *, s32);
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 extern void DryadSeed_OnHit(struct EwramData_EntityData *);
 extern s32 Player_GetOverheadY(void);
@@ -263,8 +265,6 @@ void DryadSeed_Update(struct EwramData_EntityData *entity)
 }
 
 /* Dryad projectile creation: random launch spread and target-distance correction. */
-extern s32 Target_GetX(struct EwramData_EntityData *);
-extern s32 Target_GetY(struct EwramData_EntityData *);
 
 /* Keep the signed offsets separate from the wrapping 16-bit positions. */
 static inline s16 NegateDryadOffset(s16 value)
@@ -322,15 +322,8 @@ void Dryad_ThrowSeed(struct EwramData_EntityData *parent)
     }
 }
 
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
 extern void Dryad_DamagePlayerOnContact(struct EwramData_EntityData *);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 extern s32 Hit_EnableContact(struct EwramData_EntityData *, s32, void *, s32);
-extern s32 Enemy_PreUpdate(struct EwramData_EntityData *);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
-extern u8 sDryadGfx[], sDryadPalette[], sDryadSpriteSheet[];
 
 void EnemyDryadCreate(struct EwramData_EntityData *entity)
 {

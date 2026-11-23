@@ -8,10 +8,15 @@
 #include "entity_util.h"
 #include "structs/ewram.h"
 #include "sound.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "obj_palette.h"
+#include "effects.h"
 
 extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern s16 Entity_GetTargetDistance(struct EwramData_EntityData *entity);
 extern void Effect_SpawnParticleTemplateList(s32 x, s32 y, s32 index);
 void BomberArmorBomb_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void ArmorProjectile_OnHit(struct EwramData_EntityData *entity);
@@ -105,7 +110,6 @@ void BomberArmorBomb_Update(struct EwramData_EntityData *entity)
 
 /* tested as a full word here (bg_and_collision.h declares it returning s16) */
 extern s32 Collision_GetGroundOffset(s32 x, s32 y);
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 extern u8 sBomberArmorRockArmorGfx[], sBomberArmorRockArmorPalette[], sRockArmorSpriteSheet[];
 
 /**
@@ -235,7 +239,6 @@ void RockArmorRock_Update(struct EwramData_EntityData *entity)
 }
 
 extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *);
-extern s16 Entity_GetTargetDistance(struct EwramData_EntityData *);
 extern u8 sBomberRockArmorWalkProfile[];
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
 static inline s32 CanAttack(struct EwramData_EntityData *e, s32 range)
@@ -345,7 +348,6 @@ void BomberArmor_UpdateAttack(struct EwramData_EntityData *entity)
     }
 }
 
-
 void RockArmor_UpdateAttack(struct EwramData_EntityData *entity)
 {
     switch (entity->subState)
@@ -386,9 +388,6 @@ void RockArmor_UpdateAttack(struct EwramData_EntityData *entity)
         break;
     }
 }
-
-extern s32 Sin(s32);
-extern s32 RandomSigned(s32);
 
 s32 BomberRockArmor_UpdateDeath(struct EwramData_EntityData *entity)
 {
@@ -438,16 +437,9 @@ s32 BomberRockArmor_UpdateDeath(struct EwramData_EntityData *entity)
     return 0;
 }
 
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
-extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, void *);
 extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
 extern void Enemy_OnContact(void);
-extern void DiscArmor_OnHit(void);
 void BomberRockArmor_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern u8 sDiscArmorGfx[], sDiscArmorPalette[], sDiscArmorSpriteSheet[];
 extern u8 sBomberArmorRockArmorGfx[], sBomberArmorRockArmorPalette[], sBomberArmorSpriteSheet[], sRockArmorSpriteSheet[];
 
 void EnemyBomberArmorCreate(struct EwramData_EntityData *entity)
@@ -503,7 +495,6 @@ void EnemyRockArmorCreate(struct EwramData_EntityData *entity)
 
 extern void Entity_FaceTarget(struct EwramData_EntityData *entity, s32 unused1, u16 *unused2);
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 
 /**
  * @brief B2F10 | Same as AxeArmor_OnHit.
@@ -567,8 +558,6 @@ void RockArmorRock_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 }
 
 /* Bomber Armor effect (Bomber Armor graphics). */
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern u8 sBomberArmorRockArmorGfx[], sBomberArmorRockArmorPalette[], sBomberArmorSpriteSheet[];
 
 /**
  * @brief B2FC4 | One-shot effect: state 0 loads graphics (deleting the entity
@@ -596,10 +585,6 @@ void BomberArmorBombTrail_Update(struct EwramData_EntityData *entity)
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
  *   EnemyBomberArmorUpdate = EnemyAxeArmorUpdate */
-
-extern s32 Enemy_PreUpdate(struct EwramData_EntityData *entity);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *entity);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *entity);
 
 /**
  * @brief B3040 | Same as EnemyAxeArmorUpdate.
@@ -630,10 +615,6 @@ void EnemyBomberArmorUpdate(struct EwramData_EntityData *entity)
     Enemy_CheckHitPlayer(entity);
     Entity_AnimateWithBoxes(entity);
 }
-
-extern s32 Enemy_PreUpdate(struct EwramData_EntityData *);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 
 void EnemyRockArmorUpdate(struct EwramData_EntityData *entity)
 {

@@ -1,4 +1,5 @@
-#include "m4a_internal.h"
+#include "m4a.h"
+#include "syscalls.h"
 
 #define BSS_CODE __attribute__((section(".bss.code")))
 #define EWRAM_DATA __attribute__((section("ewram_data")))

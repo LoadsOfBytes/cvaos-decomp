@@ -7,10 +7,8 @@
  * their current order: they preserve agbcc allocation and narrowing order.
  * Matching code does not establish the original source or compiler options. */
 #include "bg_and_collision.h"
-#include "entity_util.h"
 #include "structs/ewram.h"
-extern s32 Collision_IsSlopeTile(s16 x, s16 y);
-extern s32 Tile_Classify(s16 x, s16 y);
+#include "entity_common.h"
 
 static inline s32 SumCornerComponents(u16 entityPart, u16 cameraPart) { return entityPart + cameraPart; }
 static inline s32 SignExtendOffset(u16 value) { return (s16)value; }

@@ -9,8 +9,14 @@
 #include "bg_and_collision.h"
 #include "structs/main.h"
 #include "structs/equipment_stats.h"
-#include "graphics.h"
 #include "gameplay.h"
+#include "blue_souls.h"
+#include "equipment_menu.h"
+#include "menu_common.h"
+#include "pause_menu.h"
+#include "soul_menu.h"
+#include "soul_pickup.h"
+#include "text12.h"
 
 void PlaySong(u32 song);
 u32 Inventory_GetOwnedCount(s32 category, s32 index);
@@ -145,9 +151,6 @@ s32 Shop_HandleListInput(struct Owner *owner, struct ShopMenu *menu, void *unuse
 
 extern const struct ArmorInfo sArmorInfo[];
 
-extern void Player_RefreshEquipmentStats(void);
-extern void YellowSoul_Restart(u8 soul, s32 force);
-extern void HudMap_DrawStatChangeIndicator(s32 a, s32 b, s32 c);
 extern s32 HudMap_PrintNumber(s32 x, s32 y, s32 value, s32 digits, s32 color, s32 flag);
 
 /**
@@ -224,24 +227,12 @@ void Shop_PreviewEquipStats(void *unused, s32 type, s32 id)
 }
 
 /* Shop_DrawList. */
-extern void Text8_SetRegion(u16 left, u16 top, u16 width, u16 height);
-extern void Text8_ClearRegion(void);
-extern u8 *Text_GetLocalizedEntry(s32 index);
-extern s32 Text8_Print(void *text, s32 index);
 extern void HudMap_ZeroTiles(s32 x, s32 y, s32 count);
-extern s32 HudMap_PrintPaddedNumber(s32 x, s32 y, s32 value, s32 digits);
-const void *Item_GetInfo(s32 category, s32 index);
 void *Item_GetInfoByGlobalId(s32 id);
-extern void HudMap_ClearTilesLeft(s32 x, s32 y, s32 count);
-extern void Text12_ClearRegion(void);
 u32 Inventory_GetOwnedCount(s32 category, s32 index);
-extern void Text12_PrintTwoLineEntryAt(s32 index, s32 row);
-extern void MenuItemIcon_Show(s32 x, s32 y, s32 type, s32 item);
 extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
-extern void HudMap_ClearTiles(s32 x, s32 y, s32 count);
 
 /* Shop stock entries (item type, id; type 0xFF = id via Item_GetInfoByGlobalId). */
-
 
 /* Item info records by type; only the name index at 0 is read here. */
 
@@ -435,10 +426,7 @@ void Shop_DrawList(struct ShopOwner *owner, struct ShopMenu2 *menu, struct ShopS
     }
 }
 
-const void *Item_GetInfo(s32 category, s32 index);
 void *Item_GetInfoByGlobalId(s32 id);
-s32 Item_GetTypeByGlobalId(s32 index);
-s32 Item_GetIndexByGlobalId(s32 index);
 u32 Inventory_GetOwnedCount(s32 category, s32 index);
 extern void *memset(void *dst, int value, unsigned long size);
 
@@ -531,7 +519,6 @@ void Shop_BuildSellList(struct Owner2 *owner, void *unusedMenu, void *unusedStat
  * clear an equipped slot that drops to zero), add half price times the
  * quantity to the gold and refresh the row. */
 
-const void *Item_GetInfo(s32 category, s32 index);
 void *Item_GetInfoByGlobalId(s32 id);
 u32 Inventory_GetOwnedCount(s32 category, s32 index);
 
@@ -618,7 +605,6 @@ void Shop_SellItem(struct Owner *owner, u8 *menu, struct Shop *stats, s32 index)
     Shop_BuildSellList((struct Owner2 *)owner, menu, stats);
 }
 
-const void *Item_GetInfo(s32 category, s32 index);
 void *Item_GetInfoByGlobalId(s32 id);
 
 struct ShopItemPriceView {
@@ -687,7 +673,6 @@ void Shop_BuyItem(struct ShopQuantityOwner *owner, u8 *menu, struct ShopTransact
 /* Shop_CanTrade; records as
  * in the Shop_BuyItem draft. */
 
-const void *Item_GetInfo(s32 category, s32 index);
 void *Item_GetInfoByGlobalId(s32 id);
 u32 Inventory_GetOwnedCount(s32 category, s32 index);
 
@@ -791,8 +776,6 @@ struct MenuPage
     u8 item;
 };
 
-extern void Menu_DrawAttackDefense(s32 x, s32 y);
-extern void Menu_DrawCurrentStats(s32 x, s32 y);
 extern void MenuPage_SetMode(struct MenuPage *entity, u8 mode);
 
 static inline u8 ShopMode(u8 *s) { return s[0x3D0]; }
@@ -853,7 +836,6 @@ void Shop_OpenList(u8 *shop, struct MenuPage *page)
 
 struct ShopList;
 void PlaySong(u32 song);
-extern s32 HudMap_PrintNumber(s32 x, s32 y, s32 value, s32 digits, s32 color, s32 flag);
 
 struct Owner3 {
     u8 pad_0[0x3D0];
@@ -869,7 +851,6 @@ struct ShopMenu3 {
     u8 pad_E[0x17 - 0xE];
     u8 cursor;
 };
-
 
 #undef SELL_LIST
 #define SELL_LIST ((struct ShopList *)&gEwramData->sharedScratchBuffer[0x200])
@@ -959,7 +940,6 @@ s32 Shop_UpdateList(struct Owner3 *owner, struct ShopMenu3 *menu)
 }
 
 /* Read the inventory count for consumables, weapons or armour. */
-extern const void *Item_GetInfo(s32,s32);
 /**
  * @brief Return the owned count of a consumable, weapon or armor (types 2..4).
  */

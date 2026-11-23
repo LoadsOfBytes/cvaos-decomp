@@ -1,17 +1,22 @@
 /*
  * Equipment list update and the item menu.
  */
-#include "core.h"
-#include "graphics.h"
+#include "item_menu.h"
 #include "gameplay.h"
-#include "syscalls.h"
 #include "sound.h"
 #include "structs/ewram.h"
 #include "structs/equipment_stats.h"
 #include "types.h"
 #include "player_core.h"
-#include "menu_page.h"
 #include "menu_entity.h"
+#include "blue_souls.h"
+#include "equipment_list_update.h"
+#include "equipment_menu.h"
+#include "menu_common.h"
+#include "pause_menu.h"
+#include "soul_menu.h"
+#include "soul_pickup.h"
+#include "text12.h"
 
 /* Equipment menu input handler: A equips the highlighted item (weapon or
  * armor/accessory slot unk_B - 1), A/B closes the list and redraws the page,
@@ -40,28 +45,14 @@ extern struct WeaponInfo sWeaponInfo[];
 extern const struct ArmorInfo sArmorInfo[];
 extern const u16 sItemDescriptionTextIds[];
 
-extern void MenuPageTitle_Update(struct EwramData_EntityData *ent);
-extern void MenuPageTitle_Delete(struct EwramData_EntityData *ent);
-extern void MenuItemIcon_Delete(void);
-extern void MenuSlotIcons_Delete(void);
-extern void MenuItemIcon_Show(s32 x, s32 y, s32 type, s32 item);
-extern void EquipmentMenu_DrawStatPreview(struct MenuPage *page);
+/* Called with an int tile here (no u16 truncation in the original). */
 extern void HudMap_WriteTiles(s32 x, s32 y, s32 tile, s32 count);
 extern void EquipmentMenu_DrawList(struct PlayerStatus *stats, struct MenuPage *page, s32 slot);
-extern void MenuList_DrawScrollArrows(struct MenuPage *page, s32 raised);
 extern void EquipmentMenu_ShowSlotDescription(struct PlayerStatus *stats, struct MenuPage *page);
-extern void Cursor_SetTilePosition(s32 a, s32 b);
-extern void Cursor_Draw(void);
 
-extern void EquipmentList_UpdateForEquip(struct MenuPage *page);
 extern void EquipmentMenu_CountList(struct PlayerStatus *stats, struct MenuPage *page, s32 slot);
 extern s32 MenuGrid_MoveCursor(void *page, s32 input);
-extern void YellowSoul_Restart(u8 soul, s32 force);
-extern void HudMap_ClearTiles(s32 x, s32 y, s32 count);
-extern void EquipmentMenu_PrintEquippedNames(void);
 extern void EquipmentMenu_DrawEquippedIcons(struct PlayerStatus *stats, struct MenuPage *page);
-extern void Menu_DrawAttackDefense(s32 x, s32 y);
-extern void Menu_DrawCurrentStats(s32 x, s32 y);
 
 s32 EquipmentMenu_UpdateList(struct MenuPage *page)
 {
@@ -185,8 +176,6 @@ s32 EquipmentMenu_UpdateList(struct MenuPage *page)
 }
 
 /* Equipment stat preview and selection helpers. */
-extern void Equipment_PrepareBonuses(s32, s32);
-extern void YellowSoul_Restart(u8, s32);
 
 /**
  * @brief Prepare equipment bonuses using the supplied override and add base stats into the shared preview; do not apply it to current player stats.
@@ -283,9 +272,6 @@ u8 Player_GetEquippedItem(s32 kind)
 }
 
 /* Convert a global item id to its type/index before updating the list. */
-extern s32 Item_GetTypeByGlobalId(s32);
-extern s32 Item_GetIndexByGlobalId(s32);
-extern void EquipmentList_Insert(s32, s32);
 
 void EquipmentList_InsertGlobalItem(s32 item)
 {
@@ -365,9 +351,6 @@ struct MenuPage2
 };
 
 extern const u16 sItemNameTextIds[];
-extern s32 HudMap_PrintPaddedNumber(s32 x, s32 y, s32 value, s32 digits);
-extern void HudMap_ClearTilesLeft(s32 x, s32 y, s32 count);
-extern void MenuList_DrawScrollArrows(struct MenuPage *page, s32 raised);
 
 /**
  * @brief 4B494 | Draw the item list page (32 items, 8 rows): name and count
@@ -454,13 +437,8 @@ void ItemMenu_DrawList(struct PlayerStatus *stats, struct MenuPage2 *page)
 /* ItemMenu_CountList, ItemMenu_Open. */
 /* Usable item records (16 bytes; see Item_GetInfo). */
 
-/* Called with an int tile here (no u16 truncation in the original). */
-extern void HudMap_WriteTiles(s32 x, s32 y, s32 tile, s32 count);
-extern void Menu_DrawHpMpBars(s32 x, s32 y);
-extern void HudMap_DrawStatusConditionIcon(s32 x, s32 y);
 extern void MenuPage_SetMode(struct EwramData_EntityData *entity, u8 mode);
 extern void MenuPageTitle_Create(struct EwramData_EntityData *title, s32 frame);
-extern void Cursor_SetTilePosition(s32 column, s32 row);
 
 /**
  * @brief 4B648 | Count the owned item kinds (itemInventory, 32 entries)
@@ -570,8 +548,6 @@ struct MenuPage3
     u8 pad_18[0x39 - 0x18];
     s8 drawnTop;
 };
-
-extern s32 MenuGrid_MoveCursor(void *page, s32 input);
 
 static inline void ShowItemInfo(struct MenuPage3 *page)
 {

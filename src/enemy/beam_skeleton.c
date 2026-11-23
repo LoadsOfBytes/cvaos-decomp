@@ -7,11 +7,16 @@
 #include "structs/ewram.h"
 #include "sound.h"
 #include "entity_util.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 /* Beam Skeleton creation and update dispatcher. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity,u8 *graphics,void *palette,u8 slot,void *sprite);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
-extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *entity,void *callback,s32 hitCallback);
 extern void Enemy_OnContact(struct EwramData_EntityData *entity);
 extern void BeamSkeleton_OnHit(struct EwramData_EntityData *entity);
@@ -22,9 +27,6 @@ extern void BeamSkeleton_UpdateFire(struct EwramData_EntityData *entity);
 extern void BeamSkeleton_UpdatePatrol(struct EwramData_EntityData *entity);
 extern void BeamSkeleton_UpdateApproach(struct EwramData_EntityData *entity);
 extern void BeamSkeleton_UpdateIdle(struct EwramData_EntityData *entity);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *entity);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *entity);
-extern s32 Enemy_PreUpdate(struct EwramData_EntityData *entity);
 extern u8 sBeamSkeletonPalette[];
 extern u8 sBeamSkeletonSpriteSheet[];
 extern u8 sBeamSkeletonGfx[];
@@ -103,7 +105,6 @@ void EnemyBeamSkeletonUpdate(struct EwramData_EntityData *entity)
 }
 
 /* Beam Skeleton patrol and selection of the attack state. */
-extern s32 Entity_Walk(struct EwramData_EntityData *entity,s32 speed,void *profile,s32 flags);
 extern s32 Entity_ClampXToRoom(struct EwramData_EntityData *entity,s32 mode);
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *entity,s32 width,s32 height);
 extern s16 sBeamSkeletonWalkProfile[];
@@ -157,7 +158,6 @@ void BeamSkeleton_UpdatePatrol(struct EwramData_EntityData *entity)
 }
 
 /* Beam Skeleton approach and attack selection. */
-extern s32 Entity_GetTargetDistanceY(struct EwramData_EntityData *entity);
 extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *entity);
 extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
 extern s32 Entity_IsTargetInCenteredBox(struct EwramData_EntityData *entity,u16 width,u16 height);
@@ -378,7 +378,6 @@ void BeamSkeleton_UpdateFire(struct EwramData_EntityData *entity)
 
 extern void BeamSkeletonBeamSprite_Update(struct EwramData_EntityData *entity);
 extern void BeamSkeletonBeam_Update(struct EwramData_EntityData *entity);
-extern s8 ObjPalette_FindOrLoad(void *palette);
 extern void Hit_Enable(struct EwramData_EntityData *entity,s32 mode,void *callback,s32 flags);
 extern void HitBox_SetAttackRaw(struct EwramData_EntityData *entity,s32 flags);
 
@@ -571,13 +570,11 @@ void BeamSkeletonBeamSprite_Update(struct EwramData_EntityData *entity)
 }
 
 /* Beam Skeleton: seven fragments on death. */
-extern void Effect_UpdateSpriteDebris(struct EwramData_EntityData *entity);
 extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *entity);
 extern s8 sBeamSkeletonDeathPieceOffsets[][6];
 #define INDEX(e) (e->ext.beamSkeletonPiece.index)
 
 extern void BeamSkeleton_SpawnDeathPieces(struct EwramData_EntityData *entity);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 
 /**
  * @brief Death state (0xFF): spawn the seven pieces once, drop rewards,
@@ -733,7 +730,6 @@ void BeamSkeleton_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
 /* Beam Skeleton hit callback and Needles create/idle behavior. */
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
 extern void Needles_OnHit(struct EwramData_EntityData *entity);
-extern s32 HitBox_SetBodyRaw(struct EwramData_EntityData *entity,s32 flags);
 extern u8 sNeedlesPalette[];
 extern u8 sNeedlesSpriteSheet[];
 extern u8 sNeedlesGfx[];

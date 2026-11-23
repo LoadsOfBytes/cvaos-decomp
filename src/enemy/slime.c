@@ -10,6 +10,12 @@
 #include "gameplay.h"
 #include "entity_util.h"
 #include "structs/ewram.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_palette.h"
 
 /* Slime particle creation with bounded entity allocation. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
@@ -289,7 +295,6 @@ s32 Slime_UpdateSurfaceSupport(struct EwramData_EntityData *entity, u16 step)
 
 /* Slime crawling and transitions between floors, walls and ceilings. */
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *, s32, s32);
-extern void EntityMoveX(struct EwramData_EntityData *);
 extern void EntityMoveY(struct EwramData_EntityData *);
 #define SLIME_PROBE_X ((s16)roomX + (s16)dx)
 #define SLIME_PROBE_Y ((s16)roomY + (s16)dy)
@@ -475,10 +480,6 @@ countdown:
 }
 
 /* Slime setup, dispatch and shrinking death animation. */
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
-extern s32 Enemy_PreUpdate(struct EwramData_EntityData *);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
 extern void Slime_UpdateDetach(struct EwramData_EntityData *);
 extern void Slime_DamagePlayerOnContact(struct EwramData_EntityData *);
 void Slime_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
@@ -728,7 +729,6 @@ void EnemySlimeUpdate(struct EwramData_EntityData *entity)
 
 /* Slime helpers 0x080C13DC..0x080C148F. */
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 
 /**
  * @brief C13DC | Player_ApplyContactDamage with (attack, 0x40, 0, 0) at the entity

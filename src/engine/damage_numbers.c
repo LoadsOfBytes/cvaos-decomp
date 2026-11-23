@@ -1,11 +1,12 @@
 /*
  * Damage numbers and number watches (player / entity damage indicators, HUD HP number).
  */
+#include "damage_numbers.h"
 #include "types.h"
 #include "structs/ewram.h"
 #include "structs/entity_boxes.h"
 #include "core.h"
-#include "graphics.h"
+#include "obj_gfx.h"
 
 /* Small accessors (2A54, 2A6C). */
 /* Set byte index of the table at EWRAM 0x1307C. */
@@ -307,7 +308,6 @@ void NumberIndicator_DrawCentered(struct EwramData_EntityData *entity)
  */
 #define NUMBER_WATCH_LAST(e) ENTITY_WORD_510(e)
 extern void NumberWatch_Update(struct EwramData_EntityData *);
-extern u8 sCommonObjectGfx[], sCommonObjectSpriteSheet[];
 
 /**
  * @brief Create a numeric display at fixed-point x/y watching a signed 8-, 16- or default 32-bit memory value with the supplied palette.
@@ -386,8 +386,6 @@ void NumberIndicator_Draw(struct EwramData_EntityData *entity)
 
 /* HUD HP number: the smoothed HUD HP value last shown. Token-identical. */
 #define HUD_HP_SHOWN(e) ENTITY_WORD_510(e)
-extern u8 sCommonObjectGfx[];
-extern u8 sCommonObjectSpriteSheet[];
 void NumberIndicator_DrawCentered(struct EwramData_EntityData *entity);
 
 /**

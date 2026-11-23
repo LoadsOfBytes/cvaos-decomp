@@ -5,12 +5,17 @@
 #include "graphics.h"
 #include "structs/ewram.h"
 #include "core.h"
-#include "entity_util.h"
 #include "sound.h"
 #include "player_core.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
+#include "skeleton.h"
 
 extern u8 GhostDancer_LoadGraphics(struct EwramData_EntityData *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
 extern void GhostDancer_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 extern void GhostDancer_OnHit(struct EwramData_EntityData *entity,s32 hit,u16 *info);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *,void *,void *);
@@ -81,8 +86,6 @@ fail:
 extern void GhostDancer_UpdateBestiaryPreview(struct EwramData_EntityData *);
 extern void GhostDancer_UpdateMovement(struct EwramData_EntityData *);
 extern void GhostDancer_UpdateDeath(struct EwramData_EntityData *);
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *,struct EwramData_EntityData *);
 #define MODE(e) ((e)->ext.raw.unk_4FC.part8.unk_4FC)
 #define TIMER(e) ((e)->ext.raw.unk_4FC.part8.unk_4FD)
@@ -153,7 +156,6 @@ void EnemyGhostDancerUpdate(struct EwramData_EntityData *entity)
 
 /* Alternate movement helper reacts to the player's distance and random pauses. */
 extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *);
-extern s32 Entity_GetTargetDistanceY(struct EwramData_EntityData *);
 static inline s32 HorizontalDistance(struct EwramData_EntityData *entity)
 {
     s32 value=(s16)Entity_GetTargetDistanceX(entity);
@@ -292,7 +294,6 @@ void GhostDancer_UpdateDeath(struct EwramData_EntityData *entity)
 /* Apply damage, flash the sprite, then enter the defeated animation. */
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *,s32,u16 *,s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *,s32,s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 /**
  * @brief Resolve and display damage with hit flash; on defeat drop rewards,
  * restore the palette, play the death sound and start death state 3.
@@ -364,12 +365,6 @@ void GhostDancer_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, u8 *, void *, u8, void *);
-extern struct EwramData_EntityData *Entity_CreateLinkedAndHide(struct EwramData_EntityData *, u32 *);
-extern void SkeletonLinkedPart_Update(struct EwramData_EntityData *);
-extern void SkeletonAttachedPart_Update(struct EwramData_EntityData *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
-extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
-extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, void *onHurt);
 extern void Enemy_OnContact(struct EwramData_EntityData *entity);
 extern void Skeleton_OnHit(struct EwramData_EntityData *entity);
 extern u8 sSkeletonGfx[], sSkeletonWaiterSkeletonPalette[], sSkeletonSpriteSheet[];
@@ -441,15 +436,6 @@ void EnemySkeletonCreate(struct EwramData_EntityData *entity)
 
 /* EnemySkeletonUpdate. */
 /* Skeleton update dispatch and affine rotation. */
-extern s32 Enemy_PreUpdate(struct EwramData_EntityData *);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
-extern void Skeleton_UpdateState5Animation(struct EwramData_EntityData *);
-extern void Skeleton_UpdateDeath(struct EwramData_EntityData *);
-extern void Skeleton_UpdatePatrol(struct EwramData_EntityData *);
-extern void Skeleton_UpdateCombatMovement(struct EwramData_EntityData *);
-extern void Skeleton_UpdateIdle(struct EwramData_EntityData *);
-extern void Skeleton_UpdateAttackPreparation(struct EwramData_EntityData *);
-extern void Skeleton_UpdateThrow(struct EwramData_EntityData *);
 
 void EnemySkeletonUpdate(struct EwramData_EntityData *entity)
 {

@@ -9,14 +9,17 @@
 #include "player_core.h"
 #include "sound.h"
 #include "gameplay.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "map_flags.h"
+#include "math_anim.h"
+#include "music.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 /* Initialize AluraUne's graphics, collisions and initial facing. */
 extern u8 AluraUne_LoadGraphics(struct EwramData_EntityData *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
-extern s32 Anim_GetMaxBoxCount(struct EwramData_EntityData *);
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
 extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
 extern void AluraUne_DamagePlayerOnContact(struct EwramData_EntityData *);
 void AluraUne_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
@@ -48,12 +51,7 @@ finished:
 }
 
 extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
 extern void AluraUne_SpawnThorn(struct EwramData_EntityData *, s32, s32, s32);
-extern void ScreenShake_RequestOffset(u8 priority, s8 offsetX, s8 offsetY);
-extern s32 Sound_PlayTracked(s32 song);
-extern s32 Sound_PlayTrackedIfAbsent(s32 song);
-extern s32 Sound_StopTracked(s32 song);
 
 /**
  * @brief 7C150 | Boss AI (subState), always facing the player: wakes on the
@@ -465,7 +463,6 @@ void AluraUne_UpdatePreview(struct EwramData_EntityData *entity)
 /* Apply damage only when the current animation permits it. */
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s32, s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 /**
  * @brief Hit: no damage while closed (animation 0, sound 0x6A), else subtract and
  * show it; mark the hit (unk_505 = 1, cuts the idle wait short); at
@@ -554,7 +551,6 @@ finished:
 
 /* Activate a timed projectile and retain it only while its parent is alive. */
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void Effect_SpawnFallingPiece(s32, s32, s32, s32, s32, s32);
 void AluraUneThorn_Update(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
@@ -732,9 +728,7 @@ finished:
  *   AluraUne_LoadGraphics = Object25_LoadGraphics
  *   AluraUne_DamagePlayerOnContact = Object28_OnPlayerContact */
 
-extern u8 sAluraUneGfx[];
 extern u8 sAluraUnePalette[];
-extern u8 sAluraUneSpriteSheet[];
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 /**
@@ -785,10 +779,6 @@ void AluraUne_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 }
 
 /* Update Alura Une and clear the room event when she leaves its bounds. */
-extern s32 Enemy_PreUpdate(struct EwramData_EntityData *);
-extern void Enemy_UpdateFragmentDeath(struct EwramData_EntityData *);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
 void EnemyAluraUneUpdate(struct EwramData_EntityData *entity)
 {
     u8 collision[16];

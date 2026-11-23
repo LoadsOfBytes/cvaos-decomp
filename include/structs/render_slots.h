@@ -87,8 +87,5 @@ extern struct ObjLayer gObjLayers[0x20];
 typedef void (*ObjBuildOamArmFunc)(struct ObjEntry *, struct OamShadow *, struct ObjLayer *, struct ObjState *);
 extern u8 gObjBuildOamArm[];
 
-extern struct ObjEntry *Obj_Alloc(void);
-extern struct ObjEntry *Obj_AllocMany(u32 count);
-extern void Obj_AddToLayer(struct ObjEntry *obj, u32 layer);
 
 #endif

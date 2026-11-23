@@ -7,16 +7,17 @@
 #include "structs/ewram.h"
 #include "bg_and_collision.h"
 #include "player_core.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 extern u8 Curly_LoadGraphics(struct EwramData_EntityData *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern s32 Anim_GetMaxBoxCount(struct EwramData_EntityData *);
 extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
 extern void Hit_Enable(struct EwramData_EntityData *, s32, void *, void *);
 void Curly_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void Curly_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 
 void EnemyCurlyCreate(struct EwramData_EntityData *entity)
 {
@@ -44,12 +45,8 @@ void EnemyCurlyCreate(struct EwramData_EntityData *entity)
     entity->accelY.whole = 0x2800;
 }
 
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
 extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
 extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern s32 Entity_AdjustSpeedForSlope(struct EwramData_EntityData *entity, s32 speed);
-extern s32 Entity_GetHorizontalRoomEdge(struct EwramData_EntityData *, s32);
 extern s32 Collision_IsWalkBlocked(s32 x, s32 y);
 
 /**
@@ -153,8 +150,6 @@ void Curly_UpdateWalk(struct EwramData_EntityData *entity)
     }
 }
 
-extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s32);
-
 /**
  * @brief 93460 | Enemy attack sub-state (Zombie / Medusa family, file
  * 0x08093218): for 8 frames it lunges at 0x10000 / frame in its facing
@@ -198,7 +193,6 @@ void Curly_UpdateAttack(struct EwramData_EntityData *entity)
 }
 
 extern s32 ObjPalette_FindOrLoadVariant(void *, s32);
-extern void Entity_DrawWithOffsetCopy(struct EwramData_EntityData *);
 extern u8 sCurlyGfx[], sCurlyPalette[], sCurlySpriteSheet[];
 
 u8 Curly_LoadGraphics(struct EwramData_EntityData *entity)
@@ -222,7 +216,6 @@ u8 Curly_LoadGraphics(struct EwramData_EntityData *entity)
 
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 
 void Curly_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
@@ -276,11 +269,6 @@ void Curly_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
  *   EnemyCurlyUpdate = EnemySkeletonKnightUpdate */
-
-extern s32 Enemy_PreUpdate(struct EwramData_EntityData *entity);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *entity);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *entity);
-extern void Enemy_UpdateFragmentDeath(struct EwramData_EntityData *entity);
 
 /**
  * @brief 936A0 | Same as EnemySkeletonKnightUpdate.

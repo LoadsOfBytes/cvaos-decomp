@@ -9,26 +9,26 @@
 #include "entity_util.h"
 #include "sound.h"
 #include "structs/ewram.h"
+#include "effects.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 /* Nightmare running, attack and death states. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 extern void Enemy_OnContact(struct EwramData_EntityData *);
 extern s32 Hit_EnableContact(struct EwramData_EntityData *, s32, void *, s32);
 extern void Nightmare_Draw(struct EwramData_EntityData *);
 extern void Nightmare_OnHit(struct EwramData_EntityData *);
-extern void Entity_HideAboveY(struct EwramData_EntityData *, s32);
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *);
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern struct EwramData_EntityData *Afterimage_Create(struct EwramData_EntityData *, s32, s32, s32);
 extern void Nightmare_UpdateRun(struct EwramData_EntityData *);
 extern s32 Nightmare_UpdateDeath(struct EwramData_EntityData *);
 extern u8 sNightmareGfx[], sNightmarePalette[], sNightmareSpriteSheet[];
 
-extern void Entity_EndIfActive(struct EwramData_EntityData *);
-extern s32 Entity_GetVisibilityPattern(s32);
 extern u8 sNightmareWalkProfile[];
 
 /**
@@ -256,7 +256,6 @@ void EnemyNightmareUpdate(struct EwramData_EntityData *entity)
  *   Nightmare_OnHit = HeadStackSegment_OnHit */
 
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 
 /**
  * @brief Apply enemy damage; on defeat drop rewards, restore the palette

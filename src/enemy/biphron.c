@@ -7,7 +7,13 @@
 #include "structs/ewram.h"
 #include "sound.h"
 #include "player_core.h"
-#include "entity_util.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "entity_motion.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
@@ -16,10 +22,6 @@
 extern u8 Biphron_LoadGraphics(struct EwramData_EntityData *entity);
 extern void Biphron_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void Biphron_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *entity);
-extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
-extern s32 Anim_GetMaxBoxCount(struct EwramData_EntityData *entity);
 extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
 
 /**
@@ -50,7 +52,6 @@ void EnemyBiphronCreate(struct EwramData_EntityData *entity)
 }
 
 /* Walking motion with a delayed chance to begin the nearby-player action. */
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
 extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s32);
 extern s32 Target_IsInRect(s32, s32, s32, s32);
 void Biphron_UpdateWalk(struct EwramData_EntityData *entity)
@@ -86,8 +87,6 @@ void Biphron_UpdateWalk(struct EwramData_EntityData *entity)
     }
 }
 
-extern void Effect_SpawnParticleAnim0(s32 x, s32 y, s32 vx, s32 vy, s32 layer);
-extern s32 Entity_GetVisibilityPattern(s32 step);
 extern void Biphron_SpawnDebris(struct EwramData_EntityData *entity, s32 x, s32 y, s32 layer, s32 mode);
 
 #define FRAME(e) (*(u16 *)&(e)->animStep)
@@ -143,7 +142,6 @@ void Biphron_UpdateDeath(struct EwramData_EntityData *entity)
 
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 void Biphron_ThrowShot(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY);
 extern void BiphronFlame_Update(struct EwramData_EntityData *entity);
 extern void BiphronShot_Update(struct EwramData_EntityData *entity);
@@ -279,8 +277,6 @@ void BiphronShot_SpawnFlame(struct EwramData_EntityData *entity, s32 offsetX, s3
     }
 }
 
-extern void Effect_SpawnTimedFrameParticle(s32 x, s32 y, s32 vx, s32 vy, s32 layer, s32 damping, s32 flags, s32 palette, s32 duration);
-
 /* x and y are function-level variables (globally allocated, as in the original);
  * the statement expression keeps -0x100000 next to the random part. */
 #define EMIT()                                                                                    \
@@ -323,7 +319,6 @@ void BiphronFlame_Update(struct EwramData_EntityData *entity)
 }
 
 /* BiphronShot_Update (Biphron projectile update). */
-extern s32 Entity_MoveWithCollisionDefault(struct EwramData_EntityData *entity, s32 landingVelocity, s32 ceilingOffset);
 extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
 
 /**
@@ -373,10 +368,6 @@ void BiphronShot_DamagePlayerOnContact(struct EwramData_EntityData *entity)
     Player_ApplyContactDamage(&contactDamage);
 }
 
-extern struct EwramData_EntityData *EntityCreateInRange(s32, s32, u32 *);
-extern void Effect_UpdateParticle(struct EwramData_EntityData *);
-extern u8 sBiphronGfx[], sBiphronSpriteSheet[];
-
 void Biphron_SpawnDebris(struct EwramData_EntityData *parent, s32 x, s32 y, s32 layer, s32 mode)
 {
     struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateParticle);
@@ -407,9 +398,6 @@ void Biphron_SpawnDebris(struct EwramData_EntityData *parent, s32 x, s32 y, s32 
  *   Biphron_LoadGraphics = Object25_LoadGraphics
  *   Biphron_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
-extern s32 Enemy_PreUpdate(struct EwramData_EntityData *entity);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *entity);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *entity);
 extern u8 sBiphronPalette[];
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 

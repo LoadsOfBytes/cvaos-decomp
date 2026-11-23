@@ -13,13 +13,16 @@
 #include "sound.h"
 #include "structs/entity_template.h"
 #include "syscalls.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *entity);
-extern s32 Entity_GetVisibilityPattern(s32 step);
 extern void Effect_SpawnRandom(s32 x, s32 y, s32 w, s32 h, s32 layer);
-extern void Heap_Free(void *parts);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *entity);
 extern void Stolas_UpdateMove(struct EwramData_EntityData *entity);
 extern void Stolas_UpdateAttack(struct EwramData_EntityData *entity);
 extern void Stolas_SpawnDebris(struct EwramData_EntityData *entity, s32 x, s32 y, s32 vx, s32 vy);
@@ -131,10 +134,6 @@ boxes:
 /* Stolas create: allocates the 6-joint skeleton and one part entity per joint. */
 extern void *memcpy(void *dst, const void *src, unsigned long size);
 extern u8 Stolas_LoadGraphics(struct EwramData_EntityData *entity);
-extern void *Heap_Alloc(u16 words);
-extern void Heap_Free(void *allocation);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
-extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *update);
 extern void StolasPart_Update(struct EwramData_EntityData *entity);
 extern void Stolas_OnContact(struct EwramData_EntityData *entity);
@@ -282,15 +281,8 @@ void EnemyStolasCreate(struct EwramData_EntityData *entity)
 }
 
 /* Stolas movement and transitions to attack states. */
-extern void Stolas_FaceTarget(struct EwramData_EntityData *);
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *, s32, s32);
-extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
-extern void Stolas_AttachJoint(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern void Stolas_InterpolateJointsInOrder(struct EwramData_EntityData *, s8 *);
-extern s32 Entity_MoveWithCollisionDefault(struct EwramData_EntityData *, s32, s32);
-extern s32 Entity_GetHorizontalRoomEdge(struct EwramData_EntityData *, s32);
 extern void Stolas_TurnAround(struct EwramData_EntityData *);
-extern s32 Tile_Classify(s16, s16);
 extern s32 Target_GetPixelX(struct EwramData_EntityData *);
 #define POSE(e) (e->ext.joint.pose)
 /**
@@ -472,7 +464,6 @@ reset:
 extern void Stolas_SpawnCastEffect(struct EwramData_EntityData *, s32, s32);
 extern void Stolas_SpawnBeamSegment(struct EwramData_EntityData *, s32, s32);
 extern void Stolas_SpawnBeamImpact(struct EwramData_EntityData *, s32, s32);
-extern void EntityMoveX(struct EwramData_EntityData *);
 /* Six 0x30-byte joints, then three child slots and their template IDs. */
 struct StolasParts {
     struct EntityJointPart joints[6];
@@ -749,8 +740,6 @@ void Stolas_InterpolateJoint(struct EwramData_EntityData *entity, s32 index)
     }
 }
 
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
-
 /**
  * @brief When target-facing changes, flip and mirror all six joint X positions and reflect their rotations around 0x20000.
  */
@@ -904,8 +893,6 @@ void Stolas_AttachJoint(struct EwramData_EntityData *entity, s32 partIndex, s32 
 }
 
 /* Stolas hit callback: on death, emit six projectiles with random velocities. */
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
-extern void Stolas_SpawnDebris(struct EwramData_EntityData *, s32, s32, s32, s32);
 void Stolas_OnDamaged(struct EwramData_EntityData *entity, s32 attacker, u16 *hit, s32 damage)
 {
     entity->hitFlashTimer = 8;
@@ -1155,8 +1142,6 @@ free:
 
 /* Stolas_SpawnBeamSegment (Stolas hit box child). */
 extern void StolasBeamSegment_Update(struct EwramData_EntityData *entity);
-extern u8 sStolasGfx[];
-extern u8 sStolasSpriteSheet[];
 
 /**
  * @brief 9BF7C | Spawn a StolasBeamSegment_Update child (slots 0x1B..0x48) at
@@ -1455,12 +1440,8 @@ void Stolas_OnContact(struct EwramData_EntityData *entity)
 
 /* Stolas helpers 0x0809C41C..0x0809C5E7. */
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-extern u16 Player_CalculateAttackPower(u16 attackCategory);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
-extern void EntityDampVelocityX(struct EwramData_EntityData *entity, s32 factor);
-extern void EntityDampVelocityY(struct EwramData_EntityData *entity, s32 factor);
-extern void EntityAccelerateAndMove(struct EwramData_EntityData *entity, s32 maxSpeed);
 
 /* Graphics of Stolas. */
 extern u8 sStolasPalette[];

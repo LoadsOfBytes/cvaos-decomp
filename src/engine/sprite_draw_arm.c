@@ -1,6 +1,5 @@
 /* ARM (IWRAM) twin of Sprite_DrawParts: draw one entity's sprite parts with flips.
  * Built with the bundled agbcc_arm; matched. */
-#include "graphics.h"
 #include "structs/ewram.h"
 
 struct Matrix2 { s32 m[4]; };

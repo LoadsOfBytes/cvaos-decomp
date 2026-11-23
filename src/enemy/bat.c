@@ -6,12 +6,15 @@
 #include "structs/ewram.h"
 #include "sound.h"
 #include "entity_util.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "math_anim.h"
+#include "obj_palette.h"
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, u8 *, void *, u8, void *);
 extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
 extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *);
 extern s32 Collision_GetPushDown(s32, s32);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, void *);
 extern void Enemy_OnContact(struct EwramData_EntityData *);
 void Bat_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hitData);
@@ -64,14 +67,7 @@ void EnemyBatCreate(struct EwramData_EntityData *entity)
 /* Bat state machine, reconstructed from original ROM assembly. */
 extern void Entity_FaceTarget(struct EwramData_EntityData *);
 extern s32 Bat_IsTargetBelow(struct EwramData_EntityData *, u16, u16);
-extern void Entity_SetVelocityXFromFacing(struct EwramData_EntityData *, s32);
-extern s32 Entity_GetTargetDistanceY(struct EwramData_EntityData *);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
-extern void Enemy_UpdateFragmentDeathWithSpread(struct EwramData_EntityData *, s32, s32, s32);
 extern void Bat_UpdateState4Animation(struct EwramData_EntityData *);
-extern s32 Enemy_PreUpdate(struct EwramData_EntityData *);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
 
 /**
  * @brief Face the target; choose waiting animations until the target enters the lower detection rectangle.

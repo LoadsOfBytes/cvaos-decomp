@@ -6,21 +6,24 @@
 #include "in_game.h"
 #include "graphics.h"
 #include "structs/ewram.h"
-#include "room_objects.h"
 #include "player_core.h"
 #include "structs/entity_template.h"
 #include "sound.h"
-#include "gameplay.h"
 #include "music.h"
 #include "map_flags.h"
 #include "player_level.h"
 #include "entity_util.h"
+#include "effects.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
+#include "shop_update.h"
 
 /* Belmont initialization distinguishes scene entry and combat entry. */
-extern void Player_SetSelectedTarget(struct EwramData_EntityData *);
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *,u8 *,void *,u8,void *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *,void *,s32);
 extern void Enemy_OnContact(struct EwramData_EntityData *);
 void Belmont_OnHit(struct EwramData_EntityData *entity,s32 kind,u16 *hit);
@@ -245,9 +248,7 @@ extern void Belmont_UpdateWaveAttack(struct EwramData_EntityData *);
 extern void Belmont_UpdateSubweaponAttack(struct EwramData_EntityData *);
 extern void Belmont_UpdateJumpSlide(struct EwramData_EntityData *);
 extern void Belmont_UpdatePoweredPhase(struct EwramData_EntityData *);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
 #define FLASH(e) ((e)->ext.raw.unk_4F8.part8.unk_4F9)
 void EnemyBelmontUpdate(struct EwramData_EntityData *entity)
 {
@@ -292,7 +293,6 @@ void EnemyBelmontUpdate(struct EwramData_EntityData *entity)
 
 /* Belmont_UpdateCombat. */
 /* Belmont combat decisions: proximity, health phase, turns and attacks. */
-extern s32 Entity_TryWalk(struct EwramData_EntityData *,s32,s32,s32,s32);
 extern s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *,s32,s32);
 extern s32 Entity_IsTargetInCenteredBox(struct EwramData_EntityData *,s32,s32);
 #define FLAGS(e) ((e)->ext.raw.unk_4F8.part8.unk_4F8)
@@ -473,7 +473,6 @@ void Belmont_UpdateMeleeAttack(struct EwramData_EntityData *entity)
 }
 
 /* Belmont leap and airborne attack selection, with landing recovery. */
-extern s32 Entity_MoveWithCollisionProfile(struct EwramData_EntityData *,s16 *,u16,s32);
 extern s32 Entity_ClampXToRoom(struct EwramData_EntityData *,s32);
 extern void Afterimage_Create(struct EwramData_EntityData *,s32,s32,s32);
 extern struct EwramData_EntityData *Belmont_CreateMovementEffect(struct EwramData_EntityData *);
@@ -878,7 +877,6 @@ void Belmont_UpdateWaveAttack(struct EwramData_EntityData *entity)
 }
 
 /* Belmont subweapon attack: telegraph, timed effects, throw, recovery. */
-extern s32 Entity_GetTargetDistanceY(struct EwramData_EntityData *);
 extern struct EwramData_EntityData *Belmont_CreateSubweapon(struct EwramData_EntityData *,s32);
 /**
  * @brief Subweapon state (6): select a variant from target position,
@@ -1590,7 +1588,6 @@ void Belmont_UpdateHitReaction(struct EwramData_EntityData *entity)
 }
 
 /* Belmont defeat animation and linked scene completion. */
-extern void Effect_SpawnParticleAnim13(s32,s32,s32,s32,s32,s32);
 /**
  * @brief Defeat state (0xF0): play defeat animation, create scene entry 1
  * and update completion flags/target tracking when the scene object
@@ -1677,7 +1674,6 @@ void Belmont_UpdateDefeat(struct EwramData_EntityData *entity)
 
 /* Belmont hit response, defeat notification and repeated-hit stun. */
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *,s32,u16 *);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 /**
  * @brief Apply enemy damage, trigger the defeat reaction and reward drop
  * when reported, or count repeated hits toward a flashing stun reaction
@@ -1818,9 +1814,6 @@ struct EwramData_EntityData *Belmont_CreateSubweapon(struct EwramData_EntityData
 }
 
 /* Belmont subweapon variant 0: rotating ballistic projectile. */
-extern void EntityAccelerateAndMoveX(struct EwramData_EntityData *,s32);
-extern void EntityAccelerateAndMoveY(struct EwramData_EntityData *,s32);
-extern s32 EntityIsOutsideScreen(struct EwramData_EntityData *,s32);
 #define ANGLE(e) ((e)->hp)
 #define STEP(e) (ENTITY_HALF_51A((e)))
 /**
@@ -1955,7 +1948,6 @@ void BelmontSubweapon1_Update(struct EwramData_EntityData *entity)
 }
 
 /* Belmont subweapon variants 2 and 3: ground impact and repeated flames. */
-extern s32 Entity_Walk(struct EwramData_EntityData *,s32,void *,s32);
 /**
  * @brief Variant 2: throw along terrain, stop horizontal motion at walls
  * and on ground impact repeatedly create variant 3 until the countdown

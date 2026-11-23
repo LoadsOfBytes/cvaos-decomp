@@ -2,26 +2,11 @@
  * Object graphics: sprite slots, part drawing (normal / affine / single), tile loading and the save / restore of the object graphics state.
  */
 #include "structs/render_slots.h"
-#include "graphics.h"
 #include "core.h"
-#include "sram.h"
 #include "bg_and_collision.h"
-#include "intro_cutscene.h"
-#include "bg_effects.h"
-#include "room_entities.h"
-#include "player_init.h"
-#include "player_core.h"
-#include "soul_inventory.h"
-#include "player_effects.h"
-#include "player_level.h"
-#include "debug_1967.h"
 #include "gameplay.h"
-#include "entity_util.h"
-#include "sound.h"
 #include "arm_callbacks.h"
 #include "gba.h"
-#include "macros.h"
-#include "agb_sram.h"
 #include "syscalls.h"
 #include "constants/main.h"
 #include "data/data_0E0334.h"
@@ -30,6 +15,9 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 #include "graphics_inline.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "palette.h"
 
 /* Upstream functions 0x08039340..0x0803981F from the previously unlinked
  * this file, now linked as matching C. */

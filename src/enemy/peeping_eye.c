@@ -9,6 +9,13 @@
 #include "gameplay.h"
 #include "entity_util.h"
 #include "structs/ewram.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 /* Peeping Eye: main update, creation, movement and animation, the hit
  * reaction and its parts (eyeball, pupil and the chain of six links).
@@ -17,25 +24,10 @@
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s32, s32);
 extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
-extern s32 FixedMultiply(s32, s32);
-extern s32 Enemy_IsStunnedNoFlash(struct EwramData_EntityData *);
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
-extern s32 Target_GetX(struct EwramData_EntityData *);
-extern s32 Target_GetY(struct EwramData_EntityData *);
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
 extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s32 Anim_GetMaxBoxCount(struct EwramData_EntityData *);
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *);
-extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
-extern void Effect_SpawnAt(s32, s32, s32);
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *updateFunc);
-extern void EntityDampVelocityX(struct EwramData_EntityData *, s32);
-extern void EntityDampVelocityY(struct EwramData_EntityData *, s32);
-extern void EntityAccelerateAndMove(struct EwramData_EntityData *, s32);
 extern struct EwramData_EntityData *EnemyPeepingEyeCreateEyeball(struct EwramData_EntityData *);
 extern struct EwramData_EntityData *PeepingEye_CreatePupil(struct EwramData_EntityData *);
 extern u8 PeepingEye_LoadGraphics(struct EwramData_EntityData *);

@@ -11,16 +11,22 @@
 #include "enemy_status.h"
 #include "bg_and_collision.h"
 #include "gameplay.h"
-#include "entity_util.h"
 #include "entity_hit.h"
 #include "player_core.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
+#include "effects.h"
 
 extern void PlaySong(s32);
 /* from sound.h (not included: see the module notes) */
 
 /* Disc Armor disc projectile (uses the Disc Armor graphics of EnemyDiscArmorCreate). */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, u8, void *);
-extern void EntityAccelerateAndMove(struct EwramData_EntityData *, s32);
 extern u8 sDiscArmorGfx[], sDiscArmorPalette[], sDiscArmorSpriteSheet[];
 
 /* State 0 loads graphics, starts the animation selected by unk_4F8 and sets
@@ -149,9 +155,6 @@ s32 DiscArmorRing_Aim(struct EwramData_EntityData *disc, struct EwramData_Entity
 /* Disc Armor thrown disc. */
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
 extern void Afterimage_Create(struct EwramData_EntityData *, s32, s32, s32);
-extern s32 __divsi3(s32, s32);
-extern s32 DiscArmorRing_Aim(struct EwramData_EntityData *disc, struct EwramData_EntityData *entity,
-                        struct EwramData_EntityData *owner);
 extern void DiscArmorDisc_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 extern u8 sDiscArmorWalkProfile[];
 
@@ -524,7 +527,6 @@ run:
 }
 
 extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *entity);
-extern s16 Entity_GetTargetDistance(struct EwramData_EntityData *entity);
 
 static inline s32 WalkSpeed(s32 frame, s32 base) { return (frame << 13) + base; }
 void DiscArmor_UpdateWalk(struct EwramData_EntityData *entity)
@@ -592,7 +594,6 @@ void DiscArmor_UpdateWalk(struct EwramData_EntityData *entity)
 
 /* Disc Armor throw. */
 extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *updateFunc);
 
 /**
  * @brief B205C | Disc Armor throw (attack state).  State 0 faces the player,
@@ -652,8 +653,6 @@ void DiscArmor_UpdateThrow(struct EwramData_EntityData *entity)
 }
 
 /* Disc Armor death. */
-extern s32 Sin(s32);
-extern s32 RandomSigned(s32);
 
 /**
  * @brief B2148 | Disc Armor death, a variant of the Axe Armor death
@@ -711,15 +710,9 @@ s32 DiscArmor_UpdateDeath(struct EwramData_EntityData *entity)
     return 0;
 }
 
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, void *);
-extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
 extern void Enemy_OnContact(void);
 void DiscArmor_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern void BomberRockArmor_OnHit(void);
-extern u8 sBomberArmorRockArmorGfx[], sBomberArmorRockArmorPalette[], sBomberArmorSpriteSheet[], sRockArmorSpriteSheet[];
 
 void EnemyDiscArmorCreate(struct EwramData_EntityData *entity)
 {
@@ -744,9 +737,6 @@ void EnemyDiscArmorCreate(struct EwramData_EntityData *entity)
     entity->scrollWithBg = 1;
     entity->state = 0;
 }
-
-extern s32 Enemy_PreUpdate(struct EwramData_EntityData *);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
 
 void EnemyDiscArmorUpdate(struct EwramData_EntityData *entity)
 {
@@ -775,9 +765,7 @@ void EnemyDiscArmorUpdate(struct EwramData_EntityData *entity)
 }
 
 /* DiscArmor_OnHit. */
-extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 
 /**
  * @brief B2370 | Hit: Entity_FaceTarget in state 0; when killed (Enemy_TakeDamage),

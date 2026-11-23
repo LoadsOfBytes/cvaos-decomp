@@ -10,6 +10,15 @@
 #include "sound.h"
 #include "syscalls.h"
 #include "player_level.h"
+#include "boss_defeat.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "map_flags.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 /* Big Golem update (like EnemyGolemUpdate): screen/hit checks unless dying;
  * states 0 / 1 (BigGolem_UpdateWalk / BigGolem_UpdateAttack), 2 dying: dust every 4th frame
@@ -17,9 +26,6 @@
  * Entity_ClampXToRoom and a 1-in-4 chance to clear unk_4FE. */
 
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *entity);
-extern void Heap_Free(void *parts);
-extern void Effect_SpawnRisingParticle(s32 x, s32 y, s32 layer, s32 mode);
 extern s32 Entity_ClampXToRoom(struct EwramData_EntityData *entity, s32 inset);
 extern void BigGolem_UpdateWalk(struct EwramData_EntityData *entity);
 extern void BigGolem_UpdateAttack(struct EwramData_EntityData *entity);
@@ -70,10 +76,6 @@ idle:
 extern void *memcpy(void *dst, const void *src, unsigned long size);
 extern void *memset(void *dst, int value, unsigned long size);
 extern u8 BigGolem_LoadGraphics(struct EwramData_EntityData *entity);
-extern void *Heap_Alloc(u16 words);
-extern void Heap_Free(void *allocation);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
-extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *update);
 extern void BigGolemPart_Update(struct EwramData_EntityData *entity);
 extern void BigGolemPart_OnContact(struct EwramData_EntityData *entity);
@@ -84,7 +86,6 @@ extern void BigGolem_AttachPart(struct EwramData_EntityData *entity, s32 partInd
 extern void BigGolem_UpdateParts(struct EwramData_EntityData *entity, s8 *order);
 extern void BigGolem_ResetPartAngles(struct EwramData_EntityData *entity, s32 partIndex);
 extern void BigGolem_FaceTarget(struct EwramData_EntityData *entity);
-extern void Player_SetSelectedTarget(struct EwramData_EntityData *entity);
 extern s32 Music_SetCurrent(s32 song);
 extern u8 sBigGolemGfx[], sBigGolemGfx2[], sBigGolemSpriteSheet[], sBigGolemSpriteSheet2[];
 extern const u8 sBigGolemFrames[14], sBigGolemAnchors[14];
@@ -291,12 +292,7 @@ void EnemyBigGolemCreate(struct EwramData_EntityData *entity)
 
 /* Big Golem walk state machine (state == 0): shifts weight from foot to foot, stomps (dust, shake), turns at walls. */
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *, s32, s32);
-extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
 extern s32 Target_GetPixelX(struct EwramData_EntityData *);
-extern s32 Tile_Classify(s16, s16);
-extern s32 Entity_GetHorizontalRoomEdge(struct EwramData_EntityData *, s32);
-extern void Effect_SpawnFadingParticleCopy(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32 variant);
-extern void ScreenShake_RequestOffset(u8 priority, s8 offsetX, s8 offsetY);
 extern void BigGolem_AttachPartEased(struct EwramData_EntityData *entity, s32 partIndex, s32 anchorIndex, s32 angleSpec, s32 length, s32 duration);
 extern void BigGolem_RecenterOnParts(struct EwramData_EntityData *entity, s32 partIndex0, s32 partIndex1);
 extern void BigGolem_SetPartYOffset(struct EwramData_EntityData *entity, s32 partIndex, s32 offsetY);
@@ -703,7 +699,6 @@ void BigGolem_UpdateWalk(struct EwramData_EntityData *entity)
 }
 
 /* Big Golem attack state machine (state == 1): punch (states 0-19, two variants) and rock throw (20-39). */
-extern void Effect_SpawnFallingPiece(s32, s32, s32, s32, s32, s32);
 extern void BigGolem_SaveParts(struct EwramData_EntityData *entity);
 extern void BigGolem_RestoreParts(struct EwramData_EntityData *entity);
 extern void BigGolem_SpawnRock(struct EwramData_EntityData *parent, s32 x, s32 y, s32 vx, s32 vy);
@@ -1364,7 +1359,6 @@ void BigGolem_UpdatePart(struct EwramData_EntityData *entity, s32 index)
 }
 
 /* BigGolem_FaceTarget (Big Golem turning around). */
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *entity);
 
 /**
  * @brief AC298 | Face the direction given by Entity_IsTargetRight; when turning
@@ -1532,8 +1526,6 @@ void BigGolem_AttachPart(struct EwramData_EntityData *entity, s32 partIndex, s32
 }
 
 /* Big Golem damage and contact callbacks. */
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
-extern void BossDefeatEffect_Spawn(s32, s32);
 extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s16);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s32, s32);
@@ -1594,11 +1586,9 @@ void BigGolemPart_OnContact(struct EwramData_EntityData *entity)
 
 /* Big Golem part update: joint following, weapon collision and death motion. */
 struct GolemBox { s8 x, y, w, h; };
-extern void *memcpy(void *, const void *, unsigned long);
 extern const u8 sBigGolemPartTimers[14];
 extern const s16 sBigGolemPartOffsets[14];
 extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
-extern s32 Entity_GetVisibilityPattern(s32);
 extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
 #define JOINT(e) ((s8)e->ext.jointPart.index)
 #define FIX_INT(v) ((v) < 0 ? -(-(v) >> 16) : (v) >> 16)
@@ -2007,7 +1997,6 @@ void BigGolemPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *
 }
 
 /* BigGolemRock_Update. */
-extern void Hit_CheckWithPlayerSharedHistory(void *res, struct EwramData_EntityData *entity, struct EwramData_EntityData *owner);
 
 /**
  * @brief AD0B8 | State 0: fall (max 0x40000) with a hitbox owned by
@@ -2057,9 +2046,6 @@ void BigGolemRock_DamagePlayerOnContact(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   BigGolemRock_OnKilled = GolemDebris_OnKilled */
 
-extern u16 Player_CalculateAttackPower(u16 attackCategory);
-extern void Effect_SpawnFallingPiece(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32 piece);
-
 /**
  * @brief Same as GolemDebris_OnKilled: hit effect, two falling pieces, delete.
  */
@@ -2101,7 +2087,6 @@ u8 BigGolem_LoadGraphics(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   BigGolem_DamagePlayerOnContact = Enemy_DamagePlayerOnContact
  *   BigGolem_OnHit = Manticore_OnHit */
-
 
 /**
  * @brief AD234 | Same as Enemy_DamagePlayerOnContact.

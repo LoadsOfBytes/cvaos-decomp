@@ -5,7 +5,6 @@
 #include "sound.h"
 #include "graphics.h"
 #include "gameplay.h"
-#include "entity_util.h"
 #include "player_core.h"
 #include "macros.h"
 #include "structs/ewram.h"
@@ -14,7 +13,16 @@
 #include "music.h"
 #include "bg_and_collision.h"
 #include "syscalls.h"
-#include "player_entity.h"
+#include "damage_numbers.h"
+#include "entity_common.h"
+#include "entity_motion.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "palette.h"
+#include "red_souls_b.h"
+#include "effects.h"
 
 /* Graphics resources of a red soul skill (sSkillGraphicsSets). */
 struct SoulGraphicsResources {
@@ -122,7 +130,6 @@ void SkillStudentWitchUse(struct EwramData_EntityData *entity)
 /* Burst of four sparks (frames 0x40/0x41, palette 6) within +-4 px of the
  * owner, random horizontal speed and an upward kick, gravity 0x2000;
  * updated by Effect_UpdateBallisticDebris. Stops at the first failed spawn. */
-extern void Effect_UpdateBallisticDebris(struct EwramData_EntityData *);
 extern u8 sCommonObjectGfx[], sCommonObjectSpriteSheet[];
 
 /**
@@ -178,7 +185,6 @@ void BoneSoulEffect_Update(struct EwramData_EntityData *entity)
 }
 
 struct EffectPoint { s16 x, y; };
-extern struct EwramData_EntityData *RedSoul_CreateEntity(struct EwramData_EntityData *, u32 *);
 extern void Sprite_GetPartCornerOffset(struct EwramData_EntityData *, s32, s16 *);
 /**
  * @brief Create a red-soul effect (animation 5, update BoneSoulEffect_Update)
@@ -206,9 +212,6 @@ void BoneSoul_SpawnFlyingEffect(struct EwramData_EntityData *owner)
 
 /* Skeleton-family red soul (bone throw and variants), driven by sUnk_084F12C8. */
 
-extern void BoneSoul_OnPlayerContact(struct EwramData_EntityData *);
-extern void RedSoulEffect_UpdateAccelerated(struct EwramData_EntityData *);
-extern void SoulBoneFragment_Update(struct EwramData_EntityData *);
 extern void Effect_SpawnParticleTemplateList(s16 x, s16 y, s32 index);
 
 static inline void SkillLoadGraphicsInline(struct EwramData_EntityData *entity, u8 paletteSlot, void *gfxSrc, void *palette, void *sheet)
@@ -665,7 +668,6 @@ void SkillWingedSkeletonUse(struct EwramData_EntityData *entity)
     ObjAffine_Set(SKILL_WINGED_SKELETON_ANGLE(entity), 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
 }
 
-extern void SoulAttack_MarkHit(struct EwramData_EntityData *);
 extern u16 sSkillSirenNotes[];
 
 /**
@@ -1050,8 +1052,6 @@ void SkillBatUse(struct EwramData_EntityData *entity)
     SetFrameBox(entity);
 }
 
-extern void SkillMermanDropletUpdate(struct EwramData_EntityData *);
-
 /**
  * @brief Child of SkillMermanUse: projectile (graphics set 0, animation 6,
  * box 0x1010F8F8) accelerating horizontally for 16 updates and dropping
@@ -1185,8 +1185,6 @@ void SkillMermanUse(struct EwramData_EntityData *entity)
     if (Anim_Update(entity) == 3)
         FreeRedSoul(entity);
 }
-
-extern void Entity_DrawWithVelocityCopies(struct EwramData_EntityData *);
 
 /**
  * @brief Child of SkillDiscArmorUse: affine sprite (graphics set 7, frame 2)
@@ -1548,7 +1546,6 @@ void SkillAltairUse(struct EwramData_EntityData *entity)
     Anim_Update(entity);
 }
 
-extern s32 Entity_MoveAndCollide(struct EwramData_EntityData *, s32, s32, s32, s32);
 extern s32 Collision_FindWaterSurfaceOffset(s32, s32);
 
 static inline struct EwramData_EntityData *NearestTarget(struct EwramData_EntityData *entity)
@@ -1842,8 +1839,6 @@ void SkillNeedlesUse(struct EwramData_EntityData *entity)
         entity->state = 3;
     }
 }
-
-extern void RedSoul_AnchorToHitTargetTimed(struct EwramData_EntityData *, struct EwramData_EntityData *);
 
 /**
  * @brief 282DC | Dryad red soul: a seed (graphics set 13, frame 0, layer
@@ -2174,8 +2169,6 @@ void SkillBeamSkeletonUse(struct EwramData_EntityData *entity)
     }
 }
 
-extern void RedSoul_AnchorToHitTarget(struct EwramData_EntityData *, struct EwramData_EntityData *);
-
 /**
  * @brief Child of SkillSkullArcherUse: arrow (graphics set 18, frame 1,
  * velX 0x60000, box 0x0202FF08) whose hit callback links a follower
@@ -2295,7 +2288,6 @@ void SkillSkullArcherUse(struct EwramData_EntityData *entity)
 /* SkillArachneUse: matched (bone loop as in the skeleton skill:
    SpawnBone + scatter; one variable holds the linked entity pointer and its flag). */
 
-
 #define DEL(e) do { gEwramData->playerState.activeRedSoulEntities[(e)->ext.raw.unk_4FC.part16.unk_4FE[0]] = NULL; gEwramData->playerState.nbrActiveRedSoulEntities--; EntityDelete(e); } while (0)
 
 void SkillArachneUse(struct EwramData_EntityData *entity)
@@ -2409,8 +2401,6 @@ void SkillArachneUse(struct EwramData_EntityData *entity)
 
 /* SkillFlameDemonProjectileUpdate; graphics
  * loading as SkillLoadGraphicsInline in src/player/player_core.c. */
-
-void SoulAttack_MarkHit(struct EwramData_EntityData *entity);
 
 /**
  * @brief Child of SkillFlameDemonUse: projectile (graphics set 17,
@@ -2555,8 +2545,6 @@ void SkillCockatriceEffectUpdate(struct EwramData_EntityData *entity)
         EntityDelete(entity);
     }
 }
-
-extern void SkillCockatriceDraw(struct EwramData_EntityData *);
 
 /**
  * @brief 2968C | Cockatrice red soul: an affine breath (graphics set 27,

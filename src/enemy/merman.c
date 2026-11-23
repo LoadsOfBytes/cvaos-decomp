@@ -10,18 +10,19 @@
 #include "structs/ewram.h"
 #include "sound.h"
 #include "gameplay.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "entity_motion.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 /* Dispatch Merman states, including the hidden instance's child spawning. */
 extern void EnemyMermanCreate(struct EwramData_EntityData *);
 extern void Merman_UpdateMove(struct EwramData_EntityData *);
 extern void Merman_UpdateAttack(struct EwramData_EntityData *);
-extern s32 Entity_IsOutsideRoomMap(struct EwramData_EntityData *);
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern s32 Entity_MoveWithOptionalCeilingCollision(struct EwramData_EntityData *, s32, s32, s32);
-extern void Enemy_UpdateFragmentDeath(struct EwramData_EntityData *);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
 void EnemyMermanUpdate(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *background = &gEwramData->bgInfo[1];
@@ -102,9 +103,6 @@ finished:
 
 /* Initialize Merman's hidden, waiting or jumping entry mode. */
 extern u8 Merman_LoadGraphics(struct EwramData_EntityData *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, void *);
 extern void Enemy_DamagePlayerOnContact(struct EwramData_EntityData *);
 void Merman_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
@@ -169,13 +167,10 @@ finished:
  * This reconstruction requires the source-specific -fno-gcse build rule.
  * A byte match establishes generated code, not the original compiler options. */
 extern void EntityMoveY(struct EwramData_EntityData *);
-extern void EntityMove(struct EwramData_EntityData *);
 extern s32 Target_GetPixelX(struct EwramData_EntityData *);
-extern s32 Entity_MoveAndProbePointCollision(struct EwramData_EntityData *, s32, s32, s32);
 /* Preserve the original caller's full-register argument arithmetic. The callee
  * consumes signed 16-bit coordinates; its implementation performs narrowing. */
 extern s32 Collision_FindWaterSurfaceOffset(s32, s32);
-extern void Effect_SpawnStationaryAnimation(s32, s32, s32);
 #define LEAP_SPLASHED(e) (e->ext.merman.leapSplashed)
 #define SWIM_MODE(e) (*(s8 *)&e->ext.merman.swimMode)
 #define LAND_SPLASHED(e) (*(s8 *)&e->ext.merman.landSplashed)
@@ -508,7 +503,6 @@ void Merman_UpdateAttack(struct EwramData_EntityData *entity)
 /* Apply a Merman hit and begin the falling death state when HP is exhausted. */
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s32, s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 void Merman_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
@@ -593,7 +587,6 @@ void MermanShot_EnableHitBoxes(struct EwramData_EntityData *entity)
 }
 
 /* Move the projectile or emit its two fragments before deleting it. */
-extern void EntityMoveX(struct EwramData_EntityData *);
 extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
 /**
  * @brief Shot update: fly until off screen (state 0); state 2 bursts into two
@@ -627,7 +620,6 @@ finished:
 
 /* Merman helpers 0x080717E0..0x08071903. */
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-extern u16 Player_CalculateAttackPower(u16 attackCategory);
 
 /* Graphics of Merman. */
 extern u8 sMermanGfx[];

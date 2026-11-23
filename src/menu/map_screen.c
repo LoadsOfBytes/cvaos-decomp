@@ -1,24 +1,13 @@
 #include "map_screen.h"
 #include "core.h"
-#include "sram.h"
 #include "bg_and_collision.h"
-#include "intro_cutscene.h"
 #include "bg_effects.h"
 #include "room_entities.h"
 #include "map_flags.h"
 #include "music.h"
-#include "player_core.h"
-#include "soul_inventory.h"
-#include "player_effects.h"
-#include "player_level.h"
-#include "debug_1967.h"
-#include "graphics.h"
-#include "gameplay.h"
 #include "sound.h"
 #include "gba.h"
 #include "macros.h"
-#include "agb_sram.h"
-#include "syscalls.h"
 
 #include "constants/main.h"
 #include "constants/songs.h"
@@ -29,6 +18,11 @@
 #include "structs/agb_sram.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
+#include "math_anim.h"
+#include "objects_00_07.h"
+#include "palette.h"
+#include "palette_state.h"
+#include "in_game.h"
 
 extern u16 sMapCellRoomInfo[];
 
@@ -234,7 +228,6 @@ void MapScreen_DrawCellLeftEdge(s32 x, s32 y, s32 color, s32 border, s32 edge)
     *pixel = (*pixel & 0xFFF0) | value2;
 }
 
-
 extern u8 sMapCellEdges[];
 
 /**
@@ -427,7 +420,6 @@ void MapScreen_DrawMap(struct GameState *gameState)
         }
     }
 
-    
     for (i = 0; i < 35; i++)
     {
         for (j = 0; j < 0x40; j++)
@@ -465,7 +457,6 @@ void MapScreen_DrawMap(struct GameState *gameState)
     gDisplayRegisters.bgCnt[0] = CREATE_BGCNT(0, 28, BGCNT_HIGH_PRIORITY, BGCNT_SIZE_256x256) | BGCNT_MOSAIC;
     gDisplayRegisters.bgOfs[0].hOfs = 2;
 }
-
 
 /**
  * @brief Draw the blinking circular window marker at the player cell when the

@@ -5,18 +5,22 @@
 #include "structs/ewram.h"
 #include "core.h"
 #include "gameplay.h"
-#include "entity_util.h"
 #include "sound.h"
 #include "player_core.h"
+#include "effects.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "entity_motion.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 /* Mimic: dispatch state, refresh the box on frame changes and run collision. */
 union MimicAnimation { u32 words[2]; u8 bytes[8]; };
 extern union MimicAnimation sMimicAnimation;
-extern s32 Enemy_PreUpdate(struct EwramData_EntityData *);
 extern void Mimic_UpdateWait(struct EwramData_EntityData *);
-extern void Enemy_UpdateFragmentDeath(struct EwramData_EntityData *);
 extern void Mimic_UpdatePreview(struct EwramData_EntityData *);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 void EnemyMimicUpdate(struct EwramData_EntityData *entity)
 {
@@ -48,12 +52,9 @@ void EnemyMimicUpdate(struct EwramData_EntityData *entity)
 
 /* Mimic initialization, including the dormant and alternate room-start paths. */
 extern u8 Mimic_LoadGraphics(struct EwramData_EntityData *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern s32 Anim_GetMaxBoxCount(struct EwramData_EntityData *);
 extern s32 Hit_EnableContact(struct EwramData_EntityData *, s32, void *, s32);
 extern void Mimic_DamagePlayerOnContact(struct EwramData_EntityData *);
 void Mimic_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 extern void Mimic_SpawnTrigger(struct EwramData_EntityData *, s32, s32);
 void EnemyMimicCreate(struct EwramData_EntityData *entity)
 {
@@ -95,7 +96,6 @@ void EnemyMimicCreate(struct EwramData_EntityData *entity)
     }
 }
 
-extern s32 Entity_MoveWithCollisionAlt(struct EwramData_EntityData *entity, s32 landingVelocity, s32 ceilingOffset, s32 speedLimit);
 extern s32 Target_IsInRect(s16 x, s16 y, s32 w, s32 h);
 
 /**
@@ -161,7 +161,6 @@ void Mimic_UpdateWait(struct EwramData_EntityData *entity)
 
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 
 void Mimic_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
@@ -194,7 +193,6 @@ void Mimic_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDat
  * owner (unk_500) and its type byte. */
 extern void MimicTrigger_Update(struct EwramData_EntityData *);
 extern void MimicTrigger_OnHit(struct EwramData_EntityData *, s32, u16 *);
-extern void PickupSource_Draw(struct EwramData_EntityData *);
 extern u8 sCommonObjectGfx[], sCommonObjectSpriteSheet[];
 
 /**
@@ -231,7 +229,6 @@ void Mimic_SpawnTrigger(struct EwramData_EntityData *owner, s32 x, s32 y)
 /* state and subState read as one halfword (as in enemy/graham.c). */
 #define STATE_WORD(e) (*(u16 *)&(e)->state)
 
-extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
 extern void Effect_SpawnRandom(s32 x, s32 y, s32 width, s32 height, s32 layer);
 
 /**

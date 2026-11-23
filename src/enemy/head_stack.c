@@ -9,6 +9,12 @@
 #include "sound.h"
 #include "gameplay.h"
 #include "structs/entity_render_flags.h"
+#include "bg_and_collision.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "obj_palette.h"
 
 /* Falling debris and the short-lived emitter that spawns it. */
 /* Graphics of a head stack enemy type (sUnk_081193DC, indexed by type). */
@@ -30,7 +36,6 @@ static inline u8 LoadDebrisGraphics(struct EwramData_EntityData *e, struct HeadS
     struct HeadStackGraphics *g = base + idx;
     return Entity_LoadGraphics(e, g->graphics, g->palette, 0, g->spriteSheet);
 }
-extern s32 Collision_IsPointSolid(s32, s32);
 /**
  * @brief Load variant-1 frame 27, move with acceleration and count down while the collision probe succeeds; delete when it fails or the timer expires.
  */
@@ -160,8 +165,6 @@ void HeadStackEffect_UpdateParticle(struct EwramData_EntityData *entity)
     }
 }
 
-
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 extern s32 Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
 extern void HeadStackProjectile_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 
@@ -217,10 +220,7 @@ void HeadStackEffect_UpdateAttack(struct EwramData_EntityData *entity)
         entity->deleteRequested = 1;
 }
 
-extern s32 Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void Entity_PlaceRelativeToCopy(struct EwramData_EntityData *, struct EwramData_EntityData *, s32, s32);
-extern void Effect_SpawnAt(s32, s32, s32);
-extern void HeadStackProjectile_DamagePlayerOnContact(struct EwramData_EntityData *);
 extern void HeadStackProjectile_ClearHealth(struct EwramData_EntityData *);
 
 /* Enemy projectile: emits trailing particles every eight frames. */
@@ -286,8 +286,6 @@ void HeadStackProjectile_Update(struct EwramData_EntityData *entity)
     }
     if (EntityIsOutsideScreen(entity, 1)) entity->deleteRequested = 1;
 }
-
-extern s32 Target_GetX(struct EwramData_EntityData *entity);
 
 #define FRAME_PAIR(e) (*(u16 *)&(e)->animStep)
 
@@ -532,8 +530,6 @@ found:
 }
 
 /* Update of a stacked column member. */
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *);
-extern s32 Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
 extern s32 Target_IsInRect(s16, s16, s16, s16);
 
 /**
@@ -588,8 +584,6 @@ void HeadStackSegment_Update(struct EwramData_EntityData *entity)
 
 /* HeadStack_Create: create a stack of child segments from table sUnk_081193DC; matched. */
 extern struct EwramData_EntityData *Entity_CreateObject(void *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
 extern void Enemy_OnContact();
 void HeadStackSegment_OnHit(struct EwramData_EntityData *entity);
 
@@ -738,10 +732,6 @@ void HeadStack_Update(struct EwramData_EntityData *entity)
 
 /* Bone Pillar / Fish Head helpers 0x080B3E70..0x080B3F4B. */
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
-extern void EntityDampVelocityX(struct EwramData_EntityData *entity, s32 factor);
-extern void EntityAccelerateAndMove(struct EwramData_EntityData *entity, s32 maxSpeed);
-extern s32 EntityIsOutsideScreen(struct EwramData_EntityData *entity, s32 margin);
 
 /**
  * @brief Apply damage; on death drop rewards, restore the palette and enter state 2.

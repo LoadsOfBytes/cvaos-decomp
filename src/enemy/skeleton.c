@@ -10,12 +10,20 @@
 #include "structs/entity_render_flags.h"
 #include "entity_util.h"
 #include "player_core.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "imp.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
+#include "skeleton.h"
 
 /* Patrol and attack-state selection. */
 /* Keep -f2003-patch disabled: signed distance comparisons must retain asrs. */
 
 extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
-extern s32 Entity_Walk(struct EwramData_EntityData *entity,s32 speed,void *profile,s32 flags);
 extern s32 Entity_ClampXToRoom(struct EwramData_EntityData *entity,s32 mode);
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *entity,s32 width,s32 height);
 extern s16 sSkeletonWalkProfile[];
@@ -68,10 +76,8 @@ void Skeleton_UpdatePatrol(struct EwramData_EntityData *entity)
 }
 
 extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *);
-extern s32 Entity_GetTargetDistanceY(struct EwramData_EntityData *);
 extern void Entity_FaceTarget(struct EwramData_EntityData *);
 extern s32 Entity_IsTargetInCenteredBox(struct EwramData_EntityData *, s32, s32);
-extern s32 Entity_Walk(struct EwramData_EntityData *, s32, void *, s32);
 
 /**
  * @brief Face the target, choose short walking intervals and select attack or idle states from proximity and random checks.
@@ -232,8 +238,6 @@ void Skeleton_UpdateIdle(struct EwramData_EntityData *entity)
 }
 
 /* Idle choice between two attacks. */
-extern struct EwramData_EntityData *Entity_CreateLinkedAndHide(struct EwramData_EntityData *, u32 *);
-extern void SkeletonAttachedPart_Update(struct EwramData_EntityData *);
 
 /* attack flags, see Skeleton_UpdateThrow */
 #define FLAGS(e) ((e)->ext.raw.unk_4FC.part8.unk_4FE)
@@ -336,7 +340,6 @@ void Skeleton_UpdateThrow(struct EwramData_EntityData *entity)
 
 /* Death sequence. */
 extern void Skeleton_SpawnDeathPieces(struct EwramData_EntityData *);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 
 /**
  * @brief Hide the entity, spawn death pieces and drop rewards; count down the byte timer, then free the affine slot and request deletion.
@@ -364,7 +367,6 @@ void Skeleton_UpdateDeath(struct EwramData_EntityData *entity)
 }
 
 /* Hit callback that knocks the entity away. */
-extern u16 Player_CalculateAttackPower(u16);
 extern s8 Entity_GetTargetDirection(struct EwramData_EntityData *);
 
 /**
@@ -413,7 +415,6 @@ void SkeletonProjectile_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 
 /* SkeletonProjectile_Update: debris piece thrown by its parent entity (falls until off screen). */
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *);
 extern void SkeletonProjectile_DamagePlayerOnContact(struct EwramData_EntityData *);
 extern u8 sSkeletonSpriteSheet[];
 
@@ -517,7 +518,6 @@ void SkeletonProjectile_Update(struct EwramData_EntityData *entity)
     }
 }
 
-extern void Effect_UpdateSpriteDebris(struct EwramData_EntityData *);
 extern u8 sSkeletonSpriteSheet[], sSkeletonWaiterSkeletonPalette[];
 extern const s8 sSkeletonDeathPieceOffsets[][6];
 
@@ -627,7 +627,6 @@ void SkeletonDeathPiece_UpdateUnused(struct EwramData_EntityData *entity)
 }
 
 /* Attached part: mirrors its parent's flags, follows joint 0 / table point and switches animation. */
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *entity);
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 extern void Sprite_GetPartCornerOffset(struct EwramData_EntityData *entity, s32 index, s16 *offset);
 
@@ -638,7 +637,6 @@ struct PartPoint {
 };
 
 extern u8 sSkeletonGfx[];
-extern u8 sSkeletonWaiterSkeletonPalette[];
 extern const struct PartPoint sSkeletonPartPoints[];
 
 /**
@@ -871,13 +869,7 @@ void SkeletonProjectile_DamagePlayerOnContact(struct EwramData_EntityData *entit
 }
 
 /* Tiny Devil spawn and create 0x080C46AC..0x080C4767. */
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *updateFunc);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, s32 onHurt);
-extern void Imp_OnContact(struct EwramData_EntityData *entity);
-extern void Imp_ResetFlight(struct EwramData_EntityData *entity);
-extern void Imp_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern s32 Imp_CreateGrabIndicator(struct EwramData_EntityData *entity);
 extern s32 Imp_LoadGraphics(struct EwramData_EntityData *entity);
 
 /**

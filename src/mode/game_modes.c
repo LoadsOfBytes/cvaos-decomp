@@ -9,7 +9,6 @@
 #include "room_entities.h"
 #include "map_flags.h"
 #include "save_data.h"
-#include "player_init.h"
 #include "player_core.h"
 #include "soul_inventory.h"
 #include "player_effects.h"
@@ -33,8 +32,23 @@
 #include "structs/agb_sram.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
+#include "entity_common.h"
+#include "entity_motion.h"
+#include "equipment_menu.h"
+#include "hitbox.h"
+#include "item_menu.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "palette.h"
+#include "player_soma.h"
+#include "system_menus.h"
+#include "text12.h"
 
-// Note: BgCmdBuffer_WriteString is implicitly called
+/* Called with int arguments (the u16/u8 parameters in bg_and_collision.h would truncate them). */
+extern u16 *BgCmdBuffer_WriteString(s32 tileIndex, s32 rowOffset, s32 tileInfo, const u8 *string);
+extern void HBlankEffectSetup(s32 numEntries, s32 vcountSetting, s32 writeSize, void *destReg);
+extern void HudMap_WriteTiles(s32 x, s32 y, s32 tile, s32 count);
 
 struct DebugMenuOptions {
     const u8 *text;
@@ -2165,7 +2179,6 @@ void MainMenu_SetupMessageWindow(s32 choice)
             break;
     }
 
-    
     Text12_SetRegion(0, 0, 0x29, 3);
     Text12_ClearRegion();
     Text12_SetRegion(0, 1, 0x25, 3);

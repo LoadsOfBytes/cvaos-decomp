@@ -8,12 +8,13 @@
 #include "structs/ewram.h"
 #include "gameplay.h"
 #include "sound.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *entity);
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
-extern void Enemy_UpdateFragmentDeath(struct EwramData_EntityData *entity);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *entity);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *entity);
 extern void DeadCrusader_UpdateWalk(struct EwramData_EntityData *entity);
 extern void DeadCrusader_UpdateAttack(struct EwramData_EntityData *entity);
 extern s32 Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
@@ -74,10 +75,6 @@ void EnemyDeadCrusaderUpdate(struct EwramData_EntityData *entity)
 extern u8 DeadCrusader_LoadGraphics(struct EwramData_EntityData *entity);
 extern void DeadCrusader_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void DeadCrusader_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *entity);
-extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
-extern s32 Anim_GetMaxBoxCount(struct EwramData_EntityData *entity);
 extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
 
 /**
@@ -107,12 +104,9 @@ void EnemyDeadCrusaderCreate(struct EwramData_EntityData *entity)
     entity->state = 0;
 }
 
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
 extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
 extern s32 Entity_ClampXToRoom(struct EwramData_EntityData *, s32);
 extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern s32 Player_GetFocusedActionFlags(void);
 
 /**
  * @brief 8F364 | Enemy walk AI like Persephone_UpdateWalk (subState): wakes on the
@@ -270,8 +264,6 @@ void DeadCrusader_UpdateWalk(struct EwramData_EntityData *entity)
     }
 }
 
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *entity);
-
 /**
  * @brief 8F6E8 | Enemy attack sub-state (as SkeletonKnight_UpdateAttack, file
  * 0x0808F364): animation 2 facing the player, after 38 frames animation 3
@@ -352,7 +344,6 @@ void DeadCrusader_UpdateAttack(struct EwramData_EntityData *entity)
 
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 
 /**
  * @brief Hit: while crouching behind the shield (ext.deadCrusader.guarding) take no damage (sound

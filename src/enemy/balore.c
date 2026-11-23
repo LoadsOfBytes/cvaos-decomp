@@ -17,29 +17,26 @@
 #include "player_level.h"
 #include "in_game.h"
 #include "syscalls.h"
+#include "effects.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "entity_motion.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
+#include "palette.h"
 
-extern void *Heap_Alloc(u16);
-extern void Heap_Free(void *);
-extern s32 Target_GetX(struct EwramData_EntityData *entity);
-extern s32 Target_GetY(struct EwramData_EntityData *entity);
 extern u8 Angle_TurnTowards(u16 *, u16, u16);
-extern s32 Entity_AimVelocityAtPoint(struct EwramData_EntityData *, s32, s32, s32);
-extern s32 Entity_DistanceToPoint(struct EwramData_EntityData *, s32, s32);
-extern void EntityMove(struct EwramData_EntityData *);
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *update);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 extern s32 Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
 extern void HitEffect_SpawnAtContact(s32 attacker, struct EwramData_EntityData *entity, s32 type);
 extern void SoulPickup_SpawnFromEnemyDefinition(s32, s32, s32, s32);
 extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-extern void ObjPalette_StartColorFade(u16 r, u16 g, u16 b, s32 from, s32 to, s32 frames);
-extern void BgPalette_StartColorFade(u16 r, u16 g, u16 b, s32 from, s32 to, s32 frames);
-extern void SharedObjPalette_ResetSlots(void);
-extern void ObjGfx_Unload(s32 tileSlot);
 
 extern u8 sBaloreGfx[], sBalorePalette[], sUnk_0811940C[];
 extern struct SpriteSheet sBaloreSpriteSheet;

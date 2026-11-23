@@ -2,15 +2,23 @@
  * Ukoback.
  * Built without -f2003-patch (the Ukoback animation / contact file needs it off; the rest compiles the same either way).
  */
+#include "ukoback.h"
 #include "bg_and_collision.h"
 #include "core.h"
 #include "player_core.h"
 #include "graphics.h"
 #include "structs/ewram.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "nemesis.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 /* Ukoback flight: room-edge and tile collision, facing and timer updates. */
 extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *entity);
-extern s32 Entity_GetTargetDistanceY(struct EwramData_EntityData *entity);
 extern s32 Ukoback_SpawnFireball(struct EwramData_EntityData *entity);
 
 /* 1 when the tile coordinate lies outside a room of the given size in
@@ -110,13 +118,10 @@ void Ukoback_UpdateFlight(struct EwramData_EntityData *entity)
 
 /* Ukoback functions from 0x080C5F10. */
 extern void PlaySong(u16 song);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
-extern void Enemy_UpdateFragmentDeathWithSpread(struct EwramData_EntityData *entity, s32 interval, s32 width, s32 height);
 extern s32 Ukoback_SpawnDeathPiece(struct EwramData_EntityData *entity);
 extern s32 ObjPalette_FindOrLoad(void *palette);
 extern s32 Hit_Enable(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
 extern s32 HitBox_SetAttackRaw(struct EwramData_EntityData *entity, s32 box);
-extern s32 HitBox_SetBodyRaw(struct EwramData_EntityData *entity, s32 box);
 extern s32 Entity_IsInRect(struct EwramData_EntityData *entity, s16 left, s16 top, u16 width, u16 height);
 extern void UkobackFireball_OnContact(struct EwramData_EntityData *entity);
 extern void UkobackFireball_OnHit(struct EwramData_EntityData *entity);
@@ -204,9 +209,7 @@ s32 UkobackFireball_Initialize(struct EwramData_EntityData *entity, struct Ewram
     return result;
 }
 
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *entity);
 extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
-extern s32 Entity_GetVisibilityPattern(s32 step);
 
 /**
  * @brief Check collisions and lifetime; dissolve by changing affine scales, then free the slot, decrement the owner fireball count and request deletion.
@@ -295,8 +298,6 @@ void UkobackDeathPiece_Update(struct EwramData_EntityData *entity)
 
 extern void UkobackSparkle_Update(struct EwramData_EntityData *entity);
 extern void Ukoback_UpdateState1Animation(struct EwramData_EntityData *entity);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *entity);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *entity);
 
 /* Random value in -range / 2 .. range / 2 - 1. */
 static inline s32 RandomOffset(s32 range)
@@ -403,7 +404,6 @@ void EnemyUkobackUpdate(struct EwramData_EntityData *entity)
 }
 
 /* Ukoback helpers 0x080C64E8..0x080C664B. */
-extern u16 Player_CalculateAttackPower(u16 attackCategory);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
 
@@ -528,14 +528,9 @@ s32 Ukoback_SpawnDeathPiece(struct EwramData_EntityData *entity)
 
 /* Nemesis create and graphics loader 0x080C664C..0x080C67CB. The loader only matches without
  * -f2003-patch. */
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-extern s32 Nemesis_CreatePartner(struct EwramData_EntityData *parent);
-extern void Nemesis_OnContact(struct EwramData_EntityData *entity);
 extern void Nemesis_OnHit(struct EwramData_EntityData *entity);
 extern void Nemesis_UpdateAppearance(struct EwramData_EntityData *entity);
-extern void Nemesis_CreateAfterimages(struct EwramData_EntityData *entity);
-extern void Nemesis_SetAfterimagesHidden(struct EwramData_EntityData *entity, s32 hidden);
 s32 Nemesis_LoadGraphics(struct EwramData_EntityData *entity);
 
 /* Graphics of the Nemesis (Nemesis_LoadGraphics). */
@@ -616,15 +611,7 @@ s32 Nemesis_LoadGraphics(struct EwramData_EntityData *entity)
     return 1;
 }
 
-extern void Nemesis_UpdateState7(struct EwramData_EntityData *entity);
-extern void Nemesis_UpdateDeath(struct EwramData_EntityData *entity);
 extern u8 Entity_IsTargetWithinRange(struct EwramData_EntityData *entity, s32 range);
-extern void Nemesis_UpdatePositioning(struct EwramData_EntityData *entity);
-extern void Nemesis_UpdateAttackSelection(struct EwramData_EntityData *entity);
-extern void Nemesis_UpdateTurningAttack(struct EwramData_EntityData *entity);
-extern void Nemesis_UpdateScriptedAttack(struct EwramData_EntityData *entity);
-extern void Nemesis_UpdateSpinLunge(struct EwramData_EntityData *entity);
-extern void Nemesis_UpdatePartnerFlight(struct EwramData_EntityData *entity);
 
 /**
  * @brief C67CC | Nemesis update: state 7 Nemesis_UpdateState7, 0xFF Nemesis_UpdateDeath.

@@ -10,13 +10,16 @@
 #include "syscalls.h"
 #include "sound.h"
 #include "structs/ewram.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 /* Update a Ghost or its timed spawn controller. */
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *);
-extern void Enemy_UpdateFragmentDeath(struct EwramData_EntityData *);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
 extern void Ghost_UpdateFloat(struct EwramData_EntityData *);
 extern void Ghost_UpdatePreview(struct EwramData_EntityData *);
 extern void EnemyGhostCreate(struct EwramData_EntityData *);
@@ -118,9 +121,6 @@ finished:
 
 /* Initialize a Ghost, a hidden controller or the display-mode animation. */
 extern u8 Ghost_LoadGraphics(struct EwramData_EntityData *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern s32 Anim_GetMaxBoxCount(struct EwramData_EntityData *);
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
 extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
 void Ghost_DamagePlayerOnContact(struct EwramData_EntityData *entity, struct EwramData_EntityData *other);
 void Ghost_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
@@ -165,11 +165,6 @@ finished:
 }
 
 /* Appear, follow a target with damping, then choose a new outward direction. */
-extern s32 Target_GetX(struct EwramData_EntityData *);
-extern s32 Target_GetY(struct EwramData_EntityData *);
-extern s32 Sin(s32);
-extern s32 FixedMultiply(s32, s32);
-extern void EntityDampVelocityX(struct EwramData_EntityData *, s32);
 static inline s32 Magnitude(s32 value)
 {
     if (value < 0) return -value;
@@ -250,7 +245,6 @@ void Ghost_UpdateFloat(struct EwramData_EntityData *entity)
 /* Bounce away from contact or a hit, using the direction between entities. */
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s32, s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 static inline void Bounce(struct EwramData_EntityData *entity, struct EwramData_EntityData *other)
 {
     s32 x = entity->posX.whole - other->posX.whole;

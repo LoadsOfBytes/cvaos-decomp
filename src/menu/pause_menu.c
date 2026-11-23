@@ -3,7 +3,6 @@
  * Built without -f2003-patch (SoulTypeSelector_SetDirection needs it off; the rest compiles the same either way).
  */
 #include "graphics.h"
-#include "menu_page.h"
 #include "gameplay.h"
 #include "structs/ewram.h"
 #include "bg_map.h"
@@ -15,10 +14,21 @@
 #include "syscalls.h"
 #include "core.h"
 #include "sound.h"
-#include "player_core.h"
 #include "menu_entity.h"
 #include "gba.h"
 #include "structs/entity_render_flags.h"
+#include "blue_souls.h"
+#include "equipment_menu.h"
+#include "math_anim.h"
+#include "menu_common.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
+#include "palette.h"
+#include "palette_state.h"
+#include "pause_menu.h"
+#include "soul_menu.h"
+#include "text12.h"
 
 /* Menu text redraw and transient entity-byte reset helpers.
  * for source evidence. */
@@ -188,15 +198,8 @@ void PauseMenu_Enter(struct GameState *gameState)
     gEwramData->pauseMenuPage = 0;
 }
 
-extern void HudMap_ClearAll(void);
-extern void YellowSoul_Restart(u8 soul, s32 force);
-extern void Menu_DrawHpMpBars(s32 x, s32 y);
-extern void Menu_DrawCurrentStats(s32 x, s32 y);
-extern void Menu_DrawAttackDefense(s32 x, s32 y);
 extern void Menu_DrawPlayTime(s32 x, s32 y, s32 a, u32 value);
 extern void HudMap_PrintNumber(s32 x, s32 y, s32 value, s32 digits, s32 color, s32 flag);
-extern void HudMap_PrintLargeNumber(s32 x, s32 y, s32 value, s32 a, s32 b);
-extern void HudMap_DrawStatusConditionIcon(s32 x, s32 y);
 extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
 extern void PauseMenu_DrawPageList(void);
 extern void MenuItemIcon_SetHidden(s32 value);
@@ -241,8 +244,6 @@ void PauseMenu_DrawStatusPage(struct GameState *gameState)
 }
 
 extern s32 GameFlag_Is3ASet(void);
-extern void MenuCursor_LoadGraphics(struct EwramData_EntityData *entity);
-extern void Cursor_StartAnimation(void);
 
 /**
  * @brief 47684 | Load the menu background graphics for the current
@@ -296,12 +297,8 @@ void PauseMenu_LoadGraphics(void)
 typedef s32 (*MenuPageFunc)(struct EwramData_EntityData *ent);
 
 extern void PauseMenu_Exit(void);
-extern void Cursor_Draw(void);
 struct SoulTypeIcons;
 extern void SoulTypeSelector_Update(struct SoulTypeIcons *e);
-extern void Cursor_SetTilePosition(s32 a, s32 b);
-extern void MenuItemIcon_Draw(void);
-extern void MenuSlotIcons_Draw(void);
 
 extern struct BgMapMetadata *const sPauseMenuBgMaps[];
 extern const MenuPageFunc sPauseMenuPageOpenFuncs[];
@@ -487,9 +484,6 @@ s32 PauseMenu_Update(struct GameState *gameState)
     return ret;
 }
 
-extern void MenuItemIcon_Delete(void);
-extern void SharedObjPalette_RestoreAll(void);
-
 /**
  * @brief 47B44 | Leave the menu: delete the menu entity, restore the room
  * graphics and BG layers and refresh soul effects whose equipped blue /
@@ -537,7 +531,6 @@ void PauseMenu_Exit(void)
  * and scroll arrows). */
 
 void MenuCursor_DrawScrollArrows(struct EwramData_EntityData *entity);
-void Cursor_Draw(void);
 void Cursor_DrawWithOptionalBob(s32 bob);
 
 /* Cursor frames for the four entries unk_4FC..4FF (ButtonConfigMenu_DrawCursor). */

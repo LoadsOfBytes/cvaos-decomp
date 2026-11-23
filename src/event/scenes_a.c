@@ -2,26 +2,27 @@
  * Event scenes 00, 01, 02, 29 and 31 (and the update of scene 30).
  */
 #include "core.h"
-#include "event_scene30.h"
 #include "map_screen.h"
 #include "map_flags.h"
 #include "music.h"
 #include "graphics.h"
-#include "gameplay.h"
 #include "gba/dma.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
 #include "gba/display.h"
 #include "sound.h"
 #include "save_data.h"
+#include "effects.h"
+#include "entity_common.h"
+#include "math_anim.h"
+#include "palette.h"
+#include "scene30.h"
+#include "shop_update.h"
+#include "text_window.h"
 
 /* EventScene30_Update, decompiled from the original assembly. The second random
  * number has its own block variable and its offset is summed in a statement
  * expression before the player Y is added, as in the target. */
-extern s32 EventScene30_PlayTransformation(struct EwramData_EntityData *);
-extern void TextWindow_Begin(s32);
-extern s32 TextWindow_Update(void);
-extern s32 Sin(s32);
 
 extern void Player_StartScriptedAnimation(s32, s32, s32, s32);
 extern struct RoomDefinition sEndingRoomDefinition;
@@ -158,8 +159,6 @@ s32 EventScene30_Update(struct EwramData_EntityData *entity)
     return result;
 }
 
-extern void Interaction_End(struct EwramData_EntityData *, s32);
-
 /**
  * @brief Update of event scene variant 0 (sEventSceneUpdateFuncs[0]); returns the player
  * input mask. Cutscene object for conversation 0xC: places the player at
@@ -254,8 +253,6 @@ s32 EventScene00_Update(struct EwramData_EntityData *entity)
 /* Declared with an int result as in object/objects_00_07.c: the original compares
  * the returned value without sign extension. */
 extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
-extern void Interaction_End(struct EwramData_EntityData *entity, s32 deleteEntity);
-extern void TextWindow_Begin(s32 textId);
 
 /**
  * @brief Update of event scene variant 1 (sEventSceneUpdateFuncs[1]); returns the player
@@ -314,8 +311,6 @@ void EventScene01_Init(void)
 {
 }
 
-extern s32 Entity_SetupFromObjectTable(struct EwramData_EntityData *entity, s32 kind);
-
 /**
  * @brief Init of event scene variant 29 (Object 0x20 spawnParam0 = 29,
  * sEventSceneCreateFuncs[29]). Scene object setup (only while stateFlags bit 15 is
@@ -350,8 +345,6 @@ void EventScene29_Init(struct EwramData_EntityData *entity)
     DMA_FILL_16(3, 0, 0x0600E000, 0x800);
     gUnk_03002CB0.dispCnt &= ~0x100;
 }
-
-extern void TextWindow_Close(void);
 
 /**
  * @brief Update of event scene variant 29 (sEventSceneUpdateFuncs[29]); returns the
@@ -445,7 +438,6 @@ struct EventScene31PaletteStep {
 
 extern const struct EventScene31DebrisDefinition sEventScene31DebrisDefinitions[];
 extern const struct EventScene31PaletteStep sEventScene31PaletteSteps[];
-extern struct EwramData_EntityData *Entity_CreateFromObjectTable(s32 kind);
 extern s32 Collision_GetGroundOffset(s32 x, s32 y);
 s32 EventScene31Debris_Update(struct EwramData_EntityData *entity);
 
@@ -674,8 +666,6 @@ void EventScene31_Init(struct EwramData_EntityData *entity)
     gUnk_03002CB0.dispCnt &= ~0x100;
 }
 
-extern void GameFlag_Set(s32);
-extern s32 Entity_TryWalk(struct EwramData_EntityData *, s32, s32, s32, s32);
 struct SignedCamera { void *metadata; u16 xFraction; s16 x; u16 yFraction; s16 y; };
 
 /* Scene sequence; animation and transition semantics are not fully identified. */

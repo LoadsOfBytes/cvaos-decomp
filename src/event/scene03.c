@@ -11,9 +11,16 @@
 #include "soul_inventory.h"
 #include "sound.h"
 #include "graphics.h"
-#include "main.h"
 #include "entity_util.h"
 #include "gameplay.h"
+#include "effects.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "map_flags.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "shop_update.h"
+#include "text_window.h"
 
 #define SET_MOSAIC(t)                                                        \
     {                                                                        \
@@ -142,8 +149,6 @@ s32 EventScene03_ScrollCamera(struct EwramData_EntityData *entity)
 }
 
 /* EventScene03_Init. */
-extern s32 GameFlag_GetMask(s32 flag);
-extern struct EwramData_EntityData *Entity_CreateFromObjectTable(s32 kind);
 s32 EventScene03_Start(struct EwramData_EntityData *entity);
 
 /**
@@ -189,12 +194,6 @@ created:
 }
 
 /* EventScene03_Update: event script step (room event state machine); matched. */
-extern void TextWindow_Begin(s32);
-extern s32 TextWindow_Update(void);
-extern void Interaction_End(struct EwramData_EntityData *, s32);
-extern void GameFlag_Set(s32 flag);
-extern void Music_StartOverride(s32 song);
-extern s32 Entity_IsInRect(struct EwramData_EntityData *, s32, s32, s32, s32);
 extern void Player_StartScriptedAnimation(s32, s32, s32, s32);
 extern s32 EventScene03_RunSequence(struct EwramData_EntityData *);
 extern s32 EventScene03_EndParts(struct EwramData_EntityData *);
@@ -332,7 +331,6 @@ s32 EventScene03_Update(struct EwramData_EntityData *entity)
 /* Scene start: place the player and the three helper entities at fixed room
  * positions (relative to the BG1 camera) and give each helper its animation. */
 
-extern void Player_StartScriptedAnimation(s32 anim, s32 flags, s32 velX, s32 velY);
 void EventScene03MainPart_Update(struct EwramData_EntityData *entity);
 
 #define PLAYER (gEwramData->playerState.player)
@@ -457,9 +455,7 @@ void EventScene03_SpawnPartsB(struct EwramData_EntityData *entity)
  * temporary; step 8 has an empty case 2. */
 
 extern struct EwramData_EntityData *EventScene03_SpawnSoulOrb(s32 x, s32 y, s32 variant, s32 index, s32 mode);
-extern void Effect_SpawnAt(s32, s32, s32);
 extern void EventScene03_SpawnPartDebris(struct EwramData_EntityData *owner);
-extern void Sound_Play(u16);
 
 #define STEP (*(u8 *)&entity->enemyStatus)
 
@@ -784,8 +780,6 @@ s32 EventScene03_RunSequence(struct EwramData_EntityData *entity)
     return result;
 }
 
-extern s32 Entity_TryWalk(struct EwramData_EntityData *, s32, s32, s32, s32);
-
 /**
  * @brief 5DAA0 | Event part like EventScene03RisingPart_Update: bob up and down after the
  * owner sets flag 8, then (flag 0x10) wait 0x60 frames and walk left until
@@ -885,10 +879,8 @@ void EventScene03MainPart_Update(struct EwramData_EntityData *entity)
     Anim_Update(entity);
 }
 
-extern struct EwramData_EntityData *Entity_CreateFromObjectTable(s32);
 extern void EventScene03UnusedPart_Update(struct EwramData_EntityData *);
 extern void EventScene03AttachedEffect_Update(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 
 /* Spawn an entity and an attached animated part in event slot group 9. */
 struct EwramData_EntityData *EventScene03_SpawnUnusedPart(struct EwramData_EntityData *owner, s32 x, s32 y, s32 flags)
@@ -1146,7 +1138,6 @@ void EventScene03AttachedHelper_Update(struct EwramData_EntityData *entity)
 }
 
 /* EventScene03_SpawnFlyingPart. */
-extern u32 RandomNumberGenerator(void);
 void EventScene03FlyingPart_Update(struct EwramData_EntityData *entity);
 
 /**
@@ -1296,7 +1287,6 @@ void EventScene03FlyingPart_Update(struct EwramData_EntityData *entity)
 }
 
 /* EventScene03_SpawnRisingPart. */
-extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
 void EventScene03RisingPart_Update(struct EwramData_EntityData *entity);
 
 /**
@@ -1616,7 +1606,6 @@ struct EwramData_EntityData *EventScene03_SpawnSoulOrb(s32 x, s32 y, s32 variant
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern s32 Entity_StepAngleTowardPoint(struct EwramData_EntityData *, s32, s32, s32, s32);
 extern s32 RandomSigned(s32);
-extern struct EwramData_EntityData *Effect_CreateFromTable(s32, s32, s32, s32, s32, u8);
 static inline s32 FixedMulFast(s32 a, s32 b) { return (a >> 8) * (b >> 8); }
 /**
  * @brief Steer the soul orb towards the player with growing turn rate and speed

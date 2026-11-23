@@ -10,14 +10,16 @@
 #include "sound.h"
 #include "gameplay.h"
 #include "structs/ewram.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 /* Dispatch Gorgon/Catoblepas states and support an overridden single frame. */
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *);
-extern void Enemy_UpdateFragmentDeath(struct EwramData_EntityData *);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
-extern void Effect_SpawnRisingParticle(s32, s32, s32, s32);
 extern void Gorgon_UpdateWalk(struct EwramData_EntityData *);
 extern void Gorgon_UpdateAttack(struct EwramData_EntityData *);
 extern void Gorgon_SpawnDeathPieces(struct EwramData_EntityData *);
@@ -99,10 +101,6 @@ finished:
 
 /* Initialize the shared Gorgon/Catoblepas body and its collision callbacks. */
 extern u8 Gorgon_LoadGraphics(struct EwramData_EntityData *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
-extern s32 Anim_GetMaxBoxCount(struct EwramData_EntityData *);
 extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
 extern void Gorgon_DamagePlayerOnContact(struct EwramData_EntityData *);
 void Gorgon_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
@@ -136,9 +134,6 @@ finished:
 extern s8 sGorgonWalk[16], sGorgonTurn[12];
 extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s16);
 extern s32 Target_IsInRect(s16, s16, s32, s32);
-extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
-extern s32 Tile_Classify(s16, s16);
 #define GAIT(e) (e->ext.gorgon.gait)
 #define FRAME(e) ((e)->ext.raw.unk_4FC.part8.unk_4FE)
 #define CLOCK(e) (e->ext.gorgon.clock)
@@ -315,8 +310,6 @@ void Gorgon_UpdateWalk(struct EwramData_EntityData *entity)
 }
 
 /* Sweep the attack direction while emitting effects on alternate frames. */
-extern s32 Sin(s32);
-extern s32 FixedMultiply(s32, s32);
 extern void GorgonBreath_Spawn(struct EwramData_EntityData *, s32, s32, s32, s32);
 /**
  * @brief Attack state machine (state 1): play animation 2 and, from its first step
@@ -392,7 +385,6 @@ void Gorgon_UpdateAttack(struct EwramData_EntityData *entity)
 /* Apply damage and signal a hit to the body's current behavior. */
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s32, s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 /**
  * @brief Hit: resolve the damage, flash (hitFlashTimer = 8), subtract it from the HP and
  * show it, mark the Gorgon as hit (unk_500 = 1); at HP <= 0 drop the
@@ -459,9 +451,6 @@ void GorgonBreath_Spawn(struct EwramData_EntityData *parent, s32 x, s32 y, s32 v
 }
 
 /* Update a tumbling hit effect with a mutable one-frame animation. */
-extern void EntityDampVelocityX(struct EwramData_EntityData *, s32);
-extern void EntityMove(struct EwramData_EntityData *);
-extern s32 Entity_GetVisibilityPattern(s32);
 /* Animation format 1 embeds four-byte frames after the common header. */
 /**
  * @brief Breath puff update: slow down, flicker with random flips, grow its hit box

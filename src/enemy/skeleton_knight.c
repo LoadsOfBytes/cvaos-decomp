@@ -5,18 +5,18 @@
 #include "graphics.h"
 #include "gameplay.h"
 #include "structs/ewram.h"
-#include "entity_util.h"
 #include "sound.h"
 #include "player_core.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 /* EnemySkeletonKnightCreate 0x0808EC64..0x0808ECF7. */
 extern u8 SkeletonKnight_LoadGraphics(struct EwramData_EntityData *entity);
 extern void SkeletonKnight_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void SkeletonKnight_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *entity);
-extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
-extern s32 Anim_GetMaxBoxCount(struct EwramData_EntityData *entity);
 extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
 
 /**
@@ -49,9 +49,7 @@ void EnemySkeletonKnightCreate(struct EwramData_EntityData *entity)
     entity->state = 0;
 }
 
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
 extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
 extern s32 Entity_ClampXToRoom(struct EwramData_EntityData *, s32);
 extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s32);
 
@@ -174,8 +172,6 @@ void SkeletonKnight_UpdateWalk(struct EwramData_EntityData *entity)
     }
 }
 
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *entity);
-
 /**
  * @brief 8EFD8 | Enemy attack sub-state (file 0x0808ECF8): faces the
  * player and plays animation 2, after 44 frames animation 3, then
@@ -230,10 +226,8 @@ void SkeletonKnight_UpdateAttack(struct EwramData_EntityData *entity)
 /* SkeletonKnight_OnHit (hit with HP / death), generated with a template script from the
  * template of WingedSkeleton_OnHit and checked byte for byte. */
 
-extern u16 Player_CalculateAttackPower(u16 attackCategory);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 
 /**
  * @brief 8F0A4 | Hit: flash (hitFlashTimer = 8), subtract the damage from the HP
@@ -312,10 +306,6 @@ void SkeletonKnight_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 }
 
 /* EnemySkeletonKnightUpdate. */
-extern s32 Enemy_PreUpdate(struct EwramData_EntityData *entity);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *entity);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *entity);
-extern void Enemy_UpdateFragmentDeath(struct EwramData_EntityData *entity);
 
 /**
  * @brief 8F198 | Skeleton Knight update: unless Enemy_PreUpdate handles the

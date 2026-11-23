@@ -9,13 +9,16 @@
 #include "structs/entity_render_flags.h"
 #include "graphics.h"
 #include "gameplay.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 /* White Dragon dispatch, collision gating and delayed death cleanup. */
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *,struct EwramData_EntityData *);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
-extern void Heap_Free(void *);
 extern void WhiteDragon_UpdateIdle(struct EwramData_EntityData *);
 extern void WhiteDragon_UpdateAttack(struct EwramData_EntityData *);
 extern void WhiteDragon_UpdateRecoil(struct EwramData_EntityData *);
@@ -81,8 +84,6 @@ collision:
 
 /* Allocate a 100-halfword motion history and link ten body segments. */
 extern u8 WhiteDragon_LoadGraphics(struct EwramData_EntityData *);
-extern void *Heap_Alloc(u16);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
 extern void WhiteDragonSegment_Update(struct EwramData_EntityData *);
 extern void WhiteDragonSegment_Draw(struct EwramData_EntityData *);
@@ -559,7 +560,6 @@ void WhiteDragonSegment_Draw(struct EwramData_EntityData *entity)
 /* Apply damage and choose full destruction or a short reaction to selected attacks. */
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *,struct EwramData_EntityData *,u16 *,s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *,s32,s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 void WhiteDragon_OnHit(struct EwramData_EntityData *entity,struct EwramData_EntityData *attacker,u16 *info)
 {
     s32 power=Player_CalculateAttackPower(info[2]);
@@ -597,7 +597,6 @@ void WhiteDragon_OnHit(struct EwramData_EntityData *entity,struct EwramData_Enti
 /* Linked body segments follow the owner's palette and stagger their destruction.
  * The r6 visibility pointer preserves agbcc's field-pointer allocation.
  * This constraint does not establish original source spelling. */
-extern s32 Enemy_IsStunnedNoFlash(struct EwramData_EntityData *);
 #define STATE_WORD(e) (*(u16 *)&(e)->state)
 struct SegmentFlags { u8 slot:5; u8 hidden:1; u8 flipX:1; u8 flipY:1; };
 /**
@@ -675,8 +674,6 @@ void WhiteDragon_SpawnBreath(struct EwramData_EntityData *owner)
 }
 
 /* A projectile changes size, slows down and expires through five animation phases. */
-extern void EntityMove(struct EwramData_EntityData *);
-extern void EntityDampVelocityX(struct EwramData_EntityData *,s32);
 void WhiteDragonBreath_Update(struct EwramData_EntityData *entity)
 {
     s32 bounds[4];
@@ -767,7 +764,6 @@ void WhiteDragonBreath_EnableHitBoxes(struct EwramData_EntityData *entity)
 
 /* Short lived sparks emitted by the linked body. */
 extern void WhiteDragonSpark_Update(struct EwramData_EntityData *);
-extern u8 sQuezlcoatlWhiteDragonGfx[], sQuezlcoatlWhiteDragonSpriteSheet[];
 /**
  * @brief Spawn a short spark at (x, y) on layer, randomly flipped
  * (WhiteDragonSpark_Update, 9 frames).
@@ -875,13 +871,9 @@ void WhiteDragon_SpawnDeathPiece(struct EwramData_EntityData *owner,s32 x,s32 y,
 
 /* White Dragon helpers 0x08077B3C..0x08077CBB (graphics shared with Quezlcoatl). */
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-extern void EntityAccelerateAndMove(struct EwramData_EntityData *entity, s32 maxSpeed);
-extern s32 Entity_GetVisibilityPattern(s32 step);
 
 /* Graphics of Quezlcoatl. */
-extern u8 sQuezlcoatlWhiteDragonGfx[];
 extern u8 sQuezlcoatlWhiteDragonPalette[];
-extern u8 sQuezlcoatlWhiteDragonSpriteSheet[];
 
 /**
  * @brief 77B3C | Give projectile the White Dragon / Quezlcoatl graphics (palette row of

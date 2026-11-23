@@ -8,15 +8,18 @@
 #include "structs/entity_template.h"
 #include "sound.h"
 #include "structs/ewram.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
+extern void EntityMoveY(struct EwramData_EntityData *);
+extern void EntityAccelerateY(struct EwramData_EntityData *, s32);
 
 /* Update a Zombie or its controller that maintains a population of children. */
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void Zombie_UpdateEmergingWalkingSinking(struct EwramData_EntityData *);
 extern void Zombie_UpdateStationaryAnimation(struct EwramData_EntityData *);
-extern void Enemy_UpdateFragmentDeath(struct EwramData_EntityData *);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
 extern void EnemyZombieCreate(struct EwramData_EntityData *);
 void EnemyZombieUpdate(struct EwramData_EntityData *entity)
 {
@@ -104,11 +107,6 @@ finished:
 
 /* Initialize a Zombie or its hidden spawn controller. */
 extern u8 Zombie_LoadGraphics(struct EwramData_EntityData *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
-extern s32 Anim_GetMaxBoxCount(struct EwramData_EntityData *);
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
-extern s32 Collision_IsSlopeTile(s16, s16);
 extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
 extern void Hit_Enable(struct EwramData_EntityData *, s32, void *, void *);
 extern void Zombie_DamagePlayerOnContact(struct EwramData_EntityData *);
@@ -172,7 +170,6 @@ finished:
 /* Zombie_UpdateEmergingWalkingSinking: matched (timer accessed as a field, block-local hit for the two
    Target_IsInRect calls, u8 parameter of BeginSinking). */
 /* Zombie's emerging, walking and sinking states. */
-extern void EntityDampVelocityX(struct EwramData_EntityData *entity, s32 amount);
 extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s16);
 extern s32 Target_IsInRect(s16, s16, s32, s32);
 extern void Zombie_SpawnFallingDebris(struct EwramData_EntityData *, s32, s32);
@@ -345,7 +342,6 @@ void Zombie_UpdateStationaryAnimation(struct EwramData_EntityData *entity)
 
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s32, u8);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 
 extern void Zombie_SpawnPiece(struct EwramData_EntityData *, s32, s32);
 
@@ -507,10 +503,7 @@ void ZombieTemporarySprite_Update(struct EwramData_EntityData *entity)
  *   Zombie_LoadGraphics = Object25_LoadGraphics
  *   Zombie_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
-extern void EntityAccelerateAndMove(struct EwramData_EntityData *entity, s32 maxSpeed);
-extern u8 sZombieGfx[];
 extern u8 sZombiePalette[];
-extern u8 sZombieSpriteSheet[];
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)

@@ -1,7 +1,6 @@
 /*
  * Menu page titles, item / slot icons, cursor sprites and the soul menu.
  */
-#include "graphics.h"
 #include "menu_page.h"
 #include "structs/ewram.h"
 #include "structs/entity_render_flags.h"
@@ -13,6 +12,16 @@
 #include "sound.h"
 #include "bg_map.h"
 #include "gameplay.h"
+#include "blue_souls.h"
+#include "equipment_menu.h"
+#include "menu_common.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "palette.h"
+#include "pause_menu.h"
+#include "soul_menu.h"
+#include "soul_pickup.h"
+#include "text12.h"
 
 /* Page-title entity (slot 20) state machine (state at unk_508): state 1
  * places the entity at (0x35, 9) and moves to state 2; state 2 enables affine
@@ -59,12 +68,7 @@ void MenuPageTitle_Update(struct EwramData_EntityData *entity)
 }
 
 /* Menu item-icon helpers 0x08048804..0x08048A63. */
-void ItemMenu_DrawCursor(struct PlayerStatus *menu, struct EwramData_EntityData *entity);
-void ButtonConfigMenu_DrawCursor(struct PlayerStatus *menu, struct EwramData_EntityData *entity);
-void BestiaryMenu_DrawCursor(struct PlayerStatus *menu, struct EwramData_EntityData *entity);
-extern const void *Item_GetInfo(s32 type, s32 item);
 extern const void *Item_GetInfoByGlobalId(s32 item);
-extern s32 Item_GetTypeByGlobalId(s32 item);
 
 /**
  * @brief 48804 | Show the icon of item (type, item) as entityData[19] at
@@ -197,10 +201,6 @@ void MenuCursor_DrawForPage(struct EwramData_EntityData *entity)
 
 /* Helpers around fixed entity slots 18, 19 and 0xD0..0xD2
  * (0x08048A64..0x08048C43). */
-
-extern void Shop_DrawListCursor(struct EwramData_EntityData *entity);
-extern void Cursor_Draw(void);
-void MenuItemIcon_Draw(void);
 
 /* Animation sets for Sprite_Attach; the second one is used for German. */
 extern u8 sMenuSpriteSheet[];
@@ -394,17 +394,10 @@ s32 CursorSprite_Create(struct EwramData_EntityData *entity, u16 palette)
 
 /* Entity helpers 0x08048CF8..0x0804933B. */
 /* Language dependent graphics sets (English/other, French, German). */
-extern u8 sMenuCursorGfx[];
-extern u8 sMenuCursorGfxLanguage2[];
-extern u8 sMenuCursorGfxLanguage3[];
 
 extern void SoulTypeSelector_Update(struct EwramData_EntityData *entity);
 extern void MenuPage_Reset(struct EwramData_EntityData *entity);
-extern void Menu_DrawAttackDefense(s32 x, s32 y);
-extern void Menu_DrawCurrentStats(s32 x, s32 y);
-extern void HudMap_DrawStatusConditionIcon(s32 x, s32 y);
 extern void SoulMenu_ClearStatPreview(void);
-extern void Text12_SetupTileRegion(s32 x, s32 y, u16 tile, s32 width, s32 height);
 extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
 /* Draw the three equipped soul names in the soul menu and highlight the cursor row. */
 struct SoulMenu
@@ -431,7 +424,6 @@ struct MenuPage
 void SoulMenu_DrawList(struct MenuPage *page, s32 slot);
 extern void SoulMenu_PrintEquippedName(struct EwramData_EntityData *entity);
 void SoulMenu_DrawEquippedSoulValue(struct SoulMenu *menu);
-extern void SoulTypeSelector_SetDirection(struct EwramData_EntityData *entity, s8 dir);
 extern s32 MenuGrid_MoveCursor(struct EwramData_EntityData *entity, u16 input);
 extern void SoulMenu_ShowSelection(struct EwramData_EntityData *entity);
 void SoulMenu_CountList(struct EwramData_EntityData *entity, s32 kind);
@@ -838,7 +830,6 @@ void SoulMenu_DrawCategoryIcon(struct EwramData_EntityData *entity)
     Sprite_Draw(cursor);
 }
 
-
 /**
  * @brief Print the equipped red, blue and yellow soul names (or the none text
  * 0x34F) and recolor the three category rows, highlighting the cursor row.
@@ -899,11 +890,6 @@ void SoulMenu_DrawEquippedNames(struct SoulMenu *menu)
         } }
     }
 }
-
-
-extern void HudMap_ClearTilesLeft(s32 x, s32 y, s32 count);
-extern s32 HudMap_PrintPaddedNumber(s32 x, s32 y, s32 value_, s32 digits);
-extern void MenuList_DrawScrollArrows(struct MenuPage *page, s32 raised);
 
 /**
  * @brief 494F8 | Draw the soul list of soul type slot (red, blue, yellow):
@@ -1156,13 +1142,6 @@ void SoulList_UpdateForEquip(struct SoulMenu *menu)
     }
 }
 
-extern void Player_RefreshEquipmentStats(void);
-extern void YellowSoul_Stop(void);
-extern void YellowSoul_Restart(u8 soul, s32 force);
-extern void Menu_DrawAttackDefense(s32 a, s32 b);
-extern void Menu_DrawCurrentStats(s32 a, s32 b);
-extern void HudMap_DrawStatusConditionIcon(s32 a, s32 b);
-
 /**
  * @brief Equip the selected soul (0 unequips) in the menu's red/blue/yellow slot:
  * refresh stats, stop the yellow soul when a soul was equipped, update the
@@ -1233,7 +1212,6 @@ extern const struct Tbl16 sSomaRedSoulInfo[];
 struct Tbl12 { u8 pad[4]; u8 value; s8 row; u8 pad2[6]; };
 extern const struct Tbl12 sBlueSoulInfo[];
 
-extern void HudMap_ClearTiles(s32 a, s32 b, s32 c);
 extern void HudMap_PrintNumber(s32 a, s32 b, s32 c, s32 d, s32 e, s32 f);
 
 static inline void FillRow(u16 *dst, s32 tile)
@@ -1358,8 +1336,6 @@ tail:
     HudMap_PrintNumber(4, 0x10, value, 3, 3, 0);
 }
 
-extern void HudMap_DrawStatChangeIndicator(s32 a, s32 b, s32 c);
-
 /**
  * @brief Temporarily clear the selected equipped-soul slot, recalculate with the selected yellow soul when appropriate, draw comparison values and restore the saved stats and slot.
  */
@@ -1414,8 +1390,6 @@ void SoulMenu_DrawStatPreview(struct SoulMenu *menu)
 }
 
 /* Soul menu helpers 0x08049D98..0x08049E63. */
-extern void HudMap_ClearTiles(s32 x, s32 y, s32 count);
-extern void Menu_PrintSoulName(s32 kind, s32 soul);
 
 /**
  * @brief Clear four background-map columns at 0x18 across rows two through seven.

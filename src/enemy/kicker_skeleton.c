@@ -5,9 +5,14 @@
 #include "sound.h"
 #include "player_core.h"
 #include "graphics.h"
-#include "gameplay.h"
-#include "entity_util.h"
 #include "structs/ewram.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "evil_butcher.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
+#include "effects.h"
 
 /* Kicker Skeleton leap, kick, landing and recovery. */
 extern void Entity_FaceTarget(struct EwramData_EntityData *);
@@ -117,7 +122,6 @@ finished:
 }
 
 /* Kicker Skeleton breaks into seven sprite fragments (frames 26..32). */
-extern void Effect_UpdateSpriteDebris(struct EwramData_EntityData *);
 extern u8 sKickerSkeletonGfx[], sKickerSkeletonSpriteSheet[];
 
 /**
@@ -153,12 +157,8 @@ s32 KickerSkeleton_UpdateDeath(struct EwramData_EntityData *entity)
 }
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern void KickerSkeleton_DamagePlayerOnContact(struct EwramData_EntityData *);
 void KickerSkeleton_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, void *);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 extern u8 sKickerSkeletonGfx[], sKickerSkeletonPalette[], sKickerSkeletonSpriteSheet[];
 
 void EnemyKickerSkeletonCreate(struct EwramData_EntityData *entity)
@@ -185,11 +185,7 @@ void EnemyKickerSkeletonCreate(struct EwramData_EntityData *entity)
     }
 }
 
-extern s32 Enemy_PreUpdate(struct EwramData_EntityData *);
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *, s32, s32);
-extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
 
 void EnemyKickerSkeletonUpdate(struct EwramData_EntityData *entity)
 {
@@ -230,7 +226,6 @@ void EnemyKickerSkeletonUpdate(struct EwramData_EntityData *entity)
  * byte. */
 
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 
 /**
  * @brief Apply enemy damage; on defeat drop rewards, store the attacker-

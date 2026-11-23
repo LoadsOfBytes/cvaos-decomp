@@ -9,8 +9,15 @@
 #include "structs/enemy_variant_b7e80.h"
 #include "macros.h"
 #include "sound.h"
-#include "gameplay.h"
 #include "structs/ewram.h"
+#include "dead_warrior.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "entity_motion.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_palette.h"
+#include "effects.h"
 
 /* Rotating attached part: follow the parent during animation 3, then fall
  * and release its affine slot when the parent dies. */
@@ -109,24 +116,16 @@ void SkullMillioneFamilyPart_Update(struct EwramData_EntityData *entity)
 #define BACKGROUND ((struct BgLayerState *)((u8 *)gEwramData + OFFSET_OF(struct EwramData, bgInfo[1])))
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 extern struct EwramData_EntityData *Entity_CreateObject(void *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *);
 extern s32 Hit_EnableContact(struct EwramData_EntityData *, s32, void *, s32);
-extern void SkullMillioneFamily_DamagePlayerOnContact(struct EwramData_EntityData *);
 extern void SkullMillioneFamily_OnHit(struct EwramData_EntityData *);
 extern void Entity_FaceTarget(struct EwramData_EntityData *);
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *, s32, s32);
 extern s32 Target_GetPixelX(struct EwramData_EntityData *);
 extern s32 Target_GetPixelY(struct EwramData_EntityData *);
-extern s32 Target_GetX(struct EwramData_EntityData *);
 extern s32 Target_GetVelocityX(void);
-extern s32 Entity_AimVelocityAtPoint(struct EwramData_EntityData *, s32, s32, s32);
-extern void EntityMove(struct EwramData_EntityData *);
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void SkullMillioneFamily_UpdateAttack(struct EwramData_EntityData *);
 extern s32 SkullMillioneFamily_UpdateDeath(struct EwramData_EntityData *);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
 extern u8 sSkullMillioneFamilyGfx[], sSkullMillioneFamilyPalette[];
 s32 SkullMillioneFamily_CreatePart(struct EwramData_EntityData *);
 void SkullMillioneFamily_UpdateWait(struct EwramData_EntityData *);
@@ -233,8 +232,6 @@ void SkullMillioneFamily_UpdateApproach(struct EwramData_EntityData *entity)
 }
 
 /* Attack and death states shared by Skull Millione, Cagnazzo and Lubicant. */
-extern s32 Target_GetY(struct EwramData_EntityData *);
-extern void Enemy_UpdateFragmentDeath(struct EwramData_EntityData *);
 
 /**
  * @brief Attack state (2): perform the variant dive and recovery sequence.
@@ -436,7 +433,6 @@ void SkullMillioneFamily_Update(struct EwramData_EntityData *entity)
 
 /* Skull Millione / Cagnazzo / Lubicant helpers 0x080B8004..0x080B80BB. */
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 
 /**
  * @brief Apply enemy damage; on defeat drop rewards, restore the palette

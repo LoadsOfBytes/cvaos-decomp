@@ -1,12 +1,19 @@
 /*
  * Gargoyle. The last part of the range also holds the entry points of Triton.
  */
+#include "gargoyle.h"
 #include "core.h"
 #include "graphics.h"
 #include "gameplay.h"
 #include "structs/ewram.h"
 #include "sound.h"
 #include "player_core.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
+#include "triton.h"
 
 /* Decompiled locally from the original assembly (variant of an already
  * decompiled function). */
@@ -14,9 +21,6 @@
 extern u8 Gargoyle_LoadGraphics(struct EwramData_EntityData *entity);
 extern void Gargoyle_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void Gargoyle_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *entity);
-extern s32 Anim_GetMaxBoxCount(struct EwramData_EntityData *entity);
 extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
 
 /**
@@ -48,19 +52,9 @@ void EnemyGargoyleCreate(struct EwramData_EntityData *entity)
 }
 
 /* Gargoyle: AI, hit reaction and graphics. */
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
-extern s32 Target_GetX(struct EwramData_EntityData *);
-extern s32 Target_GetY(struct EwramData_EntityData *);
-extern void EntityMove(struct EwramData_EntityData *);
 extern void EntityMoveY(struct EwramData_EntityData *);
-extern void EntityDampVelocityX(struct EwramData_EntityData *, s32);
-extern void EntityDampVelocityY(struct EwramData_EntityData *, s32);
-extern void EntityAccelerateAndMove(struct EwramData_EntityData *, s32);
-extern void EntityAccelerateAndMoveX(struct EwramData_EntityData *, s32);
-extern u16 Player_CalculateAttackPower(u16 attackCategory);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 extern u8 sGargoyleGfx[];
 extern u8 sGargoylePalette[];
@@ -250,24 +244,9 @@ u8 Gargoyle_LoadGraphics(struct EwramData_EntityData *entity)
  *   Gargoyle_DamagePlayerOnContact = Enemy_DamagePlayerOnContact
  * Gargoyle/Triton update and creation. */
 
-extern s32 Enemy_PreUpdate(struct EwramData_EntityData *);
-extern s32 Anim_GetMaxBoxCount(struct EwramData_EntityData *);
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *);
-extern s32 Entity_GetVisibilityPattern(s32);
-extern struct EwramData_EntityData *Triton_CreateSpear(struct EwramData_EntityData *);
-extern u8 Triton_LoadGraphics(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern void Enemy_UpdateFragmentDeath(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
-extern void Triton_UpdateMove(struct EwramData_EntityData *);
-extern void Triton_UpdateAttack(struct EwramData_EntityData *);
 extern void Triton_OnHit(struct EwramData_EntityData *);
-extern void Triton_DamagePlayerOnContact(struct EwramData_EntityData *);
 
 static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
 {

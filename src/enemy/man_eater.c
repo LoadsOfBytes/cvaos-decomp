@@ -1,6 +1,7 @@
 /*
  * Man Eater: head, segments, chain anchor, projectiles and attached parts (the last part also holds Killer Mantle effects and parts).
  */
+#include "man_eater.h"
 #include "core.h"
 #include "player_core.h"
 #include "graphics.h"
@@ -12,6 +13,14 @@
 #include "structs/entity_render_flags.h"
 #include "music.h"
 #include "player_level.h"
+#include "boss_defeat.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_palette.h"
+#include "effects.h"
 
 /* Man Eater part hit: propagate flags, subtract HP and notify parent.
  * The local r6 binding preserves the hit-data pointer before address calculation.
@@ -55,7 +64,6 @@ void ManEaterPart_OnHit(struct EwramData_EntityData *entity, struct EwramData_En
 /* Man Eater projectile and effect controllers. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *);
 extern s32 Entity_GetTargetAngleAbove16(struct EwramData_EntityData *);
 extern s32 Target_GetPixelX(struct EwramData_EntityData *);
 extern s32 Target_GetPixelY(struct EwramData_EntityData *);
@@ -209,7 +217,6 @@ void ManEaterChainAnchor_Update(struct EwramData_EntityData *entity)
 /* Man Eater body segment: follows the head chain, swings, and breaks apart.
  * (flipX through an s8 byte pointer, one
  * variable for the divisor and the swing amplitude). */
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
 extern struct EwramData_EntityData *Entity_CreateObject(void *);
 extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
 extern void Enemy_OnContact(struct EwramData_EntityData *);
@@ -369,7 +376,6 @@ remove:
 /* Man Eater head: spawns the body chain, steers towards the player, orbits.
  *: one function-level u16 (angle) holds both the
  * segment index and the ArcTan2 result, as in the original allocation. */
-extern struct EwramData_EntityData *Entity_CreateObject(void *);
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *entity, u16 width, u16 height);
 extern u8 Angle_TurnTowards(u16 *, s32, s32);
 
@@ -510,7 +516,6 @@ void ManEaterHead_Update(struct EwramData_EntityData *entity)
 }
 
 /* Man Eater creation and attached effects. */
-extern void EntityDampVelocityX(struct EwramData_EntityData *, s32);
 extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
 extern const u8 sUnk_085288A8[][4];
 
@@ -618,12 +623,7 @@ remove:
  * pointer with a u8 masked copy (keeps the mask before the address and the
  * global-allocation priority of entity/child as in the original). */
 
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
-extern void BossDefeatEffect_Spawn(s32, s32);
 extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
-extern s32 Target_IsNearEntity(struct EwramData_EntityData *entity, u16 width, u16 height);
-extern s32 Target_GetX(struct EwramData_EntityData *);
-extern s32 Target_GetY(struct EwramData_EntityData *);
 extern s32 Entity_StepTowardPoint(struct EwramData_EntityData *, s32, s32, s32);
 
 static inline void SetFlipX(struct EwramData_EntityData *entity, u32 flipped)
@@ -746,7 +746,6 @@ void EnemyManEaterUpdate(struct EwramData_EntityData *entity)
 }
 
 /* Man Eater projectile callbacks and Killer Mantle attached effects. */
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 // The offsets are passed sign-extended here (u16 in the definition).
 extern void Entity_PlaceRelativeToCopy(struct EwramData_EntityData *entity, struct EwramData_EntityData *anchor, s32 offsetX, s32 offsetY);
 

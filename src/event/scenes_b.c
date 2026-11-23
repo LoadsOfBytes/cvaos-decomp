@@ -7,7 +7,6 @@
 #include "structs/ewram.h"
 #include "music.h"
 #include "gba.h"
-#include "room_entities.h"
 #include "map_flags.h"
 #include "bg_effects.h"
 #include "player_core.h"
@@ -17,12 +16,17 @@
 #include "save_data.h"
 #include "structs/main.h"
 #include "soul_inventory.h"
+#include "blue_souls.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "palette.h"
+#include "shop_update.h"
+#include "text_window.h"
 
 /* EventScene04_Init, EventScene04_RunMusicScript. */
-extern s32 GameFlag_GetMask(s32 flag);
-extern s32 Entity_SetupFromObjectTable(struct EwramData_EntityData *entity, s32 kind);
-extern s32 Music_UpdateRoom(struct GameState *gameState);
-extern s32 Music_SetCurrent(s32 song);
 
 /**
  * @brief Init of event scene variant 4 (Object 0x20 spawnParam0 = 4,
@@ -105,11 +109,6 @@ s32 EventScene04_RunMusicScript(struct EwramData_EntityData *entity)
     return done;
 }
 
-extern void TextWindow_Begin(s32);
-extern s32 TextWindow_Update(void);
-extern void Sound_Play(u16 song);
-extern void Interaction_End(struct EwramData_EntityData *, s32);
-extern void GameFlag_Set(s32 flag);
 extern const u8 sUnk_0852682C[];
 
 /**
@@ -258,7 +257,6 @@ s32 EventScene04_Update(struct EwramData_EntityData *entity)
 }
 
 /* EventScene05_Init. */
-extern void Interaction_End(struct EwramData_EntityData *entity, s32 deleteEntity);
 
 /**
  * @brief Init of event scene variant 5 (Object 0x20 spawnParam0 = 5,
@@ -435,8 +433,6 @@ void EventScene06_Init(struct EwramData_EntityData *entity)
     ewram->hBlankEffect.requestStop = 1;
 }
 
-extern s32 Entity_TryWalk(struct EwramData_EntityData *, s32, s32, s32, s32);
-
 /**
  * @brief Update of event scene variant 6 (sEventSceneUpdateFuncs[6]); returns the player
  * input mask. Cutscene object for conversation 0x11: clears BG VRAM at
@@ -550,10 +546,6 @@ s32 EventScene06_Update(struct EwramData_EntityData *entity)
         Anim_Update(entity);
     return ret;
 }
-
-extern s32 GameFlag_GetMask(s32);
-extern s32 Entity_SetupFromObjectTable(struct EwramData_EntityData *, s32);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 
 /* Scene setup, flag 0x24: stop HBlank effect and place actor at (190,160). */
 /**
@@ -853,9 +845,6 @@ end:
 
 /* Cutscene setup with two helper entities (EventScene09_Init). The do/while (0)
  * around Anim_Update(entity) gives entity 32 refs so it gets r4. */
-extern struct EwramData_EntityData *Entity_CreateFromObjectTable(s32);
-extern s32 ObjAffine_Alloc(u32 group);
-extern void ObjAffine_Set(s32, s32, s32, u16, u16, u16);
 
 /**
  * @brief Init of event scene variant 9 (Object 0x20 spawnParam0 = 9,
@@ -1191,9 +1180,6 @@ void EventScene10_Init(struct EwramData_EntityData *entity)
     gEwramData->playerState.player->flipX = 0;
 }
 
-extern void Sound_Play(u16 song);
-extern void GameFlag_Set(s32);
-
 /* A signed field view keeps the camera base and ldrsh offset used by agbcc. */
 struct CameraXView { u8 pad[6]; s16 x; };
 /* Scripted movement and camera sequence; state meanings remain tentative. */
@@ -1468,8 +1454,6 @@ void EventScene12_Init(struct EwramData_EntityData *entity)
     }
     gEwramData->gameState.stateFlags |= 1;
 }
-
-extern void TextWindow_Close(void);
 
 /**
  * @brief Update of event scene variant 12 (sEventSceneUpdateFuncs[12]); returns the
@@ -1919,8 +1903,6 @@ s32 EventScene16_Update(struct EwramData_EntityData *entity)
 
 /* Event script steps 0x08061824..0x080619FF. */
 #define PLAYER_ENTITY (gEwramData->playerState.player)
-
-extern void TextWindow_Begin(s32 textId);
 
 /**
  * @brief 61824 | Where the player is relative to x centerX: 1 when outside
@@ -2379,8 +2361,6 @@ s32 EventScene20_Update(struct EwramData_EntityData *entity)
 
 /* Event object helpers 0x08061FDC..0x080620E7. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern void Sound_Play(u16 song);
-extern void Music_StartOverride(s32 song);
 
 /* Graphics of the event object. */
 extern u8 sEventScene19Gfx[];
@@ -2586,7 +2566,6 @@ void EventScene22_Init(void)
 }
 
 /* Prepare the event actor, player and companion for the scene. */
-extern s32 Entity_SetupFromObjectTable(struct EwramData_EntityData *,s32);
 /**
  * @brief Init of event scene variant 23 (Object 0x20 spawnParam0 = 23,
  * sEventSceneCreateFuncs[23]).
@@ -2626,7 +2605,6 @@ fail:
 }
 
 /* Finish the event script, fade the scene and resume normal game state. */
-extern void Player_StartScriptedAnimation(s32,s32,s32,s32);
 /**
  * @brief Update of event scene variant 23 (sEventSceneUpdateFuncs[23]); returns the
  * player input mask.

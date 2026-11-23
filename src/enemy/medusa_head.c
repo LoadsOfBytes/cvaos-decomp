@@ -9,15 +9,16 @@
 #include "structs/entity_template.h"
 #include "gameplay.h"
 #include "sound.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *entity);
-extern void Enemy_UpdateFragmentDeath(struct EwramData_EntityData *entity);
 extern s32 Target_GetPixelX(struct EwramData_EntityData *entity);
-extern s32 Target_GetFlipXOrOpposite(struct EwramData_EntityData *entity);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *entity);
 extern void MedusaHead_UpdateFly(struct EwramData_EntityData *entity);
 extern void MedusaHead_UpdateIdle(struct EwramData_EntityData *entity);
-extern void EntityUpdateNothing(void);
 extern void EnemyMedusaHeadCreate(struct EwramData_EntityData *entity);
 extern s32 Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
 
@@ -108,8 +109,6 @@ void EnemyMedusaHeadUpdate(struct EwramData_EntityData *entity)
 }
 
 extern s32 MedusaHead_LoadGraphics(struct EwramData_EntityData *entity);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *entity);
 extern void MedusaHead_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 extern void MedusaHead_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
@@ -169,7 +168,6 @@ void EnemyMedusaHeadCreate(struct EwramData_EntityData *entity)
 }
 
 /* Oscillate vertical acceleration and select the rising/falling animation. */
-extern void EntityMove(struct EwramData_EntityData *);
 /**
  * @brief Flight state (state 0): weave up and down (velY +- accelY, direction
  * flipped every unk_506 frames) while moving horizontally.
@@ -199,10 +197,8 @@ void MedusaHead_UpdateFly(struct EwramData_EntityData *entity)
 /* MedusaHead_OnHit (hit with HP / death), generated with a template script from the
  * template of WingedSkeleton_OnHit and checked byte for byte. */
 
-extern u16 Player_CalculateAttackPower(u16 attackCategory);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 extern u8 sMedusaHeadGfx[];

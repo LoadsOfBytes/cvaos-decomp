@@ -11,18 +11,21 @@
 #include "entity_hit.h"
 #include "sound.h"
 #include <string.h>
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "music.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 /* Arachne dispatch and screen-dependent sound and collision updates. */
-extern s32 Sound_StopTracked(s32 song);
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *);
 extern void Arachne_UpdateWalk(struct EwramData_EntityData *);
 extern void Arachne_UpdateAttack(struct EwramData_EntityData *);
 extern void Arachne_UpdateRecoil(struct EwramData_EntityData *);
 extern void Arachne_UpdateDeath(struct EwramData_EntityData *);
 void Arachne_UpdatePreview(struct EwramData_EntityData *entity);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
 void EnemyArachneUpdate(struct EwramData_EntityData *entity)
 {
     s32 bounds[4];
@@ -54,9 +57,6 @@ collision:
 }
 
 u8 Arachne_LoadGraphics(struct EwramData_EntityData *entity);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *entity);
-extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
 extern struct EwramData_EntityData *Entity_CreateObject(void *update);
 extern void ArachneLegs_Update(struct EwramData_EntityData *entity);
 extern void Arachne_DamagePlayerOnContact(struct EwramData_EntityData *entity);
@@ -127,9 +127,7 @@ void EnemyArachneCreate(struct EwramData_EntityData *entity)
 }
 
 /* Idle gait and transitions between approaching, retreating and attacking. */
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
 extern s32 Target_IsInRect(s16,s16,s16,s16);
-extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
 extern s32 Entity_ClampXToRoom(struct EwramData_EntityData *,s32);
 extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *,s32,s32,s32,s32);
 #define GAIT(e) (e->ext.arachne.gait)
@@ -229,15 +227,6 @@ done:
 }
 
 /* Arachne_UpdateAttack: breath attack (hover states 0 / 10, wind-up state 1, state 2 traces the breath projectile until it hits a wall). */
-extern void EntityDampVelocityX(struct EwramData_EntityData *, s32);
-extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern s32 Sound_PlayTracked(s32 song);
-extern s32 Sound_PlayTrackedIfAbsent(s32 song);
-extern s32 Sound_StopTracked(s32 song);
-extern void EntitySetVelocityFromAngle(struct EwramData_EntityData *, s32, s32);
-extern s32 Target_GetX(struct EwramData_EntityData *);
-extern s32 Target_GetY(struct EwramData_EntityData *);
-extern s32 Entity_MoveWithCollisionDefault(struct EwramData_EntityData *, s32, s32);
 extern void Arachne_SpawnEffect(struct EwramData_EntityData *owner, s32 x, s32 y, s32 animation, s32 lifetime);
 extern void ArachneEffect_Update(struct EwramData_EntityData *);
 extern void ArachneBeam_DamagePlayerOnContact(struct EwramData_EntityData *);
@@ -455,7 +444,6 @@ void Arachne_UpdateRecoil(struct EwramData_EntityData *entity)
 }
 
 /* Arachne's death flashes the palette, sheds particles and slowly sinks. */
-extern s32 Entity_GetVisibilityPattern(s32);
 extern void Effect_SpawnRandom(s32,s32,s32,s32,s32);
 /**
  * @brief Death state (state 2): random effects above it every 4 frames, flash,
@@ -473,7 +461,6 @@ void Arachne_UpdateDeath(struct EwramData_EntityData *entity)
 /* Apply damage and choose full destruction or a short reaction to selected attacks. */
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *,struct EwramData_EntityData *,u16 *,s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *,s32,s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 /**
  * @brief Hit: resolve, flash, subtract and show the damage; at HP <= 0 stop sound
  * 0x82, drop the rewards and die (song 0x6E, animation 3, 90 frames,
@@ -612,7 +599,6 @@ fail:
 }
 
 /* Arachne effects inherit the owner's palette, facing and layer. */
-extern u8 sArachneGfx[],sArachneSpriteSheet[];
 /**
  * @brief Spawn an effect at (x, y) with the Arachne graphics: animation, lifetime
  * frames, or until the animation ends when the owner timer is 128.
@@ -640,9 +626,7 @@ void Arachne_SpawnEffect(struct EwramData_EntityData *owner,s32 x,s32 y,s32 anim
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 /* Graphics of Arachne. */
-extern u8 sArachneGfx[];
 extern u8 sArachnePalette[];
-extern u8 sArachneSpriteSheet[];
 
 static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
 {

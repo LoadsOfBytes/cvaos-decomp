@@ -7,13 +7,13 @@
 #include "entity_util.h"
 #include "structs/ewram.h"
 #include "structs/entity_template.h"
-#include "sound.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "entity_motion.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *entity);
-extern s32 Entity_IsOutsideRoomMap(struct EwramData_EntityData *entity);
-extern s32 Entity_GetVisibilityPattern(s32 step);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *entity);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *entity);
 extern void Une_UpdateGrow(struct EwramData_EntityData *entity);
 extern void Une_UpdateIdle(struct EwramData_EntityData *entity);
 extern s32 Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
@@ -84,12 +84,9 @@ void EnemyUneUpdate(struct EwramData_EntityData *entity)
 }
 
 u8 Une_LoadGraphics(struct EwramData_EntityData *entity);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
-extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, void *onHurt);
 extern void Une_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void Une_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
-extern void EntityUpdateNothing(void);
 
 /**
  * @brief 7427C | Une create: deleted when Une_LoadGraphics fails; frozen time
@@ -157,7 +154,6 @@ end:
     entity->accelY.whole = 0x2800;
 }
 
-extern s32 Entity_MoveWithPointCollision(struct EwramData_EntityData *entity, s32 landingVelocity, s32 ceilingOffset);
 extern s32 Target_IsInRect(s16, s16, s16, s16);
 extern void Une_SpawnDebris(s32, s32, s32, s32, s32);
 
@@ -324,7 +320,6 @@ void Une_UpdateGrow(struct EwramData_EntityData *entity)
 
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 
 void Une_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
@@ -348,7 +343,6 @@ void Une_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData 
     }
 }
 
-extern struct EwramData_EntityData *EntityCreateInRange(s32, s32, u32 *);
 extern void UneDebris_Update(struct EwramData_EntityData *);
 extern u8 sUneGfx[], sUneSpriteSheet[];
 
@@ -378,7 +372,6 @@ void Une_SpawnDebris(s32 x, s32 y, s32 velocityX, s32 velocityY, s32 layer)
 }
 
 /* Slow and animate a particle, removing it after its timer passes 20. */
-extern void EntityDampVelocityX(struct EwramData_EntityData *, s32);
 
 /**
  * @brief Debris update: slow down, fall and delete after 20 frames.
@@ -397,9 +390,7 @@ void UneDebris_Update(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   Une_LoadGraphics = Object25_LoadGraphics */
 
-extern u8 sUneGfx[];
 extern u8 sUnePalette[];
-extern u8 sUneSpriteSheet[];
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 /**

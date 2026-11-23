@@ -9,11 +9,18 @@
 #include "bg_and_collision.h"
 #include "entity_util.h"
 #include "player_core.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "nemesis.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 /* Nemesis_UpdatePositioning: twin of Alastor_UpdateApproach (approach a point near the player and rock);
  * deeper vertical target (+48/16), palette call in state 0; matched. */
 extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *);
-extern s32 Entity_GetTargetDistanceY(struct EwramData_EntityData *);
 extern void Entity_FaceTarget(struct EwramData_EntityData *);
 extern u8 Angle_TurnTowards(u16 *angle, u16 step, u16 target);
 #define DX(e) ((s16)Entity_GetTargetDistanceX(e))
@@ -115,7 +122,6 @@ void Nemesis_UpdatePositioning(struct EwramData_EntityData *entity)
 
 /* Attack step of a part-driven enemy (Nemesis_UpdateAttackSelection, cf. Alastor Alastor_UpdateAttackSelection):
  * rotate the part through three target angles, then pick the next attack. */
-extern u8 Angle_TurnTowards(u16 *angle, u16 step, u16 target);
 extern s32 sUnk_08528A34[][9];
 
 #define SET(e) (e->ext.nemesis.attackSet)
@@ -214,7 +220,6 @@ transform:
     }
 }
 
-
 /**
  * @brief Derive signed X and byte Y box offsets from the current angle and install the same packed attack and body box.
  */
@@ -231,7 +236,6 @@ void Nemesis_UpdateRotatedBoxes(struct EwramData_EntityData *entity)
 
 /* Turning attack: three passes, then return to the ordinary state. */
 extern const u16 sNemesisTurn[3];
-extern void EntitySetVelocityFromAngle(struct EwramData_EntityData *, s32, s32);
 extern void *memcpy(void *, const void *, unsigned long);
 
 #define LEFT(e) ((e)->ext.raw.unk_4F4.part8.unk_4F7)
@@ -391,8 +395,6 @@ void Nemesis_UpdateScriptedAttack(struct EwramData_EntityData *entity)
 }
 
 /* Lunge towards the target. */
-extern s32 Target_GetX(struct EwramData_EntityData *);
-extern s32 Target_GetY(struct EwramData_EntityData *);
 extern s32 Entity_GetTargetAngleAbove16(struct EwramData_EntityData *);
 
 /**
@@ -574,11 +576,8 @@ void Nemesis_UpdateDeath(struct EwramData_EntityData *entity)
 }
 
 /* Hit callback of a two-part enemy. */
-extern u16 Player_CalculateAttackPower(u16);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
-extern void Nemesis_SetAfterimagesHidden(struct EwramData_EntityData *, s32);
 
 /* the partner entity, slot unk_4F6 (see Nemesis_CreatePartner) */
 #define LINKED(e) (*(gEwramData->entityData + e->ext.nemesis.partnerIndex))
@@ -661,7 +660,6 @@ s32 Nemesis_CreatePartner(struct EwramData_EntityData *parent)
 
 /* Linked part (NemesisPartner_Update, cf. Alastor part AlastorPart_Update): follows its
  * owner, two attack poses with timed return to the blinking rest state. */
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *);
 
 /**
  * @brief Follow the owner in the initial pose or execute owner-triggered attack/reaction poses and a timed blinking return to hidden state 0.
@@ -785,19 +783,6 @@ void Effect_FollowParentHitBox(struct EwramData_EntityData *entity)
 
 /* Killer Doll child visibility/deletion helpers, reconstructed from the
  * original assembly. */
-
-extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
-extern u16 Player_CalculateAttackPower(u16 value);
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 hit, u16 *data, s32 kind);
-extern void Entity_ShowDamage(struct EwramData_EntityData *entity, s16 damage, s32 flags);
-extern void KillerDoll_SpawnDeathParts(struct EwramData_EntityData *entity);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *entity);
-extern void Hit_CheckWithPlayer(void *buffer, struct EwramData_EntityData *entity);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *entity);
-extern void KillerDoll_UpdateState2Animation(struct EwramData_EntityData *entity);
-extern void KillerDoll_UpdateActive(struct EwramData_EntityData *entity);
-extern void KillerDoll_UpdateDeath(struct EwramData_EntityData *entity);
 
 /**
  * @brief Set hidden on each nonzero slot in the three stored afterimage slots.

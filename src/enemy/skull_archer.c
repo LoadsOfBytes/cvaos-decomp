@@ -1,35 +1,23 @@
 /*
  * Skull Archer: death pieces, create, hits, arrows and update (the shared OnHit file has its own CFLAGS: enemy/waiter_skeleton.c).
  */
+#include "skull_archer.h"
 #include "structs/ewram.h"
-#include "player_core.h"
 #include "graphics.h"
 #include "core.h"
-#include "entity_util.h"
-#include "gameplay.h"
 #include "sound.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
+#include "waiter_skeleton.h"
 
 /* Enemy helpers decompiled from assembly. */
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *, s32, u16 *);
-extern void EntityMoveX(struct EwramData_EntityData *);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
-extern void Entity_SetVelocityXFromFacing(struct EwramData_EntityData *, s32);
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
-extern void Entity_FaceTarget(struct EwramData_EntityData *);
-extern s32 Target_IsNearEntity(struct EwramData_EntityData *, u16, u16);
-extern s32 sUnk_08528614[];
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
-extern void SkullArcherArrow_OnHit(struct EwramData_EntityData *);
 extern u8 sSkullArcherGfx[], sSkullArcherSpriteSheet[];
 extern u8 sSkullArcherWalkProfile[], sSkullArcherPalette[];
-extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *);
-extern s16 Entity_GetTargetDistance(struct EwramData_EntityData *);
-extern void Effect_UpdateSpriteDebris(struct EwramData_EntityData *);
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, u8 *, void *, u8, void *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, s32);
 extern void Enemy_OnContact(struct EwramData_EntityData *);
 extern void SkullArcher_OnHit(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *);
@@ -95,8 +83,6 @@ void EnemySkullArcherCreate(struct EwramData_EntityData *entity)
 }
 
 /* SkullArcher_OnHit (hit, knocked away from the attacker). */
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 
 /**
  * @brief AFD3C | Hit by attacker: when killed (Enemy_TakeDamage), unk_504 is
@@ -126,13 +112,6 @@ void SkullArcherArrow_OnHit(struct EwramData_EntityData *entity)
 {
     entity->hp = 0;
 }
-
-extern s32 Enemy_PreUpdate(struct EwramData_EntityData *);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
-extern void SkullArcher_UpdateIdle(struct EwramData_EntityData *);
-extern void SkullArcher_UpdateShoot(struct EwramData_EntityData *);
-extern void SkullArcher_UpdatePatrol(struct EwramData_EntityData *);
 
 void EnemySkullArcherUpdate(struct EwramData_EntityData *entity)
 {

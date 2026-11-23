@@ -4,8 +4,12 @@
  */
 #include "structs/ewram.h"
 #include "core.h"
-#include "graphics.h"
 #include "bg_and_collision.h"
+#include "entity_common.h"
+#include "entity_motion.h"
+#include "math_anim.h"
+#include "oam.h"
+extern s32 ArcTan2(s32, s32);
 
 /* Distance check and angle approach 0x08068688..0x08068787. Angle_TurnTowards only matches without
  * -f2003-patch (NO_2003_PATCH_SRCS in ../Makefile). */
@@ -83,12 +87,6 @@ turning:
 extern s32 Div(s32 num, s32 denom);
 extern u16 Sqrt(u32 num);
 /* from entity_util.h (not included: see the module notes) */
-extern void EntityAccelerateAndMove(struct EwramData_EntityData *entity, s32 maxSpeed);
-extern void EntityAccelerateAndMoveX(struct EwramData_EntityData *entity, s32 maxSpeed);
-extern void EntityAccelerateAndMoveY(struct EwramData_EntityData *entity, s32 maxSpeed);
-extern void EntityDampVelocityY(struct EwramData_EntityData *entity, s32 factor);
-
-extern s32 Entity_AccelerateAlongAngle(struct EwramData_EntityData *entity, u16 angle, s32 speed, s32 target, s16 acceleration, u16 time);
 
 static inline s32 Sq(s32 v) { return v * v; }
 
@@ -242,8 +240,6 @@ s32 EntityDistance(struct EwramData_EntityData *entity, struct EwramData_EntityD
     dy = (entity->posY.whole - target->posY.whole) >> 16;
     return Sqrt(dx2 + dy * dy) << 16;
 }
-
-extern s32 ArcTan2(s32, s32);
 
 /* Aim at a point sixteen pixels above the player's position. */
 /**
@@ -542,8 +538,6 @@ void SharedObjPalette_ResetSlots(void)
 }
 
 /* Update a generic effect with optional damping, random flips and fade. */
-extern void EntityDampVelocityX(struct EwramData_EntityData *, s32);
-extern s32 Entity_GetVisibilityPattern(s32);
 /**
  * @brief Generic particle update; option bits in unk_4FC: bit 0/1 damp the
  * x/y velocity, then fall (max 0x80000); unk_4FD bit 0/1 randomize
@@ -1005,7 +999,6 @@ s32 Entity_MoveWithCollision(struct EwramData_EntityData *entity, s32 landingVel
 }
 
 /* Resolve collisions and classify the upper and lower contact points. */
-extern s32 Tile_Classify(s16, s16);
 static inline s32 QueryCoordinate(s32 origin, s32 value)
 {
     if (value < 0) return (s16)(origin - ((-value) >> 16));

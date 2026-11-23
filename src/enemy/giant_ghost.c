@@ -4,19 +4,22 @@
 #include "core.h"
 #include "graphics.h"
 #include "gameplay.h"
-#include "entity_util.h"
 #include "structs/ewram.h"
 #include "sound.h"
 #include "syscalls.h"
 #include "player_core.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "entity_motion.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
+#include "palette.h"
 
 /* Dispatch Giant Ghost states and emit particles during its death fade. */
-extern s32 Enemy_PreUpdate(struct EwramData_EntityData *);
-extern s32 Entity_GetVisibilityPattern(s32);
 extern void GiantGhost_UpdateMove(struct EwramData_EntityData *);
 extern void GiantGhost_UpdateAttack(struct EwramData_EntityData *);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
 extern void GiantGhost_SpawnFragment(s32, s32, s32, s32, s32, s32);
 void EnemyGiantGhostUpdate(struct EwramData_EntityData *entity)
 {
@@ -49,10 +52,6 @@ finished:
 }
 
 u8 GiantGhost_LoadGraphics(struct EwramData_EntityData *entity);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *entity);
-extern s32 Anim_GetMaxBoxCount(struct EwramData_EntityData *entity);
-extern void GiantGhost_ResetAnimation(struct EwramData_EntityData *entity);
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *update);
 extern void GiantGhostAura_Update(struct EwramData_EntityData *entity);
 extern void GiantGhostHandA_Update(struct EwramData_EntityData *entity);
@@ -170,12 +169,7 @@ void EnemyGiantGhostCreate(struct EwramData_EntityData *entity)
 /* Flying enemy that circles the player: approach / coast / brake, and after
  * being hit (unk_505) the same three phases away from the player. */
 
-extern s32 Target_GetX(struct EwramData_EntityData *);
-extern s32 Target_GetY(struct EwramData_EntityData *);
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
 extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s32 Entity_AimVelocityAtPoint(struct EwramData_EntityData *entity, s32 x, s32 y, s32 speed);
-extern void EntityMove(struct EwramData_EntityData *entity);
 
 #define SPEED(e) (e->ext.giantGhost.speed)
 #define HIT(e) (e->ext.giantGhost.hitPlayer)
@@ -338,9 +332,6 @@ void GiantGhost_UpdateMove(struct EwramData_EntityData *entity)
     }
 }
 
-extern void EntityDampVelocityX(struct EwramData_EntityData *, s32);
-extern void EntityDampVelocityY(struct EwramData_EntityData *, s32);
-
 /**
  * @brief 7D65C | Swooping enemy attack (subState): backs away from the
  * player (Entity_AimVelocityAtPoint towards the player 0x10 px up, velocity negated)
@@ -438,11 +429,8 @@ void GiantGhost_UpdateAttack(struct EwramData_EntityData *entity)
     }
 }
 
-extern u16 Player_CalculateAttackPower(u16);
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
-extern void GiantGhost_SpawnFragment(s32 x, s32 y, s32 vx, s32 vy, s32 layer, s32 flip);
 
 /**
  * @brief 7D88C | Hit callback: flash (hitFlashTimer = 8), subtract the damage
@@ -487,8 +475,6 @@ void GiantGhost_OnHit(struct EwramData_EntityData *entity, struct EwramData_Enti
 }
 
 /* Follow the main body, pulse its affine scale, then shrink away on death. */
-extern s32 Enemy_IsStunnedNoFlash(struct EwramData_EntityData *);
-extern s32 Sin(s32);
 extern void GiantGhost_SpawnAuraTrail(struct EwramData_EntityData *, s32, s32);
 static inline s32 Shrink(s32 value, s32 duration) { return value - value / duration; }
 /**
@@ -754,7 +740,6 @@ void GiantGhostHandB_Update(struct EwramData_EntityData *entity)
 }
 
 /* Create and retire an affine afterimage with its own matrix allocation. */
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
 extern void GiantGhostAuraTrail_Update(struct EwramData_EntityData *);
 /**
  * @brief Spawn a semi-transparent affine trail sprite (animation 6) at (x, y)
@@ -819,7 +804,6 @@ void GiantGhostAuraTrail_Update(struct EwramData_EntityData *entity)
 
 /* Giant Ghost's graphics, collision effect and death particles. */
 extern s8 ObjPalette_FindOrLoadVariant(void *, u8);
-extern void Effect_UpdateTimedParticle(struct EwramData_EntityData *);
 extern u8 sGiantGhostGfx[], sGiantGhostPalette[], sGiantGhostPaletteAnim[], sGiantGhostSpriteSheet[];
 extern u8 sCommonObjectGfx[], sCommonObjectSpriteSheet[];
 /**

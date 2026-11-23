@@ -10,10 +10,15 @@
 #include "player_level.h"
 #include "sound.h"
 #include "gameplay.h"
+#include "boss_defeat.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *entity);
-extern void Enemy_UpdateFragmentDeath(struct EwramData_EntityData *entity);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *entity);
 extern void Manticore_UpdateWalk(struct EwramData_EntityData *entity);
 extern void Manticore_UpdateAttack(struct EwramData_EntityData *entity);
 extern s32 Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
@@ -74,8 +79,6 @@ void EnemyManticoreUpdate(struct EwramData_EntityData *entity)
 }
 
 u8 Manticore_LoadGraphics(struct EwramData_EntityData *entity);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
-extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, void *onHurt);
 extern struct EwramData_EntityData *Manticore_CreateTailTip(struct EwramData_EntityData *entity);
 extern struct EwramData_EntityData *Manticore_CreateTailSegment(struct EwramData_EntityData *entity, struct EwramData_EntityData *tail, s32 value, s32 index);
@@ -153,13 +156,8 @@ void EnemyManticoreCreate(struct EwramData_EntityData *entity)
 }
 
 /* Enemy walker update (Manticore_UpdateWalk): approach, turn and attack decisions. */
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
 extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
-extern s32 Tile_Classify(s16 x, s16 y);
 extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern s32 Anim_Start(struct EwramData_EntityData *entity, struct AnimScript *script, u8 mode, u8 flags);
-extern void EntityDampVelocityX(struct EwramData_EntityData *, s32);
 extern struct AnimScript sManticoreWalkAnimScript;
 
 /* Walking step; one copy per animStep value so that every copy shares the 0x40
@@ -418,8 +416,6 @@ void Manticore_UpdateAttack(struct EwramData_EntityData *entity)
     }
 }
 
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
-extern void BossDefeatEffect_Spawn(s32, s32);
 extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
 
 /**
@@ -673,7 +669,6 @@ remove:
     EntityDelete(entity);
 }
 
-extern s32 Enemy_IsStunnedNoFlash(struct EwramData_EntityData *);
 #define TIMER(e) (e->ext.manticoreTail.timer)
 #undef STEP
 #define STEP(e) (e->ext.manticoreTail.step)
@@ -1001,8 +996,6 @@ void Manticore_SpawnShot(struct EwramData_EntityData *entity)
 /* Projectile: wait 16 frames, then (state 1) fall until off screen; in
  * state 2 it falls emitting two random sparks per frame (Effect_SpawnFadingParticle /
  * Effect_SpawnParticleAnim0) and vanishes after a few frames. */
-extern void Effect_SpawnFadingParticle(s32, s32, s32, s32, s32, s32);
-extern void Effect_SpawnParticleAnim0(s32, s32, s32, s32, s32);
 
 /**
  * @brief Breath shot update: wait 16 frames hidden, then fly (animation 6) until
@@ -1122,7 +1115,6 @@ void ManticoreTail_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 }
 
 /* ManticoreTail_OnHit (Manticore body part hit). */
-extern u16 Player_CalculateAttackPower(u16 attackCategory);
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, struct EwramData_EntityData *other, u16 *hit, s32 inputDamage);
 extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
 
@@ -1153,9 +1145,7 @@ void ManticoreTail_OnHit(struct EwramData_EntityData *entity, struct EwramData_E
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 /* Graphics of Manticore. */
-extern u8 sManticoreGfx[];
 extern u8 sManticorePalette[];
-extern u8 sManticoreSpriteSheet[];
 
 void ManticoreShot_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void ManticoreShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);

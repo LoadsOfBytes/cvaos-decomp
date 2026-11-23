@@ -9,14 +9,16 @@
 #include "structs/ewram.h"
 #include "sound.h"
 #include "map_flags.h"
-#include "string.h"
 #include "syscalls.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *entity);
-extern void Heap_Free(void *parts);
-extern void Effect_SpawnRisingParticle(s32 x, s32 y, s32 layer, s32 mode);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *entity);
 extern void Golem_UpdateMovement(struct EwramData_EntityData *entity);
 extern void Golem_UpdateAttack(struct EwramData_EntityData *entity);
 extern void Golem_UpdateBestiaryPreview(struct EwramData_EntityData *entity);
@@ -95,10 +97,6 @@ boxes:
 /* Golem create: allocates the 11-joint skeleton and one part entity per joint. */
 extern void *memcpy(void *dst, const void *src, unsigned long size);
 extern u8 Golem_LoadGraphics(struct EwramData_EntityData *entity);
-extern void *Heap_Alloc(u16 words);
-extern void Heap_Free(void *allocation);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
-extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *update);
 extern void GolemSegment_Update(struct EwramData_EntityData *entity);
 extern void GolemSegment_DamagePlayerOnContact(struct EwramData_EntityData *entity);
@@ -285,13 +283,8 @@ void EnemyGolemCreate(struct EwramData_EntityData *entity)
 /* Golem main state machine: hops towards the player (turning at walls), landing dust, attacks. */
 extern void Golem_UpdateAllParts(struct EwramData_EntityData *entity);
 extern void Golem_SpawnIdleEffect(struct EwramData_EntityData *, s32, s32);
-extern s32 Entity_MoveWithCollisionDefault(struct EwramData_EntityData *, s32, s32);
 extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
 extern s32 Target_GetPixelX(struct EwramData_EntityData *);
-extern s32 Tile_Classify(s16, s16);
-extern void Effect_SpawnRisingParticle(s32, s32, s32, s32);
-extern void ScreenShake_RequestOffset(u8 priority, s8 offsetX, s8 offsetY);
 extern const u8 sGolemHopTimes[4], sGolemLandTimes[4];
 
 static inline s32 ABS(s32 x)
@@ -567,12 +560,9 @@ void Golem_UpdateMovement(struct EwramData_EntityData *entity)
 
 /* Golem attack state machine (state == 1): overhead punches (states 0-17), ground smashes with rocks
    (20-35) and the repeated jab (40-56). */
-extern void *memcpy(void *, const void *, unsigned long);
-extern void Golem_FaceTarget(struct EwramData_EntityData *);
 extern void Golem_AttachPart(struct EwramData_EntityData *, s32, s32, s32, s32);
 extern void Golem_UpdateParts(struct EwramData_EntityData *, s8 *);
 extern void Golem_ResetPartAngles(struct EwramData_EntityData *, s32);
-extern void Effect_SpawnFallingPiece(s32, s32, s32, s32, s32, s32);
 extern void Golem_ThrowDebris(struct EwramData_EntityData *, s32, s32, s32, s32);
 extern const s8 sGolemChain[11];
 extern const u8 sUnk_08118EEB[4], sUnk_08118EEF[4], sUnk_08118EF3[4], sUnk_08118EF7[4];
@@ -868,7 +858,6 @@ void Golem_UpdateAttack(struct EwramData_EntityData *entity)
 }
 
 extern const u8 sGolemDelay[4];
-extern void Golem_UpdateAllParts(struct EwramData_EntityData *);
 
 /* Separate cases preserve the original cross-jumps between timed phases. */
 /**
@@ -1133,7 +1122,6 @@ void Golem_UpdatePart(struct EwramData_EntityData *entity, s32 index)
 }
 
 /* Mirror joint positions and selected joint angles when facing changes. */
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
 /**
  * @brief Face the direction given by Entity_IsTargetRight; when turning around
  * mirror the x offsets of all 11 parts and the angle unk_8 of parts
@@ -1250,10 +1238,8 @@ u8 Golem_LoadGraphics(struct EwramData_EntityData *entity)
 /* Golem_OnDamaged (hit with HP / death), generated with a template script from the
  * template of WingedSkeleton_OnHit and checked byte for byte. */
 
-extern u16 Player_CalculateAttackPower(u16 attackCategory);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 
 /**
  * @brief 811CC | Hit: flash (hitFlashTimer = 8), subtract the damage from the HP
@@ -1325,7 +1311,6 @@ void GolemSegment_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 /* Golem part update: follows its skeleton joint, maintains collision,
  * then falls and spins after the parent enters state 2. */
 
-extern s32 Entity_GetVisibilityPattern(s32);
 extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
 
 struct SegmentBox {
@@ -1567,7 +1552,6 @@ void GolemDebris_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 }
 
 /* GolemDebris_OnKilled (death burst). */
-extern void Effect_SpawnFallingPiece(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32 piece);
 
 /**
  * @brief 818D0 | Killed: HitEffect_Spawn at the position, two Effect_SpawnFallingPiece
@@ -1608,9 +1592,7 @@ void Golem_UpdateAllParts(struct EwramData_EntityData *entity)
  * byte. */
 #define GREAT_ARMOR_PART_COUNT 14
 
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *updateFunc);
 extern void GolemIdleEffect_Update(struct EwramData_EntityData *entity);
-extern u8 sGolemGfxEnemy50[], sGolemSpriteSheet[];
 
 /**
  * @brief 8199C | Like GreatArmor_UpdateParts, but 11 parts.

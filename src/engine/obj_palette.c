@@ -1,14 +1,15 @@
 /*
  * Shared object palettes (find / load / release) and enemy reward drops.
  */
-#include "graphics.h"
+#include "obj_palette.h"
 #include "structs/ewram.h"
 #include "core.h"
 #include "bg_and_collision.h"
 #include "soul_inventory.h"
 #include "player_level.h"
-#include "gameplay.h"
 #include "syscalls.h"
+#include "palette.h"
+#include "pickup.h"
 
 /* Find or load a palette in the four shared object slots. */
 s8 ObjPalette_FindOrLoad(void *palette)

@@ -1,8 +1,8 @@
 /*
  * Boss rush result and room objects 0x10-0x13 (Object 0x13 arm segments).
  */
+#include "objects_10_13.h"
 #include "core.h"
-#include "room_object_entity.h"
 #include "in_game.h"
 #include "graphics.h"
 #include "syscalls.h"
@@ -14,6 +14,12 @@
 #include "player_core.h"
 #include "sound.h"
 #include "entity_hit.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "pickup.h"
+#include "soul_pickup.h"
 
 /* BossRushResult_Draw: matched (three block-local v instead of one variable set three times;
    literal constants, no helper variables). */
@@ -89,8 +95,6 @@ void BossRushResult_Draw(struct EwramData_EntityData *entity)
 }
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern s32 Item_GetTypeByGlobalId(s32 item);
-extern s32 Item_GetIndexByGlobalId(s32 item);
 
 struct Object10Reward
 {
@@ -208,7 +212,6 @@ void Object10Update(struct EwramData_EntityData *entity)
 /* Objects 0x11 (timer in entity slot 26) and 0x12 (decorations). */
 void BossRushTimer_Update(struct EwramData_EntityData *entity);
 void Object12Variant2_Draw(struct EwramData_EntityData *entity);
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 
 extern u8 sObject12Variant0AnimScript0[];
 extern u8 sObject12Variant0AnimScript1[];
@@ -471,9 +474,6 @@ void Object13Segment_Update(struct EwramData_EntityData *entity)
  * the copies after reload, but their reloads shift the reload register
  * rotation as in the target. */
 
-extern s32 Entity_IsInRect(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern void HitEffect_Spawn(s32, s32, s32);
-
 static inline s32 IsNotFlippedX(struct EwramData_EntityData *e) { return e->flipX == 0; }
 #define PL (gEwramData->playerState.player)
 #define PX ((s16)PL->posX.part16.integer)
@@ -565,7 +565,6 @@ void Object13Tip_Update(struct EwramData_EntityData *entity)
     }
 }
 
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 void Object13Create(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *previous;

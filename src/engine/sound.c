@@ -2,7 +2,6 @@
 #include "gba.h"
 #include "macros.h"
 #include "m4a.h"
-#include "m4a_internal.h"
 
 #include "constants/songs.h"
 

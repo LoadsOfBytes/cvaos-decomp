@@ -34,10 +34,11 @@ Measured on 2026-11-23 from the build output and source scans.
 | Game functions decompiled to C | ✅ **100 %** – only an 8-byte ARM/Thumb interworking stub has no C equivalent |
 | All ROM code (`.text`) from C | **97.06 %** (891,340 / 918,324 B) – the rest is platform code normally kept in assembly (`crt0`, `m4a` mixer, BIOS stubs, header) and libgcc/libc |
 | Functions named | ✅ **100 %** (3,842 / 3,842) |
-| Local variables and parameters named | ✅ **100 %** (16,280 / 16,280) |
-| Structure fields named | 🔄 **96.3 %** (3,275 / 3,400 declared; 99.8 % of accesses) |
+| Local variables and parameters named | ✅ **100 %** (16,255 / 16,255) |
+| Structure fields named | 🔄 **96.3 %** (3,269 / 3,394 declared; 99.8 % of accesses) |
 | Entity work area as typed structures | 🔄 363 per-type structures; 67 lines still use the raw offset view |
 | Source files grouped into modules | 🔄 **95 %** – the 1,701 ROM-address files (`code_XXXXXXXX.c`) are 172 named files: 163 complete modules and 9 small files still split off only for build reasons (see *File layout*); no `code_XXXXXXXX` name left |
+| Function declarations in module headers | 🔄 each module's functions used by other files are declared in `include/<module>.h`; no implicit declarations; 126 functions keep caller-specific prototypes (see *Known limitations*) |
 | Removing compiler tricks (`FAKEMATCH`) | 🔄 275 lines left in 73 of 181 C files |
 
 ## How this fork was made
@@ -79,12 +80,23 @@ name or comment describes the game correctly. Corrections are very welcome.
   section); `kyoma_demon_b` and `tsuchinoko`, cut off from their family because
   the family's flag changes their code. The 4 ARM units (`*_arm.c`, IWRAM code
   built with the ARM compiler) are separate by design.
+- **Declarations** – a function used by other files is declared in the header of
+  its module (`include/<module>.h`, e.g. `src/engine/entity_common.c` →
+  `include/entity_common.h`). 126 functions are still declared locally by their
+  callers, because different callers were compiled with different parameter or
+  return types (e.g. `s32` vs `u16`), and one shared prototype would change their
+  code; a comment explains such a declaration where the reason is known. Data
+  symbols and forward declarations of file-internal functions are also still
+  declared in the C files.
 
 ## Planned work
 
 - Merge the 9 build-separated files: needs C that matches without their compiler flags.
 - Finish the entity structures and name the remaining fields.
 - Reduce `FAKEMATCH` where a natural C variant can be found.
+- Declarations: unify the caller-specific prototypes where the types differ only
+  in pointer targets, move data declarations into module headers and gather the
+  forward declarations of file-internal functions.
 
 ## Building
 
@@ -114,7 +126,7 @@ See also [INSTALL.md](INSTALL.md).
 | Path | Contents |
 |---|---|
 | `src/` | decompiled C (game, `m4a` sound engine, GBA library) |
-| `include/` | headers: structures, registers, constants, declarations |
+| `include/` | headers: structures, registers, constants; one header per module with the functions other files use |
 | `asm/` | remaining assembly; `asm/data/` holds only `.incbin` references into your baserom |
 | `sound/` | song and music player tables (structure only) |
 | `tools/` | build tools (`preproc`, `gbafix`, data extractor) |

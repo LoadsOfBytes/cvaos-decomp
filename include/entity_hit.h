@@ -44,11 +44,6 @@ struct HitInfo
 
 #define HIT_INFO(e) ((struct HitInfo *)((u8 *)(e) + 0x70))
 
-u32 HitBox_Overlap(struct EwramData_EntityData *e1, struct SpriteBox *hb1, struct EwramData_EntityData *e2, struct SpriteBox *hb2);
-u32 Hit_Check(u8 *a, u8 *b);
-u32 Hit_CheckPlayerAttack(u8 *e);
-u32 Hit_CheckPlayerHurt(u8 *e);
-u32 Hit_CheckPair(struct HitResult *res, u8 *a, u8 *b);
 u32 Hit_CheckWithPlayer(struct HitResult *res, u8 *b);
 
 #endif

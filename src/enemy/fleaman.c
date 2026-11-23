@@ -1,16 +1,19 @@
 /*
  * Fleaman.
  */
+#include "fleaman.h"
 #include "graphics.h"
 #include "structs/ewram.h"
 #include "core.h"
 #include "sound.h"
 #include "player_core.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "math_anim.h"
+#include "obj_palette.h"
 
 /* EnemyFleamanUpdate. */
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *entity);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *entity);
 extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
 extern void Fleaman_UpdateMovement(struct EwramData_EntityData *entity);
 extern void Fleaman_UpdateDeath(struct EwramData_EntityData *entity);
@@ -69,7 +72,6 @@ extern s16 Collision_GetPushDown(s32, s32);
 extern s16 Collision_GetPushLeft(s32, s32);
 extern s16 Collision_GetPushRight(s32, s32);
 extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 extern s16 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
 extern s16 GetEntityRoomYPositionInteger(struct EwramData_EntityData *entity);
 
@@ -257,8 +259,6 @@ void Fleaman_UpdateMovement(struct EwramData_EntityData *entity)
 }
 
 /* Fleaman_UpdateDeath (Fleaman death). */
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
-extern void Enemy_UpdateFragmentDeathWithSpread(struct EwramData_EntityData *entity, s32 interval, s32 width, s32 height);
 
 /**
  * @brief C2388 | Death: sub-state 0 plays song 0x72, animation 2, palette
@@ -323,7 +323,6 @@ void Fleaman_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 }
 
 /* Fleaman damage callback, used by EnemyFleamanCreate. */
-extern u16 Player_CalculateAttackPower(u16 attackCategory);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
 

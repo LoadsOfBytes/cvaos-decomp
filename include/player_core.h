@@ -119,17 +119,9 @@ struct RedSoulActivationView {
 };
 extern struct RedSoulActivationView* RedSoul_GetInfo(u8 soul);
 
-extern u8 RedSoul_GetActiveLimit(void);
-extern s32 Entity_IsOffscreenOrInactive(struct EwramData_EntityData *entity, s32 margin);
-extern void Entity_SetAttackBoxFromFrame(struct EwramData_EntityData *entity);
 extern s32 RandomSigned(s32 range);
-extern void RedSoul_RemoveActiveEntity(struct EwramData_EntityData *soul);
-extern void RedSoul_AnchorToHitTargetTimed(struct EwramData_EntityData *entity, struct EwramData_EntityData *target); // TODO: verify types
 extern void HomingSoulProjectile_OnPlayerContact(struct EwramData_EntityData *entity, struct EwramData_EntityData *unused); // defined with one parameter
-extern void Soul_DrawWithPaletteInvert(struct EwramData_EntityData *entity);
 extern struct EwramData_EntityData *BlueSoul_CreateEntity(struct EwramData_EntityData *owner, void *update);
-extern void BlueSoul_StopAll(void);
 extern void Entity_PlaceRelativeTo(struct EwramData_EntityData *entity, struct EwramData_EntityData *anchor, s32 offsetX, s32 offsetY); // TODO: param_2/param_3 should be u16
-extern void YellowSoul_Stop(void);
 
 #endif /* PLAYER_CORE_H */

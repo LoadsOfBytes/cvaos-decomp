@@ -1,6 +1,7 @@
 /*
  * Soul pickups and containers, homing orbs, bouncing pickups and item info lookup.
  */
+#include "soul_pickup.h"
 #include "core.h"
 #include "graphics.h"
 #include "soul_inventory.h"
@@ -13,9 +14,15 @@
 #include "player_core.h"
 #include "structs/equipment_stats.h"
 #include "types.h"
+#include "effects.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "pickup.h"
 
 extern void SoulPickup_Update(struct EwramData_EntityData *);
-extern void Pickup_Collect(struct EwramData_EntityData *);
 extern u16 Entity_AngleToPoint(struct EwramData_EntityData *, s32, s32);
 extern u8 sCommonObjectGfx[], sCommonObjectSpriteSheet[];
 
@@ -64,8 +71,6 @@ struct EwramData_EntityData *SoulPickup_Create(s32 x, s32 y, s32 palette, s32 so
 }
 
 extern s32 Entity_StepAngleTowardPoint(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern s32 RandomSigned(s32);
-extern struct EwramData_EntityData *Effect_CreateFromTable(s32, s32, s32, s32, s32, u8);
 static inline s32 FixedMulFast(s32 a, s32 b) { return (a >> 8) * (b >> 8); }
 
 /**
@@ -182,7 +187,6 @@ void SoulPickup_UpdateContainer(struct EwramData_EntityData *entity)
 }
 
 extern void SoulPickup_UpdateContainerAnimation(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 /**
  * @brief Create the grounded soul container and optional colored animation child using the supplied soul kind/index; return NULL if the container allocation fails.
  */
@@ -326,7 +330,6 @@ extern s32 Collision_GetPushLeft(s32 x, s32 y);
 extern s32 Collision_GetPushRight(s32 x, s32 y);
 extern s32 Collision_GetPushUp(s32 x, s32 y);
 extern s32 Collision_GetPushDown(s32 x, s32 y);
-extern void EntityDampVelocityX(struct EwramData_EntityData *entity, s32 amount);
 
 /**
  * @brief Check collection, move with acceleration, damp horizontal speed and bounce against room walls/floor while stopping at the ceiling; retain signed probe conversions.

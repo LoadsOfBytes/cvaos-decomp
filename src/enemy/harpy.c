@@ -5,15 +5,19 @@
 #include "graphics.h"
 #include "structs/ewram.h"
 #include "sound.h"
-#include "entity_util.h"
 #include "player_core.h"
 #include "structs/entity_render_flags.h"
 #include "gameplay.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "entity_motion.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 /* Harpy setup randomizes its animation phase before enabling movement. */
 extern u8 Harpy_LoadGraphics(struct EwramData_EntityData *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *);
 extern void Hit_EnableContact(struct EwramData_EntityData *,s32,void *,void *);
 void Harpy_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void Harpy_OnHit(struct EwramData_EntityData *entity,struct EwramData_EntityData *attacker,u16 *info);
@@ -45,11 +49,8 @@ void EnemyHarpyCreate(struct EwramData_EntityData *entity)
 }
 
 /* Ground waiting, animation-timed wingbeats and the transition into flight. */
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
 extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *);
 extern s32 Target_GetPixelY(struct EwramData_EntityData *);
-extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
-extern void EntityDampVelocityX(struct EwramData_EntityData *,s32);
 #define FRAME_PAIR(e) (*(u16 *)&(e)->animStep)
 static inline s32 TargetDistanceX(struct EwramData_EntityData *entity)
 {
@@ -170,11 +171,7 @@ void Harpy_UpdateApproach(struct EwramData_EntityData *entity)
 }
 
 /* Aerial approach, braking, volleys and the return to ordinary flight. */
-extern s32 Target_GetX(struct EwramData_EntityData *);
-extern s32 Target_GetY(struct EwramData_EntityData *);
-extern s32 Entity_AimVelocityAtPoint(struct EwramData_EntityData *,s32,s32,s32);
 extern s32 Target_IsWithinDistance(struct EwramData_EntityData *,s32);
-extern void EntityMove(struct EwramData_EntityData *);
 extern void Harpy_ThrowFeather(struct EwramData_EntityData *,s32);
 extern void Harpy_ThrowWavyFeather(struct EwramData_EntityData *,s32);
 static inline s32 Magnitude(s32 value)
@@ -354,7 +351,6 @@ void Harpy_UpdateRecoil(struct EwramData_EntityData *entity)
 /* Lethal hits shed four effects; selected attack kinds force a recovery state. */
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *,struct EwramData_EntityData *,u16 *,s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *,s32,s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 extern void Harpy_SpawnDeathFeather(struct EwramData_EntityData *,s32,s32);
 void Harpy_OnHit(struct EwramData_EntityData *entity,struct EwramData_EntityData *attacker,u16 *info)
 {
@@ -427,7 +423,6 @@ void Harpy_SpawnDeathFeather(struct EwramData_EntityData *owner,s32 x,s32 y)
 }
 
 /* Fragments slow down, start falling, blink and expire. */
-extern s32 Entity_GetVisibilityPattern(s32);
 /**
  * @brief Loose feather: slow down, then drift down for 40 frames while blinking
  * out.
@@ -462,7 +457,6 @@ void HarpyDeathFeather_Update(struct EwramData_EntityData *entity)
 extern void HarpyFeather_Update(struct EwramData_EntityData *);
 extern u8 HarpyFeather_LoadGraphics(struct EwramData_EntityData *,struct EwramData_EntityData *);
 extern void HarpyFeather_EnableHitBoxes(struct EwramData_EntityData *);
-extern void EntitySetVelocityFromAngle(struct EwramData_EntityData *,s32,s32);
 void Harpy_ThrowFeather(struct EwramData_EntityData *owner,s32 kind)
 {
     struct EwramData_EntityData *projectile=EntityCreateInRange(0x1B,0x48,(u32 *)HarpyFeather_Update);
@@ -662,7 +656,6 @@ void Harpy_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 }
 
 /* Harpy knockback and the small projectile's movement/cleanup. */
-extern void Enemy_UpdateFragmentDeath(struct EwramData_EntityData *);
 /**
  * @brief Death state (state 2): fall away from the target under gravity.
  */
@@ -706,9 +699,6 @@ void HarpyFeather_Update(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   HarpyFeather_LoadGraphics = MudmanShot_LoadGraphics */
 
-extern u8 sHarpyGfx[];
-extern u8 sHarpySpriteSheet[];
-
 /**
  * @brief 763DC | Same as MudmanShot_LoadGraphics.
  */
@@ -743,7 +733,6 @@ void HarpyFeather_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 }
 
 /* HarpyFeather_OnHit. */
-extern u16 Player_CalculateAttackPower(u16 attackCategory);
 
 /**
  * @brief 76464 | Hit: call Player_CalculateAttackPower on the damage value (result
@@ -757,9 +746,6 @@ void HarpyFeather_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *
 }
 
 /* Harpy/Siren dispatch share movement states and collision processing. */
-extern s32 Enemy_PreUpdate(struct EwramData_EntityData *);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
 void EnemyHarpyUpdate(struct EwramData_EntityData *entity)
 {
     s32 scratch[4];

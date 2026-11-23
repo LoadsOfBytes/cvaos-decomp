@@ -6,14 +6,18 @@
 #include "sound.h"
 #include "graphics.h"
 #include "gameplay.h"
-#include "entity_util.h"
 #include "structs/ewram.h"
 #include "player_core.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "witch.h"
+#include "effects.h"
 
 /* Witch projectile setup, movement and spawn helper. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 extern void Enemy_OnContact(struct EwramData_EntityData *);
-extern void WitchGroundProjectile_OnHit(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern struct EwramData_EntityData *Entity_CreateObject(void *);
 extern u8 sWitchGfx[], sWitchPalette[], sWitchSpriteSheet[], sWitchGroundProjectileWalkProfile[];
@@ -358,20 +362,7 @@ s32 StudentWitch_UpdateDeath(struct EwramData_EntityData *entity)
 }
 
 /* Witch and Student Witch initialisation and state dispatchers. */
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
-extern void StudentWitch_OnHit(struct EwramData_EntityData *, s32, u16 *);
-extern void Witch_OnHit(struct EwramData_EntityData *, s32, u16 *);
-extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, void *);
 extern s32 Hit_EnableContact(struct EwramData_EntityData *, s32, void *, s32);
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
-extern void Witch_UpdateWait(struct EwramData_EntityData *);
-extern void Witch_UpdateCast(struct EwramData_EntityData *);
-extern void Witch_UpdateCharge(struct EwramData_EntityData *);
-extern s32 Witch_UpdateDeath(struct EwramData_EntityData *);
-extern u8 sWitchGfx[], sWitchPalette[], sWitchSpriteSheet[];
 
 void EnemyStudentWitchCreate(struct EwramData_EntityData *entity)
 {

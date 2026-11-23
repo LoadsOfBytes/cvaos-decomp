@@ -1,5 +1,4 @@
 #include "agb_sram.h"
-#include "macros.h"
 #include "gba.h"
 
 #include "structs/agb_sram.h"
@@ -86,7 +85,6 @@ void SetSramFastFunc(void)
     }
     // add 1 to the address of the buffer so that we stay in THUMB mode when bx-ing to the address
     gReadSramFast = (void*)((u32)readSramFast_Work + 1);
-
 
     src = (u16*)((u32)VerifySramFast_Core);
     // clear the least significant bit so that we get the actual start address of the function

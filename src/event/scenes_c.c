@@ -11,36 +11,30 @@
 #include "bg_effects.h"
 #include "room_entities.h"
 #include "structs/main.h"
-#include "game_modes.h"
-#include "sram.h"
-#include "main_menu.h"
-#include "intro_cutscene.h"
-#include "soul_trade.h"
-#include "in_game.h"
 #include "map_flags.h"
-#include "save_data.h"
-#include "player_init.h"
 #include "player_core.h"
-#include "soul_inventory.h"
-#include "player_effects.h"
-#include "player_level.h"
-#include "debug_1967.h"
 #include "gameplay.h"
 #include "entity_util.h"
 #include "sound.h"
-#include "macros.h"
-#include "agb_sram.h"
 #include "constants/main.h"
 #include "constants/songs.h"
 #include "data/data_0E0334.h"
 #include "data/data_0E3464.h"
 #include "structs/agb_sram.h"
 #include "music.h"
-#include "player_entity.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "objects_35_37.h"
+#include "palette.h"
+#include "scene30.h"
+#include "scenes_c.h"
+#include "shop_update.h"
+#include "text12.h"
+#include "text_window.h"
 
 /* Per-scanline affine transition driven by the owner's event phase. */
 extern u8 sEventScene30TransformationPalette[],sEventScene30Palette[];
-extern void EventScene30_SpawnFloatingFragment(struct EwramData_EntityData *,s16,s16,s32);
 #define PHASE(e) (e->ext.event30.phase)
 #define CENTER_X(e) (e->ext.event30.centerX)
 #define CENTER_Y(e) (e->ext.event30.centerY)
@@ -313,16 +307,7 @@ struct ParticleFrames {
 };
 
 extern struct ParticleFrames sEventScene30ParticleFrames;
-extern s32 Entity_IsInRect(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern s32 Entity_SetupFromObjectTable(struct EwramData_EntityData *, s32);
-extern void TextWindow_Begin(s32);
-extern s32 TextWindow_Update(void);
-extern void Sound_Play(u16);
-extern void Interaction_End(struct EwramData_EntityData *, s32);
-extern struct EwramData_EntityData *Entity_CreateFromObjectTable(s32);
 extern u32 GameFlag_Is3ASet(void);
-extern void TextWindow_Close(void);
-extern void Shop_Open(void);
 
 /* End this entity unless event flag 0x4000 is set; otherwise advance the
  * event flags and play song 0x1000. */
@@ -754,9 +739,7 @@ void EventScene27_Init(struct EwramData_EntityData *entity)
     }
 }
 
-extern void Player_RestoreHPAndMP(void);
 extern void EventScene27_PickConversation(struct EwramData_EntityData *entity);
-extern void Conversation_Reset(void);
 extern void EventScene27_SelectScript36(struct EwramData_EntityData *entity);
 
 /**

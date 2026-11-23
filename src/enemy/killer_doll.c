@@ -7,13 +7,17 @@
 #include "structs/ewram.h"
 #include "player_core.h"
 #include "sound.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 /* EnemyKillerDollCreate. */
 extern s32 KillerDoll_LoadGraphics(struct EwramData_EntityData *entity);
 extern void KillerDoll_OnContact(struct EwramData_EntityData *entity);
 void KillerDoll_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 *data);
 extern void KillerDoll_ResetActive(struct EwramData_EntityData *entity);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, s32 onHurt);
 
 /**
@@ -86,15 +90,10 @@ s32 KillerDoll_LoadGraphics(struct EwramData_EntityData *entity)
 /* Killer Doll: stop movement, resolve floor placement and initialize three
  * randomized timers. */
 
-extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
-extern u16 Player_CalculateAttackPower(u16 value);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 hit, u16 *data, s32 kind);
 extern void Entity_ShowDamage(struct EwramData_EntityData *entity, s16 damage, s32 flags);
 extern void KillerDoll_SpawnDeathParts(struct EwramData_EntityData *entity);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *entity);
 extern void Hit_CheckWithPlayer(void *buffer, struct EwramData_EntityData *entity);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *entity);
 extern void KillerDoll_UpdateState2Animation(struct EwramData_EntityData *entity);
 extern void KillerDoll_UpdateActive(struct EwramData_EntityData *entity);
 extern void KillerDoll_UpdateDeath(struct EwramData_EntityData *entity);
@@ -122,12 +121,9 @@ void KillerDoll_ResetActive(struct EwramData_EntityData *entity)
 /* Killer Doll movement and attack state machine, reconstructed from the
  * original assembly. */
 
-extern s32 Target_GetX(struct EwramData_EntityData *entity);
-extern s32 Target_GetY(struct EwramData_EntityData *entity);
 extern u8 Entity_IsTargetWithinRange(struct EwramData_EntityData *entity, s32 range);
 extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
 extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *entity);
-extern s32 Entity_GetTargetDistanceY(struct EwramData_EntityData *entity);
 extern u16 Entity_GetTargetAngleAbove16(struct EwramData_EntityData *entity);
 extern void KillerDoll_ResolveMovementBounds(struct EwramData_EntityData *entity);
 /* This caller tests the full return register (no u8 truncation). */
@@ -423,7 +419,6 @@ extern s32 Collision_GetPushDown(s32 x, s32 y);
 extern s32 Collision_GetPushLeft(s32 x, s32 y);
 extern s32 Collision_GetPushRight(s32 x, s32 y);
 extern void Effect_SpawnRandom(s32 x, s32 y, s32 p2, s32 p3, s32 layer);
-extern void Effect_SpawnRisingParticleInBox(s32 x, s32 y, s32 p2, s32 p3, s32 layer, s32 p5);
 
 static inline s32 RoomX(s32 pos)
 {

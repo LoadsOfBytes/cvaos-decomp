@@ -1,17 +1,22 @@
 /*
  * Room object 0x14: terrain movement, wall / floor / ceiling corrections, debris and its three variants.
  */
+#include "object_14.h"
 #include "player_core.h"
 #include "syscalls.h"
 #include "structs/ewram.h"
 #include "core.h"
-#include "room_object_entity.h"
 #include "sound.h"
-#include "graphics.h"
 #include "gameplay.h"
 #include "structs/entity_render_flags.h"
 #include "music.h"
 #include "entity_util.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "oam.h"
+#include "obj_gfx.h"
+extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *);
+extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
 /* from bg_and_collision.h (not included: see the module notes) */
 extern s16 Collision_GetPushUpFiltered(s32 x, s32 y, s32 mode);
 
@@ -103,11 +108,6 @@ void Object14_SpawnDebris(struct EwramData_EntityData *parent)
 
 /* Entity with rise/fall states whose affine sprite is scaled and turned by the player distance. */
 extern void Object14_Draw(struct EwramData_EntityData *);
-extern s32 Entity_IsInRect(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern s32 Entity_DistanceToPoint(struct EwramData_EntityData *, s32, s32);
-extern s32 Sin(s32);
-extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
-extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *);
 static inline struct EwramData_EntityData *Player(struct EwramData **ew)
 {
     return (*ew)->playerState.player;
@@ -352,7 +352,6 @@ s16 Object14_MoveOnTerrainSolid(struct EwramData_EntityData *entity, s32 layer)
     return ground;
 }
 
-extern u8 Angle_TurnTowards(u16 *angle, u16 step, u16 target);
 extern s32 Collision_GetPushLeftFiltered(s32, s32, s32);
 extern u8 sObject14Variant1SolidCallbacks[];
 
@@ -458,12 +457,8 @@ delete:
 }
 
 /* Object14Variant2_Update. */
-extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
-extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *);
 extern s32 Collision_GetGroundOffset(s32, s32);
 extern s32 Collision_IsPointSolid(s32 x, s32 y);
-extern void EntityDampVelocityX(struct EwramData_EntityData *entity, s32 factor);
-extern void Object14_Draw(struct EwramData_EntityData *entity);
 
 static inline u16 RoomX(struct EwramData_EntityData *entity)
 {
@@ -543,14 +538,8 @@ void Object14Variant2_Update(struct EwramData_EntityData *entity)
 }
 
 /* Object 0x14 and helpers 0x080527E4..0x080528DF. */
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern void EntityAccelerateAndMove(struct EwramData_EntityData *entity, s32 maxSpeed);
-extern s32 EntityIsOutsideScreen(struct EwramData_EntityData *entity, s32 margin);
 
 /* Graphics of object 0x14 and its update functions by variant (spawnParam0). */
-extern u8 sObject14Gfx[];
-extern u8 sObject14Palette[];
-extern u8 sObject14SpriteSheet[];
 extern void (*const sObject14VariantFuncs[])(struct EwramData_EntityData *entity);
 
 /**

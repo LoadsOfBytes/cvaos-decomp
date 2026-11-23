@@ -1,25 +1,31 @@
 /*
  * Room objects 0x08-0x0F: debris pieces and bursts, breakable blocks (collision, objects 0x08 / 0x09 and their dust), launch triggers, objects 0x0A-0x0D and the falling pieces of object 0x0E.
  */
+#include "objects_08_0f.h"
 #include "core.h"
 #include "graphics.h"
 #include "entity_util.h"
 #include "structs/ewram.h"
 #include "syscalls.h"
-#include "room_object_entity.h"
 #include "player_core.h"
 #include "gameplay.h"
 #include "map_flags.h"
 #include "sound.h"
 #include "structs/entity_template.h"
-#include "player_entity.h"
-#include "game_modes.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "effects.h"
 /* from bg_and_collision.h (not included: see the module notes) */
 extern s16 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
 extern s16 GetEntityRoomYPositionInteger(struct EwramData_EntityData *entity);
 extern void Collision_SetBlock(s32 arg0, s32 arg1);
 extern void Collision_ClearBlock(s32 arg0, s32 arg1);
 
+/* Declared s16 in bg_and_collision.h; the caller here uses the full register. */
 extern s32 Collision_GetGroundOffset(s32, s32);
 /**
  * @brief Burst debris piece: start with a random velocity away from the player,
@@ -216,7 +222,6 @@ void BreakableBlock_SpawnDust(struct EwramData_EntityData *entity)
 /* BreakableBlock_SetCollision (breakable block tiles). */
 /* Per variant: collisionOffsetX/collisionOffsetY and collisionWidth x collisionHeight in pixels. */
 
-
 /**
  * @brief 4FCA0 | Call Collision_SetBlock for every 16 px tile of the area of
  * variant spawnParam0 around the entity: a column (mode 1, mode 2 shifted 16 px
@@ -331,7 +336,6 @@ void BreakableBlock_ClearCollision(struct EwramData_EntityData *entity)
 }
 
 /* Object 08: persistent flag, per-kind graphics and a centred hit box. */
-extern s32 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 void Object08Create(struct EwramData_EntityData *entity)
 {
     struct BreakableBlockVariant *kind;
@@ -815,9 +819,6 @@ clamp:
 }
 
 /* Object0EPiece_Update (falling object hitting the ground). */
-extern void EntityDampVelocityX(struct EwramData_EntityData *entity, s32 factor);
-/* Declared s16 in bg_and_collision.h; the caller here uses the full register. */
-extern s32 Collision_GetGroundOffset(s32, s32);
 extern void Effect_SpawnRandom(s32 x, s32 y, s32 width, s32 height, s32 layer);
 
 /**
@@ -883,7 +884,6 @@ struct Object0EVariant {
 
 extern struct Object0EVariant sObject0EVariants[];
 extern struct Object0EGraphics sObject0EGraphics[];
-extern s32 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 extern void Sprite_GetPartCenterOffset(struct EwramData_EntityData *, s32, void *);
 extern void Sprite_GetPartOriginOffset(struct EwramData_EntityData *, s32, void *);
 
@@ -951,7 +951,6 @@ void Object0E_Draw(struct EwramData_EntityData *entity)
 }
 
 void Object0E_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 
 void Object0ECreate(struct EwramData_EntityData *entity)
 {
@@ -975,7 +974,6 @@ void Object0ECreate(struct EwramData_EntityData *entity)
 
 extern u8 sUnk_08526370[][4];
 extern s32 Pickup_TrySpawnOnHit(struct EwramData_EntityData *, s32, s32, s32);
-extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
 
 void Object0EUpdate(struct EwramData_EntityData *entity)
 {
@@ -1023,8 +1021,6 @@ void Object0E_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
 /* Object 0x0F, reconstructed from the original ROM. */
 extern u8 sCommonObjectGfx[], sCommonObjectSpriteSheet[];
 extern void Object0F_Draw(struct EwramData_EntityData *entity);
-extern s32 Pickup_TrySpawnOnHit(struct EwramData_EntityData *entity, s32 offsetY, s32 kind, s32 amount);
-extern s32 RandomSigned(s32 range);
 
 /* Select palette from the high byte of the placement parameter (default 7),
  * retain its low byte, and install drawing/collision data. */

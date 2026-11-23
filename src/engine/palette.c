@@ -3,19 +3,13 @@
  * Palette system part 2: invert/tint effects, palette loading, save/restore,
  * palette animation control and fade control (see the PaletteBuffer comment
  * in structs/ewram.h), followed by the OBJ tile slot allocator. */
-#include "graphics.h"
-#include "core.h"
 #include "structs/render_slots.h"
 #include "gba.h"
-#include "syscalls.h"
-#include "macros.h"
-#include "bg_and_collision.h"
-
-extern const u8 sSpriteSheetDefault1[];
-extern const u8 sSpriteSheetDefault2[];
-extern const u8 sSpriteSheetDefault4[];
 
 #include "graphics_inline.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "palette.h"
 
 /**
  * @brief 3C49C | Apply the invert effect to the output palettes

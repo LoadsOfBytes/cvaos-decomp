@@ -1,18 +1,21 @@
 /*
  * Tsuchinoko: attack, death, hits, spit shots, droplets, graphics and update (after the jump state, own CFLAGS).
  */
+#include "tsuchinoko.h"
 #include "core.h"
 #include "sound.h"
 #include "graphics.h"
 #include "player_core.h"
 #include "structs/ewram.h"
 #include "gameplay.h"
+#include "entity_common.h"
+#include "erinys.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
 extern void Tsuchinoko_SpitShot(struct EwramData_EntityData *);
-extern void EntityAccelerateAndMove(struct EwramData_EntityData *, s32);
-extern s32 Entity_GetVisibilityPattern(s32);
-extern void Effect_SpawnParticleAnim13(s32, s32, s32, s32, s32, s32);
 
 /* Attack on animation event 3, then resume jumping when it finishes. */
 void Tsuchinoko_UpdateAttack(struct EwramData_EntityData *entity)
@@ -100,7 +103,6 @@ void Tsuchinoko_UpdateDeath(struct EwramData_EntityData *entity)
 
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 
 extern struct AnimScript sTsuchinokoHitAnimScript;
 
@@ -238,15 +240,10 @@ void Tsuchinoko_SpawnDroplet(struct EwramData_EntityData *parent)
 
 /* Tsuchinoko helpers 0x080A79D8..0x080A7B53. */
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-extern void EntityAccelerateAndMove(struct EwramData_EntityData *entity, s32 maxSpeed);
-extern s32 EntityIsOutsideScreen(struct EwramData_EntityData *entity, s32 margin);
 extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
-extern u16 Player_CalculateAttackPower(u16 attackCategory);
 
 /* Graphics of Tsuchinoko. */
-extern u8 sTsuchinokoGfx[];
 extern u8 sTsuchinokoPalette[];
-extern u8 sTsuchinokoSpriteSheet[];
 
 static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
 {
@@ -365,11 +362,6 @@ void Tsuchinoko_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 }
 
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *);
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void Tsuchinoko_UpdateJump(struct EwramData_EntityData *);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
 
 void EnemyTsuchinokoUpdate(struct EwramData_EntityData *entity)
 {

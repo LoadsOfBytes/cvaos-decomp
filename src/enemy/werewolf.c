@@ -8,17 +8,19 @@
 #include "core.h"
 #include "structs/ewram.h"
 #include "gameplay.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
+#include "werejaguar.h"
 
 /* Werewolf update dispatcher and jump state. */
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void Werewolf_UpdateWalk(struct EwramData_EntityData *);
 extern void Werewolf_UpdateAttack(struct EwramData_EntityData *);
-extern void Werejaguar_UpdateDeath(struct EwramData_EntityData *);
 extern void Werewolf_UpdateRecoil(struct EwramData_EntityData *);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
 
 void EnemyWerewolfUpdate(struct EwramData_EntityData *entity)
 {
@@ -64,10 +66,8 @@ void EnemyWerewolfUpdate(struct EwramData_EntityData *entity)
 }
 
 /* Werewolf ground movement and transition into an attack. */
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
 extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s32);
 extern s32 Target_IsInRect(s32, s32, s32, s32);
-extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
 
 /**
  * @brief Walk state machine (state 0): land, face the target and wait until it is
@@ -135,10 +135,7 @@ void Werewolf_UpdateWalk(struct EwramData_EntityData *entity)
 }
 
 /* Werewolf attack phases, 0x0806F024..0x0806F41B. */
-extern s32 Tile_Classify(s16, s16);
 extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
-extern void Effect_SpawnRisingParticleInBox(s32, s32, s32, s32, s32, s32);
-extern void EntityDampVelocityX(struct EwramData_EntityData *, s32);
 extern void Werewolf_SpawnShockwave(struct EwramData_EntityData *, s32);
 
 /**
@@ -348,10 +345,8 @@ void Werewolf_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 }
 
 /* Werewolf hit: HP, death state, and interrupting a close attack. */
-extern u16 Player_CalculateAttackPower(u16);
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 
 /**
  * @brief Hit: resolve, flash, subtract and show the damage; at HP <= 0 drop the
@@ -394,7 +389,6 @@ void Werewolf_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
 extern void WerewolfShockwave_Update(struct EwramData_EntityData *);
 extern u8 WerewolfShockwave_LoadGraphics(struct EwramData_EntityData *);
 extern void WerewolfShockwave_EnableHitBoxes(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 
 /**
  * @brief Spawn a ground shockwave offset px in front of parent, snapped to the
@@ -426,14 +420,10 @@ void Werewolf_SpawnShockwave(struct EwramData_EntityData *entity, s32 offsetX)
 /* Werewolf helpers 0x0806F678..0x0806F817 (EnemyWerewolfCreate like
  * EnemyWerejaguarCreate without Hit_SetTimerOverride). */
 
-extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
 extern u8 sCommonObjectGfx[];
 extern u8 sCommonObjectSpriteSheet[];
 
 extern u8 Werewolf_LoadGraphics(struct EwramData_EntityData *entity);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *entity);
-extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
 extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
 
 void WerewolfShockwave_DamagePlayerOnContact(struct EwramData_EntityData *entity);

@@ -4,15 +4,17 @@
 #include "core.h"
 #include "player_core.h"
 #include "graphics.h"
-#include "entity_util.h"
 #include "structs/ewram.h"
 #include "gameplay.h"
 #include "sound.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "entity_motion.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
-extern s32 Enemy_PreUpdate(struct EwramData_EntityData *entity);
-extern void Enemy_UpdateFragmentDeath(struct EwramData_EntityData *entity);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *entity);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *entity);
 extern void ZombieSoldier_UpdateWalk(struct EwramData_EntityData *entity);
 extern void ZombieSoldier_UpdateAttack(struct EwramData_EntityData *entity);
 extern void ZombieSoldier_SpawnPiece(struct EwramData_EntityData *entity, s32 x, s32 y, s32 vx, s32 vy, s32 frame);
@@ -73,10 +75,6 @@ void EnemyZombieSoldierUpdate(struct EwramData_EntityData *entity)
 extern u8 ZombieSoldier_LoadGraphics(struct EwramData_EntityData *entity);
 extern void ZombieSoldier_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void ZombieSoldier_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *entity);
-extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
-extern s32 Anim_GetMaxBoxCount(struct EwramData_EntityData *entity);
 extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
 
 /**
@@ -106,7 +104,6 @@ void EnemyZombieSoldierCreate(struct EwramData_EntityData *entity)
     entity->state = 0;
 }
 
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *entity);
 extern s32 Target_IsInRect(s16 x, s16 y, s32 w, s32 h);
 extern void Entity_MoveWithCollision(struct EwramData_EntityData *entity, s32 landingVelocity, s32 ceilingOffset, s32 speedLimit, s32 wallOffset);
 
@@ -156,8 +153,6 @@ void ZombieSoldier_UpdateWalk(struct EwramData_EntityData *entity)
 /* ZombieSoldier_UpdateAttack: enemy attack states (throws ZombieSoldier_ThrowGrenade); matched. */
 /* Throw a projectile toward the player's horizontal position, then return
  * to the idle state when the animation ends. */
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
-extern s32 Target_GetX(struct EwramData_EntityData *);
 extern void ZombieSoldier_ThrowGrenade(struct EwramData_EntityData *owner, s32 x, s32 y, s32 velX, s32 velY);
 
 /**
@@ -226,10 +221,8 @@ void ZombieSoldier_UpdateAttack(struct EwramData_EntityData *entity)
 /* ZombieSoldier_OnHit (hit with HP / death), generated with a template script from the
  * template of WingedSkeleton_OnHit and checked byte for byte. */
 
-extern u16 Player_CalculateAttackPower(u16 attackCategory);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 
 /**
  * @brief 92B38 | Hit: flash (hitFlashTimer = 8), subtract the damage from the HP
@@ -307,11 +300,7 @@ void ZombieSoldier_ThrowGrenade(struct EwramData_EntityData *owner, s32 x, s32 y
     }
 }
 
-extern s32 Entity_MoveWithPointCollision(struct EwramData_EntityData *entity, s32 landingVelocity, s32 ceilingOffset);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void Effect_SpawnFadingParticle(s32, s32, s32, s32, s32, s32);
-extern void Effect_SpawnConfiguredParticle(s32, s32, s32, s32, s32, s32, s32, s32);
-extern void Effect_SpawnParticleAnim0(s32, s32, s32, s32, s32);
 
 struct HitRect8 {
     s32 x:8;
@@ -337,7 +326,6 @@ void ZombieSoldierGrenade_Update(struct EwramData_EntityData *entity)
     s32 r, a, b;
     s32 v;
     
-
     if (entity->state == 0)
     {
         res = Entity_MoveWithPointCollision(entity, entity->velY.whole / 3, -0x40000);
@@ -468,7 +456,6 @@ void ZombieSoldier_SpawnPiece(struct EwramData_EntityData *entity, s32 x, s32 y,
 
 /* Zombie Soldier helpers 0x08093078..0x08093177. */
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-extern void EntityAccelerateAndMove(struct EwramData_EntityData *entity, s32 maxSpeed);
 
 /* Graphics of Zombie Soldier. */
 extern u8 sZombieSoldierPalette[];

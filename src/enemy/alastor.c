@@ -7,14 +7,18 @@
 #include "player_core.h"
 #include "sound.h"
 #include "gameplay.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 /* Alastor graphics, affine transform and callbacks. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *,u8 *,void *,u8,void *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
 extern s32 Alastor_CreateLinkedPart(struct EwramData_EntityData *);
-extern void Enemy_OnContactMask1(struct EwramData_EntityData *);
 void Alastor_OnHit(struct EwramData_EntityData *entity,s32 kind,u16 *hit);
-extern s32 HitBox_SetBodyRaw(struct EwramData_EntityData *,s32);
 extern void Alastor_UpdateHitBoxes(struct EwramData_EntityData *);
 extern void Alastor_UpdateAppear(struct EwramData_EntityData *);
 extern u8 sAlastorPalette[],sAlastorSpriteSheet[],sAlastorGfx[];
@@ -71,7 +75,6 @@ void EnemyAlastorCreate(struct EwramData_EntityData *entity)
 /* Alastor behavior dispatch and collision/animation refresh. */
 extern void Alastor_UpdateBestiaryPreview(struct EwramData_EntityData *);
 extern void Alastor_UpdateDeath(struct EwramData_EntityData *);
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *);
 extern u8 Entity_IsTargetWithinRange(struct EwramData_EntityData *,s32);
 extern void Hit_CheckWithPlayer(void *,struct EwramData_EntityData *);
 extern void Alastor_UpdateApproach(struct EwramData_EntityData *);
@@ -202,7 +205,6 @@ void Alastor_UpdateAppear(struct EwramData_EntityData *entity)
  * for the matching notes (s8 reachedX, pinned r0
  * temporary, separate += in both branches, u32 phase). */
 extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *);
-extern s32 Entity_GetTargetDistanceY(struct EwramData_EntityData *);
 extern u8 Angle_TurnTowards(s16 *,u16,u16);
 #define DX(e) ((s16)Entity_GetTargetDistanceX(e))
 #define DY(e) ((s16)Entity_GetTargetDistanceY(e))
@@ -626,8 +628,6 @@ void Alastor_UpdatePatternAttack(struct EwramData_EntityData *entity)
 }
 
 /* Alastor wind-up and aimed charge. */
-extern s32 Target_GetX(struct EwramData_EntityData *);
-extern s32 Target_GetY(struct EwramData_EntityData *);
 extern s32 GetEntityRoomXPositionWhole(struct EwramData_EntityData *);
 extern s32 GetEntityRoomYPositionWhole(struct EwramData_EntityData *);
 extern s32 Entity_GetTargetAngleAbove16(struct EwramData_EntityData *);
@@ -958,10 +958,8 @@ void Alastor_UpdateDeath(struct EwramData_EntityData *entity)
 }
 
 /* Alastor damage, stun counter and linked-part state. */
-extern u16 Player_CalculateAttackPower(u16);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *,s32,u16 *,s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *,s32,s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 #define PART(e) (&gEwramData->entityData[e->ext.alastorPart.index])
 /**
  * @brief Resolve/display damage and apply hit flash. Count surviving hits;

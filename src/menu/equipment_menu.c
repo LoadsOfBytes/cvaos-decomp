@@ -3,7 +3,6 @@
  */
 #include "gba.h"
 #include "structs/ewram.h"
-#include "graphics.h"
 #include "gameplay.h"
 #include "player_core.h"
 #include "structs/equipment_stats.h"
@@ -11,6 +10,15 @@
 #include "core.h"
 #include "syscalls.h"
 #include <string.h>
+#include "blue_souls.h"
+#include "equipment_menu.h"
+#include "menu_common.h"
+#include "obj_gfx.h"
+#include "pause_menu.h"
+#include "soul_menu.h"
+#include "soul_pickup.h"
+#include "text12.h"
+#include "sound.h"
 
 extern struct WeaponInfo sWeaponInfo[];
 extern const struct ArmorInfo sArmorInfo[];
@@ -69,7 +77,6 @@ loop:
  * EquipmentMenu_DrawEquippedIcons. */
 
 extern const u16 sItemDescriptionTextIds[];
-extern void MenuItemIcon_Show(s32 x, s32 y, s32 type, s32 item);
 extern void MenuItemIcon_SetHidden(u8 value);
 
 /* Same caller-owned record as in this file. */
@@ -137,8 +144,6 @@ void EquipmentMenu_ShowSlotDescription(struct EquipmentMenuItemsView *stats, str
 }
 
 /* EquipmentMenu_DrawEquippedIcons. */
-void MenuSlotIcon_Show(s32 x, s32 y, s32 type, s32 item, s32 slot);
-void MenuSlotIcon_SetHidden(u8 value, s32 index);
 
 /* Caller-owned record (asm caller in this file.s); only the item ids at
  * 0xC (slot 0) and 0x10..0x11 (slots 1-2, 0xFF = empty) are read here. */
@@ -196,9 +201,6 @@ struct MenuPage
     u8 item;
 };
 
-extern void Player_RefreshEquipmentStats(void);
-extern void YellowSoul_Restart(u8 soul, s32 force);
-extern void HudMap_DrawStatChangeIndicator(s32 a, s32 b, s32 c);
 extern void HudMap_PrintNumber(s32 a, s32 b, s32 c, s32 d, s32 e, s32 f);
 
 /**
@@ -293,9 +295,6 @@ struct MenuPage2
     s8 top;
     u8 item;
 };
-
-extern void HudMap_ClearTilesLeft(s32 x, s32 y, s32 count);
-extern s32 HudMap_PrintPaddedNumber(s32 x, s32 y, s32 value_, s32 digits);
 
 /**
  * @brief 4A2A4 | Draw the item list of an equipment slot (0 weapon,
@@ -605,12 +604,7 @@ struct MenuPage3
 
 extern void MenuPage_Reset(struct MenuPage3 *page);
 extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
-extern void MenuList_DrawScrollArrows(struct MenuPage *page, s32 raised);
-extern void Menu_DrawAttackDefense(s32 x, s32 y);
-extern void Menu_DrawCurrentStats(s32 x, s32 y);
 extern void MenuPageTitle_Create(struct EwramData_EntityData *entity, s32 type);
-extern void Cursor_SetTilePosition(s32 a, s32 b);
-extern void Cursor_Draw(void);
 
 /**
  * @brief 4A95C | Open the equipment page for slot unk_B (0 weapon,
@@ -677,13 +671,7 @@ struct MenuPage4
     s8 drawnTop;
 };
 
-
 extern void EquipmentMenu_UpdateList(struct MenuPage4 *page);
-extern void MenuPageTitle_Update(struct EwramData_EntityData *ent);
-extern void MenuPageTitle_Delete(struct EwramData_EntityData *ent);
-extern void MenuItemIcon_Delete(void);
-extern void MenuSlotIcons_Delete(void);
-extern void MenuList_DrawScrollArrows(struct MenuPage *page, s32 raised);
 
 /**
  * @brief 4AAF0 | Equipment page update: A opens the item list of the
@@ -865,7 +853,6 @@ void Player_RefreshEquipmentStats(void)
 }
 
 /* Four-entry equipment lists: insert once into an empty slot, or slot 3. */
-extern const void *Item_GetInfo(s32, s32);
 
 /**
  * @brief Select the equipment list from item type/record, avoid duplicates and insert into its first 0xFF slot or replace slot three when full.

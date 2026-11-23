@@ -1,25 +1,19 @@
+#include "scene30_transformation.h"
+#include "oam.h"
+#include "palette.h"
+#include "scene30.h"
 /* EventScene30_UpdateTransformation: multi-phase scene transition with per-scanline affine distortion.
    Built without -f2003-patch; the callback table of emitCenter is this file's
    .rodata and is linked at 0x08118B34. */
 #include "core.h"
 #include "event_scene30.h"
 #include "bg_and_collision.h"
-#include "graphics.h"
 #include "structs/ewram.h"
 #include "gba.h"
 #include "syscalls.h"
 #include <string.h>
 extern u8 sEventScene30TransformationPalette[];
-extern void EventScene30EmitterA_Update(struct EwramData_EntityData *);
-extern void EventScene30EmitterB_Update(struct EwramData_EntityData *);
-extern void EventScene30EmitterC_Update(struct EwramData_EntityData *);
-extern void EventScene30EmitterD_Update(struct EwramData_EntityData *);
-extern void EventScene30EmitterE_Update(struct EwramData_EntityData *);
 
-extern void EventScene30_CreateCenterEffect(struct EwramData_EntityData *);
-extern void EventScene30_CreateHalo(struct EwramData_EntityData *);
-extern void EventScene30_StepPaletteTransition(struct EwramData_EntityData *);
-extern void EventScene30PieceEmitter_Update(struct EwramData_EntityData *);
 extern void EventScene30_SpawnOrbitRing(struct EwramData_EntityData *,s16,s16);
 extern void EventScene30_SpawnDriftFragment(s16,s16,s32,s32);
 extern void PlaySong(u16);

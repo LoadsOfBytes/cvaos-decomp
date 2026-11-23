@@ -4,11 +4,19 @@
 #include "core.h"
 #include "graphics.h"
 #include "structs/ewram.h"
-#include "room_object_entity.h"
 #include "player_core.h"
 #include "sound.h"
 #include <string.h>
 #include "gameplay.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "entity_motion.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "objects_23_34.h"
+#include "palette.h"
 
 /* Objects 0x23 and 0x24 0x080577FC..0x080579A3. */
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
@@ -132,10 +140,8 @@ extern const u32 sObject25PointIndices[];
 extern u8 sObject25AnimScript0[];
 extern u8 sObject25AnimScript1[];
 
-extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
 void Object25_UpdateState(struct EwramData_EntityData *entity);
 u8 Object25_LoadGraphics(struct EwramData_EntityData *entity);
-void Object25Create(struct EwramData_EntityData *entity);
 
 /**
  * @brief 579A4 | Object 0x25 update: state 0 -> Object25_UpdateState; state 1 is a
@@ -237,13 +243,9 @@ void Object25Create(struct EwramData_EntityData *entity)
 }
 
 /* Objects 0x25..0x28 0x08057BAC..0x08058507. */
-extern s32 Entity_MoveWithCollisionDefault(struct EwramData_EntityData *entity, s32 landingVelocity, s32 ceilingOffset);
-extern s32 Entity_GetVisibilityPattern(s32 step);
 extern void Effect_SpawnRandom(s32 x, s32 y, s32 width, s32 height, s32 layer);
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
-extern void EntityMoveX(struct EwramData_EntityData *entity);
 extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
-extern u16 Player_CalculateAttackPower(u16 attackCategory);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
 
@@ -371,10 +373,6 @@ u8 Object25_LoadGraphics(struct EwramData_EntityData *entity)
 /* Target_IsInRect (engine/entity_common.c) takes u16 there; the callers here pass
  * sign-extended values. */
 extern s32 Target_IsInRect(s16 left, s16 top, s16 width, s16 height);
-void Object27Create(struct EwramData_EntityData *entity);
-void Object27Update(struct EwramData_EntityData *entity);
-void Object28Create(struct EwramData_EntityData *entity);
-void Object28Update(struct EwramData_EntityData *entity);
 u8 Object26_LoadGraphics(struct EwramData_EntityData *entity);
 void Object26_UpdateState(struct EwramData_EntityData *entity);
 
@@ -473,8 +471,6 @@ void Object26_UpdateState(struct EwramData_EntityData *entity)
     }
 }
 
-extern s32 Hit_Enable(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
-extern s32 HitBox_SetAttack(struct EwramData_EntityData *entity, void *box);
 u8 Object28_LoadGraphics(struct EwramData_EntityData *entity);
 void Object28_UpdateState(struct EwramData_EntityData *entity);
 void Object28_OnPlayerContact(struct EwramData_EntityData *entity);
@@ -767,7 +763,6 @@ void Object27_OnPlayerContact(struct EwramData_EntityData *entity)
 }
 
 /* Objects 0x2B and 0x2C 0x08058508..0x0805872B. */
-extern s32 EntityIsOutsideScreen(struct EwramData_EntityData *entity, s32 margin);
 
 /* Graphics of objects 0x2B / 0x2C. */
 extern u8 sObject2BGfx[];
@@ -930,10 +925,8 @@ u8 Object2C_LoadGraphics(struct EwramData_EntityData *entity)
 /* Objects 0x2D..0x31 0x0805872C..0x08059493. */
 #define PLAYER_ENTITY (gEwramData->playerState.player)
 
-extern void Entity_HideAboveY(struct EwramData_EntityData *entity, s32 minY);
 /* Target_IsInRect (engine/entity_common.c) takes u16 there; the callers here pass
  * sign-extended values. */
-extern void Effect_UpdateParticle(struct EwramData_EntityData *entity);
 
 /* Graphics and animations of objects 0x2D / 0x2E. */
 extern u8 sObject2DGfx[];
@@ -958,8 +951,6 @@ void Object30_UpdateState(struct EwramData_EntityData *entity);
 u8 Object31_LoadGraphics(struct EwramData_EntityData *entity);
 void Object31_UpdateState(struct EwramData_EntityData *entity);
 void Object31_SpawnDust(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY);
-extern void EntityAccelerateAndMoveX(struct EwramData_EntityData *entity, s32 maxSpeed);
-extern void EntityAccelerateAndMoveY(struct EwramData_EntityData *entity, s32 maxSpeed);
 
 /* Object 0x31 per variant (spawnParam0): start x, start y, animation, unk_4F8. */
 struct Object31Words {
@@ -1609,8 +1600,6 @@ u8 Object32_LoadGraphics(struct EwramData_EntityData *entity);
 void Object32_UpdateState(struct EwramData_EntityData *entity);
 void Object32_SpawnDebris(struct EwramData_EntityData *entity, s32 frame, s32 index);
 void Object32Debris_Update(struct EwramData_EntityData *entity);
-extern void EntityAccelerateAndMove(struct EwramData_EntityData *entity, s32 maxSpeed);
-extern void EntityDampVelocityX(struct EwramData_EntityData *entity, s32 factor);
 u8 Object33_LoadGraphics(struct EwramData_EntityData *entity);
 void Object33_SpawnFlyingSpark(struct EwramData_EntityData *entity);
 void Object33_SpawnFallingSpark(struct EwramData_EntityData *entity);

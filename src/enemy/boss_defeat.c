@@ -1,9 +1,9 @@
 /*
  * Boss defeat effects (generic, Headhunter, Chaos) and the boss recovery pickup.
  */
+#include "boss_defeat.h"
 #include "core.h"
 #include "graphics.h"
-#include "entity_util.h"
 #include "structs/ewram.h"
 #include "bg_and_collision.h"
 #include "gba/memory.h"
@@ -16,6 +16,12 @@
 #include "gameplay.h"
 #include "structs/main.h"
 #include "structs/entity_render_flags.h"
+#include "effects.h"
+#include "entity_common.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "palette.h"
 
 /* BossDefeatParticle_Update (effect). */
 extern u8 sCommonObjectGfx[];
@@ -50,7 +56,6 @@ void BossDefeatParticle_Update(struct EwramData_EntityData *entity)
 }
 
 /* Wider sweep variant restores the shared object graphics when it ends. */
-extern s32 RandomSigned(s32);
 extern u8 sCommonObjectGfxTiles[];
 static inline s32 SweepWave(struct EwramData_EntityData *entity)
 {

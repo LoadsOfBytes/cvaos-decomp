@@ -1,20 +1,5 @@
 #include "map_flags.h"
-#include "core.h"
-#include "sram.h"
-#include "intro_cutscene.h"
-#include "bg_effects.h"
-#include "room_entities.h"
-#include "player_core.h"
-#include "soul_inventory.h"
-#include "player_effects.h"
-#include "player_level.h"
-#include "debug_1967.h"
-#include "graphics.h"
-#include "gameplay.h"
-#include "sound.h"
 #include "gba.h"
-#include "macros.h"
-#include "agb_sram.h"
 #include "syscalls.h"
 
 #include "constants/main.h"
@@ -25,8 +10,18 @@
 #include "structs/agb_sram.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
+#include "obj_gfx.h"
+#include "palette.h"
 
-// Note: BgCmdBuffer_WriteString is implicitly called
+/* Called with int arguments (the u16/u8 parameters in bg_and_collision.h would truncate them). */
+extern u16 *BgCmdBuffer_WriteString(s32 tileIndex, s32 rowOffset, s32 tileInfo, const u8 *string);
+extern u16 *BgCmdBuffer_WriteNumber(s32 tileIndex, s32 rowOffset, s32 palNum, s32 numChars, s32 value);
+
+extern s32 GetRoomFromMapPosition(s32, s32);
+extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *);
+extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
+extern s32 GetAreaFromMapPosition(s32, s32);
+extern struct DmaQueueInfo *DmaQueue_IndirectCopy(u32, u32 *, u32 *);
 
 /**
  * @brief Count set visited-cell bits across the 64 by 40 map grid.

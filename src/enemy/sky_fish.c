@@ -6,13 +6,17 @@
 #include "entity_util.h"
 #include "player_core.h"
 #include "structs/ewram.h"
-#include "sound.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "entity_motion.h"
+#include "gargoyle.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void SkyFish_UpdateFly(struct EwramData_EntityData *);
 extern void SkyFish_UpdateDeath(struct EwramData_EntityData *);
-extern void Enemy_UpdateFragmentDeath(struct EwramData_EntityData *);
 
 void EnemySkyFishUpdate(struct EwramData_EntityData *entity)
 {
@@ -43,14 +47,10 @@ void EnemySkyFishUpdate(struct EwramData_EntityData *entity)
 }
 
 extern u8 SkyFish_LoadGraphics(struct EwramData_EntityData *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern s32 Anim_GetMaxBoxCount(struct EwramData_EntityData *);
 extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
 extern void Hit_Enable(struct EwramData_EntityData *, s32, void *, void *);
 void SkyFish_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void SkyFish_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 
 extern struct AnimScript sSkyFishFlyAnimScript;
 
@@ -93,11 +93,6 @@ void EnemySkyFishCreate(struct EwramData_EntityData *entity)
 }
 
 /* Sky Fish: normal movement and death sequence. */
-extern void EntityMove(struct EwramData_EntityData *);
-extern void EntityAccelerateAndMove(struct EwramData_EntityData *, s32);
-extern s32 Entity_GetVisibilityPattern(s32);
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
-extern s32 EntityIsOutsideScreen(struct EwramData_EntityData *, s32);
 extern void SkyFish_SpawnTrail(struct EwramData_EntityData *, s32, s32, s32, s32);
 extern void SkyFish_SpawnRisingTrail(struct EwramData_EntityData *, s32, s32, s32, s32);
 
@@ -188,7 +183,6 @@ void SkyFish_UpdateDeath(struct EwramData_EntityData *entity)
 
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 
 extern struct AnimScript sSkyFishHitAnimScript;
 
@@ -215,7 +209,6 @@ void SkyFish_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityD
     }
 }
 
-extern void Effect_UpdateParticle(struct EwramData_EntityData *);
 extern u8 sSkyFishGfx[], sSkyFishSpriteSheet[];
 /* Create a moving animated effect. Position arguments use 16.16 fixed point. */
 void SkyFish_SpawnTrail(struct EwramData_EntityData *parent, s32 x, s32 y, s32 priority, s32 param)
@@ -280,9 +273,7 @@ void SkyFish_SpawnRisingTrail(struct EwramData_EntityData *parent, s32 x, s32 y,
  *   SkyFish_LoadGraphics = Object25_LoadGraphics
  *   SkyFish_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
-extern u8 sSkyFishGfx[];
 extern u8 sSkyFishPalette[];
-extern u8 sSkyFishSpriteSheet[];
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
@@ -322,14 +313,12 @@ void SkyFish_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 }
 
 /* Forward this enemy variant to its shared implementation. */
-extern void EnemyGargoyleUpdate(struct EwramData_EntityData *);
 void EnemyGremlinUpdate(struct EwramData_EntityData *entity)
 {
     EnemyGargoyleUpdate(entity);
 }
 
 /* Forward this enemy variant to its shared implementation. */
-extern void EnemyGargoyleCreate(struct EwramData_EntityData *);
 void EnemyGremlinCreate(struct EwramData_EntityData *entity)
 {
     EnemyGargoyleCreate(entity);

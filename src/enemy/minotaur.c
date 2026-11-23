@@ -2,6 +2,7 @@
  * Minotaur: attacks, axe pieces and swing trail, hits, entry callbacks and contact damage.
  * Built without -f2003-patch (the contact callbacks need it off; the rest compiles the same either way).
  */
+#include "minotaur.h"
 #include "core.h"
 #include "structs/ewram.h"
 #include "player_level.h"
@@ -12,6 +13,18 @@
 #include "syscalls.h"
 #include "entity_util.h"
 #include "structs/entity_render_flags.h"
+#include "axe_armor.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
+#include "werejaguar.h"
+#include "effects.h"
+extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *);
+extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
 
 extern s16 Collision_GetPushLeft(s32 x, s32 y);
 extern s16 Collision_GetPushRight(s32 x, s32 y);
@@ -40,8 +53,6 @@ s32 Minotaur_CheckAttackChance(struct EwramData_EntityData *entity, s32 mask)
 
 /* This call site consumes the complete return register, as in the ROM. */
 extern s32 Collision_GetGroundOffset(s32, s32);
-extern s32 RandomSigned(s32);
-extern s32 Entity_IsInRect(struct EwramData_EntityData *, s32, s32, s32, s32);
 
 /* Ballistic fragment: bounce once against room geometry, then fall away. */
 static inline s32 FragmentHitsGround(struct EwramData_EntityData *entity)
@@ -91,7 +102,6 @@ void MinotaurAxePiece_Update(struct EwramData_EntityData *entity)
 
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 
 void Minotaur_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
@@ -249,7 +259,6 @@ struct WeaponFrame {
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
 extern void Sprite_GetPartCornerOffset(struct EwramData_EntityData *, s32, s16 *);
 extern void EntityAccelerateY(struct EwramData_EntityData *, s32);
-extern void EntityMove(struct EwramData_EntityData *);
 extern u8 sMinotaurGfx[], sMinotaurPalette[], sMinotaurSpriteSheet[];
 extern u8 sCommonObjectGfx[], sCommonObjectSpriteSheet[];
 extern struct WeaponFrame *sMinotaurAxeFrames[];
@@ -472,7 +481,6 @@ void MinotaurAxe_Update(struct EwramData_EntityData *entity)
 }
 
 extern void Entity_FaceTarget(struct EwramData_EntityData *);
-extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
 
 /* Minotaur idle: choose approach or attack using two distance windows. */
 void Minotaur_UpdateIdle(struct EwramData_EntityData *entity)
@@ -508,7 +516,6 @@ void Minotaur_UpdateIdle(struct EwramData_EntityData *entity)
     }
 }
 
-extern s32 Entity_Walk(struct EwramData_EntityData *, s32, void *, s32);
 extern u8 sMinotaurWalkProfile[];
 
 /* Minotaur approach animation, movement, then close-range attack. */
@@ -653,11 +660,7 @@ decrementTimer:
  * and MinotaurSwingTrail_Update (any failure deletes the Minotaur), starts animation 1 and
  * either enters state 4 (bestiaryPreview set) or registers the hit/death callbacks
  * and enters state 0. */
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, s32 onHurt);
-extern void Player_SetSelectedTarget(struct EwramData_EntityData *);
 extern void Minotaur_DamagePlayerOnContact(struct EwramData_EntityData *);
 
 /* Two child entities inherit the parent pointer, low unk_4F4 byte, attack
@@ -710,13 +713,8 @@ void Minotaur_Init(struct EwramData_EntityData *entity, s32 variant)
 }
 
 /* Minotaur update: pause handling, state dispatch, contact and animation. */
-extern void Entity_HideAboveY(struct EwramData_EntityData *, s32);
-extern s32 EntityIsOutsideScreen(struct EwramData_EntityData *, s32);
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *);
 extern void Music_SetCurrent(s32);
-extern void Werejaguar_UpdateDeath(struct EwramData_EntityData *);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
 
 void Minotaur_Update(struct EwramData_EntityData *entity)
 {
@@ -825,27 +823,8 @@ void EnemyRedMinotaurUpdate(struct EwramData_EntityData *entity)
 
 /* Axe Armor 0x080B0D5C..0x080B136F; only matches without -f2003-patch. */
 
-extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
 extern void Effect_SpawnRandom(s32 x, s32 y, s32 width, s32 height, s32 layer);
-extern void PlaySong(u16 song);
-extern s32 Hit_Enable(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
-extern s32 HitBox_SetAttackRaw(struct EwramData_EntityData *entity, s32 box);
-extern s32 HitBox_SetBodyRaw(struct EwramData_EntityData *entity, s32 box);
-extern void Enemy_OnContactMask1(struct EwramData_EntityData *entity);
-extern void AxeArmorAxe_ClearHealth(struct EwramData_EntityData *entity);
-extern void EntityAccelerateAndMoveX(struct EwramData_EntityData *entity, s32 maxSpeed);
-extern s32 EntityIsOutsideScreen(struct EwramData_EntityData *entity, s32 margin);
-extern s32 Entity_Walk(struct EwramData_EntityData *entity, s32 speed, void *profile, s32 flags);
 extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *entity);
-extern s16 Entity_GetTargetDistance(struct EwramData_EntityData *entity);
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *updateFunc);
-extern s32 RandomSigned(s32 range);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
-extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, s32 onHurt);
-extern void Enemy_OnContact(struct EwramData_EntityData *entity);
-extern void AxeArmor_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hitData);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *entity);
-extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
 
 /* Graphics of the Axe Armor and its axe; walk speeds per animation frame. */
 extern u8 sAxeArmorGfx[];

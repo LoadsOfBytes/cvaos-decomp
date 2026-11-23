@@ -1,18 +1,22 @@
 /*
  * Dead Warrior. The last part of the range also holds the contact damage of the Skull Millione family.
  */
+#include "dead_warrior.h"
 #include "core.h"
 #include "sound.h"
 #include "player_core.h"
 #include "graphics.h"
-#include "gameplay.h"
 #include "entity_util.h"
 #include "structs/ewram.h"
 #include "structs/enemy_variant_b7e80.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "math_anim.h"
+#include "obj_palette.h"
+#include "effects.h"
 
 /* Dead Warrior charge, braking and death. */
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *, s32, s32);
-extern s32 Entity_GetVisibilityPattern(s32);
 extern u8 sDeadWarriorWalkProfile[];
 
 /**
@@ -127,12 +131,9 @@ s32 DeadWarrior_UpdateDeath(struct EwramData_EntityData *entity)
 }
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
 extern void Enemy_OnContact(struct EwramData_EntityData *);
 extern void DeadWarrior_OnHit(struct EwramData_EntityData *);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, void *);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 extern u8 sDeadWarriorGfx[], sDeadWarriorPalette[], sDeadWarriorSpriteSheet[];
 
 void EnemyDeadWarriorCreate(struct EwramData_EntityData *entity)
@@ -165,7 +166,6 @@ void EnemyDeadWarriorCreate(struct EwramData_EntityData *entity)
  * byte. */
 
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 
 /**
  * @brief Apply enemy damage; on defeat drop rewards, restore the palette
@@ -184,10 +184,6 @@ void DeadWarrior_OnHit(struct EwramData_EntityData *entity)
 }
 
 /* Dead Warrior dispatcher and Skull Millione family effect records. */
-extern s32 Enemy_PreUpdate(struct EwramData_EntityData *);
-extern void Entity_HideAboveY(struct EwramData_EntityData *, s32);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
 
 void EnemyDeadWarriorUpdate(struct EwramData_EntityData *entity)
 {

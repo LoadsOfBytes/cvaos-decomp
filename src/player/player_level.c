@@ -1,22 +1,12 @@
 #include "player_level.h"
-#include "player_entity.h"
 #include "core.h"
-#include "sram.h"
 #include "bg_and_collision.h"
-#include "intro_cutscene.h"
-#include "bg_effects.h"
-#include "room_entities.h"
-#include "player_init.h"
 #include "player_core.h"
-#include "soul_inventory.h"
-#include "player_effects.h"
 #include "graphics.h"
 #include "gameplay.h"
 #include "entity_util.h"
 #include "sound.h"
 #include "gba.h"
-#include "macros.h"
-#include "agb_sram.h"
 #include "agb_multi_sio_sync.h"
 #include "syscalls.h"
 
@@ -28,6 +18,16 @@
 #include "structs/agb_sram.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
+#include "damage_numbers.h"
+#include "effects.h"
+#include "entity_common.h"
+#include "equipment_menu.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "palette.h"
+#include "red_souls_b.h"
+#include "music.h"
 
 static inline s32 Player_GetExperienceForLevelInline(s32 level)
 {
@@ -51,7 +51,6 @@ const u8 sLevelUpIntGains[] = {
 const u8 sLevelUpMaxMpGains[] = {
     5, 5, 6, 8, 10, 11, 12, 12, 13, 13, 13, 14, 15, 16, 16, 16, 17, 18, 19, 20
 };
-
 
 /**
  * @brief Apply earned levels up to 99 and return the number gained; invoke the existing stat-update hook after the loop, except for the initial level-cap return.

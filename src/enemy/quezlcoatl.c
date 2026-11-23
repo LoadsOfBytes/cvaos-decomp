@@ -6,20 +6,20 @@
 #include "entity_util.h"
 #include "structs/ewram.h"
 #include "structs/entity_render_flags.h"
-#include "graphics.h"
 #include "gameplay.h"
 #include "sound.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 /* Quezlcoatl dispatch and staged destruction of the parent entity. */
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *,struct EwramData_EntityData *);
 extern void Quezlcoatl_UpdateFly(struct EwramData_EntityData *);
 extern void Quezlcoatl_UpdatePreview(struct EwramData_EntityData *);
 extern void Quezlcoatl_SpawnDeathPiece(struct EwramData_EntityData *,s32,s32,s32);
-extern void Effect_SpawnAt(s32,s32,s32);
 extern void Effect_SpawnRandom(s32,s32,s32,s32,s32);
-extern void Heap_Free(void *);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
 void EnemyQuezlcoatlUpdate(struct EwramData_EntityData *entity)
 {
     s32 bounds[4];
@@ -65,15 +65,11 @@ void EnemyQuezlcoatlUpdate(struct EwramData_EntityData *entity)
 
 /* Quetzalcoatl: allocate the displacement history and create fifteen following body segments. */
 extern u8 Quezlcoatl_LoadGraphics(struct EwramData_EntityData *);
-extern void *Heap_Alloc(u16);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
 extern void QuezlcoatlSegment_Update(struct EwramData_EntityData *);
 extern void QuezlcoatlSegment_EnableHitBoxes(struct EwramData_EntityData *);
 void Quezlcoatl_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void Quezlcoatl_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
 extern u8 sQuezlcoatlWhiteDragonGfx[], sQuezlcoatlWhiteDragonSpriteSheet[];
 
 void EnemyQuezlcoatlCreate(struct EwramData_EntityData *entity)
@@ -154,10 +150,7 @@ void EnemyQuezlcoatlCreate(struct EwramData_EntityData *entity)
 }
 
 /* Repeated leaps record motion for the body and turn at ledges. */
-extern s32 Entity_GetHorizontalRoomEdge(struct EwramData_EntityData *,s32);
-extern void EntityDampVelocityX(struct EwramData_EntityData *,s32);
 extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *,s32,s32,s32,s32);
-extern void Effect_SpawnRisingParticle(s32,s32,s32,s32);
 /**
  * @brief Flight state machine (state 0): fly across the room toward the target,
  * turning at the room edges (spawnParam0 or 15 px margin) with a wave motion,
@@ -275,10 +268,8 @@ void Quezlcoatl_UpdatePreview(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   Quezlcoatl_OnHit = WingedSkeleton_OnHit */
 
-extern u16 Player_CalculateAttackPower(u16 attackCategory);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 
 /**
  * @brief 7829C | Same as WingedSkeleton_OnHit.
@@ -309,8 +300,6 @@ void Quezlcoatl_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hi
 }
 
 /* Follow delayed head displacements, then detach and fall when it dies. */
-extern s32 Enemy_IsStunnedNoFlash(struct EwramData_EntityData *);
-extern s32 Entity_GetVisibilityPattern(s32);
 #define SEGMENT(e) (*(s8 *)&e->ext.whiteDragonSegment.index)
 /**
  * @brief Body segment update: follow the owner (type 0x1A) through its position
@@ -444,9 +433,7 @@ void QuezlcoatlPiece_Update(struct EwramData_EntityData *entity)
  *   Quezlcoatl_DamagePlayerOnContact = Enemy_DamagePlayerOnContact
  *   QuezlcoatlSegment_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
-extern u8 sQuezlcoatlWhiteDragonGfx[];
 extern u8 sQuezlcoatlWhiteDragonPalette[];
-extern u8 sQuezlcoatlWhiteDragonSpriteSheet[];
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)

@@ -1,15 +1,19 @@
 /*
  * Text window: background, opening / closing, update and text printing with commands.
  */
+#include "text_window.h"
 #include "gba.h"
-#include "core.h"
-#include "graphics.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
 #include "bg_effects.h"
 #include "syscalls.h"
 #include "gameplay.h"
 #include "gba/dma.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "palette.h"
+#include "scenes_c.h"
+#include "text12.h"
 
 /* Set up a language-dependent background: copy its map, load the given
  * tiles/palette and layer, and select palette 13 for every map entry. */
@@ -63,7 +67,6 @@ void TextWindow_LoadBackground(void *tiles, u8 *palette, struct BgMapMetadata *l
     s32 i;
     s32 n = 0x400;
 
-    
     memcpy(bg, gEwramData->bgInfo, sizeof(bg));
     gDisplayRegisters.bgCnt[0] = 0x1C04;
     switch (gEwramData->gameState.language)
@@ -154,7 +157,6 @@ void TextWindow_Begin(s32 textId)
 }
 
 extern s32 Text_PrintWithCommands(u8 *text, s32 initialOffset, s32 mode);
-extern s32 Conversation_LoadNextText(void);
 extern u32 GameFlag_Is3ASet(void);
 extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
 extern void PlaySong(u16 song);

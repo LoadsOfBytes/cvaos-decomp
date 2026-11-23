@@ -1,5 +1,6 @@
 /* Update a four-entry equipment list before replacing the equipped item.
  * Preserve the selection-removal, compaction and old-item insertion rules. */
+#include "equipment_list_update.h"
 #include "gba.h"
 #include "structs/ewram.h"
 

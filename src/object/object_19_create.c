@@ -1,14 +1,14 @@
 /* Object19 init: motion table entry, flip and the time of the first step (Object19Create).
  * Needs -fno-cse-skip-blocks (Makefile); the volatile read keeps the reload of the step time. */
+#include "object_19_create.h"
 #include "core.h"
-#include "room_object_entity.h"
-#include "graphics.h"
 #include "gameplay.h"
 #include "structs/ewram.h"
+#include "hitbox.h"
+#include "oam.h"
+#include "objects_15_18.h"
+#include "objects_19_1c.h"
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
-extern void Object19_Draw(struct EwramData_EntityData *);
-extern void Object19_OnPlayerContact(struct EwramData_EntityData *);
-extern void Object19_OnHit(struct EwramData_EntityData *);
 extern u8 sObject19Gfx[], sObject19Palette[], sObject19SpriteSheet[];
 struct Object19Motion { s32 time, vx, vy; };
 extern struct Object19Motion sObject19Steps[];

@@ -9,12 +9,17 @@
 #include <string.h>
 #include "sound.h"
 #include "player_core.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "entity_motion.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
+#include "player_level.h"
 
 extern s32 Gladiator_LoadGraphics(struct EwramData_EntityData *entity);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *entity);
-extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
-extern s32 Anim_GetMaxBoxCount(struct EwramData_EntityData *entity);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, void *onHurt);
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *update);
 extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
@@ -141,10 +146,6 @@ void EnemyGladiatorCreate(struct EwramData_EntityData *entity)
     entity->state = 0;
 }
 
-extern s32 Entity_MoveWithCollisionAlt(struct EwramData_EntityData *, s32, s32, s32);
-extern s32 Entity_GetHorizontalRoomEdge(struct EwramData_EntityData *, s32);
-extern void Effect_SpawnParticleWithDamping(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32 variant, s32 damping, s32 flags, s32 palette);
-extern void EntityDampVelocityX(struct EwramData_EntityData *, s32);
 extern const s16 sGladiatorOffsetsA[12];
 extern const s16 sGladiatorOffsetsB[12];
 
@@ -254,8 +255,6 @@ void Gladiator_UpdateCharge(struct EwramData_EntityData *entity)
 }
 
 /* Gladiator_OnDamaged. */
-extern void Link_MarkEnemyDamaged(void);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 
 /**
  * @brief A0D7C | Hit callback: flash (hitFlashTimer = 8), subtract damage from
@@ -286,7 +285,6 @@ void Gladiator_OnDamaged(struct EwramData_EntityData *entity, s32 unused1, u16 *
 
 extern void Hit_CheckWithPlayerSharedHistory(void *res, struct EwramData_EntityData *entity, struct EwramData_EntityData *owner);
 extern void Gladiator_SpawnFragments(struct EwramData_EntityData *entity, s32 x, s32 y);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
 extern const s16 sUnk_08119174[4];
 extern const s16 sGladiatorBodyDx[12];
 
@@ -515,9 +513,6 @@ void GladiatorArm_Update(struct EwramData_EntityData *entity)
         EntityDelete(entity);
 }
 
-extern s32 Entity_GetVisibilityPattern(s32 step);
-extern void EntityDampVelocityX(struct EwramData_EntityData *entity, s32 factor);
-
 /**
  * @brief A13D0 | Gladiator spinning part: follows the owner like
  * GladiatorBody_Update, spins its affine matrix by unk_502 (accelerating by 0x18 up
@@ -657,9 +652,6 @@ void GladiatorArm_FireShot(struct EwramData_EntityData *entity, s32 dx, s32 dy, 
     GladiatorShot_CreateTip(shot);
 }
 
-extern void EntitySetVelocityFromAngle(struct EwramData_EntityData *, s32, s32);
-extern void EntityMove(struct EwramData_EntityData *entity);
-extern s32 Tile_Classify(s16 x, s16 y);
 extern s32 Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
 
 #define FIXED_TO_INT(v) ((v) < 0 ? -(-(v) >> 16) : (v) >> 16)
@@ -727,7 +719,6 @@ void GladiatorShot_Update(struct EwramData_EntityData *entity)
 
 /* GladiatorShot_CreateTip: spawn the follower; GladiatorShotTip_Update: follow a live owner
  * (type byte 0x5D) at an eight-pixel angular offset. */
-extern s32 Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
 extern void GladiatorShotTip_DamagePlayerOnContact(struct EwramData_EntityData *);
 extern void GladiatorShotTip_OnHit(struct EwramData_EntityData *, s32, u16 *);
 void GladiatorShotTip_Update(struct EwramData_EntityData *entity);
@@ -905,7 +896,6 @@ s32 Gladiator_LoadGraphics(struct EwramData_EntityData *entity)
  *   Gladiator_OnHit = Manticore_OnHit
  *   GladiatorPart_DamagePlayerOnContact = Object28_OnPlayerContact */
 
-extern u16 Player_CalculateAttackPower(u16 attackCategory);
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
 
@@ -957,9 +947,6 @@ void GladiatorPart_DamagePlayerOnContact(struct EwramData_EntityData *entity)
  *   GladiatorPart_OnHit = ManticoreTail_OnHit */
 
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern void Enemy_UpdateFragmentDeath(struct EwramData_EntityData *);
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
 void Gladiator_UpdateDeath(struct EwramData_EntityData *entity);
 
 /**

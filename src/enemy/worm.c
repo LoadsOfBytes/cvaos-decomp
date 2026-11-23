@@ -10,10 +10,17 @@
 #include "structs/entity_render_flags.h"
 #include "bg_and_collision.h"
 #include "syscalls.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "entity_motion.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 
 /**
  * @brief Hit on the head or a segment: resolve the damage and apply it to the
@@ -49,7 +56,6 @@ void Worm_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData
 extern struct EwramData_EntityData *Entity_CreateObject(void *);
 extern void Worm_SettleOnGround(struct EwramData_EntityData *);
 extern void WormSegment_Update(struct EwramData_EntityData *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
 extern void Worm_Draw(struct EwramData_EntityData *);
 extern s32 ObjPalette_FindOrLoadVariant(void *, s32);
 extern void Worm_DamagePlayerOnContact(struct EwramData_EntityData *);
@@ -266,11 +272,8 @@ void Worm_StepCrawl(struct EwramData_EntityData *entity, s32 direction, s32 dist
 }
 
 /* Thrown hand weapon of an enemy: follows the owner, flies off in an arc once released. */
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
 extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
-extern u16 EntityAngleTo(struct EwramData_EntityData *, struct EwramData_EntityData *);
-extern u8 sWormGfx[], sWormSpriteSheet[];
 
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 
@@ -426,13 +429,8 @@ s32 Worm_GetSlopeAngle(struct EwramData_EntityData *e)
 }
 
 /* Enemy update: counted hops with random/target-based facing, knockback fall and despawn states. */
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *);
-extern void Player_QueueEntity(struct EwramData_EntityData *entity, u8 collisionFlags);
 extern s32 Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern void Effect_SpawnRandom(s32 x, s32 y, s32 p2, s32 p3, s32 layer);
-extern void ObjAffine_Free(s32 index);
-extern void ObjAffine_Set(s32, s32, s32, u16, u16, u16);
 
 static inline struct EwramData_EntityData *CurV(struct EwramData *ew) { return *(struct EwramData_EntityData * volatile *)&ew->playerState.enemyTarget; }
 static inline struct EwramData_EntityData *Cur(struct EwramData *ew) { return ew->playerState.enemyTarget; }

@@ -7,15 +7,18 @@
 #include "structs/ewram.h"
 #include "in_game.h"
 #include "entity_util.h"
-#include "player_entity.h"
 #include "sound.h"
 #include "gba.h"
 #include "structs/main.h"
 #include "player_core.h"
 #include "music.h"
-#include "gameplay.h"
-#include "room_object_entity.h"
 #include "syscalls.h"
+#include "effects.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "objects_00_07.h"
+#include "palette.h"
 /* from bg_and_collision.h (not included: see the module notes) */
 extern void Collision_SetBlock(s32 arg0, s32 arg1);
 extern void Collision_ClearBlock(s32 arg0, s32 arg1);
@@ -162,8 +165,6 @@ void Object00Create(struct EwramData_EntityData *entity)
     entity->ext.gate.openAngle = found;
     entity->state = found;
 }
-
-extern s32 Entity_IsInRect(struct EwramData_EntityData *, s32, s32, s32, s32);
 
 /**
  * @brief 4DAB4 | Gate object (object 0x00): hidden off screen, state 0x63
@@ -474,8 +475,6 @@ void Object02Create(struct EwramData_EntityData *entity)
         break;
     }
 }
-
-extern s32 RandomSigned(s32 range);
 
 #define BG &gEwramData->bgInfo[1]
 
@@ -990,13 +989,6 @@ void Object06Create(struct EwramData_EntityData *entity)
 /* Door transition and effects. Explicit register locals retain agbcc output;
  * they do not establish the original source spelling. */
 
-extern s32 RandomSigned(s32);
-extern struct EwramData_EntityData *Effect_CreateFromTable(s32, s32, s32, s32, s32, u8);
-extern s32 BgPalette_GetPendingFades(void);
-extern void BgPalette_StopColorFade(void);
-extern void ObjPalette_StopColorFade(void);
-extern void Player_SetKnockbackVelocity(s32 vx, s32 vy);
-
 void Object06Update(struct EwramData_EntityData *entity)
 {
     struct EwramData *ew;
@@ -1140,7 +1132,6 @@ void Object05Update(struct EwramData_EntityData *entity)
     }
 }
 
-extern s8 ObjPalette_FindOrLoad(void *palette);
 extern const s32 sUnk_0852559C[];
 
 /**
@@ -1382,7 +1373,6 @@ void Object07_SpawnParallaxSprites(struct EwramData_EntityData *entity)
 /* Object 0x07 (room effects) and the room table sWarpRoomEntries,
  * 0x0804F690..0x0804F89F. */
 
-extern void Music_StartOverride(s32 song);
 /* Declared here with an int result: Warp_ActivateCurrentRoom uses the value without
  * re-extending it from s16 (see bg_and_collision.h for the real type). */
 extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);

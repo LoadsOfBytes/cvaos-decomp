@@ -1,20 +1,31 @@
 /*
  * Death: the weapon (boss arm segment), trails, blink / intro effects, floating weapons, blades and the fight.
  */
+#include "death.h"
 #include "core.h"
 #include "music.h"
-#include "player_level.h"
 #include "sound.h"
 #include "player_core.h"
 #include "graphics.h"
 #include "gameplay.h"
-#include "entity_util.h"
 #include "structs/ewram.h"
 #include "structs/entity_render_flags.h"
 #include "structs/main.h"
 #include "syscalls.h"
 #include "entity_hit.h"
 #include "in_game.h"
+#include "boss_defeat.h"
+#include "effects.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "entity_motion.h"
+#include "hitbox.h"
+#include "killer_mantle.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
+#include "palette.h"
 
 struct ArmPose {
     u16 angle;
@@ -25,7 +36,6 @@ struct ArmPose {
 };
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern s32 DeathWeapon_UpdateWallTraversal(struct EwramData_EntityData *entity, struct EwramData_EntityData *target);
 extern void DeathWeapon_DamagePlayerOnContact(struct EwramData_EntityData *);
 extern struct ArmPose sDeathWeaponArmPoses[];
 extern u8 sDeathGfx[], sDeathPalette[], sDeathSpriteSheet[];
@@ -288,7 +298,6 @@ void DeathWeapon_Update(struct EwramData_EntityData *entity)
 }
 
 /* Rotating one-shot effect. */
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 
 /**
  * @brief BCECC | Affine variant of DeathBlinkEffect_Update's effect (same graphics,
@@ -544,10 +553,7 @@ void DeathFloatingWeaponHitBox_Update(struct EwramData_EntityData *entity)
 /* DeathFloatingWeapon_Update: matched (case 4 posY value pinned to r2 keeps r3 out of the spill
    register set; operand order of mul/and/or as in the target). */
 
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern void Enemy_OnContactMask1(struct EwramData_EntityData *);
 extern void DeathFloatingWeapon_OnHit(struct EwramData_EntityData *, s32, u16 *);
-extern s32 Entity_AccelerateAlongAngle(struct EwramData_EntityData *entity, u16 angle, s32 speed, s32 target, s16 acceleration, u16 time);
 extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
 
@@ -804,7 +810,6 @@ void DeathFloatingWeapon_Update(struct EwramData_EntityData *entity)
  * is read through s32 statement expressions so it stays ldrsh, and dx is
  * narrowed to s16 before dy is computed. */
 
-extern void Effect_SpawnAt(s32, s32, s32);
 extern void DeathBlade_OnHit(struct EwramData_EntityData *);
 
 static inline u16 AngleTo(s32 dx, s32 dy)
@@ -904,8 +909,6 @@ void DeathBlade_Update(struct EwramData_EntityData *entity)
     Anim_Update(entity);
 }
 
-extern s32 RandomSigned(s32);
-extern struct EwramData_EntityData *Effect_CreateFromTable(s32, s32, s32, s32, s32, u8);
 extern void DeathPillar_DamagePlayerOnContact(struct EwramData_EntityData *);
 
 /* Pillar rising under the player (x of the player, y 0x90): grows, then
@@ -978,7 +981,6 @@ void DeathPillar_Update(struct EwramData_EntityData *entity)
         entity->state = 3;
 }
 
-extern void SharedObjPalette_Release(void *palette, u8 variant);
 extern void SoulPickup_SpawnFromEnemyDefinition(s32, s32, s32, s32);
 extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
 
@@ -1084,8 +1086,6 @@ void DeathRewardEffect_Update(struct EwramData_EntityData *entity)
  * affine scale and its change per frame. Token-identical expansion.
  */
 #define DEBRIS_RADIUS_STEP(e) ENTITY_WORD_510(e)
-
-extern s32 Entity_GetRoomPointDistance(struct EwramData_EntityData *entity, s32 x, s32 y);
 
 /* Spinning projectile: flies outwards from the screen point (0x100, 0x80)
  * along a spiral, shrinking until its radius reaches zero. */
@@ -1254,7 +1254,6 @@ void Death_UpdateIntro(struct EwramData_EntityData *entity)
  * read goes through the inline Player() (base kept, offset constant reloaded
  * as in the target); case 3 uses its own block variable for the radius. */
 
-extern void EntityDampVelocityX(struct EwramData_EntityData *, s32);
 extern u8 sDeathFirstPhaseAnims[];
 
 static inline void SpawnChild(struct EwramData_EntityData *e, void *func)
@@ -1505,8 +1504,6 @@ void Death_UpdateWeaponTransition(struct EwramData_EntityData *entity)
 
 /* Death second-phase hover and attack selection. State numbers are
  * observed dispatcher values, not evidence of original source names. */
-
-extern void EntityDampVelocityY(struct EwramData_EntityData *, s32);
 
 #define PLAYER (gEwramData->playerState.player)
 
@@ -1957,10 +1954,8 @@ s32 Death_UpdateDeath(struct EwramData_EntityData *entity)
 }
 
 extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
 extern void Enemy_OnContact(struct EwramData_EntityData *entity);
 extern void Death_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern void DeathOverlay_Update(struct EwramData_EntityData *entity);
 
 /**
  * @brief BF2E8 | Death create: the boss version (spawnParam0) is deleted once
@@ -2042,8 +2037,6 @@ void EnemyDeathCreate(struct EwramData_EntityData *entity)
 
 /* Death_OnHit (Death). */
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
-extern void BossDefeatEffect_Spawn(s32 x, s32 y);
 
 /**
  * @brief Mark the boss hit flag, then apply enemy damage. On defeat drop

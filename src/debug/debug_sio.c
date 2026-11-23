@@ -1,30 +1,13 @@
 #include "debug_sio.h"
 #include "core.h"
-#include "sram.h"
 // #include "bg_and_collision.h"
-#include "intro_cutscene.h"
 #include "in_game.h"
-// #include "bg_effects.h" // TODO: Bg_UpdateScrollModes implicitly called with arguments (it should have none)
 #include "room_entities.h"
 #include "map_screen.h"
-#include "map_flags.h"
-#include "player_init.h"
-#include "player_core.h"
-#include "soul_inventory.h"
-#include "player_effects.h"
-#include "player_level.h"
-#include "debug_1967.h"
-#include "debug_2229.h"
 #include "debug_menu.h"
-#include "graphics.h"
-#include "gameplay.h"
-#include "entity_util.h"
 #include "sound.h"
 #include "gba.h"
-#include "macros.h"
-#include "agb_sram.h"
 #include "agb_multi_sio_sync.h"
-#include "syscalls.h"
 
 #include "constants/main.h"
 
@@ -34,6 +17,11 @@
 #include "structs/agb_sram.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
+
+/* Called with int arguments (the u16/u8 parameters in bg_and_collision.h would truncate them). */
+extern u16 *BgCmdBuffer_WriteString(s32 tileIndex, s32 rowOffset, s32 tileInfo, const u8 *string);
+
+extern int sprintf(char *, const char *, ...);
 
 static struct DebugSioTestState sDebugSioTestState;
 

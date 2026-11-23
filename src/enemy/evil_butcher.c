@@ -1,23 +1,28 @@
 /*
  * Evil Butcher: body, projectiles and debris (the last part also holds Kicker Skeleton contact damage).
  */
+#include "evil_butcher.h"
 #include "core.h"
 #include "graphics.h"
 #include "gameplay.h"
-#include "entity_util.h"
 #include "sound.h"
 #include "structs/ewram.h"
 #include "entity_hit.h"
 #include "player_core.h"
 #include "structs/entity_render_flags.h"
+#include "death.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_palette.h"
+#include "effects.h"
 
 extern s32 Collision_GetGroundOffset(s32 x, s32 y);
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *);
 extern void Effect_SpawnRandom(s32 x, s32 y, s32 width, s32 height, s32 layer);
-extern s32 RandomSigned(s32);
-extern void Enemy_OnContactMask1(struct EwramData_EntityData *);
 extern void EvilButcherProjectile_OnHit(struct EwramData_EntityData *);
 
 /* Thrown projectile: flies sideways until it is destroyed (burst) or hits a
@@ -110,8 +115,6 @@ void EvilButcherProjectile_Update(struct EwramData_EntityData *entity)
 /* Bouncing fragment (EvilButcherDebris_Update): falls until it hits the floor, then
  * flies off spinning with a random speed and direction; deleted off screen. */
 
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern s32 Collision_GetGroundOffset(s32, s32);
 extern u8 sEvilButcherGfx[];
 extern u8 sEvilButcherPalette[];
 extern u8 sEvilButcherSpriteSheet[];
@@ -182,7 +185,6 @@ void EvilButcherDebris_Update(struct EwramData_EntityData *entity)
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *, s32, s32);
 extern void Entity_FaceTarget(struct EwramData_EntityData *);
 extern struct EwramData_EntityData *Entity_CreateObject(void *);
-extern void EvilButcherDeathParticle_Update(struct EwramData_EntityData *);
 extern u8 sEvilButcherWalkProfile[];
 
 /**
@@ -324,13 +326,9 @@ s32 EvilButcher_UpdateDeath(struct EwramData_EntityData *entity)
     return 0;
 }
 
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
 extern void Enemy_OnContact(struct EwramData_EntityData *);
 void EvilButcher_OnHit(struct EwramData_EntityData *entity);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, void *);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
-extern u8 sEvilButcherGfx[], sEvilButcherPalette[], sEvilButcherSpriteSheet[];
 
 void EnemyEvilButcherCreate(struct EwramData_EntityData *entity)
 {
@@ -361,7 +359,6 @@ void EnemyEvilButcherCreate(struct EwramData_EntityData *entity)
  *   EvilButcher_OnHit = HeadStackSegment_OnHit */
 
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 
 /**
  * @brief Apply enemy damage; on defeat drop rewards, restore the palette
@@ -386,11 +383,6 @@ void EvilButcherProjectile_OnHit(struct EwramData_EntityData *entity)
 {
     entity->hp = 0;
 }
-
-extern s32 Enemy_PreUpdate(struct EwramData_EntityData *);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
-extern void Player_SetKnockbackVelocity(s32, s32);
 
 void EnemyEvilButcherUpdate(struct EwramData_EntityData *entity)
 {

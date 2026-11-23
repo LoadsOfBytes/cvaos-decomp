@@ -9,10 +9,15 @@
 #include "gameplay.h"
 #include "sound.h"
 #include "syscalls.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "entity_motion.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *entity);
-extern void Enemy_UpdateFragmentDeath(struct EwramData_EntityData *entity);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *entity);
 extern void Devil_UpdateApproach(struct EwramData_EntityData *entity);
 extern void Devil_UpdateAttack(struct EwramData_EntityData *entity);
 extern void Devil_UpdateHover(struct EwramData_EntityData *entity);
@@ -64,9 +69,6 @@ void EnemyDevilUpdate(struct EwramData_EntityData *entity)
 /* Devil create: allocates the 8-joint skeleton and one part entity per joint. */
 extern void *memcpy(void *dst, const void *src, unsigned long size);
 extern u8 Devil_LoadGraphics(struct EwramData_EntityData *entity);
-extern void *Heap_Alloc(u16 words);
-extern void Heap_Free(void *allocation);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *update);
 extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
 extern void DevilPart_Update(struct EwramData_EntityData *entity);
@@ -230,17 +232,9 @@ void EnemyDevilCreate(struct EwramData_EntityData *entity)
 }
 
 /* Devil flight state machine; DEVIL_WINGS is a macro (an inline function loses constant CSE and gets cross-jumped). */
-extern void EntityDampVelocityX(struct EwramData_EntityData *, s32);
-extern void EntityMove(struct EwramData_EntityData *);
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
 extern void Devil_SaveParts(struct EwramData_EntityData *);
 extern void Devil_RestoreParts(struct EwramData_EntityData *);
-extern s32 Target_GetX(struct EwramData_EntityData *);
-extern s32 Target_GetY(struct EwramData_EntityData *);
 extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
-extern s32 Entity_GetVisibilityPattern(s32);
-extern s32 Entity_MoveTowardPoint(struct EwramData_EntityData *entity, s32 targetX, s32 targetY, s32 speed);
 
 #define DEVIL_WINGS(entity) \
 { \
@@ -726,9 +720,6 @@ void Devil_UpdateAttack(struct EwramData_EntityData *entity)
     }
 }
 
-extern void DevilPart_Attach(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern void Devil_UpdateAllParts(struct EwramData_EntityData *);
-
 /**
  * @brief 91204 | Swinging body-part controller: every 22 frames (timer)
  * flips the swing direction (unk_504 = 1 / 2) and re-launches the six parts
@@ -930,9 +921,7 @@ void DevilPart_Attach(struct EwramData_EntityData *entity, s32 partIndex, s32 an
 /* DevilPart_OnHit, decompiled from the original assembly. The damage is kept
  * in an s16 variable (copied from r0 right after the call and sign-extended
  * in place at use); the new HP is tested on its own s32 value. */
-extern u16 Player_CalculateAttackPower(u16);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 
@@ -1226,11 +1215,6 @@ void DevilChargeEffect_Spawn(struct EwramData_EntityData *owner, s32 dx, s32 dy,
  * and Demon Lord). */
 
 #define DEVIL_PART_COUNT 8
-
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *entity);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
-extern u16 Player_CalculateAttackPower(u16 attackCategory);
-extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
 
 void Devil_OnDamaged(struct EwramData_EntityData *entity, s32 attacker, u16 *hit, s32 damage);
 

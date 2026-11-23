@@ -2,9 +2,7 @@
  * Bestiary menu: detail screen, enemy preview, close, entry / drop / description drawing and the list.
  */
 #include "gba.h"
-#include "menu_page.h"
 #include "core.h"
-#include "graphics.h"
 #include "macros.h"
 #include "structs/ewram.h"
 #include "structs/entity_template.h"
@@ -12,6 +10,17 @@
 #include "types.h"
 #include "gameplay.h"
 #include "syscalls.h"
+#include "bestiary.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "menu_common.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "palette.h"
+#include "pause_menu.h"
+#include "text12.h"
+#include "sound.h"
 
 /* BestiaryMenu_UpdateDetailScreen, BestiaryMenu_SpawnEnemyPreview. */
 /* Language dependent graphics (English/other, French, German). */
@@ -19,9 +28,8 @@ extern u8 sLocalizedWindowGfx[];
 extern u8 sLocalizedWindowGfxLanguage2[];
 extern u8 sLocalizedWindowGfxLanguage3[];
 extern struct BgMapMetadata sBestiaryDetailBgMap;
-extern void HudMap_ClearAll(void);
+/* tile as s32: the header u16 would add a zero extension of the argument */
 extern void HudMap_WriteTiles(s32 x, s32 y, s32 tile, s32 count);
-extern void BestiaryMenu_ReleaseResources(void);
 struct MenuPage3
 {
     u8 pad_0[0x13];
@@ -33,8 +41,6 @@ struct MenuPage3
 
 void BestiaryMenu_DrawEntry(struct MenuPage3 *page);
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *updateFunc);
-extern void Heap_Reset(void);
-extern void Hit_Disable(struct EwramData_EntityData *entity);
 s32 BestiaryMenu_SpawnEnemyPreview(struct EwramData_EntityData *menu);
 
 /**
@@ -118,7 +124,6 @@ s32 BestiaryMenu_SpawnEnemyPreview(struct EwramData_EntityData *menu)
     }
 }
 
-
 struct MenuPage
 {
     u8 pad_0[0xA];
@@ -135,7 +140,6 @@ struct MenuPage
 
 void BestiaryMenu_DrawDetailTitle(struct MenuPage3 *page);
 extern s32 BestiaryMenu_DrawDescription(s32 id, s32 mode);
-extern s32 Bestiary_IsEnemyDefeated(s32 index);
 
 /**
  * @brief Detail view input: left/right toggles between the enemy description and
@@ -233,7 +237,6 @@ struct U16Box
     u16 v;
 };
 
-extern void Heap_Restore(void);
 extern void *memcpy(void *dst, const void *src, unsigned long size);
 
 /**
@@ -354,13 +357,8 @@ s32 MenuText_Measure(s32 text, s32 mode)
 
 /* Bestiary page: enemy number, HP/EXP, weak/resist icons and soul icon. */
 
-
-/* tile as s32: the header u16 would add a zero extension of the argument */
-extern void HudMap_WriteTiles(s32 x, s32 y, s32 tile, s32 count);
-extern void HudMap_ClearTiles(s32 x, s32 y, s32 count);
 extern void HudMap_PrintNumber(s32 x, s32 y, s32 value, s32 digits, s32 color, s32 flag);
 void BestiaryMenu_PrintDrops(struct EwramData_EntityData *menu);
-extern void BestiaryMenu_DrawDetailTitle(struct MenuPage3 *page);
 extern void BestiaryMenu_DrawAttributeIcon(s32 x, s32 y, s32 type);
 
 /**
@@ -527,7 +525,6 @@ void BestiaryMenu_PrintDrops(struct EwramData_EntityData *menu)
     Text8_Print(Text_GetLocalizedEntry(text), 0);
 }
 
-
 extern const u16 sEnemyNameTextIds[];
 
 /**
@@ -588,9 +585,6 @@ void BestiaryMenu_DrawDetailTitle(struct MenuPage3 *page)
         HudMap_WriteTiles(2, 0xC, (u16)((row * 16 - 0x3000 + col) | 0x1300), 1);
     }
 }
-
-
-extern void Menu_PrintSoulName(s32 soulType, s32 soulId);
 
 /**
  * @brief Draw the description box of enemy id; mode 1 (only when its soul is
@@ -663,7 +657,6 @@ s32 BestiaryMenu_DrawDescription(s32 id, s32 mode)
  * - the dead `odd = 14;` in the second tail loop adds one insn, so loop.c
  *   leaves the 0x10000 constant for its second pass (orrs before it). */
 
-
 struct MenuPage4
 {
     u8 pad_0[0xA];
@@ -683,9 +676,6 @@ struct Unk_08118510
 };
 
 extern const struct Unk_08118510 sUnk_08118510;
-extern void HudMap_ClearTilesLeft(s32 x, s32 y, s32 count);
-extern void HudMap_PrintNumber(s32 a, s32 b, s32 c, s32 d, s32 e, s32 f);
-extern s32 HudMap_PrintPaddedNumberInPalette(s32 x, s32 y, s32 value_, s32 digits, s32 palette);
 
 static inline s32 IsSeen(s32 id)
 {

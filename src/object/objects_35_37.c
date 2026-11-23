@@ -1,20 +1,26 @@
 /*
  * Room objects 0x35-0x37 (children, carry velocity, corrections) and the shop open helpers.
  */
+#include "objects_35_37.h"
 #include "bg_and_collision.h"
 #include "room_object_entity.h"
 #include "core.h"
 #include "player_core.h"
-#include "graphics.h"
 #include "gameplay.h"
 #include "sound.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
 #include "gba.h"
 #include "syscalls.h"
-#include "room_objects.h"
-#include "player_entity.h"
 #include "bg_effects.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "palette.h"
+#include "palette_state.h"
+#include "text12.h"
 
 /* Object35Create (0x0805A18C). */
 u8 Object35_LoadGraphics(struct EwramData_EntityData *entity);
@@ -95,10 +101,7 @@ void Object35Create(struct EwramData_EntityData *entity)
 }
 
 /* Object35_UpdateState, Object35_SpawnChild. */
-extern struct Unk_03002CB0 gUnk_03002CB0;
 extern void EntityMoveY(struct EwramData_EntityData *entity);
-extern u32 RandomNumberGenerator(void);
-extern void Effect_SpawnParticleWithDamping(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32 variant, s32 damping, s32 flags, s32 palette);
 
 #define FLAG(e) ((e)->spawnParam1)
 
@@ -220,9 +223,7 @@ void Object35_SpawnChild(struct EwramData_EntityData *parent)
 }
 
 /* Objects 0x35 / 0x36 helpers 0x0805A590..0x0805A747. */
-extern void Player_QueueEntity(struct EwramData_EntityData *entity, u8 collisionFlags);
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-extern s32 Player_RegisterSolidObject(struct EwramData_EntityData *entity, void *callbackTable);
 void Object35_Draw(struct EwramData_EntityData *entity);
 
 extern u8 sObject35Palette[];
@@ -689,9 +690,7 @@ void Object37_SpawnChild(struct EwramData_EntityData *owner)
 
 /* Helpers 0x0805AD9C..0x0805AFBF (object 0x37 and screen setup). */
 /* Graphics of object 0x37. */
-extern u8 sObject37Gfx[];
 extern u8 sObject37Palette[];
-extern u8 sObject37SpriteSheet[];
 
 /* Screen data of Shop_SetupBackgrounds (per language). */
 extern u8 sShopBgPalette[];

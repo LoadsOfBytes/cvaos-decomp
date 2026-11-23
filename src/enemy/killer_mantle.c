@@ -2,6 +2,7 @@
  * Killer Mantle (hover, jump attack, death, create, hits, update), the Cockatrice family (parts, patrol, attack, death, create, hits, Cockatrice / Basilisk) and the Death overlay / weapon wall traversal.
  * Built without -f2003-patch (KillerMantle_UpdateHover and CockatriceFamily_UpdateAttack need it off; the rest compiles the same either way).
  */
+#include "killer_mantle.h"
 #include "core.h"
 #include "graphics.h"
 #include "structs/ewram.h"
@@ -11,16 +12,23 @@
 #include "music.h"
 #include "sound.h"
 #include "gameplay.h"
-#include "entity_util.h"
 #include "syscalls.h"
+#include "effects.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "entity_motion.h"
+#include "hitbox.h"
+#include "man_eater.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 /* KillerMantle_UpdateHover (state 1 of the enemy created at 0x080BB70C); only matches without -f2003-patch
  * (NO_2003_PATCH_SRCS in ../Makefile). (Target_IsNearEntity test through an inline with two
  * returns, state 1 constant in a block variable). */
 
-extern s32 Entity_Walk(struct EwramData_EntityData *entity, s32 speed, void *profile, s32 flags);
 extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *entity);
-extern s32 Player_GetFocusedActionFlags(void);
 extern s32 Target_GetPixelX(struct EwramData_EntityData *entity);
 extern s32 Target_GetFlipX(struct EwramData_EntityData *entity);
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *entity, u16 width, u16 height);
@@ -114,10 +122,7 @@ void KillerMantle_UpdateHover(struct EwramData_EntityData *entity)
 
 /* KillerMantle_UpdateJumpAttack (state 2 of the enemy created at 0x080BB70C). */
 extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
-extern s32 RandomSigned(s32 range);
-extern void PlaySong(u16 song);
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *updateFunc);
-extern void KillerMantleLandingEffect_Update(struct EwramData_EntityData *entity);
 
 /**
  * @brief BB518 | Jump attack (state 2): crouch (sprite 3, unk_4FE bit 0)
@@ -184,13 +189,8 @@ void KillerMantle_UpdateJumpAttack(struct EwramData_EntityData *entity)
  * EnemyKillerMantleCreate upstream). */
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
 extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
-extern s32 HitBox_SetAttackRaw(struct EwramData_EntityData *entity, s32 box);
-extern s32 HitBox_SetBodyRaw(struct EwramData_EntityData *entity, s32 box);
-extern void Enemy_OnContactMask1(struct EwramData_EntityData *entity);
 void KillerMantle_OnHit(struct EwramData_EntityData *entity);
-extern void KillerMantlePart_Update(struct EwramData_EntityData *entity);
 
 /* Graphics of this enemy (EnemyKillerMantleCreate). */
 extern u8 sKillerMantleGfx[];
@@ -282,7 +282,6 @@ void EnemyKillerMantleCreate(struct EwramData_EntityData *entity)
  *   KillerMantle_OnHit = SkullMillioneFamily_OnHit */
 
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 
 /**
  * @brief Apply enemy damage; on defeat drop rewards, restore the palette
@@ -301,8 +300,6 @@ void KillerMantle_OnHit(struct EwramData_EntityData *entity)
 }
 
 /* Killer Mantle update and part placement 0x080BB824..0x080BB923. */
-extern s32 Enemy_PreUpdate(struct EwramData_EntityData *entity);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *entity);
 extern void Sprite_GetPartCornerOffset(struct EwramData_EntityData *entity, s32 index, s16 *offset);
 
 /* x offset of the Cockatrice/Basilisk part (CockatriceFamilyPart_FollowOwner). */
@@ -431,9 +428,6 @@ void CockatriceFamilyPart_Update(struct EwramData_EntityData *entity)
 
 // The offsets are passed sign-extended here (u16 in the definition).
 extern void Entity_PlaceRelativeToCopy(struct EwramData_EntityData *entity, struct EwramData_EntityData *anchor, s32 offsetX, s32 offsetY);
-extern s32 Hit_Enable(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
-extern s32 Sound_PlayTracked(s32 song);
-extern s32 Sound_StopTracked(s32 song);
 extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
 extern void CockatriceFamilyAttack_Draw(struct EwramData_EntityData *entity);
 extern void CockatriceFamilyAttack_DamagePlayerOnContact(struct EwramData_EntityData *entity);
@@ -511,8 +505,6 @@ void CockatriceFamilyAttack_Update(struct EwramData_EntityData *entity)
     ObjAffine_Set(entity->ext.cockatriceBeam.angle, 0x10000, entity->ext.cockatriceBeam.scaleY, 0, 0, entity->affineIndex);
 }
 
-extern s32 Entity_Walk(struct EwramData_EntityData *, s32, void *, s32);
-extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
 extern u8 sCockatriceFamilyWalkProfile[];
 
 static inline s32 FrameOffset(s32 frame)
@@ -564,8 +556,6 @@ void CockatriceFamily_UpdatePatrol(struct EwramData_EntityData *entity)
 /* Cockatrice/Basilisk walk 0x080BBD90. This unit omits -f2003-patch to preserve the signed -1 test.
  * Local register bindings preserve the frame-speed and timer copies.
  * Matching does not establish original source spelling. */
-
-extern s16 Entity_GetTargetDistance(struct EwramData_EntityData *entity);
 
 /**
  * @brief Attack state (1): walk and face the target, start animation 1
@@ -648,10 +638,7 @@ void CockatriceFamily_UpdateAttack(struct EwramData_EntityData *entity)
 /* Shared Cockatrice/Basilisk death and creation.
  * Decompiled locally; patrol and attack helpers are now matching C. */
 
-extern s32 Entity_GetVisibilityPattern(s32 step);
 extern void Enemy_OnContact(struct EwramData_EntityData *entity);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *entity);
-extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
 extern void CockatriceFamily_OnHit(struct EwramData_EntityData *entity);
 
 /* Graphics of the Cockatrice/Basilisk (see this file). */
@@ -814,9 +801,6 @@ void EnemyCockatriceCreate(struct EwramData_EntityData *entity)
 }
 
 /* EnemyCockatriceUpdate. */
-extern void Entity_HideAboveY(struct EwramData_EntityData *entity, s32 minY);
-extern s32 EntityIsOutsideScreen(struct EwramData_EntityData *entity, s32 margin);
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *entity);
 
 /**
  * @brief BC164 | Cockatrice update. Outside state 2: stop when outside the
@@ -920,7 +904,6 @@ void EnemyBasiliskUpdate(struct EwramData_EntityData *entity)
 /* Death boss overlay part (DeathOverlay_Update): follows its owner, hidden while
  * the owner is in state 4 or flagged; deleted when the owner reaches state 7. */
 
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, u8 *, void *, u8, void *);
 extern u8 sDeathGfx[], sDeathPalette[], sDeathSpriteSheet[];
 
 void DeathOverlay_Update(struct EwramData_EntityData *entity)
@@ -957,7 +940,6 @@ void DeathOverlay_Update(struct EwramData_EntityData *entity)
 }
 
 /* Wall-crawling wheel: rolls around a block shedding debris, then homes in on its target while spinning. */
-extern s32 Entity_AccelerateAlongAngle(struct EwramData_EntityData *entity, u16 angle, s32 speed, s32 target, s16 acceleration, u16 time);
 
 #define SPIN entity->ext.raw.unk_4FC.part16.unk_4FC
 #define SPIN_SPEED entity->ext.raw.unk_4FC.part16.unk_4FE[0]

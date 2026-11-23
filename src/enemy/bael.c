@@ -8,17 +8,19 @@
 #include "structs/ewram.h"
 #include "sound.h"
 #include <string.h>
-#include "entity_util.h"
+#include "bael.h"
+#include "buer.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 /* Bael-fight helper functions 0x080CC3C8..0x080CC623. */
-extern void BuerChargeEffect_Update(struct EwramData_EntityData *entity);
-extern void Buer_MoveAndRotate(struct EwramData_EntityData *entity, s32 mode);
 extern s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY);
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
-extern s32 Entity_IsOutsideRoomMap(struct EwramData_EntityData *entity);
-
-s32 Buer_CheckCleanup(struct EwramData_EntityData *entity);
 
 /**
  * @brief While state is 0, copy the linked body position. Death advances the state so the head can shake independently.
@@ -188,14 +190,11 @@ void Buer_SpawnChargeEffect(u16 x, u16 y, u8 kind, u32 flip)
 
 /* Bael creation: graphics shared with Buer, affine slot, hitbox and callbacks. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *graphics, void *palette, u8 slot, void *sprite);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
-extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
 extern void Bael_CreateHead(struct EwramData_EntityData *entity);
 extern void Bael_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 extern void Bael_OnHit(struct EwramData_EntityData *entity);
 extern void Hit_Enable(struct EwramData_EntityData *entity, s32 mode, void *callback, s32 flags);
 extern void HitBox_SetAttackRaw(struct EwramData_EntityData *entity, s32 flags);
-extern s32 HitBox_SetBodyRaw(struct EwramData_EntityData *entity, s32 flags);
 extern u8 sBaelBuerPalette[];
 extern u8 sBaelBuerSpriteSheet[];
 extern u8 sBaelBuerGfx[];
@@ -296,7 +295,6 @@ void Bael_CreateHead(struct EwramData_EntityData *entity)
  * direct posX/posY reads (loop keeps the addresses), rowOffset declared in the
  * inner loop body (hoisted by loop.c), literal zeros, ABS through an inline. */
 extern s32 Bael_CheckCleanup(struct EwramData_EntityData *entity);
-extern s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *entity,s32 x,s32 y);
 extern void Bael_MoveAndRotate(struct EwramData_EntityData *entity,s32 mode);
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *entity,s32 x,s32 y);
 extern s8 Entity_GetTargetDirection(struct EwramData_EntityData *entity);
@@ -464,7 +462,6 @@ void Bael_UpdateActive(struct EwramData_EntityData *entity)
 
 /* Bael accelerated charge, rotation, and sparks. */
 extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *entity);
-extern s32 Entity_Walk(struct EwramData_EntityData *entity,s32 speed,void *profile,s32 flags);
 extern void Bael_RestoreXAtProbe(struct EwramData_EntityData *entity,s32 work);
 void Bael_SpawnChargeEffect(u16 x, u16 y, u8 kind, u32 flip);
 extern s32 Bael_OffsetBySign(s32 value,s32 step);
@@ -602,7 +599,6 @@ void Bael_UpdateCharge(struct EwramData_EntityData *entity)
 
 /* Bael death: shaking head, slowing rotation, smoke and final fragments. */
 extern void Effect_SpawnRandom(s32 x,s32 y,s32 scaleX,s32 scaleY,s32 layer);
-extern void Effect_SpawnAt(s32 x,s32 y,s32 layer);
 extern s16 sBaelPositions[8][2];
 #define SHAKE_X(e) (e->ext.wheelDeath.shake[0])
 #define SHAKE_Y(e) (e->ext.wheelDeath.shake[1])
@@ -743,10 +739,7 @@ void BaelChargeEffect_Update(struct EwramData_EntityData *entity)
 /* Bael collision motion, rotation, and update dispatcher. */
 extern void Bael_UpdateState4Rotation(struct EwramData_EntityData *entity);
 extern void Bael_UpdateEntry(struct EwramData_EntityData *entity);
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *entity);
 extern void Hit_CheckWithPlayer(void *buffer,struct EwramData_EntityData *entity);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *entity);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *entity);
 
 /**
  * @brief Walk, adjust signed speed from contacts, handle blocking probes, rotate and update the linked head facing.

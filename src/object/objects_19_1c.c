@@ -1,8 +1,8 @@
 /*
  * Room objects 0x19-0x1C and the save point prompt (HBlank fade, markers).
  */
+#include "objects_19_1c.h"
 #include "core.h"
-#include "room_object_entity.h"
 #include "graphics.h"
 #include "entity_util.h"
 #include "structs/ewram.h"
@@ -15,6 +15,14 @@
 #include "structs/entity_render_flags.h"
 #include "map_flags.h"
 #include "save_data.h"
+#include "enemy_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "palette.h"
+#include "save_point.h"
+#include "text12.h"
 
 /* Object 19: move along a timed path of steps, then despawn. */
 struct Object19Step
@@ -87,9 +95,6 @@ void Object19Update(struct EwramData_EntityData *entity)
 }
 
 /* Object 0x19 helpers 0x08053EC4..0x08053F33. */
-extern s32 RandomSigned(s32 range);
-/* Called with untruncated arguments (HitEffect_Spawn takes u16 values). */
-extern void HitEffect_Spawn(s32, s32, s32);
 
 /**
  * @brief Hit callback of object 0x19: sound 0x69 and a hit effect at a random
@@ -446,7 +451,6 @@ end:
     return done;
 }
 
-extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
 extern void SavePoint_SpawnAnimParts(struct EwramData_EntityData *entity);
 extern u8 sSaveWarpRoomGfx[], sSaveWarpRoomPalette[], sSaveWarpRoomSpriteSheet[];
 
@@ -505,15 +509,7 @@ void Object1CCreate(struct EwramData_EntityData *entity)
  * register. */
 
 extern u8 sSaveWarpRoomPalette[], sSavePointPalette[], sSavePromptBgPalette[], sUnk_08119898[];
-extern void ObjPalette_LoadRange(u8 *palette, u16 first, u16 count, u16 slot);
-extern void BgPalette_LoadRange(u8 *palette, u16 first, u16 count, u16 slot);
-extern void ObjPalette_StopColorFade(void);
-extern void BgPalette_StopColorFade(void);
-extern void ObjAffine_Set(s32 angle, s32 scaleX, s32 scaleY, u16 flipX, u16 flipY, u16 index);
 extern s32 Bg_SetControlIfLevelAllows(s32 level, s32 reg, s32 value);
-extern void Text12_ClearRegion(void);
-extern void Text_SetBackgroundColor(s32 color);
-extern s32 SavePoint_SpawnOrbitLights(struct EwramData_EntityData *parent);
 
 #define OWNER(e) (&(*ew)->entityData[ENTITY_BYTE_519((e))])
 

@@ -1,7 +1,5 @@
 #include "agb_multi_sio_sync.h"
 #include "gba.h"
-#include "macros.h"
-#include "agb_sram.h"
 #include "syscalls.h"
 
 #define SIO_RESULT_SHIFT_UNK_3 0
@@ -582,4 +580,3 @@ s32 Link_ReceivedFromAll(void)
     }
     return 1;
 }
-

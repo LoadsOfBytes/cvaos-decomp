@@ -7,15 +7,21 @@
 #include "player_effects.h"
 #include "sound.h"
 #include "player_core.h"
-#include "gameplay.h"
 #include "map_flags.h"
 #include "soul_inventory.h"
 #include "player_level.h"
 #include "bg_effects.h"
+#include "blue_souls.h"
+#include "effects.h"
+#include "enemy_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "palette.h"
+#include "player_soma.h"
+#include "red_souls_b.h"
+extern s32 Anim_StartIndexed(struct EwramData_EntityData *, s32, s32, s32);
 /* from graphics.h (not included: see the module notes) */
-extern void ObjGfx_Unload(s32 tileSlot);
-extern void ObjPalette_LoadRange(u8 *palette, u16 first, u16 count, u16 slot);
-extern s32 Anim_Update(struct EwramData_EntityData *entity);
 
 /* Julius collision with the tile map, the carrying object and moving platforms.
  * Twin of the Soma version in player/player_soma.c. */
@@ -748,7 +754,6 @@ void Julius_ResolveWorldCollision(struct EwramData_EntityData *entity)
 }
 
 /* Julius_HandleWhipAttackInput. */
-extern s32 Anim_StartIndexed(struct EwramData_EntityData *, s32, s32, s32);
 
 /* Same block as written out in Julius_UpdateKnockbackFromImpulse / Julius_TryStartAbilityDash / Julius_StartDeath. */
 static inline void SetPlayerAnim(struct EwramData_EntityData *entity, s32 anim)
@@ -790,7 +795,6 @@ void Julius_HandleWhipAttackInput(struct EwramData_EntityData *entity)
 /* Julius_TryStartDiveAttack
  * (dive attack as in Soma_TryStartDiveAttack without hitboxes). */
 
-extern s32 Anim_StartIndexed(struct EwramData_EntityData *, s32, s32, s32);
 extern void Afterimage_Create(struct EwramData_EntityData *, s32, s32, s32);
 
 static inline void SetPlayerAnim2(struct EwramData_EntityData *entity, s32 anim)
@@ -1018,7 +1022,6 @@ void Julius_HandleJumpInput(struct EwramData_EntityData *entity)
 }
 
 /* Julius_UpdateVerticalMovement. */
-extern s32 Anim_StartIndexed(struct EwramData_EntityData *, s32, s32, s32);
 
 /* Function table of the object in solidObject (pointer at its unk_4F4). */
 struct SolidObjectCallbacks2 {
@@ -1167,8 +1170,6 @@ void Julius_UpdateJumpControl(struct EwramData_EntityData *entity)
 }
 
 /* Julius_StartDeath. */
-extern s32 Anim_StartIndexed(struct EwramData_EntityData *, s32, s32, s32);
-void BlueSoul_StopAll(void);
 
 /**
  * @brief Enter death state 16 from the Julius main update at nonpositive
@@ -1248,7 +1249,6 @@ done:
 
 /* Julius_UpdateKnockbackFromImpulse (variant of Julius_UpdateKnockback with an animation switch). */
 void Julius_UpdateVerticalMovement(struct EwramData_EntityData *entity);
-extern s32 Anim_StartIndexed(struct EwramData_EntityData *, s32, s32, s32);
 
 /**
  * @brief Update damage-reaction state 14, entered with stored external
@@ -1297,7 +1297,6 @@ done:
 }
 
 /* Julius_TryStartAbilityDash. */
-extern s32 Anim_StartIndexed(struct EwramData_EntityData *, s32, s32, s32);
 
 /**
  * @brief When flags 2, 0x20 and 0x100 are clear and the ability button is
@@ -1371,7 +1370,6 @@ done:
 }
 
 /* Julius_UpdateGrandCrossCast. */
-extern s32 Anim_StartIndexed(struct EwramData_EntityData *, s32, s32, s32);
 
 /* Animation switch without hitbox, as in this file (flags 1, 1). */
 
@@ -1461,25 +1459,6 @@ extern struct PlayerBodyBox sSomaCrouchBodyBoxes[];
 extern u8 sSomaAnimPalettes[];
 extern u8 sSomaPalette[];
 
-extern void Soma_ResolveBatExitCollision(struct EwramData_EntityData *entity);
-extern void Soma_ResolveWorldCollision(struct EwramData_EntityData *entity);
-extern void Soma_StartDeath(struct EwramData_EntityData *entity);
-extern void Soma_CastEquippedRedSoul(struct EwramData_EntityData *entity, s32 noAnim);
-extern void Soma_HandleWeaponAttackInput(struct EwramData_EntityData *entity);
-extern void Soma_HandleJumpInput(struct EwramData_EntityData *entity);
-extern void Soma_UpdateJumpControl(struct EwramData_EntityData *entity);
-extern void Soma_UpdateDiveAttack(struct EwramData_EntityData *entity);
-extern void Soma_UpdateVerticalMovement(struct EwramData_EntityData *entity);
-extern void Soma_HandleBlueSoulInput(struct EwramData_EntityData *entity);
-extern void Soma_UpdateKnockback(struct EwramData_EntityData *entity);
-extern void Soma_UpdateKnockbackFromImpulse(struct EwramData_EntityData *entity);
-extern void Soma_UpdateStatusReaction(struct EwramData_EntityData *entity);
-extern void Soma_UpdateBatForm(struct EwramData_EntityData *entity);
-extern void Soma_UpdateTransformationDash(struct EwramData_EntityData *entity);
-extern void Player_UpdateDeath(struct EwramData_EntityData *entity);
-extern struct EwramData_EntityData *Effect_CreatePlayerFlash(s32 kind);
-extern void HitBox_UpdatePlayerRects(void);
-extern void YellowSoul_CreateEquippedEntity(struct EwramData_EntityData *entity);
 extern u8 sUnk_080E12C8[];
 
 #define HELD (gEwramData->inputData.playerHeldInput)
@@ -1741,10 +1720,6 @@ static inline void TrySlide(struct EwramData_EntityData *entity)
 
 #define DUST_SIDE (!gEwramData->playerState.player->flipX)
 
-extern void Whip_DeactivateChain(struct EwramData_EntityData *entity);
-extern void Julius_HandleSubweaponInput(struct EwramData_EntityData *entity);
-extern void Whip_SwingChainRight(struct EwramData_EntityData *entity);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *entity);
 #define SetJuliusAnim(e, a) SetJuliusAnimF(e, a, 0)
 
 /* Keep the inline boundary: it changes the offset pseudo's lifetime and the

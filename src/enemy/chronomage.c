@@ -9,17 +9,19 @@
 #include "map_flags.h"
 #include "sound.h"
 #include "player_core.h"
-#include "player_entity.h"
-#include "entity_util.h"
 #include "structs/ewram.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_palette.h"
+#include "palette.h"
 
 /* Chronomage affine casting effect. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 extern void Enemy_OnContact(struct EwramData_EntityData *);
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern void Enemy_UpdateFragmentDeath(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void Chronomage_UpdateWait(struct EwramData_EntityData *);
 extern void Chronomage_UpdateCast(struct EwramData_EntityData *);
@@ -79,7 +81,6 @@ remove:
 }
 
 /* Chronomage waiting-state transitions. */
-extern s32 Target_GetX(struct EwramData_EntityData *);
 extern u8 sChronomageWalkProfile[];
 #define ABS_CHRONOMAGE(v) ((v) < 0 ? -(v) : (v))
 
@@ -337,7 +338,6 @@ alive:
  *   Chronomage_OnHit = SkullMillioneFamily_OnHit */
 
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 
 /**
  * @brief Apply enemy damage; on defeat drop rewards, restore the palette

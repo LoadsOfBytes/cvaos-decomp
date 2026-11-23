@@ -2,17 +2,23 @@
  * Witch: states, orbit particles, attacks.
  * The attack part calls Witch_SpawnOrbitParticles with an s16 phase (cast marked at the call).
  */
+#include "witch.h"
 #include "core.h"
 #include "graphics.h"
-#include "entity_util.h"
 #include "macros.h"
 #include "player_core.h"
 #include "sound.h"
 #include "gameplay.h"
 #include "structs/ewram.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_palette.h"
+#include "effects.h"
 
 /* Witch homing motion and orbiting particle. */
-extern void EntityDampVelocityX(struct EwramData_EntityData *, s32);
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 extern u8 sWitchGfx[], sWitchPalette[], sWitchSpriteSheet[];
 #define ABS_MOTION(v) ((v) < 0 ? -(v) : (v))
@@ -167,10 +173,7 @@ countdown:
 }
 
 /* Witch affine spell projectile. */
-extern void EntityMoveX(struct EwramData_EntityData *);
 extern void EntityMoveY(struct EwramData_EntityData *);
-extern s32 Target_GetX(struct EwramData_EntityData *);
-extern s32 Target_GetY(struct EwramData_EntityData *);
 extern void WitchSpell_DamagePlayerOnContact(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 
@@ -481,13 +484,6 @@ void Witch_UpdateWait(struct EwramData_EntityData *entity)
 
 /* Witch_UpdateCast. */
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *update);
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
-extern s32 Target_GetPixelX(struct EwramData_EntityData *entity);
-extern s32 Target_IsNearEntity(struct EwramData_EntityData *entity, u16 width, u16 height);
-extern void EntityDampVelocityX(struct EwramData_EntityData *entity, s32 factor);
-extern void EntityDampVelocityY(struct EwramData_EntityData *entity, s32 factor);
-extern void EntityMoveX(struct EwramData_EntityData *entity);
-extern void EntityMoveY(struct EwramData_EntityData *entity);
 
 #undef ABS
 static inline s32 ABS(s32 x)
@@ -795,20 +791,9 @@ s32 Witch_UpdateDeath(struct EwramData_EntityData *entity)
 }
 
 /* Witch and Student Witch initialisation and state dispatchers. */
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 extern void Enemy_OnContact(struct EwramData_EntityData *);
-extern void StudentWitch_OnHit(struct EwramData_EntityData *, s32, u16 *);
 extern void Witch_OnHit(struct EwramData_EntityData *, s32, u16 *);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, void *);
-extern s32 Hit_EnableContact(struct EwramData_EntityData *, s32, void *, s32);
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
-extern void StudentWitch_UpdateWalk(struct EwramData_EntityData *);
-extern void StudentWitch_UpdateGroundAttack(struct EwramData_EntityData *);
-extern void StudentWitch_UpdateAirAttack(struct EwramData_EntityData *);
-extern s32 StudentWitch_UpdateDeath(struct EwramData_EntityData *);
 
 void EnemyWitchCreate(struct EwramData_EntityData *entity)
 {
@@ -865,7 +850,6 @@ void EnemyWitchUpdate(struct EwramData_EntityData *entity)
 
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 
 /**
  * @brief Apply enemy damage; on defeat drop rewards, restore the palette

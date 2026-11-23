@@ -1,26 +1,12 @@
 #include "bg_effects.h"
 #include "core.h"
-#include "sram.h"
 #include "bg_and_collision.h"
-#include "game_modes.h"
-#include "main_menu.h"
-#include "intro_cutscene.h"
-#include "soul_trade.h"
 #include "in_game.h"
 #include "room_entities.h"
 #include "music.h"
-#include "player_init.h"
-#include "player_core.h"
-#include "soul_inventory.h"
-#include "player_effects.h"
-#include "player_level.h"
-#include "debug_1967.h"
-#include "graphics.h"
 #include "gameplay.h"
 #include "sound.h"
 #include "gba.h"
-#include "macros.h"
-#include "agb_sram.h"
 #include "syscalls.h"
 
 #include "constants/main.h"
@@ -32,6 +18,10 @@
 #include "structs/agb_sram.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
+#include "math_anim.h"
+#include "menu_common.h"
+#include "palette.h"
+#include "text12.h"
 
 /**
  * @brief BG scroll mode 14: H-blank BG3 horizontal offsets scaled by the play
@@ -2070,4 +2060,3 @@ s32 Hud_UseBottomWindow(void)
         res = 0;
     return res;
 }
-

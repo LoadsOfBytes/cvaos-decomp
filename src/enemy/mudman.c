@@ -8,17 +8,20 @@
 #include "sound.h"
 #include "structs/ewram.h"
 #include "gameplay.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 /* Dispatch Mudman states while preserving hit-flash and freeze update gates. */
 extern s32 Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void Mudman_UpdateWalk(struct EwramData_EntityData *);
 extern void Mudman_UpdateAttack(struct EwramData_EntityData *);
 extern void Mudman_UpdateDeath(struct EwramData_EntityData *);
 extern void Mudman_UpdateHurt(struct EwramData_EntityData *);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
 void EnemyMudmanUpdate(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
@@ -49,7 +52,6 @@ finished:
 }
 
 /* Detect a nearby target, emerge and alternate movement with attacks. */
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
 extern s32 Target_IsInRect(s32, s32, s32, s32);
 extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s16);
 static inline void Emerge(struct EwramData_EntityData *entity)
@@ -168,7 +170,6 @@ void Mudman_UpdateAttack(struct EwramData_EntityData *entity)
 
 /* Hit reaction: emit two pieces in the facing direction and recover on landing. */
 extern void Mudman_SpawnPiece(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern s32 Anim_StartIndexed(struct EwramData_EntityData *, u16, u8, u8);
 
 /* The two velocity locals, offset registers and coordinate-read order preserve
  * agbcc's original allocation. They do not establish the original source form.
@@ -260,7 +261,6 @@ void Mudman_UpdateHurt(struct EwramData_EntityData *entity)
 }
 
 /* Death: scatter four pieces, wait for landing, then blink and delete. */
-extern s32 Entity_GetVisibilityPattern(s32);
 
 /**
  * @brief Death state machine (state 2): fall apart with splashing mud pieces, then
@@ -318,7 +318,6 @@ void Mudman_UpdateDeath(struct EwramData_EntityData *entity)
 /* Apply Mudman damage and choose death or a hit-dependent reaction state. */
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s32, s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 /**
  * @brief Hit: resolve, flash, subtract and show the damage; at HP <= 0 drop the
  * rewards and die (song 0x70, animation 4, state 2); a hit of type 3 or 4
@@ -398,8 +397,6 @@ void Mudman_ThrowShot(struct EwramData_EntityData *parent)
 }
 
 /* Handle projectile impacts, debris and attachment to a moving entity. */
-extern s32 Entity_MoveWithCollisionDefault(struct EwramData_EntityData *, s32, s32);
-extern s32 EntityIsOutsideScreen(struct EwramData_EntityData *, s32);
 extern void MudmanPiece_Update(struct EwramData_EntityData *);
 extern u8 sMudmanGfx[], sMudmanSpriteSheet[];
 static inline void EmitDebris(struct EwramData_EntityData *parent, s32 x, s32 y, s32 vx, s32 vy, s32 zero)
@@ -586,8 +583,6 @@ void MudmanPiece_Update(struct EwramData_EntityData *entity)
 
 /* MudmanShot_LoadGraphics (Mudman graphics for another entity). */
 /* Graphics of Mudman. */
-extern u8 sMudmanGfx[];
-extern u8 sMudmanSpriteSheet[];
 
 /**
  * @brief 72608 | Give projectile the already loaded Mudman graphics (palette
@@ -607,7 +602,6 @@ u8 MudmanShot_LoadGraphics(struct EwramData_EntityData *entity, struct EwramData
 }
 
 /* MudmanShot_OnHit. */
-extern u16 Player_CalculateAttackPower(u16 attackCategory);
 
 /**
  * @brief 72658 | Hit: call Player_CalculateAttackPower on the damage value (result
@@ -622,8 +616,6 @@ void MudmanShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hi
 
 /* Mudman begins its spawn animation or the display-mode idle animation. */
 extern u8 Mudman_LoadGraphics(struct EwramData_EntityData *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *,void *,void *);
 void Mudman_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void EnemyMudmanCreate(struct EwramData_EntityData *entity)

@@ -1,16 +1,15 @@
 /*
  * Menu helpers: grid cursor, tile rows, HP / MP bars, stats, play time, menu text, the HUD map numbers and the 16x16 tile block.
  */
+#include "menu_common.h"
 #include "types.h"
 #include "bg_map.h"
 #include "structs/ewram.h"
 #include "syscalls.h"
-#include "core.h"
-#include "graphics.h"
 #include "gameplay.h"
 #include "macros.h"
-#include "menu_page.h"
 #include "gba.h"
+#include "text12.h"
 
 struct MenuGrid
 {

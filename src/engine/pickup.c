@@ -12,6 +12,12 @@
 #include "bg_effects.h"
 #include "sound.h"
 #include "soul_inventory.h"
+#include "effects.h"
+#include "equipment_menu.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "pickup.h"
+#include "soul_menu.h"
 
 static inline s32 Item_GetTypeByGlobalId(s32 globalId)
 {
@@ -94,7 +100,6 @@ void Player_RestoreMPPercent(s32 percent)
  * (x -4, y -4, w 8, h 8); large (frame 0x27, spawnParam1 15, update
  * Pickup_Update) or small (frame 0x28, spawnParam1 3); optionally thrown up. */
 extern void Pickup_UpdateDriftingMana(struct EwramData_EntityData *);
-extern void Pickup_Collect(struct EwramData_EntityData *);
 extern void Pickup_Update(struct EwramData_EntityData *);
 extern u8 sCommonObjectGfx[], sCommonObjectSpriteSheet[];
 
@@ -432,10 +437,7 @@ done:
  * (Makefile): the target reloads the inventory count after the 0x4EF test. */
 
 extern const u16 sItemNameTextIds[];
-extern void EquipmentList_Insert(s32 type, s32 item);
-extern s32 SoulAcquisition_CreateEffect(s32);
 extern void Effect_SpawnAttachedAnimation(struct EwramData_EntityData *, u8, u8, s32, s32);
-extern void SoulList_Insert(s32 kind, s32 soul);
 
 static inline u8 *Inv(struct PlayerStatus *v, s32 t)
 {

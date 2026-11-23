@@ -1,34 +1,39 @@
 /*
  * Player (Soma): new game / entity init, collision corrections and floor probes, ground / air / ladder / swim movement, ceiling impact, dive attack, jumps, red soul cast and weapon input, knockback, status reactions, bat flight, death and scripted animations.
  */
-#include "player_init.h"
+#include "player_soma.h"
 #include "player_entity.h"
 #include "core.h"
-#include "sram.h"
 #include "bg_and_collision.h"
-#include "intro_cutscene.h"
 #include "bg_effects.h"
-#include "room_entities.h"
 #include "player_core.h"
 #include "soul_inventory.h"
 #include "player_effects.h"
 #include "player_level.h"
-#include "debug_1967.h"
 #include "graphics.h"
 #include "gameplay.h"
 #include "sound.h"
 #include "gba.h"
 #include "macros.h"
-#include "agb_sram.h"
-#include "syscalls.h"
 #include "constants/main.h"
 #include "data/data_0E0334.h"
 #include "data/data_0E3464.h"
 #include "structs/agb_sram.h"
 #include "structs/ewram.h"
-#include "entity_util.h"
 #include "structs/main.h"
 #include "map_flags.h"
+#include "blue_souls.h"
+#include "damage_numbers.h"
+#include "effects.h"
+#include "enemy_common.h"
+#include "hitbox.h"
+#include "item_menu.h"
+#include "math_anim.h"
+#include "menu_common.h"
+#include "obj_gfx.h"
+#include "palette.h"
+#include "red_souls_b.h"
+#include "system_menus.h"
 
 // ROM data passed as pointers; previously hard-coded addresses in the draft.
 extern u8 sSomaSpriteSheet[];
@@ -1884,8 +1889,6 @@ void Soma_UpdateJumpControl(struct EwramData_EntityData *entity)
 /* Soma_CastEquippedRedSoul; soul spawn
  * as in Soma_TryCastRedSoulUnused (src/player/player_julius.c). */
 
-extern u8 RedSoul_GetCastAnim(s32 pose);
-
 /* Animation switch of the player states (as SetPlayerAnim in
  * this file) with the hitbox copied from table[0]. */
 static inline void SetPlayerAnimBox2(struct EwramData_EntityData *entity, u8 anim, struct PlayerBodyBox *table)
@@ -2053,7 +2056,6 @@ void Soma_HandleWeaponAttackInput(struct EwramData_EntityData *entity)
  * without the animation switch). */
 
 void Soma_UpdateVerticalMovement(struct EwramData_EntityData *entity);
-void Soma_HandleBlueSoulInput(struct EwramData_EntityData *entity);
 
 /**
  * @brief Update damage-reaction state 13: damp horizontal motion without
@@ -2114,7 +2116,6 @@ done:
  * block as in Soma_TryCeilingImpact, velocity stop as in Julius_UpdateKnockback. */
 
 void Soma_UpdateVerticalMovement(struct EwramData_EntityData *entity);
-void Soma_HandleBlueSoulInput(struct EwramData_EntityData *entity);
 
 /**
  * @brief Update damage-reaction state 14, entered with stored external
@@ -2572,7 +2573,6 @@ static inline u16 FloorProbe2(s16 x, s16 y, s32 flag)
 }
 
 extern u8 *sUnk_084F10A0[];
-extern void BlueSoul_StopAll(void);
 
 #define B53E(e) (*((u8 *)(e) + 0x5A))
 
@@ -2765,8 +2765,6 @@ void Soma_UpdateTransformationDash(struct EwramData_EntityData *entity)
 /* Soma_StartDeath (same as
  * Julius_StartDeath with animation 0x33). */
 
-void BlueSoul_StopAll(void);
-
 /**
  * @brief Enter death state 16 from the main update when HP is nonpositive:
  * set the scene flags, animation 0x33, stop blue souls and apply
@@ -2854,10 +2852,7 @@ done_y:
 }
 
 /* Player (Soma) main update: damage reactions, collision, state machine. */
-extern void Soma_HandleBlueSoulInput(struct EwramData_EntityData *entity);
 extern struct EwramData_EntityData *Effect_CreatePlayerFlash(s32 kind);
-extern void HitBox_UpdatePlayerRects(void);
-extern void YellowSoul_CreateEquippedEntity(struct EwramData_EntityData *entity);
 
 #define HELD (gEwramData->inputData.playerHeldInput)
 #define NEW (gEwramData->inputData.playerNewInput)

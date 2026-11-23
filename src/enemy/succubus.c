@@ -8,10 +8,12 @@
 #include "structs/ewram.h"
 #include "sound.h"
 #include "structs/entity_render_flags.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *entity);
-extern void Enemy_UpdateFragmentDeath(struct EwramData_EntityData *entity);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *entity);
 extern void Succubus_UpdateWalk(struct EwramData_EntityData *entity);
 extern void Succubus_UpdateAttack(struct EwramData_EntityData *entity);
 extern s32 Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
@@ -68,14 +70,10 @@ void EnemySuccubusUpdate(struct EwramData_EntityData *entity)
 }
 
 extern u8 Succubus_LoadGraphics(struct EwramData_EntityData *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern s32 Anim_GetMaxBoxCount(struct EwramData_EntityData *);
 extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
 extern void Hit_Enable(struct EwramData_EntityData *, s32, void *, void *);
 void Succubus_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void Succubus_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 
 void EnemySuccubusCreate(struct EwramData_EntityData *entity)
 {
@@ -118,14 +116,10 @@ void EnemySuccubusCreate(struct EwramData_EntityData *entity)
     entity->accelY.whole = 0x1800;
 }
 
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
-extern s32 Target_GetFlipXOrOpposite(struct EwramData_EntityData *entity);
 extern s32 Target_IsInRect(s16, s16, s16, s16);
 extern s32 Entity_ClampXToRoom(struct EwramData_EntityData *, s32);
 extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern s32 Player_GetFocusedActionFlags(void);
 extern void Afterimage_Create(struct EwramData_EntityData *, s32, s32, s32);
-extern void EntityDampVelocityX(struct EwramData_EntityData *, s32);
 
 /**
  * @brief 93E04 | Enemy AI (subState): growls (song 0x1C7) once the player is
@@ -515,7 +509,6 @@ void Succubus_UpdateAttack(struct EwramData_EntityData *entity)
 
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 
 /**
  * @brief Hit: resolve the damage, flash, wake it (unk_4FC = 1), subtract and show

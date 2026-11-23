@@ -370,43 +370,16 @@ extern const u8 gCgb3Vol[];
 extern char gNumMusicPlayers[];
 extern char gMaxLines[];
 
-u32 MidiKeyToFreq(struct WaveData *wav, u8 key, u8 fineAdjust);
 u32 umul3232H32(u32 multiplier, u32 multiplicand);
 void SoundMain(void);
 void SoundMainBTM(void *ptr);
 void TrackStop(struct MP2KPlayerState *player, struct MP2KTrack *track);
 void MP2KPlayerMain(struct MP2KPlayerState *);
 
-void ClearChain(struct MixerSource *chan);
 void MP2KClearChain(struct MixerSource *chan);
 
-void MPlayContinue(struct MP2KPlayerState *mplayInfo);
-void MPlayStart(struct MP2KPlayerState *mplayInfo, struct MP2KSongHeader *songHeader);
-void MPlayStop(struct MP2KPlayerState *mplayInfo);
-void FadeOutBody(struct MP2KPlayerState *mplayInfo);
-void TrkVolPitSet(struct MP2KPlayerState *mplayInfo, struct MP2KTrack *track);
-void MPlayFadeOut(struct MP2KPlayerState *mplayInfo, u16 speed);
-void Clear64byte(void *addr);
-void SoundInit(struct SoundMixerState *soundInfo);
-void MPlayExtender(struct MixerSource *cgbChans);
-void m4aSoundMode(u32 mode);
-void MPlayOpen(struct MP2KPlayerState *mplayInfo, struct MP2KTrack *tracks, u8 trackCount);
-void CgbSound(void);
-void CgbOscOff(u8);
-void CgbModVol(struct MixerSource *chan);
-u32 MidiKeyToCgbFreq(u8, u8, u8);
 void MPlayJumpTableCopy(void **mplayJumpTable);
-void SampleFreqSet(u32 freq);
-void m4aSoundVSyncOn(void);
-void m4aSoundVSyncOff(void);
 
-void m4aMPlayTempoControl(struct MP2KPlayerState *mplayInfo, u16 tempo);
-void m4aMPlayVolumeControl(struct MP2KPlayerState *mplayInfo, u16 trackBits, u16 volume);
-void m4aMPlayPitchControl(struct MP2KPlayerState *mplayInfo, u16 trackBits, s16 pitch);
-void m4aMPlayPanpotControl(struct MP2KPlayerState *mplayInfo, u16 trackBits, s8 pan);
-void ClearModM(struct MP2KTrack *track);
-void m4aMPlayModDepthSet(struct MP2KPlayerState *mplayInfo, u16 trackBits, u8 modDepth);
-void m4aMPlayLFOSpeedSet(struct MP2KPlayerState *mplayInfo, u16 trackBits, u8 lfoSpeed);
 
 // sound command handler functions
 void MP2K_event_fine(struct MP2KPlayerState *, struct MP2KTrack *);
@@ -414,7 +387,6 @@ void MP2K_event_goto(struct MP2KPlayerState *, struct MP2KTrack *);
 void MP2K_event_patt(struct MP2KPlayerState *, struct MP2KTrack *);
 void MP2K_event_pend(struct MP2KPlayerState *, struct MP2KTrack *);
 void MP2K_event_rept(struct MP2KPlayerState *, struct MP2KTrack *);
-void MP2K_event_memacc(struct MP2KPlayerState *, struct MP2KTrack *);
 void MP2K_event_prio(struct MP2KPlayerState *, struct MP2KTrack *);
 void MP2K_event_tempo(struct MP2KPlayerState *, struct MP2KTrack *);
 void MP2K_event_keysh(struct MP2KPlayerState *, struct MP2KTrack *);
@@ -429,22 +401,10 @@ void MP2K_event_mod(struct MP2KPlayerState *, struct MP2KTrack *);
 void MP2K_event_modt(struct MP2KPlayerState *, struct MP2KTrack *);
 void MP2K_event_tune(struct MP2KPlayerState *, struct MP2KTrack *);
 void MP2K_event_port(struct MP2KPlayerState *, struct MP2KTrack *);
-void MP2K_event_xcmd(struct MP2KPlayerState *, struct MP2KTrack *);
 void MP2K_event_endtie(struct MP2KPlayerState *, struct MP2KTrack *);
 void MP2K_event_nxx(u8 clock, struct MP2KPlayerState *, struct MP2KTrack *);
 
 // extended sound command handler functions
-void MP2K_event_xxx(struct MP2KPlayerState *, struct MP2KTrack *);
-void MP2K_event_xwave(struct MP2KPlayerState *, struct MP2KTrack *);
-void MP2K_event_xtype(struct MP2KPlayerState *, struct MP2KTrack *);
-void MP2K_event_xatta(struct MP2KPlayerState *, struct MP2KTrack *);
-void MP2K_event_xdeca(struct MP2KPlayerState *, struct MP2KTrack *);
-void MP2K_event_xsust(struct MP2KPlayerState *, struct MP2KTrack *);
-void MP2K_event_xrele(struct MP2KPlayerState *, struct MP2KTrack *);
-void MP2K_event_xiecv(struct MP2KPlayerState *, struct MP2KTrack *);
-void MP2K_event_xiecl(struct MP2KPlayerState *, struct MP2KTrack *);
-void MP2K_event_xleng(struct MP2KPlayerState *, struct MP2KTrack *);
-void MP2K_event_xswee(struct MP2KPlayerState *, struct MP2KTrack *);
 void MP2K_event_xcmd_0C(struct MP2KPlayerState *, struct MP2KTrack *);
 void MP2K_event_xcmd_0D(struct MP2KPlayerState *, struct MP2KTrack *);
 

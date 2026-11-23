@@ -8,14 +8,14 @@
 #include "player_core.h"
 #include "gameplay.h"
 #include "structs/ewram.h"
-#include "player_entity.h"
 #include "structs/entity_render_flags.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "kyoma_demon_b.h"
+#include "math_anim.h"
 
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void KyomaDemon_UpdateLurk(struct EwramData_EntityData *);
-extern void KyomaDemon_UpdateAttack(struct EwramData_EntityData *);
-extern void KyomaDemon_UpdateDeath(struct EwramData_EntityData *);
 
 void EnemyKyomaDemonUpdate(struct EwramData_EntityData *entity)
 {
@@ -48,13 +48,7 @@ void EnemyKyomaDemonUpdate(struct EwramData_EntityData *entity)
     entity->ext.kyomaDemon.roomY = entity->posY.whole + background->yPos.whole;
 }
 
-extern u8 KyomaDemon_LoadGraphics(struct EwramData_EntityData *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
-extern s32 Anim_GetMaxBoxCount(struct EwramData_EntityData *);
 extern s32 Hit_EnableContact(struct EwramData_EntityData *, s32, void *, s32);
-extern void KyomaDemon_DamagePlayerOnContact(struct EwramData_EntityData *);
 extern void KyomaDemon_OnHit(struct EwramData_EntityData *);
 void EnemyKyomaDemonCreate(struct EwramData_EntityData *entity)
 {

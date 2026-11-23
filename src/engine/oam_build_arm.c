@@ -2,7 +2,6 @@
  * Walks the 32 per-layer sprite lists, applies layer priority, copies
  * the OAM entries out and scrolls all but layer 0 by the camera shake
  * offset. Built with the bundled agbcc_arm. */
-#include "graphics.h"
 #include "structs/ewram.h"
 #include "structs/render_slots.h"
 

@@ -1,8 +1,9 @@
-#include "graphics.h"
 #include "structs/render_slots.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "palette.h"
 
 struct Matrix2;
-extern void ObjAffine_GetMatrix(struct Matrix2 *dst, s32 index);
 extern void (*gObjAffineGetMatrixFunc)(struct Matrix2 *, s32);
 extern s32 (*gObjAffineGetFlipXFunc)(s32);
 extern s32 (*gObjAffineGetFlipYFunc)(s32);

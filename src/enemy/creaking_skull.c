@@ -13,11 +13,18 @@
 #include "sound.h"
 #include <string.h>
 #include "syscalls.h"
+#include "boss_defeat.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "map_flags.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
+#include "player_level.h"
 
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *entity);
-extern void Heap_Free(void *parts);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *entity);
 extern void CreakingSkull_UpdateMovement(struct EwramData_EntityData *entity);
 extern void CreakingSkull_UpdateAttack(struct EwramData_EntityData *entity);
 extern void CreakingSkull_UpdateBestiaryPreview(struct EwramData_EntityData *entity);
@@ -91,10 +98,6 @@ boxes:
 /* Creaking Skull create: allocates the 13-joint skeleton and one part entity per joint. */
 extern void *memcpy(void *dst, const void *src, unsigned long size);
 extern u8 CreakingSkull_LoadGraphics(struct EwramData_EntityData *entity);
-extern void *Heap_Alloc(u16 words);
-extern void Heap_Free(void *allocation);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
-extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *update);
 extern void CreakingSkullPart_Update(struct EwramData_EntityData *entity);
 extern void CreakingSkull_OnContact(struct EwramData_EntityData *entity);
@@ -104,7 +107,6 @@ extern void CreakingSkull_OnHit(struct EwramData_EntityData *entity, s32 attacke
 extern void CreakingSkull_AttachJointSetAngle(struct EwramData_EntityData *entity, s32 partIndex, s32 anchorIndex, s32 angleSpec, s32 length);
 extern void CreakingSkull_InterpolateJointsInOrder(struct EwramData_EntityData *entity, s8 *order);
 extern void CreakingSkull_FaceTarget(struct EwramData_EntityData *entity);
-extern void Player_SetSelectedTarget(struct EwramData_EntityData *entity);
 extern s32 Music_SetCurrent(s32 song);
 extern u8 sCreakingSkullGfx[], sCreakingSkullSpriteSheet[];
 extern const u8 sCreakingSkullFrames0[13], sCreakingSkullAnchors[13];
@@ -261,19 +263,9 @@ void EnemyCreakingSkullCreate(struct EwramData_EntityData *entity)
 
 /* Creaking Skull movement: alternating strides, pauses, and attack selection.
  * for compiler constraints and matching evidence. */
-extern void *memcpy(void *, const void *, unsigned long);
-extern void CreakingSkull_FaceTarget(struct EwramData_EntityData *);
-extern void CreakingSkull_AttachJointSetAngle(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern void CreakingSkull_InterpolateJointsInOrder(struct EwramData_EntityData *, s8 *);
-extern s32 Entity_MoveWithCollisionDefault(struct EwramData_EntityData *, s32, s32);
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *, s32, s32);
-extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
 extern s32 Target_GetPixelX(struct EwramData_EntityData *);
-extern s32 Entity_GetHorizontalRoomEdge(struct EwramData_EntityData *, s32);
-extern s32 Tile_Classify(s16, s16);
-extern void Effect_SpawnParticleWithDamping(s32, s32, s32, s32, s32, s32, s32, s32, s32);
 extern const u8 sCreakingSkullTimes0[2], sCreakingSkullTimes1[2], sCreakingSkullTimes2[2], sUnk_08119076[2];
-extern const s8 sUnk_08119063[13];
 #define PHASE entity->subState
 #define SUBPHASE entity->stage
 #define TIMER entity->timer
@@ -560,11 +552,6 @@ extern void CreakingSkull_RestoreJointPositions(struct EwramData_EntityData *ent
 extern void CreakingSkull_AttachJoint(struct EwramData_EntityData *entity, s32 partIndex, s32 anchorIndex, s32 angleSpec, s32 length);
 extern void CreakingSkull_SpawnGuidedEffect(struct EwramData_EntityData *entity, s32 lateTargetX, s32 lateTargetY, s32 earlyTargetX, s32 earlyTargetY, s32 x, s32 y);
 extern void CreakingSkull_SpawnProjectile(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx, s32 vy);
-extern void Effect_SpawnParticleWithDamping(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32 variant, s32 damping, s32 flags, s32 palette);
-extern void Effect_SpawnFallingPiece(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32 piece);
-extern void Effect_SpawnParticleAnim11(s32 x, s32 y, s32 vx, s32 vy, s32 layer);
-extern void ScreenShake_RequestOffset(u8 priority, s8 offsetX, s8 offsetY);
-extern s32 Entity_GetVisibilityPattern(s32);
 extern const u8 sCreakingSkullSwingTimes[3], sCreakingSkullArmTimes[3], sCreakingSkullSpitTimes[3];
 
 #undef ARMS
@@ -1003,7 +990,6 @@ void CreakingSkull_UpdateAttack(struct EwramData_EntityData *entity)
     }
 }
 
-
 /**
  * @brief Bestiary state (3): cycle four poses through the 13-joint chain
  * with the stored timers, then reset the joint angles and repeat.
@@ -1131,7 +1117,6 @@ void CreakingSkull_InterpolateJoint(struct EwramData_EntityData *entity, s32 ind
 
 /* Mirror all thirteen joints when the facing direction changes.
  * Angles of joints 0..2, 8 and 11 also reflect around 0x20000. */
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
 /**
  * @brief When target-facing changes, flip and mirror all thirteen joint X positions; reflect rotations for joints 0..2, 8 and 11.
  */
@@ -1223,9 +1208,6 @@ void CreakingSkull_AttachJointSetAngle(struct EwramData_EntityData *entity, s32 
 }
 
 /* CreakingSkull_AttachJoint (chain joint set-up) and CreakingSkull_ApplyResolvedDamage. */
-extern void Link_MarkEnemyDamaged(void);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
-extern void BossDefeatEffect_Spawn(s32 x, s32 y);
 extern void BossRecoveryPickup_Spawn(s32 x, s32 y, s32 event, s32 delay, s32 special);
 
 /**
@@ -1643,10 +1625,6 @@ void CreakingSkull_SpawnProjectile(struct EwramData_EntityData *owner, s32 x, s3
  * bursts into six random sparks and deletes itself. */
 
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void Effect_SpawnFadingParticle(s32, s32, s32, s32, s32, s32);
-extern void Effect_SpawnParticleAnim0(s32, s32, s32, s32, s32);
-extern s32 FixedMultiply(s32, s32);
-extern void EntityMove(struct EwramData_EntityData *);
 
 /**
  * @brief Move the projectile with its animated trail and contact checks;
@@ -1812,14 +1790,11 @@ void CreakingSkull_OnContact(struct EwramData_EntityData *entity)
  * Creaking Skull functions). */
 
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-extern u16 Player_CalculateAttackPower(u16 attackCategory);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
 
 /* Graphics of Creaking Skull and of the effect. */
-extern u8 sCreakingSkullGfx[];
 extern u8 sCreakingSkullPalette[];
-extern u8 sCreakingSkullSpriteSheet[];
 extern u8 sCommonObjectGfx[];
 extern u8 sCommonObjectSpriteSheet[];
 

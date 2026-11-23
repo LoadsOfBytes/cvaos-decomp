@@ -2,14 +2,22 @@
  * Waiter Skeleton: tray, throw, walk, hits; thrown tray and Skull Archer arrow contact / hit callbacks.
  * Built without -f2003-patch (the hit callbacks need it off; the rest compiles the same either way).
  */
+#include "waiter_skeleton.h"
 #include "core.h"
 #include "graphics.h"
 #include "structs/ewram.h"
 #include "sound.h"
 #include "gameplay.h"
-#include "entity_util.h"
 #include "structs/entity_render_flags.h"
 #include "player_core.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
+#include "skull_archer.h"
 
 /* Attached animated effect: follows a sprite part while its owner's flag 2 is set. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
@@ -59,11 +67,8 @@ void WaiterSkeletonTray_Update(struct EwramData_EntityData *entity)
 extern void WaiterSkeletonThrownTray_DamagePlayerOnContact(struct EwramData_EntityData *);
 extern void WaiterSkeletonThrownTray_OnHit(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern s32 Target_GetX(struct EwramData_EntityData *);
 extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
-extern void EntityDampVelocityX(struct EwramData_EntityData *, s32);
 extern void EntityAccelerateY(struct EwramData_EntityData *, s32);
-extern void EntityMoveX(struct EwramData_EntityData *);
 extern void EntityMoveY(struct EwramData_EntityData *);
 struct PartOffset { u16 index; s8 x, y; };
 extern const struct PartOffset sWaiterSkeletonTrayOffsets[];
@@ -288,7 +293,6 @@ finishThrow:
 
 /* Waiter Skeleton walking/approach states and breakup animation. */
 extern s32 Target_IsInRect(s16, s16, s32, s32);
-extern void Effect_UpdateSpriteDebris(struct EwramData_EntityData *);
 extern u8 sWaiterSkeletonWalkProfile[], sWaiterSkeletonGfx[], sWaiterSkeletonSpriteSheet[];
 void WaiterSkeleton_UpdateWalk(struct EwramData_EntityData *entity)
 {
@@ -410,12 +414,9 @@ s32 WaiterSkeleton_SpawnDeathPieces(struct EwramData_EntityData *entity)
 }
 
 /* Waiter Skeleton creation and attached sprite setup. */
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, void *);
 extern void Enemy_OnContact(struct EwramData_EntityData *);
 extern void WaiterSkeleton_OnHit(struct EwramData_EntityData *, s32, u16 *);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 void EnemyWaiterSkeletonCreate(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *effect;
@@ -451,10 +452,7 @@ void EnemyWaiterSkeletonCreate(struct EwramData_EntityData *entity)
     entity->state = 0;
 }
 
-extern s32 Enemy_PreUpdate(struct EwramData_EntityData *);
 extern void Entity_FaceTarget(struct EwramData_EntityData *);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
 
 void EnemyWaiterSkeletonUpdate(struct EwramData_EntityData *entity)
 {
@@ -487,18 +485,11 @@ void EnemyWaiterSkeletonUpdate(struct EwramData_EntityData *entity)
 
 /* Enemy helpers decompiled from assembly. */
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *, s32, u16 *);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
-extern void Entity_SetVelocityXFromFacing(struct EwramData_EntityData *, s32);
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *, u16, u16);
 extern s32 sUnk_08528614[];
-extern struct EwramData_EntityData *Entity_CreateObject(void *);
-extern void SkullArcherArrow_OnHit(struct EwramData_EntityData *);
 extern u8 sSkullArcherGfx[], sSkullArcherSpriteSheet[];
 extern u8 sSkullArcherWalkProfile[], sSkullArcherPalette[];
 extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *);
-extern s16 Entity_GetTargetDistance(struct EwramData_EntityData *);
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, u8 *, void *, u8, void *);
-extern void SkullArcher_OnHit(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *);
 
 void WaiterSkeleton_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {

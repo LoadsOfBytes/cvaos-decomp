@@ -1,22 +1,12 @@
 #include "save_data.h"
-#include "core.h"
 #include "sram.h"
 #include "intro_cutscene.h"
-#include "bg_effects.h"
-#include "room_entities.h"
 #include "map_flags.h"
 #include "player_core.h"
 #include "soul_inventory.h"
-#include "player_effects.h"
 #include "player_level.h"
-#include "debug_1967.h"
-#include "graphics.h"
-#include "gameplay.h"
-#include "sound.h"
 #include "gba.h"
-#include "macros.h"
 #include "agb_sram.h"
-#include "syscalls.h"
 
 #include "constants/main.h"
 
@@ -44,7 +34,6 @@ static inline u32 SaveData_SaveSlotToSram_inline(s32 saveSlot)
     struct EwramData **ewramAddress = &gEwramData;
     void *sramSaveSlot;
     u32 error_addr;
-
 
     sramSaveSlot = SRAM_BASE + 0x10 + saveSlot * 0x47C;
     SramLockSaveSlot(saveSlot);
@@ -110,7 +99,6 @@ s32 SaveData_LoadSlotFromSram(s32 saveSlot)
     struct EwramData **ewramAddress = &gEwramData;
     s32 saveValid;
     void *sramSaveSlot;
-
 
     saveValid = SramCheckInitialized();
     if (saveValid)
@@ -552,7 +540,6 @@ u32 SaveData_SaveSlotToSram(s32 saveSlot)
     void *sramSaveSlot;
     u32 error_addr;
 
-
     sramSaveSlot = SRAM_BASE + 0x10 + saveSlot * 0x47C;
     SramLockSaveSlot(saveSlot);
     error_addr = WriteAndVerifySramFast(&(*ewramAddress)->playerStatus, sramSaveSlot, 0x190);
@@ -632,7 +619,6 @@ u32 SaveData_SaveSystemFlags(void)
     u32 error_addr;
     void *dst;
 
-
     dst = SRAM_BASE + 0x10 + 0x47C * 6 + 0;
     SramLockSaveSlot(6);
     error_addr = WriteAndVerifySramFast(&(*ewramAddress)->gameState, dst, 4);
@@ -649,7 +635,6 @@ u32 SaveData_LoadSystemFlags(void)
     struct EwramData **ewramAddress = &gEwramData;
     s32 saveValid;
     void *sramAddr;
-
 
     saveValid = SramCheckInitialized();
     if (saveValid)
@@ -745,7 +730,6 @@ u32 SaveData_SaveLanguage(void)
     u32 error_addr;
     void *sramLanguageOffset;
 
-
     sramLanguageOffset = SRAM_BASE + 0x10 + 0x47C * 6 + 4;
     SramLockSaveSlot(6);
     error_addr = WriteAndVerifySramFast(&(*ewramAddress)->gameState.language, sramLanguageOffset, sizeof((*ewramAddress)->gameState.language));
@@ -763,7 +747,6 @@ s32 SaveData_LoadLanguage(void)
     struct EwramData **ewramAddress = &gEwramData;
     s32 saveValid;
     void *sramLanguageOffset;
-
 
     saveValid = SramCheckInitialized();
     if (saveValid)

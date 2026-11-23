@@ -1,25 +1,12 @@
 #include "player_effects.h"
-#include "player_entity.h"
 #include "core.h"
-#include "sram.h"
 #include "bg_and_collision.h"
-#include "intro_cutscene.h"
-#include "bg_effects.h"
-#include "room_entities.h"
-#include "player_init.h"
 #include "player_core.h"
-#include "soul_inventory.h"
-#include "player_level.h"
-#include "debug_1967.h"
 #include "graphics.h"
-#include "gameplay.h"
 #include "entity_util.h"
 #include "sound.h"
 #include "gba.h"
 #include "macros.h"
-#include "agb_sram.h"
-#include "agb_multi_sio_sync.h"
-#include "syscalls.h"
 
 #include "constants/main.h"
 
@@ -29,6 +16,10 @@
 #include "structs/agb_sram.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
+#include "entity_common.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "music.h"
 
 /**
  * @brief Wait for the delay, then move with the velocity and delete itself
@@ -544,7 +535,6 @@ void PushBlockGroup_Create(struct EwramData_EntityData *entity)
     }
 }
 
-
 /* Overlap with the nearest block of the group on the left (> 0: push right). */
 static inline s32 OverlapLeft(struct EwramData_EntityData *block)
 {
@@ -792,7 +782,6 @@ void PushBlock_Update(struct EwramData_EntityData *block)
     block->roomActive = 1;
 }
 
-
 static inline s32 PushBlockGroup_CeilingCorrectionInline(struct EwramData_EntityData *entity, s16 x, s16 y)
 {
     s32 i;
@@ -852,7 +841,6 @@ s16 PushBlockGroup_CeilingCorrection(struct EwramData_EntityData *entity, s16 x,
     return PushBlockGroup_CeilingCorrectionInline(entity, x, y);
 }
 
-
 static inline s32 PushBlockGroup_FloorCorrectionInline(struct EwramData_EntityData *entity, s16 x, s16 y)
 {
     s32 i;
@@ -911,7 +899,6 @@ s16 PushBlockGroup_FloorCorrection(struct EwramData_EntityData *entity, s16 x, s
 {
     return PushBlockGroup_FloorCorrectionInline(entity, x, y);
 }
-
 
 static inline s32 PushBlockGroup_WallRightCorrectionInline(struct EwramData_EntityData *entity, s16 x, s16 y)
 {
@@ -990,7 +977,6 @@ s16 PushBlockGroup_WallRightCorrection(struct EwramData_EntityData *entity, s16 
 {
     return PushBlockGroup_WallRightCorrectionInline(entity, x, y);
 }
-
 
 static inline s32 PushBlockGroup_WallLeftCorrectionInline(struct EwramData_EntityData *entity, s16 x, s16 y)
 {

@@ -7,18 +7,22 @@
 #include "entity_util.h"
 #include "structs/ewram.h"
 #include "sound.h"
-#include "gameplay.h"
+#include "agb_print.h"
+#include "damage_numbers.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
+#include "werejaguar.h"
 
 /* Werejaguar dispatch, collision handling and animation change notification. */
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *,struct EwramData_EntityData *);
 extern void Werejaguar_UpdateWalk(struct EwramData_EntityData *);
 extern void Werejaguar_UpdateAttack(struct EwramData_EntityData *);
-extern void Werejaguar_UpdateDeath(struct EwramData_EntityData *);
 extern void Werejaguar_UpdateRecoil(struct EwramData_EntityData *);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
 void EnemyWerejaguarUpdate(struct EwramData_EntityData *entity)
 {
     s32 bounds[12];
@@ -57,9 +61,7 @@ collision:
     Enemy_CheckHitPlayer(entity);
 }
 
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
 extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
 extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s32);
 extern s16 Target_GetPixelX(struct EwramData_EntityData *entity);
 
@@ -504,7 +506,6 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
 }
 
 /* Recoil away from the target and return to the grounded idle state. */
-extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *,s32,s32,s32,s32);
 /**
  * @brief Recoil state (state 3): hop back from the target and resume on landing.
  */
@@ -537,7 +538,6 @@ void Werejaguar_UpdateRecoil(struct EwramData_EntityData *entity)
 }
 
 /* Dying Werejaguar emits shrinking particles and flashes its palette. */
-extern s32 Entity_GetVisibilityPattern(s32);
 extern void Werejaguar_SpawnDeathEffect(s32,s32,s32,s32);
 /**
  * @brief Death state (state 2, also used by the Werewolf): spiral effects every 4
@@ -553,7 +553,6 @@ void Werejaguar_UpdateDeath(struct EwramData_EntityData *entity)
 }
 
 /* Select attack damage and knockback, then use the current frame's hitbox. */
-extern void AGBAssert(const char *,int,const char *,int);
 extern const char sAssertFileLtInline[],sAssertExprOpdId[];
 static inline struct SpriteSheet *GetSprite(s16 slot)
 {
@@ -608,7 +607,6 @@ void Werejaguar_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 /* Apply damage and choose full destruction or a short reaction to selected attacks. */
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *,struct EwramData_EntityData *,u16 *,s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *,s32,s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 void Werejaguar_OnHit(struct EwramData_EntityData *entity,struct EwramData_EntityData *attacker,u16 *info)
 {
     s32 power=Player_CalculateAttackPower(info[2]);
@@ -720,9 +718,6 @@ u8 Werejaguar_LoadGraphics(struct EwramData_EntityData *entity)
 }
 
 /* EnemyWerejaguarCreate. */
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *entity);
-extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
 extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
 
 /**

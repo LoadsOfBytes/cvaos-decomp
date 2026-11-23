@@ -11,11 +11,19 @@
 #include "sound.h"
 #include "syscalls.h"
 #include "structs/entity_render_flags.h"
-#include "player_entity.h"
 #include "music.h"
 #include "structs/main.h"
 #include "macros.h"
 #include "types.h"
+#include "damage_numbers.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "palette.h"
+#include "red_souls_b.h"
+#include "effects.h"
 /* from player_core.h (not included: see the module notes) */
 extern s32 Player_IsBossTargetLowHp(void);
 extern void Player_StartContactImmunity(u8 frames);
@@ -125,7 +133,6 @@ struct SoulGraphicsResources {
     void *spriteSheet;
 };
 extern struct SoulGraphicsResources sSkillGraphicsSets[];
-extern void SoulAttack_MarkHit(struct EwramData_EntityData *);
 
 static inline void SkillLoadGraphicsInline(struct EwramData_EntityData *entity, u8 paletteSlot, void *gfxSrc, void *palette, void *sheet)
 {
@@ -2134,7 +2141,6 @@ struct EwramData_EntityData *Player_GetSelectedOrNearestTarget(struct EwramData_
 }
 
 /* Soul helpers 0x0802D510..0x0802D603. */
-extern s32 EntityIsOutsideScreen(struct EwramData_EntityData *entity, s32 margin);
 
 /**
  * @brief Return the selected target or first non-NULL candidate in cyclic order from a random slot; return NULL when empty, without promising uniform selection.
@@ -2207,14 +2213,12 @@ s32 RandomSigned(u32 range)
 /* Keep the graphics context access explicit, matching the original loaders. */
 #define GRAPHICS_CONTEXT ((struct PlayerState *)((u8 *)gEwramData + OFFSET_OF(struct EwramData, playerState)))
 
-
 struct GraphicsSetWithPalette {
     struct SoulGraphicsResources set;
     u8 pad_C[2];
     u8 paletteIndex;
     u8 pad_F;
 };
-
 
 /**
  * @brief Unreferenced: load red-soul graphics (into redSoulGfx), palette row and
@@ -2392,8 +2396,6 @@ struct EwramData_EntityData *Skill_SpawnBoneFragment(s32 x, s32 y, s32 index, s3
 
 /* Soul helpers 0x0802D9B4..0x0802DAD3. */
 extern void RedSoulAnchor_Update(struct EwramData_EntityData *entity);
-extern void EntityAccelerateAndMoveX(struct EwramData_EntityData *entity, s32 maxSpeed);
-extern void EntityAccelerateAndMoveY(struct EwramData_EntityData *entity, s32 maxSpeed);
 
 /**
  * @brief Hit callback of soul attack projectiles (Hit_Enable slot 5): set the

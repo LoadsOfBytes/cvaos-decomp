@@ -1,6 +1,7 @@
 /*
  * Triton: body, spear, homing shots, wave particles and effects (entry points at the end of gargoyle.c).
  */
+#include "triton.h"
 #include "core.h"
 #include "graphics.h"
 #include "sound.h"
@@ -8,23 +9,23 @@
 #include "gameplay.h"
 #include <string.h>
 #include "syscalls.h"
-#include "entity_util.h"
 #include "player_core.h"
+#include "entity_common.h"
+#include "entity_motion.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 /* Triton movement (Triton_UpdateMove) and attack: fire the homing shot, or raise the spear and emit wave
  * particles until the spear comes back. */
 
 extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s16);
-extern void EntityDampVelocityX(struct EwramData_EntityData *, s32);
-extern void EntityDampVelocityY(struct EwramData_EntityData *, s32);
 extern void Triton_SpawnHomingShot(struct EwramData_EntityData *, s32, s32);
 extern void Triton_SpawnWaveParticle(struct EwramData_EntityData *, s32, s32);
-extern s32 Entity_MoveAndCollide(struct EwramData_EntityData *, s32, s32, s32, s32);
 extern s32 Collision_FindWaterSurfaceOffset(s32, s32);
 extern s32 Target_IsWithinDistance(struct EwramData_EntityData *, s32);
-extern s32 Tile_Classify(s16, s16);
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
-extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
 #define NEXT_STATE(e) (e->ext.triton.nextState)
 #define ACCEL_X(e) ((e)->accelX.whole)
 #define ACCEL_Y(e) ((e)->accelY.whole)
@@ -229,10 +230,8 @@ void Triton_UpdateAttack(struct EwramData_EntityData *entity)
 /* Triton_OnHit (hit with HP / death), generated with a template script from the
  * template of WingedSkeleton_OnHit and checked byte for byte. */
 
-extern u16 Player_CalculateAttackPower(u16 attackCategory);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 
 /**
  * @brief 87138 | Hit: flash (hitFlashTimer = 8), subtract the damage from the HP
@@ -320,13 +319,7 @@ struct EwramData_EntityData *Triton_CreateSpear(struct EwramData_EntityData *own
     return part;
 }
 
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *);
-extern s32 Target_GetX(struct EwramData_EntityData *);
-extern s32 Target_GetY(struct EwramData_EntityData *);
-extern s32 Entity_GetVisibilityPattern(s32);
-extern void Effect_SpawnAt(s32, s32, s32);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void EntityMove(struct EwramData_EntityData *);
 extern void TritonSpear_SpawnEffect(struct EwramData_EntityData *, s32, s32);
 extern s8 sTritonSpearOffsets[32];
 #define PART_TARGET_ANGLE(e) ((e)->accelX.whole)
@@ -568,7 +561,6 @@ fail:
 }
 
 /* Triton attacks: homing shot and wave particles. */
-extern void EntitySetVelocityFromAngle(struct EwramData_EntityData *, s32, s32);
 extern void TritonHomingShot_DamagePlayerOnContact(struct EwramData_EntityData *);
 extern void TritonHomingShot_OnHit(struct EwramData_EntityData *);
 void TritonHomingShot_Update(struct EwramData_EntityData *entity);

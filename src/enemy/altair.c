@@ -7,16 +7,19 @@
 #include "sound.h"
 #include "structs/entity_template.h"
 #include "structs/ewram.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "fleaman.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 /* from entity_util.h (not included: see the module notes) */
 
 /* Altair creation, update, graphics setup and hit response. */
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, s32 onHurt);
 extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *);
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
 extern void Altair_UpdateFlight(struct EwramData_EntityData *);
 extern void Altair_UpdateDeath(struct EwramData_EntityData *);
 extern void Altair_UpdateSpawner(struct EwramData_EntityData *);
@@ -25,7 +28,6 @@ extern void Altair_UpdateBestiaryPreview(struct EwramData_EntityData *);
 extern void Altair_DamagePlayerOnContact(struct EwramData_EntityData *);
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 extern u8 sAltairPalette[], sAltairSpriteSheet[], sAltairGfx[];
 u8 Altair_LoadGraphics(struct EwramData_EntityData *);
 void Altair_OnHit(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *);
@@ -96,7 +98,6 @@ void Altair_OnHit(struct EwramData_EntityData *, struct EwramData_EntityData *, 
 
 extern struct EwramData_EntityData *Altair_CreateFeather(struct EwramData_EntityData *);
 void AltairFeather_SetPhase(struct EwramData_EntityData *entity, u8 phase);
-extern void Enemy_UpdateFragmentDeathWithSpread(struct EwramData_EntityData *, s32, s32, s32);
 
 void EnemyAltairUpdate(struct EwramData_EntityData *entity)
 {
@@ -551,22 +552,12 @@ void Altair_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 
 /* Fleaman helpers, create and graphics loader 0x080C1D38..0x080C1F1B. The loader
  * Fleaman_LoadGraphics only matches without -f2003-patch. */
-extern struct EwramData_EntityData *EntityCreateInRange(s32 minSlot, s32 maxSlot, u32 *updateFunc);
-extern s32 ObjPalette_FindOrLoad(void *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
-extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, s32 onHurt);
-extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
-extern void Fleaman_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-extern void Fleaman_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 s32 AltairFeather_SetupGraphics(struct EwramData_EntityData *entity);
 u8 AltairFeather_LoadGraphics(struct EwramData_EntityData *entity);
 u8 Fleaman_LoadGraphics(struct EwramData_EntityData *entity);
 
 /* Graphics of the Altair feather (AltairFeather_LoadGraphics) and of the Fleaman
  * (Fleaman_LoadGraphics). */
-extern u8 sAltairGfx[];
-extern u8 sAltairPalette[];
-extern u8 sAltairSpriteSheet[];
 extern u8 sFleamanRipperGfx[];
 extern u8 sFleamanRipperPalette[];
 extern u8 sFleamanRipperSpriteSheet[];

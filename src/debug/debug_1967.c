@@ -1,24 +1,14 @@
 #include "debug_1967.h"
 #include "core.h"
-#include "sram.h"
 #include "bg_and_collision.h"
-#include "intro_cutscene.h"
-#include "bg_effects.h"
 #include "room_entities.h"
-#include "player_init.h"
 #include "player_core.h"
-#include "soul_inventory.h"
-#include "player_effects.h"
 #include "player_level.h"
 #include "graphics.h"
 #include "gameplay.h"
 #include "entity_util.h"
 #include "sound.h"
 #include "gba.h"
-#include "macros.h"
-#include "agb_sram.h"
-#include "agb_multi_sio_sync.h"
-#include "syscalls.h"
 
 #include "constants/main.h"
 
@@ -28,6 +18,23 @@
 #include "structs/agb_sram.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
+#include "damage_numbers.h"
+#include "hitbox.h"
+#include "item_menu.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "palette.h"
+#include "pause_menu.h"
+#include "text12.h"
+#include "in_game.h"
+#include "map_flags.h"
+#include "map_screen.h"
+extern void HudMap_WriteTiles(s32, s32, u16, s32);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
+extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
+extern void Entity_ShowDamage(struct EwramData_EntityData *, s32, s32);
+extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
 
 struct Debug1967MenuEntry {
     u8 *label; // pointer to string

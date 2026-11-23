@@ -1,28 +1,14 @@
 #include "room_entities.h"
 #include "core.h"
-#include "sram.h"
 #include "bg_and_collision.h"
-#include "game_modes.h"
-#include "main_menu.h"
-#include "intro_cutscene.h"
-#include "soul_trade.h"
 #include "in_game.h"
 #include "bg_effects.h"
 #include "map_flags.h"
 #include "music.h"
-#include "player_init.h"
-#include "player_core.h"
 #include "soul_inventory.h"
 #include "player_effects.h"
-#include "player_level.h"
-#include "debug_1967.h"
-#include "graphics.h"
-#include "gameplay.h"
-#include "room_objects.h"
-#include "entity_util.h"
 #include "gba.h"
 #include "macros.h"
-#include "agb_sram.h"
 #include "syscalls.h"
 
 #include "constants/main.h"
@@ -33,6 +19,29 @@
 #include "structs/agb_sram.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
+#include "effects.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "object_14.h"
+#include "object_19_create.h"
+#include "objects_00_07.h"
+#include "objects_08_0f.h"
+#include "objects_10_13.h"
+#include "objects_15_18.h"
+#include "objects_19_1c.h"
+#include "objects_22_2a.h"
+#include "objects_23_34.h"
+#include "objects_35_37.h"
+#include "palette.h"
+#include "pickup.h"
+#include "save_point.h"
+#include "shop_update.h"
+#include "soul_pickup.h"
+#include "warp_room.h"
+extern void HudMap_WriteTiles(s32, s32, u16, s32);
 
 /* Local 0x24-byte template-table view: retain this TU's types and padding. */
 struct EnemyTemplateView {
@@ -423,7 +432,6 @@ void RoomEntity_InitList(struct RoomEntityRecord *records)
         }
     }
 }
-
 
 /**
  * @brief Per-frame spawner: advance the scan index along the list axis in

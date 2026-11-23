@@ -6,10 +6,15 @@
 #include "structs/ewram.h"
 #include "sound.h"
 #include "player_core.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "entity_motion.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 /* EnemyBlueCrowCreate. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, s32 onHurt);
 extern void Enemy_OnContact(struct EwramData_EntityData *entity);
 extern void BlueCrow_OnHit(struct EwramData_EntityData *entity);
@@ -51,13 +56,8 @@ void EnemyBlueCrowCreate(struct EwramData_EntityData *entity)
 }
 
 /* Blue Crow flight and attack states, reconstructed from the original ROM. */
-extern s32 Target_GetX(struct EwramData_EntityData *entity);
-extern s32 Target_GetY(struct EwramData_EntityData *entity);
 extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
 extern u8 Entity_IsTargetWithinRange(struct EwramData_EntityData *entity, s32 range);
-extern s32 Entity_AimVelocityAtPoint(struct EwramData_EntityData *entity, s32 x, s32 y, s32 speed);
-extern s32 Entity_GetTargetOffsetX(struct EwramData_EntityData *entity);
-extern s32 Entity_GetTargetOffsetY(struct EwramData_EntityData *entity);
 
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 #define ANIM(e,n,loop) do { if ((e)->animScriptIndex != (n)) Anim_StartIndexed((e),(n),0,(loop)); } while (0)
@@ -169,12 +169,8 @@ void BlueCrow_UpdateMovement(struct EwramData_EntityData *entity)
 /* Blue Crow 0x080C9D68..0x080CA04B. The Red Crow functions at 0x080CA308.. are machine-identical
  * copies (see this file). */
 
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 /* entity_util.h declares s16 parameters; the callers here pass full ints. */
 extern void HitEffect_Spawn(s32 x, s32 y, s32 type);
-extern void Enemy_UpdateFragmentDeathWithSpread(struct EwramData_EntityData *entity, s32 interval, s32 width, s32 height);
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *entity);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *entity);
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
 extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
 

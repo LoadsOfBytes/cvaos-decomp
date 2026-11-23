@@ -2,24 +2,35 @@
  * Blue (guardian) soul skills: soul slots and end conditions, input, Flying Armor up to Alastor, afterimages, Great Armor, Big Golem and the shared blue soul helpers.
  * Built without -f2003-patch (SkillAlastorUse needs it off; the rest compiles the same either way).
  */
+#include "blue_souls.h"
 #include "core.h"
 #include "structs/ewram.h"
-#include "player_entity.h"
 #include "graphics.h"
 #include "structs/entity_render_flags.h"
 #include "music.h"
 #include "gameplay.h"
 #include "macros.h"
 #include "sound.h"
-#include "entity_util.h"
 #include "soul_skill_entity.h"
 #include "syscalls.h"
-/* from player_core.h (not included: see the module notes) */
+#include "damage_numbers.h"
+#include "effects.h"
+#include "entity_common.h"
+#include "entity_motion.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "palette.h"
+#include "red_souls_b.h"
 
-/* from player_core.h (not included: see the module notes) */
+/* From player_core.h, which is not included: it declares BlueSoul_CreateEntity
+ * and Entity_PlaceRelativeTo with the parameter types of their callers. */
 extern s32 Player_IsBossTargetLowHp(void);
 extern void Player_RecalculateAttackDefense(void);
 extern void Player_RestoreHP(s32 amount);
+extern void Player_RestoreMP(s32 amount);
+extern void Player_ClearStatusEffects(s32 mask);
 extern s32 RandomSigned(s32 range);
 
 static inline s8 FindFreeSoulSlot(void)
@@ -1631,7 +1642,6 @@ void SkillPersephoneUse(struct EwramData_EntityData *entity)
 
 /* Same as BlueSoul_DeleteEntity: end a blue soul entity. */
 extern s32 Entity_StepAngleTowardPoint(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern struct EwramData_EntityData *Player_GetSelectedOrNearestTarget(struct EwramData_EntityData *);
 
 static inline void SetVelocity(struct EwramData_EntityData *entity)
 {
@@ -1846,7 +1856,6 @@ void SkillCreakingSkullHitBoxUpdate(struct EwramData_EntityData *entity)
 
 extern u8 sUnk_080E1AF8[];
 extern s16 sUnk_080E1AFC[];
-extern s32 AngleTurnDirection(u16, u16);
 
 static inline void FreeMatrix(struct EwramData_EntityData *entity)
 {
@@ -2230,10 +2239,7 @@ void SkillCatoblepasUse(struct EwramData_EntityData *entity)
     }
 }
 
-extern s32 Target_GetX(struct EwramData_EntityData *);
-extern s32 Target_GetY(struct EwramData_EntityData *);
 extern s32 Entity_StepTowardPoint(struct EwramData_EntityData *, s32, s32, s32);
-extern s32 Entity_DistanceToPoint(struct EwramData_EntityData *, s32, s32);
 
 /**
  * @brief 310AC | Imp blue soul (familiar, ends via BlueSoul_CheckEndCondition): graphics
@@ -2455,8 +2461,6 @@ struct EwramData_EntityData *BlueSoul_CreateAfterimage(struct EwramData_EntityDa
  * (NO_2003_PATCH_SRCS in ../Makefile). (flipX test mask kept in a variable across the
  * position copies, explicit u32 negation of dx). */
 
-extern void EntityDampVelocityX(struct EwramData_EntityData *, s32);
-
 #define FIXED_TO_INT(v) ((v) < 0 ? -(-(v) >> 16) : (v) >> 16)
 
 void SkillAlastorUse(struct EwramData_EntityData *entity)
@@ -2622,8 +2626,6 @@ void SkillAlastorUse(struct EwramData_EntityData *entity)
     ObjAffine_Set(SKILL_ALASTOR_ANGLE(entity), entity->ext.skillAlastor.scale, entity->ext.skillAlastor.scale, entity->flipX, 0, entity->affineIndex);
 }
 
-/* from player_core.h (not included: see the module notes) */
-
 /* SkillGreatArmorUse: Great Armor soul effect. Local register bindings in the
    stat multiply are compiler constraints, not evidence of original spelling. */
 
@@ -2787,7 +2789,6 @@ void SkillBigGolemUse(struct EwramData_EntityData *entity)
 
 /* Blue soul info, indexed by equippedBlueSoul (12-byte records). */
 
-
 /**
  * @brief Return the equipped blue-soul record without adding index validation.
  */
@@ -2899,8 +2900,6 @@ struct YellowSoulInfo {
 };
 
 extern const struct YellowSoulInfo sYellowSoulInfo[];
-extern void Player_ClearStatusEffects(s32 mask);
-extern void Player_RestoreMP(s32 amount);
 
 /**
  * @brief 31F3C | Create the entity of the equipped yellow soul (slot 0x11,

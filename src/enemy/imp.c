@@ -2,19 +2,24 @@
  * Imp and Tiny Devil.
  * Built without -f2003-patch (the Tiny Devil animation / hit file needs it off; the rest compiles the same either way).
  */
+#include "imp.h"
 #include "core.h"
 #include "player_core.h"
 #include "graphics.h"
 #include "structs/ewram.h"
 #include "syscalls.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "entity_motion.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
+#include "ukoback.h"
 
 /* Tiny Devil update and states from 0x080C47F8. */
 extern void Imp_UpdateState4Animation(struct EwramData_EntityData *entity);
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *entity);
 extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
-extern s32 Target_GetX(struct EwramData_EntityData *entity);
-extern s32 Target_GetY(struct EwramData_EntityData *entity);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *entity);
 extern void Imp_UpdateFlight(struct EwramData_EntityData *entity);
 extern void Imp_UpdateAttack(struct EwramData_EntityData *entity);
 extern void Imp_UpdateGrab(struct EwramData_EntityData *entity);
@@ -76,9 +81,7 @@ void EnemyImpUpdate(struct EwramData_EntityData *entity)
 }
 
 extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *entity);
-extern s32 Entity_GetTargetDistanceY(struct EwramData_EntityData *entity);
 extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
-extern s32 EntityIsOutsideScreen(struct EwramData_EntityData *entity, s32 margin);
 
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 
@@ -247,8 +250,6 @@ void Imp_UpdateFlight(struct EwramData_EntityData *entity)
     entity->velY.whole += entity->accelY.whole;
 }
 
-extern s32 Entity_AimAccelerationAtPoint(struct EwramData_EntityData *entity, s32 targetX, s32 targetY, s32 speed);
-
 /**
  * @brief Spring sideways, accelerate toward the target offset, then brake both axes and advance to grab state 3.
  */
@@ -342,8 +343,6 @@ void Imp_UpdateAttack(struct EwramData_EntityData *entity)
     entity->velY.whole += entity->accelY.whole;
 }
 
-extern s32 Entity_AimVelocityAtPointByDistance(struct EwramData_EntityData *entity, s32 targetX, s32 targetY, s32 speed);
-
 /* Same as CheckUnk_53C_6 in player/player_core.c. */
 static inline s32 IsNotFlippedX(struct EwramData_EntityData *entity)
 {
@@ -426,10 +425,7 @@ void Imp_UpdateGrab(struct EwramData_EntityData *entity)
 }
 
 extern void PlaySong(u16 song);
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 extern s32 Imp_SpawnDeathPiece(struct EwramData_EntityData *entity);
-extern void Enemy_UpdateFragmentDeathWithSpread(struct EwramData_EntityData *entity, s32 interval, s32 width, s32 height);
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *entity);
 
 /**
  * @brief Drop rewards, delete the grab indicator, spawn a falling piece and fall while running the fragment-death effect.
@@ -493,7 +489,6 @@ void Imp_OnContact(struct EwramData_EntityData *entity)
 }
 
 extern s32 ObjPalette_FindOrLoad(void *palette);
-extern s32 Entity_GetVisibilityPattern(s32 step);
 
 /* Graphics of the Tiny Devil (also used by Imp_LoadGraphics). */
 extern u8 sImpTinyDevilGfx[];
@@ -579,7 +574,6 @@ void ImpDeathPiece_Update(struct EwramData_EntityData *entity)
 /* Tiny Devil helpers 0x080C5200..0x080C52F3 (same template as the Ukoback
  * helpers in enemy/ukoback.c). */
 
-extern u16 Player_CalculateAttackPower(u16 attackCategory);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
 
@@ -672,7 +666,6 @@ s32 Imp_SpawnDeathPiece(struct EwramData_EntityData *entity)
 /* Tiny Devil create and update from 0x080C52F4 (same graphics as the
  * enemy in this file). */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, s32 onHurt);
 extern void Enemy_OnContact(struct EwramData_EntityData *entity);
 extern void TinyDevil_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
@@ -681,7 +674,6 @@ extern void TinyDevil_UpdateDeath(struct EwramData_EntityData *entity);
 extern void TinyDevil_UpdateFlight(struct EwramData_EntityData *entity);
 extern void TinyDevil_UpdateAttack(struct EwramData_EntityData *entity);
 extern s32 Entity_IsInRect(struct EwramData_EntityData *entity, s16 left, s16 top, u16 width, u16 height);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *entity);
 
 /* Graphics shared with the enemy in this file. */
 
@@ -1047,7 +1039,6 @@ void TinyDevil_UpdateDeath(struct EwramData_EntityData *entity)
 
 extern s32 Hit_Enable(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
 extern s32 HitBox_SetAttackRaw(struct EwramData_EntityData *entity, s32 box);
-extern s32 Enemy_PreUpdate(struct EwramData_EntityData *entity);
 extern void TinyDevilProjectile_Update(struct EwramData_EntityData *entity);
 extern void TinyDevilProjectile_OnContact(struct EwramData_EntityData *entity);
 
@@ -1169,10 +1160,7 @@ void TinyDevil_UpdateState3Animation(struct EwramData_EntityData *entity)
 
 /* Ukoback helpers and create from 0x080C5B40. */
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern void ObjAffine_Free(s32 index);
 extern s32 Ukoback_LoadGraphics(struct EwramData_EntityData *entity);
-extern void Ukoback_OnContact(struct EwramData_EntityData *entity);
-extern void Ukoback_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 /**
  * @brief Apply damage and reset to death state 0xFF on lethal damage.

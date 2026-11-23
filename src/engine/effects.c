@@ -12,6 +12,15 @@
 #include "entity_util.h"
 #include "types.h"
 #include "gameplay.h"
+#include "effects.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "palette.h"
+#include "pickup.h"
 /* from bg_and_collision.h (not included: see the module notes) */
 extern struct DmaQueueInfo* DmaQueue_IndirectCopy(u32 size, u32 *src, u32 *dst);
 
@@ -299,8 +308,6 @@ void Effect_DrawPlayerFlash(struct EwramData_EntityData *entity)
 }
 
 /* Effect_CreatePlayerFlash. */
-extern u8 sCommonObjectGfx[];
-extern u8 sCommonObjectSpriteSheet[];
 extern u8 *const sPlayerFlashInfo[];
 void Effect_DrawPlayerFlash(struct EwramData_EntityData *entity);
 
@@ -393,7 +400,6 @@ void SoulAcquisition_DrawAndWait(struct EwramData_EntityData *entity)
 
 struct TrailTiming { u16 unused, timer; };
 struct TrailSample { s16 x, y; u8 frame, flip; u8 pad[2]; };
-extern void Heap_Free(void *);
 extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
 extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *);
 
@@ -477,12 +483,6 @@ struct AfterimageFrame
     u8 flipX;
     u8 pad[2];
 };
-
-extern s32 Sprite_Attach(struct EwramData_EntityData *entity, void *sheet, s32 tileSlot, u32 palette);
-extern s32 Sprite_GetTileSlot(struct EwramData_EntityData *entity);
-extern void *Heap_Alloc(u16 size);
-extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
-extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *);
 
 /**
  * @brief Create a history-based afterimage with the supplied countdown, history index and flags; return NULL if entity, sheet or history allocation is unavailable.
@@ -601,7 +601,6 @@ struct EwramData_EntityData *Effect_CreateFromTable(s32 x, s32 y, s32 ax, s32 ay
 }
 
 /* Spawners 0x08045BC8..0x08045C9B. */
-extern void EntityUpdateNothing(void);
 
 /**
  * @brief Spawn an animated child at the supplied parent-relative offsets and layer 12; do nothing if parent or entity allocation is NULL.
@@ -855,7 +854,6 @@ s32 Pickup_TrySpawnOnHit(struct EwramData_EntityData *entity, s32 offsetY, u8 ki
 }
 
 extern void PickupSource_LoadIcon(s32);
-extern void PickupSource_Draw(struct EwramData_EntityData *);
 /**
  * @brief Load the source icon, attach shared graphics and animation, configure its body box and install the source draw callback.
  */

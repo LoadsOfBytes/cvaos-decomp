@@ -1,12 +1,9 @@
 /*
  * 12-pixel text renderer: glyph blitting, clearing and localized entries.
  */
-#include "graphics.h"
-#include "core.h"
 #include "structs/render_slots.h"
 #include "gba.h"
-#include "syscalls.h"
-#include "macros.h"
+#include "text12.h"
 
 /* Upstream file split 0x0803FEA4..0x08041433 from the previously unlinked
  * src/engine/obj_gfx.c, now linked as matching C.

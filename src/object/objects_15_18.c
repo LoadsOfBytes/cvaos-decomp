@@ -1,8 +1,8 @@
 /*
  * Room objects 0x15-0x18: orbiters, effects, the background overlay of Object 0x17 and Object 0x18 debris (Object 0x19 Create has its own CFLAGS: next module).
  */
+#include "objects_15_18.h"
 #include "core.h"
-#include "room_object_entity.h"
 #include "graphics.h"
 #include "sound.h"
 #include "structs/ewram.h"
@@ -11,10 +11,16 @@
 #include "map_flags.h"
 #include "entity_util.h"
 #include "syscalls.h"
-#include "room_objects.h"
-#include "game_modes.h"
 #include "player_core.h"
 #include "gameplay.h"
+#include "blue_souls.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "palette.h"
+#include "soul_pickup.h"
+#include "effects.h"
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 extern u8 sObject15Gfx[], sUnk_0820A1C4[], sObject15SpriteSheet[];
@@ -68,7 +74,6 @@ fail:
 
 /* Object 15 interaction: capture player input, animate, show one of two
  * messages, switch UI state and restore the palette transition. */
-extern s32 Player_IsBusy(void);
 extern u8 sObject15DestinationRoom1[], sObject15DestinationRoom0[];
 static inline struct EwramData_EntityData *Player(struct EwramData *e) { return e->playerState.player; }
 void Object15Update(struct EwramData_EntityData *entity)
@@ -166,11 +171,6 @@ void Object16Effect_Update(struct EwramData_EntityData *entity)
 }
 
 /* Object16Update: affine zoom-out cutscene object with rising dust particles; matched. */
-extern s32 Game_SetMenusEnabled(s32);
-extern s32 RandomSigned(s32);
-extern s32 Entity_IsInRect(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern void RedSoul_CancelAll(void);
-extern void BlueSoul_StopAll(void);
 
 static inline struct EwramData_EntityData *Player2(void) { return gEwramData->playerState.player; }
 
@@ -279,11 +279,7 @@ void Object16Update(struct EwramData_EntityData *entity)
 }
 
 /* Object 0x16 helpers 0x08052F6C..0x0805305B. */
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 
-extern u8 sObject16Gfx[];
-extern u8 sObject16Palette[];
-extern u8 sObject16SpriteSheet[];
 extern u8 sObject16PaletteAnim[];
 
 /**
@@ -458,7 +454,6 @@ void Object17Create(struct EwramData_EntityData *entity)
 
 /* Elevator movement and floor input. The r0 timer locals retain the original
  * load/copy sequence; case 1 keeps its zero copy across the sound call. */
-extern void Player_ClearSolidObject(void);
 extern s32 Sound_PlayTracked(s32 song);
 extern s32 Sound_StopTracked(s32 song);
 
@@ -638,7 +633,6 @@ s32 Object17_FloorCorrection(struct EwramData_EntityData *entity, s16 x, s16 y)
 }
 
 /* Object effect helpers decompiled from assembly. */
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 
 /**
  * @brief Wall-left correction slot of the object 0x17 solid table (0x08118598):
@@ -695,7 +689,6 @@ void Object17Follower_Update(struct EwramData_EntityData *entity)
  * a cloning script (constants adjusted where needed), checked byte for
  * byte. */
 
-extern void EntityDampVelocityX(struct EwramData_EntityData *entity, s32 factor);
 extern s32 Collision_GetGroundOffset(s32 x, s32 y);
 extern void Effect_SpawnRandom(s32 x, s32 y, s32 width, s32 height, s32 layer);
 
@@ -785,9 +778,7 @@ void Object18_SpawnDebris(struct EwramData_EntityData *parent)
     }
 }
 
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 void Object18_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 
 void Object18Create(struct EwramData_EntityData *entity)
 {
@@ -820,9 +811,6 @@ extern const struct EnemyTemplateView sEnemyData[];
 extern s32 Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern struct EwramData_EntityData *Pickup_CreateGold(s32 x, s32 y, s32 index);
 extern struct EwramData_EntityData *Pickup_CreateMana(s32 x, s32 y, s32 large, s32 jump);
-extern void Pickup_UpdateBouncing(struct EwramData_EntityData *);
-extern void Effect_SpawnRandom(s32 x, s32 y, s32 p2, s32 p3, s32 layer);
-extern void EntityUpdateNothing(void);
 
 /**
  * @brief 53968 | Breakable object (object 0x18): hidden off screen; when hit

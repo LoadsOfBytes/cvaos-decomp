@@ -2,19 +2,13 @@
  * engine/obj_gfx.c; this unit is built with -fno-cse-skip-blocks (
  * both match only with it, its neighbours in engine/obj_gfx.c and
  * engine/palette.c only without it). */
-#include "graphics.h"
-#include "core.h"
+#include "palette_state.h"
 #include "structs/render_slots.h"
 #include "gba.h"
-#include "syscalls.h"
-#include "macros.h"
-#include "bg_and_collision.h"
-
-extern const u8 sSpriteSheetDefault1[];
-extern const u8 sSpriteSheetDefault2[];
-extern const u8 sSpriteSheetDefault4[];
 
 #include "graphics_inline.h"
+#include "obj_gfx.h"
+#include "palette.h"
 
 // Matching (upstream scratch: https://decomp.me/scratch/FqA9S)
 /* Same as ObjPalette_SaveFades: move a fade state to its backup and clear it. */
@@ -69,8 +63,6 @@ void Palette_SaveState(void)
 
     Palette_SuspendInvert();
 }
-
-
 
 // Matching with -fno-cse-skip-blocks for this file (upstream scratch: https://decomp.me/scratch/RBXEz)
 /* Same as ObjPalette_RestoreFades: move the backup back and clear it. */

@@ -1,30 +1,12 @@
-#include "soul_trade.h"
 #include "core.h"
-#include "sram.h"
-#include "bg_and_collision.h"
-#include "game_modes.h"
 #include "main_menu.h"
-#include "intro_cutscene.h"
 #include "soul_trade.h"
-#include "in_game.h"
-#include "bg_effects.h"
-#include "room_entities.h"
 #include "save_data.h"
-#include "player_init.h"
-#include "player_core.h"
 #include "soul_inventory.h"
-#include "player_effects.h"
-#include "player_level.h"
-#include "debug_1967.h"
-#include "graphics.h"
 #include "gameplay.h"
-#include "room_objects.h"
 #include "sound.h"
 #include "agb_multi_sio_sync.h"
 #include "gba.h"
-#include "macros.h"
-#include "agb_sram.h"
-#include "syscalls.h"
 
 #include "constants/main.h"
 #include "constants/songs.h"
@@ -35,6 +17,14 @@
 #include "structs/agb_sram.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
+#include "math_anim.h"
+#include "menu_common.h"
+#include "obj_gfx.h"
+#include "palette.h"
+#include "soul_menu.h"
+#include "text12.h"
+extern void HudMap_ZeroTiles(s32, s32, s32);
+extern void HudMap_WriteTiles(s32, s32, s32, s32);
 
 struct SoulKey {
     u8 soulType;
@@ -446,7 +436,6 @@ s32 SoulTrade_DrawKindMenu(struct EwramData_EntityData *entity)
     HudMap_WriteTiles(3, 0xC, 0xF260, 0xA);
 }
 
-
 static inline s32 SoulTrade_FindSoulIndex(s32 soul)
 {
     s32 index;
@@ -563,7 +552,6 @@ void SoulTrade_OpenSoulList(struct EwramData_EntityData *entity)
     SoulTrade_DrawSoulList(entity->ext.soulTrade.listKind, entity->ext.soulTrade.listRow);
 }
 
-
 /**
  * @brief Draw up to eight soul names with their counts from list row top, with
  * the scroll arrows.
@@ -621,7 +609,6 @@ void SoulTrade_DrawSoulList(s32 soulType, s32 first)
         HudMap_ZeroTiles(0x1A, row + 4, 1);
     }
 }
-
 
 // NOTE: HudMap_WriteTiles is implicitly called
 /**
@@ -804,7 +791,6 @@ s32 SoulTrade_UpdateSelection(struct EwramData_EntityData *entity)
 
 // HudMap_WriteTiles is implicitly called here
 // Matching from the upstream scratch https://decomp.me/scratch/Luxz2 (field names mapped)
-
 
 #define unk_25484_4_32(x) (((*(u32*)&gEwramData->soulTradePackets[x]) << 0x18) >> 0x1C)
 #define unk_25484_2_32(x) (((*(u32*)&gEwramData->soulTradePackets[x]) << 0x1C) >> 0x1E)
@@ -1567,7 +1553,6 @@ s32 GameModeSoulTradeMenu(void)
     }
     return result;
 }
-
 
 // NOTE: HudMap_WriteTiles is implicitly called
 /**

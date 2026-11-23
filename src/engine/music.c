@@ -1,22 +1,9 @@
 #include "music.h"
 #include "core.h"
-#include "sram.h"
 #include "bg_and_collision.h"
-#include "intro_cutscene.h"
-#include "bg_effects.h"
-#include "room_entities.h"
-#include "player_core.h"
-#include "soul_inventory.h"
-#include "player_effects.h"
-#include "player_level.h"
-#include "debug_1967.h"
-#include "graphics.h"
-#include "gameplay.h"
 #include "sound.h"
 #include "gba.h"
 #include "macros.h"
-#include "agb_sram.h"
-#include "syscalls.h"
 
 #include "constants/main.h"
 #include "constants/songs.h"
@@ -27,6 +14,10 @@
 #include "structs/agb_sram.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "palette.h"
+#include "in_game.h"
 
 u16 sAreaSongs[] = {
     2, 8, 7, 5, 6, 9, 1, 3, 10, 4, 11, 12, 12

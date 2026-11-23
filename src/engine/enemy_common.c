@@ -1,6 +1,7 @@
 /*
  * Enemy / entity helpers: filtered box collision, slopes, stun and hit flash, fragment deaths, ground snap, template reset, room bounds, box update, animation viewers, hit effects and damage resolution, target direction / distance / range, heap and room reset.
  */
+#include "enemy_common.h"
 #include "bg_and_collision.h"
 #include "entity_util.h"
 #include "structs/ewram.h"
@@ -8,7 +9,6 @@
 #include "enemy_status.h"
 #include "structs/entity_template.h"
 #include <string.h>
-#include "gameplay.h"
 #include "graphics.h"
 #include "bg_effects.h"
 #include "sound.h"
@@ -18,6 +18,12 @@
 #include "music.h"
 #include "player_level.h"
 #include "map_flags.h"
+#include "entity_common.h"
+#include "entity_motion.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "palette.h"
 
 /* Accelerate/move both axes and resolve collision at four box corners, with
  * a tile-type exclusion: a corner whose tile flags satisfy (flags & 3) == 1
@@ -38,8 +44,6 @@
  *   extension until after the sum, and its halfword result makes agbcc put
  *   the offset first in the addition.
  * Matching code does not establish the original source spelling. */
-extern s32 Collision_IsSlopeTile(s16 x, s16 y);
-extern s32 Tile_Classify(s16 x, s16 y);
 
 static inline s32 ReadTileFlags(s32 x, s32 y) { return Collision_GetTile(x, y); }
 static inline s32 SignExtendOffset(u16 value) { return (s16)value; }
@@ -221,7 +225,6 @@ s32 Entity_MoveWithFilteredBoxCollision(struct EwramData_EntityData *entity, s32
 }
 
 /* Adjust a signed movement value for matching slope orientation. */
-extern u8 Collision_GetTile(s32 x, s32 y);
 
 static inline s32 AdjustForSlope(struct EwramData_EntityData *entity, s32 speed, s32 flags)
 {
@@ -335,7 +338,6 @@ s32 Enemy_UpdateHitFlash(struct EwramData_EntityData *entity)
 }
 
 /* Emit a fading fragment every fourth tick and finish the source effect. */
-extern void RisingEffect_Update(struct EwramData_EntityData *);
 extern const s8 sEntityVisibilityPattern[40];
 static inline s32 RandomOffset(s32 range)
 {
@@ -1254,7 +1256,6 @@ u8 Entity_IsTargetWithinRange(struct EwramData_EntityData *entity, u32 range)
 }
 
 /* Target box tests, decompiled from the original assembly. */
-extern s32 Entity_IsInRect(struct EwramData_EntityData *, s32, s32, s32, s32);
 
 /**
  * @brief Test the selected target in a centered width/height pixel rectangle; the alternate-target flag overrides player selection and a null target returns zero.

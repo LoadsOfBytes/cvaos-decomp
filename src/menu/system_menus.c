@@ -1,16 +1,23 @@
 /*
  * Ability, save and button config menus and the bestiary menu entry.
  */
+#include "system_menus.h"
 #include "soul_inventory.h"
-#include "graphics.h"
 #include "gameplay.h"
 #include "structs/ewram.h"
 #include "core.h"
-#include "menu_page.h"
 #include "save_data.h"
 #include "menu_entity.h"
 #include "in_game.h"
 #include "sound.h"
+#include "bestiary.h"
+#include "entity_common.h"
+#include "math_anim.h"
+#include "menu_common.h"
+#include "palette.h"
+#include "pause_menu.h"
+#include "soul_menu.h"
+#include "text12.h"
 
 /* Ability soul page. */
 struct MenuPage
@@ -23,12 +30,9 @@ struct MenuPage
 };
 
 extern void MenuPage_Reset(void *page);
-extern void Text12_SetupTileRegion(s32 x, s32 y, u16 tile, s32 width, s32 height);
 void AbilityMenu_PrintSelectedName(struct EwramData_EntityData *entity);
 void AbilityMenu_DrawMarkers(struct EwramData_EntityData *entity);
 extern void HudMap_WriteTiles(s32 x, s32 y, s32 tile, s32 count);
-extern void Cursor_SetTilePosition(s32 x, s32 y);
-extern void Cursor_Draw(void);
 extern void MenuPageTitle_Create(void *entity, s32 type);
 
 /**
@@ -82,9 +86,6 @@ struct MenuPage2
 };
 
 extern s32 MenuGrid_MoveCursor(struct MenuPage2 *page, s32 repeated);
-extern void MenuPageTitle_Delete(struct EwramData_EntityData *ent);
-extern void MenuPageTitle_Update(struct EwramData_EntityData *ent);
-extern void Cursor_SetTilePosition(s32 a, s32 b);
 
 /**
  * @brief 4BB40 | Ability soul page update: A toggles the selected ability
@@ -385,7 +386,6 @@ struct InputMenuState
 };
 
 extern const u16 sButtonConfigButtons[];
-extern void MenuText_ClearAndPrint(s32 text);
 void ButtonConfigMenu_Redraw(struct EwramData_EntityData *entity);
 void ButtonConfigMenu_DrawSprites(void *unusedMenu);
 
@@ -652,8 +652,6 @@ void ButtonConfigMenu_Draw(struct ButtonConfigPageView2 *page)
 }
 
 /* Menu helpers 0x0804C38C..0x0804C403. */
-extern void MenuPageTitle_Update(struct EwramData_EntityData *entity);
-extern void Cursor_SetTilePosition(s32 column, s32 row);
 
 /* Default button assignment: indices into sButtonConfigButtons. */
 
@@ -703,8 +701,6 @@ struct MenuPage5
 #define BACKUP_VARIANT(i) ((u8 *)gEwramData + 0x13420 + (i) * 2)
 
 extern void *memcpy(void *dst, const void *src, unsigned long size);
-extern void Heap_SaveAndReset(void);
-extern void MenuPage_Reset(void *page);
 struct MenuPage7
 {
     u8 pad_0[0xA];
@@ -788,7 +784,6 @@ void BestiaryMenu_UpdateList(struct MenuPage8 *page);
 extern void BestiaryMenu_UpdateDetailScreen(struct MenuPage6 *page);
 extern void BestiaryMenu_UpdateDetail(struct MenuPage6 *page);
 extern void BestiaryMenu_Close(struct MenuPage6 *page);
-extern void Entity_UpdateReserved(void);
 
 /**
  * @brief Bestiary page state machine (fades between the list,
@@ -862,14 +857,6 @@ s32 BestiaryMenu_Update(struct MenuPage6 *page)
     return ret;
 }
 
-
-extern void HudMap_WriteTiles(s32 x, s32 y, s32 tile, s32 count);
-extern void HudMap_ClearAll(void);
-extern void MenuCursor_LoadGraphics(struct EwramData_EntityData *entity);
-extern void Cursor_StartAnimation(void);
-extern void BestiaryMenu_DrawList(struct MenuPage4 *page);
-extern void BestiaryMenu_ReleaseResources(void);
-
 /**
  * @brief Load the language specific frame graphics, draw the enemy list and the
  * header tiles and place the cursor.
@@ -913,10 +900,7 @@ void BestiaryMenu_Setup(struct MenuPage7 *page)
     }
 }
 
-
 extern s32 BestiaryMenu_MoveCursor(struct MenuPage8 *page, s32 repeated);
-extern void BestiaryMenu_DrawList(struct MenuPage4 *page);
-extern s32 Bestiary_IsEnemyDefeated(s32 index);
 
 /**
  * @brief Enemy list update: up/down via BestiaryMenu_MoveCursor, R / L page by 10

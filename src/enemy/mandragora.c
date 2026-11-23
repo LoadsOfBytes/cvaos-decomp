@@ -6,14 +6,18 @@
 #include "structs/ewram.h"
 #include "sound.h"
 #include "entity_util.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
+#include "palette.h"
 
 /* Mandragora graphics, room setup and linked part. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *,u8 *,void *,u8,void *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *,void *,s32);
 extern void Enemy_OnContact(struct EwramData_EntityData *);
 extern void Mandragora_OnHit(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 extern s32 Mandragora_CreateLinkedPart(struct EwramData_EntityData *);
 extern u8 sMandragoraPalette[],sMandragoraSpriteSheet[],sMandragoraGfx[];
 void EnemyMandragoraCreate(struct EwramData_EntityData *entity)
@@ -57,7 +61,6 @@ extern struct EwramData_EntityData *Entity_CreateObject(void *);
 extern void MandragoraPart_Update(struct EwramData_EntityData *);
 extern void MandragoraPart_OnHit(struct EwramData_EntityData *);
 extern s32 Mandragora_CreateTerminalPart(struct EwramData_EntityData *);
-extern u8 sMandragoraSpriteSheet[];
 /**
  * @brief Create the intermediate part with copied combat properties and
  * shared graphics, link both slot indices and create its terminal part.
@@ -99,9 +102,7 @@ s32 Mandragora_CreateLinkedPart(struct EwramData_EntityData *entity)
 }
 
 /* Mandragora intermediate part coordinates its owner and terminal part. */
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 extern void Effect_SpawnRandom(s32,s32,s32,s32,s32);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
 #define FLAGS(e) (e->ext.mandragora.flags)
 /**
  * @brief Coordinate the root owner and terminal part through activation,
@@ -507,8 +508,6 @@ wait_part:
 /* Mandragora 0x080CF804..0x080CFAAF. Mandragora_SpawnDeathParts / MandragoraDeathPart_Update / Mandragora_UpdateBestiaryPreview are machine-identical
  * copies of the Needles / Blue Crow functions (cloning script). */
 
-extern s32 Enemy_PreUpdate(struct EwramData_EntityData *entity);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *entity);
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
 
 /* Same layout as sNeedlesDeathParts in enemy/beam_skeleton.c. */

@@ -1,6 +1,7 @@
 /*
  * Event scene 30 (transformation): fragments, sparks, emitters, orbit rings, center effect and halo (its update follows in a separately compiled file).
  */
+#include "scene30.h"
 #include "core.h"
 #include "event_scene30.h"
 #include "graphics.h"
@@ -9,12 +10,16 @@
 #include "gba.h"
 #include "entity_util.h"
 #include <string.h>
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "palette.h"
+#include "scene30_transformation.h"
+#include "scenes_c.h"
 
 /* Set up, play and fade the background transformation scene. */
 extern u8 sEventScene30TransformationGfx[],sUnk_08119898[],sEventScene30TransformationPalette[];
 extern struct BgMapMetadata sEventScene30BgMap,sEventScene30TransformationBg2Map;
-extern void EventScene30_UpdateTransformation(struct EwramData_EntityData *);
-extern void EventScene30_UploadFrame(void);
 /**
  * @brief Event scene 30 sequence: set up the BG layers and graphics, run
  * EventScene30_UpdateTransformation with brightness fade-in, wait, fade
@@ -121,7 +126,6 @@ fail:
 
 /* Delayed fragments spiral away, alternating their direction of rotation. */
 extern u8 sEventScene30Gfx[],sEventScene30Palette[],sEventScene30SpriteSheet[];
-extern void EventScene30Flash_Update(struct EwramData_EntityData *);
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *,u8 *,void *,u8,void *);
 static inline void flashAt(s16 x,s16 y)
 {
@@ -288,7 +292,6 @@ void EventScene30_SpawnFloatingFragment(struct EwramData_EntityData *owner,s16 x
 /* Allocate a directional fragment with selectable frame families. */
 struct FragmentFrames { u32 frame[3]; };
 extern struct FragmentFrames sEventScene30FragmentFrames;
-extern void EventScene30Effect_UpdateBallistic(struct EwramData_EntityData *);
 /**
  * @brief Spawn a drifting fragment (EventScene30Effect_UpdateBallistic) at (x,
  * y), mirrored when reverse is set.
@@ -663,7 +666,6 @@ void EventScene30EmitterE_Update(struct EwramData_EntityData *entity)
 
 /* Emit four accelerating fragments at four-frame intervals. */
 extern u8 sEventScene30PieceEmitterFrames[];
-extern void EventScene30Effect_UpdateSpinning(struct EwramData_EntityData *);
 /**
  * @brief After its delay, spawn spinning pieces
  * (EventScene30Effect_UpdateSpinning) with random frames.
@@ -816,7 +818,6 @@ void EventScene30_SpawnOrbitRing(struct EwramData_EntityData *owner,u16 x,u16 y)
 
 /* Emit four accelerating fragments at four-frame intervals. */
 extern u8 sEventScene30PieceEmitterAltFrames[];
-extern void EventScene30Effect_UpdateSpinningKeepSlot(struct EwramData_EntityData *);
 /**
  * @brief Unreferenced variant of EventScene30PieceEmitter_Update using
  * EventScene30Effect_UpdateSpinningKeepSlot.

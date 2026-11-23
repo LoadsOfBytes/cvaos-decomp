@@ -2,34 +2,33 @@
  * Erinys (stubs), the Tsuchinoko create and jump state (the rest: tsuchinoko.c).
  * Built with -fno-cse-skip-blocks (Tsuchinoko_UpdateJump needs it; the rest compiles the same either way).
  */
+#include "erinys.h"
 #include "structs/ewram.h"
 #include "core.h"
 #include "graphics.h"
 #include "sound.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "math_anim.h"
+#include "tsuchinoko.h"
+#include "valkyrie.h"
 
 /* Forward this enemy variant to its shared implementation. */
-extern void EnemyValkyrieUpdate(struct EwramData_EntityData *);
 void EnemyErinysUpdate(struct EwramData_EntityData *entity)
 {
     EnemyValkyrieUpdate(entity);
 }
 
 /* Forward this enemy variant to its shared implementation. */
-extern void EnemyValkyrieCreate(struct EwramData_EntityData *);
 void EnemyErinysCreate(struct EwramData_EntityData *entity)
 {
     EnemyValkyrieCreate(entity);
 }
 
-extern u8 Tsuchinoko_LoadGraphics(struct EwramData_EntityData *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
-extern s32 Anim_GetMaxBoxCount(struct EwramData_EntityData *);
 extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
 extern void Hit_Enable(struct EwramData_EntityData *, s32, void *, void *);
 extern void Tsuchinoko_DamagePlayerOnContact(void);
 extern void Tsuchinoko_OnHit(void);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 
 void EnemyTsuchinokoCreate(struct EwramData_EntityData *entity)
 {
@@ -70,16 +69,9 @@ void EnemyTsuchinokoCreate(struct EwramData_EntityData *entity)
 }
 
 /* Tsuchinoko: jumping, ranged attack, and death states. */
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
 extern s32 Target_IsInRect(s16, s16, s32, s32);
-extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
 extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s32);
 extern void Entity_ClampXToRoom(struct EwramData_EntityData *, s32);
-extern void EntityAccelerateAndMove(struct EwramData_EntityData *, s32);
-extern s32 Entity_GetVisibilityPattern(s32);
-extern void Effect_SpawnParticleAnim13(s32, s32, s32, s32, s32, s32);
-extern void Tsuchinoko_SpitShot(struct EwramData_EntityData *);
-extern void Tsuchinoko_SpawnDroplet(struct EwramData_EntityData *);
 
 /* The explicit final random-decision paths keep the original unsigned
  * mask/result in r1. Preserve RNG call order and short-circuit behavior.

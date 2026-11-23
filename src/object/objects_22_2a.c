@@ -1,14 +1,17 @@
 /*
  * Room objects 0x22, 0x29 and 0x2A: falling parts, effects and movement.
  */
+#include "objects_22_2a.h"
 #include "core.h"
 #include "graphics.h"
 #include "gameplay.h"
 #include "structs/ewram.h"
 #include "sound.h"
-#include "room_object_entity.h"
 #include "player_core.h"
-#include "room_objects.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
 
 extern u8 Object22_LoadGraphics(struct EwramData_EntityData *entity);
 
@@ -53,11 +56,9 @@ struct Seq { s8 level; s8 step; s8 hit; u8 flags; };
 #define SEQ(e) ((struct Seq *)&(e)->ext.raw.unk_504)
 
 extern void *memcpy(void *dst, const void *src, unsigned long size);
-extern void EntityMoveX(struct EwramData_EntityData *);
 extern void Object22_SpawnEffect(struct EwramData_EntityData *, s32, s32, u8);
 extern void Object22_SpawnFallingPart(struct EwramData_EntityData *);
 extern s32 Entity_MoveWithBoxCollision(struct EwramData_EntityData *, s32, s32, s32, s32, s32, s32);
-extern s32 Entity_GetVisibilityPattern(s32);
 extern u8 sWarpLightPaletteSteps[];
 extern const s16 sObject22LevelThresholds[];
 extern u8 *sObject22LevelPatterns[];
@@ -343,14 +344,7 @@ void Object22FallingPart_Update(struct EwramData_EntityData *entity)
 }
 
 /* Object 0x22 helpers 0x08056F14..0x08057003. */
-extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
-extern void Player_QueueEntity(struct EwramData_EntityData *entity, u8 collisionFlags);
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 void Object22Effect_Update(struct EwramData_EntityData *entity);
-
-extern u8 sObject22Gfx[];
-extern u8 sUnk_08209FD8[];
-extern u8 sObject22SpriteSheet[];
 
 /**
  * @brief 56F14 | Object 0x22 update.
@@ -479,7 +473,6 @@ void Object29_UpdateMovement(struct EwramData_EntityData *entity)
     register s32 y asm("r1"); /* FAKEMATCH: y in r1 */
     s32 v, k;
     
-
     entity->ext.layerObject.drawX = entity->ext.layerObject.x - camera->xPos.whole;
 
     y = entity->ext.layerObject.y;
@@ -613,7 +606,6 @@ extern void Object29_Draw(struct EwramData_EntityData *entity);
 /* Graphics per variant (spawnParam1): gfx, palette, animation; unk_D is the
  * palette argument of ObjPalette_FindOrLoadVariant. */
 
-
 /**
  * @brief 573B0 | Load the graphics of variant spawnParam1 from sObject29Variants
  * and draw with Object29_Draw; 0 when no slot is free.
@@ -679,8 +671,6 @@ void Object2ACreate(struct EwramData_EntityData *entity)
 }
 
 /* Object2A_UpdateMovement: horizontal moving platform; matched. */
-extern void Player_SetXFraction(s32 fraction);
-
 
 void Object2A_UpdateMovement(struct EwramData_EntityData *entity)
 {
@@ -823,7 +813,6 @@ extern void Object2A_Draw(struct EwramData_EntityData *entity);
 
 /* Graphics per variant (spawnParam1): gfx, palette, animation; unk_D is the
  * palette argument of ObjPalette_FindOrLoadVariant. */
-
 
 /**
  * @brief 57774 | Load the graphics of variant spawnParam1 from sObject2AVariants

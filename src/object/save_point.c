@@ -1,14 +1,17 @@
 /*
  * Save point animation parts, orbit lights, sparkles and room objects 0x1D-0x1E.
  */
+#include "save_point.h"
 #include "core.h"
 #include "save_point_entity.h"
 #include "graphics.h"
 #include "structs/ewram.h"
 #include "structs/entity_render_flags.h"
-#include "gameplay.h"
-#include "room_object_entity.h"
 #include "bg_and_collision.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "palette.h"
 
 extern void SavePoint_UpdateAnimPart(struct EwramData_EntityData *);
 extern u8 sSaveWarpRoomSpriteSheet[];

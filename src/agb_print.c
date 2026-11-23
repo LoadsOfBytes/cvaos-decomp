@@ -1,3 +1,4 @@
+#include "agb_print.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include "types.h"

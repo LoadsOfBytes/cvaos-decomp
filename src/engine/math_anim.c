@@ -3,14 +3,16 @@
  * engine/obj_gfx.c. Anim_StartIndexed matches (FAKEMATCH); BgMap_FillText matches.
  * These preserve agbcc signed arithmetic, truncation and access order.
  * They are target C, not yet a portable arithmetic layer for the PC port. */
-#include "graphics.h"
 #include "core.h"
 #include "structs/render_slots.h"
 #include "gba.h"
 #include "bg_and_collision.h"
-#include "macros.h"
 #include "syscalls.h"
 #include "gameplay.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
 
 // file split
 
@@ -1186,7 +1188,6 @@ void BgMap_FillText(s32 bgIndex)
         }
     }
 }
-
 
 /**
  * @brief For background 2 only, expand cached map blocks into the affine map at 0x0600F000 and initialize the BG2 affine transform.

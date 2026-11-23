@@ -12,14 +12,20 @@
 #include "sound.h"
 #include "map_flags.h"
 #include "syscalls.h"
+#include "boss_defeat.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "entity_motion.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 /* Great Armor update. */
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
 extern s32 Entity_ClampXToRoom(struct EwramData_EntityData *, s32);
-extern void Heap_Free(void *);
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *);
-extern void Effect_SpawnRisingParticle(s32, s32, s32, s32);
 extern void GreatArmor_UpdateWalk(struct EwramData_EntityData *);
 extern void GreatArmor_UpdateAttack(struct EwramData_EntityData *);
 
@@ -108,10 +114,6 @@ struct GreatArmorBox {
 
 extern void *memcpy(void *dst, const void *src, unsigned long size);
 extern u8 GreatArmor_LoadGraphics(struct EwramData_EntityData *entity);
-extern void *Heap_Alloc(u16 words);
-extern void Heap_Free(void *allocation);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
-extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *update);
 extern void GreatArmorPart_Update(struct EwramData_EntityData *entity);
 extern void GreatArmorPart_DamagePlayerOnContact(struct EwramData_EntityData *entity);
@@ -306,20 +308,10 @@ void EnemyGreatArmorCreate(struct EwramData_EntityData *entity)
 }
 
 /* Great Armor walk state machine (state == 0): steps with dust and shake, turns at ledges and walls, starts attacks. */
-extern void *memcpy(void *, const void *, unsigned long);
-extern void GreatArmor_FaceTarget(struct EwramData_EntityData *);
 extern void GreatArmor_SaveParts(struct EwramData_EntityData *);
 extern void GreatArmor_RestoreParts(struct EwramData_EntityData *);
-extern void GreatArmor_UpdateParts(struct EwramData_EntityData *, s8 *);
-extern void GreatArmor_AttachPartSetAngle(struct EwramData_EntityData *, s32, s32, s32, s32);
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *, s32, s32);
-extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
 extern s32 Target_GetPixelX(struct EwramData_EntityData *);
-extern s32 Tile_Classify(s16, s16);
-extern s32 Entity_GetHorizontalRoomEdge(struct EwramData_EntityData *, s32);
-extern s32 Entity_MoveWithCollisionDefault(struct EwramData_EntityData *, s32, s32);
-extern void Effect_SpawnFadingParticle(s32, s32, s32, s32, s32, s32);
-extern s32 Player_GetFocusedActionFlags(void);
 extern const s8 sUnk_08118FBE[3], sUnk_08118FC1[3], sUnk_08118FC4[3], sGreatArmorChain[14];
 
 static inline s32 ABS(s32 x)
@@ -577,8 +569,6 @@ void GreatArmor_UpdateWalk(struct EwramData_EntityData *entity)
 
 /* Great Armor attack state machine. */
 extern void GreatArmor_AttachPart(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern void Effect_SpawnParticleWithDamping(s32, s32, s32, s32, s32, s32, s32, s32, s32);
-extern void Effect_SpawnFallingPiece(s32, s32, s32, s32, s32, s32);
 extern void GreatArmor_SpawnShockwave(struct EwramData_EntityData *, s32, s32);
 extern void GreatArmorSlashEffect_Spawn(struct EwramData_EntityData *, s32, s32, s32, s32, s32);
 extern const s8 sUnk_08118FC7[3], sUnk_08118FCA[3], sUnk_08118FCD[3], sUnk_08118FD0[3], sUnk_08118FD3[3], sUnk_08118FD6[3], sUnk_08118FD9[3], sUnk_08118FDC[3], sGreatArmorChain[14];
@@ -965,7 +955,6 @@ void GreatArmor_UpdatePart(struct EwramData_EntityData *entity, s32 index)
 }
 
 /* GreatArmor_FaceTarget (Great Armor turning around). */
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *entity);
 
 /**
  * @brief 8DD38 | Face the direction given by Entity_IsTargetRight; when turning
@@ -1142,9 +1131,7 @@ u8 GreatArmor_LoadGraphics(struct EwramData_EntityData *entity)
 
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, struct EwramData_EntityData *other, u16 *hit, s32 inputDamage);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 
-extern void BossDefeatEffect_Spawn(s32, s32);
 extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
 
 /**
@@ -1188,7 +1175,6 @@ struct ArmorPartBox { s8 x, y, w, h; };
 extern const u8 sGreatArmorPartTimers[14];
 extern const s16 sGreatArmorPartOffsets[14];
 extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
-extern s32 Entity_GetVisibilityPattern(s32);
 extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
 #define JOINT(e) ((s8)e->ext.jointPart.index)
 #define FIX_INT(v) ((v) < 0 ? -(-(v) >> 16) : (v) >> 16)
@@ -1346,7 +1332,6 @@ void GreatArmorPart_Update(struct EwramData_EntityData *entity)
 
 extern void GreatArmorShockwave_Update(struct EwramData_EntityData *);
 extern void GreatArmorShockwave_DamagePlayerOnContact(struct EwramData_EntityData *);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 extern u8 sCommonObjectGfx[], sCommonObjectSpriteSheet[];
 /**
  * @brief Spawn a ground shockwave at offset (dx, dy) from owner, snapped to the
@@ -1424,10 +1409,7 @@ void GreatArmorShockwave_Update(struct EwramData_EntityData *entity)
 
 #define GREAT_ARMOR_PART_COUNT 14
 
-extern void Effect_UpdateParticle(struct EwramData_EntityData *entity);
 extern void GreatArmorSlashEffect_Update(struct EwramData_EntityData *entity);
-extern u8 sCommonObjectGfx[];
-extern u8 sCommonObjectSpriteSheet[];
 
 /**
  * @brief 8E94C | Unless timer is 0, run GreatArmor_UpdatePart on parts 0..13.
@@ -1574,9 +1556,6 @@ void GreatArmorSlashEffect_Spawn(struct EwramData_EntityData *entity, s32 x, s32
 
 /* Great Armor helpers 0x0808EB3C..0x0808EC63 (Final Guard and Shadow Knight
  * use the Great Armor functions). */
-
-extern u16 Player_CalculateAttackPower(u16 attackCategory);
-extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
 
 static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
 {

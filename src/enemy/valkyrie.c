@@ -1,6 +1,7 @@
 /*
  * Valkyrie.
  */
+#include "valkyrie.h"
 #include "core.h"
 #include "graphics.h"
 #include "gameplay.h"
@@ -9,14 +10,17 @@
 #include "sound.h"
 #include "bg_and_collision.h"
 #include "player_core.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "entity_motion.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 /* EnemyValkyrieCreate 0x0806E714..0x0806E7A7. */
 extern u8 Valkyrie_LoadGraphics(struct EwramData_EntityData *entity);
 extern void Valkyrie_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void Valkyrie_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hitData);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *entity);
-extern s32 Anim_GetMaxBoxCount(struct EwramData_EntityData *entity);
 extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
 
 /**
@@ -50,22 +54,12 @@ void EnemyValkyrieCreate(struct EwramData_EntityData *entity)
 }
 
 /* Valkyrie idle / approach state. */
-extern void EntityDampVelocityX(struct EwramData_EntityData *, s32);
-extern void EntityMove(struct EwramData_EntityData *);
 extern u8 sValkyrieGfx[], sValkyriePalette[], sValkyrieSpriteSheet[];
 extern s32 ObjPalette_FindOrLoadVariant(void *, s32);
-extern void Entity_DrawWithOffsetCopy(struct EwramData_EntityData *);
-extern u16 Player_CalculateAttackPower(u16);
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
 extern s32 Target_IsWithinDistance(struct EwramData_EntityData *, s32);
-extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
-extern s32 Target_GetX(struct EwramData_EntityData *);
-extern s32 Target_GetY(struct EwramData_EntityData *);
-extern s32 Entity_MoveTowardPoint(struct EwramData_EntityData *, s32, s32, s32);
 
 /**
  * @brief Approach state machine (state 0): face the target and wait until it is
@@ -292,11 +286,7 @@ void Valkyrie_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
 }
 
 /* Valkyrie hit effect: full strength during animation 1, frames 4..6. */
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void Enemy_UpdateFragmentDeath(struct EwramData_EntityData *);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
 
 /**
  * @brief Contact: Player_ApplyContactDamage with half the attack, the full attack

@@ -1,28 +1,30 @@
 /*
  * Shop update, room object 0x20 and the object table helpers (creation from the object table, interactions, animation).
  */
+#include "shop_update.h"
 #include "core.h"
-#include "menu_page.h"
 #include "in_game.h"
 #include "bg_effects.h"
 #include "room_entities.h"
 #include "map_flags.h"
 #include "sound.h"
-#include "graphics.h"
-#include "gameplay.h"
 #include "gba/dma.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
 #include "player_core.h"
+#include "blue_souls.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "objects_35_37.h"
+#include "palette_state.h"
+#include "pause_menu.h"
+#include "scenes_c.h"
+#include "soul_menu.h"
+#include "text12.h"
+#include "text_window.h"
 
-extern void Entity_UpdateAll(void);
-extern void Shop_SetupBackgrounds(void);
-extern void MenuCursor_LoadGraphics(struct EwramData_EntityData *);
-extern void Cursor_StartAnimation(void);
-extern void Shop_DrawCursors(struct EwramData_EntityData *);
-extern void MenuItemIcon_Delete(void);
 extern void HudMap_WriteTiles(s32, s32, u16, s32);
-extern void Text12_PrintTwoLineEntryAt(s32, s32);
 extern void Shop_OpenList(void *, void *);
 extern s32 Shop_UpdateList(void *, void *);
 extern s32 Mod(s32, s32);
@@ -189,7 +191,6 @@ s32 Shop_Update(struct GameState *context)
 
 /* Object 0x20 0x0805B42C..0x0805B5E7. */
 extern void TextWindow_AdjustOpening(s32 delta);
-extern void Conversation_Reset(void);
 
 /* Create / update of the variants of object 0x20. */
 extern void (*const sEventSceneCreateFuncs[])(struct EwramData_EntityData *entity);
@@ -267,8 +268,6 @@ void Object20Update(struct EwramData_EntityData *entity)
 /* Small helpers 0x0805B5E8..0x0805B8F3 (player-relative checks, sound,
  * entity setup from the table sObjectTableGraphics). */
 
-extern void TextWindow_Begin(s32 textId);
-extern void TextWindow_Close(void);
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *updateFunc);
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 

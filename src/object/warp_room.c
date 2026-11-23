@@ -1,8 +1,8 @@
 /*
  * Warp room: update, gate parts, side lights and room objects 0x1F and 0x21.
  */
+#include "warp_room.h"
 #include "core.h"
-#include "room_object_entity.h"
 #include "in_game.h"
 #include "bg_effects.h"
 #include "room_entities.h"
@@ -17,7 +17,12 @@
 #include "structs/main.h"
 #include "structs/ewram.h"
 #include "gameplay.h"
-#include "room_objects.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "oam.h"
+#include "obj_gfx.h"
+#include "palette.h"
 
 /* WarpRoom_Update. */
 extern void Player_StartScriptedAnimation(s32, s32, s32, s32);
@@ -459,7 +464,6 @@ struct WarpLightPaletteStep
 };
 
 extern const struct WarpLightPaletteStep sWarpLightPaletteSteps[12];
-extern u8 sWarpRoomPalette[];
 
 static inline s32 Rem(s32 a, s32 b) { return a % b; }
 #define FRAME(e) (*(s8 *)&(e)->ext.raw.unk_4F4.part8.unk_4F6)
@@ -651,8 +655,6 @@ void WarpRoomUnusedPart_Update(struct EwramData_EntityData *entity)
 extern u8 Object21_LoadGraphics(struct EwramData_EntityData *entity);
 extern void Object21_OnPlayerContact(struct EwramData_EntityData *entity);
 s32 WarpRoom_LoadGraphics(struct EwramData_EntityData *entity);
-
-extern u8 sWarpRoomGfx[];
 
 /**
  * @brief 564F8 | Object 0x1F create.

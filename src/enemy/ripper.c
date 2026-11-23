@@ -7,13 +7,16 @@
 #include "sound.h"
 #include "gameplay.h"
 #include "player_core.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "hitbox.h"
+#include "math_anim.h"
+#include "obj_palette.h"
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, u8, void *);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, void *);
 extern void Enemy_OnContact(void);
 void Ripper_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern void Entity_SnapToGround(struct EwramData_EntityData *);
 extern u8 sFleamanRipperPalette[], sFleamanRipperSpriteSheet[], sFleamanRipperGfx[];
 
 void EnemyRipperCreate(struct EwramData_EntityData *entity)
@@ -53,8 +56,6 @@ void EnemyRipperCreate(struct EwramData_EntityData *entity)
 extern void Ripper_UpdateMovement(struct EwramData_EntityData *entity);
 extern void Ripper_UpdateDeath(struct EwramData_EntityData *entity);
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *entity);
-extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *entity);
 extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
 
 /**
@@ -320,9 +321,6 @@ void Ripper_UpdateMovement(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   Ripper_UpdateDeath = Fleaman_UpdateDeath */
 
-extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
-extern void Enemy_UpdateFragmentDeathWithSpread(struct EwramData_EntityData *entity, s32 interval, s32 width, s32 height);
-
 /**
  * @brief Death state (0xFF): drop rewards, restore the palette and update
  * the linked spawner count once, then run fragment death.
@@ -359,7 +357,6 @@ void Ripper_UpdateDeath(struct EwramData_EntityData *entity)
 }
 
 /* Child projectile/hitbox creation. */
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, u8, void *);
 extern void RipperProjectile_Update(struct EwramData_EntityData *);
 void RipperProjectile_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void RipperProjectile_OnHit(struct EwramData_EntityData *entity);
@@ -394,9 +391,6 @@ struct EwramData_EntityData *Ripper_CreateProjectile(struct EwramData_EntityData
     return e;
 }
 
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *);
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern s32 Entity_IsInRect(struct EwramData_EntityData *, s16, s16, u16, u16);
 
 /**
@@ -509,7 +503,6 @@ void RipperProjectile_DamagePlayerOnContact(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   Ripper_OnHit = Fleaman_OnHit */
 
-extern u16 Player_CalculateAttackPower(u16 attackCategory);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
 

@@ -2,12 +2,12 @@
  * priorities, affine sets, OAM build and transfer (see the overview in
  * structs/render_slots.h). Extracted from the previously unlinked upstream
  * src/engine/obj_gfx.c, 0x0803DB6C..0x0803E81F; Obj_BuildOam matches. */
-#include "graphics.h"
 #include "core.h"
 #include "structs/render_slots.h"
 #include "gba.h"
 #include "syscalls.h"
-#include "macros.h"
+#include "math_anim.h"
+#include "oam.h"
 
 /**
  * @brief 3DB6C | Clear the object buffer, the shadow OAM and all layers
@@ -376,8 +376,6 @@ void Obj_BuildOamFast(void)
     }
 }
 
-extern void Matrix_SetIdentity(struct Matrix2 *m);
-
 /**
  * @brief 3DFE8 | Set the OAM parameters of an affine set directly (identity transform)
  *
@@ -403,8 +401,6 @@ void ObjAffine_SetParams(u16 pa, u16 pb, u16 pc, u16 pd, u16 index)
         gObjAffine[index].pd = pd;
     }
 }
-
-extern void Matrix_SetRotationScale(struct Matrix2 * m, s32 angle, s32 scaleX, s32 scaleY);
 
 /**
  * @brief 3E058 | Set an affine set from rotation, scale and flips
@@ -820,8 +816,6 @@ s32 ObjAffine_GetFlipY(s32 index)
     return gObjAffine[index].flipY;
 }
 
-extern void Matrix_Copy(struct Matrix2 *dst, struct Matrix2 *src);
-
 /**
  * @brief 3E734 | Copy the forward matrix of an affine set
  *
@@ -842,7 +836,6 @@ s32 Obj_GetOamCount(void)
 {
     return gObjState.oamCount;
 }
-
 
 /**
  * @brief 3E75C | Back up the affine sets and their allocation mask, then free all
@@ -880,4 +873,3 @@ s32 ObjAffine_RestoreState(void)
 
     return 0;
 }
-

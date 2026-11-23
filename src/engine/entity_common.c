@@ -14,8 +14,13 @@
 #include "syscalls.h"
 #include <string.h>
 #include "gba/dma.h"
+#include "enemy_common.h"
+#include "entity_common.h"
+#include "entity_motion.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "effects.h"
 /* from entity_util.h (not included: see the module notes) */
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *entity);
 
 /* Flipped offsets of sprite parts, decompiled from original assembly. */
 /* Offset to the far corner of a part, counting parts in reverse order. */
@@ -98,7 +103,6 @@ void Sprite_GetPartOriginOffset(struct EwramData_EntityData *entity, s32 index, 
 }
 
 /* Debris motion, ground impact and particle emission. */
-extern s32 RandomSigned(s32);
 extern s32 Entity_IsInRect(struct EwramData_EntityData *, s32, s32, s32, s32);
 
 /**
@@ -434,8 +438,6 @@ s32 Entity_Walk(struct EwramData_EntityData *entity, s32 speed, void *profile, s
 }
 
 /* Common pre-update entity culling and collision callback. */
-extern void Entity_HideAboveY(struct EwramData_EntityData *, s32);
-extern s32 Enemy_IsStunned(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 
 s32 Enemy_PreUpdate(struct EwramData_EntityData *entity)
@@ -463,8 +465,6 @@ s32 Enemy_PreUpdate(struct EwramData_EntityData *entity)
  * Most functions read a "target" entity: gEwramData->playerState.linkTargetProxy when
  * gameState.linkPlay is set, else playerState.enemyTarget when non-NULL, else the
  * entity itself (or 0 for velocities). */
-
-extern s32 EntityDistance(struct EwramData_EntityData *entity, struct EwramData_EntityData *target);
 
 /**
  * @brief Repeat RNG modulo the first argument until the result is at
@@ -706,7 +706,6 @@ s16 Entity_GetTargetDistance(struct EwramData_EntityData *entity)
 }
 
 /* Entity/tile helper routines 0x0806D0B8..0x0806D2F7 (no upstream C existed). */
-extern s32 Entity_MoveWithCollisionAlt(struct EwramData_EntityData *entity, s32 landingVelocity, s32 ceilingOffset, s32 speedLimit);
 
 /* Rectangle with 32-bit fields (x, y, w, h order is a guess from the flips). */
 struct FlipRect32 {
@@ -895,8 +894,6 @@ s32 Entity_GetRoomPointDistance(struct EwramData_EntityData *entity, s32 x, s32 
  * Entity fields used (16.16 fixed point): 0x524/0x528 position x/y,
  * 0x52C/0x530 velocity x/y, 0x534/0x538 acceleration x/y. */
 
-extern void RisingEffect_Update(struct EwramData_EntityData *entity);
-
 /* Same layout as struct EnemyTemplateView in src/engine/room_entities.c, extended by the
  * field at 0x1C read here. */
 /* Local 0x24-byte template-table view: retain this TU's types and padding. */
@@ -967,7 +964,6 @@ void EntitySetVelocityFromAngle(struct EwramData_EntityData *entity, s32 angle, 
     }
 }
 
-void EntityAccelerateX(struct EwramData_EntityData *entity, s32 maxSpeed);
 void EntityAccelerateY(struct EwramData_EntityData *entity, s32 maxSpeed);
 
 /**
@@ -1126,10 +1122,6 @@ void Effect_SpawnAt(s32 x, s32 y, s32 layer)
 /* Particle spawners 0x0806D5C0..0x0806D893. */
 extern u8 sCommonObjectGfx[];
 extern u8 sCommonObjectSpriteSheet[];
-extern u32 RandomNumberGenerator(void);
-void Effect_UpdateParticle(struct EwramData_EntityData *entity);
-void RisingEffect_Update(struct EwramData_EntityData *entity);
-void Effect_UpdateTimedParticle(struct EwramData_EntityData *entity);
 
 /**
  * @brief 6D5C0 | Spawn a RisingEffect_Update particle at a random offset within
@@ -1270,8 +1262,6 @@ void Effect_SpawnRisingParticle(s32 x, s32 y, s32 layer, s32 mode)
 }
 
 /* Effect_SpawnFadingParticle. */
-extern void Effect_UpdateParticle(struct EwramData_EntityData *entity);
-extern void Effect_UpdateParticleWithDamping(struct EwramData_EntityData *entity);
 
 /**
  * @brief Create a standard particle with X/Y damping and visibility
@@ -1378,10 +1368,8 @@ void Effect_SpawnRisingParticleInBox(s32 x, s32 y, s32 width, s32 height, s32 la
  * a cloning script and checked byte for byte:
  *   Effect_SpawnFadingParticleCopy = Effect_SpawnFadingParticle */
 
-extern void Effect_UpdateRandomlyAnimatedParticle(struct EwramData_EntityData *entity);
 extern void Effect_UpdateFallingFrameParticle(struct EwramData_EntityData *entity);
 extern void Effect_UpdateStationaryAnimation(struct EwramData_EntityData *entity);
-extern void Effect_UpdateTimedParticle(struct EwramData_EntityData *entity);
 extern void TimedEntity_Update(struct EwramData_EntityData *entity);
 
 /**
@@ -1627,7 +1615,6 @@ s32 Entity_GetTargetOffsetY(struct EwramData_EntityData *entity)
 }
 
 /* Entity_AnimateWithBoxes. */
-extern void Entity_UpdateBoxes(struct EwramData_EntityData *entity);
 
 /**
  * @brief 6DF20 | Animate; refresh the boxes (Entity_UpdateBoxes) when the frame
@@ -1772,7 +1759,6 @@ void Entity_SetVelocityXFromFacing(struct EwramData_EntityData *entity, s32 velo
 }
 
 /* Movement probe: restore the position unless the movement result has mask 4 set. */
-extern s32 Entity_MoveWithCollisionAlt(struct EwramData_EntityData *, s32, s32, s32);
 
 static inline s32 ProbeMovement(struct EwramData_EntityData *entity, s32 landingVelocity, s32 ceilingOffset, s32 speedLimit)
 {
@@ -1840,10 +1826,8 @@ void Enemy_OnContactMask1(struct EwramData_EntityData *entity)
 }
 
 /* Helpers 0x0806E218..0x0806E34F. */
-extern u16 Player_CalculateAttackPower(u16 attackCategory);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
-extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
 
 /**
  * @brief 6E218 | Common hit: flash (hitFlashTimer = 8), subtract the damage from
@@ -1990,8 +1974,6 @@ s32 Entity_DistanceToPoint(struct EwramData_EntityData *entity, s32 x, s32 y)
 /* Entity_StepTowardPoint. */
 #define INT_TOWARD_ZERO(v) ((v) < 0 ? -((-(v)) >> 16) : (v) >> 16)
 
-s32 Entity_AccelerateAlongAngle(struct EwramData_EntityData *entity, u16 angle, s32 speed, s32 target, s16 acceleration, u16 time);
-
 static inline s32 Square(s32 v)
 {
     return v * v;
@@ -2132,7 +2114,6 @@ s32 Collision_FindWaterSurfaceOffset(s16 x_, s16 y_)
 }
 
 /* HitEffect_Spawn / HitEffect_SpawnAtContact (effect spawners). */
-extern void HitEffect_Update(struct EwramData_EntityData *entity);
 extern void Hit_GetContactPoint(s32 a, struct EwramData_EntityData *b, s16 *outX, s16 *outY);
 
 /**

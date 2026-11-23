@@ -1,14 +1,16 @@
 /*
  * Kyoma Demon: attack, hits, drawing, graphics and death (after the lurk state, own CFLAGS).
  */
+#include "kyoma_demon_b.h"
 #include "core.h"
 #include "sound.h"
 #include "graphics.h"
 #include "structs/ewram.h"
 #include "player_core.h"
-
-extern s32 Entity_IsTargetRight(struct EwramData_EntityData *entity);
-extern s32 Entity_GetVisibilityPattern(s32 step);
+#include "entity_common.h"
+#include "math_anim.h"
+#include "obj_gfx.h"
+#include "obj_palette.h"
 
 #define FRAME(e) (*(u16 *)&(e)->animStep)
 
@@ -63,7 +65,6 @@ void KyomaDemon_UpdateAttack(struct EwramData_EntityData *entity)
 
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-extern void Enemy_DropRewards(struct EwramData_EntityData *);
 
 extern struct AnimScript sKyomaDemonHitAnimScript;
 

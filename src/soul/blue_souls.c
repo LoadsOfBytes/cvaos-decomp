@@ -24,6 +24,7 @@
 #include "palette.h"
 #include "red_souls_b.h"
 #include "data/data_0E0B68.h"
+#include "data/data_4F0B18.h"
 #include "data/data_118B48.h"
 
 /* From player_core.h, which is not included: it declares
@@ -539,7 +540,7 @@ static inline void LoadGfx(struct EwramData_EntityData *entity, u8 paletteSlot, 
 /**
  * @brief 2E730 | Bone Pillar blue soul (ends via BlueSoul_ShouldEnd or when the
  * caster leaves the 0x100000 state of unk_4F4 & 0x1001A2): graphics
- * 0x081DC948 / 0x0820B508 / 0x082362B8 (slot 3), hidden, Hit_SetTimerOverride(2,
+ * sSkillBonePillarGfx / sSkillBonePillarPalette / sSkillBonePillarProjectileSpriteSheet (slot 3), hidden, Hit_SetTimerOverride(2,
  * 15), skillBaseAttack/skillAttackAttributes = 0x14 / 2, the player (playerState.player) to state 10 with
  * animation 0x35. Sits 16 px in front of and 28 px above the caster and
  * every 5 frames throws a SkillBonePillarProjectileUpdate bone (song 0x91 on throw 0 and 50 %
@@ -566,9 +567,9 @@ void SkillBonePillarUse(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        u8 *graphics = (u8 *)0x081DC948;
-        u8 *palette = (u8 *)0x0820B508;
-        u8 *sprite = (u8 *)0x082362B8;
+        u8 *graphics = (u8 *)sSkillBonePillarGfx;
+        u8 *palette = (u8 *)sSkillBonePillarPalette;
+        u8 *sprite = (u8 *)sSkillBonePillarProjectileSpriteSheet;
         LoadGfx(entity, 0, graphics, palette, sprite);
     }
         entity->hidden = 1;
@@ -634,7 +635,7 @@ static inline void EndBlueSoul(struct EwramData_EntityData *entity)
 
 /**
  * @brief 2E960 | Alura Une blue soul: ends (BlueSoul_ReleaseActiveResources) when HP is full
- * or via BlueSoul_ShouldEnd; graphics 0x081DE154 / 0x0820B574 / 0x082368A8 in an
+ * or via BlueSoul_ShouldEnd; graphics sSkillAluraUneGfx / sSkillAluraUnePalette / sSkillAluraUneSpriteSheet in an
  * affine slot (ObjAffine_Alloc, freed like BlueSoul_DeleteEntity when none is free),
  * held 16 px behind and 26 px above the caster while its affine scale grows
  * (x by 0x1000, y by 0x2000 per frame up to 0x10000). Every 17 frames: song
@@ -661,9 +662,9 @@ void SkillAluraUneUse(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        u8 *graphics = (u8 *)0x081DE154;
-        u8 *palette = (u8 *)0x0820B574;
-        u8 *sprite = (u8 *)0x082368A8;
+        u8 *graphics = (u8 *)sSkillAluraUneGfx;
+        u8 *palette = (u8 *)sSkillAluraUnePalette;
+        u8 *sprite = (u8 *)sSkillAluraUneSpriteSheet;
         LoadGfx(entity, 0, graphics, palette, sprite);
     }
         Anim_StartIndexed(entity, 0, 0, 1);
@@ -988,8 +989,8 @@ static inline void SpawnBubble(struct EwramData_EntityData *entity, s32 type)
 
 /**
  * @brief 2F1A4 | Sky Fish blue soul (ends via BlueSoul_CheckEndCondition or caster state
- * unk_4F4 & 0x1A2; not started while & 0x82): graphics 0x081DD950 /
- * 0x0820B550 / 0x08236868, song 0x99. For 16 frames two Effect_CreateFromTable
+ * unk_4F4 & 0x1A2; not started while & 0x82): graphics sSkillSkyFishGfx /
+ * sSkillSkyFishPalette / sSkillSkyFishSpriteSheet, song 0x99. For 16 frames two Effect_CreateFromTable
  * bubbles per frame at random angles 40 px above, then the player takes
  * animation 0x34 (actionLockFlags bit 11, song 0x1A8) and a counter spawnParam1 rises
  * to 300 (song 0x95 every 60), added to STR (/ 2) and LCK every frame
@@ -1016,9 +1017,9 @@ void SkillSkyFishUse(struct EwramData_EntityData *entity)
         if (parent->ext.player.actionFlags & 0x82)
             goto delete;
     {
-        u8 *graphics = (u8 *)0x081DD950;
-        u8 *palette = (u8 *)0x0820B550;
-        u8 *sprite = (u8 *)0x08236868;
+        u8 *graphics = (u8 *)sSkillSkyFishGfx;
+        u8 *palette = (u8 *)sSkillSkyFishPalette;
+        u8 *sprite = (u8 *)sSkillSkyFishSpriteSheet;
         LoadGfx(entity, 0, graphics, palette, sprite);
     }
         Anim_StartIndexed(entity, 1, 0, 1);
@@ -1095,7 +1096,7 @@ end:
 
 /**
  * @brief 2F548 | Shadow Knight blue soul (ends via BlueSoul_ShouldEnd): graphics
- * 0x081DF15C / 0x0820B5BC / 0x0823717C, an affine slot growing for 32 frames
+ * sSkillShadowKnightGfx / sSkillShadowKnightPalette / sSkillShadowKnightSpriteSheet, an affine slot growing for 32 frames
  * (x by 0x1000, y by 0x800 up to 0x10000), box slot 6, Hit_SetTimerOverride(2, 60),
  * skillBaseAttack/skillAttackAttributes = 0x23 / 1, song 0x1A6. Then it alternates animation 0 while
  * the caster's weaponEntities[unk_50C] slot is taken and animation 1 when that
@@ -1115,9 +1116,9 @@ void SkillShadowKnightUse(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        u8 *graphics = (u8 *)0x081DF15C;
-        u8 *palette = (u8 *)0x0820B5BC;
-        u8 *sprite = (u8 *)0x0823717C;
+        u8 *graphics = (u8 *)sSkillShadowKnightGfx;
+        u8 *palette = (u8 *)sSkillShadowKnightPalette;
+        u8 *sprite = (u8 *)sSkillShadowKnightSpriteSheet;
         LoadGfx(entity, 0, graphics, palette, sprite);
     }
         Anim_StartIndexed(entity, 1, 0, 1);
@@ -1253,8 +1254,8 @@ extern void BlueSoul_DrawAlternatingLayer(struct EwramData_EntityData *);
  * @brief 2F96C | Witch / Giant Ghost blue soul (unk_500 = 0 / 1, ends via
  * BlueSoul_CheckEndCondition): affine slot, box slot 7 with callback SkillWitchGiantGhost_OnContact,
  * Hit_SetTimerOverride(2, 10), skillBaseAttack/skillAttackAttributes = 0x1E / 0x20. Witch: graphics
- * 0x081DE958 (layer 0xD, box 0x2010E010, song 0x97); Giant Ghost: graphics
- * 0x081E0968 drawn by BlueSoul_DrawAlternatingLayer (layer 0xE, box 0x2830D8E8, song 0x8D).
+ * sSkillWitchGfx (layer 0xD, box 0x2010E010, song 0x97); Giant Ghost: graphics
+ * sSkillGiantGhostGfx drawn by BlueSoul_DrawAlternatingLayer (layer 0xE, box 0x2830D8E8, song 0x8D).
  * Grows (scale unk_50C += 0x2000 up to 0x10000) at the caster, then on the
  * end shrinks by 0x2000 per frame and calls BlueSoul_ReleaseActiveResources.
  */
@@ -1288,9 +1289,9 @@ void Skill_Witch_GiantGhost_Use(struct EwramData_EntityData *entity)
         entity->hit.flags |= 4;
         if (entity->ext.blueSoul.value == 0)
         {
-            u8 *graphics = (u8 *)0x081DE958;
-            u8 *palette = (u8 *)0x0820B598;
-            u8 *sprite = (u8 *)0x0823693C;
+            u8 *graphics = (u8 *)sSkillWitchGfx;
+            u8 *palette = (u8 *)sSkillWitchPalette;
+            u8 *sprite = (u8 *)sSkillWitchSpriteSheet;
             LoadGfx(entity, 0, graphics, palette, sprite);
             entity->drawFunc = (u32 *)Sprite_DrawEntity;
             entity->spriteLayer = 0xD;
@@ -1300,9 +1301,9 @@ void Skill_Witch_GiantGhost_Use(struct EwramData_EntityData *entity)
         }
         else
         {
-            u8 *graphics = (u8 *)0x081E0968;
-            u8 *palette = (u8 *)0x0820B628;
-            u8 *sprite = (u8 *)0x08237464;
+            u8 *graphics = (u8 *)sSkillGiantGhostGfx;
+            u8 *palette = (u8 *)sSkillGiantGhostPalette;
+            u8 *sprite = (u8 *)sSkillGiantGhostSpriteSheet;
             LoadGfx(entity, 0, graphics, palette, sprite);
             entity->drawFunc = (u32 *)BlueSoul_DrawAlternatingLayer;
             entity->spriteLayer = 0xE;
@@ -1555,8 +1556,8 @@ void PersephoneSoul_OnHit(struct EwramData_EntityData *entity, struct EwramData_
 
 /**
  * @brief 300A4 | Persephone blue soul (ends via BlueSoul_CheckEndCondition: song 0x9C
- * stopped, 16 frames, then BlueSoul_ReleaseActiveResources): graphics 0x081E0968 / 0x0820B628
- * / 0x08237464, box slot 6 with callback PersephoneSoul_OnHit (disabled),
+ * stopped, 16 frames, then BlueSoul_ReleaseActiveResources): graphics sSkillGiantGhostGfx / sSkillGiantGhostPalette
+ * / sSkillGiantGhostSpriteSheet, box slot 6 with callback PersephoneSoul_OnHit (disabled),
  * Hit_SetTimerOverride(2, 20), skillBaseAttack/skillAttackAttributes = 10 / 0; keeps song 0x9C playing and
  * stays at the caster (Anim_UpdateWithFrameAttackBox).
  */
@@ -1580,9 +1581,9 @@ void SkillPersephoneUse(struct EwramData_EntityData *entity)
     case 0:
         entity->scrollWithBg = 1;
     {
-        u8 *graphics = (u8 *)0x081E0968;
-        u8 *palette = (u8 *)0x0820B628;
-        u8 *sprite = (u8 *)0x08237464;
+        u8 *graphics = (u8 *)sSkillGiantGhostGfx;
+        u8 *palette = (u8 *)sSkillGiantGhostPalette;
+        u8 *sprite = (u8 *)sSkillGiantGhostSpriteSheet;
         LoadGfx(entity, 0, graphics, palette, sprite);
     }
         Anim_StartIndexed(entity, 0, 0, 1);
@@ -1659,9 +1660,9 @@ void SkillDeathSickleUpdate(struct EwramData_EntityData *entity)
         entity->affineIndex = slot;
         entity->affine = 1;
     {
-        u8 *graphics = (u8 *)0x081E2174;
-        u8 *palette = (u8 *)0x0820B694;
-        u8 *sprite = (u8 *)0x08237770;
+        u8 *graphics = (u8 *)sSkillDeathGfx;
+        u8 *palette = (u8 *)sSkillDeathPalette;
+        u8 *sprite = (u8 *)sSkillDeathSpriteSheet;
         LoadGfx(entity, 0, graphics, palette, sprite);
     }
         Anim_StartIndexed(entity, 0, 0, 0);
@@ -1960,11 +1961,11 @@ struct SkullFrame {
 
 /**
  * @brief 30A24 | Creaking Skull blue soul (ends via BlueSoul_ShouldEnd): graphics
- * 0x081E1970 / 0x0820B670 / 0x0823767C, hidden, a chain of four children
+ * sSkillCreakingSkullGfx / sSkillCreakingSkullPalette / sSkillCreakingSkullSpriteSheet, hidden, a chain of four children
  * (three SkillCreakingSkullSegmentUpdate segments and the SkillCreakingSkullHitBoxUpdate head, each spawned from
  * the previous one, spawnParam0 = caster byte / index), Hit_SetTimerOverride(2, 30),
  * skillBaseAttack/skillAttackAttributes = 0x28 / 0. Grows, then plays frame scripts (hp: idle
- * 0x084F13DC, bite 0x084F13E8 while the caster's weaponEntities slot is taken;
+ * sSkillCreakingSkullFrames, bite sSkillCreakingSkullBiteFrames while the caster's weaponEntities slot is taken;
  * entries {duration, frame}, NULL ends; song 0x9B on bite step 3) 20 px
  * above the caster.
  */
@@ -1983,7 +1984,7 @@ void SkillCreakingSkullUse(struct EwramData_EntityData *entity)
     SKILL_CREAKING_SKULL_ACTIVE(entity) = 0;
     if (entity->stage != 0 && gEwramData->playerState.weaponEntities[parent->ext.player.weaponSlot] != NULL)
     {
-        SKILL_CREAKING_SKULL_FRAMES(entity) = 0x084F13E8;
+        SKILL_CREAKING_SKULL_FRAMES(entity) = (s32)sSkillCreakingSkullBiteFrames;
         entity->state = 3;
         entity->stage = 0;
     }
@@ -1991,9 +1992,9 @@ void SkillCreakingSkullUse(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        u8 *graphics = (u8 *)0x081E1970;
-        u8 *palette = (u8 *)0x0820B670;
-        u8 *sprite = (u8 *)0x0823767C;
+        u8 *graphics = (u8 *)sSkillCreakingSkullGfx;
+        u8 *palette = (u8 *)sSkillCreakingSkullPalette;
+        u8 *sprite = (u8 *)sSkillCreakingSkullSpriteSheet;
         LoadGfx(entity, 0, graphics, palette, sprite);
     }
         entity->hidden = 1;
@@ -2017,8 +2018,8 @@ void SkillCreakingSkullUse(struct EwramData_EntityData *entity)
             gEwramData->playerState.skillBaseAttack = a;
             gEwramData->playerState.skillAttackAttributes = 0;
         }
-        SKILL_CREAKING_SKULL_ANGLES(entity) = 0x080E1AA8;
-        SKILL_CREAKING_SKULL_FRAMES(entity) = 0x084F13DC;
+        SKILL_CREAKING_SKULL_ANGLES(entity) = (s32)sSkillCreakingSkullAngles;
+        SKILL_CREAKING_SKULL_FRAMES(entity) = (s32)sSkillCreakingSkullFrames;
         entity->flipX = 1 ^ parent->flipX;
         entity->state = 1;
     case 1:
@@ -2028,7 +2029,7 @@ void SkillCreakingSkullUse(struct EwramData_EntityData *entity)
             entity->state = 2;
         break;
     case 2:
-        SKILL_CREAKING_SKULL_FRAMES(entity) = 0x084F13DC;
+        SKILL_CREAKING_SKULL_FRAMES(entity) = (s32)sSkillCreakingSkullFrames;
         entity->state = 3;
         entity->stage = 1;
         break;
@@ -2054,7 +2055,7 @@ void SkillCreakingSkullUse(struct EwramData_EntityData *entity)
             entity->timer--;
             break;
         }
-        if (SKILL_CREAKING_SKULL_FRAMES(entity) == 0x084F13E8 && entity->subState == 3)
+        if (SKILL_CREAKING_SKULL_FRAMES(entity) == (s32)sSkillCreakingSkullBiteFrames && entity->subState == 3)
             PlaySong(0x9B);
         entity->state = 3;
         entity->subState++;
@@ -2141,7 +2142,7 @@ void SkillCatoblepasProjectileUpdate(struct EwramData_EntityData *entity)
 
 /**
  * @brief 30E64 | Catoblepas blue soul, same frame as SkillBonePillarUse:
- * graphics 0x081E2978 / 0x0820B6B8 / 0x08237884, Hit_SetTimerOverride(2, 30),
+ * graphics sSkillCatoblepasGfx / sSkillCatoblepasPalette / sSkillCatoblepasProjectileSpriteSheet, Hit_SetTimerOverride(2, 30),
  * skillBaseAttack/skillAttackAttributes = 10 / 0x100. Every 5 frames breathes a SkillCatoblepasProjectileUpdate
  * projectile (song 0x8E every other one) at the head, speed 0x18000 +
  * caster velX, deceleration 0x400, vertical speed sSkillProjectileLaunchVelocities[unk_50A]
@@ -2167,9 +2168,9 @@ void SkillCatoblepasUse(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        u8 *graphics = (u8 *)0x081E2978;
-        u8 *palette = (u8 *)0x0820B6B8;
-        u8 *sprite = (u8 *)0x08237884;
+        u8 *graphics = (u8 *)sSkillCatoblepasGfx;
+        u8 *palette = (u8 *)sSkillCatoblepasPalette;
+        u8 *sprite = (u8 *)sSkillCatoblepasProjectileSpriteSheet;
         LoadGfx(entity, 0, graphics, palette, sprite);
     }
         entity->hidden = 1;
@@ -2222,7 +2223,7 @@ extern s32 Entity_StepTowardPoint(struct EwramData_EntityData *, s32, s32, s32);
 
 /**
  * @brief 310AC | Imp blue soul (familiar, ends via BlueSoul_CheckEndCondition): graphics
- * 0x081E317C / palette 0x0820B6DC / sprite 0x08237AC4 (slot 3), layer 0xF,
+ * sSkillImpGfx / palette sSkillImpPalette / sprite sSkillImpSpriteSheet (slot 3), layer 0xF,
  * box slot 6, Hit_SetTimerOverride(2, 60), skillBaseAttack/skillAttackAttributes = 15 / 0x11, song 0x19E.
  * Rises from the caster, then flies towards its anchor point
  * (Target_GetX / Target_GetY - 40 px), circles it (sin/cos by timer)
@@ -2252,9 +2253,9 @@ void SkillImpUse(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        u8 *graphics = (u8 *)0x081E317C;
-        u8 *palette = (u8 *)0x0820B6DC;
-        u8 *sprite = (u8 *)0x08237AC4;
+        u8 *graphics = (u8 *)sSkillImpGfx;
+        u8 *palette = (u8 *)sSkillImpPalette;
+        u8 *sprite = (u8 *)sSkillImpSpriteSheet;
         LoadGfx(entity, 0, graphics, palette, sprite);
     }
         Anim_StartIndexed(entity, 0, 0, 1);
@@ -2471,9 +2472,9 @@ void SkillAlastorUse(struct EwramData_EntityData *entity)
         entity->affineIndex = slot;
         entity->affine = 1;
     {
-        u8 *graphics = (u8 *)0x081E3980;
-        u8 *palette = (u8 *)0x0820B700;
-        u8 *sprite = (u8 *)0x08237AFC;
+        u8 *graphics = (u8 *)sSkillAlastorGfx;
+        u8 *palette = (u8 *)sSkillAlastorPalette;
+        u8 *sprite = (u8 *)sSkillAlastorSpriteSheet;
         LoadGfx(entity, 0, graphics, palette, sprite);
     }
         entity->spriteLayer = 0xF;
@@ -2667,7 +2668,7 @@ void SkillGreatArmorUse(struct EwramData_EntityData *entity)
 
 /**
  * @brief 31ACC | Big Golem blue soul, same frame as SkillShadowKnightUse:
- * graphics 0x0825FB1C / 0x082664B8 / 0x082677B8, skillBaseAttack/skillAttackAttributes = 0x1E / 0,
+ * graphics sSkillBigGolemGfx / sSkillBigGolemPalette / sSkillBigGolemSpriteSheet, skillBaseAttack/skillAttackAttributes = 0x1E / 0,
  * song 0x1A6; animation 1 while the caster's weaponEntities[unk_50C] slot is
  * taken (song 0xC5 on frame 4), back to animation 0 when it ends; held
  * 12 px behind and 4 px above the caster.
@@ -2686,9 +2687,9 @@ void SkillBigGolemUse(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        u8 *graphics = (u8 *)0x0825FB1C;
-        u8 *palette = (u8 *)0x082664B8;
-        u8 *sprite = (u8 *)0x082677B8;
+        u8 *graphics = (u8 *)sSkillBigGolemGfx;
+        u8 *palette = (u8 *)sSkillBigGolemPalette;
+        u8 *sprite = (u8 *)sSkillBigGolemSpriteSheet;
         LoadGfx(entity, 0, graphics, palette, sprite);
     }
         Anim_StartIndexed(entity, 0, 0, 1);

@@ -1947,17 +1947,6 @@ void SkillSlimeUse(struct EwramData_EntityData *entity)
  * RedSoul_FindFreeEntitySlot as returning u8, but the original returns a sign-extended
  * s8 (-1 when no slot is free). Changing the header would change callers. */
 
-/* Same layout as struct RedSoulActivationView in player_core.h, plus activeEntityLimit. */
-struct RedSoulInfo {
-    void *updateFunc; // TODO: function signature
-    u16 castAnimKind;
-    s16 mpCost;
-    u8 activeEntityLimit;
-    u8 pad_9[0xE - 0x9];
-    u16 param;
-}; /* size = 0x10 */
-
-extern const struct RedSoulInfo sSomaRedSoulInfo[]; // Soma (currentCharacter == 0)
 extern const struct RedSoulInfo sJuliusSubweaponInfo[]; // Julius mode (defined in player/player_level.c)
 
 #define INT_TOWARD_ZERO(v) ((v) < 0 ? -((-(v)) >> 16) : (v) >> 16)
@@ -2486,7 +2475,7 @@ void BoneSoul_OnPlayerContact(struct EwramData_EntityData *entity)
     entity->ext.skillBone.hit = 1;
 }
 
-/* Projectile 0x081C15F4 / 0x0820ED60 (palette 4, frame 0x35, priority 13):
+/* Projectile sCommonObjectGfx / sCommonObjectSpriteSheet (palette 4, frame 0x35, priority 13):
  * set up on the first frame, then fall and flag itself (deleteRequested) for
  * removal once it leaves the screen. */
 

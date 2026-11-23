@@ -1152,24 +1152,24 @@ void BgParticle_Update(struct EwramData_EntityData *entity)
     case 0:
         if (entity->spawnParam0 == 0)
         {
-            gfx = ObjGfx_LoadResource((u8 *)0x081CBE5C, 0);
+            gfx = ObjGfx_LoadResource((u8 *)sObject07ParallaxSpriteGfx, 0);
             if (gfx < 0)
                 goto fail;
-            pal = ObjPalette_FindOrLoad((void *)0x08209EE8);
+            pal = ObjPalette_FindOrLoad((void *)sObject07ParallaxSpritePalette);
             if (pal < 0)
                 goto fail;
-            Sprite_Attach(entity, (void *)0x0820FE44, gfx, pal);
+            Sprite_Attach(entity, (void *)sObject07ParallaxSpriteSpriteSheet, gfx, pal);
         }
         else if (entity->spawnParam0 == 2)
         {
-            gfx = ObjGfx_LoadResource((u8 *)0x081CBEB4, 0);
-            if (gfx < 0 || (pal = ObjPalette_FindOrLoad((void *)0x0820A100)) < 0)
+            gfx = ObjGfx_LoadResource((u8 *)sBgParticleGfx, 0);
+            if (gfx < 0 || (pal = ObjPalette_FindOrLoad((void *)sObject2DObject2EPalette)) < 0)
             {
             fail:
                 entity->deleteRequested = 1;
                 return;
             }
-            Sprite_Attach(entity, (void *)0x08210DB0, gfx, pal);
+            Sprite_Attach(entity, (void *)sBgParticleSpriteSheet, gfx, pal);
         }
         Anim_StartIndexed(entity, entity->ext.bgParticle.kind, 0, 1);
         entity->animStep = RandomNumberGenerator() & 1;

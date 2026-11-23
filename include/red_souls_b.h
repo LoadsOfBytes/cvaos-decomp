@@ -7,7 +7,23 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-struct RedSoulInfo;
+/* Red soul / Julius sub-weapon entry (sSomaRedSoulInfo, sJuliusSubweaponInfo;
+ * RedSoul_GetInfo): update function of the created entity, cast animation
+ * kind, MP cost, limit of active entities, base attack power and a
+ * parameter passed to the entity (RedSoulWork.param).
+ */
+struct RedSoulInfo {
+    /* 0x00 */ void *updateFunc; // TODO: function signature
+    /* 0x04 */ u16 castAnimKind;
+    /* 0x06 */ s16 mpCost;
+    /* 0x08 */ u8 activeEntityLimit;
+    /* 0x09 */ u8 pad_9;
+    /* 0x0A */ u16 baseAttack;
+    /* 0x0C */ u8 pad_C[0xE - 0xC];
+    /* 0x0E */ u16 param;
+}; /* size = 0x10 */
+
+extern const struct RedSoulInfo sSomaRedSoulInfo[]; /* Soma (currentCharacter == 0) */
 
 extern u8 RedSoul_GetCastAnim(s32 pose);
 extern u8 RedSoul_GetActiveLimit(void);

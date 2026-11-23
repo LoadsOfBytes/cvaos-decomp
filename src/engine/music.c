@@ -18,6 +18,8 @@
 #include "obj_gfx.h"
 #include "palette.h"
 #include "in_game.h"
+#include "data/data_0E5364.h"
+#include "data/data_118B48.h"
 
 u16 sAreaSongs[] = {
     2, 8, 7, 5, 6, 9, 1, 3, 10, 4, 11, 12, 12
@@ -495,10 +497,10 @@ s32 GameModeGameOverUpdate(void)
             DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
             gUnk_03002CB0.dispCnt = DCNT_OBJ | DCNT_BG1;
             gDisplayRegisters.bgCnt[1] = CREATE_BGCNT(0, 29, BGCNT_HIGH_MID_PRIORITY, BGCNT_SIZE_256x256) | BGCNT_256_COLOR;
-            Gfx_CopyResource((u8 *)0x080E5C08, VRAM_BASE, 0);
-            Gfx_CopyResource((u8 *)0x080E5C10, VRAM_BASE + 0x4000, 0);
-            BgPalette_Load((u8 *)0x080E6A3C);
-            BgMap_Setup(1, (struct BgMapMetadata *)0x080E9584, 0, 0);
+            Gfx_CopyResource((u8 *)sGameOverGfx, VRAM_BASE, 0);
+            Gfx_CopyResource((u8 *)sGameOverGfx2, VRAM_BASE + 0x4000, 0);
+            BgPalette_Load((u8 *)sGameOverBgPalette);
+            BgMap_Setup(1, (struct BgMapMetadata *)sGameOverBgMap, 0, 0);
             BgPalette_StartColorFade(0, 0, 0, 0, 0x10000, 0x20);
             gDisplayRegisters.bldCnt = BLDCNT_BG1_SECOND_TARGET_PIXEL | BLDCNT_ALPHA_BLENDING_EFFECT | BLDCNT_OBJ_FIRST_TARGET_PIXEL;
             gDisplayRegisters.bldAlpha = C_16_2_8(BLDALPHA_MAX_VALUE, 0);
@@ -541,19 +543,19 @@ s32 GameModeGameOverUpdate(void)
                     switch (gEwramData->gameState.language)
                     {
                         case 2:
-                            gfx = ObjGfx_LoadResource((u8 *)0x082799A0, 0);
-                            ObjPalette_LoadRange((u8 *)0x0825C368, 0, 1, 8);
-                            Sprite_Attach(textEntity, (u8 *)0x0827A9FC, gfx, 8);
+                            gfx = ObjGfx_LoadResource((u8 *)sGameOverGfx5, 0);
+                            ObjPalette_LoadRange((u8 *)sGameOverPalette, 0, 1, 8);
+                            Sprite_Attach(textEntity, (u8 *)sGameOverSpriteSheet3, gfx, 8);
                             break;
                         case 3:
-                            gfx = ObjGfx_LoadResource((u8 *)0x0826E85C, 0);
-                            ObjPalette_LoadRange((u8 *)0x0825C368, 0, 1, 8);
-                            Sprite_Attach(textEntity, (u8 *)0x0826F894, gfx, 8);
+                            gfx = ObjGfx_LoadResource((u8 *)sGameOverGfx4, 0);
+                            ObjPalette_LoadRange((u8 *)sGameOverPalette, 0, 1, 8);
+                            Sprite_Attach(textEntity, (u8 *)sGameOverSpriteSheet2, gfx, 8);
                             break;
                         default:
-                            gfx = ObjGfx_LoadResource((u8 *)0x0825B220, 0);
-                            ObjPalette_LoadRange((u8 *)0x0825C368, 0, 1, 8);
-                            Sprite_Attach(textEntity, (u8 *)0x0825E06C, gfx, 8);
+                            gfx = ObjGfx_LoadResource((u8 *)sGameOverGfx3, 0);
+                            ObjPalette_LoadRange((u8 *)sGameOverPalette, 0, 1, 8);
+                            Sprite_Attach(textEntity, (u8 *)sGameOverSpriteSheet, gfx, 8);
                             break;
                     }
 
@@ -586,13 +588,13 @@ s32 GameModeGameOverUpdate(void)
                 switch (gEwramData->gameState.language)
                 {
                     case 2:
-                        ObjGfx_Unload(ObjGfx_Find((u8 *)0x082799A0));
+                        ObjGfx_Unload(ObjGfx_Find((u8 *)sGameOverGfx5));
                         break;
                     case 3:
-                        ObjGfx_Unload(ObjGfx_Find((u8 *)0x0826E85C));
+                        ObjGfx_Unload(ObjGfx_Find((u8 *)sGameOverGfx4));
                         break;
                     default:
-                        ObjGfx_Unload(ObjGfx_Find((u8 *)0x0825B220));
+                        ObjGfx_Unload(ObjGfx_Find((u8 *)sGameOverGfx3));
                         break;
                 }
 
@@ -603,7 +605,7 @@ s32 GameModeGameOverUpdate(void)
                 gEwramData->bgControlMinWriteLevel = gEwramData->unusedWriteLevel = 0;
                 gUnk_03002CB0.dispCnt = DCNT_BLANK;
                 gameMode = GAME_MODE_KONAMI_LOGO;
-                DMA_FILL_32(3, 0, 0x06000000, 0x18000);
+                DMA_FILL_32(3, 0, VRAM_BASE, 0x18000);
             }
             break;
     }
@@ -659,20 +661,20 @@ s32 GameModeCreditsUpdate(void)
 
         case 1:
             PlaySong(MUS_26);
-            Gfx_CopyResource((u8 *)0x080E5BC8, VRAM_BASE, 0);
-            Gfx_CopyResource((u8 *)0x080E5BD0, VRAM_BASE + 0x2000, 0);
-            Gfx_CopyResource((u8 *)0x080E5BD8, VRAM_BASE + 0x4000, 0);
-            BgPalette_LoadRange((u8 *)0x080E6028, 0, 8, 0);
-            BgMap_Setup(1, (struct BgMapMetadata *)0x080E8F04, 0, 0x50);
+            Gfx_CopyResource((u8 *)sCreditsGfx, VRAM_BASE, 0);
+            Gfx_CopyResource((u8 *)sCreditsGfx2, VRAM_BASE + 0x2000, 0);
+            Gfx_CopyResource((u8 *)sCreditsGfx3, VRAM_BASE + 0x4000, 0);
+            BgPalette_LoadRange((u8 *)sCreditsBgPalette, 0, 8, 0);
+            BgMap_Setup(1, (struct BgMapMetadata *)sCreditsBgMap4, 0, 0x50);
 
             if (gEwramData->gameState.stateFlags & 0x4000)
             {
-                BgMap_Setup(2, (struct BgMapMetadata *)0x080E7B54, 0, 0x50);
-                BgMap_Setup(3, (struct BgMapMetadata *)0x080E81E4, 0, 0x50);
+                BgMap_Setup(2, (struct BgMapMetadata *)sCreditsBgMap, 0, 0x50);
+                BgMap_Setup(3, (struct BgMapMetadata *)sCreditsBgMap2, 0, 0x50);
             }
             else
             {
-                BgMap_Setup(2, (struct BgMapMetadata *)0x080E8874, 0, 0x50);
+                BgMap_Setup(2, (struct BgMapMetadata *)sCreditsBgMap3, 0, 0x50);
             }
 
             gEwramData->gameModeUpdateStage += 1;

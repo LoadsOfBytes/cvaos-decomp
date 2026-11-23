@@ -20,6 +20,7 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "music.h"
+#include "data/data_118B48.h"
 
 /**
  * @brief Wait for the delay, then move with the velocity and delete itself
@@ -33,8 +34,8 @@ void PlayerEffectSetPart_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
         case 0:
-            gfx = ObjGfx_Find((u8 *)0x081C15F4);
-            Sprite_Attach(entity, (u8 *)0x0820ED60, gfx, 6);
+            gfx = ObjGfx_Find((u8 *)sCommonObjectGfx);
+            Sprite_Attach(entity, (u8 *)sCommonObjectSpriteSheet, gfx, 6);
             entity->drawFunc = NULL;
             entity->spriteLayer = 0xD;
             Anim_StartIndexed(entity, (u8) entity->ext.playerEffectSet.anim, 0, 0);
@@ -315,8 +316,8 @@ void Effect_UpdatePlayerSurfaceEffect(struct EwramData_EntityData *entity)
             return;
         }
 
-        gfx = ObjGfx_Find((u8 *)0x081C15F4);
-        Sprite_Attach(entity, (u8 *)0x0820ED60, gfx, 6);
+        gfx = ObjGfx_Find((u8 *)sCommonObjectGfx);
+        Sprite_Attach(entity, (u8 *)sCommonObjectSpriteSheet, gfx, 6);
         Anim_StartIndexed(entity, entity->ext.surfaceEffect.anim, 0, 0);
         entity->drawFunc = (u32 *) Sprite_DrawEntity;
         entity->spriteLayer = 0xF;
@@ -342,8 +343,8 @@ void Effect_UpdateFallingDebris(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
         case 0:
-            gfx = ObjGfx_Find((u8 *)0x081C15F4);
-            Sprite_Attach(entity, (u8 *)0x0820ED60, gfx, 6);
+            gfx = ObjGfx_Find((u8 *)sCommonObjectGfx);
+            Sprite_Attach(entity, (u8 *)sCommonObjectSpriteSheet, gfx, 6);
             entity->drawFunc = (u32 *) Sprite_DrawEntity;
             frame = 0x40;
             entity->animFrame = frame;
@@ -470,15 +471,6 @@ const struct PushBlockLayoutTable sPushBlockGroupLayouts = {
     }
 };
 
-struct PushBlockSolidCallbacksView {
-    u32 flags;
-    void *ceilingCorrection;
-    void *floorCorrection;
-    void *wallRightCorrection;
-    void *wallLeftCorrection;
-    void *push;
-};
-
 const struct SolidObjectCallbackStorage sPushBlockSolidCallbacks = {
     .flags = 0,
     .ceilingCorrection = PushBlockGroup_CeilingCorrection,
@@ -509,12 +501,12 @@ void PushBlockGroup_Create(struct EwramData_EntityData *entity)
     {
         layout = sPushBlockGroupLayouts.layouts[group];
         count = layout->blockCount;
-        tileSlot = ObjGfx_LoadResource((u8 *)0x081CBE14, 0);
-        paletteIndex = ObjPalette_FindOrLoad((void *)0x08209C64);
+        tileSlot = ObjGfx_LoadResource((u8 *)sPushBlockGroupGfx, 0);
+        paletteIndex = ObjPalette_FindOrLoad((void *)sPushBlockGroupPalette);
         for (i = 0; i < count; i++)
         {
             child = EntityCreateInRange(0x49, 0xCF, (u32 *) PushBlock_Update);
-            Sprite_Attach(child, (u8 *)0x0820F18C, tileSlot, (s32) paletteIndex);
+            Sprite_Attach(child, (u8 *)sPushBlockGroupSpriteSheet, tileSlot, (s32) paletteIndex);
             child->animFrame = 0;
             child->drawFunc = (u32 *) Sprite_DrawEntity;
             child->scrollWithBg = 1;

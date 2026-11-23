@@ -115,7 +115,7 @@ void Object09Debris_Update(struct EwramData_EntityData *entity)
  */
 void Debris_SpawnBurst(struct EwramData_EntityData *owner, s32 dy)
 {
-    s32 graphics = ObjGfx_Find((void *)0x081C15F4);
+    s32 graphics = ObjGfx_Find((void *)sCommonObjectGfx);
     s32 y;
     s32 n;
     struct EwramData_EntityData *piece;
@@ -128,7 +128,7 @@ void Debris_SpawnBurst(struct EwramData_EntityData *owner, s32 dy)
             piece = EntityCreateInRange(0x49, 0xCF, (u32 *)DebrisPiece_Update);
             if (piece == NULL)
                 break;
-            Sprite_Attach(piece, (void *)0x0820ED60, graphics, palette);
+            Sprite_Attach(piece, (void *)sCommonObjectSpriteSheet, graphics, palette);
             piece->animFrame = Mod(RandomNumberGenerator() >> 4, 3) + 0x40;
             piece->posX.part16.integer = owner->posX.part16.integer;
             piece->posY.part16.integer = owner->posY.part16.integer + dy + y;
@@ -158,7 +158,7 @@ void BreakableBlock_SpawnDust(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        entity->ext.object08Dust.gfx = ObjGfx_Find((u8 *)0x081C15F4);
+        entity->ext.object08Dust.gfx = ObjGfx_Find((u8 *)sCommonObjectGfx);
         entity->timer = 0x20;
         entity->state++;
     case 1:
@@ -167,7 +167,7 @@ void BreakableBlock_SpawnDust(struct EwramData_EntityData *entity)
             piece = EntityCreateInRange(0x49, 0xCF, (u32 *)BreakableBlockDust_Update);
             if (piece != NULL)
             {
-                Sprite_Attach(piece, (void *)0x0820ED60, entity->ext.object08Dust.gfx, 6);
+                Sprite_Attach(piece, (void *)sCommonObjectSpriteSheet, entity->ext.object08Dust.gfx, 6);
                 Anim_StartIndexed(piece, 5, 0, 0);
                 Anim_Update(piece);
                 piece->spriteLayer = entity->spriteLayer;

@@ -20,6 +20,8 @@
 #include "menu_common.h"
 #include "player_soma.h"
 #include "main_menu.h"
+#include "data/data_4F1444.h"
+extern struct RoomDefinition sEndingRoomDefinition; /* read as u8[] by graham.c */
 extern int sprintf(char *, const char *, ...);
 
 const u16 sDebug4531Palette[] = {
@@ -41,24 +43,24 @@ s32 GameModeDebug4531Update(void)
 
     // 080E2668
     void *subroutine_arg0[] = {
-        (void*)0x0851fd70,
-        (void*)0x0850feec,
-        (void*)0x08513414,
-        (void*)0x0850f3b4,
-        (void*)0x085198a0,
-        (void*)0x08518b70,
-        (void*)0x0851ac14,
-        (void*)0x0851e490,
-        (void*)0x08520240,
-        (void*)0x08517790,
-        (void*)0x0852269c,
-        (void*)0x085134ac,
-        (void*)0x0850f15c,
-        (void*)0x08522c54,
-        (void*)0x0852362c,
-        (void*)0x08522c54,
-        (void*)0x0851fd70,
-        (void*)0x085236a4,
+        (void*)sDebugEventRoom0,
+        (void*)sDebugEventRoom1,
+        (void*)sDebugEventRoom2,
+        (void*)sDebugEventRoom3,
+        (void*)sDebugEventRoom4,
+        (void*)sDebugEventRoom5,
+        (void*)sDebugEventRoom6,
+        (void*)sDebugEventRoom7,
+        (void*)sDebugEventRoom8,
+        (void*)sDebugEventRoom9,
+        (void*)sDebugEventRoom10,
+        (void*)sDebugEventRoom11,
+        (void*)sDebugEventRoom12,
+        (void*)&sEndingRoomDefinition,
+        (void*)sDebugEventRoom14,
+        (void*)&sEndingRoomDefinition,
+        (void*)sDebugEventRoom0,
+        (void*)sDebugEventRoom17,
     };
 
     gameMode = GAME_MODE_SAME_MODE;
@@ -188,7 +190,7 @@ s32 GameModeDebug4531Update(void)
 
         if (gEwramData->inputData.newInput & 8)
         {
-            gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)0x0850F01C;
+            gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)sDebug4531Room;
             return 4;
         }
     }
@@ -454,7 +456,7 @@ s32 Debug4531_RunEventGame(void)
             Player_SetAbility(5, 1);
 
             Player_ClearEquipmentAndSoulLists();
-            gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)0x08517790;
+            gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)sDebugEventRoom9;
             gEwramData->debug4531SubStage = 1;
             break;
 
@@ -520,7 +522,7 @@ s32 Debug4531_RunEventGame(void)
 
 /**
  * @brief Debug mode 4531 state 2: open the save select screen; on a choice
- * start the game at room 0x08524020 (return 4), on cancel return 0.
+ * start the game at room sDebug4531Room2 (return 4), on cancel return 0.
  */
 s32 Debug4531_SelectSaveSlot(void)
 {
@@ -549,7 +551,7 @@ s32 Debug4531_SelectSaveSlot(void)
                     break;
 
                 case 1:
-                    gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)0x08524020;
+                    gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)sDebug4531Room2;
                     result = 4;
                     break;
             }

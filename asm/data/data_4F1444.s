@@ -59,15 +59,123 @@ sTransitionRooms: @ 0x0850E968
 sAreaRoomTables: @ 0x0850EF08
     .incbin "cvaos_us_baserom.gba", 0x50EF08, 0x30
 
-    .incbin "cvaos_us_baserom.gba", 0x50EF38, 0x6E78
+    .incbin "cvaos_us_baserom.gba", 0x50EF38, 0x50EF9C - 0x50EF38
+
+    .global sDebugHitTestRoom
+sDebugHitTestRoom: @ 0x0850EF9C
+    .incbin "cvaos_us_baserom.gba", 0x50EF9C, 0x50F01C - 0x50EF9C
+
+    .global sDebug4531Room
+sDebug4531Room: @ 0x0850F01C
+    .incbin "cvaos_us_baserom.gba", 0x50F01C, 0x50F15C - 0x50F01C
+
+    .global sDebugEventRoom12
+sDebugEventRoom12: @ 0x0850F15C
+    .incbin "cvaos_us_baserom.gba", 0x50F15C, 0x50F3B4 - 0x50F15C
+
+    .global sDebugEventRoom3
+sDebugEventRoom3: @ 0x0850F3B4
+    .incbin "cvaos_us_baserom.gba", 0x50F3B4, 0x50FEEC - 0x50F3B4
+
+    .global sDebugEventRoom1
+sDebugEventRoom1: @ 0x0850FEEC
+    .incbin "cvaos_us_baserom.gba", 0x50FEEC, 0x5122FC - 0x50FEEC
+
+    .global sDebugExitOptionsRoom1
+sDebugExitOptionsRoom1: @ 0x085122FC
+    .incbin "cvaos_us_baserom.gba", 0x5122FC, 0x5132D4 - 0x5122FC
+
+    .global sDebugExitOptionsRoom2
+sDebugExitOptionsRoom2: @ 0x085132D4
+    .incbin "cvaos_us_baserom.gba", 0x5132D4, 0x513414 - 0x5132D4
+
+    .global sDebugEventRoom2
+sDebugEventRoom2: @ 0x08513414
+    .incbin "cvaos_us_baserom.gba", 0x513414, 0x5134AC - 0x513414
+
+    .global sDebugEventRoom11
+sDebugEventRoom11: @ 0x085134AC
+    .incbin "cvaos_us_baserom.gba", 0x5134AC, 0x514AB0 - 0x5134AC
+
+    .global sDebugExitOptionsRoom3
+sDebugExitOptionsRoom3: @ 0x08514AB0
+    .incbin "cvaos_us_baserom.gba", 0x514AB0, 0x515DB0 - 0x514AB0
 
     .global sChronomageDestinationRoom
 sChronomageDestinationRoom: @ 0x08515DB0
-    .incbin "cvaos_us_baserom.gba", 0x515DB0, 0x1DC0
+    .incbin "cvaos_us_baserom.gba", 0x515DB0, 0x515EF0 - 0x515DB0
+
+    .global sDebugExitOptionsRoom16
+sDebugExitOptionsRoom16: @ 0x08515EF0
+    .incbin "cvaos_us_baserom.gba", 0x515EF0, 0x516768 - 0x515EF0
+
+    .global sDebugExitOptionsRoom4
+sDebugExitOptionsRoom4: @ 0x08516768
+    .incbin "cvaos_us_baserom.gba", 0x516768, 0x517790 - 0x516768
+
+    .global sDebugEventRoom9
+sDebugEventRoom9: @ 0x08517790
+    .incbin "cvaos_us_baserom.gba", 0x517790, 0x517B70 - 0x517790
 
     .global sObject15DestinationRoom0
 sObject15DestinationRoom0: @ 0x08517B70
-    .incbin "cvaos_us_baserom.gba", 0x517B70, 0xB06C
+    .incbin "cvaos_us_baserom.gba", 0x517B70, 0x518710 - 0x517B70
+
+    .global sDebug2229Room
+sDebug2229Room: @ 0x08518710
+    .incbin "cvaos_us_baserom.gba", 0x518710, 0x518B70 - 0x518710
+
+    .global sDebugEventRoom5
+sDebugEventRoom5: @ 0x08518B70
+    .incbin "cvaos_us_baserom.gba", 0x518B70, 0x5196E0 - 0x518B70
+
+    .global sDebugExitOptionsRoom6
+sDebugExitOptionsRoom6: @ 0x085196E0
+    .incbin "cvaos_us_baserom.gba", 0x5196E0, 0x5198A0 - 0x5196E0
+
+    .global sDebugEventRoom4
+sDebugEventRoom4: @ 0x085198A0
+    .incbin "cvaos_us_baserom.gba", 0x5198A0, 0x51AC14 - 0x5198A0
+
+    .global sDebugEventRoom6
+sDebugEventRoom6: @ 0x0851AC14
+    .incbin "cvaos_us_baserom.gba", 0x51AC14, 0x51ADD4 - 0x51AC14
+
+    .global sDebugExitOptionsRoom7
+sDebugExitOptionsRoom7: @ 0x0851ADD4
+    .incbin "cvaos_us_baserom.gba", 0x51ADD4, 0x51BF1C - 0x51ADD4
+
+    .global sDebugExitOptionsRoom14
+sDebugExitOptionsRoom14: @ 0x0851BF1C
+    .incbin "cvaos_us_baserom.gba", 0x51BF1C, 0x51E490 - 0x51BF1C
+
+    .global sDebugEventRoom7
+sDebugEventRoom7: @ 0x0851E490
+    .incbin "cvaos_us_baserom.gba", 0x51E490, 0x51E7F8 - 0x51E490
+
+    .global sDebugExitOptionsRoom8
+sDebugExitOptionsRoom8: @ 0x0851E7F8
+    .incbin "cvaos_us_baserom.gba", 0x51E7F8, 0x51FD70 - 0x51E7F8
+
+    .global sDebugEventRoom0
+sDebugEventRoom0: @ 0x0851FD70
+    .incbin "cvaos_us_baserom.gba", 0x51FD70, 0x520240 - 0x51FD70
+
+    .global sDebugEventRoom8
+sDebugEventRoom8: @ 0x08520240
+    .incbin "cvaos_us_baserom.gba", 0x520240, 0x5209B8 - 0x520240
+
+    .global sDebugExitOptionsRoom9
+sDebugExitOptionsRoom9: @ 0x085209B8
+    .incbin "cvaos_us_baserom.gba", 0x5209B8, 0x52269C - 0x5209B8
+
+    .global sDebugEventRoom10
+sDebugEventRoom10: @ 0x0852269C
+    .incbin "cvaos_us_baserom.gba", 0x52269C, 0x522ABC - 0x52269C
+
+    .global sDebugExitOptionsRoom11
+sDebugExitOptionsRoom11: @ 0x08522ABC
+    .incbin "cvaos_us_baserom.gba", 0x522ABC, 0x522BDC - 0x522ABC
 
     .global sChaosDestinationRoom
 sChaosDestinationRoom: @ 0x08522BDC
@@ -75,11 +183,39 @@ sChaosDestinationRoom: @ 0x08522BDC
 
     .global sEndingRoomDefinition
 sEndingRoomDefinition: @ 0x08522C54
-    .incbin "cvaos_us_baserom.gba", 0x522C54, 0x5B8
+    .incbin "cvaos_us_baserom.gba", 0x522C54, 0x523064 - 0x522C54
+
+    .global sDebugExitOptionsRoom10
+sDebugExitOptionsRoom10: @ 0x08523064
+    .incbin "cvaos_us_baserom.gba", 0x523064, 0x52320C - 0x523064
 
     .global sObject15DestinationRoom1
 sObject15DestinationRoom1: @ 0x0852320C
-    .incbin "cvaos_us_baserom.gba", 0x52320C, 0x1ED8
+    .incbin "cvaos_us_baserom.gba", 0x52320C, 0x52362C - 0x52320C
+
+    .global sDebugEventRoom14
+sDebugEventRoom14: @ 0x0852362C
+    .incbin "cvaos_us_baserom.gba", 0x52362C, 0x5236A4 - 0x52362C
+
+    .global sDebugEventRoom17
+sDebugEventRoom17: @ 0x085236A4
+    .incbin "cvaos_us_baserom.gba", 0x5236A4, 0x524020 - 0x5236A4
+
+    .global sDebug4531Room2
+sDebug4531Room2: @ 0x08524020
+    .incbin "cvaos_us_baserom.gba", 0x524020, 0x5241E0 - 0x524020
+
+    .global sDebug1967Room
+sDebug1967Room: @ 0x085241E0
+    .incbin "cvaos_us_baserom.gba", 0x5241E0, 0x5247B4 - 0x5241E0
+
+    .global sBossRushMenuRoom
+sBossRushMenuRoom: @ 0x085247B4
+    .incbin "cvaos_us_baserom.gba", 0x5247B4, 0x524E5C - 0x5247B4
+
+    .global sDebugExitOptionsRoom12
+sDebugExitOptionsRoom12: @ 0x08524E5C
+    .incbin "cvaos_us_baserom.gba", 0x524E5C, 0x5250E4 - 0x524E5C
 
     .global sGoldDrops
 sGoldDrops: @ 0x085250E4
@@ -519,7 +655,11 @@ sDiscArmorWalkProfile: @ 0x08528714
 
     .global sBomberRockArmorWalkProfile
 sBomberRockArmorWalkProfile: @ 0x0852872C
-    .incbin "cvaos_us_baserom.gba", 0x52872C, 0x20
+    .incbin "cvaos_us_baserom.gba", 0x52872C, 0x528738 - 0x52872C
+
+    .global sBomberArmorBombWalkProfile
+sBomberArmorBombWalkProfile: @ 0x08528738
+    .incbin "cvaos_us_baserom.gba", 0x528738, 0x52874C - 0x528738
 
     .global sBaloreHandSteeringParams0
 sBaloreHandSteeringParams0: @ 0x0852874C
@@ -715,4 +855,8 @@ sGrahamSceneObjects: @ 0x08528D5C
 
     .global sRecoveryPickupParticleAnimScript
 sRecoveryPickupParticleAnimScript: @ 0x08528DBC
-    .incbin "cvaos_us_baserom.gba", 0x528DBC, 0x127C60
+    .incbin "cvaos_us_baserom.gba", 0x528DBC, 0x6391C0 - 0x528DBC
+
+    .global sDebugTestEnemyAnimScripts
+sDebugTestEnemyAnimScripts: @ 0x086391C0
+    .incbin "cvaos_us_baserom.gba", 0x6391C0, 0x650A1C - 0x6391C0

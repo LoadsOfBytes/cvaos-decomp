@@ -451,7 +451,7 @@ void Text8_ClearAcrossColumns(u32 width)
  */
 void Text_Initialize(void)
 {
-    gEwramData->textTileBuffer = (void *)0x06000000;
+    gEwramData->textTileBuffer = (void *)VRAM_BASE;
     gEwramData->unk_1159C = 0x100;
     gEwramData->unk_1159E = 0x100;
     gEwramData->text12RegionLeft = 0;

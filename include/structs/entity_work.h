@@ -3,7 +3,6 @@
 
 #include "types.h"
 
-struct EwramData_EntityData;
 
 /*
  * Per-entity-type views of the entity work area 0x4F4..0x50F
@@ -1097,8 +1096,8 @@ struct KillerFishSwarmWork {
     /* 0x500 */ s32 bitPlayer;
 };
 
-/* Pause-menu page entity (the TU-local struct MenuPage views call the same
- * bytes count / cursor / top / item). MenuPage_Reset clears category and
+/* Pause-menu page entity (the list code reads the same bytes through
+ * MenuListWork / MenuListUWork). MenuPage_Reset clears category and
  * these four bytes; MenuPage_SetMode stores the initial cursor / mode and
  * clears top. category: soul menu list category (SoulMenu_CountList /
  * DrawList); count: entries on the page; cursor: selected entry, wraps at
@@ -3842,6 +3841,63 @@ struct SoulTradeWork {
     /* 0x508 */ s32 shownText;
     /* 0x50C */ s16 listRow;
     /* 0x50E */ s16 listTop;
+};
+
+/* Pause-menu page entity (item, equipment, soul, bestiary, ability, save and
+ * shop lists; MenuPage_Reset clears these bytes, MenuPage_SetMode sets the
+ * initial cursor): description mode (bestiary detail) / soul list category,
+ * entries on the page, selected entry (wraps at count), first visible entry
+ * and number of listed items. The first drawn row is kept in the common
+ * block (MENU_PAGE_DRAWN_TOP). Same bytes as MenuPageWork, read as the
+ * list views of these menus do.
+ */
+struct MenuListWork {
+    /* 0x4F4 */ u8 pad_4F4[0x4F7 - 0x4F4];
+    /* 0x4F7 */ u8 descriptionMode;
+    /* 0x4F8 */ s8 count;
+    /* 0x4F9 */ s8 cursor;
+    /* 0x4FA */ s8 top;
+    /* 0x4FB */ u8 item;
+};
+
+/* The same page bytes as read unsigned by the shop and parts of the bestiary
+ * and save menus (the signedness of each read is part of the generated code).
+ */
+struct MenuListUWork {
+    /* 0x4F4 */ u8 pad_4F4[0x4F7 - 0x4F4];
+    /* 0x4F7 */ u8 descriptionMode;
+    /* 0x4F8 */ u8 count;
+    /* 0x4F9 */ u8 cursor;
+    /* 0x4FA */ u8 top;
+    /* 0x4FB */ u8 item;
+};
+
+/* Shop list page (Shop_HandleListInput / Shop_DrawList / Shop_UpdateList):
+ * number of entries, cursor row inside the four-row window, first visible
+ * entry, selected entry and the item drawn in each row (0x7FFF = redraw).
+ */
+struct ShopPageWork {
+    /* 0x4F4 */ u8 pad_4F4[0x4F8 - 0x4F4];
+    /* 0x4F8 */ s8 count;
+    /* 0x4F9 */ s8 windowRow;
+    /* 0x4FA */ s8 scroll;
+    /* 0x4FB */ u8 cursor;
+    /* 0x4FC */ u16 rowCache[6];
+};
+
+/* Button configuration page (ButtonConfigMenu_Update / _Draw): nonzero while
+ * a row is being changed, error message shown (an action left unassigned),
+ * selected row and the action chosen for each of the four rows (index into
+ * sButtonConfigCursorFrames).
+ */
+struct ButtonConfigPageWork {
+    /* 0x4F4 */ u8 pad_4F4[0x4F6 - 0x4F4];
+    /* 0x4F6 */ u8 active;
+    /* 0x4F7 */ u8 pad_4F7[0x4F8 - 0x4F7];
+    /* 0x4F8 */ u8 error;
+    /* 0x4F9 */ s8 selection;
+    /* 0x4FA */ u8 pad_4FA[0x4FC - 0x4FA];
+    /* 0x4FC */ u8 choices[4];
 };
 
 /* Sound test menu state (GameModeSoundTestMenu, kept in entityData[2]):

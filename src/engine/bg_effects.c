@@ -22,6 +22,8 @@
 #include "menu_common.h"
 #include "palette.h"
 #include "text12.h"
+#include "data/data_0E5364.h"
+#include "data/data_118B48.h"
 
 /**
  * @brief BG scroll mode 14: H-blank BG3 horizontal offsets scaled by the play
@@ -730,8 +732,8 @@ void Hud_Init(void)
     struct PlayerStatus *status;
     struct GameState *gameState;
 
-    DMA_FILL_32(3, 0, 0x0600E000, 0x800);
-    DMA_FILL_32(3, 0, 0x06000000, 0x20);
+    DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
+    DMA_FILL_32(3, 0, VRAM_BASE, 0x20);
 
     gDisplayRegisters.bgCnt[0] = CREATE_BGCNT(0, 28, BGCNT_HIGH_PRIORITY, BGCNT_SIZE_256x256);
     gDisplayRegisters.bgOfs[0].hOfs = 0;
@@ -741,12 +743,12 @@ void Hud_Init(void)
     Text8_SetRegion(0, 0, 0x1A, 1);
     Text_SetForegroundColor(0xF);
     Text_SetBackgroundColor(1);
-    Gfx_CopyResource((u8 *)0x0827B208, VRAM_BASE + 0x4000, 0);
+    Gfx_CopyResource((u8 *)sHudGfx, VRAM_BASE + 0x4000, 0);
 
-    DMA_FILL_32(3, 0, 0x06005800, 0x1954);
-    DMA_FILL_32(3, 0, 0x06005000, 0x2000);
+    DMA_FILL_32(3, 0, VRAM_BASE + 0x5800, 0x1954);
+    DMA_FILL_32(3, 0, VRAM_BASE + 0x5000, 0x2000);
 
-    BgPalette_LoadRange((u8 *)0x0820C428, 0, 2, 0xD);
+    BgPalette_LoadRange((u8 *)sSavePromptBgPalette, 0, 2, 0xD);
     Hud_DrawGaugeFrames();
 
     status = &gEwramData->playerStatus;
@@ -853,7 +855,7 @@ static inline void DrawStatGauge(s32 x, s32 y, s32 value, s32 max, s32 isMp)
         fill = 0;
     }
 
-    dst = (u16 *)(0x0600E000 + (x * 2) + (y << 6));
+    dst = (u16 *)(VRAM_BASE + 0xE000 + (x * 2) + (y << 6));
     for (i = 0; i < 8; i++)
     {
         if (i == fill / 8)
@@ -1068,8 +1070,8 @@ void Hud_ShowEnemyName(s32 hudMessageId)
 
     if (DmaQueue_DirectCopy(0xC0, (u32 *)gEwramData->sharedScratchBuffer, (u32 *)(VRAM_BASE + 0xE000 + row * 0x40)) != NULL)
     {
-        BgPalette_LoadRange((u8 *)0x0820C428, 5, 1, 0xE);
-        BgPalette_LoadRange((u8 *)0x081183F4, 1, 1, 0xF);
+        BgPalette_LoadRange((u8 *)sSavePromptBgPalette, 5, 1, 0xE);
+        BgPalette_LoadRange((u8 *)sTextBgPalette, 1, 1, 0xF);
 
         gameState->hudMessageTimer = 0xF0;
         gameState->hudMessageRequest = 0;
@@ -1194,8 +1196,8 @@ void Hud_ShowPickupMessage(s32 hudMessageId)
 
     if (DmaQueue_DirectCopy(0xC0, (u32 *)gEwramData->sharedScratchBuffer, (u32 *)(VRAM_BASE + 0xE000 + row * 0x40)) != NULL)
     {
-        BgPalette_LoadRange((u8 *)0x0820C428, palette, 1, 0xE);
-        BgPalette_LoadRange((u8 *)0x081183F4, 1, 1, 0xF);
+        BgPalette_LoadRange((u8 *)sSavePromptBgPalette, palette, 1, 0xE);
+        BgPalette_LoadRange((u8 *)sTextBgPalette, 1, 1, 0xF);
 
         gameState->hudMessageTimer = 0xF0;
         gameState->hudMessageRequest = 0;
@@ -1236,7 +1238,7 @@ void Hud_ClearLargeWindowTiles(void)
         {
             for (i = 0; i < 8; i++)
             {
-                *(u32*)((u32*)0x06005C00 + (j << 7) + (k << 3) + 1 * i) = fillWord;
+                *(u32*)((u32*)(VRAM_BASE + 0x5C00) + (j << 7) + (k << 3) + 1 * i) = fillWord;
                 // VRAM_5C00[j][k][i] = var_r5;
             }
         }
@@ -1246,11 +1248,11 @@ void Hud_ClearLargeWindowTiles(void)
     {
         if (i == 0)
         {
-            *(s32* )0x06005600 = -1;
+            *(s32* )(VRAM_BASE + 0x5600) = -1;
         }
         else
         {
-            *((u32* )0x06005600 + i) = fillWord;
+            *((u32* )(VRAM_BASE + 0x5600) + i) = fillWord;
         }
     }
 
@@ -1258,11 +1260,11 @@ void Hud_ClearLargeWindowTiles(void)
     {
         if (i == 7)
         {
-            *((u32* )0x06005620 + i) = -1;
+            *((u32* )(VRAM_BASE + 0x5620) + i) = -1;
         }
         else
         {
-            *((u32* )0x06005620 + i) = fillWord;
+            *((u32* )(VRAM_BASE + 0x5620) + i) = fillWord;
         }
     }
 }
@@ -1350,7 +1352,7 @@ void Hud_ShowLargeSoulWindow(s32 soulType, s32 soulId)
 
     index = 0x361;
     gEwramData->gameState.stateFlags |= 0x01000000;
-    BgPalette_LoadRange((u8 *)0x0820C428, 7, 1, 0xF);
+    BgPalette_LoadRange((u8 *)sSavePromptBgPalette, 7, 1, 0xF);
 
     if (soulId != 0)
     {
@@ -1568,8 +1570,8 @@ void Hud_ShowSoulAcquiredMessage(s32 arg0, s32 arg1, s32 arg2)
     *dst++ = 0xE640;
     DmaQueue_DirectCopy((width + 4) << 1, (u32 *)buffer, (u32 *) (VRAM_BASE + 0xE000 + (bottomX * 2) + ((bottomY) * 0x40)));
 
-    BgPalette_LoadRange((u8 *)0x0820C428, first, 1, 0xE);
-    BgPalette_LoadRange((u8 *)0x081183F4, 1, 1, 0xF);
+    BgPalette_LoadRange((u8 *)sSavePromptBgPalette, first, 1, 0xE);
+    BgPalette_LoadRange((u8 *)sTextBgPalette, 1, 1, 0xF);
     if (arg2 != 0)
     {
         Hud_ShowLargeSoulWindow(arg1, soulIndex + 1);
@@ -1592,7 +1594,7 @@ extern u16 sEnemyNameTextIds[];
  * and request the enemy name text from sEnemyNameTextIds[enemy id] unless
  * messages are blocked. Called by Hit_ResolveDamage.
  */
-void Hud_RequestEnemyName(struct EnemyHudNameView *enemy)
+void Hud_RequestEnemyName(struct EwramData_EntityData *enemy)
 {
     u16 hudMessageId;
     struct GameState *gameState;
@@ -1897,7 +1899,7 @@ void Text_SetDefaultColors(void)
  */
 void Hud_ClearGraphics(void)
 {
-    DMA_FILL_32(3, 0, 0x06004000, 0x2000);
+    DMA_FILL_32(3, 0, VRAM_BASE + 0x4000, 0x2000);
 }
 
 /**
@@ -1965,12 +1967,12 @@ void Hud_UpdateMessageWindow(struct GameState *gameState)
  */
 void Hud_EndEventTextLayer(void)
 {
-    DMA_FILL_32(3, 0, 0x0600E000, 0x800);
+    DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
     gDisplayRegisters.bgCnt[0] = CREATE_BGCNT(0, 28, BGCNT_HIGH_PRIORITY, BGCNT_SIZE_256x256);
     gDisplayRegisters.bgOfs[0].hOfs = 0;
     gDisplayRegisters.bgOfs[0].vOfs = 6;
     Text_SetTileBuffer(VRAM_BASE + 0x5000);
-    Gfx_CopyResource((u8 *)0x0827B208, VRAM_BASE + 0x4000, 0);
+    Gfx_CopyResource((u8 *)sHudGfx, VRAM_BASE + 0x4000, 0);
     gEwramData->gameState.stateFlags &= ~0x200;
 }
 
@@ -1984,9 +1986,9 @@ void Hud_BeginEventTextLayer(void)
     gEwramData->gameState.stateFlags |= 0x200;
     Text_SetTileBuffer(VRAM_BASE + 0x4000);
     Text_SetBackgroundColor(0);
-    DMA_FILL_32(3, 0, 0x06004000, 0x2000);
-    DMA_FILL_32(3, 0, 0x06006000, 0x2000);
-    DMA_FILL_32(3, 0, 0x0600E000, 0x800);
+    DMA_FILL_32(3, 0, VRAM_BASE + 0x4000, 0x2000);
+    DMA_FILL_32(3, 0, VRAM_BASE + 0x6000, 0x2000);
+    DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
 }
 
 /**
@@ -2025,7 +2027,7 @@ void Hud_DrawGauge(s32 x, s32 y, s32 value, s32 max, s32 style)
         fill = 0;
     }
 
-    dst = (u16*)(0x0600E000 + (x * 2) + (y << 6));
+    dst = (u16*)(VRAM_BASE + 0xE000 + (x * 2) + (y << 6));
     for (i = 0; i < 8; i++)
     {
         if (i == fill / 8)

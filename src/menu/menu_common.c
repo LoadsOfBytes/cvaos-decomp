@@ -102,13 +102,6 @@ s32 MenuGrid_MoveCursor(struct MenuGrid *page, s32 input)
     return result;
 }
 
-struct MenuPage
-{
-    u8 pad_0[0x14];
-    s8 count;
-    u8 pad_15;
-    s8 scroll;
-};
 
 /* Row writers at map column x: the constant part of the address
  * (VRAM + x * 2) is folded into one literal. */
@@ -177,7 +170,7 @@ static inline void FillRowOfs(s32 xo, s32 y, u16 tile, s32 count)
  * down arrow when more than 8 entries remain below.
  * xo = x * 2 sits after the first if/else; GCSE (PRE) copies it into both
  * branches, where it folds to 58, which is the shape of the original. */
-void MenuList_DrawScrollArrows(struct MenuPage *page, s32 raised)
+void MenuList_DrawScrollArrows(struct EwramData_EntityData *page, s32 raised)
 {
     s32 tile = 0xB34D;
     s32 y = 11;
@@ -187,14 +180,14 @@ void MenuList_DrawScrollArrows(struct MenuPage *page, s32 raised)
     if (raised != 0)
         y = 10;
     x = 29;
-    if (page->scroll > 1)
+    if (page->ext.menuList.top > 1)
         DrawTileRowAt(x, y, tile, 1);
     else
         FillRowAt(x, y, 0x330D, 1);
     y += 3;
     tile++;
     xo = x * 2;
-    if (page->count - 8 > page->scroll)
+    if (page->ext.menuList.count - 8 > page->ext.menuList.top)
         DrawTileRowOfs(xo, y, tile, 1);
     else
         FillRowOfs(xo, y, 0x330D, 1);
@@ -1043,7 +1036,7 @@ void HudMap_ClearTiles(s32 x, s32 y, s32 count)
 /* Fill the whole 32x32 map with the blank tile. */
 void HudMap_ClearAll(void)
 {
-    DMA_FILL_32(3, 0x330D330D, 0x0600E000, 0x800);
+    DMA_FILL_32(3, 0x330D330D, VRAM_BASE + 0xE000, 0x800);
 }
 
 /* Put the tile selected by index from the two ROM tables at (x, y)

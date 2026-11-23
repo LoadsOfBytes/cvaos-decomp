@@ -903,7 +903,7 @@ void Soma_TryCastRedSoulUnused(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *child;
     s8 slot;
-    struct RedSoulActivationView *info;
+    const struct RedSoulInfo *info;
 
     if (entity->ext.player.actionFlags & 0x540)
         return;
@@ -911,7 +911,7 @@ void Soma_TryCastRedSoulUnused(struct EwramData_EntityData *entity)
         return;
     if (!(gEwramData->inputData.playerNewInput & gEwramData->playerStatus.attackButton))
         return;
-    info = (struct RedSoulActivationView *)RedSoul_GetInfo(gEwramData->playerStatus.equippedRedSoul);
+    info = RedSoul_GetInfo(gEwramData->playerStatus.equippedRedSoul);
     if (gEwramData->playerState.nbrActiveRedSoulEntities == 0)
     {
         if (gEwramData->playerState.lastUsedRedSoul != gEwramData->playerStatus.equippedRedSoul)

@@ -4,18 +4,11 @@
 #include "gba.h"
 #include "structs/ewram.h"
 
-struct MenuPage
-{
-    u8 pad_0[0xB];
-    u8 subState;
-    u8 pad_C[0x17 - 0xC];
-    u8 item;
-};
 
 /**
  * @brief Remove the selected sole-owned item and current equipped item from the four-entry list, compact entries and reinsert the current equipped item under the existing rules.
  */
-void EquipmentList_UpdateForEquip(struct MenuPage *page)
+void EquipmentList_UpdateForEquip(struct EwramData_EntityData *page)
 {
     struct PlayerStatus *stats;
     u8 count;
@@ -30,7 +23,7 @@ void EquipmentList_UpdateForEquip(struct MenuPage *page)
     list = NULL;
     owned = NULL;
     cur = 0xFF;
-    item = page->item;
+    item = page->ext.menuList.item;
     switch (page->subState)
     {
     case 0:

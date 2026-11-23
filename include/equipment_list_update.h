@@ -7,8 +7,7 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-struct MenuPage;
 
-extern void EquipmentList_UpdateForEquip(struct MenuPage *page);
+extern void EquipmentList_UpdateForEquip(struct EwramData_EntityData *page);
 
 #endif /* EQUIPMENT_LIST_UPDATE_H */

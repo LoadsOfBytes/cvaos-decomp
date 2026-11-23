@@ -2492,18 +2492,12 @@ void LegionFragment_Update(struct EwramData_EntityData *entity)
  * entity->ext.raw.unk_4F8. Room-space position words are at 0x0C/0x10; retain this
  * padded view and the original pointer casts. */
 
-struct LegionRoomPositionView {
-    u8 pad_0[0xC];
-    s32 roomX;
-    s32 roomY;
-};
-
 /**
  * @brief Accelerate the path position x (parent word 0x0C) toward target.
  */
 void Legion_SteerX(struct EwramData_EntityData *entity, s32 target)
 {
-    struct LegionRoomPositionView *parent = (void *)entity->ext.legion.data.ptr;
+    struct LegionData *parent = (struct LegionData *)entity->ext.legion.data.value;
     if (parent->roomX < target) entity->accelX.whole = 0x400;
     else entity->accelX.whole = -0x400;
     EntityAccelerateX(entity, 0x4000);
@@ -2515,7 +2509,7 @@ void Legion_SteerX(struct EwramData_EntityData *entity, s32 target)
  */
 void Legion_SteerY(struct EwramData_EntityData *entity, s32 target)
 {
-    struct LegionRoomPositionView *parent = (void *)entity->ext.legion.data.ptr;
+    struct LegionData *parent = (struct LegionData *)entity->ext.legion.data.value;
     if (parent->roomY < target) entity->accelY.whole = 0x400;
     else entity->accelY.whole = -0x400;
     EntityAccelerateY(entity, 0x4000);

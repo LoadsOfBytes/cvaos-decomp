@@ -20,6 +20,7 @@
 #include "text12.h"
 #include "sound.h"
 #include "data/data_4F1444.h"
+#include "menu_page.h"
 
 extern struct WeaponInfo sWeaponInfo[];
 extern const struct ArmorInfo sArmorInfo[];
@@ -44,7 +45,7 @@ void EquipmentMenu_PrintEquippedNames(void)
     text = 0x34F;
     if (equip->equippedWeapon != 0xFF)
     {
-        struct WeaponInfo *w = &((struct WeaponInfo *)0x08505D3C)[equip->equippedWeapon];
+        struct WeaponInfo *w = &((struct WeaponInfo *)sWeaponInfo)[equip->equippedWeapon];
         text = sItemNameTextIds[w->name];
     }
     Text8_SetRegion(0x15, 8, 0xE, 1);
@@ -59,7 +60,7 @@ loop:
         j = i - 1;
         if (items[j] != 0xFF)
         {
-            const struct ArmorInfo *a = &((const struct ArmorInfo *)0x085063B0)[items[j]];
+            const struct ArmorInfo *a = &((const struct ArmorInfo *)sArmorInfo)[items[j]];
             text = sItemNameTextIds[a->name];
         }
         odd = (i + 1) & 1;
@@ -78,16 +79,10 @@ loop:
 
 extern void MenuItemIcon_SetHidden(u8 value);
 
-/* Same caller-owned record as in this file. */
-struct EquipmentMenuItemsView {
-    u8 pad_0[0xC];
-    u8 equippedIds[6];
-};
-
-/* Cursor record of the caller (asm in this file.s); slot at 0xB. */
-struct EquipmentSlotCursorView {
-    u8 pad_0[0xB];
-    u8 slot;
+/* The six equipped ids of PlayerStatus read as one array (weapon, red, blue
+ * and yellow soul, armor, accessory); the page entity's subState is the slot. */
+struct EquippedItemIds {
+    u8 ids[6];
 };
 
 /**
@@ -97,7 +92,7 @@ struct EquipmentSlotCursorView {
  * sItemDescriptionTextIds; an empty slot (0xFF) shows text 0x351 and hides the icon
  * (MenuItemIcon_SetHidden(1)).
  */
-void EquipmentMenu_ShowSlotDescription(struct EquipmentMenuItemsView *stats, struct EquipmentSlotCursorView *page)
+void EquipmentMenu_ShowSlotDescription(struct PlayerStatus *stats, struct EwramData_EntityData *page)
 {
     s32 text;
     s32 item;
@@ -107,13 +102,13 @@ void EquipmentMenu_ShowSlotDescription(struct EquipmentMenuItemsView *stats, str
     Text12_ClearRegion();
     text = 0x351;
     item = -1;
-    slot = page->slot;
+    slot = page->subState;
     switch (slot)
     {
     case 0:
-        if (stats->equippedIds[0] != 0xFF)
+        if (stats->equippedWeapon != 0xFF)
         {
-            s32 id = stats->equippedIds[0];
+            s32 id = stats->equippedWeapon;
             struct WeaponInfo *info = &sWeaponInfo[id];
             text = sItemDescriptionTextIds[info->name];
             type = 3;
@@ -122,9 +117,9 @@ void EquipmentMenu_ShowSlotDescription(struct EquipmentMenuItemsView *stats, str
         break;
     case 1:
     case 2:
-        if (stats->equippedIds[slot + 3] != 0xFF)
+        if (((struct EquippedItemIds *)&stats->equippedWeapon)->ids[slot + 3] != 0xFF)
         {
-            s32 id = stats->equippedIds[slot + 3];
+            s32 id = ((struct EquippedItemIds *)&stats->equippedWeapon)->ids[slot + 3];
             const struct ArmorInfo *info = &sArmorInfo[id];
             text = sItemDescriptionTextIds[info->name];
             type = 4;
@@ -152,7 +147,7 @@ void EquipmentMenu_ShowSlotDescription(struct EquipmentMenuItemsView *stats, str
  * (type 3 for slot 0, type 4 otherwise) via MenuSlotIcon_Show and clear the
  * slot's flag with MenuSlotIcon_SetHidden, or set the flag when the slot is empty.
  */
-void EquipmentMenu_DrawEquippedIcons(struct EquipmentMenuItemsView *stats, void *unusedPage)
+void EquipmentMenu_DrawEquippedIcons(struct PlayerStatus *stats, void *unusedPage)
 {
     s32 i;
     s32 y;
@@ -167,18 +162,18 @@ void EquipmentMenu_DrawEquippedIcons(struct EquipmentMenuItemsView *stats, void 
         switch (i)
         {
         case 0:
-            if (stats->equippedIds[0] != 0xFF)
+            if (stats->equippedWeapon != 0xFF)
             {
                 type = 3;
-                item = stats->equippedIds[0];
+                item = stats->equippedWeapon;
             }
             break;
         case 1:
         case 2:
-            if (stats->equippedIds[i + 3] != 0xFF)
+            if (((struct EquippedItemIds *)&stats->equippedWeapon)->ids[i + 3] != 0xFF)
             {
                 type = 4;
-                item = stats->equippedIds[i + 3];
+                item = ((struct EquippedItemIds *)&stats->equippedWeapon)->ids[i + 3];
             }
             break;
         }
@@ -192,20 +187,13 @@ void EquipmentMenu_DrawEquippedIcons(struct EquipmentMenuItemsView *stats, void 
     }
 }
 
-struct MenuPage
-{
-    u8 pad_0[0xB];
-    u8 subState;
-    u8 pad_C[0x17 - 0xC];
-    u8 item;
-};
 
 extern void HudMap_PrintNumber(s32 a, s32 b, s32 c, s32 d, s32 e, s32 f);
 
 /**
  * @brief Temporarily equip the highlighted item, refresh stats/yellow soul and draw stat values and comparison indicators, then restore equipment and recalculate.
  */
-void EquipmentMenu_DrawStatPreview(struct MenuPage *page)
+void EquipmentMenu_DrawStatPreview(struct EwramData_EntityData *page)
 {
     s16 *stats;
     s16 old[6];
@@ -233,13 +221,13 @@ void EquipmentMenu_DrawStatPreview(struct MenuPage *page)
     switch (page->subState)
     {
     case 0:
-        *weapon = page->item;
+        *weapon = page->ext.menuList.item;
         break;
     case 1:
-        *armor = page->item;
+        *armor = page->ext.menuList.item;
         break;
     case 2:
-        *accessory = page->item;
+        *accessory = page->ext.menuList.item;
         break;
     }
     Player_RefreshEquipmentStats();
@@ -286,14 +274,6 @@ void EquipmentMenu_DrawStatPreview(struct MenuPage *page)
 }
 
 /* Equipment item list page. */
-struct MenuPage2
-{
-    u8 pad_0[0x14];
-    s8 count;
-    s8 cursor;
-    s8 top;
-    u8 item;
-};
 
 /**
  * @brief 4A2A4 | Draw the item list of an equipment slot (0 weapon,
@@ -301,7 +281,7 @@ struct MenuPage2
  * equipped items, then the owned items with their counts (8 rows), and
  * store the number of entries and the item under the cursor in page.
  */
-void EquipmentMenu_DrawList(struct PlayerStatus *stats, struct MenuPage2 *page, s32 slot)
+void EquipmentMenu_DrawList(struct PlayerStatus *stats, struct EwramData_EntityData *page, s32 slot)
 {
     const struct ArmorInfo *table;
     s32 count;
@@ -322,7 +302,7 @@ void EquipmentMenu_DrawList(struct PlayerStatus *stats, struct MenuPage2 *page, 
      * constant (cmp #4 / blt and unfolded loop guards as in the original) */
     slots = 4;
     row = 0;
-    page->item = 0xFF;
+    page->ext.menuList.item = 0xFF;
     switch (slot)
     {
     case 0:
@@ -347,7 +327,7 @@ void EquipmentMenu_DrawList(struct PlayerStatus *stats, struct MenuPage2 *page, 
         equipped = (u8 *)stats + 0x17C;
         break;
     }
-    if (page->top == 0)
+    if (page->ext.menuList.top == 0)
     {
         Text8_SetRegion(0, 10, 13, 1);
         Text8_ClearRegion();
@@ -358,14 +338,14 @@ void EquipmentMenu_DrawList(struct PlayerStatus *stats, struct MenuPage2 *page, 
     else
         row = 0;
     idx = 1;
-    page->item = 0xFF;
+    page->ext.menuList.item = 0xFF;
     k = 0;
-    for (; idx < page->top && k < slots; k++)
+    for (; idx < page->ext.menuList.top && k < slots; k++)
     {
         if (equipped[k] != 0xFF && owned[equipped[k]] != 0)
             idx++;
     }
-    for (i = 0; idx < page->top && i < count; i++)
+    for (i = 0; idx < page->ext.menuList.top && i < count; i++)
     {
         if (owned[i] != 0 && (slot == 0 || table[i].type == type))
         {
@@ -384,8 +364,8 @@ void EquipmentMenu_DrawList(struct PlayerStatus *stats, struct MenuPage2 *page, 
 
         if (equipped[k] != 0xFF && owned[equipped[k]] != 0 && (slot == 0 || table[equipped[k]].type == type))
         {
-            if (idx == page->cursor)
-                page->item = equipped[k];
+            if (idx == page->ext.menuList.cursor)
+                page->ext.menuList.item = equipped[k];
             if (slot != 0)
                 info = &table[equipped[k]].name;
             else
@@ -422,8 +402,8 @@ void EquipmentMenu_DrawList(struct PlayerStatus *stats, struct MenuPage2 *page, 
                 s32 odd;
                 s32 x;
 
-                if (idx == page->cursor)
-                    page->item = i;
+                if (idx == page->ext.menuList.cursor)
+                    page->ext.menuList.item = i;
                 do /* FAKEMATCH: register priority */
                 {
                     if (slot != 0)
@@ -465,9 +445,9 @@ void EquipmentMenu_DrawList(struct PlayerStatus *stats, struct MenuPage2 *page, 
                 idx++;
         }
     }
-    page->count = idx;
+    page->ext.menuList.count = idx;
     if (idx == 1)
-        page->cursor = 0;
+        page->ext.menuList.cursor = 0;
 }
 
 /* Equipment item list recount. */
@@ -477,7 +457,7 @@ void EquipmentMenu_DrawList(struct PlayerStatus *stats, struct MenuPage2 *page, 
  * EquipmentMenu_DrawList without drawing: number of entries and the item under the
  * cursor.
  */
-void EquipmentMenu_CountList(struct PlayerStatus *stats, struct MenuPage2 *page, s32 slot)
+void EquipmentMenu_CountList(struct PlayerStatus *stats, struct EwramData_EntityData *page, s32 slot)
 {
     const struct ArmorInfo *table;
     s32 count;
@@ -493,7 +473,7 @@ void EquipmentMenu_CountList(struct PlayerStatus *stats, struct MenuPage2 *page,
     s32 slots;
 
     slots = 4;
-    page->item = 0xFF;
+    page->ext.menuList.item = 0xFF;
     switch (slot)
     {
     case 0:
@@ -518,19 +498,19 @@ void EquipmentMenu_CountList(struct PlayerStatus *stats, struct MenuPage2 *page,
         equipped = (u8 *)stats + 0x17C;
         break;
     }
-    if (page->top == 0)
+    if (page->ext.menuList.top == 0)
         row = 1;
     else
         row = 0;
     idx = 1;
-    page->item = 0xFF;
+    page->ext.menuList.item = 0xFF;
     k = 0;
-    for (; idx < page->top && k < slots; k++)
+    for (; idx < page->ext.menuList.top && k < slots; k++)
     {
         if (equipped[k] != 0xFF && owned[equipped[k]] != 0)
             idx++;
     }
-    for (i = 0; idx < page->top && i < count; i++)
+    for (i = 0; idx < page->ext.menuList.top && i < count; i++)
     {
         if (owned[i] != 0 && (slot == 0 || table[i].type == type))
         {
@@ -548,8 +528,8 @@ void EquipmentMenu_CountList(struct PlayerStatus *stats, struct MenuPage2 *page,
 
         if (equipped[k] != 0xFF && owned[v = equipped[k]] != 0 && (slot == 0 || table[v].type == type))
         {
-            if (idx == page->cursor)
-                page->item = v;
+            if (idx == page->ext.menuList.cursor)
+                page->ext.menuList.item = v;
             idx++;
             row++;
         }
@@ -568,8 +548,8 @@ void EquipmentMenu_CountList(struct PlayerStatus *stats, struct MenuPage2 *page,
             }
             if (!dup)
             {
-                if (idx == page->cursor)
-                    page->item = i;
+                if (idx == page->ext.menuList.cursor)
+                    page->ext.menuList.item = i;
                 idx++;
                 row++;
             }
@@ -589,17 +569,11 @@ void EquipmentMenu_CountList(struct PlayerStatus *stats, struct MenuPage2 *page,
                 idx++;
         }
     }
-    page->count = idx;
+    page->ext.menuList.count = idx;
     if (idx == 1)
-        page->cursor = 0;
+        page->ext.menuList.cursor = 0;
 }
 
-struct MenuPage3
-{
-    u8 pad_0[0xA];
-    u8 state;
-    u8 subState;
-};
 
 extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
 
@@ -608,14 +582,14 @@ extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
  * 1 armor, 2 accessory): draw the frame and labels, the item list and the
  * stat preview.
  */
-void EquipmentMenu_Open(struct MenuPage3 *page)
+void EquipmentMenu_Open(struct EwramData_EntityData *page)
 {
     struct PlayerStatus *stats;
     s32 i;
     s32 t;
 
     stats = &gEwramData->playerStatus;
-    MenuPage_Reset((struct EwramData_EntityData *)page);
+    MenuPage_Reset(page);
     for (i = 0; i <= 2; i++)
         HudMap_WriteTiles(5, i + 0x10, i * 0x20 + 0x3200, 0x18);
     Text12_SetRegion(0, 0, 0x20, 2);
@@ -636,8 +610,8 @@ void EquipmentMenu_Open(struct MenuPage3 *page)
     HudMap_WriteTiles(3, 9, 0x3330, 9);
     for (i = 0, t = 0x40; i <= 7; t += 0x10, i++)
         HudMap_WriteTiles((i & 1) ? 0x11 : 3, (i >> 1) + 0xB, t + 0x3300, 9);
-    EquipmentMenu_DrawList(stats, (struct MenuPage2 *)page, page->subState);
-    MenuList_DrawScrollArrows((struct MenuPage *)page, 0);
+    EquipmentMenu_DrawList(stats, page, page->subState);
+    MenuList_DrawScrollArrows(page, 0);
     page->state = 2;
     Player_RefreshEquipmentStats();
     YellowSoul_Restart(gEwramData->playerStatus.equippedYellowSoul, 1);
@@ -649,26 +623,13 @@ void EquipmentMenu_Open(struct MenuPage3 *page)
     for (i = 0; i < 3; i++)
         EntityDelete(&gEwramData->entityData[208 + i]);
     EntityDelete(&gEwramData->entityData[19]);
-    EquipmentMenu_DrawEquippedIcons((struct EquipmentMenuItemsView *)stats, page);
+    EquipmentMenu_DrawEquippedIcons(stats, page);
     EquipmentMenu_PrintEquippedNames();
-    EquipmentMenu_ShowSlotDescription((struct EquipmentMenuItemsView *)stats, (struct EquipmentSlotCursorView *)page);
+    EquipmentMenu_ShowSlotDescription(stats, page);
 }
 
-struct MenuPage4
-{
-    u8 pad_0[0xA];
-    u8 state;
-    u8 subState;
-    u8 stage;
-    u8 pad_D[0x15 - 0xD];
-    s8 cursor;
-    s8 top;
-    u8 item;
-    u8 pad_18[0x39 - 0x18];
-    s8 drawnTop;
-};
 
-extern void EquipmentMenu_UpdateList(struct MenuPage4 *page);
+extern void EquipmentMenu_UpdateList(struct EwramData_EntityData *page);
 
 /**
  * @brief 4AAF0 | Equipment page update: A opens the item list of the
@@ -677,7 +638,7 @@ extern void EquipmentMenu_UpdateList(struct MenuPage4 *page);
  *
  * @return -1 when the page is left, 0 otherwise
  */
-s32 EquipmentMenu_Update(struct MenuPage4 *page)
+s32 EquipmentMenu_Update(struct EwramData_EntityData *page)
 {
     struct PlayerStatus *stats;
     s32 repeated;
@@ -718,20 +679,20 @@ s32 EquipmentMenu_Update(struct MenuPage4 *page)
         PlaySong(0xF3);
         page->state = 0xA;
         Text12_ClearRegion();
-        if (page->item != 0xFF)
+        if (page->ext.menuList.item != 0xFF)
         {
             if (page->subState == 0)
             {
-                info = (const u8 *)&sWeaponInfo[page->item];
+                info = (const u8 *)&sWeaponInfo[page->ext.menuList.item];
                 type = 3;
             }
             else
             {
-                info = (const u8 *)&sArmorInfo[page->item];
+                info = (const u8 *)&sArmorInfo[page->ext.menuList.item];
                 type = 4;
             }
             text = sItemDescriptionTextIds[*(u16 *)info];
-            MenuItemIcon_Show(0x1C, 0x94, type, page->item);
+            MenuItemIcon_Show(0x1C, 0x94, type, page->ext.menuList.item);
             MenuItemIcon_SetHidden(0);
         }
         else
@@ -740,16 +701,16 @@ s32 EquipmentMenu_Update(struct MenuPage4 *page)
             MenuItemIcon_SetHidden(1);
         }
         MenuText_ClearAndPrint(text);
-        EquipmentMenu_DrawStatPreview((struct MenuPage *)page);
+        EquipmentMenu_DrawStatPreview(page);
         page->stage = 0;
     }
     else if (repeated & 0xC0)
     {
         PlaySong(0xF1);
-        page->top = ret;
-        page->cursor = ret;
-        page->item = 0xFF;
-        page->drawnTop = ret;
+        page->ext.menuList.top = ret;
+        page->ext.menuList.cursor = ret;
+        page->ext.menuList.item = 0xFF;
+        MENU_PAGE_DRAWN_TOP(page) = ret;
         {
             s32 b = page->subState;
             page->subState = Mod((repeated & 0x40) ? b + 2 : b + 1, 3);
@@ -766,9 +727,9 @@ s32 EquipmentMenu_Update(struct MenuPage4 *page)
             HudMap_WriteTiles(2, 3, 0x33F0, 0xB);
             break;
         }
-        EquipmentMenu_DrawList(stats, (struct MenuPage2 *)page, page->subState);
-        MenuList_DrawScrollArrows((struct MenuPage *)page, 0);
-        EquipmentMenu_ShowSlotDescription((struct EquipmentMenuItemsView *)stats, (struct EquipmentSlotCursorView *)page);
+        EquipmentMenu_DrawList(stats, page, page->subState);
+        MenuList_DrawScrollArrows(page, 0);
+        EquipmentMenu_ShowSlotDescription(stats, page);
     }
     MenuPageTitle_Update(&gEwramData->entityData[20]);
     Cursor_SetTilePosition(2, page->subState * 2 + 5);

@@ -97,25 +97,6 @@ void BaloreHandHitBox_DamagePlayerOnContact(struct EwramData_EntityData *entity)
     }
 }
 
-struct BaloreOverlayFrameView {
-    u8 originX;
-    u8 originY;
-    u8 pad_2[2];
-    u8 boxCount;
-    u8 partCount;
-    u8 pad_6[2];
-    u32 boxes;
-    void *parts;
-};
-
-struct BaloreOverlaySheetView {
-    u16 frameCount;
-    u16 scriptCount;
-    struct BaloreOverlayFrameView *frames;
-    u32 scripts;
-    u32 scriptTable;
-};
-
 /**
  * @brief B3FC4 | Sprite-data setup used by BaloreOverlay_Update: allocates three
  * blocks (unk_4FC 4 words, unk_500 4 words, unk_504 0x20 words), links them
@@ -126,8 +107,8 @@ struct BaloreOverlaySheetView {
 s32 BaloreOverlay_SetupSprite(struct EwramData_EntityData *entity)
 {
     u8 *info = (u8 *)entity->ext.baloreOverlay.info;
-    struct BaloreOverlaySheetView *a;
-    struct BaloreOverlayFrameView *b;
+    struct SpriteSheet *a;
+    struct SpriteFrame *b;
     void *c;
 
     if ((entity->ext.baloreOverlay.sheet = (s32)Heap_Alloc(4)) == 0)
@@ -138,8 +119,8 @@ s32 BaloreOverlay_SetupSprite(struct EwramData_EntityData *entity)
     entity->ext.baloreOverlay.parts = (s32)c;
     if (c == NULL)
         return 1;
-    a = (struct BaloreOverlaySheetView *)entity->ext.baloreOverlay.sheet;
-    b = (struct BaloreOverlayFrameView *)entity->ext.baloreOverlay.frame;
+    a = (struct SpriteSheet *)entity->ext.baloreOverlay.sheet;
+    b = (struct SpriteFrame *)entity->ext.baloreOverlay.frame;
     a->frameCount = 1;
     a->scriptCount = 0;
     a->frames = b;
@@ -1093,8 +1074,8 @@ void BaloreSpark_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        entity->basePalette = ObjPalette_FindOrLoadVariant((void *)0x0820B92C, 0x10);
-        Sprite_Attach(entity, (void *)0x08244220, BALORE_GFX_BYTE(parent), entity->basePalette);
+        entity->basePalette = ObjPalette_FindOrLoadVariant((void *)sBalorePalette, 0x10);
+        Sprite_Attach(entity, (void *)&sBaloreSpriteSheet, BALORE_GFX_BYTE(parent), entity->basePalette);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         Anim_StartIndexed(entity, 0x33, 2, 0);
         entity->spriteLayer = 0x13;
@@ -1200,8 +1181,8 @@ void BaloreEmitter_Update(struct EwramData_EntityData *entity)
         entity->affineIndex = slot;
         entity->affine = 1;
         entity->spriteLayer = 0x14;
-        entity->basePalette = ObjPalette_FindOrLoadVariant((void *)0x0820B92C, 0x10);
-        Sprite_Attach(entity, (void *)0x08244220, BALORE_GFX_BYTE(parent), entity->basePalette);
+        entity->basePalette = ObjPalette_FindOrLoadVariant((void *)sBalorePalette, 0x10);
+        Sprite_Attach(entity, (void *)&sBaloreSpriteSheet, BALORE_GFX_BYTE(parent), entity->basePalette);
         entity->drawFunc = (u32 *)BaloreEmitter_Draw;
         Anim_StartIndexed(entity, 0x32, 2, 0);
         Anim_Update(entity);
@@ -1762,7 +1743,7 @@ void BaloreIntroPiece_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        Sprite_Attach(entity, (void *)0x08244D4C, BALORE_GFX_BYTE(parent), parent->basePalette);
+        Sprite_Attach(entity, (void *)sBaloreSpriteSheet2, BALORE_GFX_BYTE(parent), parent->basePalette);
         Anim_StartIndexed(entity, 1, 2, 1);
         entity->animTimer = RandomNumberGenerator() & 7;
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
@@ -1842,7 +1823,7 @@ void BaloreIntroPart_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        Sprite_Attach(entity, (void *)0x08244D4C, BALORE_GFX_BYTE(parent), parent->basePalette);
+        Sprite_Attach(entity, (void *)sBaloreSpriteSheet2, BALORE_GFX_BYTE(parent), parent->basePalette);
         Anim_StartIndexed(entity, 3, 2, 0);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         entity->spriteLayer = 0x1A;

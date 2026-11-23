@@ -36,6 +36,9 @@ extern u16 sSkillSirenNotes[];
 extern u8 sSkillUneWalkProfile[];
 extern u8 sUnk_084F13B4[];
 extern u8 sSkillGladiatorWalkProfile[];
+extern u8 sSkillCreakingSkullFrames[];
+extern u8 sSkillCreakingSkullBiteFrames[];
 extern struct SoulKey sKeySouls[];
+extern u8 sJuliusHolyWaterFlameWalkProfile[];
 
 #endif /* DATA_4F0B18_H */

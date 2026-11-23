@@ -24,6 +24,8 @@
 #include "soul_menu.h"
 #include "text12.h"
 #include "data/data_4F0B18.h"
+#include "data/data_0E5364.h"
+#include "data/data_118B48.h"
 extern void HudMap_WriteTiles(s32, s32, s32, s32);
 
 u32 sSoulTypeCounts[4] = {
@@ -611,10 +613,10 @@ void SoulTrade_SetupMessageWindow(s32 choice)
 {
     s32 i;
 
-    DMA_FILL_32(3, 0, 0x0600E000, 0x800);
+    DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
     gDisplayRegisters.bgCnt[0] = CREATE_BGCNT(2, 28, BGCNT_HIGH_PRIORITY, BGCNT_SIZE_256x256);
-    BgPalette_LoadRange((u8 *)0x080E5C20, 4, 2, 0xD);
-    BgPalette_LoadRange((u8 *)0x080E5C20, 3, 1, 0xF);
+    BgPalette_LoadRange((u8 *)sSaveSelectBgPalette, 4, 2, 0xD);
+    BgPalette_LoadRange((u8 *)sSaveSelectBgPalette, 3, 1, 0xF);
     Text_SetTileBuffer(VRAM_BASE + 0x8000);
     Text_SetForegroundColor(1);
     Text_SetBackgroundColor(0);
@@ -622,15 +624,15 @@ void SoulTrade_SetupMessageWindow(s32 choice)
     switch (gEwramData->gameState.language)
     {
         case 2:
-            Gfx_CopyResource((u8 *)0x08277984, VRAM_BASE + 0xC000, 0);
+            Gfx_CopyResource((u8 *)sLocalizedWindowGfxLanguage2, VRAM_BASE + 0xC000, 0);
             break;
 
         case 3:
-            Gfx_CopyResource((u8 *)0x0826C848, VRAM_BASE + 0xC000, 0);
+            Gfx_CopyResource((u8 *)sLocalizedWindowGfxLanguage3, VRAM_BASE + 0xC000, 0);
             break;
 
         default:
-            Gfx_CopyResource((u8 *)0x0827B200, VRAM_BASE + 0xC000, 0);
+            Gfx_CopyResource((u8 *)sLocalizedWindowGfx, VRAM_BASE + 0xC000, 0);
             break;
     }
 
@@ -952,22 +954,22 @@ s32 GameModeSoulTradeMenu(void)
                 switch (gEwramData->gameState.language)
                 {
                     default:
-                        gfx = ObjGfx_LoadResource((u8 *)0x082052D8, 0);
+                        gfx = ObjGfx_LoadResource((u8 *)sMenuCursorGfx, 0);
                         break;
                     case 2:
-                        gfx = ObjGfx_LoadResource((u8 *)0x0827798C, 0);
+                        gfx = ObjGfx_LoadResource((u8 *)sMenuCursorGfxLanguage2, 0);
                         break;
                     case 3:
-                        gfx = ObjGfx_LoadResource((u8 *)0x0826C840, 0);
+                        gfx = ObjGfx_LoadResource((u8 *)sMenuCursorGfxLanguage3, 0);
                         break;
                 }
-                ObjPalette_LoadRange((u8 *)0x080E5E24, 6U, 1U, 0xDU);
-                Sprite_Attach(trade, (u8 *)0x082571E0, gfx, 0xD);
+                ObjPalette_LoadRange((u8 *)sMainMenuPalette, 6U, 1U, 0xDU);
+                Sprite_Attach(trade, (u8 *)sSaveMenuSpriteSheet0, gfx, 0xD);
                 trade->updateFunc = (u32 *) SoulTrade_DrawOfferIcons;
-                DMA_FILL_32(3, 0, 0x0600E000, 0x800);
+                DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
                 CursorSprite_Create(&gEwramData->entityData[3], 0xEU);
-                BgMap_Setup(1U, (struct BgMapMetadata *)0x080E7164, 0U, 0U);
-                BgMap_Setup(2U, (struct BgMapMetadata *)0x080E6F24, 0U, 0U);
+                BgMap_Setup(1U, (struct BgMapMetadata *)sSoulTradeMenuBgMap2, 0U, 0U);
+                BgMap_Setup(2U, (struct BgMapMetadata *)sSoulTradeMenuBgMap, 0U, 0U);
                 gDisplayRegisters.bgCnt[1] = 0x1D01;
                 gDisplayRegisters.bgCnt[2] = 0x1E02;
                 gDisplayRegisters.bgCnt[3] = 0x1F03;

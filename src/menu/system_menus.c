@@ -20,16 +20,11 @@
 #include "text12.h"
 #include "bestiary_cursor.h"
 #include "data/data_4F1444.h"
+#include "data/data_0E5364.h"
+#include "data/data_118B48.h"
+#include "gba/memory.h"
 
 /* Ability soul page. */
-struct MenuPage
-{
-    u8 pad_0[0x14];
-    s8 count;
-    s8 cursor;
-    s8 top;
-    u8 item;
-};
 
 void AbilityMenu_PrintSelectedName(struct EwramData_EntityData *entity);
 void AbilityMenu_DrawMarkers(struct EwramData_EntityData *entity);
@@ -39,22 +34,22 @@ extern void HudMap_WriteTiles(s32 x, s32 y, s32 tile, s32 count);
  * @brief 4BA18 | Open the ability soul page: frame, six rows of names
  * (owned ability souls by name, others as "-----") and the cursor.
  */
-void AbilityMenu_Open(struct MenuPage *page)
+void AbilityMenu_Open(struct EwramData_EntityData *page)
 {
     s32 i;
 
-    MenuPage_Reset((struct EwramData_EntityData *)page);
+    MenuPage_Reset(page);
     do /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
-        page->count = 6;
+        page->ext.menuList.count = 6;
     while (0);
     Text12_SetupTileRegion(4, 0xD, 0x3200, 0x1F, 4);
-    AbilityMenu_PrintSelectedName((struct EwramData_EntityData *)page);
-    for (i = 0; i < page->count >> 1; i++)
+    AbilityMenu_PrintSelectedName(page);
+    for (i = 0; i < page->ext.menuList.count >> 1; i++)
     {
         HudMap_WriteTiles(3, i * 2 + 4, i * 0x20 + 0x3380, 10);
         HudMap_WriteTiles(0x11, i * 2 + 4, i * 0x20 + 0x3390, 10);
     }
-    for (i = 0; i < page->count; i++)
+    for (i = 0; i < page->ext.menuList.count; i++)
     {
         s32 odd;
         s32 x;
@@ -72,20 +67,14 @@ void AbilityMenu_Open(struct MenuPage *page)
         else
             Text8_Print(Text_GetLocalizedEntry(0x34F), 0);
     }
-    Cursor_SetTilePosition((page->cursor & 1) ? 0x10 : 2, (page->cursor >> 1) * 2 + 4);
+    Cursor_SetTilePosition((page->ext.menuList.cursor & 1) ? 0x10 : 2, (page->ext.menuList.cursor >> 1) * 2 + 4);
     Cursor_Draw();
     MenuPageTitle_Create((struct EwramData_EntityData *)((u8 *)gEwramData + 0xF34), 0x22);
-    AbilityMenu_DrawMarkers((struct EwramData_EntityData *)page);
+    AbilityMenu_DrawMarkers(page);
 }
 
-struct MenuPage2
-{
-    u8 pad_0[0x14];
-    s8 count;
-    s8 cursor;
-};
 
-extern s32 MenuGrid_MoveCursor(struct MenuPage2 *page, s32 repeated);
+extern s32 MenuGrid_MoveCursor(struct EwramData_EntityData *page, s32 repeated);
 
 /**
  * @brief 4BB40 | Ability soul page update: A toggles the selected ability
@@ -94,7 +83,7 @@ extern s32 MenuGrid_MoveCursor(struct MenuPage2 *page, s32 repeated);
  *
  * @return -1 when the page is left, 0 otherwise
  */
-s32 AbilityMenu_Update(struct MenuPage2 *page)
+s32 AbilityMenu_Update(struct EwramData_EntityData *page)
 {
     s32 repeated;
     s32 new;
@@ -108,13 +97,13 @@ s32 AbilityMenu_Update(struct MenuPage2 *page)
     new = gEwramData->inputData.newInput;
     if (new & 1)
     {
-        if (SoulInventory_GetSoulTotal(3, page->cursor))
+        if (SoulInventory_GetSoulTotal(3, page->ext.menuList.cursor))
         {
             PlaySong(0xF4);
-            if (Player_HasAbility(page->cursor))
-                Player_SetAbility(page->cursor, 0);
+            if (Player_HasAbility(page->ext.menuList.cursor))
+                Player_SetAbility(page->ext.menuList.cursor, 0);
             else
-                Player_SetAbility(page->cursor, 1);
+                Player_SetAbility(page->ext.menuList.cursor, 1);
         }
         else
         {
@@ -132,18 +121,18 @@ s32 AbilityMenu_Update(struct MenuPage2 *page)
         if (moved)
         {
             PlaySong(0xF1);
-            if (SoulInventory_GetSoulTotal(3, page->cursor))
-                text = page->cursor + 0x257;
+            if (SoulInventory_GetSoulTotal(3, page->ext.menuList.cursor))
+                text = page->ext.menuList.cursor + 0x257;
             else
                 text = 0x34F;
             Text12_ClearRegion();
             MenuText_Print(text);
         }
     }
-    Cursor_SetTilePosition((page->cursor & 1) ? 0x10 : 2, (page->cursor >> 1) * 2 + 4);
+    Cursor_SetTilePosition((page->ext.menuList.cursor & 1) ? 0x10 : 2, (page->ext.menuList.cursor >> 1) * 2 + 4);
     Cursor_Draw();
     MenuPageTitle_Update(&gEwramData->entityData[20]);
-    for (i = 0; i < page->count; i++)
+    for (i = 0; i < page->ext.menuList.count; i++)
     {
         if (SoulInventory_GetSoulTotal(3, i))
         {
@@ -198,21 +187,13 @@ void AbilityMenu_DrawMarkers(struct EwramData_EntityData *entity)
     }
 }
 
-struct MenuPage3
-{
-    u8 pad_0[0xA];
-    u8 state;
-    u8 subState;
-    u8 pad_C[0x15 - 0xC];
-    u8 cursor;
-};
 
 /**
  * @brief 4BD38 | Menu save page: when saving is not possible show message
  * 0x360 / 0x361 and play the error sound, otherwise show the save prompt
  * (texts 0x34B / 0x34D) and place the cursor.
  */
-void SaveMenu_Open(struct MenuPage3 *page)
+void SaveMenu_Open(struct EwramData_EntityData *page)
 {
     struct SaveHeader *slot;
     struct EwramData *ew;
@@ -247,7 +228,7 @@ void SaveMenu_Open(struct MenuPage3 *page)
         Text12_SetCursor(0xC, 1);
         Text12_Print(Text_GetLocalizedEntry(0x34D), 0);
         Text12_SetCursor(0, 0);
-        page->cursor = 1;
+        page->ext.menuListU.cursor = 1;
         page->state = 0;
         page->subState = 0;
         ent = &gEwramData->entityData[18];
@@ -256,16 +237,6 @@ void SaveMenu_Open(struct MenuPage3 *page)
     }
 }
 
-struct MenuPage4
-{
-    u8 pad_0[0xA];
-    u8 state;
-    u8 subState;
-    u8 stage;
-    u8 timer;
-    u8 pad_E[0x15 - 0xE];
-    u8 cursor;
-};
 
 /**
  * @brief 4BE0C | Menu save page update: A saves to the current slot
@@ -274,7 +245,7 @@ struct MenuPage4
  *
  * @return -1 when the page is left, 0 otherwise
  */
-s32 SaveMenu_Update(struct MenuPage4 *page)
+s32 SaveMenu_Update(struct EwramData_EntityData *page)
 {
     s32 ret;
     struct EwramData *ew;
@@ -295,7 +266,7 @@ s32 SaveMenu_Update(struct MenuPage4 *page)
         if (new & 3)
         {
             msg = 0x366;
-            if ((new & 1) && !(page->cursor & 1))
+            if ((new & 1) && !(page->ext.menuListU.cursor & 1))
             {
                 SaveData_UpdateSlotSummary(g);
                 if (SaveData_SaveSlotToSram(gEwramData->gameState.currentSaveSlot + 1) == 0)
@@ -321,8 +292,8 @@ s32 SaveMenu_Update(struct MenuPage4 *page)
         else if (repeated & 0x30)
         {
             ent = &ew->entityData[18];
-            page->cursor++;
-            MENU_CURSOR_X(ent) = ((page->cursor & 1) * 4 + 8) * 12 + 5;
+            page->ext.menuListU.cursor++;
+            MENU_CURSOR_X(ent) = ((page->ext.menuListU.cursor & 1) * 4 + 8) * 12 + 5;
             MENU_CURSOR_Y(ent) = 0x89;
             PlaySong(0xF1);
         }
@@ -369,22 +340,6 @@ s32 SaveMenu_Update(struct MenuPage4 *page)
 }
 
 /* Open the button configuration page. */
-/* Button configuration menu state (see ButtonConfigMenu_Update). */
-struct InputMenuState
-{
-    u8 pad_0[0xA];
-    u8 state;
-    u8 subState;
-    u8 stage;
-    u8 pad_D[0x12 - 0xD];
-    u8 active;
-    u8 pad_13;
-    u8 error;
-    s8 selection;
-    u8 pad_16[2];
-    u8 choices[4];
-};
-
 void ButtonConfigMenu_Redraw(struct EwramData_EntityData *entity);
 void ButtonConfigMenu_DrawSprites(void *unusedMenu);
 
@@ -395,7 +350,7 @@ void ButtonConfigMenu_DrawSprites(void *unusedMenu);
  * loop-invariant bases (bindings, choices) are computed in the outer body
  * so loop.c hoists them after `i = 0`; the second loop reuses `j`.
  */
-void ButtonConfigMenu_Open(struct InputMenuState *menu)
+void ButtonConfigMenu_Open(struct EwramData_EntityData *menu)
 {
     struct EwramData *ew;
     u16 *bindings;
@@ -413,7 +368,7 @@ void ButtonConfigMenu_Open(struct InputMenuState *menu)
         s32 o;
         u8 *c;
 
-        u8 *choices = menu->choices;
+        u8 *choices = menu->ext.buttonConfigPage.choices;
         j = 0;
         o = i * 2;
         next = i + 1;
@@ -435,38 +390,26 @@ void ButtonConfigMenu_Open(struct InputMenuState *menu)
     menu->state = 0;
     menu->subState = 0;
     menu->stage = 0;
-    MenuPage_Reset((struct EwramData_EntityData *)menu);
-    menu->error = 3;
+    MenuPage_Reset(menu);
+    menu->ext.buttonConfigPage.error = 3;
     for (j = 0; j <= 2; j++)
         HudMap_WriteTiles(5, j + 0xF, j * 0x20 + 0x3200, 0x18);
     Text12_SetRegion(0, 0, 0x20, 2);
     MenuText_ClearAndPrint(0x352);
-    menu->error = 0;
-    menu->active = 1;
-    ButtonConfigMenu_Redraw((struct EwramData_EntityData *)menu);
+    menu->ext.buttonConfigPage.error = 0;
+    menu->ext.buttonConfigPage.active = 1;
+    ButtonConfigMenu_Redraw(menu);
     ButtonConfigMenu_DrawSprites(menu);
     MenuPageTitle_Create((struct EwramData_EntityData *)((u8 *)gEwramData + 0xF34), 0x24);
 }
 
 /* Button configuration page update. */
-struct ButtonConfigPageView
-{
-    u8 pad_0[0x12];
-    u8 active;
-    u8 pad_13;
-    u8 error;
-    s8 selection;
-    u8 pad_16[2];
-    u8 choices[4];
-};
-
 struct Settings
 {
     u8 pad_0[0x13C];
     u16 buttons[4];
 };
 
-void ButtonConfigMenu_Redraw(struct EwramData_EntityData *entity);
 void ButtonConfigMenu_DrawSprites(void *unusedMenu);
 
 /**
@@ -490,7 +433,7 @@ void ButtonConfigMenu_DrawSprites(void *unusedMenu);
  *
  * @return -1 when the page is left, 0 otherwise
  */
-s32 ButtonConfigMenu_Update(struct ButtonConfigPageView *page)
+s32 ButtonConfigMenu_Update(struct EwramData_EntityData *page)
 {
     struct Settings *settings;
     u16 repeated;
@@ -504,16 +447,16 @@ s32 ButtonConfigMenu_Update(struct ButtonConfigPageView *page)
     repeated = gEwramData->inputData.repeatedInput;
     new = gEwramData->inputData.newInput;
     ret = (new & 0xA) ? -1 : 0;
-    if (page->error && (new & ~0xA))
+    if (page->ext.buttonConfigPage.error && (new & ~0xA))
     {
         MenuText_ClearAndPrint(0x352);
-        page->error = 0;
+        page->ext.buttonConfigPage.error = 0;
     }
     if (ret)
     {
         used = 0;
         i = 0;
-        choices = page->choices;
+        choices = page->ext.buttonConfigPage.choices;
         do
         {
             settings->buttons[i] = sButtonConfigButtons[choices[i]];
@@ -524,7 +467,7 @@ s32 ButtonConfigMenu_Update(struct ButtonConfigPageView *page)
         } while (++i <= 3);
         if (ret)
         {
-            page->active = 0;
+            page->ext.buttonConfigPage.active = 0;
             if (new & 8)
                 ret = 0;
         }
@@ -532,26 +475,26 @@ s32 ButtonConfigMenu_Update(struct ButtonConfigPageView *page)
     else if (repeated & 0x40)
     {
         PlaySong(0xF1);
-        page->selection--;
-        choices = page->choices;
+        page->ext.buttonConfigPage.selection--;
+        choices = page->ext.buttonConfigPage.choices;
     }
     else if (repeated & 0x80)
     {
         PlaySong(0xF1);
-        page->selection++;
-        choices = page->choices;
+        page->ext.buttonConfigPage.selection++;
+        choices = page->ext.buttonConfigPage.choices;
     }
     else if (repeated & 0x11)
     {
         PlaySong(0xF4);
-        page->choices[sButtonConfigChoiceSlots[page->selection]]++;
-        choices = page->choices;
+        page->ext.buttonConfigPage.choices[sButtonConfigChoiceSlots[page->ext.buttonConfigPage.selection]]++;
+        choices = page->ext.buttonConfigPage.choices;
     }
     else if (repeated & 0x20)
     {
         PlaySong(0xF4);
-        page->choices[sButtonConfigChoiceSlots[page->selection]]--;
-        choices = page->choices;
+        page->ext.buttonConfigPage.choices[sButtonConfigChoiceSlots[page->ext.buttonConfigPage.selection]]--;
+        choices = page->ext.buttonConfigPage.choices;
     }
     else
     {
@@ -560,13 +503,13 @@ s32 ButtonConfigMenu_Update(struct ButtonConfigPageView *page)
         error:
             PlaySong(0xEF);
             MenuText_ClearAndPrint(0x353);
-            page->error = 1;
+            page->ext.buttonConfigPage.error = 1;
             ret = 0;
             goto end;
         }
         {
             s32 f = new & 4;
-            choices = page->choices;
+            choices = page->ext.buttonConfigPage.choices;
             if (f)
             {
                 PlaySong(0xF4);
@@ -581,21 +524,15 @@ s32 ButtonConfigMenu_Update(struct ButtonConfigPageView *page)
         }
     }
 end:
-    page->selection &= 3;
-    choices[sButtonConfigChoiceSlots[page->selection]] &= 3;
+    page->ext.buttonConfigPage.selection &= 3;
+    choices[sButtonConfigChoiceSlots[page->ext.buttonConfigPage.selection]] &= 3;
     if (repeated || new)
-        ButtonConfigMenu_Redraw((struct EwramData_EntityData *)page);
+        ButtonConfigMenu_Redraw(page);
     ButtonConfigMenu_DrawSprites(page);
     if (ret)
         MenuPageTitle_Delete((struct EwramData_EntityData *)((u8 *)gEwramData + 0xF34));
     return ret;
 }
-
-struct ButtonConfigPageView2
-{
-    u8 pad_0[0x18];
-    u8 choices[4];
-};
 
 static inline void MoveText(s32 n)
 {
@@ -607,7 +544,7 @@ static inline void MoveText(s32 n)
  * @brief 4C264 | Draw the button configuration page: the four action
  * labels (texts 0x80..0x87) and the button currently assigned to each.
  */
-void ButtonConfigMenu_Draw(struct ButtonConfigPageView2 *page)
+void ButtonConfigMenu_Draw(struct EwramData_EntityData *page)
 {
     s32 i;
     s32 count;
@@ -644,7 +581,7 @@ void ButtonConfigMenu_Draw(struct ButtonConfigPageView2 *page)
         if (i == 1)
             count = 6;
         HudMap_WriteTiles(6, i * 2 + 4, i * 0x10 + 0x3359, count);
-        HudMap_WriteTiles(0x12, i * 2 + 4, page->choices[sButtonConfigChoiceSlots[i]] * 3 + 0x32A0, 3);
+        HudMap_WriteTiles(0x12, i * 2 + 4, page->ext.buttonConfigPage.choices[sButtonConfigChoiceSlots[i]] * 3 + 0x32A0, 3);
     }
 }
 
@@ -666,7 +603,7 @@ void ButtonConfigMenu_DrawSprites(void *unusedMenu)
  */
 void ButtonConfigMenu_Redraw(struct EwramData_EntityData *entity)
 {
-    ButtonConfigMenu_Draw((struct ButtonConfigPageView2 *)entity);
+    ButtonConfigMenu_Draw(entity);
     Cursor_SetTilePosition(5, (s8)entity->ext.menuPage.cursor * 2 + 4);
 }
 
@@ -682,41 +619,20 @@ void ButtonConfig_ResetDefaults(void)
         buttons[i] = sButtonConfigButtons[sButtonConfigDefaultChoices[i]];
 }
 
-struct MenuPage5
-{
-    u8 pad_0[0xB];
-    u8 subState;
-    u8 stage;
-    u8 pad_D[0x13 - 0xD];
-    u8 descriptionMode;
-    u8 count;
-    u8 cursor;
-};
 
 /* Backup of the four palette slots inside the save buffer (0x1340C). */
 #define BACKUP_SLOT(i) (*(s32 *)((u8 *)gEwramData + 0x1340C + (i) * 4))
 #define BACKUP_VARIANT(i) ((u8 *)gEwramData + 0x13420 + (i) * 2)
 
 extern void *memcpy(void *dst, const void *src, unsigned long size);
-struct MenuPage7
-{
-    u8 pad_0[0xA];
-    u8 state;
-    u8 subState;
-    u8 stage;
-    u8 timer;
-    u8 pad_E[0x15 - 0xE];
-    s8 cursor;
-    s8 top;
-};
 
-void BestiaryMenu_Setup(struct MenuPage7 *page);
+void BestiaryMenu_Setup(struct EwramData_EntityData *page);
 
 /**
  * @brief Open the bestiary page: back up the palette slots, load the page
  * graphics (per language) and reset the page state.
  */
-void BestiaryMenu_Open(struct MenuPage5 *page)
+void BestiaryMenu_Open(struct EwramData_EntityData *page)
 {
     u8 *gfx;
 
@@ -728,56 +644,37 @@ void BestiaryMenu_Open(struct MenuPage5 *page)
     memcpy(BACKUP_VARIANT(1), &gEwramData->gameState.sharedObjPaletteVariants[1], 2);
     *(u16 *)BACKUP_VARIANT(2) = *(u16 *)&gEwramData->gameState.sharedObjPaletteVariants[2];
     memcpy(BACKUP_VARIANT(3), &gEwramData->gameState.sharedObjPaletteVariants[3], 2);
-    BgPalette_Load((u8 *)0x0815E0A4);
-    BgPalette_LoadRange((u8 *)0x080E5C20, 0xD, 1, 0xD);
-    BgPalette_LoadRange((u8 *)0x081183F4, 1, 1, 0xF);
+    BgPalette_Load((u8 *)sBestiaryMenuBgPalette);
+    BgPalette_LoadRange((u8 *)sSaveSelectBgPalette, 0xD, 1, 0xD);
+    BgPalette_LoadRange((u8 *)sTextBgPalette, 1, 1, 0xF);
     switch (gEwramData->gameState.language)
     {
     case 2:
-        gfx = (u8 *)0x0827799C;
+        gfx = (u8 *)sBestiaryMenuGfx3;
         break;
     case 3:
-        gfx = (u8 *)0x0826C858;
+        gfx = (u8 *)sBestiaryMenuGfx2;
         break;
     default:
-        gfx = (u8 *)0x0815E034;
+        gfx = (u8 *)sBestiaryMenuGfx;
         break;
     }
-    Gfx_CopyResource(gfx, (void *)0x06000000, 0);
-    page->cursor = 0;
+    Gfx_CopyResource(gfx, (void *)VRAM_BASE, 0);
+    page->ext.menuListU.cursor = 0;
     Heap_SaveAndReset();
     gEwramData->gameState.bestiaryPreview = 1;
     page->subState = 0;
     page->stage = 0;
-    MenuPage_Reset((struct EwramData_EntityData *)page);
-    page->descriptionMode = 0;
-    page->count = 0x70;
-    BestiaryMenu_Setup((struct MenuPage7 *)page);
+    MenuPage_Reset(page);
+    page->ext.menuListU.descriptionMode = 0;
+    page->ext.menuListU.count = 0x70;
+    BestiaryMenu_Setup(page);
 }
 
-struct MenuPage6
-{
-    u8 pad_0[0xA];
-    u8 state;
-    u8 subState;
-    u8 stage;
-};
 
-void BestiaryMenu_Setup(struct MenuPage7 *page);
-struct MenuPage8
-{
-    u8 pad_0[0xA];
-    u8 state;
-    u8 subState;
-    u8 stage;
-    u8 timer;
-    u8 pad_E[0x14 - 0xE];
-    s8 count;
-    s8 cursor;
-    s8 top;
-};
+void BestiaryMenu_Setup(struct EwramData_EntityData *page);
 
-void BestiaryMenu_UpdateList(struct MenuPage8 *page);
+void BestiaryMenu_UpdateList(struct EwramData_EntityData *page);
 
 /**
  * @brief Bestiary page state machine (fades between the list,
@@ -785,14 +682,14 @@ void BestiaryMenu_UpdateList(struct MenuPage8 *page);
  *
  * @return -1 when the page is left, 0 otherwise
  */
-s32 BestiaryMenu_Update(struct MenuPage6 *page)
+s32 BestiaryMenu_Update(struct EwramData_EntityData *page)
 {
     s32 ret = 0;
 
     switch (page->subState)
     {
     case 0:
-        BestiaryMenu_Setup((struct MenuPage7 *)page);
+        BestiaryMenu_Setup(page);
         page->subState = 4;
         page->stage = ret;
         break;
@@ -804,7 +701,7 @@ s32 BestiaryMenu_Update(struct MenuPage6 *page)
         page->stage = 0;
         break;
     case 1:
-        BestiaryMenu_UpdateList((struct MenuPage8 *)page);
+        BestiaryMenu_UpdateList(page);
         break;
     case 5:
         if ((u16)(gDisplayRegisters.bldY += 4) <= 0xF)
@@ -814,7 +711,7 @@ s32 BestiaryMenu_Update(struct MenuPage6 *page)
         page->stage = 0;
         break;
     case 2:
-        BestiaryMenu_UpdateDetailScreen((struct EwramData_EntityData *)page);
+        BestiaryMenu_UpdateDetailScreen(page);
         break;
     case 3:
         if ((s16)(gDisplayRegisters.bldY -= 4) != 0)
@@ -823,7 +720,7 @@ s32 BestiaryMenu_Update(struct MenuPage6 *page)
         page->subState = 7;
         break;
     case 7:
-        BestiaryMenu_UpdateDetail((struct MenuPage *)page);
+        BestiaryMenu_UpdateDetail(page);
         break;
     case 6:
         if ((u16)(gDisplayRegisters.bldY += 4) <= 0xF)
@@ -833,7 +730,7 @@ s32 BestiaryMenu_Update(struct MenuPage6 *page)
         page->stage = 0;
         break;
     case 0xFF:
-        BestiaryMenu_Close((struct MenuPage2 *)page);
+        BestiaryMenu_Close(page);
         ret = -1;
         break;
     }
@@ -855,28 +752,28 @@ s32 BestiaryMenu_Update(struct MenuPage6 *page)
  * @brief Load the language specific frame graphics, draw the enemy list and the
  * header tiles and place the cursor.
  */
-void BestiaryMenu_Setup(struct MenuPage7 *page)
+void BestiaryMenu_Setup(struct EwramData_EntityData *page)
 {
     void *gfx;
 
     switch (gEwramData->gameState.language)
     {
     case 2:
-        gfx = (void *)0x08277984;
+        gfx = (void *)sLocalizedWindowGfxLanguage2;
         break;
     case 3:
-        gfx = (void *)0x0826C848;
+        gfx = (void *)sLocalizedWindowGfxLanguage3;
         break;
     default:
-        gfx = (void *)0x0827B200;
+        gfx = (void *)sLocalizedWindowGfx;
         break;
     }
-    Gfx_CopyResource(gfx, (void *)0x0600A000, 0);
-    BgMap_Setup(1, (struct BgMapMetadata *)0x0815EA60, 0, 0);
+    Gfx_CopyResource(gfx, (void *)(VRAM_BASE + 0xA000), 0);
+    BgMap_Setup(1, (struct BgMapMetadata *)sBestiaryMenuBgMap, 0, 0);
     HudMap_ClearAll();
     Text8_SetRegion(0, 0xF, 0x29, 1);
     Text8_ClearRegion();
-    BestiaryMenu_DrawList((struct MenuPage4 *)page);
+    BestiaryMenu_DrawList(page);
     BestiaryMenu_ReleaseResources();
     MenuCursor_LoadGraphics(&gEwramData->entityData[18]);
     Cursor_StartAnimation();
@@ -885,7 +782,7 @@ void BestiaryMenu_Setup(struct MenuPage7 *page)
     HudMap_WriteTiles(0x15, 0xF, 0x13E4, 1);
     HudMap_WriteTiles(0x19, 0xF, 0x13E8, 1);
     HudMap_WriteTiles(0x1B, 0xF, 0xF3EA, 1);
-    Cursor_SetTilePosition((page->cursor & 1) ? 0xF : 1, ((page->cursor - page->top) >> 1) * 2 + 5);
+    Cursor_SetTilePosition((page->ext.menuList.cursor & 1) ? 0xF : 1, ((page->ext.menuList.cursor - page->ext.menuList.top) >> 1) * 2 + 5);
     {
         // writing through a pointer keeps the store order of the original
         u8 *p = &page->subState;
@@ -899,7 +796,7 @@ void BestiaryMenu_Setup(struct MenuPage7 *page)
  * entries (wrapping), B leaves, A opens the detail view when
  * Bestiary_IsEnemyDefeated allows it.
  */
-void BestiaryMenu_UpdateList(struct MenuPage8 *page)
+void BestiaryMenu_UpdateList(struct EwramData_EntityData *page)
 {
     s32 repeated;
     s32 new;
@@ -910,48 +807,48 @@ void BestiaryMenu_UpdateList(struct MenuPage8 *page)
 
     repeated = gEwramData->inputData.repeatedInput;
     new = gEwramData->inputData.newInput;
-    if (BestiaryMenu_MoveCursor((struct MenuPage *)page, repeated) != 0)
+    if (BestiaryMenu_MoveCursor(page, repeated) != 0)
     {
         PlaySong(0xF1);
     }
     else if (repeated & 0x100)
     {
-        top = page->top;
-        count = page->count;
+        top = page->ext.menuList.top;
+        count = page->ext.menuList.count;
         last = count - 1;
         rest = last % 10 + 1;
         if (top != count - rest)
         {
             if (top + 10 > last)
-                page->top = page->count - rest;
+                page->ext.menuList.top = page->ext.menuList.count - rest;
             else
-                page->top = page->top + 10;
-            page->cursor = page->top;
-            BestiaryMenu_DrawList((struct MenuPage4 *)page);
+                page->ext.menuList.top = page->ext.menuList.top + 10;
+            page->ext.menuList.cursor = page->ext.menuList.top;
+            BestiaryMenu_DrawList(page);
         }
         else
         {
-            page->top = 0;
-            page->cursor = 0;
-            BestiaryMenu_DrawList((struct MenuPage4 *)page);
+            page->ext.menuList.top = 0;
+            page->ext.menuList.cursor = 0;
+            BestiaryMenu_DrawList(page);
         }
         PlaySong(0xF1);
     }
     else if (repeated & 0x200)
     {
-        if (page->top != 0)
+        if (page->ext.menuList.top != 0)
         {
-            if (page->top - 10 < 0)
-                page->top = 0;
+            if (page->ext.menuList.top - 10 < 0)
+                page->ext.menuList.top = 0;
             else
-                page->top = page->top - 10;
-            page->cursor = page->top;
-            BestiaryMenu_DrawList((struct MenuPage4 *)page);
+                page->ext.menuList.top = page->ext.menuList.top - 10;
+            page->ext.menuList.cursor = page->ext.menuList.top;
+            BestiaryMenu_DrawList(page);
         }
         else
         {
-            page->cursor = page->top = page->count - 1 - (page->count - 1) % 10;
-            BestiaryMenu_DrawList((struct MenuPage4 *)page);
+            page->ext.menuList.cursor = page->ext.menuList.top = page->ext.menuList.count - 1 - (page->ext.menuList.count - 1) % 10;
+            BestiaryMenu_DrawList(page);
         }
         PlaySong(0xF1);
     }
@@ -963,7 +860,7 @@ void BestiaryMenu_UpdateList(struct MenuPage8 *page)
     }
     else if (new & 1)
     {
-        if (Bestiary_IsEnemyDefeated(page->cursor))
+        if (Bestiary_IsEnemyDefeated(page->ext.menuList.cursor))
         {
             PlaySong(0xF4);
             gDisplayRegisters.bldY = 0;
@@ -975,6 +872,6 @@ void BestiaryMenu_UpdateList(struct MenuPage8 *page)
             PlaySong(0xEF);
         }
     }
-    Cursor_SetTilePosition((page->cursor & 1) ? 0xF : 1, ((page->cursor - page->top) >> 1) * 2 + 5);
+    Cursor_SetTilePosition((page->ext.menuList.cursor & 1) ? 0xF : 1, ((page->ext.menuList.cursor - page->ext.menuList.top) >> 1) * 2 + 5);
     Cursor_Draw();
 }

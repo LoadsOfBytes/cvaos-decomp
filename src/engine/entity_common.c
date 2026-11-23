@@ -891,11 +891,7 @@ s32 Entity_GetRoomPointDistance(struct EwramData_EntityData *entity, s32 x, s32 
  * Entity fields used (16.16 fixed point): 0x524/0x528 position x/y,
  * 0x52C/0x530 velocity x/y, 0x534/0x538 acceleration x/y. */
 
-/* Same layout as struct EnemyTemplateView in src/engine/room_entities.c, extended by the
- * field at 0x1C read here. */
-/* Local 0x24-byte template-table view: retain this TU's types and padding. */
-
-/* 0x28 signed bytes at ROM 0x08118CE0, copied by Entity_GetVisibilityPattern. Declared as
+/* 0x28 signed bytes at ROM sEntityVisibilityPattern, copied by Entity_GetVisibilityPattern. Declared as
  * bytes: the original calls memcpy instead of an inline copy. */
 extern const u8 sEntityVisibilityPattern[];
 

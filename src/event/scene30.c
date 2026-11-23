@@ -45,8 +45,8 @@ s32 EventScene30_PlayTransformation(struct EwramData_EntityData *entity)
         gUnk_03002CB0.dispCnt=0x1E01;
         gDisplayRegisters.bgCnt[1]=0x1D09;gDisplayRegisters.bgCnt[2]=0x5E80;
         Obj_SetBgLayer(22,1);Obj_SetBgLayer(6,2);Bg_SyncPriorities();
-        Gfx_CopyResource(sEventScene30TransformationGfx,(void *)0x06000000,0);
-        Gfx_CopyResource(sUnk_08119898,(void *)0x06008000,0);
+        Gfx_CopyResource(sEventScene30TransformationGfx,(void *)VRAM_BASE,0);
+        Gfx_CopyResource(sUnk_08119898,(void *)(VRAM_BASE + 0x8000),0);
         BgPalette_LoadRange(sEventScene30TransformationPalette,0,16,0);
         BgMap_Setup(1,&sEventScene30BgMap,0,48);BgMap_Setup(2,&sEventScene30TransformationBg2Map,0,0);
         entity->subState=2;
@@ -77,9 +77,9 @@ s32 EventScene30_PlayTransformation(struct EwramData_EntityData *entity)
         EventScene30_UpdateTransformation(entity);EventScene30_UploadFrame();
         if(++gEwramData->gameModeTimer>64)
         {
-            DMA_FILL_32(3,0,(void *)0x0600E800,0x800);
-            DMA_FILL_32(3,0,(void *)0x0600F000,0x800);
-            DMA_FILL_32(3,0,(void *)0x0600F800,0x800);
+            DMA_FILL_32(3,0,(void *)(VRAM_BASE + 0xE800),0x800);
+            DMA_FILL_32(3,0,(void *)(VRAM_BASE + 0xF000),0x800);
+            DMA_FILL_32(3,0,(void *)(VRAM_BASE + 0xF800),0x800);
             entity->subState=6;
         }
         break;

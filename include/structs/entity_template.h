@@ -15,10 +15,11 @@ struct EntityTemplate {
     u16 hp; // initial/base enemy HP, copied to runtime entity HP
     u16 mp; /* enemy MP (record order hp, mp, exp); copied to entity mp by Enemy_ResetFromTemplate */
     u16 exp; // experience, shown by the bestiary
-    u8 pad_12;
+    u8 soulRate; // soul drop chance
     u8 attack; // copied to entity attack
     u8 defense; // base entity defense, loaded by Enemy_ResetFromTemplate
-    u8 pad_15[0x17 - 0x15];
+    u8 dropRate0; // drop chance of dropItem0
+    u8 dropRate1; // drop chance of dropItem1
     u8 soulType; // soul dropped: type (bestiary icon)
     u8 soulIndex; // soul dropped: 1-based index, 0 = none
     u8 pad_19;

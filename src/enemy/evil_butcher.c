@@ -41,7 +41,7 @@ void EvilButcherProjectile_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if (!Entity_LoadGraphics(entity, (void *)0x082052D0, (void *)0x0820C27C, (u8)entity->spawnParam1, (void *)0x08256720))
+        if (!Entity_LoadGraphics(entity, (void *)sEvilButcherGfx, (void *)sEvilButcherPalette, (u8)entity->spawnParam1, (void *)sEvilButcherSpriteSheet))
             goto delete;
         entity->animFrame = 8;
         entity->spriteLayer = 0x13;

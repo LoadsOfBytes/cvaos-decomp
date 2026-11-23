@@ -821,7 +821,7 @@ void DeathBlade_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if (!Entity_LoadGraphics(entity, (void *)0x08119498, (void *)0x0820BC1C, 0, (void *)0x08249C48))
+        if (!Entity_LoadGraphics(entity, (void *)sDeathGfx, (void *)sDeathPalette, 0, (void *)sDeathSpriteSheet))
             goto delete;
         slot = ObjAffine_Alloc(1);
         if ((s16)slot < 0)
@@ -914,7 +914,7 @@ void DeathPillar_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if (!Entity_LoadGraphics(entity, (void *)0x08119498, (void *)0x0820BC1C, 2, (void *)0x08249C48))
+        if (!Entity_LoadGraphics(entity, (void *)sDeathGfx, (void *)sDeathPalette, 2, (void *)sDeathSpriteSheet))
             goto delete;
         slot = ObjAffine_Alloc(1);
         if ((s16)slot < 0)
@@ -995,8 +995,8 @@ void DeathRewardEffect_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        SharedObjPalette_Release((void *)0x0820BC1C, 2);
-        if (!Entity_LoadGraphics(entity, (void *)0x08119498, (void *)0x0820BC1C, 3, (void *)0x08249C48))
+        SharedObjPalette_Release((void *)sDeathPalette, 2);
+        if (!Entity_LoadGraphics(entity, (void *)sDeathGfx, (void *)sDeathPalette, 3, (void *)sDeathSpriteSheet))
             goto delete;
         slot = ObjAffine_Alloc(1);
         if ((s16)slot < 0)
@@ -1092,7 +1092,7 @@ void DeathDebris_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if (!Entity_LoadGraphics(entity, (void *)0x08119498, (void *)0x0820BC1C, 0, (void *)0x08249C48))
+        if (!Entity_LoadGraphics(entity, (void *)sDeathGfx, (void *)sDeathPalette, 0, (void *)sDeathSpriteSheet))
             goto delete;
         slot = ObjAffine_Alloc(1);
         if ((s16)slot < 0)

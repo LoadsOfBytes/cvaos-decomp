@@ -135,9 +135,9 @@ void WarpRoom_Update(struct EwramData_EntityData *e)
             gEwramData->gameState.stateFlags |= 0x40;
             GameFlag_Set(0x39);
             Room_ClearForTransition(gameState);
-            DMA_FILL_32(3, 0, 0x0600E800, 0x800);
-            DMA_FILL_32(3, 0, 0x0600F000, 0x800);
-            DMA_FILL_32(3, 0, 0x0600F800, 0x800);
+            DMA_FILL_32(3, 0, VRAM_BASE + 0xE800, 0x800);
+            DMA_FILL_32(3, 0, VRAM_BASE + 0xF000, 0x800);
+            DMA_FILL_32(3, 0, VRAM_BASE + 0xF800, 0x800);
             gEwramData->playerState.player->posX.part16.integer = gEwramData->gameState.roomJumpPlayerX;
             gEwramData->playerState.player->posY.part16.integer = gEwramData->gameState.roomJumpPlayerY;
             gEwramData->playerState.player->velX.whole = 0;

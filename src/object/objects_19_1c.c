@@ -25,6 +25,7 @@
 #include "text12.h"
 #include "data/data_0E5364.h"
 #include "data/data_118B48.h"
+#include "gba/memory.h"
 
 /* Object 19: move along a timed path of steps, then despawn. */
 struct Object19Step
@@ -221,42 +222,42 @@ void SavePoint_ShowSavePromptLow(void)
         for (j = 0; j <= 4; j++)
             *first++ = (j + 0xAC) | (s16)0xE200;
         DmaQueue_DirectCopy(10, (u32 *)gEwramData->sharedScratchBuffer,
-                           (u32 *)(0x0600E00E + ((y + 2) << 6)));
+                           (u32 *)(VRAM_BASE + 0xE00E + ((y + 2) << 6)));
     }
     {
         buf = (s16 *)gEwramData->sharedScratchBuffer;
         for (i = 0; i <= 4; i++)
             *buf++ = (i + 0xCC) | (s16)0xE200;
         DmaQueue_DirectCopy(10, (u32 *)gEwramData->sharedScratchBuffer,
-                           (u32 *)(0x0600E00E + ((y + 3) << 6)));
+                           (u32 *)(VRAM_BASE + 0xE00E + ((y + 3) << 6)));
     }
     {
         buf = (s16 *)gEwramData->sharedScratchBuffer;
         for (i = 0; i <= 4; i++)
             *buf++ = (i + 0xB2) | (s16)0xE200;
         DmaQueue_DirectCopy(10, (u32 *)gEwramData->sharedScratchBuffer,
-                           (u32 *)(0x0600E028 + ((y + 2) << 6)));
+                           (u32 *)(VRAM_BASE + 0xE028 + ((y + 2) << 6)));
     }
     {
         buf = (s16 *)gEwramData->sharedScratchBuffer;
         for (i = 0; i <= 4; i++)
             *buf++ = (i + 0xD2) | (s16)0xE200;
         DmaQueue_DirectCopy(10, (u32 *)gEwramData->sharedScratchBuffer,
-                           (u32 *)(0x0600E028 + ((y + 3) << 6)));
+                           (u32 *)(VRAM_BASE + 0xE028 + ((y + 3) << 6)));
     }
     {
         buf = (s16 *)gEwramData->sharedScratchBuffer;
         for (i = 0; i <= 23; i++)
             *buf++ = (i + 0xA0) | (s16)0xE200;
         DmaQueue_DirectCopy(24, (u32 *)gEwramData->sharedScratchBuffer,
-                           (u32 *)(0x0600E014 + (y << 6)));
+                           (u32 *)(VRAM_BASE + 0xE014 + (y << 6)));
     }
     {
         buf = (s16 *)gEwramData->sharedScratchBuffer;
         for (i = 0; i <= 23; i++)
             *buf++ = (i + 0xC0) | (s16)0xE200;
         DmaQueue_DirectCopy(24, (u32 *)gEwramData->sharedScratchBuffer,
-                           (u32 *)(0x0600E014 + ((y + 1) << 6)));
+                           (u32 *)(VRAM_BASE + 0xE014 + ((y + 1) << 6)));
     }
 }
 
@@ -291,35 +292,35 @@ void SavePoint_ShowSavePrompt(void)
         for (i = 0; i <= 4; i++)
             *buf++ = (i + 0xAC) | (s16)0xE200;
         DmaQueue_DirectCopy(10, (u32 *)gEwramData->sharedScratchBuffer,
-                           (u32 *)(0x0600E010 + ((y + 3) << 6)));
+                           (u32 *)(VRAM_BASE + 0xE010 + ((y + 3) << 6)));
     }
     {
         buf = (s16 *)gEwramData->sharedScratchBuffer;
         for (i = 0; i <= 4; i++)
             *buf++ = (i + 0xCC) | (s16)0xE200;
         DmaQueue_DirectCopy(10, (u32 *)gEwramData->sharedScratchBuffer,
-                           (u32 *)(0x0600E010 + ((y + 4) << 6)));
+                           (u32 *)(VRAM_BASE + 0xE010 + ((y + 4) << 6)));
     }
     {
         buf = (s16 *)gEwramData->sharedScratchBuffer;
         for (i = 0; i <= 4; i++)
             *buf++ = (i + 0xB2) | (s16)0xE200;
         DmaQueue_DirectCopy(10, (u32 *)gEwramData->sharedScratchBuffer,
-                           (u32 *)(0x0600E028 + ((y + 3) << 6)));
+                           (u32 *)(VRAM_BASE + 0xE028 + ((y + 3) << 6)));
     }
     {
         buf = (s16 *)gEwramData->sharedScratchBuffer;
         for (i = 0; i <= 4; i++)
             *buf++ = (i + 0xD2) | (s16)0xE200;
         DmaQueue_DirectCopy(10, (u32 *)gEwramData->sharedScratchBuffer,
-                           (u32 *)(0x0600E028 + ((y + 4) << 6)));
+                           (u32 *)(VRAM_BASE + 0xE028 + ((y + 4) << 6)));
     }
     {
         buf = (s16 *)gEwramData->sharedScratchBuffer;
         for (i = 0; i <= 23; i++)
             *buf++ = (i + 0xA0) | (s16)0xE200;
         DmaQueue_DirectCopy(24, (u32 *)gEwramData->sharedScratchBuffer,
-                           (u32 *)(0x0600E014 + (y << 6)));
+                           (u32 *)(VRAM_BASE + 0xE014 + (y << 6)));
     }
     {
         buf = (s16 *)gEwramData->sharedScratchBuffer;
@@ -466,7 +467,7 @@ void Object1CCreate(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *child;
 
     Hud_CloseMessageWindow();
-    Text_SetTileBuffer((void *)0x06005000);
+    Text_SetTileBuffer((void *)(VRAM_BASE + 0x5000));
     graphics = ObjGfx_Find(gfx);
     if (graphics < 0 && (graphics = ObjGfx_LoadResource(gfx, 0)) < 0)
     {

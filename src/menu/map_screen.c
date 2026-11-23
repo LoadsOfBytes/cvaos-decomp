@@ -27,7 +27,7 @@
 
 static inline u16* MapScreen_GetCellTileAddress(s32 tile, s32 x, s32 y)
 {
-    return (u16*)0x06000000 + ((tile + 0x22) << 4) + ((y & 1) << 3) + (x & 1);
+    return (u16*)VRAM_BASE + ((tile + 0x22) << 4) + ((y & 1) << 3) + (x & 1);
 }
 
 /**
@@ -345,7 +345,7 @@ void MapScreen_DrawMap(struct GameState *gameState)
     s32 cellType;
     s32 cellInfo;
 
-    tilemap = (u16 *)0x0600E000;
+    tilemap = (u16 *)(VRAM_BASE + 0xE000);
     tile = 0;
 
     for (i = 0; i < 20; i++)
@@ -358,7 +358,7 @@ void MapScreen_DrawMap(struct GameState *gameState)
         }
     }
 
-    DMA_FILL_32(3, 0, 0x06000000, 0x6000);
+    DMA_FILL_32(3, 0, VRAM_BASE, 0x6000);
     Map_DrawCompletion(gameState, gameState->unk_8D_6, 0x18, 1);
     if (GetAreaFromMapPosition(GetEntityRoomXPositionInteger(Get_unk_13110()), GetEntityRoomYPositionInteger(Get_unk_13110())) == 11)
     {
@@ -518,7 +518,7 @@ s32 MapScreen_Update(struct GameState *gameState)
             gDisplayRegisters.bgOfs[0].hOfs = 0;
             gDisplayRegisters.bgOfs[0].vOfs = 0;
             Palette_SaveState();
-            BgPalette_Load((u8 *)0x081183CC);
+            BgPalette_Load((u8 *)sMapScreenBgPalette);
             MapScreen_DrawMap(gameState);
             gameState->subModeStep = 1;
             break;
@@ -751,7 +751,7 @@ s32 WarpMenu_Update(struct GameState *gameState)
             {
                 input = gEwramData->gameState.roomMapXPos + (GetEntityRoomXPositionInteger(gEwramData->playerState.player) >> 8);
                 y = gEwramData->gameState.roomMapYPos + (GetEntityRoomYPositionInteger(gEwramData->playerState.player) >> 8);
-                BgPalette_Load((u8 *)0x081183CC);
+                BgPalette_Load((u8 *)sMapScreenBgPalette);
                 MapScreen_DrawMap(gameState);
                 gameState->subModeStep += 1;
                 gEwramData->gameState.selectedWarpIndex = Warp_FindRoomIndex(input, y);
@@ -951,9 +951,9 @@ s32 RoomJump_Update(struct GameState *gameState)
 
         case 1:
             Room_ClearForTransition(gameState);
-            DMA_FILL_32(3, 0, 0x0600E800, 0x800);
-            DMA_FILL_32(3, 0, 0x0600F000, 0x800);
-            DMA_FILL_32(3, 0, 0x0600F800, 0x800);
+            DMA_FILL_32(3, 0, VRAM_BASE + 0xE800, 0x800);
+            DMA_FILL_32(3, 0, VRAM_BASE + 0xF000, 0x800);
+            DMA_FILL_32(3, 0, VRAM_BASE + 0xF800, 0x800);
             gEwramData->playerState.player->posX.part16.integer = gEwramData->gameState.roomJumpPlayerX;
             gEwramData->playerState.player->posY.part16.integer = gEwramData->gameState.roomJumpPlayerY;
             gEwramData->playerState.player->velX.whole = 0;

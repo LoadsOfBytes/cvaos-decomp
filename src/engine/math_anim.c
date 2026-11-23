@@ -1166,7 +1166,7 @@ void BgMap_FillText(s32 bgIndex)
     u16 col;
     u16 j;
     u16 tileY;
-    void* vramBase = (void*)0x0600E000;
+    void* vramBase = (void*)(VRAM_BASE + 0xE000);
 
     bg = &gEwramData->bgInfo[bgIndex];
 
@@ -1214,7 +1214,7 @@ void BgMap_FillAffineBG2(s32 bgIndex)
         {
             for (j = 0; j < 8; j++)
             {
-                dst = (u32*)0x0600F000 + (j) + (i << 3);
+                dst = (u32*)(VRAM_BASE + 0xF000) + (j) + (i << 3);
                 tiles = (u32*)gEwramData->sharedBgTileCache;
                 block = blocks[(u8)j + ((u8)(i >> 2) << 3)];
                 if (block != 0)
@@ -1644,7 +1644,7 @@ void Gfx_CopyResourceBlocks(void *resource, s32 destinationIndex, s32 sourceInde
     }
 
     src = src + (sourceIndex << 0xB);
-    dst = (void*)0x06000000 + (destinationIndex << 0xB);
+    dst = (void*)VRAM_BASE + (destinationIndex << 0xB);
     size = blockCount << 11;
     DMA_COPY_16(3, src, dst, size);
 }

@@ -29,7 +29,7 @@
 
 /* Red soul skill parameters (sUnk_084F12C8, 0x18 bytes, indexed by the
  * soul's parameter). */
-struct RedSoulInfo {
+struct RedSoulShotInfo {
     s32 velX;
     s32 velY;
     s32 accelY; // gravity
@@ -43,7 +43,7 @@ struct RedSoulInfo {
     u16 pad_16;
 };
 
-extern struct RedSoulInfo sUnk_084F12C8[];
+extern struct RedSoulShotInfo sUnk_084F12C8[];
 #define CONTEXT ((struct PlayerState *)((u8 *)gEwramData + OFFSET_OF(struct EwramData, playerState)))
 
 static inline u8 Enable(u8 value) { return value | 4; }
@@ -184,7 +184,7 @@ struct EffectPoint { s16 x, y; };
  */
 void BoneSoul_SpawnFlyingEffect(struct EwramData_EntityData *owner)
 {
-    struct RedSoulInfo *info = &sUnk_084F12C8[(u16)owner->ext.redSoul.param];
+    struct RedSoulShotInfo *info = &sUnk_084F12C8[(u16)owner->ext.redSoul.param];
     struct EwramData_EntityData *entity = RedSoul_CreateEntity(owner, (u32 *)BoneSoulEffect_Update);
     struct EffectPoint point;
     if (entity != NULL)
@@ -258,7 +258,7 @@ static inline struct EwramData_EntityData *SpawnBone(s32 x, s32 y, u8 frame)
 
 void Skill_Skeleton_ZombieSoldier_RockArmor_WaiterSkeleton_GiantSkeleton_BomberArmor_Use(struct EwramData_EntityData *entity)
 {
-    struct RedSoulInfo *info = &sUnk_084F12C8[(u16)entity->ext.redSoul.param];
+    struct RedSoulShotInfo *info = &sUnk_084F12C8[(u16)entity->ext.redSoul.param];
     struct EwramData_EntityData *parent = entity->ext.redSoul.owner;
     s32 result;
 
@@ -2276,7 +2276,7 @@ void SkillSkullArcherUse(struct EwramData_EntityData *entity)
 
 void SkillArachneUse(struct EwramData_EntityData *entity)
 {
-    struct RedSoulInfo *info = &sUnk_084F12C8[(u16)entity->ext.redSoul.param];
+    struct RedSoulShotInfo *info = &sUnk_084F12C8[(u16)entity->ext.redSoul.param];
     struct EwramData_EntityData *parent = entity->ext.redSoul.owner;
     u32 v;
     s32 i;

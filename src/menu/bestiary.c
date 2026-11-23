@@ -28,16 +28,8 @@
 /* BestiaryMenu_UpdateDetailScreen, BestiaryMenu_SpawnEnemyPreview. */
 /* tile as s32: the header u16 would add a zero extension of the argument */
 extern void HudMap_WriteTiles(s32 x, s32 y, s32 tile, s32 count);
-struct MenuPage3
-{
-    u8 pad_0[0x13];
-    u8 descriptionMode;
-    u8 count;
-    u8 cursor;
-    u8 top;
-};
 
-void BestiaryMenu_DrawEntry(struct MenuPage3 *page);
+void BestiaryMenu_DrawEntry(struct EwramData_EntityData *page);
 s32 BestiaryMenu_SpawnEnemyPreview(struct EwramData_EntityData *menu);
 
 /**
@@ -77,7 +69,7 @@ void BestiaryMenu_UpdateDetailScreen(struct EwramData_EntityData *entity)
         case 1:
             BestiaryMenu_ReleaseResources();
             BestiaryMenu_SpawnEnemyPreview(entity);
-            BestiaryMenu_DrawEntry((struct MenuPage3 *)entity);
+            BestiaryMenu_DrawEntry(entity);
             if (entity->subState != 3)
             {
                 entity->subState = 7;
@@ -121,21 +113,8 @@ s32 BestiaryMenu_SpawnEnemyPreview(struct EwramData_EntityData *menu)
     }
 }
 
-struct MenuPage
-{
-    u8 pad_0[0xA];
-    u8 state;
-    u8 subState;
-    u8 stage;
-    u8 timer;
-    u8 pad_E[0x13 - 0xE];
-    u8 descriptionMode;
-    s8 count;
-    s8 cursor;
-    s8 top;
-};
 
-void BestiaryMenu_DrawDetailTitle(struct MenuPage3 *page);
+void BestiaryMenu_DrawDetailTitle(struct EwramData_EntityData *page);
 extern s32 BestiaryMenu_DrawDescription(s32 id, s32 mode);
 
 /**
@@ -143,7 +122,7 @@ extern s32 BestiaryMenu_DrawDescription(s32 id, s32 mode);
  * its soul name (only when the soul is owned), up/down (or L/R) moves to the
  * previous / next defeated enemy, B closes the view.
  */
-void BestiaryMenu_UpdateDetail(struct MenuPage *page)
+void BestiaryMenu_UpdateDetail(struct EwramData_EntityData *page)
 {
     const struct EntityTemplate *entry;
     s32 new;
@@ -151,7 +130,7 @@ void BestiaryMenu_UpdateDetail(struct MenuPage *page)
     s32 old;
     s32 oldCursor;
 
-    entry = &sEnemyData[page->cursor];
+    entry = &sEnemyData[page->ext.menuList.cursor];
     new = gEwramData->inputData.newInput;
     repeated = gEwramData->inputData.repeatedInput;
     if (page->timer == 0)
@@ -160,52 +139,52 @@ void BestiaryMenu_UpdateDetail(struct MenuPage *page)
         page->timer--;
     if (entry->soulIndex != 0 && (new & 0xC0))
     {
-        old = page->descriptionMode;
+        old = page->ext.menuList.descriptionMode;
         if (new & 0x80)
         {
             if (SoulInventory_GetSoulTotal(entry->soulType, entry->soulIndex - 1))
-                page->descriptionMode = 1;
+                page->ext.menuList.descriptionMode = 1;
         }
         else
         {
             if (SoulInventory_GetSoulTotal(entry->soulType, entry->soulIndex - 1))
-                page->descriptionMode = 0;
+                page->ext.menuList.descriptionMode = 0;
             else
-                page->descriptionMode = old = 1;
+                page->ext.menuList.descriptionMode = old = 1;
         }
-        if (page->descriptionMode != old)
+        if (page->ext.menuList.descriptionMode != old)
         {
-            BestiaryMenu_DrawDetailTitle((struct MenuPage3 *)page);
-            BestiaryMenu_DrawDescription(page->cursor, page->descriptionMode);
+            BestiaryMenu_DrawDetailTitle(page);
+            BestiaryMenu_DrawDescription(page->ext.menuList.cursor, page->ext.menuList.descriptionMode);
             PlaySong(0xF1);
         }
     }
     if (repeated & 0x110)
     {
-        oldCursor = page->cursor;
+        oldCursor = page->ext.menuList.cursor;
         PlaySong(0xF1);
         do
         {
-            if (page->cursor + 1 < page->count)
-                page->cursor++;
+            if (page->ext.menuList.cursor + 1 < page->ext.menuList.count)
+                page->ext.menuList.cursor++;
             else
-                page->cursor = 0;
-        } while (!Bestiary_IsEnemyDefeated(page->cursor));
+                page->ext.menuList.cursor = 0;
+        } while (!Bestiary_IsEnemyDefeated(page->ext.menuList.cursor));
         goto moved;
     }
     else if (repeated & 0x220)
     {
-        oldCursor = page->cursor;
+        oldCursor = page->ext.menuList.cursor;
         PlaySong(0xF1);
         do
         {
-            if (page->cursor - 1 >= 0)
-                page->cursor = page->cursor - 1;
+            if (page->ext.menuList.cursor - 1 >= 0)
+                page->ext.menuList.cursor = page->ext.menuList.cursor - 1;
             else
-                page->cursor = page->count - 1;
-        } while (!Bestiary_IsEnemyDefeated(page->cursor));
+                page->ext.menuList.cursor = page->ext.menuList.count - 1;
+        } while (!Bestiary_IsEnemyDefeated(page->ext.menuList.cursor));
     moved:
-        if (page->cursor != oldCursor)
+        if (page->ext.menuList.cursor != oldCursor)
         {
             page->subState = 2;
             gUnk_03002CB0.dispCnt &= 0xEFFF;
@@ -221,13 +200,6 @@ void BestiaryMenu_UpdateDetail(struct MenuPage *page)
 }
 
 /* Restore the four palette slots from the backup. */
-struct MenuPage2
-{
-    u8 pad_0[0xA];
-    u8 state;
-    u8 subState;
-    u8 stage;
-};
 
 struct U16Box
 {
@@ -245,7 +217,7 @@ extern void *memcpy(void *dst, const void *src, unsigned long size);
  * the odd ones. The first word and the first halfword are in-struct stores,
  * so the following copy reuses the loaded gEwramData.
  */
-void BestiaryMenu_Close(struct MenuPage2 *page)
+void BestiaryMenu_Close(struct EwramData_EntityData *page)
 {
     BestiaryMenu_ReleaseResources();
     gEwramData->gameState.bestiaryPreview = 0;
@@ -362,7 +334,7 @@ extern void BestiaryMenu_DrawAttributeIcon(s32 x, s32 y, s32 type);
  * @brief Draw the enemy entry under the cursor: number, HP, EXP, drop names, detail
  * title, description, weak/resist icons and soul icon.
  */
-void BestiaryMenu_DrawEntry(struct MenuPage3 *page)
+void BestiaryMenu_DrawEntry(struct EwramData_EntityData *page)
 {
     const struct EntityTemplate *entry;
     s32 num;
@@ -378,8 +350,8 @@ void BestiaryMenu_DrawEntry(struct MenuPage3 *page)
     s32 sy;
     s32 y2;
 
-    entry = &sEnemyData[page->cursor];
-    num = page->cursor + 1;
+    entry = &sEnemyData[page->ext.menuListU.cursor];
+    num = page->ext.menuListU.cursor + 1;
     if (num <= 0x63)
     {
         HudMap_ClearTiles(6, 1, 1);
@@ -391,9 +363,9 @@ void BestiaryMenu_DrawEntry(struct MenuPage3 *page)
     }
     HudMap_PrintNumber(0x14, 2, entry->hp, 4, 1, 0);
     HudMap_PrintNumber(0x1B, 0xB, entry->exp, 8, 1, 0);
-    BestiaryMenu_PrintDrops((struct EwramData_EntityData *)page);
+    BestiaryMenu_PrintDrops(page);
     BestiaryMenu_DrawDetailTitle(page);
-    BestiaryMenu_DrawDescription((s8)page->cursor, page->descriptionMode);
+    BestiaryMenu_DrawDescription((s8)page->ext.menuListU.cursor, page->ext.menuListU.descriptionMode);
 
     base = 0x15;
     x = base;
@@ -528,7 +500,7 @@ extern const u16 sEnemyNameTextIds[];
  * Note: total is used uninitialised when the entry has no soul, as in
  * the original.
  */
-void BestiaryMenu_DrawDetailTitle(struct MenuPage3 *page)
+void BestiaryMenu_DrawDetailTitle(struct EwramData_EntityData *page)
 {
     s32 id;
     const struct EntityTemplate *entry;
@@ -539,9 +511,9 @@ void BestiaryMenu_DrawDetailTitle(struct MenuPage3 *page)
     s32 col;
     s32 row;
 
-    id = page->cursor;
+    id = page->ext.menuListU.cursor;
     entry = &sEnemyData[id];
-    mode = page->descriptionMode;
+    mode = page->ext.menuListU.descriptionMode;
     if (entry->soulIndex == 0)
         mode = 0;
     else
@@ -652,18 +624,6 @@ s32 BestiaryMenu_DrawDescription(s32 id, s32 mode)
  * - the dead `odd = 14;` in the second tail loop adds one insn, so loop.c
  *   leaves the 0x10000 constant for its second pass (orrs before it). */
 
-struct MenuPage4
-{
-    u8 pad_0[0xA];
-    u8 state;
-    u8 subState;
-    u8 stage;
-    u8 timer;
-    u8 pad_E[0x14 - 0xE];
-    s8 count;
-    s8 cursor;
-    s8 top;
-};
 
 static inline s32 IsSeen(s32 id)
 {
@@ -676,7 +636,7 @@ static inline s32 IsSeen(s32 id)
  * cursor (name, number), blank rows, the page counter and the header;
  * state 0 first clears the rows.
  */
-void BestiaryMenu_DrawList(struct MenuPage4 *page)
+void BestiaryMenu_DrawList(struct EwramData_EntityData *page)
 {
     s32 n;
     s32 id;
@@ -691,9 +651,9 @@ void BestiaryMenu_DrawList(struct MenuPage4 *page)
     s32 z;
     s32 one;
 
-    page->top = (s8)(page->cursor / 10) * 10;
-    id = page->top;
-    n = page->count - id;
+    page->ext.menuList.top = (s8)(page->ext.menuList.cursor / 10) * 10;
+    id = page->ext.menuList.top;
+    n = page->ext.menuList.count - id;
     if (n > 10)
         n = 10;
     z = 0;
@@ -753,11 +713,11 @@ void BestiaryMenu_DrawList(struct MenuPage4 *page)
                 text = 0x34E;
             }
             Text8_Print(Text_GetLocalizedEntry(text), 0);
-            num = page->top + j + 1;
+            num = page->ext.menuList.top + j + 1;
             if (num <= 99)
             {
                 HudMap_ClearTiles((i & 1) ? 0x10 : 2, y, 1);
-                HudMap_PrintNumber((i & 1) ? 0x12 : 4, y, page->top + j + 1, 2, 1, 1);
+                HudMap_PrintNumber((i & 1) ? 0x12 : 4, y, page->ext.menuList.top + j + 1, 2, 1, 1);
             }
             else
             {
@@ -785,9 +745,9 @@ void BestiaryMenu_DrawList(struct MenuPage4 *page)
             if (!(i & 1))
                 y += 2;
         }
-        HudMap_PrintPaddedNumberInPalette(0xD, 0x11, (s8)(page->top / 10) + 1, 2, 1);
+        HudMap_PrintPaddedNumberInPalette(0xD, 0x11, (s8)(page->ext.menuList.top / 10) + 1, 2, 1);
         HudMap_WriteTiles(0xE, 0x11, 0x139B, 1);
-        HudMap_PrintPaddedNumberInPalette(0x10, 0x11, (page->count - 1) / 10 + 1, 2, 1);
+        HudMap_PrintPaddedNumberInPalette(0x10, 0x11, (page->ext.menuList.count - 1) / 10 + 1, 2, 1);
         HudMap_WriteTiles(2, 0x11, 0x174C, 1);
         HudMap_WriteTiles(0x1C, 0x11, 0x134C, 1);
         Text8_SetRegion(0, 0xF, 0x29, 1);
@@ -817,7 +777,7 @@ void BestiaryMenu_DrawList(struct MenuPage4 *page)
         u32 *p;
         s32 u;
 
-        for (m = 0, odd = 14, p = (u32 *)0x0600BC80; m <= 7; p++, m++)
+        for (m = 0, odd = 14, p = (u32 *)(VRAM_BASE + 0xBC80); m <= 7; p++, m++)
         {
             if (m == 2 || m == 5)
                 *p = 0x10000;
@@ -831,9 +791,9 @@ void BestiaryMenu_DrawList(struct MenuPage4 *page)
             odd = 14;
             a = (u | 0x100) + m * 4;
             if (m == 6)
-                *(u32 *)(0x0600A000 + (u + 0x100) + m * 4) = 0x10000;
+                *(u32 *)(VRAM_BASE + 0xA000 + (u + 0x100) + m * 4) = 0x10000;
             else
-                *(u32 *)(0x0600A000 + a) = 0;
+                *(u32 *)(VRAM_BASE + 0xA000 + a) = 0;
         }
     }
     HudMap_PrintNumber(0x18, 0xF, Div(total, 10), 3, 1, 0);

@@ -31,4 +31,6 @@ s32 DebugTestEnemy_UpdateHitFlash(struct EwramData_EntityData *entity);
 void DebugTestEnemy_Update(struct EwramData_EntityData *entity);
 void DebugTestEnemy_OnPlayerContact(struct EwramData_EntityData *entity);
 
+extern const u8 sUnk_080E1F74[24];
+
 #endif /* DEBUG_1967_H */

@@ -455,7 +455,7 @@ s32 EventScene06_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        DMA_FILL_32(3, ret, 0x06004000, 0x1000);
+        DMA_FILL_32(3, ret, VRAM_BASE + 0x4000, 0x1000);
         Sound_Play(0x1040);
         TextWindow_Begin(0x11);
         ew->gameState.textWindowPause = 1;
@@ -1561,7 +1561,7 @@ void EventScene15_Init(struct EwramData_EntityData *entity)
 }
 
 /* EventScene15_Update, decompiled from the original assembly: event scene with the
- * flashing player (palette fades, periods table at 0x081188E4 copied to the
+ * flashing player (palette fades, periods table at sEventScene15Periods copied to the
  * stack). The x mark is copied into a u16 local in sub-state 2 (keeps the
  * separate register copy), and the owner address is written as an integer
  * sum so the base comes first. */
@@ -1580,7 +1580,7 @@ struct Periods { s32 v[10]; };
  */
 s32 EventScene15_Update(struct EwramData_EntityData *entity)
 {
-    struct Periods periods = *(struct Periods *)0x081188E4;
+    struct Periods periods = *(struct Periods *)sEventScene15Periods;
     s32 result = 0;
     struct EwramData *ew = gEwramData;
     struct GameState *save = &ew->gameState;
@@ -2592,8 +2592,8 @@ fail:
     gEwramData->gameState.stateFlags|=1;
     BgPalette_StartColorFade(31,31,31,0,0x10000,128);
     ObjPalette_StartColorFade(31,31,31,0,0x10000,128);
-    DMA_FILL_32(3,0,(void *)0x06004000,0x2000);
-    DMA_FILL_16(3,0,(void *)0x0600E000,0x800);
+    DMA_FILL_32(3,0,(void *)(VRAM_BASE + 0x4000),0x2000);
+    DMA_FILL_16(3,0,(void *)(VRAM_BASE + 0xE000),0x800);
     gEwramData->gameState.stateFlags|=32;
     gEwramData->gameState.stateFlags|=0x10000;
     Music_SetCurrent(25);
@@ -2614,8 +2614,8 @@ s32 EventScene23_Update(struct EwramData_EntityData *entity)
     case 0:
         if(entity->subState==0)
         {
-            DMA_FILL_32(3,zero,(void *)0x06004000,0x2000);
-            DMA_FILL_16(3,zero,(void *)0x0600E000,0x800);
+            DMA_FILL_32(3,zero,(void *)(VRAM_BASE + 0x4000),0x2000);
+            DMA_FILL_16(3,zero,(void *)(VRAM_BASE + 0xE000),0x800);
             gEwramData->gameState.stateFlags|=32;
             gEwramData->gameState.stateFlags|=0x10000;
             entity->timer=128;entity->subState++;
@@ -2669,8 +2669,8 @@ void EventScene24_Setup(struct EwramData_EntityData *entity)
     }
     gEwramData->gameState.stateFlags|=1;
     gEwramData->gameState.stateFlags|=32;
-    DMA_FILL_32(3,0,(void *)0x06004000,0x2000);
-    DMA_FILL_16(3,0,(void *)0x0600E000,0x800);
+    DMA_FILL_32(3,0,(void *)(VRAM_BASE + 0x4000),0x2000);
+    DMA_FILL_16(3,0,(void *)(VRAM_BASE + 0xE000),0x800);
     Music_SetCurrent(24);
 }
 

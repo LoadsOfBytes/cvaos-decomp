@@ -31,6 +31,7 @@
 #include "text12.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "data/data_0E5364.h"
 
 /* Menu text redraw and transient entity-byte reset helpers.
  * for source evidence. */
@@ -217,7 +218,7 @@ void PauseMenu_DrawStatusPage(struct GameState *gameState)
     s32 i;
 
     stats = &gEwramData->playerStatus;
-    BgMap_Setup(1, (struct BgMapMetadata *)0x0815E940, 0, 0);
+    BgMap_Setup(1, (struct BgMapMetadata *)sPauseMenuBgMap, 0, 0);
     HudMap_ClearAll();
     Player_RefreshEquipmentStats();
     YellowSoul_Restart(gEwramData->playerStatus.equippedYellowSoul, 1);
@@ -234,7 +235,7 @@ void PauseMenu_DrawStatusPage(struct GameState *gameState)
     HudMap_PrintLargeNumber(5, 9, stats->currentLevel, 2, 3);
     HudMap_DrawStatusConditionIcon(0xC, 9);
     Text_Initialize();
-    Text_SetTileBuffer((void *)0x06008000);
+    Text_SetTileBuffer((void *)(VRAM_BASE + 0x8000));
     Text_SetForegroundColor(1);
     Text_SetBackgroundColor(0);
     for (i = 0; i < 3; i++)
@@ -257,33 +258,33 @@ void PauseMenu_LoadGraphics(void)
     void *b;
     void *c;
 
-    a = (void *)0x0815E02C;
-    b = (void *)0x08264398;
-    c = (void *)0x0827B200;
+    a = (void *)sPauseMenuBgGfx;
+    b = (void *)sPauseMenuBgGfxFlag3A;
+    c = (void *)sLocalizedWindowGfx;
     switch (gEwramData->gameState.language)
     {
     case 2:
-        a = (void *)0x0827397C;
-        b = (void *)0x08275980;
-        c = (void *)0x08277984;
+        a = (void *)sPauseMenuBgGfxLanguage2;
+        b = (void *)sPauseMenuBgGfxFlag3ALanguage2;
+        c = (void *)sLocalizedWindowGfxLanguage2;
         break;
     case 3:
-        a = (void *)0x08268838;
-        b = (void *)0x0826A83C;
-        c = (void *)0x0826C848;
+        a = (void *)sPauseMenuBgGfxLanguage3;
+        b = (void *)sPauseMenuBgGfxFlag3ALanguage3;
+        c = (void *)sLocalizedWindowGfxLanguage3;
         break;
     }
     if (GameFlag_Is3ASet())
     {
-        BgPalette_Load((u8 *)0x0826664C);
-        Gfx_CopyResource(b, (void *)0x06000000, 0);
+        BgPalette_Load((u8 *)sPauseMenuBgPalette);
+        Gfx_CopyResource(b, (void *)VRAM_BASE, 0);
     }
     else
     {
-        BgPalette_Load((u8 *)0x080E5C20);
-        Gfx_CopyResource(a, (void *)0x06000000, 0);
+        BgPalette_Load((u8 *)sSaveSelectBgPalette);
+        Gfx_CopyResource(a, (void *)VRAM_BASE, 0);
     }
-    Gfx_CopyResource(c, (void *)0x0600A000, 0);
+    Gfx_CopyResource(c, (void *)(VRAM_BASE + 0xA000), 0);
     gDisplayRegisters.bgCnt[0] = 0x1C04;
     gDisplayRegisters.bgCnt[1] = 0x1D00;
     gUnk_03002CB0.dispCnt &= 0x13FF;

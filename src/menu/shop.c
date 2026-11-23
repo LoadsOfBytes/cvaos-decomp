@@ -23,26 +23,11 @@
 void PlaySong(u32 song);
 u32 Inventory_GetOwnedCount(s32 category, s32 index);
 
-struct Owner {
-    u8 pad_0[0x3D1];
-    u8 rowQuantities[1];
-};
-
-struct ShopMenu {
-    u8 pad_0[0xA];
-    u8 state;
-    u8 pad_B[0x14 - 0xB];
-    s8 count;
-    s8 visible;
-    s8 top;
-    u8 cursor;
-};
-
 /**
  * @brief Move the list cursor or change the quantity; return 0 nothing, 1
  * quantity changed, 2 cursor moved, 3 list scrolled.
  */
-s32 Shop_HandleListInput(struct Owner *owner, struct ShopMenu *menu, void *unused, u8 *list, s32 input)
+s32 Shop_HandleListInput(struct GameState *owner, struct EwramData_EntityData *menu, void *unused, u8 *list, s32 input)
 {
     const struct ShopStockEntry *entry;
     s32 owned;
@@ -52,11 +37,11 @@ s32 Shop_HandleListInput(struct Owner *owner, struct ShopMenu *menu, void *unuse
     s32 ret;
 
     list++;
-    entry = &sShopStock[list[menu->cursor]];
+    entry = &sShopStock[list[menu->ext.shopPage.cursor]];
     owned = Inventory_GetOwnedCount(entry->type, entry->id);
     limit = owned;
-    quantity = &owner->rowQuantities[menu->cursor];
-    top = menu->top;
+    quantity = &owner->shopRowQuantities[menu->ext.shopPage.cursor];
+    top = menu->ext.shopPage.scroll;
     ret = 0;
 
     if ((input & 0x10) && *quantity != 0)
@@ -82,62 +67,62 @@ s32 Shop_HandleListInput(struct Owner *owner, struct ShopMenu *menu, void *unuse
     }
     else if (input & 0x40)
     {
-        if (menu->cursor != 0)
+        if (menu->ext.shopPage.cursor != 0)
         {
-            menu->cursor--;
-            if (menu->top > menu->cursor)
-                menu->top = menu->cursor;
+            menu->ext.shopPage.cursor--;
+            if (menu->ext.shopPage.scroll > menu->ext.shopPage.cursor)
+                menu->ext.shopPage.scroll = menu->ext.shopPage.cursor;
             ret = 2;
         }
     }
     else if (input & 0x80)
     {
-        if (menu->cursor < menu->count - 1)
+        if (menu->ext.shopPage.cursor < menu->ext.shopPage.count - 1)
         {
-            menu->cursor++;
-            if (menu->top < menu->cursor - 3)
-                menu->top = menu->cursor - 3;
+            menu->ext.shopPage.cursor++;
+            if (menu->ext.shopPage.scroll < menu->ext.shopPage.cursor - 3)
+                menu->ext.shopPage.scroll = menu->ext.shopPage.cursor - 3;
             ret = 2;
         }
     }
     else if (input & 0x100)
     {
-        if (menu->cursor < menu->count - 1)
+        if (menu->ext.shopPage.cursor < menu->ext.shopPage.count - 1)
         {
-            menu->top += 4;
-            menu->cursor += 4;
-            if (menu->top > menu->count - 4)
+            menu->ext.shopPage.scroll += 4;
+            menu->ext.shopPage.cursor += 4;
+            if (menu->ext.shopPage.scroll > menu->ext.shopPage.count - 4)
             {
-                menu->top = menu->count - 4;
-                menu->cursor = menu->count - 1;
+                menu->ext.shopPage.scroll = menu->ext.shopPage.count - 4;
+                menu->ext.shopPage.cursor = menu->ext.shopPage.count - 1;
             }
             ret = 2;
         }
     }
     else if (input & 0x200)
     {
-        if (menu->cursor != 0)
+        if (menu->ext.shopPage.cursor != 0)
         {
-            if (menu->top <= 3)
+            if (menu->ext.shopPage.scroll <= 3)
             {
-                menu->top = 0;
-                menu->cursor = 0;
+                menu->ext.shopPage.scroll = 0;
+                menu->ext.shopPage.cursor = 0;
             }
             else
             {
-                menu->top -= 4;
-                menu->cursor -= 4;
+                menu->ext.shopPage.scroll -= 4;
+                menu->ext.shopPage.cursor -= 4;
             }
             ret = 2;
         }
     }
-    menu->visible = menu->cursor - menu->top;
-    if (menu->visible >= menu->count && menu->count != 0)
+    menu->ext.shopPage.windowRow = menu->ext.shopPage.cursor - menu->ext.shopPage.scroll;
+    if (menu->ext.shopPage.windowRow >= menu->ext.shopPage.count && menu->ext.shopPage.count != 0)
     {
-        menu->cursor = menu->visible = menu->count - 1;
+        menu->ext.shopPage.cursor = menu->ext.shopPage.windowRow = menu->ext.shopPage.count - 1;
         ret = 3;
     }
-    if (menu->top != top)
+    if (menu->ext.shopPage.scroll != top)
         ret = 3;
     if (ret != 0)
         PlaySong(0xF1);
@@ -232,31 +217,15 @@ extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
 extern const struct ConsumableInfo sConsumableInfo[];
 extern const struct WeaponInfo sWeaponInfo[];
 
+/* Common start of WeaponInfo / ArmorInfo / ConsumableInfo as read by the shop
+ * (Item_GetInfo / Item_GetInfoByGlobalId): name text id, price and the
+ * equipment slot kind (armor / accessory).
+ */
 struct ShopItemInfo {
-    u32 unk_0;
+    u16 name;
+    u8 pad_2[0x4 - 0x2];
     s32 price;
-};
-
-struct ShopStats {
-    u8 pad_0[0xF];
-    u8 equippedYellowSoul;
-};
-
-/* Shop menu state; per-row quantity at 0x3D1 + row. */
-struct ShopOwner {
-    u8 pad_0[0x3D1];
-    u8 rowQuantities[1];
-};
-
-struct ShopMenu2 {
-    u8 pad_0[0xA];
-    u8 state;
-    u8 pad_B[0x14 - 0xB];
-    s8 count;
-    u8 windowRow;
-    s8 scroll;
-    u8 cursor;
-    u16 unk_18[6];
+    u8 type;
 };
 
 static inline u8 ShopItemAt(u8 *items, s32 row)
@@ -285,21 +254,21 @@ static inline u8 ShopItemAt(u8 *items, s32 row)
  * @brief Draw the visible list rows and the selected entry details (owned
  * count, description, icon, stat preview) and the scroll arrows.
  */
-void Shop_DrawList(struct ShopOwner *owner, struct ShopMenu2 *menu, struct ShopStats *stats, struct ShopList *list, s32 mode)
+void Shop_DrawList(struct GameState *owner, struct EwramData_EntityData *menu, struct PlayerStatus *stats, struct ShopList *list, s32 mode)
 {
     s32 i;
     s32 row;
     s32 y;
 
-    if (menu->scroll > list->count - 4)
+    if (menu->ext.shopPage.scroll > list->count - 4)
     {
-        menu->scroll = list->count - 4;
-        if (menu->scroll < 0)
-            menu->scroll = 0;
+        menu->ext.shopPage.scroll = list->count - 4;
+        if (menu->ext.shopPage.scroll < 0)
+            menu->ext.shopPage.scroll = 0;
     }
     for (i = 0, y = 0xB; i < 4; y++, i++)
     {
-        row = menu->scroll + i;
+        row = menu->ext.shopPage.scroll + i;
         if (mode > 2)
         {
             const struct ShopStockEntry *entry = &sShopStock[ShopItemAt(list->items, row)];
@@ -330,7 +299,7 @@ void Shop_DrawList(struct ShopOwner *owner, struct ShopMenu2 *menu, struct ShopS
             s32 price;
             s32 y2;
 
-            HudMap_PrintPaddedNumber(0xF, y, owner->rowQuantities[row], 1);
+            HudMap_PrintPaddedNumber(0xF, y, owner->shopRowQuantities[row], 1);
             entry = &sShopStock[ShopItemAt(list->items, row)];
             {
                 u8 type = entry->type;
@@ -346,7 +315,7 @@ void Shop_DrawList(struct ShopOwner *owner, struct ShopMenu2 *menu, struct ShopS
                 price /= 2;
             else if (stats->equippedYellowSoul == 9)
                 price = Div(price * 8, 10);
-            HudMap_ZeroTiles(0x15, y2, 8 - HudMap_PrintPaddedNumber(0x1C, y2, owner->rowQuantities[row] * price, 1));
+            HudMap_ZeroTiles(0x15, y2, 8 - HudMap_PrintPaddedNumber(0x1C, y2, owner->shopRowQuantities[row] * price, 1));
         }
     }
     if (list->count == 0)
@@ -357,12 +326,12 @@ void Shop_DrawList(struct ShopOwner *owner, struct ShopMenu2 *menu, struct ShopS
         for (i = 0; i < 6; i++)
         {
             HudMap_ZeroTiles(0x18, i + 2, 4);
-            menu->unk_18[i] = 0x7FFF;
+            menu->ext.shopPage.rowCache[i] = 0x7FFF;
         }
         return;
     }
-    row = menu->cursor = menu->windowRow + menu->scroll;
-    menu->count = list->count;
+    row = menu->ext.shopPage.cursor = (u8)menu->ext.shopPage.windowRow + menu->ext.shopPage.scroll;
+    menu->ext.shopPage.count = list->count;
     {
         const struct ShopStockEntry *entry = &sShopStock[ShopItemAt(list->items, row)];
         HudMap_PrintPaddedNumber(0xC, 6, Inventory_GetOwnedCount(entry->type, entry->id), 1);
@@ -390,7 +359,7 @@ void Shop_DrawList(struct ShopOwner *owner, struct ShopMenu2 *menu, struct ShopS
                 for (i = 0; i < 6; i++)
                 {
                     HudMap_ZeroTiles(0x18, i + 2, 4);
-                    menu->unk_18[i] = 0x7FFF;
+                    menu->ext.shopPage.rowCache[i] = 0x7FFF;
                 }
             }
         }
@@ -400,11 +369,11 @@ void Shop_DrawList(struct ShopOwner *owner, struct ShopMenu2 *menu, struct ShopS
         s32 x = 0x1D;
         s32 y2 = 0xB;
 
-        if (menu->scroll > 0)
+        if (menu->ext.shopPage.scroll > 0)
             HudMap_WriteTiles(x, y2, tile, 1);
         else
             HudMap_ClearTiles(x, y2, 1);
-        if (menu->count - 4 > menu->scroll)
+        if (menu->ext.shopPage.count - 4 > menu->ext.shopPage.scroll)
             HudMap_WriteTiles(x, y2 + 3, tile + 1, 1);
         else
             HudMap_ClearTiles(x, y2 + 3, 1);
@@ -413,16 +382,6 @@ void Shop_DrawList(struct ShopOwner *owner, struct ShopMenu2 *menu, struct ShopS
 
 u32 Inventory_GetOwnedCount(s32 category, s32 index);
 extern void *memset(void *dst, int value, unsigned long size);
-
-struct SellItem {
-    u32 unk_0;
-    u32 price;
-};
-
-struct Owner2 {
-    u8 pad_0[0x3D1];
-    u8 rowQuantities[0x80];
-};
 
 struct SellList {
     u8 count;
@@ -448,13 +407,13 @@ static inline s32 FindStockEntry(s32 type, s32 id)
  * @brief Build the sell list from every owned item with a price and a stock
  * entry in sShopStock, resetting quantities to 1.
  */
-void Shop_BuildSellList(struct Owner2 *owner, void *unusedMenu, void *unusedStats)
+void Shop_BuildSellList(struct GameState *owner, void *unusedMenu, void *unusedStats)
 {
     struct SellList *list;
     s32 i;
     s32 type;
     s32 id;
-    struct SellItem *item;
+    struct ShopItemInfo *item;
     struct EwramData *ram;
     u8 owned;
     s32 ok;
@@ -490,11 +449,11 @@ void Shop_BuildSellList(struct Owner2 *owner, void *unusedMenu, void *unusedStat
         }
     }
     list = SELL_LIST;
-    memset(owner->rowQuantities, 0, 0x80);
+    memset(owner->shopRowQuantities, 0, 0x80);
     for (i = 0; i < list->count; i++)
     {
         const struct ShopStockEntry *entry = &sShopStock[list->items[i]];
-        owner->rowQuantities[i] = Inventory_GetOwnedCount(entry->type, entry->id) != 0;
+        owner->shopRowQuantities[i] = Inventory_GetOwnedCount(entry->type, entry->id) != 0;
     }
 }
 
@@ -505,34 +464,21 @@ void Shop_BuildSellList(struct Owner2 *owner, void *unusedMenu, void *unusedStat
 
 u32 Inventory_GetOwnedCount(s32 category, s32 index);
 
-struct Item {
-    u32 unk_0;
-    s32 price;
-    u8 armorSlotKind;
-};
-
-struct Shop {
-    u8 pad_0[0xC];
-    u8 equippedWeapon;
-    u8 pad_D[0x10 - 0xD];
-    u8 equippedArmorAndAccessory[2];
-    u8 pad_12[0x34 - 0x12];
-    s32 money;
-    u8 itemInventory[0x20];
-    u8 weaponInventory[0x3B];
-    u8 armorAndAccessoryInventory[1];
+/* Equipped armor and accessory ids of PlayerStatus read as one array. */
+struct EquippedArmorIds {
+    u8 ids[2];
 };
 
 /**
  * @brief Sell the selected quantity (unequipping when needed), add the gold
  * and rebuild the sell list.
  */
-void Shop_SellItem(struct Owner *owner, u8 *menu, struct Shop *stats, s32 index)
+void Shop_SellItem(struct GameState *owner, struct EwramData_EntityData *menu, struct PlayerStatus *stats, s32 index)
 {
     const struct ShopStockEntry *entry = &sShopStock[index];
-    u8 count = owner->rowQuantities[menu[0x17]];
-    u8 kind = ((const struct Item *)Item_GetInfo(entry->type, entry->id))->armorSlotKind;
-    const struct Item *item;
+    u8 count = owner->shopRowQuantities[menu->ext.shopPage.cursor];
+    u8 kind = ((const struct ShopItemInfo *)Item_GetInfo(entry->type, entry->id))->type;
+    const struct ShopItemInfo *item;
     s32 n;
 
     switch (entry->type)
@@ -554,18 +500,18 @@ void Shop_SellItem(struct Owner *owner, u8 *menu, struct Shop *stats, s32 index)
     case 4:
     {
         s32 slot = kind != 0;
-        n = stats->armorAndAccessoryInventory[entry->id];
+        n = stats->armorInventory[entry->id];
         n -= count;
         if (n <= 0)
         {
-            if (stats->equippedArmorAndAccessory[slot] == entry->id)
+            if (((struct EquippedArmorIds *)&stats->equippedArmor)->ids[slot] == entry->id)
             {
-                stats->equippedArmorAndAccessory[slot] = 0xFF;
+                ((struct EquippedArmorIds *)&stats->equippedArmor)->ids[slot] = 0xFF;
                 Player_RefreshEquipmentStats();
             }
             n = 0;
         }
-        stats->armorAndAccessoryInventory[entry->id] = n;
+        stats->armorInventory[entry->id] = n;
         break;
     }
     default:
@@ -580,33 +526,13 @@ void Shop_SellItem(struct Owner *owner, u8 *menu, struct Shop *stats, s32 index)
         else
             item = Item_GetInfoByGlobalId(id);
     }
-    stats->money += item->price / 2 * count;
+    stats->currentGold += item->price / 2 * count;
     {
         const struct ShopStockEntry *e = &sShopStock[index];
-        owner->rowQuantities[menu[0x17]] = Inventory_GetOwnedCount(e->type, e->id) != 0;
+        owner->shopRowQuantities[menu->ext.shopPage.cursor] = Inventory_GetOwnedCount(e->type, e->id) != 0;
     }
-    Shop_BuildSellList((struct Owner2 *)owner, menu, stats);
+    Shop_BuildSellList(owner, menu, stats);
 }
-
-struct ShopItemPriceView {
-    u32 unk_0;
-    s32 price;
-};
-
-struct ShopTransactionStats {
-    u8 pad_0[0xF];
-    u8 equippedYellowSoul;
-    u8 pad_10[0x34 - 0x10];
-    s32 money;
-    u8 itemInventory[0x20];
-    u8 weaponInventory[0x3B];
-    u8 armorAndAccessoryInventory[1];
-};
-
-struct ShopQuantityOwner {
-    u8 pad_0[0x3D1];
-    u8 rowQuantities[1];
-};
 
 /* Buy the selected row quantity and reset that row's quantity to one.
  * Keep the selected inventory pointer in r1 through the increment; agbcc
@@ -616,10 +542,10 @@ struct ShopQuantityOwner {
  * @brief Buy the selected quantity, pay its price and reset the row quantity
  * to one.
  */
-void Shop_BuyItem(struct ShopQuantityOwner *owner, u8 *menu, struct ShopTransactionStats *stats, s32 index)
+void Shop_BuyItem(struct GameState *owner, struct EwramData_EntityData *menu, struct PlayerStatus *stats, s32 index)
 {
     const struct ShopStockEntry *entry = &sShopStock[index];
-    s32 count = owner->rowQuantities[menu[0x17]];
+    s32 count = owner->shopRowQuantities[menu->ext.shopPage.cursor];
     register u8 *slot asm("r1"); /* FAKEMATCH: pinned register */
     s32 price;
 
@@ -629,7 +555,7 @@ void Shop_BuyItem(struct ShopQuantityOwner *owner, u8 *menu, struct ShopTransact
         slot = stats->weaponInventory;
         break;
     case 4:
-        slot = stats->armorAndAccessoryInventory;
+        slot = stats->armorInventory;
         break;
     default:
         slot = stats->itemInventory;
@@ -641,14 +567,14 @@ void Shop_BuyItem(struct ShopQuantityOwner *owner, u8 *menu, struct ShopTransact
         u8 type = entry->type;
         u8 id = entry->id;
         if (type != 0xFF)
-            price = ((const struct ShopItemPriceView *)Item_GetInfo(type, id))->price;
+            price = ((const struct ShopItemInfo *)Item_GetInfo(type, id))->price;
         else
-            price = ((const struct ShopItemPriceView *)Item_GetInfoByGlobalId(id))->price;
+            price = ((const struct ShopItemInfo *)Item_GetInfoByGlobalId(id))->price;
     }
     if (stats->equippedYellowSoul == 9)
         price = Div(price * 8, 10);
-    stats->money -= count * price;
-    owner->rowQuantities[menu[0x17]] = 1;
+    stats->currentGold -= count * price;
+    owner->shopRowQuantities[menu->ext.shopPage.cursor] = 1;
 }
 
 /* Shop_CanTrade; records as
@@ -658,19 +584,6 @@ u32 Inventory_GetOwnedCount(s32 category, s32 index);
 
 /* Shop stock entries (item type, id; type 0xFF = id via Item_GetInfoByGlobalId). */
 
-/* Item info records; only the price at 4 is read here. */
-struct ShopItemPriceView2 {
-    u32 unk_0;
-    u32 price;
-};
-
-struct ShopTransactionStats2 {
-    u8 pad_0[0xF];
-    u8 equippedYellowSoul;
-    u8 pad_10[0x34 - 0x10];
-    u32 money;
-};
-
 /* Shop menu state; per-row quantity at 0x3D1 + row. */
 
 /**
@@ -678,11 +591,11 @@ struct ShopTransactionStats2 {
  * 999999, buying keeps the count at most 9 and the gold covers the price
  * (8/10 with the discount).
  */
-s32 Shop_CanTrade(struct ShopQuantityOwner *owner, u8 *menu, struct ShopTransactionStats2 *stats, s32 index)
+s32 Shop_CanTrade(struct GameState *owner, struct EwramData_EntityData *menu, struct PlayerStatus *stats, s32 index)
 {
     const struct ShopStockEntry *entry = &sShopStock[index];
     s32 owned = Inventory_GetOwnedCount(entry->type, entry->id);
-    const struct ShopItemPriceView2 *item;
+    const struct ShopItemInfo *item;
     u32 price;
 
     {
@@ -694,19 +607,19 @@ s32 Shop_CanTrade(struct ShopQuantityOwner *owner, u8 *menu, struct ShopTransact
             item = Item_GetInfoByGlobalId(id);
     }
     price = item->price;
-    if (menu[0xA] == 2)
+    if (menu->state == 2)
     {
         u8 count;
         price >>= 1;
-        count = owner->rowQuantities[menu[0x17]];
-        if (stats->money + price * count <= 999999 && count != 0)
+        count = owner->shopRowQuantities[menu->ext.shopPage.cursor];
+        if (stats->currentGold + price * count <= 999999 && count != 0)
             return 1;
     }
-    else if (owned + owner->rowQuantities[menu[0x17]] <= 9)
+    else if (owned + owner->shopRowQuantities[menu->ext.shopPage.cursor] <= 9)
     {
         if (stats->equippedYellowSoul == 9)
             price = Div(price * 8, 10);
-        if (stats->money >= price * owner->rowQuantities[menu[0x17]])
+        if (stats->currentGold >= price * owner->shopRowQuantities[menu->ext.shopPage.cursor])
             return 1;
     }
     return 0;
@@ -745,25 +658,15 @@ void Shop_ShowConfirmWindow(void)
 /* Shop menu page setup (Shop_OpenList). The flag loop has its own index
  * (j) so it stays in a caller-saved register. */
 
-struct MenuPage
-{
-    u8 pad_0[0xA];
-    u8 state;
-    u8 pad_B[0x14 - 0xB];
-    u8 count;
-    u8 cursor;
-    u8 top;
-    u8 item;
-};
 
-static inline u8 ShopMode(u8 *s) { return s[0x3D0]; }
-static inline u8 *ShopFlags(u8 *s) { return s + 0x3D1; }
+static inline u8 ShopMode(struct GameState *s) { return s->shopId; }
+static inline u8 *ShopFlags(struct GameState *s) { return s->shopRowQuantities; }
 
 /**
  * @brief Set up the item list page for buying or selling (building the sell
  * list) and draw it.
  */
-void Shop_OpenList(u8 *shop, struct MenuPage *page)
+void Shop_OpenList(struct GameState *shop, struct EwramData_EntityData *page)
 {
     struct PlayerStatus *stats;
     s32 i;
@@ -772,7 +675,7 @@ void Shop_OpenList(u8 *shop, struct MenuPage *page)
     u8 *list;
 
     stats = &gEwramData->playerStatus;
-    DMA_FILL_32(3, 0, 0x0600E000, 0x800);
+    DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
     HudMap_PrintNumber(0x11, 9, stats->currentGold, 6, 6, 0);
     Menu_DrawAttackDefense(0x16, 2);
     Menu_DrawCurrentStats(0x16, 4);
@@ -784,12 +687,12 @@ void Shop_OpenList(u8 *shop, struct MenuPage *page)
     Text12_SetRegion(0, 2, 0x23, 5);
     Text8_SetRegion(0, 0xC, 0x20, 4);
     Text8_ClearRegion();
-    MenuPage_SetMode((struct EwramData_EntityData *)page, 0);
-    page->top = 0;
-    page->count = 0;
-    page->item = 0;
-    page->cursor = 0;
-    mode = &shop[0x3D0];
+    MenuPage_SetMode(page, 0);
+    page->ext.menuListU.top = 0;
+    page->ext.menuListU.count = 0;
+    page->ext.menuListU.item = 0;
+    page->ext.menuListU.cursor = 0;
+    mode = &shop->shopId;
     *mode = 0;
     if (gEwramData->gameState.bossEventFlags & 0x10)
         *mode = 1;
@@ -797,8 +700,8 @@ void Shop_OpenList(u8 *shop, struct MenuPage *page)
         *mode = 2;
     if (page->state == 2)
     {
-        Shop_BuildSellList((struct Owner2 *)shop, page, stats);
-        Shop_DrawList((struct ShopOwner *)shop, (struct ShopMenu2 *)page, (struct ShopStats *)stats, (struct ShopList *)((u8 *)gEwramData + 0x135F4), 3);
+        Shop_BuildSellList(shop, page, stats);
+        Shop_DrawList(shop, page, stats, (struct ShopList *)((u8 *)gEwramData + 0x135F4), 3);
     }
     else
     {
@@ -808,41 +711,26 @@ void Shop_OpenList(u8 *shop, struct MenuPage *page)
             u8 *p = ShopFlags(shop);
             p[j] = 1;
         }
-        Shop_DrawList((struct ShopOwner *)shop, (struct ShopMenu2 *)page, (struct ShopStats *)stats, (struct ShopList *)list, 3);
+        Shop_DrawList(shop, page, stats, (struct ShopList *)list, 3);
     }
 }
 
 struct ShopList;
 void PlaySong(u32 song);
 
-struct Owner3 {
-    u8 pad_0[0x3D0];
-    u8 shop;
-};
-
-struct ShopMenu3 {
-    u8 pad_0[0xA];
-    u8 state;
-    u8 pad_B;
-    u8 stage;
-    u8 timer;
-    u8 pad_E[0x17 - 0xE];
-    u8 cursor;
-};
-
 #undef SELL_LIST
 #define SELL_LIST ((struct ShopList *)&gEwramData->sharedScratchBuffer[0x200])
 
-static inline u8 ShopItem(u8 *items, struct ShopMenu3 *menu)
+static inline u8 ShopItem(u8 *items, struct EwramData_EntityData *menu)
 {
-    return items[menu->cursor];
+    return items[menu->ext.shopPage.cursor];
 }
 
 /**
  * @brief Handle the item list and the yes/no confirmation; sell or buy the
  * selected item on yes. Return nonzero when the list is closed.
  */
-s32 Shop_UpdateList(struct Owner3 *owner, struct ShopMenu3 *menu)
+s32 Shop_UpdateList(struct GameState *owner, struct EwramData_EntityData *menu)
 {
     struct PlayerStatus *stats = &gEwramData->playerStatus;
     s32 input = gEwramData->inputData.repeatedInput;
@@ -853,7 +741,7 @@ s32 Shop_UpdateList(struct Owner3 *owner, struct ShopMenu3 *menu)
     if (menu->state == 2)
         list = SELL_LIST;
     else
-        list = sShopLists[owner->shop];
+        list = sShopLists[owner->shopId];
     if (menu->stage == 0)
     {
         if (input & 2)
@@ -863,7 +751,7 @@ s32 Shop_UpdateList(struct Owner3 *owner, struct ShopMenu3 *menu)
         }
         else if (input & 1)
         {
-            if (Shop_CanTrade((struct ShopQuantityOwner *)owner, (u8 *)menu, (struct ShopTransactionStats2 *)stats, ShopItem(list->items, menu)))
+            if (Shop_CanTrade(owner, menu, stats, ShopItem(list->items, menu)))
             {
                 Shop_ShowConfirmWindow();
                 PlaySong(0xF3);
@@ -877,19 +765,19 @@ s32 Shop_UpdateList(struct Owner3 *owner, struct ShopMenu3 *menu)
         }
         else
         {
-            result = Shop_HandleListInput((struct Owner *)owner, (struct ShopMenu *)menu, stats, (u8 *)list, input);
+            result = Shop_HandleListInput(owner, menu, stats, (u8 *)list, input);
             if (result != 0)
-                Shop_DrawList((struct ShopOwner *)owner, (struct ShopMenu2 *)menu, (struct ShopStats *)stats, list, result);
+                Shop_DrawList(owner, menu, stats, list, result);
         }
     }
     else if ((input & 1) && menu->timer == 0)
     {
         if (menu->state == 2)
-            Shop_SellItem((struct Owner *)owner, (u8 *)menu, (struct Shop *)stats, ShopItem(list->items, menu));
+            Shop_SellItem(owner, menu, stats, ShopItem(list->items, menu));
         else
-            Shop_BuyItem((struct ShopQuantityOwner *)owner, (u8 *)menu, (struct ShopTransactionStats *)stats, ShopItem(list->items, menu));
+            Shop_BuyItem(owner, menu, stats, ShopItem(list->items, menu));
         PlaySong(0xF5);
-        Shop_DrawList((struct ShopOwner *)owner, (struct ShopMenu2 *)menu, (struct ShopStats *)stats, list, 3);
+        Shop_DrawList(owner, menu, stats, list, 3);
         HudMap_ZeroTiles(0xA, 3, 9 - HudMap_PrintNumber(0x11, 9, stats->currentGold, 6, 6, 0));
         gEwramData->hBlankEffect.requestStop = 1;
         gUnk_03002CB0.dispCnt &= ~0x2000;

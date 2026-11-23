@@ -209,7 +209,7 @@ void Skeleton_UpdateCombatMovement(struct EwramData_EntityData *entity)
         {
             entity->timer--;
         }
-        Entity_Walk(entity, entity->ext.skeleton.walkSpeed, (void *)0x08528948, 0xC);
+        Entity_Walk(entity, entity->ext.skeleton.walkSpeed, (void *)sSkeletonWalkProfile, 0xC);
         break;
     }
 }

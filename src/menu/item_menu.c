@@ -18,6 +18,7 @@
 #include "soul_pickup.h"
 #include "text12.h"
 #include "data/data_4F1444.h"
+#include "menu_page.h"
 
 /* Equipment menu input handler: A equips the highlighted item (weapon or
  * armor/accessory slot unk_B - 1), A/B closes the list and redraws the page,
@@ -25,20 +26,6 @@
 
 extern void MenuItemIcon_SetHidden(u8 value);
 
-struct MenuPage
-{
-    u8 pad_0[0xA];
-    u8 state;
-    u8 subState;
-    u8 stage;
-    u8 pad_D[0x14 - 0xD];
-    s8 count;
-    s8 cursor;
-    s8 top;
-    u8 item;
-    u8 pad_18[0x39 - 0x18];
-    s8 drawnTop;
-};
 
 struct ItemInfo { u16 name; };
 
@@ -50,7 +37,7 @@ extern void HudMap_WriteTiles(s32 x, s32 y, s32 tile, s32 count);
 
 extern s32 MenuGrid_MoveCursor(void *page, s32 input);
 
-s32 EquipmentMenu_UpdateList(struct MenuPage *page)
+s32 EquipmentMenu_UpdateList(struct EwramData_EntityData *page)
 {
     struct PlayerStatus *stats;
     s32 repeated;
@@ -68,7 +55,7 @@ s32 EquipmentMenu_UpdateList(struct MenuPage *page)
     new = gEwramData->inputData.newInput;
     if (page->stage == 0)
     {
-        Cursor_SetTilePosition((page->cursor & 1) ? 0x10 : 2, ((page->cursor - page->top) >> 1) + 0xB);
+        Cursor_SetTilePosition((page->ext.menuList.cursor & 1) ? 0x10 : 2, ((page->ext.menuList.cursor - page->ext.menuList.top) >> 1) + 0xB);
         page->stage++;
     }
     if (new & 1)
@@ -78,7 +65,7 @@ s32 EquipmentMenu_UpdateList(struct MenuPage *page)
         {
             if (stats->equippedWeapon != 0xFF)
                 EquipmentList_UpdateForEquip(page);
-            stats->equippedWeapon = page->item;
+            stats->equippedWeapon = page->ext.menuList.item;
         }
         else
         {
@@ -88,7 +75,7 @@ s32 EquipmentMenu_UpdateList(struct MenuPage *page)
                 EquipmentList_UpdateForEquip(page);
             {
                 s32 slot2 = page->subState - 1;
-                slots[slot2] = page->item;
+                slots[slot2] = page->ext.menuList.item;
             }
         }
         Player_RefreshEquipmentStats();
@@ -103,10 +90,10 @@ s32 EquipmentMenu_UpdateList(struct MenuPage *page)
         for (i = 3; i >= 0; i--)
             HudMap_ClearTiles(0x19, i + 5, 3);
         EquipmentMenu_PrintEquippedNames();
-        EquipmentMenu_ShowSlotDescription((struct EquipmentMenuItemsView *)stats, (struct EquipmentSlotCursorView *)page);
+        EquipmentMenu_ShowSlotDescription(stats, page);
         if (new & 1)
         {
-            EquipmentMenu_DrawEquippedIcons((struct EquipmentMenuItemsView *)stats, page);
+            EquipmentMenu_DrawEquippedIcons(stats, page);
             PlaySong(0xF3);
         }
         else
@@ -115,45 +102,45 @@ s32 EquipmentMenu_UpdateList(struct MenuPage *page)
         }
         Menu_DrawAttackDefense(0x16, 2);
         Menu_DrawCurrentStats(0x16, 5);
-        if (page->cursor >= page->count)
+        if (page->ext.menuList.cursor >= page->ext.menuList.count)
         {
-            page->cursor = page->count - 1;
-            if (page->top > page->cursor)
-                page->top = page->top - 2;
+            page->ext.menuList.cursor = page->ext.menuList.count - 1;
+            if (page->ext.menuList.top > page->ext.menuList.cursor)
+                page->ext.menuList.top = page->ext.menuList.top - 2;
         }
-        EquipmentMenu_DrawList(stats, (struct MenuPage2 *)page, page->subState);
+        EquipmentMenu_DrawList(stats, page, page->subState);
         MenuList_DrawScrollArrows(page, 0);
     }
     else if (moved)
     {
-        old = page->item;
-        if (page->drawnTop != page->top)
+        old = page->ext.menuList.item;
+        if (MENU_PAGE_DRAWN_TOP(page) != page->ext.menuList.top)
         {
-            page->drawnTop = page->top;
-            EquipmentMenu_DrawList(stats, (struct MenuPage2 *)page, page->subState);
+            MENU_PAGE_DRAWN_TOP(page) = page->ext.menuList.top;
+            EquipmentMenu_DrawList(stats, page, page->subState);
             MenuList_DrawScrollArrows(page, 0);
         }
         else
         {
-            EquipmentMenu_CountList(&gEwramData->playerStatus, (struct MenuPage2 *)page, page->subState);
+            EquipmentMenu_CountList(&gEwramData->playerStatus, page, page->subState);
         }
-        if (old != page->item)
+        if (old != page->ext.menuList.item)
         {
             Text12_ClearRegion();
-            if (page->item != 0xFF)
+            if (page->ext.menuList.item != 0xFF)
             {
                 if (page->subState == 0)
                 {
-                    info = (const u8 *)&sWeaponInfo[page->item];
+                    info = (const u8 *)&sWeaponInfo[page->ext.menuList.item];
                     type = 3;
                 }
                 else
                 {
-                    info = (const u8 *)&sArmorInfo[page->item];
+                    info = (const u8 *)&sArmorInfo[page->ext.menuList.item];
                     type = 4;
                 }
                 text = sItemDescriptionTextIds[*(u16 *)info];
-                MenuItemIcon_Show(0x1C, 0x94, type, page->item);
+                MenuItemIcon_Show(0x1C, 0x94, type, page->ext.menuList.item);
                 MenuItemIcon_SetHidden(0);
             }
             else
@@ -164,7 +151,7 @@ s32 EquipmentMenu_UpdateList(struct MenuPage *page)
             MenuText_ClearAndPrint(text);
             EquipmentMenu_DrawStatPreview(page);
         }
-        Cursor_SetTilePosition((page->cursor & 1) ? 0x10 : 2, ((page->cursor - page->top) >> 1) + 0xB);
+        Cursor_SetTilePosition((page->ext.menuList.cursor & 1) ? 0x10 : 2, ((page->ext.menuList.cursor - page->ext.menuList.top) >> 1) + 0xB);
         PlaySong(0xF1);
     }
     Cursor_Draw();
@@ -337,14 +324,6 @@ s32 ItemMenu_UseItem(struct PlayerStatus *stats, struct EwramData_EntityData *me
 }
 
 /* Item list page. */
-struct MenuPage2
-{
-    u8 pad_0[0x14];
-    s8 count;
-    s8 cursor;
-    s8 top;
-    u8 item;
-};
 
 /**
  * @brief 4B494 | Draw the item list page (32 items, 8 rows): name and count
@@ -352,7 +331,7 @@ struct MenuPage2
  * entries and the item under the cursor. Declaration order i, idx, row
  * gives the original stack slot order of the loop temporaries.
  */
-void ItemMenu_DrawList(struct PlayerStatus *stats, struct MenuPage2 *page)
+void ItemMenu_DrawList(struct PlayerStatus *stats, struct EwramData_EntityData *page)
 {
     s32 i;
     s32 idx;
@@ -360,8 +339,8 @@ void ItemMenu_DrawList(struct PlayerStatus *stats, struct MenuPage2 *page)
 
     row = 0;
     idx = 0;
-    page->item = 0xFF;
-    for (i = 0; idx < page->top && i < 0x20; i++)
+    page->ext.menuList.item = 0xFF;
+    for (i = 0; idx < page->ext.menuList.top && i < 0x20; i++)
     {
         if (stats->itemInventory[i] != 0)
             idx++;
@@ -376,8 +355,8 @@ void ItemMenu_DrawList(struct PlayerStatus *stats, struct MenuPage2 *page)
             u16 yy;
             s32 x;
 
-            if (idx == page->cursor)
-                page->item = i;
+            if (idx == page->ext.menuList.cursor)
+                page->ext.menuList.item = i;
             info = &sConsumableInfo[i];
             while (1)
             {
@@ -415,17 +394,17 @@ void ItemMenu_DrawList(struct PlayerStatus *stats, struct MenuPage2 *page)
         if (stats->itemInventory[i] != 0)
             idx++;
     }
-    page->count = idx;
+    page->ext.menuList.count = idx;
     if (idx == 0)
     {
         Text8_SetRegion(0, 0xC, 0xA, 1);
         Text8_ClearRegion();
         Text8_Print(Text_GetLocalizedEntry(0x34F), 0);
-        page->top = idx;
-        page->cursor = idx;
-        page->item = 0xFF;
+        page->ext.menuList.top = idx;
+        page->ext.menuList.cursor = idx;
+        page->ext.menuList.item = 0xFF;
     }
-    MenuList_DrawScrollArrows((struct MenuPage *)page, 0);
+    MenuList_DrawScrollArrows(page, 0);
 }
 
 /* ItemMenu_CountList, ItemMenu_Open. */
@@ -508,7 +487,7 @@ void ItemMenu_Open(struct EwramData_EntityData *entity)
     Menu_DrawHpMpBars(10, 4);
     HudMap_DrawStatusConditionIcon(0x14, 7);
     MenuPage_SetMode(entity, 0);
-    ItemMenu_DrawList(menu, (struct MenuPage2 *)entity);
+    ItemMenu_DrawList(menu, entity);
     Text12_ClearRegion();
     if (entity->ext.menuPageList.bytes[0] != 0)
     {
@@ -529,23 +508,13 @@ void ItemMenu_Open(struct EwramData_EntityData *entity)
     Cursor_Draw();
 }
 
-struct MenuPage3
-{
-    u8 pad_0[0x14];
-    s8 count;
-    s8 cursor;
-    s8 top;
-    u8 item;
-    u8 pad_18[0x39 - 0x18];
-    s8 drawnTop;
-};
 
-static inline void ShowItemInfo(struct MenuPage3 *page)
+static inline void ShowItemInfo(struct EwramData_EntityData *page)
 {
     Text12_ClearRegion();
-    if (page->count != 0)
+    if (page->ext.menuList.count != 0)
     {
-        const struct ConsumableInfo *info = &sConsumableInfo[page->item];
+        const struct ConsumableInfo *info = &sConsumableInfo[page->ext.menuList.item];
         s32 text = sItemDescriptionTextIds[info->name];
 
         MenuItemIcon_Show(0x1C, 0x94, 2, info->oneBasedIconId - 1);
@@ -565,7 +534,7 @@ static inline void ShowItemInfo(struct MenuPage3 *page)
  *
  * @return -1 when the page is left, 0 otherwise
  */
-s32 ItemMenu_Update(struct MenuPage3 *page)
+s32 ItemMenu_Update(struct EwramData_EntityData *page)
 {
     struct EwramData *ew;
     struct PlayerStatus *stats;
@@ -580,26 +549,26 @@ s32 ItemMenu_Update(struct MenuPage3 *page)
     new = ew->inputData.newInput;
     if (new & 1)
     {
-        moved = ItemMenu_UseItem(stats, (struct EwramData_EntityData *)page);
+        moved = ItemMenu_UseItem(stats, page);
         if (moved != 0)
         {
-            ew->playerStatus.itemInventory[page->item]--;
-            if (ew->playerStatus.itemInventory[page->item] == 0 && page->cursor == page->count - 1)
+            ew->playerStatus.itemInventory[page->ext.menuList.item]--;
+            if (ew->playerStatus.itemInventory[page->ext.menuList.item] == 0 && page->ext.menuList.cursor == page->ext.menuList.count - 1)
             {
-                if (page->top != 0)
+                if (page->ext.menuList.top != 0)
                 {
-                    if (page->cursor == page->top)
-                        page->top -= 8;
-                    page->cursor--;
+                    if (page->ext.menuList.cursor == page->ext.menuList.top)
+                        page->ext.menuList.top -= 8;
+                    page->ext.menuList.cursor--;
                 }
-                else if (page->cursor != 0)
+                else if (page->ext.menuList.cursor != 0)
                 {
-                    page->cursor--;
+                    page->ext.menuList.cursor--;
                 }
             }
             Menu_DrawHpMpBars(0xA, 4);
             HudMap_DrawStatusConditionIcon(0x14, 7);
-            ItemMenu_DrawList(stats, (struct MenuPage2 *)page);
+            ItemMenu_DrawList(stats, page);
             ShowItemInfo(page);
         }
         else
@@ -622,20 +591,20 @@ s32 ItemMenu_Update(struct MenuPage3 *page)
     }
     if (moved)
     {
-        oldItem = page->item;
-        if (page->drawnTop != page->top)
+        oldItem = page->ext.menuList.item;
+        if (MENU_PAGE_DRAWN_TOP(page) != page->ext.menuList.top)
         {
-            page->drawnTop = page->top;
-            ItemMenu_DrawList(stats, (struct MenuPage2 *)page);
+            MENU_PAGE_DRAWN_TOP(page) = page->ext.menuList.top;
+            ItemMenu_DrawList(stats, page);
         }
         else
         {
-            ItemMenu_CountList(&gEwramData->playerStatus, (struct EwramData_EntityData *)page);
+            ItemMenu_CountList(&gEwramData->playerStatus, page);
         }
-        if (oldItem != page->item)
+        if (oldItem != page->ext.menuList.item)
             ShowItemInfo(page);
     }
-    Cursor_SetTilePosition((page->cursor & 1) ? 0x10 : 1, ((page->cursor - page->top) >> 1) + 0xB);
+    Cursor_SetTilePosition((page->ext.menuList.cursor & 1) ? 0x10 : 1, ((page->ext.menuList.cursor - page->ext.menuList.top) >> 1) + 0xB);
     Cursor_Draw();
     MenuPageTitle_Update(&gEwramData->entityData[20]);
     return (new & 2) ? -1 : 0;

@@ -16,6 +16,7 @@
 #include "text12.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "data/data_0E5364.h"
 
 /* Set up a language-dependent background: copy its map, load the given
  * tiles/palette and layer, and select palette 13 for every map entry. */
@@ -80,14 +81,14 @@ void TextWindow_LoadBackground(void *tiles, u8 *palette, struct BgMapMetadata *l
             src = GfxDataK(sLocalizedWindowGfx);
             break;
     }
-    DMA_COPY_16(3, src + n, (void *)0x06005800, 0x400);
-    BgPalette_LoadRange((u8 *)0x080E5C20, 4, 1, 0xF);
-    Gfx_CopyResource(tiles, (void *)0x06006000, 1);
+    DMA_COPY_16(3, src + n, (void *)(VRAM_BASE + 0x5800), 0x400);
+    BgPalette_LoadRange((u8 *)sSaveSelectBgPalette, 4, 1, 0xF);
+    Gfx_CopyResource(tiles, (void *)(VRAM_BASE + 0x6000), 1);
     BgPalette_LoadRange(palette, 0, 1, 0xD);
     BgMap_SetupPrimary(0, layer, 0, 0);
     BgMap_Setup(2, bg[2].pBgMetadata, bg[2].xPos.part16.integer, bg[2].yPos.part16.integer);
     gDisplayRegisters.bgOfs[0].hOfs = 4;
-    map = (u16 *)0x0600E000;
+    map = (u16 *)(VRAM_BASE + 0xE000);
     for (i = 0; i < 0x400; i++)
         *map++ |= 0xD100;
 }
@@ -123,7 +124,7 @@ void TextWindow_Close(void)
     gUnk_03002CB0.dispCnt&=0x1FFF;
     gDisplayRegisters.bldY=0;
     if(gEwramData->gameState.stateFlags&0x10000)
-    {DMA_FILL_32(3,0,(void *)0x0600E000,0x800);}
+    {DMA_FILL_32(3,0,(void *)(VRAM_BASE + 0xE000),0x800);}
     else
     {Hud_Init();gEwramData->gameState.stateFlags&=~32;}
     gEwramData->gameState.textWindowPause=255;
@@ -138,7 +139,7 @@ void TextWindow_Begin(s32 textId)
     struct EwramData *ram = gEwramData;
     gUnk_03002CB0.dispCnt &= 0xFEFF;
     ram->gameState.stateFlags |= 0x21;
-    Text_SetTileBuffer((void *)0x06004000);
+    Text_SetTileBuffer((void *)(VRAM_BASE + 0x4000));
     Text_SetBackgroundColor(0);
     Text12_SetRegion(0, 0, 31, 4);
     Text12_ClearRegion();
@@ -301,9 +302,9 @@ s32 TextWindow_Update(void)
                     case 3:
                         {
                             u8 i = p[1];
-                            DMA_FILL_32(3, 0, 0x06006000, 0x1554);
-                            DMA_FILL_16(3, 0, 0x0600E000, 0x800);
-                            DMA_FILL_32(3, 0, 0x06004000, 0x1000);
+                            DMA_FILL_32(3, 0, VRAM_BASE + 0x6000, 0x1554);
+                            DMA_FILL_16(3, 0, VRAM_BASE + 0xE000, 0x800);
+                            DMA_FILL_32(3, 0, VRAM_BASE + 0x4000, 0x1000);
                             event->pad_4CE[0] = p[1];
                             gDisplayRegisters.bgOfs[0].hOfs = sTextWindowScrollOffsets[i * 2] << 3;
                             gDisplayRegisters.bgOfs[0].vOfs = ((sTextWindowScrollOffsets + 1)[i * 2] << 3) - 4;
@@ -320,9 +321,9 @@ s32 TextWindow_Update(void)
                         event->textWindowOpening = 0x24;
                         event->textWindowState = 3;
                         cont = 0;
-                        DMA_FILL_32(3, 0, 0x06006000, 0x1554);
-                        DMA_FILL_32(3, 0, 0x06006000, 0x1000);
-                        DMA_FILL_16(3, 0, 0x0600E000, 0x800);
+                        DMA_FILL_32(3, 0, VRAM_BASE + 0x6000, 0x1554);
+                        DMA_FILL_32(3, 0, VRAM_BASE + 0x6000, 0x1000);
+                        DMA_FILL_16(3, 0, VRAM_BASE + 0xE000, 0x800);
                         break;
                     case 1:
                         event->insertedTextAddress = (u32)Text_GetLocalizedEntry(p[1]);

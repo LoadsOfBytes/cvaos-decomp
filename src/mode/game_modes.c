@@ -45,6 +45,8 @@
 #include "system_menus.h"
 #include "text12.h"
 #include "data/data_118B48.h"
+#include "data/data_0E5364.h"
+#include "data/data_4F1444.h"
 
 /* Called with int arguments (the u16/u8 parameters in bg_and_collision.h would truncate them). */
 extern u16 *BgCmdBuffer_WriteString(s32 tileIndex, s32 rowOffset, s32 tileInfo, const u8 *string);
@@ -106,103 +108,103 @@ struct DebugExitOptions sDebugExitOptions[] = {
     [0] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .roomDefinition = (u32*)0x0850F15C,
+        .roomDefinition = (u32*)sDebugEventRoom12,
         .text = "0.Entrance"
     },
     [1] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .roomDefinition = (u32*)0x085122FC,
+        .roomDefinition = (u32*)sDebugExitOptionsRoom1,
         .text = "1.Adoration Hall"
     },
     [2] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .roomDefinition = (u32*)0x085132D4,
+        .roomDefinition = (u32*)sDebugExitOptionsRoom2,
         .text = "2.Library"
     },
     [3] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .roomDefinition = (u32*)0x08514AB0,
+        .roomDefinition = (u32*)sDebugExitOptionsRoom3,
         .text = "3.Dance Hall"
     },
     [4] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .roomDefinition = (u32*)0x08516768,
+        .roomDefinition = (u32*)sDebugExitOptionsRoom4,
         .text = "4.Harem"
     },
     [5] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .roomDefinition = (u32*)0x08517790,
+        .roomDefinition = (u32*)sDebugEventRoom9,
         .text = "5.Babylon"
     },
     [6] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .roomDefinition = (u32*)0x085196E0,
+        .roomDefinition = (u32*)sDebugExitOptionsRoom6,
         .text = "6.Clock Tower"
     },
     [7] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .roomDefinition = (u32*)0x0851ADD4,
+        .roomDefinition = (u32*)sDebugExitOptionsRoom7,
         .text = "7.Water Vein"
     },
     [8] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .roomDefinition = (u32*)0x0851E7F8,
+        .roomDefinition = (u32*)sDebugExitOptionsRoom8,
         .text = "8.Arena"
     },
     [9] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .roomDefinition = (u32*)0x085209B8,
+        .roomDefinition = (u32*)sDebugExitOptionsRoom9,
         .text = "9.Saijo-kai"
     },
     [10] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .roomDefinition = (u32*)0x08523064,
+        .roomDefinition = (u32*)sDebugExitOptionsRoom10,
         .text = " Chaos Start"
     },
     [11] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .roomDefinition = (u32*)0x08522ABC,
+        .roomDefinition = (u32*)sDebugExitOptionsRoom11,
         .text = " Chaos Boss"
     },
     [12] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .roomDefinition = (u32*)0x08524E5C,
+        .roomDefinition = (u32*)sDebugExitOptionsRoom12,
         .text = " Boss Rush 1P"
     },
     [13] = {
         .gameMode = GAME_MODE_BOSS_RUSH_MENU,
         .saveFile = 0,
-        .roomDefinition = (u32*)0x08524020,
+        .roomDefinition = (u32*)sDebug4531Room2,
         .text = " Boss Rush 2P"
     },
     [14] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .roomDefinition = (u32*)0x0851BF1C,
+        .roomDefinition = (u32*)sDebugExitOptionsRoom14,
         .text = "  VS Legion"
     },
     [15] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .roomDefinition = (u32*)0x0851E490,
+        .roomDefinition = (u32*)sDebugEventRoom7,
         .text = "  VS Balor"
     },
     [16] = {
         .gameMode = GAME_MODE_IN_GAME,
         .saveFile = 0,
-        .roomDefinition = (u32*)0x08515EF0,
+        .roomDefinition = (u32*)sDebugExitOptionsRoom16,
         .text = "  VS Collector"
     },
 };
@@ -242,7 +244,7 @@ s32 GameModeDebugUpdate(void)
 
             if (gEwramData->inputData.newInput & (KEY_START | KEY_A))
             {
-                DMA_FILL_32(3, 0, 0x0600E000, 0x800);
+                DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
                 gameMode = sDebugMenuOptions[gEwramData->gameModeSubStage].gameMode;
 
                 // Only slot 8 has Konami Logo mode, which is not possible to reach
@@ -398,7 +400,7 @@ s32 GameModeDebugExitUpdate(void)
                     }
                     else
                     {
-                        gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)0x0850F15C;
+                        gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)sDebugEventRoom12;
                     }
                 }
 
@@ -415,7 +417,7 @@ s32 GameModeDebugExitUpdate(void)
             gEwramData->gameState.bossRushMode = 0;
             gEwramData->gameState.activatedWarpFlags[0] = -1;
 
-            if (sDebugExitOptions[gEwramData->gameModeSubStage].roomDefinition != (u32*)0x0850F15C)
+            if (sDebugExitOptions[gEwramData->gameModeSubStage].roomDefinition != (u32*)sDebugEventRoom12)
             {
                 GameFlag_Set((1 << 5) | 0);
             }
@@ -489,9 +491,9 @@ s32 GameModeKonamiLogoUpdate(void)
             break;
 
         case 1:
-            Gfx_CopyResource((u8 *)0x080E5C18, VRAM_BASE, 0);
-            BgPalette_LoadRange((u8 *)0x080E6C40, 0, 1, 0);
-            BgMap_Setup(0, (struct BgMapMetadata *)0x080E9614, 0, 0);
+            Gfx_CopyResource((u8 *)sKonamiLogoGfx, VRAM_BASE, 0);
+            BgPalette_LoadRange((u8 *)sKonamiLogoBgPalette, 0, 1, 0);
+            BgMap_Setup(0, (struct BgMapMetadata *)sKonamiLogoBgMap, 0, 0);
             gEwramData->gameModeUpdateStage += 1;
             gEwramData->gameModeSubStage = 0;
             break;
@@ -563,9 +565,9 @@ s32 GameModeLicensedByNintendoUpdate(void)
             break;
 
         case 1:
-            Gfx_CopyResource((u8 *)0x080E5C00, VRAM_BASE, 0);
-            BgPalette_Load((u8 *)0x080E6838);
-            BgMap_Setup(0, (struct BgMapMetadata *)0x080E94F4, 0, 0);
+            Gfx_CopyResource((u8 *)sLicensedByNintendoGfx, VRAM_BASE, 0);
+            BgPalette_Load((u8 *)sLicensedByNintendoBgPalette);
+            BgMap_Setup(0, (struct BgMapMetadata *)sLicensedByNintendoBgMap, 0, 0);
             gEwramData->gameModeUpdateStage += 1;
             gEwramData->gameModeSubStage = 0;
             break;
@@ -655,7 +657,7 @@ s32 GameModeResetUpdate(void)
             HudMap_WriteTiles(0xA, 5, 0xF020, 0xA);
             HudMap_WriteTiles(0xA, 7, 0xF040, 0xA);
             HudMap_WriteTiles(0xA, 9, 0xF060, 0xA);
-            BgPalette_LoadRange((u8 *)0x081183F4, 0, 1, 0xF);
+            BgPalette_LoadRange((u8 *)sTextBgPalette, 0, 1, 0xF);
             Text_Initialize();
             Text_SetForegroundColor(8);
             Text_SetBackgroundColor(0);
@@ -803,62 +805,62 @@ struct TitlePaletteBlendStep {
 
 struct TitlePaletteBlendStep sTitlePaletteBlendSteps[12] = {
     [0] = {
-        .paletteResource = (void*)0x80E622C,
+        .paletteResource = (void*)sTitleLogoBlendPalette,
         .sourcePalette = 0x0,
         .duration = 0x30
     },
     [1] = {
-        .paletteResource = (void*)0x80E622C,
+        .paletteResource = (void*)sTitleLogoBlendPalette,
         .sourcePalette = 0x5,
         .duration = 0x30
     },
     [2] = {
-        .paletteResource = (void*)0x80E622C,
+        .paletteResource = (void*)sTitleLogoBlendPalette,
         .sourcePalette = 0x6,
         .duration = 0x30
     },
     [3] = {
-        .paletteResource = (void*)0x80E622C,
+        .paletteResource = (void*)sTitleLogoBlendPalette,
         .sourcePalette = 0x7,
         .duration = 0x30
     },
     [4] = {
-        .paletteResource = (void*)0x80E622C,
+        .paletteResource = (void*)sTitleLogoBlendPalette,
         .sourcePalette = 0x8,
         .duration = 0x30
     },
     [5] = {
-        .paletteResource = (void*)0x80E622C,
+        .paletteResource = (void*)sTitleLogoBlendPalette,
         .sourcePalette = 0x9,
         .duration = 0x30
     },
     [6] = {
-        .paletteResource = (void*)0x80E622C,
+        .paletteResource = (void*)sTitleLogoBlendPalette,
         .sourcePalette = 0xA,
         .duration = 0x30
     },
     [7] = {
-        .paletteResource = (void*)0x80E622C,
+        .paletteResource = (void*)sTitleLogoBlendPalette,
         .sourcePalette = 0xB,
         .duration = 0x30
     },
     [8] = {
-        .paletteResource = (void*)0x80E622C,
+        .paletteResource = (void*)sTitleLogoBlendPalette,
         .sourcePalette = 0xC,
         .duration = 0x30
     },
     [9] = {
-        .paletteResource = (void*)0x80E622C,
+        .paletteResource = (void*)sTitleLogoBlendPalette,
         .sourcePalette = 0xD,
         .duration = 0x30
     },
     [10] = {
-        .paletteResource = (void*)0x80E622C,
+        .paletteResource = (void*)sTitleLogoBlendPalette,
         .sourcePalette = 0xE,
         .duration = 0x30
     },
     [11] = {
-        .paletteResource = (void*)0x80E622C,
+        .paletteResource = (void*)sTitleLogoBlendPalette,
         .sourcePalette = 0xF,
         .duration = 0x30
     },
@@ -1006,12 +1008,12 @@ s32 GameModeTitleScreenUpdate(void)
             Obj_SetBgLayer(6, 1);
             Obj_SetBgLayer(0x16, 2);
             Bg_SyncPriorities();
-            Gfx_CopyResource((u8 *)0x080E5BE0, VRAM_BASE, 0);
-            Gfx_CopyResource((u8 *)0x080E5BE8, VRAM_BASE + 0x8000, 0);
-            BgPalette_Load((u8 *)0x080E6430);
-            BgMap_Setup(0, (struct BgMapMetadata *)0x080E9024, 0, 0);
-            BgMap_Setup(1, (struct BgMapMetadata *)0x080E90B4, 0, 0);
-            BgMap_Setup(2, (struct BgMapMetadata *)0x080E8F94, 0, 0);
+            Gfx_CopyResource((u8 *)sTitleScreenGfx2, VRAM_BASE, 0);
+            Gfx_CopyResource((u8 *)sTitleScreenGfx3, VRAM_BASE + 0x8000, 0);
+            BgPalette_Load((u8 *)sTitleScreenBgPalette);
+            BgMap_Setup(0, (struct BgMapMetadata *)sTitleScreenBgMap2, 0, 0);
+            BgMap_Setup(1, (struct BgMapMetadata *)sTitleScreenBgMap3, 0, 0);
+            BgMap_Setup(2, (struct BgMapMetadata *)sTitleScreenBgMap, 0, 0);
             TitleScreenLogo_Create(logo);
             TitleScreen_CreateEffects(overlay);
 
@@ -1512,9 +1514,9 @@ void TitleScreen_CreateEffects(struct EwramData_EntityData *entity)
     s32 i;
 
     EntityDelete(entity);
-    ObjGfx_LoadResource((u8 *)0x08160480, 0);
-    ObjGfx_LoadResource((u8 *)0x08160488, 0);
-    ObjGfx_LoadResource((u8 *)0x0825EAD4, 0);
+    ObjGfx_LoadResource((u8 *)&sTitleScreenGfx, 0);
+    ObjGfx_LoadResource((u8 *)&sTitleFlashGfx, 0);
+    ObjGfx_LoadResource((u8 *)&sTitleMenuGfx, 0);
     entity->updateFunc = (u32 *) TitleScreenEffects_Update;
     entity->group = 1;
     child = EntityCreateInRange(0x49, 0xCF, (u32 *) TitleScreenSpiralSprite_Update);
@@ -1636,7 +1638,7 @@ void TitleScreenLogo_Update(struct EwramData_EntityData *entity)
             tick = entity->timer;
             if (tick == 0)
             {
-                ObjPalette_LoadRange((u8 *)0x08209308, entity->subState + 3, 1, 4);
+                ObjPalette_LoadRange((u8 *)sTitleScreenLogoPalette, entity->subState + 3, 1, 4);
                 entity->subState += 1;
                 entity->timer = 1;
                 if (entity->subState > 0xE)
@@ -1653,8 +1655,8 @@ void TitleScreenLogo_Update(struct EwramData_EntityData *entity)
             tick2 = entity->timer;
             if (tick2 == 0)
             {
-                ObjPalette_LoadRange((u8 *)0x08209308, entity->subState + 0x12, 1, 5);
-                ObjPalette_LoadRange((u8 *)0x08209308, entity->subState + 3, 1, 6);
+                ObjPalette_LoadRange((u8 *)sTitleScreenLogoPalette, entity->subState + 0x12, 1, 5);
+                ObjPalette_LoadRange((u8 *)sTitleScreenLogoPalette, entity->subState + 3, 1, 6);
                 entity->subState += 1;
                 entity->timer = 1;
                 if (entity->subState > 0xE)
@@ -1672,7 +1674,7 @@ void TitleScreenLogo_Update(struct EwramData_EntityData *entity)
             tick3 = entity->timer;
             if (tick3 == 0)
             {
-                ObjPalette_LoadRange((u8 *)0x08209308, entity->subState + 0x12, 1, 7);
+                ObjPalette_LoadRange((u8 *)sTitleScreenLogoPalette, entity->subState + 0x12, 1, 7);
                 entity->subState += 1;
                 entity->timer = 1;
                 if (entity->subState > 0xE)
@@ -1693,10 +1695,10 @@ void TitleScreenLogo_Update(struct EwramData_EntityData *entity)
                 entity->timer -= 1;
                 break;
             }
-            ObjPalette_LoadRange((u8 *)0x08209308, 3, 1, 4);
-            ObjPalette_LoadRange((u8 *)0x08209308, 3, 1, 5);
-            ObjPalette_LoadRange((u8 *)0x08209308, 3, 1, 6);
-            ObjPalette_LoadRange((u8 *)0x08209308, 3, 1, 7);
+            ObjPalette_LoadRange((u8 *)sTitleScreenLogoPalette, 3, 1, 4);
+            ObjPalette_LoadRange((u8 *)sTitleScreenLogoPalette, 3, 1, 5);
+            ObjPalette_LoadRange((u8 *)sTitleScreenLogoPalette, 3, 1, 6);
+            ObjPalette_LoadRange((u8 *)sTitleScreenLogoPalette, 3, 1, 7);
             entity->state = 5;
             break;
     }
@@ -1716,7 +1718,7 @@ void TitleScreenLogo_Create(struct EwramData_EntityData *entity)
     ObjTiles_Init();
     SharedObjPalette_ResetSlots();
     Heap_Reset();
-    ObjPalette_LoadRange((u8 *)0x08209308, 3, 1, result = 4);
+    ObjPalette_LoadRange((u8 *)sTitleScreenLogoPalette, 3, 1, result = 4);
     entity->basePalette = result;
 
     result = TitleObject_LoadGraphics((u8*)&sTitleFlashGfx, (u8*)&sTitleFlashSpriteSheet, entity, 4);
@@ -1728,12 +1730,12 @@ void TitleScreenLogo_Create(struct EwramData_EntityData *entity)
     }
 
     entity->group = 0;
-    ObjPalette_LoadRange((u8 *)0x08209308, 1, 1, 0xC);
-    ObjPalette_LoadRange((u8 *)0x08209308, 0, 1, 0xD);
-    ObjPalette_LoadRange((u8 *)0x08209308, 2, 1, 0xB);
-    ObjPalette_LoadRange((u8 *)0x08209308, 3, 1, 5);
-    ObjPalette_LoadRange((u8 *)0x08209308, 3, 1, 6);
-    ObjPalette_LoadRange((u8 *)0x08209308, 3, 1, 7);
+    ObjPalette_LoadRange((u8 *)sTitleScreenLogoPalette, 1, 1, 0xC);
+    ObjPalette_LoadRange((u8 *)sTitleScreenLogoPalette, 0, 1, 0xD);
+    ObjPalette_LoadRange((u8 *)sTitleScreenLogoPalette, 2, 1, 0xB);
+    ObjPalette_LoadRange((u8 *)sTitleScreenLogoPalette, 3, 1, 5);
+    ObjPalette_LoadRange((u8 *)sTitleScreenLogoPalette, 3, 1, 6);
+    ObjPalette_LoadRange((u8 *)sTitleScreenLogoPalette, 3, 1, 7);
     entity->updateFunc = (u32 *) TitleScreenLogo_Update;
     entity->drawFunc = (u32 *) TitleScreenLogo_Draw;
     entity->scrollWithBg = 1;
@@ -1917,7 +1919,7 @@ void TitleScreenMenu_Create(void)
 
     menu = &gEwramData->entityData[0x14];
 
-    ObjPalette_LoadRange((u8 *)0x08209308, 3, 1, 4);
+    ObjPalette_LoadRange((u8 *)sTitleScreenLogoPalette, 3, 1, 4);
     menu->ext.titleMenu.first = 0;
     menu->ext.titleMenu.extraCount = 0;
 
@@ -2049,9 +2051,9 @@ void TitleScreenMenu_StartSlide(struct EwramData_EntityData *entity)
  */
 void TitleScreen_FreeGraphics(struct EwramData_EntityData *entity)
 {
-    ObjGfx_Unload(ObjGfx_Find((u8 *)0x08160480));
-    ObjGfx_Unload(ObjGfx_Find((u8 *)0x08160488));
-    ObjGfx_Unload(ObjGfx_Find((u8 *)0x0825EAD4));
+    ObjGfx_Unload(ObjGfx_Find((u8 *)&sTitleScreenGfx));
+    ObjGfx_Unload(ObjGfx_Find((u8 *)&sTitleFlashGfx));
+    ObjGfx_Unload(ObjGfx_Find((u8 *)&sTitleMenuGfx));
     Obj_Init();
     EntityDelete(entity);
     EntityDelete(&gEwramData->entityData[0x14]);
@@ -2145,25 +2147,25 @@ void MainMenu_SetupMessageWindow(s32 choice)
     DMA_FILL_32(3, 0, VRAM_BASE + 0x8000, 0x2000);
 
     gDisplayRegisters.bgCnt[0] = CREATE_BGCNT(2, 28, BGCNT_HIGH_PRIORITY, BGCNT_SIZE_256x256);
-    BgPalette_Load((u8 *)0x080E5E24);
-    BgPalette_LoadRange((u8 *)0x081183F4, 0, 1, 0xC);
+    BgPalette_Load((u8 *)sMainMenuPalette);
+    BgPalette_LoadRange((u8 *)sTextBgPalette, 0, 1, 0xC);
     Text_SetTileBuffer(VRAM_BASE + 0x8000);
     Text_SetForegroundColor(8);
     Text_SetBackgroundColor(0);
-    BgPalette_LoadRange((u8 *)0x080E5C20, 3, 1, 0xD);
+    BgPalette_LoadRange((u8 *)sSaveSelectBgPalette, 3, 1, 0xD);
 
     switch (gEwramData->gameState.language)
     {
         case 2:
-            Gfx_CopyResource((u8 *)0x08277984, VRAM_BASE + 0xA000, 0);
+            Gfx_CopyResource((u8 *)sLocalizedWindowGfxLanguage2, VRAM_BASE + 0xA000, 0);
             break;
 
         case 3:
-            Gfx_CopyResource((u8 *)0x0826C848, VRAM_BASE + 0xA000, 0);
+            Gfx_CopyResource((u8 *)sLocalizedWindowGfxLanguage3, VRAM_BASE + 0xA000, 0);
             break;
 
         default:
-            Gfx_CopyResource((u8 *)0x0827B200, VRAM_BASE + 0xA000, 0);
+            Gfx_CopyResource((u8 *)sLocalizedWindowGfx, VRAM_BASE + 0xA000, 0);
             break;
     }
 
@@ -2243,8 +2245,8 @@ void MainMenu_Close(struct EwramData_EntityData *entity)
     gUnk_03002CB0.dispCnt &= ~(DCNT_OBJ | DCNT_BG3 | DCNT_BG2 | DCNT_BG1 | DCNT_BG0 | DCNT_BLANK | DCNT_OBJ_1D | DCNT_OAM_HBL | DCNT_PAGE | DCNT_CGB | 7);
     gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT;
     gDisplayRegisters.bldY = BLDY_MAX_VALUE;
-    DMA_FILL_32(3, 0, 0x0600F000, 0x800);
-    DMA_FILL_32(3, 0, 0x0600F800, 0x800);
+    DMA_FILL_32(3, 0, VRAM_BASE + 0xF000, 0x800);
+    DMA_FILL_32(3, 0, VRAM_BASE + 0xF800, 0x800);
     MainMenu_FreeEntity(entity);
     PlaySong(STOP_SONG | MUS_14);
     gEwramData->gameState.subMode = gEwramData->gameState.subModeStep = 0;
@@ -2357,27 +2359,27 @@ s32 GameModeMainMenuUpdate(void)
             break;
     
         case 0x1:
-            DMA_FILL_32(3, 0, 0x0600F000, 0x800);
-            Gfx_CopyResource((u8 *)0x080E5BB0, VRAM_BASE, 0);
-            Gfx_CopyResource((u8 *)0x080E5BB8, VRAM_BASE + 0x2000, 0);
+            DMA_FILL_32(3, 0, VRAM_BASE + 0xF000, 0x800);
+            Gfx_CopyResource((u8 *)sSaveSelectGfx, VRAM_BASE, 0);
+            Gfx_CopyResource((u8 *)sSaveSelectGfx2, VRAM_BASE + 0x2000, 0);
     
             switch (gEwramData->gameState.language)
             {
                 case 2:
-                    Gfx_CopyResource((u8 *)0x08277994, VRAM_BASE + 0x4000, 0);
+                    Gfx_CopyResource((u8 *)sSaveMenuSpriteGfx9, VRAM_BASE + 0x4000, 0);
                     break;
                 case 3:
-                    Gfx_CopyResource((u8 *)0x0826C850, VRAM_BASE + 0x4000, 0);
+                    Gfx_CopyResource((u8 *)sSaveMenuSpriteGfx15, VRAM_BASE + 0x4000, 0);
                     break;
                 default:
-                    Gfx_CopyResource((u8 *)0x080E5BC0, VRAM_BASE + 0x4000, 0);
+                    Gfx_CopyResource((u8 *)sSaveMenuSpriteGfx3, VRAM_BASE + 0x4000, 0);
                     break;
             }
 
-            BgPalette_Load((u8 *)0x080E5E24);
-            BgMap_Setup(3, (struct BgMapMetadata *)0x080E74C4, 0, 0);
-            BgMap_Setup(2, (struct BgMapMetadata *)0x080E7434, 0, 0);
-            BgMap_Setup(1, (struct BgMapMetadata *)0x080E73A4, 0, 0);
+            BgPalette_Load((u8 *)sMainMenuPalette);
+            BgMap_Setup(3, (struct BgMapMetadata *)sSaveSelectBgMap, 0, 0);
+            BgMap_Setup(2, (struct BgMapMetadata *)sMainMenuBgMap6, 0, 0);
+            BgMap_Setup(1, (struct BgMapMetadata *)sMainMenuBgMap5, 0, 0);
             MainMenu_InitEntity(menu);
             MainMenu_SetupMessageWindow(0);
             gEwramData->gameModeTimer = 0;
@@ -2601,7 +2603,7 @@ s32 GameModeMainMenuUpdate(void)
                 gDisplayRegisters.winOut_L = WIN0_ALL;
                 gameState = &gEwramData->gameState;
                 ButtonConfig_ResetDefaults();
-                gameState->currentRoomDefinition = (struct RoomDefinition *)0x0850F01C;
+                gameState->currentRoomDefinition = (struct RoomDefinition *)sDebug4531Room;
                 gEwramData->gameModeUpdateStage = 0x1E;
                 gEwramData->gameModeSubStage = 0;
             }
@@ -2677,7 +2679,7 @@ s32 GameModeMainMenuUpdate(void)
                     gDisplayRegisters.winOut_L = WIN0_ALL;
                     nameGameState = &gEwramData->gameState;
                     ButtonConfig_ResetDefaults();
-                    nameGameState->currentRoomDefinition = (struct RoomDefinition *)0x0850F01C;
+                    nameGameState->currentRoomDefinition = (struct RoomDefinition *)sDebug4531Room;
                     gEwramData->gameModeUpdateStage = 0x1E;
                     gEwramData->gameModeSubStage = 0;
                 }
@@ -2709,8 +2711,8 @@ s32 GameModeMainMenuUpdate(void)
             gUnk_03002CB0.dispCnt &= ~(DCNT_WINOBJ | DCNT_WIN1 | DCNT_WIN0);
             gUnk_03002CB0.dispCnt |= DCNT_BG0;
             gEwramData->hBlankEffect.requestStop = 1;
-            BgMap_Setup(1, (struct BgMapMetadata *)0x080E73A4, 0, 0);
-            BgMap_Setup(2, (struct BgMapMetadata *)0x080E7434, 0, 0);
+            BgMap_Setup(1, (struct BgMapMetadata *)sMainMenuBgMap5, 0, 0);
+            BgMap_Setup(2, (struct BgMapMetadata *)sMainMenuBgMap6, 0, 0);
             MainMenu_SetupMessageWindow(menu->subState);
             menu->state = 1;
             menu->stage = 0;
@@ -2758,8 +2760,8 @@ s32 GameModeMainMenuUpdate(void)
                 break;
             }
             gEwramData->hBlankEffect.requestStop = 1;
-            BgMap_Setup(1, (struct BgMapMetadata *)0x080E73A4, 0, 0);
-            BgMap_Setup(2, (struct BgMapMetadata *)0x080E7434, 0, 0);
+            BgMap_Setup(1, (struct BgMapMetadata *)sMainMenuBgMap5, 0, 0);
+            BgMap_Setup(2, (struct BgMapMetadata *)sMainMenuBgMap6, 0, 0);
             MainMenu_SetupMessageWindow(menu->subState);
             menu->state = 1;
             menu->stage = 0;
@@ -2825,8 +2827,8 @@ s32 GameModeMainMenuUpdate(void)
             }
             gEwramData->hBlankEffect.requestStop = 1;
             MainMenu_SetupMessageWindow((s32) menu->subState);
-            BgMap_Setup(1, (struct BgMapMetadata *)0x080E73A4, 0, 0);
-            BgMap_Setup(2, (struct BgMapMetadata *)0x080E7434, 0, 0);
+            BgMap_Setup(1, (struct BgMapMetadata *)sMainMenuBgMap5, 0, 0);
+            BgMap_Setup(2, (struct BgMapMetadata *)sMainMenuBgMap6, 0, 0);
             if (menu->ext.mainMenu.savedSlots == 0)
             {
                 menu->subState = 0;
@@ -2906,7 +2908,7 @@ s32 GameModeMainMenuUpdate(void)
                 menu->ext.mainMenu.paletteStep = 0;
             }
         }
-        BgPalette_LoadRange((u8 *)0x080E5E24, paletteCycle[(s8)menu->ext.mainMenu.paletteStep].sourcePalette, 1, 0);
+        BgPalette_LoadRange((u8 *)sMainMenuPalette, paletteCycle[(s8)menu->ext.mainMenu.paletteStep].sourcePalette, 1, 0);
     }
     Entity_UpdateAll();
     return gameMode;

@@ -2116,7 +2116,7 @@ void Chaos2_UpdateDefeat(struct EwramData_EntityData *entity)
         gEwramData->gameState.bossEventFlags |= 0x80;
         Player_SetSelectedTarget(NULL);
         gEwramData->gameState.stateFlags = (gEwramData->gameState.stateFlags & ~2) | 0x4000;
-        RoomJump_SetDestination((void *)0x0852362C, 0, 0, 0x80, 0x70);
+        RoomJump_SetDestination((void *)sDebugEventRoom14, 0, 0, 0x80, 0x70);
         RoomJump_Begin(&gEwramData->gameState);
         gEwramData->gameState.stateFlags = (gEwramData->gameState.stateFlags & ~1) | 0x800000;
         gEwramData->startPauseEnabled = 0;

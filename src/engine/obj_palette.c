@@ -10,6 +10,7 @@
 #include "syscalls.h"
 #include "palette.h"
 #include "pickup.h"
+#include "structs/entity_template.h"
 
 /* Find or load a palette in the four shared object slots. */
 s8 ObjPalette_FindOrLoad(void *palette)
@@ -96,25 +97,7 @@ void SharedObjPalette_Release(void *palette, u8 variant)
     }
 }
 
-/* Local 0x24-byte template-table view: retain this TU's types and padding. */
-struct EnemyTemplateView
-{
-    u8 pad_0[0x8];
-    u16 item0;
-    u16 item1;
-    u16 hp;
-    u16 mp;
-    u16 exp;
-    u8 soulRate;
-    u8 pad_13[0x15 - 0x13];
-    u8 rate0;
-    u8 rate1;
-    u8 soulType;
-    u8 soulIndex; /* 1-based, 0 = none */
-    u8 pad_19[0x24 - 0x19];
-};
 
-extern const struct EnemyTemplateView sEnemyData[];
 extern void Effect_CreatePlayerFlash(s32);
 extern s32 Player_GetEquippedItem(s32 kind);
 extern struct EwramData_EntityData *SoulPickup_Create(s32 x, s32 y, s32 palette, s32 soulId, s32 stationary);
@@ -136,7 +119,7 @@ void Enemy_DropRewards(struct EwramData_EntityData *entity)
 {
     u8 unused[0x10];
     s32 id;
-    const struct EnemyTemplateView *info;
+    const struct EntityTemplate *info;
     struct EwramData *ew;
     struct PlayerStatus *stats;
     struct PlayerState *player;
@@ -212,14 +195,14 @@ void Enemy_DropRewards(struct EwramData_EntityData *entity)
         chance = 0x20;
     if (((RandomNumberGenerator() >> 1) & 0xFF) < chance + 0x40)
     {
-        item = info->item1;
-        range = info->rate1;
+        item = info->dropItem1;
+        range = info->dropRate1;
         which = 1;
     }
     else
     {
-        item = info->item0;
-        range = info->rate0;
+        item = info->dropItem0;
+        range = info->dropRate0;
     }
     if (item)
     {
@@ -243,7 +226,7 @@ void Enemy_DropRewards(struct EwramData_EntityData *entity)
             return;
         }
     }
-    if (!(info->item0 | info->item1))
+    if (!(info->dropItem0 | info->dropItem1))
         return;
     range = 0;
     if (Player_GetEquippedItem(1) == 0x2B)

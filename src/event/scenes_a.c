@@ -20,6 +20,7 @@
 #include "shop_update.h"
 #include "text_window.h"
 #include "data/data_4F1444.h"
+#include "data/data_118B48.h"
 
 /* EventScene30_Update, decompiled from the original assembly. The second random
  * number has its own block variable and its offset is summed in a statement
@@ -61,7 +62,7 @@ s32 EventScene30_Update(struct EwramData_EntityData *entity)
             entity->state++;
             entity->stage = 0;
             entity->subState = 0;
-            ObjPalette_LoadRange((void *)0x082099FC, 5, 1, 14);
+            ObjPalette_LoadRange((void *)sSavePointPalette, 5, 1, 14);
         }
         break;
     case 2:
@@ -342,8 +343,8 @@ void EventScene29_Init(struct EwramData_EntityData *entity)
     gEwramData->gameState.stateFlags |= 1;
     BgPalette_StartColorFade(0x1F, 0x1F, 0x1F, 0, 0x10000, 0x80);
     ObjPalette_StartColorFade(0x1F, 0x1F, 0x1F, 0, 0x10000, 0x80);
-    DMA_FILL_32(3, 0, 0x06004000, 0x2000);
-    DMA_FILL_16(3, 0, 0x0600E000, 0x800);
+    DMA_FILL_32(3, 0, VRAM_BASE + 0x4000, 0x2000);
+    DMA_FILL_16(3, 0, VRAM_BASE + 0xE000, 0x800);
     gUnk_03002CB0.dispCnt &= ~0x100;
 }
 
@@ -379,8 +380,8 @@ s32 EventScene29_Update(struct EwramData_EntityData *entity)
             }
             break;
         case 1:
-            DMA_FILL_32(3, ret, 0x06004000, 0x2000);
-            DMA_FILL_16(3, ret, 0x0600E000, 0x800);
+            DMA_FILL_32(3, ret, VRAM_BASE + 0x4000, 0x2000);
+            DMA_FILL_16(3, ret, VRAM_BASE + 0xE000, 0x800);
             gUnk_03002CB0.dispCnt |= 0x100;
             entity->timer = 0xFF;
             entity->state++;
@@ -643,8 +644,8 @@ void EventScene31_Init(struct EwramData_EntityData *entity)
     entity->state = 1;
     entity->stage = zero;
     entity->subState = zero;
-    DMA_FILL_32(3, fill, 0x06004000, 0x2000);
-    DMA_FILL_16(3, fill, 0x0600E000, 0x800);
+    DMA_FILL_32(3, fill, VRAM_BASE + 0x4000, 0x2000);
+    DMA_FILL_16(3, fill, VRAM_BASE + 0xE000, 0x800);
     gUnk_03002CB0.dispCnt &= ~0x100;
 }
 
@@ -681,8 +682,8 @@ s32 EventScene31_Update(struct EwramData_EntityData *entity)
         if (BgPalette_GetPendingFades() == 0) {
             BgPalette_StopColorFade();
             ObjPalette_StopColorFade();
-            DMA_FILL_32(3, 0, 0x06004000, 0x2000);
-            DMA_FILL_16(3, 0, 0x0600E000, 0x800);
+            DMA_FILL_32(3, 0, VRAM_BASE + 0x4000, 0x2000);
+            DMA_FILL_16(3, 0, VRAM_BASE + 0xE000, 0x800);
             gUnk_03002CB0.dispCnt |= 0x100;
             entity->timer = 255;
             entity->state++;

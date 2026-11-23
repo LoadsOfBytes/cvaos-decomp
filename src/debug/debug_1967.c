@@ -31,6 +31,9 @@
 #include "map_flags.h"
 #include "map_screen.h"
 #include "entity_common.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
+#include "structs/entity_template.h"
 extern void HudMap_WriteTiles(s32, s32, u16, s32);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
@@ -192,7 +195,7 @@ void Debug1967_UpdateTestEnemySpawner(struct DebugEnemySpawnerState *spawner)
 }
 
 /**
- * @brief START entry: load room 0x0852269C with level 99 and fixed souls and
+ * @brief START entry: load room sDebugEventRoom10 with level 99 and fixed souls and
  * equipment, then run entities, HUD and room transitions.
  */
 s32 Debug1967_StartGame(void)
@@ -200,7 +203,7 @@ s32 Debug1967_StartGame(void)
     switch ((&gEwramData->debugMenuWork)->state)
     {
         case 0:
-            gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)0x0852269C;
+            gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)sDebugEventRoom10;
             Player_SetLevel(0x63);
             Player_EquipSoulsAndRestore(5, 3, 2);
             Player_EquipItem(2, 0x19);
@@ -328,15 +331,6 @@ s32 Debug1967_HandleEnemySelectInput(void)
     return 0;
 }
 
-/* Local 0x24-byte template-table view: retain this TU's types and padding. */
-struct EnemyTemplateView {
-    void *createFunc;
-    void *updateFunc;
-    u8 pad_8[0xC - 0x8];
-    u16 hp;
-    u8 pad_E[0x24 - 0xE];
-}; /* size = 0x24 */
-extern const struct EnemyTemplateView sEnemyData[];
 
 // TODO: HudMap_WriteTiles is implicitly called in other files, it may be implicit here too
 
@@ -353,7 +347,7 @@ s32 Debug1967_EnemyTest(void)
     struct EwramData_EntityData *child;
     struct PlayerStatus *playerStatus;
     struct GameState *gameState;
-    const struct EnemyTemplateView *enemy;
+    const struct EntityTemplate *enemy;
     s32 x;
     s32 halfWidth;
     struct BgLayerState *bg1Info;
@@ -381,7 +375,7 @@ s32 Debug1967_EnemyTest(void)
 
             (&gEwramData->debugMenuWork)->state = 2;
         case 2:
-            gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)0x085241E0;
+            gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)sDebug1967Room;
             playerStatus->currentLevel = 0;
             InGame_InitScene();
             (&gEwramData->debugMenuWork)->state = 3;
@@ -526,7 +520,7 @@ const u8 sDebug1967Gfx[] = {
 };
 
 /**
- * @brief OBJTEST viewer entity: show the sprite at 0x08252748 and step its
+ * @brief OBJTEST viewer entity: show the sprite at sJuliusSpriteSheet and step its
  * animation index with Up/Down.
  */
 void Debug1967ObjTestViewer_Update(struct EwramData_EntityData *entity)
@@ -537,8 +531,8 @@ void Debug1967ObjTestViewer_Update(struct EwramData_EntityData *entity)
     {
         case 0:
             gfx = ObjGfx_LoadResource((u8 *)sDebug1967Gfx, 0);
-            ObjPalette_LoadRange((u8 *)0x0820C028, 0, 1, 0xA);
-            Sprite_Attach(entity, (void *)0x08252748, gfx, 0xA);
+            ObjPalette_LoadRange((u8 *)sJuliusEntityPalette, 0, 1, 0xA);
+            Sprite_Attach(entity, (void *)sJuliusSpriteSheet, gfx, 0xA);
             entity->drawFunc = (u32 *) Sprite_DrawEntity;
             entity->subState = 0;
             Anim_StartIndexed(entity, 0, 1, 1);
@@ -827,10 +821,10 @@ void DebugTestEnemy_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
         case 0:
-            gfx = ObjGfx_LoadResource((u8 *)0x081CBF2C, 0);
-            entity->basePalette = (u8) ObjPalette_FindOrLoad((void *)0x0820A3FC);
-            Sprite_Attach(entity, (void *)0x0821285C, gfx, (u32) entity->basePalette);
-            Anim_Start(entity, (struct AnimScript *)(*(s32 *)0x086391C0), 0, 1);
+            gfx = ObjGfx_LoadResource((u8 *)sValkyrieGfx, 0);
+            entity->basePalette = (u8) ObjPalette_FindOrLoad((void *)sValkyriePalette);
+            Sprite_Attach(entity, (void *)sValkyrieSpriteSheet, gfx, (u32) entity->basePalette);
+            Anim_Start(entity, (struct AnimScript *)(*(s32 *)sDebugTestEnemyAnimScripts), 0, 1);
             entity->state = 1;
             entity->scrollWithBg = 1;
 

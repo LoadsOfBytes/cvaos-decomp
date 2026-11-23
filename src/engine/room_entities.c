@@ -41,18 +41,11 @@
 #include "shop_update.h"
 #include "soul_pickup.h"
 #include "warp_room.h"
+#include "data/data_118B48.h"
+#include "structs/entity_template.h"
 extern void HudMap_WriteTiles(s32, s32, u16, s32);
 
-/* Local 0x24-byte template-table view: retain this TU's types and padding. */
-struct EnemyTemplateView {
-    u32 *createFunc;
-    u32 *updateFunc; // TODO: function prototype
-    u8 pad_8[0xC - 0x8];
-    u16 hp;
-    u8 pad_E[0x24 - 0xE];
-};
 
-extern struct EnemyTemplateView sEnemyData[];
 
 void (*sObjectCreateFuncs[56])(struct EwramData_EntityData *) = {
     [0] = Object00Create,
@@ -185,7 +178,7 @@ s32 RoomEntity_Spawn(struct RoomEntityRecord *record)
     struct EwramData_EntityData *bonusItem;
     struct EwramData_EntityData *pickup;
     struct EwramData_EntityData *modeItem;
-    struct EnemyTemplateView *enemy;
+    struct EntityTemplate *enemy;
     struct BgLayerState *bg;
     s32 flip;
     s32 spawned;
@@ -882,51 +875,51 @@ void AreaName_UpdateWave(s32 subModeCounter)
 }
 
 u8 *sAreaNameGfx[13] = {
-    (u8*)0x08260328,
-    (u8*)0x08260330,
-    (u8*)0x08260338,
-    (u8*)0x08260340,
-    (u8*)0x08260348,
-    (u8*)0x08260350,
-    (u8*)0x08260358,
-    (u8*)0x08260360,
-    (u8*)0x08260378,
-    (u8*)0x08260380,
-    (u8*)0x08260370,
-    (u8*)0x08260388,
-    (u8*)0x08260368,
+    (u8*)sAreaNameGfx0,
+    (u8*)sAreaNameGfx1,
+    (u8*)sAreaNameGfx2,
+    (u8*)sAreaNameGfx3,
+    (u8*)sAreaNameGfx4,
+    (u8*)sAreaNameGfx5,
+    (u8*)sAreaNameGfx6,
+    (u8*)sAreaNameGfx7,
+    (u8*)sAreaNameGfx8,
+    (u8*)sAreaNameGfx9,
+    (u8*)sAreaNameGfx10,
+    (u8*)sAreaNameGfx11,
+    (u8*)sAreaNameGfx12,
 };
 
 u8 *sAreaNameGfxLanguage3[13] = {
-    (u8*)0x082738AC,
-    (u8*)0x082738B4,
-    (u8*)0x082738BC,
-    (u8*)0x082738C4,
-    (u8*)0x082738CC,
-    (u8*)0x082738D4,
-    (u8*)0x082738DC,
-    (u8*)0x082738E4,
-    (u8*)0x082738FC,
-    (u8*)0x08273904,
-    (u8*)0x082738F4,
-    (u8*)0x0827390C,
-    (u8*)0x082738EC,
+    (u8*)sAreaNameGfxLanguage3_0,
+    (u8*)sAreaNameGfxLanguage3_1,
+    (u8*)sAreaNameGfxLanguage3_2,
+    (u8*)sAreaNameGfxLanguage3_3,
+    (u8*)sAreaNameGfxLanguage3_4,
+    (u8*)sAreaNameGfxLanguage3_5,
+    (u8*)sAreaNameGfxLanguage3_6,
+    (u8*)sAreaNameGfxLanguage3_7,
+    (u8*)sAreaNameGfxLanguage3_8,
+    (u8*)sAreaNameGfxLanguage3_9,
+    (u8*)sAreaNameGfxLanguage3_10,
+    (u8*)sAreaNameGfxLanguage3_11,
+    (u8*)sAreaNameGfxLanguage3_12,
 };
 
 u8 *sAreaNameGfxLanguage2[13] = {
-    (u8*)0x08273914,
-    (u8*)0x0827391C,
-    (u8*)0x08273924,
-    (u8*)0x0827392C,
-    (u8*)0x08273934,
-    (u8*)0x0827393C,
-    (u8*)0x08273944,
-    (u8*)0x0827394C,
-    (u8*)0x08273964,
-    (u8*)0x0827396C,
-    (u8*)0x0827395C,
-    (u8*)0x08273974,
-    (u8*)0x08273954,
+    (u8*)sAreaNameGfxLanguage2_0,
+    (u8*)sAreaNameGfxLanguage2_1,
+    (u8*)sAreaNameGfxLanguage2_2,
+    (u8*)sAreaNameGfxLanguage2_3,
+    (u8*)sAreaNameGfxLanguage2_4,
+    (u8*)sAreaNameGfxLanguage2_5,
+    (u8*)sAreaNameGfxLanguage2_6,
+    (u8*)sAreaNameGfxLanguage2_7,
+    (u8*)sAreaNameGfxLanguage2_8,
+    (u8*)sAreaNameGfxLanguage2_9,
+    (u8*)sAreaNameGfxLanguage2_10,
+    (u8*)sAreaNameGfxLanguage2_11,
+    (u8*)sAreaNameGfxLanguage2_12,
 };
 
 /**
@@ -963,7 +956,7 @@ void AreaName_Show(struct GameState *gameState, s32 area)
         gameState->areaNameOwnsHBlank = 0;
     }
 
-    BgPalette_LoadRange((u8 *)0x08266520, 0, 1, 0xC);
+    BgPalette_LoadRange((u8 *)sAreaNameBgPalette, 0, 1, 0xC);
     switch (gEwramData->gameState.language)
     {
         case 2:
@@ -1070,7 +1063,7 @@ s32 AreaName_Update(struct GameState *gameState)
  */
 void AreaName_Hide(struct GameState *gameState)
 {
-    DMA_FILL_32(3, 0, 0x0600E280, 0x80);
+    DMA_FILL_32(3, 0, VRAM_BASE + 0xE280, 0x80);
     DMA_FILL_32(3, 0, &gEwramData->hBlankEffect.hBlankBuffer, sizeof(gEwramData->hBlankEffect.hBlankBuffer[0]));
 
     gUnk_03002CB0.dispCnt &= ~DCNT_WIN0;
@@ -1174,7 +1167,7 @@ void Room_LoadAtPlayerPosition(struct GameState *gameState)
     scrollBg = bg;
     metadata = bg->pBgMetadata;
 
-    DMA_FILL_32(3, 0, 0x0600E800, 0x1800);
+    DMA_FILL_32(3, 0, VRAM_BASE + 0xE800, 0x1800);
     roomX = GetEntityRoomXPositionInteger(player);
     roomY = GetEntityRoomYPositionInteger(player);
     cellX = roomX >> 8;

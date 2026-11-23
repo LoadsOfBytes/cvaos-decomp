@@ -28,6 +28,9 @@
 #include "palette.h"
 #include "player_soma.h"
 #include "text12.h"
+#include "data/data_0E5364.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 const u8 sBossRushStartItems[] = {
     0x3, 0x4, 0x5, 0x6, 0x17, 0x18, 0xFF,
@@ -133,7 +136,7 @@ s32 GameModeBossRushMenuUpdate(void)
     
         case 5:
             gEwramData->gameState.bossRushMode = 1;
-            gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)0x085247B4;
+            gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)sBossRushMenuRoom;
             gameMode = GAME_MODE_IN_GAME;
             break;
     }
@@ -192,17 +195,17 @@ s32 GameModeIntroCutsceneUpdate(void)
             HitBox_ClearAll();
             DMA_COPY_32(3, &gDisplayRegisters.bgCnt[1], saved->bgControlBytes, sizeof(saved->bgControlBytes));
             gUnk_03002CB0.dispCnt = DCNT_OBJ | DCNT_BG3 | DCNT_BG2 | DCNT_BG1 | DCNT_BG0;
-            BgPalette_Load((u8 *)0x080E6634);
-            Gfx_CopyResource((u8 *)0x080E5BF0, VRAM_BASE + 0x8000, 0);
-            Gfx_CopyResource((u8 *)0x080E5BF8, VRAM_BASE + 0xA000, 0);
-            BgMap_Setup(1, (struct BgMapMetadata *)0x080E9464, 0, 0x160);
-            BgMap_Setup(2, (struct BgMapMetadata *)0x080E9244, 0, 0x260);
-            BgMap_Setup(3, (struct BgMapMetadata *)0x080E9354, 0, 0xC9);
+            BgPalette_Load((u8 *)sIntroCutsceneBgPalette);
+            Gfx_CopyResource((u8 *)sIntroCutsceneGfx, VRAM_BASE + 0x8000, 0);
+            Gfx_CopyResource((u8 *)sIntroCutsceneGfx2, VRAM_BASE + 0xA000, 0);
+            BgMap_Setup(1, (struct BgMapMetadata *)sIntroCutsceneBgMap3, 0, 0x160);
+            BgMap_Setup(2, (struct BgMapMetadata *)sIntroCutsceneBgMap, 0, 0x260);
+            BgMap_Setup(3, (struct BgMapMetadata *)sIntroCutsceneBgMap2, 0, 0xC9);
             gDisplayRegisters.bgCnt[0] = CREATE_BGCNT(0, 28, BGCNT_HIGH_PRIORITY, BGCNT_SIZE_256x256);
             gDisplayRegisters.bgCnt[1] = CREATE_BGCNT(2, 29, BGCNT_HIGH_MID_PRIORITY, BGCNT_SIZE_256x256);
             gDisplayRegisters.bgCnt[2] = CREATE_BGCNT(2, 30, BGCNT_LOW_MID_PRIORITY, BGCNT_SIZE_256x256);
             gDisplayRegisters.bgCnt[3] = CREATE_BGCNT(2, 31, BGCNT_LOW_PRIORITY, BGCNT_SIZE_256x256);
-            tilemap = (s16 *)0x0600E000;
+            tilemap = (s16 *)(VRAM_BASE + 0xE000);
             i = 0;
             for ( ; i < 0x400; )
             {
@@ -212,8 +215,8 @@ s32 GameModeIntroCutsceneUpdate(void)
             }
             Text_SetTileBuffer(VRAM_BASE);
             Text12_SetRegion(0, 0, 0x29, 0x15);
-            DMA_FILL_32(3, 0, 0x06000000, 0x8000);
-            BgPalette_LoadRange((u8 *)0x081183F4, 0, 1, 0xF);
+            DMA_FILL_32(3, 0, VRAM_BASE, 0x8000);
+            BgPalette_LoadRange((u8 *)sTextBgPalette, 0, 1, 0xF);
             Text_SetForegroundColor(8);
             Text_SetBackgroundColor(0);
             Obj_SetBgLayers(0, 0x18, 0x14, 0x1F);
@@ -739,9 +742,9 @@ void IntroCutscene_CreateEntities(struct EwramData_EntityData *entity)
     s32 spriteGfx;
 
     EntityDelete(entity);
-    gfx = ObjGfx_LoadResource((u8 *)0x08160490, 0);
-    ObjPalette_LoadRange((u8 *)0x0820972C, 0, 4, 0);
-    Sprite_Attach(entity, (u8 *)0x0820CB60, gfx, 0);
+    gfx = ObjGfx_LoadResource((u8 *)sIntroCutsceneGfx3, 0);
+    ObjPalette_LoadRange((u8 *)sIntroCutscenePalette, 0, 4, 0);
+    Sprite_Attach(entity, (u8 *)sIntroCutsceneSpriteSheet, gfx, 0);
     entity->animFrame = 0;
     entity->drawFunc = (u32 *) Sprite_DrawEntity;
     entity->posX.part16.integer = 0x78;
@@ -754,24 +757,24 @@ void IntroCutscene_CreateEntities(struct EwramData_EntityData *entity)
     gDisplayRegisters.bgOfs[0].vOfs = entity->ext.introText.startScroll = -0xA4;
 
     rising = EntityCreateInRange(0x49, 0xCF, (u32*)IntroCutscene_UpdateRisingSprite);
-    spriteGfx = ObjGfx_LoadResource((u8 *)0x08160498, 0);
-    Sprite_Attach(rising, (u8 *)0x0820CD00, spriteGfx, 2);
+    spriteGfx = ObjGfx_LoadResource((u8 *)sIntroCutsceneGfx4, 0);
+    Sprite_Attach(rising, (u8 *)sIntroCutsceneSpriteSheet2, spriteGfx, 2);
 
     shrinking = EntityCreateInRange(0x49, 0xCF, (u32*)IntroCutscene_UpdateShrinkingSprite);
-    spriteGfx = ObjGfx_LoadResource((u8 *)0x08160498, 0);
-    Sprite_Attach(shrinking, (u8 *)0x0820CD00, spriteGfx, 3);
+    spriteGfx = ObjGfx_LoadResource((u8 *)sIntroCutsceneGfx4, 0);
+    Sprite_Attach(shrinking, (u8 *)sIntroCutsceneSpriteSheet2, spriteGfx, 3);
 
     floating = EntityCreateInRange(0x49, 0xCF, (u32*)IntroCutscene_UpdateFloatingSprite);
-    spriteGfx = ObjGfx_LoadResource((u8 *)0x08160498, 0);
-    Sprite_Attach(floating, (u8 *)0x0820CD00, spriteGfx, 3);
+    spriteGfx = ObjGfx_LoadResource((u8 *)sIntroCutsceneGfx4, 0);
+    Sprite_Attach(floating, (u8 *)sIntroCutsceneSpriteSheet2, spriteGfx, 3);
 
     drifting = EntityCreateInRange(0x49, 0xCF, (u32*)IntroCutscene_UpdateDriftingSprite);
-    spriteGfx = ObjGfx_LoadResource((u8 *)0x08160498, 0);
-    Sprite_Attach(drifting, (u8 *)0x0820CD00, spriteGfx, 1);
+    spriteGfx = ObjGfx_LoadResource((u8 *)sIntroCutsceneGfx4, 0);
+    Sprite_Attach(drifting, (u8 *)sIntroCutsceneSpriteSheet2, spriteGfx, 1);
 
     drifting2 = EntityCreateInRange(0x49, 0xCF, (u32*)IntroCutscene_UpdateDriftingSprite);
-    spriteGfx = ObjGfx_LoadResource((u8 *)0x08160498, 0);
-    Sprite_Attach(drifting2, (u8 *)0x0820CD00, spriteGfx, 1);
+    spriteGfx = ObjGfx_LoadResource((u8 *)sIntroCutsceneGfx4, 0);
+    Sprite_Attach(drifting2, (u8 *)sIntroCutsceneSpriteSheet2, spriteGfx, 1);
     drifting2->subState = 1;
 }
 
@@ -786,8 +789,8 @@ struct EwramData_EntityData* IntroCutscene_CreateSprite(u32 *updateFunc, u8 pale
     s32 gfx;
 
     child = EntityCreateInRange(0x49, 0xCF, updateFunc);
-    gfx = ObjGfx_LoadResource((u8 *)0x08160498, 0);
-    Sprite_Attach(child, (u8 *)0x0820CD00, gfx, palette);
+    gfx = ObjGfx_LoadResource((u8 *)sIntroCutsceneGfx4, 0);
+    Sprite_Attach(child, (u8 *)sIntroCutsceneSpriteSheet2, gfx, palette);
     return child;
 }
 
@@ -812,7 +815,7 @@ void IntroCutsceneText_Update(struct EwramData_EntityData *entity)
     }
     if (gEwramData->gameModeUpdateStage > 6)
     {
-        ObjGfx_Unload(ObjGfx_Find((u8 *)0x08160490));
+        ObjGfx_Unload(ObjGfx_Find((u8 *)sIntroCutsceneGfx3));
         entity->deleteRequested = 1;
     }
 }

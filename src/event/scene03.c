@@ -227,7 +227,7 @@ s32 EventScene03_Update(struct EwramData_EntityData *entity)
         {
             PlaySong(0x1000);
             gEwramData->gameState.stateFlags |= 0x20;
-            DMA_FILL_32(3, z, 0x06004000, 0x2000);
+            DMA_FILL_32(3, z, VRAM_BASE + 0x4000, 0x2000);
             entity->stage++;
         }
         if (!EventScene03_ScrollCamera(entity))

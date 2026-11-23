@@ -24,6 +24,7 @@
 #include "data/data_0E5364.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "structs/entity_template.h"
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 static inline s32 FixedMulFast(s32 a, s32 b) { return (a >> 8) * (b >> 8); }
@@ -241,14 +242,14 @@ void Object16Update(struct EwramData_EntityData *entity)
     case 4:
         SetPlayerInput(1, 0);
         gEwramData->gameState.stateFlags &= ~1;
-        RoomJump_SetDestination((void *)0x08522ABC, 0, 0, 0x78, 0x6F);
+        RoomJump_SetDestination((void *)sDebugExitOptionsRoom11, 0, 0, 0x78, 0x6F);
         RoomJump_Begin(&gEwramData->gameState);
         gEwramData->gameState.stateFlags |= 0x800000;
         break;
     }
     src.sx = entity->ext.object16.scale;
     src.sy = entity->ext.object16.scale;
-    BgAffineSet(&src, (struct BgAffineDstData *)0x03002C78, 1);
+    BgAffineSet(&src, (struct BgAffineDstData *)&gDisplayRegisters.bg2PA, 1);
     entity->timer++;
     if (entity->timer & 1)
     {
@@ -388,7 +389,7 @@ void Object17Create(struct EwramData_EntityData *entity)
     bg = &gEwramData->bgInfo[1];
     entity->posX.part16.integer = 0x78 - bg->xPos.part16.integer;
     entity->posY.part16.integer = tbl[entity->subState] - bg->yPos.part16.integer;
-    Player_RegisterSolidObject(entity, (void *)0x08118598);
+    Player_RegisterSolidObject(entity, (void *)sObject17SolidCallbacks);
     entity->roomActive = 1;
     e = EntityCreateInRange(0x49, 0xCF, (u32 *)Object17Follower_Update);
     if (e != NULL)
@@ -629,7 +630,7 @@ s32 Object17_FloorCorrection(struct EwramData_EntityData *entity, s16 x, s16 y)
 /* Object effect helpers decompiled from assembly. */
 
 /**
- * @brief Wall-left correction slot of the object 0x17 solid table (0x08118598):
+ * @brief Wall-left correction slot of the object 0x17 solid table (sObject17SolidCallbacks):
  * none, return 0.
  */
 s32 Object17_WallLeftCorrection(void)
@@ -639,7 +640,7 @@ s32 Object17_WallLeftCorrection(void)
 
 /**
  * @brief Wall-right correction slot of the object 0x17 solid table
- * (0x08118598): none, return 0.
+ * (sObject17SolidCallbacks): none, return 0.
  */
 s32 Object17_WallRightCorrection(void)
 {
@@ -786,17 +787,7 @@ void Object18Create(struct EwramData_EntityData *entity)
     entity->scrollWithBg = 1;
 }
 
-/* Local 0x24-byte template-table view: retain this TU's types and padding. */
-struct EnemyTemplateView
-{
-    void (*create)(struct EwramData_EntityData *);
-    u32 *update;
-    u8 pad_8[0xC - 0x8];
-    u16 hp;
-    u8 pad_E[0x24 - 0xE];
-};
 
-extern const struct EnemyTemplateView sEnemyData[];
 extern s32 Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern struct EwramData_EntityData *Pickup_CreateGold(s32 x, s32 y, s32 index);
 extern struct EwramData_EntityData *Pickup_CreateMana(s32 x, s32 y, s32 large, s32 jump);
@@ -816,7 +807,7 @@ void Object18Update(struct EwramData_EntityData *entity)
     s32 y;
     s32 i;
     struct EwramData_EntityData *e;
-    const struct EnemyTemplateView *info;
+    const struct EntityTemplate *info;
 
     hit = Hit_CheckWithPlayer(buffer, entity);
     x = (s16)entity->posX.part16.integer;
@@ -883,9 +874,9 @@ void Object18Update(struct EwramData_EntityData *entity)
                 }
                 e->enemyId = 0x4A;
                 e->hp = info->hp;
-                e->updateFunc = info->update;
+                e->updateFunc = info->updateFunc;
                 e->scrollWithBg = 1;
-                info->create(e);
+                info->createFunc(e);
             }
         }
     dec:

@@ -215,6 +215,10 @@ u32 HitBox_OverlapsHitRect(struct EwramData_EntityData *entity, struct SpriteBox
 
 struct Rect16 { s16 left; s16 top; s16 right; s16 bottom; };
 
+/* Player attack / hurt rectangles in room pixels for this frame (IWRAM, linker.ld). */
+extern struct Rect16 gPlayerAttackRect;
+extern struct Rect16 gPlayerHurtRect;
+
 u32 HitBox_OverlapsRect(struct Rect16 *rect, struct EwramData_EntityData *entity, struct SpriteBox *box)
 {
     s32 left;
@@ -344,7 +348,7 @@ u32 Hit_CheckPlayerAttack(u8 *e)
     src = (u8 *)gEwramData->playerState.player + 0x70;
     dst = e + 0x70;
     hb = &gEntityBoxes[e[0x73]].body;
-    if (HitBox_OverlapsRect((void *)0x03001A48, (struct EwramData_EntityData *)e, hb))
+    if (HitBox_OverlapsRect((void *)&gPlayerAttackRect, (struct EwramData_EntityData *)e, hb))
     {
         if (dst[4] == 0)
         {
@@ -376,7 +380,7 @@ u32 Hit_CheckPlayerHurt(u8 *e)
     dst = (u8 *)gEwramData->playerState.player + 0x70;
     src = e + 0x70;
     hb = &gEntityBoxes[e[0x73]];
-    rect = (void *)0x03001A50;
+    rect = (void *)&gPlayerHurtRect;
     if (HitBox_OverlapsRect(rect, (struct EwramData_EntityData *)e, (struct SpriteBox *)&hb->attack))
     {
         AddHit(dst, src);
@@ -537,7 +541,7 @@ u32 Hit_CheckWithPlayer(struct HitResult *res, u8 *b)
         {
             res->flags |= 4;
             res->typeB = pi->type;
-            res->box = *(struct Box8 *)0x03001A48;
+            res->box = *(struct Box8 *)&gPlayerAttackRect;
             if (ib->onHurt != NULL)
                 ib->onHurt(b, PLAYER, res);
             if (pi->onHit != NULL)
@@ -641,8 +645,8 @@ u32 Hit_CheckWithPlayer(struct HitResult *res, u8 *b)
  * player entity (gEntityBoxes slot boxSlot) into the IWRAM rectangles at
  * 0x03001A48 and 0x03001A50, mirrored by flipX/flipY. */
 
-#define RECT0 ((struct Rect16 *)0x03001A48)
-#define RECT1 ((struct Rect16 *)0x03001A50)
+#define RECT0 (&gPlayerAttackRect)
+#define RECT1 (&gPlayerHurtRect)
 
 void HitBox_UpdatePlayerRects(void)
 {

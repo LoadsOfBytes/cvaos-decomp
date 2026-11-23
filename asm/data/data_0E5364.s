@@ -5,19 +5,157 @@
 
     .section .rodata
 
-    .incbin "cvaos_us_baserom.gba", 0x0E5364, 0x0E6E04 - 0x0E5364
+    .global sDebugBgDispTestGfx
+sDebugBgDispTestGfx: @ 0x080E5364
+    .incbin "cvaos_us_baserom.gba", 0x0E5364, 0x0E536C - 0x0E5364
+
+    .global sDebugBgDispTestGfx2
+sDebugBgDispTestGfx2: @ 0x080E536C
+    .incbin "cvaos_us_baserom.gba", 0x0E536C, 0x0E5374 - 0x0E536C
+
+    .global sDebugBgDispTestGfx3
+sDebugBgDispTestGfx3: @ 0x080E5374
+    .incbin "cvaos_us_baserom.gba", 0x0E5374, 0x0E537C - 0x0E5374
+
+    .global sDebugBgDispTestBgPalette
+sDebugBgDispTestBgPalette: @ 0x080E537C
+    .incbin "cvaos_us_baserom.gba", 0x0E537C, 0x0E5BA0 - 0x0E537C
+
+    .global sDebugBgDispTestBgMap
+sDebugBgDispTestBgMap: @ 0x080E5BA0
+    .incbin "cvaos_us_baserom.gba", 0x0E5BA0, 0x0E5BB0 - 0x0E5BA0
+
+    .global sSaveSelectGfx
+sSaveSelectGfx: @ 0x080E5BB0
+    .incbin "cvaos_us_baserom.gba", 0x0E5BB0, 0x0E5BB8 - 0x0E5BB0
+
+    .global sSaveSelectGfx2
+sSaveSelectGfx2: @ 0x080E5BB8
+    .incbin "cvaos_us_baserom.gba", 0x0E5BB8, 0x0E5BC0 - 0x0E5BB8
+
+    .global sSaveMenuSpriteGfx3
+sSaveMenuSpriteGfx3: @ 0x080E5BC0
+    .incbin "cvaos_us_baserom.gba", 0x0E5BC0, 0x0E5BC8 - 0x0E5BC0
+
+    .global sCreditsGfx
+sCreditsGfx: @ 0x080E5BC8
+    .incbin "cvaos_us_baserom.gba", 0x0E5BC8, 0x0E5BD0 - 0x0E5BC8
+
+    .global sCreditsGfx2
+sCreditsGfx2: @ 0x080E5BD0
+    .incbin "cvaos_us_baserom.gba", 0x0E5BD0, 0x0E5BD8 - 0x0E5BD0
+
+    .global sCreditsGfx3
+sCreditsGfx3: @ 0x080E5BD8
+    .incbin "cvaos_us_baserom.gba", 0x0E5BD8, 0x0E5BE0 - 0x0E5BD8
+
+    .global sTitleScreenGfx2
+sTitleScreenGfx2: @ 0x080E5BE0
+    .incbin "cvaos_us_baserom.gba", 0x0E5BE0, 0x0E5BE8 - 0x0E5BE0
+
+    .global sTitleScreenGfx3
+sTitleScreenGfx3: @ 0x080E5BE8
+    .incbin "cvaos_us_baserom.gba", 0x0E5BE8, 0x0E5BF0 - 0x0E5BE8
+
+    .global sIntroCutsceneGfx
+sIntroCutsceneGfx: @ 0x080E5BF0
+    .incbin "cvaos_us_baserom.gba", 0x0E5BF0, 0x0E5BF8 - 0x0E5BF0
+
+    .global sIntroCutsceneGfx2
+sIntroCutsceneGfx2: @ 0x080E5BF8
+    .incbin "cvaos_us_baserom.gba", 0x0E5BF8, 0x0E5C00 - 0x0E5BF8
+
+    .global sLicensedByNintendoGfx
+sLicensedByNintendoGfx: @ 0x080E5C00
+    .incbin "cvaos_us_baserom.gba", 0x0E5C00, 0x0E5C08 - 0x0E5C00
+
+    .global sGameOverGfx
+sGameOverGfx: @ 0x080E5C08
+    .incbin "cvaos_us_baserom.gba", 0x0E5C08, 0x0E5C10 - 0x0E5C08
+
+    .global sGameOverGfx2
+sGameOverGfx2: @ 0x080E5C10
+    .incbin "cvaos_us_baserom.gba", 0x0E5C10, 0x0E5C18 - 0x0E5C10
+
+    .global sKonamiLogoGfx
+sKonamiLogoGfx: @ 0x080E5C18
+    .incbin "cvaos_us_baserom.gba", 0x0E5C18, 0x0E5C20 - 0x0E5C18
+
+    .global sSaveSelectBgPalette
+sSaveSelectBgPalette: @ 0x080E5C20
+    .incbin "cvaos_us_baserom.gba", 0x0E5C20, 0x0E5E24 - 0x0E5C20
+
+    .global sMainMenuPalette
+sMainMenuPalette: @ 0x080E5E24
+    .incbin "cvaos_us_baserom.gba", 0x0E5E24, 0x0E6028 - 0x0E5E24
+
+    .global sCreditsBgPalette
+sCreditsBgPalette: @ 0x080E6028
+    .incbin "cvaos_us_baserom.gba", 0x0E6028, 0x0E622C - 0x0E6028
+
+    .global sTitleLogoBlendPalette
+sTitleLogoBlendPalette: @ 0x080E622C
+    .incbin "cvaos_us_baserom.gba", 0x0E622C, 0x0E6430 - 0x0E622C
+
+    .global sTitleScreenBgPalette
+sTitleScreenBgPalette: @ 0x080E6430
+    .incbin "cvaos_us_baserom.gba", 0x0E6430, 0x0E6634 - 0x0E6430
+
+    .global sIntroCutsceneBgPalette
+sIntroCutsceneBgPalette: @ 0x080E6634
+    .incbin "cvaos_us_baserom.gba", 0x0E6634, 0x0E6838 - 0x0E6634
+
+    .global sLicensedByNintendoBgPalette
+sLicensedByNintendoBgPalette: @ 0x080E6838
+    .incbin "cvaos_us_baserom.gba", 0x0E6838, 0x0E6A3C - 0x0E6838
+
+    .global sGameOverBgPalette
+sGameOverBgPalette: @ 0x080E6A3C
+    .incbin "cvaos_us_baserom.gba", 0x0E6A3C, 0x0E6C40 - 0x0E6A3C
+
+    .global sKonamiLogoBgPalette
+sKonamiLogoBgPalette: @ 0x080E6C40
+    .incbin "cvaos_us_baserom.gba", 0x0E6C40, 0x0E6CE4 - 0x0E6C40
+
+    .global sSoundTestMenuBgMap
+sSoundTestMenuBgMap: @ 0x080E6CE4
+    .incbin "cvaos_us_baserom.gba", 0x0E6CE4, 0x0E6D74 - 0x0E6CE4
+
+    .global sSoundTestMenuBgMap2
+sSoundTestMenuBgMap2: @ 0x080E6D74
+    .incbin "cvaos_us_baserom.gba", 0x0E6D74, 0x0E6E04 - 0x0E6D74
 
     .global sMainMenuDeleteBg2Map
 sMainMenuDeleteBg2Map: @ 0x080E6E04
     .incbin "cvaos_us_baserom.gba", 0x0E6E04, 0x1 @ TODO: size
 
-    .incbin "cvaos_us_baserom.gba", 0x0E6E05, 0x0E6FB4 - 0x0E6E05
+    .incbin "cvaos_us_baserom.gba", 0x0E6E05, 0x0E6E94 - 0x0E6E05
+
+    .global sMainMenuBgMap
+sMainMenuBgMap: @ 0x080E6E94
+    .incbin "cvaos_us_baserom.gba", 0x0E6E94, 0x0E6F24 - 0x0E6E94
+
+    .global sSoulTradeMenuBgMap
+sSoulTradeMenuBgMap: @ 0x080E6F24
+    .incbin "cvaos_us_baserom.gba", 0x0E6F24, 0x0E6FB4 - 0x0E6F24
 
     .global sMainMenuCopyBg2Map
 sMainMenuCopyBg2Map: @ 0x080E6FB4
     .incbin "cvaos_us_baserom.gba", 0x0E6FB4, 0x1 @ TODO: size
 
-    .incbin "cvaos_us_baserom.gba", 0x0E6FB5, 0x0E71F4 - 0x0E6FB5
+    .incbin "cvaos_us_baserom.gba", 0x0E6FB5, 0x0E7044 - 0x0E6FB5
+
+    .global sMainMenuBgMap2
+sMainMenuBgMap2: @ 0x080E7044
+    .incbin "cvaos_us_baserom.gba", 0x0E7044, 0x0E70D4 - 0x0E7044
+
+    .global sMainMenuBgMap3
+sMainMenuBgMap3: @ 0x080E70D4
+    .incbin "cvaos_us_baserom.gba", 0x0E70D4, 0x0E7164 - 0x0E70D4
+
+    .global sSoulTradeMenuBgMap2
+sSoulTradeMenuBgMap2: @ 0x080E7164
+    .incbin "cvaos_us_baserom.gba", 0x0E7164, 0x0E71F4 - 0x0E7164
 
     .global sMainMenuDeleteBg1Map
 sMainMenuDeleteBg1Map: @ 0x080E71F4
@@ -29,7 +167,75 @@ sMainMenuDeleteBg1Map: @ 0x080E71F4
 sMainMenuCopyBg1Map: @ 0x080E7284
     .incbin "cvaos_us_baserom.gba", 0x0E7284, 0x1 @ TODO: size
 
-    .incbin "cvaos_us_baserom.gba", 0x0E7285, 0x0E9644 - 0x0E7285
+    .incbin "cvaos_us_baserom.gba", 0x0E7285, 0x0E7314 - 0x0E7285
+
+    .global sMainMenuBgMap4
+sMainMenuBgMap4: @ 0x080E7314
+    .incbin "cvaos_us_baserom.gba", 0x0E7314, 0x0E73A4 - 0x0E7314
+
+    .global sMainMenuBgMap5
+sMainMenuBgMap5: @ 0x080E73A4
+    .incbin "cvaos_us_baserom.gba", 0x0E73A4, 0x0E7434 - 0x0E73A4
+
+    .global sMainMenuBgMap6
+sMainMenuBgMap6: @ 0x080E7434
+    .incbin "cvaos_us_baserom.gba", 0x0E7434, 0x0E74C4 - 0x0E7434
+
+    .global sSaveSelectBgMap
+sSaveSelectBgMap: @ 0x080E74C4
+    .incbin "cvaos_us_baserom.gba", 0x0E74C4, 0x0E7B54 - 0x0E74C4
+
+    .global sCreditsBgMap
+sCreditsBgMap: @ 0x080E7B54
+    .incbin "cvaos_us_baserom.gba", 0x0E7B54, 0x0E81E4 - 0x0E7B54
+
+    .global sCreditsBgMap2
+sCreditsBgMap2: @ 0x080E81E4
+    .incbin "cvaos_us_baserom.gba", 0x0E81E4, 0x0E8874 - 0x0E81E4
+
+    .global sCreditsBgMap3
+sCreditsBgMap3: @ 0x080E8874
+    .incbin "cvaos_us_baserom.gba", 0x0E8874, 0x0E8F04 - 0x0E8874
+
+    .global sCreditsBgMap4
+sCreditsBgMap4: @ 0x080E8F04
+    .incbin "cvaos_us_baserom.gba", 0x0E8F04, 0x0E8F94 - 0x0E8F04
+
+    .global sTitleScreenBgMap
+sTitleScreenBgMap: @ 0x080E8F94
+    .incbin "cvaos_us_baserom.gba", 0x0E8F94, 0x0E9024 - 0x0E8F94
+
+    .global sTitleScreenBgMap2
+sTitleScreenBgMap2: @ 0x080E9024
+    .incbin "cvaos_us_baserom.gba", 0x0E9024, 0x0E90B4 - 0x0E9024
+
+    .global sTitleScreenBgMap3
+sTitleScreenBgMap3: @ 0x080E90B4
+    .incbin "cvaos_us_baserom.gba", 0x0E90B4, 0x0E9244 - 0x0E90B4
+
+    .global sIntroCutsceneBgMap
+sIntroCutsceneBgMap: @ 0x080E9244
+    .incbin "cvaos_us_baserom.gba", 0x0E9244, 0x0E9354 - 0x0E9244
+
+    .global sIntroCutsceneBgMap2
+sIntroCutsceneBgMap2: @ 0x080E9354
+    .incbin "cvaos_us_baserom.gba", 0x0E9354, 0x0E9464 - 0x0E9354
+
+    .global sIntroCutsceneBgMap3
+sIntroCutsceneBgMap3: @ 0x080E9464
+    .incbin "cvaos_us_baserom.gba", 0x0E9464, 0x0E94F4 - 0x0E9464
+
+    .global sLicensedByNintendoBgMap
+sLicensedByNintendoBgMap: @ 0x080E94F4
+    .incbin "cvaos_us_baserom.gba", 0x0E94F4, 0x0E9584 - 0x0E94F4
+
+    .global sGameOverBgMap
+sGameOverBgMap: @ 0x080E9584
+    .incbin "cvaos_us_baserom.gba", 0x0E9584, 0x0E9614 - 0x0E9584
+
+    .global sKonamiLogoBgMap
+sKonamiLogoBgMap: @ 0x080E9614
+    .incbin "cvaos_us_baserom.gba", 0x0E9614, 0x0E9644 - 0x0E9614
 
     .global sEnemyData
 sEnemyData: @ 0x080E9644
@@ -59,7 +265,11 @@ sMapCellEdges: @ 0x08117DD0
 sGameFlagMapCoordinates: @ 0x081183B0
     .incbin "cvaos_us_baserom.gba", 0x1183B0, 0x1
 
-    .incbin "cvaos_us_baserom.gba", 0x1183B1, 0x43
+    .incbin "cvaos_us_baserom.gba", 0x1183B1, 0x1183CC - 0x1183B1
+
+    .global sMapScreenBgPalette
+sMapScreenBgPalette: @ 0x081183CC
+    .incbin "cvaos_us_baserom.gba", 0x1183CC, 0x1183F4 - 0x1183CC
 
     .global sTextBgPalette
 sTextBgPalette: @ 0x081183F4
@@ -99,7 +309,11 @@ sObject14Variant1SolidCallbacks: @ 0x08118578
 
     .global sUnk_08118590
 sUnk_08118590: @ 0x08118590
-    .incbin "cvaos_us_baserom.gba", 0x118590, 0x20
+    .incbin "cvaos_us_baserom.gba", 0x118590, 0x118598 - 0x118590
+
+    .global sObject17SolidCallbacks
+sObject17SolidCallbacks: @ 0x08118598
+    .incbin "cvaos_us_baserom.gba", 0x118598, 0x1185B0 - 0x118598
 
     .global sObject17Xs
 sObject17Xs: @ 0x081185B0
@@ -171,7 +385,11 @@ sEventScene03SpotsA: @ 0x081187AC
 
     .global sEventScene03SpotsB
 sEventScene03SpotsB: @ 0x081187D4
-    .incbin "cvaos_us_baserom.gba", 0x1187D4, 0x158
+    .incbin "cvaos_us_baserom.gba", 0x1187D4, 0x1188E4 - 0x1187D4
+
+    .global sEventScene15Periods
+sEventScene15Periods: @ 0x081188E4
+    .incbin "cvaos_us_baserom.gba", 0x1188E4, 0x11892C - 0x1188E4
 
     .global sEventScene19Gfx
 sEventScene19Gfx: @ 0x0811892C

@@ -104,19 +104,6 @@ extern void SkillKillerDollUse(struct EwramData_EntityData *entity);
 extern void SkillNemesisUse(struct EwramData_EntityData *entity);
 extern u8 RedSoul_FindFreeEntitySlot(void);
 
-struct RedSoulAttackView {
-    u8 pad_0[0xA - 0x0];
-    u16 baseAttack;
-};
-
-struct RedSoulActivationView {
-    void *updateFunc; // TODO: function signature
-    u16 castAnimKind;
-    s16 mpCost;
-    u8 pad_8[0xE - 0x8];
-    u16 param;
-};
-
 extern s32 RandomSigned(s32 range);
 extern void HomingSoulProjectile_OnPlayerContact(struct EwramData_EntityData *entity, struct EwramData_EntityData *unused); // defined with one parameter
 extern void Entity_PlaceRelativeTo(struct EwramData_EntityData *entity, struct EwramData_EntityData *anchor, s32 offsetX, s32 offsetY); // TODO: param_2/param_3 should be u16

@@ -168,7 +168,7 @@ void EventScene30_UpdateUnusedZoom(struct EwramData_EntityData *entity)
 extern struct RoomDefinition sEndingRoomDefinition;
 /**
  * @brief Unreferenced: load the graphics, palettes and BG layers (with their
- * initial scroll) of room 0x08522C54, the room the debug menu uses for
+ * initial scroll) of room sEndingRoomDefinition, the room the debug menu uses for
  * the ending events, without its entities.
  */
 void Room_LoadEndingRoomBackground(void)
@@ -204,7 +204,7 @@ void Room_LoadEndingRoomBackground(void)
     gEwramData->collisionBlocksActive=room->collisionBlocksEnabled;
     Collision_ClearAllBlocks();
     BgPalette_LoadRange(sTextBgPalette,0,1,14);
-    Text_SetTileBuffer((void *)0x06004000);
+    Text_SetTileBuffer((void *)(VRAM_BASE + 0x4000));
     Text_SetForegroundColor(8);Text_SetBackgroundColor(0);
 }
 

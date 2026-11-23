@@ -75,10 +75,20 @@ sUnk_084F13B4: @ 0x084F13B4
 
     .global sSkillGladiatorWalkProfile
 sSkillGladiatorWalkProfile: @ 0x084F13C8
-    .incbin "cvaos_us_baserom.gba", 0x4F13C8, 0x44
+    .incbin "cvaos_us_baserom.gba", 0x4F13C8, 0x4F13DC - 0x4F13C8
+
+    .global sSkillCreakingSkullFrames
+sSkillCreakingSkullFrames: @ 0x084F13DC
+    .incbin "cvaos_us_baserom.gba", 0x4F13DC, 0x4F13E8 - 0x4F13DC
+
+    .global sSkillCreakingSkullBiteFrames
+sSkillCreakingSkullBiteFrames: @ 0x084F13E8
+    .incbin "cvaos_us_baserom.gba", 0x4F13E8, 0x4F140C - 0x4F13E8
 
     .global sKeySouls
 sKeySouls: @ 0x084F140C
     .incbin "cvaos_us_baserom.gba", 0x4F140C, 0x2C
 
+    .global sJuliusHolyWaterFlameWalkProfile
+sJuliusHolyWaterFlameWalkProfile: @ 0x084F1438
     .incbin "cvaos_us_baserom.gba", 0x4F1438, 0x4F1444 - 0x4F1438

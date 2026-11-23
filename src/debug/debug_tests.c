@@ -21,6 +21,9 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "palette.h"
+#include "data/data_0E5364.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* Called with an argument, which the function ignores (bg_effects.h is not
  * included: it declares the function without parameters). */
@@ -149,7 +152,7 @@ void DebugBgDispTest_Update(struct DebugDisplayTestState *test)
 }
 
 /**
- * @brief Load the object graphics and room 0x0850F01C and create the
+ * @brief Load the object graphics and room sDebug4531Room and create the
  * DebugLinkTestWalker player stand-in.
  */
 void DebugLinkTest_Init(struct DebugDisplayTestState *test)
@@ -160,9 +163,9 @@ void DebugLinkTest_Init(struct DebugDisplayTestState *test)
     InGame_LoadCommonObjectGraphics();
 
     test->player = EntityCreate((u32 *) DebugLinkTestWalker_Update);
-    test->target.roomDefinition = (void*)0x0850F01C;
+    test->target.roomDefinition = (void*)sDebug4531Room;
     test->clearBgIndex = 1;
-    Room_Load((struct RoomDefinition *)0x0850F01C, 0, 0);
+    Room_Load((struct RoomDefinition *)sDebug4531Room, 0, 0);
     gEwramData->playerState.player = test->player;
     gEwramData->playerState.unk_131EA = 0x100;
     gEwramData->playerState.unk_131EC = 0x100;
@@ -174,14 +177,14 @@ void DebugLinkTest_Init(struct DebugDisplayTestState *test)
 }
 
 /**
- * @brief Load room 0x0850EF9C and create the DebugHitTestCursor.
+ * @brief Load room sDebugHitTestRoom and create the DebugHitTestCursor.
  */
 void DebugHitTest_Init(struct DebugDisplayTestState *test)
 {
     test->player = EntityCreate((u32 *) DebugHitTestCursor_Update);
-    test->target.roomDefinition = (void *)0x0850EF9C;
+    test->target.roomDefinition = (void *)sDebugHitTestRoom;
     test->clearBgIndex = 1;
-    Room_Load((struct RoomDefinition *)0x0850EF9C, 0, 0);
+    Room_Load((struct RoomDefinition *)sDebugHitTestRoom, 0, 0);
     gEwramData->playerState.player = test->player;
     gEwramData->playerState.unk_131EA = 0x100;
     gEwramData->playerState.unk_131EC = 0x100;
@@ -219,9 +222,9 @@ void DebugHitTestCursor_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
         case 0:
-            gfx = ObjGfx_LoadResource((u8 *)0x081CBF24, 0);
-            ObjPalette_LoadRange((u8 *)0x0820A3D8, 0, 1, 1);
-            Sprite_Attach(entity, (void *)0x082121F0, gfx, 1);
+            gfx = ObjGfx_LoadResource((u8 *)sDebugJitterSpriteGfx, 0);
+            ObjPalette_LoadRange((u8 *)sDebugJitterSpritePalette, 0, 1, 1);
+            Sprite_Attach(entity, (void *)sDebugJitterSpriteSheet, gfx, 1);
             Anim_SelectScript(entity, 0, 1);
             entity->posX.part16.integer = 0x64;
             entity->posY.part16.integer = 0x90;
@@ -479,9 +482,9 @@ void DebugLinkTestWalker_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
         case 0:
-            gfx = ObjGfx_LoadResource((u8 *)0x081CF0DC, 0x10000);
-            ObjPalette_LoadRange((u8 *)0x0820B11C, 0, 1, 1);
-            Sprite_Attach(entity, (void *)0x08231578, gfx, 1);
+            gfx = ObjGfx_LoadResource((u8 *)sDebugLinkTestWalkerGfx, 0x10000);
+            ObjPalette_LoadRange((u8 *)sDebugLinkTestWalkerPalette, 0, 1, 1);
+            Sprite_Attach(entity, (void *)sDebugLinkTestWalkerSpriteSheet, gfx, 1);
             Anim_StartIndexed(entity, 0, 0, 1);
 
             entity->posX.part16.integer = 0x64;
@@ -825,9 +828,9 @@ void DebugTestWalkerUnused_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
         case 0:
-            gfx = ObjGfx_LoadResource((u8 *)0x081CF0DC, 0x10000);
-            ObjPalette_LoadRange((u8 *)0x0820B11C, 0, 1, 1);
-            Sprite_Attach(entity, (void *)0x08231578, gfx, 1);
+            gfx = ObjGfx_LoadResource((u8 *)sDebugLinkTestWalkerGfx, 0x10000);
+            ObjPalette_LoadRange((u8 *)sDebugLinkTestWalkerPalette, 0, 1, 1);
+            Sprite_Attach(entity, (void *)sDebugLinkTestWalkerSpriteSheet, gfx, 1);
             Anim_StartIndexed(entity, 0, 0, 1);
 
             entity->posX.part16.integer = 0x64;
@@ -1060,11 +1063,11 @@ void DebugTestWalkerUnused_Update(struct EwramData_EntityData *entity)
 void DebugBgDispTest_Init(struct DebugDisplayTestState *test)
 {
     test->target.bgIndex = 2;
-    BgPalette_LoadRange((u8 *)0x080E537C, 0x10, 0xA, 0);
-    Gfx_CopyResourceBlocks((void *)0x080E5364, 0, 0, 4);
-    Gfx_CopyResourceBlocks((void *)0x080E536C, 4, 0, 4);
-    Gfx_CopyResourceBlocks((void *)0x080E5374, 8, 0, 4);
-    BgMap_Setup(test->target.bgIndex, (struct BgMapMetadata *)0x080E5BA0, 0, 0);
+    BgPalette_LoadRange((u8 *)sDebugBgDispTestBgPalette, 0x10, 0xA, 0);
+    Gfx_CopyResourceBlocks((void *)sDebugBgDispTestGfx, 0, 0, 4);
+    Gfx_CopyResourceBlocks((void *)sDebugBgDispTestGfx2, 4, 0, 4);
+    Gfx_CopyResourceBlocks((void *)sDebugBgDispTestGfx3, 8, 0, 4);
+    BgMap_Setup(test->target.bgIndex, (struct BgMapMetadata *)sDebugBgDispTestBgMap, 0, 0);
 }
 
 /**

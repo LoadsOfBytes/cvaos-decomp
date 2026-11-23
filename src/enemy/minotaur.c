@@ -156,7 +156,7 @@ void MinotaurSwingTrail_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if (!Entity_LoadGraphics(entity, (void *)0x081E41A4, (void *)0x0820B7B0, 0, (void *)0x0823AE10))
+        if (!Entity_LoadGraphics(entity, (void *)sMinotaurGfx, (void *)sMinotaurPalette, 0, (void *)sMinotaurSpriteSheet))
             goto delete;
         slot = ObjAffine_Alloc(1);
         if ((s16)slot < 0)

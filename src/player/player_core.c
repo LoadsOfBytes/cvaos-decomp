@@ -272,7 +272,7 @@ void Player_SetContactImmunity(s32 immunityValue)
 u16 Player_CalculateAttackPower(u16 attackCategory)
 {
     u32 power;
-    struct RedSoulAttackView *info;
+    const struct RedSoulInfo *info;
 
     if (attackCategory == 3)
     {
@@ -283,7 +283,7 @@ u16 Player_CalculateAttackPower(u16 attackCategory)
     {
         if (gEwramData->gameState.linkPlay == 0)
         {
-            info = (struct RedSoulAttackView *)RedSoul_GetLastUsedInfo();
+            info = RedSoul_GetLastUsedInfo();
             power = ((gEwramData->playerState.currentStats[0] * info->baseAttack) / 10) + (gEwramData->playerState.currentStats[2] >> 2) + (info->baseAttack * 4) + (info->baseAttack * 2);
         }
         else
@@ -1760,7 +1760,7 @@ void JuliusWhipAttack_Update(struct EwramData_EntityData *entity)
                 entity->timer -= 1;
                 if (entity->timer == 0)
                 {
-                    // Original reads the 2-entry table at 0x084F126C, not sWeaponSwingSounds (draft bug).
+                    // Original reads the 2-entry table at sJuliusWhipSounds, not sWeaponSwingSounds (draft bug).
                     PlaySong(sJuliusWhipSounds[RandomNumberGenerator() & 1]);
                 }
             }

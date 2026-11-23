@@ -13,6 +13,7 @@
 #include "obj_gfx.h"
 #include "palette.h"
 #include "data/data_0E5364.h"
+#include "data/data_118B48.h"
 
 /* Called with int arguments (the u16/u8 parameters in bg_and_collision.h would truncate them). */
 extern u16 *BgCmdBuffer_WriteString(s32 tileIndex, s32 rowOffset, s32 tileInfo, const u8 *string);
@@ -348,7 +349,7 @@ void ItemIconCache_Init(void)
 {
     s32 i;
 
-    gEwramData->itemIconGfxEntry = ObjGfx_Find((u8 *)0x081C15F4);
+    gEwramData->itemIconGfxEntry = ObjGfx_Find((u8 *)sCommonObjectGfx);
     gEwramData->itemIconCacheFlags = 1;
 
     for (i = 0; i <= 7; i++)
@@ -362,9 +363,9 @@ void ItemIconCache_Init(void)
 }
 
 void *sItemIconSheetData[] = {
-    [0] = (void*)0x081C5E00,
-    [1] = (void*)0x081C7E04,
-    [2] = (void*)0x081C9E08
+    [0] = (void*)sItemIconSheet0,
+    [1] = (void*)sItemIconSheet1,
+    [2] = (void*)sItemIconSheet2
 };
 
 /**

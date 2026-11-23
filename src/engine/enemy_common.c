@@ -924,7 +924,7 @@ s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, struct EwramData_Enti
         effect = 0;
     }
     ShowHit(other, entity, effect);
-    Hud_RequestEnemyName((struct EnemyHudNameView *)entity);
+    Hud_RequestEnemyName(entity);
     return damage;
 }
 

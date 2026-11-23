@@ -21,7 +21,23 @@ sSomaAnimPalettes: @ 0x080E126C
 
     .global sUnk_080E12C8
 sUnk_080E12C8: @ 0x080E12C8
-    .incbin "cvaos_us_baserom.gba", 0xE12C8, 0x30
+    .incbin "cvaos_us_baserom.gba", 0x0E12C8, 0x0E12DC - 0x0E12C8
+
+    .global sSomaWallProbesStand
+sSomaWallProbesStand: @ 0x080E12DC
+    .incbin "cvaos_us_baserom.gba", 0x0E12DC, 0x0E12EA - 0x0E12DC
+
+    .global sSomaWallProbesBat
+sSomaWallProbesBat: @ 0x080E12EA
+    .incbin "cvaos_us_baserom.gba", 0x0E12EA, 0x0E12EF - 0x0E12EA
+
+    .global sSomaWallProbesDash
+sSomaWallProbesDash: @ 0x080E12EF
+    .incbin "cvaos_us_baserom.gba", 0x0E12EF, 0x0E12F4 - 0x0E12EF
+
+    .global sSomaOffsets
+sSomaOffsets: @ 0x080E12F4
+    .incbin "cvaos_us_baserom.gba", 0x0E12F4, 0x0E12F8 - 0x0E12F4
 
     .global sSomaStandingBodyBox
 sSomaStandingBodyBox: @ 0x080E12F8
@@ -81,7 +97,11 @@ sSkillProjectileLaunchVelocities: @ 0x080E1A64
 
     .global sBlueSoulForms
 sBlueSoulForms: @ 0x080E1A74
-    .incbin "cvaos_us_baserom.gba", 0xE1A74, 0x84
+    .incbin "cvaos_us_baserom.gba", 0x0E1A74, 0x0E1AA8 - 0x0E1A74
+
+    .global sSkillCreakingSkullAngles
+sSkillCreakingSkullAngles: @ 0x080E1AA8
+    .incbin "cvaos_us_baserom.gba", 0x0E1AA8, 0x0E1AF8 - 0x0E1AA8
 
     .global sUnk_080E1AF8
 sUnk_080E1AF8: @ 0x080E1AF8

@@ -785,6 +785,10 @@ union EntityWork {
     struct SoulTradeWork soulTrade;
     struct SoundTestTextWork soundTestText;
     struct SoundTestMenuWork soundTestMenu;
+    struct MenuListWork menuList;
+    struct MenuListUWork menuListU;
+    struct ButtonConfigPageWork buttonConfigPage;
+    struct ShopPageWork shopPage;
     struct ItemIconWork itemIcon;
     struct StatusIconWork statusIcon;
     struct WeaponWork weapon;
@@ -930,6 +934,7 @@ union EntityCommonView {
     u16 uhalf;
     struct EwramData_EntityData *ptr;
     u8 bytes[4];
+    s8 sbytes[4];
     struct { s16 low; u16 high; } halves;
 };
 #define ENTITY_COMMON_VIEW(e, member) ((union EntityCommonView *)&(e)->member)
@@ -1174,7 +1179,9 @@ struct GameState {
     /* 0x0042C */ u32 stateFlags; /* runtime flags: bit 0 event running, 2 boss fight, 0x10 player dead,
                                    * 0x20 HUD hidden, 0x80 banner, 0x200 HUD messages blocked,
                                    * 0x01000000 large message window open, 0x02000000 window closed */
-    /* 0x00430 */ u8 pad_430[0x4BE - 0x430];
+    /* 0x00430 */ u8 shopId; /* shop mode: which shop (Shop_UpdateList) */
+    /* 0x00431 */ u8 shopRowQuantities[0x80]; /* shop mode: quantity chosen in each list row */
+    /* 0x004B1 */ u8 pad_4B1[0x4BE - 0x4B1];
     /* 0x004BE */ s16 timeStopTimer; // Chronomage countdown; nonzero pauses affected entities
     /* 0x004C0 */ u8 screenShakePriority;
     /* 0x004C1 */ u8 screenShakeTimer;

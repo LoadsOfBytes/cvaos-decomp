@@ -35,10 +35,11 @@ Measured on 2026-11-23 from the build output and source scans.
 | All ROM code (`.text`) from C | **97.06 %** (891,340 / 918,324 B) – the rest is platform code normally kept in assembly (`crt0`, `m4a` mixer, BIOS stubs, header) and libgcc/libc |
 | Functions named | ✅ **100 %** (3,842 / 3,842) |
 | Local variables and parameters named | ✅ **100 %** (16,255 / 16,255) |
-| Structure fields named | 🔄 **96.5 %** (3,288 / 3,409 declared; 99.9 % of accesses) – most of the rest are the offset-named slots of the raw work-area view |
-| Entity work area as typed structures | 🔄 364 per-type structures; 23 lines and 6 macros still use the raw offset view |
+| Structure fields named | 🔄 **96.5 %** (3,173 / 3,288 declared; 99.9 % of accesses) – most of the rest are the offset-named slots of the raw work-area view |
+| Entity work area as typed structures | 🔄 368 per-type structures; 23 lines and 6 macros still use the raw offset view |
 | Source files grouped into modules | 🔄 **95 %** – the 1,701 ROM-address files (`code_XXXXXXXX.c`) are 172 named files: 163 complete modules and 9 small files still split off only for build reasons (see *File layout*); no `code_XXXXXXXX` name left |
 | Declarations in headers | 🔄 each module's functions used by other files are declared in `include/<module>.h`; no implicit declarations; 111 functions keep caller-specific prototypes; ROM data declared in `include/data/` (18 tables still local; see *Known limitations*) |
+| Hard-coded addresses | ✅ none for ROM data and RAM variables – every table, graphics, palette, map and room used from C is referenced by a symbol (223 data labels added); 28 lines still compute VRAM addresses with integer arithmetic |
 | Removing compiler tricks (`FAKEMATCH`) | 🔄 275 lines left in 73 of 181 C files |
 
 ## How this fork was made
@@ -64,7 +65,10 @@ name or comment describes the game correctly. Corrections are very welcome.
   code did not contain them; each is marked `/* FAKEMATCH: reason */` and was tested
   to be necessary.
 - **Matching-driven style** – some functions use `goto`, odd temporaries or casts to
-  reproduce the original instruction order.
+  reproduce the original instruction order. Where the original code read the same
+  bytes both signed and unsigned, two structures describe them (e.g. `MenuListWork` /
+  `MenuListUWork`); four file-local views remain (`CameraXView`, `Object13ArmView`,
+  `SingleSpriteOamView`, `SoulTypeIcons`).
 - **Entity work area** – the per-entity area `0x4F4` … `0x50F` is a
   `union EntityWork` with one structure per entity type
   (`include/structs/entity_work.h`). The split is reconstructed from usage; a few

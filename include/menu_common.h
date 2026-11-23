@@ -7,9 +7,8 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-struct MenuPage;
 
-extern void MenuList_DrawScrollArrows(struct MenuPage *page, s32 raised);
+extern void MenuList_DrawScrollArrows(struct EwramData_EntityData *page, s32 raised);
 extern void Menu_DrawHpMpBars(s32 x, s32 y);
 extern void Menu_DrawCurrentStats(s32 x, s32 y);
 extern void Menu_DrawAttackDefense(s32 x, s32 y);

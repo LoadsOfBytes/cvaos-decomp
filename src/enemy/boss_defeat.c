@@ -24,6 +24,7 @@
 #include "palette.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "structs/entity_template.h"
 
 /* BossDefeatParticle_Update (effect). */
 
@@ -738,15 +739,7 @@ void Chaos_SpawnDefeatEffect(s32 x, s32 y)
 }
 
 /* SoulPickup_SpawnFromEnemyDefinition / BossRecoveryPickup_Draw. */
-/* Entity definitions (0x24 bytes each); only the bytes used here named. */
-struct EnemySoulDropView {
-    u8 pad_0[0x17];
-    u8 soulType;
-    u8 oneBasedSoulId;
-    u8 pad_19[0x24 - 0x19];
-};
 
-extern struct EnemySoulDropView sEnemyData[];
 extern struct EwramData_EntityData *SoulPickup_Create(s16 x, s16 y, s32 palette, s32 soulId, s32 stationary);
 
 /**
@@ -754,9 +747,9 @@ extern struct EwramData_EntityData *SoulPickup_Create(s16 x, s16 y, s32 palette,
  */
 void SoulPickup_SpawnFromEnemyDefinition(u16 x, u16 y, s32 enemyId, s32 spawnParam)
 {
-    struct EnemySoulDropView *enemyDef = &sEnemyData[enemyId];
+    struct EntityTemplate *enemyDef = &sEnemyData[enemyId];
     u8 palette = enemyDef->soulType;
-    u8 soulId = enemyDef->oneBasedSoulId;
+    u8 soulId = enemyDef->soulIndex;
 
     if (gEwramData->gameState.bossRushMode == 0 && gEwramData->playerStatus.currentCharacter == 0)
     {

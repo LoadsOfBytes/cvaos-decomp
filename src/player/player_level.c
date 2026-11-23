@@ -29,6 +29,10 @@
 #include "red_souls_b.h"
 #include "music.h"
 #include "blue_souls.h"
+#include "data/data_0E0B68.h"
+#include "data/data_118B48.h"
+#include "data/data_4F0B18.h"
+#include "debug_1967.h"
 
 static inline s32 Player_GetExperienceForLevelInline(s32 level)
 {
@@ -204,8 +208,8 @@ void LinkPartner_Create(void)
 
     child = EntityCreateInRange(0, 1, (u32 *) LinkPartner_Update);
     gEwramData->playerState.blueSoulGfx = (u32) ObjGfx_LoadResource((u8 *)sUnk_080E1E1C, 0x10000);
-    ObjPalette_LoadRange((u8 *)0x082097D4, 6U, 1U, 3U);
-    Sprite_Attach(child, (u8 *)0x080E11C4, (s32) gEwramData->playerState.blueSoulGfx, 3);
+    ObjPalette_LoadRange((u8 *)sSomaPalette, 6U, 1U, 3U);
+    Sprite_Attach(child, (u8 *)sSomaSpriteSheet, (s32) gEwramData->playerState.blueSoulGfx, 3);
     child->spriteLayer = 0xF;
     child->roomActive = 1;
     child->ext.player.weaponSlot = 1;
@@ -565,8 +569,8 @@ void Julius_UpdateSubweaponIcon(struct EwramData_EntityData *entity)
         case 0:
             entity->posX.part16.integer = 0x78;
             entity->posY.part16.integer = 0xC;
-            gEwramData->playerState.redSoulGfx = ObjGfx_LoadResource((u8 *)0x081FA2B8, 0x10000);
-            Sprite_Attach(entity, (u8 *)0x08252CCC, gEwramData->playerState.redSoulGfx, 3);
+            gEwramData->playerState.redSoulGfx = ObjGfx_LoadResource((u8 *)sJuliusGfx, 0x10000);
+            Sprite_Attach(entity, (u8 *)sJuliusSpriteSheet2, gEwramData->playerState.redSoulGfx, 3);
             entity->subState = gEwramData->playerStatus.equippedRedSoul;
             entity->animFrame = sJuliusSubweaponIcons[entity->subState].frame;
             entity->palette = sJuliusSubweaponIcons[entity->subState].palette;
@@ -606,7 +610,7 @@ void Julius_HandleSubweaponInput(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *child;
     s8 slot;
-    struct RedSoulActivationView *info;
+    const struct RedSoulInfo *info;
 
     if (entity->ext.player.actionFlags & 0x540)
     {
@@ -623,7 +627,7 @@ void Julius_HandleSubweaponInput(struct EwramData_EntityData *entity)
         return;
     }
 
-    info = (struct RedSoulActivationView *)RedSoul_GetInfo(gEwramData->playerStatus.equippedRedSoul);
+    info = RedSoul_GetInfo(gEwramData->playerStatus.equippedRedSoul);
     if (gEwramData->playerState.nbrActiveRedSoulEntities == 0)
     {
         if (gEwramData->playerState.lastUsedRedSoul != gEwramData->playerStatus.equippedRedSoul)
@@ -726,8 +730,8 @@ void JuliusCross_Update(struct EwramData_EntityData *entity)
                 break;
             }
 
-            gEwramData->playerState.redSoulGfx = ObjGfx_LoadResource((u8 *)0x081FA2B8, 0x10000);
-            Sprite_Attach(entity, (u8 *)0x08252CCC, (s32) gEwramData->playerState.redSoulGfx, 3);
+            gEwramData->playerState.redSoulGfx = ObjGfx_LoadResource((u8 *)sJuliusGfx, 0x10000);
+            Sprite_Attach(entity, (u8 *)sJuliusSpriteSheet2, (s32) gEwramData->playerState.redSoulGfx, 3);
             entity->animFrame = 1;
             entity->drawFunc = (u32 *) Sprite_DrawEntity;
             entity->spriteLayer = 0xD;
@@ -831,8 +835,8 @@ void JuliusHolyWaterFlame_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
         case 0:
-            gEwramData->playerState.redSoulGfx = ObjGfx_LoadResource((u8 *)0x081FA2B8, 0x10000);
-            Sprite_Attach(entity, (u8 *)0x08252CCC, gEwramData->playerState.redSoulGfx, 3);
+            gEwramData->playerState.redSoulGfx = ObjGfx_LoadResource((u8 *)sJuliusGfx, 0x10000);
+            Sprite_Attach(entity, (u8 *)sJuliusSpriteSheet2, gEwramData->playerState.redSoulGfx, 3);
             Anim_StartIndexed(entity, 2, 0, 0);
             entity->drawFunc = (u32 *) Sprite_DrawEntity;
             entity->spriteLayer = 0xD;
@@ -842,7 +846,7 @@ void JuliusHolyWaterFlame_Update(struct EwramData_EntityData *entity)
             entity->state += 1;
             /* fallthrough */
         case 1:
-            Entity_Walk(entity, -entity->ext.subweapon.walkSpeed, (void *)0x084F1438, 0xC);
+            Entity_Walk(entity, -entity->ext.subweapon.walkSpeed, (void *)sJuliusHolyWaterFlameWalkProfile, 0xC);
             if (Anim_Update(entity) == 3)
             {
                 RedSoul_RemoveActiveEntity(entity);
@@ -894,8 +898,8 @@ void JuliusHolyWater_Update(struct EwramData_EntityData *entity)
                 entity->timer -= 1;
                 break;
             }
-            gEwramData->playerState.redSoulGfx = ObjGfx_LoadResource((u8 *)0x081FA2B8, 0x10000);
-            Sprite_Attach(entity, (u8 *)0x08252CCC, gEwramData->playerState.redSoulGfx, 3);
+            gEwramData->playerState.redSoulGfx = ObjGfx_LoadResource((u8 *)sJuliusGfx, 0x10000);
+            Sprite_Attach(entity, (u8 *)sJuliusSpriteSheet2, gEwramData->playerState.redSoulGfx, 3);
             entity->animFrame = 2;
             entity->drawFunc = (u32 *) Sprite_DrawEntity;
             entity->spriteLayer = 0xD;
@@ -909,7 +913,7 @@ void JuliusHolyWater_Update(struct EwramData_EntityData *entity)
             break;
 
         case 2:
-            walkResult = Entity_Walk(entity, -entity->ext.subweapon.walkSpeed, (void *)0x084F1438, 8);
+            walkResult = Entity_Walk(entity, -entity->ext.subweapon.walkSpeed, (void *)sJuliusHolyWaterFlameWalkProfile, 8);
             if (walkResult & 3)
             {
                 entity->ext.subweapon.walkSpeed = 0;
@@ -968,8 +972,8 @@ void JuliusAxeProjectile_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
         case 0:
-            gEwramData->playerState.redSoulGfx = ObjGfx_LoadResource((u8 *)0x081FA2B8, 0x10000);
-            Sprite_Attach(entity, (u8 *)0x08252CCC, gEwramData->playerState.redSoulGfx, 2);
+            gEwramData->playerState.redSoulGfx = ObjGfx_LoadResource((u8 *)sJuliusGfx, 0x10000);
+            Sprite_Attach(entity, (u8 *)sJuliusSpriteSheet2, gEwramData->playerState.redSoulGfx, 2);
             entity->animFrame = 0;
             entity->drawFunc = (u32 *) Sprite_DrawEntity;
             entity->spriteLayer = 0xD;
@@ -1134,8 +1138,8 @@ void JuliusGrandCross_Update(struct EwramData_EntityData *entity)
                 break;
             }
 
-            gEwramData->playerState.redSoulGfx = ObjGfx_LoadResource((u8 *)0x081FA2B8, 0x10000);
-            Sprite_Attach(entity, (u8 *)0x08252CCC, gEwramData->playerState.redSoulGfx, 3);
+            gEwramData->playerState.redSoulGfx = ObjGfx_LoadResource((u8 *)sJuliusGfx, 0x10000);
+            Sprite_Attach(entity, (u8 *)sJuliusSpriteSheet2, gEwramData->playerState.redSoulGfx, 3);
             Anim_StartIndexed(entity, 0, 0, 1);
             entity->drawFunc = (u32 *) Sprite_DrawEntity;
             entity->spriteLayer = 0xF;
@@ -1251,7 +1255,7 @@ struct Unk_080E1ED8* Julius_GetSubweaponInfo(u8 subweapon)
 }
 
 /**
- * @brief Unreferenced: load the Julius overlay graphics (0x081FA2B8) and attach
+ * @brief Unreferenced: load the Julius overlay graphics (sJuliusGfx) and attach
  * its sprite with palette 2, or 3 when the flag is set.
  */
 void JuliusOverlay_AttachSprite(struct EwramData_EntityData *entity, s32 altPalette)
@@ -1259,12 +1263,12 @@ void JuliusOverlay_AttachSprite(struct EwramData_EntityData *entity, s32 altPale
     s32 palette;
 
     palette = 2;
-    gEwramData->playerState.redSoulGfx = ObjGfx_LoadResource((u8 *)0x081FA2B8, 0x10000);
+    gEwramData->playerState.redSoulGfx = ObjGfx_LoadResource((u8 *)sJuliusGfx, 0x10000);
     if (altPalette != 0)
     {
         palette = 3;
     }
-    Sprite_Attach(entity, (u8 *)0x08252CCC, gEwramData->playerState.redSoulGfx, palette);
+    Sprite_Attach(entity, (u8 *)sJuliusSpriteSheet2, gEwramData->playerState.redSoulGfx, palette);
 }
 
 /**
@@ -1476,7 +1480,7 @@ struct EwramData_EntityData* Whip_CreateChain(s32 x, s32 y, u8 *resource, struct
     }
 
     gfx = ObjGfx_Find(resource);
-    Sprite_Attach(chain, (void *)0x08252CCC, gfx, 0U);
+    Sprite_Attach(chain, (void *)sJuliusSpriteSheet2, gfx, 0U);
 
     chain->animFrame = 3;
     chain->spriteLayer = 0xE;
@@ -1496,8 +1500,8 @@ struct EwramData_EntityData* Julius_CreateOverlaySprite(void)
     s32 gfx;
 
     child = EntityCreateInRange(2, 0x10, (u32*)&JuliusOverlay_Update);
-    gfx = ObjGfx_Find((u8 *)0x081FA2B8);
-    Sprite_Attach(child, (void *)0x08252CCC, gfx, 0);
+    gfx = ObjGfx_Find((u8 *)sJuliusGfx);
+    Sprite_Attach(child, (void *)sJuliusSpriteSheet2, gfx, 0);
     child->spriteLayer = 0xD;
     child->roomActive = 1;
     return child;
@@ -1740,14 +1744,14 @@ void DebugPlatform_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
         case 0:
-            gfx = ObjGfx_LoadResource((u8 *)0x081CBE14, 0);
-            paletteIndex = ObjPalette_FindOrLoad((void *)0x08209C64);
-            Sprite_Attach(entity, (void *)0x0820F18C, gfx, paletteIndex);
+            gfx = ObjGfx_LoadResource((u8 *)sPushBlockGroupGfx, 0);
+            paletteIndex = ObjPalette_FindOrLoad((void *)sPushBlockGroupPalette);
+            Sprite_Attach(entity, (void *)sPushBlockGroupSpriteSheet, gfx, paletteIndex);
 
             entity->animFrame = 0;
             entity->scrollWithBg = 1;
             entity->drawFunc = (u32 *) Sprite_DrawEntity;
-            Player_RegisterSolidObject(entity, (void *)0x080E1F74);
+            Player_RegisterSolidObject(entity, (void *)sUnk_080E1F74);
             entity->roomActive = 1;
             entity->state += 1;
             /* fallthrough */

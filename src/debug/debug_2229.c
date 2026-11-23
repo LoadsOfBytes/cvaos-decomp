@@ -18,6 +18,8 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "palette.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /**
  * @brief 36670 | Handle debug 2229 game mode
@@ -30,7 +32,7 @@ s32 GameModeDebug2229Update(void)
     {
         case 0:
             gEwramData->gameModeSubStage = 1;
-            gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)0x08518710;
+            gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)sDebug2229Room;
             InGame_InitScene();
             ScreenShake_Clear();
             break;
@@ -83,11 +85,11 @@ void DebugJitterSprite_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
         case 0:
-            gfx = ObjGfx_LoadResource((u8 *)0x081CBF24, 0);
+            gfx = ObjGfx_LoadResource((u8 *)sDebugJitterSpriteGfx, 0);
             if (gfx >= 0)
             {
-                ObjPalette_LoadRange((u8 *)0x0820A3D8, 0, 1, 2);
-                Sprite_Attach(entity, (void *)0x082121F0, gfx, 2);
+                ObjPalette_LoadRange((u8 *)sDebugJitterSpritePalette, 0, 1, 2);
+                Sprite_Attach(entity, (void *)sDebugJitterSpriteSheet, gfx, 2);
                 Anim_SelectScript(entity, 0, 1);
                 entity->drawFunc = (u32 *) Sprite_DrawEntity;
                 entity->posX.part16.integer = 0x96;

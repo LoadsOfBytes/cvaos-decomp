@@ -204,7 +204,7 @@ void Player_Create(s32 unused)
     player->spriteLayer = 0xE;
     player->ext.player.actionFlags = 0x300000;
     /* address of the default wall probe offset list (s8 offsets) */
-    player->ext.player.wallProbes = 0x080E12DC;
+    player->ext.player.wallProbes = (u32)sSomaWallProbesStand;
 
     Player_CopyBaseStats();
     gEwramData->playerState.cameraAnchorX = 0x78;
@@ -946,7 +946,7 @@ void Soma_ResolveWorldCollision(struct EwramData_EntityData *entity)
 }
 
 /* Soma bat-form exit collision (floor probe at y + 7, two ceiling probes,
- * walls from the offset table at 0x080E12F4 with bounce). Helpers copied
+ * walls from the offset table at sSomaOffsets with bounce). Helpers copied
  * from this file. */
 
 /* Function table of the object in solidObject (pointer at its unk_4F4). */
@@ -956,7 +956,7 @@ void Soma_ResolveWorldCollision(struct EwramData_EntityData *entity)
 /**
  * @brief Push the player out of terrain when leaving bat state 8:
  * floor probe at +7 px, ceiling probes at -15/-31 px and walls
- * at +-8 px from the 0x080E12F4 offsets. A wall bounce reverses and
+ * at +-8 px from the sSomaOffsets offsets. A wall bounce reverses and
  * quarters velX unless flag 0x80 is set; sets wall-contact bit 0x40000.
  */
 void Soma_ResolveBatExitCollision(struct EwramData_EntityData *entity)
@@ -1005,7 +1005,7 @@ void Soma_ResolveBatExitCollision(struct EwramData_EntityData *entity)
 
 walls:
     probe = 0;
-    offsets = (s8 *)0x080E12F4;
+    offsets = (s8 *)sSomaOffsets;
     count = offsets[0];
     for (i = 0; i < count; i++)
     {
@@ -1281,7 +1281,7 @@ s32 Soma_TryCeilingImpact(struct EwramData_EntityData *entity)
 
 /* Soma_TryStartDiveAttack. */
 
-/* Animation switch as in Soma_UpdateStatusReaction, with the 0x080E12FC hitbox and flag 1. */
+/* Animation switch as in Soma_UpdateStatusReaction, with the sSomaAirborneBodyBox hitbox and flag 1. */
 static inline void SetSlideAnim(struct EwramData_EntityData *entity, s32 anim)
 {
     struct PlayerBodyBox box = sSomaAirborneBodyBox[0];
@@ -1895,7 +1895,7 @@ static inline void SetPlayerAnimBox2(struct EwramData_EntityData *entity, u8 ani
  */
 void Soma_CastEquippedRedSoul(struct EwramData_EntityData *entity, s32 noAnim)
 {
-    struct RedSoulActivationView *info = (struct RedSoulActivationView *)RedSoul_GetInfo(gEwramData->playerStatus.equippedRedSoul);
+    const struct RedSoulInfo *info = RedSoul_GetInfo(gEwramData->playerStatus.equippedRedSoul);
     struct EwramData_EntityData *soul;
     s8 slot;
     u8 anim;
@@ -2216,7 +2216,7 @@ void Soma_UpdateStatusReaction(struct EwramData_EntityData *entity)
 
 /* Soma_HandleBatFlightInput. */
 
-/* Animation switch as in Soma_UpdateStatusReaction, with the 0x080E1308 hitbox, flag 1 and
+/* Animation switch as in Soma_UpdateStatusReaction, with the sSomaBatFormBodyBoxes hitbox, flag 1 and
  * the saved animStep restored afterwards. */
 static inline void SetFlyAnim(struct EwramData_EntityData *entity, s32 anim, u8 saved)
 {
@@ -2251,7 +2251,7 @@ void Soma_HandleBatFlightInput(struct EwramData_EntityData *entity)
     u16 key2;
     s32 old, new;
 
-    entity->ext.player.wallProbes = 0x080E12EA;
+    entity->ext.player.wallProbes = (u32)sSomaWallProbesBat;
     if ((key = gEwramData->inputData.playerHeldInput & 0x20))
     {
         entity->flipX = 1;
@@ -2352,7 +2352,7 @@ void Soma_UpdateBatForm(struct EwramData_EntityData *entity)
         entity->accelY.whole = 0;
         FLAGS(entity) &= ~0x200000;
         FLAGS(entity) &= 0xEFFFFE9F;
-        entity->ext.player.wallProbes = 0x080E12EA;
+        entity->ext.player.wallProbes = (u32)sSomaWallProbesBat;
         Soma_ResolveBatExitCollision(entity);
         if (FLAGS(entity) & 0x01000080)
             entity->state = 0;
@@ -2430,7 +2430,7 @@ void Soma_UpdateBatForm(struct EwramData_EntityData *entity)
     done_x:
         entity->velY.whole = 0;
         entity->accelY.whole = 0;
-        entity->ext.player.wallProbes = 0x080E12EA;
+        entity->ext.player.wallProbes = (u32)sSomaWallProbesBat;
         Soma_ResolveBatExitCollision(entity);
         if (!(FLAGS(entity) & 0x200000))
             return;
@@ -2670,7 +2670,7 @@ void Soma_UpdateTransformationDash(struct EwramData_EntityData *entity)
                 speed = -speed;
             if ((FLAGS(entity) & 0x1400000) == 0x1000000 && speed > 0xC000 && !(entity->timer & 3))
                 Player_SpawnSurfaceEffect(1);
-            entity->ext.player.wallProbes = 0x080E12EF;
+            entity->ext.player.wallProbes = (u32)sSomaWallProbesDash;
             Soma_UpdateVerticalMovement(entity);
         }
         x = GetEntityRoomXPositionInteger(entity);

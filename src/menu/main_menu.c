@@ -26,6 +26,7 @@
 #include "pause_menu.h"
 #include "text12.h"
 #include "data/data_0E5364.h"
+#include "data/data_118B48.h"
 
 // TODO: HudMap_WriteTiles is implicitly called in other files, except this one
 extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
@@ -74,93 +75,93 @@ struct SaveMenuSpriteResources {
 
 const struct SaveMenuSpriteResources sSaveMenuSpriteResources[] = {
     [0] = {
-        .spriteSheet = (u32*)0x082571E0,
-        .graphics = (u32*)0x082052D8,
+        .spriteSheet = (u32*)sSaveMenuSpriteSheet0,
+        .graphics = (u32*)sMenuCursorGfx,
         .paletteIndex = 1
     },
     [1] = {
-        .spriteSheet = (u32*)0x082571E0,
-        .graphics = (u32*)0x082052D8,
+        .spriteSheet = (u32*)sSaveMenuSpriteSheet0,
+        .graphics = (u32*)sMenuCursorGfx,
         .paletteIndex = 2
     },
     [2] = {
-        .spriteSheet = (u32*)0x08259120,
-        .graphics = (u32*)0x082052E0,
+        .spriteSheet = (u32*)sSaveMenuSpriteSheet2,
+        .graphics = (u32*)sSaveMenuSpriteGfx2,
         .paletteIndex = 7
     },
     [3] = {
-        .spriteSheet = (u32*)0x08267A38,
-        .graphics = (u32*)0x080E5BC0,
+        .spriteSheet = (u32*)sSaveMenuSpriteSheet3,
+        .graphics = (u32*)sSaveMenuSpriteGfx3,
         .paletteIndex = 5
     },
     [4] = {
-        .spriteSheet = (u32*)0x08267A38,
-        .graphics = (u32*)0x080E5BC0,
+        .spriteSheet = (u32*)sSaveMenuSpriteSheet3,
+        .graphics = (u32*)sSaveMenuSpriteGfx3,
         .paletteIndex = 15
     },
     [5] = {
-        .spriteSheet = (u32*)0x082571E0,
-        .graphics = (u32*)0x082052D8,
+        .spriteSheet = (u32*)sSaveMenuSpriteSheet0,
+        .graphics = (u32*)sMenuCursorGfx,
         .paletteIndex = 14
     },
     [6] = {
-        .spriteSheet = (u32*)0x082571E0,
-        .graphics = (u32*)0x0827798C,
+        .spriteSheet = (u32*)sSaveMenuSpriteSheet0,
+        .graphics = (u32*)sMenuCursorGfxLanguage2,
         .paletteIndex = 1
     },
     [7] = {
-        .spriteSheet = (u32*)0x082571E0,
-        .graphics = (u32*)0x0827798C,
+        .spriteSheet = (u32*)sSaveMenuSpriteSheet0,
+        .graphics = (u32*)sMenuCursorGfxLanguage2,
         .paletteIndex = 2
     },
     [8] = {
-        .spriteSheet = (u32*)0x08259120,
-        .graphics = (u32*)0x0827AA14,
+        .spriteSheet = (u32*)sSaveMenuSpriteSheet2,
+        .graphics = (u32*)sSaveMenuSpriteGfx8,
         .paletteIndex = 7
     },
     [9] = {
-        .spriteSheet = (u32*)0x08267A38,
-        .graphics = (u32*)0x08277994,
+        .spriteSheet = (u32*)sSaveMenuSpriteSheet3,
+        .graphics = (u32*)sSaveMenuSpriteGfx9,
         .paletteIndex = 5
     },
     [10] = {
-        .spriteSheet = (u32*)0x08267A38,
-        .graphics = (u32*)0x08277994,
+        .spriteSheet = (u32*)sSaveMenuSpriteSheet3,
+        .graphics = (u32*)sSaveMenuSpriteGfx9,
         .paletteIndex = 15
     },
     [11] = {
-        .spriteSheet = (u32*)0x082571E0,
-        .graphics = (u32*)0x0827798C,
+        .spriteSheet = (u32*)sSaveMenuSpriteSheet0,
+        .graphics = (u32*)sMenuCursorGfxLanguage2,
         .paletteIndex = 14
     },
     [12] = {
-        .spriteSheet = (u32*)0x082571E0,
-        .graphics = (u32*)0x0826C840,
+        .spriteSheet = (u32*)sSaveMenuSpriteSheet0,
+        .graphics = (u32*)sMenuCursorGfxLanguage3,
         .paletteIndex = 1
     },
     [13] = {
-        .spriteSheet = (u32*)0x082571E0,
-        .graphics = (u32*)0x0826C840,
+        .spriteSheet = (u32*)sSaveMenuSpriteSheet0,
+        .graphics = (u32*)sMenuCursorGfxLanguage3,
         .paletteIndex = 2
     },
     [14] = {
-        .spriteSheet = (u32*)0x08259120,
-        .graphics = (u32*)0x0827AA0C,
+        .spriteSheet = (u32*)sSaveMenuSpriteSheet2,
+        .graphics = (u32*)sSaveMenuSpriteGfx14,
         .paletteIndex = 7
     },
     [15] = {
-        .spriteSheet = (u32*)0x08267A38,
-        .graphics = (u32*)0x0826C850,
+        .spriteSheet = (u32*)sSaveMenuSpriteSheet3,
+        .graphics = (u32*)sSaveMenuSpriteGfx15,
         .paletteIndex = 5
     },
     [16] = {
-        .spriteSheet = (u32*)0x08267A38,
-        .graphics = (u32*)0x0826C850,
+        .spriteSheet = (u32*)sSaveMenuSpriteSheet3,
+        .graphics = (u32*)sSaveMenuSpriteGfx15,
         .paletteIndex = 15
     },
     [17] = {
-        .spriteSheet = (u32*)0x082571E0,
-        .graphics = (u32*)0x0826C840,
+        .spriteSheet = (u32*)sSaveMenuSpriteSheet0,
+        .graphics = (u32*)sMenuCursorGfxLanguage3,
         .paletteIndex = 14
     },
 };
@@ -747,42 +748,42 @@ void MainMenu_InitEntity(struct EwramData_EntityData *entity)
     switch (gEwramData->gameState.language)
     {
         default:
-            ObjGfx_LoadResource((u8 *)0x080E5BC0, 0);
+            ObjGfx_LoadResource((u8 *)sSaveMenuSpriteGfx3, 0);
             break;
         case 2:
-            ObjGfx_LoadResource((u8 *)0x08277994, 0);
+            ObjGfx_LoadResource((u8 *)sSaveMenuSpriteGfx9, 0);
             break;
         case 3:
-            ObjGfx_LoadResource((u8 *)0x0826C850, 0);
+            ObjGfx_LoadResource((u8 *)sSaveMenuSpriteGfx15, 0);
             break;
     }
     switch (gEwramData->gameState.language)
     {
         default:
-            ObjGfx_LoadResource((u8 *)0x082052E0, 0);
+            ObjGfx_LoadResource((u8 *)sSaveMenuSpriteGfx2, 0);
             break;
         case 2:
-            ObjGfx_LoadResource((u8 *)0x0827AA14, 0);
+            ObjGfx_LoadResource((u8 *)sSaveMenuSpriteGfx8, 0);
             break;
         case 3:
-            ObjGfx_LoadResource((u8 *)0x0827AA0C, 0);
+            ObjGfx_LoadResource((u8 *)sSaveMenuSpriteGfx14, 0);
             break;
     }
     switch (gEwramData->gameState.language)
     {
         default:
-            gfx = ObjGfx_LoadResource((u8 *)0x082052D8, 0);
+            gfx = ObjGfx_LoadResource((u8 *)sMenuCursorGfx, 0);
             break;
         case 2:
-            gfx = ObjGfx_LoadResource((u8 *)0x0827798C, 0);
+            gfx = ObjGfx_LoadResource((u8 *)sMenuCursorGfxLanguage2, 0);
             break;
         case 3:
-            gfx = ObjGfx_LoadResource((u8 *)0x0826C840, 0);
+            gfx = ObjGfx_LoadResource((u8 *)sMenuCursorGfxLanguage3, 0);
             break;
     }
     entity->paletteMask = 0xFF;
-    ObjPalette_Load((u8 *)0x080E5E24);
-    Sprite_Attach(entity, (u8 *)0x082571E0, gfx, 0);
+    ObjPalette_Load((u8 *)sMainMenuPalette);
+    Sprite_Attach(entity, (u8 *)sSaveMenuSpriteSheet0, gfx, 0);
     entity->animFrame = 0;
     Anim_StartIndexed(entity, 0, 0, 1);
     Anim_Update(entity);
@@ -811,19 +812,19 @@ void MainMenu_FreeEntity(struct EwramData_EntityData *entity)
     switch (gEwramData->gameState.language)
     {
         case 2:
-            ObjGfx_Unload(ObjGfx_Find((u8 *)0x0827798C));
-            ObjGfx_Unload(ObjGfx_Find((u8 *)0x08277994));
-            ObjGfx_Unload(ObjGfx_Find((u8 *)0x0827AA14));
+            ObjGfx_Unload(ObjGfx_Find((u8 *)sMenuCursorGfxLanguage2));
+            ObjGfx_Unload(ObjGfx_Find((u8 *)sSaveMenuSpriteGfx9));
+            ObjGfx_Unload(ObjGfx_Find((u8 *)sSaveMenuSpriteGfx8));
             break;
         case 3:
-            ObjGfx_Unload(ObjGfx_Find((u8 *)0x0826C840));
-            ObjGfx_Unload(ObjGfx_Find((u8 *)0x0826C850));
-            ObjGfx_Unload(ObjGfx_Find((u8 *)0x0827AA0C));
+            ObjGfx_Unload(ObjGfx_Find((u8 *)sMenuCursorGfxLanguage3));
+            ObjGfx_Unload(ObjGfx_Find((u8 *)sSaveMenuSpriteGfx15));
+            ObjGfx_Unload(ObjGfx_Find((u8 *)sSaveMenuSpriteGfx14));
             break;
         default:
-            ObjGfx_Unload(ObjGfx_Find((u8 *)0x082052D8));
-            ObjGfx_Unload(ObjGfx_Find((u8 *)0x080E5BC0));
-            ObjGfx_Unload(ObjGfx_Find((u8 *)0x082052E0));
+            ObjGfx_Unload(ObjGfx_Find((u8 *)sMenuCursorGfx));
+            ObjGfx_Unload(ObjGfx_Find((u8 *)sSaveMenuSpriteGfx3));
+            ObjGfx_Unload(ObjGfx_Find((u8 *)sSaveMenuSpriteGfx2));
             break;
     }
     entity->deleteRequested = 1;
@@ -997,7 +998,7 @@ void MainMenu_ShowSlotInfo(struct EwramData_EntityData *entity, s32 slot)
     header = gEwramData->saveHeaders;
     gEwramData->gameState.currentSaveSlot = (u8) slot;
     valid = SaveData_ReadSlotHeader(slot, 0);
-    DMA_FILL_32(3, 0, 0x0600E000, 0x340);
+    DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x340);
 
     if ((valid != 0) && (header->playTime != 0))
     {
@@ -1095,7 +1096,7 @@ void MainMenu_ShowCopySlots(struct EwramData_EntityData *entity, s32 srcSlot, s3
     s32 i;
 
     header = gEwramData->saveHeaders;
-    DMA_FILL_32(3, 0, 0x0600E000, 0x340);
+    DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x340);
     SaveData_ReadSlotHeader(srcSlot, 0);
     MainMenu_DrawSlotSummary(entity, header, 1, 8, 0);
 
@@ -1141,8 +1142,8 @@ void MainMenu_ShowCopySlots(struct EwramData_EntityData *entity, s32 srcSlot, s3
  */
 void MainMenu_InitGameStart(struct EwramData_EntityData *entity)
 {
-    BgMap_Setup(1, (struct BgMapMetadata *)0x080E7314, 0, 0);
-    BgMap_Setup(2, (struct BgMapMetadata *)0x080E7044, 0, 0);
+    BgMap_Setup(1, (struct BgMapMetadata *)sMainMenuBgMap4, 0, 0);
+    BgMap_Setup(2, (struct BgMapMetadata *)sMainMenuBgMap2, 0, 0);
     HBlankEffectSetup(160, (s32)(SCREEN_SIZE_Y * 0.65f), 2, REG_BG1VOFS);
 
     entity->ext.mainMenu.cursor = 0;
@@ -1729,7 +1730,7 @@ void SaveSelect_ShowSlot(struct EwramData_EntityData *entity, s32 slot)
     header = gEwramData->saveHeaders;
     gEwramData->gameState.currentSaveSlot = slot;
     valid = SaveData_ReadSlotHeader(slot, 0);
-    DMA_FILL_32(3, 0, 0x0600E000, 0x340);
+    DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x340);
     if ((valid != 0) && (header->playTime != 0))
     {
         MainMenu_DrawSlotSummary(entity, header, 0x10, 8, 0);
@@ -1801,25 +1802,25 @@ void SaveSelect_SetupMessageWindow(s32 choice)
     s16 *tilemap;
     s32 i;
 
-    tilemap = (s16 *)0x0600E3C4;
-    DMA_FILL_32(3, 0, 0x0600E000, 0x800);
-    DMA_FILL_32(3, 0, 0x06008000, 0x2000);
+    tilemap = (s16 *)(VRAM_BASE + 0xE3C4);
+    DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
+    DMA_FILL_32(3, 0, VRAM_BASE + 0x8000, 0x2000);
     gDisplayRegisters.bgCnt[0] = CREATE_BGCNT(2, 28, BGCNT_HIGH_PRIORITY, BGCNT_SIZE_256x256);
-    BgPalette_LoadRange((u8*)0x081183F4, 0, 1, 0xC);
+    BgPalette_LoadRange((u8*)sTextBgPalette, 0, 1, 0xC);
     Text_SetTileBuffer(VRAM_BASE + 0x8000);
     Text_SetForegroundColor(8);
     Text_SetBackgroundColor(0);
-    BgPalette_LoadRange((u8*)0x080E5C20, 3, 1, 0xD);
+    BgPalette_LoadRange((u8*)sSaveSelectBgPalette, 3, 1, 0xD);
     switch (gEwramData->gameState.language)
     {
         case 2:
-            Gfx_CopyResource((u8 *)0x08277984, VRAM_BASE + 0xA000, 0);
+            Gfx_CopyResource((u8 *)sLocalizedWindowGfxLanguage2, VRAM_BASE + 0xA000, 0);
             break;
         case 3:
-            Gfx_CopyResource((u8 *)0x0826C848, VRAM_BASE + 0xA000, 0);
+            Gfx_CopyResource((u8 *)sLocalizedWindowGfxLanguage3, VRAM_BASE + 0xA000, 0);
             break;
         default:
-            Gfx_CopyResource((u8 *)0x0827B200, VRAM_BASE + 0xA000, 0);
+            Gfx_CopyResource((u8 *)sLocalizedWindowGfx, VRAM_BASE + 0xA000, 0);
             break;
     }
     Text12_SetRegion(0, 0, 0x29, 3);
@@ -1840,10 +1841,10 @@ void SaveSelect_SetupMessageWindow(s32 choice)
 void SaveSelect_InitScreen(struct EwramData_EntityData *entity)
 {
 
-    DMA_FILL_32(3, 0, 0x0600E000, 0x200 * 4);
-    DMA_FILL_32(3, 0, 0x0600E800, 0x200 * 4);
-    DMA_FILL_32(3, 0, 0x0600F000, 0x200 * 4);
-    DMA_FILL_32(3, 0, 0x0600F800, 0x200 * 4);
+    DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x200 * 4);
+    DMA_FILL_32(3, 0, VRAM_BASE + 0xE800, 0x200 * 4);
+    DMA_FILL_32(3, 0, VRAM_BASE + 0xF000, 0x200 * 4);
+    DMA_FILL_32(3, 0, VRAM_BASE + 0xF800, 0x200 * 4);
     DMA_FILL_32(3, 0, &gDisplayRegisters, sizeof(gDisplayRegisters));
 
     gDisplayRegisters.bg3PD = 0x100;
@@ -1863,26 +1864,26 @@ void SaveSelect_InitScreen(struct EwramData_EntityData *entity)
     gDisplayRegisters.bldY = 0;
     gEwramData->gameState.bossRushMode = 0;
 
-    Gfx_CopyResource((u8 *)0x080E5BB0, VRAM_BASE, 0);
-    Gfx_CopyResource((u8 *)0x080E5BB8, VRAM_BASE + 0x2000, 0);
+    Gfx_CopyResource((u8 *)sSaveSelectGfx, VRAM_BASE, 0);
+    Gfx_CopyResource((u8 *)sSaveSelectGfx2, VRAM_BASE + 0x2000, 0);
 
     switch (gEwramData->gameState.language)
     {
         case 2:
-            Gfx_CopyResource((u8 *)0x08277994, VRAM_BASE + 0x4000, 0);
+            Gfx_CopyResource((u8 *)sSaveMenuSpriteGfx9, VRAM_BASE + 0x4000, 0);
             break;
         case 3:
-            Gfx_CopyResource((u8 *)0x0826C850, VRAM_BASE + 0x4000, 0);
+            Gfx_CopyResource((u8 *)sSaveMenuSpriteGfx15, VRAM_BASE + 0x4000, 0);
             break;
         default:
-            Gfx_CopyResource((u8 *)0x080E5BC0, VRAM_BASE + 0x4000, 0);
+            Gfx_CopyResource((u8 *)sSaveMenuSpriteGfx3, VRAM_BASE + 0x4000, 0);
             break;
     }
 
-    BgPalette_Load((u8 *)0x080E5E24);
-    BgMap_Setup(3, (struct BgMapMetadata *)0x080E74C4, 0, 0);
-    BgMap_Setup(2, (struct BgMapMetadata *)0x080E7044, 0, 0);
-    BgMap_Setup(1, (struct BgMapMetadata *)0x080E7314, 0, 0);
+    BgPalette_Load((u8 *)sMainMenuPalette);
+    BgMap_Setup(3, (struct BgMapMetadata *)sSaveSelectBgMap, 0, 0);
+    BgMap_Setup(2, (struct BgMapMetadata *)sMainMenuBgMap2, 0, 0);
+    BgMap_Setup(1, (struct BgMapMetadata *)sMainMenuBgMap4, 0, 0);
     MainMenu_InitEntity(entity);
     SaveSelect_SetupMessageWindow(0);
     HBlankEffectSetup(160, (s32)(SCREEN_SIZE_Y * 0.65f), 2, REG_BG1VOFS);
@@ -2029,8 +2030,8 @@ void MainMenu_OpenNameEntry(struct EwramData_EntityData *entity)
     s16 scroll;
     s32 scanline;
 
-    BgMap_Setup(1, (struct BgMapMetadata *)0x080E70D4, 0, 0);
-    BgMap_Setup(2, (struct BgMapMetadata *)0x080E6E94, 0, 0);
+    BgMap_Setup(1, (struct BgMapMetadata *)sMainMenuBgMap3, 0, 0);
+    BgMap_Setup(2, (struct BgMapMetadata *)sMainMenuBgMap, 0, 0);
     HBlankEffectSetup(160, (s32)(SCREEN_SIZE_Y * 0.1f), 2, REG_BG1VOFS);
     hBlankBuf = gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer];
     if (entity->subState != 0)

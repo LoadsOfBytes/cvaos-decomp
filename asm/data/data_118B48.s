@@ -543,7 +543,15 @@ sEventScene30TransformationBg2Map: @ 0x0815DDDC
 
     .global sEventScene30BgMap
 sEventScene30BgMap: @ 0x0815DE6C
-    .incbin "cvaos_us_baserom.gba", 0x15DE6C, 0x218
+    .incbin "cvaos_us_baserom.gba", 0x15DE6C, 0x15E02C - 0x15DE6C
+
+    .global sPauseMenuBgGfx
+sPauseMenuBgGfx: @ 0x0815E02C
+    .incbin "cvaos_us_baserom.gba", 0x15E02C, 0x15E034 - 0x15E02C
+
+    .global sBestiaryMenuGfx
+sBestiaryMenuGfx: @ 0x0815E034
+    .incbin "cvaos_us_baserom.gba", 0x15E034, 0x15E084 - 0x15E034
 
     .global sShopBgGfx
 sShopBgGfx: @ 0x0815E084
@@ -559,15 +567,39 @@ sShopBgGfxLanguage3Extra: @ 0x0815E094
 
     .global sShopBgGfxLanguage2
 sShopBgGfxLanguage2: @ 0x0815E09C
-    .incbin "cvaos_us_baserom.gba", 0x15E09C, 0x350
+    .incbin "cvaos_us_baserom.gba", 0x15E09C, 0x15E0A4 - 0x15E09C
+
+    .global sBestiaryMenuBgPalette
+sBestiaryMenuBgPalette: @ 0x0815E0A4
+    .incbin "cvaos_us_baserom.gba", 0x15E0A4, 0x15E3EC - 0x15E0A4
 
     .global sShopBgPalette
 sShopBgPalette: @ 0x0815E3EC
-    .incbin "cvaos_us_baserom.gba", 0x15E3EC, 0x5E4
+    .incbin "cvaos_us_baserom.gba", 0x15E3EC, 0x15E940 - 0x15E3EC
+
+    .global sPauseMenuBgMap
+sPauseMenuBgMap: @ 0x0815E940
+    .incbin "cvaos_us_baserom.gba", 0x15E940, 0x15E9D0 - 0x15E940
 
     .global sBestiaryDetailBgMap
 sBestiaryDetailBgMap: @ 0x0815E9D0
-    .incbin "cvaos_us_baserom.gba", 0x15E9D0, 0x1AB0
+    .incbin "cvaos_us_baserom.gba", 0x15E9D0, 0x15EA60 - 0x15E9D0
+
+    .global sBestiaryMenuBgMap
+sBestiaryMenuBgMap: @ 0x0815EA60
+    .incbin "cvaos_us_baserom.gba", 0x15EA60, 0x15F120 - 0x15EA60
+
+    .global sShopBgMap
+sShopBgMap: @ 0x0815F120
+    .incbin "cvaos_us_baserom.gba", 0x15F120, 0x15F2D0 - 0x15F120
+
+    .global sShopBgMap2
+sShopBgMap2: @ 0x0815F2D0
+    .incbin "cvaos_us_baserom.gba", 0x15F2D0, 0x15F480 - 0x15F2D0
+
+    .global sShopBgMap3
+sShopBgMap3: @ 0x0815F480
+    .incbin "cvaos_us_baserom.gba", 0x15F480, 0x160480 - 0x15F480
 
     .global sTitleScreenGfx
 sTitleScreenGfx: @ 0x08160480
@@ -577,7 +609,13 @@ sTitleScreenGfx: @ 0x08160480
 sTitleFlashGfx: @ 0x08160488
     .incbin "cvaos_us_baserom.gba", 0x160488, 0x8
 
-    .incbin "cvaos_us_baserom.gba", 0x160490, 0x10
+    .global sIntroCutsceneGfx3
+sIntroCutsceneGfx3: @ 0x08160490
+    .incbin "cvaos_us_baserom.gba", 0x160490, 0x160498 - 0x160490
+
+    .global sIntroCutsceneGfx4
+sIntroCutsceneGfx4: @ 0x08160498
+    .incbin "cvaos_us_baserom.gba", 0x160498, 0x1604A0 - 0x160498
 
     .global sObject10Gfx
 sObject10Gfx: @ 0x081604A0
@@ -597,11 +635,27 @@ sDefeatEffectTiles: @ 0x081C35FC
 
     .global sPickupIconTiles
 sPickupIconTiles: @ 0x081C3E00
-    .incbin "cvaos_us_baserom.gba", 0x1C3E00, 0x800C
+    .incbin "cvaos_us_baserom.gba", 0x1C3E00, 0x1C5E00 - 0x1C3E00
+
+    .global sItemIconSheet0
+sItemIconSheet0: @ 0x081C5E00
+    .incbin "cvaos_us_baserom.gba", 0x1C5E00, 0x1C7E04 - 0x1C5E00
+
+    .global sItemIconSheet1
+sItemIconSheet1: @ 0x081C7E04
+    .incbin "cvaos_us_baserom.gba", 0x1C7E04, 0x1C9E08 - 0x1C7E04
+
+    .global sItemIconSheet2
+sItemIconSheet2: @ 0x081C9E08
+    .incbin "cvaos_us_baserom.gba", 0x1C9E08, 0x1CBE0C - 0x1C9E08
 
     .global sGateGfx
 sGateGfx: @ 0x081CBE0C
-    .incbin "cvaos_us_baserom.gba", 0x1CBE0C, 0x50
+    .incbin "cvaos_us_baserom.gba", 0x1CBE0C, 0x1CBE14 - 0x1CBE0C
+
+    .global sPushBlockGroupGfx
+sPushBlockGroupGfx: @ 0x081CBE14
+    .incbin "cvaos_us_baserom.gba", 0x1CBE14, 0x1CBE5C - 0x1CBE14
 
     .global sObject07ParallaxSpriteGfx
 sObject07ParallaxSpriteGfx: @ 0x081CBE5C
@@ -633,7 +687,11 @@ sObject17Gfx: @ 0x081CBE9C
 
     .global sObject14Gfx
 sObject14Gfx: @ 0x081CBEA4
-    .incbin "cvaos_us_baserom.gba", 0x1CBEA4, 0x18
+    .incbin "cvaos_us_baserom.gba", 0x1CBEA4, 0x1CBEB4 - 0x1CBEA4
+
+    .global sBgParticleGfx
+sBgParticleGfx: @ 0x081CBEB4
+    .incbin "cvaos_us_baserom.gba", 0x1CBEB4, 0x1CBEBC - 0x1CBEB4
 
     .global sObject2DGfx
 sObject2DGfx: @ 0x081CBEBC
@@ -673,7 +731,11 @@ sObject34Gfx: @ 0x081CBF14
 
     .global sObject35Gfx
 sObject35Gfx: @ 0x081CBF1C
-    .incbin "cvaos_us_baserom.gba", 0x1CBF1C, 0x10
+    .incbin "cvaos_us_baserom.gba", 0x1CBF1C, 0x1CBF24 - 0x1CBF1C
+
+    .global sDebugJitterSpriteGfx
+sDebugJitterSpriteGfx: @ 0x081CBF24
+    .incbin "cvaos_us_baserom.gba", 0x1CBF24, 0x1CBF2C - 0x1CBF24
 
     .global sValkyrieGfx
 sValkyrieGfx: @ 0x081CBF2C
@@ -841,15 +903,39 @@ sTsuchinokoGfx: @ 0x081CC0B4
 
     .global sSkyFishGfx
 sSkyFishGfx: @ 0x081CC0BC
-    .incbin "cvaos_us_baserom.gba", 0x1CC0BC, 0x10088
+    .incbin "cvaos_us_baserom.gba", 0x1CC0BC, 0x1CF0DC - 0x1CC0BC
+
+    .global sDebugLinkTestWalkerGfx
+sDebugLinkTestWalkerGfx: @ 0x081CF0DC
+    .incbin "cvaos_us_baserom.gba", 0x1CF0DC, 0x1DC144 - 0x1CF0DC
 
     .global sSkillCagnazzoGfx
 sSkillCagnazzoGfx: @ 0x081DC144
-    .incbin "cvaos_us_baserom.gba", 0x1DC144, 0x1008
+    .incbin "cvaos_us_baserom.gba", 0x1DC144, 0x1DC948 - 0x1DC144
+
+    .global sSkillBonePillarGfx
+sSkillBonePillarGfx: @ 0x081DC948
+    .incbin "cvaos_us_baserom.gba", 0x1DC948, 0x1DD14C - 0x1DC948
 
     .global sSkillDevilManticoreSparkGfx
 sSkillDevilManticoreSparkGfx: @ 0x081DD14C
-    .incbin "cvaos_us_baserom.gba", 0x1DD14C, 0x2814
+    .incbin "cvaos_us_baserom.gba", 0x1DD14C, 0x1DD950 - 0x1DD14C
+
+    .global sSkillSkyFishGfx
+sSkillSkyFishGfx: @ 0x081DD950
+    .incbin "cvaos_us_baserom.gba", 0x1DD950, 0x1DE154 - 0x1DD950
+
+    .global sSkillAluraUneGfx
+sSkillAluraUneGfx: @ 0x081DE154
+    .incbin "cvaos_us_baserom.gba", 0x1DE154, 0x1DE958 - 0x1DE154
+
+    .global sSkillWitchGfx
+sSkillWitchGfx: @ 0x081DE958
+    .incbin "cvaos_us_baserom.gba", 0x1DE958, 0x1DF15C - 0x1DE958
+
+    .global sSkillShadowKnightGfx
+sSkillShadowKnightGfx: @ 0x081DF15C
+    .incbin "cvaos_us_baserom.gba", 0x1DF15C, 0x1DF960 - 0x1DF15C
 
     .global sSkillFinalGuardGfx
 sSkillFinalGuardGfx: @ 0x081DF960
@@ -857,15 +943,35 @@ sSkillFinalGuardGfx: @ 0x081DF960
 
     .global sSkillBuerOrbitGfx
 sSkillBuerOrbitGfx: @ 0x081E0164
-    .incbin "cvaos_us_baserom.gba", 0x1E0164, 0x1008
+    .incbin "cvaos_us_baserom.gba", 0x1E0164, 0x1E0968 - 0x1E0164
+
+    .global sSkillGiantGhostGfx
+sSkillGiantGhostGfx: @ 0x081E0968
+    .incbin "cvaos_us_baserom.gba", 0x1E0968, 0x1E116C - 0x1E0968
 
     .global sUnk_081E116C
 sUnk_081E116C: @ 0x081E116C
-    .incbin "cvaos_us_baserom.gba", 0x1E116C, 0x1008
+    .incbin "cvaos_us_baserom.gba", 0x1E116C, 0x1E1970 - 0x1E116C
+
+    .global sSkillCreakingSkullGfx
+sSkillCreakingSkullGfx: @ 0x081E1970
+    .incbin "cvaos_us_baserom.gba", 0x1E1970, 0x1E2174 - 0x1E1970
 
     .global sSkillDeathGfx
 sSkillDeathGfx: @ 0x081E2174
-    .incbin "cvaos_us_baserom.gba", 0x1E2174, 0x2010
+    .incbin "cvaos_us_baserom.gba", 0x1E2174, 0x1E2978 - 0x1E2174
+
+    .global sSkillCatoblepasGfx
+sSkillCatoblepasGfx: @ 0x081E2978
+    .incbin "cvaos_us_baserom.gba", 0x1E2978, 0x1E317C - 0x1E2978
+
+    .global sSkillImpGfx
+sSkillImpGfx: @ 0x081E317C
+    .incbin "cvaos_us_baserom.gba", 0x1E317C, 0x1E3980 - 0x1E317C
+
+    .global sSkillAlastorGfx
+sSkillAlastorGfx: @ 0x081E3980
+    .incbin "cvaos_us_baserom.gba", 0x1E3980, 0x1E4184 - 0x1E3980
 
     .global sWormGfx
 sWormGfx: @ 0x081E4184
@@ -1017,7 +1123,11 @@ sEvilButcherGfx: @ 0x082052D0
 
     .global sMenuCursorGfx
 sMenuCursorGfx: @ 0x082052D8
-    .incbin "cvaos_us_baserom.gba", 0x2052D8, 0x10
+    .incbin "cvaos_us_baserom.gba", 0x2052D8, 0x2052E0 - 0x2052D8
+
+    .global sSaveMenuSpriteGfx2
+sSaveMenuSpriteGfx2: @ 0x082052E0
+    .incbin "cvaos_us_baserom.gba", 0x2052E0, 0x2052E8 - 0x2052E0
 
     .global sSaveWarpRoomGfx
 sSaveWarpRoomGfx: @ 0x082052E8
@@ -1025,7 +1135,15 @@ sSaveWarpRoomGfx: @ 0x082052E8
 
     .global sWarpRoomGfx
 sWarpRoomGfx: @ 0x082052F0
-    .incbin "cvaos_us_baserom.gba", 0x2052F0, 0x44C0
+    .incbin "cvaos_us_baserom.gba", 0x2052F0, 0x209308 - 0x2052F0
+
+    .global sTitleScreenLogoPalette
+sTitleScreenLogoPalette: @ 0x08209308
+    .incbin "cvaos_us_baserom.gba", 0x209308, 0x20972C - 0x209308
+
+    .global sIntroCutscenePalette
+sIntroCutscenePalette: @ 0x0820972C
+    .incbin "cvaos_us_baserom.gba", 0x20972C, 0x2097B0 - 0x20972C
 
     .global sObject10Palette
 sObject10Palette: @ 0x082097B0
@@ -1045,7 +1163,11 @@ sSavePointPalette: @ 0x082099FC
 
     .global sGatePalette
 sGatePalette: @ 0x08209AE0
-    .incbin "cvaos_us_baserom.gba", 0x209AE0, 0x408
+    .incbin "cvaos_us_baserom.gba", 0x209AE0, 0x209C64 - 0x209AE0
+
+    .global sPushBlockGroupPalette
+sPushBlockGroupPalette: @ 0x08209C64
+    .incbin "cvaos_us_baserom.gba", 0x209C64, 0x209EE8 - 0x209C64
 
     .global sObject07ParallaxSpritePalette
 sObject07ParallaxSpritePalette: @ 0x08209EE8
@@ -1081,7 +1203,11 @@ sObject32Object34Palette: @ 0x0820A350
 
     .global sObject35Palette
 sObject35Palette: @ 0x0820A3B4
-    .incbin "cvaos_us_baserom.gba", 0x20A3B4, 0x48
+    .incbin "cvaos_us_baserom.gba", 0x20A3B4, 0x20A3D8 - 0x20A3B4
+
+    .global sDebugJitterSpritePalette
+sDebugJitterSpritePalette: @ 0x0820A3D8
+    .incbin "cvaos_us_baserom.gba", 0x20A3D8, 0x20A3FC - 0x20A3D8
 
     .global sValkyriePalette
 sValkyriePalette: @ 0x0820A3FC
@@ -1253,7 +1379,11 @@ sTsuchinokoPalette: @ 0x0820AFDC
 
     .global sSkyFishPalette
 sSkyFishPalette: @ 0x0820B000
-    .incbin "cvaos_us_baserom.gba", 0x20B000, 0x188
+    .incbin "cvaos_us_baserom.gba", 0x20B000, 0x20B11C - 0x20B000
+
+    .global sDebugLinkTestWalkerPalette
+sDebugLinkTestWalkerPalette: @ 0x0820B11C
+    .incbin "cvaos_us_baserom.gba", 0x20B11C, 0x20B188 - 0x20B11C
 
     .global sSkillLightningDollPalette
 sSkillLightningDollPalette: @ 0x0820B188
@@ -1261,11 +1391,31 @@ sSkillLightningDollPalette: @ 0x0820B188
 
     .global sSkillCagnazzoPalette
 sSkillCagnazzoPalette: @ 0x0820B4E4
-    .incbin "cvaos_us_baserom.gba", 0x20B4E4, 0x48
+    .incbin "cvaos_us_baserom.gba", 0x20B4E4, 0x20B508 - 0x20B4E4
+
+    .global sSkillBonePillarPalette
+sSkillBonePillarPalette: @ 0x0820B508
+    .incbin "cvaos_us_baserom.gba", 0x20B508, 0x20B52C - 0x20B508
 
     .global sSkillDevilManticoreSparkPalette
 sSkillDevilManticoreSparkPalette: @ 0x0820B52C
-    .incbin "cvaos_us_baserom.gba", 0x20B52C, 0xB4
+    .incbin "cvaos_us_baserom.gba", 0x20B52C, 0x20B550 - 0x20B52C
+
+    .global sSkillSkyFishPalette
+sSkillSkyFishPalette: @ 0x0820B550
+    .incbin "cvaos_us_baserom.gba", 0x20B550, 0x20B574 - 0x20B550
+
+    .global sSkillAluraUnePalette
+sSkillAluraUnePalette: @ 0x0820B574
+    .incbin "cvaos_us_baserom.gba", 0x20B574, 0x20B598 - 0x20B574
+
+    .global sSkillWitchPalette
+sSkillWitchPalette: @ 0x0820B598
+    .incbin "cvaos_us_baserom.gba", 0x20B598, 0x20B5BC - 0x20B598
+
+    .global sSkillShadowKnightPalette
+sSkillShadowKnightPalette: @ 0x0820B5BC
+    .incbin "cvaos_us_baserom.gba", 0x20B5BC, 0x20B5E0 - 0x20B5BC
 
     .global sSkillFinalGuardPalette
 sSkillFinalGuardPalette: @ 0x0820B5E0
@@ -1273,15 +1423,35 @@ sSkillFinalGuardPalette: @ 0x0820B5E0
 
     .global sSkillBuerOrbitPalette
 sSkillBuerOrbitPalette: @ 0x0820B604
-    .incbin "cvaos_us_baserom.gba", 0x20B604, 0x48
+    .incbin "cvaos_us_baserom.gba", 0x20B604, 0x20B628 - 0x20B604
+
+    .global sSkillGiantGhostPalette
+sSkillGiantGhostPalette: @ 0x0820B628
+    .incbin "cvaos_us_baserom.gba", 0x20B628, 0x20B64C - 0x20B628
 
     .global sUnk_0820B64C
 sUnk_0820B64C: @ 0x0820B64C
-    .incbin "cvaos_us_baserom.gba", 0x20B64C, 0x48
+    .incbin "cvaos_us_baserom.gba", 0x20B64C, 0x20B670 - 0x20B64C
+
+    .global sSkillCreakingSkullPalette
+sSkillCreakingSkullPalette: @ 0x0820B670
+    .incbin "cvaos_us_baserom.gba", 0x20B670, 0x20B694 - 0x20B670
 
     .global sSkillDeathPalette
 sSkillDeathPalette: @ 0x0820B694
-    .incbin "cvaos_us_baserom.gba", 0x20B694, 0x90
+    .incbin "cvaos_us_baserom.gba", 0x20B694, 0x20B6B8 - 0x20B694
+
+    .global sSkillCatoblepasPalette
+sSkillCatoblepasPalette: @ 0x0820B6B8
+    .incbin "cvaos_us_baserom.gba", 0x20B6B8, 0x20B6DC - 0x20B6B8
+
+    .global sSkillImpPalette
+sSkillImpPalette: @ 0x0820B6DC
+    .incbin "cvaos_us_baserom.gba", 0x20B6DC, 0x20B700 - 0x20B6DC
+
+    .global sSkillAlastorPalette
+sSkillAlastorPalette: @ 0x0820B700
+    .incbin "cvaos_us_baserom.gba", 0x20B700, 0x20B724 - 0x20B700
 
     .global sWormPalette
 sWormPalette: @ 0x0820B724
@@ -1457,7 +1627,15 @@ sTitleScreenSpriteSheet: @ 0x0820C8A8
 sTitleFlashSpriteSheet: @ 0x0820CB1C
     .incbin "cvaos_us_baserom.gba", 0x20CB1C, 0x1 @ TODO: size
 
-    .incbin "cvaos_us_baserom.gba", 0x20CB1D, 0x3DB
+    .incbin "cvaos_us_baserom.gba", 0x20CB1D, 0x20CB60 - 0x20CB1D
+
+    .global sIntroCutsceneSpriteSheet
+sIntroCutsceneSpriteSheet: @ 0x0820CB60
+    .incbin "cvaos_us_baserom.gba", 0x20CB60, 0x20CD00 - 0x20CB60
+
+    .global sIntroCutsceneSpriteSheet2
+sIntroCutsceneSpriteSheet2: @ 0x0820CD00
+    .incbin "cvaos_us_baserom.gba", 0x20CD00, 0x20CEF8 - 0x20CD00
 
     .global sObject10SpriteSheet
 sObject10SpriteSheet: @ 0x0820CEF8
@@ -1473,7 +1651,11 @@ sDefeatParticleSpriteSheet: @ 0x0820F010
 
     .global sGateSpriteSheet
 sGateSpriteSheet: @ 0x0820F160
-    .incbin "cvaos_us_baserom.gba", 0x20F160, 0xCE4
+    .incbin "cvaos_us_baserom.gba", 0x20F160, 0x20F18C - 0x20F160
+
+    .global sPushBlockGroupSpriteSheet
+sPushBlockGroupSpriteSheet: @ 0x0820F18C
+    .incbin "cvaos_us_baserom.gba", 0x20F18C, 0x20FE44 - 0x20F18C
 
     .global sObject07ParallaxSpriteSpriteSheet
 sObject07ParallaxSpriteSpriteSheet: @ 0x0820FE44
@@ -1505,7 +1687,11 @@ sObject17SpriteSheet: @ 0x08210A90
 
     .global sObject14SpriteSheet
 sObject14SpriteSheet: @ 0x08210B60
-    .incbin "cvaos_us_baserom.gba", 0x210B60, 0x694
+    .incbin "cvaos_us_baserom.gba", 0x210B60, 0x210DB0 - 0x210B60
+
+    .global sBgParticleSpriteSheet
+sBgParticleSpriteSheet: @ 0x08210DB0
+    .incbin "cvaos_us_baserom.gba", 0x210DB0, 0x2111F4 - 0x210DB0
 
     .global sObject2DSpriteSheet
 sObject2DSpriteSheet: @ 0x082111F4
@@ -1545,7 +1731,11 @@ sObject32SpriteSheet: @ 0x08211F08
 
     .global sObject35SpriteSheet
 sObject35SpriteSheet: @ 0x08211FB0
-    .incbin "cvaos_us_baserom.gba", 0x211FB0, 0x8AC
+    .incbin "cvaos_us_baserom.gba", 0x211FB0, 0x2121F0 - 0x211FB0
+
+    .global sDebugJitterSpriteSheet
+sDebugJitterSpriteSheet: @ 0x082121F0
+    .incbin "cvaos_us_baserom.gba", 0x2121F0, 0x21285C - 0x2121F0
 
     .global sValkyrieSpriteSheet
 sValkyrieSpriteSheet: @ 0x0821285C
@@ -1729,7 +1919,11 @@ sTsuchinokoSpriteSheet: @ 0x0822952C
 
     .global sSkyFishSpriteSheet
 sSkyFishSpriteSheet: @ 0x0822976C
-    .incbin "cvaos_us_baserom.gba", 0x22976C, 0xCA38
+    .incbin "cvaos_us_baserom.gba", 0x22976C, 0x231578 - 0x22976C
+
+    .global sDebugLinkTestWalkerSpriteSheet
+sDebugLinkTestWalkerSpriteSheet: @ 0x08231578
+    .incbin "cvaos_us_baserom.gba", 0x231578, 0x2361A4 - 0x231578
 
     .global sSkillCagnazzoSpriteSheet
 sSkillCagnazzoSpriteSheet: @ 0x082361A4
@@ -1741,7 +1935,23 @@ sSkillBonePillarProjectileSpriteSheet: @ 0x082362B8
 
     .global sSkillDevilManticoreSparkSpriteSheet
 sSkillDevilManticoreSparkSpriteSheet: @ 0x0823641C
-    .incbin "cvaos_us_baserom.gba", 0x23641C, 0xDD4
+    .incbin "cvaos_us_baserom.gba", 0x23641C, 0x236868 - 0x23641C
+
+    .global sSkillSkyFishSpriteSheet
+sSkillSkyFishSpriteSheet: @ 0x08236868
+    .incbin "cvaos_us_baserom.gba", 0x236868, 0x2368A8 - 0x236868
+
+    .global sSkillAluraUneSpriteSheet
+sSkillAluraUneSpriteSheet: @ 0x082368A8
+    .incbin "cvaos_us_baserom.gba", 0x2368A8, 0x23693C - 0x2368A8
+
+    .global sSkillWitchSpriteSheet
+sSkillWitchSpriteSheet: @ 0x0823693C
+    .incbin "cvaos_us_baserom.gba", 0x23693C, 0x23717C - 0x23693C
+
+    .global sSkillShadowKnightSpriteSheet
+sSkillShadowKnightSpriteSheet: @ 0x0823717C
+    .incbin "cvaos_us_baserom.gba", 0x23717C, 0x2371F0 - 0x23717C
 
     .global sSkillFinalGuardSpriteSheet
 sSkillFinalGuardSpriteSheet: @ 0x082371F0
@@ -1749,11 +1959,19 @@ sSkillFinalGuardSpriteSheet: @ 0x082371F0
 
     .global sSkillBuerOrbitSpriteSheet
 sSkillBuerOrbitSpriteSheet: @ 0x08237304
-    .incbin "cvaos_us_baserom.gba", 0x237304, 0x308
+    .incbin "cvaos_us_baserom.gba", 0x237304, 0x237464 - 0x237304
+
+    .global sSkillGiantGhostSpriteSheet
+sSkillGiantGhostSpriteSheet: @ 0x08237464
+    .incbin "cvaos_us_baserom.gba", 0x237464, 0x23760C - 0x237464
 
     .global sUnk_0823760C
 sUnk_0823760C: @ 0x0823760C
-    .incbin "cvaos_us_baserom.gba", 0x23760C, 0x164
+    .incbin "cvaos_us_baserom.gba", 0x23760C, 0x23767C - 0x23760C
+
+    .global sSkillCreakingSkullSpriteSheet
+sSkillCreakingSkullSpriteSheet: @ 0x0823767C
+    .incbin "cvaos_us_baserom.gba", 0x23767C, 0x237770 - 0x23767C
 
     .global sSkillDeathSpriteSheet
 sSkillDeathSpriteSheet: @ 0x08237770
@@ -1761,7 +1979,15 @@ sSkillDeathSpriteSheet: @ 0x08237770
 
     .global sSkillCatoblepasProjectileSpriteSheet
 sSkillCatoblepasProjectileSpriteSheet: @ 0x08237884
-    .incbin "cvaos_us_baserom.gba", 0x237884, 0x3C0
+    .incbin "cvaos_us_baserom.gba", 0x237884, 0x237AC4 - 0x237884
+
+    .global sSkillImpSpriteSheet
+sSkillImpSpriteSheet: @ 0x08237AC4
+    .incbin "cvaos_us_baserom.gba", 0x237AC4, 0x237AFC - 0x237AC4
+
+    .global sSkillAlastorSpriteSheet
+sSkillAlastorSpriteSheet: @ 0x08237AFC
+    .incbin "cvaos_us_baserom.gba", 0x237AFC, 0x237C44 - 0x237AFC
 
     .global sWormSpriteSheet
 sWormSpriteSheet: @ 0x08237C44
@@ -1909,7 +2135,11 @@ sJuliusSpriteSheet: @ 0x08252748
 
     .global sBelmontSpriteSheet
 sBelmontSpriteSheet: @ 0x08252A18
-    .incbin "cvaos_us_baserom.gba", 0x252A18, 0x1348
+    .incbin "cvaos_us_baserom.gba", 0x252A18, 0x252CCC - 0x252A18
+
+    .global sJuliusSpriteSheet2
+sJuliusSpriteSheet2: @ 0x08252CCC
+    .incbin "cvaos_us_baserom.gba", 0x252CCC, 0x253D60 - 0x252CCC
 
     .global sGrahamSpriteSheet1
 sGrahamSpriteSheet1: @ 0x08253D60
@@ -1933,7 +2163,11 @@ sEvilButcherSpriteSheet: @ 0x08256720
 
     .global sMenuSpriteSheet
 sMenuSpriteSheet: @ 0x08256EF8
-    .incbin "cvaos_us_baserom.gba", 0x256EF8, 0xA6C
+    .incbin "cvaos_us_baserom.gba", 0x256EF8, 0x2571E0 - 0x256EF8
+
+    .global sSaveMenuSpriteSheet0
+sSaveMenuSpriteSheet0: @ 0x082571E0
+    .incbin "cvaos_us_baserom.gba", 0x2571E0, 0x257964 - 0x2571E0
 
     .global sSaveWarpRoomSpriteSheet
 sSaveWarpRoomSpriteSheet: @ 0x08257964
@@ -1941,7 +2175,11 @@ sSaveWarpRoomSpriteSheet: @ 0x08257964
 
     .global sWarpRoomSpriteSheet
 sWarpRoomSpriteSheet: @ 0x08257BD8
-    .incbin "cvaos_us_baserom.gba", 0x257BD8, 0x1558
+    .incbin "cvaos_us_baserom.gba", 0x257BD8, 0x259120 - 0x257BD8
+
+    .global sSaveMenuSpriteSheet2
+sSaveMenuSpriteSheet2: @ 0x08259120
+    .incbin "cvaos_us_baserom.gba", 0x259120, 0x259130 - 0x259120
 
     .global sObject37Gfx
 sObject37Gfx: @ 0x08259130
@@ -1961,11 +2199,19 @@ sObject24Gfx: @ 0x0825920C
 
     .global sKickerSkeletonGfx
 sKickerSkeletonGfx: @ 0x08259214
-    .incbin "cvaos_us_baserom.gba", 0x259214, 0x310C
+    .incbin "cvaos_us_baserom.gba", 0x259214, 0x25B220 - 0x259214
+
+    .global sGameOverGfx3
+sGameOverGfx3: @ 0x0825B220
+    .incbin "cvaos_us_baserom.gba", 0x25B220, 0x25C320 - 0x25B220
 
     .global sKickerSkeletonPalette
 sKickerSkeletonPalette: @ 0x0825C320
-    .incbin "cvaos_us_baserom.gba", 0x25C320, 0xBB0
+    .incbin "cvaos_us_baserom.gba", 0x25C320, 0x25C368 - 0x25C320
+
+    .global sGameOverPalette
+sGameOverPalette: @ 0x0825C368
+    .incbin "cvaos_us_baserom.gba", 0x25C368, 0x25CED0 - 0x25C368
 
     .global sObject24SpriteSheet
 sObject24SpriteSheet: @ 0x0825CED0
@@ -1973,7 +2219,11 @@ sObject24SpriteSheet: @ 0x0825CED0
 
     .global sKickerSkeletonSpriteSheet
 sKickerSkeletonSpriteSheet: @ 0x0825DA58
-    .incbin "cvaos_us_baserom.gba", 0x25DA58, 0x62C
+    .incbin "cvaos_us_baserom.gba", 0x25DA58, 0x25E06C - 0x25DA58
+
+    .global sGameOverSpriteSheet
+sGameOverSpriteSheet: @ 0x0825E06C
+    .incbin "cvaos_us_baserom.gba", 0x25E06C, 0x25E084 - 0x25E06C
 
     .global sObject16Gfx
 sObject16Gfx: @ 0x0825E084
@@ -2019,15 +2269,75 @@ sBigGolemGfx: @ 0x0825EB04
 
     .global sBigGolemGfx2
 sBigGolemGfx2: @ 0x0825EB0C
-    .incbin "cvaos_us_baserom.gba", 0x25EB0C, 0x1814
+    .incbin "cvaos_us_baserom.gba", 0x25EB0C, 0x25FB1C - 0x25EB0C
+
+    .global sSkillBigGolemGfx
+sSkillBigGolemGfx: @ 0x0825FB1C
+    .incbin "cvaos_us_baserom.gba", 0x25FB1C, 0x260320 - 0x25FB1C
 
     .global sSlimeGfx
 sSlimeGfx: @ 0x08260320
-    .incbin "cvaos_us_baserom.gba", 0x260320, 0x70
+    .incbin "cvaos_us_baserom.gba", 0x260320, 0x260328 - 0x260320
+
+    .global sAreaNameGfx0
+sAreaNameGfx0: @ 0x08260328
+    .incbin "cvaos_us_baserom.gba", 0x260328, 0x260330 - 0x260328
+
+    .global sAreaNameGfx1
+sAreaNameGfx1: @ 0x08260330
+    .incbin "cvaos_us_baserom.gba", 0x260330, 0x260338 - 0x260330
+
+    .global sAreaNameGfx2
+sAreaNameGfx2: @ 0x08260338
+    .incbin "cvaos_us_baserom.gba", 0x260338, 0x260340 - 0x260338
+
+    .global sAreaNameGfx3
+sAreaNameGfx3: @ 0x08260340
+    .incbin "cvaos_us_baserom.gba", 0x260340, 0x260348 - 0x260340
+
+    .global sAreaNameGfx4
+sAreaNameGfx4: @ 0x08260348
+    .incbin "cvaos_us_baserom.gba", 0x260348, 0x260350 - 0x260348
+
+    .global sAreaNameGfx5
+sAreaNameGfx5: @ 0x08260350
+    .incbin "cvaos_us_baserom.gba", 0x260350, 0x260358 - 0x260350
+
+    .global sAreaNameGfx6
+sAreaNameGfx6: @ 0x08260358
+    .incbin "cvaos_us_baserom.gba", 0x260358, 0x260360 - 0x260358
+
+    .global sAreaNameGfx7
+sAreaNameGfx7: @ 0x08260360
+    .incbin "cvaos_us_baserom.gba", 0x260360, 0x260368 - 0x260360
+
+    .global sAreaNameGfx12
+sAreaNameGfx12: @ 0x08260368
+    .incbin "cvaos_us_baserom.gba", 0x260368, 0x260370 - 0x260368
+
+    .global sAreaNameGfx10
+sAreaNameGfx10: @ 0x08260370
+    .incbin "cvaos_us_baserom.gba", 0x260370, 0x260378 - 0x260370
+
+    .global sAreaNameGfx8
+sAreaNameGfx8: @ 0x08260378
+    .incbin "cvaos_us_baserom.gba", 0x260378, 0x260380 - 0x260378
+
+    .global sAreaNameGfx9
+sAreaNameGfx9: @ 0x08260380
+    .incbin "cvaos_us_baserom.gba", 0x260380, 0x260388 - 0x260380
+
+    .global sAreaNameGfx11
+sAreaNameGfx11: @ 0x08260388
+    .incbin "cvaos_us_baserom.gba", 0x260388, 0x260390 - 0x260388
 
     .global sEventScene30Gfx
 sEventScene30Gfx: @ 0x08260390
-    .incbin "cvaos_us_baserom.gba", 0x260390, 0x6054
+    .incbin "cvaos_us_baserom.gba", 0x260390, 0x264398 - 0x260390
+
+    .global sPauseMenuBgGfxFlag3A
+sPauseMenuBgGfxFlag3A: @ 0x08264398
+    .incbin "cvaos_us_baserom.gba", 0x264398, 0x2663E4 - 0x264398
 
     .global sObject18Palette
 sObject18Palette: @ 0x082663E4
@@ -2039,15 +2349,27 @@ sObject19Palette: @ 0x08266408
 
     .global sBigGolemPalette
 sBigGolemPalette: @ 0x0826642C
-    .incbin "cvaos_us_baserom.gba", 0x26642C, 0xB0
+    .incbin "cvaos_us_baserom.gba", 0x26642C, 0x2664B8 - 0x26642C
+
+    .global sSkillBigGolemPalette
+sSkillBigGolemPalette: @ 0x082664B8
+    .incbin "cvaos_us_baserom.gba", 0x2664B8, 0x2664DC - 0x2664B8
 
     .global sSlimePalette
 sSlimePalette: @ 0x082664DC
-    .incbin "cvaos_us_baserom.gba", 0x2664DC, 0x68
+    .incbin "cvaos_us_baserom.gba", 0x2664DC, 0x266520 - 0x2664DC
+
+    .global sAreaNameBgPalette
+sAreaNameBgPalette: @ 0x08266520
+    .incbin "cvaos_us_baserom.gba", 0x266520, 0x266544 - 0x266520
 
     .global sEventScene30Palette
 sEventScene30Palette: @ 0x08266544
-    .incbin "cvaos_us_baserom.gba", 0x266544, 0x3F8
+    .incbin "cvaos_us_baserom.gba", 0x266544, 0x26664C - 0x266544
+
+    .global sPauseMenuBgPalette
+sPauseMenuBgPalette: @ 0x0826664C
+    .incbin "cvaos_us_baserom.gba", 0x26664C, 0x26693C - 0x26664C
 
     .global sTitleMenuSpriteSheet
 sTitleMenuSpriteSheet: @ 0x0826693C
@@ -2069,11 +2391,19 @@ sBigGolemSpriteSheet: @ 0x08266E08
 
     .global sBigGolemSpriteSheet2
 sBigGolemSpriteSheet2: @ 0x08266E78
-    .incbin "cvaos_us_baserom.gba", 0x266E78, 0xB14
+    .incbin "cvaos_us_baserom.gba", 0x266E78, 0x2677B8 - 0x266E78
+
+    .global sSkillBigGolemSpriteSheet
+sSkillBigGolemSpriteSheet: @ 0x082677B8
+    .incbin "cvaos_us_baserom.gba", 0x2677B8, 0x26798C - 0x2677B8
 
     .global sSlimeSpriteSheet
 sSlimeSpriteSheet: @ 0x0826798C
-    .incbin "cvaos_us_baserom.gba", 0x26798C, 0x558
+    .incbin "cvaos_us_baserom.gba", 0x26798C, 0x267A38 - 0x26798C
+
+    .global sSaveMenuSpriteSheet3
+sSaveMenuSpriteSheet3: @ 0x08267A38
+    .incbin "cvaos_us_baserom.gba", 0x267A38, 0x267EE4 - 0x267A38
 
     .global sEventScene30SpriteSheet
 sEventScene30SpriteSheet: @ 0x08267EE4
@@ -2115,7 +2445,15 @@ sObject10SpriteSheetLanguage2: @ 0x08268648
 
     .global sObject10SpriteSheetLanguage3
 sObject10SpriteSheetLanguage3: @ 0x08268828
-    .incbin "cvaos_us_baserom.gba", 0x268828, 0x4018
+    .incbin "cvaos_us_baserom.gba", 0x268828, 0x268838 - 0x268828
+
+    .global sPauseMenuBgGfxLanguage3
+sPauseMenuBgGfxLanguage3: @ 0x08268838
+    .incbin "cvaos_us_baserom.gba", 0x268838, 0x26A83C - 0x268838
+
+    .global sPauseMenuBgGfxFlag3ALanguage3
+sPauseMenuBgGfxFlag3ALanguage3: @ 0x0826A83C
+    .incbin "cvaos_us_baserom.gba", 0x26A83C, 0x26C840 - 0x26A83C
 
     .global sMenuCursorGfxLanguage3
 sMenuCursorGfxLanguage3: @ 0x0826C840
@@ -2123,7 +2461,23 @@ sMenuCursorGfxLanguage3: @ 0x0826C840
 
     .global sLocalizedWindowGfxLanguage3
 sLocalizedWindowGfxLanguage3: @ 0x0826C848
-    .incbin "cvaos_us_baserom.gba", 0x26C848, 0x305C
+    .incbin "cvaos_us_baserom.gba", 0x26C848, 0x26C850 - 0x26C848
+
+    .global sSaveMenuSpriteGfx15
+sSaveMenuSpriteGfx15: @ 0x0826C850
+    .incbin "cvaos_us_baserom.gba", 0x26C850, 0x26C858 - 0x26C850
+
+    .global sBestiaryMenuGfx2
+sBestiaryMenuGfx2: @ 0x0826C858
+    .incbin "cvaos_us_baserom.gba", 0x26C858, 0x26E85C - 0x26C858
+
+    .global sGameOverGfx4
+sGameOverGfx4: @ 0x0826E85C
+    .incbin "cvaos_us_baserom.gba", 0x26E85C, 0x26F894 - 0x26E85C
+
+    .global sGameOverSpriteSheet2
+sGameOverSpriteSheet2: @ 0x0826F894
+    .incbin "cvaos_us_baserom.gba", 0x26F894, 0x26F8A4 - 0x26F894
 
     .global sCommonObjectGfxLanguage2
 sCommonObjectGfxLanguage2: @ 0x0826F8A4
@@ -2131,7 +2485,119 @@ sCommonObjectGfxLanguage2: @ 0x0826F8A4
 
     .global sCommonObjectGfxLanguage3
 sCommonObjectGfxLanguage3: @ 0x082718A8
-    .incbin "cvaos_us_baserom.gba", 0x2718A8, 0x60DC
+    .incbin "cvaos_us_baserom.gba", 0x2718A8, 0x2738AC - 0x2718A8
+
+    .global sAreaNameGfxLanguage3_0
+sAreaNameGfxLanguage3_0: @ 0x082738AC
+    .incbin "cvaos_us_baserom.gba", 0x2738AC, 0x2738B4 - 0x2738AC
+
+    .global sAreaNameGfxLanguage3_1
+sAreaNameGfxLanguage3_1: @ 0x082738B4
+    .incbin "cvaos_us_baserom.gba", 0x2738B4, 0x2738BC - 0x2738B4
+
+    .global sAreaNameGfxLanguage3_2
+sAreaNameGfxLanguage3_2: @ 0x082738BC
+    .incbin "cvaos_us_baserom.gba", 0x2738BC, 0x2738C4 - 0x2738BC
+
+    .global sAreaNameGfxLanguage3_3
+sAreaNameGfxLanguage3_3: @ 0x082738C4
+    .incbin "cvaos_us_baserom.gba", 0x2738C4, 0x2738CC - 0x2738C4
+
+    .global sAreaNameGfxLanguage3_4
+sAreaNameGfxLanguage3_4: @ 0x082738CC
+    .incbin "cvaos_us_baserom.gba", 0x2738CC, 0x2738D4 - 0x2738CC
+
+    .global sAreaNameGfxLanguage3_5
+sAreaNameGfxLanguage3_5: @ 0x082738D4
+    .incbin "cvaos_us_baserom.gba", 0x2738D4, 0x2738DC - 0x2738D4
+
+    .global sAreaNameGfxLanguage3_6
+sAreaNameGfxLanguage3_6: @ 0x082738DC
+    .incbin "cvaos_us_baserom.gba", 0x2738DC, 0x2738E4 - 0x2738DC
+
+    .global sAreaNameGfxLanguage3_7
+sAreaNameGfxLanguage3_7: @ 0x082738E4
+    .incbin "cvaos_us_baserom.gba", 0x2738E4, 0x2738EC - 0x2738E4
+
+    .global sAreaNameGfxLanguage3_12
+sAreaNameGfxLanguage3_12: @ 0x082738EC
+    .incbin "cvaos_us_baserom.gba", 0x2738EC, 0x2738F4 - 0x2738EC
+
+    .global sAreaNameGfxLanguage3_10
+sAreaNameGfxLanguage3_10: @ 0x082738F4
+    .incbin "cvaos_us_baserom.gba", 0x2738F4, 0x2738FC - 0x2738F4
+
+    .global sAreaNameGfxLanguage3_8
+sAreaNameGfxLanguage3_8: @ 0x082738FC
+    .incbin "cvaos_us_baserom.gba", 0x2738FC, 0x273904 - 0x2738FC
+
+    .global sAreaNameGfxLanguage3_9
+sAreaNameGfxLanguage3_9: @ 0x08273904
+    .incbin "cvaos_us_baserom.gba", 0x273904, 0x27390C - 0x273904
+
+    .global sAreaNameGfxLanguage3_11
+sAreaNameGfxLanguage3_11: @ 0x0827390C
+    .incbin "cvaos_us_baserom.gba", 0x27390C, 0x273914 - 0x27390C
+
+    .global sAreaNameGfxLanguage2_0
+sAreaNameGfxLanguage2_0: @ 0x08273914
+    .incbin "cvaos_us_baserom.gba", 0x273914, 0x27391C - 0x273914
+
+    .global sAreaNameGfxLanguage2_1
+sAreaNameGfxLanguage2_1: @ 0x0827391C
+    .incbin "cvaos_us_baserom.gba", 0x27391C, 0x273924 - 0x27391C
+
+    .global sAreaNameGfxLanguage2_2
+sAreaNameGfxLanguage2_2: @ 0x08273924
+    .incbin "cvaos_us_baserom.gba", 0x273924, 0x27392C - 0x273924
+
+    .global sAreaNameGfxLanguage2_3
+sAreaNameGfxLanguage2_3: @ 0x0827392C
+    .incbin "cvaos_us_baserom.gba", 0x27392C, 0x273934 - 0x27392C
+
+    .global sAreaNameGfxLanguage2_4
+sAreaNameGfxLanguage2_4: @ 0x08273934
+    .incbin "cvaos_us_baserom.gba", 0x273934, 0x27393C - 0x273934
+
+    .global sAreaNameGfxLanguage2_5
+sAreaNameGfxLanguage2_5: @ 0x0827393C
+    .incbin "cvaos_us_baserom.gba", 0x27393C, 0x273944 - 0x27393C
+
+    .global sAreaNameGfxLanguage2_6
+sAreaNameGfxLanguage2_6: @ 0x08273944
+    .incbin "cvaos_us_baserom.gba", 0x273944, 0x27394C - 0x273944
+
+    .global sAreaNameGfxLanguage2_7
+sAreaNameGfxLanguage2_7: @ 0x0827394C
+    .incbin "cvaos_us_baserom.gba", 0x27394C, 0x273954 - 0x27394C
+
+    .global sAreaNameGfxLanguage2_12
+sAreaNameGfxLanguage2_12: @ 0x08273954
+    .incbin "cvaos_us_baserom.gba", 0x273954, 0x27395C - 0x273954
+
+    .global sAreaNameGfxLanguage2_10
+sAreaNameGfxLanguage2_10: @ 0x0827395C
+    .incbin "cvaos_us_baserom.gba", 0x27395C, 0x273964 - 0x27395C
+
+    .global sAreaNameGfxLanguage2_8
+sAreaNameGfxLanguage2_8: @ 0x08273964
+    .incbin "cvaos_us_baserom.gba", 0x273964, 0x27396C - 0x273964
+
+    .global sAreaNameGfxLanguage2_9
+sAreaNameGfxLanguage2_9: @ 0x0827396C
+    .incbin "cvaos_us_baserom.gba", 0x27396C, 0x273974 - 0x27396C
+
+    .global sAreaNameGfxLanguage2_11
+sAreaNameGfxLanguage2_11: @ 0x08273974
+    .incbin "cvaos_us_baserom.gba", 0x273974, 0x27397C - 0x273974
+
+    .global sPauseMenuBgGfxLanguage2
+sPauseMenuBgGfxLanguage2: @ 0x0827397C
+    .incbin "cvaos_us_baserom.gba", 0x27397C, 0x275980 - 0x27397C
+
+    .global sPauseMenuBgGfxFlag3ALanguage2
+sPauseMenuBgGfxFlag3ALanguage2: @ 0x08275980
+    .incbin "cvaos_us_baserom.gba", 0x275980, 0x277984 - 0x275980
 
     .global sLocalizedWindowGfxLanguage2
 sLocalizedWindowGfxLanguage2: @ 0x08277984
@@ -2139,7 +2605,31 @@ sLocalizedWindowGfxLanguage2: @ 0x08277984
 
     .global sMenuCursorGfxLanguage2
 sMenuCursorGfxLanguage2: @ 0x0827798C
-    .incbin "cvaos_us_baserom.gba", 0x27798C, 0x3864
+    .incbin "cvaos_us_baserom.gba", 0x27798C, 0x277994 - 0x27798C
+
+    .global sSaveMenuSpriteGfx9
+sSaveMenuSpriteGfx9: @ 0x08277994
+    .incbin "cvaos_us_baserom.gba", 0x277994, 0x27799C - 0x277994
+
+    .global sBestiaryMenuGfx3
+sBestiaryMenuGfx3: @ 0x0827799C
+    .incbin "cvaos_us_baserom.gba", 0x27799C, 0x2799A0 - 0x27799C
+
+    .global sGameOverGfx5
+sGameOverGfx5: @ 0x082799A0
+    .incbin "cvaos_us_baserom.gba", 0x2799A0, 0x27A9FC - 0x2799A0
+
+    .global sGameOverSpriteSheet3
+sGameOverSpriteSheet3: @ 0x0827A9FC
+    .incbin "cvaos_us_baserom.gba", 0x27A9FC, 0x27AA0C - 0x27A9FC
+
+    .global sSaveMenuSpriteGfx14
+sSaveMenuSpriteGfx14: @ 0x0827AA0C
+    .incbin "cvaos_us_baserom.gba", 0x27AA0C, 0x27AA14 - 0x27AA0C
+
+    .global sSaveMenuSpriteGfx8
+sSaveMenuSpriteGfx8: @ 0x0827AA14
+    .incbin "cvaos_us_baserom.gba", 0x27AA14, 0x27B1F0 - 0x27AA14
 
     .global sMenuPageTitleSpriteSheet
 sMenuPageTitleSpriteSheet: @ 0x0827B1F0
@@ -2147,4 +2637,8 @@ sMenuPageTitleSpriteSheet: @ 0x0827B1F0
 
     .global sLocalizedWindowGfx
 sLocalizedWindowGfx: @ 0x0827B200
-    .incbin "cvaos_us_baserom.gba", 0x27B200, 0x10
+    .incbin "cvaos_us_baserom.gba", 0x27B200, 0x27B208 - 0x27B200
+
+    .global sHudGfx
+sHudGfx: @ 0x0827B208
+    .incbin "cvaos_us_baserom.gba", 0x27B208, 0x27B210 - 0x27B208

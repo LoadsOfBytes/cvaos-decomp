@@ -17,6 +17,7 @@
 #include "structs/agb_sram.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
+#include "data/data_4F1444.h"
 
 /* Called with int arguments (the u16/u8 parameters in bg_and_collision.h would truncate them). */
 extern u16 *BgCmdBuffer_WriteString(s32 tileIndex, s32 rowOffset, s32 tileInfo, const u8 *string);
@@ -116,7 +117,7 @@ s32 DebugSioTest0_Update(struct DebugSioTestState *test)
             gEwramData->startPauseEnabled = 1;
             PlaySong(1);
             InGame_InitScene();
-            Room_Load((struct RoomDefinition *)0x0850F15C, 0, 0);
+            Room_Load((struct RoomDefinition *)sDebugEventRoom12, 0, 0);
             Link_Start();
             gEwramData->bgPalette.base[0][0] = 0xFFFF;
             gEwramData->bgPalette.uploaded = 0;

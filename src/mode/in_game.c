@@ -37,6 +37,9 @@
 #include "soul_menu.h"
 #include "system_menus.h"
 #include "text12.h"
+#include "data/data_0E5364.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 extern void HudMap_WriteTiles(s32, s32, s32, s32);
 
 /*
@@ -61,8 +64,8 @@ void SoundTestMenu_DrawScreen(s32 index)
     s32 i;
 
     gDisplayRegisters.bgCnt[0] = CREATE_BGCNT(2, 28, BGCNT_HIGH_PRIORITY, BGCNT_SIZE_256x256);
-    BgPalette_LoadRange((u8 *)0x080E5C20, 4, 2, 0xD);
-    BgPalette_LoadRange((u8 *)0x080E5C20, 3, 1, 0xF);
+    BgPalette_LoadRange((u8 *)sSaveSelectBgPalette, 4, 2, 0xD);
+    BgPalette_LoadRange((u8 *)sSaveSelectBgPalette, 3, 1, 0xF);
     Text_SetTileBuffer(VRAM_BASE + 0x8000);
     Text_SetForegroundColor(1);
     Text_SetBackgroundColor(0);
@@ -70,15 +73,15 @@ void SoundTestMenu_DrawScreen(s32 index)
     switch (gEwramData->gameState.language)
     {
         case 2:
-            Gfx_CopyResource((u8 *)0x08277984, VRAM_BASE + 0xC000, 0);
+            Gfx_CopyResource((u8 *)sLocalizedWindowGfxLanguage2, VRAM_BASE + 0xC000, 0);
             break;
 
         case 3:
-            Gfx_CopyResource((u8 *)0x0826C848, VRAM_BASE + 0xC000, 0);
+            Gfx_CopyResource((u8 *)sLocalizedWindowGfxLanguage3, VRAM_BASE + 0xC000, 0);
             break;
 
         default:
-            Gfx_CopyResource((u8 *)0x0827B200, VRAM_BASE + 0xC000, 0);
+            Gfx_CopyResource((u8 *)sLocalizedWindowGfx, VRAM_BASE + 0xC000, 0);
             break;
     }
 
@@ -665,26 +668,26 @@ s32 GameModeSoundTestMenu(void)
             gDisplayRegisters.bgCnt[2] = CREATE_BGCNT(0, 30, BGCNT_LOW_MID_PRIORITY, BGCNT_SIZE_256x256);
             gDisplayRegisters.bgCnt[3] = CREATE_BGCNT(0, 31, BGCNT_LOW_PRIORITY, BGCNT_SIZE_256x256);
 
-            Gfx_CopyResource((u8 *)0x080E5BB0, VRAM_BASE, 0);
-            Gfx_CopyResource((u8 *)0x080E5BB8, VRAM_BASE + 0x2000, 0);
+            Gfx_CopyResource((u8 *)sSaveSelectGfx, VRAM_BASE, 0);
+            Gfx_CopyResource((u8 *)sSaveSelectGfx2, VRAM_BASE + 0x2000, 0);
     
             switch (gEwramData->gameState.language)
             {
                 case 2:
-                    Gfx_CopyResource((u8 *)0x08277994, VRAM_BASE + 0x4000, 0);
+                    Gfx_CopyResource((u8 *)sSaveMenuSpriteGfx9, VRAM_BASE + 0x4000, 0);
                     break;
                 case 3:
-                    Gfx_CopyResource((u8 *)0x0826C850, VRAM_BASE + 0x4000, 0);
+                    Gfx_CopyResource((u8 *)sSaveMenuSpriteGfx15, VRAM_BASE + 0x4000, 0);
                     break;
                 default:
-                    Gfx_CopyResource((u8 *)0x080E5BC0, VRAM_BASE + 0x4000, 0);
+                    Gfx_CopyResource((u8 *)sSaveMenuSpriteGfx3, VRAM_BASE + 0x4000, 0);
                     break;
             }
             
-            BgPalette_Load((u8 *)0x080E5E24);
-            BgMap_Setup(3, (struct BgMapMetadata *)0x080E74C4, 0, 0);
-            BgMap_Setup(2, (struct BgMapMetadata *)0x080E6CE4, 0, 0);
-            BgMap_Setup(1, (struct BgMapMetadata *)0x080E6D74, 0, 0);
+            BgPalette_Load((u8 *)sMainMenuPalette);
+            BgMap_Setup(3, (struct BgMapMetadata *)sSaveSelectBgMap, 0, 0);
+            BgMap_Setup(2, (struct BgMapMetadata *)sSoundTestMenuBgMap, 0, 0);
+            BgMap_Setup(1, (struct BgMapMetadata *)sSoundTestMenuBgMap2, 0, 0);
             SoundTestMenu_DrawScreen(0x3AC);
             gEwramData->gameModeTimer = BLDALPHA_MAX_VALUE;
             gEwramData->gameModeUpdateStage = 2;
@@ -1256,20 +1259,20 @@ void InGame_InitScene(void)
     {
         if (sCommonObjectPaletteIndices[i] >= 0)
         {
-            ObjPalette_LoadRange((u8 *)0x082099FC, sCommonObjectPaletteIndices[i], 1, i);
+            ObjPalette_LoadRange((u8 *)sSavePointPalette, sCommonObjectPaletteIndices[i], 1, i);
         }
     }
 
     switch (gEwramData->gameState.language)
     {
         default:
-            ObjGfx_LoadResource((u8 *)0x081C15F4, 0x10000);
+            ObjGfx_LoadResource((u8 *)sCommonObjectGfx, 0x10000);
             break;
         case 2:
-            ObjGfx_LoadResource((u8 *)0x0826F8A4, 0x10000);
+            ObjGfx_LoadResource((u8 *)sCommonObjectGfxLanguage2, 0x10000);
             break;
         case 3:
-            ObjGfx_LoadResource((u8 *)0x082718A8, 0x10000);
+            ObjGfx_LoadResource((u8 *)sCommonObjectGfxLanguage3, 0x10000);
             break;
     }
     ItemIconCache_Init();
@@ -1311,7 +1314,7 @@ void InGame_LoadCommonObjectPalettes(void)
     {
         if (sCommonObjectPaletteIndices[i] >= 0)
         {
-            ObjPalette_LoadRange((u8 *)0x082099FC, sCommonObjectPaletteIndices[i], 1, i);
+            ObjPalette_LoadRange((u8 *)sSavePointPalette, sCommonObjectPaletteIndices[i], 1, i);
         }
     }
 }
@@ -1326,13 +1329,13 @@ void InGame_LoadCommonObjectGraphics(void)
     switch (gEwramData->gameState.language)
     {
         default:
-            ObjGfx_LoadResource((u8 *)0x081C15F4, 0x10000);
+            ObjGfx_LoadResource((u8 *)sCommonObjectGfx, 0x10000);
             break;
         case 2:
-            ObjGfx_LoadResource((u8 *)0x0826F8A4, 0x10000);
+            ObjGfx_LoadResource((u8 *)sCommonObjectGfxLanguage2, 0x10000);
             break;
         case 3:
-            ObjGfx_LoadResource((u8 *)0x082718A8, 0x10000);
+            ObjGfx_LoadResource((u8 *)sCommonObjectGfxLanguage3, 0x10000);
             break;
     }
     ItemIconCache_Init();
@@ -1403,7 +1406,7 @@ void Game_ResetSystems(struct GameState *gameState)
 /**
  * @brief In-game sub-mode 2 (entered by Soma_StartDeath/Julius_StartDeath):
  * close the message window, cancel souls, fade out; then either jump
- * to room 0x085236A4 (stateFlags bit 0x200000) or reset systems and return
+ * to room sDebugEventRoom17 (stateFlags bit 0x200000) or reset systems and return
  * GAME_MODE_GAME_OVER.
  */
 s32 InGame_UpdateDeath(void)
@@ -1451,7 +1454,7 @@ s32 InGame_UpdateDeath(void)
                 {
                     gEwramData->startPauseEnabled = 0;
                     gEwramData->gameState.stateFlags |= 0x800000;
-                    RoomJump_SetDestination((void *)0x085236A4, 0, 0, 0, 0);
+                    RoomJump_SetDestination((void *)sDebugEventRoom17, 0, 0, 0, 0);
                     RoomJump_Begin(&gEwramData->gameState);
                     gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT;
                     gameMode = GAME_MODE_IN_GAME;

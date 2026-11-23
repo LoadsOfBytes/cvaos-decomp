@@ -25,13 +25,7 @@ void Hud_DrawWindowPrompt(void);
 void Hud_ShowLargeSoulWindow(s32 soulType, s32 soulId);
 void Hud_ShowSoulAcquiredMessage(s32 arg0, s32 arg1, s32 arg2);
 
-struct EnemyHudNameView {
-    u8 pad_0[0x36 - 0x0];
-    u8 enemyId;
-    u8 pad_37[0x3E - 0x37];
-    u8 enemyFlags;
-};
-void Hud_RequestEnemyName(struct EnemyHudNameView *enemy);
+void Hud_RequestEnemyName(struct EwramData_EntityData *enemy);
 void Hud_CloseMessageWindow(void);
 void Room_LoadInitial(void);
 void Room_LoadAtCamera(u16 cameraX, u16 cameraY);

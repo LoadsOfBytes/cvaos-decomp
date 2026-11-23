@@ -236,10 +236,44 @@ extern u8 sText8Font[][10]; // TODO: array or struct?
 extern u8 sText12Font[][14]; // TODO: array or struct?
 extern u32 *sTransitionRooms[]; // transition rooms list
 extern u32 **sAreaRoomTables[]; // List of room pointers
+extern u8 sDebugHitTestRoom[];
+extern u8 sDebug4531Room[];
+extern u8 sDebugEventRoom12[];
+extern u8 sDebugEventRoom3[];
+extern u8 sDebugEventRoom1[];
+extern u8 sDebugExitOptionsRoom1[];
+extern u8 sDebugExitOptionsRoom2[];
+extern u8 sDebugEventRoom2[];
+extern u8 sDebugEventRoom11[];
+extern u8 sDebugExitOptionsRoom3[];
 extern u8 sChronomageDestinationRoom[];
+extern u8 sDebugExitOptionsRoom16[];
+extern u8 sDebugExitOptionsRoom4[];
+extern u8 sDebugEventRoom9[];
 extern u8 sObject15DestinationRoom0[];
+extern u8 sDebug2229Room[];
+extern u8 sDebugEventRoom5[];
+extern u8 sDebugExitOptionsRoom6[];
+extern u8 sDebugEventRoom4[];
+extern u8 sDebugEventRoom6[];
+extern u8 sDebugExitOptionsRoom7[];
+extern u8 sDebugExitOptionsRoom14[];
+extern u8 sDebugEventRoom7[];
+extern u8 sDebugExitOptionsRoom8[];
+extern u8 sDebugEventRoom0[];
+extern u8 sDebugEventRoom8[];
+extern u8 sDebugExitOptionsRoom9[];
+extern u8 sDebugEventRoom10[];
+extern u8 sDebugExitOptionsRoom11[];
 extern u8 sChaosDestinationRoom[];
+extern u8 sDebugExitOptionsRoom10[];
 extern u8 sObject15DestinationRoom1[];
+extern u8 sDebugEventRoom14[];
+extern u8 sDebugEventRoom17[];
+extern u8 sDebug4531Room2[];
+extern u8 sDebug1967Room[];
+extern u8 sBossRushMenuRoom[];
+extern u8 sDebugExitOptionsRoom12[];
 extern struct GoldDrop sGoldDrops[];
 extern u8 sTimedParticleFrames[];
 extern struct Unk_085251A8 sUnk_085251A8[];
@@ -345,6 +379,7 @@ extern u8 sMinotaurWalkProfile[];
 extern u8 sAxeArmorWalkProfile[];
 extern u8 sDiscArmorWalkProfile[];
 extern u8 sBomberRockArmorWalkProfile[];
+extern u8 sBomberArmorBombWalkProfile[];
 extern const struct BaloreFlightSteeringParameters sBaloreHandSteeringParams0[];
 extern const struct BaloreFlightSteeringParameters sBaloreHandSteeringParams1[];
 extern const struct BaloreFlightSteeringParameters sBaloreHandSteeringParams2[];
@@ -394,5 +429,6 @@ extern u16 sBelmontMeleeSounds[];
 extern struct FragmentSpec sFragmentSpecs[];
 extern struct GrahamSceneObject sGrahamSceneObjects[];
 extern struct AnimScript sRecoveryPickupParticleAnimScript[];
+extern u8 sDebugTestEnemyAnimScripts[];
 
 #endif /* DATA_4F1444_H */

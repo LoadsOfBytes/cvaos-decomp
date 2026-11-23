@@ -27,6 +27,7 @@
 #include "shop.h"
 #include "data/data_4F1444.h"
 #include "data/data_0E5364.h"
+#include "data/data_118B48.h"
 
 extern void HudMap_WriteTiles(s32, s32, u16, s32);
 extern s32 Mod(s32, s32);
@@ -56,16 +57,16 @@ s32 Shop_Update(struct GameState *context)
             Cursor_StartAnimation();
             menu->state = 0;
             menu->subState = 0;
-            DMA_FILL_32(3, 0, 0x0600E000, 0x800);
+            DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
             Text12_SetRegion(0, 2, 37, 3);
             Text12_ClearRegion();
             for (i = 0; i < 4; i++)
                 HudMap_WriteTiles(2, i + 16, 0xF060 + i * 32, 29);
             Text12_PrintTwoLineEntryAt(menu->subState + 948, 2);
             switch (gEwramData->gameState.language) {
-            case 2: bg = (void *)0x0815F480; break;
-            case 3: bg = (void *)0x0815F2D0; break;
-            default: bg = (void *)0x0815F120; break;
+            case 2: bg = (void *)sShopBgMap3; break;
+            case 3: bg = (void *)sShopBgMap2; break;
+            default: bg = (void *)sShopBgMap; break;
             }
             BgMap_Setup(1, bg, 0, 0);
             context->subModeStep++;
@@ -105,9 +106,9 @@ s32 Shop_Update(struct GameState *context)
             EntityDelete(menu);
             MenuItemIcon_Delete();
             switch (gEwramData->gameState.language) {
-            case 2: gfx = (void *)0x0827798C; break;
-            case 3: gfx = (void *)0x0826C840; break;
-            default: gfx = (void *)0x082052D8; break;
+            case 2: gfx = (void *)sMenuCursorGfxLanguage2; break;
+            case 3: gfx = (void *)sMenuCursorGfxLanguage3; break;
+            default: gfx = (void *)sMenuCursorGfx; break;
             }
             ObjGfx_Unload(ObjGfx_Find(gfx));
             ItemIconCache_Restore();
@@ -154,12 +155,12 @@ s32 Shop_Update(struct GameState *context)
         break;
     case 11:
         if (gDisplayRegisters.bldY == 16)
-            Shop_OpenList((u8 *)context, (struct MenuPage *)menu);
+            Shop_OpenList(context, menu);
         if (--gDisplayRegisters.bldY == 0)
             context->subModeStep++;
         break;
     case 12:
-        if (Shop_UpdateList((struct Owner3 *)context, (struct ShopMenu3 *)menu))
+        if (Shop_UpdateList(context, menu))
             context->subModeStep++;
         break;
     case 13:
@@ -168,16 +169,16 @@ s32 Shop_Update(struct GameState *context)
             void *bg;
             menu->subState = menu->state - 1;
             menu->state = 0;
-            DMA_FILL_32(3, 0, 0x0600E000, 0x800);
+            DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
             Text12_SetRegion(0, 2, 37, 3);
             Text12_ClearRegion();
             for (i = 0; i < 4; i++)
                 HudMap_WriteTiles(2, i + 16, 0xF060 + i * 32, 29);
             Text12_PrintTwoLineEntryAt(menu->subState + 948, 2);
             switch (gEwramData->gameState.language) {
-            case 2: bg = (void *)0x0815F480; break;
-            case 3: bg = (void *)0x0815F2D0; break;
-            default: bg = (void *)0x0815F120; break;
+            case 2: bg = (void *)sShopBgMap3; break;
+            case 3: bg = (void *)sShopBgMap2; break;
+            default: bg = (void *)sShopBgMap; break;
             }
             BgMap_Setup(1, bg, 0, 0);
             context->subModeStep = 1;

@@ -23,6 +23,7 @@
 #include "soul_pickup.h"
 #include "text12.h"
 #include "data/data_118B48.h"
+#include "red_souls_b.h"
 
 /* Page-title entity (slot 20) state machine (state at unk_508): state 1
  * places the entity at (0x35, 9) and moves to state 2; state 2 enables affine
@@ -405,16 +406,8 @@ struct SoulMenu
 
 void SoulMenu_DrawEquippedNames(struct SoulMenu *menu);
 /* Soul menu: list of souls of one type (red/blue/yellow) - none row, equipped, owned, empty fill. */
-struct MenuPage
-{
-    u8 pad_0[0x14];
-    s8 count;
-    s8 cursor;
-    s8 top;
-    u8 item;
-};
 
-void SoulMenu_DrawList(struct MenuPage *page, s32 slot);
+void SoulMenu_DrawList(struct EwramData_EntityData *page, s32 slot);
 extern void SoulMenu_PrintEquippedName(struct EwramData_EntityData *entity);
 void SoulMenu_DrawEquippedSoulValue(struct SoulMenu *menu);
 extern s32 MenuGrid_MoveCursor(struct EwramData_EntityData *entity, u16 input);
@@ -502,7 +495,7 @@ void SoulMenu_Open(struct EwramData_EntityData *entity)
         tile += 0x10;
     }
     SoulMenu_DrawEquippedNames((struct SoulMenu *)entity);
-    SoulMenu_DrawList((struct MenuPage *)entity, entity->ext.menuPageList.bytes[1]);
+    SoulMenu_DrawList(entity, entity->ext.menuPageList.bytes[1]);
     SoulMenu_PrintEquippedName(entity);
     SoulMenu_DrawEquippedSoulValue((struct SoulMenu *)entity);
 }
@@ -579,7 +572,7 @@ s32 SoulMenu_Update(struct EwramData_EntityData *entity)
                 }
                 SoulTypeSelector_SetDirection(&gEwramData->entityData[21], dir);
                 SoulMenu_DrawEquippedNames((struct SoulMenu *)entity);
-                SoulMenu_DrawList((struct MenuPage *)entity, entity->ext.menuPageList.bytes[1]);
+                SoulMenu_DrawList(entity, entity->ext.menuPageList.bytes[1]);
                 SoulMenu_PrintEquippedName(entity);
                 SoulMenu_DrawEquippedSoulValue((struct SoulMenu *)entity);
                 PlaySong(0xF1);
@@ -592,7 +585,7 @@ s32 SoulMenu_Update(struct EwramData_EntityData *entity)
                 {
                     PlaySong(0xF4);
                     SoulMenu_EquipSelected((struct SoulMenu *)entity);
-                    SoulMenu_DrawList((struct MenuPage *)entity, entity->ext.menuPage.category);
+                    SoulMenu_DrawList(entity, entity->ext.menuPage.category);
                 }
                 else
                 {
@@ -624,7 +617,7 @@ s32 SoulMenu_Update(struct EwramData_EntityData *entity)
                 {
                     PlaySong(0xF1);
                     if (top != entity->ext.menuPageList.bytes[2])
-                        SoulMenu_DrawList((struct MenuPage *)entity, entity->ext.menuPage.category);
+                        SoulMenu_DrawList(entity, entity->ext.menuPage.category);
                     else
                         SoulMenu_CountList(entity, entity->ext.menuPage.category);
                     if (last != entity->ext.menuPage.item)
@@ -890,7 +883,7 @@ void SoulMenu_DrawEquippedNames(struct SoulMenu *menu)
  * owned souls with their counts (8 rows); store the number of entries and
  * the soul under the cursor in page.
  */
-void SoulMenu_DrawList(struct MenuPage *page, s32 slot)
+void SoulMenu_DrawList(struct EwramData_EntityData *page, s32 slot)
 {
     u8 total;
     struct EwramData *ew;
@@ -910,7 +903,7 @@ void SoulMenu_DrawList(struct MenuPage *page, s32 slot)
     slots = 4;
     row = 0;
     idx = 0;
-    page->item = idx;
+    page->ext.menuList.item = idx;
     switch (slot)
     {
     case 0:
@@ -932,7 +925,7 @@ void SoulMenu_DrawList(struct MenuPage *page, s32 slot)
         equipped = (u8 *)ew + 0x133E4;
         break;
     }
-    if (page->top == 0)
+    if (page->ext.menuList.top == 0)
     {
         s32 x;
         s32 odd;
@@ -950,14 +943,14 @@ void SoulMenu_DrawList(struct MenuPage *page, s32 slot)
     else
         row = 0;
     idx = 1;
-    page->item = 0;
+    page->ext.menuList.item = 0;
     k = 0;
-    for (; idx < page->top && k < slots; k++)
+    for (; idx < page->ext.menuList.top && k < slots; k++)
     {
         if (equipped[k] != 0xFF && SoulInventory_GetSoulTotal(type, equipped[k] - 1) != 0)
             idx++;
     }
-    for (i = 1; idx < page->top && i < count; i++)
+    for (i = 1; idx < page->ext.menuList.top && i < count; i++)
     {
         if (SoulInventory_GetSoulTotal(type, i - 1) != 0)
         {
@@ -978,8 +971,8 @@ void SoulMenu_DrawList(struct MenuPage *page, s32 slot)
             s32 odd;
             s32 half;
 
-            if (idx == page->cursor)
-                page->item = equipped[k];
+            if (idx == page->ext.menuList.cursor)
+                page->ext.menuList.item = equipped[k];
             odd = row & 1;
             x = odd ? 0x15 : 0;
             half = row >> 1;
@@ -1012,8 +1005,8 @@ void SoulMenu_DrawList(struct MenuPage *page, s32 slot)
                 s32 odd;
                 s32 half;
 
-                if (idx == page->cursor)
-                    page->item = i;
+                if (idx == page->ext.menuList.cursor)
+                    page->ext.menuList.item = i;
                 odd = row & 1;
                 x = odd ? 0x15 : 0;
                 Text8_SetRegion(x, ((row + 8) >> 1) + 8, 0xE, 1);
@@ -1062,7 +1055,7 @@ fill_end:
         }
         i++;
     }
-    page->count = idx;
+    page->ext.menuList.count = idx;
     MenuList_DrawScrollArrows(page, 1);
 }
 
@@ -1200,8 +1193,6 @@ void SoulMenu_EquipSelected(struct SoulMenu *menu)
     SoulMenu_ClearStatPreview();
 }
 
-struct Tbl16 { u8 pad[6]; s16 value; u8 pad2[8]; };
-extern const struct Tbl16 sSomaRedSoulInfo[];
 struct Tbl12 { u8 pad[4]; u8 value; s8 row; u8 pad2[6]; };
 extern const struct Tbl12 sBlueSoulInfo[];
 
@@ -1250,8 +1241,8 @@ case0:
         skip = 1;
     else
     {
-    value = sSomaRedSoulInfo[equip->equippedRedSoul].value;
-    FillRow((u16 *)0x0600E442, 0x33AB);
+    value = sSomaRedSoulInfo[equip->equippedRedSoul].mpCost;
+    FillRow((u16 *)(VRAM_BASE + 0xE442), 0x33AB);
     HudMap_ClearTiles(1, 0x12, 4);
     }
     goto tail;
@@ -1262,9 +1253,9 @@ case1:
     {
     value = sBlueSoulInfo[equip->equippedBlueSoul].value;
     row = sBlueSoulInfo[equip->equippedBlueSoul].row >> 1;
-    FillRow((u16 *)0x0600E442, 0x33BB);
+    FillRow((u16 *)(VRAM_BASE + 0xE442), 0x33BB);
     {
-        u16 *dst = (u16 *)0x0600E482;
+        u16 *dst = (u16 *)(VRAM_BASE + 0xE482);
         s32 tile = row * 16 + 0x33CB;
         s32 i;
         for (i = 3; i >= 0; i--)
@@ -1306,16 +1297,16 @@ void SoulMenu_DrawSelectedSoulValue(struct SoulMenu *menu)
         goto case1;
     goto tail;
 case0:
-        value = sSomaRedSoulInfo[menu->selected].value;
-        FillRow((u16 *)0x0600E442, 0x33AB);
+        value = sSomaRedSoulInfo[menu->selected].mpCost;
+        FillRow((u16 *)(VRAM_BASE + 0xE442), 0x33AB);
         HudMap_ClearTiles(1, 0x12, 4);
     goto tail;
 case1:
         value = sBlueSoulInfo[menu->selected].value;
         row = sBlueSoulInfo[menu->selected].row >> 1;
-        FillRow((u16 *)0x0600E442, 0x33BB);
+        FillRow((u16 *)(VRAM_BASE + 0xE442), 0x33BB);
         {
-            u16 *dst = (u16 *)0x0600E482;
+            u16 *dst = (u16 *)(VRAM_BASE + 0xE482);
             s32 tile = row * 16 + 0x33CB;
             s32 i;
             for (i = 3; i >= 0; i--)

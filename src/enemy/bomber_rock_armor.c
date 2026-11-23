@@ -50,7 +50,7 @@ void BomberArmorBomb_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if (!Entity_LoadGraphics(entity, (void *)0x081E41BC, (void *)0x0820B83C, 0, (void *)0x0823EC00))
+        if (!Entity_LoadGraphics(entity, (void *)sBomberArmorRockArmorGfx, (void *)sBomberArmorRockArmorPalette, 0, (void *)sBomberArmorSpriteSheet))
             goto delete;
         Anim_StartIndexed(entity, 3, 0, 1);
         entity->spriteLayer = 0x13;
@@ -78,7 +78,7 @@ void BomberArmorBomb_Update(struct EwramData_EntityData *entity)
             }
         }
         entity->timer++;
-        result = Entity_Walk(entity, entity->ext.bomberArmorBomb.speed, (void *)0x08528738, 2);
+        result = Entity_Walk(entity, entity->ext.bomberArmorBomb.speed, (void *)sBomberArmorBombWalkProfile, 2);
         if (result & 3)
             entity->ext.bomberArmorBomb.speed = -(s32)entity->ext.bomberArmorBomb.speed / 2;
         if (result & 8)
@@ -196,7 +196,7 @@ void RockArmorRock_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if (!Entity_LoadGraphics(entity, (void *)0x081E41BC, (void *)0x0820B83C, 1, (void *)0x0823FFD8))
+        if (!Entity_LoadGraphics(entity, (void *)sBomberArmorRockArmorGfx, (void *)sBomberArmorRockArmorPalette, 1, (void *)sRockArmorSpriteSheet))
             goto delete;
         Anim_StartIndexed(entity, 3, 0, 1);
         Anim_Update(entity);
@@ -215,7 +215,7 @@ void RockArmorRock_Update(struct EwramData_EntityData *entity)
         entity->scrollWithBg = 1;
         entity->state = 1;
     case 1:
-        if (Entity_Walk(entity, entity->ext.rockArmorRock.speed, (void *)0x08528738, 2))
+        if (Entity_Walk(entity, entity->ext.rockArmorRock.speed, (void *)sBomberArmorBombWalkProfile, 2))
             entity->state = 2;
         break;
     case 2:

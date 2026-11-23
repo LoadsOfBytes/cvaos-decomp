@@ -23,6 +23,8 @@ SECTIONS {
         . = 0x00001958; gObjLayers = .;
         . = 0x000019D8; gObjState = .;
         . = 0x00001A18; gTextGlyphRows = .;
+        . = 0x00001A48; gPlayerAttackRect = .;
+        . = 0x00001A50; gPlayerHurtRect = .;
         . = 0x00001A58; gEntityBoxes = .;
 
         . = 0x000020D8; src/engine/sound.o(.bss);

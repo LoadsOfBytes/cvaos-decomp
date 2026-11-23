@@ -7,8 +7,7 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-struct MenuPage;
 
-extern s32 BestiaryMenu_MoveCursor(struct MenuPage *page, s32 input);
+extern s32 BestiaryMenu_MoveCursor(struct EwramData_EntityData *page, s32 input);
 
 #endif /* BESTIARY_CURSOR_H */

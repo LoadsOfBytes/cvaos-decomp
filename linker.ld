@@ -132,7 +132,6 @@ SECTIONS {
         src/engine/soul_pickup.o(.text);
         src/engine/effects.o(.text);
         src/menu/menu_common.o(.text);
-        src/menu/hud_tile_block.o(.text);
         src/menu/pause_menu.o(.text);
         src/menu/soul_menu.o(.text);
         src/menu/equipment_menu.o(.text);
@@ -215,7 +214,6 @@ SECTIONS {
         src/enemy/tsuchinoko.o(.text);
         src/enemy/sky_fish.o(.text);
         src/enemy/big_golem.o(.text);
-        src/enemy/bat_create.o(.text);
         src/enemy/bat.o(.text);
         src/enemy/worm.o(.text);
         src/enemy/dryad.o(.text);

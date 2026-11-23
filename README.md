@@ -5,8 +5,8 @@
 ![ROM code from C](https://img.shields.io/badge/ROM%20code%20from%20C-97.06%25-green)
 ![Names](https://img.shields.io/badge/Names-100%25-brightgreen)
 ![Fields named](https://img.shields.io/badge/Fields%20named-96.3%25-green)
-![Files grouped into modules](https://img.shields.io/badge/Files%20grouped%20into%20modules-94%25-green)
-![FAKEMATCH](https://img.shields.io/badge/FAKEMATCH-274%20lines-orange)
+![Files grouped into modules](https://img.shields.io/badge/Files%20grouped%20into%20modules-95%25-green)
+![FAKEMATCH](https://img.shields.io/badge/FAKEMATCH-275%20lines-orange)
 
 > **Read this first**
 >
@@ -37,8 +37,8 @@ Measured on 2026-11-23 from the build output and source scans.
 | Local variables and parameters named | ✅ **100 %** (16,280 / 16,280) |
 | Structure fields named | 🔄 **96.3 %** (3,275 / 3,400 declared; 99.8 % of accesses) |
 | Entity work area as typed structures | 🔄 363 per-type structures; 67 lines still use the raw offset view |
-| Source files grouped into modules | 🔄 **94 %** – the 1,701 ROM-address files (`code_XXXXXXXX.c`) are 174 named files: 163 complete modules and 11 small files still split off only for build reasons (see *File layout*); no `code_XXXXXXXX` name left |
-| Removing compiler tricks (`FAKEMATCH`) | 🔄 274 lines left in 73 of 183 C files |
+| Source files grouped into modules | 🔄 **95 %** – the 1,701 ROM-address files (`code_XXXXXXXX.c`) are 172 named files: 163 complete modules and 9 small files still split off only for build reasons (see *File layout*); no `code_XXXXXXXX` name left |
+| Removing compiler tricks (`FAKEMATCH`) | 🔄 275 lines left in 73 of 181 C files |
 
 ## How this fork was made
 
@@ -56,7 +56,7 @@ name or comment describes the game correctly. Corrections are very welcome.
 
 ## Known limitations
 
-- **`FAKEMATCH`** – 274 lines force the compiler's output (`register ... asm("rN")`
+- **`FAKEMATCH`** – 275 lines force the compiler's output (`register ... asm("rN")`
   pins, empty `asm("")`, one-shot `do { } while (0)`, `volatile` reads, and 9 calls
   through a function-pointer cast that keep the argument / result types a merged
   part was originally compiled with). The original
@@ -70,11 +70,11 @@ name or comment describes the game correctly. Corrections are very welcome.
   views that a nested union cannot express remain as accessor macros.
 - **File layout** – sources live in `src/enemy/`, `src/object/`, `src/soul/`,
   `src/player/`, `src/engine/`, `src/menu/`, `src/mode/`, `src/event/` and
-  `src/debug/`, each file a consecutive ROM range in its original order. 11 small
-  files are still split off only for build reasons: 8 single functions that
+  `src/debug/`, each file a consecutive ROM range in its original order. 9 small
+  files are still split off only for build reasons: 6 single functions that
   match only with an optimisation pass disabled (`palette_state`,
-  `hit_shared_history`, `hud_tile_block`, `equipment_list_update`,
-  `bestiary_cursor`, `object_19_create`, `box_collision`, `bat_create`) – the
+  `hit_shared_history`, `equipment_list_update`,
+  `bestiary_cursor`, `object_19_create`, `box_collision`) – the
   flag would change their neighbours' code; `scene30_transformation` (own data
   section); `kyoma_demon_b` and `tsuchinoko`, cut off from their family because
   the family's flag changes their code. The 4 ARM units (`*_arm.c`, IWRAM code
@@ -82,7 +82,7 @@ name or comment describes the game correctly. Corrections are very welcome.
 
 ## Planned work
 
-- Merge the 11 build-separated files: needs C that matches without their compiler flags.
+- Merge the 9 build-separated files: needs C that matches without their compiler flags.
 - Finish the entity structures and name the remaining fields.
 - Reduce `FAKEMATCH` where a natural C variant can be found.
 

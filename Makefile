@@ -186,9 +186,6 @@ src/enemy/kyoma_demon.s: CFLAGS += -fno-cse-follow-jumps
 # Object19Create: cse must not carry equivalences around skipped blocks.
 src/object/object_19_create.s: CFLAGS += -fno-cse-skip-blocks
 
-# EnemyBatCreate: same cse path effect as sub_080A02AC.
-src/enemy/bat_create.s: CFLAGS += -fno-cse-follow-jumps
-
 # sub_080441F8 (pickup handler): the inventory count is reloaded after the
 # 0x4EF test instead of reusing it around the skipped block.
 src/engine/pickup.s: CFLAGS += -fno-cse-skip-blocks
@@ -197,7 +194,6 @@ src/engine/pickup.s: CFLAGS += -fno-cse-skip-blocks
 # these translation units match as plain C (no pinned registers) only with
 # one optimisation pass disabled, so they were most likely built that way.
 src/engine/hit_shared_history.s: CFLAGS += -fno-rerun-cse-after-loop
-src/menu/hud_tile_block.s: CFLAGS += -fno-strength-reduce
 src/menu/equipment_list_update.s: CFLAGS += -fno-expensive-optimizations
 src/menu/bestiary_cursor.s: CFLAGS += -fno-cse-skip-blocks
 src/enemy/erinys.s: CFLAGS += -fno-cse-skip-blocks

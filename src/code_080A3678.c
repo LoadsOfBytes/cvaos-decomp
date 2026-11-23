@@ -29,7 +29,7 @@ void ChaosSpark_Update(struct EwramData_EntityData *entity)
     if (state == 0)
     {
         if (orb == NULL || orb->updateFunc == NULL
-            || orb->unk_518.part8.enemyId != entity->unk_518.part8.enemyId)
+            || orb->enemyId != entity->enemyId)
             goto check;
         if (entity->stage == 0)
         {

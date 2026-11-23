@@ -50,7 +50,7 @@ void EnemyHeadhunterCreate(struct EwramData_EntityData *entity)
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
     struct EwramData_EntityData *part;
     s32 kind;
-    if (entity->unk_514.part16.spawnParam0 != 0 && gEwramData->gameState.bossRushMode == 0
+    if (entity->spawnParam0 != 0 && gEwramData->gameState.bossRushMode == 0
         && (gEwramData->gameState.bossEventFlags & 0x10))
         goto delete;
     if (!Headhunter_LoadGraphics(entity)) goto delete;
@@ -61,8 +61,8 @@ void EnemyHeadhunterCreate(struct EwramData_EntityData *entity)
         entity->state = 3;
         Anim_StartIndexed(entity, 9, 2, 1);
         Anim_Update(entity);
-        entity->unk_510.part8.basePalette = entity->ext.headhunter.palette2;
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->basePalette = entity->ext.headhunter.palette2;
+        entity->palette = entity->basePalette;
         return;
     }
     if (Anim_GetMaxBoxCount(entity) > 1)
@@ -82,27 +82,27 @@ void EnemyHeadhunterCreate(struct EwramData_EntityData *entity)
         {
         case 0:
             Sprite_Attach(part, sHeadhunterSpriteSheet, graphics, *(s8 *)&entity->ext.headhunter.palette0);
-            part->unk_510.part8.basePalette = entity->ext.headhunter.palette0;
+            part->basePalette = entity->ext.headhunter.palette0;
             Anim_Start(part, &sHeadhunterAnimScript0, 2, 1);
             part->posX.part16.integer = 0xF0 - camera->xPos.part16.integer;
             part->posY.part16.integer = 0x7C - camera->yPos.part16.integer;
             break;
         case 1:
             Sprite_Attach(part, sHeadhunterSpriteSheet, graphics, *(s8 *)&entity->ext.headhunter.palette1);
-            part->unk_510.part8.basePalette = entity->ext.headhunter.palette1;
+            part->basePalette = entity->ext.headhunter.palette1;
             Anim_Start(part, &sHeadhunterAnimScript1, 2, 1);
             part->posX.part16.integer = 0x110 - camera->xPos.part16.integer;
             part->posY.part16.integer = 0x80 - camera->yPos.part16.integer;
             break;
         case 2:
             Sprite_Attach(part, sHeadhunterSpriteSheet, graphics, *(s8 *)&entity->ext.headhunter.palette2);
-            part->unk_510.part8.basePalette = entity->ext.headhunter.palette2;
+            part->basePalette = entity->ext.headhunter.palette2;
             Anim_Start(part, &sHeadhunterAnimScript2, 2, 1);
             part->posX.part16.integer = 0x100 - camera->xPos.part16.integer;
             part->posY.part16.integer = 0x60 - camera->yPos.part16.integer;
             break;
         }
-        part->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
+        part->enemyId = entity->enemyId;
         part->scrollWithBg = 1;
         part->drawFunc = (u32 *)Sprite_DrawEntity;
         part->flipX = entity->flipX;

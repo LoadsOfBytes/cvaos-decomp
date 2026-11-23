@@ -97,11 +97,11 @@ s32 GrahamPart_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16
     s32 oldX;
     s32 oldY;
 
-    entity->unk_510.part8.hitFlashTimer = 8;
+    entity->hitFlashTimer = 8;
     {
-        u16 hp = entity->unk_518.part16.hp;
+        u16 hp = entity->hp;
         damage = (damage << 16) >> 16;
-        entity->unk_518.part16.hp = hp - damage;
+        entity->hp = hp - damage;
     }
     oldX = entity->posX.whole;
     oldY = entity->posY.whole;
@@ -109,7 +109,7 @@ s32 GrahamPart_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16
     Entity_ShowDamage(entity, damage, 0);
     entity->posX.whole = oldX;
     entity->posY.whole = oldY;
-    if ((s16)entity->unk_518.part16.hp <= 0)
+    if ((s16)entity->hp <= 0)
         return 1;
     return 0;
 }

@@ -112,11 +112,11 @@ u8 CreakingSkull_LoadGraphics(struct EwramData_EntityData *entity)
 
     if (gfx < 0)
         return 0;
-    if (entity->unk_518.part8.enemyId == 0x21)
-        entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sCreakingSkullPalette, 0);
-    else if (entity->unk_518.part8.enemyId == 0x5C)
-        entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sCreakingSkullPalette, 1);
-    Sprite_Attach(entity, sCreakingSkullSpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    if (entity->enemyId == 0x21)
+        entity->basePalette = ObjPalette_FindOrLoadVariant(sCreakingSkullPalette, 0);
+    else if (entity->enemyId == 0x5C)
+        entity->basePalette = ObjPalette_FindOrLoadVariant(sCreakingSkullPalette, 1);
+    Sprite_Attach(entity, sCreakingSkullSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }

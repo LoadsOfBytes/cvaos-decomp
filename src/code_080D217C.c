@@ -28,7 +28,7 @@ void Entity_SpawnFragmentSet(struct EwramData_EntityData *entity)
         entity->ext.fragmentSet.count++;
         ENTITY_PARENT_INDEX(fragment)=ENTITY_INDEX(entity);
         fragment->spriteLayer=entity->spriteLayer;
-        fragment->unk_510.part8.basePalette=entity->unk_510.part8.basePalette;
+        fragment->basePalette=entity->basePalette;
         fragment->flipX=entity->flipX;
         graphics=ObjGfx_LoadResource(sMandragoraGfx,0);
         slot=ObjPalette_FindOrLoadVariant(sMandragoraPalette,0);

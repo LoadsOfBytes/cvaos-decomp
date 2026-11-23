@@ -22,7 +22,7 @@ void Gladiator_SpawnFragments(struct EwramData_EntityData *entity, s32 x, s32 y)
             effect->velY.whole = -(RandomNumberGenerator() & 0xFFFF) - 0x4000;
             effect->accelY.whole = 0x1000;
             effect->spriteLayer = entity->spriteLayer;
-            Sprite_Attach(effect, sGladiatorSpriteSheet, ObjGfx_Find(sGladiatorGfx), entity->unk_510.part8.basePalette);
+            Sprite_Attach(effect, sGladiatorSpriteSheet, ObjGfx_Find(sGladiatorGfx), entity->basePalette);
             Anim_StartIndexed(effect, (u16)(i + 5), 0, 0);
             effect->flipX = entity->flipX;
             effect->scrollWithBg = 1;

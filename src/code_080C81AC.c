@@ -25,19 +25,19 @@ extern void KillerDoll_UpdateDeath(struct EwramData_EntityData *entity);
 void KillerDoll_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 *data)
 {
     s32 damage = Hit_ResolveDamage(entity, hit, data, (s16)Player_CalculateAttackPower(data[2]));
-    u16 hp = entity->unk_518.part16.hp;
+    u16 hp = entity->hp;
 
     damage = (damage << 16) >> 16;
-    entity->unk_518.part16.hp = hp - damage;
+    entity->hp = hp - damage;
     Entity_ShowDamage(entity, damage, 0);
-    entity->unk_510.part8.hitFlashTimer = 8;
-    if ((s16)entity->unk_518.part16.hp <= 0)
+    entity->hitFlashTimer = 8;
+    if ((s16)entity->hp <= 0)
     {
         entity->subState = 0;
         PlaySong(0x6E);
         KillerDoll_SpawnDeathParts(entity);
         Enemy_DropRewards(entity);
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->state = 0xFF;
         entity->subState++;
         if (entity->ext.doll.deathPartCount == 0)

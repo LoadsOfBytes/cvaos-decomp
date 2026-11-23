@@ -36,7 +36,7 @@ void CreakingSkull_SpawnProjectile(struct EwramData_EntityData *owner, s32 x, s3
             EntityDelete(entity);
             return;
         }
-        Sprite_Attach(entity, sCreakingSkullSpriteSheet, graphics, owner->unk_510.part8.basePalette);
+        Sprite_Attach(entity, sCreakingSkullSpriteSheet, graphics, owner->basePalette);
         Anim_StartIndexed(entity, 0, 0, 0);
         Anim_Update(owner);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;

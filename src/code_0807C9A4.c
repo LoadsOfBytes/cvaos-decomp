@@ -20,7 +20,7 @@ void AluraUne_SpawnThorn(struct EwramData_EntityData *parent, s32 xOffset, s32 d
             EntityDelete(projectile);
             goto finished;
         }
-        Sprite_Attach(projectile, sAluraUneSpriteSheet, graphics, parent->unk_510.part8.basePalette);
+        Sprite_Attach(projectile, sAluraUneSpriteSheet, graphics, parent->basePalette);
         Anim_StartIndexed(projectile, 12, 0, 0);
         projectile->drawFunc = (u32 *)Sprite_DrawEntity;
         Hit_Enable(projectile, 8, AluraUneAttack_DamagePlayerOnContact, 0);

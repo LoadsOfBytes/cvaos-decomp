@@ -59,22 +59,22 @@ void Headhunter_SpawnFallingPart(struct EwramData_EntityData *owner, s32 x, s32 
     switch (kind)
     {
     case 0:
-        part->unk_510.part8.basePalette = owner->ext.headhunter.palette0;
+        part->basePalette = owner->ext.headhunter.palette0;
         FRAME(part) = 1;
         part->timer = 8;
         break;
     case 1:
-        part->unk_510.part8.basePalette = owner->ext.headhunter.palette1;
+        part->basePalette = owner->ext.headhunter.palette1;
         FRAME(part) = 0x6C;
         part->timer = 8;
         break;
     case 2:
-        part->unk_510.part8.basePalette = owner->ext.headhunter.palette2;
+        part->basePalette = owner->ext.headhunter.palette2;
         FRAME(part) = 0x4F;
         part->timer = 60;
         break;
     }
-    Sprite_Attach(part, sHeadhunterSpriteSheet, graphics, part->unk_510.part8.basePalette);
+    Sprite_Attach(part, sHeadhunterSpriteSheet, graphics, part->basePalette);
     if ((s32)((slot = ObjAffine_Alloc(1)) << 16) < 0)
     {
         EntityDelete(part);
@@ -198,8 +198,8 @@ void Headhunter_SpawnWaveBurst(struct EwramData_EntityData *owner, s32 x, s32 y,
     effect->spriteLayer = owner->spriteLayer - 1;
     graphics = owner->ext.headhunter.graphics;
     effect->ext.headhunterEffect.graphics = graphics;
-    effect->unk_510.part8.basePalette = owner->ext.headhunter.palette3;
-    Sprite_Attach(effect, sHeadhunterSpriteSheet, graphics, effect->unk_510.part8.basePalette);
+    effect->basePalette = owner->ext.headhunter.palette3;
+    Sprite_Attach(effect, sHeadhunterSpriteSheet, graphics, effect->basePalette);
     FRAME(effect) = 0x59;
     if ((s32)((slot = ObjAffine_Alloc(1)) << 16) < 0)
     {
@@ -308,8 +308,8 @@ void Headhunter_SpawnLightningBurst(struct EwramData_EntityData *owner, s32 x, s
     effect->spriteLayer = owner->spriteLayer - 1;
     graphics = owner->ext.headhunter.graphics;
     effect->ext.headhunterEffect.graphics = graphics;
-    effect->unk_510.part8.basePalette = owner->ext.headhunter.palette3;
-    Sprite_Attach(effect, sHeadhunterSpriteSheet, graphics, effect->unk_510.part8.basePalette);
+    effect->basePalette = owner->ext.headhunter.palette3;
+    Sprite_Attach(effect, sHeadhunterSpriteSheet, graphics, effect->basePalette);
     FRAME(effect) = 0x59;
     if ((s32)((slot = ObjAffine_Alloc(1)) << 16) < 0)
     {

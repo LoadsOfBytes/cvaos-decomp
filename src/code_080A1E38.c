@@ -27,19 +27,19 @@ extern struct EwramData_EntityData *Chaos_CreateInnerRing(struct EwramData_Entit
 extern struct EwramData_EntityData *Chaos_CreateOrb(struct EwramData_EntityData *, u16, s32, s32);
 
 /* Create the Chaos core with its background, two rings and three orbs
- * (unk_516 set: the other form Chaos_StartSecondForm); after the fight only the
+ * (spawnParam1 set: the other form Chaos_StartSecondForm); after the fight only the
  * frozen state 4. */
 void EnemyChaosCreate(struct EwramData_EntityData *core)
 {
     struct ChaosData *data;
 
-    if (core->unk_514.part16.spawnParam1 != 0)
+    if (core->spawnParam1 != 0)
     {
         if (Chaos_StartSecondForm(core) == 0)
             return;
         goto delete;
     }
-    if (core->unk_514.part16.spawnParam0 != 0 && gEwramData->gameState.bossRushMode == 0
+    if (core->spawnParam0 != 0 && gEwramData->gameState.bossRushMode == 0
         && (gEwramData->gameState.bossEventFlags & 0x80))
         goto delete;
     data = Heap_Alloc(10);

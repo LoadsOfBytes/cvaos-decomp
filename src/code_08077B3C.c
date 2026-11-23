@@ -24,7 +24,7 @@ s32 WhiteDragonBreath_LoadGraphics(struct EwramData_EntityData *entity, struct E
 
     if (gfx < 0)
         return 0;
-    Sprite_Attach(projectile, sQuezlcoatlWhiteDragonSpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    Sprite_Attach(projectile, sQuezlcoatlWhiteDragonSpriteSheet, gfx, entity->basePalette);
     projectile->animFrame = 5;
     projectile->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
@@ -78,8 +78,8 @@ u8 WhiteDragon_LoadGraphics(struct EwramData_EntityData *entity)
 
     if (gfx < 0)
         return 0;
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sQuezlcoatlWhiteDragonPalette, 0);
-    Sprite_Attach(entity, sQuezlcoatlWhiteDragonSpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sQuezlcoatlWhiteDragonPalette, 0);
+    Sprite_Attach(entity, sQuezlcoatlWhiteDragonSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = (u32 *)WhiteDragon_Draw;
     return 1;
 }

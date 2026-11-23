@@ -9,7 +9,7 @@ extern s32 Target_GetY(struct EwramData_EntityData *);
 #define FIXED_TO_INT(v) ((v) < 0 ? -(-(v) >> 16) : (v) >> 16)
 
 /**
- * @brief 7DBB4 | Giant Ghost hand (owner type 0x13 in unk_51A): copies the
+ * @brief 7DBB4 | Giant Ghost hand (owner type 0x13 in enemyId): copies the
  * owner's visibility, palette and facing; while gEwramData bestiaryPreview is set
  * it sways a target point (unk_4FC / unk_500, direction unk_506 flipped
  * every 60 frames) and moves towards it at 3x sine speed from the owner
@@ -29,7 +29,7 @@ void GiantGhostHandA_Update(struct EwramData_EntityData *entity)
 
     if (entity->state == 0)
     {
-        if (!parent || !parent->updateFunc || parent->unk_518.part8.enemyId != 0x13)
+        if (!parent || !parent->updateFunc || parent->enemyId != 0x13)
             goto remove;
         entity->hidden = parent->hidden;
         entity->palette = parent->palette;

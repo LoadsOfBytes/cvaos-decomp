@@ -24,7 +24,7 @@ void Object16Create(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    PaletteAnim_Start(sObject16Palette, sObject16PaletteAnim, entity->unk_510.part8.basePalette);
+    PaletteAnim_Start(sObject16Palette, sObject16PaletteAnim, entity->basePalette);
     entity->animFrame = 0;
     entity->spriteLayer = 0x12;
     entity->ext.object16.scale = 0xF00;

@@ -13,7 +13,7 @@ struct EntityTemplate {
     u16 dropItem0; // item id + 1 shown by BestiaryMenu_PrintDrops (bit set enemyFlags[4..7])
     u16 dropItem1; // item id + 1 shown by BestiaryMenu_PrintDrops (bit set enemyFlags[8..11])
     u16 hp; // initial/base enemy HP, copied to runtime entity HP
-    u16 unk_E; // copied to entity unk_512 by Enemy_ResetFromTemplate
+    u16 mp; /* enemy MP (record order hp, mp, exp); copied to entity mp by Enemy_ResetFromTemplate */
     u8 pad_10[3];
     u8 attack; // copied to entity attack
     u8 defense; // base entity defense, loaded by Enemy_ResetFromTemplate

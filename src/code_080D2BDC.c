@@ -62,7 +62,7 @@ mark_dialogue:
                     FLAGS(entity)|=0x10;
                     break;
                 case 1:
-                    if(object && (!object->updateFunc || object->unk_518.part8.enemyId!=32))
+                    if(object && (!object->updateFunc || object->enemyId!=32))
                     {
                         entity->subState++;
                         entity->stage=0;

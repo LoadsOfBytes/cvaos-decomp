@@ -38,9 +38,9 @@ struct EwramData_EntityData *Legion_CreateCorePart(struct EwramData_EntityData *
     part->spriteLayer = entity->spriteLayer - 2;
     do { do { tiles = *data; } while (0); } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
     part->ext.legionPart.tiles = tiles;
-    part->unk_510.part8.basePalette = entity->ext.legion.animPalette;
-    Sprite_Attach(part, sLegionSpriteSheet, tiles, part->unk_510.part8.basePalette);
-    do { part->unk_518.part8.enemyId = entity->unk_518.part8.enemyId; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
+    part->basePalette = entity->ext.legion.animPalette;
+    Sprite_Attach(part, sLegionSpriteSheet, tiles, part->basePalette);
+    do { part->enemyId = entity->enemyId; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
     switch (kind)
     {
     case 0:
@@ -87,7 +87,7 @@ struct EwramData_EntityData *Legion_CreateCorePart(struct EwramData_EntityData *
     do { part->ext.legionPart.owner = entity; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
     part->scrollWithBg = 0;
     part->flipX = 0;
-    do { part->unk_518.part16.hp = entity->unk_518.part16.hp; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
+    do { part->hp = entity->hp; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
     do { part->attack = entity->attack; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
     if (!(*((u8 *)gEwramData + 0x8E) & 0x40))
     {

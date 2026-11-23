@@ -48,11 +48,11 @@ void Chaos_CreateMark(struct EwramData_EntityData *core, s32 kind)
         mark->posY.part16.integer = 0xFF80;
         mark->spriteLayer = (*ewram)->playerState.player->spriteLayer - 1;
         graphics = data->graphics;
-        mark->unk_510.part8.basePalette = data->palette2;
-        Sprite_Attach(mark, sChaosSpriteSheet, graphics, mark->unk_510.part8.basePalette);
+        mark->basePalette = data->palette2;
+        Sprite_Attach(mark, sChaosSpriteSheet, graphics, mark->basePalette);
         mark->animMode = 2;
         mark->animFrame = frames.v[kind] + 0x14;
-        mark->unk_518.part8.enemyId = core->unk_518.part8.enemyId;
+        mark->enemyId = core->enemyId;
         mark->ext.chaosChild.link = core;
         mark->scrollWithBg = 0;
         KIND(mark) = kind;

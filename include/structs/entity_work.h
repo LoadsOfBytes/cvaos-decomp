@@ -1851,7 +1851,7 @@ struct DiscArmorHandWork {
  * angle around the hand, its turn step, orbit radius, a per-state counter
  * (spiral phase while flying out, rolling speed on the floor, bounce speed
  * when dropped), and the x / y movement of the last frame (the y one is kept
- * in the pointer-typed unk_514 field).
+ * in the pointer-typed spawnParam0 field).
  */
 struct DiscArmorDiscWork {
     /* 0x4F4 */ struct EwramData_EntityData *owner;
@@ -2775,7 +2775,7 @@ struct Event30Work {
 };
 
 /* Event scene 30 effect sprites (halo, centre effect, orbit ring; their
- * affine rotation angle is the entity field unk_51C): affine scale and the
+ * affine rotation angle is the entity field enemyStatus): affine scale and the
  * spin step of the angle (centre and spinning effects).
  */
 struct Event30EffectWork {

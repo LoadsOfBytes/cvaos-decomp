@@ -795,9 +795,9 @@ s32 Anim_UpdateStreamed(struct EwramData_EntityData *entity)
     frame += entity->animStep * 4;
     tile = *frame;
     bank = tile >> 2;
-    if (entity->unk_518.part8.spawnIndex != tile)
+    if (entity->spawnIndex != tile)
     {
-        entity->unk_518.part8.spawnIndex = tile;
+        entity->spawnIndex = tile;
         ObjTiles_LoadFrame(Sprite_GetTileSlot(entity), tiles[bank], *frame, 0, 1, 1);
     }
     return RunAnimationScript(entity);

@@ -34,8 +34,8 @@ u8 Mudman_LoadGraphics(struct EwramData_EntityData *entity)
 
     if (gfx < 0)
         return 0;
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sMudmanPalette, 0);
-    Sprite_Attach(entity, sMudmanSpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sMudmanPalette, 0);
+    Sprite_Attach(entity, sMudmanSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }

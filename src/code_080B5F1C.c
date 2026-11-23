@@ -30,7 +30,7 @@ void BaloreIntroPiece_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        Sprite_Attach(entity, (void *)0x08244D4C, BALORE_GFX_BYTE(parent), parent->unk_510.part8.basePalette);
+        Sprite_Attach(entity, (void *)0x08244D4C, BALORE_GFX_BYTE(parent), parent->basePalette);
         Anim_StartIndexed(entity, 1, 2, 1);
         entity->animTimer = RandomNumberGenerator() & 7;
         entity->drawFunc = (u32 *)Sprite_DrawEntity;

@@ -65,7 +65,7 @@ void EnemyBigGolemCreate(struct EwramData_EntityData *entity)
     altPalette[1] = 1;
     altPalette[2] = 1;
 
-    if (entity->unk_514.part16.spawnParam0 != 0 && !(*ewram)->gameState.bossRushMode && ((*ewram)->gameState.bossEventFlags & 0x1000))
+    if (entity->spawnParam0 != 0 && !(*ewram)->gameState.bossRushMode && ((*ewram)->gameState.bossEventFlags & 0x1000))
     {
         EntityDelete(entity);
         return;
@@ -84,10 +84,10 @@ void EnemyBigGolemCreate(struct EwramData_EntityData *entity)
     entity->flipX = 0;
     entity->ext.joint.pose = 0;
     Enemy_ResetFromTemplate(entity);
-    if (entity->unk_514.part16.spawnParam0 != 0 && !gEwramData->gameState.bossRushMode)
+    if (entity->spawnParam0 != 0 && !gEwramData->gameState.bossRushMode)
         entity->attack = entity->attack - (entity->attack >> 2) - (entity->attack >> 3);
     if (gEwramData->gameState.bossRushMode)
-        entity->unk_518.part16.hp += 1000;
+        entity->hp += 1000;
     for (i = 0; i <= 13; i++)
     {
         index = order[i];
@@ -96,14 +96,14 @@ void EnemyBigGolemCreate(struct EwramData_EntityData *entity)
         {
             part->spriteLayer = entity->spriteLayer;
             if (altGraphics[index])
-                Sprite_Attach(part, sBigGolemSpriteSheet2, ObjGfx_LoadResource(sBigGolemGfx2, 0), entity->unk_510.part8.basePalette);
+                Sprite_Attach(part, sBigGolemSpriteSheet2, ObjGfx_LoadResource(sBigGolemGfx2, 0), entity->basePalette);
             else
-                Sprite_Attach(part, sBigGolemSpriteSheet, ObjGfx_LoadResource(sBigGolemGfx, 0), entity->unk_510.part8.basePalette);
+                Sprite_Attach(part, sBigGolemSpriteSheet, ObjGfx_LoadResource(sBigGolemGfx, 0), entity->basePalette);
             if (altPalette[index])
-                part->unk_510.part8.basePalette = entity->ext.bigGolem.palette1;
+                part->basePalette = entity->ext.bigGolem.palette1;
             else
-                part->unk_510.part8.basePalette = entity->ext.bigGolem.palette0;
-            part->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
+                part->basePalette = entity->ext.bigGolem.palette0;
+            part->enemyId = entity->enemyId;
             part->scrollWithBg = 0;
             part->hidden = 0;
             part->attack = entity->attack;
@@ -219,7 +219,7 @@ void EnemyBigGolemCreate(struct EwramData_EntityData *entity)
     entity->state = frozen;
     entity->subState = frozen;
     entity->ext.joint.hurtMask = 0x312C;
-    if (entity->unk_514.part16.spawnParam0 != 0)
+    if (entity->spawnParam0 != 0)
     {
         Music_SetCurrent(0x10);
         Player_SetSelectedTarget(entity);

@@ -31,7 +31,7 @@ static inline struct SoulGraphicsResources *GetSet(s32 index)
  * @brief 29FB0 | Tiny Devil red soul: graphics set 21, position at the
  * caster (Entity_PlaceRelativeTo, 8 / -0x1A), Hit_SetTimerOverride(1, 20), song 0x1A3; spawn
  * up to three SkillTinyDevilUpdate children at the caster's position with
- * angles -0x1800, 0, 0x1800 in unk_510 (mirrored as -0x8000 - angle when
+ * angles -0x1800, 0, 0x1800 in ENTITY_HALF_510 (mirrored as -0x8000 - angle when
  * facing left); then free the red soul slot.
  */
 void SkillTinyDevilUse(struct EwramData_EntityData *entity)

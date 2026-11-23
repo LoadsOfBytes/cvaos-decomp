@@ -35,14 +35,14 @@ void SkillCreakingSkullHitBoxUpdate(struct EwramData_EntityData *entity)
     timer = entity->timer + 1;
     entity->timer = timer;
     if (timer & 1)
-        entity->unk_514.part16.spawnParam1 = 0x30;
+        entity->spawnParam1 = 0x30;
     else
-        entity->unk_514.part16.spawnParam1 = 0x10;
+        entity->spawnParam1 = 0x10;
     if (!parent->flipX)
         angle = -0x8000 + SKILL_CREAKING_SKULL_ANGLE(parent);
     else
         angle = -SKILL_CREAKING_SKULL_ANGLE(parent);
-    radius = entity->unk_514.part16.spawnParam1;
+    radius = entity->spawnParam1;
     entity->posX.whole = parent->posX.whole + radius * Sin((s16)angle + 0x4000);
     entity->posY.whole = parent->posY.whole + radius * Sin((s16)angle);
 }

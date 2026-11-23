@@ -38,12 +38,12 @@ struct EwramData_EntityData *GrahamFirstForm_Create(struct EwramData_EntityData 
     e->stage = 0;
     e->subState = 0;
     e->enemyFlags |= 4;
-    e->unk_518.part16.hp = 1500;
-    e->unk_510.part16.unk_512 = owner->unk_510.part16.unk_512 / 2;
+    e->hp = 1500;
+    e->mp = owner->mp / 2;
     e->attack = 60;
     e->defense = 100;
-    e->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
-    e->unk_518.part8.spawnIndex = owner->unk_518.part8.spawnIndex;
+    e->enemyId = owner->enemyId;
+    e->spawnIndex = owner->spawnIndex;
     e->enemyFlags = owner->enemyFlags | 4;
     Anim_StartIndexed(e, 0, 0, 1);
     Anim_Update(e);

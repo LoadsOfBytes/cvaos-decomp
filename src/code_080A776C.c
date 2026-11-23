@@ -35,8 +35,8 @@ void Tsuchinoko_SpitShot(struct EwramData_EntityData *parent)
         child->velY.whole = -0x10000;
         child->accelX.whole = 0;
         child->accelY.whole = 0x1800;
-        child->unk_518.part8.spawnIndex = parent->unk_518.part8.spawnIndex;
-        child->unk_510.part8.basePalette = parent->unk_510.part8.basePalette;
+        child->spawnIndex = parent->spawnIndex;
+        child->basePalette = parent->basePalette;
         child->attack = parent->attack;
     }
 }

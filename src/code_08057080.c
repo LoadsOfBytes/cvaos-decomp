@@ -13,16 +13,16 @@ void Object29Create(struct EwramData_EntityData *entity)
     struct FourBoxes boxes = sObject29Boxes;
     if (!Object29_LoadGraphics(entity)) { EntityDelete(entity); return; }
     Hit_Enable(entity, 8, NULL, 0);
-    HitBox_SetBody(entity, &boxes.box[entity->unk_514.part16.spawnParam1]);
-    HitBox_SetAttack(entity, &boxes.box[entity->unk_514.part16.spawnParam1]);
+    HitBox_SetBody(entity, &boxes.box[entity->spawnParam1]);
+    HitBox_SetAttack(entity, &boxes.box[entity->spawnParam1]);
     entity->hit.flags |= 4;
     entity->hit.flags |= 2;
-    Anim_StartIndexed(entity, sObject29Variants[entity->unk_514.part16.spawnParam1].animation, 0, 1);
+    Anim_StartIndexed(entity, sObject29Variants[entity->spawnParam1].animation, 0, 1);
     Anim_Update(entity);
     entity->spriteLayer = 18;
     entity->state = 0;
     entity->ext.layerObject.shuttleStart = entity->posY.whole + camera->yPos.whole;
-    entity->ext.layerObject.shuttleEnd = entity->unk_514.part16.spawnParam0 << 16;
+    entity->ext.layerObject.shuttleEnd = entity->spawnParam0 << 16;
     entity->ext.layerObject.x = entity->posX.whole + camera->xPos.whole;
     entity->ext.layerObject.y = entity->posY.whole + camera->yPos.whole;
     entity->ext.layerObject.drawX = entity->ext.layerObject.x - camera->xPos.whole;

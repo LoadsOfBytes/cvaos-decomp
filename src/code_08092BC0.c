@@ -31,15 +31,15 @@ void ZombieSoldier_ThrowGrenade(struct EwramData_EntityData *owner, s32 x, s32 y
         shot->flipX = owner->flipX;
         shot->spriteLayer = owner->spriteLayer - 1;
         graphics = ObjGfx_Find(sZombieSoldierGfx);
-        shot->unk_510.part8.basePalette = owner->unk_510.part8.basePalette;
-        Sprite_Attach(shot, sZombieSoldierSpriteSheet, graphics, shot->unk_510.part8.basePalette);
+        shot->basePalette = owner->basePalette;
+        Sprite_Attach(shot, sZombieSoldierSpriteSheet, graphics, shot->basePalette);
         shot->animFrame = 0x12;
         Hit_Enable(shot, 8, ZombieSoldierGrenade_DamagePlayerOnContact, (s32)ZombieSoldierGrenade_OnHit);
         HitBox_SetAttack(shot, &box);
         HitBox_SetBody(shot, &box);
         shot->hit.flags &= ~4;
         shot->hit.flags &= ~2;
-        shot->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
+        shot->enemyId = owner->enemyId;
         shot->attack = owner->attack;
         shot->scrollWithBg = 1;
         shot->drawFunc = (u32 *)Sprite_DrawEntity;

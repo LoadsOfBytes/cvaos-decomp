@@ -13,7 +13,7 @@ extern void MedusaHead_OnHit(struct EwramData_EntityData *entity, s32 attacker, 
 /**
  * @brief 938E8 | Medusa Head create: deleted when MedusaHead_LoadGraphics fails;
  * frozen time gives state 4; otherwise palette 3, box slot 8 (MedusaHead_DamagePlayerOnContact
- * / MedusaHead_OnHit) with box 0x0A0AFBFB; with unk_516 bit 1 it is the hidden
+ * / MedusaHead_OnHit) with box 0x0A0AFBFB; with spawnParam1 bit 1 it is the hidden
  * spawner (state 3, boxes off), else state 0 facing Entity_IsTargetRight with velX
  * 0xC000..0xFFFF towards it, accelY 0xC00 and a random wave phase
  * (unk_504..506).
@@ -42,7 +42,7 @@ void EnemyMedusaHeadCreate(struct EwramData_EntityData *entity)
     HitBox_SetBody(entity, &box);
     entity->hit.flags &= ~4;
     entity->hit.flags &= ~2;
-    if ((s16)(entity->unk_514.part16.spawnParam1 & 2))
+    if ((s16)(entity->spawnParam1 & 2))
     {
         entity->state = 3;
         entity->hidden = 1;

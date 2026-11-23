@@ -11,25 +11,25 @@ void Minotaur_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
 {
     s32 damage = Player_CalculateAttackPower(hit[2]);
     damage = Hit_ResolveDamage(entity, (s32)attacker, hit, (s16)damage);
-    entity->unk_510.part8.hitFlashTimer = 8;
+    entity->hitFlashTimer = 8;
     {
-        u16 hp = entity->unk_518.part16.hp;
+        u16 hp = entity->hp;
         damage <<= 16;
         damage >>= 16;
-        entity->unk_518.part16.hp = hp - damage;
+        entity->hp = hp - damage;
     }
     Entity_ShowDamage(entity, damage, 0);
-    if ((s16)entity->unk_518.part16.hp < 100 && !(entity->ext.minotaur.flags & 1))
+    if ((s16)entity->hp < 100 && !(entity->ext.minotaur.flags & 1))
         entity->ext.minotaur.flags &= ~2;
-    if ((s16)entity->unk_518.part16.hp <= 0)
+    if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->timer = 0x28;
         entity->state = 3;
         Anim_StartIndexed(entity, 7, 0, 0);
         entity->ext.minotaur.flags &= ~1;
-        if (entity->unk_514.part16.spawnParam0 != 0)
+        if (entity->spawnParam0 != 0)
         {
             Player_SetSelectedTarget(NULL);
             gEwramData->gameState.bossEventFlags |= 0x100;

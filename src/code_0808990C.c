@@ -24,7 +24,7 @@ void Gorgon_SpawnDeathPieces(struct EwramData_EntityData *parent)
             part->accelY.whole = 0x1400;
             part->spriteLayer = parent->spriteLayer;
             graphics = ObjGfx_Find(sGorgonGfx);
-            Sprite_Attach(part, sGorgonSpriteSheet, graphics, parent->unk_510.part8.basePalette);
+            Sprite_Attach(part, sGorgonSpriteSheet, graphics, parent->basePalette);
             part->animFrame = index + 17;
             part->flipX = parent->flipX;
             part->scrollWithBg = 1;

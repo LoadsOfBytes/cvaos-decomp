@@ -22,7 +22,7 @@ void Persephone_SpawnAttackBox(struct EwramData_EntityData *parent, s32 x, s32 y
         part->flipX = parent->flipX;
         part->spriteLayer = parent->spriteLayer - 1;
         graphics = ObjGfx_Find(sPersephoneGfx);
-        Sprite_Attach(part, sPersephoneSpriteSheet, graphics, parent->unk_510.part8.basePalette);
+        Sprite_Attach(part, sPersephoneSpriteSheet, graphics, parent->basePalette);
         part->attack = parent->attack;
         ENTITY_OWNER(part) = parent;
         part->animFrame = 20;

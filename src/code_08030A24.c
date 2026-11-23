@@ -28,8 +28,8 @@ struct SkullFrame {
  * @brief 30A24 | Creaking Skull blue soul (ends via BlueSoul_ShouldEnd): graphics
  * 0x081E1970 / 0x0820B670 / 0x0823767C, hidden, a chain of four children
  * (three SkillCreakingSkullSegmentUpdate segments and the SkillCreakingSkullHitBoxUpdate head, each spawned from
- * the previous one, unk_514 = caster byte / index), Hit_SetTimerOverride(2, 30),
- * skillBaseAttack/skillAttackAttributes = 0x28 / 0. Grows, then plays frame scripts (unk_518: idle
+ * the previous one, spawnParam0 = caster byte / index), Hit_SetTimerOverride(2, 30),
+ * skillBaseAttack/skillAttackAttributes = 0x28 / 0. Grows, then plays frame scripts (hp: idle
  * 0x084F13DC, bite 0x084F13E8 while the caster's weaponEntities slot is taken;
  * entries {duration, frame}, NULL ends; song 0x9B on bite step 3) 20 px
  * above the caster.

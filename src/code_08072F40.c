@@ -10,9 +10,9 @@ extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
 
 /**
  * @brief 72F40 | Enemy damage callback: subtract the damage from HP
- * (unk_518), flash (hitFlashTimer = 8); at 0 HP: Enemy_DropRewards, song 0x72, death
- * animation 7 with palette unk_510, state 2 for 40 frames; with a drop id
- * (unk_514) spawn BossDefeatEffect_Spawn and the item BossRecoveryPickup_Spawn (id 10) at its
+ * (hp), flash (hitFlashTimer = 8); at 0 HP: Enemy_DropRewards, song 0x72, death
+ * animation 7 with palette basePalette, state 2 for 40 frames; with a drop id
+ * (spawnParam0) spawn BossDefeatEffect_Spawn and the item BossRecoveryPickup_Spawn (id 10) at its
  * x / 0x20, or at room (0x100, 0x350) when bossRushMode is 0, then
  * Player_SetSelectedTarget(NULL).
  */
@@ -20,18 +20,18 @@ void Manticore_OnDamaged(struct EwramData_EntityData *entity, struct EwramData_E
 {
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
 
-    entity->unk_510.part8.hitFlashTimer = 8;
-    entity->unk_518.part16.hp -= damage;
-    if ((s16)entity->unk_518.part16.hp > 0)
+    entity->hitFlashTimer = 8;
+    entity->hp -= damage;
+    if ((s16)entity->hp > 0)
         return;
     Enemy_DropRewards(entity);
     PlaySong(0x72);
     Anim_StartIndexed(entity, 7, 0, 0);
-    entity->palette = entity->unk_510.part8.basePalette;
+    entity->palette = entity->basePalette;
     entity->timer = 0x28;
     entity->state = 2;
     entity->subState = 0;
-    if (entity->unk_514.part16.spawnParam0 == 0)
+    if (entity->spawnParam0 == 0)
         return;
     BossDefeatEffect_Spawn(entity->posX.whole, entity->posY.whole - 0x200000);
     if (gEwramData->gameState.bossRushMode)

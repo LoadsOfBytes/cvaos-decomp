@@ -61,21 +61,21 @@ void Pickup_Collect(struct EwramData_EntityData *e)
     u8 *slot;
 
     e->deleteRequested = 1;
-    switch (e->unk_518.part8.enemyId)
+    switch (e->enemyId)
     {
     case 0:
-        Player_RestoreMPPercent(e->unk_514.part16.spawnParam1);
+        Player_RestoreMPPercent(e->spawnParam1);
         PlaySong(0xB4);
         break;
     case 1:
     {
         u32 *gold;
-        u16 amount = sGoldDrops[e->unk_514.part16.spawnParam1].amount;
+        u16 amount = sGoldDrops[e->spawnParam1].amount;
         gold = &(*pg)->playerStatus.currentGold;
         *gold += amount;
         if (*gold > 999999)
             *gold = 999999;
-        Hud_RequestPickupMessage(sGoldDrops[e->unk_514.part16.spawnParam1].message);
+        Hud_RequestPickupMessage(sGoldDrops[e->spawnParam1].message);
         PlaySong(0xB6);
         break;
     }
@@ -86,8 +86,8 @@ void Pickup_Collect(struct EwramData_EntityData *e)
         u8 *items;
         s32 c;
 
-        info = LocalInfo(e->unk_518.part8.enemyId, e->unk_514.part16.spawnParam1);
-        id = e->unk_514.part16.spawnParam1;
+        info = LocalInfo(e->enemyId, e->spawnParam1);
+        id = e->spawnParam1;
         c = inv->itemInventory[id];
         items = inv->itemInventory;
         if (c > 8 && !(e->subState & 2))
@@ -105,8 +105,8 @@ void Pickup_Collect(struct EwramData_EntityData *e)
         u8 *items;
         s32 c;
 
-        info = LocalInfo(e->unk_518.part8.enemyId, e->unk_514.part16.spawnParam1);
-        id = e->unk_514.part16.spawnParam1;
+        info = LocalInfo(e->enemyId, e->spawnParam1);
+        id = e->spawnParam1;
         c = inv->weaponInventory[id];
         items = inv->weaponInventory;
         if (c > 8 && !(e->subState & 2))
@@ -125,8 +125,8 @@ void Pickup_Collect(struct EwramData_EntityData *e)
         u8 *items;
         s32 c;
 
-        info = LocalInfo(e->unk_518.part8.enemyId, e->unk_514.part16.spawnParam1);
-        id = e->unk_514.part16.spawnParam1;
+        info = LocalInfo(e->enemyId, e->spawnParam1);
+        id = e->spawnParam1;
         c = inv->armorInventory[id];
         items = inv->armorInventory;
         if (c > 8 && !(e->subState & 2))
@@ -150,8 +150,8 @@ void Pickup_Collect(struct EwramData_EntityData *e)
     case 7:
     case 8:
     {
-        s32 soul = e->unk_514.part16.spawnParam1;
-        u8 *type = &e->unk_518.part8.enemyId;
+        s32 soul = e->spawnParam1;
+        u8 *type = &e->enemyId;
         s32 kind = *type - 5;
         if (SoulInventory_GetSoulTotal(kind, soul) == 0)
         {
@@ -172,7 +172,7 @@ void Pickup_Collect(struct EwramData_EntityData *e)
     }
 
     {
-        register u16 flag asm("r5") = e->unk_514.part16.spawnParam0; /* FAKEMATCH: pinned register */
+        register u16 flag asm("r5") = e->spawnParam0; /* FAKEMATCH: pinned register */
         s32 sh = flag << 16;
         if (sh)
         {
@@ -180,7 +180,7 @@ void Pickup_Collect(struct EwramData_EntityData *e)
                 gEwramData->gameState.collectedPickupFlags[sh >> 21] |= 1 << (flag & 0x1F);
             else
             {
-                gEwramData->gameState.bossEventFlags |= 1 << e->unk_514.part16.spawnParam0;
+                gEwramData->gameState.bossEventFlags |= 1 << e->spawnParam0;
                 gEwramData->gameState.stateFlags &= ~2;
             }
         }

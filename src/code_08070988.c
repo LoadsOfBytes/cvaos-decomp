@@ -9,7 +9,7 @@ u8 KillerFishSwarm_LoadGraphics(struct EwramData_EntityData *parent, struct Ewra
 {
     s32 graphics = ObjGfx_LoadResource(sKillerFishGfx, 0);
     if (graphics < 0) return 0;
-    Sprite_Attach(part, sKillerFishSpriteSheet, graphics, parent->unk_510.part8.basePalette);
+    Sprite_Attach(part, sKillerFishSpriteSheet, graphics, parent->basePalette);
     Anim_StartIndexed(part, 0, 0, 1);
     Anim_Update(part);
     part->drawFunc = (u32 *)Sprite_DrawEntity;

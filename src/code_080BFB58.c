@@ -79,7 +79,7 @@ void EvilButcher_UpdateThrow(struct EwramData_EntityData *entity)
                 offsetX += projectile->posX.part16.integer;
                 projectile->posX.part16.integer = offsetX;
                 projectile->attack = entity->attack;
-                projectile->unk_514.part16.spawnParam1 = entity->unk_514.part16.spawnParam1;
+                projectile->spawnParam1 = entity->spawnParam1;
             }
         }
         if (entity->animFlags & 4) entity->subState = 3;
@@ -115,7 +115,7 @@ s32 EvilButcher_UpdateDeath(struct EwramData_EntityData *entity)
             particle->posX.whole = entity->posX.whole + offset + RandomSigned(0x20000);
             particle->posY.whole = entity->posY.whole + RandomSigned(0x20000) - 0x200000;
             particle->scrollWithBg = 1;
-            particle->unk_514.part16.spawnParam1 = entity->unk_514.part16.spawnParam1;
+            particle->spawnParam1 = entity->spawnParam1;
         }
         entity->animFrame = 6;
         entity->subState = 1;
@@ -138,7 +138,7 @@ s32 EvilButcher_UpdateDeath(struct EwramData_EntityData *entity)
                     particle->posY.whole = entity->posY.whole + RandomSigned(0x100000) - 0x100000;
                     particle->timer = (RandomNumberGenerator() & 7) + 8;
                     particle->scrollWithBg = 1;
-                    particle->unk_514.part16.spawnParam1 = entity->unk_514.part16.spawnParam1;
+                    particle->spawnParam1 = entity->spawnParam1;
                 }
             }
         }

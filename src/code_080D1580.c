@@ -118,7 +118,7 @@ void Belmont_UpdateHitReaction(struct EwramData_EntityData *entity)
                     case 0:
                         if(entity->animDone)
                         {
-                            if((s16)entity->unk_518.part16.hp<=0)
+                            if((s16)entity->hp<=0)
                             {
                                 entity->state=240;
                                 entity->stage=inner;
@@ -154,7 +154,7 @@ void Belmont_UpdateHitReaction(struct EwramData_EntityData *entity)
         {
             if(--entity->timer==255)
             {
-                if((s16)entity->unk_518.part16.hp<=0)
+                if((s16)entity->hp<=0)
                 {
                     entity->state=240;
                     entity->stage=0;

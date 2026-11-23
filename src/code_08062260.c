@@ -7,7 +7,7 @@
 extern s32 Entity_SetupFromObjectTable(struct EwramData_EntityData *,s32);
 extern struct EwramData_EntityData *Entity_CreateFromObjectTable(s32);
 /**
- * @brief Init of event scene variant 23 (Object 0x20 unk_514 = 23,
+ * @brief Init of event scene variant 23 (Object 0x20 spawnParam0 = 23,
  * sEventSceneCreateFuncs[23]).
  */
 void EventScene23_Init(struct EwramData_EntityData *entity)

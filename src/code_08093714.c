@@ -19,9 +19,9 @@ extern s32 Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
 /**
  * @brief 93714 | Medusa Head update: a head (states 0 / 1, MedusaHead_UpdateFly /
  * MedusaHead_UpdateIdle) dies off screen (state 2) and then decrements the head
- * count of its spawner (unk_500, unk_51A 0x39); the spawner (state 3)
+ * count of its spawner (unk_500, enemyId 0x39); the spawner (state 3)
  * stays at x 120 and with 1/32 chance creates a head below the limit
- * unk_514: x off the left or right room edge depending on Target_GetPixelX /
+ * spawnParam0: x off the left or right room edge depending on Target_GetPixelX /
  * Target_GetFlipXOrOpposite, y 64..127, template unk_C / unk_E from sEnemyData.
  */
 void EnemyMedusaHeadUpdate(struct EwramData_EntityData *entity)
@@ -60,14 +60,14 @@ void EnemyMedusaHeadUpdate(struct EwramData_EntityData *entity)
         if (entity->deleteRequested)
         {
             parent = entity->ext.medusaHead.spawner;
-            if (parent != NULL && parent->updateFunc != NULL && parent->unk_518.part8.enemyId == 0x39
+            if (parent != NULL && parent->updateFunc != NULL && parent->enemyId == 0x39
                 && parent->ext.medusaHead.childCount != 0)
                 parent->ext.medusaHead.childCount--;
         }
         break;
     case 3:
         entity->posX.whole = 0x780000;
-        if ((RandomNumberGenerator() & 0x1F) == 0 && (s32)entity->ext.medusaHead.childCount < entity->unk_514.part16.spawnParam0)
+        if ((RandomNumberGenerator() & 0x1F) == 0 && (s32)entity->ext.medusaHead.childCount < entity->spawnParam0)
         {
             head = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
             if (head != NULL)
@@ -82,12 +82,12 @@ void EnemyMedusaHeadUpdate(struct EwramData_EntityData *entity)
                 x = (RandomNumberGenerator() & 0x3F) + 0x40;
                 head->posY.part16.integer = x;
                 head->scrollWithBg = 1;
-                head->unk_518.part8.spawnIndex = 0;
-                head->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
-                head->unk_514.part16.spawnParam1 = entity->unk_514.part16.spawnParam1 & 1;
+                head->spawnIndex = 0;
+                head->enemyId = entity->enemyId;
+                head->spawnParam1 = entity->spawnParam1 & 1;
                 head->drawFunc = (u32 *)Sprite_DrawEntity;
-                head->unk_518.part16.hp = sEnemyData[entity->unk_518.part8.enemyId].hp;
-                head->unk_510.part16.unk_512 = sEnemyData[entity->unk_518.part8.enemyId].unk_E;
+                head->hp = sEnemyData[entity->enemyId].hp;
+                head->mp = sEnemyData[entity->enemyId].mp;
                 head->updateFunc = entity->updateFunc;
                 EnemyMedusaHeadCreate(head);
                 head->ext.medusaHead.spawner = entity;

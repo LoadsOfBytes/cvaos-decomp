@@ -23,7 +23,7 @@ void BuerChargeEffect_Update(struct EwramData_EntityData *entity)
                 EntityDelete(entity);
                 return;
             }
-            entity->unk_510.part8.basePalette = 6;
+            entity->basePalette = 6;
             Sprite_Attach(entity, sBaelBuerSpriteSheet, gfx, 6);
             entity->drawFunc = (u32 *)Sprite_DrawEntity;
             Anim_StartIndexed(entity, entity->ext.wheel.effectAnim, 0, 0);

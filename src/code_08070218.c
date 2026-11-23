@@ -63,10 +63,10 @@ void KillerFishSwarm_Update(struct EwramData_EntityData *entity)
     }
     if (EntityIsOutsideScreen(entity, 4)) entity->hidden = 1;
     else entity->hidden = 0;
-    if (owner && owner->updateFunc && owner->unk_518.part8.enemyId == 7)
+    if (owner && owner->updateFunc && owner->enemyId == 7)
     {
         if (owner->state == 4) SCATTER(entity) = 1;
-        if ((s16)owner->unk_518.part16.hp <= 0 || entity->unk_518.part8.spawnIndex != owner->unk_518.part8.spawnIndex)
+        if ((s16)owner->hp <= 0 || entity->spawnIndex != owner->spawnIndex)
             OWNER_LOST(entity) = 1;
     }
     if (entity->state != 2 && gEwramData->gameState.timeStopTimer)

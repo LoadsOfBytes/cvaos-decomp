@@ -31,7 +31,7 @@ s32 ManticoreShot_LoadGraphics(struct EwramData_EntityData *entity, struct Ewram
 
     if (gfx < 0)
         return 0;
-    Sprite_Attach(shot, sManticoreSpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    Sprite_Attach(shot, sManticoreSpriteSheet, gfx, entity->basePalette);
     Anim_StartIndexed(shot, 6, 0, 0);
     Anim_Update(shot);
     shot->drawFunc = (u32 *)Sprite_DrawEntity;
@@ -105,8 +105,8 @@ u8 Manticore_LoadGraphics(struct EwramData_EntityData *entity)
 
     if (gfx < 0)
         return 0;
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sManticorePalette, 0);
-    Sprite_Attach(entity, sManticoreSpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sManticorePalette, 0);
+    Sprite_Attach(entity, sManticoreSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }

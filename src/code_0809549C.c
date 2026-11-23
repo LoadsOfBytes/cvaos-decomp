@@ -51,7 +51,7 @@ void EnemyCreakingSkullCreate(struct EwramData_EntityData *entity)
     memcpy(order, sCreakingSkullOrder, sizeof(order));
     memcpy(chain, sUnk_08119063, sizeof(chain));
 
-    if (entity->unk_514.part16.spawnParam0 != 0 && !(*ewram)->gameState.bossRushMode && ((*ewram)->gameState.bossEventFlags & 0x800))
+    if (entity->spawnParam0 != 0 && !(*ewram)->gameState.bossRushMode && ((*ewram)->gameState.bossEventFlags & 0x800))
     {
         EntityDelete(entity);
         return;
@@ -73,7 +73,7 @@ void EnemyCreakingSkullCreate(struct EwramData_EntityData *entity)
     Enemy_ResetFromTemplate(entity);
     if (gEwramData->gameState.bossRushMode)
     {
-        entity->unk_518.part16.hp += 1000;
+        entity->hp += 1000;
         entity->attack += 20;
     }
     frames = frames0;
@@ -85,9 +85,9 @@ void EnemyCreakingSkullCreate(struct EwramData_EntityData *entity)
         if (part != NULL)
         {
             part->spriteLayer = entity->spriteLayer;
-            Sprite_Attach(part, sCreakingSkullSpriteSheet, ObjGfx_LoadResource(sCreakingSkullGfx, 0), entity->unk_510.part8.basePalette);
-            part->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
-            part->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
+            Sprite_Attach(part, sCreakingSkullSpriteSheet, ObjGfx_LoadResource(sCreakingSkullGfx, 0), entity->basePalette);
+            part->enemyId = entity->enemyId;
+            part->basePalette = entity->basePalette;
             part->scrollWithBg = 0;
             part->hidden = 0;
             part->attack = entity->attack;
@@ -158,7 +158,7 @@ void EnemyCreakingSkullCreate(struct EwramData_EntityData *entity)
     entity->state = frozen;
     entity->subState = 0x14;
     entity->ext.joint.hurtMask = 0x106;
-    switch (entity->unk_518.part8.enemyId)
+    switch (entity->enemyId)
     {
     case 0x21:
         entity->ext.creakingSkull.variant = 0;
@@ -167,7 +167,7 @@ void EnemyCreakingSkullCreate(struct EwramData_EntityData *entity)
         entity->ext.creakingSkull.variant = 1;
         break;
     }
-    if (entity->unk_514.part16.spawnParam0 != 0)
+    if (entity->spawnParam0 != 0)
     {
         Player_SetSelectedTarget(entity);
         gEwramData->gameState.stateFlags |= 2;

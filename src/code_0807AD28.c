@@ -132,7 +132,7 @@ void Zombie_UpdateEmergingWalkingSinking(struct EwramData_EntityData *entity)
             s32 zero = 0;
             entity->state = 1;
             entity->timer = 1;
-            entity->unk_518.part16.hp = zero;
+            entity->hp = zero;
         }
         break;
     }

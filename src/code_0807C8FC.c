@@ -15,7 +15,7 @@ extern void Sound_StopTracked(s32);
 void AluraUne_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     u16 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
-    entity->unk_510.part8.hitFlashTimer = 8;
+    entity->hitFlashTimer = 8;
     RandomNumberGenerator();
     if (entity->animScriptIndex == 0)
     {
@@ -23,18 +23,18 @@ void AluraUne_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
         PlaySong(0x6A);
     }
     {
-        s32 hp = entity->unk_518.part16.hp;
+        s32 hp = entity->hp;
         s32 applied = (s16)damage;
-        entity->unk_518.part16.hp = hp - applied;
+        entity->hp = hp - applied;
         Entity_ShowDamage(entity, applied, 0);
     }
     entity->ext.aluraUne.hit = 1;
-    if ((s16)entity->unk_518.part16.hp <= 0)
+    if ((s16)entity->hp <= 0)
     {
         Sound_StopTracked(0x105);
         Enemy_DropRewards(entity);
         PlaySong(0x6E);
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->timer = 40;
         entity->state = 2;
         entity->subState = 0;

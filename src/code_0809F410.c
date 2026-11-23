@@ -89,7 +89,7 @@ void LegionDestructibleFragment_Update(struct EwramData_EntityData *entity)
         }
         Enemy_UpdateHitFlash(entity);
         Hit_CheckWithPlayer(hitbox, entity);
-        if (owner && owner->updateFunc && owner->unk_518.part8.enemyId == entity->unk_518.part8.enemyId
+        if (owner && owner->updateFunc && owner->enemyId == entity->enemyId
             && owner->state != 2) {
             Anim_Update(entity);
             return;
@@ -98,10 +98,10 @@ void LegionDestructibleFragment_Update(struct EwramData_EntityData *entity)
             s32 zero = 0;
             entity->state = 10;
             entity->subState = zero;
-            entity->unk_518.part16.hp = zero;
-            entity->palette = entity->unk_510.part8.basePalette;
+            entity->hp = zero;
+            entity->palette = entity->basePalette;
             entity->timer = 40;
-            entity->unk_510.part8.hitFlashTimer = zero;
+            entity->hitFlashTimer = zero;
             Anim_Start(entity, sUnk_08528340, 2, 1);
         }
     } else if (state == 10) {

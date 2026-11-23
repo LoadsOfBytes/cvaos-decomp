@@ -7,7 +7,7 @@
 extern void Gate_SetupGraphics(struct EwramData_EntityData *entity, s32 opened);
 
 /**
- * @brief 4D9DC | Object 0 init: Gate_SetupGraphics with unk_514; when the player
+ * @brief 4D9DC | Object 0 init: Gate_SetupGraphics with spawnParam0; when the player
  * is inside the 0x28 x 0x28 area 0x14 px to its left (Entity_IsInRect), set
  * bits 0 and 8 of stateFlags, call Game_SetMenusEnabled(0), set unk_4F8 to 0x4000,
  * state 10 and force player input 0x10 (0x20 when flipped); otherwise
@@ -21,7 +21,7 @@ void Object00Create(struct EwramData_EntityData *entity)
     s32 x, y;
     struct BgLayerState *bg;
 
-    Gate_SetupGraphics(entity, entity->unk_514.part16.spawnParam0);
+    Gate_SetupGraphics(entity, entity->spawnParam0);
     player = gEwramData->playerState.player;
     found = Entity_IsInRect(entity, (s16)(player->posX.part16.integer - 0x14), player->posY.part16.integer, 0x28, 0x28);
     if (found)

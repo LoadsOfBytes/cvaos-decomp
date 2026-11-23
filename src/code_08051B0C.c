@@ -11,14 +11,14 @@ void Object13Update(struct EwramData_EntityData *entity)
         entity->timer++;
     }
     if (entity->accelX.whole > 0x2300) entity->accelX.whole = 0x2300;
-    if (entity->unk_514.part16.spawnParam1 != 0) {
+    if (entity->spawnParam1 != 0) {
         u32 *base = gEwramData->gameState.gameFlagsTail;
-        u32 *word = ({ s32 o_ = (entity->unk_514.part16.spawnParam1 >> 5) * 4; u32 *b_ = gEwramData->gameState.gameFlagsTail; (u32 *)((u8 *)b_ + o_); });
-        u32 bit = 1 << (entity->unk_514.part16.spawnParam1 & 31);
+        u32 *word = ({ s32 o_ = (entity->spawnParam1 >> 5) * 4; u32 *b_ = gEwramData->gameState.gameFlagsTail; (u32 *)((u8 *)b_ + o_); });
+        u32 bit = 1 << (entity->spawnParam1 & 31);
         if (!(*word & bit)) {
             register s32 amplitude asm("r5"); /* FAKEMATCH: pinned register */
             s32 threshold;
-            if (entity->unk_514.part16.spawnParam0 == 0) { amplitude = entity->accelX.whole; threshold = 0x2100; }
+            if (entity->spawnParam0 == 0) { amplitude = entity->accelX.whole; threshold = 0x2100; }
             else { amplitude = entity->accelX.whole; threshold = 0x1200; }
             if (amplitude > threshold && (u32)(entity->velX.whole - 0xAC01) <= 0x7FE) {
                 entity->velX.whole -= 0x40;

@@ -19,7 +19,7 @@ void GrahamCombatBody_Update(struct EwramData_EntityData *entity)
     }
     if(owner)
     {
-        if(owner->unk_518.part8.enemyId!=entity->unk_518.part8.enemyId)
+        if(owner->enemyId!=entity->enemyId)
             entity->deleteRequested=1;
         entity->ext.graham.flags=owner->ext.graham.flags;
         if(entity->ext.graham.flags & 0x40)

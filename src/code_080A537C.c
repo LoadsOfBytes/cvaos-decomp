@@ -40,7 +40,7 @@ void Chaos2SummonedPart_Update(struct EwramData_EntityData *part)
     {
         Hit_CheckWithPlayer(collision, part);
         if (core != NULL && core->updateFunc != NULL
-            && core->unk_518.part8.enemyId == part->unk_518.part8.enemyId
+            && core->enemyId == part->enemyId
             && core->state != 3)
         {
             struct EwramData_EntityData *target = (*ewram)->playerState.enemyTarget;
@@ -72,19 +72,19 @@ void Chaos2SummonedPart_Update(struct EwramData_EntityData *part)
             {
                 part->state = 10;
                 part->subState = 0;
-                part->unk_518.part16.hp = 0;
-                part->palette = part->unk_510.part8.basePalette;
+                part->hp = 0;
+                part->palette = part->basePalette;
                 part->timer = 40;
-                part->unk_510.part8.hitFlashTimer = 0;
+                part->hitFlashTimer = 0;
             }
             return;
         }
         part->state = 10;
         part->subState = 0;
-        part->unk_518.part16.hp = 0;
-        part->palette = part->unk_510.part8.basePalette;
+        part->hp = 0;
+        part->palette = part->basePalette;
         part->timer = 40;
-        part->unk_510.part8.hitFlashTimer = 0;
+        part->hitFlashTimer = 0;
     }
     else if (part->state == 9)
     {
@@ -101,7 +101,7 @@ void Chaos2SummonedPart_Update(struct EwramData_EntityData *part)
             fx.sourceY = part->posY.whole;
             Player_ApplyContactDamage(&fx);
             if (core != NULL && core->updateFunc != NULL
-                && core->unk_518.part8.enemyId == part->unk_518.part8.enemyId)
+                && core->enemyId == part->enemyId)
                 data->summoned = 0;
         }
     }
@@ -112,7 +112,7 @@ void Chaos2SummonedPart_Update(struct EwramData_EntityData *part)
         {
             part->deleteRequested = 1;
             if (core != NULL && core->updateFunc != NULL
-                && core->unk_518.part8.enemyId == part->unk_518.part8.enemyId)
+                && core->enemyId == part->enemyId)
                 data->summoned = 0;
         }
         return;

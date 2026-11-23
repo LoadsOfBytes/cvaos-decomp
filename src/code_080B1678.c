@@ -78,7 +78,7 @@ void DiscArmorDisc_Update(struct EwramData_EntityData *entity)
         amp = DiscArmorRing_Aim(ring, entity, owner);
         if (amp <= 0x600000)
         {
-            if ((s16)owner->unk_518.part16.hp > 0 && !(ENEMY_STATUS(owner) & ENEMY_STATUS_PETRIFIED))
+            if ((s16)owner->hp > 0 && !(ENEMY_STATUS(owner) & ENEMY_STATUS_PETRIFIED))
                 goto check;
         }
         else

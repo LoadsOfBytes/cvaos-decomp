@@ -24,7 +24,7 @@ void EnemyWeretigerUpdate(struct EwramData_EntityData *entity)
     entity->animFlags&=0xFD;
     if(entity->state!=2) Enemy_UpdateHitFlash(entity);
     if(Entity_IsTimeStopped(entity) && entity->state!=2) goto collision;
-    if(entity->unk_510.part8.hitFlashTimer && entity->state!=3 && entity->state!=2)
+    if(entity->hitFlashTimer && entity->state!=3 && entity->state!=2)
     {
 collision:
         Hit_CheckWithPlayer(bounds,entity);

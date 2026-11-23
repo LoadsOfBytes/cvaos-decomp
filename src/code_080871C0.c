@@ -24,7 +24,7 @@ struct EwramData_EntityData *Triton_CreateSpear(struct EwramData_EntityData *own
         part->posY.whole = owner->posY.whole;
         part->spriteLayer = owner->spriteLayer - 1;
         graphics = ObjGfx_Find(sTritonGfx);
-        Sprite_Attach(part, sTritonSpriteSheet, graphics, owner->unk_510.part8.basePalette);
+        Sprite_Attach(part, sTritonSpriteSheet, graphics, owner->basePalette);
         Anim_StartIndexed(part, 10, 0, 0);
         Anim_Update(part);
         if ((s32)((slot = ObjAffine_Alloc(1)) << 16) < 0)

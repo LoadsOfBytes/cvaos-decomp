@@ -26,7 +26,7 @@ void BeamSkeleton_UpdateDeath(struct EwramData_EntityData *entity)
         case 0:
             BeamSkeleton_SpawnDeathPieces(entity);
             Enemy_DropRewards(entity);
-            entity->palette = entity->unk_510.part8.basePalette;
+            entity->palette = entity->basePalette;
             entity->timer = 50;
             entity->state = 0xFF;
             entity->subState++;

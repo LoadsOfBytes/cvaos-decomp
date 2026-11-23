@@ -7,9 +7,9 @@ extern void Enemy_DropRewards(struct EwramData_EntityData *);
 extern void Stolas_SpawnDebris(struct EwramData_EntityData *, s32, s32, s32, s32);
 void Stolas_OnDamaged(struct EwramData_EntityData *entity, void *attacker, void *hit, s32 damage)
 {
-    entity->unk_510.part8.hitFlashTimer = 8;
-    entity->unk_518.part16.hp -= damage;
-    if ((s16)entity->unk_518.part16.hp <= 0)
+    entity->hitFlashTimer = 8;
+    entity->hp -= damage;
+    if ((s16)entity->hp <= 0)
     {
         s32 i;
         u32 range;
@@ -17,7 +17,7 @@ void Stolas_OnDamaged(struct EwramData_EntityData *entity, void *attacker, void 
         Enemy_DropRewards(entity);
         Anim_StartIndexed(entity, 3, 0, 1);
         PlaySong(0x6E);
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->timer = 60;
         entity->state = 2;
         entity->subState = 0;

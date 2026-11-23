@@ -194,7 +194,7 @@ s32 Player_IsBossTargetLowHp(void)
     {
         return 0;
     }
-    if (gEwramData->playerState.selectedTarget->unk_518.part16.hp > 0 && gEwramData->playerState.selectedTarget->unk_518.part16.hp < 200)
+    if (gEwramData->playerState.selectedTarget->hp > 0 && gEwramData->playerState.selectedTarget->hp < 200)
     {
         return 1;
     }
@@ -2256,7 +2256,7 @@ s32 Entity_DropToFloor(struct EwramData_EntityData *entity)
 /**
  * @brief Keep the owner soul entity at its hit target plus the stored offset
  * (accelX/accelY). Delete when no red soul is active, the owner is
- * gone or reused; when the target HP (unk_518) is not positive, set
+ * gone or reused; when the target HP (hp) is not positive, set
  * unk_508 to signal the owner instead.
  */
 void RedSoulAnchor_Update(struct EwramData_EntityData *entity)
@@ -2283,7 +2283,7 @@ void RedSoulAnchor_Update(struct EwramData_EntityData *entity)
         return;
     }
 
-    if ((s16) target->unk_518.part16.hp <= 0)
+    if ((s16) target->hp <= 0)
     {
         entity->ext.redSoulAnchor.targetDead = 1;
         return;
@@ -2901,7 +2901,7 @@ void HomingSoulProjectile_Update(struct EwramData_EntityData *entity)
             /* fallthrough */
         case 1:
             target = entity->ext.skillHoming.target;
-            if ((target != NULL) && ((s16) target->unk_518.part16.hp > 0))
+            if ((target != NULL) && ((s16) target->hp > 0))
             {
                 targetX = target->posX.whole;
                 targetY = target->posY.whole;

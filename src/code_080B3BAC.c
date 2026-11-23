@@ -51,12 +51,12 @@ void HeadStack_Create(struct EwramData_EntityData *entity, s32 type)
     }
     else
     {
-        entity->unk_514.part16.spawnParam0 = 2;
+        entity->spawnParam0 = 2;
     }
-    if (entity->unk_514.part16.spawnParam0 <= 0)
-        entity->unk_514.part16.spawnParam0 = 1;
-    else if (entity->unk_514.part16.spawnParam0 > 8)
-        entity->unk_514.part16.spawnParam0 = 8;
+    if (entity->spawnParam0 <= 0)
+        entity->spawnParam0 = 1;
+    else if (entity->spawnParam0 > 8)
+        entity->spawnParam0 = 8;
     savedY = entity->posY.whole;
     slot = entity->ext.headStack.slots;
     i = 1;
@@ -73,7 +73,7 @@ body:
             struct HeadStackGraphicsView *info = (void *)(off + (u32)sUnk_081193DC);
             Entity_LoadGraphics(child, info->graphics, info->palette, 0, info->spriteSheet);
         }
-        child->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
+        child->enemyId = entity->enemyId;
         Enemy_ResetFromTemplate(child);
         Anim_StartIndexed(child, 0, 0, 1);
         Anim_Update(child);
@@ -103,19 +103,19 @@ body:
         i++;
         slot++;
 test:
-    if (i <= entity->unk_514.part16.spawnParam0)
+    if (i <= entity->spawnParam0)
     {
         child = Entity_CreateObject(HeadStackSegment_Update);
         if (child != NULL)
             goto body;
-        entity->unk_514.part16.spawnParam0 = i;
+        entity->spawnParam0 = i;
         failed = 1;
     }
 
     if (failed)
     {
         slot = slots;
-        for (i = entity->unk_514.part16.spawnParam0; i > 0; slot++, i--)
+        for (i = entity->spawnParam0; i > 0; slot++, i--)
         {
             child = &gEwramData->entityData[*slot];
             EntityDelete(child);

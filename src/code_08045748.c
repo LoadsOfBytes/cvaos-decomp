@@ -17,7 +17,7 @@ void Afterimage_Update(struct EwramData_EntityData *entity)
     struct TrailSample *history = (struct TrailSample *)entity->ext.afterimage.history.ptr;
     s32 i;
     struct BgLayerState *bg;
-    if (!owner || !owner->updateFunc || ((entity->ext.afterimage.flags & 0x20) && (s16)owner->unk_518.part16.hp <= 0))
+    if (!owner || !owner->updateFunc || ((entity->ext.afterimage.flags & 0x20) && (s16)owner->hp <= 0))
         entity->state = 3;
     switch (entity->state)
     {

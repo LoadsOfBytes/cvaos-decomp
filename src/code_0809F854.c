@@ -54,7 +54,7 @@ void LegionShellPart_Update(struct EwramData_EntityData *entity)
         { EntityDelete(entity); return; }
     if (entity->state == 0)
     {
-        if (owner == NULL || owner->updateFunc == NULL || owner->unk_518.part8.enemyId != 0x6C)
+        if (owner == NULL || owner->updateFunc == NULL || owner->enemyId != 0x6C)
             { EntityDelete(entity); return; }
         if (shell->state != 4)
         {
@@ -114,7 +114,7 @@ void LegionShellPart_Update(struct EwramData_EntityData *entity)
             if (shell->timer == 1)
             {
                 entity->stage = 0;
-                entity->palette = entity->unk_510.part8.basePalette;
+                entity->palette = entity->basePalette;
             }
             else if (shell->timer == 0)
             {
@@ -136,7 +136,7 @@ void LegionShellPart_Update(struct EwramData_EntityData *entity)
             else if (Entity_GetVisibilityPattern(shell->timer) == 1)
                 entity->palette = 4;
             else
-                entity->palette = entity->unk_510.part8.basePalette;
+                entity->palette = entity->basePalette;
         }
         if (KIND == 0)
             a = ANGLE - (ANGLE - 0x4000) / 4;
@@ -162,7 +162,7 @@ void LegionShellPart_Update(struct EwramData_EntityData *entity)
             entity->subState = 0;
             entity->stage = 0;
             entity->hidden = 0;
-            entity->palette = entity->unk_510.part8.basePalette;
+            entity->palette = entity->basePalette;
         }
         Anim_Update(entity);
         return;

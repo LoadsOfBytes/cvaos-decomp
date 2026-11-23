@@ -20,23 +20,23 @@ void Nemesis_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 *data)
 
     /* hp read before the sign extension, as in Werewolf_OnHit */
     {
-        u16 hp = entity->unk_518.part16.hp;
+        u16 hp = entity->hp;
         damage <<= 16;
         damage >>= 16;
-        entity->unk_518.part16.hp = hp - damage;
+        entity->hp = hp - damage;
     }
     Entity_ShowDamage(entity, damage, 0);
-    entity->unk_510.part8.hitFlashTimer = 8;
+    entity->hitFlashTimer = 8;
     if (entity->ext.nemesis.hitsBeforeReact != 0)
     {
-        if ((s16)entity->unk_518.part16.hp > 0)
+        if ((s16)entity->hp > 0)
         {
             entity->ext.nemesis.hitsBeforeReact--;
             goto done;
         }
         goto dead;
     }
-    if ((s16)entity->unk_518.part16.hp <= 0)
+    if ((s16)entity->hp <= 0)
     {
     dead:
         Enemy_DropRewards(entity);

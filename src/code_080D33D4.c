@@ -36,13 +36,13 @@ struct EwramData_EntityData *Graham_CreateBodyOverlay(struct EwramData_EntityDat
     e->posX.whole = owner->posX.whole;
     e->posY.whole = owner->posY.whole;
     e->scrollWithBg = 1;
-    e->unk_518.part16.hp = owner->unk_518.part16.hp;
-    e->unk_510.part16.unk_512 = owner->unk_510.part16.unk_512;
+    e->hp = owner->hp;
+    e->mp = owner->mp;
     e->attack = owner->attack;
     e->defense = owner->defense;
     e->enemyFlags |= 1;
     e->enemyFlags |= 4;
-    e->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
+    e->enemyId = owner->enemyId;
     Anim_StartIndexed(e, 0, 0, 1);
     Anim_Update(e);
     e->ext.graham.sidePart0 = (s32)Graham_CreateSidePart(e, 0);

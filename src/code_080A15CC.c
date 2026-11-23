@@ -29,7 +29,7 @@ void GladiatorArm_FireShot(struct EwramData_EntityData *entity, s32 dx, s32 dy, 
     tiles = ObjGfx_Find(sGladiatorGfx);
     if (tiles < 0)
         goto delete;
-    Sprite_Attach(shot, sGladiatorSpriteSheet, tiles, entity->unk_510.part8.basePalette);
+    Sprite_Attach(shot, sGladiatorSpriteSheet, tiles, entity->basePalette);
     Anim_StartIndexed(shot, 0xE, 0, 0);
     Anim_Update(entity);
     shot->drawFunc = (u32 *)Sprite_DrawEntity;
@@ -39,8 +39,8 @@ void GladiatorArm_FireShot(struct EwramData_EntityData *entity, s32 dx, s32 dy, 
     shot->hit.flags |= 2;
     shot->scrollWithBg = 1;
     shot->spriteLayer = entity->spriteLayer - 1;
-    shot->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
-    shot->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
+    shot->basePalette = entity->basePalette;
+    shot->enemyId = entity->enemyId;
     ENTITY_OWNER(shot) = entity;
     shot->posX.whole = entity->posX.whole + dx;
     shot->posY.whole = entity->posY.whole + dy;

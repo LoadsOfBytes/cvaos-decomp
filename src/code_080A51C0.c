@@ -35,7 +35,7 @@ void Chaos2Shot_Update(struct EwramData_EntityData *entity)
             PlaySong(0x146);
         }
         if (core != NULL && core->updateFunc != NULL
-            && core->unk_518.part8.enemyId == entity->unk_518.part8.enemyId
+            && core->enemyId == entity->enemyId
             && core->state != 3)
             return;
         goto delete;
@@ -51,7 +51,7 @@ void Chaos2Shot_Update(struct EwramData_EntityData *entity)
             return;
         }
         if (core == NULL || core->updateFunc == NULL
-            || core->unk_518.part8.enemyId != entity->unk_518.part8.enemyId
+            || core->enemyId != entity->enemyId
             || core->state == 3)
             EntityDelete(entity);
     }

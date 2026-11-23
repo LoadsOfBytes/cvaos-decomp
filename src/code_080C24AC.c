@@ -31,7 +31,7 @@ void EnemyRipperCreate(struct EwramData_EntityData *entity)
     entity->state = 1;
     entity->stage = 0;
     entity->subState = 0;
-    if ((entity->unk_514.part16.spawnParam0 & entity->unk_514.part16.spawnParam1) == 0xFF)
+    if ((entity->spawnParam0 & entity->spawnParam1) == 0xFF)
         entity->ext.ripper.airborne = 1;
     else entity->ext.ripper.airborne = 0;
     Entity_EnableBoxes(entity, Enemy_OnContact, Ripper_OnHit);

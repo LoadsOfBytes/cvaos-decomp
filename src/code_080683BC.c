@@ -14,7 +14,7 @@ struct EnemyTemplateView
     u16 item0;
     u16 item1;
     u16 hp;
-    u16 unk_E;
+    u16 mp;
     u16 exp;
     u8 soulRate;
     u8 pad_13[0x15 - 0x13];
@@ -63,7 +63,7 @@ void Enemy_DropRewards(struct EwramData_EntityData *entity)
     u32 r;
     u32 r2;
 
-    id = entity->unk_518.part8.enemyId;
+    id = entity->enemyId;
     info = &sEnemyData[id];
     ew = gEwramData;
     stats = &ew->playerStatus;

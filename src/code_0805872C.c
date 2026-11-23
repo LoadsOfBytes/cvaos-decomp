@@ -42,7 +42,7 @@ void Object31_SpawnDust(struct EwramData_EntityData *entity, s32 offsetX, s32 of
 extern void EntityAccelerateAndMoveX(struct EwramData_EntityData *entity, s32 maxSpeed);
 extern void EntityAccelerateAndMoveY(struct EwramData_EntityData *entity, s32 maxSpeed);
 
-/* Object 0x31 per variant (unk_514): start x, start y, animation, unk_4F8. */
+/* Object 0x31 per variant (spawnParam0): start x, start y, animation, unk_4F8. */
 struct Object31Words {
     s32 v[4];
 };
@@ -53,7 +53,7 @@ extern const struct Object31Words sUnk_08118674;
 extern void EntityMoveY(struct EwramData_EntityData *entity);
 extern void EntityMoveX(struct EwramData_EntityData *entity);
 
-/* Start x / y of object 0x2F per variant (unk_514). */
+/* Start x / y of object 0x2F per variant (spawnParam0). */
 extern const u16 sObject2FXs[3];
 extern const u16 sObject2FYs[3];
 extern u8 sObject2FFamilyGfx[];
@@ -168,8 +168,8 @@ u8 Object2D_LoadGraphics(struct EwramData_EntityData *entity)
 
     if (gfx < 0)
         return 0;
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sObject2DObject2EPalette, 2);
-    Sprite_Attach(entity, sObject2DSpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sObject2DObject2EPalette, 2);
+    Sprite_Attach(entity, sObject2DSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }
@@ -190,8 +190,8 @@ void Object2E_SpawnPiece(struct EwramData_EntityData *entity, s32 offsetX, s32 o
     child->posY.whole = entity->posY.whole + offsetY;
     child->spriteLayer = entity->spriteLayer;
     gfx = ObjGfx_Find(sObject2EGfx);
-    child->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
-    Sprite_Attach(child, sObject2ESpriteSheet, gfx, child->unk_510.part8.basePalette);
+    child->basePalette = entity->basePalette;
+    Sprite_Attach(child, sObject2ESpriteSheet, gfx, child->basePalette);
     Anim_StartIndexed(child, 0, 0, 1);
     Anim_Update(child);
     child->animTimer = RandomNumberGenerator() % 8;
@@ -241,8 +241,8 @@ u8 Object2E_LoadGraphics(struct EwramData_EntityData *entity)
 
     if (gfx < 0)
         return 0;
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sObject2DObject2EPalette, 5);
-    Sprite_Attach(entity, sObject2ESpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sObject2DObject2EPalette, 5);
+    Sprite_Attach(entity, sObject2ESpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }
@@ -302,7 +302,7 @@ void Object2E_SpawnRisingParticle(struct EwramData_EntityData *entity, s32 x, s3
 
 /**
  * @brief 58C1C | Object 0x2F create: deleted when bossEventFlags bit 2 is set or
- * the graphics fail; random frame, start position by variant (unk_514).
+ * the graphics fail; random frame, start position by variant (spawnParam0).
  */
 void Object2FCreate(struct EwramData_EntityData *entity)
 {
@@ -323,8 +323,8 @@ void Object2FCreate(struct EwramData_EntityData *entity)
     entity->spriteLayer = 0x1A;
     entity->scrollWithBg = 0;
     entity->hidden = 1;
-    entity->posX.part16.integer = xs[entity->unk_514.part16.spawnParam0];
-    entity->posY.part16.integer = ys[entity->unk_514.part16.spawnParam0];
+    entity->posX.part16.integer = xs[entity->spawnParam0];
+    entity->posY.part16.integer = ys[entity->spawnParam0];
 }
 
 /**
@@ -348,8 +348,8 @@ u8 Object2F_LoadGraphics(struct EwramData_EntityData *entity)
 
     if (gfx < 0)
         return 0;
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sUnk_0820A1C4, 9);
-    Sprite_Attach(entity, sObject2FFamilySpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_0820A1C4, 9);
+    Sprite_Attach(entity, sObject2FFamilySpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }
@@ -387,8 +387,8 @@ void Object30_SpawnFallingLeaf(struct EwramData_EntityData *entity)
     child->ext.object30Leaf.kind = RandomNumberGenerator() % 3;
     child->spriteLayer = entity->spriteLayer;
     gfx = ObjGfx_Find(sObject2FFamilyGfx);
-    child->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
-    Sprite_Attach(child, sObject2FFamilySpriteSheet, gfx, child->unk_510.part8.basePalette);
+    child->basePalette = entity->basePalette;
+    Sprite_Attach(child, sObject2FFamilySpriteSheet, gfx, child->basePalette);
     Anim_StartIndexed(child, child->ext.object30Leaf.kind + 2, 0, 1);
     Anim_Update(child);
     affineIndex = ObjAffine_Alloc(1);
@@ -486,8 +486,8 @@ u8 Object30_LoadGraphics(struct EwramData_EntityData *entity)
 
     if (gfx < 0)
         return 0;
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sUnk_0820A1C4, 9);
-    Sprite_Attach(entity, sObject2FFamilySpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_0820A1C4, 9);
+    Sprite_Attach(entity, sObject2FFamilySpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }
@@ -517,7 +517,7 @@ void Object30_UpdateState(struct EwramData_EntityData *entity)
 
 /**
  * @brief 59090 | Object 0x31 create: deleted when bossEventFlags bit 2 is set or
- * the graphics fail; position, animation and unk_4F8 by variant (unk_514);
+ * the graphics fail; position, animation and unk_4F8 by variant (spawnParam0);
  * variants 0 and 2 get an affine slot.
  */
 void Object31Create(struct EwramData_EntityData *entity)
@@ -538,13 +538,13 @@ void Object31Create(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    Anim_StartIndexed(entity, anims[entity->unk_514.part16.spawnParam0], 0, 1);
+    Anim_StartIndexed(entity, anims[entity->spawnParam0], 0, 1);
     Anim_Update(entity);
     entity->animTimer = RandomNumberGenerator() % 6;
     entity->spriteLayer = 0x1A;
     entity->scrollWithBg = 0;
     entity->flipX = 0;
-    if (entity->unk_514.part16.spawnParam0 == 0 || entity->unk_514.part16.spawnParam0 == 2)
+    if (entity->spawnParam0 == 0 || entity->spawnParam0 == 2)
     {
         affineIndex = ObjAffine_Alloc(1);
         if ((s16)affineIndex < 0)
@@ -556,9 +556,9 @@ void Object31Create(struct EwramData_EntityData *entity)
         entity->affine = 1;
         ObjAffine_Set(0, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
     }
-    entity->posX.part16.integer = xs[entity->unk_514.part16.spawnParam0];
-    entity->posY.part16.integer = ys[entity->unk_514.part16.spawnParam0];
-    entity->ext.object31.delay = values.v[entity->unk_514.part16.spawnParam0];
+    entity->posX.part16.integer = xs[entity->spawnParam0];
+    entity->posY.part16.integer = ys[entity->spawnParam0];
+    entity->ext.object31.delay = values.v[entity->spawnParam0];
 }
 
 /**
@@ -578,7 +578,7 @@ void Object31_UpdateState(struct EwramData_EntityData *entity)
         case 1:
             if (--entity->ext.object31.delay > 0)
                 break;
-            if (entity->unk_514.part16.spawnParam0 == 0 || entity->unk_514.part16.spawnParam0 == 2)
+            if (entity->spawnParam0 == 0 || entity->spawnParam0 == 2)
             {
                 entity->subState = 10;
                 entity->ext.object31.angle = 0;
@@ -601,7 +601,7 @@ void Object31_UpdateState(struct EwramData_EntityData *entity)
                 entity->subState++;
             break;
         case 3:
-            if (entity->unk_514.part16.spawnParam0 == 0 || entity->unk_514.part16.spawnParam0 == 2)
+            if (entity->spawnParam0 == 0 || entity->spawnParam0 == 2)
                 ObjAffine_Free(entity->affineIndex);
             EntityDelete(entity);
             return;
@@ -626,7 +626,7 @@ void Object31_UpdateState(struct EwramData_EntityData *entity)
                 entity->subState = 3;
             break;
     }
-    if (entity->unk_514.part16.spawnParam0 == 0 || entity->unk_514.part16.spawnParam0 == 2)
+    if (entity->spawnParam0 == 0 || entity->spawnParam0 == 2)
         ObjAffine_Set(entity->ext.object31.angle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
     Anim_Update(entity);
 }
@@ -651,8 +651,8 @@ u8 Object31_LoadGraphics(struct EwramData_EntityData *entity)
 
     if (gfx < 0)
         return 0;
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sUnk_0820A1C4, 9);
-    Sprite_Attach(entity, sObject2FFamilySpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_0820A1C4, 9);
+    Sprite_Attach(entity, sObject2FFamilySpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }
@@ -674,7 +674,7 @@ void Object31_SpawnDust(struct EwramData_EntityData *entity, s32 offsetX, s32 of
     child->timer = 0;
     child->ext.particle.flags = 0;
     gfx = ObjGfx_Find(sObject2FFamilyGfx);
-    Sprite_Attach(child, sObject2FFamilySpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    Sprite_Attach(child, sObject2FFamilySpriteSheet, gfx, entity->basePalette);
     Anim_StartIndexed(child, 5, 0, 0);
     Anim_Update(child);
     child->scrollWithBg = 0;

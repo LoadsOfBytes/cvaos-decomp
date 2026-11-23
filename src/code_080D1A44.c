@@ -20,7 +20,7 @@ void Belmont_OnHit(struct EwramData_EntityData *entity,s32 kind,u16 *hit)
         entity->state=11;
         entity->stage=0;
         entity->subState=0;
-        if((s16)entity->unk_518.part16.hp<=0)
+        if((s16)entity->hp<=0)
             Enemy_DropRewards(entity);
     }
     else

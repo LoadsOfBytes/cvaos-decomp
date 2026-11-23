@@ -18,7 +18,7 @@ void Object35_SpawnChild(struct EwramData_EntityData *parent);
 
 /**
  * @brief 5A18C | Object 0x35 create (door?): variant != 0 is deleted when its
- * flag unk_516 is set. Variant 0 (state 0) gets a hit box and is raised by
+ * flag spawnParam1 is set. Variant 0 (state 0) gets a hit box and is raised by
  * 6 px when its flag is set; variant 1 (state 10) sets up the window
  * (winOut 0x3F / 0x2F) and three Collision_SetBlock calls at its screen
  * position.
@@ -30,14 +30,14 @@ void Object35Create(struct EwramData_EntityData *entity)
     s32 x;
     s32 y;
 
-    if ((entity->unk_514.part16.spawnParam0 != 0
-            && OBJECT_FLAG(ewram, entity->unk_514.part16.spawnParam1))
+    if ((entity->spawnParam0 != 0
+            && OBJECT_FLAG(ewram, entity->spawnParam1))
         || !Object35_LoadGraphics(entity))
     {
         EntityDelete(entity);
         return;
     }
-    if (entity->unk_514.part16.spawnParam0 == 0)
+    if (entity->spawnParam0 == 0)
     {
         Hit_Enable(entity, 8, NULL, 0);
         HitBox_SetBody(entity, &box);
@@ -46,7 +46,7 @@ void Object35Create(struct EwramData_EntityData *entity)
     entity->hit.flags |= 4;
     entity->hit.flags |= 2;
     entity->spriteLayer = 0x12;
-    if (entity->unk_514.part16.spawnParam0 == 0)
+    if (entity->spawnParam0 == 0)
     {
         entity->animFrame = 2;
         Object35_SpawnChild(entity);
@@ -56,10 +56,10 @@ void Object35Create(struct EwramData_EntityData *entity)
         entity->animFrame = 1;
     }
     entity->state = 0;
-    if (entity->unk_514.part16.spawnParam0 == 0)
+    if (entity->spawnParam0 == 0)
     {
         entity->subState = 0;
-        if (OBJECT_FLAG(gEwramData, entity->unk_514.part16.spawnParam1))
+        if (OBJECT_FLAG(gEwramData, entity->spawnParam1))
         {
             entity->posY.whole += 0x60000;
             entity->subState = 2;

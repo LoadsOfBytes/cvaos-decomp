@@ -2,6 +2,7 @@
 #include "code_0800B700.h"
 #include "code_08012744.h"
 #include "code/code_08039340.h"
+#include "menu_entity.h"
 #include "code/code_08040A38.h"
 
 struct MenuPage
@@ -73,8 +74,8 @@ s32 SaveMenu_Update(struct MenuPage *page)
         {
             ent = &ew->entityData[18];
             page->cursor++;
-            ent->unk_518.part16.hp = ((page->cursor & 1) * 4 + 8) * 12 + 5;
-            ent->unk_518.part16.unk_51A = 0x89;
+            MENU_CURSOR_X(ent) = ((page->cursor & 1) * 4 + 8) * 12 + 5;
+            MENU_CURSOR_Y(ent) = 0x89;
             PlaySong(0xF1);
         }
         break;

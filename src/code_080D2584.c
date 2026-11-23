@@ -42,10 +42,10 @@ s32 Graham_CreateSceneObject(struct EwramData_EntityData *entity,s32 index)
         facing=1;
     object->flipX=facing;
     object->scrollWithBg=1;
-    object->unk_514.part16.spawnParam0=info->param1;
-    object->unk_514.part16.spawnParam1=info->param2;
-    object->unk_518.part8.spawnIndex=index;
-    object->unk_518.part8.enemyId=32;
+    object->spawnParam0=info->param1;
+    object->spawnParam1=info->param2;
+    object->spawnIndex=index;
+    object->enemyId=32;
     object->drawFunc=(u32 *)Sprite_DrawEntity;
     object->updateFunc=(u32 *)Object20Update;
     Object20Create(object);

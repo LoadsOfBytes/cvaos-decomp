@@ -12,7 +12,7 @@ extern s32 Tile_Classify(s16, s16);
 static inline void FillParts(struct EwramData_EntityData *entity)
 {
     s32 index;
-    for (index = 0; index < (s16)entity->unk_514.part16.spawnParam1; index++)
+    for (index = 0; index < (s16)entity->spawnParam1; index++)
         KillerFish_SpawnSwarmFish(entity);
 }
 void EnemyKillerFishCreate(struct EwramData_EntityData *entity)

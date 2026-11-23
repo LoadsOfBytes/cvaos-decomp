@@ -47,7 +47,7 @@ void ChaosOrb_Update(struct EwramData_EntityData *entity)
     struct ChaosData *data = (struct ChaosData *)core->ext.chaos.data.value;
     s32 x, y, limit;
 
-    if (core == NULL || core->updateFunc == NULL || core->unk_518.part8.enemyId != entity->unk_518.part8.enemyId)
+    if (core == NULL || core->updateFunc == NULL || core->enemyId != entity->enemyId)
         goto fail;
     if (entity->state == 0)
     {
@@ -163,11 +163,11 @@ void ChaosOrb_Update(struct EwramData_EntityData *entity)
             if (Entity_GetVisibilityPattern(entity->timer--) == 1)
                 entity->palette = 4;
             else
-                entity->palette = entity->unk_510.part8.basePalette;
+                entity->palette = entity->basePalette;
             if (entity->timer == 0)
             {
                 entity->subState = 0;
-                entity->palette = entity->unk_510.part8.basePalette;
+                entity->palette = entity->basePalette;
             busy:
                 BUSY(core) = 1;
             }

@@ -18,7 +18,7 @@ struct SegmentFlags { u8 slot:5; u8 hidden:1; u8 flipX:1; u8 flipY:1; };
 void WhiteDragonSegment_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
-    if (owner && owner->updateFunc && owner->unk_518.part8.enemyId==11)
+    if (owner && owner->updateFunc && owner->enemyId==11)
     {
         struct SegmentFlags *visibility;
         u8 hidden = owner->hidden;

@@ -20,7 +20,7 @@ void RipperProjectile_Update(struct EwramData_EntityData *entity)
     Enemy_UpdateHitFlash(entity);
     if (Entity_IsTimeStopped(entity) == 0 || entity->state == 5 || entity->state == 6)
     {
-        if (entity->unk_510.part8.hitFlashTimer == 0 || entity->state == 2 || entity->state == 5
+        if (entity->hitFlashTimer == 0 || entity->state == 2 || entity->state == 5
             || entity->state == 6)
             goto run;
     }

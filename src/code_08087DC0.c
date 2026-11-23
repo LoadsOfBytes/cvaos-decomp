@@ -74,7 +74,7 @@ extern u8 *sPeepingEyeAnimSets[];
 /* Spawn parameter (EnemyPeepingEyeCreate also picks layer 0x1D when it is
  * non-zero). Off-screen despawning and the death collision only apply when
  * it is zero. TODO: meaning. */
-#define SPAWN_PARAM(e) ((e)->unk_514.part16.spawnParam0)
+#define SPAWN_PARAM(e) ((e)->spawnParam0)
 /* States 2 and 3 are the death sequence. */
 #define NOT_DYING(e) ((u8)((e)->state - 2) > 1)
 
@@ -472,20 +472,20 @@ static inline void Bounce(struct EwramData_EntityData *entity, struct EwramData_
 void PeepingEye_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
-    entity->unk_510.part8.hitFlashTimer = 8;
+    entity->hitFlashTimer = 8;
     {
-        s32 hp = entity->unk_518.part16.hp;
+        s32 hp = entity->hp;
         damage = (s16)damage;
-        entity->unk_518.part16.hp = hp - damage;
+        entity->hp = hp - damage;
     }
     Entity_ShowDamage(entity, damage, 0);
     HIT_FLAG(entity) = 1;
     Bounce(entity, attacker);
-    if ((s16)entity->unk_518.part16.hp <= 0)
+    if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
         PlaySong(0x6E);
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->timer = 45;
         entity->state = 2;
         entity->subState = 0;
@@ -501,7 +501,7 @@ void PeepingEyePupil_Update(struct EwramData_EntityData *entity)
     s32 bounds[4];
     if (entity->state == 0)
     {
-        if (!owner || !owner->updateFunc || owner->unk_518.part8.enemyId != 6) goto fail;
+        if (!owner || !owner->updateFunc || owner->enemyId != 6) goto fail;
         entity->hidden = owner->hidden;
         entity->palette = owner->palette;
         entity->flipX = owner->flipX;
@@ -572,7 +572,7 @@ void PeepingEyeEyeball_Update(struct EwramData_EntityData *entity)
     s32 bounds[4];
     if (entity->state == 0)
     {
-        if (!owner || !owner->updateFunc || owner->unk_518.part8.enemyId != 6) goto fail;
+        if (!owner || !owner->updateFunc || owner->enemyId != 6) goto fail;
         entity->hidden = owner->hidden;
         entity->palette = owner->palette;
         /* Both branches are identical; the compiler merges them but keeps
@@ -614,7 +614,7 @@ struct EwramData_EntityData *PeepingEye_CreateChainLink(struct EwramData_EntityD
         link->posY.whole = owner->posY.whole;
         link->spriteLayer = owner->spriteLayer + 2;
         graphics = ObjGfx_Find(sPeepingEyeGfx);
-        Sprite_Attach(link, sPeepingEyeSpriteSheet, graphics, owner->unk_510.part8.basePalette);
+        Sprite_Attach(link, sPeepingEyeSpriteSheet, graphics, owner->basePalette);
         link->animFrame = 0xB;
         if (index == 5)
         {
@@ -649,7 +649,7 @@ void PeepingEyeChainLink_Update(struct EwramData_EntityData *entity)
     s32 x, y;
     s32 bounds[4];
 
-    if (!owner || !owner->updateFunc || owner->unk_518.part8.enemyId != 6) goto fail;
+    if (!owner || !owner->updateFunc || owner->enemyId != 6) goto fail;
     entity->palette = owner->palette;
     if (!Enemy_IsStunnedNoFlash(owner))
     {

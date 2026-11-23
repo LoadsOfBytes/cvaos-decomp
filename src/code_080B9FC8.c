@@ -23,18 +23,18 @@ void ManEaterPart_OnHit(struct EwramData_EntityData *entity, struct EwramData_En
         do { damage = Hit_ResolveDamage(entity, (s32)attacker, hit, (s16)strength); } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
         part->ext.manEater.headFlags |= 2;
         {
-            u16 hp = part->unk_518.part16.hp;
+            u16 hp = part->hp;
             damage <<= 16;
             damage >>= 16;
-            part->unk_518.part16.hp = hp - damage;
+            part->hp = hp - damage;
         }
         Entity_ShowDamage(entity, damage, 0);
-        if ((s16)part->unk_518.part16.hp <= 0)
+        if ((s16)part->hp <= 0)
         {
             struct EwramData_EntityData *parent = &gEwramData->entityData[(u8)part->ext.manEater.ownerIndex];
             parent->ext.manEaterBody.headCount--;
             part->enemyFlags |= 2;
-            part->palette = part->unk_510.part8.basePalette;
+            part->palette = part->basePalette;
         }
     }
 }

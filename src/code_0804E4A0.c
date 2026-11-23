@@ -19,7 +19,7 @@ void Object03Create(struct EwramData_EntityData *entity)
     Collision_SetBlock(x, y - 24);
     Collision_SetBlock(x, y - 40);
     entity->ext.door.openHeight = 0;
-    switch (entity->unk_514.part16.spawnParam0)
+    switch (entity->spawnParam0)
     {
     case 1: entity->state = 20; break;
     case 3: entity->state = 99; break;

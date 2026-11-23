@@ -115,7 +115,7 @@ void AxeArmorAxe_Update(struct EwramData_EntityData *entity)
     if (entity->state != 0)
     {
         Hit_CheckWithPlayer(collision, entity);
-        if ((s16)entity->unk_518.part16.hp <= 0)
+        if ((s16)entity->hp <= 0)
         {
             Effect_SpawnRandom(entity->posX.whole, entity->posY.whole, 0x80000, 0x80000, entity->spriteLayer - 1);
             entity->state = 2;
@@ -155,7 +155,7 @@ void AxeArmorAxe_Update(struct EwramData_EntityData *entity)
             }
             entity->state = 1;
             PlaySong(0x86);
-            entity->unk_518.part16.hp = 1;
+            entity->hp = 1;
             Hit_Enable(entity, 10, Enemy_OnContactMask1, (s32)AxeArmorAxe_ClearHealth);
             HitBox_SetAttackRaw(entity, 0x1010F8F8);
             HitBox_SetBodyRaw(entity, 0x1010F8F8);
@@ -189,8 +189,8 @@ void AxeArmor_UpdateWalking(struct EwramData_EntityData *entity)
     if (entity->subState != 0)
         return;
     // animStep and animTimer read together: frame 0x11 and animTimer 0
-    if (*(u16 *)&entity->animStep == 0x11 && entity->unk_514.part16.spawnParam0 != 0
-        && entity->timer++ > entity->unk_514.part16.spawnParam0)
+    if (*(u16 *)&entity->animStep == 0x11 && entity->spawnParam0 != 0
+        && entity->timer++ > entity->spawnParam0)
     {
         entity->timer = entity->subState;
         entity->flipX ^= 1;
@@ -200,7 +200,7 @@ void AxeArmor_UpdateWalking(struct EwramData_EntityData *entity)
     if (frame > 6)
         speed = 0;
     result = Entity_Walk(entity, speed, sAxeArmorWalkProfile, 20);
-    if (entity->unk_514.part16.spawnParam0 == 0 && (result & 0x1B) != 8)
+    if (entity->spawnParam0 == 0 && (result & 0x1B) != 8)
         entity->flipX ^= 1;
     if (entity->animTimer == 0)
     {

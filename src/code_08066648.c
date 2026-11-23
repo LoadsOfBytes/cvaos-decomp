@@ -138,7 +138,7 @@ void EventScene28_PickScript(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief Init of event scene variant 28 (Object 0x20 unk_514 = 28,
+ * @brief Init of event scene variant 28 (Object 0x20 spawnParam0 = 28,
  * sEventSceneCreateFuncs[28]).
  */
 void EventScene28_Init(struct EwramData_EntityData *entity)

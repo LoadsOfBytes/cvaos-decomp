@@ -28,7 +28,7 @@ void ManEaterProjectile_DamagePlayerOnContact(struct EwramData_EntityData *entit
     contactDamage.sourceX = entity->posX.whole;
     contactDamage.sourceY = entity->posY.whole;
     Player_ApplyContactDamage(&contactDamage);
-    entity->unk_518.part16.hp = 0;
+    entity->hp = 0;
 }
 
 /**
@@ -36,7 +36,7 @@ void ManEaterProjectile_DamagePlayerOnContact(struct EwramData_EntityData *entit
  */
 void ManEaterProjectile_OnHit(struct EwramData_EntityData *entity)
 {
-    entity->unk_518.part16.hp = 0;
+    entity->hp = 0;
 }
 
 /**
@@ -83,7 +83,7 @@ void KillerMantlePart_Update(struct EwramData_EntityData *entity)
     if (owner->state == 3)
         entity->state = 4;
     else if (entity->state != 0
-             && (gEwramData->gameState.timeStopTimer != 0 || owner->unk_510.part8.hitFlashTimer != 0))
+             && (gEwramData->gameState.timeStopTimer != 0 || owner->hitFlashTimer != 0))
         return;
     switch (entity->state)
     {

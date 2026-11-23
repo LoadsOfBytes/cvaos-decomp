@@ -31,7 +31,7 @@
  * state (1 = place and start the zoom-in, 2 = zooming), its affine slot as
  * allocated / as the u16 slot number read by the update.
  */
-#define MENU_TITLE_AFFINE(e) e->unk_510.whole
-#define MENU_TITLE_AFFINE_SLOT(e) e->unk_510.part16.unk_510
+#define MENU_TITLE_AFFINE(e) ENTITY_WORD_510(e)
+#define MENU_TITLE_AFFINE_SLOT(e) ENTITY_HALF_510(e)
 
 #endif /* MENU_PAGE_H */

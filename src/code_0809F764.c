@@ -28,8 +28,8 @@ struct EwramData_EntityData *Legion_CreateShellPart(struct EwramData_EntityData 
         part->posY.whole = entity->posY.whole;
         part->spriteLayer = entity->spriteLayer + 1;
         tiles = *data;
-        part->unk_510.part8.basePalette = entity->ext.legion.animPalette;
-        Sprite_Attach(part, sLegionSpriteSheet, tiles, part->unk_510.part8.basePalette);
+        part->basePalette = entity->ext.legion.animPalette;
+        Sprite_Attach(part, sLegionSpriteSheet, tiles, part->basePalette);
         if (kind == 5)
         {
             palette = ObjAffine_Alloc(1);

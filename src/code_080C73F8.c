@@ -60,7 +60,7 @@ void Nemesis_UpdatePartnerFlight(struct EwramData_EntityData *entity)
     case 2:
         if (partner->state == 0)
         {
-            if ((s16)entity->unk_518.part16.hp <= 0)
+            if ((s16)entity->hp <= 0)
             {
                 if (entity->state != 0xFF)
                 {
@@ -78,6 +78,6 @@ void Nemesis_UpdatePartnerFlight(struct EwramData_EntityData *entity)
         }
         break;
     }
-    if ((s16)entity->unk_518.part16.hp <= 0)
+    if ((s16)entity->hp <= 0)
         FLAGS(entity) |= 0x20;
 }

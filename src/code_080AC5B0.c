@@ -14,21 +14,21 @@ extern void Entity_ShowDamage(struct EwramData_EntityData *, s32, s32);
 /* Flash and reduce the shared HP; end the boss encounter at zero HP. */
 void BigGolem_OnDamaged(struct EwramData_EntityData *entity, s32 attacker, u16 *hit, s32 damage)
 {
-    entity->unk_510.part8.hitFlashTimer = 8;
-    entity->unk_518.part16.hp -= damage;
+    entity->hitFlashTimer = 8;
+    entity->hp -= damage;
     if ((s8)entity->ext.bigGolem.hitCount < 10)
         entity->ext.bigGolem.hitCount++;
     entity->ext.bigGolem.hit = 1;
-    if ((s16)entity->unk_518.part16.hp <= 0)
+    if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
         Anim_StartIndexed(entity, 3, 0, 1);
         PlaySong(0x6E);
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->timer = 60;
         entity->state = 2;
         entity->subState = 0;
-        if (entity->unk_514.part16.spawnParam0 != 0)
+        if (entity->spawnParam0 != 0)
         {
             BossDefeatEffect_Spawn(entity->posX.whole, entity->posY.whole - 0x200000);
             BossRecoveryPickup_Spawn((s16)entity->posX.part16.integer, 32, 12, 96, 0);

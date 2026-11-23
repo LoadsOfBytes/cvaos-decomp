@@ -8,10 +8,13 @@
  *   (+/- gameState.conveyorSpeed on conveyor tiles), cleared after use;
  * - blink timer: contact immunity frames; the sprite blinks (drawSkip) while
  *   it counts down.
- * The macros expand to the original member chains without added parentheses
- * (token-identical preprocessed code); use them with a plain base expression.
+ * The macros expand to member chains or to the ENTITY_* views of the common
+ * block (structs/ewram.h) without added parentheses; use them with a plain
+ * base expression.
  */
-#define PLAYER_CONVEYOR_VELOCITY(e) e->unk_510.whole
-#define PLAYER_BLINK_TIMER(e) e->unk_518.part16.hp
+#define PLAYER_CONVEYOR_VELOCITY(e) ENTITY_WORD_510(e)
+#define PLAYER_BLINK_TIMER(e) e->hp
+/* Julius mode: overlay sprite entity created by Julius_CreateOverlaySprite (whip chain owner). */
+#define PLAYER_JULIUS_OVERLAY(e) ENTITY_PTR_514(e)
 
 #endif /* PLAYER_ENTITY_H */

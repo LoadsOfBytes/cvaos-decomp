@@ -18,7 +18,7 @@ void EnemyWingedSkeletonCreate(struct EwramData_EntityData *entity)
     entity->spriteLayer = 3;
     Hit_Enable(entity, 8, WingedSkeleton_DamagePlayerOnContact, (s32)WingedSkeleton_OnHit);
     Entity_UpdateBoxes(entity);
-    if (entity->unk_514.part16.spawnParam1 != 0)
+    if (entity->spawnParam1 != 0)
     {
         entity->state = 3;
         entity->hidden = 1;

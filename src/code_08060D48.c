@@ -6,7 +6,7 @@
 extern s32 Entity_SetupFromObjectTable(struct EwramData_EntityData *entity, s32 kind);
 
 /**
- * @brief Init of event scene variant 12 (Object 0x20 unk_514 = 12,
+ * @brief Init of event scene variant 12 (Object 0x20 spawnParam0 = 12,
  * sEventSceneCreateFuncs[12]). Create step: animation 1 entering from x -16 at
  * room y 0xA0, moving right (0x4000), facing left; always sets stateFlags
  * bit 0.

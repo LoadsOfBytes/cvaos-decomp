@@ -10,7 +10,7 @@ extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *,s32,s32,s32,s3
 extern void Effect_SpawnRisingParticle(s32,s32,s32,s32);
 /**
  * @brief Flight state machine (state 0): fly across the room toward the target,
- * turning at the room edges (unk_514 or 15 px margin) with a wave motion,
+ * turning at the room edges (spawnParam0 or 15 px margin) with a wave motion,
  * and record the position history that the body segments follow.
  */
 void Quezlcoatl_UpdateFly(struct EwramData_EntityData *entity)
@@ -22,8 +22,8 @@ void Quezlcoatl_UpdateFly(struct EwramData_EntityData *entity)
         case 0: entity->subState=1;
         case 1:
             if(!(entity->ext.quezlcoatl.bounceCount&1)) entity->flipX=Entity_IsTargetRight(entity);
-            if(!entity->unk_514.part16.spawnParam0) turn=Entity_GetHorizontalRoomEdge(entity,15);
-            else turn=Entity_GetHorizontalRoomEdge(entity,entity->unk_514.part16.spawnParam0);
+            if(!entity->spawnParam0) turn=Entity_GetHorizontalRoomEdge(entity,15);
+            else turn=Entity_GetHorizontalRoomEdge(entity,entity->spawnParam0);
             if(turn==1) { entity->flipX=1; entity->ext.quezlcoatl.bounceCount=0; }
             else if(turn==2) { entity->flipX=0; entity->ext.quezlcoatl.bounceCount=0; }
             if(entity->flipX) entity->velX.whole=0x20000;

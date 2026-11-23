@@ -29,7 +29,7 @@ void Object1DCreate(struct EwramData_EntityData *entity)
     s32 layer, graphics, sum, i;
     struct ExitRoom *room;
     struct RoomExit *exit;
-    if (entity->unk_514.part16.spawnParam0 == 0)
+    if (entity->spawnParam0 == 0)
     {
         gfx = sWarpRoomGfx;
         palette = sWarpRoomPalette;
@@ -50,7 +50,7 @@ void Object1DCreate(struct EwramData_EntityData *entity)
     Sprite_Attach(entity, sprite, graphics, layer);
     entity->spriteLayer = 0x11;
     sum = ExitSum();
-    if (entity->unk_514.part16.spawnParam0 == 0)
+    if (entity->spawnParam0 == 0)
     {
         entity->animFrame = 0xB;
         if (sum == 1)

@@ -5,7 +5,7 @@
  * (8 / 16 / 32), its address and the last shown value. Token-identical
  * expansion.
  */
-#define NUMBER_WATCH_LAST(e) e->unk_510.whole
+#define NUMBER_WATCH_LAST(e) ENTITY_WORD_510(e)
 extern void NumberIndicator_Format(struct EwramData_EntityData *, s32);
 
 /**

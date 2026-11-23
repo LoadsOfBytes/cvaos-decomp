@@ -3,7 +3,7 @@
 extern void TextWindow_Begin(s32 textId);
 
 /**
- * @brief Init of event scene variant 0 (Object 0x20 unk_514 = 0,
+ * @brief Init of event scene variant 0 (Object 0x20 spawnParam0 = 0,
  * sEventSceneCreateFuncs[0]).
  */
 void EventScene00_Init(void)
@@ -13,7 +13,7 @@ void EventScene00_Init(void)
 }
 
 /**
- * @brief Init of event scene variant 1 (Object 0x20 unk_514 = 1,
+ * @brief Init of event scene variant 1 (Object 0x20 spawnParam0 = 1,
  * sEventSceneCreateFuncs[1]).
  */
 void EventScene01_Init(void)

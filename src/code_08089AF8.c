@@ -27,7 +27,7 @@ void EnemyGhostUpdate(struct EwramData_EntityData *entity)
             s32 zero = 0;
             entity->state = 1;
             entity->timer = 1;
-            entity->unk_518.part16.hp = zero;
+            entity->hp = zero;
         }
     }
     if (EntityIsOutsideScreen(entity, 4)) entity->hidden = 1;
@@ -50,7 +50,7 @@ void EnemyGhostUpdate(struct EwramData_EntityData *entity)
         if (entity->deleteRequested)
         {
             struct EwramData_EntityData *controller = ENTITY_OWNER(entity);
-            if (controller && controller->updateFunc && controller->unk_518.part8.enemyId == 14
+            if (controller && controller->updateFunc && controller->enemyId == 14
                 && controller->ext.ghostSpawner.childCount != 0)
                 controller->ext.ghostSpawner.childCount--;
         }
@@ -62,13 +62,13 @@ void EnemyGhostUpdate(struct EwramData_EntityData *entity)
     case 3:
     {
         s32 spawn = 0;
-        if (entity->ext.ghostSpawner.spawnDelay++ >= entity->unk_514.part16.spawnParam1
+        if (entity->ext.ghostSpawner.spawnDelay++ >= entity->spawnParam1
             && (RandomNumberGenerator() & 31) == 0)
         {
             entity->ext.ghostSpawner.spawnDelay = spawn;
             spawn = 1;
         }
-        if (spawn && entity->ext.ghostSpawner.childCount < entity->unk_514.part16.spawnParam0)
+        if (spawn && entity->ext.ghostSpawner.childCount < entity->spawnParam0)
         {
             struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
             if (child)
@@ -88,12 +88,12 @@ void EnemyGhostUpdate(struct EwramData_EntityData *entity)
                     if (distance < 0) distance = -distance;
                 } while (distance <= 0x300000);
                 child->scrollWithBg = 1;
-                child->unk_518.part8.spawnIndex = 0;
-                child->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
-                child->unk_514.part16.spawnParam1 = 0;
+                child->spawnIndex = 0;
+                child->enemyId = entity->enemyId;
+                child->spawnParam1 = 0;
                 child->drawFunc = (u32 *)Sprite_DrawEntity;
-                child->unk_518.part16.hp = sEnemyData[entity->unk_518.part8.enemyId].hp;
-                child->unk_510.part16.unk_512 = sEnemyData[entity->unk_518.part8.enemyId].unk_E;
+                child->hp = sEnemyData[entity->enemyId].hp;
+                child->mp = sEnemyData[entity->enemyId].mp;
                 child->updateFunc = entity->updateFunc;
                 EnemyGhostCreate(child);
                 ENTITY_OWNER(child) = entity;

@@ -43,7 +43,7 @@ void LegionCorpse_Update(struct EwramData_EntityData *entity)
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
     s32 dx, dy;
 
-    if (owner == NULL || owner->updateFunc == NULL || owner->unk_518.part8.enemyId != entity->unk_518.part8.enemyId)
+    if (owner == NULL || owner->updateFunc == NULL || owner->enemyId != entity->enemyId)
         return;
     if (entity->state == 0)
     {

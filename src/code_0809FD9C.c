@@ -24,9 +24,9 @@ void Legion_SpawnDebris(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx
     entity->ext.particle.flags = 4;
     entity->spriteLayer = owner->spriteLayer - 1;
     graphics = data[0];
-    entity->unk_510.part8.basePalette = data[9];
+    entity->basePalette = data[9];
     entity->palette = data[9];
-    Sprite_Attach(entity, sLegionSpriteSheet, graphics, entity->unk_510.part8.basePalette);
+    Sprite_Attach(entity, sLegionSpriteSheet, graphics, entity->basePalette);
     entity->animFrame = frame;
     entity->animMode = 2;
     entity->scrollWithBg = 1;

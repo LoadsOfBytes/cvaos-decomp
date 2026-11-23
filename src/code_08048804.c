@@ -23,15 +23,15 @@ void MenuItemIcon_Show(s32 x, s32 y, s32 type, s32 item)
     struct EwramData_EntityData *entity = &gEwramData->entityData[19];
     const u8 *info;
 
-    if (entity->unk_518.part8.enemyId != 0)
+    if (entity->enemyId != 0)
     {
         struct EwramData_EntityData *other = &gEwramData->entityData[208];
         s32 i;
 
         for (i = 0; i < 3; i++, other++)
         {
-            if (other->unk_518.part8.enemyId == entity->unk_518.part8.enemyId
-                && other->unk_514.part16.spawnParam1 == entity->unk_514.part16.spawnParam1)
+            if (other->enemyId == entity->enemyId
+                && other->spawnParam1 == entity->spawnParam1)
                 break;
         }
         if (i == 3)
@@ -58,8 +58,8 @@ void MenuItemIcon_Show(s32 x, s32 y, s32 type, s32 item)
         entity->posX.part16.integer = x;
         entity->posY.part16.integer = y;
         entity->scrollWithBg = 1;
-        entity->unk_518.part8.enemyId = type;
-        entity->unk_514.part16.spawnParam1 = item;
+        entity->enemyId = type;
+        entity->spawnParam1 = item;
         entity->spriteLayer = 0;
     }
 }
@@ -67,19 +67,19 @@ void MenuItemIcon_Show(s32 x, s32 y, s32 type, s32 item)
 /**
  * @brief 488FC | As MenuItemIcon_Show for the slot icon entityData[208 + slot],
  * compared against entityData[19]; also stores the first u16 of the item
- * info in unk_514.
+ * info in spawnParam0.
  */
 void MenuSlotIcon_Show(s32 x, s32 y, s32 type, s32 item, s32 slot)
 {
     struct EwramData_EntityData *entity = &gEwramData->entityData[208 + slot];
     const u8 *info;
 
-    if (entity->unk_518.part8.enemyId != 0)
+    if (entity->enemyId != 0)
     {
         struct EwramData_EntityData *other = &gEwramData->entityData[19];
 
-        if (other->unk_518.part8.enemyId == entity->unk_518.part8.enemyId
-            && other->unk_514.part16.spawnParam1 == entity->unk_514.part16.spawnParam1)
+        if (other->enemyId == entity->enemyId
+            && other->spawnParam1 == entity->spawnParam1)
             ItemIcon_Free(entity, 0);
         else
             ItemIcon_Free(entity, 1);
@@ -103,9 +103,9 @@ void MenuSlotIcon_Show(s32 x, s32 y, s32 type, s32 item, s32 slot)
         entity->posX.part16.integer = x;
         entity->posY.part16.integer = y;
         entity->scrollWithBg = 1;
-        entity->unk_518.part8.enemyId = type;
-        entity->unk_514.part16.spawnParam1 = item;
-        entity->unk_514.part16.spawnParam0 = *(const u16 *)Item_GetInfo(type, item);
+        entity->enemyId = type;
+        entity->spawnParam1 = item;
+        entity->spawnParam0 = *(const u16 *)Item_GetInfo(type, item);
         entity->spriteLayer = 0;
     }
 }

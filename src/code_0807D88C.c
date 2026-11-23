@@ -10,8 +10,8 @@ extern void GiantGhost_SpawnFragment(s32 x, s32 y, s32 vx, s32 vy, s32 layer, s3
 
 /**
  * @brief 7D88C | Hit callback: flash (hitFlashTimer = 8), subtract the damage
- * (Hit_ResolveDamage) from the HP in unk_518 and show it (Entity_ShowDamage); at 0 HP
- * release the hit box, play song 0x6B, animation 5, palette from unk_510,
+ * (Hit_ResolveDamage) from the HP in hp and show it (Entity_ShowDamage); at 0 HP
+ * release the hit box, play song 0x6B, animation 5, palette from basePalette,
  * death state 2 (timer 0x5A) and burst into four random fragments
  * (GiantGhost_SpawnFragment) one layer below.
  */
@@ -20,20 +20,20 @@ void GiantGhost_OnHit(struct EwramData_EntityData *entity, struct EwramData_Enti
     s32 damage = Player_CalculateAttackPower(hit[2]);
     s32 i;
     damage = Hit_ResolveDamage(entity, (s32)other, hit, (s16)damage);
-    entity->unk_510.part8.hitFlashTimer = 8;
+    entity->hitFlashTimer = 8;
     {
-        u16 hp = entity->unk_518.part16.hp;
+        u16 hp = entity->hp;
         damage <<= 16;
         damage >>= 16;
-        entity->unk_518.part16.hp = hp - damage;
+        entity->hp = hp - damage;
     }
     Entity_ShowDamage(entity, damage, 0);
-    if ((s16)entity->unk_518.part16.hp <= 0)
+    if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
         PlaySong(0x6B);
         Anim_StartIndexed(entity, 5, 0, 0);
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->timer = 0x5A;
         entity->state = 2;
         entity->subState = 0;

@@ -26,7 +26,7 @@ void Manticore_SpawnShotFlash(struct EwramData_EntityData *owner)
         entity->posX.part16.integer = owner->posX.part16.integer - 0x1F;
     entity->posY.part16.integer = owner->posY.part16.integer - 0xF;
     graphics = ObjGfx_Find(sManticoreGfx);
-    Sprite_Attach(entity, sManticoreSpriteSheet, graphics, owner->unk_510.part8.basePalette);
+    Sprite_Attach(entity, sManticoreSpriteSheet, graphics, owner->basePalette);
     Anim_StartIndexed(entity, 5, 0, 0);
     Anim_Update(entity);
     entity->scrollWithBg = 1;

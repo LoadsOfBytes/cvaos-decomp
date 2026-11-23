@@ -12,7 +12,7 @@ extern void Ghost_OnHit(struct EwramData_EntityData *);
 void EnemyGhostCreate(struct EwramData_EntityData *entity)
 {
     struct HitBoxRecord box = {-7, -7, 14, 14};
-    if (entity->unk_514.part16.spawnParam1 != 0)
+    if (entity->spawnParam1 != 0)
     {
         entity->state = 3;
         entity->hidden = 1;

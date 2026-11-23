@@ -38,7 +38,7 @@ void Persephone_UpdateWalk(struct EwramData_EntityData *entity)
     case 1:
         if (++entity->timer == 5)
         {
-            if (entity->unk_514.part16.spawnParam0)
+            if (entity->spawnParam0)
                 PlaySong(0x1C9);
             else if ((RandomNumberGenerator() & 0x7F) < 0x40)
                 PlaySong(0x1C9);

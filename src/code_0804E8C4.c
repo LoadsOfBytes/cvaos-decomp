@@ -25,8 +25,8 @@ static inline s32 IsBeside(struct EwramData_EntityData *entity)
  * opens it while the player is within 0x28 px (tiles cleared with
  * Collision_ClearBlock, sound 0x113, counter unk_4F8 up to 0x30) and closes it again
  * (Collision_SetBlock) when the player has left; states 10/11 close it behind the
- * player and go to 0x63 / 0x14 (unk_514); state 20 waits for its boss flag
- * (bit unk_516 of bossEventFlags, map reveal 0x1040) and state 21 opens it for good.
+ * player and go to 0x63 / 0x14 (spawnParam0); state 20 waits for its boss flag
+ * (bit spawnParam1 of bossEventFlags, map reveal 0x1040) and state 21 opens it for good.
  */
 void Object04Update(struct EwramData_EntityData *entity)
 {
@@ -125,13 +125,13 @@ void Object04Update(struct EwramData_EntityData *entity)
         if (--entity->ext.door.openHeight != 0)
             break;
         gEwramData->gameState.stateFlags &= 0xFFFFFEFE;
-        if (entity->unk_514.part16.spawnParam0 > 1)
+        if (entity->spawnParam0 > 1)
             entity->state = 0x63;
         else
             entity->state = 0x14;
         break;
     case 20:
-        if ((gEwramData->gameState.bossEventFlags >> entity->unk_514.part16.spawnParam1) & 1)
+        if ((gEwramData->gameState.bossEventFlags >> entity->spawnParam1) & 1)
         {
             if (!(gEwramData->gameState.stateFlags & 0x400000))
                 Music_SubmitCommandOnce(0x1040);

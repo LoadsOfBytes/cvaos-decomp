@@ -63,7 +63,7 @@ void GrahamAttacker_UpdateDeath(struct EwramData_EntityData *entity)
     {
     case 0:
         Anim_StartIndexed(entity, 3, 0, 1);
-        if (part->unk_518.part8.enemyId == entity->unk_518.part8.enemyId && part != NULL)
+        if (part->enemyId == entity->enemyId && part != NULL)
             part->deleteRequested = 1;
         entity->objMode = 1;
         entity->timer = 2;

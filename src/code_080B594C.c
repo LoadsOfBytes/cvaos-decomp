@@ -103,7 +103,7 @@ s32 Balore_UpdateDeath(struct EwramData_EntityData *entity)
         {
             entity->timer--;
             {
-                register u8 s asm("r3") = entity->unk_510.part8.basePalette; /* FAKEMATCH: pinned register */
+                register u8 s asm("r3") = entity->basePalette; /* FAKEMATCH: pinned register */
                 b = 7 - (*(vu8 *)&entity->timer >> 4);
                 idx = s - 10;
             p = Slot(gEwramData->gameState.sharedObjPaletteVariants, idx); asm("" :: "r"(s)); /* FAKEMATCH: s keeps r3 busy, so reloads use r4 */
@@ -130,7 +130,7 @@ s32 Balore_UpdateDeath(struct EwramData_EntityData *entity)
     case 6:
         if (entity->timer)
             goto dec;
-        SoulPickup_SpawnFromEnemyDefinition((s16)entity->posX.part16.integer - 0x10, (s16)entity->posY.part16.integer, entity->unk_518.part8.enemyId, 6);
+        SoulPickup_SpawnFromEnemyDefinition((s16)entity->posX.part16.integer - 0x10, (s16)entity->posY.part16.integer, entity->enemyId, 6);
         BossRecoveryPickup_Spawn((s16)entity->posX.part16.integer, 0x20, 6, 0x60, 1);
         return 1;
     dec:

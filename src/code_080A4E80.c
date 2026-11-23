@@ -19,13 +19,13 @@ void Chaos2Part_Update(struct EwramData_EntityData *part)
 
     if (part->state == 0)
     {
-        if (part->unk_510.part8.hitFlashTimer != 0)
+        if (part->hitFlashTimer != 0)
             Enemy_UpdateHitFlash(part);
         if (part->animScriptIndex == 1 && (s16)FLASH(part)-- <= 0)
             Anim_StartIndexed(part, 0, 2, 1);
         Hit_CheckWithPlayer(collision, part);
         if (core != NULL && core->updateFunc != NULL
-            && core->unk_518.part8.enemyId == part->unk_518.part8.enemyId
+            && core->enemyId == part->enemyId
             && core->state != 3)
         {
             if (RandomNumberGenerator() % 16)
@@ -34,10 +34,10 @@ void Chaos2Part_Update(struct EwramData_EntityData *part)
         }
         part->state = 10;
         part->subState = 0;
-        part->unk_518.part16.hp = 0;
-        part->palette = part->unk_510.part8.basePalette;
+        part->hp = 0;
+        part->palette = part->basePalette;
         part->timer = 40;
-        part->unk_510.part8.hitFlashTimer = 0;
+        part->hitFlashTimer = 0;
     }
     else if (part->state == 10)
     {

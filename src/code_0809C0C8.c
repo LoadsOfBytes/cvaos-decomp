@@ -11,7 +11,7 @@ extern u8 sStolasSpriteSheet[];
  * @brief 9C0C8 | Spawn a StolasBeamImpact_Update child (slots 0x1B..0x48) at
  * (offsetX, offsetY) px from entity (x mirrored by its facing) with the
  * already loaded graphics sStolasGfx (deleted when they are not loaded),
- * frame 0x23, layer 0xA, entity's palette, type unk_51A and facing; the
+ * frame 0x23, layer 0xA, entity's palette, type enemyId and facing; the
  * parent is kept in ext.stolasEffect.owner.
  */
 void Stolas_SpawnBeamImpact(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY)
@@ -27,15 +27,15 @@ void Stolas_SpawnBeamImpact(struct EwramData_EntityData *entity, s32 offsetX, s3
         EntityDelete(child);
         return;
     }
-    Sprite_Attach(child, sStolasSpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    Sprite_Attach(child, sStolasSpriteSheet, gfx, entity->basePalette);
     child->animFrame = 0x23;
     child->drawFunc = (u32 *)Sprite_DrawEntity;
     child->hit.flags |= 4;
     child->hit.flags |= 2;
     child->scrollWithBg = 1;
     child->spriteLayer = 0xA;
-    child->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
-    child->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
+    child->basePalette = entity->basePalette;
+    child->enemyId = entity->enemyId;
     child->ext.stolasEffect.owner = entity;
     child->flipX = entity->flipX;
     if (entity->flipX)

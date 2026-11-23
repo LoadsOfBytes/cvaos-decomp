@@ -7,7 +7,7 @@ struct Unk_08028018 {
     s16 angle;
 };
 
-/* Four (radius 8.8, angle) pairs at entity offset 0x20 (unk_504..unk_510);
+/* Four (radius 8.8, angle) pairs at entity offset 0x20 (unk_504..basePalette);
  * addressed from unk_4F4 + 0x10 like the original. */
 struct Unk_08028018_Block {
     u8 pad_0[0x10];

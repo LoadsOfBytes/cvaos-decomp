@@ -58,7 +58,7 @@ void Merman_UpdateAttack(struct EwramData_EntityData *entity)
     case 2:
         if (entity->animDone)
         {
-            if (entity->unk_514.part16.spawnParam0 == 0)
+            if (entity->spawnParam0 == 0)
                 RestartJump(entity);
             else
                 RestartSwim(entity);

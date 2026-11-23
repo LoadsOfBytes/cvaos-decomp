@@ -3,13 +3,14 @@
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
+#include "belmont_entity.h"
 extern void EntityAccelerateAndMoveX(struct EwramData_EntityData *,s32);
 extern void EntityAccelerateAndMoveY(struct EwramData_EntityData *,s32);
 extern s32 EntityIsOutsideScreen(struct EwramData_EntityData *,s32);
 extern void Afterimage_Create(struct EwramData_EntityData *,s32,s32,s32);
 extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
-#define ANGLE(e) ((e)->unk_518.part16.hp)
-#define STEP(e) ((e)->unk_518.part16.unk_51A)
+#define ANGLE(e) ((e)->hp)
+#define STEP(e) (ENTITY_HALF_51A((e)))
 /**
  * @brief Variant 0: allocate an affine slot, launch a rotating ballistic
  * projectile with afterimages and release the slot after leaving the screen.
@@ -33,7 +34,7 @@ void BelmontSubweapon0_Update(struct EwramData_EntityData *entity)
             STEP(entity)=(step=0xB00);
             if(!entity->flipX)
                 STEP(entity)=-step;
-            entity->unk_514.unk_514_32=(void *)(u32)(speed=0x16000);
+            BELMONT_SUBWEAPON_SPEED(entity)=(void *)(u32)(speed=0x16000);
             entity->velX.whole=speed;
             if(!entity->flipX)
                 entity->velX.whole=-speed;

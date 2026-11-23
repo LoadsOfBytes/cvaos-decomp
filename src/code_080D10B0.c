@@ -20,8 +20,8 @@ void Belmont_UpdateDodge(struct EwramData_EntityData *entity)
     switch(state)
     {
         case 0:
-            entity->palette=entity->unk_510.part8.basePalette;
-            entity->unk_510.part8.hitFlashTimer=state;
+            entity->palette=entity->basePalette;
+            entity->hitFlashTimer=state;
             entity->ext.belmont.flash=state;
             entity->ext.belmont.hits=state;
             if(entity->animScriptIndex!=3)

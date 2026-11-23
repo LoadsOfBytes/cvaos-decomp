@@ -1,6 +1,6 @@
 /* Page-title entity (slot 20) state machine (state at unk_508): state 1
  * places the entity at (0x35, 9) and moves to state 2; state 2 enables affine
- * slot unk_510 on the first frame and grows the scale by 0x1000 per frame for
+ * slot ENTITY_HALF_510 on the first frame and grows the scale by 0x1000 per frame for
  * 16 frames, then disables the affine flag; both draw via Sprite_Draw. */
 #include "code/code_08039340.h"
 #include "menu_page.h"

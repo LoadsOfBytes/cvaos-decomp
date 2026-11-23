@@ -8,7 +8,7 @@
 
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
-/* Two hit boxes of object 0x32 (by unk_516). */
+/* Two hit boxes of object 0x32 (by spawnParam1). */
 struct Object32Boxes {
     u32 box[2];
 };
@@ -46,7 +46,7 @@ extern u8 sObject32SpriteSheet[];
 
 /**
  * @brief 59494 | Object 0x32 create: load the graphics (delete the object
- * when that fails), hit box by unk_516, remember the world position
+ * when that fails), hit box by spawnParam1, remember the world position
  * (BG 1 relative) in ext.layerObject.x/Y and the shuttle fields (unused by 0x32).
  */
 void Object32Create(struct EwramData_EntityData *entity)
@@ -62,11 +62,11 @@ void Object32Create(struct EwramData_EntityData *entity)
         return;
     }
     Hit_Enable(entity, 8, NULL, 0);
-    HitBox_SetBody(entity, &boxes.box[entity->unk_514.part16.spawnParam1]);
-    HitBox_SetAttack(entity, &boxes.box[entity->unk_514.part16.spawnParam1]);
+    HitBox_SetBody(entity, &boxes.box[entity->spawnParam1]);
+    HitBox_SetAttack(entity, &boxes.box[entity->spawnParam1]);
     entity->hit.flags |= 4;
     entity->hit.flags |= 2;
-    if (entity->unk_514.part16.spawnParam1 == 0)
+    if (entity->spawnParam1 == 0)
         entity->animFrame = 0;
     else
         entity->animFrame = 7;
@@ -74,7 +74,7 @@ void Object32Create(struct EwramData_EntityData *entity)
     entity->state = 0;
     roomY = entity->posY.whole;
     entity->ext.layerObject.shuttleStart = roomY + bg->yPos.whole;
-    entity->ext.layerObject.shuttleEnd = entity->unk_514.part16.spawnParam0 << 16;
+    entity->ext.layerObject.shuttleEnd = entity->spawnParam0 << 16;
     roomX = entity->posX.whole + bg->xPos.whole;
     entity->ext.layerObject.x = roomX;
     roomY += bg->yPos.whole;
@@ -139,7 +139,7 @@ void Object32_UpdateState(struct EwramData_EntityData *entity)
             Object32_SpawnDebris(entity, 5, 1);
             Object32_SpawnDebris(entity, 6, 2);
             Object32_SpawnDebris(entity, 4, 3);
-            if (entity->unk_514.part16.spawnParam1 == 0)
+            if (entity->spawnParam1 == 0)
             {
                 Object32_SpawnDebris(entity, 4, 0);
                 Object32_SpawnDebris(entity, 5, 4);
@@ -166,8 +166,8 @@ void Object32_SpawnDebris(struct EwramData_EntityData *entity, s32 frame, s32 in
     child->posY.whole = entity->posY.whole + 0xC0000;
     child->spriteLayer = entity->spriteLayer + 1;
     gfx = ObjGfx_Find(sObject32Gfx);
-    child->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
-    Sprite_Attach(child, sObject32SpriteSheet, gfx, child->unk_510.part8.basePalette);
+    child->basePalette = entity->basePalette;
+    Sprite_Attach(child, sObject32SpriteSheet, gfx, child->basePalette);
     child->animFrame = frame;
     child->hit.flags |= 4;
     child->hit.flags |= 2;
@@ -227,8 +227,8 @@ u8 Object32_LoadGraphics(struct EwramData_EntityData *entity)
 
     if (gfx < 0)
         return 0;
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sObject32Object34Palette, 1);
-    Sprite_Attach(entity, sObject32SpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sObject32Object34Palette, 1);
+    Sprite_Attach(entity, sObject32SpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }
@@ -247,7 +247,7 @@ void Object33Create(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    if (entity->unk_514.part16.spawnParam0 != 1)
+    if (entity->spawnParam0 != 1)
         script = 0;
     else
         script = 1;
@@ -258,7 +258,7 @@ void Object33Create(struct EwramData_EntityData *entity)
     entity->flipX = 0;
     entity->flipY = 0;
     entity->state = 0;
-    if (entity->unk_514.part16.spawnParam0 == 0)
+    if (entity->spawnParam0 == 0)
         entity->hidden = 1;
 }
 
@@ -279,19 +279,19 @@ void Object33_SpawnFlyingSpark(struct EwramData_EntityData *entity)
     child->posY.whole = entity->posY.whole;
     child->spriteLayer = entity->spriteLayer + 1;
     gfx = ObjGfx_Find(sObject33Gfx);
-    child->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
-    Sprite_Attach(child, sObject33SpriteSheet, gfx, child->unk_510.part8.basePalette);
+    child->basePalette = entity->basePalette;
+    Sprite_Attach(child, sObject33SpriteSheet, gfx, child->basePalette);
     child->animFrame = RandomNumberGenerator() % 4 + 0xB;
     child->hit.flags |= 4;
     child->hit.flags |= 2;
     child->flipX = RandomNumberGenerator() % 2;
     child->flipY = RandomNumberGenerator() % 2;
     child->objMode = 1;
-    if (entity->unk_514.part16.spawnParam0 == 2)
+    if (entity->spawnParam0 == 2)
         child->velX.whole = RandomNumberGenerator() % 0x40000 - 0x20000;
     else
         child->velX.whole = -0x10000 - RandomNumberGenerator() % 0x10000;
-    if (entity->unk_514.part16.spawnParam0 == 0)
+    if (entity->spawnParam0 == 0)
         child->velY.whole = -0x10000 - RandomNumberGenerator() % 0x10000;
     else
         child->velY.whole = -0x20000 - RandomNumberGenerator() % 0x10000;
@@ -317,8 +317,8 @@ void Object33_SpawnFallingSpark(struct EwramData_EntityData *entity)
     child->posY.whole = entity->posY.whole;
     child->spriteLayer = entity->spriteLayer + 1;
     gfx = ObjGfx_Find(sObject33Gfx);
-    child->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
-    Sprite_Attach(child, sObject33SpriteSheet, gfx, child->unk_510.part8.basePalette);
+    child->basePalette = entity->basePalette;
+    Sprite_Attach(child, sObject33SpriteSheet, gfx, child->basePalette);
     child->animFrame = RandomNumberGenerator() % 5 + 6;
     child->hit.flags |= 4;
     child->hit.flags |= 2;
@@ -364,8 +364,8 @@ u8 Object33_LoadGraphics(struct EwramData_EntityData *entity)
 
     if (gfx < 0)
         return 0;
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sObject33Palette, 0);
-    Sprite_Attach(entity, sObject33SpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sObject33Palette, 0);
+    Sprite_Attach(entity, sObject33SpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }
@@ -382,7 +382,7 @@ void Object33_UpdateState(struct EwramData_EntityData *entity)
         return;
     entity->timer = RandomNumberGenerator() % 16 + 0x10;
     Object33_SpawnFlyingSpark(entity);
-    if (entity->unk_514.part16.spawnParam0 != 0)
+    if (entity->spawnParam0 != 0)
         Object33_SpawnFallingSpark(entity);
 }
 
@@ -402,7 +402,7 @@ void Object33FlyingSpark_Update(struct EwramData_EntityData *entity)
 /**
  * @brief 59CE0 | Object 0x34 create (swinging platform): load the graphics
  * (delete the object when that fails), angle unk_4FC = 0x4000, swing
- * acceleration unk_500 = unk_516, start direction by variant, world
+ * acceleration unk_500 = spawnParam1, start direction by variant, world
  * position in unk_4F4/unk_4F8; spawn its three parts.
  */
 void Object34Create(struct EwramData_EntityData *entity)
@@ -422,8 +422,8 @@ void Object34Create(struct EwramData_EntityData *entity)
     entity->spriteLayer = 0x12;
     entity->state = 0;
     entity->ext.object34.angle = 0x4000;
-    entity->ext.object34.accel = entity->unk_514.part16.spawnParam1;
-    if (entity->unk_514.part16.spawnParam0 == 0)
+    entity->ext.object34.accel = entity->spawnParam1;
+    if (entity->spawnParam0 == 0)
     {
         entity->subState = 0;
         entity->ext.object34.speed = 0x100;
@@ -513,8 +513,8 @@ void Object34_SpawnPart(struct EwramData_EntityData *entity, s32 part)
     child->posY.whole = entity->posY.whole;
     child->spriteLayer = entity->spriteLayer + 1;
     gfx = ObjGfx_Find(sObject34Gfx);
-    child->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
-    Sprite_Attach(child, sObject34SpriteSheet, gfx, child->unk_510.part8.basePalette);
+    child->basePalette = entity->basePalette;
+    Sprite_Attach(child, sObject34SpriteSheet, gfx, child->basePalette);
     if (part == 0)
         child->animFrame = 2;
     else if (part == 1)
@@ -632,8 +632,8 @@ u8 Object34_LoadGraphics(struct EwramData_EntityData *entity)
 
     if (gfx < 0)
         return 0;
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sObject32Object34Palette, 2);
-    Sprite_Attach(entity, sObject34SpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sObject32Object34Palette, 2);
+    Sprite_Attach(entity, sObject34SpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }

@@ -18,7 +18,7 @@ void Arachne_SpawnEffect(struct EwramData_EntityData *owner,s32 x,s32 y,s32 anim
         effect->flipX=owner->flipX;
         effect->spriteLayer=owner->spriteLayer;
         graphics=ObjGfx_Find(sArachneGfx);
-        Sprite_Attach(effect,sArachneSpriteSheet,graphics,owner->unk_510.part8.basePalette);
+        Sprite_Attach(effect,sArachneSpriteSheet,graphics,owner->basePalette);
         if(owner->timer!=128) Anim_StartIndexed(effect,animation,0,1);
         else Anim_StartIndexed(effect,animation,0,0);
         effect->timer=lifetime;

@@ -6,7 +6,7 @@
 extern s32 Entity_SetupFromObjectTable(struct EwramData_EntityData *entity, s32 kind);
 
 /**
- * @brief Init of event scene variant 11 (Object 0x20 unk_514 = 11,
+ * @brief Init of event scene variant 11 (Object 0x20 spawnParam0 = 11,
  * sEventSceneCreateFuncs[11]). Create step of a scene object: deleted once
  * stateFlags bit 16 is set; else animation 0 facing like the player,
  * stateFlags bit 0.

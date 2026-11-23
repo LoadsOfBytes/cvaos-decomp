@@ -8,7 +8,7 @@ extern struct EwramData_EntityData *Entity_CreateFromObjectTable(s32 kind);
 extern void EventScene03_Start(struct EwramData_EntityData *entity);
 
 /**
- * @brief Init of event scene variant 3 (Object 0x20 unk_514 = 3,
+ * @brief Init of event scene variant 3 (Object 0x20 spawnParam0 = 3,
  * sEventSceneCreateFuncs[3]). Create step of a scene object: unless flag 0x20 is
  * set (GameFlag_GetMask), create its three helper entities
  * (Entity_CreateFromObjectTable kinds 0, 1 and 8) into

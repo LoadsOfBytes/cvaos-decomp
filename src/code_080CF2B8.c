@@ -28,12 +28,12 @@ s32 Mandragora_CreateTerminalPart(struct EwramData_EntityData *entity)
         ENTITY_PARENT_INDEX(part)=ENTITY_INDEX(entity);
         entity->ext.mandragora.linkIndex=ENTITY_INDEX(part);
         part->spriteLayer=entity->spriteLayer+1;
-        part->unk_510.part8.basePalette=entity->unk_510.part8.basePalette;
+        part->basePalette=entity->basePalette;
         part->flipX=entity->flipX;
         part->posX.whole=entity->posX.whole;
         part->posY.whole=entity->posY.whole;
-        part->unk_518.part16.hp=entity->unk_518.part16.hp;
-        part->unk_510.part16.unk_512=entity->unk_510.part16.unk_512;
+        part->hp=entity->hp;
+        part->mp=entity->mp;
         part->attack=entity->attack;
         part->defense=entity->defense;
         part->scrollWithBg=1;
@@ -41,7 +41,7 @@ s32 Mandragora_CreateTerminalPart(struct EwramData_EntityData *entity)
         part->roomActive=1;
         sprite=sMandragoraSpriteSheet;
         graphics=Sprite_GetTileSlot(entity);
-        Sprite_Attach(part,sprite,graphics,part->unk_510.part8.basePalette);
+        Sprite_Attach(part,sprite,graphics,part->basePalette);
         Anim_StartIndexed(part,4,0,1);
         Anim_Update(part);
         Hit_Enable(part,8,Enemy_OnContact,0);

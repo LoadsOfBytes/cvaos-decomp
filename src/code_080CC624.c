@@ -37,7 +37,7 @@ void EnemyBaelCreate(struct EwramData_EntityData *entity)
     entity->scrollWithBg = 1;
     entity->ext.wheel.speed = 0x8000;
     entity->accelY.whole = 0x4000;
-    if (entity->unk_514.part16.spawnParam0 == 0)
+    if (entity->spawnParam0 == 0)
         entity->state = 1;
     else
         entity->state = 2;

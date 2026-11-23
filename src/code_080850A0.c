@@ -50,8 +50,8 @@ void Headhunter_SpawnLightningBurstFlicker(struct EwramData_EntityData *owner, s
         effect->spriteLayer = owner->spriteLayer - 2;
         graphics = owner->ext.headhunter.graphics;
         effect->ext.headhunterEffect.graphics = graphics;
-        effect->unk_510.part8.basePalette = owner->ext.headhunter.palette3;
-        Sprite_Attach(effect, sHeadhunterSpriteSheet, graphics, effect->unk_510.part8.basePalette);
+        effect->basePalette = owner->ext.headhunter.palette3;
+        Sprite_Attach(effect, sHeadhunterSpriteSheet, graphics, effect->basePalette);
         FRAME(effect) = 0x23;
         effect->attack = owner->attack;
         ENTITY_OWNER(effect) = owner;
@@ -94,8 +94,8 @@ void Headhunter_SpawnWave(struct EwramData_EntityData *owner, s32 x, s32 y, s32 
         wave->spriteLayer = owner->spriteLayer - 1;
         graphics = owner->ext.headhunter.graphics;
         wave->ext.headhunterEffect.graphics = graphics;
-        wave->unk_510.part8.basePalette = owner->ext.headhunter.palette3;
-        Sprite_Attach(wave, sHeadhunterSpriteSheet, graphics, wave->unk_510.part8.basePalette);
+        wave->basePalette = owner->ext.headhunter.palette3;
+        Sprite_Attach(wave, sHeadhunterSpriteSheet, graphics, wave->basePalette);
         FRAME(wave) = 0x26;
         Hit_Enable(wave, 8, HeadhunterWave_DamagePlayerOnContact, 0);
         HitBox_SetAttack(wave, &box);
@@ -177,8 +177,8 @@ void Headhunter_SpawnLightningBolt(struct EwramData_EntityData *owner, s32 x, s3
         bolt->spriteLayer = owner->spriteLayer - 3;
         graphics = owner->ext.headhunter.graphics;
         bolt->ext.headhunterEffect.graphics = graphics;
-        bolt->unk_510.part8.basePalette = owner->ext.headhunter.palette3;
-        Sprite_Attach(bolt, sHeadhunterSpriteSheet, graphics, bolt->unk_510.part8.basePalette);
+        bolt->basePalette = owner->ext.headhunter.palette3;
+        Sprite_Attach(bolt, sHeadhunterSpriteSheet, graphics, bolt->basePalette);
         bolt->ext.headhunterEffect.frame = 0x1A;
         bolt->objMode = 1;
         bolt->attack = owner->attack;
@@ -231,8 +231,8 @@ void Headhunter_SpawnLightningImpact(struct EwramData_EntityData *owner, struct 
         impact->spriteLayer = owner->spriteLayer + 1;
         graphics = owner->ext.headhunter.graphics;
         impact->ext.headhunterEffect.graphics = graphics;
-        impact->unk_510.part8.basePalette = owner->unk_510.part8.basePalette;
-        Sprite_Attach(impact, sHeadhunterSpriteSheet, graphics, impact->unk_510.part8.basePalette);
+        impact->basePalette = owner->basePalette;
+        Sprite_Attach(impact, sHeadhunterSpriteSheet, graphics, impact->basePalette);
         impact->ext.headhunterEffect.frame = 0x1C;
         Hit_Enable(impact, 8, HeadhunterLightningImpact_DamagePlayerOnContact, 0);
         HitBox_SetAttack(impact, &box);
@@ -303,8 +303,8 @@ void Headhunter_SpawnLightningImpactFlicker(struct EwramData_EntityData *owner, 
         effect->spriteLayer = owner->spriteLayer - 1;
         graphics = owner->ext.headhunter.graphics;
         effect->ext.headhunterEffect.graphics = graphics;
-        effect->unk_510.part8.basePalette = owner->unk_510.part8.basePalette;
-        Sprite_Attach(effect, sHeadhunterSpriteSheet, graphics, effect->unk_510.part8.basePalette);
+        effect->basePalette = owner->basePalette;
+        Sprite_Attach(effect, sHeadhunterSpriteSheet, graphics, effect->basePalette);
         effect->ext.headhunterEffect.frame = 0x20;
         effect->attack = owner->attack;
         ENTITY_OWNER(effect) = owner;

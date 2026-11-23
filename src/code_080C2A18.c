@@ -21,7 +21,7 @@ void Ripper_UpdateDeath(struct EwramData_EntityData *entity)
             Enemy_DropRewards(entity);
             Anim_StartIndexed(entity, 2, 0, 1);
             entity->ext.ripper.anim = 2;
-            entity->palette = entity->unk_510.part8.basePalette;
+            entity->palette = entity->basePalette;
             entity->timer = 0x32;
             entity->state = 0xFF;
             entity->velX.whole = 0;

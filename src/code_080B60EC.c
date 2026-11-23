@@ -22,7 +22,7 @@ void BaloreIntroPart_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        Sprite_Attach(entity, (void *)0x08244D4C, BALORE_GFX_BYTE(parent), parent->unk_510.part8.basePalette);
+        Sprite_Attach(entity, (void *)0x08244D4C, BALORE_GFX_BYTE(parent), parent->basePalette);
         Anim_StartIndexed(entity, 3, 2, 0);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         entity->spriteLayer = 0x1A;
@@ -46,7 +46,7 @@ void BaloreIntroPart_Update(struct EwramData_EntityData *entity)
             break;
     cycle:
         {
-            u8 palette = parent->unk_510.part8.basePalette;
+            u8 palette = parent->basePalette;
             u8 value = sUnk_085287D6[(entity->timer >> 1) & 3];
             u8 slot = palette - 10;
             u8 *slots = gEwramData->gameState.sharedObjPaletteVariants;

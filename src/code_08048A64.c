@@ -4,6 +4,7 @@
 #include "menu_page.h"
 #include "code_08011DD0.h"
 #include "code/code_08039340.h"
+#include "menu_entity.h"
 #include "structs/ewram.h"
 
 extern void Shop_DrawListCursor(struct EwramData_EntityData *entity);
@@ -24,8 +25,8 @@ void Shop_DrawCursors(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
         case 0:
-            entity->unk_518.part16.hp = 0x30;
-            entity->unk_518.part16.unk_51A = entity->subState * 24 + 0x28;
+            MENU_CURSOR_X(entity) = 0x30;
+            MENU_CURSOR_Y(entity) = entity->subState * 24 + 0x28;
             Cursor_Draw();
             break;
         case 1:
@@ -56,8 +57,8 @@ void Cursor_SetTilePosition(s32 column, s32 row)
 {
     struct EwramData_EntityData *cursor = &gEwramData->entityData[18];
 
-    cursor->unk_518.part16.hp = column * 8 + 6;
-    cursor->unk_518.part16.unk_51A = row * 8 + 3;
+    MENU_CURSOR_X(cursor) = column * 8 + 6;
+    MENU_CURSOR_Y(cursor) = row * 8 + 3;
 }
 
 /**

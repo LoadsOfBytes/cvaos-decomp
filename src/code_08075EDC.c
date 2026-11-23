@@ -58,8 +58,8 @@ void Harpy_ThrowFeather(struct EwramData_EntityData *owner,s32 kind)
         }
         projectile->ext.harpyFeather.angle=angle;
         EntitySetVelocityFromAngle(projectile,angle,0x30000);
-        projectile->unk_518.part8.spawnIndex=owner->unk_518.part8.spawnIndex;
-        projectile->unk_510.part8.basePalette=owner->unk_510.part8.basePalette;
+        projectile->spawnIndex=owner->spawnIndex;
+        projectile->basePalette=owner->basePalette;
         projectile->attack=owner->attack;
     }
 }

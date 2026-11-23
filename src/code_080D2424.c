@@ -21,7 +21,7 @@ void EnemyGrahamCreate(struct EwramData_EntityData *entity)
         entity->posX.whole=0x780000-camera->xPos.whole;
         entity->posY.whole=0x8F0000-camera->yPos.whole;
     }
-    if(entity->unk_514.part16.spawnParam0==1)
+    if(entity->spawnParam0==1)
     {
         if(!gEwramData->gameState.bestiaryPreview && gEwramData->playerStatus.currentCharacter!=1)
         {

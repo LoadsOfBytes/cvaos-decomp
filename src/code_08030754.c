@@ -83,16 +83,16 @@ void SkillCreakingSkullSegmentUpdate(struct EwramData_EntityData *entity)
         AngleTurnDirection(SKILL_CREAKING_SKULL_SEGMENT_ANGLE(entity), a);
         delta = a - SKILL_CREAKING_SKULL_SEGMENT_ANGLE(entity);
         SKILL_CREAKING_SKULL_SEGMENT_TURN(entity) = delta / (s16)count;
-        entity->unk_514.part16.spawnParam1 = count;
+        entity->spawnParam1 = count;
         entity->state = 3;
     }
     case 3:
     {
         a = angles[SKILL_CREAKING_SKULL_SEGMENT(entity)];
         SKILL_CREAKING_SKULL_SEGMENT_ANGLE(entity) += SKILL_CREAKING_SKULL_SEGMENT_TURN(entity);
-        if (entity->unk_514.part16.spawnParam1 != 0)
+        if (entity->spawnParam1 != 0)
         {
-            entity->unk_514.part16.spawnParam1--;
+            entity->spawnParam1--;
             break;
         }
         SKILL_CREAKING_SKULL_SEGMENT_ANGLE(entity) = a;

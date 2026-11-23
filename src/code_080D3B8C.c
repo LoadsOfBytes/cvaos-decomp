@@ -23,7 +23,7 @@ void GrahamAttacker_Update(struct EwramData_EntityData *entity)
     if (mode == 0xF0) { GrahamAttacker_UpdateDeath(entity); return; }
     if (owner != NULL)
     {
-        if (owner->unk_518.part8.enemyId != entity->unk_518.part8.enemyId)
+        if (owner->enemyId != entity->enemyId)
         { entity->deleteRequested = 1; return; }
         if ((owner->ext.graham.flags & 0x10) && mode <= 0xDF)
             STATE(entity, 0xE0);

@@ -430,13 +430,13 @@ s32 Debug1967_EnemyTest(void)
                 child->flipX = flip;
                 child->scrollWithBg = 1;
 
-                child->unk_514.part16.spawnParam0 = 0;
-                child->unk_514.part16.spawnParam1 = 0;
-                child->unk_518.part8.spawnIndex = 0;
-                child->unk_518.part8.enemyId = (&gEwramData->debugMenuWork)->selection;
+                child->spawnParam0 = 0;
+                child->spawnParam1 = 0;
+                child->spawnIndex = 0;
+                child->enemyId = (&gEwramData->debugMenuWork)->selection;
                 child->drawFunc = (u32 *) Sprite_DrawEntity;
                 enemy = &sEnemyData[(&gEwramData->debugMenuWork)->selection];
-                child->unk_518.part16.hp = enemy->hp;
+                child->hp = enemy->hp;
                 child->updateFunc = (u32 *) enemy->updateFunc;
                 ((void (*)(struct EwramData_EntityData *)) enemy->createFunc)(child);
             }
@@ -756,16 +756,16 @@ void DebugTestEnemy_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16
 
     attackPower = (s16) Player_CalculateAttackPower(hit[2]);
     Hit_ResolveDamage(entity, attacker, hit, attackPower);
-    entity->unk_510.part8.hitFlashTimer = 8;
+    entity->hitFlashTimer = 8;
 
-    entity->unk_518.part16.hp -= attackPower;
-    if ((s16)entity->unk_518.part16.hp <= 0)
+    entity->hp -= attackPower;
+    if ((s16)entity->hp <= 0)
     {
         entity->timer = 0x3C;
         entity->state = 2;
         entity->velY.whole = -0x4000;
         entity->accelY.whole = 0x1000;
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         Anim_SelectScript(entity, 2, 1);
     }
 
@@ -778,18 +778,18 @@ void DebugTestEnemy_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16
  */
 s32 DebugTestEnemy_UpdateHitFlash(struct EwramData_EntityData *entity)
 {
-    if ((s16)entity->unk_518.part16.hp > 0)
+    if ((s16)entity->hp > 0)
     {
-        if (entity->unk_510.part8.hitFlashTimer != 0)
+        if (entity->hitFlashTimer != 0)
         {
-            entity->unk_510.part8.hitFlashTimer -= 1;
-            if (entity->unk_510.part8.hitFlashTimer & 1)
+            entity->hitFlashTimer -= 1;
+            if (entity->hitFlashTimer & 1)
             {
                 entity->palette = 4;
             }
             else
             {
-                entity->palette = entity->unk_510.part8.basePalette;
+                entity->palette = entity->basePalette;
             }
             return 1;
         }
@@ -821,8 +821,8 @@ void DebugTestEnemy_Update(struct EwramData_EntityData *entity)
     {
         case 0:
             gfx = ObjGfx_LoadResource((u8 *)0x081CBF2C, 0);
-            entity->unk_510.part8.basePalette = (u8) ObjPalette_FindOrLoad((void *)0x0820A3FC);
-            Sprite_Attach(entity, (void *)0x0821285C, gfx, (u32) entity->unk_510.part8.basePalette);
+            entity->basePalette = (u8) ObjPalette_FindOrLoad((void *)0x0820A3FC);
+            Sprite_Attach(entity, (void *)0x0821285C, gfx, (u32) entity->basePalette);
             Anim_Start(entity, (struct AnimScript *)(*(s32 *)0x086391C0), 0, 1);
             entity->state = 1;
             entity->scrollWithBg = 1;
@@ -833,7 +833,7 @@ void DebugTestEnemy_Update(struct EwramData_EntityData *entity)
             HitBox_SetAttackRaw(entity, 0x2014E0F6);
 
             entity->drawFunc = (u32 *) Sprite_DrawEntity;
-            entity->unk_518.part16.hp = 0x64;
+            entity->hp = 0x64;
             entity->spriteLayer = 0x12;
             break;
 

@@ -16,13 +16,13 @@ void Chaos2_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
     if (timer <= 255) entity->defense = timer;
     else entity->defense = 255;
     damage = Hit_ResolveDamage(entity, attacker, savedHit, (s16)Player_CalculateAttackPower(hit[2]));
-    entity->unk_510.part8.hitFlashTimer = 8;
-    entity->unk_518.part16.hp = SubtractDamage(entity->unk_518.part16.hp, damage);
+    entity->hitFlashTimer = 8;
+    entity->hp = SubtractDamage(entity->hp, damage);
     Entity_ShowDamage(entity, (s16)damage, 0);
-    if ((s16)entity->unk_518.part16.hp <= 0)
+    if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->timer = 120;
         entity->ext.chaos2.defeatReady = 0;
         entity->state = 3;

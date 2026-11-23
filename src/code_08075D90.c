@@ -23,7 +23,7 @@ void Harpy_SpawnDeathFeather(struct EwramData_EntityData *owner,s32 x,s32 y)
         fragment->accelY.whole=zero;
         fragment->spriteLayer=owner->spriteLayer-1;
         graphics=ObjGfx_Find(sHarpyGfx);
-        Sprite_Attach(fragment,sHarpySpriteSheet,graphics,owner->unk_510.part8.basePalette);
+        Sprite_Attach(fragment,sHarpySpriteSheet,graphics,owner->basePalette);
         fragment->animFrame=8;
         fragment->flipX=RandomNumberGenerator()%2;
         fragment->scrollWithBg=1;

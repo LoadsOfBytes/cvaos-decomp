@@ -27,7 +27,7 @@ s32 Player_GetZoneAroundXCopy(u16 centerX, u16 innerWidth, u16 outerWidth)
 }
 
 /**
- * @brief Init of event scene variant 13 (Object 0x20 unk_514 = 13,
+ * @brief Init of event scene variant 13 (Object 0x20 spawnParam0 = 13,
  * sEventSceneCreateFuncs[13]). Set stateFlags bit 0.
  */
 void EventScene13_Init(void)
@@ -57,7 +57,7 @@ s32 EventScene13_Update(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief Init of event scene variant 14 (Object 0x20 unk_514 = 14,
+ * @brief Init of event scene variant 14 (Object 0x20 spawnParam0 = 14,
  * sEventSceneCreateFuncs[14]). Same as EventScene13_Init.
  */
 void EventScene14_Init(void)
@@ -90,7 +90,7 @@ s32 EventScene14_Update(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief Init of event scene variant 17 (Object 0x20 unk_514 = 17,
+ * @brief Init of event scene variant 17 (Object 0x20 spawnParam0 = 17,
  * sEventSceneCreateFuncs[17]). Nothing.
  */
 void EventScene17_Init(void)
@@ -120,7 +120,7 @@ s32 EventScene17_Update(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief Init of event scene variant 18 (Object 0x20 unk_514 = 18,
+ * @brief Init of event scene variant 18 (Object 0x20 spawnParam0 = 18,
  * sEventSceneCreateFuncs[18]). Same as EventScene13_Init.
  */
 void EventScene18_Init(void)

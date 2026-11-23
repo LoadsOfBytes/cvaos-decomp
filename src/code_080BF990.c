@@ -23,7 +23,7 @@ void EvilButcherDebris_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
         case 0:
-            if (!Entity_LoadGraphics(entity, sEvilButcherGfx, sEvilButcherPalette, entity->unk_514.part16.spawnParam1, sEvilButcherSpriteSheet))
+            if (!Entity_LoadGraphics(entity, sEvilButcherGfx, sEvilButcherPalette, entity->spawnParam1, sEvilButcherSpriteSheet))
                 goto delete;
             slot = ObjAffine_Alloc(1);
             if ((s16)slot < 0)

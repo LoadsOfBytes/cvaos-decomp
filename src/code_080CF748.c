@@ -16,7 +16,7 @@ void Mandragora_UpdateDeath(struct EwramData_EntityData *entity)
     {
         case 0:
             entity->hidden=1;
-            entity->palette=entity->unk_510.part8.basePalette;
+            entity->palette=entity->basePalette;
             Mandragora_SpawnDeathParts(entity);
             entity->subState++;
             if(FLAGS(entity)&2)

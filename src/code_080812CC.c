@@ -46,7 +46,7 @@ void GolemSegment_Update(struct EwramData_EntityData *entity)
 
 
         if (owner == NULL || owner->updateFunc == NULL
-            || owner->unk_518.part8.enemyId != entity->unk_518.part8.enemyId)
+            || owner->enemyId != entity->enemyId)
             goto die;
         parts = owner->ext.golem.parts;
         entity->palette = owner->palette;

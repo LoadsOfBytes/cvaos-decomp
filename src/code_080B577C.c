@@ -12,7 +12,7 @@ extern s32 Target_GetX(struct EwramData_EntityData *);
  * @brief B577C | Hover phase.  State 1 bobs vertically (sine of
  * timer << 8, / 8 per frame), leans 0..8 (unk_4F6) after the horizontal
  * distance to the target (Target_GetX) in 16-pixel steps and sets
- * unk_4FC = 5; at HP (unk_518) <= 1999 it moves on to state 2 (unk_4FC = 7),
+ * unk_4FC = 5; at HP (hp) <= 1999 it moves on to state 2 (unk_4FC = 7),
  * which waits for bit 5 of unk_502, clears it, recentres the lean and
  * switches to state = 3.  State 3 counts timer down and restarts
  * state 1 with unk_4FC = 1 and timer = 0xF0.
@@ -38,7 +38,7 @@ void Balore_UpdateHover(struct EwramData_EntityData *entity)
         else if ((s8)TILT(entity) > 8)
             TILT(entity) = 8;
         entity->ext.balore.handCommand = 5;
-        if ((s16)entity->unk_518.part16.hp <= 1999)
+        if ((s16)entity->hp <= 1999)
             entity->subState = 2;
         break;
     case 2:

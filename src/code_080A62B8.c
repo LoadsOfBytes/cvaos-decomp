@@ -35,7 +35,7 @@ void Chaos2SnakeSegment_Update(struct EwramData_EntityData *seg)
         u8 *trail;
 
         if (head != NULL && head->updateFunc != NULL
-            && head->unk_518.part8.enemyId == seg->unk_518.part8.enemyId)
+            && head->enemyId == seg->enemyId)
         {
         trail = (u8 *)head->ext.chaosSnake.trail;
         seg->hidden = head->hidden;

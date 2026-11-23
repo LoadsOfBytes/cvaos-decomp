@@ -10,7 +10,7 @@
 /**
  * @brief Child of SkillRedMinotaurUse: orbiting hit box (slot 5, box
  * 0x4040E0E0, timer override 60) placed 80 units along the owner angle
- * (unk_510); enabled between owner states 2 and 3, removed with its red
+ * (ENTITY_HALF_510); enabled between owner states 2 and 3, removed with its red
  * soul slot at owner state 4.
  */
 void SkillRedMinotaurHitBoxUpdate(struct EwramData_EntityData *entity)

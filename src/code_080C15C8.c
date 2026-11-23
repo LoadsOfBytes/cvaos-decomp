@@ -48,7 +48,7 @@ void EnemyAltairUpdate(struct EwramData_EntityData *entity)
     if (child->updateFunc == NULL) entity->ext.altair.carried = 0;
     if (entity->state != 2) Enemy_UpdateHitFlash(entity);
     if (Entity_IsTimeStopped(entity) && entity->state != 2) goto hit;
-    if (entity->unk_510.part8.hitFlashTimer != 0 && entity->state != 3 && entity->state != 2)
+    if (entity->hitFlashTimer != 0 && entity->state != 3 && entity->state != 2)
     {
 hit:
         Hit_CheckWithPlayer(box, entity);
@@ -64,7 +64,7 @@ hit:
     if (entity->deleteRequested)
     {
         parent = entity->ext.altair.spawner;
-        if (parent != NULL && parent->updateFunc != NULL && parent->unk_518.part8.enemyId == 0x2C && parent->ext.altair.spawnCount != 0)
+        if (parent != NULL && parent->updateFunc != NULL && parent->enemyId == 0x2C && parent->ext.altair.spawnCount != 0)
             parent->ext.altair.spawnCount--;
     }
 }

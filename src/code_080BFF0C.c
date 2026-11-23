@@ -5,6 +5,6 @@
  */
 void EvilButcherProjectile_OnHit(struct EwramData_EntityData *entity)
 {
-    entity->unk_518.part16.hp = 0;
+    entity->hp = 0;
 }
 

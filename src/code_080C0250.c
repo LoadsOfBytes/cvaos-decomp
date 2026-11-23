@@ -28,7 +28,7 @@ s32 KickerSkeleton_UpdateDeath(struct EwramData_EntityData *entity)
         fragment->accelY.whole = 0x2000;
         fragment->spriteLayer = entity->spriteLayer;
         graphics = ObjGfx_Find(sKickerSkeletonGfx);
-        Sprite_Attach(fragment, sKickerSkeletonSpriteSheet, graphics, entity->unk_510.part8.basePalette);
+        Sprite_Attach(fragment, sKickerSkeletonSpriteSheet, graphics, entity->basePalette);
         fragment->flipX = entity->flipX;
         fragment->drawFunc = (u32 *)Sprite_DrawEntity;
         fragment->scrollWithBg = 1;

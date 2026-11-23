@@ -11,7 +11,7 @@ extern void Door_SetupGraphics(struct EwramData_EntityData *entity);
  * palette = 5, window outside 0x3F / 0x2F; when the player is inside the
  * 0x38 x 0x22 area 0x1C px to its left or bossEventFlags bit 2 is set, set unk_4F8
  * to 0x30, state 10 and clear player input; otherwise mark three tiles
- * above it (Collision_SetBlock), reset unk_4F8 and pick the state from unk_514
+ * above it (Collision_SetBlock), reset unk_4F8 and pick the state from spawnParam0
  * (1: 0x14, 3: 0x63, else 0).
  */
 void Object06Create(struct EwramData_EntityData *entity)
@@ -42,7 +42,7 @@ void Object06Create(struct EwramData_EntityData *entity)
     Collision_SetBlock(x, y - 0x18);
     Collision_SetBlock(x, y - 0x28);
     entity->ext.door.openHeight = flag;
-    switch (entity->unk_514.part16.spawnParam0)
+    switch (entity->spawnParam0)
     {
     case 1:
         entity->state = 0x14;

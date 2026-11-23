@@ -36,7 +36,7 @@ void Belmont_UpdatePoweredPhase(struct EwramData_EntityData *entity)
             entity->subState++;
             entity->stage=state;
             weapon=&gEwramData->entityData[entity->ext.belmontWeapon.index];
-            if(weapon->unk_518.part8.enemyId==entity->unk_518.part8.enemyId && weapon)
+            if(weapon->enemyId==entity->enemyId && weapon)
                 Player_RegisterSolidObject(weapon,sBelmontWeaponSolidCallbacks);
             break;
         case 1:

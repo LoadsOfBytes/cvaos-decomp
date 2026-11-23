@@ -8,12 +8,12 @@
 #define GRAPHICS_CONTEXT ((struct PlayerState *)((u8 *)gEwramData + OFFSET_OF(struct EwramData, playerState)))
 extern u8 sSkillBuerOrbitGfx[], sSkillBuerOrbitPalette[], sSkillBuerOrbitSpriteSheet[];
 
-#define RADIUS(e) (*(s32 *)&(e)->unk_514)
+#define RADIUS(e) (*(s32 *)&(e)->spawnParam0)
 
 /**
  * @brief Child of SkillBuerUse: animated hit sprite (box slot 6, 0x1414F6F6)
- * orbiting the parent at angle unk_510 (step unk_512) and radius
- * parent unk_514, dropping a small rising effect every fourth update.
+ * orbiting the parent at angle ENTITY_HALF_510 (step mp) and radius
+ * parent spawnParam0, dropping a small rising effect every fourth update.
  */
 void SkillBuerOrbitUpdate(struct EwramData_EntityData *entity)
 {

@@ -30,8 +30,8 @@ static inline struct SoulGraphicsResources *GetSet(s32 index)
 /**
  * @brief 269BC | Red Minotaur red soul: an affine axe (graphics set 5,
  * frame 0) at the caster (0 / -0x1A) with the orbiting hit box
- * SkillRedMinotaurHitBoxUpdate; songs 0x1A0 and 0xCF. Angle unk_510 starts at 0x4000 with
- * turn speed unk_512 = -0x800 and acceleration unk_50C = 0x40 (all mirrored
+ * SkillRedMinotaurHitBoxUpdate; songs 0x1A0 and 0xCF. Angle ENTITY_HALF_510 starts at 0x4000 with
+ * turn speed mp = -0x800 and acceleration unk_50C = 0x40 (all mirrored
  * when flipped); the scale unk_508 grows by 0x2000 up to 0x20000, the swing
  * lasts 0x50 frames, then it decelerates by 2 * unk_50C while shrinking.
  */

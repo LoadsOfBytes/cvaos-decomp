@@ -11,7 +11,7 @@ void GhostDancer_UpdateDeath(struct EwramData_EntityData *entity)
     {
         case 0:
             Anim_StartIndexed(entity,2,0,0);
-            entity->palette=entity->unk_510.part8.basePalette;
+            entity->palette=entity->basePalette;
             entity->objMode=1;
             entity->state=3;
             entity->subState++;

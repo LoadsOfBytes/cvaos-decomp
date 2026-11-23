@@ -32,7 +32,7 @@ void Object20Create(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    sEventSceneCreateFuncs[entity->unk_514.part16.spawnParam0](entity);
+    sEventSceneCreateFuncs[entity->spawnParam0](entity);
     if (entity->deleteRequested)
     {
         EntityDelete(entity);
@@ -70,7 +70,7 @@ void Object20Update(struct EwramData_EntityData *entity)
     {
         ewram->gameState.textWindowState = 5;
     }
-    playerInputs = sEventSceneUpdateFuncs[entity->unk_514.part16.spawnParam0](entity);
+    playerInputs = sEventSceneUpdateFuncs[entity->spawnParam0](entity);
     if (gEwramData->gameState.stateFlags & 1)
     {
         SetPlayerInput(1, playerInputs);

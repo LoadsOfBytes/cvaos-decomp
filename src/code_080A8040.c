@@ -25,8 +25,8 @@ void SkyFish_SpawnTrail(struct EwramData_EntityData *parent, s32 x, s32 y, s32 p
         else
             child->velX.whole = -0x20000;
         tiles = ObjGfx_Find(sSkyFishGfx);
-        child->unk_510.part8.basePalette = parent->unk_510.part8.basePalette;
-        Sprite_Attach(child, sSkyFishSpriteSheet, tiles, child->unk_510.part8.basePalette);
+        child->basePalette = parent->basePalette;
+        Sprite_Attach(child, sSkyFishSpriteSheet, tiles, child->basePalette);
         Anim_StartIndexed(child, 1, 0, 0);
         Anim_Update(child);
         child->scrollWithBg = 1;
@@ -52,8 +52,8 @@ void SkyFish_SpawnRisingTrail(struct EwramData_EntityData *parent, s32 x, s32 y,
         child->timer = 0;
         child->ext.particle.flags = param;
         tiles = ObjGfx_Find(sSkyFishGfx);
-        child->unk_510.part8.basePalette = parent->unk_510.part8.basePalette;
-        Sprite_Attach(child, sSkyFishSpriteSheet, tiles, child->unk_510.part8.basePalette);
+        child->basePalette = parent->basePalette;
+        Sprite_Attach(child, sSkyFishSpriteSheet, tiles, child->basePalette);
         Anim_StartIndexed(child, 1, 0, 0);
         Anim_Update(child);
         child->scrollWithBg = 1;

@@ -48,7 +48,7 @@ static inline s32 FixedMul(s32 a, s32 b)
  * @brief 2CFC4 | Slime red soul: a bouncing blob (graphics set 33, animation
  * 0, layer 0xD) from the caster (0xC / -0x1A) with a SkillSlimeTrailUpdate trail,
  * box 0x0808FCFC in slot 5 (disabled), half size 4 x 4 (accelX.part16.integer / accelY.part16.integer),
- * Hit_SetTimerOverride(1, 15). Moves at speed unk_518 = 3 px along angle unk_510
+ * Hit_SetTimerOverride(1, 15). Moves at speed hp = 3 px along angle ENTITY_HALF_510
  * (0x1000 + random, mirrored) bouncing with SkillSlimeMoveAndBounce for 256 frames,
  * switching to animation 1 when 32 frames remain.
  */

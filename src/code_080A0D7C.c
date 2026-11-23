@@ -7,21 +7,21 @@ extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 
 /**
  * @brief A0D7C | Hit callback: flash (hitFlashTimer = 8), subtract damage from
- * the HP in unk_518 and Link_MarkEnemyDamaged; at 0 HP play song 0x71, release the
+ * the HP in hp and Link_MarkEnemyDamaged; at 0 HP play song 0x71, release the
  * hit box (Enemy_DropRewards) and enter the death state 1 (timer 0x3C, palette
- * from unk_510, gravity 0x1000).
+ * from basePalette, gravity 0x1000).
  */
 void Gladiator_OnDamaged(struct EwramData_EntityData *entity, s32 unused1, s32 unused2, s32 damage)
 {
-    entity->unk_510.part8.hitFlashTimer = 8;
-    entity->unk_518.part16.hp -= damage;
+    entity->hitFlashTimer = 8;
+    entity->hp -= damage;
     Link_MarkEnemyDamaged();
-    if ((s16)entity->unk_518.part16.hp <= 0)
+    if ((s16)entity->hp <= 0)
     {
         PlaySong(0x71);
         Enemy_DropRewards(entity);
         entity->ext.gladiator.flinch = 1;
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->timer = 0x3C;
         entity->state = 1;
         entity->subState = 0;

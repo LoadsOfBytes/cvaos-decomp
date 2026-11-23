@@ -36,7 +36,7 @@ extern void Shop_Open(void);
 /* End this entity unless event flag 0x4000 is set; otherwise advance the
  * event flags and play song 0x1000. */
 /**
- * @brief Init of event scene variant 24 (Object 0x20 unk_514 = 24,
+ * @brief Init of event scene variant 24 (Object 0x20 spawnParam0 = 24,
  * sEventSceneCreateFuncs[24]).
  */
 void EventScene24_Init(struct EwramData_EntityData *entity)
@@ -129,7 +129,7 @@ void EventScene30Effect_UpdateSpinningKeepSlot(struct EwramData_EntityData *enti
 /* Event actor: skip when flag 0x2E is already set. Otherwise load its
  * graphics and position it relative to the background and player. */
 /**
- * @brief Init of event scene variant 25 (Object 0x20 unk_514 = 25,
+ * @brief Init of event scene variant 25 (Object 0x20 spawnParam0 = 25,
  * sEventSceneCreateFuncs[25]).
  */
 void EventScene25_Init(struct EwramData_EntityData *entity)
@@ -289,7 +289,7 @@ void EventScene26_DrawOffsetCopies(struct EwramData_EntityData *entity)
 
 /* Create the actor and its companion effect once both event flags exist. */
 /**
- * @brief Init of event scene variant 26 (Object 0x20 unk_514 = 26,
+ * @brief Init of event scene variant 26 (Object 0x20 spawnParam0 = 26,
  * sEventSceneCreateFuncs[26]).
  */
 void EventScene26_Init(struct EwramData_EntityData *entity)
@@ -446,7 +446,7 @@ s32 Player_IsInteractionBlocked(void)
 
 /* Load actor entry 0 after event flag 0x20, one layer above the player. */
 /**
- * @brief Init of event scene variant 27 (Object 0x20 unk_514 = 27,
+ * @brief Init of event scene variant 27 (Object 0x20 spawnParam0 = 27,
  * sEventSceneCreateFuncs[27]).
  */
 void EventScene27_Init(struct EwramData_EntityData *entity)

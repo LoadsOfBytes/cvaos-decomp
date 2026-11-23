@@ -25,7 +25,7 @@ void EnemyPersephoneUpdate(struct EwramData_EntityData *entity)
     else entity->hidden = 0;
     if (entity->state != 2) Enemy_UpdateHitFlash(entity);
     if (Entity_IsTimeStopped(entity) && entity->state != 2) goto collision_only;
-    if (entity->unk_510.part8.hitFlashTimer && entity->state != 3 && entity->state != 2)
+    if (entity->hitFlashTimer && entity->state != 3 && entity->state != 2)
     {
 collision_only:
         Hit_CheckWithPlayer(collision, entity);

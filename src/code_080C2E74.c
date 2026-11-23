@@ -24,9 +24,9 @@ u8 GhostDancer_LoadGraphics(struct EwramData_EntityData *entity)
         slot=ObjGfx_LoadResource(graphics,0);
         if(slot<0) goto fail;
     }
-    entity->unk_510.part8.basePalette=ObjPalette_FindOrLoadVariant(palette,(u8)entity->unk_514.part16.spawnParam0);
-    if(entity->unk_510.part8.basePalette==255) goto fail;
-    if(!Sprite_Attach(entity,animation,slot,entity->unk_510.part8.basePalette)) goto fail;
+    entity->basePalette=ObjPalette_FindOrLoadVariant(palette,(u8)entity->spawnParam0);
+    if(entity->basePalette==255) goto fail;
+    if(!Sprite_Attach(entity,animation,slot,entity->basePalette)) goto fail;
     if(!Anim_StartIndexed(entity,0,0,1)) goto fail;
     Anim_Update(entity);
     entity->drawFunc=(u32 *)Sprite_DrawEntity;

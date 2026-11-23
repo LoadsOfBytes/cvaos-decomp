@@ -72,7 +72,7 @@ void ManEaterHead_Update(struct EwramData_EntityData *entity)
             EntityDelete(entity);
             return;
         }
-        entity->unk_518.part8.enemyId = parent->unk_518.part8.enemyId;
+        entity->enemyId = parent->enemyId;
         Enemy_ResetFromTemplate(entity);
         entity->spriteLayer = 0x12;
         Hit_Enable(entity, 8, Enemy_OnContact, (s32)ManEaterPart_OnHit);

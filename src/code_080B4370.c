@@ -16,7 +16,7 @@ void BalorePart_Update(struct EwramData_EntityData *entity)
     {
     case 0:
         entity->flipX = 1;
-        Sprite_Attach(entity, sBaloreSpriteSheet, (s8)owner->ext.balore.gfx, owner->unk_510.part8.basePalette);
+        Sprite_Attach(entity, sBaloreSpriteSheet, (s8)owner->ext.balore.gfx, owner->basePalette);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         entity->spriteLayer = 0x1C;
         entity->ext.balorePart.anim = 0x1B;

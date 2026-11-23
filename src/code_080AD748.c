@@ -15,19 +15,19 @@ void Worm_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData
     struct EwramData_EntityData *parent = ENTITY_OWNER(entity);
     s32 damage = Player_CalculateAttackPower(hit[2]);
     damage = Hit_ResolveDamage(entity, (s32)attacker, hit, (s16)damage);
-    parent->unk_510.part8.hitFlashTimer = 8;
+    parent->hitFlashTimer = 8;
     {
-        u16 hp = parent->unk_518.part16.hp;
+        u16 hp = parent->hp;
         damage <<= 16;
         damage >>= 16;
-        parent->unk_518.part16.hp = hp - damage;
+        parent->hp = hp - damage;
     }
     Entity_ShowDamage(entity, damage, 0);
-    if ((s16)parent->unk_518.part16.hp <= 0)
+    if ((s16)parent->hp <= 0)
     {
         Enemy_DropRewards(parent);
         PlaySong(0x70);
-        parent->palette = parent->unk_510.part8.basePalette;
+        parent->palette = parent->basePalette;
         parent->state = 3;
         parent->timer = 0x40;
         parent->velX.whole = -0x8000;

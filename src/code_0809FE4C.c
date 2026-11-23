@@ -31,14 +31,14 @@ void LegionDestructibleFragment_DamagePlayerOnContact(struct EwramData_EntityDat
 /**
  * @brief 9FE78 | Follow the parent (unk_4F4) at offset (unk_4F8, unk_4FC)
  * with its visibility; delete when the parent is gone or changed type
- * (unk_51A).
+ * (enemyId).
  */
 void LegionCoreDetail_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *core = entity->ext.legionPart.owner;
 
     if (core != NULL && core->updateFunc != NULL
-        && core->unk_518.part8.enemyId == entity->unk_518.part8.enemyId)
+        && core->enemyId == entity->enemyId)
     {
         entity->hidden = core->hidden;
         entity->posX.whole = core->posX.whole + entity->ext.legionPart.offsetX;

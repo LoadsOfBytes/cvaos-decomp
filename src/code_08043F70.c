@@ -41,8 +41,8 @@ struct EwramData_EntityData *Pickup_CreateGold(s32 x, s32 y, s32 index)
         entity->posX.part16.integer = x;
         entity->posY.part16.integer = y;
         entity->scrollWithBg = 1;
-        entity->unk_518.part8.enemyId = 1;
-        entity->unk_514.part16.spawnParam1 = index;
+        entity->enemyId = 1;
+        entity->spawnParam1 = index;
     }
     return entity;
 }

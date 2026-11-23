@@ -45,8 +45,8 @@ struct EwramData_EntityData *SoulPickup_Create(s32 x, s32 y, s32 palette, s32 so
         {
             entity->state = 0x63;
         }
-        entity->unk_518.part8.enemyId = palette + 5;
-        entity->unk_514.part16.spawnParam1 = soulId;
+        entity->enemyId = palette + 5;
+        entity->spawnParam1 = soulId;
         entity->timer = 200;
     }
     return entity;

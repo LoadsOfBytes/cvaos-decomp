@@ -158,7 +158,7 @@ void SkillAlastorUse(struct EwramData_EntityData *entity)
         target = SKILL_ALASTOR_TARGET(entity);
         timer = entity->timer - 1;
         entity->timer = timer;
-        if ((s16)target->unk_518.part16.hp > 0 && (u8)timer != 0)
+        if ((s16)target->hp > 0 && (u8)timer != 0)
         {
             dist = Entity_StepTowardPoint(entity, target->posX.whole, target->posY.whole + SKILL_ALASTOR_AIM_Y(entity), 5);
             SKILL_ALASTOR_ANGLE(entity) = entity->velX.whole / 64 + SKILL_ALASTOR_ANGLE(entity) + SKILL_ALASTOR_SPIN(entity) * 4;

@@ -20,10 +20,10 @@ extern s32 Entity_AimVelocityAtPoint(struct EwramData_EntityData *, s32, s32, s3
 extern void EntityMove(struct EwramData_EntityData *);
 
 /* the field is typed as a pointer in the shared union */
-#define SPEED(e) (*(s32 *)&(e)->unk_514)
+#define SPEED(e) (*(s32 *)&(e)->spawnParam0)
 
 /**
- * @brief B4640 | Step the speed unk_514 and the value unk_4F4 towards the
+ * @brief B4640 | Step the speed spawnParam0 and the value unk_4F4 towards the
  * targets of @p p (clamped, never overshooting), turn the angle unk_500 by
  * turnStep towards targetAngle and aim the velocity at the point
  * (unk_508 + offsetX, unk_50A + offsetY); offsetX and targetAngle are

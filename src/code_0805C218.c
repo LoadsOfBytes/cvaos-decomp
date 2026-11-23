@@ -119,7 +119,7 @@ s32 EventScene31_StepPaletteAnim(struct EwramData_EntityData *entity)
     if (entity->ext.event31.paletteTick++ > anim->duration)
     {
         entity->ext.event31.paletteTick = 0;
-        ObjPalette_LoadRange(anim->palette, anim->sourcePalette, 1, entity->unk_510.part8.basePalette);
+        ObjPalette_LoadRange(anim->palette, anim->sourcePalette, 1, entity->basePalette);
         if (++entity->ext.event31.paletteStep > 3)
         {
             entity->ext.event31.paletteStep = 0;

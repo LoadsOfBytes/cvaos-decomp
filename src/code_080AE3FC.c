@@ -10,21 +10,21 @@ void Dryad_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDat
 {
     s32 damage = Player_CalculateAttackPower(hit[2]);
     damage = Hit_ResolveDamage(entity, (s32)attacker, hit, (s16)damage);
-    entity->unk_510.part8.hitFlashTimer = 8;
+    entity->hitFlashTimer = 8;
     {
-        u16 hp = entity->unk_518.part16.hp;
+        u16 hp = entity->hp;
         damage <<= 16;
         damage >>= 16;
-        entity->unk_518.part16.hp = hp - damage;
+        entity->hp = hp - damage;
     }
     Entity_ShowDamage(entity, damage, 0);
-    if ((s16)entity->unk_518.part16.hp <= 0)
+    if ((s16)entity->hp <= 0)
     {
         if (entity->state == 1 && entity->subState != 0) Anim_StartIndexed(entity, 5, 0, 0);
         else Anim_StartIndexed(entity, 4, 0, 0);
         Enemy_DropRewards(entity);
-        if (entity->unk_514.part16.spawnParam0 != 0) gEwramData->gameState.bossEventFlags |= 1;
-        entity->palette = entity->unk_510.part8.basePalette;
+        if (entity->spawnParam0 != 0) gEwramData->gameState.bossEventFlags |= 1;
+        entity->palette = entity->basePalette;
         entity->timer = 0x28;
         entity->state = 3;
         entity->subState = 0;

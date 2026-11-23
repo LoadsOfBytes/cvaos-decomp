@@ -18,7 +18,7 @@ void Object09Debris_Update(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        struct DebrisKind *kind = &sBreakableBlockVariants[entity->unk_514.part16.spawnParam0];
+        struct DebrisKind *kind = &sBreakableBlockVariants[entity->spawnParam0];
         struct DebrisGraphics *graphics = &sBreakableBlockGraphics[kind->graphicsIndex];
         if (!Entity_LoadGraphics(entity, graphics->graphics, graphics->palette, kind->palette, graphics->sprite))
         {

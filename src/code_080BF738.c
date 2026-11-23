@@ -21,7 +21,7 @@ void EvilButcherProjectile_Update(struct EwramData_EntityData *entity)
     struct HitResult res;
     u16 slot;
 
-    if (entity->state != 0 && (s16)entity->unk_518.part16.hp != 0 && Entity_IsTimeStopped(entity))
+    if (entity->state != 0 && (s16)entity->hp != 0 && Entity_IsTimeStopped(entity))
     {
         Hit_CheckWithPlayer(&res, (u8 *)entity);
         return;
@@ -29,7 +29,7 @@ void EvilButcherProjectile_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if (!Entity_LoadGraphics(entity, (void *)0x082052D0, (void *)0x0820C27C, (u8)entity->unk_514.part16.spawnParam1, (void *)0x08256720))
+        if (!Entity_LoadGraphics(entity, (void *)0x082052D0, (void *)0x0820C27C, (u8)entity->spawnParam1, (void *)0x08256720))
             goto delete;
         entity->animFrame = 8;
         entity->spriteLayer = 0x13;
@@ -50,7 +50,7 @@ void EvilButcherProjectile_Update(struct EwramData_EntityData *entity)
     }
         PlaySong(0x89);
         entity->state = 1;
-        entity->unk_518.part16.hp = 1;
+        entity->hp = 1;
         Hit_Enable(entity, 10, Enemy_OnContactMask1, (s32)EvilButcherProjectile_OnHit);
         HitBox_SetAttackRaw(entity, 0x0810FCF8);
         HitBox_SetBodyRaw(entity, 0x0810FCF8);
@@ -60,7 +60,7 @@ void EvilButcherProjectile_Update(struct EwramData_EntityData *entity)
         Hit_CheckWithPlayer(&res, (u8 *)entity);
         if (EntityIsOutsideScreen(entity, 3))
             entity->state = 3;
-        if ((s16)entity->unk_518.part16.hp == 0)
+        if ((s16)entity->hp == 0)
         {
             entity->state = 3;
             Effect_SpawnRandom(entity->posX.whole, entity->posY.whole, 0x40000, 0x40000, entity->spriteLayer);
@@ -80,7 +80,7 @@ void EvilButcherProjectile_Update(struct EwramData_EntityData *entity)
             return;
         }
         PlaySong(0x13A);
-        entity->unk_518.part16.hp = 0;
+        entity->hp = 0;
         entity->affineIndex = slot;
         entity->affine = 1;
         entity->velX.whole = -(entity->velX.whole / 2 + (RandomNumberGenerator() & 0x7FFF));

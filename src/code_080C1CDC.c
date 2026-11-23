@@ -107,9 +107,9 @@ u8 AltairFeather_LoadGraphics(struct EwramData_EntityData *entity)
 
     if (tileSlot >= 0)
     {
-        entity->unk_510.part8.basePalette = ObjPalette_FindOrLoad(palette);
-        if (entity->unk_510.part8.basePalette != 0xFF
-            && Sprite_Attach(entity, sprite, tileSlot, entity->unk_510.part8.basePalette))
+        entity->basePalette = ObjPalette_FindOrLoad(palette);
+        if (entity->basePalette != 0xFF
+            && Sprite_Attach(entity, sprite, tileSlot, entity->basePalette))
         {
             entity->animFrame = 9;
             entity->drawFunc = (u32 *)Sprite_DrawEntity;
@@ -133,8 +133,8 @@ void AltairFeather_SetPhase(struct EwramData_EntityData *entity, u8 phase)
 
 /**
  * @brief C1E0C | Fleaman create: load the graphics, layer 0x14, state 1,
- * hit boxes; state 3 when bestiaryPreview is set. unk_4F8 = 1 when unk_514 and
- * unk_516 both have all low bits set (then no Entity_SnapToGround), collision
+ * hit boxes; state 3 when bestiaryPreview is set. unk_4F8 = 1 when spawnParam0 and
+ * spawnParam1 both have all low bits set (then no Entity_SnapToGround), collision
  * callbacks Fleaman_DamagePlayerOnContact / Fleaman_OnHit.
  */
 void EnemyFleamanCreate(struct EwramData_EntityData *entity)
@@ -153,7 +153,7 @@ void EnemyFleamanCreate(struct EwramData_EntityData *entity)
         entity->subState = 0;
         return;
     }
-    if ((entity->unk_514.part16.spawnParam0 & entity->unk_514.part16.spawnParam1) == 0xFF)
+    if ((entity->spawnParam0 & entity->spawnParam1) == 0xFF)
         entity->ext.fleaman.airborne = 1;
     else
         entity->ext.fleaman.airborne = 0;
@@ -184,8 +184,8 @@ u8 Fleaman_LoadGraphics(struct EwramData_EntityData *entity)
     paletteIndex = (s8)ObjPalette_FindOrLoad(palette);
     if (paletteIndex == -1)
         goto fail;
-    entity->unk_510.part8.basePalette = paletteIndex;
-    if (!Sprite_Attach(entity, sprite, gfx, entity->unk_510.part8.basePalette))
+    entity->basePalette = paletteIndex;
+    if (!Sprite_Attach(entity, sprite, gfx, entity->basePalette))
         goto fail;
     if (!Anim_StartIndexed(entity, 0, 0, 1))
     {

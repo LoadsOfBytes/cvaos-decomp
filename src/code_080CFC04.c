@@ -39,10 +39,10 @@ void Belmont_CreateSceneObject(struct EwramData_EntityData *entity,s32 index)
                 facing=1;
             object->flipX=facing;
             object->scrollWithBg=1;
-            object->unk_514.part16.spawnParam0=info->param1;
-            object->unk_514.part16.spawnParam1=info->param2;
-            object->unk_518.part8.spawnIndex=info->event;
-            object->unk_518.part8.enemyId=info->kind;
+            object->spawnParam0=info->param1;
+            object->spawnParam1=info->param2;
+            object->spawnIndex=info->event;
+            object->enemyId=info->kind;
             object->drawFunc=(u32 *)Sprite_DrawEntity;
             object->updateFunc=(u32 *)Object20Update;
             Object20Create(object);

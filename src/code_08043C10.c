@@ -1,7 +1,7 @@
 /* Spawn a pickup-like object at (x, y): graphics 081C15F4 / 0820ED60
  * (palette 7), touch callback Pickup_Collect, box 0x0808FCFC passed by value
- * (x -4, y -4, w 8, h 8); large (frame 0x27, unk_516 15, update
- * Pickup_Update) or small (frame 0x28, unk_516 3); optionally thrown up. */
+ * (x -4, y -4, w 8, h 8); large (frame 0x27, spawnParam1 15, update
+ * Pickup_Update) or small (frame 0x28, spawnParam1 3); optionally thrown up. */
 #include "code_08009A0.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -31,17 +31,17 @@ struct EwramData_EntityData *Pickup_CreateMana(s32 x, s32 y, s32 large, s32 jump
         entity->posX.part16.integer = x;
         entity->posY.part16.integer = y;
         entity->scrollWithBg = 1;
-        entity->unk_518.part8.enemyId = 0;
+        entity->enemyId = 0;
         if (large)
         {
             entity->animFrame = 0x27;
-            entity->unk_514.part16.spawnParam1 = 0xF;
+            entity->spawnParam1 = 0xF;
             entity->updateFunc = (u32 *)Pickup_Update;
         }
         else
         {
             entity->animFrame = 0x28;
-            entity->unk_514.part16.spawnParam1 = 3;
+            entity->spawnParam1 = 3;
         }
         if (jump)
             entity->velY.whole = -0x20000;

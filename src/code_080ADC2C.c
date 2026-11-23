@@ -32,7 +32,7 @@ void WormSegment_Update(struct EwramData_EntityData *entity)
     entity->palette = owner->palette;
     if (entity->state != 0 && owner->state != 3)
     {
-        if (owner->unk_510.part8.hitFlashTimer != 0 || Entity_IsTimeStopped(owner) != 0)
+        if (owner->hitFlashTimer != 0 || Entity_IsTimeStopped(owner) != 0)
         {
             if (owner->state == 3)
                 return;
@@ -49,9 +49,9 @@ void WormSegment_Update(struct EwramData_EntityData *entity)
             goto delete;
         {
             s32 tiles = ObjGfx_LoadResource(sWormGfx, 0);
-            Sprite_Attach(entity, sWormSpriteSheet, tiles, owner->unk_510.part8.basePalette);
+            Sprite_Attach(entity, sWormSpriteSheet, tiles, owner->basePalette);
         }
-        entity->unk_510.part8.basePalette = owner->unk_510.part8.basePalette;
+        entity->basePalette = owner->basePalette;
         entity->flipX = owner->flipX;
         if (entity->ext.worm.segmentIndex != 4)
             Anim_StartIndexed(entity, 1, 0, 1);

@@ -20,7 +20,7 @@ void EnemyManEaterCreate(struct EwramData_EntityData *entity)
     u16 affine;
     s32 index;
     struct EwramData_EntityData *child;
-    if (entity->unk_514.part16.spawnParam0 != 0 && gEwramData->gameState.bossRushMode == 0 && (gEwramData->gameState.bossEventFlags & 0x2000)) goto remove;
+    if (entity->spawnParam0 != 0 && gEwramData->gameState.bossRushMode == 0 && (gEwramData->gameState.bossEventFlags & 0x2000)) goto remove;
     if (!Entity_LoadGraphics(entity, sManEaterGfx, sManEaterPalette, 0, sManEaterSpriteSheet)) goto remove;
     affine = ObjAffine_Alloc(1);
     if ((s16)affine < 0)
@@ -48,7 +48,7 @@ remove:
         }
     }
     if (gEwramData->gameState.bestiaryPreview) entity->state = 4;
-    else if (entity->unk_514.part16.spawnParam0 != 0)
+    else if (entity->spawnParam0 != 0)
     {
         Music_SetCurrent(0x10);
         Player_SetSelectedTarget(entity);

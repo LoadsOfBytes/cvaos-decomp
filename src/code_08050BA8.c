@@ -11,7 +11,7 @@ void Object0E_Draw(struct EwramData_EntityData *entity)
 {
     struct AlternateFrameInfo *info;
     if (entity->hidden) return;
-    info = &sObject0EVariants[entity->unk_514.part16.spawnParam0];
+    info = &sObject0EVariants[entity->spawnParam0];
     Anim_Update(entity);
     entity->posY.part16.integer++;
     Sprite_Draw(entity);

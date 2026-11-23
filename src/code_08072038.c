@@ -33,8 +33,8 @@ void Mudman_ThrowShot(struct EwramData_EntityData *parent)
         projectile->velY.whole = -0x10000;
         projectile->accelX.whole = 0;
         projectile->accelY.whole = 0x1800;
-        projectile->unk_518.part8.spawnIndex = parent->unk_518.part8.spawnIndex;
-        projectile->unk_510.part8.basePalette = parent->unk_510.part8.basePalette;
+        projectile->spawnIndex = parent->spawnIndex;
+        projectile->basePalette = parent->basePalette;
         projectile->attack = parent->attack;
     }
 }

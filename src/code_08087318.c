@@ -30,7 +30,7 @@ void TritonSpear_Update(struct EwramData_EntityData *spear)
 
     memcpy(offsets, sTritonSpearOffsets, sizeof(offsets));
     if (!owner) return;
-    if (!owner->updateFunc || owner->unk_518.part8.enemyId != 0x43) goto fail;
+    if (!owner->updateFunc || owner->enemyId != 0x43) goto fail;
     if (spear->state == 0 && owner->state == 2)
     {
         spear->state = 1;

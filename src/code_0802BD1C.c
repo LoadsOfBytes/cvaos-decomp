@@ -46,7 +46,7 @@ static inline void SetFrameBox(struct EwramData_EntityData *entity)
 /**
  * @brief 2BD1C | Fireball of Flame Demon / Demon Lord (spawned by
  * SkillDemonLordUse): affine sprite (graphics set 28, frame 9, layer 0xD)
- * with the current frame's hit box in slot 5, spinning by unk_512 = 0x234
+ * with the current frame's hit box in slot 5, spinning by mp = 0x234
  * (mirrored) while moving; every 8th frame it drops a Effect_SpawnShared flame
  * within +-8 / +-2 px with accelY -0x1000. Ends off screen.
  */

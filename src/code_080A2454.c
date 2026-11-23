@@ -29,19 +29,19 @@ void Chaos_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
     s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
 
-    entity->unk_510.part8.hitFlashTimer = 8;
+    entity->hitFlashTimer = 8;
     {
-        u16 hp = entity->unk_518.part16.hp;
+        u16 hp = entity->hp;
 
         damage <<= 16;
         damage >>= 16;
-        entity->unk_518.part16.hp = hp - damage;
+        entity->hp = hp - damage;
     }
     Entity_ShowDamage(entity, damage, 0);
-    if ((s16)entity->unk_518.part16.hp <= 0)
+    if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->timer = 60;
         entity->state = 3;
         entity->subState = 0;
@@ -58,7 +58,7 @@ void ChaosBackground_Update(struct EwramData_EntityData *entity)
     struct ChaosData *data = (struct ChaosData *)core->ext.chaos.data.value;
 
     if (core == NULL || core->updateFunc == NULL
-        || core->unk_518.part8.enemyId != entity->unk_518.part8.enemyId)
+        || core->enemyId != entity->enemyId)
         return;
     src.texX = 0x8000;
     src.texY = 0x8000;

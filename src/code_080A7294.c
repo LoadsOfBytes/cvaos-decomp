@@ -65,9 +65,9 @@ void Tsuchinoko_UpdateJump(struct EwramData_EntityData *entity)
                 else
                 {
                     if ((RandomNumberGenerator() & 0x7F) < 16 ||
-                        ((s16)entity->ext.tsuchinoko.maxHp / 2 >= (s16)entity->unk_518.part16.hp && (RandomNumberGenerator() & 0x7F) < 32))
+                        ((s16)entity->ext.tsuchinoko.maxHp / 2 >= (s16)entity->hp && (RandomNumberGenerator() & 0x7F) < 32))
                         goto ranged;
-                    if ((s16)entity->ext.tsuchinoko.maxHp / 4 >= (s16)entity->unk_518.part16.hp)
+                    if ((s16)entity->ext.tsuchinoko.maxHp / 4 >= (s16)entity->hp)
                     {
                         s32 random = RandomNumberGenerator();
                         u32 roll = 127;

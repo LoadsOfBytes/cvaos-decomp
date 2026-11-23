@@ -41,7 +41,7 @@ void Triton_SpawnHomingShot(struct EwramData_EntityData *owner, s32 x, s32 y)
         SHOT_MAX_SPEED(shot) = 0xC000;
         shot->spriteLayer = owner->spriteLayer - 1;
         graphics = ObjGfx_Find(sTritonGfx);
-        shot->unk_510.part8.basePalette = 7;
+        shot->basePalette = 7;
         Sprite_Attach(shot, sTritonSpriteSheet, graphics, 7);
         Anim_StartIndexed(shot, 7, 0, 0);
         Anim_Update(shot);

@@ -15,10 +15,10 @@ extern void BreakableBlock_ClearCollision(struct EwramData_EntityData *entity);
 extern u8 sCommonObjectGfx[];
 
 /**
- * @brief 5008C | Breakable object (unk_516 = flag index): while
+ * @brief 5008C | Breakable object (spawnParam1 = flag index): while
  * Player_TestSoulStateFlags holds it sheds dust Effect_SpawnShared every 16th frame; when hit
  * (contact bits 0x1A) a debris object BreakableBlock_SpawnDust appears, each hit costs
- * one of unk_518 (song 0xD3); the last one breaks it (Debris_SpawnBurst, song
+ * one of hp (song 0xD3); the last one breaks it (Debris_SpawnBurst, song
  * 0xAB, BreakableBlock_ClearCollision), sets its flag in gameFlagsTail, updates the map
  * (GameFlag_FindRoomCoordinate / GameFlag_Set) and finishes it.
  */
@@ -30,7 +30,7 @@ void Object08Update(struct EwramData_EntityData *entity)
     u16 x, y;
     struct EwramData_EntityData *dust;
 
-    if (entity->unk_514.part16.spawnParam1 == 0)
+    if (entity->spawnParam1 == 0)
         return;
     if (Player_TestSoulStateFlags(0x1000000))
     {
@@ -57,16 +57,16 @@ void Object08Update(struct EwramData_EntityData *entity)
         child->posY.part16.integer = entity->posY.part16.integer;
         child->scrollWithBg = 1;
     }
-    if ((s16)entity->unk_518.part16.hp != 0)
+    if ((s16)entity->hp != 0)
     {
         PlaySong(0xD3);
-        entity->unk_518.part16.hp--;
+        entity->hp--;
         return;
     }
     Debris_SpawnBurst(entity, 0);
     PlaySong(0xAB);
     BreakableBlock_ClearCollision(entity);
-    gEwramData->gameState.gameFlagsTail[entity->unk_514.part16.spawnParam1 >> 5] |= 1 << (entity->unk_514.part16.spawnParam1 & 0x1F);
+    gEwramData->gameState.gameFlagsTail[entity->spawnParam1 >> 5] |= 1 << (entity->spawnParam1 & 0x1F);
     x = GetEntityRoomXPositionInteger(entity);
     y = GetEntityRoomYPositionInteger(entity);
     r = GameFlag_FindRoomCoordinate((s16)x, (s16)y, (u8)entity->ext.object08.kind);

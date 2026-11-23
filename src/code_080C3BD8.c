@@ -34,11 +34,11 @@ void SkeletonProjectile_Update(struct EwramData_EntityData *entity)
     {
     case 0:
         entity->scrollWithBg = 1;
-        entity->unk_510.part8.basePalette = parent->unk_510.part8.basePalette;
-        Sprite_Attach(entity, sSkeletonSpriteSheet, state = Sprite_GetTileSlot(parent), entity->unk_510.part8.basePalette);
+        entity->basePalette = parent->basePalette;
+        Sprite_Attach(entity, sSkeletonSpriteSheet, state = Sprite_GetTileSlot(parent), entity->basePalette);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
-        entity->unk_518.part16.hp = 1;
-        entity->unk_510.part16.unk_512 = 1;
+        entity->hp = 1;
+        entity->mp = 1;
         entity->affineIndex = parent->ext.skeleton.affine;
         Hit_Enable(entity, 0xA, SkeletonProjectile_DamagePlayerOnContact, (s32)SkeletonProjectile_OnHit);
         HitBox_SetBodyRaw(entity, 0x1010F8F8);
@@ -91,7 +91,7 @@ void SkeletonProjectile_Update(struct EwramData_EntityData *entity)
             }
             entity->affine = 1;
         }
-        flag = entity->unk_510.part8.hitFlashTimer;
+        flag = entity->hitFlashTimer;
         state = entity->state;
         if (flag && (u8)state != 3 && (u8)state != 4)
         {

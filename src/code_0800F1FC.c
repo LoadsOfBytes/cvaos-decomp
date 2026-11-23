@@ -206,16 +206,16 @@ s32 RoomEntity_Spawn(struct RoomEntityRecord *record)
         }
         child->flipX = flip;
         child->scrollWithBg = 1;
-        child->unk_514.part16.spawnParam0 = record->spawnParam0;
-        child->unk_514.part16.spawnParam1 = record->spawnParam1;
-        child->unk_518.part8.spawnIndex = record->spawnIndex;
-        child->unk_518.part8.enemyId = record->entityId;
+        child->spawnParam0 = record->spawnParam0;
+        child->spawnParam1 = record->spawnParam1;
+        child->spawnIndex = record->spawnIndex;
+        child->enemyId = record->entityId;
         child->drawFunc = (u32*)Sprite_DrawEntity;
         switch (record->kind)
         {
             case 1:
                 enemy = &sEnemyData[record->entityId];
-                child->unk_518.part16.hp = enemy->hp;
+                child->hp = enemy->hp;
                 child->updateFunc = enemy->updateFunc;
                 ((void (*)(struct EwramData_EntityData *))enemy->createFunc)(child);
                 break;
@@ -237,19 +237,19 @@ s32 RoomEntity_Spawn(struct RoomEntityRecord *record)
                     break;
                 }
 
-                if (!(gEwramData->gameState.collectedPickupFlags[child->unk_514.part16.spawnParam0 >> 5] & (1 << (child->unk_514.part16.spawnParam0 & 0x1F))))
+                if (!(gEwramData->gameState.collectedPickupFlags[child->spawnParam0 >> 5] & (1 << (child->spawnParam0 & 0x1F))))
                 {
-                    if (child->unk_518.part8.enemyId < 5)
+                    if (child->enemyId < 5)
                     {
-                        pickup = Pickup_CreateItem(child->posX.part16.integer, (u16)child->posY.part16.integer, child->unk_518.part8.enemyId, child->unk_514.part16.spawnParam1, 1);
+                        pickup = Pickup_CreateItem(child->posX.part16.integer, (u16)child->posY.part16.integer, child->enemyId, child->spawnParam1, 1);
                     }
                     else
                     {
-                        pickup = SoulPickup_CreateContainer(child->posX.part16.integer, (u16)child->posY.part16.integer, child->unk_518.part8.enemyId - 5, child->unk_514.part16.spawnParam1 - 1);
+                        pickup = SoulPickup_CreateContainer(child->posX.part16.integer, (u16)child->posY.part16.integer, child->enemyId - 5, child->spawnParam1 - 1);
                     }
                     if (pickup != 0)
                     {
-                        pickup->unk_514.part16.spawnParam0 = child->unk_514.part16.spawnParam0;
+                        pickup->spawnParam0 = child->spawnParam0;
                     }
                 }
                 EntityDelete((struct EwramData_EntityData *) child);
@@ -258,15 +258,15 @@ s32 RoomEntity_Spawn(struct RoomEntityRecord *record)
             case 5:
                 if ((gEwramData->gameState.difficultyMode) && (gEwramData->playerStatus.currentCharacter == 0))
                 {
-                    if (!(gEwramData->gameState.collectedPickupFlags[child->unk_514.part16.spawnParam0 >> 5] & (1 << (child->unk_514.part16.spawnParam0 & 0x1F))))
+                    if (!(gEwramData->gameState.collectedPickupFlags[child->spawnParam0 >> 5] & (1 << (child->spawnParam0 & 0x1F))))
                     {
-                        if (child->unk_518.part8.enemyId < 5)
+                        if (child->enemyId < 5)
                         {
-                            modeItem = Pickup_CreateItem(child->posX.part16.integer, (u16)child->posY.part16.integer, child->unk_518.part8.enemyId, child->unk_514.part16.spawnParam1, 1);
+                            modeItem = Pickup_CreateItem(child->posX.part16.integer, (u16)child->posY.part16.integer, child->enemyId, child->spawnParam1, 1);
                         }
                         if (modeItem != 0)
                         {
-                            modeItem->unk_514.part16.spawnParam0 = child->unk_514.part16.spawnParam0;
+                            modeItem->spawnParam0 = child->spawnParam0;
                         }
                     }
                 }
@@ -280,16 +280,16 @@ s32 RoomEntity_Spawn(struct RoomEntityRecord *record)
                     break;
                 }
 
-                if (!(gEwramData->gameState.collectedPickupFlags[child->unk_514.part16.spawnParam0 >> 5] & (1 << (child->unk_514.part16.spawnParam0 & 0x1F))))
+                if (!(gEwramData->gameState.collectedPickupFlags[child->spawnParam0 >> 5] & (1 << (child->spawnParam0 & 0x1F))))
                 {
-                    itemType = child->unk_518.part8.enemyId;
-                    itemId = child->unk_514.part16.spawnParam1;
+                    itemType = child->enemyId;
+                    itemId = child->spawnParam1;
                     if ((*ItemInventory_GetCountPtr((s32) itemType, (s32) itemId) == 0) && (SoulInventory_GetCompletionTenths() == 0x3E8))
                     {
                         bonusItem = Pickup_CreateItem(child->posX.part16.integer, (u16)child->posY.part16.integer, (s32) itemType, (s32) itemId, 1);
                         if (bonusItem != 0)
                         {
-                            bonusItem->unk_514.part16.spawnParam0 = child->unk_514.part16.spawnParam0;
+                            bonusItem->spawnParam0 = child->spawnParam0;
                         }
                     }
                 }

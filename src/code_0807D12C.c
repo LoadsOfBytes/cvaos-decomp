@@ -62,9 +62,9 @@ void EnemyGiantGhostCreate(struct EwramData_EntityData *entity)
             part->spriteLayer = entity->spriteLayer + 1;
         else
             part->spriteLayer = entity->spriteLayer - 1;
-        Sprite_Attach(part, sGiantGhostSpriteSheet, ObjGfx_Find(sGiantGhostGfx), entity->unk_510.part8.basePalette);
-        part->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
-        part->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
+        Sprite_Attach(part, sGiantGhostSpriteSheet, ObjGfx_Find(sGiantGhostGfx), entity->basePalette);
+        part->enemyId = entity->enemyId;
+        part->basePalette = entity->basePalette;
         part->scrollWithBg = 0;
         part->drawFunc = (u32 *)Sprite_DrawEntity;
         ENTITY_OWNER(part) = entity;

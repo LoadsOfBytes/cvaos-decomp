@@ -31,7 +31,7 @@ void Minotaur_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if (entity->unk_514.part16.spawnParam0 != 0 && !gEwramData->gameState.linkPlay)
+        if (entity->spawnParam0 != 0 && !gEwramData->gameState.linkPlay)
             Music_SetCurrent(16);
         Minotaur_UpdateIdle(entity);
         break;

@@ -47,9 +47,9 @@ void Mandragora_SpawnDeathParts(struct EwramData_EntityData *entity)
         entity->ext.mandragoraDeath.parts++;
         ENTITY_PARENT_INDEX(child) = ENTITY_INDEX(entity);
         child->spriteLayer = entity->spriteLayer;
-        child->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
+        child->basePalette = entity->basePalette;
         child->flipX = entity->flipX;
-        Sprite_Attach(child, sMandragoraSpriteSheet, Sprite_GetTileSlot(entity), child->unk_510.part8.basePalette);
+        Sprite_Attach(child, sMandragoraSpriteSheet, Sprite_GetTileSlot(entity), child->basePalette);
         child->scrollWithBg = 1;
         child->drawFunc = (u32 *)Sprite_DrawEntity;
         child->posX.whole = entity->posX.whole;

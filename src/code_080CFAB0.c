@@ -17,7 +17,7 @@ void EnemyBelmontCreate(struct EwramData_EntityData *entity)
     void *palette=sJuliusEntityPalette;
     void *sprite=sJuliusSpriteSheet;
     u8 *graphics=sBelmontGfx;
-    s32 kind=entity->unk_514.part16.spawnParam0;
+    s32 kind=entity->spawnParam0;
     u8 display;
     s32 zero;
     u8 *layer;

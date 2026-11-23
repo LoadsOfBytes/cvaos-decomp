@@ -74,7 +74,7 @@ void Werejaguar_UpdateWalk(struct EwramData_EntityData *entity)
             break;
         if (entity->animStep != 3)
             break;
-        h = entity->unk_518.part8.enemyId == 0x4B ? 0x28 : 0x78;
+        h = entity->enemyId == 0x4B ? 0x28 : 0x78;
         if (Target_IsInRect(entity->posX.part16.integer - 0x3C, entity->posY.part16.integer - h, 0x78, h * 2))
         {
             Anim_StartIndexed(entity, 0, 0, 1);

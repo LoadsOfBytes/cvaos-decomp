@@ -34,7 +34,7 @@ void EnemySuccubusCreate(struct EwramData_EntityData *entity)
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
     entity->spriteLayer = 9;
-    if (entity->unk_514.part16.spawnParam0 == 0)
+    if (entity->spawnParam0 == 0)
     {
         entity->state = 0;
         entity->ext.succubus.intro = 1;

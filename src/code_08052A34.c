@@ -41,7 +41,7 @@ void Object15Update(struct EwramData_EntityData *entity)
         break;
     case 3:
         SetPlayerInput(1, gEwramData->playerStatus.jumpButton);
-        if (entity->unk_514.part16.spawnParam0 == 0) RoomJump_SetDestination(sObject15DestinationRoom1, 0, 0, 0x78, 0x50);
+        if (entity->spawnParam0 == 0) RoomJump_SetDestination(sObject15DestinationRoom1, 0, 0, 0x78, 0x50);
         else RoomJump_SetDestination(sObject15DestinationRoom0, 0, 0, 0x78, 0x50);
         RoomJump_Begin(&gEwramData->gameState);
         gEwramData->gameState.stateFlags &= ~1;

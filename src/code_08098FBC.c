@@ -27,7 +27,7 @@ void EnemyMimicCreate(struct EwramData_EntityData *entity)
     }
     if (Anim_GetMaxBoxCount(entity) > 1) Hit_EnableContact(entity, 8, Mimic_DamagePlayerOnContact, (s32)Mimic_OnHit);
     else Hit_Enable(entity, 8, Mimic_DamagePlayerOnContact, (s32)Mimic_OnHit);
-    if (entity->unk_514.part16.spawnParam0 != 0)
+    if (entity->spawnParam0 != 0)
     {
         entity->ext.mimic.flags |= 2;
         entity->ext.mimic.heldFrame = 0;

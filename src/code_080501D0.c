@@ -35,7 +35,7 @@ extern struct BreakableBlockGraphics sBreakableBlockGraphics[];
 #define OBJECT_FLAG(ewram, flag) ((ewram)->gameState.gameFlagsTail[(flag) >> 5] & (1 << ((flag) & 0x1F)))
 
 /**
- * @brief 501D0 | Object 0x09 create: deleted when its flag unk_516 is set or
+ * @brief 501D0 | Object 0x09 create: deleted when its flag spawnParam1 is set or
  * the graphics cannot be loaded; otherwise frame / mode from its variant
  * and BreakableBlock_SetCollision.
  */
@@ -45,12 +45,12 @@ void Object09Create(struct EwramData_EntityData *entity)
     struct BreakableBlockVariant *def;
     struct BreakableBlockGraphics *gfxDef;
 
-    if (OBJECT_FLAG(ewram, entity->unk_514.part16.spawnParam1))
+    if (OBJECT_FLAG(ewram, entity->spawnParam1))
     {
         EntityDelete(entity);
         return;
     }
-    def = &sBreakableBlockVariants[entity->unk_514.part16.spawnParam0];
+    def = &sBreakableBlockVariants[entity->spawnParam0];
     gfxDef = &sBreakableBlockGraphics[def->graphicsIndex];
     entity->flipX = 0;
     entity->spriteLayer = def->spriteLayer;

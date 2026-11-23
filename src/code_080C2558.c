@@ -38,7 +38,7 @@ void EnemyRipperUpdate(struct EwramData_EntityData *entity)
         Hit_CheckWithPlayer(collision, entity);
         return;
     }
-    if (entity->unk_510.part8.hitFlashTimer && entity->state != 2 && entity->state != 0xFF)
+    if (entity->hitFlashTimer && entity->state != 2 && entity->state != 0xFF)
     {
         Hit_CheckWithPlayer(collision, entity);
         return;

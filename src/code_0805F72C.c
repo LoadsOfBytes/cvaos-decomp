@@ -7,7 +7,7 @@ extern s32 GameFlag_GetMask(s32 flag);
 extern s32 Entity_SetupFromObjectTable(struct EwramData_EntityData *entity, s32 kind);
 
 /**
- * @brief Init of event scene variant 6 (Object 0x20 unk_514 = 6,
+ * @brief Init of event scene variant 6 (Object 0x20 spawnParam0 = 6,
  * sEventSceneCreateFuncs[6]). Create step of a scene object: deleted when flag
  * 0x23 is set; else animation 0 at room (0x50, 0xC0) facing left,
  * gameState.stateFlags bit 0 and hBlankEffect.requestStop.

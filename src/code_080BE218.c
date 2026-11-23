@@ -9,7 +9,7 @@
  * advanced by the growing spin speed), orbit radius and its change per frame,
  * affine scale and its change per frame. Token-identical expansion.
  */
-#define DEBRIS_RADIUS_STEP(e) e->unk_510.whole
+#define DEBRIS_RADIUS_STEP(e) ENTITY_WORD_510(e)
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 extern s32 Entity_GetRoomPointDistance(struct EwramData_EntityData *entity, s32 x, s32 y);

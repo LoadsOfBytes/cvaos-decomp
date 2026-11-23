@@ -76,12 +76,12 @@ remove:
             SWING(entity) = 0x4000 - SWING(entity);
             entity->state = 2;
         }
-        entity->unk_518.part8.enemyId = head->unk_518.part8.enemyId;
+        entity->enemyId = head->enemyId;
         Enemy_ResetFromTemplate(entity);
         if (gEwramData->gameState.bossRushMode)
         {
             entity->attack += 0x14;
-            entity->unk_518.part16.hp += 1000;
+            entity->hp += 1000;
         }
         entity->spriteLayer = 0x11;
         Hit_Enable(entity, 8, Enemy_OnContact, (s32)ManEaterPart_OnHit);
@@ -150,7 +150,7 @@ remove:
         angle = (s16)(head->ext.manEater.angle + (prev->ext.manEater.angle + SWING(entity)));
         entity->posX.whole = prev->posX.whole + Sin(angle + 0x4000) / 256 * amplitude;
         entity->posY.whole = prev->posY.whole + Sin(angle) / 256 * amplitude;
-        if (*(u8 *)&entity->ext.manEaterLink.drops && (s16)head->unk_518.part16.hp <= 0xC7
+        if (*(u8 *)&entity->ext.manEaterLink.drops && (s16)head->hp <= 0xC7
             && entity->animStep <= 2 && entity->animTimer == 0 && (RandomNumberGenerator() & 7))
         {
             struct EwramData_EntityData *drop = Entity_CreateObject((u32 *)ManEaterProjectile_Update);

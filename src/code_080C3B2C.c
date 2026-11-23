@@ -14,9 +14,9 @@ void SkeletonProjectile_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 
     s32 speed;
 
     Player_CalculateAttackPower(data[2]);
-    entity->unk_518.part16.hp = 0;
+    entity->hp = 0;
     entity->affine = 0;
-    entity->unk_510.part8.hitFlashTimer = 8;
+    entity->hitFlashTimer = 8;
     if ((u8)entity->ext.skeletonBone.kind == 0)
     {
         entity->timer = 0x32;
@@ -45,6 +45,6 @@ void SkeletonProjectile_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 
         entity->velY.whole = -entity->velY.whole;
         PlaySong(0x15D);
     }
-    entity->palette = entity->unk_510.part8.basePalette;
+    entity->palette = entity->basePalette;
     entity->state = 3;
 }

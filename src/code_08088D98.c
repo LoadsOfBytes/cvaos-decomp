@@ -24,7 +24,7 @@ struct EwramData_EntityData *EnemyPeepingEyeCreateEyeball(struct EwramData_Entit
         child->posY.whole = entity->posY.whole;
         child->spriteLayer = entity->spriteLayer + 1;
         gfx = ObjGfx_Find(sPeepingEyeGfx);
-        Sprite_Attach(child, sPeepingEyeSpriteSheet, gfx, entity->unk_510.part8.basePalette);
+        Sprite_Attach(child, sPeepingEyeSpriteSheet, gfx, entity->basePalette);
         child->animFrame = 0xF;
         child->ext.peepingEye.owner = entity;
         child->scrollWithBg = 0;

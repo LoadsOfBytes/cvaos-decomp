@@ -22,7 +22,7 @@ void SkullMillioneFamilyPart_Update(struct EwramData_EntityData *entity)
         if (parent->state == 3) entity->state = 2;
         else if (gEwramData->gameState.timeStopTimer != 0)
         {
-            struct EntityTemplate *entry = (struct EntityTemplate *)(parent->unk_518.part8.enemyId * sizeof(*entry) + (u32)sEnemyData);
+            struct EntityTemplate *entry = (struct EntityTemplate *)(parent->enemyId * sizeof(*entry) + (u32)sEnemyData);
             if (!(entry->flags_1C & 0x400)) return;
         }
     }

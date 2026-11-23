@@ -12,7 +12,7 @@ extern u8 sEvilButcherGfx[], sEvilButcherPalette[], sEvilButcherSpriteSheet[];
 
 void EnemyEvilButcherCreate(struct EwramData_EntityData *entity)
 {
-    if (!Entity_LoadGraphics(entity, sEvilButcherGfx, sEvilButcherPalette, (u8)entity->unk_514.part16.spawnParam1, sEvilButcherSpriteSheet))
+    if (!Entity_LoadGraphics(entity, sEvilButcherGfx, sEvilButcherPalette, (u8)entity->spawnParam1, sEvilButcherSpriteSheet))
     {
         EntityDelete(entity);
         return;

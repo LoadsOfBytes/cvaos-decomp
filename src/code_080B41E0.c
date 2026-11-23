@@ -34,7 +34,7 @@ void BaloreEye_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        Sprite_Attach(entity, sBaloreSpriteSheet, (s8)owner->ext.balore.gfx, owner->unk_510.part8.basePalette);
+        Sprite_Attach(entity, sBaloreSpriteSheet, (s8)owner->ext.balore.gfx, owner->basePalette);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         entity->spriteLayer = 0x1F;
         if (gEwramData->gameState.bestiaryPreview)

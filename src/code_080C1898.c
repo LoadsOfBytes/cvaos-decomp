@@ -86,13 +86,13 @@ void Altair_UpdateSpawner(struct EwramData_EntityData *entity)
     {
         child->posY.whole = entity->posY.whole;
         child->scrollWithBg = 1;
-        child->unk_518.part8.spawnIndex = random;
-        child->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
-        child->unk_514.part16.spawnParam0 = ((u16)entity->ext.altair.spawnCount & 1) + 2;
-        child->unk_514.part16.spawnParam1 = entity->unk_514.part16.spawnParam1;
+        child->spawnIndex = random;
+        child->enemyId = entity->enemyId;
+        child->spawnParam0 = ((u16)entity->ext.altair.spawnCount & 1) + 2;
+        child->spawnParam1 = entity->spawnParam1;
         child->drawFunc = (u32 *)Sprite_DrawEntity;
-        child->unk_518.part16.hp = sEnemyData[entity->unk_518.part8.enemyId].hp;
-        child->unk_510.part16.unk_512 = sEnemyData[entity->unk_518.part8.enemyId].unk_E;
+        child->hp = sEnemyData[entity->enemyId].hp;
+        child->mp = sEnemyData[entity->enemyId].mp;
         child->updateFunc = entity->updateFunc;
         child->ext.altair.spawner = entity;
         EnemyAltairCreate(child);
@@ -108,18 +108,18 @@ void Altair_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
 {
     s32 damage = Player_CalculateAttackPower(hit[2]);
     damage = Hit_ResolveDamage(entity, (s32)attacker, hit, (s16)damage);
-    entity->unk_510.part8.hitFlashTimer = 8;
+    entity->hitFlashTimer = 8;
     {
-        u16 hp = entity->unk_518.part16.hp;
+        u16 hp = entity->hp;
         damage <<= 16;
         damage >>= 16;
-        entity->unk_518.part16.hp = hp - damage;
+        entity->hp = hp - damage;
     }
     Entity_ShowDamage(entity, damage, 0);
-    if ((s16)entity->unk_518.part16.hp <= 0)
+    if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->timer = 0x32;
         entity->state = 2;
         entity->subState = 0;

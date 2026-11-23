@@ -23,15 +23,15 @@ void Lilith_SpawnShot(struct EwramData_EntityData *owner, s32 dx, s32 dy)
         entity->posY.whole = owner->posY.whole + dy;
         entity->spriteLayer = owner->spriteLayer - 2;
         graphics = ObjGfx_Find(sLilithSuccubusGfx);
-        entity->unk_510.part8.basePalette = owner->unk_510.part8.basePalette;
-        Sprite_Attach(entity, sLilithSuccubusSpriteSheet, graphics, entity->unk_510.part8.basePalette);
+        entity->basePalette = owner->basePalette;
+        Sprite_Attach(entity, sLilithSuccubusSpriteSheet, graphics, entity->basePalette);
         entity->animFrame = 0x36;
         Hit_Enable(entity, 8, LilithShot_DamagePlayerOnContact, (s32)LilithShot_OnHit);
         HitBox_SetAttack(entity, &box);
         HitBox_SetBody(entity, &box);
         entity->hit.flags &= ~4;
         entity->hit.flags &= ~2;
-        entity->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
+        entity->enemyId = owner->enemyId;
         entity->attack = owner->attack;
         entity->scrollWithBg = 1;
         entity->drawFunc = (u32 *)Sprite_DrawEntity;

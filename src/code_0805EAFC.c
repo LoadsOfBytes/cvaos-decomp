@@ -39,8 +39,8 @@ struct EwramData_EntityData *EventScene03_SpawnSoulOrb(s32 x, s32 y, s32 variant
             entity->ext.event03Orb.speed = 0x30000;
         }
         else entity->state = 99;
-        entity->unk_518.part8.enemyId = variant + 5;
-        entity->unk_514.part16.spawnParam1 = index;
+        entity->enemyId = variant + 5;
+        entity->spawnParam1 = index;
         entity->timer = 200;
     }
     return entity;

@@ -1,4 +1,4 @@
-/* Object13ArmView segment object: copies the angle of entity[unk_511], places itself
+/* Object13ArmView segment object: copies the angle of entity[hitFlashTimer], places itself
  * at half the (cos, sin) * 8 offset from its parent (unk_4FC) and keeps the
  * full offset for the next segment; rotated via ObjAffine_Set. */
 #include "code_08009A0.h"

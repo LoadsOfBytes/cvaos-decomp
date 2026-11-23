@@ -24,12 +24,12 @@ struct EwramData_EntityData *ChaosOrb_CreateAura(struct EwramData_EntityData *or
         aura->posY.part16.integer = 0xFF80;
         aura->spriteLayer = orb->spriteLayer - 2;
         graphics = ObjGfx_Find(sCommonObjectGfx);
-        aura->unk_510.part8.basePalette = pal + 6;
-        Sprite_Attach(aura, sCommonObjectSpriteSheet, graphics, aura->unk_510.part8.basePalette);
+        aura->basePalette = pal + 6;
+        Sprite_Attach(aura, sCommonObjectSpriteSheet, graphics, aura->basePalette);
         Anim_StartIndexed(aura, 6, 0, 1);
         Anim_Update(aura);
         aura->animTimer = RandomNumberGenerator() % 8;
-        aura->unk_518.part8.enemyId = orb->unk_518.part8.enemyId;
+        aura->enemyId = orb->enemyId;
         aura->ext.chaosChild.link = orb;
         aura->scrollWithBg = 0;
         KIND(aura) = kind;
@@ -48,7 +48,7 @@ void ChaosAura_Update(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *orb = entity->ext.chaosChild.link;
 
     if (orb == NULL || orb->updateFunc == NULL
-        || orb->unk_518.part8.enemyId != entity->unk_518.part8.enemyId)
+        || orb->enemyId != entity->enemyId)
         goto hide;
     entity->posX.whole = orb->posX.whole;
     entity->posY.whole = orb->posY.whole + 0x40000;
@@ -80,7 +80,7 @@ struct EwramData_EntityData *Chaos_CreateBackground(struct EwramData_EntityData 
     {
         helper->posX.whole = core->posX.whole;
         helper->posY.whole = core->posY.whole;
-        helper->unk_518.part8.enemyId = core->unk_518.part8.enemyId;
+        helper->enemyId = core->enemyId;
         helper->ext.chaosChild.link = core;
         return helper;
     }

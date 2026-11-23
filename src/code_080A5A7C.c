@@ -89,7 +89,7 @@ void Chaos2SnakeHead_Update(struct EwramData_EntityData *e)
     if (e->state == 0)
     {
         if (core != NULL && core->updateFunc != NULL
-            && core->unk_518.part8.enemyId == e->unk_518.part8.enemyId)
+            && core->enemyId == e->enemyId)
         {
             switch (e->subState)
             {
@@ -417,10 +417,10 @@ void Chaos2SnakeHead_Update(struct EwramData_EntityData *e)
         {
             e->state = 10;
             e->subState = 0;
-            e->unk_518.part16.hp = 0;
-            e->palette = e->unk_510.part8.basePalette;
+            e->hp = 0;
+            e->palette = e->basePalette;
             e->timer = 0x28;
-            e->unk_510.part8.hitFlashTimer = 0;
+            e->hitFlashTimer = 0;
             e->accelX.whole = 0;
             e->accelY.whole = 0x2000;
         }

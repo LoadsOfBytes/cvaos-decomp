@@ -59,7 +59,7 @@ void EnemyNeedlesCreate(struct EwramData_EntityData *entity)
     Hit_Enable(entity,8,Enemy_OnContact,(s32)Needles_OnHit);
     HitBox_SetAttackRaw(entity,0x1010F8F8);
     HitBox_SetBodyRaw(entity,0x1010F8F8);
-    if (entity->unk_514.part16.spawnParam0 != 0)
+    if (entity->spawnParam0 != 0)
         entity->ext.needles.bobPhase = RandomNumberGenerator() % 0xFFFF;
 }
 
@@ -101,7 +101,7 @@ void Needles_UpdateIdle(struct EwramData_EntityData *entity)
         default:
             return;
     }
-    if (entity->unk_514.part16.spawnParam0 != 0)
+    if (entity->spawnParam0 != 0)
     {
         s32 vy = Sin((u16)entity->ext.needles.bobPhase + 0x4000) / 4;
         entity->ext.needles.bobPhase += 0x400;

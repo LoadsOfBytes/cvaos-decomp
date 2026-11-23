@@ -17,20 +17,20 @@ void Persephone_OnHit(struct EwramData_EntityData *entity, struct EwramData_Enti
     u8 *attackType = &attacker->hit.type;
     s16 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)attack);
     s32 zero;
-    entity->unk_510.part8.hitFlashTimer = 8;
+    entity->hitFlashTimer = 8;
     {
-        s32 hp = entity->unk_518.part16.hp;
+        s32 hp = entity->hp;
         damage = (s16)damage;
         zero = 0;
-        entity->unk_518.part16.hp = hp - damage;
+        entity->hp = hp - damage;
     }
     Entity_ShowDamage(entity, damage, 0);
-    if ((s16)entity->unk_518.part16.hp <= 0)
+    if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
         PlaySong(0x1CC);
         Anim_StartIndexed(entity, 7, 0, 0);
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->timer = 70;
         entity->state = 2;
         entity->subState = zero;

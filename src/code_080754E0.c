@@ -39,8 +39,8 @@ u8 WingedSkeleton_LoadGraphics(struct EwramData_EntityData *entity)
 
     if (gfx < 0)
         return 0;
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sWingedSkeletonPalette, 0);
-    Sprite_Attach(entity, sWingedSkeletonSpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sWingedSkeletonPalette, 0);
+    Sprite_Attach(entity, sWingedSkeletonSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }
@@ -64,7 +64,7 @@ s32 WingedSkeletonShot_LoadGraphics(struct EwramData_EntityData *entity, struct 
 
     if (gfx < 0)
         return 0;
-    Sprite_Attach(child, sWingedSkeletonSpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    Sprite_Attach(child, sWingedSkeletonSpriteSheet, gfx, entity->basePalette);
     Anim_StartIndexed(child, 8, 0, 1);
     Anim_Update(child);
     child->drawFunc = (u32 *)Sprite_DrawEntity;

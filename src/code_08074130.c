@@ -18,7 +18,7 @@ extern s32 Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
  * on-screen test (except while dying), hidden off screen (hidden) and
  * Entity_IsOutsideRoomMap starting the dying state 2; states 0 / 1 (Une_UpdateGrow /
  * Une_UpdateIdle), 2 blinks one frame then sets deleteRequested and decrements the
- * count of the parent (unk_51A 0x3D, counter unk_4FC), 3 finishes once its
+ * count of the parent (enemyId 0x3D, counter unk_4FC), 3 finishes once its
  * own counter unk_4FC is zero, 4 animation only.
  */
 void EnemyUneUpdate(struct EwramData_EntityData *entity)
@@ -61,7 +61,7 @@ void EnemyUneUpdate(struct EwramData_EntityData *entity)
         if (entity->deleteRequested)
         {
             parent = entity->ext.une.spawner;
-            if (parent != NULL && parent->updateFunc != NULL && parent->unk_518.part8.enemyId == 0x3D
+            if (parent != NULL && parent->updateFunc != NULL && parent->enemyId == 0x3D
                 && parent->ext.uneSpawner.count != 0)
                 parent->ext.uneSpawner.count--;
         }

@@ -32,12 +32,12 @@ void GladiatorArm_Update(struct EwramData_EntityData *entity)
     {
         s32 x;
         s32 y;
-        if (owner == NULL || owner->updateFunc == NULL || owner->unk_518.part8.enemyId != 0x5D)
+        if (owner == NULL || owner->updateFunc == NULL || owner->enemyId != 0x5D)
             goto delete;
         if (owner->palette == 4)
             entity->palette = 4;
         else
-            entity->palette = entity->unk_510.part8.basePalette;
+            entity->palette = entity->basePalette;
         entity->flipX = owner->flipX ^ 1;
         entity->posX.part16.integer = owner->posX.part16.integer;
         entity->posY.part16.integer = owner->posY.part16.integer;

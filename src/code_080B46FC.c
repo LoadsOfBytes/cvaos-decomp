@@ -4,10 +4,13 @@
 extern s32 Entity_SteerToPoint(struct EwramData_EntityData *, void *);
 extern u8 sBaloreHandSteeringParams1[];
 
+/* Steering speed passed on to Entity_SteerToPoint. */
+#define STEER_SPEED(e) ENTITY_PTR_514(e)
+
 /**
- * @brief B46FC | Palette fade-in step: state 0 sets unk_514 = 0x40000 and a
- * 0x40-frame counter in timer.  While the counter runs, palette unk_510
- * (slot unk_510 - 10 in sharedObjPaletteVariants/sharedObjPaletteSources) gets brightness level
+ * @brief B46FC | Palette fade-in step: state 0 sets spawnParam0 = 0x40000 and a
+ * 0x40-frame counter in timer.  While the counter runs, palette basePalette
+ * (slot basePalette - 10 in sharedObjPaletteVariants/sharedObjPaletteSources) gets brightness level
  * counter / 8 + 8 via ObjPalette_LoadRange whenever the level changes.  Every frame
  * then continues with Entity_SteerToPoint(entity, sBaloreHandSteeringParams1).
  */
@@ -16,7 +19,7 @@ s32 BaloreHand_FadeIn(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
     case 0:
-        entity->unk_514.unk_514_32 = (struct EwramData_EntityData *)0x40000;
+        STEER_SPEED(entity) = (struct EwramData_EntityData *)0x40000;
         entity->timer = 0x40;
         entity->subState = 1;
     case 1:
@@ -30,7 +33,7 @@ s32 BaloreHand_FadeIn(struct EwramData_EntityData *entity)
         u16 level;
 
         entity->timer--;
-        pal = entity->unk_510.part8.basePalette;
+        pal = entity->basePalette;
         /* the original reloads the decremented counter */
         level = (*(volatile u8 *)&entity->timer >> 3) + 8; /* FAKEMATCH: volatile read forces the reload of the original */
         idx = pal - 10;

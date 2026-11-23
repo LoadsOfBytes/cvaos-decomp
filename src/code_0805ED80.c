@@ -37,8 +37,8 @@ struct EwramData_EntityData *EventScene03_SpawnTargetOrb(s32 x, s32 y, s32 varia
         entity->ext.event03Orb.heading = (Entity_AngleToPoint(entity, targetX, target->posY.whole - offset) + 0x8000) & 0xFFFF;
         entity->ext.event03Orb.turnRate = 0;
         entity->ext.event03Orb.speed = 0x30000;
-        entity->unk_518.part8.enemyId = variant + 5;
-        entity->unk_514.part16.spawnParam1 = index;
+        entity->enemyId = variant + 5;
+        entity->spawnParam1 = index;
         entity->timer = 200;
     }
     return entity;

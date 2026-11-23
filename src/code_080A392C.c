@@ -72,8 +72,8 @@ void ChaosOrb_SpawnSoulShot(struct EwramData_EntityData *orb, s32 x, s32 y)
         OFFSET_Y(shot) = y;
         shot->spriteLayer = orb->spriteLayer - 1;
         graphics = data->graphics;
-        shot->unk_510.part8.basePalette = data->palette;
-        Sprite_Attach(shot, sChaosSpriteSheet, graphics, shot->unk_510.part8.basePalette);
+        shot->basePalette = data->palette;
+        Sprite_Attach(shot, sChaosSpriteSheet, graphics, shot->basePalette);
         shot->animMode = 2;
         Anim_StartIndexed(shot, 1, 2, 0);
         Anim_Update(shot);
@@ -81,11 +81,11 @@ void ChaosOrb_SpawnSoulShot(struct EwramData_EntityData *orb, s32 x, s32 y)
         HitBox_SetAttack(shot, &box);
         shot->hit.flags |= 4;
         shot->hit.flags &= ~2;
-        shot->unk_518.part8.enemyId = orb->unk_518.part8.enemyId;
+        shot->enemyId = orb->enemyId;
         shot->ext.chaosChild.link = orb;
         shot->scrollWithBg = 0;
         shot->attack = 0x78;
-        shot->unk_518.part16.hp = 10;
+        shot->hp = 10;
         {
             s32 targetX = (*ewram)->playerState.enemyTarget->posX.whole;
             if (orb->posX.whole >= targetX)

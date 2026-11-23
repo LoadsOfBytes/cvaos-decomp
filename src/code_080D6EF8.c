@@ -55,6 +55,6 @@ void BossRecoveryPickup_Spawn(u16 x,u16 y,s32 event,s32 delay,s32 special)
         entity->hit.flags|=4;
         entity->hidden=1;
         if(!gEwramData->gameState.bossRushMode && gEwramData->playerStatus.currentCharacter)
-            entity->unk_514.part16.spawnParam0=event;
+            entity->spawnParam0=event;
     }
 }

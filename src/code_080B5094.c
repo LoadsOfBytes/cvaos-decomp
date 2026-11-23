@@ -23,8 +23,8 @@ void BaloreAffineEffect_Update(struct EwramData_EntityData *entity)
         entity->affineIndex = matrix;
         entity->affine = 1;
         entity->spriteLayer = 0x13;
-        entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sBalorePalette, 0x10);
-        Sprite_Attach(entity, sBaloreSpriteSheet, (s8)owner->ext.balore.gfx, entity->unk_510.part8.basePalette);
+        entity->basePalette = ObjPalette_FindOrLoadVariant(sBalorePalette, 0x10);
+        Sprite_Attach(entity, sBaloreSpriteSheet, (s8)owner->ext.balore.gfx, entity->basePalette);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         Anim_StartIndexed(entity, 0x31, 2, 0);
         Anim_Update(entity);

@@ -20,11 +20,11 @@ struct EwramData_EntityData *Manticore_CreateTailTip(struct EwramData_EntityData
         u16 slot;
         entity->spriteLayer = owner->spriteLayer + 1;
         graphics = ObjGfx_Find(sManticoreGfx);
-        Sprite_Attach(entity, sManticoreSpriteSheet, graphics, owner->unk_510.part8.basePalette);
+        Sprite_Attach(entity, sManticoreSpriteSheet, graphics, owner->basePalette);
         entity->flipY = 1;
         entity->animFrame = 0;
-        entity->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
-        entity->unk_518.part16.hp = 1;
+        entity->enemyId = owner->enemyId;
+        entity->hp = 1;
         entity->scrollWithBg = 0;
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         ENTITY_OWNER(entity) = owner;

@@ -63,7 +63,7 @@ s32 CockatriceFamily_UpdateDeath(struct EwramData_EntityData *entity)
             if (Entity_GetVisibilityPattern(entity->timer))
                 entity->palette = 5;
             else
-                entity->palette = entity->unk_510.part8.basePalette;
+                entity->palette = entity->basePalette;
             if (entity->timer != 0)
             {
                 entity->timer--;

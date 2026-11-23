@@ -39,7 +39,7 @@ void GrahamSidePart_Update(struct EwramData_EntityData *entity)
     {
         register s32 zero asm("r6"); /* FAKEMATCH: zero in r6 */
         register u32 flags asm("r1"); /* FAKEMATCH: flags in r1 */
-        if (owner->unk_518.part8.enemyId != entity->unk_518.part8.enemyId)
+        if (owner->enemyId != entity->enemyId)
         {
             entity->deleteRequested = 1;
             return;

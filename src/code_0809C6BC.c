@@ -26,12 +26,12 @@ extern void Legion_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 
 extern u8 sLegionAnimScript0[];
 
 /**
- * @brief 9C6BC | Legion create: with unk_514 set it is deleted once beaten
+ * @brief 9C6BC | Legion create: with spawnParam0 set it is deleted once beaten
  * (bossEventFlags bit 5) unless in the boss rush mode; a 0x1C-byte state block in
  * unk_4F8, animation sLegionAnimScript0 with its own palette and identity
  * affine matrix, four core parts Legion_CreateCorePart (part 3 instead of 10 when
- * unk_514 is set and time runs); frozen time gives state 3, otherwise box
- * 0x2020F0F0 (boxes off) and song 0x10; without unk_514 the HP bar
+ * spawnParam0 is set and time runs); frozen time gives state 3, otherwise box
+ * 0x2020F0F0 (boxes off) and song 0x10; without spawnParam0 the HP bar
  * (Player_SetSelectedTarget), with it five shell parts Legion_CreateCorpse; then unk_506 = 6
  * and the block starts at the room position with a random 120..247 timer.
  */
@@ -43,7 +43,7 @@ void EnemyLegionCreate(struct EwramData_EntityData *entity)
     u16 palette;
     u8 frozen;
 
-    if (entity->unk_514.part16.spawnParam0 != 0 && !gEwramData->gameState.bossRushMode
+    if (entity->spawnParam0 != 0 && !gEwramData->gameState.bossRushMode
         && (gEwramData->gameState.bossEventFlags & 0x20))
         goto delete;
     entity->ext.legion.data.value = (s32)Heap_Alloc(0x1C);
@@ -67,7 +67,7 @@ void EnemyLegionCreate(struct EwramData_EntityData *entity)
     data = (struct LegionData *)entity->ext.legion.data.value;
     if (!Legion_CreateCorePart(entity, -0x180000, 0x180000, 2))
         goto delete;
-    if (gEwramData->gameState.bestiaryPreview || entity->unk_514.part16.spawnParam0 == 0)
+    if (gEwramData->gameState.bestiaryPreview || entity->spawnParam0 == 0)
     {
         if (!Legion_CreateCorePart(entity, 0x170000, 0x180000, 10))
         {
@@ -96,7 +96,7 @@ void EnemyLegionCreate(struct EwramData_EntityData *entity)
     entity->hit.flags &= 0xFB;
     entity->hit.flags &= 0xFD;
     Music_SetCurrent(0x10);
-    if (entity->unk_514.part16.spawnParam0 == 0)
+    if (entity->spawnParam0 == 0)
     {
         entity->ext.legion.flags = 6;
         data->roomX = entity->posX.whole + bg->xPos.whole;

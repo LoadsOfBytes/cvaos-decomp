@@ -44,7 +44,7 @@ void Alastor_UpdateRecoil(struct EwramData_EntityData *entity)
             s32 state=part->state;
             if(state==0)
             {
-                if((s16)entity->unk_518.part16.hp<=0)
+                if((s16)entity->hp<=0)
                     entity->state=0xFF;
                 else
                     entity->state=1;
@@ -54,6 +54,6 @@ void Alastor_UpdateRecoil(struct EwramData_EntityData *entity)
             break;
         }
     }
-    if((s16)entity->unk_518.part16.hp<=0)
+    if((s16)entity->hp<=0)
         FLAGS(entity)|=0x20;
 }

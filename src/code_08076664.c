@@ -32,7 +32,7 @@ void EnemyWhiteDragonCreate(struct EwramData_EntityData *entity)
     entity->ext.whiteDragon.offsetY=entity->posY.part16.integer;
     entity->ext.whiteDragon.anchorX=camera->xPos.part16.integer;
     entity->ext.whiteDragon.anchorY=camera->yPos.part16.integer;
-    if(entity->unk_514.part16.spawnParam0)
+    if(entity->spawnParam0)
         entity->flipX=1;
     else
         entity->flipX=0;
@@ -50,7 +50,7 @@ void EnemyWhiteDragonCreate(struct EwramData_EntityData *entity)
     previous=entity;
     index=9;
     angularSpeed=(u16 *)&entity->velY.part16.fraction;
-    palette=&entity->unk_510.part8.basePalette;
+    palette=&entity->basePalette;
     do
     {
         struct EwramData_EntityData *part=Entity_CreateObject((u32 *)WhiteDragonSegment_Update);
@@ -59,8 +59,8 @@ void EnemyWhiteDragonCreate(struct EwramData_EntityData *entity)
         part->spriteLayer=entity->spriteLayer+1;
         graphics=ObjGfx_Find(sQuezlcoatlWhiteDragonGfx);
         Sprite_Attach(part,sQuezlcoatlWhiteDragonSpriteSheet,graphics,*palette);
-        part->unk_518.part8.enemyId=entity->unk_518.part8.enemyId;
-        part->unk_510.part8.basePalette=*palette;
+        part->enemyId=entity->enemyId;
+        part->basePalette=*palette;
         part->scrollWithBg=0;
         part->drawFunc=(u32 *)WhiteDragonSegment_Draw;
         ENTITY_OWNER(part)=entity;

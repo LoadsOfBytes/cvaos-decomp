@@ -35,7 +35,7 @@ s32 MermanShot_LoadGraphics(struct EwramData_EntityData *entity, struct EwramDat
 
     if (gfx < 0)
         return 0;
-    Sprite_Attach(projectile, sMermanSpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    Sprite_Attach(projectile, sMermanSpriteSheet, gfx, entity->basePalette);
     Anim_StartIndexed(projectile, 6, 0, 1);
     Anim_Update(projectile);
     projectile->drawFunc = (u32 *)Sprite_DrawEntity;
@@ -82,8 +82,8 @@ u8 Merman_LoadGraphics(struct EwramData_EntityData *entity)
 
     if (gfx < 0)
         return 0;
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sMermanPalette, 0);
-    Sprite_Attach(entity, sMermanSpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sMermanPalette, 0);
+    Sprite_Attach(entity, sMermanSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }

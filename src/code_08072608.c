@@ -16,7 +16,7 @@ u8 MudmanShot_LoadGraphics(struct EwramData_EntityData *entity, struct EwramData
 
     if (gfx < 0)
         return 0;
-    Sprite_Attach(projectile, sMudmanSpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    Sprite_Attach(projectile, sMudmanSpriteSheet, gfx, entity->basePalette);
     Anim_StartIndexed(projectile, 5, 0, 1);
     Anim_Update(projectile);
     projectile->drawFunc = (u32 *)Sprite_DrawEntity;

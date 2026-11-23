@@ -15,7 +15,7 @@ extern void Zombie_OnHit(struct EwramData_EntityData *);
 void EnemyZombieCreate(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *background = &gEwramData->bgInfo[1];
-    if (entity->unk_514.part16.spawnParam1 != 0)
+    if (entity->spawnParam1 != 0)
     {
         entity->state = 3;
         entity->hidden = 1;
@@ -55,13 +55,13 @@ void EnemyZombieCreate(struct EwramData_EntityData *entity)
         {
             entity->state = 1;
             entity->timer = 1;
-            entity->unk_518.part16.hp = zero;
+            entity->hp = zero;
         }
         if (entity->posY.whole <= previousY - 0x80000)
         {
             entity->state = 1;
             entity->timer = 1;
-            entity->unk_518.part16.hp = zero;
+            entity->hp = zero;
         }
     }
 finished:

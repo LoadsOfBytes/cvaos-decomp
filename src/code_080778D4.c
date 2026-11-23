@@ -20,7 +20,7 @@ void WhiteDragon_SpawnChargeParticle(struct EwramData_EntityData *owner,s32 x,s3
         effect->flipX=RandomNumberGenerator()%2;
         effect->spriteLayer=owner->spriteLayer+1;
         graphics=ObjGfx_Find(sQuezlcoatlWhiteDragonGfx);
-        Sprite_Attach(effect,sQuezlcoatlWhiteDragonSpriteSheet,graphics,owner->unk_510.part8.basePalette);
+        Sprite_Attach(effect,sQuezlcoatlWhiteDragonSpriteSheet,graphics,owner->basePalette);
         effect->animFrame=9;
         if(owner->flipX)
             effect->posX.part16.integer+=(u16)(RandomNumberGenerator()%8+16);

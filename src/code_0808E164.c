@@ -39,7 +39,7 @@ void GreatArmorPart_Update(struct EwramData_EntityData *entity)
     if (entity->state == 0)
     {
         if (parent != NULL && parent->updateFunc != NULL
-            && parent->unk_518.part8.enemyId == entity->unk_518.part8.enemyId)
+            && parent->enemyId == entity->enemyId)
         {
             parts = parent->ext.greatArmor.parts;
             entity->palette = parent->palette;
@@ -151,7 +151,7 @@ void GreatArmorPart_Update(struct EwramData_EntityData *entity)
                     PlaySong(0x7F);
             }
         }
-        if (entity->subState == 2 && parent->unk_514.part16.spawnParam0 == 0 && (entity->timer & 7) == 0)
+        if (entity->subState == 2 && parent->spawnParam0 == 0 && (entity->timer & 7) == 0)
             Effect_SpawnRandom(entity->posX.whole, entity->posY.whole - 0x40000, 0x100000, 0x100000, entity->spriteLayer - 1);
         if (HAS_SPRITE(entity))
             ObjAffine_Set(entity->ext.greatArmorPart.angle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);

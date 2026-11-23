@@ -29,7 +29,7 @@ void Chaos2SnakeShot_Update(struct EwramData_EntityData *entity)
     {
         EntityDelete(entity);
     }
-    else if (owner != NULL && owner->updateFunc != NULL && owner->unk_518.part8.enemyId == entity->unk_518.part8.enemyId && owner->state != 3)
+    else if (owner != NULL && owner->updateFunc != NULL && owner->enemyId == entity->enemyId && owner->state != 3)
     {
         Anim_Update(entity);
     }
@@ -52,8 +52,8 @@ void Chaos2_CreateAffineEffect(struct EwramData_EntityData *parent)
         effect->posY.part16.integer = parent->posY.part16.integer;
         effect->spriteLayer = parent->spriteLayer + 1;
         tiles = gfx->tiles;
-        effect->unk_510.part8.basePalette = gfx->palette;
-        Sprite_Attach(effect, sChaos2SpriteSheet, tiles, effect->unk_510.part8.basePalette);
+        effect->basePalette = gfx->palette;
+        Sprite_Attach(effect, sChaos2SpriteSheet, tiles, effect->basePalette);
         effect->animFrame = 0x24;
         matrix = ObjAffine_Alloc(1);
         if ((s16)matrix < 0)
@@ -65,7 +65,7 @@ void Chaos2_CreateAffineEffect(struct EwramData_EntityData *parent)
             effect->affineIndex = matrix;
             effect->affine = 1;
             ObjAffine_Set(0, 0x10000, 0x10000, effect->flipX, effect->flipY, effect->affineIndex);
-            effect->unk_518.part8.enemyId = parent->unk_518.part8.enemyId;
+            effect->enemyId = parent->enemyId;
             effect->ext.chaosChild.link = parent;
             effect->scrollWithBg = 0;
             effect->velY.whole = 0xB000;
@@ -83,7 +83,7 @@ void Chaos2_CreateAffineEffect(struct EwramData_EntityData *parent)
 void Chaos2AffineEffect_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *parent = entity->ext.chaosChild.link;
-    if (parent != NULL && parent->updateFunc != NULL && parent->unk_518.part8.enemyId == entity->unk_518.part8.enemyId)
+    if (parent != NULL && parent->updateFunc != NULL && parent->enemyId == entity->enemyId)
     {
         if (entity->state == 0)
         {

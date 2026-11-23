@@ -71,7 +71,7 @@ void EventScene30_UpdateTransformation(struct EwramData_EntityData *entity)
             entity->posX.part16.integer=CENTER_X(entity);
             entity->posY.part16.integer=CENTER_Y(entity);
             ObjPalette_LoadRange(sEventScene30TransformationPalette,0,1,14);
-            entity->unk_510.part8.basePalette=14;
+            entity->basePalette=14;
             TIMER(entity)=16;INIT(entity)++;
         }
         DRAW_ROWS(displacement);
@@ -139,8 +139,8 @@ void EventScene30_UpdateTransformation(struct EwramData_EntityData *entity)
     case 3:
         if(INIT(entity)==0)
         {
-            entity->timer=0;entity->unk_518.part16.unk_51A=0;
-            entity->unk_518.part8.unk_518=0;INIT(entity)++;
+            entity->timer=0;EVENT30_PALETTE_TIMER(entity)=0;
+            EVENT30_PALETTE_STEP(entity)=0;INIT(entity)++;
         }
         DRAW_ROWS(0);
         if(entity->timer&1)
@@ -158,7 +158,7 @@ void EventScene30_UpdateTransformation(struct EwramData_EntityData *entity)
         {
             EMIT_CENTER(4);FLASH(0,0x10000,255);EntityDeleteGroup(128);
             ANGLE(entity)=0;entity->timer=0;
-            *(u8 *)&entity->unk_51C=5;INIT(entity)++;
+            *(u8 *)&entity->enemyStatus=5;INIT(entity)++;
         }
         JITTER_X(entity)=0;JITTER_Y(entity)=0;
         if((u8)(ANGLE(entity)-1)>229)

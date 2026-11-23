@@ -24,7 +24,7 @@ void EnemyZombieUpdate(struct EwramData_EntityData *entity)
             s32 zero = 0;
             entity->state = 1;
             entity->timer = 1;
-            entity->unk_518.part16.hp = zero;
+            entity->hp = zero;
         }
     }
     if (Enemy_IsStunned(entity))
@@ -42,7 +42,7 @@ void EnemyZombieUpdate(struct EwramData_EntityData *entity)
         if (entity->deleteRequested)
         {
             struct EwramData_EntityData *controller = entity->ext.zombie.spawner;
-            if (controller && controller->updateFunc && controller->unk_518.part8.enemyId == 1
+            if (controller && controller->updateFunc && controller->enemyId == 1
                 && controller->ext.zombieSpawner.childCount != 0)
                 controller->ext.zombieSpawner.childCount--;
         }
@@ -53,7 +53,7 @@ void EnemyZombieUpdate(struct EwramData_EntityData *entity)
         goto finished;
     case 3:
         if ((RandomNumberGenerator() & 31) == 0
-            && (s32)entity->ext.zombieSpawner.childCount < entity->unk_514.part16.spawnParam0)
+            && (s32)entity->ext.zombieSpawner.childCount < entity->spawnParam0)
         {
             struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
             if (child)
@@ -68,12 +68,12 @@ void EnemyZombieUpdate(struct EwramData_EntityData *entity)
                 } while (distance <= 0x200000);
                 child->posY.whole = entity->posY.whole;
                 child->scrollWithBg = 1;
-                child->unk_518.part8.spawnIndex = 0;
-                child->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
-                child->unk_514.part16.spawnParam1 = 0;
+                child->spawnIndex = 0;
+                child->enemyId = entity->enemyId;
+                child->spawnParam1 = 0;
                 child->drawFunc = (u32 *)Sprite_DrawEntity;
-                child->unk_518.part16.hp = sEnemyData[entity->unk_518.part8.enemyId].hp;
-                child->unk_510.part16.unk_512 = sEnemyData[entity->unk_518.part8.enemyId].unk_E;
+                child->hp = sEnemyData[entity->enemyId].hp;
+                child->mp = sEnemyData[entity->enemyId].mp;
                 child->updateFunc = entity->updateFunc;
                 EnemyZombieCreate(child);
                 child->ext.zombie.spawner = entity;

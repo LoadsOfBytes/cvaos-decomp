@@ -132,7 +132,7 @@ void SkillImpUse(struct EwramData_EntityData *entity)
         struct EwramData_EntityData *target = SKILL_IMP_TARGET(entity);
         s32 timer = entity->timer - 1;
         entity->timer = timer;
-        if ((s16)target->unk_518.part16.hp > 0 && (u8)timer != 0)
+        if ((s16)target->hp > 0 && (u8)timer != 0)
         {
             dist = Entity_StepTowardPoint(entity, target->posX.whole, target->posY.whole + SKILL_IMP_AIM_Y(entity), 4);
             if (entity->velX.whole >= 0)

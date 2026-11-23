@@ -54,7 +54,7 @@ void ManEaterProjectile_Update(struct EwramData_EntityData *entity)
     u32 box[4];
     s32 angle;
     struct EwramData_EntityData *effect;
-    if (entity->state != 0 && (s16)entity->unk_518.part16.hp != 0 && Entity_IsTimeStopped(entity))
+    if (entity->state != 0 && (s16)entity->hp != 0 && Entity_IsTimeStopped(entity))
     {
         Hit_CheckWithPlayer(box, entity);
         return;
@@ -66,7 +66,7 @@ void ManEaterProjectile_Update(struct EwramData_EntityData *entity)
         Anim_StartIndexed(entity, 5, 0, 0);
         entity->spriteLayer = 0x11;
         entity->scrollWithBg = 1;
-        entity->unk_518.part16.hp = 1;
+        entity->hp = 1;
         Hit_Enable(entity, 0xA, ManEaterProjectile_DamagePlayerOnContact, (s32)ManEaterProjectile_OnHit);
         HitBox_SetBodyRaw(entity, 0x0C0CFAFA);
         HitBox_SetAttackRaw(entity, 0x0C0CFAFA);
@@ -81,7 +81,7 @@ void ManEaterProjectile_Update(struct EwramData_EntityData *entity)
         EntityAccelerateAndMove(entity, 0x10000);
         Hit_CheckWithPlayer(box, entity);
         if (EntityIsOutsideScreen(entity, 3)) entity->state = 2;
-        if ((s16)entity->unk_518.part16.hp == 0)
+        if ((s16)entity->hp == 0)
         {
             effect = EntityCreateInRange(0x49, 0xCF, (u32 *)ManEaterProjectileBurst_Update);
             if (effect != NULL)

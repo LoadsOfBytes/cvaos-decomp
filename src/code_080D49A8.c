@@ -49,7 +49,7 @@ void GrahamFirstForm_UpdateTransition(struct EwramData_EntityData *entity)
             entity->timer = 0x40;
             break;
         case 3:
-            if (object != NULL && (!object->updateFunc || object->unk_518.part8.enemyId != 0x20))
+            if (object != NULL && (!object->updateFunc || object->enemyId != 0x20))
             {
                 entity->subState = 1;
                 entity->stage = 0;
@@ -85,8 +85,8 @@ void GrahamFirstForm_UpdateTransition(struct EwramData_EntityData *entity)
                 slot = ObjPalette_FindOrLoadVariant(palette, 6);
                 if (slot >= 0)
                 {
-                    entity->unk_510.part8.basePalette = slot;
-                    Sprite_Attach(entity, animation, graphics, entity->unk_510.part8.basePalette);
+                    entity->basePalette = slot;
+                    Sprite_Attach(entity, animation, graphics, entity->basePalette);
                     entity->drawFunc = (u32 *)Sprite_DrawEntity;
                 }
             }

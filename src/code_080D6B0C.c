@@ -20,7 +20,7 @@ extern void BossRecoveryPickupParticle_Update(struct EwramData_EntityData *);
 #define PHASE(e) (e->ext.bossPickup.phase)
 #define LANDED(e) (e->ext.bossPickup.landed)
 #define SCALE(e) (*(s32 *)&e->ext.bossPickup.scale)
-#define EVENT(e) ((e)->unk_514.part16.spawnParam0)
+#define EVENT(e) ((e)->spawnParam0)
 /**
  * @brief Reveal and grow the delayed pickup, emit particles, fall and
  * wait for player contact. Restore HP/MP and optional Julius stat

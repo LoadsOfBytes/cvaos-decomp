@@ -23,22 +23,22 @@ void MedusaHead_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hi
 {
     s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
 
-    entity->unk_510.part8.hitFlashTimer = 8;
+    entity->hitFlashTimer = 8;
     {
-        u16 hp = entity->unk_518.part16.hp;
+        u16 hp = entity->hp;
 
         // (s16)damage, written so that agbcc sign-extends after the HP load
         damage <<= 16;
         damage >>= 16;
-        entity->unk_518.part16.hp = hp - damage;
+        entity->hp = hp - damage;
     }
     Entity_ShowDamage(entity, damage, 0);
-    if ((s16)entity->unk_518.part16.hp <= 0)
+    if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
         PlaySong(0x72);
         Anim_StartIndexed(entity, 3, 0, 0);
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->timer = 0x28;
         entity->state = 2;
         entity->subState = 0;
@@ -47,7 +47,7 @@ void MedusaHead_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hi
 
 /**
  * @brief 93B68 | Load the graphics (sMedusaHeadGfx), palette 0 / 1 of
- * sMedusaHeadPalette by bit 0 of unk_516 and animation set sMedusaHeadSpriteSheet;
+ * sMedusaHeadPalette by bit 0 of spawnParam1 and animation set sMedusaHeadSpriteSheet;
  * returns 0 when ObjGfx_LoadResource fails.
  */
 s32 MedusaHead_LoadGraphics(struct EwramData_EntityData *entity)
@@ -57,11 +57,11 @@ s32 MedusaHead_LoadGraphics(struct EwramData_EntityData *entity)
     if (gfx < 0)
         return 0;
 
-    if (entity->unk_514.part16.spawnParam1 & 1)
-        entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sMedusaHeadPalette, 1);
+    if (entity->spawnParam1 & 1)
+        entity->basePalette = ObjPalette_FindOrLoadVariant(sMedusaHeadPalette, 1);
     else
-        entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sMedusaHeadPalette, 0);
-    Sprite_Attach(entity, sMedusaHeadSpriteSheet, gfx, entity->unk_510.part8.basePalette);
+        entity->basePalette = ObjPalette_FindOrLoadVariant(sMedusaHeadPalette, 0);
+    Sprite_Attach(entity, sMedusaHeadSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }

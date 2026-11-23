@@ -38,7 +38,7 @@ s32 Headhunter_UpdateIntro(struct EwramData_EntityData *entity);
 #define ACCEL_Y(e) ((e)->accelY.whole)
 #define FLASH(e)                                                          \
     if (Entity_GetVisibilityPattern((e)->timer)) (e)->palette = 4;                   \
-    else (e)->palette = (e)->unk_510.part8.basePalette;
+    else (e)->palette = (e)->basePalette;
 #define IN_BOX(e, dx, dy, w, h) \
     Target_IsInRect((e)->posX.part16.integer - (dx), (e)->posY.part16.integer - (dy), (w), (h))
 
@@ -87,7 +87,7 @@ void Headhunter_UpdateMovement(struct EwramData_EntityData *entity)
     case 2:
         if (entity->stage == 1)
         {
-            entity->palette = entity->unk_510.part8.basePalette;
+            entity->palette = entity->basePalette;
             entity->subState++;
         }
         if (entity->timer++ > 27)
@@ -208,7 +208,7 @@ void Headhunter_UpdateMovement(struct EwramData_EntityData *entity)
         if (entity->flipX) FLAGS(entity) |= 4;
         else FLAGS_S8(entity) &= ~4;
         entity->subState++;
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
     case 11:
         EntityAccelerateAndMove(entity, 0x10000);
         if (entity->posY.whole + camera->yPos.whole <= 0x6FFFFF)
@@ -336,7 +336,7 @@ void Headhunter_UpdateMovement(struct EwramData_EntityData *entity)
         entity->velX.whole = 0;
         entity->velY.whole = 0x10000;
         ACCEL_Y(entity) = 0x1000;
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->flipX = Entity_IsTargetRight(entity);
         if (entity->flipX) FLAGS(entity) |= 4;
         else FLAGS_S8(entity) &= ~4;
@@ -702,7 +702,7 @@ void Headhunter_UpdateMovement(struct EwramData_EntityData *entity)
 
 /* Boss intro: after 8 frames lock the room (stateFlags bits 0/1, HUD flag
  * startPauseEnabled off), walk the player to within 0x30 px of x 0x100 (only when
- * unk_514 is set), wait a second, play the intro voice and hand back
+ * spawnParam0 is set), wait a second, play the intro voice and hand back
  * control. Returns 1 when the intro is over. */
 /**
  * @brief Run the room intro and optional forced player positioning,
@@ -731,7 +731,7 @@ s32 Headhunter_UpdateIntro(struct EwramData_EntityData *entity)
         }
         break;
     case 2:
-        if (entity->unk_514.part16.spawnParam0 == 0)
+        if (entity->spawnParam0 == 0)
             INTRO_STEP(entity)++;
         else
         {

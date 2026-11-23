@@ -18,7 +18,7 @@ void GiantGhostAura_Update(struct EwramData_EntityData *entity)
     if (entity->state == 0)
     {
         s32 pulse;
-        if (!parent || !parent->updateFunc || parent->unk_518.part8.enemyId != 0x13) goto remove;
+        if (!parent || !parent->updateFunc || parent->enemyId != 0x13) goto remove;
         entity->hidden = parent->hidden;
         entity->palette = parent->palette;
         entity->flipX = parent->flipX;

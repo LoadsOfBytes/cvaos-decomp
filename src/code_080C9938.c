@@ -43,7 +43,7 @@ void LightningDoll_UpdateDeath(struct EwramData_EntityData *entity)
             PlaySong(0x6E);
             LightningDoll_SpawnDeathParts(entity);
             Enemy_DropRewards(entity);
-            entity->palette = entity->unk_510.part8.basePalette;
+            entity->palette = entity->basePalette;
             entity->state = 0xFF;
             entity->subState++;
         case 1:

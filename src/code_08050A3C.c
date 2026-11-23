@@ -20,7 +20,7 @@ extern void Sprite_GetPartOriginOffset(struct EwramData_EntityData *, s32, void 
  */
 void Object0E_SpawnPieces(struct EwramData_EntityData *owner)
 {
-    const struct PieceInfo *info = &sObject0EVariants[owner->unk_514.part16.spawnParam0];
+    const struct PieceInfo *info = &sObject0EVariants[owner->spawnParam0];
     const struct PieceGraphics *gfx = &sObject0EGraphics[info->graphics];
     s32 frame = info->firstFrame;
     s32 i;

@@ -74,13 +74,13 @@ void EnemyDevilCreate(struct EwramData_EntityData *entity)
         entity->ext.joint.pose = stopped;
     Enemy_ResetFromTemplate(entity);
     entity->spriteLayer = 4;
-    if (entity->unk_518.part8.enemyId == 0x30)
+    if (entity->enemyId == 0x30)
         frames = frames30;
-    else if (entity->unk_518.part8.enemyId == 0x68)
+    else if (entity->enemyId == 0x68)
         frames = frames68;
-    else if (entity->unk_518.part8.enemyId == 0x48)
+    else if (entity->enemyId == 0x48)
         frames = frames48;
-    else if (entity->unk_518.part8.enemyId == 0x66)
+    else if (entity->enemyId == 0x66)
         frames = frames66;
     for (i = 0; i <= 7; i++)
     {
@@ -92,9 +92,9 @@ void EnemyDevilCreate(struct EwramData_EntityData *entity)
                 part->spriteLayer = entity->spriteLayer + 1;
             else
                 part->spriteLayer = entity->spriteLayer - 1;
-            Sprite_Attach(part, sDevilSpriteSheet, ObjGfx_LoadResource(sDevilGfx, 0), entity->unk_510.part8.basePalette);
-            part->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
-            part->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
+            Sprite_Attach(part, sDevilSpriteSheet, ObjGfx_LoadResource(sDevilGfx, 0), entity->basePalette);
+            part->enemyId = entity->enemyId;
+            part->basePalette = entity->basePalette;
             part->scrollWithBg = 0;
             part->hidden = 0;
             part->attack = entity->attack;
@@ -141,13 +141,13 @@ void EnemyDevilCreate(struct EwramData_EntityData *entity)
         parts[index].offsetY = pose[index * 2 + 1] << 16;
         parts[index].rotationAngle = angles[index];
     }
-    if (entity->unk_518.part8.enemyId == 0x30)
+    if (entity->enemyId == 0x30)
         Anim_StartIndexed(entity, 10, 0, 1);
-    else if (entity->unk_518.part8.enemyId == 0x68)
+    else if (entity->enemyId == 0x68)
         Anim_StartIndexed(entity, 10, 0, 1);
-    else if (entity->unk_518.part8.enemyId == 0x48)
+    else if (entity->enemyId == 0x48)
         Anim_StartIndexed(entity, 2, 0, 1);
-    else if (entity->unk_518.part8.enemyId == 0x66)
+    else if (entity->enemyId == 0x66)
         Anim_StartIndexed(entity, 6, 0, 1);
     Anim_Update(entity);
     frozen = *((u8 *)gEwramData + 0x8E) & 0x40;

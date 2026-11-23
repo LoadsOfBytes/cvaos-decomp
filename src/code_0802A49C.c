@@ -142,7 +142,7 @@ void SkillGhostSpiritUpdate(struct EwramData_EntityData *entity)
         entity->velY.whole = FixedMul(Sin(SKILL_GHOST_HEADING(entity)), entity->ext.skillHoming.speed);
         EntityAccelerateAndMove(entity, 0x80000);
         entity->timer--;
-        if ((s16)target->unk_518.part16.hp <= 0 || (u8)entity->ext.redSoul.hit != 0 || entity->timer == 0)
+        if ((s16)target->hp <= 0 || (u8)entity->ext.redSoul.hit != 0 || entity->timer == 0)
             entity->state = 4;
         break;
     }

@@ -6,16 +6,16 @@
 
 void Object0ACreate(struct EwramData_EntityData *entity)
 {
-    if (((gEwramData->gameState.bossEventFlags >> entity->unk_514.part16.spawnParam1) & 1) == 0)
+    if (((gEwramData->gameState.bossEventFlags >> entity->spawnParam1) & 1) == 0)
         EntityDelete(entity);
     else
     {
         struct EntityTemplate *entry;
-        entity->unk_518.part8.enemyId = entity->unk_514.part16.spawnParam0;
-        entry = (struct EntityTemplate *)(entity->unk_518.part8.enemyId * sizeof(*entry) + (u32)sEnemyData);
-        entity->unk_518.part16.hp = entry->hp;
-        entity->unk_514.part16.spawnParam0 = 0;
-        entity->unk_514.part16.spawnParam1 = 0;
+        entity->enemyId = entity->spawnParam0;
+        entry = (struct EntityTemplate *)(entity->enemyId * sizeof(*entry) + (u32)sEnemyData);
+        entity->hp = entry->hp;
+        entity->spawnParam0 = 0;
+        entity->spawnParam1 = 0;
         entity->updateFunc = entry->updateFunc;
         entry->createFunc(entity);
     }
@@ -27,16 +27,16 @@ void Object0AUpdate(struct EwramData_EntityData *entity)
 
 void Object0BCreate(struct EwramData_EntityData *entity)
 {
-    if (!GameFlag_GetMask(entity->unk_514.part16.spawnParam1))
+    if (!GameFlag_GetMask(entity->spawnParam1))
         EntityDelete(entity);
     else
     {
         struct EntityTemplate *entry;
-        entity->unk_518.part8.enemyId = entity->unk_514.part16.spawnParam0;
-        entry = (struct EntityTemplate *)(entity->unk_518.part8.enemyId * sizeof(*entry) + (u32)sEnemyData);
-        entity->unk_518.part16.hp = entry->hp;
-        entity->unk_514.part16.spawnParam0 = 0;
-        entity->unk_514.part16.spawnParam1 = 0;
+        entity->enemyId = entity->spawnParam0;
+        entry = (struct EntityTemplate *)(entity->enemyId * sizeof(*entry) + (u32)sEnemyData);
+        entity->hp = entry->hp;
+        entity->spawnParam0 = 0;
+        entity->spawnParam1 = 0;
         entity->updateFunc = entry->updateFunc;
         entry->createFunc(entity);
     }

@@ -31,7 +31,7 @@ void MandragoraPart_Update(struct EwramData_EntityData *entity)
             if(entity->subState==0)
             {
                 FLAGS(owner)|=2;
-                entity->unk_518.part16.hp=owner->unk_518.part16.hp;
+                entity->hp=owner->hp;
                 if(entity->animScriptIndex!=3)
                     Anim_StartIndexed(entity,3,0,1);
                 entity->state++;

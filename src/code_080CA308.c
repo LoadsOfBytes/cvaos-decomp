@@ -38,7 +38,7 @@ void RedCrow_UpdateDeath(struct EwramData_EntityData *entity)
             entity->velX.whole = 0;
             entity->accelY.whole = 0;
             entity->velY.whole = 0x8000;
-            entity->palette = entity->unk_510.part8.basePalette;
+            entity->palette = entity->basePalette;
             entity->timer = 0x40;
             entity->subState = 1;
             entity->stage = 0;
@@ -80,10 +80,10 @@ void RedCrow_SpawnDeathParts(struct EwramData_EntityData *entity)
         }
         child->spriteLayer = entity->spriteLayer - 1;
         child->scrollWithBg = 1;
-        Sprite_Attach(child, sBlueCrowRedCrowSpriteSheet, ObjGfx_Find(sBlueCrowRedCrowGfx), entity->unk_510.part8.basePalette);
+        Sprite_Attach(child, sBlueCrowRedCrowSpriteSheet, ObjGfx_Find(sBlueCrowRedCrowGfx), entity->basePalette);
         child->animFrame = 8;
         child->drawFunc = (u32 *)Sprite_DrawEntity;
-        child->unk_514.part16.spawnParam0 = i;
+        child->spawnParam0 = i;
     }
 }
 
@@ -100,7 +100,7 @@ void RedCrowDeathPart_Update(struct EwramData_EntityData *entity)
             entity->velX.whole = 0x4000;
             entity->velY.whole = 0x2000;
             entity->accelX.whole = -0x300;
-            if (entity->unk_514.part16.spawnParam0 != 0)
+            if (entity->spawnParam0 != 0)
             {
                 entity->velX.whole = -entity->velX.whole;
                 entity->accelX.whole = -entity->accelX.whole;

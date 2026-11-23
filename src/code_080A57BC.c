@@ -54,11 +54,11 @@ void Chaos2_CreateSnake(struct EwramData_EntityData *core, s32 x, s32 y)
         head->posY.whole = core->posY.whole + y;
         head->spriteLayer = 0x1E;
         graphics = data->graphics;
-        head->unk_510.part8.basePalette = data->palette2;
-        Sprite_Attach(head, sChaos2SpriteSheet, graphics, head->unk_510.part8.basePalette);
+        head->basePalette = data->palette2;
+        Sprite_Attach(head, sChaos2SpriteSheet, graphics, head->basePalette);
         head->animFrame = 0xB;
         head->animMode = 2;
-        head->unk_518.part8.enemyId = core->unk_518.part8.enemyId;
+        head->enemyId = core->enemyId;
         head->ext.chaosChild.link = core;
         head->scrollWithBg = 0;
         head->attack = 0x55;
@@ -99,10 +99,10 @@ void Chaos2_CreateSnake(struct EwramData_EntityData *core, s32 x, s32 y)
             if (seg == NULL)
                 goto fail;
             seg->spriteLayer = head->spriteLayer + 1;
-            Sprite_Attach(seg, sChaos2SpriteSheet, data->graphics, head->unk_510.part8.basePalette);
+            Sprite_Attach(seg, sChaos2SpriteSheet, data->graphics, head->basePalette);
             Chaos2SnakeSegment_EnableHitBoxes(seg);
-            seg->unk_518.part8.enemyId = head->unk_518.part8.enemyId;
-            seg->unk_510.part8.basePalette = head->unk_510.part8.basePalette;
+            seg->enemyId = head->enemyId;
+            seg->basePalette = head->basePalette;
             seg->scrollWithBg = 0;
             seg->spriteLayer = head->spriteLayer + 1;
             seg->drawFunc = (u32 *)Sprite_DrawEntity;

@@ -4,7 +4,7 @@
 #include "structs/ewram.h"
 
 /**
- * @brief Init of event scene variant 22 (Object 0x20 unk_514 = 22,
+ * @brief Init of event scene variant 22 (Object 0x20 spawnParam0 = 22,
  * sEventSceneCreateFuncs[22]). Same as EventScene13_Init.
  */
 void EventScene22_Init(void)

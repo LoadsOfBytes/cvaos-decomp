@@ -33,9 +33,9 @@ void BomberRockArmor_UpdateWalk(struct EwramData_EntityData *entity)
         u8 phase;
         s32 speed;
         s32 collision;
-        if (*(u16 *)&entity->animStep == 9 && entity->unk_514.part16.spawnParam0 != 0)
+        if (*(u16 *)&entity->animStep == 9 && entity->spawnParam0 != 0)
         {
-            if (entity->timer++ > entity->unk_514.part16.spawnParam0)
+            if (entity->timer++ > entity->spawnParam0)
             {
                 entity->timer = state;
                 entity->flipX ^= 1;
@@ -45,7 +45,7 @@ void BomberRockArmor_UpdateWalk(struct EwramData_EntityData *entity)
         speed = Speed(phase, 0x2000);
         if (phase > 3) speed = 0;
         collision = Entity_Walk(entity, speed, sBomberRockArmorWalkProfile, 0x14);
-        if (entity->unk_514.part16.spawnParam0 == 0 && (collision & 0x1B) != 8)
+        if (entity->spawnParam0 == 0 && (collision & 0x1B) != 8)
             entity->flipX ^= 1;
         if (entity->animTimer != 0) return;
         if (entity->animStep == 9 && CanAttack(entity, 99))
@@ -83,7 +83,7 @@ void BomberArmor_UpdateAttack(struct EwramData_EntityData *entity)
                 child->posX.whole = entity->posX.whole;
                 child->posY.whole = entity->posY.whole;
                 child->flipX = entity->flipX;
-                child->unk_518.part16.hp = entity->unk_518.part16.hp;
+                child->hp = entity->hp;
                 child->attack = entity->attack;
             }
         }

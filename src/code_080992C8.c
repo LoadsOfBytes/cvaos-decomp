@@ -36,7 +36,7 @@ void Mimic_SpawnTrigger(struct EwramData_EntityData *owner, s32 x, s32 y)
     child->hit.flags &= ~4;
     child->hit.flags |= 2;
     child->ext.mimicTrigger.owner = owner;
-    child->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
+    child->enemyId = owner->enemyId;
     child->scrollWithBg = 1;
     child->drawFunc = (u32 *)PickupSource_Draw;
 }

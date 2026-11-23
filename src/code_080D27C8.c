@@ -25,7 +25,7 @@ void Graham_UpdatePhaseMonitor(struct EwramData_EntityData *entity)
             }
             break;
         case 1:
-            if(child->unk_518.part8.enemyId==entity->unk_518.part8.enemyId && child && (child->enemyFlags & 2))
+            if(child->enemyId==entity->enemyId && child && (child->enemyFlags & 2))
             {
                 Enemy_DropRewards(entity);
                 entity->state=0xF0;

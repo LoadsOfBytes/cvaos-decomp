@@ -6,7 +6,7 @@ extern s32 GameFlag_GetMask(s32 flag);
 extern s32 Entity_SetupFromObjectTable(struct EwramData_EntityData *entity, s32 kind);
 
 /**
- * @brief Init of event scene variant 10 (Object 0x20 unk_514 = 10,
+ * @brief Init of event scene variant 10 (Object 0x20 spawnParam0 = 10,
  * sEventSceneCreateFuncs[10]). Set up a cutscene object: only when event flag
  * 0x27 is not set, bossEventFlags bit 6 is set and the player is left of x =
  * 0x80; clears the HBlank buffer and faces the object towards the

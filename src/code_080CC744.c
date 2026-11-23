@@ -20,9 +20,9 @@ void Bael_CreateHead(struct EwramData_EntityData *entity)
         ENTITY_PARENT_INDEX(child) = ENTITY_INDEX(entity);
         ENTITY_PARENT_INDEX(entity) = ENTITY_INDEX(child);
         child->spriteLayer = entity->spriteLayer - 1;
-        child->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
+        child->basePalette = entity->basePalette;
         child->flipX = entity->flipX;
-        Sprite_Attach(child, sBaelBuerSpriteSheet, Sprite_GetTileSlot(entity), child->unk_510.part8.basePalette);
+        Sprite_Attach(child, sBaelBuerSpriteSheet, Sprite_GetTileSlot(entity), child->basePalette);
         child->animFrame = 1;
         child->scrollWithBg = 1;
         child->drawFunc = (u32 *)Sprite_DrawEntity;

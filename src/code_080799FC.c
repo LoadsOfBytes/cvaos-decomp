@@ -46,9 +46,9 @@ void EnemyArachneCreate(struct EwramData_EntityData *entity)
         else
             leg->spriteLayer = entity->spriteLayer - 1;
         tiles = ObjGfx_Find(sArachneGfx);
-        Sprite_Attach(leg, sArachneSpriteSheet, tiles, entity->unk_510.part8.basePalette);
-        leg->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
-        leg->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
+        Sprite_Attach(leg, sArachneSpriteSheet, tiles, entity->basePalette);
+        leg->enemyId = entity->enemyId;
+        leg->basePalette = entity->basePalette;
         leg->scrollWithBg = 0;
         leg->drawFunc = (u32 *)Sprite_DrawEntity;
         ENTITY_OWNER(leg) = entity;

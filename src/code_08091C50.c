@@ -27,8 +27,8 @@ void DevilProjectile_Spawn(struct EwramData_EntityData *owner, s32 x, s32 y, s32
         part->ext.devilProjectile.offsetY = y;
         part->spriteLayer = owner->spriteLayer - 2;
         graphics = ObjGfx_Find(sDevilGfx);
-        part->unk_510.part8.basePalette = owner->unk_510.part8.basePalette;
-        Sprite_Attach(part, sDevilSpriteSheet, graphics, part->unk_510.part8.basePalette);
+        part->basePalette = owner->basePalette;
+        Sprite_Attach(part, sDevilSpriteSheet, graphics, part->basePalette);
         Anim_StartIndexed(part, 1, 0, 1);
         Anim_Update(part);
         Hit_Enable(part, 8, DevilProjectile_DamagePlayerOnContact, 0);
@@ -37,7 +37,7 @@ void DevilProjectile_Spawn(struct EwramData_EntityData *owner, s32 x, s32 y, s32
         part->hit.flags &= ~2;
         part->timer = timer;
         part->ext.devilProjectile.release = 0;
-        part->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
+        part->enemyId = owner->enemyId;
         part->attack = owner->attack;
         part->ext.devilProjectile.owner = owner;
         part->scrollWithBg = 0;

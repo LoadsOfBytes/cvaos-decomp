@@ -9,7 +9,8 @@ extern void SaveSparkle_SpawnAround(struct EwramData_EntityData *, s32, s32);
 
 /**
  * @brief Spiral outwards, then orbit inwards onto the player; tell the owner
- * (unk_517, unk_516) when each phase ends. Emits sparkles.
+ * (SAVE_POINT_LIGHTS_OUT_DONE, SAVE_POINT_LIGHTS_IN_DONE) when each phase
+ * ends. Emits sparkles.
  */
 void SavePoint_UpdateOrbitLight(struct EwramData_EntityData *entity)
 {
@@ -40,14 +41,14 @@ void SavePoint_UpdateOrbitLight(struct EwramData_EntityData *entity)
             step = ((u32)entity->ext.savePointLight.phase >> 16) * 3;
         entity->ext.savePointLight.radius = rad + (step << 13);
         entity->ext.savePointLight.phase += 0x10000;
-        entity->unk_510.whole += 0x800;
+        SAVE_POINT_LIGHT_SPIN(entity) += 0x800;
         if (*(vs32 *)&entity->ext.savePointLight.radius > 0xFFFFFF)
         {
             entity->state++;
             entity->timer = 2;
             entity->spriteLayer = 9;
             entity->ext.savePointLight.radius = 0x1000000;
-            owner->unk_514.part8.unk_517 = 1;
+            SAVE_POINT_LIGHTS_OUT_DONE(owner) = 1;
             entity->ext.savePointLight.phase = 0;
         }
         break;
@@ -65,7 +66,7 @@ void SavePoint_UpdateOrbitLight(struct EwramData_EntityData *entity)
         entity->ext.savePointLight.phase += 0x200;
         if (entity->ext.savePointLight.radius <= 0)
         {
-            entity->ext.savePointPart.owner->unk_514.part8.unk_516 = state;
+            SAVE_POINT_LIGHTS_IN_DONE(entity->ext.savePointPart.owner) = state;
             entity->deleteRequested = 1;
         }
         break;

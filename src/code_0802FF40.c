@@ -10,15 +10,15 @@ extern s32 BlueSoul_CheckEndCondition(struct EwramData_EntityData *entity);
 extern void BlueSoul_ReleaseActiveResources(struct EwramData_EntityData *entity);
 extern void SkillBuerOrbitUpdate(struct EwramData_EntityData *entity);
 
-#define SIZE(e) (*(s32 *)&(e)->unk_514)
+#define SIZE(e) (*(s32 *)&(e)->spawnParam0)
 
 /**
  * @brief 2FF40 | Buer blue soul (ends via BlueSoul_CheckEndCondition): Hit_SetTimerOverride(2,
  * 0x18), skillBaseAttack/skillAttackAttributes = 12 / 2, two orbiting children SkillBuerOrbitUpdate (angles
  * 0 and 0x8000, speed 0x200 against the caster's facing), songs 0x1A5 and
  * 0x92; follows the caster with a vertical offset (velY) moving towards
- * -20 px, or -8 px while the caster has unk_4F4 bit 10, while unk_514
- * counts up to 28; on ending unk_514 counts down by 2 per frame, then
+ * -20 px, or -8 px while the caster has unk_4F4 bit 10, while spawnParam0
+ * counts up to 28; on ending spawnParam0 counts down by 2 per frame, then
  * BlueSoul_ReleaseActiveResources and delete.
  */
 void SkillBuerUse(struct EwramData_EntityData *entity)

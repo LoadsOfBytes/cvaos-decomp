@@ -15,13 +15,13 @@ extern s32 Entity_SteerToPoint(struct EwramData_EntityData *, const void *);
 extern s32 BaloreHand_UpdateSwipe(struct EwramData_EntityData *);
 extern s32 BaloreHand_UpdateDive(struct EwramData_EntityData *);
 
-/* The two low bytes of unk_51C: animation byte and flag byte. */
+/* The two low bytes of enemyStatus: animation byte and flag byte. */
 struct HandBytes
 {
     u8 anim;
     u8 flags;
 };
-#define FLAGS(e) (((struct HandBytes *)&(e)->unk_51C)->flags)
+#define FLAGS(e) (((struct HandBytes *)&(e)->enemyStatus)->flags)
 #define ANIM(e) (BALORE_HAND_ANIM((e)))
 
 /* State byte stores through a plain u8 pointer: a struct-member store is
@@ -60,8 +60,8 @@ void BaloreHand_Update(struct EwramData_EntityData *entity)
         entity->affine = 1;
         entity->spriteLayer = 0x1A;
         entity->ext.baloreHand.steer = (s32)Heap_Alloc(7);
-        entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sBalorePalette, 15);
-        Sprite_Attach(entity, sBaloreSpriteSheet, (s8)body->ext.balore.gfx, entity->unk_510.part8.basePalette);
+        entity->basePalette = ObjPalette_FindOrLoadVariant(sBalorePalette, 15);
+        Sprite_Attach(entity, sBaloreSpriteSheet, (s8)body->ext.balore.gfx, entity->basePalette);
         Anim_StartIndexed(entity, 0x2D, 2, 0);
         Anim_Update(entity);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
@@ -91,7 +91,7 @@ void BaloreHand_Update(struct EwramData_EntityData *entity)
     }
     case 3:
         FLAGS(entity) |= 4;
-        *(s32 *)&entity->unk_514 = 0x40000;
+        *(s32 *)&entity->spawnParam0 = 0x40000;
         entity->state = 4;
     case 4:
         if (Entity_SteerToPoint(entity, sBaloreHandSteeringParams1))
@@ -128,11 +128,11 @@ void BaloreHand_Update(struct EwramData_EntityData *entity)
         entity->state = 8;
         entity->subState = 0;
     case 8:
-        *(s32 *)&entity->unk_514 = 0x40000;
+        *(s32 *)&entity->spawnParam0 = 0x40000;
         if (entity->timer != 0)
         {
             entity->timer--;
-            pal = entity->unk_510.part8.basePalette;
+            pal = entity->basePalette;
             level = 15 - (*(volatile u8 *)&entity->timer >> 1); /* FAKEMATCH: volatile read forces the reload of the original */
             index = pal - 10;
             if (gEwramData->gameState.sharedObjPaletteVariants[index] != level)
@@ -163,7 +163,7 @@ void BaloreHand_Update(struct EwramData_EntityData *entity)
             entity->hidden = 0;
             {
                 /* the zero for subState is set up right after the address */
-                u8 *anim = (u8 *)&entity->unk_51C;
+                u8 *anim = (u8 *)&entity->enemyStatus;
                 u8 zero = 0;
 
                 *anim = 0x30;

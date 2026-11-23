@@ -6,7 +6,7 @@ extern const s32 sUnk_0852559C[];
 
 /**
  * @brief 4F160 | Floating background particle: state 0 loads graphics and
- * palette for kind unk_514 (0 or 2; deleteRequested on failure) and starts
+ * palette for kind spawnParam0 (0 or 2; deleteRequested on failure) and starts
  * animation unk_500 at a random frame; state 1 drifts on a sine path
  * (kind 3 uses a second angle unk_4FC), scrolls against the camera
  * velocity scaled by sUnk_0852559C[kind] and wraps around the screen
@@ -24,7 +24,7 @@ void BgParticle_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if (entity->unk_514.part16.spawnParam0 == 0)
+        if (entity->spawnParam0 == 0)
         {
             gfx = ObjGfx_LoadResource((u8 *)0x081CBE5C, 0);
             if (gfx < 0)
@@ -34,7 +34,7 @@ void BgParticle_Update(struct EwramData_EntityData *entity)
                 goto fail;
             Sprite_Attach(entity, (void *)0x0820FE44, gfx, pal);
         }
-        else if (entity->unk_514.part16.spawnParam0 == 2)
+        else if (entity->spawnParam0 == 2)
         {
             gfx = ObjGfx_LoadResource((u8 *)0x081CBEB4, 0);
             if (gfx < 0 || (pal = ObjPalette_FindOrLoad((void *)0x0820A100)) < 0)

@@ -13,12 +13,12 @@ u8 EnemyChaos2Create(struct EwramData_EntityData *entity)
     if (graphics < 0)
         return 0;
     {
-        entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sChaosPalette, 0);
+        entity->basePalette = ObjPalette_FindOrLoadVariant(sChaosPalette, 0);
         data->graphics = graphics;
         data->palette = ObjPalette_FindOrLoadVariant(sChaosPalette, 2);
         data->palette2 = ObjPalette_FindOrLoadVariant(sChaosPalette, 3);
         Chaos_StartPaletteSequence(entity, (s32)sChaos2PaletteSequence0);
-        Sprite_Attach(entity, sChaos2SpriteSheet, graphics, entity->unk_510.part8.basePalette);
+        Sprite_Attach(entity, sChaos2SpriteSheet, graphics, entity->basePalette);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         return 1;
     }

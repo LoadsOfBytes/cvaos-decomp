@@ -3,7 +3,7 @@
 #include "structs/ewram.h"
 
 /* HUD HP number: the smoothed HUD HP value last shown. Token-identical. */
-#define HUD_HP_SHOWN(e) e->unk_510.whole
+#define HUD_HP_SHOWN(e) ENTITY_WORD_510(e)
 extern void NumberIndicator_Format(struct EwramData_EntityData *, s32);
 extern u8 sCommonObjectGfx[];
 extern u8 sCommonObjectSpriteSheet[];

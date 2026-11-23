@@ -34,7 +34,7 @@ void EnemyBuerCreate(struct EwramData_EntityData *entity)
     entity->scrollWithBg = 1;
     entity->ext.wheel.speed = 0x8000;
     entity->accelY.whole = 0x4000;
-    if (entity->unk_514.part16.spawnParam0 == 0) SetState(entity, 0, 1);
+    if (entity->spawnParam0 == 0) SetState(entity, 0, 1);
     else SetState(entity, 0, 2);
     Buer_CreateHead(entity);
     Buer_AllocateAffine(entity);

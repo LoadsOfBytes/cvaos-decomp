@@ -38,14 +38,14 @@ struct EwramData_EntityData *Belmont_CreateSubweapon(struct EwramData_EntityData
         EntityDelete(weapon);
         return NULL;
     }
-    weapon->unk_510.part8.basePalette=kind;
+    weapon->basePalette=kind;
     ENTITY_PARENT_INDEX(weapon)=ENTITY_INDEX(entity);
     weapon->spriteLayer=entity->spriteLayer-1;
     weapon->flipX=entity->flipX;
     weapon->posX.whole=entity->posX.whole;
     weapon->posY.whole=entity->posY.whole;
     weapon->scrollWithBg=1;
-    weapon->animFrame=weapon->unk_510.part8.basePalette;
+    weapon->animFrame=weapon->basePalette;
     weapon->hidden=1;
     if(kind==0 || kind==2)
     {

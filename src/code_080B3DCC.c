@@ -13,14 +13,14 @@ void HeadStack_Update(struct EwramData_EntityData *entity)
     u8 *slot;
     s32 i;
 
-    if (!Entity_IsInRect(entity, -32, -32, 0x130, (u16)(entity->unk_514.part16.spawnParam0 * 32 + 0xE0)))
+    if (!Entity_IsInRect(entity, -32, -32, 0x130, (u16)(entity->spawnParam0 * 32 + 0xE0)))
     {
         entity->ext.headStack.onScreen = 0;
         return;
     }
     entity->ext.headStack.onScreen = 1;
-    slot = (entity->unk_514.part16.spawnParam0 + entity->ext.headStack.slots) - 1;
-    for (i = entity->unk_514.part16.spawnParam0; i > 0; slot--, i--)
+    slot = (entity->spawnParam0 + entity->ext.headStack.slots) - 1;
+    for (i = entity->spawnParam0; i > 0; slot--, i--)
     {
         if (*slot != 0)
         {

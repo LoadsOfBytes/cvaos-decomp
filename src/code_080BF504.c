@@ -14,7 +14,7 @@ void DeathFloatingWeapon_OnHit(struct EwramData_EntityData *entity, s32 attacker
     if (Enemy_TakeDamage(entity, attacker, hit))
     {
         entity->enemyFlags |= 2;
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
     }
 }
 
@@ -23,7 +23,7 @@ void DeathFloatingWeapon_OnHit(struct EwramData_EntityData *entity, s32 attacker
  */
 void DeathBlade_OnHit(struct EwramData_EntityData *entity)
 {
-    entity->unk_518.part16.hp = 0;
+    entity->hp = 0;
 }
 
 /**
@@ -70,6 +70,6 @@ void DeathFloatingWeaponHitBox_OnHit(struct EwramData_EntityData *entity, s32 at
     if (Enemy_TakeDamage(weapon, attacker, hit))
     {
         weapon->enemyFlags |= 2;
-        weapon->palette = weapon->unk_510.part8.basePalette;
+        weapon->palette = weapon->basePalette;
     }
 }

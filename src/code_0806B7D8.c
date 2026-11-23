@@ -110,12 +110,12 @@ static inline u16 ResolveDamage(struct EwramData_EntityData *entity, s32 damage,
                 return 0;
             if (ENEMY_STATUS(entity) & 0x800)
             {
-                s16 old = entity->unk_518.part16.hp;
+                s16 old = entity->hp;
                 s16 delta;
 
-                entity->unk_518.part16.hp = entity->unk_510.part16.unk_512;
-                entity->unk_510.part16.unk_512 = old;
-                delta = (s16)entity->unk_518.part16.hp - old;
+                entity->hp = entity->mp;
+                entity->mp = old;
+                delta = (s16)entity->hp - old;
                 if (delta >= 0)
                     Entity_ShowDamage(entity, delta, 1);
                 else
@@ -128,7 +128,7 @@ static inline u16 ResolveDamage(struct EwramData_EntityData *entity, s32 damage,
             }
         }
         if (weakness & 0x80)
-            damage += (s16)entity->unk_518.part16.hp >> 2;
+            damage += (s16)entity->hp >> 2;
         weakness &= 0x3F;
         if (weakness)
         {
@@ -168,7 +168,7 @@ s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, struct EwramData_Enti
     u16 effect = 0;
     s32 damage;
 
-    damage = ResolveDamage(entity, inputDamage, hit[0], &effect, 0, 0, &sEnemyData[entity->unk_518.part8.enemyId]);
+    damage = ResolveDamage(entity, inputDamage, hit[0], &effect, 0, 0, &sEnemyData[entity->enemyId]);
     PlaySong(sHitEffects[effect].song);
     damage = ((damage - (entity->defense >> 1)) * (256 - entity->defense)) >> 8;
     if (damage <= 0)

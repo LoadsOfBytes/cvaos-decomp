@@ -70,6 +70,7 @@ union EwramData_unk4FC {
     struct EwramData_unk4FC_16 part16;
     struct EwramData_unk4FC_8 part8;
     u8 bytes[4];
+    struct { s16 low; u16 high; } halves;
 };
 
 struct EwramData_unk500_8 {
@@ -271,24 +272,6 @@ union EwramData_unk508 {
     struct EwramData_unk508_8 part8;
 };
 
-struct EwramData_unk514_8 {
-    u8 unk_514;
-    u8 unk_515;
-    u8 unk_516;
-    u8 unk_517;
-};
-
-struct EwramData_unk514_16 {
-    s16 spawnParam0; /* RoomEntityRecord.spawnParam0 (Room entity spawner); code-spawned entities reuse it (variant, event, type) */
-    s16 spawnParam1; /* RoomEntityRecord.spawnParam1; also reused per entity type (index, count, item id) */
-}; 
-
-union EwramData_unk514 {
-    struct EwramData_unk514_8 part8;
-    struct EwramData_unk514_16 part16;
-    struct EwramData_EntityData *unk_514_32;
-};
-
 struct EwramData_unk4F4_8 {
     u8 unk_4F4;
     u8 unk_4F5;
@@ -369,24 +352,6 @@ union EwramData_unk50C {
     struct EwramData_unk50C_8 part8;
 };
 
-struct EwramData_unk510_8 {
-    u8 basePalette; /* palette slot restored after flashes (entity->palette = basePalette), copied to child parts */
-    u8 hitFlashTimer; /* enemies: set to 8 on damage, Enemy_UpdateHitFlash alternates palette 4 / basePalette while it counts down */
-    u8 unk_512;
-    u8 unk_513;
-};
-
-struct EwramData_unk510_16 {
-    s16 unk_510;
-    s16 unk_512;
-}; 
-
-union EwramData_unk510 {
-    s32 whole;
-    struct EwramData_unk510_8 part8;
-    struct EwramData_unk510_16 part16;
-};
-
 struct EntityAccelX8 {
     u8 fraction0;
     u8 fraction1;
@@ -421,24 +386,6 @@ union EntityAccelY {
     s32 whole;
     struct EntityAccelY8 part8;
     struct EntityAccelY16 part16;
-};
-
-struct EwramData_unk518_8 {
-    u8 unk_518;
-    u8 unk_519;
-    u8 enemyId; /* index into sEnemyData, copied from the owner to its parts */
-    u8 spawnIndex; /* RoomEntityRecord.spawnIndex, copied to parts/projectiles; some types reuse it (tile, event) */
-};
-
-struct EwramData_unk518_16 {
-    u16 hp; /* enemy HP (sEnemyData[enemyId].hp); other entity types reuse it (e.g. an angle) */
-    u16 unk_51A;
-}; 
-
-union EwramData_unk518 {
-    s32 whole;
-    struct EwramData_unk518_8 part8;
-    struct EwramData_unk518_16 part16;
 };
 
 /*
@@ -890,7 +837,8 @@ union EntityWork {
  * its drawFunc when it is in the draw list (drawNext/drawPrev, head
  * gEwramData->drawListHead; 0xFF = end, 0xFE = not linked). state, subState,
  * stage and timer are the generic state machine variables of the update
- * functions; the unions unk_4F4..unk_518 are per-entity-type variables.
+ * functions; ext (0x4F4..0x50F) holds per-entity-type variables, and the
+ * common block 0x510..0x51F holds palette, spawn and enemy data.
  */
 struct EwramData_EntityData {
     /* 0x004E4 */ u32 *updateFunc; // TODO: function signature
@@ -904,10 +852,18 @@ struct EwramData_EntityData {
     /* 0x004F2 */ u8 drawSkipCounter; /* see drawSkip */
     /* 0x004F3 */ u8 drawSkip; /* nonzero: Sprite_Draw draws every (drawSkip + 1)-th frame */
     /* 0x004F4 */ union EntityWork ext; /* per-entity-type work area 0x4F4..0x50F */
-    /* 0x00510 */ union EwramData_unk510 unk_510;
-    /* 0x00514 */ union EwramData_unk514 unk_514;
-    /* 0x00518 */ union EwramData_unk518 unk_518;
-    /* 0x0051C */ s32 unk_51C; // affine angle accumulator (EventScene30Effect_UpdateSpinning / EventScene30Effect_UpdateSpinningKeepSlot)
+    /* Common block 0x510..0x51B. Enemies use it as listed; other entity types
+     * reuse the same bytes for their own data through the ENTITY_* views
+     * below the struct. */
+    /* 0x00510 */ u8 basePalette; /* palette slot restored after flashes (entity->palette = basePalette), copied to child parts */
+    /* 0x00511 */ u8 hitFlashTimer; /* enemies: set to 8 on damage, Enemy_UpdateHitFlash alternates palette 4 / basePalette while it counts down */
+    /* 0x00512 */ s16 mp; /* enemy MP (sEnemyData[enemyId].mp); status 0x800 swaps it with hp; soul skills reuse it as a turn / spin speed */
+    /* 0x00514 */ s16 spawnParam0; /* RoomEntityRecord.spawnParam0 (Room entity spawner); code-spawned entities reuse it (variant, event, type) */
+    /* 0x00516 */ s16 spawnParam1; /* RoomEntityRecord.spawnParam1; also reused per entity type (index, count, item id) */
+    /* 0x00518 */ u16 hp; /* enemy HP (sEnemyData[enemyId].hp); other entity types reuse it (e.g. an angle) */
+    /* 0x0051A */ u8 enemyId; /* index into sEnemyData, copied from the owner to its parts */
+    /* 0x0051B */ u8 spawnIndex; /* RoomEntityRecord.spawnIndex, copied to parts/projectiles; some types reuse it (tile, event) */
+    /* 0x0051C */ s32 enemyStatus; /* enemies: status word in the low half (ENEMY_STATUS, enemy_status.h); other types reuse it (bytes, an affine angle accumulator in EventScene30Effect_UpdateSpinning) */
     /* 0x00520 */ u8 attack; /* contact attack strength, passed to Player_ApplyContactDamage */
     /* 0x00521 */ u8 defense; // active damage-mitigation byte used by Hit_ResolveDamage, not padding
     /* 0x00522 */ u8 enemyFlags; /* bit 0: HUD name consumed/suppressed; bit 1: skips drops/collision; bit 2: force player target */
@@ -962,6 +918,32 @@ struct BgMapMetadata {
     u8 *collisionData; // optional tile collision flags/resource, used by BG1
     u16 *blockMap; // 4x4-tile block indices with horizontal/vertical flip bits
 };
+
+/*
+ * Other views of the common block 0x510..0x51B, used by entity types that
+ * keep their own data there instead of palette / spawn / enemy data.
+ */
+union EntityCommonView {
+    s32 word;
+    s16 half;
+    u16 uhalf;
+    struct EwramData_EntityData *ptr;
+    u8 bytes[4];
+    struct { s16 low; u16 high; } halves;
+};
+#define ENTITY_COMMON_VIEW(e, member) ((union EntityCommonView *)&(e)->member)
+#define ENTITY_WORD_510(e) (ENTITY_COMMON_VIEW(e, basePalette)->word)
+#define ENTITY_HALF_510(e) (ENTITY_COMMON_VIEW(e, basePalette)->half)
+#define ENTITY_PTR_514(e) (ENTITY_COMMON_VIEW(e, spawnParam0)->ptr)
+#define ENTITY_WORD_514(e) (ENTITY_COMMON_VIEW(e, spawnParam0)->word)
+#define ENTITY_BYTE_514(e) (ENTITY_COMMON_VIEW(e, spawnParam0)->bytes[0])
+#define ENTITY_BYTE_515(e) (ENTITY_COMMON_VIEW(e, spawnParam0)->bytes[1])
+#define ENTITY_BYTE_516(e) (ENTITY_COMMON_VIEW(e, spawnParam0)->bytes[2])
+#define ENTITY_BYTE_517(e) (ENTITY_COMMON_VIEW(e, spawnParam0)->bytes[3])
+#define ENTITY_WORD_518(e) (ENTITY_COMMON_VIEW(e, hp)->word)
+#define ENTITY_BYTE_518(e) (ENTITY_COMMON_VIEW(e, hp)->bytes[0])
+#define ENTITY_BYTE_519(e) (ENTITY_COMMON_VIEW(e, hp)->bytes[1])
+#define ENTITY_HALF_51A(e) (ENTITY_COMMON_VIEW(e, hp)->halves.high)
 
 struct CameraFrac8 {
     u8 fraction0;

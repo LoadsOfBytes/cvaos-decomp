@@ -58,7 +58,7 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
                 entity->velX.whole = -0x20000;
             break;
         }
-        if (entity->unk_518.part8.enemyId != 0x54)
+        if (entity->enemyId != 0x54)
             break;
         if (Target_IsInRect(entity->posX.part16.integer - 0x3C, entity->posY.part16.integer - 0x78, 0x78, 0x6E))
         {
@@ -93,7 +93,7 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
             if (Dist(entity) <= 0xC)
                 goto close;
             entity->subState = 3;
-            if (entity->unk_518.part8.enemyId == 0x4B)
+            if (entity->enemyId == 0x4B)
             {
                 if (RandomNumberGenerator() % 3)
                     Anim_StartIndexed(entity, 3, 0, 0);
@@ -135,7 +135,7 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
             s32 hop = HOP_FLAG;
             if (hop != 0)
             {
-                if (entity->unk_518.part8.enemyId == 0x4B)
+                if (entity->enemyId == 0x4B)
                 {
                     entity->subState = 5;
                     entity->timer = 0;
@@ -187,7 +187,7 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
     case 5:
         if (entity->timer++ > 7)
         {
-            if (entity->unk_518.part8.enemyId == 0x4B)
+            if (entity->enemyId == 0x4B)
             {
                 if (ROLL == 0 && !(RandomNumberGenerator() & 3))
                 {

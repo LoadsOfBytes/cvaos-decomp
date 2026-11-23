@@ -99,7 +99,7 @@ void Harpy_UpdateAttack(struct EwramData_EntityData *entity)
         case 10:
             if(FRAME_PAIR(entity)==1 && ++entity->timer>3)
             {
-                if(entity->unk_518.part8.enemyId==56)
+                if(entity->enemyId==56)
                 {
                     Harpy_ThrowFeather(entity,0);
                     Harpy_ThrowFeather(entity,2);
@@ -117,7 +117,7 @@ void Harpy_UpdateAttack(struct EwramData_EntityData *entity)
         case 11:
             if(FRAME_PAIR(entity)==1)
             {
-                if(entity->unk_518.part8.enemyId==56)
+                if(entity->enemyId==56)
                 {
                     Harpy_ThrowFeather(entity,1);
                     Harpy_ThrowFeather(entity,3);

@@ -30,7 +30,7 @@ void WaiterSkeletonThrownTray_Update(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *parent = entity->ext.waiterTray.owner;
     u16 box[8];
     s16 offset[2];
-    if (entity->state != 5 && (s16)entity->unk_518.part16.hp <= 0)
+    if (entity->state != 5 && (s16)entity->hp <= 0)
         entity->state = 5;
     if (entity->state <= 2 && ((u8)ENTITY_INDEX(entity) != (u8)ENTITY_INDEX(parent) || parent->state == 5)) {
         entity->hidden = 0;

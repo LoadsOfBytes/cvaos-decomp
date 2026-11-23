@@ -29,7 +29,7 @@ void SoulPickup_SpawnFromEnemyDefinition(u16 x, u16 y, s32 enemyId, s32 spawnPar
 
         if (pickup != NULL)
         {
-            pickup->unk_514.part16.spawnParam0 = spawnParam;
+            pickup->spawnParam0 = spawnParam;
             pickup->subState = 2;
         }
     }

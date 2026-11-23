@@ -23,10 +23,10 @@ void EventScene03_SpawnUnusedPartDebris(struct EwramData_EntityData *owner)
             info = sEventScene03UnusedDebris + offset;
             ENTITY_PARENT_INDEX(part) = ENTITY_INDEX(owner);
             part->spriteLayer = owner->spriteLayer;
-            part->unk_510.part8.basePalette = owner->unk_510.part8.basePalette;
+            part->basePalette = owner->basePalette;
             part->flipX = owner->flipX;
             graphics = Sprite_GetTileSlot(owner);
-            Sprite_Attach(part, sSkeletonSpriteSheet, graphics, part->unk_510.part8.basePalette);
+            Sprite_Attach(part, sSkeletonSpriteSheet, graphics, part->basePalette);
             part->scrollWithBg = 1;
             part->drawFunc = (u32 *)Sprite_DrawEntity;
             part->posX.whole = owner->posX.whole;

@@ -15,7 +15,7 @@ extern void EntityUpdateNothing(void);
 /**
  * @brief 7427C | Une create: deleted when Une_LoadGraphics fails; frozen time
  * (bestiaryPreview) gives state 4 with animation 3; otherwise Entity_EnableBoxes
- * callbacks, and when unk_516 is set (also after Entity_SnapToGround) it becomes
+ * callbacks, and when spawnParam1 is set (also after Entity_SnapToGround) it becomes
  * the waiting state 3 hidden and without boxes, creating a child Une of
  * the same template that it counts in unk_4FC (child unk_500 = 1); else
  * state 0 with timer 60. accelY = 0x2800.
@@ -40,10 +40,10 @@ void EnemyUneCreate(struct EwramData_EntityData *entity)
         return;
     }
     Entity_EnableBoxes(entity, Une_DamagePlayerOnContact, Une_OnHit);
-    if (entity->unk_514.part16.spawnParam1 != 0)
+    if (entity->spawnParam1 != 0)
     {
         Entity_SnapToGround(entity);
-        if (entity->unk_514.part16.spawnParam1 != 0)
+        if (entity->spawnParam1 != 0)
         {
             entity->state = 3;
             entity->hidden = 1;
@@ -55,13 +55,13 @@ void EnemyUneCreate(struct EwramData_EntityData *entity)
                 child->posX.whole = entity->posX.whole;
                 child->posY.whole = entity->posY.whole;
                 child->scrollWithBg = 1;
-                child->unk_518.part8.spawnIndex = 0;
-                child->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
-                child->unk_514.part16.spawnParam0 = 0;
-                child->unk_514.part16.spawnParam1 = 0;
+                child->spawnIndex = 0;
+                child->enemyId = entity->enemyId;
+                child->spawnParam0 = 0;
+                child->spawnParam1 = 0;
                 child->drawFunc = (u32 *)Sprite_DrawEntity;
-                child->unk_518.part16.hp = sEnemyData[entity->unk_518.part8.enemyId].hp;
-                child->unk_510.part16.unk_512 = sEnemyData[entity->unk_518.part8.enemyId].unk_E;
+                child->hp = sEnemyData[entity->enemyId].hp;
+                child->mp = sEnemyData[entity->enemyId].mp;
                 child->updateFunc = entity->updateFunc;
                 EnemyUneCreate(child);
                 child->accelY.whole = 0x2800;

@@ -11,8 +11,9 @@
  * - hits: hits taken since the last reaction (reacts after 3);
  * - weapon index: entity index of his attached weapon;
  * - power step: counter of the powered phase.
- * The macros expand to the original member chains without added parentheses
- * (token-identical preprocessed code); use them with a plain base expression.
+ * The macros expand to member chains or to the ENTITY_* views of the common
+ * block (structs/ewram.h) without added parentheses; use them with a plain
+ * base expression.
  */
 
 /* Scene object (Belmont_CreateSceneObject / _UpdateIntro / _UpdateSceneBoundary): its entity index. */
@@ -21,7 +22,7 @@
  * Subweapons 2 / 3 (BelmontSubweapon2_Update / 3_Update): 16.16 walk speed
  * of the ground flame, stored in the pointer-typed slot (NULL = stopped).
  */
-#define BELMONT_SUBWEAPON_SPEED(e) e->unk_514.unk_514_32
+#define BELMONT_SUBWEAPON_SPEED(e) ENTITY_PTR_514(e)
 
 /* Power particles (Belmont_CreatePowerParticle, BelmontPowerParticle_Update):
  * step (set to the powered phase state by Belmont_UpdatePoweredPhase). */

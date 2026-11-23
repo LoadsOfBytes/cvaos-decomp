@@ -134,7 +134,7 @@ void CreakingSkull_UpdateMovement(struct EwramData_EntityData *entity)
             CreakingSkull_AttachJointSetAngle(entity, 2, 1, 0x1D000, 0x1C0000);
             break;
         }
-        if (entity->unk_518.part8.enemyId == 0x21 && (RandomNumberGenerator2() & 0x7F) <= 0x1F)
+        if (entity->enemyId == 0x21 && (RandomNumberGenerator2() & 0x7F) <= 0x1F)
         { ATTACK(20) break; }
         DISTANCE()
         if (distance <= 99)
@@ -177,7 +177,7 @@ void CreakingSkull_UpdateMovement(struct EwramData_EntityData *entity)
             CreakingSkull_AttachJointSetAngle(entity, 2, 1, 0x1D000, 0x1C0000);
             break;
         }
-        if (entity->unk_518.part8.enemyId == 0x21 && (RandomNumberGenerator2() & 0x7F) <= 0x1F)
+        if (entity->enemyId == 0x21 && (RandomNumberGenerator2() & 0x7F) <= 0x1F)
         { ATTACK(20) break; }
         DISTANCE()
         if (distance <= 99)
@@ -219,7 +219,7 @@ void CreakingSkull_UpdateMovement(struct EwramData_EntityData *entity)
         }
         if ((RandomNumberGenerator2() & 0x7F) <= 0x3F)
         { DISTANCE() if (distance <= 99) { ATTACK(0) break; } }
-        else if ((RandomNumberGenerator2() & 0x7F) <= 0x1F && entity->unk_518.part8.enemyId == 0x21)
+        else if ((RandomNumberGenerator2() & 0x7F) <= 0x1F && entity->enemyId == 0x21)
         { ATTACK(20) break; }
         CreakingSkull_FaceTarget(entity);
         TIMER = times0[entity->ext.creakingSkull.variant]; PHASE = 4; FRAME = 8;
@@ -254,7 +254,7 @@ void CreakingSkull_UpdateMovement(struct EwramData_EntityData *entity)
         }
         if ((RandomNumberGenerator2() & 0x7F) <= 0x3F)
         { DISTANCE() if (distance <= 99) { ATTACK(0) break; } }
-        else if ((RandomNumberGenerator2() & 0x7F) <= 0x1F && entity->unk_518.part8.enemyId == 0x21)
+        else if ((RandomNumberGenerator2() & 0x7F) <= 0x1F && entity->enemyId == 0x21)
         { ATTACK(20) break; }
         CreakingSkull_FaceTarget(entity);
         FORWARD()

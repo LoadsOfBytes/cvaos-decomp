@@ -13,7 +13,7 @@ static inline void Emerge(struct EwramData_EntityData *entity)
 }
 /**
  * @brief Walk state machine (state 0): wait under the ground until the target is
- * in the 120 x 80 box (or as configured by unk_516), emerge, then alternate
+ * in the 120 x 80 box (or as configured by spawnParam1), emerge, then alternate
  * walking toward the target with the mud-throw attack (state 1).
  */
 void Mudman_UpdateWalk(struct EwramData_EntityData *entity)
@@ -25,7 +25,7 @@ void Mudman_UpdateWalk(struct EwramData_EntityData *entity)
         {
             s32 mode;
             entity->flipX = Entity_IsTargetRight(entity);
-            mode = entity->unk_514.part16.spawnParam1;
+            mode = entity->spawnParam1;
             if (mode == 0)
             {
                 if (Target_IsInRect((s16)(entity->posX.part16.integer - 60),
@@ -41,7 +41,7 @@ void Mudman_UpdateWalk(struct EwramData_EntityData *entity)
                 if (Target_IsInRect((s16)x, (s16)(entity->posY.part16.integer - 40), 60, 80))
                 {
                     Emerge(entity);
-                    entity->unk_514.part16.spawnParam1 = substate;
+                    entity->spawnParam1 = substate;
                 }
             }
         }

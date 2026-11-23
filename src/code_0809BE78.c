@@ -16,14 +16,14 @@ void StolasCastEffect_Update(struct EwramData_EntityData *entity)
     u8 unused[16];
     struct EwramData_EntityData *owner = entity->ext.stolasEffect.owner;
 
-    if (owner == NULL || owner->updateFunc == NULL || owner->unk_518.part8.enemyId != 0x61)
+    if (owner == NULL || owner->updateFunc == NULL || owner->enemyId != 0x61)
         goto free;
     if (entity->state == 0)
     {
         if (owner->palette == 4)
             entity->palette = 4;
         else
-            entity->palette = entity->unk_510.part8.basePalette;
+            entity->palette = entity->basePalette;
         if (entity->timer > 0xE)
         {
             if (entity->flipX)

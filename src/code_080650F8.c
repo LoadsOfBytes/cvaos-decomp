@@ -119,7 +119,7 @@ void EventScene30_UpdateUnusedZoom(struct EwramData_EntityData *entity)
         break;
     case 8:
         BgPalette_LoadRange(sEventScene30TransformationPalette,9,1,0);
-        ObjPalette_LoadRange(sEventScene30Palette,1,1,entity->unk_510.part8.basePalette);
+        ObjPalette_LoadRange(sEventScene30Palette,1,1,entity->basePalette);
         for(line=0;line<160;line++)
         {
             src.texX=0x8000;src.texY=0x8000;

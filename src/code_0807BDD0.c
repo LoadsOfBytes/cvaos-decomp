@@ -15,8 +15,8 @@ u8 Persephone_LoadGraphics(struct EwramData_EntityData *entity)
     u16 x, y;
     s32 room;
     if (graphics < 0) return 0;
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sPersephonePalette, 0);
-    Sprite_Attach(entity, sPersephoneSpriteSheet, graphics, entity->unk_510.part8.basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sPersephonePalette, 0);
+    Sprite_Attach(entity, sPersephoneSpriteSheet, graphics, entity->basePalette);
     x = GetEntityRoomXPositionInteger(entity);
     y = GetEntityRoomYPositionInteger(entity);
     room = GetRoomFromMapPosition((s16)x, (s16)y);

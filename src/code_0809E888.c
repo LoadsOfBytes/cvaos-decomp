@@ -36,7 +36,7 @@ void LegionCorePart_Update(struct EwramData_EntityData *entity)
 
     if (entity->state <= 9)
     {
-        if (owner == NULL || owner->updateFunc == NULL || owner->unk_518.part8.enemyId != entity->unk_518.part8.enemyId)
+        if (owner == NULL || owner->updateFunc == NULL || owner->enemyId != entity->enemyId)
             return;
         if (FRAME == 3)
         {
@@ -164,10 +164,10 @@ void LegionCorePart_Update(struct EwramData_EntityData *entity)
         {
             entity->state = 0xB;
             entity->subState = 0;
-            entity->unk_518.part16.hp = 0;
-            entity->palette = entity->unk_510.part8.basePalette;
+            entity->hp = 0;
+            entity->palette = entity->basePalette;
             entity->timer = 0x3C;
-            entity->unk_510.part8.hitFlashTimer = 0;
+            entity->hitFlashTimer = 0;
         }
         if (FRAME == 0)
         {

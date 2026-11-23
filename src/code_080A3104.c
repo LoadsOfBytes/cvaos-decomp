@@ -50,15 +50,15 @@ void ChaosOrb_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
     s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
 
-    entity->unk_510.part8.hitFlashTimer = 8;
+    entity->hitFlashTimer = 8;
     damage <<= 16;
     damage >>= 16;
     Entity_ShowDamage(entity, damage, 0);
-    if ((s16)(entity->unk_518.part16.hp -= damage) <= 0)
+    if ((s16)(entity->hp -= damage) <= 0)
     {
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->timer = 40;
-        entity->unk_510.part8.hitFlashTimer = 0;
+        entity->hitFlashTimer = 0;
         entity->state = 10;
         entity->subState = 0;
         entity->stage = 0;
@@ -80,11 +80,11 @@ void ChaosOrb_CreateShellPiece(struct EwramData_EntityData *orb, s32 frame, s32 
         piece->posY.part16.integer = 0xFF80;
         piece->spriteLayer = orb->spriteLayer;
         graphics = data->graphics;
-        piece->unk_510.part8.basePalette = data->palette;
-        Sprite_Attach(piece, sChaosSpriteSheet, graphics, piece->unk_510.part8.basePalette);
+        piece->basePalette = data->palette;
+        Sprite_Attach(piece, sChaosSpriteSheet, graphics, piece->basePalette);
         piece->animMode = 2;
         piece->animFrame = frame + 3;
-        piece->unk_518.part8.enemyId = orb->unk_518.part8.enemyId;
+        piece->enemyId = orb->enemyId;
         piece->ext.chaosChild.link = orb;
         piece->scrollWithBg = 0;
         piece->timer = timer;
@@ -101,7 +101,7 @@ void ChaosShellPiece_Update(struct EwramData_EntityData *entity)
     if (entity->state == 0)
     {
         if (orb == NULL || orb->updateFunc == NULL
-            || orb->unk_518.part8.enemyId != entity->unk_518.part8.enemyId)
+            || orb->enemyId != entity->enemyId)
             return;
         entity->posX.whole = orb->posX.whole;
         entity->posY.whole = orb->posY.whole;
@@ -141,8 +141,8 @@ void ChaosOrb_SpawnSeedShot(struct EwramData_EntityData *orb, s32 x, s32 y, s32 
         OFFSET_Y(shot) = y;
         shot->spriteLayer = orb->spriteLayer - 1;
         graphics = data->graphics;
-        shot->unk_510.part8.basePalette = data->palette2;
-        Sprite_Attach(shot, sChaosSpriteSheet, graphics, shot->unk_510.part8.basePalette);
+        shot->basePalette = data->palette2;
+        Sprite_Attach(shot, sChaosSpriteSheet, graphics, shot->basePalette);
         Anim_StartIndexed(shot, 4, 2, 0);
         Anim_Update(shot);
         Hit_Enable(shot, 8, ChaosSeedShot_DamagePlayerOnContact, (s32)ChaosSeedShot_OnHit);
@@ -150,7 +150,7 @@ void ChaosOrb_SpawnSeedShot(struct EwramData_EntityData *orb, s32 x, s32 y, s32 
         HitBox_SetAttack(shot, &box);
         shot->hit.flags &= ~4;
         shot->hit.flags &= ~2;
-        shot->unk_518.part8.enemyId = orb->unk_518.part8.enemyId;
+        shot->enemyId = orb->enemyId;
         shot->ext.chaosChild.link = orb;
         shot->scrollWithBg = 0;
         shot->timer = delay;

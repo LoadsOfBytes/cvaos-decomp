@@ -35,7 +35,7 @@ s32 Belmont_CreateAttachedWeapon(struct EwramData_EntityData *entity)
             weapon->scrollWithBg=1;
             weapon->hidden=1;
             weapon->attack=75;
-            weapon->unk_518.part8.enemyId=entity->unk_518.part8.enemyId;
+            weapon->enemyId=entity->enemyId;
             Entity_EnableBoxes(weapon,Enemy_OnContact,0);
             return 1;
     }

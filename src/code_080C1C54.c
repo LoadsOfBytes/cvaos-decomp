@@ -20,9 +20,9 @@ u8 Altair_LoadGraphics(struct EwramData_EntityData *entity)
         graphics = ObjGfx_LoadResource(graphicsData, 0);
         if (graphics < 0) goto fail;
     }
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoad(palette);
-    if (entity->unk_510.part8.basePalette == 0xFF) goto fail;
-    Sprite_Attach(entity, sprite, graphics, entity->unk_510.part8.basePalette);
+    entity->basePalette = ObjPalette_FindOrLoad(palette);
+    if (entity->basePalette == 0xFF) goto fail;
+    Sprite_Attach(entity, sprite, graphics, entity->basePalette);
     Anim_StartIndexed(entity, 0, 0, 1);
     Anim_Update(entity);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;

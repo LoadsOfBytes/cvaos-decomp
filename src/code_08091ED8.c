@@ -202,18 +202,18 @@ void Devil_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 }
 
 /**
- * @brief 920D8 | Subtract damage from the HP in unk_518; at 0 die (state 2,
+ * @brief 920D8 | Subtract damage from the HP in hp; at 0 die (state 2,
  * sound 0x72, 0x28 frames).
  */
 void Devil_OnDamaged(struct EwramData_EntityData *entity, s32 attacker, u16 *hit, s32 damage)
 {
-    entity->unk_510.part8.hitFlashTimer = 8;
-    entity->unk_518.part16.hp -= damage;
-    if ((s16)entity->unk_518.part16.hp <= 0)
+    entity->hitFlashTimer = 8;
+    entity->hp -= damage;
+    if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
         PlaySong(0x72);
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->timer = 0x28;
         entity->state = 2;
         entity->subState = 0;

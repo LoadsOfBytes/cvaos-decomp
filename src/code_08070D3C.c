@@ -26,7 +26,7 @@ void EnemyMermanCreate(struct EwramData_EntityData *entity)
     }
     Entity_EnableBoxes(entity, Enemy_DamagePlayerOnContact, Merman_OnHit);
     {
-        s32 mode = entity->unk_514.part16.spawnParam1;
+        s32 mode = entity->spawnParam1;
         if (mode != 0)
         {
             entity->state = 3;
@@ -40,7 +40,7 @@ void EnemyMermanCreate(struct EwramData_EntityData *entity)
         {
             entity->state = mode;
             entity->timer = 60;
-            if (entity->unk_514.part16.spawnParam0 == 0)
+            if (entity->spawnParam0 == 0)
             {
                 Entity_SnapToGround(entity);
                 entity->subState = 10;

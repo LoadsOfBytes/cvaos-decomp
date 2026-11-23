@@ -13,6 +13,8 @@ extern void BaloreSpark_Update(struct EwramData_EntityData *entity);
 extern struct EwramData_EntityData *Entity_CreateObject(void *update);
 
 #define F32(e, field) (*(s32 *)&(e)->field)
+/* Angle step of the sweep per frame (16-bit angle, sign by facing). */
+#define SWEEP_SPEED(e) ENTITY_WORD_514(e)
 
 static inline struct EwramData_EntityData *SpawnAtEntity(void *update, struct EwramData_EntityData *entity)
 {
@@ -56,8 +58,8 @@ void BaloreEmitter_Update(struct EwramData_EntityData *entity)
         entity->affineIndex = slot;
         entity->affine = 1;
         entity->spriteLayer = 0x14;
-        entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant((void *)0x0820B92C, 0x10);
-        Sprite_Attach(entity, (void *)0x08244220, BALORE_GFX_BYTE(parent), entity->unk_510.part8.basePalette);
+        entity->basePalette = ObjPalette_FindOrLoadVariant((void *)0x0820B92C, 0x10);
+        Sprite_Attach(entity, (void *)0x08244220, BALORE_GFX_BYTE(parent), entity->basePalette);
         entity->drawFunc = (u32 *)BaloreEmitter_Draw;
         Anim_StartIndexed(entity, 0x32, 2, 0);
         Anim_Update(entity);
@@ -68,12 +70,12 @@ void BaloreEmitter_Update(struct EwramData_EntityData *entity)
         if (!entity->flipX)
         {
             F32(entity, ext.raw.unk_504) = 0x7800;
-            F32(entity, unk_514) = -0x1C0;
+            SWEEP_SPEED(entity) = -0x1C0;
         }
         else
         {
             F32(entity, ext.raw.unk_504) = 0x800;
-            F32(entity, unk_514) = 0x1C0;
+            SWEEP_SPEED(entity) = 0x1C0;
         }
         Sound_PlayTracked(0x66);
         entity->state = 1;
@@ -94,7 +96,7 @@ void BaloreEmitter_Update(struct EwramData_EntityData *entity)
             }
         }
         F32(entity, ext.raw.unk_508) = Sin(entity->timer << 9);
-        F32(entity, ext.raw.unk_504) += F32(entity, unk_514);
+        F32(entity, ext.raw.unk_504) += SWEEP_SPEED(entity);
         if (entity->timer != 0)
         {
             entity->timer--;
@@ -126,8 +128,8 @@ void BaloreEmitter_Update(struct EwramData_EntityData *entity)
     }
     v = Sin(F32(entity, ext.raw.unk_504) + 0x4000) << 5;
     F32(entity, ext.raw.unk_50C) = v;
-    F32(entity, unk_510) = Sin(F32(entity, ext.raw.unk_504)) << 5;
+    BALORE_EMITTER_STEP_Y(entity) = Sin(F32(entity, ext.raw.unk_504)) << 5;
     F32(entity, ext.raw.unk_50C) = F32(entity, ext.raw.unk_50C) / 0x10800 * scale;
-    F32(entity, unk_510) = F32(entity, unk_510) / 0x10800 * scale;
+    BALORE_EMITTER_STEP_Y(entity) = BALORE_EMITTER_STEP_Y(entity) / 0x10800 * scale;
     ObjAffine_Set(F32(entity, ext.raw.unk_504), scale, F32(entity, ext.raw.unk_508), 0, 0, entity->affineIndex);
 }

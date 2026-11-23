@@ -92,8 +92,8 @@ u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *
     paletteIndex = ObjPalette_FindOrLoadVariant(palette, variant);
     if ((s8)paletteIndex < 0)
         return 0;
-    entity->unk_510.part8.basePalette = paletteIndex;
-    Sprite_Attach(entity, sheet, gfx, entity->unk_510.part8.basePalette);
+    entity->basePalette = paletteIndex;
+    Sprite_Attach(entity, sheet, gfx, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }

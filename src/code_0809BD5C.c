@@ -24,15 +24,15 @@ void Stolas_SpawnCastEffect(struct EwramData_EntityData *entity, s32 dx, s32 dy)
     tiles = ObjGfx_Find(sStolasGfx);
     if (tiles < 0)
         goto delete;
-    Sprite_Attach(child, sStolasSpriteSheet, tiles, entity->unk_510.part8.basePalette);
+    Sprite_Attach(child, sStolasSpriteSheet, tiles, entity->basePalette);
     child->animFrame = 0xC;
     child->drawFunc = (u32 *)Sprite_DrawEntity;
     child->hit.flags |= 4;
     child->hit.flags |= 2;
     child->scrollWithBg = 1;
     child->spriteLayer = entity->spriteLayer - 1;
-    child->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
-    child->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
+    child->basePalette = entity->basePalette;
+    child->enemyId = entity->enemyId;
     child->ext.stolasEffect.owner = entity;
     child->flipX = entity->flipX;
     child->posX.whole = entity->posX.whole + dx;

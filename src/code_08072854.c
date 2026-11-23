@@ -16,7 +16,7 @@ extern void Manticore_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 extern void Manticore_OnHit(struct EwramData_EntityData *entity);
 
 /**
- * @brief 72854 | Manticore create: the boss version (unk_514) is deleted
+ * @brief 72854 | Manticore create: the boss version (spawnParam0) is deleted
  * once beaten (bossEventFlags bit 10) unless in the boss rush mode bossRushMode,
  * where it gets +1000 HP and +20 to attack; palette 0x11; the tail head
  * Manticore_CreateTailTip (unk_4F8) and six segments Manticore_CreateTailSegment linked through
@@ -29,7 +29,7 @@ void EnemyManticoreCreate(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *seg[6];
     s32 i;
 
-    if (entity->unk_514.part16.spawnParam0 != 0 && !gEwramData->gameState.bossRushMode
+    if (entity->spawnParam0 != 0 && !gEwramData->gameState.bossRushMode
         && (gEwramData->gameState.bossEventFlags & 0x400))
         goto delete;
     if ((u8)Manticore_LoadGraphics(entity) == 0)
@@ -40,7 +40,7 @@ void EnemyManticoreCreate(struct EwramData_EntityData *entity)
     entity->spriteLayer = 0x11;
     if (gEwramData->gameState.bossRushMode)
     {
-        entity->unk_518.part16.hp += 1000;
+        entity->hp += 1000;
         entity->attack += 20;
     }
     if (gEwramData->gameState.bestiaryPreview)
@@ -76,7 +76,7 @@ void EnemyManticoreCreate(struct EwramData_EntityData *entity)
         return;
     }
     entity->state = 0;
-    if (entity->unk_514.part16.spawnParam0 != 0)
+    if (entity->spawnParam0 != 0)
     {
         Music_SetCurrent(0x10);
         Player_SetSelectedTarget(entity);

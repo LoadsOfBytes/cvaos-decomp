@@ -20,8 +20,8 @@ void Biphron_SpawnDebris(struct EwramData_EntityData *parent, s32 x, s32 y, s32 
         effect->timer = 0;
         effect->ext.particle.flags = mode;
         slot = ObjGfx_Find(sBiphronGfx);
-        effect->unk_510.part8.basePalette = parent->unk_510.part8.basePalette;
-        Sprite_Attach(effect, sBiphronSpriteSheet, slot, effect->unk_510.part8.basePalette);
+        effect->basePalette = parent->basePalette;
+        Sprite_Attach(effect, sBiphronSpriteSheet, slot, effect->basePalette);
         Anim_StartIndexed(effect, 4, 0, 0);
         Anim_Update(effect);
         effect->scrollWithBg = 1;

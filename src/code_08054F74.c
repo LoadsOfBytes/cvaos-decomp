@@ -48,7 +48,7 @@ s32 SavePoint_SpawnOrbitLights(struct EwramData_EntityData *parent)
         entity->ext.savePointLight.index = i;
         entity->ext.savePointLight.radius = 0x80000;
         entity->ext.savePointLight.phase = 0;
-        entity->unk_510.whole = 0;
+        SAVE_POINT_LIGHT_SPIN(entity) = 0;
         entity->state = 0;
         entity->timer = 2;
         AssignPalette(entity, parent);

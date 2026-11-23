@@ -34,7 +34,7 @@ void GrahamFirstForm_Update(struct EwramData_EntityData *entity)
                         Anim_StartIndexed(entity,0,0,1);
                     if(entity->ext.graham.flags & 2)
                     {
-                        entity->unk_518.part16.hp=1500;
+                        entity->hp=1500;
                         entity->subState+=2;
                         entity->stage=0;
                     }

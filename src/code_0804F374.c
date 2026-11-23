@@ -7,7 +7,7 @@ extern void BgParticle_Update(struct EwramData_EntityData *entity);
 extern const s32 sBgParticleCounts[];
 
 /**
- * @brief 4F374 | Spawn sBgParticleCounts[unk_516] particles of four sizes with
+ * @brief 4F374 | Spawn sBgParticleCounts[spawnParam1] particles of four sizes with
  * random positions and velocities (size 3 is placed relative to the scroll).
  * Returns no value; r0 is left as the original leaves it.
  */
@@ -16,7 +16,7 @@ s32 BgParticle_SpawnAll(struct EwramData_EntityData *owner)
     s32 i;
     struct EwramData_EntityData *entity;
 
-    for (i = 0; i < sBgParticleCounts[owner->unk_514.part16.spawnParam1]; i++)
+    for (i = 0; i < sBgParticleCounts[owner->spawnParam1]; i++)
     {
                 entity = EntityCreateInRange(0x49, 0xCF, (u32 *)BgParticle_Update);
         if (!entity)

@@ -197,10 +197,9 @@ void Devil_UpdateApproach(struct EwramData_EntityData *entity)
     case 11:
     {
         s32 r = Entity_GetVisibilityPattern(entity->timer);
-        register u8 one asm("r3") = 1; /* FAKEMATCH: pinned register; constant shared with the unk_50A store */
 
-        entity->hidden = r ^ one;
-        entity->ext.devil.intangible = one;
+        entity->hidden = r ^ 1;
+        entity->ext.devil.intangible = 1;
     }
         if ((s8)--entity->timer > 0)
             break;

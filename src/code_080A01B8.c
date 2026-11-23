@@ -33,7 +33,7 @@ void EnemyKyomaDemonCreate(struct EwramData_EntityData *entity)
     entity->ext.kyomaDemon.lurkTimer = random;
     entity->ext.kyomaDemon.homeX = entity->posX.part16.integer + camera->xPos.part16.integer;
     entity->ext.kyomaDemon.homeY = entity->posY.part16.integer + camera->yPos.part16.integer;
-    if (entity->unk_514.part16.spawnParam0 != 0)
+    if (entity->spawnParam0 != 0)
     {
         entity->state = 2;
         entity->subState = 1;

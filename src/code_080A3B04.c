@@ -39,7 +39,7 @@ void ChaosSoulShot_Update(struct EwramData_EntityData *entity)
     if (state == 0)
     {
         if (orb == NULL || orb->updateFunc == NULL
-            || orb->unk_518.part8.enemyId != entity->unk_518.part8.enemyId)
+            || orb->enemyId != entity->enemyId)
             return;
         if (entity->stage == 0)
         {
@@ -100,7 +100,7 @@ void ChaosSoulShot_Update(struct EwramData_EntityData *entity)
             entity->posX.whole = 0x800000 - camera->xPos.whole;
             entity->posY.whole = -0x300000;
             entity->timer = 30;
-            entity->unk_518.part16.hp = 0;
+            entity->hp = 0;
         }
         else
             Hit_CheckWithPlayer(collision, entity);

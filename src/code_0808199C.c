@@ -61,7 +61,7 @@ void Golem_SpawnIdleEffect(struct EwramData_EntityData *owner, s32 x, s32 y)
         debris->posY.whole = owner->posY.whole + y;
         debris->spriteLayer = owner->spriteLayer - 1;
         graphics = ObjGfx_Find(sGolemGfxEnemy50);
-        Sprite_Attach(debris, sGolemSpriteSheet, graphics, owner->unk_510.part8.basePalette);
+        Sprite_Attach(debris, sGolemSpriteSheet, graphics, owner->basePalette);
         Anim_StartIndexed(debris, 0, 0, 0);
         Anim_Update(debris);
         debris->flipX = owner->flipX;

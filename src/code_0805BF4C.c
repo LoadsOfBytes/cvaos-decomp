@@ -8,7 +8,7 @@
 extern s32 Entity_SetupFromObjectTable(struct EwramData_EntityData *entity, s32 kind);
 
 /**
- * @brief Init of event scene variant 29 (Object 0x20 unk_514 = 29,
+ * @brief Init of event scene variant 29 (Object 0x20 spawnParam0 = 29,
  * sEventSceneCreateFuncs[29]). Scene object setup (only while stateFlags bit 15 is
  * set): place it at room (0x40, 0xBF) facing right, put the player 0x18
  * px to its right, set stateFlags bit 0, fade palettes and clear BG VRAM,

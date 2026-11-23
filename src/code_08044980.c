@@ -20,8 +20,8 @@ struct EwramData_EntityData *SoulPickup_CreateContainer(s32 x, s32 y, s32 varian
         struct EwramData_EntityData *child;
         entity->scrollWithBg = 1;
         entity->spriteLayer = 0x13;
-        entity->unk_518.part8.enemyId = variant;
-        entity->unk_514.part16.spawnParam1 = index;
+        entity->enemyId = variant;
+        entity->spawnParam1 = index;
         graphics = ObjGfx_Find(sCommonObjectGfx);
         Sprite_Attach(entity, sCommonObjectSpriteSheet, graphics, 8);
         Anim_StartIndexed(entity, 0x13, 0, 1);

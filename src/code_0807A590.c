@@ -24,7 +24,7 @@ void ArachneLegs_Update(struct EwramData_EntityData *entity)
     memcpy(frames,sArachneLegsFrames,36);
     if(entity->state==0)
     {
-        if(!owner || !owner->updateFunc || owner->unk_518.part8.enemyId!=23) goto fail;
+        if(!owner || !owner->updateFunc || owner->enemyId!=23) goto fail;
         entity->hidden=owner->hidden;
         entity->palette=owner->palette;
         entity->flipX=owner->flipX;

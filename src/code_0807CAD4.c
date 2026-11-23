@@ -22,7 +22,7 @@ void AluraUneThorn_Update(struct EwramData_EntityData *entity)
     case 1:
         if (entity->animDone)
         {
-            if (parent && parent->updateFunc && parent->unk_518.part8.enemyId == 0x4D && parent->state != 2)
+            if (parent && parent->updateFunc && parent->enemyId == 0x4D && parent->state != 2)
             {
                 entity->state++;
                 entity->timer = 0;
@@ -60,7 +60,7 @@ void AluraUneThorn_Update(struct EwramData_EntityData *entity)
             entity->state++;
             Anim_StartIndexed(entity, 13, 0, 0);
         }
-        if (!parent || !parent->updateFunc || parent->unk_518.part8.enemyId != 0x4D || parent->state == 2)
+        if (!parent || !parent->updateFunc || parent->enemyId != 0x4D || parent->state == 2)
         {
             Anim_StartIndexed(entity, 13, 0, 0);
             entity->state++;

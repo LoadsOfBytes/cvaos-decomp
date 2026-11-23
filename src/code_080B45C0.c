@@ -8,7 +8,7 @@ extern u8 sBaloreGfx[], sBalorePalette[], sBaloreSpriteSheet[];
 /**
  * @brief B45C0 | Graphics setup: palette slot from ObjGfx_LoadResource (0 on
  * failure), sprite set sBalorePalette variant 7 (0 with the bestiaryPreview mode
- * flag) into unk_4F8 byte 0 and unk_510, slot into unk_4FB, registers
+ * flag) into unk_4F8 byte 0 and basePalette, slot into unk_4FB, registers
  * sBaloreSpriteSheet with Sprite_Attach, draw callback Sprite_DrawEntity, scrollWithBg.
  * Same shape as Object21_LoadGraphics.
  */
@@ -23,8 +23,8 @@ u8 Balore_LoadGraphics(struct EwramData_EntityData *entity)
     else
         entity->ext.balore.palette = ObjPalette_FindOrLoadVariant(sBalorePalette, 0);
     entity->ext.balore.gfx = slot;
-    entity->unk_510.part8.basePalette = entity->ext.balore.palette;
-    Sprite_Attach(entity, sBaloreSpriteSheet, slot, entity->unk_510.part8.basePalette);
+    entity->basePalette = entity->ext.balore.palette;
+    Sprite_Attach(entity, sBaloreSpriteSheet, slot, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     entity->scrollWithBg = 1;
     return 1;

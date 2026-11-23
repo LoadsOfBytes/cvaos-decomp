@@ -28,10 +28,10 @@ void Buer_UpdateDeath(struct EwramData_EntityData *entity)
             entity->hit.flags |= 2;
             PlaySong(0x6E);
             part->drawSkip = 1;
-            part->palette = part->unk_510.part8.basePalette;
+            part->palette = part->basePalette;
             part->state++;
             entity->timer = 0x60;
-            entity->palette = entity->unk_510.part8.basePalette;
+            entity->palette = entity->basePalette;
             entity->subState++;
             if ((s32)SPEED(entity) >= 0)
                 SPEED(entity) = 0x20000;

@@ -46,7 +46,7 @@ void ChaosSeedShot_Update(struct EwramData_EntityData *entity)
     if (entity->state == 0)
     {
         if (orb == NULL || orb->updateFunc == NULL
-            || orb->unk_518.part8.enemyId != entity->unk_518.part8.enemyId)
+            || orb->enemyId != entity->enemyId)
             goto check;
         if (entity->stage == 0)
         {
@@ -99,7 +99,7 @@ void ChaosSeedShot_OnHit(struct EwramData_EntityData *entity, struct EwramData_E
     u16 angle;
 
     Hit_ResolveDamage(entity, (s32)attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
-    entity->unk_510.part8.hitFlashTimer = 8;
+    entity->hitFlashTimer = 8;
     REFLECTED(entity) = 1;
     dx = entity->posX.whole - attacker->posX.whole;
     dy = entity->posY.whole - attacker->posY.whole;
@@ -131,15 +131,15 @@ void ChaosOrb_SpawnSpark(struct EwramData_EntityData *orb, s32 x, s32 y)
         OFFSET_Y(spark) = y;
         spark->spriteLayer = orb->spriteLayer - 1;
         graphics = data->graphics;
-        spark->unk_510.part8.basePalette = data->palette2;
-        Sprite_Attach(spark, sChaosSpriteSheet, graphics, spark->unk_510.part8.basePalette);
+        spark->basePalette = data->palette2;
+        Sprite_Attach(spark, sChaosSpriteSheet, graphics, spark->basePalette);
         Anim_StartIndexed(spark, 6, 2, 0);
         Anim_Update(spark);
         Hit_Enable(spark, 8, ChaosSpark_OnContact, 0);
         HitBox_SetAttack(spark, &box);
         spark->hit.flags |= 4;
         spark->hit.flags &= ~2;
-        spark->unk_518.part8.enemyId = orb->unk_518.part8.enemyId;
+        spark->enemyId = orb->enemyId;
         spark->ext.chaosChild.link = orb;
         spark->scrollWithBg = 0;
         spark->ext.chaosSoulShot.spread = 0x1000000;

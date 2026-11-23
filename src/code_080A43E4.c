@@ -65,7 +65,7 @@ s32 Chaos_StartSecondForm(struct EwramData_EntityData *core)
             core->hit.flags &= ~4;
             core->hit.flags |= 2;
             core->spriteLayer = 0x1A;
-            core->unk_518.part16.hp = 3000;
+            core->hp = 3000;
             core->state = 0;
             Player_SetSelectedTarget(core);
             gEwramData->gameState.stateFlags |= 2;

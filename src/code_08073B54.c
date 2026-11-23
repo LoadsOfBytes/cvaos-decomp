@@ -11,7 +11,7 @@ extern void ManticoreShot_EnableHitBoxes(struct EwramData_EntityData *entity);
  * (0x08073xxx): set up by ManticoreShot_LoadGraphics (deleted when that fails, but still
  * initialised afterwards as in the original) and ManticoreShot_EnableHitBoxes, layer one
  * below the owner (unk_4F4), 44 px in front and 15 px above it, velX
- * 0x40000 in its facing, hidden (hidden), owner's unk_51B, palette and
+ * 0x40000 in its facing, hidden (hidden), owner's spawnIndex, palette and
  * attack.
  */
 void Manticore_SpawnShot(struct EwramData_EntityData *entity)
@@ -42,7 +42,7 @@ void Manticore_SpawnShot(struct EwramData_EntityData *entity)
     shot->accelX.whole = 0;
     shot->accelY.whole = 0;
     shot->hidden = 1;
-    shot->unk_518.part8.spawnIndex = entity->unk_518.part8.spawnIndex;
-    shot->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
+    shot->spawnIndex = entity->spawnIndex;
+    shot->basePalette = entity->basePalette;
     shot->attack = entity->attack;
 }

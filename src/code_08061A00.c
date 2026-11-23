@@ -9,7 +9,7 @@ extern void Interaction_End(struct EwramData_EntityData *entity, s32 deleteEntit
 extern s32 EventScene19_LoadGraphics(struct EwramData_EntityData *entity);
 
 /**
- * @brief Init of event scene variant 19 (Object 0x20 unk_514 = 19,
+ * @brief Init of event scene variant 19 (Object 0x20 spawnParam0 = 19,
  * sEventSceneCreateFuncs[19]). Create step of a scene object: deleted when flag
  * 0x29 is set or the player is left of room x 0x80; if EventScene19_LoadGraphics
  * fails mark the event and delete; else enter from room x 0x150 moving

@@ -21,7 +21,7 @@ void WingedSkeleton_SpawnDeathPieces(struct EwramData_EntityData *owner)
             effect->velY.whole = -(RandomNumberGenerator() & 0xFFFF) - 0x4000;
             effect->accelY.whole = 0x1800;
             effect->spriteLayer = owner->spriteLayer;
-            Sprite_Attach(effect, sWingedSkeletonSpriteSheet, ObjGfx_Find(sWingedSkeletonGfx), owner->unk_510.part8.basePalette);
+            Sprite_Attach(effect, sWingedSkeletonSpriteSheet, ObjGfx_Find(sWingedSkeletonGfx), owner->basePalette);
             effect->animFrame = i + 0x24;
             effect->flipX = owner->flipX;
             effect->scrollWithBg = 1;

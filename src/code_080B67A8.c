@@ -18,8 +18,8 @@ static inline u8 LoadGfx(struct EwramData_EntityData *entity)
         return 0;
     entity->ext.balore.palette = ObjPalette_FindOrLoadVariant(sBalorePalette, 0x11);
     entity->ext.balore.gfx = slot;
-    entity->unk_510.part8.basePalette = entity->ext.balore.palette;
-    Sprite_Attach(entity, sBaloreSpriteSheet2, slot, entity->unk_510.part8.basePalette);
+    entity->basePalette = entity->ext.balore.palette;
+    Sprite_Attach(entity, sBaloreSpriteSheet2, slot, entity->basePalette);
     entity->scrollWithBg = 1;
     return 1;
 }

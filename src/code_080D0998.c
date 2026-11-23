@@ -41,7 +41,7 @@ void Belmont_SpawnProjectileWave(struct EwramData_EntityData *entity)
         projectile->spriteLayer=25;
         projectile->flipX=entity->flipX;
         projectile->scrollWithBg=1;
-        projectile->animFrame=projectile->unk_510.part8.basePalette;
+        projectile->animFrame=projectile->basePalette;
         projectile->hidden=1;
         Entity_EnableBoxes(projectile,Enemy_OnContact,0);
         projectile->hit.flags|=4;

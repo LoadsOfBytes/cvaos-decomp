@@ -165,19 +165,19 @@ void Gargoyle_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
     s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
 
-    entity->unk_510.part8.hitFlashTimer = 8;
+    entity->hitFlashTimer = 8;
     {
-        u16 hp = entity->unk_518.part16.hp;
+        u16 hp = entity->hp;
         damage <<= 16;
         damage >>= 16;
-        entity->unk_518.part16.hp = hp - damage;
+        entity->hp = hp - damage;
     }
     Entity_ShowDamage(entity, damage, 0);
-    if ((s16)entity->unk_518.part16.hp <= 0)
+    if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
         PlaySong(0x6E);
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->timer = 0x28;
         entity->state = 1;
         entity->subState = 0;
@@ -192,11 +192,11 @@ u8 Gargoyle_LoadGraphics(struct EwramData_EntityData *entity)
 
     if (graphics < 0)
         return 0;
-    if (entity->unk_518.part8.enemyId == 0x57)
-        entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sGargoylePalette, 0);
+    if (entity->enemyId == 0x57)
+        entity->basePalette = ObjPalette_FindOrLoadVariant(sGargoylePalette, 0);
     else
-        entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sGargoylePalette, 1);
-    Sprite_Attach(entity, sGargoyleSpriteSheet, graphics, entity->unk_510.part8.basePalette);
+        entity->basePalette = ObjPalette_FindOrLoadVariant(sGargoylePalette, 1);
+    Sprite_Attach(entity, sGargoyleSpriteSheet, graphics, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }

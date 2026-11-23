@@ -37,9 +37,9 @@ struct EwramData_EntityData *Graham_CreateAttacker(struct EwramData_EntityData *
     e->scrollWithBg = 1;
     e->enemyFlags |= 1;
     e->enemyFlags |= 4;
-    e->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
-    e->unk_518.part16.hp = (s16)owner->unk_518.part16.hp * 2;
-    e->unk_510.part16.unk_512 = owner->unk_510.part16.unk_512 * 2;
+    e->enemyId = owner->enemyId;
+    e->hp = (s16)owner->hp * 2;
+    e->mp = owner->mp * 2;
     e->attack = owner->attack;
     e->defense = owner->defense * 2 / 3;
     Anim_StartIndexed(e, 2, 0, 1);

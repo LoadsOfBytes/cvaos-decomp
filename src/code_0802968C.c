@@ -35,8 +35,8 @@ static inline struct SoulGraphicsResources *GetSet(s32 index)
  * @brief 2968C | Cockatrice red soul: an affine breath (graphics set 27,
  * frame 1, layer 0xD, drawn by SkillCockatriceDraw) at pixel offset (8 mirrored,
  * -0x1A) from the caster, with the SkillCockatriceEffectUpdate child, Hit_SetTimerOverride(1, 60),
- * box slot 5, sound 0xCD while active. For 33 frames the angle unk_510
- * (0x2800, mirrored) turns by unk_512 = -0x40, the vertical scale is
+ * box slot 5, sound 0xCD while active. For 33 frames the angle ENTITY_HALF_510
+ * (0x2800, mirrored) turns by mp = -0x40, the vertical scale is
  * sin(timer << 10) and the box (16 x 16) is moved along the angle by
  * (timer & 7) * 32 * sin/cos.
  */

@@ -22,7 +22,7 @@ void GiantGhost_SpawnAuraTrail(struct EwramData_EntityData *parent, s32 x, s32 y
         part->flipX = parent->flipX;
         part->spriteLayer = parent->spriteLayer + 1;
         graphics = ObjGfx_Find(sGiantGhostGfx);
-        Sprite_Attach(part, sGiantGhostSpriteSheet, graphics, parent->unk_510.part8.basePalette);
+        Sprite_Attach(part, sGiantGhostSpriteSheet, graphics, parent->basePalette);
         part->hidden = parent->hidden;
         matrix = ObjAffine_Alloc(1);
         if ((s16)matrix < 0)

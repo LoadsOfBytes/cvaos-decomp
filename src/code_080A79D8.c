@@ -59,7 +59,7 @@ s32 TsuchinokoShot_LoadGraphics(struct EwramData_EntityData *entity, struct Ewra
 
     if (gfx < 0)
         return 0;
-    Sprite_Attach(child, sTsuchinokoSpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    Sprite_Attach(child, sTsuchinokoSpriteSheet, gfx, entity->basePalette);
     child->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }
@@ -116,8 +116,8 @@ u8 Tsuchinoko_LoadGraphics(struct EwramData_EntityData *entity)
 
     if (gfx < 0)
         return 0;
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sTsuchinokoPalette, 0);
-    Sprite_Attach(entity, sTsuchinokoSpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sTsuchinokoPalette, 0);
+    Sprite_Attach(entity, sTsuchinokoSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }

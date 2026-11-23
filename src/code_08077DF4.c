@@ -51,11 +51,11 @@ void EnemyQuezlcoatlCreate(struct EwramData_EntityData *entity)
             goto fail;
         part->spriteLayer = entity->spriteLayer + 1;
         graphics = ObjGfx_Find(sQuezlcoatlWhiteDragonGfx);
-        Sprite_Attach(part, sQuezlcoatlWhiteDragonSpriteSheet, graphics, entity->unk_510.part8.basePalette);
+        Sprite_Attach(part, sQuezlcoatlWhiteDragonSpriteSheet, graphics, entity->basePalette);
         if (!gEwramData->gameState.bestiaryPreview)
             QuezlcoatlSegment_EnableHitBoxes(part);
-        part->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
-        part->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
+        part->enemyId = entity->enemyId;
+        part->basePalette = entity->basePalette;
         part->scrollWithBg = 0;
         part->drawFunc = (u32 *)Sprite_DrawEntity;
         ENTITY_OWNER(part) = entity;

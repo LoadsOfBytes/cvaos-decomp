@@ -36,7 +36,7 @@ void CreakingSkullPart_Update(struct EwramData_EntityData *entity)
     if (entity->state == 0)
     {
         if (parent != NULL && parent->updateFunc != NULL
-            && parent->unk_518.part8.enemyId == entity->unk_518.part8.enemyId)
+            && parent->enemyId == entity->enemyId)
         {
             parts = parent->ext.joint.parts;
             entity->palette = parent->palette;
@@ -44,7 +44,7 @@ void CreakingSkullPart_Update(struct EwramData_EntityData *entity)
             entity->timer++;
             entity->posX.whole = parent->posX.whole + parts[JOINT(entity)].offsetX;
             entity->posY.whole = parent->posY.whole + parts[JOINT(entity)].offsetY;
-            if (entity->unk_518.part8.enemyId == 0x5C && JOINT(entity) == 5)
+            if (entity->enemyId == 0x5C && JOINT(entity) == 5)
                 entity->hidden = 1;
             if (entity->ext.jointPart.index <= 1 || JOINT(entity) == 11)
             {
@@ -158,14 +158,14 @@ void CreakingSkullPart_Update(struct EwramData_EntityData *entity)
             entity->scrollWithBg = 1;
         }
         entity->hidden = Entity_GetVisibilityPattern(entity->timer);
-        if (entity->unk_518.part8.enemyId == 0x5C && JOINT(entity) == 5)
+        if (entity->enemyId == 0x5C && JOINT(entity) == 5)
             entity->hidden = 1;
         if (entity->timer <= 50)
         {
             EntityAccelerateAndMove(entity, 0x60000);
             entity->ext.creakingSkullPart.angle += entity->ext.creakingSkullPart.spin;
         }
-        if (parent->unk_514.part16.spawnParam0 == 0
+        if (parent->spawnParam0 == 0
             && (u8)(entity->timer - 20) <= 20 && (entity->timer & 3) == 0)
             Effect_SpawnRandom(entity->posX.whole, entity->posY.whole - 0x40000, 0x100000, 0x100000, entity->spriteLayer - 1);
         if (entity->ext.jointPart.index <= 2 || JOINT(entity) == 11)
@@ -198,7 +198,7 @@ void CreakingSkullPart_Update(struct EwramData_EntityData *entity)
                 entity->subState++;
             }
         }
-        if (parent->unk_514.part16.spawnParam0 == 0
+        if (parent->spawnParam0 == 0
             && (u8)(entity->timer - 20) <= 20 && (entity->timer & 3) == 0)
             Effect_SpawnRandom(entity->posX.whole, entity->posY.whole - 0x40000, 0x100000, 0x100000, entity->spriteLayer - 1);
         if ((s8)--entity->timer <= 0) entity->timer = 1;

@@ -39,7 +39,7 @@ void StolasPart_Update(struct EwramData_EntityData *entity)
     if (state == 0)
     {
         if (parent != NULL && parent->updateFunc != NULL
-            && parent->unk_518.part8.enemyId == entity->unk_518.part8.enemyId)
+            && parent->enemyId == entity->enemyId)
         {
             entity->palette = parent->palette;
             entity->flipX = parent->flipX;

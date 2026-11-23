@@ -25,7 +25,7 @@ extern void Text_SetBackgroundColor(s32 color);
 extern void SavePoint_ShowSavePrompt(void);
 extern s32 SavePoint_SpawnOrbitLights(struct EwramData_EntityData *parent);
 
-#define OWNER(e) (&(*ew)->entityData[(e)->unk_518.part8.unk_519])
+#define OWNER(e) (&(*ew)->entityData[ENTITY_BYTE_519((e))])
 
 void Object1CUpdate(struct EwramData_EntityData *entity)
 {
@@ -150,9 +150,9 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
         break;
     case 11:
     {
-        if (entity->unk_514.part8.unk_516 == 0)
+        if (SAVE_POINT_LIGHTS_IN_DONE(entity) == 0)
         {
-            if (entity->unk_514.part8.unk_517 == 0)
+            if (SAVE_POINT_LIGHTS_OUT_DONE(entity) == 0)
             {
                 entity->ext.savePoint.scale += 0x800;
                 if (entity->ext.savePoint.scale > 0xFFFF)
@@ -190,7 +190,7 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
         goto done;
     case 10:
     case 20:
-        if (entity->unk_514.part8.unk_515 != 1)
+        if (SAVE_POINT_SAVE_DONE(entity) != 1)
             break;
         SavePoint_SpawnOrbitLights(entity);
         BgPalette_LoadRange(sUnk_08119898 + 0x378, 0xC, 2, 2);
@@ -199,9 +199,9 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
         break;
     case 21:
     {
-        if (entity->unk_514.part8.unk_516 == 0)
+        if (SAVE_POINT_LIGHTS_IN_DONE(entity) == 0)
         {
-            if (entity->unk_514.part8.unk_517 == 0)
+            if (SAVE_POINT_LIGHTS_OUT_DONE(entity) == 0)
             {
                 entity->ext.savePoint.scale += 0x800;
                 if (entity->ext.savePoint.scale > 0xFFFF)
@@ -246,7 +246,7 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
                 entity->subState++;
             break;
         case 4:
-            if (entity->unk_514.part8.unk_516 == 1)
+            if (SAVE_POINT_LIGHTS_IN_DONE(entity) == 1)
             {
                 (*ew)->gameState.stateFlags &= ~1;
                 Bg_SetControlIfLevelAllows(3, 0x54, 0);
@@ -275,7 +275,7 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
         SetPlayerInput(1, 0x40);
     ObjAffine_Set(0, entity->ext.savePoint.scale, entity->ext.savePoint.scale, 0, 0, entity->ext.savePoint.affine);
     entity->timer++;
-    if ((u8)(entity->timer % 3) == 0 && entity->unk_514.part8.unk_515 != 1)
+    if ((u8)(entity->timer % 3) == 0 && SAVE_POINT_SAVE_DONE(entity) != 1)
     {
         u8 *blink = &SAVE_POINT_BLINK(entity);
         *blink = 1 - *blink;

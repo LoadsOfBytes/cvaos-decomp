@@ -195,7 +195,7 @@ void EntityDampVelocityY(struct EwramData_EntityData *entity, s32 factor)
 s32 Entity_IsTimeStopped(struct EwramData_EntityData *entity)
 {
     if (!gEwramData->gameState.bestiaryPreview && gEwramData->gameState.timeStopTimer != 0
-        && !(sEnemyData[entity->unk_518.part8.enemyId].flags_1C & 0x400))
+        && !(sEnemyData[entity->enemyId].flags_1C & 0x400))
         return 1;
     return 0;
 }
@@ -222,7 +222,7 @@ s32 Entity_GetVisibilityPattern(s32 step)
  */
 s32 Enemy_IsDamaged(struct EwramData_EntityData *entity)
 {
-    if ((s16)entity->unk_518.part16.hp < sEnemyData[entity->unk_518.part8.enemyId].hp)
+    if ((s16)entity->hp < sEnemyData[entity->enemyId].hp)
         return 1;
     return 0;
 }

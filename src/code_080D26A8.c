@@ -48,12 +48,12 @@ void Graham_UpdateIntro(struct EwramData_EntityData *entity)
         case 3:
             if(!object)
             {
-                entity->unk_514.part16.spawnParam0=0;
+                entity->spawnParam0=0;
                 EnemyGrahamCreate(entity);
             }
             else if(object->state==128)
             {
-                entity->unk_514.part16.spawnParam0=0;
+                entity->spawnParam0=0;
                 gEwramData->gameState.stateFlags&=~0x40000;
                 EnemyGrahamCreate(entity);
             }

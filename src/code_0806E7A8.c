@@ -194,11 +194,11 @@ s32 Valkyrie_LoadGraphics(struct EwramData_EntityData *entity)
     s32 y;
     s32 room;
     if (graphics < 0) return 0;
-    if (entity->unk_518.part8.enemyId == 0x29)
-        entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sValkyriePalette, 0);
+    if (entity->enemyId == 0x29)
+        entity->basePalette = ObjPalette_FindOrLoadVariant(sValkyriePalette, 0);
     else
-        entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sValkyriePalette, 1);
-    Sprite_Attach(entity, sValkyrieSpriteSheet, graphics, entity->unk_510.part8.basePalette);
+        entity->basePalette = ObjPalette_FindOrLoadVariant(sValkyriePalette, 1);
+    Sprite_Attach(entity, sValkyrieSpriteSheet, graphics, entity->basePalette);
     x = GetEntityRoomXPositionInteger(entity);
     y = GetEntityRoomYPositionInteger(entity);
     room = GetRoomFromMapPosition((s16)x, (s16)y);
@@ -218,26 +218,26 @@ void Valkyrie_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
 {
     struct EntityHit *hit = &attacker->hit;
     s32 damage = Hit_ResolveDamage(entity, (s32)attacker, hitData, (s16)Player_CalculateAttackPower(hitData[2]));
-    entity->unk_510.part8.hitFlashTimer = 8;
+    entity->hitFlashTimer = 8;
     {
-        u16 hp = entity->unk_518.part16.hp;
+        u16 hp = entity->hp;
         damage <<= 16;
         damage >>= 16;
-        entity->unk_518.part16.hp = hp - damage;
+        entity->hp = hp - damage;
     }
     Entity_ShowDamage(entity, damage, 0);
-    if ((s16)entity->unk_518.part16.hp <= 0)
+    if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
         PlaySong(0x1CD);
         Anim_StartIndexed(entity, 2, 0, 0);
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->timer = 0x28;
         entity->state = 2;
         entity->accelX.whole = 0;
         entity->accelY.whole = 0x1000;
     }
-    else if (entity->unk_518.part8.enemyId == 0x29
+    else if (entity->enemyId == 0x29
              && (u8)(hit->type - 3) <= 1 && entity->state == 1)
     {
         Anim_StartIndexed(entity, 0, 0, 1);

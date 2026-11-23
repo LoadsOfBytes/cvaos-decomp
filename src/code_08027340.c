@@ -33,9 +33,9 @@ static inline struct SoulGraphicsResources *GetSet(s32 index)
  * @brief 27340 | Disc Armor red soul: affine disc (graphics set 7, frame 1,
  * layer 0xD, box 0x2020F0F0 in slot 5, Hit_SetTimerOverride(1, 10), song 0xD4) with
  * the SkillDiscArmorScaledSpriteUpdate trail. For 27 frames it circles a point 0x18 px above the
- * caster: angle unk_510 from 0x2000 (0x6000 flipped) turning by unk_512 =
+ * caster: angle ENTITY_HALF_510 from 0x2000 (0x6000 flipped) turning by mp =
  * -0x276 (mirrored), radius unk_508 = 60 * sin(timer * 1260) px; it spins
- * by unk_514 += 0x1B00 and is scaled by the same sine (unk_50C).
+ * by spawnParam0 += 0x1B00 and is scaled by the same sine (unk_50C).
  */
 void SkillDiscArmorUse(struct EwramData_EntityData *entity)
 {
@@ -90,7 +90,7 @@ void SkillDiscArmorUse(struct EwramData_EntityData *entity)
         entity->accelY.whole = parent->posY.whole - 0x180000;
         entity->ext.skillDiscArmor.radius = FIXED_TO_INT(Sin(entity->timer * 1260) * 60);
         SKILL_DISC_ARMOR_ANGLE(entity) += SKILL_DISC_ARMOR_TURN(entity);
-        entity->unk_514.part16.spawnParam0 += 0x1B00;
+        entity->spawnParam0 += 0x1B00;
         dx = entity->ext.skillDiscArmor.radius * Sin(SKILL_DISC_ARMOR_ANGLE(entity) + 0x4000);
         dy = entity->ext.skillDiscArmor.radius * Sin(SKILL_DISC_ARMOR_ANGLE(entity));
         entity->posX.whole = entity->accelX.whole + dx;
@@ -108,7 +108,7 @@ void SkillDiscArmorUse(struct EwramData_EntityData *entity)
         return;
     }
     entity->ext.skillDiscArmor.scale = Sin(entity->timer * 1260);
-    rot = entity->unk_514.part16.spawnParam0;
+    rot = entity->spawnParam0;
     if (entity->flipX)
         rot = -rot;
     ObjAffine_Set(rot, entity->ext.skillDiscArmor.scale, entity->ext.skillDiscArmor.scale, entity->flipX, 0, entity->affineIndex);

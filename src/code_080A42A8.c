@@ -57,11 +57,11 @@ u8 Chaos_LoadGraphics(struct EwramData_EntityData *core)
 
     if (graphics < 0)
         return 0;
-    core->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sChaosPalette, 0);
+    core->basePalette = ObjPalette_FindOrLoadVariant(sChaosPalette, 0);
     data->graphics = graphics;
-    data->palette = core->unk_510.part8.basePalette;
+    data->palette = core->basePalette;
     data->palette2 = ObjPalette_FindOrLoadVariant(sChaosPalette, 1);
-    Sprite_Attach(core, sChaosSpriteSheet, graphics, core->unk_510.part8.basePalette);
+    Sprite_Attach(core, sChaosSpriteSheet, graphics, core->basePalette);
     core->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }

@@ -5,9 +5,9 @@
 
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 /* Bytes 0x51C (turned around) and 0x51D (direction) of this entity. */
-#define ENTITY_TURNED(e) (((s8 *)&(e)->unk_51C)[0])
-#define ENTITY_DIR(e) (((s8 *)&(e)->unk_51C)[1])
-#define ENTITY_DIR_BYTE(e) ((u8 *)&e->unk_51C)[1]
+#define ENTITY_TURNED(e) (((s8 *)&(e)->enemyStatus)[0])
+#define ENTITY_DIR(e) (((s8 *)&(e)->enemyStatus)[1])
+#define ENTITY_DIR_BYTE(e) ((u8 *)&e->enemyStatus)[1]
 
 /**
  * @brief 486E0 | Set the direction byte 0x51D to dir (-1 or 1) and

@@ -45,7 +45,7 @@ struct EwramData_EntityData *Entity_CreateLinkedAndHide(struct EwramData_EntityD
     child->ext.skeletonPiece.ownerIndex = ENTITY_INDEX_PAIR(entity);
     ENTITY_INDEX_PAIR(child) = ENTITY_INDEX_PAIR(entity);
     child->attack = entity->attack;
-    child->unk_518.part16.hp = entity->unk_518.part16.hp;
+    child->hp = entity->hp;
     entity->hidden = 1;
     return child;
 }
@@ -109,8 +109,8 @@ s32 Imp_LoadGraphics(struct EwramData_EntityData *entity)
     paletteIndex = ObjPalette_FindOrLoadVariant(palette, 0);
     if (paletteIndex == -1)
         return 0;
-    entity->unk_510.part8.basePalette = paletteIndex;
-    if (!Sprite_Attach(entity, sprite, gfx, entity->unk_510.part8.basePalette))
+    entity->basePalette = paletteIndex;
+    if (!Sprite_Attach(entity, sprite, gfx, entity->basePalette))
         return 0;
     if (!Anim_StartIndexed(entity, 0, 0, 1))
         return 0;

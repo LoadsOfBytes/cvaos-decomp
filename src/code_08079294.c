@@ -12,6 +12,6 @@ void Werejaguar_UpdateDeath(struct EwramData_EntityData *entity)
 {
     if(!(entity->timer&3)) Werejaguar_SpawnDeathEffect(entity->posX.whole,entity->posY.whole-0x40000,entity->spriteLayer,entity->timer*0x666);
     if(Entity_GetVisibilityPattern(entity->timer)) entity->palette=5;
-    else entity->palette=entity->unk_510.part8.basePalette;
+    else entity->palette=entity->basePalette;
     if((s8)--entity->timer<=0) entity->deleteRequested=1;
 }

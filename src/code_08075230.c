@@ -10,7 +10,7 @@ extern void WingedSkeletonShot_EnableHitBoxes(struct EwramData_EntityData *entit
  * unk_4F4): graphics via WingedSkeletonShot_LoadGraphics (deleted if that fails, though setup
  * continues), WingedSkeletonShot_EnableHitBoxes, layer + 1, facing of the owner, 0x15 px in
  * front and 9 px above it, velX +-0x20000, velY 0x20000, no acceleration;
- * copies unk_51B, unk_510 and attack from the owner.
+ * copies spawnIndex, basePalette and attack from the owner.
  */
 void WingedSkeleton_ThrowShot(struct EwramData_EntityData *entity)
 {
@@ -39,7 +39,7 @@ void WingedSkeleton_ThrowShot(struct EwramData_EntityData *entity)
     child->velY.whole = 0x20000;
     child->accelX.whole = 0;
     child->accelY.whole = 0;
-    child->unk_518.part8.spawnIndex = entity->unk_518.part8.spawnIndex;
-    child->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
+    child->spawnIndex = entity->spawnIndex;
+    child->basePalette = entity->basePalette;
     child->attack = entity->attack;
 }

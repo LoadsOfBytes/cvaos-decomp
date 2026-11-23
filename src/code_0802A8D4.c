@@ -11,7 +11,7 @@ extern void SkillGhostSpiritUpdate(struct EwramData_EntityData *);
  * @brief 2A8D4 | Ghost red soul: position at the caster (Entity_PlaceRelativeTo, 0
  * / -0x18), Hit_SetTimerOverride(1, 15), song 0xD6; spawn two SkillGhostSpiritUpdate ghosts
  * (RedSoul_CreateEntity) offset by sine/cosine << 4 around it, at angles -0x7800 and -0x1800
- * plus a random 0..0xFFF (stored in unk_510); then free the red soul slot.
+ * plus a random 0..0xFFF (stored in ENTITY_HALF_510); then free the red soul slot.
  */
 void SkillGhostUse(struct EwramData_EntityData *entity)
 {

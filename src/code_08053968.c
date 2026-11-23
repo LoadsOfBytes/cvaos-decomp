@@ -28,7 +28,7 @@ extern void EntityUpdateNothing(void);
  * @brief 53968 | Breakable object (object 0x18): hidden off screen; when hit
  * (Hit_CheckWithPlayer flags 0x1E) it breaks (Object18_SpawnDebris, sound 0xA2) and drops
  * up to eight coins (Pickup_CreateGold, Soma only; Julius gets Pickup_CreateMana), then
- * smokes for 40 frames; with unk_514 set it instead releases enemy 0x4A
+ * smokes for 40 frames; with spawnParam0 set it instead releases enemy 0x4A
  * (sEnemyData[0x4A]) every 4th frame for 32 frames.
  */
 void Object18Update(struct EwramData_EntityData *entity)
@@ -55,7 +55,7 @@ void Object18Update(struct EwramData_EntityData *entity)
         entity->hidden = 0;
         if (!(hit & 0x1E))
             break;
-        if (entity->unk_514.part16.spawnParam0)
+        if (entity->spawnParam0)
         {
             entity->state = 2;
             entity->timer = 0x20;
@@ -104,8 +104,8 @@ void Object18Update(struct EwramData_EntityData *entity)
                     dy -= 0x18;
                     e->posY.part16.integer = dy + entity->posY.part16.integer;
                 }
-                e->unk_518.part8.enemyId = 0x4A;
-                e->unk_518.part16.hp = info->hp;
+                e->enemyId = 0x4A;
+                e->hp = info->hp;
                 e->updateFunc = info->update;
                 e->scrollWithBg = 1;
                 info->create(e);

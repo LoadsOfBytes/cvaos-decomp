@@ -24,7 +24,7 @@ void Balore_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
     {
         entity->ext.balore.flags |= 2;
         Enemy_DropRewards(entity);
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->state = 4;
         entity->subState = 0;
         Player_SetSelectedTarget(NULL);

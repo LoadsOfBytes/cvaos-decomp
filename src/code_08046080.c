@@ -11,7 +11,7 @@ extern u8 sCommonObjectGfx[], sCommonObjectSpriteSheet[];
 void PickupSource_Init(struct EwramData_EntityData *entity)
 {
     s32 graphics;
-    PickupSource_LoadIcon(entity->unk_514.part16.spawnParam0);
+    PickupSource_LoadIcon(entity->spawnParam0);
     entity->spriteLayer = 0x14;
     entity->flipX = 0;
     graphics = ObjGfx_Find(sCommonObjectGfx);

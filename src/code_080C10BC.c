@@ -95,7 +95,7 @@ void EnemySlimeCreate(struct EwramData_EntityData *entity)
     u16 affine;
     s32 x;
     s32 height;
-    if (!Entity_LoadGraphics(entity, sSlimeGfx, sSlimePalette, (u8)entity->unk_514.part16.spawnParam1, sSlimeSpriteSheet)) goto remove;
+    if (!Entity_LoadGraphics(entity, sSlimeGfx, sSlimePalette, (u8)entity->spawnParam1, sSlimeSpriteSheet)) goto remove;
     affine = ObjAffine_Alloc(1);
     if ((s16)affine < 0)
     {
@@ -121,7 +121,7 @@ remove:
     Hit_Enable(entity, 8, Slime_DamagePlayerOnContact, (s32)Slime_OnHit);
     HitBox_SetBodyRaw(entity, 0x1010F8F8);
     HitBox_SetAttackRaw(entity, 0x1010F8F8);
-    if (entity->unk_514.part16.spawnParam0 == 0) Entity_SnapToGround(entity);
+    if (entity->spawnParam0 == 0) Entity_SnapToGround(entity);
     else
     {
         for (;;)

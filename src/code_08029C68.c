@@ -135,7 +135,7 @@ void SkillTinyDevilUpdate(struct EwramData_EntityData *entity)
         EntityAccelerateAndMove(entity, 0x80000);
         timer = entity->timer - 1;
         entity->timer = timer;
-        if ((s16)victim->unk_518.part16.hp <= 0 || (u8)entity->ext.redSoul.hit != 0 || (u8)timer == 0)
+        if ((s16)victim->hp <= 0 || (u8)entity->ext.redSoul.hit != 0 || (u8)timer == 0)
             entity->state = 3;
         break;
     case 3:

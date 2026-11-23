@@ -29,7 +29,7 @@ void BomberArmorBomb_Update(struct EwramData_EntityData *entity)
     Hit_CheckWithPlayer(hit, entity);
     if (entity->state != 0)
     {
-        if ((s16)entity->unk_518.part16.hp == 0 && entity->state != 3)
+        if ((s16)entity->hp == 0 && entity->state != 3)
         {
             Effect_SpawnParticleTemplateList((s16)entity->posX.part16.integer, (s16)entity->posY.part16.integer, 1);
             entity->state = 3;

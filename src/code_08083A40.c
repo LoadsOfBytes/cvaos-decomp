@@ -37,8 +37,8 @@ s32 Headhunter_LoadGraphics(struct EwramData_EntityData *entity)
     entity->ext.headhunter.palette2 = ObjPalette_FindOrLoadVariant(sHeadhunterPalette, 2);
     entity->ext.headhunter.palette3 = ObjPalette_FindOrLoadVariant(sHeadhunterPalette, 3);
     entity->ext.headhunter.graphics = graphics;
-    entity->unk_510.part8.basePalette = entity->ext.headhunter.palette0;
-    Sprite_Attach(entity, sHeadhunterSpriteSheet, graphics, entity->unk_510.part8.basePalette);
+    entity->basePalette = entity->ext.headhunter.palette0;
+    Sprite_Attach(entity, sHeadhunterSpriteSheet, graphics, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }
@@ -54,10 +54,10 @@ s32 Headhunter_LoadGraphics(struct EwramData_EntityData *entity)
 void Headhunter_ApplyResolvedDamage(struct EwramData_EntityData *entity, s32 unused1, s32 unused2, s32 damage)
 {
     s32 zero;
-    entity->unk_510.part8.hitFlashTimer = 8;
+    entity->hitFlashTimer = 8;
     entity->ext.headhunter.hitReact = 1;
     zero = 0;
-    if ((s16)(entity->unk_518.part16.hp -= damage) <= 0)
+    if ((s16)(entity->hp -= damage) <= 0)
     {
         if (PHASE(entity) == 1)
         {
@@ -82,7 +82,7 @@ void Headhunter_ApplyResolvedDamage(struct EwramData_EntityData *entity, s32 unu
         {
             Enemy_DropRewards(entity);
             PlaySong(0x1C0);
-            entity->palette = entity->unk_510.part8.basePalette;
+            entity->palette = entity->basePalette;
             entity->timer = zero;
             entity->state = 2;
             entity->subState = zero;
@@ -134,8 +134,8 @@ void Headhunter_SpawnTransformationArc(struct EwramData_EntityData *parent, stru
     if (arc == NULL) return;
     arc->spriteLayer = owner->spriteLayer + 1;
     graphics = owner->ext.headhunter.graphics;
-    arc->unk_510.part8.basePalette = owner->ext.headhunter.palette1;
-    Sprite_Attach(arc, sHeadhunterSpriteSheet, graphics, arc->unk_510.part8.basePalette);
+    arc->basePalette = owner->ext.headhunter.palette1;
+    Sprite_Attach(arc, sHeadhunterSpriteSheet, graphics, arc->basePalette);
     if (big == 0) arc->animFrame = 0x60;
     else arc->animFrame = 0x5F;
     arc->animMode = 2;
@@ -294,7 +294,7 @@ void HeadhunterTransformationArc_Update(struct EwramData_EntityData *entity)
 /* Use palette 4 (TODO: flash?) while the owner does, else our own. */
 #define SYNC_PALETTE(entity, owner)                                       \
     if ((owner)->palette == 4) (entity)->palette = 4;                \
-    else (entity)->palette = (entity)->unk_510.part8.basePalette;
+    else (entity)->palette = (entity)->basePalette;
 
 /* Transformation part of the Headhunter (entity type 0x6A, the owner):
  * once the owner reaches phase KIND + 1 this part jumps around (two
@@ -314,7 +314,7 @@ void HeadhunterTransformationPart_Update(struct EwramData_EntityData *entity)
     s32 unused[4]; /* only reserves 16 bytes of stack like the original */
     if (entity->state == 0)
     {
-        if (owner == NULL || owner->updateFunc == NULL || owner->unk_518.part8.enemyId != 0x6A)
+        if (owner == NULL || owner->updateFunc == NULL || owner->enemyId != 0x6A)
             goto delete;
         switch (entity->subState)
         {
@@ -492,8 +492,8 @@ void HeadhunterTransformationPart_Update(struct EwramData_EntityData *entity)
                 break;
             case 1:
                 if ((s8)--entity->timer > 0) break;
-                owner->unk_510.part8.basePalette = owner->ext.headhunter.palette1;
-                owner->palette = owner->unk_510.part8.basePalette;
+                owner->basePalette = owner->ext.headhunter.palette1;
+                owner->palette = owner->basePalette;
                 Anim_StartIndexed(owner, 5, 2, 0);
                 Anim_Update(owner);
                 owner->subState++;
@@ -501,8 +501,8 @@ void HeadhunterTransformationPart_Update(struct EwramData_EntityData *entity)
                 goto delete;
             case 2:
                 if ((s8)--entity->timer > 0) break;
-                owner->unk_510.part8.basePalette = owner->ext.headhunter.palette2;
-                owner->palette = owner->unk_510.part8.basePalette;
+                owner->basePalette = owner->ext.headhunter.palette2;
+                owner->palette = owner->basePalette;
                 Anim_StartIndexed(owner, 9, 2, 1);
                 Anim_Update(owner);
                 owner->subState++;

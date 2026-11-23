@@ -21,8 +21,8 @@ struct StolasParts {
 #define FLAGS(e) (e->ext.stolas.flags)
 #define FRAME(e) (e->ext.stolas.heldFrame)
 #define DISTANCE(e) (e->ext.stolas.beamLength)
-#define TYPE_A(e) ((e)->unk_514.part16.spawnParam0)
-#define TYPE_B(e) ((e)->unk_514.part16.spawnParam1)
+#define TYPE_A(e) ((e)->spawnParam0)
+#define TYPE_B(e) ((e)->spawnParam1)
 /**
  * @brief Attack state machine (state 1): cast effect (Stolas_SpawnCastEffect),
  * a column of five beam segments in front (Stolas_SpawnBeamSegment) and at
@@ -95,8 +95,8 @@ void Stolas_UpdateAttack(struct EwramData_EntityData *entity)
                 child->posY.part16.integer = entity->posY.part16.integer;
                 child->flipX = entity->flipX;
                 child->scrollWithBg = 1;
-                child->unk_518.part8.spawnIndex = 0;
-                child->unk_518.part8.enemyId = type;
+                child->spawnIndex = 0;
+                child->enemyId = type;
                 child->drawFunc = (u32 *)Sprite_DrawEntity;
                 {
                     struct EntityTemplate *template = &sEnemyData[type];

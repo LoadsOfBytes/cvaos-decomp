@@ -23,14 +23,14 @@ extern u8 sObject36SolidCallbacks[];
 extern const s16 sObject36Shapes[9][2];
 
 /**
- * @brief 5A590 | Object 0x35 update: Player_QueueEntity(.., 1) while unk_514 is 0,
+ * @brief 5A590 | Object 0x35 update: Player_QueueEntity(.., 1) while spawnParam0 is 0,
  * Object35_UpdateState in state 0.
  */
 void Object35Update(struct EwramData_EntityData *entity)
 {
     u8 hitInfo[0x10];
 
-    if (entity->unk_514.part16.spawnParam0 == 0)
+    if (entity->spawnParam0 == 0)
         Player_QueueEntity(entity, 1);
     if (entity->state == 0)
         Object35_UpdateState(entity);
@@ -65,7 +65,7 @@ void Object35_Draw(struct EwramData_EntityData *entity)
 
 /**
  * @brief 5A618 | Load the graphics (sObject35Gfx), palette and animation
- * set sObject35SpriteSheet; drawFunc Object35_Draw when unk_514 is set.
+ * set sObject35SpriteSheet; drawFunc Object35_Draw when spawnParam0 is set.
  */
 u8 Object35_LoadGraphics(struct EwramData_EntityData *entity)
 {
@@ -74,9 +74,9 @@ u8 Object35_LoadGraphics(struct EwramData_EntityData *entity)
     if (gfx < 0)
         return 0;
 
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sObject35Palette, 0);
-    Sprite_Attach(entity, sObject35SpriteSheet, gfx, entity->unk_510.part8.basePalette);
-    if (entity->unk_514.part16.spawnParam0 != 0)
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sObject35Palette, 0);
+    Sprite_Attach(entity, sObject35SpriteSheet, gfx, entity->basePalette);
+    if (entity->spawnParam0 != 0)
         entity->drawFunc = (u32 *)Object35_Draw;
     else
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
@@ -104,7 +104,7 @@ void Object36Update(struct EwramData_EntityData *entity)
 
 /**
  * @brief 5A6C8 | Object 0x36 create: rotation speed and scale from the
- * sObject36Shapes entry selected by unk_514, then Player_RegisterSolidObject.
+ * sObject36Shapes entry selected by spawnParam0, then Player_RegisterSolidObject.
  */
 void Object36Create(struct EwramData_EntityData *entity)
 {
@@ -114,8 +114,8 @@ void Object36Create(struct EwramData_EntityData *entity)
     entity->hit.flags |= 4;
     entity->hit.flags |= 2;
     entity->hidden = 1;
-    entity->ext.object36.radius = shapes[entity->unk_514.part16.spawnParam0][0] / 2;
-    entity->ext.object36.spin = shapes[entity->unk_514.part16.spawnParam0][1];
-    entity->ext.object36.scale = 0x200 - shapes[entity->unk_514.part16.spawnParam0][0] * 2;
+    entity->ext.object36.radius = shapes[entity->spawnParam0][0] / 2;
+    entity->ext.object36.spin = shapes[entity->spawnParam0][1];
+    entity->ext.object36.scale = 0x200 - shapes[entity->spawnParam0][0] * 2;
     Player_RegisterSolidObject(entity, sObject36SolidCallbacks);
 }

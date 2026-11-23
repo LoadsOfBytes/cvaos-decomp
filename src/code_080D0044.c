@@ -30,7 +30,7 @@ void Belmont_UpdateCombat(struct EwramData_EntityData *entity)
                 Anim_StartIndexed(entity,1,1,1);
             if(!(Entity_TryWalk(entity,0x20000,0x200000,0x40000,0)&4))
                 entity->posY.whole+=entity->velY.whole;
-            if((s16)entity->unk_518.part16.hp < (u16)((u32)sEnemyData[entity->unk_518.part8.enemyId].hp/3))
+            if((s16)entity->hp < (u16)((u32)sEnemyData[entity->enemyId].hp/3))
             {
                 if(Entity_IsOffsetOutsideRoom(entity,128,0) || Entity_IsOffsetOutsideRoom(entity,-128,0))
                 {

@@ -1,6 +1,7 @@
 #include "code_08009A0.h"
 #include "code_08012744.h"
 #include "code/code_08039340.h"
+#include "menu_entity.h"
 #include "code/code_08040A38.h"
 
 struct MenuPage
@@ -56,7 +57,7 @@ void SaveMenu_Open(struct MenuPage *page)
         page->state = 0;
         page->subState = 0;
         ent = &gEwramData->entityData[18];
-        ent->unk_518.part16.hp = 0x95;
-        ent->unk_518.part16.unk_51A = 0x89;
+        MENU_CURSOR_X(ent) = 0x95;
+        MENU_CURSOR_Y(ent) = 0x89;
     }
 }

@@ -57,9 +57,9 @@ u8 Object2B_LoadGraphics(struct EwramData_EntityData *entity)
 
     if (gfx < 0)
         return 0;
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sUnk_0820A1C4, 1);
-    PaletteAnim_Start(sUnk_0820A1C4, sObject2BPaletteAnim, entity->unk_510.part8.basePalette);
-    Sprite_Attach(entity, sObject2BSpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_0820A1C4, 1);
+    PaletteAnim_Start(sUnk_0820A1C4, sObject2BPaletteAnim, entity->basePalette);
+    Sprite_Attach(entity, sObject2BSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }
@@ -79,8 +79,8 @@ void Object2CCreate(struct EwramData_EntityData *entity)
         child = EntityCreateInRange(0x49, 0xCF, (u32 *)Object2CLayer_Update);
         if (child == NULL)
             continue;
-        child->unk_518.part8.spawnIndex = zero;
-        child->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
+        child->spawnIndex = zero;
+        child->enemyId = entity->enemyId;
         child->drawFunc = (u32 *)Sprite_DrawEntity;
         Object2C_SetupLayer(child);
         child->posX.whole = RandomNumberGenerator() & 0xFFFFFF;
@@ -159,8 +159,8 @@ u8 Object2C_LoadGraphics(struct EwramData_EntityData *entity)
 
     if (gfx < 0)
         return 0;
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sUnk_0820A1C4, 0);
-    Sprite_Attach(entity, sObject2CSpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_0820A1C4, 0);
+    Sprite_Attach(entity, sObject2CSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }

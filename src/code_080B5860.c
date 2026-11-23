@@ -70,7 +70,7 @@ void Balore_UpdateAttack(struct EwramData_EntityData *entity)
         entity->subState = 2;
         break;
     case 2:
-        if ((s16)entity->unk_518.part16.hp <= 999)
+        if ((s16)entity->hp <= 999)
             entity->timer = 0x50;
         else
             entity->timer = 0x80;

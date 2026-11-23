@@ -15,7 +15,7 @@ void Nemesis_UpdateDeath(struct EwramData_EntityData *entity)
     {
     case 0:
         PlaySong(0x72);
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->velY.whole = 0x8000;
         entity->accelY.whole = 0x800;
         entity->timer = 0;

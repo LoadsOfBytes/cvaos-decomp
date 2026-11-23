@@ -9,10 +9,11 @@
  * Body overlay: its two side part entities (Graham_CreateSidePart 0 / 1).
  * Side part: which side it is on (toggled during the attack), the step in its
  * wait table and a flash countdown.
- * The macros expand to the original member chains without added parentheses
- * (token-identical preprocessed code); use them with a plain base expression.
+ * The macros expand to member chains or to the ENTITY_* views of the common
+ * block (structs/ewram.h) without added parentheses; use them with a plain
+ * base expression.
  */
-#define GRAHAM_SIDE_PART_1(e) e->unk_510.whole
+#define GRAHAM_SIDE_PART_1(e) ENTITY_WORD_510(e)
 
 /*
  * Scene links of the root Graham entity: entity index of the scene object

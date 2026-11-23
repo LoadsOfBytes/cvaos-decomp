@@ -14,7 +14,7 @@ void ManticoreTailSegment_Update(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
     struct EwramData_EntityData *next;
     s32 zero, i, x, y, angle;
-    if (owner == NULL || owner->updateFunc == NULL || owner->unk_518.part8.enemyId != 0x36)
+    if (owner == NULL || owner->updateFunc == NULL || owner->enemyId != 0x36)
         goto remove;
     if (KIND(entity) == 0)
     {

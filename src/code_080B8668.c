@@ -34,7 +34,7 @@ void WitchGroundProjectile_Update(struct EwramData_EntityData *entity)
         entity->accelY.whole = 0x2000;
         entity->velY.whole = 0;
         if (entity->subState & 2) entity->hit.flags |= 2;
-        entity->unk_518.part16.hp = 1;
+        entity->hp = 1;
         entity->state = 1;
         /* fall through */
     case 1:
@@ -49,7 +49,7 @@ void WitchGroundProjectile_Update(struct EwramData_EntityData *entity)
             }
             if (flags & 3) entity->state = 2;
         }
-        hp = (s16)entity->unk_518.part16.hp;
+        hp = (s16)entity->hp;
         if (hp == 0) entity->state = 2;
         break;
     case 2:

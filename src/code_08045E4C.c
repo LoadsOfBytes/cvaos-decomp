@@ -56,7 +56,7 @@ void PickupSource_Update(struct EwramData_EntityData *entity)
     {
         case 0:
             entity->hidden = 0;
-            if (Pickup_TrySpawnOnHit(entity, 0, entity->unk_518.part8.enemyId, entity->unk_514.part16.spawnParam1) != 0)
+            if (Pickup_TrySpawnOnHit(entity, 0, entity->enemyId, entity->spawnParam1) != 0)
             {
                 PlaySong(0xA2);
                 entity->hidden = 1;

@@ -22,7 +22,7 @@ void KillerFish_SpawnOscillatingEffect(struct EwramData_EntityData *parent, s32 
         if (RandomNumberGenerator() % 2 == 0) part->spriteLayer = parent->spriteLayer + 1;
         else part->spriteLayer = parent->spriteLayer - 1;
         graphics = ObjGfx_Find(sKillerFishGfx);
-        Sprite_Attach(part, sKillerFishSpriteSheet, graphics, parent->unk_510.part8.basePalette);
+        Sprite_Attach(part, sKillerFishSpriteSheet, graphics, parent->basePalette);
         part->animFrame = frame;
         part->scrollWithBg = 1;
         part->drawFunc = (u32 *)Sprite_DrawEntity;

@@ -17,18 +17,18 @@ void LegionCorePart_OnHit(struct EwramData_EntityData *entity, struct EwramData_
     struct EwramData_EntityData *owner = ENTITY_OWNER(base);
     s32 damage = Hit_ResolveDamage(entity, attacker, hit, scale);
 
-    entity->unk_510.part8.hitFlashTimer = 8;
+    entity->hitFlashTimer = 8;
     {
-        s32 hp = entity->unk_518.part16.hp;
+        s32 hp = entity->hp;
         s32 applied = (s16)damage;
-        entity->unk_518.part16.hp = hp - applied;
+        entity->hp = hp - applied;
         Entity_ShowDamage(entity, applied, 0);
     }
-    if ((s16)entity->unk_518.part16.hp <= 0)
+    if ((s16)entity->hp <= 0)
     {
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->timer = 0x3C;
-        entity->unk_510.part8.hitFlashTimer = 0;
+        entity->hitFlashTimer = 0;
         entity->state = 10;
         entity->subState = 0;
     }

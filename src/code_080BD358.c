@@ -77,16 +77,16 @@ void DeathFloatingWeapon_Update(struct EwramData_EntityData *entity)
         slot = ObjAffine_Alloc(1);
         if ((s16)slot < 0)
             goto delete;
-        entity->unk_518.part8.enemyId = parent->unk_518.part8.enemyId;
+        entity->enemyId = parent->enemyId;
         Enemy_ResetFromTemplate(entity);
-        entity->unk_518.part16.hp = 0x7D0;
+        entity->hp = 0x7D0;
         Hit_Enable(entity, 8, Enemy_OnContactMask1, (s32)DeathFloatingWeapon_OnHit);
         entity->affineIndex = slot;
         entity->affine = 1;
         entity->spriteLayer = 0x12;
         Anim_StartIndexed(entity, 0xC, 2, 0);
         Anim_Update(entity);
-        if (parent->unk_514.part16.spawnParam0 != 0)
+        if (parent->spawnParam0 != 0)
         {
             struct BgLayerState *bg = &gEwramData->bgInfo[1];
             entity->posX.part16.integer = 0xE8 - bg->xPos.part16.integer;
@@ -148,7 +148,7 @@ void DeathFloatingWeapon_Update(struct EwramData_EntityData *entity)
 
         s32 off, y0;
         s32 tx, ty;
-        if (!(parent->ext.death.flags & 0x40) && (s16)entity->unk_518.part16.hp <= 0x4AF)
+        if (!(parent->ext.death.flags & 0x40) && (s16)entity->hp <= 0x4AF)
             parent->ext.death.flags |= 0x40;
         off = 0x200000;
         {

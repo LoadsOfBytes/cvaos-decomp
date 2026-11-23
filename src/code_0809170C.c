@@ -28,15 +28,15 @@ void DevilPart_OnHit(struct EwramData_EntityData *input, s32 source, u16 *collis
     owner->posY.whole = oldY;
     Entity_ShowDamage(entity, damage, 0);
     owner = entity->ext.jointPart.owner;
-    owner->unk_510.part8.hitFlashTimer = 8;
+    owner->hitFlashTimer = 8;
     {
-    s32 hp = owner->unk_518.part16.hp - damage;
-    owner->unk_518.part16.hp = hp;
+    s32 hp = owner->hp - damage;
+    owner->hp = hp;
     if ((s16)hp <= 0)
     {
         Enemy_DropRewards(owner);
         PlaySong(0x72);
-        owner->palette = owner->unk_510.part8.basePalette;
+        owner->palette = owner->basePalette;
         owner->timer = 40;
         owner->state = 2;
         owner->subState = 0;

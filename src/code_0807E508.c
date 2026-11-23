@@ -66,7 +66,7 @@ void EnemyGolemCreate(struct EwramData_EntityData *entity)
     }
     entity->hidden = 1;
     entity->flipX = 0;
-    if (entity->unk_518.part8.enemyId == 0x50)
+    if (entity->enemyId == 0x50)
         entity->ext.joint.pose = 0;
     else
         entity->ext.joint.pose = 7;
@@ -75,7 +75,7 @@ void EnemyGolemCreate(struct EwramData_EntityData *entity)
     {
         s32 graphics;
 
-        if (entity->unk_518.part8.enemyId == 0x50)
+        if (entity->enemyId == 0x50)
             index = order50[i];
         else
             index = order[i];
@@ -83,13 +83,13 @@ void EnemyGolemCreate(struct EwramData_EntityData *entity)
         if (part != NULL)
         {
         part->spriteLayer = entity->spriteLayer;
-        if (entity->unk_518.part8.enemyId == 0x50)
+        if (entity->enemyId == 0x50)
             graphics = ObjGfx_LoadResource(sGolemGfxEnemy50, 0);
         else
             graphics = ObjGfx_LoadResource(sGolemGfx, 0);
-        Sprite_Attach(part, sGolemSpriteSheet, graphics, entity->unk_510.part8.basePalette);
-        part->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
-        part->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
+        Sprite_Attach(part, sGolemSpriteSheet, graphics, entity->basePalette);
+        part->enemyId = entity->enemyId;
+        part->basePalette = entity->basePalette;
         part->scrollWithBg = 0;
         part->hidden = 0;
         part->attack = entity->attack;
@@ -99,11 +99,11 @@ void EnemyGolemCreate(struct EwramData_EntityData *entity)
         part->ext.jointPart.anchor = anchors[index];
         part->posX.whole = entity->posX.whole;
         part->posY.whole = entity->posY.whole;
-        if (entity->unk_518.part8.enemyId == 0x50)
+        if (entity->enemyId == 0x50)
             part->animFrame = frames50[index];
-        else if (entity->unk_518.part8.enemyId == 0x65)
+        else if (entity->enemyId == 0x65)
             part->animFrame = frames65[index];
-        else if (entity->unk_518.part8.enemyId == 0x22)
+        else if (entity->enemyId == 0x22)
         {
             if ((RandomNumberGenerator() & 0xF) == 0)
                 part->animFrame = frames22Rare[index];
@@ -159,7 +159,7 @@ void EnemyGolemCreate(struct EwramData_EntityData *entity)
     if (frozen)
     {
         entity->state = 3;
-        if (entity->unk_518.part8.enemyId == 0x50)
+        if (entity->enemyId == 0x50)
             entity->subState = 0x28;
         else
             entity->subState = 0x14;
@@ -170,11 +170,11 @@ void EnemyGolemCreate(struct EwramData_EntityData *entity)
     Golem_FaceTarget(entity);
     Entity_SnapToGround(entity);
     entity->state = frozen;
-    if (entity->unk_518.part8.enemyId == 0x50)
+    if (entity->enemyId == 0x50)
         entity->subState = 0x28;
     else
         entity->subState = 0x14;
-    switch (entity->unk_518.part8.enemyId)
+    switch (entity->enemyId)
     {
     case 0x35:
         kindIndex = 0;

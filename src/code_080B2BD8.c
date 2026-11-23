@@ -36,7 +36,7 @@ void RockArmor_UpdateAttack(struct EwramData_EntityData *entity)
                 child->posX.whole = entity->posX.whole;
                 child->posY.whole = entity->posY.whole;
                 child->flipX = entity->flipX;
-                child->unk_518.part16.hp = entity->unk_518.part16.hp;
+                child->hp = entity->hp;
                 child->attack = entity->attack;
             }
         }

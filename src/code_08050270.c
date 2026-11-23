@@ -21,9 +21,9 @@ struct BreakableBlockVariant {
 extern const struct BreakableBlockVariant sBreakableBlockVariants[];
 
 /**
- * @brief 50270 | Breakable wall that crumbles once its flag (unk_516 in
+ * @brief 50270 | Breakable wall that crumbles once its flag (spawnParam1 in
  * gameFlagsTail) is set: dust Effect_SpawnShared every 16th frame while Player_TestSoulStateFlags
- * holds; when the room entry sBreakableBlockVariants[unk_514].collisionMode is set it just
+ * holds; when the room entry sBreakableBlockVariants[spawnParam0].collisionMode is set it just
  * opens (Debris_SpawnBurst(0)), otherwise up to 3 x 7 debris pieces
  * Object09Debris_Update scatter over the wall and it opens 32 px up; then song
  * 0xAB, BreakableBlock_ClearCollision, the map update (GameFlag_FindRoomCoordinate / GameFlag_Set) and it
@@ -50,9 +50,9 @@ void Object09Update(struct EwramData_EntityData *entity)
     }
     if (entity->state != 0)
         return;
-    if (!(gEwramData->gameState.gameFlagsTail[entity->unk_514.part16.spawnParam1 >> 5] & (1 << (entity->unk_514.part16.spawnParam1 & 0x1F))))
+    if (!(gEwramData->gameState.gameFlagsTail[entity->spawnParam1 >> 5] & (1 << (entity->spawnParam1 & 0x1F))))
         return;
-    info = &sBreakableBlockVariants[entity->unk_514.part16.spawnParam0];
+    info = &sBreakableBlockVariants[entity->spawnParam0];
     if (info->collisionMode != 0)
         Debris_SpawnBurst(entity, 0);
     else
@@ -67,7 +67,7 @@ void Object09Update(struct EwramData_EntityData *entity)
                 piece->scrollWithBg = 1;
                 piece->posX.part16.integer = entity->posX.part16.integer - (i << 3) + RandomSigned(4);
                 piece->posY.part16.integer = entity->posY.part16.integer - ((j << 3) + 0x20) + RandomSigned(4);
-                piece->unk_514.part16.spawnParam0 = entity->unk_514.part16.spawnParam0;
+                piece->spawnParam0 = entity->spawnParam0;
             }
         }
         Debris_SpawnBurst(entity, -0x20);

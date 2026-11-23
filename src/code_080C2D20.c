@@ -17,7 +17,7 @@ void RipperProjectile_DamagePlayerOnContact(struct EwramData_EntityData *entity)
     contactDamage.sourceX = entity->posX.whole;
     contactDamage.sourceY = entity->posY.whole;
     Player_ApplyContactDamage(&contactDamage);
-    entity->unk_510.part8.hitFlashTimer = 8;
+    entity->hitFlashTimer = 8;
     entity->hit.flags |= 4;
     entity->hit.flags |= 2;
     entity->state = 6;

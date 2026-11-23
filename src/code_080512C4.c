@@ -14,7 +14,7 @@ extern u8 sObject12Variant0AnimScript0[];
 extern u8 sObject12Variant0AnimScript1[];
 extern u8 sObject12Variant0AnimScript2[];
 
-/* Object 0x12 variants (unk_514). */
+/* Object 0x12 variants (spawnParam0). */
 struct Object12VariantDefinition {
     void *graphics; // graphics
     void *palette; // palette
@@ -105,12 +105,12 @@ void Object12Variant0_Update(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief 5140C | Object 0x12 create: load the graphics of variant unk_514,
+ * @brief 5140C | Object 0x12 create: load the graphics of variant spawnParam0,
  * start its animation, layer, and convert room coordinates (flag 2).
  */
 void Object12Create(struct EwramData_EntityData *entity)
 {
-    const struct Object12VariantDefinition *def = &sObject12Variants[entity->unk_514.part16.spawnParam0];
+    const struct Object12VariantDefinition *def = &sObject12Variants[entity->spawnParam0];
 
     if (!Entity_LoadGraphics(entity, def->graphics, def->palette, def->paletteIndex, def->spriteSheet))
     {
@@ -143,14 +143,14 @@ void Object12Create(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief 514D8 | Variant with unk_516 == 1 scrolls with background 3
+ * @brief 514D8 | Variant with spawnParam1 == 1 scrolls with background 3
  * instead of background 1; set drawFunc Object12Variant2_Draw on the first frame.
  */
 void Object12Variant2_Update(struct EwramData_EntityData *entity)
 {
     if (entity->state == 0)
     {
-        if (entity->unk_514.part16.spawnParam1 == 1)
+        if (entity->spawnParam1 == 1)
         {
             struct EwramData *ewram = gEwramData;
             struct BgLayerState *mainBg = &ewram->bgInfo[1];
@@ -161,7 +161,7 @@ void Object12Variant2_Update(struct EwramData_EntityData *entity)
         entity->drawFunc = (u32 *)Object12Variant2_Draw;
         entity->state++;
     }
-    if (entity->unk_514.part16.spawnParam1 == 1)
+    if (entity->spawnParam1 == 1)
     {
         struct BgLayerState *farBg = &gEwramData->bgInfo[3];
 
@@ -195,7 +195,7 @@ void Object12Variant2_Draw(struct EwramData_EntityData *entity)
  */
 void Object12Update(struct EwramData_EntityData *entity)
 {
-    const struct Object12VariantDefinition *def = &sObject12Variants[entity->unk_514.part16.spawnParam0];
+    const struct Object12VariantDefinition *def = &sObject12Variants[entity->spawnParam0];
 
     if ((def->flags & 8) && !Entity_IsInRect(entity, -0x80, -0x40, 0x1F0, 0x120))
         return;

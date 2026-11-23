@@ -63,7 +63,7 @@ void MinotaurAxe_Update(struct EwramData_EntityData *entity)
 
     if (DROPPED(entity) == 0)
     {
-        if ((s16)parent->unk_518.part16.hp <= 0)
+        if ((s16)parent->hp <= 0)
             DROPPED(entity) = 1;
         if (DROPPED(entity) == 0 && entity->state == 4
             && ENTITY_INDEX(parent) == ENTITY_PARENT_INDEX(entity)
@@ -93,7 +93,7 @@ void MinotaurAxe_Update(struct EwramData_EntityData *entity)
                 ENTITY_OWNER(hitbox) = entity;
                 ENTITY_PARENT_INDEX(hitbox) = ENTITY_INDEX(entity);
                 hitbox->attack = entity->attack;
-                hitbox->unk_518.part16.hp = entity->unk_518.part16.hp;
+                hitbox->hp = entity->hp;
             }
         }
         entity->affineIndex = slot;

@@ -64,7 +64,7 @@ void Worm_Init(struct EwramData_EntityData *root, s32 variant)
         part->posY.whole = previous->posY.whole;
         part->scrollWithBg = 1;
         Worm_SettleOnGround(part);
-        { u8 t_ = root->unk_518.part8.enemyId; register u8 *d_ asm("r1") = &part->unk_518.part8.enemyId; *d_ = t_; } /* FAKEMATCH: address in r1 */
+        { u8 t_ = root->enemyId; register u8 *d_ asm("r1") = &part->enemyId; *d_ = t_; } /* FAKEMATCH: address in r1 */
         Enemy_ResetFromTemplate(part);
         previous = part;
     }
@@ -72,8 +72,8 @@ void Worm_Init(struct EwramData_EntityData *root, s32 variant)
     Enemy_ResetFromTemplate(root);
     root->drawFunc = (u32 *)Worm_Draw;
     tiles = ObjGfx_LoadResource(sWormGfx, 0);
-    root->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sWormPalette, (u8)variant);
-    Sprite_Attach(root, sWormSpriteSheet, tiles, root->unk_510.part8.basePalette);
+    root->basePalette = ObjPalette_FindOrLoadVariant(sWormPalette, (u8)variant);
+    Sprite_Attach(root, sWormSpriteSheet, tiles, root->basePalette);
     if (variant == 0)
         Anim_StartIndexed(root, 3, 0, 1);
     else

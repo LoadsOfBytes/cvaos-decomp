@@ -20,7 +20,7 @@ void Mudman_SpawnPiece(struct EwramData_EntityData *parent, s32 x, s32 y, s32 vx
         part->accelY.whole = 0x2800;
         part->spriteLayer = parent->spriteLayer - 1;
         graphics = ObjGfx_Find(sMudmanGfx);
-        Sprite_Attach(part, sMudmanSpriteSheet, graphics, parent->unk_510.part8.basePalette);
+        Sprite_Attach(part, sMudmanSpriteSheet, graphics, parent->basePalette);
         if (vx > 0) part->animFrame = 21;
         else part->animFrame = 18;
         if (vy > 0) part->flipY = 1;

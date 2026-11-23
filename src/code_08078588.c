@@ -20,7 +20,7 @@ void Quezlcoatl_SpawnDeathPiece(struct EwramData_EntityData *owner,s32 x,s32 y,s
         effect->flipX=owner->flipX;
         effect->spriteLayer=owner->spriteLayer;
         graphics=ObjGfx_Find(sQuezlcoatlWhiteDragonGfx);
-        Sprite_Attach(effect,sQuezlcoatlWhiteDragonSpriteSheet,graphics,owner->unk_510.part8.basePalette);
+        Sprite_Attach(effect,sQuezlcoatlWhiteDragonSpriteSheet,graphics,owner->basePalette);
         effect->animFrame=frame;
         effect->velX.whole=owner->velX.whole+(RandomNumberGenerator()&0x7FFF)-0x4000;
         effect->velY.whole=(RandomNumberGenerator()&0x7FFF)-0x24000;

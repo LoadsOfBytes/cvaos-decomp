@@ -54,7 +54,7 @@ void EvilButcherDeathParticle_Update(struct EwramData_EntityData *entity)
     {
     case 0:
         if (!Entity_LoadGraphics(entity, sEvilButcherGfx, sEvilButcherPalette,
-                         (u8)entity->unk_514.part16.spawnParam1, sEvilButcherSpriteSheet))
+                         (u8)entity->spawnParam1, sEvilButcherSpriteSheet))
         {
             EntityDelete(entity);
             return;

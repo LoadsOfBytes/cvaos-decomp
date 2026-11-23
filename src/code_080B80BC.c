@@ -47,8 +47,8 @@ void Nightmare_UpdateRun(struct EwramData_EntityData *entity)
         if ((s32)entity->ext.nightmare.runSpeed <= 0x27FFF) entity->ext.nightmare.runSpeed += 0x4000;
         if (++entity->ext.nightmare.runTimer > 0x50)
         {
-            Anim_StartIndexed(entity, (u16)(entity->unk_514.part16.spawnParam0 + 2), 0, 0);
-            if (entity->unk_514.part16.spawnParam0 == 0)
+            Anim_StartIndexed(entity, (u16)(entity->spawnParam0 + 2), 0, 0);
+            if (entity->spawnParam0 == 0)
             {
                 HitBox_SetBodyRaw(entity, 0x1810E0F8);
                 HitBox_SetAttackRaw(entity, 0x1810E0F8);
@@ -78,8 +78,8 @@ void Nightmare_UpdateRun(struct EwramData_EntityData *entity)
         if (entity->animFlags & 4)
         {
             entity->ext.nightmare.runTimer = 0;
-            Anim_StartIndexed(entity, (u16)entity->unk_514.part16.spawnParam0, 0, 1);
-            if (entity->unk_514.part16.spawnParam0 == 0)
+            Anim_StartIndexed(entity, (u16)entity->spawnParam0, 0, 1);
+            if (entity->spawnParam0 == 0)
             {
                 HitBox_SetBodyRaw(entity, 0x1838E0F0);
                 HitBox_SetAttackRaw(entity, 0x1838E0F0);
@@ -114,7 +114,7 @@ s32 Nightmare_UpdateDeath(struct EwramData_EntityData *entity)
             Entity_EndIfActive(&gEwramData->entityData[entity->ext.nightmareEffect.index1]);
             entity->ext.nightmareEffect.index1 = 0;
         }
-        Anim_StartIndexed(entity, (u16)(entity->unk_514.part16.spawnParam0 + 2), 0, 0);
+        Anim_StartIndexed(entity, (u16)(entity->spawnParam0 + 2), 0, 0);
         entity->subState = 1;
         entity->velX.whole = -0x28000;
         if (entity->flipX) entity->velX.whole = -entity->velX.whole;
@@ -126,7 +126,7 @@ s32 Nightmare_UpdateDeath(struct EwramData_EntityData *entity)
         if (entity->timer <= 0x27)
         {
             if (Entity_GetVisibilityPattern(0x28 - entity->timer)) entity->palette = 5;
-            else entity->palette = entity->unk_510.part8.basePalette;
+            else entity->palette = entity->basePalette;
         }
         timer = entity->timer;
         timer++;

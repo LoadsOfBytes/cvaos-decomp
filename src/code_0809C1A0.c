@@ -12,7 +12,7 @@ void StolasBeamImpact_Update(struct EwramData_EntityData *entity)
     u8 collision[0x10];
     struct EwramData_EntityData *stolas = entity->ext.stolasEffect.owner;
 
-    if (stolas != NULL && stolas->updateFunc != NULL && stolas->unk_518.part8.enemyId == 0x61)
+    if (stolas != NULL && stolas->updateFunc != NULL && stolas->enemyId == 0x61)
     {
         if (entity->state == 0)
         {

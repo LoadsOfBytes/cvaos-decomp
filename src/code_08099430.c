@@ -12,7 +12,7 @@ extern u8 sMimicSpriteSheet[];
 
 /**
  * @brief 99430 | Load the graphics (sMimicGfx), palette from
- * sMimicPalette for (u8)unk_516 and start animation set sMimicSpriteSheet;
+ * sMimicPalette for (u8)spawnParam1 and start animation set sMimicSpriteSheet;
  * returns 0 when ObjGfx_LoadResource fails.
  */
 s32 Mimic_LoadGraphics(struct EwramData_EntityData *entity)
@@ -22,8 +22,8 @@ s32 Mimic_LoadGraphics(struct EwramData_EntityData *entity)
     if (gfx < 0)
         return 0;
 
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sMimicPalette, (u8)entity->unk_514.part16.spawnParam1);
-    Sprite_Attach(entity, sMimicSpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sMimicPalette, (u8)entity->spawnParam1);
+    Sprite_Attach(entity, sMimicSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }

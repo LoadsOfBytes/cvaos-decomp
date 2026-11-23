@@ -62,8 +62,8 @@ void EnemyGreatArmorCreate(struct EwramData_EntityData *entity)
     memcpy(order, sUnk_08118F78, sizeof(order));
     memcpy(chain, sGreatArmorChain, sizeof(chain));
 
-    if (entity->unk_514.part16.spawnParam0 != 0 && !(*ewram)->gameState.bossRushMode
-        && (((*ewram)->gameState.bossEventFlags >> entity->unk_514.part16.spawnParam0) & 1))
+    if (entity->spawnParam0 != 0 && !(*ewram)->gameState.bossRushMode
+        && (((*ewram)->gameState.bossEventFlags >> entity->spawnParam0) & 1))
     {
         EntityDelete(entity);
         return;
@@ -81,21 +81,21 @@ void EnemyGreatArmorCreate(struct EwramData_EntityData *entity)
     }
     entity->hidden = 1;
     entity->flipX = 0;
-    if (entity->unk_518.part8.enemyId == 0x3C)
+    if (entity->enemyId == 0x3C)
         entity->ext.joint.pose = 0;
     else
         entity->ext.joint.pose = 0;
     Enemy_ResetFromTemplate(entity);
     if (gEwramData->gameState.bossRushMode)
     {
-        entity->unk_518.part16.hp += 1000;
+        entity->hp += 1000;
         entity->attack += 20;
     }
-    if (entity->unk_518.part8.enemyId == 0x3C)
+    if (entity->enemyId == 0x3C)
         frames = frames3C;
-    else if (entity->unk_518.part8.enemyId == 0x67)
+    else if (entity->enemyId == 0x67)
         frames = frames67;
-    else if (entity->unk_518.part8.enemyId == 0x69)
+    else if (entity->enemyId == 0x69)
         frames = frames69;
     for (i = 0; i <= 13; i++)
     {
@@ -104,9 +104,9 @@ void EnemyGreatArmorCreate(struct EwramData_EntityData *entity)
         if (part != NULL)
         {
             part->spriteLayer = entity->spriteLayer;
-            Sprite_Attach(part, sGreatArmorSpriteSheet, ObjGfx_LoadResource(sGreatArmorGfx, 0), entity->unk_510.part8.basePalette);
-            part->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
-            part->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
+            Sprite_Attach(part, sGreatArmorSpriteSheet, ObjGfx_LoadResource(sGreatArmorGfx, 0), entity->basePalette);
+            part->enemyId = entity->enemyId;
+            part->basePalette = entity->basePalette;
             part->scrollWithBg = 0;
             part->hidden = 0;
             part->attack = entity->attack;
@@ -193,13 +193,13 @@ void EnemyGreatArmorCreate(struct EwramData_EntityData *entity)
     entity->state = frozen;
     entity->subState = 0x14;
     entity->ext.joint.hurtMask = 0x1001;
-    if (entity->unk_514.part16.spawnParam0 != 0)
+    if (entity->spawnParam0 != 0)
     {
         Music_SetCurrent(0x10);
         Player_SetSelectedTarget(entity);
         gEwramData->gameState.stateFlags |= 2;
     }
-    switch (entity->unk_518.part8.enemyId)
+    switch (entity->enemyId)
     {
     case 0x3C:
         entity->ext.greatArmor.variant = 0;

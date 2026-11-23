@@ -44,7 +44,7 @@ void Dryad_UpdateDeath(struct EwramData_EntityData *entity)
         break;
     }
     if (Entity_GetVisibilityPattern(entity->timer)) entity->palette = 5;
-    else entity->palette = entity->unk_510.part8.basePalette;
+    else entity->palette = entity->basePalette;
     if (entity->affine)
         ObjAffine_Set(0, entity->timer << 10, 0x10000, entity->flipX, 0, entity->affineIndex);
 }

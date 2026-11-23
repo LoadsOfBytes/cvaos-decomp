@@ -10,11 +10,11 @@ u8 Gorgon_LoadGraphics(struct EwramData_EntityData *entity)
 {
     s32 graphics = ObjGfx_LoadResource(sGorgonGfx, 0);
     if (graphics < 0) return 0;
-    if (entity->unk_518.part8.enemyId == 0x33)
-        entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sGorgonPalette, 0);
+    if (entity->enemyId == 0x33)
+        entity->basePalette = ObjPalette_FindOrLoadVariant(sGorgonPalette, 0);
     else
-        entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sGorgonPalette, 1);
-    Sprite_Attach(entity, sGorgonSpriteSheet, graphics, entity->unk_510.part8.basePalette);
+        entity->basePalette = ObjPalette_FindOrLoadVariant(sGorgonPalette, 1);
+    Sprite_Attach(entity, sGorgonSpriteSheet, graphics, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }

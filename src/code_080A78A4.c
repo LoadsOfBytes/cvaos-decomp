@@ -8,7 +8,7 @@ static inline u8 LoadTsuchinokoGraphics(struct EwramData_EntityData *parent, str
     s32 tiles = ObjGfx_Find(sTsuchinokoGfx);
     if (tiles < 0)
         return 0;
-    Sprite_Attach(child, sTsuchinokoSpriteSheet, tiles, parent->unk_510.part8.basePalette);
+    Sprite_Attach(child, sTsuchinokoSpriteSheet, tiles, parent->basePalette);
     child->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }
@@ -43,8 +43,8 @@ void Tsuchinoko_SpawnDroplet(struct EwramData_EntityData *parent)
         child->velY.whole = -0x10000 - (RandomNumberGenerator() % 0x10000);
         child->accelX.whole = zero;
         child->accelY.whole = 0x1800;
-        child->unk_518.part8.spawnIndex = parent->unk_518.part8.spawnIndex;
-        child->unk_510.part8.basePalette = parent->unk_510.part8.basePalette;
+        child->spawnIndex = parent->spawnIndex;
+        child->basePalette = parent->basePalette;
         child->attack = parent->attack;
     }
 }

@@ -41,7 +41,7 @@ void EnemyAltairCreate(struct EwramData_EntityData *entity)
         entity->subState = 0;
         return;
     }
-    if (entity->unk_514.part16.spawnParam0 == 0)
+    if (entity->spawnParam0 == 0)
     {
         entity->state = 5;
         entity->hidden = 1;
@@ -50,13 +50,13 @@ void EnemyAltairCreate(struct EwramData_EntityData *entity)
         return;
     }
     Entity_EnableBoxes(entity, Altair_DamagePlayerOnContact, Altair_OnHit);
-    if (entity->unk_514.part16.spawnParam0 == 2)
+    if (entity->spawnParam0 == 2)
     {
         s32 x = -(u16)entity->velX.part16.integer;
         x -= 0x10;
         entity->posX.part16.integer = x;
     }
-    else if (entity->unk_514.part16.spawnParam0 == 3)
+    else if (entity->spawnParam0 == 3)
         entity->posX.part16.integer = 0x100 + (u16)entity->velX.part16.integer;
     {
         u32 random = RandomNumberGenerator();
@@ -70,11 +70,11 @@ void EnemyAltairCreate(struct EwramData_EntityData *entity)
     parent = entity->ext.altair.spawner;
     if (parent->ext.altairDrop.count <= 1 && parent != NULL)
     {
-        if (entity->unk_514.part16.spawnParam1 == 1)
+        if (entity->spawnParam1 == 1)
         {
             if (Altair_CreateCarriedEnemy(entity, 0x18, 0xFF, 0xFF)) return;
         }
-        else if (entity->unk_514.part16.spawnParam1 == 2)
+        else if (entity->spawnParam1 == 2)
         {
             if (Altair_CreateCarriedEnemy(entity, 0x4A, 0xFF, 0xFF)) return;
         }

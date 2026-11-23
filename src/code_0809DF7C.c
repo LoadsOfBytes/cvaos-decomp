@@ -31,13 +31,13 @@ struct EwramData_EntityData *Legion_CreateCorpse(struct EwramData_EntityData *en
     child->ext.legionCorpse.frame = index;
     child->spriteLayer = entity->spriteLayer - 3;
     tiles = *data;
-    child->unk_510.part8.basePalette = entity->ext.legion.animPalette;
-    Sprite_Attach(child, sLegionSpriteSheet, tiles, child->unk_510.part8.basePalette);
+    child->basePalette = entity->ext.legion.animPalette;
+    Sprite_Attach(child, sLegionSpriteSheet, tiles, child->basePalette);
     Anim_Start(child, (struct AnimScript *)sLegionAnimScript1, 2, 1);
     Anim_Update(child);
     r = RandomNumberGenerator() & 7;
     child->animTimer = r;
-    child->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
+    child->enemyId = entity->enemyId;
     child->ext.legionPart.owner = entity;
     child->scrollWithBg = 1;
     r = RandomNumberGenerator() & 1;

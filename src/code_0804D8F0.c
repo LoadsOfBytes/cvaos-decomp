@@ -10,7 +10,7 @@ extern u8 sGateGfx[], sGatePalette[], sGateSpriteSheet[], sGatePaletteAnim0[], s
 /**
  * @brief 4D8F0 | Graphics setup of object 0: layer 0x11, facing left when
  * right of x 0x78, sprite sGateGfx / palette sGatePalette /
- * sGateSpriteSheet (Entity_LoadGraphics; palette slot 5 in unk_510 when it fails),
+ * sGateSpriteSheet (Entity_LoadGraphics; palette slot 5 in basePalette when it fails),
  * palette slot kept in unk_4FF; frame 0 with palette data sGatePaletteAnim0 when
  * opened is 0, otherwise frame 5 with sGatePaletteAnim1 (PaletteAnim_Start); two
  * affine slots (ObjAffine_Alloc(1)) in unk_4FC / unk_4FD, drawn by
@@ -23,8 +23,8 @@ void Gate_SetupGraphics(struct EwramData_EntityData *entity, s32 opened)
     entity->spriteLayer = 0x11;
     entity->flipX = (s16)entity->posX.part16.integer > 0x78 ? 1 : 0;
     if (!Entity_LoadGraphics(entity, sGateGfx, sGatePalette, 0, sGateSpriteSheet))
-        entity->unk_510.part8.basePalette = 5;
-    entity->ext.gate.palette = entity->unk_510.part8.basePalette;
+        entity->basePalette = 5;
+    entity->ext.gate.palette = entity->basePalette;
     pal = entity->ext.gate.palette;
     entity->roomActive = 1;
     if (opened == 0)

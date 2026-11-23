@@ -28,7 +28,7 @@ void Object02Update(struct EwramData_EntityData *entity)
     {
         s32 ex, x, y, t;
 
-        if (entity->unk_514.part16.spawnParam1 == 7 && entity->ext.door.openHeight == 0)
+        if (entity->spawnParam1 == 7 && entity->ext.door.openHeight == 0)
         {
             entity->timer++;
             if (!(entity->timer & 3))
@@ -127,13 +127,13 @@ void Object02Update(struct EwramData_EntityData *entity)
             break;
         gEwramData->gameState.stateFlags &= 0xFFFFFEFE;
         gUnk_03002CB0.dispCnt &= 0x7FFF;
-        if (entity->unk_514.part16.spawnParam0 > 1)
+        if (entity->spawnParam0 > 1)
             entity->state = 0x63;
         else
             entity->state = 0x14;
         break;
     case 20:
-        if ((gEwramData->gameState.bossEventFlags >> entity->unk_514.part16.spawnParam1) & 1)
+        if ((gEwramData->gameState.bossEventFlags >> entity->spawnParam1) & 1)
         {
             if (!(gEwramData->gameState.stateFlags & 0x400000))
                 Music_SubmitCommandOnce(0x1040);

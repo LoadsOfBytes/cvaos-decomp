@@ -13,16 +13,16 @@ extern void GhostDancer_UpdateDeath(struct EwramData_EntityData *);
 void GhostDancer_OnHit(struct EwramData_EntityData *entity,s32 hit,u16 *info)
 {
     s32 damage=Hit_ResolveDamage(entity,hit,info,(s16)Player_CalculateAttackPower(info[2]));
-    entity->unk_510.part8.hitFlashTimer=8;
-    { u16 hp=entity->unk_518.part16.hp;
+    entity->hitFlashTimer=8;
+    { u16 hp=entity->hp;
         damage=(u32)damage<<16;
         damage>>=16;
-        entity->unk_518.part16.hp=hp-damage; }
+        entity->hp=hp-damage; }
     Entity_ShowDamage(entity,damage,0);
-    if((s16)entity->unk_518.part16.hp<=0)
+    if((s16)entity->hp<=0)
     {
         Enemy_DropRewards(entity);
-        entity->palette=entity->unk_510.part8.basePalette;
+        entity->palette=entity->basePalette;
         entity->state=3;
         entity->subState=0;
         PlaySong(0x6D);

@@ -8,7 +8,7 @@ extern void DeathFloatingWeaponHitBox_OnHit(void);
 
 /**
  * @brief BD2D0 | Attached hitbox: the owner is entity slot unk_4F8 (byte).
- * Deleted as soon as the owner's HP (unk_518) drops to 0.  State 0 registers
+ * Deleted as soon as the owner's HP (hp) drops to 0.  State 0 registers
  * box slot 8 with callback DeathFloatingWeaponHitBox_OnHit (Hit_Enable) and sets bit 1 of
  * flags; state 1 follows the owner's position, copies its current box
  * (Hit_GetEntityBoxes) with HitBox_SetBodyRaw and runs the collision check
@@ -19,7 +19,7 @@ void DeathFloatingWeaponHitBox_Update(struct EwramData_EntityData *entity)
     u32 buf[4];
     struct EwramData_EntityData *owner = &gEwramData->entityData[(u8)entity->ext.deathHelper.ownerIndex];
 
-    if ((s16)owner->unk_518.part16.hp <= 0)
+    if ((s16)owner->hp <= 0)
     {
         EntityDelete(entity);
         return;

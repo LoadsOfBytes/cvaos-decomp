@@ -6,19 +6,19 @@
 extern s32 Entity_SteerToPoint(struct EwramData_EntityData *, void *);
 extern u8 sBaloreHandSteeringParams2[], sBaloreHandSwipeParams[], sBaloreHandSteeringParams3[];
 
-#define SPEED(e) (*(s32 *)&(e)->unk_514)
-/* unk_51C used as bytes by this entity */
+#define SPEED(e) (*(s32 *)&(e)->spawnParam0)
+/* enemyStatus used as bytes by this entity */
 struct BaloreHandAttackBytes {
     u8 animationIndex;
     u8 flags;
 };
-#define UNK_51C(e) ((struct BaloreHandAttackBytes *)&(e)->unk_51C)
+#define UNK_51C(e) ((struct BaloreHandAttackBytes *)&(e)->enemyStatus)
 
 /**
  * @brief B4780 | Flight phase built on Entity_SteerToPoint.  State 0 sets speed
  * 0x30000 and a 0x20-frame counter (timer), whose value / 16 + 0x2E goes
- * to byte 0 of unk_51C while it runs.  State 1 flies with sBaloreHandSteeringParams2;
- * on arrival speed 0x54000, sound 0x86, bit 0 of byte 1 of unk_51C, and
+ * to byte 0 of enemyStatus while it runs.  State 1 flies with sBaloreHandSteeringParams2;
+ * on arrival speed 0x54000, sound 0x86, bit 0 of byte 1 of enemyStatus, and
  * randomly (1/2) state 3 with a 0x2F-frame counter or state 2.  States 2
  * and 3 fly with sBaloreHandSwipeParams / sBaloreHandSteeringParams3; on arrival the bit is
  * cleared and 1 is returned, otherwise 0.

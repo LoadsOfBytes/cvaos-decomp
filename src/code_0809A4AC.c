@@ -51,8 +51,8 @@ void EnemyStolasUpdate(struct EwramData_EntityData *entity)
     slot = (struct EwramData_EntityData **)(parts + 0x48);
     do {
         child = *slot;
-        if (child != NULL && child->updateFunc != NULL && child->unk_518.part8.enemyId == cursor[0x4B]
-            && (s16)entity->unk_518.part16.hp > 0)
+        if (child != NULL && child->updateFunc != NULL && child->enemyId == cursor[0x4B]
+            && (s16)entity->hp > 0)
             entity->ext.stolas.freeSlots--;
         else
             *slot = NULL;

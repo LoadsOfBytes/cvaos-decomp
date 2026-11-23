@@ -8,7 +8,7 @@ void Object22FallingPart_Update(struct EwramData_EntityData *entity)
 {
     u32 buffer[4];
     struct EwramData_EntityData *owner = entity->ext.object22Part.owner;
-    if (owner == NULL || owner->updateFunc == NULL || owner->unk_518.part8.enemyId != entity->unk_518.part8.enemyId)
+    if (owner == NULL || owner->updateFunc == NULL || owner->enemyId != entity->enemyId)
         goto remove;
     if (entity->state == 0)
     {

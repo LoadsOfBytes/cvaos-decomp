@@ -42,7 +42,7 @@ void DevilPart_Update(struct EwramData_EntityData *entity)
     if (entity->state == 0)
     {
         if (parent != NULL && parent->updateFunc != NULL
-            && parent->unk_518.part8.enemyId == entity->unk_518.part8.enemyId)
+            && parent->enemyId == entity->enemyId)
         {
             parts = parent->ext.devil.parts;
             entity->palette = parent->palette;

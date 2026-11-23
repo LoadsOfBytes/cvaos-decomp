@@ -40,7 +40,7 @@ void Devil_UpdateAttack(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
     case 0:
-        if (entity->unk_518.part8.enemyId != 0x30 && (RandomNumberGenerator() & 0x7F) > 0x40)
+        if (entity->enemyId != 0x30 && (RandomNumberGenerator() & 0x7F) > 0x40)
         {
             entity->ext.joint.pose = 4;
             entity->timer = 0xE;
@@ -153,7 +153,7 @@ void Devil_UpdateAttack(struct EwramData_EntityData *entity)
             Anim_StartIndexed(entity, entity->animScriptIndex + 1, 0, 1);
         }
         if (entity->timer == 0x28
-            && (entity->unk_518.part8.enemyId == 0x48 || entity->unk_518.part8.enemyId == 0x66))
+            && (entity->enemyId == 0x48 || entity->enemyId == 0x66))
             DevilChargeEffect_Spawn(entity, 0, -0x300000, entity->timer);
         if (entity->timer == 0x1E)
         {

@@ -37,7 +37,7 @@ void DevilProjectile_Update(struct EwramData_EntityData *entity)
             Afterimage_Create(entity, 0x7FFF, 12, 16);
             Afterimage_Create(entity, 0x7FFF, 6, 16);
         }
-        if ((entity->unk_518.part8.enemyId == 0x48 || entity->unk_518.part8.enemyId == 0x66)
+        if ((entity->enemyId == 0x48 || entity->enemyId == 0x66)
             && entity->ext.devilProjectile.release == entity->timer)
         {
             Anim_StartIndexed(entity, 0, 0, 1);
@@ -69,12 +69,12 @@ void DevilChargeEffect_Spawn(struct EwramData_EntityData *owner, s32 dx, s32 dy,
     entity->ext.devilCharge.offsetY = dy;
     entity->spriteLayer = owner->spriteLayer - 1;
     graphics = ObjGfx_Find(sDevilGfx);
-    entity->unk_510.part8.basePalette = owner->unk_510.part8.basePalette;
-    Sprite_Attach(entity, sDevilSpriteSheet, graphics, entity->unk_510.part8.basePalette);
+    entity->basePalette = owner->basePalette;
+    Sprite_Attach(entity, sDevilSpriteSheet, graphics, entity->basePalette);
     entity->hit.flags |= 4;
     entity->hit.flags |= 2;
     entity->timer = timer;
-    entity->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
+    entity->enemyId = owner->enemyId;
     entity->attack = owner->attack;
     entity->ext.devilCharge.owner = owner;
     entity->scrollWithBg = 0;

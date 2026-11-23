@@ -21,14 +21,14 @@ extern void Minotaur_OnHit(struct EwramData_EntityData *);
 extern u8 sMinotaurGfx[], sMinotaurPalette[], sMinotaurSpriteSheet[];
 
 /* Two child entities inherit the parent pointer, low unk_4F4 byte, attack
- * and the unk_518 value of the Minotaur. */
+ * and the hp value of the Minotaur. */
 static inline void AttachChild(struct EwramData_EntityData *child, struct EwramData_EntityData *entity)
 {
     ENTITY_OWNER(child) = entity;
     ENTITY_PARENT_INDEX(child) = ENTITY_INDEX(entity);
     child->attack = entity->attack;
-    /* Signed 16-bit view of unk_518; the u16 field allocates registers differently. */
-    *(s16 *)&child->unk_518 = *(s16 *)&entity->unk_518;
+    /* Signed 16-bit view of hp; the u16 field allocates registers differently. */
+    *(s16 *)&child->hp = *(s16 *)&entity->hp;
 }
 
 void Minotaur_Init(struct EwramData_EntityData *entity, s32 variant)
@@ -65,6 +65,6 @@ void Minotaur_Init(struct EwramData_EntityData *entity, s32 variant)
     entity->posY.part16.integer++;
     entity->scrollWithBg = 1;
     entity->state = 0;
-    if (entity->unk_514.part16.spawnParam0 != 0)
+    if (entity->spawnParam0 != 0)
         Player_SetSelectedTarget(entity);
 }

@@ -9,7 +9,7 @@ extern void Entity_SnapToGround(struct EwramData_EntityData *);
 
 /* Scene setup, flag 0x24: stop HBlank effect and place actor at (190,160). */
 /**
- * @brief Init of event scene variant 7 (Object 0x20 unk_514 = 7,
+ * @brief Init of event scene variant 7 (Object 0x20 spawnParam0 = 7,
  * sEventSceneCreateFuncs[7]).
  */
 void EventScene07_Init(struct EwramData_EntityData *entity)

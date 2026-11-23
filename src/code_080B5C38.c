@@ -22,7 +22,7 @@ void EnemyBaloreCreate(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *part;
 
-    if (entity->unk_514.part16.spawnParam0 != 0 && !gEwramData->gameState.bossRushMode)
+    if (entity->spawnParam0 != 0 && !gEwramData->gameState.bossRushMode)
     {
         if (gEwramData->gameState.bossEventFlags & 0x40)
             goto delete;

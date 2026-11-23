@@ -18,7 +18,7 @@ void EventScene30_CreateCenterEffect(struct EwramData_EntityData *owner)
     {
         s32 slot=ObjGfx_LoadResource(sEventScene30Gfx,0);
         if(slot<0)goto fail;
-        effect->unk_510.part8.basePalette=14;
+        effect->basePalette=14;
         zero=0;
         Sprite_Attach(effect,sEventScene30SpriteSheet,slot,14);
         effect->drawFunc=(u32 *)Sprite_DrawEntity;

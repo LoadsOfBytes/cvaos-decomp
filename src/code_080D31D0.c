@@ -37,9 +37,9 @@ struct EwramData_EntityData *Graham_CreateCombatBody(struct EwramData_EntityData
     e->posX.whole = owner->posX.whole;
     e->posY.whole = owner->posY.whole;
     e->scrollWithBg = 1;
-    e->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
-    e->unk_518.part16.hp = 2000;
-    e->unk_510.part16.unk_512 = owner->unk_510.part16.unk_512;
+    e->enemyId = owner->enemyId;
+    e->hp = 2000;
+    e->mp = owner->mp;
     e->attack = owner->attack;
     e->defense = 110;
     e->enemyFlags |= 4;

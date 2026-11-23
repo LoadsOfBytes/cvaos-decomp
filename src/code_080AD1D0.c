@@ -11,8 +11,8 @@ u8 BigGolem_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->ext.bigGolem.palette0 = ObjPalette_FindOrLoadVariant(sBigGolemPalette, 0);
     entity->ext.bigGolem.palette1 = ObjPalette_FindOrLoadVariant(sBigGolemPalette, 1);
-    entity->unk_510.part8.basePalette = entity->ext.bigGolem.palette0;
-    Sprite_Attach(entity, sBigGolemSpriteSheet, tiles, entity->unk_510.part8.basePalette);
+    entity->basePalette = entity->ext.bigGolem.palette0;
+    Sprite_Attach(entity, sBigGolemSpriteSheet, tiles, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }

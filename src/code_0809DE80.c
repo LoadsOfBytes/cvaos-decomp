@@ -1,5 +1,5 @@
 /* Load the graphics 081190C0 / 082258FC with the two palette variants of
- * 0820AC4C (unk_504 / unk_505, the second also as unk_510) and record the
+ * 0820AC4C (unk_504 / unk_505, the second also as basePalette) and record the
  * graphics slot and both variants in the shared data block at unk_4F8;
  * 0 when the graphics are not loaded. */
 #include "code_08009A0.h"
@@ -21,11 +21,11 @@ s32 Legion_LoadGraphics(struct EwramData_EntityData *entity)
     if (graphics < 0)
         return 0;
     entity->ext.legion.animPalette = ObjPalette_FindOrLoadVariant(sLegionObject25Palette, 0);
-    entity->unk_510.part8.basePalette = entity->ext.legion.bodyPalette = ObjPalette_FindOrLoadVariant(sLegionObject25Palette, 1);
+    entity->basePalette = entity->ext.legion.bodyPalette = ObjPalette_FindOrLoadVariant(sLegionObject25Palette, 1);
     data[0] = graphics;
     data[8] = (s8)entity->ext.legion.animPalette;
     data[9] = (s8)entity->ext.legion.bodyPalette;
-    Sprite_Attach(entity, sLegionSpriteSheet, graphics, entity->unk_510.part8.basePalette);
+    Sprite_Attach(entity, sLegionSpriteSheet, graphics, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }

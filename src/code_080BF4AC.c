@@ -17,7 +17,7 @@ void Death_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
     {
         Enemy_DropRewards(entity);
         BossDefeatEffect_Spawn(entity->posX.whole, entity->posY.whole - 0x200000);
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->state = 7;
         entity->stage = 0;
         entity->subState = 0;

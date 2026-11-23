@@ -23,7 +23,7 @@ void Zombie_SpawnTemporarySprite(struct EwramData_EntityData *parent, s32 x, s32
         part->spriteLayer = parent->spriteLayer + 1;
         zero = 0;
         graphics = ObjGfx_Find(sZombieGfx);
-        Sprite_Attach(part, sZombieSpriteSheet, graphics, parent->unk_510.part8.basePalette);
+        Sprite_Attach(part, sZombieSpriteSheet, graphics, parent->basePalette);
         part->animFrame = zero;
         part->ext.zombieSprite.lifetime = 120;
         part->scrollWithBg = 1;

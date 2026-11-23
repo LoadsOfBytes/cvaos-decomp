@@ -47,7 +47,7 @@ void EnemyMermanUpdate(struct EwramData_EntityData *entity)
             if (entity->deleteRequested)
             {
                 parent = entity->ext.merman.spawner;
-                if (parent && parent->updateFunc && parent->unk_518.part8.enemyId == 3)
+                if (parent && parent->updateFunc && parent->enemyId == 3)
                 {
                     if (parent->ext.mermanSpawner.childCount) parent->ext.mermanSpawner.childCount--;
                 }
@@ -63,19 +63,19 @@ void EnemyMermanUpdate(struct EwramData_EntityData *entity)
             if ((s32)entity->ext.mermanSpawner.childCount > 2) goto finished;
             child = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
             if (child == NULL) goto finished;
-            mode = entity->unk_514.part16.spawnParam0;
+            mode = entity->spawnParam0;
             if (mode != 1) goto finished;
             entity->ext.mermanSpawner.childCount++;
             child->posX.whole = (((RandomNumberGenerator() & 0xFF) + 144) << 16) - background->xPos.whole;
             child->posY.whole = ((entity->ext.merman.homeY + 32) << 16) - background->yPos.whole;
             child->scrollWithBg = 1;
-            child->unk_518.part8.spawnIndex = zero;
-            child->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
-            child->unk_514.part16.spawnParam0 = mode;
-            child->unk_514.part16.spawnParam1 = zero;
+            child->spawnIndex = zero;
+            child->enemyId = entity->enemyId;
+            child->spawnParam0 = mode;
+            child->spawnParam1 = zero;
             child->drawFunc = (u32 *)Sprite_DrawEntity;
-            child->unk_518.part16.hp = sEnemyData[entity->unk_518.part8.enemyId].hp;
-            child->unk_510.part16.unk_512 = sEnemyData[entity->unk_518.part8.enemyId].unk_E;
+            child->hp = sEnemyData[entity->enemyId].hp;
+            child->mp = sEnemyData[entity->enemyId].mp;
             child->updateFunc = entity->updateFunc;
             EnemyMermanCreate(child);
             entity->timer = 60;

@@ -21,7 +21,7 @@ void GrahamBodyOverlay_Update(struct EwramData_EntityData *entity)
     {
         s32 zero;
         u16 flags;
-        if(owner->unk_518.part8.enemyId!=entity->unk_518.part8.enemyId)
+        if(owner->enemyId!=entity->enemyId)
         { entity->deleteRequested=1; return; }
         zero=0;
         entity->ext.graham.flags=owner->ext.graham.flags;

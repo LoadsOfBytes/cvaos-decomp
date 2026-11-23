@@ -35,7 +35,7 @@ void MimicTrigger_Update(struct EwramData_EntityData *entity)
 /**
  * @brief 993EC | Hit callback: Player_CalculateAttackPower(hit[2]), go to state 1
  * with timer 0x28 and advance the substate of the parent (unk_500_entity)
- * when it is alive, of the same type (unk_51A) and in state 0 / substate 0.
+ * when it is alive, of the same type (enemyId) and in state 0 / substate 0.
  */
 void MimicTrigger_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
@@ -46,7 +46,7 @@ void MimicTrigger_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *
     entity->subState = 0;
     entity->timer = 0x28;
     if (mimic != NULL && mimic->updateFunc != NULL
-        && mimic->unk_518.part8.enemyId == entity->unk_518.part8.enemyId
+        && mimic->enemyId == entity->enemyId
         && STATE_WORD(mimic) == 0)
         mimic->subState++;
 }

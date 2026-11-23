@@ -26,19 +26,19 @@ void Chaos2SummonedPart_OnHit(struct EwramData_EntityData *part, struct EwramDat
     part->velX.whole = FixedMultiply(dx, 0x20000);
     part->velY.whole = FixedMultiply(dy, 0x20000);
     {
-        s32 hp = part->unk_518.part16.hp;
+        s32 hp = part->hp;
         s32 d = (s16)damage;
 
         hp -= d;
         zero = 0;
-        part->unk_518.part16.hp = hp;
+        part->hp = hp;
         if ((s16)hp > 0)
             return;
     }
     {
-        part->palette = part->unk_510.part8.basePalette;
+        part->palette = part->basePalette;
         part->timer = 40;
-        part->unk_510.part8.hitFlashTimer = zero;
+        part->hitFlashTimer = zero;
         part->state = 10;
         part->subState = zero;
     }

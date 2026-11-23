@@ -15,10 +15,10 @@
  * angle around the hand, its turn step, orbit radius, a per-state counter
  * (spiral phase while flying out, rolling speed on the floor, bounce speed
  * when dropped), and the x / y movement of the last frame (the y one is kept
- * in the pointer-typed unk_514 field).
+ * in the pointer-typed spawnParam0 field).
  */
-#define DISC_ARMOR_DISC_LAST_DX(e) e->unk_510.whole
-#define DISC_ARMOR_DISC_LAST_DY(e) e->unk_514.unk_514_32
+#define DISC_ARMOR_DISC_LAST_DX(e) ENTITY_WORD_510(e)
+#define DISC_ARMOR_DISC_LAST_DY(e) ENTITY_PTR_514(e)
 
 /*
  * Ring (DiscArmorRing_Update / _Aim / _Draw): angle from the hand to the
@@ -27,8 +27,9 @@
  */
 
 /*
- * The macros expand to the original member chains without added parentheses
- * (token-identical preprocessed code); use them with a plain base expression.
+ * The macros expand to member chains or to the ENTITY_* views of the common
+ * block (structs/ewram.h) without added parentheses; use them with a plain
+ * base expression.
  */
 
 /* Sparks (SpawnSpark in code_080B1678.c, DiscArmorSpark_Update): animation. */

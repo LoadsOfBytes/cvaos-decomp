@@ -165,7 +165,7 @@ void Bat_UpdateDeath(struct EwramData_EntityData *entity)
         Anim_Update(entity);
         entity->velY.whole = 0x8000;
         entity->flipY = 1;
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->timer = 0x40;
         entity->subState++;
         /* fall through */

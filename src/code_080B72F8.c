@@ -102,7 +102,7 @@ s32 DeadWarrior_UpdateDeath(struct EwramData_EntityData *entity)
         if (entity->timer <= 0x27)
         {
             if (Entity_GetVisibilityPattern(0x28 - entity->timer)) entity->palette = 5;
-            else entity->palette = entity->unk_510.part8.basePalette;
+            else entity->palette = entity->basePalette;
         }
         timer = entity->timer + 1;
         entity->timer = timer;

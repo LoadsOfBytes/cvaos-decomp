@@ -71,16 +71,16 @@ not estimates.
 | **Game functions decompiled to C** | **all of them.** (The only game-side assembly left is one 8-byte ARM/Thumb interworking stub, `bx pc; b Obj_InstallCallbacks`, which has no C equivalent.) Some still match only with compiler-steering tricks – see *Known limitations* |
 | All ROM code (`.text`) produced by C | 891,340 / 918,324 bytes (**97.06 %**). The remaining 2.94 % is not game code: the toolchain's libgcc/libc and the platform assembly that GBA decompilations normally keep (startup `crt0`, the `m4a` sound mixer, BIOS syscall stubs, ROM header) |
 | Functions with descriptive names | 3,842 / 3,842 (**100 %**; unreferenced leftovers are named as such) |
-| Structure fields with descriptive names | 3,285 / 3,429 declared (**95.8 %**); 93,489 / 95,886 field accesses (**97.5 %**) |
+| Structure fields with descriptive names | 3,286 / 3,412 declared (**96.3 %**); 91,432 / 91,641 field accesses (**99.8 %**) |
 | Per-entity work area (`0x4F4` … `0x50F`) | one structure per entity type in `union EntityWork` (**363** structures, about 6,600 accesses `e->ext.<type>.<member>`); 13 accessor macros remain for views that only partly overlap a member and for 5 generic slots shared by all types; 67 lines still use the offset view `ext.raw` (see *Known limitations*) |
 | Local variables and parameters named | 17,065 / 17,065 (**100 %**) |
-| Lines marked `FAKEMATCH` | 264 lines in 122 of 1,710 C files (see below) |
+| Lines marked `FAKEMATCH` | 263 lines in 121 of 1,710 C files (see below) |
 
 ## Known limitations
 
 - **Names are inferred, not original.** The original source code and its names are
   unknown. Everything you read is a reconstruction.
-- **`FAKEMATCH`.** In 122 files, 264 lines force the compiler's register allocation
+- **`FAKEMATCH`.** In 121 files, 263 lines force the compiler's register allocation
   (`register ... asm("rN")` pins, empty `asm("")` statements, one-shot
   `do { } while (0)` wrappers and `volatile` reads, see below). The original code
   certainly did not contain them; they are needed because no natural C variant was
@@ -111,10 +111,13 @@ not estimates.
   - 67 lines that still use `ext.raw` directly: position-history and heap blocks
     that the code reads through casts, generic index bytes, and a few accesses
     whose exact form (a cast or a wider read) is needed for matching code;
-  - the fields after the work area (`unk_510` … `unk_51C`) are still generic
-    unions: the common uses have named views (`basePalette`, `hp`,
-    `spawnParam0`, …), type-specific ones are named by small macros in a few
-    headers.
+  - the common block after the work area (0x510 … 0x51F) is now plain members
+    (`basePalette`, `hitFlashTimer`, `mp`, `spawnParam0`, `spawnParam1`, `hp`,
+    `enemyId`, `spawnIndex`, `enemyStatus`). Entity types that keep other data
+    there reach it through 12 `ENTITY_*` view macros (a word, halfword, pointer or
+    byte view through a small union, which keeps the same compiler aliasing as
+    the original union access); the code uses them only through named macros in
+    the family headers or files (`SAVE_POINT_SAVE_DONE`, `MENU_CURSOR_Y`, …).
 - **One-shot loops and volatile reads.** 54 of the `FAKEMATCH` lines mark
   statements (outside macro definitions) wrapped in a `do { ... } while (0)` that
   runs exactly once (sometimes nested), and 13 mark reads through a `volatile`
@@ -131,9 +134,8 @@ not estimates.
 ## Planned work
 
 - **Finish the entity structures**: real types for the heap blocks and position
-  histories that are still reached through `ext.raw`, and the fields after the work
-  area (`unk_510` … `unk_51C`).
-- **Name the remaining structure fields** (144 declared fields, mostly written once
+  histories that are still reached through `ext.raw`.
+- **Name the remaining structure fields** (126 declared fields, mostly written once
   or only initialized).
 - **Regroup the source files** into logical modules instead of ROM-address files.
 - **Reduce `FAKEMATCH`** where a natural C variant can be found.

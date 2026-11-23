@@ -21,7 +21,7 @@ void Zombie_SpawnFallingDebris(struct EwramData_EntityData *parent, s32 x, s32 y
         part->flipX = parent->flipX;
         part->spriteLayer = parent->spriteLayer;
         graphics = ObjGfx_Find(sZombieGfx);
-        Sprite_Attach(part, sZombieSpriteSheet, graphics, parent->unk_510.part8.basePalette);
+        Sprite_Attach(part, sZombieSpriteSheet, graphics, parent->basePalette);
         part->animFrame = 13;
         part->timer = 30;
         part->accelY.whole = 0xA00;

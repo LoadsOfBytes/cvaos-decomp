@@ -22,21 +22,21 @@ void DeadCrusader_OnHit(struct EwramData_EntityData *entity, struct EwramData_En
         PlaySong(0x69);
     }
     else damage = Hit_ResolveDamage(entity, (s32)attacker, hit, (s16)damage);
-    entity->unk_510.part8.hitFlashTimer = 8;
+    entity->hitFlashTimer = 8;
     {
-        u16 hp = entity->unk_518.part16.hp;
+        u16 hp = entity->hp;
         signedDamage = damage;
         signedDamage <<= 16;
         signedDamage >>= 16;
 
-        entity->unk_518.part16.hp = hp - signedDamage;
+        entity->hp = hp - signedDamage;
     }
     Entity_ShowDamage(entity, signedDamage, 0);
-    if ((s16)entity->unk_518.part16.hp <= 0)
+    if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
         PlaySong(0x72);
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->timer = 0x28;
         entity->state = 2;
         entity->subState = 0;

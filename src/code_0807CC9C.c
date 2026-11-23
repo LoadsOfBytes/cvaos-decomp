@@ -21,7 +21,7 @@ void AluraUne_SpawnRootWave(struct EwramData_EntityData *parent, s32 index, s32 
             EntityDelete(part);
             goto finished;
         }
-        Sprite_Attach(part, sAluraUneSpriteSheet, graphics, parent->unk_510.part8.basePalette);
+        Sprite_Attach(part, sAluraUneSpriteSheet, graphics, parent->basePalette);
         Anim_StartIndexed(part, 9, 0, 0);
         Anim_Update(part);
         part->drawFunc = (u32 *)Sprite_DrawEntity;

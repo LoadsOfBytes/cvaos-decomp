@@ -10,7 +10,7 @@ extern void EntityDampVelocityX(struct EwramData_EntityData *entity, s32 factor)
 extern void EntityAccelerateAndMove(struct EwramData_EntityData *entity, s32 maxSpeed);
 extern s32 EntityIsOutsideScreen(struct EwramData_EntityData *entity, s32 margin);
 
-/* Graphics of object 0x14 and its update functions by variant (unk_514). */
+/* Graphics of object 0x14 and its update functions by variant (spawnParam0). */
 extern u8 sObject14Gfx[];
 extern u8 sObject14Palette[];
 extern u8 sObject14SpriteSheet[];
@@ -86,5 +86,5 @@ void Object14Create(struct EwramData_EntityData *entity)
  */
 void Object14Update(struct EwramData_EntityData *entity)
 {
-    sObject14VariantFuncs[entity->unk_514.part16.spawnParam0](entity);
+    sObject14VariantFuncs[entity->spawnParam0](entity);
 }

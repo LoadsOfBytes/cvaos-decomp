@@ -22,7 +22,7 @@ struct BgPaletteCycleFrame {
     u16 duration;
 };
 
-/* Palette animation (variant unk_516 of object 0x07 type 1). */
+/* Palette animation (variant spawnParam1 of object 0x07 type 1). */
 struct BgPaletteCycle {
     u16 frameCount; // number of frames
     u16 destinationPalette;
@@ -33,13 +33,13 @@ extern struct BgPaletteCycle sBgPaletteCycles[];
 extern struct WarpRoomEntry sWarpRoomEntries[];
 
 /**
- * @brief 4F690 | Step the palette animation of variant unk_516: frame
+ * @brief 4F690 | Step the palette animation of variant spawnParam1: frame
  * unk_4F4, timer unk_4F6. (Non-void in the original, which returns nothing
  * explicitly: `pop {r1}` epilogue.)
  */
 s32 BgPaletteAnim_Step(struct EwramData_EntityData *entity)
 {
-    struct BgPaletteCycle *anim = &sBgPaletteCycles[entity->unk_514.part16.spawnParam1];
+    struct BgPaletteCycle *anim = &sBgPaletteCycles[entity->spawnParam1];
     struct BgPaletteCycleFrame *frame = &anim->frames[(u16)entity->ext.bgPaletteAnim.frame];
 
     entity->ext.bgPaletteAnim.tick = Mod((u16)entity->ext.bgPaletteAnim.tick + 1, frame->duration);
@@ -52,11 +52,11 @@ s32 BgPaletteAnim_Step(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief 4F6E4 | Object 0x07 create, by type unk_514.
+ * @brief 4F6E4 | Object 0x07 create, by type spawnParam0.
  */
 void Object07Create(struct EwramData_EntityData *entity)
 {
-    switch (entity->unk_514.part16.spawnParam0)
+    switch (entity->spawnParam0)
     {
         case 0:
             BgParticle_SpawnAll(entity);
@@ -74,8 +74,8 @@ void Object07Create(struct EwramData_EntityData *entity)
             BgPalette_ApplyTintedGrayscale();
             break;
         case 4:
-            if (entity->unk_514.part16.spawnParam1 != 0)
-                Music_StartOverride(entity->unk_514.part16.spawnParam1);
+            if (entity->spawnParam1 != 0)
+                Music_StartOverride(entity->spawnParam1);
             break;
     }
 }
@@ -86,7 +86,7 @@ void Object07Create(struct EwramData_EntityData *entity)
  */
 void Object07Update(struct EwramData_EntityData *entity)
 {
-    switch (entity->unk_514.part16.spawnParam0)
+    switch (entity->spawnParam0)
     {
         case 1:
             BgPaletteAnim_Step(entity);

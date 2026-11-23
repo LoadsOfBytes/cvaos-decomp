@@ -40,7 +40,7 @@ struct EwramData_EntityData *Graham_CreateSidePart(struct EwramData_EntityData *
     e->scrollWithBg = 1;
     e->enemyFlags |= 4;
     e->attack = owner->attack;
-    e->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
+    e->enemyId = owner->enemyId;
     e->ext.grahamPart.side = side;
     Anim_StartIndexed(e, 0, 0, 1);
     Anim_Update(e);

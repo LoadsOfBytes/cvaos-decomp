@@ -6,7 +6,7 @@
 extern s32 Entity_SetupFromObjectTable(struct EwramData_EntityData *entity, s32 kind);
 
 /**
- * @brief Init of event scene variant 16 (Object 0x20 unk_514 = 16,
+ * @brief Init of event scene variant 16 (Object 0x20 spawnParam0 = 16,
  * sEventSceneCreateFuncs[16]). Create step: deleted once stateFlags bit 16 is set;
  * else animation 4 at room (0x50, 0xC0) facing left with enemyFlags bit 2.
  */

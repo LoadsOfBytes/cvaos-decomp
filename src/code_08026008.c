@@ -35,7 +35,7 @@ extern void SkillWingedSkeletonHitBoxUpdate(struct EwramData_EntityData *);
  * @brief 26008 | Winged Skeleton red soul: graphics set 0 in an affine slot,
  * the SkillWingedSkeletonHitBoxUpdate child, placed at the caster (8 / -0x1A), song 0xE4. It
  * flies off at 0x40000 / -0x12000 (gravity 0x2000) with the sprite angle
- * unk_510 turning by unk_512 = 0x100 from -0x800 towards 0x4000 (mirrored);
+ * ENTITY_HALF_510 turning by mp = 0x100 from -0x800 towards 0x4000 (mirrored);
  * its velocity unk_508 / unk_50C follows the angle. When the point one step
  * ahead hits a solid tile (Collision_GetTile, not Collision_IsPointSolid) it waits 32
  * frames, then frees its slot.

@@ -91,9 +91,9 @@ s32 BestiaryMenu_SpawnEnemyPreview(struct EwramData_EntityData *menu)
     EntityGetSlot(entity);
     if (entity != NULL)
     {
-        entity->unk_518.part16.hp = template->hp;
+        entity->hp = template->hp;
         entity->updateFunc = template->updateFunc;
-        entity->unk_518.part8.enemyId = index;
+        entity->enemyId = index;
         entity->posX.part16.integer = 0x40;
         entity->posY.part16.integer = 0x58;
         entity->posX.part16.integer += template->previewOffsetX;

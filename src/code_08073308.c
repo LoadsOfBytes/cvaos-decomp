@@ -13,7 +13,7 @@ struct EwramData_EntityData *Manticore_CreateTailSegment(struct EwramData_Entity
         u16 slot;
         entity->spriteLayer = part->spriteLayer + 1;
         graphics = ObjGfx_Find(sManticoreGfx);
-        Sprite_Attach(entity, sManticoreSpriteSheet, graphics, owner->unk_510.part8.basePalette);
+        Sprite_Attach(entity, sManticoreSpriteSheet, graphics, owner->basePalette);
         if (kind == 5) entity->animFrame = 1;
         else entity->animFrame = 2;
         slot = ObjAffine_Alloc(1);
@@ -21,7 +21,7 @@ struct EwramData_EntityData *Manticore_CreateTailSegment(struct EwramData_Entity
         {
             entity->affineIndex = slot;
             entity->affine = 1;
-            entity->unk_518.part8.enemyId = part->unk_518.part8.enemyId;
+            entity->enemyId = part->enemyId;
             entity->scrollWithBg = 0;
             entity->drawFunc = (u32 *)Sprite_DrawEntity;
             ENTITY_OWNER(entity) = owner;

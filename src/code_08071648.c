@@ -30,8 +30,8 @@ void Merman_SpawnShot(struct EwramData_EntityData *parent)
             projectile->velX.whole = -0x20000;
         }
         projectile->posY.part16.integer = parent->posY.part16.integer - 24;
-        projectile->unk_518.part8.spawnIndex = parent->unk_518.part8.spawnIndex;
-        projectile->unk_510.part8.basePalette = parent->unk_510.part8.basePalette;
+        projectile->spawnIndex = parent->spawnIndex;
+        projectile->basePalette = parent->basePalette;
         projectile->attack = parent->attack;
     }
 }

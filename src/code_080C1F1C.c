@@ -12,7 +12,7 @@ extern void Fleaman_UpdateDeath(struct EwramData_EntityData *entity);
 /**
  * @brief C1F1C | Fleaman update. State 3: start the animation once, then
  * only animate. Otherwise (Enemy_UpdateHitFlash unless state 0xFF) skip the state
- * and only run Hit_CheckWithPlayer while Entity_IsTimeStopped says so or unk_511 is set
+ * and only run Hit_CheckWithPlayer while Entity_IsTimeStopped says so or hitFlashTimer is set
  * (not in states 2 / 0xFF); states 1 Fleaman_UpdateMovement, 0xFF Fleaman_UpdateDeath.
  */
 void EnemyFleamanUpdate(struct EwramData_EntityData *entity)
@@ -39,7 +39,7 @@ void EnemyFleamanUpdate(struct EwramData_EntityData *entity)
         Hit_CheckWithPlayer(collision, entity);
         return;
     }
-    if (entity->unk_510.part8.hitFlashTimer && entity->state != 2 && entity->state != 0xFF)
+    if (entity->hitFlashTimer && entity->state != 2 && entity->state != 0xFF)
     {
         Hit_CheckWithPlayer(collision, entity);
         return;

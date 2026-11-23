@@ -36,7 +36,7 @@ void WaiterSkeleton_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16
     if (Enemy_TakeDamage(entity, attacker, hit))
     {
         Enemy_DropRewards(entity);
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->timer = 0x28;
         entity->state = 3;
         entity->stage = 0;
@@ -62,7 +62,7 @@ void WaiterSkeletonThrownTray_DamagePlayerOnContact(struct EwramData_EntityData 
 
 void WaiterSkeletonThrownTray_OnHit(struct EwramData_EntityData *entity)
 {
-    entity->unk_518.part16.hp = 0;
+    entity->hp = 0;
 }
 
 /* Record the parent and initial relative position for the child effect. */
@@ -90,7 +90,7 @@ void SkullArcherArrow_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *parent = entity->ext.skullArcherArrow.owner;
     u8 collision[16];
-    if (entity->state != 2 && (s16)entity->unk_518.part16.hp <= 0)
+    if (entity->state != 2 && (s16)entity->hp <= 0)
         entity->state = 2;
     if (gEwramData->gameState.timeStopTimer != 0 && entity->state != 2)
         goto collision;
@@ -159,7 +159,7 @@ void SkullArcher_UpdateShoot(struct EwramData_EntityData *entity)
                     s32 graphics;
                     PlaySong(0x85);
                     graphics = ObjGfx_Find(sSkullArcherGfx);
-                    Sprite_Attach(arrow, sSkullArcherSpriteSheet, graphics, entity->unk_510.part8.basePalette);
+                    Sprite_Attach(arrow, sSkullArcherSpriteSheet, graphics, entity->basePalette);
                     arrow->animFrame = 0x19;
                     arrow->flipX = entity->flipX;
                     arrow->drawFunc = (u32 *)Sprite_DrawEntity;
@@ -168,7 +168,7 @@ void SkullArcher_UpdateShoot(struct EwramData_EntityData *entity)
                     arrow->posY.part16.integer = pattern[1] + entity->posY.part16.integer;
                     arrow->scrollWithBg = 1;
                     arrow->attack = entity->attack;
-                    arrow->unk_518.part16.hp = 1;
+                    arrow->hp = 1;
                     Hit_Enable(arrow, 10, SkullArcherArrow_DamagePlayerOnContact, (s32)SkullArcherArrow_OnHit);
                     HitBox_SetAttackRaw(arrow, 0x0202E8EE);
                     HitBox_SetBodyRaw(arrow, 0x0202E8EE);
@@ -186,7 +186,7 @@ void SkullArcher_UpdateShoot(struct EwramData_EntityData *entity)
         case 1:
             if (entity->timer != 0)
                 entity->timer--;
-            else if (entity->unk_514.part16.spawnParam0 == 0)
+            else if (entity->spawnParam0 == 0)
             {
                 entity->state = 0;
                 entity->stage = 0;

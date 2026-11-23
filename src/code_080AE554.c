@@ -23,7 +23,7 @@ void Dryad_UpdateAttack(struct EwramData_EntityData *entity)
         if (!Entity_IsInRect(entity, -0x80, -0x80, 0x1F0, 0x1A0))
         {
             u8 *base = (u8 *)gEwramData;
-            u32 event = entity->unk_518.part8.spawnIndex;
+            u32 event = entity->spawnIndex;
             s32 index = event >> 5;
             s32 *word;
             index <<= 2;

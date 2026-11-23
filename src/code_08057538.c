@@ -27,7 +27,7 @@ void Object2A_UpdateMovement(struct EwramData_EntityData *entity)
             {
                 entity->subState++;
                 entity->velX.whole = 0;
-                entity->timer = sObject2AVariants[entity->unk_514.part16.spawnParam1].wait;
+                entity->timer = sObject2AVariants[entity->spawnParam1].wait;
                 break;
             }
             if (dist > 0xFFFFF)
@@ -45,7 +45,7 @@ void Object2A_UpdateMovement(struct EwramData_EntityData *entity)
             {
                 entity->subState++;
                 entity->velX.whole = 0;
-                entity->timer = sObject2AVariants[entity->unk_514.part16.spawnParam1].wait;
+                entity->timer = sObject2AVariants[entity->spawnParam1].wait;
                 break;
             }
             if (dist > 0xFFFFF)
@@ -78,7 +78,7 @@ void Object2A_UpdateMovement(struct EwramData_EntityData *entity)
             {
                 entity->subState++;
                 entity->velX.whole = 0;
-                entity->timer = sObject2AVariants[entity->unk_514.part16.spawnParam1].wait;
+                entity->timer = sObject2AVariants[entity->spawnParam1].wait;
                 break;
             }
             if (dist > 0xFFFFF)
@@ -96,7 +96,7 @@ void Object2A_UpdateMovement(struct EwramData_EntityData *entity)
             {
                 entity->subState++;
                 entity->velX.whole = 0;
-                entity->timer = sObject2AVariants[entity->unk_514.part16.spawnParam1].wait;
+                entity->timer = sObject2AVariants[entity->spawnParam1].wait;
                 break;
             }
             if (dist > 0xFFFFF)

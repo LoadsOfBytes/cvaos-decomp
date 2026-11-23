@@ -9,7 +9,7 @@
 void RipperProjectile_OnHit(struct EwramData_EntityData *entity)
 {
     s32 zero;
-    entity->unk_510.part8.hitFlashTimer=8;
+    entity->hitFlashTimer=8;
     zero=0;
     PlaySong(0x13A);
     entity->hit.flags|=4;

@@ -45,7 +45,7 @@ void HeadStackProjectile_Update(struct EwramData_EntityData *entity)
         entity->velX.whole = vx;
         if (entity->flipX) entity->velX.whole = -vx;
         PlaySong(0x7A);
-        entity->unk_518.part16.hp = 1;
+        entity->hp = 1;
         Hit_Enable(entity, 10, HeadStackProjectile_DamagePlayerOnContact, (s32)HeadStackProjectile_ClearHealth);
         HitBox_SetAttackRaw(entity, 0x0808FCFC);
         HitBox_SetBodyRaw(entity, 0x0808FCFC);
@@ -72,7 +72,7 @@ void HeadStackProjectile_Update(struct EwramData_EntityData *entity)
     }
     Hit_CheckWithPlayer(collision, entity);
     Anim_Update(entity);
-    if ((s16)entity->unk_518.part16.hp == 0)
+    if ((s16)entity->hp == 0)
     {
         Effect_SpawnAt(entity->posX.whole, entity->posY.whole, entity->spriteLayer);
         entity->deleteRequested = 1;

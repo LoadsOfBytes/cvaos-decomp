@@ -18,7 +18,7 @@ extern void DeathFloatingWeapon_Update(struct EwramData_EntityData *entity);
 extern u8 sDeathGfx[], sDeathPalette[], sDeathSpriteSheet[];
 
 /**
- * @brief BF2E8 | Death create: the boss version (unk_514) is deleted once
+ * @brief BF2E8 | Death create: the boss version (spawnParam0) is deleted once
  * beaten (bossEventFlags bit 1) unless in the boss rush mode; sprite layer 0x13,
  * animation 1, child DeathOverlay_Update; bestiary preview gives state 8; otherwise
  * box slot 8 (Hit_EnableContact) with box 0x3230CEE8, boxes off; the boss
@@ -33,7 +33,7 @@ void EnemyDeathCreate(struct EwramData_EntityData *entity)
     struct BgLayerState *bg;
     u8 frozen;
 
-    if (entity->unk_514.part16.spawnParam0 != 0 && !gEwramData->gameState.bossRushMode
+    if (entity->spawnParam0 != 0 && !gEwramData->gameState.bossRushMode
         && (gEwramData->gameState.bossEventFlags & 2))
         goto delete;
     if (!Entity_LoadGraphics(entity, sDeathGfx, sDeathPalette, 0, sDeathSpriteSheet))
@@ -64,7 +64,7 @@ void EnemyDeathCreate(struct EwramData_EntityData *entity)
     HitBox_SetAttackRaw(entity, 0x3230CEE8);
     entity->hit.flags |= 4;
     entity->hit.flags |= 2;
-    if (entity->unk_514.part16.spawnParam0 != 0)
+    if (entity->spawnParam0 != 0)
     {
         entity->state = 0;
         bg = &gEwramData->bgInfo[1];
@@ -84,7 +84,7 @@ void EnemyDeathCreate(struct EwramData_EntityData *entity)
         Music_SetCurrent(0x10);
     }
     entity->objMode = 1;
-    entity->unk_518.part16.hp = 0x98C;
+    entity->hp = 0x98C;
     child = Entity_CreateObject((u32 *)DeathFloatingWeapon_Update);
     if (child != NULL)
     {

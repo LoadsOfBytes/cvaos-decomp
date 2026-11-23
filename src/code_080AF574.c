@@ -29,7 +29,7 @@ void EnemyWaiterSkeletonCreate(struct EwramData_EntityData *entity)
     effect->ext.waiterTray.owner = entity;
     *(u8 *)&effect->ext.raw.unk_4F4 = *(u8 *)&entity->ext.raw.unk_4F4;
     effect->attack = entity->attack;
-    *(u16 *)&effect->unk_518 = *(u16 *)&entity->unk_518;
+    *(u16 *)&effect->hp = *(u16 *)&entity->hp;
     Anim_StartIndexed(entity, 0, 0, 1);
     Anim_Update(entity);
     if (gEwramData->gameState.bestiaryPreview)

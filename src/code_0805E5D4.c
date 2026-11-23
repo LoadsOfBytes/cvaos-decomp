@@ -111,12 +111,12 @@ void EventScene03RisingPart_Update(struct EwramData_EntityData *entity)
             break;
         case 1:
             if (entity->timer & 1) entity->palette = 4;
-            else entity->palette = entity->unk_510.part8.basePalette;
+            else entity->palette = entity->basePalette;
             if (--entity->timer == 255)
             {
                 entity->subState++;
                 entity->stage = 0;
-                entity->palette = entity->unk_510.part8.basePalette;
+                entity->palette = entity->basePalette;
             }
             break;
         case 2:

@@ -5,7 +5,7 @@
 
 /**
  * @brief B3F4C | Damage request at the entity's position: strength 90 / type 3
- * with unk_51C byte 1 bit 0, else 80 or 55 / type 1 (bit 1).  Type 3 also
+ * with enemyStatus byte 1 bit 0, else 80 or 55 / type 1 (bit 1).  Type 3 also
  * pushes the player (Player_SetKnockbackVelocity) by +-0x60000 along the entity's velX
  * direction and -0x20000 vertically.
  */

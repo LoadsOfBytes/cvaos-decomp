@@ -10,7 +10,7 @@ extern s32 ObjAffine_Alloc(u32 group);
 extern void ObjAffine_Set(s32, s32, s32, u16, u16, u16);
 
 /**
- * @brief Init of event scene variant 9 (Object 0x20 unk_514 = 9,
+ * @brief Init of event scene variant 9 (Object 0x20 spawnParam0 = 9,
  * sEventSceneCreateFuncs[9]).
  */
 void EventScene09_Init(struct EwramData_EntityData *self)

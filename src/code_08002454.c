@@ -1313,7 +1313,7 @@ static inline TitleObject_LoadGraphics(u8 *ptr0, u8 *ptr1, struct EwramData_Enti
     }
     else
     {
-        entity->unk_510.part8.basePalette = palette;
+        entity->basePalette = palette;
         Sprite_Attach(entity, ptr1, gfx, palette);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         loaded = entity->group = 1;
@@ -1333,7 +1333,7 @@ static inline TitleObject_LoadGraphicsAlt(u8 *ptr0, u8 *ptr1, struct EwramData_E
     }
     else
     {
-        entity->unk_510.part8.basePalette = palette;
+        entity->basePalette = palette;
         Sprite_Attach(entity, ptr1, gfx, palette);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         loaded = entity->group = 1;
@@ -1708,7 +1708,7 @@ void TitleScreenLogo_Create(struct EwramData_EntityData *entity)
     SharedObjPalette_ResetSlots();
     Heap_Reset();
     ObjPalette_LoadRange((u8 *)0x08209308, 3, 1, result = 4);
-    entity->unk_510.part8.basePalette = result;
+    entity->basePalette = result;
 
     result = TitleObject_LoadGraphics((u8*)&sTitleFlashGfx, (u8*)&sTitleFlashSpriteSheet, entity, 4);
     

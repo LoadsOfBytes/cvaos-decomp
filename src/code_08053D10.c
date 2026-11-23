@@ -24,11 +24,11 @@ static inline s32 Object19NextStep(struct EwramData_EntityData *entity, s32 step
     next = &sObject19Steps[step];
     entity->velX.whole = next->velX;
     entity->velY.whole = next->velY;
-    if (entity->unk_514.part16.spawnParam1 != 0)
+    if (entity->spawnParam1 != 0)
         entity->velX.whole = -entity->velX.whole;
     time = sObject19Steps[step].time;
     if (time == 0)
-        time = entity->unk_514.part16.spawnParam0 << 16;
+        time = entity->spawnParam0 << 16;
     return time;
 }
 

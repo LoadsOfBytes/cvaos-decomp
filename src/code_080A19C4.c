@@ -32,7 +32,7 @@ void GladiatorShot_CreateTip(struct EwramData_EntityData *owner)
         EntityDelete(child);
         return;
     }
-    Sprite_Attach(child, sGladiatorSpriteSheet, graphics, owner->unk_510.part8.basePalette);
+    Sprite_Attach(child, sGladiatorSpriteSheet, graphics, owner->basePalette);
     Anim_StartIndexed(child, 0xF, 0, 1);
     Anim_Update(owner);
     child->drawFunc = (u32 *)Sprite_DrawEntity;
@@ -44,7 +44,7 @@ void GladiatorShot_CreateTip(struct EwramData_EntityData *owner)
     mask &= *((u8 *)&child->accelY + 5); /* unk_53D: clear scrollWithBg */
     *((u8 *)&child->accelY + 5) = mask;
     child->spriteLayer = owner->spriteLayer - 1;
-    child->unk_510.part8.basePalette = owner->unk_510.part8.basePalette;
+    child->basePalette = owner->basePalette;
     ENTITY_OWNER(child) = owner;
     child->attack = owner->attack;
     x = FixedMultiply(Sin((u16)owner->ext.gladiatorShot.angle + 0x4000), 0x80000);
@@ -58,7 +58,7 @@ void GladiatorShotTip_Update(struct EwramData_EntityData *entity)
     u32 buffer[4];
     struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
     if (owner != NULL && owner->updateFunc != NULL
-        && owner->unk_518.part8.enemyId == 0x5D && entity->state == 0)
+        && owner->enemyId == 0x5D && entity->state == 0)
     {
         s32 x, y;
         entity->hidden = owner->hidden;

@@ -25,7 +25,7 @@ void GiantGhostHandB_Update(struct EwramData_EntityData *entity)
 
     if (entity->state == 0)
     {
-        if (!parent || !parent->updateFunc || parent->unk_518.part8.enemyId != 0x13)
+        if (!parent || !parent->updateFunc || parent->enemyId != 0x13)
             goto remove;
         entity->hidden = parent->hidden;
         entity->palette = parent->palette;

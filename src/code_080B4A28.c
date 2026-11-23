@@ -34,7 +34,7 @@ void BaloreHandHitBox_Update(struct EwramData_EntityData *entity)
         entity->affineIndex = matrix;
         entity->affine = 1;
         entity->spriteLayer = 0x19;
-        Sprite_Attach(entity, sBaloreSpriteSheet, (s8)body->ext.balore.gfx, hand->unk_510.part8.basePalette);
+        Sprite_Attach(entity, sBaloreSpriteSheet, (s8)body->ext.balore.gfx, hand->basePalette);
         Anim_StartIndexed(entity, 0x30, 2, 0);
         Anim_Update(entity);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;

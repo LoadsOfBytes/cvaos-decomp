@@ -22,8 +22,8 @@ extern s32 Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
  * @brief 74910 | Winged Skeleton update (as EnemyMedusaHeadUpdate): a
  * skeleton (states 0 / 1, WingedSkeleton_UpdateFly / WingedSkeleton_UpdateAttack) dies off screen
  * (state 2, WingedSkeleton_SpawnDeathPieces when HP is gone) and then decrements the count of
- * its spawner (unk_4FC, unk_51A 0x14); the spawner (state 3) with 1/32
- * chance creates one below the limit unk_514: x off the room edge farther
+ * its spawner (unk_4FC, enemyId 0x14); the spawner (state 3) with 1/32
+ * chance creates one below the limit spawnParam0: x off the room edge farther
  * from the player, y above / below / in the view depending on the vertical
  * camera speed of bgInfo[1].
  */
@@ -61,19 +61,19 @@ void EnemyWingedSkeletonUpdate(struct EwramData_EntityData *entity)
         break;
     case 2:
         entity->timer = 1;
-        if ((s16)entity->unk_518.part16.hp <= 0)
+        if ((s16)entity->hp <= 0)
             WingedSkeleton_SpawnDeathPieces(entity);
         Enemy_UpdateFragmentDeath(entity);
         if (entity->deleteRequested)
         {
             parent = entity->ext.wingedSkeleton.spawner;
-            if (parent != NULL && parent->updateFunc != NULL && parent->unk_518.part8.enemyId == 0x14
+            if (parent != NULL && parent->updateFunc != NULL && parent->enemyId == 0x14
                 && parent->ext.wingedSkeletonSpawner.childCount != 0)
                 parent->ext.wingedSkeletonSpawner.childCount--;
         }
         break;
     case 3:
-        if ((RandomNumberGenerator() & 0x1F) == 0 && (s32)entity->ext.wingedSkeletonSpawner.childCount < entity->unk_514.part16.spawnParam0)
+        if ((RandomNumberGenerator() & 0x1F) == 0 && (s32)entity->ext.wingedSkeletonSpawner.childCount < entity->spawnParam0)
         {
             head = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
             if (head != NULL)
@@ -96,12 +96,12 @@ void EnemyWingedSkeletonUpdate(struct EwramData_EntityData *entity)
                     head->posY.part16.integer = x;
                 }
                 head->scrollWithBg = 1;
-                head->unk_518.part8.spawnIndex = 0;
-                head->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
-                head->unk_514.part16.spawnParam1 = 0;
+                head->spawnIndex = 0;
+                head->enemyId = entity->enemyId;
+                head->spawnParam1 = 0;
                 head->drawFunc = (u32 *)Sprite_DrawEntity;
-                head->unk_518.part16.hp = sEnemyData[entity->unk_518.part8.enemyId].hp;
-                head->unk_510.part16.unk_512 = sEnemyData[entity->unk_518.part8.enemyId].unk_E;
+                head->hp = sEnemyData[entity->enemyId].hp;
+                head->mp = sEnemyData[entity->enemyId].mp;
                 head->updateFunc = entity->updateFunc;
                 EnemyWingedSkeletonCreate(head);
                 head->ext.wingedSkeleton.spawner = entity;

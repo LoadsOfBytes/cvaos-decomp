@@ -49,8 +49,8 @@ static inline void SetFrameBox(struct EwramData_EntityData *entity)
  * @brief 2C488 | Blue Crow red soul: graphics set 31, animation 2, layer
  * 0xD, Hit_SetTimerOverride(1, 20), song 0xEE, box slot 5 (no callback, disabled)
  * with the current frame's hit box. For 51 frames it circles a point 0x12
- * px above the caster facing the other way: angle unk_510 from 0x1000
- * (-0x9000 flipped) turning by unk_512 = -0x147 (mirrored), radius
+ * px above the caster facing the other way: angle ENTITY_HALF_510 from 0x1000
+ * (-0x9000 flipped) turning by mp = -0x147 (mirrored), radius
  * unk_508 = 60 * sin(timer * 0x28F) px.
  */
 void SkillBlueCrowUse(struct EwramData_EntityData *entity)

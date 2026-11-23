@@ -8,7 +8,7 @@
 /**
  * @brief Move the SkillSlimeUse projectile by its velocity and resolve floor,
  * ceiling and wall contacts using its half sizes; reflect the angle
- * unk_510 and add the floor slope on floor or ceiling hits.
+ * ENTITY_HALF_510 and add the floor slope on floor or ceiling hits.
  */
 void SkillSlimeMoveAndBounce(struct EwramData_EntityData *entity)
 {

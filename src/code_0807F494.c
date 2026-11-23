@@ -81,7 +81,7 @@ void Golem_UpdateAttack(struct EwramData_EntityData *entity)
     switch (STATE)
     {
     case 0:
-        if (entity->unk_518.part8.enemyId != 0x65) { STATE = 0x28; break; }
+        if (entity->enemyId != 0x65) { STATE = 0x28; break; }
         Golem_FaceTarget(entity);
         if ((s8)FRAME == 2)
         {

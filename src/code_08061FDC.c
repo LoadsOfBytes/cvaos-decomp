@@ -47,7 +47,7 @@ void EventScene19_Finish(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief Init of event scene variant 20 (Object 0x20 unk_514 = 20,
+ * @brief Init of event scene variant 20 (Object 0x20 spawnParam0 = 20,
  * sEventSceneCreateFuncs[20]). Set stateFlags bit 0, BgPalette_StopColorFade and
  * ObjPalette_StopColorFade.
  */
@@ -59,7 +59,7 @@ void EventScene20_Init(void)
 }
 
 /**
- * @brief Init of event scene variant 21 (Object 0x20 unk_514 = 21,
+ * @brief Init of event scene variant 21 (Object 0x20 spawnParam0 = 21,
  * sEventSceneCreateFuncs[21]). End the entity (0x53D bit 3).
  */
 void EventScene21_Init(struct EwramData_EntityData *entity)

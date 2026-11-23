@@ -29,7 +29,7 @@ void RockArmorRock_Update(struct EwramData_EntityData *entity)
     Hit_CheckWithPlayer(hit, entity);
     if (entity->state != 0)
     {
-        if ((s16)entity->unk_518.part16.hp == 0 && entity->state != 2)
+        if ((s16)entity->hp == 0 && entity->state != 2)
             entity->state = 2;
         if (entity->state != 2 && gEwramData->gameState.timeStopTimer != 0)
             return;

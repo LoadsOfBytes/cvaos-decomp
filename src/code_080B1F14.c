@@ -16,7 +16,7 @@ void DiscArmor_UpdateWalk(struct EwramData_EntityData *entity)
 
     if (entity->subState == 0)
     {
-        if (entity->unk_514.part16.spawnParam0 == 0)
+        if (entity->spawnParam0 == 0)
         {
             entity->subState = 1;
             Anim_StartIndexed(entity, 0, 0, 1);
@@ -36,7 +36,7 @@ void DiscArmor_UpdateWalk(struct EwramData_EntityData *entity)
         if (frame > 6)
             speed = 0;
         result = Entity_Walk(entity, speed, sDiscArmorWalkProfile, 20);
-        if (*(u16 *)&entity->animStep == 0x11 && entity->timer++ > entity->unk_514.part16.spawnParam0)
+        if (*(u16 *)&entity->animStep == 0x11 && entity->timer++ > entity->spawnParam0)
         {
             entity->timer = 0;
             entity->flipX ^= 1;

@@ -46,7 +46,7 @@ void EnemyManEaterUpdate(struct EwramData_EntityData *entity)
         entity->timer = 0x80;
         entity->accelY.whole = 0x400;
         PlaySong(0x6B);
-        if (entity->unk_514.part16.spawnParam0 != 0)
+        if (entity->spawnParam0 != 0)
         {
             Player_SetSelectedTarget(NULL);
             BossDefeatEffect_Spawn(entity->posX.whole, entity->posY.whole - 0x200000);

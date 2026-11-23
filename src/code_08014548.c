@@ -178,8 +178,8 @@ void Julius_InitEntity(struct EwramData_EntityData *entity)
     EntityDelete(&gEwramData->entityData[0x11]);
 
     EntityCreateInRange(0x11, 0x11, (u32 *) Julius_UpdateSubweaponIcon);
-    entity->unk_514.unk_514_32 = Julius_CreateOverlaySprite();
-    gEwramData->playerState.whipChain = Whip_CreateChain(0x01300000, 0, sJuliusGfx, entity->unk_514.unk_514_32);
+    PLAYER_JULIUS_OVERLAY(entity) = Julius_CreateOverlaySprite();
+    gEwramData->playerState.whipChain = Whip_CreateChain(0x01300000, 0, sJuliusGfx, PLAYER_JULIUS_OVERLAY(entity));
     Whip_DeactivateChain(gEwramData->playerState.whipChain);
 }
 

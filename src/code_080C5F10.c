@@ -31,7 +31,7 @@ void Ukoback_UpdateDeath(struct EwramData_EntityData *entity)
         case 0:
             PlaySong(0x72);
             Enemy_DropRewards(entity);
-            entity->palette = entity->unk_510.part8.basePalette;
+            entity->palette = entity->basePalette;
             entity->timer = 50;
             entity->state = 0xFF;
             entity->subState++;
@@ -63,11 +63,11 @@ s32 UkobackFireball_Initialize(struct EwramData_EntityData *entity, struct Ewram
     entity->spriteLayer = ukoback->spriteLayer + 2;
     entity->timer = 0;
     entity->attack = ukoback->attack;
-    entity->unk_518.part16.hp = ukoback->unk_518.part16.hp;
+    entity->hp = ukoback->hp;
     entity->ext.ukobackFireball.scaleX = 0x10000;
     entity->ext.ukobackFireball.scaleY = 0x10000;
     entity->ext.ukobackFireball.frame = 0;
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoad(palette);
+    entity->basePalette = ObjPalette_FindOrLoad(palette);
     entity->ext.ukobackFireball.ownerIndex = ENTITY_INDEX_PAIR(ukoback);
     entity->posX.whole = ukoback->posX.whole;
     entity->posY.whole = ukoback->posY.whole;

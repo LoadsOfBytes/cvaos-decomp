@@ -46,8 +46,8 @@ void Object22_SpawnEffect(struct EwramData_EntityData *entity, s32 dx, s32 dy, u
         child->posY.whole = dy;
         child->spriteLayer = entity->spriteLayer;
         gfx = ObjGfx_Find(sObject22Gfx);
-        child->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 1);
-        Sprite_Attach(child, sObject22SpriteSheet, gfx, child->unk_510.part8.basePalette);
+        child->basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 1);
+        Sprite_Attach(child, sObject22SpriteSheet, gfx, child->basePalette);
         Anim_StartIndexed(child, 2, 0, 0);
         Anim_Update(child);
         child->timer = duration;

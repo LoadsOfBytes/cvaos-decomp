@@ -60,21 +60,21 @@ void Biphron_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
     s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
 
-    entity->unk_510.part8.hitFlashTimer = 8;
+    entity->hitFlashTimer = 8;
     {
-        u16 hp = entity->unk_518.part16.hp;
+        u16 hp = entity->hp;
 
         // (s16)damage, written so that agbcc sign-extends after the HP load
         damage <<= 16;
         damage >>= 16;
-        entity->unk_518.part16.hp = hp - damage;
+        entity->hp = hp - damage;
     }
     Entity_ShowDamage(entity, damage, 0);
-    if ((s16)entity->unk_518.part16.hp <= 0)
+    if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
         Anim_StartIndexed(entity, 3, 0, 0);
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->timer = 0;
         entity->state = 2;
         entity->subState = 0;
@@ -98,15 +98,15 @@ void Biphron_ThrowShot(struct EwramData_EntityData *entity, s32 offsetX, s32 off
         child->posY.whole = entity->posY.whole + offsetY;
         child->spriteLayer = entity->spriteLayer;
         gfx = ObjGfx_Find(sBiphronGfx);
-        child->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
-        Sprite_Attach(child, sBiphronSpriteSheet, gfx, child->unk_510.part8.basePalette);
+        child->basePalette = entity->basePalette;
+        Sprite_Attach(child, sBiphronSpriteSheet, gfx, child->basePalette);
         child->hidden = 1;
         Hit_Enable(child, 8, BiphronShot_DamagePlayerOnContact, 0);
         HitBox_SetAttack(child, &box);
         child->hit.flags |= 4;
         child->hit.flags &= ~2;
         Entity_SnapToGround(child);
-        child->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
+        child->enemyId = entity->enemyId;
         child->attack = entity->attack;
         child->scrollWithBg = 1;
         child->drawFunc = (u32 *)Sprite_DrawEntity;
@@ -135,13 +135,13 @@ void BiphronShot_SpawnFlame(struct EwramData_EntityData *entity, s32 offsetX, s3
         child->posY.whole = entity->posY.whole + offsetY;
         child->spriteLayer = entity->spriteLayer;
         gfx = ObjGfx_Find(sBiphronGfx);
-        child->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
-        Sprite_Attach(child, sBiphronSpriteSheet, gfx, child->unk_510.part8.basePalette);
+        child->basePalette = entity->basePalette;
+        Sprite_Attach(child, sBiphronSpriteSheet, gfx, child->basePalette);
         Anim_Start(child, (struct AnimScript *)sBiphronShotAnimScript, 0, 0);
         Anim_Update(child);
         child->hit.flags |= 4;
         child->hit.flags |= 2;
-        child->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
+        child->enemyId = entity->enemyId;
         child->scrollWithBg = 1;
         child->drawFunc = (u32 *)Sprite_DrawEntity;
         child->flipX = entity->flipX;

@@ -12,12 +12,12 @@ extern void EntityMoveY(struct EwramData_EntityData *entity);
 extern u32 RandomNumberGenerator(void);
 extern void Effect_SpawnParticleWithDamping(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32 variant, s32 damping, s32 flags, s32 palette);
 
-#define FLAG(e) ((e)->unk_514.part16.spawnParam1)
+#define FLAG(e) ((e)->spawnParam1)
 
 /**
  * @brief 5A30C | Update of a floor switch entity (presumably). State 0:
  * after the player (standingPlatform) has stood on it for 8 frames set event flag
- * unk_516 (gameState.gameFlagsTail bit set), song 0x133; 1: sink for 5 frames.
+ * spawnParam1 (gameState.gameFlagsTail bit set), song 0x133; 1: sink for 5 frames.
  * State 10: wait for the flag, song 0x113; 11: rise with OBJ window on and
  * dust particles every 8 frames, after 0x60 frames refresh the three map
  * tiles above; 12: OBJ window off.
@@ -120,8 +120,8 @@ void Object35_SpawnChild(struct EwramData_EntityData *parent)
         child->posY.whole = parent->posY.whole;
         child->spriteLayer = parent->spriteLayer - 1;
         gfx = ObjGfx_Find(sObject35Gfx);
-        child->unk_510.part8.basePalette = parent->unk_510.part8.basePalette;
-        Sprite_Attach(child, sObject35SpriteSheet, gfx, child->unk_510.part8.basePalette);
+        child->basePalette = parent->basePalette;
+        Sprite_Attach(child, sObject35SpriteSheet, gfx, child->basePalette);
         child->animFrame = 3;
         child->hit.flags |= 4;
         child->hit.flags |= 2;

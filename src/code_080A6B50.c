@@ -23,11 +23,11 @@ void Chaos2_SpawnEffect(struct EwramData_EntityData *parent, s32 frame)
         effect->posY.part16.integer = parent->posY.part16.integer;
         effect->spriteLayer = parent->spriteLayer;
         tiles = gfx->tiles;
-        effect->unk_510.part8.basePalette = gfx->palette;
-        Sprite_Attach(effect, sChaos2SpriteSheet, tiles, effect->unk_510.part8.basePalette);
+        effect->basePalette = gfx->palette;
+        Sprite_Attach(effect, sChaos2SpriteSheet, tiles, effect->basePalette);
         Anim_StartIndexed(effect, (u16)frame, 2, 0);
         Anim_Update(effect);
-        effect->unk_518.part8.enemyId = parent->unk_518.part8.enemyId;
+        effect->enemyId = parent->enemyId;
         effect->ext.chaosChild.link = parent;
         effect->scrollWithBg = 0;
         effect->drawFunc = (u32 *)Sprite_DrawEntity;
@@ -46,11 +46,11 @@ void Chaos2_SpawnEffectAbove(struct EwramData_EntityData *parent, s32 frame)
         effect->posY.part16.integer = parent->posY.part16.integer;
         effect->spriteLayer = parent->spriteLayer + 1;
         tiles = gfx->tiles;
-        effect->unk_510.part8.basePalette = gfx->palette;
-        Sprite_Attach(effect, sChaos2SpriteSheet, tiles, effect->unk_510.part8.basePalette);
+        effect->basePalette = gfx->palette;
+        Sprite_Attach(effect, sChaos2SpriteSheet, tiles, effect->basePalette);
         Anim_StartIndexed(effect, (u16)frame, 2, 0);
         Anim_Update(effect);
-        effect->unk_518.part8.enemyId = parent->unk_518.part8.enemyId;
+        effect->enemyId = parent->enemyId;
         effect->ext.chaosChild.link = parent;
         effect->scrollWithBg = 0;
         effect->drawFunc = (u32 *)Sprite_DrawEntity;
@@ -70,8 +70,8 @@ void Chaos2_SpawnSpinningDebris(struct EwramData_EntityData *parent, s32 angle, 
         effect->posY.part16.integer = parent->posY.part16.integer;
         effect->spriteLayer = parent->spriteLayer;
         tiles = gfx->tiles;
-        effect->unk_510.part8.basePalette = gfx->palette;
-        Sprite_Attach(effect, sChaos2SpriteSheet, tiles, effect->unk_510.part8.basePalette);
+        effect->basePalette = gfx->palette;
+        Sprite_Attach(effect, sChaos2SpriteSheet, tiles, effect->basePalette);
         effect->animFrame = 0x4A;
         matrix = ObjAffine_Alloc(1);
         if ((s16)matrix < 0)
@@ -83,7 +83,7 @@ void Chaos2_SpawnSpinningDebris(struct EwramData_EntityData *parent, s32 angle, 
             effect->affineIndex = matrix;
             effect->affine = 1;
             ObjAffine_Set(0, 0x10000, 0x10000, effect->flipX, effect->flipY, effect->affineIndex);
-            effect->unk_518.part8.enemyId = parent->unk_518.part8.enemyId;
+            effect->enemyId = parent->enemyId;
             effect->ext.chaosChild.link = parent;
             effect->scrollWithBg = 0;
             effect->accelX.whole = (RandomNumberGenerator() & 0x3FF) - 0x200;

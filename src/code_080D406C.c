@@ -36,7 +36,7 @@ struct EwramData_EntityData *GrahamAttacker_CreateAttackEffect(struct EwramData_
     { u8 v_ = part->enemyFlags; { register u32 z_ asm("r7"); asm("" : "=r"(z_) : "0"(0)); } part->enemyFlags = v_ | 1; } /* FAKEMATCH: dead "movs r7, #0" of the original (graphics = 0) */
 
     part->enemyFlags |= 4;
-    part->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
+    part->enemyId = owner->enemyId;
     { s32 m_ = owner->attack * 5; s32 s_ = m_ >> 2; asm("" :: "r"(m_)); part->attack = s_; } /* FAKEMATCH: m_ outlives the shift, so the result gets its own reg */
     Anim_StartIndexed(part, 4, 0, 1);
     Anim_Update(part);

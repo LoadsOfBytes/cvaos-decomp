@@ -26,7 +26,7 @@ void ZombieSoldier_SpawnPiece(struct EwramData_EntityData *entity, s32 x, s32 y,
         child->flipX = entity->flipX;
         child->spriteLayer = entity->spriteLayer - 1;
         gfx = ObjGfx_Find(sZombieSoldierGfx);
-        Sprite_Attach(child, sZombieSoldierSpriteSheet, gfx, entity->unk_510.part8.basePalette);
+        Sprite_Attach(child, sZombieSoldierSpriteSheet, gfx, entity->basePalette);
         child->animFrame = frame;
         child->accelY.whole = 0x1800;
         child->velX.whole = vx;

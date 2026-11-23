@@ -5,7 +5,7 @@
 
 /**
  * @brief 4DD84 | Door step: once roomActive is clear, set deleteRequested and free
- * both affine slots (unk_4FC / unk_4FD). Otherwise while flag unk_514 of
+ * both affine slots (unk_4FC / unk_4FD). Otherwise while flag spawnParam0 of
  * the flag words at gameFlagsTail is set open (unk_4F8 += 0x400 up to 0x4000,
  * Collision_ClearBlock on the three tiles above it), else close (unk_4F8 -= 0x400
  * down to 0, Collision_SetBlock on the tiles).
@@ -27,7 +27,7 @@ void Gate_UpdateFlagControlled(struct EwramData_EntityData *entity)
         ObjAffine_Free(entity->ext.gate.affine1);
         return;
     }
-    if (gEwramData->gameState.gameFlagsTail[entity->unk_514.part16.spawnParam0 >> 5] & (1 << (entity->unk_514.part16.spawnParam0 & 0x1F)))
+    if (gEwramData->gameState.gameFlagsTail[entity->spawnParam0 >> 5] & (1 << (entity->spawnParam0 & 0x1F)))
     {
         entity->ext.gate.openAngle += 0x400;
         if (entity->ext.gate.openAngle > 0x4000)

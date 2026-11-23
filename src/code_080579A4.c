@@ -10,7 +10,7 @@ struct Object25Point {
     s32 y;
 };
 
-/* Per variant (unk_514): spawn point list and its length. */
+/* Per variant (spawnParam0): spawn point list and its length. */
 extern const struct Object25Point *const sObject25Points[];
 extern const u32 sObject25PointIndices[];
 extern u8 sObject25AnimScript0[];
@@ -53,16 +53,16 @@ void Object25Update(struct EwramData_EntityData *entity)
             if (child == NULL)
                 break;
             entity->ext.object25Spawner.childCount++;
-            points = sObject25Points[entity->unk_514.part16.spawnParam0];
-            pointIndex = sObject25PointIndices[entity->unk_514.part16.spawnParam0];
+            points = sObject25Points[entity->spawnParam0];
+            pointIndex = sObject25PointIndices[entity->spawnParam0];
             pointIndex = RandomNumberGenerator() % pointIndex;
             child->posX.whole = points[pointIndex].x - bg->xPos.whole;
             child->posY.whole = points[pointIndex].y - bg->yPos.whole;
             child->scrollWithBg = 1;
-            child->unk_518.part8.spawnIndex = randomValue;
-            child->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
-            child->unk_514.part16.spawnParam1 = randomValue;
-            child->unk_514.part16.spawnParam0 = entity->unk_514.part16.spawnParam0;
+            child->spawnIndex = randomValue;
+            child->enemyId = entity->enemyId;
+            child->spawnParam1 = randomValue;
+            child->spawnParam0 = entity->spawnParam0;
             child->drawFunc = (u32 *)Sprite_DrawEntity;
             child->updateFunc = entity->updateFunc;
             Object25Create(child);
@@ -72,8 +72,8 @@ void Object25Update(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief 57AA0 | Object 0x25 create. Variant unk_516 == 1 becomes the
- * spawner (state 1); otherwise load graphics and set up; unk_516 == 2
+ * @brief 57AA0 | Object 0x25 create. Variant spawnParam1 == 1 becomes the
+ * spawner (state 1); otherwise load graphics and set up; spawnParam1 == 2
  * starts moving at once. Deleted when bossRushMode == 0 and bossEventFlags bit 5.
  */
 void Object25Create(struct EwramData_EntityData *entity)
@@ -83,7 +83,7 @@ void Object25Create(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    if (entity->unk_514.part16.spawnParam1 == 1)
+    if (entity->spawnParam1 == 1)
     {
         entity->state = 1;
         entity->hidden = 1;
@@ -105,11 +105,11 @@ void Object25Create(struct EwramData_EntityData *entity)
     Anim_Update(entity);
     entity->enemyFlags |= 1;
     entity->attack = 0x28;
-    entity->unk_518.part16.hp = 0xC8;
+    entity->hp = 0xC8;
     entity->spriteLayer = 0x14;
     Entity_SnapToGround(entity);
     entity->state = 0;
-    if (entity->unk_514.part16.spawnParam1 == 2)
+    if (entity->spawnParam1 == 2)
     {
         entity->subState = 1;
         Anim_Start(entity, (struct AnimScript *)sObject25AnimScript1, 0, 1);

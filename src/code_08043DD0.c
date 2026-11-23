@@ -1,6 +1,6 @@
 /* Update of item/pickup objects (Pickup_CreateMana large, Pickup_CreateGold): fall with
- * gravity until the ground (Collision_GetPushUp, probe +8 px for unk_51A <= 1),
- * or bob on a sine for unk_51A > 4; then wait 300 frames, blink 64 and
+ * gravity until the ground (Collision_GetPushUp, probe +8 px for enemyId <= 1),
+ * or bob on a sine for enemyId > 4; then wait 300 frames, blink 64 and
  * disappear; states 0x63-0x65 flash the palette. */
 #include "code_08009A0.h"
 #include "code_08001194.h"
@@ -20,14 +20,14 @@ void Pickup_Update(struct EwramData_EntityData *entity)
     s32 dy;
 
     Hit_CheckWithPlayer(&res, (u8 *)entity);
-    if (entity->unk_518.part8.enemyId <= 4)
+    if (entity->enemyId <= 4)
     {
         s32 x, y, h;
         entity->posY.whole += entity->velY.whole;
         x = RoomX((s16)entity->posX.part16.integer);
         y = RoomY((s16)entity->posY.part16.integer);
         h = entity->accelY.part16.integer;
-        dy = (s16)Collision_GetPushUp(x, entity->unk_518.part8.enemyId <= 1 ? y + 8 + h : y + h);
+        dy = (s16)Collision_GetPushUp(x, entity->enemyId <= 1 ? y + 8 + h : y + h);
         entity->velY.whole += 0x2000;
         if ((u32)entity->velY.whole > 0x40000)
             entity->velY.whole = 0x40000;
@@ -67,7 +67,7 @@ void Pickup_Update(struct EwramData_EntityData *entity)
             entity->deleteRequested = 1;
         break;
     case 0x63:
-        entity->unk_510.part8.basePalette = entity->palette;
+        entity->basePalette = entity->palette;
         entity->state = 0x64;
         entity->timer = 0x80;
         break;
@@ -86,7 +86,7 @@ void Pickup_Update(struct EwramData_EntityData *entity)
             entity->timer--;
         else
         {
-            entity->palette = entity->unk_510.part8.basePalette;
+            entity->palette = entity->basePalette;
             entity->state = 0x64;
             entity->timer = 0x80;
         }

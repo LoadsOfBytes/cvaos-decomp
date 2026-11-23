@@ -17,7 +17,7 @@ extern u8 sSaveWarpRoomGfx[], sSaveWarpRoomPalette[], sSaveWarpRoomSpriteSheet[]
  * (unk_4FE), affine slot in unk_4FB with scale unk_500, screen position
  * (0x78, 0x50), layer 0x11, Entity_SnapToGround / SavePoint_SpawnAnimParts; plus a helper
  * entity (layer 3, hidden, drawn by SavePoint_DrawPromptMarkers with sprite
- * sSaveWarpRoomSpriteSheet) whose unk_4F4 byte is kept in unk_519.
+ * sSaveWarpRoomSpriteSheet) whose unk_4F4 byte is kept in byte 1 of hp.
  */
 void Object1CCreate(struct EwramData_EntityData *entity)
 {

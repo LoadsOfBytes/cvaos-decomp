@@ -499,7 +499,7 @@ const struct SolidObjectCallbackStorage sPushBlockSolidCallbacks = {
 
 /**
  * @brief Object01 creation: register the group as the player solid object
- * and, for a valid variant (unk_514), create its 1 or 3 blocks at
+ * and, for a valid variant (spawnParam0), create its 1 or 3 blocks at
  * the table room positions, storing their slots in unk_4F8.
  */
 void PushBlockGroup_Create(struct EwramData_EntityData *entity)
@@ -513,7 +513,7 @@ void PushBlockGroup_Create(struct EwramData_EntityData *entity)
     s32 count;
     struct BgLayerState *bg;
 
-    group = entity->unk_514.part16.spawnParam0;
+    group = entity->spawnParam0;
     if ((Player_RegisterSolidObject(entity, (struct SolidObjectCallbackStorage*)&sPushBlockSolidCallbacks) != 0) && (group <= sPushBlockGroupLayouts.maxGroupIndex))
     {
         layout = sPushBlockGroupLayouts.layouts[group];
@@ -550,7 +550,7 @@ static inline s32 OverlapLeft(struct EwramData_EntityData *block)
 {
     struct EwramData_EntityData *spawner = ENTITY_OWNER(block);
     s32 push = 0;
-    s32 count = sPushBlockGroupLayouts.layouts[spawner->unk_514.part16.spawnParam0]->blockCount;
+    s32 count = sPushBlockGroupLayouts.layouts[spawner->spawnParam0]->blockCount;
     s32 i;
 
     for (i = 0; i < count; i++)
@@ -579,7 +579,7 @@ static inline s32 OverlapRight(struct EwramData_EntityData *block)
 {
     struct EwramData_EntityData *spawner = ENTITY_OWNER(block);
     s32 push = 0;
-    s32 count = sPushBlockGroupLayouts.layouts[spawner->unk_514.part16.spawnParam0]->blockCount;
+    s32 count = sPushBlockGroupLayouts.layouts[spawner->spawnParam0]->blockCount;
     s32 i;
 
     for (i = 0; i < count; i++)
@@ -610,7 +610,7 @@ static inline s32 OverlapBelow(struct EwramData_EntityData *block)
     s32 push = 0;
     s32 x = block->posX.whole;
     s32 y = block->posY.whole + 0x10000;
-    s32 count = sPushBlockGroupLayouts.layouts[spawner->unk_514.part16.spawnParam0]->blockCount;
+    s32 count = sPushBlockGroupLayouts.layouts[spawner->spawnParam0]->blockCount;
     s32 i;
 
     for (i = 0; i < count; i++)
@@ -817,7 +817,7 @@ static inline s32 PushBlockGroup_CeilingCorrectionInline(struct EwramData_Entity
     {
         return 0;
     }
-    else if (count = sPushBlockGroupLayouts.layouts[entity->unk_514.part16.spawnParam0]->blockCount, count == 0)
+    else if (count = sPushBlockGroupLayouts.layouts[entity->spawnParam0]->blockCount, count == 0)
     {
         return 0;
     }
@@ -877,7 +877,7 @@ static inline s32 PushBlockGroup_FloorCorrectionInline(struct EwramData_EntityDa
     {
         return 0;
     }
-    else if (count = sPushBlockGroupLayouts.layouts[entity->unk_514.part16.spawnParam0]->blockCount, count == 0)
+    else if (count = sPushBlockGroupLayouts.layouts[entity->spawnParam0]->blockCount, count == 0)
     {
         return 0;
     }
@@ -944,7 +944,7 @@ static inline s32 PushBlockGroup_WallRightCorrectionInline(struct EwramData_Enti
     {
         return 0;
     }
-    else if (count = sPushBlockGroupLayouts.layouts[entity->unk_514.part16.spawnParam0]->blockCount, count == 0)
+    else if (count = sPushBlockGroupLayouts.layouts[entity->spawnParam0]->blockCount, count == 0)
     {
         return 0;
     }
@@ -1023,7 +1023,7 @@ static inline s32 PushBlockGroup_WallLeftCorrectionInline(struct EwramData_Entit
     {
         return 0;
     }
-    else if (count = sPushBlockGroupLayouts.layouts[entity->unk_514.part16.spawnParam0]->blockCount, count == 0)
+    else if (count = sPushBlockGroupLayouts.layouts[entity->spawnParam0]->blockCount, count == 0)
     {
         return 0;
     }
@@ -1094,7 +1094,7 @@ void PushBlockGroup_Delete(struct EwramData_EntityData *entity)
 
     if (entity != NULL)
     {
-        count = sPushBlockGroupLayouts.layouts[entity->unk_514.part16.spawnParam0]->blockCount;
+        count = sPushBlockGroupLayouts.layouts[entity->spawnParam0]->blockCount;
 
         for (i = 0; i < count; i++)
         {

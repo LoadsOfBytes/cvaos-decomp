@@ -67,8 +67,8 @@ static inline s32 ABS(s32 x)
         } \
     }
 #define SPECIAL() \
-    if (entity->unk_518.part8.enemyId != 0x3C && (RandomNumberGenerator2() & 0x7F) < 0x20) ATTACK(0x28) \
-    if (entity->unk_518.part8.enemyId == 0x67 && (Player_GetFocusedActionFlags() & 0x360)) { STATE = 0x1E; break; }
+    if (entity->enemyId != 0x3C && (RandomNumberGenerator2() & 0x7F) < 0x20) ATTACK(0x28) \
+    if (entity->enemyId == 0x67 && (Player_GetFocusedActionFlags() & 0x360)) { STATE = 0x1E; break; }
 #define BACK_TURN(S, F, A) \
     { \
         dx = entity->flipX ? -30 : 30; \

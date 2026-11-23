@@ -44,11 +44,11 @@ void ChaosOrb_CreateHalo(struct EwramData_EntityData *orb, s32 timer)
         halo->posY.part16.integer = 0xFF80;
         halo->spriteLayer = orb->spriteLayer - 1;
         graphics = data->graphics;
-        halo->unk_510.part8.basePalette = data->palette2;
-        Sprite_Attach(halo, sChaosSpriteSheet, graphics, halo->unk_510.part8.basePalette);
+        halo->basePalette = data->palette2;
+        Sprite_Attach(halo, sChaosSpriteSheet, graphics, halo->basePalette);
         halo->animMode = 2;
         halo->animFrame = 0x13;
-        halo->unk_518.part8.enemyId = orb->unk_518.part8.enemyId;
+        halo->enemyId = orb->enemyId;
         halo->ext.chaosChild.link = orb;
         halo->scrollWithBg = 0;
         halo->timer = timer;
@@ -62,7 +62,7 @@ void ChaosHalo_Update(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *orb = entity->ext.chaosChild.link;
 
     if (orb == NULL || orb->updateFunc == NULL
-        || orb->unk_518.part8.enemyId != entity->unk_518.part8.enemyId)
+        || orb->enemyId != entity->enemyId)
         goto hide;
     entity->posX.whole = orb->posX.whole;
     entity->posY.whole = orb->posY.whole + 0x40000;

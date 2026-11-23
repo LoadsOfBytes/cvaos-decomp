@@ -10,7 +10,7 @@ extern s32 Music_UpdateRoom(struct GameState *gameState);
 extern s32 Music_SetCurrent(s32 song);
 
 /**
- * @brief Init of event scene variant 4 (Object 0x20 unk_514 = 4,
+ * @brief Init of event scene variant 4 (Object 0x20 spawnParam0 = 4,
  * sEventSceneCreateFuncs[4]). Create step of a scene object: deleted when flag
  * 0x21 is set or the player is right of x 0x80; else set up animation 0
  * at room (0xA0, 0xC0) moving right (0xC000), facing right, and set

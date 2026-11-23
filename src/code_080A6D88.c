@@ -63,11 +63,11 @@ void Chaos2_SpawnShard(struct EwramData_EntityData *parent, s32 angle, s32 speed
         {
             s32 tiles = gfx->gfx;
 
-            shard->unk_510.part8.basePalette = gfx->palette;
-            Sprite_Attach(shard, sChaos2SpriteSheet, tiles, shard->unk_510.part8.basePalette);
+            shard->basePalette = gfx->palette;
+            Sprite_Attach(shard, sChaos2SpriteSheet, tiles, shard->basePalette);
         }
         shard->animFrame = RandomNumberGenerator() % 3 + 0x4B;
-        shard->unk_518.part8.enemyId = parent->unk_518.part8.enemyId;
+        shard->enemyId = parent->enemyId;
         shard->ext.chaosChild.link = parent;
         shard->scrollWithBg = 0;
         shard->accelX.whole = (RandomNumberGenerator() & 0x3FF) - 0x200;

@@ -49,7 +49,7 @@ void SkullArcher_SpawnDeathPieces(struct EwramData_EntityData *entity)
             fragment->accelY.whole = 0x2000;
             fragment->spriteLayer = entity->spriteLayer;
             graphics = ObjGfx_Find(sSkullArcherGfx);
-            Sprite_Attach(fragment, sSkullArcherSpriteSheet, graphics, entity->unk_510.part8.basePalette);
+            Sprite_Attach(fragment, sSkullArcherSpriteSheet, graphics, entity->basePalette);
             fragment->flipX = entity->flipX;
             fragment->drawFunc = (u32 *)Sprite_DrawEntity;
             fragment->scrollWithBg = 1;
@@ -80,7 +80,7 @@ void EnemySkullArcherCreate(struct EwramData_EntityData *entity)
     Entity_SnapToGround(entity);
     entity->posY.part16.integer++;
     entity->scrollWithBg = 1;
-    if (entity->unk_514.part16.spawnParam0 == 0)
+    if (entity->spawnParam0 == 0)
         entity->state = 0;
     else
     {

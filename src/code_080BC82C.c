@@ -76,7 +76,7 @@ void DeathWeapon_Update(struct EwramData_EntityData *entity)
         entity->affineIndex = slot;
         entity->affine = 1;
         entity->attack = owner->attack;
-        entity->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
+        entity->enemyId = owner->enemyId;
         entity->spriteLayer = owner->spriteLayer;
         Anim_StartIndexed(entity, 0x11, 2, 0);
         Anim_Update(entity);
@@ -102,7 +102,7 @@ void DeathWeapon_Update(struct EwramData_EntityData *entity)
             if (entity->timer & 1)
                 entity->palette = owner->palette;
             else
-                entity->palette = entity->unk_510.part8.basePalette;
+                entity->palette = entity->basePalette;
             goto tail;
         }
         entity->timer = 4;

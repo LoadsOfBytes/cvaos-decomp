@@ -18,7 +18,7 @@ void QuezlcoatlSegment_Update(struct EwramData_EntityData *entity)
     if(entity->state==0)
     {
         s8 *history;
-        if(!owner || !owner->updateFunc || owner->unk_518.part8.enemyId!=26) goto fail;
+        if(!owner || !owner->updateFunc || owner->enemyId!=26) goto fail;
         history=(s8 *)owner->ext.quezlcoatl.history;
         entity->hidden=owner->hidden;
         entity->palette=owner->palette;

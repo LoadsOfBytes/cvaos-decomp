@@ -15,7 +15,7 @@ void GrahamSpreadProjectile_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *owner=&gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
     s32 state;
-    if((s16)owner->unk_518.part16.hp<=0)
+    if((s16)owner->hp<=0)
     {
         entity->hit.flags|=2;
         entity->state=0xF0;

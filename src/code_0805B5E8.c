@@ -184,7 +184,7 @@ void Sound_Play(u16 song)
 }
 
 /**
- * @brief Init of event scene variant 30 (Object 0x20 unk_514 = 30,
+ * @brief Init of event scene variant 30 (Object 0x20 spawnParam0 = 30,
  * sEventSceneCreateFuncs[30]). Set bits 0x80000, 0x20 and 1 of stateFlags, call
  * Hud_ClearGraphics, play song 0x1000 and place the player at (0x78,
  * 0x50) with zero velocity (integer parts) and 0x53C bit 5 set.

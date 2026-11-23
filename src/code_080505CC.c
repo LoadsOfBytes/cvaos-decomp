@@ -31,7 +31,7 @@ static inline s32 TriggerContainsPoint(s16 x, s16 y, struct Object0CTrigger *tri
 
 void Object0CUpdate(struct EwramData_EntityData *entity)
 {
-    struct Object0CTrigger *trigger = sObject0CTriggerLists[entity->unk_514.part16.spawnParam0];
+    struct Object0CTrigger *trigger = sObject0CTriggerLists[entity->spawnParam0];
     u16 x = GetEntityRoomXPositionInteger(gEwramData->playerState.player);
     u16 y = GetEntityRoomYPositionInteger(gEwramData->playerState.player);
     entity->velX.whole = 0;

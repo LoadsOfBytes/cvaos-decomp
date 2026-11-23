@@ -75,18 +75,18 @@ void CreakingSkull_AttachJoint(struct EwramData_EntityData *entity, s32 partInde
  */
 void CreakingSkull_ApplyResolvedDamage(struct EwramData_EntityData *entity, s32 unused1, s32 unused2, s32 damage)
 {
-    entity->unk_510.part8.hitFlashTimer = 8;
-    entity->unk_518.part16.hp -= damage;
+    entity->hitFlashTimer = 8;
+    entity->hp -= damage;
     Link_MarkEnemyDamaged();
-    if ((s16)entity->unk_518.part16.hp <= 0)
+    if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
         PlaySong(0x6B);
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->timer = 0x64;
         entity->state = 2;
         entity->subState = 0;
-        if (entity->unk_514.part16.spawnParam0 != 0)
+        if (entity->spawnParam0 != 0)
         {
             Player_SetSelectedTarget(NULL);
             BossDefeatEffect_Spawn(entity->posX.whole, entity->posY.whole - 0x200000);

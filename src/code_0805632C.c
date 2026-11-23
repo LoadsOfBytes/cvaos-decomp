@@ -86,7 +86,7 @@ void WarpRoomUnusedPart_Update(struct EwramData_EntityData *entity)
         entity->posY.whole += entity->velY.whole;
         if ((u16)entity->posY.part16.integer > 0x83)
         {
-            if (entity->unk_518.part8.spawnIndex == 0)
+            if (entity->spawnIndex == 0)
                 Game_SetMenusEnabled(1);
             entity->posY.part16.integer = 0x84;
             entity->state = 0;

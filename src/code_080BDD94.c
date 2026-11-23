@@ -31,7 +31,7 @@ void DeathPillar_Update(struct EwramData_EntityData *entity)
         entity->posX.whole = (*ew)->playerState.player->posX.whole;
         entity->posY.part16.integer = 0x90;
         entity->attack = parent->attack + (parent->attack >> 2);
-        entity->unk_518.part16.hp = 1;
+        entity->hp = 1;
         entity->affineIndex = slot;
         entity->affine = 1;
         entity->spriteLayer = 0x11;

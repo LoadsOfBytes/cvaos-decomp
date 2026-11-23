@@ -2,6 +2,7 @@
 #include "code_08009A0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
+#include "event_scene30.h"
 struct PaletteTransition { void *data; u16 count,duration; };
 extern struct PaletteTransition sEventScene30PaletteTransitions[];
 /**
@@ -10,13 +11,13 @@ extern struct PaletteTransition sEventScene30PaletteTransitions[];
  */
 void EventScene30_StepPaletteTransition(struct EwramData_EntityData *entity)
 {
-    u8 *index=(u8 *)&entity->unk_518.part16.hp;
+    u8 *index=&EVENT30_PALETTE_STEP(entity);
     struct PaletteTransition *step=&sEventScene30PaletteTransitions[*index];
     struct PaletteTransition *table=sEventScene30PaletteTransitions;
-    if(*index<=5 && (s16)entity->unk_518.part16.unk_51A++>step->duration)
+    if(*index<=5 && (s16)EVENT30_PALETTE_TIMER(entity)++>step->duration)
     {
         s32 zero=0;
-        entity->unk_518.part16.unk_51A=zero;
+        EVENT30_PALETTE_TIMER(entity)=zero;
         BgPalette_LoadRange(step->data,step->count,1,0);
         ObjPalette_LoadRange(step->data,step->count,1,14);
         if(++*index<=5)
@@ -29,7 +30,7 @@ void EventScene30_StepPaletteTransition(struct EwramData_EntityData *entity)
             count=step->count;
             scale=0x10000;
             BgPalette_StartBlend(0,data,count,scale,zero,step->duration);
-            ObjPalette_StartBlend(entity->unk_510.part8.basePalette,step->data,step->count,scale,zero,step->duration);
+            ObjPalette_StartBlend(entity->basePalette,step->data,step->count,scale,zero,step->duration);
         }
     }
 }

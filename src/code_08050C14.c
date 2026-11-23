@@ -27,7 +27,7 @@ extern struct Object0EVariant sObject0EVariants[];
 
 void Object0ECreate(struct EwramData_EntityData *entity)
 {
-    struct Object0EVariant *variant = &sObject0EVariants[entity->unk_514.part16.spawnParam0];
+    struct Object0EVariant *variant = &sObject0EVariants[entity->spawnParam0];
     struct Object0EGraphics *graphics = &sObject0EGraphics[variant->graphics];
     if (!Entity_LoadGraphics(entity, graphics->graphics, graphics->palette, variant->palette, graphics->sprites))
     {
@@ -65,7 +65,7 @@ void Object0EUpdate(struct EwramData_EntityData *entity)
     {
     case 0:
         entity->hidden = 0;
-        entry = sUnk_08526370[entity->unk_514.part16.spawnParam1];
+        entry = sUnk_08526370[entity->spawnParam1];
         if (Pickup_TrySpawnOnHit(entity, -20, entry[0], entry[1]))
         {
             Object0E_SpawnPieces(entity);

@@ -22,7 +22,7 @@ void WaiterSkeleton_UpdateThrow(struct EwramData_EntityData *entity)
                 child->ext.waiterTray.owner = entity;
                 *(u8 *)&child->ext.raw.unk_4F4 = *(u8 *)&entity->ext.raw.unk_4F4;
                 child->attack = entity->attack;
-                child->unk_518.part16.hp = entity->unk_518.part16.hp;
+                child->hp = entity->hp;
                 child->ext.waiterTray.anim = 17;
             }
             Anim_StartIndexed(entity, 6, 0, 0);
@@ -40,7 +40,7 @@ void WaiterSkeleton_UpdateThrow(struct EwramData_EntityData *entity)
                 child->ext.waiterTray.owner = entity;
                 *(u8 *)&child->ext.raw.unk_4F4 = *(u8 *)&entity->ext.raw.unk_4F4;
                 child->attack = entity->attack;
-                child->unk_518.part16.hp = entity->unk_518.part16.hp;
+                child->hp = entity->hp;
                 entity->ext.waiterSkeleton.flags |= 1;
                 child->ext.waiterTray.anim = 9;
             }

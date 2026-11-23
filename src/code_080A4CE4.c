@@ -50,7 +50,7 @@ void Chaos2_StepPaletteSequence(struct EwramData_EntityData *core)
             return;
         }
     }
-    palette = core->unk_510.part8.basePalette;
+    palette = core->basePalette;
     colour = sequence[data->paletteStep * 2 + 1];
     slot = palette - 10;
     if (gEwramData->gameState.sharedObjPaletteVariants[slot] != colour)
@@ -76,16 +76,16 @@ void Chaos2_CreatePart(struct EwramData_EntityData *core, s32 x, s32 y, s32 mirr
         part->posY.whole = y;
         part->spriteLayer = 0x14;
         graphics = data->graphics;
-        part->unk_510.part8.basePalette = data->palette;
-        Sprite_Attach(part, sChaos2SpriteSheet, graphics, part->unk_510.part8.basePalette);
+        part->basePalette = data->palette;
+        Sprite_Attach(part, sChaos2SpriteSheet, graphics, part->basePalette);
         Anim_StartIndexed(part, 0, 2, 1);
         part->animMode = 2;
         part->animTimer = RandomNumberGenerator() % 6;
-        part->unk_518.part8.enemyId = core->unk_518.part8.enemyId;
+        part->enemyId = core->enemyId;
         part->ext.chaosChild.link = core;
         part->scrollWithBg = 0;
         part->attack = 0x55;
-        part->unk_518.part16.hp = 3000;
+        part->hp = 3000;
         part->enemyFlags |= 1;
         Hit_Enable(part, 8, Chaos2Part_DamagePlayerOnContact, (s32)Chaos2Part_OnHit);
         HitBox_SetBody(part, &box);

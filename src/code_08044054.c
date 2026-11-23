@@ -100,8 +100,8 @@ struct EwramData_EntityData *Pickup_CreateItem(s32 x, s32 y, s32 type, s32 id, s
         entity->posX.part16.integer = x;
         entity->posY.part16.integer = y;
         entity->scrollWithBg = 1;
-        entity->unk_518.part8.enemyId = type;
-        entity->unk_514.part16.spawnParam1 = id;
+        entity->enemyId = type;
+        entity->spawnParam1 = id;
     }
     if (hidden)
         entity->state = 0x63;

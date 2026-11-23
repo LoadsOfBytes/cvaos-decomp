@@ -11,7 +11,7 @@ void Arachne_UpdateDeath(struct EwramData_EntityData *entity)
 {
     if(!(entity->timer&3)) Effect_SpawnRandom(entity->posX.whole,entity->posY.whole-0x180000,0x100000,0x100000,entity->spriteLayer-1);
     if(Entity_GetVisibilityPattern(entity->timer)) entity->palette=5;
-    else entity->palette=entity->unk_510.part8.basePalette;
+    else entity->palette=entity->basePalette;
     if((u8)(entity->timer-9)<=80) entity->posY.whole+=0x2000;
     if((s8)--entity->timer<=0) entity->deleteRequested=1;
 }

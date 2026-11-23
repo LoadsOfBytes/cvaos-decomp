@@ -24,11 +24,11 @@ void Legion_SpawnFragment(struct EwramData_EntityData *owner, s32 x, s32 y, s32 
     entity->accelX.whole = 0;
     entity->accelY.whole = 0x1000;
     entity->spriteLayer = owner->spriteLayer + 1;
-    entity->unk_510.part8.basePalette = owner->unk_510.part8.basePalette;
-    Sprite_Attach(entity, sLegionSpriteSheet, graphics, entity->unk_510.part8.basePalette);
+    entity->basePalette = owner->basePalette;
+    Sprite_Attach(entity, sLegionSpriteSheet, graphics, entity->basePalette);
     entity->animFrame = RandomNumberGenerator() % 5 + 0x2C;
     entity->animMode = 2;
-    entity->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
+    entity->enemyId = owner->enemyId;
     entity->ext.legionPart.owner = owner;
     entity->scrollWithBg = 1;
     entity->flipX = RandomNumberGenerator() % 2;
@@ -54,11 +54,11 @@ void Legion_SpawnDestructibleFragment(struct EwramData_EntityData *owner, s32 x,
     entity->accelX.whole = 0;
     entity->accelY.whole = 0x1000;
     entity->spriteLayer = owner->spriteLayer - 3;
-    entity->unk_510.part8.basePalette = owner->ext.legion.animPalette;
-    Sprite_Attach(entity, sLegionSpriteSheet, graphics, entity->unk_510.part8.basePalette);
+    entity->basePalette = owner->ext.legion.animPalette;
+    Sprite_Attach(entity, sLegionSpriteSheet, graphics, entity->basePalette);
     Anim_Start(entity, sLegionAnimScript3, 2, 1);
     Anim_Update(entity);
-    entity->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
+    entity->enemyId = owner->enemyId;
     entity->ext.legionPart.owner = owner;
     entity->scrollWithBg = 1;
     if (vx < 0)
@@ -67,7 +67,7 @@ void Legion_SpawnDestructibleFragment(struct EwramData_EntityData *owner, s32 x,
         entity->flipX = 0;
     entity->timer = 0x3C;
     entity->attack = owner->attack;
-    entity->unk_518.part16.hp = 200;
+    entity->hp = 200;
     entity->enemyFlags |= 1;
     Hit_Enable(entity, 8, LegionDestructibleFragment_DamagePlayerOnContact, (s32)LegionDestructibleFragment_OnHit);
     entity->hit.flags |= 4;

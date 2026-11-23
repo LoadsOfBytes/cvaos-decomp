@@ -106,7 +106,7 @@ s32 WaiterSkeleton_SpawnDeathPieces(struct EwramData_EntityData *entity)
                     part->accelY.whole = 0x2000;
                     part->spriteLayer = entity->spriteLayer;
                     tiles = ObjGfx_Find(sWaiterSkeletonGfx);
-                    Sprite_Attach(part, sWaiterSkeletonSpriteSheet, tiles, entity->unk_510.part8.basePalette);
+                    Sprite_Attach(part, sWaiterSkeletonSpriteSheet, tiles, entity->basePalette);
                     part->flipX = entity->flipX;
                     part->drawFunc = (u32 *)Sprite_DrawEntity;
                     part->scrollWithBg = 1;

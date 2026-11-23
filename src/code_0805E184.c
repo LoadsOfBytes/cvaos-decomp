@@ -21,7 +21,7 @@ void EventScene03AttachedHelper_Update(struct EwramData_EntityData *entity)
     dx = 8;
     dy = -8;
 
-    if (parent == NULL || parent->unk_518.part8.enemyId != entity->unk_518.part8.enemyId)
+    if (parent == NULL || parent->enemyId != entity->enemyId)
     {
         entity->deleteRequested = 1;
         return;

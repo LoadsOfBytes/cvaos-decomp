@@ -24,13 +24,13 @@ s32 Altair_CreateCarriedEnemy(struct EwramData_EntityData *entity, u8 type, u16 
         child->posY.whole = entity->posY.whole + 0x130000;
         child->flipX = x < gEwramData->playerState.player->posX.whole;
         child->scrollWithBg = 1;
-        child->unk_514.part16.spawnParam0 = spawnParam0;
-        child->unk_514.part16.spawnParam1 = spawnParam1;
-        child->unk_518.part8.spawnIndex = entity->unk_518.part8.spawnIndex;
-        child->unk_518.part8.enemyId = type;
+        child->spawnParam0 = spawnParam0;
+        child->spawnParam1 = spawnParam1;
+        child->spawnIndex = entity->spawnIndex;
+        child->enemyId = type;
         child->drawFunc = (u32 *)Sprite_DrawEntity;
         entry = (struct EntityTemplate *)(type * sizeof(*entry) + (u32)sEnemyData);
-        child->unk_518.part16.hp = entry->hp;
+        child->hp = entry->hp;
         child->updateFunc = entry->updateFunc;
         entry->createFunc(child);
         result = child->updateFunc != NULL;

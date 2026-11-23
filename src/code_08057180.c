@@ -96,7 +96,7 @@ void Object29_UpdateMovement(struct EwramData_EntityData *entity)
             {
                 { u8 three = 3; entity->subState = three; entity->velY.whole = 0; }
             wait:
-                { register struct PlatformVariant *tbl asm("r1") = sObject29Variants; /* FAKEMATCH: table base in r1 */ entity->timer = tbl[entity->unk_514.part16.spawnParam1].delay; }
+                { register struct PlatformVariant *tbl asm("r1") = sObject29Variants; /* FAKEMATCH: table base in r1 */ entity->timer = tbl[entity->spawnParam1].delay; }
                 goto move;
             }
             if (distance > 0xFFFFF)

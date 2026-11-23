@@ -12,7 +12,7 @@ void WhiteDragonSegment_Draw(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *owner=ENTITY_OWNER(entity);
     struct BgLayerState *camera=&gEwramData->bgInfo[1];
-    if(owner && owner->updateFunc && owner->unk_518.part8.enemyId==11)
+    if(owner && owner->updateFunc && owner->enemyId==11)
     {
         s16 *history=(s16 *)owner->ext.whiteDragon.history;
         u8 state=owner->state;

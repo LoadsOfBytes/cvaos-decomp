@@ -23,8 +23,8 @@ void Object37_SpawnChild(struct EwramData_EntityData *owner)
     entity->posY.whole = owner->posY.whole;
     entity->spriteLayer = owner->spriteLayer + 1;
     graphics = ObjGfx_Find(sObject37Gfx);
-    entity->unk_510.part8.basePalette = owner->unk_510.part8.basePalette;
-    Sprite_Attach(entity, sObject37SpriteSheet, graphics, entity->unk_510.part8.basePalette);
+    entity->basePalette = owner->basePalette;
+    Sprite_Attach(entity, sObject37SpriteSheet, graphics, entity->basePalette);
     entity->animFrame = 2;
     entity->hit.flags |= 4;
     entity->hit.flags |= 2;

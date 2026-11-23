@@ -4,8 +4,8 @@
 void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity)
 {
     entity->spriteLayer = 18;
-    entity->unk_518.part16.hp = sEnemyData[entity->unk_518.part8.enemyId].hp;
-    entity->unk_510.part16.unk_512 = sEnemyData[entity->unk_518.part8.enemyId].unk_E;
-    entity->attack = sEnemyData[entity->unk_518.part8.enemyId].attack;
-    entity->defense = sEnemyData[entity->unk_518.part8.enemyId].defense;
+    entity->hp = sEnemyData[entity->enemyId].hp;
+    entity->mp = sEnemyData[entity->enemyId].mp;
+    entity->attack = sEnemyData[entity->enemyId].attack;
+    entity->defense = sEnemyData[entity->enemyId].defense;
 }

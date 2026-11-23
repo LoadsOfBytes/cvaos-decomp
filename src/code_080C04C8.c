@@ -21,7 +21,7 @@ void Slime_SpawnParticles(struct EwramData_EntityData *entity, s32 count, s32 vx
         child = EntityCreateInRange(0x49, 0xCF, (u32 *)SlimeParticle_Update);
         if (child != NULL)
         {
-            if (!Entity_LoadGraphics(child, sSlimeGfx, sSlimePalette, (u8)entity->unk_514.part16.spawnParam1, sSlimeSpriteSheet))
+            if (!Entity_LoadGraphics(child, sSlimeGfx, sSlimePalette, (u8)entity->spawnParam1, sSlimeSpriteSheet))
             {
                 EntityDelete(child);
                 return;

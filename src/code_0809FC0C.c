@@ -50,9 +50,9 @@ void LegionShellPart_FireShot(struct EwramData_EntityData *owner, s32 dx, s32 dy
     shot->velY.whole = vy;
     shot->spriteLayer = owner->spriteLayer + 1;
     graphics = data->graphics;
-    shot->unk_510.part8.basePalette = data->palette;
+    shot->basePalette = data->palette;
     shot->palette = data->palette;
-    Sprite_Attach(shot, sLegionSpriteSheet, graphics, shot->unk_510.part8.basePalette);
+    Sprite_Attach(shot, sLegionSpriteSheet, graphics, shot->basePalette);
     angle &= 0xFFFF;
     index = angle / 0xAAA;
     shot->animFrame = frames.f[index].frame;
@@ -65,7 +65,7 @@ void LegionShellPart_FireShot(struct EwramData_EntityData *owner, s32 dx, s32 dy
         shot->flipX = 1;
     if (*flags & 2)
         shot->flipY = 1;
-    shot->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
+    shot->enemyId = owner->enemyId;
     shot->ext.legionPart.owner = owner;
     shot->scrollWithBg = 1;
     shot->attack = parent->attack + (parent->attack >> 2);

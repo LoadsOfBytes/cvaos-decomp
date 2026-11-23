@@ -38,7 +38,7 @@ void DeathBlade_Update(struct EwramData_EntityData *entity)
         if ((s16)slot < 0)
             goto delete;
         entity->attack = parent->attack * 7 / 10;
-        entity->unk_518.part16.hp = 1;
+        entity->hp = 1;
         Hit_Enable(entity, 10, Enemy_OnContactMask1, (s32)DeathBlade_OnHit);
         HitBox_SetBodyRaw(entity, 0x1010F8F8);
         HitBox_SetAttackRaw(entity, 0x1010F8F8);
@@ -69,7 +69,7 @@ void DeathBlade_Update(struct EwramData_EntityData *entity)
             entity->hit.flags &= ~2;
         }
         Hit_CheckWithPlayer(&res, (u8 *)entity);
-        if ((s16)entity->unk_518.part16.hp != 0)
+        if ((s16)entity->hp != 0)
             break;
         entity->state = 3;
         break;
@@ -88,7 +88,7 @@ void DeathBlade_Update(struct EwramData_EntityData *entity)
         }
         EntityAccelerateAndMove(entity, 0x80000);
         Hit_CheckWithPlayer(&res, (u8 *)entity);
-        if ((s16)entity->unk_518.part16.hp == 0)
+        if ((s16)entity->hp == 0)
             entity->state = 3;
         if (parent->ext.death.flags & 1)
             entity->state = 3;

@@ -15,12 +15,12 @@ extern u8 sCommonObjectSpriteSheet[];
 
 /**
  * @brief (Unused, no pointer in the ROM) Set up the gate graphics; start fully
- * open (unk_4F8 = 0x4000) when the object flag unk_514 is set.
+ * open (unk_4F8 = 0x4000) when the object flag spawnParam0 is set.
  */
 void Gate_CreateFlagControlled(struct EwramData_EntityData *entity)
 {
     Gate_SetupGraphics(entity, 0);
-    if (OBJECT_FLAG(gEwramData, entity->unk_514.part16.spawnParam0))
+    if (OBJECT_FLAG(gEwramData, entity->spawnParam0))
         entity->ext.gate.openAngle = 0x4000;
 }
 

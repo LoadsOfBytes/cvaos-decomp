@@ -8,7 +8,7 @@ extern s32 Entity_SetupFromObjectTable(struct EwramData_EntityData *entity, s32 
 extern void Interaction_End(struct EwramData_EntityData *entity, s32 deleteEntity);
 
 /**
- * @brief Init of event scene variant 5 (Object 0x20 unk_514 = 5,
+ * @brief Init of event scene variant 5 (Object 0x20 spawnParam0 = 5,
  * sEventSceneCreateFuncs[5]). Create step of a scene object: when flag 0x22 is
  * set Interaction_End(entity, 1); else animation 0 at room (0xA0, 0xA0)
  * facing right and gameState.stateFlags bit 0.

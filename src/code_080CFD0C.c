@@ -36,12 +36,12 @@ void Belmont_UpdateIntro(struct EwramData_EntityData *entity)
         case 4:
             if(object==NULL)
             {
-                entity->unk_514.part16.spawnParam0=0;
+                entity->spawnParam0=0;
                 EnemyBelmontCreate(entity);
             }
-            else if(object->updateFunc==NULL || object->unk_518.part8.enemyId!=0x20)
+            else if(object->updateFunc==NULL || object->enemyId!=0x20)
             {
-                entity->unk_514.part16.spawnParam0=0;
+                entity->spawnParam0=0;
                 EnemyBelmontCreate(entity);
             }
             break;

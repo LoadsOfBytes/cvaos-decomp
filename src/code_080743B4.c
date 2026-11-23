@@ -7,7 +7,7 @@ struct EnemyTemplateView
 {
     u8 pad_0[0xC];
     u16 hp;
-    u16 unk_E;
+    u16 mp;
     u8 pad_10[0x24 - 0x10];
 };
 
@@ -23,7 +23,7 @@ extern void Une_SpawnDebris(s32, s32, s32, s32, s32);
  * wakes on the player box 0xC8 x 0x140 (state 10 = spawned child, straight
  * to state 1), opens (animations 1-3) and waits; when the timer unk_504
  * runs out it checks the parent enemy 0x3D's child count (unk_4FC vs
- * unk_514) and either keeps spawning (state 4: a child Une every 30 frames
+ * spawnParam0) and either keeps spawning (state 4: a child Une every 30 frames
  * via EnemyUneCreate, with debris Une_SpawnDebris) or closes (animation 5,
  * then state = 2).
  */
@@ -97,8 +97,8 @@ void Une_UpdateGrow(struct EwramData_EntityData *entity)
         if (t == 0)
         {
             parent = entity->ext.une.spawner;
-            if (parent != NULL && parent->updateFunc != NULL && parent->unk_518.part8.enemyId == 0x3D
-                && (s32)parent->ext.uneSpawner.count < parent->unk_514.part16.spawnParam0)
+            if (parent != NULL && parent->updateFunc != NULL && parent->enemyId == 0x3D
+                && (s32)parent->ext.uneSpawner.count < parent->spawnParam0)
             {
                 entity->timer = t;
                 entity->subState++;
@@ -109,9 +109,9 @@ void Une_UpdateGrow(struct EwramData_EntityData *entity)
         if (--entity->ext.une.spreadTimer > 0)
             break;
         parent = entity->ext.une.spawner;
-        if (parent == NULL || parent->updateFunc == NULL || parent->unk_518.part8.enemyId != 0x3D)
+        if (parent == NULL || parent->updateFunc == NULL || parent->enemyId != 0x3D)
             break;
-        if ((s32)parent->ext.uneSpawner.count >= parent->unk_514.part16.spawnParam0)
+        if ((s32)parent->ext.uneSpawner.count >= parent->spawnParam0)
         {
             entity->subState = 5;
             Anim_StartIndexed(entity, 5, 0, 0);
@@ -137,13 +137,13 @@ void Une_UpdateGrow(struct EwramData_EntityData *entity)
                 child->posX.whole = entity->posX.whole;
                 child->posY.whole = entity->posY.whole - 0x10000;
                 child->scrollWithBg = 1;
-                child->unk_518.part8.spawnIndex = 0;
-                child->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
-                child->unk_514.part16.spawnParam0 = 0;
-                child->unk_514.part16.spawnParam1 = 0;
+                child->spawnIndex = 0;
+                child->enemyId = entity->enemyId;
+                child->spawnParam0 = 0;
+                child->spawnParam1 = 0;
                 child->drawFunc = (u32 *)Sprite_DrawEntity;
-                child->unk_518.part16.hp = sEnemyData[entity->unk_518.part8.enemyId].hp;
-                child->unk_510.part16.unk_512 = sEnemyData[entity->unk_518.part8.enemyId].unk_E;
+                child->hp = sEnemyData[entity->enemyId].hp;
+                child->mp = sEnemyData[entity->enemyId].mp;
                 child->updateFunc = entity->updateFunc;
                 EnemyUneCreate(child);
                 child->velX.whole = (RandomNumberGenerator() & 0x3FFFF) - 0x20000;
@@ -158,7 +158,7 @@ void Une_UpdateGrow(struct EwramData_EntityData *entity)
             else
             {
                 parent = entity->ext.une.spawner;
-                if (parent != NULL && parent->updateFunc != NULL && parent->unk_518.part8.enemyId == 0x3D)
+                if (parent != NULL && parent->updateFunc != NULL && parent->enemyId == 0x3D)
                     parent->ext.uneSpawner.count--;
             }
         }

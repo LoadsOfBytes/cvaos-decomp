@@ -43,11 +43,11 @@ void SoulPickup_UpdateContainer(struct EwramData_EntityData *entity)
         if (hit & 0x1E)
         {
             other = SoulPickup_Create(entity->posX.part16.integer, (u16)entity->posY.part16.integer,
-                entity->unk_518.part8.enemyId, entity->unk_514.part16.spawnParam1, 0);
+                entity->enemyId, entity->spawnParam1, 0);
             if (other != NULL)
             {
                 PlaySong(0xA2);
-                other->unk_514.part16.spawnParam0 = entity->unk_514.part16.spawnParam0;
+                other->spawnParam0 = entity->spawnParam0;
                 entity->state = 1;
                 entity->timer = 0x10;
                 entity->hidden = 1;

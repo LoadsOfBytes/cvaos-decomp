@@ -17,7 +17,7 @@ void MedusaHead_UpdateIdle(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief 93BF0 | Player_ApplyContactDamage with (attack, 0x100 when bit 0 of unk_516
+ * @brief 93BF0 | Player_ApplyContactDamage with (attack, 0x100 when bit 0 of spawnParam1
  * is set else 0, 0, 1) at the entity position.
  */
 void MedusaHead_DamagePlayerOnContact(struct EwramData_EntityData *entity)
@@ -25,7 +25,7 @@ void MedusaHead_DamagePlayerOnContact(struct EwramData_EntityData *entity)
     struct PlayerContactDamage contactDamage;
 
     contactDamage.attack = entity->attack;
-    if (entity->unk_514.part16.spawnParam1 & 1)
+    if (entity->spawnParam1 & 1)
         contactDamage.attributes = 0x100;
     else
         contactDamage.attributes = 0;

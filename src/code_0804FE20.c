@@ -17,13 +17,13 @@ extern struct BreakableBlockVariant sBreakableBlockVariants[];
 
 /**
  * @brief 4FE20 | Call Collision_ClearBlock for every 16 px tile of the area of
- * variant unk_514 around the entity: a column (mode 1, mode 2 shifted 16 px
+ * variant spawnParam0 around the entity: a column (mode 1, mode 2 shifted 16 px
  * left), a row (modes 3 / 4) or the whole rectangle (mode 0); the mode is
  * unk_4F8.
  */
 void BreakableBlock_ClearCollision(struct EwramData_EntityData *entity)
 {
-    struct BreakableBlockVariant *def = &sBreakableBlockVariants[entity->unk_514.part16.spawnParam0];
+    struct BreakableBlockVariant *def = &sBreakableBlockVariants[entity->spawnParam0];
     s32 offsetX = def->collisionOffsetX;
     s32 offsetY = def->collisionOffsetY;
     s32 i;

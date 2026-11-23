@@ -11,7 +11,7 @@ extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 s32 Enemy_PreUpdate(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
-    u32 templateOffset = entity->unk_518.part8.enemyId * sizeof(struct EntityTemplate);
+    u32 templateOffset = entity->enemyId * sizeof(struct EntityTemplate);
     struct EntityTemplate *entry = (struct EntityTemplate *)(templateOffset + (u32)sEnemyData);
     if (entry->previewOffsetY == 0)
         Entity_HideAboveY(entity, -16);

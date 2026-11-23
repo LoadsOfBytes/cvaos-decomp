@@ -12,7 +12,7 @@ extern u8 sStolasSpriteSheet[];
  * entity's position + (offsetX, offsetY) with velocity (velocityX, velocityY),
  * gravity 0x800, timer 40, the already loaded graphics sStolasGfx (deleted
  * when they are not loaded), frame 0x1E, one layer above, entity's palette,
- * type unk_51A and facing; the parent is kept in unk_500.
+ * type enemyId and facing; the parent is kept in unk_500.
  */
 void Stolas_SpawnDebris(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY, s32 velocityX, s32 velocityY)
 {
@@ -27,15 +27,15 @@ void Stolas_SpawnDebris(struct EwramData_EntityData *entity, s32 offsetX, s32 of
         EntityDelete(child);
         return;
     }
-    Sprite_Attach(child, sStolasSpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    Sprite_Attach(child, sStolasSpriteSheet, gfx, entity->basePalette);
     child->animFrame = 0x1E;
     child->drawFunc = (u32 *)Sprite_DrawEntity;
     child->hit.flags |= 4;
     child->hit.flags |= 2;
     child->scrollWithBg = 1;
     child->spriteLayer = entity->spriteLayer + 1;
-    child->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
-    child->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
+    child->basePalette = entity->basePalette;
+    child->enemyId = entity->enemyId;
     child->ext.stolasEffect.owner = entity;
     child->flipX = entity->flipX;
     child->posX.whole = entity->posX.whole + offsetX;

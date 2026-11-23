@@ -49,11 +49,11 @@ struct EwramData_EntityData *LegionCorePart_CreateDetail(struct EwramData_Entity
     part->posY.whole = entity->posY.whole + part->ext.legionPart.offsetY;
     part->ext.legionPart.kind = kind;
     part->spriteLayer = entity->spriteLayer + 4;
-    part->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
-    Sprite_Attach(part, sLegionSpriteSheet, tiles, part->unk_510.part8.basePalette);
+    part->basePalette = entity->basePalette;
+    Sprite_Attach(part, sLegionSpriteSheet, tiles, part->basePalette);
     part->animFrame = kind + 4;
     part->animMode = 2;
-    part->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
+    part->enemyId = entity->enemyId;
     part->ext.legionPart.owner = entity;
     part->scrollWithBg = 0;
     part->flipX = 0;

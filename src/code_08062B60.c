@@ -16,7 +16,7 @@ struct EwramData_EntityData *EventScene30_CreateEffectSprite(s32 affine)
     {
         s32 slot=ObjGfx_LoadResource(sEventScene30Gfx,0);
         if(slot<0)goto fail;
-        entity->unk_510.part8.basePalette=14;
+        entity->basePalette=14;
         Sprite_Attach(entity,sEventScene30SpriteSheet,slot,14);
         entity->drawFunc=(u32 *)Sprite_DrawEntity;
         if(affine)

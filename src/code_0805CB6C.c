@@ -1,7 +1,7 @@
 #include "code_08009A0.h"
 
 /**
- * @brief Init of event scene variant 2 (Object 0x20 unk_514 = 2,
+ * @brief Init of event scene variant 2 (Object 0x20 spawnParam0 = 2,
  * sEventSceneCreateFuncs[2]).
  */
 void EventScene02_Init(struct EwramData_EntityData *entity)

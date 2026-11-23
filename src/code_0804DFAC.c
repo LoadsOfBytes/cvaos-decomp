@@ -9,12 +9,12 @@ extern void Door_SetupGraphics(struct EwramData_EntityData *entity);
 
 /**
  * @brief 4DFAC | Object 2 init (door, as Object06Create): deleted when
- * unk_514 <= 1 and bit unk_516 of bossEventFlags is set; Door_SetupGraphics, window
+ * spawnParam0 <= 1 and bit spawnParam1 of bossEventFlags is set; Door_SetupGraphics, window
  * outside 0x3F / 0x2F, variant 7 uses palette 9 (unk_4FF, palette). When
  * the player is inside the 0x38 x 0x22 area 0x1C px to its left: unk_4F8 =
  * 0x30, state 10, clear player input, RedSoul_CancelAll, and stop the player
  * (velX, accelX) when moving towards the room centre (x 0x78); otherwise
- * mark three tiles above it and pick the state from unk_514.
+ * mark three tiles above it and pick the state from spawnParam0.
  */
 void Object02Create(struct EwramData_EntityData *entity)
 {
@@ -25,8 +25,8 @@ void Object02Create(struct EwramData_EntityData *entity)
     s32 found;
     s32 x, y;
 
-    if (entity->unk_514.part16.spawnParam0 <= 1
-        && ((gEwramData->gameState.bossEventFlags >> entity->unk_514.part16.spawnParam1) & 1))
+    if (entity->spawnParam0 <= 1
+        && ((gEwramData->gameState.bossEventFlags >> entity->spawnParam1) & 1))
     {
         EntityDelete(entity);
         return;
@@ -39,7 +39,7 @@ void Object02Create(struct EwramData_EntityData *entity)
         *win = 0x3F;
         regs->winOut_H = 0x2F;
     }
-    if (entity->unk_514.part16.spawnParam1 == 7)
+    if (entity->spawnParam1 == 7)
     {
         entity->ext.door.palette = 9;
         entity->palette = entity->ext.door.palette;
@@ -73,7 +73,7 @@ void Object02Create(struct EwramData_EntityData *entity)
     Collision_SetBlock(x, y - 0x18);
     Collision_SetBlock(x, y - 0x28);
     entity->ext.door.openHeight = found;
-    switch (entity->unk_514.part16.spawnParam0)
+    switch (entity->spawnParam0)
     {
     case 1:
         entity->state = 0x14;

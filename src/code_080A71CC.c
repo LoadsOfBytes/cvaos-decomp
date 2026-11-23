@@ -32,7 +32,7 @@ void EnemyTsuchinokoCreate(struct EwramData_EntityData *entity)
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
     entity->state = 0;
-    entity->ext.tsuchinoko.maxHp = entity->unk_518.part16.hp;
+    entity->ext.tsuchinoko.maxHp = entity->hp;
     {
         u32 random = RandomNumberGenerator();
         u32 mask = 0x7F;

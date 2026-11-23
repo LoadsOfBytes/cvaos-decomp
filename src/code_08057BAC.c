@@ -51,7 +51,7 @@ void Object25_UpdateState(struct EwramData_EntityData *entity)
             entity->velX.whole = 0x4000;
             EntityMoveX(entity);
             entity->velX.whole = 0;
-            if (entity->unk_514.part16.spawnParam0 != 2)
+            if (entity->spawnParam0 != 2)
             {
                 entity->velY.whole = 0x40000;
                 Entity_MoveWithCollisionDefault(entity, 0x40000, -0x200000);
@@ -62,7 +62,7 @@ void Object25_UpdateState(struct EwramData_EntityData *entity)
                 Entity_MoveWithCollisionDefault(entity, 0x40000, -0x200000);
             }
             Enemy_UpdateHitFlash(entity);
-            switch (entity->unk_514.part16.spawnParam0)
+            switch (entity->spawnParam0)
             {
                 case 0:
                 case 1:
@@ -100,23 +100,23 @@ void Object25_UpdateState(struct EwramData_EntityData *entity)
 
 /**
  * @brief 57D38 | Object 0x25 hit: apply the damage of hit to the HP in
- * unk_518; at 0 switch to substate 10 (dying) with animation sObject25AnimScript2.
+ * hp; at 0 switch to substate 10 (dying) with animation sObject25AnimScript2.
  */
 void Object25_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
     s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
 
-    entity->unk_510.part8.hitFlashTimer = 8;
+    entity->hitFlashTimer = 8;
     // (s16)damage, written so that agbcc sign-extends in place
     damage <<= 16;
     damage >>= 16;
     Entity_ShowDamage(entity, damage, 0);
-    entity->unk_518.part16.hp -= damage;
-    if ((s16)entity->unk_518.part16.hp <= 0)
+    entity->hp -= damage;
+    if ((s16)entity->hp <= 0)
     {
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->timer = 0x28;
-        entity->unk_510.part8.hitFlashTimer = 0;
+        entity->hitFlashTimer = 0;
         entity->subState = 10;
         Anim_Start(entity, (struct AnimScript *)sObject25AnimScript2, 2, 1);
     }
@@ -132,8 +132,8 @@ u8 Object25_LoadGraphics(struct EwramData_EntityData *entity)
 
     if (gfx < 0)
         return 0;
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sLegionObject25Palette, 0);
-    Sprite_Attach(entity, sObject25SpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sLegionObject25Palette, 0);
+    Sprite_Attach(entity, sObject25SpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }
@@ -217,8 +217,8 @@ u8 Object26_LoadGraphics(struct EwramData_EntityData *entity)
 
     if (gfx < 0)
         return 0;
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 2);
-    Sprite_Attach(entity, sObject13FamilySpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 2);
+    Sprite_Attach(entity, sObject13FamilySpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }
@@ -371,8 +371,8 @@ u8 Object28_LoadGraphics(struct EwramData_EntityData *entity)
 
     if (gfx < 0)
         return 0;
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 2);
-    Sprite_Attach(entity, sObject13FamilySpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 2);
+    Sprite_Attach(entity, sObject13FamilySpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }
@@ -515,8 +515,8 @@ u8 Object27_LoadGraphics(struct EwramData_EntityData *entity)
 
     if (gfx < 0)
         return 0;
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 2);
-    Sprite_Attach(entity, sObject13FamilySpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 2);
+    Sprite_Attach(entity, sObject13FamilySpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }

@@ -11,6 +11,9 @@ extern u8 sSaveWarpRoomGfx[];
 extern u8 sSaveWarpRoomSpriteSheet[];
 void SaveSparkle_Create(s32 x, s32 y, s32 accelX, s32 accelY, s32 phase, u8 palette, struct EwramData_EntityData *entity);
 
+/* The entity that spawned the sparkle, stored as a word. */
+#define SPARKLE_OWNER(e) ENTITY_WORD_518(e)
+
 /**
  * @brief Set up the sparkle animation, fly 0xC frames with acceleration
  * accelX / accelY, then rise 8 frames and hide.
@@ -82,7 +85,7 @@ void SaveSparkle_Create(s32 x, s32 y, s32 accelX, s32 accelY, s32 phase, u8 pale
         child->ext.particlePair.offsetX = ((RandomNumberGenerator() & 0x1F) << 16) - 0x100000;
         child->ext.particlePair.offsetY = ((RandomNumberGenerator() & 0x1F) << 16) - 0x100000;
         child->palette = palette;
-        child->unk_518.whole = (s32)entity;
+        SPARKLE_OWNER(child) = (s32)entity;
         child->spriteLayer = entity->spriteLayer + 1;
         {
             s32 affineSlot = entity->affineIndex;

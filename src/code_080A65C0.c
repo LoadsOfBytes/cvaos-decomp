@@ -36,14 +36,14 @@ void Chaos2SnakeHead_FireShot(struct EwramData_EntityData *parent, s32 angle)
         child->velY.whole = y;
         child->spriteLayer = parent->spriteLayer + 1;
         tiles = gfx->tiles;
-        child->unk_510.part8.basePalette = gfx->palette;
+        child->basePalette = gfx->palette;
         child->palette = (u8)gfx->palette;
-        Sprite_Attach(child, sChaos2SpriteSheet, tiles, child->unk_510.part8.basePalette);
+        Sprite_Attach(child, sChaos2SpriteSheet, tiles, child->basePalette);
         Anim_StartIndexed(child, 7, 2, 1);
         Anim_Update(child);
         child->animFrame = 0x1E;
         child->animMode = 2;
-        child->unk_518.part8.enemyId = parent->unk_518.part8.enemyId;
+        child->enemyId = parent->enemyId;
         child->ext.chaosChild.link = parent;
         child->scrollWithBg = 1;
         child->attack = 0x82;

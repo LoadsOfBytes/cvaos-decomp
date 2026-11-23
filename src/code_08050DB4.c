@@ -14,11 +14,11 @@ extern s32 RandomSigned(s32 range);
  * retain its low byte, and install drawing/collision data. */
 void Object0FCreate(struct EwramData_EntityData *entity)
 {
-    s32 palette = (u16)entity->unk_514.part16.spawnParam0 >> 8;
+    s32 palette = (u16)entity->spawnParam0 >> 8;
     s32 graphics;
     if (palette == 0)
         palette = 7;
-    entity->unk_514.part16.spawnParam0 &= 0xFF;
+    entity->spawnParam0 &= 0xFF;
     entity->spriteLayer = 0x14;
     entity->flipX = 0;
     graphics = ObjGfx_Find(sCommonObjectGfx);
@@ -46,7 +46,7 @@ void Object0FUpdate(struct EwramData_EntityData *entity)
         {
         case 0:
             entity->hidden = 0;
-            if (Pickup_TrySpawnOnHit(entity, 0, entity->unk_514.part16.spawnParam0, entity->unk_514.part16.spawnParam1))
+            if (Pickup_TrySpawnOnHit(entity, 0, entity->spawnParam0, entity->spawnParam1))
             {
                 PlaySong(0xA2);
                 entity->hidden = 1;

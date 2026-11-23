@@ -70,8 +70,8 @@ u8 Stolas_LoadGraphics(struct EwramData_EntityData *entity)
 
     if (gfx < 0)
         return 0;
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sStolasPalette, 0);
-    Sprite_Attach(entity, sStolasSpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sStolasPalette, 0);
+    Sprite_Attach(entity, sStolasSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = (u32 *)Stolas_Draw;
     return 1;
 }

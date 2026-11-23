@@ -33,8 +33,8 @@ void WhiteDragon_SpawnBreath(struct EwramData_EntityData *owner)
         speed=0x40000;
         projectile->velX.whole=FixedMultiply(horizontal,speed);
         projectile->velY.whole=FixedMultiply(vertical,speed);
-        projectile->unk_518.part8.spawnIndex=owner->unk_518.part8.spawnIndex;
-        projectile->unk_510.part8.basePalette=owner->unk_510.part8.basePalette;
+        projectile->spawnIndex=owner->spawnIndex;
+        projectile->basePalette=owner->basePalette;
         projectile->attack=owner->attack;
     }
 }

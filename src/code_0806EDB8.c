@@ -37,7 +37,7 @@ void EnemyWerewolfUpdate(struct EwramData_EntityData *entity)
             return;
         }
     }
-    if (entity->unk_510.part8.hitFlashTimer != 0 && entity->state != 3 && entity->state != 2)
+    if (entity->hitFlashTimer != 0 && entity->state != 3 && entity->state != 2)
     {
         Hit_CheckWithPlayer(box, entity);
         return;

@@ -52,15 +52,15 @@ void EnemyGladiatorCreate(struct EwramData_EntityData *entity)
         {
         case 0:
             part = Entity_CreateObject((u32 *)GladiatorBody_Update);
-            part->unk_510.part8.basePalette = entity->ext.gladiator.palette;
+            part->basePalette = entity->ext.gladiator.palette;
             break;
         case 1:
             part = Entity_CreateObject((u32 *)GladiatorArm_Update);
-            part->unk_510.part8.basePalette = entity->ext.gladiator.palette;
+            part->basePalette = entity->ext.gladiator.palette;
             break;
         case 2:
             part = Entity_CreateObject((u32 *)GladiatorSpinner_Update);
-            part->unk_510.part8.basePalette = entity->ext.gladiator.palette1;
+            part->basePalette = entity->ext.gladiator.palette1;
             break;
         }
         if (part != NULL)
@@ -69,8 +69,8 @@ void EnemyGladiatorCreate(struct EwramData_EntityData *entity)
                 part->spriteLayer = entity->spriteLayer - 1;
             else
                 part->spriteLayer = entity->spriteLayer + 1;
-            Sprite_Attach(part, sGladiatorSpriteSheet, ObjGfx_Find(sGladiatorGfx), part->unk_510.part8.basePalette);
-            part->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
+            Sprite_Attach(part, sGladiatorSpriteSheet, ObjGfx_Find(sGladiatorGfx), part->basePalette);
+            part->enemyId = entity->enemyId;
             part->scrollWithBg = 0;
             part->drawFunc = (u32 *)Sprite_DrawEntity;
             part->attack = entity->attack;

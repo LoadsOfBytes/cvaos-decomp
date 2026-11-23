@@ -11,10 +11,10 @@ u8 Curly_LoadGraphics(struct EwramData_EntityData *entity)
     u16 x, y;
     s32 room;
     if (slot < 0) return 0;
-    if (entity->unk_518.part8.enemyId == 0x2B)
-        entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sCurlyPalette, 1);
-    else entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sCurlyPalette, 0);
-    Sprite_Attach(entity, sCurlySpriteSheet, slot, entity->unk_510.part8.basePalette);
+    if (entity->enemyId == 0x2B)
+        entity->basePalette = ObjPalette_FindOrLoadVariant(sCurlyPalette, 1);
+    else entity->basePalette = ObjPalette_FindOrLoadVariant(sCurlyPalette, 0);
+    Sprite_Attach(entity, sCurlySpriteSheet, slot, entity->basePalette);
     x = GetEntityRoomXPositionInteger(entity);
     y = GetEntityRoomYPositionInteger(entity);
     room = GetRoomFromMapPosition((s16)x, (s16)y);

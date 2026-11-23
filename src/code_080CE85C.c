@@ -16,7 +16,7 @@ void Alastor_UpdateDeath(struct EwramData_EntityData *entity)
     {
         case 0:
             PlaySong(0x6E);
-            entity->palette=entity->unk_510.part8.basePalette;
+            entity->palette=entity->basePalette;
             entity->subState++;
             entity->stage=state;
         case 1:

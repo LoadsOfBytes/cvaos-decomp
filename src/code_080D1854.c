@@ -20,7 +20,7 @@ void Belmont_UpdateDefeat(struct EwramData_EntityData *entity)
             {
                 if(entity->animScriptIndex!=13)
                     Anim_StartIndexed(entity,13,1,0);
-                entity->palette=entity->unk_510.part8.basePalette;
+                entity->palette=entity->basePalette;
                 entity->stage++;
             }
             if(entity->animDone)

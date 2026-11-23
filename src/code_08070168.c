@@ -14,7 +14,7 @@ static inline void SetRelativePosition(struct EwramData_EntityData *parent, stru
 }
 /**
  * @brief Spawn one swarm fish around parent (EnemyKillerFishCreate spawns
- * unk_516 of them) on a random layer in front of or behind it, with a
+ * spawnParam1 of them) on a random layer in front of or behind it, with a
  * quarter of its attack (attack >> 2).
  */
 void KillerFish_SpawnSwarmFish(struct EwramData_EntityData *parent)
@@ -31,8 +31,8 @@ void KillerFish_SpawnSwarmFish(struct EwramData_EntityData *parent)
             part->spriteLayer = parent->spriteLayer - 1;
         ENTITY_CREATOR(part) = parent;
         SetRelativePosition(parent, part, 0, 0);
-        part->unk_518.part8.spawnIndex = parent->unk_518.part8.spawnIndex;
-        part->unk_510.part8.basePalette = parent->unk_510.part8.basePalette;
+        part->spawnIndex = parent->spawnIndex;
+        part->basePalette = parent->basePalette;
         part->attack = parent->attack >> 2;
     }
 }

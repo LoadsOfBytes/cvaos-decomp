@@ -57,8 +57,8 @@ void Headhunter_SpawnAttackFollower(struct EwramData_EntityData *owner, s32 time
         effect->flipX = owner->flipX;
         effect->spriteLayer = owner->spriteLayer;
         graphics = owner->ext.headhunter.graphics;
-        effect->unk_510.part8.basePalette = owner->ext.headhunter.palette3;
-        Sprite_Attach(effect, sHeadhunterSpriteSheet, graphics, effect->unk_510.part8.basePalette);
+        effect->basePalette = owner->ext.headhunter.palette3;
+        Sprite_Attach(effect, sHeadhunterSpriteSheet, graphics, effect->basePalette);
         Anim_StartIndexed(effect, 0x16, 2, 0);
         Anim_Update(effect);
         effect->timer = timer;
@@ -87,8 +87,8 @@ void Headhunter_SpawnBurstShot(struct EwramData_EntityData *owner, s32 x, s32 y,
         shot->spriteLayer = owner->spriteLayer - 1;
         graphics = owner->ext.headhunter.graphics;
         shot->ext.headhunterEffect.graphics = graphics;
-        shot->unk_510.part8.basePalette = owner->ext.headhunter.palette3;
-        Sprite_Attach(shot, sHeadhunterSpriteSheet, graphics, shot->unk_510.part8.basePalette);
+        shot->basePalette = owner->ext.headhunter.palette3;
+        Sprite_Attach(shot, sHeadhunterSpriteSheet, graphics, shot->basePalette);
         shot->ext.headhunterEffect.frame = 0x54;
         Hit_Enable(shot, 8, HeadhunterBurstShot_DamagePlayerOnContact, 0);
         HitBox_SetAttack(shot, &box);
@@ -162,8 +162,8 @@ void Headhunter_SpawnExtendingAttack(struct EwramData_EntityData *owner, s32 x, 
     SPEED(head) = 0x40000;
     head->spriteLayer = owner->spriteLayer - 1;
     graphics = owner->ext.headhunter.graphics;
-    head->unk_510.part8.basePalette = owner->ext.headhunter.palette2;
-    Sprite_Attach(head, sHeadhunterSpriteSheet, graphics, head->unk_510.part8.basePalette);
+    head->basePalette = owner->ext.headhunter.palette2;
+    Sprite_Attach(head, sHeadhunterSpriteSheet, graphics, head->basePalette);
     Anim_Start(head, (struct AnimScript *)&animation, 2, 1);
     Anim_Update(head);
     if ((s32)((slot = ObjAffine_Alloc(1)) << 16) < 0)
@@ -307,8 +307,8 @@ struct EwramData_EntityData *Headhunter_CreateAttackSegment(struct EwramData_Ent
     SEGMENT_INDEX(segment) = index;
     segment->spriteLayer = parent->spriteLayer + 1;
     graphics = owner->ext.headhunter.graphics;
-    segment->unk_510.part8.basePalette = owner->ext.headhunter.palette2;
-    Sprite_Attach(segment, sHeadhunterSpriteSheet, graphics, segment->unk_510.part8.basePalette);
+    segment->basePalette = owner->ext.headhunter.palette2;
+    Sprite_Attach(segment, sHeadhunterSpriteSheet, graphics, segment->basePalette);
     Anim_Start(segment, (struct AnimScript *)&animation, 2, 1);
     Anim_Update(segment);
     if ((s32)((slot = ObjAffine_Alloc(1)) << 16) < 0)

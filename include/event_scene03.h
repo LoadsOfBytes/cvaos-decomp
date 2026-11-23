@@ -29,7 +29,7 @@
  */
 
 /* Camera step of the scene (EventScene03_Init, EventScene03_ScrollCamera):
- * byte 0 of unk_51C (byte view, original cast form kept). */
-#define EVENT_SCENE03_CAMERA_STEP(e) ((u8 *)&e->unk_51C)[0]
+ * byte 0 of enemyStatus (byte view, original cast form kept). */
+#define EVENT_SCENE03_CAMERA_STEP(e) ((u8 *)&e->enemyStatus)[0]
 
 #endif /* EVENT_SCENE03_H */

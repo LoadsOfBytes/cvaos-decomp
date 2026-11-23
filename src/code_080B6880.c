@@ -129,8 +129,8 @@ void BaloreIntro_Update(struct EwramData_EntityData *entity)
         e = Entity_CreateObject(EnemyBaloreUpdate);
         if (e)
         {
-            e->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
-            e->unk_518.part8.spawnIndex = entity->unk_518.part8.spawnIndex;
+            e->enemyId = entity->enemyId;
+            e->spawnIndex = entity->spawnIndex;
             e->scrollWithBg = 1;
             e->posX.whole = entity->posX.whole;
             e->posY.whole = entity->posY.whole;

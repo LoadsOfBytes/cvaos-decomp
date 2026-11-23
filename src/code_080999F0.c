@@ -28,8 +28,8 @@ u8 Ectoplasm_LoadGraphics(struct EwramData_EntityData *entity)
 
     if (gfx < 0)
         return 0;
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sEctoplasmPalette, 0);
-    Sprite_Attach(entity, sEctoplasmSpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sEctoplasmPalette, 0);
+    Sprite_Attach(entity, sEctoplasmSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = (u32 *)Ectoplasm_Draw;
     return 1;
 }
@@ -108,7 +108,7 @@ void Ectoplasm_SpawnParticle(struct EwramData_EntityData *entity, s32 offsetX, s
         child->posY.whole = entity->posY.whole + offsetY;
         child->spriteLayer = entity->spriteLayer + 1;
         gfx = ObjGfx_Find(sEctoplasmGfx);
-        Sprite_Attach(child, sEctoplasmSpriteSheet, gfx, entity->unk_510.part8.basePalette);
+        Sprite_Attach(child, sEctoplasmSpriteSheet, gfx, entity->basePalette);
         child->animFrame = frame;
         child->flipX = RandomNumberGenerator() % 2;
         child->velY.whole = -0x10000;

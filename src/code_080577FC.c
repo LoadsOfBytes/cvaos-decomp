@@ -53,8 +53,8 @@ u8 Object23_LoadGraphics(struct EwramData_EntityData *entity)
 
     if (gfx < 0)
         return 0;
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 3);
-    Sprite_Attach(entity, sObject21Object23SpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 3);
+    Sprite_Attach(entity, sObject21Object23SpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }
@@ -105,8 +105,8 @@ u8 Object24_LoadGraphics(struct EwramData_EntityData *entity)
 
     if (gfx < 0)
         return 0;
-    entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 7);
-    Sprite_Attach(entity, sObject24SpriteSheet, gfx, entity->unk_510.part8.basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 7);
+    Sprite_Attach(entity, sObject24SpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
     return 1;
 }

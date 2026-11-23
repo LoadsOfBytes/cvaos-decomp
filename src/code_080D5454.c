@@ -102,7 +102,7 @@ void GrahamSpiralProjectile_Update(struct EwramData_EntityData *entity)
             break;
         case 4:
             if (entity->timer++ & 2) entity->palette = 4;
-            else entity->palette = entity->unk_510.part8.basePalette;
+            else entity->palette = entity->basePalette;
             SCALE(entity) -= 0x800;
             if (SCALE(entity) >= 0)
             {

@@ -6,8 +6,8 @@
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
 extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
-#define ANGLE(e) ((e)->unk_518.part16.hp)
-#define STEP(e) ((e)->unk_518.part16.unk_51A)
+#define ANGLE(e) ((e)->hp)
+#define STEP(e) (ENTITY_HALF_51A((e)))
 /**
  * @brief Variant 1: rotate and accelerate horizontally with a trail, then
  * release the affine slot and remove after leaving the screen.

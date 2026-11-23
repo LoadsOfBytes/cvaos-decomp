@@ -21,7 +21,7 @@ extern void EventScene03_SpawnPartDebris(struct EwramData_EntityData *owner);
 extern void Sound_Play(u16);
 extern void Player_StartScriptedAnimation(s32, s32, s32, s32);
 
-#define STEP (*(u8 *)&entity->unk_51C)
+#define STEP (*(u8 *)&entity->enemyStatus)
 
 /**
  * @brief Main sequence of event scene 3 (EventScene03_Update): camera steps,

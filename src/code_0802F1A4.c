@@ -51,7 +51,7 @@ static inline void SpawnBubble(struct EwramData_EntityData *entity, s32 type)
  * unk_4F4 & 0x1A2; not started while & 0x82): graphics 0x081DD950 /
  * 0x0820B550 / 0x08236868, song 0x99. For 16 frames two Effect_CreateFromTable
  * bubbles per frame at random angles 40 px above, then the player takes
- * animation 0x34 (actionLockFlags bit 11, song 0x1A8) and a counter unk_516 rises
+ * animation 0x34 (actionLockFlags bit 11, song 0x1A8) and a counter spawnParam1 rises
  * to 300 (song 0x95 every 60), added to STR (/ 2) and LCK every frame
  * (Player_RecalculateAttackDefense). The end state sparkles (Effect_SpawnShared every 8 of 240
  * frames) and calls BlueSoul_ReleaseActiveResources.
@@ -97,7 +97,7 @@ void SkillSkyFishUse(struct EwramData_EntityData *entity)
         {
             Anim_StartIndexed(entity, 0, 0, 1);
             entity->state = 2;
-            entity->unk_514.part16.spawnParam0 = 1;
+            entity->spawnParam0 = 1;
             gEwramData->playerState.actionLockFlags |= 0x800;
             Anim_StartIndexed(gEwramData->playerState.player, 0x34, 3, 0);
             PlaySong(0x1A8);
@@ -108,17 +108,17 @@ void SkillSkyFishUse(struct EwramData_EntityData *entity)
     case 2:
         gEwramData->playerState.actionLockFlags |= 0x800;
         gEwramData->playerStatus.inputOverrides |= 1;
-        if ((s16)(entity->unk_514.part16.spawnParam1 % 60) == 0)
+        if ((s16)(entity->spawnParam1 % 60) == 0)
             PlaySong(0x95);
-        if (entity->unk_514.part16.spawnParam1 <= 299)
-            entity->unk_514.part16.spawnParam1++;
+        if (entity->spawnParam1 <= 299)
+            entity->spawnParam1++;
         else
             entity->state = 4;
         break;
     case 4:
         entity->state = 5;
         entity->timer = 0;
-        if (entity->unk_514.part16.spawnParam0 != 0)
+        if (entity->spawnParam0 != 0)
         {
             entity->timer = 0xF0;
             if (parent->ext.player.actionFlags & 0x20)
@@ -145,8 +145,8 @@ delete:
     EntityDelete(entity);
     return;
 end:
-    *str += entity->unk_514.part16.spawnParam1 >> 1;
-    gEwramData->playerState.currentStats[3] += entity->unk_514.part16.spawnParam1;
+    *str += entity->spawnParam1 >> 1;
+    gEwramData->playerState.currentStats[3] += entity->spawnParam1;
     Player_RecalculateAttackDefense();
     Anim_Update(entity);
 }

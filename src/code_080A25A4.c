@@ -43,8 +43,8 @@ struct EwramData_EntityData *Chaos_CreateOuterRing(struct EwramData_EntityData *
     CENTER_Y(ring) = 0x50;
     ring->spriteLayer = 0x1A;
     graphics = data->graphics;
-    ring->unk_510.part8.basePalette = data->palette;
-    Sprite_Attach(ring, sChaosSpriteSheet, graphics, ring->unk_510.part8.basePalette);
+    ring->basePalette = data->palette;
+    Sprite_Attach(ring, sChaosSpriteSheet, graphics, ring->basePalette);
     ring->animFrame = 0;
     if ((s32)((slot = ObjAffine_Alloc(1)) << 16) < 0)
     {
@@ -57,7 +57,7 @@ struct EwramData_EntityData *Chaos_CreateOuterRing(struct EwramData_EntityData *
     RADIUS(ring) = radius;
     SPIN_BASE(ring) = spin;
     ORBIT_BASE(ring) = orbit;
-    ring->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
+    ring->enemyId = owner->enemyId;
     ring->ext.chaosChild.link = owner;
     ring->scrollWithBg = 0;
     ring->hit.flags |= 4;
@@ -75,7 +75,7 @@ void ChaosOuterRing_Update(struct EwramData_EntityData *entity)
     s32 x, y;
 
     if (owner == NULL || owner->updateFunc == NULL
-        || owner->unk_518.part8.enemyId != entity->unk_518.part8.enemyId)
+        || owner->enemyId != entity->enemyId)
         goto delete;
     if (entity->state == 0)
     {
@@ -129,8 +129,8 @@ struct EwramData_EntityData *Chaos_CreateInnerRing(struct EwramData_EntityData *
     CENTER_Y(ring) = 0x50;
     ring->spriteLayer = 0x1A;
     graphics = data->graphics;
-    ring->unk_510.part8.basePalette = data->palette;
-    Sprite_Attach(ring, sChaosSpriteSheet, graphics, ring->unk_510.part8.basePalette);
+    ring->basePalette = data->palette;
+    Sprite_Attach(ring, sChaosSpriteSheet, graphics, ring->basePalette);
     ring->animFrame = 1;
     if ((s32)((slot = ObjAffine_Alloc(1)) << 16) < 0)
     {
@@ -143,7 +143,7 @@ struct EwramData_EntityData *Chaos_CreateInnerRing(struct EwramData_EntityData *
     RADIUS(ring) = radius;
     SPIN_BASE(ring) = spin;
     ORBIT_BASE(ring) = orbit;
-    ring->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
+    ring->enemyId = owner->enemyId;
     ring->ext.chaosChild.link = owner;
     ring->scrollWithBg = 0;
     ring->hit.flags |= 4;
@@ -160,7 +160,7 @@ void ChaosInnerRing_Update(struct EwramData_EntityData *entity)
     s32 x, y;
 
     if (owner == NULL || owner->updateFunc == NULL
-        || owner->unk_518.part8.enemyId != entity->unk_518.part8.enemyId)
+        || owner->enemyId != entity->enemyId)
         goto delete;
     if (entity->state == 0)
     {
@@ -217,17 +217,17 @@ struct EwramData_EntityData *Chaos_CreateOrb(struct EwramData_EntityData *owner,
     CENTER_Y(orb) = 0x50;
     orb->spriteLayer = 0x12;
     graphics = data->graphics;
-    orb->unk_510.part8.basePalette = data->palette;
-    Sprite_Attach(orb, sChaosSpriteSheet, graphics, orb->unk_510.part8.basePalette);
+    orb->basePalette = data->palette;
+    Sprite_Attach(orb, sChaosSpriteSheet, graphics, orb->basePalette);
     Anim_StartIndexed(orb, anim, 2, 0);
     Anim_Update(orb);
     SPIN_BASE(orb) = spin;
-    orb->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
+    orb->enemyId = owner->enemyId;
     orb->ext.chaosChild.link = owner;
     orb->scrollWithBg = 0;
     orb->ext.chaosOrb.kind = kind;
     orb->attack = 0x50;
-    orb->unk_518.part16.hp = 3000;
+    orb->hp = 3000;
     Hit_Enable(orb, 8, NULL, (s32)ChaosOrb_OnHit);
     HitBox_SetBody(orb, &box);
     HitBox_SetAttack(orb, &box);

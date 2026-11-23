@@ -16,20 +16,20 @@ void Chaos2Part_OnHit(struct EwramData_EntityData *part, s32 attacker, u16 *hit)
     s32 damage = Hit_ResolveDamage(part, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
     s32 zero;
 
-    part->unk_510.part8.hitFlashTimer = 8;
+    part->hitFlashTimer = 8;
     zero = 0;
     part->ext.chaos2Part.flash = 30;
     damage <<= 16;
     damage >>= 16;
     Entity_ShowDamage(part, damage, 0);
-    part->unk_518.part16.hp -= damage;
+    part->hp -= damage;
     Anim_StartIndexed(part, 1, 2, 0);
-    if ((s16)part->unk_518.part16.hp <= 0)
+    if ((s16)part->hp <= 0)
     {
         PlaySong(0x6E);
-        part->palette = part->unk_510.part8.basePalette;
+        part->palette = part->basePalette;
         part->timer = 40;
-        part->unk_510.part8.hitFlashTimer = zero;
+        part->hitFlashTimer = zero;
         part->state = 10;
         part->subState = zero;
         if (*(s8 *)&core->ext.chaos2.partCount != 0)

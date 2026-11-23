@@ -55,13 +55,13 @@ void Ukoback_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
     s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
 
     {
-        u16 hp = entity->unk_518.part16.hp;
+        u16 hp = entity->hp;
         damage = (damage << 16) >> 16;
-        entity->unk_518.part16.hp = hp - damage;
+        entity->hp = hp - damage;
     }
     Entity_ShowDamage(entity, damage, 0);
-    entity->unk_510.part8.hitFlashTimer = 8;
-    if ((s16)entity->unk_518.part16.hp <= 0)
+    entity->hitFlashTimer = 8;
+    if ((s16)entity->hp <= 0)
     {
         entity->subState = 0;
         Ukoback_UpdateDeath(entity);
@@ -103,7 +103,7 @@ void UkobackFireball_OnContact(struct EwramData_EntityData *entity)
     Player_ApplyContactDamage(&contactDamage);
     for (i = 9; i >= 0; i--)
         Ukoback_SpawnContactSparkle();
-    entity->unk_510.part8.hitFlashTimer = 8;
+    entity->hitFlashTimer = 8;
     entity->state = 0xFF;
 }
 
@@ -112,7 +112,7 @@ void UkobackFireball_OnContact(struct EwramData_EntityData *entity)
  */
 void UkobackFireball_OnHit(struct EwramData_EntityData *entity)
 {
-    entity->unk_510.part8.hitFlashTimer = 8;
+    entity->hitFlashTimer = 8;
     entity->state = 0xFF;
 }
 
@@ -212,8 +212,8 @@ s32 Nemesis_LoadGraphics(struct EwramData_EntityData *entity)
     paletteIndex = ObjPalette_FindOrLoadVariant(sNemesisPalette, 0);
     if (paletteIndex == -1)
         return 0;
-    entity->unk_510.part8.basePalette = paletteIndex;
-    if (!Sprite_Attach(entity, sNemesisSpriteSheet, gfx, entity->unk_510.part8.basePalette))
+    entity->basePalette = paletteIndex;
+    if (!Sprite_Attach(entity, sNemesisSpriteSheet, gfx, entity->basePalette))
         return 0;
     slot = ObjAffine_Alloc(1);
     if (slot < 0)

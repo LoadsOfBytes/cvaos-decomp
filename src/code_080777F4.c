@@ -19,7 +19,7 @@ void WhiteDragon_SpawnSpark(struct EwramData_EntityData *owner,s32 x,s32 y,s32 l
         effect->flipX=RandomNumberGenerator()%2;
         effect->spriteLayer=layer;
         graphics=ObjGfx_Find(sQuezlcoatlWhiteDragonGfx);
-        Sprite_Attach(effect,sQuezlcoatlWhiteDragonSpriteSheet,graphics,owner->unk_510.part8.basePalette);
+        Sprite_Attach(effect,sQuezlcoatlWhiteDragonSpriteSheet,graphics,owner->basePalette);
         effect->animFrame=9;
         if(owner->flipX)
             effect->posX.part16.integer+=RandomNumberGenerator()%6;

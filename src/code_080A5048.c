@@ -26,9 +26,9 @@ void Chaos2_SpawnShot(struct EwramData_EntityData *parent, s32 dx, s32 dy, s32 a
         child->velY.whole = vy;
         child->spriteLayer = 0x11;
         tiles = gfx->tiles;
-        child->unk_510.part8.basePalette = gfx->palette;
+        child->basePalette = gfx->palette;
         child->palette = (u8)gfx->palette;
-        Sprite_Attach(child, sChaos2SpriteSheet, tiles, child->unk_510.part8.basePalette);
+        Sprite_Attach(child, sChaos2SpriteSheet, tiles, child->basePalette);
         index = (angle & 0xFFFF) / 0x1555;
         child->animFrame = frames.entries[index][0];
         child->animMode = 2;
@@ -36,7 +36,7 @@ void Chaos2_SpawnShot(struct EwramData_EntityData *parent, s32 dx, s32 dy, s32 a
             child->flipX = 1;
         if (frames.entries[index][1] & 2)
             child->flipY = 1;
-        child->unk_518.part8.enemyId = parent->unk_518.part8.enemyId;
+        child->enemyId = parent->enemyId;
         child->ext.chaosChild.link = parent;
         zero = 0;
         child->scrollWithBg = zero;

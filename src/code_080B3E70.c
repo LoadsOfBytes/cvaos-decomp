@@ -20,7 +20,7 @@ void HeadStackSegment_OnHit(struct EwramData_EntityData *entity)
     if (Enemy_TakeDamage(entity))
     {
         Enemy_DropRewards(entity);
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->state = 2;
         entity->stage = 0;
         entity->subState = 0;
@@ -48,7 +48,7 @@ void HeadStackProjectile_DamagePlayerOnContact(struct EwramData_EntityData *enti
  */
 void HeadStackProjectile_ClearHealth(struct EwramData_EntityData *entity)
 {
-    entity->unk_518.part16.hp = 0;
+    entity->hp = 0;
 }
 
 /**

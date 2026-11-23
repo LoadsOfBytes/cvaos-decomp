@@ -74,9 +74,9 @@ void EnemyStolasCreate(struct EwramData_EntityData *entity)
             u16 palette;
 
             part->spriteLayer = entity->spriteLayer + 1;
-            Sprite_Attach(part, sStolasSpriteSheet, ObjGfx_LoadResource(sStolasGfx, 0), entity->unk_510.part8.basePalette);
-            part->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
-            part->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
+            Sprite_Attach(part, sStolasSpriteSheet, ObjGfx_LoadResource(sStolasGfx, 0), entity->basePalette);
+            part->enemyId = entity->enemyId;
+            part->basePalette = entity->basePalette;
             part->scrollWithBg = 0;
             part->hidden = 0;
             part->attack = entity->attack;
@@ -149,10 +149,10 @@ void EnemyStolasCreate(struct EwramData_EntityData *entity)
     entity->ext.stolas.drawOffsetX = frozen;
     entity->ext.stolas.drawOffsetY = -29;
     entity->ext.joint.hurtMask = 1;
-    if (entity->unk_514.part16.spawnParam0 == 0)
-        entity->unk_514.part16.spawnParam0 = 13;
-    if (entity->unk_514.part16.spawnParam1 == 0)
-        entity->unk_514.part16.spawnParam1 = 0x52;
+    if (entity->spawnParam0 == 0)
+        entity->spawnParam0 = 13;
+    if (entity->spawnParam1 == 0)
+        entity->spawnParam1 = 0x52;
     entity->state = 0;
     entity->subState = 0;
 }

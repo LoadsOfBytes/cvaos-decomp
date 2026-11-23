@@ -32,16 +32,16 @@ void EnemyNightmareCreate(struct EwramData_EntityData *entity)
     entity->spriteLayer = 9;
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->unk_514.part16.spawnParam0 = 1;
+        entity->spawnParam0 = 1;
         Anim_StartIndexed(entity, 1, 0, 1);
         Anim_Update(entity);
         entity->state = 3;
         return;
     }
-    Anim_StartIndexed(entity, (u16)entity->unk_514.part16.spawnParam0, 0, 1);
+    Anim_StartIndexed(entity, (u16)entity->spawnParam0, 0, 1);
     Anim_Update(entity);
     entity->drawFunc = (u32 *)Nightmare_Draw;
-    if (entity->unk_514.part16.spawnParam0 == 0)
+    if (entity->spawnParam0 == 0)
     {
         Hit_Enable(entity, 8, Enemy_OnContact, (s32)Nightmare_OnHit);
         HitBox_SetBodyRaw(entity, 0x1838E0F0);
@@ -72,7 +72,7 @@ void EnemyNightmareUpdate(struct EwramData_EntityData *entity)
     {
         if (!Entity_IsInRect(entity, -0x100, -0x60, 0x2F0, 0x160)) return;
         Player_TrackEntity(entity);
-        if (entity->unk_514.part16.spawnParam0 == 0)
+        if (entity->spawnParam0 == 0)
         {
             enabled = Entity_IsTimeStopped(entity) == 0;
         }
@@ -81,10 +81,10 @@ void EnemyNightmareUpdate(struct EwramData_EntityData *entity)
     {
         if (entity->state == 2) return;
         Hit_CheckWithPlayer(box, entity);
-        if (entity->unk_514.part16.spawnParam0 == 0) Player_QueueEntity(entity, 0);
+        if (entity->spawnParam0 == 0) Player_QueueEntity(entity, 0);
         return;
     }
-    if (entity->unk_514.part16.spawnParam0 == 0 && entity->state == 1) Player_QueueEntity(entity, enabled);
+    if (entity->spawnParam0 == 0 && entity->state == 1) Player_QueueEntity(entity, enabled);
     switch (entity->state)
     {
     case 0:

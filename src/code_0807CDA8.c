@@ -26,7 +26,7 @@ void AluraUneRootWave_Update(struct EwramData_EntityData *entity)
             entity->hidden = 1;
             entity->timer = 0;
             entity->hit.flags |= 2;
-            if (!parent || !parent->updateFunc || parent->unk_518.part8.enemyId != 0x4D || parent->state == 2)
+            if (!parent || !parent->updateFunc || parent->enemyId != 0x4D || parent->state == 2)
             {
                 entity->deleteRequested = 1;
                 goto finished;
@@ -46,7 +46,7 @@ void AluraUneRootWave_Update(struct EwramData_EntityData *entity)
             entity->state = 0;
             entity->hit.flags &= ~2;
         }
-        if (!parent || !parent->updateFunc || parent->unk_518.part8.enemyId != 0x4D || parent->state == 2)
+        if (!parent || !parent->updateFunc || parent->enemyId != 0x4D || parent->state == 2)
         {
             entity->deleteRequested = 1;
             goto finished;

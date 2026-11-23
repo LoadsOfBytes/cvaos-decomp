@@ -20,8 +20,8 @@ void Object22_SpawnFallingPart(struct EwramData_EntityData *owner)
         child->velY.whole = 0x60000;
         child->spriteLayer = owner->spriteLayer + 1;
         graphics = ObjGfx_Find(sObject22Gfx);
-        child->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 1);
-        Sprite_Attach(child, sObject22SpriteSheet, graphics, child->unk_510.part8.basePalette);
+        child->basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 1);
+        Sprite_Attach(child, sObject22SpriteSheet, graphics, child->basePalette);
         Anim_StartIndexed(child, 4, 0, 0);
         Anim_Update(child);
         child->attack = owner->attack;
@@ -33,7 +33,7 @@ void Object22_SpawnFallingPart(struct EwramData_EntityData *owner)
         child->hit.flags |= 4;
         child->hit.flags &= ~2;
         Hit_Enable(child, 8, Object22FallingPart_OnPlayerContact, 0);
-        child->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
+        child->enemyId = owner->enemyId;
         child->ext.object22Part.owner = owner;
         child->scrollWithBg = 1;
         child->drawFunc = (u32 *)Sprite_DrawEntity;

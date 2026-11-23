@@ -130,7 +130,7 @@ restart:
         /* fall through */
     case 4:
         EntityMove(entity);
-        if ((s16)entity->unk_514.part16.spawnParam0 == 1)
+        if ((s16)entity->spawnParam0 == 1)
         {
             s32 roomX = (s16)(entity->posX.part16.integer + camera->xPos.part16.integer);
             /* Narrow the partial sum before subtraction to retain agbcc ordering. */

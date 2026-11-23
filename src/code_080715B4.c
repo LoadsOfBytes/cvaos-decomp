@@ -8,21 +8,21 @@ extern void Enemy_DropRewards(struct EwramData_EntityData *);
 void Merman_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
-    u8 *flashTimer = &entity->unk_510.part8.hitFlashTimer;
+    u8 *flashTimer = &entity->hitFlashTimer;
     s32 zero = 0;
     *flashTimer = 8;
     {
-        s32 hp = entity->unk_518.part16.hp;
+        s32 hp = entity->hp;
         damage = (s16)damage;
-        entity->unk_518.part16.hp = hp - damage;
+        entity->hp = hp - damage;
     }
     Entity_ShowDamage(entity, damage, 0);
-    if ((s16)entity->unk_518.part16.hp <= 0)
+    if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
         PlaySong(0x6E);
         Anim_StartIndexed(entity, 1, 0, 1);
-        entity->palette = entity->unk_510.part8.basePalette;
+        entity->palette = entity->basePalette;
         entity->timer = 40;
         entity->state = 2;
         entity->velX.whole = zero;

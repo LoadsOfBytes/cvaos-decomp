@@ -3,6 +3,7 @@
 #include "code_08011DD0.h"
 #include "menu_page.h"
 #include "code/code_08039340.h"
+#include "menu_entity.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
 
@@ -244,19 +245,19 @@ void Shop_DrawListCursor(struct EwramData_EntityData *entity)
 {
     if (entity->stage == 0)
     {
-        entity->unk_518.part16.hp = 12;
-        entity->unk_518.part16.unk_51A = entity->ext.menuPageList.bytes[1] * 8 + 0x5C;
+        MENU_CURSOR_X(entity) = 12;
+        MENU_CURSOR_Y(entity) = entity->ext.menuPageList.bytes[1] * 8 + 0x5C;
         Cursor_Draw();
     }
     else
     {
-        entity->unk_518.part16.hp = entity->timer ? 0x88 : 0x3C;
-        entity->unk_518.part16.unk_51A = 0x88;
+        MENU_CURSOR_X(entity) = entity->timer ? 0x88 : 0x3C;
+        MENU_CURSOR_Y(entity) = 0x88;
         Cursor_DrawWithOptionalBob(1);
         if (gEwramData->frameCounter & 2)
         {
-            entity->unk_518.part16.hp = 0x10;
-            entity->unk_518.part16.unk_51A = entity->ext.menuPageList.bytes[1] * 8 + 0x5C;
+            MENU_CURSOR_X(entity) = 0x10;
+            MENU_CURSOR_Y(entity) = entity->ext.menuPageList.bytes[1] * 8 + 0x5C;
             Cursor_DrawWithOptionalBob(0);
         }
     }
@@ -265,7 +266,7 @@ void Shop_DrawListCursor(struct EwramData_EntityData *entity)
 
 /**
  * @brief 48018 | Draw the cursor entityData[18] (frame 0x1E) at its stored
- * position unk_518/unk_51A, bobbing horizontally.
+ * position MENU_CURSOR_X / MENU_CURSOR_Y, bobbing horizontally.
  */
 void Cursor_Draw(void)
 {
@@ -280,8 +281,8 @@ void Cursor_Draw(void)
         jitter = 3 - (t & 7);
     else
         jitter = (t & 7) - 3;
-    cursor->posX.part16.integer = cursor->unk_518.part16.hp + jitter;
-    cursor->posY.part16.integer = cursor->unk_518.part16.unk_51A;
+    cursor->posX.part16.integer = MENU_CURSOR_X(cursor) + jitter;
+    cursor->posY.part16.integer = MENU_CURSOR_Y(cursor);
     Sprite_Draw(cursor);
 }
 
@@ -295,8 +296,8 @@ void Cursor_DrawWithOptionalBob(s32 bob)
 
     cursor->animFrame = 0x1E;
     cursor->palette = 13;
-    cursor->posX.part16.integer = cursor->unk_518.part16.hp;
-    cursor->posY.part16.integer = cursor->unk_518.part16.unk_51A;
+    cursor->posX.part16.integer = MENU_CURSOR_X(cursor);
+    cursor->posY.part16.integer = MENU_CURSOR_Y(cursor);
     if (bob)
     {
         u32 t = gEwramData->frameCounter >> 1;

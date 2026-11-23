@@ -8,7 +8,7 @@ void HarpyFeather_DamagePlayerOnContact(struct EwramData_EntityData *entity)
     hit.attack=entity->attack;
     zero=0;
     hit.attributes=0;
-    hit.unk_4=0;
+    hit.unused=0;
     hit.reaction=0;
     hit.sourceX=entity->posX.whole;
     hit.sourceY=entity->posY.whole;

@@ -12,7 +12,7 @@ struct MenuPage
 extern void MenuPage_Reset(struct MenuPage *page);
 extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
 extern void EquipmentMenu_DrawList(struct PlayerStatus *stats, struct MenuPage *page, s32 slot);
-extern void MenuList_DrawScrollArrows(struct MenuPage *page, s32 param_1);
+extern void MenuList_DrawScrollArrows(struct MenuPage *page, s32 raised);
 extern void YellowSoul_Restart(u8 soul, s32 force);
 extern void Menu_DrawAttackDefense(s32 x, s32 y);
 extern void Menu_DrawCurrentStats(s32 x, s32 y);

@@ -11,4 +11,8 @@
 #define GHOST_CHILD_COUNT(e) e->unk_4FC.part16.unk_4FC
 #define GHOST_SPAWN_DELAY(e) e->unk_4FC.part16.unk_4FE[0]
 
+/* Float (Ghost_UpdateFloat): random vertical offset (0..-16 px, 16.16) it
+ * keeps from the target point while near (TargetOffsetY). */
+#define GHOST_AIM_OFFSET_Y(e) e->unk_504.whole
+
 #endif /* GHOST_ENTITY_H */

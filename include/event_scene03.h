@@ -39,4 +39,8 @@
 #define EVENT03_PART_LINK_INDEX(e) e->unk_4F4.part8.unk_4F6
 #define EVENT03_PART_WAVE(e) e->unk_508.part16.unk_50A
 
+/* Camera step of the scene (EventScene03_Init, EventScene03_ScrollCamera):
+ * byte 0 of unk_51C (byte view, original cast form kept). */
+#define EVENT_SCENE03_CAMERA_STEP(e) ((u8 *)&e->unk_51C)[0]
+
 #endif /* EVENT_SCENE03_H */

@@ -98,8 +98,8 @@ void Death_UpdateFirstPhase(struct EwramData_EntityData *e)
     {
         s16 angle = RandomNumberGenerator();
         s32 rr = RandomNumberGenerator();
-        do { rr &= 0xF; } while (0);
-        do { rr += 0x20; } while (0);
+        do { rr &= 0xF; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
+        do { rr += 0x20; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
         vx = rr * Sin(angle + 0x4000);
         vy = rr * Sin(angle);
         x = (((s16)e->posX.part16.integer - 0xC) << 16) + vx;

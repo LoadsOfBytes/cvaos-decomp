@@ -66,7 +66,7 @@ s32 Map_CountVisitedCells(struct GameState *gameState)
 /**
  * @brief Return visited-cell count times 1000 divided by 0x350, representing tenths of a percent; preserve the unused parameter and absence of clamping.
  */
-s32 Map_GetCompletionTenths(struct GameState *gameState, s32 param_1)
+s32 Map_GetCompletionTenths(struct GameState *gameState, s32 unused)
 {
     s32 i;
     s32 j;
@@ -110,7 +110,7 @@ const u8 sMapCompletionText[0xE4] = {
 /**
  * @brief Draw map completion using visited count times 1000 divided by 0x350, with three integer digits and one fractional digit through the background command buffer.
  */
-void Map_DrawCompletion(struct GameState *gameState, s32 param_1, s32 column, s32 rowOffset)
+void Map_DrawCompletion(struct GameState *gameState, s32 unused, s32 column, s32 rowOffset)
 {
     s32 i;
     s32 j;
@@ -152,27 +152,27 @@ void RoomJump_SetDestination(void *room, s32 cameraX, s32 cameraY, s32 playerX, 
 /**
  * @brief When priority is at least the current priority, store priority and signed X/Y components without changing the existing duration.
  */
-void ScreenShake_RequestOffset(u8 priority, s8 param_1, s8 param_2)
+void ScreenShake_RequestOffset(u8 priority, s8 offsetX, s8 offsetY)
 {
     if (priority >= gEwramData->gameState.screenShakePriority)
     {
         gEwramData->gameState.screenShakePriority = priority;
-        gEwramData->gameState.screenShakeComponentX = param_1;
-        gEwramData->gameState.screenShakeComponentY = param_2;
+        gEwramData->gameState.screenShakeComponentX = offsetX;
+        gEwramData->gameState.screenShakeComponentY = offsetY;
     }
 }
 
 /**
  * @brief When priority is at least the current priority, store priority, duration and X/Y random masks.
  */
-void ScreenShake_Request(u8 priority, u8 param_1, u8 param_2, u8 param_3)
+void ScreenShake_Request(u8 priority, u8 duration, u8 maskX, u8 maskY)
 {
     if (priority >= gEwramData->gameState.screenShakePriority)
     {
         gEwramData->gameState.screenShakePriority = priority;
-        gEwramData->gameState.screenShakeTimer = param_1;
-        gEwramData->gameState.screenShakeComponentX = param_2;
-        gEwramData->gameState.screenShakeComponentY = param_3;
+        gEwramData->gameState.screenShakeTimer = duration;
+        gEwramData->gameState.screenShakeComponentX = maskX;
+        gEwramData->gameState.screenShakeComponentY = maskY;
     }
 }
 
@@ -192,13 +192,13 @@ void ScreenShake_Clear(void)
  */
 void GameFlag_Set(s32 flag)
 {
-    u32 *temp_r2;
+    u32 *flagWord;
 
     if (flag >= 0)
     {
-        // TODO: is temp_r2 fake or inline?
-        temp_r2 = &gEwramData->gameState.gameFlags[flag >> 5];
-        *temp_r2 |= 1 << (flag & 0x1F);
+        // TODO: is flagWord fake or inline?
+        flagWord = &gEwramData->gameState.gameFlags[flag >> 5];
+        *flagWord |= 1 << (flag & 0x1F);
     }
 }
 
@@ -254,7 +254,6 @@ static inline s32 GameFlag_TestAndSetInline(s32 flag)
 s32 GameFlag_TestAndSet(s32 flag)
 {
     s32 wasSet;
-    u32 *temp_r2;
 
     wasSet = 0;
     wasSet = GameFlag_TestAndSetInline(flag);

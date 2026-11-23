@@ -127,7 +127,7 @@ void ManEaterChainAnchor_Update(struct EwramData_EntityData *entity)
     case 1:
         if (MAN_EATER_HEAD_FLAGS(parent) & 1)
         {
-            entity->unk_500.part8.unk_500 = 1;
+            MAN_EATER_LINK_SAVED_STATE(entity) = 1;
             entity->state = 2;
             entity->subState = 0;
             entity->timer = 0x64;
@@ -153,7 +153,7 @@ void ManEaterChainAnchor_Update(struct EwramData_EntityData *entity)
             y += offsetY;
             entity->posY.whole = y;
         }
-        if (parent->state != 2) entity->state = entity->unk_500.part8.unk_500;
+        if (parent->state != 2) entity->state = MAN_EATER_LINK_SAVED_STATE(entity);
         break;
     }
 }

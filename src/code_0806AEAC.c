@@ -25,7 +25,7 @@ static inline s32 FlashValue(s32 index)
     s16 bound = index;
     /* Same inline as in code_0806BE74.c: the loop note of the do-while stops
        regmove from moving the test onto the copy. */
-    do { memcpy(values, sEntityVisibilityPattern, sizeof(values)); } while (0);
+    do { memcpy(values, sEntityVisibilityPattern, sizeof(values)); } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
     if (index > 39) return 0;
     return values[bound];
 }

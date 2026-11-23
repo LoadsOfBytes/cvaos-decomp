@@ -14,7 +14,7 @@ u8 Object35_LoadGraphics(struct EwramData_EntityData *entity);
 void Object35_SpawnChild(struct EwramData_EntityData *parent);
 
 /* Event flag param_1 of the bit array gameFlagsTail (gEwramData + 0x344). */
-#define OBJECT_FLAG(ewram, param_1) ((ewram)->gameState.gameFlagsTail[(param_1) >> 5] & (1 << ((param_1) & 0x1F)))
+#define OBJECT_FLAG(ewram, flag) ((ewram)->gameState.gameFlagsTail[(flag) >> 5] & (1 << ((flag) & 0x1F)))
 
 /**
  * @brief 5A18C | Object 0x35 create (door?): variant != 0 is deleted when its

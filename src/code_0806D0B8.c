@@ -175,18 +175,18 @@ s32 Entity_MoveWithCollisionDefault(struct EwramData_EntityData *entity, s32 lan
 /**
  * @brief Return a 16.16 distance from the supplied point to entity position plus BG1 scroll, using whole-pixel differences before square root.
  */
-s32 Entity_GetRoomPointDistance(struct EwramData_EntityData *entity, s32 param_1, s32 param_2)
+s32 Entity_GetRoomPointDistance(struct EwramData_EntityData *entity, s32 x, s32 y)
 {
-    struct BgLayerState *var_0 = &gEwramData->bgInfo[1];
-    s32 var_2;
-    s32 var_3;
+    struct BgLayerState *camera = &gEwramData->bgInfo[1];
+    s32 dxSquared;
+    s32 dySquared;
 
 #define DIFF_INT(a, b) (((a) - (b) < 0) ? -(((b) - (a)) >> 16) : (((a) - (b)) >> 16))
-    var_2 = DIFF_INT(param_1, entity->posX.whole + var_0->xPos.whole);
-    var_2 *= var_2;
-    var_3 = DIFF_INT(param_2, entity->posY.whole + var_0->yPos.whole);
-    var_3 *= var_3;
+    dxSquared = DIFF_INT(x, entity->posX.whole + camera->xPos.whole);
+    dxSquared *= dxSquared;
+    dySquared = DIFF_INT(y, entity->posY.whole + camera->yPos.whole);
+    dySquared *= dySquared;
 #undef DIFF_INT
 
-    return Sqrt(var_2 + var_3) << 16;
+    return Sqrt(dxSquared + dySquared) << 16;
 }

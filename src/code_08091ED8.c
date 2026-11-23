@@ -21,13 +21,13 @@ extern void EnemyDevilCreate(struct EwramData_EntityData *entity);
 
 void Devil_OnDamaged(struct EwramData_EntityData *entity, s32 attacker, u16 *hit, s32 damage);
 
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 param_2, u16 reaction)
+static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
 {
     struct PlayerContactDamage contactDamage;
 
     contactDamage.attack = entity->attack;
     contactDamage.attributes = attributes;
-    contactDamage.unk_4 = param_2;
+    contactDamage.unused = unused;
     contactDamage.reaction = reaction;
     contactDamage.sourceX = entity->posX.whole;
     contactDamage.sourceY = entity->posY.whole;
@@ -135,7 +135,7 @@ void DevilPart_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 
     contactDamage.attack = entity->attack;
     contactDamage.attributes = 1;
-    contactDamage.unk_4 = 0;
+    contactDamage.unused = 0;
     contactDamage.reaction = 1;
     contactDamage.sourceX = entity->posX.whole;
     contactDamage.sourceY = entity->posY.whole;
@@ -151,7 +151,7 @@ void DevilProjectile_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 
     contactDamage.attack = entity->attack;
     contactDamage.attributes = 2;
-    contactDamage.unk_4 = 0;
+    contactDamage.unused = 0;
     contactDamage.reaction = 0;
     contactDamage.sourceX = entity->posX.whole;
     contactDamage.sourceY = entity->posY.whole;
@@ -159,13 +159,13 @@ void DevilProjectile_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief 92018 | Follow the entity unk_500 at offset (unk_4F8, unk_4FC);
+ * @brief 92018 | Follow the entity DEVIL_CHARGE_OWNER at offset (unk_4F8, unk_4FC);
  * delete when the timer timer ends.
  */
 void DevilChargeEffect_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *devil = entity->unk_500.unk_500_entity;
-    u32 var_1[4];
+    struct EwramData_EntityData *devil = DEVIL_CHARGE_OWNER(entity);
+    u32 collision[4];
 
     entity->posX.whole = devil->posX.whole + DEVIL_CHARGE_OFFSET_X(entity);
     entity->posY.whole = devil->posY.whole + DEVIL_CHARGE_OFFSET_Y(entity);

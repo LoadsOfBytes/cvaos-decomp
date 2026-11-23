@@ -34,11 +34,11 @@ void LegionDestructibleFragment_Update(struct EwramData_EntityData *entity)
     u16 hitbox[8];
     owner = LEGION_PART_OWNER(entity);
     bg = &gEwramData->bgInfo[1];
-    do { /* keeps the constant in a register (no move to its use in local-alloc) */
+    do { /* FAKEMATCH: keeps the constant in a register (no move to its use in local-alloc) */
         accelerationLimit = 0x60000;
     } while (0);
     box = 0x1C06E4FD;
-    ownerData = (void *)owner->unk_4F8.unk_4F8_entity;
+    ownerData = (void *)LEGION_DATA_PTR(owner);
     cur = entity->state;
     state = cur & 0xFF; /* not a plain copy: CSE must not learn cur from the state tests */
     if (state == 0) {
@@ -70,7 +70,7 @@ void LegionDestructibleFragment_Update(struct EwramData_EntityData *entity)
         else
             entity->velX.whole = 0x4000;
         res = Entity_MoveWithCollisionDefault(entity, 0x40000, -0x200000);
-        do { /* raises the refs of x (global-alloc priority) */
+        do { /* FAKEMATCH: raises the refs of x (global-alloc priority) */
             u32 b_ = *(ENTITY_RENDER_FLAGS_ADDRESS(entity)) & 0x40;
             x = 8;
             if (b_)
@@ -82,7 +82,7 @@ void LegionDestructibleFragment_Update(struct EwramData_EntityData *entity)
             entity->flipX ^= 1;
         if (!Collision_IsSlopeTile(bg->xPos.part16.integer + entity->posX.part16.integer,
                           bg->yPos.part16.integer + entity->posY.part16.integer + 1)) {
-            do { /* raises the refs of the posX/posY pointers */
+            do { /* FAKEMATCH: raises the refs of the posX/posY pointers */
                 if (Tile_Classify(bg->xPos.part16.integer + entity->posX.part16.integer + x,
                                 bg->yPos.part16.integer + entity->posY.part16.integer) || flags)
                     entity->flipX ^= 1;

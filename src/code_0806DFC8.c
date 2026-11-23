@@ -23,7 +23,7 @@ void Entity_OnPlayerContactDamage(struct EwramData_EntityData *entity)
     struct PlayerContactDamage contactDamage;
 
     contactDamage.attributes = 1;
-    contactDamage.unk_4 = 0;
+    contactDamage.unused = 0;
     contactDamage.attack = entity->attack;
     contactDamage.reaction = 0;
     contactDamage.sourceX = entity->posX.whole;

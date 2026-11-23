@@ -1,11 +1,12 @@
 #include "code_08009A0.h"
+#include "alura_une_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
 extern s32 Target_IsInRect(s16, s16, s16, s16);
 extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
 extern void AluraUne_SpawnThorn(struct EwramData_EntityData *, s32, s32, s32);
-extern void ScreenShake_RequestOffset(u8 priority, s8 param_1, s8 param_2);
+extern void ScreenShake_RequestOffset(u8 priority, s8 offsetX, s8 offsetY);
 extern s32 Sound_PlayTracked(s32 song);
 extern s32 Sound_PlayTrackedIfAbsent(s32 song);
 extern s32 Sound_StopTracked(s32 song);
@@ -30,9 +31,9 @@ void AluraUne_UpdateIdle(struct EwramData_EntityData *entity)
     case 0:
         if (Target_IsInRect(entity->posX.part16.integer - 0x5A, entity->posY.part16.integer - 0x30, 0xB4, 0x60) || Enemy_IsDamaged(entity))
         {
-            if (!*(s8 *)&entity->unk_504.part8.unk_504)
+            if (!*(s8 *)&ALURA_UNE_AWAKE(entity))
             {
-                entity->unk_504.part8.unk_504 = 1;
+                ALURA_UNE_AWAKE(entity) = 1;
                 entity->subState = 10;
                 break;
             }
@@ -70,10 +71,10 @@ void AluraUne_UpdateIdle(struct EwramData_EntityData *entity)
         }
         break;
     case 3:
-        if (*(s8 *)&entity->unk_504.part8.unk_505)
+        if (*(s8 *)&ALURA_UNE_HIT(entity))
         {
             entity->timer = 0;
-            entity->unk_504.part8.unk_505 = 0;
+            ALURA_UNE_HIT(entity) = 0;
         }
         if ((s8)entity->timer-- > 0)
             break;

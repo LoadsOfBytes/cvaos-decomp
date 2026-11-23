@@ -28,7 +28,7 @@ void Object19_OnPlayerContact(struct EwramData_EntityData *entity)
     s32 power;
 
     contactDamage.attributes = 1;
-    contactDamage.unk_4 = 0;
+    contactDamage.unused = 0;
     power = (gEwramData->playerState.equipmentDefenseBonus >> 1) + (gEwramData->playerState.equipmentDefenseBonus >> 2);
     power += gEwramData->playerStatus.maxHP >> 4;
     power = (u16)power;

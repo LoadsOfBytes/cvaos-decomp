@@ -65,8 +65,8 @@ void Gorgon_UpdateAttack(struct EwramData_EntityData *entity)
             s32 zero = 0;
             entity->state = zero;
             entity->subState = 1;
-            entity->unk_4FC.part8.unk_4FF = zero;
-            entity->unk_4FC.part8.unk_4FD = zero;
+            GORGON_WALK_CLOCK(entity) = zero;
+            GORGON_WALK_GAIT(entity) = zero;
             entity->velX.whole = zero;
             entity->accelX.whole = zero;
             entity->accelY.whole = zero;

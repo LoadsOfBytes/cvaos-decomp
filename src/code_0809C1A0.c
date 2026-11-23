@@ -1,5 +1,6 @@
 /* StolasBeamImpact_Update (Stolas hit box child update, second kind). */
 #include "code_08009A0.h"
+#include "stolas_entity.h"
 #include "structs/ewram.h"
 
 /**
@@ -9,8 +10,8 @@
  */
 void StolasBeamImpact_Update(struct EwramData_EntityData *entity)
 {
-    u8 var_0[0x10];
-    struct EwramData_EntityData *stolas = entity->unk_500.unk_500_entity;
+    u8 collision[0x10];
+    struct EwramData_EntityData *stolas = STOLAS_EFFECT_OWNER(entity);
 
     if (stolas != NULL && stolas->updateFunc != NULL && stolas->unk_518.part8.enemyId == 0x61)
     {

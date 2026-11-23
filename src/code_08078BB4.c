@@ -47,7 +47,7 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
             entity->subState++;
             WEREJAGUAR_CONTACT_HIT(entity) = 0;
             WEREJAGUAR_MANUAL_ANIM(entity) = 1;
-            entity->unk_4F8.part8.unk_4FA = 0;
+            WEREJAGUAR_UNUSED_FLAG(entity) = 0;
             entity->animFrame = 0x10;
             Entity_UpdateBoxes(entity);
             entity->accelX.whole = 0;

@@ -24,7 +24,7 @@ void Alastor_UpdateSpinningLeap(struct EwramData_EntityData *entity)
         {
             s32 speed;
             u16 step;
-            entity->unk_4F4.part8.unk_4F7=0;
+            ALASTOR_PATTERN_STEP(entity)=0;
             entity->subState++;
             entity->velX.whole=(speed=-0x40000);
             entity->velY.whole=-0x20000;
@@ -98,7 +98,7 @@ void Alastor_UpdateSpinningLeap(struct EwramData_EntityData *entity)
                 entity->state=1;
                 entity->stage=0;
                 entity->subState=0;
-                entity->unk_4F4.part8.unk_4F7=0;
+                ALASTOR_PATTERN_STEP(entity)=0;
             }
             break;
     }

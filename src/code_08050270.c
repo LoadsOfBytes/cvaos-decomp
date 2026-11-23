@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code_08001194.h"
 #include "code_08011DD0.h"
 #include "code_080D73B8.h"
@@ -75,7 +76,7 @@ void Object09Update(struct EwramData_EntityData *entity)
     BreakableBlock_ClearCollision(entity);
     x = GetEntityRoomXPositionInteger(entity);
     y = GetEntityRoomYPositionInteger(entity);
-    r = GameFlag_FindRoomCoordinate((s16)x, (s16)y, (u8)entity->unk_4F8.part8.unk_4F8);
+    r = GameFlag_FindRoomCoordinate((s16)x, (s16)y, (u8)OBJECT09_COLLISION_MODE(entity));
     if (r >= 0)
         GameFlag_Set(r);
     entity->deleteRequested = 1;

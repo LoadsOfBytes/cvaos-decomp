@@ -247,7 +247,6 @@ void MapScreen_DrawCell(struct GameState *gameState, s32 x, s32 y, s32 color)
     s32 i;
     s32 edges;
     s32 border;
-    s32 var_0;
     s32 tile;
     
     if (color == 4)
@@ -523,7 +522,7 @@ s32 MapScreen_Update(struct GameState *gameState)
     {
         case 0:
             Entity_UpdateAll();
-            gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 3;
+            gEwramData->bgControlMinWriteLevel = gEwramData->unusedWriteLevel = 3;
             gameState->subModeStep = 8;
             break;
 
@@ -593,7 +592,7 @@ s32 MapScreen_Update(struct GameState *gameState)
             gEwramData->startPauseEnabled = 1;
             gEwramData->paused = 0;
             Sound_ReplayTrackedWithVolume();
-            gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 0;
+            gEwramData->bgControlMinWriteLevel = gEwramData->unusedWriteLevel = 0;
             done = 1;
             break;
 
@@ -759,7 +758,7 @@ s32 WarpMenu_Update(struct GameState *gameState)
     {
         case 0:
             Entity_UpdateAll();
-            gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 3;
+            gEwramData->bgControlMinWriteLevel = gEwramData->unusedWriteLevel = 3;
             if (gDisplayRegisters.bldY == BLDY_MAX_VALUE)
             {
                 input = gEwramData->gameState.roomMapXPos + (GetEntityRoomXPositionInteger(gEwramData->playerState.player) >> 8);
@@ -857,7 +856,7 @@ s32 WarpMenu_Update(struct GameState *gameState)
             gEwramData->startPauseEnabled = 1;
             gEwramData->paused = 0;
             Sound_ReplayTrackedWithVolume();
-            gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 0;
+            gEwramData->bgControlMinWriteLevel = gEwramData->unusedWriteLevel = 0;
             done = 1;
             break;
 
@@ -958,7 +957,7 @@ s32 RoomJump_Update(struct GameState *gameState)
     {
         case 0:
             Entity_UpdateAll();
-            gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 3;
+            gEwramData->bgControlMinWriteLevel = gEwramData->unusedWriteLevel = 3;
             gameState->subModeStep += 1;
             break;
 
@@ -987,7 +986,7 @@ s32 RoomJump_Update(struct GameState *gameState)
             }
             gEwramData->gameState.stateFlags &= ~0x800000;
             gEwramData->paused = 0;
-            gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 0;
+            gEwramData->bgControlMinWriteLevel = gEwramData->unusedWriteLevel = 0;
             gUnk_03002CB0.dispCnt = room->displayControl;
             gDisplayRegisters.bldY = BLDY_MAX_VALUE / 2;
             gDisplayRegisters.bldCnt = room->blendControl;

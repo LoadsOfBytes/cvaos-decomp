@@ -84,7 +84,7 @@ void Belmont_UpdatePoweredPhase(struct EwramData_EntityData *entity)
                 {
                     struct EwramData_EntityData *effect=Belmont_CreatePowerParticle(entity);
                     if(effect)
-                        effect->unk_4FC.part8.unk_4FC=state;
+                        BELMONT_PARTICLE_STEP(effect)=state;
                 }
                 if(weapon->animDone && weapon->animScriptIndex!=1)
                     Anim_StartIndexed(weapon,1,0,1);

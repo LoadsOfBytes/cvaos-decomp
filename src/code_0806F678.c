@@ -12,7 +12,7 @@ extern u8 sCommonObjectSpriteSheet[];
 
 extern u8 Werewolf_LoadGraphics(struct EwramData_EntityData *entity);
 extern void Werewolf_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-extern void Werewolf_OnHit(struct EwramData_EntityData *param_0);
+extern void Werewolf_OnHit(struct EwramData_EntityData *entity);
 extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
 extern void Entity_UpdateBoxes(struct EwramData_EntityData *entity);
 extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
@@ -87,7 +87,7 @@ void WerewolfShockwave_DamagePlayerOnContact(struct EwramData_EntityData *entity
 
     contactDamage.attack = entity->attack;
     contactDamage.attributes = 2;
-    contactDamage.unk_4 = 0;
+    contactDamage.unused = 0;
     contactDamage.sourceX = entity->posX.whole;
     contactDamage.sourceY = entity->posY.whole;
     contactDamage.reaction = 3;

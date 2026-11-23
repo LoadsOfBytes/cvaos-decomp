@@ -14,7 +14,7 @@ extern u8 sCommonObjectSpriteSheet[];
 /**
  * @brief Spawn an animated child at the supplied parent-relative offsets and layer 12; do nothing if parent or entity allocation is NULL.
  */
-void Effect_SpawnAttachedAnimation(struct EwramData_EntityData *parent, u8 param_1, u8 palette, s32 offsetX, s32 offsetY)
+void Effect_SpawnAttachedAnimation(struct EwramData_EntityData *parent, u8 anim, u8 palette, s32 offsetX, s32 offsetY)
 {
     struct EwramData_EntityData *child;
 
@@ -23,7 +23,7 @@ void Effect_SpawnAttachedAnimation(struct EwramData_EntityData *parent, u8 param
     child = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateAttachedAnimation);
     if (child == NULL)
         return;
-    PARTICLE_ATTACH_ANIM(child) = param_1;
+    PARTICLE_ATTACH_ANIM(child) = anim;
     PARTICLE_ATTACH_PARENT(child) = parent;
     child->palette = palette;
     child->accelX.whole = offsetX;
@@ -54,6 +54,6 @@ s32 SoulAcquisition_CreateEffect(s32 kind)
     Sprite_Attach(entity, anim, gfx, Soul_GetPickupPalette(kind));
     entity->hidden = 1;
     entity->drawFunc = (u32 *)SoulAcquisition_DrawAndWait;
-    entity->unk_4FC.part8.unk_4FD = 0x40;
+    SOUL_ACQUIRE_DURATION(entity) = 0x40;
     PlaySong(0xBE);
 }

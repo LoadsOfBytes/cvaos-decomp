@@ -24,7 +24,7 @@ s32 Debug1967_EnemyTest(void);
 void Debug1967ObjTestViewer_Update(struct EwramData_EntityData *entity);
 s32 Debug1967_SoundTest(void);
 s32 Debug1967_ObjTest(void);
-void sub_08036368(void);
+void Debug1967_UnusedStub(void);
 s32 DebugPlatform_GetCarryVelocity(struct EwramData_EntityData *entity);
 void DebugTestEnemy_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 s32 DebugTestEnemy_UpdateHitFlash(struct EwramData_EntityData *entity);

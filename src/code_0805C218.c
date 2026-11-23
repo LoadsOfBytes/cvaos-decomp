@@ -110,7 +110,7 @@ s32 EventScene31FallingBlock_Update(struct EwramData_EntityData *entity)
 
 /**
  * @brief 5C328 | Step the four-step palette animation sEventScene31PaletteSteps of
- * entity (timer unk_4FC, step unk_4FE): returns 0 after the last step,
+ * entity (EVENT31_PALETTE_TICK / _STEP): returns 0 after the last step,
  * else 1.
  */
 s32 EventScene31_StepPaletteAnim(struct EwramData_EntityData *entity)
@@ -184,8 +184,8 @@ s32 EventScene31BlockHolder_Update(struct EwramData_EntityData *entity)
         case 3:
             if (entity->stage == 0)
             {
-                entity->unk_4FC.part16.unk_4FC = 0;
-                entity->unk_4FC.part16.unk_4FE[0] = 0;
+                EVENT31_PALETTE_TICK(entity) = 0;
+                EVENT31_PALETTE_STEP(entity) = 0;
                 entity->stage++;
             }
             if (EventScene31_StepPaletteAnim(entity) == 0)

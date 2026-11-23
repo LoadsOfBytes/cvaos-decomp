@@ -52,7 +52,7 @@ void WaiterSkeletonThrownTray_DamagePlayerOnContact(struct EwramData_EntityData 
     struct PlayerContactDamage effect;
     struct EwramData_EntityData *parent = WAITER_TRAY_OWNER(entity);
     effect.attributes = 0;
-    effect.unk_4 = 0;
+    effect.unused = 0;
     effect.attack = entity->attack;
     effect.reaction = 0;
     effect.sourceX = entity->posX.whole;
@@ -72,7 +72,7 @@ void SkullArcherArrow_DamagePlayerOnContact(struct EwramData_EntityData *entity,
 {
     struct PlayerContactDamage effect;
     effect.attributes = 0;
-    effect.unk_4 = 0;
+    effect.unused = 0;
     effect.attack = entity->attack;
     effect.reaction = 1;
     effect.sourceX = entity->posX.whole;

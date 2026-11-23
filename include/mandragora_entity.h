@@ -14,4 +14,8 @@
  * (token-identical preprocessed code); use them with a plain base expression.
  */
 
+/* Flag byte set by its parts (TU aliases FLAGS): 2, 8, 0x10, 0x20 - bits 3 / 4
+ * end the scream (Mandragora_UpdateScream). */
+#define MANDRAGORA_FLAGS(e) e->unk_504.part8.unk_504
+
 #endif /* MANDRAGORA_ENTITY_H */

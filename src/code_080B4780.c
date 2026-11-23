@@ -37,7 +37,7 @@ s32 BaloreHand_UpdateSwipe(struct EwramData_EntityData *entity)
         if (entity->timer != 0)
         {
             entity->timer--;
-            UNK_51C(entity)->animationIndex = (*(volatile u8 *)&entity->timer >> 4) + 0x2E;
+            UNK_51C(entity)->animationIndex = (*(volatile u8 *)&entity->timer >> 4) + 0x2E; /* FAKEMATCH: volatile read forces the reload of the original */
         }
         if (Entity_SteerToPoint(entity, sBaloreHandSteeringParams2))
         {
@@ -60,7 +60,7 @@ s32 BaloreHand_UpdateSwipe(struct EwramData_EntityData *entity)
         if (entity->timer != 0)
         {
             entity->timer--;
-            UNK_51C(entity)->animationIndex = (*(volatile u8 *)&entity->timer >> 4) + 0x2E;
+            UNK_51C(entity)->animationIndex = (*(volatile u8 *)&entity->timer >> 4) + 0x2E; /* FAKEMATCH: volatile read forces the reload of the original */
         }
         params = sBaloreHandSteeringParams3;
     move:

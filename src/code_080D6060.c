@@ -69,7 +69,7 @@ void GrahamSpreadProjectile_DamagePlayerOnContact(struct EwramData_EntityData *e
     struct PlayerContactDamage contactDamage;
 
     contactDamage.attributes = 2;
-    contactDamage.unk_4 = 0;
+    contactDamage.unused = 0;
     contactDamage.attack = entity->attack;
     contactDamage.reaction = 0;
     contactDamage.sourceX = entity->posX.whole;

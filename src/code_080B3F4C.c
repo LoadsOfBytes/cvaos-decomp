@@ -1,5 +1,6 @@
 /* Damage helper. */
 #include "code/code_080211F0.h"
+#include "balore_entity.h"
 #include "structs/ewram.h"
 
 /**
@@ -13,13 +14,13 @@ void BaloreHandHitBox_DamagePlayerOnContact(struct EwramData_EntityData *entity)
     struct PlayerContactDamage hit;
 
     hit.attributes = 0;
-    hit.unk_4 = 0;
-    if (((u8 *)&entity->unk_51C)[1] & 1)
+    hit.unused = 0;
+    if (BALORE_HAND_HIT_FLAGS(entity) & 1)
     {
         hit.attack = 90;
         hit.reaction = 3;
     }
-    else if (((u8 *)&entity->unk_51C)[1] & 2)
+    else if (BALORE_HAND_HIT_FLAGS(entity) & 2)
     {
         hit.attack = 80;
         hit.reaction = 1;

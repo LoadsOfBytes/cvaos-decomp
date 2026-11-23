@@ -31,4 +31,8 @@
  */
 #define BELMONT_SUBWEAPON_SPEED(e) e->unk_514.unk_514_32
 
+/* Power particles (Belmont_CreatePowerParticle, BelmontPowerParticle_Update):
+ * step (set to the powered phase state by Belmont_UpdatePoweredPhase). */
+#define BELMONT_PARTICLE_STEP(e) e->unk_4FC.part8.unk_4FC
+
 #endif /* BELMONT_ENTITY_H */

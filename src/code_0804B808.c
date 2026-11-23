@@ -10,7 +10,7 @@ struct MenuPage
     s8 top;
     u8 item;
     u8 pad_18[0x39 - 0x18];
-    s8 unk_39;
+    s8 drawnTop;
 };
 
 struct ItemInfo
@@ -119,9 +119,9 @@ s32 ItemMenu_Update(struct MenuPage *page)
     if (moved)
     {
         oldItem = page->item;
-        if (page->unk_39 != page->top)
+        if (page->drawnTop != page->top)
         {
-            page->unk_39 = page->top;
+            page->drawnTop = page->top;
             ItemMenu_DrawList(stats, page);
         }
         else

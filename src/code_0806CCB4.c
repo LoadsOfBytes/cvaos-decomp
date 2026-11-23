@@ -4,6 +4,7 @@
  * gameState.linkPlay is set, else playerState.enemyTarget when non-NULL, else the
  * entity itself (or 0 for velocities). */
 #include "code_08009A0.h"
+#include "giant_ghost_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -30,7 +31,7 @@ u32 RandomModuloAtLeast(u32 modulus, u32 minimum)
  */
 void GiantGhost_ResetAnimation(struct EwramData_EntityData *entity)
 {
-    entity->unk_504.part8.unk_504 = 0;
+    GIANT_GHOST_UNUSED_FLAG(entity) = 0;
     Anim_StartIndexed(entity, 0, 0, 0);
 }
 

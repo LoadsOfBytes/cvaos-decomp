@@ -1,4 +1,5 @@
 #include "code_08035930.h"
+#include "debug_entity.h"
 #include "code_08009A0.h"
 #include "code_08001004.h"
 #include "code_08001194.h"
@@ -260,7 +261,7 @@ static inline s32 Debug1967_AdjustEnemySelection(s16 *value)
 
     var = (&gEwramData->debugMenuWork)->selection;
     upKey = 0x40;
-    do {
+    do { /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
         zero = 0;
     } while(0);
     max = 0x70;
@@ -638,7 +639,7 @@ static inline void Debug1967_AdjustSoundCategory(u32 upKey, s16 *value)
     s32 zero;
     s32 max;
 
-    do {
+    do { /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
         zero = 0;
     } while(0);
     max = 2;
@@ -721,10 +722,9 @@ s32 Debug1967_ObjTest(void)
 }
 
 /**
- * @brief 36368 | To document
- * 
+ * @brief Unreferenced empty function.
  */
-void sub_08036368(void)
+void Debug1967_UnusedStub(void)
 {
     return;
 }
@@ -735,11 +735,11 @@ void sub_08036368(void)
  */
 s32 DebugPlatform_GetCarryVelocity(struct EwramData_EntityData *entity)
 {
-    if ((u8) entity->unk_4FC.part8.unk_4FC == 0)
+    if ((u8) DEBUG_PLATFORM_CARRYING(entity) == 0)
         return 0;
 
     gEwramData->playerState.player->posX.part16.fraction = entity->posX.part16.fraction;
-    entity->unk_4FC.part8.unk_4FC = 0;
+    DEBUG_PLATFORM_CARRYING(entity) = 0;
     return entity->velX.whole;
 }
 
@@ -841,9 +841,9 @@ void DebugTestEnemy_Update(struct EwramData_EntityData *entity)
         case 1:
             entity->posX.whole += entity->velX.whole;
             entity->posY.whole += entity->velY.whole;
-            entity->unk_4F8.whole += 0x400;
-            entity->velY.whole = Sin(entity->unk_4F8.whole);
-            entity->velX.whole = Sin(entity->unk_4F8.whole + 0x4000);
+            DEBUG_TEST_ENEMY_ANGLE(entity) += 0x400;
+            entity->velY.whole = Sin(DEBUG_TEST_ENEMY_ANGLE(entity));
+            entity->velX.whole = Sin(DEBUG_TEST_ENEMY_ANGLE(entity) + 0x4000);
 
             if (entity->accelX.whole > 0)
             {
@@ -899,7 +899,7 @@ void DebugTestEnemy_OnPlayerContact(struct EwramData_EntityData *entity)
 
     subroutine_arg0.attack = 10;
     subroutine_arg0.attributes = 2;
-    subroutine_arg0.unk_4 = 0;
+    subroutine_arg0.unused = 0;
     subroutine_arg0.sourceX = entity->posX.whole;
     subroutine_arg0.sourceY = entity->posY.whole;
     subroutine_arg0.reaction = 3;

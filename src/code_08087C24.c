@@ -21,7 +21,7 @@ void TritonSpear_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 
     contactDamage.attack = entity->attack;
     contactDamage.attributes = 1;
-    contactDamage.unk_4 = 0;
+    contactDamage.unused = 0;
     contactDamage.reaction = 1;
     contactDamage.sourceX = entity->posX.whole;
     contactDamage.sourceY = entity->posY.whole;
@@ -35,7 +35,7 @@ void TritonHomingShot_DamagePlayerOnContact(struct EwramData_EntityData *entity)
     struct PlayerContactDamage effect;
     effect.attack = entity->attack;
     effect.attributes = 0;
-    effect.unk_4 = 0;
+    effect.unused = 0;
     effect.reaction = 0;
     effect.sourceX = entity->posX.whole;
     effect.sourceY = entity->posY.whole;

@@ -26,4 +26,17 @@
 #define BEAM_OWNER_INDEX(e) e->unk_4F4.part8.unk_4F6
 #define BEAM_COUNTER(e) e->unk_4F8.part8.unk_4F8
 
+/*
+ * Beam Skeleton death (BeamSkeleton_SpawnDeathPieces,
+ * BeamSkeletonDeathPiece_UpdateUnused): the skeleton counts its live pieces;
+ * a piece keeps the skeleton's entity index and its piece index (TU alias
+ * INDEX, the parent-index slot).
+ */
+#define BEAM_SKELETON_DEATH_PIECES(e) e->unk_4FC.part8.unk_4FC
+#define BEAM_SKELETON_PIECE_OWNER_INDEX(e) e->unk_4F4.part8.unk_4F6
+#define BEAM_SKELETON_PIECE_INDEX(e) e->unk_4F4.part8.unk_4F5
+
+/* EnemyBeamSkeletonUpdate stores a random 40..119 here every frame; never read. */
+#define BEAM_SKELETON_UNUSED_DELAY(e) e->unk_500.part16.unk_502
+
 #endif /* BEAM_SKELETON_ENTITY_H */

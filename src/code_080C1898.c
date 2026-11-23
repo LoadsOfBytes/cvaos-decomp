@@ -95,7 +95,7 @@ void Altair_UpdateSpawner(struct EwramData_EntityData *entity)
         child->unk_518.part16.hp = sEnemyData[entity->unk_518.part8.enemyId].hp;
         child->unk_510.part16.unk_512 = sEnemyData[entity->unk_518.part8.enemyId].unk_E;
         child->updateFunc = entity->updateFunc;
-        child->unk_504.unk_504_entity = entity;
+        ALTAIR_SPAWNER(child) = entity;
         EnemyAltairCreate(child);
         ALTAIR_SPAWN_COUNT(entity)++;
     }

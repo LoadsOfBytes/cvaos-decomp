@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "gate_entity.h"
 #include "code_08001194.h"
 #include "code_0800B700.h"
 #include "code/code_08060B98.h"
@@ -28,7 +29,7 @@ void Object00Create(struct EwramData_EntityData *entity)
     {
         gEwramData->gameState.stateFlags |= 0x101;
         Game_SetMenusEnabled(0);
-        entity->unk_4F8.whole = 0x4000;
+        GATE_OPEN_ANGLE(entity) = 0x4000;
         entity->state = 10;
         SetPlayerInput(1, entity->flipX ? 0x20 : 0x10);
         return;
@@ -40,6 +41,6 @@ void Object00Create(struct EwramData_EntityData *entity)
     Collision_SetBlock(x, y - 8);
     Collision_SetBlock(x, y - 0x18);
     Collision_SetBlock(x, y - 0x28);
-    entity->unk_4F8.whole = found;
+    GATE_OPEN_ANGLE(entity) = found;
     entity->state = found;
 }

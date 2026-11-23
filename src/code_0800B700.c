@@ -584,7 +584,7 @@ static inline void GameModeSoundTestMenu_inline_1(struct SoundTestCategoryRange 
     s32 zero;
     s32 max;
 
-    do {
+    do { /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
         zero = 0;
     } while(0);
     max = range.maxSelectionIndex;
@@ -721,7 +721,7 @@ s32 GameModeSoundTestMenu(void)
 
             downKey = 0x80;
             selection = &SOUND_TEST_ROW(gEwramData->entityData[2]);
-            do{zero = 0;}while(0);
+            do{zero = 0;}while(0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
             max = 2;
             if (gEwramData->inputData.repeatedInput & downKey) // KEY_DOWN
             {
@@ -1396,7 +1396,7 @@ void Game_ResetSystems(struct GameState *gameState)
     PlaySong(AUDIO_STOP);
 
     gEwramData->hBlankEffect.requestStop = 1;
-    gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 0;
+    gEwramData->bgControlMinWriteLevel = gEwramData->unusedWriteLevel = 0;
     gEwramData->paused = 0;
 }
 

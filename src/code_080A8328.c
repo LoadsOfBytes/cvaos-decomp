@@ -102,9 +102,9 @@ void EnemyBigGolemCreate(struct EwramData_EntityData *entity)
             else
                 Sprite_Attach(part, sBigGolemSpriteSheet, ObjGfx_LoadResource(sBigGolemGfx, 0), entity->unk_510.part8.basePalette);
             if (altPalette[index])
-                part->unk_510.part8.basePalette = entity->unk_508.part8.unk_50B;
+                part->unk_510.part8.basePalette = BIG_GOLEM_PALETTE_1(entity);
             else
-                part->unk_510.part8.basePalette = entity->unk_508.part8.unk_50A;
+                part->unk_510.part8.basePalette = BIG_GOLEM_PALETTE_0(entity);
             part->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
             part->scrollWithBg = 0;
             part->hidden = 0;

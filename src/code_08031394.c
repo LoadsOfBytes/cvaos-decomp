@@ -39,7 +39,7 @@ void BlueSoulAfterimage_Update(struct EwramData_EntityData *entity)
     }
     if (empty || GetActiveBlueSoulEntity(ewram, entity->stage) == NULL)
     {
-        do { EntityDelete(entity); } while (0); /* loop note weights entity (global-alloc order) */
+        do { EntityDelete(entity); } while (0); /* FAKEMATCH: loop note weights entity (global-alloc order) */
         return;
     }
     {

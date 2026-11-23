@@ -35,9 +35,9 @@ void Skeleton_UpdateThrow(struct EwramData_EntityData *entity)
             e = Entity_CreateObject((u32 *)SkeletonProjectile_Update);
             if (e != NULL)
             {
-                SKELETON_PIECE_OWNER_INDEX(e) = entity->unk_4F4.part16.unk_4F4;
+                SKELETON_PIECE_OWNER_INDEX(e) = ENTITY_INDEX_PAIR(entity);
                 if (FLAGS(entity) & 2)
-                    e->unk_4FC.part8.unk_4FC = 1;
+                    SKELETON_BONE_KIND(e) = 1;
                 SKELETON_THROW_COUNT(entity)++;
             }
             entity->subState++;

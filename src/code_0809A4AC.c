@@ -47,14 +47,14 @@ void EnemyStolasUpdate(struct EwramData_EntityData *entity)
 
     STOLAS_FLAGS(entity) = 0;
     parts = (s32 *)entity->unk_500.jointParts;
-    entity->unk_508.part16.unk_50A = 3;
+    STOLAS_FREE_SLOTS(entity) = 3;
     cursor = parts;
     slot = (struct EwramData_EntityData **)(parts + 0x48);
     do {
         child = *slot;
         if (child != NULL && child->updateFunc != NULL && child->unk_518.part8.enemyId == cursor[0x4B]
             && (s16)entity->unk_518.part16.hp > 0)
-            entity->unk_508.part16.unk_50A--;
+            STOLAS_FREE_SLOTS(entity)--;
         else
             *slot = NULL;
         cursor++;

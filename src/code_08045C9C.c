@@ -63,7 +63,7 @@ void Effect_UpdateBoundedParticle(struct EwramData_EntityData *entity)
 /**
  * @brief Create a shared-graphics frame particle at the supplied position and palette; return NULL on entity allocation failure.
  */
-struct EwramData_EntityData *Effect_CreateSharedFrame(s32 x, s32 y, s32 param_2, u32 palette)
+struct EwramData_EntityData *Effect_CreateSharedFrame(s32 x, s32 y, s32 frame, u32 palette)
 {
     struct EwramData_EntityData *entity;
     s32 gfx;
@@ -74,7 +74,7 @@ struct EwramData_EntityData *Effect_CreateSharedFrame(s32 x, s32 y, s32 param_2,
         gfx = ObjGfx_Find(sCommonObjectGfx);
         Sprite_Attach(entity, sCommonObjectSpriteSheet, gfx, palette);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
-        entity->animFrame = param_2;
+        entity->animFrame = frame;
         entity->posX.whole = x;
         entity->posY.whole = y;
         entity->spriteLayer = 0xD;

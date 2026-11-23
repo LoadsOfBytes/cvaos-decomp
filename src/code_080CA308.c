@@ -19,7 +19,7 @@ extern void RedCrow_UpdateMovement(struct EwramData_EntityData *entity);
 extern s32 Enemy_IsStunned(struct EwramData_EntityData *entity);
 extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *entity);
 extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *param_0);
+extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
 
 /**
  * @brief Death state (2): spawn two parts, drop rewards and fall with

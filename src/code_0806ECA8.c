@@ -25,7 +25,7 @@ void Valkyrie_DamagePlayerOnContact(struct EwramData_EntityData *entity)
         && (u8)(entity->animStep - 4) <= 2)
         effect.attack = entity->attack;
     effect.attributes = 0;
-    effect.unk_4 = 0;
+    effect.unused = 0;
     effect.reaction = 0;
     effect.sourceX = entity->posX.whole;
     effect.sourceY = entity->posY.whole;

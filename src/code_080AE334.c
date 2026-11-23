@@ -3,17 +3,18 @@
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
+#include "worm_entity.h"
 
 extern void Worm_Init(struct EwramData_EntityData *root, s32 variant);
 extern void Worm_Update(struct EwramData_EntityData *entity);
 
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 param_2, u16 reaction)
+static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
 {
     struct PlayerContactDamage contactDamage;
 
     contactDamage.attack = entity->attack;
     contactDamage.attributes = attributes;
-    contactDamage.unk_4 = param_2;
+    contactDamage.unused = unused;
     contactDamage.reaction = reaction;
     contactDamage.sourceX = entity->posX.whole;
     contactDamage.sourceY = entity->posY.whole;
@@ -75,7 +76,7 @@ void Worm_Draw(struct EwramData_EntityData *entity)
         if (entity->updateFunc == NULL)
             break;
         Sprite_Draw(entity);
-        entity = &(*ewramRef)->entityData[entity->unk_504.part8.unk_504];
+        entity = &(*ewramRef)->entityData[WORM_NEXT_INDEX(entity)];
     } while (++i <= 4);
 }
 
@@ -89,7 +90,7 @@ void PoisonWorm_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 
     contactDamage.attack = entity->attack;
     contactDamage.attributes = 0x40;
-    contactDamage.unk_4 = 0;
+    contactDamage.unused = 0;
     contactDamage.reaction = 0;
     contactDamage.sourceX = entity->posX.whole;
     contactDamage.sourceY = entity->posY.whole;

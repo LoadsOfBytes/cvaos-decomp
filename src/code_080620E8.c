@@ -44,7 +44,7 @@ s32 EventScene22_Update(struct EwramData_EntityData *entity)
         TextWindow_Begin(0x22);
         ew->gameState.textWindowPause = state;
     next:
-        do {
+        do { /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
             entity->state++;
             entity->stage = ret;
             entity->subState = ret;
@@ -92,7 +92,7 @@ s32 EventScene22_Update(struct EwramData_EntityData *entity)
                 Sound_StopTracked(0x2D);
                 Music_SetCurrent(0x24);
             clear:
-                do {
+                do { /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
                     ew->gameState.textWindowPause = ret;
                 } while (0);
             }

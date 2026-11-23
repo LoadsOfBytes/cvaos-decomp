@@ -16,7 +16,7 @@ extern void SkeletonKnight_UpdateAttack(struct EwramData_EntityData *entity);
  */
 void EnemySkeletonKnightUpdate(struct EwramData_EntityData *entity)
 {
-    u32 var_0[4];
+    u32 collision[4];
 
     if (Enemy_PreUpdate(entity))
         return;

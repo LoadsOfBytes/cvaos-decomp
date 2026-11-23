@@ -14,7 +14,7 @@ extern void BaloreOverlay_UpdateSprite(struct EwramData_EntityData *);
  * copies the parent's position and palette bits palette.  Bit 2 of the
  * parent's unk_502 forces state 2, which frees the matrix and deletes the
  * entity.  Each living frame the matrix gets the parent's angle unk_500 and
- * scale unk_504 (both axes) with unk_4F7.
+ * scale unk_504 (both axes) with BALORE_OVERLAY_MIRROR.
  */
 void BaloreOverlay_Update(struct EwramData_EntityData *entity)
 {
@@ -52,5 +52,5 @@ void BaloreOverlay_Update(struct EwramData_EntityData *entity)
         return;
     }
     ObjAffine_Set(BALORE_BODY_ANGLE(parent), BALORE_BODY_SCALE(parent), BALORE_BODY_SCALE(parent),
-                 entity->unk_4F4.part8.unk_4F7, 0, entity->affineIndex);
+                 BALORE_OVERLAY_MIRROR(entity), 0, entity->affineIndex);
 }

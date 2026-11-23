@@ -1,6 +1,7 @@
 /* Great Armor helpers 0x0808EB3C..0x0808EC63 (Final Guard and Shadow Knight
  * use the Great Armor functions). */
 #include "code_08009A0.h"
+#include "joint_entity.h"
 #include "great_armor_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -13,13 +14,13 @@ extern u16 Player_CalculateAttackPower(u16 attackCategory);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
 
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 param_2, u16 reaction)
+static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
 {
     struct PlayerContactDamage contactDamage;
 
     contactDamage.attack = entity->attack;
     contactDamage.attributes = attributes;
-    contactDamage.unk_4 = param_2;
+    contactDamage.unused = unused;
     contactDamage.reaction = reaction;
     contactDamage.sourceX = entity->posX.whole;
     contactDamage.sourceY = entity->posY.whole;
@@ -55,11 +56,11 @@ void GreatArmorPart_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 
     contactDamage.attack = entity->attack;
     contactDamage.attributes = 0;
-    contactDamage.unk_4 = 0;
+    contactDamage.unused = 0;
     contactDamage.reaction = 0;
     contactDamage.sourceX = entity->posX.whole;
     contactDamage.sourceY = entity->posY.whole;
-    if ((s8)entity->unk_504.part8.unk_504 == 12)
+    if ((s8)JOINT_PART_INDEX(entity) == 12)
     {
         contactDamage.attributes = 1;
         contactDamage.reaction = 1;

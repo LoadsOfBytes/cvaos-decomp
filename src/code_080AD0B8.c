@@ -12,7 +12,7 @@ extern void Hit_CheckWithPlayerSharedHistory(void *res, struct EwramData_EntityD
 void BigGolemRock_Update(struct EwramData_EntityData *entity)
 {
     u8 collision[0x10];
-    struct EwramData_EntityData *golem = entity->unk_4F8.unk_4F8_entity;
+    struct EwramData_EntityData *golem = ENTITY_OWNER(entity);
 
     if (entity->state == 0)
     {

@@ -9,8 +9,8 @@ struct MenuPage
     u8 stage;
     u8 timer;
     u8 pad_E[0x15 - 0xE];
-    s8 unk_15;
-    s8 unk_16;
+    s8 cursor;
+    s8 top;
 };
 
 extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
@@ -55,7 +55,7 @@ void BestiaryMenu_Setup(struct MenuPage *page)
     HudMap_WriteTiles(0x15, 0xF, 0x13E4, 1);
     HudMap_WriteTiles(0x19, 0xF, 0x13E8, 1);
     HudMap_WriteTiles(0x1B, 0xF, 0xF3EA, 1);
-    Cursor_SetTilePosition((page->unk_15 & 1) ? 0xF : 1, ((page->unk_15 - page->unk_16) >> 1) * 2 + 5);
+    Cursor_SetTilePosition((page->cursor & 1) ? 0xF : 1, ((page->cursor - page->top) >> 1) * 2 + 5);
     {
         // writing through a pointer keeps the store order of the original
         u8 *p = &page->subState;

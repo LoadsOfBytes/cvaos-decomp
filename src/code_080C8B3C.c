@@ -1,5 +1,6 @@
 /* Lightning Doll movement and electrical attack states. */
 #include "code_08009A0.h"
+#include "doll_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -16,9 +17,9 @@ extern s32 Target_IsNearEntity(struct EwramData_EntityData *entity, s32 width, s
 extern void Sound_PlayTracked(s32 id);
 extern void Sound_StopTracked(s32 id);
 
-#define TIMER_X(e) ((e)->unk_4F8.part16.unk_4F8)
-#define TIMER_Y(e) ((e)->unk_4F8.part16.unk_4FA)
-#define TIMER_Z(e) ((e)->unk_4FC.part16.unk_4FC)
+#define TIMER_X(e) (LIGHTNING_DOLL_ATTACK_TIMER((e)))
+#define TIMER_Y(e) (LIGHTNING_DOLL_MOVE_TIMER((e)))
+#define TIMER_Z(e) (LIGHTNING_DOLL_REST_TIMER((e)))
 #define ANIM(e, n, loop) do { if ((e)->animScriptIndex != (n)) Anim_StartIndexed((e), (n), 0, (loop)); } while (0)
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 

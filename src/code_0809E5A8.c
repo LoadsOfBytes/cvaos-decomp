@@ -30,18 +30,18 @@ struct EwramData_EntityData *Legion_CreateCorePart(struct EwramData_EntityData *
     LEGION_PART_OFFSET_Y(part) = y;
     part->posX.whole = entity->posX.whole + x;
     part->posY.whole = entity->posY.whole + y;
-    do { do { LEGION_PART_KIND(part) = kind; } while (0); } while (0);
+    do { do { LEGION_PART_KIND(part) = kind; } while (0); } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
     if ((u8)kind == 3)
     {
         part->posX.whole = entity->posX.whole;
         part->posY.whole = entity->posY.whole;
     }
     part->spriteLayer = entity->spriteLayer - 2;
-    do { do { tiles = *data; } while (0); } while (0);
+    do { do { tiles = *data; } while (0); } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
     LEGION_PART_TILES(part) = tiles;
     part->unk_510.part8.basePalette = LEGION_ANIM_PALETTE(entity);
     Sprite_Attach(part, sLegionSpriteSheet, tiles, part->unk_510.part8.basePalette);
-    do { part->unk_518.part8.enemyId = entity->unk_518.part8.enemyId; } while (0);
+    do { part->unk_518.part8.enemyId = entity->unk_518.part8.enemyId; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
     switch (kind)
     {
     case 0:
@@ -85,11 +85,11 @@ struct EwramData_EntityData *Legion_CreateCorePart(struct EwramData_EntityData *
     }
     part->animMode = 2;
 
-    do { LEGION_PART_OWNER(part) = entity; } while (0);
+    do { LEGION_PART_OWNER(part) = entity; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
     part->scrollWithBg = 0;
     part->flipX = 0;
-    do { part->unk_518.part16.hp = entity->unk_518.part16.hp; } while (0);
-    do { part->attack = entity->attack; } while (0);
+    do { part->unk_518.part16.hp = entity->unk_518.part16.hp; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
+    do { part->attack = entity->attack; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
     if (!(*((u8 *)gEwramData + 0x8E) & 0x40))
     {
         Hit_Enable(part, 8, Legion_DamagePlayerOnContact, (s32)LegionCorePart_OnHit);

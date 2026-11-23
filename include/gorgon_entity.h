@@ -28,4 +28,9 @@
 #define GORGON_WALK_WORD(e) e->unk_4FC.whole
 #define GORGON_FRAME_CLOCK(e) e->unk_4FC.part16.unk_4FE[0]
 
+/* Walk gait and frame clock bytes (TU aliases GAIT / CLOCK; cleared after the
+ * breath attack). */
+#define GORGON_WALK_GAIT(e) e->unk_4FC.part8.unk_4FD
+#define GORGON_WALK_CLOCK(e) e->unk_4FC.part8.unk_4FF
+
 #endif /* GORGON_ENTITY_H */

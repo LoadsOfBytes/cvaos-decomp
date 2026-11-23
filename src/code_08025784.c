@@ -242,7 +242,7 @@ void Skill_Skeleton_ZombieSoldier_RockArmor_WaiterSkeleton_GiantSkeleton_BomberA
         {
             EntityAccelerateAndMoveX(entity, 0x80000);
             EntityAccelerateAndMoveY(entity, 0x80000);
-            if ((info->flags & 0x100) && (u16)entity->unk_504.part16.unk_504 != 0)
+            if ((info->flags & 0x100) && (u16)SKILL_BONE_HIT(entity) != 0)
             {
                 struct EwramData_EntityData *fx;
                 s32 i;

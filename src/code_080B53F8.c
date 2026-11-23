@@ -57,7 +57,7 @@ void BaloreEmitter_Update(struct EwramData_EntityData *entity)
         entity->affine = 1;
         entity->spriteLayer = 0x14;
         entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant((void *)0x0820B92C, 0x10);
-        Sprite_Attach(entity, (void *)0x08244220, parent->unk_4F8.bytes[3], entity->unk_510.part8.basePalette);
+        Sprite_Attach(entity, (void *)0x08244220, BALORE_GFX_BYTE(parent), entity->unk_510.part8.basePalette);
         entity->drawFunc = (u32 *)BaloreEmitter_Draw;
         Anim_StartIndexed(entity, 0x32, 2, 0);
         Anim_Update(entity);

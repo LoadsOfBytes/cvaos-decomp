@@ -76,14 +76,14 @@ static inline void FillRowOfs(s32 xo, s32 y, u16 tile, s32 count)
  * down arrow when more than 8 entries remain below.
  * xo = x * 2 sits after the first if/else; GCSE (PRE) copies it into both
  * branches, where it folds to 58, which is the shape of the original. */
-void MenuList_DrawScrollArrows(struct MenuPage *page, s32 param_1)
+void MenuList_DrawScrollArrows(struct MenuPage *page, s32 raised)
 {
     s32 tile = 0xB34D;
     s32 y = 11;
     s32 x;
     s32 xo;
 
-    if (param_1 != 0)
+    if (raised != 0)
         y = 10;
     x = 29;
     if (page->scroll > 1)

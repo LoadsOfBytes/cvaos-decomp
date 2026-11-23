@@ -609,7 +609,7 @@ s32 GameModeGameOverUpdate(void)
                 gDisplayRegisters.bldCnt = 0;
                 gDisplayRegisters.bldAlpha = 0;
                 gDisplayRegisters.bldY = 0;
-                gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 0;
+                gEwramData->bgControlMinWriteLevel = gEwramData->unusedWriteLevel = 0;
                 gUnk_03002CB0.dispCnt = DCNT_BLANK;
                 gameMode = GAME_MODE_KONAMI_LOGO;
                 DMA_FILL_32(3, 0, 0x06000000, 0x18000);

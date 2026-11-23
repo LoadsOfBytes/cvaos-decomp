@@ -47,7 +47,7 @@ void SkullMillioneFamily_DamagePlayerOnContact(struct EwramData_EntityData *enti
     s32 sum;
     if (entity->state == 2) effect.attributes = attack->effectType;
     else effect.attributes = 0;
-    effect.unk_4 = 0;
+    effect.unused = 0;
     if ((u8)SKULL_MILLIONE_VARIANT(entity) != 2)
         effect.attack = entity->attack;
     else

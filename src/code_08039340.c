@@ -92,7 +92,7 @@ void ObjGfx_Release(s16 tileSlot)
     {
         while (gEwramData->objGfx[entry].tileSlot != tileSlot)
         {
-            do {} while(0); // Fake
+            do {} while(0); /* FAKEMATCH: empty do/while(0) only adds a loop note for the register allocator */
             entry = gEwramData->objGfx[entry].next;
             if (entry == -1)
             {
@@ -151,7 +151,6 @@ void ObjGfx_Release(s16 tileSlot)
 u8 Sprite_AllocSlot(void *sheet, s32 tileSlot)
 {
     s32 gfxEntry;
-    s32 var_r2;
     s16 usedHead;
     s16 slot;
 
@@ -191,12 +190,8 @@ u8 Sprite_AllocSlot(void *sheet, s32 tileSlot)
  */
 void ObjGfx_DecompressSet(struct EwramData_unk19404 *set)
 {
-    s32 sp0;
-    s32 sp4;
     s32 i;
-    s32 var_r3;
     struct ObjGfxFrameResource *src;
-    u8 temp_r1;
     struct EwramData_unk19404 *dst;
     s32 length;
 

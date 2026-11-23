@@ -1,5 +1,6 @@
 /* Ukoback helpers 0x080C64E8..0x080C664B. */
 #include "code_08009A0.h"
+#include "ukoback_entity.h"
 #include "nemesis_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -14,13 +15,13 @@ extern void Ukoback_SpawnContactSparkle(void);
 extern void UkobackFireball_Update(struct EwramData_EntityData *entity);
 extern void UkobackDeathPiece_Update(struct EwramData_EntityData *entity);
 
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 param_2, u16 reaction)
+static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
 {
     struct PlayerContactDamage contactDamage;
 
     contactDamage.attack = entity->attack;
     contactDamage.attributes = attributes;
-    contactDamage.unk_4 = param_2;
+    contactDamage.unused = unused;
     contactDamage.reaction = reaction;
     contactDamage.sourceX = entity->posX.whole;
     contactDamage.sourceY = entity->posY.whole;
@@ -97,7 +98,7 @@ void UkobackFireball_OnContact(struct EwramData_EntityData *entity)
 
     contactDamage.attack = entity->attack;
     contactDamage.attributes = 0;
-    contactDamage.unk_4 = 0;
+    contactDamage.unused = 0;
     contactDamage.reaction = 1;
     contactDamage.sourceX = entity->posX.whole;
     contactDamage.sourceY = entity->posY.whole;
@@ -127,7 +128,7 @@ s32 Ukoback_SpawnDeathPiece(struct EwramData_EntityData *entity)
 
     if (child != NULL)
     {
-        child->unk_4F4.part16.unk_4F6 = entity->unk_4F4.part16.unk_4F4;
+        UKOBACK_PIECE_OWNER_INDEX(child) = ENTITY_INDEX_PAIR(entity);
         created = 1;
     }
     return created;
@@ -142,7 +143,7 @@ extern s32 HitBox_SetAttackRaw(struct EwramData_EntityData *entity, s32 box);
 extern s32 HitBox_SetBodyRaw(struct EwramData_EntityData *entity, s32 box);
 extern s32 Nemesis_CreatePartner(struct EwramData_EntityData *parent);
 extern void Nemesis_OnContact(struct EwramData_EntityData *entity);
-extern void Nemesis_OnHit(struct EwramData_EntityData *param_0);
+extern void Nemesis_OnHit(struct EwramData_EntityData *entity);
 extern void Nemesis_UpdateAppearance(struct EwramData_EntityData *entity);
 extern void Nemesis_CreateAfterimages(struct EwramData_EntityData *entity);
 extern void Nemesis_SetAfterimagesHidden(struct EwramData_EntityData *entity, s32 hidden);

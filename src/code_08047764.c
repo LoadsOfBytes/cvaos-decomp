@@ -69,7 +69,7 @@ s32 PauseMenu_Update(struct GameState *gameState)
     {
     case 0:
     case 1:
-        gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 3;
+        gEwramData->bgControlMinWriteLevel = gEwramData->unusedWriteLevel = 3;
         if ((u16)(gDisplayRegisters.bldY += 3) <= 0xF)
             break;
         gDisplayRegisters.bldY = 0x10;
@@ -193,7 +193,7 @@ s32 PauseMenu_Update(struct GameState *gameState)
         Sound_ReplayTrackedWithVolume();
         gEwramData->startPauseEnabled = 1;
         gEwramData->paused = 0;
-        gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 0;
+        gEwramData->bgControlMinWriteLevel = gEwramData->unusedWriteLevel = 0;
         ret = 1;
         break;
     }

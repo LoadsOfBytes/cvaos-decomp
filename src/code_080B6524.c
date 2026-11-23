@@ -9,7 +9,7 @@ extern const u8 sBaloreHandBSteeringParams0[], sBaloreHandBSteeringParams1[], sB
 extern s32 ObjPalette_FindOrLoadVariant(void *, s32);
 extern s32 Entity_SteerToPoint(struct EwramData_EntityData *, const void *);
 extern s32 Music_SetCurrent(s32);
-#define ANIM(e) (((u8 *)&(e)->unk_51C)[0])
+#define ANIM(e) (BALORE_HAND_ANIM((e)))
 #define STEP(e) (*(s32 *)&(e)->unk_514)
 #define TO_PIXELS(x) ((x) < 0 ? -(-(x) >> 16) : (x) >> 16)
 
@@ -17,7 +17,7 @@ static inline void FadeIn(struct EwramData_EntityData *entity)
 {
     u8 pal = entity->unk_510.part8.basePalette;
     /* Reload the byte counter after its decrement, as in the original. */
-    s32 level = (*(volatile u8 *)&entity->timer >> 1) + 8;
+    s32 level = (*(volatile u8 *)&entity->timer >> 1) + 8; /* FAKEMATCH: volatile read forces the reload of the original */
     u8 index = pal - 10;
     if (gEwramData->gameState.sharedObjPaletteVariants[index] != level)
     {
@@ -29,7 +29,7 @@ static inline void FadeIn(struct EwramData_EntityData *entity)
 static inline void FadeOut(struct EwramData_EntityData *entity)
 {
     u8 pal = entity->unk_510.part8.basePalette;
-    u8 level = 15 - (*(volatile u8 *)&entity->timer >> 3);
+    u8 level = 15 - (*(volatile u8 *)&entity->timer >> 3); /* FAKEMATCH: volatile read forces the reload of the original */
     u8 index = pal - 10;
     if (gEwramData->gameState.sharedObjPaletteVariants[index] != level)
     {

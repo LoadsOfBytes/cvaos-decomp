@@ -8,7 +8,7 @@
 extern s32 LightningDoll_LoadGraphics(struct EwramData_EntityData *entity);
 extern void LightningDoll_ResetActive(struct EwramData_EntityData *entity);
 extern void LightningDoll_OnContact(struct EwramData_EntityData *entity);
-extern void LightningDoll_OnHit(struct EwramData_EntityData *param_0);
+extern void LightningDoll_OnHit(struct EwramData_EntityData *entity);
 extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, s32 onHurt);
 

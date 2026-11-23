@@ -13,4 +13,7 @@
 #define RIPPER_ANIM(e) e->unk_4F8.part8.unk_4F9
 #define RIPPER_THROWN(e) e->unk_504.part8.unk_504
 
+/* Projectile (Ripper_CreateProjectile, RipperProjectile_Update): its Ripper. */
+#define RIPPER_PROJECTILE_OWNER(e) e->unk_508.unk_508_entity
+
 #endif /* RIPPER_ENTITY_H */

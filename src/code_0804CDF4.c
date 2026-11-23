@@ -93,7 +93,7 @@ void BestiaryMenu_DrawEntry(struct MenuPage *page)
             }
         }
     }
-    do
+    do /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
         y2 = 6;
     while (0);
     for (i2 = 0; i2 < n; i2++)

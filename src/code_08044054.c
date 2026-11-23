@@ -80,7 +80,7 @@ struct EwramData_EntityData *Pickup_CreateItem(s32 x, s32 y, s32 type, s32 id, s
     }
     else
     {
-        do { entity = EntityCreateInRange(0x49, 0xCF, (u32 *)Pickup_Update); } while (0);
+        do { entity = EntityCreateInRange(0x49, 0xCF, (u32 *)Pickup_Update); } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
         if (!entity)
             goto done;
         if (type != 0xFF)

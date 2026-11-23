@@ -1,5 +1,6 @@
 /* Spawn the object 0x22's attached falling part. */
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -33,7 +34,7 @@ void Object22_SpawnFallingPart(struct EwramData_EntityData *owner)
         child->hit.flags &= ~2;
         Hit_Enable(child, 8, Object22FallingPart_OnPlayerContact, 0);
         child->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
-        child->unk_4FC.unk_4FC_entity = owner;
+        OBJECT22_PART_OWNER(child) = owner;
         child->scrollWithBg = 1;
         child->drawFunc = (u32 *)Sprite_DrawEntity;
     }

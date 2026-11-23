@@ -15,7 +15,7 @@ void Chaos2_SpawnShot(struct EwramData_EntityData *parent, s32 dx, s32 dy, s32 a
     u32 collision = 0x0808FCFC;
     struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)Chaos2Shot_Update);
     struct ChaosAngleFrames frames = sChaos2ShotAngleFrames;
-    struct ChaosShotGfx *gfx = (struct ChaosShotGfx *)parent->unk_504.unk_504_entity;
+    struct ChaosShotGfx *gfx = (struct ChaosShotGfx *)CHAOS_DATA_PTR(parent);
     if (child != NULL)
     {
         s32 vx, vy, tiles, index, zero;

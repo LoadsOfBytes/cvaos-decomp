@@ -65,7 +65,7 @@ void DryadSeed_Update(struct EwramData_EntityData *entity)
             if ((entity->timer & 15) == 0)
             {
                 contact.attributes = 0;
-                contact.unk_4 = 0;
+                contact.unused = 0;
                 contact.attack = entity->attack;
                 contact.reaction = 2;
                 contact.sourceX = entity->posX.whole;

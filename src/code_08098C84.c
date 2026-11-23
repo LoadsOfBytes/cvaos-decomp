@@ -85,7 +85,7 @@ void CreakingSkullProjectile_DamagePlayerOnContact(struct EwramData_EntityData *
 
     contactDamage.attack = entity->attack;
     contactDamage.attributes = 0;
-    contactDamage.unk_4 = 0;
+    contactDamage.unused = 0;
     contactDamage.reaction = 1;
     contactDamage.sourceX = entity->posX.whole;
     contactDamage.sourceY = entity->posY.whole;
@@ -133,7 +133,7 @@ void CreakingSkull_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 
     contactDamage.attack = entity->attack;
     contactDamage.attributes = 0;
-    contactDamage.unk_4 = 0;
+    contactDamage.unused = 0;
     contactDamage.reaction = 1;
     contactDamage.sourceX = entity->posX.whole;
     contactDamage.sourceY = entity->posY.whole;

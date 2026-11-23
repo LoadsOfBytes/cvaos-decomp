@@ -18,7 +18,7 @@
 #define DEBRIS_SCALE_STEP(e) e->unk_508.whole
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
-extern s32 Entity_GetRoomPointDistance(struct EwramData_EntityData *entity, s32 param_1, s32 param_2);
+extern s32 Entity_GetRoomPointDistance(struct EwramData_EntityData *entity, s32 x, s32 y);
 
 /* Spinning projectile: flies outwards from the screen point (0x100, 0x80)
  * along a spiral, shrinking until its radius reaches zero. */

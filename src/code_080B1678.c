@@ -51,7 +51,7 @@ static inline void SpawnSpark(struct EwramData_EntityData *entity, u8 type)
 
     if (spark != NULL)
     {
-        spark->unk_4F8.part8.unk_4F8 = type;
+        DISC_ARMOR_SPARK_ANIM(spark) = type;
         spark->posX.part16.integer = x;
         spark->posY.part16.integer = y;
         spark->flipX = flip ^ 1;

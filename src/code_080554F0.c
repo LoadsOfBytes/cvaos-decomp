@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code_08001194.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -55,12 +56,12 @@ void Object1DCreate(struct EwramData_EntityData *entity)
         if (sum == 1)
         {
             entity->posX.part16.integer -= 0xD0;
-            entity->unk_4F8.part8.unk_4F8 = 1;
+            OBJECT1D_EXIT_RIGHT(entity) = 1;
             entity->flipX = 0;
         }
         else if (sum == -1)
         {
-            entity->unk_4F8.part8.unk_4F8 = 0;
+            OBJECT1D_EXIT_RIGHT(entity) = 0;
             entity->flipX = 1;
         }
         else if (sum == 0)
@@ -76,14 +77,14 @@ void Object1DCreate(struct EwramData_EntityData *entity)
         {
             entity->posX.part16.integer = 0x10;
             entity->posY.part16.integer = 0x70;
-            entity->unk_4F8.part8.unk_4F8 = 1;
+            OBJECT1D_EXIT_RIGHT(entity) = 1;
             entity->flipX = 0;
         }
         else if (sum == -1)
         {
             entity->posX.part16.integer = 0xE0;
             entity->posY.part16.integer = 0x70;
-            entity->unk_4F8.part8.unk_4F8 = 0;
+            OBJECT1D_EXIT_RIGHT(entity) = 0;
             entity->flipX = 1;
         }
         else if (sum == 0)

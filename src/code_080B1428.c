@@ -1,5 +1,6 @@
 /* Disc Armor disc projectile (uses the Disc Armor graphics of EnemyDiscArmorCreate). */
 #include "code_08009A0.h"
+#include "disc_armor_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, u8 *, void *, u8, void *);
@@ -19,7 +20,7 @@ void DiscArmorSpark_Update(struct EwramData_EntityData *entity)
             EntityDelete(entity);
             return;
         }
-        Anim_StartIndexed(entity, (u8)entity->unk_4F8.part8.unk_4F8, 0, 0);
+        Anim_StartIndexed(entity, (u8)DISC_ARMOR_SPARK_ANIM(entity), 0, 0);
         entity->spriteLayer = 0x12;
         entity->scrollWithBg = 1;
         entity->state++;

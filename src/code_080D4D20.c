@@ -1,5 +1,6 @@
 /* Spawn of three linked parts. */
 #include "code_08009A0.h"
+#include "graham_projectile.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -49,7 +50,7 @@ s32 Graham_SpawnSpreadProjectiles(struct EwramData_EntityData *entity)
         (*p)->posY.whole = entity->posY.whole - 0x200000;
         (*p)->scrollWithBg = 1;
         (*p)->attack = 0x46;
-        (*p)->unk_4F8.part8.unk_4F8 = i;
+        GRAHAM_SPREAD_INDEX((*p)) = i;
         Anim_StartIndexed(*p, 8, 0, 1);
         Anim_Update(*p);
         Entity_EnableBoxes(*p++, GrahamSpreadProjectile_DamagePlayerOnContact, GrahamSpreadProjectile_OnHit);

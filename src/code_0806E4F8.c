@@ -75,7 +75,7 @@ void Effect_UpdateStationaryAnimation(struct EwramData_EntityData *entity)
  */
 void TimedEntity_Update(struct EwramData_EntityData *entity)
 {
-    u8 var_0[0x10];
+    u8 collision[0x10];
 
     if ((s8)--entity->timer <= 0)
         EntityDelete(entity);

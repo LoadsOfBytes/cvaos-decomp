@@ -46,7 +46,7 @@ void Balore_UpdateEnter(struct EwramData_EntityData *entity)
 
             entity->timer--;
             pal = entity->unk_510.part8.basePalette;
-            level = *(volatile u8 *)&entity->timer >> 3;
+            level = *(volatile u8 *)&entity->timer >> 3; /* FAKEMATCH: volatile read forces the reload of the original */
             idx = pal - 10;
             if (gEwramData->gameState.sharedObjPaletteVariants[idx] != level)
             {

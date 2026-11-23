@@ -78,7 +78,7 @@ void EnemyChaosCreate(struct EwramData_EntityData *core)
         gEwramData->gameState.stateFlags |= 0x800000;
         gEwramData->startPauseEnabled = 0;
         core->timer = 0;
-        core->unk_4F8.part8.unk_4FA = RandomNumberGenerator() % 64;
+        CHAOS_UNUSED_RANDOM(core) = RandomNumberGenerator() % 64;
         CHAOS_ATTACK_TIMER_0(core) = (RandomNumberGenerator() & 0x7F) + 60;
         CHAOS_ATTACK_TIMER_1(core) = (RandomNumberGenerator() & 0x7F) + 120;
         CHAOS_ATTACK_TIMER_2(core) = (RandomNumberGenerator() & 0x7F) + 60;

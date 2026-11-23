@@ -2,6 +2,14 @@
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern void TextWindow_Begin(s32);
+/*
+ * Event scene 04 actor: position in the animation list sUnk_0852682C (0xFF
+ * ends it; also read through the byte view), and a flag set to 4 when its
+ * text starts (never read). Token-identical expansion.
+ */
+#define EVENT04_ANIM_POS(e) e->unk_4F8.part8.unk_4F8
+#define EVENT04_ANIM_POS_BYTE(e) e->unk_4F8.bytes[0]
+#define EVENT04_UNUSED_FLAG(e) e->unk_4FC.bytes[0]
 extern s32 TextWindow_Update(void);
 extern void Sound_Play(u16);
 extern void Interaction_End(struct EwramData_EntityData *, s32);
@@ -85,18 +93,18 @@ s32 EventScene04_Update(struct EwramData_EntityData *entity)
             switch (entity->stage)
             {
             case 0:
-                entity->unk_4F8.part8.unk_4F8 = ret;
+                EVENT04_ANIM_POS(entity) = ret;
                 v = 0xFF;
                 goto set;
             case 1:
                 if (--entity->timer == 0xFF)
                 {
                     const u8 *tbl = sUnk_0852682C;
-                    s32 anim = tbl[(u8)entity->unk_4F8.bytes[0]++];
+                    s32 anim = tbl[(u8)EVENT04_ANIM_POS_BYTE(entity)++];
                     if (anim == 0xFF)
                     {
                         anim = 0;
-                        entity->unk_4F8.part8.unk_4F8 = ret;
+                        EVENT04_ANIM_POS(entity) = ret;
                     }
                     Anim_StartIndexed(entity, anim, 0, 0);
                     entity->timer |= 0xFF;
@@ -135,7 +143,7 @@ s32 EventScene04_Update(struct EwramData_EntityData *entity)
                     ew->gameState.textWindowPause = ret;
                     ew->gameState.textWindowState = 5;
                     entity->stage++;
-                    entity->unk_4FC.bytes[0] = 4;
+                    EVENT04_UNUSED_FLAG(entity) = 4;
                 }
                 break;
             }

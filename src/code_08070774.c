@@ -3,7 +3,7 @@
 #include "structs/ewram.h"
 
 extern void KillerFishSwarm_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-extern void KillerFishSwarm_OnHit(struct EwramData_EntityData *param_0);
+extern void KillerFishSwarm_OnHit(struct EwramData_EntityData *entity);
 
 /**
  * @brief 70774 | Activate box slot 8 with KillerFishSwarm_DamagePlayerOnContact / KillerFishSwarm_OnHit and

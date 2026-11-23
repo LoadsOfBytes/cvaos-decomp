@@ -1,8 +1,10 @@
-/* Render an additional pulsing sprite above the object on alternating frame pairs. */
+/* Unreferenced draw routine next to Object1DUpdate (warp room): draw the
+ * object, then on alternating frame pairs a pulsing affine copy (frame 6) 28 px
+ * above it. */
 #include "code_08009A0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
-void sub_08055684(struct EwramData_EntityData *entity)
+void Object1D_DrawPulsingOverlay(struct EwramData_EntityData *entity)
 {
     u8 frame = entity->animFrame;
     entity->affine = 0;

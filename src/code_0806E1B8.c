@@ -16,7 +16,7 @@ void Enemy_OnContact(struct EwramData_EntityData *entity)
     struct PlayerContactDamage contactDamage;
 
     contactDamage.attributes = 0;
-    contactDamage.unk_4 = 0;
+    contactDamage.unused = 0;
     contactDamage.attack = entity->attack;
     contactDamage.reaction = 0;
     contactDamage.sourceX = entity->posX.whole;
@@ -32,7 +32,7 @@ void Enemy_OnContactMask1(struct EwramData_EntityData *entity)
     struct PlayerContactDamage contactDamage;
 
     contactDamage.attributes = 1;
-    contactDamage.unk_4 = 0;
+    contactDamage.unused = 0;
     contactDamage.attack = entity->attack;
     contactDamage.reaction = 0;
     contactDamage.sourceX = entity->posX.whole;

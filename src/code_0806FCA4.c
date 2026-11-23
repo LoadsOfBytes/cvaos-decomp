@@ -77,7 +77,7 @@ void KillerFish_UpdateAttack(struct EwramData_EntityData *entity)
                 }
                 random = RandomNumberGenerator();
                 { s32 t_ = x - 0x20000; y = 0x3FFFF; x = t_ + (random & y); }
-                do { do { do { y = entity->posY.whole - (RandomNumberGenerator() & y); } while (0); } while (0); } while (0);
+                do { do { do { y = entity->posY.whole - (RandomNumberGenerator() & y); } while (0); } while (0); } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
                 if (index == 0)
                 {
                     vy = -0x6000 - (RandomNumberGenerator() & 0x1FFF);

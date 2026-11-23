@@ -10,10 +10,10 @@ struct MenuPage
     u8 pad_0[0xA];
     u8 state;
     u8 pad_B[0x14 - 0xB];
-    u8 unk_14;
-    u8 unk_15;
-    u8 unk_16;
-    u8 unk_17;
+    u8 count;
+    u8 cursor;
+    u8 top;
+    u8 item;
 };
 
 extern u8 *const sShopLists[];
@@ -54,10 +54,10 @@ void Shop_OpenList(u8 *shop, struct MenuPage *page)
     Text8_SetRegion(0, 0xC, 0x20, 4);
     Text8_ClearRegion();
     MenuPage_SetMode(page, 0);
-    page->unk_16 = 0;
-    page->unk_14 = 0;
-    page->unk_17 = 0;
-    page->unk_15 = 0;
+    page->top = 0;
+    page->count = 0;
+    page->item = 0;
+    page->cursor = 0;
     mode = &shop[0x3D0];
     *mode = 0;
     if (gEwramData->gameState.bossEventFlags & 0x10)

@@ -17,7 +17,7 @@ extern struct EwramData_EntityData *SoulPickup_Create(s16 x, s16 y, s32 palette,
 /**
  * @brief For Soma under the existing mode guard, create the enemy-definition soul pickup and store its persistence flag and substate two.
  */
-void SoulPickup_SpawnFromEnemyDefinition(u16 x, u16 y, s32 enemyId, s32 param_3)
+void SoulPickup_SpawnFromEnemyDefinition(u16 x, u16 y, s32 enemyId, s32 spawnParam)
 {
     struct EnemySoulDropView *enemyDef = &sEnemyData[enemyId];
     u8 palette = enemyDef->soulType;
@@ -29,7 +29,7 @@ void SoulPickup_SpawnFromEnemyDefinition(u16 x, u16 y, s32 enemyId, s32 param_3)
 
         if (pickup != NULL)
         {
-            pickup->unk_514.part16.spawnParam0 = param_3;
+            pickup->unk_514.part16.spawnParam0 = spawnParam;
             pickup->subState = 2;
         }
     }

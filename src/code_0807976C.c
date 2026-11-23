@@ -1,5 +1,6 @@
 /* Werejaguar dispatch, collision handling and animation change notification. */
 #include "code_08009A0.h"
+#include "werejaguar_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -19,8 +20,8 @@ void EnemyWeretigerUpdate(struct EwramData_EntityData *entity)
     Player_TrackEntity(entity);
     if(EntityIsOutsideScreen(entity,4)) entity->hidden=1;
     else entity->hidden=0;
-    entity->unk_4F8.part8.unk_4F9=0;
-    entity->unk_4F8.part8.unk_4F8=0;
+    WEREJAGUAR_CONTACT_KIND(entity)=0;
+    WEREJAGUAR_MANUAL_ANIM(entity)=0;
     entity->animFlags&=0xFD;
     if(entity->state!=2) Enemy_UpdateHitFlash(entity);
     if(Entity_IsTimeStopped(entity) && entity->state!=2) goto collision;
@@ -38,7 +39,7 @@ collision:
         case 3: Werejaguar_UpdateRecoil(entity); break;
         case 4: Anim_Update(entity); return;
     }
-    if((s8)entity->unk_4F8.part8.unk_4F8==0)
+    if((s8)WEREJAGUAR_MANUAL_ANIM(entity)==0)
     {
         u8 frame=entity->animFrame;
         Anim_Update(entity);

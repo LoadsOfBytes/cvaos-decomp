@@ -9,7 +9,7 @@
 
 extern s32 Enemy_PreUpdate(struct EwramData_EntityData *entity);
 extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *entity);
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *param_0);
+extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
 extern void Mandragora_UpdateWait(struct EwramData_EntityData *entity);
 extern void Mandragora_UpdateScream(struct EwramData_EntityData *entity);
 extern void Mandragora_UpdateDeath(struct EwramData_EntityData *entity);

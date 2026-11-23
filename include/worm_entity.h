@@ -22,5 +22,7 @@
 #define WORM_VARIANT(e) e->unk_504.part8.unk_505
 #define WORM_AGGRESSIVE(e) e->unk_500.part8.unk_500
 #define WORM_WAVE_PHASE(e) e->unk_504.part16.unk_506[0]
+/* Entity slot of the next body segment (Worm_Init, followed by Worm_Draw). */
+#define WORM_NEXT_INDEX(e) e->unk_504.part8.unk_504
 
 #endif /* WORM_ENTITY_H */

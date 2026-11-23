@@ -18,7 +18,7 @@ void Chaos2SnakeHead_FireShot(struct EwramData_EntityData *parent, s32 angle)
     /* Packed box: x=-4, y=-4, width=8, height=8. */
     u32 collision = 0x0808FCFC;
     struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)Chaos2SnakeShot_Update);
-    struct ChaosChildGfx *gfx = (struct ChaosChildGfx *)CHAOS_LINK(parent)->unk_504.unk_504_entity;
+    struct ChaosChildGfx *gfx = (struct ChaosChildGfx *)CHAOS_DATA_PTR(CHAOS_LINK(parent));
     angle -= 0x1300;
     if (child != NULL)
     {

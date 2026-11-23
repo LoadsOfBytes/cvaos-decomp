@@ -60,7 +60,7 @@ s16 Object36_FloorCorrection(struct EwramData_EntityData *entity, u16 tx, u16 ty
     if (gEwramData->playerState.player->velY.whole < 0)
         return 0;
     /* the loop doubles the reference count of dy so that it gets r4 */
-    do
+    do /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
     {
         s32 t = ex - sx;
         register s32 rr asm("r2") = r * r; /* FAKEMATCH: pinned register */

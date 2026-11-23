@@ -27,4 +27,8 @@
  */
 #define ALASTOR_PHASE(e) e->unk_4FC.part16.unk_4FE[0]
 
+/* Pattern attack (Alastor_UpdatePatternAttack, TU alias INDEX): segment of
+ * the movement pattern; reset by Alastor_UpdateSpinningLeap. */
+#define ALASTOR_PATTERN_STEP(e) e->unk_4F4.part8.unk_4F7
+
 #endif /* ALASTOR_ENTITY_H */

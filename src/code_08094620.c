@@ -24,7 +24,7 @@ void Succubus_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
         entity->unk_518.part16.hp = hp - damage;
     }
     Entity_ShowDamage(entity, damage, 0);
-    if ((s8)entity->unk_4FC.part8.unk_4FE != 0)
+    if ((s8)SUCCUBUS_INTRO(entity) != 0)
     {
         SUCCUBUS_HOLDING(entity) = 1;
         if ((s16)entity->unk_518.part16.hp > 0) return;

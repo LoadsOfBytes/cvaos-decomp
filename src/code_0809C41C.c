@@ -49,7 +49,7 @@ void StolasPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hi
  */
 void StolasDebris_Update(struct EwramData_EntityData *entity)
 {
-    u32 var_0[4];
+    u32 collision[4];
 
     if (entity->state == 0)
     {
@@ -94,7 +94,7 @@ void Stolas_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 
     contactDamage.attack = entity->attack;
     contactDamage.attributes = 0;
-    contactDamage.unk_4 = 0;
+    contactDamage.unused = 0;
     contactDamage.reaction = 1;
     contactDamage.sourceX = entity->posX.whole;
     contactDamage.sourceY = entity->posY.whole;

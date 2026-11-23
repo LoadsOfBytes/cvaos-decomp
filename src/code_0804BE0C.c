@@ -12,7 +12,7 @@ struct MenuPage
     u8 stage;
     u8 timer;
     u8 pad_E[0x15 - 0xE];
-    u8 unk_15;
+    u8 cursor;
 };
 
 extern void Cursor_Draw(void);
@@ -46,7 +46,7 @@ s32 SaveMenu_Update(struct MenuPage *page)
         if (new & 3)
         {
             msg = 0x366;
-            if ((new & 1) && !(page->unk_15 & 1))
+            if ((new & 1) && !(page->cursor & 1))
             {
                 SaveData_UpdateSlotSummary(g);
                 if (SaveData_SaveSlotToSram(gEwramData->gameState.currentSaveSlot + 1) == 0)
@@ -72,8 +72,8 @@ s32 SaveMenu_Update(struct MenuPage *page)
         else if (repeated & 0x30)
         {
             ent = &ew->entityData[18];
-            page->unk_15++;
-            ent->unk_518.part16.hp = ((page->unk_15 & 1) * 4 + 8) * 12 + 5;
+            page->cursor++;
+            ent->unk_518.part16.hp = ((page->cursor & 1) * 4 + 8) * 12 + 5;
             ent->unk_518.part16.unk_51A = 0x89;
             PlaySong(0xF1);
         }

@@ -2,6 +2,7 @@
  * a cloning script and checked byte for byte:
  *   Ripper_UpdateDeath = Fleaman_UpdateDeath */
 #include "code/code_08039340.h"
+#include "ripper_entity.h"
 #include "altair_entity.h"
 #include "code_080D73B8.h"
 #include "structs/ewram.h"
@@ -21,7 +22,7 @@ void Ripper_UpdateDeath(struct EwramData_EntityData *entity)
             PlaySong(0x72);
             Enemy_DropRewards(entity);
             Anim_StartIndexed(entity, 2, 0, 1);
-            entity->unk_4F8.part8.unk_4F9 = 2;
+            RIPPER_ANIM(entity) = 2;
             entity->palette = entity->unk_510.part8.basePalette;
             entity->timer = 0x32;
             entity->state = 0xFF;

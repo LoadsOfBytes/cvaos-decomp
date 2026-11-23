@@ -27,4 +27,8 @@
 #define UKOBACK_SPARKLE_OFFSET_X(e) e->unk_4F8.whole
 #define UKOBACK_SPARKLE_OFFSET_Y(e) e->unk_4FC.whole
 
+/* Death pieces (Ukoback_SpawnDeathPiece, UkobackDeathPiece_Update): the
+ * Ukoback's entity index (its index halfword copied). */
+#define UKOBACK_PIECE_OWNER_INDEX(e) e->unk_4F4.part16.unk_4F6
+
 #endif /* UKOBACK_ENTITY_H */

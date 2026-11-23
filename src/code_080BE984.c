@@ -83,8 +83,8 @@ void Death_UpdateWeaponTransition(struct EwramData_EntityData *entity)
                 PlaySong(0x124);
                 a = SpawnScythe(entity);
                 b = SpawnScythe(entity);
-                b->unk_4F8.part8.unk_4F9 = ENTITY_INDEX(a);
-                b->unk_4F8.part8.unk_4FA = 1;
+                DEATH_WEAPON_PRIMARY_INDEX(b) = ENTITY_INDEX(a);
+                DEATH_WEAPON_MIRROR(b) = 1;
             }
             }
             if (entity->animFlags & 4)

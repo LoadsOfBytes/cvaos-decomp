@@ -35,7 +35,7 @@ extern void Legion_SteerY(struct EwramData_EntityData *entity, s32 target);
 extern s32 Target_GetX(struct EwramData_EntityData *);
 extern s32 Target_GetY(struct EwramData_EntityData *);
 extern s32 Legion_GetPathEdge(s32 x, s32 y, s32 size);
-extern struct EwramData_EntityData *Legion_CreateShellPart(struct EwramData_EntityData *entity, s32 param_1, s32 kind);
+extern struct EwramData_EntityData *Legion_CreateShellPart(struct EwramData_EntityData *entity, s32 center, s32 kind);
 extern u8 sUnk_08528340[];
 #define DIR (*(u8 *)&entity->unk_500.part8.unk_501)
 

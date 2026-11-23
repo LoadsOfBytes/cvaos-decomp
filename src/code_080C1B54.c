@@ -45,9 +45,9 @@ void AltairFeather_Update(struct EwramData_EntityData *entity)
             u32 random = RandomNumberGenerator();
             s32 mask = 0x3FFF;
             mask &= random;
-            entity->unk_508.part16.unk_508 = mask - 0x2000;
+            ALTAIR_FEATHER_UNUSED_SPIN(entity) = mask - 0x2000;
         }
-        entity->unk_508.part16.unk_50A = 0xD00;
+        ALTAIR_FEATHER_UNUSED_SPEED(entity) = 0xD00;
         {
             u32 random = RandomNumberGenerator();
             s32 mask = 0x7F;

@@ -85,8 +85,8 @@ void Object35_UpdateState(struct EwramData_EntityData *entity)
                 s32 y;
 
                 entity->subState++;
-                x = entity->unk_4F4.part16.unk_4F6 + (s16)bg->xPos.part16.integer;
-                y = entity->unk_4F8.part16.unk_4FA + (s16)bg->yPos.part16.integer;
+                x = OBJECT35_HOME_PIXEL_X(entity) + (s16)bg->xPos.part16.integer;
+                y = OBJECT35_HOME_PIXEL_Y(entity) + (s16)bg->yPos.part16.integer;
                 Collision_ClearBlock(x, y - 8);
                 Collision_ClearBlock(x, y - 0x18);
                 Collision_ClearBlock(x, y - 0x28);

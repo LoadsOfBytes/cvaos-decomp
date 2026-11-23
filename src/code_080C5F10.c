@@ -69,7 +69,7 @@ s32 UkobackFireball_Initialize(struct EwramData_EntityData *entity, struct Ewram
     UKOBACK_FIREBALL_SCALE_Y(entity) = 0x10000;
     UKOBACK_FIREBALL_FRAME(entity) = 0;
     entity->unk_510.part8.basePalette = ObjPalette_FindOrLoad(palette);
-    UKOBACK_FIREBALL_OWNER_INDEX(entity) = ukoback->unk_4F4.part16.unk_4F4;
+    UKOBACK_FIREBALL_OWNER_INDEX(entity) = ENTITY_INDEX_PAIR(ukoback);
     entity->posX.whole = ukoback->posX.whole;
     entity->posY.whole = ukoback->posY.whole;
     entity->velX.whole = 0;
@@ -159,7 +159,7 @@ void UkobackDeathPiece_Update(struct EwramData_EntityData *entity)
     void *palette = sUkobackPalette;
     void *sprite = sUkobackSpriteSheet;
     u8 *graphics = sUkobackGfx;
-    struct EwramData_EntityData *other = &gEwramData->entityData[entity->unk_4F4.part16.unk_4F6];
+    struct EwramData_EntityData *other = &gEwramData->entityData[UKOBACK_PIECE_OWNER_INDEX(entity)];
     s32 gfx;
 
     switch (entity->state)

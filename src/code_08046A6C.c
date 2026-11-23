@@ -70,7 +70,7 @@ loop:
     if (running)
         goto loop;
     /* the loop doubles the reference count of y so that it gets r8 */
-    do
+    do /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
         Text12_SetCursor(x, y);
     while (0);
 }

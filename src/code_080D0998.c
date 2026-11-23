@@ -45,7 +45,7 @@ void Belmont_SpawnProjectileWave(struct EwramData_EntityData *entity)
         projectile->hidden=1;
         Entity_EnableBoxes(projectile,Enemy_OnContact,0);
         projectile->hit.flags|=4;
-        projectile->unk_500.part8.unk_500=BELMONT_ATTACK(entity);
+        BELMONT_ATTACK(projectile)=BELMONT_ATTACK(entity);
         projectile->attack=BELMONT_ATTACK(entity);
         }
         offset+=0xE0000;

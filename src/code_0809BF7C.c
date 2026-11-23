@@ -1,5 +1,6 @@
 /* Stolas_SpawnBeamSegment (Stolas hit box child). */
 #include "code_08009A0.h"
+#include "stolas_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -12,7 +13,7 @@ extern u8 sStolasSpriteSheet[];
  * (offsetX, offsetY) px from entity (x mirrored by its facing) with the
  * already loaded graphics sStolasGfx (deleted when they are not loaded),
  * frame 0x1F, layer 9, entity's palette, type unk_51A and facing; the
- * parent is kept in unk_500.
+ * parent is kept in STOLAS_EFFECT_OWNER.
  */
 void Stolas_SpawnBeamSegment(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY)
 {
@@ -36,7 +37,7 @@ void Stolas_SpawnBeamSegment(struct EwramData_EntityData *entity, s32 offsetX, s
     child->spriteLayer = 9;
     child->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
     child->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
-    child->unk_500.unk_500_entity = entity;
+    STOLAS_EFFECT_OWNER(child) = entity;
     child->flipX = entity->flipX;
     if (entity->flipX)
         child->posX.whole = entity->posX.whole + (offsetX << 16);

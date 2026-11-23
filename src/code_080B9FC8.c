@@ -21,7 +21,7 @@ void ManEaterPart_OnHit(struct EwramData_EntityData *entity, struct EwramData_En
     {
         if (part->enemyFlags & 1) entity->enemyFlags |= 1;
         else part->enemyFlags |= 1;
-        do { damage = Hit_ResolveDamage(entity, (s32)attacker, hit, (s16)strength); } while (0);
+        do { damage = Hit_ResolveDamage(entity, (s32)attacker, hit, (s16)strength); } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
         MAN_EATER_HEAD_FLAGS(part) |= 2;
         {
             u16 hp = part->unk_518.part16.hp;

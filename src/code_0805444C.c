@@ -1,12 +1,12 @@
-/* sub_0805444C (matches with an s16 cast). */
+/* Unreferenced H-blank table fill between the save prompt functions (matches with an s16 cast). */
 #include "structs/ewram.h"
 
 /**
- * @brief 5444C | Fill the back H-blank buffer: lines 0..0x23 with 6,
+ * @brief Unreferenced: fill the back H-blank buffer: lines 0..0x23 with 6,
  * 0x24..0x2F with 0x7C + offset, 0x30..0x4F - offset with 0, the rest up
  * to 0x4F with 0x6C + offset, then a 0 terminator, and request the start.
  */
-void sub_0805444C(s32 offset)
+void SavePoint_FillPromptHBlankBuffer(s32 offset)
 {
     s32 base = 0xAC;
     s16 *dst = gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer];

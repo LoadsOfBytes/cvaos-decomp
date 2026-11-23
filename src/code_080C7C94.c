@@ -1,6 +1,7 @@
 /* Killer Doll: stop movement, resolve floor placement and initialize three
  * randomized timers. */
 #include "code_08009A0.h"
+#include "doll_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -33,7 +34,7 @@ void KillerDoll_ResetActive(struct EwramData_EntityData *entity)
     entity->state = 1;
     entity->stage = zero;
     entity->subState = zero;
-    entity->unk_4F8.part16.unk_4F8 = (RandomNumberGenerator() % 0x800) + 0x80;
-    entity->unk_4F8.part16.unk_4FA = (RandomNumberGenerator() % 0x100) + 0x20;
-    entity->unk_4FC.part16.unk_4FC = (RandomNumberGenerator() % 0x200) + 0x100;
+    KILLER_DOLL_LUNGE_TIMER(entity) = (RandomNumberGenerator() % 0x800) + 0x80;
+    KILLER_DOLL_TURN_TIMER(entity) = (RandomNumberGenerator() % 0x100) + 0x20;
+    KILLER_DOLL_REST_TIMER(entity) = (RandomNumberGenerator() % 0x200) + 0x100;
 }

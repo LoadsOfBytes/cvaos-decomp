@@ -1,5 +1,6 @@
 /* Waiter Skeleton creation and attached sprite setup. */
 #include "code_08009A0.h"
+#include "waiter_skeleton_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
@@ -18,7 +19,7 @@ void EnemyWaiterSkeletonCreate(struct EwramData_EntityData *entity)
 
     if (!Entity_LoadGraphics(entity, sWaiterSkeletonGfx, sSkeletonWaiterSkeletonPalette, 0, sWaiterSkeletonSpriteSheet))
         goto failed;
-    entity->unk_504.whole |= 2;
+    WAITER_SKELETON_FLAGS(entity) |= 2;
     effect = Entity_CreateObject(WaiterSkeletonTray_Update);
     if (effect == NULL)
     {
@@ -26,7 +27,7 @@ void EnemyWaiterSkeletonCreate(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    effect->unk_4FC.unk_4FC_entity = entity;
+    WAITER_TRAY_OWNER(effect) = entity;
     *(u8 *)&effect->unk_4F4 = *(u8 *)&entity->unk_4F4;
     effect->attack = entity->attack;
     *(u16 *)&effect->unk_518 = *(u16 *)&entity->unk_518;

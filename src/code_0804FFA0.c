@@ -1,5 +1,6 @@
 /* Object 08: persistent flag, per-kind graphics and a centred hit box. */
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -27,7 +28,7 @@ fail:
     }
     entity->animFrame = kind->frame;
     box = ((-kind->width / 2) & 255) + (((-kind->height / 2) & 255) << 8) + (kind->width << 16) + (kind->height << 24);
-    entity->unk_4F8.part8.unk_4F8 = kind->behavior;
+    OBJECT08_KIND(entity) = kind->behavior;
     BreakableBlock_SetCollision(entity);
     Hit_Enable(entity, 8, NULL, 0);
     HitBox_SetBodyRaw(entity, box);

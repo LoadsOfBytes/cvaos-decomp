@@ -143,7 +143,7 @@ void ChaosOrb_SpawnSpark(struct EwramData_EntityData *orb, s32 x, s32 y)
         spark->unk_518.part8.enemyId = orb->unk_518.part8.enemyId;
         CHAOS_LINK(spark) = orb;
         spark->scrollWithBg = 0;
-        spark->unk_504.whole = 0x1000000;
+        CHAOS_SHOT_SPREAD(spark) = 0x1000000;
         spark->drawFunc = (u32 *)ChaosSpark_Draw;
     }
 }

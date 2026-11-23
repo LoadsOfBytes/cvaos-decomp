@@ -102,7 +102,7 @@ void Bael_UpdateCharge(struct EwramData_EntityData *entity)
                 }
                 entity->timer = 32;
                 {
-                    s32 count = (s8)part->unk_4FC.part8.unk_4FD;
+                    s32 count = (s8)BAEL_CHARGE_COUNT(part);
                     if ((u32)count >= (u32)RandomNumberGenerator() % 5 + 1)
                     {
                         s32 zero = reset;
@@ -113,7 +113,7 @@ void Bael_UpdateCharge(struct EwramData_EntityData *entity)
                         entity->accelY.whole = zero;
                         entity->velY.whole = zero;
                         SPEED(entity) = (s32)SPEED(entity) / 2;
-                        part->unk_4FC.part8.unk_4FD = zero;
+                        BAEL_CHARGE_COUNT(part) = zero;
                         entity->timer = zero;
                     }
                 }
@@ -135,7 +135,7 @@ void Bael_UpdateCharge(struct EwramData_EntityData *entity)
             if (--entity->timer == 0xFF)
             {
                 entity->stage = work;
-                part->unk_4FC.part8.unk_4FD++;
+                BAEL_CHARGE_COUNT(part)++;
             }
             break;
         }

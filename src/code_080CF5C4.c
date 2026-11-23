@@ -88,7 +88,7 @@ void Mandragora_UpdateScream(struct EwramData_EntityData *entity)
                 case 2:
                     if(part->state==2 && part->timer<=7)
                         entity->animFrame=10;
-                    if(entity->unk_504.part8.unk_504 & 0x18)
+                    if(MANDRAGORA_FLAGS(entity) & 0x18)
                     {
                         entity->state=0xF0;
                         entity->stage=0;

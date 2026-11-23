@@ -32,8 +32,8 @@ void EnemyLegionUpdate(struct EwramData_EntityData *entity)
     case 1: Legion_UpdateBounce(entity); break;
     case 2:
         Legion_UpdateDeath(entity);
-        if (entity->deleteRequested && entity->unk_4F8.unk_4F8_entity != NULL)
-            Heap_Free(entity->unk_4F8.unk_4F8_entity);
+        if (entity->deleteRequested && LEGION_DATA_PTR(entity) != NULL)
+            Heap_Free(LEGION_DATA_PTR(entity));
         break;
     case 3: Legion_UpdatePreview(entity); Anim_Update(entity); return;
     }

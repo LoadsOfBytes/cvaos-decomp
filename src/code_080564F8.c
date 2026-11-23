@@ -4,6 +4,8 @@
 #include "code/code_08040A38.h"
 #include "code/code_08050A3C.h"
 #include "structs/ewram.h"
+/* ObjGfx slot of sWarpRoomGfx; stored, never read. */
+#define WARP_ROOM_GFX(e) e->unk_4FC.part16.unk_4FC
 
 extern void WarpRoom_Update(struct EwramData_EntityData *e);
 extern void WarpRoom_CreateGateParts(struct EwramData_EntityData *owner);
@@ -42,7 +44,7 @@ s32 WarpRoom_LoadGraphics(struct EwramData_EntityData *entity)
             return;
         }
     }
-    entity->unk_4FC.part16.unk_4FC = gfx;
+    WARP_ROOM_GFX(entity) = gfx;
     entity->updateFunc = (u32 *)WarpRoom_Update;
     return 1;
 }

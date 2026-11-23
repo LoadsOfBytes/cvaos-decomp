@@ -178,5 +178,5 @@ void SkillGladiatorUse(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    do { do { do { ObjAffine_Set(SKILL_GLADIATOR_ANGLE(entity), 0x10000, 0x10000, 0, 0, entity->affineIndex); } while (0); } while (0); } while (0);
+    ObjAffine_Set(SKILL_GLADIATOR_ANGLE(entity), 0x10000, 0x10000, 0, 0, entity->affineIndex);
 }

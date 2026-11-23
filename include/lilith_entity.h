@@ -14,4 +14,10 @@
 #define LILITH_DODGE_CHECKED(e) e->unk_4FC.part8.unk_4FD
 #define LILITH_HIDDEN(e) e->unk_4FC.part8.unk_4FF
 
+/*
+ * Lunge hit: set by Lilith_DamagePlayerOnContact; a lunge that hit the player
+ * holds its animation and chains a second lunge (Lilith_UpdateAttack).
+ */
+#define LILITH_LUNGE_HIT(e) e->unk_4FC.part8.unk_4FE
+
 #endif /* LILITH_ENTITY_H */

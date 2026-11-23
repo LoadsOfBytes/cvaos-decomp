@@ -96,7 +96,7 @@ void Chaos2SummonedPart_Update(struct EwramData_EntityData *part)
             part->deleteRequested = 1;
             fx.attack = part->attack;
             fx.attributes = 0;
-            fx.unk_4 = 0;
+            fx.unused = 0;
             fx.reaction = 0;
             fx.sourceX = part->posX.whole;
             fx.sourceY = part->posY.whole;

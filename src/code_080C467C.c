@@ -2,6 +2,7 @@
  * a cloning script and checked byte for byte:
  *   SkeletonProjectile_DamagePlayerOnContact = Object28_OnPlayerContact */
 #include "code_08009A0.h"
+#include "skeleton_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -16,7 +17,7 @@ void SkeletonProjectile_DamagePlayerOnContact(struct EwramData_EntityData *entit
 
     contactDamage.attack = entity->attack;
     contactDamage.attributes = 0;
-    contactDamage.unk_4 = 0;
+    contactDamage.unused = 0;
     contactDamage.reaction = 1;
     contactDamage.sourceX = entity->posX.whole;
     contactDamage.sourceY = entity->posY.whole;
@@ -42,8 +43,8 @@ struct EwramData_EntityData *Entity_CreateLinkedAndHide(struct EwramData_EntityD
 
     if (child == NULL)
         return NULL;
-    child->unk_4F8.part8.unk_4F8 = entity->unk_4F4.part16.unk_4F4;
-    child->unk_4F4.part16.unk_4F4 = entity->unk_4F4.part16.unk_4F4;
+    SKELETON_PIECE_OWNER_INDEX(child) = ENTITY_INDEX_PAIR(entity);
+    ENTITY_INDEX_PAIR(child) = ENTITY_INDEX_PAIR(entity);
     child->attack = entity->attack;
     child->unk_518.part16.hp = entity->unk_518.part16.hp;
     entity->hidden = 1;

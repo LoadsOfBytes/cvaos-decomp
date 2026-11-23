@@ -3,6 +3,8 @@
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
+/* Shot of the arm: facing of the arm at the shot; never read. */
+#define GLADIATOR_SHOT_UNUSED_DIR(e) e->unk_4FC.part8.unk_4FD
 
 extern void GladiatorShot_Update(struct EwramData_EntityData *entity);
 extern void GladiatorShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
@@ -47,7 +49,7 @@ void GladiatorArm_FireShot(struct EwramData_EntityData *entity, s32 dx, s32 dy, 
     shot->posY.whole = entity->posY.whole + dy;
     shot->velX.whole = vx;
     shot->velY.whole = vy;
-    shot->unk_4FC.part8.unk_4FD = entity->flipX;
+    GLADIATOR_SHOT_UNUSED_DIR(shot) = entity->flipX;
     shot->attack = entity->attack;
     if (entity->flipX)
         GLADIATOR_SHOT_ANGLE(shot) = 0;

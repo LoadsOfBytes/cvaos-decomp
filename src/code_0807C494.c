@@ -1,5 +1,6 @@
 /* AluraUne_UpdateAttack: enemy behaviour state machine (14 states). */
 #include "code_08009A0.h"
+#include "alura_une_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -7,7 +8,7 @@
 extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
 extern void AluraUne_SpawnThorn(struct EwramData_EntityData *, s32, s32, s32);
 extern void AluraUne_SpawnRootWave(struct EwramData_EntityData *parent, s32 index, s32 facing);
-extern void ScreenShake_RequestOffset(u8 priority, s8 param_1, s8 param_2);
+extern void ScreenShake_RequestOffset(u8 priority, s8 offsetX, s8 offsetY);
 extern s32 Sound_PlayTracked(s32 song);
 extern s32 Sound_PlayTrackedIfAbsent(s32 song);
 extern s32 Sound_StopTracked(s32 song);
@@ -49,7 +50,7 @@ void AluraUne_UpdateAttack(struct EwramData_EntityData *entity)
                 if (i != skip1 && i != skip2)
                     AluraUne_SpawnThorn(entity, -(i * 16 + 0x28), -1, 0x6E);
             }
-            entity->unk_504.part8.unk_505 = 0;
+            ALURA_UNE_HIT(entity) = 0;
             entity->subState++;
             entity->timer = 0;
             if (entity->animScriptIndex != 4)
@@ -152,7 +153,7 @@ void AluraUne_UpdateAttack(struct EwramData_EntityData *entity)
     case 11:
         if (entity->animDone)
         {
-            entity->unk_504.part8.unk_505 = 0;
+            ALURA_UNE_HIT(entity) = 0;
             entity->subState++;
             entity->timer = 0;
             Anim_StartIndexed(entity, 5, 0, 0);

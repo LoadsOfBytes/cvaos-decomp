@@ -19,7 +19,7 @@ extern void BgPalette_LoadRange(u8 *palette, u16 first, u16 count, u16 slot);
 extern void ObjPalette_StopColorFade(void);
 extern void BgPalette_StopColorFade(void);
 extern void ObjAffine_Set(s32 angle, s32 scaleX, s32 scaleY, u16 flipX, u16 flipY, u16 index);
-extern s32 Bg_SetControlIfLevelAllows(s32 param_0, s32 param_1, s32 param_2);
+extern s32 Bg_SetControlIfLevelAllows(s32 level, s32 reg, s32 value);
 extern void Text12_ClearRegion(void);
 extern void Text_SetBackgroundColor(s32 color);
 extern void SavePoint_ShowSavePrompt(void);

@@ -14,7 +14,7 @@ extern s32 EntityIsOutsideScreen(struct EwramData_EntityData *entity, s32 margin
 extern u8 sObject14Gfx[];
 extern u8 sObject14Palette[];
 extern u8 sObject14SpriteSheet[];
-extern void (*const sObject14VariantFuncs[])(struct EwramData_EntityData *param_0);
+extern void (*const sObject14VariantFuncs[])(struct EwramData_EntityData *entity);
 
 /**
  * @brief 527E4 | Draw at the room position in unk_500 / unk_502 (made

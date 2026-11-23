@@ -15,13 +15,13 @@ extern u8 sTsuchinokoGfx[];
 extern u8 sTsuchinokoPalette[];
 extern u8 sTsuchinokoSpriteSheet[];
 
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 param_2, u16 reaction)
+static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
 {
     struct PlayerContactDamage contactDamage;
 
     contactDamage.attack = entity->attack;
     contactDamage.attributes = attributes;
-    contactDamage.unk_4 = param_2;
+    contactDamage.unused = unused;
     contactDamage.reaction = reaction;
     contactDamage.sourceX = entity->posX.whole;
     contactDamage.sourceY = entity->posY.whole;
@@ -74,7 +74,7 @@ void TsuchinokoShot_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 
     contactDamage.attack = entity->attack;
     contactDamage.attributes = 0x40;
-    contactDamage.unk_4 = 0;
+    contactDamage.unused = 0;
     contactDamage.reaction = 0;
     contactDamage.sourceX = entity->posX.whole;
     contactDamage.sourceY = entity->posY.whole;
@@ -97,7 +97,7 @@ void TsuchinokoShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16
  */
 void TsuchinokoDroplet_Update(struct EwramData_EntityData *entity)
 {
-    u32 var_0[4];
+    u32 collision[4];
 
     if (entity->state == 0)
     {

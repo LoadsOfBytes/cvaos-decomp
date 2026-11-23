@@ -26,7 +26,7 @@ s32 Object14_MoveOnTerrain(struct EwramData_EntityData *entity, s32 mode)
         off = 8;
     d = Collision_GetPushUpFiltered(x, y + off, mode);
     if (d != 0)
-        do { entity->posY.whole += (d + off) << 16; } while (0);
+        do { entity->posY.whole += (d + off) << 16; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
     dx = 8;
     if (entity->velX.whole < 0)
         dx = -dx;

@@ -9,7 +9,7 @@ extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
 extern s32 Entity_GetVisibilityPattern(s32);
 extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
 
-#define FLASH(e) ((e)->unk_504.part16.unk_504)
+#define FLASH(e) (CHAOS2_PART_FLASH((e)))
 
 /* Part: hurt the player, restore the frame after a hit flash, break when
  * the core is gone or dying; broken parts smoke and blink out. */

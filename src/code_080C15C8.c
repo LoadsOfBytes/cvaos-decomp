@@ -46,7 +46,7 @@ void EnemyAltairUpdate(struct EwramData_EntityData *entity)
         Altair_UpdateSpawner(entity);
         return;
     }
-    if (child->updateFunc == NULL) entity->unk_4F8.whole = 0;
+    if (child->updateFunc == NULL) ALTAIR_CARRIED(entity) = 0;
     if (entity->state != 2) Enemy_UpdateHitFlash(entity);
     if (Entity_IsTimeStopped(entity) && entity->state != 2) goto hit;
     if (entity->unk_510.part8.hitFlashTimer != 0 && entity->state != 3 && entity->state != 2)

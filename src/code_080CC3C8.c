@@ -8,7 +8,7 @@
 extern void BuerChargeEffect_Update(struct EwramData_EntityData *entity);
 extern void Buer_MoveAndRotate(struct EwramData_EntityData *entity, s32 mode);
 extern s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY);
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *param_0);
+extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
 extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 extern s32 Entity_IsOutsideRoomMap(struct EwramData_EntityData *entity);
 
@@ -90,7 +90,7 @@ void Buer_DamagePlayerOnContact(struct EwramData_EntityData *entity)
     struct PlayerContactDamage contactDamage;
 
     contactDamage.attributes = 1;
-    contactDamage.unk_4 = 0;
+    contactDamage.unused = 0;
     contactDamage.attack = entity->attack;
     contactDamage.reaction = 1;
     contactDamage.sourceX = entity->posX.whole;

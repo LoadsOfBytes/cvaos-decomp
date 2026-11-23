@@ -1,5 +1,6 @@
 /* Soul helpers 0x0802D9B4..0x0802DAD3. */
 #include "code_08009A0.h"
+#include "soul_skill_entity.h"
 #include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -36,7 +37,7 @@ void RedSoul_AnchorToHitTargetTimed(struct EwramData_EntityData *entity, struct 
         RED_SOUL_ANCHOR(entity) = child;
         ENTITY_OWNER(child) = entity;
         RED_SOUL_ANCHOR_TARGET(child) = target;
-        child->unk_4F4.part8.unk_4F4 = entity->unk_4F4.part8.unk_4F4;
+        ENTITY_INDEX(child) = ENTITY_INDEX(entity);
         entity->timer = 0x78;
         HitBox_SetAttackRaw(entity, 0x1014F8F6);
         child->accelX.whole = entity->posX.whole - target->posX.whole;
@@ -59,14 +60,14 @@ void HomingSoulProjectile_OnPlayerContact(struct EwramData_EntityData *entity)
 
 /**
  * @brief Draw callback (SkillChronomageUse): outside mode 6 and with unk_A074
- * bit 0 copy unk_50C to paletteInvert, then draw.
+ * bit 0 copy SKILL_CHRONOMAGE_INVERT to paletteInvert, then draw.
  */
 void Soul_DrawWithPaletteInvert(struct EwramData_EntityData *entity)
 {
     struct EwramData *ewram = gEwramData;
 
     if (ewram->gameState.subMode != 6 && ewram->paused)
-        ewram->paletteInvert = entity->unk_50C.whole;
+        ewram->paletteInvert = SKILL_CHRONOMAGE_INVERT(entity);
     Sprite_Draw(entity);
 }
 
@@ -101,9 +102,9 @@ void Effect_UpdateBallisticDebris(struct EwramData_EntityData *entity)
 
 /**
  * @brief Contact callback of the bone soul projectile: set its hit flag
- * (unk_504).
+ * (SKILL_BONE_HIT).
  */
 void BoneSoul_OnPlayerContact(struct EwramData_EntityData *entity)
 {
-    entity->unk_504.part16.unk_504 = 1;
+    SKILL_BONE_HIT(entity) = 1;
 }

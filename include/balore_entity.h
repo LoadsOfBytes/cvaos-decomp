@@ -52,4 +52,37 @@
  */
 #define BALORE_PIECE_OWNER(e) e->unk_4FC.unk_4FC_entity
 
+/*
+ * Overlay (BaloreOverlay_Update, follows ENTITY_OWNER = the body): mirror flag
+ * (copies the flipped half of the body frame, swaps the layer, flips the
+ * affine matrix), template info bytes it was set up from, and the three heap
+ * blocks of its private one-frame sprite sheet: sheet, frame and part list.
+ */
+#define BALORE_OVERLAY_MIRROR(e) e->unk_4F4.part8.unk_4F7
+#define BALORE_OVERLAY_INFO(e) e->unk_4F8.whole
+#define BALORE_OVERLAY_SHEET(e) e->unk_4FC.whole
+#define BALORE_OVERLAY_FRAME(e) e->unk_500.whole
+#define BALORE_OVERLAY_PARTS(e) e->unk_504.whole
+
+/* Parts (BalorePart_Update): animation base (0x12 / 0x1B while flashing). */
+#define BALORE_PART_ANIM(e) e->unk_500.part8.unk_500
+
+/* Hands: heap block of their Entity_SteerToPoint flight parameters. */
+#define BALORE_HAND_STEER(e) e->unk_50C.whole
+
+/*
+ * Hands: bytes 0 / 1 of unk_51C - animation their hit boxes follow, and hit
+ * flags copied to the hit boxes (1 = strong hit 90 / reaction 3, 2 = 80,
+ * else 55; 4 = solid for the player). Byte views, so the macros keep the
+ * original cast form.
+ * Emitter (BaloreEmitter_Draw): 16.16 step between its 8 drawn copies.
+ */
+#define BALORE_HAND_ANIM(e) ((u8 *)&e->unk_51C)[0]
+#define BALORE_HAND_HIT_FLAGS(e) ((u8 *)&e->unk_51C)[1]
+#define BALORE_EMITTER_STEP_X(e) e->unk_50C.whole
+#define BALORE_EMITTER_STEP_Y(e) e->unk_510.whole
+
+/* BALORE_GFX read through the byte view of its slot (bytes[3]). */
+#define BALORE_GFX_BYTE(e) e->unk_4F8.bytes[3]
+
 #endif /* BALORE_ENTITY_H */

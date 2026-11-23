@@ -60,7 +60,7 @@ void Nemesis_UpdateTurningAttack(struct EwramData_EntityData *entity)
             entity->timer = 0;
             /* Re-read the remaining-pass byte after resetting the timer,
              * as the original does; do not forward the earlier comparison. */
-            LEFT(entity) = *(volatile u8 *)&LEFT(entity) - 1;
+            LEFT(entity) = *(volatile u8 *)&LEFT(entity) - 1; /* FAKEMATCH: volatile read forces the reload of the original */
             if (LEFT(entity) == 0)
                 entity->subState = 4;
             else

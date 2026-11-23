@@ -1,5 +1,6 @@
 /* Object09Create (breakable block). */
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
 
@@ -31,7 +32,7 @@ extern struct BreakableBlockVariant sBreakableBlockVariants[];
 extern struct BreakableBlockGraphics sBreakableBlockGraphics[];
 
 /* Event flag param_1 of the bit array gameFlagsTail (as in Object35Create). */
-#define OBJECT_FLAG(ewram, param_1) ((ewram)->gameState.gameFlagsTail[(param_1) >> 5] & (1 << ((param_1) & 0x1F)))
+#define OBJECT_FLAG(ewram, flag) ((ewram)->gameState.gameFlagsTail[(flag) >> 5] & (1 << ((flag) & 0x1F)))
 
 /**
  * @brief 501D0 | Object 0x09 create: deleted when its flag unk_516 is set or
@@ -59,6 +60,6 @@ void Object09Create(struct EwramData_EntityData *entity)
         return;
     }
     entity->animFrame = def->animFrame;
-    entity->unk_4F8.part8.unk_4F8 = def->collisionMode;
+    OBJECT09_COLLISION_MODE(entity) = def->collisionMode;
     BreakableBlock_SetCollision(entity);
 }

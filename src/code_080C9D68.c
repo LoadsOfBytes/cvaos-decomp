@@ -13,7 +13,7 @@ extern void HitEffect_Spawn(s32 x, s32 y, s32 type);
 extern void Enemy_UpdateFragmentDeathWithSpread(struct EwramData_EntityData *entity, s32 interval, s32 width, s32 height);
 extern s32 Enemy_IsStunned(struct EwramData_EntityData *entity);
 extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *entity);
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *param_0);
+extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
 extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
 
 /* Graphics of the two feather (?) entities spawned by BlueCrow_SpawnDeathParts. */

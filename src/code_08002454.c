@@ -50,6 +50,13 @@
 #define TITLE_MENU_SLIDING(e) e->unk_500.part8.unk_502
 #define TITLE_MENU_SLIDE_PHASE(e) e->unk_500.part8.unk_503
 #define TITLE_MENU_SLIDE_OFFSET(e) e->unk_504.whole
+/* Main menu entity (GameModeMainMenuUpdate): frame timer and step of the
+ * eight-step BG palette cycle sMainMenuPaletteCycleSteps. */
+#define MAIN_MENU_PALETTE_TIMER(e) e->unk_500.part8.unk_501
+#define MAIN_MENU_PALETTE_STEP(e) e->unk_500.part8.unk_502
+/* Bit mask of the save slots that hold data (set by MainMenu_InitEntity,
+ * MENU_SAVED_SLOTS there); 0 = no saved game, the choice stays on New Game. */
+#define MAIN_MENU_SAVED_SLOTS(e) e->unk_4F4.part8.unk_4F5
 
 /*
  * Title logo entity (entityData[0x12], TitleScreenLogo_*): flags (1 = the
@@ -92,6 +99,8 @@
 #define TITLE_SPIRAL_ANGLE(e) e->unk_4FC.part16.unk_4FC
 #define TITLE_SPIRAL_RADIUS(e) e->unk_500.whole
 #define TITLE_SPIRAL_SCALE(e) e->unk_504.whole
+/* Cleared at init, never read. */
+#define TITLE_SPIRAL_UNUSED(e) e->unk_4FC.part16.unk_4FE[0]
 
 /*
  * Title flash sprites (TitleScreen_SpawnFlash): rotation angle and spin per
@@ -458,7 +467,7 @@ s32 GameModeDebugExitUpdate(void)
                     }
                 }
 
-                gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 3;
+                gEwramData->bgControlMinWriteLevel = gEwramData->unusedWriteLevel = 3;
                 gDisplayRegisters.bldCnt = BLDCNT_SCREEN_SECOND_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT | BLDCNT_SCREEN_FIRST_TARGET;
                 gDisplayRegisters.bldY = BLDY_MAX_VALUE;
                 gEwramData->gameModeUpdateStage += 1;
@@ -1420,8 +1429,6 @@ static inline TitleObject_LoadGraphicsAlt(u8 *ptr0, u8 *ptr1, struct EwramData_E
 void TitleScreenParticle_Init(struct EwramData_EntityData *entity)
 {
     s16 angle;
-    s32 temp_r0;
-    s32 var_r0;
     s32 driftX;
     s32 driftY;
     u8* tmp;
@@ -1537,8 +1544,6 @@ void TitleScreenSpiralSprite_Update(struct EwramData_EntityData *entity)
  */
 void TitleScreenSpiralSprite_Init(struct EwramData_EntityData *entity)
 {
-    s32 temp_r0;
-    s32 var_r0;
     u16 affineIndex;
     u8* tmp;
     u8* tmp2;
@@ -1562,7 +1567,7 @@ void TitleScreenSpiralSprite_Init(struct EwramData_EntityData *entity)
     entity->spriteLayer = 6;
     TITLE_SPIRAL_ANGLE(entity) = 0x9800;
     TITLE_SPIRAL_RADIUS(entity) = 0xC00000;
-    entity->unk_4FC.part16.unk_4FE[0] = 0;
+    TITLE_SPIRAL_UNUSED(entity) = 0;
 }
 
 /**
@@ -1572,7 +1577,6 @@ void TitleScreenSpiralSprite_Init(struct EwramData_EntityData *entity)
 void TitleScreen_CreateEffects(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *child;
-    struct EwramData_EntityData *temp_r0_2;
     s32 i;
 
     EntityDelete(entity);
@@ -1643,12 +1647,6 @@ extern u8 *sTitleFlashSpriteSheet;
 void TitleScreen_SpawnFlash(s32 skipBlend, s32 scale, u16 spin)
 {
     struct EwramData_EntityData *child;
-    s32 temp_r0_2;
-    s32 temp_r1;
-    s32 temp_r2;
-    s32 temp_r3;
-    s32 temp_r5;
-    s32 var_r0;
     u16 affineIndex;
     u8* tmp;
     u8* tmp2;
@@ -1781,10 +1779,6 @@ void TitleScreenLogo_Update(struct EwramData_EntityData *entity)
  */
 void TitleScreenLogo_Create(struct EwramData_EntityData *entity)
 {
-    s32 temp_r0;
-    s32 var_r0;
-    u8 *temp_r2;
-    u8 *temp_r4;
     u8 result;
     u8* tmp;
     u8* tmp2;
@@ -2289,7 +2283,7 @@ s32 MainMenu_HandleChoiceInput(struct EwramData_EntityData *entity)
         result = -1;
     }
 
-    if ((entity->unk_4F4.part8.unk_4F5 != 0) && (result == 0))
+    if ((MAIN_MENU_SAVED_SLOTS(entity) != 0) && (result == 0))
     {
         if (repeatedInput & KEY_DOWN)
         {
@@ -2801,7 +2795,7 @@ s32 GameModeMainMenuUpdate(void)
             menu->stage = 0;
             gEwramData->gameModeUpdateStage += 1;
             gEwramData->gameModeSubStage = 0;
-            if (menu->unk_4F4.part8.unk_4F5 == 0)
+            if (MAIN_MENU_SAVED_SLOTS(menu) == 0)
             {
                 menu->subState = 0;
             }
@@ -2912,7 +2906,7 @@ s32 GameModeMainMenuUpdate(void)
             MainMenu_SetupMessageWindow((s32) menu->subState);
             BgMap_Setup(1, (struct BgMapMetadata *)0x080E73A4, 0, 0);
             BgMap_Setup(2, (struct BgMapMetadata *)0x080E7434, 0, 0);
-            if (menu->unk_4F4.part8.unk_4F5 == 0)
+            if (MAIN_MENU_SAVED_SLOTS(menu) == 0)
             {
                 menu->subState = 0;
             }
@@ -2982,16 +2976,16 @@ s32 GameModeMainMenuUpdate(void)
     paletteCycle = sMainMenuPaletteCycleSteps;
     if (gEwramData->gameModeUpdateStage > 1)
     {
-        if (menu->unk_500.part8.unk_501++ >= paletteCycle[(s8)menu->unk_500.part8.unk_502].duration)
+        if (MAIN_MENU_PALETTE_TIMER(menu)++ >= paletteCycle[(s8)MAIN_MENU_PALETTE_STEP(menu)].duration)
         {
-            menu->unk_500.part8.unk_501 = 0;
-            menu->unk_500.part8.unk_502 += 1;
-            if ((s8)menu->unk_500.part8.unk_502 == 8)
+            MAIN_MENU_PALETTE_TIMER(menu) = 0;
+            MAIN_MENU_PALETTE_STEP(menu) += 1;
+            if ((s8)MAIN_MENU_PALETTE_STEP(menu) == 8)
             {
-                menu->unk_500.part8.unk_502 = 0;
+                MAIN_MENU_PALETTE_STEP(menu) = 0;
             }
         }
-        BgPalette_LoadRange((u8 *)0x080E5E24, paletteCycle[(s8)menu->unk_500.part8.unk_502].sourcePalette, 1, 0);
+        BgPalette_LoadRange((u8 *)0x080E5E24, paletteCycle[(s8)MAIN_MENU_PALETTE_STEP(menu)].sourcePalette, 1, 0);
     }
     Entity_UpdateAll();
     return gameMode;

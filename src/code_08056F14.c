@@ -1,5 +1,6 @@
 /* Object 0x22 helpers 0x08056F14..0x08057003. */
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08050A3C.h"
@@ -22,7 +23,7 @@ void Object22Update(struct EwramData_EntityData *entity)
 {
     u8 collision[0x10];
 
-    if (!(entity->unk_504.part8.unk_507 & 1))
+    if (!(OBJECT22_FLAGS(entity) & 1))
         Player_QueueEntity(entity, 1);
     if (entity->state == 0)
         Object22_UpdateState(entity);
@@ -34,7 +35,7 @@ void Object22Update(struct EwramData_EntityData *entity)
  * @brief 56F50 | Spawn a short-lived effect (animation 2 of sObject22SpriteSheet)
  * at (dx, dy) lasting param_3 frames.
  */
-void Object22_SpawnEffect(struct EwramData_EntityData *entity, s32 dx, s32 dy, u8 param_3)
+void Object22_SpawnEffect(struct EwramData_EntityData *entity, s32 dx, s32 dy, u8 duration)
 {
     struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)Object22Effect_Update);
     s32 gfx;
@@ -49,7 +50,7 @@ void Object22_SpawnEffect(struct EwramData_EntityData *entity, s32 dx, s32 dy, u
         Sprite_Attach(child, sObject22SpriteSheet, gfx, child->unk_510.part8.basePalette);
         Anim_StartIndexed(child, 2, 0, 0);
         Anim_Update(child);
-        child->timer = param_3;
+        child->timer = duration;
         child->scrollWithBg = 1;
         child->drawFunc = (u32 *)Sprite_DrawEntity;
     }

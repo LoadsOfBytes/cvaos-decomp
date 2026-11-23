@@ -1,5 +1,6 @@
 /* Object22_UpdateState. */
 #include "code_080D73B8.h"
+#include "room_object_entity.h"
 #include "structs/ewram.h"
 
 struct Seq { s8 level; s8 step; s8 hit; u8 flags; };
@@ -51,7 +52,7 @@ void Object22_UpdateState(struct EwramData_EntityData *e)
         if (gEwramData->playerState.standingPlatform != e)
         {
             e->posY.part16.integer = 0x9D - bg->yPos.part16.integer;
-            if (++e->unk_500.part8.unk_500 > 0x3B)
+            if (++OBJECT22_EMPTY_TIMER(e) > 0x3B)
             {
                 e->stage = 0;
                 e->subState = 4;
@@ -62,7 +63,7 @@ void Object22_UpdateState(struct EwramData_EntityData *e)
         else
         {
             e->posY.part16.integer = 0x9E - bg->yPos.part16.integer;
-            e->unk_500.part8.unk_500 = 0;
+            OBJECT22_EMPTY_TIMER(e) = 0;
         }
         if ((s16)e->posX.part16.integer + (s16)bg->xPos.part16.integer >= sObject22LevelThresholds[SEQ(e)->level])
         {
@@ -78,7 +79,7 @@ void Object22_UpdateState(struct EwramData_EntityData *e)
         if (gEwramData->playerState.standingPlatform != e)
         {
             e->posY.part16.integer = 0x9D - bg->yPos.part16.integer;
-            if (++e->unk_500.part8.unk_500 > 0x3B)
+            if (++OBJECT22_EMPTY_TIMER(e) > 0x3B)
             {
                 e->stage = 0;
                 e->subState = 4;
@@ -89,7 +90,7 @@ void Object22_UpdateState(struct EwramData_EntityData *e)
         else
         {
             e->posY.part16.integer = 0x9E - bg->yPos.part16.integer;
-            e->unk_500.part8.unk_500 = 0;
+            OBJECT22_EMPTY_TIMER(e) = 0;
         }
         switch (e->stage)
         {

@@ -613,31 +613,31 @@ u32* GetRoomPointer(s32 area, s32 room)
  */
 u32 BgMap_GetTileEntry(struct BgMapMetadata *metadata, u16 tileX, u16 tileY)
 {
-    s32 temp_r0;
-    u16 *var_r0;
-    u16 *var_r1;
+    s32 tileIndex;
+    u16 *tiles;
+    u16 *entry;
 
-    temp_r0 = BgMap_GetBlockTileIndex(metadata, tileX, tileY);
-    if (temp_r0 < 0)
+    tileIndex = BgMap_GetBlockTileIndex(metadata, tileX, tileY);
+    if (tileIndex < 0)
     {
         return 0;
     }
 
     if (!(metadata->formatFlags & 2))
     {
-        var_r0 = metadata->tileData;
+        tiles = metadata->tileData;
     }
     else if (metadata == gEwramData->bgInfo[1].pBgMetadata)
     {
-        var_r0 = gEwramData->bg1TileCache;
+        tiles = gEwramData->bg1TileCache;
     }
     else
     {
-        var_r0 = gEwramData->sharedBgTileCache;
+        tiles = gEwramData->sharedBgTileCache;
     }
-    // var_r1 = (void*)(temp_r0*2 + (u32)var_r0); // alternative
-    var_r1 = var_r0 - - temp_r0; // - - instead of + to match
-    return (gUnk_03002CB0.blockFlipFlags << 8) ^ *var_r1;
+    // entry = (void*)(tileIndex*2 + (u32)tiles); // alternative
+    entry = tiles - - tileIndex; // - - instead of + to match
+    return (gUnk_03002CB0.blockFlipFlags << 8) ^ *entry;
 }
 
 /**
@@ -795,13 +795,11 @@ u8 Collision_GetTile(s32 x, s32 y)
  */
 s16 Collision_GetSlopeHeight(u8 tile, s16 x)
 {
-    s32 var_r0;
     s32 isSlope;
-    s16 var_r1;
+    s16 height;
     u32 tmp;
-    s32 var_0;
 
-    var_r1 = (tile & 0x30) >> 3;
+    height = (tile & 0x30) >> 3;
 
     if (tile & 0xC0)
     {
@@ -822,19 +820,19 @@ s16 Collision_GetSlopeHeight(u8 tile, s16 x)
     if (isSlope != 0)
     {
         // tmp = (tile >> 6) - 1;
-        // var_0 = var_r1;
+        // unusedBase = height;
         // if (tile & 4)
         // {
-        //     var_r0 = 7 - x;
+        //     unusedX = 7 - x;
         // }
         // else
         // {
-        //     var_r0 = x;
+        //     unusedX = x;
         // }
-        // var_r1 = var_0 + ((var_r0 & 7) >> tmp);
-        var_r1 = var_r1 + ((((tile & 4) ? (7 - x) : x) & 7) >> ((tile >> 6) - 1));
+        // height = unusedBase + ((unusedX & 7) >> tmp);
+        height = height + ((((tile & 4) ? (7 - x) : x) & 7) >> ((tile >> 6) - 1));
     }
-    return var_r1;
+    return height;
 }
 
 /**
@@ -930,7 +928,6 @@ s16 Collision_GetPushDown(s32 x, s32 y)
     s16 push;
     u32 slope;
     u8 tile;
-    u32 var_0;
 
     for (push = 0; push < 9;)
     {
@@ -997,8 +994,6 @@ s16 Collision_GetPushDownFiltered(s32 x, s32 y, s32 mode)
     s16 push;
     u32 slope;
     u8 tile;
-    u32 var_0;
-    u8 var_1;
 
     for (push = 0; push < 9;)
     {
@@ -1068,7 +1063,6 @@ s16 Collision_GetPushUp(s32 x, s32 y)
     s16 push;
     u32 slope;
     u8 tile;
-    u32 var_0;
 
     for (push = 0; push >= -8;)
     {
@@ -1135,8 +1129,6 @@ s16 Collision_GetPushUpFiltered(s32 x, s32 y, s32 mode)
     s16 push;
     u32 slope;
     u8 tile;
-    u32 var_0;
-    u8 var_1;
 
     for (push = 0; push >= -8;)
     {

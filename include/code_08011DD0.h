@@ -6,11 +6,11 @@
 #include "structs/main.h"
 
 extern s32 Map_CountVisitedCells(struct GameState *gameState);
-extern s32 Map_GetCompletionTenths(struct GameState *gameState, s32 param_1);
-extern void Map_DrawCompletion(struct GameState *gameState, s32 param_1, s32 column, s32 rowOffset);
+extern s32 Map_GetCompletionTenths(struct GameState *gameState, s32 unused);
+extern void Map_DrawCompletion(struct GameState *gameState, s32 unused, s32 column, s32 rowOffset);
 extern void RoomJump_SetDestination(void *room, s32 cameraX, s32 cameraY, s32 playerX, s32 playerY);
-extern void ScreenShake_RequestOffset(u8 priority, s8 param_1, s8 param_2);
-extern void ScreenShake_Request(u8 priority, u8 param_1, u8 param_2, u8 param_3);
+extern void ScreenShake_RequestOffset(u8 priority, s8 offsetX, s8 offsetY);
+extern void ScreenShake_Request(u8 priority, u8 duration, u8 maskX, u8 maskY);
 extern void ScreenShake_Clear(void);
 extern void GameFlag_Set(s32 flag);
 extern s32 GameFlag_GetMask(s32 flag);

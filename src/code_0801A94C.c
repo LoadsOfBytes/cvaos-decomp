@@ -257,7 +257,7 @@ void Soma_UpdateTransformationDash(struct EwramData_EntityData *entity)
 
     {
         u8 **tbl = sUnk_084F10A0;
-        anims = tbl[entity->unk_508.part8.unk_50B];
+        anims = tbl[PLAYER_TRANSFORM_FORM(entity)];
     }
 
     if (entity->subState <= 3 && !(gEwramData->playerStatus.soulStateFlags & 0x1000))

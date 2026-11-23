@@ -116,7 +116,7 @@ void GrahamFirstForm_Update(struct EwramData_EntityData *entity)
                         case 3:
                             if(--entity->timer==255)
                             {
-                                u32 flags=*(volatile u16 *)&GRAHAM_FLAGS(entity);
+                                u32 flags=*(volatile u16 *)&GRAHAM_FLAGS(entity); /* FAKEMATCH: volatile read forces the reload of the original */
                                 s32 mask=flags & state;
                                 if(mask)
                                 {

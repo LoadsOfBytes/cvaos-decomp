@@ -1,6 +1,11 @@
-/* Test the tile at a point and its nearby vertical neighbors. */
+/*
+ * Walk check for a point at the feet one pixel ahead: 0 when the walker can
+ * continue (empty point with floor 8 px below and headroom 7 px above, or a
+ * solid point with an empty / slope (0xC0) tile 7 px above, i.e. a step), 1 for
+ * a wall or a ledge. Used by Curly_UpdateWalk to turn around.
+ */
 #include "code_08001194.h"
-s32 sub_0806B1A0(s16 x, s16 y)
+s32 Collision_IsWalkBlocked(s16 x, s16 y)
 {
     u8 tile;
     if (Collision_GetTile(x, y) == 0)

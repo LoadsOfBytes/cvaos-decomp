@@ -53,7 +53,7 @@ void EventScene03SoulOrb_OnPlayerContact(struct EwramData_EntityData *entity)
  */
 void EventScene03TargetOrb_OnContact(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *anchor = entity->unk_508.unk_508_entity;
+    struct EwramData_EntityData *anchor = EVENT03_ORB_TARGET(entity);
     entity->deleteRequested = 1;
     Effect_SpawnAttachedAnimation(anchor, 0xC, 6, 0, -0x100000);
     PlaySong(0xBC);

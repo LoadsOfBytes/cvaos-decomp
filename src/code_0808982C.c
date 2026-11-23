@@ -1,5 +1,6 @@
 /* Update a tumbling hit effect with a mutable one-frame animation. */
 #include "code_08009A0.h"
+#include "gorgon_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -33,11 +34,11 @@ void GorgonBreath_Update(struct EwramData_EntityData *entity)
     EntityMove(entity);
     if (entity->timer == 25)
     {
-        entity->unk_4FC.part8.unk_4FE = 26;
+        GORGON_FORCED_FRAME(entity) = 26;
         HitBox_SetAttack(entity, &box);
     }
     Anim_Start(entity, (struct AnimScript *)&animation, 0, 1);
-    animation.frame = entity->unk_4FC.part8.unk_4FE;
+    animation.frame = GORGON_FORCED_FRAME(entity);
     Anim_Update(entity);
     if (entity->timer++ > 39) EntityDelete(entity);
     else

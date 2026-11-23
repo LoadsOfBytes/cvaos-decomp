@@ -349,7 +349,7 @@ void Display_ResetRegisters(void)
     gDisplayRegisters.bgCnt[2] = CREATE_BGCNT(0, 30, BGCNT_LOW_MID_PRIORITY, BGCNT_SIZE_256x256);
     gDisplayRegisters.bgCnt[3] = CREATE_BGCNT(0, 31, BGCNT_LOW_MID_PRIORITY, BGCNT_SIZE_256x256);
 
-    gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 0;
+    gEwramData->bgControlMinWriteLevel = gEwramData->unusedWriteLevel = 0;
 }
 
 /**

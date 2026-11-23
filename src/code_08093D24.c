@@ -38,14 +38,14 @@ void EnemySuccubusCreate(struct EwramData_EntityData *entity)
     if (entity->unk_514.part16.spawnParam0 == 0)
     {
         entity->state = 0;
-        entity->unk_4FC.part8.unk_4FE = 1;
+        SUCCUBUS_INTRO(entity) = 1;
         entity->subState = 0;
     }
     else
     {
         Anim_StartIndexed(entity, 1, 0, 1);
         entity->subState = 2;
-        entity->unk_4FC.part8.unk_4FE = 0;
+        SUCCUBUS_INTRO(entity) = 0;
         SUCCUBUS_HOLDING(entity) = 0;
     }
     entity->velY.whole = 0x10000;

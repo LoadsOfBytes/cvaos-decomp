@@ -16,7 +16,7 @@ void Biphron_ThrowShot(struct EwramData_EntityData *entity, s32 offsetX, s32 off
 extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
 extern void BiphronFlame_Update(struct EwramData_EntityData *entity);
 extern void BiphronShot_Update(struct EwramData_EntityData *entity);
-extern void BiphronShot_DamagePlayerOnContact(struct EwramData_EntityData *param_0, s32 param_1, u16 *param_2);
+extern void BiphronShot_DamagePlayerOnContact(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 extern u8 sBiphronGfx[];
 extern u8 sBiphronSpriteSheet[];

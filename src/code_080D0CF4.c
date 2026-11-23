@@ -2,6 +2,7 @@
  * The owner register and cached X coordinate preserve agbcc's register use.
  * Matching does not establish the original source spelling. */
 #include "code_08009A0.h"
+#include "belmont_entity.h"
 #include "structs/ewram.h"
 
 /**
@@ -13,7 +14,7 @@ void BelmontPowerParticle_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *owner =
         &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
-    s8 step = entity->unk_4FC.part8.unk_4FC;
+    s8 step = BELMONT_PARTICLE_STEP(entity);
     u16 initialYMinus32 = entity->posY.part16.integer - 32;
 
     if ((s16)owner->posX.part16.integer > (s16)entity->posX.part16.integer)
@@ -33,7 +34,7 @@ void BelmontPowerParticle_Update(struct EwramData_EntityData *entity)
         if ((ownX < ownerX + 4 && ownX > ownerX - 4) ||
             ((s16)entity->posY.part16.integer < (s16)initialYMinus32 + 4 &&
              (s16)entity->posY.part16.integer > (s16)initialYMinus32 - 4))
-            do { EntityDelete(entity); } while (0);
+            do { EntityDelete(entity); } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
         else if (--entity->timer == 255)
             EntityDelete(entity);
     }

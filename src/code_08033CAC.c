@@ -1,4 +1,5 @@
 #include "code_08033CAC.h"
+#include "debug_entity.h"
 #include "blue_soul_entity.h"
 #include "red_soul_entity.h"
 #include "player_entity.h"
@@ -41,6 +42,8 @@
 #define WHIP_CHAIN_ACTIVE(e) e->unk_500.part16.unk_500
 #define WHIP_CHAIN_SETTLE(e) e->unk_500.part16.unk_502
 #define WHIP_SEGMENT_NODE(e) e->unk_50C.part8.unk_50C
+/* The chain keeps its owner (stored by Whip_CreateChain). */
+#define WHIP_CHAIN_OWNER(e) e->unk_504.unk_504_entity
 
 /*
  * Julius sub-weapons: the cross and axe projectiles spin by adding the spin
@@ -232,7 +235,7 @@ void LinkPartner_Create(void)
     Sprite_Attach(child, (u8 *)0x080E11C4, (s32) gEwramData->playerState.blueSoulGfx, 3);
     child->spriteLayer = 0xF;
     child->roomActive = 1;
-    child->unk_50C.part8.unk_50C = 1;
+    PLAYER_WEAPON_SLOT(child) = 1;
     gEwramData->playerState.linkFrameCounter = 0;
     gEwramData->playerState.enemyTarget = NULL;
     gEwramData->playerState.linkPartner = child;
@@ -523,10 +526,9 @@ void Link_MarkEnemyDamaged(void)
 }
 
 /**
- * @brief 344E0 | To document
- * 
+ * @brief Unreferenced empty function.
  */
-void sub_080344E0(void)
+void Link_UnusedStub(void)
 {
     return;
 }
@@ -727,7 +729,6 @@ void JuliusCross_Update(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *effect;
     struct EwramData_EntityData *owner;
     u16 affineIndex;
-    u8 temp_r4;
 
     owner = RED_SOUL_OWNER(entity);
 
@@ -1481,7 +1482,7 @@ struct EwramData_EntityData* Whip_CreateChain(s32 x, s32 y, u8 *resource, struct
     Hit_SetTimerOverride(2, 0x14);
 
     chain->unk_4F4.whipNodes = gEwramData->whipChainNodes;
-    chain->unk_504.unk_504_entity = owner;
+    WHIP_CHAIN_OWNER(chain) = owner;
     chain->posX.whole = x;
     chain->posY.whole = y;
     chain->drawFunc = (u32*)&Whip_DrawChain;
@@ -1749,7 +1750,7 @@ s16 DebugPlatform_FloorCorrection(struct EwramData_EntityData *entity, s32 x, s3
     if (correction <= -0x10 || correction > 0x0)
         return 0;
 
-    entity->unk_4FC.part8.unk_4FC = 1;
+    DEBUG_PLATFORM_CARRYING(entity) = 1;
     gUnk_03002CB0.collisionProbeFlags = 2;
     return correction;
 }

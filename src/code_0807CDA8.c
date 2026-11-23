@@ -1,5 +1,6 @@
 /* Advance a six-step attack, turn at its midpoint and pause between steps. */
 #include "code/code_08039340.h"
+#include "alura_une_entity.h"
 #include "code_080D73B8.h"
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void Entity_UpdateBoxes(struct EwramData_EntityData *);
@@ -19,8 +20,8 @@ void AluraUneRootWave_Update(struct EwramData_EntityData *entity)
         if (entity->animDone)
         {
             entity->state++;
-            if (++entity->unk_4FC.part8.unk_4FC > 5) { entity->deleteRequested = 1; goto finished; }
-            if (entity->unk_4FC.part8.unk_4FC == 3) entity->flipX ^= 1;
+            if (++ALURA_UNE_WAVE_STEP(entity) > 5) { entity->deleteRequested = 1; goto finished; }
+            if (ALURA_UNE_WAVE_STEP(entity) == 3) entity->flipX ^= 1;
             else if (entity->flipX) entity->posX.part16.integer += 40;
             else entity->posX.part16.integer -= 40;
             entity->hidden = 1;

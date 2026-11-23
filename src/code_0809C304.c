@@ -1,5 +1,6 @@
 /* Stolas body-part helpers 0x0809C304..0x0809C41B. */
 #include "code/code_080211F0.h"
+#include "joint_entity.h"
 #include "structs/ewram.h"
 
 #define STOLAS_PART_COUNT 6
@@ -102,11 +103,11 @@ void Stolas_OnContact(struct EwramData_EntityData *entity)
     struct PlayerContactDamage contactDamage;
 
     contactDamage.attack = entity->attack;
-    if ((s8)entity->unk_504.part8.unk_504 == 2)
+    if ((s8)JOINT_PART_INDEX(entity) == 2)
         contactDamage.attributes = 1;
     else
         contactDamage.attributes = 0;
-    contactDamage.unk_4 = 0;
+    contactDamage.unused = 0;
     contactDamage.reaction = 1;
     contactDamage.sourceX = entity->posX.whole;
     contactDamage.sourceY = entity->posY.whole;

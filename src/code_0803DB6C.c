@@ -303,7 +303,7 @@ void Obj_BuildOam(void)
     u8 *pri = gObjState.layerPriority;
 
     oam = (struct OamData *)gOamBuffer;
-    do { count = 0; } while (0);
+    do { count = 0; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
     idx = gObjLayers[0].head;
     while (idx != -1)
     {

@@ -3,11 +3,11 @@
 
 	.syntax unified
 
-	thumb_func_start sub_080E032C
-sub_080E032C: @ 0x080E032C
+	thumb_func_start __Obj_InstallCallbacks_from_thumb
+__Obj_InstallCallbacks_from_thumb: @ 0x080E032C
 	bx pc
 	nop
 
-	arm_func_start sub_080E0330
-sub_080E0330: @ 0x080E0330
+	arm_func_start __Obj_InstallCallbacks_change_to_arm
+__Obj_InstallCallbacks_change_to_arm: @ 0x080E0330
 	b Obj_InstallCallbacks

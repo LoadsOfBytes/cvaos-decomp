@@ -1,5 +1,6 @@
 /* Create a hit effect relative to the body with supplied initial velocity. */
 #include "code_08009A0.h"
+#include "gorgon_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 extern void GorgonBreath_Update(struct EwramData_EntityData *);
@@ -24,7 +25,7 @@ void GorgonBreath_Spawn(struct EwramData_EntityData *parent, s32 x, s32 y, s32 v
         graphics = ObjGfx_Find(sGorgonGfx);
         part->unk_510.part8.basePalette = parent->unk_510.part8.basePalette;
         Sprite_Attach(part, sGorgonSpriteSheet, graphics, parent->unk_510.part8.basePalette);
-        part->unk_4FC.part8.unk_4FE = 25;
+        GORGON_FORCED_FRAME(part) = 25;
         Hit_Enable(part, 8, GorgonBreath_DamagePlayerOnContact, 0);
         HitBox_SetAttack(part, &box);
         part->hit.flags |= 4;

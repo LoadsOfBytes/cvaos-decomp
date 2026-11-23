@@ -112,7 +112,7 @@ void Succubus_UpdateAttack(struct EwramData_EntityData *entity)
             player = gEwramData->playerState.player;
             dx = player->posX.whole + dx - (ex = entity->posX.whole);
             y = player->posY.whole; y -= (ey = entity->posY.whole);
-            n = *(volatile u8 *)&entity->timer;
+            n = *(volatile u8 *)&entity->timer; /* FAKEMATCH: volatile read forces the reload of the original */
             dx /= n;
             y /= n;
             entity->posX.whole = ex + dx;
@@ -129,7 +129,7 @@ void Succubus_UpdateAttack(struct EwramData_EntityData *entity)
                 struct PlayerContactDamage effect;
                 effect.attack = entity->attack;
                 effect.attributes = 1;
-                effect.unk_4 = 0;
+                effect.unused = 0;
                 effect.reaction = 0;
                 effect.sourceX = entity->posX.whole;
                 effect.sourceY = entity->posY.whole;
@@ -181,7 +181,7 @@ void Succubus_UpdateAttack(struct EwramData_EntityData *entity)
             entity->accelY.whole = 0x1800;
             entity->subState++;
             entity->timer = 0;
-            entity->unk_4FC.part8.unk_4FD = 1;
+            SUCCUBUS_DODGE_CHECKED(entity) = 1;
             SUCCUBUS_LUNGING(entity) = 0;
             SUCCUBUS_GRABBED(entity) = 0;
             SUCCUBUS_HOLDING(entity) = 0;
@@ -202,7 +202,7 @@ void Succubus_UpdateAttack(struct EwramData_EntityData *entity)
             entity->timer = 0;
             entity->velY.whole = speed2;
             entity->accelY.whole = 0x1800;
-            entity->unk_4FC.part8.unk_4FD = 0;
+            SUCCUBUS_DODGE_CHECKED(entity) = 0;
         }
         break;
     }

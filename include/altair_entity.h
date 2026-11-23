@@ -36,4 +36,8 @@
 #define ALTAIR_FEATHER_SWAY_SPEED(e) e->unk_4F8.part16.unk_4F8
 #define ALTAIR_FEATHER_SWAY_PHASE(e) e->unk_4F8.part16.unk_4FA
 
+/* Feather: random spin and a speed set when it starts to fall; never read. */
+#define ALTAIR_FEATHER_UNUSED_SPIN(e) e->unk_508.part16.unk_508
+#define ALTAIR_FEATHER_UNUSED_SPEED(e) e->unk_508.part16.unk_50A
+
 #endif /* ALTAIR_ENTITY_H */

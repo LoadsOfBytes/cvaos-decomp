@@ -66,4 +66,7 @@
 #define LEGION_INTRO_STEP(e) e->unk_4FC.part8.unk_4FC
 #define LEGION_INTRO_ARRIVED(e) e->unk_4FC.part8.unk_4FD
 
+/* LEGION_DATA read as a pointer (the same word through the entity member). */
+#define LEGION_DATA_PTR(e) e->unk_4F8.unk_4F8_entity
+
 #endif /* LEGION_ENTITY_H */

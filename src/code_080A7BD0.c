@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "sky_fish_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "code/code_080211F0.h"
@@ -19,7 +20,7 @@ void EnemySkyFishUpdate(struct EwramData_EntityData *entity)
     }
     if (Enemy_IsStunned(entity))
     {
-        if (entity->state != 1 && entity->unk_4FC.part8.unk_4FC == 0)
+        if (entity->state != 1 && SKY_FISH_DARTING(entity) == 0)
             Hit_CheckWithPlayer(box, entity);
         return;
     }
@@ -32,6 +33,6 @@ void EnemySkyFishUpdate(struct EwramData_EntityData *entity)
     frame = entity->animFrame;
     Anim_Update(entity);
     if (frame != entity->animFrame) Entity_UpdateBoxes(entity);
-    if (entity->state != 1 && entity->unk_4FC.part8.unk_4FC == 0)
+    if (entity->state != 1 && SKY_FISH_DARTING(entity) == 0)
         Hit_CheckWithPlayer(box, entity);
 }

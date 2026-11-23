@@ -37,4 +37,11 @@
 #define SKELETON_PIECE_OWNER_INDEX(e) e->unk_4F8.part8.unk_4F8
 #define SKELETON_PIECE_INDEX(e) e->unk_4F4.part8.unk_4F5
 
+/* Thrown bone (SkeletonProjectile_Update): kind (1 = the variant thrown with
+ * flag 2: frame 0x1B, sound 0x89). */
+#define SKELETON_BONE_KIND(e) e->unk_4FC.part8.unk_4FC
+
+/* EnemySkeletonUpdate stores a random 40..119 here every frame; never read. */
+#define SKELETON_UNUSED_DELAY(e) e->unk_4F4.part16.unk_4F6
+
 #endif /* SKELETON_ENTITY_H */

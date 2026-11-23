@@ -39,4 +39,8 @@
 #define GRAHAM_TURN_RESUME(e) e->unk_500.part8.unk_500
 #define GRAHAM_VOLLEY_SIDE(e) e->unk_504.part8.unk_507
 
+/* Scene (Graham_SpawnSceneProjectile): emitter counter, cycles through the
+ * five spawn points. */
+#define GRAHAM_EMITTER_COUNTER(e) e->unk_4FC.part16.unk_4FC
+
 #endif /* GRAHAM_ENTITY_H */

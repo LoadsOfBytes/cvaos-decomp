@@ -33,7 +33,7 @@ void EnemyAltairCreate(struct EwramData_EntityData *entity)
     entity->stage = 0;
     entity->subState = 0;
     Enemy_ResetFromTemplate(entity);
-    entity->unk_4F8.whole = 0;
+    ALTAIR_CARRIED(entity) = 0;
     ALTAIR_DROP_READY(entity) = 0;
     if (gEwramData->gameState.bestiaryPreview)
     {

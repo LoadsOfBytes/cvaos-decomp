@@ -29,7 +29,7 @@ void ManticoreTail_DamagePlayerOnContact(struct EwramData_EntityData *entity)
     else
         effect.attack = parent->attack >> 1;
     effect.attributes = 0x40;
-    effect.unk_4 = 0;
+    effect.unused = 0;
     effect.reaction = 1;
     effect.sourceX = entity->posX.whole;
     effect.sourceY = entity->posY.whole;

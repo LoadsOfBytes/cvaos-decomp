@@ -181,4 +181,8 @@
 #define SKILL_IMP_TARGET(e) e->unk_514.unk_514_32
 #define SKILL_IMP_AIM_Y(e) e->unk_518.whole
 
+/* Bone souls (Skill_Skeleton_..._Use): hit flag of the bone projectile, set
+ * by BoneSoul_OnPlayerContact; with info flag 0x100 a hit bone shatters. */
+#define SKILL_BONE_HIT(e) e->unk_504.part16.unk_504
+
 #endif /* SOUL_SKILL_ENTITY_H */

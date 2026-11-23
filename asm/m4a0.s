@@ -158,7 +158,7 @@ _080D87E0:
 	movs r0, #0xc7
 	tst r0, r6
 	bne _080D87EA
-	b sub_080D8A58
+	b SoundMainRAM_NextChannel
 _080D87EA:
 	movs r0, #0x80
 	tst r0, r6
@@ -196,7 +196,7 @@ _080D881A:
 _080D882A:
 	movs r0, #0
 	strb r0, [r4]
-	b sub_080D8A58
+	b SoundMainRAM_NextChannel
 _080D8830:
 	movs r0, #0x40
 	tst r0, r6
@@ -271,12 +271,12 @@ _080D88B0:
 	ldr r5, [sp, #8]
 	ldr r2, [r4, #0x18]
 	ldr r3, [r4, #0x28]
-	add r0, pc, #0x4 @ =sub_080D88BC
+	add r0, pc, #0x4 @ =SoundMainRAM_MixChannelArm
 	bx r0
 	.align 2, 0
 
-	arm_func_start sub_080D88BC
-sub_080D88BC: @ 0x080D88BC
+	arm_func_start SoundMainRAM_MixChannelArm
+SoundMainRAM_MixChannelArm: @ 0x080D88BC
 	str r8, [sp]
 	ldrb sl, [r4, #0xa]
 	lsl sl, sl, #0x10
@@ -396,11 +396,11 @@ _080D8A44:
 	str r3, [r4, #0x28]
 _080D8A4C:
 	ldr r8, [sp]
-	add r0, pc, #0x1 @ =sub_080D8A58
+	add r0, pc, #0x1 @ =SoundMainRAM_NextChannel
 	bx r0
 
-	thumb_func_start sub_080D8A58
-sub_080D8A58: @ 0x080D8A58
+	thumb_func_start SoundMainRAM_NextChannel
+SoundMainRAM_NextChannel: @ 0x080D8A58
 	ldr r0, [sp, #4]
 	subs r0, #1
 	ble _080D8A62

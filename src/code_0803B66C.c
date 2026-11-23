@@ -20,94 +20,94 @@ extern const u8 sSpriteSheetDefault4[];
  * @brief Copy the tiles of one animation frame (decompressing LZ77 data when
  * needed) into an object tile slot; return 0 when it does not fit.
  */
-s32 ObjTiles_LoadFrame(s32 param_0, struct ObjTileFrameSource *src, u32 variant, s32 tileOffset, u32 count, s32 param_5)
+s32 ObjTiles_LoadFrame(s32 firstSlot, struct ObjTileFrameSource *src, u32 variant, s32 tileOffset, u32 count, s32 useDmaQueue)
 {
-    u8 *sp4;
-    s32 sp8;
+    u8 *tiles;
+    s32 frameSize;
     s32 j;
     s32 baseTile;
-    u16 var_r4;
+    u16 vramOffset;
     u32 i;
-    u8 *var_r6;
-    s32 var_0;
-    s32 var_1;
+    u8 *source;
+    s32 one;
+    s32 halfSize;
     s32 srcOffset;
     s32 slot;
     u8 slotSize;
-    s32 var_5;
+    s32 rows;
     s32 halfwords;
     u8 *tmp;
 
-    var_0 = 1;
-    slotSize = gEwramData->objTileSlots[(s16)param_0].size;
+    one = 1;
+    slotSize = gEwramData->objTileSlots[(s16)firstSlot].size;
     if ((tileOffset + count) > slotSize)
     {
         return 0;
     }
 
-    sp8 = 0x200;
-    if ((((u16) gEwramData->objTileFlags >> 1) & var_0) == 1)
+    frameSize = 0x200;
+    if ((((u16) gEwramData->objTileFlags >> 1) & one) == 1)
     {
-        sp8 *= 2;
+        frameSize *= 2;
     }
-    sp8 *= 4;
+    frameSize *= 4;
 
     if (src->kind == 1)
     {
         u8 *tmp = gEwramData->gfxDecompBuffer;
         LZ77UnCompWram(src->compressedData, tmp);
-        sp4 = gEwramData->gfxDecompTiles;
+        tiles = gEwramData->gfxDecompTiles;
     }
     else
     {
-        sp4 = (u8*)&src->compressedData;
+        tiles = (u8*)&src->compressedData;
     }
-    sp4 += (((variant >> 1) & 1) << 0xC) + ((variant & 1) << 8);
+    tiles += (((variant >> 1) & 1) << 0xC) + ((variant & 1) << 8);
 
     for (i = 0; i < count; i++)
     {
         halfwords = 0x80;
-        var_5 = 4;
-        var_1 = 0x100;
+        rows = 4;
+        halfSize = 0x100;
 
-        srcOffset = sp8 * i;
-        slot = param_0 + i;
-        var_r6 = sp4 + srcOffset;
-        var_r4 = ObjTiles_GetSlotTile(slot) << 5;
+        srcOffset = frameSize * i;
+        slot = firstSlot + i;
+        source = tiles + srcOffset;
+        vramOffset = ObjTiles_GetSlotTile(slot) << 5;
 
-        baseTile = var_r4;
-        for (j = 0; j < var_5; j++)
+        baseTile = vramOffset;
+        for (j = 0; j < rows; j++)
         {
-            if (param_5 != 0)
+            if (useDmaQueue != 0)
             {
-                DmaQueue_IndirectCopy(var_1, (u32 *) var_r6, VRAM_BASE + 0x10000 + var_r4);
+                DmaQueue_IndirectCopy(halfSize, (u32 *) source, VRAM_BASE + 0x10000 + vramOffset);
             }
             else
             {
-                DMA_COPY_16(3, var_r6, VRAM_BASE + 0x10000 + var_r4, halfwords * 2);
+                DMA_COPY_16(3, source, VRAM_BASE + 0x10000 + vramOffset, halfwords * 2);
             }
-            var_r6 += 0x200;
-            var_r4 += 0x400;
+            source += 0x200;
+            vramOffset += 0x400;
         }
-        // sub_0803B66C_inline_0(var_r6, var_r4, var_5, param_5, var_1);
+        // sub_0803B66C_inline_0(source, vramOffset, rows, useDmaQueue, halfSize);
 
-        var_r4 = baseTile + var_1;
-        for (j = 0; j < var_5; j++)
+        vramOffset = baseTile + halfSize;
+        for (j = 0; j < rows; j++)
         {
-            if (param_5 != 0)
+            if (useDmaQueue != 0)
             {
-                DmaQueue_IndirectCopy(var_1, (u32 *) var_r6, VRAM_BASE + 0x10000 + var_r4);
+                DmaQueue_IndirectCopy(halfSize, (u32 *) source, VRAM_BASE + 0x10000 + vramOffset);
             }
             else
             {
-                DMA_COPY_16(3, var_r6, VRAM_BASE + 0x10000 + var_r4, halfwords * 2);
+                DMA_COPY_16(3, source, VRAM_BASE + 0x10000 + vramOffset, halfwords * 2);
             }
-            var_r6 += 0x200;
-            var_r4 += 0x400;
+            source += 0x200;
+            vramOffset += 0x400;
         }
-        // sub_0803B66C_inline_0(var_r6, var_r4 + var_1, var_5, param_5, var_1);
+        // sub_0803B66C_inline_0(source, vramOffset + halfSize, rows, useDmaQueue, halfSize);
 
-        // sub_0803B66C_inline_1(param_0 + i, param_5, sp4 + (sp8 * i), var_5, var_1);
+        // sub_0803B66C_inline_1(firstSlot + i, useDmaQueue, tiles + (frameSize * i), rows, halfSize);
     }
     return 1;
 }
@@ -152,7 +152,7 @@ s32 ObjGfx_LoadResource(u8 *resource, s32 flags)
 s32 ObjGfx_GetFrame(s32 tileSlot, s32 index)
 {
     s32 entryIndex;
-    s32 var_r3;
+    s32 unused;
     struct ObjGfxEntry *entry;
 
     entryIndex = ObjGfx_FindEntry(tileSlot);
@@ -684,7 +684,7 @@ static inline void MarkObjPaletteDirty(s32 slot)
 void PaletteAnim_Update(void)
 {
     u8 *step;
-    s32 temp_r0_3;
+    s32 unused;
     u8 *palette;
     s32 n;
     struct PaletteAnimSlot *anim;

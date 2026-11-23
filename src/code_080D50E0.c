@@ -1,5 +1,6 @@
 /* Delayed rotating projectile accelerates and leaves a randomized trail. */
 #include "code_08009A0.h"
+#include "graham_projectile.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -16,7 +17,7 @@ extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
  */
 void GrahamShotPart_Update(struct EwramData_EntityData *entity)
 {
-    if((u8)entity->unk_4F8.part8.unk_4F8==0)
+    if((u8)GRAHAM_SPREAD_INDEX(entity)==0)
     {
         if(entity->animDone)
         {

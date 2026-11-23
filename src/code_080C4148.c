@@ -35,7 +35,7 @@ void SkeletonLinkedPart_Update(struct EwramData_EntityData *entity)
     entity->deleteRequested = parent->deleteRequested;
     if (entity->deleteRequested)
         return;
-    if (entity->unk_4F4.part16.unk_4F4 != parent->unk_4F4.part16.unk_4F4)
+    if (ENTITY_INDEX_PAIR(entity) != ENTITY_INDEX_PAIR(parent))
     {
         entity->deleteRequested = 1;
         return;

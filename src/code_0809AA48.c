@@ -155,7 +155,7 @@ void Stolas_UpdateMove(struct EwramData_EntityData *entity)
                         }))) break;
                     }
                     STOLAS_BEAM_LENGTH(entity) = distance;
-                    if (distance >= 0 && (s16)entity->unk_508.part16.unk_50A > 0)
+                    if (distance >= 0 && (s16)STOLAS_FREE_SLOTS(entity) > 0)
                     {
                         entity->state = 1;
                         entity->subState = 0;

@@ -27,7 +27,7 @@ void Link_ApplyPartnerHit(void);
 void Link_UpdatePlayerSync(void);
 void Player_SetSelectedTarget(struct EwramData_EntityData *entity);
 void Link_MarkEnemyDamaged(void);
-void sub_080344E0(void);
+void Link_UnusedStub(void);
 void LinkPartnerMarker_Update(struct EwramData_EntityData *entity);
 void Julius_UpdateSubweaponIcon(struct EwramData_EntityData *entity);
 void Julius_HandleSubweaponInput(struct EwramData_EntityData *entity);

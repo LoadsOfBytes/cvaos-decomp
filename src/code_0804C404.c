@@ -8,8 +8,8 @@ struct MenuPage
     u8 stage;
     u8 pad_D[0x13 - 0xD];
     u8 descriptionMode;
-    u8 unk_14;
-    u8 unk_15;
+    u8 count;
+    u8 cursor;
 };
 
 
@@ -54,13 +54,13 @@ void BestiaryMenu_Open(struct MenuPage *page)
         break;
     }
     Gfx_CopyResource(gfx, (void *)0x06000000, 0);
-    page->unk_15 = 0;
+    page->cursor = 0;
     Heap_SaveAndReset();
     gEwramData->gameState.bestiaryPreview = 1;
     page->subState = 0;
     page->stage = 0;
     MenuPage_Reset(page);
     page->descriptionMode = 0;
-    page->unk_14 = 0x70;
+    page->count = 0x70;
     BestiaryMenu_Setup(page);
 }

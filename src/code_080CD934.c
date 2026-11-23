@@ -77,7 +77,7 @@ void Alastor_UpdateApproach(struct EwramData_EntityData *entity)
                 reachedY=1;
             {
                 s32 both;
-                do { both=reachedY&reachedX; } while (0);
+                do { both=reachedY&reachedX; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
             if (both==1)
             {
                 entity->state=2;

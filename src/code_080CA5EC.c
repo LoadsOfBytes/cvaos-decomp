@@ -85,7 +85,7 @@ void EnemyBeamSkeletonUpdate(struct EwramData_EntityData *entity)
     }
     else if (!Enemy_PreUpdate(entity))
     {
-        entity->unk_500.part16.unk_502 = RandomNumberGenerator() % 80 + 40;
+        BEAM_SKELETON_UNUSED_DELAY(entity) = RandomNumberGenerator() % 80 + 40;
         switch (entity->state)
         {
             case 0: BeamSkeleton_UpdatePatrol(entity); break;

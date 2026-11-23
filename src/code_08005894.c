@@ -1420,7 +1420,6 @@ void MainMenu_InitDataCopy(struct EwramData_EntityData *entity)
 {
     s16 *dst;
     s16 scroll;
-    s32 var_r0;
     s32 k;
     s32 i;
     s32 j;
@@ -1835,7 +1834,6 @@ void SaveSelect_SetupMessageWindow(s32 choice)
 {
     s16 *tilemap;
     s32 i;
-    u8 *var_r0;
 
     tilemap = (s16 *)0x0600E3C4;
     DMA_FILL_32(3, 0, 0x0600E000, 0x800);
@@ -1875,10 +1873,6 @@ void SaveSelect_SetupMessageWindow(s32 choice)
  */
 void SaveSelect_InitScreen(struct EwramData_EntityData *entity)
 {
-    u32 temp_r0;
-    u8 *temp_r1;
-    u8 *temp_r2;
-    u8 *var_r0;
 
     DMA_FILL_32(3, 0, 0x0600E000, 0x200 * 4);
     DMA_FILL_32(3, 0, 0x0600E800, 0x200 * 4);
@@ -1896,7 +1890,7 @@ void SaveSelect_InitScreen(struct EwramData_EntityData *entity)
     gDisplayRegisters.bgCnt[2] = CREATE_BGCNT(0, 30, BGCNT_LOW_MID_PRIORITY, BGCNT_SIZE_256x256);
     gDisplayRegisters.bgCnt[3] = CREATE_BGCNT(0, 31, BGCNT_LOW_PRIORITY, BGCNT_SIZE_256x256);
 
-    gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 0;
+    gEwramData->bgControlMinWriteLevel = gEwramData->unusedWriteLevel = 0;
     gUnk_03002CB0.dispCnt = DCNT_OBJ | DCNT_BG3 | DCNT_BG2 | DCNT_BG1 | DCNT_BG0;
     gDisplayRegisters.bldCnt = BLDCNT_BG3_SECOND_TARGET_PIXEL | BLDCNT_ALPHA_BLENDING_EFFECT | BLDCNT_BG2_FIRST_TARGET_PIXEL;
     gDisplayRegisters.bldAlpha = C_16_2_8(10, 6);
@@ -2130,9 +2124,7 @@ s32 MainMenu_UpdateNameEntry(struct EwramData_EntityData *entity)
     s32 delEmpty;
     s32 backEmpty;
     s32 blank;
-    s32 var_r1_6;
     s32 delIndex;
-    s32 var_r2_11;
     s32 delShift;
     s32 backIndex;
     s32 backShift;
@@ -2140,8 +2132,6 @@ s32 MainMenu_UpdateNameEntry(struct EwramData_EntityData *entity)
     s32 j;
     s32 k;
     s32 index;
-    s32 var_r3_2;
-    s32 var_r3_3;
     s32 flagMatch;
     s32 characterMatch;
     s32 action;
@@ -2420,10 +2410,10 @@ s32 MainMenu_UpdateNameEntry(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief 8720 | To document
- * 
+ * @brief Unreferenced: set every game flag except flags 32-63 (word 1),
+ * which are cleared.
  */
-void sub_08008720(void)
+void GameFlags_SetAllExceptWord1(void)
 {
     struct GameState *gameState;
     s32 i;

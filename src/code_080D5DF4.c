@@ -17,6 +17,6 @@ void EnemyGrahamUpdate(struct EwramData_EntityData *entity)
     else if(state==0xD0)
         Graham_UpdateBestiaryPreview(entity);
     /* Preserve the separate state read in the original dispatch. */
-    else if(*(volatile u8 *)&entity->state==3)
+    else if(*(volatile u8 *)&entity->state==3) /* FAKEMATCH: volatile read forces the reload of the original */
         Graham_UpdatePhaseMonitor(entity);
 }

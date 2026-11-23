@@ -24,7 +24,7 @@ extern const struct ItemInfo sConsumableInfo[];
 extern const u16 sItemNameTextIds[];
 extern s32 HudMap_PrintPaddedNumber(s32 x, s32 y, s32 value, s32 digits);
 extern void HudMap_ClearTilesLeft(s32 x, s32 y, s32 count);
-extern void MenuList_DrawScrollArrows(struct MenuPage *page, s32 param_1);
+extern void MenuList_DrawScrollArrows(struct MenuPage *page, s32 raised);
 
 /**
  * @brief 4B494 | Draw the item list page (32 items, 8 rows): name and count

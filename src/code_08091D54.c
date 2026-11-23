@@ -77,7 +77,7 @@ void DevilChargeEffect_Spawn(struct EwramData_EntityData *owner, s32 dx, s32 dy,
     entity->timer = timer;
     entity->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
     entity->attack = owner->attack;
-    entity->unk_500.unk_500_entity = owner;
+    DEVIL_CHARGE_OWNER(entity) = owner;
     entity->scrollWithBg = 0;
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
 }

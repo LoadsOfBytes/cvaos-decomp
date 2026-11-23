@@ -1,5 +1,6 @@
 /* Set up, play and fade the background transformation scene. */
 #include "code_08009A0.h"
+#include "event_scene30.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
@@ -48,7 +49,7 @@ s32 EventScene30_PlayTransformation(struct EwramData_EntityData *entity)
         break;
     case 3:
         EventScene30_UpdateTransformation(entity);EventScene30_UploadFrame();
-        if(entity->unk_4F8.part8.unk_4F9==10)
+        if(EVENT30_PHASE(entity)==10)
         {if(gEwramData->gameModeTimer++>50){gEwramData->gameModeTimer=0;entity->subState=4;}}
         break;
     case 4:

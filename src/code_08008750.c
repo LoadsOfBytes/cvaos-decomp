@@ -37,6 +37,8 @@
 #define INTRO_SWAY_Y(e) e->unk_4FC.whole
 #define INTRO_TEXT_ROW(e) e->unk_4F8.part8.unk_4F9
 #define INTRO_TEXT_POS(e) e->unk_4FC.part16.unk_4FC
+/* Initial BG0 vertical scroll of the text, stored with the register and never read. */
+#define INTRO_TEXT_START_SCROLL(e) e->unk_4FC.part16.unk_4FE[0]
 
 #include "constants/main.h"
 #include "constants/songs.h"
@@ -115,7 +117,7 @@ s32 GameModeBossRushMenuUpdate(void)
             Palette_Init();
             Text_Initialize();
             HitBox_ClearAll();
-            gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 3;
+            gEwramData->bgControlMinWriteLevel = gEwramData->unusedWriteLevel = 3;
             gUnk_03002CB0.dispCnt = DCNT_BG0;
             gDisplayRegisters.bldCnt = BLDCNT_SCREEN_SECOND_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT | BLDCNT_SCREEN_FIRST_TARGET;
             gDisplayRegisters.bldY = BLDY_MAX_VALUE;
@@ -770,7 +772,7 @@ void IntroCutscene_CreateEntities(struct EwramData_EntityData *entity)
     entity->objMode = 1;
     entity->updateFunc = (u32 *) IntroCutsceneText_Update;
     entity->hidden = 1;
-    gDisplayRegisters.bgOfs[0].vOfs = entity->unk_4FC.part16.unk_4FE[0] = -0xA4;
+    gDisplayRegisters.bgOfs[0].vOfs = INTRO_TEXT_START_SCROLL(entity) = -0xA4;
 
     rising = EntityCreateInRange(0x49, 0xCF, (u32*)IntroCutscene_UpdateRisingSprite);
     spriteGfx = ObjGfx_LoadResource((u8 *)0x08160498, 0);

@@ -19,7 +19,7 @@ extern void CreakingSkull_SpawnProjectile(struct EwramData_EntityData *owner, s3
 extern void Effect_SpawnParticleWithDamping(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32 variant, s32 damping, s32 flags, s32 palette);
 extern void Effect_SpawnFallingPiece(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32 piece);
 extern void Effect_SpawnParticleAnim11(s32 x, s32 y, s32 vx, s32 vy, s32 layer);
-extern void ScreenShake_RequestOffset(u8 priority, s8 param_1, s8 param_2);
+extern void ScreenShake_RequestOffset(u8 priority, s8 offsetX, s8 offsetY);
 extern s32 Entity_GetVisibilityPattern(s32);
 extern const u8 sCreakingSkullSwingTimes[3], sCreakingSkullArmTimes[3], sCreakingSkullSpitTimes[3];
 extern const s8 sUnk_08119063[13];

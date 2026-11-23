@@ -460,7 +460,7 @@ void EventScene27_Init(struct EwramData_EntityData *entity)
         Anim_Update(entity);
         entity->flipX = 0;
         entity->spriteLayer = gEwramData->playerState.player->spriteLayer + 1;
-        entity->unk_4FC.part8.unk_4FC = 1;
+        EVENT27_HEAL(entity) = 1;
     }
 }
 

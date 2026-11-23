@@ -16,7 +16,7 @@ struct MenuPage
 
 extern void HudMap_ClearTilesLeft(s32 x, s32 y, s32 count);
 extern s32 HudMap_PrintPaddedNumber(s32 x, s32 y, s32 value_, s32 digits);
-extern void MenuList_DrawScrollArrows(struct MenuPage *page, s32 param_1);
+extern void MenuList_DrawScrollArrows(struct MenuPage *page, s32 raised);
 
 /**
  * @brief 494F8 | Draw the soul list of soul type slot (red, blue, yellow):
@@ -176,7 +176,7 @@ fill:
         Text8_SetRegion(x, half + 0xC, 0xE, 1);
         Text8_ClearRegion();
         HudMap_ClearTilesLeft(odd ? 0x1B : 0xD, half + 0xA, 1);
-        do { row++; } while (0);
+        do { row++; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
     }
     if (row <= 7)
         goto fill;

@@ -63,7 +63,7 @@ void Interaction_End(struct EwramData_EntityData *entity, s32 deleteEntity)
     if ((s8)entity->state < 0)
         TextWindow_Close();
     ewram = gEwramData;
-    ewram->unk_A074_4 = 0;
+    ewram->unusedWriteLevel = 0;
     ewram->bgControlMinWriteLevel = 0;
     Display_SetDefaultBlend();
     Conversation_Reset();
@@ -169,10 +169,10 @@ s32 Player_GetZoneAroundX(u16 centerX, u16 innerWidth, u16 outerWidth)
  */
 u32 GameFlag_Is3ASet(void)
 {
-    s32 var_0 = GameFlag_GetMask(0x3A);
+    s32 mask = GameFlag_GetMask(0x3A);
 
-    /* var_0 != 0, written out for the original negs/orrs/lsrs #31. */
-    return (u32)(var_0 | -var_0) >> 31;
+    /* mask != 0, written out for the original negs/orrs/lsrs #31. */
+    return (u32)(mask | -mask) >> 31;
 }
 
 /**

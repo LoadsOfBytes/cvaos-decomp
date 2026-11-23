@@ -9,7 +9,7 @@
  * and call its template create callback. Return nonzero if it remains
  * active; update linked spawner counters using the existing rules.
  */
-s32 Altair_CreateCarriedEnemy(struct EwramData_EntityData *entity, u8 type, u16 param_2, u16 param_3)
+s32 Altair_CreateCarriedEnemy(struct EwramData_EntityData *entity, u8 type, u16 spawnParam0, u16 spawnParam1)
 {
     u8 result = 0;
     struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
@@ -25,8 +25,8 @@ s32 Altair_CreateCarriedEnemy(struct EwramData_EntityData *entity, u8 type, u16 
         child->posY.whole = entity->posY.whole + 0x130000;
         child->flipX = x < gEwramData->playerState.player->posX.whole;
         child->scrollWithBg = 1;
-        child->unk_514.part16.spawnParam0 = param_2;
-        child->unk_514.part16.spawnParam1 = param_3;
+        child->unk_514.part16.spawnParam0 = spawnParam0;
+        child->unk_514.part16.spawnParam1 = spawnParam1;
         child->unk_518.part8.spawnIndex = entity->unk_518.part8.spawnIndex;
         child->unk_518.part8.enemyId = type;
         child->drawFunc = (u32 *)Sprite_DrawEntity;
@@ -40,7 +40,7 @@ s32 Altair_CreateCarriedEnemy(struct EwramData_EntityData *entity, u8 type, u16 
         {
             ALTAIR_DROP_COUNT(parent)++;
             ALTAIR_DROP_COUNTED(child)++;
-            ALTAIR_DROP_SPAWNER_INDEX(child) = (u16)ALTAIR_SPAWNER(entity)->unk_4F4.part16.unk_4F4;
+            ALTAIR_DROP_SPAWNER_INDEX(child) = (u16)ENTITY_INDEX_PAIR(ALTAIR_SPAWNER(entity));
         }
     }
     return result;

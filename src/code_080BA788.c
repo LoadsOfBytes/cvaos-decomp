@@ -147,10 +147,10 @@ void ManEaterHead_Update(struct EwramData_EntityData *entity)
         break;
     }
     MAN_EATER_HEAD_FLAGS(entity) &= ~2;
-    a = parent->unk_4FC.part16.unk_4FC + orbit->angle;
+    a = MAN_EATER_BODY_ANGLE(parent) + orbit->angle;
     x = parent->posX.whole + Sin(a + 0x4000) * orbit->radius;
     y = parent->posY.whole + Sin(a) * orbit->radius;
-    b = MAN_EATER_BASE_ANGLE(entity) + parent->unk_4FC.part16.unk_4FC;
+    b = MAN_EATER_BASE_ANGLE(entity) + MAN_EATER_BODY_ANGLE(parent);
     entity->posX.whole = x + Sin(b + 0x4000) * 10;
     entity->posY.whole = y + Sin(b) * 10;
     Anim_Update(entity);

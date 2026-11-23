@@ -91,7 +91,7 @@ void Effect_SpawnParticleAnim11(s32 x, s32 y, s32 vx, s32 vy, s32 layer)
  * velocity, layer, palette, control flags and timer. Preserve the
  * separately stored unk_4FE byte even though this callback ignores it.
  */
-void Effect_SpawnTimedFrameParticle(s32 x, s32 y, s32 vx, s32 vy, s32 layer, s32 param_5, s32 param_6, s32 palette, s32 duration)
+void Effect_SpawnTimedFrameParticle(s32 x, s32 y, s32 vx, s32 vy, s32 layer, s32 damping, s32 flags, s32 palette, s32 duration)
 {
     struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateTimedParticle);
     s32 gfx;
@@ -104,8 +104,8 @@ void Effect_SpawnTimedFrameParticle(s32 x, s32 y, s32 vx, s32 vy, s32 layer, s32
         entity->velY.whole = vy;
         entity->spriteLayer = layer;
         entity->timer = 0;
-        PARTICLE_FLAGS(entity) = param_6;
-        PARTICLE_DAMPING(entity) = param_5;
+        PARTICLE_FLAGS(entity) = flags;
+        PARTICLE_DAMPING(entity) = damping;
         gfx = ObjGfx_Find(sCommonObjectGfx);
         Sprite_Attach(entity, sCommonObjectSpriteSheet, gfx, palette);
         entity->animFrame = 0x35;

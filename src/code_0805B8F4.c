@@ -116,7 +116,7 @@ s32 EventScene30_Update(struct EwramData_EntityData *entity)
             entity->subState++;
             entity->stage = 0;
             gEwramData->gameState.stateFlags |= 0x4000;
-        } else if (*(volatile u8 *)&entity->timer == 0 && entity->stage == 0) {
+        } else if (*(volatile u8 *)&entity->timer == 0 && entity->stage == 0) { /* FAKEMATCH: volatile read forces the reload of the original */
             Music_SubmitCommandOnce(0x1040);
             entity->stage++;
         }

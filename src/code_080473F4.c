@@ -20,7 +20,7 @@ void PauseMenu_Enter(struct GameState *gameState)
     ItemIconCache_Save();
     Palette_SaveState();
     gUnk_03002CB0.dispCnt &= ~0x2000;
-    gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 3;
+    gEwramData->bgControlMinWriteLevel = gEwramData->unusedWriteLevel = 3;
     gDisplayRegisters.bldCnt = 0xFF;
     gEwramData->startPauseEnabled = 0;
     gEwramData->paused = 1;

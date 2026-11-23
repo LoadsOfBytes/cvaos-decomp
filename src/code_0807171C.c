@@ -3,7 +3,7 @@
 #include "structs/ewram.h"
 
 extern void MermanShot_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-extern void MermanShot_OnHit(struct EwramData_EntityData *param_0);
+extern void MermanShot_OnHit(struct EwramData_EntityData *entity);
 
 /**
  * @brief 7171C | Activate box slot 0xA with MermanShot_DamagePlayerOnContact / MermanShot_OnHit and

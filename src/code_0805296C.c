@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code_0800B700.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -20,8 +21,8 @@ fail:
     }
     child->scrollWithBg = 1;
     ENTITY_OWNER(child) = entity;
-    entity->unk_4FC.part16.unk_4FC = 0x6000;
-    entity->unk_500.whole = 0x200000;
+    OBJECT15_ANGLE(entity) = 0x6000;
+    OBJECT15_RADIUS(entity) = 0x200000;
     if ((gEwramData->gameState.gameFlagsTail[1] & 0x0A000000) == 0x02000000)
     {
         entity->state = 4;

@@ -34,7 +34,7 @@ void EnemySkeletonUpdate(struct EwramData_EntityData *entity)
         Skeleton_UpdateDeath(entity);
     else if (Enemy_PreUpdate(entity) == 0)
     {
-        entity->unk_4F4.part16.unk_4F6 = RandomNumberGenerator() % 80 + 40;
+        SKELETON_UNUSED_DELAY(entity) = RandomNumberGenerator() % 80 + 40;
         switch (entity->state)
         {
         case 0: Skeleton_UpdatePatrol(entity); break;

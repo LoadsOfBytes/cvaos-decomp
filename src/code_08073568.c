@@ -156,7 +156,7 @@ void ManticoreTail_UpdateSwing(struct EwramData_EntityData *e)
         }
         else if (owner->animScriptIndex == 8)
         {
-            u8 kind = e->unk_500.whole;
+            u8 kind = e->unk_500.whole; /* word read of MANTICORE_TAIL_KIND (the byte macro changes the code) */
             if (kind == 6)
             {
                 if (owner->timer >= 10 && owner->timer <= 14)
@@ -261,19 +261,19 @@ tail:
     else
     {
         /* do-while(0) wrappers raise register priority of r (allocation as in ROM) */
-        do { r = VALUE(part); } while (0);
+        do { r = VALUE(part); } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
         x = (r - 0x4000) * 5 / 6 * 24 + 0x70000;
         y = (KIND(e) << 16) + x - 0x60000;
         r = FixedMultiply(r, y);
-        do { r = FixedDivide(r, x); } while (0);
+        do { r = FixedDivide(r, x); } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
         x = (VALUE(part) - 0x7000) / 4;
         x = FixedMultiply(e->velX.whole, x + 0x4000);
         x = FixedDivide(x, 0x4000);
         e->velX.whole = x;
-        do { if (!e->flipX) r = 0x10000 - r; } while (0);
+        do { if (!e->flipX) r = 0x10000 - r; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
         e->velY.whole = angle;
         x = Sin(r + 0x4000);
-        do { y = Sin(r); } while (0);
+        do { y = Sin(r); } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
         x = FixedMultiply(x, e->velX.whole);
         y = FixedMultiply(y, e->velX.whole);
         e->posX.whole += x;

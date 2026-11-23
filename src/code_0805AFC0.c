@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "menu_page.h"
 #include "code_0800B700.h"
 #include "code_0800CB00.h"
 #include "code_0800F1FC.h"
@@ -73,7 +74,7 @@ s32 Shop_Update(struct GameState *context)
                 PlaySong(240);
                 context->subModeStep++;
             } else {
-                menu->unk_4F8.part8.unk_4F9 = 0;
+                MENU_PAGE_CURSOR(menu) = 0;
                 PlaySong(244);
                 context->subModeStep = 10;
             }
@@ -120,7 +121,7 @@ s32 Shop_Update(struct GameState *context)
             gDisplayRegisters.bldCnt |= 0x3F00;
             gEwramData->paused = 0;
             { struct EwramData *updated = gEwramData;
-              updated->unk_A074_4 = 0; updated->bgControlMinWriteLevel = 0; }
+              updated->unusedWriteLevel = 0; updated->bgControlMinWriteLevel = 0; }
             result = 1;
         }
         break;

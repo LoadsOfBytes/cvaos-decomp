@@ -21,7 +21,7 @@ struct MenuPage
     s8 top;
     u8 item;
     u8 pad_18[0x39 - 0x18];
-    s8 unk_39;
+    s8 drawnTop;
 };
 
 struct ItemInfo { u16 name; };
@@ -38,7 +38,7 @@ extern void MenuItemIcon_Show(s32 x, s32 y, s32 type, s32 item);
 extern void EquipmentMenu_DrawStatPreview(struct MenuPage *page);
 extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
 extern void EquipmentMenu_DrawList(struct PlayerStatus *stats, struct MenuPage *page, s32 slot);
-extern void MenuList_DrawScrollArrows(struct MenuPage *page, s32 param_1);
+extern void MenuList_DrawScrollArrows(struct MenuPage *page, s32 raised);
 extern void EquipmentMenu_ShowSlotDescription(struct PlayerStatus *stats, struct MenuPage *page);
 extern void Cursor_SetTilePosition(s32 a, s32 b);
 extern void Cursor_Draw(void);
@@ -130,9 +130,9 @@ s32 EquipmentMenu_UpdateList(struct MenuPage *page)
     else if (moved)
     {
         old = page->item;
-        if (page->unk_39 != page->top)
+        if (page->drawnTop != page->top)
         {
-            page->unk_39 = page->top;
+            page->drawnTop = page->top;
             EquipmentMenu_DrawList(stats, page, page->subState);
             MenuList_DrawScrollArrows(page, 0);
         }

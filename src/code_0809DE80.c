@@ -17,7 +17,7 @@ extern u8 sLegionGfx[], sLegionSpriteSheet[], sLegionObject25Palette[];
 s32 Legion_LoadGraphics(struct EwramData_EntityData *entity)
 {
     s32 graphics;
-    s32 *data = (s32 *)entity->unk_4F8.unk_4F8_entity;
+    s32 *data = (s32 *)LEGION_DATA_PTR(entity);
     graphics = ObjGfx_LoadResource(sLegionGfx, 0);
     if (graphics < 0)
         return 0;

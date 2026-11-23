@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
 
@@ -44,7 +45,7 @@ void Object10Create(struct EwramData_EntityData *entity)
         break;
     }
     child = &gEwramData->entityData[26];
-    value = child->unk_4F8.whole;
+    value = BOSS_RUSH_TIME(child);
     for (reward = sObject10Rewards, i = 0; i <= 2; i++, reward++)
     {
         if (value <= reward->maxValue && *ItemInventory_GetCountPtr(Item_GetTypeByGlobalId(reward->item), Item_GetIndexByGlobalId(reward->item)) == 0)
@@ -55,7 +56,7 @@ void Object10Create(struct EwramData_EntityData *entity)
     }
     item = 1;
 found:
-    entity->unk_4FC.whole = item;
+    OBJECT10_REWARD_ITEM(entity) = item;
     child = Pickup_CreateItem(entity->posX.part16.integer, (u16)entity->posY.part16.integer, 0xFF, item, 1);
     if (child != NULL)
         child->subState = 1;

@@ -41,13 +41,13 @@ void Object17Create(struct EwramData_EntityData *entity)
     if (sUnk_08118590[0] + 0x20 >= ({ py = (u32)t >> 16; t >> 16; }))
     {
         entity->subState = i;
-        do { tbl = sUnk_08118590; } while (0);
+        do { tbl = sUnk_08118590; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
     }
     else
     {
     next:
         i++;
-        do { tbl = sUnk_08118590; } while (0);
+        do { tbl = sUnk_08118590; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
         if (i <= 2)
         {
             if (tbl[i] + 0x20 < (s16)py)

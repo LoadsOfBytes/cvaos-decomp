@@ -30,4 +30,11 @@
 #define SUCCUBUS_SEEN(e) e->unk_504.part8.unk_505
 #define SUCCUBUS_DODGE_CHECKED(e) e->unk_4FC.part8.unk_4FD
 
+/*
+ * Intro: set when it starts in its intro pose (spawn parameter 0, cleared
+ * when the intro animation ends); a hit then only sets holding and cannot
+ * bring its HP below 1 (Succubus_OnHit).
+ */
+#define SUCCUBUS_INTRO(e) e->unk_4FC.part8.unk_4FE
+
 #endif /* SUCCUBUS_ENTITY_H */

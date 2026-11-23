@@ -481,7 +481,7 @@ void Imp_OnContact(struct EwramData_EntityData *entity)
 
     contactDamage.attack = entity->attack;
     contactDamage.attributes = decoy;
-    contactDamage.unk_4 = decoy;
+    contactDamage.unused = decoy;
     contactDamage.reaction = decoy;
     contactDamage.sourceX = entity->posX.whole;
     contactDamage.sourceY = entity->posY.whole;

@@ -1,5 +1,6 @@
 /* Hit callback: compute damage and perform the boss's death transition. */
 #include "code_08009A0.h"
+#include "chaos_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "structs/ewram.h"
@@ -11,7 +12,7 @@ static inline s32 SubtractDamage(u16 health, s16 damage) { return health - damag
 void Chaos2_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     u16 *savedHit = (u16 *)hit;
-    s32 timer = (s8)entity->unk_500.part8.unk_500 * 20 + (u8)entity->unk_500.part8.unk_501;
+    s32 timer = (s8)CHAOS2_PART_COUNT(entity) * 20 + (u8)CHAOS2_BASE_DEFENSE(entity);
     s32 damage;
     if (timer <= 255) entity->defense = timer;
     else entity->defense = 255;
@@ -24,7 +25,7 @@ void Chaos2_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
         Enemy_DropRewards(entity);
         entity->palette = entity->unk_510.part8.basePalette;
         entity->timer = 120;
-        entity->unk_4F8.part8.unk_4F9 = 0;
+        CHAOS2_DEFEAT_READY(entity) = 0;
         entity->state = 3;
         entity->subState = 0;
         BossDefeatEffect_Spawn(entity->posX.whole, entity->posY.whole);

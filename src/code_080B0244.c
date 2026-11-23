@@ -10,7 +10,7 @@ void MinotaurAxeHitBox_Update(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
     struct EwramData_EntityData *parent = ENTITY_OWNER(entity);
-    if (entity->state != 0 && *(u8 *)&parent->unk_4F4 != entity->unk_4F4.part8.unk_4F5)
+    if (entity->state != 0 && *(u8 *)&parent->unk_4F4 != ENTITY_PARENT_INDEX(entity))
     {
         EntityDelete(entity);
         return;

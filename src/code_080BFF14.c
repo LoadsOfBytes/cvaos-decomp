@@ -42,7 +42,7 @@ void KickerSkeleton_DamagePlayerOnContact(struct EwramData_EntityData *entity)
     struct PlayerContactDamage effect;
     s32 speed;
     effect.attributes = 0;
-    effect.unk_4 = 0;
+    effect.unused = 0;
     if (KICKER_SKELETON_FLAGS(entity) & 1)
     {
         effect.attack = entity->attack + (entity->attack >> 2);

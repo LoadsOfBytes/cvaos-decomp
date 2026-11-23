@@ -5,6 +5,9 @@
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
+/* Accumulated every frame but never read; the step is never written. */
+#define SUBWEAPON_UNUSED_SUM(e) e->unk_50C.part16.unk_50E
+#define SUBWEAPON_UNUSED_STEP(e) e->unk_508.part16.unk_508
 extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
 #define ANGLE(e) ((e)->unk_518.part16.hp)
 #define STEP(e) ((e)->unk_518.part16.unk_51A)
@@ -69,7 +72,7 @@ void BelmontSubweapon1_Update(struct EwramData_EntityData *entity)
                 STEP(entity)=-step;
             ANGLE(entity)+=STEP(entity);
             ObjAffine_Set((s16)ANGLE(entity),0x10000,0x10000,entity->flipX,0,entity->affineIndex);
-            entity->unk_50C.part16.unk_50E+=entity->unk_508.part16.unk_508;
+            SUBWEAPON_UNUSED_SUM(entity)+=SUBWEAPON_UNUSED_STEP(entity);
             if(EntityIsOutsideScreen(entity,4))
                 entity->state=2;
             break;

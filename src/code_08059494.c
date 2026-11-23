@@ -349,7 +349,7 @@ void Object33_SpawnFallingSpark(struct EwramData_EntityData *entity)
  */
 void Object33Update(struct EwramData_EntityData *entity)
 {
-    u32 var_0[4];
+    u32 collision[4];
 
     if (entity->state == 0)
         Object33_UpdateState(entity);
@@ -629,7 +629,7 @@ void Object34Part_Update(struct EwramData_EntityData *entity)
  */
 void Object34Update(struct EwramData_EntityData *entity)
 {
-    u32 var_0[4];
+    u32 collision[4];
 
     if (entity->state == 0)
         Object34_UpdateSwing(entity);

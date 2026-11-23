@@ -1,5 +1,6 @@
 /* BreakableBlock_SetCollision (breakable block tiles). */
 #include "code_08001194.h"
+#include "room_object_entity.h"
 #include "structs/ewram.h"
 
 /* Per variant: collisionOffsetX/collisionOffsetY and collisionWidth x collisionHeight in pixels. */
@@ -28,7 +29,7 @@ void BreakableBlock_SetCollision(struct EwramData_EntityData *entity)
     s32 i;
     s32 j;
 
-    switch ((u8)entity->unk_4F8.part8.unk_4F8)
+    switch ((u8)OBJECT08_KIND(entity))
     {
         case 2:
             offsetX -= 0x10;

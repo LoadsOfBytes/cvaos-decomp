@@ -28,7 +28,7 @@ struct ObjTileFrameSource {
     u8 pad_1[0x4 - 0x1];
     void *compressedData;
 };
-extern s32 ObjTiles_LoadFrame(s32 param_0, struct ObjTileFrameSource *src, u32 variant, s32 tileOffset, u32 count, s32 param_5);
+extern s32 ObjTiles_LoadFrame(s32 firstSlot, struct ObjTileFrameSource *src, u32 variant, s32 tileOffset, u32 count, s32 useDmaQueue);
 
 extern s32 ObjGfx_LoadResource(u8 *resource, s32 flags);
 extern s32 ObjGfx_GetFrame(s32 tileSlot, s32 index);
@@ -185,7 +185,7 @@ extern void BgMap_SaveSelection(u8 bgIndex);
 extern void Bg_SyncPriorities(void);
 extern void Gfx_CopyResource(void *resource, void *dest, u16 queued);
 extern void Gfx_CopyResourceBlocks(void *resource, s32 destinationIndex, s32 sourceIndex, s32 blockCount);
-extern s32 Bg_SetControlIfLevelAllows(s32 param_0, s32 param_1, u16 param_2);
+extern s32 Bg_SetControlIfLevelAllows(s32 level, s32 reg, u16 value);
 extern void Text12_BuildGlyphRows(u16 ch, u32 skip, u32 width);
 extern void Text12_BlitGlyphWithinColumn(u16 ch, u32 skip, u32 width);
 extern void Text12_BlitGlyphAcrossColumns(u16 ch, u32 skip, u32 width);

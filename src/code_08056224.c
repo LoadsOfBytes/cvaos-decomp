@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code_0800B700.h"
 #include "code_0800F1FC.h"
 #include "code/code_08060B98.h"
@@ -23,7 +24,7 @@ void Object1FUpdate(struct EwramData_EntityData *entity)
         Game_SetMenusEnabled(0);
         player->objMode = 1;
         gDisplayRegisters.bldAlpha = 0x10;
-        entity->unk_4F8.part16.unk_4F8 = 0x80;
+        OBJECT1F_FADE_TIMER(entity) = 0x80;
         break;
     case 1:
         gEwramData->gameState.stateFlags |= 1;
@@ -40,7 +41,7 @@ void Object1FUpdate(struct EwramData_EntityData *entity)
             gDisplayRegisters.bldAlpha = 0x808;
         }
         gDisplayRegisters.bldAlpha = (0x10 - (entity->timer >> 3)) | ((entity->timer >> 3) << 8);
-        if (--entity->unk_4F8.part16.unk_4F8 != 0xFFFF)
+        if (--OBJECT1F_FADE_TIMER(entity) != 0xFFFF)
             return;
         RoomFadeTransition_Begin(g);
         break;

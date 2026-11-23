@@ -71,7 +71,7 @@ void MultiSioSyncInitialize(void)
  * once all units are ready, count the start-up frames, check received
  * packets into recv and return the SIO result flags.
  */
-s32 MultiSioSyncMain(struct LinkFrameSlot *param_0)
+s32 MultiSioSyncMain(struct LinkFrameSlot *recv)
 {
     struct SioMultiCnt sioMultiCnt;
 
@@ -117,7 +117,7 @@ s32 MultiSioSyncMain(struct LinkFrameSlot *param_0)
             }
             /* fallthrough */
         case 2:
-            MultiSioSyncRecvDataCheck(param_0);
+            MultiSioSyncRecvDataCheck(recv);
             break;
     }
 
@@ -135,24 +135,24 @@ s32 MultiSioSyncMain(struct LinkFrameSlot *param_0)
  * @brief Build the next send packet (frame counter, connection bits, 16 data
  * bytes) with its checksum and mark it ready.
  */
-void MultiSioSyncSendDataSet(struct LinkFrameState *param_0)
+void MultiSioSyncSendDataSet(struct LinkFrameState *src)
 {
-    s32 var_r5;
+    s32 checksum;
     u32 i;
-    u16 *var_r1;
+    u16 *unusedPtr;
 
-    var_r5 = 0;
+    checksum = 0;
     sMultiSioSyncState.sendBuildBuffer->frameCounter = sMultiSioSyncState.counter;
     sMultiSioSyncState.sendBuildBuffer->connectionMaskXor = sMultiSioSyncState.connectedMask ^ sMultiSioSyncState.receivedMask;
     sMultiSioSyncState.sendBuildBuffer->checksum = 0;
-    CPU_COPY_32(param_0, &sMultiSioSyncState.sendBuildBuffer->payload, 0x10);
+    CPU_COPY_32(src, &sMultiSioSyncState.sendBuildBuffer->payload, 0x10);
 
     for (i = 0; i < 10; i++)
     {
-        var_r5 += ((u16*)sMultiSioSyncState.sendBuildBuffer)[i];
+        checksum += ((u16*)sMultiSioSyncState.sendBuildBuffer)[i];
     }
 
-    sMultiSioSyncState.sendBuildBuffer->checksum = ~var_r5 - 12;
+    sMultiSioSyncState.sendBuildBuffer->checksum = ~checksum - 12;
     sMultiSioSyncState.sendReady = 1;
 }
 
@@ -160,42 +160,42 @@ void MultiSioSyncSendDataSet(struct LinkFrameState *param_0)
  * @brief Swap in the completed receive buffers, copy every packet whose
  * checksum is valid to recv and return the mask of units received.
  */
-s32 MultiSioSyncRecvDataCheck(struct LinkFrameSlot *param_0)
+s32 MultiSioSyncRecvDataCheck(struct LinkFrameSlot *recv)
 {
-    s32 var_r4;
+    s32 checksum;
     s32 i;
-    u16 *temp_r1_3;
+    u16 *packet;
     u32 j;
-    s32 temp_r1_2;
-    vu32 var_0 = 0; // Necessary to match
+    s32 ready;
+    vu32 stackPad = 0; // Necessary to match
 
     WRITE_16(REG_IME, 0);
-    temp_r1_3 = sMultiSioSyncState.receiveReadBuffer;
+    packet = sMultiSioSyncState.receiveReadBuffer;
     sMultiSioSyncState.receiveReadBuffer = sMultiSioSyncState.receivePendingBuffer;
-    sMultiSioSyncState.receivePendingBuffer = temp_r1_3;
-    temp_r1_2 = sMultiSioSyncState.receiveReady;
+    sMultiSioSyncState.receivePendingBuffer = packet;
+    ready = sMultiSioSyncState.receiveReady;
     sMultiSioSyncState.receiveReady = 0;
     WRITE_16(REG_IME, 1);
 
     sMultiSioSyncState.receivedMask = 0;
-    if (temp_r1_2 != 0)
+    if (ready != 0)
     {
         for(i = 0; i < 2; i++)
         {
-            temp_r1_3 = sMultiSioSyncState.receiveReadBuffer + (i * 0x18);
-            var_r4 = 0;
+            packet = sMultiSioSyncState.receiveReadBuffer + (i * 0x18);
+            checksum = 0;
 
             for (j = 0; j < 10; j++)
             {
-                var_r4 += temp_r1_3[j];
+                checksum += packet[j];
             }
 
-            if ((s16)var_r4 == -13)
+            if ((s16)checksum == -13)
             {
-                CPU_COPY_32(temp_r1_3 + 2, &param_0[i], 0x10);
+                CPU_COPY_32(packet + 2, &recv[i], 0x10);
                 sMultiSioSyncState.receivedMask |= 1 << i;
             }
-            CPU_FILL_32(0, temp_r1_3 + 2, 0x10);
+            CPU_FILL_32(0, packet + 2, 0x10);
         } 
     }
 
@@ -209,22 +209,22 @@ s32 MultiSioSyncRecvDataCheck(struct LinkFrameSlot *param_0)
  */
 void MultiSioSyncVSync(void)
 {
-    void *temp_r1;
+    void *swap;
 
     if (sMultiSioSyncState.isParent)
     {
         if ((sMultiSioSyncState.stage != 0) && (sMultiSioSyncState.transfersEnabled != 0))
         {
             sMultiSioSyncState.receiveWordIndex = -1;
-            temp_r1 = sMultiSioSyncState.receivePendingBuffer;
+            swap = sMultiSioSyncState.receivePendingBuffer;
             sMultiSioSyncState.receivePendingBuffer = sMultiSioSyncState.receiveWriteBuffer;
-            sMultiSioSyncState.receiveWriteBuffer = temp_r1;
+            sMultiSioSyncState.receiveWriteBuffer = swap;
 
             if (sMultiSioSyncState.sendReady != 0)
             {
-                temp_r1 = sMultiSioSyncState.sendActiveBuffer;
+                swap = sMultiSioSyncState.sendActiveBuffer;
                 sMultiSioSyncState.sendActiveBuffer = sMultiSioSyncState.sendBuildBuffer;
-                sMultiSioSyncState.sendBuildBuffer = temp_r1;
+                sMultiSioSyncState.sendBuildBuffer = swap;
                 sMultiSioSyncState.sendReady = 0;
                 sMultiSioSyncState.sendWordIndex = 0;
             }
@@ -255,10 +255,10 @@ void MultiSioSyncVSync(void)
 void MultiSioSyncInterrupt(void)
 {
     s32 i;
-    struct MultiSioPacket *temp_r1_2;
-    u16 *var_r1;
-    u16 *var_r2;
-    void *temp_r1;
+    struct MultiSioPacket *sendSwap;
+    u16 *unusedPtr0;
+    u16 *unusedPtr1;
+    void *swap;
     u16 recv[4];
 
     WRITE_64(recv, READ_64(REG_SIO_MULTI));
@@ -266,15 +266,15 @@ void MultiSioSyncInterrupt(void)
     if ((recv[0] == 0xFEFE) && (sMultiSioSyncState.receiveWordIndex > 9))
     {
         sMultiSioSyncState.receiveWordIndex = -1;
-        temp_r1 = sMultiSioSyncState.receivePendingBuffer;
+        swap = sMultiSioSyncState.receivePendingBuffer;
         sMultiSioSyncState.receivePendingBuffer = sMultiSioSyncState.receiveWriteBuffer;
-        sMultiSioSyncState.receiveWriteBuffer = temp_r1;
+        sMultiSioSyncState.receiveWriteBuffer = swap;
 
         if (sMultiSioSyncState.sendReady != 0)
         {
-            temp_r1_2 = sMultiSioSyncState.sendActiveBuffer;
+            sendSwap = sMultiSioSyncState.sendActiveBuffer;
             sMultiSioSyncState.sendActiveBuffer = sMultiSioSyncState.sendBuildBuffer;
-            sMultiSioSyncState.sendBuildBuffer = temp_r1_2;
+            sMultiSioSyncState.sendBuildBuffer = sendSwap;
             sMultiSioSyncState.sendReady = 0;
             sMultiSioSyncState.sendWordIndex = 0;
         }
@@ -412,12 +412,12 @@ s32 Link_IsConnected(void)
  */
 s32 Link_IsPeerActive(void)
 {
-    s32 var_r2;
+    s32 otherId;
 
-    var_r2 = MultiSioSyncGetId() == 0;
+    otherId = MultiSioSyncGetId() == 0;
 
     // TODO: figure out match
-    return sLinkFrameState.packetSlots[var_r2].markerWords[8] == 0xA2C;
+    return sLinkFrameState.packetSlots[otherId].markerWords[8] == 0xA2C;
 }
 
 /**
@@ -454,15 +454,15 @@ void Link_Stop(void)
  * @brief Unreferenced: queue one byte in send slot index unless the slot is
  * busy; return 1 on success.
  */
-s32 Link_QueueSendByte(u8 param_0, s32 param_1)
+s32 Link_QueueSendByte(u8 value, s32 index)
 {
-    s16 var_0;
+    s16 slot;
 
-    var_0 = param_1;
-    if (sLinkFrameState.sendSlotBusy[var_0] == 0)
+    slot = index;
+    if (sLinkFrameState.sendSlotBusy[slot] == 0)
     {
-        sLinkFrameState.sendSlotBusy[var_0] = 1;
-        sLinkFrameState.packetSlots[0].payloadBytes[param_1] = param_0;
+        sLinkFrameState.sendSlotBusy[slot] = 1;
+        sLinkFrameState.packetSlots[0].payloadBytes[index] = value;
         return 1;
     }
     else
@@ -497,40 +497,40 @@ s32 Link_QueueSendBytes(u8 *data, s32 count)
 /**
  * @brief Unreferenced: return received byte index from the other unit.
  */
-u8 Link_GetReceivedByte(s32 param_0)
+u8 Link_GetReceivedByte(s32 index)
 {
-    struct LinkFrameState *var_0;
+    struct LinkFrameState *state;
 
-    var_0 = &sLinkFrameState;
+    state = &sLinkFrameState;
     if (MultiSioSyncGetId() == 0)
     {
-        param_0 += 0x10;
+        index += 0x10;
     }
-    return var_0->packetSlots[1].payloadBytes[param_0];
+    return state->packetSlots[1].payloadBytes[index];
 }
 
 /**
  * @brief Copy count received bytes from the other unit to dst.
  */
-void Link_CopyReceivedBytes(u8 *param_0, s32 param_1)
+void Link_CopyReceivedBytes(u8 *dst, s32 count)
 {
     s32 i;
-    u8 *var_r2;
-    u8 *var_r3;
+    u8 *out;
+    u8 *in;
 
     if (MultiSioSyncGetId() == 0)
     {
-        var_r3 = sLinkFrameState.packetSlots[1].payloadBytes + 0x10;
+        in = sLinkFrameState.packetSlots[1].payloadBytes + 0x10;
     }
     else
     {
-        var_r3 = sLinkFrameState.packetSlots[1].payloadBytes;
+        in = sLinkFrameState.packetSlots[1].payloadBytes;
     }
 
-    var_r2 = param_0;
-    for (i = 0; i < param_1; i++)
+    out = dst;
+    for (i = 0; i < count; i++)
     {
-        *var_r2++ = *var_r3++;
+        *out++ = *in++;
     }
 }
 
@@ -568,14 +568,14 @@ struct MultiSioResultBits {
  */
 s32 Link_ReceivedFromAll(void)
 {
-    u32 temp_r0;
-    struct MultiSioResultBits *var_0;
+    u32 unused;
+    struct MultiSioResultBits *bits;
 
-    var_0 = (struct MultiSioResultBits *)&sLinkFrameState.sioResultFlags;
+    bits = (struct MultiSioResultBits *)&sLinkFrameState.sioResultFlags;
     if (sLinkFrameState.sioResultFlags & SIO_RESULT_UNK_8)
-    // if (var_0->unk_15)
+    // if (bits->unk_15)
     {
-        if (var_0->receivedMask != var_0->connectedMask)
+        if (bits->receivedMask != bits->connectedMask)
         {
             return 0;
         }

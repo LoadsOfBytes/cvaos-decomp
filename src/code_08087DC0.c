@@ -2,6 +2,7 @@
  * reaction and its parts (eyeball, pupil and the chain of six links).
  * The whole range 0x08087DC0..0x08088D27 is now C. */
 #include "code_08009A0.h"
+#include "peeping_eye_entity.h"
 #include "code_080D73B8.h"
 #include "syscalls.h"
 #include "code/code_080211F0.h"
@@ -17,7 +18,6 @@
  * (bit 1 = eye open), animation step index and animation set.
  * Token-identical expansion.
  */
-#define PEEPING_EYE_OWNER(e) e->unk_500.unk_500_entity
 #define PEEPING_EYE_PREV_LINK(e) e->unk_504.unk_504_entity
 #define PEEPING_EYE_LINK_INDEX(e) e->unk_4F4.part8.unk_4F5
 #define PEEPING_EYE_ANIM_FLAGS(e) e->unk_4FC.part8.unk_4FC

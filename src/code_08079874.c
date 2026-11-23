@@ -8,7 +8,7 @@
 
 extern u8 Werejaguar_LoadGraphics(struct EwramData_EntityData *entity);
 extern void Werejaguar_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-extern void Werejaguar_OnHit(struct EwramData_EntityData *param_0);
+extern void Werejaguar_OnHit(struct EwramData_EntityData *entity);
 extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
 extern void Entity_UpdateBoxes(struct EwramData_EntityData *entity);
 extern void Entity_SnapToGround(struct EwramData_EntityData *entity);

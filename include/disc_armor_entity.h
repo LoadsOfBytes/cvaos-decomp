@@ -47,4 +47,7 @@
  * (token-identical preprocessed code); use them with a plain base expression.
  */
 
+/* Sparks (SpawnSpark in code_080B1678.c, DiscArmorSpark_Update): animation. */
+#define DISC_ARMOR_SPARK_ANIM(e) e->unk_4F8.part8.unk_4F8
+
 #endif /* DISC_ARMOR_ENTITY_H */

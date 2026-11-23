@@ -1,4 +1,5 @@
 #include "code/code_08039340.h"
+#include "menu_page.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
 #include "structs/entity_template.h"
@@ -18,7 +19,7 @@ void BestiaryMenu_PrintDrops(struct EwramData_EntityData *menu)
 {
     struct EwramData *ewram = gEwramData;
     struct PlayerStatus *player = &ewram->playerStatus;
-    u8 index = menu->unk_4F8.part8.unk_4F9;
+    u8 index = MENU_PAGE_CURSOR(menu);
     struct EntityTemplate *template = &sEnemyData[index];
     s32 text;
 

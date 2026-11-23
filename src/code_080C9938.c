@@ -27,9 +27,9 @@ void LightningDoll_ResetActive(struct EwramData_EntityData *entity)
     entity->state = 1;
     entity->stage = zero;
     entity->subState = zero;
-    entity->unk_4F8.part16.unk_4F8 = RandomNumberGenerator() % 0x20 + 0x10;
-    entity->unk_4FC.part16.unk_4FC = RandomNumberGenerator() % 0x400 + 0x200;
-    entity->unk_4F8.part16.unk_4FA = zero;
+    LIGHTNING_DOLL_ATTACK_TIMER(entity) = RandomNumberGenerator() % 0x20 + 0x10;
+    LIGHTNING_DOLL_REST_TIMER(entity) = RandomNumberGenerator() % 0x400 + 0x200;
+    LIGHTNING_DOLL_MOVE_TIMER(entity) = zero;
 }
 
 /**
@@ -62,7 +62,7 @@ void LightningDoll_OnContact(struct EwramData_EntityData *entity)
     struct PlayerContactDamage effect;
     effect.attack = entity->attack;
     effect.attributes = 0;
-    effect.unk_4 = 0;
+    effect.unused = 0;
     effect.reaction = 0;
     effect.sourceX = entity->posX.whole;
     effect.sourceY = entity->posY.whole;

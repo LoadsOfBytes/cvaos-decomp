@@ -4,7 +4,7 @@
 #include "structs/ewram.h"
 extern void Mandragora_SpawnDeathParts(struct EwramData_EntityData *);
 extern void Mandragora_RequestLinkedDeletion(struct EwramData_EntityData *);
-#define FLAGS(e) ((e)->unk_504.part8.unk_504)
+#define FLAGS(e) (MANDRAGORA_FLAGS((e)))
 /**
  * @brief Death state (0xF0): hide, spawn five parts and wait for their live
  * count plus linked-part/palette state before requesting removal

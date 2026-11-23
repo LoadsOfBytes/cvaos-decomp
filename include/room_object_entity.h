@@ -92,9 +92,14 @@
 #define OBJECT30_LEAF_KIND(e) e->unk_4F8.whole
 #define OBJECT30_LEAF_SCROLL_X(e) e->unk_4FC.whole
 
-/* Object 0x19 (Object19Create / Object19Update): affine angle and its step. */
+/*
+ * Object 0x19 (Object19Create / Object19Update): affine angle and its step,
+ * time left in the current path step of sObject19Steps (16.16 frames; the
+ * first step starts at half its time).
+ */
 #define OBJECT19_ANGLE(e) e->unk_4F8.part16.unk_4F8
 #define OBJECT19_SPIN(e) e->unk_4F8.part16.unk_4FA
+#define OBJECT19_STEP_TIME(e) e->unk_4FC.whole
 
 /*
  * Object 0x15 (Object15Update, its orbiters read the owner): orbit angle
@@ -144,5 +149,42 @@
 #define WARP_GATE_STEP(e) e->unk_504.part16.unk_506[0]
 #define WARP_GATE_HOME_X(e) e->unk_500.part16.unk_500
 #define WARP_GATE_HOME_Y(e) e->unk_500.part16.unk_502
+
+/*
+ * Object 0x1D (warp room side wall, Object1DCreate): side of the room exit
+ * (1 when the exit directions of the room sum to +1, i.e. not flipped).
+ */
+#define OBJECT1D_EXIT_RIGHT(e) e->unk_4F8.part8.unk_4F8
+
+/*
+ * Object 0x22 (platform carrying the player along its levels,
+ * Object22_UpdateState): frames without the player on it (returns after 60),
+ * flag byte (bit 0: no longer queued as a platform); its falling part keeps
+ * the platform.
+ */
+#define OBJECT22_EMPTY_TIMER(e) e->unk_500.part8.unk_500
+#define OBJECT22_FLAGS(e) e->unk_504.part8.unk_507
+#define OBJECT22_PART_OWNER(e) e->unk_4FC.unk_4FC_entity
+
+/*
+ * Object 0x35: the integer halves of OBJECT35_HOME_X / _Y (room pixels).
+ * Object 0x07 (BG decoration): its parallax sprites keep their frame; the
+ * palette-animation variant clears frame and tick (BG_PALETTE_ANIM_*, TU
+ * code_0804F690.c) as one word.
+ * Object 0x09: collision mode of its definition (passed to
+ * GameFlag_FindRoomCoordinate).
+ * Object 0x10 (Boss Rush reward): the item given (chosen from the time).
+ * Boss Rush timer (BossRushTimer_Update, entity slot 26): frames elapsed
+ * (stops at 0x34BBD), read by the result screen and the reward.
+ * Object 0x1F (exit with a fade): frames until the room transition.
+ */
+#define OBJECT35_HOME_PIXEL_X(e) e->unk_4F4.part16.unk_4F6
+#define OBJECT35_HOME_PIXEL_Y(e) e->unk_4F8.part16.unk_4FA
+#define OBJECT07_SPRITE_FRAME(e) e->unk_4FC.part8.unk_4FC
+#define OBJECT07_PALETTE_ANIM(e) e->unk_4F4.whole
+#define OBJECT09_COLLISION_MODE(e) e->unk_4F8.part8.unk_4F8
+#define OBJECT10_REWARD_ITEM(e) e->unk_4FC.whole
+#define BOSS_RUSH_TIME(e) e->unk_4F8.whole
+#define OBJECT1F_FADE_TIMER(e) e->unk_4F8.part16.unk_4F8
 
 #endif /* ROOM_OBJECT_ENTITY_H */

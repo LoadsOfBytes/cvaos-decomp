@@ -4,7 +4,7 @@
 #include "code_08009A0.h"
 #include "structs/ewram.h"
 
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *param_0);
+extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
 extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 
 /**

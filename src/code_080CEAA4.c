@@ -26,7 +26,7 @@ s32 Alastor_CreateLinkedPart(struct EwramData_EntityData *entity)
         {
             s32 index=ENTITY_INDEX(entity);
             s32 zero=0;
-            part->unk_4F4.part8.unk_4F5=index;
+            ENTITY_PARENT_INDEX(part)=index;
             ALASTOR_PART_INDEX(entity)=ENTITY_INDEX(part);
             part->objMode=1;
             part->drawFunc=(u32 *)Sprite_DrawEntity;

@@ -80,7 +80,7 @@ s32 EventScene03_Update(struct EwramData_EntityData *entity)
             stats = &gEwramData->playerStatus;
             entity->state = 0x80;
             SoulInventory_AddAmountToSoulTotal(0, 0, 1);
-            do {
+            do { /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
                 if (stats->equippedRedSoul == 0)
                     stats->equippedRedSoul = 1;
             } while (0);

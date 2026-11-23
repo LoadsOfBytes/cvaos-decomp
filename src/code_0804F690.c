@@ -1,6 +1,7 @@
 /* Object 0x07 (room effects) and the room table sWarpRoomEntries,
  * 0x0804F690..0x0804F89F. */
 #include "syscalls.h"
+#include "room_object_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -69,7 +70,7 @@ void Object07Create(struct EwramData_EntityData *entity)
             Object07_SpawnParallaxSprites(entity);
             break;
         case 1:
-            entity->unk_4F4.whole = 0;
+            OBJECT07_PALETTE_ANIM(entity) = 0;
             break;
         case 2:
             BgParticle_SpawnAll(entity);

@@ -1,5 +1,6 @@
 /* Werewolf attack phases, 0x0806F024..0x0806F41B. */
 #include "code/code_08039340.h"
+#include "werewolf_entity.h"
 #include "code/code_08060B98.h"
 #include "code_080D73B8.h"
 #include "code_08009A0.h"
@@ -63,12 +64,12 @@ void Werewolf_UpdateAttack(struct EwramData_EntityData *entity)
         entity->velY.whole = 0x20000;
         entity->accelY.whole = 0x2800;
         entity->timer = 0;
-        entity->unk_4F4.whole = 0;
+        WEREWOLF_DASH_HIT(entity) = 0;
         /* fall through */
     case 2:
-        if (entity->unk_4F4.whole != 0)
+        if (WEREWOLF_DASH_HIT(entity) != 0)
         {
-            entity->unk_4F4.whole = 0;
+            WEREWOLF_DASH_HIT(entity) = 0;
             Anim_StartIndexed(entity, 0, 0, 0);
             entity->state = 3;
             entity->subState = 0;

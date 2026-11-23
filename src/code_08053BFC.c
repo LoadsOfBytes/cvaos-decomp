@@ -1,5 +1,5 @@
-/* Object19 init: motion table entry, flip and launch angle (Object19Create).
- * Needs -fno-cse-skip-blocks (Makefile); the volatile read keeps the reload of unk_4FC. */
+/* Object19 init: motion table entry, flip and the time of the first step (Object19Create).
+ * Needs -fno-cse-skip-blocks (Makefile); the volatile read keeps the reload of the step time. */
 #include "code_08009A0.h"
 #include "room_object_entity.h"
 #include "code/code_08039340.h"
@@ -10,13 +10,13 @@ extern void Object19_Draw(struct EwramData_EntityData *);
 extern void Object19_OnPlayerContact(struct EwramData_EntityData *);
 extern void Object19_OnHit(struct EwramData_EntityData *);
 extern u8 sObject19Gfx[], sObject19Palette[], sObject19SpriteSheet[];
-struct Object19Motion { s32 angle, vx, vy; };
+struct Object19Motion { s32 time, vx, vy; };
 extern struct Object19Motion sObject19Steps[];
 void Object19Create(struct EwramData_EntityData *entity)
 {
     u16 slot;
     struct Object19Motion *motion;
-    s32 angle;
+    s32 time;
     if (!Entity_LoadGraphics(entity, sObject19Gfx, sObject19Palette, 0, sObject19SpriteSheet)) goto fail;
     slot = ObjAffine_Alloc(1);
     if ((s16)slot < 0)
@@ -41,9 +41,9 @@ fail:
     entity->velX.whole = motion->vx;
     entity->velY.whole = motion->vy;
     if (entity->unk_514.part16.spawnParam1 != 0) entity->velX.whole = -entity->velX.whole;
-    angle = motion->angle;
-    if (angle == 0) angle = entity->unk_514.part16.spawnParam0 << 16;
-    entity->unk_4FC.whole = angle;
-    entity->unk_4FC.whole = *(volatile s32 *)&entity->unk_4FC.whole >> 1;
+    time = motion->time;
+    if (time == 0) time = entity->unk_514.part16.spawnParam0 << 16;
+    OBJECT19_STEP_TIME(entity) = time;
+    OBJECT19_STEP_TIME(entity) = *(volatile s32 *)&OBJECT19_STEP_TIME(entity) >> 1; /* FAKEMATCH: volatile read forces the reload of the original */
     entity->scrollWithBg = 1;
 }

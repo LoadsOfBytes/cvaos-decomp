@@ -6,7 +6,7 @@
 extern void Enemy_DropRewards(struct EwramData_EntityData *);
 extern void Effect_SpawnRandom(s32,s32,s32,s32,s32);
 extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
-#define FLAGS(e) ((e)->unk_504.part8.unk_504)
+#define FLAGS(e) (MANDRAGORA_FLAGS((e)))
 /**
  * @brief Coordinate the root owner and terminal part through activation,
  * scream timing and recovery. A defeated intermediate part drops owner

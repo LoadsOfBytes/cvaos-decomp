@@ -1,5 +1,6 @@
 /* Object07_SpawnParallaxSprites. */
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "structs/ewram.h"
 
 struct Offset16 { u16 x, y; };
@@ -25,7 +26,7 @@ void Object07_SpawnParallaxSprites(struct EwramData_EntityData *entity)
             const u8 *entry;
             struct BgLayerState *cam;
             { const u8 *tbl = sUnk_085255DC; entry = tbl + i * 4; }
-            e->unk_4FC.part8.unk_4FC = entry[2];
+            OBJECT07_SPRITE_FRAME(e) = entry[2];
             {
                 s32 x = entry[0] + 0x50;
                 cam = &gEwramData->bgInfo[1];

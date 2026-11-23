@@ -1,5 +1,6 @@
 /* Chaos second form: load graphics, palettes and animation data. */
 #include "code/code_08039340.h"
+#include "chaos_entity.h"
 #include "structs/ewram.h"
 struct ChaosData { s32 graphics, palette, palette2; };
 extern u8 sChaos2Gfx[], sChaosPalette[], sChaos2PaletteSequence0[], sChaos2SpriteSheet[];
@@ -8,7 +9,7 @@ extern void Chaos_StartPaletteSequence(struct EwramData_EntityData *, s32);
 
 u8 EnemyChaos2Create(struct EwramData_EntityData *entity)
 {
-    struct ChaosData *data = (struct ChaosData *)entity->unk_504.unk_504_entity;
+    struct ChaosData *data = (struct ChaosData *)CHAOS_DATA_PTR(entity);
     s32 graphics = ObjGfx_LoadResource(sChaos2Gfx, 0);
     if (graphics < 0)
         return 0;

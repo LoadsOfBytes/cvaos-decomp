@@ -32,10 +32,10 @@ extern void Sprite_DrawPartsAffineArm(void); // TODO: arm code, figure out types
 extern struct EwramData_EntityData* Pickup_CreateItem(s32 x, s32 y, s32 type, s32 id, s32 hidden);
 extern struct EwramData_EntityData* SoulPickup_CreateContainer(s32 x, s32 y, s32 variant, s32 index);
 extern void Player_AddGold(s32 amount);
-extern u8* ItemInventory_GetCountPtr(s32 param_0, s32 param_1);
+extern u8* ItemInventory_GetCountPtr(s32 type, s32 index);
 extern struct EwramData_EntityData* Effect_CreateFromTable(s32 x, s32 y, s32 ax, s32 ay, s32 index, u8 palette); // TODO: verify param types
 extern struct EwramData_EntityData* Effect_SpawnShared(s32 x, s32 y, s32 script, s32 palette);
-extern struct EwramData_EntityData* Effect_CreateSharedFrame(s32 x, s32 y, s32 param_2, s32 palette);
+extern struct EwramData_EntityData* Effect_CreateSharedFrame(s32 x, s32 y, s32 frame, s32 palette);
 extern void PickupSource_Update(struct EwramData_EntityData* entity);
 extern void PickupSource_Init(struct EwramData_EntityData* entity);
 extern void Player_ClearEquipmentAndSoulLists(void);

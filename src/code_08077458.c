@@ -25,7 +25,7 @@ void WhiteDragonSegment_Update(struct EwramData_EntityData *entity)
         u8 hidden = owner->hidden;
         visibility = (struct SegmentFlags *)(ENTITY_RENDER_FLAGS_ADDRESS(entity));
         visibility->hidden = hidden;
-        do { entity->palette = owner->palette; } while (0);
+        do { entity->palette = owner->palette; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
         if (STATE_WORD(owner)==0x102)
         {
             visibility->hidden = 0;

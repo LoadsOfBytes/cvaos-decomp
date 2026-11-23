@@ -17,7 +17,7 @@ extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
 extern s32 Target_GetPixelX(struct EwramData_EntityData *);
 extern s32 Tile_Classify(s16, s16);
 extern void Effect_SpawnRisingParticle(s32, s32, s32, s32);
-extern void ScreenShake_RequestOffset(u8 priority, s8 param_1, s8 param_2);
+extern void ScreenShake_RequestOffset(u8 priority, s8 offsetX, s8 offsetY);
 extern const u8 sGolemHopTimes[4], sGolemLandTimes[4];
 
 static inline s32 ABS(s32 x)

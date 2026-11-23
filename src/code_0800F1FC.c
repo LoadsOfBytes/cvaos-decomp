@@ -174,7 +174,6 @@ s32 RoomEntity_Spawn(struct RoomEntityRecord *record)
 {
     struct EwramData_EntityData *child;
     struct EwramData_EntityData *bonusItem;
-    struct EwramData_EntityData *temp_r1_4;
     struct EwramData_EntityData *pickup;
     struct EwramData_EntityData *modeItem;
     struct EnemyTemplateView *enemy;
@@ -666,9 +665,7 @@ void Room_Load(struct RoomDefinition *room, u16 cameraX, u16 cameraY)
  */
 void Room_UnloadEntities(void)
 {
-    s32 var_r4_2;
     s32 i;
-    s32 var_r6_2;
     struct EwramData_EntityData *entity;
 
     entity = &gEwramData->entityData[2];
@@ -930,7 +927,6 @@ u8 *sAreaNameGfxLanguage2[13] = {
  */
 void AreaName_Show(struct GameState *gameState, s32 area)
 {
-    u16 var_0;
 
     if (area >= 13)
     {
@@ -1080,7 +1076,7 @@ void AreaName_Hide(struct GameState *gameState)
     gEwramData->paused = 0;
     gDisplayRegisters.bldCnt |= BLDCNT_SCREEN_SECOND_TARGET;
     gDisplayRegisters.bgOfs[0].hOfs = 0;
-    gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 0;
+    gEwramData->bgControlMinWriteLevel = gEwramData->unusedWriteLevel = 0;
     gDisplayRegisters.bldCnt = gameState->currentRoomDefinition->blendControl;
     gDisplayRegisters.bldY = 0;
     Display_SetDefaultBlend();
@@ -1266,7 +1262,7 @@ s32 RoomTransition_Update(struct GameState *gameState)
     bg = &gEwramData->bgInfo[1];
     if (gameState->subModeStep == 0)
     {
-        gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 3;
+        gEwramData->bgControlMinWriteLevel = gEwramData->unusedWriteLevel = 3;
         gDisplayRegisters.bldY = BLDY_MAX_VALUE;
         Room_UnloadEntities();
 
@@ -1301,7 +1297,7 @@ s32 RoomTransition_Update(struct GameState *gameState)
             }
 
             gUnk_03002CB0.dispCnt = gameState->currentRoomDefinition->displayControl;
-            gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 0;
+            gEwramData->bgControlMinWriteLevel = gEwramData->unusedWriteLevel = 0;
             display = gameState->currentRoomDefinition;
             gDisplayRegisters.bldCnt = display->blendControl;
             Display_SetDefaultBlend();
@@ -1355,7 +1351,7 @@ s32 RoomFadeTransition_Update(struct GameState *gameState)
 
     if (gameState->subModeStep == 0)
     {
-        gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 3;
+        gEwramData->bgControlMinWriteLevel = gEwramData->unusedWriteLevel = 3;
         if (gDisplayRegisters.bldY < BLDY_MAX_VALUE)
         {
             if (!(gameState->subModeCounter & 3))
@@ -1407,7 +1403,7 @@ s32 RoomFadeTransition_Update(struct GameState *gameState)
         if (gDisplayRegisters.bldY == 0)
         {
             gameState->subModeStep = 0;
-            gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 0;
+            gEwramData->bgControlMinWriteLevel = gEwramData->unusedWriteLevel = 0;
             return 1;
         }
     }

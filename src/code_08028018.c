@@ -1,6 +1,8 @@
 /* SkillNeedlesDraw. */
 #include "code_08009A0.h"
 #include "code/code_08039340.h"
+/* Draw copies on circles when set; nothing sets it (SkillNeedlesUse leaves it 0). */
+#define SKILL_NEEDLES_SPREAD(e) e->unk_4FC.part8.unk_4FC
 
 struct Unk_08028018 {
     s16 radius;
@@ -15,7 +17,7 @@ struct Unk_08028018_Block {
 };
 
 /**
- * @brief Draw callback set by SkillNeedlesUse: draw once unless unk_4FC is
+ * @brief Draw callback set by SkillNeedlesUse: draw once unless SKILL_NEEDLES_SPREAD is
  * set; otherwise draw up to four copies on circles around the entity,
  * alternating halves by timer parity, with animFrame set to the index.
  */
@@ -25,7 +27,7 @@ void SkillNeedlesDraw(struct EwramData_EntityData *entity)
     s32 i;
     struct Unk_08028018_Block *block;
 
-    if ((u8)entity->unk_4FC.part8.unk_4FC == 0)
+    if ((u8)SKILL_NEEDLES_SPREAD(entity) == 0)
     {
         Sprite_Draw(entity);
         return;

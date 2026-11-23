@@ -62,7 +62,7 @@ struct ShopMenu {
     u8 state;
     u8 pad_B[0x14 - 0xB];
     s8 count;
-    u8 unk_15;
+    u8 windowRow;
     s8 scroll;
     u8 cursor;
     u16 unk_18[6];
@@ -175,7 +175,7 @@ void Shop_DrawList(struct ShopOwner *owner, struct ShopMenu *menu, struct ShopSt
         }
         return;
     }
-    row = menu->cursor = menu->unk_15 + menu->scroll;
+    row = menu->cursor = menu->windowRow + menu->scroll;
     menu->count = list->count;
     {
         const struct ShopStockEntry *entry = &sShopStock[ShopItemAt(list->items, row)];

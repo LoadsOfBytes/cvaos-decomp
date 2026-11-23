@@ -71,4 +71,9 @@
 #define SOLID_OBJECT_CALLBACK_TABLE(e) e->unk_4F4.unk_4F4_entity
 #define SOLID_OBJECT_CALLBACKS(e) e->unk_4F4.unk_4F4_p32
 
+/* Transformation souls (Skill_Devil_Manticore_Curly_Use): form index (the
+ * soul's effect value), picks the per-form dash animations
+ * (Soma_UpdateTransformationDash). */
+#define PLAYER_TRANSFORM_FORM(e) e->unk_508.part8.unk_50B
+
 #endif /* PLAYER_ENTITY_H */

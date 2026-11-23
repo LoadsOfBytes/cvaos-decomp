@@ -9,8 +9,8 @@ extern u16 Player_CalculateAttackPower(u16);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s16);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s32, s32);
 
-/* Part hit: flash (unk_504 = 30), lose HP; at 0 break (state 10) and
- * lower the core's part counter unk_500. */
+/* Part hit: flash (CHAOS2_PART_FLASH = 30), lose HP; at 0 break (state 10)
+ * and lower the core's CHAOS2_PART_COUNT. */
 void Chaos2Part_OnHit(struct EwramData_EntityData *part, s32 attacker, u16 *hit)
 {
     struct EwramData_EntityData *core = CHAOS_LINK(part);
@@ -19,7 +19,7 @@ void Chaos2Part_OnHit(struct EwramData_EntityData *part, s32 attacker, u16 *hit)
 
     part->unk_510.part8.hitFlashTimer = 8;
     zero = 0;
-    part->unk_504.part16.unk_504 = 30;
+    CHAOS2_PART_FLASH(part) = 30;
     damage <<= 16;
     damage >>= 16;
     Entity_ShowDamage(part, damage, 0);
@@ -33,7 +33,7 @@ void Chaos2Part_OnHit(struct EwramData_EntityData *part, s32 attacker, u16 *hit)
         part->unk_510.part8.hitFlashTimer = zero;
         part->state = 10;
         part->subState = zero;
-        if (*(s8 *)&core->unk_500.part8.unk_500 != 0)
-            core->unk_500.part8.unk_500--;
+        if (*(s8 *)&CHAOS2_PART_COUNT(core) != 0)
+            CHAOS2_PART_COUNT(core)--;
     }
 }

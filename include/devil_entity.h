@@ -35,4 +35,7 @@
 #define DEVIL_CHARGE_OFFSET_X(e) e->unk_4F8.whole
 #define DEVIL_CHARGE_OFFSET_Y(e) e->unk_4FC.whole
 
+/* Charge effect (DevilChargeEffect_Spawn / _Update): the Devil it follows. */
+#define DEVIL_CHARGE_OWNER(e) e->unk_500.unk_500_entity
+
 #endif /* DEVIL_ENTITY_H */

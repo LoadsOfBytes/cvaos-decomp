@@ -278,11 +278,9 @@ void Text8_BuildGlyphRows(u16 ch, u32 skip, u32 width)
     u8 *glyph;
     s32 fgColor;
     s32 shift;
-    s32 temp_r5_2;
     s32 i;
     s32 row;
     u32 j;
-    u32 var_r3_2;
     s32 bgFill;
     u8 bits;
     u8 (*font)[0xA];

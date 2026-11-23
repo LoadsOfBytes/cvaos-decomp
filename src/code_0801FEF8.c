@@ -141,7 +141,7 @@ static inline void SpikeDamage(struct EwramData_EntityData *entity, u16 kind)
             hit.attack = dmg;
         }
         hit.attributes = 1;
-        hit.unk_4 = 0;
+        hit.unused = 0;
         hit.reaction = kind != 0;
         hit.sourceX = entity->posX.whole;
         hit.sourceY = entity->posY.whole;

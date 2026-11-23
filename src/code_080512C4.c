@@ -1,5 +1,6 @@
 /* Objects 0x11 (timer in entity slot 26) and 0x12 (decorations). */
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -53,8 +54,8 @@ void Object11Update(struct EwramData_EntityData *entity)
 void BossRushTimer_Update(struct EwramData_EntityData *entity)
 {
     entity->roomActive = 1;
-    if ((gEwramData->gameState.stateFlags & 2) && entity->unk_4F8.whole <= 0x34BBD)
-        entity->unk_4F8.whole++;
+    if ((gEwramData->gameState.stateFlags & 2) && BOSS_RUSH_TIME(entity) <= 0x34BBD)
+        BOSS_RUSH_TIME(entity)++;
 }
 
 /**

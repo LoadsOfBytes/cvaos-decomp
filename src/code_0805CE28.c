@@ -44,7 +44,7 @@ created:
     gEwramData->gameState.stateFlags |= 1;
     bg = &gEwramData->bgInfo[1];
     if ((s16)bg->xPos.part16.integer > 0x1F)
-        ((u8 *)&entity->unk_51C)[0] = 5;
+        EVENT_SCENE03_CAMERA_STEP(entity) = 5;
     else
-        ((u8 *)&entity->unk_51C)[0] = done;
+        EVENT_SCENE03_CAMERA_STEP(entity) = done;
 }

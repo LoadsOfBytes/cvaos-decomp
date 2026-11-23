@@ -1,5 +1,6 @@
 /* Belmont defeat animation and linked scene completion. */
 #include "code/code_08039340.h"
+#include "belmont_entity.h"
 #include "code_08011DD0.h"
 #include "code_08033CAC.h"
 #include "structs/ewram.h"
@@ -63,7 +64,7 @@ void Belmont_UpdateDefeat(struct EwramData_EntityData *entity)
             }
             else
             {
-                struct EwramData_EntityData *object=&gEwramData->entityData[entity->unk_4F8.part8.unk_4FB];
+                struct EwramData_EntityData *object=&gEwramData->entityData[BELMONT_SCENE_OBJECT_INDEX(entity)];
                 if(object->updateFunc==0)
                 {
                     GameFlag_Set(0x29);

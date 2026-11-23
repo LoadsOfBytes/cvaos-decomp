@@ -8,7 +8,7 @@
 
 extern u8 DeadCrusader_LoadGraphics(struct EwramData_EntityData *entity);
 extern void DeadCrusader_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-extern void DeadCrusader_OnHit(struct EwramData_EntityData *param_0);
+extern void DeadCrusader_OnHit(struct EwramData_EntityData *entity);
 extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
 extern void Entity_UpdateBoxes(struct EwramData_EntityData *entity);
 extern void Entity_SnapToGround(struct EwramData_EntityData *entity);

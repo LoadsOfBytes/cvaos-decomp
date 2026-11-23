@@ -1,5 +1,6 @@
 /* Three launch slopes share acceleration and cleanup when their owner dies. */
 #include "code_08009A0.h"
+#include "graham_projectile.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -28,7 +29,7 @@ void GrahamSpreadProjectile_Update(struct EwramData_EntityData *entity)
             entity->velX.whole=velocity;
             if(entity->flipX)
                 entity->velX.whole=-velocity;
-            switch((u8)entity->unk_4F8.part8.unk_4F8)
+            switch((u8)GRAHAM_SPREAD_INDEX(entity))
             {
                 case 0: entity->velY.whole=-0x3800; break;
                 case 1: entity->velY.whole=state; break;

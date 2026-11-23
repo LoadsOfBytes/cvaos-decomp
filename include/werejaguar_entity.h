@@ -27,4 +27,7 @@
 #define WEREJAGUAR_EFFECT_CAMERA_Y(e) e->unk_504.part16.unk_506[0]
 #define WEREJAGUAR_EFFECT_LAYER(e) e->unk_4FC.whole
 
+/* Cleared when the attack starts; never read. */
+#define WEREJAGUAR_UNUSED_FLAG(e) e->unk_4F8.part8.unk_4FA
+
 #endif /* WEREJAGUAR_ENTITY_H */

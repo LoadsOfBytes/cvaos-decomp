@@ -5,6 +5,8 @@
 #include "code/code_08060B98.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
+/* Man Eater soul skill: frames since the bite started (ends after 0x1D). */
+#define SKILL_MAN_EATER_FRAMES(e) e->unk_508.part16.unk_508
 
 struct SoulGraphicsResources {
     void *graphics;
@@ -68,9 +70,9 @@ void SkillManEaterUse(struct EwramData_EntityData *entity)
         gEwramData->playerState.nbrActiveRedSoulEntities++;
         entity->state++;
     case 1:
-        entity->animFrame = entity->stage + entity->unk_508.part16.unk_508 / 10;
+        entity->animFrame = entity->stage + SKILL_MAN_EATER_FRAMES(entity) / 10;
         EntityAccelerateAndMove(entity, 0x80000);
-        if (++entity->unk_508.part16.unk_508 > 0x1D)
+        if (++SKILL_MAN_EATER_FRAMES(entity) > 0x1D)
         {
             entity->timer = 0x30;
             entity->state = 2;

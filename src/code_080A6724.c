@@ -44,7 +44,7 @@ void Chaos2SnakeShot_Update(struct EwramData_EntityData *entity)
 void Chaos2_CreateAffineEffect(struct EwramData_EntityData *parent)
 {
     struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, (u32 *)Chaos2AffineEffect_Update);
-    struct ChaosEffectGfx *gfx = (struct ChaosEffectGfx *)parent->unk_504.unk_504_entity;
+    struct ChaosEffectGfx *gfx = (struct ChaosEffectGfx *)CHAOS_DATA_PTR(parent);
     if (effect != NULL)
     {
         s32 tiles;

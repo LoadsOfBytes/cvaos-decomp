@@ -1,5 +1,7 @@
 #include "code_08009A0.h"
 #include "soul_skill_entity.h"
+/* Segment: 0x200000 stored at creation; never read. */
+#define SKILL_CREAKING_SKULL_SEGMENT_UNUSED(e) e->unk_500.whole
 #include "blue_soul_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -73,7 +75,7 @@ void SkillCreakingSkullSegmentUpdate(struct EwramData_EntityData *entity)
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         entity->affineIndex = matrix;
         entity->affine = 1;
-        entity->unk_500.whole = 0x200000;
+        SKILL_CREAKING_SKULL_SEGMENT_UNUSED(entity) = 0x200000;
         SKILL_CREAKING_SKULL_SEGMENT_ANGLE(entity) = angles[SKILL_CREAKING_SKULL_SEGMENT(entity)];
         entity->scrollWithBg = 1;
         goto idle;

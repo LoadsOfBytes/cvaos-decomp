@@ -344,8 +344,6 @@ void Player_ApplyContactDamage(struct PlayerContactDamage *contactDamage)
     s32 raw;
     s32 damage;
     s32 i;
-    struct StatusEffectApplication *var_r5;
-    s32 temp_r5_2;
     u16 hitAttribute;
     s32 inflicted;
 
@@ -673,13 +671,11 @@ void PlayerStatusIcon_Update(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief 21DB0 | To document
- * 
- * @return s32 To document
+ * @brief Unreferenced: return playerState.unusedHalfword (never written).
  */
-s32 sub_08021DB0(void)
+s32 PlayerState_GetUnusedHalfword(void)
 {
-    return gEwramData->playerState.unk_131BC;
+    return gEwramData->playerState.unusedHalfword;
 }
 
 /**
@@ -690,7 +686,6 @@ void Player_PruneTrackedEntities(void)
     s32 i;
     struct EwramData_EntityData **tracked;
     u8 *counters;
-    u8 *var_r4;
 
     
     counters = gEwramData->playerState.trackedEntityRefreshCounters;
@@ -723,28 +718,25 @@ void Player_ClearStatusBit(s32 bitIndex)
 }
 
 /**
- * @brief 21E2C | To document
- * 
+ * @brief Unreferenced empty function.
  */
-void sub_08021E2C(void)
+void Player_UnusedStub0(void)
 {
     return;
 }
 
 /**
- * @brief 21E30 | To document
- * 
+ * @brief Unreferenced empty function.
  */
-void sub_08021E30(void)
+void Player_UnusedStub1(void)
 {
     return;
 }
 
 /**
- * @brief 21E34 | To document
- * 
+ * @brief Unreferenced empty function.
  */
-void sub_08021E34(void)
+void Player_UnusedStub2(void)
 {
     return;
 }
@@ -1019,10 +1011,9 @@ void Player_ClearStatusFlags(s32 mask)
 }
 
 /**
- * @brief 221C8 | To document
- * 
+ * @brief Unreferenced empty function.
  */
-void sub_080221C8(void)
+void Player_UnusedStub3(void)
 {
     return;
 }
@@ -1537,8 +1528,10 @@ void WeaponGun_Update(struct EwramData_EntityData *entity)
             entity->accelX.whole = 0x80000;
             if (entity->flipX)
             {
-                WEAPON_GUN_STOPPED(entity) = -WEAPON_GUN_STOPPED(entity);
-                entity->unk_504.whole = -entity->unk_504.whole;
+                /* Same flip block as the heavy weapons (angle and speed of the
+                 * swing); the gun never reads either value. */
+                WEAPON_SWING_ANGLE(entity) = -WEAPON_SWING_ANGLE(entity);
+                WEAPON_SWING_SPEED(entity) = -WEAPON_SWING_SPEED(entity);
                 entity->accelX.whole = -entity->accelX.whole;
             }
             entity->velX.whole += entity->accelX.whole;
@@ -1924,7 +1917,6 @@ u8 Weapon_GetPlayerAttackAnim(s32 attackType)
 {
     struct WeaponInfo *attackerInfo;
     u8 *anims;
-    u8 temp_r1;
 
     attackerInfo = Weapon_GetInfoInline(gEwramData->playerStatus.equippedWeapon);
 
@@ -2235,7 +2227,7 @@ struct EwramData_EntityData* RedSoul_CreateTrailCopy(struct EwramData_EntityData
 
     trail->flipX = entity->flipX;
     trail->subState = delay;
-    trail->stage = (u8) (u16) entity->unk_4FC.part16.unk_4FE[0];
+    trail->stage = (u8) (u16) RED_SOUL_SLOT(entity);
 
     for (i = 7; i > 0; i--)
     {
@@ -2309,7 +2301,7 @@ void RedSoulAnchor_Update(struct EwramData_EntityData *entity)
         noneActive = 0;
     }
 
-    if ((noneActive != 0) || (follower->updateFunc == NULL) || (follower->unk_4F4.part8.unk_4F4 != entity->unk_4F4.part8.unk_4F4))
+    if ((noneActive != 0) || (follower->updateFunc == NULL) || (ENTITY_INDEX(follower) != ENTITY_INDEX(entity)))
     {
         EntityDelete(entity);
         return;
@@ -2648,7 +2640,7 @@ void SkillAxeArmorTrailUpdate(struct EwramData_EntityData *entity)
             }
 
             SkillLoadGraphicsInline(entity, 0, sSkillGraphicsSets->graphics, sSkillGraphicsSets->palette, sSkillGraphicsSets->spriteSheet);
-            entity->animFrame = owner->unk_500.part16.unk_502;
+            entity->animFrame = RED_SOUL_PARAM(owner);
             entity->drawFunc = (u32 *) Sprite_DrawEntity;
             entity->affineIndex = affineIndex;
             entity->affine = 1;
@@ -2825,6 +2817,9 @@ static inline s32 CheckUnk_53C_6(struct EwramData_EntityData *entity)
     return entity->flipX == 0;
 }
 
+/* Homing soul projectile: cleared at launch; never read. */
+#define HOMING_SOUL_UNUSED(e) e->unk_50C.part16.unk_50E
+
 /**
  * @brief Unreferenced: initialize, steer, move, and release a homing red-soul
  * projectile.
@@ -2883,7 +2878,7 @@ void HomingSoulProjectile_Update(struct EwramData_EntityData *entity)
             entity->posX.part16.integer = owner->posX.part16.integer;
             entity->posY.part16.integer = owner->posY.part16.integer - 0x10;
             entity->scrollWithBg = 1;
-            entity->unk_50C.part16.unk_50E = 0;
+            HOMING_SOUL_UNUSED(entity) = 0;
             entity->spriteLayer = 0xD;
             Hit_SetTimerOverride(1, 0x1E);
             Hit_Enable(entity, 5, HomingSoulProjectile_OnPlayerContact, 0);

@@ -9,7 +9,7 @@ struct MenuPage
     u8 state;
     u8 subState;
     u8 pad_C[0x15 - 0xC];
-    u8 unk_15;
+    u8 cursor;
 };
 
 /**
@@ -52,7 +52,7 @@ void SaveMenu_Open(struct MenuPage *page)
         Text12_SetCursor(0xC, 1);
         Text12_Print(Text_GetLocalizedEntry(0x34D), 0);
         Text12_SetCursor(0, 0);
-        page->unk_15 = 1;
+        page->cursor = 1;
         page->state = 0;
         page->subState = 0;
         ent = &gEwramData->entityData[18];

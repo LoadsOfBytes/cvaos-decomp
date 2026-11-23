@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "lilith_entity.h"
 #include "code/code_08039340.h"
 #include "code_080D73B8.h"
 #include "structs/ewram.h"
@@ -12,7 +13,7 @@ extern void Lilith_SpawnShot(struct EwramData_EntityData *, s32, s32);
 /**
  * @brief 94D28 | Enemy attack AI (state != 0 branch), all states damp velX
  * and apply gravity (Entity_MoveWithCollision): states 0-2 lunge in animation 7 (dust
- * via Afterimage_Create, sound 0x85; unk_4FE chains a second lunge), state 3
+ * via Afterimage_Create, sound 0x85; LILITH_LUNGE_HIT chains a second lunge), state 3
  * recovers for 30 frames; states 10-12 fire a projectile (Lilith_SpawnShot,
  * sound 0x7B) in animation 6. Both paths return to the walk animation 5.
  */
@@ -41,7 +42,7 @@ void Lilith_UpdateAttack(struct EwramData_EntityData *entity)
         entity->timer = 0;
         Afterimage_Create(entity, 0x38, 8, 0x10);
         Afterimage_Create(entity, 0x38, 4, 0x10);
-        entity->unk_4FC.part8.unk_4FE = 0;
+        LILITH_LUNGE_HIT(entity) = 0;
         PlaySong(0x85);
         break;
     case 2:
@@ -49,12 +50,12 @@ void Lilith_UpdateAttack(struct EwramData_EntityData *entity)
         speed = 0x10000;
         Entity_MoveWithCollision(entity, speed, -0x200000, 0x40000, 8);
         Entity_ClampXToRoom(entity, 4);
-        if (*(s8 *)&entity->unk_4FC.part8.unk_4FE)
+        if (*(s8 *)&LILITH_LUNGE_HIT(entity))
             entity->animTimer = 0x64;
         if (entity->animStep <= 0xC)
             break;
         entity->flipX = Entity_IsTargetRight(entity);
-        if (*(s8 *)&entity->unk_4FC.part8.unk_4FE)
+        if (*(s8 *)&LILITH_LUNGE_HIT(entity))
         {
             if (entity->flipX)
                 entity->velX.whole = -0x20000;
@@ -89,7 +90,7 @@ void Lilith_UpdateAttack(struct EwramData_EntityData *entity)
             entity->accelX.whole = 0;
             entity->velY.whole = speed;
             entity->accelY.whole = 0x1800;
-            entity->unk_4FC.part8.unk_4FD = 0;
+            LILITH_DODGE_CHECKED(entity) = 0;
             Anim_StartIndexed(entity, 5, 0, 1);
         }
         break;

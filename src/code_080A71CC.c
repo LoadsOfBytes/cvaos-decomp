@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "tsuchinoko_entity.h"
 #include "code/code_08039340.h"
 extern u8 Tsuchinoko_LoadGraphics(struct EwramData_EntityData *);
 extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
@@ -32,7 +33,7 @@ void EnemyTsuchinokoCreate(struct EwramData_EntityData *entity)
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
     entity->state = 0;
-    entity->unk_4F8.part16.unk_4F8 = entity->unk_518.part16.hp;
+    TSUCHINOKO_MAX_HP(entity) = entity->unk_518.part16.hp;
     {
         u32 random = RandomNumberGenerator();
         u32 mask = 0x7F;

@@ -4,7 +4,7 @@
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern s16 sAlastorAttackSegments[][4];
-#define INDEX(e) ((e)->unk_4F4.part8.unk_4F7)
+#define INDEX(e) (ALASTOR_PATTERN_STEP((e)))
 #define ANGLE(e) (ALASTOR_ANGLE((e)))
 #define STEP(e) (ALASTOR_TURN((e)))
 /**

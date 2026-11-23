@@ -1,6 +1,7 @@
 /* BossRushResult_Draw: matched (three block-local v instead of one variable set three times;
    literal constants, no helper variables). */
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code_0800B700.h"
 #include "code/code_08039340.h"
 #include "syscalls.h"
@@ -20,7 +21,7 @@ void BossRushResult_Draw(struct EwramData_EntityData *entity)
     u32 time;
     g = &gEwramData->gameState;
     t = &gEwramData->entityData[26];
-    time = t->unk_4F8.whole;
+    time = BOSS_RUSH_TIME(t);
     Game_SetMenusEnabled(0);
     if (entity->state == 3)
         SetPlayerInput(1, 0);

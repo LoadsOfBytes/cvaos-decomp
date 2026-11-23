@@ -70,43 +70,72 @@ not estimates.
 | ROM rebuilds byte for byte | **yes** (SHA-1 above) |
 | **Game functions decompiled to C** | **all of them.** (The only game-side assembly left is one 8-byte ARM/Thumb interworking stub, `bx pc; b Obj_InstallCallbacks`, which has no C equivalent.) Some still match only with compiler-steering tricks – see *Known limitations* |
 | All ROM code (`.text`) produced by C | 891,340 / 918,324 bytes (**97.06 %**). The remaining 2.94 % is not game code: the toolchain's libgcc/libc and the platform assembly that GBA decompilations normally keep (startup `crt0`, the `m4a` sound mixer, BIOS syscall stubs, ROM header) |
-| Functions with descriptive names | 3,827 / 3,842 (**99.6 %**) |
-| Structure fields with descriptive names | 1,838 / 1,991 declared (**92.3 %**); 73,898 / 77,610 field accesses (**95.2 %**) |
-| Per-entity work slots (generic unions `unk_4F4` … `unk_51C`) | named through 1,196 accessor macros in 86 entity/scene headers and TU-local blocks; 408 accesses inside functions still use the raw member names (see below) |
-| Local variables and parameters named | 16,931 / 17,131 (**98.8 %**) |
-| Lines marked `FAKEMATCH` | 197 lines in 85 of 1,710 C files (see below) |
+| Functions with descriptive names | 3,842 / 3,842 (**100 %**; unreferenced leftovers are named as such) |
+| Structure fields with descriptive names | 1,843 / 1,987 declared (**92.8 %**); 73,751 / 76,603 field accesses (**96.3 %**) |
+| Per-entity work slots (generic unions `unk_4F4` … `unk_51C`) | named only through 1,191 accessor macros in 95 entity/scene headers and TU-local blocks, not yet through real per-entity structures; 27 accesses inside functions still use the raw member names (see *Known limitations* and *Planned work*) |
+| Local variables and parameters named | 17,065 / 17,065 (**100 %**) |
+| Lines marked `FAKEMATCH` | 264 lines in 122 of 1,710 C files (see below) |
 
 ## Known limitations
 
 - **Names are inferred, not original.** The original source code and its names are
   unknown. Everything you read is a reconstruction.
-- **`FAKEMATCH`.** In 85 files, 197 lines force the compiler's register allocation
-  (`register ... asm("rN")` pins or empty `asm("")` statements). The original code
+- **`FAKEMATCH`.** In 122 files, 264 lines force the compiler's register allocation
+  (`register ... asm("rN")` pins, empty `asm("")` statements, one-shot
+  `do { } while (0)` wrappers and `volatile` reads, see below). The original code
   certainly did not contain them; they are needed because no natural C variant was
   found that matches. Every such line is marked with a `/* FAKEMATCH: reason */`
   comment.
-- **Entity work slots are named by macros, not by fields.** Every entity has a block
-  of generic per-type unions (`unk_4F4` … `unk_518`, `unk_51C`) that each entity type
-  uses differently. Instead of one structure per entity type, the code reads them
-  through accessor macros such as `GREAT_ARMOR_HIT_COUNT(e)` or `CHAOS_SNAKE_TRAIL(e)`
-  (in `include/*_entity.h` and in local blocks of single files). The macros expand to
-  exactly the original member chains (`e->unk_4FC.part8.unk_4FD`); every such change
-  was checked to give a token-identical preprocessed file. 408 accesses inside
-  functions still use the raw member names, mostly where the meaning is unclear or a
-  byte is used for different things by different attacks.
-- **Other unmarked matching tricks.** 63 statements in 35 files (outside macro
-  definitions) are wrapped in a `do { ... } while (0)` that runs exactly once
-  (sometimes nested), and 13 reads in 11 files go through a `volatile` pointer cast. Neither changes what the code does; both only
-  steer the compiler towards the original instructions. Unlike `FAKEMATCH`, they are
-  not marked with a comment yet, and like it they are open points for cleanup.
+- **Entity work slots are accessed through macros – a stopgap.** Every entity has a
+  block of generic unions (`unk_4F4` … `unk_518`, `unk_51C`) that each entity type
+  uses for something different. The original code almost certainly had one structure
+  per entity type there; this source does not have them yet. Instead, the meaning of
+  each slot is given by an accessor macro (1,191 of them, in 95
+  `include/*_entity.h` headers and in local blocks of single files), for example
+
+  ```c
+  #define GREAT_ARMOR_HIT_COUNT(e) e->unk_4FC.part8.unk_4FD
+  ```
+
+  The macros expand to exactly the original member chains, so they could be added
+  without touching the compiled code: almost every one was checked to give a
+  token-identical preprocessed file, and the few that use a sibling view of the same
+  slot (a pointer instead of a word, a byte view) were checked by a full rebuild.
+  Slots that are written but never read are named `*_UNUSED_*`.
+  This is readable, but it is not real C typing: the compiler does not know which
+  entity type a pointer is, one slot has a different macro name in every entity
+  type, debuggers and IDEs show only `unk_4FC`, and a macro used on the wrong
+  entity type compiles silently. 27 accesses inside functions still use the raw
+  member names because a macro does not fit them: byte or pointer views of
+  position-history arrays, fields of heap blocks that the code reads as if they
+  were entities, and a few reads whose width a macro would change (which changes the
+  generated code).
+- **One-shot loops and volatile reads.** 54 of the `FAKEMATCH` lines mark
+  statements (outside macro definitions) wrapped in a `do { ... } while (0)` that
+  runs exactly once (sometimes nested), and 13 mark reads through a `volatile`
+  pointer cast. Neither changes what the code does; both only steer the compiler
+  towards the original instructions. Each one was tested on its own: removing it
+  breaks the match (the single wrapper that was not needed has been removed).
 - **Matching-driven style.** Some functions use `goto`, unusual temporaries or casts
   because they reproduce the original instruction order. They are correct but not
   always how a person would write the code.
 - **File layout.** The game source is still split into 1,701 files named by ROM address
   (`src/code_XXXXXXXX.c`, 1,710 C files in total), inherited from the early splitting
-  of the ROM. The original
-  game was certainly organized into far fewer files. Regrouping into logical modules is
-  planned.
+  of the ROM. The original game was certainly organized into far fewer files.
+
+## Planned work
+
+- **Replace the slot macros by entity structures.** Turn the work area into a union
+  of one structure per entity type (`e->ext.greatArmor.hitCount` instead of
+  `GREAT_ARMOR_HIT_COUNT(e)`), including real types for the heap blocks that the
+  code reads as entities. This is not a token-identical change (member widths,
+  signedness and byte views must keep the original instructions), so it will be done
+  one entity family at a time, each step checked by a full rebuild; the 27 remaining
+  raw accesses belong to this step.
+- **Name the remaining structure fields** (144 declared fields, mostly written once
+  or only initialized).
+- **Regroup the source files** into logical modules instead of ROM-address files.
+- **Reduce `FAKEMATCH`** where a natural C variant can be found.
 
 ## Building
 

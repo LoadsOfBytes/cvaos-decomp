@@ -330,6 +330,13 @@ union EwramData_unk4F4 {
 #define ENTITY_PARENT_INDEX(e) e->unk_4F4.part8.unk_4F5
 
 /*
+ * Both index bytes read as one halfword: stored into a byte slot it gives the
+ * entity index; Entity_CreateLinkedAndHide copies it whole into the linked
+ * part, which then checks that its owner slot still holds the same entity.
+ */
+#define ENTITY_INDEX_PAIR(e) e->unk_4F4.part16.unk_4F4
+
+/*
  * Owner pointer convention: many entity types created by another entity keep
  * their owner / parent in unk_4F8.unk_4F8_entity (weapons, souls, enemy parts,
  * effects). Used where the code reads it as the owner or stores the creator.
@@ -880,7 +887,7 @@ struct PlayerState {
     /* 0x131B4 */ u8 collisionQueueCount;
     /* 0x131B5 */ u8 pad_131B5[0x131B8 - 0x131B5];
     /* 0x131B8 */ u32 actionLockFlags;
-    /* 0x131BC */ u16 unk_131BC;
+    /* 0x131BC */ u16 unusedHalfword; /* never written; read only by the unreferenced PlayerState_GetUnusedHalfword */
     /* 0x131BE */ u8 nbrActiveRedSoulEntities;
     /* 0x131BF */ u8 lastUsedRedSoul;
     /* 0x131C0 */ u8 cachedWeaponGraphicsIndices[1]; // graphics table keys for slots 0/1; index 1 aliases cachedWeaponGraphicsIndex1
@@ -1253,7 +1260,7 @@ struct EwramData {
     /* 0x0A074 */ u8 paused:1; /* freezes entity updates and palette fades */
     /* 0x0A074 */ u8 startPauseEnabled:1;
     /* 0x0A074 */ u8 bgControlMinWriteLevel:2;
-    /* 0x0A074 */ u8 unk_A074_4:2;
+    /* 0x0A074 */ u8 unusedWriteLevel:2; /* always set with bgControlMinWriteLevel, never read */
     /* 0x0A074 */ u8 collisionBlocksActive:2; /* collisionBlocks in use */
 
     /* 0x0A075 */ u8 konamiCodeInputsCounter;

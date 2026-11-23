@@ -117,7 +117,6 @@ s32 FixedMultiply(s32 a, s32 b)
 s32 FixedDivide(s32 num, s32 den)
 {
     s32 result;
-    s32 var_r1;
 
     if (den == 0)
     {
@@ -1653,13 +1652,13 @@ void Gfx_CopyResourceBlocks(void *resource, s32 destinationIndex, s32 sourceInde
 /**
  * @brief Return zero when unk_A074_2 exceeds the supplied level; otherwise write the cached BG control entry selected by register offset and return one.
  */
-s32 Bg_SetControlIfLevelAllows(s32 param_0, s32 param_1, u16 param_2)
+s32 Bg_SetControlIfLevelAllows(s32 level, s32 reg, u16 value)
 {
-    if (gEwramData->bgControlMinWriteLevel > param_0)
+    if (gEwramData->bgControlMinWriteLevel > level)
         return 0;
 
     // TODO: what?
-    // gDisplayRegisters.bgCnt[(param_1 - 8) >> 1] = param_2;
-    ((param_1 - 8) >> 1)[gDisplayRegisters.bgCnt] = param_2;
+    // gDisplayRegisters.bgCnt[(reg - 8) >> 1] = value;
+    ((reg - 8) >> 1)[gDisplayRegisters.bgCnt] = value;
     return 1;
 }

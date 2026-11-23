@@ -3,18 +3,19 @@
  *   Altair_UpdateBestiaryPreview = Imp_UpdateState4Animation
  *   Altair_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 #include "code_08009A0.h"
+#include "altair_entity.h"
 #include "fleaman_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 #include "code/code_080211F0.h"
 
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 param_2, u16 reaction)
+static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
 {
     struct PlayerContactDamage contactDamage;
 
     contactDamage.attack = entity->attack;
     contactDamage.attributes = attributes;
-    contactDamage.unk_4 = param_2;
+    contactDamage.unused = unused;
     contactDamage.reaction = reaction;
     contactDamage.sourceX = entity->posX.whole;
     contactDamage.sourceY = entity->posY.whole;
@@ -127,9 +128,9 @@ u8 AltairFeather_LoadGraphics(struct EwramData_EntityData *entity)
 void AltairFeather_SetPhase(struct EwramData_EntityData *entity, u8 phase)
 {
     if (phase == 0)
-        entity->unk_4F8.part16.unk_4FA = phase;
+        ALTAIR_FEATHER_SWAY_PHASE(entity) = phase;
     else
-        entity->unk_4F8.part16.unk_4FA = 0x8000;
+        ALTAIR_FEATHER_SWAY_PHASE(entity) = 0x8000;
 }
 
 /**

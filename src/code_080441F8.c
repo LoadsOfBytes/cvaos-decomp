@@ -1,6 +1,7 @@
 /* Item / gold / soul pickup handler (Pickup_Collect). Needs -fno-cse-skip-blocks
  * (Makefile): the target reloads the inventory count after the 0x4EF test. */
 #include "code_0800CB00.h"
+#include "pickup_entity.h"
 #include "code_080D73B8.h"
 #include "code_08032444.h"
 #include "structs/ewram.h"
@@ -132,9 +133,9 @@ void Pickup_Collect(struct EwramData_EntityData *e)
         if (c > 8 && !(e->subState & 2))
         {
         full:
-            if (e->unk_4FC.part16.unk_4FE[0] == 0)
+            if (PICKUP_DELAY(e) == 0)
                 PlaySong(0x13B);
-            e->unk_4FC.part16.unk_4FE[0] = 0x20;
+            PICKUP_DELAY(e) = 0x20;
             e->deleteRequested = 0;
             return;
         }

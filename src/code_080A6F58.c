@@ -8,13 +8,13 @@
 
 extern s32 EntityIsOutsideScreen(struct EwramData_EntityData *entity, s32 margin);
 
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 param_2, u16 reaction)
+static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
 {
     struct PlayerContactDamage contactDamage;
 
     contactDamage.attack = entity->attack;
     contactDamage.attributes = attributes;
-    contactDamage.unk_4 = param_2;
+    contactDamage.unused = unused;
     contactDamage.reaction = reaction;
     contactDamage.sourceX = entity->posX.whole;
     contactDamage.sourceY = entity->posY.whole;
@@ -27,7 +27,7 @@ static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *ent
  */
 void Chaos_StartPaletteSequence(struct EwramData_EntityData *entity, s32 sequence)
 {
-    struct EwramData_EntityData *controller = entity->unk_504.unk_504_entity;
+    struct EwramData_EntityData *controller = CHAOS_DATA_PTR(entity);
 
     controller->unk_4FC.whole = 0;
     controller->unk_500.whole = 0;
@@ -108,7 +108,7 @@ void Chaos2SnakeShot_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 
     contactDamage.attack = entity->attack;
     contactDamage.attributes = 0x10;
-    contactDamage.unk_4 = 0;
+    contactDamage.unused = 0;
     contactDamage.reaction = 1;
     contactDamage.sourceX = entity->posX.whole;
     contactDamage.sourceY = entity->posY.whole;

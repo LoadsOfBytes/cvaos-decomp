@@ -47,7 +47,7 @@ void BigGolemPart_OnContact(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *parent = JOINT_PART_OWNER(entity);
     contact.attack = entity->attack;
     contact.attributes = 0;
-    contact.unk_4 = 0;
+    contact.unused = 0;
     if (parent->state == 1 && parent->subState <= 19 && (u8)(*(u8 *)&entity->unk_504 - 12) <= 1)
     {
         s32 vx;

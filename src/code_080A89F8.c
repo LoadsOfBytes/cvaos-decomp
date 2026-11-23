@@ -12,7 +12,7 @@ extern s32 Target_GetPixelX(struct EwramData_EntityData *);
 extern s32 Tile_Classify(s16, s16);
 extern s32 Entity_GetHorizontalRoomEdge(struct EwramData_EntityData *, s32);
 extern void Effect_SpawnFadingParticleCopy(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32 variant);
-extern void ScreenShake_RequestOffset(u8 priority, s8 param_1, s8 param_2);
+extern void ScreenShake_RequestOffset(u8 priority, s8 offsetX, s8 offsetY);
 extern void BigGolem_AttachPart(struct EwramData_EntityData *entity, s32 partIndex, s32 anchorIndex, s32 angleSpec, s32 length, s32 duration);
 extern void BigGolem_AttachPartEased(struct EwramData_EntityData *entity, s32 partIndex, s32 anchorIndex, s32 angleSpec, s32 length, s32 duration);
 extern void BigGolem_UpdateParts(struct EwramData_EntityData *entity, s8 *order);

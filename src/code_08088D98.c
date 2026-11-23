@@ -1,5 +1,6 @@
 /* EnemyPeepingEyeCreateEyeball. */
 #include "code/code_08039340.h"
+#include "peeping_eye_entity.h"
 #include "structs/ewram.h"
 
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *updateFunc);
@@ -26,7 +27,7 @@ struct EwramData_EntityData *EnemyPeepingEyeCreateEyeball(struct EwramData_Entit
         gfx = ObjGfx_Find(sPeepingEyeGfx);
         Sprite_Attach(child, sPeepingEyeSpriteSheet, gfx, entity->unk_510.part8.basePalette);
         child->animFrame = 0xF;
-        child->unk_500.unk_500_entity = entity;
+        PEEPING_EYE_OWNER(child) = entity;
         child->scrollWithBg = 0;
         child->drawFunc = (u32 *)Sprite_DrawEntity;
     }

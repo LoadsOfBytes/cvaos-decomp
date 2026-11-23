@@ -3,7 +3,7 @@
 #include "structs/ewram.h"
 
 extern void HarpyFeather_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-extern void HarpyFeather_OnHit(struct EwramData_EntityData *param_0);
+extern void HarpyFeather_OnHit(struct EwramData_EntityData *entity);
 
 /**
  * @brief 76244 | Activate box slot 8 with HarpyFeather_DamagePlayerOnContact / HarpyFeather_OnHit and

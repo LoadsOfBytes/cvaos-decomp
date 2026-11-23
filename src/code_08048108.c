@@ -1,5 +1,6 @@
 /* Soul type selector entity. */
 #include "gba.h"
+#include "menu_page.h"
 #include "structs/ewram.h"
 #include "code/code_08039340.h"
 #include "structs/entity_render_flags.h"
@@ -57,7 +58,7 @@ void SoulTypeSelector_Update(struct SoulTypeIcons *e)
     switch (e->state)
     {
     case 0:
-        Sprite_Attach((struct EwramData_EntityData *)e, sMenuSpriteSheet, ({ struct EwramData_EntityData *s_ = &ew->entityData[18]; s_; })->unk_4F4.part8.unk_4F5, 0xD);
+        Sprite_Attach((struct EwramData_EntityData *)e, sMenuSpriteSheet, MENU_GFX_SLOT(({ struct EwramData_EntityData *s_ = &ew->entityData[18]; s_; })), 0xD);
         Anim_StartIndexed((struct EwramData_EntityData *)e, 0, 0, 1);
         e->matrix[0] = ObjAffine_Alloc(2);
         e->matrix[1] = ObjAffine_Alloc(2);

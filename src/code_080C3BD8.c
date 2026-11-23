@@ -66,7 +66,7 @@ void SkeletonProjectile_Update(struct EwramData_EntityData *entity)
             entity->velX.whole = 0x8AAA;
         else
             entity->velX.whole = -0x8AAA;
-        if ((u8)entity->unk_4FC.part8.unk_4FC == 0)
+        if ((u8)SKELETON_BONE_KIND(entity) == 0)
         {
             PlaySong(0x88);
             entity->animFrame = 0x12;

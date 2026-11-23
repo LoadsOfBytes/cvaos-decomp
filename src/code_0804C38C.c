@@ -1,5 +1,6 @@
 /* Menu helpers 0x0804C38C..0x0804C403. */
 #include "structs/ewram.h"
+#include "menu_page.h"
 
 extern void Cursor_Draw(void);
 extern void MenuPageTitle_Update(struct EwramData_EntityData *entity);
@@ -20,12 +21,12 @@ void ButtonConfigMenu_DrawSprites(void)
 }
 
 /**
- * @brief 4C3AC | ButtonConfigMenu_Draw and move the cursor (slot 18) to row unk_4F9.
+ * @brief 4C3AC | ButtonConfigMenu_Draw and move the cursor (slot 18) to row MENU_PAGE_CURSOR.
  */
 void ButtonConfigMenu_Redraw(struct EwramData_EntityData *entity)
 {
     ButtonConfigMenu_Draw(entity);
-    Cursor_SetTilePosition(5, (s8)entity->unk_4F8.part8.unk_4F9 * 2 + 4);
+    Cursor_SetTilePosition(5, (s8)MENU_PAGE_CURSOR(entity) * 2 + 4);
 }
 
 /**

@@ -61,7 +61,7 @@ void Object37Child_Update(struct EwramData_EntityData *entity)
  */
 void Object37Update(struct EwramData_EntityData *entity)
 {
-    u32 var_0[4];
+    u32 collision[4];
 
     if (entity->state == 0)
         Object37_UpdateState(entity);
@@ -134,7 +134,7 @@ void Shop_Open(void)
     Display_SaveState();
     Palette_SaveState();
     BgMap_SaveSelection(1);
-    gEwramData->bgControlMinWriteLevel = gEwramData->unk_A074_4 = 3;
+    gEwramData->bgControlMinWriteLevel = gEwramData->unusedWriteLevel = 3;
     gDisplayRegisters.bldCnt = 0xFF;
     gEwramData->paused = 1;
     gameState->subMode = 9;

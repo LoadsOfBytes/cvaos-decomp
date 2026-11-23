@@ -1,5 +1,6 @@
 /* Randomly scattered visual effect linked back to Belmont. */
 #include "code_08009A0.h"
+#include "belmont_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern void BelmontPowerParticle_Update(struct EwramData_EntityData *);
@@ -18,7 +19,7 @@ struct EwramData_EntityData *Belmont_CreatePowerParticle(struct EwramData_Entity
         Sprite_Attach(effect,sCommonObjectSpriteSheet,graphics,6);
         effect->animFrame=64;
         ENTITY_PARENT_INDEX(effect)=ENTITY_INDEX(entity);
-        effect->unk_4FC.part8.unk_4FC=1;
+        BELMONT_PARTICLE_STEP(effect)=1;
         {
             u32 jitter=RandomNumberGenerator();
             s32 position=entity->posX.whole+0x800000;

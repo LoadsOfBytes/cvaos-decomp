@@ -33,7 +33,7 @@ static inline s16 FloorCorrection(s16 x, s16 y)
 
     if (object != NULL)
     {
-        s16 d = ((struct SolidObjectCallbacks *)object->unk_4F4.unk_4F4_p32)->floorCorrection(object, x, y);
+        s16 d = ((struct SolidObjectCallbacks *)SOLID_OBJECT_CALLBACKS(object))->floorCorrection(object, x, y);
         return ((s16)c < d) ? d : c;
     }
     return c;

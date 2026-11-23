@@ -1,5 +1,6 @@
 ﻿/* Five shared death fragments, their lifetime update, and a state helper. */
 #include "code_08009A0.h"
+#include "particle_effect.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern s8 ObjPalette_FindOrLoadVariant(void *,s32);
@@ -25,7 +26,7 @@ void Entity_SpawnFragmentSet(struct EwramData_EntityData *entity)
         if(!fragment)
             break;
         spec=&sFragmentSpecs[i];
-        entity->unk_4F4.part8.unk_4F7++;
+        FRAGMENT_SET_COUNT(entity)++;
         ENTITY_PARENT_INDEX(fragment)=ENTITY_INDEX(entity);
         fragment->spriteLayer=entity->spriteLayer;
         fragment->unk_510.part8.basePalette=entity->unk_510.part8.basePalette;
@@ -60,7 +61,7 @@ void FragmentSet_Update(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *owner=&gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
     if(!Entity_IsInRect(entity,-128,-64,496,288) || --entity->timer==0xFF || (s16)entity->posY.part16.integer>170)
     {
-        owner->unk_4F4.part8.unk_4F7--;
+        FRAGMENT_SET_COUNT(owner)--;
         entity->deleteRequested=1;
     }
     else

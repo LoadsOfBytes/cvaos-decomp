@@ -1,7 +1,7 @@
-/* Forward this enemy variant to its shared implementation. */
+/* Unreferenced: advance the animation (next to the empty Object1E callbacks). */
 #include "structs/ewram.h"
 extern void Anim_Update(struct EwramData_EntityData *);
-void sub_0805573C(struct EwramData_EntityData *entity)
+void Object1E_AnimUpdate(struct EwramData_EntityData *entity)
 {
     Anim_Update(entity);
 }

@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "chaos_entity.h"
 #include "code/code_08039340.h"
 #include "code_080109F4.h"
 #include "code_08011DD0.h"
@@ -27,7 +28,7 @@ void Chaos2_UpdateDefeat(struct EwramData_EntityData *entity)
     {
     case 0:
         Chaos2_StepPaletteSequence(entity);
-        if (!entity->unk_4F8.part8.unk_4F9)
+        if (!CHAOS2_DEFEAT_READY(entity))
             break;
         entity->subState++;
         Anim_StartIndexed(entity, 0x11, 2, 0);

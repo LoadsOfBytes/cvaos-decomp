@@ -11,7 +11,7 @@ extern s32 Entity_IsInRect(struct EwramData_EntityData *, s16, s16, u16, u16);
 
 static inline s32 IsBeside(struct EwramData_EntityData *entity)
 {
-    if (!entity->unk_4FC.part8.unk_4FE)
+    if (!DOOR_ON_RIGHT(entity))
     {
         if ((s16)gEwramData->playerState.player->posX.part16.integer > (s16)entity->posX.part16.integer + 0x18)
             return 0;

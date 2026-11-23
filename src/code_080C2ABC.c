@@ -1,5 +1,6 @@
 /* Child projectile/hitbox creation. */
 #include "code_08009A0.h"
+#include "ripper_entity.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
 
@@ -26,7 +27,7 @@ struct EwramData_EntityData *Ripper_CreateProjectile(struct EwramData_EntityData
     {
         if (!Entity_LoadGraphics(e, gfx1, gfx2, 1, gfx3))
             EntityDelete(e);
-        e->unk_508.unk_508_entity = owner;
+        RIPPER_PROJECTILE_OWNER(e) = owner;
         e->attack = owner->attack - (owner->attack >> 3);
         e->scrollWithBg = 1;
         e->animFrame = 0xB;

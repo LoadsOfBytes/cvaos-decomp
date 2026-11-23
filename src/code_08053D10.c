@@ -37,11 +37,11 @@ static inline s32 Object19NextStep(struct EwramData_EntityData *entity, s32 step
         s32 time_;                                                         \
         entity->posX.whole += entity->velX.whole;                          \
         entity->posY.whole += entity->velY.whole;                          \
-        if ((s32)entity->unk_4FC.whole > 0)                           \
-            { time_ = entity->unk_4FC.whole - 0x10000; asm(""); } /* FAKEMATCH: empty asm keeps jump2 from cross-jumping the copies */ \
+        if ((s32)OBJECT19_STEP_TIME(entity) > 0)                      \
+            { time_ = OBJECT19_STEP_TIME(entity) - 0x10000; asm(""); } /* FAKEMATCH: empty asm keeps jump2 from cross-jumping the copies */ \
         else                                                               \
             time_ = Object19NextStep(entity, step);                        \
-        entity->unk_4FC.whole = time_;                                \
+        OBJECT19_STEP_TIME(entity) = time_;                           \
     }
 
 void Object19Update(struct EwramData_EntityData *entity)

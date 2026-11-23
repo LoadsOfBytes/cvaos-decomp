@@ -32,4 +32,9 @@
 #define GRAHAM_SPIRAL_RADIUS_PIXELS(e) e->unk_508.part16.unk_50A
 #define GRAHAM_SPIRAL_ANGLE(e) e->unk_50C.whole
 
+/* Spread projectiles (Graham_SpawnSpreadProjectiles) and shot pairs
+ * (Graham_CreateShotPair): index within the volley / pair (0 = the first). */
+#define GRAHAM_SPREAD_INDEX(e) e->unk_4F8.part8.unk_4F8
+#define GRAHAM_SHOT_PART_INDEX(e) e->unk_4F8.part8.unk_4F8
+
 #endif /* GRAHAM_PROJECTILE_H */

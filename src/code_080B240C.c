@@ -12,7 +12,7 @@ void DiscArmorDisc_DamagePlayerOnContact(struct EwramData_EntityData *entity)
     struct PlayerContactDamage contactDamage;
 
     contactDamage.attributes = 1;
-    contactDamage.unk_4 = 0;
+    contactDamage.unused = 0;
     contactDamage.attack = entity->attack;
     contactDamage.reaction = 1;
     contactDamage.sourceX = entity->posX.whole;

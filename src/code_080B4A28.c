@@ -9,7 +9,7 @@ extern u8 sBaloreSpriteSheet[];
 extern void BaloreHandHitBox_DamagePlayerOnContact(struct EwramData_EntityData *);
 extern void BaloreHandHitBox_OnHit(struct EwramData_EntityData *);
 extern s32 Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-#define HIT_FLAGS(e) (((u8 *)&(e)->unk_51C)[1])
+#define HIT_FLAGS(e) (BALORE_HAND_HIT_FLAGS((e)))
 #define TO_PIXELS(x) ((x) < 0 ? -(-(x) >> 16) : (x) >> 16)
 
 /* Balore hand's attached collision part: follows its angle and extension. */
@@ -83,8 +83,8 @@ void BaloreHandHitBox_Update(struct EwramData_EntityData *entity)
     if (HIT_FLAGS(entity) & 4) Player_QueueEntity(entity, 3);
     Hit_CheckWithPlayer(collision, entity);
     ObjAffine_Set(BALORE_ARM_ANGLE(hand), 0x10000, 0x10000, hand->flipX, 0, entity->affineIndex);
-    if (entity->animScriptIndex != ((u8 *)&hand->unk_51C)[0])
-        Anim_StartIndexed(entity, ((u8 *)&hand->unk_51C)[0], 2, 0);
+    if (entity->animScriptIndex != BALORE_HAND_ANIM(hand))
+        Anim_StartIndexed(entity, BALORE_HAND_ANIM(hand), 2, 0);
     Anim_Update(entity);
 }
 

@@ -14,9 +14,9 @@ extern void ObjAffine_Set(s32, s32, s32, u16, u16, u16);
  * @brief Init of event scene variant 9 (Object 0x20 unk_514 = 9,
  * sEventSceneCreateFuncs[9]).
  */
-void EventScene09_Init(struct EwramData_EntityData *param_0)
+void EventScene09_Init(struct EwramData_EntityData *self)
 {
-    struct EwramData_EntityData *entity = param_0;
+    struct EwramData_EntityData *entity = self;
     s32 flag;
     struct EwramData_EntityData *player;
     struct BgLayerState *bg;
@@ -32,7 +32,7 @@ void EventScene09_Init(struct EwramData_EntityData *param_0)
     if (!Entity_SetupFromObjectTable(entity, 2))
         goto delete;
     Anim_StartIndexed(entity, 3, 0, 1);
-    do { Anim_Update(entity); } while (0);
+    do { Anim_Update(entity); } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
     bg = &gEwramData->bgInfo[1];
     entity->posX.part16.integer = 0x48 - bg->xPos.part16.integer;
     entity->posY.part16.integer = 0xA0 - bg->yPos.part16.integer;

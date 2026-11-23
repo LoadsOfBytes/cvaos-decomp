@@ -39,7 +39,7 @@ struct EwramData_EntityData *Legion_CreateCorpse(struct EwramData_EntityData *en
     r = RandomNumberGenerator() & 7;
     child->animTimer = r;
     child->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
-    child->unk_4F4.whole = (s32)entity;
+    LEGION_PART_OWNER(child) = entity;
     child->scrollWithBg = 1;
     r = RandomNumberGenerator() & 1;
     child->flipX = r;

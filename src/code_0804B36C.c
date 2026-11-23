@@ -1,4 +1,5 @@
 #include "code/code_080211F0.h"
+#include "menu_page.h"
 #include "code_080D73B8.h"
 #include "structs/ewram.h"
 
@@ -19,9 +20,9 @@ s32 ItemMenu_UseItem(struct PlayerStatus *stats, struct EwramData_EntityData *me
     const struct ConsumableInfo *info;
     s32 effect;
     u16 amount, maxMP;
-    if ((gEwramData->gameState.gameFlagsTail[0] & 0x100000) || (u8)menu->unk_4F8.part8.unk_4FB == 0xFF)
+    if ((gEwramData->gameState.gameFlagsTail[0] & 0x100000) || (u8)MENU_PAGE_ITEM(menu) == 0xFF)
         return 0;
-    info = &sConsumableInfo[(u8)menu->unk_4F8.part8.unk_4FB];
+    info = &sConsumableInfo[(u8)MENU_PAGE_ITEM(menu)];
     effect = info->effect;
     if (effect == 3 && Player_TestSoulStateFlags(0x100000)) effect = 0;
     switch (effect)

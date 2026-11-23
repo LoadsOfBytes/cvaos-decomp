@@ -23,4 +23,10 @@
  */
 #define WHEEL_SHAKE(e) e->unk_4F8.bytes
 
+/*
+ * Bael charge (Bael_UpdateCharge): charges rolled so far, kept on the entity
+ * at ENTITY_PARENT_INDEX; after 1..5 of them the charge stops.
+ */
+#define BAEL_CHARGE_COUNT(e) e->unk_4FC.part8.unk_4FD
+
 #endif /* WHEEL_ENEMY_ENTITY_H */

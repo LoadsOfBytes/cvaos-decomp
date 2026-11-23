@@ -2,8 +2,8 @@
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
 
-extern void MudmanShot_DamagePlayerOnContact(struct EwramData_EntityData *param_0);
-extern void MudmanShot_OnHit(struct EwramData_EntityData *param_0);
+extern void MudmanShot_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+extern void MudmanShot_OnHit(struct EwramData_EntityData *entity);
 
 /**
  * @brief 72434 | Activate box slot 0xA with MudmanShot_DamagePlayerOnContact / MudmanShot_OnHit and set both

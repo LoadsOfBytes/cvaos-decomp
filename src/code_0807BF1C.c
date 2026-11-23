@@ -1,5 +1,6 @@
 /* Create a short-lived attack box and advance its collision lifetime. */
 #include "code_08009A0.h"
+#include "persephone_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
@@ -26,7 +27,7 @@ void Persephone_SpawnAttackBox(struct EwramData_EntityData *parent, s32 x, s32 y
         part->attack = parent->attack;
         ENTITY_OWNER(part) = parent;
         part->animFrame = 20;
-        part->unk_500.whole = 1;
+        PERSEPHONE_BOX_TIME(part) = 1;
         part->scrollWithBg = 1;
         part->drawFunc = (u32 *)Sprite_DrawEntity;
         Hit_Enable(part, 8, Persephone_DamagePlayerOnContact, 0);

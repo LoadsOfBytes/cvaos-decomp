@@ -1,13 +1,8 @@
 #include "code_08009A0.h"
+#include "stolas_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
-/*
- * Stolas cast effect (StolasCastEffect_Update): its owner and the affine
- * angle (turns to +-0x10000). Token-identical expansion.
- */
-#define STOLAS_CAST_OWNER(e) e->unk_500.unk_500_entity
-#define STOLAS_CAST_ANGLE(e) e->unk_4F8.whole
 
 /**
  * @brief 9BE78 | Effect created by Stolas_SpawnCastEffect: freed (palette and
@@ -20,7 +15,7 @@
 void StolasCastEffect_Update(struct EwramData_EntityData *entity)
 {
     u8 unused[16];
-    struct EwramData_EntityData *owner = STOLAS_CAST_OWNER(entity);
+    struct EwramData_EntityData *owner = STOLAS_EFFECT_OWNER(entity);
 
     if (owner == NULL || owner->updateFunc == NULL || owner->unk_518.part8.enemyId != 0x61)
         goto free;

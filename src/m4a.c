@@ -55,7 +55,7 @@ u32 MidiKeyToFreq(struct WaveData *wav, u8 key, u8 fineAdjust)
     return umul3232H32(wav->freq, val1 + umul3232H32(val2 - val1, fineAdjustShifted));
 }
 
-void sub_080D92B4()
+void UnusedDummyFunc()
 {
     return;
 }

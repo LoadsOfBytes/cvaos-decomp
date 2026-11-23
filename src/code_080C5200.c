@@ -106,7 +106,7 @@ s32 Imp_SpawnDeathPiece(struct EwramData_EntityData *entity)
 
     if (child != NULL)
     {
-        IMP_LINK_INDEX(child) = entity->unk_4F4.part16.unk_4F4;
+        IMP_LINK_INDEX(child) = ENTITY_INDEX_PAIR(entity);
         created = 1;
     }
     return created;

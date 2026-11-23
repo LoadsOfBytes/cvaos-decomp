@@ -39,7 +39,7 @@ void BaloreSpark_DamagePlayerOnContact(struct EwramData_EntityData *entity)
     struct PlayerContactDamage contactDamage;
 
     contactDamage.attributes = 2;
-    contactDamage.unk_4 = 0;
+    contactDamage.unused = 0;
     contactDamage.attack = 0x4B;
     contactDamage.reaction = 1;
     contactDamage.sourceX = entity->posX.whole;

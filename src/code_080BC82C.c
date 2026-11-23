@@ -261,8 +261,8 @@ void DeathWeapon_Update(struct EwramData_EntityData *entity)
         a = (s16)(SPIN(entity) - 0x4000);
         x = Sin(a + 0x4000);
         y = 0x80000;
-        do { do { x = x * 48 + RandomSigned(y); } while (0); } while (0);
-        do { do { y = Sin(a) * 48 + RandomSigned(y); } while (0); } while (0);
+        do { do { x = x * 48 + RandomSigned(y); } while (0); } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
+        do { do { y = Sin(a) * 48 + RandomSigned(y); } while (0); } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
         fx = Effect_SpawnShared(entity->posX.whole + x, entity->posY.whole + y, 0, 6);
         if (fx != NULL)
             fx->accelY.whole = -0x800;

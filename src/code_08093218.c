@@ -8,13 +8,13 @@ extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
 extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s32);
 extern s32 Entity_AdjustSpeedForSlope(struct EwramData_EntityData *entity, s32 speed);
 extern s32 Entity_GetHorizontalRoomEdge(struct EwramData_EntityData *, s32);
-extern s32 sub_0806B1A0(s32 x, s32 y);
+extern s32 Collision_IsWalkBlocked(s32 x, s32 y);
 
 /**
  * @brief 93218 | Patrol AI: walks at 0x8000 (Entity_AdjustSpeedForSlope) while the
  * animation is outside frames 4-7 (stands still in them unless animTimer),
  * plays sound 0x85 on frame 4 and turns around on walls, ledges
- * (sub_0806B1A0 one pixel ahead) or Entity_GetHorizontalRoomEdge; state 1 (after
+ * (Collision_IsWalkBlocked one pixel ahead) or Entity_GetHorizontalRoomEdge; state 1 (after
  * Enemy_IsDamaged) always faces the player. In frame 1 with the player in the
  * 0x64 x 0x46 box it attacks (state = 1) with a 3/4 chance.
  */
@@ -69,7 +69,7 @@ void Curly_UpdateWalk(struct EwramData_EntityData *entity)
             x++;
         else
             x--;
-        if ((res & 3) || sub_0806B1A0(x, y) || Entity_GetHorizontalRoomEdge(entity, 1))
+        if ((res & 3) || Collision_IsWalkBlocked(x, y) || Entity_GetHorizontalRoomEdge(entity, 1))
         {
             entity->flipX ^= 1;
             if (entity->flipX)

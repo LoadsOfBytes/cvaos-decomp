@@ -1,5 +1,6 @@
 /* Create Alura Une's projectile with a timed or immediate activation. */
 #include "code_08009A0.h"
+#include "alura_une_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 extern void AluraUneThorn_Update(struct EwramData_EntityData *);
@@ -35,7 +36,7 @@ void AluraUne_SpawnThorn(struct EwramData_EntityData *parent, s32 xOffset, s32 d
             projectile->timer = timer + 32;
         }
         else projectile->timer = delay;
-        projectile->unk_504.part16.unk_504 = type;
+        ALURA_UNE_THORN_TIME(projectile) = type;
         if (delay == 0)
         {
             Anim_StartIndexed(projectile, 7, 0, 0);

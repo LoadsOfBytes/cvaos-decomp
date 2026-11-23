@@ -3,7 +3,7 @@
 #include "structs/ewram.h"
 
 extern void TsuchinokoShot_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-extern void TsuchinokoShot_OnHit(struct EwramData_EntityData *param_0);
+extern void TsuchinokoShot_OnHit(struct EwramData_EntityData *entity);
 
 /**
  * @brief A785C | Activate box slot 0xA with TsuchinokoShot_DamagePlayerOnContact / TsuchinokoShot_OnHit and set both

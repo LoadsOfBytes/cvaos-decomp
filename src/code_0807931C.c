@@ -19,7 +19,7 @@ void Werejaguar_DamagePlayerOnContact(struct EwramData_EntityData *entity)
     s32 kind;
     hit.attack=entity->attack;
     power=&entity->attack;
-    hit.attributes=0; hit.unk_4=0; hit.reaction=0;
+    hit.attributes=0; hit.unused=0; hit.reaction=0;
     hit.sourceX=entity->posX.whole; hit.sourceY=entity->posY.whole;
     attack->type=8;
     kind=(s8)WEREJAGUAR_CONTACT_KIND(entity);

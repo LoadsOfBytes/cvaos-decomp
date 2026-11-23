@@ -57,9 +57,9 @@ void EnemyMermanCreate(struct EwramData_EntityData *entity)
                 if (entity->flipX) entity->velX.whole = 0x8000;
                 else entity->velX.whole = -0x8000;
                 entity->timer = 0;
-                entity->unk_504.part8.unk_504 = 1;
+                MERMAN_UNUSED_MODE(entity) = 1;
             }
-            else entity->unk_504.part8.unk_504 = mode;
+            else MERMAN_UNUSED_MODE(entity) = mode;
         }
     }
 finished:

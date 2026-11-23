@@ -3,6 +3,8 @@
 #include "code_08009A0.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
+/* Death_UpdateHover keeps its random attack choice here; never read. */
+#define DEATH_UNUSED_CHOICE(e) e->unk_4FC.part8.unk_4FD
 
 extern void EntityDampVelocityX(struct EwramData_EntityData *, s32);
 extern void EntityDampVelocityY(struct EwramData_EntityData *, s32);
@@ -79,11 +81,11 @@ void Death_UpdateHover(struct EwramData_EntityData *entity)
             EntityAccelerateAndMove(entity, 0x14000);
             /* Reuse the target temporary for the zero passed into states 4/6;
              * separate zero locals change allocation and tail sharing. */
-            do { ty = entity->timer & 0x1F; } while (0);
+            do { ty = entity->timer & 0x1F; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
             if (ty == 0 && (RandomNumberGenerator() & 0x3F) <= 0x2F)
             {
                 r = RandomChoice();
-                entity->unk_4FC.part8.unk_4FD = r;
+                DEATH_UNUSED_CHOICE(entity) = r;
                 if (r <= 0x14)
                 {
                     entity->state = 4;

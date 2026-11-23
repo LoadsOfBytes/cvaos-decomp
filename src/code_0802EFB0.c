@@ -75,7 +75,7 @@ void Skill_Devil_Manticore_Curly_Use(struct EwramData_EntityData *entity)
         PLAYER_ACTION_FLAGS(ctx->player) &= ~0x20;
         entity->state = 1;
         ctx->player->subState = 0;
-        gEwramData->playerState.player->unk_508.part8.unk_50B = info->effectValue;
+        PLAYER_TRANSFORM_FORM(gEwramData->playerState.player) = info->effectValue;
         break;
     case 1:
         if (ctx->player->subState == 3)

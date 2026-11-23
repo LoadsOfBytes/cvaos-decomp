@@ -160,7 +160,7 @@ void Golem_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
         }
         break;
     case 40:
-        if ((s8)entity->unk_4FC.part8.unk_4FD > 1) {
+        if ((s8)GOLEM_PREVIEW_EFFECTS(entity) > 1) {
             entity->timer = delay[GOLEM_VARIANT(entity)];
             entity->subState = 2;
             JOINT_POSE(entity) = 2;
@@ -170,7 +170,7 @@ void Golem_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
                 entity->subState++;
                 Golem_SpawnIdleEffect(entity, 0, 0);
                 entity->timer = r;
-                entity->unk_4FC.part8.unk_4FD++;
+                GOLEM_PREVIEW_EFFECTS(entity)++;
             }
         }
         break;

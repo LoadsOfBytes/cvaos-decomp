@@ -57,7 +57,7 @@ void Succubus_UpdateWalk(struct EwramData_EntityData *entity)
             Anim_StartIndexed(entity, 1, 0, 1);
             entity->subState++;
             entity->timer = 0;
-            entity->unk_4FC.part8.unk_4FE = 0;
+            SUCCUBUS_INTRO(entity) = 0;
             SUCCUBUS_HOLDING(entity) = 0;
         }
         break;

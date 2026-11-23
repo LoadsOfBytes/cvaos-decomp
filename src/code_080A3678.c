@@ -57,7 +57,7 @@ void ChaosSpark_Update(struct EwramData_EntityData *entity)
                 x = target->posX.whole + camera->xPos.whole;
                 y = target->posY.whole + camera->yPos.whole - 0x100000;
                 Entity_AimVelocityAtPoint(entity, x, y, 0x4000);
-                entity->unk_500.part8.unk_500 = state;
+                CHAOS_SPARK_GRABBED(entity) = state;
                 return;
             }
         }
@@ -80,7 +80,7 @@ void ChaosSpark_Update(struct EwramData_EntityData *entity)
         Anim_Update(entity);
         if (EntityIsOutsideScreen(entity, 4))
             goto delete;
-        if (entity->unk_500.part8.unk_500 == 1)
+        if (CHAOS_SPARK_GRABBED(entity) == 1)
         {
             entity->state = 2;
             entity->subState = 0;

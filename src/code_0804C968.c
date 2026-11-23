@@ -1,5 +1,6 @@
 /* BestiaryMenu_UpdateDetailScreen, BestiaryMenu_SpawnEnemyPreview. */
 #include "gba.h"
+#include "menu_page.h"
 #include "code_08009A0.h"
 #include "code/code_08039340.h"
 #include "macros.h"
@@ -76,7 +77,7 @@ void BestiaryMenu_UpdateDetailScreen(struct EwramData_EntityData *entity)
  */
 s32 BestiaryMenu_SpawnEnemyPreview(struct EwramData_EntityData *menu)
 {
-    u8 index = menu->unk_4F8.part8.unk_4F9;
+    u8 index = MENU_PAGE_CURSOR(menu);
     struct EntityTemplate *template = &sEnemyData[index];
     struct EwramData_EntityData *entity;
 

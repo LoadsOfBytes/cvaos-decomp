@@ -24,7 +24,7 @@ void Object05Create(struct EwramData_EntityData *entity)
     gDisplayRegisters.winOut_H = 0x2F;
     player = gEwramData->playerState.player;
     if (Entity_IsInRect(entity, (s16)(player->posX.part16.integer - 0x1C), player->posY.part16.integer, 0x38, 0x22))
-        entity->unk_4F8.whole = 0x30;
+        DOOR_OPEN_HEIGHT(entity) = 0x30;
 }
 
 /**

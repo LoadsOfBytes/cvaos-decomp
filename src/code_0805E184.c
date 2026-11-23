@@ -32,6 +32,6 @@ void EventScene03AttachedHelper_Update(struct EwramData_EntityData *entity)
         dx = dy;
     entity->posX.part16.integer = parent->posX.part16.integer + point.x + dx;
     entity->posY.part16.integer = parent->posY.part16.integer + point.y + dy;
-    do { Anim_Update(entity); } while (0);
+    do { Anim_Update(entity); } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
     entity->palette = parent->palette;
 }

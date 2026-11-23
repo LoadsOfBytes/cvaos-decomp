@@ -28,7 +28,7 @@ extern u16 Player_CalculateAttackPower(u16 attackCategory);
 struct PlayerContactDamage {
     u16 attack;
     u16 attributes;
-    u16 unk_4;
+    u16 unused; /* set by the callers, never read */
     u16 reaction;
     u32 sourceX; /* 16.16 coordinate bits; original unsigned storage */
     u32 sourceY; /* 16.16 coordinate bits; original unsigned storage */
@@ -39,12 +39,12 @@ extern s32 Player_TrackEntity(struct EwramData_EntityData *entity);
 extern void Player_UpdateStatusAndRegen(struct EwramData_EntityData *entity);
 extern void Player_RecalculateAttackDefense(void);
 extern void PlayerStatusIcon_Update(struct EwramData_EntityData *entity);
-extern s32 sub_08021DB0(void);
+extern s32 PlayerState_GetUnusedHalfword(void);
 extern void Player_PruneTrackedEntities(void);
 extern void Player_ClearStatusBit(s32 bitIndex);
-extern void sub_08021E2C(void);
-extern void sub_08021E30(void);
-extern void sub_08021E34(void);
+extern void Player_UnusedStub0(void);
+extern void Player_UnusedStub1(void);
+extern void Player_UnusedStub2(void);
 extern s32 Player_TestSoulStateFlags(s32 mask);
 extern void Player_ClearStatusEffects(s32 mask);
 extern void Player_SetStatusEffects(s32 mask, u16 timerValue);
@@ -66,7 +66,7 @@ extern void Player_StartContactImmunity(u8 frames);
 extern void Player_ResetContactImmunity(void);
 extern void Player_LockAndCancelAllSouls(void);
 extern void Player_ClearStatusFlags(s32 mask);
-extern void sub_080221C8(void);
+extern void Player_UnusedStub3(void);
 extern void WeaponMelee_Update(struct EwramData_EntityData *entity);
 extern void WeaponHeavy_Update(struct EwramData_EntityData *entity);
 extern void Effect_UpdateGunCasing(struct EwramData_EntityData *entity);
@@ -139,7 +139,7 @@ extern void Entity_SetAttackBoxFromFrame(struct EwramData_EntityData *entity);
 extern s32 RandomSigned(s32 range);
 extern void RedSoul_RemoveActiveEntity(struct EwramData_EntityData *soul);
 extern void RedSoul_AnchorToHitTargetTimed(struct EwramData_EntityData *entity, struct EwramData_EntityData *target); // TODO: verify types
-extern void HomingSoulProjectile_OnPlayerContact(struct EwramData_EntityData *param_0, struct EwramData_EntityData *param_1); // TODO: verify types
+extern void HomingSoulProjectile_OnPlayerContact(struct EwramData_EntityData *entity, struct EwramData_EntityData *unused); // defined with one parameter
 extern void Soul_DrawWithPaletteInvert(struct EwramData_EntityData *entity);
 extern struct EwramData_EntityData *BlueSoul_CreateEntity(struct EwramData_EntityData *owner, void *update);
 extern void BlueSoul_StopAll(void);

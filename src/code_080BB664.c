@@ -13,7 +13,7 @@ extern s32 HitBox_SetAttackRaw(struct EwramData_EntityData *entity, s32 box);
 extern s32 HitBox_SetBodyRaw(struct EwramData_EntityData *entity, s32 box);
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *updateFunc);
 extern void Enemy_OnContactMask1(struct EwramData_EntityData *entity);
-extern void KillerMantle_OnHit(struct EwramData_EntityData *param_0, s32 param_1, u16 *param_2);
+extern void KillerMantle_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 extern void KillerMantlePart_Update(struct EwramData_EntityData *entity);
 
 /* Graphics of this enemy (EnemyKillerMantleCreate). */

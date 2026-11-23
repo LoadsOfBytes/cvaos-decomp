@@ -1,14 +1,8 @@
 /* Handle projectile impacts, debris and attachment to a moving entity. */
 #include "code_08009A0.h"
+#include "mudman_entity.h"
 #include "code/code_08039340.h"
 
-/*
- * Mudman shot (MudmanShot_Update): the owner's 16.16 room position of the
- * previous frame (the shot moves along with the owner). Token-identical
- * expansion.
- */
-#define MUDMAN_SHOT_OWNER_X(e) e->unk_4FC.whole
-#define MUDMAN_SHOT_OWNER_Y(e) e->unk_500.whole
 extern s32 Entity_MoveWithCollisionDefault(struct EwramData_EntityData *, s32, s32);
 extern s32 EntityIsOutsideScreen(struct EwramData_EntityData *, s32);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);

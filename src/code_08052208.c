@@ -1,5 +1,6 @@
 /* Move an entity, settle it on the ground and turn it toward the slope ahead. */
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code_08001194.h"
 #include "code/code_080211F0.h"
 #include "syscalls.h"
@@ -61,7 +62,7 @@ s16 Object14_MoveOnTerrainSolid(struct EwramData_EntityData *entity, s32 layer)
             h = ((h << 16) + 0xFFF80000) >> 16; 
         {
              s32 a = ArcTan2(dir, h);
-            Angle_TurnTowards((u16 *)&entity->unk_504.part16.unk_504, 0x400, a);
+            Angle_TurnTowards((u16 *)&OBJECT14_ANGLE(entity), 0x400, a);
         }
     }
     return ground;

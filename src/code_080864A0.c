@@ -7,7 +7,7 @@
 
 extern u8 Gargoyle_LoadGraphics(struct EwramData_EntityData *entity);
 extern void Gargoyle_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-extern void Gargoyle_OnHit(struct EwramData_EntityData *param_0);
+extern void Gargoyle_OnHit(struct EwramData_EntityData *entity);
 extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
 extern void Entity_UpdateBoxes(struct EwramData_EntityData *entity);
 extern s32 Anim_GetMaxBoxCount(struct EwramData_EntityData *entity);

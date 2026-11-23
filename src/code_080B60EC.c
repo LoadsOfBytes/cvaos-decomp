@@ -22,7 +22,7 @@ void BaloreIntroPart_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        Sprite_Attach(entity, (void *)0x08244D4C, parent->unk_4F8.bytes[3], parent->unk_510.part8.basePalette);
+        Sprite_Attach(entity, (void *)0x08244D4C, BALORE_GFX_BYTE(parent), parent->unk_510.part8.basePalette);
         Anim_StartIndexed(entity, 3, 2, 0);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         entity->spriteLayer = 0x1A;

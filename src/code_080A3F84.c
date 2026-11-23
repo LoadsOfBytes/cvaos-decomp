@@ -35,7 +35,7 @@ extern void ChaosAura_Update(struct EwramData_EntityData *);
 void ChaosOrb_CreateHalo(struct EwramData_EntityData *orb, s32 timer)
 {
     struct EwramData_EntityData *halo = EntityCreateInRange(0x49, 0xCF, (u32 *)ChaosHalo_Update);
-    struct ChaosData *data = (struct ChaosData *)CHAOS_LINK(orb)->unk_504.whole;
+    struct ChaosData *data = (struct ChaosData *)CHAOS_DATA(CHAOS_LINK(orb));
 
     if (halo != NULL)
     {

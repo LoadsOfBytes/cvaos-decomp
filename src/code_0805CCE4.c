@@ -1,9 +1,10 @@
 #include "code_08009A0.h"
+#include "event_scene03.h"
 #include "code_0800CB00.h"
 #include "structs/ewram.h"
 
 /**
- * @brief Scroll the camera for camera step unk_51C of event scene 3 until its
+ * @brief Scroll the camera for camera step EVENT_SCENE03_CAMERA_STEP of event scene 3 until its
  * target x is reached; return 1 then.
  */
 s32 EventScene03_ScrollCamera(struct EwramData_EntityData *entity)
@@ -12,7 +13,7 @@ s32 EventScene03_ScrollCamera(struct EwramData_EntityData *entity)
     struct BgLayerState *bg;
 
     gEwramData->gameState.cameraScrollMinPriority = 1;
-    switch (((u8 *)&entity->unk_51C)[0])
+    switch (EVENT_SCENE03_CAMERA_STEP(entity))
     {
     case 0:
         Camera_ScrollWithPriority(1, 0x80000, 0);

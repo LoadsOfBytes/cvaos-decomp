@@ -90,4 +90,25 @@
  * advanced by accelX. */
 #define CHAOS_DEBRIS_ANGLE(e) e->unk_4FC.part16.unk_4FC
 
+/*
+ * Chaos second form core: live parts (4 at first, lowered by Chaos2Part_OnHit)
+ * and its base defense (Chaos2_OnHit uses parts * 20 + base); defeat flag set
+ * by its affine effect when it has risen (written there as bytes[1]), the
+ * defeat sequence (Chaos2_UpdateDefeat) waits for it. Parts: hit flash
+ * frames (30 after a hit; TU alias FLASH).
+ * Sparks (ChaosSpark_*): set by ChaosSpark_OnContact when it grabs the player.
+ */
+#define CHAOS2_PART_COUNT(e) e->unk_500.part8.unk_500
+#define CHAOS2_BASE_DEFENSE(e) e->unk_500.part8.unk_501
+#define CHAOS2_DEFEAT_READY(e) e->unk_4F8.part8.unk_4F9
+#define CHAOS2_PART_FLASH(e) e->unk_504.part16.unk_504
+#define CHAOS_SPARK_GRABBED(e) e->unk_500.part8.unk_500
+
+/* CHAOS_DATA read as a pointer (the same word through the entity member):
+ * the graphics / palette block of the core, read by its children. */
+#define CHAOS_DATA_PTR(e) e->unk_504.unk_504_entity
+
+/* Chaos core: a random 0..63 stored when the fight starts; never read. */
+#define CHAOS_UNUSED_RANDOM(e) e->unk_4F8.part8.unk_4FA
+
 #endif /* CHAOS_ENTITY_H */

@@ -1,6 +1,7 @@
 /* Killer Doll movement and attack state machine, reconstructed from the
  * original assembly. */
 #include "code_08009A0.h"
+#include "doll_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -15,9 +16,9 @@ extern void KillerDoll_ResolveMovementBounds(struct EwramData_EntityData *entity
 /* This caller tests the full return register (no u8 truncation). */
 extern s32 Collision_GetTileOnScreen(s32 x, s32 y);
 
-#define TIMER_X(e) ((e)->unk_4F8.part16.unk_4F8)
-#define TIMER_Y(e) ((e)->unk_4F8.part16.unk_4FA)
-#define TIMER_Z(e) ((e)->unk_4FC.part16.unk_4FC)
+#define TIMER_X(e) (KILLER_DOLL_LUNGE_TIMER((e)))
+#define TIMER_Y(e) (KILLER_DOLL_TURN_TIMER((e)))
+#define TIMER_Z(e) (KILLER_DOLL_REST_TIMER((e)))
 #define ANIM(e, n, loop) do { if ((e)->animScriptIndex != (n)) Anim_StartIndexed((e), (n), 0, (loop)); } while (0)
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 

@@ -2,6 +2,7 @@
  * entity->unk_4F8. Room-space position words are at 0x0C/0x10; retain this
  * padded view and the original pointer casts. */
 #include "code_08009A0.h"
+#include "legion_entity.h"
 extern void EntityAccelerateX(struct EwramData_EntityData *, s32);
 extern void EntityAccelerateY(struct EwramData_EntityData *, s32);
 
@@ -16,7 +17,7 @@ struct LegionRoomPositionView {
  */
 void Legion_SteerX(struct EwramData_EntityData *entity, s32 target)
 {
-    struct LegionRoomPositionView *parent = (void *)entity->unk_4F8.unk_4F8_entity;
+    struct LegionRoomPositionView *parent = (void *)LEGION_DATA_PTR(entity);
     if (parent->roomX < target) entity->accelX.whole = 0x400;
     else entity->accelX.whole = -0x400;
     EntityAccelerateX(entity, 0x4000);
@@ -28,7 +29,7 @@ void Legion_SteerX(struct EwramData_EntityData *entity, s32 target)
  */
 void Legion_SteerY(struct EwramData_EntityData *entity, s32 target)
 {
-    struct LegionRoomPositionView *parent = (void *)entity->unk_4F8.unk_4F8_entity;
+    struct LegionRoomPositionView *parent = (void *)LEGION_DATA_PTR(entity);
     if (parent->roomY < target) entity->accelY.whole = 0x400;
     else entity->accelY.whole = -0x400;
     EntityAccelerateY(entity, 0x4000);

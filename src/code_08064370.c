@@ -34,7 +34,7 @@ fail:
         effect->affine=1;
         ObjAffine_Set(0x10000,EVENT30_EFFECT_SCALE(effect),EVENT30_EFFECT_SCALE(effect),0,zero,effect->affineIndex);
         EVENT30_FRAGMENT_PHASE(effect)=zero;
-        effect->posX.part16.integer=(*(s8 *)&owner->unk_508.part16.unk_50A-48)+EVENT30_CENTER_X(owner);
+        effect->posX.part16.integer=(*(s8 *)&EVENT30_JITTER_X(owner)-48)+EVENT30_CENTER_X(owner);
         effect->posY.part16.integer=(s16)((s8)EVENT30_JITTER_Y(owner)+8)+EVENT30_CENTER_Y(owner);
         effect->velX.whole=-1000;
         effect->velY.whole=0x1000;

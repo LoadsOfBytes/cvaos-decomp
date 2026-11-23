@@ -21,7 +21,7 @@ u8 Object24_LoadGraphics(struct EwramData_EntityData *entity);
  */
 void Object23Update(struct EwramData_EntityData *entity)
 {
-    u32 var_0[4];
+    u32 collision[4];
 
     Anim_Update(entity);
 }
@@ -86,7 +86,7 @@ void Object24Create(struct EwramData_EntityData *entity)
  */
 void Object24Update(struct EwramData_EntityData *entity)
 {
-    u32 var_0[4];
+    u32 collision[4];
 
     if ((RandomNumberGenerator() & 0xFF) < 0xE0)
         Anim_Update(entity);

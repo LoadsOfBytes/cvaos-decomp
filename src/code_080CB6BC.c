@@ -1,6 +1,7 @@
 /* Needles 0x080CB6BC..0x080CB94B (Needles_UpdateBestiaryPreview / Needles_OnHit are copies of the Blue Crow
  * BlueCrow_UpdateBestiaryPreview / BlueCrow_OnHit). */
 #include "code_08009A0.h"
+#include "needles_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "code_080D73B8.h"
@@ -10,7 +11,7 @@ extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 extern s32 Enemy_PreUpdate(struct EwramData_EntityData *entity);
 extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *entity);
 extern void Needles_UpdateIdle(struct EwramData_EntityData *entity);
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *param_0);
+extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
 
 /* Five 6-byte needle records for Needles_SpawnDeathParts (a struct would be padded to
  * 8 bytes by agbcc): offset x, offset y, animFrame, velX / 0x1000,
@@ -48,7 +49,7 @@ void Needles_SpawnDeathParts(struct EwramData_EntityData *entity)
         if (child == NULL)
             continue;
         needle = sNeedlesDeathParts[i];
-        entity->unk_4F4.part8.unk_4F7++;
+        NEEDLES_DEATH_PARTS(entity)++;
         ENTITY_PARENT_INDEX(child) = ENTITY_INDEX(entity);
         child->spriteLayer = entity->spriteLayer;
         child->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
@@ -84,7 +85,7 @@ void NeedlesPart_Update(struct EwramData_EntityData *entity)
     if (!Entity_IsInRect(entity, -0x80, -0x40, 0x1F0, 0x120) || (u8)--entity->timer == 0xFF
         || entity->posY.part16.integer > 0xAA)
     {
-        parent->unk_4F4.part8.unk_4F7--;
+        NEEDLES_DEATH_PARTS(parent)--;
         entity->deleteRequested = 1;
     }
     else
@@ -133,7 +134,7 @@ void Needles_UpdateDeath(struct EwramData_EntityData *entity)
             Needles_SpawnDeathParts(entity);
             entity->subState++;
         case 1:
-            if (entity->unk_4F4.part8.unk_4F7 == 0)
+            if (NEEDLES_DEATH_PARTS(entity) == 0)
                 entity->deleteRequested = 1;
             break;
     }

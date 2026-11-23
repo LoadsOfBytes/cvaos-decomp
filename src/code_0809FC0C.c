@@ -37,7 +37,7 @@ void LegionShellPart_FireShot(struct EwramData_EntityData *owner, s32 dx, s32 dy
     struct EwramData_EntityData *shot = EntityCreateInRange(0x49, 0xCF, (u32 *)LegionShot_Update);
     struct ShotFrames frames = sLegionShotFrames;
     struct EwramData_EntityData *parent = LEGION_PART_OWNER(owner);
-    struct ShotData *data = (struct ShotData *)parent->unk_4F8.unk_4F8_entity;
+    struct ShotData *data = (struct ShotData *)LEGION_DATA_PTR(parent);
     s32 vx, vy, graphics, index;
     u16 *flags;
 

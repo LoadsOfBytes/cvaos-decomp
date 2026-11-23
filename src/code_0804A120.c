@@ -6,7 +6,7 @@ struct MenuPage
     u8 pad_0[0xB];
     u8 subState;
     u8 pad_C[0x17 - 0xC];
-    u8 unk_17;
+    u8 item;
 };
 
 extern void Player_RefreshEquipmentStats(void);
@@ -45,13 +45,13 @@ void EquipmentMenu_DrawStatPreview(struct MenuPage *page)
     switch (page->subState)
     {
     case 0:
-        *weapon = page->unk_17;
+        *weapon = page->item;
         break;
     case 1:
-        *armor = page->unk_17;
+        *armor = page->item;
         break;
     case 2:
-        *accessory = page->unk_17;
+        *accessory = page->item;
         break;
     }
     Player_RefreshEquipmentStats();

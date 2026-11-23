@@ -22,4 +22,7 @@
 #define MERMAN_CHILD_COUNT(e) e->unk_4FC.whole
 #define MERMAN_SPAWNER(e) e->unk_4FC.unk_4FC_entity
 
+/* Spawn mode stored by EnemyMermanCreate (1 when it starts walking); never read. */
+#define MERMAN_UNUSED_MODE(e) e->unk_504.part8.unk_504
+
 #endif /* MERMAN_ENTITY_H */

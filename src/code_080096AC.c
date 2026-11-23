@@ -57,6 +57,10 @@
 #define TRADE_LIST_ROW(e) e->unk_50C.part16.unk_50C
 #define TRADE_LIST_TOP(e) e->unk_50C.part16.unk_50E
 #define TRADE_WAIT_COUNTER(e) e->unk_500.part16.unk_502
+/* Text entry currently printed in the message window (reprinted only when
+ * it changes) and the link sync retry count of GameModeSoulTradeMenu. */
+#define TRADE_SHOWN_TEXT(e) e->unk_508.whole
+#define TRADE_SYNC_COUNT(e) e->unk_500.part16.unk_500
 
 struct SoulKey {
     u8 soulType;
@@ -78,7 +82,6 @@ u32 sSoulTypeCounts[4] = {
 s16 SoulTrade_BuildSoulList(s32 soulType)
 {
     s16 any;
-    s32 temp_r3;
     s32 j;
     s32 i;
     s32 count;
@@ -289,9 +292,9 @@ static inline void GameModeSoulTradeMenu_inline_1(struct EwramData_EntityData *m
     baseRow = 1;
     more = 0;
     pos = -1;
-    if (menu->unk_508.whole != entry)
+    if (TRADE_SHOWN_TEXT(menu) != entry)
     {
-        menu->unk_508.whole = entry;
+        TRADE_SHOWN_TEXT(menu) = entry;
         Text12_SetRegion(0U, 1U, 0x20U, 4U);
         Text12_ClearRegion();
         Text12_SetRegion(0U, 1U, 0x1EU, 4U);
@@ -495,8 +498,6 @@ static inline s32 SoulTrade_FindSoulIndex(s32 soul)
  */
 s32 SoulTrade_HandleKindMenuInput(struct EwramData_EntityData *entity)
 {
-    s32 var_r0_2;
-    s32 var_r2;
     s32 i;
     u8 firstSoul;
     s32 kind;
@@ -857,9 +858,9 @@ static inline void SoulTrade_DrawTextEntry(struct EwramData_EntityData *menu, s3
     baseRow = 1;
     more = 0;
     pos = -1;
-    if (menu->unk_508.whole != entry)
+    if (TRADE_SHOWN_TEXT(menu) != entry)
     {
-        menu->unk_508.whole = entry;
+        TRADE_SHOWN_TEXT(menu) = entry;
         Text12_SetRegion(0U, 1U, 0x20U, 4U);
         Text12_ClearRegion();
         Text12_SetRegion(0U, 1U, 0x1EU, 4U);
@@ -894,7 +895,6 @@ s32 GameModeSoulTradeMenu(void)
     s32 ready14;
     s32 ready15;
     s32 status;
-    s32 var_r4_16;
     s32 i;
     s32 j;
     s32 k;
@@ -908,7 +908,6 @@ s32 GameModeSoulTradeMenu(void)
     u32 linked15;
     s32 linked8;
     u32 linked10;
-    u8 temp_r1_10;
     s32 choice;
     struct EwramData_EntityData *cursor;
     s32 cursorY;
@@ -917,8 +916,6 @@ s32 GameModeSoulTradeMenu(void)
     s32 peerDone;
     s32 peerFlagsB;
     s32 peerConfirmed;
-    s32 var_4;
-    s32 var_5;
     s32 peerReady;
 
     saveSelect = &gEwramData->entityData[4];
@@ -1480,7 +1477,7 @@ s32 GameModeSoulTradeMenu(void)
                         linkId = MultiSioSyncGetId();
                         if (linkId == 0)
                         {
-                            if (++trade->unk_500.part16.unk_500 > 4)
+                            if (++TRADE_SYNC_COUNT(trade) > 4)
                             {
                                 TRADE_WAIT_COUNTER(trade) = linkId;
                                 gEwramData->gameModeUpdateStage = 0xF;
@@ -1605,7 +1602,6 @@ s32 GameModeSoulTradeMenu(void)
 void SoulTrade_ClearMessageWindow(struct EwramData_EntityData *entity)
 {
     s32 i;
-    s32 var_r5;
 
     Text12_SetRegion(0U, 1U, 0x20U, 4U);
     Text12_ClearRegion();
@@ -1639,9 +1635,9 @@ void SoulTrade_PrintDescription(struct EwramData_EntityData *entity, s32 entry)
     baseRow = 1;
     more = 0;
     pos = -1;
-    if (entity->unk_508.whole != entry)
+    if (TRADE_SHOWN_TEXT(entity) != entry)
     {
-        entity->unk_508.whole = entry;
+        TRADE_SHOWN_TEXT(entity) = entry;
         Text12_SetRegion(0U, 1U, 0x20U, 4U);
         Text12_ClearRegion();
         Text12_SetRegion(0U, 1U, 0x1EU, 4U);

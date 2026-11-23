@@ -22,7 +22,7 @@ struct HandBytes
     u8 flags;
 };
 #define FLAGS(e) (((struct HandBytes *)&(e)->unk_51C)->flags)
-#define ANIM(e) (((u8 *)&(e)->unk_51C)[0])
+#define ANIM(e) (BALORE_HAND_ANIM((e)))
 
 /* State byte stores through a plain u8 pointer: a struct-member store is
  * expanded as (x & 0) | v, whose zero would be reused for subState. */
@@ -59,7 +59,7 @@ void BaloreHand_Update(struct EwramData_EntityData *entity)
         entity->affineIndex = matrix;
         entity->affine = 1;
         entity->spriteLayer = 0x1A;
-        entity->unk_50C.whole = (s32)Heap_Alloc(7);
+        BALORE_HAND_STEER(entity) = (s32)Heap_Alloc(7);
         entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sBalorePalette, 15);
         Sprite_Attach(entity, sBaloreSpriteSheet, (s8)BALORE_GFX(body), entity->unk_510.part8.basePalette);
         Anim_StartIndexed(entity, 0x2D, 2, 0);
@@ -133,7 +133,7 @@ void BaloreHand_Update(struct EwramData_EntityData *entity)
         {
             entity->timer--;
             pal = entity->unk_510.part8.basePalette;
-            level = 15 - (*(volatile u8 *)&entity->timer >> 1);
+            level = 15 - (*(volatile u8 *)&entity->timer >> 1); /* FAKEMATCH: volatile read forces the reload of the original */
             index = pal - 10;
             if (gEwramData->gameState.sharedObjPaletteVariants[index] != level)
             {
@@ -174,7 +174,7 @@ void BaloreHand_Update(struct EwramData_EntityData *entity)
         }
         break;
     case 10:
-        Heap_Free((void *)entity->unk_50C.whole);
+        Heap_Free((void *)BALORE_HAND_STEER(entity));
         ObjAffine_Free(entity->affineIndex);
     delete:
         EntityDelete(entity);

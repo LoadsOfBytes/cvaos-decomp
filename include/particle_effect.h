@@ -55,4 +55,21 @@
  */
 #define PARTICLE_HIT_TYPE(e) e->unk_4F8.part16.unk_4F8
 
+/*
+ * Player flash (Effect_CreatePlayerFlash, Effect_DrawPlayerFlash): its row
+ * of sPlayerFlashInfo, the kind (table index) and the duration in frames
+ * (info byte 1; the game is paused while it grows).
+ */
+#define PLAYER_FLASH_INFO(e) e->unk_4F8.whole
+#define PLAYER_FLASH_KIND(e) e->unk_4FC.part8.unk_4FC
+#define PLAYER_FLASH_DURATION(e) e->unk_4FC.part8.unk_4FD
+
+/* Fragment sets (Entity_SpawnFragmentSet, FragmentSet_Update): the owner
+ * counts its live fragments. */
+#define FRAGMENT_SET_COUNT(e) e->unk_4F4.part8.unk_4F7
+
+/* Soul acquisition (SoulAcquisition_CreateEffect / _DrawAndWait): frames it
+ * holds the game paused (0x40). */
+#define SOUL_ACQUIRE_DURATION(e) e->unk_4FC.part8.unk_4FD
+
 #endif /* PARTICLE_EFFECT_H */

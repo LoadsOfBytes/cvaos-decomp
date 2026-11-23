@@ -1,7 +1,7 @@
 /* DiscArmor_OnHit. */
 #include "structs/ewram.h"
 
-extern void Entity_FaceTarget(struct EwramData_EntityData *param_0, s32 param_1, u16 *param_2);
+extern void Entity_FaceTarget(struct EwramData_EntityData *entity, s32 unused1, u16 *unused2);
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 

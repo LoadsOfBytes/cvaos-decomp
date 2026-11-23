@@ -71,7 +71,7 @@ void Sprite_Init(void)
 
     gEwramData->spriteSlots[0].prev = -1;
     gEwramData->spriteSlots[0xEF].next = -1;
-    sub_080E032C();
+    __Obj_InstallCallbacks_from_thumb();
     CPU_COPY_32(Sprite_DrawPartsArm, gSpriteDrawArmCode, 0x400);
     CPU_COPY_32(Sprite_DrawPartsAffineArm, gSpriteDrawAffineArmCode, 0x600);
     gSpriteDrawFunc = gSpriteDrawArmCode;

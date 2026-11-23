@@ -20,14 +20,14 @@ struct FramePairBits32 { u32 value:16; };
  */
 void Manticore_UpdateAttack(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = ENTITY_OWNER(entity);
+    struct EwramData_EntityData *parent = MANTICORE_TAIL_TIP(entity); /* tail tip */
 
     switch (entity->subState)
     {
     case 0:
         Anim_StartIndexed(entity, 2, 0, 0);
         entity->subState++;
-        parent->unk_500.part8.unk_503 = 0;
+        MANTICORE_TAIL_STEP(parent) = 0;
         break;
     case 1:
         if (entity->animStep == 0)
@@ -36,13 +36,13 @@ void Manticore_UpdateAttack(struct EwramData_EntityData *entity)
         entity->subState++;
         break;
     case 2:
-        if (parent->unk_500.part8.unk_503 <= 2)
+        if (MANTICORE_TAIL_STEP(parent) <= 2)
             break;
         entity->animFlags &= ~2;
         entity->subState++;
         break;
     case 3:
-        if (parent->unk_500.part8.unk_503 <= 4)
+        if (MANTICORE_TAIL_STEP(parent) <= 4)
             break;
         Anim_StartIndexed(entity, 3, 0, 0);
         entity->subState++;
@@ -59,7 +59,7 @@ void Manticore_UpdateAttack(struct EwramData_EntityData *entity)
     case 10:
         Anim_StartIndexed(entity, 4, 0, 0);
         entity->subState++;
-        parent->unk_500.part8.unk_503 = 0;
+        MANTICORE_TAIL_STEP(parent) = 0;
         entity->timer = 0;
         MANTICORE_SHOT_COUNT(entity) = 0;
         if ((RandomNumberGenerator() & 0xFF) <= 0x7F)

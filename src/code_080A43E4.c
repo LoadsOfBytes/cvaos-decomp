@@ -76,8 +76,8 @@ s32 Chaos_StartSecondForm(struct EwramData_EntityData *core)
             gEwramData->startPauseEnabled = 0;
             core->timer = 0;
             data->timer = RandomNumberGenerator() % 128 + 60;
-            core->unk_500.part8.unk_500 = 4;
-            core->unk_500.part8.unk_501 = core->defense;
+            CHAOS2_PART_COUNT(core) = 4;
+            CHAOS2_BASE_DEFENSE(core) = core->defense;
             Chaos2_CreateAffineEffect(core);
             Music_SetCurrent(0x12);
             return 0;

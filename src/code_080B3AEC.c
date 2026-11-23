@@ -1,5 +1,6 @@
 /* Update of a stacked column member. */
 #include "code_08009A0.h"
+#include "head_stack_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -20,7 +21,7 @@ void HeadStackSegment_Update(struct EwramData_EntityData *entity)
 
     if (entity->state != 2)
     {
-        if (owner->unk_4F8.part8.unk_4F9 == 0)
+        if (HEAD_STACK_ON_SCREEN(owner) == 0)
             return;
         HeadStackSegment_Settle(entity);
     }

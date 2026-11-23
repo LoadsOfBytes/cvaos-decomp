@@ -16,7 +16,7 @@ extern u8 sLegionSpriteSheet[];
  * when the palette allocation fails the part is deleted and the original
  * returns whatever EntityDelete leaves in r0.
  */
-struct EwramData_EntityData *Legion_CreateShellPart(struct EwramData_EntityData *entity, s32 param_1, s32 kind)
+struct EwramData_EntityData *Legion_CreateShellPart(struct EwramData_EntityData *entity, s32 center, s32 kind)
 {
     u32 *data = (u32 *)LEGION_DATA(entity);
     struct EwramData_EntityData *part = Entity_CreateObject((u32 *)LegionShellPart_Update);
@@ -45,7 +45,7 @@ struct EwramData_EntityData *Legion_CreateShellPart(struct EwramData_EntityData 
         }
         part->hidden = 1;
         LEGION_PART_OWNER(part) = entity;
-        part->unk_504.whole = param_1;
+        LEGION_SHELL_CENTER(part) = (struct EwramData_EntityData *)center;
         LEGION_SHELL_KIND(part) = kind;
         part->attack = entity->attack;
         part->scrollWithBg = 0;

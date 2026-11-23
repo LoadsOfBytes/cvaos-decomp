@@ -32,6 +32,6 @@ void SaveSelect_Open(struct EwramData_EntityData *entity);
 void SaveSelect_Close(struct EwramData_EntityData *entity);
 void MainMenu_OpenNameEntry(struct EwramData_EntityData *entity);
 s32 MainMenu_UpdateNameEntry(struct EwramData_EntityData *entity);
-void sub_08008720(void);
+void GameFlags_SetAllExceptWord1(void);
 
 #endif /* CODE_08005894_H */

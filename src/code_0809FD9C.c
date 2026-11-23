@@ -2,6 +2,7 @@
  * 0x2000, lifetime 60 and the given frame; graphics slot and palette come
  * from the shared data block at owner->unk_4F8 (see Legion_LoadGraphics). */
 #include "code_08009A0.h"
+#include "legion_entity.h"
 #include "particle_effect.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -11,7 +12,7 @@ extern u8 sLegionSpriteSheet[];
 void Legion_SpawnDebris(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx, s32 vy, s32 frame)
 {
     struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateTimedParticle);
-    s32 *data = (s32 *)owner->unk_4F8.unk_4F8_entity;
+    s32 *data = (s32 *)LEGION_DATA_PTR(owner);
     s32 graphics;
 
     if (entity == NULL)

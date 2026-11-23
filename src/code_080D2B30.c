@@ -1,5 +1,6 @@
 /* Select one of five emitters and add a small random pixel offset. */
 #include "code_08009A0.h"
+#include "graham_entity.h"
 #include "structs/ewram.h"
 struct GrahamSpawnTable { s32 coordinate[10]; };
 extern struct GrahamSpawnTable sGrahamSpawnTable;
@@ -12,14 +13,14 @@ extern struct EwramData_EntityData *Graham_CreateSceneProjectile(s32,s32,s32);
 void Graham_SpawnSceneProjectile(struct EwramData_EntityData *entity)
 {
     struct GrahamSpawnTable positions=sGrahamSpawnTable;
-    u16 counter=entity->unk_4FC.part16.unk_4FC;
+    u16 counter=GRAHAM_EMITTER_COUNTER(entity);
     u16 index=counter%5;
     u16 x=positions.coordinate[index*2];
     s32 *ys=&positions.coordinate[1];
     u16 y;
     ys+=index*2;
     y=*ys;
-    entity->unk_4FC.part16.unk_4FC=counter+1;
+    GRAHAM_EMITTER_COUNTER(entity)=counter+1;
     if((u8)(entity->timer%6)==0)
     {
         s32 random=RandomNumberGenerator();

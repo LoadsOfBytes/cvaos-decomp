@@ -1,7 +1,7 @@
 #include "code_08009A0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
-extern void Effect_SpawnTimedFrameParticle(s32 x, s32 y, s32 vx, s32 vy, s32 layer, s32 param_5, s32 param_6, s32 palette, s32 duration);
+extern void Effect_SpawnTimedFrameParticle(s32 x, s32 y, s32 vx, s32 vy, s32 layer, s32 damping, s32 flags, s32 palette, s32 duration);
 
 /* x and y are function-level variables (globally allocated, as in the original);
  * the statement expression keeps -0x100000 next to the random part. */

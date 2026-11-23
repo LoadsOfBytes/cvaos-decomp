@@ -6,6 +6,8 @@
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
+/* Slash effect: kind 3 stored at the spawn; never read. */
+#define GREAT_ARMOR_SLASH_UNUSED_KIND(e) e->unk_4FC.part8.unk_4FC
 
 #define GREAT_ARMOR_PART_COUNT 14
 
@@ -94,7 +96,7 @@ void GreatArmorShockwave_DamagePlayerOnContact(struct EwramData_EntityData *enti
 
     contactDamage.attack = entity->attack;
     contactDamage.attributes = 2;
-    contactDamage.unk_4 = 0;
+    contactDamage.unused = 0;
     contactDamage.reaction = 0;
     contactDamage.sourceX = entity->posX.whole;
     contactDamage.sourceY = entity->posY.whole;
@@ -148,7 +150,7 @@ void GreatArmorSlashEffect_Spawn(struct EwramData_EntityData *entity, s32 x, s32
     child->accelY.whole = *&parts[12].offsetY;
     child->spriteLayer = layer;
     child->timer = 0;
-    child->unk_4FC.part8.unk_4FC = 3;
+    GREAT_ARMOR_SLASH_UNUSED_KIND(child) = 3;
     gfx = ObjGfx_Find(sCommonObjectGfx);
     Sprite_Attach(child, sCommonObjectSpriteSheet, gfx, 7);
     Anim_StartIndexed(child, 0x10, 0, 0);

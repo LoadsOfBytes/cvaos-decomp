@@ -54,7 +54,7 @@ s32 EventScene15_Update(struct EwramData_EntityData *entity)
             if (Player_GetFocusedActionFlags() & 0x1E)
                 break;
             {
-                u8 i = entity->unk_4F4.part8.unk_4F5;
+                u8 i = ENTITY_PARENT_INDEX(entity);
                 struct EwramData *w = gEwramData;
                 struct EwramData_EntityData *e = (struct EwramData_EntityData *)(i * sizeof(struct EwramData_EntityData) + (u32)w + 0x4E4);
                 u8 flip;

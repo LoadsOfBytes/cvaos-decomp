@@ -54,7 +54,7 @@ void Chaos2SpinningDebris_Update(struct EwramData_EntityData *entity)
 void Chaos2_SpawnShard(struct EwramData_EntityData *parent, s32 angle, s32 speed)
 {
     struct EwramData_EntityData *shard = EntityCreateInRange(0x49, 0xCF, (u32 *)Chaos2Shard_Update);
-    struct ShardGfx *gfx = (struct ShardGfx *)parent->unk_504.unk_504_entity;
+    struct ShardGfx *gfx = (struct ShardGfx *)CHAOS_DATA_PTR(parent);
 
     if (shard != NULL)
     {

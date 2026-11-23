@@ -56,7 +56,7 @@ void CreakingSkullProjectile_Update(struct EwramData_EntityData *entity)
             a = Sin(CREAKING_SKULL_PROJECTILE_ORBIT(entity) + 0x4000) * 4;
             a -= 0xC0000;
         }
-        r = (u16)entity->unk_4FC.part16.unk_4FC;
+        r = (u16)CREAKING_SKULL_PROJECTILE_ORBIT(entity);
         if (r > 0x4000 && r < 0xC000)
             Effect_SpawnParticleAnim11(entity->posX.whole + a, entity->posY.whole + b, 0, vy, entity->spriteLayer + 1);
         else

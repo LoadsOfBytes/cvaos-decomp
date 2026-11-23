@@ -66,9 +66,9 @@ struct LinkFrameState {
 extern struct LinkFrameState sLinkFrameState;
 
 void MultiSioSyncInitialize(void);
-s32 MultiSioSyncMain(struct LinkFrameSlot *param_0);
-void MultiSioSyncSendDataSet(struct LinkFrameState *param_0);
-s32 MultiSioSyncRecvDataCheck(struct LinkFrameSlot *param_0);
+s32 MultiSioSyncMain(struct LinkFrameSlot *recv);
+void MultiSioSyncSendDataSet(struct LinkFrameState *src);
+s32 MultiSioSyncRecvDataCheck(struct LinkFrameSlot *recv);
 void MultiSioSyncVSync(void);
 void MultiSioSyncInterrupt(void);
 void MultiSioSyncStart(void);
@@ -81,10 +81,10 @@ s32 Link_IsPeerActive(void);
 void Link_Init(void);
 void Link_Start(void);
 void Link_Stop(void);
-s32 Link_QueueSendByte(u8 param_0, s32 param_1);
-s32 Link_QueueSendBytes(u8 *data, s32 count); // param_0 type?
-u8 Link_GetReceivedByte(s32 param_0);
-void Link_CopyReceivedBytes(u8 *param_0, s32 param_1); // param_0 type?
+s32 Link_QueueSendByte(u8 value, s32 index);
+s32 Link_QueueSendBytes(u8 *data, s32 count);
+u8 Link_GetReceivedByte(s32 index);
+void Link_CopyReceivedBytes(u8 *dst, s32 count);
 s16 MultiSioSyncGetId(void);
 s32 Link_IsResultValid(void);
 s32 Link_ReceivedFromAll(void);

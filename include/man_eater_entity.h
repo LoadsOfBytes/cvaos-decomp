@@ -44,4 +44,8 @@
 #define MAN_EATER_LINK_SAVED_STATE(e) e->unk_500.part8.unk_500
 #define MAN_EATER_LINK_DROPS(e) e->unk_500.part8.unk_501
 
+/* Neck links: set by ManEaterSegment_Update at creation, never read for links. */
+#define MAN_EATER_LINK_UNUSED_SPEED(e) e->unk_504.whole
+#define MAN_EATER_LINK_UNUSED_PHASE(e) e->unk_500.part16.unk_502
+
 #endif /* MAN_EATER_ENTITY_H */

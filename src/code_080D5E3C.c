@@ -4,7 +4,7 @@
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *param_0);
+extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
 extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *entity);
 extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *entity);
 extern u16 Player_CalculateAttackPower(u16 attackCategory);

@@ -4,6 +4,8 @@
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
+/* Cleared at the start of every update; never read. */
+#define CREAKING_SKULL_UNUSED_FLAG(e) e->unk_504.part8.unk_505
 
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
 extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *entity);
@@ -35,7 +37,7 @@ void EnemyCreakingSkullUpdate(struct EwramData_EntityData *entity)
     struct SkullBox box;
     s32 *parts; /* EntityJointPart viewed as 12 words (needed for the addressing) */
 
-    entity->unk_504.part8.unk_505 = 0;
+    CREAKING_SKULL_UNUSED_FLAG(entity) = 0;
     if (entity->state != 2)
     {
         if (EntityIsOutsideScreen(entity, 6))

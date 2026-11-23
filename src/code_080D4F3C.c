@@ -1,5 +1,6 @@
 /* Spawn the two child parts of this enemy (one plain, one with an affine matrix); delete both on failure. */
 #include "code_08009A0.h"
+#include "graham_projectile.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
@@ -39,8 +40,8 @@ s32 Graham_CreateShotPair(struct EwramData_EntityData *owner, s32 low)
             (*p)->posY.whole = owner->posY.whole - 0x200000;
         (*p)->scrollWithBg = 1;
         (*p)->attack = 0x50;
-        (*p)->unk_4F8.part8.unk_4F8 = i;
-        if ((u8)(*p)->unk_4F8.part8.unk_4F8 == 0)
+        GRAHAM_SHOT_PART_INDEX((*p)) = i;
+        if ((u8)GRAHAM_SHOT_PART_INDEX((*p)) == 0)
             Anim_StartIndexed(*p, 4, 0, 0);
         else
         {

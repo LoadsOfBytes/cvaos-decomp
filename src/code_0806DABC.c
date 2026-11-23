@@ -180,7 +180,7 @@ void Effect_SpawnParticleAnim13(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32
  * layer layer with flags bits 2 and 1 and 0x53D bit 1 set (param_2 ..
  * param_4 are not used).
  */
-void Effect_SpawnTimedEntity(s32 x, s32 y, s32 param_2, s32 param_3, s32 param_4, s32 layer)
+void Effect_SpawnTimedEntity(s32 x, s32 y, s32 unused2, s32 unused3, s32 unused4, s32 layer)
 {
     struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)TimedEntity_Update);
 

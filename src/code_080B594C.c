@@ -6,7 +6,7 @@
 #include "structs/ewram.h"
 extern void ObjPalette_StartColorFade(u16 r, u16 g, u16 b, s32 from, s32 to, s32 frames);
 extern void BgPalette_StartColorFade(u16 r, u16 g, u16 b, s32 from, s32 to, s32 frames);
-extern void ObjPalette_LoadRange(s32 param_0, u16 param_1, u16 param_2);
+extern void ObjPalette_LoadRange(s32 palette, u16 first, u16 count);
 extern struct EwramData_EntityData *Effect_SpawnShared(s32, s32, s32, s32);
 extern void SoulPickup_SpawnFromEnemyDefinition(s32, s32, s32, s32);
 extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);

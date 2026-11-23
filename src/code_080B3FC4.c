@@ -1,4 +1,5 @@
 /* Sprite-data setup. */
+#include "balore_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern void *Heap_Alloc(u16);
@@ -31,21 +32,21 @@ struct BaloreOverlaySheetView {
  */
 s32 BaloreOverlay_SetupSprite(struct EwramData_EntityData *entity)
 {
-    u8 *info = (u8 *)entity->unk_4F8.whole;
+    u8 *info = (u8 *)BALORE_OVERLAY_INFO(entity);
     struct BaloreOverlaySheetView *a;
     struct BaloreOverlayFrameView *b;
     void *c;
 
-    if ((entity->unk_4FC.whole = (s32)Heap_Alloc(4)) == 0)
+    if ((BALORE_OVERLAY_SHEET(entity) = (s32)Heap_Alloc(4)) == 0)
         return 1;
-    if ((entity->unk_500.whole = (s32)Heap_Alloc(4)) == 0)
+    if ((BALORE_OVERLAY_FRAME(entity) = (s32)Heap_Alloc(4)) == 0)
         return 1;
     c = Heap_Alloc(0x20);
-    entity->unk_504.whole = (s32)c;
+    BALORE_OVERLAY_PARTS(entity) = (s32)c;
     if (c == NULL)
         return 1;
-    a = (struct BaloreOverlaySheetView *)entity->unk_4FC.whole;
-    b = (struct BaloreOverlayFrameView *)entity->unk_500.whole;
+    a = (struct BaloreOverlaySheetView *)BALORE_OVERLAY_SHEET(entity);
+    b = (struct BaloreOverlayFrameView *)BALORE_OVERLAY_FRAME(entity);
     a->frameCount = 1;
     a->scriptCount = 0;
     a->frames = b;

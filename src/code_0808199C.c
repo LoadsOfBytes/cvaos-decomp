@@ -2,6 +2,7 @@
  * a cloning script (constants adjusted where needed), checked byte for
  * byte. */
 #include "code_08009A0.h"
+#include "joint_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -39,7 +40,7 @@ void Golem_ResetPartAngles(struct EwramData_EntityData *entity, s32 partIndex)
 /* 819D4 | Pass a hit on to the parent entity unk_500 (Golem_OnDamaged). */
 void GolemSegment_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    Golem_OnDamaged(entity->unk_500.unk_500_entity, attacker, hit);
+    Golem_OnDamaged(JOINT_PART_OWNER(entity), attacker, hit);
 }
 
 /* 819E0 | Spawn the debris GolemIdleEffect_Update at the owner + (x, y), one layer in

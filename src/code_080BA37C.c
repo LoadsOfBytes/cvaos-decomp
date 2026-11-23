@@ -67,9 +67,9 @@ remove:
             Anim_StartIndexed(entity, 3, 0, 1);
         }
         entity->scrollWithBg = 1;
-        entity->unk_504.whole = 0x60000;
+        MAN_EATER_LINK_UNUSED_SPEED(entity) = 0x60000;
         SWING_SPEED(entity) = 0x60;
-        entity->unk_500.part16.unk_502 = INDEX(entity) * 8;
+        MAN_EATER_LINK_UNUSED_PHASE(entity) = INDEX(entity) * 8;
         if (SWING(entity) <= 0x2000)
             entity->state = 1;
         else

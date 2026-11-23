@@ -128,7 +128,7 @@ void EquipmentMenu_DrawList(struct PlayerStatus *stats, struct MenuPage *page, s
                 info = &table[equipped[k]].name;
             else
                 info = &sWeaponInfo[equipped[k]].name;
-            do
+            do /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
                 odd = row & 1;
             while (0); /* register priority */
             x = odd ? 0x15 : 0;
@@ -162,7 +162,7 @@ void EquipmentMenu_DrawList(struct PlayerStatus *stats, struct MenuPage *page, s
 
                 if (idx == page->cursor)
                     page->item = i;
-                do /* register priority */
+                do /* FAKEMATCH: register priority */
                 {
                     if (slot != 0)
                         info = &table[i].name;

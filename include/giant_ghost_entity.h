@@ -10,6 +10,8 @@
 #define GIANT_GHOST_DIVE_X(e) e->unk_4FC.whole
 #define GIANT_GHOST_DIVE_Y(e) e->unk_500.whole
 #define GIANT_GHOST_HIT_PLAYER(e) e->unk_504.part8.unk_505
+/* Cleared by GiantGhost_ResetAnimation, never read for the body. */
+#define GIANT_GHOST_UNUSED_FLAG(e) e->unk_504.part8.unk_504
 
 /*
  * Hands (GiantGhostHandA/B_Update, created in EnemyGiantGhostCreate): hand

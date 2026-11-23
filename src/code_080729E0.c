@@ -29,7 +29,7 @@ void Manticore_UpdateWalk(struct EwramData_EntityData *entity)
     s32 res;
     s32 found;
     s32 speed;
-    do { /* weights the refs of bg (allocated before the shared 0x40 mask) */
+    do { /* FAKEMATCH: weights the refs of bg (allocated before the shared 0x40 mask) */
         bg = gEwramData->bgInfo + 1;
     } while (0);
 
@@ -92,7 +92,7 @@ void Manticore_UpdateWalk(struct EwramData_EntityData *entity)
             }
             else
             {
-                do { /* weights the refs of the flipX byte pointer (global-alloc priority) */
+                do { /* FAKEMATCH: weights the refs of the flipX byte pointer (global-alloc priority) */
                     if (entity->flipX)
                         dx = 0;
                     else
@@ -101,13 +101,13 @@ void Manticore_UpdateWalk(struct EwramData_EntityData *entity)
                 if (Target_IsInRect(entity->posX.part16.integer + dx, entity->posY.part16.integer - 0x3C, 0x60, 0x46) && (RandomNumberGenerator() & 0xFF) <= 0x3F)
                 {
                     entity->state = 1;
-                    do { /* weights the refs of found (r4 before the 0x40 mask) */
+                    do { /* FAKEMATCH: weights the refs of found (r4 before the 0x40 mask) */
                         entity->subState = found;
                     } while (0);
                     break;
                 }
             }
-            do { /* weights the refs of the flipX byte pointer (global-alloc priority) */
+            do { /* FAKEMATCH: weights the refs of the flipX byte pointer (global-alloc priority) */
                 if (entity->flipX)
                     dx = 0;
                 else

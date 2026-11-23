@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "room_object_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -21,7 +22,7 @@ void Object07ParallaxSprite_Update(struct EwramData_EntityData *entity)
             break;
         }
         Sprite_Attach(entity, sObject07ParallaxSpriteSpriteSheet, graphics, palette);
-        entity->animFrame = entity->unk_4FC.part8.unk_4FC;
+        entity->animFrame = OBJECT07_SPRITE_FRAME(entity);
         entity->spriteLayer = 0x1E;
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         entity->objMode = 1;

@@ -4,7 +4,7 @@
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *param_0);
+extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
 extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 extern void EntityDampVelocityX(struct EwramData_EntityData *entity, s32 factor);
 extern void EntityAccelerateAndMove(struct EwramData_EntityData *entity, s32 maxSpeed);
@@ -35,7 +35,7 @@ void HeadStackProjectile_DamagePlayerOnContact(struct EwramData_EntityData *enti
     struct PlayerContactDamage contactDamage;
 
     contactDamage.attributes = 2;
-    contactDamage.unk_4 = 0;
+    contactDamage.unused = 0;
     contactDamage.attack = entity->attack;
     contactDamage.reaction = 1;
     contactDamage.sourceX = entity->posX.whole;

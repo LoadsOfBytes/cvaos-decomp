@@ -33,7 +33,7 @@ void Object25Update(struct EwramData_EntityData *entity)
     const struct Object25Point *points;
     u32 randomValue;
     u32 pointIndex;
-    u32 var_6[4];
+    u32 collision[4];
 
     switch (entity->state)
     {

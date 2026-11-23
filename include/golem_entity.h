@@ -20,4 +20,7 @@
 #define GOLEM_SEGMENT_SPIN(e) e->unk_4F8.whole
 #define GOLEM_SEGMENT_FALL_ANGLE(e) e->unk_4FC.whole
 
+/* Bestiary preview (Golem_UpdateBestiaryPreview): idle effects shown so far. */
+#define GOLEM_PREVIEW_EFFECTS(e) e->unk_4FC.part8.unk_4FD
+
 #endif /* GOLEM_ENTITY_H */

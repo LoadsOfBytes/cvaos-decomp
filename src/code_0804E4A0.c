@@ -1,5 +1,6 @@
 /* Initialize object 0x03's window mask, three vertical tile positions and variant state. */
 #include "code_08001194.h"
+#include "door_entity.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
 extern void Door_SetupGraphics(struct EwramData_EntityData *);
@@ -18,7 +19,7 @@ void Object03Create(struct EwramData_EntityData *entity)
     Collision_SetBlock(x, y - 8);
     Collision_SetBlock(x, y - 24);
     Collision_SetBlock(x, y - 40);
-    entity->unk_4F8.whole = 0;
+    DOOR_OPEN_HEIGHT(entity) = 0;
     switch (entity->unk_514.part16.spawnParam0)
     {
     case 1: entity->state = 20; break;

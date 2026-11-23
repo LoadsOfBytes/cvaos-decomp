@@ -16,7 +16,7 @@ extern void EntitySetVelocityFromAngle(struct EwramData_EntityData *entity, s32 
 void Chaos2_SpawnEffect(struct EwramData_EntityData *parent, s32 frame)
 {
     struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, (u32 *)Chaos2Effect_Update);
-    struct ChaosEffectGfx *gfx = (struct ChaosEffectGfx *)CHAOS_LINK(parent)->unk_504.unk_504_entity;
+    struct ChaosEffectGfx *gfx = (struct ChaosEffectGfx *)CHAOS_DATA_PTR(CHAOS_LINK(parent));
     if (effect != NULL)
     {
         s32 tiles;
@@ -39,7 +39,7 @@ void Chaos2_SpawnEffect(struct EwramData_EntityData *parent, s32 frame)
 void Chaos2_SpawnEffectAbove(struct EwramData_EntityData *parent, s32 frame)
 {
     struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, (u32 *)Chaos2Effect_Update);
-    struct ChaosEffectGfx *gfx = (struct ChaosEffectGfx *)parent->unk_504.unk_504_entity;
+    struct ChaosEffectGfx *gfx = (struct ChaosEffectGfx *)CHAOS_DATA_PTR(parent);
     if (effect != NULL)
     {
         s32 tiles;
@@ -62,7 +62,7 @@ void Chaos2_SpawnEffectAbove(struct EwramData_EntityData *parent, s32 frame)
 void Chaos2_SpawnSpinningDebris(struct EwramData_EntityData *parent, s32 angle, s32 speed)
 {
     struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, (u32 *)Chaos2SpinningDebris_Update);
-    struct ChaosEffectGfx *gfx = (struct ChaosEffectGfx *)parent->unk_504.unk_504_entity;
+    struct ChaosEffectGfx *gfx = (struct ChaosEffectGfx *)CHAOS_DATA_PTR(parent);
     if (effect != NULL)
     {
         s32 tiles;

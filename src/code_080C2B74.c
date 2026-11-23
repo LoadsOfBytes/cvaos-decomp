@@ -1,4 +1,5 @@
 #include "code_08009A0.h"
+#include "ripper_entity.h"
 #include "code_080D73B8.h"
 #include "structs/ewram.h"
 
@@ -15,7 +16,7 @@ extern s32 Entity_IsInRect(struct EwramData_EntityData *, s16, s16, u16, u16);
 void RipperProjectile_Update(struct EwramData_EntityData *entity)
 {
     u32 buf[4];
-    struct EwramData_EntityData *owner = entity->unk_508.unk_508_entity;
+    struct EwramData_EntityData *owner = RIPPER_PROJECTILE_OWNER(entity);
 
     Enemy_UpdateHitFlash(entity);
     if (Entity_IsTimeStopped(entity) == 0 || entity->state == 5 || entity->state == 6)

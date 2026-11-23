@@ -10,8 +10,8 @@ extern void TextWindow_AdjustOpening(s32 delta);
 extern void Conversation_Reset(void);
 
 /* Create / update of the variants of object 0x20. */
-extern void (*const sEventSceneCreateFuncs[])(struct EwramData_EntityData *param_0);
-extern u32 (*const sEventSceneUpdateFuncs[])(struct EwramData_EntityData *param_0);
+extern void (*const sEventSceneCreateFuncs[])(struct EwramData_EntityData *entity);
+extern u32 (*const sEventSceneUpdateFuncs[])(struct EwramData_EntityData *entity);
 
 /**
  * @brief 5B42C | Object 0x20 create. Deleted unless (HP > 0 or stateFlags bit

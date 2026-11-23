@@ -20,4 +20,15 @@
 #define STOLAS_DRAW_OFFSET_Y(e) e->unk_4F8.part16.unk_4FA
 #define STOLAS_BEAM_LENGTH(e) e->unk_508.part16.unk_508
 
+/*
+ * Free child slots: 3 minus its live children (recounted every update by
+ * EnemyStolasUpdate); Stolas_UpdateMove starts the beam attack only while
+ * one is free.
+ * Its effects (Stolas_SpawnCastEffect, beam segments and impacts) keep
+ * Stolas; the cast effect turns its affine angle to +-0x10000.
+ */
+#define STOLAS_FREE_SLOTS(e) e->unk_508.part16.unk_50A
+#define STOLAS_EFFECT_OWNER(e) e->unk_500.unk_500_entity
+#define STOLAS_CAST_ANGLE(e) e->unk_4F8.whole
+
 #endif /* STOLAS_ENTITY_H */

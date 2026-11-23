@@ -153,7 +153,7 @@ void Object2DCreate(struct EwramData_EntityData *entity)
  */
 void Object2DUpdate(struct EwramData_EntityData *entity)
 {
-    u32 var_0[4];
+    u32 collision[4];
 
     if (entity->state == 0)
         Object2D_UpdateState(entity);
@@ -227,7 +227,7 @@ void Object2ECreate(struct EwramData_EntityData *entity)
  */
 void Object2EUpdate(struct EwramData_EntityData *entity)
 {
-    u32 var_0[4];
+    u32 collision[4];
 
     if (entity->state == 0)
         Object2E_UpdateState(entity);
@@ -271,7 +271,7 @@ void Object2E_UpdateState(struct EwramData_EntityData *entity)
  */
 void Object2EPiece_Update(struct EwramData_EntityData *entity)
 {
-    u32 var_0[4];
+    u32 collision[4];
 
     Anim_Update(entity);
 }
@@ -333,7 +333,7 @@ void Object2FCreate(struct EwramData_EntityData *entity)
  */
 void Object2FUpdate(struct EwramData_EntityData *entity)
 {
-    u32 var_0[4];
+    u32 collision[4];
 
     if (entity->state == 0)
         Object2F_UpdateState(entity);
@@ -472,7 +472,7 @@ void Object30Create(struct EwramData_EntityData *entity)
  */
 void Object30Update(struct EwramData_EntityData *entity)
 {
-    u32 var_0[4];
+    u32 collision[4];
 
     if (entity->state == 0)
         Object30_UpdateState(entity);
@@ -559,7 +559,7 @@ void Object31Create(struct EwramData_EntityData *entity)
     }
     entity->posX.part16.integer = xs[entity->unk_514.part16.spawnParam0];
     entity->posY.part16.integer = ys[entity->unk_514.part16.spawnParam0];
-    entity->unk_4F8.whole = values.v[entity->unk_514.part16.spawnParam0];
+    OBJECT31_DELAY(entity) = values.v[entity->unk_514.part16.spawnParam0];
 }
 
 /**
@@ -637,7 +637,7 @@ void Object31_UpdateState(struct EwramData_EntityData *entity)
  */
 void Object31Update(struct EwramData_EntityData *entity)
 {
-    u32 var_0[4];
+    u32 collision[4];
 
     if (entity->state == 0)
         Object31_UpdateState(entity);

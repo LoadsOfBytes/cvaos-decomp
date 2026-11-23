@@ -42,7 +42,7 @@ void SoulAcquisition_DrawAndWait(struct EwramData_EntityData *entity)
     entity->roomActive = 1;
     if (entity->timer < 48)
         Effect_SpawnPlayerInwardParticle(entity->palette);
-    if (entity->timer < entity->unk_4FC.part8.unk_4FD)
+    if (entity->timer < SOUL_ACQUIRE_DURATION(entity))
         entity->timer++;
     else
     {

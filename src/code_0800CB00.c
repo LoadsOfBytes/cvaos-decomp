@@ -236,14 +236,10 @@ void BgEffect_SkewWaveSteep(s32 bgNum, s32 top, s32 bottom)
 {
     s32 baseWave;
     s16 *hBlankBuf;
-    s32 temp_r4_2;
-    s32 var_r4;
     s32 scanline;
-    s32 var_r7;
     s32 height;
     struct BgOffset *bgOfs;
     s32 phase;
-    u8 *temp_r1_2;
     struct BgLayerState *bgInfo;
     s32 offset;
     s32 angle;
@@ -428,7 +424,6 @@ void Bg_UpdateScrollModes(void)
     u16 *waveBase;
     s16 *hblank;
     s16 *waveLine;
-    s16 *var_r4_3;
     s16 *swayLine;
     s32 sway;
     s32 i;
@@ -1635,7 +1630,6 @@ void Hud_CloseMessageWindow(void)
 {
     s32 vramAddr;
     s32 row;
-    s32 var_r5_2;
     struct GameState *gameState;
     u8 *buffer;
     u32 size;

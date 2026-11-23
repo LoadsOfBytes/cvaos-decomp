@@ -93,7 +93,7 @@ void BaloreHandBHitBox_Update(struct EwramData_EntityData *entity)
     entity->posX.whole = hand->posX.whole + y * Sin(x + 0x4000);
     entity->posY.whole = hand->posY.whole + y * Sin(x);
     ObjAffine_Set(BALORE_ARM_ANGLE(hand), 0x10000, 0x10000, hand->flipX, 0, entity->affineIndex);
-    if (entity->animScriptIndex != ((u8 *)&hand->unk_51C)[0])
-        Anim_StartIndexed(entity, ((u8 *)&hand->unk_51C)[0], 2, 0);
+    if (entity->animScriptIndex != BALORE_HAND_ANIM(hand))
+        Anim_StartIndexed(entity, BALORE_HAND_ANIM(hand), 2, 0);
     Anim_Update(entity);
 }

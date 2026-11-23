@@ -31,7 +31,7 @@ void AbilityMenu_Open(struct MenuPage *page)
     s32 i;
 
     MenuPage_Reset(page);
-    do
+    do /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
         page->count = 6;
     while (0);
     Text12_SetupTileRegion(4, 0xD, 0x3200, 0x1F, 4);

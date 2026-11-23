@@ -42,7 +42,7 @@ void Object2BCreate(struct EwramData_EntityData *entity)
  */
 void Object2BUpdate(struct EwramData_EntityData *entity)
 {
-    u32 var_0[4];
+    u32 collision[4];
 
     Anim_Update(entity);
 }
@@ -72,14 +72,14 @@ void Object2CCreate(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *child;
     s32 i;
-    s32 var_1;
+    s32 zero;
 
-    for (i = 0, var_1 = 0; i <= 3; i++)
+    for (i = 0, zero = 0; i <= 3; i++)
     {
         child = EntityCreateInRange(0x49, 0xCF, (u32 *)Object2CLayer_Update);
         if (child == NULL)
             continue;
-        child->unk_518.part8.spawnIndex = var_1;
+        child->unk_518.part8.spawnIndex = zero;
         child->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
         child->drawFunc = (u32 *)Sprite_DrawEntity;
         Object2C_SetupLayer(child);
@@ -89,7 +89,7 @@ void Object2CCreate(struct EwramData_EntityData *entity)
             case 0:
                 child->posY.part16.integer = 0x1E;
                 child->velX.whole = 0x4000;
-                child->animFrame = var_1;
+                child->animFrame = zero;
                 break;
             case 1:
                 child->posY.part16.integer = 0x3E;
@@ -115,7 +115,7 @@ void Object2CCreate(struct EwramData_EntityData *entity)
  */
 void Object2CUpdate(struct EwramData_EntityData *entity)
 {
-    u32 var_0[4];
+    u32 collision[4];
 }
 
 /**

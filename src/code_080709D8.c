@@ -10,7 +10,7 @@ void KillerFishSwarm_DamagePlayerOnContact(struct EwramData_EntityData *entity)
     struct PlayerContactDamage effect;
     effect.attack = entity->attack;
     effect.attributes = 0;
-    effect.unk_4 = 0;
+    effect.unused = 0;
     effect.reaction = 1;
     effect.sourceX = entity->posX.whole;
     effect.sourceY = entity->posY.whole;

@@ -5,7 +5,7 @@
 
 extern s32 KillerDoll_LoadGraphics(struct EwramData_EntityData *entity);
 extern void KillerDoll_OnContact(struct EwramData_EntityData *entity);
-extern void KillerDoll_OnHit(struct EwramData_EntityData *param_0);
+extern void KillerDoll_OnHit(struct EwramData_EntityData *entity);
 extern void KillerDoll_ResetActive(struct EwramData_EntityData *entity);
 extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, s32 onHurt);

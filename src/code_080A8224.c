@@ -3,6 +3,7 @@
  * while timer is in 0x79..0xD6, then frees the parts; otherwise
  * Entity_ClampXToRoom and a 1-in-4 chance to clear unk_4FE. */
 #include "code_08009A0.h"
+#include "big_golem_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -56,5 +57,5 @@ void EnemyBigGolemUpdate(struct EwramData_EntityData *entity)
 idle:
     Entity_ClampXToRoom(entity, 1);
     if ((RandomNumberGenerator() & 0x7F) < 0x20)
-        entity->unk_4FC.part8.unk_4FE = 0;
+        BIG_GOLEM_HIT(entity) = 0;
 }

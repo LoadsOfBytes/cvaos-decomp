@@ -8,7 +8,7 @@ extern void Sound_StopTracked(s32 id);
 
 static inline void ResetBeam(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = &gEwramData->entityData[entity->unk_4F4.part8.unk_4F6];
+    struct EwramData_EntityData *owner = &gEwramData->entityData[BEAM_OWNER_INDEX(entity)];
     entity->posX.whole = -0xB0000;
     if (entity->flipX)
         entity->posX.whole = -entity->posX.whole;

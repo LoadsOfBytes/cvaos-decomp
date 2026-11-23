@@ -2,13 +2,13 @@
  * Text window: background, opening / closing, update and text printing with commands.
  */
 #include "gba.h"
-#include "code_08009A0.h"
-#include "code/code_08039340.h"
+#include "core.h"
+#include "graphics.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
-#include "code_0800CB00.h"
+#include "bg_effects.h"
 #include "syscalls.h"
-#include "code/code_08040A38.h"
+#include "gameplay.h"
 #include "gba/dma.h"
 
 /* Set up a language-dependent background: copy its map, load the given

@@ -4,13 +4,13 @@
  * One translation unit for the consecutive ROM range of its code; the
  * functions keep their ROM order.
  */
-#include "code_08009A0.h"
-#include "code/code_080211F0.h"
-#include "code/code_08039340.h"
-#include "code/code_08040A38.h"
-#include "code/code_08060B98.h"
+#include "core.h"
+#include "player_core.h"
+#include "graphics.h"
+#include "gameplay.h"
+#include "entity_util.h"
 #include "structs/ewram.h"
-#include "code_080D73B8.h"
+#include "sound.h"
 #include <string.h>
 #include "syscalls.h"
 
@@ -1719,7 +1719,7 @@ void CreakingSkullProjectile_Update(struct EwramData_EntityData *entity)
 }
 
 /* Creaking Skull body-part helpers 0x08098BC0..0x08098C83 (13 parts of
- * struct EntityJointPart, same code as the Stolas helpers in code_0809C304.c). */
+ * struct EntityJointPart, same code as the Stolas helpers in enemy/stolas.c). */
 
 #define CREAKING_SKULL_PART_COUNT 13
 

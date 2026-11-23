@@ -1,17 +1,17 @@
 /*
  * Man Eater: head, segments, chain anchor, projectiles and attached parts (the last part also holds Killer Mantle effects and parts).
  */
-#include "code_08009A0.h"
-#include "code/code_080211F0.h"
-#include "code/code_08039340.h"
-#include "code/code_08040A38.h"
-#include "code/code_08060B98.h"
+#include "core.h"
+#include "player_core.h"
+#include "graphics.h"
+#include "gameplay.h"
+#include "entity_util.h"
 #include "syscalls.h"
-#include "code_080D73B8.h"
+#include "sound.h"
 #include "structs/ewram.h"
 #include "structs/entity_render_flags.h"
-#include "code_08013960.h"
-#include "code_08033CAC.h"
+#include "music.h"
+#include "player_level.h"
 
 /* Man Eater part hit: propagate flags, subtract HP and notify parent.
  * The local r6 binding preserves the hit-data pointer before address calculation.
@@ -750,7 +750,7 @@ extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource,
 // The offsets are passed sign-extended here (u16 in the definition).
 extern void Entity_PlaceRelativeToCopy(struct EwramData_EntityData *entity, struct EwramData_EntityData *anchor, s32 offsetX, s32 offsetY);
 
-/* Graphics of this enemy (see code_080BB664.c). */
+/* Graphics of this enemy (see enemy/killer_mantle.c). */
 extern u8 sKillerMantleGfx[];
 extern u8 sKillerMantlePalette[];
 extern u8 sKillerMantleSpriteSheet[];

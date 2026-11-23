@@ -59,7 +59,7 @@ struct DeadCrusaderWork {
     /* 0x505 */ u8 guarding;
 };
 
-/* Imp / Tiny Devil (code_080C47F8.c, code_080C5200.c; the Tiny Devil flight
+/* Imp / Tiny Devil (enemy/imp.c, enemy/imp.c; the Tiny Devil flight
  * slots are in ext.tinyDevil): slot index of the linked entity -
  * the imp keeps its grab indicator, a death piece keeps the imp's slot.
  * Imp flight: frames until the next attack, braking bits (1 = braking
@@ -82,7 +82,7 @@ struct ImpWork {
 };
 
 /* Peeping Eye: its pupil, eyeball and chain links keep the eye (the other
- * slots are TU-local PEEPING_EYE_* names in code_08087DC0.c).
+ * slots are TU-local PEEPING_EYE_* names in enemy/peeping_eye.c).
  */
 struct PeepingEyeWork {
     /* 0x4F4 */ u8 pad_4F4[0x500 - 0x4F4];
@@ -1080,7 +1080,7 @@ struct KillerFishEffectWork {
 
 /* Swarm fish (KillerFishSwarm_*): bite flag, set by the contact handler
  * (KillerFishSwarm_DamagePlayerOnContact) and ending the dart.
- * Swarm fish movement (code_08070218.c - TU aliases SCATTER / OWNER_LOST /
+ * Swarm fish movement (enemy/killer_fish_swarm.c - TU aliases SCATTER / OWNER_LOST /
  * STEER_TIMER): scatter flag, set when the leader (ENTITY_CREATOR) is gone,
  * and the frames until the next steering change.
  */
@@ -1875,7 +1875,7 @@ struct DiscArmorRingWork {
     /* 0x504 */ s32 length;
 };
 
-/* Sparks (SpawnSpark in code_080B1678.c, DiscArmorSpark_Update): animation. */
+/* Sparks (SpawnSpark in enemy/disc_armor.c, DiscArmorSpark_Update): animation. */
 struct DiscArmorSparkWork {
     /* 0x4F4 */ u8 pad_4F4[0x4F8 - 0x4F4];
     /* 0x4F8 */ s8 anim;
@@ -2203,7 +2203,7 @@ struct ManticoreWork {
 /* Manticore tail segments (and the tip): anchor part, kind (0..5 segments, 6
  * = tip), updated (set when the segment has been updated this frame; the
  * base segment clears it along the chain and each segment then updates the
- * next one - TU aliases KIND / DONE / NEXT in code_080733D4.c), swing frame
+ * next one - TU aliases KIND / DONE / NEXT in enemy/manticore.c), swing frame
  * counter and step (ManticoreTail_UpdateSwing - TU aliases TIMER / STEP),
  * and the next segment towards the tip or, on the tip, a value used by the
  * swing (initial 0x4000).
@@ -2654,7 +2654,7 @@ struct LegionShellWork {
 
 /* Headhunter main entity: intro step (Headhunter AI TU); form phase (defeat
  * in phases 1 and 2 starts a transformation; the parts wait for phase KIND +
- * 1 - code_08083A40.c TU alias PHASE); hit react (set by
+ * 1 - enemy/headhunter.c TU alias PHASE); hit react (set by
  * Headhunter_ApplyResolvedDamage when a hit should interrupt the current
  * action); flags (cleared every update; 1 = no contact damage this frame, 2
  * = show the forced frame instead of the animation); forced frame; graphics
@@ -2722,7 +2722,7 @@ struct HeadhunterWhipSegmentWork {
     /* 0x504 */ u8 index;
 };
 
-/* Headhunter transformation children (code_08083A40.c - TU alias KIND): kind
+/* Headhunter transformation children (enemy/headhunter.c - TU alias KIND): kind
  * (transformation part 2..0, slash arc (1 / 2 drift with its facing), burst
  * corner 0..3); slash arcs keep the Headhunter in owner.
  */
@@ -3606,7 +3606,7 @@ struct Object22PartWork {
 };
 
 /* Object 0x07 (BG decoration): the palette-animation variant clears frame
- * and tick (BG_PALETTE_ANIM_*, TU code_0804F690.c) as one word; its parallax
+ * and tick (BG_PALETTE_ANIM_*, TU object/objects_00_07.c) as one word; its parallax
  * sprites keep their frame.
  */
 struct Object07Work {
@@ -3662,7 +3662,7 @@ struct TitleMenuWork {
     /* 0x504 */ s32 slideOffset;
 };
 
-/* Main menu / save select entity (GameModeMainMenuUpdate, code_08005894.c):
+/* Main menu / save select entity (GameModeMainMenuUpdate, menu/main_menu.c):
  * slot empty (1 when the shown slot cannot be loaded / copied), saved slots
  * (bit per slot whose header has a play time, MainMenu_InitEntity; 0 = no
  * saved game, the choice stays on New Game), copy source / destination slots
@@ -3795,7 +3795,7 @@ struct IntroTextWork {
     /* 0x4FE */ s16 startScroll;
 };
 
-/* Soul trade menu entity (code_080096AC.c): selected soul kind (list 0-2,
+/* Soul trade menu entity (menu/soul_trade.c): selected soul kind (list 0-2,
  * sSoulTradeListTextBases); partner-offer-shown flag; selected soul list
  * entry (halfword, and its low byte as read by SoulTrade_MoveListCursor);
  * link sync retry count and link wait counter of GameModeSoulTradeMenu
@@ -3906,7 +3906,7 @@ struct SubweaponWork {
     /* 0x50C */ s32 walkSpeed;
 };
 
-/* Julius sub-weapon (code_080D1E5C.c): a sum accumulated every frame but
+/* Julius sub-weapon (enemy/belmont.c): a sum accumulated every frame but
  * never read; the step is never written.
  */
 struct SubweaponUnusedWork {

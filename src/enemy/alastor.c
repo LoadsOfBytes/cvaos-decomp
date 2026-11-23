@@ -1,12 +1,12 @@
 /*
  * Alastor: body, attacks, afterimages and linked parts.
  */
-#include "code_08009A0.h"
-#include "code/code_08039340.h"
+#include "core.h"
+#include "graphics.h"
 #include "structs/ewram.h"
-#include "code/code_080211F0.h"
-#include "code_080D73B8.h"
-#include "code/code_08040A38.h"
+#include "player_core.h"
+#include "sound.h"
+#include "gameplay.h"
 
 /* Alastor graphics, affine transform and callbacks. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *,u8 *,void *,u8,void *);
@@ -1155,8 +1155,8 @@ extern u8 sCommonObjectSpriteSheet[];
  */
 void Effect_FollowParentHitBoxCopy(struct EwramData_EntityData *entity)
 {
-    struct HitBoxRecord attackBox;
-    struct HitBoxRecord bodyBox;
+    struct SpriteBox attackBox;
+    struct SpriteBox bodyBox;
     struct EwramData_EntityData *parent = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
 
     HitBox_GetBoxes(&attackBox, &bodyBox, parent);

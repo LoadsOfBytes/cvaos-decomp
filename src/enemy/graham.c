@@ -1,25 +1,25 @@
 /*
  * Graham (boss): scene and defeat scene, combat body, overlays, side parts, attackers, first form, spread / shot / spiral projectiles and breakup.
  */
-#include "code_08009A0.h"
+#include "core.h"
 #include "graham_entity.h"
-#include "code_0800B700.h"
-#include "code_08013960.h"
-#include "code_08033CAC.h"
+#include "in_game.h"
+#include "music.h"
+#include "player_level.h"
 #include "structs/ewram.h"
-#include "code/code_08039340.h"
-#include "code/code_08050A3C.h"
-#include "code_080D73B8.h"
+#include "graphics.h"
+#include "room_objects.h"
+#include "sound.h"
 #include "graham_projectile.h"
-#include "code/code_08040A38.h"
-#include "code_080109F4.h"
-#include "code_08011DD0.h"
+#include "gameplay.h"
+#include "map_screen.h"
+#include "map_flags.h"
 #include "gba/dma.h"
 #include "structs/main.h"
-#include "code/code_08060B98.h"
+#include "entity_util.h"
 #include "structs/entity_render_flags.h"
 #include <string.h>
-#include "code/code_080211F0.h"
+#include "player_core.h"
 
 /* Graham encounter setup, including character/event dependent scene paths. */
 extern s32 Graham_CreateSceneObject(struct EwramData_EntityData *,s32);

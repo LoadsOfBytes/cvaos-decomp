@@ -1,13 +1,183 @@
 /*
- * Buer: charge, death, charge effect and movement (the active state is in the previous, separately compiled file; the head and Buer_SpawnChargeEffect are in the next one: the charge code passes s32 coordinates to its u16 parameters).
+ * Buer: create, head, active / charge / death states, charge effect and movement.
+ * Built without -f2003-patch (Buer_CreateHead / Buer_UpdateActive need it off; the rest compiles the same either way).
  */
-#include "code_080D73B8.h"
-#include "code/code_08039340.h"
+#include "core.h"
+#include "graphics.h"
+#include "gameplay.h"
 #include "structs/ewram.h"
+#include "sound.h"
 #include <string.h>
-#include "code_08009A0.h"
-#include "code/code_08060B98.h"
-#include "code/code_080211F0.h"
+#include "entity_util.h"
+#include "player_core.h"
+
+/* Buer: load graphics, create its linked parts and set initial collision
+ * and movement state. */
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
+extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
+extern void Entity_SnapToGround(struct EwramData_EntityData *);
+extern void Buer_CreateHead(struct EwramData_EntityData *);
+extern void Buer_AllocateAffine(struct EwramData_EntityData *);
+extern void Buer_DamagePlayerOnContact(struct EwramData_EntityData *);
+extern void Buer_OnHit(struct EwramData_EntityData *);
+extern u8 sBaelBuerGfx[], sBaelBuerPalette[], sBaelBuerSpriteSheet[];
+static inline void SetState(struct EwramData_EntityData *entity, s8 value4F0, u8 state)
+{
+    entity->state = state;
+    entity->stage = value4F0;
+    entity->subState = 0;
+}
+void EnemyBuerCreate(struct EwramData_EntityData *entity)
+{
+    u8 *palette = sBaelBuerPalette;
+    u8 *sprites = sBaelBuerSpriteSheet;
+    u8 *graphics = sBaelBuerGfx;
+    if (!Entity_LoadGraphics(entity, graphics, palette, 0, sprites))
+    {
+        EntityDelete(entity);
+        return;
+    }
+    entity->spriteLayer = 20;
+    Enemy_ResetFromTemplate(entity);
+    entity->animFrame = 0;
+    entity->scrollWithBg = 1;
+    entity->ext.wheel.speed = 0x8000;
+    entity->accelY.whole = 0x4000;
+    if (entity->spawnParam0 == 0) SetState(entity, 0, 1);
+    else SetState(entity, 0, 2);
+    Buer_CreateHead(entity);
+    Buer_AllocateAffine(entity);
+    if (gEwramData->gameState.bestiaryPreview)
+    {
+        SetState(entity, 0, 4);
+    }
+    else
+    {
+        Hit_Enable(entity, 8, Buer_DamagePlayerOnContact, (s32)Buer_OnHit);
+        HitBox_SetAttackRaw(entity, 0x2828ECEC);
+        HitBox_SetBodyRaw(entity, 0x2828ECEC);
+        Entity_SnapToGround(entity);
+        entity->posY.part16.integer -= 24;
+    }
+}
+
+/* Buer_CreateHead. */
+extern struct EwramData_EntityData *Entity_CreateObject(u32 *updateFunc);
+extern void BuerHead_Update(struct EwramData_EntityData *entity);
+extern u8 sBaelBuerSpriteSheet[];
+
+/**
+ * @brief Create the linked frame-1 head sharing graphics and palette; store mutual slot indices and face it according to movement speed.
+ */
+void Buer_CreateHead(struct EwramData_EntityData *entity)
+{
+    struct EwramData_EntityData *child = Entity_CreateObject((u32 *)BuerHead_Update);
+
+    if (child != NULL)
+    {
+        ENTITY_PARENT_INDEX(child) = ENTITY_INDEX(entity);
+        ENTITY_PARENT_INDEX(entity) = ENTITY_INDEX(child);
+        child->spriteLayer = entity->spriteLayer - 1;
+        child->basePalette = entity->basePalette;
+        child->flipX = entity->flipX;
+        Sprite_Attach(child, sBaelBuerSpriteSheet, Sprite_GetTileSlot(entity), child->basePalette);
+        child->animFrame = 1;
+        child->scrollWithBg = 1;
+        child->drawFunc = (u32 *)Sprite_DrawEntity;
+        child->posX.whole = entity->posX.whole;
+        child->posY.whole = entity->posY.whole;
+        if ((s32)entity->ext.wheel.speed >= 0)
+            child->flipX = 1;
+        else
+            child->flipX = 0;
+    }
+}
+
+/* Bael/Alastor part behaviour 0x080CBAEC; only matches without -f2003-patch. */
+extern s32 Buer_CheckCleanup(struct EwramData_EntityData *entity);
+extern void Buer_MoveAndRotate(struct EwramData_EntityData *entity, s32 mode);
+extern s32 Target_IsNearEntity(struct EwramData_EntityData *entity, u16 width, u16 height);
+extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *entity);
+extern void Buer_UpdateCharge(struct EwramData_EntityData *entity);
+
+#define ABS(x) ((x) < 0 ? -(x) : (x))
+
+/**
+ * @brief Move, choose a charge from target proximity and linked-head facing, or periodically reverse facing and reconsider movement.
+ */
+void Buer_UpdateActive(struct EwramData_EntityData *entity)
+{
+    struct EwramData_EntityData *other = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
+    // zero and timer: explicit temporaries for the original register use
+    s32 zero;
+    s32 timer;
+
+    if (Buer_CheckCleanup(entity))
+        return;
+    switch (entity->subState)
+    {
+        case 0:
+            Buer_MoveAndRotate(entity, 0);
+            if (Target_IsNearEntity(entity, 0xC0, 0x30)
+                && ((!other->flipX && (s8)Entity_GetTargetDirection(entity) == -1)
+                    || (other->flipX && (s8)Entity_GetTargetDirection(entity) == 1)))
+            {
+                entity->subState = 1;
+                entity->stage = 0;
+            }
+            timer = entity->timer + 1;
+            zero = 0;
+            entity->timer = timer;
+            if ((u8)timer == 0xFF)
+            {
+                entity->timer = zero;
+                if (!(RandomNumberGenerator() % 2))
+                    entity->subState = 2;
+                goto restart;
+            }
+            break;
+        case 1:
+            Buer_UpdateCharge(entity);
+            break;
+        case 2:
+            switch (entity->stage)
+            {
+                case 0:
+                    entity->timer = RandomNumberGenerator() % 32 + 32;
+                    entity->stage++;
+                case 1:
+                    other->flipX = 1 - other->flipX;
+                    entity->stage++;
+                case 2:
+                    if (Target_IsNearEntity(entity, 0x60, 0x30))
+                    {
+                        entity->subState = 1;
+                        entity->stage = 0;
+                    }
+                    timer = entity->timer - 1;
+                    zero = 0;
+                    entity->timer = timer;
+                    if ((u8)timer == 0xFF)
+                    {
+                        if (RandomNumberGenerator() % 2)
+                            goto restart;
+                        entity->subState = zero;
+                        entity->stage = zero;
+                        entity->timer = zero;
+                        // unk_4FC is read as signed here
+                        if (other->flipX)
+                            *(s32 *)&entity->ext.wheel.speed = ABS(*(s32 *)&entity->ext.wheel.speed);
+                        else
+                            *(s32 *)&entity->ext.wheel.speed = -ABS(*(s32 *)&entity->ext.wheel.speed);
+                    }
+                    break;
+            }
+            break;
+    }
+    return;
+restart:
+    entity->stage = zero;
+}
 
 /* Buer accelerated charge, rotation, and sparks. */
 extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *entity);
@@ -224,7 +394,6 @@ void Buer_UpdateDeath(struct EwramData_EntityData *entity)
 
 /* BuerChargeEffect_Update. */
 extern u8 sBaelBuerGfx[];
-extern u8 sBaelBuerSpriteSheet[];
 
 /**
  * @brief Use cached Buer graphics and palette 6, run the selected animation with acceleration, then request deletion when animation finishes.
@@ -262,7 +431,6 @@ void BuerChargeEffect_Update(struct EwramData_EntityData *entity)
 extern s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *entity,s32 x,s32 y);
 extern void Buer_UpdateState4Rotation(struct EwramData_EntityData *entity);
 extern void Buer_UpdateEntry(struct EwramData_EntityData *entity);
-extern void Buer_UpdateActive(struct EwramData_EntityData *entity);
 extern s32 Enemy_IsStunned(struct EwramData_EntityData *entity);
 extern void Hit_CheckWithPlayer(void *buffer,struct EwramData_EntityData *entity);
 extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *entity);

@@ -4,7 +4,7 @@
 #include "gba.h"
 #include "structs/ewram.h"
 #include "structs/entity_boxes.h"
-#include "code_08033CAC.h"
+#include "player_level.h"
 
 /* Hit bookkeeping block at offset 0x70 of an entity (see Hit_CheckPair,
  * Hit_CheckWithPlayer). Field names are guesses from usage. */
@@ -44,7 +44,7 @@ struct HitInfo
 
 #define HIT_INFO(e) ((struct HitInfo *)((u8 *)(e) + 0x70))
 
-u32 HitBox_Overlap(struct EwramData_EntityData *e1, struct HitBoxDef *hb1, struct EwramData_EntityData *e2, struct HitBoxDef *hb2);
+u32 HitBox_Overlap(struct EwramData_EntityData *e1, struct SpriteBox *hb1, struct EwramData_EntityData *e2, struct SpriteBox *hb2);
 u32 Hit_Check(u8 *a, u8 *b);
 u32 Hit_CheckPlayerAttack(u8 *e);
 u32 Hit_CheckPlayerHurt(u8 *e);

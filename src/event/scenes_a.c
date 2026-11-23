@@ -1,19 +1,19 @@
 /*
  * Event scenes 00, 01, 02, 29 and 31 (and the update of scene 30).
  */
-#include "code_08009A0.h"
+#include "core.h"
 #include "event_scene30.h"
-#include "code_080109F4.h"
-#include "code_08011DD0.h"
-#include "code_08013960.h"
-#include "code/code_08039340.h"
-#include "code/code_08040A38.h"
+#include "map_screen.h"
+#include "map_flags.h"
+#include "music.h"
+#include "graphics.h"
+#include "gameplay.h"
 #include "gba/dma.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
 #include "gba/display.h"
-#include "code_080D73B8.h"
-#include "code_08012744.h"
+#include "sound.h"
+#include "save_data.h"
 
 /* EventScene30_Update, decompiled from the original assembly. The second random
  * number has its own block variable and its offset is summed in a statement
@@ -251,7 +251,7 @@ s32 EventScene00_Update(struct EwramData_EntityData *entity)
 }
 
 /* EventScene01_Update. */
-/* Declared with an int result as in code_0804F690.c: the original compares
+/* Declared with an int result as in object/objects_00_07.c: the original compares
  * the returned value without sign extension. */
 extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
 extern void Interaction_End(struct EwramData_EntityData *entity, s32 deleteEntity);

@@ -1,13 +1,13 @@
 /*
  * Bomber Armor and Rock Armor: bodies, bombs, rocks and rock pieces.
  */
-#include "code_08009A0.h"
-#include "code/code_08039340.h"
-#include "code/code_080211F0.h"
-#include "code/code_08040A38.h"
-#include "code/code_08060B98.h"
+#include "core.h"
+#include "graphics.h"
+#include "player_core.h"
+#include "gameplay.h"
+#include "entity_util.h"
 #include "structs/ewram.h"
-#include "code_080D73B8.h"
+#include "sound.h"
 
 extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
@@ -103,7 +103,7 @@ void BomberArmorBomb_Update(struct EwramData_EntityData *entity)
     Anim_Update(entity);
 }
 
-/* tested as a full word here (code_08001194.h declares it returning s16) */
+/* tested as a full word here (bg_and_collision.h declares it returning s16) */
 extern s32 Collision_GetGroundOffset(s32 x, s32 y);
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 extern u8 sBomberArmorRockArmorGfx[], sBomberArmorRockArmorPalette[], sRockArmorSpriteSheet[];
@@ -389,7 +389,6 @@ void RockArmor_UpdateAttack(struct EwramData_EntityData *entity)
 
 extern s32 Sin(s32);
 extern s32 RandomSigned(s32);
-extern struct EwramData_EntityData *Effect_SpawnShared(s32, s32, s32, s32);
 
 s32 BomberRockArmor_UpdateDeath(struct EwramData_EntityData *entity)
 {

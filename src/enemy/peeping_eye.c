@@ -1,13 +1,13 @@
 /*
  * Peeping Eye: body, pupil, eyeball and chain links.
  */
-#include "code_08009A0.h"
-#include "code_080D73B8.h"
+#include "core.h"
+#include "sound.h"
 #include "syscalls.h"
-#include "code/code_080211F0.h"
-#include "code/code_08039340.h"
-#include "code/code_08040A38.h"
-#include "code/code_08060B98.h"
+#include "player_core.h"
+#include "graphics.h"
+#include "gameplay.h"
+#include "entity_util.h"
 #include "structs/ewram.h"
 
 /* Peeping Eye: main update, creation, movement and animation, the hit

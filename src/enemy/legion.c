@@ -3,16 +3,16 @@
  * One translation unit for the consecutive ROM range of its code; the
  * functions keep their ROM order.
  */
-#include "code_08009A0.h"
-#include "code/code_08039340.h"
-#include "code/code_08060B98.h"
-#include "code/code_080211F0.h"
-#include "code_08013960.h"
-#include "code_08033CAC.h"
-#include "code/code_08040A38.h"
+#include "core.h"
+#include "graphics.h"
+#include "entity_util.h"
+#include "player_core.h"
+#include "music.h"
+#include "player_level.h"
+#include "gameplay.h"
 #include "structs/ewram.h"
-#include "code_080D73B8.h"
-#include "code_0800CB00.h"
+#include "sound.h"
+#include "bg_effects.h"
 #include "structs/entity_render_flags.h"
 
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
@@ -2386,7 +2386,7 @@ void LegionShellPart_FireShot(struct EwramData_EntityData *owner, s32 dx, s32 dy
 {
     s32 speed = 0x80000;
     u8 zero = 0;
-    struct HitBoxRecord box = {-4, -4, 8, 8};
+    struct SpriteBox box = {-4, -4, 8, 8};
     struct EwramData_EntityData *shot = EntityCreateInRange(0x49, 0xCF, (u32 *)LegionShot_Update);
     struct ShotFrames frames = sLegionShotFrames;
     struct EwramData_EntityData *parent = owner->ext.legionPart.owner;

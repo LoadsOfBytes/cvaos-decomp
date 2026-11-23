@@ -1,14 +1,71 @@
 /*
- * Skeleton: states after the patrol, projectiles, death pieces and linked / attached parts (entry points and the patrol state are in separately compiled files before).
+ * Skeleton: patrol, combat movement, idle, attack, throw, death, projectiles; the Imp create.
+ * Built without -f2003-patch (Skeleton_UpdatePatrol and the projectile / Imp create file need it off; the rest compiles the same either way).
  */
-#include "code_08009A0.h"
-#include "code/code_08039340.h"
+#include "core.h"
+#include "graphics.h"
 #include "structs/ewram.h"
-#include "code_080D73B8.h"
-#include "code/code_08040A38.h"
+#include "sound.h"
+#include "gameplay.h"
 #include "structs/entity_render_flags.h"
-#include "code/code_08060B98.h"
-#include "code/code_080211F0.h"
+#include "entity_util.h"
+#include "player_core.h"
+
+/* Patrol and attack-state selection. */
+/* Keep -f2003-patch disabled: signed distance comparisons must retain asrs. */
+
+extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
+extern s32 Entity_Walk(struct EwramData_EntityData *entity,s32 speed,void *profile,s32 flags);
+extern s32 Entity_ClampXToRoom(struct EwramData_EntityData *entity,s32 mode);
+extern s32 Target_IsNearEntity(struct EwramData_EntityData *entity,s32 width,s32 height);
+extern s16 sSkeletonWalkProfile[];
+
+/**
+ * @brief Patrol the stored room bounds; turn on obstacles and enter state 1 when the target is near.
+ */
+void Skeleton_UpdatePatrol(struct EwramData_EntityData *entity)
+{
+    s32 blocked = 0;
+    u16 left = entity->ext.skeleton.patrolLeft;
+    u16 right = entity->ext.skeleton.patrolRight;
+
+    switch (entity->subState)
+    {
+        case 0:
+            if (entity->animScriptIndex != 1)
+                Anim_StartIndexed(entity,1,0,1);
+            entity->subState++;
+            break;
+        case 1:
+        {
+            u16 distance = entity->ext.skeleton.homeX - GetEntityRoomXPositionInteger(entity);
+            if (entity->flipX)
+            {
+                if ((s16)right < GetEntityRoomXPositionInteger(entity) || (s16)distance < -40)
+                    entity->flipX = 0;
+            }
+            else
+            {
+                if ((s16)left > GetEntityRoomXPositionInteger(entity) || (s16)distance > 40)
+                    entity->flipX = 1;
+            }
+            if (Entity_Walk(entity,0x6000,sSkeletonWalkProfile,12) & 3)
+                blocked = 1;
+            if (Entity_ClampXToRoom(entity,1))
+                blocked = 1;
+            if (blocked)
+                entity->flipX = 1 - entity->flipX;
+            if (Target_IsNearEntity(entity,512,128))
+            {
+                entity->velX.whole = 0;
+                entity->state = 1;
+                entity->stage = 0;
+                entity->subState = 0;
+            }
+            break;
+        }
+    }
+}
 
 extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *);
 extern s32 Entity_GetTargetDistanceY(struct EwramData_EntityData *);
@@ -224,6 +281,7 @@ extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
 extern void SkeletonProjectile_Update(struct EwramData_EntityData *);
 
 /* attack flags: bit 3 alternate animation, bits 1/2 pending shots */
+#undef FLAGS
 #undef FLAGS
 #define FLAGS(e) (e->ext.skeleton.flags)
 
@@ -789,4 +847,121 @@ void Skeleton_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
         entity->subState = 0;
         Skeleton_UpdateDeath(entity);
     }
+}
+
+/* Clones of already decompiled functions, generated with
+ * a cloning script and checked byte for byte:
+ *   SkeletonProjectile_DamagePlayerOnContact = Object28_OnPlayerContact */
+
+/**
+ * @brief Apply the Skeleton projectile damage with effect type 0 and
+ * effect flags 1 at the entity position.
+ */
+void SkeletonProjectile_DamagePlayerOnContact(struct EwramData_EntityData *entity)
+{
+    struct PlayerContactDamage contactDamage;
+
+    contactDamage.attack = entity->attack;
+    contactDamage.attributes = 0;
+    contactDamage.unused = 0;
+    contactDamage.reaction = 1;
+    contactDamage.sourceX = entity->posX.whole;
+    contactDamage.sourceY = entity->posY.whole;
+    Player_ApplyContactDamage(&contactDamage);
+}
+
+/* Tiny Devil spawn and create 0x080C46AC..0x080C4767. */
+extern struct EwramData_EntityData *Entity_CreateObject(u32 *updateFunc);
+extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
+extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, s32 onHurt);
+extern void Imp_OnContact(struct EwramData_EntityData *entity);
+extern void Imp_ResetFlight(struct EwramData_EntityData *entity);
+extern void Imp_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+extern s32 Imp_CreateGrabIndicator(struct EwramData_EntityData *entity);
+extern s32 Imp_LoadGraphics(struct EwramData_EntityData *entity);
+
+/**
+ * @brief Create with the supplied update function, copy parent identity, attack and health fields, and hide the parent; NULL on allocation failure.
+ */
+struct EwramData_EntityData *Entity_CreateLinkedAndHide(struct EwramData_EntityData *entity, u32 *updateFunc)
+{
+    struct EwramData_EntityData *child = Entity_CreateObject(updateFunc);
+
+    if (child == NULL)
+        return NULL;
+    child->ext.skeletonPiece.ownerIndex = ENTITY_INDEX_PAIR(entity);
+    ENTITY_INDEX_PAIR(child) = ENTITY_INDEX_PAIR(entity);
+    child->attack = entity->attack;
+    child->hp = entity->hp;
+    entity->hidden = 1;
+    return child;
+}
+
+/**
+ * @brief C46EC | Tiny Devil create: load the graphics (delete the enemy
+ * when that fails), layer 4, hit boxes and Imp_ResetFlight; state 4 instead
+ * when bestiaryPreview is set. Ends (0x53D bit 3) when Imp_CreateGrabIndicator fails.
+ */
+void EnemyImpCreate(struct EwramData_EntityData *entity)
+{
+    if (!Imp_LoadGraphics(entity))
+    {
+        EntityDelete(entity);
+        return;
+    }
+    entity->state = 0;
+    entity->stage = 0;
+    entity->subState = 0;
+    Enemy_ResetFromTemplate(entity);
+    entity->spriteLayer = 4;
+    if (gEwramData->gameState.bestiaryPreview)
+    {
+        entity->state = 4;
+        entity->stage = 0;
+        entity->subState = 0;
+        return;
+    }
+    Entity_EnableBoxes(entity, Imp_OnContact, (s32)Imp_OnHit);
+    Imp_ResetFlight(entity);
+    if (!Imp_CreateGrabIndicator(entity))
+        entity->deleteRequested = 1;
+}
+
+/* Graphics loader 0x080C4768. It only matches without -f2003-patch (see
+ * NO_2003_PATCH_SRCS in ../Makefile). */
+extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
+
+/* Graphics of the Tiny Devil (also used in enemy/imp.c). */
+extern u8 sImpTinyDevilGfx[];
+extern u8 sImpTinyDevilPalette[];
+extern u8 sImpTinyDevilSpriteSheet[];
+
+/**
+ * @brief Find or load graphics and palette, attach the sprite and start animation 0; return 0 on failure, 1 on success.
+ */
+s32 Imp_LoadGraphics(struct EwramData_EntityData *entity)
+{
+    void *palette = sImpTinyDevilPalette;
+    void *sprite = sImpTinyDevilSpriteSheet;
+    u8 *graphics = sImpTinyDevilGfx;
+    s32 gfx = ObjGfx_Find(graphics);
+    s8 paletteIndex;
+
+    if (gfx < 0)
+    {
+        gfx = ObjGfx_LoadResource(graphics, 0);
+        if (gfx < 0)
+            return 0;
+    }
+    paletteIndex = ObjPalette_FindOrLoadVariant(palette, 0);
+    if (paletteIndex == -1)
+        return 0;
+    entity->basePalette = paletteIndex;
+    if (!Sprite_Attach(entity, sprite, gfx, entity->basePalette))
+        return 0;
+    if (!Anim_StartIndexed(entity, 0, 0, 1))
+        return 0;
+    Anim_Update(entity);
+    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    return 1;
 }

@@ -1,14 +1,14 @@
 /*
  * Slime: body and particles.
  */
-#include "code_08009A0.h"
-#include "code/code_080211F0.h"
-#include "code_08001194.h"
+#include "core.h"
+#include "player_core.h"
+#include "bg_and_collision.h"
 #include "syscalls.h"
-#include "code/code_08039340.h"
-#include "code_080D73B8.h"
-#include "code/code_08040A38.h"
-#include "code/code_08060B98.h"
+#include "graphics.h"
+#include "sound.h"
+#include "gameplay.h"
+#include "entity_util.h"
 #include "structs/ewram.h"
 
 /* Slime particle creation with bounded entity allocation. */

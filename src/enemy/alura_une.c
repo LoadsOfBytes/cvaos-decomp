@@ -1,14 +1,14 @@
 /*
  * Alura Une: body, thorns and root waves.
  */
-#include "code_08009A0.h"
-#include "code/code_08039340.h"
+#include "core.h"
+#include "graphics.h"
 #include "structs/ewram.h"
-#include "code/code_08060B98.h"
+#include "entity_util.h"
 #include "structs/entity_render_flags.h"
-#include "code/code_080211F0.h"
-#include "code_080D73B8.h"
-#include "code/code_08040A38.h"
+#include "player_core.h"
+#include "sound.h"
+#include "gameplay.h"
 
 /* Initialize AluraUne's graphics, collisions and initial facing. */
 extern u8 AluraUne_LoadGraphics(struct EwramData_EntityData *);
@@ -558,7 +558,7 @@ extern void Effect_SpawnFallingPiece(s32, s32, s32, s32, s32, s32);
 void AluraUneThorn_Update(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
-    struct HitBoxRecord box = {-2, -54, 4, 54};
+    struct SpriteBox box = {-2, -54, 4, 54};
     struct EwramData_EntityData *parent = ENTITY_OWNER(entity);
     switch (entity->state)
     {

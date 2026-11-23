@@ -1,12 +1,12 @@
 /*
  * Zombie: body, debris, pieces and temporary sprites.
  */
-#include "code_08009A0.h"
-#include "code/code_08039340.h"
-#include "code/code_08060B98.h"
-#include "code/code_080211F0.h"
+#include "core.h"
+#include "graphics.h"
+#include "entity_util.h"
+#include "player_core.h"
 #include "structs/entity_template.h"
-#include "code_080D73B8.h"
+#include "sound.h"
 #include "structs/ewram.h"
 
 /* Update a Zombie or its controller that maintains a population of children. */

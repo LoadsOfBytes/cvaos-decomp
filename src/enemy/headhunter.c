@@ -1,15 +1,15 @@
 /*
  * Headhunter (boss): body, transformation, waves, lightning, burst shots and the extending attack.
  */
-#include "code_08009A0.h"
-#include "code_08013960.h"
-#include "code_08033CAC.h"
-#include "code/code_08039340.h"
-#include "code/code_08040A38.h"
-#include "code/code_08060B98.h"
-#include "code/code_080211F0.h"
+#include "core.h"
+#include "music.h"
+#include "player_level.h"
+#include "graphics.h"
+#include "gameplay.h"
+#include "entity_util.h"
+#include "player_core.h"
 #include "structs/ewram.h"
-#include "code_080D73B8.h"
+#include "sound.h"
 #include "structs/main.h"
 #include "syscalls.h"
 
@@ -2286,7 +2286,7 @@ void Headhunter_SpawnWave(struct EwramData_EntityData *owner, s32 x, s32 y, s32 
 {
     struct EwramData_EntityData *wave = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadhunterWave_Update);
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
-    struct HitBoxRecord box = {-4, -4, 8, 8};
+    struct SpriteBox box = {-4, -4, 8, 8};
     if (wave != NULL)
     {
         s32 graphics;
@@ -2437,7 +2437,7 @@ void HeadhunterLightningBolt_Update(struct EwramData_EntityData *entity)
 void Headhunter_SpawnLightningImpact(struct EwramData_EntityData *owner, struct EwramData_EntityData *source, s32 x, s32 y)
 {
     struct EwramData_EntityData *impact = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadhunterLightningImpact_Update);
-    struct HitBoxRecord box = {-2, -64, 4, 64};
+    struct SpriteBox box = {-2, -64, 4, 64};
     if (impact != NULL)
     {
         s32 graphics;
@@ -2633,7 +2633,7 @@ void Headhunter_SpawnAttackFollower(struct EwramData_EntityData *owner, s32 time
 void Headhunter_SpawnBurstShot(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx, s32 vy)
 {
     struct EwramData_EntityData *shot = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadhunterBurstShot_Update);
-    struct HitBoxRecord box = {-4, -4, 8, 8};
+    struct SpriteBox box = {-4, -4, 8, 8};
     if (shot != NULL)
     {
         s32 graphics;
@@ -2667,8 +2667,8 @@ void HeadhunterBurstShot_Update(struct EwramData_EntityData *entity)
 {
     s32 bounds[4];
     struct SingleFrameAnimation animation = sHeadhunterFrameAnim;
-    struct HitBoxRecord box1 = {-7, -7, 14, 14};
-    struct HitBoxRecord box2 = {-11, -11, 22, 22};
+    struct SpriteBox box1 = {-7, -7, 14, 14};
+    struct SpriteBox box2 = {-11, -11, 22, 22};
     EntityDampVelocityX(entity, 0x20);
     EntityDampVelocityY(entity, 0x20);
     entity->flipX = RandomNumberGenerator() % 2;
@@ -2703,7 +2703,7 @@ void Headhunter_SpawnExtendingAttack(struct EwramData_EntityData *owner, s32 x, 
 {
     struct EwramData_EntityData *head = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadhunterAttackTip_Update);
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
-    struct HitBoxRecord box = {-1, -1, 3, 3};
+    struct SpriteBox box = {-1, -1, 3, 3};
     struct SingleFrameAnimation animation = sHeadhunterAttackTipFrameAnim;
     u16 slot;
     s32 graphics;
@@ -2854,7 +2854,7 @@ void HeadhunterAttackTip_Update(struct EwramData_EntityData *head)
 struct EwramData_EntityData *Headhunter_CreateAttackSegment(struct EwramData_EntityData *owner, struct EwramData_EntityData *parent, s32 index)
 {
     struct EwramData_EntityData *segment = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadhunterAttackSegment_Update);
-    struct HitBoxRecord box = {-1, -1, 3, 3};
+    struct SpriteBox box = {-1, -1, 3, 3};
     struct SingleFrameAnimation animation = sHeadhunterAttackSegmentFrameAnim;
     u16 slot;
     s32 graphics;

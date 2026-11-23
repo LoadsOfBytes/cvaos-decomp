@@ -1,13 +1,13 @@
 /*
  * Zombie Soldier: body, grenades and pieces.
  */
-#include "code_08009A0.h"
-#include "code/code_080211F0.h"
-#include "code/code_08039340.h"
-#include "code/code_08060B98.h"
+#include "core.h"
+#include "player_core.h"
+#include "graphics.h"
+#include "entity_util.h"
 #include "structs/ewram.h"
-#include "code/code_08040A38.h"
-#include "code_080D73B8.h"
+#include "gameplay.h"
+#include "sound.h"
 
 extern s32 Enemy_PreUpdate(struct EwramData_EntityData *entity);
 extern void Enemy_UpdateFragmentDeath(struct EwramData_EntityData *entity);
@@ -279,7 +279,7 @@ extern u8 sZombieSoldierSpriteSheet[];
 void ZombieSoldier_ThrowGrenade(struct EwramData_EntityData *owner, s32 x, s32 y, s32 velX, s32 velY)
 {
     struct EwramData_EntityData *shot = EntityCreateInRange(0x49, 0xCF, (u32 *)ZombieSoldierGrenade_Update);
-    struct HitBoxRecord box = {-2, -2, 4, 4};
+    struct SpriteBox box = {-2, -2, 4, 4};
     if (shot != NULL)
     {
         s32 graphics;

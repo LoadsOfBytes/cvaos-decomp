@@ -1,13 +1,13 @@
 /*
  * Devil: body, parts, projectiles and charge effect. The last part of the range also holds the entry points of Flame Demon, Arc Demon and Demon Lord.
  */
-#include "code_08009A0.h"
-#include "code/code_080211F0.h"
-#include "code/code_08039340.h"
-#include "code/code_08060B98.h"
+#include "core.h"
+#include "player_core.h"
+#include "graphics.h"
+#include "entity_util.h"
 #include "structs/ewram.h"
-#include "code/code_08040A38.h"
-#include "code_080D73B8.h"
+#include "gameplay.h"
+#include "sound.h"
 #include "syscalls.h"
 
 extern s32 Enemy_IsStunned(struct EwramData_EntityData *entity);
@@ -1117,7 +1117,7 @@ void DevilProjectile_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void DevilProjectile_Spawn(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx, s32 vy, u8 timer)
 {
     struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, (u32 *)DevilProjectile_Update);
-    struct HitBoxRecord box = {-5, -5, 10, 10};
+    struct SpriteBox box = {-5, -5, 10, 10};
     if (part)
     {
         s32 graphics;

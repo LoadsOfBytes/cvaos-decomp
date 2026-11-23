@@ -1,22 +1,22 @@
 /*
  * Event scenes 04 to 28 (except 24's init and 27 / 28, which follow scene 30).
  */
-#include "code_08009A0.h"
-#include "code_080D73B8.h"
-#include "code/code_08039340.h"
+#include "core.h"
+#include "sound.h"
+#include "graphics.h"
 #include "structs/ewram.h"
-#include "code_08013960.h"
+#include "music.h"
 #include "gba.h"
-#include "code_0800F1FC.h"
-#include "code_08011DD0.h"
-#include "code_0800CB00.h"
-#include "code/code_080211F0.h"
+#include "room_entities.h"
+#include "map_flags.h"
+#include "bg_effects.h"
+#include "player_core.h"
 #include "gba/dma.h"
 #include "macros.h"
-#include "code_0800B700.h"
-#include "code_08012744.h"
+#include "in_game.h"
+#include "save_data.h"
 #include "structs/main.h"
-#include "code_08032444.h"
+#include "soul_inventory.h"
 
 /* EventScene04_Init, EventScene04_RunMusicScript. */
 extern s32 GameFlag_GetMask(s32 flag);
@@ -1367,7 +1367,7 @@ void EventScene11_Init(struct EwramData_EntityData *entity)
     ewram->gameState.stateFlags |= 1;
 }
 
-/* Declared s16 in code_08001194.h; the caller here uses the full register. */
+/* Declared s16 in bg_and_collision.h; the caller here uses the full register. */
 extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
 
 /**
@@ -2252,8 +2252,8 @@ s32 EventScene19_Update(struct EwramData_EntityData *entity)
 }
 
 /* EventScene20_Update: event step (cutscene facing / approach checks); matched. */
-/* Declared s16 in code_08001194.h; the caller here uses the full register. */
-/* Declared with u16 parameters in code_0805B5E8.c; the caller passes s16 values unconverted. */
+/* Declared s16 in bg_and_collision.h; the caller here uses the full register. */
+/* Declared with u16 parameters in object/shop_update.c; the caller passes s16 values unconverted. */
 extern s32 Player_GetZoneAroundX(s32 centerX, s32 innerWidth, s32 outerWidth);
 
 static inline s32 IsLeft(struct EwramData_EntityData *e)

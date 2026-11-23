@@ -1,12 +1,12 @@
 /*
  * Curly. The last part of the range also holds the entry points of Durga.
  */
-#include "code_08009A0.h"
-#include "code/code_08039340.h"
-#include "code_080D73B8.h"
+#include "core.h"
+#include "graphics.h"
+#include "sound.h"
 #include "structs/ewram.h"
-#include "code_08001194.h"
-#include "code/code_080211F0.h"
+#include "bg_and_collision.h"
+#include "player_core.h"
 
 extern u8 Curly_LoadGraphics(struct EwramData_EntityData *);
 extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);

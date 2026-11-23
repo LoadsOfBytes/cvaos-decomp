@@ -1,13 +1,13 @@
 /*
  * Lilith: body and shots.
  */
-#include "code_08009A0.h"
-#include "code/code_08039340.h"
-#include "code/code_08060B98.h"
-#include "code/code_080211F0.h"
-#include "code_080D73B8.h"
+#include "core.h"
+#include "graphics.h"
+#include "entity_util.h"
+#include "player_core.h"
+#include "sound.h"
 #include "structs/ewram.h"
-#include "code/code_08040A38.h"
+#include "gameplay.h"
 
 extern s32 Enemy_IsStunned(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);

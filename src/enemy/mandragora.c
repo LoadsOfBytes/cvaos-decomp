@@ -1,11 +1,11 @@
 /*
  * Mandragora: body, linked and terminal parts, death parts.
  */
-#include "code_08009A0.h"
-#include "code/code_08039340.h"
+#include "core.h"
+#include "graphics.h"
 #include "structs/ewram.h"
-#include "code_080D73B8.h"
-#include "code/code_08060B98.h"
+#include "sound.h"
+#include "entity_util.h"
 
 /* Mandragora graphics, room setup and linked part. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *,u8 *,void *,u8,void *);
@@ -511,7 +511,7 @@ extern s32 Enemy_PreUpdate(struct EwramData_EntityData *entity);
 extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *entity);
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
 
-/* Same layout as sNeedlesDeathParts in code_080CB6BC.c. */
+/* Same layout as sNeedlesDeathParts in enemy/beam_skeleton.c. */
 enum {
     NEEDLE_OFFSET_X,
     NEEDLE_OFFSET_Y,

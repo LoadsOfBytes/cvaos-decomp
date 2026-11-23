@@ -1,8 +1,8 @@
 /*
  * Axe Armor (the axe update is in the previous, separately compiled file).
  */
-#include "code_08009A0.h"
-#include "code/code_08039340.h"
+#include "core.h"
+#include "graphics.h"
 #include "structs/ewram.h"
 
 /* AxeArmor_UpdateAttack: Axe Armor attack substates (throws the axe AxeArmorAxe_Update); matched. */
@@ -172,7 +172,7 @@ extern void AxeArmor_OnHit(struct EwramData_EntityData *entity, s32 attacker, u1
 extern void Entity_UpdateBoxes(struct EwramData_EntityData *entity);
 extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
 
-/* Graphics of the Axe Armor (see code_080B0CCC.c). */
+/* Graphics of the Axe Armor (see enemy/minotaur.c). */
 extern u8 sAxeArmorGfx[];
 extern u8 sAxeArmorPalette[];
 extern u8 sAxeArmorSpriteSheet[];

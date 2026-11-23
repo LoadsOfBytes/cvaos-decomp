@@ -1,15 +1,15 @@
 /*
  * Big Golem (boss): body, parts and thrown rocks.
  */
-#include "code_08009A0.h"
-#include "code/code_080211F0.h"
-#include "code/code_08039340.h"
-#include "code/code_08040A38.h"
-#include "code/code_08060B98.h"
+#include "core.h"
+#include "player_core.h"
+#include "graphics.h"
+#include "gameplay.h"
+#include "entity_util.h"
 #include "structs/ewram.h"
-#include "code_080D73B8.h"
+#include "sound.h"
 #include "syscalls.h"
-#include "code_08033CAC.h"
+#include "player_level.h"
 
 /* Big Golem update (like EnemyGolemUpdate): screen/hit checks unless dying;
  * states 0 / 1 (BigGolem_UpdateWalk / BigGolem_UpdateAttack), 2 dying: dust every 4th frame

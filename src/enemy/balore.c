@@ -3,19 +3,19 @@
  * intro and effects. One translation unit for the consecutive ROM range of
  * its code (0x080B3F4C-0x080B6C3B); the functions keep their ROM order.
  */
-#include "code/code_080211F0.h"
+#include "player_core.h"
 #include "balore_entity.h"
 #include "structs/ewram.h"
-#include "code/code_08039340.h"
-#include "code_08009A0.h"
-#include "code_080D73B8.h"
-#include "code/code_08040A38.h"
-#include "code_08011DD0.h"
-#include "code/code_08060B98.h"
-#include "code_08013960.h"
+#include "graphics.h"
+#include "core.h"
+#include "sound.h"
+#include "gameplay.h"
+#include "map_flags.h"
+#include "entity_util.h"
+#include "music.h"
 #include "structs/entity_render_flags.h"
-#include "code_08033CAC.h"
-#include "code_0800B700.h"
+#include "player_level.h"
+#include "in_game.h"
 #include "syscalls.h"
 
 extern void *Heap_Alloc(u16);
@@ -33,7 +33,6 @@ extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u
 extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
 extern s32 Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
 extern void HitEffect_SpawnAtContact(s32 attacker, struct EwramData_EntityData *entity, s32 type);
-extern struct EwramData_EntityData *Effect_SpawnShared(s32, s32, s32, s32);
 extern void SoulPickup_SpawnFromEnemyDefinition(s32, s32, s32, s32);
 extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
@@ -68,7 +67,7 @@ extern const struct BaloreFlightSteeringParameters sBaloreHandBSteeringParams0[]
 
 /*
  * Two callers below were compiled against other prototypes than the ones in
- * syscalls.h / code_08039340.h: BaloreEye_Update passes ArcTan2 a full s32 x,
+ * syscalls.h / graphics.h: BaloreEye_Update passes ArcTan2 a full s32 x,
  * Balore_UpdateDeath calls ObjPalette_LoadRange with three arguments (the
  * slot is left in r3). Same symbols under a second name.
  */

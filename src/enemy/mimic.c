@@ -1,13 +1,13 @@
 /*
  * Mimic: body and trigger.
  */
-#include "code/code_08039340.h"
+#include "graphics.h"
 #include "structs/ewram.h"
-#include "code_08009A0.h"
-#include "code/code_08040A38.h"
-#include "code/code_08060B98.h"
-#include "code_080D73B8.h"
-#include "code/code_080211F0.h"
+#include "core.h"
+#include "gameplay.h"
+#include "entity_util.h"
+#include "sound.h"
+#include "player_core.h"
 
 /* Mimic: dispatch state, refresh the box on frame changes and run collision. */
 union MimicAnimation { u32 words[2]; u8 bytes[8]; };
@@ -228,7 +228,7 @@ void Mimic_SpawnTrigger(struct EwramData_EntityData *owner, s32 x, s32 y)
 }
 
 /* MimicTrigger_Update and MimicTrigger_OnHit. */
-/* state and subState read as one halfword (as in code_080D34FC.c). */
+/* state and subState read as one halfword (as in enemy/graham.c). */
 #define STATE_WORD(e) (*(u16 *)&(e)->state)
 
 extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
@@ -277,7 +277,7 @@ void MimicTrigger_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *
         mimic->subState++;
 }
 
-/* Helpers 0x08099430..0x080994AF (end of code_08098F04.s; MimicTrigger_OnHit
+/* Helpers 0x08099430..0x080994AF (end of this file.s; MimicTrigger_OnHit
  * before them reads state/subState of its parent as one u16 and stays
  * asm). */
 

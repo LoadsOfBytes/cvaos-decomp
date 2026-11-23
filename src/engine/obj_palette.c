@@ -1,13 +1,13 @@
 /*
  * Shared object palettes (find / load / release) and enemy reward drops.
  */
-#include "code/code_08039340.h"
+#include "graphics.h"
 #include "structs/ewram.h"
-#include "code_08009A0.h"
-#include "code_08001194.h"
-#include "code_08032444.h"
-#include "code_08033CAC.h"
-#include "code/code_08040A38.h"
+#include "core.h"
+#include "bg_and_collision.h"
+#include "soul_inventory.h"
+#include "player_level.h"
+#include "gameplay.h"
 #include "syscalls.h"
 
 /* Find or load a palette in the four shared object slots. */

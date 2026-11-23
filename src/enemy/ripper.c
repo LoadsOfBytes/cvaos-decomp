@@ -1,12 +1,12 @@
 /*
  * Ripper: body and projectiles.
  */
-#include "code_08009A0.h"
-#include "code/code_08039340.h"
+#include "core.h"
+#include "graphics.h"
 #include "structs/ewram.h"
-#include "code_080D73B8.h"
-#include "code/code_08040A38.h"
-#include "code/code_080211F0.h"
+#include "sound.h"
+#include "gameplay.h"
+#include "player_core.h"
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, u8, void *);
 extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);

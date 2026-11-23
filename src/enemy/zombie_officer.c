@@ -1,13 +1,13 @@
 /*
  * Zombie Officer: body and pieces.
  */
-#include "code_08009A0.h"
-#include "code/code_080211F0.h"
-#include "code/code_08039340.h"
-#include "code/code_08060B98.h"
+#include "core.h"
+#include "player_core.h"
+#include "graphics.h"
+#include "entity_util.h"
 #include "structs/ewram.h"
-#include "code/code_08040A38.h"
-#include "code_080D73B8.h"
+#include "gameplay.h"
+#include "sound.h"
 
 extern s32 Enemy_PreUpdate(struct EwramData_EntityData *entity);
 extern void Enemy_UpdateFragmentDeath(struct EwramData_EntityData *entity);
@@ -143,7 +143,7 @@ void ZombieOfficer_UpdateWalk(struct EwramData_EntityData *entity)
 }
 
 /* ZombieOfficer_UpdateAttack. */
-/* animStep and animTimer read as one halfword (as in code_080756FC.c). */
+/* animStep and animTimer read as one halfword (as in enemy/harpy.c). */
 #define FRAME_PAIR(e) (*(u16 *)&(e)->animStep)
 
 /**

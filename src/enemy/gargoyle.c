@@ -1,12 +1,12 @@
 /*
  * Gargoyle. The last part of the range also holds the entry points of Triton.
  */
-#include "code_08009A0.h"
-#include "code/code_08039340.h"
-#include "code/code_08040A38.h"
+#include "core.h"
+#include "graphics.h"
+#include "gameplay.h"
 #include "structs/ewram.h"
-#include "code_080D73B8.h"
-#include "code/code_080211F0.h"
+#include "sound.h"
+#include "player_core.h"
 
 /* Decompiled locally from the original assembly (variant of an already
  * decompiled function). */

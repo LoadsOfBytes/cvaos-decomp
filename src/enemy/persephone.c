@@ -1,14 +1,14 @@
 /*
  * Persephone: body and attack box.
  */
-#include "code/code_08039340.h"
-#include "code/code_08060B98.h"
-#include "code/code_080211F0.h"
-#include "code_08009A0.h"
-#include "code_080D73B8.h"
+#include "graphics.h"
+#include "entity_util.h"
+#include "player_core.h"
+#include "core.h"
+#include "sound.h"
 #include "structs/ewram.h"
-#include "code_08001194.h"
-#include "code/code_08040A38.h"
+#include "bg_and_collision.h"
+#include "gameplay.h"
 
 /* Dispatch Persephone's AI, death, reaction and display states. */
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
@@ -530,7 +530,7 @@ extern void PersephoneAttackBox_Update(struct EwramData_EntityData *);
 void Persephone_SpawnAttackBox(struct EwramData_EntityData *parent, s32 x, s32 y)
 {
     struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, (u32 *)PersephoneAttackBox_Update);
-    struct HitBoxRecord box = {-20, -24, 12, 14};
+    struct SpriteBox box = {-20, -24, 12, 14};
     if (part)
     {
         s32 graphics;

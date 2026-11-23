@@ -32,6 +32,6 @@
  * base expression.
  */
 
-/* Sparks (SpawnSpark in code_080B1678.c, DiscArmorSpark_Update): animation. */
+/* Sparks (SpawnSpark in enemy/disc_armor.c, DiscArmorSpark_Update): animation. */
 
 #endif /* DISC_ARMOR_ENTITY_H */

@@ -1,13 +1,13 @@
 /*
  * Nightmare.
  */
-#include "code_08009A0.h"
-#include "code_08001194.h"
-#include "code/code_080211F0.h"
-#include "code/code_08039340.h"
-#include "code/code_08040A38.h"
-#include "code/code_08060B98.h"
-#include "code_080D73B8.h"
+#include "core.h"
+#include "bg_and_collision.h"
+#include "player_core.h"
+#include "graphics.h"
+#include "gameplay.h"
+#include "entity_util.h"
+#include "sound.h"
 #include "structs/ewram.h"
 
 /* Nightmare running, attack and death states. */

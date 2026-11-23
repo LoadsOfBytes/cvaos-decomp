@@ -1,13 +1,13 @@
 /*
  * Event scene 30 (transformation): fragments, sparks, emitters, orbit rings, center effect and halo (its update follows in a separately compiled file).
  */
-#include "code_08009A0.h"
+#include "core.h"
 #include "event_scene30.h"
-#include "code/code_08039340.h"
+#include "graphics.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
 #include "gba.h"
-#include "code/code_08060B98.h"
+#include "entity_util.h"
 #include <string.h>
 
 /* Set up, play and fade the background transformation scene. */

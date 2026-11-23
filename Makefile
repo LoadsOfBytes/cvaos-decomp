@@ -165,62 +165,59 @@ src/agb_print.s: CFLAGS = -Werror -O0 -mthumb-interwork -fhex-asm
 # Translation units that only match without -f2003-patch: combine must keep
 # `asrs` + `cmp rX, #-1` for an s8 compared with -1 (graphics loaders such as
 # sub_080C4768).
-NO_2003_PATCH_SRCS := src/code_080486E0.s src/code_08068688.s src/code_080AF6FC.s src/code_080B0CCC.s src/code_080C1CDC.s src/code_080C467C.s src/code_080C5B18.s \
-                      src/code_080C64E8.s src/code_080C7B9C.s src/code_080C89B0.s src/code_080CBA30.s src/code_080CA770.s src/code_080C305C.s src/code_080B1F14.s src/code_080C35D0.s src/code_080BBD90.s \
-                      src/code_08064518.s src/code_080BB2D4.s src/code_080314AC.s src/code_080CC800.s
+NO_2003_PATCH_SRCS := src/menu/pause_menu.s src/engine/entity_motion.s src/enemy/waiter_skeleton.s src/enemy/minotaur.s src/enemy/imp.s \
+                      src/enemy/ukoback.s src/enemy/killer_doll.s src/enemy/lightning_doll.s src/enemy/buer.s src/enemy/beam_skeleton.s src/enemy/ghost_dancer.s src/enemy/disc_armor.s src/enemy/skeleton.s \
+                      src/event/scene30_transformation.s src/enemy/killer_mantle.s src/soul/blue_souls.s src/enemy/bael.s
 $(NO_2003_PATCH_SRCS): CFLAGS = -Werror -O2 -mthumb-interwork -fhex-asm
 
 
 # Preserve the collision routine's original register and narrowing order.
 # This option is local to its matching reconstruction;
-src/code_0806A224.s: CFLAGS += -fno-expensive-optimizations
+src/engine/box_collision.s: CFLAGS += -fno-expensive-optimizations
 
 # Preserve the Merman state routine's original loads and scratch registers.
 # Matching this reconstruction does not establish the original compiler flags.
-src/code_08070E68.s: CFLAGS += -fno-gcse
+src/enemy/merman.s: CFLAGS += -fno-gcse
 
 # Preserve the follower routine's recomputed address after its range check
 # (cse does not carry equivalences across the jump).
-src/code_080A02AC.s: CFLAGS += -fno-cse-follow-jumps
+src/enemy/kyoma_demon.s: CFLAGS += -fno-cse-follow-jumps
 
 # Object19Create: cse must not carry equivalences around skipped blocks.
-src/code_08053BFC.s: CFLAGS += -fno-cse-skip-blocks
+src/object/object_19_create.s: CFLAGS += -fno-cse-skip-blocks
 
 # EnemyBatCreate: same cse path effect as sub_080A02AC.
-src/code_080AD2A8.s: CFLAGS += -fno-cse-follow-jumps
+src/enemy/bat_create.s: CFLAGS += -fno-cse-follow-jumps
 
 # sub_080441F8 (pickup handler): the inventory count is reloaded after the
 # 0x4EF test instead of reusing it around the skipped block.
-src/code_080441F8.s: CFLAGS += -fno-cse-skip-blocks
-
-# sub_080BC82C (boss arm segment): both cse path options.
-src/code_080BC82C.s: CFLAGS += -fno-cse-follow-jumps -fno-cse-skip-blocks
+src/engine/pickup.s: CFLAGS += -fno-cse-skip-blocks
 
 # Compiler flag scan:
 # these translation units match as plain C (no pinned registers) only with
 # one optimisation pass disabled, so they were most likely built that way.
-src/code_080429D0.s: CFLAGS += -fno-rerun-cse-after-loop
-src/code_08047254.s: CFLAGS += -fno-strength-reduce
-src/code_0804AED4.s: CFLAGS += -fno-expensive-optimizations
-src/code_0804C8A4.s: CFLAGS += -fno-cse-skip-blocks
-src/code_080A7294.s: CFLAGS += -fno-cse-skip-blocks
+src/engine/hit_shared_history.s: CFLAGS += -fno-rerun-cse-after-loop
+src/menu/hud_tile_block.s: CFLAGS += -fno-strength-reduce
+src/menu/equipment_list_update.s: CFLAGS += -fno-expensive-optimizations
+src/menu/bestiary_cursor.s: CFLAGS += -fno-cse-skip-blocks
+src/enemy/erinys.s: CFLAGS += -fno-cse-skip-blocks
 
 # sub_0803C294/sub_0803C3E0 (one original unit) built with
 # -fno-cse-skip-blocks; the neighbouring units must not use it.
-src/code_0803C294.s: CFLAGS += -fno-cse-skip-blocks
+src/engine/palette_state.s: CFLAGS += -fno-cse-skip-blocks
 
 tools/%: tools/%.c
 	$(MSG) HOSTCC $@
 	$Q$(HOSTCC) $< $(HOSTCFLAGS) $(HOSTCPPFLAGS) -o $@
 
 # ARM callback initialization, built with the bundled ARM compiler.
-src/code_08043908.s: CC := tools/agbcc/bin/agbcc_arm$(EXE)
-src/code_08043908.s: CFLAGS = -Werror -O2 -mthumb-interwork
+src/engine/obj_callbacks_arm.s: CC := tools/agbcc/bin/agbcc_arm$(EXE)
+src/engine/obj_callbacks_arm.s: CFLAGS = -Werror -O2 -mthumb-interwork
 
 # IWRAM OAM builder, built with the bundled ARM compiler.
-src/code_080439A8.s: CC := tools/agbcc/bin/agbcc_arm$(EXE)
-src/code_080439A8.s: CFLAGS = -Werror -O2 -mthumb-interwork
+src/engine/oam_build_arm.s: CC := tools/agbcc/bin/agbcc_arm$(EXE)
+src/engine/oam_build_arm.s: CFLAGS = -Werror -O2 -mthumb-interwork
 
 # IWRAM sprite-part renderers (ARM twins of sub_08039820 / sub_08039A6C).
-src/code_0804311C.s src/code_0804342C.s: CC := tools/agbcc/bin/agbcc_arm$(EXE)
-src/code_0804311C.s src/code_0804342C.s: CFLAGS = -Werror -O2 -mthumb-interwork
+src/engine/sprite_draw_arm.s src/engine/sprite_affine_arm.s: CC := tools/agbcc/bin/agbcc_arm$(EXE)
+src/engine/sprite_draw_arm.s src/engine/sprite_affine_arm.s: CFLAGS = -Werror -O2 -mthumb-interwork

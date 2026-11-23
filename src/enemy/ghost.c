@@ -1,14 +1,14 @@
 /*
  * Ghost.
  */
-#include "code_08009A0.h"
-#include "code/code_08039340.h"
-#include "code/code_08060B98.h"
-#include "code/code_080211F0.h"
+#include "core.h"
+#include "graphics.h"
+#include "entity_util.h"
+#include "player_core.h"
 #include "structs/entity_template.h"
-#include "code/code_08040A38.h"
+#include "gameplay.h"
 #include "syscalls.h"
-#include "code_080D73B8.h"
+#include "sound.h"
 #include "structs/ewram.h"
 
 /* Update a Ghost or its timed spawn controller. */
@@ -126,7 +126,7 @@ void Ghost_DamagePlayerOnContact(struct EwramData_EntityData *entity, struct Ewr
 void Ghost_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 void EnemyGhostCreate(struct EwramData_EntityData *entity)
 {
-    struct HitBoxRecord box = {-7, -7, 14, 14};
+    struct SpriteBox box = {-7, -7, 14, 14};
     if (entity->spawnParam1 != 0)
     {
         entity->state = 3;

@@ -1,14 +1,14 @@
 /*
  * Nemesis: body, partner, afterimages and attacks.
  */
-#include "code_08009A0.h"
-#include "code/code_08039340.h"
-#include "code/code_08040A38.h"
+#include "core.h"
+#include "graphics.h"
+#include "gameplay.h"
 #include "structs/ewram.h"
-#include "code_080D73B8.h"
-#include "code_08001194.h"
-#include "code/code_08060B98.h"
-#include "code/code_080211F0.h"
+#include "sound.h"
+#include "bg_and_collision.h"
+#include "entity_util.h"
+#include "player_core.h"
 
 /* Nemesis_UpdatePositioning: twin of Alastor_UpdateApproach (approach a point near the player and rock);
  * deeper vertical target (+48/16), palette call in state 0; matched. */
@@ -760,8 +760,8 @@ extern u8 sCommonObjectSpriteSheet[];
  */
 void Effect_FollowParentHitBox(struct EwramData_EntityData *entity)
 {
-    struct HitBoxRecord attackBox;
-    struct HitBoxRecord bodyBox;
+    struct SpriteBox attackBox;
+    struct SpriteBox bodyBox;
     struct EwramData_EntityData *parent = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
 
     HitBox_GetBoxes(&attackBox, &bodyBox, parent);

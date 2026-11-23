@@ -1,12 +1,12 @@
 /*
  * Dead Warrior. The last part of the range also holds the contact damage of the Skull Millione family.
  */
-#include "code_08009A0.h"
-#include "code_080D73B8.h"
-#include "code/code_080211F0.h"
-#include "code/code_08039340.h"
-#include "code/code_08040A38.h"
-#include "code/code_08060B98.h"
+#include "core.h"
+#include "sound.h"
+#include "player_core.h"
+#include "graphics.h"
+#include "gameplay.h"
+#include "entity_util.h"
 #include "structs/ewram.h"
 #include "structs/enemy_variant_b7e80.h"
 

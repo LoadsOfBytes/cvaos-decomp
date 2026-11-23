@@ -1,12 +1,106 @@
 /*
- * Student Witch.
+ * Witch ground projectile and Student Witch.
+ * Student Witch calls Witch_SpawnGroundProjectile with s32 arguments (cast marked at the call).
  */
-#include "code_08009A0.h"
-#include "code/code_08039340.h"
-#include "code/code_08060B98.h"
-#include "code_080D73B8.h"
-#include "code/code_08040A38.h"
-#include "code/code_080211F0.h"
+#include "core.h"
+#include "sound.h"
+#include "graphics.h"
+#include "gameplay.h"
+#include "entity_util.h"
+#include "structs/ewram.h"
+#include "player_core.h"
+
+/* Witch projectile setup, movement and spawn helper. */
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
+extern void Enemy_OnContact(struct EwramData_EntityData *);
+extern void WitchGroundProjectile_OnHit(struct EwramData_EntityData *);
+extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
+extern struct EwramData_EntityData *Entity_CreateObject(void *);
+extern u8 sWitchGfx[], sWitchPalette[], sWitchSpriteSheet[], sWitchGroundProjectileWalkProfile[];
+
+/**
+ * @brief Shared ground projectile: accelerate along terrain, burst on an
+ * obstacle or cleared HP, and remove offscreen. Substate bits select
+ * animation and hit behavior.
+ */
+void WitchGroundProjectile_Update(struct EwramData_EntityData *entity)
+{
+    u32 box[4];
+    s32 flags;
+    s32 hp;
+    switch (entity->state)
+    {
+    case 0:
+        if (!Entity_LoadGraphics(entity, sWitchGfx, sWitchPalette, 0, sWitchSpriteSheet)) goto remove;
+        if (!(entity->subState & 1)) Anim_StartIndexed(entity, 0xB, 0, 1);
+        else Anim_StartIndexed(entity, 6, 0, 1);
+        entity->spriteLayer = 0x13;
+        Hit_Enable(entity, 8, Enemy_OnContact, (s32)WitchGroundProjectile_OnHit);
+        HitBox_SetBodyRaw(entity, 0x1018F0F4);
+        HitBox_SetAttackRaw(entity, 0x1018F0F4);
+        entity->accelY.whole = 0x2000;
+        entity->velY.whole = 0;
+        if (entity->subState & 2) entity->hit.flags |= 2;
+        entity->hp = 1;
+        entity->state = 1;
+        /* fall through */
+    case 1:
+        if (entity->ext.witchGround.speed <= 0x1FFFF) entity->ext.witchGround.speed += 0x2000;
+        flags = Entity_Walk(entity, entity->ext.witchGround.speed, sWitchGroundProjectileWalkProfile, 8);
+        if (flags & 8)
+        {
+            if (entity->stage == 0)
+            {
+                entity->stage = 1;
+                PlaySong(0x68);
+            }
+            if (flags & 3) entity->state = 2;
+        }
+        hp = (s16)entity->hp;
+        if (hp == 0) entity->state = 2;
+        break;
+    case 2:
+        Effect_SpawnShared(entity->posX.whole, entity->posY.whole, 0, 7);
+        goto remove;
+    }
+    if (EntityIsOutsideScreen(entity, 3))
+    {
+remove:
+        EntityDelete(entity);
+        return;
+    }
+    if (entity->state != 2) Hit_CheckWithPlayer(box, entity);
+    Anim_Update(entity);
+}
+
+static inline s32 Add16(s16 a, u16 b) { return a + b; }
+
+static inline void FollowParent(struct EwramData_EntityData *child, struct EwramData_EntityData *owner, u16 x_, u16 y_)
+{
+    u16 x = x_;
+    s16 y = y_;
+    child->flipX = owner->flipX;
+    if (child->flipX) x = (-((u32)x << 16)) >> 16;
+    child->posX.part16.integer = Add16(x, owner->posX.part16.integer);
+    child->posY.part16.integer = (s32)y + owner->posY.part16.integer;
+}
+
+/* Spawn an attached effect at a mirrored offset, with half the owner value. */
+/**
+ * @brief Spawn the shared ground projectile at a mirrored offset with half
+ * the owner damage value; copy the supplied mode into its substate.
+ */
+void Witch_SpawnGroundProjectile(struct EwramData_EntityData *owner, u16 x, u16 y, s32 state)
+{
+    struct EwramData_EntityData *child = Entity_CreateObject((u32 *)WitchGroundProjectile_Update);
+    if (child != NULL)
+    {
+        child->attack = owner->attack >> 1;
+        FollowParent(child, owner, x, y);
+        child->subState = state;
+        child->scrollWithBg = 1;
+    }
+}
 
 /* Student Witch ground movement, turning and attack choice. */
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *, s32, s32);
@@ -84,7 +178,6 @@ waiting:
 /* Student Witch ground attack and airborne spell phases. */
 extern void Entity_FaceTarget(struct EwramData_EntityData *);
 extern void Afterimage_Create(struct EwramData_EntityData *, s32, s32, s32);
-extern void Witch_SpawnGroundProjectile(struct EwramData_EntityData *, s32, s32, s32);
 
 /**
  * @brief Ground attack state (3): approach for up to 120 updates, play the
@@ -206,7 +299,7 @@ void StudentWitch_UpdateAirAttack(struct EwramData_EntityData *entity)
         {
             PlaySong(0x1CB);
             PlaySong(0x81);
-            Witch_SpawnGroundProjectile(entity, -0xC, -0x14, 0);
+            ((void (*)(struct EwramData_EntityData *, s32, s32, s32))Witch_SpawnGroundProjectile)(entity, -0xC, -0x14, 0); /* FAKEMATCH: s32 arguments */
             entity->stage = 1;
         }
         if (entity->animFlags & 4)
@@ -258,24 +351,21 @@ s32 StudentWitch_UpdateDeath(struct EwramData_EntityData *entity)
         else entity->subState = 2;
         break;
     case 2:
-        Witch_SpawnGroundProjectile(entity, 0, -0x10, 2);
+        ((void (*)(struct EwramData_EntityData *, s32, s32, s32))Witch_SpawnGroundProjectile)(entity, 0, -0x10, 2); /* FAKEMATCH: s32 arguments */
         return 1;
     }
     return 0;
 }
 
 /* Witch and Student Witch initialisation and state dispatchers. */
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
 extern void Entity_UpdateBoxes(struct EwramData_EntityData *);
 extern void Entity_SnapToGround(struct EwramData_EntityData *);
-extern void Enemy_OnContact(struct EwramData_EntityData *);
 extern void StudentWitch_OnHit(struct EwramData_EntityData *, s32, u16 *);
 extern void Witch_OnHit(struct EwramData_EntityData *, s32, u16 *);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, void *);
 extern s32 Hit_EnableContact(struct EwramData_EntityData *, s32, void *, s32);
 extern s32 Enemy_IsStunned(struct EwramData_EntityData *);
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
 extern void Witch_UpdateWait(struct EwramData_EntityData *);
 extern void Witch_UpdateCast(struct EwramData_EntityData *);

@@ -1,15 +1,15 @@
 /*
  * Skull Millione family (Skull Millione, Cagnazzo, Lubicant): body and parts.
  */
-#include "code_08009A0.h"
-#include "code/code_080211F0.h"
-#include "code/code_08039340.h"
-#include "code/code_08060B98.h"
+#include "core.h"
+#include "player_core.h"
+#include "graphics.h"
+#include "entity_util.h"
 #include "structs/entity_template.h"
 #include "structs/enemy_variant_b7e80.h"
 #include "macros.h"
-#include "code_080D73B8.h"
-#include "code/code_08040A38.h"
+#include "sound.h"
+#include "gameplay.h"
 #include "structs/ewram.h"
 
 /* Rotating attached part: follow the parent during animation 3, then fall

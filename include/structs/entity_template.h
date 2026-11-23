@@ -14,11 +14,16 @@ struct EntityTemplate {
     u16 dropItem1; // item id + 1 shown by BestiaryMenu_PrintDrops (bit set enemyFlags[8..11])
     u16 hp; // initial/base enemy HP, copied to runtime entity HP
     u16 mp; /* enemy MP (record order hp, mp, exp); copied to entity mp by Enemy_ResetFromTemplate */
-    u8 pad_10[3];
+    u16 exp; // experience, shown by the bestiary
+    u8 pad_12;
     u8 attack; // copied to entity attack
     u8 defense; // base entity defense, loaded by Enemy_ResetFromTemplate
-    u8 pad_15[0x1C - 0x15];
-    u16 flags_1C;
+    u8 pad_15[0x17 - 0x15];
+    u8 soulType; // soul dropped: type (bestiary icon)
+    u8 soulIndex; // soul dropped: 1-based index, 0 = none
+    u8 pad_19;
+    u16 resist; // resisted attack attributes (bestiary icons)
+    u16 flags_1C; // weak attack attributes (bestiary icons); 0x400 also tested by the hit code
     s16 previewOffsetX; // added to X by BestiaryMenu_SpawnEnemyPreview
     s16 previewOffsetY; // added to preview Y; zero also gates Enemy_PreUpdate above-screen hiding
     s16 unk_22;

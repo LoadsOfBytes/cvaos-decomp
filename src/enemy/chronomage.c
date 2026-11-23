@@ -1,16 +1,16 @@
 /*
  * Chronomage: body and cast effect.
  */
-#include "code_08009A0.h"
-#include "code/code_08039340.h"
-#include "code/code_08040A38.h"
-#include "code_0800B700.h"
-#include "code_080109F4.h"
-#include "code_08011DD0.h"
-#include "code_080D73B8.h"
-#include "code/code_080211F0.h"
+#include "core.h"
+#include "graphics.h"
+#include "gameplay.h"
+#include "in_game.h"
+#include "map_screen.h"
+#include "map_flags.h"
+#include "sound.h"
+#include "player_core.h"
 #include "player_entity.h"
-#include "code/code_08060B98.h"
+#include "entity_util.h"
 #include "structs/ewram.h"
 
 /* Chronomage affine casting effect. */

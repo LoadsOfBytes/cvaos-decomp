@@ -1,14 +1,14 @@
 /*
  * Quezlcoatl: head, segments and death pieces.
  */
-#include "code_08009A0.h"
-#include "code/code_080211F0.h"
-#include "code/code_08060B98.h"
+#include "core.h"
+#include "player_core.h"
+#include "entity_util.h"
 #include "structs/ewram.h"
 #include "structs/entity_render_flags.h"
-#include "code/code_08039340.h"
-#include "code/code_08040A38.h"
-#include "code_080D73B8.h"
+#include "graphics.h"
+#include "gameplay.h"
+#include "sound.h"
 
 /* Quezlcoatl dispatch and staged destruction of the parent entity. */
 extern s32 Enemy_IsStunned(struct EwramData_EntityData *);

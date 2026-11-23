@@ -4,7 +4,7 @@
 #include "types.h"
 
 /*
- * Sprite object (OAM) manager, code_0803DB6C.c (Obj_*, ObjAffine_*), all in IWRAM.
+ * Sprite object (OAM) manager, engine/oam.c (Obj_*, ObjAffine_*), all in IWRAM.
  *
  * Each frame the game allocates OAM entries from gObjEntries (Obj_Alloc,
  * Obj_AllocMany), fills them and links them into one of 32 layers
@@ -17,7 +17,7 @@
  * linked objects it alternates between two 128-entry windows (flicker).
  */
 
-/* 2x2 16.16 matrix (a b / c d), Matrix_* helpers in code_0803E820.c. */
+/* 2x2 16.16 matrix (a b / c d), Matrix_* helpers in engine/math_anim.c. */
 struct Matrix2 {
     s32 a;
     s32 b;

@@ -1,20 +1,20 @@
 /*
  * Belmont (boss): scene, combat states, attacks, projectile waves, power particles, subweapons and fragments.
  */
-#include "code_08009A0.h"
+#include "core.h"
 #include "belmont_entity.h"
-#include "code_0800B700.h"
-#include "code/code_08039340.h"
+#include "in_game.h"
+#include "graphics.h"
 #include "structs/ewram.h"
-#include "code/code_08050A3C.h"
-#include "code/code_080211F0.h"
+#include "room_objects.h"
+#include "player_core.h"
 #include "structs/entity_template.h"
-#include "code_080D73B8.h"
-#include "code/code_08040A38.h"
-#include "code_08013960.h"
-#include "code_08011DD0.h"
-#include "code_08033CAC.h"
-#include "code/code_08060B98.h"
+#include "sound.h"
+#include "gameplay.h"
+#include "music.h"
+#include "map_flags.h"
+#include "player_level.h"
+#include "entity_util.h"
 
 /* Belmont initialization distinguishes scene entry and combat entry. */
 extern void Player_SetSelectedTarget(struct EwramData_EntityData *);

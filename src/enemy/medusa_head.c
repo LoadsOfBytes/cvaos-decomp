@@ -1,14 +1,14 @@
 /*
  * Medusa Head.
  */
-#include "code_08009A0.h"
-#include "code/code_080211F0.h"
-#include "code/code_08039340.h"
-#include "code/code_08060B98.h"
+#include "core.h"
+#include "player_core.h"
+#include "graphics.h"
+#include "entity_util.h"
 #include "structs/ewram.h"
 #include "structs/entity_template.h"
-#include "code/code_08040A38.h"
-#include "code_080D73B8.h"
+#include "gameplay.h"
+#include "sound.h"
 
 extern s32 Enemy_IsStunned(struct EwramData_EntityData *entity);
 extern void Enemy_UpdateFragmentDeath(struct EwramData_EntityData *entity);

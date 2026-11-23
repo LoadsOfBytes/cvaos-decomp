@@ -1,16 +1,16 @@
 /*
  * Great Armor: body, parts, shockwave and slash effect. The last part of the range also holds the entry points of Final Guard and Shadow Knight.
  */
-#include "code_08009A0.h"
-#include "code/code_080211F0.h"
-#include "code/code_08039340.h"
-#include "code/code_08040A38.h"
-#include "code/code_08060B98.h"
+#include "core.h"
+#include "player_core.h"
+#include "graphics.h"
+#include "gameplay.h"
+#include "entity_util.h"
 #include "structs/ewram.h"
-#include "code_08013960.h"
-#include "code_08033CAC.h"
-#include "code_080D73B8.h"
-#include "code_08011DD0.h"
+#include "music.h"
+#include "player_level.h"
+#include "sound.h"
+#include "map_flags.h"
 #include "syscalls.h"
 
 /* Great Armor update. */
@@ -1420,7 +1420,7 @@ void GreatArmorShockwave_Update(struct EwramData_EntityData *entity)
 }
 
 /* Great Armor body-part helpers 0x0808E94C..0x0808EB3B (same code as the Big Golem helpers in
- * code_080ACEC4.c with 0x28-byte parts). */
+ * enemy/big_golem.c with 0x28-byte parts). */
 
 #define GREAT_ARMOR_PART_COUNT 14
 

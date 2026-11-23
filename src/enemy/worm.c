@@ -1,14 +1,14 @@
 /*
  * Giant Worm and Poison Worm: body, segments and ground following.
  */
-#include "code_08009A0.h"
-#include "code_080D73B8.h"
-#include "code/code_080211F0.h"
-#include "code/code_08039340.h"
-#include "code/code_08040A38.h"
+#include "core.h"
+#include "sound.h"
+#include "player_core.h"
+#include "graphics.h"
+#include "gameplay.h"
 #include "structs/ewram.h"
 #include "structs/entity_render_flags.h"
-#include "code_08001194.h"
+#include "bg_and_collision.h"
 #include "syscalls.h"
 
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);

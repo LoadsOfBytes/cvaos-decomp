@@ -1,19 +1,166 @@
 /*
- * Beam Skeleton: states after the patrol, beams, death pieces (the last part also holds Needles).
+ * Beam Skeleton: create, update dispatcher, patrol, approach, idle, fire and the beam.
+ * Built without -f2003-patch (BeamSkeleton_UpdatePatrol needs it off; the rest compiles the same either way).
  */
-#include "code_08009A0.h"
-#include "code/code_08039340.h"
+#include "core.h"
+#include "graphics.h"
 #include "structs/ewram.h"
-#include "code_080D73B8.h"
-#include "code/code_08060B98.h"
+#include "sound.h"
+#include "entity_util.h"
+
+/* Beam Skeleton creation and update dispatcher. */
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity,u8 *graphics,void *palette,u8 slot,void *sprite);
+extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
+extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
+extern void Entity_EnableBoxes(struct EwramData_EntityData *entity,void *callback,s32 hitCallback);
+extern void Enemy_OnContact(struct EwramData_EntityData *entity);
+extern void BeamSkeleton_OnHit(struct EwramData_EntityData *entity);
+extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
+extern void BeamSkeleton_UpdateBestiaryPreview(struct EwramData_EntityData *entity);
+extern void BeamSkeleton_UpdateDeath(struct EwramData_EntityData *entity);
+extern void BeamSkeleton_UpdateFire(struct EwramData_EntityData *entity);
+extern void BeamSkeleton_UpdatePatrol(struct EwramData_EntityData *entity);
+extern void BeamSkeleton_UpdateApproach(struct EwramData_EntityData *entity);
+extern void BeamSkeleton_UpdateIdle(struct EwramData_EntityData *entity);
+extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *entity);
+extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *entity);
+extern s32 Enemy_PreUpdate(struct EwramData_EntityData *entity);
+extern u8 sBeamSkeletonPalette[];
+extern u8 sBeamSkeletonSpriteSheet[];
+extern u8 sBeamSkeletonGfx[];
+
+static inline void SetAffine(struct EwramData_EntityData *e,s32 index) { e->affineIndex = index; }
+void EnemyBeamSkeletonCreate(struct EwramData_EntityData *entity)
+{
+    void *palette = sBeamSkeletonPalette;
+    void *sprite = sBeamSkeletonSpriteSheet;
+    u8 *graphics = sBeamSkeletonGfx;
+    u8 display;
+    u16 affine;
+    s32 x;
+    if (!Entity_LoadGraphics(entity,graphics,palette,0,sprite))
+    {
+        EntityDelete(entity);
+        return;
+    }
+    Anim_StartIndexed(entity,0,0,1);
+    Anim_Update(entity);
+    /* Read the whole flag byte: this caller retains mask 0x40 in display. */
+    display = ((u8 *)&gEwramData->gameState)[0x2E] & 0x40;
+    if (display != 0)
+    {
+        entity->state = 4;
+        entity->stage = 0;
+        entity->subState = 0;
+        return;
+    }
+    affine = ObjAffine_Alloc(1);
+    if ((s16)affine < 0)
+    {
+        EntityDelete(entity);
+        return;
+    }
+    SetAffine(entity,affine);
+    entity->affine = 0;
+    ObjAffine_Set(0,0x10000,0x10000,entity->flipX,display,entity->affineIndex);
+    entity->spriteLayer = 17;
+    Enemy_ResetFromTemplate(entity);
+    entity->state = display;
+    entity->stage = display;
+    entity->subState = display;
+    Entity_EnableBoxes(entity,Enemy_OnContact,(s32)BeamSkeleton_OnHit);
+    Entity_SnapToGround(entity);
+    x = GetEntityRoomXPositionInteger(entity);
+    entity->ext.beamSkeleton.homeX = x;
+    entity->ext.beamSkeleton.patrolRight = x + 64;
+    entity->ext.beamSkeleton.patrolLeft = x - 64;
+}
+
+void EnemyBeamSkeletonUpdate(struct EwramData_EntityData *entity)
+{
+    if (entity->state == 4)
+        BeamSkeleton_UpdateBestiaryPreview(entity);
+    else if (entity->state == 0xFF)
+        BeamSkeleton_UpdateDeath(entity);
+    else if (entity->state == 3)
+    {
+        BeamSkeleton_UpdateFire(entity);
+        Entity_AnimateWithBoxes(entity);
+        Enemy_CheckHitPlayer(entity);
+    }
+    else if (!Enemy_PreUpdate(entity))
+    {
+        entity->ext.beamSkeleton.unusedDelay = RandomNumberGenerator() % 80 + 40;
+        switch (entity->state)
+        {
+            case 0: BeamSkeleton_UpdatePatrol(entity); break;
+            case 1: BeamSkeleton_UpdateApproach(entity); break;
+            case 2: BeamSkeleton_UpdateIdle(entity); break;
+        }
+        Entity_AnimateWithBoxes(entity);
+        Enemy_CheckHitPlayer(entity);
+    }
+}
+
+/* Beam Skeleton patrol and selection of the attack state. */
+extern s32 Entity_Walk(struct EwramData_EntityData *entity,s32 speed,void *profile,s32 flags);
+extern s32 Entity_ClampXToRoom(struct EwramData_EntityData *entity,s32 mode);
+extern s32 Target_IsNearEntity(struct EwramData_EntityData *entity,s32 width,s32 height);
+extern s16 sBeamSkeletonWalkProfile[];
+
+/**
+ * @brief Patrol state (0): walk within the stored range, turn at terrain
+ * or room bounds and enter approach state 1 near the target.
+ */
+void BeamSkeleton_UpdatePatrol(struct EwramData_EntityData *entity)
+{
+    s32 blocked = 0;
+    u16 left = entity->ext.beamSkeleton.patrolLeft;
+    u16 right = entity->ext.beamSkeleton.patrolRight;
+
+    switch (entity->subState)
+    {
+        case 0:
+            if (entity->animScriptIndex != 1)
+                Anim_StartIndexed(entity,1,0,1);
+            entity->subState++;
+            break;
+        case 1:
+        {
+            u16 distance = entity->ext.beamSkeleton.homeX - GetEntityRoomXPositionInteger(entity);
+            if (entity->flipX)
+            {
+                if ((s16)right < GetEntityRoomXPositionInteger(entity) || (s16)distance < -40)
+                    entity->flipX = 0;
+            }
+            else
+            {
+                if ((s16)left > GetEntityRoomXPositionInteger(entity) || (s16)distance > 40)
+                    entity->flipX = 1;
+            }
+            if (Entity_Walk(entity,0x6000,sBeamSkeletonWalkProfile,12) & 3)
+                blocked = 1;
+            if (Entity_ClampXToRoom(entity,1))
+                blocked = 1;
+            if (blocked)
+                entity->flipX = 1 - entity->flipX;
+            if (Target_IsNearEntity(entity,192,128))
+            {
+                entity->velX.whole = 0;
+                entity->state = 1;
+                entity->stage = 0;
+                entity->subState = 0;
+            }
+            break;
+        }
+    }
+}
 
 /* Beam Skeleton approach and attack selection. */
 extern s32 Entity_GetTargetDistanceY(struct EwramData_EntityData *entity);
 extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *entity);
 extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
 extern s32 Entity_IsTargetInCenteredBox(struct EwramData_EntityData *entity,u16 width,u16 height);
-extern s32 Entity_Walk(struct EwramData_EntityData *entity,s32 speed,void *profile,s32 flags);
-extern s16 sBeamSkeletonWalkProfile[];
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 
 /**
@@ -231,12 +378,9 @@ void BeamSkeleton_UpdateFire(struct EwramData_EntityData *entity)
 
 extern void BeamSkeletonBeamSprite_Update(struct EwramData_EntityData *entity);
 extern void BeamSkeletonBeam_Update(struct EwramData_EntityData *entity);
-extern void Enemy_OnContact(struct EwramData_EntityData *entity);
 extern s8 ObjPalette_FindOrLoad(void *palette);
 extern void Hit_Enable(struct EwramData_EntityData *entity,s32 mode,void *callback,s32 flags);
 extern void HitBox_SetAttackRaw(struct EwramData_EntityData *entity,s32 flags);
-extern u8 sBeamSkeletonPalette[];
-extern u8 sBeamSkeletonSpriteSheet[];
 
 /**
  * @brief Create a stationary beam sprite and moving contact entity using
@@ -588,8 +732,6 @@ void BeamSkeleton_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
 
 /* Beam Skeleton hit callback and Needles create/idle behavior. */
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity,u8 *graphics,void *palette,u8 slot,void *sprite);
-extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
 extern void Needles_OnHit(struct EwramData_EntityData *entity);
 extern s32 HitBox_SetBodyRaw(struct EwramData_EntityData *entity,s32 flags);
 extern u8 sNeedlesPalette[];
@@ -694,9 +836,6 @@ void Needles_UpdateIdle(struct EwramData_EntityData *entity)
 
 /* Needles 0x080CB6BC..0x080CB94B (Needles_UpdateBestiaryPreview / Needles_OnHit are copies of the Blue Crow
  * BlueCrow_UpdateBestiaryPreview / BlueCrow_OnHit). */
-
-extern s32 Enemy_PreUpdate(struct EwramData_EntityData *entity);
-extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *entity);
 
 /* Five 6-byte needle records for Needles_SpawnDeathParts (a struct would be padded to
  * 8 bytes by agbcc): offset x, offset y, animFrame, velX / 0x1000,

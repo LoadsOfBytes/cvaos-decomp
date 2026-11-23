@@ -1,14 +1,14 @@
 /*
  * Harpy: body, feathers and death feathers. The last part of the range also holds the entry points of Siren.
  */
-#include "code_08009A0.h"
-#include "code/code_08039340.h"
+#include "core.h"
+#include "graphics.h"
 #include "structs/ewram.h"
-#include "code_080D73B8.h"
-#include "code/code_08060B98.h"
-#include "code/code_080211F0.h"
+#include "sound.h"
+#include "entity_util.h"
+#include "player_core.h"
 #include "structs/entity_render_flags.h"
-#include "code/code_08040A38.h"
+#include "gameplay.h"
 
 /* Harpy setup randomizes its animation phase before enabling movement. */
 extern u8 Harpy_LoadGraphics(struct EwramData_EntityData *);

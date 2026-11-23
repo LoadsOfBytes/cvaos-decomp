@@ -1,11 +1,11 @@
 /*
  * Blue Crow and Red Crow.
  */
-#include "code_08009A0.h"
-#include "code/code_08039340.h"
+#include "core.h"
+#include "graphics.h"
 #include "structs/ewram.h"
-#include "code_080D73B8.h"
-#include "code/code_080211F0.h"
+#include "sound.h"
+#include "player_core.h"
 
 /* EnemyBlueCrowCreate. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
@@ -167,10 +167,10 @@ void BlueCrow_UpdateMovement(struct EwramData_EntityData *entity)
 }
 
 /* Blue Crow 0x080C9D68..0x080CA04B. The Red Crow functions at 0x080CA308.. are machine-identical
- * copies (see code_080CA308.c). */
+ * copies (see this file). */
 
 extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
-/* code_08060B98.h declares s16 parameters; the callers here pass full ints. */
+/* entity_util.h declares s16 parameters; the callers here pass full ints. */
 extern void HitEffect_Spawn(s32 x, s32 y, s32 type);
 extern void Enemy_UpdateFragmentDeathWithSpread(struct EwramData_EntityData *entity, s32 interval, s32 width, s32 height);
 extern s32 Enemy_IsStunned(struct EwramData_EntityData *entity);
@@ -508,7 +508,7 @@ void RedCrow_UpdateMovement(struct EwramData_EntityData *entity)
 }
 
 /* Red Crow 0x080CA308..0x080CA5EB: machine-identical copies of the Blue Crow
- * functions in code_080C9D68.c, generated with a cloning script. */
+ * functions in this file, generated with a cloning script. */
 
 void RedCrow_SpawnDeathParts(struct EwramData_EntityData *entity);
 void RedCrowDeathPart_Update(struct EwramData_EntityData *entity);

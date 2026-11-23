@@ -1,11 +1,11 @@
 /*
  * Fleaman.
  */
-#include "code/code_08039340.h"
+#include "graphics.h"
 #include "structs/ewram.h"
-#include "code_08009A0.h"
-#include "code_080D73B8.h"
-#include "code/code_080211F0.h"
+#include "core.h"
+#include "sound.h"
+#include "player_core.h"
 
 /* EnemyFleamanUpdate. */
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);

@@ -1,14 +1,14 @@
 /*
  * Gorgon: body, breath and death pieces. The last part of the range also holds the entry points of Catoblepas.
  */
-#include "code_08009A0.h"
+#include "core.h"
 #include "gorgon_entity.h"
-#include "code/code_08039340.h"
-#include "code/code_08060B98.h"
-#include "code/code_080211F0.h"
+#include "graphics.h"
+#include "entity_util.h"
+#include "player_core.h"
 #include <string.h>
-#include "code_080D73B8.h"
-#include "code/code_08040A38.h"
+#include "sound.h"
+#include "gameplay.h"
 #include "structs/ewram.h"
 
 /* Dispatch Gorgon/Catoblepas states and support an overridden single frame. */
@@ -433,7 +433,7 @@ extern u8 sGorgonGfx[], sGorgonSpriteSheet[];
 void GorgonBreath_Spawn(struct EwramData_EntityData *parent, s32 x, s32 y, s32 vx, s32 vy)
 {
     struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, (u32 *)GorgonBreath_Update);
-    struct HitBoxRecord box = {-4, -4, 8, 8};
+    struct SpriteBox box = {-4, -4, 8, 8};
     if (part)
     {
         s32 graphics;
@@ -470,9 +470,9 @@ extern s32 Entity_GetVisibilityPattern(s32);
 void GorgonBreath_Update(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
-    struct HitBoxRecord box;
+    struct SpriteBox box;
     struct SingleFrameAnimation animation = sGorgonFrameAnim;
-    box = (struct HitBoxRecord){-7, -7, 14, 14};
+    box = (struct SpriteBox){-7, -7, 14, 14};
     EntityDampVelocityX(entity, 24);
     EntityDampVelocityY(entity, 24);
     entity->flipX = RandomNumberGenerator() % 2;

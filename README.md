@@ -6,7 +6,7 @@
 ![Names](https://img.shields.io/badge/Names-100%25-brightgreen)
 ![Fields named](https://img.shields.io/badge/Fields%20named-96.4%25-green)
 ![Files merged](https://img.shields.io/badge/Files%20merged-59%25-yellow)
-![FAKEMATCH](https://img.shields.io/badge/FAKEMATCH-265%20lines-orange)
+![FAKEMATCH](https://img.shields.io/badge/FAKEMATCH-274%20lines-orange)
 
 > **Read this first**
 >
@@ -34,11 +34,11 @@ Measured on 2026-11-23 from the build output and source scans.
 | Game functions decompiled to C | ✅ **100 %** – only an 8-byte ARM/Thumb interworking stub has no C equivalent |
 | All ROM code (`.text`) from C | **97.06 %** (891,340 / 918,324 B) – the rest is platform code normally kept in assembly (`crt0`, `m4a` mixer, BIOS stubs, header) and libgcc/libc |
 | Functions named | ✅ **100 %** (3,842 / 3,842) |
-| Local variables and parameters named | ✅ **100 %** (17,011 / 17,011) |
-| Structure fields named | 🔄 **96.4 %** (3,285 / 3,409 declared; 99.8 % of accesses) |
+| Local variables and parameters named | ✅ **100 %** (16,280 / 16,280) |
+| Structure fields named | 🔄 **96.3 %** (3,275 / 3,400 declared; 99.8 % of accesses) |
 | Entity work area as typed structures | 🔄 363 per-type structures; 67 lines still use the raw offset view |
-| Merging ROM-address files into modules | 🔄 **59 %** (1,003 / 1,701 files merged into 88 modules; 698 `src/code_XXXXXXXX.c` left) |
-| Removing compiler tricks (`FAKEMATCH`) | 🔄 265 lines left in 94 of 795 C files |
+| Source files grouped into modules | 🔄 **94 %** – the 1,701 ROM-address files (`code_XXXXXXXX.c`) are 174 named files: 163 complete modules and 11 small files still split off only for build reasons (see *File layout*); no `code_XXXXXXXX` name left |
+| Removing compiler tricks (`FAKEMATCH`) | 🔄 274 lines left in 73 of 183 C files |
 
 ## How this fork was made
 
@@ -56,8 +56,10 @@ name or comment describes the game correctly. Corrections are very welcome.
 
 ## Known limitations
 
-- **`FAKEMATCH`** – 265 lines force the compiler's output (`register ... asm("rN")`
-  pins, empty `asm("")`, one-shot `do { } while (0)`, `volatile` reads). The original
+- **`FAKEMATCH`** – 274 lines force the compiler's output (`register ... asm("rN")`
+  pins, empty `asm("")`, one-shot `do { } while (0)`, `volatile` reads, and 9 calls
+  through a function-pointer cast that keep the argument / result types a merged
+  part was originally compiled with). The original
   code did not contain them; each is marked `/* FAKEMATCH: reason */` and was tested
   to be necessary.
 - **Matching-driven style** – some functions use `goto`, odd temporaries or casts to
@@ -66,12 +68,21 @@ name or comment describes the game correctly. Corrections are very welcome.
   `union EntityWork` with one structure per entity type
   (`include/structs/entity_work.h`). The split is reconstructed from usage; a few
   views that a nested union cannot express remain as accessor macros.
-- **File layout** – modules live in `src/enemy/`, `src/event/`, `src/menu/` and
-  `src/engine/`; the rest is still in ROM-address files.
+- **File layout** – sources live in `src/enemy/`, `src/object/`, `src/soul/`,
+  `src/player/`, `src/engine/`, `src/menu/`, `src/mode/`, `src/event/` and
+  `src/debug/`, each file a consecutive ROM range in its original order. 11 small
+  files are still split off only for build reasons: 8 single functions that
+  match only with an optimisation pass disabled (`palette_state`,
+  `hit_shared_history`, `hud_tile_block`, `equipment_list_update`,
+  `bestiary_cursor`, `object_19_create`, `box_collision`, `bat_create`) – the
+  flag would change their neighbours' code; `scene30_transformation` (own data
+  section); `kyoma_demon_b` and `tsuchinoko`, cut off from their family because
+  the family's flag changes their code. The 4 ARM units (`*_arm.c`, IWRAM code
+  built with the ARM compiler) are separate by design.
 
 ## Planned work
 
-- Merge the remaining ROM-address files into logical modules.
+- Merge the 11 build-separated files: needs C that matches without their compiler flags.
 - Finish the entity structures and name the remaining fields.
 - Reduce `FAKEMATCH` where a natural C variant can be found.
 

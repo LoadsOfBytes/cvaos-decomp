@@ -1,14 +1,14 @@
 /*
  * Valkyrie.
  */
-#include "code_08009A0.h"
-#include "code/code_08039340.h"
-#include "code/code_08040A38.h"
+#include "core.h"
+#include "graphics.h"
+#include "gameplay.h"
 #include "structs/ewram.h"
-#include "code/code_08060B98.h"
-#include "code_080D73B8.h"
-#include "code_08001194.h"
-#include "code/code_080211F0.h"
+#include "entity_util.h"
+#include "sound.h"
+#include "bg_and_collision.h"
+#include "player_core.h"
 
 /* EnemyValkyrieCreate 0x0806E714..0x0806E7A7. */
 extern u8 Valkyrie_LoadGraphics(struct EwramData_EntityData *entity);

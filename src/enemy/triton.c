@@ -1,15 +1,15 @@
 /*
  * Triton: body, spear, homing shots, wave particles and effects (entry points at the end of gargoyle.c).
  */
-#include "code_08009A0.h"
-#include "code/code_08039340.h"
-#include "code_080D73B8.h"
+#include "core.h"
+#include "graphics.h"
+#include "sound.h"
 #include "structs/ewram.h"
-#include "code/code_08040A38.h"
+#include "gameplay.h"
 #include <string.h>
 #include "syscalls.h"
-#include "code/code_08060B98.h"
-#include "code/code_080211F0.h"
+#include "entity_util.h"
+#include "player_core.h"
 
 /* Triton movement (Triton_UpdateMove) and attack: fire the homing shot, or raise the spear and emit wave
  * particles until the spear comes back. */
@@ -276,7 +276,7 @@ extern u8 sTritonSpriteSheet[];
  * hit box -3, -15, 6x6 and contact callback TritonSpear_DamagePlayerOnContact. */
 struct EwramData_EntityData *Triton_CreateSpear(struct EwramData_EntityData *owner)
 {
-    struct HitBoxRecord box;
+    struct SpriteBox box;
     struct EwramData_EntityData *part = Entity_CreateObject((u32 *)TritonSpear_Update);
     if (part != NULL)
     {
@@ -337,7 +337,7 @@ void TritonSpear_Update(struct EwramData_EntityData *spear)
     struct EwramData_EntityData *owner = spear->ext.tritonSpear.owner;
     s32 bounds[4];
     s8 offsets[32];
-    struct HitBoxRecord box;
+    struct SpriteBox box;
     s32 x, y;
     s32 angle;
 
@@ -583,7 +583,7 @@ void TritonWaveParticle_Update(struct EwramData_EntityData *entity);
 void Triton_SpawnHomingShot(struct EwramData_EntityData *owner, s32 x, s32 y)
 {
     struct EwramData_EntityData *shot = EntityCreateInRange(0x49, 0xCF, (u32 *)TritonHomingShot_Update);
-    struct HitBoxRecord box = {-2, -2, 4, 4};
+    struct SpriteBox box = {-2, -2, 4, 4};
     if (shot != NULL)
     {
         s32 graphics;

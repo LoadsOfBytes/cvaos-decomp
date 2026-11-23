@@ -389,7 +389,7 @@ union EntityAccelY {
 };
 
 /*
- * Hit system (Hit_*, HitBox_*, code_08041474.c .. code_080426B0.c).
+ * Hit system (Hit_*, HitBox_*, engine/hitbox.c .. engine/hitbox.c).
  *
  * Every entity that takes part in collisions has an attack box and a body
  * box in gEntityBoxes[hit.boxSlot] (set per animation step, see AnimScript
@@ -416,7 +416,7 @@ struct EntityHit {
 };
 
 /*
- * Animation scripts (Anim_*, code_0803E820.c). A script is a list of steps;
+ * Animation scripts (Anim_*, engine/math_anim.c). A script is a list of steps;
  * each step shows one SpriteFrame (entity->animFrame) for 'duration' frames.
  * The step layout depends on AnimScript.type (sAnimStepFuncs):
  *   0 - steps points to separate AnimStep records ({frame, duration}),
@@ -831,7 +831,7 @@ union EntityWork {
 };
 
 /*
- * Entity (gEwramData->entityData[0xE0], code_080009A0.c Entity*).
+ * Entity (gEwramData->entityData[0xE0], engine/core.c Entity*).
  * Slots 0x00-0xCF are updated by Entity_UpdateAll (not while paused), the
  * reserved slots 0xD0-0xDF by Entity_UpdateReserved. An entity is drawn by
  * its drawFunc when it is in the draw list (drawNext/drawPrev, head
@@ -1085,7 +1085,7 @@ struct RoomEntitySpawnState {
  * (0x94..0xB3), map cells, resume position and game flags (saved with the
  * slot), and the runtime room, message and event state after them. */
 struct GameState {
-    /* 0x00060 */ u32 systemFlags; /* written to SRAM system slot 6 (code_08012744.c) */
+    /* 0x00060 */ u32 systemFlags; /* written to SRAM system slot 6 (engine/save_data.c) */
     /* 0x00064 */ u8 subMode; // dispatcher in GameModeInGameUpdate, distinct from the top-level game mode
     /* 0x00065 */ u8 subModeStep; // initialization/menu/warp/transition state within the selected sub-mode
     /* 0x00066 */ u16 subModeCounter; // shared up/down counter: delays, link sync and banner/fade progress
@@ -1191,7 +1191,7 @@ struct GameState {
 }; /* size = 0x474 */
 
 /*
- * Save slot layout in SRAM (SaveData_*, code_08012744.c): each slot is
+ * Save slot layout in SRAM (SaveData_*, engine/save_data.c): each slot is
  * 0x47C bytes at SRAM + 0x10 + slot * 0x47C:
  *   +0x000 gEwramData->playerStatus (0x190, struct PlayerStatus),
  *   +0x190 gameState.playerName .. bestBossRushTimeFrames (0x20, the slot header),
@@ -1339,7 +1339,7 @@ struct PlayerStatus {
     /* 0x1336E */ u8 yellowSoulInventory[2][0x12];
     /* 0x13392 */ u8 abilitySoulInventory[0x3];
     /* 0x13395 */ u8 pad_13395[0x13396 - 0x13395]; // TODO: is abilitySoulInventory really 4 entries?
-    /* 0x13396 */ u8 abilityFlags[0x2]; /* bit per ability index (code_08032444.c) */
+    /* 0x13396 */ u8 abilityFlags[0x2]; /* bit per ability index (player/soul_inventory.c) */
     /* 0x13398 */ u16 attackButton;
     /* 0x1339A */ u16 jumpButton;
     /* 0x1339C */ u16 abilityButton;
@@ -1355,7 +1355,7 @@ struct PlayerStatus {
 }; /* size = 0x190 */
 
 /*
- * OBJ graphics cache (ObjGfx_*, code_08039340.c .. code_0803B66C.c).
+ * OBJ graphics cache (ObjGfx_*, engine/obj_gfx.c .. engine/obj_gfx.c).
  *
  * gEwramData->objGfx holds 16 entries in two doubly linked lists (free list
  * objGfxFreeHead, used list objGfxUsedHead). Each used entry records one
@@ -1388,7 +1388,7 @@ struct ObjGfxEntry {
 }; /* size = 0x14 */
 
 /*
- * Entity sprites (Sprite_*, code_08039340.c .. code_0803B66C.c).
+ * Entity sprites (Sprite_*, engine/obj_gfx.c .. engine/obj_gfx.c).
  *
  * An entity with a sprite owns one of the 240 gEwramData->spriteSlots
  * (entity->spriteSlot, 0xFF = none). The slot links the entity's sprite
@@ -1488,7 +1488,7 @@ struct LinkReceivedPlayerRecord {
 }; /* size = 0x8 */
 
 /*
- * Palette system (code_0803B66C.c, code_0803C294.c, code_0803C49C.c).
+ * Palette system (engine/obj_gfx.c, engine/palette_state.c, engine/palette.c).
  *
  * Two PaletteBuffers live in EWRAM: objPalette (uploaded to OBJ palette RAM)
  * and bgPalette (uploaded to BG palette RAM). Each holds 16 palettes of 16
@@ -1563,7 +1563,7 @@ struct PaletteBuffer {
     /* 0x724 */ /* 0x12500 */ struct PaletteFade savedFade;
 }; /* size = 0x840 */
 
-/* OBJ tile slot allocator (code_0803C49C.c, ObjTiles_*): see the comment
+/* OBJ tile slot allocator (engine/palette.c, ObjTiles_*): see the comment
  * above ObjTiles_AllocForward. Bits of gEwramData->objTileFlags: */
 #define OBJ_TILES_GRID 1     /* slots in the 2D grid layout (default) */
 #define OBJ_TILES_COLOR256 2 /* 8bpp graphics: 8 double-size slots */

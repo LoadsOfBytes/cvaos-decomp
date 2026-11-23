@@ -1,13 +1,13 @@
 /*
  * Head stack enemies (Bone Pillar, Fish Head): segments, projectiles, effects and debris.
  */
-#include "code_08009A0.h"
-#include "code/code_080211F0.h"
-#include "code/code_08060B98.h"
-#include "code/code_08039340.h"
+#include "core.h"
+#include "player_core.h"
+#include "entity_util.h"
+#include "graphics.h"
 #include "structs/ewram.h"
-#include "code_080D73B8.h"
-#include "code/code_08040A38.h"
+#include "sound.h"
+#include "gameplay.h"
 #include "structs/entity_render_flags.h"
 
 /* Falling debris and the short-lived emitter that spawns it. */
@@ -117,7 +117,7 @@ void HeadStackEffect_UpdateEmitter(struct EwramData_EntityData *entity)
     }
 }
 
-/* Debris particle spawned from asm/code/code_080B3114.s. */
+/* Debris particle spawned from asm/this file.s. */
 /* Graphics of one debris variant (passed to Entity_LoadGraphics). */
 
 /**

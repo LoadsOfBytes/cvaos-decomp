@@ -4,8 +4,8 @@
 ![Game functions in C](https://img.shields.io/badge/Game%20functions%20in%20C-100%25-brightgreen)
 ![ROM code from C](https://img.shields.io/badge/ROM%20code%20from%20C-97.06%25-green)
 ![Names](https://img.shields.io/badge/Names-100%25-brightgreen)
-![Fields named](https://img.shields.io/badge/Fields%20named-96.4%25-green)
-![Files merged](https://img.shields.io/badge/Files%20merged-59%25-yellow)
+![Fields named](https://img.shields.io/badge/Fields%20named-96.3%25-green)
+![Files grouped into modules](https://img.shields.io/badge/Files%20grouped%20into%20modules-94%25-green)
 ![FAKEMATCH](https://img.shields.io/badge/FAKEMATCH-274%20lines-orange)
 
 > **Read this first**

@@ -23,18 +23,18 @@ extern const u8 sBaloreEyeAnimOffsets[];
  */
 void BaloreEye_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = BALORE_BODY(entity);
+    struct EwramData_EntityData *owner = entity->ext.balorePart.body;
     s32 dy = 0;
     s32 dx = 0;
     s32 o;
     s16 angle;
 
-    if (BALORE_FLAGS(owner) & 4)
+    if (owner->ext.balore.flags & 4)
         entity->state = 5;
     switch (entity->state)
     {
     case 0:
-        Sprite_Attach(entity, sBaloreSpriteSheet, (s8)BALORE_GFX(owner), owner->unk_510.part8.basePalette);
+        Sprite_Attach(entity, sBaloreSpriteSheet, (s8)owner->ext.balore.gfx, owner->unk_510.part8.basePalette);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         entity->spriteLayer = 0x1F;
         if (gEwramData->gameState.bestiaryPreview)
@@ -46,7 +46,7 @@ void BaloreEye_Update(struct EwramData_EntityData *entity)
     case 1:
         if (owner->state == 3)
             entity->state = 2;
-        if (BALORE_FLAGS(owner) & 2)
+        if (owner->ext.balore.flags & 2)
             entity->state = 4;
         o = (s16)owner->posX.part16.integer;
         dx = (s16)(FIXED_TO_INT(Target_GetX(owner)) - o - 0x20);
@@ -54,8 +54,8 @@ void BaloreEye_Update(struct EwramData_EntityData *entity)
         angle = ArcTan2(dx, (s16)(FIXED_TO_INT(Target_GetY(owner)) - o - 0x10));
         dx = Sin(angle + 0x4000) * 3;
         dy = Sin(angle) * 2 + 0x20000;
-        dx = FIXED_TO_INT(dx) * BALORE_BODY_SCALE(owner);
-        dy = FIXED_TO_INT(dy) * BALORE_BODY_SCALE(owner);
+        dx = FIXED_TO_INT(dx) * owner->ext.balore.scale;
+        dy = FIXED_TO_INT(dy) * owner->ext.balore.scale;
         break;
     case 2:
     case 3:
@@ -67,6 +67,6 @@ void BaloreEye_Update(struct EwramData_EntityData *entity)
     }
     entity->posX.whole = owner->posX.whole + dx;
     entity->posY.whole = owner->posY.whole + dy;
-    Anim_StartIndexed(entity, sBaloreEyeAnimOffsets[(s8)BALORE_EYE_ANIM(owner)] + 0x24, 2, 0);
+    Anim_StartIndexed(entity, sBaloreEyeAnimOffsets[(s8)owner->ext.balore.eyeAnim] + 0x24, 2, 0);
     Anim_Update(entity);
 }

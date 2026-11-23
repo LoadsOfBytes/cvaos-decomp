@@ -1,5 +1,4 @@
 #include "code/code_08039340.h"
-#include "particle_effect.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
 extern void GrahamPlayerEffect_Update(struct EwramData_EntityData *);
@@ -27,8 +26,8 @@ void GrahamSceneProjectile_OnContact(struct EwramData_EntityData *entity)
         effect = EntityCreateInRange(0x49, 0xCF, GrahamPlayerEffect_Update);
         if (effect != 0)
         {
-            PARTICLE_ATTACH_ANIM(effect) = kind;
-            PARTICLE_ATTACH_PARENT(effect) = player;
+            effect->ext.particleAttach.anim = kind;
+            effect->ext.particleAttach.parent = player;
             effect->palette = 5;
             effect->accelX.whole = zero;
             effect->accelY.whole = offset;

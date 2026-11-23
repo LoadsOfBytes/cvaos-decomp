@@ -1,7 +1,5 @@
 /* Fleaman_UpdateDeath (Fleaman death). */
 #include "code/code_08039340.h"
-#include "altair_entity.h"
-#include "fleaman_entity.h"
 #include "code_080D73B8.h"
 #include "structs/ewram.h"
 
@@ -22,7 +20,7 @@ void Fleaman_UpdateDeath(struct EwramData_EntityData *entity)
             PlaySong(0x72);
             Enemy_DropRewards(entity);
             Anim_StartIndexed(entity, 2, 0, 1);
-            FLEAMAN_ANIM(entity) = 2;
+            entity->ext.fleaman.anim = 2;
             entity->palette = entity->unk_510.part8.basePalette;
             entity->timer = 0x32;
             entity->state = 0xFF;
@@ -32,11 +30,11 @@ void Fleaman_UpdateDeath(struct EwramData_EntityData *entity)
             entity->accelY.whole = 0x2000;
             entity->subState = 1;
         case 1:
-            if (ALTAIR_DROP_COUNTED(entity))
+            if (entity->ext.altairDrop.count)
             {
-                struct EwramData_EntityData *spawner = &gEwramData->entityData[ALTAIR_DROP_SPAWNER_INDEX(entity)];
+                struct EwramData_EntityData *spawner = &gEwramData->entityData[entity->ext.altairDrop.spawnerIndex];
 
-                ALTAIR_DROP_COUNT(spawner)--;
+                spawner->ext.altairDrop.count--;
             }
             entity->subState = 2;
         case 2:

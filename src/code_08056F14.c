@@ -23,7 +23,7 @@ void Object22Update(struct EwramData_EntityData *entity)
 {
     u8 collision[0x10];
 
-    if (!(OBJECT22_FLAGS(entity) & 1))
+    if (!(entity->ext.object22.flags & 1))
         Player_QueueEntity(entity, 1);
     if (entity->state == 0)
         Object22_UpdateState(entity);

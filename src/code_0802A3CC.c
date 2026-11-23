@@ -1,6 +1,5 @@
 /* The s16 layer and u8 facing temporaries were found with a permuter. */
 #include "code_08009A0.h"
-#include "red_soul_entity.h"
 #include "code_08001194.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -43,8 +42,8 @@ struct EwramData_EntityData *SkillGhost_CreateHistoryTrail(struct EwramData_Enti
         u8 facing = owner->flipX;
         entity->flipX = facing;
     }
-    entity->stage = RED_SOUL_SLOT(owner);
-    trail = (struct Unk_0802A330 *)&entity->unk_4F4;
+    entity->stage = owner->ext.redSoul.slot;
+    trail = (struct Unk_0802A330 *)&entity->ext.raw.unk_4F4;
     for (i = 9; i != 0; i--)
     {
         trail[i].x = GetEntityRoomXPositionInteger(owner);

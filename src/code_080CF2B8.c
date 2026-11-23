@@ -1,6 +1,5 @@
 /* Mandragora linked part mirrors combat properties and shares graphics. */
 #include "code_08009A0.h"
-#include "mandragora_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern struct EwramData_EntityData *Entity_CreateObject(void *);
@@ -27,7 +26,7 @@ s32 Mandragora_CreateTerminalPart(struct EwramData_EntityData *entity)
         void *sprite;
         s32 graphics;
         ENTITY_PARENT_INDEX(part)=ENTITY_INDEX(entity);
-        MANDRAGORA_LINK_INDEX(entity)=ENTITY_INDEX(part);
+        entity->ext.mandragora.linkIndex=ENTITY_INDEX(part);
         part->spriteLayer=entity->spriteLayer+1;
         part->unk_510.part8.basePalette=entity->unk_510.part8.basePalette;
         part->flipX=entity->flipX;

@@ -1,8 +1,6 @@
 /* Golem part update: follows its skeleton joint, maintains collision,
  * then falls and spins after the parent enters state 2. */
 #include "code_08009A0.h"
-#include "golem_entity.h"
-#include "joint_entity.h"
 #include "syscalls.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -19,11 +17,11 @@ struct SegmentBox {
     s8 h;
 };
 
-#define PART(e) (*(s8 *)&JOINT_PART_INDEX((e)))   /* own part index */
-#define NEXT_PART(e) (*(s8 *)&JOINT_PART_ANCHOR((e)))
+#define PART(e) (*(s8 *)&e->ext.jointPart.index)   /* own part index */
+#define NEXT_PART(e) (*(s8 *)&e->ext.jointPart.anchor)
 #define ANGLE(e) ((e)->velX.whole)
-#define SPIN(e) (GOLEM_SEGMENT_SPIN((e)))
-#define FALL_ANGLE(e) (GOLEM_SEGMENT_FALL_ANGLE((e)))
+#define SPIN(e) (e->ext.golemSegment.spin)
+#define FALL_ANGLE(e) (e->ext.golemSegment.fallAngle)
 #define TO_PIXELS(d) ((d) < 0 ? -(-(d) >> 16) : (d) >> 16)
 /* parts 0-5 and 7-10 have an affine sprite */
 #define HAS_AFFINE(i) (((i) >= 0 && (i) <= 5) || (i) == 7 || (i) == 8 || (i) == 9 || (i) == 10)
@@ -37,7 +35,7 @@ void GolemSegment_Update(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
     struct SegmentBox box;
-    struct EwramData_EntityData *owner = JOINT_PART_OWNER(entity);
+    struct EwramData_EntityData *owner = entity->ext.jointPart.owner;
 
     /* Share these temporaries with the collision calculation: agbcc register allocation. */
     s32 dx, dy;
@@ -50,7 +48,7 @@ void GolemSegment_Update(struct EwramData_EntityData *entity)
         if (owner == NULL || owner->updateFunc == NULL
             || owner->unk_518.part8.enemyId != entity->unk_518.part8.enemyId)
             goto die;
-        parts = owner->unk_500.golemParts;
+        parts = owner->ext.golem.parts;
         entity->palette = owner->palette;
         entity->flipX = owner->flipX;
         entity->timer++;
@@ -92,7 +90,7 @@ void GolemSegment_Update(struct EwramData_EntityData *entity)
                 entity->timer = delay + 60;
             return;
         }
-        if ((JOINT_HURT_MASK(owner) >> PART(entity)) & 1)
+        if ((owner->ext.joint.hurtMask >> PART(entity)) & 1)
         {
             dx = Sin(parts[PART(entity)].rotationAngle + 0x8000);
             dy = Sin(parts[PART(entity)].rotationAngle + 0x4000);

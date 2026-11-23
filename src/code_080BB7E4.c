@@ -116,7 +116,7 @@ void CockatriceFamilyPart_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
         case 0:
-            if (!Entity_LoadGraphics(entity, sCockatriceFamilyGfx, sCockatriceFamilyPalette, COCKATRICE_PALETTE_SLOT(parent), sCockatriceFamilySpriteSheet))
+            if (!Entity_LoadGraphics(entity, sCockatriceFamilyGfx, sCockatriceFamilyPalette, parent->ext.cockatrice.paletteSlot, sCockatriceFamilySpriteSheet))
                 goto delete;
             slot = ObjAffine_Alloc(1);
             if ((s16)slot < 0)
@@ -125,20 +125,20 @@ void CockatriceFamilyPart_Update(struct EwramData_EntityData *entity)
             entity->affine = 1;
             entity->animFrame = 2;
             entity->spriteLayer = parent->spriteLayer;
-            COCKATRICE_PART_SCALE_X(entity) = 0x10000;
-            COCKATRICE_PART_AMPLITUDE(entity) = 8;
+            entity->ext.cockatricePart.scaleX = 0x10000;
+            entity->ext.cockatricePart.amplitude = 8;
             entity->state = 1;
         case 1:
             CockatriceFamilyPart_FollowOwner(entity, parent);
             if (parent->state == 2)
                 entity->state = 2;
             if (gEwramData->gameState.timeStopTimer == 0)
-                COCKATRICE_PART_PHASE(entity) -= 0x2B0;
+                entity->ext.cockatricePart.phase -= 0x2B0;
             break;
         case 2:
             CockatriceFamilyPart_FollowOwner(entity, parent);
-            COCKATRICE_PART_PHASE(entity) -= 0x17B0;
-            COCKATRICE_PART_AMPLITUDE(entity) = 16;
+            entity->ext.cockatricePart.phase -= 0x17B0;
+            entity->ext.cockatricePart.amplitude = 16;
             break;
         case 3:
             ObjAffine_Free(entity->affineIndex);
@@ -147,16 +147,16 @@ void CockatriceFamilyPart_Update(struct EwramData_EntityData *entity)
             return;
     }
     if (!entity->flipX)
-        COCKATRICE_PART_ANGLE(entity) = Sin(COCKATRICE_PART_PHASE(entity))
-                                              * COCKATRICE_PART_AMPLITUDE(entity) / 256;
+        entity->ext.cockatricePart.angle = Sin(entity->ext.cockatricePart.phase)
+                                              * entity->ext.cockatricePart.amplitude / 256;
     else
-        COCKATRICE_PART_ANGLE(entity) = Sin(COCKATRICE_PART_PHASE(entity))
-                                              * -COCKATRICE_PART_AMPLITUDE(entity) / 256;
-    COCKATRICE_PART_SCALE_X(entity) = (Sin(COCKATRICE_PART_PHASE(entity) + 0x2000) << 13 >> 16) + 0xE000;
+        entity->ext.cockatricePart.angle = Sin(entity->ext.cockatricePart.phase)
+                                              * -entity->ext.cockatricePart.amplitude / 256;
+    entity->ext.cockatricePart.scaleX = (Sin(entity->ext.cockatricePart.phase + 0x2000) << 13 >> 16) + 0xE000;
     entity->palette = parent->palette;
-    if (COCKATRICE_DEATH_FLAGS(parent) & 1)
+    if (parent->ext.cockatrice.deathFlags & 1)
         entity->state = 3;
-    ObjAffine_Set(COCKATRICE_PART_ANGLE(entity), COCKATRICE_PART_SCALE_X(entity), 0x10000, entity->flipX, 0,
+    ObjAffine_Set(entity->ext.cockatricePart.angle, entity->ext.cockatricePart.scaleX, 0x10000, entity->flipX, 0,
                  entity->affineIndex);
 }
 
@@ -186,7 +186,7 @@ void CockatriceFamilyAttack_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
         case 0:
-            if (!Entity_LoadGraphics(entity, sCockatriceFamilyGfx, sCockatriceFamilyPalette, COCKATRICE_PALETTE_SLOT(parent), sCockatriceFamilySpriteSheet))
+            if (!Entity_LoadGraphics(entity, sCockatriceFamilyGfx, sCockatriceFamilyPalette, parent->ext.cockatrice.paletteSlot, sCockatriceFamilySpriteSheet))
                 goto delete;
             entity->animFrame = 1;
             entity->spriteLayer = parent->spriteLayer + 1;
@@ -196,14 +196,14 @@ void CockatriceFamilyAttack_Update(struct EwramData_EntityData *entity)
                 goto delete;
             entity->affineIndex = slot;
             entity->affine = 1;
-            COCKATRICE_BEAM_LENGTH(entity) = 0x1000000;
+            entity->ext.cockatriceBeam.length = 0x1000000;
             Entity_PlaceRelativeToCopy(entity, parent, -24, -33);
-            COCKATRICE_BEAM_ANGLE(entity) = 0x6C00;
+            entity->ext.cockatriceBeam.angle = 0x6C00;
             if (entity->flipX)
             {
                 s32 angle = -0xEC00; // 0x8000 - 0x6C00 in 16 bits
 
-                COCKATRICE_BEAM_ANGLE(entity) = angle;
+                entity->ext.cockatriceBeam.angle = angle;
             }
             Hit_Enable(entity, 8, CockatriceFamilyAttack_DamagePlayerOnContact, 0);
             HitBox_SetAttackRaw(entity, 0x10440CBC);
@@ -212,17 +212,17 @@ void CockatriceFamilyAttack_Update(struct EwramData_EntityData *entity)
             entity->state = 1;
             Sound_PlayTracked(0x65);
         case 1:
-            COCKATRICE_BEAM_FRAME(entity)++;
-            COCKATRICE_BEAM_SCALE_Y(entity) = Sin(COCKATRICE_BEAM_FRAME(entity) << 10);
-            if (COCKATRICE_BEAM_FRAME(entity) <= 15)
+            entity->ext.cockatriceBeam.frame++;
+            entity->ext.cockatriceBeam.scaleY = Sin(entity->ext.cockatriceBeam.frame << 10);
+            if (entity->ext.cockatriceBeam.frame <= 15)
                 entity->posY.whole -= 0x2000;
             if (!entity->flipX)
-                COCKATRICE_BEAM_ANGLE(entity) += 8;
+                entity->ext.cockatriceBeam.angle += 8;
             else
-                COCKATRICE_BEAM_ANGLE(entity) -= 8;
-            if (COCKATRICE_BEAM_FRAME(entity) == 16)
+                entity->ext.cockatriceBeam.angle -= 8;
+            if (entity->ext.cockatriceBeam.frame == 16)
                 Hit_CheckWithPlayer(collision, entity);
-            if (COCKATRICE_BEAM_FRAME(entity) <= 31)
+            if (entity->ext.cockatriceBeam.frame <= 31)
                 break;
         case 2:
             Sound_StopTracked(0x65);
@@ -231,14 +231,14 @@ void CockatriceFamilyAttack_Update(struct EwramData_EntityData *entity)
             EntityDelete(entity);
             return;
     }
-    growth = COCKATRICE_BEAM_LENGTH(entity);
+    growth = entity->ext.cockatriceBeam.length;
     if (growth > 0x1000000)
         growth = 0x1000000;
     growth /= 16;
     scale = growth / 16;
-    COCKATRICE_BEAM_STEP_X(entity) = Sin(COCKATRICE_BEAM_ANGLE(entity) + 0x4000) << 4;
-    COCKATRICE_BEAM_STEP_Y(entity) = Sin(COCKATRICE_BEAM_ANGLE(entity)) << 4;
-    COCKATRICE_BEAM_STEP_X(entity) = COCKATRICE_BEAM_STEP_X(entity) / 0x10000 * scale;
+    entity->ext.cockatriceBeam.stepX = Sin(entity->ext.cockatriceBeam.angle + 0x4000) << 4;
+    COCKATRICE_BEAM_STEP_Y(entity) = Sin(entity->ext.cockatriceBeam.angle) << 4;
+    entity->ext.cockatriceBeam.stepX = entity->ext.cockatriceBeam.stepX / 0x10000 * scale;
     COCKATRICE_BEAM_STEP_Y(entity) = COCKATRICE_BEAM_STEP_Y(entity) / 0x10000 * scale;
-    ObjAffine_Set(COCKATRICE_BEAM_ANGLE(entity), 0x10000, COCKATRICE_BEAM_SCALE_Y(entity), 0, 0, entity->affineIndex);
+    ObjAffine_Set(entity->ext.cockatriceBeam.angle, 0x10000, entity->ext.cockatriceBeam.scaleY, 0, 0, entity->affineIndex);
 }

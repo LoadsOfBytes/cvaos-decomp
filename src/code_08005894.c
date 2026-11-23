@@ -33,29 +33,6 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-/*
- * Work slots of the main menu / save select entity (this TU only):
- * cursor: slot cursor (0-5 = save slots, 6+ = menu items) or name-entry grid
- *   cursor; savedSlots: bit per slot whose header has a play time
- *   (MainMenu_InitEntity); copy source / destination slots of Data Copy;
- *   slotEmpty: 1 when the shown slot cannot be loaded/copied; name cursor:
- *   character position 0-7 in the name entry; confirm open / cursor: the
- *   yes/no box of the game start / copy / delete flow; blink timer / phase of
- *   the confirmation marker; base frame: animFrame saved at init.
- * The macros expand to the original member chains (token-identical).
- */
-#define MENU_CURSOR(e) e->unk_4F8.part8.unk_4F9
-#define MENU_SAVED_SLOTS(e) e->unk_4F4.part8.unk_4F5
-#define MENU_COPY_SOURCE(e) e->unk_4F4.part8.unk_4F6
-#define MENU_COPY_DEST(e) e->unk_4F4.part8.unk_4F7
-#define MENU_SLOT_EMPTY(e) e->unk_4F4.part8.unk_4F4
-#define MENU_NAME_CURSOR(e) e->unk_4F8.part8.unk_4FB
-#define MENU_CONFIRM_OPEN(e) e->unk_4FC.part8.unk_4FD
-#define MENU_CONFIRM_CURSOR(e) e->unk_4FC.part8.unk_4FE
-#define MENU_BLINK_TIMER(e) e->unk_504.part8.unk_504
-#define MENU_BLINK_PHASE(e) e->unk_504.part8.unk_505
-#define MENU_BASE_FRAME(e) e->unk_500.part8.unk_500
-
 // TODO: HudMap_WriteTiles is implicitly called in other files, except this one
 extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
 
@@ -271,19 +248,19 @@ void MainMenu_DrawSlotList(struct EwramData_EntityData *entity)
 
     if (entity->stage == 0)
     {
-        if (MENU_CONFIRM_OPEN(entity) != 0)
+        if (entity->ext.mainMenu.confirmOpen != 0)
         {
             cursorOffset = SaveMenuCursorOffset(gEwramData->frameCounter);
-            entity->posX.part16.integer = (MENU_CONFIRM_CURSOR(entity) * 0x60) + 0x24 + cursorOffset;
+            entity->posX.part16.integer = (entity->ext.mainMenu.confirmCursor * 0x60) + 0x24 + cursorOffset;
             entity->posY.part16.integer = 0x8C;
             Sprite_Draw(entity);
             if (gEwramData->frameCounter & 2)
             {
-                if (MENU_CURSOR(entity) < 6)
+                if (entity->ext.mainMenu.cursor < 6)
                 {
-                    entity->posX.part16.integer = ((MENU_CURSOR(entity) * 0x10) + 0x10);
+                    entity->posX.part16.integer = ((entity->ext.mainMenu.cursor * 0x10) + 0x10);
                     entity->posY.part16.integer = 0x48;
-                    if (MENU_CURSOR(entity) & 1)
+                    if (entity->ext.mainMenu.cursor & 1)
                     {
                         entity->posX.part16.integer -= 0x10;
                         entity->posY.part16.integer += 0x18;
@@ -291,19 +268,19 @@ void MainMenu_DrawSlotList(struct EwramData_EntityData *entity)
                 }
                 else
                 {
-                    entity->posX.part16.integer = (MENU_CURSOR(entity) * 0x10) - 0x50;
+                    entity->posX.part16.integer = (entity->ext.mainMenu.cursor * 0x10) - 0x50;
                     entity->posY.part16.integer = 0x30;
                 }
                 Sprite_Draw(entity);
             }
         }
         else {
-            if (MENU_CURSOR(entity) < 6)
+            if (entity->ext.mainMenu.cursor < 6)
             {
                 cursorOffset = SaveMenuCursorOffset(gEwramData->frameCounter);
-                entity->posX.part16.integer = (MENU_CURSOR(entity) * 0x10) + 0x10 + cursorOffset;
+                entity->posX.part16.integer = (entity->ext.mainMenu.cursor * 0x10) + 0x10 + cursorOffset;
                 entity->posY.part16.integer = 0x48;
-                if (MENU_CURSOR(entity) & 1)
+                if (entity->ext.mainMenu.cursor & 1)
                 {
                     entity->posX.part16.integer -= 0x10;
                     entity->posY.part16.integer += 0x18;
@@ -312,7 +289,7 @@ void MainMenu_DrawSlotList(struct EwramData_EntityData *entity)
             else
             {
                 cursorOffset = SaveMenuCursorOffset(gEwramData->frameCounter);
-                entity->posX.part16.integer = (MENU_CURSOR(entity) * 0x10) - 0x50 + cursorOffset;
+                entity->posX.part16.integer = (entity->ext.mainMenu.cursor * 0x10) - 0x50 + cursorOffset;
                 entity->posY.part16.integer = 0x30;
             }
             Sprite_Draw(entity);
@@ -321,19 +298,19 @@ void MainMenu_DrawSlotList(struct EwramData_EntityData *entity)
     else
     {
         cursorOffset = SaveMenuCursorOffset(gEwramData->frameCounter);
-        entity->posX.part16.integer = ((MENU_CURSOR(entity) * 0x40) + 0x46) + cursorOffset;
+        entity->posX.part16.integer = ((entity->ext.mainMenu.cursor * 0x40) + 0x46) + cursorOffset;
         entity->posY.part16.integer = 0x90;
         Sprite_Draw(entity);
 
         if (gEwramData->frameCounter & 2)
         {
-            entity->posX.part16.integer = (u16) ((MENU_COPY_SOURCE(entity) * 0x10) + 0x10);
+            entity->posX.part16.integer = (u16) ((entity->ext.mainMenu.copySource * 0x10) + 0x10);
             entity->posY.part16.integer = 0x48;
             Sprite_Draw(entity);
         }
     }
 
-    if (MENU_CONFIRM_OPEN(entity) == 0)
+    if (entity->ext.mainMenu.confirmOpen == 0)
     {
         SaveMenu_AttachLanguageSprite(entity, 2);
         SaveMenu_PlaceNameSprites(entity, 0x80, 0x20, menuData->name);
@@ -375,7 +352,7 @@ void MainMenu_DrawSlotList(struct EwramData_EntityData *entity)
                         }
                         Sprite_Draw(entity);
                     }
-                    else if (MENU_CURSOR(entity) > 5)
+                    else if (entity->ext.mainMenu.cursor > 5)
                     {
                         entity->posX.part16.integer = 0x90;
                         entity->posY.part16.integer = 0x38;
@@ -395,11 +372,11 @@ void MainMenu_DrawSlotList(struct EwramData_EntityData *entity)
                     }
                     if (entity->stage == 0)
                     {
-                        selectedSlot = MENU_CURSOR(entity);
+                        selectedSlot = entity->ext.mainMenu.cursor;
                     }
                     else
                     {
-                        selectedSlot = MENU_COPY_SOURCE(entity);
+                        selectedSlot = entity->ext.mainMenu.copySource;
                     }
                     if ((menuData->clearAndDifficulty & 0xF) && (menuData->playTime != 0) && !(selectedSlot & 1) && (selectedSlot < 6))
                     {
@@ -456,7 +433,7 @@ void MainMenu_DrawCopySlotList(struct EwramData_EntityData *entity)
         {
             bob = (phase & 7) - 3;
         }
-        entity->posX.part16.integer = (MENU_CURSOR(entity) * 0x10) + 0x88 + bob;
+        entity->posX.part16.integer = (entity->ext.mainMenu.cursor * 0x10) + 0x88 + bob;
         entity->posY.part16.integer = 0x10;
         Sprite_Draw(entity);
     }
@@ -471,12 +448,12 @@ void MainMenu_DrawCopySlotList(struct EwramData_EntityData *entity)
         {
             bob = (phase & 7) - 3;
         }
-        entity->posX.part16.integer = (MENU_CURSOR(entity) << 6) + 0x46 + bob;
+        entity->posX.part16.integer = (entity->ext.mainMenu.cursor << 6) + 0x46 + bob;
         entity->posY.part16.integer = 0x90;
         Sprite_Draw(entity);
         if (gEwramData->frameCounter & 2)
         {
-            entity->posX.part16.integer = (MENU_COPY_DEST(entity) * 0x10) + 0x88;
+            entity->posX.part16.integer = (entity->ext.mainMenu.copyDest * 0x10) + 0x88;
             entity->posY.part16.integer = 0x10;
             Sprite_Draw(entity);
         }
@@ -512,7 +489,7 @@ void MainMenu_DrawCopySlotList(struct EwramData_EntityData *entity)
     }
 
     header++;
-    if (MENU_SLOT_EMPTY(entity) == 0)
+    if (entity->ext.mainMenu.slotEmpty == 0)
     {
         SaveMenu_AttachLanguageSprite(entity, 2);
         SaveMenu_PlaceNameSprites(entity, 0x88, 0x20, header->name);
@@ -557,7 +534,7 @@ void MainMenu_DrawNameEntry(struct EwramData_EntityData *entity)
     header = gEwramData->saveHeaders;
     SaveMenu_AttachLanguageSprite(entity, 5);
 
-    entity->animFrame = MENU_BASE_FRAME(entity);
+    entity->animFrame = entity->ext.mainMenu.baseFrame;
     Anim_Update(entity);
 
     entity->posX.part16.integer = 0x37;
@@ -570,15 +547,15 @@ void MainMenu_DrawNameEntry(struct EwramData_EntityData *entity)
 
     if (gEwramData->frameCounter & 0x10)
     {
-        entity->posX.part16.integer = (MENU_NAME_CURSOR(entity) * 0xC) + 0x48;
+        entity->posX.part16.integer = (entity->ext.mainMenu.nameCursor * 0xC) + 0x48;
         entity->posY.part16.integer = 0x10;
         entity->animFrame = 0x23;
         Sprite_Draw(entity);
     }
 
     SaveMenu_AttachLanguageSprite(entity, 2);
-    entity->posX.part16.integer = (Mod(MENU_CURSOR(entity), 9) * 0x18) + 0x18;
-    entity->posY.part16.integer = (Div(MENU_CURSOR(entity), 9) * 0x18) + 0x40;
+    entity->posX.part16.integer = (Mod(entity->ext.mainMenu.cursor, 9) * 0x18) + 0x18;
+    entity->posY.part16.integer = (Div(entity->ext.mainMenu.cursor, 9) * 0x18) + 0x40;
     entity->animFrame = 1;
 
     Sprite_Draw(entity);
@@ -624,14 +601,14 @@ void SaveSelect_Draw(struct EwramData_EntityData *entity)
     {
         offset = (phase & 7) - 3;
     }
-    entity->posX.part16.integer = (u16) ((MENU_CURSOR(entity) * 0x10) + 0x10 + offset);
+    entity->posX.part16.integer = (u16) ((entity->ext.mainMenu.cursor * 0x10) + 0x10 + offset);
     entity->posY.part16.integer = 0x48;
     Sprite_Draw(entity);
     SaveMenu_AttachLanguageSprite(entity, 2);
     SaveMenu_PlaceNameSprites(entity, 0x80, 0x20, header->name);
     if ((header->clearAndDifficulty & 0xF) && (header->playTime != 0))
     {
-        if (!(MENU_CURSOR(entity) & 1) && (MENU_CURSOR(entity) < 6))
+        if (!(entity->ext.mainMenu.cursor & 1) && (entity->ext.mainMenu.cursor < 6))
         {
             SaveMenu_AttachLanguageSprite(entity, 1);
             entity->animFrame = 0xB;
@@ -700,7 +677,7 @@ void SaveSelect_Draw(struct EwramData_EntityData *entity)
 void MainMenu_DrawSelectionMarkers(struct EwramData_EntityData *entity, s16 x, s16 y)
 {
     SaveMenu_AttachLanguageSprite(entity, 5);
-    entity->animFrame = MENU_BASE_FRAME(entity);
+    entity->animFrame = entity->ext.mainMenu.baseFrame;
     Anim_Update(entity);
     entity->posX.part16.integer = x - 1;
     entity->posY.part16.integer = y;
@@ -817,7 +794,7 @@ void MainMenu_InitEntity(struct EwramData_EntityData *entity)
     entity->animFrame = 0;
     Anim_StartIndexed(entity, 0, 0, 1);
     Anim_Update(entity);
-    MENU_BASE_FRAME(entity) = entity->animFrame;
+    entity->ext.mainMenu.baseFrame = entity->animFrame;
     entity->drawFunc = (u32 *) MainMenu_Draw;
     header = gEwramData->saveHeaders;
 
@@ -826,7 +803,7 @@ void MainMenu_InitEntity(struct EwramData_EntityData *entity)
         SaveData_ReadSlotHeader(i, 0);
         if (header->playTime != 0)
         {
-            MENU_SAVED_SLOTS(entity) |= 1 << i;
+            entity->ext.mainMenu.savedSlots |= 1 << i;
         }
     }
     entity->updateFunc = (u32 *) EntityUpdateNothing;
@@ -979,7 +956,7 @@ void MainMenu_DrawSlotSummary(struct EwramData_EntityData *entity, struct SaveHe
     {
         if ((header->clearAndDifficulty & 0xF) && (header->playTime != 0))
         {
-            if (!(MENU_CURSOR(entity) & 1) && (MENU_CURSOR(entity) < 6))
+            if (!(entity->ext.mainMenu.cursor & 1) && (entity->ext.mainMenu.cursor < 6))
             {
                 showClear = 1;
             }
@@ -1032,24 +1009,24 @@ void MainMenu_ShowSlotInfo(struct EwramData_EntityData *entity, s32 slot)
 
     if ((valid != 0) && (header->playTime != 0))
     {
-        if (MENU_CURSOR(entity) < 6)
+        if (entity->ext.mainMenu.cursor < 6)
         {
             MainMenu_DrawSlotSummary(entity, header, 0x10, 8, 0);
-            MENU_SLOT_EMPTY(entity) = 0;
+            entity->ext.mainMenu.slotEmpty = 0;
             gameState->unk_4CC_3 = 2;
         }
     }
     else
     {
-        MENU_SLOT_EMPTY(entity) = 1;
+        entity->ext.mainMenu.slotEmpty = 1;
         gameState->unk_4CC_3 = 1;
     }
 
-    if (MENU_CURSOR(entity) > 5)
+    if (entity->ext.mainMenu.cursor > 5)
     {
         if (header->clearAndDifficulty & 0xF)
         {
-            MENU_SLOT_EMPTY(entity) = 1;
+            entity->ext.mainMenu.slotEmpty = 1;
             gameState->unk_4CC_3 = 1;
         }
     }
@@ -1059,7 +1036,7 @@ void MainMenu_ShowSlotInfo(struct EwramData_EntityData *entity, s32 slot)
         Text12_SetCursor(0, 1);
         dst = &gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer][0x18];
         
-        if (MENU_SLOT_EMPTY(entity) != 0)
+        if (entity->ext.mainMenu.slotEmpty != 0)
         {
             scroll = 0x88;
         }
@@ -1075,9 +1052,9 @@ void MainMenu_ShowSlotInfo(struct EwramData_EntityData *entity, s32 slot)
         *dst = 0;
         gEwramData->hBlankEffect.requestStart = 1;
 
-        if (MENU_CURSOR(entity) < 6)
+        if (entity->ext.mainMenu.cursor < 6)
         {
-            if (MENU_CURSOR(entity) & 1)
+            if (entity->ext.mainMenu.cursor & 1)
             {
                 MenuText_ClearAndPrint(0x381);
                 return;
@@ -1085,11 +1062,11 @@ void MainMenu_ShowSlotInfo(struct EwramData_EntityData *entity, s32 slot)
         }
         else
         {
-            if (MENU_CURSOR(entity) == 6)
+            if (entity->ext.mainMenu.cursor == 6)
             {
                 arg = 1;
             }
-            else if (MENU_CURSOR(entity) == 8)
+            else if (entity->ext.mainMenu.cursor == 8)
             {
                 arg = 2;
             }
@@ -1101,7 +1078,7 @@ void MainMenu_ShowSlotInfo(struct EwramData_EntityData *entity, s32 slot)
             return;
         }
 
-        if (MENU_SLOT_EMPTY(entity) != 0)
+        if (entity->ext.mainMenu.slotEmpty != 0)
         {
             index = 0x35B;
         }
@@ -1137,20 +1114,20 @@ void MainMenu_ShowCopySlots(struct EwramData_EntityData *entity, s32 srcSlot, s3
         if (header->playTime != 0)
         {
             MainMenu_DrawSlotSummary(entity, header, 0x11, 8, 1);
-            MENU_SLOT_EMPTY(entity) = 0;
+            entity->ext.mainMenu.slotEmpty = 0;
         }
         else
         {
-            MENU_SLOT_EMPTY(entity) = 1;
+            entity->ext.mainMenu.slotEmpty = 1;
         }
     }
     else
     {
-        MENU_SLOT_EMPTY(entity) = 1;
+        entity->ext.mainMenu.slotEmpty = 1;
     }
 
     dst = &gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer][0x18];
-    if (MENU_SLOT_EMPTY(entity) == 0)
+    if (entity->ext.mainMenu.slotEmpty == 0)
     {
         scroll = 0x88;
     }
@@ -1176,16 +1153,16 @@ void MainMenu_InitGameStart(struct EwramData_EntityData *entity)
     BgMap_Setup(2, (struct BgMapMetadata *)0x080E7044, 0, 0);
     HBlankEffectSetup(160, (s32)(SCREEN_SIZE_Y * 0.65f), 2, REG_BG1VOFS);
 
-    MENU_CURSOR(entity) = 0;
+    entity->ext.mainMenu.cursor = 0;
     if ((SaveData_ReadSlotHeader(1, 1) != 0) && (gEwramData->saveHeaders[1].playTime != 0))
     {
-        MENU_CURSOR(entity) = 1;
+        entity->ext.mainMenu.cursor = 1;
     }
 
-    MainMenu_ShowSlotInfo(entity, (s32) MENU_CURSOR(entity));
+    MainMenu_ShowSlotInfo(entity, (s32) entity->ext.mainMenu.cursor);
     entity->state = 2;
-    MENU_BLINK_PHASE(entity) = 0;
-    MENU_BLINK_TIMER(entity) = 0;
+    entity->ext.mainMenu.blinkPhase = 0;
+    entity->ext.mainMenu.blinkTimer = 0;
 }
 
 /**
@@ -1205,22 +1182,22 @@ s32 MainMenu_UpdateGameStart(struct EwramData_EntityData *entity)
     struct GameState *gameState;
 
     repeatedInput = gEwramData->inputData.repeatedInput;
-    cursor = MENU_CURSOR(entity);
+    cursor = entity->ext.mainMenu.cursor;
     result = 0;
-    if (MENU_CONFIRM_OPEN(entity) != 0)
+    if (entity->ext.mainMenu.confirmOpen != 0)
     {
-        cursor = MENU_CONFIRM_CURSOR(entity);
+        cursor = entity->ext.mainMenu.confirmCursor;
         if (repeatedInput & KEY_B)
         {
-            backSlot = MENU_CURSOR(entity);
+            backSlot = entity->ext.mainMenu.cursor;
             if (backSlot > 5)
             {
                 backSlot -= 6;
             }
             PlaySong(SE_240);
             MainMenu_ShowSlotInfo(entity, backSlot);
-            MENU_CONFIRM_OPEN(entity) = 0;
-            MENU_CONFIRM_CURSOR(entity) = 0;
+            entity->ext.mainMenu.confirmOpen = 0;
+            entity->ext.mainMenu.confirmCursor = 0;
         }
         else if (repeatedInput & KEY_A)
         {
@@ -1233,7 +1210,7 @@ s32 MainMenu_UpdateGameStart(struct EwramData_EntityData *entity)
                 gEwramData->gameState.difficultyMode = 0;
             }
             
-            if (MENU_CURSOR(entity) < 6)
+            if (entity->ext.mainMenu.cursor < 6)
             {
                 result = 1;
             }
@@ -1243,7 +1220,7 @@ s32 MainMenu_UpdateGameStart(struct EwramData_EntityData *entity)
                 Game_ResetProgressForNewGame();
                 result = -3;
             }
-            MENU_CONFIRM_OPEN(entity) = 0;
+            entity->ext.mainMenu.confirmOpen = 0;
         }
         else if (repeatedInput & KEY_RIGHT)
         {
@@ -1253,9 +1230,9 @@ s32 MainMenu_UpdateGameStart(struct EwramData_EntityData *entity)
         {
             cursor = 0;
         }
-        if (MENU_CONFIRM_CURSOR(entity) != cursor)
+        if (entity->ext.mainMenu.confirmCursor != cursor)
         {
-            MENU_CONFIRM_CURSOR(entity) = cursor;
+            entity->ext.mainMenu.confirmCursor = cursor;
             PlaySong(SE_241);
         }
     }
@@ -1278,14 +1255,14 @@ s32 MainMenu_UpdateGameStart(struct EwramData_EntityData *entity)
                 saveSlot = cursor;
             }
             SaveData_LoadSlotFromSram(saveSlot);
-            if (MENU_SLOT_EMPTY(entity) != 0)
+            if (entity->ext.mainMenu.slotEmpty != 0)
             {
                 gEwramData->gameState.roomData = NULL;
                 if (gameState->systemFlags & 2)
                 {
-                    MENU_CONFIRM_OPEN(entity) = 1;
+                    entity->ext.mainMenu.confirmOpen = 1;
                 }
-                else if ((MENU_CURSOR(entity) > 5) && (gameState->systemFlags & 1))
+                else if ((entity->ext.mainMenu.cursor > 5) && (gameState->systemFlags & 1))
                 {
                     gEwramData->gameState.roomData = GetRoomPointer(0, 0);
                     Game_ResetProgressForNewGame();
@@ -1296,12 +1273,12 @@ s32 MainMenu_UpdateGameStart(struct EwramData_EntityData *entity)
                     result = 1;
                 }
             }
-            else if (MENU_CURSOR(entity) < 6)
+            else if (entity->ext.mainMenu.cursor < 6)
             {
                 if (cursor & 1)
                 {
                     SaveData_ClearSlotInSram(cursor);
-                    MENU_SAVED_SLOTS(entity) &= ~(1 << cursor);
+                    entity->ext.mainMenu.savedSlots &= ~(1 << cursor);
                     gEwramData->gameState.currentSaveSlot = cursor - 1;
                 }
                 gEwramData->gameState.roomData = GetRoomPointer(gEwramData->gameState.currentArea, gEwramData->gameState.currentRoom);
@@ -1311,7 +1288,7 @@ s32 MainMenu_UpdateGameStart(struct EwramData_EntityData *entity)
             {
                 gEwramData->gameState.roomData = GetRoomPointer(0, 0);
                 Game_ResetProgressForNewGame();
-                MENU_CONFIRM_OPEN(entity) = 1;
+                entity->ext.mainMenu.confirmOpen = 1;
             }
         }
         else if (repeatedInput & KEY_RIGHT)
@@ -1349,7 +1326,7 @@ s32 MainMenu_UpdateGameStart(struct EwramData_EntityData *entity)
         {
             if (!(cursor & 1))
             {
-                if ((MENU_CURSOR(entity) != (cursor + 1)) && (MENU_CURSOR(entity) != cursor) && (SaveData_ReadSlotHeader(cursor + 1, 1) != 0) && (gEwramData->saveHeaders[1].playTime != 0))
+                if ((entity->ext.mainMenu.cursor != (cursor + 1)) && (entity->ext.mainMenu.cursor != cursor) && (SaveData_ReadSlotHeader(cursor + 1, 1) != 0) && (gEwramData->saveHeaders[1].playTime != 0))
                 {
                     cursor = cursor + 1;
                 }
@@ -1366,34 +1343,34 @@ s32 MainMenu_UpdateGameStart(struct EwramData_EntityData *entity)
         {
             if (!(cursor & 1) && ((SaveData_ReadSlotHeader(cursor - 6, 1) == 0) || !(gEwramData->saveHeaders[1].clearAndDifficulty & 0xF)))
             {
-                cursor = MENU_CURSOR(entity);
+                cursor = entity->ext.mainMenu.cursor;
             }
         }
-        if (MENU_CURSOR(entity) != cursor)
+        if (entity->ext.mainMenu.cursor != cursor)
         {
-            MENU_CURSOR(entity) = cursor;
-            shownSlot = MENU_CURSOR(entity);
+            entity->ext.mainMenu.cursor = cursor;
+            shownSlot = entity->ext.mainMenu.cursor;
             if (shownSlot > 5)
             {
                 shownSlot -= 6;
             }
             PlaySong(SE_241);
             MainMenu_ShowSlotInfo(entity, shownSlot);
-            MENU_BLINK_PHASE(entity) = 1;
-            MENU_BLINK_TIMER(entity) = 0;
+            entity->ext.mainMenu.blinkPhase = 1;
+            entity->ext.mainMenu.blinkTimer = 0;
         }
-        else if (MENU_CONFIRM_OPEN(entity) != 0)
+        else if (entity->ext.mainMenu.confirmOpen != 0)
         {
             Text12_SetCursor(0, 1);
             MenuText_ClearAndPrint(0x385);
             PlaySong(SE_243);
         }
-        if ((gEwramData->gameState.systemFlags & 1) && (MENU_SLOT_EMPTY(entity) != 0) && (MENU_CURSOR(entity) < 6))
+        if ((gEwramData->gameState.systemFlags & 1) && (entity->ext.mainMenu.slotEmpty != 0) && (entity->ext.mainMenu.cursor < 6))
         {
-            blinkTimer = MENU_BLINK_TIMER(entity)++;
+            blinkTimer = entity->ext.mainMenu.blinkTimer++;
             if (!(blinkTimer & 0x7F))
             {
-                if (MENU_BLINK_PHASE(entity) != 0)
+                if (entity->ext.mainMenu.blinkPhase != 0)
                 {
                     Text12_SetCursor(0, 1);
                     MenuText_ClearAndPrint(0x3B0);
@@ -1402,7 +1379,7 @@ s32 MainMenu_UpdateGameStart(struct EwramData_EntityData *entity)
                 {
                     MainMenu_PrintMessage(0x35B);
                 }
-                MENU_BLINK_PHASE(entity) = 1 - MENU_BLINK_PHASE(entity);
+                entity->ext.mainMenu.blinkPhase = 1 - entity->ext.mainMenu.blinkPhase;
             }
         }
     }
@@ -1424,34 +1401,34 @@ void MainMenu_InitDataCopy(struct EwramData_EntityData *entity)
     s32 i;
     s32 j;
 
-    MENU_COPY_DEST(entity) = 0;
-    MENU_COPY_SOURCE(entity) = 0;
+    entity->ext.mainMenu.copyDest = 0;
+    entity->ext.mainMenu.copySource = 0;
     for (i = 0; i < 6; i += 2)
     {
-        if ((MENU_SAVED_SLOTS(entity) >> i) & 1)
+        if ((entity->ext.mainMenu.savedSlots >> i) & 1)
         {
-            MENU_COPY_SOURCE(entity) = i;
+            entity->ext.mainMenu.copySource = i;
             break;
         }
     }
     for (j = 0; j < 6; j += 2)
     {
-        if (!((MENU_SAVED_SLOTS(entity) >> j) & 1))
+        if (!((entity->ext.mainMenu.savedSlots >> j) & 1))
         {
-            MENU_COPY_DEST(entity) = j;
+            entity->ext.mainMenu.copyDest = j;
             break;
         }
     }
-    MENU_CURSOR(entity) = MENU_COPY_SOURCE(entity);
+    entity->ext.mainMenu.cursor = entity->ext.mainMenu.copySource;
     BgMap_Setup(1, (struct BgMapMetadata*)&sMainMenuCopyBg1Map, 0, 0);
     BgMap_Setup(2, (struct BgMapMetadata*)&sMainMenuCopyBg2Map, 0, 0);
     HBlankEffectSetup(160, (s32)(SCREEN_SIZE_Y * 0.95f), 2, REG_BG1VOFS);
-    MainMenu_ShowCopySlots(entity, MENU_COPY_SOURCE(entity), MENU_COPY_DEST(entity));
+    MainMenu_ShowCopySlots(entity, entity->ext.mainMenu.copySource, entity->ext.mainMenu.copyDest);
     MenuText_ClearAndPrint(0x358);
     entity->state = 4;
     entity->stage = 0;
     dst = &gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer][0x18];
-    if (MENU_SLOT_EMPTY(entity) == 0)
+    if (entity->ext.mainMenu.slotEmpty == 0)
     {
         scroll = 0x88;
     }
@@ -1481,7 +1458,7 @@ s32 MainMenu_UpdateDataCopy(struct EwramData_EntityData *entity)
     u32 repeatedInput;
     s32 cursor;
 
-    cursor = MENU_CURSOR(entity);
+    cursor = entity->ext.mainMenu.cursor;
     repeatedInput = gEwramData->inputData.repeatedInput;
     result = 0;
     switch (entity->stage)
@@ -1491,12 +1468,12 @@ s32 MainMenu_UpdateDataCopy(struct EwramData_EntityData *entity)
             {
                 PlaySong(SE_243);
                 MenuText_ClearAndPrint(0x359);
-                if (cursor == MENU_COPY_DEST(entity))
+                if (cursor == entity->ext.mainMenu.copyDest)
                 {
-                    MENU_COPY_DEST(entity) = Mod(cursor + 2, 6);
+                    entity->ext.mainMenu.copyDest = Mod(cursor + 2, 6);
                 }
-                cursor = MENU_COPY_DEST(entity);
-                MENU_CURSOR(entity) = 0xFE;
+                cursor = entity->ext.mainMenu.copyDest;
+                entity->ext.mainMenu.cursor = 0xFE;
                 entity->stage += 1;
             }
             else if (repeatedInput & KEY_B)
@@ -1516,7 +1493,7 @@ s32 MainMenu_UpdateDataCopy(struct EwramData_EntityData *entity)
                         next = cursor + 4;
                     }
                     cursor = Mod(next, 6);
-                } while (!((MENU_SAVED_SLOTS(entity) >> cursor) & 1));
+                } while (!((entity->ext.mainMenu.savedSlots >> cursor) & 1));
             }
             break;
 
@@ -1525,7 +1502,7 @@ s32 MainMenu_UpdateDataCopy(struct EwramData_EntityData *entity)
             {
                 PlaySong(SE_243);
                 MainMenu_PrintMessage(-1);
-                MENU_CURSOR(entity) = 1;
+                entity->ext.mainMenu.cursor = 1;
                 cursor = 1;
                 entity->stage += 1;
                 Text12_ClearRegion();
@@ -1541,9 +1518,9 @@ s32 MainMenu_UpdateDataCopy(struct EwramData_EntityData *entity)
             {
                 PlaySong(SE_240);
                 MainMenu_PrintMessage(0x358);
-                cursor = MENU_CURSOR(entity) = MENU_COPY_SOURCE(entity);
+                cursor = entity->ext.mainMenu.cursor = entity->ext.mainMenu.copySource;
                 entity->stage -= 1;
-                MainMenu_ShowCopySlots(entity, MENU_COPY_SOURCE(entity), MENU_COPY_DEST(entity));
+                MainMenu_ShowCopySlots(entity, entity->ext.mainMenu.copySource, entity->ext.mainMenu.copyDest);
             }
             else if (repeatedInput & (KEY_LEFT | KEY_RIGHT))
             {
@@ -1558,7 +1535,7 @@ s32 MainMenu_UpdateDataCopy(struct EwramData_EntityData *entity)
                         next2 = cursor + 4;
                     }
                     cursor = Mod(next2, 6);
-                } while (cursor == MENU_COPY_SOURCE(entity));
+                } while (cursor == entity->ext.mainMenu.copySource);
             }
             break;
 
@@ -1566,20 +1543,20 @@ s32 MainMenu_UpdateDataCopy(struct EwramData_EntityData *entity)
             if ((repeatedInput & KEY_A) && (cursor == 0))
             {
                 PlaySong(SE_244);
-                SaveData_CopySlot(MENU_COPY_SOURCE(entity), MENU_COPY_DEST(entity));
-                MENU_SAVED_SLOTS(entity) |= 1 << MENU_COPY_DEST(entity);
+                SaveData_CopySlot(entity->ext.mainMenu.copySource, entity->ext.mainMenu.copyDest);
+                entity->ext.mainMenu.savedSlots |= 1 << entity->ext.mainMenu.copyDest;
                 MainMenu_PrintMessage(0x358);
-                cursor = MENU_CURSOR(entity) = MENU_COPY_SOURCE(entity);
-                MainMenu_ShowCopySlots(entity, MENU_COPY_SOURCE(entity), MENU_COPY_DEST(entity));
+                cursor = entity->ext.mainMenu.cursor = entity->ext.mainMenu.copySource;
+                MainMenu_ShowCopySlots(entity, entity->ext.mainMenu.copySource, entity->ext.mainMenu.copyDest);
                 entity->stage = 0;
-                SaveData_ClearSlotInSram(MENU_COPY_DEST(entity) + 1);
-                MENU_SAVED_SLOTS(entity) &= ~(1 << (MENU_COPY_DEST(entity) + 1));
+                SaveData_ClearSlotInSram(entity->ext.mainMenu.copyDest + 1);
+                entity->ext.mainMenu.savedSlots &= ~(1 << (entity->ext.mainMenu.copyDest + 1));
             }
             else if (repeatedInput & (KEY_A | KEY_B))
             {
                 PlaySong(SE_240);
                 MainMenu_PrintMessage(0x359);
-                cursor = MENU_CURSOR(entity) = MENU_COPY_DEST(entity);
+                cursor = entity->ext.mainMenu.cursor = entity->ext.mainMenu.copyDest;
                 entity->stage -= 1;
             }
             else if (repeatedInput & (KEY_LEFT | KEY_RIGHT))
@@ -1589,22 +1566,22 @@ s32 MainMenu_UpdateDataCopy(struct EwramData_EntityData *entity)
             break;
     }
 
-    if (MENU_CURSOR(entity) != cursor)
+    if (entity->ext.mainMenu.cursor != cursor)
     {
-        MENU_CURSOR(entity) = cursor;
+        entity->ext.mainMenu.cursor = cursor;
         PlaySong(SE_241);
         if (entity->stage == 0)
         {
-            MENU_COPY_SOURCE(entity) = cursor;
+            entity->ext.mainMenu.copySource = cursor;
         }
         else if (entity->stage == 1)
         {
-            MENU_COPY_DEST(entity) = cursor;
+            entity->ext.mainMenu.copyDest = cursor;
         }
-        MainMenu_ShowCopySlots(entity, MENU_COPY_SOURCE(entity), MENU_COPY_DEST(entity));
+        MainMenu_ShowCopySlots(entity, entity->ext.mainMenu.copySource, entity->ext.mainMenu.copyDest);
     }
     dst = &gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer][0x18];
-    if (MENU_SLOT_EMPTY(entity) == 0)
+    if (entity->ext.mainMenu.slotEmpty == 0)
     {
         scroll = 0x88;
     }
@@ -1635,7 +1612,7 @@ s32 MainMenu_UpdateDataDelete(struct EwramData_EntityData *entity)
     s32 cursor;
 
     repeatedInput = gEwramData->inputData.repeatedInput;
-    cursor = MENU_CURSOR(entity);
+    cursor = entity->ext.mainMenu.cursor;
     result = 0;
     switch (entity->stage)
     {
@@ -1646,7 +1623,7 @@ s32 MainMenu_UpdateDataDelete(struct EwramData_EntityData *entity)
             }
             else if (repeatedInput & KEY_A)
             {
-                if (MENU_SLOT_EMPTY(entity) != 0)
+                if (entity->ext.mainMenu.slotEmpty != 0)
                 {
                     PlaySong(SE_239);
                 }
@@ -1654,8 +1631,8 @@ s32 MainMenu_UpdateDataDelete(struct EwramData_EntityData *entity)
                 {
                     PlaySong(SE_243);
                     MainMenu_PrintMessage(-1);
-                    MENU_COPY_SOURCE(entity) = MENU_CURSOR(entity);
-                    MENU_CURSOR(entity) = 1;
+                    entity->ext.mainMenu.copySource = entity->ext.mainMenu.cursor;
+                    entity->ext.mainMenu.cursor = 1;
                     cursor = 1;
                     entity->stage += 1;
                     Text12_ClearRegion();
@@ -1686,30 +1663,30 @@ s32 MainMenu_UpdateDataDelete(struct EwramData_EntityData *entity)
             if ((repeatedInput & KEY_A) && (cursor == 0))
             {
                 PlaySong(SE_244);
-                if (!(MENU_COPY_SOURCE(entity) & 1))
+                if (!(entity->ext.mainMenu.copySource & 1))
                 {
-                    SaveData_DeleteSlot(MENU_COPY_SOURCE(entity));
+                    SaveData_DeleteSlot(entity->ext.mainMenu.copySource);
                 }
                 else
                 {
-                    SaveData_ClearSlotInSram(MENU_COPY_SOURCE(entity));
+                    SaveData_ClearSlotInSram(entity->ext.mainMenu.copySource);
                 }
-                MENU_SAVED_SLOTS(entity) &= ~(1 << MENU_COPY_SOURCE(entity));
+                entity->ext.mainMenu.savedSlots &= ~(1 << entity->ext.mainMenu.copySource);
                 MenuText_ClearAndPrint(0x35A);
-                cursor = MENU_CURSOR(entity) = MENU_COPY_SOURCE(entity);
-                MainMenu_ShowSlotInfo(entity, MENU_COPY_SOURCE(entity));
+                cursor = entity->ext.mainMenu.cursor = entity->ext.mainMenu.copySource;
+                MainMenu_ShowSlotInfo(entity, entity->ext.mainMenu.copySource);
                 entity->stage -= 1;
-                if (!(MENU_COPY_SOURCE(entity) & 1))
+                if (!(entity->ext.mainMenu.copySource & 1))
                 {
-                    SaveData_ClearSlotInSram(MENU_COPY_SOURCE(entity) + 1);
-                    MENU_SAVED_SLOTS(entity) &= ~(1 << (MENU_COPY_SOURCE(entity) + 1));
+                    SaveData_ClearSlotInSram(entity->ext.mainMenu.copySource + 1);
+                    entity->ext.mainMenu.savedSlots &= ~(1 << (entity->ext.mainMenu.copySource + 1));
                 }
             }
             else if (repeatedInput & (KEY_A | KEY_B))
             {
                 PlaySong(SE_240);
                 MenuText_ClearAndPrint(0x35A);
-                cursor = MENU_CURSOR(entity) = MENU_COPY_SOURCE(entity);
+                cursor = entity->ext.mainMenu.cursor = entity->ext.mainMenu.copySource;
                 entity->stage -= 1;
             }
             else if (repeatedInput & (KEY_LEFT | KEY_RIGHT))
@@ -1718,17 +1695,17 @@ s32 MainMenu_UpdateDataDelete(struct EwramData_EntityData *entity)
             }
             break;
     }
-    if (MENU_CURSOR(entity) != cursor)
+    if (entity->ext.mainMenu.cursor != cursor)
     {
-        MENU_CURSOR(entity) = cursor;
+        entity->ext.mainMenu.cursor = cursor;
         PlaySong(SE_241);
         if (entity->stage == 0)
         {
-            MainMenu_ShowSlotInfo(entity, MENU_CURSOR(entity));
+            MainMenu_ShowSlotInfo(entity, entity->ext.mainMenu.cursor);
         }
     }
     dst = &gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer][0x18];
-    if (MENU_SLOT_EMPTY(entity) != 0)
+    if (entity->ext.mainMenu.slotEmpty != 0)
     {
         scroll = 0x88;
     }
@@ -1767,12 +1744,12 @@ void SaveSelect_ShowSlot(struct EwramData_EntityData *entity, s32 slot)
     if ((valid != 0) && (header->playTime != 0))
     {
         MainMenu_DrawSlotSummary(entity, header, 0x10, 8, 0);
-        MENU_SLOT_EMPTY(entity) = 0;
+        entity->ext.mainMenu.slotEmpty = 0;
         gameState->unk_4CC_3 = 2;
     }
     else
     {
-        MENU_SLOT_EMPTY(entity) = 1;
+        entity->ext.mainMenu.slotEmpty = 1;
         gameState->unk_4CC_3 = 1;
     }
     if (entity->subState == 0)
@@ -1780,7 +1757,7 @@ void SaveSelect_ShowSlot(struct EwramData_EntityData *entity, s32 slot)
         Text12_SetCursor(0, 1);
         dst = &gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer][0x18];
         
-        if (MENU_SLOT_EMPTY(entity) != 0)
+        if (entity->ext.mainMenu.slotEmpty != 0)
         {
             scroll = 0x88;
         }
@@ -1802,7 +1779,7 @@ void SaveSelect_ShowSlot(struct EwramData_EntityData *entity, s32 slot)
                 MenuText_ClearAndPrint(0x38F);
                 return;
             }
-            if (MENU_SLOT_EMPTY(entity) != 0)
+            if (entity->ext.mainMenu.slotEmpty != 0)
             {
                 message = 0x37B;
             }
@@ -1814,7 +1791,7 @@ void SaveSelect_ShowSlot(struct EwramData_EntityData *entity, s32 slot)
             return;
         }
         
-        if (MENU_SLOT_EMPTY(entity) != 0)
+        if (entity->ext.mainMenu.slotEmpty != 0)
         {
             message2 = 0x37B;
         }
@@ -1920,7 +1897,7 @@ void SaveSelect_InitScreen(struct EwramData_EntityData *entity)
     MainMenu_InitEntity(entity);
     SaveSelect_SetupMessageWindow(0);
     HBlankEffectSetup(160, (s32)(SCREEN_SIZE_Y * 0.65f), 2, REG_BG1VOFS);
-    MENU_CURSOR(entity) = 0;
+    entity->ext.mainMenu.cursor = 0;
     SaveSelect_ShowSlot(entity, 0);
     entity->state = 7;
 }
@@ -1939,7 +1916,7 @@ s32 SaveSelect_Update(struct EwramData_EntityData *entity)
     s32 canLoad;
 
     repeatedInput = gEwramData->inputData.repeatedInput;
-    cursor = MENU_CURSOR(entity);
+    cursor = entity->ext.mainMenu.cursor;
     result = 0;
     if (repeatedInput & KEY_B)
     {
@@ -1948,7 +1925,7 @@ s32 SaveSelect_Update(struct EwramData_EntityData *entity)
     else if (repeatedInput & KEY_A)
     {
         SaveData_LoadSlotFromSram(cursor);
-        if (MENU_SLOT_EMPTY(entity) != 0)
+        if (entity->ext.mainMenu.slotEmpty != 0)
         {
             canLoad = 0;
         }
@@ -2001,11 +1978,11 @@ s32 SaveSelect_Update(struct EwramData_EntityData *entity)
         cursor = Mod(cursor + 4, 6);
     }
 
-    if (MENU_CURSOR(entity) != cursor)
+    if (entity->ext.mainMenu.cursor != cursor)
     {
-        MENU_CURSOR(entity) = cursor;
+        entity->ext.mainMenu.cursor = cursor;
         PlaySong(SE_241);
-        SaveSelect_ShowSlot(entity, MENU_CURSOR(entity));
+        SaveSelect_ShowSlot(entity, entity->ext.mainMenu.cursor);
     }
     Entity_UpdateAll();
     return result;
@@ -2024,16 +2001,16 @@ void MainMenu_InitDataDelete(struct EwramData_EntityData *entity)
 
     for (i = 0; i < 6; i += 2)
     {
-        if ((MENU_SAVED_SLOTS(entity) >> i) & 1)
+        if ((entity->ext.mainMenu.savedSlots >> i) & 1)
         {
-            MENU_CURSOR(entity) = i;
+            entity->ext.mainMenu.cursor = i;
             break;
         }
     }
     BgMap_Setup(1, (struct BgMapMetadata *)&sMainMenuDeleteBg1Map, 0, 0);
     BgMap_Setup(2, (struct BgMapMetadata *)&sMainMenuDeleteBg2Map, 0, 0);
     HBlankEffectSetup(160, (s32)(SCREEN_SIZE_Y * 0.95f), 2, REG_BG1VOFS);
-    MainMenu_ShowSlotInfo(entity, MENU_CURSOR(entity));
+    MainMenu_ShowSlotInfo(entity, entity->ext.mainMenu.cursor);
     MenuText_ClearAndPrint(0x35A);
     entity->state = 5;
 }
@@ -2084,8 +2061,8 @@ void MainMenu_OpenNameEntry(struct EwramData_EntityData *entity)
     }
     gUnk_03002CB0.dispCnt = DCNT_WIN1 | DCNT_WIN0 | DCNT_OBJ | DCNT_BG3 | DCNT_BG1;
     gDisplayRegisters.bldCnt = BLDCNT_SCREEN_SECOND_TARGET | BLDCNT_ALPHA_BLENDING_EFFECT | BLDCNT_OBJ_FIRST_TARGET_PIXEL | BLDCNT_BG1_FIRST_TARGET_PIXEL;
-    MENU_NAME_CURSOR(entity) = 0;
-    MENU_CURSOR(entity) = 0;
+    entity->ext.mainMenu.nameCursor = 0;
+    entity->ext.mainMenu.cursor = 0;
     entity->state = 6;
 }
 
@@ -2150,7 +2127,7 @@ s32 MainMenu_UpdateNameEntry(struct EwramData_EntityData *entity)
 
     header = gEwramData->saveHeaders;
     input = gEwramData->inputData.repeatedInput;
-    key = MENU_CURSOR(entity);
+    key = entity->ext.mainMenu.cursor;
     action = 0;
     result = 0;
 
@@ -2163,11 +2140,11 @@ s32 MainMenu_UpdateNameEntry(struct EwramData_EntityData *entity)
         if (key < 0x22)
         {
             PlaySong(0xF3);
-            header->name[MENU_NAME_CURSOR(entity)] = key + 2;
-            MENU_NAME_CURSOR(entity) += 1;
-            if (MENU_NAME_CURSOR(entity) > 7)
+            header->name[entity->ext.mainMenu.nameCursor] = key + 2;
+            entity->ext.mainMenu.nameCursor += 1;
+            if (entity->ext.mainMenu.nameCursor > 7)
             {
-                MENU_CURSOR(entity) = 0x23;
+                entity->ext.mainMenu.cursor = 0x23;
                 key = 0x23;
             }
         }
@@ -2187,8 +2164,8 @@ s32 MainMenu_UpdateNameEntry(struct EwramData_EntityData *entity)
     else if (input & 0x300)
     {
         PlaySong(0xF2);
-        textCursor = MENU_NAME_CURSOR(entity);
-        MENU_NAME_CURSOR(entity) = (input & 0x100) ? (textCursor + 1) : (textCursor - 1);
+        textCursor = entity->ext.mainMenu.nameCursor;
+        entity->ext.mainMenu.nameCursor = (input & 0x100) ? (textCursor + 1) : (textCursor - 1);
     }
     else if (input & 0x30)
     {
@@ -2322,9 +2299,9 @@ s32 MainMenu_UpdateNameEntry(struct EwramData_EntityData *entity)
             break;
 
         case 4:
-            if (MENU_NAME_CURSOR(entity) != 0)
+            if (entity->ext.mainMenu.nameCursor != 0)
             {
-                MENU_NAME_CURSOR(entity) -= 1;
+                entity->ext.mainMenu.nameCursor -= 1;
             }
             delScan = header->name;
             delIndex = 0;
@@ -2348,7 +2325,7 @@ s32 MainMenu_UpdateNameEntry(struct EwramData_EntityData *entity)
             if (delEmpty == 0)
             {
                 PlaySong(0xF0);
-                delShift = MENU_NAME_CURSOR(entity) + 1;
+                delShift = entity->ext.mainMenu.nameCursor + 1;
                 for (; delShift < 8; delShift++)
                 {
                     header->name[delShift - 1] = header->name[delShift];
@@ -2358,9 +2335,9 @@ s32 MainMenu_UpdateNameEntry(struct EwramData_EntityData *entity)
             break;
         
         case 3:
-            if (MENU_NAME_CURSOR(entity) != 0)
+            if (entity->ext.mainMenu.nameCursor != 0)
             {
-                MENU_NAME_CURSOR(entity) -= 1;
+                entity->ext.mainMenu.nameCursor -= 1;
             }
             /* fallthrough */
         case 2:
@@ -2390,7 +2367,7 @@ s32 MainMenu_UpdateNameEntry(struct EwramData_EntityData *entity)
             else
             {
                 PlaySong(0xF0);
-                backShift = MENU_NAME_CURSOR(entity) + 1;
+                backShift = entity->ext.mainMenu.nameCursor + 1;
                 for (; backShift < 8; backShift++)
                 {
                     header->name[backShift - 1] = header->name[backShift];
@@ -2400,10 +2377,10 @@ s32 MainMenu_UpdateNameEntry(struct EwramData_EntityData *entity)
             break;
     }
 
-    MENU_NAME_CURSOR(entity) &= 7;
-    if (MENU_CURSOR(entity) != key)
+    entity->ext.mainMenu.nameCursor &= 7;
+    if (entity->ext.mainMenu.cursor != key)
     {
-        MENU_CURSOR(entity) = key;
+        entity->ext.mainMenu.cursor = key;
         PlaySong(0xF1);
     }
     return result;

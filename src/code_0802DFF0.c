@@ -30,7 +30,7 @@ void BlueSoul_StopAll(void)
     }
     Sound_StopTracked(0x9C);
     gEwramData->playerStatus.soulStateFlags &= ~0x3F00;
-    PLAYER_ACTION_FLAGS(gEwramData->playerState.player) &= ~0x200;
+    gEwramData->playerState.player->ext.player.actionFlags &= ~0x200;
     if (gEwramData->playerState.blueSoulGfx != -1)
     {
         ObjGfx_Unload(gEwramData->playerState.blueSoulGfx);

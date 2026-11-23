@@ -1,6 +1,5 @@
 /* Chaos: the two rotating rings (create 25A4/27F8, update 26BC/2910). */
 #include "code_08009A0.h"
-#include "chaos_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -20,19 +19,19 @@ extern void ChaosOrb_OnHit(struct EwramData_EntityData *, s32, u16 *);
 extern void ChaosOrb_CreateHalo(struct EwramData_EntityData *, s32);
 extern void ChaosOrb_CreateAura(struct EwramData_EntityData *, s32, s32, s32);
 
-#define SPIN(e) (*(u16 *)&CHAOS_RING_SPIN((e)))
-#define ORBIT(e) (*(u16 *)&CHAOS_RING_ORBIT((e)))
-#define SPIN_BASE(e) (*(u16 *)&CHAOS_RING_SPIN_OFFSET((e)))
-#define ORBIT_BASE(e) (*(u16 *)&CHAOS_RING_ORBIT_OFFSET((e)))
-#define CENTER_X(e) (CHAOS_RING_CENTER_X((e)))
-#define CENTER_Y(e) (CHAOS_RING_CENTER_Y((e)))
-#define RADIUS(e) (CHAOS_RING_RADIUS((e)))
+#define SPIN(e) (*(u16 *)&e->ext.chaosRing.spin)
+#define ORBIT(e) (*(u16 *)&e->ext.chaosRing.orbit)
+#define SPIN_BASE(e) (*(u16 *)&e->ext.chaosRing.spinOffset)
+#define ORBIT_BASE(e) (*(u16 *)&e->ext.chaosRing.orbitOffset)
+#define CENTER_X(e) (e->ext.chaosRing.centerX)
+#define CENTER_Y(e) (e->ext.chaosRing.centerY)
+#define RADIUS(e) (e->ext.chaosRing.radius)
 
 /* Create the outer ring (frame 0) around (0x78, 0x50). */
 struct EwramData_EntityData *Chaos_CreateOuterRing(struct EwramData_EntityData *owner, u16 spin, u16 orbit, u16 radius)
 {
     struct EwramData_EntityData *ring = EntityCreateInRange(0x49, 0xCF, (u32 *)ChaosOuterRing_Update);
-    struct ChaosData *data = (struct ChaosData *)CHAOS_DATA(owner);
+    struct ChaosData *data = (struct ChaosData *)owner->ext.chaos.data.value;
     s32 graphics;
     u16 slot;
 
@@ -59,7 +58,7 @@ struct EwramData_EntityData *Chaos_CreateOuterRing(struct EwramData_EntityData *
     SPIN_BASE(ring) = spin;
     ORBIT_BASE(ring) = orbit;
     ring->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
-    CHAOS_LINK(ring) = owner;
+    ring->ext.chaosChild.link = owner;
     ring->scrollWithBg = 0;
     ring->hit.flags |= 4;
     ring->hit.flags |= 2;
@@ -71,7 +70,7 @@ struct EwramData_EntityData *Chaos_CreateOuterRing(struct EwramData_EntityData *
  * blink out for 60 frames once the owner enters state 3. */
 void ChaosOuterRing_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = CHAOS_LINK(entity);
+    struct EwramData_EntityData *owner = entity->ext.chaosChild.link;
     struct EwramData *ewram = gEwramData;
     s32 x, y;
 
@@ -118,7 +117,7 @@ delete:
 struct EwramData_EntityData *Chaos_CreateInnerRing(struct EwramData_EntityData *owner, u16 spin, u16 orbit, u16 radius)
 {
     struct EwramData_EntityData *ring = EntityCreateInRange(0x49, 0xCF, (u32 *)ChaosInnerRing_Update);
-    struct ChaosData *data = (struct ChaosData *)CHAOS_DATA(owner);
+    struct ChaosData *data = (struct ChaosData *)owner->ext.chaos.data.value;
     s32 graphics;
     u16 slot;
 
@@ -145,7 +144,7 @@ struct EwramData_EntityData *Chaos_CreateInnerRing(struct EwramData_EntityData *
     SPIN_BASE(ring) = spin;
     ORBIT_BASE(ring) = orbit;
     ring->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
-    CHAOS_LINK(ring) = owner;
+    ring->ext.chaosChild.link = owner;
     ring->scrollWithBg = 0;
     ring->hit.flags |= 4;
     ring->hit.flags |= 2;
@@ -156,7 +155,7 @@ struct EwramData_EntityData *Chaos_CreateInnerRing(struct EwramData_EntityData *
 /* Inner ring: like ChaosOuterRing_Update, slower and spinning the other way. */
 void ChaosInnerRing_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = CHAOS_LINK(entity);
+    struct EwramData_EntityData *owner = entity->ext.chaosChild.link;
     struct EwramData *ewram = gEwramData;
     s32 x, y;
 
@@ -209,7 +208,7 @@ struct EwramData_EntityData *Chaos_CreateOrb(struct EwramData_EntityData *owner,
     s32 graphics;
 
     box = 0x350ADFFB;
-    data = (struct ChaosData *)CHAOS_DATA(owner);
+    data = (struct ChaosData *)owner->ext.chaos.data.value;
     if (orb == NULL)
         goto fail;
     orb->posX.part16.integer = 0xFF80;
@@ -224,9 +223,9 @@ struct EwramData_EntityData *Chaos_CreateOrb(struct EwramData_EntityData *owner,
     Anim_Update(orb);
     SPIN_BASE(orb) = spin;
     orb->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
-    CHAOS_LINK(orb) = owner;
+    orb->ext.chaosChild.link = owner;
     orb->scrollWithBg = 0;
-    CHAOS_ORB_KIND(orb) = kind;
+    orb->ext.chaosOrb.kind = kind;
     orb->attack = 0x50;
     orb->unk_518.part16.hp = 3000;
     Hit_Enable(orb, 8, NULL, (s32)ChaosOrb_OnHit);

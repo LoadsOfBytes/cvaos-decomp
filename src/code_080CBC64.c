@@ -1,6 +1,5 @@
 /* Buer accelerated charge, rotation, and sparks. */
 #include "code_080D73B8.h"
-#include "wheel_enemy_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *entity);
@@ -9,9 +8,9 @@ extern void Buer_RestoreXAtProbe(struct EwramData_EntityData *entity,s32 work);
 extern void Buer_SpawnChargeEffect(s32 x,s32 y,s32 index,s32 facing);
 extern s32 Buer_OffsetBySign(s32 value,s32 step);
 extern s16 sBuerWalkProfile[];
-#define SPEED(e) (WHEEL_SPEED((e)))
-#define ANGLE(e) (WHEEL_ANGLE((e)))
-#define DIRECTION(e) (WHEEL_DIRECTION((e)))
+#define SPEED(e) (e->ext.wheel.speed)
+#define ANGLE(e) (e->ext.wheel.angle)
+#define DIRECTION(e) (e->ext.wheel.direction)
 
 /**
  * @brief Accelerate toward the sampled side, rotate and emit paired effects; then run a 32-tick collision-adjusted movement phase.

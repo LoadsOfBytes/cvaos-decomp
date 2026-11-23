@@ -1,6 +1,5 @@
 /* Alastor death: smoke along the blade, then falling out of view. */
 #include "code_08009A0.h"
-#include "alastor_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -28,7 +27,7 @@ void Alastor_UpdateDeath(struct EwramData_EntityData *entity)
                     entity->stage++;
                 case 1:
                 {
-                    s32 angle=(ALASTOR_ANGLE(entity)+0xC000)&0xFFFF;
+                    s32 angle=(entity->ext.alastor.angle+0xC000)&0xFFFF;
                     s32 radius=0x2A0000-entity->timer*0x54000;
                     s32 x=FixedMultiply(Sin(angle+0x4000),radius);
                     s32 y=FixedMultiply(Sin(angle),radius);
@@ -62,7 +61,7 @@ void Alastor_UpdateDeath(struct EwramData_EntityData *entity)
                 ObjAffine_Free(entity->affineIndex);
                 entity->deleteRequested=1;
                 {
-                    s32 index=ALASTOR_PART_INDEX(entity);
+                    s32 index=entity->ext.alastorPart.index;
                     index[gEwramData->entityData].deleteRequested=1;
                 }
             }

@@ -26,7 +26,7 @@ void EnemyGrahamCreate(struct EwramData_EntityData *entity)
         if(!gEwramData->gameState.bestiaryPreview && gEwramData->playerStatus.currentCharacter!=1)
         {
             s32 zero;
-            GRAHAM_FLAGS(entity)|=0x80;
+            entity->ext.graham.flags|=0x80;
             zero=0;
             if(gEwramData->gameState.bossEventFlags & 1)
             {

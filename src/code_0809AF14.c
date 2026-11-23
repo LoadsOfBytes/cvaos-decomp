@@ -1,7 +1,5 @@
 /* Stolas attack substates and return to the movement pose. */
 #include <string.h>
-#include "stolas_entity.h"
-#include "joint_entity.h"
 #include "code_08009A0.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
@@ -19,10 +17,10 @@ struct StolasParts {
     struct EwramData_EntityData *children[3];
     s32 ids[3];
 };
-#define POSE(e) (JOINT_POSE((e)))
-#define FLAGS(e) (STOLAS_FLAGS((e)))
-#define FRAME(e) (STOLAS_HELD_FRAME((e)))
-#define DISTANCE(e) (STOLAS_BEAM_LENGTH((e)))
+#define POSE(e) (e->ext.joint.pose)
+#define FLAGS(e) (e->ext.stolas.flags)
+#define FRAME(e) (e->ext.stolas.heldFrame)
+#define DISTANCE(e) (e->ext.stolas.beamLength)
 #define TYPE_A(e) ((e)->unk_514.part16.spawnParam0)
 #define TYPE_B(e) ((e)->unk_514.part16.spawnParam1)
 /**
@@ -67,7 +65,7 @@ void Stolas_UpdateAttack(struct EwramData_EntityData *entity)
             child = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
             if (child != NULL)
             {
-                struct StolasParts *parts = (struct StolasParts *)entity->unk_500.jointParts;
+                struct StolasParts *parts = (struct StolasParts *)entity->ext.joint.parts;
                 s32 type;
                 s32 index;
                 if ((RandomNumberGenerator() & 127) <= 31)
@@ -135,7 +133,7 @@ void Stolas_UpdateAttack(struct EwramData_EntityData *entity)
         entity->timer = 12;
         if (entity->flipX) entity->velX.whole = (0x100000 / entity->timer);
         else entity->velX.whole = (-0x100000 / entity->timer);
-        JOINT_HURT_MASK(entity) |= 4;
+        entity->ext.joint.hurtMask |= 4;
         break;
     case 11:
         Stolas_InterpolateJointsInOrder(entity, order);
@@ -192,7 +190,7 @@ void Stolas_UpdateAttack(struct EwramData_EntityData *entity)
             else entity->velX.whole = -0xD0000 / entity->timer;
             entity->velY.whole = 0x10000;
             entity->accelY.whole = 0x2800;
-            JOINT_HURT_MASK(entity) &= ~4;
+            entity->ext.joint.hurtMask &= ~4;
         }
         break;
     }

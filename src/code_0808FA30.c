@@ -1,7 +1,5 @@
 /* Devil create: allocates the 8-joint skeleton and one part entity per joint. */
 #include "code_08009A0.h"
-#include "devil_entity.h"
-#include "joint_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -62,8 +60,8 @@ void EnemyDevilCreate(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    entity->unk_500.devilParts = Heap_Alloc(0x58);
-    if (entity->unk_500.devilParts == NULL)
+    entity->ext.devil.parts = Heap_Alloc(0x58);
+    if (entity->ext.devil.parts == NULL)
     {
         EntityDelete(entity);
         return;
@@ -71,9 +69,9 @@ void EnemyDevilCreate(struct EwramData_EntityData *entity)
     entity->flipX = 0;
     stopped = *((u8 *)*ewram + 0x8E) & 0x40;
     if (stopped)
-        JOINT_POSE(entity) = 2;
+        entity->ext.joint.pose = 2;
     else
-        JOINT_POSE(entity) = stopped;
+        entity->ext.joint.pose = stopped;
     Enemy_ResetFromTemplate(entity);
     entity->spriteLayer = 4;
     if (entity->unk_518.part8.enemyId == 0x30)
@@ -101,9 +99,9 @@ void EnemyDevilCreate(struct EwramData_EntityData *entity)
             part->hidden = 0;
             part->attack = entity->attack;
             part->drawFunc = (u32 *)Sprite_DrawEntity;
-            JOINT_PART_OWNER(part) = entity;
-            JOINT_PART_INDEX(part) = index;
-            JOINT_PART_ANCHOR(part) = anchors[index];
+            part->ext.jointPart.owner = entity;
+            part->ext.jointPart.index = index;
+            part->ext.jointPart.anchor = anchors[index];
             part->posX.whole = entity->posX.whole;
             part->posY.whole = entity->posY.whole;
             part->animFrame = frames[index];
@@ -129,14 +127,14 @@ void EnemyDevilCreate(struct EwramData_EntityData *entity)
         }
         else
         {
-            Heap_Free(entity->unk_500.devilParts);
+            Heap_Free(entity->ext.devil.parts);
             EntityDelete(entity);
             return;
         }
     }
-    pose = sDevilPartPoses[(s8)JOINT_POSE(entity)];
-    angles = sDevilPartAngles[(s8)JOINT_POSE(entity)];
-    parts = entity->unk_500.devilParts;
+    pose = sDevilPartPoses[(s8)entity->ext.joint.pose];
+    angles = sDevilPartAngles[(s8)entity->ext.joint.pose];
+    parts = entity->ext.devil.parts;
     for (index = 0; index <= 7; index++)
     {
         parts[index].offsetX = pose[index * 2] << 16;
@@ -171,6 +169,6 @@ void EnemyDevilCreate(struct EwramData_EntityData *entity)
     entity->state = frozen;
     entity->subState = 10;
     entity->hidden = 1;
-    JOINT_HURT_MASK(entity) = 0x88;
-    DEVIL_INTANGIBLE(entity) = 1;
+    entity->ext.joint.hurtMask = 0x88;
+    entity->ext.devil.intangible = 1;
 }

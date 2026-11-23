@@ -1,6 +1,5 @@
 /* Alastor appearance and blink sequence. */
 #include "code/code_08039340.h"
-#include "alastor_entity.h"
 #include "structs/ewram.h"
 extern void Entity_FaceTarget(struct EwramData_EntityData *);
 extern u8 Entity_IsTargetWithinRange(struct EwramData_EntityData *,s32);
@@ -11,7 +10,7 @@ static inline u32 Blink(u32 timer) { return ((u32)-(u8)(timer%3))>>31; }
  */
 void Alastor_UpdateAppear(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *part=&gEwramData->entityData[ALASTOR_PART_INDEX(entity)];
+    struct EwramData_EntityData *part=&gEwramData->entityData[entity->ext.alastorPart.index];
     switch(entity->subState)
     {
         case 0:

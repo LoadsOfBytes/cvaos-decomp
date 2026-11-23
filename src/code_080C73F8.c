@@ -1,11 +1,10 @@
 /* Arc flight while the partner attacks. */
 #include "code_08009A0.h"
-#include "nemesis_entity.h"
 #include "structs/ewram.h"
 
 /* bit 3: target to the left, bit 5: dead */
-#define FLAGS(e) (NEMESIS_FLAGS((e)))
-#define TIMER(e) (NEMESIS_PHASE((e)))
+#define FLAGS(e) (e->ext.nemesis.flags)
+#define TIMER(e) (e->ext.nemesis.phase)
 
 /* 8.8 x 8.8 products; the two operand orders give the original registers */
 static inline s32 FixMul(s32 a, s32 b)
@@ -29,7 +28,7 @@ static inline s32 Mul(s32 a, s32 b)
  */
 void Nemesis_UpdatePartnerFlight(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *partner = &gEwramData->entityData[(u8)NEMESIS_PARTNER_INDEX(entity)];
+    struct EwramData_EntityData *partner = &gEwramData->entityData[(u8)entity->ext.nemesis.partnerIndex];
     s32 angle, speedX, speedY;
     s16 t;
 

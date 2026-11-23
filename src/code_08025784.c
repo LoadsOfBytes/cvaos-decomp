@@ -1,7 +1,6 @@
 /* Skeleton-family red soul (bone throw and variants), driven by sUnk_084F12C8. */
 #include "code_08009A0.h"
 #include "soul_skill_entity.h"
-#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code_080D73B8.h"
@@ -92,8 +91,8 @@ static inline struct EwramData_EntityData *SpawnBone(s32 x, s32 y, u8 frame)
 
 void Skill_Skeleton_ZombieSoldier_RockArmor_WaiterSkeleton_GiantSkeleton_BomberArmor_Use(struct EwramData_EntityData *entity)
 {
-    struct BoneSoulInfo *info = &sUnk_084F12C8[(u16)RED_SOUL_PARAM(entity)];
-    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
+    struct BoneSoulInfo *info = &sUnk_084F12C8[(u16)entity->ext.redSoul.param];
+    struct EwramData_EntityData *parent = entity->ext.redSoul.owner;
     s32 result;
 
     switch (entity->state)
@@ -115,7 +114,7 @@ void Skill_Skeleton_ZombieSoldier_RockArmor_WaiterSkeleton_GiantSkeleton_BomberA
 
             if ((s16)slot < 0)
             {
-                gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+                gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
                 EntityDelete(entity);
                 return;
             }
@@ -134,7 +133,7 @@ void Skill_Skeleton_ZombieSoldier_RockArmor_WaiterSkeleton_GiantSkeleton_BomberA
         entity->spriteLayer = 0xD;
     {
         s32 vx = info->velX;
-        SKILL_THROW_SPEED(entity) = vx;
+        entity->ext.skillThrow.speed = vx;
         entity->velX.whole = vx;
         if (entity->flipX)
             entity->velX.whole = -vx;
@@ -201,11 +200,11 @@ void Skill_Skeleton_ZombieSoldier_RockArmor_WaiterSkeleton_GiantSkeleton_BomberA
         if (info->flags & 2)
         {
             if (!(info->flags & 0x400))
-                result = Entity_Walk(entity, -SKILL_THROW_SPEED(entity), (u8 *)sUnk_084F12C8 + 0xC0, 0);
+                result = Entity_Walk(entity, -entity->ext.skillThrow.speed, (u8 *)sUnk_084F12C8 + 0xC0, 0);
             else
-                result = Entity_Walk(entity, -SKILL_THROW_SPEED(entity), (u8 *)sUnk_084F12C8 + 0xD4, 0);
+                result = Entity_Walk(entity, -entity->ext.skillThrow.speed, (u8 *)sUnk_084F12C8 + 0xD4, 0);
             if (result & 3)
-                SKILL_THROW_SPEED(entity) = 0;
+                entity->ext.skillThrow.speed = 0;
             if (result & 8)
             {
                 if (info->flags & 0x10)
@@ -215,7 +214,7 @@ void Skill_Skeleton_ZombieSoldier_RockArmor_WaiterSkeleton_GiantSkeleton_BomberA
                     entity->state = 3;
                 }
                 if (info->flags & 0x420)
-                    SKILL_THROW_SPEED(entity) = 0;
+                    entity->ext.skillThrow.speed = 0;
             }
             else if ((info->flags & 0x20) && !(entity->timer & 3))
                 BoneSoul_SpawnFlyingEffect(entity);
@@ -224,7 +223,7 @@ void Skill_Skeleton_ZombieSoldier_RockArmor_WaiterSkeleton_GiantSkeleton_BomberA
         {
             s32 vy = entity->velY.whole;
 
-            result = Entity_Walk(entity, -SKILL_THROW_SPEED(entity), (u8 *)sUnk_084F12C8 + 0xC0, 0);
+            result = Entity_Walk(entity, -entity->ext.skillThrow.speed, (u8 *)sUnk_084F12C8 + 0xC0, 0);
             if (result & 3)
                 entity->flipX ^= 1;
             if (result & 8)
@@ -235,14 +234,14 @@ void Skill_Skeleton_ZombieSoldier_RockArmor_WaiterSkeleton_GiantSkeleton_BomberA
                     entity->velY.whole = -(vy / 2);
                 }
                 else
-                    SKILL_THROW_SPEED(entity) = 0;
+                    entity->ext.skillThrow.speed = 0;
             }
         }
         else
         {
             EntityAccelerateAndMoveX(entity, 0x80000);
             EntityAccelerateAndMoveY(entity, 0x80000);
-            if ((info->flags & 0x100) && (u16)SKILL_BONE_HIT(entity) != 0)
+            if ((info->flags & 0x100) && (u16)entity->ext.skillBone.hit != 0)
             {
                 struct EwramData_EntityData *fx;
                 s32 i;
@@ -309,7 +308,7 @@ void Skill_Skeleton_ZombieSoldier_RockArmor_WaiterSkeleton_GiantSkeleton_BomberA
         gEwramData->playerState.enemyTarget = gEwramData->playerState.player;
         if ((info->flags & 0x80) && (ENTITY_RENDER_FLAGS16(entity) & 0x101F))
             ObjAffine_Free(entity->affineIndex);
-        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;

@@ -7,13 +7,6 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-/*
- * BG palette animation (BgPaletteAnim_Step): current frame of the cycle and
- * the frames shown of it. Token-identical expansion.
- */
-#define BG_PALETTE_ANIM_FRAME(e) e->unk_4F4.part16.unk_4F4
-#define BG_PALETTE_ANIM_TICK(e) e->unk_4F4.part16.unk_4F6
-
 extern void Music_StartOverride(s32 song);
 /* Declared here with an int result: Warp_ActivateCurrentRoom uses the value without
  * re-extending it from s16 (see code_08001194.h for the real type). */
@@ -47,13 +40,13 @@ extern struct WarpRoomEntry sWarpRoomEntries[];
 s32 BgPaletteAnim_Step(struct EwramData_EntityData *entity)
 {
     struct BgPaletteCycle *anim = &sBgPaletteCycles[entity->unk_514.part16.spawnParam1];
-    struct BgPaletteCycleFrame *frame = &anim->frames[(u16)BG_PALETTE_ANIM_FRAME(entity)];
+    struct BgPaletteCycleFrame *frame = &anim->frames[(u16)entity->ext.bgPaletteAnim.frame];
 
-    BG_PALETTE_ANIM_TICK(entity) = Mod((u16)BG_PALETTE_ANIM_TICK(entity) + 1, frame->duration);
-    if (BG_PALETTE_ANIM_TICK(entity) == 0)
+    entity->ext.bgPaletteAnim.tick = Mod((u16)entity->ext.bgPaletteAnim.tick + 1, frame->duration);
+    if (entity->ext.bgPaletteAnim.tick == 0)
     {
-        BG_PALETTE_ANIM_FRAME(entity) = Mod((u16)BG_PALETTE_ANIM_FRAME(entity) + 1, anim->frameCount);
-        frame = &anim->frames[(u16)BG_PALETTE_ANIM_FRAME(entity)];
+        entity->ext.bgPaletteAnim.frame = Mod((u16)entity->ext.bgPaletteAnim.frame + 1, anim->frameCount);
+        frame = &anim->frames[(u16)entity->ext.bgPaletteAnim.frame];
         BgPalette_LoadRange(frame->paletteResource, frame->sourcePalette, 1, anim->destinationPalette);
     }
 }
@@ -70,7 +63,7 @@ void Object07Create(struct EwramData_EntityData *entity)
             Object07_SpawnParallaxSprites(entity);
             break;
         case 1:
-            OBJECT07_PALETTE_ANIM(entity) = 0;
+            entity->ext.object07.paletteAnim = 0;
             break;
         case 2:
             BgParticle_SpawnAll(entity);

@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "legion_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -18,7 +17,7 @@ extern u8 sLegionSpriteSheet[];
  */
 struct EwramData_EntityData *Legion_CreateShellPart(struct EwramData_EntityData *entity, s32 center, s32 kind)
 {
-    u32 *data = (u32 *)LEGION_DATA(entity);
+    u32 *data = (u32 *)entity->ext.legion.data.value;
     struct EwramData_EntityData *part = Entity_CreateObject((u32 *)LegionShellPart_Update);
     u16 palette;
     u32 tiles;
@@ -29,7 +28,7 @@ struct EwramData_EntityData *Legion_CreateShellPart(struct EwramData_EntityData 
         part->posY.whole = entity->posY.whole;
         part->spriteLayer = entity->spriteLayer + 1;
         tiles = *data;
-        part->unk_510.part8.basePalette = LEGION_ANIM_PALETTE(entity);
+        part->unk_510.part8.basePalette = entity->ext.legion.animPalette;
         Sprite_Attach(part, sLegionSpriteSheet, tiles, part->unk_510.part8.basePalette);
         if (kind == 5)
         {
@@ -41,12 +40,12 @@ struct EwramData_EntityData *Legion_CreateShellPart(struct EwramData_EntityData 
             }
             part->affineIndex = palette;
             part->affine = 1;
-            ObjAffine_SetBiased(LEGION_SHELL_ANGLE(part), 0x10000, 0x10000, part->flipX, part->flipY, part->affineIndex);
+            ObjAffine_SetBiased(part->ext.legionShell.angle, 0x10000, 0x10000, part->flipX, part->flipY, part->affineIndex);
         }
         part->hidden = 1;
-        LEGION_PART_OWNER(part) = entity;
-        LEGION_SHELL_CENTER(part) = (struct EwramData_EntityData *)center;
-        LEGION_SHELL_KIND(part) = kind;
+        part->ext.legionPart.owner = entity;
+        part->ext.legionShell.center = (struct EwramData_EntityData *)center;
+        part->ext.legionShell.kind = kind;
         part->attack = entity->attack;
         part->scrollWithBg = 0;
         part->drawFunc = (u32 *)Sprite_DrawEntity;

@@ -10,7 +10,7 @@
  */
 void Stolas_AttachJointSetAngle(struct EwramData_EntityData *entity, s32 partIndex, s32 anchorIndex, s32 angleSpec, s32 length)
 {
-    struct EntityJointPart *parts = entity->unk_500.jointParts;
+    struct EntityJointPart *parts = entity->ext.joint.parts;
     // &parts[partIndex], written as integer arithmetic (offset + base) as in
     // the original
     struct EntityJointPart *part = (struct EntityJointPart *)(partIndex * sizeof(struct EntityJointPart) + (u32)parts);

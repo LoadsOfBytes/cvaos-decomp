@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "kyoma_demon_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -25,7 +24,7 @@ void KyomaDemon_UpdateAttack(struct EwramData_EntityData *entity)
     case 0:
         Anim_StartIndexed(entity, 2, 0, 0);
         entity->flipX = Entity_IsTargetRight(entity);
-        KYOMA_DEMON_HIDDEN(entity) = 0;
+        entity->ext.kyomaDemon.hidden = 0;
         entity->scrollWithBg = 1;
         entity->subState++;
         entity->spriteLayer = 0x11;
@@ -50,8 +49,8 @@ void KyomaDemon_UpdateAttack(struct EwramData_EntityData *entity)
             entity->scrollWithBg = 0;
             entity->hidden = 0;
             r = (RandomNumberGenerator() & 0x3F) + 0x40;
-            KYOMA_DEMON_LURK_TIMER(entity) = r;
-            KYOMA_DEMON_HIDDEN(entity) = 1;
+            entity->ext.kyomaDemon.lurkTimer = r;
+            entity->ext.kyomaDemon.hidden = 1;
             entity->spriteLayer = 0x1D;
         }
         break;

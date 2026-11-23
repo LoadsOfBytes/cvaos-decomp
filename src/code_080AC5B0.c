@@ -1,7 +1,5 @@
 /* Big Golem damage and contact callbacks. */
 #include "code_08009A0.h"
-#include "big_golem_entity.h"
-#include "joint_entity.h"
 #include "code_080D73B8.h"
 #include "code_08033CAC.h"
 #include "code/code_080211F0.h"
@@ -18,9 +16,9 @@ void BigGolem_OnDamaged(struct EwramData_EntityData *entity, s32 attacker, u16 *
 {
     entity->unk_510.part8.hitFlashTimer = 8;
     entity->unk_518.part16.hp -= damage;
-    if ((s8)BIG_GOLEM_HIT_COUNT(entity) < 10)
-        BIG_GOLEM_HIT_COUNT(entity)++;
-    BIG_GOLEM_HIT(entity) = 1;
+    if ((s8)entity->ext.bigGolem.hitCount < 10)
+        entity->ext.bigGolem.hitCount++;
+    entity->ext.bigGolem.hit = 1;
     if ((s16)entity->unk_518.part16.hp <= 0)
     {
         Enemy_DropRewards(entity);
@@ -44,11 +42,11 @@ void BigGolem_OnDamaged(struct EwramData_EntityData *entity, s32 attacker, u16 *
 void BigGolemPart_OnContact(struct EwramData_EntityData *entity)
 {
     struct PlayerContactDamage contact;
-    struct EwramData_EntityData *parent = JOINT_PART_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.jointPart.owner;
     contact.attack = entity->attack;
     contact.attributes = 0;
     contact.unused = 0;
-    if (parent->state == 1 && parent->subState <= 19 && (u8)(*(u8 *)&entity->unk_504 - 12) <= 1)
+    if (parent->state == 1 && parent->subState <= 19 && (u8)(entity->ext.jointPart.index - 12) <= 1)
     {
         s32 vx;
         contact.reaction = 3;

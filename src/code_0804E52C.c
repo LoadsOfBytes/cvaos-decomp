@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "door_entity.h"
 #include "code_08001194.h"
 #include "code/code_08039340.h"
 #include "code_080D73B8.h"
@@ -62,7 +61,7 @@ void Object03Update(struct EwramData_EntityData *entity)
     case 2:
         if (gEwramData->gameState.linkPlay)
             SetPlayerInput(1, entity->flipX ? 0x20 : 0x10);
-        if (DOOR_OPEN_HEIGHT(entity) == 0)
+        if (entity->ext.door.openHeight == 0)
         {
             x = (s16)entity->posX.part16.integer;
             bg = &gEwramData->bgInfo[1];
@@ -73,7 +72,7 @@ void Object03Update(struct EwramData_EntityData *entity)
             Collision_ClearBlock(x, y - 0x28);
             PlaySong(0x113);
         }
-        if (++DOOR_OPEN_HEIGHT(entity) > 0x2F)
+        if (++entity->ext.door.openHeight > 0x2F)
         {
             gEwramData->gameState.stateFlags &= 0xFFFFFEFE;
             if (gEwramData->gameState.linkPlay)

@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "gladiator_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -43,20 +42,20 @@ void GladiatorBody_Update(struct EwramData_EntityData *entity)
         entity->posX.part16.integer = owner->posX.part16.integer;
         entity->posY.part16.integer = owner->posY.part16.integer;
         if (entity->flipX)
-            entity->posX.part16.integer = entity->posX.part16.integer - GLADIATOR_PART_OFFSET_X(entity);
+            entity->posX.part16.integer = entity->posX.part16.integer - entity->ext.gladiatorPart.offsetX;
         else
-            entity->posX.part16.integer += GLADIATOR_PART_OFFSET_X(entity);
-        entity->posY.part16.integer += GLADIATOR_PART_OFFSET_Y(entity);
+            entity->posX.part16.integer += entity->ext.gladiatorPart.offsetX;
+        entity->posY.part16.integer += entity->ext.gladiatorPart.offsetY;
         if (owner->animScriptIndex == 0xC)
         {
             if (owner->animTimer)
             {
                 entity->posY.part16.integer = entity->posY.part16.integer + dy[owner->animStep];
-                GLADIATOR_PART_BOB_Y(entity) = dy[owner->animStep];
+                entity->ext.gladiatorPart.bobY = dy[owner->animStep];
             }
             else
             {
-                entity->posY.part16.integer = entity->posY.part16.integer + GLADIATOR_PART_BOB_Y(entity);
+                entity->posY.part16.integer = entity->posY.part16.integer + entity->ext.gladiatorPart.bobY;
             }
         }
         if (owner->state == 1)

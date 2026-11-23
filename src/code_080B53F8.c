@@ -36,7 +36,7 @@ static inline struct EwramData_EntityData *SpawnAtEntity(void *update, struct Ew
  */
 void BaloreEmitter_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = BALORE_BODY(entity);
+    struct EwramData_EntityData *parent = entity->ext.balorePart.body;
     u16 slot;
     struct EwramData_EntityData *piece;
     s32 scale;
@@ -44,7 +44,7 @@ void BaloreEmitter_Update(struct EwramData_EntityData *entity)
 
     if (entity->state != 0)
     {
-        if (entity->state <= 1 && (BALORE_FLAGS(parent) & 2))
+        if (entity->state <= 1 && (parent->ext.balore.flags & 2))
             entity->state = 2;
     }
     switch (entity->state)
@@ -62,17 +62,17 @@ void BaloreEmitter_Update(struct EwramData_EntityData *entity)
         Anim_StartIndexed(entity, 0x32, 2, 0);
         Anim_Update(entity);
         entity->objMode = 1;
-        F32(entity, unk_500) = 0x1000000;
+        F32(entity, ext.raw.unk_500) = 0x1000000;
         entity->timer = 0x40;
         entity->flipX = RandomNumberGenerator2() & 1;
         if (!entity->flipX)
         {
-            F32(entity, unk_504) = 0x7800;
+            F32(entity, ext.raw.unk_504) = 0x7800;
             F32(entity, unk_514) = -0x1C0;
         }
         else
         {
-            F32(entity, unk_504) = 0x800;
+            F32(entity, ext.raw.unk_504) = 0x800;
             F32(entity, unk_514) = 0x1C0;
         }
         Sound_PlayTracked(0x66);
@@ -83,18 +83,18 @@ void BaloreEmitter_Update(struct EwramData_EntityData *entity)
             piece = SpawnAtEntity(BaloreSpark_Update, entity);
             if (piece != NULL)
             {
-                piece->posX.whole = entity->posX.whole + Sin(F32(entity, unk_504) + 0x4000) * 0xB0;
+                piece->posX.whole = entity->posX.whole + Sin(F32(entity, ext.raw.unk_504) + 0x4000) * 0xB0;
                 piece->posY.part16.integer = 0x90;
                 piece->velX.whole = ((0x40 - entity->timer) << 9) + 0x8000;
                 if (entity->flipX)
                     piece->velX.whole = -piece->velX.whole;
                 piece->accelX.whole = -piece->velX.whole / 64;
-                BALORE_BODY(piece) = parent;
+                piece->ext.balorePart.body = parent;
                 piece->timer = ((0x40 - entity->timer) >> 2) + 8;
             }
         }
-        F32(entity, unk_508) = Sin(entity->timer << 9);
-        F32(entity, unk_504) += F32(entity, unk_514);
+        F32(entity, ext.raw.unk_508) = Sin(entity->timer << 9);
+        F32(entity, ext.raw.unk_504) += F32(entity, unk_514);
         if (entity->timer != 0)
         {
             entity->timer--;
@@ -103,9 +103,9 @@ void BaloreEmitter_Update(struct EwramData_EntityData *entity)
         entity->state = 3;
         break;
     case 2:
-        if (F32(entity, unk_508) > 0)
+        if (F32(entity, ext.raw.unk_508) > 0)
         {
-            F32(entity, unk_508) += -0x400;
+            F32(entity, ext.raw.unk_508) += -0x400;
             break;
         }
     case 3:
@@ -117,17 +117,17 @@ void BaloreEmitter_Update(struct EwramData_EntityData *entity)
     }
     entity->posX.part16.integer = parent->posX.part16.integer - 0x15;
     entity->posY.part16.integer = parent->posY.part16.integer - 9;
-    v = F32(entity, unk_500);
+    v = F32(entity, ext.raw.unk_500);
     if (v > 0x1000000)
         v = 0x1000000;
     {
         s32 eighth = v / 8;
         scale = eighth / 32;
     }
-    v = Sin(F32(entity, unk_504) + 0x4000) << 5;
-    F32(entity, unk_50C) = v;
-    F32(entity, unk_510) = Sin(F32(entity, unk_504)) << 5;
-    F32(entity, unk_50C) = F32(entity, unk_50C) / 0x10800 * scale;
+    v = Sin(F32(entity, ext.raw.unk_504) + 0x4000) << 5;
+    F32(entity, ext.raw.unk_50C) = v;
+    F32(entity, unk_510) = Sin(F32(entity, ext.raw.unk_504)) << 5;
+    F32(entity, ext.raw.unk_50C) = F32(entity, ext.raw.unk_50C) / 0x10800 * scale;
     F32(entity, unk_510) = F32(entity, unk_510) / 0x10800 * scale;
-    ObjAffine_Set(F32(entity, unk_504), scale, F32(entity, unk_508), 0, 0, entity->affineIndex);
+    ObjAffine_Set(F32(entity, ext.raw.unk_504), scale, F32(entity, ext.raw.unk_508), 0, 0, entity->affineIndex);
 }

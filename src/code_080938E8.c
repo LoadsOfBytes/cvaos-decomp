@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "medusa_head_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -59,9 +58,9 @@ void EnemyMedusaHeadCreate(struct EwramData_EntityData *entity)
         entity->velX.whole = -0xC000 - (RandomNumberGenerator() & 0x3FFF);
     entity->accelY.whole = 0xC00;
     r = RandomNumberGenerator() & 1;
-    MEDUSA_HEAD_WAVE_UP(entity) = r;
-    MEDUSA_HEAD_WAVE_FRAME(entity) = 0;
+    entity->ext.medusaHead.waveUp = r;
+    entity->ext.medusaHead.waveFrame = 0;
     r = (RandomNumberGenerator() & 0xF) + 0x2D;
-    MEDUSA_HEAD_WAVE_LENGTH(entity) = r;
-    MEDUSA_HEAD_WAVE_FRAME(entity) = MEDUSA_HEAD_WAVE_LENGTH(entity) / 2;
+    entity->ext.medusaHead.waveLength = r;
+    entity->ext.medusaHead.waveFrame = entity->ext.medusaHead.waveLength / 2;
 }

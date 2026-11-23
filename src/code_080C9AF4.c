@@ -3,8 +3,6 @@
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
-/* Blue Crow: dives made since the approach started; never read. */
-#define BLUE_CROW_DIVE_COUNT(e) e->unk_4F8.part8.unk_4F8
 
 extern s32 Target_GetX(struct EwramData_EntityData *entity);
 extern s32 Target_GetY(struct EwramData_EntityData *entity);
@@ -32,7 +30,7 @@ void BlueCrow_UpdateMovement(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
         case 0:
-            BLUE_CROW_DIVE_COUNT(entity) = zero;
+            entity->ext.blueCrow.unusedDiveCount = zero;
             Entity_FaceTarget(entity);
             ANIM(entity, 0, 1);
             entity->subState = 1;
@@ -76,7 +74,7 @@ void BlueCrow_UpdateMovement(struct EwramData_EntityData *entity)
             switch (entity->stage)
             {
                 case 0:
-                    BLUE_CROW_DIVE_COUNT(entity)++;
+                    entity->ext.blueCrow.unusedDiveCount++;
                     ANIM(entity, 2, 1);
                     entity->accelX.whole = zero;
                     entity->velX.whole = zero;

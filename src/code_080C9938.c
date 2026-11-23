@@ -1,6 +1,5 @@
 /* Lightning Doll helpers reconstructed from the original assembly. */
 #include "code_08009A0.h"
-#include "doll_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -27,9 +26,9 @@ void LightningDoll_ResetActive(struct EwramData_EntityData *entity)
     entity->state = 1;
     entity->stage = zero;
     entity->subState = zero;
-    LIGHTNING_DOLL_ATTACK_TIMER(entity) = RandomNumberGenerator() % 0x20 + 0x10;
-    LIGHTNING_DOLL_REST_TIMER(entity) = RandomNumberGenerator() % 0x400 + 0x200;
-    LIGHTNING_DOLL_MOVE_TIMER(entity) = zero;
+    entity->ext.lightningDoll.attackTimer = RandomNumberGenerator() % 0x20 + 0x10;
+    entity->ext.lightningDoll.restTimer = RandomNumberGenerator() % 0x400 + 0x200;
+    entity->ext.lightningDoll.moveTimer = zero;
 }
 
 /**
@@ -48,7 +47,7 @@ void LightningDoll_UpdateDeath(struct EwramData_EntityData *entity)
             entity->state = 0xFF;
             entity->subState++;
         case 1:
-            if (DOLL_DEATH_PART_COUNT(entity) == 0)
+            if (entity->ext.doll.deathPartCount == 0)
                 entity->deleteRequested = 1;
             break;
     }

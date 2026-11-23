@@ -1,7 +1,6 @@
 /* Objects 0x2D..0x31 0x0805872C..0x08059493. */
 #include "code_08009A0.h"
 #include "room_object_entity.h"
-#include "particle_effect.h"
 #include "code/code_08039340.h"
 #include "code_080D73B8.h"
 #include "structs/ewram.h"
@@ -292,7 +291,7 @@ void Object2E_SpawnRisingParticle(struct EwramData_EntityData *entity, s32 x, s3
     child->velY.whole = -0x10000;
     child->spriteLayer = entity->spriteLayer - 1;
     child->timer = 0;
-    PARTICLE_FLAGS(child) = 2;
+    child->ext.particle.flags = 2;
     gfx = ObjGfx_Find(sCommonObjectGfx);
     Sprite_Attach(child, sCommonObjectSpriteSheet, gfx, 7);
     Anim_Start(child, (struct AnimScript *)sObject2EAnimScript, 0, 0);
@@ -385,12 +384,12 @@ void Object30_SpawnFallingLeaf(struct EwramData_EntityData *entity)
         return;
     child->posX.part16.integer = RandomNumberGenerator() % 0xF0;
     child->posY.whole = 0;
-    OBJECT30_LEAF_KIND(child) = RandomNumberGenerator() % 3;
+    child->ext.object30Leaf.kind = RandomNumberGenerator() % 3;
     child->spriteLayer = entity->spriteLayer;
     gfx = ObjGfx_Find(sObject2FFamilyGfx);
     child->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
     Sprite_Attach(child, sObject2FFamilySpriteSheet, gfx, child->unk_510.part8.basePalette);
-    Anim_StartIndexed(child, OBJECT30_LEAF_KIND(child) + 2, 0, 1);
+    Anim_StartIndexed(child, child->ext.object30Leaf.kind + 2, 0, 1);
     Anim_Update(child);
     affineIndex = ObjAffine_Alloc(1);
     if ((s16)affineIndex < 0)
@@ -404,14 +403,14 @@ void Object30_SpawnFallingLeaf(struct EwramData_EntityData *entity)
     child->hit.flags |= 4;
     child->hit.flags |= 2;
     child->flipX = RandomNumberGenerator() % 2;
-    if (OBJECT30_LEAF_KIND(child) == 0)
+    if (child->ext.object30Leaf.kind == 0)
         child->velY.whole = 0xA000;
-    else if (OBJECT30_LEAF_KIND(child) == 1)
+    else if (child->ext.object30Leaf.kind == 1)
         child->velY.whole = 0x8000;
     else
         child->velY.whole = 0xC000;
     child->accelY.whole = (RandomNumberGenerator() & 0x3FF) - 0x200;
-    OBJECT30_LEAF_SCROLL_X(child) = bg->xPos.whole;
+    child->ext.object30Leaf.scrollX = bg->xPos.whole;
     child->scrollWithBg = 0;
     child->drawFunc = (u32 *)Sprite_DrawEntity;
 }
@@ -428,15 +427,15 @@ void Object30Leaf_Update(struct EwramData_EntityData *entity)
 
     EntityMoveY(entity);
     entity->accelX.whole += entity->accelY.whole;
-    parallax = bg->xPos.whole - (s32)OBJECT30_LEAF_SCROLL_X(entity);
-    if (OBJECT30_LEAF_KIND(entity) == 0)
+    parallax = bg->xPos.whole - (s32)entity->ext.object30Leaf.scrollX;
+    if (entity->ext.object30Leaf.kind == 0)
         parallax /= 4;
-    else if (OBJECT30_LEAF_KIND(entity) == 1)
+    else if (entity->ext.object30Leaf.kind == 1)
         parallax /= 8;
     else
         parallax = parallax * 3 / 8;
     entity->posX.whole -= parallax;
-    OBJECT30_LEAF_SCROLL_X(entity) = bg->xPos.whole;
+    entity->ext.object30Leaf.scrollX = bg->xPos.whole;
     ObjAffine_Set(entity->accelX.whole, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
     if (EntityIsOutsideScreen(entity, 3))
     {
@@ -559,7 +558,7 @@ void Object31Create(struct EwramData_EntityData *entity)
     }
     entity->posX.part16.integer = xs[entity->unk_514.part16.spawnParam0];
     entity->posY.part16.integer = ys[entity->unk_514.part16.spawnParam0];
-    OBJECT31_DELAY(entity) = values.v[entity->unk_514.part16.spawnParam0];
+    entity->ext.object31.delay = values.v[entity->unk_514.part16.spawnParam0];
 }
 
 /**
@@ -577,14 +576,14 @@ void Object31_UpdateState(struct EwramData_EntityData *entity)
                 entity->subState++;
             break;
         case 1:
-            if (--OBJECT31_DELAY(entity) > 0)
+            if (--entity->ext.object31.delay > 0)
                 break;
             if (entity->unk_514.part16.spawnParam0 == 0 || entity->unk_514.part16.spawnParam0 == 2)
             {
                 entity->subState = 10;
-                OBJECT31_ANGLE(entity) = 0;
-                OBJECT31_SPEED(entity) = 0;
-                OBJECT31_STEP(entity) = 4;
+                entity->ext.object31.angle = 0;
+                entity->ext.object31.speed = 0;
+                entity->ext.object31.step = 4;
                 entity->accelX.whole = 0x400;
                 entity->accelY.whole = 0x200;
                 entity->timer = 0x3C;
@@ -616,11 +615,11 @@ void Object31_UpdateState(struct EwramData_EntityData *entity)
             entity->accelY.whole = 0x400;
             break;
         case 11:
-            OBJECT31_SPEED(entity) += OBJECT31_STEP(entity);
-            if (OBJECT31_SPEED(entity) > 0x5F)
-                OBJECT31_SPEED(entity) = 0x60;
-            OBJECT31_ANGLE(entity) += OBJECT31_SPEED(entity);
-            ObjAffine_Set(OBJECT31_ANGLE(entity), 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
+            entity->ext.object31.speed += entity->ext.object31.step;
+            if (entity->ext.object31.speed > 0x5F)
+                entity->ext.object31.speed = 0x60;
+            entity->ext.object31.angle += entity->ext.object31.speed;
+            ObjAffine_Set(entity->ext.object31.angle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
             EntityMoveX(entity);
             EntityAccelerateAndMoveY(entity, 0x10000);
             if (EntityIsOutsideScreen(entity, 3))
@@ -628,7 +627,7 @@ void Object31_UpdateState(struct EwramData_EntityData *entity)
             break;
     }
     if (entity->unk_514.part16.spawnParam0 == 0 || entity->unk_514.part16.spawnParam0 == 2)
-        ObjAffine_Set(OBJECT31_ANGLE(entity), 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
+        ObjAffine_Set(entity->ext.object31.angle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
     Anim_Update(entity);
 }
 
@@ -673,7 +672,7 @@ void Object31_SpawnDust(struct EwramData_EntityData *entity, s32 offsetX, s32 of
     child->posY.whole = entity->posY.whole + offsetY;
     child->spriteLayer = entity->spriteLayer - 1;
     child->timer = 0;
-    PARTICLE_FLAGS(child) = 0;
+    child->ext.particle.flags = 0;
     gfx = ObjGfx_Find(sObject2FFamilyGfx);
     Sprite_Attach(child, sObject2FFamilySpriteSheet, gfx, entity->unk_510.part8.basePalette);
     Anim_StartIndexed(child, 5, 0, 0);

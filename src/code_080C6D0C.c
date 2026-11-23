@@ -1,17 +1,16 @@
 /* Attack step of a part-driven enemy (Nemesis_UpdateAttackSelection, cf. Alastor Alastor_UpdateAttackSelection):
  * rotate the part through three target angles, then pick the next attack. */
 #include "code_08009A0.h"
-#include "nemesis_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern u8 Angle_TurnTowards(s16 *, u16, u16);
 extern s32 sUnk_08528A34[][9];
 
-#define SET(e) (NEMESIS_ATTACK_SET((e)))
-#define INDEX(e) (NEMESIS_ATTACK_INDEX((e)))
+#define SET(e) (e->ext.nemesis.attackSet)
+#define INDEX(e) (e->ext.nemesis.attackIndex)
 #define ATTACK(e) (sUnk_08528A34[SET(e)][INDEX(e)])
-#define ANGLE(e) (NEMESIS_ANGLE((e)))
-#define STEP(e) (NEMESIS_TURN((e)))
+#define ANGLE(e) (e->ext.nemesis.angle)
+#define STEP(e) (e->ext.nemesis.turn)
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 
 static inline void SetState(struct EwramData_EntityData *entity, u8 state)
@@ -29,7 +28,7 @@ static inline void SetState(struct EwramData_EntityData *entity, u8 state)
  */
 void Nemesis_UpdateAttackSelection(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *part = &gEwramData->entityData[NEMESIS_PARTNER_INDEX(entity)];
+    struct EwramData_EntityData *part = &gEwramData->entityData[entity->ext.nemesis.partnerIndex];
     s32 speed = 0x20000;
     s32 target = 0xD800;
 
@@ -49,7 +48,7 @@ void Nemesis_UpdateAttackSelection(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
         case 0:
-            if (!(NEMESIS_FLAGS(entity) & 2))
+            if (!(entity->ext.nemesis.flags & 2))
             {
                 speed = -speed;
                 target = 0x10000 - target;
@@ -67,14 +66,14 @@ void Nemesis_UpdateAttackSelection(struct EwramData_EntityData *entity)
             break;
         case 2:
             target = 0x9800;
-            if (!(NEMESIS_FLAGS(entity) & 2))
+            if (!(entity->ext.nemesis.flags & 2))
                 target = 0x6800;
             if (Angle_TurnTowards(&ANGLE(entity), (u16)ABS(STEP(entity) << 4), (u16)target))
                 entity->subState++;
             goto transform;
         case 3:
             target = 0x2800;
-            if (!(NEMESIS_FLAGS(entity) & 2))
+            if (!(entity->ext.nemesis.flags & 2))
                 target = 0xD800;
             if (Angle_TurnTowards(&ANGLE(entity), (u16)ABS(STEP(entity) << 4), (u16)target))
                 entity->subState++;

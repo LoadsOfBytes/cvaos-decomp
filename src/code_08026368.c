@@ -1,6 +1,5 @@
 #include "code_08009A0.h"
 #include "soul_skill_entity.h"
-#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -47,7 +46,7 @@ void SkillSirenUse(struct EwramData_EntityData *entity)
     {
     case 0:
         note = RandomNumberGenerator() & 1;
-        if ((u16)RED_SOUL_PARAM(entity) == 0)
+        if ((u16)entity->ext.redSoul.param == 0)
         {
             {
                 struct SoulGraphicsResources *t = GetSet(0);
@@ -72,7 +71,7 @@ void SkillSirenUse(struct EwramData_EntityData *entity)
         }
         PlaySong(sSkillSirenNotes[note]);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
-        Entity_PlaceRelativeTo(entity, RED_SOUL_OWNER(entity), 8, -0x1A);
+        Entity_PlaceRelativeTo(entity, entity->ext.redSoul.owner, 8, -0x1A);
         entity->spriteLayer = 0xD;
         entity->scrollWithBg = 1;
         entity->velX.whole = 0x10000;
@@ -88,8 +87,8 @@ void SkillSirenUse(struct EwramData_EntityData *entity)
         HitBox_SetAttackRaw(entity, 0x0808FCFC);
         entity->hit.flags |= 4;
         gEwramData->playerState.nbrActiveRedSoulEntities++;
-        SKILL_SIREN_PHASE(entity) = RandomNumberGenerator();
-        if ((u16)RED_SOUL_PARAM(entity) != 0)
+        entity->ext.skillSiren.phase = RandomNumberGenerator();
+        if ((u16)entity->ext.redSoul.param != 0)
         {
             child = RedSoul_CreateTrailCopy(entity, 7);
             if (child != NULL)
@@ -102,16 +101,16 @@ void SkillSirenUse(struct EwramData_EntityData *entity)
                 child->objMode = 1;
         }
     case 1:
-        entity->velY.whole = Sin(SKILL_SIREN_PHASE(entity));
-        SKILL_SIREN_PHASE(entity) += 0x400;
+        entity->velY.whole = Sin(entity->ext.skillSiren.phase);
+        entity->ext.skillSiren.phase += 0x400;
         EntityAccelerateAndMove(entity, 0x80000);
-        if ((u8)RED_SOUL_HIT(entity) != 0)
+        if ((u8)entity->ext.redSoul.hit != 0)
             entity->state = 2;
         if (EntityIsOutsideScreen(entity, 1))
             entity->state = 2;
         break;
     case 2:
-        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;

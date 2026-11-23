@@ -19,9 +19,9 @@ void MenuText_ClearAndPrint(s32 index)
  */
 void MenuPage_Reset(struct EwramData_EntityData *entity)
 {
-    MENU_PAGE_CATEGORY(entity) = 0;
-    MENU_PAGE_COUNT(entity) = 0;
-    MENU_PAGE_CURSOR(entity) = 0;
-    MENU_PAGE_TOP(entity) = 0;
-    MENU_PAGE_ITEM(entity) = 0;
+    entity->ext.menuPage.category = 0;
+    entity->ext.menuPage.count = 0;
+    entity->ext.menuPage.cursor = 0;
+    entity->ext.menuPage.top = 0;
+    entity->ext.menuPage.item = 0;
 }

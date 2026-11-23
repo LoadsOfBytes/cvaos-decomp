@@ -15,9 +15,9 @@ extern void EventScene03_SpawnUnusedPartDebris(struct EwramData_EntityData *);
 void EventScene03UnusedPart_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *owner = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
-    struct EwramData_EntityData *other = &gEwramData->entityData[EVENT03_PART_LINK_INDEX(entity)];
+    struct EwramData_EntityData *other = &gEwramData->entityData[entity->ext.event03Part.linkIndex];
     struct EwramData_EntityData *child;
-    if ((u16)EVENT03_PROGRESS(owner) & 4)
+    if ((u16)owner->ext.event03.progress & 4)
     {
         entity->state = 4;
         entity->stage = 0;
@@ -26,11 +26,11 @@ void EventScene03UnusedPart_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if ((u16)EVENT03_PROGRESS(owner) & 8)
+        if ((u16)owner->ext.event03.progress & 8)
         {
             if (RandomNumberGenerator() % 7 == entity->attack)
             {
-                if ((u8)(EVENT03_PART_FLAGS(entity) & 2))
+                if ((u8)(entity->ext.event03Part.flags & 2))
                 {
                     entity->state = 2;
                     entity->stage = 0;
@@ -72,12 +72,12 @@ void EventScene03UnusedPart_Update(struct EwramData_EntityData *entity)
         }
         break;
     case 2:
-        if (EVENT03_PART_FLAGS(entity) & 8)
+        if (entity->ext.event03Part.flags & 8)
         {
             switch (entity->subState)
             {
             case 0:
-                if (EVENT03_PART_FLAGS(entity) & 16)
+                if (entity->ext.event03Part.flags & 16)
                 {
                     child = Entity_CreateFromObjectTable(9);
                     child->updateFunc = (u32 *)EventScene03AttachedHelper_Update;
@@ -107,7 +107,7 @@ void EventScene03UnusedPart_Update(struct EwramData_EntityData *entity)
                 break;
             }
         }
-        if ((u16)EVENT03_PROGRESS(owner) & 2)
+        if ((u16)owner->ext.event03.progress & 2)
         {
             entity->state = 3;
             entity->stage = 0;
@@ -148,7 +148,7 @@ void EventScene03UnusedPart_Update(struct EwramData_EntityData *entity)
                     Effect_SpawnAt(entity->posX.whole, entity->posY.whole, entity->spriteLayer - 1);
                     EventScene03_SpawnUnusedPartDebris(entity);
                 }
-                EventScene03_SpawnTargetOrb((s16)entity->posX.part16.integer, (s16)entity->posY.part16.integer - 32, 0, 0, owner->unk_4FC.whole);
+                EventScene03_SpawnTargetOrb((s16)entity->posX.part16.integer, (s16)entity->posY.part16.integer - 32, 0, 0, owner->ext.raw.unk_4FC.whole);
                 entity->state = 4;
                 entity->stage = 0;
                 entity->subState = 0;

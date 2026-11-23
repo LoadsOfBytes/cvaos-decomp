@@ -29,8 +29,8 @@ void Object16Update(struct EwramData_EntityData *entity)
     src.texY = 0x8000;
     src.scrX = 0x80;
     src.scrY = 0x50;
-    src.alpha = OBJECT16_ANGLE(entity);
-    OBJECT16_ANGLE(entity) += OBJECT16_SPIN(entity);
+    src.alpha = entity->ext.object16.angle;
+    entity->ext.object16.angle += entity->ext.object16.spin;
     switch (entity->state)
     {
     case 0:
@@ -60,15 +60,15 @@ void Object16Update(struct EwramData_EntityData *entity)
         break;
     case 3:
         SetPlayerInput(1, 0);
-        if (OBJECT16_TIMER(entity) > 0)
+        if (entity->ext.object16.timer > 0)
         {
-            OBJECT16_SCALE(entity) = 0x1000 - Sin((OBJECT16_TIMER(entity) << 6) + 0x4000) / 16;
-            OBJECT16_TIMER(entity)--;
-            OBJECT16_SPIN(entity) += 2;
-            if (OBJECT16_TIMER(entity) == 0x40)
+            entity->ext.object16.scale = 0x1000 - Sin((entity->ext.object16.timer << 6) + 0x4000) / 16;
+            entity->ext.object16.timer--;
+            entity->ext.object16.spin += 2;
+            if (entity->ext.object16.timer == 0x40)
             {
                 PlaySong(0x1AE);
-                t = OBJECT16_TIMER(entity);
+                t = entity->ext.object16.timer;
                 if (t == 0x40)
                 {
                     BgPalette_StartColorFade(0x1F, 0x1F, 0x1F, 0x10000, 0, t);
@@ -89,8 +89,8 @@ void Object16Update(struct EwramData_EntityData *entity)
         gEwramData->gameState.stateFlags |= 0x800000;
         break;
     }
-    src.sx = OBJECT16_SCALE(entity);
-    src.sy = OBJECT16_SCALE(entity);
+    src.sx = entity->ext.object16.scale;
+    src.sy = entity->ext.object16.scale;
     BgAffineSet(&src, (struct BgAffineDstData *)0x03002C78, 1);
     entity->timer++;
     if (entity->timer & 1)

@@ -42,7 +42,7 @@ static inline s32 ToPixels(s32 x) { return TO_PIXELS(x); }
 /* Second family of Balore hand: fade, extend, attack and retract. */
 void BaloreHandB_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *body = BALORE_BODY(entity);
+    struct EwramData_EntityData *body = entity->ext.balorePart.body;
     u16 matrix;
     s32 scale;
     if (body->state == 10) entity->state = 5;
@@ -55,11 +55,11 @@ void BaloreHandB_Update(struct EwramData_EntityData *entity)
         entity->affine = 1;
         entity->spriteLayer = 0x1A;
         entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sBalorePalette, 15);
-        Sprite_Attach(entity, sBaloreSpriteSheet2, (s8)BALORE_GFX(body), entity->unk_510.part8.basePalette);
+        Sprite_Attach(entity, sBaloreSpriteSheet2, (s8)body->ext.balore.gfx, entity->unk_510.part8.basePalette);
         Anim_StartIndexed(entity, 7, 2, 0);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         ANIM(entity) = 10;
-        BALORE_ARM_LENGTH(entity) = 0x260000;
+        entity->ext.baloreHand.armLength = 0x260000;
         STEP(entity) = 0x80000;
         entity->timer = 16;
         entity->state = 1;
@@ -116,8 +116,8 @@ void BaloreHandB_Update(struct EwramData_EntityData *entity)
         return;
     }
     if (entity->hidden) return;
-    scale = (s32)((u32)ToPixels(BALORE_ARM_LENGTH(entity)) << 16) / 76;
-    BALORE_ARM_SCALE(entity) = scale;
-    ObjAffine_Set(BALORE_ARM_ANGLE(entity), scale, 0x10000, entity->flipX, 0, entity->affineIndex);
+    scale = (s32)((u32)ToPixels(entity->ext.baloreHand.armLength) << 16) / 76;
+    entity->ext.baloreHand.armScale = scale;
+    ObjAffine_Set(entity->ext.baloreHand.armAngle, scale, 0x10000, entity->flipX, 0, entity->affineIndex);
     Anim_Update(entity);
 }

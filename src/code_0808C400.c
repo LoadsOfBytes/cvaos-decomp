@@ -1,7 +1,5 @@
 /* Great Armor attack state machine. */
 #include "code_08009A0.h"
-#include "great_armor_entity.h"
-#include "joint_entity.h"
 #include "code_080D73B8.h"
 #include "code_08011DD0.h"
 #include "structs/ewram.h"
@@ -20,9 +18,9 @@ extern void GreatArmorSlashEffect_Spawn(struct EwramData_EntityData *, s32, s32,
 extern const s8 sUnk_08118FC7[3], sUnk_08118FCA[3], sUnk_08118FCD[3], sUnk_08118FD0[3], sUnk_08118FD3[3], sUnk_08118FD6[3], sUnk_08118FD9[3], sUnk_08118FDC[3], sGreatArmorChain[14];
 #define STATE entity->subState
 #define TIMER entity->timer
-#define FRAME JOINT_POSE(entity)
-#define VARIANT ((s8)GREAT_ARMOR_VARIANT(entity))
-#define HIT GREAT_ARMOR_ATTACK_HIT(entity)
+#define FRAME entity->ext.joint.pose
+#define VARIANT ((s8)entity->ext.greatArmor.variant)
+#define HIT entity->ext.greatArmor.attackHit
 #define UPDATE() GreatArmor_UpdateParts(entity, chain);
 #define COUNTDOWN() if ((s8)--TIMER > 0) break;
 #define STEP(T,F) TIMER = T; STATE++; FRAME = F;
@@ -106,7 +104,7 @@ void GreatArmor_UpdateAttack(struct EwramData_EntityData *entity)
     memcpy(t7, sUnk_08118FD9, 3);
     memcpy(t8, sUnk_08118FDC, 3);
     memcpy(chain, sGreatArmorChain, 14);
-    parts = (s32 *)entity->unk_500.greatArmorParts;
+    parts = (s32 *)entity->ext.greatArmor.parts;
     switch (STATE)
     {
     case 0:
@@ -116,12 +114,12 @@ void GreatArmor_UpdateAttack(struct EwramData_EntityData *entity)
             if ((s8)FRAME == 3)
             {
                 FRAME = 6; STATE = 1; POSE(0x5800, 0x4800)
-                JOINT_ATTACK_PHASE(entity) = 0; TIMER = t0[VARIANT];
+                entity->ext.jointAttack.phase = 0; TIMER = t0[VARIANT];
             }
             else
             {
                 FRAME = 10; STATE = 11; POSE(0x7800, 0x6800)
-                JOINT_ATTACK_PHASE(entity) = 0; TIMER = t0[VARIANT] / 2 + (u8)t0[VARIANT];
+                entity->ext.jointAttack.phase = 0; TIMER = t0[VARIANT] / 2 + (u8)t0[VARIANT];
             }
         }
         else
@@ -129,12 +127,12 @@ void GreatArmor_UpdateAttack(struct EwramData_EntityData *entity)
             if ((s8)FRAME == 3)
             {
                 FRAME = 16; STATE = 21; SLOW_POSE(0x16800, 0x12000)
-                JOINT_ATTACK_PHASE(entity) = 0; TIMER = t3[VARIANT];
+                entity->ext.jointAttack.phase = 0; TIMER = t3[VARIANT];
             }
             else
             {
                 FRAME = 20; STATE = 31; SLOW_POSE(0x16800, 0x12000)
-                JOINT_ATTACK_PHASE(entity) = 0; TIMER = t3[VARIANT];
+                entity->ext.jointAttack.phase = 0; TIMER = t3[VARIANT];
             }
         }
         break;
@@ -255,7 +253,7 @@ void GreatArmor_UpdateAttack(struct EwramData_EntityData *entity)
         if ((s8)FRAME == 3) { zero = 0; FRAME = 24; STATE = 41; }
         else { zero = 0; FRAME = 28; STATE = 51; }
         SLOW_POSE(0x16800, 0x11000)
-        JOINT_ATTACK_PHASE(entity) = zero; TIMER = t6[VARIANT];
+        entity->ext.jointAttack.phase = zero; TIMER = t6[VARIANT];
         break;
     }
     case 41:

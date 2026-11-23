@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "succubus_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -55,8 +54,8 @@ void Succubus_UpdateAttack(struct EwramData_EntityData *entity)
                 entity->velX.whole = -0x30000;
             entity->subState++;
             entity->timer = 0;
-            SUCCUBUS_LUNGING(entity) = 1;
-            SUCCUBUS_GRABBED(entity) = 0;
+            entity->ext.succubus.lunging = 1;
+            entity->ext.succubus.grabbed = 0;
             Afterimage_Create(entity, 0x38, 0xC, 0x10);
             Afterimage_Create(entity, 0x38, 6, 0x10);
         }
@@ -66,14 +65,14 @@ void Succubus_UpdateAttack(struct EwramData_EntityData *entity)
         speed = 0x10000;
         Entity_MoveWithCollision(entity, speed, -0x200000, 0x40000, 8);
         Entity_ClampXToRoom(entity, 4);
-        hit = *(s8 *)&SUCCUBUS_GRABBED(entity);
+        hit = *(s8 *)&entity->ext.succubus.grabbed;
         if (hit)
         {
             entity->subState = 10;
             entity->timer = 0x10;
-            SUCCUBUS_DRAIN_COUNT(entity) = 0;
-            SUCCUBUS_DRAIN_TIMER(entity) = 0x14;
-            SUCCUBUS_ESCAPE_PRESSES(entity) = 0;
+            entity->ext.succubus.drainCount = 0;
+            entity->ext.succubus.drainTimer = 0x14;
+            entity->ext.succubus.escapePresses = 0;
             break;
         }
         if (entity->timer++ > 0x1D)
@@ -84,9 +83,9 @@ void Succubus_UpdateAttack(struct EwramData_EntityData *entity)
             entity->timer = hit;
             entity->velY.whole = speed;
             entity->accelY.whole = 0x1800;
-            SUCCUBUS_LUNGING(entity) = hit;
-            SUCCUBUS_DRAIN_COUNT(entity) = hit;
-            SUCCUBUS_DRAIN_TIMER(entity) = hit;
+            entity->ext.succubus.lunging = hit;
+            entity->ext.succubus.drainCount = hit;
+            entity->ext.succubus.drainTimer = hit;
         }
         break;
     case 10:
@@ -119,11 +118,11 @@ void Succubus_UpdateAttack(struct EwramData_EntityData *entity)
             entity->posY.whole = ey + y;
             entity->timer = t - 1;
         }
-        v = ({ s32 t = SUCCUBUS_DRAIN_TIMER(entity) + 1; SUCCUBUS_DRAIN_TIMER(entity) = t; (s8)t; });
+        v = ({ s32 t = entity->ext.succubus.drainTimer + 1; entity->ext.succubus.drainTimer = t; (s8)t; });
         if (v > 0x2C)
         {
-            SUCCUBUS_DRAIN_TIMER(entity) = 0;
-            if (({ s32 t = SUCCUBUS_DRAIN_COUNT(entity) + 1; SUCCUBUS_DRAIN_COUNT(entity) = t; (s8)t; }) > 4)
+            entity->ext.succubus.drainTimer = 0;
+            if (({ s32 t = entity->ext.succubus.drainCount + 1; entity->ext.succubus.drainCount = t; (s8)t; }) > 4)
                 goto check;
             {
                 struct PlayerContactDamage effect;
@@ -159,9 +158,9 @@ void Succubus_UpdateAttack(struct EwramData_EntityData *entity)
             entity->posX.whole += dx;
         }
     check:
-        if ((gEwramData->inputData.playerNewInput & 0x3FF) && *(s8 *)&SUCCUBUS_ESCAPE_PRESSES(entity) <= 0x63)
-            SUCCUBUS_ESCAPE_PRESSES(entity)++;
-        if (Player_StartScriptedAnimation(0xE, 0, 0, 0) || *(s8 *)&SUCCUBUS_DRAIN_COUNT(entity) > 4 || *(s8 *)&SUCCUBUS_ESCAPE_PRESSES(entity) > 0x1D)
+        if ((gEwramData->inputData.playerNewInput & 0x3FF) && *(s8 *)&entity->ext.succubus.escapePresses <= 0x63)
+            entity->ext.succubus.escapePresses++;
+        if (Player_StartScriptedAnimation(0xE, 0, 0, 0) || *(s8 *)&entity->ext.succubus.drainCount > 4 || *(s8 *)&entity->ext.succubus.escapePresses > 0x1D)
         {
             Anim_StartIndexed(entity, 3, 0, 0);
             {
@@ -181,11 +180,11 @@ void Succubus_UpdateAttack(struct EwramData_EntityData *entity)
             entity->accelY.whole = 0x1800;
             entity->subState++;
             entity->timer = 0;
-            SUCCUBUS_DODGE_CHECKED(entity) = 1;
-            SUCCUBUS_LUNGING(entity) = 0;
-            SUCCUBUS_GRABBED(entity) = 0;
-            SUCCUBUS_HOLDING(entity) = 0;
-            SUCCUBUS_ESCAPE_PRESSES(entity) = 0;
+            entity->ext.succubus.dodgeChecked = 1;
+            entity->ext.succubus.lunging = 0;
+            entity->ext.succubus.grabbed = 0;
+            entity->ext.succubus.holding = 0;
+            entity->ext.succubus.escapePresses = 0;
         }
         break;
     }
@@ -202,7 +201,7 @@ void Succubus_UpdateAttack(struct EwramData_EntityData *entity)
             entity->timer = 0;
             entity->velY.whole = speed2;
             entity->accelY.whole = 0x1800;
-            SUCCUBUS_DODGE_CHECKED(entity) = 0;
+            entity->ext.succubus.dodgeChecked = 0;
         }
         break;
     }

@@ -49,7 +49,7 @@ s32 EventScene30_PlayTransformation(struct EwramData_EntityData *entity)
         break;
     case 3:
         EventScene30_UpdateTransformation(entity);EventScene30_UploadFrame();
-        if(EVENT30_PHASE(entity)==10)
+        if(entity->ext.event30.phase==10)
         {if(gEwramData->gameModeTimer++>50){gEwramData->gameModeTimer=0;entity->subState=4;}}
         break;
     case 4:

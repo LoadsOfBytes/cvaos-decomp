@@ -1,12 +1,11 @@
 /* MandragoraTerminalPart_Update. */
 /* Mandragora terminal part controls the scream's palette flashes. */
 #include "code/code_08039340.h"
-#include "mandragora_entity.h"
 #include "structs/ewram.h"
 extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
 extern void HitBox_SetAttackRaw(struct EwramData_EntityData *,s32);
 extern s32 sMandragoraTerminalPartAttackBox[];
-#define FLAGS(e) (MANDRAGORA_FLAGS((e)))
+#define FLAGS(e) (e->ext.mandragora.flags)
 static inline s32 Tick(struct EwramData_EntityData *e) { s32 timer=e->timer; if(timer) e->timer--; return timer; }
 /**
  * @brief Sequence the scream animation, BG/OBJ palette flashes, expanded

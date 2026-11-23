@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "particle_effect.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern void Effect_UpdateParticle(struct EwramData_EntityData *);
@@ -17,10 +16,10 @@ void SkyFish_SpawnTrail(struct EwramData_EntityData *parent, s32 x, s32 y, s32 p
         child->velY.whole = 0x4000;
         child->accelX.whole = 0;
         child->accelY.whole = 0;
-        PARTICLE_DAMPING(child) = 0x20;
+        child->ext.particle.damping = 0x20;
         child->spriteLayer = priority;
         child->timer = 0;
-        PARTICLE_FLAGS(child) = param;
+        child->ext.particle.flags = param;
         if (parent->flipX)
             child->velX.whole = 0x20000;
         else
@@ -48,10 +47,10 @@ void SkyFish_SpawnRisingTrail(struct EwramData_EntityData *parent, s32 x, s32 y,
         child->velY.whole = 0;
         child->accelX.whole = 0;
         child->accelY.whole = -0x1000;
-        PARTICLE_DAMPING(child) = 0x18;
+        child->ext.particle.damping = 0x18;
         child->spriteLayer = priority;
         child->timer = 0;
-        PARTICLE_FLAGS(child) = param;
+        child->ext.particle.flags = param;
         tiles = ObjGfx_Find(sSkyFishGfx);
         child->unk_510.part8.basePalette = parent->unk_510.part8.basePalette;
         Sprite_Attach(child, sSkyFishSpriteSheet, tiles, child->unk_510.part8.basePalette);

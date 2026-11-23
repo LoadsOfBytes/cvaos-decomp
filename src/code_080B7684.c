@@ -1,6 +1,5 @@
 /* Dead Warrior dispatcher and Skull Millione family effect records. */
 #include "code_08009A0.h"
-#include "skull_millione_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/enemy_variant_b7e80.h"
@@ -41,14 +40,14 @@ void EnemyDeadWarriorUpdate(struct EwramData_EntityData *entity)
  */
 void SkullMillioneFamily_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 {
-    const struct SkullMillioneFamilyVariant *attack = &sSkullMillioneFamilyVariants[(u8)SKULL_MILLIONE_VARIANT(entity)];
+    const struct SkullMillioneFamilyVariant *attack = &sSkullMillioneFamilyVariants[(u8)entity->ext.skullMillione.variant];
     struct PlayerContactDamage effect;
     u32 value;
     s32 sum;
     if (entity->state == 2) effect.attributes = attack->effectType;
     else effect.attributes = 0;
     effect.unused = 0;
-    if ((u8)SKULL_MILLIONE_VARIANT(entity) != 2)
+    if ((u8)entity->ext.skullMillione.variant != 2)
         effect.attack = entity->attack;
     else
     {

@@ -1,6 +1,5 @@
 /* Chaos seed shots (33B8/3504) and sparks (35A0). */
 #include "code_08009A0.h"
-#include "chaos_entity.h"
 #include "code_080D73B8.h"
 #include "syscalls.h"
 #include "code/code_08039340.h"
@@ -30,9 +29,9 @@ extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
 extern s32 Entity_AimVelocityAtPoint(struct EwramData_EntityData *, s32, s32, s32);
 
-#define OFFSET_X(e) (CHAOS_OFFSET_X((e)))
-#define OFFSET_Y(e) (CHAOS_OFFSET_Y((e)))
-#define REFLECTED(e) (CHAOS_SHOT_REFLECTED((e)))
+#define OFFSET_X(e) (e->ext.chaosShot.offsetX)
+#define OFFSET_Y(e) (e->ext.chaosShot.offsetY)
+#define REFLECTED(e) (e->ext.chaosShot.reflected)
 #define TO_PIXELS(d) ((d) < 0 ? -(-(d) >> 16) : (d) >> 16)
 
 /* Seed shot: follow the orb, appear after the delay, then fly at the
@@ -40,7 +39,7 @@ extern s32 Entity_AimVelocityAtPoint(struct EwramData_EntityData *, s32, s32, s3
 void ChaosSeedShot_Update(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
-    struct EwramData_EntityData *orb = CHAOS_LINK(entity);
+    struct EwramData_EntityData *orb = entity->ext.chaosChild.link;
     struct EwramData *ewram = gEwramData;
     struct BgLayerState *camera = &ewram->bgInfo[1];
 
@@ -116,12 +115,12 @@ void ChaosSeedShot_OnHit(struct EwramData_EntityData *entity, struct EwramData_E
 void ChaosOrb_SpawnSpark(struct EwramData_EntityData *orb, s32 x, s32 y)
 {
     u32 box;
-    struct EwramData_EntityData *owner = CHAOS_LINK(orb);
+    struct EwramData_EntityData *owner = orb->ext.chaosChild.link;
     struct EwramData_EntityData *spark = EntityCreateInRange(0x49, 0xCF, (u32 *)ChaosSpark_Update);
     struct ChaosData *data;
 
     box = 0x0404FEFE;
-    data = (struct ChaosData *)CHAOS_DATA(owner);
+    data = (struct ChaosData *)owner->ext.chaos.data.value;
     if (spark != NULL)
     {
         s32 graphics;
@@ -141,9 +140,9 @@ void ChaosOrb_SpawnSpark(struct EwramData_EntityData *orb, s32 x, s32 y)
         spark->hit.flags |= 4;
         spark->hit.flags &= ~2;
         spark->unk_518.part8.enemyId = orb->unk_518.part8.enemyId;
-        CHAOS_LINK(spark) = orb;
+        spark->ext.chaosChild.link = orb;
         spark->scrollWithBg = 0;
-        CHAOS_SHOT_SPREAD(spark) = 0x1000000;
+        spark->ext.chaosSoulShot.spread = 0x1000000;
         spark->drawFunc = (u32 *)ChaosSpark_Draw;
     }
 }

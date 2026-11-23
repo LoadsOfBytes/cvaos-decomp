@@ -22,7 +22,7 @@ struct EwramData_EntityData *EventScene03_SpawnFlyingPart(struct EwramData_Entit
     entity->posX.part16.integer = x;
     entity->posY.part16.integer = y;
     ENTITY_PARENT_INDEX(entity) = ENTITY_INDEX(parent);
-    EVENT03_PART_WAVE(entity) = (RandomNumberGenerator() % 128) << 9;
+    entity->ext.event03Part.wave = (RandomNumberGenerator() % 128) << 9;
     Anim_StartIndexed(entity, 4, 0, 1);
     flip = 0;
     if (entity->posX.whole < gEwramData->playerState.player->posX.whole)

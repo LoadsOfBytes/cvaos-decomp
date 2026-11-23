@@ -50,7 +50,7 @@ s16 Object36_FloorCorrection(struct EwramData_EntityData *entity, u16 tx, u16 ty
     dy = ey - sy;
     if (dx < 0)
         dx = -dx;
-    r = (s16)OBJECT36_RADIUS(entity);
+    r = (s16)entity->ext.object36.radius;
     if (dx > r - 6)
         return 0;
     if (dist < r - 8)

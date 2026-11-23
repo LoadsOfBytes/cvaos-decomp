@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "dead_crusader_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -57,7 +56,7 @@ void DeadCrusader_UpdateWalk(struct EwramData_EntityData *entity)
             Anim_StartIndexed(entity, 7, 0, 0);
             entity->subState = 5;
             entity->timer = 0;
-            DEAD_CRUSADER_GUARDING(entity) = 1;
+            entity->ext.deadCrusader.guarding = 1;
             entity->velX.whole = 0;
             entity->accelX.whole = 0;
             entity->velY.whole = speed;
@@ -114,7 +113,7 @@ void DeadCrusader_UpdateWalk(struct EwramData_EntityData *entity)
             Anim_StartIndexed(entity, 7, 0, 0);
             entity->subState = 5;
             entity->timer = 0;
-            DEAD_CRUSADER_GUARDING(entity) = 1;
+            entity->ext.deadCrusader.guarding = 1;
             entity->velX.whole = 0;
             entity->accelX.whole = 0;
             entity->velY.whole = 0x10000;
@@ -149,7 +148,7 @@ void DeadCrusader_UpdateWalk(struct EwramData_EntityData *entity)
         break;
     case 5:
         entity->flipX = Entity_IsTargetRight(entity);
-        DEAD_CRUSADER_GUARDING(entity) = 1;
+        entity->ext.deadCrusader.guarding = 1;
         speed = 0x10000;
         res = Entity_MoveWithCollision(entity, speed, -0x200000, 0x80000, 8);
         if (!(res & 4))

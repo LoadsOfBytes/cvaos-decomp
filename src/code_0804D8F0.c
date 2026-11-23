@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "gate_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 #include "structs/entity_render_flags.h"
@@ -25,8 +24,8 @@ void Gate_SetupGraphics(struct EwramData_EntityData *entity, s32 opened)
     entity->flipX = (s16)entity->posX.part16.integer > 0x78 ? 1 : 0;
     if (!Entity_LoadGraphics(entity, sGateGfx, sGatePalette, 0, sGateSpriteSheet))
         entity->unk_510.part8.basePalette = 5;
-    GATE_PALETTE(entity) = entity->unk_510.part8.basePalette;
-    pal = GATE_PALETTE(entity);
+    entity->ext.gate.palette = entity->unk_510.part8.basePalette;
+    pal = entity->ext.gate.palette;
     entity->roomActive = 1;
     if (opened == 0)
     {
@@ -38,9 +37,9 @@ void Gate_SetupGraphics(struct EwramData_EntityData *entity, s32 opened)
         entity->animFrame = 5;
         PaletteAnim_Start(sGatePalette, sGatePaletteAnim1, (s8)pal);
     }
-    GATE_AFFINE_0(entity) = ObjAffine_Alloc(1);
-    GATE_AFFINE_1(entity) = ObjAffine_Alloc(1);
-    entity->affineIndex = GATE_AFFINE_0(entity);
+    entity->ext.gate.affine0 = ObjAffine_Alloc(1);
+    entity->ext.gate.affine1 = ObjAffine_Alloc(1);
+    entity->affineIndex = entity->ext.gate.affine0;
     entity->affine = 1;
     entity->drawFunc = (u32 *)Gate_Draw;
 }

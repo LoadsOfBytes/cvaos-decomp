@@ -1,6 +1,5 @@
 /* Witch activation and attack selection. */
 #include "code_08009A0.h"
-#include "witch_entity.h"
 #include "structs/ewram.h"
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *, u16, u16);
 extern s32 Target_GetPixelX(struct EwramData_EntityData *);
@@ -18,7 +17,7 @@ void Witch_UpdateWait(struct EwramData_EntityData *entity)
     s32 width = 160;
     s32 height = 220;
 
-    if (WITCH_FLAGS(entity) & 4)
+    if (entity->ext.witch.flags & 4)
     {
         height += 180;
         width = 240;
@@ -31,7 +30,7 @@ void Witch_UpdateWait(struct EwramData_EntityData *entity)
         s32 x;
         s16 *px;
 
-        WITCH_FLAGS(entity) |= 4;
+        entity->ext.witch.flags |= 4;
         facing = entity->flipX;
         px = &entity->posX.part16.integer;
         t = Target_GetPixelX(entity);

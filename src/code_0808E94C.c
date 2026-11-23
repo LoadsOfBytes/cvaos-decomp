@@ -1,13 +1,9 @@
 /* Great Armor body-part helpers 0x0808E94C..0x0808EB3B (same code as the Big Golem helpers in
  * code_080ACEC4.c with 0x28-byte parts). */
 #include "code_08009A0.h"
-#include "great_armor_entity.h"
-#include "particle_effect.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
-/* Slash effect: kind 3 stored at the spawn; never read. */
-#define GREAT_ARMOR_SLASH_UNUSED_KIND(e) e->unk_4FC.part8.unk_4FC
 
 #define GREAT_ARMOR_PART_COUNT 14
 
@@ -51,7 +47,7 @@ void GreatArmor_UpdateParts(struct EwramData_EntityData *entity, s8 *order)
  */
 void GreatArmor_ResetPartAngles(struct EwramData_EntityData *entity, s32 partIndex)
 {
-    struct GreatArmorPart *parts = entity->unk_500.greatArmorParts;
+    struct GreatArmorPart *parts = entity->ext.greatArmor.parts;
 
     parts[partIndex].targetSwingAngle = 0;
     parts[partIndex].swingAngle = 0;
@@ -62,7 +58,7 @@ void GreatArmor_ResetPartAngles(struct EwramData_EntityData *entity, s32 partInd
  */
 void GreatArmor_SaveParts(struct EwramData_EntityData *entity)
 {
-    struct GreatArmorPart *parts = entity->unk_500.greatArmorParts;
+    struct GreatArmorPart *parts = entity->ext.greatArmor.parts;
     s32 i;
 
     for (i = GREAT_ARMOR_PART_COUNT - 1; i >= 0; parts++, i--)
@@ -77,7 +73,7 @@ void GreatArmor_SaveParts(struct EwramData_EntityData *entity)
  */
 void GreatArmor_RestoreParts(struct EwramData_EntityData *entity)
 {
-    struct GreatArmorPart *parts = entity->unk_500.greatArmorParts;
+    struct GreatArmorPart *parts = entity->ext.greatArmor.parts;
     s32 i;
 
     for (i = GREAT_ARMOR_PART_COUNT - 1; i >= 0; parts++, i--)
@@ -120,7 +116,7 @@ void GreatArmor_SpawnParticle(s32 x, s32 y, s32 velocityX, s32 velocityY, s32 la
     child->velY.whole = velocityY;
     child->spriteLayer = layer;
     child->timer = 0;
-    PARTICLE_FLAGS(child) = 3;
+    child->ext.particle.flags = 3;
     gfx = ObjGfx_Find(sCommonObjectGfx);
     Sprite_Attach(child, sCommonObjectSpriteSheet, gfx, 7);
     Anim_StartIndexed(child, 0xF, 0, 0);
@@ -136,7 +132,7 @@ void GreatArmor_SpawnParticle(s32 x, s32 y, s32 velocityX, s32 velocityY, s32 la
 void GreatArmorSlashEffect_Spawn(struct EwramData_EntityData *entity, s32 x, s32 y, s32 velocityX, s32 velocityY, s32 layer)
 {
     struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)GreatArmorSlashEffect_Update);
-    struct GreatArmorPart *parts = entity->unk_500.greatArmorParts;
+    struct GreatArmorPart *parts = entity->ext.greatArmor.parts;
     s32 gfx;
 
     if (child == NULL)
@@ -150,12 +146,12 @@ void GreatArmorSlashEffect_Spawn(struct EwramData_EntityData *entity, s32 x, s32
     child->accelY.whole = *&parts[12].offsetY;
     child->spriteLayer = layer;
     child->timer = 0;
-    GREAT_ARMOR_SLASH_UNUSED_KIND(child) = 3;
+    child->ext.greatArmorSlash.unusedKind = 3;
     gfx = ObjGfx_Find(sCommonObjectGfx);
     Sprite_Attach(child, sCommonObjectSpriteSheet, gfx, 7);
     Anim_StartIndexed(child, 0x10, 0, 0);
     Anim_Update(child);
-    GREAT_ARMOR_SLASH_OWNER(child) = entity;
+    child->ext.greatArmorSlash.owner = entity;
     child->scrollWithBg = 0;
     child->drawFunc = (u32 *)Sprite_DrawEntity;
 }

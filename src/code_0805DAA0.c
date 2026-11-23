@@ -18,7 +18,7 @@ void EventScene03MainPart_Update(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *owner = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
     s32 wave;
 
-    if ((u16)EVENT03_PROGRESS(owner) & 4)
+    if ((u16)owner->ext.event03.progress & 4)
     {
         entity->state = 5;
         entity->stage = 0;
@@ -27,7 +27,7 @@ void EventScene03MainPart_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if ((u16)EVENT03_PROGRESS(owner) & 8)
+        if ((u16)owner->ext.event03.progress & 8)
         {
             entity->state = 1;
             entity->stage = 0;
@@ -35,11 +35,11 @@ void EventScene03MainPart_Update(struct EwramData_EntityData *entity)
         }
         break;
     case 1:
-        wave = Sin(EVENT03_PART_WAVE(entity) + 0x4000) / 4;
-        EVENT03_PART_WAVE(entity) += 0x200;
+        wave = Sin(entity->ext.event03Part.wave + 0x4000) / 4;
+        entity->ext.event03Part.wave += 0x200;
         entity->posY.whole += wave;
         entity->velY.whole = wave + entity->accelY.whole;
-        if ((u16)EVENT03_PROGRESS(owner) & 0x10)
+        if ((u16)owner->ext.event03.progress & 0x10)
         {
             entity->state = 2;
             entity->stage = 0;

@@ -29,14 +29,14 @@ void Object1BUpdate(struct EwramData_EntityData *entity)
         if (gEwramData->gameState.conveyorSpeed < 0x14000) gEwramData->gameState.conveyorSpeed += 0x1000;
         break;
     }
-    OBJECT1B_SCROLL(entity) += gEwramData->gameState.conveyorSpeed;
+    entity->ext.object1B.scroll += gEwramData->gameState.conveyorSpeed;
     colors = sObject1BColors;
-    index = ((OBJECT1B_SCROLL(entity) / 8) >> 16) % 3;
+    index = ((entity->ext.object1B.scroll / 8) >> 16) % 3;
     if (index < 0) index = -index;
     color = colors[index];
-    if ((u8)OBJECT1B_COLOR(entity) != color)
+    if ((u8)entity->ext.object1B.color != color)
     {
-        OBJECT1B_COLOR(entity) = color;
+        entity->ext.object1B.color = color;
         BgPalette_LoadRange(sObject1BBgPalette, color, 1, 8);
     }
     Anim_Update(entity);

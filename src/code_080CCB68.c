@@ -1,6 +1,5 @@
 /* Bael accelerated charge, rotation, and sparks. */
 #include "code_08009A0.h"
-#include "wheel_enemy_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -10,9 +9,9 @@ extern void Bael_RestoreXAtProbe(struct EwramData_EntityData *entity,s32 work);
 extern void Bael_SpawnChargeEffect(s32 x,s32 y,s32 index,s32 facing);
 extern s32 Bael_OffsetBySign(s32 value,s32 step);
 extern s16 sBaelWalkProfile[];
-#define SPEED(e) (WHEEL_SPEED((e)))
-#define ANGLE(e) (WHEEL_ANGLE((e)))
-#define DIRECTION(e) (WHEEL_DIRECTION((e)))
+#define SPEED(e) (e->ext.wheel.speed)
+#define ANGLE(e) (e->ext.wheel.angle)
+#define DIRECTION(e) (e->ext.wheel.direction)
 
 /**
  * @brief Accelerate and rotate toward the sampled side, emit effects and count completed charges in the linked head.
@@ -102,7 +101,7 @@ void Bael_UpdateCharge(struct EwramData_EntityData *entity)
                 }
                 entity->timer = 32;
                 {
-                    s32 count = (s8)BAEL_CHARGE_COUNT(part);
+                    s32 count = (s8)part->ext.bael.chargeCount;
                     if ((u32)count >= (u32)RandomNumberGenerator() % 5 + 1)
                     {
                         s32 zero = reset;
@@ -113,7 +112,7 @@ void Bael_UpdateCharge(struct EwramData_EntityData *entity)
                         entity->accelY.whole = zero;
                         entity->velY.whole = zero;
                         SPEED(entity) = (s32)SPEED(entity) / 2;
-                        BAEL_CHARGE_COUNT(part) = zero;
+                        part->ext.bael.chargeCount = zero;
                         entity->timer = zero;
                     }
                 }
@@ -135,7 +134,7 @@ void Bael_UpdateCharge(struct EwramData_EntityData *entity)
             if (--entity->timer == 0xFF)
             {
                 entity->stage = work;
-                BAEL_CHARGE_COUNT(part)++;
+                part->ext.bael.chargeCount++;
             }
             break;
         }

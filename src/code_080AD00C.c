@@ -1,6 +1,5 @@
 /* Big Golem damage and contact callbacks. */
 #include "code_08009A0.h"
-#include "joint_entity.h"
 #include "code_080D73B8.h"
 #include "code_08033CAC.h"
 #include "code/code_080211F0.h"
@@ -17,9 +16,9 @@ extern void BigGolem_OnDamaged(struct EwramData_EntityData *, s32, u16 *, s32);
  * coordinates afterwards. Parts 12/13 play a guarded-hit sound. */
 void BigGolemPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    struct EwramData_EntityData *parent = JOINT_PART_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.jointPart.owner;
     s32 x, y, damage;
-    if ((u8)(*(u8 *)&entity->unk_504 - 12) <= 1)
+    if ((u8)(entity->ext.jointPart.index - 12) <= 1)
     {
         x = parent->posX.whole;
         y = parent->posY.whole;
@@ -43,6 +42,6 @@ void BigGolemPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *
         parent->posY.whole = y;
         damage = (s16)damage;
         Entity_ShowDamage(entity, damage, 0);
-        BigGolem_OnDamaged(JOINT_PART_OWNER(entity), attacker, hit, damage);
+        BigGolem_OnDamaged(entity->ext.jointPart.owner, attacker, hit, damage);
     }
 }

@@ -3,7 +3,6 @@
  *   Succubus_LoadGraphics = Object25_LoadGraphics
  * plus Succubus_DamagePlayerOnContact (decompiled locally). */
 #include "code_08009A0.h"
-#include "succubus_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -37,7 +36,7 @@ void Succubus_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 {
     struct PlayerContactDamage contactDamage;
 
-    if ((s8)SUCCUBUS_LUNGING(entity) == 0)
+    if ((s8)entity->ext.succubus.lunging == 0)
     {
         contactDamage.attack = entity->attack;
         contactDamage.attributes = 0;
@@ -49,8 +48,8 @@ void Succubus_DamagePlayerOnContact(struct EwramData_EntityData *entity)
     }
     else
     {
-        SUCCUBUS_GRABBED(entity) = 1;
-        SUCCUBUS_HOLDING(entity) = 1;
-        SUCCUBUS_ESCAPE_PRESSES(entity) = 0;
+        entity->ext.succubus.grabbed = 1;
+        entity->ext.succubus.holding = 1;
+        entity->ext.succubus.escapePresses = 0;
     }
 }

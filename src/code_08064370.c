@@ -22,7 +22,7 @@ void EventScene30_CreateHalo(struct EwramData_EntityData *owner)
         Sprite_Attach(effect,sEventScene30SpriteSheet,slot,14);
         effect->drawFunc=(u32 *)Sprite_DrawEntity;
         ENTITY_PARENT_INDEX(effect)=ENTITY_INDEX(owner);
-        EVENT30_EFFECT_SCALE(effect)=0x1A000;
+        effect->ext.event30Effect.scale=0x1A000;
         slot=ObjAffine_Alloc(1);
         if(slot<0)
         {
@@ -32,16 +32,16 @@ fail:
         }
         effect->affineIndex=slot;
         effect->affine=1;
-        ObjAffine_Set(0x10000,EVENT30_EFFECT_SCALE(effect),EVENT30_EFFECT_SCALE(effect),0,zero,effect->affineIndex);
-        EVENT30_FRAGMENT_PHASE(effect)=zero;
-        effect->posX.part16.integer=(*(s8 *)&EVENT30_JITTER_X(owner)-48)+EVENT30_CENTER_X(owner);
-        effect->posY.part16.integer=(s16)((s8)EVENT30_JITTER_Y(owner)+8)+EVENT30_CENTER_Y(owner);
+        ObjAffine_Set(0x10000,effect->ext.event30Effect.scale,effect->ext.event30Effect.scale,0,zero,effect->affineIndex);
+        effect->ext.event30Fragment.phase=zero;
+        effect->posX.part16.integer=(*(s8 *)&owner->ext.event30.jitterX-48)+owner->ext.event30.centerX;
+        effect->posY.part16.integer=(s16)((s8)EVENT30_JITTER_Y(owner)+8)+owner->ext.event30.centerY;
         effect->velX.whole=-1000;
         effect->velY.whole=0x1000;
         effect->accelX.whole=-0x800;
         effect->accelY.whole=0x600;
         EVENT30_EFFECT_ANGLE(effect)=zero;
-        EVENT30_EFFECT_SPIN(effect)=(s16)0xFF56;
+        effect->ext.event30Effect.spin=(s16)0xFF56;
         effect->spriteLayer=3;
         effect->animFrame=24;
     }

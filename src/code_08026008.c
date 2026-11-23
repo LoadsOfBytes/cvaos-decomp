@@ -1,6 +1,5 @@
 #include "code_08009A0.h"
 #include "soul_skill_entity.h"
-#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -59,7 +58,7 @@ void SkillWingedSkeletonUse(struct EwramData_EntityData *entity)
         slot = ObjAffine_Alloc(0);
         if ((s16)slot < 0)
         {
-            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+            gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
             EntityDelete(entity);
             return;
         }
@@ -71,12 +70,12 @@ void SkillWingedSkeletonUse(struct EwramData_EntityData *entity)
         if (child == NULL)
         {
             ObjAffine_Free(entity->affineIndex);
-            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = child;
+            gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = child;
             EntityDelete(entity);
             return;
         }
     }
-        Entity_PlaceRelativeTo(entity, RED_SOUL_OWNER(entity), 8, -0x1A);
+        Entity_PlaceRelativeTo(entity, entity->ext.redSoul.owner, 8, -0x1A);
         entity->scrollWithBg = 1;
         entity->spriteLayer = 0xD;
         entity->state++;
@@ -127,12 +126,12 @@ void SkillWingedSkeletonUse(struct EwramData_EntityData *entity)
         angle = SKILL_WINGED_SKELETON_ANGLE(entity);
         if (entity->flipX)
             angle += -0x8000;
-        SKILL_WINGED_SKELETON_TIP_X(entity) = Sin(angle + 0x4000) << 4;
-        SKILL_WINGED_SKELETON_TIP_Y(entity) = Sin(angle) << 4;
+        entity->ext.skillWingedSkeleton.tipX = Sin(angle + 0x4000) << 4;
+        entity->ext.skillWingedSkeleton.tipY = Sin(angle) << 4;
         EntityAccelerateAndMoveX(entity, 0x80000);
         EntityAccelerateAndMoveY(entity, 0x80000);
-        x = (s16)gEwramData->bgInfo[1].xPos.part16.integer + (s16)entity->posX.part16.integer + FIXED_TO_INT(SKILL_WINGED_SKELETON_TIP_X(entity));
-        y = (s16)gEwramData->bgInfo[1].yPos.part16.integer + (s16)entity->posY.part16.integer + FIXED_TO_INT(SKILL_WINGED_SKELETON_TIP_Y(entity));
+        x = (s16)gEwramData->bgInfo[1].xPos.part16.integer + (s16)entity->posX.part16.integer + FIXED_TO_INT(entity->ext.skillWingedSkeleton.tipX);
+        y = (s16)gEwramData->bgInfo[1].yPos.part16.integer + (s16)entity->posY.part16.integer + FIXED_TO_INT(entity->ext.skillWingedSkeleton.tipY);
         if (Collision_GetTile((s16)x, (s16)y) && !Collision_IsPointSolid((s16)x, (s16)y))
         {
             entity->state = 2;
@@ -151,7 +150,7 @@ void SkillWingedSkeletonUse(struct EwramData_EntityData *entity)
         break;
     case 3:
         ObjAffine_Free(entity->affineIndex);
-        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;

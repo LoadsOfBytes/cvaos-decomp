@@ -17,9 +17,9 @@ void Soma_UpdateJumpControl(struct EwramData_EntityData *entity)
 
     if (ew->playerState.actionLockFlags & 0x10)
         return;
-    if (PLAYER_ACTION_FLAGS(entity) & 0x1E)
+    if (entity->ext.player.actionFlags & 0x1E)
     {
-        if (!(PLAYER_ACTION_FLAGS(entity) & 0x18))
+        if (!(entity->ext.player.actionFlags & 0x18))
         {
             if (entity->velY.whole < -0x4000 && !(ew->inputData.playerHeldInput & ew->playerStatus.jumpButton))
             {
@@ -34,7 +34,7 @@ void Soma_UpdateJumpControl(struct EwramData_EntityData *entity)
                     entity->accelY.whole = -0x2000;
             }
         }
-        if (((gEwramData->playerStatus.soulStateFlags & 0x100) || (PLAYER_ACTION_FLAGS(entity) & 0x400000)) && entity->velY.whole > 0x2800)
+        if (((gEwramData->playerStatus.soulStateFlags & 0x100) || (entity->ext.player.actionFlags & 0x400000)) && entity->velY.whole > 0x2800)
             entity->velY.whole -= 0x2800;
         if (gEwramData->playerStatus.soulStateFlags & 0x800)
         {

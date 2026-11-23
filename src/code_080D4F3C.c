@@ -40,8 +40,8 @@ s32 Graham_CreateShotPair(struct EwramData_EntityData *owner, s32 low)
             (*p)->posY.whole = owner->posY.whole - 0x200000;
         (*p)->scrollWithBg = 1;
         (*p)->attack = 0x50;
-        GRAHAM_SHOT_PART_INDEX((*p)) = i;
-        if ((u8)GRAHAM_SHOT_PART_INDEX((*p)) == 0)
+        (*p)->ext.grahamShot.partIndex = i;
+        if ((u8)(*p)->ext.grahamShot.partIndex == 0)
             Anim_StartIndexed(*p, 4, 0, 0);
         else
         {

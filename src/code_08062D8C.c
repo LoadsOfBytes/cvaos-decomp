@@ -20,13 +20,13 @@ void EventScene30_SpawnOrbitFragments(struct EwramData_EntityData *owner)
         if(entity)
         {
             entity->updateFunc=(u32 *)EventScene30OrbitFragment_Update;
-            entity->posX.part16.integer=EVENT30_CENTER_X(owner)+item->x;
-            entity->posY.part16.integer=EVENT30_CENTER_Y(owner)+item->y+32;
+            entity->posX.part16.integer=owner->ext.event30.centerX+item->x;
+            entity->posY.part16.integer=owner->ext.event30.centerY+item->y+32;
             entity->timer=item->delay;
             entity->animFrame=item->frame;
-            EVENT30_FRAGMENT_PHASE(entity)=RandomNumberGenerator();
-            EVENT30_FRAGMENT_DIR(entity)=index&1;
-            EVENT30_FRAGMENT_INDEX(entity)=index;
+            entity->ext.event30Fragment.phase=RandomNumberGenerator();
+            entity->ext.event30Fragment.dir=index&1;
+            entity->ext.event30Fragment.index=index;
             entity->hidden=1;
         }
     }

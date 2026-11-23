@@ -19,8 +19,8 @@ struct SolidObjectCallbacks {
     s32 (*push)(struct EwramData_EntityData *object, s16 x, s16 y);
 };
 
-#define FUNCS(object) ((struct SolidObjectCallbacks *)SOLID_OBJECT_CALLBACKS((object)))
-#define FLAGS(e) (PLAYER_ACTION_FLAGS((e)))
+#define FUNCS(object) ((struct SolidObjectCallbacks *)object->ext.solidObject.callbacks.words)
+#define FLAGS(e) (e->ext.player.actionFlags)
 #define TILE_FLAGS (gUnk_03002CB0.collisionProbeFlags)
 #define X ((s16)x)
 #define Y ((s16)y)
@@ -100,7 +100,7 @@ static inline s32 IsSoftFloor(void)
 
 static inline void UpdateFloorKind(s16 c)
 {
-    if (c != 0 && PLAYER_FLOOR_KIND(gEwramData->playerState.player) == 0xFF)
+    if (c != 0 && gEwramData->playerState.player->ext.player.floorKind == 0xFF)
     {
         s32 kind;
         u8 d = TILE_FLAGS;
@@ -110,7 +110,7 @@ static inline void UpdateFloorKind(s16 c)
             kind = (d & 0x30) >> 4;
         else
             kind = 0xFF;
-        PLAYER_FLOOR_KIND(gEwramData->playerState.player) = kind;
+        gEwramData->playerState.player->ext.player.floorKind = kind;
     }
 }
 
@@ -201,7 +201,7 @@ static inline u16 FloorProbe(s16 x, s16 y, s32 flag)
     {
         struct EwramData_EntityData *player = gEwramData->playerState.player;
 
-        if (player->velY.whole >= 0 && (!(PLAYER_ACTION_FLAGS(player) & 2) || PLAYER_AIR_TIME(player) == 0x10))
+        if (player->velY.whole >= 0 && (!(player->ext.player.actionFlags & 2) || player->ext.player.airTime == 0x10))
             c = PlatformFloor(x, y, c);
     }
     UpdateFloorKind(c);
@@ -227,7 +227,7 @@ static inline void StartAnim(struct EwramData_EntityData *entity, u16 anim)
 {
     struct PlayerBodyBox box2 = sSomaBatFormBodyBoxes[0];
 
-    PLAYER_REQUESTED_ANIM(entity) = anim;
+    entity->ext.player.requestedAnim = anim;
     HitBox_SetBody(entity, &box2);
 }
 
@@ -249,7 +249,7 @@ void Soma_UpdateBatForm(struct EwramData_EntityData *entity)
         entity->accelY.whole = 0;
         FLAGS(entity) &= ~0x200000;
         FLAGS(entity) &= 0xEFFFFE9F;
-        PLAYER_WALL_PROBES(entity) = 0x080E12EA;
+        entity->ext.player.wallProbes = 0x080E12EA;
         Soma_ResolveBatExitCollision(entity);
         if (FLAGS(entity) & 0x01000080)
             entity->state = 0;
@@ -261,12 +261,12 @@ void Soma_UpdateBatForm(struct EwramData_EntityData *entity)
 
             Anim_StartIndexed(entity, 0x1E, 3, 0);
             HitBox_SetBody(entity, &box);
-            PLAYER_REQUESTED_ANIM(entity) = 0xFF;
-            PLAYER_ACTION_FLAGS(entity) &= ~0x200000;
+            entity->ext.player.requestedAnim = 0xFF;
+            entity->ext.player.actionFlags &= ~0x200000;
             pal = sSomaAnimPalettes[0x1E];
-            if (PLAYER_ANIM_PALETTE(entity) != pal)
+            if (entity->ext.player.animPalette != pal)
             {
-                PLAYER_ANIM_PALETTE(entity) = pal;
+                entity->ext.player.animPalette = pal;
                 ObjPalette_LoadRange(sSomaPalette, pal, 1, 0);
             }
         }
@@ -327,7 +327,7 @@ void Soma_UpdateBatForm(struct EwramData_EntityData *entity)
     done_x:
         entity->velY.whole = 0;
         entity->accelY.whole = 0;
-        PLAYER_WALL_PROBES(entity) = 0x080E12EA;
+        entity->ext.player.wallProbes = 0x080E12EA;
         Soma_ResolveBatExitCollision(entity);
         if (!(FLAGS(entity) & 0x200000))
             return;

@@ -1,6 +1,5 @@
 /* Shared Skull Millione / Cagnazzo / Lubicant setup and movement. */
 #include "code_08009A0.h"
-#include "skull_millione_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -41,7 +40,7 @@ void SkullMillioneFamily_UpdateApproach(struct EwramData_EntityData *);
 s32 SkullMillioneFamily_CreatePart(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *child = Entity_CreateObject(SkullMillioneFamilyPart_Update);
-    const struct SkullMillioneFamilyVariant *info = &sSkullMillioneFamilyVariants[(u8)SKULL_MILLIONE_VARIANT(entity)];
+    const struct SkullMillioneFamilyVariant *info = &sSkullMillioneFamilyVariants[(u8)entity->ext.skullMillione.variant];
     u16 slot;
     if (child == NULL || !Entity_LoadGraphics(child, sSkullMillioneFamilyGfx, sSkullMillioneFamilyPalette, info->palette, info->sprites)) return 0;
     slot = ObjAffine_Alloc(1);
@@ -66,17 +65,17 @@ s32 SkullMillioneFamily_CreatePart(struct EwramData_EntityData *entity)
  */
 void SkullMillioneFamily_UpdateWait(struct EwramData_EntityData *entity)
 {
-    const struct SkullMillioneFamilyVariant *info = &sSkullMillioneFamilyVariants[(u8)SKULL_MILLIONE_VARIANT(entity)];
+    const struct SkullMillioneFamilyVariant *info = &sSkullMillioneFamilyVariants[(u8)entity->ext.skullMillione.variant];
     switch (entity->subState)
     {
     case 0:
         entity->subState = 1;
-        SKULL_MILLIONE_BOB_FRAME(entity) = 0x8000;
+        entity->ext.skullMillione.bobFrame = 0x8000;
         entity->timer = info->activationDelay;
         /* fall through */
     case 1:
-        SKULL_MILLIONE_BOB_FRAME(entity)++;
-        entity->velY.whole = Sin((0x5B0 * SKULL_MILLIONE_BOB_FRAME(entity)) & 0xFFFF) / 2;
+        entity->ext.skullMillione.bobFrame++;
+        entity->velY.whole = Sin((0x5B0 * entity->ext.skullMillione.bobFrame) & 0xFFFF) / 2;
         entity->posY.whole += entity->velY.whole;
         if (entity->timer != 0) entity->timer--;
         else
@@ -103,25 +102,25 @@ void SkullMillioneFamily_UpdateWait(struct EwramData_EntityData *entity)
  */
 void SkullMillioneFamily_UpdateApproach(struct EwramData_EntityData *entity)
 {
-    const struct SkullMillioneFamilyVariant *info = &sSkullMillioneFamilyVariants[(u8)SKULL_MILLIONE_VARIANT(entity)];
+    const struct SkullMillioneFamilyVariant *info = &sSkullMillioneFamilyVariants[(u8)entity->ext.skullMillione.variant];
     s32 x;
     s32 y;
     s32 arrived;
     switch (entity->subState)
     {
     case 0:
-        SKULL_MILLIONE_SPEED(entity) = 0;
+        entity->ext.skullMillione.speed = 0;
         entity->subState = 1;
         /* fall through */
     case 1:
         if (entity->animTimer == 0) Entity_FaceTarget(entity);
-        if (SKULL_MILLIONE_SPEED(entity) < info->approachSpeed) SKULL_MILLIONE_SPEED(entity) += 0x2000;
+        if (entity->ext.skullMillione.speed < info->approachSpeed) entity->ext.skullMillione.speed += 0x2000;
         x = ((s16)BACKGROUND->xPos.part16.integer + (s16)Target_GetPixelX(entity)) << 16;
         y = ((s16)BACKGROUND->yPos.part16.integer + (s16)Target_GetPixelY(entity) - 0x50) << 16;
-        if (Target_GetX(entity) > entity->posX.whole) x -= SKULL_MILLIONE_SPEED(entity);
-        else x += SKULL_MILLIONE_SPEED(entity);
+        if (Target_GetX(entity) > entity->posX.whole) x -= entity->ext.skullMillione.speed;
+        else x += entity->ext.skullMillione.speed;
         x += Target_GetVelocityX() * info->swayMultiplier;
-        arrived = Entity_AimVelocityAtPoint(entity, x, y, SKULL_MILLIONE_SPEED(entity));
+        arrived = Entity_AimVelocityAtPoint(entity, x, y, entity->ext.skullMillione.speed);
         EntityMove(entity);
         if (arrived)
         {

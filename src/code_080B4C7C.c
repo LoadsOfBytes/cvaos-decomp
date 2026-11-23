@@ -43,12 +43,12 @@ static inline s32 ToPixels(s32 x)
  */
 void BaloreHand_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *body = BALORE_BODY(entity);
+    struct EwramData_EntityData *body = entity->ext.balorePart.body;
     u16 matrix;
     u8 state = entity->state;
     u8 pal, level, index;
 
-    if (state != 0 && (BALORE_FLAGS(body) & 2) && state <= 6)
+    if (state != 0 && (body->ext.balore.flags & 2) && state <= 6)
         entity->state = 7;
     switch (entity->state)
     {
@@ -59,14 +59,14 @@ void BaloreHand_Update(struct EwramData_EntityData *entity)
         entity->affineIndex = matrix;
         entity->affine = 1;
         entity->spriteLayer = 0x1A;
-        BALORE_HAND_STEER(entity) = (s32)Heap_Alloc(7);
+        entity->ext.baloreHand.steer = (s32)Heap_Alloc(7);
         entity->unk_510.part8.basePalette = ObjPalette_FindOrLoadVariant(sBalorePalette, 15);
-        Sprite_Attach(entity, sBaloreSpriteSheet, (s8)BALORE_GFX(body), entity->unk_510.part8.basePalette);
+        Sprite_Attach(entity, sBaloreSpriteSheet, (s8)body->ext.balore.gfx, entity->unk_510.part8.basePalette);
         Anim_StartIndexed(entity, 0x2D, 2, 0);
         Anim_Update(entity);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         ANIM(entity) = 0x30;
-        BALORE_ARM_LENGTH(entity) = 0x260000;
+        entity->ext.baloreHand.armLength = 0x260000;
         entity->state = 1;
         break;
     case 1:
@@ -78,7 +78,7 @@ void BaloreHand_Update(struct EwramData_EntityData *entity)
     case 2:
     {
         /* follow the body's requested state */
-        u8 next = BALORE_HAND_COMMAND(body);
+        u8 next = body->ext.balore.handCommand;
         u8 test = next;
 
         asm("" : "+r"(test)); /* FAKEMATCH */
@@ -119,10 +119,10 @@ void BaloreHand_Update(struct EwramData_EntityData *entity)
     case 7:
         FLAGS(entity) &= 0xFB;
         if (entity->flipX)
-            BALORE_FLAGS(body) |= 8;
+            body->ext.balore.flags |= 8;
         else
-            BALORE_FLAGS(body) |= 16;
-        if ((BALORE_FLAGS(body) & 24) != 24)
+            body->ext.balore.flags |= 16;
+        if ((body->ext.balore.flags & 24) != 24)
             break;
         entity->timer = 16;
         entity->state = 8;
@@ -143,11 +143,11 @@ void BaloreHand_Update(struct EwramData_EntityData *entity)
         }
         if (Entity_SteerToPoint(entity, sBaloreHandSteeringParams0))
         {
-            u16 old = BALORE_FLAGS(body);
+            u16 old = body->ext.balore.flags;
             register u32 newFlags asm("r1"); /* FAKEMATCH: result in the constant register */
             newFlags = old | 32;
             newFlags &= 0xFFE7;
-            BALORE_FLAGS(body) = newFlags;
+            body->ext.balore.flags = newFlags;
             if (newFlags & 2)
                 entity->state = 10;
             else
@@ -158,7 +158,7 @@ void BaloreHand_Update(struct EwramData_EntityData *entity)
         }
         break;
     case 9:
-        if ((u8)BALORE_HAND_COMMAND(body) == 1)
+        if ((u8)body->ext.balore.handCommand == 1)
         {
             entity->hidden = 0;
             {
@@ -167,14 +167,14 @@ void BaloreHand_Update(struct EwramData_EntityData *entity)
                 u8 zero = 0;
 
                 *anim = 0x30;
-                BALORE_ARM_LENGTH(entity) = 0x260000;
-                entity->state = (u8)BALORE_HAND_COMMAND(body);
+                entity->ext.baloreHand.armLength = 0x260000;
+                entity->state = (u8)body->ext.balore.handCommand;
                 entity->subState = zero;
             }
         }
         break;
     case 10:
-        Heap_Free((void *)BALORE_HAND_STEER(entity));
+        Heap_Free((void *)entity->ext.baloreHand.steer);
         ObjAffine_Free(entity->affineIndex);
     delete:
         EntityDelete(entity);
@@ -182,7 +182,7 @@ void BaloreHand_Update(struct EwramData_EntityData *entity)
     }
     if (entity->hidden)
         return;
-    BALORE_ARM_SCALE(entity) = (ToPixels(BALORE_ARM_LENGTH(entity)) << 16) / 76;
-    ObjAffine_Set(BALORE_ARM_ANGLE(entity), BALORE_ARM_SCALE(entity), 0x10000, entity->flipX, 0, entity->affineIndex);
+    entity->ext.baloreHand.armScale = (ToPixels(entity->ext.baloreHand.armLength) << 16) / 76;
+    ObjAffine_Set(entity->ext.baloreHand.armAngle, entity->ext.baloreHand.armScale, 0x10000, entity->flipX, 0, entity->affineIndex);
     Anim_Update(entity);
 }

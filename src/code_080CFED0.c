@@ -19,7 +19,7 @@ extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
 extern s32 Entity_IsInRect(struct EwramData_EntityData *,s16,s16,u16,u16);
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
 extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
-#define FLASH(e) ((e)->unk_4F8.part8.unk_4F9)
+#define FLASH(e) ((e)->ext.raw.unk_4F8.part8.unk_4F9)
 void EnemyBelmontUpdate(struct EwramData_EntityData *entity)
 {
     if(entity->state==1) { Belmont_UpdateIntro(entity); return; }

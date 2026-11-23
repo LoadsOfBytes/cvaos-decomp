@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "bg_particle_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern s8 ObjPalette_FindOrLoad(void *palette);
@@ -46,7 +45,7 @@ void BgParticle_Update(struct EwramData_EntityData *entity)
             }
             Sprite_Attach(entity, (void *)0x08210DB0, gfx, pal);
         }
-        Anim_StartIndexed(entity, BG_PARTICLE_KIND(entity), 0, 1);
+        Anim_StartIndexed(entity, entity->ext.bgParticle.kind, 0, 1);
         entity->animStep = RandomNumberGenerator() & 1;
         Anim_Update(entity);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
@@ -55,17 +54,17 @@ void BgParticle_Update(struct EwramData_EntityData *entity)
     case 1:
         if (!gEwramData->gameState.timeStopTimer)
         {
-            BG_PARTICLE_ANGLE_X(entity) += 0x800;
-            if (BG_PARTICLE_KIND(entity) != 3)
+            entity->ext.bgParticle.angleX += 0x800;
+            if (entity->ext.bgParticle.kind != 3)
             {
                 entity->velX.whole = entity->accelX.whole;
-                vy = entity->accelY.whole * Sin(BG_PARTICLE_ANGLE_X(entity)) / 0x10000;
+                vy = entity->accelY.whole * Sin(entity->ext.bgParticle.angleX) / 0x10000;
             }
             else
             {
-                BG_PARTICLE_ANGLE_Y(entity) += 0xA00;
-                entity->velX.whole = Sin(BG_PARTICLE_ANGLE_X(entity) + 0x4000) * entity->accelX.whole / 0x1000;
-                vy = entity->accelY.whole * Sin(BG_PARTICLE_ANGLE_Y(entity)) / 0x1000;
+                entity->ext.bgParticle.angleY += 0xA00;
+                entity->velX.whole = Sin(entity->ext.bgParticle.angleX + 0x4000) * entity->accelX.whole / 0x1000;
+                vy = entity->accelY.whole * Sin(entity->ext.bgParticle.angleY) / 0x1000;
             }
             entity->velY.whole = vy;
             entity->posX.whole += entity->velX.whole;
@@ -74,7 +73,7 @@ void BgParticle_Update(struct EwramData_EntityData *entity)
         }
         {
             const s32 *tbl = sUnk_0852559C;
-            k = &tbl[BG_PARTICLE_KIND(entity)];
+            k = &tbl[entity->ext.bgParticle.kind];
         }
         bg = &gEwramData->bgInfo[1];
         entity->posX.whole -= *k * bg->xVel.whole / 256;

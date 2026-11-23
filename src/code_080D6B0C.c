@@ -1,6 +1,5 @@
 /* Seven scene stages: appear, spiral particles, fall, trigger and wait. */
 #include "code_08009A0.h"
-#include "boss_pickup_entity.h"
 #include "code_08001194.h"
 #include "code_0800B700.h"
 #include "code_08013960.h"
@@ -18,9 +17,9 @@
 extern s32 RandomSigned(s32);
 extern s32 Hit_CheckWithPlayer(void *,struct EwramData_EntityData *);
 extern void BossRecoveryPickupParticle_Update(struct EwramData_EntityData *);
-#define PHASE(e) (BOSS_PICKUP_PHASE((e)))
-#define LANDED(e) (BOSS_PICKUP_LANDED((e)))
-#define SCALE(e) (*(s32 *)&BOSS_PICKUP_SCALE((e)))
+#define PHASE(e) (e->ext.bossPickup.phase)
+#define LANDED(e) (e->ext.bossPickup.landed)
+#define SCALE(e) (*(s32 *)&e->ext.bossPickup.scale)
 #define EVENT(e) ((e)->unk_514.part16.spawnParam0)
 /**
  * @brief Reveal and grow the delayed pickup, emit particles, fall and
@@ -55,8 +54,8 @@ void BossRecoveryPickup_Update(struct EwramData_EntityData *entity)
                     particle->accelX.whole=entity->posX.whole+camera->xPos.whole;
                     particle->accelY.whole=entity->posY.whole+camera->yPos.whole;
                     particle->flipX=RandomNumberGenerator() & 1;
-                    BOSS_PICKUP_PARTICLE_ANGLE(particle)=angle;
-                    BOSS_PICKUP_PARTICLE_RADIUS(particle)=RandomSigned(0x80000)+0x380000;
+                    particle->ext.bossPickupParticle.angle=angle;
+                    particle->ext.bossPickupParticle.radius=RandomSigned(0x80000)+0x380000;
                 }
             }
             if(SCALE(entity)==0xF000)

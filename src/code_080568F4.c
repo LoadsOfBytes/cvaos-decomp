@@ -4,7 +4,7 @@
 #include "structs/ewram.h"
 
 struct Seq { s8 level; s8 step; s8 hit; u8 flags; };
-#define SEQ(e) ((struct Seq *)&(e)->unk_504)
+#define SEQ(e) ((struct Seq *)&(e)->ext.raw.unk_504)
 
 extern void *memcpy(void *dst, const void *src, unsigned long size);
 extern void EntityMoveX(struct EwramData_EntityData *);
@@ -52,7 +52,7 @@ void Object22_UpdateState(struct EwramData_EntityData *e)
         if (gEwramData->playerState.standingPlatform != e)
         {
             e->posY.part16.integer = 0x9D - bg->yPos.part16.integer;
-            if (++OBJECT22_EMPTY_TIMER(e) > 0x3B)
+            if (++e->ext.object22.emptyTimer > 0x3B)
             {
                 e->stage = 0;
                 e->subState = 4;
@@ -63,7 +63,7 @@ void Object22_UpdateState(struct EwramData_EntityData *e)
         else
         {
             e->posY.part16.integer = 0x9E - bg->yPos.part16.integer;
-            OBJECT22_EMPTY_TIMER(e) = 0;
+            e->ext.object22.emptyTimer = 0;
         }
         if ((s16)e->posX.part16.integer + (s16)bg->xPos.part16.integer >= sObject22LevelThresholds[SEQ(e)->level])
         {
@@ -79,7 +79,7 @@ void Object22_UpdateState(struct EwramData_EntityData *e)
         if (gEwramData->playerState.standingPlatform != e)
         {
             e->posY.part16.integer = 0x9D - bg->yPos.part16.integer;
-            if (++OBJECT22_EMPTY_TIMER(e) > 0x3B)
+            if (++e->ext.object22.emptyTimer > 0x3B)
             {
                 e->stage = 0;
                 e->subState = 4;
@@ -90,7 +90,7 @@ void Object22_UpdateState(struct EwramData_EntityData *e)
         else
         {
             e->posY.part16.integer = 0x9E - bg->yPos.part16.integer;
-            OBJECT22_EMPTY_TIMER(e) = 0;
+            e->ext.object22.emptyTimer = 0;
         }
         switch (e->stage)
         {

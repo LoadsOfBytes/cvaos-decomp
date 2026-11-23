@@ -1,6 +1,5 @@
 /* Slime setup, dispatch and shrinking death animation. */
 #include "code_08009A0.h"
-#include "slime_entity.h"
 #include "code_08001194.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
@@ -25,7 +24,7 @@ extern u8 sSlimeGfx[], sSlimePalette[], sSlimeSpriteSheet[], sSlimeWalkProfile[]
  */
 s32 Slime_UpdateDeath(struct EwramData_EntityData *entity)
 {
-    s32 angle = SLIME_ANGLE(entity) + 0x4000;
+    s32 angle = entity->ext.slime.angle + 0x4000;
     s32 timer;
     s32 dx;
     s32 dy;
@@ -35,29 +34,29 @@ s32 Slime_UpdateDeath(struct EwramData_EntityData *entity)
     case 0:
         PlaySong(0x70);
         Anim_StartIndexed(entity, 0, 0, 1);
-        if (SLIME_FLAGS(entity) & 4)
+        if (entity->ext.slime.flags & 4)
         {
             entity->accelY.whole = 0x2000;
-            SLIME_ANGLE(entity) = 0;
+            entity->ext.slime.angle = 0;
         }
         entity->subState = 1;
         /* fall through */
     case 1:
-        if (SLIME_FLAGS(entity) & 4)
+        if (entity->ext.slime.flags & 4)
         {
-            if (Entity_Walk(entity, SLIME_SPEED(entity), sSlimeWalkProfile, 0x22) & 8)
+            if (Entity_Walk(entity, entity->ext.slime.speed, sSlimeWalkProfile, 0x22) & 8)
             {
-                SLIME_FLAGS(entity) &= ~4;
-                SLIME_SPEED(entity) = 0;
+                entity->ext.slime.flags &= ~4;
+                entity->ext.slime.speed = 0;
                 {
-                    s32 correction = (0x10000 - SLIME_SCALE_Y(entity)) >> 8;
+                    s32 correction = (0x10000 - entity->ext.slime.scaleY) >> 8;
                     s32 factor = 0x500;
                     factor *= correction;
                     entity->posY.whole += factor;
                 }
             }
         }
-        if (SLIME_SCALE_Y(entity) > 0)
+        if (entity->ext.slime.scaleY > 0)
         {
             {
                 s32 value = Sin(angle + 0x4000) >> 8;
@@ -83,7 +82,7 @@ s32 Slime_UpdateDeath(struct EwramData_EntityData *entity)
             entity->timer = timer;
             if (!(timer & 3)) Slime_SpawnParticles(entity, 1, 0, -0x20000);
             if (!(entity->timer & 0xF)) PlaySong(0x165);
-            SLIME_SCALE_Y(entity) -= 0x400;
+            entity->ext.slime.scaleY -= 0x400;
         }
         else return 1;
         break;
@@ -106,16 +105,16 @@ remove:
     }
     entity->affineIndex = affine;
     entity->affine = 1;
-    SLIME_ANGLE(entity) = 0;
-    SLIME_SCALE_X(entity) = 0x10000;
-    SLIME_SCALE_Y(entity) = 0x10000;
+    entity->ext.slime.angle = 0;
+    entity->ext.slime.scaleX = 0x10000;
+    entity->ext.slime.scaleY = 0x10000;
     Enemy_ResetFromTemplate(entity);
     entity->spriteLayer = 0x11;
     Anim_StartIndexed(entity, 0, 0, 1);
     Anim_Update(entity);
     if (gEwramData->gameState.bestiaryPreview)
     {
-        ObjAffine_Set(SLIME_ANGLE(entity), SLIME_SCALE_X(entity), SLIME_SCALE_Y(entity), entity->flipX, 0, entity->affineIndex);
+        ObjAffine_Set(entity->ext.slime.angle, entity->ext.slime.scaleX, entity->ext.slime.scaleY, entity->flipX, 0, entity->affineIndex);
         entity->state = 3;
         return;
     }
@@ -137,9 +136,9 @@ remove:
         }
         entity->posY.part16.integer = height + ((u16)entity->posY.part16.integer + 5);
         entity->stage = 2;
-        SLIME_ANGLE(entity) = 0x8000;
+        entity->ext.slime.angle = 0x8000;
     }
-    ObjAffine_Set(SLIME_ANGLE(entity), SLIME_SCALE_X(entity), SLIME_SCALE_Y(entity), entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set(entity->ext.slime.angle, entity->ext.slime.scaleX, entity->ext.slime.scaleY, entity->flipX, 0, entity->affineIndex);
     entity->scrollWithBg = 1;
     entity->state = 0;
 }
@@ -163,7 +162,7 @@ void EnemySlimeUpdate(struct EwramData_EntityData *entity)
         Anim_Update(entity);
         return;
     }
-    ObjAffine_Set(SLIME_ANGLE(entity), SLIME_SCALE_X(entity), SLIME_SCALE_Y(entity), entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set(entity->ext.slime.angle, entity->ext.slime.scaleX, entity->ext.slime.scaleY, entity->flipX, 0, entity->affineIndex);
     Enemy_CheckHitPlayer(entity);
     Anim_Update(entity);
 }

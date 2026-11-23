@@ -39,8 +39,8 @@ void EventScene30PieceEmitter_Update(struct EwramData_EntityData *entity)
             effect->velY.whole=(variant+1)*ySpeed;
             effect->spriteLayer=3;
             effect->animFrame=frames[entity->stage];
-            EVENT30_EFFECT_SPIN(effect)=0x400;
-            EVENT30_EFFECT_SCALE(effect)=0x10000;
+            effect->ext.event30Effect.spin=0x400;
+            effect->ext.event30Effect.scale=0x10000;
             entity->stage++;
             entity->state=zero;
             entity->timer=4;

@@ -1,6 +1,5 @@
 #include "code_08009A0.h"
 #include "soul_skill_entity.h"
-#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code_080D73B8.h"
@@ -16,14 +15,14 @@
  */
 void SkillRedMinotaurHitBoxUpdate(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.redSoul.owner;
     s32 angle, angle2;
     s32 dx, dy;
 
     entity->roomActive = 1;
     if (parent->state == 4)
     {
-        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;
@@ -57,7 +56,7 @@ void SkillRedMinotaurHitBoxUpdate(struct EwramData_EntityData *entity)
     entity->posX.whole = parent->posX.whole + dx;
     entity->posY.whole = parent->posY.whole + dy;
     dy = ABS(FIXED_TO_INT(dy));
-    if (SKILL_RED_MINOTAUR_SCALE(parent) > 0xFFFF)
+    if (parent->ext.skillRedMinotaur.scale > 0xFFFF)
     {
         if (entity->posY.part16.integer < -dy || entity->posY.part16.integer > dy + 0xA0)
             parent->hidden = 1;

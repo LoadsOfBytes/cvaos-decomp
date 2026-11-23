@@ -20,8 +20,8 @@ void Object15Orbiter_Update(struct EwramData_EntityData *entity)
         entity->spriteLayer = 31;
         entity->state = 1;
     }
-    entity->velX.whole = FixedMulFast(Sin(OBJECT15_ANGLE(owner) + 0x4000), OBJECT15_RADIUS(owner));
-    entity->velY.whole = FixedMulFast(Sin(OBJECT15_ANGLE(owner)), OBJECT15_RADIUS(owner));
+    entity->velX.whole = FixedMulFast(Sin(owner->ext.object15.angle + 0x4000), owner->ext.object15.radius);
+    entity->velY.whole = FixedMulFast(Sin(owner->ext.object15.angle), owner->ext.object15.radius);
     entity->posX.whole = owner->posX.whole + entity->velX.whole;
     entity->posY.whole = owner->posY.whole + entity->velY.whole;
 }

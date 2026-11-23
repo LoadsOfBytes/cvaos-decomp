@@ -1,6 +1,5 @@
 /* Chaos_UpdateIdle. */
 #include "code_08009A0.h"
-#include "chaos_entity.h"
 #include "code_08013960.h"
 #include "code_08033CAC.h"
 #include "code_080D73B8.h"
@@ -53,7 +52,7 @@ s32 Chaos_StartSecondForm(struct EwramData_EntityData *core)
 
     core->updateFunc = (u32 *)EnemyChaos2Update;
     data = Heap_Alloc(10);
-    CHAOS_DATA(core) = (s32)data;
+    core->ext.chaos.data.value = (s32)data;
     if (data != NULL)
     {
         if (EnemyChaos2Create(core))
@@ -76,8 +75,8 @@ s32 Chaos_StartSecondForm(struct EwramData_EntityData *core)
             gEwramData->startPauseEnabled = 0;
             core->timer = 0;
             data->timer = RandomNumberGenerator() % 128 + 60;
-            CHAOS2_PART_COUNT(core) = 4;
-            CHAOS2_BASE_DEFENSE(core) = core->defense;
+            core->ext.chaos2.partCount = 4;
+            core->ext.chaos2.baseDefense = core->defense;
             Chaos2_CreateAffineEffect(core);
             Music_SetCurrent(0x12);
             return 0;
@@ -105,7 +104,7 @@ extern void Chaos_StartPaletteSequence(struct EwramData_EntityData *, void *);
  */
 void Chaos2_UpdateAttack(struct EwramData_EntityData *core)
 {
-    struct Chaos2Data *data = (struct Chaos2Data *)CHAOS_DATA(core);
+    struct Chaos2Data *data = (struct Chaos2Data *)core->ext.chaos.data.value;
 
     switch (core->subState)
     {

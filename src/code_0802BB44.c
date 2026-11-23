@@ -1,6 +1,5 @@
 #include "code_08009A0.h"
 #include "soul_skill_entity.h"
-#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -36,7 +35,7 @@ static inline struct SoulGraphicsResources *GetSet(s32 index)
  */
 void SkillKyomaDemonUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.redSoul.owner;
     u16 slot;
 
     entity->roomActive = 1;
@@ -46,7 +45,7 @@ void SkillKyomaDemonUse(struct EwramData_EntityData *entity)
         slot = ObjAffine_Alloc(0);
         if ((s16)slot < 0)
         {
-            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+            gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
             EntityDelete(entity);
             break;
         }
@@ -70,25 +69,25 @@ void SkillKyomaDemonUse(struct EwramData_EntityData *entity)
         entity->state++;
     case 1:
         Entity_PlaceRelativeTo(entity, parent, 0, 0);
-        SKILL_KYOMA_DEMON_SCALE_X(entity) = Sin(entity->timer << 10);
-        ObjAffine_Set(0, SKILL_KYOMA_DEMON_SCALE_X(entity), 0x10000, 0, 0, entity->affineIndex);
+        entity->ext.skillKyomaDemon.scaleX = Sin(entity->timer << 10);
+        ObjAffine_Set(0, entity->ext.skillKyomaDemon.scaleX, 0x10000, 0, 0, entity->affineIndex);
         if (entity->timer != 0)
         {
             entity->timer--;
             break;
         }
-        SKILL_KYOMA_DEMON_TIMER(entity) = 0xB4;
+        entity->ext.skillKyomaDemonWait.timer = 0xB4;
         Player_StartContactImmunity(0xB4);
         entity->hidden = 1;
         entity->state++;
     case 2:
-        if (SKILL_KYOMA_DEMON_TIMER(entity) != 0)
+        if (entity->ext.skillKyomaDemonWait.timer != 0)
         {
-            SKILL_KYOMA_DEMON_TIMER(entity)--;
+            entity->ext.skillKyomaDemonWait.timer--;
             break;
         }
         ObjAffine_Free(entity->affineIndex);
-        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         break;

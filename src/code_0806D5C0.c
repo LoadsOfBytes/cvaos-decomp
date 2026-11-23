@@ -1,6 +1,5 @@
 /* Particle spawners 0x0806D5C0..0x0806D893. */
 #include "code_08009A0.h"
-#include "particle_effect.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -49,7 +48,7 @@ void Effect_SpawnParticleAnim0(s32 x, s32 y, s32 vx, s32 vy, s32 layer)
         entity->velY.whole = vy;
         entity->spriteLayer = layer;
         entity->timer = 0;
-        PARTICLE_FLAGS(entity) = 3;
+        entity->ext.particle.flags = 3;
         gfx = ObjGfx_Find(sCommonObjectGfx);
         Sprite_Attach(entity, sCommonObjectSpriteSheet, gfx, 7);
         Anim_StartIndexed(entity, 0, 0, 0);
@@ -75,7 +74,7 @@ void Effect_SpawnParticleAnim11(s32 x, s32 y, s32 vx, s32 vy, s32 layer)
         entity->velY.whole = vy;
         entity->spriteLayer = layer;
         entity->timer = 0;
-        PARTICLE_FLAGS(entity) = 3;
+        entity->ext.particle.flags = 3;
         entity->flipX = RandomNumberGenerator() % 2;
         gfx = ObjGfx_Find(sCommonObjectGfx);
         Sprite_Attach(entity, sCommonObjectSpriteSheet, gfx, 7);
@@ -104,8 +103,8 @@ void Effect_SpawnTimedFrameParticle(s32 x, s32 y, s32 vx, s32 vy, s32 layer, s32
         entity->velY.whole = vy;
         entity->spriteLayer = layer;
         entity->timer = 0;
-        PARTICLE_FLAGS(entity) = flags;
-        PARTICLE_DAMPING(entity) = damping;
+        entity->ext.particle.flags = flags;
+        entity->ext.particle.damping = damping;
         gfx = ObjGfx_Find(sCommonObjectGfx);
         Sprite_Attach(entity, sCommonObjectSpriteSheet, gfx, palette);
         entity->animFrame = 0x35;
@@ -131,7 +130,7 @@ void Effect_SpawnRisingParticle(s32 x, s32 y, s32 layer, s32 mode)
         entity->velY.whole = -0x4000;
         entity->spriteLayer = layer;
         entity->timer = 0;
-        PARTICLE_FLAGS(entity) = 4;
+        entity->ext.particle.flags = 4;
         gfx = ObjGfx_Find(sCommonObjectGfx);
         Sprite_Attach(entity, sCommonObjectSpriteSheet, gfx, 6);
         if (mode == 0)

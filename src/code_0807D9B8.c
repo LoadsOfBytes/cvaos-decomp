@@ -1,6 +1,5 @@
 /* Follow the main body, pulse its affine scale, then shrink away on death. */
 #include "code_08009A0.h"
-#include "giant_ghost_entity.h"
 #include "code/code_08039340.h"
 extern s32 Enemy_IsStunnedNoFlash(struct EwramData_EntityData *);
 extern s32 Sin(s32);
@@ -25,7 +24,7 @@ void GiantGhostAura_Update(struct EwramData_EntityData *entity)
         entity->flipX = parent->flipX;
         if (!Enemy_IsStunnedNoFlash(parent))
         {
-            GIANT_GHOST_AURA_PHASE(entity) += 0x400;
+            entity->ext.giantGhostAura.phase += 0x400;
             Anim_Update(entity);
             entity->timer++;
             if ((entity->timer & 3) == 0)
@@ -38,7 +37,7 @@ void GiantGhostAura_Update(struct EwramData_EntityData *entity)
         if (entity->flipX) entity->posX.part16.integer = parent->posX.part16.integer - 4;
         else entity->posX.part16.integer = parent->posX.part16.integer + 4;
         entity->posY.part16.integer = parent->posY.part16.integer - 18;
-        pulse = Sin(GIANT_GHOST_AURA_PHASE(entity)) / 16;
+        pulse = Sin(entity->ext.giantGhostAura.phase) / 16;
         entity->velX.whole = pulse + 0x1B000;
         entity->velY.whole = pulse + 0x1D000;
         ObjAffine_SetBiased(0, entity->velX.whole, entity->velY.whole, entity->flipX, entity->flipY, entity->affineIndex);

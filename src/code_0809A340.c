@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "particle_effect.h"
 #include "code/code_08039340.h"
 extern struct EwramData_EntityData *EntityCreateInRange(s32, s32, u32 *);
 extern void Effect_UpdateParticle(struct EwramData_EntityData *);
@@ -19,7 +18,7 @@ void Biphron_SpawnDebris(struct EwramData_EntityData *parent, s32 x, s32 y, s32 
         effect->accelY.whole = 0;
         effect->spriteLayer = layer;
         effect->timer = 0;
-        PARTICLE_FLAGS(effect) = mode;
+        effect->ext.particle.flags = mode;
         slot = ObjGfx_Find(sBiphronGfx);
         effect->unk_510.part8.basePalette = parent->unk_510.part8.basePalette;
         Sprite_Attach(effect, sBiphronSpriteSheet, slot, effect->unk_510.part8.basePalette);

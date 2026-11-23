@@ -3,7 +3,6 @@
  * or bob on a sine for unk_51A > 4; then wait 300 frames, blink 64 and
  * disappear; states 0x63-0x65 flash the palette. */
 #include "code_08009A0.h"
-#include "pickup_entity.h"
 #include "code_08001194.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -32,30 +31,30 @@ void Pickup_Update(struct EwramData_EntityData *entity)
         entity->velY.whole += 0x2000;
         if ((u32)entity->velY.whole > 0x40000)
             entity->velY.whole = 0x40000;
-        if (PICKUP_DELAY(entity) != 0)
-            PICKUP_DELAY(entity)--;
+        if (entity->ext.pickup.delay != 0)
+            entity->ext.pickup.delay--;
         if (dy != 0)
         {
             entity->posY.part16.integer += dy;
             entity->velY.whole = 0;
             if (entity->state == 0)
             {
-                PICKUP_LIFETIME(entity) = 300;
+                entity->ext.pickup.lifetime = 300;
                 entity->state++;
             }
         }
     }
     else
     {
-        s32 v = Sin((u8)PICKUP_BOB_FRAME_LOW(entity) << 9) / 4;
+        s32 v = Sin((u8)entity->ext.pickup.bob.low << 9) / 4;
         entity->velY.whole = v;
-        PICKUP_BOB_FRAME(entity)++;
+        entity->ext.pickup.bob.frame++;
         entity->posY.whole += v;
     }
     switch (entity->state)
     {
     case 1:
-        if (--PICKUP_LIFETIME(entity) == 0)
+        if (--entity->ext.pickup.lifetime == 0)
         {
             entity->timer = 64;
             entity->state++;

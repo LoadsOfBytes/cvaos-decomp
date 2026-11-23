@@ -38,16 +38,16 @@ void EventScene30OrbitFragment_Update(struct EwramData_EntityData *entity)
         break;
     case 1:
     {
-        u32 angle=(u16)((u16)EVENT30_FRAGMENT_PHASE(entity)<<11);
+        u32 angle=(u16)((u16)entity->ext.event30Fragment.phase<<11);
         entity->velX.whole=(Sin(angle+0x4000)>>8)<<10;
         entity->velY.whole=(Sin(angle)>>8)<<10;
         entity->posX.whole+=entity->velX.whole;entity->posY.whole+=entity->velY.whole;
         if(++entity->timer>32)entity->spriteLayer=17;else entity->spriteLayer=3;
         if(entity->timer%2==0)
         {
-            if(EVENT30_FRAGMENT_DIR(entity))
-            {EVENT30_FRAGMENT_PHASE(entity)++;EVENT30_EFFECT_ANGLE(entity)+=0x200;}
-            else {EVENT30_FRAGMENT_PHASE(entity)--;EVENT30_EFFECT_ANGLE(entity)-=0x200;}
+            if(entity->ext.event30Fragment.dir)
+            {entity->ext.event30Fragment.phase++;EVENT30_EFFECT_ANGLE(entity)+=0x200;}
+            else {entity->ext.event30Fragment.phase--;EVENT30_EFFECT_ANGLE(entity)-=0x200;}
         }
         ObjAffine_Set(EVENT30_EFFECT_ANGLE(entity),0x12000,0x12000,0,0,entity->affineIndex);
         if(entity->timer>63){ObjAffine_Free(entity->affineIndex);entity->deleteRequested=1;}

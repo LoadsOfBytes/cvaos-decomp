@@ -25,7 +25,7 @@ static inline s32 NoRedSouls(struct EwramData *ew)
  */
 void RedSoulHistoryTrail_UpdateUnhide(struct EwramData_EntityData *entity)
 {
-    struct Unk_0802A330 *trail = (struct Unk_0802A330 *)&entity->unk_4F4;
+    struct Unk_0802A330 *trail = (struct Unk_0802A330 *)&entity->ext.raw.unk_4F4;
     struct EwramData *ew = gEwramData;
     struct EwramData_EntityData *owner = ew->playerState.activeRedSoulEntities[entity->stage];
     s32 i;

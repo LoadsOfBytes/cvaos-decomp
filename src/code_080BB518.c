@@ -1,6 +1,5 @@
 /* KillerMantle_UpdateJumpAttack (state 2 of the enemy created at 0x080BB70C). */
 #include "code_08009A0.h"
-#include "killer_mantle_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -29,7 +28,7 @@ void KillerMantle_UpdateJumpAttack(struct EwramData_EntityData *entity)
         case 0:
             Entity_FaceTarget(entity);
             Anim_StartIndexed(entity, 3, 0, 0);
-            KILLER_MANTLE_FLAGS(entity) |= 1;
+            entity->ext.killerMantle.flags |= 1;
             entity->subState = 1;
         case 1:
             if (!(entity->animFlags & 4))
@@ -38,14 +37,14 @@ void KillerMantle_UpdateJumpAttack(struct EwramData_EntityData *entity)
             Anim_StartIndexed(entity, 4, 0, 0);
             entity->velY.whole = RandomSigned(0x2000) - 0x1A000;
             entity->accelY.whole = 0x1000;
-            KILLER_MANTLE_SPEED(entity) = (RandomNumberGenerator() % 32 << 8) + 0x48000;
+            entity->ext.killerMantle.speed = (RandomNumberGenerator() % 32 << 8) + 0x48000;
             entity->hit.flags &= ~2;
             PlaySong(0x89);
             break;
         case 2:
-            if (KILLER_MANTLE_SPEED(entity) > 0)
-                KILLER_MANTLE_SPEED(entity) -= 0x2000;
-            Entity_Walk(entity, KILLER_MANTLE_SPEED(entity), sKillerMantleWalkProfile, 0);
+            if (entity->ext.killerMantle.speed > 0)
+                entity->ext.killerMantle.speed -= 0x2000;
+            Entity_Walk(entity, entity->ext.killerMantle.speed, sKillerMantleWalkProfile, 0);
             if (!(entity->animFlags & 4))
                 break;
             child = Entity_CreateObject((u32 *)KillerMantleLandingEffect_Update);
@@ -55,14 +54,14 @@ void KillerMantle_UpdateJumpAttack(struct EwramData_EntityData *entity)
                 ENTITY_OWNER(child) = entity;
             }
             entity->hit.flags |= 2;
-            KILLER_MANTLE_FLAGS(entity) &= ~1;
+            entity->ext.killerMantle.flags &= ~1;
             entity->subState = 3;
             Anim_StartIndexed(entity, 5, 0, 0);
             break;
         case 3:
-            if (KILLER_MANTLE_SPEED(entity) > 0)
-                KILLER_MANTLE_SPEED(entity) -= 0x1000;
-            Entity_Walk(entity, KILLER_MANTLE_SPEED(entity), sKillerMantleWalkProfile, 0);
+            if (entity->ext.killerMantle.speed > 0)
+                entity->ext.killerMantle.speed -= 0x1000;
+            Entity_Walk(entity, entity->ext.killerMantle.speed, sKillerMantleWalkProfile, 0);
             if (entity->animFlags & 4)
             {
                 entity->state = 1;

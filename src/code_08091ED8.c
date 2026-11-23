@@ -1,7 +1,6 @@
 /* Devil helpers 0x08091ED8..0x08092173 (also used by Flame Demon, Arc Demon
  * and Demon Lord). */
 #include "code_08009A0.h"
-#include "devil_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -76,7 +75,7 @@ void Devil_FaceTarget(struct EwramData_EntityData *entity)
     if (flipX != Entity_IsTargetRight(entity))
     {
         entity->flipX ^= 1;
-        parts = entity->unk_500.devilParts;
+        parts = entity->ext.devil.parts;
         for (i = 0; i < DEVIL_PART_COUNT; i++)
         {
             parts[i].offsetX = -parts[i].offsetX;
@@ -90,7 +89,7 @@ void Devil_FaceTarget(struct EwramData_EntityData *entity)
  */
 void Devil_ResetPartAngles(struct EwramData_EntityData *entity, s32 partIndex)
 {
-    struct DevilPart *parts = entity->unk_500.devilParts;
+    struct DevilPart *parts = entity->ext.devil.parts;
 
     parts[partIndex].targetSwingAngle = 0;
     parts[partIndex].swingAngle = 0;
@@ -101,7 +100,7 @@ void Devil_ResetPartAngles(struct EwramData_EntityData *entity, s32 partIndex)
  */
 void Devil_SaveParts(struct EwramData_EntityData *entity)
 {
-    struct DevilPart *parts = entity->unk_500.devilParts;
+    struct DevilPart *parts = entity->ext.devil.parts;
     s32 i;
 
     for (i = 0; i < DEVIL_PART_COUNT; i++)
@@ -116,7 +115,7 @@ void Devil_SaveParts(struct EwramData_EntityData *entity)
  */
 void Devil_RestoreParts(struct EwramData_EntityData *entity)
 {
-    struct DevilPart *parts = entity->unk_500.devilParts;
+    struct DevilPart *parts = entity->ext.devil.parts;
     s32 i;
 
     for (i = 0; i < DEVIL_PART_COUNT; i++)
@@ -159,16 +158,16 @@ void DevilProjectile_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief 92018 | Follow the entity DEVIL_CHARGE_OWNER at offset (unk_4F8, unk_4FC);
+ * @brief 92018 | Follow the entity ext.devilCharge.owner at offset (unk_4F8, unk_4FC);
  * delete when the timer timer ends.
  */
 void DevilChargeEffect_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *devil = DEVIL_CHARGE_OWNER(entity);
+    struct EwramData_EntityData *devil = entity->ext.devilCharge.owner;
     u32 collision[4];
 
-    entity->posX.whole = devil->posX.whole + DEVIL_CHARGE_OFFSET_X(entity);
-    entity->posY.whole = devil->posY.whole + DEVIL_CHARGE_OFFSET_Y(entity);
+    entity->posX.whole = devil->posX.whole + entity->ext.devilCharge.offsetX;
+    entity->posY.whole = devil->posY.whole + entity->ext.devilCharge.offsetY;
     if ((s8)--entity->timer <= 0)
         EntityDelete(entity);
 }
@@ -178,7 +177,7 @@ void DevilChargeEffect_Update(struct EwramData_EntityData *entity)
  */
 void Devil_Draw(struct EwramData_EntityData *entity)
 {
-    if ((s8)DEVIL_PARTS_HIDDEN(entity) == 0)
+    if ((s8)entity->ext.devilParts.hidden == 0)
         Sprite_DrawEntity(entity);
 }
 

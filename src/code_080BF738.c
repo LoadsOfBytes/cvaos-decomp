@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "evil_butcher_entity.h"
 extern s32 Collision_GetGroundOffset(s32 x, s32 y);
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -39,14 +38,14 @@ void EvilButcherProjectile_Update(struct EwramData_EntityData *entity)
         s32 vx = -0x28000;
         s16 spin;
         entity->velX.whole = vx;
-        EVIL_BUTCHER_PROJECTILE_PROBE_X(entity) = -6;
+        entity->ext.evilButcherProjectile.probeX = -6;
         spin = 0x1234;
-        EVIL_BUTCHER_PROJECTILE_SPIN(entity) = spin;
+        entity->ext.evilButcherProjectile.spin = spin;
         if (entity->flipX)
         {
             entity->velX.whole = -vx;
-            EVIL_BUTCHER_PROJECTILE_PROBE_X(entity) = 6;
-            EVIL_BUTCHER_PROJECTILE_SPIN(entity) = -spin;
+            entity->ext.evilButcherProjectile.probeX = 6;
+            entity->ext.evilButcherProjectile.spin = -spin;
         }
     }
         PlaySong(0x89);
@@ -69,7 +68,7 @@ void EvilButcherProjectile_Update(struct EwramData_EntityData *entity)
         }
     {
         struct BgLayerState *camera;
-        if (!Collision_GetGroundOffset((s16)entity->posX.part16.integer + (s16)(camera = &gEwramData->bgInfo[1])->xPos.part16.integer + EVIL_BUTCHER_PROJECTILE_PROBE_X(entity),
+        if (!Collision_GetGroundOffset((s16)entity->posX.part16.integer + (s16)(camera = &gEwramData->bgInfo[1])->xPos.part16.integer + entity->ext.evilButcherProjectile.probeX,
                           (s16)entity->posY.part16.integer + (s16)camera->yPos.part16.integer))
             break;
     }
@@ -90,8 +89,8 @@ void EvilButcherProjectile_Update(struct EwramData_EntityData *entity)
         entity->state = 2;
     case 2:
         EntityAccelerateAndMove(entity, 0x80000);
-        EVIL_BUTCHER_PROJECTILE_ANGLE(entity) += EVIL_BUTCHER_PROJECTILE_SPIN(entity);
-        ObjAffine_Set(EVIL_BUTCHER_PROJECTILE_ANGLE(entity), 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
+        entity->ext.evilButcherProjectile.angle += entity->ext.evilButcherProjectile.spin;
+        ObjAffine_Set(entity->ext.evilButcherProjectile.angle, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
         if (!EntityIsOutsideScreen(entity, 3))
             break;
     case 3:

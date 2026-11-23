@@ -1,6 +1,5 @@
 #include "code_08009A0.h"
 #include "soul_skill_entity.h"
-#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code_080D73B8.h"
@@ -57,7 +56,7 @@ static inline void SetFrameBox(struct EwramData_EntityData *entity)
  */
 void SkillUneUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.redSoul.owner;
     s32 result;
 
     switch (entity->state)
@@ -73,7 +72,7 @@ void SkillUneUse(struct EwramData_EntityData *entity)
         Anim_StartIndexed(entity, 3, 0, 1);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         Entity_PlaceRelativeTo(entity, parent, 8, -0x1A);
-        SKILL_UNE_SPEED(entity) = 0xA000;
+        entity->ext.skillWalker.speed = 0xA000;
         entity->velY.whole = -0x18000;
         entity->accelY.whole = 0x2000;
         entity->scrollWithBg = 1;
@@ -84,9 +83,9 @@ void SkillUneUse(struct EwramData_EntityData *entity)
         entity->hit.flags |= 2;
         gEwramData->playerState.nbrActiveRedSoulEntities++;
     case 1:
-        result = Entity_Walk(entity, -SKILL_UNE_SPEED(entity), sSkillUneWalkProfile, 0);
+        result = Entity_Walk(entity, -entity->ext.skillWalker.speed, sSkillUneWalkProfile, 0);
         if (result & 3)
-            SKILL_UNE_SPEED(entity) = -SKILL_UNE_SPEED(entity) / 2;
+            entity->ext.skillWalker.speed = -entity->ext.skillWalker.speed / 2;
         if (!(result & 8))
             break;
         PlaySong(0xE0);
@@ -97,7 +96,7 @@ void SkillUneUse(struct EwramData_EntityData *entity)
         break;
     case 2:
         entity->timer--;
-        if ((u8)RED_SOUL_HIT(entity) != 0 || entity->timer == 0)
+        if ((u8)entity->ext.redSoul.hit != 0 || entity->timer == 0)
         {
             Anim_StartIndexed(entity, 4, 0, 0);
             entity->state = 3;
@@ -110,7 +109,7 @@ void SkillUneUse(struct EwramData_EntityData *entity)
             entity->state = 4;
         break;
     case 4:
-        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;

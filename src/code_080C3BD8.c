@@ -1,6 +1,5 @@
 /* SkeletonProjectile_Update: debris piece thrown by its parent entity (falls until off screen). */
 #include "code_08009A0.h"
-#include "skeleton_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code_080D73B8.h"
@@ -27,7 +26,7 @@ static inline s32 IsBelow(struct EwramData_EntityData *entity)
 void SkeletonProjectile_Update(struct EwramData_EntityData *entity)
 {
     u32 box[4];
-    struct EwramData_EntityData *parent = &gEwramData->entityData[(u8)SKELETON_PIECE_OWNER_INDEX(entity)];
+    struct EwramData_EntityData *parent = &gEwramData->entityData[(u8)entity->ext.skeletonPiece.ownerIndex];
     u32 state;
     u8 flag;
 
@@ -40,7 +39,7 @@ void SkeletonProjectile_Update(struct EwramData_EntityData *entity)
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         entity->unk_518.part16.hp = 1;
         entity->unk_510.part16.unk_512 = 1;
-        entity->affineIndex = SKELETON_AFFINE(parent);
+        entity->affineIndex = parent->ext.skeleton.affine;
         Hit_Enable(entity, 0xA, SkeletonProjectile_DamagePlayerOnContact, (s32)SkeletonProjectile_OnHit);
         HitBox_SetBodyRaw(entity, 0x1010F8F8);
         HitBox_SetAttackRaw(entity, 0x0202FFFF);
@@ -66,7 +65,7 @@ void SkeletonProjectile_Update(struct EwramData_EntityData *entity)
             entity->velX.whole = 0x8AAA;
         else
             entity->velX.whole = -0x8AAA;
-        if ((u8)SKELETON_BONE_KIND(entity) == 0)
+        if ((u8)entity->ext.skeletonBone.kind == 0)
         {
             PlaySong(0x88);
             entity->animFrame = 0x12;
@@ -108,7 +107,7 @@ void SkeletonProjectile_Update(struct EwramData_EntityData *entity)
             entity->state = 4;
         break;
     case 4:
-        SKELETON_THROW_COUNT(parent)--;
+        parent->ext.skeleton.throwCount--;
         entity->deleteRequested = 1;
         break;
     }

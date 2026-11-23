@@ -25,7 +25,7 @@ void EnemyGorgonUpdate(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
     struct SingleFrameAnimation animation = sGorgonFrameAnim;
-    GORGON_FLAGS(entity) = (u8)GORGON_FLAGS(entity) & 0xFE;
+    entity->ext.gorgon.flags = (u8)entity->ext.gorgon.flags & 0xFE;
     if (entity->state != 2)
     {
         if (EntityIsOutsideScreen(entity, 4)) goto finished;
@@ -54,8 +54,8 @@ void EnemyGorgonUpdate(struct EwramData_EntityData *entity)
             entity->stage = 1;
             Gorgon_SpawnDeathPieces(entity);
         }
-        GORGON_FLAGS(entity) |= 1;
-        GORGON_FORCED_FRAME(entity) = 23;
+        entity->ext.gorgon.flags |= 1;
+        entity->ext.gorgon.forcedFrame = 23;
         if ((entity->timer & 3) == 0)
         {
             s32 x = RandomNumberGenerator() % 0x280000 - 0x140000;
@@ -72,18 +72,18 @@ void EnemyGorgonUpdate(struct EwramData_EntityData *entity)
     {
         u8 *initial = &entity->animFrame;
         u8 previous = *initial;
-        s32 override = GORGON_FLAGS(entity) & 1;
+        s32 override = entity->ext.gorgon.flags & 1;
         u8 *frame = initial;
         if (override)
         {
             Anim_Start(entity, (struct AnimScript *)&animation, 0, 1);
-            animation.frame = GORGON_FORCED_FRAME(entity);
+            animation.frame = entity->ext.gorgon.forcedFrame;
             Anim_Update(entity);
         }
         else Anim_Update(entity);
         if (previous != *frame) Entity_UpdateBoxes(entity);
     }
-    GORGON_HIT(entity) = 0;
+    entity->ext.gorgon.hit = 0;
     Enemy_CheckHitPlayer(entity);
 finished:
     return;

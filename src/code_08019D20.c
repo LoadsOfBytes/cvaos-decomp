@@ -26,12 +26,12 @@ static inline void SetFlyAnim(struct EwramData_EntityData *entity, s32 anim, u8 
     {
         Anim_StartIndexed(entity, anim, 3, 1);
         HitBox_SetBody(entity, &box);
-        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
-        PLAYER_ACTION_FLAGS(entity) &= ~0x200000;
+        entity->ext.player.requestedAnim = 0xFF;
+        entity->ext.player.actionFlags &= ~0x200000;
         pal = sSomaAnimPalettes[anim];
-        if (PLAYER_ANIM_PALETTE(entity) != pal)
+        if (entity->ext.player.animPalette != pal)
         {
-            PLAYER_ANIM_PALETTE(entity) = pal;
+            entity->ext.player.animPalette = pal;
             ObjPalette_LoadRange(sSomaPalette, pal, 1, 0);
         }
         entity->animStep = saved;
@@ -50,7 +50,7 @@ void Soma_HandleBatFlightInput(struct EwramData_EntityData *entity)
     u16 key2;
     s32 old, new;
 
-    PLAYER_WALL_PROBES(entity) = 0x080E12EA;
+    entity->ext.player.wallProbes = 0x080E12EA;
     if ((key = gEwramData->inputData.playerHeldInput & 0x20))
     {
         entity->flipX = 1;
@@ -109,7 +109,7 @@ clear_y:
     entity->velY.whole = 0;
     entity->accelY.whole = 0;
 done_y:
-    if ((u16)PLAYER_REQUESTED_ANIM(entity) == 0xFF)
+    if ((u16)entity->ext.player.requestedAnim == 0xFF)
     {
         if (!(gEwramData->inputData.playerHeldInput & 0xF0))
             SetFlyAnim(entity, 0x1B, saved);

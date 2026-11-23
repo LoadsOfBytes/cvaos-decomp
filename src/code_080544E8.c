@@ -20,13 +20,13 @@ void SavePoint_DrawPromptMarkers(struct EwramData_EntityData *entity)
         Sprite_Draw(entity);
         entity->posX.part16.integer = 0x39;
         entity->posY.part16.integer = 0x3E;
-        if (SAVE_POINT_YES_SELECTED(prompt))
+        if (prompt->ext.savePoint.yesSelected)
             entity->animFrame = 0x16;
         else
             entity->animFrame = 0x17;
         Sprite_Draw(entity);
         entity->posX.part16.integer = 0x99;
-        if (SAVE_POINT_YES_SELECTED(prompt))
+        if (prompt->ext.savePoint.yesSelected)
             entity->animFrame = 0x19;
         else
             entity->animFrame = 0x18;

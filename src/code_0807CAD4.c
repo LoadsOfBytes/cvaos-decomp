@@ -1,6 +1,5 @@
 /* Activate a timed projectile and retain it only while its parent is alive. */
 #include "code_08009A0.h"
-#include "alura_une_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
@@ -56,7 +55,7 @@ void AluraUneThorn_Update(struct EwramData_EntityData *entity)
         break;
     case 3:
         Hit_CheckWithPlayer(collision, entity);
-        if (entity->timer++ >= ALURA_UNE_THORN_TIME(entity))
+        if (entity->timer++ >= entity->ext.aluraUneThorn.time)
         {
             entity->state++;
             Anim_StartIndexed(entity, 13, 0, 0);

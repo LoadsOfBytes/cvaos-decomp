@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "sky_fish_entity.h"
 #include "code/code_08039340.h"
 extern u8 SkyFish_LoadGraphics(struct EwramData_EntityData *);
 extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
@@ -40,13 +39,13 @@ void EnemySkyFishCreate(struct EwramData_EntityData *entity)
     Entity_SnapToGround(entity);
     entity->state = 0;
     one = 1;
-    SKY_FISH_DARTING(entity) = one;
+    entity->ext.skyFish.darting = one;
     {
         u32 random = RandomNumberGenerator();
         s32 mask = 0x3F;
         mask &= random;
-        SKY_FISH_DELAY(entity) = mask + 0x40;
+        entity->ext.skyFish.delay = mask + 0x40;
     }
     entity->hidden = 1;
-    SKY_FISH_FROM_RIGHT(entity) = RandomNumberGenerator() & one;
+    entity->ext.skyFish.fromRight = RandomNumberGenerator() & one;
 }

@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "joint_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern const u8 *const sStolasPartPoses[];
@@ -12,9 +11,9 @@ extern const s32 *const sStolasPartAngles[];
  */
 void Stolas_InterpolateJoint(struct EwramData_EntityData *entity, s32 index)
 {
-    struct EntityJointPart *parts = entity->unk_500.jointParts;
-    const u8 *pose = sStolasPartPoses[(s8)JOINT_POSE(entity)];
-    const s32 *angles = sStolasPartAngles[(s8)JOINT_POSE(entity)];
+    struct EntityJointPart *parts = entity->ext.joint.parts;
+    const u8 *pose = sStolasPartPoses[(s8)entity->ext.joint.pose];
+    const s32 *angles = sStolasPartAngles[(s8)entity->ext.joint.pose];
     s32 x, y, dx, dy, a;
     struct EntityJointPart *part;
     s32 *p5;

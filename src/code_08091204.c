@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "joint_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern void DevilPart_Attach(struct EwramData_EntityData *, s32, s32, s32, s32);
@@ -22,7 +21,7 @@ void Devil_UpdateHover(struct EwramData_EntityData *entity)
         entity->subState++;
         Anim_StartIndexed(entity, entity->animScriptIndex + 1, 0, 1);
         entity->timer = 0x16;
-        JOINT_POSE(entity) = 1;
+        entity->ext.joint.pose = 1;
         Devil_SaveParts(entity);
         DevilPart_Attach(entity, 1, 0, -0xA00, 0xA0000);
         DevilPart_Attach(entity, 2, 0, -0xA00, 0xD0000);
@@ -37,7 +36,7 @@ void Devil_UpdateHover(struct EwramData_EntityData *entity)
             break;
         entity->timer = 0x16;
         entity->subState++;
-        JOINT_POSE(entity) = 2;
+        entity->ext.joint.pose = 2;
         DevilPart_Attach(entity, 1, 0, 0xA00, 0xA0000);
         DevilPart_Attach(entity, 2, 0, 0xA00, 0xD0000);
         DevilPart_Attach(entity, 3, 2, 0x800, 0xB0000);
@@ -60,7 +59,7 @@ void Devil_UpdateHover(struct EwramData_EntityData *entity)
             break;
         entity->timer = 0x16;
         entity->subState = 1;
-        JOINT_POSE(entity) = 1;
+        entity->ext.joint.pose = 1;
         Devil_RestoreParts(entity);
         DevilPart_Attach(entity, 1, 0, -0xA00, 0xA0000);
         DevilPart_Attach(entity, 2, 0, -0xA00, 0xD0000);

@@ -1,6 +1,5 @@
 /* Slime setup, dispatch and shrinking death animation. */
 #include "code_08009A0.h"
-#include "slime_entity.h"
 #include "code_08001194.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
@@ -40,11 +39,11 @@ void Slime_UpdateDetach(struct EwramData_EntityData *entity)
     case 1:
         if (!(entity->animFlags & 4)) break;
         Anim_StartIndexed(entity, 2, 0, 1);
-        SLIME_FLAGS(entity) |= 4;
+        entity->ext.slime.flags |= 4;
         switch (entity->stage)
         {
         case 2:
-            SLIME_SPEED(entity) = 0;
+            entity->ext.slime.speed = 0;
             entity->velY.whole = 0;
             break;
         case 1:
@@ -52,7 +51,7 @@ void Slime_UpdateDetach(struct EwramData_EntityData *entity)
                 u32 random = RandomNumberGenerator();
                 s32 mask = 0x1FFF;
                 mask &= random;
-                SLIME_SPEED(entity) = -(baseSpeed + mask);
+                entity->ext.slime.speed = -(baseSpeed + mask);
             }
             goto randomY;
         case 3:
@@ -60,7 +59,7 @@ void Slime_UpdateDetach(struct EwramData_EntityData *entity)
                 u32 random = RandomNumberGenerator();
                 s32 mask = 0x1FFF;
                 mask &= random;
-                SLIME_SPEED(entity) = baseSpeed + mask;
+                entity->ext.slime.speed = baseSpeed + mask;
             }
 randomY:
             entity->velY.whole = RandomSigned(0x8000) - 0x10000;
@@ -71,7 +70,7 @@ randomY:
         entity->subState = 2;
         /* fall through */
     case 2:
-        flags = Entity_Walk(entity, SLIME_SPEED(entity), sSlimeWalkProfile, 0x22);
+        flags = Entity_Walk(entity, entity->ext.slime.speed, sSlimeWalkProfile, 0x22);
         if (flags & 8)
         {
             Slime_SpawnParticles(entity, 3, 0, -0x20000);
@@ -95,8 +94,8 @@ landed:
         break;
     case 3:
         PlaySong(0x163);
-        SLIME_ANGLE(entity) = sSlimeSurfaceTurnTargets[entity->stage];
-        SLIME_FLAGS(entity) &= ~4;
+        entity->ext.slime.angle = sSlimeSurfaceTurnTargets[entity->stage];
+        entity->ext.slime.flags &= ~4;
         Slime_UpdateSurfaceSupport(entity, 0x4000);
         Anim_StartIndexed(entity, 3, 0, 0);
         entity->subState = 4;
@@ -107,7 +106,7 @@ landed:
             Anim_StartIndexed(entity, 0, 0, 1);
             entity->state = 0;
             entity->subState = 0;
-            SLIME_TURN_COOLDOWN(entity) = 0;
+            entity->ext.slime.turnCooldown = 0;
         }
         break;
     }

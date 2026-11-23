@@ -1,6 +1,5 @@
 /* Gladiator_OnDamaged. */
 #include "code_080D73B8.h"
-#include "gladiator_entity.h"
 #include "structs/ewram.h"
 
 extern void Link_MarkEnemyDamaged(void);
@@ -21,7 +20,7 @@ void Gladiator_OnDamaged(struct EwramData_EntityData *entity, s32 unused1, s32 u
     {
         PlaySong(0x71);
         Enemy_DropRewards(entity);
-        GLADIATOR_FLINCH(entity) = 1;
+        entity->ext.gladiator.flinch = 1;
         entity->palette = entity->unk_510.part8.basePalette;
         entity->timer = 0x3C;
         entity->state = 1;

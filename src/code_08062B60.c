@@ -21,7 +21,7 @@ struct EwramData_EntityData *EventScene30_CreateEffectSprite(s32 affine)
         entity->drawFunc=(u32 *)Sprite_DrawEntity;
         if(affine)
         {
-            EVENT30_EFFECT_SCALE(entity)=0x12000;
+            entity->ext.event30Effect.scale=0x12000;
             slot=ObjAffine_Alloc(1);
             if(slot<0)
             {
@@ -29,7 +29,7 @@ fail:
                 EntityDelete(entity);return 0;
             }
             entity->affineIndex=slot;entity->affine=1;
-            ObjAffine_Set(0x10000,EVENT30_EFFECT_SCALE(entity),EVENT30_EFFECT_SCALE(entity),0,0,entity->affineIndex);
+            ObjAffine_Set(0x10000,entity->ext.event30Effect.scale,entity->ext.event30Effect.scale,0,0,entity->affineIndex);
         }
         entity->spriteLayer=17;
     }

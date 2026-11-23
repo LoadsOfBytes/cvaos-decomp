@@ -16,14 +16,14 @@ extern const u8 sBaloreEyeAnimOffsets[];
  */
 void BaloreBodyPart_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = BALORE_BODY(entity);
+    struct EwramData_EntityData *owner = entity->ext.balorePart.body;
 
-    if (BALORE_FLAGS(owner) & 2)
+    if (owner->ext.balore.flags & 2)
         entity->state = 4;
     switch (entity->state)
     {
     case 0:
-        Sprite_Attach(entity, sBaloreSpriteSheet, (s8)BALORE_GFX(owner), owner->unk_510.part8.basePalette);
+        Sprite_Attach(entity, sBaloreSpriteSheet, (s8)owner->ext.balore.gfx, owner->unk_510.part8.basePalette);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         entity->spriteLayer = 0x1C;
         entity->state = 1;
@@ -35,7 +35,7 @@ void BaloreBodyPart_Update(struct EwramData_EntityData *entity)
             break;
         }
         entity->hidden = 1;
-        if (BALORE_FLAGS(owner) & 1)
+        if (owner->ext.balore.flags & 1)
         {
             entity->hidden = 0;
             entity->timer = 0x10;
@@ -55,6 +55,6 @@ void BaloreBodyPart_Update(struct EwramData_EntityData *entity)
     entity->posX.whole = owner->posX.whole;
     entity->posY.whole = owner->posY.whole;
     entity->palette = owner->palette;
-    Anim_StartIndexed(entity, sBaloreEyeAnimOffsets[(s8)BALORE_EYE_ANIM(owner)] + 9, 2, 0);
+    Anim_StartIndexed(entity, sBaloreEyeAnimOffsets[(s8)owner->ext.balore.eyeAnim] + 9, 2, 0);
     Anim_Update(entity);
 }

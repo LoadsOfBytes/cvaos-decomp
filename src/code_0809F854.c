@@ -1,6 +1,5 @@
 /* Legion shell part: orbits the core at a radius set by the shell state, fires, falls off. */
 #include "code_08009A0.h"
-#include "legion_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -35,18 +34,18 @@ extern void LegionShellPart_FireShot(struct EwramData_EntityData *owner, s32 dx,
 extern s32 Entity_GetVisibilityPattern(s32);
 extern const struct ShellRadii sLegionShellRadii;
 
-#define KIND ((s8)LEGION_SHELL_KIND(entity))
-#define ANGLE LEGION_SHELL_ANGLE(entity)
-#define RADIUS LEGION_SHELL_RADIUS(entity)
+#define KIND ((s8)entity->ext.legionShell.kind)
+#define ANGLE entity->ext.legionShell.angle
+#define RADIUS entity->ext.legionShell.radius
 
 void LegionShellPart_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = LEGION_PART_OWNER(entity);
-    struct EwramData_EntityData *center = LEGION_SHELL_CENTER(entity);
+    struct EwramData_EntityData *owner = entity->ext.legionPart.owner;
+    struct EwramData_EntityData *center = entity->ext.legionShell.center;
     u8 unused[0x10];
     struct ShellRadii radii = sLegionShellRadii;
-    struct LegionState *data = (struct LegionState *)LEGION_DATA(owner);
-    s32 k = (s8)LEGION_SHELL_INDEX(entity) * 6 + 10;
+    struct LegionState *data = (struct LegionState *)owner->ext.legion.data.value;
+    s32 k = (s8)entity->ext.legionShell.index * 6 + 10;
 #define shell ((struct LegionShell *)((s32 *)data + k))
     s32 limit;
     s32 a;
@@ -157,7 +156,7 @@ void LegionShellPart_Update(struct EwramData_EntityData *entity)
         }
         if (KIND == 5)
             ObjAffine_SetBiased(ANGLE + ({ s32 t = shell->angleOffset - 0x4000; t; }), 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
-        if (entity->state == 0 && owner->state == 2 && --LEGION_SHELL_DELAY(entity) == 0)
+        if (entity->state == 0 && owner->state == 2 && --entity->ext.legionShell.delay == 0)
         {
             entity->state = 1;
             entity->subState = 0;

@@ -1,13 +1,11 @@
 ﻿/* Follow delayed head displacements, then detach and fall when it dies. */
 #include "code_08009A0.h"
-#include "white_dragon_entity.h"
-#include "quezlcoatl_entity.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
 extern s32 Enemy_IsStunnedNoFlash(struct EwramData_EntityData *);
 extern s32 Entity_GetVisibilityPattern(s32);
 extern void Hit_CheckWithPlayer(void *,struct EwramData_EntityData *);
-#define SEGMENT(e) (*(s8 *)&WHITE_DRAGON_SEGMENT_INDEX((e)))
+#define SEGMENT(e) (*(s8 *)&e->ext.whiteDragonSegment.index)
 /**
  * @brief Body segment update: follow the owner (type 0x1A) through its position
  * history with its visibility and palette; delete when the owner is gone.
@@ -21,18 +19,18 @@ void QuezlcoatlSegment_Update(struct EwramData_EntityData *entity)
     {
         s8 *history;
         if(!owner || !owner->updateFunc || owner->unk_518.part8.enemyId!=26) goto fail;
-        history=(s8 *)QUEZLCOATL_HISTORY(owner);
+        history=(s8 *)owner->ext.quezlcoatl.history;
         entity->hidden=owner->hidden;
         entity->palette=owner->palette;
         entity->timer++;
         if(!Enemy_IsStunnedNoFlash(owner))
         {
-            entity->velX.part16.integer=history[SEGMENT(entity)*8+8]+(QUEZLCOATL_CAMERA_X(entity)-camera->xPos.part16.integer);
-            entity->velY.part16.integer=history[SEGMENT(entity)*8+9]+(QUEZLCOATL_CAMERA_Y(entity)-camera->yPos.part16.integer);
+            entity->velX.part16.integer=history[SEGMENT(entity)*8+8]+(entity->ext.quezlcoatl.cameraX-camera->xPos.part16.integer);
+            entity->velY.part16.integer=history[SEGMENT(entity)*8+9]+(entity->ext.quezlcoatl.cameraY-camera->yPos.part16.integer);
             entity->posX.part16.integer+=entity->velX.part16.integer;
             entity->posY.part16.integer+=entity->velY.part16.integer;
-            QUEZLCOATL_CAMERA_X(entity)=camera->xPos.part16.integer;
-            QUEZLCOATL_CAMERA_Y(entity)=camera->yPos.part16.integer;
+            entity->ext.quezlcoatl.cameraX=camera->xPos.part16.integer;
+            entity->ext.quezlcoatl.cameraY=camera->yPos.part16.integer;
             if(history[SEGMENT(entity)*8]>0) entity->flipX=1;
             else if(history[SEGMENT(entity)*8]<0) entity->flipX=0;
             if(SEGMENT(entity)<=5)
@@ -43,10 +41,10 @@ void QuezlcoatlSegment_Update(struct EwramData_EntityData *entity)
         }
         else
         {
-            entity->posX.part16.integer+=QUEZLCOATL_CAMERA_X(entity)-camera->xPos.part16.integer;
-            entity->posY.part16.integer+=QUEZLCOATL_CAMERA_Y(entity)-camera->yPos.part16.integer;
-            QUEZLCOATL_CAMERA_X(entity)=camera->xPos.part16.integer;
-            QUEZLCOATL_CAMERA_Y(entity)=camera->yPos.part16.integer;
+            entity->posX.part16.integer+=entity->ext.quezlcoatl.cameraX-camera->xPos.part16.integer;
+            entity->posY.part16.integer+=entity->ext.quezlcoatl.cameraY-camera->yPos.part16.integer;
+            entity->ext.quezlcoatl.cameraX=camera->xPos.part16.integer;
+            entity->ext.quezlcoatl.cameraY=camera->yPos.part16.integer;
         }
         if(!(entity->timer&7) && !gEwramData->gameState.bestiaryPreview) Hit_CheckWithPlayer(bounds,entity);
         if(owner->state==2)

@@ -41,7 +41,7 @@ struct EwramData_EntityData *Graham_CreateSidePart(struct EwramData_EntityData *
     e->enemyFlags |= 4;
     e->attack = owner->attack;
     e->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
-    GRAHAM_PART_SIDE(e) = side;
+    e->ext.grahamPart.side = side;
     Anim_StartIndexed(e, 0, 0, 1);
     Anim_Update(e);
     if (gEwramData->gameState.bestiaryPreview)

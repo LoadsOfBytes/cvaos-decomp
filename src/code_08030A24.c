@@ -1,6 +1,5 @@
 #include "code_08009A0.h"
 #include "soul_skill_entity.h"
-#include "blue_soul_entity.h"
 #include "player_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
@@ -37,7 +36,7 @@ struct SkullFrame {
  */
 void SkillCreakingSkullUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = BLUE_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.blueSoul.owner;
     struct EwramData_EntityData *prev, *child;
     struct SkullFrame *frame;
     s32 i;
@@ -48,7 +47,7 @@ void SkillCreakingSkullUse(struct EwramData_EntityData *entity)
         return;
     }
     SKILL_CREAKING_SKULL_ACTIVE(entity) = 0;
-    if (entity->stage != 0 && gEwramData->playerState.weaponEntities[PLAYER_WEAPON_SLOT(parent)] != NULL)
+    if (entity->stage != 0 && gEwramData->playerState.weaponEntities[parent->ext.player.weaponSlot] != NULL)
     {
         SKILL_CREAKING_SKULL_FRAMES(entity) = 0x084F13E8;
         entity->state = 3;
@@ -89,8 +88,8 @@ void SkillCreakingSkullUse(struct EwramData_EntityData *entity)
         entity->flipX = 1 ^ parent->flipX;
         entity->state = 1;
     case 1:
-        if (SKILL_CREAKING_SKULL_SCALE(entity) <= 0xFFFF)
-            SKILL_CREAKING_SKULL_SCALE(entity) += 0x1000;
+        if (entity->ext.skillCreakingSkull.scale <= 0xFFFF)
+            entity->ext.skillCreakingSkull.scale += 0x1000;
         else
             entity->state = 2;
         break;

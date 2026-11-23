@@ -3,8 +3,6 @@
  *   Altair_UpdateBestiaryPreview = Imp_UpdateState4Animation
  *   Altair_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 #include "code_08009A0.h"
-#include "altair_entity.h"
-#include "fleaman_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 #include "code/code_080211F0.h"
@@ -128,9 +126,9 @@ u8 AltairFeather_LoadGraphics(struct EwramData_EntityData *entity)
 void AltairFeather_SetPhase(struct EwramData_EntityData *entity, u8 phase)
 {
     if (phase == 0)
-        ALTAIR_FEATHER_SWAY_PHASE(entity) = phase;
+        entity->ext.altairFeather.swayPhase = phase;
     else
-        ALTAIR_FEATHER_SWAY_PHASE(entity) = 0x8000;
+        entity->ext.altairFeather.swayPhase = 0x8000;
 }
 
 /**
@@ -156,11 +154,11 @@ void EnemyFleamanCreate(struct EwramData_EntityData *entity)
         return;
     }
     if ((entity->unk_514.part16.spawnParam0 & entity->unk_514.part16.spawnParam1) == 0xFF)
-        FLEAMAN_AIRBORNE(entity) = 1;
+        entity->ext.fleaman.airborne = 1;
     else
-        FLEAMAN_AIRBORNE(entity) = 0;
+        entity->ext.fleaman.airborne = 0;
     Entity_EnableBoxes(entity, Fleaman_DamagePlayerOnContact, (s32)Fleaman_OnHit);
-    if ((u8)FLEAMAN_AIRBORNE(entity) != 1)
+    if ((u8)entity->ext.fleaman.airborne != 1)
         Entity_SnapToGround(entity);
 }
 
@@ -191,7 +189,7 @@ u8 Fleaman_LoadGraphics(struct EwramData_EntityData *entity)
         goto fail;
     if (!Anim_StartIndexed(entity, 0, 0, 1))
     {
-        FLEAMAN_ANIM(entity) = 0;
+        entity->ext.fleaman.anim = 0;
         goto fail;
     }
     Anim_Update(entity);

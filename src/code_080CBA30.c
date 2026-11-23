@@ -1,6 +1,5 @@
 /* Buer_CreateHead. */
 #include "code_08009A0.h"
-#include "wheel_enemy_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -28,7 +27,7 @@ void Buer_CreateHead(struct EwramData_EntityData *entity)
         child->drawFunc = (u32 *)Sprite_DrawEntity;
         child->posX.whole = entity->posX.whole;
         child->posY.whole = entity->posY.whole;
-        if ((s32)WHEEL_SPEED(entity) >= 0)
+        if ((s32)entity->ext.wheel.speed >= 0)
             child->flipX = 1;
         else
             child->flipX = 0;
@@ -109,9 +108,9 @@ void Buer_UpdateActive(struct EwramData_EntityData *entity)
                         entity->timer = zero;
                         // unk_4FC is read as signed here
                         if (other->flipX)
-                            *(s32 *)&entity->unk_4FC = ABS(*(s32 *)&entity->unk_4FC);
+                            *(s32 *)&entity->ext.wheel.speed = ABS(*(s32 *)&entity->ext.wheel.speed);
                         else
-                            *(s32 *)&entity->unk_4FC = -ABS(*(s32 *)&entity->unk_4FC);
+                            *(s32 *)&entity->ext.wheel.speed = -ABS(*(s32 *)&entity->ext.wheel.speed);
                     }
                     break;
             }

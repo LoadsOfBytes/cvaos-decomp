@@ -26,13 +26,13 @@ void Object14_Draw(struct EwramData_EntityData *entity)
     s32 oldY = entity->posY.whole;
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
 
-    entity->posX.part16.integer = OBJECT14_PREV_X(entity) - bg->xPos.part16.integer;
-    entity->posY.part16.integer = OBJECT14_PREV_Y(entity) - bg->yPos.part16.integer;
+    entity->posX.part16.integer = entity->ext.object14.prevX - bg->xPos.part16.integer;
+    entity->posY.part16.integer = entity->ext.object14.prevY - bg->yPos.part16.integer;
     Sprite_DrawEntity(entity);
     entity->posX.whole = oldX;
     entity->posY.whole = oldY;
-    OBJECT14_PREV_X(entity) = GetEntityRoomXPositionInteger(entity);
-    OBJECT14_PREV_Y(entity) = GetEntityRoomYPositionInteger(entity);
+    entity->ext.object14.prevX = GetEntityRoomXPositionInteger(entity);
+    entity->ext.object14.prevY = GetEntityRoomYPositionInteger(entity);
 }
 
 /**

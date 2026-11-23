@@ -1,6 +1,5 @@
 /* Man Eater projectile callbacks and Killer Mantle attached effects. */
 #include "code_08009A0.h"
-#include "killer_mantle_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -101,28 +100,28 @@ void KillerMantlePart_Update(struct EwramData_EntityData *entity)
             entity->hidden = 1;
             entity->state = 1;
         case 1:
-            if (!(KILLER_MANTLE_FLAGS(owner) & 1))
+            if (!(owner->ext.killerMantle.flags & 1))
                 return;
-            KILLER_MANTLE_PART_SCALE_X(entity) = 0;
-            KILLER_MANTLE_PART_ANGLE(entity) = -0x3000; // 0xD000
+            entity->ext.killerMantlePart.scaleX = 0;
+            entity->ext.killerMantlePart.angle = -0x3000; // 0xD000
             entity->hidden = 0;
             entity->state = 2;
         case 2:
-            if (!(KILLER_MANTLE_FLAGS(owner) & 1))
+            if (!(owner->ext.killerMantle.flags & 1))
             {
                 entity->timer = 8;
                 entity->state = 3;
                 break;
             }
-            if (KILLER_MANTLE_PART_SCALE_X(entity) <= 0xFFFF)
-                KILLER_MANTLE_PART_SCALE_X(entity) += 0x1000;
-            KILLER_MANTLE_PART_ANGLE(entity) += 0x300;
+            if (entity->ext.killerMantlePart.scaleX <= 0xFFFF)
+                entity->ext.killerMantlePart.scaleX += 0x1000;
+            entity->ext.killerMantlePart.angle += 0x300;
             Entity_PlaceRelativeToCopy(entity, owner, 8, 0);
             break;
         case 3:
-            if (KILLER_MANTLE_PART_SCALE_X(entity) > 0)
-                KILLER_MANTLE_PART_SCALE_X(entity) -= 0x2000;
-            KILLER_MANTLE_PART_ANGLE(entity) += 0x200;
+            if (entity->ext.killerMantlePart.scaleX > 0)
+                entity->ext.killerMantlePart.scaleX -= 0x2000;
+            entity->ext.killerMantlePart.angle += 0x200;
             Entity_PlaceRelativeToCopy(entity, owner, 8, 0);
             if (entity->timer != 0)
             {
@@ -138,8 +137,8 @@ void KillerMantlePart_Update(struct EwramData_EntityData *entity)
             EntityDelete(entity);
             return;
     }
-    angle = KILLER_MANTLE_PART_ANGLE(entity);
+    angle = entity->ext.killerMantlePart.angle;
     if (entity->flipX)
         angle = -angle;
-    ObjAffine_Set(angle, KILLER_MANTLE_PART_SCALE_X(entity), 0x10000, entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set(angle, entity->ext.killerMantlePart.scaleX, 0x10000, entity->flipX, 0, entity->affineIndex);
 }

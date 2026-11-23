@@ -20,7 +20,7 @@ void BreakableBlock_SpawnDust(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        OBJECT08_DUST_GFX(entity) = ObjGfx_Find((u8 *)0x081C15F4);
+        entity->ext.object08Dust.gfx = ObjGfx_Find((u8 *)0x081C15F4);
         entity->timer = 0x20;
         entity->state++;
     case 1:
@@ -29,11 +29,11 @@ void BreakableBlock_SpawnDust(struct EwramData_EntityData *entity)
             piece = EntityCreateInRange(0x49, 0xCF, (u32 *)BreakableBlockDust_Update);
             if (piece != NULL)
             {
-                Sprite_Attach(piece, (void *)0x0820ED60, OBJECT08_DUST_GFX(entity), 6);
+                Sprite_Attach(piece, (void *)0x0820ED60, entity->ext.object08Dust.gfx, 6);
                 Anim_StartIndexed(piece, 5, 0, 0);
                 Anim_Update(piece);
                 piece->spriteLayer = entity->spriteLayer;
-                switch ((u8)OBJECT08_KIND(entity))
+                switch ((u8)entity->ext.object08.kind)
                 {
                 case 1:
                 case 2:

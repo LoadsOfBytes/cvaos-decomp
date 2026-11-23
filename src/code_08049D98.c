@@ -27,7 +27,7 @@ void SoulMenu_PrintEquippedName(struct EwramData_EntityData *entity)
     struct PlayerStatus *player = &gEwramData->playerStatus;
     s32 text = 0x34F;
 
-    switch ((s8)MENU_PAGE_CURSOR(entity))
+    switch ((s8)entity->ext.menuPage.cursor)
     {
         case 0:
             if (player->equippedRedSoul != 0)
@@ -59,7 +59,7 @@ void SoulMenu_PrintEquippedName(struct EwramData_EntityData *entity)
  */
 void SoulMenu_ShowSelection(struct EwramData_EntityData *entity)
 {
-    Menu_PrintSoulName(MENU_PAGE_CATEGORY(entity), MENU_PAGE_ITEM(entity));
+    Menu_PrintSoulName(entity->ext.menuPage.category, entity->ext.menuPage.item);
     SoulMenu_DrawStatPreview(entity);
 }
 

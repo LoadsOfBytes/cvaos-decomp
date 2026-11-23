@@ -1,7 +1,6 @@
 /* Death boss overlay part (DeathOverlay_Update): follows its owner, hidden while
  * the owner is in state 4 or flagged; deleted when the owner reaches state 7. */
 #include "code_08009A0.h"
-#include "death_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -10,7 +9,7 @@ extern u8 sDeathGfx[], sDeathPalette[], sDeathSpriteSheet[];
 
 void DeathOverlay_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = &gEwramData->entityData[(u8)DEATH_OWNER_INDEX(entity)];
+    struct EwramData_EntityData *owner = &gEwramData->entityData[(u8)entity->ext.deathHelper.ownerIndex];
 
     if (owner->state == 7)
         goto delete;
@@ -28,7 +27,7 @@ void DeathOverlay_Update(struct EwramData_EntityData *entity)
         entity->scrollWithBg = 1;
         entity->state = 1;
     case 1:
-        if (owner->state == 4 || (*(u16 *)&owner->unk_4F8 & 0x80))
+        if (owner->state == 4 || (owner->ext.death.flags & 0x80))
             entity->hidden = 1;
         else
             entity->hidden = 0;

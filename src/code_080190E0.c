@@ -23,18 +23,18 @@ s32 Soma_TryAirJump(struct EwramData_EntityData *entity)
     struct PlayerBodyBox box;
     u16 zero;
 
-    if ((PLAYER_ACTION_FLAGS(entity) & 0x800000) || !(PLAYER_ACTION_FLAGS(entity) & 0x04000004))
+    if ((entity->ext.player.actionFlags & 0x800000) || !(entity->ext.player.actionFlags & 0x04000004))
     {
         if ((gEwramData->inputData.playerNewInput & gEwramData->playerStatus.jumpButton)
-            && (zero = PLAYER_DROP_THROUGH_TIMER(entity)) == 0)
+            && (zero = entity->ext.player.dropThroughTimer) == 0)
         {
             u16 time = 0x14;
             box = sSomaAirborneBodyBox[0];
-            PLAYER_REQUESTED_ANIM(entity) = time;
+            entity->ext.player.requestedAnim = time;
             HitBox_SetBody(entity, &box);
             PlaySong(0xB9);
-            PLAYER_ACTION_FLAGS(entity) = (PLAYER_ACTION_FLAGS(entity) | 4) & ~0x10;
-            if (!(PLAYER_ACTION_FLAGS(entity) & 0x400000))
+            entity->ext.player.actionFlags = (entity->ext.player.actionFlags | 4) & ~0x10;
+            if (!(entity->ext.player.actionFlags & 0x400000))
             {
                 entity->velY.whole = -0x42000;
                 entity->accelY.whole = 0x1400;

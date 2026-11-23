@@ -25,15 +25,15 @@ void Gorgon_UpdateAttack(struct EwramData_EntityData *entity)
             entity->subState = 2;
             if (entity->flipX)
             {
-                GORGON_BREATH_ANGLE(entity) = 0;
-                GORGON_BREATH_DIR(entity) = phase;
+                entity->ext.gorgon.breathAngle = 0;
+                entity->ext.gorgon.breathDir = phase;
             }
             else
             {
-                GORGON_BREATH_ANGLE(entity) = 0x8000;
-                GORGON_BREATH_DIR(entity) = 0;
+                entity->ext.gorgon.breathAngle = 0x8000;
+                entity->ext.gorgon.breathDir = 0;
             }
-            GORGON_BREATH_STEP(entity) = 3;
+            entity->ext.gorgon.breathStep = 3;
         }
         break;
     case 2:
@@ -45,19 +45,19 @@ void Gorgon_UpdateAttack(struct EwramData_EntityData *entity)
             if (entity->flipX) x = 0x2A0000;
             else x = -0x2A0000;
             y = -0x120000;
-            vx = Sin((u16)GORGON_BREATH_ANGLE(entity) + 0x4000);
-            vy = Sin((u16)GORGON_BREATH_ANGLE(entity));
+            vx = Sin((u16)entity->ext.gorgon.breathAngle + 0x4000);
+            vy = Sin((u16)entity->ext.gorgon.breathAngle);
             speed = 0x30000;
             vx = FixedMultiply(vx, speed);
             vy = FixedMultiply(vy, speed);
             GorgonBreath_Spawn(entity, x, y, vx, vy);
-            if ((s8)GORGON_BREATH_DIR(entity) == 0)
-                GORGON_BREATH_ANGLE(entity) += 0x400;
-            else GORGON_BREATH_ANGLE(entity) -= 0x400;
-            if ((s8)++GORGON_BREATH_STEP(entity) > 6)
+            if ((s8)entity->ext.gorgon.breathDir == 0)
+                entity->ext.gorgon.breathAngle += 0x400;
+            else entity->ext.gorgon.breathAngle -= 0x400;
+            if ((s8)++entity->ext.gorgon.breathStep > 6)
             {
-                GORGON_BREATH_STEP(entity) = 0;
-                GORGON_BREATH_DIR(entity) ^= 1;
+                entity->ext.gorgon.breathStep = 0;
+                entity->ext.gorgon.breathDir ^= 1;
             }
         }
         if (entity->animDone)
@@ -65,8 +65,8 @@ void Gorgon_UpdateAttack(struct EwramData_EntityData *entity)
             s32 zero = 0;
             entity->state = zero;
             entity->subState = 1;
-            GORGON_WALK_CLOCK(entity) = zero;
-            GORGON_WALK_GAIT(entity) = zero;
+            entity->ext.gorgon.clock = zero;
+            entity->ext.gorgon.gait = zero;
             entity->velX.whole = zero;
             entity->accelX.whole = zero;
             entity->accelY.whole = zero;

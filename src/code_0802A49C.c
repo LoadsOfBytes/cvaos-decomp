@@ -1,7 +1,6 @@
 /* Red soul projectile: homes on the nearest target, or wanders randomly. */
 #include "code_08009A0.h"
 #include "soul_skill_entity.h"
-#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -99,7 +98,7 @@ void SkillGhostSpiritUpdate(struct EwramData_EntityData *entity)
                 }
                 found = nearest;
             }
-            SKILL_GHOST_TARGET(entity) = found;
+            entity->ext.skillHoming.target = found;
             if (found != NULL)
                 entity->state = 2;
             else
@@ -114,9 +113,9 @@ void SkillGhostSpiritUpdate(struct EwramData_EntityData *entity)
     {
         s32 tx, ty;
 
-        if (SKILL_GHOST_SPEED(entity) <= 0x3FFFF)
-            SKILL_GHOST_SPEED(entity) += 0x2000;
-        target = SKILL_GHOST_TARGET(entity);
+        if (entity->ext.skillHoming.speed <= 0x3FFFF)
+            entity->ext.skillHoming.speed += 0x2000;
+        target = entity->ext.skillHoming.target;
         tx = target->posX.whole;
         ty = target->posY.whole;
         angle = SKILL_GHOST_HEADING(entity);
@@ -139,11 +138,11 @@ void SkillGhostSpiritUpdate(struct EwramData_EntityData *entity)
         else
             angle -= 0x300;
         SKILL_GHOST_HEADING(entity) = angle;
-        entity->velX.whole = FixedMul(Sin(SKILL_GHOST_HEADING(entity) + 0x4000), SKILL_GHOST_SPEED(entity));
-        entity->velY.whole = FixedMul(Sin(SKILL_GHOST_HEADING(entity)), SKILL_GHOST_SPEED(entity));
+        entity->velX.whole = FixedMul(Sin(SKILL_GHOST_HEADING(entity) + 0x4000), entity->ext.skillHoming.speed);
+        entity->velY.whole = FixedMul(Sin(SKILL_GHOST_HEADING(entity)), entity->ext.skillHoming.speed);
         EntityAccelerateAndMove(entity, 0x80000);
         entity->timer--;
-        if ((s16)target->unk_518.part16.hp <= 0 || (u8)RED_SOUL_HIT(entity) != 0 || entity->timer == 0)
+        if ((s16)target->unk_518.part16.hp <= 0 || (u8)entity->ext.redSoul.hit != 0 || entity->timer == 0)
             entity->state = 4;
         break;
     }
@@ -151,8 +150,8 @@ void SkillGhostSpiritUpdate(struct EwramData_EntityData *entity)
     {
         s32 dx, dy, tx, ty;
 
-        if (SKILL_GHOST_SPEED(entity) <= 0x3FFFF)
-            SKILL_GHOST_SPEED(entity) += 0x2000;
+        if (entity->ext.skillHoming.speed <= 0x3FFFF)
+            entity->ext.skillHoming.speed += 0x2000;
         tx = (RandomNumberGenerator() & 0x1FF) << 16;
         ty = (RandomNumberGenerator() & 0xFF) << 16;
         angle = SKILL_GHOST_HEADING(entity);
@@ -174,22 +173,22 @@ void SkillGhostSpiritUpdate(struct EwramData_EntityData *entity)
         else
             angle -= 0x300;
         SKILL_GHOST_HEADING(entity) = angle;
-        entity->velX.whole = FixedMul(Sin(SKILL_GHOST_HEADING(entity) + 0x4000), SKILL_GHOST_SPEED(entity));
-        entity->velY.whole = FixedMul(Sin(SKILL_GHOST_HEADING(entity)), SKILL_GHOST_SPEED(entity));
+        entity->velX.whole = FixedMul(Sin(SKILL_GHOST_HEADING(entity) + 0x4000), entity->ext.skillHoming.speed);
+        entity->velY.whole = FixedMul(Sin(SKILL_GHOST_HEADING(entity)), entity->ext.skillHoming.speed);
         EntityAccelerateAndMove(entity, 0x80000);
         if (--entity->timer == 0)
             entity->state = 4;
         break;
     }
     case 4:
-        if (SKILL_GHOST_SPEED(entity) <= 0x3FFFF)
-            SKILL_GHOST_SPEED(entity) += 0x2000;
-        entity->velX.whole = FixedMul(Sin(SKILL_GHOST_HEADING(entity) + 0x4000), SKILL_GHOST_SPEED(entity));
-        entity->velY.whole = FixedMul(Sin(SKILL_GHOST_HEADING(entity)), SKILL_GHOST_SPEED(entity));
+        if (entity->ext.skillHoming.speed <= 0x3FFFF)
+            entity->ext.skillHoming.speed += 0x2000;
+        entity->velX.whole = FixedMul(Sin(SKILL_GHOST_HEADING(entity) + 0x4000), entity->ext.skillHoming.speed);
+        entity->velY.whole = FixedMul(Sin(SKILL_GHOST_HEADING(entity)), entity->ext.skillHoming.speed);
         EntityAccelerateAndMove(entity, 0x80000);
         break;
     case 5:
-        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;
@@ -197,7 +196,7 @@ void SkillGhostSpiritUpdate(struct EwramData_EntityData *entity)
     if (EntityIsOutsideScreen(entity, 2) || !entity->roomActive)
     {
         entity->roomActive = 1;
-        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
     }

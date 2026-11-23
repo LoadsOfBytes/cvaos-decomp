@@ -1,6 +1,5 @@
 /* Create a falling body part relative to its owner. */
 #include "code_08009A0.h"
-#include "devil_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 void DevilProjectile_Update(struct EwramData_EntityData *entity);
@@ -24,8 +23,8 @@ void DevilProjectile_Spawn(struct EwramData_EntityData *owner, s32 x, s32 y, s32
         part->posY.whole = owner->posY.whole + y;
         part->velX.whole = vx;
         part->velY.whole = vy;
-        DEVIL_PROJECTILE_OFFSET_X(part) = x;
-        DEVIL_PROJECTILE_OFFSET_Y(part) = y;
+        part->ext.devilProjectile.offsetX = x;
+        part->ext.devilProjectile.offsetY = y;
         part->spriteLayer = owner->spriteLayer - 2;
         graphics = ObjGfx_Find(sDevilGfx);
         part->unk_510.part8.basePalette = owner->unk_510.part8.basePalette;
@@ -37,10 +36,10 @@ void DevilProjectile_Spawn(struct EwramData_EntityData *owner, s32 x, s32 y, s32
         part->hit.flags |= 4;
         part->hit.flags &= ~2;
         part->timer = timer;
-        DEVIL_PROJECTILE_RELEASE(part) = 0;
+        part->ext.devilProjectile.release = 0;
         part->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
         part->attack = owner->attack;
-        DEVIL_PROJECTILE_OWNER(part) = owner;
+        part->ext.devilProjectile.owner = owner;
         part->scrollWithBg = 0;
         part->drawFunc = (u32 *)Sprite_DrawEntity;
     }

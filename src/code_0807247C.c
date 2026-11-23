@@ -1,10 +1,9 @@
 /* Enter the special reaction state and remember the attacker's world position. */
 #include "code/code_080211F0.h"
-#include "mudman_entity.h"
 #include "code/code_08039340.h"
 /**
  * @brief Contact: Player_ApplyContactDamage(attack, 0, 0, 0), remember the entity
- * hit and its room position (ENTITY_OWNER / MUDMAN_SHOT_OWNER_X / _Y) and stick to it
+ * hit and its room position (ENTITY_OWNER / ext.mudmanShot.ownerX / _Y) and stick to it
  * (state 2).
  */
 void MudmanShot_DamagePlayerOnContact(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
@@ -21,8 +20,8 @@ void MudmanShot_DamagePlayerOnContact(struct EwramData_EntityData *entity, struc
     effect.sourceY = entity->posY.whole;
     Player_ApplyContactDamage(&effect);
     ENTITY_OWNER(entity) = attacker;
-    MUDMAN_SHOT_OWNER_X(entity) = attacker->posX.whole + background->xPos.whole;
-    MUDMAN_SHOT_OWNER_Y(entity) = attacker->posY.whole + background->yPos.whole;
+    entity->ext.mudmanShot.ownerX = attacker->posX.whole + background->xPos.whole;
+    entity->ext.mudmanShot.ownerY = attacker->posY.whole + background->yPos.whole;
     entity->state = 2;
     entity->subState = zero;
     Anim_StartIndexed(entity, 6, 0, 0);

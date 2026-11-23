@@ -1,6 +1,5 @@
 /* Effect_DrawAtOffsetPair. */
 #include "code/code_08039340.h"
-#include "particle_effect.h"
 #include "code/code_08060B98.h"
 #include "code_080D73B8.h"
 #include "structs/ewram.h"
@@ -11,11 +10,11 @@
 void Effect_DrawAtOffsetPair(struct EwramData_EntityData *entity)
 {
     Sprite_Draw(entity);
-    entity->posX.whole += PARTICLE_PAIR_OFFSET_X(entity);
-    entity->posY.whole += PARTICLE_PAIR_OFFSET_Y(entity);
+    entity->posX.whole += entity->ext.particlePair.offsetX;
+    entity->posY.whole += entity->ext.particlePair.offsetY;
     Sprite_Draw(entity);
-    entity->posX.whole -= PARTICLE_PAIR_OFFSET_X(entity);
-    entity->posY.whole -= PARTICLE_PAIR_OFFSET_Y(entity);
+    entity->posX.whole -= entity->ext.particlePair.offsetX;
+    entity->posY.whole -= entity->ext.particlePair.offsetY;
 }
 
 /**

@@ -33,7 +33,7 @@ extern u8 sObject25SpriteSheet[];
 void Object25_UpdateState(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
-    struct EwramData_EntityData *spawner = OBJECT25_SPAWNER(entity);
+    struct EwramData_EntityData *spawner = entity->ext.object25.spawner;
     u32 hitInfo[4];
 
     switch (entity->subState)
@@ -89,8 +89,8 @@ void Object25_UpdateState(struct EwramData_EntityData *entity)
             if ((s8)--entity->timer > 0)
                 break;
             entity->deleteRequested = 1;
-            if (spawner != NULL && spawner->updateFunc != NULL && OBJECT25_CHILD_COUNT(spawner) != 0)
-                OBJECT25_CHILD_COUNT(spawner)--;
+            if (spawner != NULL && spawner->updateFunc != NULL && spawner->ext.object25Spawner.childCount != 0)
+                spawner->ext.object25Spawner.childCount--;
             return;
     }
     Anim_Update(entity);
@@ -175,8 +175,8 @@ void Object26Create(struct EwramData_EntityData *entity)
     entity->flipX = 0;
     entity->scrollWithBg = 1;
     entity->hidden = 1;
-    OBJECT26_CLOCK_28(entity) = 0x5A;
-    OBJECT26_CLOCK_27(entity) = 0x1E;
+    entity->ext.object26.clock28 = 0x5A;
+    entity->ext.object26.clock27 = 0x1E;
     entity->state = 0;
     child = EntityCreateInRange(0x1B, 0x48, (u32 *)Object28Update);
     if (child != NULL)
@@ -235,8 +235,8 @@ void Object26_UpdateState(struct EwramData_EntityData *entity)
     if (Target_IsInRect(entity->posX.part16.integer - 0x46, entity->posY.part16.integer - 0x64, 0x8C, 0xC8))
     {
         entity->hidden = 1;
-        OBJECT26_CLOCK_27(entity)++;
-        OBJECT26_CLOCK_28(entity)++;
+        entity->ext.object26.clock27++;
+        entity->ext.object26.clock28++;
     }
     else
     {
@@ -306,9 +306,9 @@ void Object28_UpdateState(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
         case 0:
-            if (OBJECT26_CLOCK_28(controller) < 0x78)
+            if (controller->ext.object26.clock28 < 0x78)
                 break;
-            OBJECT26_CLOCK_28(controller) = zero;
+            controller->ext.object26.clock28 = zero;
             entity->subState++;
             entity->hidden = 0;
             entity->velX.whole = 0xC000;
@@ -450,9 +450,9 @@ void Object27_UpdateState(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
         case 0:
-            if (OBJECT26_CLOCK_27(controller) < 0x78)
+            if (controller->ext.object26.clock27 < 0x78)
                 break;
-            OBJECT26_CLOCK_27(controller) = zero;
+            controller->ext.object26.clock27 = zero;
             entity->subState++;
             entity->hidden = 0;
             entity->velX.whole = 0xC000;

@@ -1,8 +1,6 @@
 /* Creaking Skull helpers 0x08098C84..0x08098F03 (Giant Skeleton uses the
  * Creaking Skull functions). */
 #include "code_08009A0.h"
-#include "joint_entity.h"
-#include "creaking_skull_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code_080D73B8.h"
@@ -31,7 +29,7 @@ extern u8 sCommonObjectSpriteSheet[];
  */
 void CreakingSkullPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    struct EwramData_EntityData *skull = JOINT_PART_OWNER(entity);
+    struct EwramData_EntityData *skull = entity->ext.jointPart.owner;
     s32 oldX = skull->posX.whole;
     s32 oldY = skull->posY.whole;
     s32 damage;
@@ -39,11 +37,11 @@ void CreakingSkullPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, 
     skull->posX.whole = entity->posX.whole;
     skull->posY.whole = entity->posY.whole;
     damage = Player_CalculateAttackPower(hit[2]);
-    damage = Hit_ResolveDamage(JOINT_PART_OWNER(entity), attacker, hit, (s16)damage);
+    damage = Hit_ResolveDamage(entity->ext.jointPart.owner, attacker, hit, (s16)damage);
     skull->posX.whole = oldX;
     skull->posY.whole = oldY;
     Entity_ShowDamage(entity, damage, 0);
-    CreakingSkull_ApplyResolvedDamage(JOINT_PART_OWNER(entity), attacker, hit, damage);
+    CreakingSkull_ApplyResolvedDamage(entity->ext.jointPart.owner, attacker, hit, damage);
 }
 
 /**
@@ -62,10 +60,10 @@ void CreakingSkull_SpawnGuidedEffect(struct EwramData_EntityData *entity, s32 la
     child->posX.whole = x;
     child->posY.whole = y;
     child->spriteLayer = entity->spriteLayer - 1;
-    CREAKING_SKULL_GUIDE_LATE_X(child) = lateTargetX + bg->xPos.whole;
-    CREAKING_SKULL_GUIDE_LATE_Y(child) = lateTargetY + bg->yPos.whole;
-    CREAKING_SKULL_GUIDE_EARLY_X(child) = bg->xPos.whole + earlyTargetX;
-    CREAKING_SKULL_GUIDE_EARLY_Y(child) = earlyTargetY + bg->yPos.whole;
+    child->ext.creakingSkullGuide.lateX = lateTargetX + bg->xPos.whole;
+    child->ext.creakingSkullGuide.lateY = lateTargetY + bg->yPos.whole;
+    child->ext.creakingSkullGuide.earlyX = bg->xPos.whole + earlyTargetX;
+    child->ext.creakingSkullGuide.earlyY = earlyTargetY + bg->yPos.whole;
     gfx = ObjGfx_Find(sCommonObjectGfx);
     Sprite_Attach(child, sCommonObjectSpriteSheet, gfx, 7);
     child->animFrame = 0x66;

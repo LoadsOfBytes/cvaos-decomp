@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "stolas_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -15,7 +14,7 @@
 void StolasCastEffect_Update(struct EwramData_EntityData *entity)
 {
     u8 unused[16];
-    struct EwramData_EntityData *owner = STOLAS_EFFECT_OWNER(entity);
+    struct EwramData_EntityData *owner = entity->ext.stolasEffect.owner;
 
     if (owner == NULL || owner->updateFunc == NULL || owner->unk_518.part8.enemyId != 0x61)
         goto free;
@@ -29,11 +28,11 @@ void StolasCastEffect_Update(struct EwramData_EntityData *entity)
         {
             if (entity->flipX)
             {
-                if (STOLAS_CAST_ANGLE(entity) <= 0xFFFF)
-                    STOLAS_CAST_ANGLE(entity) += 0x800;
+                if (entity->ext.stolasEffect.castAngle <= 0xFFFF)
+                    entity->ext.stolasEffect.castAngle += 0x800;
             }
-            else if (STOLAS_CAST_ANGLE(entity) > -0x10000)
-                STOLAS_CAST_ANGLE(entity) += -0x800;
+            else if (entity->ext.stolasEffect.castAngle > -0x10000)
+                entity->ext.stolasEffect.castAngle += -0x800;
         }
         if (entity->timer++ > 0x3B || owner->state == 2)
         {
@@ -42,7 +41,7 @@ void StolasCastEffect_Update(struct EwramData_EntityData *entity)
             return;
         }
     }
-    ObjAffine_Set(STOLAS_CAST_ANGLE(entity), 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
+    ObjAffine_Set(entity->ext.stolasEffect.castAngle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
     return;
 free:
     ObjAffine_Free(entity->affineIndex);

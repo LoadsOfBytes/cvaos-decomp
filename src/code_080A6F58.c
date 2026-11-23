@@ -1,6 +1,5 @@
 /* Chaos-fight helper entities 0x080A6F58..0x080A712B. */
 #include "code_08009A0.h"
-#include "chaos_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code_080D73B8.h"
@@ -27,12 +26,12 @@ static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *ent
  */
 void Chaos_StartPaletteSequence(struct EwramData_EntityData *entity, s32 sequence)
 {
-    struct EwramData_EntityData *controller = CHAOS_DATA_PTR(entity);
+    struct EwramData_EntityData *controller = entity->ext.chaos.data.ptr;
 
-    controller->unk_4FC.whole = 0;
-    controller->unk_500.whole = 0;
-    controller->unk_504.whole = 0;
-    controller->unk_508.whole = sequence;
+    controller->ext.raw.unk_4FC.whole = 0;
+    controller->ext.raw.unk_500.whole = 0;
+    controller->ext.raw.unk_504.whole = 0;
+    controller->ext.raw.unk_508.whole = sequence;
 }
 
 /**
@@ -72,12 +71,12 @@ void Chaos2Spark_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData **target = &gEwramData->playerState.enemyTarget;
 
-    entity->posX.whole = (*target)->posX.whole + CHAOS_OFFSET_X(entity);
-    entity->posY.whole = (*target)->posY.whole + CHAOS_OFFSET_Y(entity);
+    entity->posX.whole = (*target)->posX.whole + entity->ext.chaosShot.offsetX;
+    entity->posY.whole = (*target)->posY.whole + entity->ext.chaosShot.offsetY;
     entity->velX.whole += entity->accelX.whole;
     entity->velY.whole += entity->accelY.whole;
-    CHAOS_OFFSET_X(entity) += entity->velX.whole;
-    CHAOS_OFFSET_Y(entity) += entity->velY.whole;
+    entity->ext.chaosShot.offsetX += entity->velX.whole;
+    entity->ext.chaosShot.offsetY += entity->velY.whole;
     Anim_Update(entity);
     if ((s8)--entity->timer <= 0)
         EntityDelete(entity);

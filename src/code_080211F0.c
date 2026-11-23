@@ -1,6 +1,5 @@
 #include "code/code_080211F0.h"
 #include "soul_skill_entity.h"
-#include "red_soul_entity.h"
 #include "player_entity.h"
 #include "code_08009A0.h"
 #include "code_08001004.h"
@@ -23,14 +22,6 @@
 #include "macros.h"
 #include "agb_sram.h"
 #include "syscalls.h"
-
-/*
- * Player status icon (Player_SpawnStatusIcon, PlayerStatusIcon_Update): index
- * of the status effect it shows (its low byte picks the frame).
- * Token-identical expansion.
- */
-#define STATUS_ICON_INDEX(e) e->unk_4FC.part16.unk_4FC
-#define STATUS_ICON_INDEX_LOW(e) e->unk_4FC.part8.unk_4FC
 
 #include "constants/main.h"
 
@@ -63,7 +54,7 @@ void Player_MarkAttackContact(void)
     struct EwramData_EntityData *player;
 
     player = gEwramData->playerState.player;
-    PLAYER_ACTION_FLAGS(player) |= 0x80000;
+    player->ext.player.actionFlags |= 0x80000;
 }
 
 /**
@@ -104,7 +95,7 @@ void Player_QueueEntity(struct EwramData_EntityData *entity, u8 collisionFlags)
 }
 
 /**
- * @brief Return the player action flags (PLAYER_ACTION_FLAGS) when the control focus
+ * @brief Return the player action flags (ext.player.actionFlags) when the control focus
  * enemyTarget is the player itself, else 0. Enemies test them for attack
  * flags.
  */
@@ -112,7 +103,7 @@ s32 Player_GetFocusedActionFlags(void)
 {
     if (gEwramData->playerState.enemyTarget == gEwramData->playerState.player)
     {
-        return PLAYER_ACTION_FLAGS(gEwramData->playerState.enemyTarget);
+        return gEwramData->playerState.enemyTarget->ext.player.actionFlags;
     }
     return 0;
 }
@@ -145,7 +136,7 @@ s32 Player_IsBusy(void)
         }
         if (speed <= 0x8000)
         {
-            return PLAYER_ACTION_FLAGS(player) & 0x30000120;
+            return player->ext.player.actionFlags & 0x30000120;
         }
     }
     return 1;
@@ -222,8 +213,8 @@ s32 Player_TryStartAnimation(struct EwramData_EntityData *entity, u8 animationIn
     if (entity->animScriptIndex != animationIndex)
     {
         Anim_StartIndexed(entity, animationIndex, 1, flags);
-        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
-        PLAYER_ACTION_FLAGS(entity) &= ~0x200000;
+        entity->ext.player.requestedAnim = 0xFF;
+        entity->ext.player.actionFlags &= ~0x200000;
         return 1;
     }
     return 0;
@@ -240,8 +231,8 @@ void Player_DrawWithOffset(struct EwramData_EntityData *entity)
     oldX = entity->posX.whole;
     oldY = entity->posY.whole;
 
-    entity->posX.part16.integer += (s8) PLAYER_DRAW_OFFSET_X(entity);
-    entity->posY.part16.integer += (s8) PLAYER_DRAW_OFFSET_Y(entity);
+    entity->posX.part16.integer += (s8) entity->ext.player.drawOffsetX;
+    entity->posY.part16.integer += (s8) entity->ext.player.drawOffsetY;
     Sprite_DrawEntity(entity);
 
     entity->posX.whole = oldX;
@@ -267,12 +258,12 @@ void Player_DrawMirrored(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief Set the player contact-immunity value (PLAYER_INVULNERABLE_TIMER);
+ * @brief Set the player contact-immunity value (ext.player.invulnerableTimer);
  * Player_ApplyContactDamage ignores contact damage while it is nonzero.
  */
 void Player_SetContactImmunity(s32 immunityValue)
 {
-    PLAYER_INVULNERABLE_TIMER(gEwramData->playerState.player) = immunityValue;
+    gEwramData->playerState.player->ext.player.invulnerableTimer = immunityValue;
 }
 
 extern u16 sAttackPowerMultipliers[]; // array or struct?
@@ -348,7 +339,7 @@ void Player_ApplyContactDamage(struct PlayerContactDamage *contactDamage)
     s32 inflicted;
 
     blocked = 0;
-    if (PLAYER_INVULNERABLE_TIMER(gEwramData->playerState.player) != 0)
+    if (gEwramData->playerState.player->ext.player.invulnerableTimer != 0)
     {
         return;
     }
@@ -578,12 +569,12 @@ void Player_UpdateStatusAndRegen(struct EwramData_EntityData *entity)
     }
     else if (gEwramData->playerStatus.equippedAccessory != 0x29)
     {
-        if (!(PLAYER_FRAME_COUNTER(entity) & 0x3F))
+        if (!(entity->ext.player.frameCounter & 0x3F))
         {
             Player_RestoreMP(1);
         }
     }
-    else if (!(PLAYER_FRAME_COUNTER(entity) & 0xF))
+    else if (!(entity->ext.player.frameCounter & 0xF))
     {
         Player_RestoreMP(1);
     }
@@ -628,9 +619,9 @@ void PlayerStatusIcon_Update(struct EwramData_EntityData *entity)
     {
         case 0:
             gfx = ObjGfx_Find(sCommonObjectGfx);
-            Sprite_Attach(entity, sCommonObjectSpriteSheet, gfx, sPlayerStatusIconPalettes[(u16) STATUS_ICON_INDEX(entity)]);
+            Sprite_Attach(entity, sCommonObjectSpriteSheet, gfx, sPlayerStatusIconPalettes[(u16) entity->ext.statusIcon.index.value]);
             entity->drawFunc = (u32 *) Sprite_DrawEntity;
-            entity->animFrame = STATUS_ICON_INDEX_LOW(entity) + 0x59;
+            entity->animFrame = entity->ext.statusIcon.index.low + 0x59;
             entity->spriteLayer = 0xD;
             entity->scrollWithBg = 1;
             entity->state = 1;
@@ -651,9 +642,9 @@ void PlayerStatusIcon_Update(struct EwramData_EntityData *entity)
             entity->posX.part16.integer = (shake < 0) ? (playerX - (-shake >> 0x10)) : (playerX + (shake >> 0x10));
             entity->posY.part16.integer = Player_GetOverheadY() - 4;
             entity->roomActive = 1;
-            if (gEwramData->playerStatus.statusEffectTimers[(u16) STATUS_ICON_INDEX(entity)] != 0)
+            if (gEwramData->playerStatus.statusEffectTimers[(u16) entity->ext.statusIcon.index.value] != 0)
             {
-                if (gEwramData->playerStatus.statusEffectTimers[(u16) STATUS_ICON_INDEX(entity)] < 30)
+                if (gEwramData->playerStatus.statusEffectTimers[(u16) entity->ext.statusIcon.index.value] < 30)
                 {
                     entity->drawSkip = 1;
                 }
@@ -907,7 +898,7 @@ s32 Player_RegisterSolidObject(struct EwramData_EntityData *entity, void *callba
     if (gEwramData->playerState.solidObject == NULL)
     {
         gEwramData->playerState.solidObject = entity;
-        SOLID_OBJECT_CALLBACK_TABLE(entity) = callbackTable;
+        entity->ext.solidObject.callbacks.table = callbackTable;
         return 1;
     }
     return 0;
@@ -929,7 +920,7 @@ s32 Player_GetSolidObjectFlags(void)
 {
     if (gEwramData->playerState.solidObject != NULL)
     {
-        return *SOLID_OBJECT_CALLBACKS(gEwramData->playerState.solidObject);
+        return *gEwramData->playerState.solidObject->ext.solidObject.callbacks.words;
     }
     return 0;
 }
@@ -964,7 +955,7 @@ void Player_SpawnStatusIcon(s32 statusIndex)
         child = EntityCreateInRange(0x16, 0x19, (u32 *) PlayerStatusIcon_Update);
         if (child != NULL)
         {
-            STATUS_ICON_INDEX(child) = statusIndex;
+            child->ext.statusIcon.index.value = statusIndex;
         }
     }
 }
@@ -1022,21 +1013,6 @@ extern void *sWeaponGfxTable[];
 extern void *sWeaponSpriteSheetTable[];
 extern u16 sWeaponSwingSounds[];
 extern u16 sJuliusWhipSounds[];
-/*
- * Weapon attack entities (Weapon*_Update, created by Weapon_CreateAttackEntity;
- * Julius' whip strike by Julius_CreateWhipAttackEntity): the attacking entity
- * (player or link partner) and the weapon that was equipped when the attack
- * started (the attack stops hitting when it changes). Heavy weapons (axes)
- * also keep the swing angle of their affine sprite, its speed per frame and
- * the frame on which the attack ends; the gun shot keeps a stop flag (set when
- * it hits a wall or an enemy). Token-identical expansion.
- */
-#define WEAPON_OWNER(e) e->unk_4F8.unk_4F8_entity
-#define WEAPON_ID(e) e->unk_4FC.part8.unk_4FC
-#define WEAPON_SWING_ANGLE(e) e->unk_500.whole
-#define WEAPON_SWING_SPEED(e) e->unk_504.whole
-#define WEAPON_END_TIME(e) e->unk_4FC.part8.unk_4FD
-#define WEAPON_GUN_STOPPED(e) e->unk_500.whole
 
 extern const u8 sUnk_080E13B8[];
 
@@ -1058,14 +1034,14 @@ void WeaponMelee_Update(struct EwramData_EntityData *entity)
     union EwramData_unk50C *ownerSlot;
     s32 spriteSlot;
 
-    owner = WEAPON_OWNER(entity);
+    owner = entity->ext.weapon.owner;
     switch (entity->state)
     {
         case 0:
-            spawner = WEAPON_OWNER(entity);
-            attackerInfo = Weapon_GetAttackerInfo(PLAYER_WEAPON_SLOT(spawner));
-            WEAPON_ID(entity) = gEwramData->playerStatus.equippedWeapon;
-            if (PLAYER_WEAPON_SLOT(spawner) == 0)
+            spawner = entity->ext.weapon.owner;
+            attackerInfo = Weapon_GetAttackerInfo(spawner->ext.player.weaponSlot);
+            entity->ext.weapon.id = gEwramData->playerStatus.equippedWeapon;
+            if (spawner->ext.player.weaponSlot == 0)
             {
                 if (gEwramData->playerState.cachedWeaponGraphicsIndices[0] != attackerInfo->graphicsIndex)
                 {
@@ -1095,8 +1071,8 @@ void WeaponMelee_Update(struct EwramData_EntityData *entity)
             ObjPalette_LoadRange(sWeaponPalettes, (u16) attackerInfo->paletteIndex, 1, paletteSlot);
             Sprite_Attach(entity, (u8 *) sWeaponSpriteSheetTable[attackerInfo->spriteSheetIndex], gfx, (s32) paletteSlot);
             Anim_StartIndexed(entity, (u16) attackerInfo->animScriptIndex, 0, 0);
-            gEwramData->playerState.cachedWeaponGraphicsIndices[PLAYER_WEAPON_SLOT(spawner)] = attackerInfo->graphicsIndex;
-            if (PLAYER_WEAPON_SLOT(spawner) == 0)
+            gEwramData->playerState.cachedWeaponGraphicsIndices[spawner->ext.player.weaponSlot] = attackerInfo->graphicsIndex;
+            if (spawner->ext.player.weaponSlot == 0)
             {
                 gEwramData->playerState.weaponGfx = gfx;
                 type = 3;
@@ -1112,7 +1088,7 @@ void WeaponMelee_Update(struct EwramData_EntityData *entity)
             entity->hit.flags |= 2;
             entity->hit.flags |= 4;
             Hit_SetTimerOverride(index, attackerInfo->hitTimer);
-            ownerSlot = &WEAPON_OWNER(entity)->unk_50C;
+            ownerSlot = &entity->ext.weapon.owner->ext.raw.unk_50C;
             PlaySong(Weapon_GetAttackerInfo(ownerSlot->part8.unk_50C)->attackSound);
             if ((ownerSlot->part8.unk_50C == 0) && (1 & RandomNumberGenerator()))
             {
@@ -1121,16 +1097,16 @@ void WeaponMelee_Update(struct EwramData_EntityData *entity)
             entity->drawFunc = (u32 *) Sprite_DrawEntity;
             entity->timer = 0;
             entity->state += 1;
-            if (PLAYER_ACTION_FLAGS(owner) & 0x400)
+            if (owner->ext.player.actionFlags & 0x400)
             {
                 entity->velY.part16.integer = 0xD;
             }
             /* fallthrough */
         case 1:
             entity->roomActive = 1;
-            if ((PLAYER_ACTION_FLAGS(owner) & 0x20) == 0)
+            if ((owner->ext.player.actionFlags & 0x20) == 0)
             {
-                gEwramData->playerState.weaponEntities[PLAYER_WEAPON_SLOT(owner)] = 0;
+                gEwramData->playerState.weaponEntities[owner->ext.player.weaponSlot] = 0;
                 EntityDelete(entity);
                 return;
             }
@@ -1142,7 +1118,7 @@ void WeaponMelee_Update(struct EwramData_EntityData *entity)
             frame = entity->animFrame;
             if (Anim_Update(entity) != 3)
             {
-                if (!(gEwramData->gameState.linkPlay) && ((u8) WEAPON_ID(entity) != gEwramData->playerStatus.equippedWeapon))
+                if (!(gEwramData->gameState.linkPlay) && ((u8) entity->ext.weapon.id != gEwramData->playerStatus.equippedWeapon))
                 {
                     entity->hit.flags |= 2;
                 }
@@ -1162,7 +1138,7 @@ void WeaponMelee_Update(struct EwramData_EntityData *entity)
             }
             else
             {
-                gEwramData->playerState.weaponEntities[PLAYER_WEAPON_SLOT(owner)] = 0;
+                gEwramData->playerState.weaponEntities[owner->ext.player.weaponSlot] = 0;
                 EntityDelete(entity);
             }
             break;
@@ -1192,8 +1168,8 @@ void WeaponHeavy_Update(struct EwramData_EntityData *entity)
     union EwramData_unk50C *ownerSlot;
     s32 spriteSlot;
 
-    owner = WEAPON_OWNER(entity);
-    info = Weapon_GetAttackerInfo(PLAYER_WEAPON_SLOT(owner));
+    owner = entity->ext.weapon.owner;
+    info = Weapon_GetAttackerInfo(owner->ext.player.weaponSlot);
 
     switch (entity->state)
     {
@@ -1201,16 +1177,16 @@ void WeaponHeavy_Update(struct EwramData_EntityData *entity)
             affineIndex = ObjAffine_Alloc(0);
             if ((s32) (affineIndex << 0x10) < 0)
             {
-                gEwramData->playerState.weaponEntities[PLAYER_WEAPON_SLOT(owner)] = 0;
+                gEwramData->playerState.weaponEntities[owner->ext.player.weaponSlot] = 0;
                 EntityDelete(entity);
                 return;
             }
             entity->affineIndex = affineIndex;
             entity->affine = 1;
-            spawner = WEAPON_OWNER(entity);
-            attackerInfo = Weapon_GetAttackerInfo(PLAYER_WEAPON_SLOT(spawner));
-            WEAPON_ID(entity) = gEwramData->playerStatus.equippedWeapon;
-            if (PLAYER_WEAPON_SLOT(spawner) == 0)
+            spawner = entity->ext.weapon.owner;
+            attackerInfo = Weapon_GetAttackerInfo(spawner->ext.player.weaponSlot);
+            entity->ext.weapon.id = gEwramData->playerStatus.equippedWeapon;
+            if (spawner->ext.player.weaponSlot == 0)
             {
                 if (gEwramData->playerState.cachedWeaponGraphicsIndices[0] != attackerInfo->graphicsIndex)
                 {
@@ -1240,8 +1216,8 @@ void WeaponHeavy_Update(struct EwramData_EntityData *entity)
             ObjPalette_LoadRange(sWeaponPalettes, attackerInfo->paletteIndex, 1, paletteSlot);
             Sprite_Attach(entity, (u8 *) sWeaponSpriteSheetTable[attackerInfo->spriteSheetIndex], gfx, paletteSlot);
             Anim_StartIndexed(entity, attackerInfo->animScriptIndex, 0, 0);
-            gEwramData->playerState.cachedWeaponGraphicsIndices[PLAYER_WEAPON_SLOT(spawner)] = attackerInfo->graphicsIndex;
-            if (PLAYER_WEAPON_SLOT(spawner) == 0)
+            gEwramData->playerState.cachedWeaponGraphicsIndices[spawner->ext.player.weaponSlot] = attackerInfo->graphicsIndex;
+            if (spawner->ext.player.weaponSlot == 0)
             {
                 gEwramData->playerState.weaponGfx = gfx;
                 type = 3;
@@ -1257,34 +1233,34 @@ void WeaponHeavy_Update(struct EwramData_EntityData *entity)
             entity->hit.flags |= 2;
             entity->hit.flags |= 4;
             Hit_SetTimerOverride(index, attackerInfo->hitTimer);
-            ownerSlot = &WEAPON_OWNER(entity)->unk_50C;
+            ownerSlot = &entity->ext.weapon.owner->ext.raw.unk_50C;
             PlaySong(Weapon_GetAttackerInfo(ownerSlot->part8.unk_50C)->attackSound);
             if ((ownerSlot->part8.unk_50C == 0) && (RandomNumberGenerator() & 1))
             {
                 PlaySong(sWeaponSwingSounds[RandomNumberGenerator() & 3]);
             }
             entity->drawFunc = (u32 *) Sprite_DrawEntity;
-            WEAPON_SWING_ANGLE(entity) = -0x3000;
+            entity->ext.weapon.swingAngle = -0x3000;
             if (info->attackVariant == 0)
             {
                 entity->subState = 0x10;
                 entity->stage = 5;
-                WEAPON_SWING_SPEED(entity) = 0x980;
+                entity->ext.weapon.swingSpeed = 0x980;
             }
             else
             {
                 entity->subState = 0xC;
                 entity->stage = 4;
-                WEAPON_SWING_SPEED(entity) = 0xCC0;
+                entity->ext.weapon.swingSpeed = 0xCC0;
             }
-            WEAPON_END_TIME(entity) = sUnk_080E13B8[info->attackVariant];
+            entity->ext.weapon.endTime = sUnk_080E13B8[info->attackVariant];
             if (entity->flipX)
             {
-                WEAPON_SWING_ANGLE(entity) = -WEAPON_SWING_ANGLE(entity);
-                WEAPON_SWING_SPEED(entity) = -WEAPON_SWING_SPEED(entity);
+                entity->ext.weapon.swingAngle = -entity->ext.weapon.swingAngle;
+                entity->ext.weapon.swingSpeed = -entity->ext.weapon.swingSpeed;
             }
             entity->velY.part16.integer = -0x19;
-            if (PLAYER_ACTION_FLAGS(owner) & 0x400)
+            if (owner->ext.player.actionFlags & 0x400)
             {
                 entity->velY.part16.integer += 0xC;
             }
@@ -1293,9 +1269,9 @@ void WeaponHeavy_Update(struct EwramData_EntityData *entity)
             /* fallthrough */
         case 1:
             entity->roomActive = 1;
-            if ((PLAYER_ACTION_FLAGS(owner) & 0x20) == 0)
+            if ((owner->ext.player.actionFlags & 0x20) == 0)
             {
-                gEwramData->playerState.weaponEntities[PLAYER_WEAPON_SLOT(owner)] = 0;
+                gEwramData->playerState.weaponEntities[owner->ext.player.weaponSlot] = 0;
                 ObjAffine_Free(entity->affineIndex);
                 EntityDelete(entity);
                 return;
@@ -1315,19 +1291,19 @@ void WeaponHeavy_Update(struct EwramData_EntityData *entity)
             entity->posX.part16.integer = owner->posX.part16.integer + offsetX;
             if (entity->timer < entity->subState)
             {
-                WEAPON_SWING_ANGLE(entity) += WEAPON_SWING_SPEED(entity);
+                entity->ext.weapon.swingAngle += entity->ext.weapon.swingSpeed;
             }
             /* fallthrough */
         default:
             entity->drawSkip = owner->drawSkip;
             frame = entity->animFrame;
             Anim_Update(entity);
-            if (!(gEwramData->gameState.linkPlay) && ((u8) WEAPON_ID(entity) != gEwramData->playerStatus.equippedWeapon))
+            if (!(gEwramData->gameState.linkPlay) && ((u8) entity->ext.weapon.id != gEwramData->playerStatus.equippedWeapon))
             {
                 entity->hit.flags |= 2;
                 break;
             }
-            if (entity->timer != WEAPON_END_TIME(entity))
+            if (entity->timer != entity->ext.weapon.endTime)
             {
                 if (frame != entity->animFrame)
                 {
@@ -1344,12 +1320,12 @@ void WeaponHeavy_Update(struct EwramData_EntityData *entity)
                 }
                 break;
             }
-            gEwramData->playerState.weaponEntities[PLAYER_WEAPON_SLOT(owner)] = 0;
+            gEwramData->playerState.weaponEntities[owner->ext.player.weaponSlot] = 0;
             ObjAffine_Free(entity->affineIndex);
             EntityDelete(entity);
             return;
     }
-    ObjAffine_Set(WEAPON_SWING_ANGLE(entity), 0x10000, 0x10000, entity->flipX, 0U, entity->affineIndex);
+    ObjAffine_Set(entity->ext.weapon.swingAngle, 0x10000, 0x10000, entity->flipX, 0U, entity->affineIndex);
     return;
 }
 
@@ -1459,21 +1435,21 @@ void WeaponGun_Update(struct EwramData_EntityData *entity)
     s16 roomX;
     s32 paletteSlot;
 
-    owner = WEAPON_OWNER(entity);
-    info = Weapon_GetAttackerInfo(PLAYER_WEAPON_SLOT(owner));
+    owner = entity->ext.weapon.owner;
+    info = Weapon_GetAttackerInfo(owner->ext.player.weaponSlot);
 
     switch (entity->state)
     {
         case 0:
-            if (PLAYER_WEAPON_SLOT(owner) == 0)
+            if (owner->ext.player.weaponSlot == 0)
             {
                 PlaySong(info->attackSound);
             }
-            spawner = WEAPON_OWNER(entity);
-            attackerInfo = Weapon_GetAttackerInfo(PLAYER_WEAPON_SLOT(spawner));
-            WEAPON_ID(entity) = gEwramData->playerStatus.equippedWeapon;
+            spawner = entity->ext.weapon.owner;
+            attackerInfo = Weapon_GetAttackerInfo(spawner->ext.player.weaponSlot);
+            entity->ext.weapon.id = gEwramData->playerStatus.equippedWeapon;
 
-            if (PLAYER_WEAPON_SLOT(spawner) == 0)
+            if (spawner->ext.player.weaponSlot == 0)
             {
                 if (gEwramData->playerState.cachedWeaponGraphicsIndices[0] != attackerInfo->graphicsIndex)
                 {
@@ -1504,9 +1480,9 @@ void WeaponGun_Update(struct EwramData_EntityData *entity)
             ObjPalette_LoadRange(sWeaponPalettes, (u16) attackerInfo->paletteIndex, 1U, paletteSlot);
             Sprite_Attach(entity, (u8 *) sWeaponSpriteSheetTable[attackerInfo->spriteSheetIndex], gfx, (s32) paletteSlot);
             Anim_StartIndexed(entity, (u16) attackerInfo->animScriptIndex, 0U, 0U);
-            gEwramData->playerState.cachedWeaponGraphicsIndices[PLAYER_WEAPON_SLOT(spawner)] = attackerInfo->graphicsIndex;
+            gEwramData->playerState.cachedWeaponGraphicsIndices[spawner->ext.player.weaponSlot] = attackerInfo->graphicsIndex;
 
-            if (PLAYER_WEAPON_SLOT(spawner) == 0)
+            if (spawner->ext.player.weaponSlot == 0)
             {
                 gEwramData->playerState.weaponGfx = (u32) gfx;
                 type = 3;
@@ -1530,12 +1506,12 @@ void WeaponGun_Update(struct EwramData_EntityData *entity)
             {
                 /* Same flip block as the heavy weapons (angle and speed of the
                  * swing); the gun never reads either value. */
-                WEAPON_SWING_ANGLE(entity) = -WEAPON_SWING_ANGLE(entity);
-                WEAPON_SWING_SPEED(entity) = -WEAPON_SWING_SPEED(entity);
+                entity->ext.weapon.swingAngle = -entity->ext.weapon.swingAngle;
+                entity->ext.weapon.swingSpeed = -entity->ext.weapon.swingSpeed;
                 entity->accelX.whole = -entity->accelX.whole;
             }
             entity->velX.whole += entity->accelX.whole;
-            if ((PLAYER_ACTION_FLAGS(owner) & 0x400) != 0)
+            if ((owner->ext.player.actionFlags & 0x400) != 0)
             {
                 entity->velY.part16.integer = 0xC;
             }
@@ -1562,15 +1538,15 @@ void WeaponGun_Update(struct EwramData_EntityData *entity)
             /* fallthrough */
         case 1:
             entity->roomActive = 1;
-            if ((PLAYER_ACTION_FLAGS(owner) & 0x20) == 0)
+            if ((owner->ext.player.actionFlags & 0x20) == 0)
             {
-                gEwramData->playerState.weaponEntities[PLAYER_WEAPON_SLOT(owner)] = 0;
+                gEwramData->playerState.weaponEntities[owner->ext.player.weaponSlot] = 0;
                 EntityDelete(entity);
                 break;
             }
 
             entity->timer += 1;
-            if ((WEAPON_GUN_STOPPED(entity) == 0) && (entity->timer == 3))
+            if ((entity->ext.weaponGun.stopped == 0) && (entity->timer == 3))
             {
                 entity->hit.flags &= ~2;
             }
@@ -1581,7 +1557,7 @@ void WeaponGun_Update(struct EwramData_EntityData *entity)
 
             entity->posX.whole = owner->posX.whole + entity->velX.whole;
             entity->posY.whole = owner->posY.whole + entity->velY.whole - 0x1C0000;
-            if (WEAPON_GUN_STOPPED(entity) == 0)
+            if (entity->ext.weaponGun.stopped == 0)
             {
                 roomX = GetEntityRoomXPositionInteger(entity);
                 roomY = GetEntityRoomYPositionInteger(entity);
@@ -1596,7 +1572,7 @@ void WeaponGun_Update(struct EwramData_EntityData *entity)
                 if (push != 0)
                 {
                     Effect_SpawnShared(entity->posX.whole + (push << 0x10), entity->posY.whole, 7, 8);
-                    WEAPON_GUN_STOPPED(entity) = 1;
+                    entity->ext.weaponGun.stopped = 1;
                     PlaySong(0x14E);
                 }
             }
@@ -1609,7 +1585,7 @@ void WeaponGun_Update(struct EwramData_EntityData *entity)
             entity->drawSkip = owner->drawSkip;
             if (Anim_Update(entity) == 3)
             {
-                gEwramData->playerState.weaponEntities[PLAYER_WEAPON_SLOT(owner)] = 0;
+                gEwramData->playerState.weaponEntities[owner->ext.player.weaponSlot] = 0;
                 EntityDelete(entity);
             }
             break;
@@ -1634,16 +1610,16 @@ void WeaponValmanway_Update(struct EwramData_EntityData *entity)
     s32 spriteSlot;
     struct EwramData_EntityData *spawner;
 
-    owner = WEAPON_OWNER(entity);
+    owner = entity->ext.weapon.owner;
 
     switch (entity->state)
     {
         case 0:
-            spawner = WEAPON_OWNER(entity);
-            attackerInfo = Weapon_GetAttackerInfo(PLAYER_WEAPON_SLOT(spawner));
-            WEAPON_ID(entity) = gEwramData->playerStatus.equippedWeapon;
+            spawner = entity->ext.weapon.owner;
+            attackerInfo = Weapon_GetAttackerInfo(spawner->ext.player.weaponSlot);
+            entity->ext.weapon.id = gEwramData->playerStatus.equippedWeapon;
 
-            if (PLAYER_WEAPON_SLOT(spawner) == 0)
+            if (spawner->ext.player.weaponSlot == 0)
             {
                 if (gEwramData->playerState.cachedWeaponGraphicsIndices[0] != attackerInfo->graphicsIndex)
                 {
@@ -1674,9 +1650,9 @@ void WeaponValmanway_Update(struct EwramData_EntityData *entity)
             ObjPalette_LoadRange(sWeaponPalettes, attackerInfo->paletteIndex, 1, paletteSlot);
             Sprite_Attach(entity, (u8 *) sWeaponSpriteSheetTable[attackerInfo->spriteSheetIndex], gfx, paletteSlot);
             Anim_StartIndexed(entity, attackerInfo->animScriptIndex, 0, 0);
-            gEwramData->playerState.cachedWeaponGraphicsIndices[PLAYER_WEAPON_SLOT(spawner)] = attackerInfo->graphicsIndex;
+            gEwramData->playerState.cachedWeaponGraphicsIndices[spawner->ext.player.weaponSlot] = attackerInfo->graphicsIndex;
 
-            if (PLAYER_WEAPON_SLOT(spawner) == 0)
+            if (spawner->ext.player.weaponSlot == 0)
             {
                 gEwramData->playerState.weaponGfx = gfx;
                 type = 3;
@@ -1693,7 +1669,7 @@ void WeaponValmanway_Update(struct EwramData_EntityData *entity)
             entity->hit.flags |= 4;
             Hit_SetTimerOverride(index, attackerInfo->hitTimer);
 
-            ownerSlot = &WEAPON_OWNER(entity)->unk_50C;
+            ownerSlot = &entity->ext.weapon.owner->ext.raw.unk_50C;
             PlaySong(Weapon_GetAttackerInfo(ownerSlot->part8.unk_50C)->attackSound);
             if ((ownerSlot->part8.unk_50C == 0) && (1 & RandomNumberGenerator()))
             {
@@ -1701,7 +1677,7 @@ void WeaponValmanway_Update(struct EwramData_EntityData *entity)
             }
 
             entity->drawFunc = (u32 *) Sprite_DrawEntity;
-            if (PLAYER_ACTION_FLAGS(owner) & 0x400)
+            if (owner->ext.player.actionFlags & 0x400)
             {
                 entity->velY.part16.integer = 0xD;
             }
@@ -1721,7 +1697,7 @@ void WeaponValmanway_Update(struct EwramData_EntityData *entity)
 
     if (Anim_Update(entity) != 3)
     {
-        if (!(gEwramData->gameState.linkPlay) && ((u8) WEAPON_ID(entity) != gEwramData->playerStatus.equippedWeapon))
+        if (!(gEwramData->gameState.linkPlay) && ((u8) entity->ext.weapon.id != gEwramData->playerStatus.equippedWeapon))
         {
             entity->hit.flags |= 2;
         }
@@ -1741,7 +1717,7 @@ void WeaponValmanway_Update(struct EwramData_EntityData *entity)
     }
     else
     {
-        gEwramData->playerState.weaponEntities[PLAYER_WEAPON_SLOT(owner)] = 0;
+        gEwramData->playerState.weaponEntities[owner->ext.player.weaponSlot] = 0;
         EntityDelete(entity);
     }
 }
@@ -1757,21 +1733,21 @@ struct EwramData_EntityData* Weapon_CreateAttackEntity(struct EwramData_EntityDa
 {
     struct WeaponInfo *attackerInfo;
 
-    attackerInfo = Weapon_GetAttackerInfo(PLAYER_WEAPON_SLOT(entity));
+    attackerInfo = Weapon_GetAttackerInfo(entity->ext.player.weaponSlot);
     if (attackerInfo == NULL)
     {
         return 0;
     }
 
-    gEwramData->playerState.weaponEntities[PLAYER_WEAPON_SLOT(entity)] = EntityCreateInRange(2, 0x10, (u32 *) sWeaponAttackUpdateFuncs[attackerInfo->attackAnimKind]);
-    if (gEwramData->playerState.weaponEntities[PLAYER_WEAPON_SLOT(entity)] != NULL)
+    gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot] = EntityCreateInRange(2, 0x10, (u32 *) sWeaponAttackUpdateFuncs[attackerInfo->attackAnimKind]);
+    if (gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot] != NULL)
     {
-        WEAPON_OWNER(gEwramData->playerState.weaponEntities[PLAYER_WEAPON_SLOT(entity)]) = entity;
-        gEwramData->playerState.weaponEntities[PLAYER_WEAPON_SLOT(entity)]->flipX = entity->flipX;
-        gEwramData->playerState.weaponEntities[PLAYER_WEAPON_SLOT(entity)]->scrollWithBg = 1;
+        gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot]->ext.weapon.owner = entity;
+        gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot]->flipX = entity->flipX;
+        gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot]->scrollWithBg = 1;
     }
 
-    return gEwramData->playerState.weaponEntities[PLAYER_WEAPON_SLOT(entity)];
+    return gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot];
 }
 
 /**
@@ -1784,7 +1760,7 @@ void JuliusWhipAttack_Update(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *owner;
     s32 spriteSlot;
 
-    owner = WEAPON_OWNER(entity);
+    owner = entity->ext.weapon.owner;
 
     switch (entity->state)
     {
@@ -1808,9 +1784,9 @@ void JuliusWhipAttack_Update(struct EwramData_EntityData *entity)
             }
 
             entity->roomActive = 1;
-            if ((PLAYER_ACTION_FLAGS(owner) & 0x20) == 0)
+            if ((owner->ext.player.actionFlags & 0x20) == 0)
             {
-                gEwramData->playerState.weaponEntities[PLAYER_WEAPON_SLOT(owner)] = 0;
+                gEwramData->playerState.weaponEntities[owner->ext.player.weaponSlot] = 0;
                 EntityDelete(entity);
                 break;
             }
@@ -1840,17 +1816,17 @@ void JuliusWhipAttack_Update(struct EwramData_EntityData *entity)
  */
 struct EwramData_EntityData* Julius_CreateWhipAttackEntity(struct EwramData_EntityData *entity)
 {
-    gEwramData->playerState.weaponEntities[PLAYER_WEAPON_SLOT(entity)] = EntityCreateInRange(2, 0x10, (u32 *) JuliusWhipAttack_Update);
+    gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot] = EntityCreateInRange(2, 0x10, (u32 *) JuliusWhipAttack_Update);
 
-    if (gEwramData->playerState.weaponEntities[PLAYER_WEAPON_SLOT(entity)] != NULL)
+    if (gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot] != NULL)
     {
-        WEAPON_OWNER(gEwramData->playerState.weaponEntities[PLAYER_WEAPON_SLOT(entity)]) = entity;
-        gEwramData->playerState.weaponEntities[PLAYER_WEAPON_SLOT(entity)]->flipX = entity->flipX;
-        gEwramData->playerState.weaponEntities[PLAYER_WEAPON_SLOT(entity)]->scrollWithBg = 1;
-        gEwramData->playerState.weaponEntities[PLAYER_WEAPON_SLOT(entity)]->roomActive = 1;
+        gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot]->ext.weapon.owner = entity;
+        gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot]->flipX = entity->flipX;
+        gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot]->scrollWithBg = 1;
+        gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot]->roomActive = 1;
     }
 
-    return gEwramData->playerState.weaponEntities[PLAYER_WEAPON_SLOT(entity)];
+    return gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot];
 }
 
 extern struct WeaponInfo sUnarmedWeaponInfo;
@@ -1962,7 +1938,7 @@ void WeaponAttack_OnHit(struct EwramData_EntityData *entity, struct EwramData_En
 {
     if (!(gEwramData->gameState.linkPlay) || (attacker == gEwramData->playerState.selectedTarget))
     {
-        PLAYER_ACTION_FLAGS(gEwramData->playerState.player) |= 0x80000;
+        gEwramData->playerState.player->ext.player.actionFlags |= 0x80000;
     }
 }
 
@@ -1973,11 +1949,11 @@ void WeaponAttack_OnHit(struct EwramData_EntityData *entity, struct EwramData_En
 void WeaponGun_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker)
 {
     entity->hit.flags |= 2;
-    WEAPON_GUN_STOPPED(entity) = 1;
+    entity->ext.weaponGun.stopped = 1;
 
     if (!(gEwramData->gameState.linkPlay) || (attacker == gEwramData->playerState.selectedTarget))
     {
-        PLAYER_ACTION_FLAGS(gEwramData->playerState.player) |= 0x80000;
+        gEwramData->playerState.player->ext.player.actionFlags |= 0x80000;
     }
 }
 
@@ -1991,7 +1967,7 @@ void WeaponGun_Draw(struct EwramData_EntityData *entity)
     s32 oldX;
     s32 oldY;
 
-    owner = WEAPON_OWNER(entity);
+    owner = entity->ext.weapon.owner;
     oldX = entity->posX.whole;
     oldY = entity->posY.whole;
 
@@ -2041,8 +2017,8 @@ struct EwramData_EntityData* RedSoul_CreateEntity(struct EwramData_EntityData *o
     }
 
     gEwramData->playerState.activeRedSoulEntities[slot] = entity;
-    RED_SOUL_OWNER(entity) = owner;
-    RED_SOUL_SLOT(entity) = slot;
+    entity->ext.redSoul.owner = owner;
+    entity->ext.redSoul.slot = slot;
     entity->roomActive = 1;
     entity->scrollWithBg = 1;
     gEwramData->playerState.nbrActiveRedSoulEntities += 1;
@@ -2113,8 +2089,8 @@ void RedSoul_CancelAll(void)
         if ((gEwramData->playerState.player->state == 2) && (gEwramData->playerState.player->subState != 0))
         {
             gEwramData->playerState.player->subState = gEwramData->playerStatus.currentCharacter;
-            PLAYER_ACTION_FLAGS(gEwramData->playerState.player) |= 0x200000;
-            PLAYER_ACTION_FLAGS(gEwramData->playerState.player) &= ~0x100;
+            gEwramData->playerState.player->ext.player.actionFlags |= 0x200000;
+            gEwramData->playerState.player->ext.player.actionFlags &= ~0x100;
         }
     }
 }
@@ -2151,7 +2127,7 @@ void RedSoulTrail_Update(struct EwramData_EntityData *entity)
     s32 curState;
 
     // TODO: what is happening with these fields?
-    posHistory = &entity->unk_4F8.part16.unk_4F8;
+    posHistory = &entity->ext.raw.unk_4F8.part16.unk_4F8;
     source = gEwramData->playerState.activeRedSoulEntities[entity->stage];
     frameHistory = &entity->velX.part8.fraction0;
 
@@ -2227,13 +2203,13 @@ struct EwramData_EntityData* RedSoul_CreateTrailCopy(struct EwramData_EntityData
 
     trail->flipX = entity->flipX;
     trail->subState = delay;
-    trail->stage = (u8) (u16) RED_SOUL_SLOT(entity);
+    trail->stage = (u8) (u16) entity->ext.redSoul.slot;
 
     for (i = 7; i > 0; i--)
     {
         frames[i] = entity->animFrame;
-        ((u16*)&trail->unk_4F8.part16.unk_4F8)[i * 2] = GetEntityRoomXPositionInteger(entity);
-        ((u16*)&trail->unk_4F8.part16.unk_4FA)[i * 2] = GetEntityRoomYPositionInteger(entity);
+        ((u16*)&trail->ext.raw.unk_4F8.part16.unk_4F8)[i * 2] = GetEntityRoomXPositionInteger(entity);
+        ((u16*)&trail->ext.raw.unk_4F8.part16.unk_4FA)[i * 2] = GetEntityRoomYPositionInteger(entity);
     }
 
     trail->scrollWithBg = 1;
@@ -2290,7 +2266,7 @@ void RedSoulAnchor_Update(struct EwramData_EntityData *entity)
     s32 noneActive;
 
     follower = ENTITY_OWNER(entity);
-    target = RED_SOUL_ANCHOR_TARGET(entity);
+    target = entity->ext.redSoulAnchor.target;
     
     if ((gEwramData->playerState.nbrActiveRedSoulEntities == 0) && (gEwramData->playerState.activeRedSoulEntities[0] == NULL))
     {
@@ -2309,7 +2285,7 @@ void RedSoulAnchor_Update(struct EwramData_EntityData *entity)
 
     if ((s16) target->unk_518.part16.hp <= 0)
     {
-        RED_SOUL_ANCHOR_TARGET_DEAD(entity) = 1;
+        entity->ext.redSoulAnchor.targetDead = 1;
         return;
     }
     follower->posX.part16.integer = target->posX.part16.integer + entity->accelX.part16.integer;
@@ -2350,14 +2326,14 @@ void Skill_EvilButcher_Ripper_Use(struct EwramData_EntityData *entity)
     s16 roomX;
     struct EwramData_EntityData *target;
 
-    info = &sBladeSoulVariants[(u16)RED_SOUL_PARAM(entity)];
+    info = &sBladeSoulVariants[(u16)entity->ext.redSoul.param];
 
     switch (entity->state)
     {
         case 0:
             SkillLoadGraphicsInline(entity, info->paletteIndex, info->graphics, info->palette, info->spriteSheet);
             entity->animFrame = info->animFrame;
-            if ((u16) RED_SOUL_PARAM(entity) == 0)
+            if ((u16) entity->ext.redSoul.param == 0)
             {
                 Hit_SetTimerOverride(1, 0xA);
             }
@@ -2368,7 +2344,7 @@ void Skill_EvilButcher_Ripper_Use(struct EwramData_EntityData *entity)
             affineIndex = ObjAffine_Alloc(0);
             if ((s32) (affineIndex << 0x10) < 0)
             {
-                gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+                gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
                 EntityDelete(entity);
                 return;
             }
@@ -2376,7 +2352,7 @@ void Skill_EvilButcher_Ripper_Use(struct EwramData_EntityData *entity)
             entity->spriteLayer = 0xD;
             entity->affineIndex = affineIndex;
             entity->affine = 1;
-            owner = RED_SOUL_OWNER(entity);
+            owner = entity->ext.redSoul.owner;
             entity->posX.part16.integer = owner->posX.part16.integer;
             entity->posY.part16.integer = (u16) owner->posY.part16.integer + 0xFFE6;
             entity->scrollWithBg = 1;
@@ -2398,17 +2374,17 @@ void Skill_EvilButcher_Ripper_Use(struct EwramData_EntityData *entity)
             gEwramData->playerState.nbrActiveRedSoulEntities += 1;
             /* fallthrough */
         case 1:
-            anchor = RED_SOUL_ANCHOR(entity);
+            anchor = entity->ext.redSoul.anchor;
             if (anchor != NULL)
             {
-                if (RED_SOUL_ANCHOR_TARGET_DEAD(anchor) == 0)
+                if (anchor->ext.redSoulAnchor.targetDead == 0)
                 {
-                    target = RED_SOUL_ANCHOR_TARGET(anchor);
-                    if (RED_SOUL_ANCHOR_TIMER(entity)++ > 20)
+                    target = anchor->ext.redSoulAnchor.target;
+                    if (entity->ext.redSoul.anchorTimer++ > 20)
                     {
                         entity->state = 4;
                     }
-                    else if ((target->hit.flags & 4) || ((u16) RED_SOUL_PARAM(entity) == 0))
+                    else if ((target->hit.flags & 4) || ((u16) entity->ext.redSoul.param == 0))
                     {
                         entity->state = 4;
                     }
@@ -2482,14 +2458,14 @@ block_33:
             entity->posX.whole += entity->velX.whole;
             entity->posY.whole += entity->velY.whole;
             entity->velY.whole += entity->accelY.whole;
-            ObjAffine_Set((SKILL_RIPPER_SPIN(entity) << 0x10) / 20, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
+            ObjAffine_Set((entity->ext.skillRipper.spin << 0x10) / 20, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
             if (entity->flipX)
             {
-                SKILL_RIPPER_SPIN(entity) += 1;
+                entity->ext.skillRipper.spin += 1;
             }
             else
             {
-                SKILL_RIPPER_SPIN(entity) -= 1;
+                entity->ext.skillRipper.spin -= 1;
             }
             /* fallthrough */
         case 3:
@@ -2509,7 +2485,7 @@ block_33:
             /* fallthrough */
         case 4:
             ObjAffine_Free(entity->affineIndex);
-            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+            gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
             gEwramData->playerState.nbrActiveRedSoulEntities -= 1;
             EntityDelete(entity);
             return;
@@ -2539,8 +2515,8 @@ void SkillBoomerangProjectileUpdate(struct EwramData_EntityData *entity)
     {
         case 0:
             SkillLoadGraphicsInline(entity, 0, sSkillGraphicsSets->graphics, sSkillGraphicsSets->palette, sSkillGraphicsSets->spriteSheet);
-            Anim_StartIndexed(entity, (u16) RED_SOUL_PARAM(entity), 0, 1);
-            if ((u16) RED_SOUL_PARAM(entity) == 0)
+            Anim_StartIndexed(entity, (u16) entity->ext.redSoul.param, 0, 1);
+            if ((u16) entity->ext.redSoul.param == 0)
             {
                 Hit_SetTimerOverride(1, 0xF);
             }
@@ -2551,31 +2527,31 @@ void SkillBoomerangProjectileUpdate(struct EwramData_EntityData *entity)
             affineIndex = ObjAffine_Alloc(0);
             if ((affineIndex << 0x10) < 0)
             {
-                gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+                gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
                 EntityDelete(entity);
                 return;
             }
             entity->drawFunc = (u32 *) Sprite_DrawEntity;
             entity->affineIndex = affineIndex;
             entity->affine = 1;
-            owner = RED_SOUL_OWNER(entity);
+            owner = entity->ext.redSoul.owner;
             entity->posX.part16.integer = owner->posX.part16.integer;
             entity->posY.part16.integer = (u16) owner->posY.part16.integer + 0xFFE6;
             entity->scrollWithBg = 1;
-            SKILL_BOOMERANG_SPIN(entity) = 0;
+            entity->ext.skillBoomerang.spin = 0;
             entity->spriteLayer = 0xD;
             entity->state += 1;
             if (owner->flipX)
             {
                 entity->velX.whole = -0x34000;
                 entity->accelX.whole = 0x1000;
-                SKILL_BOOMERANG_SPIN_DIR(entity) = -1;
+                entity->ext.skillBoomerang.spinDir = -1;
             }
             else
             {
                 entity->velX.whole = 0x34000;
                 entity->accelX.whole = -0x1000;
-                SKILL_BOOMERANG_SPIN_DIR(entity) = 1;
+                entity->ext.skillBoomerang.spinDir = 1;
             }
             Hit_Enable(entity, 5, NULL, 0);
             HitBox_SetAttackRaw(entity, 0x1414F6F6);
@@ -2592,8 +2568,8 @@ void SkillBoomerangProjectileUpdate(struct EwramData_EntityData *entity)
             {
                 entity->velX.whole += entity->accelX.whole;
             }
-            ObjAffine_Set(SKILL_BOOMERANG_SPIN(entity) << 7, 0x10000, 0x10000, 0, 0, entity->affineIndex);
-            SKILL_BOOMERANG_SPIN(entity) += SKILL_BOOMERANG_SPIN_DIR(entity);
+            ObjAffine_Set(entity->ext.skillBoomerang.spin << 7, 0x10000, 0x10000, 0, 0, entity->affineIndex);
+            entity->ext.skillBoomerang.spin += entity->ext.skillBoomerang.spinDir;
             if (EntityIsOutsideScreen(entity, 4) != 0)
             {
                 entity->state = 2;
@@ -2603,7 +2579,7 @@ void SkillBoomerangProjectileUpdate(struct EwramData_EntityData *entity)
 
         case 2:
             ObjAffine_Free(entity->affineIndex);
-            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+            gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
             gEwramData->playerState.nbrActiveRedSoulEntities -= 1;
             EntityDelete(entity);
             return;
@@ -2624,8 +2600,8 @@ void SkillAxeArmorTrailUpdate(struct EwramData_EntityData *entity)
     struct BgLayerState *bg;
     s32 x;
 
-    owner = RED_SOUL_OWNER(entity);
-    history = &entity->unk_504.part16.unk_504;
+    owner = entity->ext.redSoul.owner;
+    history = &entity->ext.raw.unk_504.part16.unk_504;
 
     switch (entity->state)
     {
@@ -2633,14 +2609,14 @@ void SkillAxeArmorTrailUpdate(struct EwramData_EntityData *entity)
             affineIndex = ObjAffine_Alloc(0);
             if ((affineIndex << 0x10) < 0)
             {
-                gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+                gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
                 gEwramData->playerState.nbrActiveRedSoulEntities -= 1;
                 EntityDelete(entity);
                 return;
             }
 
             SkillLoadGraphicsInline(entity, 0, sSkillGraphicsSets->graphics, sSkillGraphicsSets->palette, sSkillGraphicsSets->spriteSheet);
-            entity->animFrame = RED_SOUL_PARAM(owner);
+            entity->animFrame = owner->ext.redSoul.param;
             entity->drawFunc = (u32 *) Sprite_DrawEntity;
             entity->affineIndex = affineIndex;
             entity->affine = 1;
@@ -2657,7 +2633,7 @@ void SkillAxeArmorTrailUpdate(struct EwramData_EntityData *entity)
             if (owner->state == 2)
             {
                 ObjAffine_Free(entity->affineIndex);
-                gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+                gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
                 gEwramData->playerState.nbrActiveRedSoulEntities -= 1;
                 EntityDelete(entity);
                 return;
@@ -2698,8 +2674,8 @@ void SkillAxeArmorUse(struct EwramData_EntityData *entity)
     {
         case 0:
             SkillLoadGraphicsInline(entity, 0, sSkillGraphicsSets->graphics, sSkillGraphicsSets->palette, sSkillGraphicsSets->spriteSheet);
-            entity->animFrame = RED_SOUL_PARAM(entity);
-            if ((u16) RED_SOUL_PARAM(entity) == 0)
+            entity->animFrame = entity->ext.redSoul.param;
+            if ((u16) entity->ext.redSoul.param == 0)
             {
                 Hit_SetTimerOverride(1, 0xF);
             }
@@ -2711,7 +2687,7 @@ void SkillAxeArmorUse(struct EwramData_EntityData *entity)
             affineIndex = ObjAffine_Alloc(0);
             if ((affineIndex << 0x10) < 0)
             {
-                gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+                gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
                 EntityDelete(entity);
                 return;
             }
@@ -2719,24 +2695,24 @@ void SkillAxeArmorUse(struct EwramData_EntityData *entity)
             entity->drawFunc = (u32 *) Sprite_DrawEntity;
             entity->affineIndex = affineIndex;
             entity->affine = 1;
-            owner = RED_SOUL_OWNER(entity);
+            owner = entity->ext.redSoul.owner;
             entity->posX.part16.integer = owner->posX.part16.integer;
             entity->posY.part16.integer = (u16) owner->posY.part16.integer + 0xFFE6;
             entity->scrollWithBg = 1;
-            SKILL_BOOMERANG_SPIN(entity) = 0;
+            entity->ext.skillBoomerang.spin = 0;
             entity->spriteLayer = 0xD;
             entity->state += 1;
             if (owner->flipX)
             {
                 entity->velX.whole = -0x34000;
                 entity->accelX.whole = 0x1000;
-                SKILL_BOOMERANG_SPIN_DIR(entity) = -1;
+                entity->ext.skillBoomerang.spinDir = -1;
             }
             else
             {
                 entity->velX.whole = 0x34000;
                 entity->accelX.whole = -0x1000;
-                SKILL_BOOMERANG_SPIN_DIR(entity) = 1;
+                entity->ext.skillBoomerang.spinDir = 1;
             }
 
             Hit_Enable(entity, 5, NULL, 0);
@@ -2774,8 +2750,8 @@ void SkillAxeArmorUse(struct EwramData_EntityData *entity)
                 entity->velX.whole = entity->velX.whole + entity->accelX.whole;
             }
 
-            ObjAffine_Set(SKILL_BOOMERANG_SPIN(entity) << 0xB, 0x10000, 0x10000, 0, 0, entity->affineIndex);
-            SKILL_BOOMERANG_SPIN(entity) += SKILL_BOOMERANG_SPIN_DIR(entity);
+            ObjAffine_Set(entity->ext.skillBoomerang.spin << 0xB, 0x10000, 0x10000, 0, 0, entity->affineIndex);
+            entity->ext.skillBoomerang.spin += entity->ext.skillBoomerang.spinDir;
             if (EntityIsOutsideScreen(entity, 4) != 0)
             {
                 entity->state = 2;
@@ -2788,7 +2764,7 @@ void SkillAxeArmorUse(struct EwramData_EntityData *entity)
             {
                 ObjAffine_Free(entity->affineIndex);
             }
-            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+            gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
             gEwramData->playerState.nbrActiveRedSoulEntities -= 1;
             EntityDelete(entity);
             break;
@@ -2816,9 +2792,6 @@ static inline s32 CheckUnk_53C_6(struct EwramData_EntityData *entity)
 {
     return entity->flipX == 0;
 }
-
-/* Homing soul projectile: cleared at launch; never read. */
-#define HOMING_SOUL_UNUSED(e) e->unk_50C.part16.unk_50E
 
 /**
  * @brief Unreferenced: initialize, steer, move, and release a homing red-soul
@@ -2863,22 +2836,22 @@ void HomingSoulProjectile_Update(struct EwramData_EntityData *entity)
             graphicsTable = sSkillGraphicsSets;
             graphicsEntry = &graphicsTable[4];
             SkillLoadGraphicsInline(entity, 0, graphicsEntry->graphics, graphicsEntry->palette, graphicsEntry->spriteSheet);
-            Anim_StartIndexed(entity, RED_SOUL_PARAM(entity), 0U, 1U);
+            Anim_StartIndexed(entity, entity->ext.redSoul.param, 0U, 1U);
             affineSlot = ObjAffine_Alloc(0);
             if ((affineSlot << 0x10) < 0)
             {
-                gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = 0;
+                gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = 0;
                 EntityDelete(entity);
                 return;
             }
             entity->drawFunc = (u32 *) Sprite_DrawEntity;
             entity->affineIndex = affineSlot;
             entity->affine = 1;
-            owner = RED_SOUL_OWNER(entity);
+            owner = entity->ext.redSoul.owner;
             entity->posX.part16.integer = owner->posX.part16.integer;
             entity->posY.part16.integer = owner->posY.part16.integer - 0x10;
             entity->scrollWithBg = 1;
-            HOMING_SOUL_UNUSED(entity) = 0;
+            entity->ext.skillHoming.unused = 0;
             entity->spriteLayer = 0xD;
             Hit_SetTimerOverride(1, 0x1E);
             Hit_Enable(entity, 5, HomingSoulProjectile_OnPlayerContact, 0);
@@ -2908,8 +2881,8 @@ void HomingSoulProjectile_Update(struct EwramData_EntityData *entity)
                 }
                 selectedTarget = nearestTarget;
             }
-            HOMING_SOUL_TARGET(entity) = selectedTarget;
-            target = HOMING_SOUL_TARGET(entity);
+            entity->ext.skillHoming.target = selectedTarget;
+            target = entity->ext.skillHoming.target;
             if (target != NULL)
             {
                 initialTargetX = target->posX.whole;
@@ -2927,7 +2900,7 @@ void HomingSoulProjectile_Update(struct EwramData_EntityData *entity)
             }
             /* fallthrough */
         case 1:
-            target = HOMING_SOUL_TARGET(entity);
+            target = entity->ext.skillHoming.target;
             if ((target != NULL) && ((s16) target->unk_518.part16.hp > 0))
             {
                 targetX = target->posX.whole;
@@ -2987,7 +2960,7 @@ void HomingSoulProjectile_Update(struct EwramData_EntityData *entity)
 
         case 3:
             ObjAffine_Free(entity->affineIndex);
-            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+            gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
             gEwramData->playerState.nbrActiveRedSoulEntities -= 1;
             EntityDelete(entity);
             return;
@@ -3027,7 +3000,7 @@ void SkillChronomageUse(struct EwramData_EntityData *entity)
     struct SoulGraphicsResources *infos;
     u16 affineIndex;
 
-    owner = RED_SOUL_OWNER(entity);
+    owner = entity->ext.redSoul.owner;
     entity->roomActive = 1;
 
     switch (entity->state)
@@ -3036,7 +3009,7 @@ void SkillChronomageUse(struct EwramData_EntityData *entity)
             affineIndex = ObjAffine_Alloc(0);
             if ((affineIndex << 0x10) < 0)
             {
-                gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+                gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
                 EntityDelete(entity);
                 return;
             }
@@ -3051,7 +3024,7 @@ void SkillChronomageUse(struct EwramData_EntityData *entity)
             entity->affine = 1;
             entity->scrollWithBg = 1;
 
-            gEwramData->gameState.timeStopTimer = RED_SOUL_PARAM(entity);
+            gEwramData->gameState.timeStopTimer = entity->ext.redSoul.param;
             gEwramData->playerState.nbrActiveRedSoulEntities += 1;
             PlaySong(0x1030);
             PlaySong(0x19D);
@@ -3061,17 +3034,17 @@ void SkillChronomageUse(struct EwramData_EntityData *entity)
         case 1:
             entity->posX.whole = owner->posX.whole;
             entity->posY.part16.integer = owner->posY.part16.integer - 0x30;
-            SKILL_CHRONOMAGE_SCALE(entity) += 0x1000;
-            SKILL_CHRONOMAGE_RAMP(entity) += 0x2000;
-            if (SKILL_CHRONOMAGE_SCALE(entity) > 0x10000)
+            entity->ext.skillChronomage.scale += 0x1000;
+            entity->ext.skillChronomage.ramp += 0x2000;
+            if (entity->ext.skillChronomage.scale > 0x10000)
             {
-                SKILL_CHRONOMAGE_SCALE(entity) = 0x10000;
+                entity->ext.skillChronomage.scale = 0x10000;
             }
-            if (SKILL_CHRONOMAGE_RAMP(entity) > 0x10000)
+            if (entity->ext.skillChronomage.ramp > 0x10000)
             {
-                SKILL_CHRONOMAGE_RAMP(entity) = 0x10000;
+                entity->ext.skillChronomage.ramp = 0x10000;
             }
-            SKILL_CHRONOMAGE_INVERT(entity) = SKILL_CHRONOMAGE_SCALE(entity);
+            entity->ext.skillChronomage.invert = entity->ext.skillChronomage.scale;
 
             if (gEwramData->gameState.timeStopTimer != 0)
             {
@@ -3104,34 +3077,34 @@ void SkillChronomageUse(struct EwramData_EntityData *entity)
             entity->timer = 0x20;
             /* fallthrough */
         case 2:
-            SKILL_CHRONOMAGE_SCALE(entity) -= 0x1000;
-            SKILL_CHRONOMAGE_RAMP(entity) -= 0x800;
-            if (SKILL_CHRONOMAGE_SCALE(entity) < 0)
+            entity->ext.skillChronomage.scale -= 0x1000;
+            entity->ext.skillChronomage.ramp -= 0x800;
+            if (entity->ext.skillChronomage.scale < 0)
             {
-                SKILL_CHRONOMAGE_SCALE(entity) = 0;
+                entity->ext.skillChronomage.scale = 0;
             }
-            if (SKILL_CHRONOMAGE_RAMP(entity) < 0)
+            if (entity->ext.skillChronomage.ramp < 0)
             {
-                SKILL_CHRONOMAGE_RAMP(entity) = 0;
+                entity->ext.skillChronomage.ramp = 0;
             }
 
             if (entity->timer == 0)
             {
                 gEwramData->paletteInvert = 1;
                 ObjAffine_Free(entity->affineIndex);
-                gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+                gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
                 gEwramData->playerState.nbrActiveRedSoulEntities -= 1;
                 EntityDelete(entity);
                 return;
             }
 
             entity->timer -= 1;
-            SKILL_CHRONOMAGE_INVERT(entity) = entity->timer << 0xB;
+            entity->ext.skillChronomage.invert = entity->timer << 0xB;
             break;
     }
 
-    gEwramData->paletteInvert = SKILL_CHRONOMAGE_INVERT(entity);
-    ObjAffine_Set(0, SKILL_CHRONOMAGE_SCALE(entity), SKILL_CHRONOMAGE_SCALE(entity), entity->flipX, 0, entity->affineIndex);
+    gEwramData->paletteInvert = entity->ext.skillChronomage.invert;
+    ObjAffine_Set(0, entity->ext.skillChronomage.scale, entity->ext.skillChronomage.scale, entity->flipX, 0, entity->affineIndex);
     Anim_Update(entity);
 }
 
@@ -3191,7 +3164,7 @@ void SkillValkyrieUse(struct EwramData_EntityData *entity)
     s32 spriteSlot;
     s32 offsetY;
 
-    anchor = RED_SOUL_OWNER(entity);
+    anchor = entity->ext.redSoul.owner;
 
     switch (entity->state)
     {
@@ -3250,7 +3223,7 @@ void SkillValkyrieUse(struct EwramData_EntityData *entity)
             }
             else
             {
-                gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = 0;
+                gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = 0;
                 gEwramData->playerState.nbrActiveRedSoulEntities -= 1;
                 entity->deleteRequested = 1;
             }
@@ -3295,7 +3268,7 @@ void SkillKillerDollUse(struct EwramData_EntityData *entity)
     s16 roomX;
     s16 push;
 
-    anchor = RED_SOUL_OWNER(entity);
+    anchor = entity->ext.redSoul.owner;
     friction = 0x100;
 
     switch (entity->state)
@@ -3401,7 +3374,7 @@ void SkillKillerDollUse(struct EwramData_EntityData *entity)
             if (entity->timer == 0)
             {
                 gEwramData->playerState.enemyTarget = gEwramData->playerState.player;
-                gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+                gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
                 gEwramData->playerState.nbrActiveRedSoulEntities -= 1;
                 EntityDelete(entity);
                 return;
@@ -3414,7 +3387,7 @@ void SkillKillerDollUse(struct EwramData_EntityData *entity)
     {
         entity->roomActive = 1;
         gEwramData->playerState.enemyTarget = gEwramData->playerState.player;
-        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities -= 1;
         EntityDelete(entity);
     }
@@ -3435,7 +3408,7 @@ void SkillNemesisUse(struct EwramData_EntityData *entity)
     struct SoulGraphicsResources *info;
     struct SoulGraphicsResources *infos;
 
-    anchor = RED_SOUL_OWNER(entity);
+    anchor = entity->ext.redSoul.owner;
 
     switch (entity->state)
     {
@@ -3451,13 +3424,13 @@ void SkillNemesisUse(struct EwramData_EntityData *entity)
             gEwramData->playerState.nbrActiveRedSoulEntities += 1;
             PlaySong(0x97);
             gEwramData->playerState.enemyTarget = 0;
-            SKILL_NEMESIS_TIMER(entity) = 0x12C;
+            entity->ext.skillNemesis.timer = 0x12C;
             entity->state += 1;
             /* fallthrough */
         case 1:
-            if (SKILL_NEMESIS_TIMER(entity) != 0)
+            if (entity->ext.skillNemesis.timer != 0)
             {
-                SKILL_NEMESIS_TIMER(entity) -= 1;
+                entity->ext.skillNemesis.timer -= 1;
                 break;
             }
 
@@ -3469,7 +3442,7 @@ void SkillNemesisUse(struct EwramData_EntityData *entity)
             if (entity->timer == 0)
             {
                 gEwramData->playerState.enemyTarget = gEwramData->playerState.player;
-                gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = 0;
+                gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = 0;
                 gEwramData->playerState.nbrActiveRedSoulEntities -= 1;
                 EntityDelete(entity);
                 return;

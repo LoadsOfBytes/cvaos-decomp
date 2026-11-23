@@ -1,6 +1,4 @@
 #include "code_08009A0.h"
-#include "altair_entity.h"
-#include "fleaman_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern s32 Collision_GetTileOnScreen(s32, s32);
@@ -19,7 +17,7 @@ extern s16 GetEntityRoomYPositionInteger(struct EwramData_EntityData *entity);
  */
 void Fleaman_UpdateMovement(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *link = &gEwramData->entityData[ALTAIR_DROP_SPAWNER_INDEX(entity)];
+    struct EwramData_EntityData *link = &gEwramData->entityData[entity->ext.altairDrop.spawnerIndex];
     u8 st;
     u16 x;
     u16 y;
@@ -32,7 +30,7 @@ void Fleaman_UpdateMovement(struct EwramData_EntityData *entity)
     case 0:
         entity->spriteLayer = 0x14;
         Anim_StartIndexed(entity, 0, 0, 1);
-        FLEAMAN_ANIM(entity) = 0;
+        entity->ext.fleaman.anim = 0;
         entity->animFlags |= 2;
         {
             s32 v = 0x8000;
@@ -40,7 +38,7 @@ void Fleaman_UpdateMovement(struct EwramData_EntityData *entity)
             if (!entity->flipX)
                 entity->velX.whole = -v;
         }
-        st = FLEAMAN_AIRBORNE(entity);
+        st = entity->ext.fleaman.airborne;
         if (st != 1)
             st = 4;
         entity->subState = st;
@@ -52,10 +50,10 @@ void Fleaman_UpdateMovement(struct EwramData_EntityData *entity)
         entity->subState++;
         break;
     case 2:
-        if (FLEAMAN_ANIM(entity) != 3)
+        if (entity->ext.fleaman.anim != 3)
         {
             Anim_StartIndexed(entity, 3, 0, 1);
-            FLEAMAN_ANIM(entity) = 3;
+            entity->ext.fleaman.anim = 3;
             entity->animTimer = 0;
             entity->animStep = 3;
             entity->animFlags |= 2;
@@ -78,7 +76,7 @@ void Fleaman_UpdateMovement(struct EwramData_EntityData *entity)
         {
             entity->subState++;
             Anim_StartIndexed(entity, 0, 0, 1);
-            FLEAMAN_ANIM(entity) = 0;
+            entity->ext.fleaman.anim = 0;
         }
         break;
     case 4:
@@ -128,7 +126,7 @@ void Fleaman_UpdateMovement(struct EwramData_EntityData *entity)
             entity->accelY.whole = 0x3C00;
         jump:
             Anim_StartIndexed(entity, 3, 0, 1);
-            FLEAMAN_ANIM(entity) = 3;
+            entity->ext.fleaman.anim = 3;
             entity->animFlags |= 2;
             st = 5;
             break;

@@ -1,12 +1,11 @@
 #include "code_08009A0.h"
-#include "manticore_entity.h"
 #include "code/code_08039340.h"
 extern u16 ArcTan2(s32, s32);
 #include "structs/ewram.h"
 extern void ManticoreTail_UpdateSwing(struct EwramData_EntityData *);
-#define KIND(e) ((u8)MANTICORE_TAIL_KIND((e)))
-#define DONE(e) (*(u8 *)&MANTICORE_TAIL_UPDATED((e)))
-#define NEXT(e) (MANTICORE_TAIL_NEXT((e)))
+#define KIND(e) ((u8)e->ext.manticoreTail.kind)
+#define DONE(e) (*(u8 *)&e->ext.manticoreTail.updated)
+#define NEXT(e) (e->ext.manticoreTail.link.next)
 static inline s32 ToPixels(s32 x) { if (x < 0) return (s16)-(-x >> 16); return x >> 16; }
 
 /* Update a linked part, once per chain traversal, and face the next part. */

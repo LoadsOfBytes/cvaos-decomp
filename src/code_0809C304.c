@@ -1,6 +1,5 @@
 /* Stolas body-part helpers 0x0809C304..0x0809C41B. */
 #include "code/code_080211F0.h"
-#include "joint_entity.h"
 #include "structs/ewram.h"
 
 #define STOLAS_PART_COUNT 6
@@ -46,7 +45,7 @@ void Stolas_TurnAround(struct EwramData_EntityData *entity)
 
     entity->flipX ^= 1;
     halfTurn = 0x20000;
-    parts = entity->unk_500.jointParts;
+    parts = entity->ext.joint.parts;
     for (i = STOLAS_PART_COUNT - 1; i >= 0; parts++, i--)
     {
         parts->offsetX = -parts->offsetX;
@@ -59,7 +58,7 @@ void Stolas_TurnAround(struct EwramData_EntityData *entity)
  */
 void Stolas_ClearJointAngles(struct EwramData_EntityData *entity, s32 partIndex)
 {
-    struct EntityJointPart *parts = entity->unk_500.jointParts;
+    struct EntityJointPart *parts = entity->ext.joint.parts;
 
     parts[partIndex].targetSwingAngle = 0;
     parts[partIndex].swingAngle = 0;
@@ -70,7 +69,7 @@ void Stolas_ClearJointAngles(struct EwramData_EntityData *entity, s32 partIndex)
  */
 void Stolas_SaveJointPositions(struct EwramData_EntityData *entity)
 {
-    struct EntityJointPart *parts = entity->unk_500.jointParts;
+    struct EntityJointPart *parts = entity->ext.joint.parts;
     s32 i;
 
     for (i = STOLAS_PART_COUNT - 1; i >= 0; parts++, i--)
@@ -85,7 +84,7 @@ void Stolas_SaveJointPositions(struct EwramData_EntityData *entity)
  */
 void Stolas_RestoreJointPositions(struct EwramData_EntityData *entity)
 {
-    struct EntityJointPart *parts = entity->unk_500.jointParts;
+    struct EntityJointPart *parts = entity->ext.joint.parts;
     s32 i;
 
     for (i = STOLAS_PART_COUNT - 1; i >= 0; parts++, i--)
@@ -103,7 +102,7 @@ void Stolas_OnContact(struct EwramData_EntityData *entity)
     struct PlayerContactDamage contactDamage;
 
     contactDamage.attack = entity->attack;
-    if ((s8)JOINT_PART_INDEX(entity) == 2)
+    if ((s8)entity->ext.jointPart.index == 2)
         contactDamage.attributes = 1;
     else
         contactDamage.attributes = 0;

@@ -16,14 +16,14 @@ s32 Graham_CreateSceneObject(struct EwramData_EntityData *entity,s32 index)
     struct GrahamSceneObject *info=&sGrahamSceneObjects[index];
     struct EwramData_EntityData *object;
     s32 facing;
-    if(!(GRAHAM_FLAGS(entity) & 0x80))
+    if(!(entity->ext.graham.flags & 0x80))
         return 0;
     if(gEwramData->gameState.stateFlags & 0x10)
         return 0;
     object=EntityCreateInRange(0x1B,0x48,(u32 *)EntityUpdateNothing);
     if(!object)
         return 0;
-    GRAHAM_SCENE_OBJECT_INDEX(entity)=ENTITY_INDEX(object);
+    entity->ext.grahamScene.objectIndex=ENTITY_INDEX(object);
     ENTITY_PARENT_INDEX(object)=ENTITY_INDEX(entity);
     if(index==0 || index==5)
     {

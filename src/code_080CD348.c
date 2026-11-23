@@ -1,7 +1,6 @@
 /* Alastor-fight helper functions 0x080CD348..0x080CD543. They are copies of the Bael helpers in
  * code_080CC3C8.c with other callees. */
 #include "code_08009A0.h"
-#include "wheel_enemy_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -60,8 +59,8 @@ void Bael_UpdateState4Rotation(struct EwramData_EntityData *entity)
             entity->animFrame = 0;
             entity->subState++;
         case 1:
-            WHEEL_ANGLE(entity) += 0x100;
-            ObjAffine_Set(WHEEL_ANGLE(entity), 0x10000, 0x10000, 0, 0, entity->affineIndex);
+            entity->ext.wheel.angle += 0x100;
+            ObjAffine_Set(entity->ext.wheel.angle, 0x10000, 0x10000, 0, 0, entity->affineIndex);
             break;
     }
 }
@@ -142,7 +141,7 @@ void Bael_RestoreXAtProbe(struct EwramData_EntityData *entity, s32 savedX)
 {
     s32 probeX = 0x18;
 
-    if ((s32)WHEEL_SPEED(entity) < 0)
+    if ((s32)entity->ext.wheel.speed < 0)
         probeX = -probeX;
     if (Entity_IsOffsetOutsideRoom(entity, probeX, 0))
         entity->posX.whole = savedX;
@@ -157,7 +156,7 @@ void Bael_SpawnChargeEffect(u16 x, u16 y, u8 kind, u32 flip)
 
     if (child != NULL)
     {
-        WHEEL_EFFECT_ANIM(child) = kind;
+        child->ext.wheel.effectAnim = kind;
         child->posX.part16.integer = x;
         child->posY.part16.integer = y;
         child->flipX = flip ^ 1;

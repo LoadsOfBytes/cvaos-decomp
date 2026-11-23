@@ -37,23 +37,23 @@ void Object37Child_Update(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
         case 0:
-            if ((s32)OBJECT37_CHILD_ANGLE(entity) < 0)
+            if ((s32)entity->ext.object37Child.angle < 0)
             {
-                OBJECT37_CHILD_ANGLE(entity) += 0xAA;
-                if ((s32)OBJECT37_CHILD_ANGLE(entity) > 0)
-                    OBJECT37_CHILD_ANGLE(entity) = 0;
+                entity->ext.object37Child.angle += 0xAA;
+                if ((s32)entity->ext.object37Child.angle > 0)
+                    entity->ext.object37Child.angle = 0;
             }
             break;
         case 1:
-            if ((s32)OBJECT37_CHILD_ANGLE(entity) > -0x2000)
+            if ((s32)entity->ext.object37Child.angle > -0x2000)
             {
-                OBJECT37_CHILD_ANGLE(entity) -= 0xAA;
-                if ((s32)OBJECT37_CHILD_ANGLE(entity) < -0x2000)
-                    OBJECT37_CHILD_ANGLE(entity) = -0x2000;
+                entity->ext.object37Child.angle -= 0xAA;
+                if ((s32)entity->ext.object37Child.angle < -0x2000)
+                    entity->ext.object37Child.angle = -0x2000;
             }
             break;
     }
-    ObjAffine_Set(OBJECT37_CHILD_ANGLE(entity), 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
+    ObjAffine_Set(entity->ext.object37Child.angle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
 }
 
 /**

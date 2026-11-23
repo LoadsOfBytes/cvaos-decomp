@@ -38,7 +38,7 @@ void Belmont_UpdateMeleeAttack(struct EwramData_EntityData *entity)
             if(*frame==8)
                 PlaySong(0xFC);
             if(*frame>7)
-                entity->attack=BELMONT_ATTACK(entity);
+                entity->attack=entity->ext.belmont.attack;
             else
                 entity->attack=0;
             if(entity->animDone)
@@ -46,7 +46,7 @@ void Belmont_UpdateMeleeAttack(struct EwramData_EntityData *entity)
                 entity->state=2;
                 entity->stage=0;
                 entity->subState=0;
-                entity->attack=BELMONT_ATTACK_OFF(entity);
+                entity->attack=entity->ext.belmont.attackOff;
             }
             break;
         }

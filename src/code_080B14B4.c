@@ -48,15 +48,15 @@ void DiscArmorRing_Update(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    dist = DISC_ARMOR_RING_LENGTH(entity);
+    dist = entity->ext.discArmorRing.length;
     if (dist > 0x600000)
         dist = 0x600000;
     dist /= 3;
     scale = dist / 32;
-    DISC_ARMOR_RING_STEP_X(entity) = Sin(DISC_ARMOR_RING_ANGLE(entity) + 0x4000) << 5;
-    y = Sin(DISC_ARMOR_RING_ANGLE(entity)) << 5;
-    DISC_ARMOR_RING_STEP_Y(entity) = y;
-    DISC_ARMOR_RING_STEP_X(entity) = (s32)DISC_ARMOR_RING_STEP_X(entity) / 0x10000 * scale;
-    DISC_ARMOR_RING_STEP_Y(entity) = y / 0x10000 * scale;
-    ObjAffine_Set(DISC_ARMOR_RING_ANGLE(entity), scale, 0x10000, 0, 0, entity->affineIndex);
+    entity->ext.discArmorRing.stepX = Sin(entity->ext.discArmorRing.angle + 0x4000) << 5;
+    y = Sin(entity->ext.discArmorRing.angle) << 5;
+    entity->ext.discArmorRing.stepY = y;
+    entity->ext.discArmorRing.stepX = (s32)entity->ext.discArmorRing.stepX / 0x10000 * scale;
+    entity->ext.discArmorRing.stepY = y / 0x10000 * scale;
+    ObjAffine_Set(entity->ext.discArmorRing.angle, scale, 0x10000, 0, 0, entity->affineIndex);
 }

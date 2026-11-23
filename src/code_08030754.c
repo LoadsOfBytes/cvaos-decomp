@@ -1,8 +1,5 @@
 #include "code_08009A0.h"
 #include "soul_skill_entity.h"
-/* Segment: 0x200000 stored at creation; never read. */
-#define SKILL_CREAKING_SKULL_SEGMENT_UNUSED(e) e->unk_500.whole
-#include "blue_soul_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 #include "macros.h"
@@ -25,7 +22,7 @@ static inline void FreeMatrix(struct EwramData_EntityData *entity)
 
 static inline void Destroy(struct EwramData_EntityData *entity)
 {
-    gEwramData->playerState.activeBlueSoulEntities[BLUE_SOUL_SLOT(entity)] = NULL;
+    gEwramData->playerState.activeBlueSoulEntities[entity->ext.blueSoul.slot] = NULL;
     EntityDelete(entity);
 }
 
@@ -37,7 +34,7 @@ static inline void Destroy(struct EwramData_EntityData *entity)
 void SkillCreakingSkullSegmentUpdate(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *soul = &gEwramData->entityData[SKILL_CREAKING_SKULL_SOUL_INDEX(entity)];
-    struct EwramData_EntityData *parent = BLUE_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.blueSoul.owner;
     u16 *angles = (u16 *)SKILL_CREAKING_SKULL_ANGLES(soul);
     u16 count = *angles;
     u16 matrix;
@@ -75,7 +72,7 @@ void SkillCreakingSkullSegmentUpdate(struct EwramData_EntityData *entity)
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         entity->affineIndex = matrix;
         entity->affine = 1;
-        SKILL_CREAKING_SKULL_SEGMENT_UNUSED(entity) = 0x200000;
+        entity->ext.skillCreakingSkullSegment.unused = 0x200000;
         SKILL_CREAKING_SKULL_SEGMENT_ANGLE(entity) = angles[SKILL_CREAKING_SKULL_SEGMENT(entity)];
         entity->scrollWithBg = 1;
         goto idle;
@@ -114,7 +111,7 @@ void SkillCreakingSkullSegmentUpdate(struct EwramData_EntityData *entity)
     }
     if (SKILL_CREAKING_SKULL_SEGMENT(entity) != 0)
     {
-        radius = TO_PIXELS(sUnk_080E1AFC[SKILL_CREAKING_SKULL_SEGMENT(entity)] * SKILL_CREAKING_SKULL_SCALE(soul));
+        radius = TO_PIXELS(sUnk_080E1AFC[SKILL_CREAKING_SKULL_SEGMENT(entity)] * soul->ext.skillCreakingSkull.scale);
         angle = -0x8000 + SKILL_CREAKING_SKULL_ANGLE(parent);
         if (entity->flipX)
             angle = -SKILL_CREAKING_SKULL_ANGLE(parent);
@@ -129,5 +126,5 @@ void SkillCreakingSkullSegmentUpdate(struct EwramData_EntityData *entity)
     angle = SKILL_CREAKING_SKULL_SEGMENT_ANGLE(entity);
     if (entity->flipX)
         angle = -(angle << 16) >> 16; /* negated in the upper half */
-    ObjAffine_Set((s16)angle, SKILL_CREAKING_SKULL_SCALE(soul), SKILL_CREAKING_SKULL_SCALE(soul), entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set((s16)angle, soul->ext.skillCreakingSkull.scale, soul->ext.skillCreakingSkull.scale, entity->flipX, 0, entity->affineIndex);
 }

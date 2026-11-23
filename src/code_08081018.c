@@ -13,7 +13,7 @@
  */
 void Golem_AttachPart(struct EwramData_EntityData *entity, s32 partIndex, s32 anchorIndex, s32 angleSpec, s32 length)
 {
-    struct GolemPart *parts = entity->unk_500.golemParts;
+    struct GolemPart *parts = entity->ext.golem.parts;
     // &parts[partIndex], written as integer arithmetic (offset + base) as in
     // the original
     struct GolemPart *part = (struct GolemPart *)(partIndex * sizeof(struct GolemPart) + (u32)parts);

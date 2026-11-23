@@ -33,5 +33,5 @@ void BlueSoul_ReleaseActiveResources(struct EwramData_EntityData *entity)
         gEwramData->playerState.blueSoulGfx = -1;
     }
     gEwramData->playerStatus.soulStateFlags &= ~0x3F00;
-    PLAYER_ACTION_FLAGS(gEwramData->playerState.player) &= ~0x200;
+    gEwramData->playerState.player->ext.player.actionFlags &= ~0x200;
 }

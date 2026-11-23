@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "door_entity.h"
 #include "code_08001194.h"
 #include "code/code_08060B98.h"
 #include "structs/main.h"
@@ -30,7 +29,7 @@ void Object06Create(struct EwramData_EntityData *entity)
     if (Entity_IsInRect(entity, (s16)(player->posX.part16.integer - 0x1C), player->posY.part16.integer, 0x38, 0x22)
         || (flag = gEwramData->gameState.bossEventFlags & 4) != 0)
     {
-        DOOR_OPEN_HEIGHT(entity) = 0x30;
+        entity->ext.door.openHeight = 0x30;
         entity->state = 10;
         SetPlayerInput(1, 0);
         return;
@@ -42,7 +41,7 @@ void Object06Create(struct EwramData_EntityData *entity)
     Collision_SetBlock(x, y - 8);
     Collision_SetBlock(x, y - 0x18);
     Collision_SetBlock(x, y - 0x28);
-    DOOR_OPEN_HEIGHT(entity) = flag;
+    entity->ext.door.openHeight = flag;
     switch (entity->unk_514.part16.spawnParam0)
     {
     case 1:

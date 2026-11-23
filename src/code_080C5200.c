@@ -1,22 +1,9 @@
 /* Tiny Devil helpers 0x080C5200..0x080C52F3 (same template as the Ukoback
  * helpers in code_080C64E8.c). */
 #include "code_08009A0.h"
-#include "imp_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
-
-/*
- * Tiny Devil flight (TinyDevil_UpdateFlight): bob phase of the hovering,
- * frames until the next attack, a random pixel offset from the target that it
- * flies to (x / y), and flags (1 / 2 = x / y offset reached, 4 / 8 = the x / y
- * offset lies on the positive / upper side). Token-identical expansion.
- */
-#define TINY_DEVIL_BOB_PHASE(e) e->unk_4FC.part16.unk_4FC
-#define TINY_DEVIL_ATTACK_TIMER(e) e->unk_4F8.part16.unk_4F8
-#define TINY_DEVIL_FLAGS(e) e->unk_4F8.part16.unk_4FA
-#define TINY_DEVIL_OFFSET_X(e) e->unk_500.whole
-#define TINY_DEVIL_OFFSET_Y(e) e->unk_504.whole
 
 extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
 extern u16 Player_CalculateAttackPower(u16 attackCategory);
@@ -90,7 +77,7 @@ s32 Imp_CreateGrabIndicator(struct EwramData_EntityData *entity)
 
     if (child != NULL)
     {
-        IMP_LINK_INDEX(entity) = ENTITY_INDEX(child);
+        entity->ext.imp.linkIndex = ENTITY_INDEX(child);
         created = 1;
     }
     return created;
@@ -106,7 +93,7 @@ s32 Imp_SpawnDeathPiece(struct EwramData_EntityData *entity)
 
     if (child != NULL)
     {
-        IMP_LINK_INDEX(child) = ENTITY_INDEX_PAIR(entity);
+        child->ext.imp.linkIndex = ENTITY_INDEX_PAIR(entity);
         created = 1;
     }
     return created;
@@ -240,8 +227,8 @@ void TinyDevil_UpdateFlight(struct EwramData_EntityData *entity)
                 entity->accelY.whole = 0;
                 entity->stage++;
             case 1:
-                entity->velY.whole = Sin((u16)TINY_DEVIL_BOB_PHASE(entity) + 0x4000) / 4;
-                TINY_DEVIL_BOB_PHASE(entity) += 0x200;
+                entity->velY.whole = Sin((u16)entity->ext.tinyDevil.bobPhase + 0x4000) / 4;
+                entity->ext.tinyDevil.bobPhase += 0x200;
                 entity->posY.whole += entity->velY.whole;
                 entity->velY.whole += entity->accelY.whole;
                 return;
@@ -251,51 +238,51 @@ void TinyDevil_UpdateFlight(struct EwramData_EntityData *entity)
     {
         entity->stage = 0;
     }
-    if ((s16)TINY_DEVIL_ATTACK_TIMER(entity) != 0)
-        TINY_DEVIL_ATTACK_TIMER(entity)--;
+    if ((s16)entity->ext.tinyDevil.attackTimer != 0)
+        entity->ext.tinyDevil.attackTimer--;
     Entity_FaceTarget(entity);
     switch (entity->subState)
     {
         case 0:
-            if ((s16)TINY_DEVIL_ATTACK_TIMER(entity) == 0)
-                TINY_DEVIL_ATTACK_TIMER(entity) = RandomNumberGenerator() % 500 + 100;
-            TINY_DEVIL_FLAGS(entity) = 0;
+            if ((s16)entity->ext.tinyDevil.attackTimer == 0)
+                entity->ext.tinyDevil.attackTimer = RandomNumberGenerator() % 500 + 100;
+            entity->ext.tinyDevil.flags = 0;
             if (entity->animScriptIndex != 1)
                 Anim_StartIndexed(entity, 1, 0, 1);
             entity->accelX.whole = 0x200;
             entity->accelY.whole = 0x400;
             if (dx > 0)
             {
-                TINY_DEVIL_OFFSET_X(entity) = RandomNumberGenerator() % 25 - 25;
+                entity->ext.tinyDevil.offsetX = RandomNumberGenerator() % 25 - 25;
                 entity->accelX.whole = -entity->accelX.whole;
-                TINY_DEVIL_FLAGS(entity) &= ~4;
+                entity->ext.tinyDevil.flags &= ~4;
             }
             else
             {
-                TINY_DEVIL_OFFSET_X(entity) = 25 - RandomNumberGenerator() % 25;
-                TINY_DEVIL_FLAGS(entity) |= 4;
+                entity->ext.tinyDevil.offsetX = 25 - RandomNumberGenerator() % 25;
+                entity->ext.tinyDevil.flags |= 4;
             }
             if (dy > 25)
             {
-                TINY_DEVIL_OFFSET_Y(entity) = RandomNumberGenerator() % 25 - 20;
+                entity->ext.tinyDevil.offsetY = RandomNumberGenerator() % 25 - 20;
                 entity->accelY.whole = -entity->accelY.whole;
-                TINY_DEVIL_FLAGS(entity) &= ~8;
+                entity->ext.tinyDevil.flags &= ~8;
             }
             else
             {
-                TINY_DEVIL_OFFSET_Y(entity) = -70 - RandomNumberGenerator() % 25;
-                TINY_DEVIL_FLAGS(entity) |= 8;
+                entity->ext.tinyDevil.offsetY = -70 - RandomNumberGenerator() % 25;
+                entity->ext.tinyDevil.flags |= 8;
             }
             entity->subState++;
             break;
         case 1:
-            if (TINY_DEVIL_FLAGS(entity) & 4)
+            if (entity->ext.tinyDevil.flags & 4)
             {
-                if (TINY_DEVIL_FLAGS(entity) & 1)
+                if (entity->ext.tinyDevil.flags & 1)
                 {
                     if (entity->velX.whole <= 0)
                     {
-                        TINY_DEVIL_FLAGS(entity) &= ~1;
+                        entity->ext.tinyDevil.flags &= ~1;
                         entity->subState = 0;
                     }
                 }
@@ -303,9 +290,9 @@ void TinyDevil_UpdateFlight(struct EwramData_EntityData *entity)
                 {
                     if (entity->velX.whole > 0x18000)
                         entity->velX.whole = 0x18000;
-                    if (dx >= TINY_DEVIL_OFFSET_X(entity))
+                    if (dx >= entity->ext.tinyDevil.offsetX)
                     {
-                        TINY_DEVIL_FLAGS(entity) |= 1;
+                        entity->ext.tinyDevil.flags |= 1;
                         if (entity->velX.whole > 0x10000)
                             entity->accelX.whole = -(entity->accelX.whole * 3);
                         else
@@ -315,11 +302,11 @@ void TinyDevil_UpdateFlight(struct EwramData_EntityData *entity)
             }
             else
             {
-                if (TINY_DEVIL_FLAGS(entity) & 1)
+                if (entity->ext.tinyDevil.flags & 1)
                 {
                     if (entity->velX.whole >= 0)
                     {
-                        TINY_DEVIL_FLAGS(entity) &= ~1;
+                        entity->ext.tinyDevil.flags &= ~1;
                         entity->subState = 0;
                     }
                 }
@@ -327,9 +314,9 @@ void TinyDevil_UpdateFlight(struct EwramData_EntityData *entity)
                 {
                     if (entity->velX.whole < -0x18000)
                         entity->velX.whole = -0x18000;
-                    if (dx <= TINY_DEVIL_OFFSET_X(entity))
+                    if (dx <= entity->ext.tinyDevil.offsetX)
                     {
-                        TINY_DEVIL_FLAGS(entity) |= 1;
+                        entity->ext.tinyDevil.flags |= 1;
                         if (entity->velX.whole < -0x10000)
                             entity->accelX.whole = -(entity->accelX.whole * 3);
                         else
@@ -338,13 +325,13 @@ void TinyDevil_UpdateFlight(struct EwramData_EntityData *entity)
                 }
             }
 
-            if (TINY_DEVIL_FLAGS(entity) & 8)
+            if (entity->ext.tinyDevil.flags & 8)
             {
-                if (TINY_DEVIL_FLAGS(entity) & 2)
+                if (entity->ext.tinyDevil.flags & 2)
                 {
                     if (entity->velY.whole <= 0)
                     {
-                        TINY_DEVIL_FLAGS(entity) &= ~2;
+                        entity->ext.tinyDevil.flags &= ~2;
                         entity->subState = 0;
                     }
                 }
@@ -352,9 +339,9 @@ void TinyDevil_UpdateFlight(struct EwramData_EntityData *entity)
                 {
                     if (entity->velY.whole > 0x8000)
                         entity->velY.whole = 0x8000;
-                    if (dy >= TINY_DEVIL_OFFSET_Y(entity))
+                    if (dy >= entity->ext.tinyDevil.offsetY)
                     {
-                        TINY_DEVIL_FLAGS(entity) |= 2;
+                        entity->ext.tinyDevil.flags |= 2;
                         if (entity->velY.whole > 0x10000)
                             entity->accelY.whole = -(entity->accelY.whole * 3);
                         else
@@ -364,11 +351,11 @@ void TinyDevil_UpdateFlight(struct EwramData_EntityData *entity)
             }
             else
             {
-                if (TINY_DEVIL_FLAGS(entity) & 2)
+                if (entity->ext.tinyDevil.flags & 2)
                 {
                     if (entity->velY.whole >= 0)
                     {
-                        TINY_DEVIL_FLAGS(entity) &= ~2;
+                        entity->ext.tinyDevil.flags &= ~2;
                         entity->subState = 0;
                     }
                 }
@@ -376,9 +363,9 @@ void TinyDevil_UpdateFlight(struct EwramData_EntityData *entity)
                 {
                     if (entity->velY.whole < -0x8000)
                         entity->velY.whole = -0x8000;
-                    if (dy <= TINY_DEVIL_OFFSET_Y(entity))
+                    if (dy <= entity->ext.tinyDevil.offsetY)
                     {
-                        TINY_DEVIL_FLAGS(entity) |= 2;
+                        entity->ext.tinyDevil.flags |= 2;
                         if (entity->velY.whole < -0x10000)
                             entity->accelY.whole = -(entity->accelY.whole * 3);
                         else
@@ -388,7 +375,7 @@ void TinyDevil_UpdateFlight(struct EwramData_EntityData *entity)
             }
             break;
     }
-    if ((s16)TINY_DEVIL_ATTACK_TIMER(entity) == 0 && !EntityIsOutsideScreen(entity, 4))
+    if ((s16)entity->ext.tinyDevil.attackTimer == 0 && !EntityIsOutsideScreen(entity, 4))
     {
         entity->velX.whole = 0;
         entity->accelX.whole = 0;
@@ -581,7 +568,7 @@ void TinyDevilProjectile_Update(struct EwramData_EntityData *entity)
         case 1:
             if (entity->animDone)
             {
-                if ((s16)++TINY_DEVIL_ATTACK_TIMER(entity) > RandomNumberGenerator() % 5 + 1)
+                if ((s16)++entity->ext.tinyDevil.attackTimer > RandomNumberGenerator() % 5 + 1)
                 {
                     Anim_StartIndexed(entity, 6, 0, 0);
                     entity->affine = 1;

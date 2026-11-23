@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "une_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -66,9 +65,9 @@ void EnemyUneCreate(struct EwramData_EntityData *entity)
                 child->updateFunc = entity->updateFunc;
                 EnemyUneCreate(child);
                 child->accelY.whole = 0x2800;
-                UNE_SPAWNER(child) = entity;
-                UNE_COUNT(entity) = 1;
-                UNE_ORIGINAL(child) = 1;
+                child->ext.une.spawner = entity;
+                entity->ext.uneSpawner.count = 1;
+                child->ext.une.original = 1;
             }
             goto end;
         }

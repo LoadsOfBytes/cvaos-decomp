@@ -12,17 +12,11 @@
  *   (unk_4FB): number of listed items (ItemMenu/SoulMenu_CountList).
  * Expansion is token-identical (no added parentheses); plain identifiers only.
  */
-#define MENU_PAGE_CATEGORY(e) e->unk_4F4.part8.unk_4F7
-#define MENU_PAGE_COUNT(e) e->unk_4F8.part8.unk_4F8
-#define MENU_PAGE_CURSOR(e) e->unk_4F8.part8.unk_4F9
-#define MENU_PAGE_TOP(e) e->unk_4F8.part8.unk_4FA
-#define MENU_PAGE_ITEM(e) e->unk_4F8.part8.unk_4FB
 
 /*
  * The same four bytes read as an array (cursor drawing, list counting):
  * [0] = count, [1] = cursor, [2] = top, [3] = item.
  */
-#define MENU_PAGE_BYTES(e) e->unk_4F8.bytes
 
 /*
  * Graphics slot of the menu sprites, loaded into the cursor entity (slot 18)
@@ -31,15 +25,12 @@
  * Button config page: the action of each of its four rows (index into
  * sButtonConfigCursorFrames).
  */
-#define MENU_GFX_SLOT(e) e->unk_4F4.part8.unk_4F5
-#define MENU_PAGE_BUTTONS(e) e->unk_4FC.bytes
 
 /*
  * Page-title entity (slot 20; MenuPageTitle_Create / _Update / _Delete):
  * state (1 = place and start the zoom-in, 2 = zooming), its affine slot as
  * allocated / as the u16 slot number read by the update.
  */
-#define MENU_TITLE_STATE(e) e->unk_508.part8.unk_508
 #define MENU_TITLE_AFFINE(e) e->unk_510.whole
 #define MENU_TITLE_AFFINE_SLOT(e) e->unk_510.part16.unk_510
 

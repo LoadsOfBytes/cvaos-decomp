@@ -1,6 +1,5 @@
 /* Persephone_UpdateAttack: enemy behaviour states; matched. */
 #include "code_08009A0.h"
-#include "persephone_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -33,7 +32,7 @@ void Persephone_UpdateAttack(struct EwramData_EntityData *entity)
     case 0:
         Anim_StartIndexed(entity, 4, 0, 0);
         entity->subState++;
-        PERSEPHONE_CONTACT_HIT(entity) = 0;
+        entity->ext.persephone.contactHit = 0;
         entity->flipX = Entity_IsTargetRight(entity);
         v = Entity_GetTargetDistanceX(entity);
         if (v < 0)
@@ -78,7 +77,7 @@ void Persephone_UpdateAttack(struct EwramData_EntityData *entity)
         res = Entity_MoveWithCollision(entity, speed, -0x200000, 0x80000, 8);
         if ((res & 4) && entity->animDone)
         {
-            if (entity->timer > 1 || (s8)PERSEPHONE_CONTACT_HIT(entity) == 1)
+            if (entity->timer > 1 || (s8)entity->ext.persephone.contactHit == 1)
                 goto land;
             goto idle;
         }
@@ -144,7 +143,7 @@ void Persephone_UpdateAttack(struct EwramData_EntityData *entity)
         res = Entity_MoveWithCollision(entity, speed, -0x200000, 0x80000, 8);
         if (res & 4)
         {
-            if (entity->timer > 1 || (s8)PERSEPHONE_CONTACT_HIT(entity) == 1)
+            if (entity->timer > 1 || (s8)entity->ext.persephone.contactHit == 1)
             {
             land:
                 entity->subState = 3;

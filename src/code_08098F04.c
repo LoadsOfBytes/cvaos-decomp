@@ -1,6 +1,5 @@
 /* Mimic: dispatch state, refresh the box on frame changes and run collision. */
 #include "code/code_08039340.h"
-#include "mimic_entity.h"
 #include "structs/ewram.h"
 union MimicAnimation { u32 words[2]; u8 bytes[8]; };
 extern union MimicAnimation sMimicAnimation;
@@ -15,7 +14,7 @@ void EnemyMimicUpdate(struct EwramData_EntityData *entity)
     u32 buffer[4];
     union MimicAnimation animation = sMimicAnimation;
     u8 frame;
-    MIMIC_FLAGS(entity) = 0;
+    entity->ext.mimic.flags = 0;
     if (Enemy_PreUpdate(entity)) return;
     switch (entity->state)
     {
@@ -27,13 +26,13 @@ void EnemyMimicUpdate(struct EwramData_EntityData *entity)
         return;
     }
     frame = entity->animFrame;
-    if (MIMIC_FLAGS(entity) & 2)
+    if (entity->ext.mimic.flags & 2)
     {
         Anim_Start(entity, (struct AnimScript *)&animation, 0, 1);
-        animation.bytes[4] = MIMIC_HELD_FRAME(entity);
+        animation.bytes[4] = entity->ext.mimic.heldFrame;
         Anim_Update(entity);
     }
     else Anim_Update(entity);
     if (frame != entity->animFrame) Entity_UpdateBoxes(entity);
-    if (entity->state != 1 && !(MIMIC_FLAGS(entity) & 1)) Hit_CheckWithPlayer(buffer, entity);
+    if (entity->state != 1 && !(entity->ext.mimic.flags & 1)) Hit_CheckWithPlayer(buffer, entity);
 }

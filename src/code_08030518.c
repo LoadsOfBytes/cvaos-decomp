@@ -1,7 +1,6 @@
 /* SkillDeathUse; graphics
  * loading as in SkillBlueSoulForm2Update. */
 #include "code_08009A0.h"
-#include "blue_soul_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -20,7 +19,7 @@ extern void SkillDeathSickleUpdate(struct EwramData_EntityData *);
  */
 void SkillDeathUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = BLUE_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.blueSoul.owner;
 
     if (BlueSoul_ShouldEnd(entity))
     {

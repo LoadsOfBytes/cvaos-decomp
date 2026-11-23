@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "winged_skeleton_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -67,19 +66,19 @@ void EnemyWingedSkeletonUpdate(struct EwramData_EntityData *entity)
         Enemy_UpdateFragmentDeath(entity);
         if (entity->deleteRequested)
         {
-            parent = WINGED_SKELETON_SPAWNER(entity);
+            parent = entity->ext.wingedSkeleton.spawner;
             if (parent != NULL && parent->updateFunc != NULL && parent->unk_518.part8.enemyId == 0x14
-                && WINGED_SKELETON_CHILD_COUNT(parent) != 0)
-                WINGED_SKELETON_CHILD_COUNT(parent)--;
+                && parent->ext.wingedSkeletonSpawner.childCount != 0)
+                parent->ext.wingedSkeletonSpawner.childCount--;
         }
         break;
     case 3:
-        if ((RandomNumberGenerator() & 0x1F) == 0 && (s32)WINGED_SKELETON_CHILD_COUNT(entity) < entity->unk_514.part16.spawnParam0)
+        if ((RandomNumberGenerator() & 0x1F) == 0 && (s32)entity->ext.wingedSkeletonSpawner.childCount < entity->unk_514.part16.spawnParam0)
         {
             head = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
             if (head != NULL)
             {
-                WINGED_SKELETON_CHILD_COUNT(entity)++;
+                entity->ext.wingedSkeletonSpawner.childCount++;
                 if (gEwramData->playerState.player->posX.whole <= 0x1FFFFF)
                     head->posX.whole = 0x1000000;
                 else if (gEwramData->playerState.player->posX.whole <= 0xD00000 && (RandomNumberGenerator() & 1))
@@ -105,7 +104,7 @@ void EnemyWingedSkeletonUpdate(struct EwramData_EntityData *entity)
                 head->unk_510.part16.unk_512 = sEnemyData[entity->unk_518.part8.enemyId].unk_E;
                 head->updateFunc = entity->updateFunc;
                 EnemyWingedSkeletonCreate(head);
-                WINGED_SKELETON_SPAWNER(head) = entity;
+                head->ext.wingedSkeleton.spawner = entity;
             }
         }
         return;

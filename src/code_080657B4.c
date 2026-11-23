@@ -1,7 +1,6 @@
 /* Event and particle helpers, decompiled from the original assembly. */
 #include "structs/ewram.h"
 #include "event_scene30.h"
-#include "event_scene_entity.h"
 #include "player_entity.h"
 #include "code_08009A0.h"
 #include "code/code_08039340.h"
@@ -100,9 +99,9 @@ void EventScene30Effect_UpdateSpinning(struct EwramData_EntityData *entity)
     entity->posY.whole += entity->velY.whole;
     entity->velX.whole += entity->accelX.whole;
     entity->velY.whole += entity->accelY.whole;
-    EVENT30_EFFECT_ANGLE(entity) += EVENT30_EFFECT_SPIN(entity);
-    ObjAffine_Set(EVENT30_EFFECT_ANGLE(entity), EVENT30_EFFECT_SCALE(entity),
-                EVENT30_EFFECT_SCALE(entity), 0, 0, entity->affineIndex);
+    EVENT30_EFFECT_ANGLE(entity) += entity->ext.event30Effect.spin;
+    ObjAffine_Set(EVENT30_EFFECT_ANGLE(entity), entity->ext.event30Effect.scale,
+                entity->ext.event30Effect.scale, 0, 0, entity->affineIndex);
     if (!Entity_IsInRect(entity, -128, -64, 496, 288))
     {
         ObjAffine_Free(entity->affineIndex);
@@ -120,9 +119,9 @@ void EventScene30Effect_UpdateSpinningKeepSlot(struct EwramData_EntityData *enti
     entity->posY.whole += entity->velY.whole;
     entity->velX.whole += entity->accelX.whole;
     entity->velY.whole += entity->accelY.whole;
-    EVENT30_EFFECT_ANGLE(entity) += EVENT30_EFFECT_SPIN(entity);
-    ObjAffine_Set(EVENT30_EFFECT_ANGLE(entity), EVENT30_EFFECT_SCALE(entity),
-                EVENT30_EFFECT_SCALE(entity), 0, 0, entity->affineIndex);
+    EVENT30_EFFECT_ANGLE(entity) += entity->ext.event30Effect.spin;
+    ObjAffine_Set(EVENT30_EFFECT_ANGLE(entity), entity->ext.event30Effect.scale,
+                entity->ext.event30Effect.scale, 0, 0, entity->affineIndex);
     if (!Entity_IsInRect(entity, -128, -64, 496, 288))
         entity->deleteRequested = 1;
 }
@@ -306,16 +305,16 @@ void EventScene26_Init(struct EwramData_EntityData *entity)
         Anim_Update(entity);
         entity->flipX = 1;
         entity->spriteLayer = gEwramData->playerState.player->spriteLayer + 1;
-        EVENT26_ACTOR(entity) = Entity_CreateFromObjectTable(3);
-        if (EVENT26_ACTOR(entity) != NULL)
+        entity->ext.event26.actor = Entity_CreateFromObjectTable(3);
+        if (entity->ext.event26.actor != NULL)
         {
-            Anim_StartIndexed(EVENT26_ACTOR(entity), 4, 0, 0);
-            Anim_Update(EVENT26_ACTOR(entity));
-            EVENT26_ACTOR(entity)->posX.part16.integer = entity->posX.part16.integer;
-            EVENT26_ACTOR(entity)->posY.part16.integer = entity->posY.part16.integer;
-            EVENT26_ACTOR(entity)->spriteLayer = entity->spriteLayer + 1;
-            EVENT26_ACTOR(entity)->drawFunc = (u32 *)EventScene26_DrawOffsetCopies;
-            EVENT26_ACTOR(entity)->updateFunc = (u32 *)EntityUpdateNothing;
+            Anim_StartIndexed(entity->ext.event26.actor, 4, 0, 0);
+            Anim_Update(entity->ext.event26.actor);
+            entity->ext.event26.actor->posX.part16.integer = entity->posX.part16.integer;
+            entity->ext.event26.actor->posY.part16.integer = entity->posY.part16.integer;
+            entity->ext.event26.actor->spriteLayer = entity->spriteLayer + 1;
+            entity->ext.event26.actor->drawFunc = (u32 *)EventScene26_DrawOffsetCopies;
+            entity->ext.event26.actor->updateFunc = (u32 *)EntityUpdateNothing;
         }
     }
 }
@@ -352,12 +351,12 @@ s32 EventScene26_Update(struct EwramData_EntityData *entity)
                 actors->player->accelX.whole = 0;
                 if (actors->player->velY.whole < 0)
                     actors->player->velY.whole = 0;
-                EVENT26_TEXT_ID(entity) = 0x2D;
+                entity->ext.event26.textId = 0x2D;
                 if (GameFlag_Is3ASet())
                 {
                     if (!GameFlag_GetMask(0x32))
                     {
-                        EVENT26_TEXT_ID(entity) = 0x2C;
+                        entity->ext.event26.textId = 0x2C;
                         GameFlag_Set(0x32);
                     }
                 }
@@ -365,7 +364,7 @@ s32 EventScene26_Update(struct EwramData_EntityData *entity)
                 {
                     if (!GameFlag_GetMask(0x31))
                     {
-                        EVENT26_TEXT_ID(entity) = 0x2B;
+                        entity->ext.event26.textId = 0x2B;
                         GameFlag_Set(0x31);
                     }
                 }
@@ -373,7 +372,7 @@ s32 EventScene26_Update(struct EwramData_EntityData *entity)
                 {
                     if (!GameFlag_GetMask(0x30))
                     {
-                        EVENT26_TEXT_ID(entity) = 0x2A;
+                        entity->ext.event26.textId = 0x2A;
                         GameFlag_Set(0x30);
                     }
                 }
@@ -381,12 +380,12 @@ s32 EventScene26_Update(struct EwramData_EntityData *entity)
                 {
                     if (!GameFlag_GetMask(0x2F))
                     {
-                        EVENT26_TEXT_ID(entity) = 0x29;
+                        entity->ext.event26.textId = 0x29;
                         GameFlag_Set(0x2F);
                     }
                 }
                 gEwramData->gameState.stateFlags |= 1;
-                TextWindow_Begin(EVENT26_TEXT_ID(entity));
+                TextWindow_Begin(entity->ext.event26.textId);
                 facing = 0;
                 if (entity->posX.whole < gEwramData->playerState.player->posX.whole)
                     facing = 1;
@@ -421,7 +420,7 @@ s32 EventScene26_Update(struct EwramData_EntityData *entity)
             *song = 0x26;
             data->gameState.currentSong = 0;
             PlaySong(0x26);
-            EVENT26_TEXT_ID(entity) = 0x2D;
+            entity->ext.event26.textId = 0x2D;
             entity->state = 1;
             break;
         }
@@ -440,7 +439,7 @@ s32 Player_IsInteractionBlocked(void)
         if (speed < 0)
             speed = -speed;
         if (speed <= 0x8000)
-            return PLAYER_ACTION_FLAGS(player) & 0x30010000;
+            return player->ext.player.actionFlags & 0x30010000;
     }
     return 1;
 }
@@ -460,7 +459,7 @@ void EventScene27_Init(struct EwramData_EntityData *entity)
         Anim_Update(entity);
         entity->flipX = 0;
         entity->spriteLayer = gEwramData->playerState.player->spriteLayer + 1;
-        EVENT27_HEAL(entity) = 1;
+        entity->ext.event27.heal = 1;
     }
 }
 

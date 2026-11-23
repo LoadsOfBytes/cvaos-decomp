@@ -25,7 +25,7 @@ void GorgonBreath_Spawn(struct EwramData_EntityData *parent, s32 x, s32 y, s32 v
         graphics = ObjGfx_Find(sGorgonGfx);
         part->unk_510.part8.basePalette = parent->unk_510.part8.basePalette;
         Sprite_Attach(part, sGorgonSpriteSheet, graphics, parent->unk_510.part8.basePalette);
-        GORGON_FORCED_FRAME(part) = 25;
+        part->ext.gorgon.forcedFrame = 25;
         Hit_Enable(part, 8, GorgonBreath_DamagePlayerOnContact, 0);
         HitBox_SetAttack(part, &box);
         part->hit.flags |= 4;

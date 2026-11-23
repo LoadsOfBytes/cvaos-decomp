@@ -1,6 +1,5 @@
 /* Emit the contact effect, variant 1 when unk_4FC is 3. */
 #include "code_08009A0.h"
-#include "headhunter_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -15,7 +14,7 @@ void Headhunter_DamagePlayerOnContact(struct EwramData_EntityData *entity)
     effect.attack = entity->attack;
     effect.attributes = 0;
     effect.unused = 0;
-    if (HEADHUNTER_FORM_PHASE(entity) != 3)
+    if (entity->ext.headhunter.formPhase != 3)
         effect.reaction = 0;
     else
         effect.reaction = 1;

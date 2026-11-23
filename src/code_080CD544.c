@@ -1,6 +1,5 @@
 ﻿/* Alastor graphics, affine transform and callbacks. */
 #include "code_08009A0.h"
-#include "alastor_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *,u8 *,void *,u8,void *);
@@ -57,9 +56,9 @@ void EnemyAlastorCreate(struct EwramData_EntityData *entity)
     Hit_Enable(entity,8,Enemy_OnContactMask1,(s32)Alastor_OnHit);
     HitBox_SetBodyRaw(entity,0x1010F8F8);
     Alastor_UpdateHitBoxes(entity);
-    ALASTOR_ATTACK_SET(entity)=display;
-    ALASTOR_ATTACK_INDEX(entity)=9;
-    ALASTOR_HITS_BEFORE_REACT(entity)=layer;
+    entity->ext.alastor.attackSet=display;
+    entity->ext.alastor.attackIndex=9;
+    entity->ext.alastor.hitsBeforeReact=layer;
     Alastor_UpdateAppear(entity);
 }
 

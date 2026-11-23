@@ -24,10 +24,10 @@ struct EwramData_EntityData *EventScene03_SpawnRisingPart(struct EwramData_Entit
     entity->posY.part16.integer = y;
     Entity_SnapToGround(entity);
     ENTITY_PARENT_INDEX(entity) = ENTITY_INDEX(parent);
-    EVENT03_PART_FLAGS(entity) = flags;
+    entity->ext.event03Part.flags = flags;
     entity->unk_518.part8.enemyId = 0xFF;
     Anim_StartIndexed(entity, 0, 0, 1);
-    if (EVENT03_PART_FLAGS(entity) & 4)
+    if (entity->ext.event03Part.flags & 4)
     {
         s32 i;
 

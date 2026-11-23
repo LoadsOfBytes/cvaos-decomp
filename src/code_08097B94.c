@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "joint_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern const u8 *const sCreakingSkullPartPoses[];
@@ -11,9 +10,9 @@ extern const s32 *const sCreakingSkullPartAngles[];
  */
 void CreakingSkull_InterpolateJoint(struct EwramData_EntityData *entity, s32 index)
 {
-    struct EntityJointPart *parts = entity->unk_500.jointParts;
-    const u8 *pose = sCreakingSkullPartPoses[(s8)JOINT_POSE(entity)];
-    const s32 *angles = sCreakingSkullPartAngles[(s8)JOINT_POSE(entity)];
+    struct EntityJointPart *parts = entity->ext.joint.parts;
+    const u8 *pose = sCreakingSkullPartPoses[(s8)entity->ext.joint.pose];
+    const s32 *angles = sCreakingSkullPartAngles[(s8)entity->ext.joint.pose];
     s32 x, y, dx, dy, a;
     struct EntityJointPart *part;
     if (parts[index].targetSwingAngle == 0 && parts[index].swingAngle == 0)

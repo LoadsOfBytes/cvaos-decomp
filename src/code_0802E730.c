@@ -1,6 +1,5 @@
 #include "code_08009A0.h"
 #include "soul_skill_entity.h"
-#include "blue_soul_entity.h"
 #include "player_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
@@ -42,14 +41,14 @@ extern s32 sSkillProjectileLaunchVelocities[];
  */
 void SkillBonePillarUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = BLUE_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.blueSoul.owner;
 
     if (BlueSoul_ShouldEnd(entity))
     {
         EntityDelete(entity);
         return;
     }
-    if ((PLAYER_ACTION_FLAGS(parent) & 0x1001A2) != 0x100000)
+    if ((parent->ext.player.actionFlags & 0x1001A2) != 0x100000)
     {
         BlueSoul_ReleaseActiveResources(entity);
         EntityDelete(entity);
@@ -75,7 +74,7 @@ void SkillBonePillarUse(struct EwramData_EntityData *entity)
         }
         gEwramData->playerState.player->state = 0xA;
         Anim_StartIndexed(gEwramData->playerState.player, 0x35, 3, 1);
-        PLAYER_ACTION_FLAGS(parent) &= 0xEFFFFBFF;
+        parent->ext.player.actionFlags &= 0xEFFFFBFF;
         entity->state++;
     case 1:
         Follow(entity, parent, 0x10, -0x1C);
@@ -106,11 +105,11 @@ void SkillBonePillarUse(struct EwramData_EntityData *entity)
                 }
                 child->velX.whole += parent->velX.whole;
                 child->flipX = parent->flipX;
-                child->velY.whole = sSkillProjectileLaunchVelocities[SKILL_BONE_PILLAR_SHOT(entity)] + 0x14000;
+                child->velY.whole = sSkillProjectileLaunchVelocities[entity->ext.skillBonePillar.shot] + 0x14000;
                 child->accelY.whole = -0x1800;
             }
-            if (++SKILL_BONE_PILLAR_SHOT(entity) > 2)
-                SKILL_BONE_PILLAR_SHOT(entity) = 0;
+            if (++entity->ext.skillBonePillar.shot > 2)
+                entity->ext.skillBonePillar.shot = 0;
             entity->timer = 5;
         }
         entity->timer--;

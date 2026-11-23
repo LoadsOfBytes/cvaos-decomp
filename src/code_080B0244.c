@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "minotaur_entity.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
 extern void MinotaurAxe_DamagePlayerOnContact(struct EwramData_EntityData *);
@@ -10,7 +9,7 @@ void MinotaurAxeHitBox_Update(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
     struct EwramData_EntityData *parent = ENTITY_OWNER(entity);
-    if (entity->state != 0 && *(u8 *)&parent->unk_4F4 != ENTITY_PARENT_INDEX(entity))
+    if (entity->state != 0 && *(u8 *)&parent->ext.raw.unk_4F4 != ENTITY_PARENT_INDEX(entity))
     {
         EntityDelete(entity);
         return;
@@ -25,7 +24,7 @@ void MinotaurAxeHitBox_Update(struct EwramData_EntityData *entity)
         /* fall through */
     case 1:
         {
-            s32 angle = MINOTAUR_AXE_ANGLE(parent);
+            s32 angle = parent->ext.minotaurAxe.angle;
             s32 yAngle = angle - 0x4000;
             s32 dx = Sin(angle) << 4;
             s32 dy = Sin(yAngle) << 4;

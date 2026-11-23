@@ -1,7 +1,6 @@
 /* Killer Doll damage and transition to death, reconstructed from the
  * original assembly. */
 #include "code_08009A0.h"
-#include "doll_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -41,7 +40,7 @@ void KillerDoll_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 *data)
         entity->palette = entity->unk_510.part8.basePalette;
         entity->state = 0xFF;
         entity->subState++;
-        if (DOLL_DEATH_PART_COUNT(entity) == 0)
+        if (entity->ext.doll.deathPartCount == 0)
             entity->deleteRequested = 1;
     }
 }

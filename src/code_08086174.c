@@ -1,7 +1,6 @@
 /* Headhunter lightning-impact flicker and orbiting-particle creation.
  * The particle follows a stored anchor with an expanding radius. */
 #include "code_08009A0.h"
-#include "headhunter_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -17,7 +16,7 @@ extern void HeadhunterOrbitingParticle_Update(struct EwramData_EntityData *);
 extern u8 sCommonObjectGfx[];
 extern u8 sCommonObjectSpriteSheet[];
 /* bit 0 of the owner's unk_4FE ends its effects (TODO: meaning) */
-#define OWNER_DONE(o) (HEADHUNTER_FLAGS((o)) & 1)
+#define OWNER_DONE(o) (o->ext.headhunter.flags & 1)
 
 /**
  * @brief Randomize between two frames and remove after signed timer 7
@@ -26,9 +25,9 @@ extern u8 sCommonObjectSpriteSheet[];
 void HeadhunterLightningImpactFlicker_Update(struct EwramData_EntityData *entity)
 {
     struct SingleFrameAnimation animation = sHeadhunterFrameAnim;
-    struct EwramData_EntityData *owner = HEADHUNTER_EFFECT_SOURCE(entity);
+    struct EwramData_EntityData *owner = entity->ext.headhunterEffect.source;
     Anim_Start(entity, (struct AnimScript *)&animation, 2, 1);
-    animation.frame = RandomNumberGenerator() % 2 + HEADHUNTER_EFFECT_FRAME(entity);
+    animation.frame = RandomNumberGenerator() % 2 + entity->ext.headhunterEffect.frame;
     Anim_Update(entity);
     if ((s8)entity->timer++ > 7)
         EntityDelete(entity);
@@ -51,8 +50,8 @@ void Headhunter_SpawnOrbitingParticle(struct EwramData_EntityData *owner, struct
         effect->velY.whole = owner->posY.whole + y;
         effect->accelX.whole = speed;
         effect->accelY.whole = 0x100;
-        HEADHUNTER_ORBIT_CAMERA_X(effect) = camera->xPos.whole;
-        HEADHUNTER_ORBIT_CAMERA_Y(effect) = camera->yPos.whole;
+        effect->ext.headhunterOrbit.cameraX = camera->xPos.whole;
+        effect->ext.headhunterOrbit.cameraY = camera->yPos.whole;
         effect->flipX = RandomNumberGenerator() % 2;
         effect->flipY = 1;
         effect->spriteLayer = owner->spriteLayer - 1;
@@ -61,7 +60,7 @@ void Headhunter_SpawnOrbitingParticle(struct EwramData_EntityData *owner, struct
         Anim_StartIndexed(effect, 0, 0, 0);
         Anim_Update(effect);
         ENTITY_OWNER(effect) = owner;
-        HEADHUNTER_EFFECT_SOURCE(effect) = source;
+        effect->ext.headhunterEffect.source = source;
         effect->scrollWithBg = 0;
         effect->drawFunc = (u32 *)Sprite_DrawEntity;
     }

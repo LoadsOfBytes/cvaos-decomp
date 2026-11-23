@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "manticore_entity.h"
 #include "code_08013960.h"
 #include "code_08033CAC.h"
 #include "code/code_08039340.h"
@@ -46,30 +45,30 @@ void EnemyManticoreCreate(struct EwramData_EntityData *entity)
     }
     if (gEwramData->gameState.bestiaryPreview)
     {
-        MANTICORE_TAIL_TIP(entity) = Manticore_CreateTailTip(entity);
+        entity->ext.manticore.tailTip = Manticore_CreateTailTip(entity);
         for (i = 0; i <= 5; i++)
-            seg[i] = Manticore_CreateTailSegment(entity, MANTICORE_TAIL_TIP(entity), 0, i);
+            seg[i] = Manticore_CreateTailSegment(entity, entity->ext.manticore.tailTip, 0, i);
         for (i = 0; i <= 4; i++)
-            MANTICORE_TAIL_NEXT(seg[i]) = seg[i + 1];
-        MANTICORE_TAIL_NEXT(seg[5]) = MANTICORE_TAIL_TIP(entity);
+            seg[i]->ext.manticoreTail.link.next = seg[i + 1];
+        seg[5]->ext.manticoreTail.link.next = entity->ext.manticore.tailTip;
         Manticore_CreateOverlay(entity);
         entity->state = 3;
         return;
     }
     Entity_EnableBoxes(entity, Manticore_DamagePlayerOnContact, Manticore_OnHit);
     Entity_SnapToGround(entity);
-    MANTICORE_TAIL_TIP(entity) = Manticore_CreateTailTip(entity);
-    if (MANTICORE_TAIL_TIP(entity) == NULL)
+    entity->ext.manticore.tailTip = Manticore_CreateTailTip(entity);
+    if (entity->ext.manticore.tailTip == NULL)
         goto delete;
     for (i = 0; i <= 5; i++)
     {
-        seg[i] = Manticore_CreateTailSegment(entity, MANTICORE_TAIL_TIP(entity), 0, i);
+        seg[i] = Manticore_CreateTailSegment(entity, entity->ext.manticore.tailTip, 0, i);
         if (seg[i] == NULL)
             goto delete;
     }
     for (i = 0; i <= 4; i++)
-        MANTICORE_TAIL_NEXT(seg[i]) = seg[i + 1];
-    MANTICORE_TAIL_NEXT(seg[5]) = MANTICORE_TAIL_TIP(entity);
+        seg[i]->ext.manticoreTail.link.next = seg[i + 1];
+    seg[5]->ext.manticoreTail.link.next = entity->ext.manticore.tailTip;
     if (Manticore_CreateOverlay(entity) == 0)
     {
     delete:

@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "stolas_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -34,7 +33,7 @@ void Stolas_SpawnCastEffect(struct EwramData_EntityData *entity, s32 dx, s32 dy)
     child->spriteLayer = entity->spriteLayer - 1;
     child->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
     child->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
-    STOLAS_EFFECT_OWNER(child) = entity;
+    child->ext.stolasEffect.owner = entity;
     child->flipX = entity->flipX;
     child->posX.whole = entity->posX.whole + dx;
     child->posY.whole = entity->posY.whole + dy;
@@ -47,5 +46,5 @@ void Stolas_SpawnCastEffect(struct EwramData_EntityData *entity, s32 dx, s32 dy)
     }
     child->affineIndex = palette;
     child->affine = 1;
-    ObjAffine_Set(STOLAS_CAST_ANGLE(child) - 0x8000, 0x10000, 0x10000, child->flipX, child->flipY, child->affineIndex);
+    ObjAffine_Set(child->ext.stolasEffect.castAngle - 0x8000, 0x10000, 0x10000, child->flipX, child->flipY, child->affineIndex);
 }

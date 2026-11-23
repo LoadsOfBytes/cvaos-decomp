@@ -28,7 +28,7 @@ fail:
     }
     entity->animFrame = kind->frame;
     box = ((-kind->width / 2) & 255) + (((-kind->height / 2) & 255) << 8) + (kind->width << 16) + (kind->height << 24);
-    OBJECT08_KIND(entity) = kind->behavior;
+    entity->ext.object08.kind = kind->behavior;
     BreakableBlock_SetCollision(entity);
     Hit_Enable(entity, 8, NULL, 0);
     HitBox_SetBodyRaw(entity, box);

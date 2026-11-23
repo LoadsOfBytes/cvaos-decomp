@@ -24,10 +24,10 @@ s32 SavePoint_SpawnAnimParts(struct EwramData_EntityData *parent)
     s32 created = 0;
     s32 i;
     struct PartInit parts[4] = {
-        { 0, SAVE_POINT_FRAME_BASE(parent) + 2, SavePoint_UpdateAnimPart, 0x13 },
-        { 2, SAVE_POINT_FRAME_BASE(parent) + 3, SavePoint_UpdateAnimPart, 0x14 },
-        { 7, SAVE_POINT_FRAME_BASE(parent) + 3, SavePoint_UpdateAnimPart, 0x14 },
-        { 4, SAVE_POINT_FRAME_BASE(parent) + 1, SavePoint_UpdateAnimPart, 0x14 },
+        { 0, parent->ext.savePoint.frameBase + 2, SavePoint_UpdateAnimPart, 0x13 },
+        { 2, parent->ext.savePoint.frameBase + 3, SavePoint_UpdateAnimPart, 0x14 },
+        { 7, parent->ext.savePoint.frameBase + 3, SavePoint_UpdateAnimPart, 0x14 },
+        { 4, parent->ext.savePoint.frameBase + 1, SavePoint_UpdateAnimPart, 0x14 },
     };
 
     for (i = 0; i <= 3; i++)
@@ -49,12 +49,12 @@ s32 SavePoint_SpawnAnimParts(struct EwramData_EntityData *parent)
         }
         entity->scrollWithBg = 1;
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
-        Sprite_Attach(entity, sSaveWarpRoomSpriteSheet, SAVE_POINT_GRAPHICS(parent), parts[i].palette);
+        Sprite_Attach(entity, sSaveWarpRoomSpriteSheet, parent->ext.savePoint.graphics, parts[i].palette);
         Anim_StartIndexed(entity, parts[i].anim, 0, 1);
         Anim_Update(entity);
         entity->spriteLayer = parts[i].layer;
         entity->updateFunc = (u32 *)parts[i].update;
-        SAVE_POINT_PART_OWNER(entity) = parent;
+        entity->ext.savePointPart.owner = parent;
         entity->timer = 4;
         created = 1;
     }

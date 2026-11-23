@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "joint_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern const u8 *const sGreatArmorPartPoses[];
@@ -13,9 +12,9 @@ extern const s32 *const sGreatArmorPartAngles[];
  * also turn toward their resting angle (clone of the golem Golem_UpdatePart). */
 void GreatArmor_UpdatePart(struct EwramData_EntityData *entity, s32 index)
 {
-    struct GreatArmorPart *parts = entity->unk_500.greatArmorParts;
-    const u8 *pose = sGreatArmorPartPoses[(s8)JOINT_POSE(entity)];
-    const s32 *angles = sGreatArmorPartAngles[(s8)JOINT_POSE(entity)];
+    struct GreatArmorPart *parts = entity->ext.greatArmor.parts;
+    const u8 *pose = sGreatArmorPartPoses[(s8)entity->ext.joint.pose];
+    const s32 *angles = sGreatArmorPartAngles[(s8)entity->ext.joint.pose];
     s32 x, y, dx, dy;
     if (parts[index].targetSwingAngle == 0 && parts[index].swingAngle == 0)
     {

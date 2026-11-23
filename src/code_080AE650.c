@@ -1,8 +1,6 @@
 /* Dryad death: palette flashes, smoke, shrinking affine sprite. */
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
-/* Dryad seed: the attacker that knocked it away; never read. */
-#define DRYAD_SEED_ATTACKER(e) e->unk_4FC.unk_4FC_entity
 extern s32 Entity_GetVisibilityPattern(s32);
 extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
 
@@ -59,7 +57,7 @@ void DryadSeed_OnContact(struct EwramData_EntityData *entity, struct EwramData_E
         entity->timer = 0xB4;
         entity->accelX.part16.integer = entity->posX.part16.integer - attacker->posX.part16.integer;
         entity->accelY.part16.integer = entity->posY.part16.integer - attacker->posY.part16.integer;
-        DRYAD_SEED_ATTACKER(entity) = attacker;
+        entity->ext.dryadSeed.unusedAttacker = attacker;
         entity->hit.flags |= 4;
     }
 }

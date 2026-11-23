@@ -13,12 +13,12 @@ extern struct EwramData_EntityData *Effect_SpawnAttachedAnimation(struct EwramDa
  */
 s32 EventScene03_EndParts(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *actor = EVENT03_ACTOR0(entity);
+    struct EwramData_EntityData *actor = entity->ext.event03.actor0;
     s32 result;
     if (actor->animScriptIndex != 5)
         Anim_StartIndexed(actor, 5, 0, 0);
-    result = Anim_StartIndexed(EVENT03_ACTOR1(entity), 1, 0, 1);
-    EVENT03_ACTOR8(entity)->deleteRequested = 1;
+    result = Anim_StartIndexed(entity->ext.event03.actor1, 1, 0, 1);
+    entity->ext.event03.actor8->deleteRequested = 1;
     return result;
 }
 
@@ -53,7 +53,7 @@ void EventScene03SoulOrb_OnPlayerContact(struct EwramData_EntityData *entity)
  */
 void EventScene03TargetOrb_OnContact(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *anchor = EVENT03_ORB_TARGET(entity);
+    struct EwramData_EntityData *anchor = entity->ext.event03Orb.target;
     entity->deleteRequested = 1;
     Effect_SpawnAttachedAnimation(anchor, 0xC, 6, 0, -0x100000);
     PlaySong(0xBC);

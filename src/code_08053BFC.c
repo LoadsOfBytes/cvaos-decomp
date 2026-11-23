@@ -32,10 +32,10 @@ fail:
     Hit_Enable(entity, 8, Object19_OnPlayerContact, (s32)Object19_OnHit);
     HitBox_SetAttackRaw(entity, 0x0C0CFAFA);
     HitBox_SetBodyRaw(entity, 0x0C0CFAFA);
-    OBJECT19_SPIN(entity) = 0x400;
+    entity->ext.object19.spin = 0x400;
     entity->flipX = entity->unk_514.part16.spawnParam1;
     entity->unk_514.part16.spawnParam1 = entity->flipX;
-    if (entity->unk_514.part16.spawnParam1 != 0) OBJECT19_SPIN(entity) = -OBJECT19_SPIN(entity);
+    if (entity->unk_514.part16.spawnParam1 != 0) entity->ext.object19.spin = -entity->ext.object19.spin;
     entity->unk_514.part16.spawnParam0 += 14;
     motion = &sObject19Steps[entity->state];
     entity->velX.whole = motion->vx;
@@ -43,7 +43,7 @@ fail:
     if (entity->unk_514.part16.spawnParam1 != 0) entity->velX.whole = -entity->velX.whole;
     time = motion->time;
     if (time == 0) time = entity->unk_514.part16.spawnParam0 << 16;
-    OBJECT19_STEP_TIME(entity) = time;
-    OBJECT19_STEP_TIME(entity) = *(volatile s32 *)&OBJECT19_STEP_TIME(entity) >> 1; /* FAKEMATCH: volatile read forces the reload of the original */
+    entity->ext.object19.stepTime = time;
+    entity->ext.object19.stepTime = *(volatile s32 *)&entity->ext.object19.stepTime >> 1; /* FAKEMATCH: volatile read forces the reload of the original */
     entity->scrollWithBg = 1;
 }

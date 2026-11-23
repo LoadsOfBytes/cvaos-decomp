@@ -1,6 +1,5 @@
 /* Idle gait and transitions between approaching, retreating and attacking. */
 #include "code_08009A0.h"
-#include "arachne_entity.h"
 #include "structs/ewram.h"
 #include "structs/entity_render_flags.h"
 extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
@@ -8,8 +7,8 @@ extern s32 Target_IsInRect(s16,s16,s16,s16);
 extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
 extern s32 Entity_ClampXToRoom(struct EwramData_EntityData *,s32);
 extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *,s32,s32,s32,s32);
-#define GAIT(e) (ARACHNE_GAIT((e)))
-#define WAIT(e) (ARACHNE_WAIT((e)))
+#define GAIT(e) (e->ext.arachne.gait)
+#define WAIT(e) (e->ext.arachne.wait)
 /**
  * @brief Walk state machine (state 0): wake when the target is in the 160 x 160
  * box or the Arachne is damaged, then crawl with the gait tables toward or
@@ -27,8 +26,8 @@ void Arachne_UpdateWalk(struct EwramData_EntityData *entity)
         if(Target_IsInRect(entity->posX.part16.integer-80,entity->posY.part16.integer-80,160,160) || Enemy_IsDamaged(entity))
         {
             entity->subState=1; GAIT(entity)=1;
-            ARACHNE_WALK_PHASE(entity)=state;
-            ARACHNE_WALK_SPEED(entity)=state;
+            entity->ext.arachne.walkPhase=state;
+            entity->ext.arachne.walkSpeed=state;
             entity->velX.whole=state;
             entity->timer=state;
             if(Target_IsInRect(entity->posX.part16.integer-60,entity->posY.part16.integer-80,120,160))
@@ -41,11 +40,11 @@ void Arachne_UpdateWalk(struct EwramData_EntityData *entity)
     {
         s32 target;
         u32 random;
-        if(ARACHNE_WALK_SPEED(entity)<0x10000) ARACHNE_WALK_SPEED(entity)+=0x2000;
-        phase=ARACHNE_WALK_PHASE(entity)+ARACHNE_WALK_SPEED(entity);
-        ARACHNE_WALK_PHASE(entity)=phase;
-        if(phase>=0x240000) ARACHNE_WALK_PHASE(entity)=phase-0x240000;
-        else if(phase<0) ARACHNE_WALK_PHASE(entity)=phase+0x240000;
+        if(entity->ext.arachne.walkSpeed<0x10000) entity->ext.arachne.walkSpeed+=0x2000;
+        phase=entity->ext.arachne.walkPhase+entity->ext.arachne.walkSpeed;
+        entity->ext.arachne.walkPhase=phase;
+        if(phase>=0x240000) entity->ext.arachne.walkPhase=phase-0x240000;
+        else if(phase<0) entity->ext.arachne.walkPhase=phase+0x240000;
         if(entity->timer++>29) { entity->flipX=Entity_IsTargetRight(entity); entity->timer=0; }
         if(entity->flipX) entity->accelX.whole=0x1000;
         else entity->accelX.whole=-0x1000;
@@ -70,11 +69,11 @@ void Arachne_UpdateWalk(struct EwramData_EntityData *entity)
     case 2:
     {
         u32 random;
-        if(ARACHNE_WALK_SPEED(entity)>-0x10000) ARACHNE_WALK_SPEED(entity)-=0x2000;
-        phase=ARACHNE_WALK_PHASE(entity)+ARACHNE_WALK_SPEED(entity);
-        ARACHNE_WALK_PHASE(entity)=phase;
-        if(phase>=0x240000) ARACHNE_WALK_PHASE(entity)=phase-0x240000;
-        else if(phase<0) ARACHNE_WALK_PHASE(entity)=phase+0x240000;
+        if(entity->ext.arachne.walkSpeed>-0x10000) entity->ext.arachne.walkSpeed-=0x2000;
+        phase=entity->ext.arachne.walkPhase+entity->ext.arachne.walkSpeed;
+        entity->ext.arachne.walkPhase=phase;
+        if(phase>=0x240000) entity->ext.arachne.walkPhase=phase-0x240000;
+        else if(phase<0) entity->ext.arachne.walkPhase=phase+0x240000;
         entity->flipX=Entity_IsTargetRight(entity);
         if(entity->flipX) entity->accelX.whole=-0x1000;
         else entity->accelX.whole=0x1000;

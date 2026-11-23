@@ -1,6 +1,5 @@
 /* Waiter Skeleton: choose and create a thrown object, then resume its walk. */
 #include "code_08009A0.h"
-#include "waiter_skeleton_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern struct EwramData_EntityData *Entity_CreateObject(void *);
@@ -10,7 +9,7 @@ void WaiterSkeleton_UpdateThrow(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
     case 0:
-        if ((WAITER_SKELETON_FLAGS(entity) & 2) && RandomNumberGenerator() % 4 == 0)
+        if ((entity->ext.waiterSkeleton.flags & 2) && RandomNumberGenerator() % 4 == 0)
             entity->subState = 1;
         else
             entity->subState = 3;
@@ -20,30 +19,30 @@ void WaiterSkeleton_UpdateThrow(struct EwramData_EntityData *entity)
             struct EwramData_EntityData *child = Entity_CreateObject(WaiterSkeletonThrownTray_Update);
             if (child != NULL)
             {
-                WAITER_TRAY_OWNER(child) = entity;
-                *(u8 *)&child->unk_4F4 = *(u8 *)&entity->unk_4F4;
+                child->ext.waiterTray.owner = entity;
+                *(u8 *)&child->ext.raw.unk_4F4 = *(u8 *)&entity->ext.raw.unk_4F4;
                 child->attack = entity->attack;
                 child->unk_518.part16.hp = entity->unk_518.part16.hp;
-                WAITER_TRAY_ANIM(child) = 17;
+                child->ext.waiterTray.anim = 17;
             }
             Anim_StartIndexed(entity, 6, 0, 0);
             entity->subState = 2;
         }
         break;
     case 2:
-        WAITER_SKELETON_FLAGS(entity) &= ~2;
+        entity->ext.waiterSkeleton.flags &= ~2;
         goto finishThrow;
     case 3:
         {
             struct EwramData_EntityData *child = Entity_CreateObject(WaiterSkeletonThrownTray_Update);
             if (child != NULL)
             {
-                WAITER_TRAY_OWNER(child) = entity;
-                *(u8 *)&child->unk_4F4 = *(u8 *)&entity->unk_4F4;
+                child->ext.waiterTray.owner = entity;
+                *(u8 *)&child->ext.raw.unk_4F4 = *(u8 *)&entity->ext.raw.unk_4F4;
                 child->attack = entity->attack;
                 child->unk_518.part16.hp = entity->unk_518.part16.hp;
-                WAITER_SKELETON_FLAGS(entity) |= 1;
-                WAITER_TRAY_ANIM(child) = 9;
+                entity->ext.waiterSkeleton.flags |= 1;
+                child->ext.waiterTray.anim = 9;
             }
             Anim_StartIndexed(entity, 7, 0, 0);
             entity->subState = 4;

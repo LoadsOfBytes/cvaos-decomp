@@ -37,7 +37,7 @@ void Chronomage_UpdateCast(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
     case 0:
-        if (PLAYER_ACTION_FLAGS(gEwramData->playerState.player) & 0x360)
+        if (gEwramData->playerState.player->ext.player.actionFlags & 0x360)
         {
             entity->subState = 2;
             break;

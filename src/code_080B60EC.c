@@ -15,7 +15,7 @@ extern const u8 sUnk_085287D6[4];
  */
 void BaloreIntroPart_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = BALORE_PIECE_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.balorePiece.owner;
 
     if (parent->state == 10)
         entity->state = 5;

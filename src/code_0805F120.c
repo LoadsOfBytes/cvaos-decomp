@@ -43,8 +43,8 @@ void EventScene04_Init(struct EwramData_EntityData *entity)
 }
 
 /* Script step and timer bytes 0x4FC/0x4FD of EventScene04_RunMusicScript. */
-#define STEP(e) ((e)->unk_4FC.bytes[0])
-#define TIMER(e) ((e)->unk_4FC.bytes[1])
+#define STEP(e) ((e)->ext.raw.unk_4FC.bytes[0])
+#define TIMER(e) ((e)->ext.raw.unk_4FC.bytes[1])
 
 /**
  * @brief 5F1CC | Timed script: song 0x1010 and wait 0xA0 frames, then

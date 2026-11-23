@@ -2,7 +2,6 @@
  * loading as SkillFlameDemonProjectileUpdate, spawning as SkillHarpyUse. */
 #include "code_08009A0.h"
 #include "soul_skill_entity.h"
-#include "red_soul_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -37,7 +36,7 @@ static inline struct SoulGraphicsResources *GetSet(s32 index)
  */
 void SkillTinyDevilUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.redSoul.owner;
     s32 i;
     s32 angle;
 
@@ -72,7 +71,7 @@ void SkillTinyDevilUse(struct EwramData_EntityData *entity)
         entity->state = 1;
         break;
     case 1:
-        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         break;

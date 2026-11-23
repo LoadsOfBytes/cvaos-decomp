@@ -15,23 +15,23 @@ void GrahamSceneProjectile_Update(struct EwramData_EntityData *entity)
     s32 bounds[4];
     if(entity->state<=1)
     {
-        if(GRAHAM_SHOT_HOMING(entity))
+        if(entity->ext.grahamShot.homing)
         {
             struct EwramData_EntityData *player=gEwramData->playerState.player;
-            GRAHAM_SHOT_ANGLE(entity)=Entity_StepAngleTowardPoint(entity,player->posX.whole,player->posY.whole-0x100000,
-                                                GRAHAM_SHOT_ANGLE(entity),GRAHAM_SHOT_TURN(entity));
+            entity->ext.grahamShot.angle=Entity_StepAngleTowardPoint(entity,player->posX.whole,player->posY.whole-0x100000,
+                                                entity->ext.grahamShot.angle,entity->ext.grahamShot.turn);
         }
-        GRAHAM_SHOT_TURN(entity)+=42;
-        if(GRAHAM_SHOT_TURN(entity)>0x4000)
-            GRAHAM_SHOT_TURN(entity)=0x4000;
-        GRAHAM_SHOT_SPEED(entity)+=0x1800;
-        if(GRAHAM_SHOT_SPEED(entity)>0x80000)
-            GRAHAM_SHOT_SPEED(entity)=0x80000;
-        { s32 sine=Sin(GRAHAM_SHOT_ANGLE(entity)+0x4000);
-            s32 speed=GRAHAM_SHOT_SPEED(entity);
+        entity->ext.grahamShot.turn+=42;
+        if(entity->ext.grahamShot.turn>0x4000)
+            entity->ext.grahamShot.turn=0x4000;
+        entity->ext.grahamShot.speed+=0x1800;
+        if(entity->ext.grahamShot.speed>0x80000)
+            entity->ext.grahamShot.speed=0x80000;
+        { s32 sine=Sin(entity->ext.grahamShot.angle+0x4000);
+            s32 speed=entity->ext.grahamShot.speed;
             entity->velX.whole=(sine>>8)*(speed>>8); }
-        { s32 sine=Sin(GRAHAM_SHOT_ANGLE(entity));
-            s32 speed=GRAHAM_SHOT_SPEED(entity);
+        { s32 sine=Sin(entity->ext.grahamShot.angle);
+            s32 speed=entity->ext.grahamShot.speed;
             entity->velY.whole=(sine>>8)*(speed>>8); }
         entity->posX.whole+=entity->velX.whole;
         entity->posY.whole+=entity->velY.whole;

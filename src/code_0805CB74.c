@@ -70,7 +70,7 @@ s32 EventScene03_UpdateMosaic(struct EwramData_EntityData *entity)
             gDisplayRegisters.mosaic = 0;
             gDisplayRegisters.bldCnt = 0;
             gEwramData->playerState.player->mosaic = 0;
-            EVENT03_ACTOR0(entity)->mosaic = 0;
+            entity->ext.event03.actor0->mosaic = 0;
             ret = 0;
         }
         break;

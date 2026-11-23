@@ -45,7 +45,7 @@ struct EwramData_EntityData *Graham_CreateBodyOverlay(struct EwramData_EntityDat
     e->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
     Anim_StartIndexed(e, 0, 0, 1);
     Anim_Update(e);
-    GRAHAM_SIDE_PART_0(e) = (s32)Graham_CreateSidePart(e, 0);
+    e->ext.graham.sidePart0 = (s32)Graham_CreateSidePart(e, 0);
     GRAHAM_SIDE_PART_1(e) = (s32)Graham_CreateSidePart(e, 1);
     Graham_CreateAttacker(e);
 

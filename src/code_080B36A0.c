@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "head_stack_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_080211F0.h"
 #include "structs/ewram.h"
@@ -34,7 +33,7 @@ void HeadStackSegment_UpdateAttack(struct EwramData_EntityData *entity)
         if (!(entity->animFlags & 4))
             break;
         Anim_StartIndexed(entity, 3, 0, 0);
-        if (!(HEAD_STACK_LEVEL(entity) & 1))
+        if (!(entity->ext.headStack.level & 1))
         {
             entity->subState = 2;
             return;
@@ -80,7 +79,7 @@ void HeadStackSegment_UpdateAttack(struct EwramData_EntityData *entity)
                     spawned->velY.whole = RandomSigned(0x4000) - 0x1000;
                     spawned->accelY.whole = -0x800;
                     spawned->scrollWithBg = 1;
-                    spawned->subState = HEAD_STACK_TYPE(entity);
+                    spawned->subState = entity->ext.headStack.type;
                 }
                 offset += dx;
             }

@@ -1,6 +1,5 @@
 /* The caller selects one of three valid directions (0..2) for a spread shot. */
 #include "code_08009A0.h"
-#include "harpy_entity.h"
 #include "structs/ewram.h"
 #include "structs/entity_render_flags.h"
 extern void HarpyWavyFeather_Update(struct EwramData_EntityData *);
@@ -47,7 +46,7 @@ void Harpy_ThrowWavyFeather(struct EwramData_EntityData *owner,s32 kind)
                 projectile->animFrame=14;
                 break;
         }
-        HARPY_FEATHER_ANGLE(projectile)=angle;
+        projectile->ext.harpyFeather.angle=angle;
         if(projectile->flipX) projectile->timer=24;
         else projectile->timer=8;
         projectile->flipX=0;

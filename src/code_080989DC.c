@@ -2,7 +2,6 @@
  * frame (Effect_SpawnParticleAnim11) in front of/behind its layer by angle; state 1
  * bursts into six random sparks and deletes itself. */
 #include "code_08009A0.h"
-#include "creaking_skull_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -43,25 +42,25 @@ void CreakingSkullProjectile_Update(struct EwramData_EntityData *entity)
         entity->timer++;
         if (entity->timer & 1)
             break;
-        vy = Sin(CREAKING_SKULL_PROJECTILE_ORBIT(entity)) << 1;
-        b = Sin(CREAKING_SKULL_PROJECTILE_ORBIT(entity)) << 1;
+        vy = Sin(entity->ext.creakingSkullProjectile.orbit) << 1;
+        b = Sin(entity->ext.creakingSkullProjectile.orbit) << 1;
         b += 0x20000;
         if (entity->flipX)
         {
-            a = -Sin(CREAKING_SKULL_PROJECTILE_ORBIT(entity) + 0x4000) * 4;
+            a = -Sin(entity->ext.creakingSkullProjectile.orbit + 0x4000) * 4;
             a += 0xC0000;
         }
         else
         {
-            a = Sin(CREAKING_SKULL_PROJECTILE_ORBIT(entity) + 0x4000) * 4;
+            a = Sin(entity->ext.creakingSkullProjectile.orbit + 0x4000) * 4;
             a -= 0xC0000;
         }
-        r = (u16)CREAKING_SKULL_PROJECTILE_ORBIT(entity);
+        r = (u16)entity->ext.creakingSkullProjectile.orbit;
         if (r > 0x4000 && r < 0xC000)
             Effect_SpawnParticleAnim11(entity->posX.whole + a, entity->posY.whole + b, 0, vy, entity->spriteLayer + 1);
         else
             Effect_SpawnParticleAnim11(entity->posX.whole + a, entity->posY.whole + b, 0, vy, entity->spriteLayer - 1);
-        CREAKING_SKULL_PROJECTILE_ORBIT(entity) += 0x2400;
+        entity->ext.creakingSkullProjectile.orbit += 0x2400;
         break;
     case 1:
         for (i = 0; i < 3; i++)

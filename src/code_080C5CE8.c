@@ -1,6 +1,5 @@
 /* Ukoback flight: room-edge and tile collision, facing and timer updates. */
 #include "code_08001194.h"
-#include "ukoback_entity.h"
 #include "code_08009A0.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -34,10 +33,10 @@ void Ukoback_UpdateFlight(struct EwramData_EntityData *entity)
     register s32 push asm("r2"); /* FAKEMATCH: pinned register */
     s16 roomY;
 
-    if (UKOBACK_ATTACK_TIMER(entity) != 0)
-        UKOBACK_ATTACK_TIMER(entity)--;
+    if (entity->ext.ukoback.attackTimer != 0)
+        entity->ext.ukoback.attackTimer--;
     else
-        UKOBACK_ATTACK_TIMER(entity) = RandomNumberGenerator() % 360 + 80;
+        entity->ext.ukoback.attackTimer = RandomNumberGenerator() % 360 + 80;
     switch (entity->subState)
     {
         case 0:
@@ -96,9 +95,9 @@ void Ukoback_UpdateFlight(struct EwramData_EntityData *entity)
             }
             break;
     }
-    if (UKOBACK_ATTACK_TIMER(entity) == 0 && UKOBACK_FIREBALL_COUNT(entity) <= 7
+    if (entity->ext.ukoback.attackTimer == 0 && entity->ext.ukoback.fireballCount <= 7
         && Ukoback_SpawnFireball(entity))
-        UKOBACK_FIREBALL_COUNT(entity)++;
+        entity->ext.ukoback.fireballCount++;
     entity->posX.whole += entity->velX.whole;
     entity->posY.whole += entity->velY.whole;
     entity->velX.whole += entity->accelX.whole;

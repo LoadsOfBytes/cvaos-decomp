@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "blue_soul_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08040A38.h"
 extern s32 BlueSoul_ShouldEnd(struct EwramData_EntityData *);
@@ -15,7 +14,7 @@ static inline void FollowParent(struct EwramData_EntityData *entity, struct Ewra
 
 void SkillBlackPantherUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = BLUE_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.blueSoul.owner;
 
 
     if (BlueSoul_ShouldEnd(entity))
@@ -55,6 +54,6 @@ void SkillBlackPantherUse(struct EwramData_EntityData *entity)
         }
         FollowParent(entity, parent, 0, 0);
     }
-    gEwramData->playerStatus.soulStateFlags |= BLUE_SOUL_VALUE(entity);
+    gEwramData->playerStatus.soulStateFlags |= entity->ext.blueSoul.value;
 }
 

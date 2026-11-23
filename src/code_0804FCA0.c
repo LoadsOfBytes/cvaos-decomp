@@ -29,7 +29,7 @@ void BreakableBlock_SetCollision(struct EwramData_EntityData *entity)
     s32 i;
     s32 j;
 
-    switch ((u8)OBJECT08_KIND(entity))
+    switch ((u8)entity->ext.object08.kind)
     {
         case 2:
             offsetX -= 0x10;

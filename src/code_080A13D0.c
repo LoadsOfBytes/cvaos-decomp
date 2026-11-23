@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "gladiator_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -31,18 +30,18 @@ void GladiatorSpinner_Update(struct EwramData_EntityData *entity)
         entity->posX.part16.integer = owner->posX.part16.integer;
         entity->posY.part16.integer = owner->posY.part16.integer;
         if (entity->flipX)
-            entity->posX.part16.integer = entity->posX.part16.integer - GLADIATOR_SPINNER_OFFSET_X(entity);
+            entity->posX.part16.integer = entity->posX.part16.integer - entity->ext.gladiatorSpinner.offsetX;
         else
-            entity->posX.part16.integer += GLADIATOR_SPINNER_OFFSET_X(entity);
-        entity->posY.part16.integer += GLADIATOR_SPINNER_OFFSET_Y(entity);
+            entity->posX.part16.integer += entity->ext.gladiatorSpinner.offsetX;
+        entity->posY.part16.integer += entity->ext.gladiatorSpinner.offsetY;
         Anim_Update(entity);
         if (entity->flipX)
-            GLADIATOR_SPINNER_ANGLE(entity) += GLADIATOR_SPINNER_SPIN(entity);
+            entity->ext.gladiatorSpinner.angle += entity->ext.gladiatorSpinner.spin;
         else
-            GLADIATOR_SPINNER_ANGLE(entity) = GLADIATOR_SPINNER_ANGLE(entity) - GLADIATOR_SPINNER_SPIN(entity);
-        if ((u16)GLADIATOR_SPINNER_SPIN(entity) < 0x800)
-            GLADIATOR_SPINNER_SPIN(entity) += 0x18;
-        ObjAffine_Set((u16)GLADIATOR_SPINNER_ANGLE(entity), 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
+            entity->ext.gladiatorSpinner.angle = entity->ext.gladiatorSpinner.angle - entity->ext.gladiatorSpinner.spin;
+        if ((u16)entity->ext.gladiatorSpinner.spin < 0x800)
+            entity->ext.gladiatorSpinner.spin += 0x18;
+        ObjAffine_Set((u16)entity->ext.gladiatorSpinner.angle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
         if (owner->animScriptIndex == 0xC)
         {
             entity->hidden = 0;
@@ -50,7 +49,7 @@ void GladiatorSpinner_Update(struct EwramData_EntityData *entity)
         else
         {
             entity->hidden = 1;
-            GLADIATOR_SPINNER_SPIN(entity) = 0;
+            entity->ext.gladiatorSpinner.spin = 0;
         }
         if (owner->state == 1)
         {
@@ -73,10 +72,10 @@ void GladiatorSpinner_Update(struct EwramData_EntityData *entity)
     EntityDampVelocityX(entity, 0x20);
     EntityAccelerateAndMove(entity, 0x50000);
     if (entity->flipX)
-        GLADIATOR_SPINNER_ANGLE(entity) += GLADIATOR_SPINNER_SPIN(entity);
+        entity->ext.gladiatorSpinner.angle += entity->ext.gladiatorSpinner.spin;
     else
-        GLADIATOR_SPINNER_ANGLE(entity) = GLADIATOR_SPINNER_ANGLE(entity) - GLADIATOR_SPINNER_SPIN(entity);
-    ObjAffine_Set((u16)GLADIATOR_SPINNER_ANGLE(entity), 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
+        entity->ext.gladiatorSpinner.angle = entity->ext.gladiatorSpinner.angle - entity->ext.gladiatorSpinner.spin;
+    ObjAffine_Set((u16)entity->ext.gladiatorSpinner.angle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
     entity->hidden = Entity_GetVisibilityPattern(entity->timer);
     if ((s8)--entity->timer <= 0)
     {

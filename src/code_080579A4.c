@@ -47,12 +47,12 @@ void Object25Update(struct EwramData_EntityData *entity)
             randomValue = RandomNumberGenerator() % 2;
             if (randomValue != 0)
                 break;
-            if ((s32)OBJECT25_CHILD_COUNT(entity) > 9)
+            if ((s32)entity->ext.object25Spawner.childCount > 9)
                 break;
             child = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
             if (child == NULL)
                 break;
-            OBJECT25_CHILD_COUNT(entity)++;
+            entity->ext.object25Spawner.childCount++;
             points = sObject25Points[entity->unk_514.part16.spawnParam0];
             pointIndex = sObject25PointIndices[entity->unk_514.part16.spawnParam0];
             pointIndex = RandomNumberGenerator() % pointIndex;
@@ -66,7 +66,7 @@ void Object25Update(struct EwramData_EntityData *entity)
             child->drawFunc = (u32 *)Sprite_DrawEntity;
             child->updateFunc = entity->updateFunc;
             Object25Create(child);
-            OBJECT25_SPAWNER(child) = entity;
+            child->ext.object25.spawner = entity;
             break;
     }
 }

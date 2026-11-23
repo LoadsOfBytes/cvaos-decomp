@@ -101,8 +101,8 @@ void SoulMenu_Open(struct EwramData_EntityData *entity)
     DMA_FILL_32(3, 0, 0x3200, 0x2000);
     DMA_FILL_32(3, 0, 0x3300, 0x2000);
     MenuPage_Reset(entity);
-    MENU_PAGE_COUNT(entity) = 3;
-    MENU_PAGE_CURSOR(entity) = MENU_PAGE_CATEGORY(entity);
+    entity->ext.menuPage.count = 3;
+    entity->ext.menuPage.cursor = entity->ext.menuPage.category;
     Menu_DrawAttackDefense(0x16, 2);
     Menu_DrawCurrentStats(0x16, 4);
     HudMap_DrawStatusConditionIcon(0x15, 8);
@@ -117,7 +117,7 @@ void SoulMenu_Open(struct EwramData_EntityData *entity)
         tile += 0x10;
     }
     SoulMenu_DrawEquippedNames(entity);
-    SoulMenu_DrawList(entity, MENU_PAGE_BYTES(entity)[1]);
+    SoulMenu_DrawList(entity, entity->ext.menuPageList.bytes[1]);
     SoulMenu_PrintEquippedName(entity);
     SoulMenu_DrawEquippedSoulValue(entity);
 }
@@ -140,32 +140,32 @@ s32 SoulMenu_Update(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
         case 0:
-            MENU_PAGE_CATEGORY(entity) = result;
+            entity->ext.menuPage.category = result;
             MENU_SAVED_TOP(entity) = result;
-            MENU_PAGE_TOP(entity) = result;
-            MENU_PAGE_COUNT(entity) = 3;
-            MENU_PAGE_CURSOR(entity) = result;
-            MENU_PAGE_ITEM(entity) = result;
+            entity->ext.menuPage.top = result;
+            entity->ext.menuPage.count = 3;
+            entity->ext.menuPage.cursor = result;
+            entity->ext.menuPage.item = result;
             entity->subState++;
         case 1:
             if (pressed & KEY_A)
             {
                 PlaySong(0xF3);
                 entity->subState++;
-                tmp = MENU_PAGE_CURSOR(entity);
-                MENU_PAGE_CURSOR(entity) = MENU_PAGE_CATEGORY(entity);
-                MENU_PAGE_CATEGORY(entity) = tmp;
+                tmp = entity->ext.menuPage.cursor;
+                entity->ext.menuPage.cursor = entity->ext.menuPage.category;
+                entity->ext.menuPage.category = tmp;
                 {
                     u8 *saved = &MENU_SAVED_TOP(entity);
-                    tmp = MENU_PAGE_TOP(entity);
-                    MENU_PAGE_TOP(entity) = *saved;
+                    tmp = entity->ext.menuPage.top;
+                    entity->ext.menuPage.top = *saved;
                     *saved = tmp;
                 }
-                SoulMenu_CountList(entity, MENU_PAGE_CATEGORY(entity));
+                SoulMenu_CountList(entity, entity->ext.menuPage.category);
                 SoulMenu_ShowSelection(entity);
                 SoulMenu_DrawSelectedSoulValue(entity);
-                Cursor_SetTilePosition((MENU_PAGE_CURSOR(entity) & 1) ? 0x10 : 2,
-                             ((MENU_PAGE_BYTES(entity)[1] - MENU_PAGE_BYTES(entity)[2]) >> 1) + 10);
+                Cursor_SetTilePosition((entity->ext.menuPage.cursor & 1) ? 0x10 : 2,
+                             ((entity->ext.menuPageList.bytes[1] - entity->ext.menuPageList.bytes[2]) >> 1) + 10);
             }
             else if (pressed & KEY_B)
             {
@@ -176,25 +176,25 @@ s32 SoulMenu_Update(struct EwramData_EntityData *entity)
             {
                 s32 dir = 0;
 
-                MENU_PAGE_COUNT(entity) = 3;
+                entity->ext.menuPage.count = 3;
                 MENU_SAVED_TOP(entity) = dir;
-                MENU_PAGE_CATEGORY(entity) = dir;
+                entity->ext.menuPage.category = dir;
                 if (repeated & KEY_UP)
                 {
-                    if ((s8)--MENU_PAGE_CURSOR(entity) < 0)
-                        MENU_PAGE_CURSOR(entity) = MENU_PAGE_COUNT(entity) - 1;
+                    if ((s8)--entity->ext.menuPage.cursor < 0)
+                        entity->ext.menuPage.cursor = entity->ext.menuPage.count - 1;
                     dir = -1;
                 }
                 else if (repeated & KEY_DOWN)
                 {
-                    MENU_PAGE_CURSOR(entity)++;
-                    if (MENU_PAGE_BYTES(entity)[1] > MENU_PAGE_BYTES(entity)[0] - 1)
-                        MENU_PAGE_CURSOR(entity) = dir;
+                    entity->ext.menuPage.cursor++;
+                    if (entity->ext.menuPageList.bytes[1] > entity->ext.menuPageList.bytes[0] - 1)
+                        entity->ext.menuPage.cursor = dir;
                     dir = 1;
                 }
                 SoulTypeSelector_SetDirection(&gEwramData->entityData[21], dir);
                 SoulMenu_DrawEquippedNames(entity);
-                SoulMenu_DrawList(entity, MENU_PAGE_BYTES(entity)[1]);
+                SoulMenu_DrawList(entity, entity->ext.menuPageList.bytes[1]);
                 SoulMenu_PrintEquippedName(entity);
                 SoulMenu_DrawEquippedSoulValue(entity);
                 PlaySong(0xF1);
@@ -207,21 +207,21 @@ s32 SoulMenu_Update(struct EwramData_EntityData *entity)
                 {
                     PlaySong(0xF4);
                     SoulMenu_EquipSelected(entity);
-                    SoulMenu_DrawList(entity, MENU_PAGE_CATEGORY(entity));
+                    SoulMenu_DrawList(entity, entity->ext.menuPage.category);
                 }
                 else
                 {
                     PlaySong(0xF0);
                 }
                 entity->subState--;
-                MENU_PAGE_COUNT(entity) = 3;
-                tmp = MENU_PAGE_CURSOR(entity);
-                MENU_PAGE_CURSOR(entity) = MENU_PAGE_CATEGORY(entity);
-                MENU_PAGE_CATEGORY(entity) = tmp;
+                entity->ext.menuPage.count = 3;
+                tmp = entity->ext.menuPage.cursor;
+                entity->ext.menuPage.cursor = entity->ext.menuPage.category;
+                entity->ext.menuPage.category = tmp;
                 {
                     u8 *saved = &MENU_SAVED_TOP(entity);
-                    tmp = MENU_PAGE_TOP(entity);
-                    MENU_PAGE_TOP(entity) = *saved;
+                    tmp = entity->ext.menuPage.top;
+                    entity->ext.menuPage.top = *saved;
                     *saved = tmp;
                 }
                 SoulMenu_DrawEquippedNames(entity);
@@ -231,23 +231,23 @@ s32 SoulMenu_Update(struct EwramData_EntityData *entity)
             }
             else
             {
-                s32 row = MENU_PAGE_BYTES(entity)[1];
-                u8 last = MENU_PAGE_ITEM(entity);
-                s32 top = MENU_PAGE_BYTES(entity)[2];
+                s32 row = entity->ext.menuPageList.bytes[1];
+                u8 last = entity->ext.menuPage.item;
+                s32 top = entity->ext.menuPageList.bytes[2];
 
-                if (MenuGrid_MoveCursor(entity, repeated) != 0 && row != MENU_PAGE_BYTES(entity)[1])
+                if (MenuGrid_MoveCursor(entity, repeated) != 0 && row != entity->ext.menuPageList.bytes[1])
                 {
                     PlaySong(0xF1);
-                    if (top != MENU_PAGE_BYTES(entity)[2])
-                        SoulMenu_DrawList(entity, MENU_PAGE_CATEGORY(entity));
+                    if (top != entity->ext.menuPageList.bytes[2])
+                        SoulMenu_DrawList(entity, entity->ext.menuPage.category);
                     else
-                        SoulMenu_CountList(entity, MENU_PAGE_CATEGORY(entity));
-                    if (last != MENU_PAGE_ITEM(entity))
+                        SoulMenu_CountList(entity, entity->ext.menuPage.category);
+                    if (last != entity->ext.menuPage.item)
                     {
                         SoulMenu_ShowSelection(entity);
                         SoulMenu_DrawSelectedSoulValue(entity);
-                        Cursor_SetTilePosition((MENU_PAGE_CURSOR(entity) & 1) ? 0x10 : 2,
-                                     ((MENU_PAGE_BYTES(entity)[1] - MENU_PAGE_BYTES(entity)[2]) >> 1) + 10);
+                        Cursor_SetTilePosition((entity->ext.menuPage.cursor & 1) ? 0x10 : 2,
+                                     ((entity->ext.menuPageList.bytes[1] - entity->ext.menuPageList.bytes[2]) >> 1) + 10);
                     }
                 }
                 Cursor_Draw();
@@ -299,7 +299,7 @@ void SoulMenu_CountList(struct EwramData_EntityData *entity, s32 kind)
     s32 found;
     s32 n = 4;
 
-    MENU_PAGE_ITEM(entity) = 0xFF;
+    entity->ext.menuPage.item = 0xFF;
     switch (kind)
     {
         case 0:
@@ -319,20 +319,20 @@ void SoulMenu_CountList(struct EwramData_EntityData *entity, s32 kind)
             break;
     }
 
-    if (MENU_PAGE_BYTES(entity)[2] == 0)
+    if (entity->ext.menuPageList.bytes[2] == 0)
         shown = 1;
     else
         shown = 0;
     pos = 1;
-    MENU_PAGE_ITEM(entity) = 0;
+    entity->ext.menuPage.item = 0;
 
-    for (i = 0; pos < MENU_PAGE_BYTES(entity)[2] && i < n; i++)
+    for (i = 0; pos < entity->ext.menuPageList.bytes[2] && i < n; i++)
     {
         if (equipped[i] != 0xFF && SoulInventory_GetSoulTotal(type, equipped[i] - 1))
             pos++;
     }
 
-    for (soul = 1; pos < MENU_PAGE_BYTES(entity)[2] && soul < max; soul++)
+    for (soul = 1; pos < entity->ext.menuPageList.bytes[2] && soul < max; soul++)
     {
         if (SoulInventory_GetSoulTotal(type, soul - 1))
         {
@@ -351,8 +351,8 @@ void SoulMenu_CountList(struct EwramData_EntityData *entity, s32 kind)
     {
         if (equipped[i] != 0xFF && SoulInventory_GetSoulTotal(type, equipped[i] - 1))
         {
-            if (pos == MENU_PAGE_BYTES(entity)[1])
-                MENU_PAGE_ITEM(entity) = equipped[i];
+            if (pos == entity->ext.menuPageList.bytes[1])
+                entity->ext.menuPage.item = equipped[i];
             pos++;
             shown++;
         }
@@ -373,8 +373,8 @@ void SoulMenu_CountList(struct EwramData_EntityData *entity, s32 kind)
             }
             if (!dup)
             {
-                if (pos == MENU_PAGE_BYTES(entity)[1])
-                    MENU_PAGE_ITEM(entity) = soul;
+                if (pos == entity->ext.menuPageList.bytes[1])
+                    entity->ext.menuPage.item = soul;
                 pos++;
                 shown++;
             }
@@ -399,5 +399,5 @@ void SoulMenu_CountList(struct EwramData_EntityData *entity, s32 kind)
         }
         soul++;
     }
-    MENU_PAGE_COUNT(entity) = pos;
+    entity->ext.menuPage.count = pos;
 }

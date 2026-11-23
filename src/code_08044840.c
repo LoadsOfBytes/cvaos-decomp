@@ -4,12 +4,6 @@
 #include "structs/ewram.h"
 #include "entity_hit.h"
 
-/*
- * Soul container: palette of the soul variant and the soul sprite entity it
- * shows inside. Token-identical expansion.
- */
-#define SOUL_CONTAINER_PALETTE(e) e->unk_500.part8.unk_500
-#define SOUL_CONTAINER_SOUL(e) e->unk_4FC.unk_4FC_entity
 extern s32 RandomSigned(s32);
 extern struct EwramData_EntityData *Effect_CreateFromTable(s32, s32, s32, s32, s32, u8);
 extern struct EwramData_EntityData *SoulPickup_Create(s32 x, s32 y, s32 palette, s32 soulId, s32 stationary);
@@ -33,16 +27,16 @@ void SoulPickup_UpdateContainer(struct EwramData_EntityData *entity)
         {
             s32 x = entity->posX.whole + (RandomSigned(8) << 16);
             s32 y = entity->posY.whole - (((RandomNumberGenerator() & 7) + 0x14) << 16);
-            other = Effect_CreateFromTable(x, y, RandomSigned(0x1000), 0, 4, SOUL_CONTAINER_PALETTE(entity));
+            other = Effect_CreateFromTable(x, y, RandomSigned(0x1000), 0, 4, entity->ext.soulContainer.palette);
             if (other != NULL)
             {
                 other->velY.whole = RandomSigned(0x4000) - 0x10000;
                 other->accelY.whole = -other->velY.whole / 32;
             }
         }
-        if (SOUL_CONTAINER_SOUL(entity) != NULL)
+        if (entity->ext.soulContainer.soul != NULL)
         {
-            other = SOUL_CONTAINER_SOUL(entity);
+            other = entity->ext.soulContainer.soul;
             other->posX.whole = entity->posX.whole;
             other->posY.whole = entity->posY.whole;
         }
@@ -57,8 +51,8 @@ void SoulPickup_UpdateContainer(struct EwramData_EntityData *entity)
                 entity->state = 1;
                 entity->timer = 0x10;
                 entity->hidden = 1;
-                if (SOUL_CONTAINER_SOUL(entity) != NULL)
-                    SOUL_CONTAINER_SOUL(entity)->deleteRequested = 1;
+                if (entity->ext.soulContainer.soul != NULL)
+                    entity->ext.soulContainer.soul->deleteRequested = 1;
             }
         }
         Anim_Update(entity);

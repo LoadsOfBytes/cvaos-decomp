@@ -56,12 +56,12 @@ void Object1DCreate(struct EwramData_EntityData *entity)
         if (sum == 1)
         {
             entity->posX.part16.integer -= 0xD0;
-            OBJECT1D_EXIT_RIGHT(entity) = 1;
+            entity->ext.object1D.exitRight = 1;
             entity->flipX = 0;
         }
         else if (sum == -1)
         {
-            OBJECT1D_EXIT_RIGHT(entity) = 0;
+            entity->ext.object1D.exitRight = 0;
             entity->flipX = 1;
         }
         else if (sum == 0)
@@ -77,14 +77,14 @@ void Object1DCreate(struct EwramData_EntityData *entity)
         {
             entity->posX.part16.integer = 0x10;
             entity->posY.part16.integer = 0x70;
-            OBJECT1D_EXIT_RIGHT(entity) = 1;
+            entity->ext.object1D.exitRight = 1;
             entity->flipX = 0;
         }
         else if (sum == -1)
         {
             entity->posX.part16.integer = 0xE0;
             entity->posY.part16.integer = 0x70;
-            OBJECT1D_EXIT_RIGHT(entity) = 0;
+            entity->ext.object1D.exitRight = 0;
             entity->flipX = 1;
         }
         else if (sum == 0)

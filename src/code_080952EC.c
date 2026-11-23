@@ -1,10 +1,9 @@
 /* Lilith_DamagePlayerOnContact. */
 #include "code/code_080211F0.h"
-#include "lilith_entity.h"
 #include "structs/ewram.h"
 
 /**
- * @brief 952EC | Set LILITH_LUNGE_HIT and Player_ApplyContactDamage with (attack, 0, 0, 1)
+ * @brief 952EC | Set ext.lilithLunge.hit and Player_ApplyContactDamage with (attack, 0, 0, 1)
  * at the entity position.
  */
 void Lilith_DamagePlayerOnContact(struct EwramData_EntityData *entity)
@@ -17,6 +16,6 @@ void Lilith_DamagePlayerOnContact(struct EwramData_EntityData *entity)
     contactDamage.reaction = 1;
     contactDamage.sourceX = entity->posX.whole;
     contactDamage.sourceY = entity->posY.whole;
-    LILITH_LUNGE_HIT(entity) = 1;
+    entity->ext.lilithLunge.hit = 1;
     Player_ApplyContactDamage(&contactDamage);
 }

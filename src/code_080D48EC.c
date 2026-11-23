@@ -29,7 +29,7 @@ void GrahamFirstForm_CreateTransitionPart(struct EwramData_EntityData *entity)
     effect->posY.whole=entity->posY.whole-0x300000;
     effect->scrollWithBg=1;
     effect->hidden=1;
-    GRAHAM_CHILD_INDEX(entity)=ENTITY_INDEX(effect);
+    entity->ext.grahamScene.childIndex=ENTITY_INDEX(effect);
     Anim_StartIndexed(effect,1,1,0);
     Anim_Update(effect);
 }

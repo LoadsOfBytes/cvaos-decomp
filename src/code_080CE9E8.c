@@ -1,12 +1,11 @@
 /* Alastor damage, stun counter and linked-part state. */
 #include "code_080D73B8.h"
-#include "alastor_entity.h"
 #include "structs/ewram.h"
 extern u16 Player_CalculateAttackPower(u16);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *,s32,u16 *,s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *,s32,s32);
 extern void Enemy_DropRewards(struct EwramData_EntityData *);
-#define PART(e) (&gEwramData->entityData[ALASTOR_PART_INDEX((e))])
+#define PART(e) (&gEwramData->entityData[e->ext.alastorPart.index])
 /**
  * @brief Resolve/display damage and apply hit flash. Count surviving hits;
  * on the reaction threshold or defeat, coordinate linked-part state 3
@@ -23,8 +22,8 @@ void Alastor_OnHit(struct EwramData_EntityData *entity,s32 kind,u16 *hit)
     }
     Entity_ShowDamage(entity,damage,0);
     entity->unk_510.part8.hitFlashTimer=8;
-    if (ALASTOR_HITS_BEFORE_REACT(entity) && (s16)entity->unk_518.part16.hp>0)
-        ALASTOR_HITS_BEFORE_REACT(entity)--;
+    if (entity->ext.alastor.hitsBeforeReact && (s16)entity->unk_518.part16.hp>0)
+        entity->ext.alastor.hitsBeforeReact--;
     else
     {
         struct EwramData_EntityData *part;
@@ -38,7 +37,7 @@ void Alastor_OnHit(struct EwramData_EntityData *entity,s32 kind,u16 *hit)
         entity->state=7;
         entity->stage=0;
         entity->subState=0;
-        ALASTOR_HITS_BEFORE_REACT(entity)=3;
+        entity->ext.alastor.hitsBeforeReact=3;
     }
     entity->hidden=0;
 }

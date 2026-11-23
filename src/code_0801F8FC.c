@@ -17,7 +17,7 @@ void Julius_UpdateJumpControl(struct EwramData_EntityData *entity)
 
     if (ew->playerState.actionLockFlags & 0x10)
         return;
-    if ((PLAYER_ACTION_FLAGS(entity) & 0x1E) && !(PLAYER_ACTION_FLAGS(entity) & 0x18))
+    if ((entity->ext.player.actionFlags & 0x1E) && !(entity->ext.player.actionFlags & 0x18))
     {
         if (entity->velY.whole < -0x4000 && !(ew->inputData.playerHeldInput & ew->playerStatus.jumpButton))
         {
@@ -30,7 +30,7 @@ void Julius_UpdateJumpControl(struct EwramData_EntityData *entity)
             if (entity->accelY.whole < -0x2000)
                 entity->accelY.whole = -0x2000;
         }
-        if ((PLAYER_ACTION_FLAGS(entity) & 0x400000) && entity->velY.whole > 0x1800)
+        if ((entity->ext.player.actionFlags & 0x400000) && entity->velY.whole > 0x1800)
             entity->velY.whole -= 0x1800;
     }
     Julius_UpdateVerticalMovement(entity);

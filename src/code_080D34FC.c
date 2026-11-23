@@ -24,8 +24,8 @@ void GrahamBodyOverlay_Update(struct EwramData_EntityData *entity)
         if(owner->unk_518.part8.enemyId!=entity->unk_518.part8.enemyId)
         { entity->deleteRequested=1; return; }
         zero=0;
-        GRAHAM_FLAGS(entity)=GRAHAM_FLAGS(owner);
-        if((GRAHAM_FLAGS(entity) & 0x10) && mode<=0xDF)
+        entity->ext.graham.flags=owner->ext.graham.flags;
+        if((entity->ext.graham.flags & 0x10) && mode<=0xDF)
         {
             entity->enemyFlags|=2;
             entity->state=0xE0;
@@ -46,7 +46,7 @@ void GrahamBodyOverlay_Update(struct EwramData_EntityData *entity)
                 }
                 break;
             case 1:
-                if(GRAHAM_FLAGS(entity) & 0x10)
+                if(entity->ext.graham.flags & 0x10)
                 {
                     entity->state=0xE0;
                     entity->stage=0;
@@ -56,13 +56,13 @@ void GrahamBodyOverlay_Update(struct EwramData_EntityData *entity)
                     Anim_Update(entity);
                 break;
             case 0xE0:
-                if(GRAHAM_FLAGS(entity) & 0x20)
+                if(entity->ext.graham.flags & 0x20)
                     entity->objMode=1;
                 return;
         }
     }
     {
-        struct EwramData_EntityData *first=(void *)GRAHAM_SIDE_PART_0(entity);
+        struct EwramData_EntityData *first=(void *)entity->ext.graham.sidePart0;
         struct EwramData_EntityData *second;
         if(first->stage==8)
         {

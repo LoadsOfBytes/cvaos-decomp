@@ -1,6 +1,5 @@
 /* Altair child creation and feather motion. */
 #include "code_08009A0.h"
-#include "altair_entity.h"
 #include "code/code_08039340.h"
 #include "structs/entity_template.h"
 
@@ -13,13 +12,13 @@ s32 Altair_CreateCarriedEnemy(struct EwramData_EntityData *entity, u8 type, u16 
 {
     u8 result = 0;
     struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
-    ALTAIR_CARRIED(entity) = child;
+    entity->ext.altair.carried = child;
     if (child != NULL)
     {
         struct EntityTemplate *entry;
         struct EwramData_EntityData *parent;
         s32 x;
-        ALTAIR_CARRYING(entity) = 1;
+        entity->ext.altair.carrying = 1;
         x = entity->posX.whole;
         child->posX.whole = x;
         child->posY.whole = entity->posY.whole + 0x130000;
@@ -35,12 +34,12 @@ s32 Altair_CreateCarriedEnemy(struct EwramData_EntityData *entity, u8 type, u16 
         child->updateFunc = entry->updateFunc;
         entry->createFunc(child);
         result = child->updateFunc != NULL;
-        parent = ALTAIR_SPAWNER(entity);
+        parent = entity->ext.altair.spawner;
         if (parent != NULL)
         {
-            ALTAIR_DROP_COUNT(parent)++;
-            ALTAIR_DROP_COUNTED(child)++;
-            ALTAIR_DROP_SPAWNER_INDEX(child) = (u16)ENTITY_INDEX_PAIR(ALTAIR_SPAWNER(entity));
+            parent->ext.altairDrop.count++;
+            child->ext.altairDrop.count++;
+            child->ext.altairDrop.spawnerIndex = (u16)ENTITY_INDEX_PAIR(entity->ext.altair.spawner);
         }
     }
     return result;

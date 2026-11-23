@@ -1,7 +1,5 @@
 /* Creaking Skull main state machine: arm swings, ground smash debris, bone spit. */
 #include "code_08009A0.h"
-#include "creaking_skull_entity.h"
-#include "joint_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -202,28 +200,28 @@ void CreakingSkull_UpdateAttack(struct EwramData_EntityData *entity)
     case 0:
         CreakingSkull_FaceTarget(entity);
         CreakingSkull_SaveJointPositions(entity);
-        if ((s8)JOINT_POSE(entity) == 5)
+        if ((s8)entity->ext.joint.pose == 5)
         {
             zero = 0;
-            JOINT_POSE(entity) = 0xD;
+            entity->ext.joint.pose = 0xD;
             entity->subState = 1;
         }
         else
         {
             zero = 0;
-            JOINT_POSE(entity) = 0x11;
+            entity->ext.joint.pose = 0x11;
             entity->subState = 0xB;
         }
         CreakingSkull_AttachJointSetAngle(entity, 0xC, 0xB, 0, 0x1F0000);
         ARMS(0x5000, 0x1000, , )
-        JOINT_ATTACK_PHASE(entity) = zero;
-        entity->timer = swingTimes[CREAKING_SKULL_VARIANT(entity)];
+        entity->ext.jointAttack.phase = zero;
+        entity->timer = swingTimes[entity->ext.creakingSkull.variant];
         break;
     case 1:
         COUNTDOWN()
-        JOINT_POSE(entity) = 0xE;
+        entity->ext.joint.pose = 0xE;
         entity->subState++;
-        entity->timer = armTimes[CREAKING_SKULL_VARIANT(entity)];
+        entity->timer = armTimes[entity->ext.creakingSkull.variant];
         ARMS(0x200, 0x200, , )
         break;
     case 2:
@@ -236,7 +234,7 @@ void CreakingSkull_UpdateAttack(struct EwramData_EntityData *entity)
         COUNTDOWN()
         entity->timer = 0xE;
         entity->subState++;
-        JOINT_POSE(entity) = 0xF;
+        entity->ext.joint.pose = 0xF;
         ARMS(-0x5A00, -0x7200, , )
         PlaySong(0x86);
         break;
@@ -244,7 +242,7 @@ void CreakingSkull_UpdateAttack(struct EwramData_EntityData *entity)
         COUNTDOWN()
         entity->timer = 6;
         entity->subState++;
-        JOINT_POSE(entity) = 0x10;
+        entity->ext.joint.pose = 0x10;
         ARMS(0, 0x400, , )
         SMASH_DEBRIS(0x4C0000)
         ScreenShake_RequestOffset(0, 1, 2);
@@ -257,28 +255,28 @@ void CreakingSkull_UpdateAttack(struct EwramData_EntityData *entity)
             break;
         entity->timer = 6;
         entity->subState++;
-        JOINT_POSE(entity) = 0xF;
+        entity->ext.joint.pose = 0xF;
         ARMS(0, -0x400, , )
         break;
     case 6:
         COUNTDOWN()
-        entity->timer = waitTimes[CREAKING_SKULL_VARIANT(entity)];
+        entity->timer = waitTimes[entity->ext.creakingSkull.variant];
         entity->subState++;
-        JOINT_POSE(entity) = 0xF;
+        entity->ext.joint.pose = 0xF;
         ARMS(0, 0, , )
         break;
     case 7:
         COUNTDOWN()
         entity->timer = 0x32;
         entity->subState++;
-        JOINT_POSE(entity) = 5;
+        entity->ext.joint.pose = 5;
         ARMS(0x800, 0x6000, , )
         break;
     case 11:
         COUNTDOWN()
-        JOINT_POSE(entity) = 0x12;
+        entity->ext.joint.pose = 0x12;
         entity->subState++;
-        entity->timer = armTimes[CREAKING_SKULL_VARIANT(entity)];
+        entity->timer = armTimes[entity->ext.creakingSkull.variant];
         ARMS(0x200, 0x200, , )
         break;
     case 12:
@@ -291,7 +289,7 @@ void CreakingSkull_UpdateAttack(struct EwramData_EntityData *entity)
         COUNTDOWN()
         entity->timer = 0xE;
         entity->subState++;
-        JOINT_POSE(entity) = 0x13;
+        entity->ext.joint.pose = 0x13;
         ARMS(-0x5A00, -0x7200, , )
         PlaySong(0x86);
         break;
@@ -299,7 +297,7 @@ void CreakingSkull_UpdateAttack(struct EwramData_EntityData *entity)
         COUNTDOWN()
         entity->timer = 6;
         entity->subState++;
-        JOINT_POSE(entity) = 0x14;
+        entity->ext.joint.pose = 0x14;
         ARMS(0, 0x400, , )
         SMASH_DEBRIS(0x4C0000)
         ScreenShake_RequestOffset(0, 1, 2);
@@ -312,21 +310,21 @@ void CreakingSkull_UpdateAttack(struct EwramData_EntityData *entity)
             break;
         entity->timer = 6;
         entity->subState++;
-        JOINT_POSE(entity) = 0x13;
+        entity->ext.joint.pose = 0x13;
         ARMS(0, -0x400, , )
         break;
     case 16:
         COUNTDOWN()
-        entity->timer = waitTimes[CREAKING_SKULL_VARIANT(entity)];
+        entity->timer = waitTimes[entity->ext.creakingSkull.variant];
         entity->subState++;
-        JOINT_POSE(entity) = 0x13;
+        entity->ext.joint.pose = 0x13;
         ARMS(0, 0, , )
         break;
     case 17:
         COUNTDOWN()
         entity->timer = 0x1E;
         entity->subState++;
-        JOINT_POSE(entity) = 7;
+        entity->ext.joint.pose = 7;
         ARMS(0x800, 0x6000, , )
         break;
     case 8:
@@ -346,27 +344,27 @@ void CreakingSkull_UpdateAttack(struct EwramData_EntityData *entity)
     case 20:
         CreakingSkull_FaceTarget(entity);
         CreakingSkull_SaveJointPositions(entity);
-        if ((s8)JOINT_POSE(entity) == 5)
+        if ((s8)entity->ext.joint.pose == 5)
         {
             zero = 0;
-            JOINT_POSE(entity) = 0x16;
+            entity->ext.joint.pose = 0x16;
             entity->subState = 0x15;
         }
         else
         {
             zero = 0;
-            JOINT_POSE(entity) = 0x1A;
+            entity->ext.joint.pose = 0x1A;
             entity->subState = 0x1F;
         }
         CreakingSkull_AttachJointSetAngle(entity, 0xC, 0xB, 0, 0x1F0000);
         ARMS(0, 0, , )
-        JOINT_ATTACK_PHASE(entity) = zero;
-        entity->timer = spitTimes[CREAKING_SKULL_VARIANT(entity)];
-        CREAKING_SKULL_POSE_DELAY(entity) = entity->timer / 2;
+        entity->ext.jointAttack.phase = zero;
+        entity->timer = spitTimes[entity->ext.creakingSkull.variant];
+        entity->ext.creakingSkull.poseDelay = entity->timer / 2;
         break;
     case 21:
-        if ((s8)--*(s8 *)&CREAKING_SKULL_POSE_DELAY(entity) <= 0)
-            JOINT_POSE(entity) = 0x15;
+        if ((s8)--*(s8 *)&entity->ext.creakingSkull.poseDelay <= 0)
+            entity->ext.joint.pose = 0x15;
         COUNTDOWN()
         entity->subState++;
         entity->timer = 0x29;
@@ -380,25 +378,25 @@ void CreakingSkull_UpdateAttack(struct EwramData_EntityData *entity)
             break;
         entity->subState++;
         entity->timer = 0xA;
-        CREAKING_SKULL_POSE_DELAY(entity) = 5;
-        JOINT_POSE(entity) = 0x17;
+        entity->ext.creakingSkull.poseDelay = 5;
+        entity->ext.joint.pose = 0x17;
         break;
     case 24:
         BREATH(0x12E)
         entity->timer = 3;
         entity->subState++;
-        JOINT_POSE(entity) = 0x18;
+        entity->ext.joint.pose = 0x18;
         PlaySong(0x7A);
         break;
     case 25:
         COUNTDOWN()
         entity->subState++;
         entity->timer = 0x1E;
-        JOINT_POSE(entity) = 0x17;
+        entity->ext.joint.pose = 0x17;
         break;
     case 26:
         COUNTDOWN()
-        JOINT_POSE(entity) = 5;
+        entity->ext.joint.pose = 5;
         entity->subState++;
         entity->timer = 0x3C;
         break;
@@ -408,8 +406,8 @@ void CreakingSkull_UpdateAttack(struct EwramData_EntityData *entity)
         RECOVER(3)
         break;
     case 31:
-        if ((s8)--*(s8 *)&CREAKING_SKULL_POSE_DELAY(entity) <= 0)
-            JOINT_POSE(entity) = 0x19;
+        if ((s8)--*(s8 *)&entity->ext.creakingSkull.poseDelay <= 0)
+            entity->ext.joint.pose = 0x19;
         COUNTDOWN()
         entity->subState++;
         entity->timer = 0x29;
@@ -423,8 +421,8 @@ void CreakingSkull_UpdateAttack(struct EwramData_EntityData *entity)
             break;
         entity->subState++;
         entity->timer = 0xA;
-        CREAKING_SKULL_POSE_DELAY(entity) = 5;
-        JOINT_POSE(entity) = 0x1B;
+        entity->ext.creakingSkull.poseDelay = 5;
+        entity->ext.joint.pose = 0x1B;
         break;
     case 23:
     case 33:
@@ -436,18 +434,18 @@ void CreakingSkull_UpdateAttack(struct EwramData_EntityData *entity)
         BREATH(0x77)
         entity->timer = 3;
         entity->subState++;
-        JOINT_POSE(entity) = 0x1C;
+        entity->ext.joint.pose = 0x1C;
         PlaySong(0x7A);
         break;
     case 35:
         COUNTDOWN()
         entity->subState++;
         entity->timer = 0x1E;
-        JOINT_POSE(entity) = 0x1B;
+        entity->ext.joint.pose = 0x1B;
         break;
     case 36:
         COUNTDOWN()
-        JOINT_POSE(entity) = 7;
+        entity->ext.joint.pose = 7;
         entity->subState++;
         entity->timer = 0x3C;
         break;

@@ -2,7 +2,6 @@
  * random frame 0x2C-0x30 and random flips, in the owner palette (graphics
  * slot passed in, sprites 082258FC); lifetime 60, updated by LegionFragment_Update. */
 #include "code_08009A0.h"
-#include "legion_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -30,7 +29,7 @@ void Legion_SpawnFragment(struct EwramData_EntityData *owner, s32 x, s32 y, s32 
     entity->animFrame = RandomNumberGenerator() % 5 + 0x2C;
     entity->animMode = 2;
     entity->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
-    LEGION_PART_OWNER(entity) = owner;
+    entity->ext.legionPart.owner = owner;
     entity->scrollWithBg = 1;
     entity->flipX = RandomNumberGenerator() % 2;
     entity->flipY = RandomNumberGenerator() % 2;
@@ -55,12 +54,12 @@ void Legion_SpawnDestructibleFragment(struct EwramData_EntityData *owner, s32 x,
     entity->accelX.whole = 0;
     entity->accelY.whole = 0x1000;
     entity->spriteLayer = owner->spriteLayer - 3;
-    entity->unk_510.part8.basePalette = LEGION_ANIM_PALETTE(owner);
+    entity->unk_510.part8.basePalette = owner->ext.legion.animPalette;
     Sprite_Attach(entity, sLegionSpriteSheet, graphics, entity->unk_510.part8.basePalette);
     Anim_Start(entity, sLegionAnimScript3, 2, 1);
     Anim_Update(entity);
     entity->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
-    LEGION_PART_OWNER(entity) = owner;
+    entity->ext.legionPart.owner = owner;
     entity->scrollWithBg = 1;
     if (vx < 0)
         entity->flipX = 1;

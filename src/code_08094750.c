@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "lilith_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "code/code_080211F0.h"
@@ -21,7 +20,7 @@ void EnemyLilithUpdate(struct EwramData_EntityData *entity)
     }
     if (Enemy_IsStunned(entity))
     {
-        if (entity->state != 2 && (s8)LILITH_HIDDEN(entity) == 0)
+        if (entity->state != 2 && (s8)entity->ext.lilith.hidden == 0)
             Hit_CheckWithPlayer(box, entity);
         return;
     }
@@ -35,6 +34,6 @@ void EnemyLilithUpdate(struct EwramData_EntityData *entity)
     frame = entity->animFrame;
     Anim_Update(entity);
     if (frame != entity->animFrame) Entity_UpdateBoxes(entity);
-    if (entity->state != 2 && (s8)LILITH_HIDDEN(entity) == 0)
+    if (entity->state != 2 && (s8)entity->ext.lilith.hidden == 0)
         Hit_CheckWithPlayer(box, entity);
 }

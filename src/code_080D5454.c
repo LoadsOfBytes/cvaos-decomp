@@ -10,9 +10,9 @@
 extern void Effect_SpawnAt(s32, s32, s32);
 extern void Effect_SpawnRisingParticle(s32, s32, s32, s32);
 extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
-#define SCALE(e) (GRAHAM_SPIRAL_SCALE((e)))
-#define RADIUS(e) (GRAHAM_SPIRAL_RADIUS((e)))
-#define ANGLE(e) (GRAHAM_SPIRAL_ANGLE((e)))
+#define SCALE(e) (e->ext.grahamSpiral.scale)
+#define RADIUS(e) (e->ext.grahamSpiral.radius)
+#define ANGLE(e) (e->ext.grahamSpiral.angle)
 #define STATE(e, value) { (e)->state = value; (e)->stage = 0; (e)->subState = 0; }
 
 /**
@@ -55,9 +55,9 @@ void GrahamSpiralProjectile_Update(struct EwramData_EntityData *entity)
 
                 RADIUS(entity) = 0x200000;
                 ANGLE(entity) = 0;
-                index = (u8)GRAHAM_SPIRAL_INDEX(entity);
-                sin = Sin(index * (0x10000 / GRAHAM_SPIRAL_COUNT(entity)));
-                cos = Sin(index * (0x10000 / GRAHAM_SPIRAL_COUNT(entity)) + ({ s32 a_ = ANGLE(entity); a_ + 0x4000; }));
+                index = (u8)entity->ext.grahamSpiral.index;
+                sin = Sin(index * (0x10000 / entity->ext.grahamSpiral.count));
+                cos = Sin(index * (0x10000 / entity->ext.grahamSpiral.count) + ({ s32 a_ = ANGLE(entity); a_ + 0x4000; }));
                 radius = GRAHAM_SPIRAL_RADIUS_PIXELS(entity);
                 sin *= radius;
                 cos *= radius;
@@ -66,7 +66,7 @@ void GrahamSpiralProjectile_Update(struct EwramData_EntityData *entity)
                 entity->subState++;
             }
             if (SCALE(entity) <= 0xFFFF) SCALE(entity) += 0x800;
-            ObjAffine_Set(GRAHAM_SPIRAL_ROTATION(entity), SCALE(entity), SCALE(entity), entity->flipX, 0, entity->affineIndex);
+            ObjAffine_Set(entity->ext.grahamSpiral.rotation, SCALE(entity), SCALE(entity), entity->flipX, 0, entity->affineIndex);
             if (SCALE(entity) == 0x10000)
             {
                 STATE(entity, 3);
@@ -77,9 +77,9 @@ void GrahamSpiralProjectile_Update(struct EwramData_EntityData *entity)
         case 3:
             {
 
-                index = (u8)GRAHAM_SPIRAL_INDEX(entity);
-                sin = Sin(index * (0x10000 / GRAHAM_SPIRAL_COUNT(entity)) + ANGLE(entity));
-                cos = Sin(index * (0x10000 / GRAHAM_SPIRAL_COUNT(entity)) + ({ s32 a_ = ANGLE(entity); a_ + 0x4000; }));
+                index = (u8)entity->ext.grahamSpiral.index;
+                sin = Sin(index * (0x10000 / entity->ext.grahamSpiral.count) + ANGLE(entity));
+                cos = Sin(index * (0x10000 / entity->ext.grahamSpiral.count) + ({ s32 a_ = ANGLE(entity); a_ + 0x4000; }));
                 radius = RADIUS(entity) >> 16;
                 sin *= radius;
                 cos *= radius;
@@ -88,8 +88,8 @@ void GrahamSpiralProjectile_Update(struct EwramData_EntityData *entity)
                 RADIUS(entity) += 0x8000;
                 ANGLE(entity) += GRAHAM_SPIRAL_SPIN(entity);
                 if (SCALE(entity) <= 0xFFFF) SCALE(entity) += 0x800;
-                GRAHAM_SPIRAL_ROTATION(entity) += GRAHAM_SPIRAL_ROTATION_SPEED(entity);
-                ObjAffine_Set(GRAHAM_SPIRAL_ROTATION(entity), 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
+                entity->ext.grahamSpiral.rotation += entity->ext.grahamSpiral.rotationSpeed;
+                ObjAffine_Set(entity->ext.grahamSpiral.rotation, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
                 if (EntityIsOutsideScreen(entity, 4)) STATE(entity, 0xF0);
                 if (!(entity->timer & 0xF) && entity->timer > 0x20)
                 {
@@ -107,7 +107,7 @@ void GrahamSpiralProjectile_Update(struct EwramData_EntityData *entity)
             if (SCALE(entity) >= 0)
             {
                 if (SCALE(entity) <= 0) STATE(entity, 0xF0);
-                ObjAffine_Set(GRAHAM_SPIRAL_ROTATION(entity), SCALE(entity), SCALE(entity), entity->flipX, 0, entity->affineIndex);
+                ObjAffine_Set(entity->ext.grahamSpiral.rotation, SCALE(entity), SCALE(entity), entity->flipX, 0, entity->affineIndex);
             }
             break;
         case 0xF0:

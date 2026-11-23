@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "head_stack_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -33,7 +32,7 @@ void HeadStackEffect_UpdateAttack(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        const struct HeadStackDebrisVariant *t = &sUnk_081193DC[HEAD_STACK_TYPE(owner)];
+        const struct HeadStackDebrisVariant *t = &sUnk_081193DC[owner->ext.headStack.type];
         if (!Entity_LoadGraphics(entity, t->graphics, t->palette, 0, t->spriteSheet))
         {
             EntityDelete(entity);
@@ -43,7 +42,7 @@ void HeadStackEffect_UpdateAttack(struct EwramData_EntityData *entity)
         Anim_StartIndexed(entity, 4, 0, 0);
         entity->spriteLayer = 9;
         entity->objMode = 1;
-        if (HEAD_STACK_TYPE(owner) != 0)
+        if (owner->ext.headStack.type != 0)
         {
             child = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadStackEffect_UpdateEmitter);
             if (child != NULL)

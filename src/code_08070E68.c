@@ -2,7 +2,6 @@
  * This reconstruction requires the source-specific -fno-gcse build rule.
  * A byte match establishes generated code, not the original compiler options. */
 #include "code_08009A0.h"
-#include "merman_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -16,11 +15,11 @@ extern s32 Entity_MoveAndProbePointCollision(struct EwramData_EntityData *, s32,
  * consumes signed 16-bit coordinates; its implementation performs narrowing. */
 extern s32 Collision_FindWaterSurfaceOffset(s32, s32);
 extern void Effect_SpawnStationaryAnimation(s32, s32, s32);
-#define LEAP_SPLASHED(e) (MERMAN_LEAP_SPLASHED((e)))
-#define SWIM_MODE(e) (*(s8 *)&MERMAN_SWIM_MODE((e)))
-#define LAND_SPLASHED(e) (*(s8 *)&MERMAN_LAND_SPLASHED((e)))
-#define WALK_COUNT(e) (MERMAN_WALK_COUNT((e)))
-#define HOME_Y(e) ((s16)MERMAN_HOME_Y((e)))
+#define LEAP_SPLASHED(e) (e->ext.merman.leapSplashed)
+#define SWIM_MODE(e) (*(s8 *)&e->ext.merman.swimMode)
+#define LAND_SPLASHED(e) (*(s8 *)&e->ext.merman.landSplashed)
+#define WALK_COUNT(e) (e->ext.merman.walkCount)
+#define HOME_Y(e) ((s16)e->ext.merman.homeY)
 #define ACCEL_X(e) ((e)->accelX.whole)
 #define ACCEL_Y(e) ((e)->accelY.whole)
 #define ROOM_Y(e,c) ((e)->posY.part16.integer + (s16)(c)->yPos.part16.integer)

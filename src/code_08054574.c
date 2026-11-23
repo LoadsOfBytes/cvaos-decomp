@@ -18,12 +18,12 @@ s32 SavePoint_StepPromptFade(struct EwramData_EntityData *entity)
         {
         case 0:
             entity->hidden = 0;
-            SAVE_POINT_PROMPT_FADE(entity) = 0;
+            entity->ext.savePointPrompt.fade = 0;
             ObjPalette_LoadRange(sSaveWarpRoomPalette, 5, 1, 14);
             goto advance;
         case 1:
-            SAVE_POINT_PROMPT_FADE(entity) += 0x2000;
-            if ((s32)SAVE_POINT_PROMPT_FADE(entity) <= 0xFFFF) goto end;
+            entity->ext.savePointPrompt.fade += 0x2000;
+            if ((s32)entity->ext.savePointPrompt.fade <= 0xFFFF) goto end;
             goto full;
         case 2:
             done = 1;
@@ -36,15 +36,15 @@ s32 SavePoint_StepPromptFade(struct EwramData_EntityData *entity)
         case 0:
             entity->hidden = 0;
         full:
-            SAVE_POINT_PROMPT_FADE(entity) = 0x10000;
+            entity->ext.savePointPrompt.fade = 0x10000;
         advance:
             entity->subState++;
             break;
         case 1:
-            SAVE_POINT_PROMPT_FADE(entity) -= 0x2000;
-            if ((s32)SAVE_POINT_PROMPT_FADE(entity) <= 0)
+            entity->ext.savePointPrompt.fade -= 0x2000;
+            if ((s32)entity->ext.savePointPrompt.fade <= 0)
             {
-                SAVE_POINT_PROMPT_FADE(entity) = 0;
+                entity->ext.savePointPrompt.fade = 0;
                 entity->subState++;
                 ObjPalette_LoadRange(sSavePointPalette, 14, 1, 14);
             }

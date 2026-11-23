@@ -1,6 +1,5 @@
 /* Death_UpdateThrowAttack. */
 #include "code_08009A0.h"
-#include "death_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 #include "syscalls.h"
@@ -52,21 +51,21 @@ void Death_UpdateThrowAttack(struct EwramData_EntityData *entity)
         {
             s32 px = (s16)(*player)->posX.part16.integer;
             camera = &ewram->bgInfo[1];
-            DEATH_TARGET_X(entity) = px + camera->xPos.part16.integer - tx;
+            entity->ext.death.targetX = px + camera->xPos.part16.integer - tx;
         }
-        DEATH_TARGET_Y(entity) = camera->yPos.part16.integer + 0x78;
+        entity->ext.death.targetY = camera->yPos.part16.integer + 0x78;
         entity->subState = 1;
         break;
     }
     case 1:
     {
         struct BgLayerState *camera;
-        tx = (DEATH_TARGET_X(entity) - (s16)(camera = &gEwramData->bgInfo[1])->xPos.part16.integer) << 16;
-        ty = (DEATH_TARGET_Y(entity) - (s16)camera->yPos.part16.integer) << 16;
+        tx = (entity->ext.death.targetX - (s16)(camera = &gEwramData->bgInfo[1])->xPos.part16.integer) << 16;
+        ty = (entity->ext.death.targetY - (s16)camera->yPos.part16.integer) << 16;
         if (MoveToward(entity, tx, ty) <= 0x3FFF)
         {
             Anim_StartIndexed(entity, 0x19, 2, 0);
-            DEATH_FLAGS(entity) |= 8;
+            entity->ext.death.flags |= 8;
             entity->subState = 2;
         }
         break;
@@ -75,14 +74,14 @@ void Death_UpdateThrowAttack(struct EwramData_EntityData *entity)
         if (entity->animFlags & 4)
         {
             Anim_StartIndexed(entity, 0x1A, 2, 0);
-            DEATH_FLAGS(entity) |= 0x84;
+            entity->ext.death.flags |= 0x84;
             entity->subState = 3;
         }
         break;
     case 3:
-        if (!(DEATH_FLAGS(entity) & 4))
+        if (!(entity->ext.death.flags & 4))
         {
-            DEATH_FLAGS(entity) &= 0xFF7F;
+            entity->ext.death.flags &= 0xFF7F;
             entity->flipX = 0;
             Anim_StartIndexed(entity, 0x19, 2, 0);
             entity->subState = 4;

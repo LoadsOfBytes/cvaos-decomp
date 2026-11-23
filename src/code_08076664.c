@@ -1,6 +1,5 @@
 /* Allocate a 100-halfword motion history and link ten body segments. */
 #include "code_08009A0.h"
-#include "white_dragon_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -25,14 +24,14 @@ void EnemyWhiteDragonCreate(struct EwramData_EntityData *entity)
     u8 demo;
     if(!WhiteDragon_LoadGraphics(entity)) goto fail;
     entity->animFrame=0;
-    WHITE_DRAGON_HISTORY(entity)=(s32)Heap_Alloc(50);
-    if(!WHITE_DRAGON_HISTORY(entity)) goto fail;
+    entity->ext.whiteDragon.history=(s32)Heap_Alloc(50);
+    if(!entity->ext.whiteDragon.history) goto fail;
     Enemy_ResetFromTemplate(entity);
     entity->scrollWithBg=0;
-    WHITE_DRAGON_OFFSET_X(entity)=entity->posX.part16.integer;
-    WHITE_DRAGON_OFFSET_Y(entity)=entity->posY.part16.integer;
-    WHITE_DRAGON_ANCHOR_X(entity)=camera->xPos.part16.integer;
-    WHITE_DRAGON_ANCHOR_Y(entity)=camera->yPos.part16.integer;
+    entity->ext.whiteDragon.offsetX=entity->posX.part16.integer;
+    entity->ext.whiteDragon.offsetY=entity->posY.part16.integer;
+    entity->ext.whiteDragon.anchorX=camera->xPos.part16.integer;
+    entity->ext.whiteDragon.anchorY=camera->yPos.part16.integer;
     if(entity->unk_514.part16.spawnParam0)
         entity->flipX=1;
     else
@@ -44,10 +43,10 @@ void EnemyWhiteDragonCreate(struct EwramData_EntityData *entity)
     entity->velX.part16.fraction=0;
     entity->velY.part16.integer=0;
     entity->velY.part16.fraction=0;
-    WHITE_DRAGON_SWAY(entity)=0;
-    WHITE_DRAGON_SWAY_PHASE(entity)=0;
-    WHITE_DRAGON_MOVE_TIMER(entity)=0;
-    WHITE_DRAGON_SHOT_TIMER(entity)=0;
+    entity->ext.whiteDragon.sway=0;
+    entity->ext.whiteDragon.swayPhase=0;
+    entity->ext.whiteDragon.moveTimer=0;
+    entity->ext.whiteDragon.shotTimer=0;
     previous=entity;
     index=9;
     angularSpeed=(u16 *)&entity->velY.part16.fraction;
@@ -65,8 +64,8 @@ void EnemyWhiteDragonCreate(struct EwramData_EntityData *entity)
         part->scrollWithBg=0;
         part->drawFunc=(u32 *)WhiteDragonSegment_Draw;
         ENTITY_OWNER(part)=entity;
-        WHITE_DRAGON_SEGMENT_PREV(part)=previous;
-        WHITE_DRAGON_SEGMENT_INDEX(part)=index;
+        part->ext.whiteDragonSegment.prev=previous;
+        part->ext.whiteDragonSegment.index=index;
         Anim_StartIndexed(part,1,0,1);
         Anim_Update(part);
         previous=part;

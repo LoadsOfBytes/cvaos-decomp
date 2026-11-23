@@ -17,7 +17,7 @@ static inline s32 IsLeft(struct EwramData_EntityData *e)
     return e->posX.whole < gEwramData->playerState.player->posX.whole;
 }
 
-#define FACE() { u8 i_ = entity->unk_4F4.part8.unk_4F5; struct EwramData *w_ = gEwramData; struct EwramData *b_ = (struct EwramData *)(i_ * 0x84 + (u32)w_); b_->entityData[0].flipX = IsLeft(&b_->entityData[0]); }
+#define FACE() { u8 i_ = entity->ext.raw.unk_4F4.part8.unk_4F5; struct EwramData *w_ = gEwramData; struct EwramData *b_ = (struct EwramData *)(i_ * 0x84 + (u32)w_); b_->entityData[0].flipX = IsLeft(&b_->entityData[0]); }
 
 /**
  * @brief Update of event scene variant 20 (sEventSceneUpdateFuncs[20]); returns the

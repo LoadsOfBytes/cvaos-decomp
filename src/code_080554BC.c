@@ -2,7 +2,6 @@
  * a cloning script and checked byte for byte:
  *   SaveSparkle_Draw = Effect_DrawAtOffsetPair */
 #include "code/code_08039340.h"
-#include "particle_effect.h"
 #include "structs/ewram.h"
 
 /**
@@ -11,9 +10,9 @@
 void SaveSparkle_Draw(struct EwramData_EntityData *entity)
 {
     Sprite_Draw(entity);
-    entity->posX.whole += PARTICLE_PAIR_OFFSET_X(entity);
-    entity->posY.whole += PARTICLE_PAIR_OFFSET_Y(entity);
+    entity->posX.whole += entity->ext.particlePair.offsetX;
+    entity->posY.whole += entity->ext.particlePair.offsetY;
     Sprite_Draw(entity);
-    entity->posX.whole -= PARTICLE_PAIR_OFFSET_X(entity);
-    entity->posY.whole -= PARTICLE_PAIR_OFFSET_Y(entity);
+    entity->posX.whole -= entity->ext.particlePair.offsetX;
+    entity->posY.whole -= entity->ext.particlePair.offsetY;
 }

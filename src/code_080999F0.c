@@ -4,7 +4,6 @@
  *
  * Ectoplasm_UpdatePreview..EctoplasmParticle_Update decompiled locally. */
 #include "code_08009A0.h"
-#include "ectoplasm_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -46,10 +45,10 @@ void Ectoplasm_UpdatePreview(struct EwramData_EntityData *entity)
 
     if (entity->subState == 0)
     {
-        entity->posX.whole = ECTOPLASM_POINT_X(entity) - bg->xPos.whole;
-        baseY = ECTOPLASM_POINT_Y(entity) - bg->yPos.whole;
-        entity->posY.whole = baseY + Sin(ECTOPLASM_BOB_PHASE(entity) + 0x4000) * 3;
-        ECTOPLASM_BOB_PHASE(entity) += 0x200;
+        entity->posX.whole = entity->ext.ectoplasm.pointX - bg->xPos.whole;
+        baseY = entity->ext.ectoplasm.pointY - bg->yPos.whole;
+        entity->posY.whole = baseY + Sin(entity->ext.ectoplasm.bobPhase + 0x4000) * 3;
+        entity->ext.ectoplasm.bobPhase += 0x200;
         entity->timer++;
     }
 }

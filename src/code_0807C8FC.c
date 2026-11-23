@@ -1,6 +1,5 @@
 /* Apply damage only when the current animation permits it. */
 #include "code/code_080211F0.h"
-#include "alura_une_entity.h"
 #include "code/code_08039340.h"
 #include "code_080D73B8.h"
 #include "code_08009A0.h"
@@ -29,7 +28,7 @@ void AluraUne_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
         entity->unk_518.part16.hp = hp - applied;
         Entity_ShowDamage(entity, applied, 0);
     }
-    ALURA_UNE_HIT(entity) = 1;
+    entity->ext.aluraUne.hit = 1;
     if ((s16)entity->unk_518.part16.hp <= 0)
     {
         Sound_StopTracked(0x105);

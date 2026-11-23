@@ -17,9 +17,9 @@ extern u8 sGrahamFirstFormGfx[], sGrahamPalette2[], sGrahamFirstFormSpriteSheet[
  */
 void GrahamFirstForm_UpdateTransition(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *part = &gEwramData->entityData[GRAHAM_CHILD_INDEX(entity)];
+    struct EwramData_EntityData *part = &gEwramData->entityData[entity->ext.grahamScene.childIndex];
     struct EwramData_EntityData *owner = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
-    struct EwramData_EntityData *object = &gEwramData->entityData[(u8)GRAHAM_SCENE_OBJECT_INDEX(owner)];
+    struct EwramData_EntityData *object = &gEwramData->entityData[(u8)owner->ext.grahamScene.objectIndex];
     switch (entity->subState)
     {
     case 0:
@@ -35,7 +35,7 @@ void GrahamFirstForm_UpdateTransition(struct EwramData_EntityData *entity)
         case 2:
             {
                 s32 created;
-                if (GRAHAM_FLAGS(owner) & 8)
+                if (owner->ext.graham.flags & 8)
                     created = Graham_CreateSceneObject(owner, 2);
                 else
                     created = Graham_CreateSceneObject(owner, 6);
@@ -123,7 +123,7 @@ void GrahamFirstForm_UpdateTransition(struct EwramData_EntityData *entity)
     case 3:
         if (part->animDone)
         {
-            GRAHAM_FLAGS(owner) |= 4;
+            owner->ext.graham.flags |= 4;
             entity->subState = 4;
             entity->stage = 0;
             Sprite_Free(entity, 1);

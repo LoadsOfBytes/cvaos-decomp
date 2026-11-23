@@ -29,12 +29,12 @@ static inline void SetSlideAnim(struct EwramData_EntityData *entity, s32 anim)
     {
         Anim_StartIndexed(entity, anim, 3, 1);
         HitBox_SetBody(entity, &box);
-        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
-        PLAYER_ACTION_FLAGS(entity) &= ~0x200000;
+        entity->ext.player.requestedAnim = 0xFF;
+        entity->ext.player.actionFlags &= ~0x200000;
         pal = sSomaAnimPalettes[anim];
-        if (PLAYER_ANIM_PALETTE(entity) != pal)
+        if (entity->ext.player.animPalette != pal)
         {
-            PLAYER_ANIM_PALETTE(entity) = pal;
+            entity->ext.player.animPalette = pal;
             ObjPalette_LoadRange(sSomaPalette, pal, 1, 0);
         }
     }
@@ -55,9 +55,9 @@ void Soma_TryStartDiveAttack(struct EwramData_EntityData *entity)
 
     if (!Player_HasAbility(3))
         return;
-    if (!(PLAYER_ACTION_FLAGS(entity) & 2))
+    if (!(entity->ext.player.actionFlags & 2))
         return;
-    if ((PLAYER_ACTION_FLAGS(entity) & 0x800004) != 4)
+    if ((entity->ext.player.actionFlags & 0x800004) != 4)
         return;
     ew = gEwramData;
     if (!(ew->inputData.playerHeldInput & 0x80))

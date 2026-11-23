@@ -1,6 +1,5 @@
 /* Alastor behavior dispatch and collision/animation refresh. */
 #include "code/code_080211F0.h"
-#include "alastor_entity.h"
 #include "structs/ewram.h"
 extern void Alastor_UpdateBestiaryPreview(struct EwramData_EntityData *);
 extern void Alastor_UpdateDeath(struct EwramData_EntityData *);
@@ -19,7 +18,7 @@ extern void Alastor_UpdateHitBoxes(struct EwramData_EntityData *);
 void EnemyAlastorUpdate(struct EwramData_EntityData *entity)
 {
     u8 buffer[16];
-    s32 previous=ALASTOR_ANGLE(entity);
+    s32 previous=entity->ext.alastor.angle;
     s32 facing=entity->flipX;
     if (entity->state==8)
     {
@@ -36,7 +35,7 @@ void EnemyAlastorUpdate(struct EwramData_EntityData *entity)
     {
         if (!Entity_IsTargetWithinRange(entity,0x500000) && entity->state==0)
             return;
-        if (!(ALASTOR_FLAGS(entity) & 0x20) && entity->state!=0)
+        if (!(entity->ext.alastor.flags & 0x20) && entity->state!=0)
         {
             Hit_CheckWithPlayer(buffer,entity);
             return;
@@ -53,8 +52,8 @@ void EnemyAlastorUpdate(struct EwramData_EntityData *entity)
         case 6: Alastor_UpdateSpinningLeap(entity); break;
         case 7: Alastor_UpdateRecoil(entity); break;
     }
-    if (ALASTOR_ANGLE(entity)!=previous || entity->flipX!=facing)
+    if (entity->ext.alastor.angle!=previous || entity->flipX!=facing)
         Alastor_UpdateHitBoxes(entity);
-    if (!(ALASTOR_FLAGS(entity) & 0x20))
+    if (!(entity->ext.alastor.flags & 0x20))
         Hit_CheckWithPlayer(buffer,entity);
 }

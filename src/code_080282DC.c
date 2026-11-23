@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -38,7 +37,7 @@ static inline struct SoulGraphicsResources *GetSet(s32 index)
  */
 void SkillDryadUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.redSoul.owner;
     struct EwramData_EntityData *link;
     struct EwramData_EntityData *target;
     s32 zero;
@@ -75,23 +74,23 @@ void SkillDryadUse(struct EwramData_EntityData *entity)
         PlaySong(0xE5);
     case 1:
         EntityAccelerateAndMove(entity, 0x40000);
-        if (RED_SOUL_ANCHOR(entity) == NULL)
+        if (entity->ext.redSoul.anchor == NULL)
             break;
         entity->state = 2;
         Anim_StartIndexed(entity, 0, 0, 0);
     case 2:
-        link = RED_SOUL_ANCHOR(entity);
+        link = entity->ext.redSoul.anchor;
         if (link == NULL)
             goto animate;
-        if (RED_SOUL_ANCHOR_TARGET_DEAD(link) != 0)
+        if (link->ext.redSoulAnchor.targetDead != 0)
             goto stop;
-        target = RED_SOUL_ANCHOR_TARGET(link);
-        if (RED_SOUL_ANCHOR_TIMER(entity) == 0)
+        target = link->ext.redSoulAnchor.target;
+        if (entity->ext.redSoul.anchorTimer == 0)
         {
             PlaySong(0xD5);
             Player_RestoreHP(8);
         }
-        if (RED_SOUL_ANCHOR_TIMER(entity)++ > 0x14)
+        if (entity->ext.redSoul.anchorTimer++ > 0x14)
             goto stop;
         if (!(target->hit.flags & 4))
             goto animate;
@@ -116,7 +115,7 @@ void SkillDryadUse(struct EwramData_EntityData *entity)
             break;
         }
     case 4:
-        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;

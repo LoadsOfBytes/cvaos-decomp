@@ -1,6 +1,5 @@
 /* Beam Skeleton moving beam and sound maintenance. */
 #include "structs/ewram.h"
-#include "beam_skeleton_entity.h"
 extern void Hit_CheckWithPlayer(void *buffer,struct EwramData_EntityData *entity);
 extern void Sound_PlayTracked(s32 id);
 extern void Sound_StopTracked(s32 id);
@@ -8,7 +7,7 @@ extern void Sound_StopTracked(s32 id);
 
 static inline void ResetBeam(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = &gEwramData->entityData[BEAM_OWNER_INDEX(entity)];
+    struct EwramData_EntityData *owner = &gEwramData->entityData[entity->ext.beamSkeletonBeam.ownerIndex];
     entity->posX.whole = -0xB0000;
     if (entity->flipX)
         entity->posX.whole = -entity->posX.whole;
@@ -31,8 +30,8 @@ static inline void ResetBeam(struct EwramData_EntityData *entity)
 void BeamSkeletonBeam_Update(struct EwramData_EntityData *entity)
 {
     u8 buffer[16];
-    struct EwramData_EntityData *owner = &gEwramData->entityData[BEAM_OWNER_INDEX(entity)];
-    if ((u16)BEAM_SKELETON_BEAM_LEVEL(owner) > 0x400)
+    struct EwramData_EntityData *owner = &gEwramData->entityData[entity->ext.beamSkeletonBeam.ownerIndex];
+    if ((u16)owner->ext.beamSkeleton.beamLevel > 0x400)
         Hit_CheckWithPlayer(buffer,entity);
     switch (entity->state)
     {
@@ -47,7 +46,7 @@ void BeamSkeletonBeam_Update(struct EwramData_EntityData *entity)
             }
             break;
         case 2:
-            if ((u16)BEAM_SKELETON_BEAM_LEVEL(owner) > 0xFFFE)
+            if ((u16)owner->ext.beamSkeleton.beamLevel > 0xFFFE)
             {
                 if (--entity->timer == 0xFF)
                 {
@@ -69,7 +68,7 @@ void BeamSkeletonBeam_Update(struct EwramData_EntityData *entity)
             }
             break;
     }
-    if ((u16)BEAM_SKELETON_BEAM_LEVEL(owner) == 0xFFFF)
+    if ((u16)owner->ext.beamSkeleton.beamLevel == 0xFFFF)
     {
         entity->affine = 0;
         ((u8 *)entity)[0x59] &= 0x7F;
@@ -80,14 +79,14 @@ void BeamSkeletonBeam_Update(struct EwramData_EntityData *entity)
         entity->affine = 1;
         ((u8 *)entity)[0x59] |= 0x80;
     }
-    if (!(BEAM_SKELETON_FIRING(owner) & 1) || owner->hidden)
+    if (!(owner->ext.beamSkeleton.firing & 1) || owner->hidden)
     {
         Sound_StopTracked(0x66);
         entity->deleteRequested = 1;
     }
     else
     {
-        if (BEAM_COUNTER(entity) & 3)
+        if (entity->ext.beamSkeletonBeam.counter & 3)
         {
             u16 *sounds = gEwramData->trackedSoundIds;
             s32 i;
@@ -97,6 +96,6 @@ void BeamSkeletonBeam_Update(struct EwramData_EntityData *entity)
             if (i==4)
                 Sound_PlayTracked(0x66);
         }
-        BEAM_COUNTER(entity)++;
+        entity->ext.beamSkeletonBeam.counter++;
     }
 }

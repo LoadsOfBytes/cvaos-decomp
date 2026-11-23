@@ -4,7 +4,6 @@
  *   ZombieOfficer_LoadGraphics = Object25_LoadGraphics
  *   ZombieOfficer_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 #include "code_08009A0.h"
-#include "zombie_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code_080D73B8.h"
@@ -35,7 +34,7 @@ static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *ent
 void ZombieOfficerPiece_Update(struct EwramData_EntityData *entity)
 {
     EntityAccelerateAndMove(entity, 0x80000);
-    if (entity->posY.whole > ZOMBIE_PIECE_FLOOR_Y(entity))
+    if (entity->posY.whole > entity->ext.zombiePiece.floorY)
         EntityDelete(entity);
 }
 

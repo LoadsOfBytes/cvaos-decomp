@@ -1,10 +1,9 @@
 /* Horizontal and vertical sine motion, alternating frames at turning points. */
 #include "code_08009A0.h"
-#include "ghost_dancer_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *);
-#define PHASE(e) ((e)->unk_4F8.part16.unk_4F8)
+#define PHASE(e) ((e)->ext.raw.unk_4F8.part16.unk_4F8)
 /**
  * @brief Alive states (1/2): move with horizontal and vertical sine phases,
  * swap animations at horizontal turning points and advance visibility
@@ -26,7 +25,7 @@ void GhostDancer_UpdateMovement(struct EwramData_EntityData *entity)
             if(!entity->flipX)
                 entity->velX.whole=-entity->velX.whole;
             PHASE(entity)=0;
-            GHOST_DANCER_CYCLES(entity)=0;
+            entity->ext.ghostDancer.cycles=0;
             entity->timer=0;
             entity->subState++;
             break;
@@ -36,18 +35,18 @@ void GhostDancer_UpdateMovement(struct EwramData_EntityData *entity)
             entity->posY.whole+=entity->velY.whole+Sin(PHASE(entity)*4);
             PHASE(entity)+=128;
             if(!PHASE(entity))
-                GHOST_DANCER_CYCLES(entity)++;
+                entity->ext.ghostDancer.cycles++;
             if(!entity->velX.whole)
                 Anim_StartIndexed(entity,(u16)(1-entity->animScriptIndex),0,1);
             { s32 phase=PHASE(entity);
             s32 period=0x8000;
             if(phase%period==0)
-            { u32 mode=(u8)GHOST_DANCER_MODE(entity);
+            { u32 mode=(u8)entity->ext.ghostDancer.mode;
             if(!(state &= mode))
             {
-                GHOST_DANCER_SIDE(entity)=1-GHOST_DANCER_SIDE(entity);
-                GHOST_DANCER_MODE(entity)=mode+1;
-                GHOST_DANCER_TIMER(entity)=0;
+                entity->ext.ghostDancer.side=1-entity->ext.ghostDancer.side;
+                entity->ext.ghostDancer.mode=mode+1;
+                entity->ext.ghostDancer.timer=0;
             }
             }
             }

@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "giant_ghost_entity.h"
 #include "code/code_08039340.h"
 #include "syscalls.h"
 extern s32 Enemy_IsStunnedNoFlash(struct EwramData_EntityData *);
@@ -33,30 +32,30 @@ void GiantGhostHandB_Update(struct EwramData_EntityData *entity)
         entity->flipX = parent->flipX;
         if (gEwramData->gameState.bestiaryPreview)
         {
-            if (GIANT_GHOST_HAND_SWAY_DIR(entity))
+            if (entity->ext.giantGhostHand.swayDir)
             {
-                GIANT_GHOST_HAND_POINT_X(entity) -= 0x10000;
-                GIANT_GHOST_HAND_POINT_Y(entity) -= 0x10000;
-                if ((s8)++GIANT_GHOST_HAND_SWAY_FRAME(entity) > 0x3B)
+                entity->ext.giantGhostHand.pointX -= 0x10000;
+                entity->ext.giantGhostHand.pointY -= 0x10000;
+                if ((s8)++entity->ext.giantGhostHand.swayFrame > 0x3B)
                 {
-                    GIANT_GHOST_HAND_SWAY_FRAME(entity) = 0;
-                    GIANT_GHOST_HAND_SWAY_DIR(entity) ^= 1;
+                    entity->ext.giantGhostHand.swayFrame = 0;
+                    entity->ext.giantGhostHand.swayDir ^= 1;
                 }
             }
             else
             {
-                GIANT_GHOST_HAND_POINT_X(entity) += 0x10000;
-                GIANT_GHOST_HAND_POINT_Y(entity) += 0x10000;
-                if ((s8)++GIANT_GHOST_HAND_SWAY_FRAME(entity) > 0x3B)
+                entity->ext.giantGhostHand.pointX += 0x10000;
+                entity->ext.giantGhostHand.pointY += 0x10000;
+                if ((s8)++entity->ext.giantGhostHand.swayFrame > 0x3B)
                 {
-                    GIANT_GHOST_HAND_SWAY_FRAME(entity) = 0;
-                    GIANT_GHOST_HAND_SWAY_DIR(entity) ^= 1;
+                    entity->ext.giantGhostHand.swayFrame = 0;
+                    entity->ext.giantGhostHand.swayDir ^= 1;
                 }
             }
             x = parent->posX.whole - 0x40000;
             y = parent->posY.whole - 0x240000;
-            x = GIANT_GHOST_HAND_POINT_X(entity) - x;
-            y = GIANT_GHOST_HAND_POINT_Y(entity) - y;
+            x = entity->ext.giantGhostHand.pointX - x;
+            y = entity->ext.giantGhostHand.pointY - y;
             angle = ArcTan2(FIXED_TO_INT(x), FIXED_TO_INT(y));
             x = Sin(angle + 0x4000);
             y = Sin(angle);

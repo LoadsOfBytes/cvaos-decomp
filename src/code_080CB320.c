@@ -1,6 +1,5 @@
 /* Alternate Beam Skeleton fragment update. */
 #include "code/code_08039340.h"
-#include "beam_skeleton_entity.h"
 #include "structs/ewram.h"
 extern s8 ObjPalette_FindOrLoad(void *palette);
 extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *entity);
@@ -8,7 +7,7 @@ extern u8 sBeamSkeletonPalette[];
 extern u8 sBeamSkeletonSpriteSheet[];
 extern s8 sBeamSkeletonDeathPieceOffsets[][6];
 #define ABS(x) ((x) < 0 ? -(x) : (x))
-#define INDEX(e) (BEAM_SKELETON_PIECE_INDEX((e)))
+#define INDEX(e) (e->ext.beamSkeletonPiece.index)
 static inline s32 TooLow(s32 y) { return y > 170; }
 
 /**
@@ -18,7 +17,7 @@ static inline s32 TooLow(s32 y) { return y > 170; }
  */
 void BeamSkeletonDeathPiece_UpdateUnused(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = &gEwramData->entityData[BEAM_SKELETON_PIECE_OWNER_INDEX(entity)];
+    struct EwramData_EntityData *owner = &gEwramData->entityData[entity->ext.beamSkeletonPiece.ownerIndex];
     switch (entity->state)
     {
         case 0:
@@ -61,7 +60,7 @@ void BeamSkeletonDeathPiece_UpdateUnused(struct EwramData_EntityData *entity)
                 done = 2;
             if (done)
             {
-                BEAM_SKELETON_DEATH_PIECES(owner)--;
+                owner->ext.beamSkeleton.deathPieces--;
                 entity->deleteRequested = 1;
             }
             break;

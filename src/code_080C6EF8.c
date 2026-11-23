@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "nemesis_entity.h"
 #include "code/code_08039340.h"
 extern void HitBox_SetAttackRaw(struct EwramData_EntityData *, u32);
 extern void HitBox_SetBodyRaw(struct EwramData_EntityData *, u32);
@@ -9,8 +8,8 @@ extern void HitBox_SetBodyRaw(struct EwramData_EntityData *, u32);
  */
 void Nemesis_UpdateRotatedBoxes(struct EwramData_EntityData *entity)
 {
-    s8 x = FixedMultiply(Sin(NEMESIS_ANGLE(entity) + 0x8000), 0x100000) >> 16;
-    u8 y = FixedMultiply(Sin(NEMESIS_ANGLE(entity) + 0x4000), 0x80000) >> 16;
+    s8 x = FixedMultiply(Sin(entity->ext.nemesis.angle + 0x8000), 0x100000) >> 16;
+    u8 y = FixedMultiply(Sin(entity->ext.nemesis.angle + 0x4000), 0x80000) >> 16;
     u32 packed;
     if (x > 0) x -= 0x10;
     packed = ((u8)x | (y << 8)) + 0x08100000;

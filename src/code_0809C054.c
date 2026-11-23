@@ -1,17 +1,16 @@
 /* StolasBeamSegment_Update (Stolas hit box child update). */
 #include "code_08009A0.h"
-#include "stolas_entity.h"
 #include "structs/ewram.h"
 
 /**
- * @brief 9C054 | Deleted when the parent (STOLAS_EFFECT_OWNER) is gone or no longer of
+ * @brief 9C054 | Deleted when the parent (ext.stolasEffect.owner) is gone or no longer of
  * type 0x61; in state 0 switch the frame at 8 / 16 / 82 frames (0x20 ..
  * 0x22) and delete after 90 frames or when the parent is in state 2.
  */
 void StolasBeamSegment_Update(struct EwramData_EntityData *entity)
 {
     u8 collision[0x10];
-    struct EwramData_EntityData *stolas = STOLAS_EFFECT_OWNER(entity);
+    struct EwramData_EntityData *stolas = entity->ext.stolasEffect.owner;
 
     if (stolas != NULL && stolas->updateFunc != NULL && stolas->unk_518.part8.enemyId == 0x61)
     {

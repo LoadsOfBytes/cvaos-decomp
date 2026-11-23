@@ -46,15 +46,15 @@ void EnemyBaloreCreate(struct EwramData_EntityData *entity)
     Anim_StartIndexed(entity, 0, 2, 1);
     Enemy_ResetFromTemplate(entity);
     entity->spriteLayer = 0x1E;
-    BALORE_EYE_ANIM(entity) = 4;
-    BALORE_BODY_SCALE(entity) = 0x10000;
+    entity->ext.balore.eyeAnim = 4;
+    entity->ext.balore.scale = 0x10000;
     part = Entity_CreateObject((u32 *)BaloreEye_Update);
     if (part != NULL)
     {
         part->posX.whole = entity->posX.whole;
         part->posY.whole = entity->posY.whole;
         part->scrollWithBg = 1;
-        BALORE_BODY(part) = entity;
+        part->ext.balorePart.body = entity;
     }
     part = Entity_CreateObject((u32 *)BalorePart_Update);
     if (part != NULL)
@@ -62,7 +62,7 @@ void EnemyBaloreCreate(struct EwramData_EntityData *entity)
         part->posX.whole = entity->posX.whole;
         part->posY.whole = entity->posY.whole;
         part->scrollWithBg = 1;
-        BALORE_BODY(part) = entity;
+        part->ext.balorePart.body = entity;
     }
     part = Entity_CreateObject((u32 *)BaloreBodyPart_Update);
     if (part != NULL)
@@ -70,7 +70,7 @@ void EnemyBaloreCreate(struct EwramData_EntityData *entity)
         part->posX.whole = entity->posX.whole;
         part->posY.whole = entity->posY.whole;
         part->scrollWithBg = 1;
-        BALORE_BODY(part) = entity;
+        part->ext.balorePart.body = entity;
     }
     entity->flipX = 0;
     {

@@ -26,7 +26,7 @@ void Object07_SpawnParallaxSprites(struct EwramData_EntityData *entity)
             const u8 *entry;
             struct BgLayerState *cam;
             { const u8 *tbl = sUnk_085255DC; entry = tbl + i * 4; }
-            OBJECT07_SPRITE_FRAME(e) = entry[2];
+            e->ext.object07.spriteFrame = entry[2];
             {
                 s32 x = entry[0] + 0x50;
                 cam = &gEwramData->bgInfo[1];

@@ -1,7 +1,5 @@
 /* Devil (08220A38 skeleton enemy) main state machine. */
 #include "code_08009A0.h"
-#include "devil_entity.h"
-#include "joint_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -44,7 +42,7 @@ void Devil_UpdateAttack(struct EwramData_EntityData *entity)
     case 0:
         if (entity->unk_518.part8.enemyId != 0x30 && (RandomNumberGenerator() & 0x7F) > 0x40)
         {
-            JOINT_POSE(entity) = 4;
+            entity->ext.joint.pose = 4;
             entity->timer = 0xE;
             Anim_StartIndexed(entity, entity->animScriptIndex + 1, 0, 0);
             DevilPart_Attach(entity, 1, 0, 0x10000, 0xA0000);
@@ -60,7 +58,7 @@ void Devil_UpdateAttack(struct EwramData_EntityData *entity)
             break;
         }
         entity->animFlags |= 2;
-        JOINT_POSE(entity) = 0;
+        entity->ext.joint.pose = 0;
         entity->timer = 0xE;
         DevilPart_Attach(entity, 1, 0, 0x12000, 0xA0000);
         DevilPart_Attach(entity, 2, 0, 0x12000, 0xD0000);
@@ -83,7 +81,7 @@ void Devil_UpdateAttack(struct EwramData_EntityData *entity)
             break;
         entity->subState++;
         entity->timer = 8;
-        JOINT_POSE(entity) = 3;
+        entity->ext.joint.pose = 3;
         PlaySong(0x86);
         DevilPart_Attach(entity, 1, 0, 0x10000, 0xA0000);
         DevilPart_Attach(entity, 2, 0, 0x10000, 0xD0000);
@@ -106,7 +104,7 @@ void Devil_UpdateAttack(struct EwramData_EntityData *entity)
             break;
         entity->timer = 0x16;
         entity->subState++;
-        JOINT_POSE(entity) = 2;
+        entity->ext.joint.pose = 2;
         Anim_StartIndexed(entity, entity->animScriptIndex, 0, 1);
         DevilPart_Attach(entity, 1, 0, 0x12A00, 0xA0000);
         DevilPart_Attach(entity, 2, 0, 0x12A00, 0xD0000);
@@ -124,13 +122,13 @@ void Devil_UpdateAttack(struct EwramData_EntityData *entity)
         entity->state = 0;
         entity->subState = 2;
         entity->stage = 0;
-        JOINT_POSE(entity) = 1;
-        DEVIL_SPEED(entity) = 0;
+        entity->ext.joint.pose = 1;
+        entity->ext.devil.speed = 0;
         if (entity->flipX)
-            DEVIL_TARGET_X(entity) = Target_GetX(entity) + ({ s32 t = bg->xPos.whole + -0x280000; t; });
+            entity->ext.devil.targetX = Target_GetX(entity) + ({ s32 t = bg->xPos.whole + -0x280000; t; });
         else
-            DEVIL_TARGET_X(entity) = Target_GetX(entity) + ({ s32 t = bg->xPos.whole + 0x280000; t; });
-        DEVIL_TARGET_Y(entity) = Target_GetY(entity) - (RandomNumberGenerator() & 0x7FFFF) + bg->yPos.whole;
+            entity->ext.devil.targetX = Target_GetX(entity) + ({ s32 t = bg->xPos.whole + 0x280000; t; });
+        entity->ext.devil.targetY = Target_GetY(entity) - (RandomNumberGenerator() & 0x7FFFF) + bg->yPos.whole;
         DevilPart_Attach(entity, 1, 0, -0xA00, 0xA0000);
         DevilPart_Attach(entity, 2, 0, -0xA00, 0xD0000);
         DevilPart_Attach(entity, 3, 2, -0x800, 0xB0000);
@@ -176,7 +174,7 @@ void Devil_UpdateAttack(struct EwramData_EntityData *entity)
             break;
         entity->subState++;
         entity->timer = 1;
-        JOINT_POSE(entity) = 3;
+        entity->ext.joint.pose = 3;
         DevilPart_Attach(entity, 1, 0, 0x10000, 0xA0000);
         DevilPart_Attach(entity, 2, 0, 0x10000, 0xD0000);
         DevilPart_Attach(entity, 3, 2, 0x10000, 0xB0000);
@@ -198,7 +196,7 @@ void Devil_UpdateAttack(struct EwramData_EntityData *entity)
             break;
         entity->timer = 0x16;
         entity->subState++;
-        JOINT_POSE(entity) = 2;
+        entity->ext.joint.pose = 2;
         Anim_StartIndexed(entity, entity->animScriptIndex - 2, 0, 1);
         DevilPart_Attach(entity, 1, 0, 0x12A00, 0xA0000);
         DevilPart_Attach(entity, 2, 0, 0x12A00, 0xD0000);
@@ -224,13 +222,13 @@ void Devil_UpdateAttack(struct EwramData_EntityData *entity)
         entity->timer = 0x16;
         entity->state = 0;
         entity->subState = 1;
-        JOINT_POSE(entity) = 1;
-        DEVIL_SPEED(entity) = 0;
+        entity->ext.joint.pose = 1;
+        entity->ext.devil.speed = 0;
         if (entity->flipX)
-            DEVIL_TARGET_X(entity) = Target_GetX(entity) + ({ s32 t = bg->xPos.whole + -0x280000; t; });
+            entity->ext.devil.targetX = Target_GetX(entity) + ({ s32 t = bg->xPos.whole + -0x280000; t; });
         else
-            DEVIL_TARGET_X(entity) = Target_GetX(entity) + ({ s32 t = bg->xPos.whole + 0x280000; t; });
-        DEVIL_TARGET_Y(entity) = Target_GetY(entity) - (RandomNumberGenerator() & 0x7FFFF) + bg->yPos.whole;
+            entity->ext.devil.targetX = Target_GetX(entity) + ({ s32 t = bg->xPos.whole + 0x280000; t; });
+        entity->ext.devil.targetY = Target_GetY(entity) - (RandomNumberGenerator() & 0x7FFFF) + bg->yPos.whole;
         DevilPart_Attach(entity, 1, 0, -0xA00, 0xA0000);
         DevilPart_Attach(entity, 2, 0, -0xA00, 0xD0000);
         DevilPart_Attach(entity, 3, 2, -0x800, 0xB0000);

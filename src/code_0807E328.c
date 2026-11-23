@@ -1,6 +1,5 @@
 /* Giant Ghost's graphics, collision effect and death particles. */
 #include "code_08009A0.h"
-#include "giant_ghost_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_080211F0.h"
 extern s8 ObjPalette_FindOrLoadVariant(void *, u8);
@@ -20,6 +19,6 @@ void GiantGhost_DamagePlayerOnContact(struct EwramData_EntityData *entity)
     effect.reaction = 0;
     effect.sourceX = entity->posX.whole;
     effect.sourceY = entity->posY.whole;
-    GIANT_GHOST_HIT_PLAYER(entity) = 1;
+    entity->ext.giantGhost.hitPlayer = 1;
     Player_ApplyContactDamage(&effect);
 }

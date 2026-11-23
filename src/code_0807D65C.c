@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "giant_ghost_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -27,11 +26,11 @@ void GiantGhost_UpdateAttack(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
     case 0:
-        if (GIANT_GHOST_SPEED(entity) < 0xC000)
-            GIANT_GHOST_SPEED(entity) += 0x1000;
+        if (entity->ext.giantGhost.speed < 0xC000)
+            entity->ext.giantGhost.speed += 0x1000;
         x = Target_GetX(entity);
         x += bg->xPos.whole;
-        Entity_AimVelocityAtPoint(entity, x, Target_GetY(entity) + bg->yPos.whole - 0x100000, GIANT_GHOST_SPEED(entity));
+        Entity_AimVelocityAtPoint(entity, x, Target_GetY(entity) + bg->yPos.whole - 0x100000, entity->ext.giantGhost.speed);
         entity->velX.whole = -entity->velX.whole;
         entity->velY.whole = -entity->velY.whole;
         EntityMove(entity);
@@ -50,11 +49,11 @@ void GiantGhost_UpdateAttack(struct EwramData_EntityData *entity)
         }
         break;
     case 2:
-        if (GIANT_GHOST_SPEED(entity) > 0x1000)
-            GIANT_GHOST_SPEED(entity) -= 0x800;
+        if (entity->ext.giantGhost.speed > 0x1000)
+            entity->ext.giantGhost.speed -= 0x800;
         x = Target_GetX(entity);
         x += bg->xPos.whole;
-        Entity_AimVelocityAtPoint(entity, x, Target_GetY(entity) + bg->yPos.whole - 0x100000, GIANT_GHOST_SPEED(entity));
+        Entity_AimVelocityAtPoint(entity, x, Target_GetY(entity) + bg->yPos.whole - 0x100000, entity->ext.giantGhost.speed);
         entity->velX.whole = -entity->velX.whole;
         entity->velY.whole = -entity->velY.whole;
         EntityMove(entity);
@@ -71,13 +70,13 @@ void GiantGhost_UpdateAttack(struct EwramData_EntityData *entity)
             entity->subState++;
             entity->timer = 0;
             PlaySong(0x87);
-            GIANT_GHOST_DIVE_X(entity) = Target_GetX(entity) + bg->xPos.whole;
-            GIANT_GHOST_DIVE_Y(entity) = Target_GetY(entity) + bg->yPos.whole - 0x100000;
+            entity->ext.giantGhost.diveX = Target_GetX(entity) + bg->xPos.whole;
+            entity->ext.giantGhost.diveY = Target_GetY(entity) + bg->yPos.whole - 0x100000;
             Anim_StartIndexed(entity, 3, 0, 0);
         }
         break;
     case 4:
-        if (Entity_AimVelocityAtPoint(entity, GIANT_GHOST_DIVE_X(entity), GIANT_GHOST_DIVE_Y(entity) - 0x200000, 0x20000))
+        if (Entity_AimVelocityAtPoint(entity, entity->ext.giantGhost.diveX, entity->ext.giantGhost.diveY - 0x200000, 0x20000))
         {
             entity->subState++;
             Anim_StartIndexed(entity, 4, 0, 1);
@@ -102,7 +101,7 @@ void GiantGhost_UpdateAttack(struct EwramData_EntityData *entity)
             entity->state = 0;
             entity->subState = 0;
             entity->timer = 0;
-            GIANT_GHOST_HIT_PLAYER(entity) = 0;
+            entity->ext.giantGhost.hitPlayer = 0;
         }
         break;
     }

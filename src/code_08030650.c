@@ -1,7 +1,6 @@
 /* SkillCreakingSkullHitBoxUpdate. */
 #include "code_08009A0.h"
 #include "soul_skill_entity.h"
-#include "blue_soul_entity.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
 
@@ -13,7 +12,7 @@
 void SkillCreakingSkullHitBoxUpdate(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *target = &gEwramData->entityData[SKILL_CREAKING_SKULL_SOUL_INDEX(entity)];
-    struct EwramData_EntityData *parent = BLUE_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.blueSoul.owner;
     u16 angle;
     s32 radius;
     s32 timer;

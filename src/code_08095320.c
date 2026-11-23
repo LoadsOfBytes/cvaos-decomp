@@ -4,8 +4,6 @@
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
-/* Cleared at the start of every update; never read. */
-#define CREAKING_SKULL_UNUSED_FLAG(e) e->unk_504.part8.unk_505
 
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
 extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *entity);
@@ -37,7 +35,7 @@ void EnemyCreakingSkullUpdate(struct EwramData_EntityData *entity)
     struct SkullBox box;
     s32 *parts; /* EntityJointPart viewed as 12 words (needed for the addressing) */
 
-    CREAKING_SKULL_UNUSED_FLAG(entity) = 0;
+    entity->ext.creakingSkull.unusedFlag = 0;
     if (entity->state != 2)
     {
         if (EntityIsOutsideScreen(entity, 6))
@@ -60,15 +58,15 @@ void EnemyCreakingSkullUpdate(struct EwramData_EntityData *entity)
     case 2:
         if ((s8)--entity->timer <= 0)
             entity->deleteRequested = 1;
-        if (entity->deleteRequested && entity->unk_500.jointParts != NULL)
-            Heap_Free(entity->unk_500.jointParts);
+        if (entity->deleteRequested && entity->ext.joint.parts != NULL)
+            Heap_Free(entity->ext.joint.parts);
         return;
     case 3:
         CreakingSkull_UpdateBestiaryPreview(entity);
         return;
     }
 boxes:
-    parts = (s32 *)entity->unk_500.jointParts;
+    parts = (s32 *)entity->ext.joint.parts;
     if (entity->flipX)
         box.x = -TO_PIXELS(parts[5 * 12 + 0]) - 0x14;
     else

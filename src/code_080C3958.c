@@ -7,7 +7,7 @@ extern struct EwramData_EntityData *Entity_CreateLinkedAndHide(struct EwramData_
 extern void SkeletonAttachedPart_Update(struct EwramData_EntityData *);
 
 /* attack flags, see Skeleton_UpdateThrow */
-#define FLAGS(e) ((e)->unk_4FC.part8.unk_4FE)
+#define FLAGS(e) ((e)->ext.raw.unk_4FC.part8.unk_4FE)
 
 /**
  * @brief Select preparation animation 5 or 6 and pending attack flags; optionally create an attached part, then return to state 1.

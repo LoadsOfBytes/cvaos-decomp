@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -51,7 +50,7 @@ struct Unk_08028018_Block {
  */
 void SkillNeedlesUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.redSoul.owner;
     struct Unk_08028018_Block *block;
     s32 i;
     s32 angle;
@@ -83,13 +82,13 @@ void SkillNeedlesUse(struct EwramData_EntityData *entity)
     case 1:
         Anim_Update(entity);
         if (--entity->timer == 0)
-            RED_SOUL_HIT(entity) = 1;
-        if ((u8)RED_SOUL_HIT(entity) == 0)
+            entity->ext.redSoul.hit = 1;
+        if ((u8)entity->ext.redSoul.hit == 0)
             break;
         entity->velY.whole = -0x10000 - (RandomNumberGenerator() & 0x7FFF);
         entity->accelY.whole = 0x2000;
         Effect_SpawnShared(entity->posX.whole, entity->posY.whole, 0xF, 7);
-        block = (struct Unk_08028018_Block *)&entity->unk_4F4;
+        block = (struct Unk_08028018_Block *)&entity->ext.raw.unk_4F4;
         for (i = 0, angle = 0; i <= 3; i++)
         {
             block->parts[i].radius = 0;
@@ -102,7 +101,7 @@ void SkillNeedlesUse(struct EwramData_EntityData *entity)
         break;
     case 2:
         EntityAccelerateAndMoveY(entity, 0x80000);
-        block = (struct Unk_08028018_Block *)&entity->unk_4F4;
+        block = (struct Unk_08028018_Block *)&entity->ext.raw.unk_4F4;
         for (i = 0; i <= 3; i++)
             block->parts[i].radius += entity->timer << 5;
         if (entity->timer != 0)
@@ -111,7 +110,7 @@ void SkillNeedlesUse(struct EwramData_EntityData *entity)
             break;
         }
     case 3:
-        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         break;

@@ -1,11 +1,10 @@
 /* Vertical platform: accelerate between two room-space endpoints,
  * slow near each endpoint and wait for the per-variant delay. */
 #include "code_08009A0.h"
-#include "layer_object.h"
 #include "structs/ewram.h"
 struct PlatformVariant { u8 *graphics; void *palette; void *sprites; u8 animation; u8 paletteIndex; u16 delay; };
 extern struct PlatformVariant sObject29Variants[];
-#define DIRECTION(e) (SHUTTLE_DIR((e)))
+#define DIRECTION(e) (e->ext.layerObject.shuttleDir)
 void Object29_UpdateMovement(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
@@ -13,15 +12,15 @@ void Object29_UpdateMovement(struct EwramData_EntityData *entity)
     s32 v, k;
     
 
-    BG1_OBJECT_DRAW_X(entity) = BG1_OBJECT_X(entity) - camera->xPos.whole;
+    entity->ext.layerObject.drawX = entity->ext.layerObject.x - camera->xPos.whole;
 
-    y = BG1_OBJECT_Y(entity);
-    BG1_OBJECT_DRAW_Y(entity) = y - camera->yPos.whole;
+    y = entity->ext.layerObject.y;
+    entity->ext.layerObject.drawY = y - camera->yPos.whole;
     switch (entity->subState)
     {
     case 0:
     {
-        s32 target = SHUTTLE_END(entity);
+        s32 target = entity->ext.layerObject.shuttleEnd;
         register s32 current asm("r2") = y; /* FAKEMATCH: current in r2 */
         s32 distance = target - current;
         
@@ -70,7 +69,7 @@ void Object29_UpdateMovement(struct EwramData_EntityData *entity)
         break;
     case 2:
     {
-        s32 target = SHUTTLE_START(entity);
+        s32 target = entity->ext.layerObject.shuttleStart;
         register s32 current asm("r2") = y; /* FAKEMATCH: current in r2 */
         s32 distance = target - current;
         if (distance < 0) distance = -distance;
@@ -109,7 +108,7 @@ void Object29_UpdateMovement(struct EwramData_EntityData *entity)
             else entity->velY.whole = -((distance / 0x10000) << 16) / 16 - 0x1000;
         }
     move:
-        BG1_OBJECT_Y(entity) += entity->velY.whole;
+        entity->ext.layerObject.y += entity->velY.whole;
         break;
     }
     case 3:
@@ -120,6 +119,6 @@ void Object29_UpdateMovement(struct EwramData_EntityData *entity)
         }
         break;
     }
-    entity->posX.whole = BG1_OBJECT_X(entity) - camera->xPos.whole;
-    entity->posY.whole = BG1_OBJECT_Y(entity) - camera->yPos.whole;
+    entity->posX.whole = entity->ext.layerObject.x - camera->xPos.whole;
+    entity->posY.whole = entity->ext.layerObject.y - camera->yPos.whole;
 }

@@ -1,6 +1,5 @@
 /* AluraUne_UpdateAttack: enemy behaviour state machine (14 states). */
 #include "code_08009A0.h"
-#include "alura_une_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -50,7 +49,7 @@ void AluraUne_UpdateAttack(struct EwramData_EntityData *entity)
                 if (i != skip1 && i != skip2)
                     AluraUne_SpawnThorn(entity, -(i * 16 + 0x28), -1, 0x6E);
             }
-            ALURA_UNE_HIT(entity) = 0;
+            entity->ext.aluraUne.hit = 0;
             entity->subState++;
             entity->timer = 0;
             if (entity->animScriptIndex != 4)
@@ -153,7 +152,7 @@ void AluraUne_UpdateAttack(struct EwramData_EntityData *entity)
     case 11:
         if (entity->animDone)
         {
-            ALURA_UNE_HIT(entity) = 0;
+            entity->ext.aluraUne.hit = 0;
             entity->subState++;
             entity->timer = 0;
             Anim_StartIndexed(entity, 5, 0, 0);

@@ -25,7 +25,7 @@ void GrahamAttacker_Update(struct EwramData_EntityData *entity)
     {
         if (owner->unk_518.part8.enemyId != entity->unk_518.part8.enemyId)
         { entity->deleteRequested = 1; return; }
-        if ((GRAHAM_FLAGS(owner) & 0x10) && mode <= 0xDF)
+        if ((owner->ext.graham.flags & 0x10) && mode <= 0xDF)
             STATE(entity, 0xE0);
     }
     {

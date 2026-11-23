@@ -1,6 +1,5 @@
 /* LightningDollPartEffect_Update. */
 #include "code/code_08039340.h"
-#include "doll_entity.h"
 #include "structs/ewram.h"
 
 extern u8 sCommonObjectGfx[];
@@ -31,7 +30,7 @@ void LightningDollPartEffect_Update(struct EwramData_EntityData *entity)
         case 1:
             entity->posX.whole = doll->posX.whole;
             entity->posY.whole = doll->posY.whole - 0x100000;
-            entity->posY.part16.integer += sLightningDollPartOffsets[(u8)DOLL_PART_INDEX(doll)][1];
+            entity->posY.part16.integer += sLightningDollPartOffsets[(u8)doll->ext.dollPart.index][1];
             break;
     }
     Anim_Update(entity);

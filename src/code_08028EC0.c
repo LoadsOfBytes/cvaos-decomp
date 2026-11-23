@@ -1,7 +1,6 @@
 /* SkillArachneUse: matched (bone loop as in the skeleton skill:
    SpawnBone + scatter; one variable holds the linked entity pointer and its flag). */
 #include "code_08009A0.h"
-#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -59,7 +58,7 @@ static inline void SetFrameBox(struct EwramData_EntityData *entity)
     }
 }
 
-#define DEL(e) do { gEwramData->playerState.activeRedSoulEntities[(e)->unk_4FC.part16.unk_4FE[0]] = NULL; gEwramData->playerState.nbrActiveRedSoulEntities--; EntityDelete(e); } while (0)
+#define DEL(e) do { gEwramData->playerState.activeRedSoulEntities[(e)->ext.raw.unk_4FC.part16.unk_4FE[0]] = NULL; gEwramData->playerState.nbrActiveRedSoulEntities--; EntityDelete(e); } while (0)
 static inline struct EwramData_EntityData *SpawnBone(s32 x, s32 y, u8 frame)
 {
     struct EwramData_EntityData *bone = EntityCreateInRange(0x49, 0xCF, (u32 *)SoulBoneFragment_Update);
@@ -84,8 +83,8 @@ static inline struct EwramData_EntityData *SpawnBone(s32 x, s32 y, u8 frame)
 
 void SkillArachneUse(struct EwramData_EntityData *entity)
 {
-    struct SkillShotInfo *info = &sUnk_084F12C8[(u16)RED_SOUL_PARAM(entity)];
-    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
+    struct SkillShotInfo *info = &sUnk_084F12C8[(u16)entity->ext.redSoul.param];
+    struct EwramData_EntityData *parent = entity->ext.redSoul.owner;
     u32 v;
     s32 i;
 
@@ -122,7 +121,7 @@ void SkillArachneUse(struct EwramData_EntityData *entity)
         EntityAccelerateAndMove(entity, 0x80000);
         Anim_Update(entity);
         SetFrameBox(entity);
-        if (RED_SOUL_ANCHOR(entity) == NULL)
+        if (entity->ext.redSoul.anchor == NULL)
             break;
         if (!(info->flags & 0x100))
         {
@@ -156,8 +155,8 @@ void SkillArachneUse(struct EwramData_EntityData *entity)
         entity->state = 3;
         break;
     case 2:
-        v = (u32)RED_SOUL_ANCHOR(entity);
-        if (RED_SOUL_ANCHOR_TARGET_DEAD(((struct EwramData_EntityData *)v)) != 0)
+        v = (u32)entity->ext.redSoul.anchor;
+        if (((struct EwramData_EntityData *)v)->ext.redSoulAnchor.targetDead != 0)
         {
             DEL(entity);
             return;
@@ -170,8 +169,8 @@ void SkillArachneUse(struct EwramData_EntityData *entity)
         DEL(entity);
         return;
     case 3:
-        v = (u32)RED_SOUL_ANCHOR(entity);
-        v = RED_SOUL_ANCHOR_TARGET_DEAD(((struct EwramData_EntityData *)v));
+        v = (u32)entity->ext.redSoul.anchor;
+        v = ((struct EwramData_EntityData *)v)->ext.redSoulAnchor.targetDead;
         if (v != 0)
         {
             DEL(entity);

@@ -1,4 +1,4 @@
-/* Copy the parent's current frame parts into this entity's part list (mirrored when BALORE_OVERLAY_MIRROR is set) and pick layer 0x1D/0x1E. */
+/* Copy the parent's current frame parts into this entity's part list (mirrored when ext.baloreOverlay.mirror is set) and pick layer 0x1D/0x1E. */
 #include "balore_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -12,26 +12,26 @@ void BaloreOverlay_UpdateSprite(struct EwramData_EntityData *entity)
     u8 idx_ = parent->animFrame;
     struct SpriteFrame *frames = sBaloreSpriteSheet.frames;
     struct SpritePart *src = frames[idx_].parts;
-    struct SpriteFrame *frame = (struct SpriteFrame *)BALORE_OVERLAY_FRAME(entity);
-    struct SpritePart *dst = (struct SpritePart *)BALORE_OVERLAY_PARTS(entity);
+    struct SpriteFrame *frame = (struct SpriteFrame *)entity->ext.baloreOverlay.frame;
+    struct SpritePart *dst = (struct SpritePart *)entity->ext.baloreOverlay.parts;
     s32 i;
     
-    if ((s8)BALORE_EYE_ANIM(parent) <= 3)
+    if ((s8)parent->ext.balore.eyeAnim <= 3)
     {
-        if (BALORE_OVERLAY_MIRROR(entity) != 0)
+        if (entity->ext.baloreOverlay.mirror != 0)
             entity->spriteLayer = 0x1E;
         else
             entity->spriteLayer = 0x1D;
     }
     else
     {
-        if (BALORE_OVERLAY_MIRROR(entity) != 0)
+        if (entity->ext.baloreOverlay.mirror != 0)
             entity->spriteLayer = 0x1D;
         else
             entity->spriteLayer = 0x1E;
     }
     count = 0;
-    if (BALORE_OVERLAY_MIRROR(entity) != 0)
+    if (entity->ext.baloreOverlay.mirror != 0)
     {
         for (i = frames->partCount - 1; i >= 0; src++, i--)
         {

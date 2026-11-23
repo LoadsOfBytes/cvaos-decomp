@@ -90,11 +90,11 @@ s32 EventScene03_Update(struct EwramData_EntityData *entity)
             Interaction_End(entity, 0);
             GameFlag_Set(0x20);
             {
-                u16 f = EVENT03_PROGRESS(entity);
+                u16 f = entity->ext.event03.progress;
                 s32 k = 4;
                 z = 0;
                 k |= f;
-                EVENT03_PROGRESS(entity) = k;
+                entity->ext.event03.progress = k;
             }
             Music_StartOverride(0x26);
             goto set10;
@@ -102,12 +102,12 @@ s32 EventScene03_Update(struct EwramData_EntityData *entity)
         ret = EventScene03_RunSequence(entity);
         break;
     case 10:
-        if (Entity_IsInRect(gEwramData->playerState.player, EVENT03_ACTOR1(entity)->posX.part16.integer - 0x20, EVENT03_ACTOR1(entity)->posY.part16.integer - 0x20, 0x40, sz = 0x40))
+        if (Entity_IsInRect(gEwramData->playerState.player, entity->ext.event03.actor1->posX.part16.integer - 0x20, entity->ext.event03.actor1->posY.part16.integer - 0x20, 0x40, sz = 0x40))
         {
             found = 1;
             convo = 0xE;
         }
-        else if (Entity_IsInRect(gEwramData->playerState.player, EVENT03_ACTOR0(entity)->posX.part16.integer - 0x20, EVENT03_ACTOR0(entity)->posY.part16.integer - 0x20, 0x40, sz))
+        else if (Entity_IsInRect(gEwramData->playerState.player, entity->ext.event03.actor0->posX.part16.integer - 0x20, entity->ext.event03.actor0->posY.part16.integer - 0x20, 0x40, sz))
         {
             found = 1;
             convo = 0xD;
@@ -127,7 +127,7 @@ s32 EventScene03_Update(struct EwramData_EntityData *entity)
             player->velY.whole = z;
         gEwramData->gameState.stateFlags |= 1;
         TextWindow_Begin(convo);
-        other = EVENT03_ACTOR1(entity);
+        other = entity->ext.event03.actor1;
         other->flipX = other->posX.whole < gEwramData->playerState.player->posX.whole;
         v = entity->state + 1;
         goto set;

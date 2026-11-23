@@ -1,6 +1,5 @@
 /* Event actor: dialogue selection, fade and optional walk to the player. */
 #include "code_08009A0.h"
-#include "event_scene_entity.h"
 #include "code_08011DD0.h"
 #include "code_08012744.h"
 #include "code_08032444.h"
@@ -44,8 +43,8 @@ s32 EventScene24_Update(struct EwramData_EntityData *entity)
         {
             s32 selected=0;
             if(SoulInventory_GetCompletionTenths()>799)selected=1;
-            if(selected){TextWindow_Begin(38);EVENT24_ANSWER(entity)=stage;}
-            else {TextWindow_Begin(39);EVENT24_ANSWER(entity)=zero;}
+            if(selected){TextWindow_Begin(38);entity->ext.event24.answer=stage;}
+            else {TextWindow_Begin(39);entity->ext.event24.answer=zero;}
             entity->state++;entity->stage=0;entity->subState=0;
         }
         goto holdPlayer;
@@ -76,7 +75,7 @@ holdPlayer:
         {
             TextWindow_Close();GameFlag_Set(45);gEwramData->gameState.subMode=10;
         }
-        else if(EVENT24_ANSWER(entity))
+        else if(entity->ext.event24.answer)
         {
             if((s16)gEwramData->playerState.player->posX.part16.integer-12>(s16)entity->posX.part16.integer)
             {

@@ -1,7 +1,6 @@
 /* Soma_TryCastRedSoulUnused (Soma variant
  * of Julius_HandleSubweaponInput in src/code_08033CAC.c). */
 #include "code_08009A0.h"
-#include "red_soul_entity.h"
 #include "player_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -18,7 +17,7 @@ void Soma_TryCastRedSoulUnused(struct EwramData_EntityData *entity)
     s8 slot;
     struct RedSoulActivationView *info;
 
-    if (PLAYER_ACTION_FLAGS(entity) & 0x540)
+    if (entity->ext.player.actionFlags & 0x540)
         return;
     if (!(gEwramData->inputData.playerHeldInput & 0x40))
         return;
@@ -56,15 +55,15 @@ void Soma_TryCastRedSoulUnused(struct EwramData_EntityData *entity)
     if (!(gEwramData->playerState.actionLockFlags & 0x800) && entity->animScriptIndex != 0x17)
     {
         Anim_StartIndexed(entity, 0x17, 1, 0);
-        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
-        PLAYER_ACTION_FLAGS(entity) &= 0xFFDFFFFF;
+        entity->ext.player.requestedAnim = 0xFF;
+        entity->ext.player.actionFlags &= 0xFFDFFFFF;
     }
-    PLAYER_ACTION_FLAGS(entity) |= 0x100;
+    entity->ext.player.actionFlags |= 0x100;
     entity->state = 2;
-    RED_SOUL_OWNER(child) = entity;
-    RED_SOUL_SLOT(child) = slot;
-    RED_SOUL_ID(child) = gEwramData->playerStatus.equippedRedSoul;
-    RED_SOUL_PARAM(child) = info->param;
+    child->ext.redSoul.owner = entity;
+    child->ext.redSoul.slot = slot;
+    child->ext.redSoul.id = gEwramData->playerStatus.equippedRedSoul;
+    child->ext.redSoul.param = info->param;
     child->roomActive = 1;
-    PLAYER_ACTION_FLAGS(entity) &= ~0x200060;
+    entity->ext.player.actionFlags &= ~0x200060;
 }

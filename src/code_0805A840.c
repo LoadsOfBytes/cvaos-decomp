@@ -51,24 +51,24 @@ s32 Object36_GetCarryVelocity(struct EwramData_EntityData *entity, u16 tx, u16 t
     sx = (s16)tx;
     {
         u16 dist = Distance(ex, ey, sx, sy);
-        s32 radius = (s16)OBJECT36_RADIUS(entity) + 6;
+        s32 radius = (s16)entity->ext.object36.radius + 6;
         dy = ey - sy;
         if (dist >= radius)
             return 0;
     }
-    if (PLAYER_ACTION_FLAGS(gEwramData->playerState.player) & 2)
+    if (gEwramData->playerState.player->ext.player.actionFlags & 2)
         return 0;
     {
         register s32 dx asm("r1") = ex - sx; /* FAKEMATCH: pinned register */
         a = ArcTan2(dx, dy);
     }
-    b = a - OBJECT36_SPIN(entity);
+    b = a - entity->ext.object36.spin;
     r = Sin(a + 0x4000);
-    r *= (s16)OBJECT36_RADIUS(entity);
+    r *= (s16)entity->ext.object36.radius;
     {
         s32 second2 = Sin(b + 0x4000);
         {
-            register s32 rad asm("r0") = (s16)OBJECT36_RADIUS(entity); /* FAKEMATCH: pinned register */
+            register s32 rad asm("r0") = (s16)entity->ext.object36.radius; /* FAKEMATCH: pinned register */
             second2 *= rad;
         }
         return r - second2;

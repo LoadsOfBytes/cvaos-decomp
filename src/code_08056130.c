@@ -14,7 +14,7 @@ extern const struct WarpLightPaletteStep sWarpLightPaletteSteps[12];
 extern u8 sWarpRoomPalette[];
 
 static inline s32 Rem(s32 a, s32 b) { return a % b; }
-#define FRAME(e) (*(s8 *)&(e)->unk_4F4.part8.unk_4F6)
+#define FRAME(e) (*(s8 *)&(e)->ext.raw.unk_4F4.part8.unk_4F6)
 
 /**
  * @brief While the idle player stands on the warp spot, cycle the light

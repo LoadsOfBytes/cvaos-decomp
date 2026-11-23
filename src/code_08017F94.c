@@ -15,7 +15,7 @@ extern struct PlayerBodyBox sSomaAirborneBodyBox[];
 static inline void SetBox(struct EwramData_EntityData *entity, s16 n)
 {
     struct PlayerBodyBox box = sSomaAirborneBodyBox[0];
-    PLAYER_REQUESTED_ANIM(entity) = n;
+    entity->ext.player.requestedAnim = n;
     HitBox_SetBody(entity, &box);
 }
 
@@ -30,16 +30,16 @@ static inline void SetBox(struct EwramData_EntityData *entity, s16 n)
  */
 void Soma_UpdateDiveAttack(struct EwramData_EntityData *entity)
 {
-    if (PLAYER_ACTION_FLAGS(entity) & 0x400000)
+    if (entity->ext.player.actionFlags & 0x400000)
     {
         entity->state = 0;
         return;
     }
     entity->hit.flags &= ~2;
-    if (PLAYER_ACTION_FLAGS(entity) & 0x80000)
+    if (entity->ext.player.actionFlags & 0x80000)
     {
         register s32 zero asm("r4"); /* FAKEMATCH: pinned register */
-        PLAYER_ACTION_FLAGS(entity) = (PLAYER_ACTION_FLAGS(entity) | 8) & ~4;
+        entity->ext.player.actionFlags = (entity->ext.player.actionFlags | 8) & ~4;
         zero = 0;
         SetBox(entity, 0x14);
         PlaySong(0xB9);

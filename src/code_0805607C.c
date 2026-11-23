@@ -1,8 +1,6 @@
 #include "code_08009A0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
-/* Side light: animation frame (WarpRoom_UpdateSideLight reads it as FRAME, s8). */
-#define WARP_ROOM_SIDE_LIGHT_FRAME(e) e->unk_4F4.part8.unk_4F6
 extern u8 sWarpRoomGfx[], sWarpRoomPalette[], sWarpRoomSpriteSheet[];
 extern void WarpRoom_UpdateSideLight(struct EwramData_EntityData *);
 
@@ -33,7 +31,7 @@ s32 WarpRoom_CreateSideLights(struct EwramData_EntityData *owner)
             entity->spriteLayer = 0x15;
             entity->updateFunc = (u32 *)WarpRoom_UpdateSideLight;
             ENTITY_PARENT_INDEX(entity) = ENTITY_INDEX(owner);
-            WARP_ROOM_SIDE_LIGHT_FRAME(entity) = 0;
+            entity->ext.warpRoomSideLight.frame = 0;
             entity->state = 0;
             entity->drawFunc = (u32 *)Sprite_DrawEntity;
         }

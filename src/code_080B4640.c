@@ -54,17 +54,17 @@ s32 Entity_SteerToPoint(struct EwramData_EntityData *entity, const struct Balore
     }
     target = p->targetRadius;
     rate = p->radiusStep;
-    if (BALORE_ARM_LENGTH(entity) != target)
+    if (entity->ext.baloreHand.armLength != target)
     {
-        if (BALORE_ARM_LENGTH(entity) > target)
+        if (entity->ext.baloreHand.armLength > target)
         {
-            if ((BALORE_ARM_LENGTH(entity) -= rate) < target)
-                BALORE_ARM_LENGTH(entity) = target;
+            if ((entity->ext.baloreHand.armLength -= rate) < target)
+                entity->ext.baloreHand.armLength = target;
         }
-        else if (BALORE_ARM_LENGTH(entity) < target)
+        else if (entity->ext.baloreHand.armLength < target)
         {
-            if ((BALORE_ARM_LENGTH(entity) += rate) > target)
-                BALORE_ARM_LENGTH(entity) = target;
+            if ((entity->ext.baloreHand.armLength += rate) > target)
+                entity->ext.baloreHand.armLength = target;
         }
     }
     dx = p->offsetX;
@@ -76,9 +76,9 @@ s32 Entity_SteerToPoint(struct EwramData_EntityData *entity, const struct Balore
         angle = -angle;
     }
     /* separate s16 offsets and u16 results decide the register allocation */
-    x = dx + BALORE_HAND_HOME_X(entity);
-    y = dy + BALORE_HAND_HOME_Y(entity);
-    Angle_TurnTowards((u16 *)&entity->unk_500, p->turnStep, angle);
+    x = dx + entity->ext.baloreHand.homeX;
+    y = dy + entity->ext.baloreHand.homeY;
+    Angle_TurnTowards((u16 *)&entity->ext.baloreHand.armAngle, p->turnStep, angle);
     if (Entity_AimVelocityAtPoint(entity, x << 16, y << 16, SPEED(entity)) != 0)
         return 1;
     EntityMove(entity);

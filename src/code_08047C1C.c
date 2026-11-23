@@ -79,12 +79,12 @@ void MenuCursor_DrawScrollArrows(struct EwramData_EntityData *entity)
 {
     entity->posX.part16.integer = 8;
     entity->animFrame = 0x18;
-    if (MENU_PAGE_BYTES(entity)[2] != 0)
+    if (entity->ext.menuPageList.bytes[2] != 0)
     {
         entity->posY.part16.integer = 0x54;
         Sprite_Draw(entity);
     }
-    if (MENU_PAGE_BYTES(entity)[0] > MENU_PAGE_BYTES(entity)[2] + 8)
+    if (entity->ext.menuPageList.bytes[0] > entity->ext.menuPageList.bytes[2] + 8)
     {
         entity->posY.part16.integer = 0x6C;
         entity->flipY = 1;
@@ -100,7 +100,7 @@ void MenuCursor_DrawScrollArrows(struct EwramData_EntityData *entity)
  */
 void ItemMenu_DrawCursor(struct PlayerStatus *menu, struct EwramData_EntityData *entity)
 {
-    s32 index = MENU_PAGE_BYTES(entity)[1] - MENU_PAGE_BYTES(entity)[2];
+    s32 index = entity->ext.menuPageList.bytes[1] - entity->ext.menuPageList.bytes[2];
     u32 t = gEwramData->frameCounter >> 1;
     s32 jitter;
     s32 flags;
@@ -150,13 +150,13 @@ void ButtonConfigMenu_DrawCursor(struct PlayerStatus *menu, struct EwramData_Ent
         jitter = (t & 7) - 3;
 
     entity->posX.part16.integer = jitter + 0x18;
-    entity->posY.part16.integer = MENU_PAGE_BYTES(entity)[1] * 16 + 0x24;
+    entity->posY.part16.integer = entity->ext.menuPageList.bytes[1] * 16 + 0x24;
     Sprite_Draw(entity);
     entity->posX.part16.integer = 0xAC;
     for (i = 3; i >= 0; i--)
     {
         entity->posY.part16.integer = 0x24 + i * 0x10;
-        entity->animFrame = sButtonConfigCursorFrames[MENU_PAGE_BUTTONS(entity)[i]];
+        entity->animFrame = sButtonConfigCursorFrames[entity->ext.menu.pageButtons[i]];
         Sprite_Draw(entity);
     }
 }
@@ -180,14 +180,14 @@ void BestiaryMenu_DrawCursor(struct PlayerStatus *menu, struct EwramData_EntityD
                 jitter = 3 - (t & 7);
             else
                 jitter = (t & 7) - 3;
-            entity->posX.part16.integer = (MENU_PAGE_TOP(entity) & 1) * 128 + 8 + jitter;
-            entity->posY.part16.integer = MENU_PAGE_BYTES(entity)[1] * 16 + 0x34;
+            entity->posX.part16.integer = (entity->ext.menuPage.top & 1) * 128 + 8 + jitter;
+            entity->posY.part16.integer = entity->ext.menuPageList.bytes[1] * 16 + 0x34;
             Sprite_Draw(entity);
             break;
         }
         case 2:
         {
-            s32 index = MENU_PAGE_BYTES(entity)[1] - MENU_PAGE_BYTES(entity)[2];
+            s32 index = entity->ext.menuPageList.bytes[1] - entity->ext.menuPageList.bytes[2];
             u32 t = gEwramData->frameCounter >> 1;
             s32 jitter;
 
@@ -227,7 +227,7 @@ void MenuCursor_LoadGraphics(struct EwramData_EntityData *entity)
             set = sMenuCursorGfx;
             break;
     }
-    MENU_GFX_SLOT(entity) = ObjGfx_LoadResource(set, 0);
+    entity->ext.menu.gfxSlot = ObjGfx_LoadResource(set, 0);
     ObjPalette_LoadRange(sMenuCursorPalette, 2, 1, 10);
     ObjPalette_LoadRange(sMenuCursorPalette, 3, 1, 11);
     ObjPalette_LoadRange(sMenuCursorPalette, 4, 1, 12);
@@ -245,7 +245,7 @@ void Shop_DrawListCursor(struct EwramData_EntityData *entity)
     if (entity->stage == 0)
     {
         entity->unk_518.part16.hp = 12;
-        entity->unk_518.part16.unk_51A = MENU_PAGE_BYTES(entity)[1] * 8 + 0x5C;
+        entity->unk_518.part16.unk_51A = entity->ext.menuPageList.bytes[1] * 8 + 0x5C;
         Cursor_Draw();
     }
     else
@@ -256,7 +256,7 @@ void Shop_DrawListCursor(struct EwramData_EntityData *entity)
         if (gEwramData->frameCounter & 2)
         {
             entity->unk_518.part16.hp = 0x10;
-            entity->unk_518.part16.unk_51A = MENU_PAGE_BYTES(entity)[1] * 8 + 0x5C;
+            entity->unk_518.part16.unk_51A = entity->ext.menuPageList.bytes[1] * 8 + 0x5C;
             Cursor_DrawWithOptionalBob(0);
         }
     }

@@ -146,7 +146,7 @@ void Belmont_UpdateJumpSlide(struct EwramData_EntityData *entity)
             }
             if(--entity->timer==255)
             {
-                *damage=BELMONT_ATTACK_OFF(entity);
+                *damage=entity->ext.belmont.attackOff;
                 entity->state=2;
                 entity->stage=0;
                 entity->subState=0;

@@ -1,6 +1,5 @@
 /* Kicker Skeleton leap, kick, landing and recovery. */
 #include "code_08009A0.h"
-#include "kicker_skeleton_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -37,13 +36,13 @@ void KickerSkeleton_UpdateKick(struct EwramData_EntityData *entity)
     case 2:
         if (!(entity->animFlags & 4)) break;
         Anim_StartIndexed(entity, 4, 0, 0);
-        KICKER_SKELETON_SPEED(entity) = 0x8000;
+        entity->ext.kickerSkeleton.speed = 0x8000;
         entity->velY.whole = -0x30000;
         entity->accelY.whole = 0x1000;
         entity->subState = 3;
         break;
     case 3:
-        flags = Entity_Walk(entity, KICKER_SKELETON_SPEED(entity), sKickerSkeletonWalkProfile, 0);
+        flags = Entity_Walk(entity, entity->ext.kickerSkeleton.speed, sKickerSkeletonWalkProfile, 0);
         if (flags & 4) entity->subState = 7;
         else if (entity->velY.whole >= -0x18000)
         {
@@ -53,40 +52,40 @@ void KickerSkeleton_UpdateKick(struct EwramData_EntityData *entity)
         }
         break;
     case 4:
-        Entity_Walk(entity, KICKER_SKELETON_SPEED(entity), sKickerSkeletonWalkProfile, 0);
+        Entity_Walk(entity, entity->ext.kickerSkeleton.speed, sKickerSkeletonWalkProfile, 0);
         /* The ROM tests the frame and its adjacent byte as one halfword. */
         if (*(u16 *)&entity->animStep != 5) break;
         Anim_StartIndexed(entity, 5, 0, 0);
         Afterimage_Create(entity, 0x30, 0xC, 0x11);
         Afterimage_Create(entity, 0x30, 6, 0x10);
-        KICKER_SKELETON_SPEED(entity) = 0x28000;
+        entity->ext.kickerSkeleton.speed = 0x28000;
         entity->velY.whole = 0x30000;
-        KICKER_SKELETON_FLAGS(entity) |= 1;
+        entity->ext.kickerSkeleton.flags |= 1;
         PlaySong(0x87);
         entity->subState = 5;
         break;
     case 5:
-        flags = Entity_Walk(entity, KICKER_SKELETON_SPEED(entity), sKickerSkeletonWalkProfile, 0);
+        flags = Entity_Walk(entity, entity->ext.kickerSkeleton.speed, sKickerSkeletonWalkProfile, 0);
         if (flags & 8)
         {
             Anim_StartIndexed(entity, 3, 0, 0);
-            KICKER_SKELETON_FLAGS(entity) &= ~1;
+            entity->ext.kickerSkeleton.flags &= ~1;
             PlaySong(0x127);
             entity->subState = 6;
         }
         break;
     case 6:
-        flags = Entity_Walk(entity, KICKER_SKELETON_SPEED(entity), sKickerSkeletonWalkProfile, 0);
+        flags = Entity_Walk(entity, entity->ext.kickerSkeleton.speed, sKickerSkeletonWalkProfile, 0);
         {
-            s32 speed = KICKER_SKELETON_SPEED(entity);
+            s32 speed = entity->ext.kickerSkeleton.speed;
             s32 value = 31;
             value *= speed;
-            KICKER_SKELETON_SPEED(entity) = __divsi3(value, 32);
+            entity->ext.kickerSkeleton.speed = __divsi3(value, 32);
         }
-        if ((s32)KICKER_SKELETON_SPEED(entity) <= 0x7FFF) goto finished;
+        if ((s32)entity->ext.kickerSkeleton.speed <= 0x7FFF) goto finished;
         if (!(flags & 8)) break;
-        if (flags & 3) KICKER_SKELETON_SPEED(entity) = 0;
-        if ((s32)KICKER_SKELETON_SPEED(entity) <= 0xBFFF) break;
+        if (flags & 3) entity->ext.kickerSkeleton.speed = 0;
+        if ((s32)entity->ext.kickerSkeleton.speed <= 0xBFFF) break;
         timer = entity->timer + 1;
         entity->timer = timer;
         if (timer & 3) break;
@@ -100,7 +99,7 @@ void KickerSkeleton_UpdateKick(struct EwramData_EntityData *entity)
         particle->accelY.whole = -(RandomNumberGenerator() & 0x3FF);
         break;
     case 7:
-        flags = Entity_Walk(entity, KICKER_SKELETON_SPEED(entity), sKickerSkeletonWalkProfile, 0);
+        flags = Entity_Walk(entity, entity->ext.kickerSkeleton.speed, sKickerSkeletonWalkProfile, 0);
         if (flags & 8)
         {
 finished:

@@ -3,7 +3,6 @@
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
-#include "worm_entity.h"
 
 extern void Worm_Init(struct EwramData_EntityData *root, s32 variant);
 extern void Worm_Update(struct EwramData_EntityData *entity);
@@ -76,7 +75,7 @@ void Worm_Draw(struct EwramData_EntityData *entity)
         if (entity->updateFunc == NULL)
             break;
         Sprite_Draw(entity);
-        entity = &(*ewramRef)->entityData[WORM_NEXT_INDEX(entity)];
+        entity = &(*ewramRef)->entityData[entity->ext.worm.nextIndex];
     } while (++i <= 4);
 }
 

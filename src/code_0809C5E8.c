@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "legion_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "code/code_080211F0.h"
@@ -32,12 +31,12 @@ void EnemyLegionUpdate(struct EwramData_EntityData *entity)
     case 1: Legion_UpdateBounce(entity); break;
     case 2:
         Legion_UpdateDeath(entity);
-        if (entity->deleteRequested && LEGION_DATA_PTR(entity) != NULL)
-            Heap_Free(LEGION_DATA_PTR(entity));
+        if (entity->deleteRequested && entity->ext.legion.data.ptr != NULL)
+            Heap_Free(entity->ext.legion.data.ptr);
         break;
     case 3: Legion_UpdatePreview(entity); Anim_Update(entity); return;
     }
     Anim_Update(entity);
-    if (entity->state != 2 && !(LEGION_FLAGS(entity) & 1))
+    if (entity->state != 2 && !(entity->ext.legion.flags & 1))
         Hit_CheckWithPlayer(box, entity);
 }

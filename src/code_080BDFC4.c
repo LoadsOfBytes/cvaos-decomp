@@ -4,15 +4,6 @@
 #include "code_080D73B8.h"
 #include "structs/ewram.h"
 
-/*
- * Death reward effect: sprite rotation, affine scale (also its orbit radius,
- * grows to 0x10000 and shrinks back) and a frame counter whose low bit
- * alternates the effect. Token-identical expansion.
- */
-#define REWARD_ROTATION(e) e->unk_4FC.part16.unk_4FC
-#define REWARD_SCALE(e) e->unk_500.whole
-#define REWARD_COUNTER(e) e->unk_4F8.part16.unk_4FA
-
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 extern void SharedObjPalette_Release(void *palette, u8 variant);
 extern void SoulPickup_SpawnFromEnemyDefinition(s32, s32, s32, s32);
@@ -57,9 +48,9 @@ void DeathRewardEffect_Update(struct EwramData_EntityData *entity)
         PlaySong(0x120);
         entity->state = 1;
     case 1:
-        if (REWARD_SCALE(entity) <= 0xFFFF)
+        if (entity->ext.deathReward.scale <= 0xFFFF)
         {
-            REWARD_SCALE(entity) += 0x400;
+            entity->ext.deathReward.scale += 0x400;
             break;
         }
         entity->timer = 0x60;
@@ -75,9 +66,9 @@ void DeathRewardEffect_Update(struct EwramData_EntityData *entity)
         entity->state = 3;
         break;
     case 3:
-        if (REWARD_SCALE(entity) > 0)
+        if (entity->ext.deathReward.scale > 0)
         {
-            REWARD_SCALE(entity) -= 0x400;
+            entity->ext.deathReward.scale -= 0x400;
             break;
         }
         ObjAffine_Free(entity->affineIndex);
@@ -85,18 +76,18 @@ void DeathRewardEffect_Update(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    if (++REWARD_COUNTER(entity) & 1)
+    if (++entity->ext.deathReward.counter & 1)
     {
         u16 angle = RandomNumberGenerator();
         s32 s, dx, dy;
         struct EwramData_EntityData *debris;
         s = Sin((s16)angle + 0x4000);
-        dx = FixedToInt(REWARD_SCALE(entity) << 5) * s;
+        dx = FixedToInt(entity->ext.deathReward.scale << 5) * s;
         s = Sin((s16)angle);
-        if ((REWARD_SCALE(entity) << 5) < 0)
-            dy = -(-(REWARD_SCALE(entity) << 5) >> 16) * s;
+        if ((entity->ext.deathReward.scale << 5) < 0)
+            dy = -(-(entity->ext.deathReward.scale << 5) >> 16) * s;
         else
-            dy = ((REWARD_SCALE(entity) << 5) >> 16) * s;
+            dy = ((entity->ext.deathReward.scale << 5) >> 16) * s;
         debris = Effect_SpawnShared(entity->posX.whole + dx, entity->posY.whole + dy, 0x10, 6);
         if (debris != NULL)
         {
@@ -108,7 +99,7 @@ void DeathRewardEffect_Update(struct EwramData_EntityData *entity)
             debris->accelY.whole = -dy / 256;
         }
     }
-    REWARD_ROTATION(entity) += 0x1A0;
-    ObjAffine_Set(REWARD_ROTATION(entity), REWARD_SCALE(entity), REWARD_SCALE(entity),
+    entity->ext.deathReward.rotation += 0x1A0;
+    ObjAffine_Set(entity->ext.deathReward.rotation, entity->ext.deathReward.scale, entity->ext.deathReward.scale,
                  entity->flipX, 0, entity->affineIndex);
 }

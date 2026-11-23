@@ -1,6 +1,5 @@
 /* Zombie debris and temporary effects. */
 #include "code_08009A0.h"
-#include "zombie_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
@@ -20,7 +19,7 @@ void Zombie_SpawnPiece(struct EwramData_EntityData *parent, s32 x, s32 y)
         s32 graphics;
         part->posX.whole = x;
         part->posY.whole = y;
-        ZOMBIE_PIECE_FLOOR_Y(part) = parent->posY.whole;
+        part->ext.zombiePiece.floorY = parent->posY.whole;
         part->flipX = parent->flipX;
         part->spriteLayer = parent->spriteLayer;
         graphics = ObjGfx_Find(sZombieGfx);

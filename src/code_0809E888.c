@@ -1,6 +1,5 @@
 /* LegionCorePart_Update: owner-attached effect - follow the owner, animate through a table of sprite parts and spawn particles on timer ticks. */
 #include "code_08009A0.h"
-#include "legion_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -12,14 +11,14 @@ extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
 extern s32 Entity_GetVisibilityPattern(s32);
 extern void Legion_SpawnFragment(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx, s32 vy, s32 graphics);
 
-#define FRAME LEGION_PART_KIND(entity)
-#define TICK (LEGION_PART_TICK(entity) & 0x1F)
-#define FLAGS LEGION_BROKEN_CORES(owner)
-#define SPAWN(vx, vy) Legion_SpawnFragment(entity, x, y, vx, vy, LEGION_PART_TILES(entity))
+#define FRAME entity->ext.legionPart.kind
+#define TICK (entity->ext.legionPart.tick & 0x1F)
+#define FLAGS owner->ext.legion.brokenCores
+#define SPAWN(vx, vy) Legion_SpawnFragment(entity, x, y, vx, vy, entity->ext.legionPart.tiles)
 
 void LegionCorePart_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = LEGION_PART_OWNER(entity);
+    struct EwramData_EntityData *owner = entity->ext.legionPart.owner;
     u8 buffer[0x10];
     u32 b0 = 0x1934FFE4, b1 = 0x1524ECF5;
     u32 b4 = 0x1932E8E6, b5 = 0x1521FFF7;
@@ -32,8 +31,8 @@ void LegionCorePart_Update(struct EwramData_EntityData *entity)
 
     u8 idx;
 
-    counter = LEGION_PART_TICK(entity) + 1;
-    LEGION_PART_TICK(entity) = counter;
+    counter = entity->ext.legionPart.tick + 1;
+    entity->ext.legionPart.tick = counter;
 
     if (entity->state <= 9)
     {
@@ -43,7 +42,7 @@ void LegionCorePart_Update(struct EwramData_EntityData *entity)
         {
             if (entity->state == 0)
             {
-                if ((u8)LEGION_INTRO_STEP(owner) == 7)
+                if ((u8)owner->ext.legion.introStep == 7)
                 {
                     entity->state++;
                     entity->subState = 0;
@@ -123,10 +122,10 @@ void LegionCorePart_Update(struct EwramData_EntityData *entity)
                         entity->subState = 0;
                         FRAME = 0x14;
                         entity->state = 0;
-                        LEGION_INTRO_ARRIVED(owner)++;
+                        owner->ext.legion.introArrived++;
                         entity->animFrame = 3;
-                        entity->posX.whole = owner->posX.whole + LEGION_PART_OFFSET_X(entity);
-                        entity->posY.whole = owner->posY.whole + LEGION_PART_OFFSET_Y(entity);
+                        entity->posX.whole = owner->posX.whole + entity->ext.legionPart.offsetX;
+                        entity->posY.whole = owner->posY.whole + entity->ext.legionPart.offsetY;
                         goto draw;
                     }
                     break;
@@ -156,8 +155,8 @@ void LegionCorePart_Update(struct EwramData_EntityData *entity)
                 HitBox_SetAttack(entity, tbl[idx][0]);
             }
         }
-        entity->posX.whole = owner->posX.whole + LEGION_PART_OFFSET_X(entity);
-        entity->posY.whole = owner->posY.whole + LEGION_PART_OFFSET_Y(entity);
+        entity->posX.whole = owner->posX.whole + entity->ext.legionPart.offsetX;
+        entity->posY.whole = owner->posY.whole + entity->ext.legionPart.offsetY;
         if (!(*((u8 *)gEwramData + 0x8E) & 0x40))
             Hit_CheckWithPlayer(buffer, entity);
         Enemy_UpdateHitFlash(entity);
@@ -172,7 +171,7 @@ void LegionCorePart_Update(struct EwramData_EntityData *entity)
         }
         if (FRAME == 0)
         {
-            if ((FLAGS & 4) && (LEGION_PART_TICK(entity) & 0x1F) < 1)
+            if ((FLAGS & 4) && (entity->ext.legionPart.tick & 0x1F) < 1)
             {
                 x = RandomNumberGenerator() % 0x300000 + ({ s32 t = entity->posX.whole - 0x180000; t; });
                 y = entity->posY.whole + 0x180000;
@@ -270,8 +269,8 @@ void LegionCorePart_Update(struct EwramData_EntityData *entity)
             entity->velX.whole = 0x4000;
             entity->velY.whole = 0;
         }
-        entity->posX.whole = owner->posX.whole + LEGION_PART_OFFSET_X(entity);
-        entity->posY.whole = owner->posY.whole + LEGION_PART_OFFSET_Y(entity);
+        entity->posX.whole = owner->posX.whole + entity->ext.legionPart.offsetX;
+        entity->posY.whole = owner->posY.whole + entity->ext.legionPart.offsetY;
         entity->scrollWithBg = 1;
         entity->accelX.whole = 0;
         entity->accelY.whole = 0x1800;

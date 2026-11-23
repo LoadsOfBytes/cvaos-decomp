@@ -34,7 +34,7 @@ void Object22_SpawnFallingPart(struct EwramData_EntityData *owner)
         child->hit.flags &= ~2;
         Hit_Enable(child, 8, Object22FallingPart_OnPlayerContact, 0);
         child->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
-        OBJECT22_PART_OWNER(child) = owner;
+        child->ext.object22Part.owner = owner;
         child->scrollWithBg = 1;
         child->drawFunc = (u32 *)Sprite_DrawEntity;
     }

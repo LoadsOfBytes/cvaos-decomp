@@ -45,9 +45,9 @@ void GrahamSidePart_Update(struct EwramData_EntityData *entity)
             return;
         }
         
-        flags = (u16)GRAHAM_FLAGS(owner);
+        flags = (u16)owner->ext.graham.flags;
         zero = 0;
-        GRAHAM_FLAGS(entity) = flags;
+        entity->ext.graham.flags = flags;
         if ((flags & m) && mode <= 0xDF)
         {
             entity->state = 0xE0;
@@ -81,14 +81,14 @@ void GrahamSidePart_Update(struct EwramData_EntityData *entity)
                 goto wait;
             case 1:
             {
-                if (GRAHAM_PART_SIDE(entity))
-                    entity->timer = waitA.t[GRAHAM_PART_STEP(entity)];
+                if (entity->ext.grahamPart.side)
+                    entity->timer = waitA.t[entity->ext.grahamPart.step];
                 else
-                    entity->timer = waitB.t[GRAHAM_PART_STEP(entity)];
-                if (++GRAHAM_PART_STEP(entity) != 1 && GRAHAM_PART_STEP(entity) > 7)
+                    entity->timer = waitB.t[entity->ext.grahamPart.step];
+                if (++entity->ext.grahamPart.step != 1 && entity->ext.grahamPart.step > 7)
                 {
-                    GRAHAM_PART_STEP(entity) = 0;
-                    GRAHAM_PART_SIDE(entity) = 1 - GRAHAM_PART_SIDE(entity);
+                    entity->ext.grahamPart.step = 0;
+                    entity->ext.grahamPart.side = 1 - entity->ext.grahamPart.side;
                 }
                 entity->subState++;
                 entity->stage = 0;
@@ -123,14 +123,14 @@ void GrahamSidePart_Update(struct EwramData_EntityData *entity)
                 entity->velY.whole = 0x10000;
                 entity->stage = 0;
                 entity->subState++;
-                GRAHAM_PART_FLASH(entity) = 16;
+                entity->ext.grahamPart.flash = 16;
             case 1:
                 entity->timer = rise.t[entity->stage] - 1;
                 entity->subState++;
             case 2:
-                if (GRAHAM_PART_FLASH(entity))
+                if (entity->ext.grahamPart.flash)
                 {
-                    if ((s16)(GRAHAM_PART_FLASH(entity) % 3) == 0)
+                    if ((s16)(entity->ext.grahamPart.flash % 3) == 0)
                     {
                         dx = -0x380000;
                         if (!entity->flipX)
@@ -145,14 +145,14 @@ void GrahamSidePart_Update(struct EwramData_EntityData *entity)
                         y += r & 0x7FFFF;
                         Effect_CreateFromTable(x, y, 0, -0x2000, 4, 9);
                     }
-                    GRAHAM_PART_FLASH(entity)--;
+                    entity->ext.grahamPart.flash--;
                 }
                 if (--entity->timer == 0xFF)
                 {
                     entity->posY.whole += entity->velY.whole;
                     if ((u8)++entity->stage == m)
                     {
-                        GRAHAM_PART_FLASH(entity) = 0;
+                        entity->ext.grahamPart.flash = 0;
                         if (entity->animScriptIndex)
                             Anim_StartIndexed(entity, 0, 0, 1);
                         entity->state = 1;
@@ -170,7 +170,7 @@ void GrahamSidePart_Update(struct EwramData_EntityData *entity)
             }
             break;
         case 0xE0:
-            if (GRAHAM_FLAGS(entity) & 0x20)
+            if (entity->ext.graham.flags & 0x20)
                 entity->objMode = 1;
             return;
         }

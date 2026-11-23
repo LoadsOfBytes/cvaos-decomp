@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "succubus_entity.h"
 #include "code/code_08039340.h"
 extern u8 Succubus_LoadGraphics(struct EwramData_EntityData *);
 extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
@@ -38,15 +37,15 @@ void EnemySuccubusCreate(struct EwramData_EntityData *entity)
     if (entity->unk_514.part16.spawnParam0 == 0)
     {
         entity->state = 0;
-        SUCCUBUS_INTRO(entity) = 1;
+        entity->ext.succubus.intro = 1;
         entity->subState = 0;
     }
     else
     {
         Anim_StartIndexed(entity, 1, 0, 1);
         entity->subState = 2;
-        SUCCUBUS_INTRO(entity) = 0;
-        SUCCUBUS_HOLDING(entity) = 0;
+        entity->ext.succubus.intro = 0;
+        entity->ext.succubus.holding = 0;
     }
     entity->velY.whole = 0x10000;
     entity->accelY.whole = 0x1800;

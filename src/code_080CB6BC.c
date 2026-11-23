@@ -1,7 +1,6 @@
 /* Needles 0x080CB6BC..0x080CB94B (Needles_UpdateBestiaryPreview / Needles_OnHit are copies of the Blue Crow
  * BlueCrow_UpdateBestiaryPreview / BlueCrow_OnHit). */
 #include "code_08009A0.h"
-#include "needles_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "code_080D73B8.h"
@@ -49,7 +48,7 @@ void Needles_SpawnDeathParts(struct EwramData_EntityData *entity)
         if (child == NULL)
             continue;
         needle = sNeedlesDeathParts[i];
-        NEEDLES_DEATH_PARTS(entity)++;
+        entity->ext.needlesDeath.parts++;
         ENTITY_PARENT_INDEX(child) = ENTITY_INDEX(entity);
         child->spriteLayer = entity->spriteLayer;
         child->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
@@ -85,7 +84,7 @@ void NeedlesPart_Update(struct EwramData_EntityData *entity)
     if (!Entity_IsInRect(entity, -0x80, -0x40, 0x1F0, 0x120) || (u8)--entity->timer == 0xFF
         || entity->posY.part16.integer > 0xAA)
     {
-        NEEDLES_DEATH_PARTS(parent)--;
+        parent->ext.needlesDeath.parts--;
         entity->deleteRequested = 1;
     }
     else
@@ -134,7 +133,7 @@ void Needles_UpdateDeath(struct EwramData_EntityData *entity)
             Needles_SpawnDeathParts(entity);
             entity->subState++;
         case 1:
-            if (NEEDLES_DEATH_PARTS(entity) == 0)
+            if (entity->ext.needlesDeath.parts == 0)
                 entity->deleteRequested = 1;
             break;
     }

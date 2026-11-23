@@ -26,7 +26,7 @@ void EnemyBelmontCreate(struct EwramData_EntityData *entity)
         if(!gEwramData->gameState.bestiaryPreview)
         {
             u16 completed;
-            BELMONT_FLAGS(entity)|=0x10;
+            entity->ext.belmont.flags|=0x10;
             completed=gEwramData->gameState.bossEventFlags & 4;
             if(completed)
             {
@@ -70,8 +70,8 @@ void EnemyBelmontCreate(struct EwramData_EntityData *entity)
     entity->state=3;
     entity->stage=display;
     entity->subState=display;
-    BELMONT_ATTACK(entity)=entity->attack;
-    BELMONT_ATTACK_OFF(entity)=display;
+    entity->ext.belmont.attack=entity->attack;
+    entity->ext.belmont.attackOff=display;
     entity->attack=display;
     Entity_SnapToGround(entity);
     Entity_EnableBoxes(entity,Enemy_OnContact,(s32)Belmont_OnHit);

@@ -1,12 +1,11 @@
 ﻿/* Alastor movement/rotation attack driven by timed segments. */
 #include "code_080D73B8.h"
-#include "alastor_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern s16 sAlastorAttackSegments[][4];
-#define INDEX(e) (ALASTOR_PATTERN_STEP((e)))
-#define ANGLE(e) (ALASTOR_ANGLE((e)))
-#define STEP(e) (ALASTOR_TURN((e)))
+#define INDEX(e) (e->ext.alastorPattern.step)
+#define ANGLE(e) (e->ext.alastor.angle)
+#define STEP(e) (e->ext.alastor.turn)
 /**
  * @brief Attack state (4): execute table-defined position, rotation and
  * duration segments, stop at the sentinel and recover to approach.
@@ -29,7 +28,7 @@ void Alastor_UpdatePatternAttack(struct EwramData_EntityData *entity)
             s32 facing;
             timer=(entity->timer=segment[3]);
             x=segment[0];
-            facing=(s16)(ALASTOR_FLAGS(entity) & 2);
+            facing=(s16)(entity->ext.alastor.flags & 2);
             if(facing)
                 x=-x;
             x<<=16;

@@ -1,6 +1,5 @@
 /* Entity helpers 0x0809FE4C..0x0809FF0F. */
 #include "code_08009A0.h"
-#include "legion_entity.h"
 #include "code/code_080211F0.h"
 #include "structs/ewram.h"
 
@@ -36,14 +35,14 @@ void LegionDestructibleFragment_DamagePlayerOnContact(struct EwramData_EntityDat
  */
 void LegionCoreDetail_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *core = LEGION_PART_OWNER(entity);
+    struct EwramData_EntityData *core = entity->ext.legionPart.owner;
 
     if (core != NULL && core->updateFunc != NULL
         && core->unk_518.part8.enemyId == entity->unk_518.part8.enemyId)
     {
         entity->hidden = core->hidden;
-        entity->posX.whole = core->posX.whole + LEGION_PART_OFFSET_X(entity);
-        entity->posY.whole = core->posY.whole + LEGION_PART_OFFSET_Y(entity);
+        entity->posX.whole = core->posX.whole + entity->ext.legionPart.offsetX;
+        entity->posY.whole = core->posY.whole + entity->ext.legionPart.offsetY;
     }
     else
     {

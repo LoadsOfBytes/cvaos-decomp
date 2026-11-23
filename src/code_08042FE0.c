@@ -5,8 +5,6 @@
  * (8 / 16 / 32), its address and the last shown value. Token-identical
  * expansion.
  */
-#define NUMBER_WATCH_BITS(e) e->unk_508.part8.unk_509
-#define NUMBER_WATCH_ADDRESS(e) e->unk_50C.whole
 #define NUMBER_WATCH_LAST(e) e->unk_510.whole
 extern void NumberIndicator_Format(struct EwramData_EntityData *, s32);
 
@@ -16,11 +14,11 @@ extern void NumberIndicator_Format(struct EwramData_EntityData *, s32);
 void NumberWatch_Update(struct EwramData_EntityData *entity)
 {
     s32 value;
-    switch (NUMBER_WATCH_BITS(entity))
+    switch (entity->ext.numberIndicator.watchBits)
     {
-    case 8: value = *(s8 *)NUMBER_WATCH_ADDRESS(entity); break;
-    case 16: value = *(s16 *)NUMBER_WATCH_ADDRESS(entity); break;
-    default: value = *(s32 *)NUMBER_WATCH_ADDRESS(entity); break;
+    case 8: value = *(s8 *)entity->ext.numberIndicator.watchAddress; break;
+    case 16: value = *(s16 *)entity->ext.numberIndicator.watchAddress; break;
+    default: value = *(s32 *)entity->ext.numberIndicator.watchAddress; break;
     }
     if (value != NUMBER_WATCH_LAST(entity))
     {

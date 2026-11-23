@@ -22,9 +22,9 @@ void EventScene30CenterEffect_Update(struct EwramData_EntityData *entity)
     switch(stage)
     {
     case 0:
-        if(EVENT30_TIMER(owner)==263)
+        if(owner->ext.event30.timer==263)
             EventScene30_SpawnSparkBurst(entity->posX.part16.integer,(s16)(entity->posY.part16.integer+16));
-        if(EVENT30_TIMER(owner)==255)
+        if(owner->ext.event30.timer==255)
         {
             entity->timer=stage;
             entity->state+=2;
@@ -36,24 +36,24 @@ void EventScene30CenterEffect_Update(struct EwramData_EntityData *entity)
             break;
         }
         if(entity->timer<30)entity->timer++;
-        entity->posX.part16.integer=(*(s8 *)&EVENT30_JITTER_X(owner)-24)+EVENT30_CENTER_X(owner);
-        entity->posY.part16.integer=(EVENT30_CENTER_Y(owner)-72)+(s8)EVENT30_JITTER_Y(owner)+(u8)(entity->timer/10);
+        entity->posX.part16.integer=(*(s8 *)&owner->ext.event30.jitterX-24)+owner->ext.event30.centerX;
+        entity->posY.part16.integer=(owner->ext.event30.centerY-72)+(s8)EVENT30_JITTER_Y(owner)+(u8)(entity->timer/10);
         break;
     case 1:
         if(entity->timer<20)entity->timer++;
-        if(EVENT30_TIMER(owner)==160)
+        if(owner->ext.event30.timer==160)
         {entity->timer=0;entity->state++;break;}
-        { s32 dx=*(s8 *)&EVENT30_JITTER_X(owner); dx-=24; entity->posX.part16.integer=dx+EVENT30_CENTER_X(owner)+offsets[entity->timer]; }
-        entity->posY.part16.integer=(EVENT30_CENTER_Y(owner)-72)+(s8)EVENT30_JITTER_Y(owner)+(u8)(entity->timer/10);
+        { s32 dx=*(s8 *)&owner->ext.event30.jitterX; dx-=24; entity->posX.part16.integer=dx+owner->ext.event30.centerX+offsets[entity->timer]; }
+        entity->posY.part16.integer=(owner->ext.event30.centerY-72)+(s8)EVENT30_JITTER_Y(owner)+(u8)(entity->timer/10);
         break;
     case 2:
         entity->posX.whole+=entity->velX.whole;
         entity->posY.whole+=entity->velY.whole;
         entity->velX.whole+=entity->accelX.whole;
         entity->velY.whole+=entity->accelY.whole;
-        { u32 spin=0xFFF0; EVENT30_EFFECT_SPIN(entity)=spin-1;
+        { u32 spin=0xFFF0; entity->ext.event30Effect.spin=spin-1;
         EVENT30_EFFECT_ANGLE(entity)+=(s16)spin; }
-        if(EVENT30_TIMER(owner)==0)
+        if(owner->ext.event30.timer==0)
         {entity->timer=0;entity->state++;}
         else entity->timer--;
         break;
@@ -76,17 +76,17 @@ void EventScene30CenterEffect_Update(struct EwramData_EntityData *entity)
             entity->accelX.whole=0x2000;
             entity->accelY.whole=-0x200;
         }
-        EVENT30_EFFECT_ANGLE(entity)+=EVENT30_EFFECT_SPIN(entity);
-        if(EVENT30_EFFECT_SPIN(entity)> -576)EVENT30_EFFECT_SPIN(entity)--;
+        EVENT30_EFFECT_ANGLE(entity)+=entity->ext.event30Effect.spin;
+        if(entity->ext.event30Effect.spin> -576)entity->ext.event30Effect.spin--;
         if((s16)entity->posX.part16.integer>271)
         {ObjAffine_Free(entity->affineIndex);entity->deleteRequested=1;}
         break;
     }
-    radius=(u16)EVENT30_SCALE(owner);
+    radius=(u16)owner->ext.event30.scale;
     scale=0x100;
     scale-=radius;
     scale<<=8;
     scale+=0x10000;
-    EVENT30_EFFECT_SCALE(entity)=scale;
+    entity->ext.event30Effect.scale=scale;
     ObjAffine_Set(EVENT30_EFFECT_ANGLE(entity),scale,scale,0,0,entity->affineIndex);
 }

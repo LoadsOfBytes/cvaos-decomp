@@ -17,12 +17,12 @@ void Julius_UpdateKnockbackFromImpulse(struct EwramData_EntityData *entity)
     u16 x;
     s16 y;
 
-    PLAYER_ACTION_FLAGS(entity) &= 0xEFFFFE9F;
+    entity->ext.player.actionFlags &= 0xEFFFFE9F;
     if (!(gEwramData->playerState.actionLockFlags & 0x800) && entity->animScriptIndex != 0xC)
     {
         Anim_StartIndexed(entity, 0xC, 1, 0);
-        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
-        PLAYER_ACTION_FLAGS(entity) &= 0xFFDFFFFF;
+        entity->ext.player.requestedAnim = 0xFF;
+        entity->ext.player.actionFlags &= 0xFFDFFFFF;
     }
     x = GetEntityRoomXPositionInteger(entity);
     y = GetEntityRoomYPositionInteger(entity);
@@ -44,9 +44,9 @@ clear:
     entity->velX.whole = 0;
     entity->accelX.whole = 0;
 done:
-    if (!(PLAYER_ACTION_FLAGS(entity) & 2))
+    if (!(entity->ext.player.actionFlags & 2))
     {
-        PLAYER_ACTION_FLAGS(entity) &= ~0x80;
+        entity->ext.player.actionFlags &= ~0x80;
         entity->state = 0;
     }
     Julius_UpdateVerticalMovement(entity);

@@ -13,14 +13,14 @@ extern struct EwramData_EntityData *Graham_CreateSceneProjectile(s32,s32,s32);
 void Graham_SpawnSceneProjectile(struct EwramData_EntityData *entity)
 {
     struct GrahamSpawnTable positions=sGrahamSpawnTable;
-    u16 counter=GRAHAM_EMITTER_COUNTER(entity);
+    u16 counter=entity->ext.grahamEmitter.counter;
     u16 index=counter%5;
     u16 x=positions.coordinate[index*2];
     s32 *ys=&positions.coordinate[1];
     u16 y;
     ys+=index*2;
     y=*ys;
-    GRAHAM_EMITTER_COUNTER(entity)=counter+1;
+    entity->ext.grahamEmitter.counter=counter+1;
     if((u8)(entity->timer%6)==0)
     {
         s32 random=RandomNumberGenerator();

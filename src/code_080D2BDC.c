@@ -20,7 +20,7 @@ extern void Graham_SpawnSceneProjectile(struct EwramData_EntityData *);
 extern void Graham_SpawnBreakupEffect(s32,s32);
 extern s32 Player_GetZoneAroundX(s32,s32,s32);
 extern u8 sGrahamGfx2[],sGrahamGfx3[],sEndingRoomDefinition[];
-#define FLAGS(e) (GRAHAM_FLAGS((e)))
+#define FLAGS(e) (e->ext.graham.flags)
 /**
  * @brief Root defeat state (0xF0): coordinate dialogue objects, palette/
  * graphics cleanup, timed effects and character-dependent exit events.
@@ -28,7 +28,7 @@ extern u8 sGrahamGfx2[],sGrahamGfx3[],sEndingRoomDefinition[];
  */
 void Graham_UpdateDefeatScene(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *object=&gEwramData->entityData[(u8)GRAHAM_SCENE_OBJECT_INDEX(entity)];
+    struct EwramData_EntityData *object=&gEwramData->entityData[(u8)entity->ext.grahamScene.objectIndex];
     if(gEwramData->gameState.stateFlags & 0x10) return;
     switch(entity->subState)
     {
@@ -126,7 +126,7 @@ mark_dialogue:
                         {
                             struct EwramData_EntityData *projectile=Graham_CreateSceneProjectile((s16)entity->posX.part16.integer,
                                                                      (s16)(entity->posY.part16.integer-16),1);
-                            GRAHAM_DEFEAT_PROJECTILE_INDEX(entity)=ENTITY_INDEX(projectile);
+                            entity->ext.grahamScene.defeatProjectileIndex=ENTITY_INDEX(projectile);
                             gEwramData->gameState.stateFlags&=~0x10000;
                             entity->subState++;
                             entity->stage=0;
@@ -161,7 +161,7 @@ mark_dialogue:
             {
                 if(FLAGS(entity)&8)
                 {
-                    struct EwramData_EntityData *projectile=&gEwramData->entityData[(u16)GRAHAM_DEFEAT_PROJECTILE_INDEX(entity)];
+                    struct EwramData_EntityData *projectile=&gEwramData->entityData[(u16)entity->ext.grahamScene.defeatProjectileIndex];
                     if(!projectile->updateFunc && object->subState==3)
                         object->timer=(u32)projectile->updateFunc;
                     if((u8)(entity->timer%3)==0)

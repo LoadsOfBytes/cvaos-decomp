@@ -2,7 +2,6 @@
  * Case 2 uses its own target variable (otherwise the case 1 one lives across calls). */
 #include "code_08009A0.h"
 #include "soul_skill_entity.h"
-#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -85,7 +84,7 @@ void SkillTinyDevilUpdate(struct EwramData_EntityData *entity)
             target = NULL;
         }
     found:
-        SKILL_TINY_DEVIL_TARGET(entity) = target;
+        entity->ext.skillHoming.target = target;
         if (target != NULL)
             entity->state = 2;
         else
@@ -106,9 +105,9 @@ void SkillTinyDevilUpdate(struct EwramData_EntityData *entity)
         PlaySong(0x134);
         break;
     case 2:
-        if (SKILL_TINY_DEVIL_SPEED(entity) <= 0x4FFFF)
-            SKILL_TINY_DEVIL_SPEED(entity) += 0x4000;
-        victim = SKILL_TINY_DEVIL_TARGET(entity);
+        if (entity->ext.skillHoming.speed <= 0x4FFFF)
+            entity->ext.skillHoming.speed += 0x4000;
+        victim = entity->ext.skillHoming.target;
         {
             s32 tx = victim->posX.whole;
             s32 ty = victim->posY.whole;
@@ -131,23 +130,23 @@ void SkillTinyDevilUpdate(struct EwramData_EntityData *entity)
                 angle -= 0x100;
         }
         SKILL_TINY_DEVIL_HEADING(entity) = angle;
-        entity->velX.whole = FixedMul(Sin((s16)SKILL_TINY_DEVIL_HEADING(entity) + 0x4000), SKILL_TINY_DEVIL_SPEED(entity));
-        entity->velY.whole = FixedMul(Sin((s16)SKILL_TINY_DEVIL_HEADING(entity)), SKILL_TINY_DEVIL_SPEED(entity));
+        entity->velX.whole = FixedMul(Sin((s16)SKILL_TINY_DEVIL_HEADING(entity) + 0x4000), entity->ext.skillHoming.speed);
+        entity->velY.whole = FixedMul(Sin((s16)SKILL_TINY_DEVIL_HEADING(entity)), entity->ext.skillHoming.speed);
         EntityAccelerateAndMove(entity, 0x80000);
         timer = entity->timer - 1;
         entity->timer = timer;
-        if ((s16)victim->unk_518.part16.hp <= 0 || (u8)RED_SOUL_HIT(entity) != 0 || (u8)timer == 0)
+        if ((s16)victim->unk_518.part16.hp <= 0 || (u8)entity->ext.redSoul.hit != 0 || (u8)timer == 0)
             entity->state = 3;
         break;
     case 3:
-        if (SKILL_TINY_DEVIL_SPEED(entity) <= 0x4FFFF)
-            SKILL_TINY_DEVIL_SPEED(entity) += 0x4000;
-        entity->velX.whole = FixedMul(Sin((s16)SKILL_TINY_DEVIL_HEADING(entity) + 0x4000), SKILL_TINY_DEVIL_SPEED(entity));
-        entity->velY.whole = FixedMul(Sin((s16)SKILL_TINY_DEVIL_HEADING(entity)), SKILL_TINY_DEVIL_SPEED(entity));
+        if (entity->ext.skillHoming.speed <= 0x4FFFF)
+            entity->ext.skillHoming.speed += 0x4000;
+        entity->velX.whole = FixedMul(Sin((s16)SKILL_TINY_DEVIL_HEADING(entity) + 0x4000), entity->ext.skillHoming.speed);
+        entity->velY.whole = FixedMul(Sin((s16)SKILL_TINY_DEVIL_HEADING(entity)), entity->ext.skillHoming.speed);
         EntityAccelerateAndMove(entity, 0x80000);
         break;
     case 4:
-        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;
@@ -155,7 +154,7 @@ void SkillTinyDevilUpdate(struct EwramData_EntityData *entity)
     if (EntityIsOutsideScreen(entity, 2) || !entity->roomActive)
     {
         entity->roomActive = 1;
-        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;

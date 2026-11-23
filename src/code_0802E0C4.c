@@ -1,6 +1,5 @@
 /* Activate an equipped blue soul when input, state and MP checks permit it. */
 #include "code_08009A0.h"
-#include "blue_soul_entity.h"
 #include "player_entity.h"
 #include "structs/ewram.h"
 
@@ -60,11 +59,11 @@ void Soma_HandleBlueSoulInput(struct EwramData_EntityData *entity)
     if (soul == NULL)
         return;
     gEwramData->playerState.activeBlueSoulEntities[0] = soul;
-    BLUE_SOUL_OWNER(soul) = entity;
-    BLUE_SOUL_ID(soul) = GetBlueSoulId();
-    BLUE_SOUL_PARAM(soul) = info->effectParam;
-    BLUE_SOUL_SLOT(soul) = (u32)active;
-    BLUE_SOUL_VALUE(soul) = info->effectValue;
-    BLUE_SOUL_MP_INTERVAL(soul) = 60 / info->mpPerSecond;
-    PLAYER_ACTION_FLAGS(entity) |= 0x200;
+    soul->ext.blueSoul.owner = entity;
+    soul->ext.blueSoul.id = GetBlueSoulId();
+    soul->ext.blueSoul.param = info->effectParam;
+    soul->ext.blueSoul.slot = (u32)active;
+    soul->ext.blueSoul.value = info->effectValue;
+    soul->ext.blueSoul.mpInterval = 60 / info->mpPerSecond;
+    entity->ext.player.actionFlags |= 0x200;
 }

@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "red_soul_entity.h"
 #include "player_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -51,7 +50,7 @@ static inline void SetFrameBox(struct EwramData_EntityData *entity)
  */
 void Skill_Werejaguar_Weretiger_Use(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.redSoul.owner;
 
     entity->roomActive = 1;
     switch (entity->state)
@@ -64,7 +63,7 @@ void Skill_Werejaguar_Weretiger_Use(struct EwramData_EntityData *entity)
         void *oam = t->spriteSheet;
         SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
     }
-        Anim_StartIndexed(entity, RED_SOUL_PARAM(entity), 0, 0);
+        Anim_StartIndexed(entity, entity->ext.redSoul.param, 0, 0);
         entity->spriteLayer = 0xE;
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         entity->scrollWithBg = 1;
@@ -76,17 +75,17 @@ void Skill_Werejaguar_Weretiger_Use(struct EwramData_EntityData *entity)
         entity->state = 1;
     case 1:
         Entity_PlaceRelativeTo(entity, parent, 0, 0);
-        if ((PLAYER_ACTION_FLAGS(parent) & 0x180) == 0x100)
+        if ((parent->ext.player.actionFlags & 0x180) == 0x100)
             break;
     case 2:
-        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;
     }
     if (Anim_Update(entity) == 3)
     {
-        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;

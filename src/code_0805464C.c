@@ -34,12 +34,12 @@ void Object1CCreate(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    SAVE_POINT_GRAPHICS(entity) = graphics;
+    entity->ext.savePoint.graphics = graphics;
     ObjPalette_LoadRange(pal, 0, 4, 10);
-    SAVE_POINT_FRAME_BASE(entity) = 10;
-    SAVE_POINT_AFFINE(entity) = ObjAffine_Alloc(1);
-    entity->affineIndex = SAVE_POINT_AFFINE(entity);
-    ObjAffine_Set(0, SAVE_POINT_SCALE(entity), SAVE_POINT_SCALE(entity), 0, 0, SAVE_POINT_AFFINE(entity));
+    entity->ext.savePoint.frameBase = 10;
+    entity->ext.savePoint.affine = ObjAffine_Alloc(1);
+    entity->affineIndex = entity->ext.savePoint.affine;
+    ObjAffine_Set(0, entity->ext.savePoint.scale, entity->ext.savePoint.scale, 0, 0, entity->ext.savePoint.affine);
     entity->posX.part16.integer = 0x78;
     entity->posY.part16.integer = 0x50;
     entity->spriteLayer = 0x11;
@@ -54,6 +54,6 @@ void Object1CCreate(struct EwramData_EntityData *entity)
         ENTITY_PARENT_INDEX(child) = ENTITY_INDEX(entity);
         child->drawFunc = (u32 *)SavePoint_DrawPromptMarkers;
         child->updateFunc = (u32 *)EntityUpdateNothing;
-        Sprite_Attach(child, sSaveWarpRoomSpriteSheet, SAVE_POINT_GRAPHICS(entity), 0xE);
+        Sprite_Attach(child, sSaveWarpRoomSpriteSheet, entity->ext.savePoint.graphics, 0xE);
     }
 }

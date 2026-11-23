@@ -1,6 +1,5 @@
 /* Man Eater creation and attached effects. */
 #include "code_08009A0.h"
-#include "man_eater_entity.h"
 #include "code_08013960.h"
 #include "code_08033CAC.h"
 #include "code/code_08039340.h"
@@ -20,8 +19,8 @@ extern const u8 sUnk_085288A8[][4];
  */
 void ManEaterAttachedPart_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = &gEwramData->entityData[(u8)MAN_EATER_OWNER_INDEX(entity)];
-    const u8 *entry = sUnk_085288A8[MAN_EATER_ORBIT_SLOT(entity)];
+    struct EwramData_EntityData *parent = &gEwramData->entityData[(u8)entity->ext.manEater.ownerIndex];
+    const u8 *entry = sUnk_085288A8[entity->ext.manEater.orbitSlot];
     switch (entity->state)
     {
     case 0:
@@ -33,7 +32,7 @@ void ManEaterAttachedPart_Update(struct EwramData_EntityData *entity)
         entity->state = 1;
         /* fall through */
     case 1:
-        if (parent->state == 1 && parent->timer == 0x30 && MAN_EATER_ORBIT_SLOT(entity) == parent->subState)
+        if (parent->state == 1 && parent->timer == 0x30 && entity->ext.manEater.orbitSlot == parent->subState)
         {
             Anim_StartIndexed(entity, entry[1], 0, 1);
             entity->state = 2;

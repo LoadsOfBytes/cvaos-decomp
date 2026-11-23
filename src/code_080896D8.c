@@ -22,7 +22,7 @@ void Gorgon_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
         entity->unk_518.part16.hp = hp - damage;
     }
     Entity_ShowDamage(entity, damage, 0);
-    GORGON_HIT(entity) = 1;
+    entity->ext.gorgon.hit = 1;
     if ((s16)entity->unk_518.part16.hp <= 0)
     {
         Enemy_DropRewards(entity);

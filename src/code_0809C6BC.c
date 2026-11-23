@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "legion_entity.h"
 #include "code_08013960.h"
 #include "code_08033CAC.h"
 #include "code/code_08039340.h"
@@ -47,13 +46,13 @@ void EnemyLegionCreate(struct EwramData_EntityData *entity)
     if (entity->unk_514.part16.spawnParam0 != 0 && !gEwramData->gameState.bossRushMode
         && (gEwramData->gameState.bossEventFlags & 0x20))
         goto delete;
-    LEGION_DATA(entity) = (s32)Heap_Alloc(0x1C);
-    if (LEGION_DATA(entity) == 0)
+    entity->ext.legion.data.value = (s32)Heap_Alloc(0x1C);
+    if (entity->ext.legion.data.value == 0)
         goto delete;
     if ((u8)Legion_LoadGraphics(entity) == 0)
     {
-        if (LEGION_DATA(entity) != 0)
-            Heap_Free((void *)LEGION_DATA(entity));
+        if (entity->ext.legion.data.value != 0)
+            Heap_Free((void *)entity->ext.legion.data.value);
         goto delete;
     }
     Anim_Start(entity, (struct AnimScript *)sLegionAnimScript0, 2, 1);
@@ -65,7 +64,7 @@ void EnemyLegionCreate(struct EwramData_EntityData *entity)
     entity->affine = 1;
     ObjAffine_Set(0, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
     Enemy_ResetFromTemplate(entity);
-    data = (struct LegionData *)LEGION_DATA(entity);
+    data = (struct LegionData *)entity->ext.legion.data.value;
     if (!Legion_CreateCorePart(entity, -0x180000, 0x180000, 2))
         goto delete;
     if (gEwramData->gameState.bestiaryPreview || entity->unk_514.part16.spawnParam0 == 0)
@@ -99,7 +98,7 @@ void EnemyLegionCreate(struct EwramData_EntityData *entity)
     Music_SetCurrent(0x10);
     if (entity->unk_514.part16.spawnParam0 == 0)
     {
-        LEGION_FLAGS(entity) = 6;
+        entity->ext.legion.flags = 6;
         data->roomX = entity->posX.whole + bg->xPos.whole;
         data->roomY = entity->posY.whole + bg->yPos.whole;
         data->bobPhase = 0;
@@ -126,7 +125,7 @@ void EnemyLegionCreate(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    LEGION_FLAGS(entity) = 6;
+    entity->ext.legion.flags = 6;
     data->roomX = entity->posX.whole + bg->xPos.whole;
     data->roomY = entity->posY.whole + bg->yPos.whole;
     data->bobPhase = 0;

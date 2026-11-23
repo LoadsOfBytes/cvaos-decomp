@@ -1,7 +1,6 @@
 /* SkillFlameDemonProjectileUpdate; graphics
  * loading as SkillLoadGraphicsInline in src/code/code_080211F0.c. */
 #include "code_08009A0.h"
-#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -56,9 +55,9 @@ void SkillFlameDemonProjectileUpdate(struct EwramData_EntityData *entity)
     }
     if (EntityIsOutsideScreen(entity, 2) || !entity->roomActive)
         entity->roomActive = 1;
-    else if ((u8)RED_SOUL_HIT(entity) == 0)
+    else if ((u8)entity->ext.redSoul.hit == 0)
         return;
-    gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+    gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
     gEwramData->playerState.nbrActiveRedSoulEntities--;
     EntityDelete(entity);
 }

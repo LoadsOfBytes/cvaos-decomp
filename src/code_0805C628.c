@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "event_scene_entity.h"
 #include "code_080D73B8.h"
 #include "code_08013960.h"
 #include "code/code_08039340.h"
@@ -171,8 +170,8 @@ s32 EventScene31_Update(struct EwramData_EntityData *entity)
             entity->stage++;
         }
         if ((u8)--entity->timer == 0xFF) {
-            EVENT31_BLOCK_HOLDER(entity)->state++;
-            { struct EwramData_EntityData *other = EVENT31_BLOCK_HOLDER(entity);
+            entity->ext.event31.blockHolder->state++;
+            { struct EwramData_EntityData *other = entity->ext.event31.blockHolder;
               other->stage = 0; other->subState = 0; }
             entity->state++;
             entity->stage = 0;
@@ -180,7 +179,7 @@ s32 EventScene31_Update(struct EwramData_EntityData *entity)
         }
         break;
     case 5:
-        if (EVENT31_BLOCK_HOLDER(entity)->state == 0x80) {
+        if (entity->ext.event31.blockHolder->state == 0x80) {
             Music_SubmitCommandOnce(0x1040);
             entity->state++;
             entity->stage = 0;

@@ -2,7 +2,6 @@
 #include "code_08009A0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
-#include "death_entity.h"
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, u8 *, void *, u8, void *);
 extern u8 sDeathGfx[], sDeathPalette[], sDeathSpriteSheet[];
@@ -12,8 +11,8 @@ extern u8 sDeathGfx[], sDeathPalette[], sDeathSpriteSheet[];
  * palette 0): allocates a matrix (affineIndex, affine) or is deleted,
  * priority 0x14, animation 0xC and a 10-frame counter; at 8 objMode = 1,
  * at 4 drawSkip = 1, at 0 (or state 2) the matrix is freed and the entity
- * deleted.  While alive the matrix rotates by DEATH_WEAPON_ANGLE (copied from the weapon; scale
- * 1.0, mirrored with flipX).
+ * deleted.  While alive the matrix rotates by (copied from the weapon; scale
+ * 1.0, mirrored with flipX)->ext.deathWeapon.angle.
  */
 void DeathWeaponTrail_Update(struct EwramData_EntityData *entity)
 {
@@ -54,5 +53,5 @@ void DeathWeaponTrail_Update(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    ObjAffine_Set(DEATH_WEAPON_ANGLE(entity), 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set(entity->ext.deathWeapon.angle, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
 }

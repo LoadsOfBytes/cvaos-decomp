@@ -1,16 +1,15 @@
 ﻿/* Alastor readies its blade and selects the next table-driven attack. */
 #include "code_08009A0.h"
-#include "alastor_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern void Entity_FaceTarget(struct EwramData_EntityData *);
 extern u8 Angle_TurnTowards(s16 *,u16,u16);
 extern s32 sUnk_08528C2C[][9];
-#define SET(e) (ALASTOR_ATTACK_SET((e)))
-#define INDEX(e) (ALASTOR_ATTACK_INDEX((e)))
+#define SET(e) (e->ext.alastor.attackSet)
+#define INDEX(e) (e->ext.alastor.attackIndex)
 #define ATTACK(e) (sUnk_08528C2C[SET(e)][INDEX(e)])
-#define ANGLE(e) (ALASTOR_ANGLE((e)))
-#define STEP(e) (ALASTOR_TURN((e)))
+#define ANGLE(e) (e->ext.alastor.angle)
+#define STEP(e) (e->ext.alastor.turn)
 #define ABS(x) ((x)<0?-(x):(x))
 /**
  * @brief Selection state (2): coordinate linked-part poses and rotate
@@ -19,7 +18,7 @@ extern s32 sUnk_08528C2C[][9];
  */
 void Alastor_UpdateAttackSelection(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *part=&gEwramData->entityData[ALASTOR_PART_INDEX(entity)];
+    struct EwramData_EntityData *part=&gEwramData->entityData[entity->ext.alastorPart.index];
     s32 speed=0x20000;
     s32 target=0xC000;
     switch(entity->subState)
@@ -39,7 +38,7 @@ void Alastor_UpdateAttackSelection(struct EwramData_EntityData *entity)
                 INDEX(entity)++;
                 break;
             }
-            if(!(ALASTOR_FLAGS(entity) & 2))
+            if(!(entity->ext.alastor.flags & 2))
             {
                 speed=-speed;
                 target=0x10000-target;
@@ -59,7 +58,7 @@ void Alastor_UpdateAttackSelection(struct EwramData_EntityData *entity)
             break;
         case 2:
             target=0xAC00;
-            if(!(ALASTOR_FLAGS(entity) & 2))
+            if(!(entity->ext.alastor.flags & 2))
                 target=0x5400;
             if(Angle_TurnTowards(&ANGLE(entity),(u16)ABS(STEP(entity)<<4),(u16)target))
             {
@@ -71,7 +70,7 @@ void Alastor_UpdateAttackSelection(struct EwramData_EntityData *entity)
             goto transform;
         case 3:
             target=0x4000;
-            if(!(ALASTOR_FLAGS(entity) & 2))
+            if(!(entity->ext.alastor.flags & 2))
                 target=0xC000;
             if(Angle_TurnTowards(&ANGLE(entity),(u16)ABS(STEP(entity)<<5),(u16)target))
                 entity->subState++;

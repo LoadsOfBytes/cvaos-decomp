@@ -1,6 +1,5 @@
 /* Chaos core damage (2454) and its rotating background (24D4). */
 #include "code_08009A0.h"
-#include "chaos_entity.h"
 #include "syscalls.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -55,8 +54,8 @@ void Chaos_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 void ChaosBackground_Update(struct EwramData_EntityData *entity)
 {
     struct BgAffineSrcData src;
-    struct EwramData_EntityData *core = CHAOS_LINK(entity);
-    struct ChaosData *data = (struct ChaosData *)CHAOS_DATA(core);
+    struct EwramData_EntityData *core = entity->ext.chaosChild.link;
+    struct ChaosData *data = (struct ChaosData *)core->ext.chaos.data.value;
 
     if (core == NULL || core->updateFunc == NULL
         || core->unk_518.part8.enemyId != entity->unk_518.part8.enemyId)

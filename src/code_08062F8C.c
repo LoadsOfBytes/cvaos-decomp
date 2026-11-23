@@ -17,7 +17,7 @@ void EventScene30_SpawnFloatingFragment(struct EwramData_EntityData *owner,s16 x
         entity->updateFunc=(u32 *)EventScene30FloatingFragment_Update;
         ENTITY_PARENT_INDEX(entity)=ENTITY_INDEX(owner);
         zero=0;
-        EVENT30_EFFECT_SCALE(entity)=0x12000;
+        entity->ext.event30Effect.scale=0x12000;
         entity->posX.part16.integer=x;entity->posY.part16.integer=y;
         entity->velX.whole=zero;entity->velY.whole=0x4000;
         entity->accelX.whole=zero;entity->accelY.whole=0x800;

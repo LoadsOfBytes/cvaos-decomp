@@ -1,6 +1,5 @@
 /* Shared Skull Millione / Cagnazzo / Lubicant setup and movement. */
 #include "code_08009A0.h"
-#include "skull_millione_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -46,7 +45,7 @@ s32 SkullMillioneFamily_Init(struct EwramData_EntityData *entity, u8 variant)
     entity->spriteLayer = 4;
     Anim_StartIndexed(entity, 0, 0, 1);
     Anim_Update(entity);
-    SKULL_MILLIONE_VARIANT(entity) = variant;
+    entity->ext.skullMillione.variant = variant;
     if (gEwramData->gameState.bestiaryPreview)
     {
         entity->state = 4;

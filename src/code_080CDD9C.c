@@ -1,6 +1,5 @@
 /* Rotate Alastor's collision rectangle with its angle and facing. */
 #include "code_08009A0.h"
-#include "alastor_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern void HitBox_SetAttackRaw(struct EwramData_EntityData *,s32);
@@ -11,7 +10,7 @@ extern s32 HitBox_SetBodyRaw(struct EwramData_EntityData *,s32);
  */
 void Alastor_UpdateHitBoxes(struct EwramData_EntityData *entity)
 {
-    s32 angle=ALASTOR_ANGLE(entity);
+    s32 angle=entity->ext.alastor.angle;
     s32 horizontal=(angle+0x4000)&0xFFFF;
     s32 vertical=(angle+0xC000)&0xFFFF;
     s32 side=vertical;

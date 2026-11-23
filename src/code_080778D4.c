@@ -1,6 +1,5 @@
 /* Create a spark that converges on a camera independent target. */
 #include "code_08009A0.h"
-#include "white_dragon_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern void WhiteDragonChargeParticle_Update(struct EwramData_EntityData *);
@@ -28,8 +27,8 @@ void WhiteDragon_SpawnChargeParticle(struct EwramData_EntityData *owner,s32 x,s3
         else
             effect->posX.part16.integer-=(u16)(RandomNumberGenerator()%8+16);
         effect->posY.part16.integer+=RandomNumberGenerator()%32+0xFFF0;
-        WHITE_DRAGON_CHARGE_TARGET_X(effect)=owner->posX.part16.integer+camera->xPos.part16.integer;
-        WHITE_DRAGON_CHARGE_TARGET_Y(effect)=owner->posY.part16.integer+camera->yPos.part16.integer;
+        effect->ext.whiteDragonCharge.targetX=owner->posX.part16.integer+camera->xPos.part16.integer;
+        effect->ext.whiteDragonCharge.targetY=owner->posY.part16.integer+camera->yPos.part16.integer;
         effect->scrollWithBg=1;
         effect->drawFunc=(u32 *)Sprite_DrawEntity;
     }

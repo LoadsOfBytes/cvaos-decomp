@@ -1,7 +1,5 @@
 /* Stolas movement and transitions to attack states. */
 #include <string.h>
-#include "stolas_entity.h"
-#include "joint_entity.h"
 #include "code_08009A0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -16,7 +14,7 @@ extern void Stolas_TurnAround(struct EwramData_EntityData *);
 extern s32 Tile_Classify(s16, s16);
 extern s32 Target_GetPixelX(struct EwramData_EntityData *);
 extern const s8 sUnk_081190AC[6];
-#define POSE(e) (JOINT_POSE((e)))
+#define POSE(e) (e->ext.joint.pose)
 /**
  * @brief Movement state machine (state 0): face the target, wake when it is within
  * 160 px or Stolas is damaged, then fly with the joint poses and start the
@@ -154,8 +152,8 @@ void Stolas_UpdateMove(struct EwramData_EntityData *entity)
                             (s16)y;
                         }))) break;
                     }
-                    STOLAS_BEAM_LENGTH(entity) = distance;
-                    if (distance >= 0 && (s16)STOLAS_FREE_SLOTS(entity) > 0)
+                    entity->ext.stolas.beamLength = distance;
+                    if (distance >= 0 && (s16)entity->ext.stolas.freeSlots > 0)
                     {
                         entity->state = 1;
                         entity->subState = 0;

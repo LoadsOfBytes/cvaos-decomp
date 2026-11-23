@@ -11,9 +11,9 @@
 
 extern s32 Entity_AccelerateAlongAngle(struct EwramData_EntityData *entity, u16 angle, s32 speed, s32 target, s16 acceleration, u16 time);
 
-#define SPIN entity->unk_4FC.part16.unk_4FC
-#define SPIN_SPEED entity->unk_4FC.part16.unk_4FE[0]
-#define SPEED entity->unk_504.whole
+#define SPIN entity->ext.raw.unk_4FC.part16.unk_4FC
+#define SPIN_SPEED entity->ext.raw.unk_4FC.part16.unk_4FE[0]
+#define SPEED entity->ext.raw.unk_504.whole
 
 static inline void Debris(struct EwramData_EntityData *entity, s16 dx, s16 dy, s32 vy, s32 vx)
 {

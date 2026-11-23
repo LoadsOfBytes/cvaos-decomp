@@ -77,7 +77,7 @@ void BestiaryMenu_UpdateDetailScreen(struct EwramData_EntityData *entity)
  */
 s32 BestiaryMenu_SpawnEnemyPreview(struct EwramData_EntityData *menu)
 {
-    u8 index = MENU_PAGE_CURSOR(menu);
+    u8 index = menu->ext.menuPage.cursor;
     struct EntityTemplate *template = &sEnemyData[index];
     struct EwramData_EntityData *entity;
 

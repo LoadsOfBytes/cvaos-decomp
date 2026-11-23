@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "gate_entity.h"
 #include "code_08001194.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -24,24 +23,24 @@ void Gate_UpdateFlagControlled(struct EwramData_EntityData *entity)
     if (!entity->roomActive)
     {
         entity->deleteRequested = 1;
-        ObjAffine_Free((u8)GATE_AFFINE_0(entity));
-        ObjAffine_Free(GATE_AFFINE_1(entity));
+        ObjAffine_Free((u8)entity->ext.gate.affine0);
+        ObjAffine_Free(entity->ext.gate.affine1);
         return;
     }
     if (gEwramData->gameState.gameFlagsTail[entity->unk_514.part16.spawnParam0 >> 5] & (1 << (entity->unk_514.part16.spawnParam0 & 0x1F)))
     {
-        GATE_OPEN_ANGLE(entity) += 0x400;
-        if (GATE_OPEN_ANGLE(entity) > 0x4000)
-            GATE_OPEN_ANGLE(entity) = 0x4000;
+        entity->ext.gate.openAngle += 0x400;
+        if (entity->ext.gate.openAngle > 0x4000)
+            entity->ext.gate.openAngle = 0x4000;
         Collision_ClearBlock(x, y - 8);
         Collision_ClearBlock(x, y - 0x18);
         Collision_ClearBlock(x, y - 0x28);
     }
     else
     {
-        GATE_OPEN_ANGLE(entity) -= 0x400;
-        if (GATE_OPEN_ANGLE(entity) < 0)
-            GATE_OPEN_ANGLE(entity) = 0;
+        entity->ext.gate.openAngle -= 0x400;
+        if (entity->ext.gate.openAngle < 0)
+            entity->ext.gate.openAngle = 0;
         Collision_SetBlock(x, y - 8);
         Collision_SetBlock(x, y - 0x18);
         Collision_SetBlock(x, y - 0x28);

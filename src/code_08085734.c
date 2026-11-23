@@ -1,10 +1,9 @@
 #include "code_08009A0.h"
-#include "headhunter_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
 
-#define OWNER_DONE(o) (HEADHUNTER_FLAGS((o)) & 1)
+#define OWNER_DONE(o) (o->ext.headhunter.flags & 1)
 
 /* Effect circling its anchor (unk_4FC/unk_500, camera-relative) with a growing
  * radius; deleted when flagged or when its source (unk_4F4) is done. */
@@ -16,7 +15,7 @@
 void HeadhunterOrbitingParticle_Update(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
-    struct EwramData_EntityData *source = HEADHUNTER_EFFECT_SOURCE(entity);
+    struct EwramData_EntityData *source = entity->ext.headhunterEffect.source;
     s32 x, y, radius;
     if (entity->accelY.whole <= 0x3FF)
         entity->accelY.whole += 0x10;
@@ -39,8 +38,8 @@ void HeadhunterOrbitingParticle_Update(struct EwramData_EntityData *entity)
     }
     entity->posX.whole = entity->velX.whole + x;
     entity->posY.whole = entity->velY.whole + y;
-    entity->posX.whole += HEADHUNTER_ORBIT_CAMERA_X(entity) - camera->xPos.whole;
-    entity->posY.whole += HEADHUNTER_ORBIT_CAMERA_Y(entity) - camera->yPos.whole;
+    entity->posX.whole += entity->ext.headhunterOrbit.cameraX - camera->xPos.whole;
+    entity->posY.whole += entity->ext.headhunterOrbit.cameraY - camera->yPos.whole;
     if (entity->timer++ & 1)
         Anim_Update(entity);
     if (entity->animDone)

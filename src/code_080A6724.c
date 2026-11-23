@@ -1,6 +1,5 @@
 /* Chaos effect updates and creation. */
 #include "code_08009A0.h"
-#include "chaos_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 #include "code_080D73B8.h"
@@ -16,7 +15,7 @@ struct ChaosEffectGfx { s32 tiles; s32 palette; };
 void Chaos2SnakeShot_Update(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
-    struct EwramData_EntityData *owner = CHAOS_LINK(CHAOS_LINK(entity));
+    struct EwramData_EntityData *owner = entity->ext.chaosChild.link->ext.chaosChild.link;
     EntityMove(entity);
     Hit_CheckWithPlayer(collision, entity);
     if (entity->timer < 100)
@@ -44,7 +43,7 @@ void Chaos2SnakeShot_Update(struct EwramData_EntityData *entity)
 void Chaos2_CreateAffineEffect(struct EwramData_EntityData *parent)
 {
     struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, (u32 *)Chaos2AffineEffect_Update);
-    struct ChaosEffectGfx *gfx = (struct ChaosEffectGfx *)CHAOS_DATA_PTR(parent);
+    struct ChaosEffectGfx *gfx = (struct ChaosEffectGfx *)parent->ext.chaos.data.ptr;
     if (effect != NULL)
     {
         s32 tiles;
@@ -67,10 +66,10 @@ void Chaos2_CreateAffineEffect(struct EwramData_EntityData *parent)
             effect->affine = 1;
             ObjAffine_Set(0, 0x10000, 0x10000, effect->flipX, effect->flipY, effect->affineIndex);
             effect->unk_518.part8.enemyId = parent->unk_518.part8.enemyId;
-            CHAOS_LINK(effect) = parent;
+            effect->ext.chaosChild.link = parent;
             effect->scrollWithBg = 0;
             effect->velY.whole = 0xB000;
-            effect->unk_4F8.bytes[0] = 0x20;
+            effect->ext.chaos2Effect.timer = 0x20;
             effect->timer = 0x3C;
             effect->drawFunc = (u32 *)Sprite_DrawEntity;
         }
@@ -83,7 +82,7 @@ void Chaos2_CreateAffineEffect(struct EwramData_EntityData *parent)
  * The parent's lifetime and identity guard the allocated affine matrix. */
 void Chaos2AffineEffect_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = CHAOS_LINK(entity);
+    struct EwramData_EntityData *parent = entity->ext.chaosChild.link;
     if (parent != NULL && parent->updateFunc != NULL && parent->unk_518.part8.enemyId == entity->unk_518.part8.enemyId)
     {
         if (entity->state == 0)
@@ -113,11 +112,11 @@ void Chaos2AffineEffect_Update(struct EwramData_EntityData *entity)
                 }
             }
             entity->velX.whole += 0x80;
-            if ((*(u8 *)&entity->unk_4F8) != 0)
-                (*(u8 *)&entity->unk_4F8)--;
+            if (entity->ext.chaos2Effect.timer != 0)
+                entity->ext.chaos2Effect.timer--;
             else
             {
-                (*(u8 *)&entity->unk_4F8) = (RandomNumberGenerator() % 0x40) + 0x10;
+                entity->ext.chaos2Effect.timer = (RandomNumberGenerator() % 0x40) + 0x10;
                 Chaos2_SpawnEffect(entity, (RandomNumberGenerator() & 7) + 9);
             }
             if (parent->state == 3)
@@ -125,7 +124,7 @@ void Chaos2AffineEffect_Update(struct EwramData_EntityData *entity)
                 entity->state = 1;
                 entity->accelX.whole = 0x180;
                 entity->subState = 0;
-                (*(u8 *)&entity->unk_4F8) = 1;
+                entity->ext.chaos2Effect.timer = 1;
                 entity->timer = 16;
             }
         }
@@ -163,11 +162,11 @@ void Chaos2AffineEffect_Update(struct EwramData_EntityData *entity)
                 entity->accelX.whole += 2;
             else
                 entity->state = 2;
-            if ((*(u8 *)&entity->unk_4F8) != 0)
-                (*(u8 *)&entity->unk_4F8)--;
+            if (entity->ext.chaos2Effect.timer != 0)
+                entity->ext.chaos2Effect.timer--;
             else
             {
-                (*(u8 *)&entity->unk_4F8) = RandomNumberGenerator() % 0x10;
+                entity->ext.chaos2Effect.timer = RandomNumberGenerator() % 0x10;
                 Chaos2_SpawnEffect(entity, (RandomNumberGenerator() & 7) + 9);
             }
         }
@@ -205,11 +204,11 @@ void Chaos2AffineEffect_Update(struct EwramData_EntityData *entity)
             entity->velX.whole += entity->accelX.whole;
             if (entity->accelX.whole > 0x40)
                 entity->accelX.whole -= 4;
-            if ((*(u8 *)&entity->unk_4F8) != 0)
-                (*(u8 *)&entity->unk_4F8)--;
+            if (entity->ext.chaos2Effect.timer != 0)
+                entity->ext.chaos2Effect.timer--;
             else
             {
-                (*(u8 *)&entity->unk_4F8) = (RandomNumberGenerator() % 0x20) + 0x20;
+                entity->ext.chaos2Effect.timer = (RandomNumberGenerator() % 0x20) + 0x20;
                 Chaos2_SpawnEffect(entity, (RandomNumberGenerator() & 7) + 9);
             }
         }
@@ -219,7 +218,7 @@ void Chaos2AffineEffect_Update(struct EwramData_EntityData *entity)
             if (entity->velY.whole <= 0x8000)
             {
                 entity->velY.whole = 0x8000;
-                parent->unk_4F8.bytes[1] = 1;
+                parent->ext.chaos2.defeatReady = 1;
                 entity->hidden = 1;
             }
             entity->velX.whole += entity->accelX.whole;

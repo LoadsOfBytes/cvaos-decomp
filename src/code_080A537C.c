@@ -1,6 +1,5 @@
 /* Chaos second form: summoned part update (537C). */
 #include "code_08009A0.h"
-#include "chaos_entity.h"
 #include "syscalls.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -23,7 +22,7 @@ extern s32 Entity_GetVisibilityPattern(s32);
 extern void Chaos2_SpawnSpark(struct EwramData_EntityData *);
 
 #define TO_PIXELS(d) ((d) < 0 ? -(-(d) >> 16) : (d) >> 16)
-#define LIFETIME(e) ((e)->unk_4F8.whole)
+#define LIFETIME(e) ((e)->ext.raw.unk_4F8.whole)
 
 /* Summoned part: home in on the target (enemyTarget), become harmless once
  * slow, break after 1500 frames or when the core is gone; state 9 bursts
@@ -32,9 +31,9 @@ void Chaos2SummonedPart_Update(struct EwramData_EntityData *part)
 {
     u8 collision[16];
     struct PlayerContactDamage fx;
-    struct EwramData_EntityData *core = CHAOS_LINK(part);
+    struct EwramData_EntityData *core = part->ext.chaosChild.link;
     struct EwramData **ewram = &gEwramData;
-    struct Chaos2Data *data = (struct Chaos2Data *)CHAOS_DATA(core);
+    struct Chaos2Data *data = (struct Chaos2Data *)core->ext.chaos.data.value;
 
     data->summoned = 1;
     if (part->state == 0)

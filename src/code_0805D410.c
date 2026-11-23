@@ -59,7 +59,7 @@ s32 EventScene03_RunSequence(struct EwramData_EntityData *entity)
         {
         case 0:
         {
-            struct EwramData_EntityData *p = EVENT03_ACTOR0(entity);
+            struct EwramData_EntityData *p = entity->ext.event03.actor0;
             if (p->animScriptIndex != 1)
                 Anim_StartIndexed(p, 1, 0, 0);
             gEwramData->gameState.cameraScrollMinPriority = 1;
@@ -86,8 +86,8 @@ s32 EventScene03_RunSequence(struct EwramData_EntityData *entity)
     case 2:
         if (entity->stage == 0)
         {
-            EVENT03_ACTOR0(entity)->flipX = 0;
-            EVENT03_ACTOR1(entity)->flipX = 1;
+            entity->ext.event03.actor0->flipX = 0;
+            entity->ext.event03.actor1->flipX = 1;
             Music_SetCurrent(0x10);
             entity->stage++;
             break;
@@ -98,7 +98,7 @@ s32 EventScene03_RunSequence(struct EwramData_EntityData *entity)
         {
         case 0:
             EventScene03_SpawnPartsA(entity);
-            EVENT03_PROGRESS(entity) |= 8;
+            entity->ext.event03.progress |= 8;
             save->textWindowPause = 1;
             entity->stage++;
             STEP = 2;
@@ -120,11 +120,11 @@ s32 EventScene03_RunSequence(struct EwramData_EntityData *entity)
             struct EwramData_EntityData *p;
             struct EwramData_EntityData *q;
             EventScene03_SpawnPartsB(entity);
-            p = EVENT03_ACTOR0(entity);
+            p = entity->ext.event03.actor0;
             if (p->animScriptIndex != 5)
                 Anim_StartIndexed(p, 5, 0, 0);
             PlaySong(0x1B4);
-            q = EVENT03_ACTOR1(entity);
+            q = entity->ext.event03.actor1;
             q->flipX = 1 - q->flipX;
             entity->timer = 0x20;
             entity->stage++;
@@ -158,17 +158,17 @@ s32 EventScene03_RunSequence(struct EwramData_EntityData *entity)
         case 2:
             if ((u8)--entity->timer == 0xFF)
             {
-                EVENT03_PROGRESS(entity) |= 0x10;
+                entity->ext.event03.progress |= 0x10;
                 PlaySong(0x1DF);
-                Anim_StartIndexed(EVENT03_ACTOR1(entity), 2, 0, 0);
+                Anim_StartIndexed(entity->ext.event03.actor1, 2, 0, 0);
                 entity->stage++;
                 break;
             }
             break;
         case 3:
-            if (EVENT03_ACTOR1(entity)->animDone)
+            if (entity->ext.event03.actor1->animDone)
             {
-                EVENT03_PROGRESS(entity) |= 2;
+                entity->ext.event03.progress |= 2;
                 entity->stage++;
                 entity->timer = 0x10;
             }
@@ -179,13 +179,13 @@ s32 EventScene03_RunSequence(struct EwramData_EntityData *entity)
                 struct EwramData_EntityData *q;
                 entity->stage++;
                 PlaySong(0x1E0);
-                q = EVENT03_ACTOR1(entity);
+                q = entity->ext.event03.actor1;
                 if (q->animScriptIndex != 3)
                     Anim_StartIndexed(q, 3, 0, 0);
             }
             break;
         case 5:
-            if (EVENT03_ACTOR1(entity)->animDone)
+            if (entity->ext.event03.actor1->animDone)
             {
                 entity->timer = 0x58;
                 entity->stage++;
@@ -223,11 +223,11 @@ s32 EventScene03_RunSequence(struct EwramData_EntityData *entity)
             if (entity->timer == 0xD0)
             {
                 struct EwramData_EntityData *o;
-                EventScene03_SpawnSoulOrb((s16)EVENT03_ACTOR8(entity)->posX.part16.integer, (s16)EVENT03_ACTOR8(entity)->posY.part16.integer, 0, 0, 0);
-                EVENT03_ACTOR8(entity)->hidden = 1;
-                o = EVENT03_ACTOR8(entity);
+                EventScene03_SpawnSoulOrb((s16)entity->ext.event03.actor8->posX.part16.integer, (s16)entity->ext.event03.actor8->posY.part16.integer, 0, 0, 0);
+                entity->ext.event03.actor8->hidden = 1;
+                o = entity->ext.event03.actor8;
                 Effect_SpawnAt(o->posX.whole, o->posY.whole, o->spriteLayer - 1);
-                EventScene03_SpawnPartDebris(EVENT03_ACTOR8(entity));
+                EventScene03_SpawnPartDebris(entity->ext.event03.actor8);
                 PlaySong(0x6B);
                 gUnk_03002CB0.dispCnt &= 0xFEFF;
             }

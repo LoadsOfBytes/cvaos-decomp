@@ -1,7 +1,6 @@
 /* Man Eater creation: affine slot, body segments.
  * (plain literal zeros and entity->flipX as the argument fix the allocation). */
 #include "code_08009A0.h"
-#include "man_eater_entity.h"
 #include "code_08013960.h"
 #include "code_08033CAC.h"
 #include "code/code_08039340.h"
@@ -34,17 +33,17 @@ remove:
     entity->affine = 1;
     entity->animFrame = 0;
     entity->flipX = 0;
-    ObjAffine_Set(MAN_EATER_BODY_ANGLE(entity), 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set(entity->ext.manEaterBody.angle, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
     Enemy_ResetFromTemplate(entity);
     entity->spriteLayer = 0x12;
-    MAN_EATER_HEAD_COUNT(entity) = 3;
+    entity->ext.manEaterBody.headCount = 3;
     for (index = 0; index <= 2; index++)
     {
         child = Entity_CreateObject(ManEaterAttachedPart_Update);
         if (child != NULL)
         {
-            MAN_EATER_OWNER_INDEX(child) = ENTITY_INDEX(entity);
-            MAN_EATER_ORBIT_SLOT(child) = index;
+            child->ext.manEater.ownerIndex = ENTITY_INDEX(entity);
+            child->ext.manEater.orbitSlot = index;
             child->scrollWithBg = 1;
         }
     }

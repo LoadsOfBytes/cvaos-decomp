@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "blue_soul_entity.h"
 #include "player_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
@@ -48,7 +47,7 @@ extern struct BlueSoulForm sBlueSoulForms[];
  */
 void Skill_Devil_Manticore_Curly_Use(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = BLUE_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.blueSoul.owner;
     struct BlueSoulInfo *info = &sBlueSoulInfo[gEwramData->playerStatus.equippedBlueSoul];
     struct BlueSoulInfo *info2 = info;
     struct PlayerState *ctx;
@@ -60,7 +59,7 @@ void Skill_Devil_Manticore_Curly_Use(struct EwramData_EntityData *entity)
         return;
     }
     ctx = &gEwramData->playerState;
-    if (PLAYER_ACTION_FLAGS(ctx->player) & 0x81A2)
+    if (ctx->player->ext.player.actionFlags & 0x81A2)
     {
         BlueSoul_ReleaseActiveResources(entity);
         EntityDelete(entity);
@@ -72,10 +71,10 @@ void Skill_Devil_Manticore_Curly_Use(struct EwramData_EntityData *entity)
     case 0:
         ctx->player->accelX.whole = 0;
         ctx->player->accelY.whole = 0;
-        PLAYER_ACTION_FLAGS(ctx->player) &= ~0x20;
+        ctx->player->ext.player.actionFlags &= ~0x20;
         entity->state = 1;
         ctx->player->subState = 0;
-        PLAYER_TRANSFORM_FORM(gEwramData->playerState.player) = info->effectValue;
+        gEwramData->playerState.player->ext.player.transformForm = info->effectValue;
         break;
     case 1:
         if (ctx->player->subState == 3)

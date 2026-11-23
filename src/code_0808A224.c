@@ -1,6 +1,5 @@
 /* Great Armor update. */
 #include "code_08009A0.h"
-#include "great_armor_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -25,7 +24,7 @@ struct ArmorBox {
 
 #define TO_PIXELS(d) ((d) < 0 ? -(-(d) >> 16) : (d) >> 16)
 /* set by the AI when the shield arm (part 4) is up: makes box 2 harmless */
-#define GUARD(e) (*(s8 *)&GREAT_ARMOR_GUARD((e)))
+#define GUARD(e) (*(s8 *)&e->ext.greatArmor.guard)
 
 /* Great Armor: dispatch AI (0) / attacks (1), crumble when killed (2,
  * dust, free the parts), frozen (3); the second box follows part 4. */
@@ -60,14 +59,14 @@ void EnemyGreatArmorUpdate(struct EwramData_EntityData *entity)
             Effect_SpawnRisingParticle(entity->posX.whole + x, entity->posY.whole, entity->spriteLayer - 1, 1);
         }
         if (--entity->timer <= 1) entity->deleteRequested = 1;
-        if (entity->deleteRequested && entity->unk_500.greatArmorParts != NULL)
-            Heap_Free(entity->unk_500.greatArmorParts);
+        if (entity->deleteRequested && entity->ext.greatArmor.parts != NULL)
+            Heap_Free(entity->ext.greatArmor.parts);
         return;
     case 3:
         return;
     }
 boxes:
-    parts = (s32 *)entity->unk_500.greatArmorParts;
+    parts = (s32 *)entity->ext.greatArmor.parts;
     if (entity->flipX)
         box.x = -TO_PIXELS(parts[4 * 10 + 0]) - 8;
     else
@@ -88,5 +87,5 @@ boxes:
     }
     Entity_ClampXToRoom(entity, 1);
     if ((RandomNumberGenerator() & 0x7F) <= 3)
-        GREAT_ARMOR_HIT(entity) = 0;
+        entity->ext.greatArmor.hit = 0;
 }

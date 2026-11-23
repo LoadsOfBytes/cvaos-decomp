@@ -122,7 +122,7 @@ void Belmont_UpdateJumpAttack(struct EwramData_EntityData *entity)
                 entity->velY.whole=0;
                 entity->subState++;
                 entity->stage=0;
-                entity->attack=BELMONT_ATTACK_OFF(entity);
+                entity->attack=entity->ext.belmont.attackOff;
             }
             break;
         case 4:
@@ -189,7 +189,7 @@ void Belmont_UpdateJumpAttack(struct EwramData_EntityData *entity)
             {
                 entity->subState=6;
                 entity->stage=0;
-                entity->attack=BELMONT_ATTACK(entity);
+                entity->attack=entity->ext.belmont.attack;
             }
             break;
         }
@@ -207,7 +207,7 @@ void Belmont_UpdateJumpAttack(struct EwramData_EntityData *entity)
                 entity->velY.whole=0;
                 entity->subState=4;
                 entity->stage=0;
-                entity->attack=BELMONT_ATTACK_OFF(entity);
+                entity->attack=entity->ext.belmont.attackOff;
             }
             else
             {
@@ -239,7 +239,7 @@ void Belmont_UpdateJumpAttack(struct EwramData_EntityData *entity)
                                 entity->subState=3;
                                 entity->stage=0;
                             }
-                            entity->attack=BELMONT_ATTACK_OFF(entity);
+                            entity->attack=entity->ext.belmont.attackOff;
                         }
                         break;
                 }

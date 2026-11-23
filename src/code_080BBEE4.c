@@ -70,7 +70,7 @@ s32 CockatriceFamily_UpdateDeath(struct EwramData_EntityData *entity)
                 break;
             }
             entity->subState = 2;
-            COCKATRICE_DEATH_FLAGS(entity) |= 1;
+            entity->ext.cockatrice.deathFlags |= 1;
             break;
         case 2:
             return 1;
@@ -92,7 +92,7 @@ void CockatriceFamily_Create(struct EwramData_EntityData *entity, s32 paletteSlo
         EntityDelete(entity);
         return;
     }
-    COCKATRICE_PALETTE_SLOT(entity) = paletteSlot;
+    entity->ext.cockatrice.paletteSlot = paletteSlot;
     Enemy_ResetFromTemplate(entity);
     entity->spriteLayer = 0x11;
     Anim_StartIndexed(entity, 0, 0, 1);

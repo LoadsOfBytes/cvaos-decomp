@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "joint_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern const s8 *const sDevilPartPoses[];
@@ -8,9 +7,9 @@ extern const s32 *const sDevilPartAngles[];
 /* Interpolate a Devil joint toward its pose or its hanging angle. */
 void Devil_UpdatePart(struct EwramData_EntityData *entity, s32 index)
 {
-    struct DevilPart *parts = entity->unk_500.devilParts;
-    const s8 *pose = sDevilPartPoses[(s8)JOINT_POSE(entity)];
-    const s32 *angles = sDevilPartAngles[(s8)JOINT_POSE(entity)];
+    struct DevilPart *parts = entity->ext.devil.parts;
+    const s8 *pose = sDevilPartPoses[(s8)entity->ext.joint.pose];
+    const s32 *angles = sDevilPartAngles[(s8)entity->ext.joint.pose];
     struct DevilPart *part = (struct DevilPart *)(index * sizeof(struct DevilPart) + (u32)parts);
     s32 x, y, dx, dy, a;
     if (part->targetSwingAngle == 0 && part->swingAngle == 0)

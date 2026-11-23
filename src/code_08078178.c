@@ -1,6 +1,5 @@
 ﻿/* Demo flight records a pair of byte displacements for each frame. */
 #include "code_08009A0.h"
-#include "quezlcoatl_entity.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
 /**
@@ -9,7 +8,7 @@
  */
 void Quezlcoatl_UpdatePreview(struct EwramData_EntityData *entity)
 {
-    u8 (*history)[2]=(u8 (*)[2])QUEZLCOATL_HISTORY(entity);
+    u8 (*history)[2]=(u8 (*)[2])entity->ext.quezlcoatl.history;
     s32 x,y,i;
     switch(entity->subState)
     {

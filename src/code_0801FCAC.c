@@ -13,7 +13,7 @@ void Julius_UpdateAbilityDash(struct EwramData_EntityData *entity)
 
     {
         u8 two = 2;
-        PLAYER_INVULNERABLE_TIMER(gEwramData->playerState.player) = two;
+        gEwramData->playerState.player->ext.player.invulnerableTimer = two;
     }
     entity->drawSkip = 1;
     old = entity->velX.whole;

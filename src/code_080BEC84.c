@@ -2,7 +2,6 @@
  * read goes through the inline Player() (offset constant reloaded as in the
  * target). */
 #include "code_08009A0.h"
-#include "death_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "code_080D73B8.h"
@@ -49,7 +48,7 @@ void Death_UpdateDashAttack(struct EwramData_EntityData *entity)
             s32 px = player->posX.whole;
             entity->flipX = (entity->posX.whole < px) ? 1 : 0;
         }
-        DEATH_DASH_STEP(entity) = 2;
+        entity->ext.death.dashStep = 2;
         Anim_StartIndexed(entity, 9, 2, 1);
         offset = 0x78;
         {
@@ -64,11 +63,11 @@ void Death_UpdateDashAttack(struct EwramData_EntityData *entity)
             {
                 s32 px = (s16)(*player)->posX.part16.integer;
                 camera = &ewram->bgInfo[1];
-                DEATH_TARGET_X(entity) = px + camera->xPos.part16.integer + offset;
+                entity->ext.death.targetX = px + camera->xPos.part16.integer + offset;
             }
             {
                 s32 py = (s16)(*player)->posY.part16.integer;
-                DEATH_TARGET_Y(entity) = py + camera->yPos.part16.integer;
+                entity->ext.death.targetY = py + camera->yPos.part16.integer;
             }
         }
         entity->subState = 1;
@@ -76,8 +75,8 @@ void Death_UpdateDashAttack(struct EwramData_EntityData *entity)
     case 1:
     {
         struct BgLayerState *camera;
-        if (MoveToward(entity, (DEATH_TARGET_X(entity) - (s16)(camera = &gEwramData->bgInfo[1])->xPos.part16.integer) << 16,
-                       (DEATH_TARGET_Y(entity) - (s16)camera->yPos.part16.integer) << 16) > 0x3FFF)
+        if (MoveToward(entity, (entity->ext.death.targetX - (s16)(camera = &gEwramData->bgInfo[1])->xPos.part16.integer) << 16,
+                       (entity->ext.death.targetY - (s16)camera->yPos.part16.integer) << 16) > 0x3FFF)
             break;
         Anim_StartIndexed(entity, 0xA, 2, 1);
         entity->subState = 2;
@@ -96,7 +95,7 @@ void Death_UpdateDashAttack(struct EwramData_EntityData *entity)
         entity->velY.whole = 0;
         entity->accelY.whole = 0;
         entity->timer = 0x10;
-        DEATH_DASH_STEP(entity) = 3;
+        entity->ext.death.dashStep = 3;
         Afterimage_Create(entity, 0, 0x10, 0x31);
         Afterimage_Create(entity, 0, 8, 0x30);
         PlaySong(0x87);
@@ -118,23 +117,23 @@ void Death_UpdateDashAttack(struct EwramData_EntityData *entity)
         {
         case 1:
         case 5:
-            DEATH_DASH_STEP(entity) = 1;
+            entity->ext.death.dashStep = 1;
             break;
         case 3:
             if (entity->animTimer == 0)
                 PlaySong(0x86);
-            DEATH_DASH_STEP(entity) = 4;
+            entity->ext.death.dashStep = 4;
             break;
         case 6:
             if (entity->animTimer == 0)
                 PlaySong(0x85);
-            DEATH_DASH_STEP(entity) = 5;
+            entity->ext.death.dashStep = 5;
             break;
         }
         if (entity->animFlags & 4)
         {
             entity->flipX = 0;
-            DEATH_DASH_STEP(entity) = 0;
+            entity->ext.death.dashStep = 0;
             Anim_StartIndexed(entity, 7, 2, 1);
             entity->state = 3;
             entity->stage = 0;

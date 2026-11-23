@@ -1,6 +1,5 @@
 #include "code_08009A0.h"
 #include "soul_skill_entity.h"
-#include "blue_soul_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -18,7 +17,7 @@ extern u8 sSkillBuerOrbitGfx[], sSkillBuerOrbitPalette[], sSkillBuerOrbitSpriteS
  */
 void SkillBuerOrbitUpdate(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = BLUE_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.blueSoul.owner;
     struct EwramData_EntityData *flame;
     s32 x, y;
 

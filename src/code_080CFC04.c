@@ -14,13 +14,13 @@ extern struct BelmontSceneObject sBelmontSceneObjects[];
 void Belmont_CreateSceneObject(struct EwramData_EntityData *entity,s32 index)
 {
     struct BelmontSceneObject *info=&sBelmontSceneObjects[index];
-    if(BELMONT_FLAGS(entity) & 0x10)
+    if(entity->ext.belmont.flags & 0x10)
     {
         struct EwramData_EntityData *object=EntityCreateInRange(0x1B,0x48,(u32 *)EntityUpdateNothing);
         if(object)
         {
             s32 facing;
-            BELMONT_SCENE_OBJECT_INDEX(entity)=ENTITY_INDEX(object);
+            entity->ext.belmontScene.objectIndex=ENTITY_INDEX(object);
             ENTITY_PARENT_INDEX(object)=ENTITY_INDEX(entity);
             if(index==0)
             {

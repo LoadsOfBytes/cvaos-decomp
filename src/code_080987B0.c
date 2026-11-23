@@ -1,6 +1,5 @@
 /* CreakingSkullGuidedEffect_Update. */
 #include "code_08009A0.h"
-#include "creaking_skull_entity.h"
 #include "structs/ewram.h"
 
 /**
@@ -27,9 +26,9 @@ void CreakingSkullGuidedEffect_Update(struct EwramData_EntityData *entity)
     if (t > 7)
     {
         dx = entity->posX.whole + bg->xPos.whole;
-        dx = CREAKING_SKULL_GUIDE_EARLY_X(entity) - dx;
+        dx = entity->ext.creakingSkullGuide.earlyX - dx;
         dy = entity->posY.whole + bg->yPos.whole;
-        dy = CREAKING_SKULL_GUIDE_EARLY_Y(entity) - dy;
+        dy = entity->ext.creakingSkullGuide.earlyY - dy;
         if (t == 1)
             goto move;
         n = entity->timer;
@@ -40,9 +39,9 @@ void CreakingSkullGuidedEffect_Update(struct EwramData_EntityData *entity)
     {
         entity->animFrame = 0x35;
         dx = entity->posX.whole + bg->xPos.whole;
-        dx = CREAKING_SKULL_GUIDE_LATE_X(entity) - dx;
+        dx = entity->ext.creakingSkullGuide.lateX - dx;
         dy = entity->posY.whole + bg->yPos.whole;
-        dy = CREAKING_SKULL_GUIDE_LATE_Y(entity) - dy;
+        dy = entity->ext.creakingSkullGuide.lateY - dy;
         if (entity->timer == 1)
             goto move;
         n = entity->timer;

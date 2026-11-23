@@ -22,8 +22,8 @@ void Belmont_UpdateDodge(struct EwramData_EntityData *entity)
         case 0:
             entity->palette=entity->unk_510.part8.basePalette;
             entity->unk_510.part8.hitFlashTimer=state;
-            BELMONT_FLASH(entity)=state;
-            BELMONT_HITS(entity)=state;
+            entity->ext.belmont.flash=state;
+            entity->ext.belmont.hits=state;
             if(entity->animScriptIndex!=3)
                 Anim_StartIndexed(entity,3,1,1);
             Anim_Update(entity);

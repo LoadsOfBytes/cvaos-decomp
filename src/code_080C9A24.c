@@ -2,7 +2,6 @@
  * a cloning script and checked byte for byte:
  *   LightningDoll_SpawnDeathParts = KillerDoll_SpawnDeathParts */
 #include "code_08009A0.h"
-#include "doll_entity.h"
 #include "structs/ewram.h"
 
 extern void LightningDollPart_Update(struct EwramData_EntityData *entity);
@@ -22,8 +21,8 @@ void LightningDoll_SpawnDeathParts(struct EwramData_EntityData *entity)
         if (child != NULL)
         {
             ENTITY_PARENT_INDEX(child) = ENTITY_INDEX(entity);
-            DOLL_PART_INDEX(child) = i;
-            DOLL_DEATH_PART_COUNT(entity)++;
+            child->ext.dollPart.index = i;
+            entity->ext.doll.deathPartCount++;
             child->spriteLayer = entity->spriteLayer;
         }
     }

@@ -1,7 +1,6 @@
 /* Mandragora 0x080CF804..0x080CFAAF. Mandragora_SpawnDeathParts / MandragoraDeathPart_Update / Mandragora_UpdateBestiaryPreview are machine-identical
  * copies of the Needles / Blue Crow functions (cloning script). */
 #include "code_08009A0.h"
-#include "mandragora_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "code_080D73B8.h"
@@ -45,7 +44,7 @@ void Mandragora_SpawnDeathParts(struct EwramData_EntityData *entity)
         if (child == NULL)
             continue;
         needle = sMandragoraDeathParts[i];
-        MANDRAGORA_DEATH_PARTS(entity)++;
+        entity->ext.mandragoraDeath.parts++;
         ENTITY_PARENT_INDEX(child) = ENTITY_INDEX(entity);
         child->spriteLayer = entity->spriteLayer;
         child->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
@@ -81,7 +80,7 @@ void MandragoraDeathPart_Update(struct EwramData_EntityData *entity)
     if (!Entity_IsInRect(entity, -0x80, -0x40, 0x1F0, 0x120) || (u8)--entity->timer == 0xFF
         || entity->posY.part16.integer > 0xAA)
     {
-        MANDRAGORA_DEATH_PARTS(parent)--;
+        parent->ext.mandragoraDeath.parts--;
         entity->deleteRequested = 1;
     }
     else
@@ -173,8 +172,8 @@ void Mandragora_OnHit(struct EwramData_EntityData *entity)
  */
 void Mandragora_RequestLinkedDeletion(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *linked = &gEwramData->entityData[MANDRAGORA_LINK_INDEX(entity)];
-    struct EwramData_EntityData *linked2 = &gEwramData->entityData[MANDRAGORA_LINK_INDEX(linked)];
+    struct EwramData_EntityData *linked = &gEwramData->entityData[entity->ext.mandragora.linkIndex];
+    struct EwramData_EntityData *linked2 = &gEwramData->entityData[linked->ext.mandragora.linkIndex];
 
     linked2->deleteRequested = 1;
     linked->deleteRequested = 1;

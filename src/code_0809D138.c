@@ -1,6 +1,5 @@
 /* Legion (state == 1): rises, bounces around the room, sinks back. */
 #include "code_08009A0.h"
-#include "legion_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -33,7 +32,7 @@ extern void EntityDampVelocityX(struct EwramData_EntityData *, s32);
 extern void EntityDampVelocityY(struct EwramData_EntityData *, s32);
 extern s32 Legion_GetPathEdge(s32 x, s32 y, s32 size);
 extern u8 sLegionAnimScript0[];
-#define DIR (*(u8 *)&entity->unk_500.part8.unk_501)
+#define DIR (*(u8 *)&entity->ext.raw.unk_500.part8.unk_501)
 #define ANIM(P) Anim_Start(entity, (struct AnimScript *)(sLegionAnimScript0 + (P)), 2, 1)
 #define BOUNCE(R) \
     if ((R) & 0xF00) \
@@ -59,7 +58,7 @@ extern u8 sLegionAnimScript0[];
 void Legion_UpdateBounce(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
-    struct LegionState *data = (struct LegionState *)LEGION_DATA(entity);
+    struct LegionState *data = (struct LegionState *)entity->ext.legion.data.value;
     s32 r;
 
     switch (entity->subState)
@@ -167,18 +166,18 @@ void Legion_UpdateBounce(struct EwramData_EntityData *entity)
             if (dir == 0)
             {
                 if (Entity_IsTargetRight(entity))
-                    LEGION_CIRCLE_DIR(entity) = two;
+                    entity->ext.legion.circleDir = two;
                 else
-                    LEGION_CIRCLE_DIR(entity) = 1;
+                    entity->ext.legion.circleDir = 1;
             }
             else if (dir == 2)
             {
                 if (Entity_IsTargetRight(entity))
-                    LEGION_CIRCLE_DIR(entity) = 1;
+                    entity->ext.legion.circleDir = 1;
                 else
-                    LEGION_CIRCLE_DIR(entity) = dir;
+                    entity->ext.legion.circleDir = dir;
             }
-            LEGION_RETARGET_TIMER(entity) = (RandomNumberGenerator() % 64) + 0x3C;
+            entity->ext.legion.retargetTimer = (RandomNumberGenerator() % 64) + 0x3C;
             data->shellActionTimer = (RandomNumberGenerator() % 128) + 0x78;
         }
         break;
@@ -188,7 +187,7 @@ void Legion_UpdateBounce(struct EwramData_EntityData *entity)
     data->shells[2].angleOffset += 0xC3;
     data->rotationAngle += data->angularVelocity;
     ObjAffine_Set(data->rotationAngle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
-    if (LEGION_FLAGS(entity) & 2)
+    if (entity->ext.legion.flags & 2)
     {
         data->bobPhase += 0x180;
         entity->posX.whole = data->roomX - bg->xPos.whole;

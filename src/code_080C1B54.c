@@ -1,7 +1,6 @@
 /* Altair feather motion. Local register bindings preserve phase accumulation
  * and threshold selection in agbcc; they do not prove original source spelling. */
 #include "code_08009A0.h"
-#include "altair_entity.h"
 #include "code/code_08039340.h"
 #include "structs/entity_template.h"
 
@@ -12,7 +11,7 @@
  */
 void AltairFeather_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = ALTAIR_FEATHER_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.altairFeather.owner;
     s32 phase;
     register u32 limit asm("r0"); /* FAKEMATCH: pinned register */
     switch (entity->state)
@@ -45,27 +44,27 @@ void AltairFeather_Update(struct EwramData_EntityData *entity)
             u32 random = RandomNumberGenerator();
             s32 mask = 0x3FFF;
             mask &= random;
-            ALTAIR_FEATHER_UNUSED_SPIN(entity) = mask - 0x2000;
+            entity->ext.altairFeather.unusedSpin = mask - 0x2000;
         }
-        ALTAIR_FEATHER_UNUSED_SPEED(entity) = 0xD00;
+        entity->ext.altairFeather.unusedSpeed = 0xD00;
         {
             u32 random = RandomNumberGenerator();
             s32 mask = 0x7F;
             mask &= random;
-            ALTAIR_FEATHER_SWAY_SPEED(entity) = mask + 0x40;
+            entity->ext.altairFeather.swaySpeed = mask + 0x40;
         }
         entity->scrollWithBg = 1;
         break;
     case 2:
-        entity->posX.whole += Sin((u16)ALTAIR_FEATHER_SWAY_PHASE(entity)) / 4;
+        entity->posX.whole += Sin((u16)entity->ext.altairFeather.swayPhase) / 4;
         entity->posY.whole += entity->velY.whole;
         {
-            u32 value = (u16)ALTAIR_FEATHER_SWAY_SPEED(entity);
+            u32 value = (u16)entity->ext.altairFeather.swaySpeed;
             {
-                u32 increment = (u16)ALTAIR_FEATHER_SWAY_PHASE(entity);
+                u32 increment = (u16)entity->ext.altairFeather.swayPhase;
                 value += increment;
             }
-            ALTAIR_FEATHER_SWAY_PHASE(entity) = value;
+            entity->ext.altairFeather.swayPhase = value;
             phase = value << 16;
         }
         if (phase < 0)

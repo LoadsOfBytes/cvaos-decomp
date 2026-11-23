@@ -8,11 +8,6 @@
 #define ENTITY_TURNED(e) (((s8 *)&(e)->unk_51C)[0])
 #define ENTITY_DIR(e) (((s8 *)&(e)->unk_51C)[1])
 #define ENTITY_DIR_BYTE(e) ((u8 *)&e->unk_51C)[1]
-/* Signed icon rotation step per frame (SoulTypeIcons.dir). */
-#define SOUL_SELECTOR_SPIN(e) e->unk_504.whole
-/* Turned with the spin, but SoulTypeSelector_Update never reads it (padding of
- * its SoulTypeIcons view). */
-#define SOUL_SELECTOR_UNUSED_SPIN(e) e->unk_4F4.part16.unk_4F6
 
 /**
  * @brief 486E0 | Set the direction byte 0x51D to dir (-1 or 1) and
@@ -26,14 +21,14 @@ void SoulTypeSelector_SetDirection(struct EwramData_EntityData *entity, s8 dir)
     if (dir == -1)
     {
         ENTITY_DIR_BYTE(entity) = 0xFF; // -1, stored as an unsigned byte
-        SOUL_SELECTOR_UNUSED_SPIN(entity) = -ABS(SOUL_SELECTOR_UNUSED_SPIN(entity));
-        SOUL_SELECTOR_SPIN(entity) = -ABS(SOUL_SELECTOR_SPIN(entity));
+        entity->ext.soulSelector.unusedSpin = -ABS(entity->ext.soulSelector.unusedSpin);
+        entity->ext.soulSelector.spin = -ABS(entity->ext.soulSelector.spin);
     }
     else
     {
         ENTITY_DIR(entity) = 1;
-        SOUL_SELECTOR_UNUSED_SPIN(entity) = ABS(SOUL_SELECTOR_UNUSED_SPIN(entity));
-        SOUL_SELECTOR_SPIN(entity) = ABS(SOUL_SELECTOR_SPIN(entity));
+        entity->ext.soulSelector.unusedSpin = ABS(entity->ext.soulSelector.unusedSpin);
+        entity->ext.soulSelector.spin = ABS(entity->ext.soulSelector.spin);
     }
     entity->state++;
 }

@@ -20,14 +20,14 @@ void EventScene03SoulOrb_Update(struct EwramData_EntityData *entity)
     if (entity->state <= 1)
     {
         struct EwramData_EntityData *target = gEwramData->playerState.player;
-        EVENT03_ORB_HEADING(entity) = Entity_StepAngleTowardPoint(entity, target->posX.whole, target->posY.whole - 0x100000,
-                                               EVENT03_ORB_HEADING(entity), EVENT03_ORB_TURN_RATE(entity));
-        EVENT03_ORB_TURN_RATE(entity) += 42;
-        if (EVENT03_ORB_TURN_RATE(entity) > 0x4000) EVENT03_ORB_TURN_RATE(entity) = 0x4000;
-        EVENT03_ORB_SPEED(entity) += 0x1800;
-        if (EVENT03_ORB_SPEED(entity) > 0x80000) EVENT03_ORB_SPEED(entity) = 0x80000;
-        entity->velX.whole = FixedMulFast(Sin(EVENT03_ORB_HEADING(entity) + 0x4000), EVENT03_ORB_SPEED(entity));
-        entity->velY.whole = FixedMulFast(Sin(EVENT03_ORB_HEADING(entity)), EVENT03_ORB_SPEED(entity));
+        entity->ext.event03Orb.heading = Entity_StepAngleTowardPoint(entity, target->posX.whole, target->posY.whole - 0x100000,
+                                               entity->ext.event03Orb.heading, entity->ext.event03Orb.turnRate);
+        entity->ext.event03Orb.turnRate += 42;
+        if (entity->ext.event03Orb.turnRate > 0x4000) entity->ext.event03Orb.turnRate = 0x4000;
+        entity->ext.event03Orb.speed += 0x1800;
+        if (entity->ext.event03Orb.speed > 0x80000) entity->ext.event03Orb.speed = 0x80000;
+        entity->velX.whole = FixedMulFast(Sin(entity->ext.event03Orb.heading + 0x4000), entity->ext.event03Orb.speed);
+        entity->velY.whole = FixedMulFast(Sin(entity->ext.event03Orb.heading), entity->ext.event03Orb.speed);
         entity->posX.whole += entity->velX.whole;
         entity->posY.whole += entity->velY.whole;
     }

@@ -19,7 +19,7 @@ extern void BaloreSpark_DamagePlayerOnContact(struct EwramData_EntityData *entit
 void BaloreSpark_Update(struct EwramData_EntityData *entity)
 {
     u8 hit[0x10];
-    struct EwramData_EntityData *parent = BALORE_BODY(entity);
+    struct EwramData_EntityData *parent = entity->ext.balorePart.body;
     struct EwramData_EntityData *spark;
     u8 timer;
 

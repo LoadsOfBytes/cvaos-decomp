@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "blue_soul_entity.h"
 #include "player_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
@@ -59,7 +58,7 @@ static inline void SpawnBubble(struct EwramData_EntityData *entity, s32 type)
  */
 void SkillSkyFishUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = BLUE_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.blueSoul.owner;
     s16 *str = &gEwramData->playerState.currentStats[0];
 
     entity->roomActive = 1;
@@ -67,14 +66,14 @@ void SkillSkyFishUse(struct EwramData_EntityData *entity)
     {
         if (BlueSoul_CheckEndCondition(entity))
             entity->state = 4;
-        if (PLAYER_ACTION_FLAGS(parent) & 0x1A2)
+        if (parent->ext.player.actionFlags & 0x1A2)
             entity->state = 4;
     }
     Follow(entity, parent, 0, 0);
     switch (entity->state)
     {
     case 0:
-        if (PLAYER_ACTION_FLAGS(parent) & 0x82)
+        if (parent->ext.player.actionFlags & 0x82)
             goto delete;
     {
         u8 *graphics = (u8 *)0x081DD950;
@@ -122,7 +121,7 @@ void SkillSkyFishUse(struct EwramData_EntityData *entity)
         if (entity->unk_514.part16.spawnParam0 != 0)
         {
             entity->timer = 0xF0;
-            if (PLAYER_ACTION_FLAGS(parent) & 0x20)
+            if (parent->ext.player.actionFlags & 0x20)
                 PlaySong(0x1A2);
         }
         else

@@ -1,6 +1,5 @@
 /* Parent-linked affine entity part: attachment, release, motion and deletion. */
 #include "code_08009A0.h"
-#include "waiter_skeleton_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -28,7 +27,7 @@ static inline void BoxB(struct EwramData_EntityData *e, s32 box) { HitBox_SetBod
 
 void WaiterSkeletonThrownTray_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = WAITER_TRAY_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.waiterTray.owner;
     u16 box[8];
     s16 offset[2];
     if (entity->state != 5 && (s16)entity->unk_518.part16.hp <= 0)
@@ -59,7 +58,7 @@ void WaiterSkeletonThrownTray_Update(struct EwramData_EntityData *entity)
         entity->affine = 1;
         entity->scrollWithBg = 1;
         entity->spriteLayer = parent->spriteLayer;
-        Anim_StartIndexed(entity, WAITER_TRAY_ANIM(entity), 0, 1);
+        Anim_StartIndexed(entity, entity->ext.waiterTray.anim, 0, 1);
         entity->flipX = parent->flipX;
         entity->accelX.part16.integer = 10;
         if (entity->flipX)
@@ -70,7 +69,7 @@ void WaiterSkeletonThrownTray_Update(struct EwramData_EntityData *entity)
           x += parentX;
           entity->posX.part16.integer = x; }
         entity->posY.part16.integer = parent->posY.part16.integer - 16;
-        if (WAITER_SKELETON_FLAGS(parent) & 1) {
+        if (parent->ext.waiterSkeleton.flags & 1) {
             entity->hidden = 1;
             entity->state = 2;
             break;
@@ -97,7 +96,7 @@ void WaiterSkeletonThrownTray_Update(struct EwramData_EntityData *entity)
             else
                 entity->posX.part16.integer += point->x;
             entity->posY.part16.integer += point->y;
-            if (WAITER_SKELETON_FLAGS(parent) & 4) {
+            if (parent->ext.waiterSkeleton.flags & 4) {
                 s32 vx;
                 entity->state = 4;
                 PlaySong(0x89);
@@ -159,7 +158,7 @@ void WaiterSkeletonThrownTray_Update(struct EwramData_EntityData *entity)
         PlaySong(0x89);
         entity->state = 4;
     case 4:
-        WAITER_TRAY_ANGLE(entity) += entity->velX.whole / 64;
+        entity->ext.waiterTray.angle += entity->velX.whole / 64;
         EntityDampVelocityX(entity, 60);
         EntityAccelerateY(entity, 0x80000);
         EntityMoveX(entity);
@@ -175,7 +174,7 @@ delete:
         EntityDelete(entity);
         return;
     }
-    ObjAffine_Set(WAITER_TRAY_ANGLE(entity), 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set(entity->ext.waiterTray.angle, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
     if (entity->state != 5)
         Hit_CheckWithPlayer(box, entity);
     Anim_Update(entity);

@@ -1,6 +1,5 @@
 /* Quetzalcoatl: allocate the displacement history and create fifteen following body segments. */
 #include "code_08009A0.h"
-#include "quezlcoatl_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -30,8 +29,8 @@ void EnemyQuezlcoatlCreate(struct EwramData_EntityData *entity)
         return;
     }
     entity->animFrame = 12;
-    QUEZLCOATL_HISTORY(entity) = (s32)Heap_Alloc(60);
-    if (!QUEZLCOATL_HISTORY(entity))
+    entity->ext.quezlcoatl.history = (s32)Heap_Alloc(60);
+    if (!entity->ext.quezlcoatl.history)
     {
         EntityDelete(entity);
         return;
@@ -40,8 +39,8 @@ void EnemyQuezlcoatlCreate(struct EwramData_EntityData *entity)
     if (!gEwramData->gameState.bestiaryPreview)
         Entity_SnapToGround(entity);
     entity->scrollWithBg = 1;
-    QUEZLCOATL_CAMERA_X(entity) = camera->xPos.part16.integer;
-    QUEZLCOATL_CAMERA_Y(entity) = camera->yPos.part16.integer;
+    entity->ext.quezlcoatl.cameraX = camera->xPos.part16.integer;
+    entity->ext.quezlcoatl.cameraY = camera->yPos.part16.integer;
     index = 14;
     do
     {
@@ -60,11 +59,11 @@ void EnemyQuezlcoatlCreate(struct EwramData_EntityData *entity)
         part->scrollWithBg = 0;
         part->drawFunc = (u32 *)Sprite_DrawEntity;
         ENTITY_OWNER(part) = entity;
-        QUEZLCOATL_SEGMENT_INDEX(part) = index;
+        part->ext.quezlcoatlSegment.index = index;
         part->timer = index;
         part->attack = entity->attack;
-        QUEZLCOATL_CAMERA_X(part) = QUEZLCOATL_CAMERA_X(entity);
-        QUEZLCOATL_CAMERA_Y(part) = QUEZLCOATL_CAMERA_Y(entity);
+        part->ext.quezlcoatl.cameraX = entity->ext.quezlcoatl.cameraX;
+        part->ext.quezlcoatl.cameraY = entity->ext.quezlcoatl.cameraY;
         part->posX.whole = entity->posX.whole;
         part->posY.whole = entity->posY.whole - 0x40000;
         if (index <= 5)

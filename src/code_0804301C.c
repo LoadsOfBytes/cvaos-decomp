@@ -14,7 +14,7 @@ void NumberIndicator_Draw(struct EwramData_EntityData *entity)
         s32 index = i;
         index %= 4;
         index += ((i >> 2) + 2) * 4;
-        glyph = Glyph((u8 *)&entity->unk_4F4, index);
+        glyph = Glyph((u8 *)&entity->ext.raw.unk_4F4, index);
         entity->animFrame = *glyph;
         if (*glyph != 0xC)
         {

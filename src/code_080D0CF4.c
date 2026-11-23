@@ -14,7 +14,7 @@ void BelmontPowerParticle_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *owner =
         &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
-    s8 step = BELMONT_PARTICLE_STEP(entity);
+    s8 step = entity->ext.belmontParticle.step;
     u16 initialYMinus32 = entity->posY.part16.integer - 32;
 
     if ((s16)owner->posX.part16.integer > (s16)entity->posX.part16.integer)

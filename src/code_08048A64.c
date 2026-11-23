@@ -44,7 +44,7 @@ void Cursor_StartAnimation(void)
 {
     struct EwramData_EntityData *cursor = &gEwramData->entityData[18];
 
-    Sprite_Attach(cursor, sMenuSpriteSheet, MENU_GFX_SLOT(cursor), 0xD);
+    Sprite_Attach(cursor, sMenuSpriteSheet, cursor->ext.menu.gfxSlot, 0xD);
     cursor->animFrame = 0x1E;
 }
 
@@ -78,7 +78,7 @@ void MenuPageTitle_Create(struct EwramData_EntityData *title, s32 frame)
 {
     u8 *sheet = sMenuSpriteSheet;
     struct EwramData_EntityData *cursor = &gEwramData->entityData[18];
-    s32 tileSlot = MENU_GFX_SLOT(cursor);
+    s32 tileSlot = cursor->ext.menu.gfxSlot;
 
     if (gEwramData->gameState.language == 3)
         sheet = sMenuPageTitleSpriteSheet;
@@ -86,7 +86,7 @@ void MenuPageTitle_Create(struct EwramData_EntityData *title, s32 frame)
     Sprite_Attach(title, sheet, tileSlot, 0xE);
     MENU_TITLE_AFFINE(title) = ObjAffine_Alloc(2);
     title->animFrame = frame;
-    MENU_TITLE_STATE(title)++;
+    title->ext.menuTitle.state++;
 }
 
 /**
@@ -97,7 +97,7 @@ void MenuPageTitle_Delete(struct EwramData_EntityData *title)
 {
     ObjAffine_Free(MENU_TITLE_AFFINE(title));
     title->deleteRequested = 1;
-    MENU_TITLE_STATE(title) = 0;
+    title->ext.menuTitle.state = 0;
 }
 
 /**

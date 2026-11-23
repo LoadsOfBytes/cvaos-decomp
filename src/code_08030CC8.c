@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "blue_soul_entity.h"
 #include "player_entity.h"
 #include "code_080D73B8.h"
 extern s32 BlueSoul_ShouldEnd(struct EwramData_EntityData *);
@@ -7,12 +6,12 @@ extern void BlueSoul_ReleaseActiveResources(struct EwramData_EntityData *);
 
 void SkillMedusaHeadUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = BLUE_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.blueSoul.owner;
     s32 done;
     s32 velocity;
     if (entity->state == 0)
     {
-        if ((PLAYER_ACTION_FLAGS(parent) & 0x01008082) != 2) goto restore;
+        if ((parent->ext.player.actionFlags & 0x01008082) != 2) goto restore;
         velocity = parent->velY.whole;
         entity->velY.whole = velocity;
         entity->accelY.whole = parent->accelY.whole;
@@ -28,7 +27,7 @@ void SkillMedusaHeadUse(struct EwramData_EntityData *entity)
         parent->accelY.whole = entity->accelY.whole;
         goto remove;
     }
-    if ((PLAYER_ACTION_FLAGS(parent) & 0x01008082) != 2)
+    if ((parent->ext.player.actionFlags & 0x01008082) != 2)
     {
         parent->velY.whole = entity->velY.whole;
         parent->accelY.whole = entity->accelY.whole;

@@ -1,6 +1,5 @@
 /* Nightmare running, attack and death states. */
 #include "code_08009A0.h"
-#include "nightmare_entity.h"
 #include "code_08001194.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -35,18 +34,18 @@ void Nightmare_UpdateRun(struct EwramData_EntityData *entity)
 {
     s32 timer;
     struct EwramData_EntityData *effect;
-    Entity_Walk(entity, NIGHTMARE_RUN_SPEED(entity), sNightmareWalkProfile, 4);
+    Entity_Walk(entity, entity->ext.nightmare.runSpeed, sNightmareWalkProfile, 4);
     switch (entity->subState)
     {
     case 0:
-        NIGHTMARE_RUN_SPEED(entity) = 0;
+        entity->ext.nightmare.runSpeed = 0;
         entity->subState = 1;
         /* fall through */
     case 1:
         if ((u8)((u32)entity->timer % 25) == 0 && Entity_IsInRect(entity, -0x40, -0x40, 0x170, 0x120)) PlaySong(0x7D);
         entity->timer++;
-        if ((s32)NIGHTMARE_RUN_SPEED(entity) <= 0x27FFF) NIGHTMARE_RUN_SPEED(entity) += 0x4000;
-        if (++NIGHTMARE_RUN_TIMER(entity) > 0x50)
+        if ((s32)entity->ext.nightmare.runSpeed <= 0x27FFF) entity->ext.nightmare.runSpeed += 0x4000;
+        if (++entity->ext.nightmare.runTimer > 0x50)
         {
             Anim_StartIndexed(entity, (u16)(entity->unk_514.part16.spawnParam0 + 2), 0, 0);
             if (entity->unk_514.part16.spawnParam0 == 0)
@@ -60,7 +59,7 @@ void Nightmare_UpdateRun(struct EwramData_EntityData *entity)
         }
         break;
     case 2:
-        if ((s32)NIGHTMARE_RUN_SPEED(entity) > 0) NIGHTMARE_RUN_SPEED(entity) -= 0x1000;
+        if ((s32)entity->ext.nightmare.runSpeed > 0) entity->ext.nightmare.runSpeed -= 0x1000;
         timer = entity->timer;
         timer++;
         entity->timer = timer;
@@ -78,7 +77,7 @@ void Nightmare_UpdateRun(struct EwramData_EntityData *entity)
         }
         if (entity->animFlags & 4)
         {
-            NIGHTMARE_RUN_TIMER(entity) = 0;
+            entity->ext.nightmare.runTimer = 0;
             Anim_StartIndexed(entity, (u16)entity->unk_514.part16.spawnParam0, 0, 1);
             if (entity->unk_514.part16.spawnParam0 == 0)
             {
@@ -105,15 +104,15 @@ s32 Nightmare_UpdateDeath(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
     case 0:
-        if ((u8)NIGHTMARE_EFFECT_INDEX_0(entity) != 0)
+        if ((u8)entity->ext.nightmareEffect.index0 != 0)
         {
-            Entity_EndIfActive(&gEwramData->entityData[(u8)NIGHTMARE_EFFECT_INDEX_0(entity)]);
-            NIGHTMARE_EFFECT_INDEX_0(entity) = 0;
+            Entity_EndIfActive(&gEwramData->entityData[(u8)entity->ext.nightmareEffect.index0]);
+            entity->ext.nightmareEffect.index0 = 0;
         }
-        if (NIGHTMARE_EFFECT_INDEX_1(entity) != 0)
+        if (entity->ext.nightmareEffect.index1 != 0)
         {
-            Entity_EndIfActive(&gEwramData->entityData[NIGHTMARE_EFFECT_INDEX_1(entity)]);
-            NIGHTMARE_EFFECT_INDEX_1(entity) = 0;
+            Entity_EndIfActive(&gEwramData->entityData[entity->ext.nightmareEffect.index1]);
+            entity->ext.nightmareEffect.index1 = 0;
         }
         Anim_StartIndexed(entity, (u16)(entity->unk_514.part16.spawnParam0 + 2), 0, 0);
         entity->subState = 1;

@@ -27,7 +27,7 @@ s32 Belmont_CreateAttachedWeapon(struct EwramData_EntityData *entity)
             Anim_StartIndexed(weapon,0,0,1);
             Anim_Update(weapon);
             ENTITY_PARENT_INDEX(weapon)=ENTITY_INDEX(entity);
-            BELMONT_WEAPON_INDEX(entity)=ENTITY_INDEX(weapon);
+            entity->ext.belmontWeapon.index=ENTITY_INDEX(weapon);
             weapon->spriteLayer=entity->spriteLayer+1;
             weapon->flipX=entity->flipX;
             weapon->posX.whole=entity->posX.whole;

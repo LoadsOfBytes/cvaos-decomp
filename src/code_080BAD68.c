@@ -2,7 +2,6 @@
  * pointer with a u8 masked copy (keeps the mask before the address and the
  * global-allocation priority of entity/child as in the original). */
 #include "code_08009A0.h"
-#include "man_eater_entity.h"
 #include "code_08013960.h"
 #include "code_08033CAC.h"
 #include "code/code_08039340.h"
@@ -39,7 +38,7 @@ void EnemyManEaterUpdate(struct EwramData_EntityData *entity)
     s32 x;
     s32 y;
     s32 offset;
-    if (entity->state != 3 && (s8)MAN_EATER_HEAD_COUNT(entity) == 0)
+    if (entity->state != 3 && (s8)entity->ext.manEaterBody.headCount == 0)
     {
         entity->animFrame = 0x11;
         Enemy_DropRewards(entity);
@@ -68,23 +67,23 @@ void EnemyManEaterUpdate(struct EwramData_EntityData *entity)
         {
             child = Entity_CreateObject(ManEaterHead_Update);
             if (child == NULL) return;
-            MAN_EATER_OWNER_INDEX(child) = ENTITY_INDEX(entity);
+            child->ext.manEater.ownerIndex = ENTITY_INDEX(entity);
             {
                 s32 value = ((entity->subState + 1) << 16) / 3;
                 value -= 0x4000;
-                MAN_EATER_ANGLE(child) = value;
-                MAN_EATER_BASE_ANGLE(child) = value;
-                MAN_EATER_HOME_ANGLE(child) = value;
+                child->ext.manEater.angle = value;
+                child->ext.manEater.baseAngle = value;
+                child->ext.manEater.homeAngle = value;
             }
-            MAN_EATER_ORBIT_SLOT(child) = entity->subState;
+            child->ext.manEater.orbitSlot = entity->subState;
             {
-                s32 offsetX = Sin(MAN_EATER_ANGLE(child) + 0x4000) << 4;
+                s32 offsetX = Sin(child->ext.manEater.angle + 0x4000) << 4;
                 s32 x = entity->posX.whole;
                 x += offsetX;
                 child->posX.whole = x;
             }
             {
-                s32 offsetY = Sin(MAN_EATER_ANGLE(child)) << 4;
+                s32 offsetY = Sin(child->ext.manEater.angle) << 4;
                 s32 y = entity->posY.whole;
                 y += offsetY;
                 child->posY.whole = y;
@@ -141,7 +140,7 @@ void EnemyManEaterUpdate(struct EwramData_EntityData *entity)
         if (--entity->timer == 0x30) entity->drawSkip = 1;
         break;
     }
-    MAN_EATER_SWAY_PHASE(entity) += 0x80;
-    MAN_EATER_BODY_ANGLE(entity) = (Sin(MAN_EATER_SWAY_PHASE(entity)) / 256) << 4;
-    ObjAffine_Set(MAN_EATER_BODY_ANGLE(entity), 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
+    entity->ext.manEaterBody.swayPhase += 0x80;
+    entity->ext.manEaterBody.angle = (Sin(entity->ext.manEaterBody.swayPhase) / 256) << 4;
+    ObjAffine_Set(entity->ext.manEaterBody.angle, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
 }

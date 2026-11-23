@@ -2,7 +2,6 @@
  * a cloning script and checked byte for byte:
  *   Effect_SpawnFadingParticleCopy = Effect_SpawnFadingParticle */
 #include "code_08009A0.h"
-#include "particle_effect.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -31,7 +30,7 @@ void Effect_SpawnFadingParticleCopy(s32 x, s32 y, s32 velX, s32 velY, s32 layer,
     child->velY.whole = velY;
     child->spriteLayer = layer;
     child->timer = 0;
-    PARTICLE_FLAGS(child) = 7;
+    child->ext.particle.flags = 7;
     gfx = ObjGfx_Find(sCommonObjectGfx);
     Sprite_Attach(child, sCommonObjectSpriteSheet, gfx, 6);
     if (variant == 0)
@@ -60,7 +59,7 @@ void Effect_SpawnParticleAnim12(s32 x, s32 y, s32 velX, s32 velY, s32 spriteLaye
     child->velY.whole = velY;
     child->spriteLayer = spriteLayer;
     child->timer = 0;
-    PARTICLE_FLAGS(child) = flags;
+    child->ext.particle.flags = flags;
     gfx = ObjGfx_Find(sCommonObjectGfx);
     Sprite_Attach(child, sCommonObjectSpriteSheet, gfx, palette);
     Anim_StartIndexed(child, 0xC, 0, 0);
@@ -136,7 +135,7 @@ void Effect_SpawnFallingPiece(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32 p
     child->accelY.whole = 0x2000;
     child->spriteLayer = layer;
     child->timer = 0xC8;
-    PARTICLE_FLAGS(child) = 0;
+    child->ext.particle.flags = 0;
     gfx = ObjGfx_Find(sCommonObjectGfx);
     Sprite_Attach(child, sCommonObjectSpriteSheet, gfx, 6);
     if (piece == 0)
@@ -166,7 +165,7 @@ void Effect_SpawnParticleAnim13(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32
     child->velY.whole = velY;
     child->flipX = RandomNumberGenerator() % 2;
     child->spriteLayer = layer;
-    PARTICLE_FLAGS(child) = 3;
+    child->ext.particle.flags = 3;
     gfx = ObjGfx_Find(sCommonObjectGfx);
     Sprite_Attach(child, sCommonObjectSpriteSheet, gfx, paletteOffset + 6);
     Anim_StartIndexed(child, 0xD, 0, 0);

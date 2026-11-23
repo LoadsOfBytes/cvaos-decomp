@@ -34,9 +34,9 @@ void EnemyBaloreUpdate(struct EwramData_EntityData *entity)
         }
         break;
     }
-    *(u16 *)&BALORE_FLAGS(entity) &= 0xFFFE;
+    *(u16 *)&entity->ext.balore.flags &= 0xFFFE;
     if (entity->state != 4 && Entity_IsInRect(entity, -8, 0, 0x100, 0xB0))
         Hit_CheckWithPlayer(box, entity);
-    Anim_StartIndexed(entity, sBaloreEyeAnimOffsets[(s8)BALORE_EYE_ANIM(entity)], 2, 0);
+    Anim_StartIndexed(entity, sBaloreEyeAnimOffsets[(s8)entity->ext.balore.eyeAnim], 2, 0);
     Anim_Update(entity);
 }

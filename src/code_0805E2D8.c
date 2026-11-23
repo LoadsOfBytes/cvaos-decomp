@@ -18,7 +18,7 @@ void EventScene03FlyingPart_Update(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *owner = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
     s32 wave;
 
-    if ((u16)EVENT03_PROGRESS(owner) & 4)
+    if ((u16)owner->ext.event03.progress & 4)
     {
         entity->state = 5;
         entity->stage = 0;
@@ -26,15 +26,15 @@ void EventScene03FlyingPart_Update(struct EwramData_EntityData *entity)
     }
     if (entity->state <= 2)
     {
-        wave = Sin(EVENT03_PART_WAVE(entity) + 0x4000) / 4;
-        EVENT03_PART_WAVE(entity) += 0x200;
+        wave = Sin(entity->ext.event03Part.wave + 0x4000) / 4;
+        entity->ext.event03Part.wave += 0x200;
         entity->posY.whole += wave;
         entity->velY.whole = wave + entity->accelY.whole;
     }
     switch (entity->state)
     {
     case 0:
-        if ((u16)EVENT03_PROGRESS(owner) & 8)
+        if ((u16)owner->ext.event03.progress & 8)
         {
             entity->state = 1;
             entity->stage = 0;
@@ -47,7 +47,7 @@ void EventScene03FlyingPart_Update(struct EwramData_EntityData *entity)
         entity->subState = 0;
         break;
     case 2:
-        if ((u16)EVENT03_PROGRESS(owner) & 2)
+        if ((u16)owner->ext.event03.progress & 2)
         {
             entity->state = 4;
             entity->stage = 0;
@@ -55,7 +55,7 @@ void EventScene03FlyingPart_Update(struct EwramData_EntityData *entity)
         }
         break;
     case 3:
-        if ((u16)EVENT03_PROGRESS(owner) & 2)
+        if ((u16)owner->ext.event03.progress & 2)
         {
             entity->state = 4;
             entity->stage = 0;
@@ -63,7 +63,7 @@ void EventScene03FlyingPart_Update(struct EwramData_EntityData *entity)
         }
         else
         {
-            u16 angle = (EVENT03_PART_WAVE(entity) << 23) >> 16;
+            u16 angle = (entity->ext.event03Part.wave << 23) >> 16;
             s32 vx;
             s32 vy;
             entity->velX.whole = Sin(angle + 0x4000) >> 8 << 8;
@@ -74,7 +74,7 @@ void EventScene03FlyingPart_Update(struct EwramData_EntityData *entity)
             entity->velY.whole = vy;
             entity->posX.whole += vx;
             entity->posY.whole += vy;
-            EVENT03_PART_WAVE(entity)++;
+            entity->ext.event03Part.wave++;
             entity->flipX = vx >= 0;
         }
         break;

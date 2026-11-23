@@ -1,6 +1,5 @@
 /* Update a Ghost or its timed spawn controller. */
 #include "code_08009A0.h"
-#include "ghost_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "code/code_080211F0.h"
@@ -52,8 +51,8 @@ void EnemyGhostUpdate(struct EwramData_EntityData *entity)
         {
             struct EwramData_EntityData *controller = ENTITY_OWNER(entity);
             if (controller && controller->updateFunc && controller->unk_518.part8.enemyId == 14
-                && GHOST_CHILD_COUNT(controller) != 0)
-                GHOST_CHILD_COUNT(controller)--;
+                && controller->ext.ghostSpawner.childCount != 0)
+                controller->ext.ghostSpawner.childCount--;
         }
         break;
     case 2:
@@ -63,19 +62,19 @@ void EnemyGhostUpdate(struct EwramData_EntityData *entity)
     case 3:
     {
         s32 spawn = 0;
-        if (GHOST_SPAWN_DELAY(entity)++ >= entity->unk_514.part16.spawnParam1
+        if (entity->ext.ghostSpawner.spawnDelay++ >= entity->unk_514.part16.spawnParam1
             && (RandomNumberGenerator() & 31) == 0)
         {
-            GHOST_SPAWN_DELAY(entity) = spawn;
+            entity->ext.ghostSpawner.spawnDelay = spawn;
             spawn = 1;
         }
-        if (spawn && GHOST_CHILD_COUNT(entity) < entity->unk_514.part16.spawnParam0)
+        if (spawn && entity->ext.ghostSpawner.childCount < entity->unk_514.part16.spawnParam0)
         {
             struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
             if (child)
             {
                 s32 distance;
-                GHOST_CHILD_COUNT(entity)++;
+                entity->ext.ghostSpawner.childCount++;
                 do
                 {
                     child->posX.part16.integer = RandomNumberGenerator() % 240;

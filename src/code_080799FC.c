@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "arachne_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -53,7 +52,7 @@ void EnemyArachneCreate(struct EwramData_EntityData *entity)
         leg->scrollWithBg = 0;
         leg->drawFunc = (u32 *)Sprite_DrawEntity;
         ENTITY_OWNER(leg) = entity;
-        ARACHNE_LEG_INDEX(leg) = i;
+        leg->ext.arachne.legIndex = i;
         leg->posX.whole = entity->posX.whole;
         leg->posY.whole = entity->posY.whole;
         leg->velX.whole = (i / 2 * 7) << 16;
@@ -69,7 +68,7 @@ void EnemyArachneCreate(struct EwramData_EntityData *entity)
     if (gEwramData->gameState.bestiaryPreview)
     {
         entity->state = 4;
-        ARACHNE_GAIT(entity) = 0;
+        entity->ext.arachne.gait = 0;
         return;
     }
     Hit_EnableContact(entity, 8, Arachne_DamagePlayerOnContact, (s32)Arachne_OnHit);

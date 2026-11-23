@@ -1,6 +1,4 @@
 #include "code_08009A0.h"
-#include "golem_entity.h"
-#include "joint_entity.h"
 #include "structs/ewram.h"
 #include "string.h"
 extern const u8 sGolemDelay[4];
@@ -21,16 +19,16 @@ void Golem_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
     case 0:
         if ((u8)entity->timer++ > 59) {
             entity->subState++;
-            entity->timer = delay[GOLEM_VARIANT(entity)];
-            JOINT_POSE(entity) = 2;
+            entity->timer = delay[entity->ext.golem.variant];
+            entity->ext.joint.pose = 2;
         }
         break;
     case 1:
         Golem_UpdateAllParts(entity);
         if ((s8)--entity->timer <= 0) {
-            entity->timer = delay[GOLEM_VARIANT(entity)];
+            entity->timer = delay[entity->ext.golem.variant];
             entity->subState++;
-            JOINT_POSE(entity) = 2;
+            entity->ext.joint.pose = 2;
         }
         break;
     case 2:
@@ -38,22 +36,22 @@ void Golem_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
         if ((s8)--entity->timer <= 0) {
             entity->timer = 40;
             entity->subState++;
-            JOINT_POSE(entity) = 2;
+            entity->ext.joint.pose = 2;
         }
         break;
     case 3:
         if ((s8)--entity->timer <= 0) {
-            entity->timer = delay[GOLEM_VARIANT(entity)];
+            entity->timer = delay[entity->ext.golem.variant];
             entity->subState++;
-            JOINT_POSE(entity) = 3;
+            entity->ext.joint.pose = 3;
         }
         break;
     case 4:
         Golem_UpdateAllParts(entity);
         if ((s8)--entity->timer <= 0) {
-            entity->timer = delay[GOLEM_VARIANT(entity)];
+            entity->timer = delay[entity->ext.golem.variant];
             entity->subState++;
-            JOINT_POSE(entity) = 4;
+            entity->ext.joint.pose = 4;
         }
         break;
     case 5:
@@ -61,21 +59,21 @@ void Golem_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
         if ((s8)--entity->timer <= 0) {
             entity->timer = 40;
             entity->subState++;
-            JOINT_POSE(entity) = 4;
+            entity->ext.joint.pose = 4;
         }
         break;
     case 6:
         if ((s8)--entity->timer <= 0) {
-            entity->timer = delay[GOLEM_VARIANT(entity)];
+            entity->timer = delay[entity->ext.golem.variant];
             entity->subState = 1;
-            JOINT_POSE(entity) = 1;
+            entity->ext.joint.pose = 1;
         }
         break;
     case 20:
         if ((u8)entity->timer++ > 59) {
             entity->subState++;
             entity->timer = 20;
-            JOINT_POSE(entity) = 6;
+            entity->ext.joint.pose = 6;
         }
         break;
     case 21:
@@ -83,7 +81,7 @@ void Golem_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
         if ((s8)--entity->timer <= 0) {
             entity->timer = 4;
             entity->subState++;
-            JOINT_POSE(entity) = 8;
+            entity->ext.joint.pose = 8;
         }
         break;
     case 22:
@@ -91,7 +89,7 @@ void Golem_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
         if ((s8)--entity->timer <= 0) {
             entity->timer = 4;
             entity->subState++;
-            JOINT_POSE(entity) = 6;
+            entity->ext.joint.pose = 6;
         }
         break;
     case 24:
@@ -99,7 +97,7 @@ void Golem_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
         if ((s8)--entity->timer <= 0) {
             entity->subState++;
             entity->timer = 20;
-            JOINT_POSE(entity) = 5;
+            entity->ext.joint.pose = 5;
         }
         break;
     case 25:
@@ -107,7 +105,7 @@ void Golem_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
         if ((s8)--entity->timer <= 0) {
             entity->timer = 4;
             entity->subState++;
-            JOINT_POSE(entity) = 9;
+            entity->ext.joint.pose = 9;
         }
         break;
     case 26:
@@ -115,7 +113,7 @@ void Golem_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
         if ((s8)--entity->timer <= 0) {
             entity->timer = 4;
             entity->subState++;
-            JOINT_POSE(entity) = 5;
+            entity->ext.joint.pose = 5;
         }
         break;
     case 28:
@@ -123,7 +121,7 @@ void Golem_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
         if ((s8)--entity->timer <= 0) {
             entity->subState++;
             entity->timer = 20;
-            JOINT_POSE(entity) = 0;
+            entity->ext.joint.pose = 0;
         }
         break;
     case 29:
@@ -131,7 +129,7 @@ void Golem_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
         if ((s8)--entity->timer <= 0) {
             entity->timer = 4;
             entity->subState++;
-            JOINT_POSE(entity) = 10;
+            entity->ext.joint.pose = 10;
         }
         break;
     case 30:
@@ -139,7 +137,7 @@ void Golem_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
         if ((s8)--entity->timer <= 0) {
             entity->timer = 4;
             entity->subState++;
-            JOINT_POSE(entity) = 0;
+            entity->ext.joint.pose = 0;
         }
         break;
     case 23:
@@ -154,23 +152,23 @@ void Golem_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
     case 32:
         Golem_UpdateAllParts(entity);
         if ((s8)--entity->timer <= 0) {
-            entity->timer = delay[GOLEM_VARIANT(entity)];
+            entity->timer = delay[entity->ext.golem.variant];
             entity->subState = 2;
-            JOINT_POSE(entity) = 2;
+            entity->ext.joint.pose = 2;
         }
         break;
     case 40:
-        if ((s8)GOLEM_PREVIEW_EFFECTS(entity) > 1) {
-            entity->timer = delay[GOLEM_VARIANT(entity)];
+        if ((s8)entity->ext.golemPreview.effects > 1) {
+            entity->timer = delay[entity->ext.golem.variant];
             entity->subState = 2;
-            JOINT_POSE(entity) = 2;
+            entity->ext.joint.pose = 2;
         } else {
             s32 r = RandomNumberGenerator() % 60;
             if (r == 0) {
                 entity->subState++;
                 Golem_SpawnIdleEffect(entity, 0, 0);
                 entity->timer = r;
-                GOLEM_PREVIEW_EFFECTS(entity)++;
+                entity->ext.golemPreview.effects++;
             }
         }
         break;

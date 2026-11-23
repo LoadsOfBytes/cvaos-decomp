@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "death_entity.h"
 #include "code_0800B700.h"
 #include "code_08013960.h"
 #include "code_080D73B8.h"
@@ -46,17 +45,17 @@ void Death_UpdateIntro(struct EwramData_EntityData *entity)
         Game_SetMenusEnabled(0);
         if ((s16)(ew = gEwramData)->playerState.player->posX.part16.integer + (s16)((struct BgLayerState *)((u8 *)ew + 0xA094))->xPos.part16.integer > 0xC0)
             break;
-        DEATH_FLAGS(entity) |= 0x20;
-        DEATH_WEAPON_TIMER(entity) = 0x60;
+        entity->ext.death.flags |= 0x20;
+        entity->ext.deathFloatingWeapon.timer = 0x60;
         entity->subState = 2;
         break;
     case 2:
-        if (DEATH_WEAPON_TIMER(entity) != 0)
+        if (entity->ext.deathFloatingWeapon.timer != 0)
         {
-            DEATH_WEAPON_TIMER(entity)--;
+            entity->ext.deathFloatingWeapon.timer--;
             break;
         }
-        DEATH_WEAPON_TIMER(entity) = 0x30;
+        entity->ext.deathFloatingWeapon.timer = 0x30;
         entity->subState = 3;
         Afterimage_Create(entity, 0, 0x10, 0x31);
         Afterimage_Create(entity, 0, 8, 0x30);
@@ -68,9 +67,9 @@ void Death_UpdateIntro(struct EwramData_EntityData *entity)
     case 3:
     {
         MoveToward(entity, entity->posX.whole, gEwramData->playerState.player->posY.whole - 0x280000);
-        if (DEATH_WEAPON_TIMER(entity) != 0)
+        if (entity->ext.deathFloatingWeapon.timer != 0)
         {
-            DEATH_WEAPON_TIMER(entity)--;
+            entity->ext.deathFloatingWeapon.timer--;
             break;
         }
         entity->state = 1;

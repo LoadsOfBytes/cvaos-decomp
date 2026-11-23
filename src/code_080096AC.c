@@ -36,32 +36,6 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-/*
- * Work slots of the soul trade menu entity (this TU): own offer kind / soul
- * id and partner offer kind / soul id (sent with SoulTrade_SetOffer /
- * SoulTrade_SetAcknowledge, printed by SoulTrade_UpdateOfferNames); selected
- * soul kind (list 0-2, sSoulTradeListTextBases); partner-offer-shown flag;
- * selected soul list entry (halfword, and its low byte as read by
- * SoulTrade_MoveListCursor); cursor row inside the eight-row window and the
- * window's first row; link wait counter of GameModeSoulTradeMenu (counts to 6,
- * once stores a link id). Token-identical expansion.
- */
-#define TRADE_OWN_KIND(e) e->unk_504.part8.unk_504
-#define TRADE_OWN_SOUL(e) e->unk_504.part8.unk_505
-#define TRADE_PARTNER_KIND(e) e->unk_504.part8.unk_506
-#define TRADE_PARTNER_SOUL(e) e->unk_504.part8.unk_507
-#define TRADE_LIST_KIND(e) e->unk_4F8.part8.unk_4F8
-#define TRADE_PARTNER_SHOWN(e) e->unk_4F8.part8.unk_4F9
-#define TRADE_SELECTED(e) e->unk_4FC.part16.unk_4FC
-#define TRADE_SELECTED_BYTE(e) e->unk_4FC.part8.unk_4FC
-#define TRADE_LIST_ROW(e) e->unk_50C.part16.unk_50C
-#define TRADE_LIST_TOP(e) e->unk_50C.part16.unk_50E
-#define TRADE_WAIT_COUNTER(e) e->unk_500.part16.unk_502
-/* Text entry currently printed in the message window (reprinted only when
- * it changes) and the link sync retry count of GameModeSoulTradeMenu. */
-#define TRADE_SHOWN_TEXT(e) e->unk_508.whole
-#define TRADE_SYNC_COUNT(e) e->unk_500.part16.unk_500
-
 struct SoulKey {
     u8 soulType;
     u8 oneBasedSoulId;
@@ -210,45 +184,45 @@ s32 SoulTrade_MoveListCursor(struct EwramData_EntityData *entity, s32 delta)
 
     if (delta > 0)
     {
-        pos = MoveCursor(TRADE_LIST_ROW(entity) + TRADE_LIST_TOP(entity), delta);
+        pos = MoveCursor(entity->ext.soulTrade.listRow + entity->ext.soulTrade.listTop, delta);
         if (pos >= 0)
         {
-            TRADE_SELECTED(entity) = SlotAt(pos);
-            if (pos >= TRADE_LIST_TOP(entity) + 8)
+            entity->ext.soulTrade.selected.value = SlotAt(pos);
+            if (pos >= entity->ext.soulTrade.listTop + 8)
             {
-                pos = MoveCursor(TRADE_LIST_TOP(entity), delta);
+                pos = MoveCursor(entity->ext.soulTrade.listTop, delta);
                 if (pos >= 0)
                 {
-                    TRADE_LIST_TOP(entity) = pos;
-                    TRADE_LIST_ROW(entity) = FindSlot(TRADE_LIST_TOP(entity), TRADE_SELECTED_BYTE(entity));
+                    entity->ext.soulTrade.listTop = pos;
+                    entity->ext.soulTrade.listRow = FindSlot(entity->ext.soulTrade.listTop, entity->ext.soulTrade.selected.low);
                     return 1;
                 }
             }
             else
             {
-                TRADE_LIST_ROW(entity) = FindSlot(TRADE_LIST_TOP(entity), TRADE_SELECTED(entity));
+                entity->ext.soulTrade.listRow = FindSlot(entity->ext.soulTrade.listTop, entity->ext.soulTrade.selected.value);
             }
         }
     }
     else if (delta < 0)
     {
-        pos = MoveCursor(TRADE_LIST_ROW(entity) + TRADE_LIST_TOP(entity), delta);
+        pos = MoveCursor(entity->ext.soulTrade.listRow + entity->ext.soulTrade.listTop, delta);
         if (pos >= 0)
         {
-            TRADE_SELECTED(entity) = SlotAt(pos);
-            if (pos < TRADE_LIST_TOP(entity))
+            entity->ext.soulTrade.selected.value = SlotAt(pos);
+            if (pos < entity->ext.soulTrade.listTop)
             {
-                pos = MoveCursor(TRADE_LIST_TOP(entity), delta);
+                pos = MoveCursor(entity->ext.soulTrade.listTop, delta);
                 if (pos >= 0)
                 {
-                    TRADE_LIST_TOP(entity) = pos;
-                    TRADE_LIST_ROW(entity) = FindSlot(TRADE_LIST_TOP(entity), TRADE_SELECTED_BYTE(entity));
+                    entity->ext.soulTrade.listTop = pos;
+                    entity->ext.soulTrade.listRow = FindSlot(entity->ext.soulTrade.listTop, entity->ext.soulTrade.selected.low);
                     return 1;
                 }
             }
             else
             {
-                TRADE_LIST_ROW(entity) = FindSlot(TRADE_LIST_TOP(entity), TRADE_SELECTED(entity));
+                entity->ext.soulTrade.listRow = FindSlot(entity->ext.soulTrade.listTop, entity->ext.soulTrade.selected.value);
             }
         }
     }
@@ -292,9 +266,9 @@ static inline void GameModeSoulTradeMenu_inline_1(struct EwramData_EntityData *m
     baseRow = 1;
     more = 0;
     pos = -1;
-    if (TRADE_SHOWN_TEXT(menu) != entry)
+    if (menu->ext.soulTrade.shownText != entry)
     {
-        TRADE_SHOWN_TEXT(menu) = entry;
+        menu->ext.soulTrade.shownText = entry;
         Text12_SetRegion(0U, 1U, 0x20U, 4U);
         Text12_ClearRegion();
         Text12_SetRegion(0U, 1U, 0x1EU, 4U);
@@ -330,10 +304,10 @@ void SoulTrade_ResetOffers(struct EwramData_EntityData *entity)
     SoulTrade_SetOffer(0, 0);
 
     SoulTrade_ExchangeStatus(2);
-    TRADE_PARTNER_KIND(entity) = 0;
-    TRADE_PARTNER_SOUL(entity) = 0;
-    TRADE_OWN_KIND(entity) = 0;
-    TRADE_OWN_SOUL(entity) = 0;
+    entity->ext.soulTrade.partnerKind = 0;
+    entity->ext.soulTrade.partnerSoul = 0;
+    entity->ext.soulTrade.ownKind = 0;
+    entity->ext.soulTrade.ownSoul = 0;
 
     EntityDelete(&gEwramData->entityData[6]);
 }
@@ -350,9 +324,9 @@ void SoulTrade_ReturnToSoulList(struct EwramData_EntityData *entity)
 {
     u32 baseEntry;
 
-    baseEntry = sSoulTradeListTextBases[TRADE_LIST_KIND(entity)];
+    baseEntry = sSoulTradeListTextBases[entity->ext.soulTrade.listKind];
     SoulTrade_ResetOffers(entity);
-    SoulTrade_PrintDescription(entity, baseEntry + TRADE_SELECTED(entity));
+    SoulTrade_PrintDescription(entity, baseEntry + entity->ext.soulTrade.selected.value);
     gEwramData->gameModeSubStage = 2;
     SoulTrade_SetOffer(0, 0);
     Text8_SetRegion(0, 0x12, 0xE, 1);
@@ -366,16 +340,16 @@ void SoulTrade_DrawOfferIcons(struct EwramData_EntityData *entity)
 {
     entity->posX.part16.integer = 0xF;
 
-    if (TRADE_OWN_KIND(entity) != 0)
+    if (entity->ext.soulTrade.ownKind != 0)
     {
-        entity->animFrame = TRADE_OWN_KIND(entity) + 0xC;
+        entity->animFrame = entity->ext.soulTrade.ownKind + 0xC;
         entity->posY.part16.integer = 0x38;
         Sprite_Draw(entity);
     }
 
-    if (TRADE_PARTNER_KIND(entity) != 0)
+    if (entity->ext.soulTrade.partnerKind != 0)
     {
-        entity->animFrame = TRADE_PARTNER_KIND(entity) + 0xC;
+        entity->animFrame = entity->ext.soulTrade.partnerKind + 0xC;
         entity->posY.part16.integer = 0x60;
         Sprite_Draw(entity);
     }
@@ -401,10 +375,10 @@ void SoulTrade_UpdateOfferNames(struct EwramData_EntityData *entity)
     if (unk_25484_0_8(0))
     {
         myKind = unk_25484_0_32(0);
-        if ((TRADE_OWN_KIND(entity) != myKind) || (TRADE_OWN_SOUL(entity) != (&gEwramData->soulTradePackets[0])->soulIds[0]))
+        if ((entity->ext.soulTrade.ownKind != myKind) || (entity->ext.soulTrade.ownSoul != (&gEwramData->soulTradePackets[0])->soulIds[0]))
         {
-            TRADE_OWN_KIND(entity) = myKind;
-            TRADE_OWN_SOUL(entity) = (&gEwramData->soulTradePackets[0])->soulIds[0];
+            entity->ext.soulTrade.ownKind = myKind;
+            entity->ext.soulTrade.ownSoul = (&gEwramData->soulTradePackets[0])->soulIds[0];
             Text8_SetRegion(0, 0x12, 0xE, 1);
             Text8_ClearRegion();
             Text8_Print((struct unk_08506B38 *) Text_GetLocalizedEntry(sSoulNameTextBases[myKind - 1] + (&gEwramData->soulTradePackets[0])->soulIds[0]), 0);
@@ -414,19 +388,19 @@ void SoulTrade_UpdateOfferNames(struct EwramData_EntityData *entity)
     if (unk_25484_0_8(1))
     {
         theirKind = unk_25484_0_32(1);
-        if ((TRADE_PARTNER_KIND(entity) != theirKind) || (TRADE_PARTNER_SOUL(entity) != (&gEwramData->soulTradePackets[1])->soulIds[0]))
+        if ((entity->ext.soulTrade.partnerKind != theirKind) || (entity->ext.soulTrade.partnerSoul != (&gEwramData->soulTradePackets[1])->soulIds[0]))
         {
-            TRADE_PARTNER_KIND(entity) = theirKind;
-            TRADE_PARTNER_SOUL(entity) = (&gEwramData->soulTradePackets[1])->soulIds[0];
+            entity->ext.soulTrade.partnerKind = theirKind;
+            entity->ext.soulTrade.partnerSoul = (&gEwramData->soulTradePackets[1])->soulIds[0];
             Text8_SetRegion(0, 0x13, 0xE, 1);
             Text8_ClearRegion();
             Text8_Print((struct unk_08506B38 *) Text_GetLocalizedEntry(sSoulNameTextBases[theirKind - 1] + (&gEwramData->soulTradePackets[1])->soulIds[0]), 0);
-            TRADE_PARTNER_SHOWN(entity) = 1;
+            entity->ext.soulTrade.partnerShown = 1;
         }
     }
-    else if (TRADE_PARTNER_SHOWN(entity) != 0)
+    else if (entity->ext.soulTrade.partnerShown != 0)
     {
-        TRADE_PARTNER_SHOWN(entity) = TRADE_PARTNER_KIND(entity) = unk_25484_0_8(1);
+        entity->ext.soulTrade.partnerShown = entity->ext.soulTrade.partnerKind = unk_25484_0_8(1);
         Text8_SetRegion(0, 0x13, 0xE, 1);
         Text8_ClearRegion();
     }
@@ -508,30 +482,30 @@ s32 SoulTrade_HandleKindMenuInput(struct EwramData_EntityData *entity)
     if (gEwramData->inputData.repeatedInput & KEY_DOWN)
     {
         PlaySong(SE_241);
-        TRADE_LIST_KIND(entity) += 1;
-        if (TRADE_LIST_KIND(entity) > 2)
+        entity->ext.soulTrade.listKind += 1;
+        if (entity->ext.soulTrade.listKind > 2)
         {
-            TRADE_LIST_KIND(entity) = 0;
+            entity->ext.soulTrade.listKind = 0;
         }
     }
     else if (gEwramData->inputData.repeatedInput & KEY_UP)
     {
         PlaySong(SE_241);
-        TRADE_LIST_KIND(entity) -= 1;
-        if (TRADE_LIST_KIND(entity) < 0)
+        entity->ext.soulTrade.listKind -= 1;
+        if (entity->ext.soulTrade.listKind < 0)
         {
-            TRADE_LIST_KIND(entity) = 2;
+            entity->ext.soulTrade.listKind = 2;
         }
     }
 
     if (gEwramData->inputData.repeatedInput & KEY_A)
     {
-        if (SoulTrade_BuildSoulList(TRADE_LIST_KIND(entity)) != 0)
+        if (SoulTrade_BuildSoulList(entity->ext.soulTrade.listKind) != 0)
         {
-            TRADE_LIST_ROW(entity) = 0;
-            TRADE_LIST_TOP(entity) = 0;
-            firstSoul = TRADE_SELECTED(entity) = gEwramData->entityScratchBuffer[0];
-            TRADE_LIST_ROW(entity) = SoulTrade_FindSoulIndex(firstSoul);
+            entity->ext.soulTrade.listRow = 0;
+            entity->ext.soulTrade.listTop = 0;
+            firstSoul = entity->ext.soulTrade.selected.value = gEwramData->entityScratchBuffer[0];
+            entity->ext.soulTrade.listRow = SoulTrade_FindSoulIndex(firstSoul);
             
             SoulTrade_ClearMessageWindow(entity);
             SoulTrade_OpenSoulList(entity);
@@ -546,7 +520,7 @@ s32 SoulTrade_HandleKindMenuInput(struct EwramData_EntityData *entity)
     }
 
     // TODO: what?
-    kind = TRADE_LIST_KIND(entity);
+    kind = entity->ext.soulTrade.listKind;
     ewram = gEwramData;
     cursorX = 0x7C;
     cursorY = (kind * 8) + 0x24;
@@ -555,7 +529,7 @@ s32 SoulTrade_HandleKindMenuInput(struct EwramData_EntityData *entity)
 
     for (i = 0; i < 3; i++)
     {
-        if (TRADE_LIST_KIND(entity) != i)
+        if (entity->ext.soulTrade.listKind != i)
         {
             HudMap_WriteTiles(0x10, i + 4, i * 0x20 + 0xE0C0, 0xA);
         }
@@ -576,9 +550,9 @@ void SoulTrade_OpenSoulList(struct EwramData_EntityData *entity)
     s32 i;
     s32 baseEntry;
 
-    baseEntry = sSoulTradeListTextBases[TRADE_LIST_KIND(entity)];
+    baseEntry = sSoulTradeListTextBases[entity->ext.soulTrade.listKind];
 
-    GameModeSoulTradeMenu_inline_1(entity, baseEntry + TRADE_SELECTED(entity));
+    GameModeSoulTradeMenu_inline_1(entity, baseEntry + entity->ext.soulTrade.selected.value);
 
     for (i = 0; i < 8; i++)
     {
@@ -586,7 +560,7 @@ void SoulTrade_OpenSoulList(struct EwramData_EntityData *entity)
         Text8_ClearRegion();
         HudMap_WriteTiles(0x10, i + 4, i * 0x20 + 0xF100, 0xA);
     }
-    SoulTrade_DrawSoulList(TRADE_LIST_KIND(entity), TRADE_LIST_ROW(entity));
+    SoulTrade_DrawSoulList(entity->ext.soulTrade.listKind, entity->ext.soulTrade.listRow);
 }
 
 
@@ -709,8 +683,8 @@ s32 SoulTrade_HandleSoulListInput(struct EwramData_EntityData *entity)
     s32 cursorX;
     s32 cursorY;
 
-    baseEntry = sSoulTradeListTextBases[TRADE_LIST_KIND(entity)];
-    prevSoul = TRADE_SELECTED(entity);
+    baseEntry = sSoulTradeListTextBases[entity->ext.soulTrade.listKind];
+    prevSoul = entity->ext.soulTrade.selected.value;
     scrolled = 0;
 
     if (gEwramData->inputData.repeatedInput & KEY_DOWN)
@@ -730,29 +704,29 @@ s32 SoulTrade_HandleSoulListInput(struct EwramData_EntityData *entity)
         scrolled = SoulTrade_MoveListCursor(entity, -8);
     }
 
-    if (prevSoul != TRADE_SELECTED(entity))
+    if (prevSoul != entity->ext.soulTrade.selected.value)
     {
         PlaySong(SE_241);
-        GameModeSoulTradeMenu_inline_1(entity, baseEntry + TRADE_SELECTED(entity));
+        GameModeSoulTradeMenu_inline_1(entity, baseEntry + entity->ext.soulTrade.selected.value);
     }
     if (scrolled != 0)
     {
-        SoulTrade_DrawSoulList(TRADE_LIST_KIND(entity), TRADE_LIST_TOP(entity));
+        SoulTrade_DrawSoulList(entity->ext.soulTrade.listKind, entity->ext.soulTrade.listTop);
     }
 
     // TODO: what?
-    row = TRADE_LIST_ROW(entity);
+    row = entity->ext.soulTrade.listRow;
     ewram = gEwramData;
     cursorX = 0x7C;
     cursorY = (row * 8) + 0x24;
     ewram->entityData[3].posX.part16.integer = cursorX;
     ewram->entityData[3].posY.part16.integer = cursorY;
     // gEwramData->unk_4E4[3].posX.part16.integer = 0x7C;
-    // gEwramData->unk_4E4[3].posY.part16.integer = (entity->unk_50C * 8) + 0x24;
+    // gEwramData->unk_4E4[3].posY.part16.integer = (entity->ext.raw.unk_50C * 8) + 0x24;
 
     if (gEwramData->inputData.repeatedInput & KEY_A)
     {
-        SoulTrade_SetOffer(TRADE_LIST_KIND(entity) + 1, TRADE_SELECTED(entity));
+        SoulTrade_SetOffer(entity->ext.soulTrade.listKind + 1, entity->ext.soulTrade.selected.value);
         return 1;
     }
     else if (gEwramData->inputData.repeatedInput & KEY_B)
@@ -761,7 +735,7 @@ s32 SoulTrade_HandleSoulListInput(struct EwramData_EntityData *entity)
         PlaySong(SE_240);
         return -1;
     }
-    else if ((TRADE_OWN_KIND(entity) != 0) && (gEwramData->inputData.repeatedInput & KEY_SELECT))
+    else if ((entity->ext.soulTrade.ownKind != 0) && (gEwramData->inputData.repeatedInput & KEY_SELECT))
     {
         return 1;
     }
@@ -808,16 +782,16 @@ s32 SoulTrade_UpdateSelection(struct EwramData_EntityData *entity)
             }
             else if (listResult == -1)
             {
-                TRADE_OWN_KIND(entity) = 0;
-                TRADE_PARTNER_KIND(entity) = 0;
+                entity->ext.soulTrade.ownKind = 0;
+                entity->ext.soulTrade.partnerKind = 0;
                 gEwramData->gameModeSubStage = 1;
             }
             SoulTrade_UpdateOfferNames(entity);
             break;
 
         case 3:
-            SoulTrade_SetOffer(TRADE_OWN_KIND(entity), TRADE_OWN_SOUL(entity));
-            SoulTrade_SetAcknowledge(TRADE_PARTNER_KIND(entity), TRADE_PARTNER_SOUL(entity));
+            SoulTrade_SetOffer(entity->ext.soulTrade.ownKind, entity->ext.soulTrade.ownSoul);
+            SoulTrade_SetAcknowledge(entity->ext.soulTrade.partnerKind, entity->ext.soulTrade.partnerSoul);
             PlaySong(SE_243);
             SoulTrade_UpdateOfferNames(entity);
             return 1;
@@ -858,9 +832,9 @@ static inline void SoulTrade_DrawTextEntry(struct EwramData_EntityData *menu, s3
     baseRow = 1;
     more = 0;
     pos = -1;
-    if (TRADE_SHOWN_TEXT(menu) != entry)
+    if (menu->ext.soulTrade.shownText != entry)
     {
-        TRADE_SHOWN_TEXT(menu) = entry;
+        menu->ext.soulTrade.shownText = entry;
         Text12_SetRegion(0U, 1U, 0x20U, 4U);
         Text12_ClearRegion();
         Text12_SetRegion(0U, 1U, 0x1EU, 4U);
@@ -1207,14 +1181,14 @@ s32 GameModeSoulTradeMenu(void)
             if (ready10 != 0)
                 goto lbl_8ca;
             {
-                if (TRADE_WAIT_COUNTER(trade) >= 6)
+                if (trade->ext.soulTrade.waitCounter >= 6)
                     goto lbl_8d0;
                 {
-                    TRADE_WAIT_COUNTER(trade) += 1;
+                    trade->ext.soulTrade.waitCounter += 1;
                     goto block_81;
                 }
                 lbl_8ca:
-                TRADE_WAIT_COUNTER(trade) = 0;
+                trade->ext.soulTrade.waitCounter = 0;
                 goto block_81;
                 lbl_8d0:
                 gEwramData->gameModeUpdateStage = 0x14;
@@ -1265,14 +1239,14 @@ s32 GameModeSoulTradeMenu(void)
             if (ready12 != 0)
                 goto lbl_a22;
             {
-                if (TRADE_WAIT_COUNTER(trade) >= 6)
+                if (trade->ext.soulTrade.waitCounter >= 6)
                     goto lbl_a28;
                 {
-                    TRADE_WAIT_COUNTER(trade) += 1;
+                    trade->ext.soulTrade.waitCounter += 1;
                     goto block_102;
                 }
                 lbl_a22:
-                TRADE_WAIT_COUNTER(trade) = 0;
+                trade->ext.soulTrade.waitCounter = 0;
                 goto block_102;
                 lbl_a28:
                 gEwramData->gameModeUpdateStage = 0x14;
@@ -1325,8 +1299,8 @@ s32 GameModeSoulTradeMenu(void)
             }
             else
             {
-                SoulTrade_SetOffer(TRADE_OWN_KIND(trade), TRADE_OWN_SOUL(trade));
-                SoulTrade_SetAcknowledge(TRADE_PARTNER_KIND(trade), TRADE_PARTNER_SOUL(trade));
+                SoulTrade_SetOffer(trade->ext.soulTrade.ownKind, trade->ext.soulTrade.ownSoul);
+                SoulTrade_SetAcknowledge(trade->ext.soulTrade.partnerKind, trade->ext.soulTrade.partnerSoul);
                 SoulTrade_ExchangeStatusInline(1);
                 linked13 = 0;
                 if (Link_IsConnected() != 0)
@@ -1351,9 +1325,9 @@ s32 GameModeSoulTradeMenu(void)
 
                 if (ready13 == 0)
                 {
-                    if (TRADE_WAIT_COUNTER(trade) < 6)
+                    if (trade->ext.soulTrade.waitCounter < 6)
                     {
-                        TRADE_WAIT_COUNTER(trade) += 1;
+                        trade->ext.soulTrade.waitCounter += 1;
                         linked13 = 2;
                     }
                     else
@@ -1366,7 +1340,7 @@ s32 GameModeSoulTradeMenu(void)
                 }
                 else
                 {
-                    TRADE_WAIT_COUNTER(trade) = 0;
+                    trade->ext.soulTrade.waitCounter = 0;
                     linked13 = 1;
                 }
 
@@ -1382,7 +1356,7 @@ s32 GameModeSoulTradeMenu(void)
                 {
                     gEwramData->gameModeUpdateStage = 0xE;
                     gEwramData->gameModeSubStage = 0;
-                    TRADE_WAIT_COUNTER(trade) = 0;
+                    trade->ext.soulTrade.waitCounter = 0;
                 }
             }
             break;
@@ -1397,8 +1371,8 @@ s32 GameModeSoulTradeMenu(void)
             }
             else
             {
-                SoulTrade_SetOffer(TRADE_OWN_KIND(trade), TRADE_OWN_SOUL(trade));
-                SoulTrade_SetAcknowledge(TRADE_PARTNER_KIND(trade), TRADE_PARTNER_SOUL(trade));
+                SoulTrade_SetOffer(trade->ext.soulTrade.ownKind, trade->ext.soulTrade.ownSoul);
+                SoulTrade_SetAcknowledge(trade->ext.soulTrade.partnerKind, trade->ext.soulTrade.partnerSoul);
                 SoulTrade_ExchangeStatusInline(1);
                 linked14 = 0;
                 if (Link_IsConnected() != 0)
@@ -1423,9 +1397,9 @@ s32 GameModeSoulTradeMenu(void)
 
                 if (ready14 == 0)
                 {
-                    if (TRADE_WAIT_COUNTER(trade) <= 5)
+                    if (trade->ext.soulTrade.waitCounter <= 5)
                     {
-                        TRADE_WAIT_COUNTER(trade) += 1;
+                        trade->ext.soulTrade.waitCounter += 1;
                         status = 2;
                     }
                     else
@@ -1438,7 +1412,7 @@ s32 GameModeSoulTradeMenu(void)
                 }
                 else
                 {
-                    TRADE_WAIT_COUNTER(trade) = 0;
+                    trade->ext.soulTrade.waitCounter = 0;
                     status = 1;
                 }
 
@@ -1452,11 +1426,11 @@ s32 GameModeSoulTradeMenu(void)
                         gEwramData->gameModeUpdateStage = 0x14;
                         gEwramData->gameModeSubStage = peerReady;
                     }
-                    else if ((TRADE_LIST_KIND(trade) + 1) != unk_25484_2_32(1))
+                    else if ((trade->ext.soulTrade.listKind + 1) != unk_25484_2_32(1))
                     {
     
                     }
-                    else if (TRADE_SELECTED(trade) != (&gEwramData->soulTradePackets[1])->soulIds[1])
+                    else if (trade->ext.soulTrade.selected.value != (&gEwramData->soulTradePackets[1])->soulIds[1])
                     {
     
                     }
@@ -1477,9 +1451,9 @@ s32 GameModeSoulTradeMenu(void)
                         linkId = MultiSioSyncGetId();
                         if (linkId == 0)
                         {
-                            if (++TRADE_SYNC_COUNT(trade) > 4)
+                            if (++trade->ext.soulTrade.syncCount > 4)
                             {
-                                TRADE_WAIT_COUNTER(trade) = linkId;
+                                trade->ext.soulTrade.waitCounter = linkId;
                                 gEwramData->gameModeUpdateStage = 0xF;
                                 gEwramData->gameModeSubStage = 0;
                             }
@@ -1491,8 +1465,8 @@ s32 GameModeSoulTradeMenu(void)
 
         case 15:
             SoulTrade_DrawTextEntry(trade, 0x374);
-            SoulTrade_SetOffer(TRADE_OWN_KIND(trade), TRADE_OWN_SOUL(trade));
-            SoulTrade_SetAcknowledge(TRADE_PARTNER_KIND(trade), TRADE_PARTNER_SOUL(trade));
+            SoulTrade_SetOffer(trade->ext.soulTrade.ownKind, trade->ext.soulTrade.ownSoul);
+            SoulTrade_SetAcknowledge(trade->ext.soulTrade.partnerKind, trade->ext.soulTrade.partnerSoul);
             SoulTrade_ExchangeStatusInline(5);
             linked15 = 0;
             if (Link_IsConnected() != 0)
@@ -1519,14 +1493,14 @@ s32 GameModeSoulTradeMenu(void)
             if (ready15 != 0)
                 goto lbl_fde;
             {
-                if (TRADE_WAIT_COUNTER(trade) >= 6)
+                if (trade->ext.soulTrade.waitCounter >= 6)
                     goto lbl_4e4;
                 {
-                    TRADE_WAIT_COUNTER(trade) += 1;
+                    trade->ext.soulTrade.waitCounter += 1;
                     goto block_186;
                 }
                 lbl_fde:
-                TRADE_WAIT_COUNTER(trade) = 0;
+                trade->ext.soulTrade.waitCounter = 0;
                 goto block_186;
                 lbl_4e4:
                 gEwramData->gameModeUpdateStage = 0x14;
@@ -1542,23 +1516,23 @@ s32 GameModeSoulTradeMenu(void)
             break;
 
         case 16:
-            if (TRADE_PARTNER_KIND(trade) != 0)
+            if (trade->ext.soulTrade.partnerKind != 0)
             {
-                SoulTrade_DrawTextEntry(trade, sSoulTradeListTextBases[TRADE_PARTNER_KIND(trade) - 1] + TRADE_PARTNER_SOUL(trade));
+                SoulTrade_DrawTextEntry(trade, sSoulTradeListTextBases[trade->ext.soulTrade.partnerKind - 1] + trade->ext.soulTrade.partnerSoul);
             }
             gEwramData->gameModeUpdateStage = 0x11;
             gEwramData->gameModeSubStage = 0;
             break;
 
         case 17:
-            if (TRADE_PARTNER_KIND(trade) != 0)
+            if (trade->ext.soulTrade.partnerKind != 0)
             {
-                SoulInventory_AddAmountToSoulTotal(TRADE_PARTNER_KIND(trade) - 1, TRADE_PARTNER_SOUL(trade), 1);
+                SoulInventory_AddAmountToSoulTotal(trade->ext.soulTrade.partnerKind - 1, trade->ext.soulTrade.partnerSoul, 1);
                 SaveData_SaveSlotToSram(gEwramData->gameState.currentSaveSlot);
             }
-            if (TRADE_OWN_KIND(trade) != 0)
+            if (trade->ext.soulTrade.ownKind != 0)
             {
-                SaveData_GiveAwaySoul(gEwramData->gameState.currentSaveSlot, TRADE_OWN_KIND(trade) - 1, TRADE_OWN_SOUL(trade));
+                SaveData_GiveAwaySoul(gEwramData->gameState.currentSaveSlot, trade->ext.soulTrade.ownKind - 1, trade->ext.soulTrade.ownSoul);
             }
             else
             {
@@ -1578,8 +1552,8 @@ s32 GameModeSoulTradeMenu(void)
             break;
 
         case 19:
-            TRADE_OWN_KIND(trade) = 0;
-            TRADE_PARTNER_KIND(trade) = 0;
+            trade->ext.soulTrade.ownKind = 0;
+            trade->ext.soulTrade.partnerKind = 0;
             SoulTrade_SetOffer(0, 0);
             gDisplayRegisters.bldCnt = 0x3FFF;
             SaveSelect_Open(saveSelect);
@@ -1635,9 +1609,9 @@ void SoulTrade_PrintDescription(struct EwramData_EntityData *entity, s32 entry)
     baseRow = 1;
     more = 0;
     pos = -1;
-    if (TRADE_SHOWN_TEXT(entity) != entry)
+    if (entity->ext.soulTrade.shownText != entry)
     {
-        TRADE_SHOWN_TEXT(entity) = entry;
+        entity->ext.soulTrade.shownText = entry;
         Text12_SetRegion(0U, 1U, 0x20U, 4U);
         Text12_ClearRegion();
         Text12_SetRegion(0U, 1U, 0x1EU, 4U);

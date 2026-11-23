@@ -1,6 +1,5 @@
 /* Scripted movement along a step table. */
 #include "code/code_08039340.h"
-#include "nemesis_entity.h"
 #include "code_080D73B8.h"
 #include "structs/ewram.h"
 
@@ -15,8 +14,8 @@ struct Unk_C70F0_Step {
 extern struct Unk_C70F0_Step sNemesisScriptedAttackSteps[];
 extern void Nemesis_UpdateRotatedBoxes(struct EwramData_EntityData *);
 
-#define FLAGS(e) (NEMESIS_FLAGS((e)))
-#define STEP(e) ((e)->unk_4F4.part8.unk_4F7)
+#define FLAGS(e) (e->ext.nemesis.flags)
+#define STEP(e) ((e)->ext.raw.unk_4F4.part8.unk_4F7)
 
 /**
  * @brief Distribute each movement-table step over its frame count, update rotation and boxes, and return to positioning after the terminator and pause.
@@ -46,15 +45,15 @@ void Nemesis_UpdateScriptedAttack(struct EwramData_EntityData *entity)
         dx <<= 16;
         entity->velX.whole = dx / frames;
         entity->velY.whole = (step->dy << 16) / frames;
-        NEMESIS_TURN(entity) = step->rotation / frames;
+        entity->ext.nemesis.turn = step->rotation / frames;
         if (!mirrored)
-            NEMESIS_TURN(entity) = -NEMESIS_TURN(entity);
+            entity->ext.nemesis.turn = -entity->ext.nemesis.turn;
         entity->subState++;
     case 2:
         entity->posX.whole += entity->velX.whole;
         entity->posY.whole += entity->velY.whole;
-        NEMESIS_ANGLE(entity) += NEMESIS_TURN(entity);
-        ObjAffine_Set(NEMESIS_ANGLE(entity), 0x10000, 0x10000, 0, 0, entity->affineIndex);
+        entity->ext.nemesis.angle += entity->ext.nemesis.turn;
+        ObjAffine_Set(entity->ext.nemesis.angle, 0x10000, 0x10000, 0, 0, entity->affineIndex);
         if (--entity->timer == 0)
         {
             STEP(entity)++;

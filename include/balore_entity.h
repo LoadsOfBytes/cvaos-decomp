@@ -2,87 +2,23 @@
 #define BALORE_ENTITY_H
 
 /*
- * Balore body: flags (1 = hit, 2 = hurt reaction, 4 = dying, 8 / 0x10 = left /
- * right hand finished, 0x20), the ObjGfx slot of its sprite sheet (shared by
- * all parts) and the command for the hands (state they switch to).
- * Its parts keep a pointer to the body; the hands' hit boxes keep a pointer to
- * their hand. Hands: arm length (16.16, the hit box sits at its end), arm
- * angle and the horizontal scale of the stretched arm sprite.
+ * Balore keeps its work slots in ext.balore (body), ext.balorePart,
+ * ext.baloreHitBox, ext.baloreHand, ext.baloreEffect, ext.balorePiece,
+ * ext.baloreOverlay and ext.baloreEmitter. Views that do not fit a member:
+ * - hands: bytes 0 / 1 of the entity field unk_51C - animation their hit
+ *   boxes follow, and hit flags copied to the hit boxes (1 = strong hit 90 /
+ *   reaction 3, 2 = 80, else 55; 4 = solid for the player). Byte views, so
+ *   the macros keep the original cast form;
+ * - emitter (BaloreEmitter_Draw): 16.16 y step between its 8 drawn copies
+ *   (outside the work area; the x step is ext.baloreEmitter.stepX);
+ * - body: ext.balore.gfx read through the signed byte view of its slot
+ *   (bytes[3]).
  * The macros expand to the original member chains without added parentheses
  * (token-identical preprocessed code); use them with a plain base expression.
  */
-#define BALORE_FLAGS(e) e->unk_500.part16.unk_502
-#define BALORE_GFX(e) e->unk_4F8.part8.unk_4FB
-#define BALORE_HAND_COMMAND(e) e->unk_4FC.part8.unk_4FC
-#define BALORE_BODY(e) e->unk_4FC.unk_4FC_entity
-#define BALORE_HAND(e) e->unk_4F8.unk_4F8_entity
-#define BALORE_ARM_LENGTH(e) e->unk_4F4.whole
-#define BALORE_ARM_ANGLE(e) e->unk_500.part16.unk_500
-#define BALORE_ARM_SCALE(e) e->unk_504.whole
-
-/*
- * Affine effect (BaloreAffineEffect_Update): angle, spin step and scale.
- * Intro piece (BaloreIntroPiece_Update): piece index (start angle, orbit
- * speed table index), orbit angle and the shrinking orbit radius.
- */
-#define BALORE_EFFECT_ANGLE(e) e->unk_500.part16.unk_500
-#define BALORE_EFFECT_SPIN(e) e->unk_500.part16.unk_502
-#define BALORE_EFFECT_SCALE(e) e->unk_504.whole
-#define BALORE_PIECE_INDEX(e) e->unk_504.part8.unk_504
-#define BALORE_PIECE_ANGLE(e) e->unk_500.part16.unk_500
-#define BALORE_PIECE_RADIUS(e) e->unk_500.part16.unk_502
-
-/* Hands: room position they return to (set by Balore_CreateHand). */
-#define BALORE_HAND_HOME_X(e) e->unk_508.part16.unk_508
-#define BALORE_HAND_HOME_Y(e) e->unk_508.part16.unk_50A
-
-/*
- * Body: affine scale (1.0, shrinks while dying; the eye scales its aim offset
- * with it), rotation angle (read by the overlay), eye / form animation index
- * (4 at first; parts pick their animation offsets with it) and palette slot.
- */
-#define BALORE_BODY_SCALE(e) e->unk_504.whole
-#define BALORE_BODY_ANGLE(e) e->unk_500.part16.unk_500
-#define BALORE_EYE_ANIM(e) e->unk_4F4.part8.unk_4F6
-#define BALORE_PALETTE(e) e->unk_4F8.part8.unk_4F8
-
-/*
- * Intro (Balore_CreateIntro): its 32 pieces (BaloreIntroPiece_Update) keep the
- * intro entity; their index is BALORE_PIECE_INDEX.
- */
-#define BALORE_PIECE_OWNER(e) e->unk_4FC.unk_4FC_entity
-
-/*
- * Overlay (BaloreOverlay_Update, follows ENTITY_OWNER = the body): mirror flag
- * (copies the flipped half of the body frame, swaps the layer, flips the
- * affine matrix), template info bytes it was set up from, and the three heap
- * blocks of its private one-frame sprite sheet: sheet, frame and part list.
- */
-#define BALORE_OVERLAY_MIRROR(e) e->unk_4F4.part8.unk_4F7
-#define BALORE_OVERLAY_INFO(e) e->unk_4F8.whole
-#define BALORE_OVERLAY_SHEET(e) e->unk_4FC.whole
-#define BALORE_OVERLAY_FRAME(e) e->unk_500.whole
-#define BALORE_OVERLAY_PARTS(e) e->unk_504.whole
-
-/* Parts (BalorePart_Update): animation base (0x12 / 0x1B while flashing). */
-#define BALORE_PART_ANIM(e) e->unk_500.part8.unk_500
-
-/* Hands: heap block of their Entity_SteerToPoint flight parameters. */
-#define BALORE_HAND_STEER(e) e->unk_50C.whole
-
-/*
- * Hands: bytes 0 / 1 of unk_51C - animation their hit boxes follow, and hit
- * flags copied to the hit boxes (1 = strong hit 90 / reaction 3, 2 = 80,
- * else 55; 4 = solid for the player). Byte views, so the macros keep the
- * original cast form.
- * Emitter (BaloreEmitter_Draw): 16.16 step between its 8 drawn copies.
- */
 #define BALORE_HAND_ANIM(e) ((u8 *)&e->unk_51C)[0]
 #define BALORE_HAND_HIT_FLAGS(e) ((u8 *)&e->unk_51C)[1]
-#define BALORE_EMITTER_STEP_X(e) e->unk_50C.whole
 #define BALORE_EMITTER_STEP_Y(e) e->unk_510.whole
-
-/* BALORE_GFX read through the byte view of its slot (bytes[3]). */
-#define BALORE_GFX_BYTE(e) e->unk_4F8.bytes[3]
+#define BALORE_GFX_BYTE(e) e->ext.raw.unk_4F8.bytes[3]
 
 #endif /* BALORE_ENTITY_H */

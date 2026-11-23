@@ -1,6 +1,5 @@
 /* Spawners 0x08045BC8..0x08045C9B. */
 #include "code_08009A0.h"
-#include "particle_effect.h"
 #include "code_08032444.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
@@ -23,8 +22,8 @@ void Effect_SpawnAttachedAnimation(struct EwramData_EntityData *parent, u8 anim,
     child = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateAttachedAnimation);
     if (child == NULL)
         return;
-    PARTICLE_ATTACH_ANIM(child) = anim;
-    PARTICLE_ATTACH_PARENT(child) = parent;
+    child->ext.particleAttach.anim = anim;
+    child->ext.particleAttach.parent = parent;
     child->palette = palette;
     child->accelX.whole = offsetX;
     child->accelY.whole = offsetY;
@@ -54,6 +53,6 @@ s32 SoulAcquisition_CreateEffect(s32 kind)
     Sprite_Attach(entity, anim, gfx, Soul_GetPickupPalette(kind));
     entity->hidden = 1;
     entity->drawFunc = (u32 *)SoulAcquisition_DrawAndWait;
-    SOUL_ACQUIRE_DURATION(entity) = 0x40;
+    entity->ext.soulAcquire.duration = 0x40;
     PlaySong(0xBE);
 }

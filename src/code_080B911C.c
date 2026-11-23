@@ -1,6 +1,5 @@
 /* Witch affine spell projectile. */
 #include "code_08009A0.h"
-#include "witch_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -25,7 +24,7 @@ extern u8 sWitchGfx[], sWitchPalette[], sWitchSpriteSheet[];
  */
 void WitchSpell_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = &gEwramData->entityData[WITCH_SPELL_OWNER_INDEX(entity)];
+    struct EwramData_EntityData *parent = &gEwramData->entityData[entity->ext.witchSpell.ownerIndex];
     struct EwramData_EntityData *child;
     struct BgLayerState *bg;
     u32 box[4];
@@ -49,12 +48,12 @@ void WitchSpell_Update(struct EwramData_EntityData *entity)
         entity->hit.flags |= 4;
         offset = 0xFFE0;
         entity->velX.whole = -0x18000;
-        WITCH_SPELL_SPIN(entity) = 0xFD00;
+        entity->ext.witchSpell.spin = 0xFD00;
         if (entity->flipX)
         {
             entity->velX.whole = -entity->velX.whole;
             offset = 0x20;
-            WITCH_SPELL_SPIN(entity) = -WITCH_SPELL_SPIN(entity);
+            entity->ext.witchSpell.spin = -entity->ext.witchSpell.spin;
         }
         {
             u16 *x = &parent->posX.part16.integer;
@@ -68,24 +67,24 @@ void WitchSpell_Update(struct EwramData_EntityData *entity)
         entity->state = 1;
         /* fall through */
     case 1:
-        if (WITCH_SPELL_SCALE(entity) <= 0xFFFF) WITCH_SPELL_SCALE(entity) += 0x2000;
+        if (entity->ext.witchSpell.scale <= 0xFFFF) entity->ext.witchSpell.scale += 0x2000;
         else
         {
             s32 targetX = Target_GetX(entity);
             bg = (struct BgLayerState *)((u8 *)gEwramData + OFFSET_OF(struct EwramData, bgInfo[1]));
-            WITCH_SPELL_TARGET_X(entity) = bg->xPos.whole + targetX;
+            entity->ext.witchSpell.targetX = bg->xPos.whole + targetX;
             {
                 s32 targetY = Target_GetY(entity);
                 bg = (struct BgLayerState *)((u8 *)gEwramData + OFFSET_OF(struct EwramData, bgInfo[1]));
-                WITCH_SPELL_TARGET_Y(entity) = bg->yPos.whole + targetY - 0x100000;
+                entity->ext.witchSpell.targetY = bg->yPos.whole + targetY - 0x100000;
             }
-            WITCH_SPELL_DELAY(entity) = 0x20;
+            entity->ext.witchSpell.delay = 0x20;
             entity->state = 2;
         }
         break;
     case 2:
         if (WitchSpell_MoveTowardStoredPoint(entity)) entity->state = 3;
-        if (WITCH_SPELL_DELAY(entity) != 0) WITCH_SPELL_DELAY(entity)--;
+        if (entity->ext.witchSpell.delay != 0) entity->ext.witchSpell.delay--;
         else entity->state = 3;
         break;
     case 3:
@@ -133,7 +132,7 @@ remove:
             child->accelY.whole = -child->velY.whole / 64;
         }
     }
-    ObjAffine_Set((s16)WITCH_SPELL_ANGLE(entity), WITCH_SPELL_SCALE(entity), WITCH_SPELL_SCALE(entity), entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set((s16)entity->ext.witchSpell.angle, entity->ext.witchSpell.scale, entity->ext.witchSpell.scale, entity->flipX, 0, entity->affineIndex);
     Anim_Update(entity);
-    WITCH_SPELL_ANGLE(entity) += WITCH_SPELL_SPIN(entity);
+    entity->ext.witchSpell.angle += entity->ext.witchSpell.spin;
 }

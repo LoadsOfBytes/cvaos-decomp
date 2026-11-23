@@ -2,7 +2,6 @@
  * a cloning script and checked byte for byte:
  *   GladiatorPart_OnHit = ManticoreTail_OnHit */
 #include "code_08009A0.h"
-#include "gladiator_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_080211F0.h"
@@ -71,7 +70,7 @@ void EnemyGladiatorUpdate(struct EwramData_EntityData *entity)
         Anim_Update(entity);
         return;
     }
-    if (GLADIATOR_FLINCH(entity) == 0) Entity_AnimateWithBoxes(entity);
+    if (entity->ext.gladiator.flinch == 0) Entity_AnimateWithBoxes(entity);
     Enemy_CheckHitPlayer(entity);
 }
 

@@ -11,12 +11,12 @@ extern void Enemy_DropRewards(struct EwramData_EntityData *);
  */
 void Graham_UpdatePhaseMonitor(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *child=&gEwramData->entityData[GRAHAM_CHILD_INDEX(entity)];
+    struct EwramData_EntityData *child=&gEwramData->entityData[entity->ext.grahamScene.childIndex];
     s32 state=entity->subState;
     switch(state)
     {
         case 0:
-            if(GRAHAM_FLAGS(entity) & 4)
+            if(entity->ext.graham.flags & 4)
             {
                 PlaySong(0x1DD);
                 Graham_CreateCombatBody(entity);

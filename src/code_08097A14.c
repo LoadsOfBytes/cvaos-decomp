@@ -1,5 +1,4 @@
 #include <string.h>
-#include "joint_entity.h"
 #include "code_08009A0.h"
 #include "structs/ewram.h"
 
@@ -22,7 +21,7 @@ void CreakingSkull_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
         entity->subState = 20;
     case 20:
         entity->timer = 14;
-        JOINT_POSE(entity) = 1;
+        entity->ext.joint.pose = 1;
         entity->subState++;
     case 21:
         CreakingSkull_InterpolateJointsInOrder(entity, parts);
@@ -30,7 +29,7 @@ void CreakingSkull_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
             break;
         entity->subState++;
         entity->timer = 0x18;
-        JOINT_POSE(entity) = 2;
+        entity->ext.joint.pose = 2;
         break;
     case 22:
         CreakingSkull_InterpolateJointsInOrder(entity, parts);
@@ -38,7 +37,7 @@ void CreakingSkull_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
             break;
         entity->subState++;
         entity->timer = 14;
-        JOINT_POSE(entity) = 3;
+        entity->ext.joint.pose = 3;
         break;
     case 23:
         CreakingSkull_InterpolateJointsInOrder(entity, parts);
@@ -46,7 +45,7 @@ void CreakingSkull_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
             break;
         entity->subState++;
         entity->timer = 0x18;
-        JOINT_POSE(entity) = 0;
+        entity->ext.joint.pose = 0;
         break;
     case 24:
         CreakingSkull_InterpolateJointsInOrder(entity, parts);
@@ -57,7 +56,7 @@ void CreakingSkull_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
         CreakingSkull_AttachJointSetAngle(entity, 2, 1, 0x1E000, 0x1C0000);
         entity->subState = 21;
         entity->timer = 14;
-        JOINT_POSE(entity) = 1;
+        entity->ext.joint.pose = 1;
         break;
     }
 }

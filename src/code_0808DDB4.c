@@ -13,7 +13,7 @@
  */
 void GreatArmor_AttachPartSetAngle(struct EwramData_EntityData *entity, s32 partIndex, s32 anchorIndex, s32 angleSpec, s32 length)
 {
-    struct GreatArmorPart *parts = entity->unk_500.greatArmorParts;
+    struct GreatArmorPart *parts = entity->ext.greatArmor.parts;
     // &parts[partIndex], written as integer arithmetic (offset + base) as in
     // the original
     struct GreatArmorPart *part = (struct GreatArmorPart *)(partIndex * sizeof(struct GreatArmorPart) + (u32)parts);

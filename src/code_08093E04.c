@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "succubus_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -36,13 +35,13 @@ void Succubus_UpdateWalk(struct EwramData_EntityData *entity)
     {
     case 0:
         entity->flipX = Entity_IsTargetRight(entity);
-        if (!*(s8 *)&SUCCUBUS_SEEN(entity)
+        if (!*(s8 *)&entity->ext.succubus.seen
             && Target_IsInRect(entity->posX.part16.integer - 0x5A, entity->posY.part16.integer - 0x40, 0xB4, 0x46))
         {
-            SUCCUBUS_SEEN(entity) = 1;
+            entity->ext.succubus.seen = 1;
             PlaySong(0x1C7);
         }
-        if (SUCCUBUS_PROVOKED(entity) == 1
+        if (entity->ext.succubus.provoked == 1
             || Target_IsInRect(entity->posX.part16.integer - 0x1E, entity->posY.part16.integer - 0x40, 0x3C, 0x46))
         {
             entity->subState++;
@@ -57,8 +56,8 @@ void Succubus_UpdateWalk(struct EwramData_EntityData *entity)
             Anim_StartIndexed(entity, 1, 0, 1);
             entity->subState++;
             entity->timer = 0;
-            SUCCUBUS_INTRO(entity) = 0;
-            SUCCUBUS_HOLDING(entity) = 0;
+            entity->ext.succubus.intro = 0;
+            entity->ext.succubus.holding = 0;
         }
         break;
     case 2:
@@ -77,9 +76,9 @@ void Succubus_UpdateWalk(struct EwramData_EntityData *entity)
             land = Player_GetFocusedActionFlags() & 0x60;
             if (!land)
             {
-                SUCCUBUS_DODGE_CHECKED(entity) = land;
+                entity->ext.succubus.dodgeChecked = land;
             }
-            else if (!*(s8 *)&SUCCUBUS_DODGE_CHECKED(entity))
+            else if (!*(s8 *)&entity->ext.succubus.dodgeChecked)
             {
                 if (!(RandomNumberGenerator() & 1))
                 {
@@ -95,7 +94,7 @@ void Succubus_UpdateWalk(struct EwramData_EntityData *entity)
                         PlaySong(0x1C8);
                     break;
                 }
-                SUCCUBUS_DODGE_CHECKED(entity) = 1;
+                entity->ext.succubus.dodgeChecked = 1;
             }
         }
         speed = 0x10000;
@@ -140,9 +139,9 @@ void Succubus_UpdateWalk(struct EwramData_EntityData *entity)
             land = Player_GetFocusedActionFlags() & 0x60;
             if (!land)
             {
-                SUCCUBUS_DODGE_CHECKED(entity) = land;
+                entity->ext.succubus.dodgeChecked = land;
             }
-            else if (!*(s8 *)&SUCCUBUS_DODGE_CHECKED(entity))
+            else if (!*(s8 *)&entity->ext.succubus.dodgeChecked)
             {
                 if (!(RandomNumberGenerator() & 1))
                 {
@@ -156,7 +155,7 @@ void Succubus_UpdateWalk(struct EwramData_EntityData *entity)
                     Afterimage_Create(entity, 0x38, 6, 0x10);
                     break;
                 }
-                SUCCUBUS_DODGE_CHECKED(entity) = 1;
+                entity->ext.succubus.dodgeChecked = 1;
             }
         }
         speed2 = 0x10000;
@@ -196,7 +195,7 @@ void Succubus_UpdateWalk(struct EwramData_EntityData *entity)
             entity->timer = 0;
             entity->velY.whole = speed3;
             entity->accelY.whole = 0x1800;
-            SUCCUBUS_DODGE_CHECKED(entity) = 0;
+            entity->ext.succubus.dodgeChecked = 0;
         }
         break;
     }

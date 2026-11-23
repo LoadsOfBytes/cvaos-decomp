@@ -1,7 +1,4 @@
 #include "code_08033CAC.h"
-#include "debug_entity.h"
-#include "blue_soul_entity.h"
-#include "red_soul_entity.h"
 #include "player_entity.h"
 #include "code_08009A0.h"
 #include "code_08001004.h"
@@ -31,30 +28,6 @@
 #include "structs/agb_sram.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
-
-/*
- * Whip chain entity (Whip_CreateChain, unk_4F4 = 8 WhipChainNode records):
- * active flag (Whip_Activate/DeactivateChain) and settle counter (frames the
- * anchor node has not moved; the node simulation stops at 120, the swing
- * helpers reset it). Each hit segment created by Whip_CreateChain stores the
- * index of the node it follows. Token-identical expansion.
- */
-#define WHIP_CHAIN_ACTIVE(e) e->unk_500.part16.unk_500
-#define WHIP_CHAIN_SETTLE(e) e->unk_500.part16.unk_502
-#define WHIP_SEGMENT_NODE(e) e->unk_50C.part8.unk_50C
-/* The chain keeps its owner (stored by Whip_CreateChain). */
-#define WHIP_CHAIN_OWNER(e) e->unk_504.unk_504_entity
-
-/*
- * Julius sub-weapons: the cross and axe projectiles spin by adding the spin
- * speed to the rotation angle passed to ObjAffine_Set; the holy water bottle
- * and its flame walk with Entity_Walk at the stored speed; the Grand Cross
- * scales its affine sprite by the stored 16.16 scale.
- */
-#define SUBWEAPON_SPIN_ANGLE(e) e->unk_508.part16.unk_508
-#define SUBWEAPON_SPIN_SPEED(e) e->unk_508.part16.unk_50A
-#define SUBWEAPON_WALK_SPEED(e) e->unk_50C.whole
-#define GRAND_CROSS_SCALE(e) e->unk_50C.whole
 
 static inline s32 Player_GetExperienceForLevelInline(s32 level)
 {
@@ -235,7 +208,7 @@ void LinkPartner_Create(void)
     Sprite_Attach(child, (u8 *)0x080E11C4, (s32) gEwramData->playerState.blueSoulGfx, 3);
     child->spriteLayer = 0xF;
     child->roomActive = 1;
-    PLAYER_WEAPON_SLOT(child) = 1;
+    child->ext.player.weaponSlot = 1;
     gEwramData->playerState.linkFrameCounter = 0;
     gEwramData->playerState.enemyTarget = NULL;
     gEwramData->playerState.linkPartner = child;
@@ -256,7 +229,7 @@ void LinkPartner_Update(struct EwramData_EntityData *entity)
 
     frame = 0;
     receivedState = &gEwramData->linkReceivedState;
-    prevFlags = PLAYER_ACTION_FLAGS(entity);
+    prevFlags = entity->ext.player.actionFlags;
     entity->roomActive = 1;
 
     switch (entity->state)
@@ -267,16 +240,16 @@ void LinkPartner_Update(struct EwramData_EntityData *entity)
             entity->state = 1;
             /* fallthrough */
         case 1:
-            PLAYER_ACTION_FLAGS(entity) = 0;
+            entity->ext.player.actionFlags = 0;
             if (receivedState->flags & 2)
             {
-                PLAYER_ACTION_FLAGS(entity) = 0x20;
+                entity->ext.player.actionFlags = 0x20;
             }
             if (receivedState->flags & 4)
             {
-                PLAYER_ACTION_FLAGS(entity) |= 0x400;
+                entity->ext.player.actionFlags |= 0x400;
             }
-            if ((PLAYER_ACTION_FLAGS(entity) & 0x20) && !(prevFlags & 0x20) && (gEwramData->playerState.weaponEntities[PLAYER_WEAPON_SLOT(entity)] == NULL))
+            if ((entity->ext.player.actionFlags & 0x20) && !(prevFlags & 0x20) && (gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot] == NULL))
             {
                 Weapon_CreateAttackEntity(entity);
             }
@@ -313,7 +286,7 @@ void Link_ExchangePlayerState(void)
     player = gEwramData->playerState.player;
 
     receivedState->flags = 0;
-    if (PLAYER_ACTION_FLAGS(player) & 0x80000)
+    if (player->ext.player.actionFlags & 0x80000)
     {
         sendState->flags |= 8;
     }
@@ -440,11 +413,11 @@ void Link_UpdatePlayerSync(void)
     sendState->animFrame = player->animFrame;
 
     sendState->flags = player->flipX;
-    if ((player->state != 3) && (PLAYER_ACTION_FLAGS(player) & 0x20))
+    if ((player->state != 3) && (player->ext.player.actionFlags & 0x20))
     {
         sendState->flags |= 2;
     }
-    if (PLAYER_ACTION_FLAGS(player) & 0x400)
+    if (player->ext.player.actionFlags & 0x400)
     {
         sendState->flags |= 4;
     }
@@ -521,7 +494,7 @@ void Link_MarkEnemyDamaged(void)
 {
     if (gEwramData->gameState.linkPlay)
     {
-        PLAYER_ACTION_FLAGS(gEwramData->playerState.player) |= 0x80000;
+        gEwramData->playerState.player->ext.player.actionFlags |= 0x80000;
     }
 }
 
@@ -635,7 +608,7 @@ void Julius_HandleSubweaponInput(struct EwramData_EntityData *entity)
     s8 slot;
     struct RedSoulActivationView *info;
 
-    if (PLAYER_ACTION_FLAGS(entity) & 0x540)
+    if (entity->ext.player.actionFlags & 0x540)
     {
         return;
     }
@@ -709,13 +682,13 @@ void Julius_HandleSubweaponInput(struct EwramData_EntityData *entity)
         entity->timer = 0x20;
     }
 
-    PLAYER_ACTION_FLAGS(entity) |= 0x100;
-    RED_SOUL_OWNER(child) = entity;
-    RED_SOUL_SLOT(child) = slot;
-    RED_SOUL_ID(child) = gEwramData->playerStatus.equippedRedSoul;
-    RED_SOUL_PARAM(child) = info->param;
+    entity->ext.player.actionFlags |= 0x100;
+    child->ext.redSoul.owner = entity;
+    child->ext.redSoul.slot = slot;
+    child->ext.redSoul.id = gEwramData->playerStatus.equippedRedSoul;
+    child->ext.redSoul.param = info->param;
     child->roomActive = 1;
-    PLAYER_ACTION_FLAGS(entity) &= ~0x200060;
+    entity->ext.player.actionFlags &= ~0x200060;
 }
 
 /**
@@ -730,7 +703,7 @@ void JuliusCross_Update(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *owner;
     u16 affineIndex;
 
-    owner = RED_SOUL_OWNER(entity);
+    owner = entity->ext.redSoul.owner;
 
     switch (entity->state)
     {
@@ -740,7 +713,7 @@ void JuliusCross_Update(struct EwramData_EntityData *entity)
             entity->state = 1;
             /* fallthrough */
         case 1:
-            if (PLAYER_ACTION_FLAGS(owner) & 0x80)
+            if (owner->ext.player.actionFlags & 0x80)
             {
                 RedSoul_RemoveActiveEntity(entity);
                 EntityDelete(entity);
@@ -774,12 +747,12 @@ void JuliusCross_Update(struct EwramData_EntityData *entity)
 
                 entity->velX.whole = 0x34000;
                 entity->accelX.whole = -0x1000;
-                SUBWEAPON_SPIN_SPEED(entity) = 0x678;
+                entity->ext.subweapon.spinSpeed = 0x678;
                 if (owner->flipX)
                 {
                     entity->velX.whole = -entity->velX.whole;
                     entity->accelX.whole = -entity->accelX.whole;
-                    SUBWEAPON_SPIN_SPEED(entity) = -SUBWEAPON_SPIN_SPEED(entity);
+                    entity->ext.subweapon.spinSpeed = -entity->ext.subweapon.spinSpeed;
                 }
 
                 Hit_Enable(entity, 5, NULL, 0);
@@ -833,8 +806,8 @@ void JuliusCross_Update(struct EwramData_EntityData *entity)
             }
 
             EntityAccelerateAndMove(entity, 0x80000);
-            SUBWEAPON_SPIN_ANGLE(entity) += SUBWEAPON_SPIN_SPEED(entity);
-            ObjAffine_Set(SUBWEAPON_SPIN_ANGLE(entity), 0x10000, 0x10000, entity->flipX ^ 1, 0, entity->affineIndex);
+            entity->ext.subweapon.spinAngle += entity->ext.subweapon.spinSpeed;
+            ObjAffine_Set(entity->ext.subweapon.spinAngle, 0x10000, 0x10000, entity->flipX ^ 1, 0, entity->affineIndex);
             break;
     }
 
@@ -863,13 +836,13 @@ void JuliusHolyWaterFlame_Update(struct EwramData_EntityData *entity)
             Anim_StartIndexed(entity, 2, 0, 0);
             entity->drawFunc = (u32 *) Sprite_DrawEntity;
             entity->spriteLayer = 0xD;
-            SUBWEAPON_WALK_SPEED(entity) = 0x12000;
+            entity->ext.subweapon.walkSpeed = 0x12000;
             Hit_Enable(entity, 5, NULL, 0);
             entity->hit.flags |= 4;
             entity->state += 1;
             /* fallthrough */
         case 1:
-            Entity_Walk(entity, -SUBWEAPON_WALK_SPEED(entity), (void *)0x084F1438, 0xC);
+            Entity_Walk(entity, -entity->ext.subweapon.walkSpeed, (void *)0x084F1438, 0xC);
             if (Anim_Update(entity) == 3)
             {
                 RedSoul_RemoveActiveEntity(entity);
@@ -900,7 +873,7 @@ void JuliusHolyWater_Update(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *owner;
     s32 tmp = 0x10000;
 
-    owner = RED_SOUL_OWNER(entity);
+    owner = entity->ext.redSoul.owner;
 
     switch (entity->state)
     {
@@ -910,7 +883,7 @@ void JuliusHolyWater_Update(struct EwramData_EntityData *entity)
             entity->state = 1;
             /* fallthrough */
         case 1:
-            if (PLAYER_ACTION_FLAGS(owner) & 0x80)
+            if (owner->ext.player.actionFlags & 0x80)
             {
                 RedSoul_RemoveActiveEntity(entity);
                 EntityDelete(entity);
@@ -930,16 +903,16 @@ void JuliusHolyWater_Update(struct EwramData_EntityData *entity)
             Entity_PlaceRelativeTo(entity, owner, 0x14, -0x1A);
             entity->velY.whole = -0x8000;
             entity->accelY.whole = 0x4000;
-            SUBWEAPON_WALK_SPEED(entity) = tmp; // needed to match
+            entity->ext.subweapon.walkSpeed = tmp; // needed to match
             entity->scrollWithBg = 1;
             entity->state = 2;
             break;
 
         case 2:
-            walkResult = Entity_Walk(entity, -SUBWEAPON_WALK_SPEED(entity), (void *)0x084F1438, 8);
+            walkResult = Entity_Walk(entity, -entity->ext.subweapon.walkSpeed, (void *)0x084F1438, 8);
             if (walkResult & 3)
             {
-                SUBWEAPON_WALK_SPEED(entity) = 0;
+                entity->ext.subweapon.walkSpeed = 0;
             }
             if (walkResult & 8)
             {
@@ -1014,11 +987,11 @@ void JuliusAxeProjectile_Update(struct EwramData_EntityData *entity)
             entity->velY.whole = -0x58000;
             entity->accelY.whole = 0x3000;
             entity->velX.whole = -0x12000;
-            SUBWEAPON_SPIN_SPEED(entity) = -0xABC;
+            entity->ext.subweapon.spinSpeed = -0xABC;
             if (!entity->flipX)
             {
                 entity->velX.whole = -entity->velX.whole;
-                SUBWEAPON_SPIN_SPEED(entity) = -SUBWEAPON_SPIN_SPEED(entity);
+                entity->ext.subweapon.spinSpeed = -entity->ext.subweapon.spinSpeed;
             }
 
             switch (entity->subState)
@@ -1041,8 +1014,8 @@ void JuliusAxeProjectile_Update(struct EwramData_EntityData *entity)
             /* fallthrough */
         case 1:
             EntityAccelerateAndMove(entity, 0x80000);
-            SUBWEAPON_SPIN_ANGLE(entity) += SUBWEAPON_SPIN_SPEED(entity);
-            ObjAffine_Set(SUBWEAPON_SPIN_ANGLE(entity), 0x10000, 0x10000, entity->flipX ^ 1, 0, entity->affineIndex);
+            entity->ext.subweapon.spinAngle += entity->ext.subweapon.spinSpeed;
+            ObjAffine_Set(entity->ext.subweapon.spinAngle, 0x10000, 0x10000, entity->flipX ^ 1, 0, entity->affineIndex);
             break;
     }
 
@@ -1067,7 +1040,7 @@ void JuliusAxe_Update(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *child;
     struct EwramData_EntityData *owner;
 
-    owner = RED_SOUL_OWNER(entity);
+    owner = entity->ext.redSoul.owner;
 
     switch (entity->state)
     {
@@ -1078,7 +1051,7 @@ void JuliusAxe_Update(struct EwramData_EntityData *entity)
             break;
 
         case 1:
-            if ((PLAYER_ACTION_FLAGS(owner) & 0x80))
+            if ((owner->ext.player.actionFlags & 0x80))
             {
                 RedSoul_RemoveActiveEntity(entity);
                 EntityDelete(entity);
@@ -1137,7 +1110,7 @@ void JuliusGrandCross_Update(struct EwramData_EntityData *entity)
     u16 affineIndex;
     s32 tmp = 0x10000;
 
-    owner = RED_SOUL_OWNER(entity);
+    owner = entity->ext.redSoul.owner;
 
     switch (entity->state)
     {
@@ -1148,7 +1121,7 @@ void JuliusGrandCross_Update(struct EwramData_EntityData *entity)
             entity->state = 1;
             /* fallthrough */
         case 1:
-            if (PLAYER_ACTION_FLAGS(owner) & 0x80)
+            if (owner->ext.player.actionFlags & 0x80)
             {
                 RedSoul_RemoveActiveEntity(entity);
                 EntityDelete(entity);
@@ -1181,7 +1154,7 @@ void JuliusGrandCross_Update(struct EwramData_EntityData *entity)
             Hit_Enable(entity, 5, NULL, 0);
             entity->hit.flags |= 4;
             entity->hit.flags |= 2;
-            GRAND_CROSS_SCALE(entity) = tmp;
+            entity->ext.grandCross.scale = tmp;
             Sound_StopTracked(0xFA);
             Sound_PlayTracked(0xFB);
             PlaySong(0x1E6U);
@@ -1210,9 +1183,9 @@ void JuliusGrandCross_Update(struct EwramData_EntityData *entity)
                 entity->flipX ^= 1; 
             }
 
-            if (GRAND_CROSS_SCALE(entity) < 0x20000)
+            if (entity->ext.grandCross.scale < 0x20000)
             {
-                GRAND_CROSS_SCALE(entity) += 0x2000;
+                entity->ext.grandCross.scale += 0x2000;
             }
             else
             {
@@ -1243,9 +1216,9 @@ void JuliusGrandCross_Update(struct EwramData_EntityData *entity)
             entity->state = 4;
             /* fallthrough */
         case 4:
-            if (GRAND_CROSS_SCALE(entity) > 0)
+            if (entity->ext.grandCross.scale > 0)
             {
-                GRAND_CROSS_SCALE(entity) -= 0x4000;
+                entity->ext.grandCross.scale -= 0x4000;
                 break;
             }
 
@@ -1263,7 +1236,7 @@ void JuliusGrandCross_Update(struct EwramData_EntityData *entity)
     if (entity->state > 1)
     {
         Anim_Update(entity);
-        ObjAffine_Set(0x10000, GRAND_CROSS_SCALE(entity), GRAND_CROSS_SCALE(entity), entity->flipX ^ 1, 0, entity->affineIndex);
+        ObjAffine_Set(0x10000, entity->ext.grandCross.scale, entity->ext.grandCross.scale, entity->flipX ^ 1, 0, entity->affineIndex);
     }
     return;
 }
@@ -1304,7 +1277,7 @@ void Whip_UpdateChainHitSegment(struct EwramData_EntityData *entity)
     struct WhipChainNode *nodes;
     struct EwramData_EntityData *chain;
 
-    chain = BLUE_SOUL_OWNER(entity);
+    chain = entity->ext.blueSoul.owner;
 
     switch (entity->state)
     {
@@ -1317,12 +1290,12 @@ void Whip_UpdateChainHitSegment(struct EwramData_EntityData *entity)
             /* fallthrough */
         case 1:
             entity->timer += 1;
-            if ((WHIP_CHAIN_ACTIVE(chain) != 0) && !(entity->timer & 7))
+            if ((chain->ext.whipChain.active != 0) && !(entity->timer & 7))
             {
-                nodes = chain->unk_4F4.whipNodes;
+                nodes = chain->ext.whipChain.nodes;
                 // TODO: what is going on here
-                entity->posX.whole = nodes[WHIP_SEGMENT_NODE(entity)].posX;
-                entity->posY.whole = nodes[WHIP_SEGMENT_NODE(entity)].posY;
+                entity->posX.whole = nodes[entity->ext.whipSegment.node].posX;
+                entity->posY.whole = nodes[entity->ext.whipSegment.node].posY;
                 entity->hit.flags &= ~2;
             }
             else
@@ -1388,12 +1361,12 @@ void Whip_UpdateChain(struct EwramData_EntityData *entity)
     s32 i;
     struct WhipChainNode *nodes;
 
-    nodes = entity->unk_4F4.whipNodes;
-    if (WHIP_CHAIN_ACTIVE(entity) != 0)
+    nodes = entity->ext.whipChain.nodes;
+    if (entity->ext.whipChain.active != 0)
     {
         if ((nodes[0].posX == entity->posX.whole) && (nodes[0].posY == entity->posY.whole))
         {
-            WHIP_CHAIN_SETTLE(entity) += 1;
+            entity->ext.whipChain.settle += 1;
         }
         else
         {
@@ -1401,7 +1374,7 @@ void Whip_UpdateChain(struct EwramData_EntityData *entity)
             nodes[0].posY = entity->posY.whole;
         }
 
-        if (WHIP_CHAIN_SETTLE(entity) < 120)
+        if (entity->ext.whipChain.settle < 120)
         {
             for (i = 1; i < 8; i++)
             {
@@ -1437,8 +1410,8 @@ void Whip_DrawChain(struct EwramData_EntityData *entity)
     s32 i;
     struct WhipChainNode *nodes;
 
-    nodes = entity->unk_4F4.whipNodes;
-    if (WHIP_CHAIN_ACTIVE(entity) == 0)
+    nodes = entity->ext.whipChain.nodes;
+    if (entity->ext.whipChain.active == 0)
         return;
 
     entity->posX.whole = (nodes[7].posX * 2) >> 1;
@@ -1481,8 +1454,8 @@ struct EwramData_EntityData* Whip_CreateChain(s32 x, s32 y, u8 *resource, struct
     gEwramData->playerState.skillAttackAttributes = 0;
     Hit_SetTimerOverride(2, 0x14);
 
-    chain->unk_4F4.whipNodes = gEwramData->whipChainNodes;
-    WHIP_CHAIN_OWNER(chain) = owner;
+    chain->ext.whipChain.nodes = gEwramData->whipChainNodes;
+    chain->ext.whipChain.owner = owner;
     chain->posX.whole = x;
     chain->posY.whole = y;
     chain->drawFunc = (u32*)&Whip_DrawChain;
@@ -1492,7 +1465,7 @@ struct EwramData_EntityData* Whip_CreateChain(s32 x, s32 y, u8 *resource, struct
         segment = BlueSoul_CreateEntity(chain, Whip_UpdateChainHitSegment);
         if (segment != NULL)
         {
-            WHIP_SEGMENT_NODE(segment) = i;
+            segment->ext.whipSegment.node = i;
             segment->timer = i;
         }
 
@@ -1507,8 +1480,8 @@ struct EwramData_EntityData* Whip_CreateChain(s32 x, s32 y, u8 *resource, struct
 
     chain->animFrame = 3;
     chain->spriteLayer = 0xE;
-    WHIP_CHAIN_ACTIVE(chain) = 1;
-    WHIP_CHAIN_SETTLE(chain) = 0;
+    chain->ext.whipChain.active = 1;
+    chain->ext.whipChain.settle = 0;
     chain->roomActive = chain->scrollWithBg = 1;
     return chain;
 }
@@ -1535,7 +1508,7 @@ struct EwramData_EntityData* Julius_CreateOverlaySprite(void)
  */
 void Entity_DeleteWithChild(struct EwramData_EntityData *entity)
 {
-    EntityDelete(entity->unk_4F8.unk_4F8_entity);
+    EntityDelete(entity->ext.raw.unk_4F8.unk_4F8_entity);
     EntityDelete(entity);
 }
 
@@ -1545,7 +1518,7 @@ void Entity_DeleteWithChild(struct EwramData_EntityData *entity)
  */
 void Whip_ActivateChain(struct EwramData_EntityData *entity)
 {
-    WHIP_CHAIN_ACTIVE(entity) = 1;
+    entity->ext.whipChain.active = 1;
 }
 
 /**
@@ -1553,7 +1526,7 @@ void Whip_ActivateChain(struct EwramData_EntityData *entity)
  */
 void Whip_DeactivateChain(struct EwramData_EntityData *entity)
 {
-    WHIP_CHAIN_ACTIVE(entity) = 0;
+    entity->ext.whipChain.active = 0;
 }
 
 /**
@@ -1588,7 +1561,7 @@ void Whip_LayChainStraight(struct EwramData_EntityData *entity, s16 flip)
         gEwramData->whipChainNodes[i].velY = 0;
     }
 
-    WHIP_CHAIN_SETTLE(entity) = 0;
+    entity->ext.whipChain.settle = 0;
 }
 
 /**
@@ -1602,7 +1575,7 @@ void Whip_SwingChainRight(struct EwramData_EntityData *entity)
     s32 push;
     s32 falloff;
 
-    nodes = entity->unk_4F4.whipNodes;
+    nodes = entity->ext.whipChain.nodes;
     push = 0x180000;
     falloff = 0x18000;
 
@@ -1612,7 +1585,7 @@ void Whip_SwingChainRight(struct EwramData_EntityData *entity)
         push -= falloff;
     }
 
-    WHIP_CHAIN_SETTLE(entity) = 0;
+    entity->ext.whipChain.settle = 0;
 }
 
 /**
@@ -1625,7 +1598,7 @@ void Whip_SwingChainLeft(struct EwramData_EntityData *entity)
     s32 push;
     s32 falloff;
 
-    nodes = entity->unk_4F4.whipNodes;
+    nodes = entity->ext.whipChain.nodes;
     push = -0x180000;
     falloff = -0x18000;
 
@@ -1635,7 +1608,7 @@ void Whip_SwingChainLeft(struct EwramData_EntityData *entity)
         push -= falloff;
     }
 
-    WHIP_CHAIN_SETTLE(entity) = 0;
+    entity->ext.whipChain.settle = 0;
 }
 
 /**
@@ -1649,7 +1622,7 @@ void Whip_SwingChainDown(struct EwramData_EntityData *entity)
     s32 push;
     s32 falloff;
 
-    nodes = entity->unk_4F4.whipNodes;
+    nodes = entity->ext.whipChain.nodes;
     push = 0x200000;
     falloff = 0x20000;
 
@@ -1659,7 +1632,7 @@ void Whip_SwingChainDown(struct EwramData_EntityData *entity)
         push -= falloff;
     }
 
-    WHIP_CHAIN_SETTLE(entity) = 0;
+    entity->ext.whipChain.settle = 0;
 }
 
 /**
@@ -1672,7 +1645,7 @@ void Whip_SwingChainUp(struct EwramData_EntityData *entity)
     s32 push;
     s32 falloff;
 
-    nodes = entity->unk_4F4.whipNodes;
+    nodes = entity->ext.whipChain.nodes;
     push = -0x200000;
     falloff = -0x20000;
 
@@ -1682,7 +1655,7 @@ void Whip_SwingChainUp(struct EwramData_EntityData *entity)
         push -= falloff;
     }
 
-    WHIP_CHAIN_SETTLE(entity) = 0;
+    entity->ext.whipChain.settle = 0;
 }
 
 /**
@@ -1750,7 +1723,7 @@ s16 DebugPlatform_FloorCorrection(struct EwramData_EntityData *entity, s32 x, s3
     if (correction <= -0x10 || correction > 0x0)
         return 0;
 
-    DEBUG_PLATFORM_CARRYING(entity) = 1;
+    entity->ext.debug.platformCarrying = 1;
     gUnk_03002CB0.collisionProbeFlags = 2;
     return correction;
 }

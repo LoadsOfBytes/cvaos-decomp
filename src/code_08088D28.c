@@ -2,7 +2,6 @@
  * a cloning script (constants adjusted where needed), checked byte for
  * byte. */
 #include "code/code_08039340.h"
-#include "peeping_eye_entity.h"
 #include "structs/ewram.h"
 
 extern void PeepingEyePupil_Update(struct EwramData_EntityData *entity);
@@ -27,7 +26,7 @@ struct EwramData_EntityData *PeepingEye_CreatePupil(struct EwramData_EntityData 
         gfx = ObjGfx_Find(sPeepingEyeGfx);
         Sprite_Attach(child, sPeepingEyeSpriteSheet, gfx, entity->unk_510.part8.basePalette);
         child->animFrame = 0x10;
-        PEEPING_EYE_OWNER(child) = entity;
+        child->ext.peepingEye.owner = entity;
         child->scrollWithBg = 0;
         child->drawFunc = (u32 *)Sprite_DrawEntity;
     }

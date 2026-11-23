@@ -32,7 +32,7 @@ struct EwramData_EntityData *GrahamAttacker_CreateAttackEffect(struct EwramData_
     part->posX.whole = owner->posX.whole;
     part->posY.whole = owner->posY.whole;
     part->scrollWithBg = 1;
-    GRAHAM_CHILD_INDEX(owner) = ENTITY_INDEX(part);
+    owner->ext.grahamScene.childIndex = ENTITY_INDEX(part);
     { u8 v_ = part->enemyFlags; { register u32 z_ asm("r7"); asm("" : "=r"(z_) : "0"(0)); } part->enemyFlags = v_ | 1; } /* FAKEMATCH: dead "movs r7, #0" of the original (graphics = 0) */
 
     part->enemyFlags |= 4;

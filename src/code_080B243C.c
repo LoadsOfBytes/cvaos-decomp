@@ -5,13 +5,6 @@
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
 
-/*
- * Bomber Armor bomb (BomberArmorBomb_Update): 16.16 walk speed (from the
- * target distance; halved and reversed on a bounce). Token-identical
- * expansion.
- */
-#define BOMBER_ARMOR_BOMB_SPEED(e) e->unk_4FC.whole
-
 void PlaySong(u32 song);
 extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, void *graphics, void *sprite, u8 palette, void *paletteData);
@@ -55,10 +48,10 @@ void BomberArmorBomb_Update(struct EwramData_EntityData *entity)
         HitBox_SetAttackRaw(entity, 0x3030E8E8);
         HitBox_SetBodyRaw(entity, 0x1010F8F8);
         entity->hit.flags |= 2;
-        BOMBER_ARMOR_BOMB_SPEED(entity) = -0x2000 - (Entity_GetTargetDistance(entity) << 10);
+        entity->ext.bomberArmorBomb.speed = -0x2000 - (Entity_GetTargetDistance(entity) << 10);
         entity->posY.whole += -0x3A0000;
         if (entity->flipX)
-            BOMBER_ARMOR_BOMB_SPEED(entity) = -BOMBER_ARMOR_BOMB_SPEED(entity);
+            entity->ext.bomberArmorBomb.speed = -entity->ext.bomberArmorBomb.speed;
         entity->velY.whole = -0x28000;
         entity->accelY.whole = 0x2000;
         entity->attack += entity->attack >> 2;
@@ -75,9 +68,9 @@ void BomberArmorBomb_Update(struct EwramData_EntityData *entity)
             }
         }
         entity->timer++;
-        result = Entity_Walk(entity, BOMBER_ARMOR_BOMB_SPEED(entity), (void *)0x08528738, 2);
+        result = Entity_Walk(entity, entity->ext.bomberArmorBomb.speed, (void *)0x08528738, 2);
         if (result & 3)
-            BOMBER_ARMOR_BOMB_SPEED(entity) = -(s32)BOMBER_ARMOR_BOMB_SPEED(entity) / 2;
+            entity->ext.bomberArmorBomb.speed = -(s32)entity->ext.bomberArmorBomb.speed / 2;
         if (result & 8)
         {
             entity->state = 2;

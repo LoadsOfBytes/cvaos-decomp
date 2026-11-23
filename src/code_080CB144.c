@@ -1,6 +1,5 @@
 /* Beam Skeleton: seven fragments on death. */
 #include "code_08009A0.h"
-#include "beam_skeleton_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern void Effect_UpdateSpriteDebris(struct EwramData_EntityData *entity);
@@ -10,7 +9,7 @@ extern u8 sBeamSkeletonPalette[];
 extern u8 sBeamSkeletonSpriteSheet[];
 extern s8 sBeamSkeletonDeathPieceOffsets[][6];
 #define ABS(x) ((x) < 0 ? -(x) : (x))
-#define INDEX(e) (BEAM_SKELETON_PIECE_INDEX((e)))
+#define INDEX(e) (e->ext.beamSkeletonPiece.index)
 
 extern void BeamSkeleton_SpawnDeathPieces(struct EwramData_EntityData *entity);
 extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
@@ -54,9 +53,9 @@ void BeamSkeleton_SpawnDeathPieces(struct EwramData_EntityData *entity)
         {
             s32 graphics;
             s32 x;
-            BEAM_SKELETON_PIECE_OWNER_INDEX(part) = ENTITY_INDEX(entity);
+            part->ext.beamSkeletonPiece.ownerIndex = ENTITY_INDEX(entity);
             INDEX(part) = i;
-            BEAM_SKELETON_DEATH_PIECES(entity)++;
+            entity->ext.beamSkeleton.deathPieces++;
             part->spriteLayer = entity->spriteLayer;
             part->scrollWithBg = 1;
             graphics = Sprite_GetTileSlot(entity);

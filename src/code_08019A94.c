@@ -33,18 +33,18 @@ void Soma_UpdateKnockbackFromImpulse(struct EwramData_EntityData *entity)
     u16 x;
     s16 y;
 
-    PLAYER_ACTION_FLAGS(entity) &= 0xEFFFFE9F;
+    entity->ext.player.actionFlags &= 0xEFFFFE9F;
     box = sSomaStandingBodyBox[0];
     if (!(gEwramData->playerState.actionLockFlags & 0x800) && entity->animScriptIndex != 0x11)
     {
         Anim_StartIndexed(entity, 0x11, 3, 0);
         HitBox_SetBody(entity, &box);
-        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
-        PLAYER_ACTION_FLAGS(entity) &= ~0x200000;
+        entity->ext.player.requestedAnim = 0xFF;
+        entity->ext.player.actionFlags &= ~0x200000;
         pal = sSomaAnimPalettes[0x11];
-        if (PLAYER_ANIM_PALETTE(entity) != pal)
+        if (entity->ext.player.animPalette != pal)
         {
-            PLAYER_ANIM_PALETTE(entity) = pal;
+            entity->ext.player.animPalette = pal;
             ObjPalette_LoadRange(sSomaPalette, pal, 1, 0);
         }
     }
@@ -72,9 +72,9 @@ clear:
     entity->velX.whole = 0;
     entity->accelX.whole = 0;
 done:
-    if (!(PLAYER_ACTION_FLAGS(entity) & 2) || (hit && (PLAYER_ACTION_FLAGS(entity) & 0x200000)))
+    if (!(entity->ext.player.actionFlags & 2) || (hit && (entity->ext.player.actionFlags & 0x200000)))
     {
-        PLAYER_ACTION_FLAGS(entity) &= 0xFFFEFF7F;
+        entity->ext.player.actionFlags &= 0xFFFEFF7F;
         entity->state = 0;
     }
     Soma_UpdateVerticalMovement(entity);

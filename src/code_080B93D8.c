@@ -1,6 +1,5 @@
 /* Witch attached spell effect. */
 #include "code_08009A0.h"
-#include "witch_entity.h"
 #include "code/code_08039340.h"
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 extern u8 sWitchGfx[], sWitchPalette[], sWitchSpriteSheet[];
@@ -11,7 +10,7 @@ extern u8 sWitchGfx[], sWitchPalette[], sWitchSpriteSheet[];
  */
 void WitchCastEffect_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = &gEwramData->entityData[WITCH_SPELL_OWNER_INDEX(entity)];
+    struct EwramData_EntityData *parent = &gEwramData->entityData[entity->ext.witchSpell.ownerIndex];
     s32 timer;
     switch (entity->state)
     {
@@ -33,7 +32,7 @@ void WitchCastEffect_Update(struct EwramData_EntityData *entity)
         }
         break;
     case 2:
-        if (!(WITCH_FLAGS(parent) & 2))
+        if (!(parent->ext.witch.flags & 2))
         {
             entity->state = 3;
             entity->timer = 0x10;

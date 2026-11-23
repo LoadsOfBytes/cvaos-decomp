@@ -21,12 +21,12 @@ void ButtonConfigMenu_DrawSprites(void)
 }
 
 /**
- * @brief 4C3AC | ButtonConfigMenu_Draw and move the cursor (slot 18) to row MENU_PAGE_CURSOR.
+ * @brief 4C3AC | ButtonConfigMenu_Draw and move the cursor (slot 18) to row ext.menuPage.cursor.
  */
 void ButtonConfigMenu_Redraw(struct EwramData_EntityData *entity)
 {
     ButtonConfigMenu_Draw(entity);
-    Cursor_SetTilePosition(5, (s8)MENU_PAGE_CURSOR(entity) * 2 + 4);
+    Cursor_SetTilePosition(5, (s8)entity->ext.menuPage.cursor * 2 + 4);
 }
 
 /**

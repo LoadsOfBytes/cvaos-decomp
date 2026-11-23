@@ -3,7 +3,6 @@
    written parameter). */
 /* Resolve damage modifiers and create the shared hit effect. */
 #include "code_08009A0.h"
-#include "particle_effect.h"
 #include "enemy_status.h"
 #include "code_0800CB00.h"
 #include "code_080D73B8.h"
@@ -47,7 +46,7 @@ static inline void SpawnHitSpark(s16 x, s16 y, u16 effect)
         child->posX.part16.integer = x;
         child->posY.part16.integer = y;
         child->flipX = RandomNumberGenerator() & 1;
-        PARTICLE_HIT_TYPE(child) = effect;
+        child->ext.hitEffect.type = effect;
         child->subState = effect;
     }
 }

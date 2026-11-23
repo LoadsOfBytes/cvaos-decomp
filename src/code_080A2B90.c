@@ -2,7 +2,6 @@
  * (failure block at the end via goto, nested
  * position tests so cross-jump shares the compare). */
 #include "code_08009A0.h"
-#include "chaos_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -28,11 +27,11 @@ extern void ChaosOrb_SpawnSeedShot(struct EwramData_EntityData *orb, s32 x, s32 
 extern void ChaosOrb_SpawnSpark(struct EwramData_EntityData *orb, s32 x, s32 y);
 extern void ChaosOrb_SpawnSoulShot(struct EwramData_EntityData *orb, s32 x, s32 y);
 
-#define OFS_X(e) (CHAOS_ORB_OFFSET_X((e)))
-#define OFS_Y(e) (CHAOS_ORB_OFFSET_Y((e)))
-#define KIND(e) ((u8)CHAOS_ORB_KIND((e)))
-#define REQUEST(c) (CHAOS_ACTIVE_ORBS((c)))
-#define BUSY(c) (CHAOS_BUSY((c)))
+#define OFS_X(e) (e->ext.chaosOrb.offsetX)
+#define OFS_Y(e) (e->ext.chaosOrb.offsetY)
+#define KIND(e) ((u8)e->ext.chaosOrb.kind)
+#define REQUEST(c) (c->ext.chaos.activeOrbs)
+#define BUSY(c) (c->ext.chaos.busy)
 
 /**
  * @brief Orb update: ride on the core's circle with its halo and aura, attack
@@ -43,9 +42,9 @@ extern void ChaosOrb_SpawnSoulShot(struct EwramData_EntityData *orb, s32 x, s32 
 void ChaosOrb_Update(struct EwramData_EntityData *entity)
 {
     u8 box[16];
-    struct EwramData_EntityData *core = CHAOS_LINK(entity);
+    struct EwramData_EntityData *core = entity->ext.chaosChild.link;
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
-    struct ChaosData *data = (struct ChaosData *)CHAOS_DATA(core);
+    struct ChaosData *data = (struct ChaosData *)core->ext.chaos.data.value;
     s32 x, y, limit;
 
     if (core == NULL || core->updateFunc == NULL || core->unk_518.part8.enemyId != entity->unk_518.part8.enemyId)
@@ -54,8 +53,8 @@ void ChaosOrb_Update(struct EwramData_EntityData *entity)
     {
         x = (Sin(data->bgAngle + 0x4000) >> 14) + OFS_X(entity) + 2;
         y = (Sin(data->bgAngle) >> 14) + OFS_Y(entity) - 12;
-        entity->posX.whole = Sin(0x4000 - (data->bgRotation + (u16)CHAOS_ORB_ANGLE(entity))) * 60;
-        entity->posY.whole = Sin(-(data->bgRotation + (u16)CHAOS_ORB_ANGLE(entity))) * 60;
+        entity->posX.whole = Sin(0x4000 - (data->bgRotation + (u16)entity->ext.chaosOrb.angle)) * 60;
+        entity->posY.whole = Sin(-(data->bgRotation + (u16)entity->ext.chaosOrb.angle)) * 60;
         entity->posX.part16.integer += x;
         entity->posY.part16.integer += y;
         x = entity->posX.whole + bg->xPos.whole;
@@ -146,10 +145,10 @@ void ChaosOrb_Update(struct EwramData_EntityData *entity)
                 entity->timer = 250;
                 entity->hidden = 1;
                 entity->hit.flags |= 4;
-                CHAOS_ORB_SHOT_DONE(entity) = 0;
+                entity->ext.chaosOrb.shotDone = 0;
                 break;
             case 1:
-                if (CHAOS_ORB_SHOT_DONE(entity))
+                if (entity->ext.chaosOrb.shotDone)
                 {
                     entity->subState = 0;
                     BUSY(core) = 1;
@@ -182,8 +181,8 @@ void ChaosOrb_Update(struct EwramData_EntityData *entity)
     {
         x = (Sin(data->bgAngle + 0x4000) >> 14) + OFS_X(entity) + 2;
         y = (Sin(data->bgAngle) >> 14) + OFS_Y(entity) - 12;
-        entity->posX.whole = Sin(0x4000 - (data->bgRotation + (u16)CHAOS_ORB_ANGLE(entity))) * 60;
-        entity->posY.whole = Sin(-(data->bgRotation + (u16)CHAOS_ORB_ANGLE(entity))) * 60;
+        entity->posX.whole = Sin(0x4000 - (data->bgRotation + (u16)entity->ext.chaosOrb.angle)) * 60;
+        entity->posY.whole = Sin(-(data->bgRotation + (u16)entity->ext.chaosOrb.angle)) * 60;
         entity->posX.part16.integer += x;
         entity->posY.part16.integer += y;
         if (entity->subState == 0)
@@ -198,13 +197,13 @@ void ChaosOrb_Update(struct EwramData_EntityData *entity)
             switch (KIND(entity))
             {
             case 0:
-                CHAOS_BROKEN_ORBS(core) |= 1;
+                core->ext.chaos.brokenOrbs |= 1;
                 break;
             case 1:
-                CHAOS_BROKEN_ORBS(core) |= 2;
+                core->ext.chaos.brokenOrbs |= 2;
                 break;
             case 2:
-                CHAOS_BROKEN_ORBS(core) |= 4;
+                core->ext.chaos.brokenOrbs |= 4;
                 break;
             }
         }

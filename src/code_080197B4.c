@@ -29,12 +29,12 @@ static inline void SetPlayerAnimBox(struct EwramData_EntityData *entity, u8 anim
     {
         Anim_StartIndexed(entity, anim, 3, 0);
         HitBox_SetBody(entity, &box);
-        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
-        PLAYER_ACTION_FLAGS(entity) &= ~0x200000;
+        entity->ext.player.requestedAnim = 0xFF;
+        entity->ext.player.actionFlags &= ~0x200000;
         pal = sSomaAnimPalettes[anim];
-        if (PLAYER_ANIM_PALETTE(entity) != pal)
+        if (entity->ext.player.animPalette != pal)
         {
-            PLAYER_ANIM_PALETTE(entity) = pal;
+            entity->ext.player.animPalette = pal;
             ObjPalette_LoadRange(sSomaPalette, pal, 1, 0);
         }
     }
@@ -52,7 +52,7 @@ void Soma_HandleWeaponAttackInput(struct EwramData_EntityData *entity)
         return;
     if (!(gEwramData->inputData.playerNewInput & gEwramData->playerStatus.attackButton) && !(gEwramData->playerStatus.inputOverrides & 2))
         return;
-    if (PLAYER_ACTION_FLAGS(entity) & 0x160)
+    if (entity->ext.player.actionFlags & 0x160)
         return;
     if (gEwramData->playerState.weaponEntities[0] != NULL)
         return;
@@ -60,12 +60,12 @@ void Soma_HandleWeaponAttackInput(struct EwramData_EntityData *entity)
         return;
     if (Weapon_GetEquippedInfo()->attackAnimKind == 5)
         return;
-    if (PLAYER_ACTION_FLAGS(entity) & 2)
+    if (entity->ext.player.actionFlags & 2)
     {
-        PLAYER_ACTION_FLAGS(entity) |= 0x40;
+        entity->ext.player.actionFlags |= 0x40;
         SetPlayerAnimBox(entity, Weapon_GetPlayerAttackAnim(2), sSomaAirborneBodyBox);
     }
-    else if (!(PLAYER_ACTION_FLAGS(entity) & 0x400))
+    else if (!(entity->ext.player.actionFlags & 0x400))
     {
         SetPlayerAnimBox(entity, Weapon_GetPlayerAttackAnim(0), sSomaStandingBodyBox);
     }
@@ -73,6 +73,6 @@ void Soma_HandleWeaponAttackInput(struct EwramData_EntityData *entity)
     {
         SetPlayerAnimBox(entity, Weapon_GetPlayerAttackAnim(1), sSomaCrouchBodyBoxes);
     }
-    PLAYER_ACTION_FLAGS(entity) |= 0x20;
+    entity->ext.player.actionFlags |= 0x20;
     entity->state = 1;
 }

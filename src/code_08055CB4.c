@@ -3,11 +3,11 @@
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
-#define DIST(e) (WARP_GATE_DIST((e)))
-#define SPEED(e) (WARP_GATE_SPEED((e)))
-#define ACCEL(e) (WARP_GATE_ACCEL((e)))
-#define POS(e) (WARP_GATE_POS((e)))
-#define STEP(e) (WARP_GATE_STEP((e)))
+#define DIST(e) (e->ext.warpGate.dist)
+#define SPEED(e) (e->ext.warpGate.speed)
+#define ACCEL(e) (e->ext.warpGate.accel)
+#define POS(e) (e->ext.warpGate.pos)
+#define STEP(e) (e->ext.warpGate.step)
 
 /**
  * @brief Reset a gate part to its closed animation; on arrival (stateFlags bit

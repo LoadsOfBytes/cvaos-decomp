@@ -1,6 +1,5 @@
 /* Chaos second form: part update (4E80). */
 #include "code_08009A0.h"
-#include "chaos_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -9,14 +8,14 @@ extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
 extern s32 Entity_GetVisibilityPattern(s32);
 extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
 
-#define FLASH(e) (CHAOS2_PART_FLASH((e)))
+#define FLASH(e) (e->ext.chaos2Part.flash)
 
 /* Part: hurt the player, restore the frame after a hit flash, break when
  * the core is gone or dying; broken parts smoke and blink out. */
 void Chaos2Part_Update(struct EwramData_EntityData *part)
 {
     u8 collision[16];
-    struct EwramData_EntityData *core = CHAOS_LINK(part);
+    struct EwramData_EntityData *core = part->ext.chaosChild.link;
 
     if (part->state == 0)
     {

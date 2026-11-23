@@ -27,10 +27,10 @@ void Object16Create(struct EwramData_EntityData *entity)
     PaletteAnim_Start(sObject16Palette, sObject16PaletteAnim, entity->unk_510.part8.basePalette);
     entity->animFrame = 0;
     entity->spriteLayer = 0x12;
-    OBJECT16_SCALE(entity) = 0xF00;
-    OBJECT16_ANGLE(entity) = 0;
-    OBJECT16_SPIN(entity) = 0x40;
-    OBJECT16_TIMER(entity) = 0x100;
+    entity->ext.object16.scale = 0xF00;
+    entity->ext.object16.angle = 0;
+    entity->ext.object16.spin = 0x40;
+    entity->ext.object16.timer = 0x100;
 }
 
 /**

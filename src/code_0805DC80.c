@@ -17,11 +17,11 @@ struct EwramData_EntityData *EventScene03_SpawnUnusedPart(struct EwramData_Entit
     entity->posX.part16.integer = x;
     entity->posY.part16.integer = y;
     ENTITY_PARENT_INDEX(entity) = ENTITY_INDEX(owner);
-    EVENT03_PART_FLAGS(entity) = flags;
+    entity->ext.event03Part.flags = flags;
     entity->unk_518.part8.enemyId = 0xFF;
     Entity_SnapToGround(entity);
     Anim_StartIndexed(entity, 0, 0, 1);
-    if (EVENT03_PART_FLAGS(entity) & 4)
+    if (entity->ext.event03Part.flags & 4)
     {
         for (i = 16; i != 0; i--)
             entity->posY.whole += 0x8000;
@@ -38,7 +38,7 @@ struct EwramData_EntityData *EventScene03_SpawnUnusedPart(struct EwramData_Entit
     part->posY.part16.integer = entity->posY.part16.integer;
     Anim_StartIndexed(part, 16, 0, 1);
     part->spriteLayer = entity->spriteLayer;
-    EVENT03_PART_LINK_INDEX(entity) = ENTITY_INDEX(part);
+    entity->ext.event03Part.linkIndex = ENTITY_INDEX(part);
     part->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
     return entity;
 }

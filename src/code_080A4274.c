@@ -2,7 +2,6 @@
  * a cloning script and checked byte for byte:
  *   ChaosSeedShot_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 #include "code_08009A0.h"
-#include "chaos_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -28,9 +27,9 @@ void ChaosSeedShot_DamagePlayerOnContact(struct EwramData_EntityData *entity)
     Entity_DamagePlayerOnContact(entity, 0, 0, 0);
 }
 
-/* A42A0 | Contact callback of the sparks: mark the grab (CHAOS_SPARK_GRABBED);
+/* A42A0 | Contact callback of the sparks: mark the grab (ext.chaosShot.grabbed);
  * ChaosSpark_Update then holds the player until they break free. */
 void ChaosSpark_OnContact(struct EwramData_EntityData *entity)
 {
-    CHAOS_SPARK_GRABBED(entity) = 1;
+    entity->ext.chaosShot.grabbed = 1;
 }

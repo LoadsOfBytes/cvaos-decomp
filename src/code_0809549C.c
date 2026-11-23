@@ -1,7 +1,5 @@
 /* Creaking Skull create: allocates the 13-joint skeleton and one part entity per joint. */
 #include "code_08009A0.h"
-#include "creaking_skull_entity.h"
-#include "joint_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -63,15 +61,15 @@ void EnemyCreakingSkullCreate(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    entity->unk_500.jointParts = Heap_Alloc(0x9C);
-    if (entity->unk_500.jointParts == NULL)
+    entity->ext.joint.parts = Heap_Alloc(0x9C);
+    if (entity->ext.joint.parts == NULL)
     {
         EntityDelete(entity);
         return;
     }
     entity->hidden = 1;
     entity->flipX = 0;
-    JOINT_POSE(entity) = 0;
+    entity->ext.joint.pose = 0;
     Enemy_ResetFromTemplate(entity);
     if (gEwramData->gameState.bossRushMode)
     {
@@ -79,7 +77,7 @@ void EnemyCreakingSkullCreate(struct EwramData_EntityData *entity)
         entity->attack += 20;
     }
     frames = frames0;
-    parts = entity->unk_500.jointParts;
+    parts = entity->ext.joint.parts;
     for (i = 0; i <= 12; i++)
     {
         index = order[i];
@@ -94,9 +92,9 @@ void EnemyCreakingSkullCreate(struct EwramData_EntityData *entity)
             part->hidden = 0;
             part->attack = entity->attack;
             part->drawFunc = (u32 *)Sprite_DrawEntity;
-            JOINT_PART_OWNER(part) = entity;
-            JOINT_PART_INDEX(part) = index;
-            JOINT_PART_ANCHOR(part) = anchors[index];
+            part->ext.jointPart.owner = entity;
+            part->ext.jointPart.index = index;
+            part->ext.jointPart.anchor = anchors[index];
             part->posX.whole = entity->posX.whole;
             part->posY.whole = entity->posY.whole;
             part->animFrame = frames[index];
@@ -119,14 +117,14 @@ void EnemyCreakingSkullCreate(struct EwramData_EntityData *entity)
         }
         else
         {
-            Heap_Free(entity->unk_500.jointParts);
+            Heap_Free(entity->ext.joint.parts);
             EntityDelete(entity);
             return;
         }
     }
-    parts = entity->unk_500.jointParts;
-    pose = sCreakingSkullPartPoses[(s8)JOINT_POSE(entity)];
-    angles = sCreakingSkullPartAngles[(s8)JOINT_POSE(entity)];
+    parts = entity->ext.joint.parts;
+    pose = sCreakingSkullPartPoses[(s8)entity->ext.joint.pose];
+    angles = sCreakingSkullPartAngles[(s8)entity->ext.joint.pose];
     for (index = 0; index <= 12; index++)
     {
         parts[index].offsetX = (s8)pose[index * 2] << 16;
@@ -159,14 +157,14 @@ void EnemyCreakingSkullCreate(struct EwramData_EntityData *entity)
     Entity_SnapToGround(entity);
     entity->state = frozen;
     entity->subState = 0x14;
-    JOINT_HURT_MASK(entity) = 0x106;
+    entity->ext.joint.hurtMask = 0x106;
     switch (entity->unk_518.part8.enemyId)
     {
     case 0x21:
-        CREAKING_SKULL_VARIANT(entity) = 0;
+        entity->ext.creakingSkull.variant = 0;
         break;
     case 0x5C:
-        CREAKING_SKULL_VARIANT(entity) = 1;
+        entity->ext.creakingSkull.variant = 1;
         break;
     }
     if (entity->unk_514.part16.spawnParam0 != 0)

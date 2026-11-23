@@ -54,8 +54,8 @@ void Object11Update(struct EwramData_EntityData *entity)
 void BossRushTimer_Update(struct EwramData_EntityData *entity)
 {
     entity->roomActive = 1;
-    if ((gEwramData->gameState.stateFlags & 2) && BOSS_RUSH_TIME(entity) <= 0x34BBD)
-        BOSS_RUSH_TIME(entity)++;
+    if ((gEwramData->gameState.stateFlags & 2) && entity->ext.bossRushTimer.time <= 0x34BBD)
+        entity->ext.bossRushTimer.time++;
 }
 
 /**

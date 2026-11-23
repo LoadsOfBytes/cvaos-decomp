@@ -1,6 +1,5 @@
 /* Hit callback that knocks the entity away. */
 #include "code/code_08039340.h"
-#include "skeleton_entity.h"
 #include "code_080D73B8.h"
 #include "structs/ewram.h"
 
@@ -18,7 +17,7 @@ void SkeletonProjectile_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 
     entity->unk_518.part16.hp = 0;
     entity->affine = 0;
     entity->unk_510.part8.hitFlashTimer = 8;
-    if ((u8)SKELETON_BONE_KIND(entity) == 0)
+    if ((u8)entity->ext.skeletonBone.kind == 0)
     {
         entity->timer = 0x32;
         entity->velX.whole = 0;

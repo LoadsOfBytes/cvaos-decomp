@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "layer_object.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -22,13 +21,13 @@ void Object29Create(struct EwramData_EntityData *entity)
     Anim_Update(entity);
     entity->spriteLayer = 18;
     entity->state = 0;
-    SHUTTLE_START(entity) = entity->posY.whole + camera->yPos.whole;
-    SHUTTLE_END(entity) = entity->unk_514.part16.spawnParam0 << 16;
-    BG1_OBJECT_X(entity) = entity->posX.whole + camera->xPos.whole;
-    BG1_OBJECT_Y(entity) = entity->posY.whole + camera->yPos.whole;
-    BG1_OBJECT_DRAW_X(entity) = BG1_OBJECT_X(entity) - camera->xPos.whole;
-    BG1_OBJECT_DRAW_Y(entity) = BG1_OBJECT_Y(entity) - camera->yPos.whole;
+    entity->ext.layerObject.shuttleStart = entity->posY.whole + camera->yPos.whole;
+    entity->ext.layerObject.shuttleEnd = entity->unk_514.part16.spawnParam0 << 16;
+    entity->ext.layerObject.x = entity->posX.whole + camera->xPos.whole;
+    entity->ext.layerObject.y = entity->posY.whole + camera->yPos.whole;
+    entity->ext.layerObject.drawX = entity->ext.layerObject.x - camera->xPos.whole;
+    entity->ext.layerObject.drawY = entity->ext.layerObject.y - camera->yPos.whole;
     entity->scrollWithBg = 0;
-    if ((s32)SHUTTLE_START(entity) > SHUTTLE_END(entity)) SHUTTLE_DIR(entity) = 1;
-    else SHUTTLE_DIR(entity) = 0;
+    if ((s32)entity->ext.layerObject.shuttleStart > entity->ext.layerObject.shuttleEnd) entity->ext.layerObject.shuttleDir = 1;
+    else entity->ext.layerObject.shuttleDir = 0;
 }

@@ -19,10 +19,10 @@ extern void HitEffect_SpawnAtContact(s32 attacker, struct EwramData_EntityData *
  */
 void Balore_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    BALORE_FLAGS(entity) |= 1;
+    entity->ext.balore.flags |= 1;
     if (Enemy_TakeDamage(entity, attacker, hit))
     {
-        BALORE_FLAGS(entity) |= 2;
+        entity->ext.balore.flags |= 2;
         Enemy_DropRewards(entity);
         entity->palette = entity->unk_510.part8.basePalette;
         entity->state = 4;

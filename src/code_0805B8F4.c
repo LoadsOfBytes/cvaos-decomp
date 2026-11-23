@@ -46,7 +46,7 @@ s32 EventScene30_Update(struct EwramData_EntityData *entity)
         if (entity->stage == 0)
             entity->stage++;
         if (EventScene30_PlayTransformation(entity)) {
-            EVENT30_FLOAT_PHASE(entity) = 0;
+            entity->ext.event30Driver.floatPhase = 0;
             gEwramData->playerState.player->hidden = 0;
             Music_SetCurrent(32);
             entity->state++;
@@ -123,9 +123,9 @@ s32 EventScene30_Update(struct EwramData_EntityData *entity)
         break;
     }
     if (entity->state > 1) {
-        s32 sine = Sin((u16)EVENT30_FLOAT_PHASE(entity) + 0x4000);
+        s32 sine = Sin((u16)entity->ext.event30Driver.floatPhase + 0x4000);
         Player_StartScriptedAnimation(51, 0, 0, sine / 4);
-        EVENT30_FLOAT_PHASE(entity) += 0x200;
+        entity->ext.event30Driver.floatPhase += 0x200;
         { u8 previous = entity->timer--;
         if ((previous % 16) == 0) {
             u32 random = RandomNumberGenerator();

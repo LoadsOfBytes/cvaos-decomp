@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 struct EffectGraphicsChoice { u8 pad[12]; u8 graphicsIndex; u8 pad_D[11]; };
@@ -16,7 +15,7 @@ extern void Sprite_GetPartCornerOffset(struct EwramData_EntityData *, s32, s16 *
  */
 void BoneSoul_SpawnFlyingEffect(struct EwramData_EntityData *owner)
 {
-    struct EffectGraphicsChoice *info = &sUnk_084F12C8[(u16)RED_SOUL_PARAM(owner)];
+    struct EffectGraphicsChoice *info = &sUnk_084F12C8[(u16)owner->ext.redSoul.param];
     struct EwramData_EntityData *entity = RedSoul_CreateEntity(owner, (u32 *)BoneSoulEffect_Update);
     struct EffectPoint point;
     if (entity != NULL)

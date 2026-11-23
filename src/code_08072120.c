@@ -1,6 +1,5 @@
 /* Handle projectile impacts, debris and attachment to a moving entity. */
 #include "code_08009A0.h"
-#include "mudman_entity.h"
 #include "code/code_08039340.h"
 
 extern s32 Entity_MoveWithCollisionDefault(struct EwramData_EntityData *, s32, s32);
@@ -78,10 +77,10 @@ void MudmanShot_Update(struct EwramData_EntityData *entity)
             struct EwramData_EntityData *parent = ENTITY_OWNER(entity);
             if (parent && parent->updateFunc)
             {
-                entity->posX.whole += parent->posX.whole + background->xPos.whole - MUDMAN_SHOT_OWNER_X(entity);
-                entity->posY.whole += parent->posY.whole + background->yPos.whole - MUDMAN_SHOT_OWNER_Y(entity);
-                MUDMAN_SHOT_OWNER_X(entity) = parent->posX.whole + background->xPos.whole;
-                MUDMAN_SHOT_OWNER_Y(entity) = parent->posY.whole + background->yPos.whole;
+                entity->posX.whole += parent->posX.whole + background->xPos.whole - entity->ext.mudmanShot.ownerX;
+                entity->posY.whole += parent->posY.whole + background->yPos.whole - entity->ext.mudmanShot.ownerY;
+                entity->ext.mudmanShot.ownerX = parent->posX.whole + background->xPos.whole;
+                entity->ext.mudmanShot.ownerY = parent->posY.whole + background->yPos.whole;
             }
             if (entity->animDone) goto remove;
             break;

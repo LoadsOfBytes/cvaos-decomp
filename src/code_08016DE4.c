@@ -18,8 +18,8 @@ struct SolidObjectCallbacks {
     s32 (*push)(struct EwramData_EntityData *object, s16 x, s16 y);
 };
 
-#define FUNCS(object) ((struct SolidObjectCallbacks *)SOLID_OBJECT_CALLBACKS((object)))
-#define FLAGS(e) (PLAYER_ACTION_FLAGS((e)))
+#define FUNCS(object) ((struct SolidObjectCallbacks *)object->ext.solidObject.callbacks.words)
+#define FLAGS(e) (e->ext.player.actionFlags)
 #define TILE_FLAGS (gUnk_03002CB0.collisionProbeFlags)
 #define X ((s16)x)
 #define Y ((s16)y)
@@ -99,7 +99,7 @@ static inline s32 IsSoftFloor(void)
 
 static inline void UpdateFloorKind(s16 c)
 {
-    if (c != 0 && PLAYER_FLOOR_KIND(gEwramData->playerState.player) == 0xFF)
+    if (c != 0 && gEwramData->playerState.player->ext.player.floorKind == 0xFF)
     {
         s32 kind;
         u8 d = TILE_FLAGS;
@@ -109,7 +109,7 @@ static inline void UpdateFloorKind(s16 c)
             kind = (d & 0x30) >> 4;
         else
             kind = 0xFF;
-        PLAYER_FLOOR_KIND(gEwramData->playerState.player) = kind;
+        gEwramData->playerState.player->ext.player.floorKind = kind;
     }
 }
 
@@ -200,7 +200,7 @@ static inline u16 FloorProbe(s16 x, s16 y, s32 flag)
     {
         struct EwramData_EntityData *player = gEwramData->playerState.player;
 
-        if (player->velY.whole >= 0 && (!(PLAYER_ACTION_FLAGS(player) & 2) || PLAYER_AIR_TIME(player) == 0x10))
+        if (player->velY.whole >= 0 && (!(player->ext.player.actionFlags & 2) || player->ext.player.airTime == 0x10))
             c = PlatformFloor(x, y, c);
     }
     UpdateFloorKind(c);
@@ -269,12 +269,12 @@ void Soma_ResolveBatFormCollision(struct EwramData_EntityData *entity)
 
     gUnk_03002CB0.objectFloorContact = side;
     FLAGS(entity) = (FLAGS(entity) & 0xFEEFFBFF) | 2;
-    PLAYER_ON_STAIRS(entity) = side;
+    entity->ext.player.onStairs = side;
     x = GetEntityRoomXPositionInteger(entity);
     y = GetEntityRoomYPositionInteger(entity);
     if (Collision_IsPointSolid(X, Y - 8) != 0)
         FLAGS(entity) |= 0x1000000;
-    offsets = (s8 *)PLAYER_WALL_PROBES(entity);
+    offsets = (s8 *)entity->ext.player.wallProbes;
     count = offsets[0];
     if (velX < 0)
     {

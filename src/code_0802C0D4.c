@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "red_soul_entity.h"
 #include "player_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -54,7 +53,7 @@ static inline void SetFrameBox(struct EwramData_EntityData *entity)
  */
 void SkillLegionUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.redSoul.owner;
 
     entity->roomActive = 1;
     switch (entity->state)
@@ -85,10 +84,10 @@ void SkillLegionUse(struct EwramData_EntityData *entity)
         entity->flipX = entity->stage;
         if (*(u16 *)&entity->animStep == 0xC)
             Sound_PlayTracked(0xCE);
-        if (PLAYER_ACTION_FLAGS(parent) & 0x80)
+        if (parent->ext.player.actionFlags & 0x80)
         {
             Sound_StopTracked(0xCE);
-            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+            gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
             gEwramData->playerState.nbrActiveRedSoulEntities--;
             EntityDelete(entity);
             return;
@@ -97,7 +96,7 @@ void SkillLegionUse(struct EwramData_EntityData *entity)
     if (Anim_Update(entity) == 3)
     {
         Sound_StopTracked(0xCE);
-        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;

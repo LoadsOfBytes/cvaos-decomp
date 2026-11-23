@@ -1,9 +1,8 @@
 /* Alastor recoil after its linked part is hit. */
 #include "code_08009A0.h"
-#include "alastor_entity.h"
 #include "structs/ewram.h"
-#define FLAGS(e) (ALASTOR_FLAGS((e)))
-#define PHASE(e) (ALASTOR_PHASE((e)))
+#define FLAGS(e) (e->ext.alastor.flags)
+#define PHASE(e) (e->ext.alastor.phase)
 static inline s32 Wave(s32 angle,s32 amplitude) { return (amplitude>>8)*(Sin(angle)>>8); }
 static inline s32 Multiply(s32 a,s32 b) { return a*b; }
 static inline s32 Scale(s32 a,s32 b) { return (a>>8)*(b>>8); }
@@ -14,7 +13,7 @@ static inline s32 Scale(s32 a,s32 b) { return (a>>8)*(b>>8); }
  */
 void Alastor_UpdateRecoil(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *part=&gEwramData->entityData[ALASTOR_PART_INDEX(entity)];
+    struct EwramData_EntityData *part=&gEwramData->entityData[entity->ext.alastorPart.index];
     switch(entity->subState)
     {
         case 0:

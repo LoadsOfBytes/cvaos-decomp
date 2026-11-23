@@ -1,7 +1,5 @@
 /* Creaking Skull part update and death motion. */
 #include "code_08009A0.h"
-#include "creaking_skull_entity.h"
-#include "joint_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -15,9 +13,9 @@ extern const u8 sCreakingSkullPartTimers[13];
 extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
 extern s32 Entity_GetVisibilityPattern(s32);
 extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
-#define JOINT(e) ((s8)JOINT_PART_INDEX((e)))
+#define JOINT(e) ((s8)e->ext.jointPart.index)
 #define FIX_INT(v) ((v) < 0 ? -(-(v) >> 16) : (v) >> 16)
-#define HAS_SPRITE(e) (JOINT_PART_INDEX((e)) <= 2 || JOINT(e) == 8 || JOINT(e) == 11)
+#define HAS_SPRITE(e) (e->ext.jointPart.index <= 2 || JOINT(e) == 8 || JOINT(e) == 11)
 
 /**
  * @brief Follow the selected root joint, mirror palette/facing and
@@ -29,7 +27,7 @@ void CreakingSkullPart_Update(struct EwramData_EntityData *entity)
     u8 hit[16];
     u8 timers[13];
     struct SkullBox box;
-    struct EwramData_EntityData *parent = JOINT_PART_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.jointPart.owner;
     struct EntityJointPart *parts;
     s32 x, y, size;
     u16 angle;
@@ -40,7 +38,7 @@ void CreakingSkullPart_Update(struct EwramData_EntityData *entity)
         if (parent != NULL && parent->updateFunc != NULL
             && parent->unk_518.part8.enemyId == entity->unk_518.part8.enemyId)
         {
-            parts = parent->unk_500.jointParts;
+            parts = parent->ext.joint.parts;
             entity->palette = parent->palette;
             entity->flipX = parent->flipX;
             entity->timer++;
@@ -48,11 +46,11 @@ void CreakingSkullPart_Update(struct EwramData_EntityData *entity)
             entity->posY.whole = parent->posY.whole + parts[JOINT(entity)].offsetY;
             if (entity->unk_518.part8.enemyId == 0x5C && JOINT(entity) == 5)
                 entity->hidden = 1;
-            if (JOINT_PART_INDEX(entity) <= 1 || JOINT(entity) == 11)
+            if (entity->ext.jointPart.index <= 1 || JOINT(entity) == 11)
             {
-                x = parts[(s8)JOINT_PART_ANCHOR(entity)].offsetX;
+                x = parts[(s8)entity->ext.jointPart.anchor].offsetX;
                 x -= parts[JOINT(entity)].offsetX;
-                y = parts[(s8)JOINT_PART_ANCHOR(entity)].offsetY - parts[JOINT(entity)].offsetY;
+                y = parts[(s8)entity->ext.jointPart.anchor].offsetY - parts[JOINT(entity)].offsetY;
                 angle = ArcTan2(FIX_INT(x), FIX_INT(y));
                 if (entity->flipX)
                     entity->velX.whole = angle;
@@ -68,11 +66,11 @@ void CreakingSkullPart_Update(struct EwramData_EntityData *entity)
                 if (JOINT(entity) == 8)
                 {
                     entity->state = 2;
-                    CREAKING_SKULL_PART_FLOOR_Y(entity) = parent->posY.whole - 0xA0000;
+                    entity->ext.creakingSkullPart.floorY = parent->posY.whole - 0xA0000;
                 }
                 entity->subState = 0;
-                CREAKING_SKULL_PART_ANGLE(entity) = entity->velX.whole;
-                CREAKING_SKULL_PART_SPIN(entity) = (RandomNumberGenerator() & 0xFF) - 0x80;
+                entity->ext.creakingSkullPart.angle = entity->velX.whole;
+                entity->ext.creakingSkullPart.spin = (RandomNumberGenerator() & 0xFF) - 0x80;
                 entity->accelY.whole = 0x1800;
                 entity->accelX.whole = 0;
                 entity->velX.whole = (RandomNumberGenerator() & 0x3FFF) - 0x2000;
@@ -80,7 +78,7 @@ void CreakingSkullPart_Update(struct EwramData_EntityData *entity)
                 entity->timer = timers[JOINT(entity)];
                 return;
             }
-            if ((JOINT_HURT_MASK(parent) >> JOINT(entity)) & 1)
+            if ((parent->ext.joint.hurtMask >> JOINT(entity)) & 1)
             {
                 if (JOINT(entity) == 8)
                 {
@@ -165,16 +163,16 @@ void CreakingSkullPart_Update(struct EwramData_EntityData *entity)
         if (entity->timer <= 50)
         {
             EntityAccelerateAndMove(entity, 0x60000);
-            CREAKING_SKULL_PART_ANGLE(entity) += CREAKING_SKULL_PART_SPIN(entity);
+            entity->ext.creakingSkullPart.angle += entity->ext.creakingSkullPart.spin;
         }
         if (parent->unk_514.part16.spawnParam0 == 0
             && (u8)(entity->timer - 20) <= 20 && (entity->timer & 3) == 0)
             Effect_SpawnRandom(entity->posX.whole, entity->posY.whole - 0x40000, 0x100000, 0x100000, entity->spriteLayer - 1);
-        if (JOINT_PART_INDEX(entity) <= 2 || JOINT(entity) == 11)
-            ObjAffine_Set(CREAKING_SKULL_PART_ANGLE(entity), 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
+        if (entity->ext.jointPart.index <= 2 || JOINT(entity) == 11)
+            ObjAffine_Set(entity->ext.creakingSkullPart.angle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
         if ((s8)--entity->timer <= 0)
         {
-            if (JOINT_PART_INDEX(entity) <= 2 || JOINT(entity) == 11)
+            if (entity->ext.jointPart.index <= 2 || JOINT(entity) == 11)
                 ObjAffine_Free(entity->affineIndex);
             EntityDelete(entity);
         }
@@ -190,9 +188,9 @@ void CreakingSkullPart_Update(struct EwramData_EntityData *entity)
         if (entity->subState == 1 && entity->timer <= 50)
         {
             EntityAccelerateAndMove(entity, 0x60000);
-            if (entity->posY.whole >= CREAKING_SKULL_PART_FLOOR_Y(entity))
+            if (entity->posY.whole >= entity->ext.creakingSkullPart.floorY)
             {
-                entity->posY.whole = CREAKING_SKULL_PART_FLOOR_Y(entity);
+                entity->posY.whole = entity->ext.creakingSkullPart.floorY;
                 entity->velY.whole = 0;
                 entity->accelY.whole = 0;
                 entity->velX.whole = 0;
@@ -222,10 +220,10 @@ void CreakingSkullPart_Update(struct EwramData_EntityData *entity)
             }
             if (entity->flipX)
             {
-                if ((s32)CREAKING_SKULL_PART_ANGLE(entity) > 0xE000) CREAKING_SKULL_PART_ANGLE(entity) -= 0x400;
+                if ((s32)entity->ext.creakingSkullPart.angle > 0xE000) entity->ext.creakingSkullPart.angle -= 0x400;
             }
-            else if ((s32)CREAKING_SKULL_PART_ANGLE(entity) < 0x12000) CREAKING_SKULL_PART_ANGLE(entity) += 0x400;
+            else if ((s32)entity->ext.creakingSkullPart.angle < 0x12000) entity->ext.creakingSkullPart.angle += 0x400;
         }
-        ObjAffine_Set(CREAKING_SKULL_PART_ANGLE(entity), 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
+        ObjAffine_Set(entity->ext.creakingSkullPart.angle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
     }
 }

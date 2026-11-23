@@ -1,6 +1,5 @@
 #include "code_08009A0.h"
 #include "soul_skill_entity.h"
-#include "blue_soul_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -23,7 +22,7 @@ static inline void EndBlueSoul(struct EwramData_EntityData *entity)
 {
     if (entity->affineIndex != 0 || entity->affine)
         ObjAffine_Free(entity->affineIndex);
-    gEwramData->playerState.activeBlueSoulEntities[BLUE_SOUL_SLOT(entity)] = NULL;
+    gEwramData->playerState.activeBlueSoulEntities[entity->ext.blueSoul.slot] = NULL;
     EntityDelete(entity);
 }
 
@@ -37,7 +36,7 @@ static inline void EndBlueSoul(struct EwramData_EntityData *entity)
  */
 void SkillAluraUneUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = BLUE_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.blueSoul.owner;
     u16 slot;
 
     entity->roomActive = 1;
@@ -83,12 +82,12 @@ void SkillAluraUneUse(struct EwramData_EntityData *entity)
         entity->posX.part16.integer = parent->posX.part16.integer + dx;
         entity->posY.part16.integer = parent->posY.part16.integer - 0x1A;
     }
-        if (SKILL_ALURA_UNE_SCALE_X(entity) <= 0xFFFF)
-            SKILL_ALURA_UNE_SCALE_X(entity) += 0x1000;
+        if (entity->ext.skillGrowScale.scaleX <= 0xFFFF)
+            entity->ext.skillGrowScale.scaleX += 0x1000;
         if (SKILL_ALURA_UNE_SCALE_Y(entity) <= 0xFFFF)
             SKILL_ALURA_UNE_SCALE_Y(entity) += 0x2000;
     }
-    ObjAffine_Set(0, SKILL_ALURA_UNE_SCALE_X(entity), SKILL_ALURA_UNE_SCALE_Y(entity), entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set(0, entity->ext.skillGrowScale.scaleX, SKILL_ALURA_UNE_SCALE_Y(entity), entity->flipX, 0, entity->affineIndex);
     if (entity->timer++ > 15)
     {
         entity->timer = 0;

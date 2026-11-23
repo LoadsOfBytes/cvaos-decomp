@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "joint_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern const u8 *const sGolemPartPoses[];
@@ -13,9 +12,9 @@ extern const s32 *const sGolemPartAngles[];
  * also turn toward their resting angle (cf. Stolas Stolas_InterpolateJoint). */
 void Golem_UpdatePart(struct EwramData_EntityData *entity, s32 index)
 {
-    struct GolemPart *parts = entity->unk_500.golemParts;
-    const u8 *pose = sGolemPartPoses[(s8)JOINT_POSE(entity)];
-    const s32 *angles = sGolemPartAngles[(s8)JOINT_POSE(entity)];
+    struct GolemPart *parts = entity->ext.golem.parts;
+    const u8 *pose = sGolemPartPoses[(s8)entity->ext.joint.pose];
+    const s32 *angles = sGolemPartAngles[(s8)entity->ext.joint.pose];
     s32 x, y, dx, dy;
     if (parts[index].targetSwingAngle == 0 && parts[index].swingAngle == 0)
     {

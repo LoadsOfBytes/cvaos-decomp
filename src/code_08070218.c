@@ -9,7 +9,6 @@
  * - `distance` is reused for the collision flags of Entity_MoveWithBoxCollision; the longer
  *   live range moves it to r5 and velocityX to r4. */
 #include "code_08009A0.h"
-#include "killer_fish_entity.h"
 #include "syscalls.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -25,9 +24,9 @@ extern s32 Target_GetY(struct EwramData_EntityData *);
 extern s32 Tile_Classify(s16, s16);
 extern s32 Entity_GetVisibilityPattern(s32);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-#define SCATTER(e) (KILLER_FISH_SWARM_SCATTER((e)))
-#define OWNER_LOST(e) (*(s8 *)&KILLER_FISH_SWARM_OWNER_LOST((e)))
-#define STEER_TIMER(e) (KILLER_FISH_SWARM_STEER_TIMER((e)))
+#define SCATTER(e) (e->ext.killerFishSwarm.scatter)
+#define OWNER_LOST(e) (*(s8 *)&e->ext.killerFishSwarm.ownerLost)
+#define STEER_TIMER(e) (e->ext.killerFishSwarm.steerTimer)
 #define ROOM_X(e) ((s16)(camera->xPos.part16.integer + Target_GetPixelX(e)))
 #define ROOM_Y(e) ((s16)(camera->yPos.part16.integer + Target_GetPixelY(e)))
 
@@ -152,7 +151,7 @@ restart:
         switch (entity->subState)
         {
         case 0:
-            KILLER_FISH_SWARM_BIT_PLAYER(entity) = 0;
+            entity->ext.killerFishSwarm.bitPlayer = 0;
             entity->subState++;
             STEER_TIMER(entity) = 0;
             entity->velX.whole = 0;
@@ -216,7 +215,7 @@ restart:
                 entity->velY.whole = distance;
             }
             if (entity->timer > 5) entity->state = 4;
-            if (KILLER_FISH_SWARM_BIT_PLAYER(entity)) entity->state = 4;
+            if (entity->ext.killerFishSwarm.bitPlayer) entity->state = 4;
             Hit_CheckWithPlayer(bounds, entity);
             break;
         }

@@ -52,16 +52,16 @@ struct EwramData_EntityData *Graham_CreateSceneProjectile(s32 xInput,s32 yInput,
         effect->posY.part16.integer=y;
         effect->scrollWithBg=1;
         effect->group=64;
-        kind=&GRAHAM_SHOT_HOMING(effect);
+        kind=&effect->ext.grahamShot.homing;
         *kind=homing;
         targetX=gEwramData->playerState.player->posX.whole;
         targetY=gEwramData->playerState.player->posY.whole;
         targetY-=((RandomNumberGenerator()&0x7F)<<12);
         targetY-=0x80000;
-        GRAHAM_SHOT_ANGLE(effect)=Entity_AngleToPoint(effect,targetX,targetY);
-        GRAHAM_SHOT_ANGLE(effect)=(GRAHAM_SHOT_ANGLE(effect)+(RandomNumberGenerator()&0xFFFF))&0xFFFF;
-        GRAHAM_SHOT_TURN(effect)=turn;
-        GRAHAM_SHOT_SPEED(effect)=0x30000;
+        effect->ext.grahamShot.angle=Entity_AngleToPoint(effect,targetX,targetY);
+        effect->ext.grahamShot.angle=(effect->ext.grahamShot.angle+(RandomNumberGenerator()&0xFFFF))&0xFFFF;
+        effect->ext.grahamShot.turn=turn;
+        effect->ext.grahamShot.speed=0x30000;
         if(*kind)
             effect->timer=200;
         else

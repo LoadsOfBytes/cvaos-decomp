@@ -20,7 +20,7 @@ void DiscArmorSpark_Update(struct EwramData_EntityData *entity)
             EntityDelete(entity);
             return;
         }
-        Anim_StartIndexed(entity, (u8)DISC_ARMOR_SPARK_ANIM(entity), 0, 0);
+        Anim_StartIndexed(entity, (u8)entity->ext.discArmorSpark.anim, 0, 0);
         entity->spriteLayer = 0x12;
         entity->scrollWithBg = 1;
         entity->state++;

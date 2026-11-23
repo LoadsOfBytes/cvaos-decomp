@@ -3,15 +3,6 @@
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
-/*
- * Unused warp room part (WarpRoomUnusedPart_Update): affine angle, rise frame,
- * scale (shrinks to 0) and its affine slot. Token-identical expansion.
- */
-#define WARP_PART_ANGLE(e) e->unk_4F4.whole
-#define WARP_PART_RISE_FRAME(e) e->unk_4F8.part16.unk_4F8
-#define WARP_PART_SCALE(e) e->unk_500.whole
-#define WARP_PART_AFFINE(e) e->unk_4F8.part8.unk_4FB
-
 /**
  * @brief Unreferenced part next to the warp room code: once its parent leaves
  * state 0 it rises, spins and converges on the screen centre while
@@ -20,7 +11,7 @@
  */
 void WarpRoomUnusedPart_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = entity->unk_4FC.unk_4FC_entity;
+    struct EwramData_EntityData *parent = entity->ext.warpRoomUnusedPart.parent;
     s32 limit;
 
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
@@ -43,7 +34,7 @@ void WarpRoomUnusedPart_Update(struct EwramData_EntityData *entity)
         entity->state++;
         break;
     case 2:
-        WARP_PART_ANGLE(entity) += 0x400;
+        entity->ext.warpRoomUnusedPart.angle += 0x400;
         if (--entity->timer != 0)
             break;
         entity->velX.whole = -(entity->posX.whole >> 6);
@@ -51,7 +42,7 @@ void WarpRoomUnusedPart_Update(struct EwramData_EntityData *entity)
         entity->state++;
         break;
     case 3:
-        limit = 0x30000 - (WARP_PART_RISE_FRAME(entity) << 9);
+        limit = 0x30000 - (entity->ext.warpRoomUnusedPart.riseFrame << 9);
         if (limit < 0)
             limit = 0;
         if (entity->posX.part16.integer < 0x80)
@@ -78,15 +69,15 @@ void WarpRoomUnusedPart_Update(struct EwramData_EntityData *entity)
             if (entity->velY.whole < -limit)
                 entity->velY.whole = -limit;
         }
-        WARP_PART_RISE_FRAME(entity)++;
+        entity->ext.warpRoomUnusedPart.riseFrame++;
         entity->posX.whole += entity->velX.whole;
         entity->posY.whole += entity->velY.whole;
-        WARP_PART_SCALE(entity) -= 0x200;
-        if (WARP_PART_SCALE(entity) == 0)
+        entity->ext.warpRoomUnusedPart.scale -= 0x200;
+        if (entity->ext.warpRoomUnusedPart.scale == 0)
             entity->state = 0x63;
         break;
     case 10:
-        WARP_PART_ANGLE(entity) += 0x400;
+        entity->ext.warpRoomUnusedPart.angle += 0x400;
         if (++entity->timer > 0x2F)
             entity->state++;
         break;
@@ -103,8 +94,8 @@ void WarpRoomUnusedPart_Update(struct EwramData_EntityData *entity)
         break;
     case 0x63:
         entity->deleteRequested = 1;
-        ObjAffine_Free(WARP_PART_AFFINE(entity));
+        ObjAffine_Free(entity->ext.warpRoomUnusedPart.affine);
         return;
     }
-    ObjAffine_Set(WARP_PART_ANGLE(entity), WARP_PART_SCALE(entity), WARP_PART_SCALE(entity), 0, 0, WARP_PART_AFFINE(entity));
+    ObjAffine_Set(entity->ext.warpRoomUnusedPart.angle, entity->ext.warpRoomUnusedPart.scale, entity->ext.warpRoomUnusedPart.scale, 0, 0, entity->ext.warpRoomUnusedPart.affine);
 }

@@ -1,6 +1,5 @@
 /* Effect_DrawPlayerFlash: growing flash effect that follows the player and toggles the blend. */
 #include "code_08009A0.h"
-#include "particle_effect.h"
 #include "code_0800B700.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -45,7 +44,7 @@ void Effect_DrawPlayerFlash(struct EwramData_EntityData *entity)
         u8 *flags = (u8 *)&entity->accelY + 5;
         *flags |= 4;
     }
-    if (entity->timer <= PLAYER_FLASH_DURATION(entity))
+    if (entity->timer <= entity->ext.playerFlash.duration)
         entity->timer++;
     if (entity->timer <= 2)
     {
@@ -58,7 +57,7 @@ void Effect_DrawPlayerFlash(struct EwramData_EntityData *entity)
     }
     if (entity->timer <= 0x27 && (entity->timer & 1))
         Effect_SpawnPlayerOutwardParticle(0x49, 6);
-    if (entity->timer > PLAYER_FLASH_DURATION(entity))
+    if (entity->timer > entity->ext.playerFlash.duration)
     {
         ObjAffine_Free(entity->affineIndex);
         if (!(gEwramData->gameState.stateFlags & 0x100))

@@ -1,6 +1,5 @@
 /* White Dragon dispatch, collision gating and delayed death cleanup. */
 #include "code_08009A0.h"
-#include "white_dragon_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08060B98.h"
@@ -60,8 +59,8 @@ collision:
                     WhiteDragon_SpawnDeathPiece(entity,entity->posX.whole+offset,entity->posY.whole,10);
                     WhiteDragon_SpawnDeathPiece(entity,entity->posX.whole+offset,entity->posY.whole,11);
                     WhiteDragon_SpawnSpark(entity,entity->posX.whole,entity->posY.whole,entity->spriteLayer-1);
-                    if(WHITE_DRAGON_HISTORY(entity))
-                        Heap_Free((void *)WHITE_DRAGON_HISTORY(entity));
+                    if(entity->ext.whiteDragon.history)
+                        Heap_Free((void *)entity->ext.whiteDragon.history);
                 }
             }
             else if(entity->timer++>49)

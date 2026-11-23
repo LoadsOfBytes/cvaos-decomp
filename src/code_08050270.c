@@ -76,7 +76,7 @@ void Object09Update(struct EwramData_EntityData *entity)
     BreakableBlock_ClearCollision(entity);
     x = GetEntityRoomXPositionInteger(entity);
     y = GetEntityRoomYPositionInteger(entity);
-    r = GameFlag_FindRoomCoordinate((s16)x, (s16)y, (u8)OBJECT09_COLLISION_MODE(entity));
+    r = GameFlag_FindRoomCoordinate((s16)x, (s16)y, (u8)entity->ext.object09.collisionMode);
     if (r >= 0)
         GameFlag_Set(r);
     entity->deleteRequested = 1;

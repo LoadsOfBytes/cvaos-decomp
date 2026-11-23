@@ -8,8 +8,8 @@
 extern s32 Entity_TryWalk(struct EwramData_EntityData *,s32,s32,s32,s32);
 extern s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *,s32,s32);
 extern s32 Entity_IsTargetInCenteredBox(struct EwramData_EntityData *,s32,s32);
-#define FLAGS(e) ((e)->unk_4F8.part8.unk_4F8)
-#define COOLDOWN(e) ((e)->unk_504.part16.unk_506[0])
+#define FLAGS(e) ((e)->ext.raw.unk_4F8.part8.unk_4F8)
+#define COOLDOWN(e) ((e)->ext.raw.unk_504.part16.unk_506[0])
 /**
  * @brief Combat state (2): update movement/cooldown and choose attacks,
  * dodges or the low-HP powered phase from proximity, player state,

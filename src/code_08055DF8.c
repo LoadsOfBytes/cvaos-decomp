@@ -5,13 +5,13 @@
 
 extern void WarpRoom_ResetGatePart(struct EwramData_EntityData *entity);
 
-#define DIST(e) (WARP_GATE_DIST((e)))
-#define SPEED(e) (WARP_GATE_SPEED((e)))
-#define ACCEL(e) (WARP_GATE_ACCEL((e)))
-#define POS(e) (WARP_GATE_POS((e)))
-#define STEP(e) (WARP_GATE_STEP((e)))
-#define HOMEX(e) (WARP_GATE_HOME_X((e)))
-#define HOMEY(e) (WARP_GATE_HOME_Y((e)))
+#define DIST(e) (e->ext.warpGate.dist)
+#define SPEED(e) (e->ext.warpGate.speed)
+#define ACCEL(e) (e->ext.warpGate.accel)
+#define POS(e) (e->ext.warpGate.pos)
+#define STEP(e) (e->ext.warpGate.step)
+#define HOMEX(e) (e->ext.warpGate.homeX)
+#define HOMEY(e) (e->ext.warpGate.homeY)
 
 /**
  * @brief Animate a gate part through its opening and closing states, driven

@@ -1,6 +1,5 @@
 /* Chaos: orb halo (3F84/4010). */
 #include "code_08009A0.h"
-#include "chaos_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -29,13 +28,13 @@ void ChaosMark_Update(struct EwramData_EntityData *entity);
 void ChaosHalo_Update(struct EwramData_EntityData *entity);
 extern void ChaosAura_Update(struct EwramData_EntityData *);
 
-#define KIND(e) (*(u8 *)&CHAOS_ORB_KIND((e)))
+#define KIND(e) (*(u8 *)&e->ext.chaosOrb.kind)
 
 /* Create the orb's halo (frame 0x13) for `timer` frames. */
 void ChaosOrb_CreateHalo(struct EwramData_EntityData *orb, s32 timer)
 {
     struct EwramData_EntityData *halo = EntityCreateInRange(0x49, 0xCF, (u32 *)ChaosHalo_Update);
-    struct ChaosData *data = (struct ChaosData *)CHAOS_DATA(CHAOS_LINK(orb));
+    struct ChaosData *data = (struct ChaosData *)orb->ext.chaosChild.link->ext.chaos.data.value;
 
     if (halo != NULL)
     {
@@ -50,7 +49,7 @@ void ChaosOrb_CreateHalo(struct EwramData_EntityData *orb, s32 timer)
         halo->animMode = 2;
         halo->animFrame = 0x13;
         halo->unk_518.part8.enemyId = orb->unk_518.part8.enemyId;
-        CHAOS_LINK(halo) = orb;
+        halo->ext.chaosChild.link = orb;
         halo->scrollWithBg = 0;
         halo->timer = timer;
         halo->drawFunc = (u32 *)Sprite_DrawEntity;
@@ -60,7 +59,7 @@ void ChaosOrb_CreateHalo(struct EwramData_EntityData *orb, s32 timer)
 /* Halo: blink in under the orb, then show with it until it breaks. */
 void ChaosHalo_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *orb = CHAOS_LINK(entity);
+    struct EwramData_EntityData *orb = entity->ext.chaosChild.link;
 
     if (orb == NULL || orb->updateFunc == NULL
         || orb->unk_518.part8.enemyId != entity->unk_518.part8.enemyId)

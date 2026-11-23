@@ -21,8 +21,8 @@ void GrahamCombatBody_Update(struct EwramData_EntityData *entity)
     {
         if(owner->unk_518.part8.enemyId!=entity->unk_518.part8.enemyId)
             entity->deleteRequested=1;
-        GRAHAM_FLAGS(entity)=GRAHAM_FLAGS(owner);
-        if(GRAHAM_FLAGS(entity) & 0x40)
+        entity->ext.graham.flags=owner->ext.graham.flags;
+        if(entity->ext.graham.flags & 0x40)
             entity->deleteRequested=1;
         if(entity->deleteRequested)
             return;
@@ -40,7 +40,7 @@ void GrahamCombatBody_Update(struct EwramData_EntityData *entity)
                 }
                 break;
             case 1:
-                if(GRAHAM_FLAGS(entity) & 0x10)
+                if(entity->ext.graham.flags & 0x10)
                 {
                     entity->state=0xE0;
                     entity->stage=0;
@@ -50,7 +50,7 @@ void GrahamCombatBody_Update(struct EwramData_EntityData *entity)
                 Enemy_CheckHitPlayer(entity);
                 break;
             case 0xE0:
-                if(GRAHAM_FLAGS(entity) & 0x20)
+                if(entity->ext.graham.flags & 0x20)
                     entity->objMode=1;
                 break;
         }

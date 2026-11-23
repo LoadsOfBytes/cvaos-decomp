@@ -11,11 +11,11 @@ extern s32 DiscArmor_UpdateDeath(struct EwramData_EntityData *);
 void EnemyDiscArmorUpdate(struct EwramData_EntityData *entity)
 {
     u32 box[4];
-    s32 y = DISC_ARMOR_HAND_OFFSET_Y(entity);
-    s32 x = (s16)DISC_ARMOR_HAND_OFFSET_X(entity);
+    s32 y = entity->ext.discArmorHand.offsetY;
+    s32 x = (s16)entity->ext.discArmorHand.offsetX;
     if (entity->flipX) x = (u16)-x;
-    DISC_ARMOR_HAND_X(entity) = entity->posX.whole + (x << 16);
-    DISC_ARMOR_HAND_Y(entity) = entity->posY.whole + (y << 16);
+    entity->ext.discArmorHand.x = entity->posX.whole + (x << 16);
+    entity->ext.discArmorHand.y = entity->posY.whole + (y << 16);
     if (Enemy_PreUpdate(entity)) return;
     switch (entity->state)
     {

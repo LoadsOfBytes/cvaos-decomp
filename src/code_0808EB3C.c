@@ -1,8 +1,6 @@
 /* Great Armor helpers 0x0808EB3C..0x0808EC63 (Final Guard and Shadow Knight
  * use the Great Armor functions). */
 #include "code_08009A0.h"
-#include "joint_entity.h"
-#include "great_armor_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code_080D73B8.h"
@@ -33,8 +31,8 @@ static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *ent
  */
 void GreatArmorSlashEffect_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *armor = GREAT_ARMOR_SLASH_OWNER(entity);
-    struct GreatArmorPart *parts = armor->unk_500.greatArmorParts;
+    struct EwramData_EntityData *armor = entity->ext.greatArmorSlash.owner;
+    struct GreatArmorPart *parts = armor->ext.greatArmor.parts;
     s32 offsetX = parts[12].offsetX;
     s32 *offsetY = &parts[12].offsetY;
 
@@ -60,7 +58,7 @@ void GreatArmorPart_DamagePlayerOnContact(struct EwramData_EntityData *entity)
     contactDamage.reaction = 0;
     contactDamage.sourceX = entity->posX.whole;
     contactDamage.sourceY = entity->posY.whole;
-    if ((s8)JOINT_PART_INDEX(entity) == 12)
+    if ((s8)entity->ext.jointPart.index == 12)
     {
         contactDamage.attributes = 1;
         contactDamage.reaction = 1;

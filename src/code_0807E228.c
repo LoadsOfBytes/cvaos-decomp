@@ -1,6 +1,5 @@
 /* Giant Ghost's graphics, collision effect and death particles. */
 #include "code_08009A0.h"
-#include "particle_effect.h"
 #include "code/code_08039340.h"
 #include "code/code_080211F0.h"
 extern s8 ObjPalette_FindOrLoadVariant(void *, u8);
@@ -28,8 +27,8 @@ void GiantGhost_SpawnFragment(s32 x, s32 y, s32 vx, s32 vy, s32 priority, s32 ty
         zero = 0;
         *priorityField = priority;
         part->timer = 200;
-        PARTICLE_FLAGS(part) = zero;
-        PARTICLE_FLIP_FLAGS(part) = 3;
+        part->ext.particle.flags = zero;
+        part->ext.particle.flipFlags = 3;
         graphics = ObjGfx_Find(sCommonObjectGfx);
         Sprite_Attach(part, sCommonObjectSpriteSheet, graphics, 6);
         if (type == 0) part->animFrame = 64;

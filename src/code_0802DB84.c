@@ -1,7 +1,6 @@
 /* Soul effect helpers 0x0802DB84..0x0802DCFF. */
 #include "code_08009A0.h"
 #include "soul_skill_entity.h"
-#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -14,15 +13,15 @@ extern void RedSoulAnchor_Update(struct EwramData_EntityData *entity);
  */
 void RedSoul_AnchorToHitTarget(struct EwramData_EntityData *entity, struct EwramData_EntityData *target)
 {
-    if (RED_SOUL_ANCHOR(entity) == NULL)
+    if (entity->ext.redSoul.anchor == NULL)
     {
         struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)RedSoulAnchor_Update);
 
         if (child != NULL)
         {
-            RED_SOUL_ANCHOR(entity) = child;
+            entity->ext.redSoul.anchor = child;
             ENTITY_OWNER(child) = entity;
-            RED_SOUL_ANCHOR_TARGET(child) = target;
+            child->ext.redSoulAnchor.target = target;
             ENTITY_INDEX(child) = ENTITY_INDEX(entity);
             entity->hit.flags |= 2;
             child->accelX.whole = entity->posX.whole - target->posX.whole;
@@ -44,7 +43,7 @@ void SkillCockatriceDraw(struct EwramData_EntityData *entity)
     {
         s32 baseY = oldY + 0x80000;
 
-        entity->posY.whole = baseY - SKILL_COCKATRICE_SCALE_Y(entity) * 8;
+        entity->posY.whole = baseY - entity->ext.skillCockatrice.scaleY * 8;
     }
     for (i = 8; i != 0; i--)
     {
@@ -63,7 +62,7 @@ void SkillCockatriceDraw(struct EwramData_EntityData *entity)
 void RedSoulHistoryTrail_Draw(struct EwramData_EntityData *entity)
 {
     s32 i = 0;
-    u16 *history = (u16 *)&entity->unk_4F4;
+    u16 *history = (u16 *)&entity->ext.raw.unk_4F4;
 
     for (; i <= 4; i++)
     {
@@ -83,7 +82,7 @@ void RedSoulHistoryTrail_Draw(struct EwramData_EntityData *entity)
 void SkillHarpyTrailDraw(struct EwramData_EntityData *entity)
 {
     s32 i = 0;
-    u16 *history = (u16 *)&entity->unk_4F4;
+    u16 *history = (u16 *)&entity->ext.raw.unk_4F4;
 
     for (; i <= 2; i++)
     {
@@ -103,7 +102,7 @@ void SkillHarpyTrailDraw(struct EwramData_EntityData *entity)
 void SkillSlimeTrailDraw(struct EwramData_EntityData *entity)
 {
     s32 i = 0;
-    u16 *history = (u16 *)&entity->unk_4F4;
+    u16 *history = (u16 *)&entity->ext.raw.unk_4F4;
 
     for (; i <= 7; i++)
     {

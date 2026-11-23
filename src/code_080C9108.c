@@ -2,8 +2,6 @@
 #include "code_08009A0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
-/* Index of the player effect in its (one-pass) spawn loop; never read. */
-#define LIGHTNING_DOLL_EFFECT_INDEX(e) e->unk_500.part8.unk_501
 
 extern void LightningDollPlayerEffect_Update(struct EwramData_EntityData *entity);
 extern s32 Player_GetOverheadY(void);
@@ -25,7 +23,7 @@ void LightningDoll_SpawnPlayerEffect(void)
         effect = EntityCreateInRange(0x49, 0xCF, (u32 *)LightningDollPlayerEffect_Update);
         if (effect != NULL)
         {
-            LIGHTNING_DOLL_EFFECT_INDEX(effect) = i;
+            effect->ext.lightningDoll.unusedEffectIndex = i;
             effect->posX.whole = gEwramData->playerState.player->posX.whole;
             effect->posY.whole = gEwramData->playerState.player->posY.whole - 0x100000;
             effect->flipX = RandomFlip(1);

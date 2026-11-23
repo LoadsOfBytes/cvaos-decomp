@@ -13,18 +13,18 @@ extern void Afterimage_Create(struct EwramData_EntityData *, s32, s32, s32);
  */
 void Julius_TryStartAbilityDash(struct EwramData_EntityData *entity)
 {
-    s32 bits = PLAYER_ACTION_FLAGS(entity) & 0x122;
+    s32 bits = entity->ext.player.actionFlags & 0x122;
 
     if (bits == 0 && (gEwramData->inputData.playerHeldInput & gEwramData->playerStatus.abilityButton))
     {
         entity->state = 0xB;
         entity->subState = bits;
-        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
+        entity->ext.player.requestedAnim = 0xFF;
         if (!(gEwramData->playerState.actionLockFlags & 0x800) && entity->animScriptIndex != 3)
         {
             Anim_StartIndexed(entity, 3, 1, 0);
-            PLAYER_REQUESTED_ANIM(entity) = 0xFF;
-            PLAYER_ACTION_FLAGS(entity) &= 0xFFDFFFFF;
+            entity->ext.player.requestedAnim = 0xFF;
+            entity->ext.player.actionFlags &= 0xFFDFFFFF;
         }
         if (!entity->flipX)
             entity->velX.whole = 0x28000;

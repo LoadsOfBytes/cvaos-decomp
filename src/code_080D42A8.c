@@ -32,7 +32,7 @@ void GrahamFirstForm_Update(struct EwramData_EntityData *entity)
                 case 0:
                     if(entity->animScriptIndex!=0)
                         Anim_StartIndexed(entity,0,0,1);
-                    if(GRAHAM_FLAGS(entity) & 2)
+                    if(entity->ext.graham.flags & 2)
                     {
                         entity->unk_518.part16.hp=1500;
                         entity->subState+=2;
@@ -71,7 +71,7 @@ void GrahamFirstForm_Update(struct EwramData_EntityData *entity)
                             if(entity->animDone)
                             {
                                 Entity_FaceTarget(entity);
-                                if(GRAHAM_FLAGS(entity) & 2)
+                                if(entity->ext.graham.flags & 2)
                                 {
                                     struct BgLayerState *camera=&gEwramData->bgInfo[1];
                                     entity->posX.whole=0x780000-camera->xPos.whole;
@@ -116,7 +116,7 @@ void GrahamFirstForm_Update(struct EwramData_EntityData *entity)
                         case 3:
                             if(--entity->timer==255)
                             {
-                                u32 flags=*(volatile u16 *)&GRAHAM_FLAGS(entity); /* FAKEMATCH: volatile read forces the reload of the original */
+                                u32 flags=*(volatile u16 *)&entity->ext.graham.flags; /* FAKEMATCH: volatile read forces the reload of the original */
                                 s32 mask=flags & state;
                                 if(mask)
                                 {

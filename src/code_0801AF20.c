@@ -26,12 +26,12 @@ static inline void SetPlayerAnim(struct EwramData_EntityData *entity, s32 anim)
     {
         Anim_StartIndexed(entity, anim, 3, 0);
         HitBox_SetBody(entity, &box);
-        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
-        PLAYER_ACTION_FLAGS(entity) &= ~0x200000;
+        entity->ext.player.requestedAnim = 0xFF;
+        entity->ext.player.actionFlags &= ~0x200000;
         pal = sSomaAnimPalettes[anim];
-        if (PLAYER_ANIM_PALETTE(entity) != pal)
+        if (entity->ext.player.animPalette != pal)
         {
-            PLAYER_ANIM_PALETTE(entity) = pal;
+            entity->ext.player.animPalette = pal;
             ObjPalette_LoadRange(sSomaPalette, pal, 1, 0);
         }
     }
@@ -52,7 +52,7 @@ void Soma_StartDeath(struct EwramData_EntityData *entity)
     SetPlayerAnim(entity, 0x33);
     entity->hit.flags |= 4;
     BlueSoul_StopAll();
-    PLAYER_ACTION_FLAGS(entity) &= 0xEFFFFE9F;
+    entity->ext.player.actionFlags &= 0xEFFFFE9F;
     gEwramData->playerState.actionLockFlags |= 0xE;
     gEwramData->playerState.pendingHitDamage = 0;
     if (!entity->flipX)
@@ -64,7 +64,7 @@ void Soma_StartDeath(struct EwramData_EntityData *entity)
     entity->state = 0x10;
     {
         u8 two = 2;
-        PLAYER_INVULNERABLE_TIMER(gEwramData->playerState.player) = two;
+        gEwramData->playerState.player->ext.player.invulnerableTimer = two;
     }
     PlaySong(0x197);
 }

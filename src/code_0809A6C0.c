@@ -1,7 +1,5 @@
 /* Stolas create: allocates the 6-joint skeleton and one part entity per joint. */
 #include "code_08009A0.h"
-#include "stolas_entity.h"
-#include "joint_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -54,8 +52,8 @@ void EnemyStolasCreate(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    entity->unk_500.jointParts = Heap_Alloc(0x4E);
-    if (entity->unk_500.jointParts == NULL)
+    entity->ext.joint.parts = Heap_Alloc(0x4E);
+    if (entity->ext.joint.parts == NULL)
     {
         EntityDelete(entity);
         return;
@@ -63,10 +61,10 @@ void EnemyStolasCreate(struct EwramData_EntityData *entity)
     Anim_StartIndexed(entity, 0, 0, 1);
     Anim_Update(entity);
     entity->flipX = 0;
-    JOINT_POSE(entity) = 5;
+    entity->ext.joint.pose = 5;
     Enemy_ResetFromTemplate(entity);
     frames = frames0;
-    parts = entity->unk_500.jointParts;
+    parts = entity->ext.joint.parts;
     for (i = 0; i <= 5; i++)
     {
         index = order[i];
@@ -83,9 +81,9 @@ void EnemyStolasCreate(struct EwramData_EntityData *entity)
             part->hidden = 0;
             part->attack = entity->attack;
             part->drawFunc = (u32 *)Sprite_DrawEntity;
-            JOINT_PART_OWNER(part) = entity;
-            JOINT_PART_INDEX(part) = index;
-            JOINT_PART_ANCHOR(part) = anchors[index];
+            part->ext.jointPart.owner = entity;
+            part->ext.jointPart.index = index;
+            part->ext.jointPart.anchor = anchors[index];
             part->posX.whole = entity->posX.whole;
             part->posY.whole = entity->posY.whole;
             part->animFrame = frames[index];
@@ -105,14 +103,14 @@ void EnemyStolasCreate(struct EwramData_EntityData *entity)
         }
         else
         {
-            Heap_Free(entity->unk_500.jointParts);
+            Heap_Free(entity->ext.joint.parts);
             EntityDelete(entity);
             return;
         }
     }
-    parts = entity->unk_500.jointParts;
-    pose = sStolasPartPoses[(s8)JOINT_POSE(entity)];
-    angles = sStolasPartAngles[(s8)JOINT_POSE(entity)];
+    parts = entity->ext.joint.parts;
+    pose = sStolasPartPoses[(s8)entity->ext.joint.pose];
+    angles = sStolasPartAngles[(s8)entity->ext.joint.pose];
     for (index = 0; index <= 5; index++)
     {
         parts[index].offsetX = (s8)pose[index * 2] << 16;
@@ -141,16 +139,16 @@ void EnemyStolasCreate(struct EwramData_EntityData *entity)
     {
         entity->state = 3;
         entity->timer = 0;
-        STOLAS_DRAW_OFFSET_X(entity) = 0;
-        STOLAS_DRAW_OFFSET_Y(entity) = -29;
+        entity->ext.stolas.drawOffsetX = 0;
+        entity->ext.stolas.drawOffsetY = -29;
         return;
     }
     Hit_Enable(entity, 8, Stolas_DamagePlayerOnContact, (s32)Stolas_OnHit);
     Stolas_FaceTarget(entity);
     Entity_SnapToGround(entity);
-    STOLAS_DRAW_OFFSET_X(entity) = frozen;
-    STOLAS_DRAW_OFFSET_Y(entity) = -29;
-    JOINT_HURT_MASK(entity) = 1;
+    entity->ext.stolas.drawOffsetX = frozen;
+    entity->ext.stolas.drawOffsetY = -29;
+    entity->ext.joint.hurtMask = 1;
     if (entity->unk_514.part16.spawnParam0 == 0)
         entity->unk_514.part16.spawnParam0 = 13;
     if (entity->unk_514.part16.spawnParam1 == 0)

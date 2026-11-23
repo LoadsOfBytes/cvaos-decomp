@@ -1,7 +1,6 @@
 /* Stolas part update: follows its joint of the parent's skeleton, aims the
  * sprite along the bone and maintains the hit boxes of joints 0 and 2. */
 #include "code_08009A0.h"
-#include "joint_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -18,7 +17,7 @@ extern void *memcpy(void *dst, const void *src, unsigned long size);
 extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
 extern const u8 sUnk_081190B2[13];
 
-#define JOINT(e) ((s8)JOINT_PART_INDEX((e)))
+#define JOINT(e) ((s8)e->ext.jointPart.index)
 #define FIX_INT(v) ((v) < 0 ? -(-(v) >> 16) : (v) >> 16)
 
 void StolasPart_Update(struct EwramData_EntityData *entity)
@@ -26,7 +25,7 @@ void StolasPart_Update(struct EwramData_EntityData *entity)
     u8 hit[16];
     u8 unused[13];
     struct StolasBox box;
-    struct EwramData_EntityData *parent = JOINT_PART_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.jointPart.owner;
     struct EntityJointPart *parts;
     s32 size = 8;
     s32 x;
@@ -35,7 +34,7 @@ void StolasPart_Update(struct EwramData_EntityData *entity)
     s32 state;
 
     memcpy(unused, sUnk_081190B2, sizeof(unused));
-    parts = parent->unk_500.jointParts;
+    parts = parent->ext.joint.parts;
     state = entity->state;
     if (state == 0)
     {
@@ -47,11 +46,11 @@ void StolasPart_Update(struct EwramData_EntityData *entity)
             entity->timer++;
             entity->posX.whole = parent->posX.whole + parts[JOINT(entity)].offsetX;
             entity->posY.whole = parent->posY.whole + parts[JOINT(entity)].offsetY;
-            if (JOINT_PART_INDEX(entity) <= 1 || JOINT(entity) == 3 || JOINT(entity) == 4)
+            if (entity->ext.jointPart.index <= 1 || JOINT(entity) == 3 || JOINT(entity) == 4)
             {
-                x = parts[(s8)JOINT_PART_ANCHOR(entity)].offsetX;
+                x = parts[(s8)entity->ext.jointPart.anchor].offsetX;
                 x -= parts[JOINT(entity)].offsetX;
-                y = parts[(s8)JOINT_PART_ANCHOR(entity)].offsetY - parts[JOINT(entity)].offsetY;
+                y = parts[(s8)entity->ext.jointPart.anchor].offsetY - parts[JOINT(entity)].offsetY;
 
                 angle = ArcTan2(FIX_INT(x), FIX_INT(y));
 
@@ -72,7 +71,7 @@ void StolasPart_Update(struct EwramData_EntityData *entity)
                 entity->timer = 0x3C;
                 return;
             }
-            if ((JOINT_HURT_MASK(parent) >> JOINT(entity)) & 1)
+            if ((parent->ext.joint.hurtMask >> JOINT(entity)) & 1)
             {
                 if (JOINT(entity) == 0)
                 {

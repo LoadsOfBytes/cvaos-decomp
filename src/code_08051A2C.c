@@ -31,8 +31,8 @@ void Object13Create(struct EwramData_EntityData *entity)
         child->scrollWithBg = 1;
         /* General-purpose slots: previous part, zeroed value at +4,
          * part index at +0x14 and the owner's value at +0x15. */
-        data = (u8 *)&child->unk_4FC;
-        child->unk_4FC.unk_4FC_entity = previous;
+        data = (u8 *)&child->ext.raw.unk_4FC;
+        child->ext.raw.unk_4FC.unk_4FC_entity = previous;
         *(s32 *)(data + 4) = 0;
         data[0x14] = i;
         data[0x15] = ENTITY_INDEX(entity);

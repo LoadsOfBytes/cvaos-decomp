@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "death_entity.h"
 #include "code_08013960.h"
 #include "code_08033CAC.h"
 #include "code_080D73B8.h"
@@ -51,7 +50,7 @@ void EnemyDeathCreate(struct EwramData_EntityData *entity)
     first = Entity_CreateObject((u32 *)DeathOverlay_Update);
     if (first != NULL)
     {
-        DEATH_OWNER_INDEX(first) = ENTITY_INDEX(entity);
+        first->ext.deathHelper.ownerIndex = ENTITY_INDEX(entity);
         first->scrollWithBg = 1;
     }
     frozen = *((u8 *)gEwramData + 0x8E) & 0x40;
@@ -75,7 +74,7 @@ void EnemyDeathCreate(struct EwramData_EntityData *entity)
         child = Entity_CreateObject((u32 *)DeathIntroEffect_Update);
         if (child != NULL)
         {
-            DEATH_OWNER_INDEX(child) = ENTITY_INDEX(entity);
+            child->ext.deathHelper.ownerIndex = ENTITY_INDEX(entity);
             child->scrollWithBg = 1;
         }
     }
@@ -89,7 +88,7 @@ void EnemyDeathCreate(struct EwramData_EntityData *entity)
     child = Entity_CreateObject((u32 *)DeathFloatingWeapon_Update);
     if (child != NULL)
     {
-        DEATH_OWNER_INDEX(child) = ENTITY_INDEX(entity);
+        child->ext.deathHelper.ownerIndex = ENTITY_INDEX(entity);
         child->scrollWithBg = 1;
     }
     Player_SetSelectedTarget(entity);

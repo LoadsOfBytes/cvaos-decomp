@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -57,7 +56,7 @@ void SkillSkullArcherArrowUpdate(struct EwramData_EntityData *entity)
         entity->state++;
     case 1:
         EntityAccelerateAndMove(entity, 0x80000);
-        if (RED_SOUL_ANCHOR(entity) != NULL)
+        if (entity->ext.redSoul.anchor != NULL)
         {
             entity->state = 2;
             entity->timer = 0x10;
@@ -65,16 +64,16 @@ void SkillSkullArcherArrowUpdate(struct EwramData_EntityData *entity)
         }
         break;
     case 2:
-        if (RED_SOUL_ANCHOR_TARGET_DEAD(RED_SOUL_ANCHOR(entity)) != 0)
+        if (entity->ext.redSoul.anchor->ext.redSoulAnchor.targetDead != 0)
         {
-            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+            gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
             gEwramData->playerState.nbrActiveRedSoulEntities--;
             EntityDelete(entity);
             return;
         }
         if (entity->timer == 0)
         {
-            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+            gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
             gEwramData->playerState.nbrActiveRedSoulEntities--;
             EntityDelete(entity);
             return;
@@ -85,7 +84,7 @@ void SkillSkullArcherArrowUpdate(struct EwramData_EntityData *entity)
     if (EntityIsOutsideScreen(entity, 2) || !entity->roomActive)
     {
         entity->roomActive = 1;
-        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
     }

@@ -50,7 +50,7 @@ s32 Graham_SpawnSpreadProjectiles(struct EwramData_EntityData *entity)
         (*p)->posY.whole = entity->posY.whole - 0x200000;
         (*p)->scrollWithBg = 1;
         (*p)->attack = 0x46;
-        GRAHAM_SPREAD_INDEX((*p)) = i;
+        (*p)->ext.grahamSpread.index = i;
         Anim_StartIndexed(*p, 8, 0, 1);
         Anim_Update(*p);
         Entity_EnableBoxes(*p++, GrahamSpreadProjectile_DamagePlayerOnContact, GrahamSpreadProjectile_OnHit);

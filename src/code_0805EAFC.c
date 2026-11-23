@@ -34,9 +34,9 @@ struct EwramData_EntityData *EventScene03_SpawnSoulOrb(s32 x, s32 y, s32 variant
         if (mode == 0)
         {
             struct EwramData_EntityData *player = gEwramData->playerState.player;
-            EVENT03_ORB_HEADING(entity) = (Entity_AngleToPoint(entity, player->posX.whole, player->posY.whole - 0x80000) + 0x8000) & 0xFFFF;
-            EVENT03_ORB_TURN_RATE(entity) = mode;
-            EVENT03_ORB_SPEED(entity) = 0x30000;
+            entity->ext.event03Orb.heading = (Entity_AngleToPoint(entity, player->posX.whole, player->posY.whole - 0x80000) + 0x8000) & 0xFFFF;
+            entity->ext.event03Orb.turnRate = mode;
+            entity->ext.event03Orb.speed = 0x30000;
         }
         else entity->state = 99;
         entity->unk_518.part8.enemyId = variant + 5;

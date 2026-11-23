@@ -16,12 +16,12 @@ extern u8 sBelmontWeaponSolidCallbacks[];
  */
 void Belmont_UpdatePoweredPhase(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *weapon=&gEwramData->entityData[BELMONT_WEAPON_INDEX(entity)];
+    struct EwramData_EntityData *weapon=&gEwramData->entityData[entity->ext.belmontWeapon.index];
     s32 state=entity->subState;
     switch(state)
     {
         case 0:
-            BELMONT_POWER_STEP(entity)++;
+            entity->ext.belmont.powerStep++;
             if(!Belmont_CreateAttachedWeapon(entity))
             {
                 entity->state=2;
@@ -35,7 +35,7 @@ void Belmont_UpdatePoweredPhase(struct EwramData_EntityData *entity)
             entity->velY.whole=-0x2000;
             entity->subState++;
             entity->stage=state;
-            weapon=&gEwramData->entityData[BELMONT_WEAPON_INDEX(entity)];
+            weapon=&gEwramData->entityData[entity->ext.belmontWeapon.index];
             if(weapon->unk_518.part8.enemyId==entity->unk_518.part8.enemyId && weapon)
                 Player_RegisterSolidObject(weapon,sBelmontWeaponSolidCallbacks);
             break;
@@ -84,7 +84,7 @@ void Belmont_UpdatePoweredPhase(struct EwramData_EntityData *entity)
                 {
                     struct EwramData_EntityData *effect=Belmont_CreatePowerParticle(entity);
                     if(effect)
-                        BELMONT_PARTICLE_STEP(effect)=state;
+                        effect->ext.belmontParticle.step=state;
                 }
                 if(weapon->animDone && weapon->animScriptIndex!=1)
                     Anim_StartIndexed(weapon,1,0,1);
@@ -118,7 +118,7 @@ void Belmont_UpdatePoweredPhase(struct EwramData_EntityData *entity)
                 entity->state=2;
                 entity->stage=0;
                 entity->subState=0;
-                BELMONT_WEAPON_INDEX(entity)=0;
+                entity->ext.belmontWeapon.index=0;
                 weapon->deleteRequested=1;
                 Player_ClearSolidObject();
               }

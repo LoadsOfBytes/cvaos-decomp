@@ -2,7 +2,6 @@
  * affine bursts in four mirrored corners that launch the rolling waves
  * (84B20/84C7C) or the lightning (84DB8/84F14). */
 #include "code_08009A0.h"
-#include "headhunter_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -30,9 +29,9 @@ void HeadhunterFallingPart_Update(struct EwramData_EntityData *entity);
 void HeadhunterWaveBurst_Update(struct EwramData_EntityData *entity);
 void HeadhunterLightningBurst_Update(struct EwramData_EntityData *entity);
 /* bit 0 of the owner's unk_4FE ends its effects (TODO: meaning) */
-#define OWNER_DONE(o) (HEADHUNTER_FLAGS((o)) & 1)
-#define FRAME(e) (HEADHUNTER_EFFECT_FRAME((e)))
-#define KIND(e) (*(s8 *)&HEADHUNTER_KIND((e))) /* also the burst corner 0-3 */
+#define OWNER_DONE(o) (o->ext.headhunter.flags & 1)
+#define FRAME(e) (e->ext.headhunterEffect.frame)
+#define KIND(e) (*(s8 *)&e->ext.headhunterChild.kind) /* also the burst corner 0-3 */
 #define CORNER(e) KIND(e)
 #define OFFSET_X(e) ((e)->velX.whole)
 #define OFFSET_Y(e) ((e)->velY.whole)
@@ -56,21 +55,21 @@ void Headhunter_SpawnFallingPart(struct EwramData_EntityData *owner, s32 x, s32 
     OFFSET_Y(part) = y;
     part->flipX = owner->flipX;
     part->spriteLayer = owner->spriteLayer - 1;
-    graphics = HEADHUNTER_GRAPHICS(owner);
+    graphics = owner->ext.headhunter.graphics;
     switch (kind)
     {
     case 0:
-        part->unk_510.part8.basePalette = HEADHUNTER_PALETTE_0(owner);
+        part->unk_510.part8.basePalette = owner->ext.headhunter.palette0;
         FRAME(part) = 1;
         part->timer = 8;
         break;
     case 1:
-        part->unk_510.part8.basePalette = HEADHUNTER_PALETTE_1(owner);
+        part->unk_510.part8.basePalette = owner->ext.headhunter.palette1;
         FRAME(part) = 0x6C;
         part->timer = 8;
         break;
     case 2:
-        part->unk_510.part8.basePalette = HEADHUNTER_PALETTE_2(owner);
+        part->unk_510.part8.basePalette = owner->ext.headhunter.palette2;
         FRAME(part) = 0x4F;
         part->timer = 60;
         break;
@@ -197,9 +196,9 @@ void Headhunter_SpawnWaveBurst(struct EwramData_EntityData *owner, s32 x, s32 y,
     }
     CORNER(effect) = corner;
     effect->spriteLayer = owner->spriteLayer - 1;
-    graphics = HEADHUNTER_GRAPHICS(owner);
-    HEADHUNTER_EFFECT_GRAPHICS(effect) = graphics;
-    effect->unk_510.part8.basePalette = HEADHUNTER_PALETTE_3(owner);
+    graphics = owner->ext.headhunter.graphics;
+    effect->ext.headhunterEffect.graphics = graphics;
+    effect->unk_510.part8.basePalette = owner->ext.headhunter.palette3;
     Sprite_Attach(effect, sHeadhunterSpriteSheet, graphics, effect->unk_510.part8.basePalette);
     FRAME(effect) = 0x59;
     if ((s32)((slot = ObjAffine_Alloc(1)) << 16) < 0)
@@ -307,9 +306,9 @@ void Headhunter_SpawnLightningBurst(struct EwramData_EntityData *owner, s32 x, s
     /* the zero for the transform fields is set together with the corner */
     CORNER(effect) = (zero = 0, corner);
     effect->spriteLayer = owner->spriteLayer - 1;
-    graphics = HEADHUNTER_GRAPHICS(owner);
-    HEADHUNTER_EFFECT_GRAPHICS(effect) = graphics;
-    effect->unk_510.part8.basePalette = HEADHUNTER_PALETTE_3(owner);
+    graphics = owner->ext.headhunter.graphics;
+    effect->ext.headhunterEffect.graphics = graphics;
+    effect->unk_510.part8.basePalette = owner->ext.headhunter.palette3;
     Sprite_Attach(effect, sHeadhunterSpriteSheet, graphics, effect->unk_510.part8.basePalette);
     FRAME(effect) = 0x59;
     if ((s32)((slot = ObjAffine_Alloc(1)) << 16) < 0)

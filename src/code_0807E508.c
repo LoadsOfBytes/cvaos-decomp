@@ -1,7 +1,5 @@
 /* Golem create: allocates the 11-joint skeleton and one part entity per joint. */
 #include "code_08009A0.h"
-#include "golem_entity.h"
-#include "joint_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -60,8 +58,8 @@ void EnemyGolemCreate(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    entity->unk_500.golemParts = Heap_Alloc(0x58);
-    if (entity->unk_500.golemParts == NULL)
+    entity->ext.golem.parts = Heap_Alloc(0x58);
+    if (entity->ext.golem.parts == NULL)
     {
         EntityDelete(entity);
         return;
@@ -69,9 +67,9 @@ void EnemyGolemCreate(struct EwramData_EntityData *entity)
     entity->hidden = 1;
     entity->flipX = 0;
     if (entity->unk_518.part8.enemyId == 0x50)
-        JOINT_POSE(entity) = 0;
+        entity->ext.joint.pose = 0;
     else
-        JOINT_POSE(entity) = 7;
+        entity->ext.joint.pose = 7;
     Enemy_ResetFromTemplate(entity);
     for (i = 0; i <= 10; i++)
     {
@@ -96,9 +94,9 @@ void EnemyGolemCreate(struct EwramData_EntityData *entity)
         part->hidden = 0;
         part->attack = entity->attack;
         part->drawFunc = (u32 *)Sprite_DrawEntity;
-        JOINT_PART_OWNER(part) = entity;
-        JOINT_PART_INDEX(part) = index;
-        JOINT_PART_ANCHOR(part) = anchors[index];
+        part->ext.jointPart.owner = entity;
+        part->ext.jointPart.index = index;
+        part->ext.jointPart.anchor = anchors[index];
         part->posX.whole = entity->posX.whole;
         part->posY.whole = entity->posY.whole;
         if (entity->unk_518.part8.enemyId == 0x50)
@@ -132,14 +130,14 @@ void EnemyGolemCreate(struct EwramData_EntityData *entity)
         }
         else
         {
-            Heap_Free(entity->unk_500.golemParts);
+            Heap_Free(entity->ext.golem.parts);
             EntityDelete(entity);
             return;
         }
     }
-    parts = (s32 *)entity->unk_500.golemParts;
-    pose = sGolemPartPoses[(s8)JOINT_POSE(entity)];
-    angles = sGolemPartAngles[(s8)JOINT_POSE(entity)];
+    parts = (s32 *)entity->ext.golem.parts;
+    pose = sGolemPartPoses[(s8)entity->ext.joint.pose];
+    angles = sGolemPartAngles[(s8)entity->ext.joint.pose];
     for (index = 0; index <= 10; index++)
     {
         parts[index * 8] = (s8)pose[index * 2] << 16;
@@ -193,5 +191,5 @@ void EnemyGolemCreate(struct EwramData_EntityData *entity)
     default:
         return;
     }
-    GOLEM_VARIANT(entity) = kindIndex;
+    entity->ext.golem.variant = kindIndex;
 }

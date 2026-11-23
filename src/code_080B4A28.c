@@ -16,8 +16,8 @@ extern s32 Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 void BaloreHandHitBox_Update(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
-    struct EwramData_EntityData *body = BALORE_BODY(entity);
-    struct EwramData_EntityData *hand = BALORE_HAND(entity);
+    struct EwramData_EntityData *body = entity->ext.balorePart.body;
+    struct EwramData_EntityData *hand = entity->ext.baloreHitBox.hand;
     u16 matrix;
     s32 angle, radius, x, y;
     u8 flags;
@@ -34,7 +34,7 @@ void BaloreHandHitBox_Update(struct EwramData_EntityData *entity)
         entity->affineIndex = matrix;
         entity->affine = 1;
         entity->spriteLayer = 0x19;
-        Sprite_Attach(entity, sBaloreSpriteSheet, (s8)BALORE_GFX(body), hand->unk_510.part8.basePalette);
+        Sprite_Attach(entity, sBaloreSpriteSheet, (s8)body->ext.balore.gfx, hand->unk_510.part8.basePalette);
         Anim_StartIndexed(entity, 0x30, 2, 0);
         Anim_Update(entity);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
@@ -70,10 +70,10 @@ void BaloreHandHitBox_Update(struct EwramData_EntityData *entity)
     HIT_FLAGS(entity) = flags;
     if (entity->hidden) return;
     if (hand->flipX)
-        angle = BALORE_ARM_ANGLE(hand);
+        angle = hand->ext.baloreHand.armAngle;
     else
-        angle = BALORE_ARM_ANGLE(hand) + 0x8000;
-    radius = TO_PIXELS(BALORE_ARM_LENGTH(hand));
+        angle = hand->ext.baloreHand.armAngle + 0x8000;
+    radius = TO_PIXELS(hand->ext.baloreHand.armLength);
     x = radius * Sin(angle + 0x4000);
     entity->posX.whole = hand->posX.whole + x;
     y = Sin(angle) * radius;
@@ -82,7 +82,7 @@ void BaloreHandHitBox_Update(struct EwramData_EntityData *entity)
     entity->velY.whole = entity->posY.whole - entity->accelY.whole;
     if (HIT_FLAGS(entity) & 4) Player_QueueEntity(entity, 3);
     Hit_CheckWithPlayer(collision, entity);
-    ObjAffine_Set(BALORE_ARM_ANGLE(hand), 0x10000, 0x10000, hand->flipX, 0, entity->affineIndex);
+    ObjAffine_Set(hand->ext.baloreHand.armAngle, 0x10000, 0x10000, hand->flipX, 0, entity->affineIndex);
     if (entity->animScriptIndex != BALORE_HAND_ANIM(hand))
         Anim_StartIndexed(entity, BALORE_HAND_ANIM(hand), 2, 0);
     Anim_Update(entity);

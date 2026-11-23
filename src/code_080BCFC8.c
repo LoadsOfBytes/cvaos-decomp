@@ -1,6 +1,5 @@
 /* Short blinking effect over an owner slot. */
 #include "code_08009A0.h"
-#include "death_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -17,7 +16,7 @@ extern u8 sDeathGfx[], sDeathPalette[], sDeathSpriteSheet[];
  */
 void DeathBlinkEffect_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = &gEwramData->entityData[(u8)DEATH_OWNER_INDEX(entity)];
+    struct EwramData_EntityData *owner = &gEwramData->entityData[(u8)entity->ext.deathHelper.ownerIndex];
 
     switch (entity->state)
     {

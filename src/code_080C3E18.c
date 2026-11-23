@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "skeleton_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -18,7 +17,7 @@ void Skeleton_SpawnDeathPieces(struct EwramData_EntityData *owner)
     s32 i, x, graphics;
     struct EwramData_EntityData *child;
     owner->hidden = 1;
-    if ((SKELETON_FLAGS(owner) & 1) || (SKELETON_FLAGS(owner) & 2))
+    if ((owner->ext.skeleton.flags & 1) || (owner->ext.skeleton.flags & 2))
         i = 0;
     else
         i = 1;
@@ -27,9 +26,9 @@ void Skeleton_SpawnDeathPieces(struct EwramData_EntityData *owner)
         child = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateSpriteDebris);
         if (child != NULL)
         {
-            SKELETON_PIECE_OWNER_INDEX(child) = ENTITY_INDEX(owner);
-            SKELETON_PIECE_INDEX(child) = i;
-            SKELETON_DEATH_PIECES(owner)++;
+            child->ext.skeletonPiece.ownerIndex = ENTITY_INDEX(owner);
+            child->ext.skeletonPiece.index = i;
+            owner->ext.skeletonDeath.pieces++;
             child->spriteLayer = owner->spriteLayer;
             child->scrollWithBg = 1;
             graphics = Sprite_GetTileSlot(owner);
@@ -37,13 +36,13 @@ void Skeleton_SpawnDeathPieces(struct EwramData_EntityData *owner)
             child->drawFunc = (u32 *)Sprite_DrawEntity;
             child->posX.whole = owner->posX.whole;
             child->posY.whole = owner->posY.whole;
-            x = sSkeletonDeathPieceOffsets[SKELETON_PIECE_INDEX(child)][0];
-            child->posY.part16.integer += sSkeletonDeathPieceOffsets[SKELETON_PIECE_INDEX(child)][1];
-            child->animFrame = sSkeletonDeathPieceOffsets[SKELETON_PIECE_INDEX(child)][2];
-            child->velX.whole = (u8)sSkeletonDeathPieceOffsets[SKELETON_PIECE_INDEX(child)][3] << 12;
-            child->velY.whole = -(sSkeletonDeathPieceOffsets[SKELETON_PIECE_INDEX(child)][4] << 12) - 16;
+            x = sSkeletonDeathPieceOffsets[child->ext.skeletonPiece.index][0];
+            child->posY.part16.integer += sSkeletonDeathPieceOffsets[child->ext.skeletonPiece.index][1];
+            child->animFrame = sSkeletonDeathPieceOffsets[child->ext.skeletonPiece.index][2];
+            child->velX.whole = (u8)sSkeletonDeathPieceOffsets[child->ext.skeletonPiece.index][3] << 12;
+            child->velY.whole = -(sSkeletonDeathPieceOffsets[child->ext.skeletonPiece.index][4] << 12) - 16;
             child->accelY.whole = 0x3000;
-            child->timer = sSkeletonDeathPieceOffsets[SKELETON_PIECE_INDEX(child)][5];
+            child->timer = sSkeletonDeathPieceOffsets[child->ext.skeletonPiece.index][5];
             child->flipX = owner->flipX;
             if (Entity_GetTargetDirection(owner) > 0)
             {

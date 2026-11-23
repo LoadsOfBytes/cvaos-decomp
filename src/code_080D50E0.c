@@ -8,8 +8,8 @@
 extern void Effect_SpawnAt(s32,s32,s32);
 extern void Effect_SpawnRisingParticle(s32,s32,s32,s32);
 extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
-#define ANGLE(e) ((e)->unk_500.part16.unk_500)
-#define STEP(e) ((e)->unk_500.part16.unk_502)
+#define ANGLE(e) ((e)->ext.raw.unk_500.part16.unk_500)
+#define STEP(e) ((e)->ext.raw.unk_500.part16.unk_502)
 /**
  * @brief Index 0 animates the firing effect; index 1 waits, then reveals
  * a rotating accelerating projectile with randomized trail effects.
@@ -17,7 +17,7 @@ extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
  */
 void GrahamShotPart_Update(struct EwramData_EntityData *entity)
 {
-    if((u8)GRAHAM_SPREAD_INDEX(entity)==0)
+    if((u8)entity->ext.grahamSpread.index==0)
     {
         if(entity->animDone)
         {

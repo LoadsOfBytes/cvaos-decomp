@@ -1,6 +1,5 @@
 /* Witch_UpdateCast. */
 #include "code_08009A0.h"
-#include "witch_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -37,7 +36,7 @@ static inline u8 Near(s32 dx, s32 dy)
     return r;
 }
 #define ABSM(x) ((x) < 0 ? -(x) : (x))
-#define TIMER WITCH_CAST_TIMER(entity)
+#define TIMER entity->ext.witchCast.timer
 #define STEER(f, d) \
     if ((d) > 0x40000) \
         f = 0x1000; \
@@ -70,7 +69,7 @@ static inline u8 PlayerIsRight(struct EwramData_EntityData *e)
     child = Entity_CreateObject((u32 *)func); \
     if (child != NULL) \
     { \
-        WITCH_SPELL_OWNER_INDEX(child) = ENTITY_INDEX(entity); \
+        child->ext.witchSpell.ownerIndex = ENTITY_INDEX(entity); \
         child->scrollWithBg = 1; \
         child->flipX = entity->flipX; \
         child->attack = entity->attack; \
@@ -97,10 +96,10 @@ void Witch_UpdateCast(struct EwramData_EntityData *entity)
         TIMER++;
         dx = (-(Entity_IsTargetRight(entity) << 6) + 0x20) << 16;
         dy = (Sin(TIMER << 9) << 3) - 0x300000;
-        WITCH_MOVE_X(entity) = Target_GetX(entity) + dx;
-        WITCH_MOVE_Y(entity) = Target_GetY(entity) + dy;
-        dx = WITCH_MOVE_X(entity) - entity->posX.whole;
-        dy = WITCH_MOVE_Y(entity) - entity->posY.whole;
+        entity->ext.witch.moveX = Target_GetX(entity) + dx;
+        entity->ext.witch.moveY = Target_GetY(entity) + dy;
+        dx = entity->ext.witch.moveX - entity->posX.whole;
+        dy = entity->ext.witch.moveY - entity->posY.whole;
         if (Home(entity, dx, dy) || Target_IsNearEntity(entity, 0x50, 0x36))
         {
             entity->timer = 0x20;
@@ -120,10 +119,10 @@ void Witch_UpdateCast(struct EwramData_EntityData *entity)
         break;
     case 2:
         dx = (-(Entity_IsTargetRight(entity) << 6) + 0x20) << 16;
-        WITCH_MOVE_X(entity) = Target_GetX(entity) + dx;
-        WITCH_MOVE_Y(entity) = Target_GetY(entity) - 0x380000;
-        dx = WITCH_MOVE_X(entity) - entity->posX.whole;
-        Home(entity, dx, WITCH_MOVE_Y(entity) - entity->posY.whole);
+        entity->ext.witch.moveX = Target_GetX(entity) + dx;
+        entity->ext.witch.moveY = Target_GetY(entity) - 0x380000;
+        dx = entity->ext.witch.moveX - entity->posX.whole;
+        Home(entity, dx, entity->ext.witch.moveY - entity->posY.whole);
         if (entity->animFlags & 4)
         {
             Anim_StartIndexed(entity, 0, 0, 1);
@@ -158,7 +157,7 @@ void Witch_UpdateCast(struct EwramData_EntityData *entity)
             entity->timer = 0x40;
             entity->subState = 5;
             Anim_StartIndexed(entity, 3, 0, 1);
-            *(u8 *)&entity->unk_4F8 |= 2;
+            *(u8 *)&entity->ext.witch.flags |= 2;
             SPAWN(WitchCastEffect_Update);
             PlaySong(0x81);
         }
@@ -175,7 +174,7 @@ void Witch_UpdateCast(struct EwramData_EntityData *entity)
         entity->timer--;
         break;
         }
-        *(u8 *)&entity->unk_4F8 &= 0xFD;
+        *(u8 *)&entity->ext.witch.flags &= 0xFD;
         Anim_StartIndexed(entity, 2, 0, 0);
         entity->subState = 6;
         break;

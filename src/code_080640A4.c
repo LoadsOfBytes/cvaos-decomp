@@ -23,7 +23,7 @@ void EventScene30_CreateCenterEffect(struct EwramData_EntityData *owner)
         Sprite_Attach(effect,sEventScene30SpriteSheet,slot,14);
         effect->drawFunc=(u32 *)Sprite_DrawEntity;
         ENTITY_PARENT_INDEX(effect)=ENTITY_INDEX(owner);
-        EVENT30_EFFECT_SCALE(effect)=0x1A000;
+        effect->ext.event30Effect.scale=0x1A000;
         slot=ObjAffine_Alloc(1);
         if(slot<0)
         {
@@ -33,17 +33,17 @@ fail:
         }
         effect->affineIndex=slot;
         effect->affine=1;
-        ObjAffine_Set(0x10000,EVENT30_EFFECT_SCALE(effect),EVENT30_EFFECT_SCALE(effect),0,zero,effect->affineIndex);
+        ObjAffine_Set(0x10000,effect->ext.event30Effect.scale,effect->ext.event30Effect.scale,0,zero,effect->affineIndex);
         effect->updateFunc=callback;
         effect->timer=32;
-        effect->unk_4FC.part16.unk_4FC=zero;
+        effect->ext.raw.unk_4FC.part16.unk_4FC=zero;
         effect->posX.part16.integer=130;
         effect->posY.part16.integer=28;
         effect->velX.whole=-0x800;
         effect->velY.whole=0x800;
         effect->accelX.whole=-0x100;
         effect->accelY.whole=0x100;
-        EVENT30_EFFECT_SPIN(effect)=(s16)0xFE00;
+        effect->ext.event30Effect.spin=(s16)0xFE00;
         effect->spriteLayer=3;
         effect->animFrame=zero;
     }

@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "kyoma_demon_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "code/code_080211F0.h"
@@ -20,7 +19,7 @@ void EnemyKyomaDemonUpdate(struct EwramData_EntityData *entity)
     }
     if (Enemy_IsStunned(entity))
     {
-        if (entity->state != 2 && KYOMA_DEMON_HIDDEN(entity) == 0)
+        if (entity->state != 2 && entity->ext.kyomaDemon.hidden == 0)
             Hit_CheckWithPlayer(box, entity);
         return;
     }
@@ -34,8 +33,8 @@ void EnemyKyomaDemonUpdate(struct EwramData_EntityData *entity)
     frame = entity->animFrame;
     Anim_Update(entity);
     if (frame != entity->animFrame) Entity_UpdateBoxes(entity);
-    if (entity->state != 2 && KYOMA_DEMON_HIDDEN(entity) == 0)
+    if (entity->state != 2 && entity->ext.kyomaDemon.hidden == 0)
         Hit_CheckWithPlayer(box, entity);
-    KYOMA_DEMON_ROOM_X(entity) = entity->posX.whole + background->xPos.whole;
-    KYOMA_DEMON_ROOM_Y(entity) = entity->posY.whole + background->yPos.whole;
+    entity->ext.kyomaDemon.roomX = entity->posX.whole + background->xPos.whole;
+    entity->ext.kyomaDemon.roomY = entity->posY.whole + background->yPos.whole;
 }

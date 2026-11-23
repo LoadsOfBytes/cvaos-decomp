@@ -20,9 +20,9 @@ s32 ItemMenu_UseItem(struct PlayerStatus *stats, struct EwramData_EntityData *me
     const struct ConsumableInfo *info;
     s32 effect;
     u16 amount, maxMP;
-    if ((gEwramData->gameState.gameFlagsTail[0] & 0x100000) || (u8)MENU_PAGE_ITEM(menu) == 0xFF)
+    if ((gEwramData->gameState.gameFlagsTail[0] & 0x100000) || (u8)menu->ext.menuPage.item == 0xFF)
         return 0;
-    info = &sConsumableInfo[(u8)MENU_PAGE_ITEM(menu)];
+    info = &sConsumableInfo[(u8)menu->ext.menuPage.item];
     effect = info->effect;
     if (effect == 3 && Player_TestSoulStateFlags(0x100000)) effect = 0;
     switch (effect)

@@ -1,6 +1,5 @@
 /* Object2A_UpdateMovement: horizontal moving platform; matched. */
 #include "code_08009A0.h"
-#include "layer_object.h"
 #include "structs/ewram.h"
 extern void Player_SetXFraction(s32 fraction);
 
@@ -15,14 +14,14 @@ void Object2A_UpdateMovement(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
     case 0:
-        target = SHUTTLE_END(entity);
-        x = BG1_OBJECT_X(entity);
+        target = entity->ext.layerObject.shuttleEnd;
+        x = entity->ext.layerObject.x;
         dist = target - x;
         if (dist < 0)
             dist = -dist;
         vel = entity->velX.whole;
-        BG1_OBJECT_X(entity) = x + vel;
-        if (!SHUTTLE_DIR(entity))
+        entity->ext.layerObject.x = x + vel;
+        if (!entity->ext.layerObject.shuttleDir)
         {
             if (x >= target)
             {
@@ -63,17 +62,17 @@ void Object2A_UpdateMovement(struct EwramData_EntityData *entity)
         if ((s8)--entity->timer > 0)
             break;
         entity->subState++;
-        SHUTTLE_DIR(entity) ^= 1;
+        entity->ext.layerObject.shuttleDir ^= 1;
         break;
     case 2:
-        target = SHUTTLE_START(entity);
-        x = BG1_OBJECT_X(entity);
+        target = entity->ext.layerObject.shuttleStart;
+        x = entity->ext.layerObject.x;
         dist = target - x;
         if (dist < 0)
             dist = -dist;
         vel2 = entity->velX.whole;
-        BG1_OBJECT_X(entity) = x + vel2;
-        if (!SHUTTLE_DIR(entity))
+        entity->ext.layerObject.x = x + vel2;
+        if (!entity->ext.layerObject.shuttleDir)
         {
             if (x >= target)
             {
@@ -114,13 +113,13 @@ void Object2A_UpdateMovement(struct EwramData_EntityData *entity)
         if ((s8)--entity->timer > 0)
             break;
         entity->subState = 0;
-        SHUTTLE_DIR(entity) ^= 1;
+        entity->ext.layerObject.shuttleDir ^= 1;
         break;
     }
-    entity->posX.whole = BG1_OBJECT_X(entity) - camera->xPos.whole;
-    entity->posY.whole = BG1_OBJECT_Y(entity) - camera->yPos.whole;
-    BG1_OBJECT_DRAW_X(entity) = BG1_OBJECT_X(entity) - camera->xPos.whole;
-    BG1_OBJECT_DRAW_Y(entity) = BG1_OBJECT_Y(entity) - camera->yPos.whole;
+    entity->posX.whole = entity->ext.layerObject.x - camera->xPos.whole;
+    entity->posY.whole = entity->ext.layerObject.y - camera->yPos.whole;
+    entity->ext.layerObject.drawX = entity->ext.layerObject.x - camera->xPos.whole;
+    entity->ext.layerObject.drawY = entity->ext.layerObject.y - camera->yPos.whole;
     if (gEwramData->playerState.standingPlatform == entity)
         Player_SetXFraction((s16)entity->posX.part16.fraction);
 }

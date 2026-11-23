@@ -31,7 +31,7 @@ void Balore_UpdateAttack(struct EwramData_EntityData *entity)
             effect->posX.whole = entity->posX.whole;
             effect->posY.whole = entity->posY.whole;
             effect->scrollWithBg = 1;
-            BALORE_BODY(effect) = entity;
+            effect->ext.balorePart.body = entity;
         }
         {
             u32 *callback = (u32 *)BaloreAffineEffect_Update;
@@ -45,7 +45,7 @@ void Balore_UpdateAttack(struct EwramData_EntityData *entity)
             {
                 register struct EwramData_EntityData *child asm("r1") = effect; /* FAKEMATCH: pinned register */
                 child->subState = 1;
-                BALORE_BODY(child) = entity;
+                child->ext.balorePart.body = entity;
             }
         }
         PlaySong(0x1D5);
@@ -65,7 +65,7 @@ void Balore_UpdateAttack(struct EwramData_EntityData *entity)
             effect->posX.whole = entity->posX.whole;
             effect->posY.whole = entity->posY.whole;
             effect->scrollWithBg = 1;
-            BALORE_BODY(effect) = entity;
+            effect->ext.balorePart.body = entity;
         }
         entity->subState = 2;
         break;

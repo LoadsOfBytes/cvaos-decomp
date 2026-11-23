@@ -1,6 +1,5 @@
 /* Appear, follow a target with damping, then choose a new outward direction. */
 #include "code_08009A0.h"
-#include "ghost_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "syscalls.h"
@@ -20,7 +19,7 @@ static inline s32 TargetOffsetY(struct EwramData_EntityData *entity, s32 x)
     if (Magnitude(x) < 0x600000)
     {
         s32 distance = Target_GetY(entity) - entity->posY.whole;
-        s32 offset = GHOST_AIM_OFFSET_Y(entity) - 0x100000;
+        s32 offset = entity->ext.ghost.aimOffsetY - 0x100000;
         return distance + offset;
     }
     return Target_GetY(entity) - entity->posY.whole - 0x200000;
@@ -41,7 +40,7 @@ void Ghost_UpdateFloat(struct EwramData_EntityData *entity)
             Anim_StartIndexed(entity, 1, 0, 1);
             entity->hit.flags &= ~2;
             entity->hit.flags &= ~4;
-            GHOST_AIM_OFFSET_Y(entity) = -(RandomNumberGenerator() & 0xFFFFF);
+            entity->ext.ghost.aimOffsetY = -(RandomNumberGenerator() & 0xFFFFF);
         }
         break;
     case 1:

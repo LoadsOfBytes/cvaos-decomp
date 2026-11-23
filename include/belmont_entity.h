@@ -14,16 +14,8 @@
  * The macros expand to the original member chains without added parentheses
  * (token-identical preprocessed code); use them with a plain base expression.
  */
-#define BELMONT_ATTACK(e) e->unk_500.part8.unk_500
-#define BELMONT_ATTACK_OFF(e) e->unk_500.part8.unk_501
-#define BELMONT_FLAGS(e) e->unk_4F8.part8.unk_4F8
-#define BELMONT_FLASH(e) e->unk_4F8.part8.unk_4F9
-#define BELMONT_HITS(e) e->unk_504.part8.unk_504
-#define BELMONT_WEAPON_INDEX(e) e->unk_4F4.part8.unk_4F6
-#define BELMONT_POWER_STEP(e) e->unk_4F8.part8.unk_4FA
 
 /* Scene object (Belmont_CreateSceneObject / _UpdateIntro / _UpdateSceneBoundary): its entity index. */
-#define BELMONT_SCENE_OBJECT_INDEX(e) e->unk_4F8.part8.unk_4FB
 
 /*
  * Subweapons 2 / 3 (BelmontSubweapon2_Update / 3_Update): 16.16 walk speed
@@ -33,6 +25,5 @@
 
 /* Power particles (Belmont_CreatePowerParticle, BelmontPowerParticle_Update):
  * step (set to the powered phase state by Belmont_UpdatePoweredPhase). */
-#define BELMONT_PARTICLE_STEP(e) e->unk_4FC.part8.unk_4FC
 
 #endif /* BELMONT_ENTITY_H */

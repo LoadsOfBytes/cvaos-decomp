@@ -9,7 +9,7 @@
  */
 void DevilPart_Attach(struct EwramData_EntityData *entity, s32 partIndex, s32 anchorIndex, s32 angleSpec, s32 length)
 {
-    struct DevilPart *parts = entity->unk_500.devilParts;
+    struct DevilPart *parts = entity->ext.devil.parts;
     // &parts[partIndex], written as integer arithmetic (offset + base) as in
     // the original
     struct DevilPart *part = (struct DevilPart *)(partIndex * sizeof(struct DevilPart) + (u32)parts);

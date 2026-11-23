@@ -1,6 +1,5 @@
 /* Man Eater projectile and effect controllers. */
 #include "code_08009A0.h"
-#include "man_eater_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -108,12 +107,12 @@ remove:
  */
 void ManEaterChainAnchor_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = &gEwramData->entityData[(u8)MAN_EATER_OWNER_INDEX(entity)];
-    struct EwramData_EntityData *target = &gEwramData->entityData[MAN_EATER_PREV_INDEX(entity)];
+    struct EwramData_EntityData *parent = &gEwramData->entityData[(u8)entity->ext.manEater.ownerIndex];
+    struct EwramData_EntityData *target = &gEwramData->entityData[entity->ext.manEater.prevIndex];
     s32 dx;
     s32 dy;
     u16 angle;
-    if ((MAN_EATER_HEAD_FLAGS(parent) & 4) && parent->subState == 1)
+    if ((parent->ext.manEater.headFlags & 4) && parent->subState == 1)
     {
         EntityDelete(entity);
         return;
@@ -125,9 +124,9 @@ void ManEaterChainAnchor_Update(struct EwramData_EntityData *entity)
         entity->state = 1;
         break;
     case 1:
-        if (MAN_EATER_HEAD_FLAGS(parent) & 1)
+        if (parent->ext.manEater.headFlags & 1)
         {
-            MAN_EATER_LINK_SAVED_STATE(entity) = 1;
+            entity->ext.manEaterLink.savedState = 1;
             entity->state = 2;
             entity->subState = 0;
             entity->timer = 0x64;
@@ -153,7 +152,7 @@ void ManEaterChainAnchor_Update(struct EwramData_EntityData *entity)
             y += offsetY;
             entity->posY.whole = y;
         }
-        if (parent->state != 2) entity->state = MAN_EATER_LINK_SAVED_STATE(entity);
+        if (parent->state != 2) entity->state = entity->ext.manEaterLink.savedState;
         break;
     }
 }

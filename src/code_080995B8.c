@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "ectoplasm_entity.h"
 #include "code/code_08039340.h"
 extern u8 Ectoplasm_LoadGraphics(struct EwramData_EntityData *);
 extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
@@ -24,8 +23,8 @@ void EnemyEctoplasmCreate(struct EwramData_EntityData *entity)
     Enemy_ResetFromTemplate(entity);
     if ((*ewram)->gameState.bestiaryPreview)
     {
-        ECTOPLASM_POINT_X(entity) = entity->posX.whole + background->xPos.whole;
-        ECTOPLASM_POINT_Y(entity) = entity->posY.whole + background->yPos.whole;
+        entity->ext.ectoplasm.pointX = entity->posX.whole + background->xPos.whole;
+        entity->ext.ectoplasm.pointY = entity->posY.whole + background->yPos.whole;
         entity->state = 2;
         return;
     }
@@ -35,8 +34,8 @@ void EnemyEctoplasmCreate(struct EwramData_EntityData *entity)
     else Hit_Enable(entity, 8, Ectoplasm_DamagePlayerOnContact, Ectoplasm_OnHit);
     Entity_UpdateBoxes(entity);
     entity->state = 0;
-    ECTOPLASM_POINT_X(entity) = entity->posX.whole + background->xPos.whole;
-    ECTOPLASM_POINT_Y(entity) = entity->posY.whole + background->yPos.whole;
+    entity->ext.ectoplasm.pointX = entity->posX.whole + background->xPos.whole;
+    entity->ext.ectoplasm.pointY = entity->posY.whole + background->yPos.whole;
     entity->scrollWithBg = 1;
     entity->accelY.whole = -0x100;
     entity->timer = 0x1E;

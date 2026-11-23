@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "minotaur_entity.h"
 #include "structs/ewram.h"
 extern void Entity_FaceTarget(struct EwramData_EntityData *);
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *, s32, s32);
@@ -21,7 +20,7 @@ void Minotaur_UpdateIdle(struct EwramData_EntityData *entity)
             entity->stage = result;
             entity->subState = result;
         }
-        else if (MINOTAUR_FLAGS(entity) & 2)
+        else if (entity->ext.minotaur.flags & 2)
         {
             entity->state = 1;
             entity->stage = 0;

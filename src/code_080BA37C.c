@@ -2,7 +2,6 @@
  * (flipX through an s8 byte pointer, one
  * variable for the divisor and the swing amplitude). */
 #include "code_08009A0.h"
-#include "man_eater_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -17,20 +16,20 @@ extern void ManEaterPart_OnHit(struct EwramData_EntityData *, struct EwramData_E
 extern void ManEaterProjectile_Update(struct EwramData_EntityData *);
 extern u8 sManEaterGfx[], sManEaterPalette[], sManEaterSpriteSheet[];
 
-#define INDEX(e) (MAN_EATER_ORBIT_SLOT((e)))
-#define SWING(e) (MAN_EATER_ANGLE((e)))
-#define SWING_SPEED(e) (MAN_EATER_LINK_SWING_SPEED((e)))
+#define INDEX(e) (e->ext.manEater.orbitSlot)
+#define SWING(e) (e->ext.manEater.angle)
+#define SWING_SPEED(e) (e->ext.manEaterLink.swingSpeed)
 
 void ManEaterSegment_Update(struct EwramData_EntityData *entity)
 {
     u8 box[16];
-    struct EwramData_EntityData *head = &gEwramData->entityData[(u8)MAN_EATER_OWNER_INDEX(entity)];
-    struct EwramData_EntityData *prev = &gEwramData->entityData[MAN_EATER_PREV_INDEX(entity)];
-    struct EwramData_EntityData *next = &gEwramData->entityData[MAN_EATER_BASE_INDEX(entity)];
+    struct EwramData_EntityData *head = &gEwramData->entityData[(u8)entity->ext.manEater.ownerIndex];
+    struct EwramData_EntityData *prev = &gEwramData->entityData[entity->ext.manEater.prevIndex];
+    struct EwramData_EntityData *next = &gEwramData->entityData[entity->ext.manEater.baseIndex];
     s32 amplitude;
     s32 angle;
 
-    if ((MAN_EATER_HEAD_FLAGS(head) & 4) && head->subState < (INDEX(entity) + 1) * 4)
+    if ((head->ext.manEater.headFlags & 4) && head->subState < (INDEX(entity) + 1) * 4)
     {
         struct EwramData_EntityData *debris = Effect_SpawnShared(entity->posX.whole, entity->posY.whole, 13, 8);
         if (debris != NULL)
@@ -41,9 +40,9 @@ void ManEaterSegment_Update(struct EwramData_EntityData *entity)
         PlaySong(0x70);
         goto remove;
     }
-    if (entity->state <= 2 && (MAN_EATER_HEAD_FLAGS(head) & 1))
+    if (entity->state <= 2 && (head->ext.manEater.headFlags & 1))
     {
-        MAN_EATER_LINK_SAVED_STATE(entity) = entity->state;
+        entity->ext.manEaterLink.savedState = entity->state;
         entity->state = 3;
         entity->subState = 0;
     }
@@ -63,13 +62,13 @@ remove:
         }
         if ((entity->stage = INDEX(entity)) == 5)
         {
-            MAN_EATER_LINK_DROPS(entity) = 1;
+            entity->ext.manEaterLink.drops = 1;
             Anim_StartIndexed(entity, 3, 0, 1);
         }
         entity->scrollWithBg = 1;
-        MAN_EATER_LINK_UNUSED_SPEED(entity) = 0x60000;
+        entity->ext.manEaterLink.unusedSpeed = 0x60000;
         SWING_SPEED(entity) = 0x60;
-        MAN_EATER_LINK_UNUSED_PHASE(entity) = INDEX(entity) * 8;
+        entity->ext.manEaterLink.unusedPhase = INDEX(entity) * 8;
         if (SWING(entity) <= 0x2000)
             entity->state = 1;
         else
@@ -137,7 +136,7 @@ remove:
             entity->posX.whole += (head->posX.whole - entity->accelX.whole - entity->posX.whole) / 12;
             entity->posY.whole += (head->posY.whole - entity->accelY.whole - entity->posY.whole) / 12;
             if (head->state != 3)
-                entity->state = MAN_EATER_LINK_SAVED_STATE(entity);
+                entity->state = entity->ext.manEaterLink.savedState;
             break;
         }
         break;
@@ -145,13 +144,13 @@ remove:
     if (entity->state <= 2)
     {
         if (INDEX(entity) != 0)
-            amplitude = (s32)MAN_EATER_LUNGE_SPEED(head) / 256;
+            amplitude = (s32)head->ext.manEater.lungeSpeed / 256;
         else
             amplitude = 0;
-        angle = (s16)(MAN_EATER_ANGLE(head) + (MAN_EATER_ANGLE(prev) + SWING(entity)));
+        angle = (s16)(head->ext.manEater.angle + (prev->ext.manEater.angle + SWING(entity)));
         entity->posX.whole = prev->posX.whole + Sin(angle + 0x4000) / 256 * amplitude;
         entity->posY.whole = prev->posY.whole + Sin(angle) / 256 * amplitude;
-        if (*(u8 *)&MAN_EATER_LINK_DROPS(entity) && (s16)head->unk_518.part16.hp <= 0xC7
+        if (*(u8 *)&entity->ext.manEaterLink.drops && (s16)head->unk_518.part16.hp <= 0xC7
             && entity->animStep <= 2 && entity->animTimer == 0 && (RandomNumberGenerator() & 7))
         {
             struct EwramData_EntityData *drop = Entity_CreateObject((u32 *)ManEaterProjectile_Update);

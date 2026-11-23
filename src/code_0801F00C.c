@@ -12,8 +12,8 @@ static inline void SetPlayerAnim(struct EwramData_EntityData *entity, s32 anim)
     if (!(gEwramData->playerState.actionLockFlags & 0x800) && entity->animScriptIndex != anim)
     {
         Anim_StartIndexed(entity, anim, 1, 0);
-        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
-        PLAYER_ACTION_FLAGS(entity) &= 0xFFDFFFFF;
+        entity->ext.player.requestedAnim = 0xFF;
+        entity->ext.player.actionFlags &= 0xFFDFFFFF;
     }
 }
 
@@ -30,14 +30,14 @@ void Julius_HandleWhipAttackInput(struct EwramData_EntityData *entity)
     if (!(gEwramData->inputData.playerNewInput & gEwramData->playerStatus.attackButton)
         && !(gEwramData->playerStatus.inputOverrides & 2))
         return;
-    if (PLAYER_ACTION_FLAGS(entity) & 0x160)
+    if (entity->ext.player.actionFlags & 0x160)
         return;
-    if (!(PLAYER_ACTION_FLAGS(entity) & 0x400))
+    if (!(entity->ext.player.actionFlags & 0x400))
         SetPlayerAnim(entity, 0x18);
     else
         SetPlayerAnim(entity, 0x1A);
     PlaySong(0x122);
-    PLAYER_ACTION_FLAGS(entity) |= 0x20;
+    entity->ext.player.actionFlags |= 0x20;
     entity->state = 1;
     entity->subState = 0;
     Julius_CreateWhipAttackEntity(entity);

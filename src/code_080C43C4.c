@@ -1,6 +1,5 @@
 /* Attached part: follows its parent's joint (case 2), mirrors its flags and deletes itself with it. */
 #include "code_08009A0.h"
-#include "skeleton_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -24,7 +23,7 @@ extern const struct PartPoint sSkeletonPartPoints[];
 void SkeletonAttachedPart_Update(struct EwramData_EntityData *entity)
 {
     struct { s16 x; s16 y; } pt;
-    struct EwramData_EntityData *parent = &gEwramData->entityData[(u8)SKELETON_PIECE_OWNER_INDEX(entity)];
+    struct EwramData_EntityData *parent = &gEwramData->entityData[(u8)entity->ext.skeletonPiece.ownerIndex];
     const struct PartPoint *t;
 
     if (!entity->hidden && parent->hidden)
@@ -47,7 +46,7 @@ void SkeletonAttachedPart_Update(struct EwramData_EntityData *entity)
         entity->deleteRequested = 1;
         return;
     }
-    if (!(SKELETON_FLAGS(parent) & 4))
+    if (!(parent->ext.skeleton.flags & 4))
     {
         entity->deleteRequested = 1;
         return;

@@ -1,6 +1,5 @@
 #include "code_08009A0.h"
 #include "soul_skill_entity.h"
-#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -56,7 +55,7 @@ static inline void SetFrameBox(struct EwramData_EntityData *entity)
  */
 void SkillBlueCrowUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.redSoul.owner;
     s32 dx, dy;
     s32 spin, angle;
 
@@ -94,10 +93,10 @@ void SkillBlueCrowUse(struct EwramData_EntityData *entity)
         gEwramData->playerState.nbrActiveRedSoulEntities++;
         entity->state++;
     case 1:
-        SKILL_BLUE_CROW_RADIUS(entity) = FIXED_TO_INT(Sin(entity->timer * 0x28F) * 60);
+        entity->ext.skillBlueCrow.radius = FIXED_TO_INT(Sin(entity->timer * 0x28F) * 60);
         SKILL_BLUE_CROW_ANGLE(entity) += SKILL_BLUE_CROW_TURN(entity);
-        dx = SKILL_BLUE_CROW_RADIUS(entity) * Sin(SKILL_BLUE_CROW_ANGLE(entity) + 0x4000);
-        dy = SKILL_BLUE_CROW_RADIUS(entity) * Sin(SKILL_BLUE_CROW_ANGLE(entity));
+        dx = entity->ext.skillBlueCrow.radius * Sin(SKILL_BLUE_CROW_ANGLE(entity) + 0x4000);
+        dy = entity->ext.skillBlueCrow.radius * Sin(SKILL_BLUE_CROW_ANGLE(entity));
         entity->posX.whole = parent->posX.whole + dx;
         entity->posY.whole = parent->posY.whole + dy - 0x120000;
         if (entity->timer != 0)
@@ -106,7 +105,7 @@ void SkillBlueCrowUse(struct EwramData_EntityData *entity)
             entity->state = 2;
         break;
     case 2:
-        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;

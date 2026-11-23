@@ -1,6 +1,5 @@
 /* The projectile's travel angle oscillates over a 32-frame cycle. */
 #include "code_08009A0.h"
-#include "harpy_entity.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
 extern void EntityMove(struct EwramData_EntityData *);
@@ -16,13 +15,13 @@ void HarpyWavyFeather_Update(struct EwramData_EntityData *entity)
         {
             u8 timer=++entity->timer;
             if(timer<=15)
-                HARPY_FEATHER_ANGLE(entity)+=0x400;
+                entity->ext.harpyFeather.angle+=0x400;
             else if(timer<=31)
             {
-                HARPY_FEATHER_ANGLE(entity)-=0x400;
+                entity->ext.harpyFeather.angle-=0x400;
                 if(timer>30) entity->timer=state;
             }
-            EntitySetVelocityFromAngle(entity,HARPY_FEATHER_ANGLE(entity),0x20000);
+            EntitySetVelocityFromAngle(entity,entity->ext.harpyFeather.angle,0x20000);
             EntityMove(entity);
             Hit_CheckWithPlayer(bounds,entity);
             if(!EntityIsOutsideScreen(entity,1)) break;

@@ -3,11 +3,6 @@
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 
-/*
- * Chronomage escape (Chronomage_UpdateEscape): 16.16 walk speed (accelerates
- * to 0x30000). Token-identical expansion.
- */
-#define CHRONOMAGE_ESCAPE_SPEED(e) e->unk_4FC.whole
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
 extern void Entity_SnapToGround(struct EwramData_EntityData *);
@@ -53,9 +48,9 @@ void Chronomage_UpdateEscape(struct EwramData_EntityData *entity)
         entity->subState = 3;
         /* fall through */
     case 3:
-        if ((s32)CHRONOMAGE_ESCAPE_SPEED(entity) <= 0x2FFFF) CHRONOMAGE_ESCAPE_SPEED(entity) += 0x2000;
-        if (entity->animScriptIndex == 4) { speed = CHRONOMAGE_ESCAPE_SPEED(entity); speed = -speed; }
-        else speed = CHRONOMAGE_ESCAPE_SPEED(entity);
+        if ((s32)entity->ext.chronomage.escapeSpeed <= 0x2FFFF) entity->ext.chronomage.escapeSpeed += 0x2000;
+        if (entity->animScriptIndex == 4) { speed = entity->ext.chronomage.escapeSpeed; speed = -speed; }
+        else speed = entity->ext.chronomage.escapeSpeed;
         flags = Entity_Walk(entity, speed, sChronomageWalkProfile, 2);
         if ((flags & 8) && (flags & 3)) entity->velY.whole -= 0x30000;
         break;

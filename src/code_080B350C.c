@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "head_stack_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -32,7 +31,7 @@ void HeadStackProjectile_Update(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        const struct EffectGraphics *t = &sUnk_081193DC[HEAD_STACK_TYPE(owner)];
+        const struct EffectGraphics *t = &sUnk_081193DC[owner->ext.headStack.type];
         if (!Entity_LoadGraphics(entity, t->graphics, t->palette, 0, t->sprite))
         {
             EntityDelete(entity);
@@ -65,7 +64,7 @@ void HeadStackProjectile_Update(struct EwramData_EntityData *entity)
                 child->velY.whole = -0x1000;
                 child->accelX.whole = -0x100;
                 child->scrollWithBg = 1;
-                child->subState = HEAD_STACK_TYPE(entity);
+                child->subState = entity->ext.headStack.type;
             }
         }
         EntityAccelerateAndMove(entity, 0x80000);

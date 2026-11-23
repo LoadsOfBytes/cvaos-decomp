@@ -38,16 +38,16 @@ void GrahamFirstForm_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 *da
 
     if (GrahamPart_TakeDamage(entity, hit, data))
     {
-        if (!(GRAHAM_FLAGS(entity) & 2))
+        if (!(entity->ext.graham.flags & 2))
         {
-            GRAHAM_FLAGS(entity) |= 2;
+            entity->ext.graham.flags |= 2;
             SET_STATE(entity, 3);
         }
         else
         {
             SET_STATE(entity, 5);
             if (!SoulsDiffer(0x2C, 2, 7))
-                GRAHAM_FLAGS(owner) |= 8;
+                owner->ext.graham.flags |= 8;
         }
     }
     PlaySong(0x1DA);

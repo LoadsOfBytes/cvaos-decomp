@@ -32,7 +32,7 @@ void Soma_UpdateKnockback(struct EwramData_EntityData *entity)
     u16 x;
     s16 y;
 
-    PLAYER_ACTION_FLAGS(entity) &= 0xEFFFFE9F;
+    entity->ext.player.actionFlags &= 0xEFFFFE9F;
     x = GetEntityRoomXPositionInteger(entity);
     y = GetEntityRoomYPositionInteger(entity);
     hit = 0;
@@ -57,17 +57,17 @@ clear:
     entity->velX.whole = 0;
     entity->accelX.whole = 0;
 done:
-    if (!(PLAYER_ACTION_FLAGS(entity) & 2) || (hit && (PLAYER_ACTION_FLAGS(entity) & 0x200000)))
+    if (!(entity->ext.player.actionFlags & 2) || (hit && (entity->ext.player.actionFlags & 0x200000)))
     {
-        PLAYER_ACTION_FLAGS(entity) = PLAYER_ACTION_FLAGS(entity) & 0xFFFEFF7F;
+        entity->ext.player.actionFlags = entity->ext.player.actionFlags & 0xFFFEFF7F;
         entity->state = 0;
     }
     else if ((gEwramData->playerStatus.soulStateFlags & 0x400000) && (gEwramData->inputData.playerNewInput & gEwramData->playerStatus.jumpButton))
     {
         entity->accelY.whole = 0;
-        PLAYER_ACTION_FLAGS(entity) = PLAYER_ACTION_FLAGS(entity) & 0xFFEFFB7F;
+        entity->ext.player.actionFlags = entity->ext.player.actionFlags & 0xFFEFFB7F;
         PlaySong(0xB9);
-        PLAYER_ACTION_FLAGS(entity) |= 6;
+        entity->ext.player.actionFlags |= 6;
         entity->velY.whole = 0;
         entity->state = 0;
     }

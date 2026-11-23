@@ -40,7 +40,7 @@ void CreakingSkull_InterpolateJointsInOrder(struct EwramData_EntityData *entity,
  */
 void CreakingSkull_ClearJointAngles(struct EwramData_EntityData *entity, s32 partIndex)
 {
-    struct EntityJointPart *parts = entity->unk_500.jointParts;
+    struct EntityJointPart *parts = entity->ext.joint.parts;
 
     parts[partIndex].targetSwingAngle = 0;
     parts[partIndex].swingAngle = 0;
@@ -51,7 +51,7 @@ void CreakingSkull_ClearJointAngles(struct EwramData_EntityData *entity, s32 par
  */
 void CreakingSkull_SaveJointPositions(struct EwramData_EntityData *entity)
 {
-    struct EntityJointPart *parts = entity->unk_500.jointParts;
+    struct EntityJointPart *parts = entity->ext.joint.parts;
     s32 i;
 
     for (i = CREAKING_SKULL_PART_COUNT - 1; i >= 0; parts++, i--)
@@ -66,7 +66,7 @@ void CreakingSkull_SaveJointPositions(struct EwramData_EntityData *entity)
  */
 void CreakingSkull_RestoreJointPositions(struct EwramData_EntityData *entity)
 {
-    struct EntityJointPart *parts = entity->unk_500.jointParts;
+    struct EntityJointPart *parts = entity->ext.joint.parts;
     s32 i;
 
     for (i = CREAKING_SKULL_PART_COUNT - 1; i >= 0; parts++, i--)

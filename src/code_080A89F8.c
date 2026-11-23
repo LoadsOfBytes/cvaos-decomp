@@ -1,7 +1,5 @@
 /* Big Golem walk state machine (state == 0): shifts weight from foot to foot, stomps (dust, shake), turns at walls. */
 #include "code_08009A0.h"
-#include "big_golem_entity.h"
-#include "joint_entity.h"
 #include "code_080D73B8.h"
 #include "structs/ewram.h"
 
@@ -100,7 +98,7 @@ static inline s32 ABS(s32 x)
     BigGolem_RecenterOnParts(entity, 0, 6);\
     BigGolem_SetPartYOffset(entity, 0, -0xD0000);\
     BigGolem_SetPartYOffset(entity, 6, -0xD0000);\
-    JOINT_POSE(entity) = ANIM;
+    entity->ext.joint.pose = ANIM;
 
 #define STOMP_FX()\
     ScreenShake_RequestOffset(0, 1, 4);\
@@ -122,7 +120,7 @@ static inline s32 ABS(s32 x)
 
 /* res = 0: walk on, res = 1: turn around. */
 #define WALL_CHECK()\
-    if ((s8)BIG_GOLEM_HEADING(entity) == entity->flipX)\
+    if ((s8)entity->ext.bigGolem.heading == entity->flipX)\
     {\
         dx = entity->flipX ? 0x6E : -0x6E;\
         if (Tile_Classify(bg->xPos.part16.integer + entity->posX.part16.integer + dx,\
@@ -131,7 +129,7 @@ static inline s32 ABS(s32 x)
             || (entity->flipX && Entity_GetHorizontalRoomEdge(entity, 0x18) == 2))\
         {\
             res = 1;\
-            BIG_GOLEM_HEADING(entity) = entity->flipX ^ 1;\
+            entity->ext.bigGolem.heading = entity->flipX ^ 1;\
         }\
         else\
             res = 0;\
@@ -146,7 +144,7 @@ static inline s32 ABS(s32 x)
         if (hit)\
         {\
             res = 0;\
-            BIG_GOLEM_HEADING(entity) = entity->flipX;\
+            entity->ext.bigGolem.heading = entity->flipX;\
         }\
     }
 
@@ -156,13 +154,13 @@ static inline s32 ABS(s32 x)
         if ((RandomNumberGenerator2() & 0x7F) < 0x30)\
             ATTACK()\
         if ((RandomNumberGenerator2() & 0x7F) < CHANCE)\
-            BIG_GOLEM_HEADING(entity) = entity->flipX ^ 1;\
+            entity->ext.bigGolem.heading = entity->flipX ^ 1;\
     }\
-    if (*(s8 *)&BIG_GOLEM_HIT(entity) && (s8)BIG_GOLEM_HIT_COUNT(entity) > 3)\
+    if (*(s8 *)&entity->ext.bigGolem.hit && (s8)entity->ext.bigGolem.hitCount > 3)\
     {\
-        BIG_GOLEM_HIT(entity) = 0;\
-        BIG_GOLEM_HIT_COUNT(entity) = 0;\
-        BIG_GOLEM_HEADING(entity) = entity->flipX ^ 1;\
+        entity->ext.bigGolem.hit = 0;\
+        entity->ext.bigGolem.hitCount = 0;\
+        entity->ext.bigGolem.heading = entity->flipX ^ 1;\
     }
 
 /**
@@ -189,7 +187,7 @@ void BigGolem_UpdateWalk(struct EwramData_EntityData *entity)
         entity->subState = 1;
         entity->stage = 0;
         entity->timer = 0x28;
-        JOINT_POSE(entity) = 2;
+        entity->ext.joint.pose = 2;
         STAND(6, 8, 7, 1, 2, 0)
         ARMS_A()
         break;
@@ -197,7 +195,7 @@ void BigGolem_UpdateWalk(struct EwramData_EntityData *entity)
         WAIT(orderA)
         entity->timer = 0x32;
         entity->subState++;
-        JOINT_POSE(entity) = 3;
+        entity->ext.joint.pose = 3;
         LEAN(6, 8, 7, 1, 2, 0, 0x1A400, 0x1B000)
         /* fallthrough */
     case 2:
@@ -233,14 +231,14 @@ void BigGolem_UpdateWalk(struct EwramData_EntityData *entity)
             entity->timer = 0x50;
             entity->subState++;
             entity->stage = 0;
-            JOINT_POSE(entity) = 4;
+            entity->ext.joint.pose = 4;
             STAND(0, 2, 1, 7, 8, 6)
             ARMS_B()
         }
         else if (res == 1)
         {
             entity->subState = 10;
-            JOINT_POSE(entity) = 4;
+            entity->ext.joint.pose = 4;
             entity->timer = 0x32;
             STAND(6, 8, 7, 1, 2, 0)
             ARMS_B()
@@ -250,7 +248,7 @@ void BigGolem_UpdateWalk(struct EwramData_EntityData *entity)
         WAIT(orderB)
         entity->timer = 0x32;
         entity->subState++;
-        JOINT_POSE(entity) = 5;
+        entity->ext.joint.pose = 5;
         LEAN(0, 2, 1, 7, 8, 6, 0x1B400, 0x1C000)
         /* fallthrough */
     case 5:
@@ -286,7 +284,7 @@ void BigGolem_UpdateWalk(struct EwramData_EntityData *entity)
             entity->timer = 0x50;
             entity->subState = 1;
             entity->stage = 0;
-            JOINT_POSE(entity) = 2;
+            entity->ext.joint.pose = 2;
             STAND(6, 8, 7, 1, 2, 0)
             ARMS_A()
         }
@@ -294,7 +292,7 @@ void BigGolem_UpdateWalk(struct EwramData_EntityData *entity)
         {
             entity->subState = 7;
             entity->timer = 0x32;
-            JOINT_POSE(entity) = 2;
+            entity->ext.joint.pose = 2;
             STAND(0, 2, 1, 7, 8, 6)
             ARMS_A()
         }
@@ -303,7 +301,7 @@ void BigGolem_UpdateWalk(struct EwramData_EntityData *entity)
         WAIT(orderB)
         entity->timer = 0x50;
         entity->subState++;
-        JOINT_POSE(entity) = 3;
+        entity->ext.joint.pose = 3;
         STRIDE(0, 2, 1, 7, 8, 6, 0x1A400, 0x1B000)
         break;
     case 8:
@@ -345,7 +343,7 @@ void BigGolem_UpdateWalk(struct EwramData_EntityData *entity)
         {
             entity->timer = 0x50;
             entity->subState = 4;
-            JOINT_POSE(entity) = 4;
+            entity->ext.joint.pose = 4;
             STAND(0, 2, 1, 7, 8, 6)
             ARMS_B()
         }
@@ -353,7 +351,7 @@ void BigGolem_UpdateWalk(struct EwramData_EntityData *entity)
         {
             entity->subState = 10;
             entity->timer = 0x32;
-            JOINT_POSE(entity) = 4;
+            entity->ext.joint.pose = 4;
             STAND(6, 8, 7, 1, 2, 0)
             ARMS_B()
         }
@@ -362,7 +360,7 @@ void BigGolem_UpdateWalk(struct EwramData_EntityData *entity)
         WAIT(orderA)
         entity->timer = 0x50;
         entity->subState++;
-        JOINT_POSE(entity) = 5;
+        entity->ext.joint.pose = 5;
         STRIDE(6, 8, 7, 1, 2, 0, 0x1B400, 0x1C000)
         break;
     case 11:
@@ -404,7 +402,7 @@ void BigGolem_UpdateWalk(struct EwramData_EntityData *entity)
         {
             entity->timer = 0x50;
             entity->subState = 1;
-            JOINT_POSE(entity) = 2;
+            entity->ext.joint.pose = 2;
             STAND(6, 8, 7, 1, 2, 0)
             ARMS_A()
         }
@@ -412,7 +410,7 @@ void BigGolem_UpdateWalk(struct EwramData_EntityData *entity)
         {
             entity->subState = 7;
             entity->timer = 0x32;
-            JOINT_POSE(entity) = 2;
+            entity->ext.joint.pose = 2;
             STAND(0, 2, 1, 7, 8, 6)
             ARMS_A()
         }

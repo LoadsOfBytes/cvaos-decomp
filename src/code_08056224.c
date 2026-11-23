@@ -24,7 +24,7 @@ void Object1FUpdate(struct EwramData_EntityData *entity)
         Game_SetMenusEnabled(0);
         player->objMode = 1;
         gDisplayRegisters.bldAlpha = 0x10;
-        OBJECT1F_FADE_TIMER(entity) = 0x80;
+        entity->ext.object1F.fadeTimer = 0x80;
         break;
     case 1:
         gEwramData->gameState.stateFlags |= 1;
@@ -41,7 +41,7 @@ void Object1FUpdate(struct EwramData_EntityData *entity)
             gDisplayRegisters.bldAlpha = 0x808;
         }
         gDisplayRegisters.bldAlpha = (0x10 - (entity->timer >> 3)) | ((entity->timer >> 3) << 8);
-        if (--OBJECT1F_FADE_TIMER(entity) != 0xFFFF)
+        if (--entity->ext.object1F.fadeTimer != 0xFFFF)
             return;
         RoomFadeTransition_Begin(g);
         break;

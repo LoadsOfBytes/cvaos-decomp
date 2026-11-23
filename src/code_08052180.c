@@ -23,7 +23,7 @@ static inline s32 Object14_WallRightCorrectionInline(struct EwramData_EntityData
         return 0;
     if (band <= 0x27FFFF)
         return 0;
-    OBJECT14_FLAGS(entity) |= 1;
+    entity->ext.object14.flags |= 1;
     {
         s32 v = dx - 0x180000;
         return (v < 0) ? (s16)(-(-v >> 0x10)) : (s16)(v >> 0x10);

@@ -1,6 +1,5 @@
 /* Manticore_UpdateAttack: enemy attack sequence that spawns two projectiles on frame 14. */
 #include "code_08009A0.h"
-#include "manticore_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -20,14 +19,14 @@ struct FramePairBits32 { u32 value:16; };
  */
 void Manticore_UpdateAttack(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = MANTICORE_TAIL_TIP(entity); /* tail tip */
+    struct EwramData_EntityData *parent = entity->ext.manticore.tailTip; /* tail tip */
 
     switch (entity->subState)
     {
     case 0:
         Anim_StartIndexed(entity, 2, 0, 0);
         entity->subState++;
-        MANTICORE_TAIL_STEP(parent) = 0;
+        parent->ext.manticoreTail.step = 0;
         break;
     case 1:
         if (entity->animStep == 0)
@@ -36,13 +35,13 @@ void Manticore_UpdateAttack(struct EwramData_EntityData *entity)
         entity->subState++;
         break;
     case 2:
-        if (MANTICORE_TAIL_STEP(parent) <= 2)
+        if (parent->ext.manticoreTail.step <= 2)
             break;
         entity->animFlags &= ~2;
         entity->subState++;
         break;
     case 3:
-        if (MANTICORE_TAIL_STEP(parent) <= 4)
+        if (parent->ext.manticoreTail.step <= 4)
             break;
         Anim_StartIndexed(entity, 3, 0, 0);
         entity->subState++;
@@ -59,13 +58,13 @@ void Manticore_UpdateAttack(struct EwramData_EntityData *entity)
     case 10:
         Anim_StartIndexed(entity, 4, 0, 0);
         entity->subState++;
-        MANTICORE_TAIL_STEP(parent) = 0;
+        parent->ext.manticoreTail.step = 0;
         entity->timer = 0;
-        MANTICORE_SHOT_COUNT(entity) = 0;
+        entity->ext.manticore.shotCount = 0;
         if ((RandomNumberGenerator() & 0xFF) <= 0x7F)
-            MANTICORE_SHOT_TOTAL(entity) = 1;
+            entity->ext.manticore.shotTotal = 1;
         else
-            MANTICORE_SHOT_TOTAL(entity) = (RandomNumberGenerator() % 2) + 2;
+            entity->ext.manticore.shotTotal = (RandomNumberGenerator() % 2) + 2;
         break;
     case 11:
     {
@@ -80,7 +79,7 @@ void Manticore_UpdateAttack(struct EwramData_EntityData *entity)
         m &= FRAME_PAIR(entity);
         if (m == 0x14)
         {
-            if ((s8)++MANTICORE_SHOT_COUNT(entity) < (s8)MANTICORE_SHOT_TOTAL(entity))
+            if ((s8)++entity->ext.manticore.shotCount < (s8)entity->ext.manticore.shotTotal)
             {
                 Anim_StartIndexed(entity, 4, 0, 0);
                 entity->animTimer = 0;

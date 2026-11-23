@@ -28,12 +28,12 @@ static inline void SetPlayerAnim(struct EwramData_EntityData *entity, s32 anim)
     {
         Anim_StartIndexed(entity, anim, 3, 0);
         HitBox_SetBody(entity, &box);
-        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
-        PLAYER_ACTION_FLAGS(entity) &= ~0x200000;
+        entity->ext.player.requestedAnim = 0xFF;
+        entity->ext.player.actionFlags &= ~0x200000;
         pal = sSomaAnimPalettes[anim];
-        if (PLAYER_ANIM_PALETTE(entity) != pal)
+        if (entity->ext.player.animPalette != pal)
         {
-            PLAYER_ANIM_PALETTE(entity) = pal;
+            entity->ext.player.animPalette = pal;
             ObjPalette_LoadRange(sSomaPalette, pal, 1, 0);
         }
     }
@@ -52,8 +52,8 @@ void Soma_UpdateStatusReaction(struct EwramData_EntityData *entity)
 
     if (!flag)
     {
-        PLAYER_ACTION_FLAGS(entity) &= 0xFFFEFF7F;
-        PLAYER_ACTION_FLAGS(entity) &= 0xEFFFFE9F;
+        entity->ext.player.actionFlags &= 0xFFFEFF7F;
+        entity->ext.player.actionFlags &= 0xEFFFFE9F;
         entity->state = flag;
         return;
     }
@@ -64,7 +64,7 @@ void Soma_UpdateStatusReaction(struct EwramData_EntityData *entity)
         SetPlayerAnim(entity, 0x49);
     else
         SetPlayerAnim(entity, 0x4A);
-    if (!(PLAYER_ACTION_FLAGS(entity) & 2))
+    if (!(entity->ext.player.actionFlags & 2))
     {
         entity->velX.whole = 0;
         entity->accelX.whole = 0;

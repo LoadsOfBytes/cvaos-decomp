@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "stolas_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -45,16 +44,16 @@ void EnemyStolasUpdate(struct EwramData_EntityData *entity)
     struct EwramData_EntityData **slot;
     struct EwramData_EntityData *child;
 
-    STOLAS_FLAGS(entity) = 0;
-    parts = (s32 *)entity->unk_500.jointParts;
-    STOLAS_FREE_SLOTS(entity) = 3;
+    entity->ext.stolas.flags = 0;
+    parts = (s32 *)entity->ext.joint.parts;
+    entity->ext.stolas.freeSlots = 3;
     cursor = parts;
     slot = (struct EwramData_EntityData **)(parts + 0x48);
     do {
         child = *slot;
         if (child != NULL && child->updateFunc != NULL && child->unk_518.part8.enemyId == cursor[0x4B]
             && (s16)entity->unk_518.part16.hp > 0)
-            STOLAS_FREE_SLOTS(entity)--;
+            entity->ext.stolas.freeSlots--;
         else
             *slot = NULL;
         cursor++;
@@ -88,11 +87,11 @@ void EnemyStolasUpdate(struct EwramData_EntityData *entity)
         entity->hidden = Entity_GetVisibilityPattern(entity->timer);
         if ((s8)--entity->timer <= 0)
             entity->deleteRequested = 1;
-        if (entity->deleteRequested && entity->unk_500.jointParts != NULL)
+        if (entity->deleteRequested && entity->ext.joint.parts != NULL)
         {
             /* Reuse the allocation variable after the loop. In agbcc this
              * also preserves the distinct base and cursor registers. */
-            parts = (s32 *)entity->unk_500.jointParts;
+            parts = (s32 *)entity->ext.joint.parts;
             Heap_Free(parts);
         }
         Anim_Update(entity);
@@ -109,10 +108,10 @@ boxes:
     box.h = 0x48;
     HitBox_SetAttack(entity, &box);
     HitBox_SetBody(entity, &box);
-    if (STOLAS_FLAGS(entity) & 1)
+    if (entity->ext.stolas.flags & 1)
     {
         Anim_Start(entity, (struct AnimScript *)&anim, 0, 1);
-        anim.frame = STOLAS_HELD_FRAME(entity);
+        anim.frame = entity->ext.stolas.heldFrame;
         Anim_Update(entity);
     }
     else

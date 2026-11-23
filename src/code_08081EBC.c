@@ -1,7 +1,6 @@
 /* Headhunter AI (81EBC), intro (82EA0), attack states (82FFC) and defeat
  * sequence (83860). */
 #include "code_08009A0.h"
-#include "headhunter_entity.h"
 #include "code_080D73B8.h"
 #include "code_08033CAC.h"
 #include "code/code_08039340.h"
@@ -31,10 +30,10 @@ extern void EntityMoveY(struct EwramData_EntityData *);
 extern void Effect_SpawnRisingParticleInBox(s32, s32, s32, s32, s32, s32);
 s32 Headhunter_UpdateIntro(struct EwramData_EntityData *entity);
 
-#define PHASE(e) (HEADHUNTER_FORM_PHASE((e)))
-#define FLAGS(e) (HEADHUNTER_FLAGS((e)))
-#define FLAGS_S8(e) (*(s8 *)&HEADHUNTER_FLAGS((e)))
-#define FRAME(e) (HEADHUNTER_FORCED_FRAME((e)))
+#define PHASE(e) (e->ext.headhunter.formPhase)
+#define FLAGS(e) (e->ext.headhunter.flags)
+#define FLAGS_S8(e) (*(s8 *)&e->ext.headhunter.flags)
+#define FRAME(e) (e->ext.headhunter.forcedFrame)
 #define ACCEL_X(e) ((e)->accelX.whole)
 #define ACCEL_Y(e) ((e)->accelY.whole)
 #define FLASH(e)                                                          \
@@ -128,10 +127,10 @@ void Headhunter_UpdateMovement(struct EwramData_EntityData *entity)
         }
         if (entity->stage == 0)
         {
-            if (*(s8 *)&HEADHUNTER_HIT_REACT(entity) || IN_BOX(entity, 30, 40, 60, 80))
+            if (*(s8 *)&entity->ext.headhunter.hitReact || IN_BOX(entity, 30, 40, 60, 80))
             {
                 entity->stage = 1;
-                HEADHUNTER_HIT_REACT(entity) = 0;
+                entity->ext.headhunter.hitReact = 0;
                 entity->flipX = Entity_IsTargetRight(entity);
                 entity->timer = 0;
                 ACCEL_X(entity) = 0;
@@ -699,7 +698,7 @@ void Headhunter_UpdateMovement(struct EwramData_EntityData *entity)
     }
 }
 
-#define INTRO_STEP(e) (HEADHUNTER_INTRO_STEP((e)))
+#define INTRO_STEP(e) (e->ext.headhunter.introStep)
 
 /* Boss intro: after 8 frames lock the room (stateFlags bits 0/1, HUD flag
  * startPauseEnabled off), walk the player to within 0x30 px of x 0x100 (only when
@@ -807,7 +806,7 @@ void Headhunter_UpdateAttack(struct EwramData_EntityData *entity)
             entity->velX.whole = 0;
         EntityDampVelocityX(entity, 16);
         Entity_MoveWithCollisionDefault(entity, 0x40000, -0x200000);
-        if (entity->animDone || *(s8 *)&HEADHUNTER_HIT_REACT(entity))
+        if (entity->animDone || *(s8 *)&entity->ext.headhunter.hitReact)
         {
             entity->state = 0;
             entity->subState = 3;
@@ -1114,9 +1113,9 @@ void Headhunter_UpdateDeath(struct EwramData_EntityData *entity)
     {
     case 0:
         entity->flipX = Entity_IsTargetRight(entity);
-        HEADHUNTER_FLAGS(entity) |= 2;
-        HEADHUNTER_FLAGS(entity) |= 1;
-        HEADHUNTER_FORCED_FRAME(entity) = 0x4C;
+        entity->ext.headhunter.flags |= 2;
+        entity->ext.headhunter.flags |= 1;
+        entity->ext.headhunter.forcedFrame = 0x4C;
         if (entity->flipY)
         {
             entity->flipY = 0;
@@ -1130,9 +1129,9 @@ void Headhunter_UpdateDeath(struct EwramData_EntityData *entity)
         entity->subState++;
         break;
     case 1:
-        HEADHUNTER_FLAGS(entity) |= 2;
-        HEADHUNTER_FLAGS(entity) |= 1;
-        HEADHUNTER_FORCED_FRAME(entity) = 0x4C;
+        entity->ext.headhunter.flags |= 2;
+        entity->ext.headhunter.flags |= 1;
+        entity->ext.headhunter.forcedFrame = 0x4C;
         entity->timer = 0;
         EntityAccelerateAndMove(entity, 0x60000);
         if (entity->posY.whole + camera->yPos.whole > 0xBFFFFF)

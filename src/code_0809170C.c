@@ -2,7 +2,6 @@
  * in an s16 variable (copied from r0 right after the call and sign-extended
  * in place at use); the new HP is tested on its own s32 value. */
 #include "code_080D73B8.h"
-#include "joint_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern u16 Player_CalculateAttackPower(u16);
@@ -16,7 +15,7 @@ void DevilPart_OnHit(struct EwramData_EntityData *input, s32 source, u16 *collis
     struct EwramData_EntityData *entity = input;
     s32 attacker = source;
     u16 *hit = collision;
-    register struct EwramData_EntityData *owner asm("r5") = JOINT_PART_OWNER(entity); /* FAKEMATCH: pinned register */
+    register struct EwramData_EntityData *owner asm("r5") = entity->ext.jointPart.owner; /* FAKEMATCH: pinned register */
     s32 oldX = owner->posX.whole;
     s32 oldY = owner->posY.whole;
     s16 damage;
@@ -24,11 +23,11 @@ void DevilPart_OnHit(struct EwramData_EntityData *input, s32 source, u16 *collis
     owner->posX.whole = entity->posX.whole;
     owner->posY.whole = entity->posY.whole;
     power = Player_CalculateAttackPower(hit[2]);
-    damage = Hit_ResolveDamage(JOINT_PART_OWNER(entity), attacker, hit, power);
+    damage = Hit_ResolveDamage(entity->ext.jointPart.owner, attacker, hit, power);
     owner->posX.whole = oldX;
     owner->posY.whole = oldY;
     Entity_ShowDamage(entity, damage, 0);
-    owner = JOINT_PART_OWNER(entity);
+    owner = entity->ext.jointPart.owner;
     owner->unk_510.part8.hitFlashTimer = 8;
     {
     s32 hp = owner->unk_518.part16.hp - damage;

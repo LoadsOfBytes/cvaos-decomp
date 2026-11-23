@@ -20,8 +20,8 @@ struct SolidObjectCallbacks {
     s32 (*push)(struct EwramData_EntityData *object, s16 x, s16 y);
 };
 
-#define FUNCS(object) ((struct SolidObjectCallbacks *)SOLID_OBJECT_CALLBACKS((object)))
-#define FLAGS(e) (PLAYER_ACTION_FLAGS((e)))
+#define FUNCS(object) ((struct SolidObjectCallbacks *)object->ext.solidObject.callbacks.words)
+#define FLAGS(e) (e->ext.player.actionFlags)
 #define TILE_FLAGS (gUnk_03002CB0.collisionProbeFlags)
 #define X ((s16)x)
 #define Y ((s16)y)
@@ -101,7 +101,7 @@ static inline s32 IsSoftFloor(void)
 
 static inline void UpdateFloorKind(s16 c)
 {
-    if (c != 0 && PLAYER_FLOOR_KIND(gEwramData->playerState.player) == 0xFF)
+    if (c != 0 && gEwramData->playerState.player->ext.player.floorKind == 0xFF)
     {
         s32 kind;
         u8 d = TILE_FLAGS;
@@ -111,7 +111,7 @@ static inline void UpdateFloorKind(s16 c)
             kind = (d & 0x30) >> 4;
         else
             kind = 0xFF;
-        PLAYER_FLOOR_KIND(gEwramData->playerState.player) = kind;
+        gEwramData->playerState.player->ext.player.floorKind = kind;
     }
 }
 
@@ -202,7 +202,7 @@ static inline u16 FloorProbe(s16 x, s16 y, s32 flag)
     {
         struct EwramData_EntityData *player = gEwramData->playerState.player;
 
-        if (player->velY.whole >= 0 && (!(PLAYER_ACTION_FLAGS(player) & 2) || PLAYER_AIR_TIME(player) == 0x10))
+        if (player->velY.whole >= 0 && (!(player->ext.player.actionFlags & 2) || player->ext.player.airTime == 0x10))
             c = PlatformFloor(x, y, c);
     }
     UpdateFloorKind(c);
@@ -234,12 +234,12 @@ static inline void SetAnim(struct EwramData_EntityData *entity, u8 anim, s32 fla
     {
         Anim_StartIndexed(entity, anim, 3, flag);
         HitBox_SetBody(entity, &box);
-        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
-        PLAYER_ACTION_FLAGS(entity) &= ~0x200000;
+        entity->ext.player.requestedAnim = 0xFF;
+        entity->ext.player.actionFlags &= ~0x200000;
         pal = sSomaAnimPalettes[anim];
-        if (PLAYER_ANIM_PALETTE(entity) != pal)
+        if (entity->ext.player.animPalette != pal)
         {
-            PLAYER_ANIM_PALETTE(entity) = pal;
+            entity->ext.player.animPalette = pal;
             ObjPalette_LoadRange(sSomaPalette, pal, 1, 0);
         }
     }
@@ -257,7 +257,7 @@ void Soma_UpdateTransformationDash(struct EwramData_EntityData *entity)
 
     {
         u8 **tbl = sUnk_084F10A0;
-        anims = tbl[PLAYER_TRANSFORM_FORM(entity)];
+        anims = tbl[entity->ext.player.transformForm];
     }
 
     if (entity->subState <= 3 && !(gEwramData->playerStatus.soulStateFlags & 0x1000))
@@ -268,7 +268,7 @@ void Soma_UpdateTransformationDash(struct EwramData_EntityData *entity)
     case 0:
         entity->stage = 0;
         entity->velX.whole = 0;
-        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
+        entity->ext.player.requestedAnim = 0xFF;
         SetAnim(entity, 0x20, 1);
         entity->timer = 0x2D;
         entity->subState++;
@@ -301,7 +301,7 @@ void Soma_UpdateTransformationDash(struct EwramData_EntityData *entity)
             entity->timer--;
             break;
         }
-        if ((u16)PLAYER_REQUESTED_ANIM(entity) == 0xFF)
+        if ((u16)entity->ext.player.requestedAnim == 0xFF)
         {
             SetAnim(entity, anims[0], 0);
             entity->stage = 1;
@@ -320,9 +320,9 @@ void Soma_UpdateTransformationDash(struct EwramData_EntityData *entity)
 
         {
             u8 two = 2;
-            PLAYER_INVULNERABLE_TIMER(gEwramData->playerState.player) = two;
+            gEwramData->playerState.player->ext.player.invulnerableTimer = two;
         }
-        PLAYER_DRAW_OFFSET_Y(entity) = 0xF0;
+        entity->ext.player.drawOffsetY = 0xF0;
         if (entity->subState == 3)
         {
             s32 speed;
@@ -345,7 +345,7 @@ void Soma_UpdateTransformationDash(struct EwramData_EntityData *entity)
                 speed = -speed;
             if ((FLAGS(entity) & 0x1400000) == 0x1000000 && speed > 0xC000 && !(entity->timer & 3))
                 Player_SpawnSurfaceEffect(1);
-            PLAYER_WALL_PROBES(entity) = 0x080E12EF;
+            entity->ext.player.wallProbes = 0x080E12EF;
             Soma_UpdateVerticalMovement(entity);
         }
         x = GetEntityRoomXPositionInteger(entity);
@@ -389,16 +389,16 @@ void Soma_UpdateTransformationDash(struct EwramData_EntityData *entity)
         {
             {
                 u8 two = 2;
-                PLAYER_INVULNERABLE_TIMER(gEwramData->playerState.player) = two;
+                gEwramData->playerState.player->ext.player.invulnerableTimer = two;
             }
             gEwramData->playerState.actionLockFlags |= 6;
             entity->timer++;
             entity->palette = 4;
-            PLAYER_DRAW_OFFSET_Y(entity) = 0xF0;
+            entity->ext.player.drawOffsetY = 0xF0;
             break;
         }
         if (entity->timer)
-            PLAYER_DRAW_OFFSET_Y(entity) = 0xF0;
+            entity->ext.player.drawOffsetY = 0xF0;
         entity->velX.whole = 0;
         entity->velY.whole = 0;
         entity->accelX.whole = 0;

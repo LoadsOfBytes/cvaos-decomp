@@ -33,7 +33,7 @@ void WarpRoom_Update(struct EwramData_EntityData *e)
         if (gEwramData->gameState.stateFlags & 0x40)
         {
             gUnk_03002CB0.dispCnt |= 0x2000;
-            WARP_ROOM_WINDOW_BOTTOM(e) = 0x74;
+            e->ext.warpRoom.windowBottom = 0x74;
             gDisplayRegisters.winIn_L = 0x1B;
             gDisplayRegisters.winOut_L = 0x3F;
             gDisplayRegisters.winOut_H = 0x1E;
@@ -160,9 +160,9 @@ void WarpRoom_Update(struct EwramData_EntityData *e)
         gEwramData->startPauseEnabled = 1;
         if ((u8)(e->timer++ % 3) == 0)
         {
-            if ((s16)--WARP_ROOM_WINDOW_BOTTOM(e) < 0x24)
+            if ((s16)--e->ext.warpRoom.windowBottom < 0x24)
             {
-                WARP_ROOM_WINDOW_BOTTOM(e) = 0x24;
+                e->ext.warpRoom.windowBottom = 0x24;
                 e->timer = 0;
                 e->state = 0;
             }
@@ -179,7 +179,7 @@ void WarpRoom_Update(struct EwramData_EntityData *e)
         SetPlayerInput(1, 0);
     if (e->state > 4)
     {
-        s32 h = (s16)WARP_ROOM_WINDOW_BOTTOM(e);
+        s32 h = (s16)e->ext.warpRoom.windowBottom;
         gDisplayRegisters.win0H = 0x5898;
         h |= 0x2400;
         gDisplayRegisters.win0V = h;

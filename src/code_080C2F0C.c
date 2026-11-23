@@ -8,8 +8,8 @@ extern void GhostDancer_UpdateDeath(struct EwramData_EntityData *);
 extern s32 Enemy_IsStunned(struct EwramData_EntityData *);
 extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *,struct EwramData_EntityData *);
-#define MODE(e) ((e)->unk_4FC.part8.unk_4FC)
-#define TIMER(e) ((e)->unk_4FC.part8.unk_4FD)
+#define MODE(e) ((e)->ext.raw.unk_4FC.part8.unk_4FC)
+#define TIMER(e) ((e)->ext.raw.unk_4FC.part8.unk_4FD)
 void EnemyGhostDancerUpdate(struct EwramData_EntityData *entity)
 {
     s32 bounds[4];

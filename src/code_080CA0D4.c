@@ -4,12 +4,6 @@
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
-/*
- * Red Crow (RedCrow_UpdateMovement): counter of wait / flight phases (odd =
- * flying). Token-identical expansion.
- */
-#define RED_CROW_PHASE(e) e->unk_4F8.part8.unk_4F8
-
 extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
 extern u8 Entity_IsTargetWithinRange(struct EwramData_EntityData *entity, s32 range);
 #define ABS(x) ((x) < 0 ? -(x) : (x))
@@ -27,7 +21,7 @@ void RedCrow_UpdateMovement(struct EwramData_EntityData *entity)
         case 0:
         {
             s32 zero = 0;
-            RED_CROW_PHASE(entity) = zero;
+            entity->ext.redCrow.phase = zero;
             Entity_FaceTarget(entity);
             ANIM(entity, 0, 1);
             entity->subState = 1;
@@ -74,7 +68,7 @@ void RedCrow_UpdateMovement(struct EwramData_EntityData *entity)
             switch (entity->stage)
             {
                 case 0:
-                    RED_CROW_PHASE(entity)++;
+                    entity->ext.redCrow.phase++;
                     ANIM(entity, 2, 1);
                     entity->accelX.whole = 0;
                     entity->velX.whole = 0;
@@ -85,7 +79,7 @@ void RedCrow_UpdateMovement(struct EwramData_EntityData *entity)
                 case 1:
                     if (entity->timer == 0x40)
                     {
-                        if (RED_CROW_PHASE(entity) & 1)
+                        if (entity->ext.redCrow.phase & 1)
                             Entity_FaceTarget(entity);
                         else
                             entity->flipX = 1 - entity->flipX;
@@ -94,7 +88,7 @@ void RedCrow_UpdateMovement(struct EwramData_EntityData *entity)
                     {
                         entity->subState = 2;
                         entity->stage = 0;
-                        if ((RED_CROW_PHASE(entity) & 1) && RED_CROW_PHASE(entity) != 1)
+                        if ((entity->ext.redCrow.phase & 1) && entity->ext.redCrow.phase != 1)
                         {
                             s32 inRange = (s8)Entity_IsTargetWithinRange(entity, 0x780000);
                             if (inRange == 0)

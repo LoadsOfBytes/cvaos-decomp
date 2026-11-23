@@ -1,6 +1,5 @@
 /* Triton attacks: homing shot and wave particles. */
 #include "code_08009A0.h"
-#include "triton_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -21,8 +20,8 @@ void TritonHomingShot_Update(struct EwramData_EntityData *entity);
 void TritonWaveParticle_Update(struct EwramData_EntityData *entity);
 #define SHOT_ACCEL(e) ((e)->accelX.whole)
 #define SHOT_MAX_SPEED(e) ((e)->accelY.whole)
-#define WAVE_ANGLE(e) (TRITON_WAVE_ANGLE((e)))
-#define WAVE_AGE(e) (TRITON_WAVE_AGE((e)))
+#define WAVE_ANGLE(e) (e->ext.tritonWave.angle)
+#define WAVE_AGE(e) (e->ext.tritonWave.age)
 
 /* Create the homing shot (TritonHomingShot_Update) at the owner + (x, y), starting
  * towards the side the target is on. */
@@ -52,7 +51,7 @@ void Triton_SpawnHomingShot(struct EwramData_EntityData *owner, s32 x, s32 y)
         shot->hit.flags &= ~4;
         shot->hit.flags &= ~2;
         shot->attack = owner->attack * 3 / 4;
-        TRITON_SHOT_OWNER(shot) = owner;
+        shot->ext.tritonShot.owner = owner;
         shot->scrollWithBg = 1;
         shot->drawFunc = (u32 *)Sprite_DrawEntity;
     }

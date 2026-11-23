@@ -20,7 +20,7 @@ extern const struct OrbitSpeed sBaloreIntroPieceOrbitSpeeds[16];
  */
 void BaloreIntroPiece_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = BALORE_PIECE_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.balorePiece.owner;
     s32 i;
     s32 angle;
     u8 timer;
@@ -39,7 +39,7 @@ void BaloreIntroPiece_Update(struct EwramData_EntityData *entity)
     case 1:
         if (parent->state != 3)
             break;
-        i = BALORE_PIECE_INDEX(entity);
+        i = entity->ext.balorePiece.index;
         if (i > 15)
             i = 31 - i;
         angle = i << 11;
@@ -48,7 +48,7 @@ void BaloreIntroPiece_Update(struct EwramData_EntityData *entity)
         entity->velY.whole = Sin(angle) / 2;
         entity->accelY.whole = entity->velY.whole / 4;
         entity->state = 2;
-        entity->timer = BALORE_PIECE_INDEX(entity);
+        entity->timer = entity->ext.balorePiece.index;
         break;
     case 2:
         timer = entity->timer;
@@ -71,21 +71,21 @@ void BaloreIntroPiece_Update(struct EwramData_EntityData *entity)
     case 4:
         if (parent->state != 4)
             break;
-        BALORE_PIECE_ANGLE(entity) = RandomNumberGenerator();
-        BALORE_PIECE_RADIUS(entity) = BALORE_PIECE_INDEX(entity) + 0x80;
-        entity->velX.part16.integer = sBaloreIntroPieceOrbitSpeeds[BALORE_PIECE_INDEX(entity) & 0xF].x;
-        entity->velY.part16.integer = ORBIT_SPEED_Y[(BALORE_PIECE_INDEX(entity) & 0xF) * 2];
+        entity->ext.balorePiece.angle = RandomNumberGenerator();
+        entity->ext.balorePiece.radius = entity->ext.balorePiece.index + 0x80;
+        entity->velX.part16.integer = sBaloreIntroPieceOrbitSpeeds[entity->ext.balorePiece.index & 0xF].x;
+        entity->velY.part16.integer = ORBIT_SPEED_Y[(entity->ext.balorePiece.index & 0xF) * 2];
         entity->state = 5;
         break;
     case 5:
-        BALORE_PIECE_ANGLE(entity) += 0x300;
+        entity->ext.balorePiece.angle += 0x300;
         entity->posX.whole = parent->posX.whole + entity->velX.whole
-            + Sin(BALORE_PIECE_ANGLE(entity) + 0x4000) * BALORE_PIECE_RADIUS(entity);
+            + Sin(entity->ext.balorePiece.angle + 0x4000) * entity->ext.balorePiece.radius;
         entity->posY.whole = parent->posY.whole + entity->velY.whole
-            + Sin(BALORE_PIECE_ANGLE(entity)) * BALORE_PIECE_RADIUS(entity);
-        if (BALORE_PIECE_RADIUS(entity) > 0x20)
-            BALORE_PIECE_RADIUS(entity) -= BALORE_PIECE_RADIUS(entity) >> 5;
-        if (--BALORE_PIECE_RADIUS(entity) <= 0)
+            + Sin(entity->ext.balorePiece.angle) * entity->ext.balorePiece.radius;
+        if (entity->ext.balorePiece.radius > 0x20)
+            entity->ext.balorePiece.radius -= entity->ext.balorePiece.radius >> 5;
+        if (--entity->ext.balorePiece.radius <= 0)
             entity->state = 6;
         break;
     case 6:

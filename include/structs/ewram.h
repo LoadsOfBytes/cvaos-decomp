@@ -326,30 +326,30 @@ union EwramData_unk4F4 {
  * bytes for other data, so the macros are only used where the code follows the
  * convention. Token-identical expansion.
  */
-#define ENTITY_INDEX(e) e->unk_4F4.part8.unk_4F4
-#define ENTITY_PARENT_INDEX(e) e->unk_4F4.part8.unk_4F5
+#define ENTITY_INDEX(e) e->ext.raw.unk_4F4.part8.unk_4F4
+#define ENTITY_PARENT_INDEX(e) e->ext.raw.unk_4F4.part8.unk_4F5
 
 /*
  * Both index bytes read as one halfword: stored into a byte slot it gives the
  * entity index; Entity_CreateLinkedAndHide copies it whole into the linked
  * part, which then checks that its owner slot still holds the same entity.
  */
-#define ENTITY_INDEX_PAIR(e) e->unk_4F4.part16.unk_4F4
+#define ENTITY_INDEX_PAIR(e) e->ext.raw.unk_4F4.part16.unk_4F4
 
 /*
  * Owner pointer convention: many entity types created by another entity keep
  * their owner / parent in unk_4F8.unk_4F8_entity (weapons, souls, enemy parts,
  * effects). Used where the code reads it as the owner or stores the creator.
  */
-#define ENTITY_OWNER(e) e->unk_4F8.unk_4F8_entity
+#define ENTITY_OWNER(e) e->ext.raw.unk_4F8.unk_4F8_entity
 
 /*
  * Creator pointer convention: projectiles, attack effects and parts spawned
  * by many enemies keep their creator in unk_4F4.unk_4F4_entity (family headers
- * name the same member e.g. CHAOS_LINK, LEGION_PART_OWNER). Used where the
+ * name the same member e.g. ext.chaosChild.link, ext.legionPart.owner). Used where the
  * code stores the creator or reads it back as the parent.
  */
-#define ENTITY_CREATOR(e) e->unk_4F4.unk_4F4_entity
+#define ENTITY_CREATOR(e) e->ext.raw.unk_4F4.unk_4F4_entity
 
 struct EwramData_unk50C_8 {
     u8 unk_50C;
@@ -498,6 +498,392 @@ struct AnimScript {
 };
 
 /*
+ * Per-entity-type work area of an entity (0x4F4..0x50F, ext). The raw view
+ * keeps the offset-named slot unions; per-type structures are added to the
+ * union family by family (variant 2) and replace the slot accessor macros.
+ * agbcc (GCC 2.95) does not support anonymous unions, so every access names
+ * the view: e->ext.raw.unk_4FC.part8.unk_4FD.
+ */
+struct EntityWorkRaw {
+    /* 0x004F4 */ union EwramData_unk4F4 unk_4F4;
+    /* 0x004F8 */ union EwramData_unk4F8 unk_4F8;
+    /* 0x004FC */ union EwramData_unk4FC unk_4FC;
+    /* 0x00500 */ union EwramData_unk500 unk_500;
+    /* 0x00504 */ union EwramData_unk504 unk_504;
+    /* 0x00508 */ union EwramData_unk508 unk_508;
+    /* 0x0050C */ union EwramData_unk50C unk_50C;
+}; /* size = 0x1C */
+
+#include "structs/entity_work.h"
+
+union EntityWork {
+    struct EntityWorkRaw raw;
+    struct GiantGhostWork giantGhost;
+    struct GiantGhostHandWork giantGhostHand;
+    struct GiantGhostAuraWork giantGhostAura;
+    struct DeadCrusaderWork deadCrusader;
+    struct ImpWork imp;
+    struct PeepingEyeWork peepingEye;
+    struct TsuchinokoWork tsuchinoko;
+    struct WerewolfWork werewolf;
+    struct DeadWarriorWork deadWarrior;
+    struct DebugWork debug;
+    struct FleamanWork fleaman;
+    struct MudmanShotWork mudmanShot;
+    struct PersephoneWork persephone;
+    struct PushBlockWork pushBlock;
+    struct NeedlesWork needles;
+    struct NeedlesDeathWork needlesDeath;
+    struct DoorWork door;
+    struct KickerSkeletonWork kickerSkeleton;
+    struct MimicWork mimic;
+    struct MimicTriggerWork mimicTrigger;
+    struct SkyFishWork skyFish;
+    struct YellowSoulWork yellowSoul;
+    struct GhostSpawnerWork ghostSpawner;
+    struct GhostWork ghost;
+    struct MandragoraWork mandragora;
+    struct MandragoraDeathWork mandragoraDeath;
+    struct BgParticleWork bgParticle;
+    struct EctoplasmWork ectoplasm;
+    struct Event09Work event09;
+    struct HeadStackWork headStack;
+    struct SkullArcherWork skullArcher;
+    struct SkullArcherArrowWork skullArcherArrow;
+    struct SkullMillioneWork skullMillione;
+    struct SkullMillionePartWork skullMillionePart;
+    struct HarpyWork harpy;
+    struct HarpyFeatherWork harpyFeather;
+    struct LilithWork lilith;
+    struct LilithLungeWork lilithLunge;
+    struct RipperWork ripper;
+    struct RipperProjectileWork ripperProjectile;
+    struct WaiterSkeletonWork waiterSkeleton;
+    struct WaiterTrayWork waiterTray;
+    struct GhostDancerWork ghostDancer;
+    struct MedusaHeadWork medusaHead;
+    struct QuezlcoatlWork quezlcoatl;
+    struct QuezlcoatlSegmentWork quezlcoatlSegment;
+    struct EvilButcherProjectileWork evilButcherProjectile;
+    struct EvilButcherDebrisWork evilButcherDebris;
+    struct GateWork gate;
+    struct GateDrawWork gateDraw;
+    struct KillerMantleWork killerMantle;
+    struct KillerMantlePartWork killerMantlePart;
+    struct GolemWork golem;
+    struct GolemSegmentWork golemSegment;
+    struct GolemPreviewWork golemPreview;
+    struct ArachneWork arachne;
+    struct KyomaDemonWork kyomaDemon;
+    struct NightmareWork nightmare;
+    struct NightmareEffectWork nightmareEffect;
+    struct WheelWork wheel;
+    struct WheelDeathWork wheelDeath;
+    struct BaelWork bael;
+    struct JointWork joint;
+    struct JointPartWork jointPart;
+    struct JointAttackWork jointAttack;
+    struct BlueSoulWork blueSoul;
+    struct BossPickupWork bossPickup;
+    struct BossPickupParticleWork bossPickupParticle;
+    struct LayerObjectWork layerObject;
+    struct MinotaurWork minotaur;
+    struct MinotaurAxeWork minotaurAxe;
+    struct MinotaurTrailWork minotaurTrail;
+    struct StolasWork stolas;
+    struct StolasEffectWork stolasEffect;
+    struct WormWork worm;
+    struct RedSoulWork redSoul;
+    struct RedSoulAnchorWork redSoulAnchor;
+    struct DollWork doll;
+    struct DollPartWork dollPart;
+    struct KillerDollWork killerDoll;
+    struct LightningDollWork lightningDoll;
+    struct BelmontWork belmont;
+    struct BelmontWeaponWork belmontWeapon;
+    struct BelmontSceneWork belmontScene;
+    struct BelmontParticleWork belmontParticle;
+    struct KillerFishWork killerFish;
+    struct KillerFishEffectWork killerFishEffect;
+    struct KillerFishSwarmWork killerFishSwarm;
+    struct MenuPageWork menuPage;
+    struct MenuPageListWork menuPageList;
+    struct MenuWork menu;
+    struct MenuTitleWork menuTitle;
+    struct UkobackWork ukoback;
+    struct UkobackFireballWork ukobackFireball;
+    struct UkobackSparkleWork ukobackSparkle;
+    struct UkobackPieceWork ukobackPiece;
+    struct AlastorWork alastor;
+    struct AlastorPartWork alastorPart;
+    struct AlastorPatternWork alastorPattern;
+    struct SuccubusWork succubus;
+    struct WerejaguarWork werejaguar;
+    struct WerejaguarEffectWork werejaguarEffect;
+    struct BigGolemPartWork bigGolemPart;
+    struct BigGolemWork bigGolem;
+    struct BigGolemAttackWork bigGolemAttack;
+    struct CreakingSkullWork creakingSkull;
+    struct CreakingSkullPartWork creakingSkullPart;
+    struct CreakingSkullGuideWork creakingSkullGuide;
+    struct CreakingSkullProjectileWork creakingSkullProjectile;
+    struct CockatriceWork cockatrice;
+    struct CockatricePartWork cockatricePart;
+    struct CockatriceBeamWork cockatriceBeam;
+    struct Event03Work event03;
+    struct Event03OrbWork event03Orb;
+    struct Event03PartWork event03Part;
+    struct SlimeWork slime;
+    struct NemesisWork nemesis;
+    struct GrahamWork graham;
+    struct GrahamPartWork grahamPart;
+    struct GrahamSceneWork grahamScene;
+    struct GrahamTurnWork grahamTurn;
+    struct GrahamEmitterWork grahamEmitter;
+    struct GladiatorWork gladiator;
+    struct GladiatorSpinnerWork gladiatorSpinner;
+    struct GladiatorPartWork gladiatorPart;
+    struct GladiatorArmWork gladiatorArm;
+    struct GladiatorShotWork gladiatorShot;
+    struct AltairWork altair;
+    struct AltairDropWork altairDrop;
+    struct AltairFeatherWork altairFeather;
+    struct DevilWork devil;
+    struct DevilPartsWork devilParts;
+    struct DevilPartWork devilPart;
+    struct DevilProjectileWork devilProjectile;
+    struct DevilChargeWork devilCharge;
+    struct SkeletonWork skeleton;
+    struct SkeletonDeathWork skeletonDeath;
+    struct SkeletonPieceWork skeletonPiece;
+    struct SkeletonBoneWork skeletonBone;
+    struct WitchWork witch;
+    struct WitchSpellWork witchSpell;
+    struct WitchOrbitWork witchOrbit;
+    struct WitchGroundWork witchGround;
+    struct WitchCastWork witchCast;
+    struct DiscArmorWork discArmor;
+    struct DiscArmorHandWork discArmorHand;
+    struct DiscArmorDiscWork discArmorDisc;
+    struct DiscArmorRingWork discArmorRing;
+    struct DiscArmorSparkWork discArmorSpark;
+    struct ManEaterWork manEater;
+    struct ManEaterBodyWork manEaterBody;
+    struct ManEaterLinkWork manEaterLink;
+    struct PickupWork pickup;
+    struct AluraUneWork aluraUne;
+    struct AluraUneThornWork aluraUneThorn;
+    struct AluraUneRootWaveWork aluraUneRootWave;
+    struct AfterimageWork afterimage;
+    struct UneSpawnerWork uneSpawner;
+    struct UneWork une;
+    struct WingedSkeletonSpawnerWork wingedSkeletonSpawner;
+    struct WingedSkeletonWork wingedSkeleton;
+    struct ZombieWork zombie;
+    struct ZombieSpawnerWork zombieSpawner;
+    struct ZombiePieceWork zombiePiece;
+    struct ZombieSpriteWork zombieSprite;
+    struct TritonWork triton;
+    struct TritonSpearWork tritonSpear;
+    struct TritonShotWork tritonShot;
+    struct TritonWaveWork tritonWave;
+    struct MermanWork merman;
+    struct MermanSpawnerWork mermanSpawner;
+    struct GorgonWork gorgon;
+    struct GreatArmorWork greatArmor;
+    struct GreatArmorPartWork greatArmorPart;
+    struct GreatArmorSlashWork greatArmorSlash;
+    struct ManticoreWork manticore;
+    struct ManticoreTailWork manticoreTail;
+    struct BeamSkeletonWork beamSkeleton;
+    struct BeamSkeletonBeamWork beamSkeletonBeam;
+    struct BeamSkeletonPieceWork beamSkeletonPiece;
+    struct DeathWork death;
+    struct DeathHelperWork deathHelper;
+    struct DeathWeaponWork deathWeapon;
+    struct DeathFloatingWeaponWork deathFloatingWeapon;
+    struct DeathBladeWork deathBlade;
+    struct DeathPillarWork deathPillar;
+    struct GrahamShotWork grahamShot;
+    struct GrahamSpiralWork grahamSpiral;
+    struct GrahamSpreadWork grahamSpread;
+    struct WhiteDragonWork whiteDragon;
+    struct WhiteDragonAimWork whiteDragonAim;
+    struct WhiteDragonSegmentWork whiteDragonSegment;
+    struct WhiteDragonChargeWork whiteDragonCharge;
+    struct Event23Work event23;
+    struct Event24Work event24;
+    struct Event26Work event26;
+    struct Event27Work event27;
+    struct Event28Work event28;
+    struct Event31Work event31;
+    struct ParticleWork particle;
+    struct ParticleTimedWork particleTimed;
+    struct ParticlePairWork particlePair;
+    struct ParticleTableWork particleTable;
+    struct ParticleAttachWork particleAttach;
+    struct PlayerEffectSetWork playerEffectSet;
+    struct SurfaceEffectWork surfaceEffect;
+    struct HitEffectWork hitEffect;
+    struct PlayerFlashWork playerFlash;
+    struct FragmentSetWork fragmentSet;
+    struct SoulAcquireWork soulAcquire;
+    struct LegionWork legion;
+    struct LegionPartWork legionPart;
+    struct LegionCorpseWork legionCorpse;
+    struct LegionShellWork legionShell;
+    struct HeadhunterWork headhunter;
+    struct HeadhunterEffectWork headhunterEffect;
+    struct HeadhunterOrbitWork headhunterOrbit;
+    struct HeadhunterWhipWork headhunterWhip;
+    struct HeadhunterWhipSegmentWork headhunterWhipSegment;
+    struct HeadhunterChildWork headhunterChild;
+    struct HeadhunterPartWork headhunterPart;
+    struct Event30Work event30;
+    struct Event30EffectWork event30Effect;
+    struct Event30RingWork event30Ring;
+    struct Event30FragmentWork event30Fragment;
+    struct Event30DriverWork event30Driver;
+    struct BaloreWork balore;
+    struct BalorePartWork balorePart;
+    struct BaloreHitBoxWork baloreHitBox;
+    struct BaloreHandWork baloreHand;
+    struct BaloreEffectWork baloreEffect;
+    struct BalorePieceWork balorePiece;
+    struct BaloreOverlayWork baloreOverlay;
+    struct BaloreEmitterWork baloreEmitter;
+    struct SavePointWork savePoint;
+    struct SavePointPromptWork savePointPrompt;
+    struct SavePointPartWork savePointPart;
+    struct SavePointLightWork savePointLight;
+    struct ChaosWork chaos;
+    struct Chaos2Work chaos2;
+    struct ChaosChildWork chaosChild;
+    struct Chaos2PartWork chaos2Part;
+    struct ChaosOrbWork chaosOrb;
+    struct ChaosShotWork chaosShot;
+    struct ChaosSoulShotWork chaosSoulShot;
+    struct ChaosSnakeWork chaosSnake;
+    struct ChaosRingWork chaosRing;
+    struct ChaosDebrisWork chaosDebris;
+    struct PlayerWork player;
+    struct SolidObjectWork solidObject;
+    struct SkillHomingWork skillHoming;
+    struct SkillDeathSickleWork skillDeathSickle;
+    struct SkillAlastorWork skillAlastor;
+    struct SkillRedMinotaurWork skillRedMinotaur;
+    struct SkillWingedSkeletonWork skillWingedSkeleton;
+    struct SkillGladiatorWork skillGladiator;
+    struct SkillChronomageWork skillChronomage;
+    struct SkillThrowWork skillThrow;
+    struct SkillWitchWork skillWitch;
+    struct SkillBoomerangWork skillBoomerang;
+    struct SkillUkobackWork skillUkoback;
+    struct SkillDiscArmorWork skillDiscArmor;
+    struct SkillCockatriceWork skillCockatrice;
+    struct SkillBlueCrowWork skillBlueCrow;
+    struct SkillSlimeWork skillSlime;
+    struct SkillCreakingSkullWork skillCreakingSkull;
+    struct SkillBonePillarWork skillBonePillar;
+    struct SkillBoneWork skillBone;
+    struct SkillRipperWork skillRipper;
+    struct SkillNemesisWork skillNemesis;
+    struct SkillSirenWork skillSiren;
+    struct SkillWalkerWork skillWalker;
+    struct SkillNightmareWork skillNightmare;
+    struct SkillKyomaDemonWork skillKyomaDemon;
+    struct SkillKyomaDemonWaitWork skillKyomaDemonWait;
+    struct SkillGrowScaleWork skillGrowScale;
+    struct SkillCatoblepasWork skillCatoblepas;
+    struct Object0DWork object0D;
+    struct Object16Work object16;
+    struct Object37Work object37;
+    struct Object37ChildWork object37Child;
+    struct Object14Work object14;
+    struct Object14SwingWork object14Swing;
+    struct Object31Work object31;
+    struct Object35Work object35;
+    struct Object35ChildWork object35Child;
+    struct Object36Work object36;
+    struct Object30LeafWork object30Leaf;
+    struct Object19Work object19;
+    struct Object15Work object15;
+    struct Object08Work object08;
+    struct Object08DustWork object08Dust;
+    struct Object1BWork object1B;
+    struct Object25SpawnerWork object25Spawner;
+    struct Object25Work object25;
+    struct Object17Work object17;
+    struct WarpRoomWork warpRoom;
+    struct Object26Work object26;
+    struct WarpGateWork warpGate;
+    struct Object1DWork object1D;
+    struct Object22Work object22;
+    struct Object22PartWork object22Part;
+    struct Object07Work object07;
+    struct Object09Work object09;
+    struct Object10Work object10;
+    struct BossRushTimerWork bossRushTimer;
+    struct Object1FWork object1F;
+    struct TitleMenuWork titleMenu;
+    struct MainMenuWork mainMenu;
+    struct TitleLogoWork titleLogo;
+    struct TitleEffectsWork titleEffects;
+    struct TitleParticleWork titleParticle;
+    struct TitleSpiralWork titleSpiral;
+    struct TitleFlashWork titleFlash;
+    struct IntroSpriteWork introSprite;
+    struct IntroDriftWork introDrift;
+    struct IntroTextWork introText;
+    struct SoulTradeWork soulTrade;
+    struct SoundTestTextWork soundTestText;
+    struct ItemIconWork itemIcon;
+    struct StatusIconWork statusIcon;
+    struct WeaponWork weapon;
+    struct WeaponGunWork weaponGun;
+    struct WhipChainWork whipChain;
+    struct WhipSegmentWork whipSegment;
+    struct SubweaponWork subweapon;
+    struct SubweaponUnusedWork subweaponUnused;
+    struct GrandCrossWork grandCross;
+    struct Object34Work object34;
+    struct Object34PartWork object34Part;
+    struct Event04Work event04;
+    struct AnimViewerWork animViewer;
+    struct SpriteDebrisWork spriteDebris;
+    struct ValkyrieWork valkyrie;
+    struct SkillNeedlesWork skillNeedles;
+    struct SkillManEaterWork skillManEater;
+    struct SkillCreakingSkullSegmentWork skillCreakingSkullSegment;
+    struct DebugWalkerWork debugWalker;
+    struct NumberIndicatorWork numberIndicator;
+    struct SoulPickupWork soulPickup;
+    struct SoulContainerWork soulContainer;
+    struct HomingOrbWork homingOrb;
+    struct SoulSelectorWork soulSelector;
+    struct BgPaletteAnimWork bgPaletteAnim;
+    struct WarpRoomSideLightWork warpRoomSideLight;
+    struct WarpRoomUnusedPartWork warpRoomUnusedPart;
+    struct PeepingEyeBodyWork peepingEyeBody;
+    struct PeepingEyeLinkWork peepingEyeLink;
+    struct LilithShotWork lilithShot;
+    struct BatWork bat;
+    struct DryadSeedWork dryadSeed;
+    struct AxeArmorAxeWork axeArmorAxe;
+    struct BomberArmorBombWork bomberArmorBomb;
+    struct RockArmorRockWork rockArmorRock;
+    struct ChronomageCastWork chronomageCast;
+    struct ChronomageWork chronomage;
+    struct StudentWitchWork studentWitch;
+    struct DeathRewardWork deathReward;
+    struct DeathDebrisWork deathDebris;
+    struct TinyDevilWork tinyDevil;
+    struct BlueCrowWork blueCrow;
+    struct RedCrowWork redCrow;
+    struct Chaos2EffectWork chaos2Effect;
+};
+
+/*
  * Entity (gEwramData->entityData[0xE0], code_080009A0.c Entity*).
  * Slots 0x00-0xCF are updated by Entity_UpdateAll (not while paused), the
  * reserved slots 0xD0-0xDF by Entity_UpdateReserved. An entity is drawn by
@@ -517,13 +903,7 @@ struct EwramData_EntityData {
     /* 0x004F1 */ u8 timer; /* generic frame counter */
     /* 0x004F2 */ u8 drawSkipCounter; /* see drawSkip */
     /* 0x004F3 */ u8 drawSkip; /* nonzero: Sprite_Draw draws every (drawSkip + 1)-th frame */
-    /* 0x004F4 */ union EwramData_unk4F4 unk_4F4;
-    /* 0x004F8 */ union EwramData_unk4F8 unk_4F8;
-    /* 0x004FC */ union EwramData_unk4FC unk_4FC;
-    /* 0x00500 */ union EwramData_unk500 unk_500;
-    /* 0x00504 */ union EwramData_unk504 unk_504;
-    /* 0x00508 */ union EwramData_unk508 unk_508;
-    /* 0x0050C */ union EwramData_unk50C unk_50C;
+    /* 0x004F4 */ union EntityWork ext; /* per-entity-type work area 0x4F4..0x50F */
     /* 0x00510 */ union EwramData_unk510 unk_510;
     /* 0x00514 */ union EwramData_unk514 unk_514;
     /* 0x00518 */ union EwramData_unk518 unk_518;

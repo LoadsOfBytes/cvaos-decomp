@@ -9,7 +9,7 @@ extern u8 sObject0CSolidCallbacks[];
  * unk_4F4 flag 0x400000 is active. */
 void Object0C_ApplyTriggerVelocity(struct EwramData_EntityData *entity, s32 *data)
 {
-    if (PLAYER_ACTION_FLAGS(gEwramData->playerState.player) & 0x400000)
+    if (gEwramData->playerState.player->ext.player.actionFlags & 0x400000)
         entity->velX.whole = data[1];
 }
 
@@ -20,8 +20,8 @@ void Object0C_ApplyTriggerVelocity(struct EwramData_EntityData *entity, s32 *dat
 void Object0C_SetPlayerTriggerFlag(void)
 {
     struct EwramData_EntityData *player = gEwramData->playerState.player;
-    if (PLAYER_ACTION_FLAGS(player) & 0x400000)
-        PLAYER_ACTION_FLAGS(player) |= 0x4000000;
+    if (player->ext.player.actionFlags & 0x400000)
+        player->ext.player.actionFlags |= 0x4000000;
 }
 
 /**

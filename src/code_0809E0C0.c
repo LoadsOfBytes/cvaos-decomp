@@ -1,6 +1,5 @@
 /* Legion corpse piece: wanders on the floor, then rises and swoops into a new shell part. */
 #include "code_08009A0.h"
-#include "legion_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -18,9 +17,9 @@ static inline s32 ABS(s32 x)
     return x;
 }
 
-#define TARGET_X LEGION_CORPSE_TARGET_X(entity)
-#define TARGET_Y LEGION_CORPSE_TARGET_Y(entity)
-#define FRAME LEGION_CORPSE_FRAME(entity)
+#define TARGET_X entity->ext.legionCorpse.targetX
+#define TARGET_Y entity->ext.legionCorpse.targetY
+#define FRAME entity->ext.legionCorpse.frame
 #define BOB() entity->posY.whole += Sin(entity->velX.whole += 0x400) / 4;
 #define APPROACH(V, T) \
     if (V > T) \
@@ -40,7 +39,7 @@ static inline s32 ABS(s32 x)
 
 void LegionCorpse_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = LEGION_PART_OWNER(entity);
+    struct EwramData_EntityData *owner = entity->ext.legionPart.owner;
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
     s32 dx, dy;
 
@@ -68,7 +67,7 @@ void LegionCorpse_Update(struct EwramData_EntityData *entity)
         }
         Entity_MoveWithCollisionDefault(entity, 0x40000, -0x200000);
         Anim_Update(entity);
-        if ((u8)LEGION_INTRO_STEP(owner) == FRAME + 1)
+        if ((u8)owner->ext.legion.introStep == FRAME + 1)
         {
             entity->state++;
             entity->subState = 0;
@@ -105,12 +104,12 @@ void LegionCorpse_Update(struct EwramData_EntityData *entity)
         if (ABS(entity->velY.whole) > 0x8000)
             break;
         entity->subState++;
-        LEGION_INTRO_ARRIVED(owner)++;
+        owner->ext.legion.introArrived++;
         entity->velX.whole = 0;
         break;
     case 3:
         BOB()
-        if ((u8)LEGION_INTRO_STEP(owner) != 6)
+        if ((u8)owner->ext.legion.introStep != 6)
             break;
         entity->subState++;
         entity->timer = FRAME * 20;
@@ -178,7 +177,7 @@ void LegionCorpse_Update(struct EwramData_EntityData *entity)
         if ((s8)--entity->timer > 0)
             break;
         if (FRAME == 0)
-            LEGION_INTRO_ARRIVED(owner)++;
+            owner->ext.legion.introArrived++;
         Effect_SpawnParticleAnim12(entity->posX.whole, entity->posY.whole, 0, 0, entity->spriteLayer, 0, 6);
         PlaySong(0x11C);
         EntityDelete(entity);

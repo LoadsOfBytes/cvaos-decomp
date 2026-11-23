@@ -1,6 +1,5 @@
 /* Dead Warrior charge, braking and death. */
 #include "code_08009A0.h"
-#include "dead_warrior_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -21,11 +20,11 @@ void DeadWarrior_UpdateCharge(struct EwramData_EntityData *entity)
     s32 x;
     s32 y;
     struct EwramData_EntityData *particle;
-    Entity_Walk(entity, DEAD_WARRIOR_SPEED(entity), sDeadWarriorWalkProfile, 4);
+    Entity_Walk(entity, entity->ext.deadWarrior.speed, sDeadWarriorWalkProfile, 4);
     switch (entity->subState)
     {
     case 0:
-        DEAD_WARRIOR_SPEED(entity) = 0;
+        entity->ext.deadWarrior.speed = 0;
         entity->stage = 0;
         entity->subState = 1;
         /* fall through */
@@ -40,11 +39,11 @@ void DeadWarrior_UpdateCharge(struct EwramData_EntityData *entity)
         if ((u8)((u32)entity->timer % 25) == 0
             && Entity_IsInRect(entity, -0x40, -0x40, 0x170, 0x120)) PlaySong(0x7D);
         entity->timer++;
-        if ((s32)DEAD_WARRIOR_SPEED(entity) <= 0x1FFFF)
-            DEAD_WARRIOR_SPEED(entity) += 0x4000;
-        DEAD_WARRIOR_CHARGE_FRAME(entity)++;
+        if ((s32)entity->ext.deadWarrior.speed <= 0x1FFFF)
+            entity->ext.deadWarrior.speed += 0x4000;
+        entity->ext.deadWarrior.chargeFrame++;
         if (*(u16 *)&entity->animStep == 0x101) entity->stage++;
-        if (DEAD_WARRIOR_CHARGE_FRAME(entity) > 0x64)
+        if (entity->ext.deadWarrior.chargeFrame > 0x64)
         {
             PlaySong(0x127);
             Anim_StartIndexed(entity, 2, 0, 0);
@@ -53,7 +52,7 @@ void DeadWarrior_UpdateCharge(struct EwramData_EntityData *entity)
         }
         break;
     case 3:
-        if ((s32)DEAD_WARRIOR_SPEED(entity) > 0) DEAD_WARRIOR_SPEED(entity) -= 0x1000;
+        if ((s32)entity->ext.deadWarrior.speed > 0) entity->ext.deadWarrior.speed -= 0x1000;
         timer = entity->timer + 1;
         entity->timer = timer;
         if (!(timer & 3))
@@ -70,7 +69,7 @@ void DeadWarrior_UpdateCharge(struct EwramData_EntityData *entity)
         }
         if (entity->animFlags & 4)
         {
-            DEAD_WARRIOR_CHARGE_FRAME(entity) = 0;
+            entity->ext.deadWarrior.chargeFrame = 0;
             Anim_StartIndexed(entity, 0, 0, 1);
             entity->subState = 0;
             entity->flipX ^= 1;

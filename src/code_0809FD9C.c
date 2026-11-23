@@ -1,9 +1,7 @@
 /* Spawn a falling fragment at (x, y) with velocity (vx, vy), gravity
  * 0x2000, lifetime 60 and the given frame; graphics slot and palette come
- * from the shared data block at owner->unk_4F8 (see Legion_LoadGraphics). */
+ * from the shared data block at owner->ext.raw.unk_4F8 (see Legion_LoadGraphics). */
 #include "code_08009A0.h"
-#include "legion_entity.h"
-#include "particle_effect.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern void Effect_UpdateTimedParticle(struct EwramData_EntityData *);
@@ -12,7 +10,7 @@ extern u8 sLegionSpriteSheet[];
 void Legion_SpawnDebris(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx, s32 vy, s32 frame)
 {
     struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateTimedParticle);
-    s32 *data = (s32 *)LEGION_DATA_PTR(owner);
+    s32 *data = (s32 *)owner->ext.legion.data.ptr;
     s32 graphics;
 
     if (entity == NULL)
@@ -23,7 +21,7 @@ void Legion_SpawnDebris(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx
     entity->velY.whole = vy;
     entity->accelY.whole = 0x2000;
     entity->timer = 0x3C;
-    PARTICLE_FLAGS(entity) = 4;
+    entity->ext.particle.flags = 4;
     entity->spriteLayer = owner->spriteLayer - 1;
     graphics = data[0];
     entity->unk_510.part8.basePalette = data[9];

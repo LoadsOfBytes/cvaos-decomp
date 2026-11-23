@@ -74,7 +74,7 @@ s32 Shop_Update(struct GameState *context)
                 PlaySong(240);
                 context->subModeStep++;
             } else {
-                MENU_PAGE_CURSOR(menu) = 0;
+                menu->ext.menuPage.cursor = 0;
                 PlaySong(244);
                 context->subModeStep = 10;
             }

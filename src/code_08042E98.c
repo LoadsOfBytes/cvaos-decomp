@@ -19,7 +19,7 @@ void NumberIndicator_DrawCentered(struct EwramData_EntityData *entity)
         u8 *output;
         savedX = entity->posX.whole;
         i = 0;
-        entries = (u8 *)&entity->unk_4F4;
+        entries = (u8 *)&entity->ext.raw.unk_4F4;
         output = &entity->animFrame;
         {
             u8 *base = entries;

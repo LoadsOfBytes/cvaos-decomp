@@ -23,18 +23,18 @@ void EventScene03_Init(struct EwramData_EntityData *entity)
 
     if (done == 0)
     {
-        EVENT03_ACTOR0(entity) = Entity_CreateFromObjectTable(0);
-        EVENT03_ACTOR1(entity) = Entity_CreateFromObjectTable(1);
-        EVENT03_ACTOR8(entity) = Entity_CreateFromObjectTable(8);
-        if (EVENT03_ACTOR0(entity) != NULL && EVENT03_ACTOR1(entity) != NULL
-            && EVENT03_ACTOR8(entity) != NULL)
+        entity->ext.event03.actor0 = Entity_CreateFromObjectTable(0);
+        entity->ext.event03.actor1 = Entity_CreateFromObjectTable(1);
+        entity->ext.event03.actor8 = Entity_CreateFromObjectTable(8);
+        if (entity->ext.event03.actor0 != NULL && entity->ext.event03.actor1 != NULL
+            && entity->ext.event03.actor8 != NULL)
             goto created;
-        if (EVENT03_ACTOR0(entity) != NULL)
-            EntityDelete(EVENT03_ACTOR0(entity));
-        if (EVENT03_ACTOR1(entity) != NULL)
-            EntityDelete(EVENT03_ACTOR1(entity));
-        if (EVENT03_ACTOR8(entity) != NULL)
-            EntityDelete(EVENT03_ACTOR8(entity));
+        if (entity->ext.event03.actor0 != NULL)
+            EntityDelete(entity->ext.event03.actor0);
+        if (entity->ext.event03.actor1 != NULL)
+            EntityDelete(entity->ext.event03.actor1);
+        if (entity->ext.event03.actor8 != NULL)
+            EntityDelete(entity->ext.event03.actor8);
     }
     entity->deleteRequested = 1;
     return;

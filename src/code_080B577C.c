@@ -6,7 +6,7 @@
 extern s32 Target_GetX(struct EwramData_EntityData *);
 
 /* lean towards the target, 0..8 with 4 = centred */
-#define TILT(e) ((e)->unk_4F4.part8.unk_4F6)
+#define TILT(e) ((e)->ext.raw.unk_4F4.part8.unk_4F6)
 
 /**
  * @brief B577C | Hover phase.  State 1 bobs vertically (sine of
@@ -37,16 +37,16 @@ void Balore_UpdateHover(struct EwramData_EntityData *entity)
             TILT(entity) = 0;
         else if ((s8)TILT(entity) > 8)
             TILT(entity) = 8;
-        BALORE_HAND_COMMAND(entity) = 5;
+        entity->ext.balore.handCommand = 5;
         if ((s16)entity->unk_518.part16.hp <= 1999)
             entity->subState = 2;
         break;
     case 2:
-        BALORE_HAND_COMMAND(entity) = 7;
-        if (BALORE_FLAGS(entity) & 0x20)
+        entity->ext.balore.handCommand = 7;
+        if (entity->ext.balore.flags & 0x20)
         {
             /* u16 view of the flags keeps the 0xFFDF mask */
-            BALORE_FLAGS(entity) = (u16)BALORE_FLAGS(entity) & 0xFFDF;
+            entity->ext.balore.flags = (u16)entity->ext.balore.flags & 0xFFDF;
             TILT(entity) = 4;
             entity->state = 3;
             entity->subState = 0;
@@ -57,7 +57,7 @@ void Balore_UpdateHover(struct EwramData_EntityData *entity)
             entity->timer--;
         else
         {
-            BALORE_HAND_COMMAND(entity) = 1;
+            entity->ext.balore.handCommand = 1;
             entity->subState = 1;
             entity->timer = 0xF0;
         }

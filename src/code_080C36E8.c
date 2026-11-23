@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "skeleton_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *);
@@ -39,23 +38,23 @@ void Skeleton_UpdateCombatMovement(struct EwramData_EntityData *entity)
                 break;
             }
         }
-        SKELETON_COOLDOWN(entity) = RandomNumberGenerator() % 32;
-        if ((SKELETON_FLAGS(entity) & 0xA) == 0xA)
-            SKELETON_COOLDOWN(entity) = 0x40;
-        SKELETON_COOLDOWN(entity) = 1;
+        entity->ext.skeleton.cooldown = RandomNumberGenerator() % 32;
+        if ((entity->ext.skeleton.flags & 0xA) == 0xA)
+            entity->ext.skeleton.cooldown = 0x40;
+        entity->ext.skeleton.cooldown = 1;
         entity->subState++;
         entity->stage = 0;
     case 1:
         Entity_FaceTarget(entity);
-        SKELETON_WALK_SPEED(entity) = 0x8000;
+        entity->ext.skeleton.walkSpeed = 0x8000;
         if (!entity->flipX)
             entity->velX.whole = -entity->velX.whole;
         if (Entity_IsTargetInCenteredBox(entity, RandomNumberGenerator() % 64 + 0x80, 0x80))
-            SKELETON_WALK_SPEED(entity) = -SKELETON_WALK_SPEED(entity);
-        anim = (SKELETON_FLAGS(entity) & 8) ? 2 : 1;
+            entity->ext.skeleton.walkSpeed = -entity->ext.skeleton.walkSpeed;
+        anim = (entity->ext.skeleton.flags & 8) ? 2 : 1;
         if (entity->animScriptIndex != anim)
             Anim_StartIndexed(entity, anim, 0, 1);
-        if ((SKELETON_FLAGS(entity) & 0xA) == 0xA)
+        if ((entity->ext.skeleton.flags & 0xA) == 0xA)
         {
             entity->velX.whole = 0;
             entity->animFlags |= 2;
@@ -68,14 +67,14 @@ void Skeleton_UpdateCombatMovement(struct EwramData_EntityData *entity)
         entity->subState++;
         entity->stage = 0;
     case 2:
-        if (SKELETON_COOLDOWN(entity))
-            SKELETON_COOLDOWN(entity)--;
-        if ((SKELETON_FLAGS(entity) & 6) && !(RandomNumberGenerator() % 16))
-            SKELETON_FLAGS(entity) |= 0x20;
+        if (entity->ext.skeleton.cooldown)
+            entity->ext.skeleton.cooldown--;
+        if ((entity->ext.skeleton.flags & 6) && !(RandomNumberGenerator() % 16))
+            entity->ext.skeleton.flags |= 0x20;
         else
-            SKELETON_FLAGS(entity) &= ~0x20;
-        SKELETON_WALK_SPEED(entity) -= SKELETON_WALK_SPEED(entity) >> 4;
-        if ((SKELETON_FLAGS(entity) & 0xA) == 0xA && SKELETON_COOLDOWN(entity) == 0)
+            entity->ext.skeleton.flags &= ~0x20;
+        entity->ext.skeleton.walkSpeed -= entity->ext.skeleton.walkSpeed >> 4;
+        if ((entity->ext.skeleton.flags & 0xA) == 0xA && entity->ext.skeleton.cooldown == 0)
         {
             r = RandomNumberGenerator() & 3;
             if (r)
@@ -94,9 +93,9 @@ void Skeleton_UpdateCombatMovement(struct EwramData_EntityData *entity)
         }
         if (entity->timer == 0)
         {
-            if (SKELETON_COOLDOWN(entity) == 0 && Entity_IsTargetInCenteredBox(entity, 0xC4, 0x80))
+            if (entity->ext.skeleton.cooldown == 0 && Entity_IsTargetInCenteredBox(entity, 0xC4, 0x80))
             {
-                if (SKELETON_FLAGS(entity) & 6)
+                if (entity->ext.skeleton.flags & 6)
                 {
                     entity->state = 4;
                     entity->stage = 0;
@@ -111,15 +110,15 @@ void Skeleton_UpdateCombatMovement(struct EwramData_EntityData *entity)
                 entity->velX.whole = 0;
                 break;
             }
-            SKELETON_THROW_URGE(entity)++;
-            if (RandomNumberGenerator() % 40 < SKELETON_THROW_URGE(entity))
+            entity->ext.skeleton.throwUrge++;
+            if (RandomNumberGenerator() % 40 < entity->ext.skeleton.throwUrge)
             {
                 d2 = (s16)Entity_GetTargetDistanceX(entity);
                 if (d2 < 0)
                     d2 = -d2;
                 if (d2 > 0x30)
                 {
-                    SKELETON_THROW_URGE(entity) = 0;
+                    entity->ext.skeleton.throwUrge = 0;
                     if (RandomNumberGenerator() % 50 <= 14)
                     {
                         entity->state = 2;
@@ -128,7 +127,7 @@ void Skeleton_UpdateCombatMovement(struct EwramData_EntityData *entity)
                     }
                     break;
                 }
-                SKELETON_THROW_URGE(entity) >>= 1;
+                entity->ext.skeleton.throwUrge >>= 1;
             }
             entity->subState--;
             entity->stage = 0;
@@ -137,7 +136,7 @@ void Skeleton_UpdateCombatMovement(struct EwramData_EntityData *entity)
         {
             entity->timer--;
         }
-        Entity_Walk(entity, SKELETON_WALK_SPEED(entity), (void *)0x08528948, 0xC);
+        Entity_Walk(entity, entity->ext.skeleton.walkSpeed, (void *)0x08528948, 0xC);
         break;
     }
 }

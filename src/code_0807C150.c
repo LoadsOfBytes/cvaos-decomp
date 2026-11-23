@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "alura_une_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
@@ -31,9 +30,9 @@ void AluraUne_UpdateIdle(struct EwramData_EntityData *entity)
     case 0:
         if (Target_IsInRect(entity->posX.part16.integer - 0x5A, entity->posY.part16.integer - 0x30, 0xB4, 0x60) || Enemy_IsDamaged(entity))
         {
-            if (!*(s8 *)&ALURA_UNE_AWAKE(entity))
+            if (!*(s8 *)&entity->ext.aluraUne.awake)
             {
-                ALURA_UNE_AWAKE(entity) = 1;
+                entity->ext.aluraUne.awake = 1;
                 entity->subState = 10;
                 break;
             }
@@ -71,10 +70,10 @@ void AluraUne_UpdateIdle(struct EwramData_EntityData *entity)
         }
         break;
     case 3:
-        if (*(s8 *)&ALURA_UNE_HIT(entity))
+        if (*(s8 *)&entity->ext.aluraUne.hit)
         {
             entity->timer = 0;
-            ALURA_UNE_HIT(entity) = 0;
+            entity->ext.aluraUne.hit = 0;
         }
         if ((s8)entity->timer-- > 0)
             break;

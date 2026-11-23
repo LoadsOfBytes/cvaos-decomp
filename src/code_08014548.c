@@ -113,12 +113,12 @@ void Soma_InitEntity(struct EwramData_EntityData *entity)
     {
         Anim_StartIndexed(entity, 0, 3, 1);
         HitBox_SetBody(entity, &unk_0);
-        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
-        PLAYER_ACTION_FLAGS(entity) &= ~0x200000;
+        entity->ext.player.requestedAnim = 0xFF;
+        entity->ext.player.actionFlags &= ~0x200000;
         palette = sSomaAnimPalettes.anim00Palette;
-        if (PLAYER_ANIM_PALETTE(entity) != palette)
+        if (entity->ext.player.animPalette != palette)
         {
-            PLAYER_ANIM_PALETTE(entity) = palette;
+            entity->ext.player.animPalette = palette;
             ObjPalette_LoadRange(sSomaPalette, palette, 1, 0);
         }
     }
@@ -221,19 +221,19 @@ void Player_Create(s32 unused)
     Player_ClearStatusEffects(7);
     player->scrollWithBg = 1;
     player->spriteLayer = 0xE;
-    PLAYER_ACTION_FLAGS(player) = 0x300000;
+    player->ext.player.actionFlags = 0x300000;
     /* address of the default wall probe offset list (s8 offsets) */
-    PLAYER_WALL_PROBES(player) = 0x080E12DC;
+    player->ext.player.wallProbes = 0x080E12DC;
 
     Player_CopyBaseStats();
     gEwramData->playerState.cameraAnchorX = 0x78;
     gEwramData->playerState.cameraAnchorY = 0x6F;
     gEwramData->playerState.collisionQueueCount = 0;
-    PLAYER_REQUESTED_ANIM(player) = 0xFF;
-    PLAYER_DRAW_OFFSET_X(player) = 0;
-    PLAYER_DRAW_OFFSET_Y(player) = 0;
-    PLAYER_FLOOR_KIND(player) = 0xFF;
-    PLAYER_WEAPON_SLOT(player) = 0;
+    player->ext.player.requestedAnim = 0xFF;
+    player->ext.player.drawOffsetX = 0;
+    player->ext.player.drawOffsetY = 0;
+    player->ext.player.floorKind = 0xFF;
+    player->ext.player.weaponSlot = 0;
     gEwramData->playerState.wallProbeCount = 4;
     gEwramData->playerState.wallProbeY0 = 0xF8;
     gEwramData->playerState.wallProbeY1 = 0xF4;
@@ -247,12 +247,12 @@ void Player_Create(s32 unused)
 
 static inline s32 Entity_TestFlag100000(struct EwramData_EntityData *entity)
 {
-    return PLAYER_ACTION_FLAGS(entity) & 0x100000;
+    return entity->ext.player.actionFlags & 0x100000;
 }
 
 static inline s32 Entity_TestFlag1000(struct EwramData_EntityData *entity)
 {
-    return PLAYER_ACTION_FLAGS(entity) & 0x1000;
+    return entity->ext.player.actionFlags & 0x1000;
 }
 
 static inline s32 CollisionProbe_TestBit1()

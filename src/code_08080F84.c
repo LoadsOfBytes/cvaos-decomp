@@ -14,7 +14,7 @@ void Golem_FaceTarget(struct EwramData_EntityData *entity)
         struct GolemPart *base;
         s32 index;
         entity->flipX ^= 1;
-        base = entity->unk_500.golemParts;
+        base = entity->ext.golem.parts;
         for (index = 0; index < 11; index++)
         {
             base[index].offsetX = -base[index].offsetX;

@@ -17,7 +17,7 @@ void GreatArmor_FaceTarget(struct EwramData_EntityData *entity)
     if (flipX != Entity_IsTargetRight(entity))
     {
         entity->flipX ^= 1;
-        parts = entity->unk_500.greatArmorParts;
+        parts = entity->ext.greatArmor.parts;
         for (i = 0; i < 14; i++)
         {
             parts[i].offsetX = -parts[i].offsetX;

@@ -1,6 +1,5 @@
 /* Death sequence. */
 #include "code/code_08039340.h"
-#include "skeleton_entity.h"
 #include "code_080D73B8.h"
 #include "structs/ewram.h"
 
@@ -25,7 +24,7 @@ void Skeleton_UpdateDeath(struct EwramData_EntityData *entity)
     case 1:
         if (--entity->timer == 0xFF)
         {
-            ObjAffine_Free((u16)SKELETON_AFFINE(entity));
+            ObjAffine_Free((u16)entity->ext.skeleton.affine);
             entity->deleteRequested = 1;
         }
         break;

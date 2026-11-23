@@ -1,6 +1,5 @@
 /* Effect_SpawnFadingParticle. */
 #include "code_08009A0.h"
-#include "particle_effect.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -28,7 +27,7 @@ void Effect_SpawnFadingParticle(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32
     child->velY.whole = velY;
     child->spriteLayer = layer;
     child->timer = 0;
-    PARTICLE_FLAGS(child) = 7;
+    child->ext.particle.flags = 7;
     gfx = ObjGfx_Find(sCommonObjectGfx);
     Sprite_Attach(child, sCommonObjectSpriteSheet, gfx, 6);
     if (variant == 0)
@@ -57,7 +56,7 @@ void Effect_SpawnConfiguredParticle(s32 x, s32 y, s32 velX, s32 velY, s32 sprite
     child->velY.whole = velY;
     child->spriteLayer = spriteLayer;
     child->timer = 0;
-    PARTICLE_FLAGS(child) = flags;
+    child->ext.particle.flags = flags;
     gfx = ObjGfx_Find(sCommonObjectGfx);
     Sprite_Attach(child, sCommonObjectSpriteSheet, gfx, palette);
     if (variant == 0)
@@ -87,8 +86,8 @@ void Effect_SpawnParticleWithDamping(s32 x, s32 y, s32 velX, s32 velY, s32 layer
     child->velY.whole = velY;
     child->spriteLayer = layer;
     child->timer = 0;
-    PARTICLE_FLAGS(child) = flags;
-    PARTICLE_DAMPING(child) = damping;
+    child->ext.particle.flags = flags;
+    child->ext.particle.damping = damping;
     gfx = ObjGfx_Find(sCommonObjectGfx);
     Sprite_Attach(child, sCommonObjectSpriteSheet, gfx, palette);
     if (variant == 0)

@@ -1,6 +1,5 @@
 /* Chaos second form: palette sequence (4CE4) and part creation (4D64). */
 #include "code_08009A0.h"
-#include "chaos_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -36,7 +35,7 @@ extern void Chaos2Part_DamagePlayerOnContact(struct EwramData_EntityData *);
  * load it into the core's palette slot when it changes. */
 void Chaos2_StepPaletteSequence(struct EwramData_EntityData *core)
 {
-    struct Chaos2Data *data = (struct Chaos2Data *)CHAOS_DATA(core);
+    struct Chaos2Data *data = (struct Chaos2Data *)core->ext.chaos.data.value;
     u8 *sequence = data->paletteSequence;
     u8 palette, colour, slot;
 
@@ -68,7 +67,7 @@ void Chaos2_CreatePart(struct EwramData_EntityData *core, s32 x, s32 y, s32 mirr
 {
     struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, (u32 *)Chaos2Part_Update);
     struct HitBox box = { -8, -8, 16, 16 };
-    struct Chaos2Data *data = (struct Chaos2Data *)CHAOS_DATA(core);
+    struct Chaos2Data *data = (struct Chaos2Data *)core->ext.chaos.data.value;
     if (part != NULL)
     {
         s32 graphics;
@@ -83,7 +82,7 @@ void Chaos2_CreatePart(struct EwramData_EntityData *core, s32 x, s32 y, s32 mirr
         part->animMode = 2;
         part->animTimer = RandomNumberGenerator() % 6;
         part->unk_518.part8.enemyId = core->unk_518.part8.enemyId;
-        CHAOS_LINK(part) = core;
+        part->ext.chaosChild.link = core;
         part->scrollWithBg = 0;
         part->attack = 0x55;
         part->unk_518.part16.hp = 3000;

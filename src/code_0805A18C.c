@@ -83,6 +83,6 @@ void Object35Create(struct EwramData_EntityData *entity)
     }
     entity->scrollWithBg = 1;
     entity->flipX = 0;
-    OBJECT35_HOME_X(entity) = entity->posX.whole;
-    OBJECT35_HOME_Y(entity) = entity->posY.whole;
+    entity->ext.object35.homeX = entity->posX.whole;
+    entity->ext.object35.homeY = entity->posY.whole;
 }

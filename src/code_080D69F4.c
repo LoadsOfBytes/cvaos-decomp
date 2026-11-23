@@ -1,15 +1,14 @@
 /* An animated particle spirals inward as its angular speed increases. */
 #include "code_08009A0.h"
-#include "boss_pickup_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern u8 sCommonObjectGfx[];
 extern u8 sCommonObjectSpriteSheet[];
 extern struct AnimScript sRecoveryPickupParticleAnimScript[];
-#define ANGLE(e) (BOSS_PICKUP_PARTICLE_ANGLE((e)))
-#define STEP(e) (BOSS_PICKUP_PARTICLE_STEP((e)))
-#define RADIUS(e) (BOSS_PICKUP_PARTICLE_RADIUS((e)))
-#define SPEED(e) (BOSS_PICKUP_PARTICLE_SPEED((e)))
+#define ANGLE(e) (e->ext.bossPickupParticle.angle)
+#define STEP(e) (e->ext.bossPickupParticle.step)
+#define RADIUS(e) (e->ext.bossPickupParticle.radius)
+#define SPEED(e) (e->ext.bossPickupParticle.speed)
 /**
  * @brief Animate a particle around a stored room-space center with
  * accelerating angular motion and shrinking radius. Remove when

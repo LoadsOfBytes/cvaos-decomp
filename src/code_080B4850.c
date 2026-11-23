@@ -22,7 +22,7 @@ struct BaloreFlightSteeringParameters {
 extern s32 Entity_SteerToPoint(struct EwramData_EntityData *entity, struct BaloreFlightSteeringParameters *p);
 
 #define SPEED(e) (*(s32 *)&(e)->unk_514)
-#define FLIGHT(e) (*(struct BaloreFlightSteeringParameters **)&(e)->unk_50C)
+#define FLIGHT(e) (*(struct BaloreFlightSteeringParameters **)&(e)->ext.raw.unk_50C)
 #define UNK_51C_BYTE(e, i) (((u8 *)&(e)->unk_51C)[i])
 
 /* Four-stage flight attack: approach, turn, dive, then emit 16 sparks.

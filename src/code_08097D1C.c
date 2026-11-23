@@ -15,7 +15,7 @@ void CreakingSkull_FaceTarget(struct EwramData_EntityData *entity)
         s32 turn;
         entity->flipX ^= 1;
         turn = 0x20000;
-        parts = entity->unk_500.jointParts;
+        parts = entity->ext.joint.parts;
         p = parts;
         do
         {

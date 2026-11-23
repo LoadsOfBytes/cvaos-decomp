@@ -58,7 +58,7 @@ void SoulTypeSelector_Update(struct SoulTypeIcons *e)
     switch (e->state)
     {
     case 0:
-        Sprite_Attach((struct EwramData_EntityData *)e, sMenuSpriteSheet, MENU_GFX_SLOT(({ struct EwramData_EntityData *s_ = &ew->entityData[18]; s_; })), 0xD);
+        Sprite_Attach((struct EwramData_EntityData *)e, sMenuSpriteSheet, ({ struct EwramData_EntityData *s_ = &ew->entityData[18]; s_; })->ext.menu.gfxSlot, 0xD);
         Anim_StartIndexed((struct EwramData_EntityData *)e, 0, 0, 1);
         e->matrix[0] = ObjAffine_Alloc(2);
         e->matrix[1] = ObjAffine_Alloc(2);

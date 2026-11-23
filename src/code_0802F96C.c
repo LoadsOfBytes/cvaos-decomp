@@ -1,6 +1,5 @@
 #include "code_08009A0.h"
 #include "soul_skill_entity.h"
-#include "blue_soul_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -21,7 +20,7 @@ static inline void EndBlueSoul(struct EwramData_EntityData *entity)
 {
     if (entity->affineIndex != 0 || entity->affine)
         ObjAffine_Free(entity->affineIndex);
-    gEwramData->playerState.activeBlueSoulEntities[BLUE_SOUL_SLOT(entity)] = NULL;
+    gEwramData->playerState.activeBlueSoulEntities[entity->ext.blueSoul.slot] = NULL;
     EntityDelete(entity);
 }
 
@@ -51,7 +50,7 @@ extern void BlueSoul_DrawAlternatingLayer(struct EwramData_EntityData *);
  */
 void Skill_Witch_GiantGhost_Use(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = BLUE_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.blueSoul.owner;
     u16 slot;
 
     entity->roomActive = 1;
@@ -77,7 +76,7 @@ void Skill_Witch_GiantGhost_Use(struct EwramData_EntityData *entity)
         Hit_Enable(entity, 7, SkillWitchGiantGhost_OnContact, 0);
         entity->hit.flags |= 2;
         entity->hit.flags |= 4;
-        if (BLUE_SOUL_VALUE(entity) == 0)
+        if (entity->ext.blueSoul.value == 0)
         {
             u8 *graphics = (u8 *)0x081DE958;
             u8 *palette = (u8 *)0x0820B598;
@@ -112,9 +111,9 @@ void Skill_Witch_GiantGhost_Use(struct EwramData_EntityData *entity)
         }
         entity->state++;
     case 1:
-        if (SKILL_WITCH_SCALE(entity) <= 0xFFFF)
+        if (entity->ext.skillWitch.scale <= 0xFFFF)
         {
-            SKILL_WITCH_SCALE(entity) += 0x2000;
+            entity->ext.skillWitch.scale += 0x2000;
             break;
         }
         entity->affine = 0;
@@ -123,17 +122,17 @@ void Skill_Witch_GiantGhost_Use(struct EwramData_EntityData *entity)
         break;
     case 3:
         entity->affine = 1;
-        if (SKILL_WITCH_SCALE(entity) <= 0)
+        if (entity->ext.skillWitch.scale <= 0)
         {
             BlueSoul_ReleaseActiveResources(entity);
             EntityDelete(entity);
             return;
         }
-        SKILL_WITCH_SCALE(entity) -= 0x2000;
+        entity->ext.skillWitch.scale -= 0x2000;
         break;
     }
     entity->palette = 3;
     Follow(entity, parent, 0, 0);
-    ObjAffine_Set(0, SKILL_WITCH_SCALE(entity), SKILL_WITCH_SCALE(entity), entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set(0, entity->ext.skillWitch.scale, entity->ext.skillWitch.scale, entity->flipX, 0, entity->affineIndex);
     Anim_Update(entity);
 }

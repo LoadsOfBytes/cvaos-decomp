@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "particle_effect.h"
 #include "code_0800B700.h"
 #include "code_0800CB00.h"
 #include "structs/ewram.h"
@@ -16,8 +15,8 @@ static inline void CreateAttachedEffect(struct EwramData_EntityData *parent, u8 
     child = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateAttachedAnimation);
     if (child == NULL)
         return;
-    PARTICLE_ATTACH_ANIM(child) = animation;
-    PARTICLE_ATTACH_PARENT(child) = parent;
+    child->ext.particleAttach.anim = animation;
+    child->ext.particleAttach.parent = parent;
     child->palette = palette;
     child->accelX.whole = dx;
     child->accelY.whole = dy;
@@ -42,7 +41,7 @@ void SoulAcquisition_DrawAndWait(struct EwramData_EntityData *entity)
     entity->roomActive = 1;
     if (entity->timer < 48)
         Effect_SpawnPlayerInwardParticle(entity->palette);
-    if (entity->timer < SOUL_ACQUIRE_DURATION(entity))
+    if (entity->timer < entity->ext.soulAcquire.duration)
         entity->timer++;
     else
     {

@@ -1,6 +1,5 @@
 /* Chaos spark drawing (392C) and the soul shot creation (39DC). */
 #include "code_08009A0.h"
-#include "chaos_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -17,9 +16,9 @@ extern u8 sChaosSpriteSheet[];
 extern void ChaosSoulShot_DamagePlayerOnContact(struct EwramData_EntityData *);
 extern void ChaosSoulShot_Update(struct EwramData_EntityData *);
 
-#define OFFSET_X(e) (CHAOS_OFFSET_X((e)))
-#define OFFSET_Y(e) (CHAOS_OFFSET_Y((e)))
-#define SPREAD(e) (CHAOS_SHOT_SPREAD((e)))
+#define OFFSET_X(e) (e->ext.chaosShot.offsetX)
+#define OFFSET_Y(e) (e->ext.chaosShot.offsetY)
+#define SPREAD(e) (e->ext.chaosSoulShot.spread)
 
 /* Draw the spark four times, mirrored around its position by SPREAD. */
 void ChaosSpark_Draw(struct EwramData_EntityData *entity)
@@ -56,13 +55,13 @@ void ChaosSpark_Draw(struct EwramData_EntityData *entity)
 void ChaosOrb_SpawnSoulShot(struct EwramData_EntityData *orb, s32 x, s32 y)
 {
     u32 box;
-    struct EwramData_EntityData *owner = CHAOS_LINK(orb);
+    struct EwramData_EntityData *owner = orb->ext.chaosChild.link;
     struct EwramData **ewram = &gEwramData;
     struct EwramData_EntityData *shot = EntityCreateInRange(0x49, 0xCF, (u32 *)ChaosSoulShot_Update);
     struct ChaosData *data;
 
     box = 0x1A30F0E8;
-    data = (struct ChaosData *)CHAOS_DATA(owner);
+    data = (struct ChaosData *)owner->ext.chaos.data.value;
     if (shot != NULL)
     {
         s32 graphics;
@@ -83,7 +82,7 @@ void ChaosOrb_SpawnSoulShot(struct EwramData_EntityData *orb, s32 x, s32 y)
         shot->hit.flags |= 4;
         shot->hit.flags &= ~2;
         shot->unk_518.part8.enemyId = orb->unk_518.part8.enemyId;
-        CHAOS_LINK(shot) = orb;
+        shot->ext.chaosChild.link = orb;
         shot->scrollWithBg = 0;
         shot->attack = 0x78;
         shot->unk_518.part16.hp = 10;

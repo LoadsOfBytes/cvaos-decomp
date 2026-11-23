@@ -29,7 +29,7 @@ void GrahamSpreadProjectile_Update(struct EwramData_EntityData *entity)
             entity->velX.whole=velocity;
             if(entity->flipX)
                 entity->velX.whole=-velocity;
-            switch((u8)GRAHAM_SPREAD_INDEX(entity))
+            switch((u8)entity->ext.grahamSpread.index)
             {
                 case 0: entity->velY.whole=-0x3800; break;
                 case 1: entity->velY.whole=state; break;

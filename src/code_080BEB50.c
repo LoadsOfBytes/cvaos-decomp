@@ -3,8 +3,6 @@
 #include "code_08009A0.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
-/* Death_UpdateHover keeps its random attack choice here; never read. */
-#define DEATH_UNUSED_CHOICE(e) e->unk_4FC.part8.unk_4FD
 
 extern void EntityDampVelocityX(struct EwramData_EntityData *, s32);
 extern void EntityDampVelocityY(struct EwramData_EntityData *, s32);
@@ -85,7 +83,7 @@ void Death_UpdateHover(struct EwramData_EntityData *entity)
             if (ty == 0 && (RandomNumberGenerator() & 0x3F) <= 0x2F)
             {
                 r = RandomChoice();
-                DEATH_UNUSED_CHOICE(entity) = r;
+                entity->ext.death.unusedChoice = r;
                 if (r <= 0x14)
                 {
                     entity->state = 4;

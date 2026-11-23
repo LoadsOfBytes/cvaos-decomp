@@ -1,6 +1,5 @@
 #include "code_08009A0.h"
 #include "soul_skill_entity.h"
-#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -43,7 +42,7 @@ static inline struct SoulGraphicsResources *GetSet(s32 index)
  */
 void SkillCockatriceUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.redSoul.owner;
     u16 slot;
     u16 bx, by;
 
@@ -53,7 +52,7 @@ void SkillCockatriceUse(struct EwramData_EntityData *entity)
         slot = ObjAffine_Alloc(0);
         if ((s16)slot < 0)
         {
-            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+            gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
             EntityDelete(entity);
             return;
         }
@@ -90,7 +89,7 @@ void SkillCockatriceUse(struct EwramData_EntityData *entity)
         entity->state++;
         RedSoul_CreateEntity(entity, (u32 *)SkillCockatriceEffectUpdate);
     case 1:
-        SKILL_COCKATRICE_SCALE_Y(entity) = Sin(entity->timer << 10);
+        entity->ext.skillCockatrice.scaleY = Sin(entity->timer << 10);
         SKILL_COCKATRICE_ANGLE(entity) += SKILL_COCKATRICE_TURN(entity);
         entity->posX.whole = parent->posX.whole + entity->velX.whole;
         entity->posY.whole = parent->posY.whole + entity->velY.whole;
@@ -107,18 +106,18 @@ void SkillCockatriceUse(struct EwramData_EntityData *entity)
     case 2:
         Sound_StopTracked(0xCD);
         ObjAffine_Free(entity->affineIndex);
-        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;
     }
-    ObjAffine_Set(SKILL_COCKATRICE_ANGLE(entity), 0x10000, SKILL_COCKATRICE_SCALE_Y(entity), 0, 0, entity->affineIndex);
+    ObjAffine_Set(SKILL_COCKATRICE_ANGLE(entity), 0x10000, entity->ext.skillCockatrice.scaleY, 0, 0, entity->affineIndex);
     if (EntityIsOutsideScreen(entity, 2) || !entity->roomActive)
     {
         entity->roomActive = 1;
         Sound_StopTracked(0xCD);
         ObjAffine_Free(entity->affineIndex);
-        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
     }

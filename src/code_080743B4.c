@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "une_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -72,7 +71,7 @@ void Une_UpdateGrow(struct EwramData_EntityData *entity)
             entity->subState++;
             entity->animDone = 0;
         }
-        UNE_SPREAD_TIMER(entity) = RandomNumberGenerator() % 200 + 0x118;
+        entity->ext.une.spreadTimer = RandomNumberGenerator() % 200 + 0x118;
         break;
     case 1:
         if (entity->animDone)
@@ -89,7 +88,7 @@ void Une_UpdateGrow(struct EwramData_EntityData *entity)
             entity->subState++;
             entity->animDone = 0;
             entity->timer = RandomNumberGenerator() % 40 + 100;
-            if (UNE_ORIGINAL(entity))
+            if (entity->ext.une.original)
                 entity->timer = 10;
         }
         break;
@@ -97,9 +96,9 @@ void Une_UpdateGrow(struct EwramData_EntityData *entity)
         t = entity->timer--;
         if (t == 0)
         {
-            parent = UNE_SPAWNER(entity);
+            parent = entity->ext.une.spawner;
             if (parent != NULL && parent->updateFunc != NULL && parent->unk_518.part8.enemyId == 0x3D
-                && (s32)UNE_COUNT(parent) < parent->unk_514.part16.spawnParam0)
+                && (s32)parent->ext.uneSpawner.count < parent->unk_514.part16.spawnParam0)
             {
                 entity->timer = t;
                 entity->subState++;
@@ -107,12 +106,12 @@ void Une_UpdateGrow(struct EwramData_EntityData *entity)
             }
             entity->timer = RandomNumberGenerator() % 40 + 100;
         }
-        if (--UNE_SPREAD_TIMER(entity) > 0)
+        if (--entity->ext.une.spreadTimer > 0)
             break;
-        parent = UNE_SPAWNER(entity);
+        parent = entity->ext.une.spawner;
         if (parent == NULL || parent->updateFunc == NULL || parent->unk_518.part8.enemyId != 0x3D)
             break;
-        if ((s32)UNE_COUNT(parent) >= parent->unk_514.part16.spawnParam0)
+        if ((s32)parent->ext.uneSpawner.count >= parent->unk_514.part16.spawnParam0)
         {
             entity->subState = 5;
             Anim_StartIndexed(entity, 5, 0, 0);
@@ -120,7 +119,7 @@ void Une_UpdateGrow(struct EwramData_EntityData *entity)
         }
         else
         {
-            UNE_SPREAD_TIMER(entity) = 0x8C;
+            entity->ext.une.spreadTimer = 0x8C;
         }
         break;
     case 4:
@@ -131,7 +130,7 @@ void Une_UpdateGrow(struct EwramData_EntityData *entity)
         }
         if (entity->timer == 0xF)
         {
-            parent = UNE_SPAWNER(entity);
+            parent = entity->ext.une.spawner;
             child = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
             if (child != NULL)
             {
@@ -152,15 +151,15 @@ void Une_UpdateGrow(struct EwramData_EntityData *entity)
                 child->accelX.whole = 0;
                 child->accelY.whole = 0x2800;
                 child->subState = 10;
-                UNE_SPAWNER(child) = parent;
-                UNE_COUNT(parent)++;
-                UNE_ORIGINAL(child) = 0;
+                child->ext.une.spawner = parent;
+                parent->ext.uneSpawner.count++;
+                child->ext.une.original = 0;
             }
             else
             {
-                parent = UNE_SPAWNER(entity);
+                parent = entity->ext.une.spawner;
                 if (parent != NULL && parent->updateFunc != NULL && parent->unk_518.part8.enemyId == 0x3D)
-                    UNE_COUNT(parent)--;
+                    parent->ext.uneSpawner.count--;
             }
         }
         if (!(entity->timer & 3))

@@ -1,7 +1,5 @@
 /* Enemy helpers decompiled from assembly. */
 #include "structs/ewram.h"
-#include "skull_archer_entity.h"
-#include "waiter_skeleton_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code_08009A0.h"
@@ -50,7 +48,7 @@ void WaiterSkeleton_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16
 void WaiterSkeletonThrownTray_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 {
     struct PlayerContactDamage effect;
-    struct EwramData_EntityData *parent = WAITER_TRAY_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.waiterTray.owner;
     effect.attributes = 0;
     effect.unused = 0;
     effect.attack = entity->attack;
@@ -59,7 +57,7 @@ void WaiterSkeletonThrownTray_DamagePlayerOnContact(struct EwramData_EntityData 
     effect.sourceY = entity->posY.whole;
     Player_ApplyContactDamage(&effect);
     if (ENTITY_INDEX(parent) == ENTITY_INDEX(entity))
-        WAITER_SKELETON_FLAGS(parent) |= 8;
+        parent->ext.waiterSkeleton.flags |= 8;
 }
 
 void WaiterSkeletonThrownTray_OnHit(struct EwramData_EntityData *entity)
@@ -80,7 +78,7 @@ void SkullArcherArrow_DamagePlayerOnContact(struct EwramData_EntityData *entity,
     Player_ApplyContactDamage(&effect);
     entity->hit.flags |= 2;
     entity->hit.flags |= 4;
-    SKULL_ARCHER_ARROW_OWNER(entity) = parent;
+    entity->ext.skullArcherArrow.owner = parent;
     entity->accelX.whole = entity->posX.whole - parent->posX.whole;
     entity->accelY.whole = entity->posY.whole - parent->posY.whole;
     entity->state = 1;
@@ -90,7 +88,7 @@ void SkullArcherArrow_DamagePlayerOnContact(struct EwramData_EntityData *entity,
 /* Projectile: move or follow its parent, then expire or break on impact. */
 void SkullArcherArrow_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = SKULL_ARCHER_ARROW_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.skullArcherArrow.owner;
     u8 collision[16];
     if (entity->state != 2 && (s16)entity->unk_518.part16.hp <= 0)
         entity->state = 2;
@@ -134,13 +132,13 @@ void SkullArcher_UpdateIdle(struct EwramData_EntityData *entity)
     Entity_FaceTarget(entity);
     if (entity->subState == 0 && Target_IsNearEntity(entity, 240, 35))
     {
-        s32 index = SKULL_ARCHER_PATTERN_STEP(entity) / 2;
-        if (++SKULL_ARCHER_PATTERN_STEP(entity) > 4)
-            SKULL_ARCHER_PATTERN_STEP(entity) = 0;
+        s32 index = entity->ext.skullArcher.patternStep / 2;
+        if (++entity->ext.skullArcher.patternStep > 4)
+            entity->ext.skullArcher.patternStep = 0;
         entity->state = 1;
         entity->stage = 0;
         entity->subState = 0;
-        SKULL_ARCHER_PATTERN(entity) = sUnk_08528614[index];
+        entity->ext.skullArcher.pattern = sUnk_08528614[index];
         Anim_StartIndexed(entity, index + 2, 0, 0);
     }
 }
@@ -149,7 +147,7 @@ void SkullArcher_UpdateIdle(struct EwramData_EntityData *entity)
  * animation frame; after the animation, wait before the next state. */
 void SkullArcher_UpdateShoot(struct EwramData_EntityData *entity)
 {
-    s8 *pattern = (s8 *)SKULL_ARCHER_PATTERN(entity);
+    s8 *pattern = (s8 *)entity->ext.skullArcher.pattern;
     switch (entity->subState)
     {
         case 0:
@@ -177,7 +175,7 @@ void SkullArcher_UpdateShoot(struct EwramData_EntityData *entity)
                     arrow->hit.flags &= ~4;
                 }
                 pattern += 4;
-                SKULL_ARCHER_PATTERN(entity) = (s32)pattern;
+                entity->ext.skullArcher.pattern = (s32)pattern;
             }
             if (entity->animFlags & 4)
             {
@@ -238,13 +236,13 @@ void SkullArcher_UpdatePatrol(struct EwramData_EntityData *entity)
             Entity_Walk(entity, -0xC000, sSkullArcherWalkProfile, 13);
             if (Entity_GetTargetDistance(entity) > 99)
             {
-                s32 index = SKULL_ARCHER_PATTERN_STEP(entity) / 2;
-                if (++SKULL_ARCHER_PATTERN_STEP(entity) > 4)
-                    SKULL_ARCHER_PATTERN_STEP(entity) = 0;
+                s32 index = entity->ext.skullArcher.patternStep / 2;
+                if (++entity->ext.skullArcher.patternStep > 4)
+                    entity->ext.skullArcher.patternStep = 0;
                 entity->state = 1;
                 entity->stage = 0;
                 entity->subState = 0;
-                SKULL_ARCHER_PATTERN(entity) = sUnk_08528614[index];
+                entity->ext.skullArcher.pattern = sUnk_08528614[index];
                 Anim_StartIndexed(entity, index + 2, 0, 0);
             }
             break;

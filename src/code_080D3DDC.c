@@ -54,7 +54,7 @@ static inline void SpawnSpark2(struct EwramData_EntityData *entity, s32 dx, s32 
  */
 void GrahamAttacker_UpdateDeath(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *part = &gEwramData->entityData[GRAHAM_CHILD_INDEX(entity)];
+    struct EwramData_EntityData *part = &gEwramData->entityData[entity->ext.grahamScene.childIndex];
     struct EwramData_EntityData *owner = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
     s16 positions[32][2];
 
@@ -70,7 +70,7 @@ void GrahamAttacker_UpdateDeath(struct EwramData_EntityData *entity)
         entity->subState++;
         entity->stage = 0;
     case 1:
-        if (!(owner->enemyFlags & 2) || owner == NULL || (GRAHAM_FLAGS(owner) & 0x20))
+        if (!(owner->enemyFlags & 2) || owner == NULL || (owner->ext.graham.flags & 0x20))
         {
             entity->subState++;
             entity->stage = 0;

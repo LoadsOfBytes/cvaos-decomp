@@ -10,9 +10,9 @@ extern s32 Target_IsInRect(s16, s16, s32, s32);
 extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
 extern s32 Entity_IsTargetRight(struct EwramData_EntityData *);
 extern s32 Tile_Classify(s16, s16);
-#define GAIT(e) (GORGON_WALK_GAIT((e)))
-#define FRAME(e) ((e)->unk_4FC.part8.unk_4FE)
-#define CLOCK(e) (GORGON_WALK_CLOCK((e)))
+#define GAIT(e) (e->ext.gorgon.gait)
+#define FRAME(e) ((e)->ext.raw.unk_4FC.part8.unk_4FE)
+#define CLOCK(e) (e->ext.gorgon.clock)
 static inline s32 TileAhead(struct EwramData_EntityData *entity, struct BgLayerState *background, s32 offset)
 {
     return Tile_Classify((s16)(background->xPos.part16.integer + entity->posX.part16.integer + offset),
@@ -49,7 +49,7 @@ void Gorgon_UpdateWalk(struct EwramData_EntityData *entity)
     case 1:
     {
         s32 offset;
-        GORGON_FLAGS(entity) |= 1;
+        entity->ext.gorgon.flags |= 1;
         CLOCK(entity)++;
         if (CLOCK(entity) >= walk[(s8)GAIT(entity) * 2 + 1])
         {
@@ -88,7 +88,7 @@ void Gorgon_UpdateWalk(struct EwramData_EntityData *entity)
                 break;
             }
         }
-        if (GORGON_HIT(entity))
+        if (entity->ext.gorgon.hit)
         {
             offset = entity->flipX ? -32 : 32;
             if (!TileAhead(entity, background, offset))
@@ -107,7 +107,7 @@ void Gorgon_UpdateWalk(struct EwramData_EntityData *entity)
     }
     case 2:
     {
-        GORGON_FLAGS(entity) |= 1;
+        entity->ext.gorgon.flags |= 1;
         CLOCK(entity)++;
         if (CLOCK(entity) >= turn[(s8)GAIT(entity) * 2 + 1])
         {
@@ -121,7 +121,7 @@ void Gorgon_UpdateWalk(struct EwramData_EntityData *entity)
                 entity->accelX.whole = 0;
                 entity->accelY.whole = 0;
                 entity->flipX ^= 1;
-                GORGON_FLAGS(entity) |= 1;
+                entity->ext.gorgon.flags |= 1;
                 FRAME(entity) = walk[(s8)GAIT(entity) * 2];
                 break;
             }
@@ -158,7 +158,7 @@ void Gorgon_UpdateWalk(struct EwramData_EntityData *entity)
         break;
     }
     case 3:
-        GORGON_FLAGS(entity) |= 1;
+        entity->ext.gorgon.flags |= 1;
         CLOCK(entity)++;
         if (CLOCK(entity) >= walk[(s8)GAIT(entity) * 2 + 1])
         {

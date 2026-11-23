@@ -21,10 +21,10 @@ s32 Graham_SpawnSpiralProjectiles(struct EwramData_EntityData *owner, s32 revers
     s32 i;
     struct EwramData_EntityData *parts[6];
     struct EwramData_EntityData **p;
-    GRAHAM_SPIRAL_COUNT(owner) = 3;
+    owner->ext.grahamSpiral.count = 3;
     i = 0;
     p = parts;
-    while (i < GRAHAM_SPIRAL_COUNT(owner))
+    while (i < owner->ext.grahamSpiral.count)
     {
         *p = Entity_CreateObject((u32 *)GrahamSpiralProjectile_Update);
         if (!*p) { success = 0; break; }
@@ -36,15 +36,15 @@ s32 Graham_SpawnSpiralProjectiles(struct EwramData_EntityData *owner, s32 revers
         (*p)->posX.whole = owner->posX.whole;
         (*p)->posY.whole = owner->posY.whole - 0x200000;
         (*p)->scrollWithBg = 1;
-        GRAHAM_SPIRAL_COUNT((*p)) = GRAHAM_SPIRAL_COUNT(owner);
+        (*p)->ext.grahamSpiral.count = owner->ext.grahamSpiral.count;
         (*p)->attack = 0x50;
-        GRAHAM_SPIRAL_INDEX((*p)) = i;
+        (*p)->ext.grahamSpiral.index = i;
         GRAHAM_SPIRAL_SPIN((*p)) = 0xAA;
-        GRAHAM_SPIRAL_ROTATION_SPEED((*p)) = 0x2C0;
+        (*p)->ext.grahamSpiral.rotationSpeed = 0x2C0;
         if (reverse)
         {
             GRAHAM_SPIRAL_SPIN((*p)) = -GRAHAM_SPIRAL_SPIN((*p));
-            GRAHAM_SPIRAL_ROTATION_SPEED((*p)) = -GRAHAM_SPIRAL_ROTATION_SPEED((*p));
+            (*p)->ext.grahamSpiral.rotationSpeed = -(*p)->ext.grahamSpiral.rotationSpeed;
         }
         {
             s32 matrix = ObjAffine_Alloc(1);
@@ -68,7 +68,7 @@ s32 Graham_SpawnSpiralProjectiles(struct EwramData_EntityData *owner, s32 revers
     {
     fail:
         i = 0;
-        if (i < GRAHAM_SPIRAL_COUNT(owner))
+        if (i < owner->ext.grahamSpiral.count)
         {
             p = parts;
             do
@@ -76,7 +76,7 @@ s32 Graham_SpawnSpiralProjectiles(struct EwramData_EntityData *owner, s32 revers
                 if (*p != NULL) EntityDelete(*p);
                 p++;
                 i++;
-            } while (i < GRAHAM_SPIRAL_COUNT(owner));
+            } while (i < owner->ext.grahamSpiral.count);
         }
     }
     return success;

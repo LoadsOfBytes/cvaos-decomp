@@ -53,21 +53,21 @@ void Object14Variant2_Update(struct EwramData_EntityData *entity)
         entity->spriteLayer = 0xC;
         entity->animFrame = 2;
         entity->drawFunc = (u32 *)Object14_Draw;
-        OBJECT14_ROOM_X(entity) = GetEntityRoomXPositionInteger(entity);
-        OBJECT14_ROOM_Y(entity) = GetEntityRoomYPositionInteger(entity);
-        OBJECT14_PREV_X(entity) = OBJECT14_ROOM_X(entity);
-        OBJECT14_PREV_Y(entity) = OBJECT14_ROOM_Y(entity);
+        entity->ext.object14.roomX = GetEntityRoomXPositionInteger(entity);
+        entity->ext.object14.roomY = GetEntityRoomYPositionInteger(entity);
+        entity->ext.object14.prevX = entity->ext.object14.roomX;
+        entity->ext.object14.prevY = entity->ext.object14.roomY;
         Hit_Enable(entity, 8, NULL, 0);
         HitBox_SetBodyRaw(entity, 0x103000E8);
         entity->hit.flags |= 2;
         entity->hit.flags |= 4;
         if (RandomNumberGenerator() & 1)
-            OBJECT14_SWING_ANGLE(entity) = 0x8000;
-        OBJECT14_SWING_SPEED(entity) = (RandomNumberGenerator() & 0x3F) + 0x40;
+            entity->ext.object14Swing.angle = 0x8000;
+        entity->ext.object14Swing.speed = (RandomNumberGenerator() & 0x3F) + 0x40;
         entity->state = 1;
     case 1:
-        OBJECT14_SWING_ANGLE(entity) += OBJECT14_SWING_SPEED(entity);
-        entity->velX.whole = Sin(OBJECT14_SWING_ANGLE(entity)) / 3;
+        entity->ext.object14Swing.angle += entity->ext.object14Swing.speed;
+        entity->velX.whole = Sin(entity->ext.object14Swing.angle) / 3;
         entity->posX.whole += entity->velX.whole;
         break;
     case 2:

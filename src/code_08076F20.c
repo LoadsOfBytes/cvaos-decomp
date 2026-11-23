@@ -1,6 +1,5 @@
 /* Collapse the body's oscillation while shifting its angle history. */
 #include "code_08009A0.h"
-#include "white_dragon_entity.h"
 #include "code_080D73B8.h"
 #include "structs/ewram.h"
 extern void WhiteDragon_SpawnSpark(struct EwramData_EntityData *,s32,s32,s32);
@@ -10,27 +9,27 @@ extern void WhiteDragon_SpawnSpark(struct EwramData_EntityData *,s32,s32,s32);
  */
 void WhiteDragon_UpdateDeath(struct EwramData_EntityData *entity)
 {
-    u16 *history=(u16 *)WHITE_DRAGON_HISTORY(entity);
+    u16 *history=(u16 *)entity->ext.whiteDragon.history;
     s32 i;
     u32 angle;
     if(entity->velY.part16.integer<48)
         entity->velY.part16.integer++;
     else if(entity->velY.part16.integer>48)
         entity->velY.part16.integer--;
-    if(WHITE_DRAGON_SWAY(entity)>256)
-        WHITE_DRAGON_SWAY(entity)--;
-    else if(WHITE_DRAGON_SWAY(entity)<256)
-        WHITE_DRAGON_SWAY(entity)+=4;
+    if(entity->ext.whiteDragon.sway>256)
+        entity->ext.whiteDragon.sway--;
+    else if(entity->ext.whiteDragon.sway<256)
+        entity->ext.whiteDragon.sway+=4;
     if((u16)entity->velY.part16.fraction<0x800)
         entity->velY.part16.fraction+=32;
     entity->velX.part16.fraction+=entity->velY.part16.fraction;
-    if((u16)WHITE_DRAGON_SWAY_PHASE(entity)>0x8000)
+    if((u16)entity->ext.whiteDragon.swayPhase>0x8000)
     {
-        if((u16)WHITE_DRAGON_SWAY_PHASE(entity)<0xFEB0)
-            WHITE_DRAGON_SWAY_PHASE(entity)+=320;
+        if((u16)entity->ext.whiteDragon.swayPhase<0xFEB0)
+            entity->ext.whiteDragon.swayPhase+=320;
     }
-    else if((u16)WHITE_DRAGON_SWAY_PHASE(entity)<0x7EB0)
-        WHITE_DRAGON_SWAY_PHASE(entity)+=320;
+    else if((u16)entity->ext.whiteDragon.swayPhase<0x7EB0)
+        entity->ext.whiteDragon.swayPhase+=320;
     for(i=99;i>0;i--) history[i]=history[i-1];
     history[0]=entity->velX.part16.fraction;
     if(entity->flipX)

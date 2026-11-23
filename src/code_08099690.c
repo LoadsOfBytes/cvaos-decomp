@@ -1,6 +1,5 @@
 /* Flying enemy: approaches a random target near Target_GetX/Target_GetY and re-targets. */
 #include "code_08009A0.h"
-#include "ectoplasm_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "code/code_080211F0.h"
@@ -15,12 +14,12 @@ static inline void SetTarget(struct EwramData_EntityData *entity, struct BgLayer
     s32 x = Target_GetX(entity);
     s32 bx = bg->xPos.whole;
     if (!(RandomNumberGenerator() & 1))
-        ECTOPLASM_POINT_X(entity) = x - r + bx;
+        entity->ext.ectoplasm.pointX = x - r + bx;
     else
-        ECTOPLASM_POINT_X(entity) = x + r + bx;
+        entity->ext.ectoplasm.pointX = x + r + bx;
     x = Target_GetY(entity) - RandomNumberGenerator() % 0x300000;
     x += bg->yPos.whole + dy;
-    ECTOPLASM_POINT_Y(entity) = x;
+    entity->ext.ectoplasm.pointY = x;
 }
 
 void Ectoplasm_UpdateFloat(struct EwramData_EntityData *entity)
@@ -34,10 +33,10 @@ void Ectoplasm_UpdateFloat(struct EwramData_EntityData *entity)
     switch (state)
     {
     case 0:
-        { s32 bx_ = bg->xPos.whole; entity->posX.whole = ECTOPLASM_POINT_X(entity) - bx_; }
-        dy = ECTOPLASM_POINT_Y(entity) - (entity->posY.whole + bg->yPos.whole);
-        entity->posY.whole += dy + Sin(ECTOPLASM_BOB_PHASE(entity) + 0x4000) * 3;
-        ECTOPLASM_BOB_PHASE(entity) += 0x200;
+        { s32 bx_ = bg->xPos.whole; entity->posX.whole = entity->ext.ectoplasm.pointX - bx_; }
+        dy = entity->ext.ectoplasm.pointY - (entity->posY.whole + bg->yPos.whole);
+        entity->posY.whole += dy + Sin(entity->ext.ectoplasm.bobPhase + 0x4000) * 3;
+        entity->ext.ectoplasm.bobPhase += 0x200;
         entity->timer++;
         if (Target_IsInRect(entity->posX.part16.integer - 0x5A, entity->posY.part16.integer - 0x64, 0xB4, 0xC8))
         {
@@ -46,23 +45,23 @@ void Ectoplasm_UpdateFloat(struct EwramData_EntityData *entity)
         }
         break;
     case 1:
-        if (!ECTOPLASM_RETARGET(entity))
+        if (!entity->ext.ectoplasm.retarget)
         {
-            ECTOPLASM_RETARGET(entity) = 1;
+            entity->ext.ectoplasm.retarget = 1;
             { s32 r = RandomNumberGenerator() % 0x300000 + 0x100000;
             SetTarget(entity, bg, r, -0x100000); }
         }
         else
         {
-            ECTOPLASM_RETARGET(entity) = 0;
+            entity->ext.ectoplasm.retarget = 0;
             { s32 r = RandomNumberGenerator() % 0x300000 + 0x300000;
             SetTarget(entity, bg, r, -0x200000); }
         }
         entity->subState++;
         entity->timer = 0;
     case 2:
-        d = ECTOPLASM_POINT_X(entity) - (entity->posX.whole + bg->xPos.whole);
-        dy = ECTOPLASM_POINT_Y(entity) - (entity->posY.whole + bg->yPos.whole);
+        d = entity->ext.ectoplasm.pointX - (entity->posX.whole + bg->xPos.whole);
+        dy = entity->ext.ectoplasm.pointY - (entity->posY.whole + bg->yPos.whole);
         if (d > 0x40000)
             entity->accelX.whole = 0x400;
         else if (d < -0x40000)

@@ -25,9 +25,9 @@ void DiscArmor_UpdateThrow(struct EwramData_EntityData *entity)
         Entity_FaceTarget(entity);
         Anim_StartIndexed(entity, 2, 0, 0);
         entity->subState = 1;
-        DISC_ARMOR_FLAGS(entity) = 1;
-        DISC_ARMOR_HAND_OFFSET_X(entity) = -20;
-        DISC_ARMOR_HAND_OFFSET_Y(entity) = -36;
+        entity->ext.discArmor.flags = 1;
+        entity->ext.discArmorHand.offsetX = -20;
+        entity->ext.discArmorHand.offsetY = -36;
         break;
     case 1:
         if (*(u16 *)&entity->animStep == 0x10C)
@@ -35,25 +35,25 @@ void DiscArmor_UpdateThrow(struct EwramData_EntityData *entity)
             disc = Entity_CreateObject((u32 *)DiscArmorDisc_Update);
             if (disc != NULL)
             {
-                DISC_ARMOR_DISC_OWNER(disc) = entity;
+                disc->ext.discArmorDisc.owner = entity;
                 disc->flipX = entity->flipX;
                 disc->attack = entity->attack + (entity->attack >> 2);
             }
         }
-        if (DISC_ARMOR_FLAGS(entity) & 2)
+        if (entity->ext.discArmor.flags & 2)
         {
             Anim_StartIndexed(entity, 3, 0, 0);
             entity->subState = 2;
         }
         break;
     case 2:
-        if (DISC_ARMOR_HAND_OFFSET_X(entity) < -10)
-            DISC_ARMOR_HAND_OFFSET_X(entity)++;
-        if (DISC_ARMOR_HAND_OFFSET_Y(entity) < -16)
-            DISC_ARMOR_HAND_OFFSET_Y(entity)++;
+        if (entity->ext.discArmorHand.offsetX < -10)
+            entity->ext.discArmorHand.offsetX++;
+        if (entity->ext.discArmorHand.offsetY < -16)
+            entity->ext.discArmorHand.offsetY++;
         if (entity->animFlags & 4)
         {
-            DISC_ARMOR_FLAGS(entity) = 0;
+            entity->ext.discArmor.flags = 0;
             entity->state = 0;
             entity->stage = 0;
             entity->subState = 0;

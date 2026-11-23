@@ -1,6 +1,5 @@
 /* Arachne_UpdateAttack: breath attack (hover states 0 / 10, wind-up state 1, state 2 traces the breath projectile until it hits a wall). */
 #include "code_08009A0.h"
-#include "arachne_entity.h"
 #include "entity_hit.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -21,22 +20,22 @@ extern void Arachne_SpawnEffect(struct EwramData_EntityData *owner, s32 x, s32 y
 extern void ArachneEffect_Update(struct EwramData_EntityData *);
 extern void ArachneBeam_DamagePlayerOnContact(struct EwramData_EntityData *);
 
-#define WAIT(e) ((e)->unk_504.part8.unk_506)
+#define WAIT(e) ((e)->ext.raw.unk_504.part8.unk_506)
 
 #define HOVER(entity)                                                       \
     {                                                                       \
         s32 phase;                                                          \
                                                                             \
-        if (ARACHNE_WALK_SPEED(entity) < 0)                                 \
-            ARACHNE_WALK_SPEED(entity) += 0x2000;                           \
-        else if (ARACHNE_WALK_SPEED(entity) > 0)                            \
-            ARACHNE_WALK_SPEED(entity) -= 0x2000;                           \
-        phase = ARACHNE_WALK_PHASE(entity) + ARACHNE_WALK_SPEED(entity);    \
-        ARACHNE_WALK_PHASE(entity) = phase;                                 \
+        if (entity->ext.arachne.walkSpeed < 0)                                 \
+            entity->ext.arachne.walkSpeed += 0x2000;                           \
+        else if (entity->ext.arachne.walkSpeed > 0)                            \
+            entity->ext.arachne.walkSpeed -= 0x2000;                           \
+        phase = entity->ext.arachne.walkPhase + entity->ext.arachne.walkSpeed;    \
+        entity->ext.arachne.walkPhase = phase;                                 \
         if (phase >= 0x240000)                                              \
-            ARACHNE_WALK_PHASE(entity) = phase - 0x240000;                  \
+            entity->ext.arachne.walkPhase = phase - 0x240000;                  \
         else if (phase < 0)                                                 \
-            ARACHNE_WALK_PHASE(entity) = phase + 0x240000;                  \
+            entity->ext.arachne.walkPhase = phase + 0x240000;                  \
         EntityDampVelocityX(entity, 8);                                     \
         Entity_MoveWithCollision(entity, 0x10000, -0x200000, 0x80000, 12);              \
     }
@@ -68,9 +67,9 @@ void Arachne_UpdateAttack(struct EwramData_EntityData *entity)
             entity->subState++;
             Anim_StartIndexed(entity, 2, 0, 0);
             if (entity->flipX)
-                ARACHNE_ATTACK_ANGLE(entity) = 0x2800;
+                entity->ext.arachne.attackAngle = 0x2800;
             else
-                ARACHNE_ATTACK_ANGLE(entity) = 0x5800;
+                entity->ext.arachne.attackAngle = 0x5800;
             Sound_PlayTracked(0x82);
         }
         break;
@@ -107,7 +106,7 @@ void Arachne_UpdateAttack(struct EwramData_EntityData *entity)
             p->posX.whole = x;
             p->posY.whole = y;
             { u8 t = *((u8 *)entity + 0x3C); *((u8 *)p + 0x3C) = t; }
-            EntitySetVelocityFromAngle(p, ARACHNE_ATTACK_ANGLE(entity), 0x80000);
+            EntitySetVelocityFromAngle(p, entity->ext.arachne.attackAngle, 0x80000);
             RandomNumberGenerator();
             y = 3;
             r = RandomNumberGenerator() & y;
@@ -144,9 +143,9 @@ void Arachne_UpdateAttack(struct EwramData_EntityData *entity)
             EntityDelete(p);
         }
         if (*flags58 & 0x40)
-            ARACHNE_ATTACK_ANGLE(entity) -= 0x60;
+            entity->ext.arachne.attackAngle -= 0x60;
         else
-            ARACHNE_ATTACK_ANGLE(entity) += 0x60;
+            entity->ext.arachne.attackAngle += 0x60;
         if (!(entity->timer & 3))
         {
             s32 rx = RandomNumberGenerator() & 0x3FFFF;

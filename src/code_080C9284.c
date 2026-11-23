@@ -1,6 +1,5 @@
 /* Lightning Doll body parts after death. */
 #include "code_08009A0.h"
-#include "doll_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -37,7 +36,7 @@ static inline u16 Hidden(struct EwramData_EntityData *e) { return 1 - e->hidden;
 void LightningDollPart_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *parent = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
-    struct EwramData_EntityData *child = &gEwramData->entityData[DOLL_PART_EFFECT_INDEX(entity)];
+    struct EwramData_EntityData *child = &gEwramData->entityData[entity->ext.dollPart.effectIndex];
     s32 x, y;
 
     switch (entity->state)
@@ -55,11 +54,11 @@ void LightningDollPart_Update(struct EwramData_EntityData *entity)
             entity->drawFunc = (u32 *)Sprite_DrawEntity;
             entity->posX.whole = parent->posX.whole;
             entity->posY.whole = parent->posY.whole;
-            x = sLightningDollPartOffsets[(u8)DOLL_PART_INDEX(entity)][0];
-            sprite = sLightningDollPartOffsets[(u8)DOLL_PART_INDEX(entity)][2];
-            vx = sLightningDollPartOffsets[(u8)DOLL_PART_INDEX(entity)][3] << 12;
-            vy = sLightningDollPartOffsets[(u8)DOLL_PART_INDEX(entity)][4] << 12;
-            timer = sLightningDollPartOffsets[(u8)DOLL_PART_INDEX(entity)][5];
+            x = sLightningDollPartOffsets[(u8)entity->ext.dollPart.index][0];
+            sprite = sLightningDollPartOffsets[(u8)entity->ext.dollPart.index][2];
+            vx = sLightningDollPartOffsets[(u8)entity->ext.dollPart.index][3] << 12;
+            vy = sLightningDollPartOffsets[(u8)entity->ext.dollPart.index][4] << 12;
+            timer = sLightningDollPartOffsets[(u8)entity->ext.dollPart.index][5];
             entity->velX.whole = vx;
             entity->velY.whole = -vy;
             entity->accelY.whole = 0x1800;
@@ -79,7 +78,7 @@ void LightningDollPart_Update(struct EwramData_EntityData *entity)
                 effect->flipX = RandomNumberGenerator() % 2;
                 effect->spriteLayer = entity->spriteLayer + 1;
                 ENTITY_PARENT_INDEX(effect) = ENTITY_INDEX(entity);
-                DOLL_PART_EFFECT_INDEX(entity) = ENTITY_INDEX(effect);
+                entity->ext.dollPart.effectIndex = ENTITY_INDEX(effect);
             }
             entity->state++;
             break;
@@ -92,15 +91,15 @@ void LightningDollPart_Update(struct EwramData_EntityData *entity)
             zero = entity->timer & 15;
             if (zero == 0 && entity->timer < 0x40 && entity->timer > 0x20)
             {
-                x = sLightningDollPartOffsets[(u8)DOLL_PART_INDEX(entity)][0];
-                y = sLightningDollPartOffsets[(u8)DOLL_PART_INDEX(entity)][1];
+                x = sLightningDollPartOffsets[(u8)entity->ext.dollPart.index][0];
+                y = sLightningDollPartOffsets[(u8)entity->ext.dollPart.index][1];
                 Effect_SpawnRandom(entity->posX.whole + x, entity->posY.whole + y, 0, 0, entity->spriteLayer - 1);
                 Effect_SpawnRisingParticleInBox(entity->posX.whole + x, entity->posY.whole + y, 0, 0, entity->spriteLayer - 2, zero);
             }
             entity->posX.whole += entity->velX.whole;
             entity->posY.whole += entity->velY.whole;
             entity->velY.whole += entity->accelY.whole;
-            if ((u8)DOLL_PART_INDEX(entity) == 1)
+            if ((u8)entity->ext.dollPart.index == 1)
             {
                 if (entity->velY.whole >= 0)
                 {
@@ -159,7 +158,7 @@ timer:
         case 2:
             if (child->animDone)
             {
-                DOLL_DEATH_PART_COUNT(parent)--;
+                parent->ext.doll.deathPartCount--;
                 entity->deleteRequested = 1;
                 child->deleteRequested = 1;
             }

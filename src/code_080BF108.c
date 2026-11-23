@@ -1,6 +1,5 @@
 /* Short animation phase. */
 #include "code/code_08039340.h"
-#include "death_entity.h"
 #include "structs/ewram.h"
 
 /**
@@ -14,7 +13,7 @@ void Death_UpdateWallAttack(struct EwramData_EntityData *entity)
     {
     case 0:
         Anim_StartIndexed(entity, 0x19, 2, 0);
-        DEATH_FLAGS(entity) |= 0x10;
+        entity->ext.death.flags |= 0x10;
         entity->subState = 1;
         break;
     case 1:
@@ -22,7 +21,7 @@ void Death_UpdateWallAttack(struct EwramData_EntityData *entity)
             entity->subState = 2;
         break;
     case 2:
-        if (!(DEATH_FLAGS(entity) & 0x10))
+        if (!(entity->ext.death.flags & 0x10))
         {
             Anim_StartIndexed(entity, 7, 2, 1);
             entity->state = 3;

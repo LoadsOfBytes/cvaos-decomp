@@ -64,7 +64,7 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
                 SavePoint_ShowSavePrompt();
                 Player_RestoreHPAndMP();
                 gEwramData->startPauseEnabled = 0;
-                SAVE_POINT_YES_SELECTED(entity) = 1;
+                entity->ext.savePoint.yesSelected = 1;
                 entity->subState = r;
                 goto next;
             }
@@ -85,7 +85,7 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
         s32 ab = pressed & 3;
         if (ab)
         {
-            if ((held & 1) && SAVE_POINT_YES_SELECTED(entity))
+            if ((held & 1) && entity->ext.savePoint.yesSelected)
             {
                 struct EwramData *base = *ew;
                 s32 res;
@@ -98,7 +98,7 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
                     Text_SetDefaultColors();
                     entity->timer = res;
                     entity->state = 0x14;
-                    SAVE_POINT_FLAGS(entity) |= 2;
+                    entity->ext.savePoint.flags |= 2;
                     PlaySong(0xF3);
                     owner = OWNER(entity);
                     ObjPalette_LoadRange(sSavePointPalette, 5, 1, 0xE);
@@ -122,18 +122,18 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
             PlaySong(0xF0);
             goto next;
         }
-        if ((held & 0x10) && SAVE_POINT_YES_SELECTED(entity))
+        if ((held & 0x10) && entity->ext.savePoint.yesSelected)
         {
             PlaySong(0xF1);
-            SAVE_POINT_YES_SELECTED(entity) = ab;
+            entity->ext.savePoint.yesSelected = ab;
             break;
         }
         if (!(held & 0x20))
             break;
-        if (SAVE_POINT_YES_SELECTED(entity))
+        if (entity->ext.savePoint.yesSelected)
             break;
         PlaySong(0xF1);
-        SAVE_POINT_YES_SELECTED(entity) = 1;
+        entity->ext.savePoint.yesSelected = 1;
         break;
     }
     case 3:
@@ -154,14 +154,14 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
         {
             if (entity->unk_514.part8.unk_517 == 0)
             {
-                SAVE_POINT_SCALE(entity) += 0x800;
-                if (SAVE_POINT_SCALE(entity) > 0xFFFF)
-                    SAVE_POINT_SCALE(entity) = 0x10000;
+                entity->ext.savePoint.scale += 0x800;
+                if (entity->ext.savePoint.scale > 0xFFFF)
+                    entity->ext.savePoint.scale = 0x10000;
                 break;
             }
-            SAVE_POINT_SCALE(entity) -= 0xCC;
-            if (SAVE_POINT_SCALE(entity) <= 0)
-                SAVE_POINT_SCALE(entity) = 0;
+            entity->ext.savePoint.scale -= 0xCC;
+            if (entity->ext.savePoint.scale <= 0)
+                entity->ext.savePoint.scale = 0;
             break;
         }
         Bg_SetControlIfLevelAllows(3, 0x50, 0x3FBF);
@@ -203,9 +203,9 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
         {
             if (entity->unk_514.part8.unk_517 == 0)
             {
-                SAVE_POINT_SCALE(entity) += 0x800;
-                if (SAVE_POINT_SCALE(entity) > 0xFFFF)
-                    SAVE_POINT_SCALE(entity) = 0x10000;
+                entity->ext.savePoint.scale += 0x800;
+                if (entity->ext.savePoint.scale > 0xFFFF)
+                    entity->ext.savePoint.scale = 0x10000;
                 if (entity->subState == 0)
                 {
                     entity->subState = 1;
@@ -214,9 +214,9 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
             }
             else
             {
-                SAVE_POINT_SCALE(entity) -= 0xCC;
-                if (SAVE_POINT_SCALE(entity) <= 0)
-                    SAVE_POINT_SCALE(entity) = 0;
+                entity->ext.savePoint.scale -= 0xCC;
+                if (entity->ext.savePoint.scale <= 0)
+                    entity->ext.savePoint.scale = 0;
             }
         }
         switch (entity->subState)
@@ -273,7 +273,7 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
 
     if (entity->state != 0)
         SetPlayerInput(1, 0x40);
-    ObjAffine_Set(0, SAVE_POINT_SCALE(entity), SAVE_POINT_SCALE(entity), 0, 0, SAVE_POINT_AFFINE(entity));
+    ObjAffine_Set(0, entity->ext.savePoint.scale, entity->ext.savePoint.scale, 0, 0, entity->ext.savePoint.affine);
     entity->timer++;
     if ((u8)(entity->timer % 3) == 0 && entity->unk_514.part8.unk_515 != 1)
     {

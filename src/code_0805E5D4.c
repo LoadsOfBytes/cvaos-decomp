@@ -11,7 +11,7 @@ extern void EventScene03_SpawnTargetOrb(s32, s32, s32, s32, s32);
 void EventScene03RisingPart_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *owner = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
-    if ((u16)EVENT03_PROGRESS(owner) & 4)
+    if ((u16)owner->ext.event03.progress & 4)
     {
         entity->state = 4;
         entity->stage = 0;
@@ -20,11 +20,11 @@ void EventScene03RisingPart_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if ((u16)EVENT03_PROGRESS(owner) & 8)
+        if ((u16)owner->ext.event03.progress & 8)
         {
             if (RandomNumberGenerator() % 7 == entity->attack)
             {
-                if ((u8)(EVENT03_PART_FLAGS(entity) & 2))
+                if ((u8)(entity->ext.event03Part.flags & 2))
                 {
                     entity->state = 2;
                     entity->stage = 0;
@@ -66,7 +66,7 @@ void EventScene03RisingPart_Update(struct EwramData_EntityData *entity)
         }
         break;
     case 2:
-        if (EVENT03_PART_FLAGS(entity) & 8)
+        if (entity->ext.event03Part.flags & 8)
         {
             switch (entity->subState)
             {
@@ -86,7 +86,7 @@ void EventScene03RisingPart_Update(struct EwramData_EntityData *entity)
                 break;
             }
         }
-        else if (EVENT03_PART_FLAGS(entity) & 16)
+        else if (entity->ext.event03Part.flags & 16)
         {
             if (entity->subState == 0)
             {
@@ -94,7 +94,7 @@ void EventScene03RisingPart_Update(struct EwramData_EntityData *entity)
                 entity->subState++;
             }
         }
-        if ((u16)EVENT03_PROGRESS(owner) & 2)
+        if ((u16)owner->ext.event03.progress & 2)
         {
             entity->state = 3;
             entity->stage = 0;
@@ -134,7 +134,7 @@ void EventScene03RisingPart_Update(struct EwramData_EntityData *entity)
                     PlaySong(0x6B);
                     Effect_SpawnAt(entity->posX.whole, entity->posY.whole, entity->spriteLayer - 1);
                 }
-                EventScene03_SpawnTargetOrb((s16)entity->posX.part16.integer, entity->posY.part16.integer - 32, 0, 0, owner->unk_4FC.whole);
+                EventScene03_SpawnTargetOrb((s16)entity->posX.part16.integer, entity->posY.part16.integer - 32, 0, 0, owner->ext.raw.unk_4FC.whole);
                 entity->state = 4;
                 entity->stage = 0;
                 entity->subState = 0;

@@ -22,7 +22,7 @@ extern void Interaction_End(struct EwramData_EntityData *, s32);
 struct Periods { s32 v[10]; };
 
 #define PLAYER (gEwramData->playerState.player)
-#define IDX (*(u8 *)&entity->unk_4F8.part8.unk_4F8)
+#define IDX (*(u8 *)&entity->ext.raw.unk_4F8.part8.unk_4F8)
 
 /**
  * @brief Update of event scene variant 15 (sEventSceneUpdateFuncs[15]); returns the

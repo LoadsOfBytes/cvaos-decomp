@@ -5,12 +5,6 @@
 #include "code_08008750.h"
 #include "code_0800B700.h"
 
-/*
- * Debug test walkers (DebugLinkTestWalker_Update, DebugTestWalkerUnused_Update):
- * air state - 0 = on the ground, 1 = in the air (jumping / falling),
- * 2 = jump button pressed again while airborne. Token-identical expansion.
- */
-#define DEBUG_WALKER_AIR_STATE(e) e->unk_4F4.whole
 // #include "code_0800CB00.h" // TODO: Bg_UpdateScrollModes implicitly called with arguments (it should have none)
 #include "code_0800F1FC.h"
 #include "code_080109F4.h"
@@ -529,42 +523,42 @@ void DebugLinkTestWalker_Update(struct EwramData_EntityData *entity)
             }
 
             // TODO: is double check real?
-            if (DEBUG_WALKER_AIR_STATE(entity) == 1)
+            if (entity->ext.debugWalker.airState == 1)
             {
-                if ((DEBUG_WALKER_AIR_STATE(entity) == 1) && (gEwramData->inputData.playerNewInput & 1))
+                if ((entity->ext.debugWalker.airState == 1) && (gEwramData->inputData.playerNewInput & 1))
                 {
-                    DEBUG_WALKER_AIR_STATE(entity) = 2;
+                    entity->ext.debugWalker.airState = 2;
                     entity->velY.whole = -0x40000;
                     entity->accelY.whole = 0;           
                 }
             }
             if ((gEwramData->inputData.playerNewInput & 1) && (gEwramData->inputData.playerHeldInput & 0x40))
             {
-                DEBUG_WALKER_AIR_STATE(entity) = 1;
+                entity->ext.debugWalker.airState = 1;
                 entity->velY.whole = -0xA0000;
                 entity->accelY.whole = 0;
             }
 
-            if (DEBUG_WALKER_AIR_STATE(entity) == 0)
+            if (entity->ext.debugWalker.airState == 0)
             {
                 if (groundLeft == 0)
                 {
                     if (groundRight == 0)
                     {
-                        DEBUG_WALKER_AIR_STATE(entity) = 1;
+                        entity->ext.debugWalker.airState = 1;
                         entity->velY.whole = 0;
                         entity->accelY.whole = -0x1000;
                     }
                 }
-                if (DEBUG_WALKER_AIR_STATE(entity) == 0)
+                if (entity->ext.debugWalker.airState == 0)
                 {
                     if (gEwramData->inputData.playerNewInput & 1)
                     {
-                        DEBUG_WALKER_AIR_STATE(entity) = 1;
+                        entity->ext.debugWalker.airState = 1;
                         entity->velY.whole = -0x52000;
                         entity->accelY.whole = 0;
                     }
-                    if (DEBUG_WALKER_AIR_STATE(entity) == 0)
+                    if (entity->ext.debugWalker.airState == 0)
                     {
                         goto here;
                     }
@@ -665,7 +659,7 @@ void DebugLinkTestWalker_Update(struct EwramData_EntityData *entity)
                 entity->posY.part16.fraction = 0;
                 entity->velY.whole = 0;
                 entity->accelY.whole = 0;
-                DEBUG_WALKER_AIR_STATE(entity) = 0;
+                entity->ext.debugWalker.airState = 0;
             }
             break;
     }
@@ -678,7 +672,7 @@ void DebugLinkTestWalker_Update(struct EwramData_EntityData *entity)
     roomY = GetEntityRoomYPositionInteger(entity);
     roomX = GetEntityRoomXPositionInteger(entity);
 
-    if (DEBUG_WALKER_AIR_STATE(entity) == 0)
+    if (entity->ext.debugWalker.airState == 0)
     {
         if ((Collision_GetPushDown(roomX, roomY - 0x20) == 0) && (Collision_GetPushDown(roomX, roomY - 0x10) == 0))
         {
@@ -882,42 +876,42 @@ void DebugTestWalkerUnused_Update(struct EwramData_EntityData *entity)
             }
 
             // TODO: is double check real?
-            if (DEBUG_WALKER_AIR_STATE(entity) == 1)
+            if (entity->ext.debugWalker.airState == 1)
             {
-                if ((DEBUG_WALKER_AIR_STATE(entity) == 1) && (gEwramData->inputData.playerNewInput & 1))
+                if ((entity->ext.debugWalker.airState == 1) && (gEwramData->inputData.playerNewInput & 1))
                 {
-                    DEBUG_WALKER_AIR_STATE(entity) = 2;
+                    entity->ext.debugWalker.airState = 2;
                     entity->velY.whole = -0x40000;
                     entity->accelY.whole = 0;
                 }
             }
             if ((gEwramData->inputData.playerNewInput & 1) && (gEwramData->inputData.playerHeldInput & 0x80))
             {
-                DEBUG_WALKER_AIR_STATE(entity) = 1;
+                entity->ext.debugWalker.airState = 1;
                 entity->velY.whole = -0xA0000;
                 entity->accelY.whole = 0;
             }
             
-            if (DEBUG_WALKER_AIR_STATE(entity) == 0)
+            if (entity->ext.debugWalker.airState == 0)
             {
                 if (groundLeft == 0)
                 {
                     if (groundRight == 0)
                     {
-                        DEBUG_WALKER_AIR_STATE(entity) = 1;
+                        entity->ext.debugWalker.airState = 1;
                         entity->velY.whole = 0;
                         entity->accelY.whole = -0x1000;
                     }
                 }
-                if (DEBUG_WALKER_AIR_STATE(entity) == 0)
+                if (entity->ext.debugWalker.airState == 0)
                 {
                     if (gEwramData->inputData.playerNewInput & 1)
                     {
-                        DEBUG_WALKER_AIR_STATE(entity) = 1;
+                        entity->ext.debugWalker.airState = 1;
                         entity->velY.whole = -0x52000;
                         entity->accelY.whole = 0;
                     }
-                    if (DEBUG_WALKER_AIR_STATE(entity) == 0)
+                    if (entity->ext.debugWalker.airState == 0)
                     {
                         goto here; // should be deleted when rest of code figured out
                         entity->posY.whole -= entity->velX.whole;
@@ -1018,7 +1012,7 @@ void DebugTestWalkerUnused_Update(struct EwramData_EntityData *entity)
                 entity->posY.part16.fraction = 0;
                 entity->velY.whole = 0;
                 entity->accelY.whole = 0;
-                DEBUG_WALKER_AIR_STATE(entity) = 0;
+                entity->ext.debugWalker.airState = 0;
             }
             break;
     }
@@ -1031,7 +1025,7 @@ void DebugTestWalkerUnused_Update(struct EwramData_EntityData *entity)
     roomY = GetEntityRoomYPositionInteger(entity);
     roomX = GetEntityRoomXPositionInteger(entity);
 
-    if (DEBUG_WALKER_AIR_STATE(entity) == 0)
+    if (entity->ext.debugWalker.airState == 0)
     {
         s32 var = Collision_GetPushDownFiltered(roomX, roomY, 0);
         entity->posY.part16.integer += var;

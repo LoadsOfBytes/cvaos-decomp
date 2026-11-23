@@ -1,13 +1,12 @@
 #include "code_08009A0.h"
-#include "manticore_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern s32 Enemy_IsStunnedNoFlash(struct EwramData_EntityData *);
 extern void PlaySong(u16 song);
-#define KIND(e) ((u8)MANTICORE_TAIL_KIND((e)))
-#define TIMER(e) (MANTICORE_TAIL_TIMER((e)))
-#define STEP(e) (MANTICORE_TAIL_STEP((e)))
-#define VALUE(e) (MANTICORE_TAIL_VALUE((e)))
+#define KIND(e) ((u8)e->ext.manticoreTail.kind)
+#define TIMER(e) (e->ext.manticoreTail.timer)
+#define STEP(e) (e->ext.manticoreTail.step)
+#define VALUE(e) (e->ext.manticoreTail.link.value)
 #define SETANGLE(e) \
     do { \
         if ((e)->flipX) angle = -0x2000 - VALUE(e); \
@@ -19,7 +18,7 @@ extern void PlaySong(u16 song);
 void ManticoreTail_UpdateSwing(struct EwramData_EntityData *e)
 {
     struct EwramData_EntityData *owner = ENTITY_OWNER(e);
-    struct EwramData_EntityData *part = MANTICORE_TAIL_ANCHOR(e);
+    struct EwramData_EntityData *part = e->ext.manticoreTail.anchor;
     s32 angle, x, y, r;
 
     if (Enemy_IsStunnedNoFlash(owner) == 0)
@@ -156,7 +155,7 @@ void ManticoreTail_UpdateSwing(struct EwramData_EntityData *e)
         }
         else if (owner->animScriptIndex == 8)
         {
-            u8 kind = e->unk_500.whole; /* word read of MANTICORE_TAIL_KIND (the byte macro changes the code) */
+            u8 kind = e->ext.raw.unk_500.whole; /* word read of ext.manticoreTail.kind (the byte member changes the code) */
             if (kind == 6)
             {
                 if (owner->timer >= 10 && owner->timer <= 14)

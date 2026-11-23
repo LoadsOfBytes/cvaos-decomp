@@ -16,9 +16,9 @@ static inline u8 LoadGfx(struct EwramData_EntityData *entity)
 
     if (slot < 0)
         return 0;
-    BALORE_PALETTE(entity) = ObjPalette_FindOrLoadVariant(sBalorePalette, 0x11);
-    BALORE_GFX(entity) = slot;
-    entity->unk_510.part8.basePalette = BALORE_PALETTE(entity);
+    entity->ext.balore.palette = ObjPalette_FindOrLoadVariant(sBalorePalette, 0x11);
+    entity->ext.balore.gfx = slot;
+    entity->unk_510.part8.basePalette = entity->ext.balore.palette;
     Sprite_Attach(entity, sBaloreSpriteSheet2, slot, entity->unk_510.part8.basePalette);
     entity->scrollWithBg = 1;
     return 1;
@@ -55,8 +55,8 @@ void Balore_CreateIntro(struct EwramData_EntityData *entity)
         e = EntityCreateInRange(0x49, 0xCF, (u32 *)BaloreIntroPiece_Update);
         if (e == NULL)
             return;
-        BALORE_PIECE_OWNER(e) = entity;
-        BALORE_PIECE_INDEX(e) = i;
+        e->ext.balorePiece.owner = entity;
+        e->ext.balorePiece.index = i;
         e->posX.part16.integer = *x + offset;
         e->posY.part16.integer = 0x20;
         e->scrollWithBg = 1;

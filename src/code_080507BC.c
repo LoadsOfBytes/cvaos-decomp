@@ -33,8 +33,8 @@ void Object0DUpdate(struct EwramData_EntityData *entity)
         PlaySong(0x112);
         if (gEwramData->playerState.player->posX.whole < entity->posX.whole)
             impulse = -impulse;
-        OBJECT0D_SPEED(entity) = impulse;
-        OBJECT0D_AMPLITUDE(entity) = 0x100;
+        entity->ext.object0D.speed = impulse;
+        entity->ext.object0D.amplitude = 0x100;
         entity->subState = 1;
     }
     else if (gEwramData->playerState.standingPlatform != entity)
@@ -46,40 +46,40 @@ hit:
         PlaySong(0x112);
         if (gEwramData->playerState.player->posX.whole < entity->posX.whole)
             impulse = -impulse;
-        OBJECT0D_SPEED(entity) = impulse;
-        OBJECT0D_AMPLITUDE(entity) = 0x100;
+        entity->ext.object0D.speed = impulse;
+        entity->ext.object0D.amplitude = 0x100;
     }
-    angle = OBJECT0D_ANGLE(entity);
+    angle = entity->ext.object0D.angle;
     if (angle > 0)
     {
-        OBJECT0D_SPEED(entity) -= 0x10;
-        if ((s32)(OBJECT0D_ANGLE(entity) = angle + OBJECT0D_SPEED(entity)) > 0)
+        entity->ext.object0D.speed -= 0x10;
+        if ((s32)(entity->ext.object0D.angle = angle + entity->ext.object0D.speed) > 0)
             goto clamp;
         goto slow;
     }
     else if (angle < 0)
     {
-        OBJECT0D_SPEED(entity) += 0x10;
-        if ((s32)(OBJECT0D_ANGLE(entity) = angle + OBJECT0D_SPEED(entity)) < 0)
+        entity->ext.object0D.speed += 0x10;
+        if ((s32)(entity->ext.object0D.angle = angle + entity->ext.object0D.speed) < 0)
             goto clamp;
     slow:
-        if (OBJECT0D_AMPLITUDE(entity) != 0)
-            OBJECT0D_AMPLITUDE(entity) -= 0x20;
+        if (entity->ext.object0D.amplitude != 0)
+            entity->ext.object0D.amplitude -= 0x20;
     }
     else
-        OBJECT0D_ANGLE(entity) = angle + OBJECT0D_SPEED(entity);
+        entity->ext.object0D.angle = angle + entity->ext.object0D.speed;
 clamp:
     {
-        s32 v = OBJECT0D_SPEED(entity);
-        s32 lim = OBJECT0D_AMPLITUDE(entity);
+        s32 v = entity->ext.object0D.speed;
+        s32 lim = entity->ext.object0D.amplitude;
         if (v > lim || v < (lim = -lim))
-            OBJECT0D_SPEED(entity) = lim;
+            entity->ext.object0D.speed = lim;
     }
     {
-        if ((s32)OBJECT0D_ANGLE(entity) > 0x1000)
-            OBJECT0D_ANGLE(entity) = 0x1000;
-        else if ((s32)OBJECT0D_ANGLE(entity) < -0x1000)
-            OBJECT0D_ANGLE(entity) = -0x1000;
+        if ((s32)entity->ext.object0D.angle > 0x1000)
+            entity->ext.object0D.angle = 0x1000;
+        else if ((s32)entity->ext.object0D.angle < -0x1000)
+            entity->ext.object0D.angle = -0x1000;
     }
-    ObjAffine_Set(OBJECT0D_ANGLE(entity), 0x10000, 0x10000, 0, 0, entity->affineIndex);
+    ObjAffine_Set(entity->ext.object0D.angle, 0x10000, 0x10000, 0, 0, entity->affineIndex);
 }

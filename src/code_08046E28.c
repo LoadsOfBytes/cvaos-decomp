@@ -12,8 +12,8 @@
  */
 void MenuPage_SetMode(struct EwramData_EntityData *entity, u8 mode)
 {
-    MENU_PAGE_TOP(entity) = 0;
-    MENU_PAGE_CURSOR(entity) = mode;
+    entity->ext.menuPage.top = 0;
+    entity->ext.menuPage.cursor = mode;
 }
 
 /**

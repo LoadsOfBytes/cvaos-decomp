@@ -1,6 +1,5 @@
 /* Buer collision motion, rotation, and update dispatcher. */
 #include "code/code_080211F0.h"
-#include "wheel_enemy_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern s32 Entity_Walk(struct EwramData_EntityData *entity,s32 speed,void *profile,s32 flags);
@@ -27,46 +26,46 @@ void Buer_MoveAndRotate(struct EwramData_EntityData *entity,s32 mode)
     s32 sample;
     if (mode == 0)
         options = 6;
-    collision = Entity_Walk(entity,WHEEL_SPEED(entity),sBuerWalkProfile,options);
+    collision = Entity_Walk(entity,entity->ext.wheel.speed,sBuerWalkProfile,options);
     sample = 24;
-    if ((s32)WHEEL_SPEED(entity) < 0)
+    if ((s32)entity->ext.wheel.speed < 0)
         sample = -24;
     if (Entity_IsOffsetOutsideRoom(entity,sample,0))
         entity->posX.whole = oldX;
     if (collision & 0x40)
     {
-        if ((s32)WHEEL_SPEED(entity) > 0)
-            WHEEL_SPEED(entity) -= 0x333;
+        if ((s32)entity->ext.wheel.speed > 0)
+            entity->ext.wheel.speed -= 0x333;
         else
-            WHEEL_SPEED(entity) += 0x333;
+            entity->ext.wheel.speed += 0x333;
     }
     else if (collision & 0x20)
     {
-        if ((s32)WHEEL_SPEED(entity) > 0)
-            WHEEL_SPEED(entity) += 0x333;
+        if ((s32)entity->ext.wheel.speed > 0)
+            entity->ext.wheel.speed += 0x333;
         else
-            WHEEL_SPEED(entity) -= 0x333;
+            entity->ext.wheel.speed -= 0x333;
     }
     else
     {
-        if ((s32)WHEEL_SPEED(entity) >= 0)
+        if ((s32)entity->ext.wheel.speed >= 0)
         {
-            WHEEL_SPEED(entity) -= 0x40;
-            if ((s32)WHEEL_SPEED(entity) <= 0x3FFF)
-                WHEEL_SPEED(entity) = 0x4000;
+            entity->ext.wheel.speed -= 0x40;
+            if ((s32)entity->ext.wheel.speed <= 0x3FFF)
+                entity->ext.wheel.speed = 0x4000;
         }
         else
         {
-            WHEEL_SPEED(entity) += 0x40;
-            if ((s32)WHEEL_SPEED(entity) > -0x4000)
-                WHEEL_SPEED(entity) = -0x4000;
+            entity->ext.wheel.speed += 0x40;
+            if ((s32)entity->ext.wheel.speed > -0x4000)
+                entity->ext.wheel.speed = -0x4000;
         }
     }
-    WHEEL_ANGLE(entity) += (s32)WHEEL_SPEED(entity) / 64;
+    entity->ext.wheel.angle += (s32)entity->ext.wheel.speed / 64;
     if ((collision & 3) || (mode == 0 && !(collision & 8)))
-        WHEEL_SPEED(entity) = -(s32)WHEEL_SPEED(entity) / 2;
-    ObjAffine_Set(WHEEL_ANGLE(entity),0x10000,0x10000,0,0,entity->affineIndex);
-    if ((s32)WHEEL_SPEED(entity) >= 0)
+        entity->ext.wheel.speed = -(s32)entity->ext.wheel.speed / 2;
+    ObjAffine_Set(entity->ext.wheel.angle,0x10000,0x10000,0,0,entity->affineIndex);
+    if ((s32)entity->ext.wheel.speed >= 0)
         part->flipX = 1;
     else
         part->flipX = 0;

@@ -30,16 +30,16 @@ s32 DiscArmorRing_Aim(struct EwramData_EntityData *disc, struct EwramData_Entity
     {
         /* X via the inline helper, Y via the macro: this mix gives the
          * original register allocation. */
-        DISC_ARMOR_RING_ANGLE(disc) = ArcTan2(PixelDelta(entity->posX.part16.integer, DISC_ARMOR_HAND_X(owner)),
-                                           entity->posY.part16.integer - INT_TOWARD_ZERO(DISC_ARMOR_HAND_Y(owner)));
-        dx = (entity->posX.whole - (s32)DISC_ARMOR_HAND_X(owner)) >> 16;
+        disc->ext.discArmorRing.angle = ArcTan2(PixelDelta(entity->posX.part16.integer, owner->ext.discArmorHand.x),
+                                           entity->posY.part16.integer - INT_TOWARD_ZERO(owner->ext.discArmorHand.y));
+        dx = (entity->posX.whole - (s32)owner->ext.discArmorHand.x) >> 16;
         dx *= dx;
-        dy = (entity->posY.whole - DISC_ARMOR_HAND_Y(owner)) >> 16;
+        dy = (entity->posY.whole - owner->ext.discArmorHand.y) >> 16;
         dy *= dy;
         distance = Sqrt(dx + dy) << 16;
-        DISC_ARMOR_RING_LENGTH(disc) = distance;
-        disc->posX.whole = DISC_ARMOR_HAND_X(owner);
-        disc->posY.whole = DISC_ARMOR_HAND_Y(owner);
+        disc->ext.discArmorRing.length = distance;
+        disc->posX.whole = owner->ext.discArmorHand.x;
+        disc->posY.whole = owner->ext.discArmorHand.y;
         return distance;
     }
     return 0;

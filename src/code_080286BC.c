@@ -1,7 +1,6 @@
 /* SkillBiphronAttackUpdate; graphics
  * loading as in SkillFlameDemonProjectileUpdate (src/code_080292B4.c). */
 #include "code_08009A0.h"
-#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code_080D73B8.h"
@@ -70,7 +69,7 @@ void SkillBiphronAttackUpdate(struct EwramData_EntityData *entity)
     case 1:
         if (Anim_Update(entity) == 3)
         {
-            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+            gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
             gEwramData->playerState.nbrActiveRedSoulEntities--;
             EntityDelete(entity);
             return;

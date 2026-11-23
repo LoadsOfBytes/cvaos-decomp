@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -36,7 +35,7 @@ static inline struct SoulGraphicsResources *GetSet(s32 index)
  */
 void SkillFishHeadUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.redSoul.owner;
 
     switch (entity->state)
     {
@@ -70,9 +69,9 @@ void SkillFishHeadUse(struct EwramData_EntityData *entity)
     }
     if (EntityIsOutsideScreen(entity, 2) || !entity->roomActive)
         entity->roomActive = 1;
-    else if ((u8)RED_SOUL_HIT(entity) == 0)
+    else if ((u8)entity->ext.redSoul.hit == 0)
         return;
-    gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+    gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
     gEwramData->playerState.nbrActiveRedSoulEntities--;
     EntityDelete(entity);
 }

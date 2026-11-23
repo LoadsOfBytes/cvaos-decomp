@@ -1,6 +1,5 @@
 /* Stolas_SpawnDebris (Stolas projectile). */
 #include "code_08009A0.h"
-#include "stolas_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -37,7 +36,7 @@ void Stolas_SpawnDebris(struct EwramData_EntityData *entity, s32 offsetX, s32 of
     child->spriteLayer = entity->spriteLayer + 1;
     child->unk_510.part8.basePalette = entity->unk_510.part8.basePalette;
     child->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
-    STOLAS_EFFECT_OWNER(child) = entity;
+    child->ext.stolasEffect.owner = entity;
     child->flipX = entity->flipX;
     child->posX.whole = entity->posX.whole + offsetX;
     child->posY.whole = entity->posY.whole + offsetY;

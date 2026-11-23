@@ -1,6 +1,5 @@
 /* Chaos2SpinningDebris_Update, Chaos2_SpawnShard, EnemyChaos2Update. */
 #include "code_08009A0.h"
-#include "chaos_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -33,10 +32,10 @@ void Chaos2Shard_Update(struct EwramData_EntityData *entity);
  */
 void Chaos2SpinningDebris_Update(struct EwramData_EntityData *entity)
 {
-    CHAOS_DEBRIS_ANGLE(entity) += entity->accelX.whole;
+    entity->ext.chaosDebris.angle += entity->accelX.whole;
     entity->posX.whole += entity->velX.whole;
     entity->posY.whole += entity->velY.whole;
-    ObjAffine_Set((u16)CHAOS_DEBRIS_ANGLE(entity), 0x10000, 0x10000, entity->flipX, entity->flipY,
+    ObjAffine_Set((u16)entity->ext.chaosDebris.angle, 0x10000, 0x10000, entity->flipX, entity->flipY,
                  entity->affineIndex);
     if (EntityIsOutsideScreen(entity, 2))
     {
@@ -54,7 +53,7 @@ void Chaos2SpinningDebris_Update(struct EwramData_EntityData *entity)
 void Chaos2_SpawnShard(struct EwramData_EntityData *parent, s32 angle, s32 speed)
 {
     struct EwramData_EntityData *shard = EntityCreateInRange(0x49, 0xCF, (u32 *)Chaos2Shard_Update);
-    struct ShardGfx *gfx = (struct ShardGfx *)CHAOS_DATA_PTR(parent);
+    struct ShardGfx *gfx = (struct ShardGfx *)parent->ext.chaos.data.ptr;
 
     if (shard != NULL)
     {
@@ -69,7 +68,7 @@ void Chaos2_SpawnShard(struct EwramData_EntityData *parent, s32 angle, s32 speed
         }
         shard->animFrame = RandomNumberGenerator() % 3 + 0x4B;
         shard->unk_518.part8.enemyId = parent->unk_518.part8.enemyId;
-        CHAOS_LINK(shard) = parent;
+        shard->ext.chaosChild.link = parent;
         shard->scrollWithBg = 0;
         shard->accelX.whole = (RandomNumberGenerator() & 0x3FF) - 0x200;
         shard->flipX = RandomNumberGenerator() % 2;

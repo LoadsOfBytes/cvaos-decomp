@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "door_entity.h"
 #include "code_08001194.h"
 #include "code/code_080211F0.h"
 #include "code/code_08060B98.h"
@@ -34,7 +33,7 @@ void Object04Create(struct EwramData_EntityData *entity)
     Door_SetupGraphics(entity);
     gDisplayRegisters.winOut_L = 0x3F;
     gDisplayRegisters.winOut_H = 0x2F;
-    if (DOOR_ON_RIGHT(entity) == 0)
+    if (entity->ext.door.onRight == 0)
     {
         if ((s16)gEwramData->playerState.player->posX.part16.integer <= (s16)entity->posX.part16.integer + 0x18)
             goto passed;
@@ -53,7 +52,7 @@ void Object04Create(struct EwramData_EntityData *entity)
     }
     if (found)
     {
-        DOOR_OPEN_HEIGHT(entity) = 0x30;
+        entity->ext.door.openHeight = 0x30;
         found = 0;
         entity->state = 10;
         SetPlayerInput(1, 0);
@@ -79,7 +78,7 @@ blocked:
     Collision_SetBlock(x, y - 8);
     Collision_SetBlock(x, y - 0x18);
     Collision_SetBlock(x, y - 0x28);
-    DOOR_OPEN_HEIGHT(entity) = 0;
+    entity->ext.door.openHeight = 0;
     switch (entity->unk_514.part16.spawnParam0)
     {
     case 1:

@@ -14,13 +14,13 @@ void DiscArmorRing_Draw(struct EwramData_EntityData *entity)
     s32 oldY = entity->posY.whole;
     s32 i;
 
-    entity->posX.whole = oldX + (s32)DISC_ARMOR_RING_STEP_X(entity) / 2;
-    entity->posY.whole = oldY + DISC_ARMOR_RING_STEP_Y(entity) / 2;
+    entity->posX.whole = oldX + (s32)entity->ext.discArmorRing.stepX / 2;
+    entity->posY.whole = oldY + entity->ext.discArmorRing.stepY / 2;
     for (i = 3; i != 0; i--)
     {
         Sprite_Draw(entity);
-        entity->posX.whole += (s32)DISC_ARMOR_RING_STEP_X(entity);
-        entity->posY.whole += DISC_ARMOR_RING_STEP_Y(entity);
+        entity->posX.whole += (s32)entity->ext.discArmorRing.stepX;
+        entity->posY.whole += entity->ext.discArmorRing.stepY;
     }
     entity->posX.whole = oldX;
     entity->posY.whole = oldY;

@@ -1,6 +1,5 @@
 #include "code_08009A0.h"
 #include "soul_skill_entity.h"
-#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -11,11 +10,11 @@
  */
 void SkillWingedSkeletonHitBoxUpdate(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = RED_SOUL_OWNER(entity);
+    struct EwramData_EntityData *owner = entity->ext.redSoul.owner;
     entity->roomActive = 1;
     if (owner->state == 3)
     {
-        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;
@@ -28,6 +27,6 @@ void SkillWingedSkeletonHitBoxUpdate(struct EwramData_EntityData *entity)
         entity->hit.flags |= 4;
         entity->state = 1;
     }
-    entity->posX.whole = owner->posX.whole + SKILL_WINGED_SKELETON_TIP_X(owner);
-    entity->posY.whole = owner->posY.whole + SKILL_WINGED_SKELETON_TIP_Y(owner);
+    entity->posX.whole = owner->posX.whole + owner->ext.skillWingedSkeleton.tipX;
+    entity->posY.whole = owner->posY.whole + owner->ext.skillWingedSkeleton.tipY;
 }

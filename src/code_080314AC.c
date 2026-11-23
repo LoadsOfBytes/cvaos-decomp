@@ -3,7 +3,6 @@
  * position copies, explicit u32 negation of dx). */
 #include "code_08009A0.h"
 #include "soul_skill_entity.h"
-#include "blue_soul_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -31,7 +30,7 @@ static inline void LoadGfx(struct EwramData_EntityData *entity, u8 paletteSlot, 
 
 void SkillAlastorUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = BLUE_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.blueSoul.owner;
     s32 x = Target_GetX(entity);
     s32 y = Target_GetY(entity) - 0x280000;
     s32 dist;
@@ -51,7 +50,7 @@ void SkillAlastorUse(struct EwramData_EntityData *entity)
         {
             if (entity->affineIndex || entity->affine)
                 ObjAffine_Free(entity->affineIndex);
-            gEwramData->playerState.activeBlueSoulEntities[BLUE_SOUL_SLOT(entity)] = NULL;
+            gEwramData->playerState.activeBlueSoulEntities[entity->ext.blueSoul.slot] = NULL;
             EntityDelete(entity);
             return;
         }
@@ -93,12 +92,12 @@ void SkillAlastorUse(struct EwramData_EntityData *entity)
         PlaySong(0x19E);
     case 1:
         SKILL_ALASTOR_ANGLE(entity) += SKILL_ALASTOR_SPIN(entity);
-        if (SKILL_ALASTOR_SCALE(entity) > 0xFFFF)
+        if (entity->ext.skillAlastor.scale > 0xFFFF)
         {
             entity->state = 2;
             break;
         }
-        SKILL_ALASTOR_SCALE(entity) += 0x1000;
+        entity->ext.skillAlastor.scale += 0x1000;
         break;
     case 2:
     {
@@ -171,13 +170,13 @@ void SkillAlastorUse(struct EwramData_EntityData *entity)
     }
     case 6:
         SKILL_ALASTOR_ANGLE(entity) = SKILL_ALASTOR_SPIN(entity) * 16 + SKILL_ALASTOR_ANGLE(entity);
-        if (SKILL_ALASTOR_SCALE(entity) <= 0)
+        if (entity->ext.skillAlastor.scale <= 0)
         {
             BlueSoul_ReleaseActiveResources(entity);
             EntityDelete(entity);
             return;
         }
-        SKILL_ALASTOR_SCALE(entity) -= 0x1000;
+        entity->ext.skillAlastor.scale -= 0x1000;
         break;
     }
     if (entity->state == 5)
@@ -189,5 +188,5 @@ void SkillAlastorUse(struct EwramData_EntityData *entity)
             dx = (u32)-(s32)(dx << 16) >> 16;
         HitBox_SetAttackRaw(entity, ((((s16)dx - 10) & 0xFF) + ((((s16)dy - 10) & 0xFF) << 8)) + 0x14140000);
     }
-    ObjAffine_Set(SKILL_ALASTOR_ANGLE(entity), SKILL_ALASTOR_SCALE(entity), SKILL_ALASTOR_SCALE(entity), entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set(SKILL_ALASTOR_ANGLE(entity), entity->ext.skillAlastor.scale, entity->ext.skillAlastor.scale, entity->flipX, 0, entity->affineIndex);
 }

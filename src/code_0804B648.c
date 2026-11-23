@@ -38,9 +38,9 @@ void ItemMenu_CountList(struct PlayerStatus *menu, struct EwramData_EntityData *
     s32 pos = 0;
     s32 i;
 
-    MENU_PAGE_ITEM(entity) = 0xFF;
+    entity->ext.menuPage.item = 0xFF;
     i = 0;
-    while (pos < MENU_PAGE_BYTES(entity)[2] && i <= 0x1F)
+    while (pos < entity->ext.menuPageList.bytes[2] && i <= 0x1F)
     {
         if (menu->itemInventory[i] != 0)
             pos++;
@@ -50,8 +50,8 @@ void ItemMenu_CountList(struct PlayerStatus *menu, struct EwramData_EntityData *
     {
         if (menu->itemInventory[i] != 0)
         {
-            if (pos == MENU_PAGE_BYTES(entity)[1])
-                MENU_PAGE_ITEM(entity) = i;
+            if (pos == entity->ext.menuPageList.bytes[1])
+                entity->ext.menuPage.item = i;
             pos++;
             shown++;
         }
@@ -63,7 +63,7 @@ void ItemMenu_CountList(struct PlayerStatus *menu, struct EwramData_EntityData *
             pos++;
         i++;
     }
-    MENU_PAGE_COUNT(entity) = pos;
+    entity->ext.menuPage.count = pos;
 }
 
 /**
@@ -81,9 +81,9 @@ void ItemMenu_Open(struct EwramData_EntityData *entity)
     s32 left;
     s32 y;
 
-    MENU_PAGE_TOP(entity) = 0;
-    MENU_PAGE_CURSOR(entity) = 0;
-    MENU_PAGE_ITEM(entity) = 0xFF;
+    entity->ext.menuPage.top = 0;
+    entity->ext.menuPage.cursor = 0;
+    entity->ext.menuPage.item = 0xFF;
     MENU_SAVED_TOP(entity) = 0;
     Text12_ClearRegion();
     for (i = 0, tile = 0x3200; i <= 2; i++)
@@ -105,9 +105,9 @@ void ItemMenu_Open(struct EwramData_EntityData *entity)
     MenuPage_SetMode(entity, 0);
     ItemMenu_DrawList(menu, entity);
     Text12_ClearRegion();
-    if (MENU_PAGE_BYTES(entity)[0] != 0)
+    if (entity->ext.menuPageList.bytes[0] != 0)
     {
-        const struct UsableItemInfo *info = &sConsumableInfo[MENU_PAGE_ITEM(entity)];
+        const struct UsableItemInfo *info = &sConsumableInfo[entity->ext.menuPage.item];
         s32 text = sItemDescriptionTextIds[info->name];
 
         MenuItemIcon_Show(0x1C, 0x94, 2, info->oneBasedIconId - 1);
@@ -119,7 +119,7 @@ void ItemMenu_Open(struct EwramData_EntityData *entity)
         MenuItemIcon_SetHidden(1);
     }
     MenuPageTitle_Create(&gEwramData->entityData[20], 0x21);
-    Cursor_SetTilePosition((MENU_PAGE_CURSOR(entity) & 1) ? 0x10 : 1,
-                 ((MENU_PAGE_BYTES(entity)[1] - MENU_PAGE_BYTES(entity)[2]) >> 1) + 11);
+    Cursor_SetTilePosition((entity->ext.menuPage.cursor & 1) ? 0x10 : 1,
+                 ((entity->ext.menuPageList.bytes[1] - entity->ext.menuPageList.bytes[2]) >> 1) + 11);
     Cursor_Draw();
 }

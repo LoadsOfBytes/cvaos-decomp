@@ -1,6 +1,5 @@
 /* Witch projectile setup, movement and spawn helper. */
 #include "code_08009A0.h"
-#include "witch_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -39,8 +38,8 @@ void WitchGroundProjectile_Update(struct EwramData_EntityData *entity)
         entity->state = 1;
         /* fall through */
     case 1:
-        if (WITCH_GROUND_SPEED(entity) <= 0x1FFFF) WITCH_GROUND_SPEED(entity) += 0x2000;
-        flags = Entity_Walk(entity, WITCH_GROUND_SPEED(entity), sWitchGroundProjectileWalkProfile, 8);
+        if (entity->ext.witchGround.speed <= 0x1FFFF) entity->ext.witchGround.speed += 0x2000;
+        flags = Entity_Walk(entity, entity->ext.witchGround.speed, sWitchGroundProjectileWalkProfile, 8);
         if (flags & 8)
         {
             if (entity->stage == 0)

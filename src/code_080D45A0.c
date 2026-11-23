@@ -81,9 +81,9 @@ void GrahamFirstForm_UpdateAttacks(struct EwramData_EntityData *entity)
                     entity->subState=6;
                     entity->stage=2;
                     if(!(RandomNumberGenerator() & 1))
-                        GRAHAM_VOLLEY_SIDE(entity)=0;
+                        entity->ext.grahamTurn.volleySide=0;
                     else
-                        GRAHAM_VOLLEY_SIDE(entity)=1;
+                        entity->ext.grahamTurn.volleySide=1;
                 }
             }
             break;
@@ -109,7 +109,7 @@ void GrahamFirstForm_UpdateAttacks(struct EwramData_EntityData *entity)
             }
             else if(entity->timer<=7 && entity->stage && !Entity_IsFacingTarget(entity))
             {
-                GRAHAM_TURN_RESUME(entity)=5;
+                entity->ext.grahamTurn.resume=5;
                 entity->subState=7;
             }
             break;
@@ -125,7 +125,7 @@ finish_volley:
                     entity->timer=32;
                     break;
                 }
-                if(GRAHAM_VOLLEY_SIDE(entity))
+                if(entity->ext.grahamTurn.volleySide)
                 {
                     if(remaining==2) goto shot_one;
                     Graham_CreateShotPair(entity,0);
@@ -143,7 +143,7 @@ shot_done:
             }
             else if(entity->timer<=7 && entity->stage && !Entity_IsFacingTarget(entity))
             {
-                GRAHAM_TURN_RESUME(entity)=6;
+                entity->ext.grahamTurn.resume=6;
                 entity->subState=7;
             }
             break;
@@ -157,7 +157,7 @@ shot_done:
                 if(*animation!=1)
                     Anim_StartIndexed(entity,1,0,1);
                 entity->flipX=1-entity->flipX;
-                entity->subState=GRAHAM_TURN_RESUME(entity);
+                entity->subState=entity->ext.grahamTurn.resume;
             }
             break;
         }

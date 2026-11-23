@@ -1,7 +1,5 @@
 /* Ukoback helpers 0x080C64E8..0x080C664B. */
 #include "code_08009A0.h"
-#include "ukoback_entity.h"
-#include "nemesis_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -128,7 +126,7 @@ s32 Ukoback_SpawnDeathPiece(struct EwramData_EntityData *entity)
 
     if (child != NULL)
     {
-        UKOBACK_PIECE_OWNER_INDEX(child) = ENTITY_INDEX_PAIR(entity);
+        child->ext.ukobackPiece.ownerIndex = ENTITY_INDEX_PAIR(entity);
         created = 1;
     }
     return created;
@@ -186,9 +184,9 @@ void EnemyNemesisCreate(struct EwramData_EntityData *entity)
     HitBox_SetAttackRaw(entity, 0x080804FC);
     HitBox_SetBodyRaw(entity, 0x1010F8F8);
     entity->animFrame = 0;
-    NEMESIS_ATTACK_SET(entity) = 0;
-    NEMESIS_ATTACK_INDEX(entity) = 9;
-    NEMESIS_HITS_BEFORE_REACT(entity) = 3;
+    entity->ext.nemesis.attackSet = 0;
+    entity->ext.nemesis.attackIndex = 9;
+    entity->ext.nemesis.hitsBeforeReact = 3;
     entity->flipX = 0;
     Nemesis_UpdateAppearance(entity);
     Nemesis_CreateAfterimages(entity);
@@ -264,7 +262,7 @@ void EnemyNemesisUpdate(struct EwramData_EntityData *entity)
     {
         if (!Entity_IsTargetWithinRange(entity, 0x500000) && entity->state == 0)
             return;
-        if (!(NEMESIS_FLAGS(entity) & 0x20) && entity->state != 0)
+        if (!(entity->ext.nemesis.flags & 0x20) && entity->state != 0)
         {
             Hit_CheckWithPlayer(collision, entity);
             return;
@@ -294,7 +292,7 @@ void EnemyNemesisUpdate(struct EwramData_EntityData *entity)
             Nemesis_UpdatePartnerFlight(entity);
             break;
     }
-    if (!(NEMESIS_FLAGS(entity) & 0x20))
+    if (!(entity->ext.nemesis.flags & 0x20))
         Hit_CheckWithPlayer(collision, entity);
 }
 
@@ -307,13 +305,13 @@ void EnemyNemesisUpdate(struct EwramData_EntityData *entity)
  */
 void Nemesis_UpdateAppearance(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *other = &gEwramData->entityData[NEMESIS_PARTNER_INDEX(entity)];
+    struct EwramData_EntityData *other = &gEwramData->entityData[entity->ext.nemesis.partnerIndex];
     s32 x;
 
     switch (entity->subState)
     {
         case 0:
-            NEMESIS_ANGLE(entity) = 0x1000;
+            entity->ext.nemesis.angle = 0x1000;
             entity->hidden = 1;
             other->hidden = 1;
             Nemesis_SetAfterimagesHidden(entity, 1);
@@ -328,7 +326,7 @@ void Nemesis_UpdateAppearance(struct EwramData_EntityData *entity)
             if (!other->flipX)
                 other->posX.whole = x + 0xD0000;
             other->posY.whole = entity->posY.whole + 0x100000;
-            ObjAffine_Set(NEMESIS_ANGLE(entity), 0x10000, 0x10000, 0, 0, entity->affineIndex);
+            ObjAffine_Set(entity->ext.nemesis.angle, 0x10000, 0x10000, 0, 0, entity->affineIndex);
             entity->subState++;
             break;
         case 2:

@@ -1,6 +1,5 @@
 /* Destructible fragment update, reconstructed from 0x0809F410. */
 #include "code_08009A0.h"
-#include "legion_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -32,13 +31,13 @@ void LegionDestructibleFragment_Update(struct EwramData_EntityData *entity)
     u32 res;
     s32 x;
     u16 hitbox[8];
-    owner = LEGION_PART_OWNER(entity);
+    owner = entity->ext.legionPart.owner;
     bg = &gEwramData->bgInfo[1];
     do { /* FAKEMATCH: keeps the constant in a register (no move to its use in local-alloc) */
         accelerationLimit = 0x60000;
     } while (0);
     box = 0x1C06E4FD;
-    ownerData = (void *)LEGION_DATA_PTR(owner);
+    ownerData = (void *)owner->ext.legion.data.ptr;
     cur = entity->state;
     state = cur & 0xFF; /* not a plain copy: CSE must not learn cur from the state tests */
     if (state == 0) {

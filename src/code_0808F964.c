@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "devil_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -29,7 +28,7 @@ void EnemyDevilUpdate(struct EwramData_EntityData *entity)
         Player_TrackEntity(entity);
     if (Enemy_IsStunned(entity))
     {
-        if (entity->state != 2 && (s8)DEVIL_INTANGIBLE(entity) == 0)
+        if (entity->state != 2 && (s8)entity->ext.devil.intangible == 0)
             Hit_CheckWithPlayer(collision, entity);
         return;
     }
@@ -52,6 +51,6 @@ void EnemyDevilUpdate(struct EwramData_EntityData *entity)
     Anim_Update(entity);
     if (previous != entity->animFrame)
         Entity_UpdateBoxes(entity);
-    if (entity->state != 2 && (s8)DEVIL_INTANGIBLE(entity) == 0)
+    if (entity->state != 2 && (s8)entity->ext.devil.intangible == 0)
         Hit_CheckWithPlayer(collision, entity);
 }

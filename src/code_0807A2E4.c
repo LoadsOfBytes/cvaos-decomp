@@ -1,6 +1,5 @@
 ﻿/* Recoil reverses gait, accelerates away from the target, and recovers at an obstacle. */
 #include "code_08009A0.h"
-#include "arachne_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 #include "structs/entity_render_flags.h"
@@ -17,16 +16,16 @@ void Arachne_UpdateRecoil(struct EwramData_EntityData *entity)
     switch(entity->subState)
     {
     case 0:
-        ARACHNE_GAIT(entity)=2;
+        entity->ext.arachne.gait=2;
         entity->subState++;
-        ARACHNE_WALK_SPEED(entity)=-0x20000;
+        entity->ext.arachne.walkSpeed=-0x20000;
     case 1:
     {
-        s32 phase=ARACHNE_WALK_PHASE(entity)+ARACHNE_WALK_SPEED(entity);
+        s32 phase=entity->ext.arachne.walkPhase+entity->ext.arachne.walkSpeed;
         u32 flipped;
-        ARACHNE_WALK_PHASE(entity)=phase;
-        if(phase>=0x240000) ARACHNE_WALK_PHASE(entity)=phase-0x240000;
-        else if(phase<0) ARACHNE_WALK_PHASE(entity)=phase+0x240000;
+        entity->ext.arachne.walkPhase=phase;
+        if(phase>=0x240000) entity->ext.arachne.walkPhase=phase-0x240000;
+        else if(phase<0) entity->ext.arachne.walkPhase=phase+0x240000;
         entity->flipX=Entity_IsTargetRight(entity);
         if(entity->flipX) entity->accelX.whole=-0x4000;
         else entity->accelX.whole=0x4000;
@@ -41,7 +40,7 @@ void Arachne_UpdateRecoil(struct EwramData_EntityData *entity)
            !Target_IsInRect(entity->posX.part16.integer-100,entity->posY.part16.integer-80,200,160) ||
            Entity_ClampXToRoom(entity,1))
         {
-            ARACHNE_GAIT(entity)=1;
+            entity->ext.arachne.gait=1;
             entity->state=0;
             entity->subState=1;
             entity->velY.whole=0x10000;

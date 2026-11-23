@@ -37,11 +37,11 @@ static inline s32 Object19NextStep(struct EwramData_EntityData *entity, s32 step
         s32 time_;                                                         \
         entity->posX.whole += entity->velX.whole;                          \
         entity->posY.whole += entity->velY.whole;                          \
-        if ((s32)OBJECT19_STEP_TIME(entity) > 0)                      \
-            { time_ = OBJECT19_STEP_TIME(entity) - 0x10000; asm(""); } /* FAKEMATCH: empty asm keeps jump2 from cross-jumping the copies */ \
+        if ((s32)entity->ext.object19.stepTime > 0)                      \
+            { time_ = entity->ext.object19.stepTime - 0x10000; asm(""); } /* FAKEMATCH: empty asm keeps jump2 from cross-jumping the copies */ \
         else                                                               \
             time_ = Object19NextStep(entity, step);                        \
-        OBJECT19_STEP_TIME(entity) = time_;                           \
+        entity->ext.object19.stepTime = time_;                           \
     }
 
 void Object19Update(struct EwramData_EntityData *entity)
@@ -54,7 +54,7 @@ void Object19Update(struct EwramData_EntityData *entity)
         return;
     }
     entity->hidden = 0;
-    OBJECT19_ANGLE(entity) += OBJECT19_SPIN(entity);
+    entity->ext.object19.angle += entity->ext.object19.spin;
     switch (entity->state)
     {
     case 0:
@@ -71,5 +71,5 @@ void Object19Update(struct EwramData_EntityData *entity)
         break;
     }
     Hit_CheckWithPlayer(hit, entity);
-    ObjAffine_Set((s16)OBJECT19_ANGLE(entity), 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set((s16)entity->ext.object19.angle, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
 }

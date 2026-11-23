@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "chaos_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -11,16 +10,16 @@ extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern s32 Entity_AimVelocityAtPoint(struct EwramData_EntityData *, s32, s32, s32);
 extern s32 Entity_AimAccelerationAtPoint(struct EwramData_EntityData *, s32, s32, s32);
 
-#define OFFSET_X(e) (CHAOS_OFFSET_X((e)))
-#define OFFSET_Y(e) (CHAOS_OFFSET_Y((e)))
-#define SPREAD(e) (CHAOS_SHOT_SPREAD((e)))
-#define MASH(e) (((u8 *)&(e)->unk_500)[1])
+#define OFFSET_X(e) (e->ext.chaosShot.offsetX)
+#define OFFSET_Y(e) (e->ext.chaosShot.offsetY)
+#define SPREAD(e) (e->ext.chaosSoulShot.spread)
+#define MASH(e) (((u8 *)&(e)->ext.raw.unk_500)[1])
 
 /* Chaos soul grab: holds the player, who can mash buttons to break free. */
 void ChaosSpark_Update(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
-    struct EwramData_EntityData *orb = CHAOS_LINK(entity);
+    struct EwramData_EntityData *orb = entity->ext.chaosChild.link;
     struct EwramData *ewram = gEwramData;
     struct BgLayerState *camera = &ewram->bgInfo[1];
     struct EwramData_EntityData *target;
@@ -57,7 +56,7 @@ void ChaosSpark_Update(struct EwramData_EntityData *entity)
                 x = target->posX.whole + camera->xPos.whole;
                 y = target->posY.whole + camera->yPos.whole - 0x100000;
                 Entity_AimVelocityAtPoint(entity, x, y, 0x4000);
-                CHAOS_SPARK_GRABBED(entity) = state;
+                entity->ext.chaosShot.grabbed = state;
                 return;
             }
         }
@@ -80,7 +79,7 @@ void ChaosSpark_Update(struct EwramData_EntityData *entity)
         Anim_Update(entity);
         if (EntityIsOutsideScreen(entity, 4))
             goto delete;
-        if (CHAOS_SPARK_GRABBED(entity) == 1)
+        if (entity->ext.chaosShot.grabbed == 1)
         {
             entity->state = 2;
             entity->subState = 0;

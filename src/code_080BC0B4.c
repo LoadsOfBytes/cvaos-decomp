@@ -60,7 +60,7 @@ void CockatriceFamilyAttack_Draw(struct EwramData_EntityData *entity)
     for (i = 16; i != 0; i--)
     {
         Sprite_Draw(entity);
-        entity->posX.whole += COCKATRICE_BEAM_STEP_X(entity);
+        entity->posX.whole += entity->ext.cockatriceBeam.stepX;
         entity->posY.whole += COCKATRICE_BEAM_STEP_Y(entity);
     }
     entity->posX.whole = x;

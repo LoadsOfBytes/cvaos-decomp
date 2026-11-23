@@ -21,7 +21,7 @@ void BossRushResult_Draw(struct EwramData_EntityData *entity)
     u32 time;
     g = &gEwramData->gameState;
     t = &gEwramData->entityData[26];
-    time = BOSS_RUSH_TIME(t);
+    time = t->ext.bossRushTimer.time;
     Game_SetMenusEnabled(0);
     if (entity->state == 3)
         SetPlayerInput(1, 0);

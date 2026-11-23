@@ -3,11 +3,6 @@
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 
-/*
- * Chronomage cast effect (ChronomageCastEffect_Update): affine scale (grows to
- * 1.0, then shrinks). Token-identical expansion.
- */
-#define CHRONOMAGE_CAST_SCALE(e) e->unk_4FC.whole
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
 extern void Entity_SnapToGround(struct EwramData_EntityData *);
@@ -50,7 +45,7 @@ void ChronomageCastEffect_Update(struct EwramData_EntityData *entity)
         entity->state = 1;
         /* fall through */
     case 1:
-        if ((s32)CHRONOMAGE_CAST_SCALE(entity) <= 0xFFFF) CHRONOMAGE_CAST_SCALE(entity) += 0x1000;
+        if ((s32)entity->ext.chronomageCast.scale <= 0xFFFF) entity->ext.chronomageCast.scale += 0x1000;
         else
         {
             entity->state = 2;
@@ -62,9 +57,9 @@ void ChronomageCastEffect_Update(struct EwramData_EntityData *entity)
         else entity->state = 3;
         break;
     case 3:
-        if ((s32)CHRONOMAGE_CAST_SCALE(entity) > 0)
+        if ((s32)entity->ext.chronomageCast.scale > 0)
         {
-            CHRONOMAGE_CAST_SCALE(entity) -= 0x2000;
+            entity->ext.chronomageCast.scale -= 0x2000;
             break;
         }
         /* fall through */
@@ -74,6 +69,6 @@ remove:
         EntityDelete(entity);
         return;
     }
-    ObjAffine_Set(0, CHRONOMAGE_CAST_SCALE(entity), CHRONOMAGE_CAST_SCALE(entity), 0, 0, entity->affineIndex);
+    ObjAffine_Set(0, entity->ext.chronomageCast.scale, entity->ext.chronomageCast.scale, 0, 0, entity->affineIndex);
 }
 

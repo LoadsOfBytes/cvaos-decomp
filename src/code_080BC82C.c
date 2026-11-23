@@ -1,6 +1,5 @@
 /* Boss arm segment: hangs from its owner, swings, is thrown and flies off. */
 #include "code_08009A0.h"
-#include "death_entity.h"
 #include "code_08013960.h"
 #include "code_08033CAC.h"
 #include "code_080D73B8.h"
@@ -28,9 +27,9 @@ extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern struct ArmPose sDeathWeaponArmPoses[];
 extern u8 sDeathGfx[], sDeathPalette[], sDeathSpriteSheet[];
 
-#define SPIN(e) (DEATH_WEAPON_ANGLE((e)))
-#define SPEED(e) (DEATH_WEAPON_SPIN((e)))
-#define FLAGS(e) (DEATH_FLAGS((e)))
+#define SPIN(e) (e->ext.deathWeapon.angle)
+#define SPEED(e) (e->ext.deathWeapon.spin)
+#define FLAGS(e) (e->ext.death.flags)
 #define TO_PIXELS(d) ((d) < 0 ? -(-(d) >> 16) : (d) >> 16)
 
 static inline s32 Id(s32 v) { return v; }
@@ -47,8 +46,8 @@ static inline s32 SparkOffset(s32 a, s32 k)
 void DeathWeapon_Update(struct EwramData_EntityData *entity)
 {
     u8 box[16];
-    struct EwramData_EntityData *owner = &gEwramData->entityData[(u8)DEATH_OWNER_INDEX(entity)];
-    struct ArmPose *pose = &sDeathWeaponArmPoses[(u8)DEATH_DASH_STEP(owner)];
+    struct EwramData_EntityData *owner = &gEwramData->entityData[(u8)entity->ext.deathHelper.ownerIndex];
+    struct ArmPose *pose = &sDeathWeaponArmPoses[(u8)owner->ext.death.dashStep];
     s32 dx, dy, angle;
     s32 zero;
     u8 t;
@@ -85,7 +84,7 @@ void DeathWeapon_Update(struct EwramData_EntityData *entity)
         entity->hit.flags |= 4;
         entity->attack = 0x3C;
         SPIN(entity) = 0x4000;
-        if (DEATH_WEAPON_MIRROR(entity))
+        if (entity->ext.deathWeapon.mirror)
         {
             entity->state = 8;
             goto tail;
@@ -225,13 +224,13 @@ void DeathWeapon_Update(struct EwramData_EntityData *entity)
     case 8:
     default:
     tail:
-    if ((zero = DEATH_WEAPON_MIRROR(entity)) == 0)
+    if ((zero = entity->ext.deathWeapon.mirror) == 0)
     {
         ObjAffine_Set(SPIN(entity), 0x10000, 0x10000, entity->flipX, zero, entity->affineIndex);
     }
     else
     {
-        owner = &gEwramData->entityData[DEATH_WEAPON_PRIMARY_INDEX(entity)];
+        owner = &gEwramData->entityData[entity->ext.deathWeapon.primaryIndex];
         if (owner->state == 10)
         {
     case 10:

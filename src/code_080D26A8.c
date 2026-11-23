@@ -13,8 +13,8 @@ extern void EnemyGrahamCreate(struct EwramData_EntityData *);
  */
 void Graham_UpdateIntro(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *object=&gEwramData->entityData[(u8)GRAHAM_SCENE_OBJECT_INDEX(entity)];
-    struct EwramData_EntityData *helper=&gEwramData->entityData[GRAHAM_SCENE_HELPER_INDEX(entity)];
+    struct EwramData_EntityData *object=&gEwramData->entityData[(u8)entity->ext.grahamScene.objectIndex];
+    struct EwramData_EntityData *helper=&gEwramData->entityData[entity->ext.grahamScene.helperIndex];
     Game_SetMenusEnabled(0);
     switch(entity->stage)
     {
@@ -22,7 +22,7 @@ void Graham_UpdateIntro(struct EwramData_EntityData *entity)
         {
             struct BgLayerState *camera;
             helper=Entity_CreateFromObjectTable(4);
-            GRAHAM_SCENE_HELPER_INDEX(entity)=ENTITY_INDEX(helper);
+            entity->ext.grahamScene.helperIndex=ENTITY_INDEX(helper);
             helper->flipX=1;
             camera=&gEwramData->bgInfo[1];
             helper->posX.part16.integer=120-camera->xPos.part16.integer;

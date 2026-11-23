@@ -25,17 +25,17 @@ void Object15Update(struct EwramData_EntityData *entity)
         SetPlayerInput(1, 0);
         break;
     case 2:
-        if (OBJECT15_RADIUS(entity) > 0x90000) SetPlayerInput(1, 0);
+        if (entity->ext.object15.radius > 0x90000) SetPlayerInput(1, 0);
         else SetPlayerInput(1, gEwramData->playerStatus.jumpButton);
-        OBJECT15_ANGLE(entity) += 0x40;
-        if (OBJECT15_RADIUS(entity) != 0)
+        entity->ext.object15.angle += 0x40;
+        if (entity->ext.object15.radius != 0)
         {
-            if (OBJECT15_RADIUS(entity) == 0x100000)
+            if (entity->ext.object15.radius == 0x100000)
             {
                 BgPalette_StartColorFade(31, 7, 7, 0x10000, 0, 64);
                 ObjPalette_StartColorFade(31, 7, 7, 0x10000, 0, 64);
             }
-            OBJECT15_RADIUS(entity) -= 0x4000;
+            entity->ext.object15.radius -= 0x4000;
         }
         else entity->state = 3;
         break;

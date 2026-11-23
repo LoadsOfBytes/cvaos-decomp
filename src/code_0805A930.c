@@ -58,14 +58,14 @@ void Object37Create(struct EwramData_EntityData *entity)
     x = entity->posX.whole - (*ewram)->playerState.player->posX.whole;
     if (Abs(x) < 0x300000)
     {
-        OBJECT37_ANGLE(entity) = 0x3000;
+        entity->ext.object37.angle = 0x3000;
         entity->subState = 1;
         ObjAffine_Set(0x3000, scale, scale, entity->flipX, entity->flipY, entity->affineIndex);
-        OBJECT37_CLOSED(entity) = 0;
+        entity->ext.object37.closed = 0;
     }
     else
     {
-        OBJECT37_CLOSED(entity) = 1;
+        entity->ext.object37.closed = 1;
         x = EntityRoomX(entity, ewram);
         y = EntityRoomY(entity, ewram);
         x -= 0x10;

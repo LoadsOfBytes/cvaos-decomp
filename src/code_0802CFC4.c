@@ -1,6 +1,5 @@
 #include "code_08009A0.h"
 #include "soul_skill_entity.h"
-#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -55,7 +54,7 @@ static inline s32 FixedMul(s32 a, s32 b)
  */
 void SkillSlimeUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.redSoul.owner;
     s32 angle;
 
     switch (entity->state)
@@ -103,7 +102,7 @@ void SkillSlimeUse(struct EwramData_EntityData *entity)
         Hit_Enable(entity, 5, 0, 0);
         HitBox_SetAttackRaw(entity, 0x0808FCFC);
         { u8 zero = 0; entity->hit.flags |= 4; entity->hit.flags |= zero; entity->hit.flags &= ~2; }
-        SKILL_SLIME_TIMER(entity) = 0x100;
+        entity->ext.skillSlime.timer = 0x100;
         entity->accelX.part16.integer = 4;
         entity->accelY.part16.integer = 4;
         gEwramData->playerState.nbrActiveRedSoulEntities++;
@@ -113,17 +112,17 @@ void SkillSlimeUse(struct EwramData_EntityData *entity)
         entity->velX.whole = FixedMul(Sin(SKILL_SLIME_ANGLE_WORD(entity) + 0x4000), SKILL_SLIME_SPEED(entity));
         entity->velY.whole = FixedMul(Sin(SKILL_SLIME_ANGLE_WORD(entity)), SKILL_SLIME_SPEED(entity));
         SkillSlimeMoveAndBounce(entity);
-        SKILL_SLIME_TIMER(entity)--;
-        if (entity->subState == 0 && SKILL_SLIME_TIMER(entity) == 0x20)
+        entity->ext.skillSlime.timer--;
+        if (entity->subState == 0 && entity->ext.skillSlime.timer == 0x20)
         {
             Anim_StartIndexed(entity, 1, 0, 0);
             entity->subState = 1;
         }
-        if (SKILL_SLIME_TIMER(entity) != 0)
+        if (entity->ext.skillSlime.timer != 0)
             break;
         entity->subState = 2;
     case 2:
-        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;
@@ -131,7 +130,7 @@ void SkillSlimeUse(struct EwramData_EntityData *entity)
     if (EntityIsOutsideScreen(entity, 6) || !entity->roomActive)
     {
         entity->roomActive = 1;
-        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;

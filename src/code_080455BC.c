@@ -1,6 +1,5 @@
 /* Effect_CreatePlayerFlash. */
 #include "code_08009A0.h"
-#include "particle_effect.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -24,7 +23,7 @@ struct EwramData_EntityData *Effect_CreatePlayerFlash(s32 kind)
     Sprite_Attach(entity, sCommonObjectSpriteSheet, gfx, 6);
     entity->drawFunc = (u32 *)Effect_DrawPlayerFlash;
     entity->animFrame = info[0];
-    PLAYER_FLASH_DURATION(entity) = info[1];
+    entity->ext.playerFlash.duration = info[1];
     if (kind == 0)
     {
         {
@@ -35,7 +34,7 @@ struct EwramData_EntityData *Effect_CreatePlayerFlash(s32 kind)
         entity->affine = 1;
         PlaySong(0xBC);
     }
-    PLAYER_FLASH_INFO(entity) = (s32)info;
-    PLAYER_FLASH_KIND(entity) = kind;
+    entity->ext.playerFlash.info = (s32)info;
+    entity->ext.playerFlash.kind = kind;
     return entity;
 }

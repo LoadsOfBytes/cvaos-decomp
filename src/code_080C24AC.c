@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "ripper_entity.h"
 #include "code/code_08039340.h"
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, u8, void *);
 extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
@@ -33,8 +32,8 @@ void EnemyRipperCreate(struct EwramData_EntityData *entity)
     entity->stage = 0;
     entity->subState = 0;
     if ((entity->unk_514.part16.spawnParam0 & entity->unk_514.part16.spawnParam1) == 0xFF)
-        RIPPER_AIRBORNE(entity) = 1;
-    else RIPPER_AIRBORNE(entity) = 0;
+        entity->ext.ripper.airborne = 1;
+    else entity->ext.ripper.airborne = 0;
     Entity_EnableBoxes(entity, Enemy_OnContact, Ripper_OnHit);
-    if ((u8)RIPPER_AIRBORNE(entity) != 1) Entity_SnapToGround(entity);
+    if ((u8)entity->ext.ripper.airborne != 1) Entity_SnapToGround(entity);
 }

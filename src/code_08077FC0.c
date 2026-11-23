@@ -1,6 +1,5 @@
 ﻿/* Repeated leaps record motion for the body and turn at ledges. */
 #include "code_08009A0.h"
-#include "quezlcoatl_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08060B98.h"
 #include "structs/ewram.h"
@@ -16,17 +15,17 @@ extern void Effect_SpawnRisingParticle(s32,s32,s32,s32);
  */
 void Quezlcoatl_UpdateFly(struct EwramData_EntityData *entity)
 {
-    u8 (*history)[2]=(u8 (*)[2])QUEZLCOATL_HISTORY(entity);
+    u8 (*history)[2]=(u8 (*)[2])entity->ext.quezlcoatl.history;
     s32 x,y,i,turn,collision;
     switch(entity->subState)
     {
         case 0: entity->subState=1;
         case 1:
-            if(!(QUEZLCOATL_BOUNCE_COUNT(entity)&1)) entity->flipX=Entity_IsTargetRight(entity);
+            if(!(entity->ext.quezlcoatl.bounceCount&1)) entity->flipX=Entity_IsTargetRight(entity);
             if(!entity->unk_514.part16.spawnParam0) turn=Entity_GetHorizontalRoomEdge(entity,15);
             else turn=Entity_GetHorizontalRoomEdge(entity,entity->unk_514.part16.spawnParam0);
-            if(turn==1) { entity->flipX=1; QUEZLCOATL_BOUNCE_COUNT(entity)=0; }
-            else if(turn==2) { entity->flipX=0; QUEZLCOATL_BOUNCE_COUNT(entity)=0; }
+            if(turn==1) { entity->flipX=1; entity->ext.quezlcoatl.bounceCount=0; }
+            else if(turn==2) { entity->flipX=0; entity->ext.quezlcoatl.bounceCount=0; }
             if(entity->flipX) entity->velX.whole=0x20000;
             else entity->velX.whole=-0x20000;
             entity->velY.whole=-0x40000;
@@ -55,7 +54,7 @@ void Quezlcoatl_UpdateFly(struct EwramData_EntityData *entity)
             history[0][0]=x; history[0][1]=y;
             if(collision&4)
             {
-                QUEZLCOATL_BOUNCE_COUNT(entity)++;
+                entity->ext.quezlcoatl.bounceCount++;
                 entity->subState=1; entity->animFrame=12;
                 Effect_SpawnRisingParticle(entity->posX.whole,entity->posY.whole,entity->spriteLayer-1,1);
                 if(!EntityIsOutsideScreen(entity,6)) PlaySong(0x7C);

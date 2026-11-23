@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "minotaur_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -39,11 +38,11 @@ void MinotaurSwingTrail_Update(struct EwramData_EntityData *entity)
     case 1:
         if (parent->animScriptIndex != 4)
             goto hide;
-        if ((u8)(MINOTAUR_ANIM_STEP(parent) - 4) > 1)
+        if ((u8)(parent->ext.minotaur.animStep - 4) > 1)
         {
             entity->timer = 0;
             entity->hidden = 1;
-            MINOTAUR_TRAIL_ANGLE(entity) = 0;
+            entity->ext.minotaurTrail.angle = 0;
             return;
         }
         if (entity->timer > 6)
@@ -54,12 +53,12 @@ void MinotaurSwingTrail_Update(struct EwramData_EntityData *entity)
         }
         entity->timer++;
         entity->hidden = 0;
-        entity->subState = MINOTAUR_ANIM_STEP(parent) - 4;
+        entity->subState = parent->ext.minotaur.animStep - 4;
         entity->flipX = parent->flipX;
         entity->posX.part16.integer = parent->posX.part16.integer;
         entity->posY.part16.integer = parent->posY.part16.integer - 0x10;
-        MINOTAUR_TRAIL_ANGLE(entity) += -0x400;
-        rot = MINOTAUR_TRAIL_ANGLE(entity);
+        entity->ext.minotaurTrail.angle += -0x400;
+        rot = entity->ext.minotaurTrail.angle;
         angle = (rot - 0x6000) & 0xFFFF;
         dx = Sin(angle + 0x4000) * 56;
         dy = Sin(angle) << 6;

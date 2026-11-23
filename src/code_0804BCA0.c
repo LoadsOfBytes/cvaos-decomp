@@ -17,8 +17,8 @@ void AbilityMenu_PrintSelectedName(struct EwramData_EntityData *entity)
 {
     s32 text;
 
-    if (SoulInventory_GetSoulTotal(3, (s8)MENU_PAGE_CURSOR(entity)))
-        text = (s8)MENU_PAGE_CURSOR(entity) + 0x257;
+    if (SoulInventory_GetSoulTotal(3, (s8)entity->ext.menuPage.cursor))
+        text = (s8)entity->ext.menuPage.cursor + 0x257;
     else
         text = 0x34F;
 
@@ -34,7 +34,7 @@ void AbilityMenu_DrawMarkers(struct EwramData_EntityData *entity)
 {
     s32 i;
 
-    for (i = 0; i < MENU_PAGE_COUNT(entity); i++)
+    for (i = 0; i < entity->ext.menuPage.count; i++)
     {
         if (SoulInventory_GetSoulTotal(3, i))
         {

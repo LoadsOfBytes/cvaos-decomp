@@ -8,7 +8,7 @@ struct EffectOwnerState { u8 pad[0x24]; u16 flags; u8 pad26[10]; u8 done, reques
  */
 void SavePoint_UpdateAnimPart(struct EwramData_EntityData *entity)
 {
-    struct EffectOwnerState *owner = (struct EffectOwnerState *)entity->unk_500.whole;
+    struct EffectOwnerState *owner = (struct EffectOwnerState *)entity->ext.savePointPart.owner;
     switch (entity->state)
     {
     case 0:

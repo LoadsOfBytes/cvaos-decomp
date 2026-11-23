@@ -41,20 +41,20 @@ void Object17Update(struct EwramData_EntityData *entity)
     case 0:
         if (Player_IsBusy())
         {
-            OBJECT17_HOLD_FRAMES(entity) = 0;
+            entity->ext.object17.holdFrames = 0;
             break;
         }
         player = gEwramData->playerState.player;
         if (!Entity_IsInRect(entity, player->posX.part16.integer - 0x20, player->posY.part16.integer - 0x20, 0x40, 0x10))
         {
-            OBJECT17_HOLD_FRAMES(entity) = 0;
+            entity->ext.object17.holdFrames = 0;
             break;
         }
         if (gEwramData->inputData.playerHeldInput & 0xC0)
-            OBJECT17_HOLD_FRAMES(entity)++;
+            entity->ext.object17.holdFrames++;
         else
-            OBJECT17_HOLD_FRAMES(entity) = 0;
-        if ((u8)OBJECT17_HOLD_FRAMES(entity) <= 2)
+            entity->ext.object17.holdFrames = 0;
+        if ((u8)entity->ext.object17.holdFrames <= 2)
             break;
         if ((gEwramData->inputData.playerHeldInput & 0x80) && entity->subState <= 1)
         {

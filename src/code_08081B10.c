@@ -1,6 +1,5 @@
 /* Headhunter (entity type 0x6A): update. */
 #include "code_08009A0.h"
-#include "headhunter_entity.h"
 #include "code_08013960.h"
 #include "code_08033CAC.h"
 #include "code/code_08039340.h"
@@ -38,7 +37,7 @@ extern void HeadhunterTransformationPart_Update(struct EwramData_EntityData *);
 extern void Headhunter_DamagePlayerOnContact(struct EwramData_EntityData *);
 extern void Headhunter_OnHit(struct EwramData_EntityData *);
 
-#define KIND(e) (*(s8 *)&HEADHUNTER_KIND((e)))
+#define KIND(e) (*(s8 *)&e->ext.headhunterChild.kind)
 
 /* Headhunter: dispatch AI (0), attacks (1), defeat (2) and the frozen
  * defeated form (3); bit 1 of unk_4FE overrides the frame with unk_4FF,
@@ -54,7 +53,7 @@ void EnemyHeadhunterUpdate(struct EwramData_EntityData *entity)
     struct SingleFrameAnimation animation = sHeadhunterFrameAnim;
     if (entity->state != 2 && Entity_IsInRect(entity, -16, 0, 272, 176))
         Player_TrackEntity(entity);
-    *(s8 *)&HEADHUNTER_FLAGS(entity) &= ~3;
+    *(s8 *)&entity->ext.headhunter.flags &= ~3;
     if (entity->state != 2) Enemy_UpdateHitFlash(entity);
     if (Entity_IsTimeStopped(entity) && entity->state != 2)
     {
@@ -73,17 +72,17 @@ void EnemyHeadhunterUpdate(struct EwramData_EntityData *entity)
     {
         u8 *initial = &entity->animFrame;
         u8 previous = *initial;
-        s32 override = HEADHUNTER_FLAGS(entity) & 2;
+        s32 override = entity->ext.headhunter.flags & 2;
         u8 *frame = initial;
         if (override)
         {
             Anim_Start(entity, (struct AnimScript *)&animation, 2, 1);
-            animation.frame = HEADHUNTER_FORCED_FRAME(entity);
+            animation.frame = entity->ext.headhunter.forcedFrame;
             Anim_Update(entity);
         }
         else Anim_Update(entity);
         if (previous != *frame) Entity_UpdateBoxes(entity);
     }
-    if (entity->state != 2 && !(HEADHUNTER_FLAGS(entity) & 1))
+    if (entity->state != 2 && !(entity->ext.headhunter.flags & 1))
         Hit_CheckWithPlayer(collision, entity);
 }

@@ -1,7 +1,6 @@
 /* Soul helpers 0x0802D9B4..0x0802DAD3. */
 #include "code_08009A0.h"
 #include "soul_skill_entity.h"
-#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -17,7 +16,7 @@ extern s32 EntityIsOutsideScreen(struct EwramData_EntityData *entity, s32 margin
  */
 void SoulAttack_MarkHit(struct EwramData_EntityData *entity)
 {
-    RED_SOUL_HIT(entity) = 1;
+    entity->ext.redSoul.hit = 1;
 }
 
 /**
@@ -29,14 +28,14 @@ void RedSoul_AnchorToHitTargetTimed(struct EwramData_EntityData *entity, struct 
 {
     struct EwramData_EntityData *child;
 
-    if (RED_SOUL_ANCHOR(entity) == NULL)
+    if (entity->ext.redSoul.anchor == NULL)
     {
         child = EntityCreateInRange(0x49, 0xCF, (u32 *)RedSoulAnchor_Update);
         if (child == NULL)
             return;
-        RED_SOUL_ANCHOR(entity) = child;
+        entity->ext.redSoul.anchor = child;
         ENTITY_OWNER(child) = entity;
-        RED_SOUL_ANCHOR_TARGET(child) = target;
+        child->ext.redSoulAnchor.target = target;
         ENTITY_INDEX(child) = ENTITY_INDEX(entity);
         entity->timer = 0x78;
         HitBox_SetAttackRaw(entity, 0x1014F8F6);
@@ -45,7 +44,7 @@ void RedSoul_AnchorToHitTargetTimed(struct EwramData_EntityData *entity, struct 
     }
     else
     {
-        RED_SOUL_ANCHOR_TIMER(entity) = 0;
+        entity->ext.redSoul.anchorTimer = 0;
     }
 }
 
@@ -60,14 +59,14 @@ void HomingSoulProjectile_OnPlayerContact(struct EwramData_EntityData *entity)
 
 /**
  * @brief Draw callback (SkillChronomageUse): outside mode 6 and with unk_A074
- * bit 0 copy SKILL_CHRONOMAGE_INVERT to paletteInvert, then draw.
+ * bit 0 copy ext.skillChronomage.invert to paletteInvert, then draw.
  */
 void Soul_DrawWithPaletteInvert(struct EwramData_EntityData *entity)
 {
     struct EwramData *ewram = gEwramData;
 
     if (ewram->gameState.subMode != 6 && ewram->paused)
-        ewram->paletteInvert = SKILL_CHRONOMAGE_INVERT(entity);
+        ewram->paletteInvert = entity->ext.skillChronomage.invert;
     Sprite_Draw(entity);
 }
 
@@ -102,9 +101,9 @@ void Effect_UpdateBallisticDebris(struct EwramData_EntityData *entity)
 
 /**
  * @brief Contact callback of the bone soul projectile: set its hit flag
- * (SKILL_BONE_HIT).
+ * (ext.skillBone.hit).
  */
 void BoneSoul_OnPlayerContact(struct EwramData_EntityData *entity)
 {
-    SKILL_BONE_HIT(entity) = 1;
+    entity->ext.skillBone.hit = 1;
 }

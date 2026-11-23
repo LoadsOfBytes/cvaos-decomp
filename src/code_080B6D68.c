@@ -38,7 +38,7 @@ void Chronomage_UpdateWait(struct EwramData_EntityData *entity)
         entity->stage = 0;
         entity->subState = 0;
     }
-    else if (distance <= 0x6F || (PLAYER_ACTION_FLAGS(gEwramData->playerState.player) & 0x360))
+    else if (distance <= 0x6F || (gEwramData->playerState.player->ext.player.actionFlags & 0x360))
     {
         entity->state = 1;
         entity->stage = 0;

@@ -1,7 +1,6 @@
 /* Soma_CastEquippedRedSoul; soul spawn
  * as in Soma_TryCastRedSoulUnused (src/code_0801F2C8.c). */
 #include "code_08009A0.h"
-#include "red_soul_entity.h"
 #include "player_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
@@ -31,12 +30,12 @@ static inline void SetPlayerAnimBox(struct EwramData_EntityData *entity, u8 anim
     {
         Anim_StartIndexed(entity, anim, 3, 0);
         HitBox_SetBody(entity, &box);
-        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
-        PLAYER_ACTION_FLAGS(entity) &= ~0x200000;
+        entity->ext.player.requestedAnim = 0xFF;
+        entity->ext.player.actionFlags &= ~0x200000;
         pal = sSomaAnimPalettes[anim];
-        if (PLAYER_ANIM_PALETTE(entity) != pal)
+        if (entity->ext.player.animPalette != pal)
         {
-            PLAYER_ANIM_PALETTE(entity) = pal;
+            entity->ext.player.animPalette = pal;
             ObjPalette_LoadRange(sSomaPalette, pal, 1, 0);
         }
     }
@@ -86,15 +85,15 @@ void Soma_CastEquippedRedSoul(struct EwramData_EntityData *entity, s32 noAnim)
         return;
     gEwramData->playerStatus.currentMP -= info->mpCost;
     gEwramData->playerState.activeRedSoulEntities[slot] = soul;
-    RED_SOUL_OWNER(soul) = entity;
-    RED_SOUL_SLOT(soul) = slot;
-    RED_SOUL_ID(soul) = gEwramData->playerStatus.equippedRedSoul;
-    RED_SOUL_PARAM(soul) = info->param;
+    soul->ext.redSoul.owner = entity;
+    soul->ext.redSoul.slot = slot;
+    soul->ext.redSoul.id = gEwramData->playerStatus.equippedRedSoul;
+    soul->ext.redSoul.param = info->param;
     soul->roomActive = 1;
     if (noAnim)
         return;
     entity->subState = 0;
-    if (!(PLAYER_ACTION_FLAGS(entity) & 2))
+    if (!(entity->ext.player.actionFlags & 2))
     {
         anim = RedSoul_GetCastAnim(0);
         SetPlayerAnimBox(entity, anim, sSomaStandingBodyBox);
@@ -103,8 +102,8 @@ void Soma_CastEquippedRedSoul(struct EwramData_EntityData *entity, s32 noAnim)
         case 1:
         {
             u8 v = 0x10;
-            PLAYER_INVULNERABLE_TIMER(gEwramData->playerState.player) = v;
-            PLAYER_ACTION_FLAGS(entity) = (PLAYER_ACTION_FLAGS(entity) | 0xA) & ~0x100400;
+            gEwramData->playerState.player->ext.player.invulnerableTimer = v;
+            entity->ext.player.actionFlags = (entity->ext.player.actionFlags | 0xA) & ~0x100400;
             entity->velY.whole = -0x38000;
             entity->accelY.whole = -0x1000;
             break;
@@ -112,7 +111,7 @@ void Soma_CastEquippedRedSoul(struct EwramData_EntityData *entity, s32 noAnim)
         case 2:
         {
             u8 v = 0x10;
-            PLAYER_INVULNERABLE_TIMER(gEwramData->playerState.player) = v;
+            gEwramData->playerState.player->ext.player.invulnerableTimer = v;
             if (!entity->flipX)
                 entity->velX.whole = 0x30000;
             else
@@ -122,7 +121,7 @@ void Soma_CastEquippedRedSoul(struct EwramData_EntityData *entity, s32 noAnim)
         case 3:
         {
             u8 v = 0x32;
-            PLAYER_INVULNERABLE_TIMER(gEwramData->playerState.player) = v;
+            gEwramData->playerState.player->ext.player.invulnerableTimer = v;
             entity->subState = 1;
             break;
         }
@@ -135,9 +134,9 @@ void Soma_CastEquippedRedSoul(struct EwramData_EntityData *entity, s32 noAnim)
         if (info->castAnimKind == 3)
         {
             u8 v = 0x14;
-            PLAYER_INVULNERABLE_TIMER(gEwramData->playerState.player) = v;
+            gEwramData->playerState.player->ext.player.invulnerableTimer = v;
         }
     }
-    PLAYER_ACTION_FLAGS(entity) = (PLAYER_ACTION_FLAGS(entity) & ~0x200060) | 0x100;
+    entity->ext.player.actionFlags = (entity->ext.player.actionFlags & ~0x200060) | 0x100;
     entity->state = 2;
 }

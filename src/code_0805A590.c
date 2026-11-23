@@ -51,11 +51,11 @@ void Object35_Draw(struct EwramData_EntityData *entity)
 {
     s32 oldY = entity->posY.whole;
 
-    if (OBJECT35_PRESSED(entity) != 0)
+    if (entity->ext.object35.pressed != 0)
     {
         entity->objMode = 2;
         gUnk_03002CB0.dispCnt |= DCNT_WINOBJ;
-        entity->posY.whole = OBJECT35_HOME_Y(entity) + 0x300000;
+        entity->posY.whole = entity->ext.object35.homeY + 0x300000;
         Sprite_Draw(entity);
         entity->objMode = 0;
     }
@@ -95,11 +95,11 @@ void Object36Update(struct EwramData_EntityData *entity)
     affineSrc.texY = 0x8000;
     affineSrc.scrX = entity->posX.part16.integer;
     affineSrc.scrY = entity->posY.part16.integer;
-    affineSrc.sx = OBJECT36_SCALE(entity);
-    affineSrc.sy = OBJECT36_SCALE(entity);
-    affineSrc.alpha = OBJECT36_ANGLE(entity);
+    affineSrc.sx = entity->ext.object36.scale;
+    affineSrc.sy = entity->ext.object36.scale;
+    affineSrc.alpha = entity->ext.object36.angle;
     BgAffineSet(&affineSrc, (struct BgAffineDstData *)&gDisplayRegisters.bg2PA, 1);
-    OBJECT36_ANGLE(entity) += OBJECT36_SPIN(entity);
+    entity->ext.object36.angle += entity->ext.object36.spin;
 }
 
 /**
@@ -114,8 +114,8 @@ void Object36Create(struct EwramData_EntityData *entity)
     entity->hit.flags |= 4;
     entity->hit.flags |= 2;
     entity->hidden = 1;
-    OBJECT36_RADIUS(entity) = shapes[entity->unk_514.part16.spawnParam0][0] / 2;
-    OBJECT36_SPIN(entity) = shapes[entity->unk_514.part16.spawnParam0][1];
-    OBJECT36_SCALE(entity) = 0x200 - shapes[entity->unk_514.part16.spawnParam0][0] * 2;
+    entity->ext.object36.radius = shapes[entity->unk_514.part16.spawnParam0][0] / 2;
+    entity->ext.object36.spin = shapes[entity->unk_514.part16.spawnParam0][1];
+    entity->ext.object36.scale = 0x200 - shapes[entity->unk_514.part16.spawnParam0][0] * 2;
     Player_RegisterSolidObject(entity, sObject36SolidCallbacks);
 }

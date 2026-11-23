@@ -52,8 +52,8 @@ void MenuItemIcon_Show(s32 x, s32 y, s32 type, s32 item)
             info = Item_GetInfoByGlobalId(item);
             type = Item_GetTypeByGlobalId(item);
         }
-        MENU_GFX_SLOT(entity) = ItemIconCache_Load(info[2]);
-        ItemIcon_AttachSprite(entity, MENU_GFX_SLOT(entity), (s8)info[3]);
+        entity->ext.menu.gfxSlot = ItemIconCache_Load(info[2]);
+        ItemIcon_AttachSprite(entity, entity->ext.menu.gfxSlot, (s8)info[3]);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         entity->posX.part16.integer = x;
         entity->posY.part16.integer = y;
@@ -97,8 +97,8 @@ void MenuSlotIcon_Show(s32 x, s32 y, s32 type, s32 item, s32 slot)
             info = Item_GetInfoByGlobalId(item);
             type = Item_GetTypeByGlobalId(item);
         }
-        MENU_GFX_SLOT(entity) = ItemIconCache_Load(info[2]);
-        ItemIcon_AttachSprite(entity, MENU_GFX_SLOT(entity), (s8)info[3]);
+        entity->ext.menu.gfxSlot = ItemIconCache_Load(info[2]);
+        ItemIcon_AttachSprite(entity, entity->ext.menu.gfxSlot, (s8)info[3]);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         entity->posX.part16.integer = x;
         entity->posY.part16.integer = y;

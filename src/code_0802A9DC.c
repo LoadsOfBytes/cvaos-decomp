@@ -1,6 +1,5 @@
 #include "code_08009A0.h"
 #include "soul_skill_entity.h"
-#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -55,7 +54,7 @@ static inline void SetFrameBox(struct EwramData_EntityData *entity)
  */
 void SkillNightmareUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.redSoul.owner;
     struct EwramData_EntityData *child;
     u16 slot;
 
@@ -65,7 +64,7 @@ void SkillNightmareUse(struct EwramData_EntityData *entity)
         slot = ObjAffine_Alloc(0);
         if ((s16)slot < 0)
         {
-            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+            gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
             EntityDelete(entity);
             return;
         }
@@ -125,10 +124,10 @@ void SkillNightmareUse(struct EwramData_EntityData *entity)
             child->accelX.whole = Sin((s16)angle + 0x4000) / 32;
             child->accelY.whole = Sin((s16)angle) / 32;
         }
-        if (SKILL_NIGHTMARE_SCALE_X(entity) <= 0xFFFF)
+        if (entity->ext.skillNightmare.scaleX <= 0xFFFF)
         {
-            SKILL_NIGHTMARE_SCALE_X(entity) += 0x1000;
-            ObjAffine_Set(0, SKILL_NIGHTMARE_SCALE_X(entity), 0x10000, entity->flipX, 0, entity->affineIndex);
+            entity->ext.skillNightmare.scaleX += 0x1000;
+            ObjAffine_Set(0, entity->ext.skillNightmare.scaleX, 0x10000, entity->flipX, 0, entity->affineIndex);
             EntityAccelerateAndMove(entity, 0x80000);
             break;
         }
@@ -158,7 +157,7 @@ void SkillNightmareUse(struct EwramData_EntityData *entity)
         entity->roomActive = 1;
         if (ENTITY_RENDER_FLAGS16(entity) & 0x101F)
             ObjAffine_Free(entity->affineIndex);
-        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
     }

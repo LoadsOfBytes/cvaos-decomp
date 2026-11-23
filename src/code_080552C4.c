@@ -1,6 +1,5 @@
 /* Particles 0x080552C4..0x080554BB. */
 #include "code_08009A0.h"
-#include "particle_effect.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -79,9 +78,9 @@ void SaveSparkle_Create(s32 x, s32 y, s32 accelX, s32 accelY, s32 phase, u8 pale
         child->posY.whole = y;
         child->accelX.whole = accelX;
         child->accelY.whole = accelY;
-        child->unk_4FC.whole = phase;
-        PARTICLE_PAIR_OFFSET_X(child) = ((RandomNumberGenerator() & 0x1F) << 16) - 0x100000;
-        PARTICLE_PAIR_OFFSET_Y(child) = ((RandomNumberGenerator() & 0x1F) << 16) - 0x100000;
+        child->ext.raw.unk_4FC.whole = phase;
+        child->ext.particlePair.offsetX = ((RandomNumberGenerator() & 0x1F) << 16) - 0x100000;
+        child->ext.particlePair.offsetY = ((RandomNumberGenerator() & 0x1F) << 16) - 0x100000;
         child->palette = palette;
         child->unk_518.whole = (s32)entity;
         child->spriteLayer = entity->spriteLayer + 1;

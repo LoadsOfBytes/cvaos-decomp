@@ -2,7 +2,6 @@
  * a cloning script and checked byte for byte:
  *   ZombieSoldier_SpawnPiece = ZombieOfficer_SpawnPiece */
 #include "code_08009A0.h"
-#include "zombie_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -23,7 +22,7 @@ void ZombieSoldier_SpawnPiece(struct EwramData_EntityData *entity, s32 x, s32 y,
 
         child->posX.whole = entity->posX.whole + x;
         child->posY.whole = entity->posY.whole + y;
-        ZOMBIE_PIECE_FLOOR_Y(child) = entity->posY.whole;
+        child->ext.zombiePiece.floorY = entity->posY.whole;
         child->flipX = entity->flipX;
         child->spriteLayer = entity->spriteLayer - 1;
         gfx = ObjGfx_Find(sZombieSoldierGfx);

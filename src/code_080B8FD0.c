@@ -1,6 +1,5 @@
 /* Witch projectile and particle helpers. */
 #include "code_08009A0.h"
-#include "witch_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -23,15 +22,15 @@ void Witch_SpawnOrbitParticles(struct EwramData_EntityData *entity, u16 phase)
         {
             child->accelX.part16.integer = entity->posX.part16.integer;
             child->accelY.part16.integer = entity->posY.part16.integer - 0x10;
-            WITCH_ORBIT_SPIN(child) = 0xFC00;
+            child->ext.witchOrbit.spin = 0xFC00;
             child->flipX = entity->flipX;
             if (child->flipX)
             {
-                WITCH_ORBIT_SPIN(child) = -(u16)WITCH_ORBIT_SPIN(child);
+                child->ext.witchOrbit.spin = -(u16)child->ext.witchOrbit.spin;
                 child->accelX.part16.integer += 0x20;
             }
             else child->accelX.part16.integer -= 0x20;
-            WITCH_ORBIT_ANGLE(child) = phase;
+            child->ext.witchOrbit.angle = phase;
             phase = (((u32)phase << 16) + 0x20000000) >> 16;
             if (--count == 0) break;
         }

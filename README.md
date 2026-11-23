@@ -62,7 +62,7 @@ Corrections of names and comments are very welcome.
 
 ## Status
 
-Measured on 2026-11-22. All numbers come from the build output and source scans,
+Measured on 2026-11-23. All numbers come from the build output and source scans,
 not estimates.
 
 | What | Status |
@@ -71,8 +71,8 @@ not estimates.
 | **Game functions decompiled to C** | **all of them.** (The only game-side assembly left is one 8-byte ARM/Thumb interworking stub, `bx pc; b Obj_InstallCallbacks`, which has no C equivalent.) Some still match only with compiler-steering tricks – see *Known limitations* |
 | All ROM code (`.text`) produced by C | 891,340 / 918,324 bytes (**97.06 %**). The remaining 2.94 % is not game code: the toolchain's libgcc/libc and the platform assembly that GBA decompilations normally keep (startup `crt0`, the `m4a` sound mixer, BIOS syscall stubs, ROM header) |
 | Functions with descriptive names | 3,842 / 3,842 (**100 %**; unreferenced leftovers are named as such) |
-| Structure fields with descriptive names | 1,843 / 1,987 declared (**92.8 %**); 73,751 / 76,603 field accesses (**96.3 %**) |
-| Per-entity work slots (generic unions `unk_4F4` … `unk_51C`) | named only through 1,191 accessor macros in 95 entity/scene headers and TU-local blocks, not yet through real per-entity structures; 27 accesses inside functions still use the raw member names (see *Known limitations* and *Planned work*) |
+| Structure fields with descriptive names | 3,285 / 3,429 declared (**95.8 %**); 93,489 / 95,886 field accesses (**97.5 %**) |
+| Per-entity work area (`0x4F4` … `0x50F`) | one structure per entity type in `union EntityWork` (**363** structures, about 6,600 accesses `e->ext.<type>.<member>`); 13 accessor macros remain for views that only partly overlap a member and for 5 generic slots shared by all types; 67 lines still use the offset view `ext.raw` (see *Known limitations*) |
 | Local variables and parameters named | 17,065 / 17,065 (**100 %**) |
 | Lines marked `FAKEMATCH` | 264 lines in 122 of 1,710 C files (see below) |
 
@@ -86,30 +86,35 @@ not estimates.
   certainly did not contain them; they are needed because no natural C variant was
   found that matches. Every such line is marked with a `/* FAKEMATCH: reason */`
   comment.
-- **Entity work slots are accessed through macros – a stopgap.** Every entity has a
-  block of generic unions (`unk_4F4` … `unk_518`, `unk_51C`) that each entity type
-  uses for something different. The original code almost certainly had one structure
-  per entity type there; this source does not have them yet. Instead, the meaning of
-  each slot is given by an accessor macro (1,191 of them, in 95
-  `include/*_entity.h` headers and in local blocks of single files), for example
+- **Entity work area: reconstructed per-type structures.** Every entity has a work
+  area (`0x4F4` … `0x50F`) that each entity type uses for something different. It
+  is now `union EntityWork ext` with one structure per entity type
+  (`include/structs/entity_work.h`, 363 of them), for example
 
   ```c
-  #define GREAT_ARMOR_HIT_COUNT(e) e->unk_4FC.part8.unk_4FD
+  entity->ext.greatArmor.hitCount++;
   ```
 
-  The macros expand to exactly the original member chains, so they could be added
-  without touching the compiled code: almost every one was checked to give a
-  token-identical preprocessed file, and the few that use a sibling view of the same
-  slot (a pointer instead of a word, a byte view) were checked by a full rebuild.
-  Slots that are written but never read are named `*_UNUSED_*`.
-  This is readable, but it is not real C typing: the compiler does not know which
-  entity type a pointer is, one slot has a different macro name in every entity
-  type, debuggers and IDEs show only `unk_4FC`, and a macro used on the wrong
-  entity type compiles silently. 27 accesses inside functions still use the raw
-  member names because a macro does not fit them: byte or pointer views of
-  position-history arrays, fields of heap blocks that the code reads as if they
-  were entities, and a few reads whose width a macro would change (which changes the
-  generated code).
+  The split into types follows how the code uses the slots, so it is a
+  reconstruction: where one entity family reuses a slot with two meanings (an idle
+  timer that becomes an aim point, a gun shot flag in the heavy-weapon swing slot)
+  there are two structures. Member widths and signedness are the ones the original
+  instructions need; every step was checked by a full rebuild. Fields that are
+  written but never read are named `unused*`. What is left over:
+  - 13 accessor macros on the offset view `ext.raw`: 8 views that do not fit a
+    member (a word read over four byte members, a halfword over two bytes, a
+    signed view of an unsigned byte – a nested union cannot express them,
+    because the compiler aligns and pads every nested struct or union to 4
+    bytes) and 5 generic slots that all entity types share (`ENTITY_INDEX`,
+    `ENTITY_PARENT_INDEX`, `ENTITY_INDEX_PAIR`, `ENTITY_OWNER`,
+    `ENTITY_CREATOR`);
+  - 67 lines that still use `ext.raw` directly: position-history and heap blocks
+    that the code reads through casts, generic index bytes, and a few accesses
+    whose exact form (a cast or a wider read) is needed for matching code;
+  - the fields after the work area (`unk_510` … `unk_51C`) are still generic
+    unions: the common uses have named views (`basePalette`, `hp`,
+    `spawnParam0`, …), type-specific ones are named by small macros in a few
+    headers.
 - **One-shot loops and volatile reads.** 54 of the `FAKEMATCH` lines mark
   statements (outside macro definitions) wrapped in a `do { ... } while (0)` that
   runs exactly once (sometimes nested), and 13 mark reads through a `volatile`
@@ -125,13 +130,9 @@ not estimates.
 
 ## Planned work
 
-- **Replace the slot macros by entity structures.** Turn the work area into a union
-  of one structure per entity type (`e->ext.greatArmor.hitCount` instead of
-  `GREAT_ARMOR_HIT_COUNT(e)`), including real types for the heap blocks that the
-  code reads as entities. This is not a token-identical change (member widths,
-  signedness and byte views must keep the original instructions), so it will be done
-  one entity family at a time, each step checked by a full rebuild; the 27 remaining
-  raw accesses belong to this step.
+- **Finish the entity structures**: real types for the heap blocks and position
+  histories that are still reached through `ext.raw`, and the fields after the work
+  area (`unk_510` … `unk_51C`).
 - **Name the remaining structure fields** (144 declared fields, mostly written once
   or only initialized).
 - **Regroup the source files** into logical modules instead of ROM-address files.

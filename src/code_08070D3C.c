@@ -1,6 +1,5 @@
 /* Initialize Merman's hidden, waiting or jumping entry mode. */
 #include "code_08009A0.h"
-#include "merman_entity.h"
 #include "code/code_08039340.h"
 extern u8 Merman_LoadGraphics(struct EwramData_EntityData *);
 extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
@@ -34,8 +33,8 @@ void EnemyMermanCreate(struct EwramData_EntityData *entity)
             entity->hidden = 1;
             entity->hit.flags |= 4;
             entity->hit.flags |= 2;
-            MERMAN_HOME_X(entity) = entity->posX.part16.integer + background->xPos.part16.integer;
-            MERMAN_HOME_Y(entity) = entity->posY.part16.integer + background->yPos.part16.integer;
+            entity->ext.merman.homeX = entity->posX.part16.integer + background->xPos.part16.integer;
+            entity->ext.merman.homeY = entity->posY.part16.integer + background->yPos.part16.integer;
         }
         else
         {
@@ -48,18 +47,18 @@ void EnemyMermanCreate(struct EwramData_EntityData *entity)
                 entity->accelX.whole = mode;
                 entity->velY.whole = 0x20000;
                 entity->accelY.whole = 0x1800;
-                MERMAN_LEAP_SPLASHED(entity) = mode;
-                MERMAN_SWIM_MODE(entity) = mode;
-                MERMAN_LAND_SPLASHED(entity) = mode;
-                MERMAN_WALK_COUNT(entity) = mode;
+                entity->ext.merman.leapSplashed = mode;
+                entity->ext.merman.swimMode = mode;
+                entity->ext.merman.landSplashed = mode;
+                entity->ext.merman.walkCount = mode;
                 Anim_StartIndexed(entity, 2, 0, 1);
                 entity->flipX = Entity_IsTargetRight(entity);
                 if (entity->flipX) entity->velX.whole = 0x8000;
                 else entity->velX.whole = -0x8000;
                 entity->timer = 0;
-                MERMAN_UNUSED_MODE(entity) = 1;
+                entity->ext.merman.unusedMode = 1;
             }
-            else MERMAN_UNUSED_MODE(entity) = mode;
+            else entity->ext.merman.unusedMode = mode;
         }
     }
 finished:

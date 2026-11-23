@@ -1,6 +1,5 @@
 /* Altair creation, update, graphics setup and hit response. */
 #include "code_08009A0.h"
-#include "altair_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -38,14 +37,14 @@ extern void EnemyAltairCreate(struct EwramData_EntityData *);
  */
 void Altair_UpdateDeath(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *attached = ALTAIR_CARRIED(entity);
+    struct EwramData_EntityData *attached = entity->ext.altair.carried;
     struct EwramData_EntityData *child;
     u32 randomMask;
     s32 count;
     switch (entity->subState)
     {
     case 0:
-        if (attached != NULL && ALTAIR_CARRYING(entity) != 0 && attached->state != 0xFF)
+        if (attached != NULL && entity->ext.altair.carrying != 0 && attached->state != 0xFF)
         {
             attached->state = 0xFF;
             attached->subState = 0;
@@ -59,7 +58,7 @@ void Altair_UpdateDeath(struct EwramData_EntityData *entity)
         }
         PlaySong(0x72);
         Anim_StartIndexed(entity, 3, 0, 1);
-        ALTAIR_FLIGHT_PHASE(entity) = 3;
+        entity->ext.altair.flightPhase = 3;
         entity->velY.whole = 0xC000;
         entity->timer = 0x3F;
         entity->subState++;
@@ -81,7 +80,7 @@ void Altair_UpdateSpawner(struct EwramData_EntityData *entity)
 {
     u32 random = RandomNumberGenerator() & 0x3F;
     struct EwramData_EntityData *child;
-    if (random != 0 || ALTAIR_SPAWN_COUNT(entity) > 1) return;
+    if (random != 0 || entity->ext.altair.spawnCount > 1) return;
     child = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
     if (child != NULL)
     {
@@ -89,15 +88,15 @@ void Altair_UpdateSpawner(struct EwramData_EntityData *entity)
         child->scrollWithBg = 1;
         child->unk_518.part8.spawnIndex = random;
         child->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
-        child->unk_514.part16.spawnParam0 = ((u16)ALTAIR_SPAWN_COUNT(entity) & 1) + 2;
+        child->unk_514.part16.spawnParam0 = ((u16)entity->ext.altair.spawnCount & 1) + 2;
         child->unk_514.part16.spawnParam1 = entity->unk_514.part16.spawnParam1;
         child->drawFunc = (u32 *)Sprite_DrawEntity;
         child->unk_518.part16.hp = sEnemyData[entity->unk_518.part8.enemyId].hp;
         child->unk_510.part16.unk_512 = sEnemyData[entity->unk_518.part8.enemyId].unk_E;
         child->updateFunc = entity->updateFunc;
-        ALTAIR_SPAWNER(child) = entity;
+        child->ext.altair.spawner = entity;
         EnemyAltairCreate(child);
-        ALTAIR_SPAWN_COUNT(entity)++;
+        entity->ext.altair.spawnCount++;
     }
 }
 

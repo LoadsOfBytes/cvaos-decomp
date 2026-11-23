@@ -31,7 +31,7 @@ void Object35_UpdateState(struct EwramData_EntityData *entity)
         case 0:
             if (gEwramData->playerState.standingPlatform == entity)
             {
-                if ((s32)++OBJECT35_STAND_FRAMES(entity) > 7)
+                if ((s32)++entity->ext.object35.standFrames > 7)
                 {
                     entity->subState++;
                     entity->velY.whole = 0;
@@ -42,7 +42,7 @@ void Object35_UpdateState(struct EwramData_EntityData *entity)
             }
             else
             {
-                OBJECT35_STAND_FRAMES(entity) = 0;
+                entity->ext.object35.standFrames = 0;
             }
             break;
         case 1:
@@ -51,7 +51,7 @@ void Object35_UpdateState(struct EwramData_EntityData *entity)
             if (entity->timer++ > 4)
             {
                 entity->subState++;
-                OBJECT35_PRESSED(entity) = 0;
+                entity->ext.object35.pressed = 0;
             }
             break;
         case 10:
@@ -69,14 +69,14 @@ void Object35_UpdateState(struct EwramData_EntityData *entity)
 
             EntityMoveY(entity);
             gUnk_03002CB0.dispCnt |= 0x8000;
-            OBJECT35_PRESSED(entity) = 1;
+            entity->ext.object35.pressed = 1;
             phase = entity->timer & 7;
             if (phase == 0)
             {
                 s32 vx = (RandomNumberGenerator() & 0x7FFF) - 0x4000;
                 s32 vy = -0x8000 - (RandomNumberGenerator() & 0x7FFF);
 
-                Effect_SpawnParticleWithDamping(OBJECT35_HOME_X(entity), OBJECT35_HOME_Y(entity), vx, vy,
+                Effect_SpawnParticleWithDamping(entity->ext.object35.homeX, entity->ext.object35.homeY, vx, vy,
                              entity->spriteLayer - 1, phase, 0x20, 0xF, 6);
             }
             if (entity->timer++ > 0x5F)
@@ -125,7 +125,7 @@ void Object35_SpawnChild(struct EwramData_EntityData *parent)
         child->animFrame = 3;
         child->hit.flags |= 4;
         child->hit.flags |= 2;
-        OBJECT35_CHILD_OWNER(child) = parent;
+        child->ext.object35Child.owner = parent;
         child->scrollWithBg = 1;
         child->drawFunc = (u32 *)Sprite_DrawEntity;
     }

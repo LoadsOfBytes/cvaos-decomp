@@ -1,6 +1,5 @@
 /* Chaos second form: body segment update (62B8). */
 #include "code_08009A0.h"
-#include "chaos_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -19,7 +18,7 @@ extern s32 Entity_GetVisibilityPattern(s32);
 extern void ObjAffine_Set(s32, s32, s32, u16, u16, u16);
 extern void ObjAffine_Free(s32);
 
-#define INDEX(e) ((s8)CHAOS_SNAKE_INDEX((e)))
+#define INDEX(e) ((s8)e->ext.chaosSnake.index)
 #define TRAIL(t, e, f) ((t)[INDEX(e) * 48 + 48 + (f)])
 
 /* Segment unk_4FE of the body: follow the head's trail 8 entries per
@@ -28,7 +27,7 @@ extern void ObjAffine_Free(s32);
 void Chaos2SnakeSegment_Update(struct EwramData_EntityData *seg)
 {
     u8 collision[16];
-    struct EwramData_EntityData *head = CHAOS_LINK(seg);
+    struct EwramData_EntityData *head = seg->ext.chaosChild.link;
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
 
     if (seg->state == 0)
@@ -38,14 +37,14 @@ void Chaos2SnakeSegment_Update(struct EwramData_EntityData *seg)
         if (head != NULL && head->updateFunc != NULL
             && head->unk_518.part8.enemyId == seg->unk_518.part8.enemyId)
         {
-        trail = (u8 *)CHAOS_SNAKE_TRAIL(head);
+        trail = (u8 *)head->ext.chaosSnake.trail;
         seg->hidden = head->hidden;
         seg->palette = head->palette;
         seg->timer++;
         seg->velX.part16.integer = (s8)TRAIL(trail, seg, TRAIL_DX)
-            + ((u8)CHAOS_SNAKE_CAMERA_X(seg) - bg->xPos.part16.integer);
+            + ((u8)seg->ext.chaosSnake.cameraX - bg->xPos.part16.integer);
         seg->velY.part16.integer = (s8)TRAIL(trail, seg, TRAIL_DY)
-            + (CHAOS_SNAKE_CAMERA_Y(seg) - bg->yPos.part16.integer);
+            + (seg->ext.chaosSnake.cameraY - bg->yPos.part16.integer);
         seg->posX.part16.integer += seg->velX.part16.integer;
         seg->posY.part16.integer += seg->velY.part16.integer;
         if ((seg->spriteLayer = TRAIL(trail, seg, TRAIL_PRIORITY) + 1) != 0x12)
@@ -58,8 +57,8 @@ void Chaos2SnakeSegment_Update(struct EwramData_EntityData *seg)
             seg->hit.flags &= ~2;
             seg->hit.flags &= ~4;
         }
-        CHAOS_SNAKE_CAMERA_X(seg) = bg->xPos.part16.integer;
-        CHAOS_SNAKE_CAMERA_Y(seg) = bg->yPos.part16.integer;
+        seg->ext.chaosSnake.cameraX = bg->xPos.part16.integer;
+        seg->ext.chaosSnake.cameraY = bg->yPos.part16.integer;
         if (INDEX(seg) != 7)
         {
             s8 dx = (s8)TRAIL(trail, seg, TRAIL_DX);

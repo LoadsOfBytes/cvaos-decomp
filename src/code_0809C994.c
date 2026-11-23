@@ -1,6 +1,5 @@
 /* Legion (state 0): circling movement and shell part spawning. */
 #include "code_08009A0.h"
-#include "legion_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -37,12 +36,12 @@ extern s32 Target_GetY(struct EwramData_EntityData *);
 extern s32 Legion_GetPathEdge(s32 x, s32 y, s32 size);
 extern struct EwramData_EntityData *Legion_CreateShellPart(struct EwramData_EntityData *entity, s32 center, s32 kind);
 extern u8 sUnk_08528340[];
-#define DIR (*(u8 *)&entity->unk_500.part8.unk_501)
+#define DIR (*(u8 *)&entity->ext.raw.unk_500.part8.unk_501)
 
 void Legion_UpdateCircle(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
-    struct LegionState *data = (struct LegionState *)LEGION_DATA(entity);
+    struct LegionState *data = (struct LegionState *)entity->ext.legion.data.value;
     struct EwramData_EntityData *part;
     struct LegionShell *shell;
     s32 i;
@@ -54,7 +53,7 @@ void Legion_UpdateCircle(struct EwramData_EntityData *entity)
         if (Legion_UpdateIntro(entity))
         {
             entity->subState++;
-            LEGION_FLAGS(entity) = 4;
+            entity->ext.legion.flags = 4;
         }
         break;
     case 1:
@@ -73,13 +72,13 @@ void Legion_UpdateCircle(struct EwramData_EntityData *entity)
             entity->accelY.whole = 0;
         }
         if (Entity_IsTargetRight(entity))
-            LEGION_CIRCLE_DIR(entity) = 2;
+            entity->ext.legion.circleDir = 2;
         else
-            LEGION_CIRCLE_DIR(entity) = 1;
-        LEGION_RETARGET_TIMER(entity) = (RandomNumberGenerator() % 64) + 0x3C;
+            entity->ext.legion.circleDir = 1;
+        entity->ext.legion.retargetTimer = (RandomNumberGenerator() % 64) + 0x3C;
         break;
     case 2:
-        if (LEGION_CIRCLE_DIR(entity) == 1)
+        if (entity->ext.legion.circleDir == 1)
         {
             switch (DIR)
             {
@@ -179,68 +178,68 @@ void Legion_UpdateCircle(struct EwramData_EntityData *entity)
                 break;
             }
         }
-        if ((u8)LEGION_RETARGET_TIMER(entity)-- <= 1)
+        if ((u8)entity->ext.legion.retargetTimer-- <= 1)
         {
-            LEGION_RETARGET_TIMER(entity) = (RandomNumberGenerator() % 64) + 0x3C;
+            entity->ext.legion.retargetTimer = (RandomNumberGenerator() % 64) + 0x3C;
             dir = Legion_GetPathEdge(Target_GetX(entity) + bg->xPos.whole,
                                Target_GetY(entity) + bg->yPos.whole + -0x300000, 0x300000);
             switch (DIR)
             {
             case 0:
                 if (dir == 1)
-                    LEGION_CIRCLE_DIR(entity) = 1;
+                    entity->ext.legion.circleDir = 1;
                 else if (dir == 3)
-                    LEGION_CIRCLE_DIR(entity) = 2;
+                    entity->ext.legion.circleDir = 2;
                 else if (dir == 0)
                 {
                     if (Entity_IsTargetRight(entity))
-                        LEGION_CIRCLE_DIR(entity) = 2;
+                        entity->ext.legion.circleDir = 2;
                     else
-                        LEGION_CIRCLE_DIR(entity) = 1;
+                        entity->ext.legion.circleDir = 1;
                 }
                 break;
             case 1:
                 if (dir == 2)
-                    LEGION_CIRCLE_DIR(entity) = 1;
+                    entity->ext.legion.circleDir = 1;
                 else if (dir == 0)
-                    LEGION_CIRCLE_DIR(entity) = 2;
+                    entity->ext.legion.circleDir = 2;
                 else if (dir == 1)
                 {
                     if (Entity_IsTargetBelow(entity))
-                        LEGION_CIRCLE_DIR(entity) = 2;
+                        entity->ext.legion.circleDir = 2;
                     else
-                        LEGION_CIRCLE_DIR(entity) = 1;
+                        entity->ext.legion.circleDir = 1;
                 }
                 break;
             case 2:
                 if (dir == 1)
-                    LEGION_CIRCLE_DIR(entity) = 2;
+                    entity->ext.legion.circleDir = 2;
                 else if (dir == 3)
-                    LEGION_CIRCLE_DIR(entity) = 1;
+                    entity->ext.legion.circleDir = 1;
                 else if (dir == 2)
                 {
                     if (Entity_IsTargetRight(entity))
-                        LEGION_CIRCLE_DIR(entity) = 1;
+                        entity->ext.legion.circleDir = 1;
                     else
-                        LEGION_CIRCLE_DIR(entity) = 2;
+                        entity->ext.legion.circleDir = 2;
                 }
                 break;
             case 3:
                 if (dir == 2)
-                    LEGION_CIRCLE_DIR(entity) = 2;
+                    entity->ext.legion.circleDir = 2;
                 else if (dir == 0)
-                    LEGION_CIRCLE_DIR(entity) = 1;
+                    entity->ext.legion.circleDir = 1;
                 else if (dir == 3)
                 {
                     if (Entity_IsTargetBelow(entity))
-                        LEGION_CIRCLE_DIR(entity) = 1;
+                        entity->ext.legion.circleDir = 1;
                     else
-                        LEGION_CIRCLE_DIR(entity) = 2;
+                        entity->ext.legion.circleDir = 2;
                 }
                 break;
             }
         }
-        if (!(LEGION_FLAGS(entity) & 8) && (LEGION_BROKEN_CORES(entity) & 0xF))
+        if (!(entity->ext.legion.flags & 8) && (entity->ext.legion.brokenCores & 0xF))
         {
             part = entity;
             for (i = 0; i <= 5; i++)
@@ -248,10 +247,10 @@ void Legion_UpdateCircle(struct EwramData_EntityData *entity)
                 part = Legion_CreateShellPart(entity, (s32)part, i);
                 if (part != NULL)
                 {
-                    LEGION_SHELL_RADIUS(part) = 0;
-                    LEGION_SHELL_ANGLE(part) = (i + 1) * 5000;
-                    LEGION_SHELL_DELAY(part) = (6 - i) * 6;
-                    LEGION_SHELL_INDEX(part) = 0;
+                    part->ext.legionShell.radius = 0;
+                    part->ext.legionShell.angle = (i + 1) * 5000;
+                    part->ext.legionShell.delay = (6 - i) * 6;
+                    part->ext.legionShell.index = 0;
                     switch (i)
                     {
                     case 0:
@@ -278,9 +277,9 @@ void Legion_UpdateCircle(struct EwramData_EntityData *entity)
             data->shells[0].state = 2;
             data->shells[0].actionState = 2;
             data->shells[0].timer = (RandomNumberGenerator() % 128) + 0x78;
-            LEGION_FLAGS(entity) |= 8;
+            entity->ext.legion.flags |= 8;
         }
-        if (!(LEGION_FLAGS(entity) & 0x10) && (LEGION_BROKEN_CORES(entity) & 0xF) == 0xF)
+        if (!(entity->ext.legion.flags & 0x10) && (entity->ext.legion.brokenCores & 0xF) == 0xF)
         {
             part = entity;
             for (i = 0; i <= 5; i++)
@@ -288,10 +287,10 @@ void Legion_UpdateCircle(struct EwramData_EntityData *entity)
                 part = Legion_CreateShellPart(entity, (s32)part, i);
                 if (part != NULL)
                 {
-                    LEGION_SHELL_RADIUS(part) = 0;
-                    LEGION_SHELL_ANGLE(part) = (i + 1) * 5000;
-                    LEGION_SHELL_DELAY(part) = (6 - i) * 6;
-                    LEGION_SHELL_INDEX(part) = 1;
+                    part->ext.legionShell.radius = 0;
+                    part->ext.legionShell.angle = (i + 1) * 5000;
+                    part->ext.legionShell.delay = (6 - i) * 6;
+                    part->ext.legionShell.index = 1;
                     switch (i)
                     {
                     case 0:
@@ -318,9 +317,9 @@ void Legion_UpdateCircle(struct EwramData_EntityData *entity)
             data->shells[1].state = 2;
             data->shells[1].actionState = 2;
             data->shells[1].timer = (RandomNumberGenerator() % 128) + 0x78;
-            LEGION_FLAGS(entity) |= 0x10;
+            entity->ext.legion.flags |= 0x10;
         }
-        if (!(LEGION_FLAGS(entity) & 0x20) && (LEGION_BROKEN_CORES(entity) & 0xF) == 0xF)
+        if (!(entity->ext.legion.flags & 0x20) && (entity->ext.legion.brokenCores & 0xF) == 0xF)
         {
             part = entity;
             for (i = 0; i <= 5; i++)
@@ -328,10 +327,10 @@ void Legion_UpdateCircle(struct EwramData_EntityData *entity)
                 part = Legion_CreateShellPart(entity, (s32)part, i);
                 if (part != NULL)
                 {
-                    LEGION_SHELL_RADIUS(part) = 0;
-                    LEGION_SHELL_ANGLE(part) = (i + 1) * 5000;
-                    LEGION_SHELL_DELAY(part) = (6 - i) * 6;
-                    LEGION_SHELL_INDEX(part) = 2;
+                    part->ext.legionShell.radius = 0;
+                    part->ext.legionShell.angle = (i + 1) * 5000;
+                    part->ext.legionShell.delay = (6 - i) * 6;
+                    part->ext.legionShell.index = 2;
                     switch (i)
                     {
                     case 0:
@@ -359,7 +358,7 @@ void Legion_UpdateCircle(struct EwramData_EntityData *entity)
             data->shells[2].state = 2;
             data->shells[2].actionState = 2;
             data->shells[2].timer = (RandomNumberGenerator() % 128) + 0x78;
-            LEGION_FLAGS(entity) |= 0x20;
+            entity->ext.legion.flags |= 0x20;
         }
         if (data->shells[0].state == 2 && data->shells[0].actionState == 0)
             data->shells[0].state = 0;
@@ -369,7 +368,7 @@ void Legion_UpdateCircle(struct EwramData_EntityData *entity)
             data->shells[2].state = 0;
         if (entity->stage == 0)
         {
-            if ((LEGION_BROKEN_CORES(entity) & 0xF) == 0xF && data->shells[0].state == 0
+            if ((entity->ext.legion.brokenCores & 0xF) == 0xF && data->shells[0].state == 0
                 && data->shells[1].state == 0 && data->shells[2].state == 0)
             {
                 if (data->shellActionTimer == 0)
@@ -385,11 +384,11 @@ void Legion_UpdateCircle(struct EwramData_EntityData *entity)
                 {
                     /* the spawned-flag test reuses dir (its own callee-saved register) */
                     if (i == 0)
-                        dir = *(u8 *)&LEGION_FLAGS(entity) & 8;
+                        dir = *(u8 *)&entity->ext.legion.flags & 8;
                     else if (i == 1)
-                        dir = *(u8 *)&LEGION_FLAGS(entity) & 0x10;
+                        dir = *(u8 *)&entity->ext.legion.flags & 0x10;
                     else
-                        dir = *(u8 *)&LEGION_FLAGS(entity) & 0x20;
+                        dir = *(u8 *)&entity->ext.legion.flags & 0x20;
                     if (dir && shell->timer != 0 && --shell->timer == 0)
                     {
                         shell->state = 4;
@@ -440,7 +439,7 @@ void Legion_UpdateCircle(struct EwramData_EntityData *entity)
         }
         break;
     }
-    if (LEGION_FLAGS(entity) & 2)
+    if (entity->ext.legion.flags & 2)
     {
         data->bobPhase += 0x180;
         entity->posX.whole = data->roomX - bg->xPos.whole;
@@ -451,7 +450,7 @@ void Legion_UpdateCircle(struct EwramData_EntityData *entity)
         entity->posX.whole = data->roomX - bg->xPos.whole;
         entity->posY.whole = data->roomY - bg->yPos.whole;
     }
-    if (LEGION_FLAGS(entity) & 4)
+    if (entity->ext.legion.flags & 4)
     {
         data->rotationAngle += data->angularVelocity;
         ObjAffine_Set(data->rotationAngle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);

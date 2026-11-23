@@ -13,7 +13,7 @@
  */
 void BigGolem_AttachPartAbsolute(struct EwramData_EntityData *entity, s32 partIndex, s32 anchorIndex, s32 angleSpec, s32 length, s32 duration)
 {
-    struct BigGolemPart *parts = entity->unk_500.bigGolemParts;
+    struct BigGolemPart *parts = entity->ext.bigGolem.parts;
     // &parts[partIndex], written as integer arithmetic (offset + base) as in
     // the original
     struct BigGolemPart *part = (struct BigGolemPart *)(partIndex * sizeof(struct BigGolemPart) + (u32)parts);

@@ -64,15 +64,15 @@ void EnemyGolemUpdate(struct EwramData_EntityData *entity)
         }
         if ((s8)--entity->timer <= 0)
             entity->deleteRequested = 1;
-        if (entity->deleteRequested && entity->unk_500.golemParts != NULL)
-            Heap_Free(entity->unk_500.golemParts);
+        if (entity->deleteRequested && entity->ext.golem.parts != NULL)
+            Heap_Free(entity->ext.golem.parts);
         break;
     case 3:
         Golem_UpdateBestiaryPreview(entity);
         return;
     }
 boxes:
-    parts = (s32 *)entity->unk_500.golemParts;
+    parts = (s32 *)entity->ext.golem.parts;
     if (entity->flipX)
         box.x = -TO_PIXELS(parts[4 * 8 + 0]) - 8;
     else

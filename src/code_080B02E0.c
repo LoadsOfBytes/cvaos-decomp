@@ -1,6 +1,5 @@
 /* Weapon carried by an enemy: follows the parent's animation, falls and breaks. */
 #include "code_08009A0.h"
-#include "minotaur_entity.h"
 #include "code_080D73B8.h"
 #include "syscalls.h"
 #include "code_08001194.h"
@@ -37,7 +36,7 @@ static inline struct WeaponFrame *FindFrame(struct WeaponFrame *frame, struct Ew
     if (frame == NULL)
         return NULL;
     {
-        u8 key = MINOTAUR_ANIM_STEP(parent);
+        u8 key = parent->ext.minotaur.animStep;
         while (frame->frame != -1)
         {
             if (key <= frame->frame)
@@ -51,9 +50,9 @@ static inline struct WeaponFrame *FindFrame(struct WeaponFrame *frame, struct Ew
 static inline s32 ScreenY(u16 y) { struct BgLayerState *bg = &gEwramData->bgInfo[1]; s32 b = bg->yPos.part16.integer; return (s16)y - b; }
 static inline s32 ScreenX(s32 x) { struct BgLayerState *bg = &gEwramData->bgInfo[1]; return x - bg->xPos.part16.integer; }
 
-#define SPIN(e) (MINOTAUR_AXE_SPIN((e)))
-#define SPIN_SPEED(e) (MINOTAUR_AXE_SPIN_SPEED((e)))
-#define DROPPED(e) (MINOTAUR_AXE_DROPPED((e)))
+#define SPIN(e) (e->ext.minotaurAxe.spin)
+#define SPIN_SPEED(e) (e->ext.minotaurAxe.spinSpeed)
+#define DROPPED(e) (e->ext.minotaurAxe.dropped)
 #define TO_PIXELS(d) ((d) < 0 ? -(-(d) >> 16) : (d) >> 16)
 
 void MinotaurAxe_Update(struct EwramData_EntityData *entity)
@@ -68,7 +67,7 @@ void MinotaurAxe_Update(struct EwramData_EntityData *entity)
             DROPPED(entity) = 1;
         if (DROPPED(entity) == 0 && entity->state == 4
             && ENTITY_INDEX(parent) == ENTITY_PARENT_INDEX(entity)
-            && (MINOTAUR_FLAGS(parent) & 1))
+            && (parent->ext.minotaur.flags & 1))
         {
             entity->state = 1;
             PlaySong(0x69);
@@ -117,7 +116,7 @@ void MinotaurAxe_Update(struct EwramData_EntityData *entity)
             break;
         }
 
-        if (!(MINOTAUR_FLAGS(parent) & 1))
+        if (!(parent->ext.minotaur.flags & 1))
         {
             entity->state = 2;
             break;
@@ -172,7 +171,7 @@ void MinotaurAxe_Update(struct EwramData_EntityData *entity)
         if (entity->velY.whole > 0x60000 && EntityIsOutsideScreen(entity, 4))
         {
             if (DROPPED(entity) == 0)
-                MINOTAUR_FLAGS(parent) &= ~2;
+                parent->ext.minotaur.flags &= ~2;
             goto lost;
         }
         angle = (u16)SPIN(entity);
@@ -212,7 +211,7 @@ void MinotaurAxe_Update(struct EwramData_EntityData *entity)
         if (i <= 3 && (piece = EntityCreateInRange(0x49, 0xCF, (u32 *)MinotaurAxePiece_Update)) != NULL)
             goto loop;
         if (ENTITY_INDEX(parent) == ENTITY_PARENT_INDEX(entity))
-            MINOTAUR_FLAGS(parent) &= ~2;
+            parent->ext.minotaur.flags &= ~2;
         entity->posY.whole += drop;
         entity->state = 5;
         entity->timer = 0xC0;
@@ -245,6 +244,6 @@ void MinotaurAxe_Update(struct EwramData_EntityData *entity)
     angle = SPIN(entity);
     if (entity->flipX)
         angle = -angle;
-    MINOTAUR_AXE_ANGLE(entity) = angle;
+    entity->ext.minotaurAxe.angle = angle;
     ObjAffine_Set(angle, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
 }

@@ -45,10 +45,9 @@
  * remembers which entry it shows. The arguments are entity lvalues
  * (gEwramData->entityData[2]) or pointers. Token-identical expansion.
  */
-#define SOUND_TEST_ROW(s) s.unk_4FC.part16.unk_4FC
-#define SOUND_TEST_TRACK(s, i) s.unk_4FC.part16.unk_4FE[i]
-#define SOUND_TEST_PLAYING(s, i) s.unk_504.part16.unk_506[i]
-#define SOUND_TEST_TEXT_ENTRY(e) e->unk_4FC.whole
+#define SOUND_TEST_ROW(s) s.ext.raw.unk_4FC.part16.unk_4FC
+#define SOUND_TEST_TRACK(s, i) s.ext.raw.unk_4FC.part16.unk_4FE[i]
+#define SOUND_TEST_PLAYING(s, i) s.ext.raw.unk_504.part16.unk_506[i]
 
 // NOTE: HudMap_WriteTiles is implicitly called
 
@@ -543,9 +542,9 @@ static inline void GameModeSoundTestMenu_inline_0(struct EwramData_EntityData *t
     baseRow = 1;
     more = 0;
     pos = -1;
-    if (SOUND_TEST_TEXT_ENTRY(textEntity) != entry)
+    if (textEntity->ext.soundTestText.entry != entry)
     {
-        SOUND_TEST_TEXT_ENTRY(textEntity) = entry;
+        textEntity->ext.soundTestText.entry = entry;
         Text12_SetRegion(0, 1, 0x1E, 4);
         Text12_ClearRegion();
         Text12_SetRegion(0, 1, 0x1C, 4);

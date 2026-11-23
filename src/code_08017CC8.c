@@ -30,7 +30,7 @@ s32 Soma_TryCeilingImpact(struct EwramData_EntityData *entity)
     struct PlayerBodyBox box;
     s32 pal;
 
-    if (entity->velY.whole <= -0x4F000 && (PLAYER_ACTION_FLAGS(entity) & 0x90) == 0x10)
+    if (entity->velY.whole <= -0x4F000 && (entity->ext.player.actionFlags & 0x90) == 0x10)
     {
         PlaySong(0xB8);
         Effect_SpawnDebrisBurst(entity);
@@ -39,12 +39,12 @@ s32 Soma_TryCeilingImpact(struct EwramData_EntityData *entity)
         {
             Anim_StartIndexed(entity, 0x25, 3, 0);
             HitBox_SetBody(entity, &box);
-            PLAYER_REQUESTED_ANIM(entity) = 0xFF;
-            PLAYER_ACTION_FLAGS(entity) &= ~0x200000;
+            entity->ext.player.requestedAnim = 0xFF;
+            entity->ext.player.actionFlags &= ~0x200000;
             pal = sSomaAnimPalettes[0x25];
-            if (PLAYER_ANIM_PALETTE(entity) != pal)
+            if (entity->ext.player.animPalette != pal)
             {
-                PLAYER_ANIM_PALETTE(entity) = pal;
+                entity->ext.player.animPalette = pal;
                 ObjPalette_LoadRange(sSomaPalette, pal, 1, 0);
             }
         }

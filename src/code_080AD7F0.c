@@ -1,6 +1,5 @@
 /* Giant Worm / Poison Worm: create the root and four linked affine segments. */
 #include "code_08009A0.h"
-#include "worm_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -36,7 +35,7 @@ void Worm_Init(struct EwramData_EntityData *root, s32 variant)
     root->affine = 1;
     Worm_SettleOnGround(root);
     previous = root;
-    WORM_ROOT(root) = root;
+    root->ext.worm.root = root;
     spacing = 0xA0000;
     if (root->flipX)
         spacing = -spacing;
@@ -51,16 +50,16 @@ void Worm_Init(struct EwramData_EntityData *root, s32 variant)
         if ((s16)matrix < 0)
             goto fail;
         {
-            u8 slot = *(u8 *)&part->unk_4F4;
-            *(u8 *)&previous->unk_504 = slot;
+            u8 slot = *(u8 *)&part->ext.raw.unk_4F4;
+            *(u8 *)&previous->ext.raw.unk_504 = slot;
         }
         part->affineIndex = matrix;
         part->affine = 1;
         i++;
-        WORM_WAVE_PHASE(part) = i << 12;
-        WORM_ROOT(part) = root;
-        WORM_PREVIOUS(part) = previous;
-        WORM_SEGMENT_INDEX(part) = i;
+        part->ext.worm.wavePhase = i << 12;
+        part->ext.worm.root = root;
+        part->ext.worm.previous = previous;
+        part->ext.worm.segmentIndex = i;
         part->posX.whole = previous->posX.whole + spacing;
         part->posY.whole = previous->posY.whole;
         part->scrollWithBg = 1;
@@ -81,21 +80,21 @@ void Worm_Init(struct EwramData_EntityData *root, s32 variant)
         Anim_StartIndexed(root, 0, 0, 1);
     Anim_Update(root);
     ObjAffine_Set(0, 0x10000, 0x10000, root->flipX, 0, root->affineIndex);
-    WORM_VARIANT(root) = variant;
+    root->ext.worm.variant = variant;
     root->spriteLayer = 17;
     if (gEwramData->gameState.bestiaryPreview)
     {
         root->state = 6;
         return;
     }
-    if (WORM_VARIANT(root) == 0)
+    if (root->ext.worm.variant == 0)
         Hit_Enable(root, 8, Worm_DamagePlayerOnContact, (s32)Worm_OnHit);
     else
     {
         if (0)
         {
         fail:
-            WORM_AGGRESSIVE(root) = 1;
+            root->ext.worm.aggressive = 1;
             root->state = 4;
             return;
         }

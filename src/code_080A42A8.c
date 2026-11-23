@@ -2,7 +2,6 @@
  * a cloning script and checked byte for byte:
  *   ChaosSoulShot_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 #include "code_08009A0.h"
-#include "chaos_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -52,7 +51,7 @@ void ChaosSoulShot_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 u8 Chaos_LoadGraphics(struct EwramData_EntityData *core)
 {
     s32 graphics;
-    struct ChaosData *data = (struct ChaosData *)CHAOS_DATA(core);
+    struct ChaosData *data = (struct ChaosData *)core->ext.chaos.data.value;
 
     graphics = ObjGfx_LoadResource(sChaosGfx, 0);
 

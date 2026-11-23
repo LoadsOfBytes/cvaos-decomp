@@ -1,6 +1,5 @@
 /* Altair creation, update, graphics setup and hit response. */
 #include "code_08009A0.h"
-#include "altair_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -33,8 +32,8 @@ void EnemyAltairCreate(struct EwramData_EntityData *entity)
     entity->stage = 0;
     entity->subState = 0;
     Enemy_ResetFromTemplate(entity);
-    ALTAIR_CARRIED(entity) = 0;
-    ALTAIR_DROP_READY(entity) = 0;
+    entity->ext.altair.carried = 0;
+    entity->ext.altair.dropReady = 0;
     if (gEwramData->gameState.bestiaryPreview)
     {
         entity->state = 4;
@@ -68,8 +67,8 @@ void EnemyAltairCreate(struct EwramData_EntityData *entity)
     }
     if ((s16)Entity_GetTargetDistanceX(entity) > 0) entity->flipX = 0;
     else entity->flipX = 1;
-    parent = ALTAIR_SPAWNER(entity);
-    if (ALTAIR_DROP_COUNT(parent) <= 1 && parent != NULL)
+    parent = entity->ext.altair.spawner;
+    if (parent->ext.altairDrop.count <= 1 && parent != NULL)
     {
         if (entity->unk_514.part16.spawnParam1 == 1)
         {

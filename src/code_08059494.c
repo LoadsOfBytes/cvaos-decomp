@@ -1,6 +1,5 @@
 /* Objects 0x32..0x34 0x08059494..0x0805A18B. */
 #include "code_08009A0.h"
-#include "layer_object.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -8,17 +7,6 @@
 #include "structs/ewram.h"
 
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-/*
- * Object 0x34 (swinging platform): swing angle, angular speed (+-0x100) and
- * the acceleration applied at the turning points (spawnParam1). Its parts
- * (0, 1 chain links, 2 the platform) keep the pivot entity and their index.
- */
-#define SWING_ANGLE(e) e->unk_4FC.part16.unk_4FC
-#define SWING_SPEED(e) e->unk_4FC.part16.unk_4FE[0]
-#define SWING_ACCEL(e) e->unk_500.part16.unk_500
-#define SWING_PART_PIVOT(e) e->unk_504.unk_504_entity
-#define SWING_PART_INDEX(e) e->unk_500.part8.unk_502
 
 /* Two hit boxes of object 0x32 (by unk_516). */
 struct Object32Boxes {
@@ -59,7 +47,7 @@ extern u8 sObject32SpriteSheet[];
 /**
  * @brief 59494 | Object 0x32 create: load the graphics (delete the object
  * when that fails), hit box by unk_516, remember the world position
- * (BG 1 relative) in BG1_OBJECT_X/Y and the shuttle fields (unused by 0x32).
+ * (BG 1 relative) in ext.layerObject.x/Y and the shuttle fields (unused by 0x32).
  */
 void Object32Create(struct EwramData_EntityData *entity)
 {
@@ -85,24 +73,24 @@ void Object32Create(struct EwramData_EntityData *entity)
     entity->spriteLayer = 0x12;
     entity->state = 0;
     roomY = entity->posY.whole;
-    SHUTTLE_START(entity) = roomY + bg->yPos.whole;
-    SHUTTLE_END(entity) = entity->unk_514.part16.spawnParam0 << 16;
+    entity->ext.layerObject.shuttleStart = roomY + bg->yPos.whole;
+    entity->ext.layerObject.shuttleEnd = entity->unk_514.part16.spawnParam0 << 16;
     roomX = entity->posX.whole + bg->xPos.whole;
-    BG1_OBJECT_X(entity) = roomX;
+    entity->ext.layerObject.x = roomX;
     roomY += bg->yPos.whole;
-    BG1_OBJECT_Y(entity) = roomY;
-    BG1_OBJECT_DRAW_X(entity) = roomX - bg->xPos.whole;
-    BG1_OBJECT_DRAW_Y(entity) = roomY - bg->yPos.whole;
+    entity->ext.layerObject.y = roomY;
+    entity->ext.layerObject.drawX = roomX - bg->xPos.whole;
+    entity->ext.layerObject.drawY = roomY - bg->yPos.whole;
     entity->scrollWithBg = 0;
-    if ((s32)SHUTTLE_START(entity) > SHUTTLE_END(entity))
-        SHUTTLE_DIR(entity) = 1;
+    if ((s32)entity->ext.layerObject.shuttleStart > entity->ext.layerObject.shuttleEnd)
+        entity->ext.layerObject.shuttleDir = 1;
     else
-        SHUTTLE_DIR(entity) = 0;
+        entity->ext.layerObject.shuttleDir = 0;
 }
 
 /**
- * @brief 59580 | Object 0x32, state 0: keep the world position (BG1_OBJECT_X /
- * BG1_OBJECT_Y) on screen; when it becomes standingPlatform crumble in four timed steps
+ * @brief 59580 | Object 0x32, state 0: keep the world position (ext.layerObject.x /
+ * ext.layerObject.y) on screen; when it becomes standingPlatform crumble in four timed steps
  * (frames animFrame + 1, sounds 0x152, 0x151, 0x150) and break into debris.
  */
 void Object32_UpdateState(struct EwramData_EntityData *entity)
@@ -110,8 +98,8 @@ void Object32_UpdateState(struct EwramData_EntityData *entity)
     struct EwramData **ewramRef = &gEwramData;
     struct BgLayerState *bg = &(*ewramRef)->bgInfo[1];
 
-    BG1_OBJECT_DRAW_X(entity) = BG1_OBJECT_X(entity) - bg->xPos.whole;
-    BG1_OBJECT_DRAW_Y(entity) = BG1_OBJECT_Y(entity) - bg->yPos.whole;
+    entity->ext.layerObject.drawX = entity->ext.layerObject.x - bg->xPos.whole;
+    entity->ext.layerObject.drawY = entity->ext.layerObject.y - bg->yPos.whole;
     switch (entity->subState)
     {
         case 0:
@@ -158,8 +146,8 @@ void Object32_UpdateState(struct EwramData_EntityData *entity)
             }
             break;
     }
-    entity->posX.whole = BG1_OBJECT_X(entity) - bg->xPos.whole;
-    entity->posY.whole = BG1_OBJECT_Y(entity) - bg->yPos.whole;
+    entity->posX.whole = entity->ext.layerObject.x - bg->xPos.whole;
+    entity->posY.whole = entity->ext.layerObject.y - bg->yPos.whole;
 }
 
 /**
@@ -308,7 +296,7 @@ void Object33_SpawnFlyingSpark(struct EwramData_EntityData *entity)
     else
         child->velY.whole = -0x20000 - RandomNumberGenerator() % 0x10000;
     child->accelY.whole = 0x2800;
-    child->unk_4FC.whole = bg->xPos.whole;
+    child->ext.raw.unk_4FC.whole = bg->xPos.whole;
     child->scrollWithBg = 1;
     child->drawFunc = (u32 *)Sprite_DrawEntity;
     child->timer = 0x32;
@@ -433,24 +421,24 @@ void Object34Create(struct EwramData_EntityData *entity)
     entity->animFrame = 3;
     entity->spriteLayer = 0x12;
     entity->state = 0;
-    SWING_ANGLE(entity) = 0x4000;
-    SWING_ACCEL(entity) = entity->unk_514.part16.spawnParam1;
+    entity->ext.object34.angle = 0x4000;
+    entity->ext.object34.accel = entity->unk_514.part16.spawnParam1;
     if (entity->unk_514.part16.spawnParam0 == 0)
     {
         entity->subState = 0;
-        SWING_SPEED(entity) = 0x100;
+        entity->ext.object34.speed = 0x100;
     }
     else
     {
         entity->subState = 1;
-        SWING_SPEED(entity) = -0x100;
+        entity->ext.object34.speed = -0x100;
     }
     roomX = entity->posX.whole + bg->xPos.whole;
-    BG1_OBJECT_X(entity) = roomX;
+    entity->ext.layerObject.x = roomX;
     roomY = entity->posY.whole + bg->yPos.whole;
-    BG1_OBJECT_Y(entity) = roomY;
-    BG1_OBJECT_DRAW_X(entity) = roomX - bg->xPos.whole;
-    BG1_OBJECT_DRAW_Y(entity) = roomY - bg->yPos.whole;
+    entity->ext.layerObject.y = roomY;
+    entity->ext.layerObject.drawX = roomX - bg->xPos.whole;
+    entity->ext.layerObject.drawY = roomY - bg->yPos.whole;
     entity->scrollWithBg = 0;
     Object34_SpawnPart(entity, 0);
     Object34_SpawnPart(entity, 1);
@@ -458,8 +446,8 @@ void Object34Create(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief 59D98 | Object 0x34, state 0: swing the angle SWING_ANGLE by the
- * speed SWING_SPEED (+-0x100, accelerated by SWING_ACCEL) between 0x3FFF and
+ * @brief 59D98 | Object 0x34, state 0: swing the angle ext.object34.angle by the
+ * speed (+-0x100, accelerated by ext.object34.accel)->ext.object34.speed between 0x3FFF and
  * 0x4000 turning points; keep the world position on screen.
  */
 void Object34_UpdateSwing(struct EwramData_EntityData *entity)
@@ -467,47 +455,47 @@ void Object34_UpdateSwing(struct EwramData_EntityData *entity)
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
     u16 speed;
 
-    BG1_OBJECT_DRAW_X(entity) = BG1_OBJECT_X(entity) - bg->xPos.whole;
-    BG1_OBJECT_DRAW_Y(entity) = BG1_OBJECT_Y(entity) - bg->yPos.whole;
+    entity->ext.layerObject.drawX = entity->ext.layerObject.x - bg->xPos.whole;
+    entity->ext.layerObject.drawY = entity->ext.layerObject.y - bg->yPos.whole;
     switch (entity->subState)
     {
         case 0:
             {
-                u16 speed2 = SWING_SPEED(entity);
-                if (SWING_SPEED(entity) > -0x100)
+                u16 speed2 = entity->ext.object34.speed;
+                if (entity->ext.object34.speed > -0x100)
                 {
-                    SWING_SPEED(entity) = speed2 - SWING_ACCEL(entity);
-                    if (SWING_SPEED(entity) < -0x100)
-                        SWING_SPEED(entity) = -0x100;
+                    entity->ext.object34.speed = speed2 - entity->ext.object34.accel;
+                    if (entity->ext.object34.speed < -0x100)
+                        entity->ext.object34.speed = -0x100;
                 }
             }
-            SWING_ANGLE(entity) += SWING_SPEED(entity);
-            if (SWING_ANGLE(entity) > 0x3FFF)
+            entity->ext.object34.angle += entity->ext.object34.speed;
+            if (entity->ext.object34.angle > 0x3FFF)
                 break;
             entity->subState = 1;
             break;
         case 1:
-            speed = SWING_SPEED(entity);
-            if (SWING_SPEED(entity) <= 0xFF)
+            speed = entity->ext.object34.speed;
+            if (entity->ext.object34.speed <= 0xFF)
             {
-                SWING_SPEED(entity) = speed + SWING_ACCEL(entity);
-                if (SWING_SPEED(entity) > 0x100)
-                    SWING_SPEED(entity) = 0x100;
+                entity->ext.object34.speed = speed + entity->ext.object34.accel;
+                if (entity->ext.object34.speed > 0x100)
+                    entity->ext.object34.speed = 0x100;
             }
-            SWING_ANGLE(entity) += SWING_SPEED(entity);
-            if (SWING_ANGLE(entity) <= 0x4000)
+            entity->ext.object34.angle += entity->ext.object34.speed;
+            if (entity->ext.object34.angle <= 0x4000)
                 break;
             entity->subState = 0;
             break;
     }
-    entity->posX.whole = BG1_OBJECT_X(entity) - bg->xPos.whole;
-    entity->posY.whole = BG1_OBJECT_Y(entity) - bg->yPos.whole;
+    entity->posX.whole = entity->ext.layerObject.x - bg->xPos.whole;
+    entity->posY.whole = entity->ext.layerObject.y - bg->yPos.whole;
 }
 
 /**
  * @brief 59E4C | Spawn part part (0, 1: chain links, 2: the platform
  * with a hit box) of object 0x34 at its position; the links get an affine
- * slot rotated by the parent's angle. SWING_PART_PIVOT = parent, SWING_PART_INDEX = index.
+ * slot rotated by the parent's angle. ext.object34Part.pivot = parent, ext.object34Part.index = index.
  */
 void Object34_SpawnPart(struct EwramData_EntityData *entity, s32 part)
 {
@@ -551,16 +539,16 @@ void Object34_SpawnPart(struct EwramData_EntityData *entity, s32 part)
         }
         child->affineIndex = affineIndex;
         child->affine = 1;
-        ObjAffine_SetBiased(SWING_ANGLE(entity), 0x10000, 0x10000, child->flipX, child->flipY, child->affineIndex);
+        ObjAffine_SetBiased(entity->ext.object34.angle, 0x10000, 0x10000, child->flipX, child->flipY, child->affineIndex);
     }
     roomX = child->posX.whole + bg->xPos.whole;
-    BG1_OBJECT_X(child) = roomX;
+    child->ext.layerObject.x = roomX;
     roomY = child->posY.whole + bg->yPos.whole;
-    BG1_OBJECT_Y(child) = roomY;
-    BG1_OBJECT_DRAW_X(child) = roomX - bg->xPos.whole;
-    BG1_OBJECT_DRAW_Y(child) = roomY - bg->yPos.whole;
-    SWING_PART_PIVOT(child) = entity;
-    SWING_PART_INDEX(child) = part;
+    child->ext.layerObject.y = roomY;
+    child->ext.layerObject.drawX = roomX - bg->xPos.whole;
+    child->ext.layerObject.drawY = roomY - bg->yPos.whole;
+    child->ext.object34Part.pivot = entity;
+    child->ext.object34Part.index = part;
     child->scrollWithBg = 0;
     child->drawFunc = (u32 *)Object34Part_Draw;
 }
@@ -576,32 +564,32 @@ void Object34Part_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData **ewramRef = &gEwramData;
     struct BgLayerState *bg = &(*ewramRef)->bgInfo[1];
-    struct EwramData_EntityData *pivot = SWING_PART_PIVOT(entity);
+    struct EwramData_EntityData *pivot = entity->ext.object34Part.pivot;
     struct EwramData_EntityData *player;
     s32 targetX;
     s32 targetY;
     s32 dist;
 
-    BG1_OBJECT_X(entity) += entity->velX.whole;
-    BG1_OBJECT_Y(entity) += entity->velY.whole;
+    entity->ext.layerObject.x += entity->velX.whole;
+    entity->ext.layerObject.y += entity->velY.whole;
     if (entity->subState == 0)
     {
-        targetX = Sin(SWING_ANGLE(pivot) + 0x4000);
-        targetX = FixedMultiply(targetX, ((s8)SWING_PART_INDEX(entity) * 15 << 17) + 0x100000);
-        targetY = Sin(SWING_ANGLE(pivot));
-        targetY = FixedMultiply(targetY, ((s8)SWING_PART_INDEX(entity) * 15 << 17) + 0x100000);
-        targetX += BG1_OBJECT_X(pivot);
-        targetY += BG1_OBJECT_Y(pivot);
-        entity->velX.whole = targetX - BG1_OBJECT_X(entity);
-        entity->velY.whole = targetY - BG1_OBJECT_Y(entity);
+        targetX = Sin(pivot->ext.object34.angle + 0x4000);
+        targetX = FixedMultiply(targetX, ((s8)entity->ext.object34Part.index * 15 << 17) + 0x100000);
+        targetY = Sin(pivot->ext.object34.angle);
+        targetY = FixedMultiply(targetY, ((s8)entity->ext.object34Part.index * 15 << 17) + 0x100000);
+        targetX += pivot->ext.layerObject.x;
+        targetY += pivot->ext.layerObject.y;
+        entity->velX.whole = targetX - entity->ext.layerObject.x;
+        entity->velY.whole = targetY - entity->ext.layerObject.y;
     }
-    if ((s8)SWING_PART_INDEX(entity) != 2)
-        ObjAffine_SetBiased(SWING_ANGLE(pivot), 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
-    entity->posX.whole = BG1_OBJECT_X(entity) - bg->xPos.whole;
-    entity->posY.whole = BG1_OBJECT_Y(entity) - bg->yPos.whole;
-    BG1_OBJECT_DRAW_X(entity) = BG1_OBJECT_X(entity) - bg->xPos.whole;
-    BG1_OBJECT_DRAW_Y(entity) = BG1_OBJECT_Y(entity) - bg->yPos.whole;
-    if ((s8)SWING_PART_INDEX(entity) == 2)
+    if ((s8)entity->ext.object34Part.index != 2)
+        ObjAffine_SetBiased(pivot->ext.object34.angle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
+    entity->posX.whole = entity->ext.layerObject.x - bg->xPos.whole;
+    entity->posY.whole = entity->ext.layerObject.y - bg->yPos.whole;
+    entity->ext.layerObject.drawX = entity->ext.layerObject.x - bg->xPos.whole;
+    entity->ext.layerObject.drawY = entity->ext.layerObject.y - bg->yPos.whole;
+    if ((s8)entity->ext.object34Part.index == 2)
     {
         player = (*ewramRef)->playerState.player;
         dist = player->posX.whole - entity->posX.whole;
@@ -652,15 +640,15 @@ u8 Object34_LoadGraphics(struct EwramData_EntityData *entity)
 
 /**
  * @brief 5A16C | Object 0x34 part draw: draw (Sprite_Draw) at the
- * position saved in BG1_OBJECT_DRAW_X / _Y, then restore posX / posY.
+ * position saved in ext.layerObject.drawX / _Y, then restore posX / posY.
  */
 void Object34Part_Draw(struct EwramData_EntityData *entity)
 {
     s32 oldX = entity->posX.whole;
     s32 oldY = entity->posY.whole;
 
-    entity->posX.whole = BG1_OBJECT_DRAW_X(entity);
-    entity->posY.whole = BG1_OBJECT_DRAW_Y(entity);
+    entity->posX.whole = entity->ext.layerObject.drawX;
+    entity->posY.whole = entity->ext.layerObject.drawY;
     Sprite_Draw(entity);
     entity->posX.whole = oldX;
     entity->posY.whole = oldY;

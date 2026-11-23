@@ -1,6 +1,5 @@
 /* Beam Skeleton approach and attack selection. */
 #include "code_08009A0.h"
-#include "beam_skeleton_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern s32 Entity_GetTargetDistanceY(struct EwramData_EntityData *entity);
@@ -30,43 +29,43 @@ void BeamSkeleton_UpdateApproach(struct EwramData_EntityData *entity)
                 entity->subState = 0;
                 return;
             }
-            BEAM_SKELETON_COOLDOWN(entity) = RandomNumberGenerator() % 32;
+            entity->ext.beamSkeleton.cooldown = RandomNumberGenerator() % 32;
             entity->subState++;
             entity->stage = 0;
         }
         case 1:
             Entity_FaceTarget(entity);
             entity->timer = 20;
-            BEAM_SKELETON_WALK_SPEED(entity) = RandomNumberGenerator() % 0x4000 + 0x8000;
+            entity->ext.beamSkeleton.walkSpeed = RandomNumberGenerator() % 0x4000 + 0x8000;
             if (Entity_IsTargetInCenteredBox(entity,RandomNumberGenerator() % 128 + 64,128))
-                BEAM_SKELETON_WALK_SPEED(entity) = -BEAM_SKELETON_WALK_SPEED(entity);
+                entity->ext.beamSkeleton.walkSpeed = -entity->ext.beamSkeleton.walkSpeed;
             if (entity->animScriptIndex != 1)
                 Anim_StartIndexed(entity,1,0,1);
             entity->subState++;
             entity->stage = 0;
         case 2:
-            if (BEAM_SKELETON_COOLDOWN(entity) != 0)
-                BEAM_SKELETON_COOLDOWN(entity)--;
-            if (BEAM_SKELETON_WALK_SPEED(entity) > 0)
-                BEAM_SKELETON_WALK_SPEED(entity) -= BEAM_SKELETON_WALK_SPEED(entity) >> 4;
+            if (entity->ext.beamSkeleton.cooldown != 0)
+                entity->ext.beamSkeleton.cooldown--;
+            if (entity->ext.beamSkeleton.walkSpeed > 0)
+                entity->ext.beamSkeleton.walkSpeed -= entity->ext.beamSkeleton.walkSpeed >> 4;
             else
-                BEAM_SKELETON_WALK_SPEED(entity) += ABS(BEAM_SKELETON_WALK_SPEED(entity)) >> 4;
+                entity->ext.beamSkeleton.walkSpeed += ABS(entity->ext.beamSkeleton.walkSpeed) >> 4;
             if (entity->timer == 0)
             {
-                if (BEAM_SKELETON_COOLDOWN(entity) == 0 && Entity_IsTargetInCenteredBox(entity,100,40))
+                if (entity->ext.beamSkeleton.cooldown == 0 && Entity_IsTargetInCenteredBox(entity,100,40))
                 {
                     entity->state = 3;
                     entity->stage = 0;
                     entity->subState = 0;
                     return;
                 }
-                BEAM_SKELETON_FIRE_URGE(entity)++;
-                if (RandomNumberGenerator() % 40 < BEAM_SKELETON_FIRE_URGE(entity))
+                entity->ext.beamSkeleton.fireUrge++;
+                if (RandomNumberGenerator() % 40 < entity->ext.beamSkeleton.fireUrge)
                 {
                     s32 distance = (s16)Entity_GetTargetDistanceX(entity);
                     if (ABS(distance) > 48)
                     {
-                        BEAM_SKELETON_FIRE_URGE(entity) = 0;
+                        entity->ext.beamSkeleton.fireUrge = 0;
                         if (RandomNumberGenerator() % 50 <= 14)
                         {
                             entity->state = 2;
@@ -75,14 +74,14 @@ void BeamSkeleton_UpdateApproach(struct EwramData_EntityData *entity)
                         }
                         return;
                     }
-                    BEAM_SKELETON_FIRE_URGE(entity) >>= 1;
+                    entity->ext.beamSkeleton.fireUrge >>= 1;
                 }
                 entity->subState--;
                 entity->stage = 0;
             }
             else
                 entity->timer--;
-            Entity_Walk(entity,BEAM_SKELETON_WALK_SPEED(entity),sBeamSkeletonWalkProfile,12);
+            Entity_Walk(entity,entity->ext.beamSkeleton.walkSpeed,sBeamSkeletonWalkProfile,12);
             break;
     }
 }

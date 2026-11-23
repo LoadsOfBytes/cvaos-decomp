@@ -1,10 +1,7 @@
 #include "code_08009A0.h"
-#include "gladiator_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
-/* Shot of the arm: facing of the arm at the shot; never read. */
-#define GLADIATOR_SHOT_UNUSED_DIR(e) e->unk_4FC.part8.unk_4FD
 
 extern void GladiatorShot_Update(struct EwramData_EntityData *entity);
 extern void GladiatorShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
@@ -49,12 +46,12 @@ void GladiatorArm_FireShot(struct EwramData_EntityData *entity, s32 dx, s32 dy, 
     shot->posY.whole = entity->posY.whole + dy;
     shot->velX.whole = vx;
     shot->velY.whole = vy;
-    GLADIATOR_SHOT_UNUSED_DIR(shot) = entity->flipX;
+    shot->ext.gladiatorShot.unusedDir = entity->flipX;
     shot->attack = entity->attack;
     if (entity->flipX)
-        GLADIATOR_SHOT_ANGLE(shot) = 0;
+        shot->ext.gladiatorShot.angle = 0;
     else
-        GLADIATOR_SHOT_ANGLE(shot) = 0x8000;
+        shot->ext.gladiatorShot.angle = 0x8000;
     palette = ObjAffine_Alloc(1);
     if ((s16)palette < 0)
     {
@@ -64,6 +61,6 @@ void GladiatorArm_FireShot(struct EwramData_EntityData *entity, s32 dx, s32 dy, 
     }
     shot->affineIndex = palette;
     shot->affine = 1;
-    ObjAffine_Set((u16)GLADIATOR_SHOT_ANGLE(shot) - 0x8000, 0x10000, 0x10000, shot->flipX, shot->flipY, shot->affineIndex);
+    ObjAffine_Set((u16)shot->ext.gladiatorShot.angle - 0x8000, 0x10000, 0x10000, shot->flipX, shot->flipY, shot->affineIndex);
     GladiatorShot_CreateTip(shot);
 }

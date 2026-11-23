@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "chaos_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -15,7 +14,7 @@ void Chaos2_SpawnShot(struct EwramData_EntityData *parent, s32 dx, s32 dy, s32 a
     u32 collision = 0x0808FCFC;
     struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)Chaos2Shot_Update);
     struct ChaosAngleFrames frames = sChaos2ShotAngleFrames;
-    struct ChaosShotGfx *gfx = (struct ChaosShotGfx *)CHAOS_DATA_PTR(parent);
+    struct ChaosShotGfx *gfx = (struct ChaosShotGfx *)parent->ext.chaos.data.ptr;
     if (child != NULL)
     {
         s32 vx, vy, tiles, index, zero;
@@ -38,7 +37,7 @@ void Chaos2_SpawnShot(struct EwramData_EntityData *parent, s32 dx, s32 dy, s32 a
         if (frames.entries[index][1] & 2)
             child->flipY = 1;
         child->unk_518.part8.enemyId = parent->unk_518.part8.enemyId;
-        CHAOS_LINK(child) = parent;
+        child->ext.chaosChild.link = parent;
         zero = 0;
         child->scrollWithBg = zero;
         child->attack = 0x64;

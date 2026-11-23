@@ -4,7 +4,7 @@
 #include "structs/ewram.h"
 void Object13Update(struct EwramData_EntityData *entity)
 {
-    s32 *data = (s32 *)&entity->unk_4FC;
+    s32 *data = (s32 *)&entity->ext.raw.unk_4FC;
     if (entity->state == 0xFF)
     {
         if (entity->timer > 1) { EntityDelete(entity); return; }

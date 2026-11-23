@@ -1,6 +1,5 @@
 /* Chaos second form: head update (5A7C). */
 #include "code_08009A0.h"
-#include "chaos_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "structs/ewram.h"
@@ -23,13 +22,13 @@ extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
 extern void Heap_Free(void *);
 extern void Chaos2SnakeHead_FireShot(struct EwramData_EntityData *, s32);
 
-#define TARGET_X(e) (CHAOS_SNAKE_TARGET_X((e)))
-#define TARGET_Y(e) (CHAOS_SNAKE_TARGET_Y((e)))
-#define ANGLE(e) (*(u16 *)&CHAOS_SNAKE_ANGLE((e)))
-#define TIMER(e) (*(u16 *)&CHAOS_SNAKE_TIMER((e)))
-#define TURN(e) (CHAOS_SNAKE_TURN((e)))
-#define MODE(e) (CHAOS_SNAKE_MODE((e)))
-#define POINT(e) (CHAOS_SNAKE_POINT((e)))
+#define TARGET_X(e) (e->ext.chaosSnake.targetX)
+#define TARGET_Y(e) (e->ext.chaosSnake.targetY)
+#define ANGLE(e) (*(u16 *)&e->ext.chaosSnake.angle)
+#define TIMER(e) (*(u16 *)&e->ext.chaosSnake.timer)
+#define TURN(e) (e->ext.chaosSnake.turn)
+#define MODE(e) (e->ext.chaosSnake.mode)
+#define POINT(e) (e->ext.chaosSnake.point)
 
 /* Shift the 120-entry history (6 bytes each) by one entry. */
 #define SHIFT_TRAIL(trail)                                  \
@@ -68,7 +67,7 @@ extern void Chaos2SnakeHead_FireShot(struct EwramData_EntityData *, s32);
  */
 void Chaos2SnakeHead_Update(struct EwramData_EntityData *e)
 {
-    struct EwramData_EntityData *core = CHAOS_LINK(e);
+    struct EwramData_EntityData *core = e->ext.chaosChild.link;
     u8 unused[0x20];
     u8 collision[0x10];
     u8 t8[8];
@@ -85,7 +84,7 @@ void Chaos2SnakeHead_Update(struct EwramData_EntityData *e)
     memcpy(t1b, sUnk_081192A0, 0x20);
     memcpy(t2, sUnk_081192C0, 0x30);
     memcpy(t3, sUnk_081192C0, 0x30);
-    trail = (u8 *)CHAOS_SNAKE_TRAIL(e);
+    trail = (u8 *)e->ext.chaosSnake.trail;
 
     if (e->state == 0)
     {
@@ -434,8 +433,8 @@ void Chaos2SnakeHead_Update(struct EwramData_EntityData *e)
         e->hidden = Entity_GetVisibilityPattern(e->timer);
         if ((s8)--e->timer <= 0)
         {
-            if (CHAOS_SNAKE_TRAIL(e) != 0)
-                Heap_Free((void *)CHAOS_SNAKE_TRAIL(e));
+            if (e->ext.chaosSnake.trail != 0)
+                Heap_Free((void *)e->ext.chaosSnake.trail);
             ObjAffine_Free(e->affineIndex);
             EntityDelete(e);
         }

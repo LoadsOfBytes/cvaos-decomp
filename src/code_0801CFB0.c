@@ -26,7 +26,7 @@ s16 Player_GetOverheadY(void)
         y = (s16)ReadPlayer(ew)->posY.part16.integer - 0x10;
         goto end;
     }
-    if (PLAYER_ACTION_FLAGS(ReadPlayer(ew)) & 0x400)
+    if ((ReadPlayer(ew))->ext.player.actionFlags & 0x400)
     {
         y = (s16)ReadPlayer(ew)->posY.part16.integer - 0x16;
         goto end;

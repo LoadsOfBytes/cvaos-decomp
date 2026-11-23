@@ -1,6 +1,5 @@
 /* Attached part: mirrors its parent's flags, follows joint 0 / table point and switches animation. */
 #include "code_08009A0.h"
-#include "skeleton_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 #include "structs/entity_render_flags.h"
@@ -28,7 +27,7 @@ extern const struct PartPoint sSkeletonPartPoints[];
 void SkeletonLinkedPart_Update(struct EwramData_EntityData *entity)
 {
     struct { s16 x; s16 y; } pt;
-    struct EwramData_EntityData *parent = &gEwramData->entityData[(u8)SKELETON_PIECE_OWNER_INDEX(entity)];
+    struct EwramData_EntityData *parent = &gEwramData->entityData[(u8)entity->ext.skeletonPiece.ownerIndex];
     const struct PartPoint *t;
 
     entity->hidden = parent->hidden;
@@ -50,7 +49,7 @@ void SkeletonLinkedPart_Update(struct EwramData_EntityData *entity)
         entity->deleteRequested = 1;
         return;
     }
-    if (!(SKELETON_FLAGS(parent) & 3))
+    if (!(parent->ext.skeleton.flags & 3))
     {
         entity->deleteRequested = 1;
         return;
@@ -76,7 +75,7 @@ void SkeletonLinkedPart_Update(struct EwramData_EntityData *entity)
         entity->flipX = parent->flipX;
         entity->posX.part16.integer = parent->posX.part16.integer + pt.x;
         entity->posY.part16.integer = parent->posY.part16.integer + pt.y;
-        if (!(SKELETON_FLAGS(parent) & 1))
+        if (!(parent->ext.skeleton.flags & 1))
             entity->state++;
         break;
     case 2:
@@ -92,7 +91,7 @@ void SkeletonLinkedPart_Update(struct EwramData_EntityData *entity)
         entity->posY.part16.integer += t->dy;
         break;
     }
-    if (SKELETON_FLAGS(parent) & 0x20)
+    if (parent->ext.skeleton.flags & 0x20)
     {
         if (entity->animScriptIndex != 7)
             Anim_StartIndexed(entity, 7, 0, 1);

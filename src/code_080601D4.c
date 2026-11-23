@@ -1,6 +1,5 @@
 /* EventScene09_PlaceHelpers. */
 #include "code/code_08039340.h"
-#include "event_scene09.h"
 #include "structs/ewram.h"
 
 /**
@@ -13,10 +12,10 @@ s32 EventScene09_PlaceHelpers(struct EwramData_EntityData *entity)
     entity->flipX = 1;
     entity->spriteLayer = gEwramData->playerState.player->spriteLayer + 1;
     entity->animFrame = 0x12;
-    if (EVENT09_ACTOR5(entity)->updateFunc != NULL)
-        EVENT09_ACTOR5(entity)->deleteRequested = 1;
-    if (EVENT09_ACTOR1(entity)->updateFunc != NULL)
-        EVENT09_ACTOR1(entity)->posX.whole = entity->posX.whole + 0x600000;
-    Anim_StartIndexed(EVENT09_ACTOR1(entity), 1, 0, 1);
+    if (entity->ext.event09.actor5->updateFunc != NULL)
+        entity->ext.event09.actor5->deleteRequested = 1;
+    if (entity->ext.event09.actor1->updateFunc != NULL)
+        entity->ext.event09.actor1->posX.whole = entity->posX.whole + 0x600000;
+    Anim_StartIndexed(entity->ext.event09.actor1, 1, 0, 1);
     entity->flipX = 1;
 }

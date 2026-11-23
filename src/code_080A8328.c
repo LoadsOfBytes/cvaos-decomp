@@ -1,7 +1,5 @@
 /* Big Golem create: allocates the 14-joint skeleton and one part entity per joint. */
 #include "code_08009A0.h"
-#include "big_golem_entity.h"
-#include "joint_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -77,14 +75,14 @@ void EnemyBigGolemCreate(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    entity->unk_500.bigGolemParts = Heap_Alloc(0xC4);
-    if (entity->unk_500.bigGolemParts == NULL)
+    entity->ext.bigGolem.parts = Heap_Alloc(0xC4);
+    if (entity->ext.bigGolem.parts == NULL)
     {
         EntityDelete(entity);
         return;
     }
     entity->flipX = 0;
-    JOINT_POSE(entity) = 0;
+    entity->ext.joint.pose = 0;
     Enemy_ResetFromTemplate(entity);
     if (entity->unk_514.part16.spawnParam0 != 0 && !gEwramData->gameState.bossRushMode)
         entity->attack = entity->attack - (entity->attack >> 2) - (entity->attack >> 3);
@@ -102,17 +100,17 @@ void EnemyBigGolemCreate(struct EwramData_EntityData *entity)
             else
                 Sprite_Attach(part, sBigGolemSpriteSheet, ObjGfx_LoadResource(sBigGolemGfx, 0), entity->unk_510.part8.basePalette);
             if (altPalette[index])
-                part->unk_510.part8.basePalette = BIG_GOLEM_PALETTE_1(entity);
+                part->unk_510.part8.basePalette = entity->ext.bigGolem.palette1;
             else
-                part->unk_510.part8.basePalette = BIG_GOLEM_PALETTE_0(entity);
+                part->unk_510.part8.basePalette = entity->ext.bigGolem.palette0;
             part->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
             part->scrollWithBg = 0;
             part->hidden = 0;
             part->attack = entity->attack;
             part->drawFunc = (u32 *)Sprite_DrawEntity;
-            JOINT_PART_OWNER(part) = entity;
-            JOINT_PART_INDEX(part) = index;
-            JOINT_PART_ANCHOR(part) = anchors[index];
+            part->ext.jointPart.owner = entity;
+            part->ext.jointPart.index = index;
+            part->ext.jointPart.anchor = anchors[index];
             part->posX.whole = entity->posX.whole;
             part->posY.whole = entity->posY.whole;
             part->animFrame = frames[index];
@@ -134,14 +132,14 @@ void EnemyBigGolemCreate(struct EwramData_EntityData *entity)
         }
         else
         {
-            Heap_Free(entity->unk_500.bigGolemParts);
+            Heap_Free(entity->ext.bigGolem.parts);
             EntityDelete(entity);
             return;
         }
     }
-    parts = (s32 *)entity->unk_500.bigGolemParts;
-    pose = sBigGolemPartPoses[(s8)JOINT_POSE(entity)];
-    angles = sBigGolemPartAngles[(s8)JOINT_POSE(entity)];
+    parts = (s32 *)entity->ext.bigGolem.parts;
+    pose = sBigGolemPartPoses[(s8)entity->ext.joint.pose];
+    angles = sBigGolemPartAngles[(s8)entity->ext.joint.pose];
     for (index = 0; index <= 13; index++)
     {
         parts[index * 14] = pose[index * 2] << 16;
@@ -216,11 +214,11 @@ void EnemyBigGolemCreate(struct EwramData_EntityData *entity)
     BigGolem_ResetPartAngles(entity, 13);
     Hit_Enable(entity, 8, BigGolem_DamagePlayerOnContact, (s32)BigGolem_OnHit);
     BigGolem_FaceTarget(entity);
-    BIG_GOLEM_HEADING(entity) = entity->flipX;
+    entity->ext.bigGolem.heading = entity->flipX;
     Entity_SnapToGround(entity);
     entity->state = frozen;
     entity->subState = frozen;
-    JOINT_HURT_MASK(entity) = 0x312C;
+    entity->ext.joint.hurtMask = 0x312C;
     if (entity->unk_514.part16.spawnParam0 != 0)
     {
         Music_SetCurrent(0x10);

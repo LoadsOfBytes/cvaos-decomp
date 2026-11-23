@@ -23,16 +23,16 @@ extern void EventScene30PieceEmitter_Update(struct EwramData_EntityData *);
 extern void EventScene30_SpawnOrbitRing(struct EwramData_EntityData *,s16,s16);
 extern void EventScene30_SpawnDriftFragment(s16,s16,s32,s32);
 extern void PlaySong(u16);
-#define PHASE(e) (EVENT30_PHASE((e)))
-#define INIT(e) (EVENT30_PHASE_INIT((e)))
-#define ANGLE(e) (EVENT30_ANGLE((e)))
-#define CENTER_X(e) (EVENT30_CENTER_X((e)))
-#define CENTER_Y(e) (EVENT30_CENTER_Y((e)))
-#define SCALE_X(e) (EVENT30_SCALE((e)))
-#define SCALE_Y(e) (EVENT30_SCALE_Y((e)))
-#define SWEEP(e) (EVENT30_SWEEP((e)))
-#define TIMER(e) (EVENT30_TIMER((e)))
-#define JITTER_X(e) ((e)->unk_508.part8.unk_50A)
+#define PHASE(e) (e->ext.event30.phase)
+#define INIT(e) (e->ext.event30.phaseInit)
+#define ANGLE(e) (e->ext.event30.angle)
+#define CENTER_X(e) (e->ext.event30.centerX)
+#define CENTER_Y(e) (e->ext.event30.centerY)
+#define SCALE_X(e) (e->ext.event30.scale)
+#define SCALE_Y(e) (e->ext.event30.scaleY)
+#define SWEEP(e) (e->ext.event30.sweep)
+#define TIMER(e) (e->ext.event30.timer)
+#define JITTER_X(e) ((e)->ext.raw.unk_508.part8.unk_50A)
 #define JITTER_Y(e) (EVENT30_JITTER_Y((e)))
 static inline void emitCenter(s16 x,s16 y,u32 index)
 {

@@ -1,6 +1,5 @@
 #include "code_08009A0.h"
 #include "soul_skill_entity.h"
-#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -38,7 +37,7 @@ static inline struct SoulGraphicsResources *GetSet(s32 index)
  */
 void SkillRedMinotaurUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.redSoul.owner;
     struct EwramData_EntityData *child;
     s32 zero;
     u16 slot;
@@ -59,7 +58,7 @@ void SkillRedMinotaurUse(struct EwramData_EntityData *entity)
         slot = ObjAffine_Alloc(0);
         if ((s16)slot < 0)
         {
-            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = (void *)zero;
+            gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = (void *)zero;
             EntityDelete(entity);
             return;
         }
@@ -67,7 +66,7 @@ void SkillRedMinotaurUse(struct EwramData_EntityData *entity)
         if (child == NULL)
         {
             ObjAffine_Free(entity->affineIndex);
-            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = child;
+            gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = child;
             EntityDelete(entity);
             return;
         }
@@ -84,25 +83,25 @@ void SkillRedMinotaurUse(struct EwramData_EntityData *entity)
         speed = 0xF800;
         SKILL_RED_MINOTAUR_SWING_SPEED(entity) = speed;
         accel = 0x40;
-        SKILL_RED_MINOTAUR_SWING_ACCEL(entity) = accel;
+        entity->ext.skillRedMinotaur.swingAccel = accel;
         if (entity->flipX)
         {
             SKILL_RED_MINOTAUR_ANGLE(entity) = -angle;
             SKILL_RED_MINOTAUR_SWING_SPEED(entity) = -speed;
-            SKILL_RED_MINOTAUR_SWING_ACCEL(entity) = -accel;
+            entity->ext.skillRedMinotaur.swingAccel = -accel;
         }
         entity->timer = 0x50;
         gEwramData->playerState.nbrActiveRedSoulEntities++;
         PlaySong(0x1A0);
         PlaySong(0xCF);
     case 1:
-        if (SKILL_RED_MINOTAUR_SCALE(entity) <= 0x1FFFF)
-            SKILL_RED_MINOTAUR_SCALE(entity) += 0x2000;
+        if (entity->ext.skillRedMinotaur.scale <= 0x1FFFF)
+            entity->ext.skillRedMinotaur.scale += 0x2000;
         else
             entity->state = 2;
     case 2:
         SKILL_RED_MINOTAUR_ANGLE(entity) += SKILL_RED_MINOTAUR_SWING_SPEED(entity);
-        SKILL_RED_MINOTAUR_SWING_SPEED(entity) += SKILL_RED_MINOTAUR_SWING_ACCEL(entity);
+        SKILL_RED_MINOTAUR_SWING_SPEED(entity) += entity->ext.skillRedMinotaur.swingAccel;
         if (entity->timer != 0)
             entity->timer--;
         else
@@ -110,15 +109,15 @@ void SkillRedMinotaurUse(struct EwramData_EntityData *entity)
         break;
     case 3:
         SKILL_RED_MINOTAUR_ANGLE(entity) += SKILL_RED_MINOTAUR_SWING_SPEED(entity);
-        SKILL_RED_MINOTAUR_SWING_SPEED(entity) -= SKILL_RED_MINOTAUR_SWING_ACCEL(entity) * 2;
-        if (SKILL_RED_MINOTAUR_SCALE(entity) > 0)
-            SKILL_RED_MINOTAUR_SCALE(entity) -= 0x2000;
+        SKILL_RED_MINOTAUR_SWING_SPEED(entity) -= entity->ext.skillRedMinotaur.swingAccel * 2;
+        if (entity->ext.skillRedMinotaur.scale > 0)
+            entity->ext.skillRedMinotaur.scale -= 0x2000;
         else
             entity->state = 4;
         break;
     case 4:
         ObjAffine_Free(entity->affineIndex);
-        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;
@@ -129,5 +128,5 @@ void SkillRedMinotaurUse(struct EwramData_EntityData *entity)
         entity->state = 4;
         entity->hidden = 1;
     }
-    ObjAffine_Set(SKILL_RED_MINOTAUR_ANGLE(entity), SKILL_RED_MINOTAUR_SCALE(entity), SKILL_RED_MINOTAUR_SCALE(entity), entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set(SKILL_RED_MINOTAUR_ANGLE(entity), entity->ext.skillRedMinotaur.scale, entity->ext.skillRedMinotaur.scale, entity->flipX, 0, entity->affineIndex);
 }

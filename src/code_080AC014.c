@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "joint_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern const s16 *const sBigGolemPartPoses[];
@@ -11,9 +10,9 @@ extern const s32 *const sBigGolemPartAngles[];
  * turn toward their resting angle. */
 void BigGolem_UpdatePart(struct EwramData_EntityData *entity, s32 index)
 {
-    struct BigGolemPart *parts = entity->unk_500.bigGolemParts;
-    const s16 *pose = sBigGolemPartPoses[(s8)JOINT_POSE(entity)];
-    const s32 *angles = sBigGolemPartAngles[(s8)JOINT_POSE(entity)];
+    struct BigGolemPart *parts = entity->ext.bigGolem.parts;
+    const s16 *pose = sBigGolemPartPoses[(s8)entity->ext.joint.pose];
+    const s32 *angles = sBigGolemPartAngles[(s8)entity->ext.joint.pose];
     s32 x, y, dx, dy, timer;
     struct BigGolemPart *p = (struct BigGolemPart *)(index * sizeof(struct BigGolemPart) + (u32)parts);
     timer = p->interpolationTimer;

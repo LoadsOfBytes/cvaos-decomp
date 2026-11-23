@@ -2,7 +2,6 @@
  * (NO_2003_PATCH_SRCS in ../Makefile). (Target_IsNearEntity test through an inline with two
  * returns, state 1 constant in a block variable). */
 #include "code_08009A0.h"
-#include "killer_mantle_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -41,7 +40,7 @@ void KillerMantle_UpdateHover(struct EwramData_EntityData *entity)
                 entity->velY.whole = 0;
                 entity->accelY.whole = 0;
                 entity->stage = 0;
-                KILLER_MANTLE_SWAY_FRAME(entity) = 0;
+                entity->ext.killerMantle.swayFrame = 0;
                 entity->subState = one;
             }
         case 1:
@@ -49,12 +48,12 @@ void KillerMantle_UpdateHover(struct EwramData_EntityData *entity)
                 break;
             Anim_StartIndexed(entity, 2, 0, 0);
             entity->subState = 2;
-            KILLER_MANTLE_SPEED(entity) = RandomNumberGenerator() % 256 + 0x100;
+            entity->ext.killerMantle.speed = RandomNumberGenerator() % 256 + 0x100;
             break;
         case 2:
-            KILLER_MANTLE_SWAY_FRAME(entity)++;
-            entity->accelY.whole = Sin(KILLER_MANTLE_SWAY_FRAME(entity) << 11) / 48;
-            speed = KILLER_MANTLE_SPEED(entity) * (Sin(KILLER_MANTLE_SWAY_FRAME(entity) * 3 << 8) / 256);
+            entity->ext.killerMantle.swayFrame++;
+            entity->accelY.whole = Sin(entity->ext.killerMantle.swayFrame << 11) / 48;
+            speed = entity->ext.killerMantle.speed * (Sin(entity->ext.killerMantle.swayFrame * 3 << 8) / 256);
             if (entity->stage)
                 speed = -speed;
             entity->timer = 0;
@@ -68,12 +67,12 @@ void KillerMantle_UpdateHover(struct EwramData_EntityData *entity)
                     && ((!Target_GetFlipX(entity) && (s8)Entity_GetTargetDirection(entity) == -1)
                         || (Target_GetFlipX(entity) && (s8)Entity_GetTargetDirection(entity) == 1)))
                 {
-                    KILLER_MANTLE_SWAY_FRAME(entity) = 0x30;
+                    entity->ext.killerMantle.swayFrame = 0x30;
                     entity->timer = 1;
                 }
             }
             Entity_Walk(entity, speed, sKillerMantleWalkProfile, 0);
-            if (KILLER_MANTLE_SWAY_FRAME(entity) <= 47)
+            if (entity->ext.killerMantle.swayFrame <= 47)
                 break;
             if (InRange(entity) && entity->timer == 0)
             {
@@ -90,12 +89,12 @@ void KillerMantle_UpdateHover(struct EwramData_EntityData *entity)
             back = entity->stage;
             if (entity->flipX)
                 back ^= 1;
-            KILLER_MANTLE_SPEED(entity) = RandomNumberGenerator() % 256 + 0x100;
+            entity->ext.killerMantle.speed = RandomNumberGenerator() % 256 + 0x100;
             if ((!back && (s8)Entity_GetTargetDirection(entity) == -1) || (back && (s8)Entity_GetTargetDirection(entity) == 1))
-                KILLER_MANTLE_SPEED(entity) += 0x100 + RandomNumberGenerator() % 64;
+                entity->ext.killerMantle.speed += 0x100 + RandomNumberGenerator() % 64;
             if (entity->timer)
-                KILLER_MANTLE_SPEED(entity) += 0x100;
-            KILLER_MANTLE_SWAY_FRAME(entity) = 0;
+                entity->ext.killerMantle.speed += 0x100;
+            entity->ext.killerMantle.swayFrame = 0;
             break;
     }
 }

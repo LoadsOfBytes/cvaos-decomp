@@ -14,7 +14,7 @@ void Stolas_FaceTarget(struct EwramData_EntityData *entity)
         s32 halfTurn;
         entity->flipX ^= 1;
         halfTurn = 0x20000;
-        part = entity->unk_500.jointParts;
+        part = entity->ext.joint.parts;
         for (i = 5; i >= 0; i--)
         {
             part->offsetX = -part->offsetX;

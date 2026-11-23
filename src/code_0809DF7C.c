@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "legion_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -20,26 +19,26 @@ struct EwramData_EntityData *Legion_CreateCorpse(struct EwramData_EntityData *en
 {
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
     struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)LegionCorpse_Update);
-    u32 *data = (u32 *)LEGION_DATA(entity);
+    u32 *data = (u32 *)entity->ext.legion.data.value;
     u32 tiles, r;
 
     if (child != NULL)
     {
     child->posX.whole = x - bg->xPos.whole;
     child->posY.whole = y - bg->yPos.whole;
-    LEGION_CORPSE_TARGET_X(child) = x;
-    LEGION_CORPSE_TARGET_Y(child) = x;
-    LEGION_CORPSE_FRAME(child) = index;
+    child->ext.legionCorpse.targetX = x;
+    child->ext.legionCorpse.targetY = x;
+    child->ext.legionCorpse.frame = index;
     child->spriteLayer = entity->spriteLayer - 3;
     tiles = *data;
-    child->unk_510.part8.basePalette = LEGION_ANIM_PALETTE(entity);
+    child->unk_510.part8.basePalette = entity->ext.legion.animPalette;
     Sprite_Attach(child, sLegionSpriteSheet, tiles, child->unk_510.part8.basePalette);
     Anim_Start(child, (struct AnimScript *)sLegionAnimScript1, 2, 1);
     Anim_Update(child);
     r = RandomNumberGenerator() & 7;
     child->animTimer = r;
     child->unk_518.part8.enemyId = entity->unk_518.part8.enemyId;
-    LEGION_PART_OWNER(child) = entity;
+    child->ext.legionPart.owner = entity;
     child->scrollWithBg = 1;
     r = RandomNumberGenerator() & 1;
     child->flipX = r;

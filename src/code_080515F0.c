@@ -19,7 +19,7 @@ struct Object13ArmView
     u8 segmentIndex;
     u8 ownerSlot;
 };
-#define ARM(e) ((struct Object13ArmView *)&((struct EwramData_EntityData *)(e))->unk_4FC)
+#define ARM(e) ((struct Object13ArmView *)&((struct EwramData_EntityData *)(e))->ext.raw.unk_4FC)
 
 /**
  * @brief One of the ten affine segments of object 0x13, linked to the previous

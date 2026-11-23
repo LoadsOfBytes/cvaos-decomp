@@ -43,7 +43,7 @@ active:
                     Belmont_CreateSceneObject(entity,2);
                     entity->stage++;
                 }
-                object=&gEwramData->entityData[BELMONT_SCENE_OBJECT_INDEX(entity)];
+                object=&gEwramData->entityData[entity->ext.belmontScene.objectIndex];
                 if(object->updateFunc!=NULL)
                 {
                     PLAYER->posX.part16.integer=boundary;

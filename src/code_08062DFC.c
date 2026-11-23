@@ -24,8 +24,8 @@ void EventScene30FloatingFragment_Update(struct EwramData_EntityData *entity)
     }
     else if(state==1)
     {
-        entity->velY.whole=Sin((u16)EVENT30_FRAGMENT_PHASE(entity)+0x4000)/4;
-        EVENT30_FRAGMENT_PHASE(entity)+=0x400;
+        entity->velY.whole=Sin((u16)entity->ext.event30Fragment.phase+0x4000)/4;
+        entity->ext.event30Fragment.phase+=0x400;
         entity->posY.whole+=entity->velY.whole;
         if(owner->attack&2)
         {
@@ -44,7 +44,7 @@ void EventScene30FloatingFragment_Update(struct EwramData_EntityData *entity)
         if(!Entity_StepTowardPoint(entity,0x780000,0x500000,4))
         {ObjAffine_Free(entity->affineIndex);entity->deleteRequested=1;return;}
         if(entity->timer)
-        {EVENT30_EFFECT_SCALE(entity)-=0x1000;entity->timer--;}
+        {entity->ext.event30Effect.scale-=0x1000;entity->timer--;}
     }
     if(entity->state==1)
     {
@@ -55,6 +55,6 @@ void EventScene30FloatingFragment_Update(struct EwramData_EntityData *entity)
     entity->posX.whole+=entity->velX.whole;
     entity->posY.whole+=entity->velY.whole;
     entity->velY.whole+=entity->accelY.whole;
-    ObjAffine_Set(EVENT30_EFFECT_ANGLE(entity),EVENT30_EFFECT_SCALE(entity),EVENT30_EFFECT_SCALE(entity),0,0,entity->affineIndex);
+    ObjAffine_Set(EVENT30_EFFECT_ANGLE(entity),entity->ext.event30Effect.scale,entity->ext.event30Effect.scale,0,0,entity->affineIndex);
     EVENT30_EFFECT_ANGLE(entity)+=0x200;
 }

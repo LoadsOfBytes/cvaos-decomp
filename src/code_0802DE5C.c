@@ -1,7 +1,6 @@
 /* BlueSoul_ShouldEnd; as
  * BlueSoul_CheckEndCondition (src/code_0802DF2C.c) plus BlueSoul_ReleaseActiveResources on ending. */
 #include "code_08009A0.h"
-#include "blue_soul_entity.h"
 #include "structs/ewram.h"
 
 /* Blue soul info, indexed by equippedBlueSoul (as in code_08031D6C.c). */
@@ -32,8 +31,8 @@ s32 BlueSoul_ShouldEnd(struct EwramData_EntityData *entity)
     s32 rem;
 
     entity->roomActive = 1;
-    BLUE_SOUL_MP_COUNTER(entity)++;
-    rem = (u16)BLUE_SOUL_MP_COUNTER(entity) % BLUE_SOUL_MP_INTERVAL(entity);
+    entity->ext.blueSoul.mpCounter++;
+    rem = (u16)entity->ext.blueSoul.mpCounter % entity->ext.blueSoul.mpInterval;
     if (rem == 0 && --ew->playerStatus.currentMP <= 0)
     {
         ew->playerStatus.currentMP = rem;

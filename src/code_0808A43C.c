@@ -1,7 +1,5 @@
 /* Great Armor create: allocates the 14-joint skeleton and one part entity per joint. */
 #include "code_08009A0.h"
-#include "great_armor_entity.h"
-#include "joint_entity.h"
 #include "code_08013960.h"
 #include "code_08033CAC.h"
 #include "code/code_08039340.h"
@@ -75,8 +73,8 @@ void EnemyGreatArmorCreate(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    entity->unk_500.greatArmorParts = Heap_Alloc(0x8C);
-    if (entity->unk_500.greatArmorParts == NULL)
+    entity->ext.greatArmor.parts = Heap_Alloc(0x8C);
+    if (entity->ext.greatArmor.parts == NULL)
     {
         EntityDelete(entity);
         return;
@@ -84,9 +82,9 @@ void EnemyGreatArmorCreate(struct EwramData_EntityData *entity)
     entity->hidden = 1;
     entity->flipX = 0;
     if (entity->unk_518.part8.enemyId == 0x3C)
-        JOINT_POSE(entity) = 0;
+        entity->ext.joint.pose = 0;
     else
-        JOINT_POSE(entity) = 0;
+        entity->ext.joint.pose = 0;
     Enemy_ResetFromTemplate(entity);
     if (gEwramData->gameState.bossRushMode)
     {
@@ -113,9 +111,9 @@ void EnemyGreatArmorCreate(struct EwramData_EntityData *entity)
             part->hidden = 0;
             part->attack = entity->attack;
             part->drawFunc = (u32 *)Sprite_DrawEntity;
-            JOINT_PART_OWNER(part) = entity;
-            JOINT_PART_INDEX(part) = index;
-            JOINT_PART_ANCHOR(part) = anchors[index];
+            part->ext.jointPart.owner = entity;
+            part->ext.jointPart.index = index;
+            part->ext.jointPart.anchor = anchors[index];
             part->posX.whole = entity->posX.whole;
             part->posY.whole = entity->posY.whole;
             part->animFrame = frames[index];
@@ -148,14 +146,14 @@ void EnemyGreatArmorCreate(struct EwramData_EntityData *entity)
         }
         else
         {
-            Heap_Free(entity->unk_500.greatArmorParts);
+            Heap_Free(entity->ext.greatArmor.parts);
             EntityDelete(entity);
             return;
         }
     }
-    parts = (s32 *)entity->unk_500.greatArmorParts;
-    pose = sGreatArmorPartPoses[(s8)JOINT_POSE(entity)];
-    angles = sGreatArmorPartAngles[(s8)JOINT_POSE(entity)];
+    parts = (s32 *)entity->ext.greatArmor.parts;
+    pose = sGreatArmorPartPoses[(s8)entity->ext.joint.pose];
+    angles = sGreatArmorPartAngles[(s8)entity->ext.joint.pose];
     for (index = 0; index <= 13; index++)
     {
         parts[index * 10] = (s8)pose[index * 2] << 16;
@@ -194,7 +192,7 @@ void EnemyGreatArmorCreate(struct EwramData_EntityData *entity)
     Entity_SnapToGround(entity);
     entity->state = frozen;
     entity->subState = 0x14;
-    JOINT_HURT_MASK(entity) = 0x1001;
+    entity->ext.joint.hurtMask = 0x1001;
     if (entity->unk_514.part16.spawnParam0 != 0)
     {
         Music_SetCurrent(0x10);
@@ -204,13 +202,13 @@ void EnemyGreatArmorCreate(struct EwramData_EntityData *entity)
     switch (entity->unk_518.part8.enemyId)
     {
     case 0x3C:
-        GREAT_ARMOR_VARIANT(entity) = 0;
+        entity->ext.greatArmor.variant = 0;
         break;
     case 0x67:
-        GREAT_ARMOR_VARIANT(entity) = 1;
+        entity->ext.greatArmor.variant = 1;
         break;
     case 0x69:
-        GREAT_ARMOR_VARIANT(entity) = 2;
+        entity->ext.greatArmor.variant = 2;
         break;
     }
 }

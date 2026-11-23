@@ -1,6 +1,5 @@
 /* Zombie debris and temporary effects. */
 #include "code_08009A0.h"
-#include "zombie_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
@@ -13,5 +12,5 @@ extern void ZombieTemporarySprite_Update(struct EwramData_EntityData *);
  */
 void ZombieTemporarySprite_Update(struct EwramData_EntityData *entity)
 {
-    if (ZOMBIE_SPRITE_LIFETIME(entity)-- <= 0) EntityDelete(entity);
+    if (entity->ext.zombieSprite.lifetime-- <= 0) EntityDelete(entity);
 }

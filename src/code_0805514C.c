@@ -21,39 +21,39 @@ void SavePoint_UpdateOrbitLight(struct EwramData_EntityData *entity)
     u32 step;
     s32 rad;
 
-    owner = SAVE_POINT_PART_OWNER(entity);
+    owner = entity->ext.savePointPart.owner;
     state = entity->state;
     switch (state)
     {
     case 0:
-        s = Sin(SAVE_POINT_LIGHT_INDEX(entity) << 13);
-        c = Sin((SAVE_POINT_LIGHT_INDEX(entity) << 13) + 0x4000);
-        rad = SAVE_POINT_LIGHT_RADIUS(entity);
+        s = Sin(entity->ext.savePointLight.index << 13);
+        c = Sin((entity->ext.savePointLight.index << 13) + 0x4000);
+        rad = entity->ext.savePointLight.radius;
         r = rad >> 16;
         s *= r;
         c *= r;
         entity->posY.whole = s + 0x500000;
         entity->posX.whole = c + 0x760000;
-        if ((u32)SAVE_POINT_LIGHT_PHASE(entity) <= 0x1DFFFF)
-            step = (u32)SAVE_POINT_LIGHT_PHASE(entity) >> 16;
+        if ((u32)entity->ext.savePointLight.phase <= 0x1DFFFF)
+            step = (u32)entity->ext.savePointLight.phase >> 16;
         else
-            step = ((u32)SAVE_POINT_LIGHT_PHASE(entity) >> 16) * 3;
-        SAVE_POINT_LIGHT_RADIUS(entity) = rad + (step << 13);
-        SAVE_POINT_LIGHT_PHASE(entity) += 0x10000;
+            step = ((u32)entity->ext.savePointLight.phase >> 16) * 3;
+        entity->ext.savePointLight.radius = rad + (step << 13);
+        entity->ext.savePointLight.phase += 0x10000;
         entity->unk_510.whole += 0x800;
-        if (*(vs32 *)&SAVE_POINT_LIGHT_RADIUS(entity) > 0xFFFFFF)
+        if (*(vs32 *)&entity->ext.savePointLight.radius > 0xFFFFFF)
         {
             entity->state++;
             entity->timer = 2;
             entity->spriteLayer = 9;
-            SAVE_POINT_LIGHT_RADIUS(entity) = 0x1000000;
+            entity->ext.savePointLight.radius = 0x1000000;
             owner->unk_514.part8.unk_517 = 1;
-            SAVE_POINT_LIGHT_PHASE(entity) = 0;
+            entity->ext.savePointLight.phase = 0;
         }
         break;
     case 1:
-        s = Sin((SAVE_POINT_LIGHT_INDEX(entity) << 13) + SAVE_POINT_LIGHT_PHASE(entity));
-        c = Sin((SAVE_POINT_LIGHT_INDEX(entity) << 13) + ({ s32 t_ = SAVE_POINT_LIGHT_PHASE(entity); t_ + 0x4000; }));
+        s = Sin((entity->ext.savePointLight.index << 13) + entity->ext.savePointLight.phase);
+        c = Sin((entity->ext.savePointLight.index << 13) + ({ s32 t_ = entity->ext.savePointLight.phase; t_ + 0x4000; }));
         r = SAVE_POINT_LIGHT_RADIUS_PX(entity);
         s *= r;
         c *= r;
@@ -61,11 +61,11 @@ void SavePoint_UpdateOrbitLight(struct EwramData_EntityData *entity)
         entity->posY.whole = s + 0x500000;
         entity->posX.whole += (Target_GetPixelX(entity) << 16) - owner->posX.whole;
         entity->posY.whole = entity->posY.whole + ((Target_GetPixelY(entity) << 16) - owner->posY.whole) + 0x200000;
-        SAVE_POINT_LIGHT_RADIUS(entity) -= 0x30000;
-        SAVE_POINT_LIGHT_PHASE(entity) += 0x200;
-        if (SAVE_POINT_LIGHT_RADIUS(entity) <= 0)
+        entity->ext.savePointLight.radius -= 0x30000;
+        entity->ext.savePointLight.phase += 0x200;
+        if (entity->ext.savePointLight.radius <= 0)
         {
-            SAVE_POINT_PART_OWNER(entity)->unk_514.part8.unk_516 = state;
+            entity->ext.savePointPart.owner->unk_514.part8.unk_516 = state;
             entity->deleteRequested = 1;
         }
         break;

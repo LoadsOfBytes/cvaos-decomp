@@ -22,7 +22,7 @@ struct EwramData_EntityData *BlueSoul_CreateAfterimage(struct EwramData_EntityDa
             entity->spriteLayer = owner->spriteLayer + 1;
             entity->flipX = owner->flipX;
             entity->timer = 8;
-            entity->stage = owner->unk_508.part16.unk_508;
+            entity->stage = owner->ext.raw.unk_508.part16.unk_508;
             entity->scrollWithBg = 1;
             return entity;
         }

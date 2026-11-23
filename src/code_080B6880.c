@@ -71,7 +71,7 @@ void BaloreIntro_Update(struct EwramData_EntityData *entity)
         e = EntityCreateInRange(0x49, 0xCF, (u32 *)BaloreIntroPart_Update);
         if (e)
         {
-            BALORE_PIECE_OWNER(e) = entity;
+            e->ext.balorePiece.owner = entity;
             e->posX.whole = entity->posX.whole;
             e->posY.whole = entity->posY.whole;
             e->scrollWithBg = 1;
@@ -125,7 +125,7 @@ void BaloreIntro_Update(struct EwramData_EntityData *entity)
         gEwramData->gameState.stateFlags &= ~1;
         Game_SetMenusEnabled(1);
         SharedObjPalette_ResetSlots();
-        ObjGfx_Unload((s8)BALORE_GFX(entity));
+        ObjGfx_Unload((s8)entity->ext.balore.gfx);
         e = Entity_CreateObject(EnemyBaloreUpdate);
         if (e)
         {

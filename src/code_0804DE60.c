@@ -1,7 +1,5 @@
 /* Helpers 0x0804DE60..0x0804DFAB. */
 #include "gba.h"
-#include "door_entity.h"
-#include "gate_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
@@ -23,7 +21,7 @@ void Gate_CreateFlagControlled(struct EwramData_EntityData *entity)
 {
     Gate_SetupGraphics(entity, 0);
     if (OBJECT_FLAG(gEwramData, entity->unk_514.part16.spawnParam0))
-        GATE_OPEN_ANGLE(entity) = 0x4000;
+        entity->ext.gate.openAngle = 0x4000;
 }
 
 /**
@@ -38,19 +36,19 @@ void Door_Draw(struct EwramData_EntityData *entity)
     u16 *yPtr = &entity->posY.part16.integer;
     u32 savedY = *yPtr;
 
-    if (DOOR_OPEN_HEIGHT(entity) > 0x2F)
+    if (entity->ext.door.openHeight > 0x2F)
     {
         gUnk_03002CB0.dispCnt &= ~DCNT_WINOBJ;
         return;
     }
-    if (DOOR_OPEN_HEIGHT(entity) != 0)
+    if (entity->ext.door.openHeight != 0)
     {
         entity->objMode = 2;
         gUnk_03002CB0.dispCnt |= DCNT_WINOBJ;
         *yPtr -= 0x30;
         Sprite_Draw(entity);
         entity->objMode = 0;
-        *yPtr = savedY - DOOR_OPEN_HEIGHT(entity);
+        *yPtr = savedY - entity->ext.door.openHeight;
     }
     *framePtr = savedFrame;
     Sprite_Draw(entity);
@@ -69,9 +67,9 @@ void Door_SetupGraphics(struct EwramData_EntityData *entity)
 
     entity->spriteLayer = 0x16;
     entity->flipX = 0;
-    DOOR_ON_RIGHT(entity) = (s16)entity->posX.part16.integer > 0x78;
+    entity->ext.door.onRight = (s16)entity->posX.part16.integer > 0x78;
     gfx = ObjGfx_Find(sCommonObjectGfx);
-    DOOR_PALETTE(entity) = 6;
+    entity->ext.door.palette = 6;
     Sprite_Attach(entity, sCommonObjectSpriteSheet, gfx, 6);
     entity->animFrame = 0x3F;
     gUnk_03002CB0.dispCnt |= DCNT_WINOBJ;

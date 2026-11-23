@@ -1,5 +1,4 @@
 #include "code_08035930.h"
-#include "debug_entity.h"
 #include "code_08009A0.h"
 #include "code_08001004.h"
 #include "code_08001194.h"
@@ -735,11 +734,11 @@ void Debug1967_UnusedStub(void)
  */
 s32 DebugPlatform_GetCarryVelocity(struct EwramData_EntityData *entity)
 {
-    if ((u8) DEBUG_PLATFORM_CARRYING(entity) == 0)
+    if ((u8) entity->ext.debug.platformCarrying == 0)
         return 0;
 
     gEwramData->playerState.player->posX.part16.fraction = entity->posX.part16.fraction;
-    DEBUG_PLATFORM_CARRYING(entity) = 0;
+    entity->ext.debug.platformCarrying = 0;
     return entity->velX.whole;
 }
 
@@ -841,9 +840,9 @@ void DebugTestEnemy_Update(struct EwramData_EntityData *entity)
         case 1:
             entity->posX.whole += entity->velX.whole;
             entity->posY.whole += entity->velY.whole;
-            DEBUG_TEST_ENEMY_ANGLE(entity) += 0x400;
-            entity->velY.whole = Sin(DEBUG_TEST_ENEMY_ANGLE(entity));
-            entity->velX.whole = Sin(DEBUG_TEST_ENEMY_ANGLE(entity) + 0x4000);
+            entity->ext.debug.testEnemyAngle += 0x400;
+            entity->velY.whole = Sin(entity->ext.debug.testEnemyAngle);
+            entity->velX.whole = Sin(entity->ext.debug.testEnemyAngle + 0x4000);
 
             if (entity->accelX.whole > 0)
             {

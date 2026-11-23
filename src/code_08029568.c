@@ -1,7 +1,6 @@
 /* SkillCockatriceEffectUpdate (pattern of
  * SkillFlameDemonProjectileUpdate). */
 #include "code_08009A0.h"
-#include "red_soul_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -33,7 +32,7 @@ static inline struct SoulGraphicsResources *GetSet(s32 index)
  */
 void SkillCockatriceEffectUpdate(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *owner = RED_SOUL_OWNER(entity);
+    struct EwramData_EntityData *owner = entity->ext.redSoul.owner;
 
     switch (entity->state)
     {
@@ -53,7 +52,7 @@ void SkillCockatriceEffectUpdate(struct EwramData_EntityData *entity)
         Entity_PlaceRelativeTo(entity, owner, 0, 0);
         if (Anim_Update(entity) == 3)
         {
-            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+            gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
             gEwramData->playerState.nbrActiveRedSoulEntities--;
             EntityDelete(entity);
             return;
@@ -62,7 +61,7 @@ void SkillCockatriceEffectUpdate(struct EwramData_EntityData *entity)
     if (EntityIsOutsideScreen(entity, 2) || !entity->roomActive)
     {
         entity->roomActive = 1;
-        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
     }

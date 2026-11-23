@@ -14,7 +14,7 @@ void Julius_TryStartDiveAttack(struct EwramData_EntityData *entity);
  */
 void Julius_HandleJumpInput(struct EwramData_EntityData *entity)
 {
-    u32 flags = PLAYER_ACTION_FLAGS(entity);
+    u32 flags = entity->ext.player.actionFlags;
 
     if (flags & 0x20000000)
         return;
@@ -24,21 +24,21 @@ void Julius_HandleJumpInput(struct EwramData_EntityData *entity)
     if (flags & 2)
     if (!(flags & 0x10))
     {
-        PLAYER_REQUESTED_ANIM(entity) = 0xFF;
+        entity->ext.player.requestedAnim = 0xFF;
         entity->state = 5;
         PlaySong(0xBA);
-        PLAYER_ACTION_FLAGS(entity) = (PLAYER_ACTION_FLAGS(entity) | 0x12) & 0xFFEFFBFB;
+        entity->ext.player.actionFlags = (entity->ext.player.actionFlags | 0x12) & 0xFFEFFBFB;
         entity->accelY.whole = 0x2000;
-        if (!(PLAYER_ACTION_FLAGS(entity) & 0x4000000))
+        if (!(entity->ext.player.actionFlags & 0x4000000))
             entity->velY.whole = -0x90000;
         else
             entity->velY.whole = -0x24000;
         Afterimage_Create(entity, 0, 8, 0xD5);
         Afterimage_Create(entity, 0, 4, 0xD4);
     }
-    if ((u16)PLAYER_DROP_THROUGH_TIMER(entity) != 0)
+    if ((u16)entity->ext.player.dropThroughTimer != 0)
         return;
-    flags = PLAYER_ACTION_FLAGS(entity);
+    flags = entity->ext.player.actionFlags;
     if (flags & 0x10)
         return;
     if (!(flags & 0x800000))
@@ -46,12 +46,12 @@ void Julius_HandleJumpInput(struct EwramData_EntityData *entity)
         if (!(flags & 4) && (gEwramData->inputData.playerNewInput & gEwramData->playerStatus.jumpButton))
         {
             PlaySong(0xB9);
-            if (PLAYER_ACTION_FLAGS(entity) & 2)
-                PLAYER_ACTION_FLAGS(entity) |= 4;
-            PLAYER_ACTION_FLAGS(entity) = (PLAYER_ACTION_FLAGS(entity) | 2) & 0xFFEFFBFF;
-            PLAYER_AIR_TIME(entity) = 0x10;
+            if (entity->ext.player.actionFlags & 2)
+                entity->ext.player.actionFlags |= 4;
+            entity->ext.player.actionFlags = (entity->ext.player.actionFlags | 2) & 0xFFEFFBFF;
+            entity->ext.player.airTime = 0x10;
             entity->accelY.whole = 0;
-            if (!(PLAYER_ACTION_FLAGS(entity) & 0x4000000))
+            if (!(entity->ext.player.actionFlags & 0x4000000))
                 entity->velY.whole = -0x50000;
             else
                 entity->velY.whole = -0x13C00;
@@ -60,7 +60,7 @@ void Julius_HandleJumpInput(struct EwramData_EntityData *entity)
     else if (!(flags & 0x2000000) && (gEwramData->inputData.playerNewInput & gEwramData->playerStatus.jumpButton))
     {
         entity->accelY.whole = 0;
-        PLAYER_ACTION_FLAGS(entity) = (flags | 0x02000002) & 0xFFEFFBF7;
+        entity->ext.player.actionFlags = (flags | 0x02000002) & 0xFFEFFBF7;
         if (entity->velY.whole > 0x10000)
             entity->velY.whole += -0x4E000;
         else

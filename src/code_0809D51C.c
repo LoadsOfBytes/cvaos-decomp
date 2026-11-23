@@ -2,7 +2,6 @@
    masks are not local-allocated; byte mask 0xFB, s16 coordinate arguments; one FAKEMATCH pin). */
 /* Legion core (state == 2): stops, falls, breaks apart and dies. */
 #include "code_08009A0.h"
-#include "legion_entity.h"
 #include "code_080D73B8.h"
 #include "code_08033CAC.h"
 #include "code/code_08039340.h"
@@ -66,7 +65,7 @@ extern u8 sLegionAnimScript0[];
 void Legion_UpdateDeath(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
-    struct LegionState *data = (struct LegionState *)LEGION_DATA(entity);
+    struct LegionState *data = (struct LegionState *)entity->ext.legion.data.value;
     s32 r;
     s32 dx, dy, dvx;
 
@@ -108,7 +107,7 @@ void Legion_UpdateDeath(struct EwramData_EntityData *entity)
         data->roomY = entity->posY.whole + bg->yPos.whole;
         if (!(r & 0x304))
             break;
-        if ((LEGION_BROKEN_CORES(entity) & 0xF) == 0xF)
+        if ((entity->ext.legion.brokenCores & 0xF) == 0xF)
             entity->subState++;
         else
         {
@@ -117,7 +116,7 @@ void Legion_UpdateDeath(struct EwramData_EntityData *entity)
             PlaySong(0x6E);
         }
         ANIM(0xAC);
-        *(u8 *)&LEGION_FLAGS(entity) &= 0xFB;
+        *(u8 *)&entity->ext.legion.flags &= 0xFB;
         ObjAffine_Free(entity->affineIndex);
         entity->affine = 0;
         DEBRIS(0x33)
@@ -182,12 +181,12 @@ void Legion_UpdateDeath(struct EwramData_EntityData *entity)
     data->shells[0].angleOffset += 0x87;
     data->shells[1].angleOffset -= 0x76;
     data->shells[2].angleOffset += 0xC3;
-    if (LEGION_FLAGS(entity) & 4)
+    if (entity->ext.legion.flags & 4)
     {
         data->rotationAngle += data->angularVelocity;
         ObjAffine_Set(data->rotationAngle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
     }
-    if (LEGION_FLAGS(entity) & 2)
+    if (entity->ext.legion.flags & 2)
     {
         data->bobPhase += 0x180;
         entity->posX.whole = data->roomX - bg->xPos.whole;

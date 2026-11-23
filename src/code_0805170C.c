@@ -25,7 +25,7 @@ struct Object13ArmView
     u8 segmentIndex;
     u8 ownerSlot;
 };
-#define ARM(e) ((struct Object13ArmView *)&((struct EwramData_EntityData *)(e))->unk_4FC)
+#define ARM(e) ((struct Object13ArmView *)&((struct EwramData_EntityData *)(e))->ext.raw.unk_4FC)
 
 static inline s32 IsNotFlippedX(struct EwramData_EntityData *e) { return e->flipX == 0; }
 #define PL (gEwramData->playerState.player)

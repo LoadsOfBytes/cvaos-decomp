@@ -1,5 +1,4 @@
 #include "structs/ewram.h"
-#include "event_scene_entity.h"
 #include "code_08009A0.h"
 #include "code_08011DD0.h"
 
@@ -33,11 +32,11 @@ static inline void NextEntry(struct ConversationState *state, u8 *index, struct 
  */
 void EventScene27_PickConversation(struct EwramData_EntityData *entity)
 {
-    EVENT27_TEXT_ID(entity) = 0;
+    entity->ext.event27.textId = 0;
     if (GameFlag_Is3ASet())
     {
         if (!GameFlag_TestAndSet(0x36))
-            EVENT27_TEXT_ID(entity) = 0x43;
+            entity->ext.event27.textId = 0x43;
     }
     else
     {
@@ -53,7 +52,7 @@ void EventScene27_PickConversation(struct EwramData_EntityData *entity)
         if (done)
         {
             struct ConversationState *state = (struct ConversationState *)&gEwramData->sharedScratchBuffer[0x500];
-            EVENT27_TEXT_ID(entity) = 0x45;
+            entity->ext.event27.textId = 0x45;
             state->script = 0x45;
             state->step = 0;
             state->group = 4;
@@ -62,32 +61,32 @@ void EventScene27_PickConversation(struct EwramData_EntityData *entity)
         else if (GameFlag_GetMask(0x26))
         {
             if (!GameFlag_TestAndSet(0x35))
-                EVENT27_TEXT_ID(entity) = 0x30;
+                entity->ext.event27.textId = 0x30;
             else if (!(RandomNumberGenerator() & 1))
             {
-                EVENT27_TEXT_ID(entity) = 0x31;
+                entity->ext.event27.textId = 0x31;
                 Conversation_Setup(0x31, 0, 0);
             }
         }
         else if (GameFlag_GetMask(0x2E))
         {
             if (!GameFlag_TestAndSet(0x34))
-                EVENT27_TEXT_ID(entity) = 0x2F;
+                entity->ext.event27.textId = 0x2F;
             else if (!GameFlag_TestAndSet(0x37))
-                EVENT27_TEXT_ID(entity) = 0x53;
+                entity->ext.event27.textId = 0x53;
         }
         else if (GameFlag_GetMask(0x21))
         {
             if (!GameFlag_TestAndSet(0x37))
-                EVENT27_TEXT_ID(entity) = 0x53;
+                entity->ext.event27.textId = 0x53;
         }
         else if (GameFlag_GetMask(0x20))
         {
             if (!GameFlag_TestAndSet(0x33))
-                EVENT27_TEXT_ID(entity) = 0x2E;
+                entity->ext.event27.textId = 0x2E;
         }
     }
-    if (EVENT27_TEXT_ID(entity) == 0)
+    if (entity->ext.event27.textId == 0)
     {
         struct PlayerStatus *save = &gEwramData->playerStatus;
         s32 group = 0;
@@ -95,7 +94,7 @@ void EventScene27_PickConversation(struct EwramData_EntityData *entity)
         s32 last = save->pad_133E8[0] >> 4;
         struct ConversationState *state = (struct ConversationState *)&gEwramData->sharedScratchBuffer[0x500];
 
-        EVENT27_TEXT_ID(entity) = 0x45;
+        entity->ext.event27.textId = 0x45;
         state->script = 0x45;
         state->step = group;
         state->group = 4;

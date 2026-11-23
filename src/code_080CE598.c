@@ -1,6 +1,5 @@
 /* Alastor spinning leap, conditional dive, and recovery. */
 #include "code_080D73B8.h"
-#include "alastor_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern struct EwramData_EntityData *Alastor_CreateAfterimage(struct EwramData_EntityData *,u8);
@@ -9,8 +8,8 @@ extern s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *,s32,s32);
 extern s32 Collision_GetPushUp(s32,s32);
 static inline s32 RoomX(s32 pos) { struct BgLayerState *bg=&gEwramData->bgInfo[1]; return pos+(s16)bg->xPos.part16.integer; }
 static inline s32 RoomY(s32 pos) { struct BgLayerState *bg=&gEwramData->bgInfo[1]; return pos+(s16)bg->yPos.part16.integer; }
-#define ANGLE(e) (ALASTOR_ANGLE((e)))
-#define STEP(e) (ALASTOR_TURN((e)))
+#define ANGLE(e) (e->ext.alastor.angle)
+#define STEP(e) (e->ext.alastor.turn)
 static inline void Advance(struct EwramData_EntityData *e,s32 amount,u8 zero) { e->subState+=amount; e->stage=zero; }
 /**
  * @brief Attack state (6): spin through a leap while spawning copies,
@@ -24,7 +23,7 @@ void Alastor_UpdateSpinningLeap(struct EwramData_EntityData *entity)
         {
             s32 speed;
             u16 step;
-            ALASTOR_PATTERN_STEP(entity)=0;
+            entity->ext.alastorPattern.step=0;
             entity->subState++;
             entity->velX.whole=(speed=-0x40000);
             entity->velY.whole=-0x20000;
@@ -98,7 +97,7 @@ void Alastor_UpdateSpinningLeap(struct EwramData_EntityData *entity)
                 entity->state=1;
                 entity->stage=0;
                 entity->subState=0;
-                ALASTOR_PATTERN_STEP(entity)=0;
+                entity->ext.alastorPattern.step=0;
             }
             break;
     }

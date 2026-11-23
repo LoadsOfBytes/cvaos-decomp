@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "lilith_entity.h"
 #include "code/code_08039340.h"
 extern u8 Lilith_LoadGraphics(struct EwramData_EntityData *);
 extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
@@ -36,7 +35,7 @@ void EnemyLilithCreate(struct EwramData_EntityData *entity)
     Entity_SnapToGround(entity);
     entity->state = 0;
     entity->hidden = 1;
-    LILITH_HIDDEN(entity) = 1;
+    entity->ext.lilith.hidden = 1;
     entity->velY.whole = 0x10000;
     entity->accelY.whole = 0x1800;
 }

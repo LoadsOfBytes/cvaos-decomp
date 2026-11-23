@@ -2,7 +2,6 @@
  * for the matching notes (s8 reachedX, pinned r0
  * temporary, separate += in both branches, u32 phase). */
 #include "code_08009A0.h"
-#include "alastor_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *);
@@ -12,9 +11,9 @@ extern u8 Angle_TurnTowards(s16 *,s32,s32);
 #define DX(e) ((s16)Entity_GetTargetDistanceX(e))
 #define DY(e) ((s16)Entity_GetTargetDistanceY(e))
 #define ABS(x) ((x)<0?-(x):(x))
-#define ANGLE(e) (ALASTOR_ANGLE((e)))
-#define PHASE(e) (ALASTOR_PHASE((e)))
-#define FLAGS(e) (ALASTOR_FLAGS((e)))
+#define ANGLE(e) (e->ext.alastor.angle)
+#define PHASE(e) (e->ext.alastor.phase)
+#define FLAGS(e) (e->ext.alastor.flags)
 static inline s32 Both(s32 x,s32 y) { return (x&y)==1; }
 /**
  * @brief Approach state (1): move beside and above the target while
@@ -43,7 +42,7 @@ void Alastor_UpdateApproach(struct EwramData_EntityData *entity)
             if (DY(entity)>0)
                 entity->velY.whole=-entity->velY.whole;
             PHASE(entity)=0;
-            ALASTOR_TURN(entity)=-100;
+            entity->ext.alastor.turn=-100;
             entity->subState=2;
             break;
         case 1:
@@ -100,10 +99,10 @@ void Alastor_UpdateApproach(struct EwramData_EntityData *entity)
                 PHASE(entity)=phase+0x200;
             }
             ObjAffine_Set(ANGLE(entity),0x10000,0x10000,entity->flipX,0,entity->affineIndex);
-            if ((s16)ALASTOR_WAIT_TIMER(entity)!=0)
-                ALASTOR_WAIT_TIMER(entity)--;
+            if ((s16)entity->ext.alastor.waitTimer!=0)
+                entity->ext.alastor.waitTimer--;
             else
-                ALASTOR_WAIT_TIMER(entity)=RandomNumberGenerator()%180+10;
+                entity->ext.alastor.waitTimer=RandomNumberGenerator()%180+10;
             break;
     }
 }

@@ -14,7 +14,7 @@ void MenuPageTitle_Update(struct EwramData_EntityData *entity)
 {
     s32 t;
 
-    switch (MENU_TITLE_STATE(entity))
+    switch (entity->ext.menuTitle.state)
     {
         case 0:
             break;
@@ -22,7 +22,7 @@ void MenuPageTitle_Update(struct EwramData_EntityData *entity)
             entity->posX.part16.integer = 0x35;
             entity->posY.part16.integer = 9;
             entity->timer = 0;
-            MENU_TITLE_STATE(entity) = 2;
+            entity->ext.menuTitle.state = 2;
         case 2:
             if (entity->timer == 0)
             {

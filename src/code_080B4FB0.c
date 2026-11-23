@@ -18,10 +18,10 @@ void Balore_CreateHand(struct EwramData_EntityData *owner, u16 x, u16 y, u8 flip
     else part = Entity_CreateObject((u32 *)BaloreHandB_Update);
     if (part != NULL)
     {
-        BALORE_BODY(part) = owner;
-        BALORE_ARM_LENGTH(part) = 0;
-        BALORE_HAND_HOME_X(part) = x;
-        BALORE_HAND_HOME_Y(part) = y;
+        part->ext.balorePart.body = owner;
+        part->ext.baloreHand.armLength = 0;
+        part->ext.baloreHand.homeX = x;
+        part->ext.baloreHand.homeY = y;
         bg = &gEwramData->bgInfo[1];
         part->posX.part16.integer = Sub16(x, bg->xPos.part16.integer);
         part->posY.part16.integer = Sub16(y, bg->yPos.part16.integer);
@@ -36,8 +36,8 @@ void Balore_CreateHand(struct EwramData_EntityData *owner, u16 x, u16 y, u8 flip
         else part = Entity_CreateObject((u32 *)BaloreHandBHitBox_Update);
         if (part != NULL)
         {
-            BALORE_BODY(part) = owner;
-            BALORE_HAND(part) = hand;
+            part->ext.balorePart.body = owner;
+            part->ext.baloreHitBox.hand = hand;
             part->scrollWithBg = 1;
             if (kind == 0) part->hidden = 1;
         }

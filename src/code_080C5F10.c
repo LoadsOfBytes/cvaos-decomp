@@ -1,6 +1,5 @@
 /* Ukoback functions from 0x080C5F10. */
 #include "code_08009A0.h"
-#include "ukoback_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -65,11 +64,11 @@ s32 UkobackFireball_Initialize(struct EwramData_EntityData *entity, struct Ewram
     entity->timer = 0;
     entity->attack = ukoback->attack;
     entity->unk_518.part16.hp = ukoback->unk_518.part16.hp;
-    UKOBACK_FIREBALL_SCALE_X(entity) = 0x10000;
-    UKOBACK_FIREBALL_SCALE_Y(entity) = 0x10000;
-    UKOBACK_FIREBALL_FRAME(entity) = 0;
+    entity->ext.ukobackFireball.scaleX = 0x10000;
+    entity->ext.ukobackFireball.scaleY = 0x10000;
+    entity->ext.ukobackFireball.frame = 0;
     entity->unk_510.part8.basePalette = ObjPalette_FindOrLoad(palette);
-    UKOBACK_FIREBALL_OWNER_INDEX(entity) = ENTITY_INDEX_PAIR(ukoback);
+    entity->ext.ukobackFireball.ownerIndex = ENTITY_INDEX_PAIR(ukoback);
     entity->posX.whole = ukoback->posX.whole;
     entity->posY.whole = ukoback->posY.whole;
     entity->velX.whole = 0;
@@ -92,7 +91,7 @@ s32 UkobackFireball_Initialize(struct EwramData_EntityData *entity, struct Ewram
     else
     {
         entity->affineIndex = slot;
-        ObjAffine_Set(0, UKOBACK_FIREBALL_SCALE_X(entity), UKOBACK_FIREBALL_SCALE_Y(entity), 0, 0, entity->affineIndex);
+        ObjAffine_Set(0, entity->ext.ukobackFireball.scaleX, entity->ext.ukobackFireball.scaleY, 0, 0, entity->affineIndex);
         entity->affine = 1;
     }
     if (Entity_IsInRect(entity, -128, -64, 496, 288))
@@ -110,7 +109,7 @@ extern s32 Entity_GetVisibilityPattern(s32 step);
 void UkobackFireball_Update(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
-    struct EwramData_EntityData *other = &gEwramData->entityData[UKOBACK_FIREBALL_OWNER_INDEX(entity)];
+    struct EwramData_EntityData *other = &gEwramData->entityData[entity->ext.ukobackFireball.ownerIndex];
 
     Player_TrackEntity(entity);
     if (Enemy_IsStunned(entity) && entity->state != 0xFF)
@@ -120,27 +119,27 @@ void UkobackFireball_Update(struct EwramData_EntityData *entity)
     }
     if (entity->state == 0xFF)
     {
-        ObjAffine_Set(0, UKOBACK_FIREBALL_SCALE_X(entity), UKOBACK_FIREBALL_SCALE_Y(entity), 0, 0, entity->affineIndex);
-        if (UKOBACK_FIREBALL_SCALE_X(entity) > 0)
+        ObjAffine_Set(0, entity->ext.ukobackFireball.scaleX, entity->ext.ukobackFireball.scaleY, 0, 0, entity->affineIndex);
+        if (entity->ext.ukobackFireball.scaleX > 0)
         {
-            UKOBACK_FIREBALL_SCALE_X(entity) += entity->velX.whole;
+            entity->ext.ukobackFireball.scaleX += entity->velX.whole;
             entity->velX.whole += entity->accelX.whole;
         }
         else
         {
-            UKOBACK_FIREBALL_SCALE_X(entity) = 0;
+            entity->ext.ukobackFireball.scaleX = 0;
         }
-        UKOBACK_FIREBALL_SCALE_Y(entity) += entity->velY.whole;
+        entity->ext.ukobackFireball.scaleY += entity->velY.whole;
         entity->velY.whole += entity->accelY.whole;
-        if (UKOBACK_FIREBALL_SCALE_X(entity) == 0)
+        if (entity->ext.ukobackFireball.scaleX == 0)
         {
             ObjAffine_Free(entity->affineIndex);
             entity->deleteRequested = 1;
-            UKOBACK_FIREBALL_COUNT(other)--;
+            other->ext.ukoback.fireballCount--;
             return;
         }
     }
-    else if ((s16)UKOBACK_FIREBALL_FRAME(entity)++ > 0x3FF)
+    else if ((s16)entity->ext.ukobackFireball.frame++ > 0x3FF)
     {
         entity->state |= 0xFF;
     }
@@ -159,7 +158,7 @@ void UkobackDeathPiece_Update(struct EwramData_EntityData *entity)
     void *palette = sUkobackPalette;
     void *sprite = sUkobackSpriteSheet;
     u8 *graphics = sUkobackGfx;
-    struct EwramData_EntityData *other = &gEwramData->entityData[UKOBACK_PIECE_OWNER_INDEX(entity)];
+    struct EwramData_EntityData *other = &gEwramData->entityData[entity->ext.ukobackPiece.ownerIndex];
     s32 gfx;
 
     switch (entity->state)
@@ -218,10 +217,10 @@ void Ukoback_SpawnContactSparkle(void)
         s32 y = x - 0x100000;
         s32 range = 0x100000;
 
-        UKOBACK_SPARKLE_OFFSET_X(child) = RandomOffset(range);
-        UKOBACK_SPARKLE_OFFSET_Y(child) = RandomOffset(range);
-        child->posX.whole = x + UKOBACK_SPARKLE_OFFSET_X(child);
-        child->posY.whole = y + UKOBACK_SPARKLE_OFFSET_Y(child);
+        child->ext.ukobackSparkle.offsetX = RandomOffset(range);
+        child->ext.ukobackSparkle.offsetY = RandomOffset(range);
+        child->posX.whole = x + child->ext.ukobackSparkle.offsetX;
+        child->posY.whole = y + child->ext.ukobackSparkle.offsetY;
         child->flipX = RandomNumberGenerator() % 2;
         child->spriteLayer = 9;
     }
@@ -258,8 +257,8 @@ void UkobackSparkle_Update(struct EwramData_EntityData *entity)
         case 2:
             break;
     }
-    entity->posX.whole = gEwramData->playerState.player->posX.whole + UKOBACK_SPARKLE_OFFSET_X(entity);
-    entity->posY.whole = gEwramData->playerState.player->posY.whole - 0x100000 + UKOBACK_SPARKLE_OFFSET_Y(entity);
+    entity->posX.whole = gEwramData->playerState.player->posX.whole + entity->ext.ukobackSparkle.offsetX;
+    entity->posY.whole = gEwramData->playerState.player->posY.whole - 0x100000 + entity->ext.ukobackSparkle.offsetY;
     if (Anim_Update(entity) == 3)
         EntityDelete(entity);
 }

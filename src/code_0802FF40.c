@@ -1,6 +1,5 @@
 #include "code_08009A0.h"
 #include "soul_skill_entity.h"
-#include "blue_soul_entity.h"
 #include "player_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
@@ -24,7 +23,7 @@ extern void SkillBuerOrbitUpdate(struct EwramData_EntityData *entity);
  */
 void SkillBuerUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = BLUE_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.blueSoul.owner;
     struct EwramData_EntityData *child;
     s32 speed;
     u8 state;
@@ -71,7 +70,7 @@ void SkillBuerUse(struct EwramData_EntityData *entity)
             SIZE(entity)++;
         entity->posX.part16.integer = parent->posX.part16.integer;
         entity->posY.part16.integer = parent->posY.part16.integer + entity->velY.part16.integer;
-        if (PLAYER_ACTION_FLAGS(parent) & 0x400)
+        if (parent->ext.player.actionFlags & 0x400)
         {
             if (entity->velY.whole < -0x80000)
                 entity->velY.whole += 0x4000;

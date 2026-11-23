@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "head_stack_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
 #include "structs/ewram.h"
@@ -22,7 +21,7 @@ extern void HeadStackDebris_Update(struct EwramData_EntityData *entity);
  */
 s32 HeadStackSegment_UpdateDeath(struct EwramData_EntityData *entity)
 {
-    const struct HeadStackDebrisVariant *info = &sUnk_081193DC[HEAD_STACK_TYPE(entity)];
+    const struct HeadStackDebrisVariant *info = &sUnk_081193DC[entity->ext.headStack.type];
     struct EwramData_EntityData *piece;
     s32 i;
 
@@ -35,7 +34,7 @@ s32 HeadStackSegment_UpdateDeath(struct EwramData_EntityData *entity)
             piece = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadStackDebris_Update);
             if (piece != NULL)
             {
-                const struct HeadStackDebrisVariant *t = &sUnk_081193DC[HEAD_STACK_TYPE(entity)];
+                const struct HeadStackDebrisVariant *t = &sUnk_081193DC[entity->ext.headStack.type];
                 Entity_LoadGraphics(piece, t->graphics, t->palette, 0, t->spriteSheet);
                 piece->animFrame = i;
                 piece->posX.part16.integer = entity->posX.part16.integer;

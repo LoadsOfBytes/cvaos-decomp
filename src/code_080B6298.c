@@ -10,8 +10,8 @@ extern void BaloreDebris_Update(struct EwramData_EntityData *);
 /* Second Balore hand family's attached part, spawning effects at animation 8. */
 void BaloreHandBHitBox_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *body = BALORE_BODY(entity);
-    struct EwramData_EntityData *hand = BALORE_HAND(entity);
+    struct EwramData_EntityData *body = entity->ext.balorePart.body;
+    struct EwramData_EntityData *hand = entity->ext.baloreHitBox.hand;
     struct EwramData_EntityData *child;
     u16 matrix;
     s32 x, y;
@@ -25,7 +25,7 @@ void BaloreHandBHitBox_Update(struct EwramData_EntityData *entity)
         entity->affineIndex = matrix;
         entity->affine = 1;
         entity->spriteLayer = hand->spriteLayer;
-        Sprite_Attach(entity, sBaloreSpriteSheet2, (s8)BALORE_GFX(body), hand->unk_510.part8.basePalette);
+        Sprite_Attach(entity, sBaloreSpriteSheet2, (s8)body->ext.balore.gfx, hand->unk_510.part8.basePalette);
         Anim_StartIndexed(entity, 10, 2, 0);
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         entity->state = 1;
@@ -48,7 +48,7 @@ void BaloreHandBHitBox_Update(struct EwramData_EntityData *entity)
                 spark = EntityCreateInRange(0x49, 0xCF, (u32 *)BaloreDebris_Update);
                 if (spark != NULL)
                 {
-                    BALORE_BODY(spark) = body;
+                    spark->ext.balorePart.body = body;
                     spark->subState = 12;
                     spark->posX.part16.integer = x;
                     spark->posY.part16.integer = y;
@@ -66,7 +66,7 @@ void BaloreHandBHitBox_Update(struct EwramData_EntityData *entity)
             child = EntityCreateInRange(0x49, 0xCF, (u32 *)BaloreDebris_Update);
             if (child != NULL)
             {
-                BALORE_BODY(child) = body;
+                child->ext.balorePart.body = body;
                 child->subState = 11;
                 child->posX.part16.integer = x;
                 child->posY.part16.integer = y;
@@ -86,13 +86,13 @@ void BaloreHandBHitBox_Update(struct EwramData_EntityData *entity)
     }
     entity->palette = hand->palette;
     if (hand->flipX)
-        x = BALORE_ARM_ANGLE(hand);
+        x = hand->ext.baloreHand.armAngle;
     else
-        x = BALORE_ARM_ANGLE(hand) + 0x8000;
-    y = TO_PIXELS(BALORE_ARM_LENGTH(hand));
+        x = hand->ext.baloreHand.armAngle + 0x8000;
+    y = TO_PIXELS(hand->ext.baloreHand.armLength);
     entity->posX.whole = hand->posX.whole + y * Sin(x + 0x4000);
     entity->posY.whole = hand->posY.whole + y * Sin(x);
-    ObjAffine_Set(BALORE_ARM_ANGLE(hand), 0x10000, 0x10000, hand->flipX, 0, entity->affineIndex);
+    ObjAffine_Set(hand->ext.baloreHand.armAngle, 0x10000, 0x10000, hand->flipX, 0, entity->affineIndex);
     if (entity->animScriptIndex != BALORE_HAND_ANIM(hand))
         Anim_StartIndexed(entity, BALORE_HAND_ANIM(hand), 2, 0);
     Anim_Update(entity);

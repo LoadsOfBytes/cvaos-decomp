@@ -38,11 +38,11 @@ void Object10Update(struct EwramData_EntityData *entity)
         }
         entity->state = 2;
         SaveData_LoadSlotFromSram(gEwramData->gameState.currentSaveSlot);
-        ItemInventory_AddOneByGlobalId(OBJECT10_REWARD_ITEM(entity));
+        ItemInventory_AddOneByGlobalId(entity->ext.object10.rewardItem);
         SaveData_UpdateSlotSummary(&gEwramData->gameState);
         {
             struct EwramData_EntityData *slot26 = &gEwramData->entityData[26];
-            value = BOSS_RUSH_TIME(slot26);
+            value = slot26->ext.bossRushTimer.time;
         }
         if (data->bestBossRushTimeFrames > value || data->bestBossRushTimeFrames == 0)
             data->bestBossRushTimeFrames = value;

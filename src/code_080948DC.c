@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "lilith_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -49,7 +48,7 @@ void Lilith_UpdateWalk(struct EwramData_EntityData *entity)
             Anim_StartIndexed(entity, 5, 0, 1);
             entity->subState++;
             entity->timer = 0;
-            LILITH_HIDDEN(entity) = 0;
+            entity->ext.lilith.hidden = 0;
         }
         break;
     case 2:
@@ -64,9 +63,9 @@ void Lilith_UpdateWalk(struct EwramData_EntityData *entity)
             land = Player_GetFocusedActionFlags() & 0x60;
             if (!land)
             {
-                LILITH_DODGE_CHECKED(entity) = land;
+                entity->ext.lilith.dodgeChecked = land;
             }
-            else if (!*(s8 *)&LILITH_DODGE_CHECKED(entity))
+            else if (!*(s8 *)&entity->ext.lilith.dodgeChecked)
             {
                 if (!(RandomNumberGenerator() & 1))
                 {
@@ -83,7 +82,7 @@ void Lilith_UpdateWalk(struct EwramData_EntityData *entity)
                         PlaySong(0x1C8);
                     break;
                 }
-                LILITH_DODGE_CHECKED(entity) = 1;
+                entity->ext.lilith.dodgeChecked = 1;
             }
         }
         if (entity->flipX)
@@ -117,9 +116,9 @@ void Lilith_UpdateWalk(struct EwramData_EntityData *entity)
             entity->accelY.whole = 0x1800;
             break;
         }
-        if (LILITH_WALK_FRAME(entity)++ > 0x3B)
+        if (entity->ext.lilith.walkFrame++ > 0x3B)
         {
-            LILITH_WALK_FRAME(entity) = wall;
+            entity->ext.lilith.walkFrame = wall;
             goto far;
         }
         break;
@@ -131,9 +130,9 @@ void Lilith_UpdateWalk(struct EwramData_EntityData *entity)
             land = Player_GetFocusedActionFlags() & 0x60;
             if (!land)
             {
-                LILITH_DODGE_CHECKED(entity) = land;
+                entity->ext.lilith.dodgeChecked = land;
             }
-            else if (!*(s8 *)&LILITH_DODGE_CHECKED(entity))
+            else if (!*(s8 *)&entity->ext.lilith.dodgeChecked)
             {
                 if (!(RandomNumberGenerator() & 1))
                 {
@@ -148,7 +147,7 @@ void Lilith_UpdateWalk(struct EwramData_EntityData *entity)
                     Afterimage_Create(entity, 0x38, 6, 0x10);
                     break;
                 }
-                LILITH_DODGE_CHECKED(entity) = 1;
+                entity->ext.lilith.dodgeChecked = 1;
             }
         }
         if (entity->flipX)
@@ -188,9 +187,9 @@ void Lilith_UpdateWalk(struct EwramData_EntityData *entity)
             entity->timer = 0;
             break;
         }
-        if (LILITH_WALK_FRAME(entity)++ > 0x3B)
+        if (entity->ext.lilith.walkFrame++ > 0x3B)
         {
-            LILITH_WALK_FRAME(entity) = 0;
+            entity->ext.lilith.walkFrame = 0;
         far:
             if (Target_IsInRect(entity->posX.part16.integer - 0xC8, entity->posY.part16.integer - 0x28, 0x190, 0x50))
             {
@@ -217,7 +216,7 @@ void Lilith_UpdateWalk(struct EwramData_EntityData *entity)
             entity->accelX.whole = 0;
             entity->velY.whole = speed3;
             entity->accelY.whole = 0x1800;
-            LILITH_DODGE_CHECKED(entity) = 0;
+            entity->ext.lilith.dodgeChecked = 0;
         }
         break;
     }

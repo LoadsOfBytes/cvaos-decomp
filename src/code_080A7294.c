@@ -1,6 +1,5 @@
 /* Tsuchinoko: jumping, ranged attack, and death states. */
 #include "code_08009A0.h"
-#include "tsuchinoko_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -66,9 +65,9 @@ void Tsuchinoko_UpdateJump(struct EwramData_EntityData *entity)
                 else
                 {
                     if ((RandomNumberGenerator() & 0x7F) < 16 ||
-                        ((s16)TSUCHINOKO_MAX_HP(entity) / 2 >= (s16)entity->unk_518.part16.hp && (RandomNumberGenerator() & 0x7F) < 32))
+                        ((s16)entity->ext.tsuchinoko.maxHp / 2 >= (s16)entity->unk_518.part16.hp && (RandomNumberGenerator() & 0x7F) < 32))
                         goto ranged;
-                    if ((s16)TSUCHINOKO_MAX_HP(entity) / 4 >= (s16)entity->unk_518.part16.hp)
+                    if ((s16)entity->ext.tsuchinoko.maxHp / 4 >= (s16)entity->unk_518.part16.hp)
                     {
                         s32 random = RandomNumberGenerator();
                         u32 roll = 127;

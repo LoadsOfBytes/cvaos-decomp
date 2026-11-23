@@ -1,12 +1,11 @@
 /* Mandragora intermediate part coordinates its owner and terminal part. */
 #include "code_080D73B8.h"
-#include "mandragora_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern void Enemy_DropRewards(struct EwramData_EntityData *);
 extern void Effect_SpawnRandom(s32,s32,s32,s32,s32);
 extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
-#define FLAGS(e) (MANDRAGORA_FLAGS((e)))
+#define FLAGS(e) (e->ext.mandragora.flags)
 /**
  * @brief Coordinate the root owner and terminal part through activation,
  * scream timing and recovery. A defeated intermediate part drops owner
@@ -15,7 +14,7 @@ extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *);
 void MandragoraPart_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *owner=&gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
-    struct EwramData_EntityData *tip=&gEwramData->entityData[MANDRAGORA_LINK_INDEX(entity)];
+    struct EwramData_EntityData *tip=&gEwramData->entityData[entity->ext.mandragora.linkIndex];
     switch(entity->state)
     {
         case 0:

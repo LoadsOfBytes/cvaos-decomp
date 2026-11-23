@@ -1,13 +1,12 @@
 /* Attack phase spawning a projectile. */
 #include "code/code_08039340.h"
-#include "skeleton_entity.h"
 #include "structs/ewram.h"
 
 extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
 extern void SkeletonProjectile_Update(struct EwramData_EntityData *);
 
 /* attack flags: bit 3 alternate animation, bits 1/2 pending shots */
-#define FLAGS(e) (SKELETON_FLAGS((e)))
+#define FLAGS(e) (e->ext.skeleton.flags)
 
 /**
  * @brief Start animation 3 or 4, create a counted projectile on step 2 and return to state 1 when the animation finishes.
@@ -35,10 +34,10 @@ void Skeleton_UpdateThrow(struct EwramData_EntityData *entity)
             e = Entity_CreateObject((u32 *)SkeletonProjectile_Update);
             if (e != NULL)
             {
-                SKELETON_PIECE_OWNER_INDEX(e) = ENTITY_INDEX_PAIR(entity);
+                e->ext.skeletonPiece.ownerIndex = ENTITY_INDEX_PAIR(entity);
                 if (FLAGS(entity) & 2)
-                    SKELETON_BONE_KIND(e) = 1;
-                SKELETON_THROW_COUNT(entity)++;
+                    e->ext.skeletonBone.kind = 1;
+                entity->ext.skeleton.throwCount++;
             }
             entity->subState++;
             if (FLAGS(entity) & 2)

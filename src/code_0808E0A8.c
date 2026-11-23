@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "great_armor_entity.h"
 #include "code_08033CAC.h"
 #include "code_080D73B8.h"
 #include "code/code_080211F0.h"
@@ -29,8 +28,8 @@ void GreatArmor_OnHit(struct EwramData_EntityData *entity, struct EwramData_Enti
         entity->unk_518.part16.hp = hp - damage;
     }
     Entity_ShowDamage(entity, damage, 0);
-    GREAT_ARMOR_HIT_COUNT(entity)++;
-    GREAT_ARMOR_HIT(entity) = 1;
+    entity->ext.greatArmor.hitCount++;
+    entity->ext.greatArmor.hit = 1;
     if ((s16)entity->unk_518.part16.hp <= 0)
     {
         Enemy_DropRewards(entity);

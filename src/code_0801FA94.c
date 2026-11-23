@@ -16,7 +16,7 @@ void Julius_UpdateKnockback(struct EwramData_EntityData *entity)
     u16 x;
     s16 y;
 
-    PLAYER_ACTION_FLAGS(entity) &= 0xEFFFFE9F;
+    entity->ext.player.actionFlags &= 0xEFFFFE9F;
     x = GetEntityRoomXPositionInteger(entity);
     y = GetEntityRoomYPositionInteger(entity);
     if (Collision_IsPointSolid((s16)x, y))
@@ -37,9 +37,9 @@ clear:
     entity->velX.whole = 0;
     entity->accelX.whole = 0;
 done:
-    if (!(PLAYER_ACTION_FLAGS(entity) & 2))
+    if (!(entity->ext.player.actionFlags & 2))
     {
-        PLAYER_ACTION_FLAGS(entity) &= ~0x80;
+        entity->ext.player.actionFlags &= ~0x80;
         entity->state = 0;
     }
     Julius_UpdateVerticalMovement(entity);

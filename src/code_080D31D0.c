@@ -43,7 +43,7 @@ struct EwramData_EntityData *Graham_CreateCombatBody(struct EwramData_EntityData
     e->attack = owner->attack;
     e->defense = 110;
     e->enemyFlags |= 4;
-    GRAHAM_CHILD_INDEX(owner) = ENTITY_INDEX(e);
+    owner->ext.grahamScene.childIndex = ENTITY_INDEX(e);
     Anim_StartIndexed(e, 1, 0, 1);
     Anim_Update(e);
     Graham_CreateBodyOverlay(e);

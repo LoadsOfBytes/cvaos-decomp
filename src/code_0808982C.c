@@ -34,11 +34,11 @@ void GorgonBreath_Update(struct EwramData_EntityData *entity)
     EntityMove(entity);
     if (entity->timer == 25)
     {
-        GORGON_FORCED_FRAME(entity) = 26;
+        entity->ext.gorgon.forcedFrame = 26;
         HitBox_SetAttack(entity, &box);
     }
     Anim_Start(entity, (struct AnimScript *)&animation, 0, 1);
-    animation.frame = GORGON_FORCED_FRAME(entity);
+    animation.frame = entity->ext.gorgon.forcedFrame;
     Anim_Update(entity);
     if (entity->timer++ > 39) EntityDelete(entity);
     else

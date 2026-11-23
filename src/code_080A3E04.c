@@ -1,6 +1,5 @@
 /* ChaosMark_Update: soul halo following the player; matched. */
 #include "structs/ewram.h"
-#include "chaos_entity.h"
 
 extern s32 Entity_GetVisibilityPattern(s32);
 
@@ -8,7 +7,7 @@ struct HaloOffset { s32 x; s32 y; };
 struct HaloOffsets { struct HaloOffset o[3]; };
 extern const struct HaloOffsets sChaosMarkOffsets;
 
-#define IDX(e) (*(u8 *)&CHAOS_ORB_KIND((e)))
+#define IDX(e) (*(u8 *)&e->ext.chaosOrb.kind)
 
 /**
  * @brief Mark update: stay next to the player at the offset of its orb kind,
@@ -16,7 +15,7 @@ extern const struct HaloOffsets sChaosMarkOffsets;
  */
 void ChaosMark_Update(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = CHAOS_LINK(entity);
+    struct EwramData_EntityData *parent = entity->ext.chaosChild.link;
     struct EwramData *ew = gEwramData;
     struct HaloOffsets offs = sChaosMarkOffsets;
 
@@ -37,7 +36,7 @@ void ChaosMark_Update(struct EwramData_EntityData *entity)
         entity->posY.whole = ew->playerState.player->posY.whole + offs.o[IDX(entity)].y;
         if (IDX(entity) == 0)
         {
-            if (CHAOS_BROKEN_ORBS(parent) & 1)
+            if (parent->ext.chaos.brokenOrbs & 1)
             {
                 entity->state++;
                 entity->timer = 0x28;
@@ -45,7 +44,7 @@ void ChaosMark_Update(struct EwramData_EntityData *entity)
         }
         else if (IDX(entity) == 1)
         {
-            if (CHAOS_BROKEN_ORBS(parent) & 2)
+            if (parent->ext.chaos.brokenOrbs & 2)
             {
                 entity->state++;
                 entity->timer = 0x28;
@@ -53,7 +52,7 @@ void ChaosMark_Update(struct EwramData_EntityData *entity)
         }
         else if (IDX(entity) == 2)
         {
-            if (CHAOS_BROKEN_ORBS(parent) & 4)
+            if (parent->ext.chaos.brokenOrbs & 4)
             {
                 entity->state++;
                 entity->timer = 0x28;

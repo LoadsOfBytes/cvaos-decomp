@@ -3,7 +3,6 @@
  * while timer is in 0x79..0xD6, then frees the parts; otherwise
  * Entity_ClampXToRoom and a 1-in-4 chance to clear unk_4FE. */
 #include "code_08009A0.h"
-#include "big_golem_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -48,8 +47,8 @@ void EnemyBigGolemUpdate(struct EwramData_EntityData *entity)
         }
         if ((u8)--entity->timer <= 1)
             entity->deleteRequested = 1;
-        if (entity->deleteRequested && entity->unk_500.golemParts != NULL)
-            Heap_Free(entity->unk_500.golemParts);
+        if (entity->deleteRequested && entity->ext.golem.parts != NULL)
+            Heap_Free(entity->ext.golem.parts);
         return;
     case 3:
         return;
@@ -57,5 +56,5 @@ void EnemyBigGolemUpdate(struct EwramData_EntityData *entity)
 idle:
     Entity_ClampXToRoom(entity, 1);
     if ((RandomNumberGenerator() & 0x7F) < 0x20)
-        BIG_GOLEM_HIT(entity) = 0;
+        entity->ext.bigGolem.hit = 0;
 }

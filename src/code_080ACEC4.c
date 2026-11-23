@@ -13,7 +13,7 @@ extern void BigGolem_AttachPart(struct EwramData_EntityData *entity, s32 partInd
  */
 void BigGolem_RecenterOnParts(struct EwramData_EntityData *entity, s32 partIndex0, s32 partIndex1)
 {
-    struct BigGolemPart *parts = entity->unk_500.bigGolemParts;
+    struct BigGolemPart *parts = entity->ext.bigGolem.parts;
     s32 shift = (parts[partIndex0].offsetX + parts[partIndex1].offsetX) / 2;
     s32 i;
 
@@ -27,7 +27,7 @@ void BigGolem_RecenterOnParts(struct EwramData_EntityData *entity, s32 partIndex
  */
 void BigGolem_SetPartYOffset(struct EwramData_EntityData *entity, s32 partIndex, s32 offsetY)
 {
-    entity->unk_500.bigGolemParts[partIndex].offsetY = offsetY;
+    entity->ext.bigGolem.parts[partIndex].offsetY = offsetY;
 }
 
 /**
@@ -64,7 +64,7 @@ void BigGolem_UpdateParts(struct EwramData_EntityData *entity, s8 *order)
  */
 void BigGolem_ResetPartAngles(struct EwramData_EntityData *entity, s32 partIndex)
 {
-    struct BigGolemPart *parts = entity->unk_500.bigGolemParts;
+    struct BigGolemPart *parts = entity->ext.bigGolem.parts;
 
     parts[partIndex].targetSwingAngle = 0;
     parts[partIndex].swingAngle = 0;
@@ -79,7 +79,7 @@ void BigGolem_AttachPartAbsoluteEased(struct EwramData_EntityData *entity, s32 p
     struct BigGolemPart *parts;
 
     BigGolem_AttachPartAbsolute(entity, partIndex, anchorIndex, angleSpec, length, duration / 2);
-    parts = entity->unk_500.bigGolemParts;
+    parts = entity->ext.bigGolem.parts;
     parts[partIndex].easingState = 1;
     parts[partIndex].interpolationDurationLimit = duration;
 }
@@ -92,7 +92,7 @@ void BigGolem_AttachPartEased(struct EwramData_EntityData *entity, s32 partIndex
     struct BigGolemPart *parts;
 
     BigGolem_AttachPart(entity, partIndex, anchorIndex, angleSpec, length, duration / 2);
-    parts = entity->unk_500.bigGolemParts;
+    parts = entity->ext.bigGolem.parts;
     parts[partIndex].easingState = 1;
     parts[partIndex].interpolationDurationLimit = duration;
 }
@@ -102,7 +102,7 @@ void BigGolem_AttachPartEased(struct EwramData_EntityData *entity, s32 partIndex
  */
 void BigGolem_SaveParts(struct EwramData_EntityData *entity)
 {
-    struct BigGolemPart *parts = entity->unk_500.bigGolemParts;
+    struct BigGolemPart *parts = entity->ext.bigGolem.parts;
     s32 i;
 
     for (i = BIG_GOLEM_PART_COUNT - 1; i >= 0; parts++, i--)
@@ -117,7 +117,7 @@ void BigGolem_SaveParts(struct EwramData_EntityData *entity)
  */
 void BigGolem_RestoreParts(struct EwramData_EntityData *entity)
 {
-    struct BigGolemPart *parts = entity->unk_500.bigGolemParts;
+    struct BigGolemPart *parts = entity->ext.bigGolem.parts;
     s32 i;
 
     for (i = BIG_GOLEM_PART_COUNT - 1; i >= 0; parts++, i--)

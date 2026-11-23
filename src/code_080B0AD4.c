@@ -5,7 +5,6 @@
  * either enters state 4 (bestiaryPreview set) or registers the hit/death callbacks
  * and enters state 0. */
 #include "code_08009A0.h"
-#include "minotaur_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, u8 *, void *, u8, void *);
@@ -37,7 +36,7 @@ void Minotaur_Init(struct EwramData_EntityData *entity, s32 variant)
     struct EwramData_EntityData *child;
     if (!Entity_LoadGraphics(entity, sMinotaurGfx, sMinotaurPalette, variant, sMinotaurSpriteSheet))
         goto fail;
-    MINOTAUR_VARIANT(entity) = variant;
+    entity->ext.minotaur.variant = variant;
     Enemy_ResetFromTemplate(entity);
     entity->spriteLayer = 0x13;
     child = Entity_CreateObject((u32 *)MinotaurAxe_Update);
@@ -52,7 +51,7 @@ void Minotaur_Init(struct EwramData_EntityData *entity, s32 variant)
         return;
     }
     AttachChild(child, entity);
-    MINOTAUR_FLAGS(entity) |= 3;
+    entity->ext.minotaur.flags |= 3;
     Anim_StartIndexed(entity, 1, 0, 1);
     Anim_Update(entity);
     if (gEwramData->gameState.bestiaryPreview)

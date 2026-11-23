@@ -1,6 +1,5 @@
 #include "code_08009A0.h"
 #include "soul_skill_entity.h"
-#include "red_soul_entity.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
 #include "code/code_08060B98.h"
@@ -40,7 +39,7 @@ static inline struct SoulGraphicsResources *GetSet(s32 index)
  */
 void SkillDiscArmorUse(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *parent = RED_SOUL_OWNER(entity);
+    struct EwramData_EntityData *parent = entity->ext.redSoul.owner;
     u16 slot;
     s32 dx, dy;
     s32 scale, rot;
@@ -60,7 +59,7 @@ void SkillDiscArmorUse(struct EwramData_EntityData *entity)
         slot = ObjAffine_Alloc(0);
         if ((s16)slot < 0)
         {
-            gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+            gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
             EntityDelete(entity);
             return;
         }
@@ -89,11 +88,11 @@ void SkillDiscArmorUse(struct EwramData_EntityData *entity)
     case 1:
         entity->accelX.whole = parent->posX.whole;
         entity->accelY.whole = parent->posY.whole - 0x180000;
-        SKILL_DISC_ARMOR_RADIUS(entity) = FIXED_TO_INT(Sin(entity->timer * 1260) * 60);
+        entity->ext.skillDiscArmor.radius = FIXED_TO_INT(Sin(entity->timer * 1260) * 60);
         SKILL_DISC_ARMOR_ANGLE(entity) += SKILL_DISC_ARMOR_TURN(entity);
         entity->unk_514.part16.spawnParam0 += 0x1B00;
-        dx = SKILL_DISC_ARMOR_RADIUS(entity) * Sin(SKILL_DISC_ARMOR_ANGLE(entity) + 0x4000);
-        dy = SKILL_DISC_ARMOR_RADIUS(entity) * Sin(SKILL_DISC_ARMOR_ANGLE(entity));
+        dx = entity->ext.skillDiscArmor.radius * Sin(SKILL_DISC_ARMOR_ANGLE(entity) + 0x4000);
+        dy = entity->ext.skillDiscArmor.radius * Sin(SKILL_DISC_ARMOR_ANGLE(entity));
         entity->posX.whole = entity->accelX.whole + dx;
         entity->posY.whole = entity->accelY.whole + dy;
         if (entity->timer != 0)
@@ -103,14 +102,14 @@ void SkillDiscArmorUse(struct EwramData_EntityData *entity)
         break;
     case 2:
         ObjAffine_Free(entity->affineIndex);
-        gEwramData->playerState.activeRedSoulEntities[RED_SOUL_SLOT(entity)] = NULL;
+        gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
         gEwramData->playerState.nbrActiveRedSoulEntities--;
         EntityDelete(entity);
         return;
     }
-    SKILL_DISC_ARMOR_SCALE(entity) = Sin(entity->timer * 1260);
+    entity->ext.skillDiscArmor.scale = Sin(entity->timer * 1260);
     rot = entity->unk_514.part16.spawnParam0;
     if (entity->flipX)
         rot = -rot;
-    ObjAffine_Set(rot, SKILL_DISC_ARMOR_SCALE(entity), SKILL_DISC_ARMOR_SCALE(entity), entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set(rot, entity->ext.skillDiscArmor.scale, entity->ext.skillDiscArmor.scale, entity->flipX, 0, entity->affineIndex);
 }

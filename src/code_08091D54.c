@@ -1,6 +1,5 @@
 /* Parts of the 081CC014 / 08220A38 enemy attached to their owner. */
 #include "code_08009A0.h"
-#include "devil_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -19,7 +18,7 @@ extern u8 sDevilGfx[], sDevilSpriteSheet[];
 void DevilProjectile_Update(struct EwramData_EntityData *entity)
 {
     u32 buffer[4];
-    struct EwramData_EntityData *owner = DEVIL_PROJECTILE_OWNER(entity);
+    struct EwramData_EntityData *owner = entity->ext.devilProjectile.owner;
     u32 box = 0x1818F4F4;
 
     if (entity->timer == 0)
@@ -30,8 +29,8 @@ void DevilProjectile_Update(struct EwramData_EntityData *entity)
     else
     {
         entity->timer--;
-        entity->posX.whole = owner->posX.whole + DEVIL_PROJECTILE_OFFSET_X(entity);
-        entity->posY.whole = owner->posY.whole + DEVIL_PROJECTILE_OFFSET_Y(entity);
+        entity->posX.whole = owner->posX.whole + entity->ext.devilProjectile.offsetX;
+        entity->posY.whole = owner->posY.whole + entity->ext.devilProjectile.offsetY;
         if (entity->timer == 0)
         {
             PlaySong(0x12A);
@@ -39,7 +38,7 @@ void DevilProjectile_Update(struct EwramData_EntityData *entity)
             Afterimage_Create(entity, 0x7FFF, 6, 16);
         }
         if ((entity->unk_518.part8.enemyId == 0x48 || entity->unk_518.part8.enemyId == 0x66)
-            && DEVIL_PROJECTILE_RELEASE(entity) == entity->timer)
+            && entity->ext.devilProjectile.release == entity->timer)
         {
             Anim_StartIndexed(entity, 0, 0, 1);
             HitBox_SetAttack(entity, &box);
@@ -66,8 +65,8 @@ void DevilChargeEffect_Spawn(struct EwramData_EntityData *owner, s32 dx, s32 dy,
         return;
     entity->posX.whole = owner->posX.whole + dx;
     entity->posY.whole = owner->posY.whole + dy;
-    DEVIL_CHARGE_OFFSET_X(entity) = dx;
-    DEVIL_CHARGE_OFFSET_Y(entity) = dy;
+    entity->ext.devilCharge.offsetX = dx;
+    entity->ext.devilCharge.offsetY = dy;
     entity->spriteLayer = owner->spriteLayer - 1;
     graphics = ObjGfx_Find(sDevilGfx);
     entity->unk_510.part8.basePalette = owner->unk_510.part8.basePalette;
@@ -77,7 +76,7 @@ void DevilChargeEffect_Spawn(struct EwramData_EntityData *owner, s32 dx, s32 dy,
     entity->timer = timer;
     entity->unk_518.part8.enemyId = owner->unk_518.part8.enemyId;
     entity->attack = owner->attack;
-    DEVIL_CHARGE_OWNER(entity) = owner;
+    entity->ext.devilCharge.owner = owner;
     entity->scrollWithBg = 0;
     entity->drawFunc = (u32 *)Sprite_DrawEntity;
 }

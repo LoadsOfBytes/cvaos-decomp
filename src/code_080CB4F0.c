@@ -1,6 +1,5 @@
 /* Beam Skeleton hit callback and Needles create/idle behavior. */
 #include "code_08009A0.h"
-#include "needles_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
@@ -61,7 +60,7 @@ void EnemyNeedlesCreate(struct EwramData_EntityData *entity)
     HitBox_SetAttackRaw(entity,0x1010F8F8);
     HitBox_SetBodyRaw(entity,0x1010F8F8);
     if (entity->unk_514.part16.spawnParam0 != 0)
-        NEEDLES_BOB_PHASE(entity) = RandomNumberGenerator() % 0xFFFF;
+        entity->ext.needles.bobPhase = RandomNumberGenerator() % 0xFFFF;
 }
 
 /**
@@ -104,8 +103,8 @@ void Needles_UpdateIdle(struct EwramData_EntityData *entity)
     }
     if (entity->unk_514.part16.spawnParam0 != 0)
     {
-        s32 vy = Sin((u16)NEEDLES_BOB_PHASE(entity) + 0x4000) / 4;
-        NEEDLES_BOB_PHASE(entity) += 0x400;
+        s32 vy = Sin((u16)entity->ext.needles.bobPhase + 0x4000) / 4;
+        entity->ext.needles.bobPhase += 0x400;
         entity->posX.whole += entity->velX.whole;
         entity->posY.whole += vy;
         entity->velX.whole += entity->accelX.whole;

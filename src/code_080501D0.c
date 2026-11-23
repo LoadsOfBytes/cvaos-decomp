@@ -60,6 +60,6 @@ void Object09Create(struct EwramData_EntityData *entity)
         return;
     }
     entity->animFrame = def->animFrame;
-    OBJECT09_COLLISION_MODE(entity) = def->collisionMode;
+    entity->ext.object09.collisionMode = def->collisionMode;
     BreakableBlock_SetCollision(entity);
 }

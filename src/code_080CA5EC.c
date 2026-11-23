@@ -1,6 +1,5 @@
 /* Beam Skeleton creation and update dispatcher. */
 #include "code_08009A0.h"
-#include "beam_skeleton_entity.h"
 #include "code/code_08039340.h"
 #include "structs/ewram.h"
 
@@ -66,9 +65,9 @@ void EnemyBeamSkeletonCreate(struct EwramData_EntityData *entity)
     Entity_EnableBoxes(entity,Enemy_OnContact,(s32)BeamSkeleton_OnHit);
     Entity_SnapToGround(entity);
     x = GetEntityRoomXPositionInteger(entity);
-    BEAM_SKELETON_HOME_X(entity) = x;
-    BEAM_SKELETON_PATROL_RIGHT(entity) = x + 64;
-    BEAM_SKELETON_PATROL_LEFT(entity) = x - 64;
+    entity->ext.beamSkeleton.homeX = x;
+    entity->ext.beamSkeleton.patrolRight = x + 64;
+    entity->ext.beamSkeleton.patrolLeft = x - 64;
 }
 
 void EnemyBeamSkeletonUpdate(struct EwramData_EntityData *entity)
@@ -85,7 +84,7 @@ void EnemyBeamSkeletonUpdate(struct EwramData_EntityData *entity)
     }
     else if (!Enemy_PreUpdate(entity))
     {
-        BEAM_SKELETON_UNUSED_DELAY(entity) = RandomNumberGenerator() % 80 + 40;
+        entity->ext.beamSkeleton.unusedDelay = RandomNumberGenerator() % 80 + 40;
         switch (entity->state)
         {
             case 0: BeamSkeleton_UpdatePatrol(entity); break;

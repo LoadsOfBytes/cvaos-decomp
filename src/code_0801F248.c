@@ -10,7 +10,7 @@
  */
 void Julius_UpdateDiveAttack(struct EwramData_EntityData *entity)
 {
-    if (PLAYER_ACTION_FLAGS(entity) & 0x400000)
+    if (entity->ext.player.actionFlags & 0x400000)
     {
         entity->state = 0;
         return;
@@ -20,10 +20,10 @@ void Julius_UpdateDiveAttack(struct EwramData_EntityData *entity)
         entity->hit.type = two;
     }
     entity->hit.flags &= ~2;
-    if (PLAYER_ACTION_FLAGS(entity) & 0x80000)
+    if (entity->ext.player.actionFlags & 0x80000)
     {
-        PLAYER_ACTION_FLAGS(entity) = (PLAYER_ACTION_FLAGS(entity) | 8) & ~4;
-        PLAYER_REQUESTED_ANIM(entity) = 3;
+        entity->ext.player.actionFlags = (entity->ext.player.actionFlags | 8) & ~4;
+        entity->ext.player.requestedAnim = 3;
         PlaySong(0xB9);
         entity->velY.whole = -0x3C000;
         entity->accelY.whole = -0x2000;

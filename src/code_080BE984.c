@@ -1,6 +1,5 @@
 /* Death_UpdateWeaponTransition: scythe boss phase - glide to the screen centre, then play the swing animation and spawn two scythes. */
 #include "code_08009A0.h"
-#include "death_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -16,7 +15,7 @@ static inline struct EwramData_EntityData *SpawnScythe(struct EwramData_EntityDa
     struct EwramData_EntityData *child = Entity_CreateObject((u32 *)DeathWeapon_Update);
     if (child == NULL)
         return NULL;
-    DEATH_OWNER_INDEX(child) = ENTITY_INDEX(entity);
+    child->ext.deathHelper.ownerIndex = ENTITY_INDEX(entity);
     child->scrollWithBg = 1;
     return child;
 }
@@ -83,8 +82,8 @@ void Death_UpdateWeaponTransition(struct EwramData_EntityData *entity)
                 PlaySong(0x124);
                 a = SpawnScythe(entity);
                 b = SpawnScythe(entity);
-                DEATH_WEAPON_PRIMARY_INDEX(b) = ENTITY_INDEX(a);
-                DEATH_WEAPON_MIRROR(b) = 1;
+                b->ext.deathWeapon.primaryIndex = ENTITY_INDEX(a);
+                b->ext.deathWeapon.mirror = 1;
             }
             }
             if (entity->animFlags & 4)

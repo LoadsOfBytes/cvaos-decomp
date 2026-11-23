@@ -10,8 +10,6 @@
  * width of the watched value in bits (8 / 16 / 32), its address and the last
  * shown value. Token-identical expansion.
  */
-#define NUMBER_WATCH_BITS(e) e->unk_508.part8.unk_509
-#define NUMBER_WATCH_ADDRESS(e) e->unk_50C.whole
 #define NUMBER_WATCH_LAST(e) e->unk_510.whole
 extern void NumberIndicator_Format(struct EwramData_EntityData *, s32);
 extern void NumberWatch_Update(struct EwramData_EntityData *);
@@ -28,14 +26,14 @@ struct EwramData_EntityData *NumberWatch_Create(void *value, s32 x, s32 y, u8 pa
     Sprite_Attach(entity, sCommonObjectSpriteSheet, graphics, (s8)palette);
     entity->posX.whole = x;
     entity->posY.whole = y;
-    NUMBER_WATCH_BITS(entity) = bits;
+    entity->ext.numberIndicator.watchBits = bits;
     if ((s8)bits == 8)
         NUMBER_WATCH_LAST(entity) = *(s8 *)value;
     else if ((s8)bits == 16)
         NUMBER_WATCH_LAST(entity) = *(s16 *)value;
     else
         NUMBER_WATCH_LAST(entity) = *(s32 *)value;
-    NUMBER_WATCH_ADDRESS(entity) = (s32)value;
+    entity->ext.numberIndicator.watchAddress = (s32)value;
     NumberIndicator_Format(entity, NUMBER_WATCH_LAST(entity));
     entity->drawFunc = (u32 *)NumberIndicator_Draw;
     entity->spriteLayer = 2;

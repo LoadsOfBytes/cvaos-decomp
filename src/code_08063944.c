@@ -14,27 +14,27 @@ void EventScene30OrbitRing_Update(struct EwramData_EntityData *entity)
     s32 stage=entity->state;
     if((u8)stage==0)
     {
-        u32 angle=(u16)EVENT30_RING_ANGLE(entity);
+        u32 angle=(u16)entity->ext.event30Ring.angle;
         s32 quarter=0x4000;
         Sin(angle+quarter);
-        Sin((u16)EVENT30_RING_ANGLE(entity));
-        entity->posX.part16.integer=EVENT30_RING_CENTER_X(entity);
-        entity->posY.part16.integer=EVENT30_RING_CENTER_Y(entity);
-        entity->posX.part16.integer+=(Sin((u16)EVENT30_RING_ANGLE(entity)+quarter)*EVENT30_RING_RADIUS_X(entity))>>13;
-        entity->posY.part16.integer+=(Sin((u16)EVENT30_RING_ANGLE(entity))*EVENT30_RING_RADIUS_Y(entity))>>13;
-        entity->velX.whole=Sin((u16)EVENT30_RING_ANGLE(entity)+quarter)>>1;
-        entity->velY.whole=Sin((u16)EVENT30_RING_ANGLE(entity))>>1;
-        entity->posX.whole+=EVENT30_RING_SPREAD(entity)*entity->velX.whole;
-        entity->posY.whole+=EVENT30_RING_SPREAD(entity)*entity->velY.whole;
-        if(entity->timer--%2==0)EVENT30_RING_SPREAD(entity)++;
-        EVENT30_RING_ANGLE(entity)+=32;
+        Sin((u16)entity->ext.event30Ring.angle);
+        entity->posX.part16.integer=entity->ext.event30Ring.centerX;
+        entity->posY.part16.integer=entity->ext.event30Ring.centerY;
+        entity->posX.part16.integer+=(Sin((u16)entity->ext.event30Ring.angle+quarter)*entity->ext.event30Ring.radiusX)>>13;
+        entity->posY.part16.integer+=(Sin((u16)entity->ext.event30Ring.angle)*entity->ext.event30Ring.radiusY)>>13;
+        entity->velX.whole=Sin((u16)entity->ext.event30Ring.angle+quarter)>>1;
+        entity->velY.whole=Sin((u16)entity->ext.event30Ring.angle)>>1;
+        entity->posX.whole+=entity->ext.event30Ring.spread*entity->velX.whole;
+        entity->posY.whole+=entity->ext.event30Ring.spread*entity->velY.whole;
+        if(entity->timer--%2==0)entity->ext.event30Ring.spread++;
+        entity->ext.event30Ring.angle+=32;
         if(owner->attack&2)
         {
             u32 index;
-            entity->velX.whole=Sin((u16)EVENT30_RING_ANGLE(entity)+quarter)>>2;
-            entity->velY.whole=Sin((u16)EVENT30_RING_ANGLE(entity))>>2;
+            entity->velX.whole=Sin((u16)entity->ext.event30Ring.angle+quarter)>>2;
+            entity->velY.whole=Sin((u16)entity->ext.event30Ring.angle)>>2;
             entity->state++;
-            index=EVENT30_RING_INDEX(entity);
+            index=entity->ext.event30Ring.index;
             entity->timer=(6-(index>>2))*index;
         }
     }
@@ -46,9 +46,9 @@ void EventScene30OrbitRing_Update(struct EwramData_EntityData *entity)
     else
     {
         if(Entity_StepTowardPoint(entity,0x780000,0x500000,3))
-        { if(EVENT30_EFFECT_SCALE(entity))EVENT30_EFFECT_SCALE(entity)-=0x1000; }
+        { if(entity->ext.event30Effect.scale)entity->ext.event30Effect.scale-=0x1000; }
         else
         { ObjAffine_Free(entity->affineIndex);entity->deleteRequested=1; }
     }
-    ObjAffine_Set(EVENT30_EFFECT_ANGLE(entity),EVENT30_EFFECT_SCALE(entity),EVENT30_EFFECT_SCALE(entity),0,0,entity->affineIndex);
+    ObjAffine_Set(EVENT30_EFFECT_ANGLE(entity),entity->ext.event30Effect.scale,entity->ext.event30Effect.scale,0,0,entity->affineIndex);
 }

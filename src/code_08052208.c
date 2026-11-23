@@ -62,7 +62,7 @@ s16 Object14_MoveOnTerrainSolid(struct EwramData_EntityData *entity, s32 layer)
             h = ((h << 16) + 0xFFF80000) >> 16; 
         {
              s32 a = ArcTan2(dir, h);
-            Angle_TurnTowards((u16 *)&OBJECT14_ANGLE(entity), 0x400, a);
+            Angle_TurnTowards((u16 *)&entity->ext.object14.angle, 0x400, a);
         }
     }
     return ground;

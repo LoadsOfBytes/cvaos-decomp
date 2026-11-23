@@ -1,5 +1,4 @@
 #include "code_08009A0.h"
-#include "dead_crusader_entity.h"
 #include "code/code_080211F0.h"
 #include "code/code_08039340.h"
 #include "code/code_08060B98.h"
@@ -15,7 +14,7 @@ extern void DeadCrusader_UpdateAttack(struct EwramData_EntityData *entity);
 extern s32 Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
 
 /**
- * @brief 8F1F4 | Dead Crusader update: clears DEAD_CRUSADER_GUARDING, wakes when on screen
+ * @brief 8F1F4 | Dead Crusader update: clears ext.deadCrusader.guarding, wakes when on screen
  * (Player_TrackEntity; skipped entirely while off screen unless dying), hidden
  * off screen (hidden), Enemy_UpdateHitFlash unless dying, states 0 / 1
  * (DeadCrusader_UpdateWalk / DeadCrusader_UpdateAttack), 2 dying (Enemy_UpdateFragmentDeath), 3 animation only;
@@ -25,7 +24,7 @@ void EnemyDeadCrusaderUpdate(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
 
-    DEAD_CRUSADER_GUARDING(entity) = 0;
+    entity->ext.deadCrusader.guarding = 0;
     if (entity->state != 2)
     {
         if (EntityIsOutsideScreen(entity, 4))

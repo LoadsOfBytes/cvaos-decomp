@@ -3,14 +3,6 @@
 #include "code_08032444.h"
 #include "structs/ewram.h"
 
-/*
- * Soul pickup (flies to the player like the homing orb): flight angle, turn
- * rate per frame (starts at the stationary argument, grows to 0x4000) and
- * 16.16 speed (grows to 0x80000). Token-identical expansion.
- */
-#define SOUL_PICKUP_ANGLE(e) e->unk_4FC.whole
-#define SOUL_PICKUP_TURN(e) e->unk_500.whole
-#define SOUL_PICKUP_SPEED(e) e->unk_504.whole
 extern void SoulPickup_Update(struct EwramData_EntityData *);
 extern void Pickup_Collect(struct EwramData_EntityData *);
 extern u16 Entity_AngleToPoint(struct EwramData_EntityData *, s32, s32);
@@ -45,9 +37,9 @@ struct EwramData_EntityData *SoulPickup_Create(s32 x, s32 y, s32 palette, s32 so
             s32 py = player->posY.whole;
             py -= (RandomNumberGenerator() & 0x7F) << 12;
             py += -0x80000;
-            SOUL_PICKUP_ANGLE(entity) = (Entity_AngleToPoint(entity, px, py) + 0x8000) & 0xFFFF;
-            SOUL_PICKUP_TURN(entity) = stationary;
-            SOUL_PICKUP_SPEED(entity) = 0x30000;
+            entity->ext.soulPickup.angle = (Entity_AngleToPoint(entity, px, py) + 0x8000) & 0xFFFF;
+            entity->ext.soulPickup.turn = stationary;
+            entity->ext.soulPickup.speed = 0x30000;
         }
         else
         {

@@ -32,21 +32,21 @@ struct BaloreOverlaySheetView {
  */
 s32 BaloreOverlay_SetupSprite(struct EwramData_EntityData *entity)
 {
-    u8 *info = (u8 *)BALORE_OVERLAY_INFO(entity);
+    u8 *info = (u8 *)entity->ext.baloreOverlay.info;
     struct BaloreOverlaySheetView *a;
     struct BaloreOverlayFrameView *b;
     void *c;
 
-    if ((BALORE_OVERLAY_SHEET(entity) = (s32)Heap_Alloc(4)) == 0)
+    if ((entity->ext.baloreOverlay.sheet = (s32)Heap_Alloc(4)) == 0)
         return 1;
-    if ((BALORE_OVERLAY_FRAME(entity) = (s32)Heap_Alloc(4)) == 0)
+    if ((entity->ext.baloreOverlay.frame = (s32)Heap_Alloc(4)) == 0)
         return 1;
     c = Heap_Alloc(0x20);
-    BALORE_OVERLAY_PARTS(entity) = (s32)c;
+    entity->ext.baloreOverlay.parts = (s32)c;
     if (c == NULL)
         return 1;
-    a = (struct BaloreOverlaySheetView *)BALORE_OVERLAY_SHEET(entity);
-    b = (struct BaloreOverlayFrameView *)BALORE_OVERLAY_FRAME(entity);
+    a = (struct BaloreOverlaySheetView *)entity->ext.baloreOverlay.sheet;
+    b = (struct BaloreOverlayFrameView *)entity->ext.baloreOverlay.frame;
     a->frameCount = 1;
     a->scriptCount = 0;
     a->frames = b;

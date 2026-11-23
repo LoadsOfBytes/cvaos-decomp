@@ -2,7 +2,6 @@
  * The affine tip extends and retracts along an angle with ten linked
  * segments. */
 #include "code_08009A0.h"
-#include "headhunter_entity.h"
 #include "code_080D73B8.h"
 #include "code/code_08039340.h"
 #include "code/code_08040A38.h"
@@ -36,13 +35,13 @@ void HeadhunterBurstShot_Update(struct EwramData_EntityData *entity);
 void HeadhunterAttackTip_Update(struct EwramData_EntityData *head);
 struct EwramData_EntityData *Headhunter_CreateAttackSegment(struct EwramData_EntityData *owner, struct EwramData_EntityData *parent, s32 index);
 void HeadhunterAttackSegment_Update(struct EwramData_EntityData *segment);
-#define BASE_X(e) (HEADHUNTER_WHIP_BASE_X((e))) /* room coordinates */
-#define BASE_Y(e) (HEADHUNTER_WHIP_BASE_Y((e)))
-#define OFFSET_X(e) (HEADHUNTER_WHIP_OFFSET_X((e)))
-#define OFFSET_Y(e) (HEADHUNTER_WHIP_OFFSET_Y((e)))
+#define BASE_X(e) (e->ext.headhunterWhip.baseX) /* room coordinates */
+#define BASE_Y(e) (e->ext.headhunterWhip.baseY)
+#define OFFSET_X(e) (e->ext.headhunterWhip.offsetX)
+#define OFFSET_Y(e) (e->ext.headhunterWhip.offsetY)
 #define ANGLE(e) ((e)->velX.whole)
 #define SPEED(e) ((e)->accelX.whole)
-#define SEGMENT_INDEX(e) (*(s8 *)&HEADHUNTER_WHIP_INDEX((e)))
+#define SEGMENT_INDEX(e) (*(s8 *)&e->ext.headhunterWhipSegment.index)
 
 /* Create the follower effect HeadhunterAttackFollower_Update for `timer` frames. */
 /**
@@ -57,8 +56,8 @@ void Headhunter_SpawnAttackFollower(struct EwramData_EntityData *owner, s32 time
         s32 graphics;
         effect->flipX = owner->flipX;
         effect->spriteLayer = owner->spriteLayer;
-        graphics = HEADHUNTER_GRAPHICS(owner);
-        effect->unk_510.part8.basePalette = HEADHUNTER_PALETTE_3(owner);
+        graphics = owner->ext.headhunter.graphics;
+        effect->unk_510.part8.basePalette = owner->ext.headhunter.palette3;
         Sprite_Attach(effect, sHeadhunterSpriteSheet, graphics, effect->unk_510.part8.basePalette);
         Anim_StartIndexed(effect, 0x16, 2, 0);
         Anim_Update(effect);
@@ -86,11 +85,11 @@ void Headhunter_SpawnBurstShot(struct EwramData_EntityData *owner, s32 x, s32 y,
         shot->velX.whole = vx;
         shot->velY.whole = vy;
         shot->spriteLayer = owner->spriteLayer - 1;
-        graphics = HEADHUNTER_GRAPHICS(owner);
-        HEADHUNTER_EFFECT_GRAPHICS(shot) = graphics;
-        shot->unk_510.part8.basePalette = HEADHUNTER_PALETTE_3(owner);
+        graphics = owner->ext.headhunter.graphics;
+        shot->ext.headhunterEffect.graphics = graphics;
+        shot->unk_510.part8.basePalette = owner->ext.headhunter.palette3;
         Sprite_Attach(shot, sHeadhunterSpriteSheet, graphics, shot->unk_510.part8.basePalette);
-        HEADHUNTER_EFFECT_FRAME(shot) = 0x54;
+        shot->ext.headhunterEffect.frame = 0x54;
         Hit_Enable(shot, 8, HeadhunterBurstShot_DamagePlayerOnContact, 0);
         HitBox_SetAttack(shot, &box);
         shot->hit.flags |= 4;
@@ -120,16 +119,16 @@ void HeadhunterBurstShot_Update(struct EwramData_EntityData *entity)
     EntityAccelerateAndMove(entity, 0x40000);
     if (entity->timer == 20)
     {
-        HEADHUNTER_EFFECT_FRAME(entity) = 0x55;
+        entity->ext.headhunterEffect.frame = 0x55;
         HitBox_SetAttack(entity, &box1);
     }
     if (entity->timer == 40)
     {
-        HEADHUNTER_EFFECT_FRAME(entity) = 0x56;
+        entity->ext.headhunterEffect.frame = 0x56;
         HitBox_SetAttack(entity, &box2);
     }
     Anim_Start(entity, (struct AnimScript *)&animation, 2, 1);
-    animation.frame = HEADHUNTER_EFFECT_FRAME(entity);
+    animation.frame = entity->ext.headhunterEffect.frame;
     Anim_Update(entity);
     if (entity->timer++ > 59)
         EntityDelete(entity);
@@ -162,8 +161,8 @@ void Headhunter_SpawnExtendingAttack(struct EwramData_EntityData *owner, s32 x, 
     ANGLE(head) = angle;
     SPEED(head) = 0x40000;
     head->spriteLayer = owner->spriteLayer - 1;
-    graphics = HEADHUNTER_GRAPHICS(owner);
-    head->unk_510.part8.basePalette = HEADHUNTER_PALETTE_2(owner);
+    graphics = owner->ext.headhunter.graphics;
+    head->unk_510.part8.basePalette = owner->ext.headhunter.palette2;
     Sprite_Attach(head, sHeadhunterSpriteSheet, graphics, head->unk_510.part8.basePalette);
     Anim_Start(head, (struct AnimScript *)&animation, 2, 1);
     Anim_Update(head);
@@ -307,8 +306,8 @@ struct EwramData_EntityData *Headhunter_CreateAttackSegment(struct EwramData_Ent
     segment->posY.whole = parent->posY.whole;
     SEGMENT_INDEX(segment) = index;
     segment->spriteLayer = parent->spriteLayer + 1;
-    graphics = HEADHUNTER_GRAPHICS(owner);
-    segment->unk_510.part8.basePalette = HEADHUNTER_PALETTE_2(owner);
+    graphics = owner->ext.headhunter.graphics;
+    segment->unk_510.part8.basePalette = owner->ext.headhunter.palette2;
     Sprite_Attach(segment, sHeadhunterSpriteSheet, graphics, segment->unk_510.part8.basePalette);
     Anim_Start(segment, (struct AnimScript *)&animation, 2, 1);
     Anim_Update(segment);
@@ -327,7 +326,7 @@ struct EwramData_EntityData *Headhunter_CreateAttackSegment(struct EwramData_Ent
     segment->hit.flags &= ~2;
     segment->attack = owner->attack;
     ENTITY_OWNER(segment) = owner;
-    HEADHUNTER_WHIP_TIP(segment) = parent;
+    segment->ext.headhunterWhipSegment.tip = parent;
     segment->scrollWithBg = 0;
     segment->drawFunc = (u32 *)Sprite_DrawEntity;
     return segment;
@@ -344,7 +343,7 @@ fail:
 void HeadhunterAttackSegment_Update(struct EwramData_EntityData *segment)
 {
     struct EwramData_EntityData *owner = ENTITY_OWNER(segment);
-    struct EwramData_EntityData *parent = HEADHUNTER_WHIP_TIP(segment);
+    struct EwramData_EntityData *parent = segment->ext.headhunterWhipSegment.tip;
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
     s32 bounds[4];
     struct SingleFrameAnimation animation = sHeadhunterAttackSegmentFrameAnim;
@@ -354,8 +353,8 @@ void HeadhunterAttackSegment_Update(struct EwramData_EntityData *segment)
         EntityDelete(segment);
         return;
     }
-    segment->posX.whole = HEADHUNTER_WHIP_BASE_X(parent) + HEADHUNTER_WHIP_OFFSET_X(parent) * SEGMENT_INDEX(segment) / 10 - camera->xPos.whole;
-    segment->posY.whole = HEADHUNTER_WHIP_BASE_Y(parent) + HEADHUNTER_WHIP_OFFSET_Y(parent) * SEGMENT_INDEX(segment) / 10 - camera->yPos.whole;
+    segment->posX.whole = parent->ext.headhunterWhip.baseX + parent->ext.headhunterWhip.offsetX * SEGMENT_INDEX(segment) / 10 - camera->xPos.whole;
+    segment->posY.whole = parent->ext.headhunterWhip.baseY + parent->ext.headhunterWhip.offsetY * SEGMENT_INDEX(segment) / 10 - camera->yPos.whole;
     Anim_Start(segment, (struct AnimScript *)&animation, 2, 1);
     Anim_Update(segment);
     ObjAffine_SetBiased(parent->velX.whole, 0x10000, 0x10000, segment->flipX, segment->flipY, segment->affineIndex);

@@ -18,6 +18,8 @@
 #include "oam.h"
 #include "obj_gfx.h"
 #include "palette.h"
+#include "data/data_0E1CD0.h"
+#include "data/data_118B48.h"
 
 /* Upstream functions 0x08039340..0x0803981F from the previously unlinked
  * this file, now linked as matching C. */
@@ -215,7 +217,6 @@ void ObjGfx_DecompressSet(struct EwramData_unk19404 *set)
 /* Draw one entity's sprite parts through an affine matrix (rotated/scaled OAM). */
 struct Matrix2_2 { s32 m[4]; };
 struct ObjEntry;
-extern const s32 sUnk_080E29A0[3][4][2];
 extern void (*gObjAffineGetMatrixFunc)(struct Matrix2_2 *, s32);
 extern s32 (*gObjAffineGetFlipXFunc)(s32);
 extern s32 (*gObjAffineGetFlipYFunc)(s32);
@@ -1056,10 +1057,6 @@ s32 Sprite_BuildSingle(struct EwramData_EntityData *entity)
  * Sprite_BuildSingle and ObjGfx_RestoreState (no upstream C yet) stay in asm. Hard-coded
  * ROM addresses of the draft were replaced by data labels. */
 
-extern u8 sCommonObjectGfx[];
-extern u8 sCommonObjectGfxLanguage2[];
-extern u8 sCommonObjectGfxLanguage3[];
-
 struct SingleSpriteOamView {
     u8 attribute0Low;
     u8 attribute0High;
@@ -1316,10 +1313,6 @@ s32 ObjGfx_RestoreState(void)
  * this file, now linked; split at 0x0803C294 and 0x0803C49C.
  * Hard-coded ROM addresses of the draft were replaced by data
  * labels sSpriteSheetDefault1/80/90. */
-
-extern const u8 sSpriteSheetDefault1[];
-extern const u8 sSpriteSheetDefault2[];
-extern const u8 sSpriteSheetDefault4[];
 
 /**
  * @brief Copy the tiles of one animation frame (decompressing LZ77 data when

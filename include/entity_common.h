@@ -69,4 +69,12 @@ extern s32 Entity_DistanceToPoint(struct EwramData_EntityData *entity, s32 x, s3
 extern void Entity_HideAboveY(struct EwramData_EntityData *entity, s32 minY);
 extern void RisingEffect_Update(struct EwramData_EntityData *entity);
 
+extern void Sprite_GetPartCornerOffset(struct EwramData_EntityData *entity, s32 index, s16 *offset);
+extern void Sprite_GetPartCenterOffset(struct EwramData_EntityData *entity, s32 index, s16 *offset);
+extern void Sprite_GetPartOriginOffset(struct EwramData_EntityData *entity, s32 index, s16 *offset);
+extern void EntityAccelerateY(struct EwramData_EntityData *entity, s32 maxSpeed);
+extern void EntityMoveY(struct EwramData_EntityData *entity);
+extern void Effect_SpawnRandom(s32 x, s32 y, s32 width, s32 height, s32 layer);
+extern struct EwramData_EntityData *Entity_CreateObject(void *updateFunc);
+
 #endif /* ENTITY_COMMON_H */

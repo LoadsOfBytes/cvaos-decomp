@@ -19,6 +19,9 @@
 #include "oam.h"
 #include "obj_gfx.h"
 #include "effects.h"
+#include "data/data_0E5364.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 /* from bg_and_collision.h (not included: see the module notes) */
 extern s16 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
 extern s16 GetEntityRoomYPositionInteger(struct EwramData_EntityData *entity);
@@ -363,7 +366,6 @@ fail:
 }
 
 extern s32 Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern u8 sCommonObjectGfx[];
 
 /**
  * @brief 5008C | Breakable object (spawnParam1 = flag index): while
@@ -678,7 +680,6 @@ void Object0CUpdate(struct EwramData_EntityData *entity)
 }
 
 /* Object helpers decompiled from assembly. */
-extern u8 sObject0CSolidCallbacks[];
 
 /* Copy the second word of the supplied data to velX when the player's
  * unk_4F4 flag 0x400000 is active. */
@@ -713,8 +714,6 @@ void Object0CCreate(struct EwramData_EntityData *entity)
     Player_RegisterSolidObject(entity, sObject0CSolidCallbacks);
     entity->roomActive = 1;
 }
-
-extern u8 sObject0DGfx[], sObject0DPalette[], sObject0DSpriteSheet[];
 
 void Object0DCreate(struct EwramData_EntityData *entity)
 {
@@ -819,7 +818,6 @@ clamp:
 }
 
 /* Object0EPiece_Update (falling object hitting the ground). */
-extern void Effect_SpawnRandom(s32 x, s32 y, s32 width, s32 height, s32 layer);
 
 /**
  * @brief 50920 | Fall; on hitting solid ground (Collision_GetGroundOffset) spawn a
@@ -884,8 +882,6 @@ struct Object0EVariant {
 
 extern struct Object0EVariant sObject0EVariants[];
 extern struct Object0EGraphics sObject0EGraphics[];
-extern void Sprite_GetPartCenterOffset(struct EwramData_EntityData *, s32, void *);
-extern void Sprite_GetPartOriginOffset(struct EwramData_EntityData *, s32, void *);
 
 /**
  * @brief Spawn the variant's count of falling pieces (Object0EPiece_Update) with
@@ -912,10 +908,10 @@ void Object0E_SpawnPieces(struct EwramData_EntityData *owner)
         entity->animFrame = frame;
         entity->spriteLayer = 0x14;
         entity->flipX = owner->flipX;
-        Sprite_GetPartCenterOffset(owner, i, &pos);
+        Sprite_GetPartCenterOffset(owner, i, (s16 *)&pos);
         entity->posX.part16.integer = owner->posX.part16.integer + pos.x;
         entity->posY.part16.integer = owner->posY.part16.integer + pos.y;
-        Sprite_GetPartOriginOffset(entity, 0, &pos);
+        Sprite_GetPartOriginOffset(entity, 0, (s16 *)&pos);
         entity->posX.part16.integer += pos.x / 4;
         entity->posY.part16.integer -= pos.y / 4;
         entity->velX.whole = owner->velX.whole * ((RandomNumberGenerator() & 0xFFFF) + 0x10000);
@@ -972,7 +968,6 @@ void Object0ECreate(struct EwramData_EntityData *entity)
     entity->scrollWithBg = 1;
 }
 
-extern u8 sUnk_08526370[][4];
 extern s32 Pickup_TrySpawnOnHit(struct EwramData_EntityData *, s32, s32, s32);
 
 void Object0EUpdate(struct EwramData_EntityData *entity)
@@ -1019,7 +1014,6 @@ void Object0E_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
 }
 
 /* Object 0x0F, reconstructed from the original ROM. */
-extern u8 sCommonObjectGfx[], sCommonObjectSpriteSheet[];
 extern void Object0F_Draw(struct EwramData_EntityData *entity);
 
 /* Select palette from the high byte of the placement parameter (default 7),

@@ -27,9 +27,10 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "palette.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 extern u8 Angle_TurnTowards(u16 *, u16, u16);
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *update);
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 extern s32 Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
@@ -37,13 +38,6 @@ extern void HitEffect_SpawnAtContact(s32 attacker, struct EwramData_EntityData *
 extern void SoulPickup_SpawnFromEnemyDefinition(s32, s32, s32, s32);
 extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-extern u8 sBaloreGfx[], sBalorePalette[], sUnk_0811940C[];
-extern struct SpriteSheet sBaloreSpriteSheet;
-extern u8 sBaloreSpriteSheet2[];
-extern const u8 sBaloreEyeAnimOffsets[];
-extern const u8 sBalorePartAnimOffsets[];
-extern const u8 sUnk_085287D6[4];
 
 /* Flight parameters, e.g. sBaloreHandSteeringParams1 (BaloreHand_FadeIn). */
 struct BaloreFlightSteeringParameters {
@@ -1007,8 +1001,8 @@ void Balore_CreateHand(struct EwramData_EntityData *owner, u16 x, u16 y, u8 flip
 {
     struct EwramData_EntityData *hand, *part;
     struct BgLayerState *bg;
-    if (kind == 0) part = Entity_CreateObject((u32 *)BaloreHand_Update);
-    else part = Entity_CreateObject((u32 *)BaloreHandB_Update);
+    if (kind == 0) part = Entity_CreateObject(BaloreHand_Update);
+    else part = Entity_CreateObject(BaloreHandB_Update);
     if (part != NULL)
     {
         part->ext.balorePart.body = owner;
@@ -1024,9 +1018,9 @@ void Balore_CreateHand(struct EwramData_EntityData *owner, u16 x, u16 y, u8 flip
         if (kind == 0)
         {
             part->hidden = 1;
-            part = Entity_CreateObject((u32 *)BaloreHandHitBox_Update);
+            part = Entity_CreateObject(BaloreHandHitBox_Update);
         }
-        else part = Entity_CreateObject((u32 *)BaloreHandBHitBox_Update);
+        else part = Entity_CreateObject(BaloreHandBHitBox_Update);
         if (part != NULL)
         {
             part->ext.balorePart.body = owner;
@@ -1184,7 +1178,7 @@ void BaloreSpark_Update(struct EwramData_EntityData *entity)
 
 static inline struct EwramData_EntityData *SpawnAtEntity(void *update, struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *spawned = Entity_CreateObject((u32 *)update);
+    struct EwramData_EntityData *spawned = Entity_CreateObject(update);
 
     if (spawned == NULL)
         return NULL;
@@ -1474,7 +1468,7 @@ void Balore_UpdateAttack(struct EwramData_EntityData *entity)
             entity->timer--;
             break;
         }
-        effect = Entity_CreateObject((u32 *)BaloreEmitter_Update);
+        effect = Entity_CreateObject(BaloreEmitter_Update);
         if (effect != NULL)
         {
             effect->posX.whole = entity->posX.whole;
@@ -1661,7 +1655,7 @@ void EnemyBaloreCreate(struct EwramData_EntityData *entity)
     entity->spriteLayer = 0x1E;
     entity->ext.balore.eyeAnim = 4;
     entity->ext.balore.scale = 0x10000;
-    part = Entity_CreateObject((u32 *)BaloreEye_Update);
+    part = Entity_CreateObject(BaloreEye_Update);
     if (part != NULL)
     {
         part->posX.whole = entity->posX.whole;
@@ -1669,7 +1663,7 @@ void EnemyBaloreCreate(struct EwramData_EntityData *entity)
         part->scrollWithBg = 1;
         part->ext.balorePart.body = entity;
     }
-    part = Entity_CreateObject((u32 *)BalorePart_Update);
+    part = Entity_CreateObject(BalorePart_Update);
     if (part != NULL)
     {
         part->posX.whole = entity->posX.whole;
@@ -1677,7 +1671,7 @@ void EnemyBaloreCreate(struct EwramData_EntityData *entity)
         part->scrollWithBg = 1;
         part->ext.balorePart.body = entity;
     }
-    part = Entity_CreateObject((u32 *)BaloreBodyPart_Update);
+    part = Entity_CreateObject(BaloreBodyPart_Update);
     if (part != NULL)
     {
         part->posX.whole = entity->posX.whole;
@@ -2309,7 +2303,7 @@ void BaloreIntro_Update(struct EwramData_EntityData *entity)
         Game_SetMenusEnabled(1);
         SharedObjPalette_ResetSlots();
         ObjGfx_Unload((s8)entity->ext.balore.gfx);
-        e = Entity_CreateObject((u32 *)EnemyBaloreUpdate);
+        e = Entity_CreateObject(EnemyBaloreUpdate);
         if (e)
         {
             e->enemyId = entity->enemyId;

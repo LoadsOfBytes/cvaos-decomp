@@ -15,6 +15,8 @@
 #include "hitbox.h"
 #include "oam.h"
 #include "obj_gfx.h"
+#include "data/data_0E5364.h"
+#include "data/data_118B48.h"
 extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *);
 extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
 /* from bg_and_collision.h (not included: see the module notes) */
@@ -58,7 +60,6 @@ s32 Object14_MoveOnTerrain(struct EwramData_EntityData *entity, s32 mode)
  * around the parent. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 extern void Object14Debris_Update(struct EwramData_EntityData *);
-extern u8 sObject14Gfx[], sObject14Palette[], sObject14SpriteSheet[];
 
 /**
  * @brief Spawn the debris pieces (Object14Debris_Update) of object 0x14 around
@@ -353,7 +354,6 @@ s16 Object14_MoveOnTerrainSolid(struct EwramData_EntityData *entity, s32 layer)
 }
 
 extern s32 Collision_GetPushLeftFiltered(s32, s32, s32);
-extern u8 sObject14Variant1SolidCallbacks[];
 
 /**
  * @brief Update of object 0x14 variant 1 (sObject14VariantFuncs[1]): rolling affine

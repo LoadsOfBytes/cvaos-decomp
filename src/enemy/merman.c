@@ -17,6 +17,7 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 /* Dispatch Merman states, including the hidden instance's child spawning. */
 extern void EnemyMermanCreate(struct EwramData_EntityData *);
@@ -166,7 +167,6 @@ finished:
 /* Merman movement and transitions between swimming, jumping and landing.
  * This reconstruction requires the source-specific -fno-gcse build rule.
  * A byte match establishes generated code, not the original compiler options. */
-extern void EntityMoveY(struct EwramData_EntityData *);
 extern s32 Target_GetPixelX(struct EwramData_EntityData *);
 /* Preserve the original caller's full-register argument arithmetic. The callee
  * consumes signed 16-bit coordinates; its implementation performs narrowing. */
@@ -587,7 +587,6 @@ void MermanShot_EnableHitBoxes(struct EwramData_EntityData *entity)
 }
 
 /* Move the projectile or emit its two fragments before deleting it. */
-extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
 /**
  * @brief Shot update: fly until off screen (state 0); state 2 bursts into two
  * random effects and deletes the shot.
@@ -620,11 +619,6 @@ finished:
 
 /* Merman helpers 0x080717E0..0x08071903. */
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-/* Graphics of Merman. */
-extern u8 sMermanGfx[];
-extern u8 sMermanPalette[];
-extern u8 sMermanSpriteSheet[];
 
 static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
 {

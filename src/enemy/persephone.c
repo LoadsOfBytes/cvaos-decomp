@@ -15,6 +15,7 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 /* Dispatch Persephone's AI, death, reaction and display states. */
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
@@ -448,7 +449,6 @@ void Persephone_UpdatePreview(struct EwramData_EntityData *entity)
 
 /* Load graphics and choose the drawing callback for the room. */
 extern s8 ObjPalette_FindOrLoadVariant(void *, u8);
-extern u8 sPersephoneGfx[], sPersephonePalette[], sPersephoneSpriteSheet[];
 /**
  * @brief Load the Persephone graphics and palette; in area 4 rooms 12 / 13 draw
  * with Entity_DrawWithOffsetCopy instead of Sprite_DrawEntity. Return 0 when no

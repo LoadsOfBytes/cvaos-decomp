@@ -21,6 +21,8 @@
 #include "palette.h"
 #include "palette_state.h"
 #include "text12.h"
+#include "data/data_0E5364.h"
+#include "data/data_118B48.h"
 
 /* Object35Create (0x0805A18C). */
 u8 Object35_LoadGraphics(struct EwramData_EntityData *entity);
@@ -101,7 +103,6 @@ void Object35Create(struct EwramData_EntityData *entity)
 }
 
 /* Object35_UpdateState, Object35_SpawnChild. */
-extern void EntityMoveY(struct EwramData_EntityData *entity);
 
 #define FLAG(e) ((e)->spawnParam1)
 
@@ -190,8 +191,6 @@ void Object35_UpdateState(struct EwramData_EntityData *entity)
     }
 }
 
-extern u8 sObject35Gfx[];
-extern u8 sObject35SpriteSheet[];
 void Object35Child_Update(void);
 
 /**
@@ -225,12 +224,6 @@ void Object35_SpawnChild(struct EwramData_EntityData *parent)
 /* Objects 0x35 / 0x36 helpers 0x0805A590..0x0805A747. */
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 void Object35_Draw(struct EwramData_EntityData *entity);
-
-extern u8 sObject35Palette[];
-extern u8 sObject36SolidCallbacks[];
-
-/* Per variant: { rotation speed * 2 / scale step, rotation speed }. */
-extern const s16 sObject36Shapes[9][2];
 
 /**
  * @brief 5A590 | Object 0x35 update: Player_QueueEntity(.., 1) while spawnParam0 is 0,
@@ -645,7 +638,6 @@ void Object37_UpdateState(struct EwramData_EntityData *entity)
 }
 
 extern void Object37Child_Update(struct EwramData_EntityData *);
-extern u8 sObject37Gfx[], sObject37SpriteSheet[];
 
 /**
  * @brief Create the child entity of object 0x37 (Object37Child_Update).
@@ -689,19 +681,6 @@ void Object37_SpawnChild(struct EwramData_EntityData *owner)
 }
 
 /* Helpers 0x0805AD9C..0x0805AFBF (object 0x37 and screen setup). */
-/* Graphics of object 0x37. */
-extern u8 sObject37Palette[];
-
-/* Screen data of Shop_SetupBackgrounds (per language). */
-extern u8 sShopBgPalette[];
-extern u8 sShopBgGfx[];
-extern u8 sShopBgGfxLanguage3[];
-extern u8 sShopBgGfxLanguage3Extra[];
-extern u8 sShopBgGfxLanguage2[];
-extern u8 sLocalizedWindowGfxLanguage3[];
-extern u8 sLocalizedWindowGfxLanguage2[];
-extern u8 sLocalizedWindowGfx[];
-extern u8 sTextBgPalette[];
 
 /**
  * @brief 5AD9C | Copy subState from the parent (unk_4F8); move unk_4FC toward

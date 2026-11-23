@@ -2,6 +2,7 @@
 #include "oam.h"
 #include "palette.h"
 #include "scene30.h"
+#include "data/data_118B48.h"
 /* EventScene30_UpdateTransformation: multi-phase scene transition with per-scanline affine distortion.
    Built without -f2003-patch; the callback table of emitCenter is this file's
    .rodata and is linked at 0x08118B34. */
@@ -12,7 +13,6 @@
 #include "gba.h"
 #include "syscalls.h"
 #include <string.h>
-extern u8 sEventScene30TransformationPalette[];
 
 extern void EventScene30_SpawnOrbitRing(struct EwramData_EntityData *,s16,s16);
 extern void EventScene30_SpawnDriftFragment(s16,s16,s32,s32);

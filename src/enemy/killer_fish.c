@@ -17,6 +17,7 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 /* Dispatch Killer Fish states and refresh its frame-dependent collision data. */
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
@@ -698,7 +699,6 @@ void KillerFishSwarm_EnableHitBoxes(struct EwramData_EntityData *entity)
 
 /* Create an oscillating Killer Fish effect with supplied position and velocity. */
 extern void KillerFishEffect_UpdateOscillating(struct EwramData_EntityData *);
-extern u8 sKillerFishGfx[], sKillerFishSpriteSheet[];
 /**
  * @brief Create a sprite effect with supplied position, velocity and frame; reject it unless its initial tile classification is 3.
  */
@@ -854,7 +854,6 @@ void KillerFish_SpawnRisingSprite(struct EwramData_EntityData *parent, s32 x, s3
  *   KillerFish_LoadGraphics = Object25_LoadGraphics
  *   KillerFish_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
-extern u8 sKillerFishPalette[];
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)

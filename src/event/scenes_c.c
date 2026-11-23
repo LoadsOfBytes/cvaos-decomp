@@ -32,9 +32,10 @@
 #include "shop_update.h"
 #include "text12.h"
 #include "text_window.h"
+#include "data/data_0E5364.h"
+#include "data/data_118B48.h"
 
 /* Per-scanline affine transition driven by the owner's event phase. */
-extern u8 sEventScene30TransformationPalette[],sEventScene30Palette[];
 #define PHASE(e) (e->ext.event30.phase)
 #define CENTER_X(e) (e->ext.event30.centerX)
 #define CENTER_Y(e) (e->ext.event30.centerY)
@@ -164,7 +165,6 @@ void EventScene30_UpdateUnusedZoom(struct EwramData_EntityData *entity)
 
 /* Load the transition's room metadata, backgrounds and initial palette. */
 extern struct RoomDefinition sEndingRoomDefinition;
-extern u8 sTextBgPalette[];
 /**
  * @brief Unreferenced: load the graphics, palettes and BG layers (with their
  * initial scroll) of room 0x08522C54, the room the debug menu uses for

@@ -21,10 +21,11 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "pickup.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 extern void SoulPickup_Update(struct EwramData_EntityData *);
 extern u16 Entity_AngleToPoint(struct EwramData_EntityData *, s32, s32);
-extern u8 sCommonObjectGfx[], sCommonObjectSpriteSheet[];
 
 /**
  * @brief Create an animated soul pickup with soul kind/id and collection callback; select homing initialization or state 0x63 from the supplied variant.
@@ -124,8 +125,6 @@ void SoulPickup_Update(struct EwramData_EntityData *entity)
     }
     if (entity->stage != 0) Anim_Update(entity);
 }
-
-extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
 
 /**
  * @brief Emit particles and position the child animation; on a qualifying hit create the soul pickup, then hide and expire with the existing particle sequence.
@@ -447,7 +446,6 @@ const void *Item_GetInfo(s32 category, s32 index)
 }
 
 /* Resolve the record family and stride for a one-based item identifier. */
-extern u8 sUnk_085059BC[], sUnk_08505C94[];
 /**
  * @brief Resolve a one-based global item identifier to its record family and stride; return NULL for zero or above the final range, preserving signed comparisons.
  */

@@ -16,6 +16,7 @@
 #include "oam.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 /* Ukoback flight: room-edge and tile collision, facing and timer updates. */
 extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *entity);
@@ -125,11 +126,6 @@ extern s32 HitBox_SetAttackRaw(struct EwramData_EntityData *entity, s32 box);
 extern s32 Entity_IsInRect(struct EwramData_EntityData *entity, s16 left, s16 top, u16 width, u16 height);
 extern void UkobackFireball_OnContact(struct EwramData_EntityData *entity);
 extern void UkobackFireball_OnHit(struct EwramData_EntityData *entity);
-
-/* Graphics of the Ukoback fireball (UkobackFireball_Initialize). */
-extern u8 sUkobackGfx[];
-extern u8 sUkobackPalette[];
-extern u8 sUkobackSpriteSheet[];
 
 /**
  * @brief Drop rewards, spawn a falling piece and fall while running the fragment-death effect; request deletion below Y 170.
@@ -304,10 +300,6 @@ static inline s32 RandomOffset(s32 range)
 {
     return RandomNumberGenerator() % range - range / 2;
 }
-
-/* Graphics of the sparkle (UkobackSparkle_Update). */
-extern u8 sCommonObjectGfx[];
-extern u8 sCommonObjectSpriteSheet[];
 
 /**
  * @brief Create a player-following sparkle with random offsets; initial Y deliberately uses player X minus 16 pixels, as in the original.
@@ -532,11 +524,6 @@ extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 extern void Nemesis_OnHit(struct EwramData_EntityData *entity);
 extern void Nemesis_UpdateAppearance(struct EwramData_EntityData *entity);
 s32 Nemesis_LoadGraphics(struct EwramData_EntityData *entity);
-
-/* Graphics of the Nemesis (Nemesis_LoadGraphics). */
-extern u8 sNemesisGfx[];
-extern u8 sNemesisPalette[];
-extern u8 sNemesisSpriteSheet[];
 
 /**
  * @brief C664C | Nemesis create: load the graphics (delete the enemy when

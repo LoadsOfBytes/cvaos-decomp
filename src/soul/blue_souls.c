@@ -23,9 +23,11 @@
 #include "obj_gfx.h"
 #include "palette.h"
 #include "red_souls_b.h"
+#include "data/data_0E0B68.h"
+#include "data/data_118B48.h"
 
-/* From player_core.h, which is not included: it declares BlueSoul_CreateEntity
- * and Entity_PlaceRelativeTo with the parameter types of their callers. */
+/* From player_core.h, which is not included: it declares
+ * Entity_PlaceRelativeTo with the parameter types of its callers. */
 extern s32 Player_IsBossTargetLowHp(void);
 extern void Player_RecalculateAttackDefense(void);
 extern void Player_RestoreHP(s32 amount);
@@ -45,7 +47,7 @@ static inline s8 FindFreeSoulSlot(void)
  * register it in the first free active blue soul slot; NULL when no slot or
  * entity is free.
  */
-struct EwramData_EntityData *BlueSoul_CreateEntity(struct EwramData_EntityData *owner, u32 *update)
+struct EwramData_EntityData *BlueSoul_CreateEntity(struct EwramData_EntityData *owner, void *update)
 {
     s8 slot = FindFreeSoulSlot();
     struct EwramData_EntityData *entity;
@@ -311,7 +313,6 @@ void Anim_UpdateWithFrameAttackBox(struct EwramData_EntityData *entity)
 }
 
 #define GRAPHICS_CONTEXT ((struct PlayerState *)((u8 *)gEwramData + OFFSET_OF(struct EwramData, playerState)))
-extern u8 sSkillFlyingArmorGfx[], sSkillFlyingArmorPalette[], sSkillFlyingArmorSpriteSheet[];
 
 static inline void FollowParent(struct EwramData_EntityData *entity, struct EwramData_EntityData *parent, u16 x_, u16 y_)
 {
@@ -419,7 +420,6 @@ void SkillBlackPantherUse(struct EwramData_EntityData *entity)
     gEwramData->playerStatus.soulStateFlags |= entity->ext.blueSoul.value;
 }
 
-extern u8 sSkillCagnazzoGfx[], sSkillCagnazzoPalette[], sSkillCagnazzoSpriteSheet[];
 static inline void FollowParent2(struct EwramData_EntityData *entity, struct EwramData_EntityData *parent, u16 x_, s32 y_)
 {
     s16 x = x_;
@@ -474,7 +474,6 @@ void SkillCagnazzoUse(struct EwramData_EntityData *entity)
 }
 
 /* SkillBonePillarProjectileUpdate (blue soul projectile). */
-extern u8 sSkillBonePillarProjectileSpriteSheet[];
 
 /* Same as BlueSoul_DeleteEntity: end a blue soul entity. */
 static inline void BlueSoulProjectile_Delete(struct EwramData_EntityData *entity)
@@ -537,7 +536,6 @@ static inline void LoadGfx(struct EwramData_EntityData *entity, u8 paletteSlot, 
     Sprite_Attach(entity, sheet, gEwramData->playerState.blueSoulGfx, 3);
 }
 
-extern s32 sSkillProjectileLaunchVelocities[];
 /**
  * @brief 2E730 | Bone Pillar blue soul (ends via BlueSoul_ShouldEnd or when the
  * caster leaves the 0x100000 state of unk_4F4 & 0x1001A2): graphics
@@ -589,7 +587,7 @@ void SkillBonePillarUse(struct EwramData_EntityData *entity)
         Follow(entity, parent, 0x10, -0x1C);
         if (entity->timer == 0)
         {
-            struct EwramData_EntityData *child = BlueSoul_CreateEntity(entity, (u32 *)SkillBonePillarProjectileUpdate);
+            struct EwramData_EntityData *child = BlueSoul_CreateEntity(entity, SkillBonePillarProjectileUpdate);
             if (child != NULL)
             {
                 if (entity->subState == 0)
@@ -778,7 +776,6 @@ void SkillGiantBatUse(struct EwramData_EntityData *entity)
 /* Animated blue-soul effect; release its affine and active-entity slots
  * once the animation finishes. */
 
-extern u8 sSkillDevilManticoreSparkGfx[], sSkillDevilManticoreSparkPalette[], sSkillDevilManticoreSparkSpriteSheet[];
 /**
  * @brief Single spark spawned by SkillDevilManticoreSparksUpdate: random
  * animation, moves and deletes itself (freeing its affine slot).
@@ -816,7 +813,7 @@ void SkillDevilManticoreSparksUpdate(struct EwramData_EntityData *entity)
     if (!(entity->timer & 7)) PlaySong(0x90);
     if (!(entity->timer & 3))
     {
-        struct EwramData_EntityData *spark = BlueSoul_CreateEntity(entity, (u32 *)SkillDevilManticoreSparkUpdate);
+        struct EwramData_EntityData *spark = BlueSoul_CreateEntity(entity, SkillDevilManticoreSparkUpdate);
         if (spark != NULL)
         {
             spark->posX.whole = owner->posX.whole;
@@ -828,7 +825,6 @@ void SkillDevilManticoreSparksUpdate(struct EwramData_EntityData *entity)
 }
 
 /* Animated soul effect following its owner and sounding every 8 frames. */
-extern u8 sUnk_081E116C[], sUnk_0820B64C[], sUnk_0823760C[];
 /**
  * @brief Update of entry 2 of the blue-soul form table sBlueSoulForms used by
  * Skill_Devil_Manticore_Curly_Use (entries 0 and 1 use
@@ -949,7 +945,7 @@ void Skill_Devil_Manticore_Curly_Use(struct EwramData_EntityData *entity)
         if (ctx->player->subState == 3)
         {
             form = &sBlueSoulForms[info2->effectValue];
-            BlueSoul_CreateEntity(parent, (u32 *)form->func);
+            BlueSoul_CreateEntity(parent, form->func);
             Hit_Enable(entity, 6, 0, 0);
             HitBox_SetAttackRaw(entity, 0x4430C0E8);
             entity->hit.flags |= 4;
@@ -1240,7 +1236,7 @@ void SkillWitchGiantGhostProjectileUpdate(struct EwramData_EntityData *entity);
  */
 void SkillWitchGiantGhost_OnContact(struct EwramData_EntityData *entity, struct EwramData_EntityData *target)
 {
-    struct EwramData_EntityData *child = BlueSoul_CreateEntity(entity, (u32 *)SkillWitchGiantGhostProjectileUpdate);
+    struct EwramData_EntityData *child = BlueSoul_CreateEntity(entity, SkillWitchGiantGhostProjectileUpdate);
     s16 x, y;
     s16 dx;
     u16 angle;
@@ -1361,7 +1357,6 @@ void Skill_Witch_GiantGhost_Use(struct EwramData_EntityData *entity)
 }
 
 /* Final Guard soul: once the parent is idle and in the right state, load the shield graphics and keep it until the state changes. */
-extern u8 sSkillFinalGuardGfx[], sSkillFinalGuardPalette[], sSkillFinalGuardSpriteSheet[];
 
 /* Inlined Entity_PlaceRelativeTo (this file). */
 static inline void FollowParent3(struct EwramData_EntityData *entity, struct EwramData_EntityData *anchor, u16 offsetX, u16 offsetY)
@@ -1427,8 +1422,6 @@ void SkillFinalGuardUse(struct EwramData_EntityData *entity)
         Anim_Update(entity);
     }
 }
-
-extern u8 sSkillBuerOrbitGfx[], sSkillBuerOrbitPalette[], sSkillBuerOrbitSpriteSheet[];
 
 #define RADIUS(e) (*(s32 *)&(e)->spawnParam0)
 
@@ -1525,13 +1518,13 @@ void SkillBuerUse(struct EwramData_EntityData *entity)
         speed = 0x200;
         if (parent->flipX)
             speed = -speed;
-        child = BlueSoul_CreateEntity(entity, (u32 *)SkillBuerOrbitUpdate);
+        child = BlueSoul_CreateEntity(entity, SkillBuerOrbitUpdate);
         if (child != NULL)
         {
             SKILL_BUER_ANGLE(child) = state;
             SKILL_BUER_SPEED(child) = speed;
         }
-        child = BlueSoul_CreateEntity(entity, (u32 *)SkillBuerOrbitUpdate);
+        child = BlueSoul_CreateEntity(entity, SkillBuerOrbitUpdate);
         if (child != NULL)
         {
             SKILL_BUER_ANGLE(child) = 0x8000;
@@ -1752,7 +1745,6 @@ void SkillDeathSickleUpdate(struct EwramData_EntityData *entity)
 
 /* SkillDeathUse; graphics
  * loading as in SkillBlueSoulForm2Update. */
-extern u8 sSkillDeathGfx[], sSkillDeathPalette[], sSkillDeathSpriteSheet[];
 
 /**
  * @brief 30518 | Death blue soul (ends via BlueSoul_ShouldEnd): load its graphics,
@@ -1796,7 +1788,7 @@ void SkillDeathUse(struct EwramData_EntityData *entity)
         entity->posY.part16.integer = parent->posY.part16.integer - 0x20;
         if (--entity->timer == 0)
         {
-            struct EwramData_EntityData *child = BlueSoul_CreateEntity(parent, (u32 *)SkillDeathSickleUpdate);
+            struct EwramData_EntityData *child = BlueSoul_CreateEntity(parent, SkillDeathSickleUpdate);
             if (child != NULL)
             {
                 child->posX.part16.integer = entity->posX.part16.integer + RandomSigned(0x40);
@@ -1853,9 +1845,6 @@ void SkillCreakingSkullHitBoxUpdate(struct EwramData_EntityData *entity)
 }
 
 #define TO_PIXELS(x) ((x) < 0 ? -(-(x) >> 16) : (x) >> 16)
-
-extern u8 sUnk_080E1AF8[];
-extern s16 sUnk_080E1AFC[];
 
 static inline void FreeMatrix(struct EwramData_EntityData *entity)
 {
@@ -2021,9 +2010,9 @@ void SkillCreakingSkullUse(struct EwramData_EntityData *entity)
         for (i = 0; i < 4; i++)
         {
             if (i < 3)
-                child = BlueSoul_CreateEntity(prev, (u32 *)SkillCreakingSkullSegmentUpdate);
+                child = BlueSoul_CreateEntity(prev, SkillCreakingSkullSegmentUpdate);
             else
-                child = BlueSoul_CreateEntity(prev, (u32 *)SkillCreakingSkullHitBoxUpdate);
+                child = BlueSoul_CreateEntity(prev, SkillCreakingSkullHitBoxUpdate);
             if (child != NULL)
             {
                 SKILL_CREAKING_SKULL_SOUL_INDEX(child) = ENTITY_INDEX(entity);
@@ -2123,7 +2112,6 @@ remove:
 }
 
 /* SkillCatoblepasProjectileUpdate (blue soul projectile). */
-extern u8 sSkillCatoblepasProjectileSpriteSheet[];
 
 /* Same as BlueSoul_DeleteEntity: end a blue soul entity. */
 
@@ -2209,7 +2197,7 @@ void SkillCatoblepasUse(struct EwramData_EntityData *entity)
         Follow(entity, parent, 0x10, -0x1C);
         if (entity->timer == 0)
         {
-            struct EwramData_EntityData *child = BlueSoul_CreateEntity(entity, (u32 *)SkillCatoblepasProjectileUpdate);
+            struct EwramData_EntityData *child = BlueSoul_CreateEntity(entity, SkillCatoblepasProjectileUpdate);
             if (child != NULL)
             {
                 s32 vx, vy;

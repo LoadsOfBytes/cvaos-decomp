@@ -15,6 +15,7 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void Lilith_UpdateWalk(struct EwramData_EntityData *);
@@ -453,7 +454,6 @@ void Lilith_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
 extern void LilithShot_Update(struct EwramData_EntityData *);
 extern void LilithShot_DamagePlayerOnContact(struct EwramData_EntityData *);
 void LilithShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern u8 sLilithSuccubusGfx[], sLilithSuccubusSpriteSheet[];
 /**
  * @brief Spawn the wavy shot at owner + (dx, dy), two layers below
  * (LilithShot_Update).
@@ -560,7 +560,6 @@ void LilithShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hi
  * a cloning script and checked byte for byte:
  *   Lilith_LoadGraphics = Object32_LoadGraphics */
 
-extern u8 sLilithSuccubusPalette[];
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 /**

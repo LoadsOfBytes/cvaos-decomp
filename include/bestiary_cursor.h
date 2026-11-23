@@ -1,0 +1,14 @@
+#ifndef BESTIARY_CURSOR_H
+#define BESTIARY_CURSOR_H
+
+/* Functions of menu/bestiary_cursor.c used by other files. */
+
+#include "types.h"
+#include "structs/ewram.h"
+#include "structs/main.h"
+
+struct MenuPage;
+
+extern s32 BestiaryMenu_MoveCursor(struct MenuPage *page, s32 input);
+
+#endif /* BESTIARY_CURSOR_H */

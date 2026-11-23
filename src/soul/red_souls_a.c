@@ -23,6 +23,8 @@
 #include "palette.h"
 #include "red_souls_b.h"
 #include "effects.h"
+#include "data/data_118B48.h"
+#include "data/data_4F0B18.h"
 
 /* Graphics resources of a red soul skill (sSkillGraphicsSets). */
 struct SoulGraphicsResources {
@@ -49,7 +51,6 @@ struct RedSoulInfo {
 
 extern struct SoulGraphicsResources sSkillGraphicsSets[];
 extern struct RedSoulInfo sUnk_084F12C8[];
-extern u8 sSkillStudentWitchWalkProfile[];
 #define CONTEXT ((struct PlayerState *)((u8 *)gEwramData + OFFSET_OF(struct EwramData, playerState)))
 
 static inline u8 Enable(u8 value) { return value | 4; }
@@ -130,7 +131,6 @@ void SkillStudentWitchUse(struct EwramData_EntityData *entity)
 /* Burst of four sparks (frames 0x40/0x41, palette 6) within +-4 px of the
  * owner, random horizontal speed and an upward kick, gravity 0x2000;
  * updated by Effect_UpdateBallisticDebris. Stops at the first failed spawn. */
-extern u8 sCommonObjectGfx[], sCommonObjectSpriteSheet[];
 
 /**
  * @brief Spawn four ballistic debris pieces with random offsets and velocity
@@ -185,7 +185,6 @@ void BoneSoulEffect_Update(struct EwramData_EntityData *entity)
 }
 
 struct EffectPoint { s16 x, y; };
-extern void Sprite_GetPartCornerOffset(struct EwramData_EntityData *, s32, s16 *);
 /**
  * @brief Create a red-soul effect (animation 5, update BoneSoulEffect_Update)
  * at the bone projectile.
@@ -668,8 +667,6 @@ void SkillWingedSkeletonUse(struct EwramData_EntityData *entity)
     ObjAffine_Set(SKILL_WINGED_SKELETON_ANGLE(entity), 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
 }
 
-extern u16 sSkillSirenNotes[];
-
 /**
  * @brief 26368 | Siren red soul: a note (graphics set 0, frame 2/3; with
  * unk_502 set graphics set 7, frame 4/5 and accelX 0x800) chosen at random
@@ -759,8 +756,6 @@ void SkillSirenUse(struct EwramData_EntityData *entity)
     }
     entity->roomActive = 1;
 }
-
-extern u8 sSkillUneWalkProfile[];
 
 /* Inlined Entity_SetAttackBoxFromFrame (src/soul/red_souls_b.c). */
 
@@ -1390,8 +1385,6 @@ void Skill_Werejaguar_Weretiger_Use(struct EwramData_EntityData *entity)
     SetFrameBox(entity);
 }
 
-extern u8 sSkillLightningDollPalette[];
-
 /**
  * @brief 277B0 | Lightning Doll red soul: graphics set 9, animation 0,
  * layer 0xE, Hit_SetTimerOverride(1, 10), box slot 5, random vertical flip, placed
@@ -1940,8 +1933,6 @@ void SkillDryadUse(struct EwramData_EntityData *entity)
         entity->state = 4;
     }
 }
-
-extern u8 sUnk_084F13B4[];
 
 /* Inlined Entity_SetAttackBoxFromFrame (src/soul/red_souls_b.c). */
 

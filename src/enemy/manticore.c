@@ -18,6 +18,8 @@
 #include "oam.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 extern void Manticore_UpdateWalk(struct EwramData_EntityData *entity);
 extern void Manticore_UpdateAttack(struct EwramData_EntityData *entity);
@@ -158,7 +160,6 @@ void EnemyManticoreCreate(struct EwramData_EntityData *entity)
 /* Enemy walker update (Manticore_UpdateWalk): approach, turn and attack decisions. */
 extern s32 Target_IsInRect(s16, s16, s16, s16);
 extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern struct AnimScript sManticoreWalkAnimScript;
 
 /* Walking step; one copy per animStep value so that every copy shares the 0x40
  * mask of the first flipX test (the copies are merged again by cross-jumping). */
@@ -451,8 +452,6 @@ void Manticore_OnDamaged(struct EwramData_EntityData *entity, struct EwramData_E
     Player_SetSelectedTarget(NULL);
 }
 
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
-extern u8 sManticoreGfx[], sManticoreOverlaySpriteSheet[];
 void ManticoreOverlay_Update(struct EwramData_EntityData *);
 
 /**
@@ -461,7 +460,7 @@ void ManticoreOverlay_Update(struct EwramData_EntityData *);
  */
 struct EwramData_EntityData *Manticore_CreateOverlay(struct EwramData_EntityData *parent)
 {
-    struct EwramData_EntityData *child = Entity_CreateObject((u32 *)ManticoreOverlay_Update);
+    struct EwramData_EntityData *child = Entity_CreateObject(ManticoreOverlay_Update);
     s32 slot;
     if (child != NULL)
     {
@@ -500,7 +499,6 @@ void ManticoreOverlay_Update(struct EwramData_EntityData *entity)
 
 extern void ManticoreTailTip_Update(struct EwramData_EntityData *);
 extern void ManticoreTail_EnableHitBoxes(struct EwramData_EntityData *);
-extern u8 sManticoreGfx[], sManticoreSpriteSheet[];
 /**
  * @brief Create the tail tip of owner (affine sprite, contact damage through
  * ManticoreTail_EnableHitBoxes outside the bestiary preview); return it or
@@ -508,7 +506,7 @@ extern u8 sManticoreGfx[], sManticoreSpriteSheet[];
  */
 struct EwramData_EntityData *Manticore_CreateTailTip(struct EwramData_EntityData *owner)
 {
-    struct EwramData_EntityData *entity = Entity_CreateObject((u32 *)ManticoreTailTip_Update);
+    struct EwramData_EntityData *entity = Entity_CreateObject(ManticoreTailTip_Update);
     struct EwramData **ewram = &gEwramData;
     if (entity != NULL)
     {
@@ -575,7 +573,7 @@ remove:
 extern void ManticoreTailSegment_Update(struct EwramData_EntityData *);
 struct EwramData_EntityData *Manticore_CreateTailSegment(struct EwramData_EntityData *owner, struct EwramData_EntityData *part, s32 value, s32 kind)
 {
-    struct EwramData_EntityData *entity = Entity_CreateObject((u32 *)ManticoreTailSegment_Update);
+    struct EwramData_EntityData *entity = Entity_CreateObject(ManticoreTailSegment_Update);
     if (entity != NULL)
     {
         s32 graphics;
@@ -1143,9 +1141,6 @@ void ManticoreTail_OnHit(struct EwramData_EntityData *entity, struct EwramData_E
 
 /* Manticore helpers 0x08073F54..0x0807412F. */
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-/* Graphics of Manticore. */
-extern u8 sManticorePalette[];
 
 void ManticoreShot_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void ManticoreShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);

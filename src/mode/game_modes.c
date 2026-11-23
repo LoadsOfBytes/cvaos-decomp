@@ -44,6 +44,7 @@
 #include "player_soma.h"
 #include "system_menus.h"
 #include "text12.h"
+#include "data/data_118B48.h"
 
 /* Called with int arguments (the u16/u8 parameters in bg_and_collision.h would truncate them). */
 extern u16 *BgCmdBuffer_WriteString(s32 tileIndex, s32 rowOffset, s32 tileInfo, const u8 *string);
@@ -1309,9 +1310,6 @@ void TitleScreenParticle_Update(struct EwramData_EntityData *entity)
     Anim_Update(entity);
 }
 
-extern u8 *sTitleScreenGfx;
-extern u8 *sTitleScreenSpriteSheet;
-
 // TODO: combine/figure out inlines
 static inline TitleObject_LoadGraphics(u8 *ptr0, u8 *ptr1, struct EwramData_EntityData *entity, s32 palette)
 {
@@ -1570,9 +1568,6 @@ void TitleScreenFlash_Update(struct EwramData_EntityData *entity)
             }
     }
 }
-
-extern u8 *sTitleFlashGfx;
-extern u8 *sTitleFlashSpriteSheet;
 
 /**
  * @brief Create a semi-transparent rotating flash sprite at (0x4E, 0x26) with
@@ -1910,13 +1905,6 @@ void TitleScreenMenu_Update(struct EwramData_EntityData *entity)
         }
     }
 }
-
-extern u8 *sTitleMenuGfx;
-extern u8 *sTitleMenuSpriteSheet;
-extern u8 *sTitleMenuGfxLanguage2;
-extern u8 *sTitleMenuGfxLanguage3;
-extern u8 *sTitleMenuSpriteSheetLanguage2;
-extern u8 *sTitleMenuSpriteSheetLanguage3;
 
 /**
  * @brief Create the menu entity (slot 0x14) with the language-specific entry

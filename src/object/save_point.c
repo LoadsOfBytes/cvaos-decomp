@@ -12,9 +12,9 @@
 #include "oam.h"
 #include "obj_gfx.h"
 #include "palette.h"
+#include "data/data_118B48.h"
 
 extern void SavePoint_UpdateAnimPart(struct EwramData_EntityData *);
-extern u8 sSaveWarpRoomSpriteSheet[];
 
 struct PartInit
 {
@@ -243,7 +243,6 @@ void SavePoint_UpdateOrbitLight(struct EwramData_EntityData *entity)
 extern void SaveSparkle_Draw(struct EwramData_EntityData *entity);
 void SaveSparkle_Update(struct EwramData_EntityData *entity);
 
-extern u8 sSaveWarpRoomGfx[];
 void SaveSparkle_Create(s32 x, s32 y, s32 accelX, s32 accelY, s32 phase, u8 palette, struct EwramData_EntityData *entity);
 
 /* The entity that spawned the sparkle, stored as a word. */
@@ -346,9 +345,6 @@ void SaveSparkle_Draw(struct EwramData_EntityData *entity)
     entity->posX.whole -= entity->ext.particlePair.offsetX;
     entity->posY.whole -= entity->ext.particlePair.offsetY;
 }
-
-extern u8 sWarpRoomGfx[], sWarpRoomPalette[], sWarpRoomSpriteSheet[];
-extern u8 sSaveWarpRoomGfx[], sSaveWarpRoomPalette[], sSaveWarpRoomSpriteSheet[];
 
 struct RoomExit { u8 pad[4]; s8 direction; u8 rest[11]; };
 struct ExitRoom { u8 pad[0x18]; struct RoomExit *exits; u16 count; };

@@ -22,6 +22,7 @@
 #include "soul_menu.h"
 #include "soul_pickup.h"
 #include "text12.h"
+#include "data/data_118B48.h"
 
 /* Page-title entity (slot 20) state machine (state at unk_508): state 1
  * places the entity at (0x35, 9) and moves to state 2; state 2 enables affine
@@ -68,7 +69,6 @@ void MenuPageTitle_Update(struct EwramData_EntityData *entity)
 }
 
 /* Menu item-icon helpers 0x08048804..0x08048A63. */
-extern const void *Item_GetInfoByGlobalId(s32 item);
 
 /**
  * @brief 48804 | Show the icon of item (type, item) as entityData[19] at
@@ -201,10 +201,6 @@ void MenuCursor_DrawForPage(struct EwramData_EntityData *entity)
 
 /* Helpers around fixed entity slots 18, 19 and 0xD0..0xD2
  * (0x08048A64..0x08048C43). */
-
-/* Animation sets for Sprite_Attach; the second one is used for German. */
-extern u8 sMenuSpriteSheet[];
-extern u8 sMenuPageTitleSpriteSheet[];
 
 /**
  * @brief Draw function of the shop menu entity: the category cursor, or the
@@ -363,7 +359,6 @@ void MenuSlotIcon_SetHidden(u8 value, s32 index)
 }
 
 extern void CursorSprite_Update(struct EwramData_EntityData *);
-extern u8 sMenuCursorGfx[], sMenuCursorGfxLanguage2[], sMenuCursorGfxLanguage3[], sCursorSpritePalette[], sMenuSpriteSheet[];
 /**
  * @brief Delete the entity, load the language dependent cursor graphics and
  * palette, attach the cursor animation set and install CursorSprite_Update.
@@ -395,8 +390,6 @@ s32 CursorSprite_Create(struct EwramData_EntityData *entity, u16 palette)
 /* Entity helpers 0x08048CF8..0x0804933B. */
 /* Language dependent graphics sets (English/other, French, German). */
 
-extern void SoulTypeSelector_Update(struct EwramData_EntityData *entity);
-extern void MenuPage_Reset(struct EwramData_EntityData *entity);
 extern void SoulMenu_ClearStatPreview(void);
 extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
 /* Draw the three equipped soul names in the soul menu and highlight the cursor row. */
@@ -488,7 +481,7 @@ void SoulMenu_Open(struct EwramData_EntityData *entity)
     s32 tile;
 
     EntityDelete(&gEwramData->entityData[21]);
-    SoulTypeSelector_Update(&gEwramData->entityData[21]);
+    SoulTypeSelector_Update((struct SoulTypeIcons *)&gEwramData->entityData[21]);
     MenuPageTitle_Create(&gEwramData->entityData[20], 0x1F);
     DMA_FILL_32(3, 0, 0x3200, 0x2000);
     DMA_FILL_32(3, 0, 0x3300, 0x2000);
@@ -652,7 +645,7 @@ s32 SoulMenu_Update(struct EwramData_EntityData *entity)
             entity->subState = 0;
             cursor = &gEwramData->entityData[21];
             cursor->state = 0xFF;
-            SoulTypeSelector_Update(&gEwramData->entityData[21]);
+            SoulTypeSelector_Update((struct SoulTypeIcons *)&gEwramData->entityData[21]);
             EntityDelete(&gEwramData->entityData[21]);
             MenuPageTitle_Delete(&gEwramData->entityData[20]);
             result = -1;
@@ -663,7 +656,7 @@ s32 SoulMenu_Update(struct EwramData_EntityData *entity)
     if (entity->subState != 0xFF)
     {
         MenuPageTitle_Update(&gEwramData->entityData[20]);
-        SoulTypeSelector_Update(&gEwramData->entityData[21]);
+        SoulTypeSelector_Update((struct SoulTypeIcons *)&gEwramData->entityData[21]);
         SoulMenu_DrawCategoryIcon(entity);
     }
     return result;

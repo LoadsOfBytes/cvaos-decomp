@@ -17,6 +17,7 @@
 #include "music.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 /* Initialize AluraUne's graphics, collisions and initial facing. */
 extern u8 AluraUne_LoadGraphics(struct EwramData_EntityData *);
@@ -500,7 +501,6 @@ void AluraUne_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
 /* Create Alura Une's projectile with a timed or immediate activation. */
 extern void AluraUneThorn_Update(struct EwramData_EntityData *);
 extern void AluraUneAttack_DamagePlayerOnContact(struct EwramData_EntityData *);
-extern u8 sAluraUneGfx[], sAluraUneSpriteSheet[];
 /**
  * @brief Spawn a thorn at xOffset from parent that rises from the floor after
  * delay frames (hit box {-2, -54, 4, 54}) and sinks again.
@@ -728,7 +728,6 @@ finished:
  *   AluraUne_LoadGraphics = Object25_LoadGraphics
  *   AluraUne_DamagePlayerOnContact = Object28_OnPlayerContact */
 
-extern u8 sAluraUnePalette[];
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 /**

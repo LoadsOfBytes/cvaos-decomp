@@ -26,4 +26,7 @@ extern void HudMap_ClearAll(void);
 extern void HudMap_DrawStatChangeIndicator(s32 x, s32 y, s32 index);
 extern void HudMap_DrawStatusConditionIcon(s32 x, s32 y);
 
+extern void HudMap_ZeroTiles(s32 x, s32 y, s32 count);
+extern void MenuPage_SetMode(struct EwramData_EntityData *entity, u8 mode);
+
 #endif /* MENU_COMMON_H */

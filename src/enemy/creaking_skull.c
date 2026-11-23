@@ -23,6 +23,8 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "player_level.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
 extern void CreakingSkull_UpdateMovement(struct EwramData_EntityData *entity);
@@ -98,7 +100,6 @@ boxes:
 /* Creaking Skull create: allocates the 13-joint skeleton and one part entity per joint. */
 extern void *memcpy(void *dst, const void *src, unsigned long size);
 extern u8 CreakingSkull_LoadGraphics(struct EwramData_EntityData *entity);
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *update);
 extern void CreakingSkullPart_Update(struct EwramData_EntityData *entity);
 extern void CreakingSkull_OnContact(struct EwramData_EntityData *entity);
 extern void CreakingSkullPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
@@ -108,11 +109,6 @@ extern void CreakingSkull_AttachJointSetAngle(struct EwramData_EntityData *entit
 extern void CreakingSkull_InterpolateJointsInOrder(struct EwramData_EntityData *entity, s8 *order);
 extern void CreakingSkull_FaceTarget(struct EwramData_EntityData *entity);
 extern s32 Music_SetCurrent(s32 song);
-extern u8 sCreakingSkullGfx[], sCreakingSkullSpriteSheet[];
-extern const u8 sCreakingSkullFrames0[13], sCreakingSkullAnchors[13];
-extern const s8 sCreakingSkullOrder[13], sUnk_08119063[13];
-extern const u8 *const sCreakingSkullPartPoses[];
-extern const s32 *const sCreakingSkullPartAngles[];
 
 void EnemyCreakingSkullCreate(struct EwramData_EntityData *entity)
 {
@@ -167,7 +163,7 @@ void EnemyCreakingSkullCreate(struct EwramData_EntityData *entity)
     for (i = 0; i <= 12; i++)
     {
         index = order[i];
-        part = Entity_CreateObject((u32 *)CreakingSkullPart_Update);
+        part = Entity_CreateObject(CreakingSkullPart_Update);
         if (part != NULL)
         {
             part->spriteLayer = entity->spriteLayer;
@@ -265,7 +261,6 @@ void EnemyCreakingSkullCreate(struct EwramData_EntityData *entity)
  * for compiler constraints and matching evidence. */
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *, s32, s32);
 extern s32 Target_GetPixelX(struct EwramData_EntityData *);
-extern const u8 sCreakingSkullTimes0[2], sCreakingSkullTimes1[2], sCreakingSkullTimes2[2], sUnk_08119076[2];
 #define PHASE entity->subState
 #define SUBPHASE entity->stage
 #define TIMER entity->timer
@@ -552,7 +547,6 @@ extern void CreakingSkull_RestoreJointPositions(struct EwramData_EntityData *ent
 extern void CreakingSkull_AttachJoint(struct EwramData_EntityData *entity, s32 partIndex, s32 anchorIndex, s32 angleSpec, s32 length);
 extern void CreakingSkull_SpawnGuidedEffect(struct EwramData_EntityData *entity, s32 lateTargetX, s32 lateTargetY, s32 earlyTargetX, s32 earlyTargetY, s32 x, s32 y);
 extern void CreakingSkull_SpawnProjectile(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx, s32 vy);
-extern const u8 sCreakingSkullSwingTimes[3], sCreakingSkullArmTimes[3], sCreakingSkullSpitTimes[3];
 
 #undef ARMS
 #define ARMS(A, B, C, D)\
@@ -1297,9 +1291,7 @@ void CreakingSkull_ApplyResolvedDamage(struct EwramData_EntityData *entity, s32 
 
 /* Creaking Skull part update and death motion. */
 struct SkullPartBox { s8 x, y, w, h; };
-extern const u8 sCreakingSkullPartTimers[13];
 extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
-extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
 #define JOINT(e) ((s8)e->ext.jointPart.index)
 #define FIX_INT(v) ((v) < 0 ? -(-(v) >> 16) : (v) >> 16)
 #define HAS_SPRITE(e) (e->ext.jointPart.index <= 2 || JOINT(e) == 8 || JOINT(e) == 11)
@@ -1792,11 +1784,6 @@ void CreakingSkull_OnContact(struct EwramData_EntityData *entity)
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
-
-/* Graphics of Creaking Skull and of the effect. */
-extern u8 sCreakingSkullPalette[];
-extern u8 sCommonObjectGfx[];
-extern u8 sCommonObjectSpriteSheet[];
 
 /**
  * @brief Resolve root damage at the struck part position while restoring

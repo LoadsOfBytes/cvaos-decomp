@@ -21,13 +21,10 @@
 #include "pause_menu.h"
 #include "text12.h"
 #include "sound.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* BestiaryMenu_UpdateDetailScreen, BestiaryMenu_SpawnEnemyPreview. */
-/* Language dependent graphics (English/other, French, German). */
-extern u8 sLocalizedWindowGfx[];
-extern u8 sLocalizedWindowGfxLanguage2[];
-extern u8 sLocalizedWindowGfxLanguage3[];
-extern struct BgMapMetadata sBestiaryDetailBgMap;
 /* tile as s32: the header u16 would add a zero extension of the argument */
 extern void HudMap_WriteTiles(s32 x, s32 y, s32 tile, s32 count);
 struct MenuPage3
@@ -40,7 +37,6 @@ struct MenuPage3
 };
 
 void BestiaryMenu_DrawEntry(struct MenuPage3 *page);
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *updateFunc);
 s32 BestiaryMenu_SpawnEnemyPreview(struct EwramData_EntityData *menu);
 
 /**
@@ -109,7 +105,7 @@ s32 BestiaryMenu_SpawnEnemyPreview(struct EwramData_EntityData *menu)
     entity = (struct EwramData_EntityData *)((u32)entity + OFFSET_OF(struct EwramData, entityData[18]));
     Sprite_Free(entity, 1);
     Hit_Disable(entity);
-    entity = Entity_CreateObject((u32 *)EntityUpdateNothing);
+    entity = Entity_CreateObject(EntityUpdateNothing);
     EntityGetSlot(entity);
     if (entity != NULL)
     {
@@ -484,8 +480,6 @@ void BestiaryMenu_DrawEntry(struct MenuPage3 *page)
         HudMap_ClearTiles(sx, sy + 1, 3);
     }
 }
-
-extern const u16 sItemNameTextIds[];
 
 /* Bit N of a u32 set; the word offset is computed before the set address,
  * as in the original. */

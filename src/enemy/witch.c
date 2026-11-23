@@ -17,10 +17,10 @@
 #include "oam.h"
 #include "obj_palette.h"
 #include "effects.h"
+#include "data/data_118B48.h"
 
 /* Witch homing motion and orbiting particle. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
-extern u8 sWitchGfx[], sWitchPalette[], sWitchSpriteSheet[];
 #define ABS_MOTION(v) ((v) < 0 ? -(v) : (v))
 
 /**
@@ -173,7 +173,6 @@ countdown:
 }
 
 /* Witch affine spell projectile. */
-extern void EntityMoveY(struct EwramData_EntityData *);
 extern void WitchSpell_DamagePlayerOnContact(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 
@@ -483,7 +482,6 @@ void Witch_UpdateWait(struct EwramData_EntityData *entity)
 }
 
 /* Witch_UpdateCast. */
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *update);
 
 #undef ABS
 static inline s32 ABS(s32 x)
@@ -532,7 +530,7 @@ static inline u8 PlayerIsRight(struct EwramData_EntityData *e)
 }
 
 #define SPAWN(func) \
-    child = Entity_CreateObject((u32 *)func); \
+    child = Entity_CreateObject(func); \
     if (child != NULL) \
     { \
         child->ext.witchSpell.ownerIndex = ENTITY_INDEX(entity); \
@@ -679,7 +677,7 @@ void Witch_UpdateCharge(struct EwramData_EntityData *entity)
                 entity->accelX.whole = -entity->accelX.whole;
             }
             *(u8 *)&entity->ext.witch.flags |= 3;
-            child = Entity_CreateObject((u32 *)WitchCastEffect_Update);
+            child = Entity_CreateObject(WitchCastEffect_Update);
             if (child != NULL)
             {
                 child->ext.witchSpell.ownerIndex = ENTITY_INDEX(entity);

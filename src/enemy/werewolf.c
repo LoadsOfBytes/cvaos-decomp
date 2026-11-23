@@ -14,6 +14,7 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "werejaguar.h"
+#include "data/data_118B48.h"
 
 /* Werewolf update dispatcher and jump state. */
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
@@ -135,7 +136,6 @@ void Werewolf_UpdateWalk(struct EwramData_EntityData *entity)
 }
 
 /* Werewolf attack phases, 0x0806F024..0x0806F41B. */
-extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
 extern void Werewolf_SpawnShockwave(struct EwramData_EntityData *, s32);
 
 /**
@@ -420,9 +420,6 @@ void Werewolf_SpawnShockwave(struct EwramData_EntityData *entity, s32 offsetX)
 /* Werewolf helpers 0x0806F678..0x0806F817 (EnemyWerewolfCreate like
  * EnemyWerejaguarCreate without Hit_SetTimerOverride). */
 
-extern u8 sCommonObjectGfx[];
-extern u8 sCommonObjectSpriteSheet[];
-
 extern u8 Werewolf_LoadGraphics(struct EwramData_EntityData *entity);
 extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
 
@@ -536,9 +533,6 @@ void EnemyWerewolfCreate(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   Werewolf_LoadGraphics = Object25_LoadGraphics */
 
-extern u8 sWerewolfGfx[];
-extern u8 sWerewolfPalette[];
-extern u8 sWerewolfSpriteSheet[];
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 /**

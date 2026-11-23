@@ -13,11 +13,12 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "effects.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* Kicker Skeleton leap, kick, landing and recovery. */
 extern void Entity_FaceTarget(struct EwramData_EntityData *);
 extern void Afterimage_Create(struct EwramData_EntityData *, s32, s32, s32);
-extern u8 sKickerSkeletonWalkProfile[];
 extern s32 __divsi3(s32, s32);
 
 /**
@@ -122,7 +123,6 @@ finished:
 }
 
 /* Kicker Skeleton breaks into seven sprite fragments (frames 26..32). */
-extern u8 sKickerSkeletonGfx[], sKickerSkeletonSpriteSheet[];
 
 /**
  * @brief Spawn seven sprite fragments (frames 26 through 32) with random
@@ -159,7 +159,6 @@ s32 KickerSkeleton_UpdateDeath(struct EwramData_EntityData *entity)
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 void KickerSkeleton_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, void *);
-extern u8 sKickerSkeletonGfx[], sKickerSkeletonPalette[], sKickerSkeletonSpriteSheet[];
 
 void EnemyKickerSkeletonCreate(struct EwramData_EntityData *entity)
 {

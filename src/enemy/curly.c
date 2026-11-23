@@ -12,6 +12,7 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 extern u8 Curly_LoadGraphics(struct EwramData_EntityData *);
 extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
@@ -193,7 +194,6 @@ void Curly_UpdateAttack(struct EwramData_EntityData *entity)
 }
 
 extern s32 ObjPalette_FindOrLoadVariant(void *, s32);
-extern u8 sCurlyGfx[], sCurlyPalette[], sCurlySpriteSheet[];
 
 u8 Curly_LoadGraphics(struct EwramData_EntityData *entity)
 {

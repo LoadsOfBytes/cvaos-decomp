@@ -15,6 +15,7 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 /* Mimic: dispatch state, refresh the box on frame changes and run collision. */
 union MimicAnimation { u32 words[2]; u8 bytes[8]; };
@@ -193,7 +194,6 @@ void Mimic_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDat
  * owner (unk_500) and its type byte. */
 extern void MimicTrigger_Update(struct EwramData_EntityData *);
 extern void MimicTrigger_OnHit(struct EwramData_EntityData *, s32, u16 *);
-extern u8 sCommonObjectGfx[], sCommonObjectSpriteSheet[];
 
 /**
  * @brief Spawn the decoy at owner + (x, y): an effect sprite (animation 3) drawn
@@ -228,8 +228,6 @@ void Mimic_SpawnTrigger(struct EwramData_EntityData *owner, s32 x, s32 y)
 /* MimicTrigger_Update and MimicTrigger_OnHit. */
 /* state and subState read as one halfword (as in enemy/graham.c). */
 #define STATE_WORD(e) (*(u16 *)&(e)->state)
-
-extern void Effect_SpawnRandom(s32 x, s32 y, s32 width, s32 height, s32 layer);
 
 /**
  * @brief 9937C | State 0: hitbox. State 1: hidden; while the timer timer
@@ -279,10 +277,6 @@ void MimicTrigger_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *
  * asm). */
 
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-extern u8 sMimicGfx[];
-extern u8 sMimicPalette[];
-extern u8 sMimicSpriteSheet[];
 
 /**
  * @brief 99430 | Load the graphics (sMimicGfx), palette from

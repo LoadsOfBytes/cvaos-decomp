@@ -17,6 +17,8 @@
 #include "oam.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
 extern void Golem_UpdateMovement(struct EwramData_EntityData *entity);
@@ -97,19 +99,12 @@ boxes:
 /* Golem create: allocates the 11-joint skeleton and one part entity per joint. */
 extern void *memcpy(void *dst, const void *src, unsigned long size);
 extern u8 Golem_LoadGraphics(struct EwramData_EntityData *entity);
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *update);
 extern void GolemSegment_Update(struct EwramData_EntityData *entity);
 extern void GolemSegment_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 extern void GolemSegment_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 extern void Golem_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 extern void Golem_OnDamaged(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 extern void Golem_FaceTarget(struct EwramData_EntityData *entity);
-extern u8 sGolemGfxEnemy50[], sGolemGfx[], sGolemSpriteSheet[];
-extern const u8 sGolemFrames[11], sGolemFrames65[11], sGolemFrames22[11], sGolemFrames22Rare[11];
-extern const u8 sGolemFrames50[11], sGolemAnchors[11];
-extern const s8 sGolemOrder[11], sGolemOrder50[11];
-extern const u8 *const sGolemPartPoses[];
-extern const s32 *const sGolemPartAngles[];
 
 void EnemyGolemCreate(struct EwramData_EntityData *entity)
 {
@@ -165,7 +160,7 @@ void EnemyGolemCreate(struct EwramData_EntityData *entity)
             index = order50[i];
         else
             index = order[i];
-        part = Entity_CreateObject((u32 *)GolemSegment_Update);
+        part = Entity_CreateObject(GolemSegment_Update);
         if (part != NULL)
         {
         part->spriteLayer = entity->spriteLayer;
@@ -285,7 +280,6 @@ extern void Golem_UpdateAllParts(struct EwramData_EntityData *entity);
 extern void Golem_SpawnIdleEffect(struct EwramData_EntityData *, s32, s32);
 extern s32 Target_IsInRect(s16, s16, s16, s16);
 extern s32 Target_GetPixelX(struct EwramData_EntityData *);
-extern const u8 sGolemHopTimes[4], sGolemLandTimes[4];
 
 static inline s32 ABS(s32 x)
 {
@@ -564,8 +558,6 @@ extern void Golem_AttachPart(struct EwramData_EntityData *, s32, s32, s32, s32);
 extern void Golem_UpdateParts(struct EwramData_EntityData *, s8 *);
 extern void Golem_ResetPartAngles(struct EwramData_EntityData *, s32);
 extern void Golem_ThrowDebris(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern const s8 sGolemChain[11];
-extern const u8 sUnk_08118EEB[4], sUnk_08118EEF[4], sUnk_08118EF3[4], sUnk_08118EF7[4];
 
 #define STATE entity->subState
 #define TIMER entity->timer
@@ -856,8 +848,6 @@ void Golem_UpdateAttack(struct EwramData_EntityData *entity)
         break;
     }
 }
-
-extern const u8 sGolemDelay[4];
 
 /* Separate cases preserve the original cross-jumps between timed phases. */
 /**
@@ -1210,7 +1200,6 @@ void Golem_AttachPart(struct EwramData_EntityData *entity, s32 partIndex, s32 an
 
 /* Load the shared Golem graphics and the palette for its enemy variant. */
 extern s8 ObjPalette_FindOrLoadVariant(void *, u8);
-extern u8 sGolemGfxEnemy50[], sGolemGfx[], sGolemPalette[], sGolemSpriteSheet[];
 /**
  * @brief Load the golem graphics (enemy 0x50 uses its own set) and palette variant
  * 0..3 for enemy IDs 0x35, 0x65, 0x22 and 0x50; attach the sprite set.
@@ -1444,8 +1433,6 @@ void GolemSegment_Update(struct EwramData_EntityData *entity)
 }
 
 /* Golem debris (816BC/817B0). */
-extern u8 sCommonObjectGfx[];
-extern u8 sCommonObjectSpriteSheet[];
 extern void GolemDebris_DamagePlayerOnContact(struct EwramData_EntityData *);
 extern void GolemDebris_OnKilled(struct EwramData_EntityData *, s32, u16 *);
 void GolemDebris_Update(struct EwramData_EntityData *entity);
@@ -1632,7 +1619,7 @@ void GolemSegment_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *
  */
 void Golem_SpawnIdleEffect(struct EwramData_EntityData *owner, s32 x, s32 y)
 {
-    struct EwramData_EntityData *debris = Entity_CreateObject((u32 *)GolemIdleEffect_Update);
+    struct EwramData_EntityData *debris = Entity_CreateObject(GolemIdleEffect_Update);
 
     if (debris != NULL)
     {

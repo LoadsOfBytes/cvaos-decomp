@@ -22,10 +22,10 @@
 #include "oam.h"
 #include "obj_gfx.h"
 #include "palette.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* BossDefeatParticle_Update (effect). */
-extern u8 sCommonObjectGfx[];
-extern u8 sDefeatParticleSpriteSheet[];
 
 /**
  * @brief Attach shared effect graphics with palette 8 and layer 0x10,
@@ -56,7 +56,6 @@ void BossDefeatParticle_Update(struct EwramData_EntityData *entity)
 }
 
 /* Wider sweep variant restores the shared object graphics when it ends. */
-extern u8 sCommonObjectGfxTiles[];
 static inline s32 SweepWave(struct EwramData_EntityData *entity)
 {
     return Sin(entity->timer*0xA00)*24;
@@ -155,9 +154,6 @@ finished:
 }
 
 /* BossDefeatEffect_Spawn. */
-/* Two 0x200-byte tile blocks copied into the slot of sCommonObjectGfx. */
-extern u8 sDefeatEffectTiles[];
-
 /* Same as BossDefeat_LoadEffectTiles. */
 static inline void BossDefeat_LoadEffectTilesOnce(void)
 {
@@ -386,8 +382,6 @@ finished:
 }
 
 /* An animated particle spirals inward as its angular speed increases. */
-extern u8 sCommonObjectSpriteSheet[];
-extern struct AnimScript sRecoveryPickupParticleAnimScript[];
 #define ANGLE(e) (e->ext.bossPickupParticle.angle)
 #define STEP(e) (e->ext.bossPickupParticle.step)
 #define RADIUS(e) (e->ext.bossPickupParticle.radius)

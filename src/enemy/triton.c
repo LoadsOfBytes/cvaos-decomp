@@ -17,6 +17,7 @@
 #include "oam.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 /* Triton movement (Triton_UpdateMove) and attack: fire the homing shot, or raise the spear and emit wave
  * particles until the spear comes back. */
@@ -265,18 +266,15 @@ void Triton_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 }
 
 /* Triton spear creation. */
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *updateFunc);
 extern void TritonSpear_Update(struct EwramData_EntityData *);
 extern void TritonSpear_DamagePlayerOnContact(struct EwramData_EntityData *);
-extern u8 sTritonGfx[];
-extern u8 sTritonSpriteSheet[];
 #define PART_ANGLE(e) (e->ext.tritonSpear.angle)
 /* Create the Triton's spear (TritonSpear_Update) with its own affine slot,
  * hit box -3, -15, 6x6 and contact callback TritonSpear_DamagePlayerOnContact. */
 struct EwramData_EntityData *Triton_CreateSpear(struct EwramData_EntityData *owner)
 {
     struct SpriteBox box;
-    struct EwramData_EntityData *part = Entity_CreateObject((u32 *)TritonSpear_Update);
+    struct EwramData_EntityData *part = Entity_CreateObject(TritonSpear_Update);
     if (part != NULL)
     {
         s32 graphics;
@@ -321,7 +319,6 @@ struct EwramData_EntityData *Triton_CreateSpear(struct EwramData_EntityData *own
 
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void TritonSpear_SpawnEffect(struct EwramData_EntityData *, s32, s32);
-extern s8 sTritonSpearOffsets[32];
 #define PART_TARGET_ANGLE(e) ((e)->accelX.whole)
 #define PIXEL(v) ((v) < 0 ? -((-(v)) >> 16) : (v) >> 16)
 /* Triton spear update. Angle targets are derived from a point 24 pixels below the spear. */
@@ -776,7 +773,6 @@ void TritonSpear_SpawnEffect(struct EwramData_EntityData *owner, s32 x, s32 y)
  *   Triton_DamagePlayerOnContact = Enemy_DamagePlayerOnContact
  *   TritonEffect_Update = GolemIdleEffect_Update */
 
-extern u8 sTritonPalette[];
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)

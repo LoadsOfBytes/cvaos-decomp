@@ -28,6 +28,7 @@
 #include "palette.h"
 #include "red_souls_b.h"
 #include "music.h"
+#include "blue_souls.h"
 
 static inline s32 Player_GetExperienceForLevelInline(s32 level)
 {
@@ -361,7 +362,7 @@ void Link_ApplyPartnerHit(void)
     if ((receivedState->flags & 8) && (gEwramData->playerState.selectedTarget != NULL))
     {
         whipChain = gEwramData->playerState.whipChain;
-        boxes = Hit_GetEntityBoxes(whipChain);
+        boxes = (struct SpriteBox *)Hit_GetEntityBoxes(whipChain);
         targetHit = &gEwramData->playerState.selectedTarget->hit;
         HitBox_SetHitRect(whipChain, boxes);
 
@@ -622,7 +623,7 @@ void Julius_HandleSubweaponInput(struct EwramData_EntityData *entity)
         return;
     }
 
-    info = RedSoul_GetInfo(gEwramData->playerStatus.equippedRedSoul);
+    info = (struct RedSoulActivationView *)RedSoul_GetInfo(gEwramData->playerStatus.equippedRedSoul);
     if (gEwramData->playerState.nbrActiveRedSoulEntities == 0)
     {
         if (gEwramData->playerState.lastUsedRedSoul != gEwramData->playerStatus.equippedRedSoul)

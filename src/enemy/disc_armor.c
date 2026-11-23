@@ -21,13 +21,14 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "effects.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 extern void PlaySong(s32);
 /* from sound.h (not included: see the module notes) */
 
 /* Disc Armor disc projectile (uses the Disc Armor graphics of EnemyDiscArmorCreate). */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, u8, void *);
-extern u8 sDiscArmorGfx[], sDiscArmorPalette[], sDiscArmorSpriteSheet[];
 
 /* State 0 loads graphics, starts the animation selected by unk_4F8 and sets
  * spriteLayer = 0x12 and scrollWithBg.  Every frame (including the first) it then
@@ -153,10 +154,8 @@ s32 DiscArmorRing_Aim(struct EwramData_EntityData *disc, struct EwramData_Entity
 }
 
 /* Disc Armor thrown disc. */
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
 extern void Afterimage_Create(struct EwramData_EntityData *, s32, s32, s32);
 extern void DiscArmorDisc_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-extern u8 sDiscArmorWalkProfile[];
 
 #define ABS_DIFF(a, b) ((a) - (b) < 0 ? (b) - (a) : (a) - (b))
 
@@ -253,7 +252,7 @@ run:
         entity->affineIndex = matrix;
         entity->affine = 1;
         entity->spriteLayer = 0x13;
-        ring = Entity_CreateObject((u32 *)DiscArmorRing_Update);
+        ring = Entity_CreateObject(DiscArmorRing_Update);
         entity->ext.discArmorDisc.ring = ring;
         entity->ext.discArmorDisc.orbitAngle = 0x8000;
         {
@@ -621,7 +620,7 @@ void DiscArmor_UpdateThrow(struct EwramData_EntityData *entity)
     case 1:
         if (*(u16 *)&entity->animStep == 0x10C)
         {
-            disc = Entity_CreateObject((u32 *)DiscArmorDisc_Update);
+            disc = Entity_CreateObject(DiscArmorDisc_Update);
             if (disc != NULL)
             {
                 disc->ext.discArmorDisc.owner = entity;

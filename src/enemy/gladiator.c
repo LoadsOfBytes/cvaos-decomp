@@ -18,10 +18,10 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "player_level.h"
+#include "data/data_118B48.h"
 
 extern s32 Gladiator_LoadGraphics(struct EwramData_EntityData *entity);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, void *onHurt);
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *update);
 extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
 extern void GladiatorBody_Update(struct EwramData_EntityData *entity);
 extern void GladiatorArm_Update(struct EwramData_EntityData *entity);
@@ -30,7 +30,6 @@ extern void GladiatorPart_DamagePlayerOnContact(struct EwramData_EntityData *ent
 void GladiatorPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 extern void Gladiator_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 extern void Gladiator_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern u8 sGladiatorGfx[], sGladiatorSpriteSheet[];
 
 /**
  * @brief A07FC | Gladiator create: animation 12 and three parts
@@ -62,15 +61,15 @@ void EnemyGladiatorCreate(struct EwramData_EntityData *entity)
         switch (i)
         {
         case 0:
-            part = Entity_CreateObject((u32 *)GladiatorBody_Update);
+            part = Entity_CreateObject(GladiatorBody_Update);
             part->basePalette = entity->ext.gladiator.palette;
             break;
         case 1:
-            part = Entity_CreateObject((u32 *)GladiatorArm_Update);
+            part = Entity_CreateObject(GladiatorArm_Update);
             part->basePalette = entity->ext.gladiator.palette;
             break;
         case 2:
-            part = Entity_CreateObject((u32 *)GladiatorSpinner_Update);
+            part = Entity_CreateObject(GladiatorSpinner_Update);
             part->basePalette = entity->ext.gladiator.palette1;
             break;
         }
@@ -145,9 +144,6 @@ void EnemyGladiatorCreate(struct EwramData_EntityData *entity)
     Entity_SnapToGround(entity);
     entity->state = 0;
 }
-
-extern const s16 sGladiatorOffsetsA[12];
-extern const s16 sGladiatorOffsetsB[12];
 
 /**
  * @brief A0A8C | Charging part: state 0 accelerates (accelX = +-0x1000)
@@ -285,8 +281,6 @@ void Gladiator_OnDamaged(struct EwramData_EntityData *entity, s32 unused1, u16 *
 
 extern void Hit_CheckWithPlayerSharedHistory(void *res, struct EwramData_EntityData *entity, struct EwramData_EntityData *owner);
 extern void Gladiator_SpawnFragments(struct EwramData_EntityData *entity, s32 x, s32 y);
-extern const s16 sUnk_08119174[4];
-extern const s16 sGladiatorBodyDx[12];
 
 /**
  * @brief A0DEC | Gladiator body part (owner type 0x5D in enemyId): follows
@@ -384,7 +378,6 @@ void GladiatorBody_Update(struct EwramData_EntityData *entity)
 }
 
 extern void GladiatorArm_FireShot(struct EwramData_EntityData *entity, s32 dx, s32 dy, s32 vx, s32 vy);
-extern const s16 sGladiatorArmDx[12];
 
 /**
  * @brief A1060 | Gladiator arm part: like GladiatorBody_Update but facing away from
@@ -876,7 +869,6 @@ void GladiatorFragment_Update(struct EwramData_EntityData *entity)
  * palette variants of 0820AF98 into unk_504 / unk_505, the second one also
  * as the palette (basePalette); 0 when the graphics are not loaded. */
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-extern u8 sGladiatorGfx[], sGladiatorSpriteSheet[], sGladiatorPalette[];
 
 s32 Gladiator_LoadGraphics(struct EwramData_EntityData *entity)
 {

@@ -18,11 +18,12 @@
 #include "oam.h"
 #include "obj_palette.h"
 #include "effects.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 extern s32 Collision_GetGroundOffset(s32 x, s32 y);
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern void Effect_SpawnRandom(s32 x, s32 y, s32 width, s32 height, s32 layer);
 extern void EvilButcherProjectile_OnHit(struct EwramData_EntityData *);
 
 /* Thrown projectile: flies sideways until it is destroyed (burst) or hits a
@@ -115,10 +116,6 @@ void EvilButcherProjectile_Update(struct EwramData_EntityData *entity)
 /* Bouncing fragment (EvilButcherDebris_Update): falls until it hits the floor, then
  * flies off spinning with a random speed and direction; deleted off screen. */
 
-extern u8 sEvilButcherGfx[];
-extern u8 sEvilButcherPalette[];
-extern u8 sEvilButcherSpriteSheet[];
-
 void EvilButcherDebris_Update(struct EwramData_EntityData *entity)
 {
     u16 slot;
@@ -184,8 +181,6 @@ void EvilButcherDebris_Update(struct EwramData_EntityData *entity)
 /* Evil Butcher walking, throwing and death effects. */
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *, s32, s32);
 extern void Entity_FaceTarget(struct EwramData_EntityData *);
-extern struct EwramData_EntityData *Entity_CreateObject(void *);
-extern u8 sEvilButcherWalkProfile[];
 
 /**
  * @brief Walk state (0): vary speed by animation, turn after cycles or

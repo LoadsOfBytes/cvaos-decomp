@@ -14,6 +14,8 @@
 #include "math_anim.h"
 #include "obj_palette.h"
 #include "effects.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
@@ -110,7 +112,6 @@ void BomberArmorBomb_Update(struct EwramData_EntityData *entity)
 
 /* tested as a full word here (bg_and_collision.h declares it returning s16) */
 extern s32 Collision_GetGroundOffset(s32 x, s32 y);
-extern u8 sBomberArmorRockArmorGfx[], sBomberArmorRockArmorPalette[], sRockArmorSpriteSheet[];
 
 /**
  * @brief B264C | Debris piece (file 0x080B243C): graphics sBomberArmorRockArmorGfx /
@@ -239,8 +240,6 @@ void RockArmorRock_Update(struct EwramData_EntityData *entity)
 }
 
 extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *);
-extern u8 sBomberRockArmorWalkProfile[];
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
 static inline s32 CanAttack(struct EwramData_EntityData *e, s32 range)
 {
     s32 result;
@@ -308,7 +307,7 @@ void BomberArmor_UpdateAttack(struct EwramData_EntityData *entity)
         {
             struct EwramData_EntityData *child;
             PlaySong(0x88);
-            child = Entity_CreateObject((u32 *)BomberArmorBomb_Update);
+            child = Entity_CreateObject(BomberArmorBomb_Update);
             if (child != NULL)
             {
                 ENTITY_INDEX(child) = ENTITY_INDEX(entity);
@@ -361,7 +360,7 @@ void RockArmor_UpdateAttack(struct EwramData_EntityData *entity)
         {
             struct EwramData_EntityData *child;
             PlaySong(0x88);
-            child = Entity_CreateObject((u32 *)RockArmorRock_Update);
+            child = Entity_CreateObject(RockArmorRock_Update);
             if (child != NULL)
             {
                 ENTITY_INDEX(child) = ENTITY_INDEX(entity);
@@ -440,7 +439,6 @@ s32 BomberRockArmor_UpdateDeath(struct EwramData_EntityData *entity)
 extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
 extern void Enemy_OnContact(void);
 void BomberRockArmor_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern u8 sBomberArmorRockArmorGfx[], sBomberArmorRockArmorPalette[], sBomberArmorSpriteSheet[], sRockArmorSpriteSheet[];
 
 void EnemyBomberArmorCreate(struct EwramData_EntityData *entity)
 {

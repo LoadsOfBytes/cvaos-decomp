@@ -13,6 +13,8 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void SkyFish_UpdateFly(struct EwramData_EntityData *);
@@ -51,8 +53,6 @@ extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *
 extern void Hit_Enable(struct EwramData_EntityData *, s32, void *, void *);
 void SkyFish_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void SkyFish_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
-
-extern struct AnimScript sSkyFishFlyAnimScript;
 
 void EnemySkyFishCreate(struct EwramData_EntityData *entity)
 {
@@ -184,8 +184,6 @@ void SkyFish_UpdateDeath(struct EwramData_EntityData *entity)
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
 
-extern struct AnimScript sSkyFishHitAnimScript;
-
 void SkyFish_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     s32 damage = Player_CalculateAttackPower(hit[2]);
@@ -209,7 +207,6 @@ void SkyFish_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityD
     }
 }
 
-extern u8 sSkyFishGfx[], sSkyFishSpriteSheet[];
 /* Create a moving animated effect. Position arguments use 16.16 fixed point. */
 void SkyFish_SpawnTrail(struct EwramData_EntityData *parent, s32 x, s32 y, s32 priority, s32 param)
 {
@@ -273,7 +270,6 @@ void SkyFish_SpawnRisingTrail(struct EwramData_EntityData *parent, s32 x, s32 y,
  *   SkyFish_LoadGraphics = Object25_LoadGraphics
  *   SkyFish_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
-extern u8 sSkyFishPalette[];
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)

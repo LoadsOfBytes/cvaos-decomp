@@ -12,6 +12,8 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "palette.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* Mandragora graphics, room setup and linked part. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *,u8 *,void *,u8,void *);
@@ -19,7 +21,6 @@ extern void Entity_EnableBoxes(struct EwramData_EntityData *,void *,s32);
 extern void Enemy_OnContact(struct EwramData_EntityData *);
 extern void Mandragora_OnHit(struct EwramData_EntityData *);
 extern s32 Mandragora_CreateLinkedPart(struct EwramData_EntityData *);
-extern u8 sMandragoraPalette[],sMandragoraSpriteSheet[],sMandragoraGfx[];
 void EnemyMandragoraCreate(struct EwramData_EntityData *entity)
 {
     void *palette=sMandragoraPalette;
@@ -57,7 +58,6 @@ void EnemyMandragoraCreate(struct EwramData_EntityData *entity)
 }
 
 /* Mandragora linked part mirrors combat properties and shares graphics. */
-extern struct EwramData_EntityData *Entity_CreateObject(void *);
 extern void MandragoraPart_Update(struct EwramData_EntityData *);
 extern void MandragoraPart_OnHit(struct EwramData_EntityData *);
 extern s32 Mandragora_CreateTerminalPart(struct EwramData_EntityData *);
@@ -102,7 +102,6 @@ s32 Mandragora_CreateLinkedPart(struct EwramData_EntityData *entity)
 }
 
 /* Mandragora intermediate part coordinates its owner and terminal part. */
-extern void Effect_SpawnRandom(s32,s32,s32,s32,s32);
 #define FLAGS(e) (e->ext.mandragora.flags)
 /**
  * @brief Coordinate the root owner and terminal part through activation,
@@ -207,7 +206,6 @@ countdown:
 extern void MandragoraTerminalPart_Update(struct EwramData_EntityData *);
 extern void Hit_Enable(struct EwramData_EntityData *,s32,void *,s32);
 extern void HitBox_SetAttackRaw(struct EwramData_EntityData *,s32);
-extern s32 sMandragoraAttackBox[];
 /**
  * @brief Create the terminal part with shared graphics and copied combat
  * properties, store both slot links and configure its attack box.
@@ -249,7 +247,6 @@ s32 Mandragora_CreateTerminalPart(struct EwramData_EntityData *entity)
 
 /* MandragoraTerminalPart_Update. */
 /* Mandragora terminal part controls the scream's palette flashes. */
-extern s32 sMandragoraTerminalPartAttackBox[];
 static inline s32 Tick(struct EwramData_EntityData *e) { s32 timer=e->timer; if(timer) e->timer--; return timer; }
 /**
  * @brief Sequence the scream animation, BG/OBJ palette flashes, expanded
@@ -521,7 +518,6 @@ enum {
 };
 
 void MandragoraDeathPart_Update(struct EwramData_EntityData *entity);
-extern const s8 sMandragoraDeathParts[5][6];
 
 /**
  * @brief Spawn up to five table-configured sprite parts with mirrored

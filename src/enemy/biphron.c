@@ -14,6 +14,8 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
@@ -146,10 +148,6 @@ void Biphron_ThrowShot(struct EwramData_EntityData *entity, s32 offsetX, s32 off
 extern void BiphronFlame_Update(struct EwramData_EntityData *entity);
 extern void BiphronShot_Update(struct EwramData_EntityData *entity);
 void BiphronShot_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-
-extern u8 sBiphronGfx[];
-extern u8 sBiphronSpriteSheet[];
-extern u8 sBiphronShotAnimScript[];
 
 /**
  * @brief 99ED8 | Attack: animation 1; at frame 4 spawn the projectile
@@ -398,7 +396,6 @@ void Biphron_SpawnDebris(struct EwramData_EntityData *parent, s32 x, s32 y, s32 
  *   Biphron_LoadGraphics = Object25_LoadGraphics
  *   Biphron_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
-extern u8 sBiphronPalette[];
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)

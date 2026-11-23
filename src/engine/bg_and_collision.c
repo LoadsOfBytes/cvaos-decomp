@@ -9,6 +9,8 @@
 #include "structs/agb_sram.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
+#include "data/data_0E5364.h"
+#include "data/data_4F1444.h"
 
 /**
  * @brief 1194 | Transfer data from BG Command Buffer to VRAM
@@ -433,9 +435,6 @@ void HBlankEffectSetup(u8 numEntries, u8 vcountSetting, u8 writeSize, void *dest
     }
 }
 
-extern u32 *sTransitionRooms[]; // transition rooms list
-extern u16 sMapCellRoomInfo[]; // map info
-
 /**
  * @brief 1780 | Check if incoming room is a transition room
  * 
@@ -575,8 +574,6 @@ s32 GetWarpRoomFlagFromMapPosition(s32 xOffset, s32 yOffset)
     tmp = sMapCellRoomInfo[gEwramData->gameState.roomMapXPos + (xOffset >> 8) + ((gEwramData->gameState.roomMapYPos + (yOffset >> 8)) << 6)];
     return (tmp >> 0xE) & 1;
 }
-
-extern u32 **sAreaRoomTables[]; // List of room pointers
 
 /**
  * @brief 1980 | Get the pointer to the room

@@ -24,6 +24,9 @@
 #include "palette.h"
 #include "red_souls_b.h"
 #include "effects.h"
+#include "data/data_0E0B68.h"
+#include "data/data_118B48.h"
+#include "data/data_4F0B18.h"
 /* from player_core.h (not included: see the module notes) */
 extern s32 Player_IsBossTargetLowHp(void);
 extern void Player_StartContactImmunity(u8 frames);
@@ -756,8 +759,6 @@ void SkillFishHeadUse(struct EwramData_EntityData *entity)
     gEwramData->playerState.nbrActiveRedSoulEntities--;
     EntityDelete(entity);
 }
-
-extern u8 sSkillGladiatorWalkProfile[];
 
 static inline u32 *Slot131CC(struct EwramData *e) { return &e->playerState.redSoulGfx; }
 
@@ -1965,9 +1966,6 @@ struct RedSoulInfo {
 
 extern const struct RedSoulInfo sSomaRedSoulInfo[]; // Soma (currentCharacter == 0)
 extern const struct RedSoulInfo sJuliusSubweaponInfo[]; // Julius mode (defined in player/player_level.c)
-extern const u8 sRedSoulCastAnims[][2];
-
-const struct RedSoulInfo *RedSoul_GetInfo(u8 soul);
 
 #define INT_TOWARD_ZERO(v) ((v) < 0 ? -((-(v)) >> 16) : (v) >> 16)
 
@@ -2498,7 +2496,6 @@ void BoneSoul_OnPlayerContact(struct EwramData_EntityData *entity)
 /* Projectile 0x081C15F4 / 0x0820ED60 (palette 4, frame 0x35, priority 13):
  * set up on the first frame, then fall and flag itself (deleteRequested) for
  * removal once it leaves the screen. */
-extern u8 sCommonObjectGfx[], sCommonObjectSpriteSheet[];
 
 /**
  * @brief Droplet spawned by SkillMermanProjectileUpdate: move with

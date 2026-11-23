@@ -14,6 +14,7 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "triton.h"
+#include "data/data_118B48.h"
 
 /* Decompiled locally from the original assembly (variant of an already
  * decompiled function). */
@@ -52,13 +53,9 @@ void EnemyGargoyleCreate(struct EwramData_EntityData *entity)
 }
 
 /* Gargoyle: AI, hit reaction and graphics. */
-extern void EntityMoveY(struct EwramData_EntityData *);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-extern u8 sGargoyleGfx[];
-extern u8 sGargoylePalette[];
-extern u8 sGargoyleSpriteSheet[];
 #define ACCEL(e) ((e)->accelX.whole)
 #define MAX_SPEED(e) ((e)->accelY.whole)
 /* Gargoyle AI: fly towards a point 64 px above the target, swoop down,

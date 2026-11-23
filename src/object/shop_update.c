@@ -23,12 +23,12 @@
 #include "soul_menu.h"
 #include "text12.h"
 #include "text_window.h"
+#include "entity_common.h"
+#include "shop.h"
+#include "data/data_4F1444.h"
 
 extern void HudMap_WriteTiles(s32, s32, u16, s32);
-extern void Shop_OpenList(void *, void *);
-extern s32 Shop_UpdateList(void *, void *);
 extern s32 Mod(s32, s32);
-extern struct BgMapMetadata *sShopBgMaps[];
 
 /* Shop screen entry, category selection and return to the room. */
 /**
@@ -153,12 +153,12 @@ s32 Shop_Update(struct GameState *context)
         break;
     case 11:
         if (gDisplayRegisters.bldY == 16)
-            Shop_OpenList(context, menu);
+            Shop_OpenList((u8 *)context, (struct MenuPage *)menu);
         if (--gDisplayRegisters.bldY == 0)
             context->subModeStep++;
         break;
     case 12:
-        if (Shop_UpdateList(context, menu))
+        if (Shop_UpdateList((struct Owner3 *)context, (struct ShopMenu3 *)menu))
             context->subModeStep++;
         break;
     case 13:
@@ -268,7 +268,6 @@ void Object20Update(struct EwramData_EntityData *entity)
 /* Small helpers 0x0805B5E8..0x0805B8F3 (player-relative checks, sound,
  * entity setup from the table sObjectTableGraphics). */
 
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *updateFunc);
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 
 /* Twelve resource tuples in palette, sprite-sheet, graphics order. */
@@ -290,7 +289,7 @@ void ObjectTable_UpdateAnimation(struct EwramData_EntityData *entity);
 struct EwramData_EntityData *Entity_CreateFromObjectTable(s32 kind)
 {
     struct ObjectTableGraphics table[12];
-    struct EwramData_EntityData *child = Entity_CreateObject((u32 *)ObjectTable_UpdateAnimation);
+    struct EwramData_EntityData *child = Entity_CreateObject(ObjectTable_UpdateAnimation);
 
     if (child == NULL)
         return NULL;

@@ -18,6 +18,8 @@
 #include "pause_menu.h"
 #include "soul_menu.h"
 #include "text12.h"
+#include "bestiary_cursor.h"
+#include "data/data_4F1444.h"
 
 /* Ability soul page. */
 struct MenuPage
@@ -29,11 +31,9 @@ struct MenuPage
     u8 item;
 };
 
-extern void MenuPage_Reset(void *page);
 void AbilityMenu_PrintSelectedName(struct EwramData_EntityData *entity);
 void AbilityMenu_DrawMarkers(struct EwramData_EntityData *entity);
 extern void HudMap_WriteTiles(s32 x, s32 y, s32 tile, s32 count);
-extern void MenuPageTitle_Create(void *entity, s32 type);
 
 /**
  * @brief 4BA18 | Open the ability soul page: frame, six rows of names
@@ -43,7 +43,7 @@ void AbilityMenu_Open(struct MenuPage *page)
 {
     s32 i;
 
-    MenuPage_Reset(page);
+    MenuPage_Reset((struct EwramData_EntityData *)page);
     do /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
         page->count = 6;
     while (0);
@@ -74,7 +74,7 @@ void AbilityMenu_Open(struct MenuPage *page)
     }
     Cursor_SetTilePosition((page->cursor & 1) ? 0x10 : 2, (page->cursor >> 1) * 2 + 4);
     Cursor_Draw();
-    MenuPageTitle_Create((u8 *)gEwramData + 0xF34, 0x22);
+    MenuPageTitle_Create((struct EwramData_EntityData *)((u8 *)gEwramData + 0xF34), 0x22);
     AbilityMenu_DrawMarkers((struct EwramData_EntityData *)page);
 }
 
@@ -385,7 +385,6 @@ struct InputMenuState
     u8 choices[4];
 };
 
-extern const u16 sButtonConfigButtons[];
 void ButtonConfigMenu_Redraw(struct EwramData_EntityData *entity);
 void ButtonConfigMenu_DrawSprites(void *unusedMenu);
 
@@ -436,7 +435,7 @@ void ButtonConfigMenu_Open(struct InputMenuState *menu)
     menu->state = 0;
     menu->subState = 0;
     menu->stage = 0;
-    MenuPage_Reset(menu);
+    MenuPage_Reset((struct EwramData_EntityData *)menu);
     menu->error = 3;
     for (j = 0; j <= 2; j++)
         HudMap_WriteTiles(5, j + 0xF, j * 0x20 + 0x3200, 0x18);
@@ -446,7 +445,7 @@ void ButtonConfigMenu_Open(struct InputMenuState *menu)
     menu->active = 1;
     ButtonConfigMenu_Redraw((struct EwramData_EntityData *)menu);
     ButtonConfigMenu_DrawSprites(menu);
-    MenuPageTitle_Create((u8 *)gEwramData + 0xF34, 0x24);
+    MenuPageTitle_Create((struct EwramData_EntityData *)((u8 *)gEwramData + 0xF34), 0x24);
 }
 
 /* Button configuration page update. */
@@ -467,8 +466,6 @@ struct Settings
     u16 buttons[4];
 };
 
-extern const u8 sButtonConfigDefaultChoices[4];
-extern const u8 sButtonConfigChoiceSlots[4];
 void ButtonConfigMenu_Redraw(struct EwramData_EntityData *entity);
 void ButtonConfigMenu_DrawSprites(void *unusedMenu);
 
@@ -752,7 +749,7 @@ void BestiaryMenu_Open(struct MenuPage5 *page)
     gEwramData->gameState.bestiaryPreview = 1;
     page->subState = 0;
     page->stage = 0;
-    MenuPage_Reset(page);
+    MenuPage_Reset((struct EwramData_EntityData *)page);
     page->descriptionMode = 0;
     page->count = 0x70;
     BestiaryMenu_Setup((struct MenuPage7 *)page);
@@ -781,9 +778,6 @@ struct MenuPage8
 };
 
 void BestiaryMenu_UpdateList(struct MenuPage8 *page);
-extern void BestiaryMenu_UpdateDetailScreen(struct MenuPage6 *page);
-extern void BestiaryMenu_UpdateDetail(struct MenuPage6 *page);
-extern void BestiaryMenu_Close(struct MenuPage6 *page);
 
 /**
  * @brief Bestiary page state machine (fades between the list,
@@ -820,7 +814,7 @@ s32 BestiaryMenu_Update(struct MenuPage6 *page)
         page->stage = 0;
         break;
     case 2:
-        BestiaryMenu_UpdateDetailScreen(page);
+        BestiaryMenu_UpdateDetailScreen((struct EwramData_EntityData *)page);
         break;
     case 3:
         if ((s16)(gDisplayRegisters.bldY -= 4) != 0)
@@ -829,7 +823,7 @@ s32 BestiaryMenu_Update(struct MenuPage6 *page)
         page->subState = 7;
         break;
     case 7:
-        BestiaryMenu_UpdateDetail(page);
+        BestiaryMenu_UpdateDetail((struct MenuPage *)page);
         break;
     case 6:
         if ((u16)(gDisplayRegisters.bldY += 4) <= 0xF)
@@ -839,7 +833,7 @@ s32 BestiaryMenu_Update(struct MenuPage6 *page)
         page->stage = 0;
         break;
     case 0xFF:
-        BestiaryMenu_Close(page);
+        BestiaryMenu_Close((struct MenuPage2 *)page);
         ret = -1;
         break;
     }
@@ -900,8 +894,6 @@ void BestiaryMenu_Setup(struct MenuPage7 *page)
     }
 }
 
-extern s32 BestiaryMenu_MoveCursor(struct MenuPage8 *page, s32 repeated);
-
 /**
  * @brief Enemy list update: up/down via BestiaryMenu_MoveCursor, R / L page by 10
  * entries (wrapping), B leaves, A opens the detail view when
@@ -918,7 +910,7 @@ void BestiaryMenu_UpdateList(struct MenuPage8 *page)
 
     repeated = gEwramData->inputData.repeatedInput;
     new = gEwramData->inputData.newInput;
-    if (BestiaryMenu_MoveCursor(page, repeated) != 0)
+    if (BestiaryMenu_MoveCursor((struct MenuPage *)page, repeated) != 0)
     {
         PlaySong(0xF1);
     }

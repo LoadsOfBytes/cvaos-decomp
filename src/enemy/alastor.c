@@ -14,6 +14,8 @@
 #include "oam.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* Alastor graphics, affine transform and callbacks. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *,u8 *,void *,u8,void *);
@@ -21,7 +23,6 @@ extern s32 Alastor_CreateLinkedPart(struct EwramData_EntityData *);
 void Alastor_OnHit(struct EwramData_EntityData *entity,s32 kind,u16 *hit);
 extern void Alastor_UpdateHitBoxes(struct EwramData_EntityData *);
 extern void Alastor_UpdateAppear(struct EwramData_EntityData *);
-extern u8 sAlastorPalette[],sAlastorSpriteSheet[],sAlastorGfx[];
 static inline void SetAffine(struct EwramData_EntityData *e,s32 index) { e->affineIndex=index; }
 void EnemyAlastorCreate(struct EwramData_EntityData *entity)
 {
@@ -306,7 +307,6 @@ void Alastor_UpdateApproach(struct EwramData_EntityData *entity)
 }
 
 /* Alastor readies its blade and selects the next table-driven attack. */
-extern s32 sUnk_08528C2C[][9];
 #define SET(e) (e->ext.alastor.attackSet)
 #define INDEX(e) (e->ext.alastor.attackIndex)
 #define ATTACK(e) (sUnk_08528C2C[SET(e)][INDEX(e)])
@@ -559,7 +559,6 @@ void Alastor_UpdateRushAttack(struct EwramData_EntityData *entity)
 }
 
 /* Alastor movement/rotation attack driven by timed segments. */
-extern s16 sAlastorAttackSegments[][4];
 #undef INDEX
 #define INDEX(e) (e->ext.alastorPattern.step)
 /**
@@ -891,7 +890,6 @@ void Alastor_UpdateRecoil(struct EwramData_EntityData *entity)
 }
 
 /* Alastor death: smoke along the blade, then falling out of view. */
-extern void Effect_SpawnRandom(s32,s32,s32,s32,s32);
 /**
  * @brief Death state (0xFF): emit effects along the blade and fall; free
  * the owner affine slot and request deletion of both owner and linked
@@ -1144,9 +1142,6 @@ void AlastorPart_Update(struct EwramData_EntityData *entity)
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
  *   Effect_FollowParentHitBoxCopy = Effect_FollowParentHitBox */
-
-extern u8 sCommonObjectGfx[];
-extern u8 sCommonObjectSpriteSheet[];
 
 /**
  * @brief CED90 | Same as Effect_FollowParentHitBox.

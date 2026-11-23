@@ -12,6 +12,7 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 /* EnemySkeletonKnightCreate 0x0808EC64..0x0808ECF7. */
 extern u8 SkeletonKnight_LoadGraphics(struct EwramData_EntityData *entity);
@@ -264,9 +265,6 @@ void SkeletonKnight_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16
  *   SkeletonKnight_LoadGraphics = Object25_LoadGraphics
  *   SkeletonKnight_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
-extern u8 sDeadCrusaderSkeletonKnightGfx[];
-extern u8 sDeadCrusaderSkeletonKnightPalette[];
-extern u8 sDeadCrusaderSkeletonKnightSpriteSheet[];
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)

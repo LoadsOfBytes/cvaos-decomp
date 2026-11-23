@@ -23,8 +23,7 @@
 #include "palette.h"
 #include "palette_state.h"
 #include "in_game.h"
-
-extern u16 sMapCellRoomInfo[];
+#include "data/data_0E5364.h"
 
 static inline u16* MapScreen_GetCellTileAddress(s32 tile, s32 x, s32 y)
 {
@@ -227,8 +226,6 @@ void MapScreen_DrawCellLeftEdge(s32 x, s32 y, s32 color, s32 border, s32 edge)
     }
     *pixel = (*pixel & 0xFFF0) | value2;
 }
-
-extern u8 sMapCellEdges[];
 
 /**
  * @brief Fill map cell (x, y) with colour and draw its four edges from

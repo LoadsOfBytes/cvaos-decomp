@@ -13,6 +13,7 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 /* from entity_util.h (not included: see the module notes) */
 
 /* Altair creation, update, graphics setup and hit response. */
@@ -28,7 +29,6 @@ extern void Altair_UpdateBestiaryPreview(struct EwramData_EntityData *);
 extern void Altair_DamagePlayerOnContact(struct EwramData_EntityData *);
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-extern u8 sAltairPalette[], sAltairSpriteSheet[], sAltairGfx[];
 u8 Altair_LoadGraphics(struct EwramData_EntityData *);
 void Altair_OnHit(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *);
 
@@ -555,12 +555,6 @@ void Altair_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 s32 AltairFeather_SetupGraphics(struct EwramData_EntityData *entity);
 u8 AltairFeather_LoadGraphics(struct EwramData_EntityData *entity);
 u8 Fleaman_LoadGraphics(struct EwramData_EntityData *entity);
-
-/* Graphics of the Altair feather (AltairFeather_LoadGraphics) and of the Fleaman
- * (Fleaman_LoadGraphics). */
-extern u8 sFleamanRipperGfx[];
-extern u8 sFleamanRipperPalette[];
-extern u8 sFleamanRipperSpriteSheet[];
 
 /**
  * @brief Allocate a feather, attach its graphics and store the owner pointer.

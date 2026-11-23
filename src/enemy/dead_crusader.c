@@ -13,6 +13,7 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
 extern void DeadCrusader_UpdateWalk(struct EwramData_EntityData *entity);
@@ -387,9 +388,6 @@ void DeadCrusader_OnHit(struct EwramData_EntityData *entity, struct EwramData_En
  *   DeadCrusader_LoadGraphics = Object32_LoadGraphics
  *   DeadCrusader_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
-extern u8 sDeadCrusaderSkeletonKnightGfx[];
-extern u8 sDeadCrusaderSkeletonKnightPalette[];
-extern u8 sDeadCrusaderSkeletonKnightSpriteSheet[];
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)

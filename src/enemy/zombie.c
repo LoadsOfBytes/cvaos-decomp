@@ -13,8 +13,7 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
-extern void EntityMoveY(struct EwramData_EntityData *);
-extern void EntityAccelerateY(struct EwramData_EntityData *, s32);
+#include "data/data_118B48.h"
 
 /* Update a Zombie or its controller that maintains a population of children. */
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
@@ -397,9 +396,7 @@ void Zombie_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
 }
 
 /* Zombie debris and temporary effects. */
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
 extern void ZombiePiece_Update(struct EwramData_EntityData *);
-extern u8 sZombieGfx[], sZombieSpriteSheet[];
 extern void ZombieDebris_Update(struct EwramData_EntityData *);
 extern void ZombieTemporarySprite_Update(struct EwramData_EntityData *);
 /**
@@ -407,7 +404,7 @@ extern void ZombieTemporarySprite_Update(struct EwramData_EntityData *);
  */
 void Zombie_SpawnFallingDebris(struct EwramData_EntityData *parent, s32 x, s32 y)
 {
-    struct EwramData_EntityData *part = Entity_CreateObject((u32 *)ZombieDebris_Update);
+    struct EwramData_EntityData *part = Entity_CreateObject(ZombieDebris_Update);
     if (part)
     {
         s32 graphics;
@@ -503,7 +500,6 @@ void ZombieTemporarySprite_Update(struct EwramData_EntityData *entity)
  *   Zombie_LoadGraphics = Object25_LoadGraphics
  *   Zombie_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
-extern u8 sZombiePalette[];
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)

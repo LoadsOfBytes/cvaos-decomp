@@ -34,11 +34,9 @@
 #include "soul_pickup.h"
 #include "system_menus.h"
 #include "player_soma.h"
-
-// ROM data passed as pointers; previously hard-coded addresses in the draft.
-extern u8 sCommonObjectGfx[];
-extern u8 sWeaponPalettes[];
-extern u8 sCommonObjectSpriteSheet[];
+#include "data/data_0E0B68.h"
+#include "data/data_118B48.h"
+#include "data/data_4F0B18.h"
 
 /**
  * @brief Empty per-frame hook of debug mode 2229.
@@ -268,8 +266,6 @@ void Player_SetContactImmunity(s32 immunityValue)
     gEwramData->playerState.player->ext.player.invulnerableTimer = immunityValue;
 }
 
-extern u16 sAttackPowerMultipliers[]; // array or struct?
-
 /**
  * @brief Calculate outgoing base attack power from the supplied category, player stats and mode/equipment data, applying the mode reduction when enabled.
  */
@@ -287,7 +283,7 @@ u16 Player_CalculateAttackPower(u16 attackCategory)
     {
         if (gEwramData->gameState.linkPlay == 0)
         {
-            info = RedSoul_GetLastUsedInfo();
+            info = (struct RedSoulAttackView *)RedSoul_GetLastUsedInfo();
             power = ((gEwramData->playerState.currentStats[0] * info->baseAttack) / 10) + (gEwramData->playerState.currentStats[2] >> 2) + (info->baseAttack * 4) + (info->baseAttack * 2);
         }
         else
@@ -605,8 +601,6 @@ void Player_RecalculateAttackDefense(void)
         gEwramData->playerState.currentDEF = 0;
     }
 }
-
-extern u8 sPlayerStatusIconPalettes[];
 
 /**
  * @brief Attach the indexed status icon, converge its horizontal oscillation on the player and delete it when the corresponding status timer clears.
@@ -1009,13 +1003,6 @@ void Player_UnusedStub3(void)
 {
     return;
 }
-
-extern void *sWeaponGfxTable[];
-extern void *sWeaponSpriteSheetTable[];
-extern u16 sWeaponSwingSounds[];
-extern u16 sJuliusWhipSounds[];
-
-extern const u8 sUnk_080E13B8[];
 
 /**
  * @brief Attack entity for weapon types 0, 2 and 3 (swords, thrusting
@@ -1830,7 +1817,6 @@ struct EwramData_EntityData* Julius_CreateWhipAttackEntity(struct EwramData_Enti
     return gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot];
 }
 
-extern struct WeaponInfo sUnarmedWeaponInfo;
 extern struct WeaponInfo sWeaponInfo[];
 
 static inline struct WeaponInfo *Weapon_GetInfoInline(s32 equippedWeapon)
@@ -1882,8 +1868,6 @@ struct WeaponInfo* Weapon_GetAttackerInfo(s32 slot)
     }
     return Weapon_GetInfoInline(gEwramData->unk_133F2);
 }
-
-extern u8 *sWeaponAttackAnims[];
 
 /**
  * @brief Return the player animation for the equipped weapon from table

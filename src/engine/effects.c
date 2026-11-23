@@ -21,6 +21,8 @@
 #include "obj_gfx.h"
 #include "palette.h"
 #include "pickup.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 /* from bg_and_collision.h (not included: see the module notes) */
 extern struct DmaQueueInfo* DmaQueue_IndirectCopy(u32 size, u32 *src, u32 *dst);
 
@@ -29,9 +31,7 @@ extern struct DmaQueueInfo* DmaQueue_IndirectCopy(u32 size, u32 *src, u32 *dst);
  * (palette). */
 struct Unk_085251A8 { u8 frame; u8 life; u16 pad; struct AnimScript *anim; };
 extern struct Unk_085251A8 sUnk_085251A8[];
-extern u8 sCommonObjectGfx[], sCommonObjectSpriteSheet[];
 extern void Effect_DrawAtOffsetPair(struct EwramData_EntityData *);
-extern u8 sTimedParticleFrames[];
 
 /* Particle: random unk_500 / unk_504 in [-16, 16) px, drawn by
  * Effect_DrawAtOffsetPair, rising and accelerating until its lifetime runs out. */
@@ -308,7 +308,6 @@ void Effect_DrawPlayerFlash(struct EwramData_EntityData *entity)
 }
 
 /* Effect_CreatePlayerFlash. */
-extern u8 *const sPlayerFlashInfo[];
 void Effect_DrawPlayerFlash(struct EwramData_EntityData *entity);
 
 /**
@@ -775,7 +774,6 @@ void Effect_UpdateDelayedParticle(struct EwramData_EntityData *entity)
 }
 
 s32 Pickup_TrySpawnOnHit(struct EwramData_EntityData *entity, s32 offsetY, u8 kind, s32 amount);
-extern void Effect_SpawnRandom(s32 x, s32 y, s32 width, s32 height, s32 layer);
 
 /**
  * @brief Hide off screen, spawn a reward on a qualifying player hit, then hide, emit the existing particles and expire the timer.
@@ -890,8 +888,6 @@ void PickupSource_Draw(struct EwramData_EntityData *entity)
         entity->posY.part16.integer += 6;
     }
 }
-
-extern u8 sPickupIconTiles[];
 
 /**
  * @brief Upload two icon rows to the shared OBJ graphics unless the icon index matches the cached value; retain the cache and index assumptions.

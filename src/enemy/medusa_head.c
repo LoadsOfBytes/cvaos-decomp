@@ -15,6 +15,7 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 extern s32 Target_GetPixelX(struct EwramData_EntityData *entity);
 extern void MedusaHead_UpdateFly(struct EwramData_EntityData *entity);
@@ -200,10 +201,6 @@ void MedusaHead_UpdateFly(struct EwramData_EntityData *entity)
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-extern u8 sMedusaHeadGfx[];
-extern u8 sMedusaHeadPalette[];
-extern u8 sMedusaHeadSpriteSheet[];
 
 /**
  * @brief 93AE0 | Hit: flash (hitFlashTimer = 8), subtract the damage from the HP

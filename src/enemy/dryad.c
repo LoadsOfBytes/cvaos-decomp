@@ -15,6 +15,8 @@
 #include "math_anim.h"
 #include "oam.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
@@ -128,7 +130,6 @@ void Dryad_UpdateAttack(struct EwramData_EntityData *entity)
 }
 
 /* Dryad death: palette flashes, smoke, shrinking affine sprite. */
-extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
 
 /**
  * @brief Death state (state 3): effects with sound 0x6E every 8 frames for 64
@@ -194,7 +195,6 @@ extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32
 extern void DryadSeed_OnHit(struct EwramData_EntityData *);
 extern s32 Player_GetOverheadY(void);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern u8 sDryadGfx[], sDryadPalette[], sDryadSpriteSheet[], sUnk_08528604[];
 static inline u8 AdvanceDryadEffect(struct EwramData_EntityData *entity)
 {
     if (sUnk_08528604[entity->subState] == 0xFF)

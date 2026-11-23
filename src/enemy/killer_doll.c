@@ -12,6 +12,8 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* EnemyKillerDollCreate. */
 extern s32 KillerDoll_LoadGraphics(struct EwramData_EntityData *entity);
@@ -51,11 +53,6 @@ void EnemyKillerDollCreate(struct EwramData_EntityData *entity)
 /* Graphics loader 0x080C7C04. It only matches without -f2003-patch (see
  * NO_2003_PATCH_SRCS in ../Makefile). */
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-/* Graphics of the Killer Doll. */
-extern u8 sKillerDollLightningDollGfx[];
-extern u8 sKillerDollLightningDollPalette[];
-extern u8 sKillerDollSpriteSheet[];
 
 /**
  * @brief Find or load graphics and palette, attach the sprite and start animation 0; return 0 on failure, 1 on success.
@@ -377,10 +374,6 @@ void KillerDoll_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 *data)
 }
 
 /* KillerDollPartEffect_Update. */
-extern u8 sCommonObjectGfx[];
-extern u8 sCommonObjectSpriteSheet[];
-/* 6 bytes per child index; byte 1 is a y offset (s8). */
-extern s8 sKillerDollPartOffsets[][6];
 
 /**
  * @brief Attach cached effect graphics and follow the body part with its table-derived vertical offset while advancing animation.
@@ -418,7 +411,6 @@ extern s32 Collision_GetPushUp(s32 x, s32 y);
 extern s32 Collision_GetPushDown(s32 x, s32 y);
 extern s32 Collision_GetPushLeft(s32 x, s32 y);
 extern s32 Collision_GetPushRight(s32 x, s32 y);
-extern void Effect_SpawnRandom(s32 x, s32 y, s32 p2, s32 p3, s32 layer);
 
 static inline s32 RoomX(s32 pos)
 {

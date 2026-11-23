@@ -28,6 +28,7 @@
 #include "obj_palette.h"
 #include "palette.h"
 #include "shop_update.h"
+#include "data/data_118B48.h"
 
 /* Graham encounter setup, including character/event dependent scene paths. */
 extern s32 Graham_CreateSceneObject(struct EwramData_EntityData *,s32);
@@ -242,7 +243,6 @@ void Graham_UpdatePhaseMonitor(struct EwramData_EntityData *entity)
 extern void GrahamSceneProjectile_Update(struct EwramData_EntityData *);
 void GrahamSceneProjectile_OnContact(struct EwramData_EntityData *entity);
 extern s32 Entity_AngleToPoint(struct EwramData_EntityData *,s32,s32);
-extern u8 sCommonObjectGfx[],sCommonObjectSpriteSheet[];
 /**
  * @brief Create an animated scene projectile at pixel coordinates with
  * randomized initial angle, optional homing/contact callback and
@@ -456,7 +456,7 @@ void Graham_SpawnSceneProjectile(struct EwramData_EntityData *entity)
  * (GCSE copies), constant 170 in a variable for the player-side compare. */
 extern void Graham_SpawnBreakupEffect(s32,s32);
 extern s32 Player_GetZoneAroundX(s32,s32,s32);
-extern u8 sGrahamGfx2[],sGrahamGfx3[],sEndingRoomDefinition[];
+extern u8 sEndingRoomDefinition[];
 #define FLAGS(e) (e->ext.graham.flags)
 /**
  * @brief Root defeat state (0xF0): coordinate dialogue objects, palette/
@@ -719,13 +719,11 @@ mark_dialogue:
  * The special 0xD0 path, as in the
  * original, does not define a return value. */
 
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, u8 *, void *, u8, void *);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, s32 onHurt);
 extern void GrahamCombatBody_OnHit(struct EwramData_EntityData *);
 extern void GrahamCombatBody_Update(struct EwramData_EntityData *);
 extern struct EwramData_EntityData *Graham_CreateBodyOverlay(struct EwramData_EntityData *);
-extern u8 sGrahamPalette2[], sGrahamSpriteSheet2[], sGrahamGfx2[];
 
 /**
  * @brief Create the later linked combat body, set combat fields and root
@@ -737,7 +735,7 @@ struct EwramData_EntityData *Graham_CreateCombatBody(struct EwramData_EntityData
     u8 *gfx2 = sGrahamPalette2;
     u8 *gfx3 = sGrahamSpriteSheet2;
     u8 *gfx1 = sGrahamGfx2;
-    struct EwramData_EntityData *e = Entity_CreateObject((u32 *)GrahamCombatBody_Update);
+    struct EwramData_EntityData *e = Entity_CreateObject(GrahamCombatBody_Update);
     if (e == NULL) return NULL;
     if (!Entity_LoadGraphics(e, gfx1, gfx2, 0, gfx3))
     {
@@ -848,7 +846,7 @@ struct EwramData_EntityData *Graham_CreateBodyOverlay(struct EwramData_EntityDat
     u8 *gfx2 = sGrahamPalette2;
     u8 *gfx3 = sGrahamSpriteSheet2;
     u8 *gfx1 = sGrahamGfx2;
-    struct EwramData_EntityData *e = Entity_CreateObject((u32 *)GrahamBodyOverlay_Update);
+    struct EwramData_EntityData *e = Entity_CreateObject(GrahamBodyOverlay_Update);
     if (e == NULL) return NULL;
     if (!Entity_LoadGraphics(e, gfx1, gfx2, 0, gfx3))
     {
@@ -975,7 +973,6 @@ void GrahamBodyOverlay_Update(struct EwramData_EntityData *entity)
 
 extern void Enemy_OnContact(struct EwramData_EntityData *);
 extern void GrahamSidePart_Update(struct EwramData_EntityData *);
-extern u8 sGrahamPalette2[], sGrahamSideSpriteSheet[], sGrahamGfx3[];
 
 /**
  * @brief Create a side-selected linked part with graphics and contact
@@ -987,7 +984,7 @@ struct EwramData_EntityData *Graham_CreateSidePart(struct EwramData_EntityData *
     u8 *gfx2 = sGrahamPalette2;
     u8 *gfx3 = sGrahamSideSpriteSheet;
     u8 *gfx1 = sGrahamGfx3;
-    struct EwramData_EntityData *e = Entity_CreateObject((u32 *)GrahamSidePart_Update);
+    struct EwramData_EntityData *e = Entity_CreateObject(GrahamSidePart_Update);
     if (e == NULL)
         return NULL;
     if (!Entity_LoadGraphics(e, gfx1, gfx2, 0, gfx3))
@@ -1214,7 +1211,7 @@ struct EwramData_EntityData *Graham_CreateAttacker(struct EwramData_EntityData *
     u8 *gfx2 = sGrahamPalette2;
     u8 *gfx3 = sGrahamSpriteSheet2;
     u8 *gfx1 = sGrahamGfx3;
-    struct EwramData_EntityData *e = Entity_CreateObject((u32 *)GrahamAttacker_Update);
+    struct EwramData_EntityData *e = Entity_CreateObject(GrahamAttacker_Update);
     if (e == NULL) return NULL;
     if (!Entity_LoadGraphics(e, gfx1, gfx2, 0, gfx3))
     {
@@ -1373,7 +1370,6 @@ void GrahamAttacker_Update(struct EwramData_EntityData *entity)
 
 /* GrahamAttacker_UpdateDeath: matched (plain --x == 0xFF / ++x == 0x20: the QImode 255 mask is shared
    by CSE and spilled to the stack, as in the original). */
-extern s16 sGrahamAttackerPositions[32][2];
 extern void *memcpy(void *, const void *, unsigned long);
 extern void GrahamDeathSpark_Update(struct EwramData_EntityData *);
 
@@ -1500,7 +1496,7 @@ struct EwramData_EntityData *GrahamAttacker_CreateAttackEffect(struct EwramData_
     u8 *palette = sGrahamPalette2;
     u8 *animation = sGrahamSpriteSheet2;
     u8 *graphics = sGrahamGfx3;
-    struct EwramData_EntityData *part = Entity_CreateObject((u32 *)GrahamAttackEffect_Update);
+    struct EwramData_EntityData *part = Entity_CreateObject(GrahamAttackEffect_Update);
     if (part == NULL)
         return NULL;
     if (Entity_LoadGraphics(part, graphics, palette, 1, animation))
@@ -1529,7 +1525,6 @@ struct EwramData_EntityData *GrahamAttacker_CreateAttackEffect(struct EwramData_
 
 extern void GrahamFirstForm_OnHit(struct EwramData_EntityData *, s32, u16 *);
 extern void GrahamFirstForm_Update(struct EwramData_EntityData *);
-extern u8 sGrahamPalette1[], sGrahamSpriteSheet1[], sGrahamGfx1[];
 
 /**
  * @brief Create the initial linked combat entity, copy root identity and
@@ -1542,7 +1537,7 @@ struct EwramData_EntityData *GrahamFirstForm_Create(struct EwramData_EntityData 
     u8 *gfx2 = sGrahamPalette1;
     u8 *gfx3 = sGrahamSpriteSheet1;
     u8 *gfx1 = sGrahamGfx1;
-    struct EwramData_EntityData *e = Entity_CreateObject((u32 *)GrahamFirstForm_Update);
+    struct EwramData_EntityData *e = Entity_CreateObject(GrahamFirstForm_Update);
     if (e == NULL) return NULL;
     if (!Entity_LoadGraphics(e, gfx1, gfx2, 0, gfx3))
     {
@@ -1928,7 +1923,6 @@ void GrahamFirstForm_UpdateAlternateAttack(struct EwramData_EntityData *entity)
 
 /* Link the animated overhead object back to the boss. */
 extern void GrahamTransitionPart_Update(struct EwramData_EntityData *);
-extern u8 sGrahamPalette2[],sGrahamFirstFormSpriteSheet[],sGrahamFirstFormGfx[];
 /**
  * @brief Create the animated transition part above the first form and
  * store both owner/child links. Preserve the existing allocation assumption.
@@ -1938,7 +1932,7 @@ void GrahamFirstForm_CreateTransitionPart(struct EwramData_EntityData *entity)
     u8 *sprite=sGrahamPalette2;
     u8 *animation=sGrahamFirstFormSpriteSheet;
     u8 *graphics=sGrahamFirstFormGfx;
-    struct EwramData_EntityData *effect=Entity_CreateObject((u32 *)GrahamTransitionPart_Update);
+    struct EwramData_EntityData *effect=Entity_CreateObject(GrahamTransitionPart_Update);
     if(!Entity_LoadGraphics(effect,graphics,sprite,5,animation))
     {
         EntityDelete(effect);
@@ -2165,7 +2159,7 @@ s32 Graham_SpawnSpreadProjectiles(struct EwramData_EntityData *entity)
     p = parts;
     while (i < 3)
     {
-        *p = Entity_CreateObject((u32 *)GrahamSpreadProjectile_Update);
+        *p = Entity_CreateObject(GrahamSpreadProjectile_Update);
         if (*p == NULL)
         {
             ok = 0;
@@ -2258,7 +2252,6 @@ void GrahamSpreadProjectile_Update(struct EwramData_EntityData *entity)
 
 /* Spawn the two child parts of this enemy (one plain, one with an affine matrix); delete both on failure. */
 extern void GrahamShotPart_Update(struct EwramData_EntityData *);
-extern u8 sGrahamGfx1[], sGrahamSpriteSheet1[], sGrahamShotPalette[];
 
 /**
  * @brief Create a plain firing effect and delayed affine shot at the
@@ -2275,7 +2268,7 @@ s32 Graham_CreateShotPair(struct EwramData_EntityData *owner, s32 low)
     struct EwramData_EntityData **p = parts;
     while (i <= 1)
     {
-        { struct EwramData_EntityData *spawned = Entity_CreateObject((u32 *)GrahamShotPart_Update);
+        { struct EwramData_EntityData *spawned = Entity_CreateObject(GrahamShotPart_Update);
         *p = spawned;
         if (!spawned) { success = 0; break; }
         if (!Entity_LoadGraphics(spawned, graphics, sGrahamShotPalette, 0, pal))
@@ -2448,7 +2441,7 @@ s32 Graham_SpawnSpiralProjectiles(struct EwramData_EntityData *owner, s32 revers
     p = parts;
     while (i < owner->ext.grahamSpiral.count)
     {
-        *p = Entity_CreateObject((u32 *)GrahamSpiralProjectile_Update);
+        *p = Entity_CreateObject(GrahamSpiralProjectile_Update);
         if (!*p) { success = 0; break; }
         if (!Entity_LoadGraphics(*p, sGrahamGfx1, sGrahamShotPalette, 0, animation))
         { success = 0; goto fail; }
@@ -2826,7 +2819,6 @@ finished:
 }
 
 /* Delayed fragments become visible, accelerate downward and finish animating. */
-extern u8 sCommonObjectGfx[],sDefeatParticleSpriteSheet[];
 /**
  * @brief Wait for a random delay while hidden, then reveal, move under
  * acceleration and delete when the fragment animation completes.
@@ -3069,7 +3061,6 @@ s32 GrahamPart_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16
 }
 
 /* Five cumulative timer thresholds select one of two palette sequences. */
-extern u8 sGrahamPartSteps[],sGrahamPalette2[];
 static inline s32 AfterThreshold(s32 index) { return index+1; }
 /**
  * @brief Use five cumulative timer thresholds to load one of two palette

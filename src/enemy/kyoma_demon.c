@@ -13,6 +13,7 @@
 #include "entity_common.h"
 #include "kyoma_demon_b.h"
 #include "math_anim.h"
+#include "data/data_4F1444.h"
 
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void KyomaDemon_UpdateLurk(struct EwramData_EntityData *);
@@ -84,8 +85,6 @@ void EnemyKyomaDemonCreate(struct EwramData_EntityData *entity)
 /* Entity that follows the player at a fixed offset (KyomaDemon_UpdateLurk). Needs
  * -fno-cse-follow-jumps (Makefile): the target recomputes ew + 0x13110 after
  * the range check instead of reusing it across the jump. */
-
-extern u8 sUnk_08528340[];
 
 /* Byte 0x58 of an entity (unk_53C) viewed as plain u8 bitfields. */
 struct EntityFlags58

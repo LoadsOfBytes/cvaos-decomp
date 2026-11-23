@@ -17,6 +17,8 @@
 #include "oam.h"
 #include "obj_palette.h"
 #include "palette.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* Chronomage affine casting effect. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
@@ -28,9 +30,6 @@ extern void Chronomage_UpdateCast(struct EwramData_EntityData *);
 extern void Chronomage_UpdateEscape(struct EwramData_EntityData *);
 extern void Chronomage_UpdateBestiaryPreview(struct EwramData_EntityData *);
 extern void Chronomage_OnHit(struct EwramData_EntityData *);
-extern u8 sChronomageGfx[], sChronomagePalette[], sChronomageSpriteSheet[];
-
-extern u8 sChronomageDestinationRoom[];
 
 /**
  * @brief Allocate an affine sprite, grow its scale, hold for 32 updates, then
@@ -81,7 +80,6 @@ remove:
 }
 
 /* Chronomage waiting-state transitions. */
-extern u8 sChronomageWalkProfile[];
 #define ABS_CHRONOMAGE(v) ((v) < 0 ? -(v) : (v))
 
 /**

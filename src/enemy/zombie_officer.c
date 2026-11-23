@@ -12,6 +12,7 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 extern void ZombieOfficer_UpdateWalk(struct EwramData_EntityData *entity);
 extern void ZombieOfficer_UpdateAttack(struct EwramData_EntityData *entity);
@@ -212,8 +213,6 @@ void ZombieOfficer_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 
 
 /* ZombieOfficer_SpawnPiece. */
 extern void ZombieOfficerPiece_Update(struct EwramData_EntityData *entity);
-extern u8 sZombieOfficerGfx[];
-extern u8 sZombieOfficerSpriteSheet[];
 
 /**
  * @brief 925B4 | Spawn a ZombieOfficerPiece_Update projectile at entity's position +
@@ -251,7 +250,6 @@ void ZombieOfficer_SpawnPiece(struct EwramData_EntityData *entity, s32 x, s32 y,
  *   ZombieOfficer_LoadGraphics = Object25_LoadGraphics
  *   ZombieOfficer_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
-extern u8 sZombieOfficerPalette[];
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)

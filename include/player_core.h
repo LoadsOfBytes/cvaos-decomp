@@ -108,7 +108,6 @@ struct RedSoulAttackView {
     u8 pad_0[0xA - 0x0];
     u16 baseAttack;
 };
-extern struct RedSoulAttackView *RedSoul_GetLastUsedInfo(void); // type?
 
 struct RedSoulActivationView {
     void *updateFunc; // TODO: function signature
@@ -117,11 +116,9 @@ struct RedSoulActivationView {
     u8 pad_8[0xE - 0x8];
     u16 param;
 };
-extern struct RedSoulActivationView* RedSoul_GetInfo(u8 soul);
 
 extern s32 RandomSigned(s32 range);
 extern void HomingSoulProjectile_OnPlayerContact(struct EwramData_EntityData *entity, struct EwramData_EntityData *unused); // defined with one parameter
-extern struct EwramData_EntityData *BlueSoul_CreateEntity(struct EwramData_EntityData *owner, void *update);
 extern void Entity_PlaceRelativeTo(struct EwramData_EntityData *entity, struct EwramData_EntityData *anchor, s32 offsetX, s32 offsetY); // TODO: param_2/param_3 should be u16
 
 #endif /* PLAYER_CORE_H */

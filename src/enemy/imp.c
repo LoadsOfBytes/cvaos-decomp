@@ -16,6 +16,7 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "ukoback.h"
+#include "data/data_118B48.h"
 
 /* Tiny Devil update and states from 0x080C47F8. */
 extern void Imp_UpdateState4Animation(struct EwramData_EntityData *entity);
@@ -489,11 +490,6 @@ void Imp_OnContact(struct EwramData_EntityData *entity)
 }
 
 extern s32 ObjPalette_FindOrLoad(void *palette);
-
-/* Graphics of the Tiny Devil (also used by Imp_LoadGraphics). */
-extern u8 sImpTinyDevilGfx[];
-extern u8 sImpTinyDevilPalette[];
-extern u8 sImpTinyDevilSpriteSheet[];
 
 /**
  * @brief Initialize hidden, show animation 3 when activated and follow 40 pixels above the target; hide again when released.
@@ -1240,11 +1236,6 @@ void EnemyUkobackCreate(struct EwramData_EntityData *entity)
 /* Graphics loader 0x080C5C58. It only matches without -f2003-patch (see
  * NO_2003_PATCH_SRCS in ../Makefile). */
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-/* Graphics of the Ukoback (also used in enemy/ukoback.c). */
-extern u8 sUkobackGfx[];
-extern u8 sUkobackPalette[];
-extern u8 sUkobackSpriteSheet[];
 
 /**
  * @brief Find or load graphics and palette, attach the sprite and start animation 0; return 0 on failure, 1 on success.

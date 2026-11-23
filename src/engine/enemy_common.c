@@ -24,6 +24,8 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "palette.h"
+#include "red_souls_b.h"
+#include "data/data_118B48.h"
 
 /* Accelerate/move both axes and resolve collision at four box corners, with
  * a tile-type exclusion: a corner whose tile flags satisfy (flags & 3) == 1
@@ -678,7 +680,6 @@ struct HitEffectEntry {
     u16 song;
 };
 extern const struct HitEffectEntry sHitEffects[];
-extern u8 sCommonObjectGfx[], sCommonObjectSpriteSheet[];
 /**
  * @brief State 0: attach the shared object graphics with the palette and
  * animation of entry subState of sHitEffects (layer 3, scrolls with BG);
@@ -837,10 +838,10 @@ static inline u16 ResolveDamage(struct EwramData_EntityData *entity, s32 damage,
     {
         if (!weakness && (flags & 8))
         {
-            void *soul = RedSoul_GetLastUsedInfo();
+            const void *soul = RedSoul_GetLastUsedInfo();
 
             weakness = 1;
-            attributes = ((u16 *)soul)[6];
+            attributes = ((const u16 *)soul)[6];
         }
     }
     else if (flags & 8)

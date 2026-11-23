@@ -16,11 +16,12 @@
 #include "math_anim.h"
 #include "oam.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* Slime particle creation with bounded entity allocation. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 extern void SlimeParticle_Update(struct EwramData_EntityData *);
-extern u8 sSlimeGfx[], sSlimePalette[], sSlimeSpriteSheet[];
 
 /**
  * @brief Spawn up to count slime particles with randomized position, frame
@@ -72,7 +73,6 @@ void Slime_SpawnParticles(struct EwramData_EntityData *entity, s32 count, s32 vx
 }
 
 /* Slime terrain query and turn-speed setup. */
-extern const u16 sSlimeSurfaceTurnTargets[];
 extern s32 __divsi3(s32, s32);
 
 /**
@@ -295,7 +295,6 @@ s32 Slime_UpdateSurfaceSupport(struct EwramData_EntityData *entity, u16 step)
 
 /* Slime crawling and transitions between floors, walls and ceilings. */
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *, s32, s32);
-extern void EntityMoveY(struct EwramData_EntityData *);
 #define SLIME_PROBE_X ((s16)roomX + (s16)dx)
 #define SLIME_PROBE_Y ((s16)roomY + (s16)dy)
 
@@ -483,7 +482,6 @@ countdown:
 extern void Slime_UpdateDetach(struct EwramData_EntityData *);
 extern void Slime_DamagePlayerOnContact(struct EwramData_EntityData *);
 void Slime_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern u8 sSlimeGfx[], sSlimePalette[], sSlimeSpriteSheet[], sSlimeWalkProfile[];
 
 /**
  * @brief Detach state (1): animate departure from wall or ceiling, move

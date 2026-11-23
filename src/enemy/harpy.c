@@ -15,6 +15,7 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 /* Harpy setup randomizes its animation phase before enabling movement. */
 extern u8 Harpy_LoadGraphics(struct EwramData_EntityData *);
@@ -393,7 +394,6 @@ void Harpy_OnHit(struct EwramData_EntityData *entity,struct EwramData_EntityData
 
 /* Defeat fragments inherit their owner's sprite palette and scatter randomly. */
 extern void HarpyDeathFeather_Update(struct EwramData_EntityData *);
-extern u8 sHarpyGfx[],sHarpySpriteSheet[];
 /**
  * @brief Spawn a loose feather at (x, y) with a random velocity (four on death).
  */
@@ -621,7 +621,6 @@ void HarpyFeather_EnableHitBoxes(struct EwramData_EntityData *entity)
 
 /* Harpy and Siren share graphics but select different palette variants. */
 extern s32 ObjPalette_FindOrLoadVariant(void *,s32);
-extern u8 sHarpyGfx[],sHarpyPalette[],sHarpySpriteSheet[];
 u8 Harpy_LoadGraphics(struct EwramData_EntityData *entity)
 {
     s32 graphics=ObjGfx_LoadResource(sHarpyGfx,0);

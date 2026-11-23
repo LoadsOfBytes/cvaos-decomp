@@ -583,7 +583,6 @@ void HeadStackSegment_Update(struct EwramData_EntityData *entity)
 }
 
 /* HeadStack_Create: create a stack of child segments from table sUnk_081193DC; matched. */
-extern struct EwramData_EntityData *Entity_CreateObject(void *);
 extern void Enemy_OnContact();
 void HeadStackSegment_OnHit(struct EwramData_EntityData *entity);
 

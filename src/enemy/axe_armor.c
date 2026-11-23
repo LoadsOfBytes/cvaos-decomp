@@ -10,11 +10,11 @@
 #include "math_anim.h"
 #include "minotaur.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* AxeArmor_UpdateAttack: Axe Armor attack substates (throws the axe AxeArmorAxe_Update); matched. */
 extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *entity);
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *updateFunc);
-extern u8 sAxeArmorWalkProfile[];
 
 /**
  * @brief Choose a throw animation, create an axe on its event, then retreat or resume walking.
@@ -48,7 +48,7 @@ void AxeArmor_UpdateAttack(struct EwramData_EntityData *entity)
     case 1:
         if (*(u16 *)&entity->animStep == 0x20C)
         {
-            axe = Entity_CreateObject((u32 *)AxeArmorAxe_Update);
+            axe = Entity_CreateObject(AxeArmorAxe_Update);
             if (axe != NULL)
             {
                 dx = -0x18;
@@ -170,11 +170,6 @@ extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource,
 extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, s32 onHurt);
 extern void Enemy_OnContact(struct EwramData_EntityData *entity);
 extern void AxeArmor_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hitData);
-
-/* Graphics of the Axe Armor (see enemy/minotaur.c). */
-extern u8 sAxeArmorGfx[];
-extern u8 sAxeArmorPalette[];
-extern u8 sAxeArmorSpriteSheet[];
 
 /**
  * @brief B12C4 | Axe Armor create: load the graphics (delete the enemy

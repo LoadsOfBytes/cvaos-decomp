@@ -1,10 +1,10 @@
 /* ARM (IWRAM) twin of Sprite_DrawPartsAffine: draw one entity's sprite parts through an affine matrix.
  * Built with the bundled agbcc_arm; matched. */
 #include "structs/ewram.h"
+#include "data/data_0E1CD0.h"
 
 struct Matrix2 { s32 m[4]; };
 struct ObjEntry;
-extern const s32 sUnk_080E33FC[3][4][2];
 extern void (*gObjAffineGetMatrixFunc)(struct Matrix2 *, s32);
 extern s32 (*gObjAffineGetFlipXFunc)(s32);
 extern s32 (*gObjAffineGetFlipYFunc)(s32);

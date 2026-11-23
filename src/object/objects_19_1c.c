@@ -23,6 +23,8 @@
 #include "palette.h"
 #include "save_point.h"
 #include "text12.h"
+#include "data/data_0E5364.h"
+#include "data/data_118B48.h"
 
 /* Object 19: move along a timed path of steps, then despawn. */
 struct Object19Step
@@ -123,7 +125,6 @@ void Object19_Draw(struct EwramData_EntityData *entity)
 }
 
 extern s32 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
-extern u8 sObject1BGfx[], sUnk_08209FD8[], sObject1BSpriteSheet[];
 
 void Object1BCreate(struct EwramData_EntityData *entity)
 {
@@ -141,9 +142,6 @@ void Object1BCreate(struct EwramData_EntityData *entity)
     entity->hit.flags |= 4;
     gEwramData->gameState.conveyorSpeed = -0x14000;
 }
-
-extern u16 sObject1BColors[];
-extern u8 sObject1BBgPalette[];
 
 void Object1BUpdate(struct EwramData_EntityData *entity)
 {
@@ -193,7 +191,6 @@ void Object1AUpdate(struct EwramData_EntityData *entity)
  * The first row uses its own counter; later rows reuse the pointer and counter
  * to preserve agbcc register allocation. The final copies retain size 0x18.
  */
-extern u8 sSavePromptBgPalette[];
 
 /**
  * @brief Unreferenced variant of SavePoint_ShowSavePrompt drawing at row 0x15
@@ -393,7 +390,6 @@ void SavePoint_DrawPromptMarkers(struct EwramData_EntityData *entity)
 }
 
 /* Object 0x1C palette transition, returning one when the transition is done. */
-extern u8 sSaveWarpRoomPalette[], sSavePointPalette[];
 /**
  * @brief Unreferenced fade step next to the save point code: fade the sprite in
  * (state 0, loading save point palette row 5) or out (state 1, restoring
@@ -452,7 +448,6 @@ end:
 }
 
 extern void SavePoint_SpawnAnimParts(struct EwramData_EntityData *entity);
-extern u8 sSaveWarpRoomGfx[], sSaveWarpRoomPalette[], sSaveWarpRoomSpriteSheet[];
 
 /**
  * @brief 5464C | Object 0x1C init: Hud_CloseMessageWindow, Text_SetTileBuffer(VRAM
@@ -508,7 +503,6 @@ void Object1CCreate(struct EwramData_EntityData *entity)
  * The state is read into a local before &gEwramData is copied into its own
  * register. */
 
-extern u8 sSaveWarpRoomPalette[], sSavePointPalette[], sSavePromptBgPalette[], sUnk_08119898[];
 extern s32 Bg_SetControlIfLevelAllows(s32 level, s32 reg, s32 value);
 
 #define OWNER(e) (&(*ew)->entityData[ENTITY_BYTE_519((e))])

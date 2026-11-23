@@ -12,6 +12,7 @@
 #include "structs/main.h"
 #include "structs/entity_boxes.h"
 #include "entity_hit.h"
+#include "data/data_0E1CD0.h"
 
 /**
  * @brief 41474 | Test whether the hitboxes of two entities overlap
@@ -272,8 +273,6 @@ u32 HitBox_OverlapsRect(struct Rect16 *rect, struct EwramData_EntityData *entity
         return 1;
     return 0;
 }
-
-extern const u8 sHitTimers[];
 
 static inline u8 GetVal(s32 type)
 {

@@ -15,6 +15,7 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 /* White Dragon dispatch, collision gating and delayed death cleanup. */
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
@@ -84,12 +85,10 @@ collision:
 
 /* Allocate a 100-halfword motion history and link ten body segments. */
 extern u8 WhiteDragon_LoadGraphics(struct EwramData_EntityData *);
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
 extern void WhiteDragonSegment_Update(struct EwramData_EntityData *);
 extern void WhiteDragonSegment_Draw(struct EwramData_EntityData *);
 void WhiteDragon_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void WhiteDragon_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *info);
-extern u8 sQuezlcoatlWhiteDragonGfx[],sQuezlcoatlWhiteDragonSpriteSheet[];
 static inline void StoreRate(s32 value,u16 *destination) { *destination=value; }
 void EnemyWhiteDragonCreate(struct EwramData_EntityData *entity)
 {
@@ -131,7 +130,7 @@ void EnemyWhiteDragonCreate(struct EwramData_EntityData *entity)
     palette=&entity->basePalette;
     do
     {
-        struct EwramData_EntityData *part=Entity_CreateObject((u32 *)WhiteDragonSegment_Update);
+        struct EwramData_EntityData *part=Entity_CreateObject(WhiteDragonSegment_Update);
         s32 graphics;
         if(!part) goto fail;
         part->spriteLayer=entity->spriteLayer+1;
@@ -871,9 +870,6 @@ void WhiteDragon_SpawnDeathPiece(struct EwramData_EntityData *owner,s32 x,s32 y,
 
 /* White Dragon helpers 0x08077B3C..0x08077CBB (graphics shared with Quezlcoatl). */
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-/* Graphics of Quezlcoatl. */
-extern u8 sQuezlcoatlWhiteDragonPalette[];
 
 /**
  * @brief 77B3C | Give projectile the White Dragon / Quezlcoatl graphics (palette row of

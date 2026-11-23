@@ -37,7 +37,6 @@
 #include "soul_menu.h"
 #include "system_menus.h"
 #include "text12.h"
-extern void HudMap_ZeroTiles(s32, s32, s32);
 extern void HudMap_WriteTiles(s32, s32, s32, s32);
 
 /*

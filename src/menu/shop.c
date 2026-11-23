@@ -17,6 +17,8 @@
 #include "soul_menu.h"
 #include "soul_pickup.h"
 #include "text12.h"
+#include "shop.h"
+#include "data/data_4F1444.h"
 
 void PlaySong(u32 song);
 u32 Inventory_GetOwnedCount(s32 category, s32 index);
@@ -227,8 +229,6 @@ void Shop_PreviewEquipStats(void *unused, s32 type, s32 id)
 }
 
 /* Shop_DrawList. */
-extern void HudMap_ZeroTiles(s32 x, s32 y, s32 count);
-void *Item_GetInfoByGlobalId(s32 id);
 u32 Inventory_GetOwnedCount(s32 category, s32 index);
 extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
 
@@ -238,8 +238,6 @@ extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
 
 extern const struct ConsumableInfo sConsumableInfo[];
 extern const struct WeaponInfo sWeaponInfo[];
-extern const u16 sItemNameTextIds[]; /* name text ids */
-extern const u16 sItemDescriptionTextIds[]; /* description text ids */
 
 struct ShopItemInfo {
     u32 unk_0;
@@ -426,7 +424,6 @@ void Shop_DrawList(struct ShopOwner *owner, struct ShopMenu2 *menu, struct ShopS
     }
 }
 
-void *Item_GetInfoByGlobalId(s32 id);
 u32 Inventory_GetOwnedCount(s32 category, s32 index);
 extern void *memset(void *dst, int value, unsigned long size);
 
@@ -519,7 +516,6 @@ void Shop_BuildSellList(struct Owner2 *owner, void *unusedMenu, void *unusedStat
  * clear an equipped slot that drops to zero), add half price times the
  * quantity to the gold and refresh the row. */
 
-void *Item_GetInfoByGlobalId(s32 id);
 u32 Inventory_GetOwnedCount(s32 category, s32 index);
 
 struct Item {
@@ -605,8 +601,6 @@ void Shop_SellItem(struct Owner *owner, u8 *menu, struct Shop *stats, s32 index)
     Shop_BuildSellList((struct Owner2 *)owner, menu, stats);
 }
 
-void *Item_GetInfoByGlobalId(s32 id);
-
 struct ShopItemPriceView {
     u32 unk_0;
     s32 price;
@@ -673,7 +667,6 @@ void Shop_BuyItem(struct ShopQuantityOwner *owner, u8 *menu, struct ShopTransact
 /* Shop_CanTrade; records as
  * in the Shop_BuyItem draft. */
 
-void *Item_GetInfoByGlobalId(s32 id);
 u32 Inventory_GetOwnedCount(s32 category, s32 index);
 
 /* Shop stock entries (item type, id; type 0xFF = id via Item_GetInfoByGlobalId). */
@@ -776,8 +769,6 @@ struct MenuPage
     u8 item;
 };
 
-extern void MenuPage_SetMode(struct MenuPage *entity, u8 mode);
-
 static inline u8 ShopMode(u8 *s) { return s[0x3D0]; }
 static inline u8 *ShopFlags(u8 *s) { return s + 0x3D1; }
 
@@ -806,7 +797,7 @@ void Shop_OpenList(u8 *shop, struct MenuPage *page)
     Text12_SetRegion(0, 2, 0x23, 5);
     Text8_SetRegion(0, 0xC, 0x20, 4);
     Text8_ClearRegion();
-    MenuPage_SetMode(page, 0);
+    MenuPage_SetMode((struct EwramData_EntityData *)page, 0);
     page->top = 0;
     page->count = 0;
     page->item = 0;

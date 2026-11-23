@@ -7,6 +7,7 @@
 #include "structs/entity_boxes.h"
 #include "core.h"
 #include "obj_gfx.h"
+#include "data/data_118B48.h"
 
 /* Small accessors (2A54, 2A6C). */
 /* Set byte index of the table at EWRAM 0x1307C. */
@@ -29,7 +30,6 @@ extern s32 Player_GetOverheadY(void);
 extern void PlayerDamageIndicator_Update(struct EwramData_EntityData *);
 extern void NumberIndicator_Format(struct EwramData_EntityData *, s32);
 extern void NumberIndicator_Draw(struct EwramData_EntityData *);
-extern u8 sCommonObjectGfx[], sCommonObjectGfxLanguage2[], sCommonObjectGfxLanguage3[], sCommonObjectSpriteSheet[];
 
 /**
  * @brief Create the localized player damage/healing indicator with kind-dependent position and palette; value zero in kind 0 selects frame 0x58.

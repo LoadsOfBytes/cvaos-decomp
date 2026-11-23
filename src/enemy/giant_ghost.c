@@ -16,6 +16,8 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "palette.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* Dispatch Giant Ghost states and emit particles during its death fade. */
 extern void GiantGhost_UpdateMove(struct EwramData_EntityData *);
@@ -52,14 +54,12 @@ finished:
 }
 
 u8 GiantGhost_LoadGraphics(struct EwramData_EntityData *entity);
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *update);
 extern void GiantGhostAura_Update(struct EwramData_EntityData *entity);
 extern void GiantGhostHandA_Update(struct EwramData_EntityData *entity);
 extern void GiantGhostHandB_Update(struct EwramData_EntityData *entity);
 extern void GiantGhost_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void GiantGhost_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *other, u16 *hit);
 extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
-extern u8 sGiantGhostGfx[], sGiantGhostSpriteSheet[];
 
 /**
  * @brief 7D12C | Giant Ghost create: three parts Entity_CreateObject
@@ -90,13 +90,13 @@ void EnemyGiantGhostCreate(struct EwramData_EntityData *entity)
         switch (i)
         {
         case 0:
-            part = Entity_CreateObject((u32 *)GiantGhostAura_Update);
+            part = Entity_CreateObject(GiantGhostAura_Update);
             break;
         case 1:
-            part = Entity_CreateObject((u32 *)GiantGhostHandA_Update);
+            part = Entity_CreateObject(GiantGhostHandA_Update);
             break;
         case 2:
-            part = Entity_CreateObject((u32 *)GiantGhostHandB_Update);
+            part = Entity_CreateObject(GiantGhostHandB_Update);
             break;
         }
         if (part != NULL)
@@ -747,7 +747,7 @@ extern void GiantGhostAuraTrail_Update(struct EwramData_EntityData *);
  */
 void GiantGhost_SpawnAuraTrail(struct EwramData_EntityData *parent, s32 x, s32 y)
 {
-    struct EwramData_EntityData *part = Entity_CreateObject((u32 *)GiantGhostAuraTrail_Update);
+    struct EwramData_EntityData *part = Entity_CreateObject(GiantGhostAuraTrail_Update);
     if (part)
     {
         s32 graphics;
@@ -804,8 +804,6 @@ void GiantGhostAuraTrail_Update(struct EwramData_EntityData *entity)
 
 /* Giant Ghost's graphics, collision effect and death particles. */
 extern s8 ObjPalette_FindOrLoadVariant(void *, u8);
-extern u8 sGiantGhostGfx[], sGiantGhostPalette[], sGiantGhostPaletteAnim[], sGiantGhostSpriteSheet[];
-extern u8 sCommonObjectGfx[], sCommonObjectSpriteSheet[];
 /**
  * @brief Spawn a falling fragment at (x, y) moving with (vx, vy) under gravity on
  * layer priority, frame chosen by type (four on death).

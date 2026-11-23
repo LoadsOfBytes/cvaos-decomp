@@ -21,6 +21,8 @@
 #include "obj_gfx.h"
 #include "shop_update.h"
 #include "text_window.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 #define SET_MOSAIC(t)                                                        \
     {                                                                        \
@@ -1077,7 +1079,6 @@ void EventScene03UnusedPart_Update(struct EwramData_EntityData *entity)
 }
 
 /* EventScene03AttachedEffect_Update. */
-extern void Sprite_GetPartCornerOffset(struct EwramData_EntityData *entity, s32 index, s16 *offset);
 
 /**
  * @brief 5E0D0 | Keep an attached effect on body part 0 of its parent
@@ -1466,8 +1467,6 @@ void EventScene03RisingPart_Update(struct EwramData_EntityData *entity)
 }
 
 extern void EventScene03Debris_Update(struct EwramData_EntityData *);
-extern const s8 sEventScene03UnusedDebris[];
-extern u8 sSkeletonSpriteSheet[];
 
 /* Seven debris pieces using the owner's graphics and palette. */
 
@@ -1517,9 +1516,6 @@ void EventScene03_SpawnUnusedPartDebris(struct EwramData_EntityData *owner)
     }
 }
 
-extern const s8 sEventScene03Debris[];
-extern u8 sWingedSkeletonSpriteSheet[];
-
 /* Seven debris pieces using the owner's graphics and palette. */
 void EventScene03_SpawnPartDebris(struct EwramData_EntityData *owner)
 {
@@ -1563,7 +1559,6 @@ void EventScene03_SpawnPartDebris(struct EwramData_EntityData *owner)
 extern void EventScene03SoulOrb_Update(struct EwramData_EntityData *);
 extern void EventScene03SoulOrb_OnPlayerContact(struct EwramData_EntityData *);
 extern u32 Entity_AngleToPoint(struct EwramData_EntityData *, s32, s32);
-extern u8 sCommonObjectGfx[], sCommonObjectSpriteSheet[];
 /**
  * @brief Spawn a soul orb (soul pickup palette of the variant) that homes in on
  * the player, or waits (mode != 0); its contact callback ends it.

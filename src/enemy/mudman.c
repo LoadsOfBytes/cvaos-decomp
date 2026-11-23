@@ -14,6 +14,7 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 /* Dispatch Mudman states while preserving hit-flash and freeze update gates. */
 extern s32 Enemy_UpdateHitFlash(struct EwramData_EntityData *);
@@ -398,7 +399,6 @@ void Mudman_ThrowShot(struct EwramData_EntityData *parent)
 
 /* Handle projectile impacts, debris and attachment to a moving entity. */
 extern void MudmanPiece_Update(struct EwramData_EntityData *);
-extern u8 sMudmanGfx[], sMudmanSpriteSheet[];
 static inline void EmitDebris(struct EwramData_EntityData *parent, s32 x, s32 y, s32 vx, s32 vy, s32 zero)
 {
     struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, (u32 *)MudmanPiece_Update);
@@ -649,7 +649,6 @@ void EnemyMudmanCreate(struct EwramData_EntityData *entity)
  *   Mudman_LoadGraphics = Object25_LoadGraphics
  *   Mudman_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
-extern u8 sMudmanPalette[];
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)

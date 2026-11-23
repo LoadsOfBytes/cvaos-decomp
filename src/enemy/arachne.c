@@ -18,6 +18,7 @@
 #include "music.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 /* Arachne dispatch and screen-dependent sound and collision updates. */
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
@@ -57,12 +58,10 @@ collision:
 }
 
 u8 Arachne_LoadGraphics(struct EwramData_EntityData *entity);
-extern struct EwramData_EntityData *Entity_CreateObject(void *update);
 extern void ArachneLegs_Update(struct EwramData_EntityData *entity);
 extern void Arachne_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void Arachne_OnHit(struct EwramData_EntityData *entity,struct EwramData_EntityData *attacker,u16 *info);
 extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
-extern u8 sArachneGfx[], sArachneSpriteSheet[];
 
 /**
  * @brief 799FC | Arachne create: six legs Entity_CreateObject(ArachneLegs_Update) with
@@ -444,7 +443,6 @@ void Arachne_UpdateRecoil(struct EwramData_EntityData *entity)
 }
 
 /* Arachne's death flashes the palette, sheds particles and slowly sinks. */
-extern void Effect_SpawnRandom(s32,s32,s32,s32,s32);
 /**
  * @brief Death state (state 2): random effects above it every 4 frames, flash,
  * sink and request deletion when the timer ends.
@@ -503,7 +501,6 @@ void Arachne_OnHit(struct EwramData_EntityData *entity,struct EwramData_EntityDa
 }
 
 /* Six legs select delayed gait frames from their owner's phase. */
-extern u8 sArachneLegsFrames[];
 #define LEG(e) (*(s8 *)&e->ext.arachne.legIndex)
 #undef GAIT
 #define GAIT(e) (*(s8 *)&e->ext.arachne.gait)
@@ -624,9 +621,6 @@ void Arachne_SpawnEffect(struct EwramData_EntityData *owner,s32 x,s32 y,s32 anim
 
 /* Arachne helpers 0x0807A900..0x0807A9EB. */
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-/* Graphics of Arachne. */
-extern u8 sArachnePalette[];
 
 static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
 {

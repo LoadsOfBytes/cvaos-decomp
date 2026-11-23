@@ -21,6 +21,8 @@
 #include "oam.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* Headhunter (entity type 0x6A): update. */
 struct SingleFrameAnimation {
@@ -31,14 +33,9 @@ struct SingleFrameAnimation {
     u16 unk_6;
 };
 extern struct SingleFrameAnimation sHeadhunterFrameAnim;
-extern u8 sHeadhunterSpriteSheet[];
-extern struct AnimScript sHeadhunterAnimScript0;
-extern struct AnimScript sHeadhunterAnimScript1;
-extern struct AnimScript sHeadhunterAnimScript2;
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
 extern void Headhunter_UpdateMovement(struct EwramData_EntityData *);
 extern void Headhunter_UpdateAttack(struct EwramData_EntityData *);
 extern void Headhunter_UpdateDeath(struct EwramData_EntityData *);
@@ -133,7 +130,7 @@ void EnemyHeadhunterCreate(struct EwramData_EntityData *entity)
     for (kind = 2; kind >= 0; kind--)
     {
         s32 graphics;
-        part = Entity_CreateObject((u32 *)HeadhunterTransformationPart_Update);
+        part = Entity_CreateObject(HeadhunterTransformationPart_Update);
         if (part == NULL) goto delete;
         part->spriteLayer = entity->spriteLayer + 1;
         graphics = entity->ext.headhunter.graphics;
@@ -196,7 +193,6 @@ extern void Headhunter_SpawnBurstShot(struct EwramData_EntityData *, s32, s32, s
 extern void Headhunter_SpawnExtendingAttack(struct EwramData_EntityData *, s32, s32, s32);
 
 extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern void EntityMoveY(struct EwramData_EntityData *);
 s32 Headhunter_UpdateIntro(struct EwramData_EntityData *entity);
 
 #define PHASE(e) (e->ext.headhunter.formPhase)
@@ -1342,8 +1338,6 @@ void Headhunter_UpdateDeath(struct EwramData_EntityData *entity)
 /* Headhunter: graphics loader (83A40), damage callback (83AC4), slash arcs
  * (83C1C/83EEC) and the transformation parts (83FD0). */
 
-extern u8 sHeadhunterGfx[];
-extern u8 sHeadhunterPalette[];
 extern s32 ObjPalette_FindOrLoadVariant(void *, s32);
 
 /* form of the Headhunter: defeat in phases 1 and 2 starts a transformation,
@@ -1850,7 +1844,6 @@ void HeadhunterTransformationPart_Update(struct EwramData_EntityData *entity)
  * affine bursts in four mirrored corners that launch the rolling waves
  * (84B20/84C7C) or the lightning (84DB8/84F14). */
 
-extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
 extern void Headhunter_SpawnLightningBurstFlicker(struct EwramData_EntityData *, s32, s32);
 extern void Headhunter_SpawnWave(struct EwramData_EntityData *, s32, s32, s32);
 extern void Headhunter_SpawnLightningBolt(struct EwramData_EntityData *, s32, s32);
@@ -2991,8 +2984,6 @@ void HeadhunterLightningImpact_DamagePlayerOnContact(struct EwramData_EntityData
 
 /* Headhunter lightning-impact flicker and orbiting-particle creation.
  * The particle follows a stored anchor with an expanding radius. */
-extern u8 sCommonObjectGfx[];
-extern u8 sCommonObjectSpriteSheet[];
 /* bit 0 of the owner's unk_4FE ends its effects (TODO: meaning) */
 
 /**

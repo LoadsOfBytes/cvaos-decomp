@@ -23,6 +23,8 @@
 #include "obj_palette.h"
 #include "werejaguar.h"
 #include "effects.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *);
 extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
 
@@ -256,11 +258,6 @@ struct WeaponFrame {
     u8 pad2[2];
 };
 
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
-extern void Sprite_GetPartCornerOffset(struct EwramData_EntityData *, s32, s16 *);
-extern void EntityAccelerateY(struct EwramData_EntityData *, s32);
-extern u8 sMinotaurGfx[], sMinotaurPalette[], sMinotaurSpriteSheet[];
-extern u8 sCommonObjectGfx[], sCommonObjectSpriteSheet[];
 extern struct WeaponFrame *sMinotaurAxeFrames[];
 
 static inline struct WeaponFrame *FindFrame(struct WeaponFrame *frame, struct EwramData_EntityData *parent)
@@ -319,7 +316,7 @@ void MinotaurAxe_Update(struct EwramData_EntityData *entity)
         {
             struct EwramData_EntityData *hitbox;
             entity->attack += entity->attack >> 2;
-            hitbox = Entity_CreateObject((u32 *)MinotaurAxeHitBox_Update);
+            hitbox = Entity_CreateObject(MinotaurAxeHitBox_Update);
             if (hitbox != NULL)
             {
                 ENTITY_OWNER(hitbox) = entity;
@@ -516,8 +513,6 @@ void Minotaur_UpdateIdle(struct EwramData_EntityData *entity)
     }
 }
 
-extern u8 sMinotaurWalkProfile[];
-
 /* Minotaur approach animation, movement, then close-range attack. */
 void Minotaur_UpdateApproach(struct EwramData_EntityData *entity)
 {
@@ -682,11 +677,11 @@ void Minotaur_Init(struct EwramData_EntityData *entity, s32 variant)
     entity->ext.minotaur.variant = variant;
     Enemy_ResetFromTemplate(entity);
     entity->spriteLayer = 0x13;
-    child = Entity_CreateObject((u32 *)MinotaurAxe_Update);
+    child = Entity_CreateObject(MinotaurAxe_Update);
     if (child == NULL)
         goto fail;
     AttachChild(child, entity);
-    child = Entity_CreateObject((u32 *)MinotaurSwingTrail_Update);
+    child = Entity_CreateObject(MinotaurSwingTrail_Update);
     if (child == NULL)
     {
     fail:
@@ -823,14 +818,7 @@ void EnemyRedMinotaurUpdate(struct EwramData_EntityData *entity)
 
 /* Axe Armor 0x080B0D5C..0x080B136F; only matches without -f2003-patch. */
 
-extern void Effect_SpawnRandom(s32 x, s32 y, s32 width, s32 height, s32 layer);
 extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *entity);
-
-/* Graphics of the Axe Armor and its axe; walk speeds per animation frame. */
-extern u8 sAxeArmorGfx[];
-extern u8 sAxeArmorPalette[];
-extern u8 sAxeArmorSpriteSheet[];
-extern u8 sAxeArmorWalkProfile[];
 
 /**
  * @brief Initialize and update the spinning thrown axe; release its affine slot on destruction.

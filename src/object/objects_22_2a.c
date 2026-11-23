@@ -12,6 +12,8 @@
 #include "hitbox.h"
 #include "math_anim.h"
 #include "obj_gfx.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 extern u8 Object22_LoadGraphics(struct EwramData_EntityData *entity);
 
@@ -60,8 +62,6 @@ extern void Object22_SpawnEffect(struct EwramData_EntityData *, s32, s32, u8);
 extern void Object22_SpawnFallingPart(struct EwramData_EntityData *);
 extern s32 Entity_MoveWithBoxCollision(struct EwramData_EntityData *, s32, s32, s32, s32, s32, s32);
 extern u8 sWarpLightPaletteSteps[];
-extern const s16 sObject22LevelThresholds[];
-extern u8 *sObject22LevelPatterns[];
 
 /**
  * @brief Main behaviour of object 0x22, called by Object22Update.
@@ -277,7 +277,6 @@ void Object22_UpdateState(struct EwramData_EntityData *e)
 extern void Object22FallingPart_Update(struct EwramData_EntityData *);
 extern void Object22FallingPart_OnPlayerContact(struct EwramData_EntityData *);
 extern s32 ObjPalette_FindOrLoadVariant(void *, s32);
-extern u8 sObject22Gfx[], sUnk_08209FD8[], sObject22SpriteSheet[];
 void Object22_SpawnFallingPart(struct EwramData_EntityData *owner)
 {
     struct SpriteBox box;

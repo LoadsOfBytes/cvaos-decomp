@@ -23,6 +23,8 @@
 #include "oam.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* KillerMantle_UpdateHover (state 1 of the enemy created at 0x080BB70C); only matches without -f2003-patch
  * (NO_2003_PATCH_SRCS in ../Makefile). (Target_IsNearEntity test through an inline with two
@@ -32,7 +34,6 @@ extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *entity);
 extern s32 Target_GetPixelX(struct EwramData_EntityData *entity);
 extern s32 Target_GetFlipX(struct EwramData_EntityData *entity);
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *entity, u16 width, u16 height);
-extern u8 sKillerMantleWalkProfile[];
 
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 
@@ -122,7 +123,6 @@ void KillerMantle_UpdateHover(struct EwramData_EntityData *entity)
 
 /* KillerMantle_UpdateJumpAttack (state 2 of the enemy created at 0x080BB70C). */
 extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *updateFunc);
 
 /**
  * @brief BB518 | Jump attack (state 2): crouch (sprite 3, unk_4FE bit 0)
@@ -160,7 +160,7 @@ void KillerMantle_UpdateJumpAttack(struct EwramData_EntityData *entity)
             Entity_Walk(entity, entity->ext.killerMantle.speed, sKillerMantleWalkProfile, 0);
             if (!(entity->animFlags & 4))
                 break;
-            child = Entity_CreateObject((u32 *)KillerMantleLandingEffect_Update);
+            child = Entity_CreateObject(KillerMantleLandingEffect_Update);
             if (child != NULL)
             {
                 child->scrollWithBg = 1;
@@ -191,11 +191,6 @@ void KillerMantle_UpdateJumpAttack(struct EwramData_EntityData *entity)
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
 void KillerMantle_OnHit(struct EwramData_EntityData *entity);
-
-/* Graphics of this enemy (EnemyKillerMantleCreate). */
-extern u8 sKillerMantleGfx[];
-extern u8 sKillerMantlePalette[];
-extern u8 sKillerMantleSpriteSheet[];
 
 /**
  * @brief BB664 | Death burst: sprite 6 and song 0x6D, then every fourth
@@ -267,7 +262,7 @@ void EnemyKillerMantleCreate(struct EwramData_EntityData *entity)
     HitBox_SetBodyRaw(entity, 0x1010F8F8);
     HitBox_SetAttackRaw(entity, 0x1414F6EC);
     entity->hit.flags |= 2;
-    child = Entity_CreateObject((u32 *)KillerMantlePart_Update);
+    child = Entity_CreateObject(KillerMantlePart_Update);
     if (child != NULL)
     {
         child->scrollWithBg = 1;
@@ -300,10 +295,6 @@ void KillerMantle_OnHit(struct EwramData_EntityData *entity)
 }
 
 /* Killer Mantle update and part placement 0x080BB824..0x080BB923. */
-extern void Sprite_GetPartCornerOffset(struct EwramData_EntityData *entity, s32 index, s16 *offset);
-
-/* x offset of the Cockatrice/Basilisk part (CockatriceFamilyPart_FollowOwner). */
-extern const u16 sUnk_08119490[];
 
 /**
  * @brief BB824 | Cockatrice/Basilisk update: unless Enemy_PreUpdate handles the
@@ -363,11 +354,6 @@ void CockatriceFamilyPart_FollowOwner(struct EwramData_EntityData *entity, struc
     entity->posX.part16.integer = offset + (owner->posX.part16.integer + point.x);
     entity->posY.part16.integer = point.y + owner->posY.part16.integer;
 }
-
-/* Graphics of the Cockatrice/Basilisk part (CockatriceFamilyPart_Update). */
-extern u8 sCockatriceFamilyGfx[];
-extern u8 sCockatriceFamilyPalette[];
-extern u8 sCockatriceFamilySpriteSheet[];
 
 /**
  * @brief Load an affine part and follow the owner with angle and scale
@@ -505,8 +491,6 @@ void CockatriceFamilyAttack_Update(struct EwramData_EntityData *entity)
     ObjAffine_Set(entity->ext.cockatriceBeam.angle, 0x10000, entity->ext.cockatriceBeam.scaleY, 0, 0, entity->affineIndex);
 }
 
-extern u8 sCockatriceFamilyWalkProfile[];
-
 static inline s32 FrameOffset(s32 frame)
 {
     return (frame << 14) + 0x1000;
@@ -605,7 +589,7 @@ void CockatriceFamily_UpdateAttack(struct EwramData_EntityData *entity)
             }
             break;
         case 2:
-            if (*(u16 *)&entity->animStep == 10 && (child = Entity_CreateObject((u32 *)CockatriceFamilyAttack_Update)) != NULL)
+            if (*(u16 *)&entity->animStep == 10 && (child = Entity_CreateObject(CockatriceFamilyAttack_Update)) != NULL)
             {
                 ENTITY_OWNER(child) = entity;
                 child->scrollWithBg = 1;
@@ -714,7 +698,7 @@ void CockatriceFamily_Create(struct EwramData_EntityData *entity, s32 paletteSlo
     entity->spriteLayer = 0x11;
     Anim_StartIndexed(entity, 0, 0, 1);
     Anim_Update(entity);
-    part = Entity_CreateObject((u32 *)CockatriceFamilyPart_Update);
+    part = Entity_CreateObject(CockatriceFamilyPart_Update);
     if (part != NULL)
     {
         ENTITY_OWNER(part) = entity;
@@ -903,8 +887,6 @@ void EnemyBasiliskUpdate(struct EwramData_EntityData *entity)
 
 /* Death boss overlay part (DeathOverlay_Update): follows its owner, hidden while
  * the owner is in state 4 or flagged; deleted when the owner reaches state 7. */
-
-extern u8 sDeathGfx[], sDeathPalette[], sDeathSpriteSheet[];
 
 void DeathOverlay_Update(struct EwramData_EntityData *entity)
 {

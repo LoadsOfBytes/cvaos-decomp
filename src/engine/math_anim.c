@@ -13,6 +13,7 @@
 #include "math_anim.h"
 #include "oam.h"
 #include "obj_gfx.h"
+#include "data/data_0E1CD0.h"
 
 // file split
 
@@ -668,8 +669,6 @@ s32 Anim_StepInlineBoxes(struct AnimScript *script, struct EwramData_EntityData 
     }
     return result;
 }
-
-extern const void *sAnimStepFuncs[];
 
 /* Sprite sheet of the sprite slot *index (entity->spriteSlot). */
 static inline struct SpriteSheet *SpriteSheetOf(u8 *index)

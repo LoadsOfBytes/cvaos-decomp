@@ -14,13 +14,12 @@
 #include "palette.h"
 #include "scenes_c.h"
 #include "text12.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* Set up a language-dependent background: copy its map, load the given
  * tiles/palette and layer, and select palette 13 for every map entry. */
 extern void *memcpy(void *dst, const void *src, unsigned long size);
-extern u8 sLocalizedWindowGfx[];
-extern u8 sLocalizedWindowGfxLanguage2[];
-extern u8 sLocalizedWindowGfxLanguage3[];
 
 static inline u8 *GfxData(void *data)
 {
@@ -167,7 +166,6 @@ struct WindowGfx {
     void *layer;
 };
 extern struct WindowGfx sTextWindowGfx[];
-extern u8 sTextWindowScrollOffsets[];
 
 /* Run the text commands until a character or a stop marker. */
 static inline s32 ScanText(u8 *commands, s32 offset)

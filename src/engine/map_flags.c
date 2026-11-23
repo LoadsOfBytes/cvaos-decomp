@@ -12,6 +12,7 @@
 #include "structs/main.h"
 #include "obj_gfx.h"
 #include "palette.h"
+#include "data/data_0E5364.h"
 
 /* Called with int arguments (the u16/u8 parameters in bg_and_collision.h would truncate them). */
 extern u16 *BgCmdBuffer_WriteString(s32 tileIndex, s32 rowOffset, s32 tileInfo, const u8 *string);
@@ -249,8 +250,6 @@ s32 GameFlag_TestAndSet(s32 flag)
     }
     return wasSet;
 }
-
-extern s8 sGameFlagMapCoordinates[][2];
 
 /**
  * @brief Search the signed-byte coordinate table for the supplied map X/Y pair; return its flag index or -1.

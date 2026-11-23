@@ -25,6 +25,7 @@
 #include "palette.h"
 #include "pause_menu.h"
 #include "text12.h"
+#include "data/data_0E5364.h"
 
 // TODO: HudMap_WriteTiles is implicitly called in other files, except this one
 extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
@@ -1377,9 +1378,6 @@ s32 MainMenu_UpdateGameStart(struct EwramData_EntityData *entity)
     return result;
 }
 
-extern u32 *sMainMenuCopyBg1Map;
-extern u32 *sMainMenuCopyBg2Map;
-
 /**
  * @brief Init entry 1 of sMainMenuSubmenuInitFuncs: show the source/destination slot
  * information for the data-copy submenu.
@@ -1978,9 +1976,6 @@ s32 SaveSelect_Update(struct EwramData_EntityData *entity)
     Entity_UpdateAll();
     return result;
 }
-
-extern u32 *sMainMenuDeleteBg1Map;
-extern u32 *sMainMenuDeleteBg2Map;
 
 /**
  * @brief Init entry 2 of sMainMenuSubmenuInitFuncs: show the slot information for the

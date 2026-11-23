@@ -20,6 +20,8 @@
 #include "palette.h"
 #include "player_soma.h"
 #include "red_souls_b.h"
+#include "data/data_0E0B68.h"
+#include "data/data_118B48.h"
 extern s32 Anim_StartIndexed(struct EwramData_EntityData *, s32, s32, s32);
 /* from graphics.h (not included: see the module notes) */
 
@@ -909,7 +911,7 @@ void Soma_TryCastRedSoulUnused(struct EwramData_EntityData *entity)
         return;
     if (!(gEwramData->inputData.playerNewInput & gEwramData->playerStatus.attackButton))
         return;
-    info = RedSoul_GetInfo(gEwramData->playerStatus.equippedRedSoul);
+    info = (struct RedSoulActivationView *)RedSoul_GetInfo(gEwramData->playerStatus.equippedRedSoul);
     if (gEwramData->playerState.nbrActiveRedSoulEntities == 0)
     {
         if (gEwramData->playerState.lastUsedRedSoul != gEwramData->playerStatus.equippedRedSoul)
@@ -1456,10 +1458,6 @@ struct PlayerBodyBox {
 
 extern struct PlayerBodyBox sSomaStandingBodyBox[];
 extern struct PlayerBodyBox sSomaCrouchBodyBoxes[];
-extern u8 sSomaAnimPalettes[];
-extern u8 sSomaPalette[];
-
-extern u8 sUnk_080E12C8[];
 
 #define HELD (gEwramData->inputData.playerHeldInput)
 #define NEW (gEwramData->inputData.playerNewInput)

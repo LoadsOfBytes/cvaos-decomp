@@ -20,9 +20,10 @@
 #include "oam.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
-extern void Effect_SpawnRandom(s32 x, s32 y, s32 w, s32 h, s32 layer);
 extern void Stolas_UpdateMove(struct EwramData_EntityData *entity);
 extern void Stolas_UpdateAttack(struct EwramData_EntityData *entity);
 extern void Stolas_SpawnDebris(struct EwramData_EntityData *entity, s32 x, s32 y, s32 vx, s32 vy);
@@ -134,7 +135,6 @@ boxes:
 /* Stolas create: allocates the 6-joint skeleton and one part entity per joint. */
 extern void *memcpy(void *dst, const void *src, unsigned long size);
 extern u8 Stolas_LoadGraphics(struct EwramData_EntityData *entity);
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *update);
 extern void StolasPart_Update(struct EwramData_EntityData *entity);
 extern void Stolas_OnContact(struct EwramData_EntityData *entity);
 extern void StolasPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
@@ -144,11 +144,6 @@ extern void Stolas_AttachJoint(struct EwramData_EntityData *entity, s32 partInde
 extern void Stolas_AttachJointSetAngle(struct EwramData_EntityData *entity, s32 partIndex, s32 anchorIndex, s32 angleSpec, s32 length);
 extern void Stolas_InterpolateJointsInOrder(struct EwramData_EntityData *entity, s8 *order);
 extern void Stolas_FaceTarget(struct EwramData_EntityData *entity);
-extern u8 sStolasGfx[], sStolasSpriteSheet[];
-extern const u8 sStolasFrames0[6], sStolasAnchors[6];
-extern const s8 sUnk_081190AC[6];
-extern const u8 *const sStolasPartPoses[];
-extern const s32 *const sStolasPartAngles[];
 
 void EnemyStolasCreate(struct EwramData_EntityData *entity)
 {
@@ -191,7 +186,7 @@ void EnemyStolasCreate(struct EwramData_EntityData *entity)
     for (i = 0; i <= 5; i++)
     {
         index = order[i];
-        part = Entity_CreateObject((u32 *)StolasPart_Update);
+        part = Entity_CreateObject(StolasPart_Update);
         if (part != NULL)
         {
             u16 palette;
@@ -931,7 +926,6 @@ struct StolasPartBox {
 };
 
 extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
-extern const u8 sUnk_081190B2[13];
 
 #define JOINT(e) ((s8)e->ext.jointPart.index)
 #define FIX_INT(v) ((v) < 0 ? -(-(v) >> 16) : (v) >> 16)
@@ -1442,9 +1436,6 @@ void Stolas_OnContact(struct EwramData_EntityData *entity)
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
-
-/* Graphics of Stolas. */
-extern u8 sStolasPalette[];
 
 void Stolas_Draw(struct EwramData_EntityData *entity);
 

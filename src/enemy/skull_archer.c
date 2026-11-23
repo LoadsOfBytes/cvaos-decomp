@@ -12,11 +12,10 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "waiter_skeleton.h"
+#include "data/data_118B48.h"
 
 /* Enemy helpers decompiled from assembly. */
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *, s32, u16 *);
-extern u8 sSkullArcherGfx[], sSkullArcherSpriteSheet[];
-extern u8 sSkullArcherWalkProfile[], sSkullArcherPalette[];
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, u8 *, void *, u8, void *);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, s32);
 extern void Enemy_OnContact(struct EwramData_EntityData *);

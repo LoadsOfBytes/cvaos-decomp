@@ -16,6 +16,7 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "werejaguar.h"
+#include "data/data_118B48.h"
 
 /* Werejaguar dispatch, collision handling and animation change notification. */
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
@@ -553,7 +554,6 @@ void Werejaguar_UpdateDeath(struct EwramData_EntityData *entity)
 }
 
 /* Select attack damage and knockback, then use the current frame's hitbox. */
-extern const char sAssertFileLtInline[],sAssertExprOpdId[];
 static inline struct SpriteSheet *GetSprite(s16 slot)
 {
     if(!(slot>=0 && slot<240)) AGBAssert(sAssertFileLtInline,94,sAssertExprOpdId,1);
@@ -668,7 +668,6 @@ void Werejaguar_SpawnDeathEffect(s32 x,s32 y,s32 layer,s32 angle)
 }
 
 /* A spiralling particle rises from a saved origin, independently of the camera. */
-extern u8 sCommonObjectGfx[],sCommonObjectSpriteSheet[];
 void WerejaguarDeathEffect_Update(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *camera=&gEwramData->bgInfo[1];
@@ -703,7 +702,6 @@ void WerejaguarDeathEffect_Update(struct EwramData_EntityData *entity)
 
 /* Werejaguar and Weretiger share graphics and select different palette rows. */
 extern s32 ObjPalette_FindOrLoadVariant(void *,s32);
-extern u8 sWerejaguarGfx[],sWerejaguarPalette[],sWerejaguarSpriteSheet[];
 u8 Werejaguar_LoadGraphics(struct EwramData_EntityData *entity)
 {
     s32 graphics=ObjGfx_LoadResource(sWerejaguarGfx,0);

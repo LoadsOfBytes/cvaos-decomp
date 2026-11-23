@@ -30,11 +30,11 @@
 #include "in_game.h"
 #include "map_flags.h"
 #include "map_screen.h"
+#include "entity_common.h"
 extern void HudMap_WriteTiles(s32, s32, u16, s32);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s32, s32);
-extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
 
 struct Debug1967MenuEntry {
     u8 *label; // pointer to string

@@ -17,6 +17,8 @@
 #include "oam.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 extern void Devil_UpdateApproach(struct EwramData_EntityData *entity);
 extern void Devil_UpdateAttack(struct EwramData_EntityData *entity);
@@ -69,7 +71,6 @@ void EnemyDevilUpdate(struct EwramData_EntityData *entity)
 /* Devil create: allocates the 8-joint skeleton and one part entity per joint. */
 extern void *memcpy(void *dst, const void *src, unsigned long size);
 extern u8 Devil_LoadGraphics(struct EwramData_EntityData *entity);
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *update);
 extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
 extern void DevilPart_Update(struct EwramData_EntityData *entity);
 extern void DevilPart_DamagePlayerOnContact(struct EwramData_EntityData *entity);
@@ -79,11 +80,6 @@ extern void Devil_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *
 extern void DevilPart_Attach(struct EwramData_EntityData *entity, s32 partIndex, s32 anchorIndex, s32 angleSpec, s32 length);
 extern void Devil_UpdateAllParts(struct EwramData_EntityData *entity);
 extern void Devil_ResetPartAngles(struct EwramData_EntityData *entity, s32 partIndex);
-extern u8 sDevilGfx[], sDevilSpriteSheet[];
-extern const u8 sDevilFrames30[8], sDevilFrames48[8], sDevilAnchors[8];
-extern const s8 sDevilOrder[8], sUnk_0811902C[8];
-extern const s8 *const sDevilPartPoses[];
-extern const s32 *const sDevilPartAngles[];
 
 void EnemyDevilCreate(struct EwramData_EntityData *entity)
 {
@@ -143,7 +139,7 @@ void EnemyDevilCreate(struct EwramData_EntityData *entity)
     for (i = 0; i <= 7; i++)
     {
         index = order[i];
-        part = Entity_CreateObject((u32 *)DevilPart_Update);
+        part = Entity_CreateObject(DevilPart_Update);
         if (part != NULL)
         {
             if ((u32)index <= 1 || index == 4 || index == 5)
@@ -791,7 +787,6 @@ void Devil_UpdateHover(struct EwramData_EntityData *entity)
  * are not loaded. */
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 extern void Devil_Draw(struct EwramData_EntityData *entity);
-extern u8 sDevilGfx[], sDevilPalette[], sDevilSpriteSheet[];
 
 /**
  * @brief Load the Devil graphics and the palette variant of its enemy ID (0x30,
@@ -971,8 +966,6 @@ struct DevilBox {
 };
 
 extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
-extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
-extern const u8 sDevilPartTimers[8];
 
 #define JOINT(e) ((s8)e->ext.jointPart.index)
 #define FIX_INT(v) ((v) < 0 ? -(-(v) >> 16) : (v) >> 16)

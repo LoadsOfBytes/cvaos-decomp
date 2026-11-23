@@ -18,6 +18,7 @@
 #include "oam.h"
 #include "obj_palette.h"
 #include "effects.h"
+#include "data/data_118B48.h"
 
 /* Rotating attached part: follow the parent during animation 3, then fall
  * and release its affine slot when the parent dies. */
@@ -115,7 +116,6 @@ void SkullMillioneFamilyPart_Update(struct EwramData_EntityData *entity)
 /* Shared Skull Millione / Cagnazzo / Lubicant setup and movement. */
 #define BACKGROUND ((struct BgLayerState *)((u8 *)gEwramData + OFFSET_OF(struct EwramData, bgInfo[1])))
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
-extern struct EwramData_EntityData *Entity_CreateObject(void *);
 extern s32 Hit_EnableContact(struct EwramData_EntityData *, s32, void *, s32);
 extern void SkullMillioneFamily_OnHit(struct EwramData_EntityData *);
 extern void Entity_FaceTarget(struct EwramData_EntityData *);
@@ -126,7 +126,6 @@ extern s32 Target_GetVelocityX(void);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void SkullMillioneFamily_UpdateAttack(struct EwramData_EntityData *);
 extern s32 SkullMillioneFamily_UpdateDeath(struct EwramData_EntityData *);
-extern u8 sSkullMillioneFamilyGfx[], sSkullMillioneFamilyPalette[];
 s32 SkullMillioneFamily_CreatePart(struct EwramData_EntityData *);
 void SkullMillioneFamily_UpdateWait(struct EwramData_EntityData *);
 void SkullMillioneFamily_UpdateApproach(struct EwramData_EntityData *);

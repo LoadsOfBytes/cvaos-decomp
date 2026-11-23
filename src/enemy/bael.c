@@ -17,6 +17,8 @@
 #include "oam.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* Bael-fight helper functions 0x080CC3C8..0x080CC623. */
 extern s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY);
@@ -195,9 +197,6 @@ extern void Bael_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 extern void Bael_OnHit(struct EwramData_EntityData *entity);
 extern void Hit_Enable(struct EwramData_EntityData *entity, s32 mode, void *callback, s32 flags);
 extern void HitBox_SetAttackRaw(struct EwramData_EntityData *entity, s32 flags);
-extern u8 sBaelBuerPalette[];
-extern u8 sBaelBuerSpriteSheet[];
-extern u8 sBaelBuerGfx[];
 static inline void SetAffine(struct EwramData_EntityData *e, s32 index) { e->affineIndex = index; }
 
 void EnemyBaelCreate(struct EwramData_EntityData *entity)
@@ -261,14 +260,13 @@ void EnemyBaelCreate(struct EwramData_EntityData *entity)
  *   Bael_CreateHead = Buer_CreateHead */
 
 extern void BaelHead_Update(struct EwramData_EntityData *entity);
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *updateFunc);
 
 /**
  * @brief Create the linked frame-1 head sharing graphics and palette; store mutual slot indices and face it according to movement speed.
  */
 void Bael_CreateHead(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *child = Entity_CreateObject((u32 *)BaelHead_Update);
+    struct EwramData_EntityData *child = Entity_CreateObject(BaelHead_Update);
 
     if (child != NULL)
     {
@@ -465,7 +463,6 @@ extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *entity);
 extern void Bael_RestoreXAtProbe(struct EwramData_EntityData *entity,s32 work);
 void Bael_SpawnChargeEffect(u16 x, u16 y, u8 kind, u32 flip);
 extern s32 Bael_OffsetBySign(s32 value,s32 step);
-extern s16 sBaelWalkProfile[];
 #define ANGLE(e) (e->ext.wheel.angle)
 #define DIRECTION(e) (e->ext.wheel.direction)
 
@@ -598,8 +595,6 @@ void Bael_UpdateCharge(struct EwramData_EntityData *entity)
 }
 
 /* Bael death: shaking head, slowing rotation, smoke and final fragments. */
-extern void Effect_SpawnRandom(s32 x,s32 y,s32 scaleX,s32 scaleY,s32 layer);
-extern s16 sBaelPositions[8][2];
 #define SHAKE_X(e) (e->ext.wheelDeath.shake[0])
 #define SHAKE_Y(e) (e->ext.wheelDeath.shake[1])
 

@@ -26,6 +26,8 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "palette.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* Chaos core creation. */
 /* allocation of 10 words in the Chaos core's unk_504 */
@@ -242,7 +244,6 @@ void Chaos_UpdateIntro(struct EwramData_EntityData *core)
 }
 
 /* Chaos core defeat (22A0). */
-extern u8 sChaosDestinationRoom[];
 
 #define ROT_SPEED(e) ((e)->velX.whole)
 #define ANGLE_SPEED(e) ((e)->velY.whole)
@@ -376,7 +377,6 @@ void ChaosBackground_Update(struct EwramData_EntityData *entity)
 }
 
 /* Chaos: the two rotating rings (create 25A4/27F8, update 26BC/2910). */
-extern u8 sChaosSpriteSheet[];
 void ChaosOuterRing_Update(struct EwramData_EntityData *entity);
 void ChaosInnerRing_Update(struct EwramData_EntityData *entity);
 void ChaosOrb_Update(struct EwramData_EntityData *entity);
@@ -1443,8 +1443,6 @@ struct MarkFrames {
     s32 v[3];
 };
 
-extern u8 sCommonObjectGfx[];
-extern u8 sCommonObjectSpriteSheet[];
 extern struct MarkFrames sChaosMarkFrames;
 extern void ChaosMark_Update(struct EwramData_EntityData *);
 void ChaosHalo_Update(struct EwramData_EntityData *entity);
@@ -1724,8 +1722,6 @@ void ChaosSpark_OnContact(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   ChaosSoulShot_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
-extern u8 sChaosGfx[];
-extern u8 sChaosPalette[];
 extern s8 ObjPalette_FindOrLoadVariant(void *, u8);
 extern void Chaos_UpdateIdle(struct EwramData_EntityData *);
 
@@ -1871,8 +1867,6 @@ s32 Chaos_StartSecondForm(struct EwramData_EntityData *core)
     return 1;
 }
 
-extern u8 sChaos2PaletteSequence2[];
-extern u8 sChaos2PaletteSequence3[];
 extern void Chaos2_StepPaletteSequence(struct EwramData_EntityData *);
 extern void Chaos2_SpawnShot(struct EwramData_EntityData *, s32, s32, s32);
 extern void Chaos2_SummonPart(struct EwramData_EntityData *, s32, s32, s32, s32);
@@ -1976,7 +1970,6 @@ void Chaos2_UpdateAttack(struct EwramData_EntityData *core)
 
 extern void Chaos2_CreatePart(struct EwramData_EntityData *core, s32 x, s32 y, s32 mirror);
 void Chaos2_CreateSnake(struct EwramData_EntityData *core, s32 x, s32 y, s32 unused);
-extern u8 sChaos2PaletteSequence1[];
 
 /**
  * @brief A4728 | Chaos intro sequence (subState, player input frozen):
@@ -2169,7 +2162,6 @@ void Chaos2_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
 }
 
 /* Chaos second form: palette sequence (4CE4) and part creation (4D64). */
-extern u8 sChaos2SpriteSheet[];
 extern void Chaos2Part_Update(struct EwramData_EntityData *);
 void Chaos2Part_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 extern void Chaos2Part_DamagePlayerOnContact(struct EwramData_EntityData *);
@@ -2244,7 +2236,6 @@ void Chaos2_CreatePart(struct EwramData_EntityData *core, s32 x, s32 y, s32 mirr
 }
 
 /* Chaos second form: part update (4E80). */
-extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
 
 #define FLASH(e) (e->ext.chaos2Part.flash)
 
@@ -2597,7 +2588,6 @@ void Chaos2SummonedPart_OnHit(struct EwramData_EntityData *part, struct EwramDat
 }
 
 /* Chaos second form: spark burst (56CC). */
-extern struct AnimScript sChaos2SparkAnimScript;
 extern void Chaos2Spark_Update(struct EwramData_EntityData *);
 
 /* Create a spark (animation sChaos2SparkAnimScript) at a random angle on a circle
@@ -2636,7 +2626,6 @@ void Chaos2_SpawnSpark(struct EwramData_EntityData *core)
 
 /* Chaos second form: body creation (57BC). */
 
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
 extern void Chaos2SnakeHead_Update(struct EwramData_EntityData *);
 extern void Chaos2SnakeSegment_Update(struct EwramData_EntityData *);
 extern void Chaos2SnakeSegment_EnableHitBoxes(struct EwramData_EntityData *);
@@ -2712,7 +2701,7 @@ void Chaos2_CreateSnake(struct EwramData_EntityData *core, s32 x, s32 y, s32 unu
         i = 7;
         do
         {
-            seg = Entity_CreateObject((u32 *)Chaos2SnakeSegment_Update);
+            seg = Entity_CreateObject(Chaos2SnakeSegment_Update);
             if (seg == NULL)
                 goto fail;
             seg->spriteLayer = head->spriteLayer + 1;
@@ -2759,11 +2748,6 @@ void Chaos2_CreateSnake(struct EwramData_EntityData *core, s32 x, s32 y, s32 unu
 
 /* Chaos second form: head update (5A7C). */
 extern void *memcpy(void *dst, const void *src, unsigned long size);
-extern const u8 sUnk_08119264[];
-extern const u16 sUnk_0811926C[];
-extern const u16 sUnk_08119280[];
-extern const u16 sUnk_081192A0[];
-extern const u16 sUnk_081192C0[];
 
 extern void Chaos2SnakeHead_FireShot(struct EwramData_EntityData *, s32);
 
@@ -3908,7 +3892,6 @@ void Chaos2Shard_Update(struct EwramData_EntityData *entity)
 }
 
 /* Chaos second form: load graphics, palettes and animation data. */
-extern u8 sChaos2Gfx[], sChaosPalette[], sChaos2PaletteSequence0[], sChaos2SpriteSheet[];
 
 u8 EnemyChaos2Create(struct EwramData_EntityData *entity)
 {

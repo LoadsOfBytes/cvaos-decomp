@@ -16,6 +16,8 @@
 #include "oam.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* Peeping Eye: main update, creation, movement and animation, the hit
  * reaction and its parts (eyeball, pupil and the chain of six links).
@@ -27,7 +29,6 @@ extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
 extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *updateFunc);
 extern struct EwramData_EntityData *EnemyPeepingEyeCreateEyeball(struct EwramData_EntityData *);
 extern struct EwramData_EntityData *PeepingEye_CreatePupil(struct EwramData_EntityData *);
 extern u8 PeepingEye_LoadGraphics(struct EwramData_EntityData *);
@@ -47,12 +48,8 @@ struct SingleFrameAnimation {
     u16 unk_6;
 };
 extern struct SingleFrameAnimation sPeepingEyeFrameAnim;
-extern u8 sPeepingEyeGfx[];
-extern u8 sPeepingEyeSpriteSheet[];
 /* Animations are (frame, duration) byte pairs ending with frame 0xFF:
  * the opening animation and the idle/look-up/look-down/hit set. */
-extern u8 sPeepingEyeMoveSteps[];
-extern u8 *sPeepingEyeAnimSets[];
 #define STEP_FRAME(a, i) ((a)[(i) * 2])
 #define STEP_DURATION(a, i) ((a)[(i) * 2 + 1])
 
@@ -600,7 +597,7 @@ void PeepingEyeEyeball_Update(struct EwramData_EntityData *entity)
  * The last link (5) gets its own affine transformation slot. */
 struct EwramData_EntityData *PeepingEye_CreateChainLink(struct EwramData_EntityData *owner, struct EwramData_EntityData *previous, s32 index)
 {
-    struct EwramData_EntityData *link = Entity_CreateObject((u32 *)PeepingEyeChainLink_Update);
+    struct EwramData_EntityData *link = Entity_CreateObject(PeepingEyeChainLink_Update);
 
     if (link != NULL)
     {
@@ -749,7 +746,7 @@ fail:
  */
 struct EwramData_EntityData *PeepingEye_CreatePupil(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *child = Entity_CreateObject((u32 *)PeepingEyePupil_Update);
+    struct EwramData_EntityData *child = Entity_CreateObject(PeepingEyePupil_Update);
 
     if (child != NULL)
     {
@@ -776,7 +773,7 @@ struct EwramData_EntityData *PeepingEye_CreatePupil(struct EwramData_EntityData 
  */
 struct EwramData_EntityData *EnemyPeepingEyeCreateEyeball(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *child = Entity_CreateObject((u32 *)PeepingEyeEyeball_Update);
+    struct EwramData_EntityData *child = Entity_CreateObject(PeepingEyeEyeball_Update);
 
     if (child != NULL)
     {
@@ -799,7 +796,6 @@ struct EwramData_EntityData *EnemyPeepingEyeCreateEyeball(struct EwramData_Entit
  * a cloning script and checked byte for byte:
  *   PeepingEye_LoadGraphics = Object25_LoadGraphics */
 
-extern u8 sPeepingEyePalette[];
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 /**

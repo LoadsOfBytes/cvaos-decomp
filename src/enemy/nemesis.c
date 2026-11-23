@@ -17,6 +17,8 @@
 #include "oam.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* Nemesis_UpdatePositioning: twin of Alastor_UpdateApproach (approach a point near the player and rock);
  * deeper vertical target (+48/16), palette call in state 0; matched. */
@@ -122,7 +124,6 @@ void Nemesis_UpdatePositioning(struct EwramData_EntityData *entity)
 
 /* Attack step of a part-driven enemy (Nemesis_UpdateAttackSelection, cf. Alastor Alastor_UpdateAttackSelection):
  * rotate the part through three target angles, then pick the next attack. */
-extern s32 sUnk_08528A34[][9];
 
 #define SET(e) (e->ext.nemesis.attackSet)
 #define INDEX(e) (e->ext.nemesis.attackIndex)
@@ -235,7 +236,6 @@ void Nemesis_UpdateRotatedBoxes(struct EwramData_EntityData *entity)
 }
 
 /* Turning attack: three passes, then return to the ordinary state. */
-extern const u16 sNemesisTurn[3];
 extern void *memcpy(void *, const void *, unsigned long);
 
 #define LEFT(e) ((e)->ext.raw.unk_4F4.part8.unk_4F7)
@@ -542,7 +542,6 @@ void Nemesis_UpdatePartnerFlight(struct EwramData_EntityData *entity)
 
 /* Falling-away death of a linked part. */
 extern void Nemesis_DeleteAfterimages(struct EwramData_EntityData *);
-extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
 
 /**
  * @brief Delete afterimages, fall and emit effects; free the affine slot and request deletion of self and partner at the Y or timer limit.
@@ -628,7 +627,6 @@ done:
 
 /* Linked child creation. */
 extern void NemesisPartner_Update(struct EwramData_EntityData *);
-extern u8 sNemesisSpriteSheet[], sNemesisGfx[], sNemesisPalette[];
 
 /**
  * @brief Allocate and attach the linked partner, store mutual slot references and run its first update; return 0 if allocation or sprite attachment fails.
@@ -748,8 +746,6 @@ void NemesisPartner_Update(struct EwramData_EntityData *entity)
 }
 
 /* Effect_FollowParentHitBox. */
-extern u8 sCommonObjectGfx[];
-extern u8 sCommonObjectSpriteSheet[];
 
 /**
  * @brief C799C | Follow the parent (entity unk_4F5) at the offset returned

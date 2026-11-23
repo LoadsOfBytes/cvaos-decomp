@@ -13,13 +13,13 @@
 #include "hitbox.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 /* Quezlcoatl dispatch and staged destruction of the parent entity. */
 extern void Hit_CheckWithPlayer(void *,struct EwramData_EntityData *);
 extern void Quezlcoatl_UpdateFly(struct EwramData_EntityData *);
 extern void Quezlcoatl_UpdatePreview(struct EwramData_EntityData *);
 extern void Quezlcoatl_SpawnDeathPiece(struct EwramData_EntityData *,s32,s32,s32);
-extern void Effect_SpawnRandom(s32,s32,s32,s32,s32);
 void EnemyQuezlcoatlUpdate(struct EwramData_EntityData *entity)
 {
     s32 bounds[4];
@@ -65,12 +65,10 @@ void EnemyQuezlcoatlUpdate(struct EwramData_EntityData *entity)
 
 /* Quetzalcoatl: allocate the displacement history and create fifteen following body segments. */
 extern u8 Quezlcoatl_LoadGraphics(struct EwramData_EntityData *);
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
 extern void QuezlcoatlSegment_Update(struct EwramData_EntityData *);
 extern void QuezlcoatlSegment_EnableHitBoxes(struct EwramData_EntityData *);
 void Quezlcoatl_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void Quezlcoatl_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern u8 sQuezlcoatlWhiteDragonGfx[], sQuezlcoatlWhiteDragonSpriteSheet[];
 
 void EnemyQuezlcoatlCreate(struct EwramData_EntityData *entity)
 {
@@ -100,7 +98,7 @@ void EnemyQuezlcoatlCreate(struct EwramData_EntityData *entity)
     index = 14;
     do
     {
-        struct EwramData_EntityData *part = Entity_CreateObject((u32 *)QuezlcoatlSegment_Update);
+        struct EwramData_EntityData *part = Entity_CreateObject(QuezlcoatlSegment_Update);
         s32 graphics;
 
         if (!part)
@@ -433,7 +431,6 @@ void QuezlcoatlPiece_Update(struct EwramData_EntityData *entity)
  *   Quezlcoatl_DamagePlayerOnContact = Enemy_DamagePlayerOnContact
  *   QuezlcoatlSegment_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
-extern u8 sQuezlcoatlWhiteDragonPalette[];
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)

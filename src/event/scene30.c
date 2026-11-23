@@ -16,10 +16,9 @@
 #include "palette.h"
 #include "scene30_transformation.h"
 #include "scenes_c.h"
+#include "data/data_118B48.h"
 
 /* Set up, play and fade the background transformation scene. */
-extern u8 sEventScene30TransformationGfx[],sUnk_08119898[],sEventScene30TransformationPalette[];
-extern struct BgMapMetadata sEventScene30BgMap,sEventScene30TransformationBg2Map;
 /**
  * @brief Event scene 30 sequence: set up the BG layers and graphics, run
  * EventScene30_UpdateTransformation with brightness fade-in, wait, fade
@@ -91,7 +90,6 @@ s32 EventScene30_PlayTransformation(struct EwramData_EntityData *entity)
 }
 
 /* Allocate a shared effect, optionally reserving an affine sprite slot. */
-extern u8 sEventScene30Gfx[],sEventScene30SpriteSheet[];
 /**
  * @brief Create an effect sprite entity of event scene 30 (graphics
  * sEventScene30Gfx, palette 14), optionally with an affine slot at scale
@@ -125,7 +123,6 @@ fail:
 }
 
 /* Delayed fragments spiral away, alternating their direction of rotation. */
-extern u8 sEventScene30Gfx[],sEventScene30Palette[],sEventScene30SpriteSheet[];
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *,u8 *,void *,u8,void *);
 static inline void flashAt(s16 x,s16 y)
 {
@@ -665,7 +662,6 @@ void EventScene30EmitterE_Update(struct EwramData_EntityData *entity)
 }
 
 /* Emit four accelerating fragments at four-frame intervals. */
-extern u8 sEventScene30PieceEmitterFrames[];
 /**
  * @brief After its delay, spawn spinning pieces
  * (EventScene30Effect_UpdateSpinning) with random frames.
@@ -817,7 +813,6 @@ void EventScene30_SpawnOrbitRing(struct EwramData_EntityData *owner,u16 x,u16 y)
 }
 
 /* Emit four accelerating fragments at four-frame intervals. */
-extern u8 sEventScene30PieceEmitterAltFrames[];
 /**
  * @brief Unreferenced variant of EventScene30PieceEmitter_Update using
  * EventScene30Effect_UpdateSpinningKeepSlot.
@@ -902,7 +897,6 @@ struct EwramData_EntityData *EventScene30_SpawnFastDriftFragment(u16 x, u16 y, s
 }
 
 /* Parent-linked affine effect: attachment, release, sparks and departure. */
-extern s32 sEventScene30CenterEffectOffsets[21];
 /**
  * @brief Central effect: follow the owner timer, spawn spark bursts at set
  * times and scale with the owner radius.

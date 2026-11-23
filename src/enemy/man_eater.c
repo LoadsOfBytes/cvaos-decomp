@@ -21,6 +21,8 @@
 #include "oam.h"
 #include "obj_palette.h"
 #include "effects.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* Man Eater part hit: propagate flags, subtract HP and notify parent.
  * The local r6 binding preserves the hit-data pointer before address calculation.
@@ -69,7 +71,6 @@ extern s32 Target_GetPixelX(struct EwramData_EntityData *);
 extern s32 Target_GetPixelY(struct EwramData_EntityData *);
 extern void ManEaterProjectile_DamagePlayerOnContact(struct EwramData_EntityData *);
 extern void ManEaterProjectile_OnHit(struct EwramData_EntityData *);
-extern u8 sManEaterGfx[], sManEaterPalette[], sManEaterSpriteSheet[];
 
 /**
  * @brief Display frame 0x19 for a countdown, enabling drawSkip halfway
@@ -217,7 +218,6 @@ void ManEaterChainAnchor_Update(struct EwramData_EntityData *entity)
 /* Man Eater body segment: follows the head chain, swings, and breaks apart.
  * (flipX through an s8 byte pointer, one
  * variable for the divisor and the swing amplitude). */
-extern struct EwramData_EntityData *Entity_CreateObject(void *);
 extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
 extern void Enemy_OnContact(struct EwramData_EntityData *);
 
@@ -358,7 +358,7 @@ remove:
         if (*(u8 *)&entity->ext.manEaterLink.drops && (s16)head->hp <= 0xC7
             && entity->animStep <= 2 && entity->animTimer == 0 && (RandomNumberGenerator() & 7))
         {
-            struct EwramData_EntityData *drop = Entity_CreateObject((u32 *)ManEaterProjectile_Update);
+            struct EwramData_EntityData *drop = Entity_CreateObject(ManEaterProjectile_Update);
             if (drop != NULL)
             {
                 drop->posX.whole = entity->posX.whole;
@@ -516,8 +516,6 @@ void ManEaterHead_Update(struct EwramData_EntityData *entity)
 }
 
 /* Man Eater creation and attached effects. */
-extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
-extern const u8 sUnk_085288A8[][4];
 
 /**
  * @brief Follow the root owner using its affine slot; animate the indexed
@@ -748,11 +746,6 @@ void EnemyManEaterUpdate(struct EwramData_EntityData *entity)
 /* Man Eater projectile callbacks and Killer Mantle attached effects. */
 // The offsets are passed sign-extended here (u16 in the definition).
 extern void Entity_PlaceRelativeToCopy(struct EwramData_EntityData *entity, struct EwramData_EntityData *anchor, s32 offsetX, s32 offsetY);
-
-/* Graphics of this enemy (see enemy/killer_mantle.c). */
-extern u8 sKillerMantleGfx[];
-extern u8 sKillerMantlePalette[];
-extern u8 sKillerMantleSpriteSheet[];
 
 /**
  * @brief Apply stored contact damage with effect type 4 and zero flags,

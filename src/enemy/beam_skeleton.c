@@ -14,6 +14,8 @@
 #include "oam.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* Beam Skeleton creation and update dispatcher. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity,u8 *graphics,void *palette,u8 slot,void *sprite);
@@ -27,9 +29,6 @@ extern void BeamSkeleton_UpdateFire(struct EwramData_EntityData *entity);
 extern void BeamSkeleton_UpdatePatrol(struct EwramData_EntityData *entity);
 extern void BeamSkeleton_UpdateApproach(struct EwramData_EntityData *entity);
 extern void BeamSkeleton_UpdateIdle(struct EwramData_EntityData *entity);
-extern u8 sBeamSkeletonPalette[];
-extern u8 sBeamSkeletonSpriteSheet[];
-extern u8 sBeamSkeletonGfx[];
 
 static inline void SetAffine(struct EwramData_EntityData *e,s32 index) { e->affineIndex = index; }
 void EnemyBeamSkeletonCreate(struct EwramData_EntityData *entity)
@@ -107,7 +106,6 @@ void EnemyBeamSkeletonUpdate(struct EwramData_EntityData *entity)
 /* Beam Skeleton patrol and selection of the attack state. */
 extern s32 Entity_ClampXToRoom(struct EwramData_EntityData *entity,s32 mode);
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *entity,s32 width,s32 height);
-extern s16 sBeamSkeletonWalkProfile[];
 
 /**
  * @brief Patrol state (0): walk within the stored range, turn at terrain
@@ -571,7 +569,6 @@ void BeamSkeletonBeamSprite_Update(struct EwramData_EntityData *entity)
 
 /* Beam Skeleton: seven fragments on death. */
 extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *entity);
-extern s8 sBeamSkeletonDeathPieceOffsets[][6];
 #define INDEX(e) (e->ext.beamSkeletonPiece.index)
 
 extern void BeamSkeleton_SpawnDeathPieces(struct EwramData_EntityData *entity);
@@ -730,9 +727,6 @@ void BeamSkeleton_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
 /* Beam Skeleton hit callback and Needles create/idle behavior. */
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
 extern void Needles_OnHit(struct EwramData_EntityData *entity);
-extern u8 sNeedlesPalette[];
-extern u8 sNeedlesSpriteSheet[];
-extern u8 sNeedlesGfx[];
 
 /**
  * @brief Apply enemy damage; on defeat enter state 0xFF, immediately run
@@ -844,8 +838,6 @@ enum {
     NEEDLE_VEL_Y,
     NEEDLE_TIMER
 };
-
-extern const s8 sNeedlesDeathParts[5][6];
 
 void NeedlesPart_Update(struct EwramData_EntityData *entity);
 void Needles_UpdateDeath(struct EwramData_EntityData *entity);

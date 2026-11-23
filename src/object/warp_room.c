@@ -23,6 +23,7 @@
 #include "oam.h"
 #include "obj_gfx.h"
 #include "palette.h"
+#include "data/data_118B48.h"
 
 /* WarpRoom_Update. */
 extern void Player_StartScriptedAnimation(s32, s32, s32, s32);
@@ -196,7 +197,6 @@ void WarpRoom_Update(struct EwramData_EntityData *e)
     }
 }
 
-extern u8 sWarpRoomGfx[], sWarpRoomPalette[], sWarpRoomSpriteSheet[];
 extern void WarpRoom_UpdateGatePart(struct EwramData_EntityData *);
 extern void WarpRoom_ResetGatePart(struct EwramData_EntityData *);
 
@@ -792,9 +792,6 @@ void Object21_UpdateState(struct EwramData_EntityData *entity)
  *   Object21_OnPlayerContact = DevilPart_DamagePlayerOnContact */
 
 extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
-extern u8 sObject21Object23Gfx[];
-extern u8 sUnk_08209FD8[];
-extern u8 sObject21Object23SpriteSheet[];
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 /**

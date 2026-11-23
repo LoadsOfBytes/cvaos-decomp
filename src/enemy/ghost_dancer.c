@@ -14,6 +14,7 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "skeleton.h"
+#include "data/data_118B48.h"
 
 extern u8 GhostDancer_LoadGraphics(struct EwramData_EntityData *);
 extern void GhostDancer_DamagePlayerOnContact(struct EwramData_EntityData *entity);
@@ -53,7 +54,6 @@ void EnemyGhostDancerCreate(struct EwramData_EntityData *input)
 
 /* Ghost Dancer's renderer and initial visibility/collision state. */
 extern s32 ObjPalette_FindOrLoadVariant(void *,s32);
-extern u8 sGhostDancerPalette[],sGhostDancerSpriteSheet[],sGhostDancerGfx[];
 /**
  * @brief Find or load graphics and the selected palette variant, attach
  * the sprite and start animation 0. Delete and return 0 on failure;
@@ -367,7 +367,6 @@ extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, u8 *, void *, u8, void *);
 extern void Enemy_OnContact(struct EwramData_EntityData *entity);
 extern void Skeleton_OnHit(struct EwramData_EntityData *entity);
-extern u8 sSkeletonGfx[], sSkeletonWaiterSkeletonPalette[], sSkeletonSpriteSheet[];
 
 void EnemySkeletonCreate(struct EwramData_EntityData *entity)
 {

@@ -16,6 +16,8 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* Nightmare running, attack and death states. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
@@ -27,9 +29,6 @@ extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern struct EwramData_EntityData *Afterimage_Create(struct EwramData_EntityData *, s32, s32, s32);
 extern void Nightmare_UpdateRun(struct EwramData_EntityData *);
 extern s32 Nightmare_UpdateDeath(struct EwramData_EntityData *);
-extern u8 sNightmareGfx[], sNightmarePalette[], sNightmareSpriteSheet[];
-
-extern u8 sNightmareWalkProfile[];
 
 /**
  * @brief Alive state (1): accelerate, brake with particles and reverse

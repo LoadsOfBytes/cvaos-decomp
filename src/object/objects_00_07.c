@@ -19,6 +19,8 @@
 #include "obj_gfx.h"
 #include "objects_00_07.h"
 #include "palette.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 /* from bg_and_collision.h (not included: see the module notes) */
 extern void Collision_SetBlock(s32 arg0, s32 arg1);
 extern void Collision_ClearBlock(s32 arg0, s32 arg1);
@@ -89,7 +91,6 @@ void Gate_Draw(struct EwramData_EntityData *e)
 }
 
 extern s32 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
-extern u8 sGateGfx[], sGatePalette[], sGateSpriteSheet[], sGatePaletteAnim0[], sGatePaletteAnim1[];
 
 /**
  * @brief 4D8F0 | Graphics setup of object 0: layer 0x11, facing left when
@@ -326,9 +327,6 @@ void Gate_UpdateFlagControlled(struct EwramData_EntityData *entity)
 
 /* Helpers 0x0804DE60..0x0804DFAB. */
 void Door_Draw(struct EwramData_EntityData *entity);
-
-extern u8 sCommonObjectGfx[];
-extern u8 sCommonObjectSpriteSheet[];
 
 /* Event flag param_1 of the bit array gameFlagsTail (as in Object35Create). */
 #define OBJECT_FLAG(ewram, flag) ((ewram)->gameState.gameFlagsTail[(flag) >> 5] & (1 << ((flag) & 0x1F)))
@@ -1132,8 +1130,6 @@ void Object05Update(struct EwramData_EntityData *entity)
     }
 }
 
-extern const s32 sUnk_0852559C[];
-
 /**
  * @brief 4F160 | Floating background particle: state 0 loads graphics and
  * palette for kind spawnParam0 (0 or 2; deleteRequested on failure) and starts
@@ -1232,8 +1228,6 @@ void BgParticle_Update(struct EwramData_EntityData *entity)
     }
 }
 
-extern const s32 sBgParticleCounts[];
-
 /**
  * @brief 4F374 | Spawn sBgParticleCounts[spawnParam1] particles of four sizes with
  * random positions and velocities (size 3 is placed relative to the scroll).
@@ -1292,7 +1286,6 @@ s32 BgParticle_SpawnAll(struct EwramData_EntityData *owner)
     }
 }
 
-extern u8 sObject07ParallaxSpriteGfx[], sObject07ParallaxSpritePalette[], sObject07ParallaxSpriteSpriteSheet[];
 /**
  * @brief Load the semi-transparent background sprite, then drift with its
  * velocity and 1/12 of the camera motion (parallax).
@@ -1335,8 +1328,6 @@ void Object07ParallaxSprite_Update(struct EwramData_EntityData *entity)
 
 /* Object07_SpawnParallaxSprites. */
 struct Offset16 { u16 x, y; };
-extern const u8 sUnk_085255DC[];
-extern const u16 sUnk_085255C4[];
 
 /**
  * @brief Object 0x07 type 0: create four background sprites from
@@ -1393,7 +1384,6 @@ struct BgPaletteCycle {
 };
 
 extern struct BgPaletteCycle sBgPaletteCycles[];
-extern struct WarpRoomEntry sWarpRoomEntries[];
 
 /**
  * @brief 4F690 | Step the palette animation of variant spawnParam1: frame

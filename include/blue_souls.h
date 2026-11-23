@@ -13,4 +13,6 @@ extern void YellowSoul_CreateEquippedEntity(struct EwramData_EntityData *entity)
 extern void YellowSoul_Restart(u8 soul, s32 force);
 extern void YellowSoul_Stop(void);
 
+extern struct EwramData_EntityData *BlueSoul_CreateEntity(struct EwramData_EntityData *owner, void *update);
+
 #endif /* BLUE_SOULS_H */

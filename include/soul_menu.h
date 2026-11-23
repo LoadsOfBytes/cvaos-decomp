@@ -22,4 +22,6 @@ extern void MenuSlotIcon_SetHidden(u8 value, s32 index);
 extern s32 CursorSprite_Create(struct EwramData_EntityData *entity, u16 palette);
 extern void SoulList_Insert(s32 kind, s32 soul);
 
+extern void MenuPageTitle_Create(struct EwramData_EntityData *title, s32 frame);
+
 #endif /* SOUL_MENU_H */

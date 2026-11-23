@@ -13,6 +13,7 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 extern void Une_UpdateGrow(struct EwramData_EntityData *entity);
 extern void Une_UpdateIdle(struct EwramData_EntityData *entity);
@@ -344,7 +345,6 @@ void Une_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData 
 }
 
 extern void UneDebris_Update(struct EwramData_EntityData *);
-extern u8 sUneGfx[], sUneSpriteSheet[];
 
 /**
  * @brief Spawn a debris particle (animation 4) at (x, y) moving with
@@ -390,7 +390,6 @@ void UneDebris_Update(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   Une_LoadGraphics = Object25_LoadGraphics */
 
-extern u8 sUnePalette[];
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 /**

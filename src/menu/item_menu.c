@@ -17,6 +17,7 @@
 #include "soul_menu.h"
 #include "soul_pickup.h"
 #include "text12.h"
+#include "data/data_4F1444.h"
 
 /* Equipment menu input handler: A equips the highlighted item (weapon or
  * armor/accessory slot unk_B - 1), A/B closes the list and redraws the page,
@@ -43,16 +44,11 @@ struct ItemInfo { u16 name; };
 
 extern struct WeaponInfo sWeaponInfo[];
 extern const struct ArmorInfo sArmorInfo[];
-extern const u16 sItemDescriptionTextIds[];
 
 /* Called with an int tile here (no u16 truncation in the original). */
 extern void HudMap_WriteTiles(s32 x, s32 y, s32 tile, s32 count);
-extern void EquipmentMenu_DrawList(struct PlayerStatus *stats, struct MenuPage *page, s32 slot);
-extern void EquipmentMenu_ShowSlotDescription(struct PlayerStatus *stats, struct MenuPage *page);
 
-extern void EquipmentMenu_CountList(struct PlayerStatus *stats, struct MenuPage *page, s32 slot);
 extern s32 MenuGrid_MoveCursor(void *page, s32 input);
-extern void EquipmentMenu_DrawEquippedIcons(struct PlayerStatus *stats, struct MenuPage *page);
 
 s32 EquipmentMenu_UpdateList(struct MenuPage *page)
 {
@@ -107,10 +103,10 @@ s32 EquipmentMenu_UpdateList(struct MenuPage *page)
         for (i = 3; i >= 0; i--)
             HudMap_ClearTiles(0x19, i + 5, 3);
         EquipmentMenu_PrintEquippedNames();
-        EquipmentMenu_ShowSlotDescription(stats, page);
+        EquipmentMenu_ShowSlotDescription((struct EquipmentMenuItemsView *)stats, (struct EquipmentSlotCursorView *)page);
         if (new & 1)
         {
-            EquipmentMenu_DrawEquippedIcons(stats, page);
+            EquipmentMenu_DrawEquippedIcons((struct EquipmentMenuItemsView *)stats, page);
             PlaySong(0xF3);
         }
         else
@@ -125,7 +121,7 @@ s32 EquipmentMenu_UpdateList(struct MenuPage *page)
             if (page->top > page->cursor)
                 page->top = page->top - 2;
         }
-        EquipmentMenu_DrawList(stats, page, page->subState);
+        EquipmentMenu_DrawList(stats, (struct MenuPage2 *)page, page->subState);
         MenuList_DrawScrollArrows(page, 0);
     }
     else if (moved)
@@ -134,12 +130,12 @@ s32 EquipmentMenu_UpdateList(struct MenuPage *page)
         if (page->drawnTop != page->top)
         {
             page->drawnTop = page->top;
-            EquipmentMenu_DrawList(stats, page, page->subState);
+            EquipmentMenu_DrawList(stats, (struct MenuPage2 *)page, page->subState);
             MenuList_DrawScrollArrows(page, 0);
         }
         else
         {
-            EquipmentMenu_CountList(&gEwramData->playerStatus, page, page->subState);
+            EquipmentMenu_CountList(&gEwramData->playerStatus, (struct MenuPage2 *)page, page->subState);
         }
         if (old != page->item)
         {
@@ -350,8 +346,6 @@ struct MenuPage2
     u8 item;
 };
 
-extern const u16 sItemNameTextIds[];
-
 /**
  * @brief 4B494 | Draw the item list page (32 items, 8 rows): name and count
  * of each owned item from the page top, blank rows, store the number of
@@ -436,9 +430,6 @@ void ItemMenu_DrawList(struct PlayerStatus *stats, struct MenuPage2 *page)
 
 /* ItemMenu_CountList, ItemMenu_Open. */
 /* Usable item records (16 bytes; see Item_GetInfo). */
-
-extern void MenuPage_SetMode(struct EwramData_EntityData *entity, u8 mode);
-extern void MenuPageTitle_Create(struct EwramData_EntityData *title, s32 frame);
 
 /**
  * @brief 4B648 | Count the owned item kinds (itemInventory, 32 entries)

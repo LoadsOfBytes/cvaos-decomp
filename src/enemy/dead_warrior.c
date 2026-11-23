@@ -14,10 +14,11 @@
 #include "math_anim.h"
 #include "obj_palette.h"
 #include "effects.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* Dead Warrior charge, braking and death. */
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *, s32, s32);
-extern u8 sDeadWarriorWalkProfile[];
 
 /**
  * @brief Alive state (0): walk using the stored speed, accelerate, then
@@ -134,7 +135,6 @@ extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32
 extern void Enemy_OnContact(struct EwramData_EntityData *);
 extern void DeadWarrior_OnHit(struct EwramData_EntityData *);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, void *);
-extern u8 sDeadWarriorGfx[], sDeadWarriorPalette[], sDeadWarriorSpriteSheet[];
 
 void EnemyDeadWarriorCreate(struct EwramData_EntityData *entity)
 {

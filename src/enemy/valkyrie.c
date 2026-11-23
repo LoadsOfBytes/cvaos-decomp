@@ -16,6 +16,7 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 /* EnemyValkyrieCreate 0x0806E714..0x0806E7A7. */
 extern u8 Valkyrie_LoadGraphics(struct EwramData_EntityData *entity);
@@ -54,7 +55,6 @@ void EnemyValkyrieCreate(struct EwramData_EntityData *entity)
 }
 
 /* Valkyrie idle / approach state. */
-extern u8 sValkyrieGfx[], sValkyriePalette[], sValkyrieSpriteSheet[];
 extern s32 ObjPalette_FindOrLoadVariant(void *, s32);
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);

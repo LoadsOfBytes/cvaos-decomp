@@ -18,6 +18,7 @@
 #include "oam.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
@@ -53,14 +54,12 @@ void Worm_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData
 }
 
 /* Giant Worm / Poison Worm: create the root and four linked affine segments. */
-extern struct EwramData_EntityData *Entity_CreateObject(void *);
 extern void Worm_SettleOnGround(struct EwramData_EntityData *);
 extern void WormSegment_Update(struct EwramData_EntityData *);
 extern void Worm_Draw(struct EwramData_EntityData *);
 extern s32 ObjPalette_FindOrLoadVariant(void *, s32);
 extern void Worm_DamagePlayerOnContact(struct EwramData_EntityData *);
 extern void PoisonWorm_DamagePlayerOnContact(struct EwramData_EntityData *);
-extern u8 sWormGfx[], sWormPalette[], sWormSpriteSheet[];
 /**
  * @brief Shared create of Giant Worm (variant 0) and Poison Worm (variant 1):
  * graphics, affine head, body segments (WormSegment_Update), hit boxes
@@ -273,7 +272,6 @@ void Worm_StepCrawl(struct EwramData_EntityData *entity, s32 direction, s32 dist
 
 /* Thrown hand weapon of an enemy: follows the owner, flies off in an arc once released. */
 extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
-extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
 
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 

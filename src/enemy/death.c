@@ -26,6 +26,9 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "palette.h"
+#include "damage_numbers.h"
+#include "player_level.h"
+#include "data/data_118B48.h"
 
 struct ArmPose {
     u16 angle;
@@ -38,7 +41,6 @@ struct ArmPose {
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 extern void DeathWeapon_DamagePlayerOnContact(struct EwramData_EntityData *);
 extern struct ArmPose sDeathWeaponArmPoses[];
-extern u8 sDeathGfx[], sDeathPalette[], sDeathSpriteSheet[];
 
 #define SPIN(e) (e->ext.deathWeapon.angle)
 #define SPEED(e) (e->ext.deathWeapon.spin)
@@ -397,7 +399,6 @@ void DeathBlinkEffect_Update(struct EwramData_EntityData *entity)
 
 /* Screen-fixed effect: wait for the owner's flag, then rise and leave a trail
  * of DeathBlinkEffect_Update sparks before deleting itself. */
-extern struct EwramData_EntityData *Entity_CreateObject(void *);
 
 /* The spark pointer is copied to r1 for the position writes, as in the
  * original allocation; this does not establish the original source form. */
@@ -449,7 +450,7 @@ void DeathIntroEffect_Update(struct EwramData_EntityData *entity)
             EntityAccelerateAndMoveY(entity, 0x80000);
             if (!(entity->timer & 3))
             {
-                struct EwramData_EntityData *spark = Entity_CreateObject((u32 *)DeathBlinkEffect_Update);
+                struct EwramData_EntityData *spark = Entity_CreateObject(DeathBlinkEffect_Update);
                 if (spark)
                 {
                     spark->ext.deathHelper.ownerIndex = ENTITY_INDEX(entity);
@@ -475,7 +476,6 @@ void DeathIntroEffect_Update(struct EwramData_EntityData *entity)
 }
 
 /* OBJ-window sprite bound to an owner slot. */
-extern u8 sCommonObjectGfx[], sCommonObjectSpriteSheet[];
 
 /**
  * @brief BD20C | Sprite used as OBJ window, owned by entity slot unk_4F8.
@@ -554,7 +554,6 @@ void DeathFloatingWeaponHitBox_Update(struct EwramData_EntityData *entity)
    register set; operand order of mul/and/or as in the target). */
 
 extern void DeathFloatingWeapon_OnHit(struct EwramData_EntityData *, s32, u16 *);
-extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
 
 #define MOVE_TO_A(x0, y0, tx, ty, shift, ANGLE)                                                         \
@@ -1254,11 +1253,9 @@ void Death_UpdateIntro(struct EwramData_EntityData *entity)
  * read goes through the inline Player() (base kept, offset constant reloaded
  * as in the target); case 3 uses its own block variable for the radius. */
 
-extern u8 sDeathFirstPhaseAnims[];
-
 static inline void SpawnChild(struct EwramData_EntityData *e, void *func)
 {
-    struct EwramData_EntityData *child = Entity_CreateObject((u32 *)func);
+    struct EwramData_EntityData *child = Entity_CreateObject(func);
     if (child != NULL)
     {
         child->ext.deathHelper.ownerIndex = ENTITY_INDEX(e);
@@ -1416,7 +1413,7 @@ void Death_UpdateFirstPhase(struct EwramData_EntityData *e)
 
 static inline struct EwramData_EntityData *SpawnScythe(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *child = Entity_CreateObject((u32 *)DeathWeapon_Update);
+    struct EwramData_EntityData *child = Entity_CreateObject(DeathWeapon_Update);
     if (child == NULL)
         return NULL;
     child->ext.deathHelper.ownerIndex = ENTITY_INDEX(entity);
@@ -1987,7 +1984,7 @@ void EnemyDeathCreate(struct EwramData_EntityData *entity)
     entity->spriteLayer = 0x13;
     Anim_StartIndexed(entity, 1, 2, 1);
     Anim_Update(entity);
-    first = Entity_CreateObject((u32 *)DeathOverlay_Update);
+    first = Entity_CreateObject(DeathOverlay_Update);
     if (first != NULL)
     {
         first->ext.deathHelper.ownerIndex = ENTITY_INDEX(entity);
@@ -2011,7 +2008,7 @@ void EnemyDeathCreate(struct EwramData_EntityData *entity)
         entity->posX.part16.integer = 0x80 - bg->xPos.part16.integer;
         entity->posY.part16.integer = 0x20 - bg->yPos.part16.integer;
         PlaySong(0x1010);
-        child = Entity_CreateObject((u32 *)DeathIntroEffect_Update);
+        child = Entity_CreateObject(DeathIntroEffect_Update);
         if (child != NULL)
         {
             child->ext.deathHelper.ownerIndex = ENTITY_INDEX(entity);
@@ -2025,7 +2022,7 @@ void EnemyDeathCreate(struct EwramData_EntityData *entity)
     }
     entity->objMode = 1;
     entity->hp = 0x98C;
-    child = Entity_CreateObject((u32 *)DeathFloatingWeapon_Update);
+    child = Entity_CreateObject(DeathFloatingWeapon_Update);
     if (child != NULL)
     {
         child->ext.deathHelper.ownerIndex = ENTITY_INDEX(entity);
@@ -2157,8 +2154,6 @@ void EnemyDeathUpdate(struct EwramData_EntityData *entity)
     }
     Anim_Update(entity);
 }
-
-extern u8 sEvilButcherGfx[], sEvilButcherPalette[], sEvilButcherSpriteSheet[];
 
 /**
  * @brief Display frame 9 using the selected palette, enable drawSkip at

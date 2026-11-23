@@ -19,10 +19,10 @@
 #include "soul_pickup.h"
 #include "text12.h"
 #include "sound.h"
+#include "data/data_4F1444.h"
 
 extern struct WeaponInfo sWeaponInfo[];
 extern const struct ArmorInfo sArmorInfo[];
-extern const u16 sItemNameTextIds[];
 
 /**
  * @brief Print the equipped weapon, armor and accessory names (or the none text
@@ -76,7 +76,6 @@ loop:
 /* EquipmentMenu_ShowSlotDescription; slot switch as in
  * EquipmentMenu_DrawEquippedIcons. */
 
-extern const u16 sItemDescriptionTextIds[];
 extern void MenuItemIcon_SetHidden(u8 value);
 
 /* Same caller-owned record as in this file. */
@@ -602,9 +601,7 @@ struct MenuPage3
     u8 subState;
 };
 
-extern void MenuPage_Reset(struct MenuPage3 *page);
 extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
-extern void MenuPageTitle_Create(struct EwramData_EntityData *entity, s32 type);
 
 /**
  * @brief 4A95C | Open the equipment page for slot unk_B (0 weapon,
@@ -618,7 +615,7 @@ void EquipmentMenu_Open(struct MenuPage3 *page)
     s32 t;
 
     stats = &gEwramData->playerStatus;
-    MenuPage_Reset(page);
+    MenuPage_Reset((struct EwramData_EntityData *)page);
     for (i = 0; i <= 2; i++)
         HudMap_WriteTiles(5, i + 0x10, i * 0x20 + 0x3200, 0x18);
     Text12_SetRegion(0, 0, 0x20, 2);

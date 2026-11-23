@@ -19,6 +19,8 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "skeleton.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* Patrol and attack-state selection. */
 /* Keep -f2003-patch disabled: signed distance comparisons must retain asrs. */
@@ -26,7 +28,6 @@
 extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
 extern s32 Entity_ClampXToRoom(struct EwramData_EntityData *entity,s32 mode);
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *entity,s32 width,s32 height);
-extern s16 sSkeletonWalkProfile[];
 
 /**
  * @brief Patrol the stored room bounds; turn on obstacles and enter state 1 when the target is near.
@@ -281,7 +282,6 @@ void Skeleton_UpdateAttackPreparation(struct EwramData_EntityData *entity)
 }
 
 /* Attack phase spawning a projectile. */
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
 extern void SkeletonProjectile_Update(struct EwramData_EntityData *);
 
 /* attack flags: bit 3 alternate animation, bits 1/2 pending shots */
@@ -312,7 +312,7 @@ void Skeleton_UpdateThrow(struct EwramData_EntityData *entity)
     case 2:
         if (entity->animStep == 2)
         {
-            e = Entity_CreateObject((u32 *)SkeletonProjectile_Update);
+            e = Entity_CreateObject(SkeletonProjectile_Update);
             if (e != NULL)
             {
                 e->ext.skeletonPiece.ownerIndex = ENTITY_INDEX_PAIR(entity);
@@ -416,7 +416,6 @@ void SkeletonProjectile_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
 extern void SkeletonProjectile_DamagePlayerOnContact(struct EwramData_EntityData *);
-extern u8 sSkeletonSpriteSheet[];
 
 static inline s32 IsBelow(struct EwramData_EntityData *entity)
 {
@@ -517,9 +516,6 @@ void SkeletonProjectile_Update(struct EwramData_EntityData *entity)
         break;
     }
 }
-
-extern u8 sSkeletonSpriteSheet[], sSkeletonWaiterSkeletonPalette[];
-extern const s8 sSkeletonDeathPieceOffsets[][6];
 
 /* Hide the owner and spawn up to seven debris pieces from its sprite. */
 /**
@@ -628,7 +624,6 @@ void SkeletonDeathPiece_UpdateUnused(struct EwramData_EntityData *entity)
 
 /* Attached part: mirrors its parent's flags, follows joint 0 / table point and switches animation. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern void Sprite_GetPartCornerOffset(struct EwramData_EntityData *entity, s32 index, s16 *offset);
 
 struct PartPoint {
     u16 point;
@@ -636,7 +631,6 @@ struct PartPoint {
     s8 dy;
 };
 
-extern u8 sSkeletonGfx[];
 extern const struct PartPoint sSkeletonPartPoints[];
 
 /**
@@ -922,11 +916,6 @@ void EnemyImpCreate(struct EwramData_EntityData *entity)
 /* Graphics loader 0x080C4768. It only matches without -f2003-patch (see
  * NO_2003_PATCH_SRCS in ../Makefile). */
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-/* Graphics of the Tiny Devil (also used in enemy/imp.c). */
-extern u8 sImpTinyDevilGfx[];
-extern u8 sImpTinyDevilPalette[];
-extern u8 sImpTinyDevilSpriteSheet[];
 
 /**
  * @brief Find or load graphics and palette, attach the sprite and start animation 0; return 0 on failure, 1 on success.

@@ -12,12 +12,12 @@
 #include "hitbox.h"
 #include "math_anim.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, u8, void *);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, void *);
 extern void Enemy_OnContact(void);
 void Ripper_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern u8 sFleamanRipperPalette[], sFleamanRipperSpriteSheet[], sFleamanRipperGfx[];
 
 void EnemyRipperCreate(struct EwramData_EntityData *entity)
 {

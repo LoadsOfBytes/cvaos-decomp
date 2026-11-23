@@ -29,6 +29,8 @@
 #include "pause_menu.h"
 #include "soul_menu.h"
 #include "text12.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* Menu text redraw and transient entity-byte reset helpers.
  * for source evidence. */
@@ -298,9 +300,7 @@ typedef s32 (*MenuPageFunc)(struct EwramData_EntityData *ent);
 
 extern void PauseMenu_Exit(void);
 struct SoulTypeIcons;
-extern void SoulTypeSelector_Update(struct SoulTypeIcons *e);
 
-extern struct BgMapMetadata *const sPauseMenuBgMaps[];
 extern const MenuPageFunc sPauseMenuPageOpenFuncs[];
 extern const MenuPageFunc sPauseMenuPageUpdateFuncs[];
 
@@ -532,14 +532,6 @@ void PauseMenu_Exit(void)
 
 void MenuCursor_DrawScrollArrows(struct EwramData_EntityData *entity);
 void Cursor_DrawWithOptionalBob(s32 bob);
-
-/* Cursor frames for the four entries unk_4FC..4FF (ButtonConfigMenu_DrawCursor). */
-extern const u8 sButtonConfigCursorFrames[];
-extern u8 *sMenuCursorPalette;
-/* Language dependent graphics sets (English/other, French, German). */
-extern u8 sMenuCursorGfx[];
-extern u8 sMenuCursorGfxLanguage2[];
-extern u8 sMenuCursorGfxLanguage3[];
 
 /**
  * @brief 47C1C | ObjAffine_SaveState, ObjGfx_SaveState, ItemIconCache_Save, Palette_SaveState.
@@ -863,8 +855,6 @@ struct SoulTypeIcons
     u8 pad_5B[0x65 - 0x5B];
     u8 owned;          /* 0x65 */
 };
-
-extern u8 sMenuSpriteSheet[];
 
 /**
  * @brief 48108 | Soul type selector (three rotating icons for the red,

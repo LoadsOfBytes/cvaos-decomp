@@ -17,6 +17,7 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 extern void WingedSkeleton_UpdateFly(struct EwramData_EntityData *entity);
 extern void WingedSkeleton_UpdateAttack(struct EwramData_EntityData *entity);
@@ -555,7 +556,6 @@ void WingedSkeletonShot_Update(struct EwramData_EntityData *entity)
  * random velocities, gravity 0x1800, the owner palette and facing, and a
  * lifetime of 40-43 frames (WingedSkeletonPiece_Update). */
 extern void WingedSkeletonPiece_Update(struct EwramData_EntityData *);
-extern u8 sWingedSkeletonGfx[], sWingedSkeletonSpriteSheet[];
 
 void WingedSkeleton_SpawnDeathPieces(struct EwramData_EntityData *owner)
 {
@@ -583,9 +583,6 @@ void WingedSkeleton_SpawnDeathPieces(struct EwramData_EntityData *owner)
 
 /* Winged Skeleton helpers 0x080754E0..0x0807565F. */
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-/* Graphics of the Winged Skeleton. */
-extern u8 sWingedSkeletonPalette[];
 
 void WingedSkeletonShot_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 

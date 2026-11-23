@@ -7,8 +7,12 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
+struct EntityBoxes;
+
 extern void Hit_SetTimerOverride(s32 index, s32 value);
 extern void Player_ShowDamage(s32 value, u8 kind);
 extern void HudHPNumber_Create(void);
+
+extern struct EntityBoxes *Hit_GetEntityBoxes(struct EwramData_EntityData *entity);
 
 #endif /* DAMAGE_NUMBERS_H */

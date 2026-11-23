@@ -13,6 +13,7 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
@@ -218,13 +219,9 @@ void Ectoplasm_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entit
  *
  * Ectoplasm_UpdatePreview..EctoplasmParticle_Update decompiled locally. */
 
-extern u8 sEctoplasmGfx[];
-extern u8 sEctoplasmPalette[];
-extern u8 sEctoplasmSpriteSheet[];
 void Ectoplasm_Draw(struct EwramData_EntityData *entity);
 void Ectoplasm_SpawnParticle(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY, s32 frame);
 void EctoplasmParticle_Update(struct EwramData_EntityData *entity);
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *updateFunc);
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 /**
@@ -307,7 +304,7 @@ void Ectoplasm_DamagePlayerOnContact(struct EwramData_EntityData *entity)
  */
 void Ectoplasm_SpawnParticle(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY, s32 frame)
 {
-    struct EwramData_EntityData *child = Entity_CreateObject((u32 *)EctoplasmParticle_Update);
+    struct EwramData_EntityData *child = Entity_CreateObject(EctoplasmParticle_Update);
     s32 gfx;
 
     if (child != NULL)

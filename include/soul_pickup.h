@@ -15,4 +15,6 @@ extern s32 Item_GetIndexByGlobalId(s32 globalId);
 extern void Player_AddGold(s32 amount);
 extern u8* ItemInventory_GetCountPtr(s32 type, s32 index);
 
+extern void *Item_GetInfoByGlobalId(s32 id);
+
 #endif /* SOUL_PICKUP_H */

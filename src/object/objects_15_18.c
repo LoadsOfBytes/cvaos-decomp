@@ -21,9 +21,11 @@
 #include "palette.h"
 #include "soul_pickup.h"
 #include "effects.h"
+#include "data/data_0E5364.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern u8 sObject15Gfx[], sUnk_0820A1C4[], sObject15SpriteSheet[];
 static inline s32 FixedMulFast(s32 a, s32 b) { return (a >> 8) * (b >> 8); }
 /**
  * @brief Sprite of object 0x15 placed around its owner at the owner angle
@@ -74,7 +76,6 @@ fail:
 
 /* Object 15 interaction: capture player input, animate, show one of two
  * messages, switch UI state and restore the palette transition. */
-extern u8 sObject15DestinationRoom1[], sObject15DestinationRoom0[];
 static inline struct EwramData_EntityData *Player(struct EwramData *e) { return e->playerState.player; }
 void Object15Update(struct EwramData_EntityData *entity)
 {
@@ -129,8 +130,6 @@ void Object15Update(struct EwramData_EntityData *entity)
 }
 
 /* Animated fragment: play the selected animation, then expire after 8 frames. */
-extern u8 sObject16Gfx[], sObject16Palette[], sObject16SpriteSheet[];
-extern struct AnimScript sObject16EffectAnimScript[], sObject16EffectAnimScriptVariant0[];
 /**
  * @brief One-shot effect of object 0x16: play its animation, then delete after
  * 8 frames.
@@ -280,8 +279,6 @@ void Object16Update(struct EwramData_EntityData *entity)
 
 /* Object 0x16 helpers 0x08052F6C..0x0805305B. */
 
-extern u8 sObject16PaletteAnim[];
-
 /**
  * @brief 52F6C | Object 0x16 create: load the graphics, palette
  * sObject16PaletteAnim, layer 0x12, unk_500 = 0xF00, unk_504 = 0, unk_508 = 0x40,
@@ -342,9 +339,6 @@ void Object17Overlay_Update(struct EwramData_EntityData *entity)
 }
 
 /* Object17Create: spawns the object and its child effects; matched. */
-extern u8 sObject17Gfx[], sUnk_08209FD8[], sObject17SpriteSheet[];
-extern const s16 sUnk_08118590[];
-extern const u16 sObject17Xs[], sObject17Ys[];
 extern s16 GetEntityRoomYPositionInteger(struct EwramData_EntityData *entity);
 extern void Object17Follower_Update(struct EwramData_EntityData *);
 extern void Object17Effect_Update(struct EwramData_EntityData *);
@@ -690,7 +684,6 @@ void Object17Follower_Update(struct EwramData_EntityData *entity)
  * byte. */
 
 extern s32 Collision_GetGroundOffset(s32 x, s32 y);
-extern void Effect_SpawnRandom(s32 x, s32 y, s32 width, s32 height, s32 layer);
 
 /**
  * @brief Same as Object0EPiece_Update: slide, fall and burst with dust when
@@ -733,10 +726,6 @@ void Object18Debris_Update(struct EwramData_EntityData *entity)
     }
     entity->deleteRequested = 1;
 }
-
-extern void Sprite_GetPartCenterOffset(struct EwramData_EntityData *, s32, s16 *);
-extern void Sprite_GetPartOriginOffset(struct EwramData_EntityData *, s32, s16 *);
-extern u8 sObject18Gfx[], sObject18Palette[], sObject18SpriteSheet[];
 
 /**
  * @brief Spawn the four debris pieces (frames 1..4, Object18Debris_Update) of

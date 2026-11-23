@@ -7,6 +7,8 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
+struct RedSoulInfo;
+
 extern u8 RedSoul_GetCastAnim(s32 pose);
 extern u8 RedSoul_GetActiveLimit(void);
 extern struct EwramData_EntityData *Player_GetSelectedOrNearestTarget(struct EwramData_EntityData *entity);
@@ -24,5 +26,8 @@ extern void SkillMermanDropletUpdate(struct EwramData_EntityData *entity);
 extern void Entity_DrawWithVelocityCopies(struct EwramData_EntityData *entity);
 extern void RedSoul_AnchorToHitTarget(struct EwramData_EntityData *entity, struct EwramData_EntityData *target);
 extern void SkillCockatriceDraw(struct EwramData_EntityData *entity);
+
+extern const struct RedSoulInfo *RedSoul_GetLastUsedInfo(void);
+extern const struct RedSoulInfo *RedSoul_GetInfo(u8 soul);
 
 #endif /* RED_SOULS_B_H */

@@ -21,6 +21,8 @@
 #include "oam.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* Great Armor update. */
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
@@ -114,7 +116,6 @@ struct GreatArmorBox {
 
 extern void *memcpy(void *dst, const void *src, unsigned long size);
 extern u8 GreatArmor_LoadGraphics(struct EwramData_EntityData *entity);
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *update);
 extern void GreatArmorPart_Update(struct EwramData_EntityData *entity);
 extern void GreatArmorPart_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 extern void GreatArmorPart_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
@@ -124,11 +125,6 @@ extern void GreatArmor_AttachPartSetAngle(struct EwramData_EntityData *entity, s
 extern void GreatArmor_UpdateParts(struct EwramData_EntityData *entity, s8 *order);
 extern void GreatArmor_ResetPartAngles(struct EwramData_EntityData *entity, s32 partIndex);
 extern void GreatArmor_FaceTarget(struct EwramData_EntityData *entity);
-extern u8 sGreatArmorGfx[], sGreatArmorSpriteSheet[];
-extern const u8 sUnk_08118F78[14], sGreatArmorFrames67[14], sGreatArmorFrames69[14], sGreatArmorAnchors[14];
-extern const s8 sGreatArmorChain[14];
-extern const u8 *const sGreatArmorPartPoses[];
-extern const s32 *const sGreatArmorPartAngles[];
 
 void EnemyGreatArmorCreate(struct EwramData_EntityData *entity)
 {
@@ -194,7 +190,7 @@ void EnemyGreatArmorCreate(struct EwramData_EntityData *entity)
     for (i = 0; i <= 13; i++)
     {
         index = order[i];
-        part = Entity_CreateObject((u32 *)GreatArmorPart_Update);
+        part = Entity_CreateObject(GreatArmorPart_Update);
         if (part != NULL)
         {
             part->spriteLayer = entity->spriteLayer;
@@ -312,7 +308,6 @@ extern void GreatArmor_SaveParts(struct EwramData_EntityData *);
 extern void GreatArmor_RestoreParts(struct EwramData_EntityData *);
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *, s32, s32);
 extern s32 Target_GetPixelX(struct EwramData_EntityData *);
-extern const s8 sUnk_08118FBE[3], sUnk_08118FC1[3], sUnk_08118FC4[3], sGreatArmorChain[14];
 
 static inline s32 ABS(s32 x)
 {
@@ -571,7 +566,6 @@ void GreatArmor_UpdateWalk(struct EwramData_EntityData *entity)
 extern void GreatArmor_AttachPart(struct EwramData_EntityData *, s32, s32, s32, s32);
 extern void GreatArmor_SpawnShockwave(struct EwramData_EntityData *, s32, s32);
 extern void GreatArmorSlashEffect_Spawn(struct EwramData_EntityData *, s32, s32, s32, s32, s32);
-extern const s8 sUnk_08118FC7[3], sUnk_08118FCA[3], sUnk_08118FCD[3], sUnk_08118FD0[3], sUnk_08118FD3[3], sUnk_08118FD6[3], sUnk_08118FD9[3], sUnk_08118FDC[3], sGreatArmorChain[14];
 #define HIT entity->ext.greatArmor.attackHit
 #define STEP(T,F) TIMER = T; STATE++; FRAME = F;
 #define ARMS(A) \
@@ -1111,7 +1105,6 @@ void GreatArmor_AttachPart(struct EwramData_EntityData *entity, s32 partIndex, s
  * 0820A8F8 chosen by the type byte (0x3C, 0x67, 0x69 -> 0, 1, 2; other
  * types keep basePalette); 0 when the graphics are not loaded. */
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-extern u8 sGreatArmorGfx[], sGreatArmorPalette[], sGreatArmorSpriteSheet[];
 
 u8 GreatArmor_LoadGraphics(struct EwramData_EntityData *entity)
 {
@@ -1172,10 +1165,7 @@ void GreatArmor_OnHit(struct EwramData_EntityData *entity, struct EwramData_Enti
 
 /* Great Armor part update: joint following, weapon collision and death motion. */
 struct ArmorPartBox { s8 x, y, w, h; };
-extern const u8 sGreatArmorPartTimers[14];
-extern const s16 sGreatArmorPartOffsets[14];
 extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
-extern void Effect_SpawnRandom(s32, s32, s32, s32, s32);
 #define JOINT(e) ((s8)e->ext.jointPart.index)
 #define FIX_INT(v) ((v) < 0 ? -(-(v) >> 16) : (v) >> 16)
 #define HAS_SPRITE(e) (JOINT(e) == 2 || JOINT(e) == 5 || JOINT(e) == 8 || JOINT(e) == 11 || JOINT(e) == 12 || JOINT(e) == 13)
@@ -1332,7 +1322,6 @@ void GreatArmorPart_Update(struct EwramData_EntityData *entity)
 
 extern void GreatArmorShockwave_Update(struct EwramData_EntityData *);
 extern void GreatArmorShockwave_DamagePlayerOnContact(struct EwramData_EntityData *);
-extern u8 sCommonObjectGfx[], sCommonObjectSpriteSheet[];
 /**
  * @brief Spawn a ground shockwave at offset (dx, dy) from owner, snapped to the
  * ground and moving 3.5 px per frame in the facing direction; contact damage

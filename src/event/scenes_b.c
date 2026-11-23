@@ -25,6 +25,9 @@
 #include "palette.h"
 #include "shop_update.h"
 #include "text_window.h"
+#include "data/data_0E5364.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* EventScene04_Init, EventScene04_RunMusicScript. */
 
@@ -108,8 +111,6 @@ s32 EventScene04_RunMusicScript(struct EwramData_EntityData *entity)
     }
     return done;
 }
-
-extern const u8 sUnk_0852682C[];
 
 /**
  * @brief Update of event scene variant 4 (sEventSceneUpdateFuncs[4]); returns the player
@@ -2361,11 +2362,6 @@ s32 EventScene20_Update(struct EwramData_EntityData *entity)
 
 /* Event object helpers 0x08061FDC..0x080620E7. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-
-/* Graphics of the event object. */
-extern u8 sEventScene19Gfx[];
-extern u8 sJuliusEntityPalette[];
-extern u8 sJuliusSpriteSheet[];
 
 /**
  * @brief 61FDC | Load the graphics (layer 0x11); delete the entity and

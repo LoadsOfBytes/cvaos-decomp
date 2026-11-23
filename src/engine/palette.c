@@ -10,6 +10,7 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "palette.h"
+#include "data/data_0E1CD0.h"
 
 /**
  * @brief 3C49C | Apply the invert effect to the output palettes
@@ -1242,12 +1243,6 @@ s32 ObjTiles_AllocAt(s32 start, s32 size, s32 count)
 
     return start;
 }
-
-/* First tile of each slot in OBJ_TILES_GRID mode (2D mapping, 32 tiles per
- * row): 4bpp has two columns of 16 tiles x 8 bands of 4 rows, 8bpp one
- * column of 8 bands. */
-extern u16 sObjTileGrid4bpp[];
-extern u16 sObjTileGrid8bpp[];
 
 /**
  * @brief 3D8B4 | Map an allocation slot to its first OBJ tile number

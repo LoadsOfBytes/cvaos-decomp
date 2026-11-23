@@ -4,12 +4,12 @@
 #include "structs/render_slots.h"
 #include "gba.h"
 #include "text12.h"
+#include "data/data_4F1444.h"
 
 /* Upstream file split 0x0803FEA4..0x08041433 from the previously unlinked
  * src/engine/obj_gfx.c, now linked as matching C.
  * gTextGlyphRows (IWRAM, named sUnk_03001A18 in the draft) is placed by linker.ld. */
 
-extern u8 sText12Font[][0xE]; // TODO: array or struct?
 extern s32 gTextGlyphRows[];
 
 /**
@@ -268,8 +268,6 @@ void Text12_ClearAcrossColumns(u32 width)
         ((s32*)(tile + rowOffset + (i + tileY) * 4))[8] = right;
     }
 }
-
-extern u8 sText8Font[][0xA]; // TODO: array or struct?
 
 /**
  * @brief Convert the selected bitmap rows into eight packed 4bpp scratch words using source-bit offset, width and foreground/background colors.

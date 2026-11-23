@@ -14,6 +14,8 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 extern void Tsuchinoko_SpitShot(struct EwramData_EntityData *);
 
@@ -104,8 +106,6 @@ void Tsuchinoko_UpdateDeath(struct EwramData_EntityData *entity)
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
 
-extern struct AnimScript sTsuchinokoHitAnimScript;
-
 void Tsuchinoko_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     s32 damage = Player_CalculateAttackPower(hit[2]);
@@ -191,7 +191,6 @@ void TsuchinokoShot_EnableHitBoxes(struct EwramData_EntityData *entity)
 }
 
 extern void TsuchinokoDroplet_Update(struct EwramData_EntityData *);
-extern u8 sTsuchinokoGfx[], sTsuchinokoSpriteSheet[];
 static inline u8 LoadTsuchinokoGraphics(struct EwramData_EntityData *parent, struct EwramData_EntityData *child)
 {
     s32 tiles = ObjGfx_Find(sTsuchinokoGfx);
@@ -241,9 +240,6 @@ void Tsuchinoko_SpawnDroplet(struct EwramData_EntityData *parent)
 /* Tsuchinoko helpers 0x080A79D8..0x080A7B53. */
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
-
-/* Graphics of Tsuchinoko. */
-extern u8 sTsuchinokoPalette[];
 
 static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
 {

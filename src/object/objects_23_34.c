@@ -17,17 +17,12 @@
 #include "obj_gfx.h"
 #include "objects_23_34.h"
 #include "palette.h"
+#include "data/data_0E5364.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* Objects 0x23 and 0x24 0x080577FC..0x080579A3. */
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-/* Graphics of objects 0x23 and 0x24 (ObjGfx_LoadResource / ObjPalette_FindOrLoadVariant /
- * Sprite_Attach arguments). */
-extern u8 sObject21Object23Gfx[];
-extern u8 sUnk_08209FD8[];
-extern u8 sObject21Object23SpriteSheet[];
-extern u8 sObject24Gfx[];
-extern u8 sObject24SpriteSheet[];
 
 u8 Object23_LoadGraphics(struct EwramData_EntityData *entity);
 u8 Object24_LoadGraphics(struct EwramData_EntityData *entity);
@@ -136,9 +131,6 @@ struct Object25Point {
 
 /* Per variant (spawnParam0): spawn point list and its length. */
 extern const struct Object25Point *const sObject25Points[];
-extern const u32 sObject25PointIndices[];
-extern u8 sObject25AnimScript0[];
-extern u8 sObject25AnimScript1[];
 
 void Object25_UpdateState(struct EwramData_EntityData *entity);
 u8 Object25_LoadGraphics(struct EwramData_EntityData *entity);
@@ -243,18 +235,12 @@ void Object25Create(struct EwramData_EntityData *entity)
 }
 
 /* Objects 0x25..0x28 0x08057BAC..0x08058507. */
-extern void Effect_SpawnRandom(s32 x, s32 y, s32 width, s32 height, s32 layer);
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
 extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
 
 /* Animations of object 0x25 (Anim_Start). */
-extern u8 sObject25AnimScript2[];
-/* Graphics of object 0x25 (Object25_LoadGraphics). */
-extern u8 sObject25Gfx[];
-extern u8 sLegionObject25Palette[];
-extern u8 sObject25SpriteSheet[];
 
 /**
  * @brief 57BAC | Object 0x25, state 0: wait for 0x53D bit 0, then walk
@@ -375,10 +361,6 @@ u8 Object25_LoadGraphics(struct EwramData_EntityData *entity)
 extern s32 Target_IsInRect(s16 left, s16 top, s16 width, s16 height);
 u8 Object26_LoadGraphics(struct EwramData_EntityData *entity);
 void Object26_UpdateState(struct EwramData_EntityData *entity);
-
-/* Graphics of object 0x26 (Object26_LoadGraphics). */
-extern u8 sObject13FamilyGfx[];
-extern u8 sObject13FamilySpriteSheet[];
 
 /**
  * @brief 57E04 | Object 0x26 create: load the graphics (delete the object
@@ -764,14 +746,6 @@ void Object27_OnPlayerContact(struct EwramData_EntityData *entity)
 
 /* Objects 0x2B and 0x2C 0x08058508..0x0805872B. */
 
-/* Graphics of objects 0x2B / 0x2C. */
-extern u8 sObject2BGfx[];
-extern u8 sUnk_0820A1C4[];
-extern u8 sObject2BPaletteAnim[];
-extern u8 sObject2BSpriteSheet[];
-extern u8 sObject2CGfx[];
-extern u8 sObject2CSpriteSheet[];
-
 u8 Object2B_LoadGraphics(struct EwramData_EntityData *entity);
 void Object2CLayer_Update(struct EwramData_EntityData *entity);
 void Object2C_SetupLayer(struct EwramData_EntityData *entity);
@@ -928,16 +902,6 @@ u8 Object2C_LoadGraphics(struct EwramData_EntityData *entity)
 /* Target_IsInRect (engine/entity_common.c) takes u16 there; the callers here pass
  * sign-extended values. */
 
-/* Graphics and animations of objects 0x2D / 0x2E. */
-extern u8 sObject2DGfx[];
-extern u8 sObject2DObject2EPalette[];
-extern u8 sObject2DSpriteSheet[];
-extern u8 sObject2EGfx[];
-extern u8 sObject2ESpriteSheet[];
-extern u8 sCommonObjectGfx[];
-extern u8 sCommonObjectSpriteSheet[];
-extern u8 sObject2EAnimScript[];
-
 u8 Object2D_LoadGraphics(struct EwramData_EntityData *entity);
 u8 Object2E_LoadGraphics(struct EwramData_EntityData *entity);
 void Object2E_UpdateState(struct EwramData_EntityData *entity);
@@ -956,17 +920,7 @@ void Object31_SpawnDust(struct EwramData_EntityData *entity, s32 offsetX, s32 of
 struct Object31Words {
     s32 v[4];
 };
-extern const u16 sObject31Xs[4];
-extern const u16 sObject31Ys[4];
-extern const u16 sObject31Anims[4];
 extern const struct Object31Words sUnk_08118674;
-extern void EntityMoveY(struct EwramData_EntityData *entity);
-
-/* Start x / y of object 0x2F per variant (spawnParam0). */
-extern const u16 sObject2FXs[3];
-extern const u16 sObject2FYs[3];
-extern u8 sObject2FFamilyGfx[];
-extern u8 sObject2FFamilySpriteSheet[];
 
 /**
  * @brief 5872C | Object 0x2D, state 0: substate 10 = idle animations 0 -> 1
@@ -1610,16 +1564,6 @@ u8 Object34_LoadGraphics(struct EwramData_EntityData *entity);
 void Object34_SpawnPart(struct EwramData_EntityData *entity, s32 part);
 void Object34Part_Update(struct EwramData_EntityData *entity);
 void Object34Part_Draw(struct EwramData_EntityData *entity);
-extern u8 sObject34Gfx[];
-extern u8 sObject34SpriteSheet[];
-
-/* Graphics of objects 0x32 / 0x33 and their pieces. */
-extern u8 sObject33Gfx[];
-extern u8 sObject33Palette[];
-extern u8 sObject33SpriteSheet[];
-extern u8 sObject32Gfx[];
-extern u8 sObject32Object34Palette[];
-extern u8 sObject32SpriteSheet[];
 
 /**
  * @brief 59494 | Object 0x32 create: load the graphics (delete the object

@@ -20,6 +20,7 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "effects.h"
+#include "data/data_118B48.h"
 /* from entity_util.h (not included: see the module notes) */
 
 /* Flipped offsets of sprite parts, decompiled from original assembly. */
@@ -715,10 +716,6 @@ struct FlipRect32 {
     s32 height;
 };
 
-/* Seven (x, y) s16 margin pairs at ROM 0x08118D08, copied by EntityIsOutsideScreen.
- * Declared as bytes: the original calls memcpy instead of an inline copy. */
-extern const u8 sOffscreenMargins[];
-
 /**
  * @brief 6D0B8 | Classify the tile at (x, y) via Collision_GetTile.
  *
@@ -964,8 +961,6 @@ void EntitySetVelocityFromAngle(struct EwramData_EntityData *entity, s32 angle, 
     }
 }
 
-void EntityAccelerateY(struct EwramData_EntityData *entity, s32 maxSpeed);
-
 /**
  * @brief 6D344 | Accelerate in both axes, clamping the speed to maxSpeed
  * (0 = no limit).
@@ -1120,8 +1115,6 @@ void Effect_SpawnAt(s32 x, s32 y, s32 layer)
 }
 
 /* Particle spawners 0x0806D5C0..0x0806D893. */
-extern u8 sCommonObjectGfx[];
-extern u8 sCommonObjectSpriteSheet[];
 
 /**
  * @brief 6D5C0 | Spawn a RisingEffect_Update particle at a random offset within
@@ -1684,7 +1677,7 @@ void Entity_OnPlayerContactDamage(struct EwramData_EntityData *entity)
  * @brief 6DFF8 | Create an entity with update function updateFunc in slots
  * 0x1B..0x48, or 0xD0..0xDF when unk_8E bit 6 is set.
  */
-struct EwramData_EntityData *Entity_CreateObject(u32 *updateFunc)
+struct EwramData_EntityData *Entity_CreateObject(void *updateFunc)
 {
     struct EwramData_EntityData *child;
 

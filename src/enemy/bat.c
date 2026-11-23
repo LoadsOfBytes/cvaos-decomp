@@ -10,6 +10,7 @@
 #include "entity_common.h"
 #include "math_anim.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, u8 *, void *, u8, void *);
 extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
@@ -18,7 +19,6 @@ extern s32 Collision_GetPushDown(s32, s32);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, void *);
 extern void Enemy_OnContact(struct EwramData_EntityData *);
 void Bat_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hitData);
-extern u8 sBatGfx[], sBatPalette[], sBatSpriteSheet[];
 static inline void SetState(struct EwramData_EntityData *entity, s8 value4F0, u8 state)
 {
     entity->state = state;

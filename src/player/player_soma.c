@@ -34,16 +34,9 @@
 #include "palette.h"
 #include "red_souls_b.h"
 #include "system_menus.h"
-
-// ROM data passed as pointers; previously hard-coded addresses in the draft.
-extern u8 sSomaSpriteSheet[];
-extern u8 sSomaGfx[];
-extern u8 sUnk_080E12C8[];
-extern u8 sJuliusGfx[];
-extern u8 sSomaPalette[];
-extern u8 sJuliusEntityPalette[];
-extern u8 sJuliusPalette[];
-extern u8 sJuliusSpriteSheet[];
+#include "data/data_0E0B68.h"
+#include "data/data_118B48.h"
+#include "data/data_4F0B18.h"
 
 /**
  * @brief When currentLevel is zero, initialize equipment, inventory,
@@ -90,8 +83,6 @@ struct PlayerBodyBox {
 };
 
 extern struct PlayerBodyBox sSomaStandingBodyBox[];
-
-extern u8 sSomaAnimPalettes[];
 
 /**
  * @brief Initialize the character-0 player entity graphics, palette,
@@ -1301,8 +1292,6 @@ s32 Soma_TryCeilingImpact(struct EwramData_EntityData *entity)
 }
 
 /* Soma_TryStartDiveAttack. */
-extern u8 sSomaDiveAttackBoxFast[];
-extern u8 sSomaDiveAttackBoxSlow[];
 
 /* Animation switch as in Soma_UpdateStatusReaction, with the 0x080E12FC hitbox and flag 1. */
 static inline void SetSlideAnim(struct EwramData_EntityData *entity, s32 anim)
@@ -1918,7 +1907,7 @@ static inline void SetPlayerAnimBox2(struct EwramData_EntityData *entity, u8 ani
  */
 void Soma_CastEquippedRedSoul(struct EwramData_EntityData *entity, s32 noAnim)
 {
-    struct RedSoulActivationView *info = RedSoul_GetInfo(gEwramData->playerStatus.equippedRedSoul);
+    struct RedSoulActivationView *info = (struct RedSoulActivationView *)RedSoul_GetInfo(gEwramData->playerStatus.equippedRedSoul);
     struct EwramData_EntityData *soul;
     s8 slot;
     u8 anim;
@@ -2571,8 +2560,6 @@ static inline u16 FloorProbe2(s16 x, s16 y, s32 flag)
     UpdateFloorKind(c);
     return c;
 }
-
-extern u8 *sUnk_084F10A0[];
 
 #define B53E(e) (*((u8 *)(e) + 0x5A))
 

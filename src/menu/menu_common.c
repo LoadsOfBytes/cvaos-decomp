@@ -10,6 +10,7 @@
 #include "macros.h"
 #include "gba.h"
 #include "text12.h"
+#include "data/data_0E5364.h"
 
 struct MenuGrid
 {
@@ -976,9 +977,6 @@ s32 HudMap_PrintNumber(s32 x, s32 y, s32 value, s32 digits, s32 palette, s32 zer
 /* BG map helpers 0x08047098..0x08047253.
  * All of them write the BG screen map at VRAM 0x0600E000
  * (32 entries per row); 0x330D is the blank tile used by the menus. */
-
-extern const s32 sHudMapTiles[3];
-extern const s32 sHudMapPalettes[3];
 
 /* Fill count entries with the blank tile from (x, y) leftwards. */
 void HudMap_ClearTilesLeft(s32 x, s32 y, s32 count)

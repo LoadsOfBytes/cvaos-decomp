@@ -20,6 +20,8 @@
 #include "obj_gfx.h"
 #include "pickup.h"
 #include "soul_pickup.h"
+#include "data/data_0E5364.h"
+#include "data/data_118B48.h"
 
 /* BossRushResult_Draw: matched (three block-local v instead of one variable set three times;
    literal constants, no helper variables). */
@@ -102,8 +104,6 @@ struct Object10Reward
     s32 item;
 };
 
-extern u8 sObject10Gfx[], sObject10Palette[], sObject10SpriteSheet[];
-extern u8 sObject10GfxLanguage2[], sObject10SpriteSheetLanguage2[], sObject10GfxLanguage3[], sObject10SpriteSheetLanguage3[];
 extern struct Object10Reward sObject10Rewards[];
 
 void Object10Create(struct EwramData_EntityData *entity)
@@ -212,10 +212,6 @@ void Object10Update(struct EwramData_EntityData *entity)
 /* Objects 0x11 (timer in entity slot 26) and 0x12 (decorations). */
 void BossRushTimer_Update(struct EwramData_EntityData *entity);
 void Object12Variant2_Draw(struct EwramData_EntityData *entity);
-
-extern u8 sObject12Variant0AnimScript0[];
-extern u8 sObject12Variant0AnimScript1[];
-extern u8 sObject12Variant0AnimScript2[];
 
 /* Object 0x12 variants (spawnParam0). */
 struct Object12VariantDefinition {
@@ -411,8 +407,6 @@ void Object12Update(struct EwramData_EntityData *entity)
 /* Object13ArmView segment object: copies the angle of entity[hitFlashTimer], places itself
  * at half the (cos, sin) * 8 offset from its parent (unk_4FC) and keeps the
  * full offset for the next segment; rotated via ObjAffine_Set. */
-
-extern u8 sObject13FamilyGfx[], sUnk_08209FD8[], sObject13FamilySpriteSheet[];
 
 struct Object13ArmView
 {

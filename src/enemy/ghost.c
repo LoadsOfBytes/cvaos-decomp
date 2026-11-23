@@ -16,6 +16,7 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 /* Update a Ghost or its timed spawn controller. */
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
@@ -313,9 +314,6 @@ void Ghost_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDat
  * a cloning script and checked byte for byte:
  *   Ghost_LoadGraphics = Object25_LoadGraphics */
 
-extern u8 sGhostGfx[];
-extern u8 sGhostPalette[];
-extern u8 sGhostSpriteSheet[];
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 /**

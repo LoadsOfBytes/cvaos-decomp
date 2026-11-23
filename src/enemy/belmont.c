@@ -21,13 +21,14 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "shop_update.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* Belmont initialization distinguishes scene entry and combat entry. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *,u8 *,void *,u8,void *);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *,void *,s32);
 extern void Enemy_OnContact(struct EwramData_EntityData *);
 void Belmont_OnHit(struct EwramData_EntityData *entity,s32 kind,u16 *hit);
-extern u8 sJuliusEntityPalette[],sJuliusSpriteSheet[],sBelmontGfx[];
 void EnemyBelmontCreate(struct EwramData_EntityData *entity)
 {
     void *palette=sJuliusEntityPalette;
@@ -424,7 +425,6 @@ u8 mask=FLAGS(entity)&8; if(mask==0){ entity->state=8; entity->stage=mask; entit
 }
 
 /* Belmont melee strike: animation choice, sound cues and active hitbox. */
-extern u16 sBelmontMeleeSounds[];
 /**
  * @brief Melee state (7): select the strike animation, play event sounds
  * and gate contact damage by animation step, then return to combat.
@@ -476,7 +476,6 @@ void Belmont_UpdateMeleeAttack(struct EwramData_EntityData *entity)
 extern s32 Entity_ClampXToRoom(struct EwramData_EntityData *,s32);
 extern void Afterimage_Create(struct EwramData_EntityData *,s32,s32,s32);
 extern struct EwramData_EntityData *Belmont_CreateMovementEffect(struct EwramData_EntityData *);
-extern s16 sBelmontMoveProfile[];
 /* Retain the facing test present in the original collision response. */
 #define STOP_HORIZONTAL(e) { \
     if((e)->flipX) \
@@ -765,8 +764,6 @@ void BelmontWaveProjectile_Update(struct EwramData_EntityData *entity)
 }
 
 /* Belmont projectile wave: nineteen delayed entities around the owner. */
-extern struct EwramData_EntityData *Entity_CreateObject(void *);
-extern u8 sJuliusPalette[],sBelmontSpriteSheet[],sBelmontWeaponGfx[];
 #define ABS(x) ((x)<0?-(x):(x))
 /**
  * @brief Create up to nineteen delayed wave projectiles at spaced offsets
@@ -992,7 +989,6 @@ void BelmontPowerParticle_Update(struct EwramData_EntityData *entity)
 }
 
 /* Randomly scattered visual effect linked back to Belmont. */
-extern u8 sCommonObjectGfx[],sCommonObjectSpriteSheet[];
 /**
  * @brief Create a randomized frame-64 particle linked to the owner,
  * with configured movement step 1 and initial countdown 32.
@@ -1032,7 +1028,6 @@ struct EwramData_EntityData *Belmont_CreatePowerParticle(struct EwramData_Entity
 extern s32 Belmont_CreateAttachedWeapon(struct EwramData_EntityData *);
 /* This original call site consumes the sign-extended value in all of r0. */
 extern s32 Collision_GetPushUp(s32,s32);
-extern u8 sBelmontWeaponSolidCallbacks[];
 /**
  * @brief Powered state (8): create the attached weapon, sequence tracked
  * sounds and rising particles, then descend and clean up the weapon
@@ -2033,7 +2028,6 @@ void BelmontSubweapon3_Update(struct EwramData_EntityData *entity)
 /* Five shared death fragments, their lifetime update, and a state helper. */
 extern s8 ObjPalette_FindOrLoadVariant(void *,s32);
 extern void FragmentSet_Update(struct EwramData_EntityData *);
-extern u8 sMandragoraGfx[],sMandragoraPalette[],sMandragoraSpriteSheet[];
 struct FragmentSpec { s8 x,y; u8 frame; s8 vx,vy; u8 timer; } __attribute__((packed));
 extern struct FragmentSpec sFragmentSpecs[];
 /**

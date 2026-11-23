@@ -17,12 +17,13 @@
 #include "math_anim.h"
 #include "oam.h"
 #include "obj_gfx.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* Buer: load graphics, create its linked parts and set initial collision
  * and movement state. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 extern void Buer_CreateHead(struct EwramData_EntityData *);
-extern u8 sBaelBuerGfx[], sBaelBuerPalette[], sBaelBuerSpriteSheet[];
 static inline void SetState(struct EwramData_EntityData *entity, s8 value4F0, u8 state)
 {
     entity->state = state;
@@ -64,14 +65,13 @@ void EnemyBuerCreate(struct EwramData_EntityData *entity)
 }
 
 /* Buer_CreateHead. */
-extern struct EwramData_EntityData *Entity_CreateObject(u32 *updateFunc);
 
 /**
  * @brief Create the linked frame-1 head sharing graphics and palette; store mutual slot indices and face it according to movement speed.
  */
 void Buer_CreateHead(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *child = Entity_CreateObject((u32 *)BuerHead_Update);
+    struct EwramData_EntityData *child = Entity_CreateObject(BuerHead_Update);
 
     if (child != NULL)
     {
@@ -180,7 +180,6 @@ restart:
 /* Buer accelerated charge, rotation, and sparks. */
 extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *entity);
 extern void Buer_SpawnChargeEffect(s32 x,s32 y,s32 index,s32 facing);
-extern s16 sBuerWalkProfile[];
 #define SPEED(e) (e->ext.wheel.speed)
 #define ANGLE(e) (e->ext.wheel.angle)
 #define DIRECTION(e) (e->ext.wheel.direction)
@@ -283,8 +282,6 @@ void Buer_UpdateCharge(struct EwramData_EntityData *entity)
 }
 
 /* Buer death: shaking head, slowing rotation, smoke and final fragments. */
-extern void Effect_SpawnRandom(s32 x,s32 y,s32 scaleX,s32 scaleY,s32 layer);
-extern s16 sBuerPositions[8][2];
 #define SHAKE_X(e) (e->ext.wheelDeath.shake[0])
 #define SHAKE_Y(e) (e->ext.wheelDeath.shake[1])
 

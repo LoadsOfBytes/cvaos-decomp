@@ -1,5 +1,6 @@
 /* Bestiary list cursor movement. */
 #include "gba.h"
+#include "bestiary_cursor.h"
 
 struct MenuPage
 {

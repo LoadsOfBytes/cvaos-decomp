@@ -14,6 +14,7 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 extern void ZombieSoldier_UpdateWalk(struct EwramData_EntityData *entity);
 extern void ZombieSoldier_UpdateAttack(struct EwramData_EntityData *entity);
@@ -261,8 +262,6 @@ void ZombieSoldier_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 
 extern void ZombieSoldierGrenade_Update(struct EwramData_EntityData *);
 extern void ZombieSoldierGrenade_DamagePlayerOnContact(struct EwramData_EntityData *);
 extern void ZombieSoldierGrenade_OnHit(struct EwramData_EntityData *, s32, u16 *);
-extern u8 sZombieSoldierGfx[];
-extern u8 sZombieSoldierSpriteSheet[];
 
 /**
  * @brief Throw a grenade from owner + (x, y) with (velX, velY) under gravity;
@@ -456,9 +455,6 @@ void ZombieSoldier_SpawnPiece(struct EwramData_EntityData *entity, s32 x, s32 y,
 
 /* Zombie Soldier helpers 0x08093078..0x08093177. */
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-/* Graphics of Zombie Soldier. */
-extern u8 sZombieSoldierPalette[];
 
 static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
 {

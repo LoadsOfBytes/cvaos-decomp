@@ -16,6 +16,7 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 /* Dispatch Gorgon/Catoblepas states and support an overridden single frame. */
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
@@ -131,7 +132,6 @@ finished:
 }
 
 /* Ground activation, timed gait, turning and backward retreat. */
-extern s8 sGorgonWalk[16], sGorgonTurn[12];
 extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s16);
 extern s32 Target_IsInRect(s16, s16, s32, s32);
 #define GAIT(e) (e->ext.gorgon.gait)
@@ -417,7 +417,6 @@ void Gorgon_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
 /* Create a hit effect relative to the body with supplied initial velocity. */
 extern void GorgonBreath_Update(struct EwramData_EntityData *);
 extern void GorgonBreath_DamagePlayerOnContact(struct EwramData_EntityData *);
-extern u8 sGorgonGfx[], sGorgonSpriteSheet[];
 /**
  * @brief Spawn a breath puff at offset (x, y) from parent moving with (vx, vy);
  * contact damage GorgonBreath_DamagePlayerOnContact (attribute 0x100).
@@ -555,7 +554,6 @@ void GorgonPiece_Update(struct EwramData_EntityData *entity)
 
 /* Gorgon and Catoblepas share graphics and select different palette variants. */
 extern s8 ObjPalette_FindOrLoadVariant(void *, u8);
-extern u8 sGorgonGfx[], sGorgonPalette[], sGorgonSpriteSheet[];
 /**
  * @brief Load the Gorgon graphics with palette variant 0 for type 0x33, else 1;
  * return 0 when no graphics slot is free, else 1.

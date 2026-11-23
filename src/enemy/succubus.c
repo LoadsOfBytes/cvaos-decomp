@@ -13,6 +13,7 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 extern void Succubus_UpdateWalk(struct EwramData_EntityData *entity);
 extern void Succubus_UpdateAttack(struct EwramData_EntityData *entity);
@@ -550,9 +551,6 @@ void Succubus_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
  *   Succubus_LoadGraphics = Object25_LoadGraphics
  * plus Succubus_DamagePlayerOnContact (decompiled locally). */
 
-extern u8 sLilithSuccubusGfx[];
-extern u8 sLilithSuccubusPalette[];
-extern u8 sLilithSuccubusSpriteSheet[];
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 /**

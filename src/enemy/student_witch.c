@@ -14,13 +14,13 @@
 #include "math_anim.h"
 #include "witch.h"
 #include "effects.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* Witch projectile setup, movement and spawn helper. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 extern void Enemy_OnContact(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern struct EwramData_EntityData *Entity_CreateObject(void *);
-extern u8 sWitchGfx[], sWitchPalette[], sWitchSpriteSheet[], sWitchGroundProjectileWalkProfile[];
 
 /**
  * @brief Shared ground projectile: accelerate along terrain, burst on an
@@ -96,7 +96,7 @@ static inline void FollowParent(struct EwramData_EntityData *child, struct Ewram
  */
 void Witch_SpawnGroundProjectile(struct EwramData_EntityData *owner, u16 x, u16 y, s32 state)
 {
-    struct EwramData_EntityData *child = Entity_CreateObject((u32 *)WitchGroundProjectile_Update);
+    struct EwramData_EntityData *child = Entity_CreateObject(WitchGroundProjectile_Update);
     if (child != NULL)
     {
         child->attack = owner->attack >> 1;
@@ -108,7 +108,6 @@ void Witch_SpawnGroundProjectile(struct EwramData_EntityData *owner, u16 x, u16 
 
 /* Student Witch ground movement, turning and attack choice. */
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *, s32, s32);
-extern u8 sStudentWitchWalkProfile[];
 
 /**
  * @brief Walking state (0): vary speed by animation step, turn at obstacles

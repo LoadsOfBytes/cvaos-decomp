@@ -18,6 +18,8 @@
 #include "obj_gfx.h"
 #include "pickup.h"
 #include "soul_menu.h"
+#include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 static inline s32 Item_GetTypeByGlobalId(s32 globalId)
 {
@@ -101,7 +103,6 @@ void Player_RestoreMPPercent(s32 percent)
  * Pickup_Update) or small (frame 0x28, spawnParam1 3); optionally thrown up. */
 extern void Pickup_UpdateDriftingMana(struct EwramData_EntityData *);
 extern void Pickup_Update(struct EwramData_EntityData *);
-extern u8 sCommonObjectGfx[], sCommonObjectSpriteSheet[];
 
 /**
  * @brief Create a small or large MP pickup with the existing hit callback, frame, percentage and optional upward velocity; return NULL on allocation failure.
@@ -333,7 +334,6 @@ struct EwramData_EntityData *Pickup_CreateGold(s32 x, s32 y, s32 index)
 
 struct ItemRecord { u16 name; u8 icon; s8 palette; };
 extern u8 sConsumableInfo[], sWeaponInfo[], sArmorInfo[];
-extern u8 sUnk_085059BC[], sUnk_08505C94[];
 
 static inline void *LocalInfo(s32 type, s32 id)
 {
@@ -436,7 +436,6 @@ done:
 /* Item / gold / soul pickup handler (Pickup_Collect). Needs -fno-cse-skip-blocks
  * (Makefile): the target reloads the inventory count after the 0x4EF test. */
 
-extern const u16 sItemNameTextIds[];
 extern void Effect_SpawnAttachedAnimation(struct EwramData_EntityData *, u8, u8, s32, s32);
 
 static inline u8 *Inv(struct PlayerStatus *v, s32 t)

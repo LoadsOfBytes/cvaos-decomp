@@ -29,22 +29,12 @@ extern void Stolas_UpdateAttack(struct EwramData_EntityData *entity);
 extern void Stolas_SpawnDebris(struct EwramData_EntityData *entity, s32 x, s32 y, s32 vx, s32 vy);
 extern void Stolas_UpdatePreview(struct EwramData_EntityData *entity);
 
-struct StolasPreviewAnimation {
-    u16 stepCount;
-    u16 type;
-    u8 frame;
-    u8 duration;
-    u16 unk_6;
-};
-
 struct StolasBox {
     s32 x:8;
     s32 y:8;
     u32 w:8;
     u32 h:8;
 };
-
-extern const struct StolasPreviewAnimation sStolasPreviewAnimation;
 
 void EnemyStolasUpdate(struct EwramData_EntityData *entity)
 {

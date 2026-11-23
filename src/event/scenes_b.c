@@ -64,9 +64,8 @@ void EventScene04_Init(struct EwramData_EntityData *entity)
     ewram->gameState.stateFlags |= 1;
 }
 
-/* Script step and timer bytes 0x4FC/0x4FD of EventScene04_RunMusicScript. */
-#define STEP(e) ((e)->ext.raw.unk_4FC.bytes[0])
-#define TIMER(e) ((e)->ext.raw.unk_4FC.bytes[1])
+#define STEP(e) ((e)->ext.event04.scriptStep)
+#define TIMER(e) ((e)->ext.event04.scriptTimer)
 
 /**
  * @brief 5F1CC | Timed script: song 0x1010 and wait 0xA0 frames, then
@@ -239,7 +238,7 @@ s32 EventScene04_Update(struct EwramData_EntityData *entity)
                     ew->gameState.textWindowPause = ret;
                     ew->gameState.textWindowState = 5;
                     entity->stage++;
-                    entity->ext.event04.unusedFlag = 4;
+                    entity->ext.event04.scriptStep = 4;
                 }
                 break;
             }

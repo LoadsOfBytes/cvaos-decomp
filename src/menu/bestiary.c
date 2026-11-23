@@ -23,6 +23,7 @@
 #include "sound.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "data/data_0E5364.h"
 
 /* BestiaryMenu_UpdateDetailScreen, BestiaryMenu_SpawnEnemyPreview. */
 /* tile as s32: the header u16 would add a zero extension of the argument */
@@ -664,13 +665,6 @@ struct MenuPage4
     s8 top;
 };
 
-struct Unk_08118510
-{
-    s32 unk[4];
-};
-
-extern const struct Unk_08118510 sUnk_08118510;
-
 static inline s32 IsSeen(s32 id)
 {
     s32 v = gEwramData->playerStatus.enemyFlags[id >> 5] & (1 << (id & 0x1F));
@@ -847,13 +841,6 @@ void BestiaryMenu_DrawList(struct MenuPage4 *page)
 }
 
 /* Menu helpers 0x0804D73C..0x0804D793. */
-struct BestiaryAttributeIcon {
-    s32 tileColumn; // low four bits of the tile coordinate
-    s32 tileRow; // row in the 16-column tile layout
-};
-
-extern const struct BestiaryAttributeIcon sBestiaryAttributeIcons[];
-
 /**
  * @brief Return 1 when the defeated flag of enemy id is set (bit set
  * enemyFlags[0..3], set by Enemy_DropRewards), else 0.

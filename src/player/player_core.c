@@ -288,7 +288,7 @@ u16 Player_CalculateAttackPower(u16 attackCategory)
         }
         else
         {
-            power = gEwramData->unk_133EE * sAttackPowerMultipliers[3];
+            power = gEwramData->linkPartnerAttack * sAttackPowerMultipliers[3];
         }
         power /= 16;
     }
@@ -308,12 +308,6 @@ u16 Player_CalculateAttackPower(u16 attackCategory)
     }
     return power;
 }
-
-struct StatusEffectApplication {
-    u16 initialCounter;
-    u16 soundId;
-};
-extern struct StatusEffectApplication sStatusEffectApplications[];
 
 static inline s16 Player_GetX()
 {
@@ -1857,7 +1851,7 @@ struct WeaponInfo* Weapon_GetEquippedInfo(void)
 
 /**
  * @brief Return the weapon info for attacker slot 0 (equipped weapon) or
- * another slot (unk_133F2).
+ * slot 1, the link play partner (linkPartnerWeapon).
  */
 struct WeaponInfo* Weapon_GetAttackerInfo(s32 slot)
 {
@@ -1866,7 +1860,7 @@ struct WeaponInfo* Weapon_GetAttackerInfo(s32 slot)
         return Weapon_GetInfoInline(gEwramData->playerStatus.equippedWeapon);
         
     }
-    return Weapon_GetInfoInline(gEwramData->unk_133F2);
+    return Weapon_GetInfoInline(gEwramData->linkPartnerWeapon);
 }
 
 /**
@@ -2277,17 +2271,6 @@ void RedSoulAnchor_Update(struct EwramData_EntityData *entity)
     follower->posY.part16.integer = target->posY.part16.integer + entity->accelY.part16.integer;
 }
 
-struct BladeSoulVariant {
-    void *graphics;
-    void *palette;
-    void *spriteSheet;
-    u8 animFrame;
-    u8 unk_D;
-    u8 paletteIndex;
-    u8 unk_F;
-};
-extern struct BladeSoulVariant sBladeSoulVariants[];
-
 static inline void SkillLoadGraphicsInline(struct EwramData_EntityData *entity, u8 first, void *resource, void *palette, void *sheet)
 {
     gEwramData->playerState.redSoulGfx = ObjGfx_LoadResource(resource, 0x10000);
@@ -2478,13 +2461,6 @@ block_33:
 
     entity->roomActive = 1;
 }
-
-struct SoulGraphicsResources {
-    void *graphics;
-    void *palette;
-    void *spriteSheet;
-};
-extern struct SoulGraphicsResources sSkillGraphicsSets[];
 
 /**
  * @brief Unreferenced red-soul projectile: thrown horizontally from the

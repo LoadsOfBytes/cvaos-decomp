@@ -241,7 +241,7 @@ void Skeleton_UpdateIdle(struct EwramData_EntityData *entity)
 /* Idle choice between two attacks. */
 
 /* attack flags, see Skeleton_UpdateThrow */
-#define FLAGS(e) ((e)->ext.raw.unk_4FC.part8.unk_4FE)
+#define FLAGS(e) ((e)->ext.skeleton.flags)
 
 /**
  * @brief Select preparation animation 5 or 6 and pending attack flags; optionally create an attached part, then return to state 1.
@@ -624,14 +624,6 @@ void SkeletonDeathPiece_UpdateUnused(struct EwramData_EntityData *entity)
 
 /* Attached part: mirrors its parent's flags, follows joint 0 / table point and switches animation. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-
-struct PartPoint {
-    u16 point;
-    s8 dx;
-    s8 dy;
-};
-
-extern const struct PartPoint sSkeletonPartPoints[];
 
 /**
  * @brief Follow the Skeleton owner at joint 0, then table-selected joints

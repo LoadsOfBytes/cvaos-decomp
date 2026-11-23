@@ -231,7 +231,7 @@ extern void ArachneEffect_Update(struct EwramData_EntityData *);
 extern void ArachneBeam_DamagePlayerOnContact(struct EwramData_EntityData *);
 
 #undef WAIT
-#define WAIT(e) ((e)->ext.raw.unk_504.part8.unk_506)
+#define WAIT(e) ((e)->ext.arachne.wait)
 
 #define HOVER(entity)                                                       \
     {                                                                       \

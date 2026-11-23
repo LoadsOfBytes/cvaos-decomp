@@ -74,16 +74,6 @@ void Player_InitNewGameIfNeeded(void)
     }
 }
 
-// TODO: investigate Soma_InitEntity and the data 
-struct PlayerBodyBox {
-    u8 x;
-    u8 y;
-    u8 width;
-    u8 height;
-};
-
-extern struct PlayerBodyBox sSomaStandingBodyBox[];
-
 /**
  * @brief Initialize the character-0 player entity graphics, palette,
  * animation, body box, draw callback and contact setup. Entry 0
@@ -256,8 +246,6 @@ static inline s32 CollisionProbe_TestSlopeBits()
 }
 
 /* Player collision with the tile map, the carrying object and moving platforms. */
-extern struct PlayerBodyBox sSomaAirborneBodyBox[];
-extern struct PlayerBodyBox sSomaCrouchBodyBoxes[];
 
 /* Function table of the object in solidObject (pointer at its unk_4F4). */
 struct SolidObjectCallbacks {
@@ -2227,7 +2215,6 @@ void Soma_UpdateStatusReaction(struct EwramData_EntityData *entity)
 }
 
 /* Soma_HandleBatFlightInput. */
-extern struct PlayerBodyBox sSomaBatFormBodyBoxes[];
 
 /* Animation switch as in Soma_UpdateStatusReaction, with the 0x080E1308 hitbox, flag 1 and
  * the saved animStep restored afterwards. */

@@ -123,14 +123,8 @@ u8 Object24_LoadGraphics(struct EwramData_EntityData *entity)
 }
 
 /* Object 0x25 (Object25Update / Object25Create). */
-/* A spawn point of object 0x25 (16.16 world coordinates). */
-struct Object25Point {
-    s32 x;
-    s32 y;
-};
 
 /* Per variant (spawnParam0): spawn point list and its length. */
-extern const struct Object25Point *const sObject25Points[];
 
 void Object25_UpdateState(struct EwramData_EntityData *entity);
 u8 Object25_LoadGraphics(struct EwramData_EntityData *entity);
@@ -916,12 +910,6 @@ u8 Object31_LoadGraphics(struct EwramData_EntityData *entity);
 void Object31_UpdateState(struct EwramData_EntityData *entity);
 void Object31_SpawnDust(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY);
 
-/* Object 0x31 per variant (spawnParam0): start x, start y, animation, unk_4F8. */
-struct Object31Words {
-    s32 v[4];
-};
-extern const struct Object31Words sUnk_08118674;
-
 /**
  * @brief 5872C | Object 0x2D, state 0: substate 10 = idle animations 0 -> 1
  * -> 2 / 3, 4 -> 0 (each on animation end, 0x53D bit 0); go to substate 12
@@ -1544,11 +1532,6 @@ void Object31_SpawnDust(struct EwramData_EntityData *entity, s32 offsetX, s32 of
 }
 
 /* Objects 0x32..0x34 0x08059494..0x0805A18B. */
-/* Two hit boxes of object 0x32 (by spawnParam1). */
-struct Object32Boxes {
-    u32 box[2];
-};
-extern const struct Object32Boxes sObject32Boxes;
 
 u8 Object32_LoadGraphics(struct EwramData_EntityData *entity);
 void Object32_UpdateState(struct EwramData_EntityData *entity);

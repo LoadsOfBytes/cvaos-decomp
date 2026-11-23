@@ -87,8 +87,8 @@ extern void GhostDancer_UpdateBestiaryPreview(struct EwramData_EntityData *);
 extern void GhostDancer_UpdateMovement(struct EwramData_EntityData *);
 extern void GhostDancer_UpdateDeath(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *,struct EwramData_EntityData *);
-#define MODE(e) ((e)->ext.raw.unk_4FC.part8.unk_4FC)
-#define TIMER(e) ((e)->ext.raw.unk_4FC.part8.unk_4FD)
+#define MODE(e) ((e)->ext.ghostDancer.mode)
+#define TIMER(e) ((e)->ext.ghostDancer.timer)
 void EnemyGhostDancerUpdate(struct EwramData_EntityData *entity)
 {
     s32 bounds[4];
@@ -217,7 +217,7 @@ void GhostDancer_UpdateUnusedState(struct EwramData_EntityData *entity)
 }
 
 /* Horizontal and vertical sine motion, alternating frames at turning points. */
-#define PHASE(e) ((e)->ext.raw.unk_4F8.part16.unk_4F8)
+#define PHASE(e) ((e)->ext.ghostDancer.phase)
 /**
  * @brief Alive states (1/2): move with horizontal and vertical sine phases,
  * swap animations at horizontal turning points and advance visibility

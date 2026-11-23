@@ -611,7 +611,9 @@ struct GolemWork {
     /* 0x4FC */ s8 attackPhase;
     /* 0x4FD */ u8 pad_4FD[0x500 - 0x4FD];
     /* 0x500 */ struct GolemPart *parts;
-    /* 0x504 */ u8 pad_504[0x508 - 0x504];
+    /* 0x504 */ u8 pad_504[0x505 - 0x504];
+    /* 0x505 */ u8 attackCount;
+    /* 0x506 */ u8 pad_506[0x508 - 0x506];
     /* 0x508 */ s32 variant;
 };
 
@@ -1020,6 +1022,8 @@ struct BelmontWork {
     /* 0x501 */ s8 attackOff;
     /* 0x502 */ u8 pad_502[0x504 - 0x502];
     /* 0x504 */ u8 hits;
+    /* 0x505 */ u8 pad_505[0x506 - 0x505];
+    /* 0x506 */ s16 cooldown;
 };
 
 /* Belmont (boss) work slots: - attack: contact attack power from the
@@ -1255,15 +1259,16 @@ struct SuccubusWork {
  * animation itself (EnemyWerejaguarUpdate skips Anim_Update); - contact
  * kind: which attack the contact damage belongs to (0 = body, 1 = claw 3/4
  * power, 2 = knock back, 3 = strong knock back); - contact hit: set by
- * Werejaguar_DamagePlayerOnContact after a hit.
- * Cleared when the attack starts; never read.
+ * Werejaguar_DamagePlayerOnContact after a hit; - extra attack chosen
+ * (enemy 0x4B): set once the random follow-up attack was picked. Both are
+ * cleared when the attack starts.
  */
 struct WerejaguarWork {
     /* 0x4F4 */ u8 pad_4F4[0x4F8 - 0x4F4];
     /* 0x4F8 */ s8 manualAnim;
     /* 0x4F9 */ u8 contactKind;
-    /* 0x4FA */ u8 unusedFlag;
-    /* 0x4FB */ u8 contactHit;
+    /* 0x4FA */ s8 extraAttackChosen;
+    /* 0x4FB */ s8 contactHit;
 };
 
 /* Death effect (WerejaguarDeathEffect_Update): sway angle, screen x / y and
@@ -1480,7 +1485,7 @@ struct SlimeWork {
 struct NemesisWork {
     /* 0x4F4 */ u8 pad_4F4[0x4F6 - 0x4F4];
     /* 0x4F6 */ u8 partnerIndex;
-    /* 0x4F7 */ u8 pad_4F7[0x4F8 - 0x4F7];
+    /* 0x4F7 */ u8 attackStep; /* passes left (turning attack) / step index (scripted attack) */
     /* 0x4F8 */ u16 waitTimer;
     /* 0x4FA */ u8 attackSet;
     /* 0x4FB */ u8 attackIndex;
@@ -1982,7 +1987,7 @@ struct AfterimageWork {
     /* 0x4F8 */ union { s32 value; struct EwramData_EntityData *ptr; } history;
     /* 0x4FC */ struct EwramData_EntityData *owner;
     /* 0x500 */ u8 pad_500[0x502 - 0x500];
-    /* 0x502 */ s16 delay;
+    /* 0x502 */ u16 delay;
     /* 0x504 */ s32 flags;
 };
 
@@ -2301,6 +2306,8 @@ struct DeathWeaponWork {
     /* 0x4FB */ u8 pad_4FB[0x4FC - 0x4FB];
     /* 0x4FC */ s16 angle;
     /* 0x4FE */ s16 spin;
+    /* 0x500 */ u8 pad_500[0x504 - 0x500];
+    /* 0x504 */ s32 speed;
 };
 
 /* Death floating weapon: countdown of its current move (same bytes as the
@@ -2500,7 +2507,8 @@ struct ParticleTimedWork {
  * second copy (random +-16 px).
  */
 struct ParticlePairWork {
-    /* 0x4F4 */ u8 pad_4F4[0x500 - 0x4F4];
+    /* 0x4F4 */ u8 pad_4F4[0x4FC - 0x4F4];
+    /* 0x4FC */ s32 phase; /* SaveSparkle_Create */
     /* 0x500 */ s32 offsetX;
     /* 0x504 */ s32 offsetY;
 };
@@ -2600,7 +2608,7 @@ struct LegionWork {
     /* 0x4FE */ u8 brokenCores;
     /* 0x4FF */ u8 pad_4FF[0x500 - 0x4FF];
     /* 0x500 */ u8 circleDir;
-    /* 0x501 */ u8 pad_501[0x502 - 0x501];
+    /* 0x501 */ s8 circleSide; /* Legion_UpdateCircle: side of the circle 0..3 */
     /* 0x502 */ u8 retargetTimer;
     /* 0x503 */ u8 pad_503[0x504 - 0x503];
     /* 0x504 */ u8 animPalette;
@@ -2770,7 +2778,7 @@ struct Event30Work {
     /* 0x506 */ s16 centerY;
     /* 0x508 */ s16 timer;
     /* 0x50A */ s16 jitterX;
-    /* 0x50C */ u8 pad_50C[0x50E - 0x50C];
+    /* 0x50C */ s16 zoomTexX;
     /* 0x50E */ s16 zoomTexY;
 };
 
@@ -2873,7 +2881,7 @@ struct BaloreHandWork {
     /* 0x504 */ s32 armScale;
     /* 0x508 */ s16 homeX;
     /* 0x50A */ s16 homeY;
-    /* 0x50C */ s32 steer;
+    /* 0x50C */ struct BaloreFlightSteeringParameters *steer;
 };
 
 /* Balore affine effect (BaloreAffineEffect_Update): angle, spin step and
@@ -2913,11 +2921,16 @@ struct BaloreOverlayWork {
     /* 0x504 */ s32 parts;
 };
 
-/* Balore emitter (BaloreEmitter_Draw): 16.16 x step between its 8 drawn
- * copies (the y step is outside the work area, BALORE_EMITTER_STEP_Y).
+/* Balore emitter (BaloreEmitter_Update / _Draw): size (starts at 0x1000000,
+ * gives the affine scale), rotation angle, affine y scale (sways, then
+ * shrinks) and the 16.16 x step between its 8 drawn copies (the y step is
+ * outside the work area, BALORE_EMITTER_STEP_Y).
  */
 struct BaloreEmitterWork {
-    /* 0x4F4 */ u8 pad_4F4[0x50C - 0x4F4];
+    /* 0x4F4 */ u8 pad_4F4[0x500 - 0x4F4];
+    /* 0x500 */ s32 size;
+    /* 0x504 */ s32 angle;
+    /* 0x508 */ s32 scaleY;
     /* 0x50C */ s32 stepX;
 };
 
@@ -3006,6 +3019,7 @@ struct Chaos2Work {
  */
 struct ChaosChildWork {
     /* 0x4F4 */ struct EwramData_EntityData *link;
+    /* 0x4F8 */ s32 lifetime; /* Chaos2SummonedPart_Update: frames alive (breaks after 1500) */
 };
 
 /* Chaos second form parts: hit flash frames (30 after a hit; TU alias
@@ -3051,7 +3065,9 @@ struct ChaosShotWork {
 
 /* Chaos soul shot: its spread (same bytes as ext.chaosShot.reflected). */
 struct ChaosSoulShotWork {
-    /* 0x4F4 */ u8 pad_4F4[0x504 - 0x4F4];
+    /* 0x4F4 */ u8 pad_4F4[0x501 - 0x4F4];
+    /* 0x501 */ u8 mash; /* ChaosSpark_Update: button presses while grabbed (max 100) */
+    /* 0x502 */ u8 pad_502[0x504 - 0x502];
     /* 0x504 */ s32 spread;
 };
 
@@ -3586,6 +3602,8 @@ struct WarpGateWork {
 struct Object1DWork {
     /* 0x4F4 */ u8 pad_4F4[0x4F8 - 0x4F4];
     /* 0x4F8 */ s8 exitRight;
+    /* 0x4F9 */ u8 pad_4F9[0x4FC - 0x4F9];
+    /* 0x4FC */ s8 affineSlot; /* Object1D_DrawPulsingOverlay */
 };
 
 /* Object 0x22 (platform carrying the player along its levels,
@@ -3595,7 +3613,10 @@ struct Object1DWork {
 struct Object22Work {
     /* 0x4F4 */ u8 pad_4F4[0x500 - 0x4F4];
     /* 0x500 */ u8 emptyTimer;
-    /* 0x501 */ u8 pad_501[0x507 - 0x501];
+    /* 0x501 */ u8 pad_501[0x504 - 0x501];
+    /* 0x504 */ s8 level;
+    /* 0x505 */ s8 step;
+    /* 0x506 */ s8 hit;
     /* 0x507 */ u8 flags;
 };
 
@@ -3823,6 +3844,16 @@ struct SoulTradeWork {
     /* 0x50E */ s16 listTop;
 };
 
+/* Sound test menu state (GameModeSoundTestMenu, kept in entityData[2]):
+ * selected row (category), selected track and the song playing per category.
+ */
+struct SoundTestMenuWork {
+    /* 0x4F4 */ u8 pad_4F4[0x4FC - 0x4F4];
+    /* 0x4FC */ s16 row;
+    /* 0x4FE */ s16 track[4];
+    /* 0x506 */ s16 playing[4];
+};
+
 /* Sound test menu text entity (GameModeSoundTestMenu): the entry it shows. */
 struct SoundTestTextWork {
     /* 0x4F4 */ u8 pad_4F4[0x4FC - 0x4F4];
@@ -3943,14 +3974,15 @@ struct Object34PartWork {
 };
 
 /* Event scene 04 actor: position in the animation list sUnk_0852682C (0xFF
- * ends it; also read through the byte view), and a flag set to 4 when its
- * text starts (never read).
+ * ends it; also read through the byte view), step and timer of
+ * EventScene04_RunMusicScript (the step is set to 4 when its text starts).
  */
 struct Event04Work {
     /* 0x4F4 */ u8 pad_4F4[0x4F8 - 0x4F4];
     /* 0x4F8 */ s8 animPos;
     /* 0x4F9 */ u8 pad_4F9[0x4FC - 0x4F9];
-    /* 0x4FC */ u8 unusedFlag;
+    /* 0x4FC */ u8 scriptStep;
+    /* 0x4FD */ u8 scriptTimer;
 };
 
 /* Animation viewer (debug): frame mode (0 = play animation scripts, 1 = step

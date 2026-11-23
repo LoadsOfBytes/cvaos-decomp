@@ -59,7 +59,7 @@ static inline s32 NoRedSouls(struct EwramData *ew)
  */
 void RedSoulHistoryTrail_Update(struct EwramData_EntityData *entity)
 {
-    struct Unk_0802A330 *trail = (struct Unk_0802A330 *)&entity->ext.raw.unk_4F4;
+    struct Unk_0802A330 *trail = (struct Unk_0802A330 *)&entity->ext;
     struct EwramData *ew = gEwramData;
     struct EwramData_EntityData *owner = ew->playerState.activeRedSoulEntities[entity->stage];
     s32 i;
@@ -119,7 +119,7 @@ struct EwramData_EntityData *SkillGhost_CreateHistoryTrail(struct EwramData_Enti
         entity->flipX = facing;
     }
     entity->stage = owner->ext.redSoul.slot;
-    trail = (struct Unk_0802A330 *)&entity->ext.raw.unk_4F4;
+    trail = (struct Unk_0802A330 *)&entity->ext;
     for (i = 9; i != 0; i--)
     {
         trail[i].x = GetEntityRoomXPositionInteger(owner);
@@ -130,13 +130,6 @@ struct EwramData_EntityData *SkillGhost_CreateHistoryTrail(struct EwramData_Enti
 }
 
 /* Red soul projectile: homes on the nearest target, or wanders randomly. */
-struct SoulGraphicsResources {
-    void *graphics;
-    void *palette;
-    void *spriteSheet;
-};
-extern struct SoulGraphicsResources sSkillGraphicsSets[];
-
 static inline void SkillLoadGraphicsInline(struct EwramData_EntityData *entity, u8 paletteSlot, void *gfxSrc, void *palette, void *sheet)
 {
     gEwramData->playerState.redSoulGfx = ObjGfx_LoadResource(gfxSrc, 0x10000);
@@ -1531,7 +1524,7 @@ void SkillManEaterUse(struct EwramData_EntityData *entity)
  */
 void RedSoulHistoryTrail_UpdateUnhide(struct EwramData_EntityData *entity)
 {
-    struct Unk_0802A330 *trail = (struct Unk_0802A330 *)&entity->ext.raw.unk_4F4;
+    struct Unk_0802A330 *trail = (struct Unk_0802A330 *)&entity->ext;
     struct EwramData *ew = gEwramData;
     struct EwramData_EntityData *owner = ew->playerState.activeRedSoulEntities[entity->stage];
     s32 i;
@@ -1589,7 +1582,7 @@ struct EwramData_EntityData *RedSoul_CreateHistoryTrail(struct EwramData_EntityD
     }
     entity->flipX = owner->flipX;
     entity->stage = owner->ext.redSoul.slot;
-    trail = (struct Unk_0802A330 *)&entity->ext.raw.unk_4F4;
+    trail = (struct Unk_0802A330 *)&entity->ext;
     for (i = 9; i != 0; i--)
     {
         trail[i].x = GetEntityRoomXPositionInteger(owner);
@@ -1717,7 +1710,7 @@ void SkillHarpyUse(struct EwramData_EntityData *entity)
  */
 void SkillSlimeTrailUpdate(struct EwramData_EntityData *entity)
 {
-    struct Unk_0802A330 *trail = (struct Unk_0802A330 *)&entity->ext.raw.unk_4F4;
+    struct Unk_0802A330 *trail = (struct Unk_0802A330 *)&entity->ext;
     struct EwramData *ew = gEwramData;
     struct EwramData_EntityData *owner = ew->playerState.activeRedSoulEntities[entity->stage];
     s32 i;
@@ -2597,7 +2590,7 @@ void SkillCockatriceDraw(struct EwramData_EntityData *entity)
 void RedSoulHistoryTrail_Draw(struct EwramData_EntityData *entity)
 {
     s32 i = 0;
-    u16 *history = (u16 *)&entity->ext.raw.unk_4F4;
+    u16 *history = (u16 *)&entity->ext;
 
     for (; i <= 4; i++)
     {
@@ -2617,7 +2610,7 @@ void RedSoulHistoryTrail_Draw(struct EwramData_EntityData *entity)
 void SkillHarpyTrailDraw(struct EwramData_EntityData *entity)
 {
     s32 i = 0;
-    u16 *history = (u16 *)&entity->ext.raw.unk_4F4;
+    u16 *history = (u16 *)&entity->ext;
 
     for (; i <= 2; i++)
     {
@@ -2637,7 +2630,7 @@ void SkillHarpyTrailDraw(struct EwramData_EntityData *entity)
 void SkillSlimeTrailDraw(struct EwramData_EntityData *entity)
 {
     s32 i = 0;
-    u16 *history = (u16 *)&entity->ext.raw.unk_4F4;
+    u16 *history = (u16 *)&entity->ext;
 
     for (; i <= 7; i++)
     {

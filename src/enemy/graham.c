@@ -29,6 +29,7 @@
 #include "palette.h"
 #include "shop_update.h"
 #include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* Graham encounter setup, including character/event dependent scene paths. */
 extern s32 Graham_CreateSceneObject(struct EwramData_EntityData *,s32);
@@ -101,8 +102,6 @@ void EnemyGrahamCreate(struct EwramData_EntityData *entity)
 }
 
 /* Create a Graham scene object and set its event bit. */
-struct GrahamSceneObject { s16 x,y; u8 unused[4]; u16 param1,param2; };
-extern struct GrahamSceneObject sGrahamSceneObjects[];
 /**
  * @brief Create the indexed scene object 0x20 when owner/global flags
  * allow it, store slot links and set its event bit. Return 1 on success
@@ -398,8 +397,6 @@ void GrahamPlayerEffect_Update(struct EwramData_EntityData *entity)
 }
 
 /* Select one of five emitters and add a small random pixel offset. */
-struct GrahamSpawnTable { s32 coordinate[10]; };
-extern struct GrahamSpawnTable sGrahamSpawnTable;
 /**
  * @brief Cycle through five table emitters, add randomized pixel offsets
  * and create one scene projectile. Select homing from the owner timer
@@ -1020,12 +1017,6 @@ struct EwramData_EntityData *Graham_CreateSidePart(struct EwramData_EntityData *
 
 /* Child entity that follows its owner: copies the owner flags and runs a
  * timed rise/wait state machine (wait tables sUnk_08119580..). */
-
-struct Wait16 { s32 t[16]; };
-struct Wait8 { s32 t[8]; };
-extern struct Wait16 sUnk_08119580;
-extern struct Wait8 sUnk_081195C0;
-extern struct Wait8 sUnk_081195E0;
 
 /**
  * @brief Mirror owner flags and run palette entry, table-timed waits and
@@ -2612,9 +2603,6 @@ void GrahamSpiralProjectile_Update(struct EwramData_EntityData *entity)
 
 /* Burst of particles in timed waves from a 4x15 offset table (BossDefeat_EmitParticleWavesUnused).
  * The timer is read through volatile like the original (fresh ldrb). */
-struct BurstOffset { s16 x, y; };
-extern const struct BurstOffset sBossDefeatBurstOffsets[4][15];
-
 /**
  * @brief Unreferenced defeat effect next to GrahamBreakupFragment_Update: emit
  * BossDefeatParticle_Update particles in timed waves from the 4x15
@@ -2855,8 +2843,6 @@ void GrahamBreakupFragment_Update(struct EwramData_EntityData *entity)
 }
 
 /* Mirrored fragment positions form the expanding breakup effect. */
-struct FragmentPoint { s16 x,y; };
-extern struct FragmentPoint sGrahamBreakupFragmentPoints[4][15];
 /**
  * @brief Wait, emit mirrored fragments from the 4-by-15 point table with
  * palette flashes, then run the existing effect cleanup callback

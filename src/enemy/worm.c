@@ -96,7 +96,7 @@ void Worm_Init(struct EwramData_EntityData *root, s32 variant)
         if ((s16)matrix < 0)
             goto fail;
         {
-            u8 slot = *(u8 *)&part->ext.raw.unk_4F4;
+            u8 slot = *(u8 *)&part->ext;
             *(u8 *)&previous->ext.raw.unk_504 = slot;
         }
         part->affineIndex = matrix;

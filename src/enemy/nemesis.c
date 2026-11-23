@@ -238,7 +238,7 @@ void Nemesis_UpdateRotatedBoxes(struct EwramData_EntityData *entity)
 /* Turning attack: three passes, then return to the ordinary state. */
 extern void *memcpy(void *, const void *, unsigned long);
 
-#define LEFT(e) ((e)->ext.raw.unk_4F4.part8.unk_4F7)
+#define LEFT(e) ((e)->ext.nemesis.attackStep)
 
 static inline s16 GetTurn(struct EwramData_EntityData *e)
 { return e->ext.nemesis.turn; }
@@ -317,18 +317,9 @@ void Nemesis_UpdateTurningAttack(struct EwramData_EntityData *entity)
 }
 
 /* Scripted movement along a step table. */
-/* One movement step of sNemesisScriptedAttackSteps; dx == 0x7FFF ends the table. */
-struct Unk_C70F0_Step {
-    s16 dx;       // pixels over the whole step, mirrored with flag bit 1
-    s16 dy;
-    s16 rotation; // total affine angle change
-    u16 frames;
-};
-
-extern struct Unk_C70F0_Step sNemesisScriptedAttackSteps[];
 
 #undef STEP
-#define STEP(e) ((e)->ext.raw.unk_4F4.part8.unk_4F7)
+#define STEP(e) ((e)->ext.nemesis.attackStep)
 
 /**
  * @brief Distribute each movement-table step over its frame count, update rotation and boxes, and return to positioning after the terminator and pause.

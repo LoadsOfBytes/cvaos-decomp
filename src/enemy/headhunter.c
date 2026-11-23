@@ -25,14 +25,6 @@
 #include "data/data_4F1444.h"
 
 /* Headhunter (entity type 0x6A): update. */
-struct SingleFrameAnimation {
-    u16 count;
-    u16 format;
-    u8 frame;
-    u8 duration;
-    u16 unk_6;
-};
-extern struct SingleFrameAnimation sHeadhunterFrameAnim;
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
@@ -2557,8 +2549,6 @@ void HeadhunterOrbitingParticle_Update(struct EwramData_EntityData *entity)
  * The affine tip extends and retracts along an angle with ten linked
  * segments. */
 
-extern struct SingleFrameAnimation sHeadhunterAttackTipFrameAnim;
-extern struct SingleFrameAnimation sHeadhunterAttackSegmentFrameAnim;
 extern void HeadhunterAttackFollower_Update(struct EwramData_EntityData *);
 extern void HeadhunterBurstShot_DamagePlayerOnContact(struct EwramData_EntityData *);
 extern void HeadhunterAttackTip_DamagePlayerOnContact(struct EwramData_EntityData *);

@@ -14,6 +14,7 @@
 #include "obj_gfx.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "data/data_0E5364.h"
 
 extern u8 Object22_LoadGraphics(struct EwramData_EntityData *entity);
 
@@ -54,8 +55,6 @@ void Object22Create(struct EwramData_EntityData *entity)
 }
 
 /* Object22_UpdateState. */
-struct Seq { s8 level; s8 step; s8 hit; u8 flags; };
-#define SEQ(e) ((struct Seq *)&(e)->ext.raw.unk_504)
 
 extern void *memcpy(void *dst, const void *src, unsigned long size);
 extern void Object22_SpawnEffect(struct EwramData_EntityData *, s32, s32, u8);
@@ -85,7 +84,7 @@ void Object22_UpdateState(struct EwramData_EntityData *e)
             if (e->timer++ > 0x3B)
             {
                 e->subState++;
-                SEQ(e)->level = 1;
+                e->ext.object22.level = 1;
                 e->timer = 0;
                 e->velX.whole = 0x10000;
             }
@@ -111,9 +110,9 @@ void Object22_UpdateState(struct EwramData_EntityData *e)
             e->posY.part16.integer = 0x9E - bg->yPos.part16.integer;
             e->ext.object22.emptyTimer = 0;
         }
-        if ((s16)e->posX.part16.integer + (s16)bg->xPos.part16.integer >= sObject22LevelThresholds[SEQ(e)->level])
+        if ((s16)e->posX.part16.integer + (s16)bg->xPos.part16.integer >= sObject22LevelThresholds[e->ext.object22.level])
         {
-            e->posX.part16.integer = sObject22LevelThresholds[SEQ(e)->level] - bg->xPos.part16.integer;
+            e->posX.part16.integer = sObject22LevelThresholds[e->ext.object22.level] - bg->xPos.part16.integer;
             e->velX.whole = 0;
             e->subState++;
             e->stage = 0;
@@ -121,7 +120,7 @@ void Object22_UpdateState(struct EwramData_EntityData *e)
         }
         break;
     case 2:
-        { u8 **pt = sObject22LevelPatterns; s32 i = SEQ(e)->level - 1; pat = pt[i]; }
+        { u8 **pt = sObject22LevelPatterns; s32 i = e->ext.object22.level - 1; pat = pt[i]; }
         if (gEwramData->playerState.standingPlatform != e)
         {
             e->posY.part16.integer = 0x9D - bg->yPos.part16.integer;
@@ -150,7 +149,7 @@ void Object22_UpdateState(struct EwramData_EntityData *e)
         case 1:
         {
             s32 dx, dy;
-            u8 key = pat[SEQ(e)->step + 1];
+            u8 key = pat[e->ext.object22.step + 1];
             if (key == 0x40)
             {
                 dx = 0;
@@ -171,41 +170,41 @@ void Object22_UpdateState(struct EwramData_EntityData *e)
                 dx = -0x60000;
                 dy = 0x720000;
             }
-            { const s16 *tbl = sObject22LevelThresholds; dx += tbl[SEQ(e)->level] << 16; }
+            { const s16 *tbl = sObject22LevelThresholds; dx += tbl[e->ext.object22.level] << 16; }
             dx -= bg->xPos.whole;
             dy -= bg->yPos.whole;
-            Object22_SpawnEffect(e, dx, dy, durations[SEQ(e)->level - 1]);
+            Object22_SpawnEffect(e, dx, dy, durations[e->ext.object22.level - 1]);
             e->stage++;
             e->timer = 0;
-            SEQ(e)->hit = 0;
+            e->ext.object22.hit = 0;
             PlaySong(0x15B);
             break;
         }
         case 2:
-            if (++e->timer <= durations[SEQ(e)->level - 1] && SEQ(e)->hit == 0)
+            if (++e->timer <= durations[e->ext.object22.level - 1] && e->ext.object22.hit == 0)
             {
                 u16 in = gEwramData->inputData.playerNewInput;
-                if (pat[SEQ(e)->step + 1] & in)
+                if (pat[e->ext.object22.step + 1] & in)
                 {
-                    SEQ(e)->hit = 1;
+                    e->ext.object22.hit = 1;
                     PlaySong(0x15A);
                 }
                 else if (in & 0xF0)
                 {
-                    SEQ(e)->hit = 2;
-                    e->timer = durations[SEQ(e)->level - 1];
+                    e->ext.object22.hit = 2;
+                    e->timer = durations[e->ext.object22.level - 1];
                     PlaySong(0x15A);
                 }
             }
-            if (e->timer >= durations[SEQ(e)->level - 1] + 0x1E)
+            if (e->timer >= durations[e->ext.object22.level - 1] + 0x1E)
             {
-                if (SEQ(e)->hit == 1)
+                if (e->ext.object22.hit == 1)
                 {
                     e->timer = 0;
-                    SEQ(e)->step++;
-                    if (SEQ(e)->step >= pat[0])
+                    e->ext.object22.step++;
+                    if (e->ext.object22.step >= pat[0])
                     {
-                        SEQ(e)->step = 0;
+                        e->ext.object22.step = 0;
                         e->stage = 0;
                         e->subState++;
                     }
@@ -229,7 +228,7 @@ void Object22_UpdateState(struct EwramData_EntityData *e)
             e->posY.part16.integer = 0x9D - bg->yPos.part16.integer;
         if (e->timer++ << 24)
         {
-            if (++SEQ(e)->level > 5)
+            if (++e->ext.object22.level > 5)
             {
                 e->subState = 10;
                 e->timer = 0;
@@ -253,7 +252,7 @@ void Object22_UpdateState(struct EwramData_EntityData *e)
         }
         if ((s8)--e->timer <= 0)
         {
-            SEQ(e)->flags |= 1;
+            e->ext.object22.flags |= 1;
             e->timer = 0x28;
             e->subState++;
         }
@@ -433,10 +432,6 @@ u8 Object22_LoadGraphics(struct EwramData_EntityData *entity)
     return 1;
 }
 
-struct FourBoxes { u32 box[4]; };
-struct ObjectVariant { u8 *graphics; void *palette; void *sprites; u8 animation; u8 paletteIndex; u16 delay; }; /* delay: frames at each end */
-extern struct FourBoxes sObject29Boxes;
-extern struct ObjectVariant sObject29Variants[];
 extern u8 Object29_LoadGraphics(struct EwramData_EntityData *);
 void Object29Create(struct EwramData_EntityData *entity)
 {
@@ -641,8 +636,6 @@ void Object29_Draw(struct EwramData_EntityData *entity)
     entity->posY.whole = oldY;
 }
 
-extern struct FourBoxes sObject2ABoxes;
-extern struct ObjectVariant sObject2AVariants[];
 extern u8 Object2A_LoadGraphics(struct EwramData_EntityData *);
 void Object2ACreate(struct EwramData_EntityData *entity)
 {

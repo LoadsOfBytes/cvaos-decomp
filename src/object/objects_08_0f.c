@@ -76,27 +76,6 @@ void DebrisPiece_Update(struct EwramData_EntityData *entity)
 }
 
 /* Bouncing debris using graphics/palette information from two tables. */
-struct BreakableBlockVariant {
-    u16 graphicsIndex; // index into sBreakableBlockGraphics
-    u8 paletteIndex; // palette
-    u8 animFrame; // animation frame (animFrame)
-    s8 collisionOffsetX;
-    s8 collisionOffsetY;
-    u8 collisionWidth;
-    u8 collisionHeight;
-    u8 spriteLayer; // layer (spriteLayer)
-    u8 collisionMode; // mode (unk_4F8)
-    u8 pad_A[0xC - 0xA];
-};
-
-struct BreakableBlockGraphics {
-    void *graphics; // graphics
-    void *palette; // palette
-    void *spriteSheet; // animation set
-};
-extern struct BreakableBlockGraphics sBreakableBlockGraphics[];
-extern struct BreakableBlockVariant sBreakableBlockVariants[];
-
 extern s32 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 /**
  * @brief Object 0x09 debris piece: load the graphics of its kind from
@@ -595,17 +574,6 @@ void Object0BUpdate(struct EwramData_EntityData *entity)
  * the player pointer, which is then reloaded as in the target. */
 /* Object 0x0C: rectangular interaction regions with a callback table. */
 
-struct Object0CTrigger {
-    u16 type;
-    u16 unk_2;
-    s32 value;
-    s16 x;
-    s16 y;
-    u16 width;
-    u16 height;
-};
-
-extern struct Object0CTrigger *sObject0CTriggerLists[];
 extern void (*sObject0CTriggerFuncs[])(struct EwramData_EntityData *, struct Object0CTrigger *);
 
 /**
@@ -862,26 +830,6 @@ void Object0EPiece_Update(struct EwramData_EntityData *entity)
     }
     entity->deleteRequested = 1;
 }
-
-struct Object0EGraphics {
-    void *graphics;
-    void *palette;
-    void *sprites;
-};
-
-struct Object0EVariant {
-    u8 graphics;
-    u8 palette;
-    u8 animation;
-    u8 firstPieceFrame; // Object0E_SpawnPieces
-    u8 pieceCount;
-    u8 overlayFrame; // drawn every other two frames when nonzero (Object0E_Draw)
-    u16 skipGroundSnap;
-    u32 box;
-};
-
-extern struct Object0EVariant sObject0EVariants[];
-extern struct Object0EGraphics sObject0EGraphics[];
 
 /**
  * @brief Spawn the variant's count of falling pieces (Object0EPiece_Update) with

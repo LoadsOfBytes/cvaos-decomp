@@ -26,6 +26,7 @@
 #include "entity_common.h"
 #include "shop.h"
 #include "data/data_4F1444.h"
+#include "data/data_0E5364.h"
 
 extern void HudMap_WriteTiles(s32, s32, u16, s32);
 extern s32 Mod(s32, s32);
@@ -269,15 +270,6 @@ void Object20Update(struct EwramData_EntityData *entity)
  * entity setup from the table sObjectTableGraphics). */
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-
-/* Twelve resource tuples in palette, sprite-sheet, graphics order. */
-struct ObjectTableGraphics {
-    void *palette;
-    void *spriteSheet;
-    u8 *graphics;
-};
-
-extern struct ObjectTableGraphics sObjectTableGraphics[12];
 
 void ObjectTable_UpdateAnimation(struct EwramData_EntityData *entity);
 

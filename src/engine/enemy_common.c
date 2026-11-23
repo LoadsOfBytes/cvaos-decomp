@@ -26,6 +26,7 @@
 #include "palette.h"
 #include "red_souls_b.h"
 #include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* Accelerate/move both axes and resolve collision at four box corners, with
  * a tile-type exclusion: a corner whose tile flags satisfy (flags & 3) == 1
@@ -527,15 +528,6 @@ void Entity_UpdateBoxes(struct EwramData_EntityData *entity)
 /* Animation viewer entity (AnimationViewer_Update); matched with a permuter
  * (the s32 temporary for the frame byte fixes the register allocation). */
 
-struct AnimViewerFrame
-{
-    u32 scriptHeader;
-    u8 frame;
-    u8 pad_5[3];
-};
-
-extern const struct AnimViewerFrame sAnimViewerInitialFrame;
-
 /**
  * @brief Handle sequence selection/restart and switching to individual
  * frame selection with the existing input masks. Preserve the copied
@@ -674,12 +666,6 @@ void AnimationPaletteViewer_Update(struct EwramData_EntityData *entity)
 }
 
 /* Initialize and play a short shared effect animation. */
-struct HitEffectEntry {
-    u8 animation;
-    u8 palette;
-    u16 song;
-};
-extern const struct HitEffectEntry sHitEffects[];
 /**
  * @brief State 0: attach the shared object graphics with the palette and
  * animation of entry subState of sHitEffects (layer 3, scrolls with BG);

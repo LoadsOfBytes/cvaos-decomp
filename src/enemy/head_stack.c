@@ -15,18 +15,9 @@
 #include "hitbox.h"
 #include "math_anim.h"
 #include "obj_palette.h"
+#include "data/data_118B48.h"
 
 /* Falling debris and the short-lived emitter that spawns it. */
-/* Graphics of a head stack enemy type (sUnk_081193DC, indexed by type). */
-struct HeadStackGraphics {
-    void *graphics;
-    void *palette;
-    void *spriteSheet;
-    u8 firstDebrisFrame;
-    u8 lastDebrisFrame;
-    u8 pad_E[2];
-};
-extern struct HeadStackGraphics sUnk_081193DC[];
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 extern void HeadStackEffect_UpdateFallingPiece(struct EwramData_EntityData *);
 /* Keep the table index as an inline parameter: agbcc then reproduces

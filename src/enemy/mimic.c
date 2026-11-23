@@ -18,8 +18,6 @@
 #include "data/data_118B48.h"
 
 /* Mimic: dispatch state, refresh the box on frame changes and run collision. */
-union MimicAnimation { u32 words[2]; u8 bytes[8]; };
-extern union MimicAnimation sMimicAnimation;
 extern void Mimic_UpdateWait(struct EwramData_EntityData *);
 extern void Mimic_UpdatePreview(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);

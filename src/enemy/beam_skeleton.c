@@ -268,7 +268,7 @@ void BeamSkeleton_UpdateIdle(struct EwramData_EntityData *entity)
 /* Beam Skeleton firing sequence and vertical affine scale. */
 extern void BeamSkeleton_CreateBeam(struct EwramData_EntityData *entity);
 #define ANIM(e,n,loop) do { if ((e)->animScriptIndex != (n)) Anim_StartIndexed((e),(n),0,(loop)); } while (0)
-#define SCALE(e) (*(u16 *)&(e)->ext.raw.unk_504.part16.unk_504)
+#define SCALE(e) (*(u16 *)&(e)->ext.beamSkeleton.beamLevel)
 
 static inline u16 FullScale(void) { return 0xFFFF; }
 /**

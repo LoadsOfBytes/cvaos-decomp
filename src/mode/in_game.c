@@ -46,9 +46,9 @@ extern void HudMap_WriteTiles(s32, s32, s32, s32);
  * remembers which entry it shows. The arguments are entity lvalues
  * (gEwramData->entityData[2]) or pointers. Token-identical expansion.
  */
-#define SOUND_TEST_ROW(s) s.ext.raw.unk_4FC.part16.unk_4FC
-#define SOUND_TEST_TRACK(s, i) s.ext.raw.unk_4FC.part16.unk_4FE[i]
-#define SOUND_TEST_PLAYING(s, i) s.ext.raw.unk_504.part16.unk_506[i]
+#define SOUND_TEST_ROW(s) s.ext.soundTestMenu.row
+#define SOUND_TEST_TRACK(s, i) s.ext.soundTestMenu.track[i]
+#define SOUND_TEST_PLAYING(s, i) s.ext.soundTestMenu.playing[i]
 
 // NOTE: HudMap_WriteTiles is implicitly called
 

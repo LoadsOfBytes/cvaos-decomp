@@ -923,9 +923,9 @@ void DeathOverlay_Update(struct EwramData_EntityData *entity)
 
 /* Wall-crawling wheel: rolls around a block shedding debris, then homes in on its target while spinning. */
 
-#define SPIN entity->ext.raw.unk_4FC.part16.unk_4FC
-#define SPIN_SPEED entity->ext.raw.unk_4FC.part16.unk_4FE[0]
-#define SPEED entity->ext.raw.unk_504.whole
+#define SPIN entity->ext.deathWeapon.angle
+#define SPIN_SPEED entity->ext.deathWeapon.spin
+#define SPEED entity->ext.deathWeapon.speed
 
 static inline void Debris(struct EwramData_EntityData *entity, s16 dx, s16 dy, s32 vy, s32 vx)
 {

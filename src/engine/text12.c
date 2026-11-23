@@ -5,6 +5,7 @@
 #include "gba.h"
 #include "text12.h"
 #include "data/data_4F1444.h"
+#include "data/data_0E1CD0.h"
 
 /* Upstream file split 0x0803FEA4..0x08041433 from the previously unlinked
  * src/engine/obj_gfx.c, now linked as matching C.
@@ -693,13 +694,6 @@ void Text8_Newline(void)
     gEwramData->text8PixelY = Text8_GetRowInline() * 8;
 }
 
-struct Text12GlyphMetrics {
-    u8 sourceBitSkip;
-    u8 width;
-    u8 pad_2[0x4 - 0x2];
-};
-extern struct Text12GlyphMetrics sText12GlyphMetrics[];
-
 static inline void Text12_SyncPixelCursor()
 {
     gEwramData->text12PixelY = Text12_GetRowInline() * 0xC;
@@ -792,13 +786,6 @@ s32 Text12_PutCharAt(u16 column, u16 row, u16 ch)
 }
 
 // Upstream nonmatch: https://decomp.me/scratch/o7OVy
-struct Text8GlyphMetrics {
-    u8 sourceBitSkip;
-    u8 width;
-    u8 pad_2[0x4 - 0x2];
-};
-extern struct Text8GlyphMetrics sText8GlyphMetrics[];
-
 static inline void Text8_SyncPixelCursorB()
 {
     gEwramData->text8PixelY = Text8_GetRowInline() * 8;

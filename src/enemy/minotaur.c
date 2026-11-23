@@ -220,7 +220,7 @@ void MinotaurAxeHitBox_Update(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
     struct EwramData_EntityData *parent = ENTITY_OWNER(entity);
-    if (entity->state != 0 && *(u8 *)&parent->ext.raw.unk_4F4 != ENTITY_PARENT_INDEX(entity))
+    if (entity->state != 0 && *(u8 *)&parent->ext != ENTITY_PARENT_INDEX(entity))
     {
         EntityDelete(entity);
         return;
@@ -249,17 +249,6 @@ void MinotaurAxeHitBox_Update(struct EwramData_EntityData *entity)
 }
 
 /* Weapon carried by an enemy: follows the parent's animation, falls and breaks. */
-struct WeaponFrame {
-    s16 frame;
-    s16 pad;
-    s32 angle;
-    s8 dx;
-    s8 dy;
-    u8 pad2[2];
-};
-
-extern struct WeaponFrame *sMinotaurAxeFrames[];
-
 static inline struct WeaponFrame *FindFrame(struct WeaponFrame *frame, struct EwramData_EntityData *parent)
 {
     if (frame == NULL)

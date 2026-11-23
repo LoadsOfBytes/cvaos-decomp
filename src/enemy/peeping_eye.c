@@ -40,14 +40,6 @@ void PeepingEye_OnHit(struct EwramData_EntityData *entity, struct EwramData_Enti
 struct EwramData_EntityData *PeepingEye_CreateChainLink(struct EwramData_EntityData *owner, struct EwramData_EntityData *previous, s32 index);
 void PeepingEyeChainLink_Update(struct EwramData_EntityData *entity);
 
-struct SingleFrameAnimation {
-    u16 count;
-    u16 format;
-    u8 frame;
-    u8 duration;
-    u16 unk_6;
-};
-extern struct SingleFrameAnimation sPeepingEyeFrameAnim;
 /* Animations are (frame, duration) byte pairs ending with frame 0xFF:
  * the opening animation and the idle/look-up/look-down/hit set. */
 #define STEP_FRAME(a, i) ((a)[(i) * 2])

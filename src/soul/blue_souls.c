@@ -892,15 +892,6 @@ void PlayerAfterimage_Update(struct EwramData_EntityData *entity)
     }
 }
 
-struct BlueSoulForm {
-    void (*func)(struct EwramData_EntityData *);
-    u16 baseAttack;
-    u16 attackAttributes;
-    u16 song;
-    u16 pad_A;
-};
-
-extern struct BlueSoulForm sBlueSoulForms[];
 /**
  * @brief 2EFB0 | Devil / Manticore / Curly blue soul (transformation; ends
  * via BlueSoul_ShouldEnd, or BlueSoul_ReleaseActiveResources while the player has unk_4F4 & 0x81A2):
@@ -2878,16 +2869,6 @@ void PersephoneSoul_OnHit(struct EwramData_EntityData *entity, struct EwramData_
     if (attacker->hit.type == 8)
         Player_RestoreHP(5);
 }
-
-/* Yellow soul info, indexed by equippedYellowSoul (12-byte records). */
-struct YellowSoulInfo {
-    u32 *updateFunc; // update function of the soul entity (TODO: signature)
-    u16 allowUnforcedRestart; // nonzero: may be started without param_1 (YellowSoul_Restart)
-    u16 effectParam; // -> unk_4FE
-    s32 effectValue; // -> unk_500 (effect value)
-};
-
-extern const struct YellowSoulInfo sYellowSoulInfo[];
 
 /**
  * @brief 31F3C | Create the entity of the equipped yellow soul (slot 0x11,

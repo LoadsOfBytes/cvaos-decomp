@@ -1005,13 +1005,13 @@ void MainMenu_ShowSlotInfo(struct EwramData_EntityData *entity, s32 slot)
         {
             MainMenu_DrawSlotSummary(entity, header, 0x10, 8, 0);
             entity->ext.mainMenu.slotEmpty = 0;
-            gameState->unk_4CC_3 = 2;
+            gameState->saveSlotState = 2;
         }
     }
     else
     {
         entity->ext.mainMenu.slotEmpty = 1;
-        gameState->unk_4CC_3 = 1;
+        gameState->saveSlotState = 1;
     }
 
     if (entity->ext.mainMenu.cursor > 5)
@@ -1019,7 +1019,7 @@ void MainMenu_ShowSlotInfo(struct EwramData_EntityData *entity, s32 slot)
         if (header->clearAndDifficulty & 0xF)
         {
             entity->ext.mainMenu.slotEmpty = 1;
-            gameState->unk_4CC_3 = 1;
+            gameState->saveSlotState = 1;
         }
     }
 
@@ -1734,12 +1734,12 @@ void SaveSelect_ShowSlot(struct EwramData_EntityData *entity, s32 slot)
     {
         MainMenu_DrawSlotSummary(entity, header, 0x10, 8, 0);
         entity->ext.mainMenu.slotEmpty = 0;
-        gameState->unk_4CC_3 = 2;
+        gameState->saveSlotState = 2;
     }
     else
     {
         entity->ext.mainMenu.slotEmpty = 1;
-        gameState->unk_4CC_3 = 1;
+        gameState->saveSlotState = 1;
     }
     if (entity->subState == 0)
     {

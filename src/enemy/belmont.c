@@ -95,8 +95,6 @@ void EnemyBelmontCreate(struct EwramData_EntityData *entity)
 }
 
 /* Spawn Belmont's scene object from a table and mark its event bit. */
-struct BelmontSceneObject { s16 x,y; u8 event,pad5,kind,pad7; u16 param1,param2; };
-extern struct BelmontSceneObject sBelmontSceneObjects[];
 /**
  * @brief When scene flag 0x10 is set, create the indexed table-configured
  * object 0x20, link it to Belmont and set its event bit. Retain room-
@@ -250,7 +248,7 @@ extern void Belmont_UpdateSubweaponAttack(struct EwramData_EntityData *);
 extern void Belmont_UpdateJumpSlide(struct EwramData_EntityData *);
 extern void Belmont_UpdatePoweredPhase(struct EwramData_EntityData *);
 extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-#define FLASH(e) ((e)->ext.raw.unk_4F8.part8.unk_4F9)
+#define FLASH(e) ((e)->ext.belmont.flash)
 void EnemyBelmontUpdate(struct EwramData_EntityData *entity)
 {
     if(entity->state==1) { Belmont_UpdateIntro(entity); return; }
@@ -296,8 +294,8 @@ void EnemyBelmontUpdate(struct EwramData_EntityData *entity)
 /* Belmont combat decisions: proximity, health phase, turns and attacks. */
 extern s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *,s32,s32);
 extern s32 Entity_IsTargetInCenteredBox(struct EwramData_EntityData *,s32,s32);
-#define FLAGS(e) ((e)->ext.raw.unk_4F8.part8.unk_4F8)
-#define COOLDOWN(e) ((e)->ext.raw.unk_504.part16.unk_506[0])
+#define FLAGS(e) ((e)->ext.belmont.flags)
+#define COOLDOWN(e) ((e)->ext.belmont.cooldown)
 /**
  * @brief Combat state (2): update movement/cooldown and choose attacks,
  * dodges or the low-HP powered phase from proximity, player state,
@@ -2028,8 +2026,6 @@ void BelmontSubweapon3_Update(struct EwramData_EntityData *entity)
 /* Five shared death fragments, their lifetime update, and a state helper. */
 extern s8 ObjPalette_FindOrLoadVariant(void *,s32);
 extern void FragmentSet_Update(struct EwramData_EntityData *);
-struct FragmentSpec { s8 x,y; u8 frame; s8 vx,vy; u8 timer; } __attribute__((packed));
-extern struct FragmentSpec sFragmentSpecs[];
 /**
  * @brief Unreferenced: spawn the five fragments of sFragmentSpecs
  * (FragmentSet_Update) from the entity, counting them in its unk_4F7.

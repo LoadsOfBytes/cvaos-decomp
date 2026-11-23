@@ -23,6 +23,7 @@
 #include "text_window.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "data/data_0E5364.h"
 
 #define SET_MOSAIC(t)                                                        \
     {                                                                        \
@@ -383,14 +384,7 @@ s32 EventScene03_Start(struct EwramData_EntityData *entity)
 }
 
 /* EventScene03_SpawnPartsA, EventScene03_SpawnPartsB. */
-/* Spawn spots of EventScene03_SpawnPartsA: room x and flags for EventScene03_SpawnRisingPart. */
-struct Unk_081187AC {
-    s32 x;
-    s32 flags;
-};
 
-extern const struct Unk_081187AC sEventScene03SpotsA[5];
-extern const struct Unk_081187AC sEventScene03SpotsB[2];
 extern struct EwramData_EntityData *EventScene03_SpawnRisingPart(struct EwramData_EntityData *parent, s32 x, s32 y, s32 flags);
 extern struct EwramData_EntityData *EventScene03_SpawnFlyingPart(struct EwramData_EntityData *parent, s32 x, s32 y);
 

@@ -74,7 +74,7 @@ s32 SavePoint_SpawnAnimParts(struct EwramData_EntityData *parent)
 
 extern void SavePoint_UpdateOrbitLight(struct EwramData_EntityData *);
 
-static inline void AssignPalette(struct EwramData_EntityData *e, struct EwramData_EntityData *owner) { e->affineIndex = owner->ext.raw.unk_4F8.part8.unk_4FB; }
+static inline void AssignPalette(struct EwramData_EntityData *e, struct EwramData_EntityData *owner) { e->affineIndex = owner->ext.savePoint.affine; }
 /**
  * @brief After a successful save, spawn eight lights (update
  * SavePoint_UpdateOrbitLight) around the save point. Return 1 when any
@@ -315,7 +315,7 @@ void SaveSparkle_Create(s32 x, s32 y, s32 accelX, s32 accelY, s32 phase, u8 pale
         child->posY.whole = y;
         child->accelX.whole = accelX;
         child->accelY.whole = accelY;
-        child->ext.raw.unk_4FC.whole = phase;
+        child->ext.particlePair.phase = phase;
         child->ext.particlePair.offsetX = ((RandomNumberGenerator() & 0x1F) << 16) - 0x100000;
         child->ext.particlePair.offsetY = ((RandomNumberGenerator() & 0x1F) << 16) - 0x100000;
         child->palette = palette;
@@ -461,7 +461,7 @@ void Object1D_DrawPulsingOverlay(struct EwramData_EntityData *entity)
     if (gEwramData->frameCounter & 2)
     {
         s32 scale = (Sin(gEwramData->frameCounter << 11) >> 3) + 0xE000;
-        ObjAffine_Set(0, scale, scale, 0, 0, (u8)entity->ext.raw.unk_4FC.part8.unk_4FC);
+        ObjAffine_Set(0, scale, scale, 0, 0, (u8)entity->ext.object1D.affineSlot);
         entity->objMode = 1;
         entity->posY.part16.integer -= 28;
         entity->animFrame = 6;

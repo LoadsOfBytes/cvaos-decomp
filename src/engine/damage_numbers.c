@@ -136,7 +136,7 @@ void Entity_ShowDamage(struct EwramData_EntityData *owner, s32 value, u8 kind)
 static inline u8 *NumberSlot(struct EwramData_EntityData *entity, u8 i)
 {
     s32 lane = i & 3;
-    u8 *base = (u8 *)&entity->ext.raw.unk_4F4;
+    u8 *base = (u8 *)&entity->ext;
     s32 group = (i >> 2) + 2;
     s32 offset = lane + group * 4;
     return base + offset;
@@ -267,7 +267,7 @@ void NumberIndicator_DrawCentered(struct EwramData_EntityData *entity)
         u8 *output;
         savedX = entity->posX.whole;
         i = 0;
-        entries = (u8 *)&entity->ext.raw.unk_4F4;
+        entries = (u8 *)&entity->ext;
         output = &entity->animFrame;
         {
             u8 *base = entries;
@@ -373,7 +373,7 @@ void NumberIndicator_Draw(struct EwramData_EntityData *entity)
         s32 index = i;
         index %= 4;
         index += ((i >> 2) + 2) * 4;
-        glyph = Glyph((u8 *)&entity->ext.raw.unk_4F4, index);
+        glyph = Glyph((u8 *)&entity->ext, index);
         entity->animFrame = *glyph;
         if (*glyph != 0xC)
         {

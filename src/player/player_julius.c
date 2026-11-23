@@ -1449,16 +1449,6 @@ void Julius_UpdateGrandCrossCast(struct EwramData_EntityData *entity)
 /* Julius main update: damage reactions, collision, whip input and state machine.
  * The helper boundaries and narrow temporaries preserve the original ROM. */
 
-struct PlayerBodyBox {
-    u8 x;
-    u8 y;
-    u8 width;
-    u8 height;
-};
-
-extern struct PlayerBodyBox sSomaStandingBodyBox[];
-extern struct PlayerBodyBox sSomaCrouchBodyBoxes[];
-
 #define HELD (gEwramData->inputData.playerHeldInput)
 #define NEW (gEwramData->inputData.playerNewInput)
 #define REQ(e) (*(u16 *)&e->ext.player.requestedAnim)

@@ -216,7 +216,7 @@ extern void Legion_SteerX(struct EwramData_EntityData *entity, s32 target);
 extern void Legion_SteerY(struct EwramData_EntityData *entity, s32 target);
 extern s32 Legion_GetPathEdge(s32 x, s32 y, s32 size);
 extern struct EwramData_EntityData *Legion_CreateShellPart(struct EwramData_EntityData *entity, s32 center, s32 kind);
-#define DIR (*(u8 *)&entity->ext.raw.unk_500.part8.unk_501)
+#define DIR (*(u8 *)&entity->ext.legion.circleSide)
 
 void Legion_UpdateCircle(struct EwramData_EntityData *entity)
 {
@@ -2167,12 +2167,7 @@ struct EwramData_EntityData *Legion_CreateShellPart(struct EwramData_EntityData 
 }
 
 /* Legion shell part: orbits the core at a radius set by the shell state, fires, falls off. */
-struct ShellRadii {
-    s32 r[2][3];
-};
-
 extern void LegionShellPart_FireShot(struct EwramData_EntityData *owner, s32 dx, s32 dy, s32 unused, s32 angle);
-extern const struct ShellRadii sLegionShellRadii;
 
 #define KIND ((s8)entity->ext.legionShell.kind)
 #define ANGLE entity->ext.legionShell.angle

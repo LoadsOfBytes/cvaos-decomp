@@ -294,9 +294,6 @@ void Pickup_Update(struct EwramData_EntityData *entity)
  * frame, animated flag): graphics 081C15F4 / 0820ED60, touch callback
  * Pickup_Collect, box 0x1010F8F8 by value (x -8, y -8, w 16, h 16);
  * updated by Pickup_Update. */
-struct GoldDrop { u16 amount; u16 pad_2; s32 message; u8 palette; u8 frame; u16 animated; };
-extern struct GoldDrop sGoldDrops[];
-
 /**
  * @brief Create a table-selected gold pickup with its frame or animation, palette and collection callback; return NULL on entity allocation failure.
  */

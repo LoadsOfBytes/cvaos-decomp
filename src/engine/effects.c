@@ -29,8 +29,6 @@ extern struct DmaQueueInfo* DmaQueue_IndirectCopy(u32 size, u32 *src, u32 *dst);
 /* Effects with an entry of table 085251A8[unk_4FC] (frame, lifetime,
  * animation), graphics 081C15F4 / 0820ED60 with their own palette
  * (palette). */
-struct Unk_085251A8 { u8 frame; u8 life; u16 pad; struct AnimScript *anim; };
-extern struct Unk_085251A8 sUnk_085251A8[];
 extern void Effect_DrawAtOffsetPair(struct EwramData_EntityData *);
 
 /* Particle: random unk_500 / unk_504 in [-16, 16) px, drawn by
@@ -397,7 +395,6 @@ void SoulAcquisition_DrawAndWait(struct EwramData_EntityData *entity)
     }
 }
 
-struct TrailTiming { u16 unused, timer; };
 struct TrailSample { s16 x, y; u8 frame, flip; u8 pad[2]; };
 extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
 extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *);
@@ -416,15 +413,15 @@ void Afterimage_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if ((u16)((struct TrailTiming *)&entity->ext.raw.unk_500)->timer != 0)
+        if (entity->ext.afterimage.delay != 0)
             entity->state = 1;
         else
             entity->state = 2;
         entity->drawFunc = (u32 *)Sprite_DrawEntity;
         break;
     case 1:
-        if ((u16)((struct TrailTiming *)&entity->ext.raw.unk_500)->timer)
-            ((struct TrailTiming *)&entity->ext.raw.unk_500)->timer--;
+        if (entity->ext.afterimage.delay)
+            entity->ext.afterimage.delay--;
         else
             goto destroy;
         break;
@@ -543,12 +540,6 @@ struct EwramData_EntityData *Afterimage_Create(struct EwramData_EntityData *enti
 }
 
 /* Spawn a terminated list of particle templates at the given position. */
-struct ParticleTemplate {
-    u8 animation, palette, layer, lifetime;
-    s16 x, y;
-    s32 vx, vy, ax, ay;
-};
-extern struct ParticleTemplate *sParticleTemplateLists[];
 extern void Effect_UpdateDelayedParticle(struct EwramData_EntityData *);
 /**
  * @brief Spawn the selected particle-template list until palette 0xFF or entity allocation failure, copying offsets, motion and start delay.

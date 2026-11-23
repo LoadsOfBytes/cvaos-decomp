@@ -7,6 +7,227 @@
 #include "objects_00_07.h"
 #include "structs/ewram.h"
 
+/* Flight parameters, e.g. sBaloreHandSteeringParams1 (BaloreHand_FadeIn). */
+struct BaloreFlightSteeringParameters {
+    /* 0x00 */ u16 offsetX;     // point relative to unk_508/unk_50A, mirrored when not flipX
+    /* 0x02 */ u16 offsetY;
+    /* 0x04 */ u16 targetAngle; // for unk_500, negated when not flipX
+    /* 0x06 */ u16 turnStep;
+    /* 0x08 */ s32 targetRadius;
+    /* 0x0C */ s32 radiusStep;
+    /* 0x10 */ s32 targetSpeed;
+    /* 0x14 */ s32 stepSpeed;
+};
+
+struct BelmontSceneObject { s16 x,y; u8 event,pad5,kind,pad7; u16 param1,param2; };
+
+struct FragmentSpec { s8 x,y; u8 frame; s8 vx,vy; u8 timer; } __attribute__((packed));
+
+struct ArmPose {
+    u16 angle;
+    u16 dx;
+    u16 dy;
+    u8 layer;
+    u8 flag;
+};
+
+struct GrahamSceneObject { s16 x,y; u8 unused[4]; u16 param1,param2; };
+
+struct WeaponFrame {
+    s16 frame;
+    s16 pad;
+    s32 angle;
+    s8 dx;
+    s8 dy;
+    u8 pad2[2];
+};
+
+/* One movement step of sNemesisScriptedAttackSteps; dx == 0x7FFF ends the table. */
+struct Unk_C70F0_Step {
+    s16 dx;       // pixels over the whole step, mirrored with flag bit 1
+    s16 dy;
+    s16 rotation; // total affine angle change
+    u16 frames;
+};
+
+struct PartPoint {
+    u16 point;
+    s8 dx;
+    s8 dy;
+};
+
+struct Unk_085251A8 { u8 frame; u8 life; u16 pad; struct AnimScript *anim; };
+
+struct ParticleTemplate {
+    u8 animation, palette, layer, lifetime;
+    s16 x, y;
+    s32 vx, vy, ax, ay;
+};
+
+struct HitEffectEntry {
+    u8 animation;
+    u8 palette;
+    u16 song;
+};
+
+struct GoldDrop { u16 amount; u16 pad_2; s32 message; u8 palette; u8 frame; u16 animated; };
+
+struct TimedFragment {u32 frame;s16 x,y;u8 delay;u8 pad[3];};
+
+struct PaletteTransition { void *data; u16 count,duration; };
+
+/* Debris piece of EventScene31_SpawnBlockDebris (8-byte records, 12 pieces). */
+struct EventScene31DebrisDefinition {
+    u8 frame;
+    s8 dx;
+    s8 dy;
+    s8 vx;
+    s8 vy;
+    u8 initialTimer;
+    u8 pad_6[2];
+};
+
+/* Palette animation step of EventScene31_StepPaletteAnim (4 steps). */
+struct EventScene31PaletteStep {
+    u8 *palette;
+    u16 sourcePalette;
+    u16 duration;
+};
+
+struct ParticleFrame {
+    u8 *data;
+    u16 size;
+    u16 pad;
+};
+
+struct ParticleFrames {
+    u16 count;
+    u16 destination;
+    struct ParticleFrame *frames;
+};
+
+struct ConversationTextList {
+    u16 unk_0;
+    u16 closingText;
+    u16 count;
+    u16 entries[1];
+};
+
+struct ConversationTextTable {
+    u32 unk_0;
+    struct ConversationTextList *lists[1];
+};
+
+struct BestiaryAttributeIcon {
+    s32 tileColumn; // low four bits of the tile coordinate
+    s32 tileRow; // row in the 16-column tile layout
+};
+
+struct ShopStockEntry {
+    u8 type;
+    u8 id;
+    u8 pad_2[2];
+};
+
+struct ShopList {
+    u8 count;
+    u8 items[1];
+};
+
+struct WindowGfx {
+    void *tiles;
+    u8 *palette;
+    void *layer;
+};
+
+/* Palette animation frame: palette data, palette slot, duration. */
+struct BgPaletteCycleFrame {
+    u8 *paletteResource;
+    u16 sourcePalette;
+    u16 duration;
+};
+
+/* Palette animation (variant spawnParam1 of object 0x07 type 1). */
+struct BgPaletteCycle {
+    u16 frameCount; // number of frames
+    u16 destinationPalette;
+    struct BgPaletteCycleFrame *frames;
+};
+
+struct BreakableBlockVariant {
+    u16 graphicsIndex; // index into sBreakableBlockGraphics
+    u8 paletteIndex; // palette
+    u8 animFrame; // animation frame (animFrame)
+    s8 collisionOffsetX;
+    s8 collisionOffsetY;
+    u8 collisionWidth;
+    u8 collisionHeight;
+    u8 spriteLayer; // layer (spriteLayer)
+    u8 collisionMode; // mode (unk_4F8)
+    u8 pad_A[0xC - 0xA];
+};
+
+struct BreakableBlockGraphics {
+    void *graphics; // graphics
+    void *palette; // palette
+    void *spriteSheet; // animation set
+};
+
+struct Object0CTrigger {
+    u16 type;
+    u16 unk_2;
+    s32 value;
+    s16 x;
+    s16 y;
+    u16 width;
+    u16 height;
+};
+
+struct Object0EGraphics {
+    void *graphics;
+    void *palette;
+    void *sprites;
+};
+
+struct Object0EVariant {
+    u8 graphics;
+    u8 palette;
+    u8 animation;
+    u8 firstPieceFrame; // Object0E_SpawnPieces
+    u8 pieceCount;
+    u8 overlayFrame; // drawn every other two frames when nonzero (Object0E_Draw)
+    u16 skipGroundSnap;
+    u32 box;
+};
+
+struct Object10Reward
+{
+    u32 maxValue;
+    s32 item;
+};
+
+/* Object 0x12 variants (spawnParam0). */
+struct Object12VariantDefinition {
+    void *graphics; // graphics
+    void *palette; // palette
+    void *spriteSheet; // animation set
+    u8 paletteIndex; // palette index
+    u8 animationIndex; // animation
+    u8 pad_E;
+    u8 spriteLayer; // layer (spriteLayer)
+    u16 flags; // flags: 1 OBJ mode 1, 2 room coordinates, 4 no animation, 8 only near the screen
+    u8 pad_12[2];
+    void (*updateFunc)(struct EwramData_EntityData *); // update, NULL for the plain animation
+};
+
+struct ObjectVariant { u8 *graphics; void *palette; void *sprites; u8 animation; u8 paletteIndex; u16 delay; }; /* delay: frames at each end */
+
+/* A spawn point of object 0x25 (16.16 world coordinates). */
+struct Object25Point {
+    s32 x;
+    s32 y;
+};
+
 extern u8 sUnk_085059BC[];
 extern u8 sUnk_08505C94[];
 extern const u16 sItemNameTextIds[]; /* name text ids */
@@ -19,8 +240,11 @@ extern u8 sChronomageDestinationRoom[];
 extern u8 sObject15DestinationRoom0[];
 extern u8 sChaosDestinationRoom[];
 extern u8 sObject15DestinationRoom1[];
+extern struct GoldDrop sGoldDrops[];
 extern u8 sTimedParticleFrames[];
+extern struct Unk_085251A8 sUnk_085251A8[];
 extern u8 *const sPlayerFlashInfo[];
+extern struct ParticleTemplate *sParticleTemplateLists[];
 extern struct BgMapMetadata *const sPauseMenuBgMaps[];
 /* Cursor frames for the four entries unk_4FC..4FF (ButtonConfigMenu_DrawCursor). */
 extern const u8 sButtonConfigCursorFrames[];
@@ -28,30 +252,52 @@ extern u8 *sMenuCursorPalette;
 extern const u16 sButtonConfigButtons[];
 extern const u8 sButtonConfigDefaultChoices[4];
 extern const u8 sButtonConfigChoiceSlots[4];
+extern const struct BestiaryAttributeIcon sBestiaryAttributeIcons[];
 extern u8 sGatePaletteAnim0[];
 extern u8 sGatePaletteAnim1[];
 extern const s32 sUnk_0852559C[];
 extern const s32 sBgParticleCounts[];
 extern const u16 sUnk_085255C4[];
 extern const u8 sUnk_085255DC[];
+extern struct BgPaletteCycle sBgPaletteCycles[];
 extern struct WarpRoomEntry sWarpRoomEntries[];
+extern struct BreakableBlockGraphics sBreakableBlockGraphics[];
+extern struct BreakableBlockVariant sBreakableBlockVariants[];
+extern struct Object0CTrigger *sObject0CTriggerLists[];
+extern struct Object0EGraphics sObject0EGraphics[];
+extern struct Object0EVariant sObject0EVariants[];
 extern u8 sUnk_08526370[][4];
+extern struct Object10Reward sObject10Rewards[];
+extern const struct Object12VariantDefinition sObject12Variants[];
 extern u8 sObject16PaletteAnim[];
 extern struct AnimScript sObject16EffectAnimScriptVariant0[];
 extern struct AnimScript sObject16EffectAnimScript[];
 extern const s16 sObject22LevelThresholds[];
 extern u8 *sObject22LevelPatterns[];
+extern struct ObjectVariant sObject29Variants[];
+extern struct ObjectVariant sObject2AVariants[];
 extern u8 sObject25AnimScript0[];
 extern u8 sObject25AnimScript1[];
 extern u8 sObject25AnimScript2[];
+extern const struct Object25Point *const sObject25Points[];
 extern const u32 sObject25PointIndices[];
 extern u8 sObject2BPaletteAnim[];
 extern u8 sObject2EAnimScript[];
 extern struct BgMapMetadata *sShopBgMaps[];
+extern const struct EventScene31DebrisDefinition sEventScene31DebrisDefinitions[];
+extern const struct EventScene31PaletteStep sEventScene31PaletteSteps[];
 extern const s8 sEventScene03UnusedDebris[];
 extern const s8 sEventScene03Debris[];
 extern const u8 sUnk_0852682C[];
+extern struct ParticleFrames sEventScene30ParticleFrames;
+extern struct TimedFragment sEventScene30TimedFragments[9];
+extern struct PaletteTransition sEventScene30PaletteTransitions[];
+extern struct ConversationTextTable sConversationTextTable;
+extern const struct ShopStockEntry sShopStock[];
+extern struct ShopList *const sShopLists[];
+extern struct WindowGfx sTextWindowGfx[];
 extern u8 sTextWindowScrollOffsets[];
+extern const struct HitEffectEntry sHitEffects[];
 extern struct AnimScript sManticoreWalkAnimScript;
 extern u8 sGiantGhostPaletteAnim[];
 extern const u8 *const sGolemPartPoses[];
@@ -93,14 +339,23 @@ extern u8 sUnk_08528604[];
 extern u8 sWaiterSkeletonWalkProfile[];
 extern s32 sUnk_08528614[];
 extern u8 sSkullArcherWalkProfile[];
+extern struct WeaponFrame *sMinotaurAxeFrames[];
 extern u8 sMinotaurWalkProfile[];
 /* Axe Armor walk speeds per animation frame. */
 extern u8 sAxeArmorWalkProfile[];
 extern u8 sDiscArmorWalkProfile[];
 extern u8 sBomberRockArmorWalkProfile[];
+extern const struct BaloreFlightSteeringParameters sBaloreHandSteeringParams0[];
+extern const struct BaloreFlightSteeringParameters sBaloreHandSteeringParams1[];
+extern const struct BaloreFlightSteeringParameters sBaloreHandSteeringParams2[];
+extern const struct BaloreFlightSteeringParameters sBaloreHandSwipeParams[];
+extern const struct BaloreFlightSteeringParameters sBaloreHandSteeringParams3[];
 extern const u8 sBaloreEyeAnimOffsets[];
 extern const u8 sBalorePartAnimOffsets[];
 extern const u8 sUnk_085287D6[4];
+extern const struct BaloreFlightSteeringParameters sBaloreHandBSteeringParams0[];
+extern const struct BaloreFlightSteeringParameters sBaloreHandBSteeringParams1[];
+extern const struct BaloreFlightSteeringParameters sBaloreHandBSteeringParams2[];
 extern u8 sChronomageWalkProfile[];
 extern u8 sDeadWarriorWalkProfile[];
 extern u8 sNightmareWalkProfile[];
@@ -109,12 +364,15 @@ extern u8 sWitchGroundProjectileWalkProfile[];
 extern const u8 sUnk_085288A8[][4];
 extern u8 sKillerMantleWalkProfile[];
 extern u8 sCockatriceFamilyWalkProfile[];
+extern struct ArmPose sDeathWeaponArmPoses[];
 extern u8 sEvilButcherWalkProfile[];
 extern u8 sKickerSkeletonWalkProfile[];
 extern u8 sSlimeWalkProfile[];
 extern const u16 sSlimeSurfaceTurnTargets[];
+extern const struct PartPoint sSkeletonPartPoints[];
 extern s16 sSkeletonWalkProfile[];
 extern const s8 sSkeletonDeathPieceOffsets[][6];
+extern struct Unk_C70F0_Step sNemesisScriptedAttackSteps[];
 extern s32 sUnk_08528A34[][9];
 /* 6 bytes per child index; byte 1 is a y offset (s8). */
 extern s8 sKillerDollPartOffsets[][6];
@@ -131,7 +389,10 @@ extern s32 sMandragoraAttackBox[];
 extern s32 sMandragoraTerminalPartAttackBox[];
 extern const s8 sMandragoraDeathParts[5][6];
 extern s16 sBelmontMoveProfile[];
+extern struct BelmontSceneObject sBelmontSceneObjects[];
 extern u16 sBelmontMeleeSounds[];
+extern struct FragmentSpec sFragmentSpecs[];
+extern struct GrahamSceneObject sGrahamSceneObjects[];
 extern struct AnimScript sRecoveryPickupParticleAnimScript[];
 
 #endif /* DATA_4F1444_H */

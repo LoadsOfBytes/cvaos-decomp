@@ -22,6 +22,7 @@
 #include "soul_pickup.h"
 #include "data/data_0E5364.h"
 #include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* BossRushResult_Draw: matched (three block-local v instead of one variable set three times;
    literal constants, no helper variables). */
@@ -97,14 +98,6 @@ void BossRushResult_Draw(struct EwramData_EntityData *entity)
 }
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-
-struct Object10Reward
-{
-    u32 maxValue;
-    s32 item;
-};
-
-extern struct Object10Reward sObject10Rewards[];
 
 void Object10Create(struct EwramData_EntityData *entity)
 {
@@ -212,22 +205,6 @@ void Object10Update(struct EwramData_EntityData *entity)
 /* Objects 0x11 (timer in entity slot 26) and 0x12 (decorations). */
 void BossRushTimer_Update(struct EwramData_EntityData *entity);
 void Object12Variant2_Draw(struct EwramData_EntityData *entity);
-
-/* Object 0x12 variants (spawnParam0). */
-struct Object12VariantDefinition {
-    void *graphics; // graphics
-    void *palette; // palette
-    void *spriteSheet; // animation set
-    u8 paletteIndex; // palette index
-    u8 animationIndex; // animation
-    u8 pad_E;
-    u8 spriteLayer; // layer (spriteLayer)
-    u16 flags; // flags: 1 OBJ mode 1, 2 room coordinates, 4 no animation, 8 only near the screen
-    u8 pad_12[2];
-    void (*updateFunc)(struct EwramData_EntityData *); // update, NULL for the plain animation
-};
-
-extern const struct Object12VariantDefinition sObject12Variants[];
 
 /**
  * @brief 512C4 | Object 0x11 create: replace entity slot 26 by a counter

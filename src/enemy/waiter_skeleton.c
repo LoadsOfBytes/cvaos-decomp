@@ -67,8 +67,6 @@ void WaiterSkeletonTray_Update(struct EwramData_EntityData *entity)
 extern void WaiterSkeletonThrownTray_DamagePlayerOnContact(struct EwramData_EntityData *);
 extern void WaiterSkeletonThrownTray_OnHit(struct EwramData_EntityData *);
 extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-struct PartOffset { u16 index; s8 x, y; };
-extern const struct PartOffset sWaiterSkeletonTrayOffsets[];
 /* This halfword bitfield view preserves the original slot update access width. */
 
 static inline void BoxA(struct EwramData_EntityData *e, s32 box) { HitBox_SetAttackRaw(e, box); }
@@ -246,7 +244,7 @@ void WaiterSkeleton_UpdateThrow(struct EwramData_EntityData *entity)
             if (child != NULL)
             {
                 child->ext.waiterTray.owner = entity;
-                *(u8 *)&child->ext.raw.unk_4F4 = *(u8 *)&entity->ext.raw.unk_4F4;
+                *(u8 *)&child->ext = *(u8 *)&entity->ext;
                 child->attack = entity->attack;
                 child->hp = entity->hp;
                 child->ext.waiterTray.anim = 17;
@@ -264,7 +262,7 @@ void WaiterSkeleton_UpdateThrow(struct EwramData_EntityData *entity)
             if (child != NULL)
             {
                 child->ext.waiterTray.owner = entity;
-                *(u8 *)&child->ext.raw.unk_4F4 = *(u8 *)&entity->ext.raw.unk_4F4;
+                *(u8 *)&child->ext = *(u8 *)&entity->ext;
                 child->attack = entity->attack;
                 child->hp = entity->hp;
                 entity->ext.waiterSkeleton.flags |= 1;
@@ -427,7 +425,7 @@ void EnemyWaiterSkeletonCreate(struct EwramData_EntityData *entity)
         return;
     }
     effect->ext.waiterTray.owner = entity;
-    *(u8 *)&effect->ext.raw.unk_4F4 = *(u8 *)&entity->ext.raw.unk_4F4;
+    *(u8 *)&effect->ext = *(u8 *)&entity->ext;
     effect->attack = entity->attack;
     *(u16 *)&effect->hp = *(u16 *)&entity->hp;
     Anim_StartIndexed(entity, 0, 0, 1);

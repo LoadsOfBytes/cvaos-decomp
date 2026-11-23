@@ -25,13 +25,7 @@
 #include "effects.h"
 #include "data/data_118B48.h"
 #include "data/data_4F0B18.h"
-
-/* Graphics resources of a red soul skill (sSkillGraphicsSets). */
-struct SoulGraphicsResources {
-    void *graphics;
-    void *palette;
-    void *spriteSheet;
-};
+#include "data/data_0E0B68.h"
 
 /* Red soul skill parameters (sUnk_084F12C8, 0x18 bytes, indexed by the
  * soul's parameter). */
@@ -49,7 +43,6 @@ struct RedSoulInfo {
     u16 pad_16;
 };
 
-extern struct SoulGraphicsResources sSkillGraphicsSets[];
 extern struct RedSoulInfo sUnk_084F12C8[];
 #define CONTEXT ((struct PlayerState *)((u8 *)gEwramData + OFFSET_OF(struct EwramData, playerState)))
 
@@ -1730,7 +1723,7 @@ void SkillNeedlesDraw(struct EwramData_EntityData *entity)
     }
     x = entity->posX.whole;
     y = entity->posY.whole;
-    block = (struct Unk_08028018_Block *)&entity->ext.raw.unk_4F4;
+    block = (struct Unk_08028018_Block *)&entity->ext;
     for (i = 0; i <= 3; i++)
     {
         if ((entity->timer & 1) != (i & 1))
@@ -1799,7 +1792,7 @@ void SkillNeedlesUse(struct EwramData_EntityData *entity)
         entity->velY.whole = -0x10000 - (RandomNumberGenerator() & 0x7FFF);
         entity->accelY.whole = 0x2000;
         Effect_SpawnShared(entity->posX.whole, entity->posY.whole, 0xF, 7);
-        block = (struct Unk_08028018_Block *)&entity->ext.raw.unk_4F4;
+        block = (struct Unk_08028018_Block *)&entity->ext;
         for (i = 0, angle = 0; i <= 3; i++)
         {
             block->parts[i].radius = 0;
@@ -1812,7 +1805,7 @@ void SkillNeedlesUse(struct EwramData_EntityData *entity)
         break;
     case 2:
         EntityAccelerateAndMoveY(entity, 0x80000);
-        block = (struct Unk_08028018_Block *)&entity->ext.raw.unk_4F4;
+        block = (struct Unk_08028018_Block *)&entity->ext;
         for (i = 0; i <= 3; i++)
             block->parts[i].radius += entity->timer << 5;
         if (entity->timer != 0)
@@ -2279,7 +2272,7 @@ void SkillSkullArcherUse(struct EwramData_EntityData *entity)
 /* SkillArachneUse: matched (bone loop as in the skeleton skill:
    SpawnBone + scatter; one variable holds the linked entity pointer and its flag). */
 
-#define DEL(e) do { gEwramData->playerState.activeRedSoulEntities[(e)->ext.raw.unk_4FC.part16.unk_4FE[0]] = NULL; gEwramData->playerState.nbrActiveRedSoulEntities--; EntityDelete(e); } while (0)
+#define DEL(e) do { gEwramData->playerState.activeRedSoulEntities[(e)->ext.redSoul.slot] = NULL; gEwramData->playerState.nbrActiveRedSoulEntities--; EntityDelete(e); } while (0)
 
 void SkillArachneUse(struct EwramData_EntityData *entity)
 {

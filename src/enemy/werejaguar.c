@@ -224,8 +224,8 @@ void Werejaguar_UpdateWalk(struct EwramData_EntityData *entity)
  * cross-jumped copies; the hit test results use a function-level d. */
 extern void Afterimage_Create(struct EwramData_EntityData *, s32, s32, s32);
 
-#define HOP_FLAG (entity->ext.raw.unk_4F8.bytes[3])
-#define ROLL (entity->ext.raw.unk_4F8.bytes[2])
+#define HOP_FLAG (entity->ext.werejaguar.contactHit)
+#define ROLL (entity->ext.werejaguar.extraAttackChosen)
 
 void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
 {
@@ -248,7 +248,7 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
             entity->subState++;
             entity->ext.werejaguar.contactHit = 0;
             entity->ext.werejaguar.manualAnim = 1;
-            entity->ext.werejaguar.unusedFlag = 0;
+            entity->ext.werejaguar.extraAttackChosen = 0;
             entity->animFrame = 0x10;
             Entity_UpdateBoxes(entity);
             entity->accelX.whole = 0;

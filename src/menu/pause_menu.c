@@ -836,7 +836,7 @@ struct SoulTypeIcons
     u16 matrix[3];     /* 0x28 */
     s16 scale;         /* 0x2E */
     u8 pad_30[8];
-    u8 unk_38;         /* 0x38 */
+    u8 keepSelection;  /* 0x38: the next turn keeps sel (then cleared) */
     u8 unk_39;         /* 0x39 */
     u8 pad_3A[6];
     s32 posX;          /* 0x40 */
@@ -1122,7 +1122,7 @@ void SoulTypeSelector_Update(struct SoulTypeIcons *e)
                 e->scale = 0;
                 e->state--;
                 e->step = 0;
-                if (e->unk_38 == 0)
+                if (e->keepSelection == 0)
                 {
                     if (e->dir >= 0)
                     {
@@ -1136,7 +1136,7 @@ void SoulTypeSelector_Update(struct SoulTypeIcons *e)
                     }
                 }
                 else
-                    e->unk_38 = 0;
+                    e->keepSelection = 0;
                 e->acc[0] = 0;
                 e->acc[1] = 0;
                 e->acc[2] = 0;
@@ -1144,7 +1144,7 @@ void SoulTypeSelector_Update(struct SoulTypeIcons *e)
         }
         break;
     case 4:
-        if (e->unk_38 == 0)
+        if (e->keepSelection == 0)
         {
             e->state = 3;
             if (e->dir >= 0)
@@ -1161,7 +1161,7 @@ void SoulTypeSelector_Update(struct SoulTypeIcons *e)
         else
         {
             e->state -= 2; /* 4 -> 2 */
-            e->unk_38 = 0;
+            e->keepSelection = 0;
         }
         e->step = 0;
         e->scale = 0;

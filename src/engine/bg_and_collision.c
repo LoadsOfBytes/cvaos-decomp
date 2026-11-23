@@ -170,7 +170,7 @@ u16* BgCmdBuffer_WriteNumber(u16 tileIndex, u16 rowOffset, u8 palNum, s32 numCha
     }
 
     baseTile = (palNum << 0xC) | 0x300;
-    valDst = (u16*)&gEwramData->unk_133F2 + numChars;
+    valDst = (u16*)&gEwramData->linkPartnerWeapon + numChars;
     charPos = 0;
 
     // Write digits

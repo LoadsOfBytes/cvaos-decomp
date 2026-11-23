@@ -5,6 +5,18 @@
 
 #include "types.h"
 
+struct Text12GlyphMetrics {
+    u8 sourceBitSkip;
+    u8 width;
+    u8 pad_2[0x4 - 0x2];
+};
+
+struct Text8GlyphMetrics {
+    u8 sourceBitSkip;
+    u8 width;
+    u8 pad_2[0x4 - 0x2];
+};
+
 extern const u8 sSpriteSheetDefault1[];
 extern const u8 sSpriteSheetDefault2[];
 extern const u8 sSpriteSheetDefault4[];
@@ -15,6 +27,8 @@ extern const s32 sUnk_080E29A0[3][4][2];
 extern u16 sObjTileGrid4bpp[];
 extern u16 sObjTileGrid8bpp[];
 extern const void *sAnimStepFuncs[];
+extern struct Text12GlyphMetrics sText12GlyphMetrics[];
+extern struct Text8GlyphMetrics sText8GlyphMetrics[];
 extern const u8 sHitTimers[];
 extern const s32 sUnk_080E33FC[3][4][2];
 

@@ -5,6 +5,48 @@
 
 #include "types.h"
 
+/* Spawn spots of EventScene03_SpawnPartsA: room x and flags for EventScene03_SpawnRisingPart. */
+struct Unk_081187AC {
+    s32 x;
+    s32 flags;
+};
+
+struct FragmentFrames { u32 frame[3]; };
+
+struct BurstFrames {u32 frame[3];};
+
+struct BurstAnimations {u32 frame[5];};
+
+struct BurstPosition {s16 x,y;u8 delay;u8 pad[3];};
+
+struct EffectStep { u16 x,y; u8 delay; u8 padding[3]; };
+
+struct EffectSequence { struct EffectStep steps[5]; };
+
+struct Unk_08118510
+{
+    s32 unk[4];
+};
+
+struct FourBoxes { u32 box[4]; };
+
+/* Object 0x31 per variant (spawnParam0): start x, start y, animation, unk_4F8. */
+struct Object31Words {
+    s32 v[4];
+};
+
+/* Two hit boxes of object 0x32 (by spawnParam1). */
+struct Object32Boxes {
+    u32 box[2];
+};
+
+/* Twelve resource tuples in palette, sprite-sheet, graphics order. */
+struct ObjectTableGraphics {
+    void *palette;
+    void *spriteSheet;
+    u8 *graphics;
+};
+
 extern u32 *sMainMenuDeleteBg2Map;
 extern u32 *sMainMenuCopyBg2Map;
 extern u32 *sMainMenuDeleteBg1Map;
@@ -15,6 +57,7 @@ extern s8 sGameFlagMapCoordinates[][2];
 extern u8 sTextBgPalette[];
 extern const s32 sHudMapTiles[3];
 extern const s32 sHudMapPalettes[3];
+extern const struct Unk_08118510 sUnk_08118510;
 extern u8 sObject0CSolidCallbacks[];
 extern u8 sObject12Variant0AnimScript0[];
 extern u8 sObject12Variant0AnimScript1[];
@@ -24,15 +67,30 @@ extern const s16 sUnk_08118590[];
 extern const u16 sObject17Xs[];
 extern const u16 sObject17Ys[];
 extern u16 sObject1BColors[];
+extern struct FourBoxes sObject29Boxes;
+extern struct FourBoxes sObject2ABoxes;
 /* Start x / y of object 0x2F per variant (spawnParam0). */
 extern const u16 sObject2FXs[3];
 extern const u16 sObject2FYs[3];
 extern const u16 sObject31Xs[4];
 extern const u16 sObject31Ys[4];
 extern const u16 sObject31Anims[4];
+extern const struct Object31Words sUnk_08118674;
+extern const struct Object32Boxes sObject32Boxes;
 extern u8 sObject36SolidCallbacks[];
 /* Object 0x36 per variant: { rotation speed * 2 / scale step, rotation speed }. */
 extern const s16 sObject36Shapes[9][2];
+extern struct ObjectTableGraphics sObjectTableGraphics[12];
+extern const struct Unk_081187AC sEventScene03SpotsA[5];
+extern const struct Unk_081187AC sEventScene03SpotsB[2];
 extern u8 sEventScene19Gfx[];
+extern struct FragmentFrames sEventScene30FragmentFrames;
+extern struct BurstFrames sEventScene30BurstFrames;
+extern struct BurstAnimations sEventScene30BurstAnimations;
+extern struct BurstPosition sEventScene30BurstPositions[15];
+extern struct EffectStep sEventScene30EmitterBSteps[];
+extern struct EffectSequence sEventScene30EmitterCSequence;
+extern struct EffectStep sEventScene30EmitterDSteps[];
+extern struct EffectSequence sEventScene30EmitterESequence;
 
 #endif /* DATA_0E5364_H */

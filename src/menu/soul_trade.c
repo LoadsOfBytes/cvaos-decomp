@@ -23,15 +23,8 @@
 #include "palette.h"
 #include "soul_menu.h"
 #include "text12.h"
+#include "data/data_4F0B18.h"
 extern void HudMap_WriteTiles(s32, s32, s32, s32);
-
-struct SoulKey {
-    u8 soulType;
-    u8 oneBasedSoulId;
-    u8 pad_2[0x4 - 0x2];
-};
-
-extern struct SoulKey sKeySouls[];
 
 u32 sSoulTypeCounts[4] = {
     0x37, 0x18, 0x23, 0x8

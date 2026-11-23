@@ -39,23 +39,6 @@ extern void SoulPickup_SpawnFromEnemyDefinition(s32, s32, s32, s32);
 extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
 extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
-/* Flight parameters, e.g. sBaloreHandSteeringParams1 (BaloreHand_FadeIn). */
-struct BaloreFlightSteeringParameters {
-    /* 0x00 */ u16 offsetX;     // point relative to unk_508/unk_50A, mirrored when not flipX
-    /* 0x02 */ u16 offsetY;
-    /* 0x04 */ u16 targetAngle; // for unk_500, negated when not flipX
-    /* 0x06 */ u16 turnStep;
-    /* 0x08 */ s32 targetRadius;
-    /* 0x0C */ s32 radiusStep;
-    /* 0x10 */ s32 targetSpeed;
-    /* 0x14 */ s32 stepSpeed;
-};
-
-extern const struct BaloreFlightSteeringParameters sBaloreHandSteeringParams0[], sBaloreHandSteeringParams1[],
-    sBaloreHandSteeringParams2[], sBaloreHandSwipeParams[], sBaloreHandSteeringParams3[];
-extern const struct BaloreFlightSteeringParameters sBaloreHandBSteeringParams0[], sBaloreHandBSteeringParams1[],
-    sBaloreHandBSteeringParams2[];
-
 /*
  * Two callers below were compiled against other prototypes than the ones in
  * syscalls.h / graphics.h: BaloreEye_Update passes ArcTan2 a full s32 x,
@@ -660,7 +643,7 @@ s32 BaloreHand_UpdateSwipe(struct EwramData_EntityData *entity)
     return 0;
 }
 
-#define FLIGHT(e) (*(struct BaloreFlightSteeringParameters **)&(e)->ext.raw.unk_50C)
+#define FLIGHT(e) ((e)->ext.baloreHand.steer)
 #define UNK_51C_BYTE(e, i) (((u8 *)&(e)->enemyStatus)[i])
 
 /* Four-stage flight attack: approach, turn, dive, then emit 16 sparks.
@@ -866,7 +849,7 @@ void BaloreHand_Update(struct EwramData_EntityData *entity)
         entity->affineIndex = matrix;
         entity->affine = 1;
         entity->spriteLayer = 0x1A;
-        entity->ext.baloreHand.steer = (s32)Heap_Alloc(7);
+        entity->ext.baloreHand.steer = Heap_Alloc(7);
         entity->basePalette = ObjPalette_FindOrLoadVariant(sBalorePalette, 15);
         Sprite_Attach(entity, &sBaloreSpriteSheet, (s8)body->ext.balore.gfx, entity->basePalette);
         Anim_StartIndexed(entity, 0x2D, 2, 0);
@@ -981,7 +964,7 @@ void BaloreHand_Update(struct EwramData_EntityData *entity)
         }
         break;
     case 10:
-        Heap_Free((void *)entity->ext.baloreHand.steer);
+        Heap_Free(entity->ext.baloreHand.steer);
         ObjAffine_Free(entity->affineIndex);
     delete:
         EntityDelete(entity);
@@ -1172,7 +1155,6 @@ void BaloreSpark_Update(struct EwramData_EntityData *entity)
 /* Spinning breath/beam emitter attached to its parent: spawns pieces along
  * the sweep and draws itself through an affine slot. */
 
-#define F32(e, field) (*(s32 *)&(e)->field)
 /* Angle step of the sweep per frame (16-bit angle, sign by facing). */
 #define SWEEP_SPEED(e) ENTITY_WORD_514(e)
 
@@ -1224,17 +1206,17 @@ void BaloreEmitter_Update(struct EwramData_EntityData *entity)
         Anim_StartIndexed(entity, 0x32, 2, 0);
         Anim_Update(entity);
         entity->objMode = 1;
-        F32(entity, ext.raw.unk_500) = 0x1000000;
+        entity->ext.baloreEmitter.size = 0x1000000;
         entity->timer = 0x40;
         entity->flipX = RandomNumberGenerator2() & 1;
         if (!entity->flipX)
         {
-            F32(entity, ext.raw.unk_504) = 0x7800;
+            entity->ext.baloreEmitter.angle = 0x7800;
             SWEEP_SPEED(entity) = -0x1C0;
         }
         else
         {
-            F32(entity, ext.raw.unk_504) = 0x800;
+            entity->ext.baloreEmitter.angle = 0x800;
             SWEEP_SPEED(entity) = 0x1C0;
         }
         Sound_PlayTracked(0x66);
@@ -1245,7 +1227,7 @@ void BaloreEmitter_Update(struct EwramData_EntityData *entity)
             piece = SpawnAtEntity(BaloreSpark_Update, entity);
             if (piece != NULL)
             {
-                piece->posX.whole = entity->posX.whole + Sin(F32(entity, ext.raw.unk_504) + 0x4000) * 0xB0;
+                piece->posX.whole = entity->posX.whole + Sin(entity->ext.baloreEmitter.angle + 0x4000) * 0xB0;
                 piece->posY.part16.integer = 0x90;
                 piece->velX.whole = ((0x40 - entity->timer) << 9) + 0x8000;
                 if (entity->flipX)
@@ -1255,8 +1237,8 @@ void BaloreEmitter_Update(struct EwramData_EntityData *entity)
                 piece->timer = ((0x40 - entity->timer) >> 2) + 8;
             }
         }
-        F32(entity, ext.raw.unk_508) = Sin(entity->timer << 9);
-        F32(entity, ext.raw.unk_504) += SWEEP_SPEED(entity);
+        entity->ext.baloreEmitter.scaleY = Sin(entity->timer << 9);
+        entity->ext.baloreEmitter.angle += SWEEP_SPEED(entity);
         if (entity->timer != 0)
         {
             entity->timer--;
@@ -1265,9 +1247,9 @@ void BaloreEmitter_Update(struct EwramData_EntityData *entity)
         entity->state = 3;
         break;
     case 2:
-        if (F32(entity, ext.raw.unk_508) > 0)
+        if (entity->ext.baloreEmitter.scaleY > 0)
         {
-            F32(entity, ext.raw.unk_508) += -0x400;
+            entity->ext.baloreEmitter.scaleY += -0x400;
             break;
         }
     case 3:
@@ -1279,19 +1261,19 @@ void BaloreEmitter_Update(struct EwramData_EntityData *entity)
     }
     entity->posX.part16.integer = parent->posX.part16.integer - 0x15;
     entity->posY.part16.integer = parent->posY.part16.integer - 9;
-    v = F32(entity, ext.raw.unk_500);
+    v = entity->ext.baloreEmitter.size;
     if (v > 0x1000000)
         v = 0x1000000;
     {
         s32 eighth = v / 8;
         scale = eighth / 32;
     }
-    v = Sin(F32(entity, ext.raw.unk_504) + 0x4000) << 5;
-    F32(entity, ext.raw.unk_50C) = v;
-    BALORE_EMITTER_STEP_Y(entity) = Sin(F32(entity, ext.raw.unk_504)) << 5;
-    F32(entity, ext.raw.unk_50C) = F32(entity, ext.raw.unk_50C) / 0x10800 * scale;
+    v = Sin(entity->ext.baloreEmitter.angle + 0x4000) << 5;
+    entity->ext.baloreEmitter.stepX = v;
+    BALORE_EMITTER_STEP_Y(entity) = Sin(entity->ext.baloreEmitter.angle) << 5;
+    entity->ext.baloreEmitter.stepX = entity->ext.baloreEmitter.stepX / 0x10800 * scale;
     BALORE_EMITTER_STEP_Y(entity) = BALORE_EMITTER_STEP_Y(entity) / 0x10800 * scale;
-    ObjAffine_Set(F32(entity, ext.raw.unk_504), scale, F32(entity, ext.raw.unk_508), 0, 0, entity->affineIndex);
+    ObjAffine_Set(entity->ext.baloreEmitter.angle, scale, entity->ext.baloreEmitter.scaleY, 0, 0, entity->affineIndex);
 }
 
 /* Two-hand spawn and fade-out phase (Balore area). */
@@ -1356,7 +1338,7 @@ void Balore_UpdateEnter(struct EwramData_EntityData *entity)
 
 /* Hovering phase of the Balore-area body. */
 /* lean towards the target, 0..8 with 4 = centred */
-#define TILT(e) ((e)->ext.raw.unk_4F4.part8.unk_4F6)
+#define TILT(e) ((e)->ext.balore.eyeAnim)
 
 /**
  * @brief B577C | Hover phase.  State 1 bobs vertically (sine of
@@ -1759,11 +1741,6 @@ remove:
     Anim_Update(entity);
 }
 
-struct OrbitSpeed {
-    s16 x;
-    s16 y;
-};
-extern const struct OrbitSpeed sBaloreIntroPieceOrbitSpeeds[16];
 /* The original reads the y speeds through a pointer two bytes into the table. */
 #define ORBIT_SPEED_Y ((const s16 *)((const u8 *)sBaloreIntroPieceOrbitSpeeds + 2))
 

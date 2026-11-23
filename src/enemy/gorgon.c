@@ -24,14 +24,6 @@ extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
 extern void Gorgon_UpdateWalk(struct EwramData_EntityData *);
 extern void Gorgon_UpdateAttack(struct EwramData_EntityData *);
 extern void Gorgon_SpawnDeathPieces(struct EwramData_EntityData *);
-struct SingleFrameAnimation {
-    u16 count;
-    u16 format;
-    u8 frame;
-    u8 duration;
-    u16 unk_6;
-};
-extern struct SingleFrameAnimation sGorgonFrameAnim;
 void EnemyGorgonUpdate(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
@@ -135,7 +127,7 @@ finished:
 extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s16);
 extern s32 Target_IsInRect(s16, s16, s32, s32);
 #define GAIT(e) (e->ext.gorgon.gait)
-#define FRAME(e) ((e)->ext.raw.unk_4FC.part8.unk_4FE)
+#define FRAME(e) ((e)->ext.gorgon.forcedFrame)
 #define CLOCK(e) (e->ext.gorgon.clock)
 static inline s32 TileAhead(struct EwramData_EntityData *entity, struct BgLayerState *background, s32 offset)
 {

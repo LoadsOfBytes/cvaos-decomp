@@ -52,7 +52,7 @@ s32 Object14_MoveOnTerrain(struct EwramData_EntityData *entity, s32 mode)
         dx = -dx;
     d2 = Collision_GetPushUpFiltered(x + dx, y + off, mode);
     if (d2 != 0)
-        { s32 angle = ArcTan2(dx, off + d2); Angle_TurnTowards((u16 *)&entity->ext.raw.unk_504, 0x80, angle); }
+        { s32 angle = ArcTan2(dx, off + d2); Angle_TurnTowards((u16 *)&entity->ext.object14.angle, 0x80, angle); }
     return d;
 }
 

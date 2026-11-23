@@ -17,6 +17,8 @@
 #include "scene30_transformation.h"
 #include "scenes_c.h"
 #include "data/data_118B48.h"
+#include "data/data_0E5364.h"
+#include "data/data_4F1444.h"
 
 /* Set up, play and fade the background transformation scene. */
 /**
@@ -175,8 +177,6 @@ void EventScene30OrbitFragment_Update(struct EwramData_EntityData *entity)
 }
 
 /* Place nine timed affine fragments from the owner's saved origin. */
-struct TimedFragment {u32 frame;s16 x,y;u8 delay;u8 pad[3];};
-extern struct TimedFragment sEventScene30TimedFragments[9];
 /**
  * @brief Spawn the nine delayed fragments of sEventScene30TimedFragments
  * (EventScene30OrbitFragment_Update) around the owner position.
@@ -287,8 +287,6 @@ void EventScene30_SpawnFloatingFragment(struct EwramData_EntityData *owner,s16 x
 }
 
 /* Allocate a directional fragment with selectable frame families. */
-struct FragmentFrames { u32 frame[3]; };
-extern struct FragmentFrames sEventScene30FragmentFrames;
 /**
  * @brief Spawn a drifting fragment (EventScene30Effect_UpdateBallistic) at (x,
  * y), mirrored when reverse is set.
@@ -344,8 +342,6 @@ void EventScene30Spark_Update(struct EwramData_EntityData *entity)
 }
 
 /* Initial flash followed by three delayed, randomly varied fragments. */
-struct BurstFrames {u32 frame[3];};
-extern struct BurstFrames sEventScene30BurstFrames;
 static inline void flashAt2(s16 x,s16 y)
 {
     struct EwramData_EntityData *effect=EntityCreateInRange(0x1B,0x48,(u32 *)EventScene30Flash_Update);
@@ -390,8 +386,6 @@ void EventScene30_SpawnSparkBurst(s16 x,s16 y)
 }
 
 /* Initial flash followed by three delayed, randomly varied fragments. */
-struct BurstAnimations {u32 frame[5];};
-extern struct BurstAnimations sEventScene30BurstAnimations;
 static inline void flashAt3(s16 x,s16 y,s32 animation)
 {
     struct EwramData_EntityData *effect=EntityCreateInRange(0x1B,0x48,(u32 *)EventScene30Flash_Update);
@@ -436,8 +430,6 @@ void EventScene30_SpawnSparkBurstSmall(s16 x,s16 y)
 }
 
 /* Play fifteen timed burst positions; the state selects the burst variant. */
-struct BurstPosition {s16 x,y;u8 delay;u8 pad[3];};
-extern struct BurstPosition sEventScene30BurstPositions[15];
 static inline void flashAt4(s16 x,s16 y,s32 animation)
 {
     struct EwramData_EntityData *effect=EntityCreateInRange(0x1B,0x48,(u32 *)EventScene30Flash_Update);
@@ -491,8 +483,6 @@ void EventScene30EmitterA_Update(struct EwramData_EntityData *entity)
 }
 
 /* Sequence ten timed effects with a small independent positional jitter. */
-struct EffectStep { u16 x,y; u8 delay; u8 padding[3]; };
-extern struct EffectStep sEventScene30EmitterBSteps[];
 /**
  * @brief Emitter callback 1: step through sEventScene30EmitterBSteps spawning small spark
  * bursts.
@@ -541,8 +531,6 @@ void EventScene30EmitterB_Update(struct EwramData_EntityData *entity)
 }
 
 /* Five fixed effect positions, each activated after its own delay. */
-struct EffectSequence { struct EffectStep steps[5]; };
-extern struct EffectSequence sEventScene30EmitterCSequence;
 /**
  * @brief Emitter callback 2: step through sEventScene30EmitterCSequence spawning spark bursts.
  */
@@ -570,7 +558,6 @@ void EventScene30EmitterC_Update(struct EwramData_EntityData *entity)
 }
 
 /* Sequence ten timed effects with a small independent positional jitter. */
-extern struct EffectStep sEventScene30EmitterDSteps[];
 /**
  * @brief Emitter callback 3: step through sEventScene30EmitterDSteps spawning small spark
  * bursts.
@@ -619,7 +606,6 @@ void EventScene30EmitterD_Update(struct EwramData_EntityData *entity)
 }
 
 /* Timed sequence of five animated effect entities. */
-extern struct EffectSequence sEventScene30EmitterESequence;
 /**
  * @brief Emitter callback 4: step through sEventScene30EmitterESequence spawning flashes.
  */
@@ -1137,8 +1123,6 @@ fail:
 }
 
 /* Progress through six timed palette transitions. */
-struct PaletteTransition { void *data; u16 count,duration; };
-extern struct PaletteTransition sEventScene30PaletteTransitions[];
 /**
  * @brief Advance the six-step BG/OBJ palette transition of sEventScene30PaletteTransitions by its
  * durations.

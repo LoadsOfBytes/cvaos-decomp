@@ -563,7 +563,7 @@ extern void Golem_ThrowDebris(struct EwramData_EntityData *, s32, s32, s32, s32)
 #define TIMER entity->timer
 #define FRAME entity->ext.joint.pose
 #define SWING entity->ext.joint.hurtMask
-#define COUNT entity->ext.raw.unk_504.part8.unk_505
+#define COUNT entity->ext.golem.attackCount
 #define IDX entity->ext.golem.variant
 #define UPDATE() Golem_UpdateParts(entity, chain);
 #define COUNTDOWN() if ((s8)--TIMER > 0) break;

@@ -16,6 +16,7 @@
 #include "structs/agb_sram.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
+#include "data/data_4F0B18.h"
 
 static inline void SaveData_StoreHeaderSummary(struct GameState *gameState)
 {
@@ -422,14 +423,6 @@ s32 SaveData_GiveAwaySoul(s32 saveSlot, s32 soulType, s32 soulId)
     // The original returns an undefined value on this path; preserve it for matching.
     return undefinedResult;
 }
-
-struct SoulKey {
-    u8 soulType;
-    u8 oneBasedSoulId;
-    u8 pad_2[0x4 - 0x2];
-};
-
-extern struct SoulKey sKeySouls[];
 
 /**
  * @brief Clear the progress block (preserving gameFlagsTail bits 0x100000 and

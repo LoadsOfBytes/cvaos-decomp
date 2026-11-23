@@ -1369,22 +1369,6 @@ void Object07_SpawnParallaxSprites(struct EwramData_EntityData *entity)
 extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
 extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *);
 
-/* Palette animation frame: palette data, palette slot, duration. */
-struct BgPaletteCycleFrame {
-    u8 *paletteResource;
-    u16 sourcePalette;
-    u16 duration;
-};
-
-/* Palette animation (variant spawnParam1 of object 0x07 type 1). */
-struct BgPaletteCycle {
-    u16 frameCount; // number of frames
-    u16 destinationPalette;
-    struct BgPaletteCycleFrame *frames;
-};
-
-extern struct BgPaletteCycle sBgPaletteCycles[];
-
 /**
  * @brief 4F690 | Step the palette animation of variant spawnParam1: frame
  * unk_4F4, timer unk_4F6. (Non-void in the original, which returns nothing

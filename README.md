@@ -4,7 +4,7 @@
 ![Game functions in C](https://img.shields.io/badge/Game%20functions%20in%20C-100%25-brightgreen)
 ![ROM code from C](https://img.shields.io/badge/ROM%20code%20from%20C-97.06%25-green)
 ![Names](https://img.shields.io/badge/Names-100%25-brightgreen)
-![Fields named](https://img.shields.io/badge/Fields%20named-96.3%25-green)
+![Fields named](https://img.shields.io/badge/Fields%20named-96.5%25-green)
 ![Files grouped into modules](https://img.shields.io/badge/Files%20grouped%20into%20modules-95%25-green)
 ![FAKEMATCH](https://img.shields.io/badge/FAKEMATCH-275%20lines-orange)
 
@@ -35,10 +35,10 @@ Measured on 2026-11-23 from the build output and source scans.
 | All ROM code (`.text`) from C | **97.06 %** (891,340 / 918,324 B) – the rest is platform code normally kept in assembly (`crt0`, `m4a` mixer, BIOS stubs, header) and libgcc/libc |
 | Functions named | ✅ **100 %** (3,842 / 3,842) |
 | Local variables and parameters named | ✅ **100 %** (16,255 / 16,255) |
-| Structure fields named | 🔄 **96.3 %** (3,269 / 3,394 declared; 99.8 % of accesses) |
-| Entity work area as typed structures | 🔄 363 per-type structures; 67 lines still use the raw offset view |
+| Structure fields named | 🔄 **96.5 %** (3,288 / 3,409 declared; 99.9 % of accesses) – most of the rest are the offset-named slots of the raw work-area view |
+| Entity work area as typed structures | 🔄 364 per-type structures; 23 lines and 6 macros still use the raw offset view |
 | Source files grouped into modules | 🔄 **95 %** – the 1,701 ROM-address files (`code_XXXXXXXX.c`) are 172 named files: 163 complete modules and 9 small files still split off only for build reasons (see *File layout*); no `code_XXXXXXXX` name left |
-| Declarations in headers | 🔄 each module's functions used by other files are declared in `include/<module>.h`; no implicit declarations; 111 functions keep caller-specific prototypes; ROM data declared in `include/data/` (108 tables still local; see *Known limitations*) |
+| Declarations in headers | 🔄 each module's functions used by other files are declared in `include/<module>.h`; no implicit declarations; 111 functions keep caller-specific prototypes; ROM data declared in `include/data/` (18 tables still local; see *Known limitations*) |
 | Removing compiler tricks (`FAKEMATCH`) | 🔄 275 lines left in 73 of 181 C files |
 
 ## How this fork was made
@@ -68,7 +68,9 @@ name or comment describes the game correctly. Corrections are very welcome.
 - **Entity work area** – the per-entity area `0x4F4` … `0x50F` is a
   `union EntityWork` with one structure per entity type
   (`include/structs/entity_work.h`). The split is reconstructed from usage; a few
-  views that a nested union cannot express remain as accessor macros.
+  views that a nested union cannot express remain as accessor macros. 23 lines
+  still go through the raw offset view: generic helpers, entities whose type is
+  not known yet, and blocks that extend past the work area.
 - **File layout** – sources live in `src/enemy/`, `src/object/`, `src/soul/`,
   `src/player/`, `src/engine/`, `src/menu/`, `src/mode/`, `src/event/` and
   `src/debug/`, each file a consecutive ROM range in its original order. 9 small
@@ -88,19 +90,19 @@ name or comment describes the game correctly. Corrections are very welcome.
   code; a comment explains such a declaration where the reason is known. Callers
   that use their own view of a shared structure pass it with an explicit pointer
   cast. ROM data used from C is declared in `include/data/<data file>.h` (one
-  header per `asm/data/` file, in address order); 108 tables are still declared
-  locally – 96 because their element structure is defined only in the C file
-  that uses it, 12 because different files read them through different types
-  (e.g. `u8[]` vs. a structure). Forward declarations of file-internal functions
-  are also still in the C files.
+  header per `asm/data/` file, in address order, together with the structures
+  that describe the tables); 18 tables are still declared locally – 12 because
+  different files read them through different types (e.g. `u8[]` vs. a
+  structure), 6 because their element type is defined differently in different
+  C files. Forward declarations of file-internal functions are also still in
+  the C files.
 
 ## Planned work
 
 - Merge the 9 build-separated files: needs C that matches without their compiler flags.
 - Finish the entity structures and name the remaining fields.
 - Reduce `FAKEMATCH` where a natural C variant can be found.
-- Declarations: gather the forward declarations of file-internal functions;
-  move the remaining data declarations once their structures are shared.
+- Declarations: gather the forward declarations of file-internal functions.
 
 ## Building
 

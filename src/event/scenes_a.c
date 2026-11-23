@@ -19,6 +19,7 @@
 #include "scene30.h"
 #include "shop_update.h"
 #include "text_window.h"
+#include "data/data_4F1444.h"
 
 /* EventScene30_Update, decompiled from the original assembly. The second random
  * number has its own block variable and its offset is summed in a statement
@@ -418,26 +419,7 @@ s32 EventScene29_Update(struct EwramData_EntityData *entity)
 }
 
 /* EventScene31_SpawnBlockDebris..sub_0805C49B. */
-/* Debris piece of EventScene31_SpawnBlockDebris (8-byte records, 12 pieces). */
-struct EventScene31DebrisDefinition {
-    u8 frame;
-    s8 dx;
-    s8 dy;
-    s8 vx;
-    s8 vy;
-    u8 initialTimer;
-    u8 pad_6[2];
-};
 
-/* Palette animation step of EventScene31_StepPaletteAnim (4 steps). */
-struct EventScene31PaletteStep {
-    u8 *palette;
-    u16 sourcePalette;
-    u16 duration;
-};
-
-extern const struct EventScene31DebrisDefinition sEventScene31DebrisDefinitions[];
-extern const struct EventScene31PaletteStep sEventScene31PaletteSteps[];
 extern s32 Collision_GetGroundOffset(s32 x, s32 y);
 s32 EventScene31Debris_Update(struct EwramData_EntityData *entity);
 

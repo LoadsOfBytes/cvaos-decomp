@@ -1099,7 +1099,7 @@ void ChaosOrb_SpawnSpark(struct EwramData_EntityData *orb, s32 x, s32 y)
 }
 
 #define SPREAD(e) (e->ext.chaosSoulShot.spread)
-#define MASH(e) (((u8 *)&(e)->ext.raw.unk_500)[1])
+#define MASH(e) ((e)->ext.chaosSoulShot.mash)
 
 /* Chaos soul grab: holds the player, who can mash buttons to break free. */
 void ChaosSpark_Update(struct EwramData_EntityData *entity)
@@ -1439,11 +1439,6 @@ void ChaosSoulShot_Update(struct EwramData_EntityData *entity)
 }
 
 /* Chaos: mark on the player (3D40). */
-struct MarkFrames {
-    s32 v[3];
-};
-
-extern struct MarkFrames sChaosMarkFrames;
 extern void ChaosMark_Update(struct EwramData_EntityData *);
 void ChaosHalo_Update(struct EwramData_EntityData *entity);
 extern void ChaosAura_Update(struct EwramData_EntityData *);
@@ -1483,10 +1478,6 @@ void Chaos_CreateMark(struct EwramData_EntityData *core, s32 kind)
 }
 
 /* ChaosMark_Update: soul halo following the player; matched. */
-struct HaloOffset { s32 x; s32 y; };
-struct HaloOffsets { struct HaloOffset o[3]; };
-extern const struct HaloOffsets sChaosMarkOffsets;
-
 #define IDX(e) (*(u8 *)&e->ext.chaosOrb.kind)
 
 /**
@@ -2314,8 +2305,6 @@ void Chaos2Part_OnHit(struct EwramData_EntityData *part, struct EwramData_Entity
 
 extern void Chaos2Shot_Update(struct EwramData_EntityData *);
 extern void Chaos2Shot_DamagePlayerOnContact(struct EwramData_EntityData *);
-struct ChaosAngleFrames { u16 entries[13][2]; };
-extern const struct ChaosAngleFrames sChaos2ShotAngleFrames;
 struct ChaosShotGfx { s32 tiles; s32 unused; s32 palette; };
 /* Create a shot, selecting its frame and flips from 13 angle sectors. */
 void Chaos2_SpawnShot(struct EwramData_EntityData *parent, s32 dx, s32 dy, s32 angle)
@@ -2453,7 +2442,7 @@ void Chaos2_SummonPart(struct EwramData_EntityData *core, s32 x, s32 y, s32 vx, 
 
 extern void Chaos2_SpawnSpark(struct EwramData_EntityData *);
 
-#define LIFETIME(e) ((e)->ext.raw.unk_4F8.whole)
+#define LIFETIME(e) ((e)->ext.chaosChild.lifetime)
 
 /* Summoned part: home in on the target (enemyTarget), become harmless once
  * slow, break after 1500 frames or when the core is gone; state 9 bursts

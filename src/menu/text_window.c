@@ -160,13 +160,6 @@ extern u32 GameFlag_Is3ASet(void);
 extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
 extern void PlaySong(u16 song);
 
-struct WindowGfx {
-    void *tiles;
-    u8 *palette;
-    void *layer;
-};
-extern struct WindowGfx sTextWindowGfx[];
-
 /* Run the text commands until a character or a stop marker. */
 static inline s32 ScanText(u8 *commands, s32 offset)
 {

@@ -34,6 +34,7 @@
 #include "text_window.h"
 #include "data/data_0E5364.h"
 #include "data/data_118B48.h"
+#include "data/data_4F1444.h"
 
 /* Per-scanline affine transition driven by the owner's event phase. */
 #define PHASE(e) (e->ext.event30.phase)
@@ -62,7 +63,7 @@ void EventScene30_UpdateUnusedZoom(struct EwramData_EntityData *entity)
         CENTER_Y(entity)=96;
         SCALE_X(entity)=208;
         SCALE_Y(entity)=208;
-        entity->ext.raw.unk_50C.part16.unk_50C=0;
+        entity->ext.event30.zoomTexX=0;
         entity->ext.event30.zoomTexY=128;
         break;
     case 1:
@@ -294,19 +295,6 @@ void BgEffect_Bg2PerspectiveCopy(void)
 }
 
 /* Event and particle helpers, decompiled from the original assembly. */
-struct ParticleFrame {
-    u8 *data;
-    u16 size;
-    u16 pad;
-};
-
-struct ParticleFrames {
-    u16 count;
-    u16 destination;
-    struct ParticleFrame *frames;
-};
-
-extern struct ParticleFrames sEventScene30ParticleFrames;
 extern u32 GameFlag_Is3ASet(void);
 
 /* End this entity unless event flag 0x4000 is set; otherwise advance the
@@ -880,10 +868,7 @@ struct ConversationState {
     u16 entry;
 };
 
-struct TalkTable { u8 entry[7][8]; };
-
 extern void Conversation_Setup(s32 script, s32 group, s32 entry);
-extern struct TalkTable sEventScene27TalkTable;
 
 static inline void NextEntry(struct ConversationState *state, u8 *index, struct TalkTable *table, s32 group)
 {
@@ -1027,20 +1012,6 @@ void EventScene27_PickConversation(struct EwramData_EntityData *entity)
 
 /* Conversation text setup, decompiled from assembly.
  * The temporary state occupies 0x138F4 in the shared 0x133F4 buffer. */
-
-struct ConversationTextList {
-    u16 unk_0;
-    u16 closingText;
-    u16 count;
-    u16 entries[1];
-};
-
-struct ConversationTextTable {
-    u32 unk_0;
-    struct ConversationTextList *lists[1];
-};
-
-extern struct ConversationTextTable sConversationTextTable;
 
 /* Load the chosen text on step 0, then the closing text on step 1. */
 /**

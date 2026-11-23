@@ -784,6 +784,7 @@ union EntityWork {
     struct IntroTextWork introText;
     struct SoulTradeWork soulTrade;
     struct SoundTestTextWork soundTestText;
+    struct SoundTestMenuWork soundTestMenu;
     struct ItemIconWork itemIcon;
     struct StatusIconWork statusIcon;
     struct WeaponWork weapon;
@@ -1183,7 +1184,7 @@ struct GameState {
     /* 0x004C8 */ u32 bgEffectFrameCounter;
     /* 0x004CC */ u8 bossRushMode:2; // Boss Rush entry sets 1; retain the original two-bit field
     /* 0x004CC */ u8 areaNameOwnsHBlank:1;
-    /* 0x004CC */ u8 unk_4CC_3:3; // More fields?
+    /* 0x004CC */ u8 saveSlotState:3; /* main menu: 1 = selected save slot empty, 2 = slot has data (not read) */
     /* 0x004CC */ u8 linkPlay:1; /* link play: partner player sprite, enemies target playerState.linkTargetProxy */
     /* 0x004CD */ u8 areaNameState;
     /* 0x004CE */ u8 pad_4CE[0x4D0 - 0x4CE];
@@ -1720,9 +1721,9 @@ struct EwramData {
     /* 0x1325C */ struct PlayerStatus playerStatus;
 
     /* 0x133EC */ u8 pad_133EC[0x133EE - 0x133EC];
-    /* 0x133EE */ s16 unk_133EE;
+    /* 0x133EE */ s16 linkPartnerAttack; /* link play: partner's attack value (replaces the red soul's base attack) */
     /* 0x133F0 */ s16 unk_133F0;
-    /* 0x133F2 */ u8 unk_133F2; // what's going on here?
+    /* 0x133F2 */ u8 linkPartnerWeapon; /* link play: weapon of attacker slot 1 (Weapon_GetAttackerInfo); BgCmdBuffer number output also uses its address as scratch */
     /* 0x133F3 */ u8 unk_133F3;
     /* 0x133F4 */ u8 sharedScratchBuffer[0x1000];
     /* 0x143F4 */ u8 entityScratchBuffer[0x800]; // shared buffer; entity allocation arena (Room_ResetTransientState)

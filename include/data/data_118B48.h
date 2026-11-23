@@ -6,12 +6,82 @@
 #include "types.h"
 #include "structs/ewram.h"
 
+struct OrbitSpeed {
+    s16 x;
+    s16 y;
+};
+
+struct MarkFrames {
+    s32 v[3];
+};
+
+struct HaloOffset { s32 x; s32 y; };
+
+struct HaloOffsets { struct HaloOffset o[3]; };
+
+struct ChaosAngleFrames { u16 entries[13][2]; };
+
+struct SingleFrameAnimation {
+    u16 count;
+    u16 format;
+    u8 frame;
+    u8 duration;
+    u16 unk_6;
+};
+
+struct GrahamSpawnTable { s32 coordinate[10]; };
+
+struct Wait16 { s32 t[16]; };
+
+struct Wait8 { s32 t[8]; };
+
+struct BurstOffset { s16 x, y; };
+
+struct FragmentPoint { s16 x,y; };
+
+/* Graphics of a head stack enemy type (sUnk_081193DC, indexed by type). */
+struct HeadStackGraphics {
+    void *graphics;
+    void *palette;
+    void *spriteSheet;
+    u8 firstDebrisFrame;
+    u8 lastDebrisFrame;
+    u8 pad_E[2];
+};
+
+struct ShellRadii {
+    s32 r[2][3];
+};
+
+union MimicAnimation { u32 words[2]; u8 bytes[8]; };
+
+struct StolasPreviewAnimation {
+    u16 stepCount;
+    u16 type;
+    u8 frame;
+    u8 duration;
+    u16 unk_6;
+};
+
+struct PartOffset { u16 index; s8 x, y; };
+
+struct AnimViewerFrame
+{
+    u32 scriptHeader;
+    u8 frame;
+    u8 pad_5[3];
+};
+
+struct TalkTable { u8 entry[7][8]; };
+
 extern u8 sEventScene30PieceEmitterFrames[];
 extern u8 sEventScene30PieceEmitterAltFrames[];
 extern s32 sEventScene30CenterEffectOffsets[21];
+extern struct TalkTable sEventScene27TalkTable;
 /* Seven (x, y) s16 margin pairs at ROM 0x08118D08, copied by EntityIsOutsideScreen.
  * Declared as bytes: the original calls memcpy instead of an inline copy. */
 extern const u8 sOffscreenMargins[];
+extern const struct AnimViewerFrame sAnimViewerInitialFrame;
 extern const char sAssertFileLtInline[];
 extern const char sAssertExprOpdId[];
 extern u8 sArachneLegsFrames[];
@@ -32,7 +102,12 @@ extern const u8 sUnk_08118EF3[4];
 extern const u8 sUnk_08118EF7[4];
 extern const u8 sGolemDelay[4];
 extern u8 sHeadhunterGfx[];
+extern struct SingleFrameAnimation sHeadhunterFrameAnim;
+extern struct SingleFrameAnimation sHeadhunterAttackTipFrameAnim;
+extern struct SingleFrameAnimation sHeadhunterAttackSegmentFrameAnim;
 extern s8 sTritonSpearOffsets[32];
+extern struct SingleFrameAnimation sPeepingEyeFrameAnim;
+extern struct SingleFrameAnimation sGorgonFrameAnim;
 extern s8 sGorgonWalk[16];
 extern s8 sGorgonTurn[12];
 extern const u8 sUnk_08118F78[14];
@@ -71,18 +146,24 @@ extern const u8 sCreakingSkullSwingTimes[3];
 extern const u8 sCreakingSkullArmTimes[3];
 extern const u8 sCreakingSkullSpitTimes[3];
 extern const u8 sCreakingSkullPartTimers[13];
+extern union MimicAnimation sMimicAnimation;
+extern const struct StolasPreviewAnimation sStolasPreviewAnimation;
 extern const u8 sStolasFrames0[6];
 extern const u8 sStolasAnchors[6];
 extern const s8 sUnk_081190AC[6];
 extern const u8 sUnk_081190B2[13];
 extern u8 sLegionGfx[];
+extern const struct ShellRadii sLegionShellRadii;
 extern const s16 sGladiatorOffsetsA[12];
 extern const s16 sGladiatorOffsetsB[12];
 extern const s16 sUnk_08119174[4];
 extern const s16 sGladiatorBodyDx[12];
 extern const s16 sGladiatorArmDx[12];
 extern u8 sChaosGfx[];
+extern struct MarkFrames sChaosMarkFrames;
+extern const struct HaloOffsets sChaosMarkOffsets;
 extern u8 sChaos2Gfx[];
+extern const struct ChaosAngleFrames sChaos2ShotAngleFrames;
 extern const u8 sUnk_08119264[];
 extern const u16 sUnk_0811926C[];
 extern const u16 sUnk_08119280[];
@@ -97,8 +178,11 @@ extern const s8 sBigGolemOrderB[14];
 extern const s8 sBigGolemOrderC[14];
 extern const u8 sBigGolemPartTimers[14];
 extern const s16 sBigGolemPartOffsets[14];
+extern const struct PartOffset sWaiterSkeletonTrayOffsets[];
+extern struct HeadStackGraphics sUnk_081193DC[];
 extern u8 sBaloreGfx[];
 extern u8 sUnk_0811940C[];
+extern const struct OrbitSpeed sBaloreIntroPieceOrbitSpeeds[16];
 /* x offset of the Cockatrice/Basilisk part (CockatriceFamilyPart_FollowOwner). */
 extern const u16 sUnk_08119490[];
 extern u8 sDeathGfx[];
@@ -109,8 +193,14 @@ extern s16 sBaelPositions[8][2];
 extern u8 sBelmontGfx[];
 extern u8 sBelmontWeaponSolidCallbacks[];
 extern u8 sGrahamFirstFormGfx[];
+extern struct GrahamSpawnTable sGrahamSpawnTable;
+extern struct Wait16 sUnk_08119580;
+extern struct Wait8 sUnk_081195C0;
+extern struct Wait8 sUnk_081195E0;
 extern s16 sGrahamAttackerPositions[32][2];
 extern u8 sGrahamPartSteps[];
+extern const struct BurstOffset sBossDefeatBurstOffsets[4][15];
+extern struct FragmentPoint sGrahamBreakupFragmentPoints[4][15];
 extern u8 sEventScene30TransformationGfx[];
 extern u8 sUnk_08119898[];
 extern u8 sWarpRoomPalette[];

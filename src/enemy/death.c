@@ -29,18 +29,10 @@
 #include "damage_numbers.h"
 #include "player_level.h"
 #include "data/data_118B48.h"
-
-struct ArmPose {
-    u16 angle;
-    u16 dx;
-    u16 dy;
-    u8 layer;
-    u8 flag;
-};
+#include "data/data_4F1444.h"
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 extern void DeathWeapon_DamagePlayerOnContact(struct EwramData_EntityData *);
-extern struct ArmPose sDeathWeaponArmPoses[];
 
 #define SPIN(e) (e->ext.deathWeapon.angle)
 #define SPEED(e) (e->ext.deathWeapon.spin)

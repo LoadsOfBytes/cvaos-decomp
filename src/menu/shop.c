@@ -23,13 +23,6 @@
 void PlaySong(u32 song);
 u32 Inventory_GetOwnedCount(s32 category, s32 index);
 
-struct ShopStockEntry {
-    u8 type;
-    u8 id;
-    u8 pad_2[2];
-};
-extern const struct ShopStockEntry sShopStock[];
-
 struct Owner {
     u8 pad_0[0x3D1];
     u8 rowQuantities[1];
@@ -265,12 +258,6 @@ struct ShopMenu2 {
     u8 cursor;
     u16 unk_18[6];
 };
-
-struct ShopList {
-    u8 count;
-    u8 items[1];
-};
-extern struct ShopList *const sShopLists[];
 
 static inline u8 ShopItemAt(u8 *items, s32 row)
 {

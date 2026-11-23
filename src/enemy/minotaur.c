@@ -1,0 +1,758 @@
+/*
+ * Minotaur: body, axe, swing trail and axe pieces (the entry points are in the next, separately compiled file).
+ */
+#include "code_08009A0.h"
+extern s16 Collision_GetPushLeft(s32 x, s32 y);
+extern s16 Collision_GetPushRight(s32 x, s32 y);
+extern s16 Collision_GetPushUp(s32 x, s32 y);
+#include "structs/ewram.h"
+#include "code_08033CAC.h"
+#include "code_080D73B8.h"
+#include "code/code_080211F0.h"
+#include "code/code_08039340.h"
+#include "code/code_08040A38.h"
+#include "syscalls.h"
+#include "code/code_08060B98.h"
+#include "structs/entity_render_flags.h"
+
+/* Probabilistic gate followed by a direction-dependent room obstacle probe. */
+extern s32 Target_IsNearEntity(struct EwramData_EntityData *, s32, s32);
+
+s32 Minotaur_CheckAttackChance(struct EwramData_EntityData *entity, s32 mask)
+{
+    u16 x, y, result;
+    if (!entity->ext.minotaur.variant || (RandomNumberGenerator2() & mask) != 0)
+        return 1;
+    if (!(entity->ext.minotaur.flags & 2))
+        return 0;
+    if (Target_IsNearEntity(entity, 160, 120))
+        return 1;
+    x = GetEntityRoomXPositionInteger(entity);
+    y = GetEntityRoomYPositionInteger(entity);
+    if (entity->flipX)
+        result = Collision_GetPushLeft((s16)x + 80, (s16)y);
+    else
+        result = Collision_GetPushRight((s16)x - 80, (s16)y);
+    return (s16)result;
+}
+
+/* This call site consumes the complete return register, as in the ROM. */
+extern s32 Collision_GetGroundOffset(s32, s32);
+extern s32 RandomSigned(s32);
+extern s32 Entity_IsInRect(struct EwramData_EntityData *, s32, s32, s32, s32);
+
+/* Ballistic fragment: bounce once against room geometry, then fall away. */
+static inline s32 FragmentHitsGround(struct EwramData_EntityData *entity)
+{
+    s32 x = (s16)entity->posX.part16.integer;
+    struct BgLayerState *bg = &gEwramData->bgInfo[1];
+    s32 y;
+    x += (s16)bg->xPos.part16.integer;
+    y = entity->posY.part16.integer;
+    y += (s16)bg->yPos.part16.integer;
+    return Collision_GetGroundOffset(x, y + 4);
+}
+void MinotaurAxePiece_Update(struct EwramData_EntityData *entity)
+{
+    switch (entity->state)
+    {
+    case 0:
+        entity->velX.whole = RandomSigned(0x20000) - 0x8000;
+        if (entity->flipX)
+            entity->velX.whole = -entity->velX.whole;
+        entity->velY.whole = -0x10000 - ((RandomNumberGenerator() & 0x1FFF) << 4);
+        entity->state++;
+        break;
+    case 1:
+        if (FragmentHitsGround(entity))
+        {
+            entity->animFrame = (RandomNumberGenerator() & 1) + 64;
+            entity->velY.whole = -(entity->velY.whole >> 1);
+            entity->state++;
+        }
+        else
+        {
+            entity->posX.whole += entity->velX.whole;
+            entity->posY.whole += entity->velY.whole;
+            entity->velY.whole += 0x3000;
+        }
+        break;
+    case 2:
+        entity->posX.whole += entity->velX.whole;
+        entity->posY.whole += entity->velY.whole;
+        entity->velY.whole += 0x3000;
+        break;
+    }
+    if (!Entity_IsInRect(entity, -16, -16, 272, 192))
+        entity->deleteRequested = 1;
+}
+
+extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
+extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
+extern void Enemy_DropRewards(struct EwramData_EntityData *);
+
+void Minotaur_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
+{
+    s32 damage = Player_CalculateAttackPower(hit[2]);
+    damage = Hit_ResolveDamage(entity, (s32)attacker, hit, (s16)damage);
+    entity->hitFlashTimer = 8;
+    {
+        u16 hp = entity->hp;
+        damage <<= 16;
+        damage >>= 16;
+        entity->hp = hp - damage;
+    }
+    Entity_ShowDamage(entity, damage, 0);
+    if ((s16)entity->hp < 100 && !(entity->ext.minotaur.flags & 1))
+        entity->ext.minotaur.flags &= ~2;
+    if ((s16)entity->hp <= 0)
+    {
+        Enemy_DropRewards(entity);
+        entity->palette = entity->basePalette;
+        entity->timer = 0x28;
+        entity->state = 3;
+        Anim_StartIndexed(entity, 7, 0, 0);
+        entity->ext.minotaur.flags &= ~1;
+        if (entity->spawnParam0 != 0)
+        {
+            Player_SetSelectedTarget(NULL);
+            gEwramData->gameState.bossEventFlags |= 0x100;
+        }
+    }
+}
+
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
+
+/**
+ * @brief B0064 | Affine-rotated companion sprite of the parent (unk_4F8):
+ * allocates an affine slot, follows the parent while its frame animScriptIndex is 4
+ * and its pose (unk_4F8 - 4) is 0 or 1, swinging on a rotating arc and
+ * growing over 7 frames; freed with its slot when the parent id changes.
+ */
+void MinotaurSwingTrail_Update(struct EwramData_EntityData *entity)
+{
+    struct EwramData_EntityData *parent = ENTITY_OWNER(entity);
+    u16 slot;
+    s32 angle;
+    s32 rot;
+    s32 dx, dy;
+
+    if (entity->state != 0 && ENTITY_INDEX(parent) != ENTITY_PARENT_INDEX(entity))
+        entity->state = 2;
+    switch (entity->state)
+    {
+    case 0:
+        if (!Entity_LoadGraphics(entity, (void *)0x081E41A4, (void *)0x0820B7B0, 0, (void *)0x0823AE10))
+            goto delete;
+        slot = ObjAffine_Alloc(1);
+        if ((s16)slot < 0)
+            goto delete;
+        entity->affineIndex = slot;
+        entity->affine = 1;
+        entity->scrollWithBg = 1;
+        Anim_StartIndexed(entity, 9, 0, 1);
+        Anim_Update(entity);
+        entity->spriteLayer = parent->spriteLayer;
+        entity->state++;
+    case 1:
+        if (parent->animScriptIndex != 4)
+            goto hide;
+        if ((u8)(parent->ext.minotaur.animStep - 4) > 1)
+        {
+            entity->timer = 0;
+            entity->hidden = 1;
+            entity->ext.minotaurTrail.angle = 0;
+            return;
+        }
+        if (entity->timer > 6)
+        {
+        hide:
+            entity->hidden = 1;
+            return;
+        }
+        entity->timer++;
+        entity->hidden = 0;
+        entity->subState = parent->ext.minotaur.animStep - 4;
+        entity->flipX = parent->flipX;
+        entity->posX.part16.integer = parent->posX.part16.integer;
+        entity->posY.part16.integer = parent->posY.part16.integer - 0x10;
+        entity->ext.minotaurTrail.angle += -0x400;
+        rot = entity->ext.minotaurTrail.angle;
+        angle = (rot - 0x6000) & 0xFFFF;
+        dx = Sin(angle + 0x4000) * 56;
+        dy = Sin(angle) << 6;
+        if (entity->flipX)
+        {
+            dx = -dx;
+            rot = -rot;
+        }
+        entity->posX.whole += dx;
+        entity->posY.whole += dy;
+        break;
+    case 2:
+        ObjAffine_Free(entity->affineIndex);
+    delete:
+        EntityDelete(entity);
+        return;
+    }
+    ObjAffine_Set(rot, 0x14000 - (entity->timer << 11), 0x12000, entity->flipX, 1, entity->affineIndex);
+}
+
+extern void MinotaurAxe_DamagePlayerOnContact(struct EwramData_EntityData *);
+extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
+
+/* Collision object attached to a rotating parent, at a radius of 16 pixels. */
+void MinotaurAxeHitBox_Update(struct EwramData_EntityData *entity)
+{
+    u8 collision[16];
+    struct EwramData_EntityData *parent = ENTITY_OWNER(entity);
+    if (entity->state != 0 && *(u8 *)&parent->ext.raw.unk_4F4 != ENTITY_PARENT_INDEX(entity))
+    {
+        EntityDelete(entity);
+        return;
+    }
+    switch (entity->state)
+    {
+    case 0:
+        Hit_Enable(entity, 8, MinotaurAxe_DamagePlayerOnContact, 0);
+        HitBox_SetAttackRaw(entity, 0x1414F6F6);
+        entity->hit.flags = (entity->hit.flags & ~2) | 4;
+        entity->state++;
+        /* fall through */
+    case 1:
+        {
+            s32 angle = parent->ext.minotaurAxe.angle;
+            s32 yAngle = angle - 0x4000;
+            s32 dx = Sin(angle) << 4;
+            s32 dy = Sin(yAngle) << 4;
+            entity->posX.whole = parent->posX.whole + dx;
+            entity->posY.whole = parent->posY.whole + dy;
+            if (parent->state == 1)
+                Hit_CheckWithPlayer(collision, entity);
+        }
+        break;
+    }
+}
+
+/* Weapon carried by an enemy: follows the parent's animation, falls and breaks. */
+struct WeaponFrame {
+    s16 frame;
+    s16 pad;
+    s32 angle;
+    s8 dx;
+    s8 dy;
+    u8 pad2[2];
+};
+
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
+extern struct EwramData_EntityData *Entity_CreateObject(u32 *);
+extern void Sprite_GetPartCornerOffset(struct EwramData_EntityData *, s32, s16 *);
+extern void EntityAccelerateY(struct EwramData_EntityData *, s32);
+extern void EntityMove(struct EwramData_EntityData *);
+extern u8 sMinotaurGfx[], sMinotaurPalette[], sMinotaurSpriteSheet[];
+extern u8 sCommonObjectGfx[], sCommonObjectSpriteSheet[];
+extern struct WeaponFrame *sMinotaurAxeFrames[];
+
+static inline struct WeaponFrame *FindFrame(struct WeaponFrame *frame, struct EwramData_EntityData *parent)
+{
+    if (frame == NULL)
+        return NULL;
+    {
+        u8 key = parent->ext.minotaur.animStep;
+        while (frame->frame != -1)
+        {
+            if (key <= frame->frame)
+                return frame;
+            frame++;
+        }
+    }
+    return NULL;
+}
+
+static inline s32 ScreenY(u16 y) { struct BgLayerState *bg = &gEwramData->bgInfo[1]; s32 b = bg->yPos.part16.integer; return (s16)y - b; }
+static inline s32 ScreenX(s32 x) { struct BgLayerState *bg = &gEwramData->bgInfo[1]; return x - bg->xPos.part16.integer; }
+
+#define SPIN(e) (e->ext.minotaurAxe.spin)
+#define SPIN_SPEED(e) (e->ext.minotaurAxe.spinSpeed)
+#define DROPPED(e) (e->ext.minotaurAxe.dropped)
+#define TO_PIXELS(d) ((d) < 0 ? -(-(d) >> 16) : (d) >> 16)
+
+void MinotaurAxe_Update(struct EwramData_EntityData *entity)
+{
+    struct EwramData_EntityData *parent = ENTITY_OWNER(entity);
+    s16 offset[2];
+    s32 angle;
+
+    if (DROPPED(entity) == 0)
+    {
+        if ((s16)parent->hp <= 0)
+            DROPPED(entity) = 1;
+        if (DROPPED(entity) == 0 && entity->state == 4
+            && ENTITY_INDEX(parent) == ENTITY_PARENT_INDEX(entity)
+            && (parent->ext.minotaur.flags & 1))
+        {
+            entity->state = 1;
+            PlaySong(0x69);
+        }
+    }
+    switch (entity->state)
+    {
+    case 0:
+    {
+        u16 slot;
+        if (!Entity_LoadGraphics(entity, sMinotaurGfx, sMinotaurPalette, 0, sMinotaurSpriteSheet))
+            goto remove;
+        slot = ObjAffine_Alloc(1);
+        if ((s16)slot < 0)
+            goto remove;
+        if (!(((u8 *)gEwramData)[0x8E] & 0x40))
+        {
+            struct EwramData_EntityData *hitbox;
+            entity->attack += entity->attack >> 2;
+            hitbox = Entity_CreateObject((u32 *)MinotaurAxeHitBox_Update);
+            if (hitbox != NULL)
+            {
+                ENTITY_OWNER(hitbox) = entity;
+                ENTITY_PARENT_INDEX(hitbox) = ENTITY_INDEX(entity);
+                hitbox->attack = entity->attack;
+                hitbox->hp = entity->hp;
+            }
+        }
+        entity->affineIndex = slot;
+        entity->affine = 1;
+        entity->scrollWithBg = 1;
+        Anim_StartIndexed(entity, 8, 0, 1);
+        Anim_Update(entity);
+        entity->spriteLayer = parent->spriteLayer;
+        entity->state++;
+    }
+    case 1:
+        if (ENTITY_INDEX(parent) != ENTITY_PARENT_INDEX(entity))
+        {
+            entity->state = 6;
+            break;
+        }
+        if (parent->state == 3)
+        {
+            entity->state = 3;
+            break;
+        }
+
+        if (!(parent->ext.minotaur.flags & 1))
+        {
+            entity->state = 2;
+            break;
+        }
+        entity->flipX = parent->flipX;
+        {
+            s16 *ofs = offset;
+            Sprite_GetPartCornerOffset(parent, 0, ofs);
+            entity->posX.part16.integer = parent->posX.part16.integer + offset[0];
+            entity->posY.part16.integer = ofs[1] + parent->posY.part16.integer;
+        }
+        {
+            struct WeaponFrame *found = FindFrame(sMinotaurAxeFrames[parent->animScriptIndex], parent);
+            if (found == NULL)
+                break;
+            SPIN(entity) = found->angle;
+            if (entity->flipX)
+                entity->posX.part16.integer -= found->dx;
+            else
+                entity->posX.part16.integer += found->dx;
+            entity->posY.part16.integer += found->dy;
+        }
+        break;
+    case 2:
+        PlaySong(0x86);
+        entity->velX.whole = -0x8000;
+        if (entity->flipX)
+            entity->velX.whole = -entity->velX.whole;
+        entity->velY.whole = -0x42000;
+        entity->accelY.whole = 0x1800;
+        SPIN_SPEED(entity) = 0xF200;
+        entity->state = 4;
+        break;
+    case 3:
+        entity->velX.part16.integer = 0;
+        entity->velY.whole = -0x30000;
+        entity->accelY.whole = 0x2000;
+        SPIN_SPEED(entity) = 0xF800;
+        entity->state = 4;
+        break;
+    case 4:
+    {
+        u16 rx, ry;
+        s32 dx, dy, hit, i, drop;
+        struct EwramData_EntityData *piece;
+        s32 graphics;
+        SPIN(entity) += SPIN_SPEED(entity);
+        EntityAccelerateY(entity, 0x80000);
+        EntityMove(entity);
+        if (entity->velY.whole <= 0x2FFFF)
+            break;
+        if (entity->velY.whole > 0x60000 && EntityIsOutsideScreen(entity, 4))
+        {
+            if (DROPPED(entity) == 0)
+                parent->ext.minotaur.flags &= ~2;
+            goto lost;
+        }
+        angle = (u16)SPIN(entity);
+        if ((u32)(angle - 0x9000) > 0x2000)
+            break;
+        angle = SPIN(entity);
+        if (entity->flipX)
+            angle = -angle;
+        rx = GetEntityRoomXPositionInteger(entity);
+        ry = GetEntityRoomYPositionInteger(entity);
+        angle -= 0x4000;
+        dx = Sin(angle + 0x4000) << 4;
+        dy = Sin(angle) << 4;
+        rx = (s16)rx + TO_PIXELS(dx);
+        ry = (s16)ry + TO_PIXELS(dy);
+        hit = Collision_GetPushUp((s16)rx, (s16)ry + 10) << 16;
+        if (hit == 0)
+            break;
+        PlaySong(0x7F);
+        graphics = ObjGfx_Find(sCommonObjectGfx);
+        i = 0;
+        drop = hit;
+        goto test;
+    loop:
+        {
+            Sprite_Attach(piece, sCommonObjectSpriteSheet, graphics, 6);
+            piece->animFrame = Mod(RandomNumberGenerator() >> 4, 3) + 0x40;
+            piece->posX.part16.integer = ScreenX((s16)rx + RandomSigned(4));
+            piece->posY.part16.integer = ScreenY(ry) - 8;
+            piece->flipX = RandomNumberGenerator() & 1;
+            piece->spriteLayer = 0x11;
+            piece->scrollWithBg = 1;
+            piece->drawFunc = (u32 *)Sprite_DrawEntity;
+            i++;
+        }
+    test:
+        if (i <= 3 && (piece = EntityCreateInRange(0x49, 0xCF, (u32 *)MinotaurAxePiece_Update)) != NULL)
+            goto loop;
+        if (ENTITY_INDEX(parent) == ENTITY_PARENT_INDEX(entity))
+            parent->ext.minotaur.flags &= ~2;
+        entity->posY.whole += drop;
+        entity->state = 5;
+        entity->timer = 0xC0;
+        break;
+    }
+    case 5:
+        if (EntityIsOutsideScreen(entity, 4))
+            goto lost;
+        if (entity->timer == 0x20)
+            entity->drawSkip = 1;
+        if (entity->drawSkip && !(entity->timer & 3))
+        {
+            s32 x = entity->posX.whole + (RandomSigned(0x100) << 13);
+            s32 y = entity->posY.whole + ({ s32 t = (RandomSigned(0x100) << 13) + 0x100000; t; });
+            Effect_SpawnShared(x, y, RandomNumberGenerator() & 1, 8);
+        }
+        if (entity->timer == 0)
+            goto lost;
+        entity->timer--;
+        break;
+    lost:
+        entity->state = 6;
+        break;
+    case 6:
+        ObjAffine_Free(entity->affineIndex);
+    remove:
+        EntityDelete(entity);
+        return;
+    }
+    angle = SPIN(entity);
+    if (entity->flipX)
+        angle = -angle;
+    entity->ext.minotaurAxe.angle = angle;
+    ObjAffine_Set(angle, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
+}
+
+extern void Entity_FaceTarget(struct EwramData_EntityData *);
+extern s32 Enemy_IsDamaged(struct EwramData_EntityData *);
+
+/* Minotaur idle: choose approach or attack using two distance windows. */
+void Minotaur_UpdateIdle(struct EwramData_EntityData *entity)
+{
+    Entity_FaceTarget(entity);
+    if (entity->animTimer == 0)
+        Entity_FaceTarget(entity);
+    if (Target_IsNearEntity(entity, 200, 120) || Enemy_IsDamaged(entity))
+    {
+        s32 result = Minotaur_CheckAttackChance(entity, 1);
+        if (result == 0)
+        {
+            entity->state = 2;
+            entity->stage = result;
+            entity->subState = result;
+        }
+        else if (entity->ext.minotaur.flags & 2)
+        {
+            entity->state = 1;
+            entity->stage = 0;
+            entity->subState = 0;
+        }
+    }
+    else if (Target_IsNearEntity(entity, 280, 120) || Enemy_IsDamaged(entity))
+    {
+        s32 result = Minotaur_CheckAttackChance(entity, 63);
+        if (result == 0)
+        {
+            entity->state = 2;
+            entity->stage = result;
+            entity->subState = result;
+        }
+    }
+}
+
+extern s32 Entity_Walk(struct EwramData_EntityData *, s32, void *, s32);
+extern u8 sMinotaurWalkProfile[];
+
+/* Minotaur approach animation, movement, then close-range attack. */
+void Minotaur_UpdateApproach(struct EwramData_EntityData *entity)
+{
+    switch (entity->subState)
+    {
+    case 0:
+        Anim_StartIndexed(entity, 2, 0, 0);
+        entity->subState = 1;
+        break;
+    case 1:
+        if (entity->animFlags & 4)
+        {
+            Anim_StartIndexed(entity, 3, 0, 1);
+            entity->subState = 2;
+        }
+        break;
+    case 2:
+        Entity_Walk(entity, 0x8000, sMinotaurWalkProfile, 13);
+        if (Target_IsNearEntity(entity, 100, 80))
+        {
+            Anim_StartIndexed(entity, 4, 0, 0);
+            entity->subState = 3;
+        }
+        break;
+    case 3:
+        if (*(u16 *)&entity->animStep == 3)
+            PlaySong(0x86);
+        if (entity->animFlags & 4)
+        {
+            Anim_StartIndexed(entity, 1, 0, 1);
+            entity->state = 0;
+            entity->stage = 0;
+            entity->subState = 0;
+        }
+        break;
+    case 4:
+        break;
+    }
+}
+
+extern void Afterimage_Create(struct EwramData_EntityData *, s32, s32, s32);
+
+/* Minotaur attack: windup, decelerating charge, recovery or follow-up. */
+void Minotaur_UpdateAttack(struct EwramData_EntityData *entity)
+{
+    s32 remaining;
+    switch (entity->subState)
+    {
+    case 0:
+        {
+            s32 flag = entity->ext.minotaur.flags & 2;
+            if (flag == 0)
+            {
+                Anim_StartIndexed(entity, 5, 0, 1);
+                entity->subState = 3;
+                entity->timer = flag;
+            }
+            else
+            {
+                entity->ext.minotaur.flags &= ~1;
+                Anim_StartIndexed(entity, 7, 0, 0);
+                entity->subState = 1;
+            }
+        }
+        break;
+    case 1:
+        if (entity->animFlags & 4)
+        {
+            entity->subState = 2;
+            entity->timer = 8;
+        }
+        break;
+    case 2:
+        remaining = entity->timer;
+        if (remaining == 0)
+        {
+            Anim_StartIndexed(entity, 5, 0, 1);
+            entity->subState = 3;
+            Afterimage_Create(entity, 40, 12, 1);
+            Afterimage_Create(entity, 40, 6, 0);
+        }
+        else
+            goto decrementTimer;
+        break;
+    case 3:
+        Entity_Walk(entity, 0x34000 - entity->timer * 0x1400, sMinotaurWalkProfile, 12);
+        if (++entity->timer == 24)
+            Anim_StartIndexed(entity, 6, 0, 0);
+        if (entity->timer > 40)
+        {
+            if (!(entity->ext.minotaur.flags & 2))
+            {
+                entity->subState = 4;
+                entity->timer = 48;
+            }
+            else
+            {
+                entity->subState = 5;
+                Anim_StartIndexed(entity, 4, 0, 0);
+                entity->ext.minotaur.flags |= 1;
+            }
+        }
+        break;
+    case 4:
+        {
+            s32 timer;
+            remaining = entity->timer;
+            timer = (u8)remaining;
+            if (timer != 0)
+            {
+decrementTimer:
+                entity->timer = remaining - 1;
+            }
+            else
+            {
+                Anim_StartIndexed(entity, 1, 0, 1);
+                entity->state = timer;
+                entity->stage = timer;
+                entity->subState = timer;
+            }
+        }
+        break;
+    case 5:
+        if (*(u16 *)&entity->animStep == 3)
+            PlaySong(0x86);
+        if (entity->animFlags & 4)
+        {
+            Anim_StartIndexed(entity, 1, 0, 1);
+            entity->state = 0;
+            entity->stage = 0;
+            entity->subState = 0;
+        }
+        break;
+    }
+}
+
+/* Minotaur initialisation shared by Minotaur (variant 0) and Red Minotaur
+ * (variant 1).  Loads graphics for the variant,
+ * stores the variant in unk_4F9, creates the two helper entities MinotaurAxe_Update
+ * and MinotaurSwingTrail_Update (any failure deletes the Minotaur), starts animation 1 and
+ * either enters state 4 (bestiaryPreview set) or registers the hit/death callbacks
+ * and enters state 0. */
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
+extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *);
+extern void Entity_UpdateBoxes(struct EwramData_EntityData *);
+extern void Entity_SnapToGround(struct EwramData_EntityData *);
+extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, void *);
+extern void Player_SetSelectedTarget(struct EwramData_EntityData *);
+extern void Minotaur_DamagePlayerOnContact(struct EwramData_EntityData *);
+
+/* Two child entities inherit the parent pointer, low unk_4F4 byte, attack
+ * and the hp value of the Minotaur. */
+static inline void AttachChild(struct EwramData_EntityData *child, struct EwramData_EntityData *entity)
+{
+    ENTITY_OWNER(child) = entity;
+    ENTITY_PARENT_INDEX(child) = ENTITY_INDEX(entity);
+    child->attack = entity->attack;
+    /* Signed 16-bit view of hp; the u16 field allocates registers differently. */
+    *(s16 *)&child->hp = *(s16 *)&entity->hp;
+}
+
+void Minotaur_Init(struct EwramData_EntityData *entity, s32 variant)
+{
+    struct EwramData_EntityData *child;
+    if (!Entity_LoadGraphics(entity, sMinotaurGfx, sMinotaurPalette, variant, sMinotaurSpriteSheet))
+        goto fail;
+    entity->ext.minotaur.variant = variant;
+    Enemy_ResetFromTemplate(entity);
+    entity->spriteLayer = 0x13;
+    child = Entity_CreateObject((u32 *)MinotaurAxe_Update);
+    if (child == NULL)
+        goto fail;
+    AttachChild(child, entity);
+    child = Entity_CreateObject((u32 *)MinotaurSwingTrail_Update);
+    if (child == NULL)
+    {
+    fail:
+        EntityDelete(entity);
+        return;
+    }
+    AttachChild(child, entity);
+    entity->ext.minotaur.flags |= 3;
+    Anim_StartIndexed(entity, 1, 0, 1);
+    Anim_Update(entity);
+    if (gEwramData->gameState.bestiaryPreview)
+    {
+        entity->state = 4;
+        return;
+    }
+    Entity_EnableBoxes(entity, Minotaur_DamagePlayerOnContact, Minotaur_OnHit);
+    Entity_UpdateBoxes(entity);
+    Entity_SnapToGround(entity);
+    entity->posY.part16.integer++;
+    entity->scrollWithBg = 1;
+    entity->state = 0;
+    if (entity->spawnParam0 != 0)
+        Player_SetSelectedTarget(entity);
+}
+
+/* Minotaur update: pause handling, state dispatch, contact and animation. */
+extern void Entity_HideAboveY(struct EwramData_EntityData *, s32);
+extern s32 EntityIsOutsideScreen(struct EwramData_EntityData *, s32);
+extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
+extern s32 Entity_IsTimeStopped(struct EwramData_EntityData *);
+extern void Music_SetCurrent(s32);
+extern void Werejaguar_UpdateDeath(struct EwramData_EntityData *);
+extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *);
+
+void Minotaur_Update(struct EwramData_EntityData *entity)
+{
+    u8 collision[16];
+    Entity_HideAboveY(entity, -16);
+    if (!EntityIsOutsideScreen(entity, 6))
+        Player_TrackEntity(entity);
+    if (entity->state != 3)
+        Enemy_UpdateHitFlash(entity);
+    if (Entity_IsTimeStopped(entity) && entity->state != 3)
+    {
+        Hit_CheckWithPlayer(collision, entity);
+        return;
+    }
+    switch (entity->state)
+    {
+    case 0:
+        if (entity->spawnParam0 != 0 && !gEwramData->gameState.linkPlay)
+            Music_SetCurrent(16);
+        Minotaur_UpdateIdle(entity);
+        break;
+    case 1:
+        Minotaur_UpdateApproach(entity);
+        break;
+    case 2:
+        Minotaur_UpdateAttack(entity);
+        break;
+    case 3:
+        Werejaguar_UpdateDeath(entity);
+        break;
+    case 4:
+        Anim_Update(entity);
+        return;
+    }
+    if (entity->state != 3)
+        Hit_CheckWithPlayer(collision, entity);
+    entity->ext.minotaur.animStep = entity->animStep;
+    Entity_AnimateWithBoxes(entity);
+}

@@ -1,0 +1,276 @@
+/*
+ * Axe Armor (the axe update is in the previous, separately compiled file).
+ */
+#include "code_08009A0.h"
+#include "code/code_08039340.h"
+#include "structs/ewram.h"
+
+/* AxeArmor_UpdateAttack: Axe Armor attack substates (throws the axe AxeArmorAxe_Update); matched. */
+extern s32 Entity_Walk(struct EwramData_EntityData *entity, s32 speed, void *profile, s32 flags);
+extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *entity);
+extern s16 Entity_GetTargetDistance(struct EwramData_EntityData *entity);
+extern struct EwramData_EntityData *Entity_CreateObject(u32 *updateFunc);
+extern void AxeArmorAxe_Update(struct EwramData_EntityData *entity);
+extern u8 sAxeArmorWalkProfile[];
+
+/**
+ * @brief Choose a throw animation, create an axe on its event, then retreat or resume walking.
+ */
+void AxeArmor_UpdateAttack(struct EwramData_EntityData *entity)
+{
+    struct EwramData_EntityData *axe;
+    u16 dx;
+    s32 distance;
+    s32 m1;
+    u8 frame;
+    s32 speed;
+    s32 attack;
+
+    m1 = -1;
+    switch (entity->subState)
+    {
+    case 0:
+        if (RandomNumberGenerator() & 1)
+        {
+            Anim_StartIndexed(entity, 1, 0, 0);
+            entity->stage = 0;
+        }
+        else
+        {
+            Anim_StartIndexed(entity, 2, 0, 0);
+            entity->stage = 1;
+        }
+        entity->subState = 1;
+        break;
+    case 1:
+        if (*(u16 *)&entity->animStep == 0x20C)
+        {
+            axe = Entity_CreateObject((u32 *)AxeArmorAxe_Update);
+            if (axe != NULL)
+            {
+                dx = -0x18;
+                axe->posX.part16.integer = entity->posX.part16.integer;
+                axe->posY.part16.integer = entity->posY.part16.integer - 0x10;
+                axe->flipX = entity->flipX;
+                if (axe->flipX)
+                    dx = 0x18;
+                {
+                    s32 t = (s16)dx;
+                    axe->posX.part16.integer += t;
+                }
+                axe->attack = entity->attack;
+                axe->stage = entity->stage;
+            }
+        }
+        if (!(entity->animFlags & 4))
+            break;
+        if ((entity->flipX && (s8)Entity_GetTargetDirection(entity) == 1)
+            || (!entity->flipX && (s8)Entity_GetTargetDirection(entity) == m1))
+        {
+            distance = Entity_GetTargetDistance(entity);
+            attack = 1;
+            if (distance <= 99)
+                goto test;
+        }
+        attack = 0;
+    test:
+        if (attack)
+        {
+            Anim_StartIndexed(entity, 0, 0, 0);
+            entity->subState = 2;
+        }
+        else
+            entity->subState = 3;
+        break;
+    case 2:
+        frame = entity->animStep % 9;
+        speed = frame * 0x2800 + 0x1000;
+        if (frame > 6)
+            speed = 0;
+        Entity_Walk(entity, -speed, sAxeArmorWalkProfile, 0x14);
+        if (entity->animFlags & 4)
+            entity->subState = 0;
+        break;
+    case 3:
+        entity->state = 0;
+        entity->stage = 0;
+        entity->subState = 0;
+        Anim_StartIndexed(entity, 0, 0, 1);
+        break;
+    }
+}
+
+/* Axe Armor death. */
+extern void PlaySong(s32);
+extern s32 Sin(s32);
+extern s32 RandomSigned(s32);
+extern struct EwramData_EntityData *Effect_SpawnShared(s32, s32, s32, s32);
+
+/* State 0 starts animation 4 and an upward velocity; state 1 runs for at most
+ * 32 frames, emitting rising debris on even frames and a sound plus a second
+ * effect every eighth frame.  Returns 1 once the animation reports flag 4. */
+/**
+ * @brief Start the death animation and emit debris; return 1 when the animation finishes, otherwise 0.
+ */
+s32 AxeArmor_UpdateDeath(struct EwramData_EntityData *entity)
+{
+    u8 state = entity->subState;
+    switch (state)
+    {
+    case 0:
+        Anim_StartIndexed(entity, 4, 0, 0);
+        entity->subState = 1;
+        entity->velY.whole = -0x280000;
+        entity->velX.whole = state;
+        PlaySong(0x6F);
+        break;
+    case 1:
+    {
+        u32 timer;
+        s32 y, phase, x;
+        timer = entity->timer + 1;
+        entity->timer = timer;
+        y = entity->posY.whole + entity->velY.whole;
+        entity->velY.whole += 0x12000;
+        phase = entity->velX.whole;
+        entity->velX.whole = phase + 0x5000;
+        if (entity->animFlags & 4)
+            return 1;
+        if ((u8)timer > 0x20)
+            break;
+        if ((timer & state) == 0)
+        {
+            struct EwramData_EntityData *debris;
+            s32 offset = Sin(phase + 0x9000);
+            x = entity->posX.whole + (offset << 4) + RandomSigned(0x40000);
+            debris = Effect_SpawnShared(x, y, 1, 8);
+            if (debris != NULL)
+            {
+                debris->velY.whole = 0x8000;
+                debris->accelY.whole = -0x1000;
+            }
+        }
+        if ((entity->timer & 7) == 0)
+        {
+            PlaySong(0x6E);
+            x = entity->posX.whole + (RandomSigned(16) << 16);
+            y += RandomSigned(4) << 16;
+            Effect_SpawnShared(x, y, 16, 6);
+        }
+        break;
+    }
+    }
+    return 0;
+}
+
+/* EnemyAxeArmorCreate. */
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
+extern void Enemy_ResetFromTemplate(struct EwramData_EntityData *entity);
+extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, s32 onHurt);
+extern void Enemy_OnContact(struct EwramData_EntityData *entity);
+extern void AxeArmor_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hitData);
+extern void Entity_UpdateBoxes(struct EwramData_EntityData *entity);
+extern void Entity_SnapToGround(struct EwramData_EntityData *entity);
+
+/* Graphics of the Axe Armor (see code_080B0CCC.c). */
+extern u8 sAxeArmorGfx[];
+extern u8 sAxeArmorPalette[];
+extern u8 sAxeArmorSpriteSheet[];
+
+/**
+ * @brief B12C4 | Axe Armor create: load the graphics (delete the enemy
+ * when that fails), hit boxes, layer 0x13, sprite 0; state 3 when
+ * bestiaryPreview is set, otherwise collision callbacks, boxes, one pixel lower,
+ * 0x53D bit 1 and state 0.
+ */
+void EnemyAxeArmorCreate(struct EwramData_EntityData *entity)
+{
+    if (!Entity_LoadGraphics(entity, sAxeArmorGfx, sAxeArmorPalette, 0, sAxeArmorSpriteSheet))
+    {
+        EntityDelete(entity);
+        return;
+    }
+    Enemy_ResetFromTemplate(entity);
+    entity->spriteLayer = 0x13;
+    Anim_StartIndexed(entity, 0, 0, 1);
+    Anim_Update(entity);
+    if (gEwramData->gameState.bestiaryPreview)
+    {
+        entity->state = 3;
+        return;
+    }
+    Entity_EnableBoxes(entity, Enemy_OnContact, (s32)AxeArmor_OnHit);
+    Entity_UpdateBoxes(entity);
+    Entity_SnapToGround(entity);
+    entity->posY.part16.integer++;
+    entity->scrollWithBg = 1;
+    entity->state = 0;
+}
+
+/* AxeArmor_OnHit. */
+extern void Entity_FaceTarget(struct EwramData_EntityData *entity, s32 unused1, u16 *unused2);
+extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+extern void Enemy_DropRewards(struct EwramData_EntityData *entity);
+
+/**
+ * @brief Face the target and apply damage; on death drop rewards, restore the palette and enter state 2.
+ */
+void AxeArmor_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hitData)
+{
+    Entity_FaceTarget(entity, attacker, hitData);
+    if (Enemy_TakeDamage(entity, attacker, hitData))
+    {
+        Enemy_DropRewards(entity);
+        entity->palette = entity->basePalette;
+        entity->state = 2;
+        entity->stage = 0;
+        entity->subState = 0;
+    }
+}
+
+/**
+ * @brief Clear axe health so its next update starts destruction.
+ */
+void AxeArmorAxe_ClearHealth(struct EwramData_EntityData *entity)
+{
+    entity->hp = 0;
+}
+
+/* EnemyAxeArmorUpdate. */
+extern s32 Enemy_PreUpdate(struct EwramData_EntityData *entity);
+extern void Entity_AnimateWithBoxes(struct EwramData_EntityData *entity);
+extern void Enemy_CheckHitPlayer(struct EwramData_EntityData *entity);
+extern void AxeArmor_UpdateWalking(struct EwramData_EntityData *entity);
+
+/**
+ * @brief B13C4 | Axe Armor update: unless Enemy_PreUpdate handles the frame,
+ * run the state (0 AxeArmor_UpdateWalking, 1 AxeArmor_UpdateAttack, 2 AxeArmor_UpdateDeath - delete
+ * when it returns nonzero, 3 only animate) and then Enemy_CheckHitPlayer /
+ * Entity_AnimateWithBoxes.
+ */
+void EnemyAxeArmorUpdate(struct EwramData_EntityData *entity)
+{
+    if (Enemy_PreUpdate(entity))
+        return;
+    switch (entity->state)
+    {
+        case 0:
+            AxeArmor_UpdateWalking(entity);
+            break;
+        case 1:
+            AxeArmor_UpdateAttack(entity);
+            break;
+        case 2:
+            if (AxeArmor_UpdateDeath(entity))
+            {
+                EntityDelete(entity);
+                return;
+            }
+            break;
+        case 3:
+            Anim_Update(entity);
+            return;
+    }
+    Enemy_CheckHitPlayer(entity);
+    Entity_AnimateWithBoxes(entity);
+}

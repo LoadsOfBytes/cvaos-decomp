@@ -71,16 +71,16 @@ not estimates.
 | **Game functions decompiled to C** | **all of them.** (The only game-side assembly left is one 8-byte ARM/Thumb interworking stub, `bx pc; b Obj_InstallCallbacks`, which has no C equivalent.) Some still match only with compiler-steering tricks – see *Known limitations* |
 | All ROM code (`.text`) produced by C | 891,340 / 918,324 bytes (**97.06 %**). The remaining 2.94 % is not game code: the toolchain's libgcc/libc and the platform assembly that GBA decompilations normally keep (startup `crt0`, the `m4a` sound mixer, BIOS syscall stubs, ROM header) |
 | Functions with descriptive names | 3,842 / 3,842 (**100 %**; unreferenced leftovers are named as such) |
-| Structure fields with descriptive names | 3,286 / 3,412 declared (**96.3 %**); 91,432 / 91,641 field accesses (**99.8 %**) |
+| Structure fields with descriptive names | 3,285 / 3,409 declared (**96.4 %**); 91,133 / 91,340 field accesses (**99.8 %**) |
 | Per-entity work area (`0x4F4` … `0x50F`) | one structure per entity type in `union EntityWork` (**363** structures, about 6,600 accesses `e->ext.<type>.<member>`); 13 accessor macros remain for views that only partly overlap a member and for 5 generic slots shared by all types; 67 lines still use the offset view `ext.raw` (see *Known limitations*) |
-| Local variables and parameters named | 17,065 / 17,065 (**100 %**) |
-| Lines marked `FAKEMATCH` | 263 lines in 121 of 1,710 C files (see below) |
+| Local variables and parameters named | 17,011 / 17,011 (**100 %**) |
+| Lines marked `FAKEMATCH` | 265 lines in 94 of 795 C files (see below) |
 
 ## Known limitations
 
 - **Names are inferred, not original.** The original source code and its names are
   unknown. Everything you read is a reconstruction.
-- **`FAKEMATCH`.** In 121 files, 263 lines force the compiler's register allocation
+- **`FAKEMATCH`.** In 94 files, 265 lines force the compiler's register allocation
   (`register ... asm("rN")` pins, empty `asm("")` statements, one-shot
   `do { } while (0)` wrappers and `volatile` reads, see below). The original code
   certainly did not contain them; they are needed because no natural C variant was
@@ -127,17 +127,27 @@ not estimates.
 - **Matching-driven style.** Some functions use `goto`, unusual temporaries or casts
   because they reproduce the original instruction order. They are correct but not
   always how a person would write the code.
-- **File layout.** The game source is still split into 1,701 files named by ROM address
-  (`src/code_XXXXXXXX.c`, 1,710 C files in total), inherited from the early splitting
-  of the ROM. The original game was certainly organized into far fewer files.
+- **File layout.** Part of the game source is still split into 698 files named by ROM
+  address (`src/code_XXXXXXXX.c`, 795 C files in total), inherited from the early
+  splitting of the ROM. The original game was certainly organized into far fewer
+  files. The regrouping is under way: 88 modules hold 1,003 former files, each one
+  translation unit for a consecutive ROM range with the functions in ROM order –
+  `src/enemy/` (81 modules of enemies, bosses and their effects, e.g. `chaos.c`,
+  `death.c`, `graham.c`), `src/event/` (event scenes), `src/menu/` (text window) and
+  `src/engine/` (object palettes). A few enemies are split into two modules where
+  their parts were compiled with different prototypes of the same function (the
+  module header says why), and files built with their own compiler flags are not
+  merged yet.
 
 ## Planned work
 
 - **Finish the entity structures**: real types for the heap blocks and position
   histories that are still reached through `ext.raw`.
-- **Name the remaining structure fields** (126 declared fields, mostly written once
+- **Name the remaining structure fields** (124 declared fields, mostly written once
   or only initialized).
-- **Regroup the source files** into logical modules instead of ROM-address files.
+- **Continue regrouping the source files** into logical modules (one file per enemy,
+  boss or system) instead of ROM-address files: the remaining enemies next to files
+  with their own compiler flags, the engine helpers, menus, skills and the player.
 - **Reduce `FAKEMATCH`** where a natural C variant can be found.
 
 ## Building

@@ -2863,7 +2863,7 @@ struct BaloreHitBoxWork {
 /* Balore hands (body pointer in ext.balorePart.body): arm length (16.16, the
  * hit box sits at its end), arm angle, the horizontal scale of the stretched
  * arm sprite, the room position they return to (set by Balore_CreateHand)
- * and the heap block of their Entity_SteerToPoint flight parameters.
+ * and the heap block of their BaloreHand_SteerToPoint flight parameters.
  */
 struct BaloreHandWork {
     /* 0x4F4 */ s32 armLength;

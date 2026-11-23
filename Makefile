@@ -204,7 +204,6 @@ src/code_08047254.s: CFLAGS += -fno-strength-reduce
 src/code_0804AED4.s: CFLAGS += -fno-expensive-optimizations
 src/code_0804C8A4.s: CFLAGS += -fno-cse-skip-blocks
 src/code_080A7294.s: CFLAGS += -fno-cse-skip-blocks
-src/code_080B5C38.s: CFLAGS += -fno-cse-skip-blocks
 
 # sub_0803C294/sub_0803C3E0 (one original unit) built with
 # -fno-cse-skip-blocks; the neighbouring units must not use it.

@@ -31,7 +31,7 @@ void EnemyGorgonUpdate(struct EwramData_EntityData *entity)
     entity->ext.gorgon.flags = (u8)entity->ext.gorgon.flags & 0xFE;
     if (entity->state != 2)
     {
-        if (EntityIsOutsideScreen(entity, 4)) goto finished;
+        if (EntityIsOutsideScreen(entity, 4)) return;
         if (Entity_IsInRect(entity, -16, 0, 272, 176)) Player_TrackEntity(entity);
         if (entity->state != 2) Player_QueueEntity(entity, 1);
     }
@@ -44,7 +44,7 @@ void EnemyGorgonUpdate(struct EwramData_EntityData *entity)
         if (entity->state != 2)
         {
             Hit_CheckWithPlayer(collision, entity);
-            goto finished;
+            return;
         }
     }
     switch (entity->state)
@@ -70,7 +70,7 @@ void EnemyGorgonUpdate(struct EwramData_EntityData *entity)
         break;
     case 3:
         Anim_Update(entity);
-        goto finished;
+        return;
     }
     {
         u8 *initial = &entity->animFrame;
@@ -88,8 +88,6 @@ void EnemyGorgonUpdate(struct EwramData_EntityData *entity)
     }
     entity->ext.gorgon.hit = 0;
     Enemy_CheckHitPlayer(entity);
-finished:
-    return;
 }
 
 /* Initialize the shared Gorgon/Catoblepas body and its collision callbacks. */
@@ -102,7 +100,7 @@ void EnemyGorgonCreate(struct EwramData_EntityData *entity)
     if (!Gorgon_LoadGraphics(entity))
     {
         EntityDelete(entity);
-        goto finished;
+        return;
     }
     Anim_StartIndexed(entity, 0, 0, 1);
     Anim_Update(entity);
@@ -119,8 +117,6 @@ void EnemyGorgonCreate(struct EwramData_EntityData *entity)
         Entity_SnapToGround(entity);
         entity->state = 0;
     }
-finished:
-    return;
 }
 
 /* Ground activation, timed gait, turning and backward retreat. */

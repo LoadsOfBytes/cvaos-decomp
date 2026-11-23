@@ -44,12 +44,10 @@ collision_only:
     case 1: Mudman_UpdateAttack(entity); break;
     case 2: Mudman_UpdateDeath(entity); break;
     case 3: Mudman_UpdateHurt(entity); break;
-    case 4: Anim_Update(entity); goto finished;
+    case 4: Anim_Update(entity); return;
     }
     Entity_AnimateWithBoxes(entity);
     Enemy_CheckHitPlayer(entity);
-finished:
-    return;
 }
 
 /* Detect a nearby target, emerge and alternate movement with attacks. */
@@ -87,7 +85,7 @@ void Mudman_UpdateWalk(struct EwramData_EntityData *entity)
                 s32 x;
                 if (mode == 1) x = entity->posX.part16.integer + 16;
                 else if (mode == 2) x = entity->posX.part16.integer - 76;
-                else goto finished;
+                else return;
                 if (Target_IsInRect((s16)x, (s16)(entity->posY.part16.integer - 40), 60, 80))
                 {
                     Emerge(entity);
@@ -115,7 +113,7 @@ void Mudman_UpdateWalk(struct EwramData_EntityData *entity)
             {
                 entity->state = 1;
                 entity->subState = 0;
-                goto finished;
+                return;
             }
             if (entity->flipX) entity->velX.whole = 0x4000;
             else entity->velX.whole = -0x4000;
@@ -127,8 +125,6 @@ void Mudman_UpdateWalk(struct EwramData_EntityData *entity)
         }
         break;
     }
-finished:
-    return;
 }
 
 /* Run Mudman's attack animation and timed recovery. */

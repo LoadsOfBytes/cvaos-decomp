@@ -29,7 +29,7 @@ void EnemyAluraUneCreate(struct EwramData_EntityData *entity)
     if (!AluraUne_LoadGraphics(entity))
     {
         EntityDelete(entity);
-        goto finished;
+        return;
     }
     Anim_StartIndexed(entity, 0, 0, 1);
     Anim_Update(entity);
@@ -37,7 +37,7 @@ void EnemyAluraUneCreate(struct EwramData_EntityData *entity)
     if (gEwramData->gameState.bestiaryPreview)
     {
         entity->state = 3;
-        goto finished;
+        return;
     }
     if (Anim_GetMaxBoxCount(entity) > 1)
         Hit_EnableContact(entity, 8, AluraUne_DamagePlayerOnContact, AluraUne_OnHit);
@@ -47,8 +47,6 @@ void EnemyAluraUneCreate(struct EwramData_EntityData *entity)
     Entity_SnapToGround(entity);
     entity->state = 0;
     entity->flipX = Entity_IsTargetRight(entity);
-finished:
-    return;
 }
 
 extern s32 Target_IsInRect(s16, s16, s16, s16);
@@ -514,7 +512,7 @@ void AluraUne_SpawnThorn(struct EwramData_EntityData *parent, s32 xOffset, s32 d
         if (graphics < 0)
         {
             EntityDelete(projectile);
-            goto finished;
+            return;
         }
         Sprite_Attach(projectile, sAluraUneSpriteSheet, graphics, parent->basePalette);
         Anim_StartIndexed(projectile, 12, 0, 0);
@@ -545,8 +543,6 @@ void AluraUne_SpawnThorn(struct EwramData_EntityData *parent, s32 xOffset, s32 d
         projectile->flipX = parent->flipX;
         projectile->attack = parent->attack;
     }
-finished:
-    return;
 }
 
 /* Activate a timed projectile and retain it only while its parent is alive. */
@@ -578,7 +574,7 @@ void AluraUneThorn_Update(struct EwramData_EntityData *entity)
             else
             {
                 entity->deleteRequested = 1;
-                goto finished;
+                return;
             }
         }
         break;
@@ -611,20 +607,18 @@ void AluraUneThorn_Update(struct EwramData_EntityData *entity)
         {
             Anim_StartIndexed(entity, 13, 0, 0);
             entity->state++;
-            goto finished;
+            return;
         }
         break;
     case 4:
         if (entity->animDone)
         {
             entity->deleteRequested = 1;
-            goto finished;
+            return;
         }
         break;
     }
     Anim_Update(entity);
-finished:
-    return;
 }
 
 /* Create one segment of Alura Une's attack on the selected side. */
@@ -642,7 +636,7 @@ void AluraUne_SpawnRootWave(struct EwramData_EntityData *parent, s32 index, s32 
         if (graphics < 0)
         {
             EntityDelete(part);
-            goto finished;
+            return;
         }
         Sprite_Attach(part, sAluraUneSpriteSheet, graphics, parent->basePalette);
         Anim_StartIndexed(part, 9, 0, 0);
@@ -662,8 +656,6 @@ void AluraUne_SpawnRootWave(struct EwramData_EntityData *parent, s32 index, s32 
         if (part->flipX) { part->posX.part16.integer -= 128; part->posX.part16.integer += index * 6; }
         else { part->posX.part16.integer += 128; part->posX.part16.integer -= index * 6; }
     }
-finished:
-    return;
 }
 
 /* Advance a six-step attack, turn at its midpoint and pause between steps. */
@@ -683,7 +675,7 @@ void AluraUneRootWave_Update(struct EwramData_EntityData *entity)
         if (entity->animDone)
         {
             entity->state++;
-            if (++entity->ext.aluraUneRootWave.step > 5) { entity->deleteRequested = 1; goto finished; }
+            if (++entity->ext.aluraUneRootWave.step > 5) { entity->deleteRequested = 1; return; }
             if (entity->ext.aluraUneRootWave.step == 3) entity->flipX ^= 1;
             else if (entity->flipX) entity->posX.part16.integer += 40;
             else entity->posX.part16.integer -= 40;
@@ -693,7 +685,7 @@ void AluraUneRootWave_Update(struct EwramData_EntityData *entity)
             if (!parent || !parent->updateFunc || parent->enemyId != 0x4D || parent->state == 2)
             {
                 entity->deleteRequested = 1;
-                goto finished;
+                return;
             }
         }
         else
@@ -713,13 +705,11 @@ void AluraUneRootWave_Update(struct EwramData_EntityData *entity)
         if (!parent || !parent->updateFunc || parent->enemyId != 0x4D || parent->state == 2)
         {
             entity->deleteRequested = 1;
-            goto finished;
+            return;
         }
         break;
     }
     Anim_Update(entity);
-finished:
-    return;
 }
 
 /* Clones of already decompiled functions, generated with
@@ -784,7 +774,7 @@ void EnemyAluraUneUpdate(struct EwramData_EntityData *entity)
     if (Enemy_PreUpdate(entity))
     {
         if (!Entity_IsInRect(entity, -128, -64, 496, 288)) Sound_StopTracked(0x105);
-        goto finished;
+        return;
     }
     switch (entity->state)
     {
@@ -794,10 +784,8 @@ void EnemyAluraUneUpdate(struct EwramData_EntityData *entity)
     case 3:
         AluraUne_UpdatePreview(entity);
         Anim_Update(entity);
-        goto finished;
+        return;
     }
     Entity_AnimateWithBoxes(entity);
     Enemy_CheckHitPlayer(entity);
-finished:
-    return;
 }

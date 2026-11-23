@@ -30,7 +30,7 @@ void EnemyPersephoneUpdate(struct EwramData_EntityData *entity)
     u8 collision[16];
     if (entity->state != 2)
     {
-        if (EntityIsOutsideScreen(entity, 4)) goto finished;
+        if (EntityIsOutsideScreen(entity, 4)) return;
         if (Entity_IsInRect(entity, -16, 0, 272, 176)) Player_TrackEntity(entity);
     }
     if (EntityIsOutsideScreen(entity, 4)) entity->hidden = 1;
@@ -41,7 +41,7 @@ void EnemyPersephoneUpdate(struct EwramData_EntityData *entity)
     {
 collision_only:
         Hit_CheckWithPlayer(collision, entity);
-        goto finished;
+        return;
     }
     switch (entity->state)
     {
@@ -58,13 +58,11 @@ collision_only:
     case 4:
         Persephone_UpdatePreview(entity);
         Anim_Update(entity);
-        goto finished;
+        return;
     case 3: Persephone_UpdateKnockdown(entity); break;
     }
     Entity_AnimateWithBoxes(entity);
     Enemy_CheckHitPlayer(entity);
-finished:
-    return;
 }
 
 /* Initialize Persephone's graphics, collisions and initial facing. */
@@ -77,7 +75,7 @@ void EnemyPersephoneCreate(struct EwramData_EntityData *entity)
     if (!Persephone_LoadGraphics(entity))
     {
         EntityDelete(entity);
-        goto finished;
+        return;
     }
     Anim_StartIndexed(entity, 0, 0, 1);
     Anim_Update(entity);
@@ -85,7 +83,7 @@ void EnemyPersephoneCreate(struct EwramData_EntityData *entity)
     if (gEwramData->gameState.bestiaryPreview)
     {
         entity->state = 4;
-        goto finished;
+        return;
     }
     if (Anim_GetMaxBoxCount(entity) > 1)
         Hit_EnableContact(entity, 8, Persephone_DamagePlayerOnContact, Persephone_OnHit);
@@ -96,8 +94,6 @@ void EnemyPersephoneCreate(struct EwramData_EntityData *entity)
     entity->flipX = Entity_IsTargetRight(entity);
     entity->state = 0;
     ENTITY_OWNER(entity) = entity;
-finished:
-    return;
 }
 
 extern s32 Target_IsInRect(s16, s16, s16, s16);

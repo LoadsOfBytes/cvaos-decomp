@@ -847,11 +847,11 @@ void Object0E_SpawnPieces(struct EwramData_EntityData *owner)
     {
         struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)Object0EPiece_Update);
         if (!entity)
-            goto done;
+            return;
         if (!(u8)Entity_LoadGraphics(entity, gfx->graphics, gfx->palette, (u8)info->palette, gfx->sprites))
         {
             EntityDelete(entity);
-            goto done;
+            return;
         }
         entity->animFrame = frame;
         entity->spriteLayer = 0x14;
@@ -867,8 +867,6 @@ void Object0E_SpawnPieces(struct EwramData_EntityData *owner)
         entity->accelY.whole = 0x2000;
         entity->scrollWithBg = 1;
     }
-done:
-    return;
 }
 
 /* Draw the entity one pixel lower, then its alternate frame every other pair of frames. */

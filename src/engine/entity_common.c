@@ -351,11 +351,11 @@ s32 Entity_MoveWithCollisionProfile(struct EwramData_EntityData *entity, s16 *pr
                         allowed = 1;
                 }
                 if (!allowed)
-                    goto finish;
+                    return result;
             }
         }
         if ((s16)delta == 0)
-            goto finish;
+            return result;
         entity->posY.whole += ((s16)delta + (s16)step) << 16;
         result |= 8;
         entity->velY.whole = 0;
@@ -373,7 +373,6 @@ s32 Entity_MoveWithCollisionProfile(struct EwramData_EntityData *entity, s16 *pr
             && (gUnk_03002CB0.collisionProbeFlags & 0xC0))
             result |= 0x10;
     }
-finish:
     return result;
 }
 

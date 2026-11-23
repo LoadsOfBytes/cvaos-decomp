@@ -31,7 +31,7 @@ void EnemyGhostUpdate(struct EwramData_EntityData *entity)
     {
         if (entity->state != 1)
         {
-            if (EntityIsOutsideScreen(entity, 4)) goto finished;
+            if (EntityIsOutsideScreen(entity, 4)) return;
             if (Entity_IsInRect(entity, -16, 0, 272, 176)) Player_TrackEntity(entity);
         }
         if (EntityIsOutsideScreen(entity, 4))
@@ -51,7 +51,7 @@ void EnemyGhostUpdate(struct EwramData_EntityData *entity)
         if (entity->state != 1)
         {
             Hit_CheckWithPlayer(collision, entity);
-            goto finished;
+            return;
         }
     }
     switch (entity->state)
@@ -70,7 +70,7 @@ void EnemyGhostUpdate(struct EwramData_EntityData *entity)
     case 2:
         Ghost_UpdatePreview(entity);
         Anim_Update(entity);
-        goto finished;
+        return;
     case 3:
     {
         s32 spawn = 0;
@@ -111,13 +111,11 @@ void EnemyGhostUpdate(struct EwramData_EntityData *entity)
                 ENTITY_OWNER(child) = entity;
             }
         }
-        goto finished;
+        return;
     }
     }
     Anim_Update(entity);
     Enemy_CheckHitPlayer(entity);
-finished:
-    return;
 }
 
 /* Initialize a Ghost, a hidden controller or the display-mode animation. */
@@ -134,12 +132,12 @@ void EnemyGhostCreate(struct EwramData_EntityData *entity)
         entity->hidden = 1;
         entity->hit.flags |= 4;
         entity->hit.flags |= 2;
-        goto finished;
+        return;
     }
     if (!Ghost_LoadGraphics(entity))
     {
         EntityDelete(entity);
-        goto finished;
+        return;
     }
     Anim_StartIndexed(entity, 0, 0, 0);
     Anim_Update(entity);
@@ -148,7 +146,7 @@ void EnemyGhostCreate(struct EwramData_EntityData *entity)
     {
         entity->state = 2;
         entity->posY.whole -= 0x240000;
-        goto finished;
+        return;
     }
     entity->spriteLayer = 3;
     if (Anim_GetMaxBoxCount(entity) > 1)
@@ -161,8 +159,6 @@ void EnemyGhostCreate(struct EwramData_EntityData *entity)
     entity->hit.flags |= 4;
     entity->state = 0;
     entity->flipX = Entity_IsTargetRight(entity);
-finished:
-    return;
 }
 
 /* Appear, follow a target with damping, then choose a new outward direction. */

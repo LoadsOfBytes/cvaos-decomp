@@ -2827,7 +2827,7 @@ struct EwramData_EntityData *Headhunter_CreateAttackSegment(struct EwramData_Ent
     struct SingleFrameAnimation animation = sHeadhunterAttackSegmentFrameAnim;
     u16 slot;
     s32 graphics;
-    if (segment == NULL) goto fail;
+    if (segment == NULL) return NULL;
     segment->posX.whole = parent->posX.whole;
     segment->posY.whole = parent->posY.whole;
     SEGMENT_INDEX(segment) = index;
@@ -2840,7 +2840,7 @@ struct EwramData_EntityData *Headhunter_CreateAttackSegment(struct EwramData_Ent
     if ((s32)((slot = ObjAffine_Alloc(1)) << 16) < 0)
     {
         EntityDelete(segment);
-        goto fail;
+        return NULL;
     }
     segment->affineIndex = slot;
     segment->affine = 1;
@@ -2856,7 +2856,6 @@ struct EwramData_EntityData *Headhunter_CreateAttackSegment(struct EwramData_Ent
     segment->scrollWithBg = 0;
     segment->drawFunc = (u32 *)Sprite_DrawEntity;
     return segment;
-fail:
     return NULL;
 }
 

@@ -43,7 +43,7 @@ void EnemyMermanUpdate(struct EwramData_EntityData *entity)
     if (Enemy_IsStunned(entity))
     {
         if (entity->state != 2) Hit_CheckWithPlayer(collision, entity);
-        goto finished;
+        return;
     }
     switch (entity->state)
     {
@@ -69,12 +69,12 @@ void EnemyMermanUpdate(struct EwramData_EntityData *entity)
             s32 zero = RandomNumberGenerator() & 7;
             struct EwramData_EntityData *child;
             s32 mode;
-            if (zero != 0) goto finished;
-            if ((s32)entity->ext.mermanSpawner.childCount > 2) goto finished;
+            if (zero != 0) return;
+            if ((s32)entity->ext.mermanSpawner.childCount > 2) return;
             child = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
-            if (child == NULL) goto finished;
+            if (child == NULL) return;
             mode = entity->spawnParam0;
-            if (mode != 1) goto finished;
+            if (mode != 1) return;
             entity->ext.mermanSpawner.childCount++;
             child->posX.whole = (((RandomNumberGenerator() & 0xFF) + 144) << 16) - background->xPos.whole;
             child->posY.whole = ((entity->ext.merman.homeY + 32) << 16) - background->yPos.whole;
@@ -93,13 +93,11 @@ void EnemyMermanUpdate(struct EwramData_EntityData *entity)
             child->ext.merman.homeX = entity->ext.merman.homeX;
             child->ext.merman.homeY = entity->ext.merman.homeY;
         }
-        goto finished;
-    case 4: Anim_Update(entity); goto finished;
+        return;
+    case 4: Anim_Update(entity); return;
     }
     Entity_AnimateWithBoxes(entity);
     Enemy_CheckHitPlayer(entity);
-finished:
-    return;
 }
 
 /* Initialize Merman's hidden, waiting or jumping entry mode. */
@@ -113,7 +111,7 @@ void EnemyMermanCreate(struct EwramData_EntityData *entity)
     if (!Merman_LoadGraphics(entity))
     {
         EntityDelete(entity);
-        goto finished;
+        return;
     }
     Anim_StartIndexed(entity, 4, 0, 1);
     Anim_Update(entity);
@@ -121,7 +119,7 @@ void EnemyMermanCreate(struct EwramData_EntityData *entity)
     if (gEwramData->gameState.bestiaryPreview)
     {
         entity->state = 4;
-        goto finished;
+        return;
     }
     Entity_EnableBoxes(entity, Enemy_DamagePlayerOnContact, Merman_OnHit);
     {
@@ -160,8 +158,6 @@ void EnemyMermanCreate(struct EwramData_EntityData *entity)
             else entity->ext.merman.unusedMode = mode;
         }
     }
-finished:
-    return;
 }
 
 /* Merman movement and transitions between swimming, jumping and landing.
@@ -609,12 +605,10 @@ void MermanShot_Update(struct EwramData_EntityData *entity)
     goto animate;
 remove:
     EntityDelete(entity);
-    goto finished;
+    return;
 animate:
     Hit_CheckWithPlayer(collision, entity);
     Anim_Update(entity);
-finished:
-    return;
 }
 
 /* Merman helpers 0x080717E0..0x08071903. */

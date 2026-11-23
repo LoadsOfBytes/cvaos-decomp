@@ -80,7 +80,7 @@ void EnemyPeepingEyeUpdate(struct EwramData_EntityData *entity)
     ANIM_FLAGS(entity) = (u8)ANIM_FLAGS(entity) & 0xFE;
     if (entity->state != 2)
     {
-        if (SPAWN_PARAM(entity) == 0 && EntityIsOutsideScreen(entity, 4)) goto finished;
+        if (SPAWN_PARAM(entity) == 0 && EntityIsOutsideScreen(entity, 4)) return;
         if (Entity_IsInRect(entity, -16, 0, 272, 176)) Player_TrackEntity(entity);
     }
     if (EntityIsOutsideScreen(entity, 4)) entity->hidden = 1;
@@ -89,7 +89,7 @@ void EnemyPeepingEyeUpdate(struct EwramData_EntityData *entity)
     if (Entity_IsTimeStopped(entity) && NOT_DYING(entity))
     {
         if (SPAWN_PARAM(entity) == 0) Hit_CheckWithPlayer(collision, entity);
-        goto finished;
+        return;
     }
     switch (entity->state)
     {
@@ -127,7 +127,7 @@ void EnemyPeepingEyeUpdate(struct EwramData_EntityData *entity)
             animation.frame = ANIM_FRAME(entity);
         }
         Anim_Update(entity);
-        goto finished;
+        return;
     }
     if (ANIM_FLAGS(entity) & 1)
     {
@@ -139,8 +139,6 @@ void EnemyPeepingEyeUpdate(struct EwramData_EntityData *entity)
         Anim_Update(entity);
     if (NOT_DYING(entity) && SPAWN_PARAM(entity) == 0)
         Hit_CheckWithPlayer(collision, entity);
-finished:
-    return;
 }
 
 /* Create the Peeping Eye with its eyeball, pupil and a chain of six links

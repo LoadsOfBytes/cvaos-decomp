@@ -270,7 +270,7 @@ void Gargoyle_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 void EnemyGargoyleUpdate(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
-    if (Enemy_PreUpdate(entity)) goto finished;
+    if (Enemy_PreUpdate(entity)) return;
     switch (entity->state)
     {
     case 0: Gargoyle_UpdateFly(entity); break;
@@ -281,12 +281,10 @@ void EnemyGargoyleUpdate(struct EwramData_EntityData *entity)
         break;
     case 2:
         Anim_Update(entity);
-        goto finished;
+        return;
     }
     Entity_AnimateWithBoxes(entity);
     Enemy_CheckHitPlayer(entity);
-finished:
-    return;
 }
 
 /* Triton: dispatch movement, attack, death fade and display states. */
@@ -297,7 +295,7 @@ void EnemyTritonUpdate(struct EwramData_EntityData *entity)
     if (Entity_IsTimeStopped(entity) && entity->state != 2)
     {
         Hit_CheckWithPlayer(collision, entity);
-        goto finished;
+        return;
     }
     switch (entity->state)
     {
@@ -318,12 +316,10 @@ void EnemyTritonUpdate(struct EwramData_EntityData *entity)
         break;
     case 4:
         Anim_Update(entity);
-        goto finished;
+        return;
     }
     Entity_AnimateWithBoxes(entity);
     Enemy_CheckHitPlayer(entity);
-finished:
-    return;
 }
 
 /* Create the Triton with its spear (Triton_CreateSpear) and contact callbacks. */

@@ -38,7 +38,7 @@ void EnemyZombieUpdate(struct EwramData_EntityData *entity)
     if (Enemy_IsStunned(entity))
     {
         if (entity->state != 1) Hit_CheckWithPlayer(collision, entity);
-        goto finished;
+        return;
     }
     switch (entity->state)
     {
@@ -58,7 +58,7 @@ void EnemyZombieUpdate(struct EwramData_EntityData *entity)
     case 2:
         Zombie_UpdateStationaryAnimation(entity);
         Anim_Update(entity);
-        goto finished;
+        return;
     case 3:
         if ((RandomNumberGenerator() & 31) == 0
             && (s32)entity->ext.zombieSpawner.childCount < entity->spawnParam0)
@@ -87,7 +87,7 @@ void EnemyZombieUpdate(struct EwramData_EntityData *entity)
                 child->ext.zombie.spawner = entity;
             }
         }
-        goto finished;
+        return;
     }
     {
         u8 *frame = &entity->animFrame;
@@ -100,8 +100,6 @@ void EnemyZombieUpdate(struct EwramData_EntityData *entity)
     else
         entity->hit.flags &= ~2;
     Enemy_CheckHitPlayer(entity);
-finished:
-    return;
 }
 
 /* Initialize a Zombie or its hidden spawn controller. */
@@ -120,12 +118,12 @@ void EnemyZombieCreate(struct EwramData_EntityData *entity)
         entity->hit.flags |= 4;
         entity->hit.flags |= 2;
         Entity_SnapToGround(entity);
-        goto finished;
+        return;
     }
     if (!Zombie_LoadGraphics(entity))
     {
         EntityDelete(entity);
-        goto finished;
+        return;
     }
     Anim_StartIndexed(entity, 0, 0, 0);
     Anim_Update(entity);
@@ -134,7 +132,7 @@ void EnemyZombieCreate(struct EwramData_EntityData *entity)
     {
         Anim_StartIndexed(entity, 0, 0, 0);
         entity->state = 2;
-        goto finished;
+        return;
     }
     if (Anim_GetMaxBoxCount(entity) > 1)
         Hit_EnableContact(entity, 8, Zombie_DamagePlayerOnContact, Zombie_OnHit);
@@ -162,8 +160,6 @@ void EnemyZombieCreate(struct EwramData_EntityData *entity)
             entity->hp = zero;
         }
     }
-finished:
-    return;
 }
 
 /* Zombie_UpdateEmergingWalkingSinking: matched (timer accessed as a field, block-local hit for the two

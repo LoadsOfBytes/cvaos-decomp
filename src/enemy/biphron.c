@@ -443,7 +443,7 @@ void EnemyBiphronUpdate(struct EwramData_EntityData *entity)
     u8 unused[0x30]; /* stack frame reserved by the original */
 
     if (Enemy_PreUpdate(entity))
-        goto finished;
+        return;
     switch (entity->state)
     {
         case 0:
@@ -457,10 +457,8 @@ void EnemyBiphronUpdate(struct EwramData_EntityData *entity)
             break;
         case 3:
             Anim_Update(entity);
-            goto finished;
+            return;
     }
     Entity_AnimateWithBoxes(entity);
     Enemy_CheckHitPlayer(entity);
-finished:
-    return;
 }

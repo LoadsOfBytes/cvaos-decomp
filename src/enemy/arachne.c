@@ -209,7 +209,7 @@ vertical:
             entity->velY.whole=0x10000;
 acceleration:
             entity->accelY.whole=0x2800;
-            goto done;
+            return;
         }
         if(!WAIT(entity))
         {
@@ -221,8 +221,6 @@ acceleration:
         break;
     }
     }
-done:
-    return;
 }
 
 /* Arachne_UpdateAttack: breath attack (hover states 0 / 10, wind-up state 1, state 2 traces the breath projectile until it hits a wall). */

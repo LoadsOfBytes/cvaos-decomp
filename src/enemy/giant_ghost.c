@@ -26,7 +26,7 @@ extern void GiantGhost_SpawnFragment(s32, s32, s32, s32, s32, s32);
 void EnemyGiantGhostUpdate(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
-    if (Enemy_PreUpdate(entity)) goto finished;
+    if (Enemy_PreUpdate(entity)) return;
     switch (entity->state)
     {
     case 0: GiantGhost_UpdateMove(entity); break;
@@ -45,12 +45,10 @@ void EnemyGiantGhostUpdate(struct EwramData_EntityData *entity)
         break;
     case 3:
         Anim_Update(entity);
-        goto finished;
+        return;
     }
     Entity_AnimateWithBoxes(entity);
     Enemy_CheckHitPlayer(entity);
-finished:
-    return;
 }
 
 u8 GiantGhost_LoadGraphics(struct EwramData_EntityData *entity);
@@ -519,7 +517,7 @@ void GiantGhostAura_Update(struct EwramData_EntityData *entity)
             entity->subState = 0;
             entity->timer = 110;
         }
-        goto finished;
+        return;
 remove:
         ObjAffine_Free(entity->affineIndex);
         EntityDelete(entity);
@@ -545,8 +543,6 @@ remove:
             EntityDelete(entity);
         }
     }
-finished:
-    return;
 }
 
 #define FIXED_TO_INT(v) ((v) < 0 ? -(-(v) >> 16) : (v) >> 16)
@@ -765,7 +761,7 @@ void GiantGhost_SpawnAuraTrail(struct EwramData_EntityData *parent, s32 x, s32 y
         if ((s16)matrix < 0)
         {
             EntityDelete(part);
-            goto finished;
+            return;
         }
         part->affineIndex = matrix;
         part->affine = 1;
@@ -780,8 +776,6 @@ void GiantGhost_SpawnAuraTrail(struct EwramData_EntityData *parent, s32 x, s32 y
         part->scrollWithBg = 1;
         part->drawFunc = (u32 *)Sprite_DrawEntity;
     }
-finished:
-    return;
 }
 
 /* Create and retire an affine afterimage with its own matrix allocation. */

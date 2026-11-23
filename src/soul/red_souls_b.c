@@ -2081,10 +2081,9 @@ u32 Entity_StepAngleTowardPoint(struct EwramData_EntityData *entity, s32 x, s32 
     else if (delta >= -0x8000) goto subtract;
 add:
     angle += turn;
-    goto finish;
+    return angle & 0xFFFF;
 subtract:
     angle -= turn;
-finish:
     return angle & 0xFFFF;
 }
 

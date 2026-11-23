@@ -1,5 +1,13 @@
 # Castlevania: Aria of Sorrow – matching decompilation (unofficial AI-assisted fork)
 
+![ROM match](https://img.shields.io/badge/ROM%20match-byte%20for%20byte-brightgreen)
+![Game functions in C](https://img.shields.io/badge/Game%20functions%20in%20C-100%25-brightgreen)
+![ROM code from C](https://img.shields.io/badge/ROM%20code%20from%20C-97.06%25-green)
+![Names](https://img.shields.io/badge/Names-100%25-brightgreen)
+![Fields named](https://img.shields.io/badge/Fields%20named-96.4%25-green)
+![Files merged](https://img.shields.io/badge/Files%20merged-59%25-yellow)
+![FAKEMATCH](https://img.shields.io/badge/FAKEMATCH-265%20lines-orange)
+
 > **Read this first**
 >
 > - This is an **unofficial fork** of [testyourmine/cvaos](https://github.com/testyourmine/cvaos).
@@ -10,177 +18,82 @@
 > - This repository contains **no ROM and no game assets**. You need your own copy of the game.
 > - Not affiliated with or endorsed by Konami or Nintendo.
 
-This repository contains C source code that, compiled with `agbcc` (a GCC 2.95-era
-compiler used by GBA decompilation projects), rebuilds the following ROM **byte for byte**:
+C source code that, compiled with `agbcc` (the GCC 2.95-era compiler used by GBA
+decompilation projects), rebuilds **byte for byte**:
 
 - **cvaos_us.gba** – Castlevania: Aria of Sorrow (USA),
   `sha1: abd71fe01ebb201bcc133074db1dd8c5253776c7`
 
-**Every function of the game itself has been decompiled to matching C – no game
-function is left in assembly.** The only assembly that remains is the usual GBA
-platform code that decompilation projects keep as assembly (startup code, the `m4a`
-sound mixer, BIOS call stubs, the ROM header) and the compiler's runtime library. That
-is why the C share of *all* ROM code is 97.06 % – see *Status*.
+## Status
 
-The C is not finished in every respect: some functions still need compiler-steering
-tricks to match (`FAKEMATCH` lines, one-shot `do { } while (0)` blocks, see *Known
-limitations*), and names are inferred. Work now continues on removing those tricks,
-naming, and making the code read more naturally.
+Measured on 2026-11-23 from the build output and source scans.
+
+| Step | Progress |
+|---|---|
+| ROM rebuilds byte for byte | ✅ **done** |
+| Game functions decompiled to C | ✅ **100 %** – only an 8-byte ARM/Thumb interworking stub has no C equivalent |
+| All ROM code (`.text`) from C | **97.06 %** (891,340 / 918,324 B) – the rest is platform code normally kept in assembly (`crt0`, `m4a` mixer, BIOS stubs, header) and libgcc/libc |
+| Functions named | ✅ **100 %** (3,842 / 3,842) |
+| Local variables and parameters named | ✅ **100 %** (17,011 / 17,011) |
+| Structure fields named | 🔄 **96.4 %** (3,285 / 3,409 declared; 99.8 % of accesses) |
+| Entity work area as typed structures | 🔄 363 per-type structures; 67 lines still use the raw offset view |
+| Merging ROM-address files into modules | 🔄 **59 %** (1,003 / 1,701 files merged into 88 modules; 698 `src/code_XXXXXXXX.c` left) |
+| Removing compiler tricks (`FAKEMATCH`) | 🔄 265 lines left in 94 of 795 C files |
 
 ## How this fork was made
 
-### Starting point: the upstream project
+Upstream ([testyourmine/cvaos](https://github.com/testyourmine/cvaos), MIT) provided the
+project structure, build system, data extraction and the first ~12 % of the
+decompilation (37 C files). Its commit history is preserved here.
 
-This fork builds directly on [testyourmine/cvaos](https://github.com/testyourmine/cvaos)
-(MIT license). From upstream come:
+Everything after that – the rest of the decompilation and all naming – was produced by
+**AI coding agents (Claude by Anthropic, Codex by OpenAI)**, directed and reviewed by a
+human maintainer.
 
-- the project structure, build system (`Makefile`, `linker.ld`) and tools,
-- the data extraction setup (`database.json`, `tools/extractor.py`),
-- the first part of the decompilation: about **111 KB of matching C**
-  (roughly **12 %** of the ROM's code) in 37 C files.
-
-The upstream commit history is preserved in this repository.
-
-### Everything after that: AI-generated
-
-All work on top of upstream – the remaining decompilation to C, and the naming of
-functions, variables, structure fields and comments – was produced by **AI coding agents: Claude (Anthropic) and Codex
-(OpenAI)**. A human maintainer directed the
-work, chose priorities and reviewed results, but did not write the code by hand.
-
-What that means for you:
-
-- **The code is verified, the names are not.** Every change was checked by a full
-  rebuild and a byte-for-byte comparison with the original ROM. This proves the C
-  compiles to exactly the original machine code. It does **not** prove that a function
-  name, a field name or a comment describes the game correctly. Names were inferred
-  from how the code behaves and are best guesses – some will be wrong.
-- Some code is written the way it is only because that is what makes the old compiler
-  produce identical output (see *Known limitations*).
-
-Corrections of names and comments are very welcome.
-
-## Status
-
-Measured on 2026-11-23. All numbers come from the build output and source scans,
-not estimates.
-
-| What | Status |
-|---|---|
-| ROM rebuilds byte for byte | **yes** (SHA-1 above) |
-| **Game functions decompiled to C** | **all of them.** (The only game-side assembly left is one 8-byte ARM/Thumb interworking stub, `bx pc; b Obj_InstallCallbacks`, which has no C equivalent.) Some still match only with compiler-steering tricks – see *Known limitations* |
-| All ROM code (`.text`) produced by C | 891,340 / 918,324 bytes (**97.06 %**). The remaining 2.94 % is not game code: the toolchain's libgcc/libc and the platform assembly that GBA decompilations normally keep (startup `crt0`, the `m4a` sound mixer, BIOS syscall stubs, ROM header) |
-| Functions with descriptive names | 3,842 / 3,842 (**100 %**; unreferenced leftovers are named as such) |
-| Structure fields with descriptive names | 3,285 / 3,409 declared (**96.4 %**); 91,133 / 91,340 field accesses (**99.8 %**) |
-| Per-entity work area (`0x4F4` … `0x50F`) | one structure per entity type in `union EntityWork` (**363** structures, about 6,600 accesses `e->ext.<type>.<member>`); 13 accessor macros remain for views that only partly overlap a member and for 5 generic slots shared by all types; 67 lines still use the offset view `ext.raw` (see *Known limitations*) |
-| Local variables and parameters named | 17,011 / 17,011 (**100 %**) |
-| Lines marked `FAKEMATCH` | 265 lines in 94 of 795 C files (see below) |
+**The code is verified, the names are not.** Every change was checked by a full rebuild
+and byte-for-byte comparison, which proves the machine code is identical – not that a
+name or comment describes the game correctly. Corrections are very welcome.
 
 ## Known limitations
 
-- **Names are inferred, not original.** The original source code and its names are
-  unknown. Everything you read is a reconstruction.
-- **`FAKEMATCH`.** In 94 files, 265 lines force the compiler's register allocation
-  (`register ... asm("rN")` pins, empty `asm("")` statements, one-shot
-  `do { } while (0)` wrappers and `volatile` reads, see below). The original code
-  certainly did not contain them; they are needed because no natural C variant was
-  found that matches. Every such line is marked with a `/* FAKEMATCH: reason */`
-  comment.
-- **Entity work area: reconstructed per-type structures.** Every entity has a work
-  area (`0x4F4` … `0x50F`) that each entity type uses for something different. It
-  is now `union EntityWork ext` with one structure per entity type
-  (`include/structs/entity_work.h`, 363 of them), for example
-
-  ```c
-  entity->ext.greatArmor.hitCount++;
-  ```
-
-  The split into types follows how the code uses the slots, so it is a
-  reconstruction: where one entity family reuses a slot with two meanings (an idle
-  timer that becomes an aim point, a gun shot flag in the heavy-weapon swing slot)
-  there are two structures. Member widths and signedness are the ones the original
-  instructions need; every step was checked by a full rebuild. Fields that are
-  written but never read are named `unused*`. What is left over:
-  - 13 accessor macros on the offset view `ext.raw`: 8 views that do not fit a
-    member (a word read over four byte members, a halfword over two bytes, a
-    signed view of an unsigned byte – a nested union cannot express them,
-    because the compiler aligns and pads every nested struct or union to 4
-    bytes) and 5 generic slots that all entity types share (`ENTITY_INDEX`,
-    `ENTITY_PARENT_INDEX`, `ENTITY_INDEX_PAIR`, `ENTITY_OWNER`,
-    `ENTITY_CREATOR`);
-  - 67 lines that still use `ext.raw` directly: position-history and heap blocks
-    that the code reads through casts, generic index bytes, and a few accesses
-    whose exact form (a cast or a wider read) is needed for matching code;
-  - the common block after the work area (0x510 … 0x51F) is now plain members
-    (`basePalette`, `hitFlashTimer`, `mp`, `spawnParam0`, `spawnParam1`, `hp`,
-    `enemyId`, `spawnIndex`, `enemyStatus`). Entity types that keep other data
-    there reach it through 12 `ENTITY_*` view macros (a word, halfword, pointer or
-    byte view through a small union, which keeps the same compiler aliasing as
-    the original union access); the code uses them only through named macros in
-    the family headers or files (`SAVE_POINT_SAVE_DONE`, `MENU_CURSOR_Y`, …).
-- **One-shot loops and volatile reads.** 54 of the `FAKEMATCH` lines mark
-  statements (outside macro definitions) wrapped in a `do { ... } while (0)` that
-  runs exactly once (sometimes nested), and 13 mark reads through a `volatile`
-  pointer cast. Neither changes what the code does; both only steer the compiler
-  towards the original instructions. Each one was tested on its own: removing it
-  breaks the match (the single wrapper that was not needed has been removed).
-- **Matching-driven style.** Some functions use `goto`, unusual temporaries or casts
-  because they reproduce the original instruction order. They are correct but not
-  always how a person would write the code.
-- **File layout.** Part of the game source is still split into 698 files named by ROM
-  address (`src/code_XXXXXXXX.c`, 795 C files in total), inherited from the early
-  splitting of the ROM. The original game was certainly organized into far fewer
-  files. The regrouping is under way: 88 modules hold 1,003 former files, each one
-  translation unit for a consecutive ROM range with the functions in ROM order –
-  `src/enemy/` (81 modules of enemies, bosses and their effects, e.g. `chaos.c`,
-  `death.c`, `graham.c`), `src/event/` (event scenes), `src/menu/` (text window) and
-  `src/engine/` (object palettes). A few enemies are split into two modules where
-  their parts were compiled with different prototypes of the same function (the
-  module header says why), and files built with their own compiler flags are not
-  merged yet.
+- **`FAKEMATCH`** – 265 lines force the compiler's output (`register ... asm("rN")`
+  pins, empty `asm("")`, one-shot `do { } while (0)`, `volatile` reads). The original
+  code did not contain them; each is marked `/* FAKEMATCH: reason */` and was tested
+  to be necessary.
+- **Matching-driven style** – some functions use `goto`, odd temporaries or casts to
+  reproduce the original instruction order.
+- **Entity work area** – the per-entity area `0x4F4` … `0x50F` is a
+  `union EntityWork` with one structure per entity type
+  (`include/structs/entity_work.h`). The split is reconstructed from usage; a few
+  views that a nested union cannot express remain as accessor macros.
+- **File layout** – modules live in `src/enemy/`, `src/event/`, `src/menu/` and
+  `src/engine/`; the rest is still in ROM-address files.
 
 ## Planned work
 
-- **Finish the entity structures**: real types for the heap blocks and position
-  histories that are still reached through `ext.raw`.
-- **Name the remaining structure fields** (124 declared fields, mostly written once
-  or only initialized).
-- **Continue regrouping the source files** into logical modules (one file per enemy,
-  boss or system) instead of ROM-address files: the remaining enemies next to files
-  with their own compiler flags, the engine helpers, menus, skills and the player.
-- **Reduce `FAKEMATCH`** where a natural C variant can be found.
+- Merge the remaining ROM-address files into logical modules.
+- Finish the entity structures and name the remaining fields.
+- Reduce `FAKEMATCH` where a natural C variant can be found.
 
 ## Building
 
-The build has been tested on Linux (Debian under WSL 2 on Windows).
+Tested on Linux (Debian under WSL 2).
 
-### Requirements
-
-- [agbcc](https://github.com/jiangzhengwenjz/agbcc)
-- `binutils-arm-none-eabi`, `make`, `g++`, `python3`, `git`
-- your own ROM dump saved as `cvaos_us_baserom.gba` in the repository root
-
-### Setup
+Requirements: [agbcc](https://github.com/jiangzhengwenjz/agbcc),
+`binutils-arm-none-eabi`, `make`, `g++`, `python3`, `git`, and your own ROM dump saved
+as `cvaos_us_baserom.gba` in the repository root.
 
 ```sh
-sudo apt update
 sudo apt install binutils-arm-none-eabi make g++ python3 git
 
 git clone https://github.com/jiangzhengwenjz/agbcc
-cd agbcc
-./build.sh
-./install.sh path/to/cvaos-decomp
+cd agbcc && ./build.sh && ./install.sh path/to/cvaos-decomp
 cd path/to/cvaos-decomp
-
 (cd tools/preproc && make)
-```
 
-### Build and verify
-
-```sh
-make extract     # once: extracts data from your baserom into data/ (not tracked by git)
+make extract     # once: extracts data from your baserom into data/
 make -j          # builds cvaos_us.gba
-make check       # verifies the SHA-1 of the result
+make check       # verifies the SHA-1
 ```
 
 See also [INSTALL.md](INSTALL.md).
@@ -189,30 +102,24 @@ See also [INSTALL.md](INSTALL.md).
 
 | Path | Contents |
 |---|---|
-| `src/` | decompiled C code (game code, `m4a` sound engine, GBA library code) |
-| `include/` | headers: structures, hardware registers, constants, declarations |
-| `asm/` | assembly that remains: startup, sound mixer, syscalls, header, data references |
+| `src/` | decompiled C (game, `m4a` sound engine, GBA library) |
+| `include/` | headers: structures, registers, constants, declarations |
+| `asm/` | remaining assembly; `asm/data/` holds only `.incbin` references into your baserom |
 | `sound/` | song and music player tables (structure only) |
 | `tools/` | build tools (`preproc`, `gbafix`, data extractor) |
-| `linker.ld` | the order of code and data in the ROM |
-
-Data files in `asm/data/` contain only `.incbin` references into your own baserom, not
-game data.
+| `linker.ld` | order of code and data in the ROM |
 
 ## Legal
 
-- No ROM, graphics, music, text dumps or other game assets are included. The build
-  takes all game data from your own copy of the game.
-- Castlevania and Aria of Sorrow are trademarks of Konami. Game Boy Advance is a
-  trademark of Nintendo. This project is not affiliated with either company.
-- The sound engine (`m4a`) and GBA library code were already part of the upstream
-  repository and follow the community decompilations of these libraries used by other
-  GBA decompilation projects.
+No ROM, graphics, music, text or other game assets are included; the build takes all
+data from your own copy. Castlevania and Aria of Sorrow are trademarks of Konami, Game
+Boy Advance is a trademark of Nintendo. The `m4a` and GBA library code come from
+upstream and follow the community decompilations used by other GBA projects.
 
 ## Credits
 
 - [testyourmine](https://github.com/testyourmine) and the contributors of
-  [cvaos](https://github.com/testyourmine/cvaos) – the base this fork builds on.
+  [cvaos](https://github.com/testyourmine/cvaos) – the base of this fork.
 - [agbcc](https://github.com/jiangzhengwenjz/agbcc) and the GBA decompilation community.
 - `preproc` by YamaArashi (MIT); `gbafix` (GPL-3.0, see `tools/gbafix/COPYING`).
 

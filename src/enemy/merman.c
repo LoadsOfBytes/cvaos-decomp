@@ -19,6 +19,7 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
 
 extern s32 Collision_FindWaterSurfaceOffset(s32, s32);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
@@ -40,7 +41,7 @@ void MermanShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hi
 void EnemyMermanUpdate(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *background = &gEwramData->bgInfo[1];
-    u8 collision[16];
+    struct HitResult result;
     if (entity->state != 3)
     {
         if (entity->state != 2 && Entity_IsInRect(entity, -16, 0, 272, 176))
@@ -55,7 +56,7 @@ void EnemyMermanUpdate(struct EwramData_EntityData *entity)
     }
     if (Enemy_IsStunned(entity))
     {
-        if (entity->state != 2) Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        if (entity->state != 2) Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
@@ -588,7 +589,7 @@ void MermanShot_EnableHitBoxes(struct EwramData_EntityData *entity)
  */
 void MermanShot_Update(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
     switch (entity->state)
     {
     case 0:
@@ -606,7 +607,7 @@ remove:
     EntityDelete(entity);
     return;
 animate:
-    Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+    Hit_CheckWithPlayer(&result, entity);
     Anim_Update(entity);
 }
 

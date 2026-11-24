@@ -20,6 +20,7 @@
 #include "math_inline.h"
 #include "damage_numbers.h"
 #include "sound.h"
+#include "entity_hit.h"
 
 extern s32 Entity_IsInRect(struct EwramData_EntityData *entity, s16 left, s16 top, u16 width, u16 height);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
@@ -215,13 +216,13 @@ s32 UkobackFireball_Initialize(struct EwramData_EntityData *entity, struct Ewram
  */
 void UkobackFireball_Update(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
     struct EwramData_EntityData *other = &gEwramData->entityData[entity->ext.ukobackFireball.ownerIndex];
 
     Player_TrackEntity(entity);
     if (Enemy_IsStunned(entity) && entity->state != 0xFF)
     {
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(&result, entity);
         return;
     }
     if (entity->state == 0xFF)
@@ -253,7 +254,7 @@ void UkobackFireball_Update(struct EwramData_EntityData *entity)
     if (entity->state != 0xFF)
     {
         Anim_Update(entity);
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(&result, entity);
     }
 }
 
@@ -362,7 +363,7 @@ void UkobackSparkle_Update(struct EwramData_EntityData *entity)
  */
 void EnemyUkobackUpdate(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
 
     if (entity->state == 1)
     {
@@ -372,7 +373,7 @@ void EnemyUkobackUpdate(struct EwramData_EntityData *entity)
     Player_TrackEntity(entity);
     if (Enemy_IsStunned(entity) && entity->state != 0xFF)
     {
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
@@ -581,7 +582,7 @@ s32 Nemesis_LoadGraphics(struct EwramData_EntityData *entity)
  */
 void EnemyNemesisUpdate(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
 
     if (entity->state == 7)
     {
@@ -600,7 +601,7 @@ void EnemyNemesisUpdate(struct EwramData_EntityData *entity)
             return;
         if (!(entity->ext.nemesis.flags & 0x20) && entity->state != 0)
         {
-            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+            Hit_CheckWithPlayer(&result, entity);
             return;
         }
     }
@@ -629,7 +630,7 @@ void EnemyNemesisUpdate(struct EwramData_EntityData *entity)
             break;
     }
     if (!(entity->ext.nemesis.flags & 0x20))
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(&result, entity);
 }
 
 /* (u8)(t % 3) != 0 (hidden on two of three frames), written so that agbcc

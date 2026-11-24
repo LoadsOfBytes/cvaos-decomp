@@ -13,6 +13,7 @@
 #include "obj_palette.h"
 #include "hitbox.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
 
 extern s32 Collision_GetTileOnScreen(s32, s32);
 extern s16 Collision_GetPushDown(s32, s32);
@@ -35,7 +36,7 @@ void Fleaman_UpdateDeath(struct EwramData_EntityData *entity);
  */
 void EnemyFleamanUpdate(struct EwramData_EntityData *entity)
 {
-    u8 collision[0x10];
+    struct HitResult result;
 
     if (entity->state == 3)
     {
@@ -54,12 +55,12 @@ void EnemyFleamanUpdate(struct EwramData_EntityData *entity)
         Enemy_UpdateHitFlash(entity);
     if (Entity_IsTimeStopped(entity) && entity->state != 0xFF)
     {
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(&result, entity);
         return;
     }
     if (entity->hitFlashTimer && entity->state != 2 && entity->state != 0xFF)
     {
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
@@ -73,7 +74,7 @@ void EnemyFleamanUpdate(struct EwramData_EntityData *entity)
     }
     Entity_AnimateWithBoxes(entity);
     if (entity->state != 0xFF)
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(&result, entity);
 }
 
 /**

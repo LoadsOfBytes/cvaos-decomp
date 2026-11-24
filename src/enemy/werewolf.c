@@ -18,6 +18,7 @@
 #include "hitbox.h"
 #include "damage_numbers.h"
 #include "entity_motion.h"
+#include "entity_hit.h"
 
 extern s32 Target_IsInRect(s32, s32, s32, s32);
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
@@ -36,7 +37,7 @@ void WerewolfShockwave_DamagePlayerOnContact(struct EwramData_EntityData *entity
 
 void EnemyWerewolfUpdate(struct EwramData_EntityData *entity)
 {
-    u32 box[4];
+    struct HitResult result;
     if (entity->state != 2)
     {
         if (EntityIsOutsideScreen(entity, 4))
@@ -54,13 +55,13 @@ void EnemyWerewolfUpdate(struct EwramData_EntityData *entity)
     {
         if (entity->state != 2)
         {
-            Hit_CheckWithPlayer((struct HitResult *)box, entity);
+            Hit_CheckWithPlayer(&result, entity);
             return;
         }
     }
     if (entity->hitFlashTimer != 0 && entity->state != 3 && entity->state != 2)
     {
-        Hit_CheckWithPlayer((struct HitResult *)box, entity);
+        Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
@@ -430,7 +431,7 @@ void Werewolf_SpawnShockwave(struct EwramData_EntityData *entity, s32 offsetX)
  */
 void WerewolfShockwave_Update(struct EwramData_EntityData *entity)
 {
-    u8 collision[0x10];
+    struct HitResult result;
 
     switch (entity->state)
     {
@@ -440,7 +441,7 @@ void WerewolfShockwave_Update(struct EwramData_EntityData *entity)
             break;
         case 2:
             if ((u8)(entity->animStep - 1) <= 4)
-                Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+                Hit_CheckWithPlayer(&result, entity);
             if (Anim_Update(entity) == 3)
                 entity->state = 3;
             break;

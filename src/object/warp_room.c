@@ -26,6 +26,7 @@
 #include "data/data_118B48.h"
 #include "obj_palette.h"
 #include "player_soma.h"
+#include "entity_hit.h"
 
 
 void WarpRoom_UpdateGatePart(struct EwramData_EntityData *);
@@ -797,12 +798,12 @@ void Object21_UpdateState(struct EwramData_EntityData *entity)
  */
 void Object21Update(struct EwramData_EntityData *entity)
 {
-    u32 collision[4];
+    struct HitResult result;
 
     if (entity->state == 0)
         Object21_UpdateState(entity);
     Anim_Update(entity);
-    Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+    Hit_CheckWithPlayer(&result, entity);
 }
 
 /**

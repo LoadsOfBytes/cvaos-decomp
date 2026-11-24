@@ -22,6 +22,7 @@
 #include "data/data_4F1444.h"
 #include "damage_numbers.h"
 #include "entity_motion.h"
+#include "entity_hit.h"
 
 extern s32 Target_IsInRect(s16, s16, s16, s16);
 extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
@@ -61,7 +62,7 @@ void ManticoreShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 
  */
 void EnemyManticoreUpdate(struct EwramData_EntityData *entity)
 {
-    u8 collision[48];
+    struct HitResult results[3]; /* only results[0] is written; the original reserved 48 bytes */
 
     if (entity->state != 2 && Entity_IsInRect(entity, -16, 0, 272, 176))
         Player_TrackEntity(entity);
@@ -73,8 +74,8 @@ void EnemyManticoreUpdate(struct EwramData_EntityData *entity)
     {
         if (entity->state != 2)
         {
-            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
-            Hit_CheckWithPlayer((struct HitResult *)collision, entity->ext.manticore.tailTip);
+            Hit_CheckWithPlayer(results, entity);
+            Hit_CheckWithPlayer(results, entity->ext.manticore.tailTip);
         }
         return;
     }
@@ -102,8 +103,8 @@ void EnemyManticoreUpdate(struct EwramData_EntityData *entity)
     }
     if (entity->state != 2)
     {
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity->ext.manticore.tailTip);
+        Hit_CheckWithPlayer(results, entity);
+        Hit_CheckWithPlayer(results, entity->ext.manticore.tailTip);
     }
 }
 
@@ -1003,7 +1004,7 @@ void Manticore_SpawnShot(struct EwramData_EntityData *entity)
  */
 void ManticoreShot_Update(struct EwramData_EntityData *entity)
 {
-    u32 buffer[4];
+    struct HitResult result;
     s32 vx, vy;
 
     switch (entity->state)
@@ -1044,7 +1045,7 @@ void ManticoreShot_Update(struct EwramData_EntityData *entity)
         break;
     }
     if (entity->state != 2)
-        Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
+        Hit_CheckWithPlayer(&result, entity);
     Anim_Update(entity);
 }
 

@@ -17,6 +17,7 @@
 #include "hitbox.h"
 #include "damage_numbers.h"
 #include "entity_motion.h"
+#include "entity_hit.h"
 
 extern s32 Target_IsInRect(s16, s16, s16, s16);
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
@@ -36,7 +37,7 @@ void DeadCrusader_OnHit(struct EwramData_EntityData *entity, struct EwramData_En
  */
 void EnemyDeadCrusaderUpdate(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
 
     entity->ext.deadCrusader.guarding = 0;
     if (entity->state != 2)
@@ -54,7 +55,7 @@ void EnemyDeadCrusaderUpdate(struct EwramData_EntityData *entity)
         Enemy_UpdateHitFlash(entity);
     if (Entity_IsTimeStopped(entity) && entity->state != 2)
     {
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)

@@ -17,6 +17,7 @@
 #include "data/data_4F1444.h"
 #include "hitbox.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
 
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 
@@ -31,7 +32,7 @@ void SkyFish_SpawnRisingTrail(struct EwramData_EntityData *, s32, s32, s32, s32)
 void EnemySkyFishUpdate(struct EwramData_EntityData *entity)
 {
     /* Original reserves 0x30 bytes for this scratch area. */
-    u32 box[12];
+    struct HitResult results[3]; /* only results[0] is written; the original reserved 48 bytes */
     u8 frame;
     if (entity->state != 1)
     {
@@ -40,7 +41,7 @@ void EnemySkyFishUpdate(struct EwramData_EntityData *entity)
     if (Enemy_IsStunned(entity))
     {
         if (entity->state != 1 && entity->ext.skyFish.darting == 0)
-            Hit_CheckWithPlayer((struct HitResult *)box, entity);
+            Hit_CheckWithPlayer(results, entity);
         return;
     }
     switch (entity->state)
@@ -53,7 +54,7 @@ void EnemySkyFishUpdate(struct EwramData_EntityData *entity)
     Anim_Update(entity);
     if (frame != entity->animFrame) Entity_UpdateBoxes(entity);
     if (entity->state != 1 && entity->ext.skyFish.darting == 0)
-        Hit_CheckWithPlayer((struct HitResult *)box, entity);
+        Hit_CheckWithPlayer(results, entity);
 }
 
 void EnemySkyFishCreate(struct EwramData_EntityData *entity)

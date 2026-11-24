@@ -17,6 +17,7 @@
 #include "data/data_118B48.h"
 #include "damage_numbers.h"
 #include "entity_motion.h"
+#include "entity_hit.h"
 
 extern s32 Target_IsInRect(s32, s32, s32, s32);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
@@ -39,7 +40,7 @@ void Mudman_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 /* Dispatch Mudman states while preserving hit-flash and freeze update gates. */
 void EnemyMudmanUpdate(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
     if (entity->state != 2 && Entity_IsInRect(entity, -16, 0, 272, 176))
         Player_TrackEntity(entity);
     if (EntityIsOutsideScreen(entity, 4)) entity->hidden = 1;
@@ -49,7 +50,7 @@ void EnemyMudmanUpdate(struct EwramData_EntityData *entity)
     if (entity->hitFlashTimer && entity->state != 3 && entity->state != 2)
     {
 collision_only:
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
@@ -431,7 +432,7 @@ static inline void EmitDebris(struct EwramData_EntityData *parent, s32 x, s32 y,
 void MudmanShot_Update(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *background = &gEwramData->bgInfo[1];
-    u8 collision[16];
+    struct HitResult result;
     s32 state = entity->state;
     switch (state)
     {
@@ -485,7 +486,7 @@ remove:
     EntityDelete(entity);
     return;
 finished:
-    if (entity->state == 0) Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+    if (entity->state == 0) Hit_CheckWithPlayer(&result, entity);
     Anim_Update(entity);
 }
 

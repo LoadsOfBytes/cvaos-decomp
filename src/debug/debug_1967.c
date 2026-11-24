@@ -34,6 +34,7 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "structs/entity_template.h"
+#include "entity_hit.h"
 extern void HudMap_WriteTiles(s32, s32, u16, s32);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 
@@ -807,12 +808,12 @@ s32 DebugTestEnemy_UpdateHitFlash(struct EwramData_EntityData *entity)
  */
 void DebugTestEnemy_Update(struct EwramData_EntityData *entity)
 {
-    u32 hitInfo[0x4];
+    struct HitResult result;
     s32 gfx;
 
     if (DebugTestEnemy_UpdateHitFlash(entity) != 0)
     {
-        Hit_CheckWithPlayer((struct HitResult *)(&hitInfo), entity);
+        Hit_CheckWithPlayer(&result, entity);
         return;
     }
 
@@ -881,7 +882,7 @@ void DebugTestEnemy_Update(struct EwramData_EntityData *entity)
 
     if (entity->state != 2)
     {
-        Hit_CheckWithPlayer((struct HitResult *)(&hitInfo), entity);
+        Hit_CheckWithPlayer(&result, entity);
     }
     Player_TrackEntity(entity);
     Anim_Update(entity);

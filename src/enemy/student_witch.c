@@ -17,6 +17,7 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "math_inline.h"
+#include "entity_hit.h"
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 extern void Entity_FaceTarget(struct EwramData_EntityData *);
@@ -30,7 +31,7 @@ extern void Entity_FaceTarget(struct EwramData_EntityData *);
  */
 void WitchGroundProjectile_Update(struct EwramData_EntityData *entity)
 {
-    u32 box[4];
+    struct HitResult result;
     s32 flags;
     s32 hp;
     switch (entity->state)
@@ -74,7 +75,7 @@ remove:
         EntityDelete(entity);
         return;
     }
-    if (entity->state != 2) Hit_CheckWithPlayer((struct HitResult *)box, entity);
+    if (entity->state != 2) Hit_CheckWithPlayer(&result, entity);
     Anim_Update(entity);
 }
 
@@ -383,13 +384,13 @@ void EnemyStudentWitchCreate(struct EwramData_EntityData *entity)
 
 void EnemyStudentWitchUpdate(struct EwramData_EntityData *entity)
 {
-    u32 box[4];
+    struct HitResult result;
     u32 outside = EntityIsOutsideScreen(entity, 4);
     outside = (entity->hidden = outside);
     if (!outside) Player_TrackEntity(entity);
     if (Enemy_IsStunned(entity))
     {
-        if (entity->state != 4) Hit_CheckWithPlayer((struct HitResult *)box, entity);
+        if (entity->state != 4) Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
@@ -404,6 +405,6 @@ void EnemyStudentWitchUpdate(struct EwramData_EntityData *entity)
         Anim_Update(entity);
         return;
     }
-    if (entity->state != 4) Hit_CheckWithPlayer((struct HitResult *)box, entity);
+    if (entity->state != 4) Hit_CheckWithPlayer(&result, entity);
     Entity_AnimateWithBoxes(entity);
 }

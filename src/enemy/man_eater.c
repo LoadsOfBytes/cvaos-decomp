@@ -25,10 +25,11 @@
 #include "data/data_4F1444.h"
 #include "damage_numbers.h"
 #include "entity_motion.h"
+#include "entity_hit.h"
+#include "hit_shared_history.h"
 
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
 extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
 
 // The offsets are passed sign-extended here (u16 in the definition).
@@ -113,12 +114,12 @@ void ManEaterProjectileBurst_Update(struct EwramData_EntityData *entity)
  */
 void ManEaterProjectile_Update(struct EwramData_EntityData *entity)
 {
-    u32 box[4];
+    struct HitResult result;
     s32 angle;
     struct EwramData_EntityData *effect;
     if (entity->state != 0 && (s16)entity->hp != 0 && Entity_IsTimeStopped(entity))
     {
-        Hit_CheckWithPlayer((struct HitResult *)box, entity);
+        Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
@@ -141,7 +142,7 @@ void ManEaterProjectile_Update(struct EwramData_EntityData *entity)
         /* fall through */
     case 1:
         EntityAccelerateAndMove(entity, 0x10000);
-        Hit_CheckWithPlayer((struct HitResult *)box, entity);
+        Hit_CheckWithPlayer(&result, entity);
         if (EntityIsOutsideScreen(entity, 3)) entity->state = 2;
         if ((s16)entity->hp == 0)
         {
@@ -229,7 +230,7 @@ void ManEaterChainAnchor_Update(struct EwramData_EntityData *entity)
 
 void ManEaterSegment_Update(struct EwramData_EntityData *entity)
 {
-    u8 box[16];
+    struct HitResult result;
     struct EwramData_EntityData *head = &gEwramData->entityData[(u8)entity->ext.manEater.ownerIndex];
     struct EwramData_EntityData *prev = &gEwramData->entityData[entity->ext.manEater.prevIndex];
     struct EwramData_EntityData *next = &gEwramData->entityData[entity->ext.manEater.baseIndex];
@@ -371,7 +372,7 @@ remove:
     }
     entity->stage++;
     if (!(entity->stage & 7) && Entity_IsInRect(entity, -0x10, 0, 0x110, 0xB0))
-        Hit_CheckWithPlayerSharedHistory(box, entity, head);
+        Hit_CheckWithPlayerSharedHistory(&result, entity, head);
     Anim_Update(entity);
 }
 

@@ -23,6 +23,8 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
+#include "hit_shared_history.h"
 
 void Stolas_UpdateMove(struct EwramData_EntityData *entity);
 void Stolas_UpdateAttack(struct EwramData_EntityData *entity);
@@ -37,7 +39,6 @@ struct StolasBox {
 };
 
 extern void *memcpy(void *dst, const void *src, unsigned long size);
-extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 
 u8 Stolas_LoadGraphics(struct EwramData_EntityData *entity);
@@ -927,7 +928,7 @@ struct StolasPartBox {
 
 void StolasPart_Update(struct EwramData_EntityData *entity)
 {
-    u8 hit[16];
+    struct HitResult result;
     u8 unused[13];
     struct StolasPartBox box;
     struct EwramData_EntityData *parent = entity->ext.jointPart.owner;
@@ -988,7 +989,7 @@ void StolasPart_Update(struct EwramData_EntityData *entity)
                     HitBox_SetBody(entity, &box);
                     entity->hit.flags &= 0xFB;
                     entity->hit.flags &= 0xFD;
-                    Hit_CheckWithPlayerSharedHistory(hit, entity, parent);
+                    Hit_CheckWithPlayerSharedHistory(&result, entity, parent);
                 }
                 else if (JOINT(entity) == 2)
                 {
@@ -1010,7 +1011,7 @@ void StolasPart_Update(struct EwramData_EntityData *entity)
                     HitBox_SetAttack(entity, &box);
                     entity->hit.flags &= 0xFD;
                     entity->hit.flags &= 0xFB;
-                    Hit_CheckWithPlayerSharedHistory(hit, entity, parent);
+                    Hit_CheckWithPlayerSharedHistory(&result, entity, parent);
                 }
             }
             else

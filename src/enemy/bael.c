@@ -20,6 +20,7 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "entity_inline.h"
+#include "entity_hit.h"
 
 extern s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY);
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *graphics, void *palette, u8 slot, void *sprite);
@@ -805,7 +806,7 @@ set_speed:
 /* Bael collision motion, rotation, and update dispatcher. */
 void EnemyBaelUpdate(struct EwramData_EntityData *entity)
 {
-    u8 buffer[16];
+    struct HitResult result;
     if (entity->state == 4)
     {
         Bael_UpdateState4Rotation(entity);
@@ -819,7 +820,7 @@ void EnemyBaelUpdate(struct EwramData_EntityData *entity)
     Player_TrackEntity(entity);
     if (Enemy_IsStunned(entity))
     {
-        Hit_CheckWithPlayer((struct HitResult *)buffer,entity);
+        Hit_CheckWithPlayer(&result,entity);
         return;
     }
     switch (entity->state)
@@ -828,7 +829,7 @@ void EnemyBaelUpdate(struct EwramData_EntityData *entity)
         case 2: Bael_UpdateActive(entity); break;
         case 3: Bael_UpdateDeath(entity); break;
     }
-    Hit_CheckWithPlayer((struct HitResult *)buffer,entity);
+    Hit_CheckWithPlayer(&result,entity);
 }
 
 /**

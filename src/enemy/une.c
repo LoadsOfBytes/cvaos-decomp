@@ -16,6 +16,7 @@
 #include "data/data_118B48.h"
 #include "hitbox.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
 
 extern s32 Target_IsInRect(s16, s16, s16, s16);
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
@@ -38,7 +39,7 @@ void UneDebris_Update(struct EwramData_EntityData *);
  */
 void EnemyUneUpdate(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
     struct EwramData_EntityData *parent;
 
     if (entity->state != 3)
@@ -58,7 +59,7 @@ void EnemyUneUpdate(struct EwramData_EntityData *entity)
     if (Enemy_IsStunned(entity))
     {
         if (entity->state != 2)
-            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+            Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)

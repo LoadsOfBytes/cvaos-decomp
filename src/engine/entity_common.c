@@ -25,6 +25,7 @@
 #include "hitbox.h"
 #include "damage_numbers.h"
 #include "obj_palette.h"
+#include "entity_hit.h"
 
 extern s32 Entity_IsInRect(struct EwramData_EntityData *, s32, s32, s32, s32);
 extern void Entity_FaceTarget(struct EwramData_EntityData *);
@@ -453,7 +454,7 @@ s32 Entity_Walk(struct EwramData_EntityData *entity, s32 speed, void *profile, s
 
 s32 Enemy_PreUpdate(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
     u32 templateOffset = entity->enemyId * sizeof(struct EntityTemplate);
     struct EntityTemplate *entry = (struct EntityTemplate *)(templateOffset + (u32)sEnemyData);
     if (entry->previewOffsetY == 0)
@@ -466,7 +467,7 @@ s32 Enemy_PreUpdate(struct EwramData_EntityData *entity)
             Player_TrackEntity(entity);
         if (!Enemy_IsStunned(entity))
             return 0;
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(&result, entity);
     }
     return 1;
 }
@@ -1889,10 +1890,10 @@ s32 Target_IsNearEntity(struct EwramData_EntityData *entity, u16 width, u16 heig
  */
 void Enemy_CheckHitPlayer(struct EwramData_EntityData *entity)
 {
-    u8 hitInfo[0x10];
+    struct HitResult result;
 
     if (!(entity->enemyFlags & 2) && Entity_IsInRect(entity, -0x10, 0, 0x110, 0xB0))
-        Hit_CheckWithPlayer((struct HitResult *)hitInfo, entity);
+        Hit_CheckWithPlayer(&result, entity);
 }
 
 /* Clones of already decompiled functions, generated with

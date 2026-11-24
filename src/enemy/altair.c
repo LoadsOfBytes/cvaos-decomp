@@ -16,6 +16,7 @@
 #include "data/data_118B48.h"
 #include "hitbox.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
 
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 
@@ -105,7 +106,7 @@ void EnemyAltairCreate(struct EwramData_EntityData *entity)
 
 void EnemyAltairUpdate(struct EwramData_EntityData *entity)
 {
-    u32 box[4];
+    struct HitResult result;
     struct EwramData_EntityData *child = entity->ext.altair.carried;
     struct EwramData_EntityData *parent;
     if (entity->state == 4)
@@ -124,7 +125,7 @@ void EnemyAltairUpdate(struct EwramData_EntityData *entity)
     if (entity->hitFlashTimer != 0 && entity->state != 3 && entity->state != 2)
     {
 hit:
-        Hit_CheckWithPlayer((struct HitResult *)box, entity);
+        Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
@@ -133,7 +134,7 @@ hit:
     case 2: Altair_UpdateDeath(entity); break;
     }
     Entity_AnimateWithBoxes(entity);
-    if (entity->state != 2) Hit_CheckWithPlayer((struct HitResult *)box, entity);
+    if (entity->state != 2) Hit_CheckWithPlayer(&result, entity);
     if (entity->deleteRequested)
     {
         parent = entity->ext.altair.spawner;

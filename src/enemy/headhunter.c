@@ -24,6 +24,8 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
+#include "hit_shared_history.h"
 
 /* Headhunter (entity type 0x6A): update. */
 void Headhunter_UpdateMovement(struct EwramData_EntityData *);
@@ -39,7 +41,6 @@ void Headhunter_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hi
 extern void SoulPickup_SpawnFromEnemyDefinition(s32, s32, s32, s32);
 extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
 extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 
 void Headhunter_SpawnFallingPart(struct EwramData_EntityData *, s32, s32, s32);
@@ -87,7 +88,7 @@ void HeadhunterAttackSegment_Update(struct EwramData_EntityData *segment);
  */
 void EnemyHeadhunterUpdate(struct EwramData_EntityData *entity)
 {
-    u8 collision[48];
+    struct HitResult results[3]; /* only results[0] is written; the original reserved 48 bytes */
     struct SingleFrameAnimation animation = sHeadhunterFrameAnim;
     if (entity->state != 2 && Entity_IsInRect(entity, -16, 0, 272, 176))
         Player_TrackEntity(entity);
@@ -95,7 +96,7 @@ void EnemyHeadhunterUpdate(struct EwramData_EntityData *entity)
     if (entity->state != 2) Enemy_UpdateHitFlash(entity);
     if (Entity_IsTimeStopped(entity) && entity->state != 2)
     {
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(results, entity);
         return;
     }
     switch (entity->state)
@@ -122,7 +123,7 @@ void EnemyHeadhunterUpdate(struct EwramData_EntityData *entity)
         if (previous != *frame) Entity_UpdateBoxes(entity);
     }
     if (entity->state != 2 && !(entity->ext.headhunter.flags & 1))
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(results, entity);
 }
 
 /* Headhunter (entity type 0x6A): update and create. */
@@ -2313,7 +2314,7 @@ void Headhunter_SpawnWave(struct EwramData_EntityData *owner, s32 x, s32 y, s32 
 void HeadhunterWave_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
-    s32 bounds[4];
+    struct HitResult result;
     struct SingleFrameAnimation animation = sHeadhunterFrameAnim;
     if ((entity->timer & 3) == 0)
     {
@@ -2344,7 +2345,7 @@ void HeadhunterWave_Update(struct EwramData_EntityData *entity)
         EntityDelete(entity);
     else
     {
-        if (entity->timer <= 147) Hit_CheckWithPlayer((struct HitResult *)bounds, entity);
+        if (entity->timer <= 147) Hit_CheckWithPlayer(&result, entity);
         if (OWNER_DONE(owner)) EntityDelete(entity);
     }
 }
@@ -2450,7 +2451,7 @@ void Headhunter_SpawnLightningImpact(struct EwramData_EntityData *owner, struct 
 void HeadhunterLightningImpact_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *owner = entity->ext.headhunterEffect.source;
-    s32 bounds[4];
+    struct HitResult result;
     struct SingleFrameAnimation animation = sHeadhunterFrameAnim;
     if (++entity->timer == 5)
     {
@@ -2476,7 +2477,7 @@ void HeadhunterLightningImpact_Update(struct EwramData_EntityData *entity)
         EntityDelete(entity);
     else
     {
-        if (entity->timer <= 32) Hit_CheckWithPlayer((struct HitResult *)bounds, entity);
+        if (entity->timer <= 32) Hit_CheckWithPlayer(&result, entity);
         if (OWNER_DONE(owner)) EntityDelete(entity);
     }
 }
@@ -2630,7 +2631,7 @@ void Headhunter_SpawnBurstShot(struct EwramData_EntityData *owner, s32 x, s32 y,
  */
 void HeadhunterBurstShot_Update(struct EwramData_EntityData *entity)
 {
-    s32 bounds[4];
+    struct HitResult result;
     struct SingleFrameAnimation animation = sHeadhunterFrameAnim;
     struct SpriteBox box1 = {-7, -7, 14, 14};
     struct SpriteBox box2 = {-11, -11, 22, 22};
@@ -2655,7 +2656,7 @@ void HeadhunterBurstShot_Update(struct EwramData_EntityData *entity)
     if (entity->timer++ > 59)
         EntityDelete(entity);
     else
-        Hit_CheckWithPlayer((struct HitResult *)bounds, entity);
+        Hit_CheckWithPlayer(&result, entity);
 }
 
 /* Create the whip head at the owner + (x, y) towards `angle`, with ten segments. */
@@ -2727,7 +2728,7 @@ void HeadhunterAttackTip_Update(struct EwramData_EntityData *head)
 {
     struct EwramData_EntityData *owner = ENTITY_OWNER(head);
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
-    s32 bounds[4];
+    struct HitResult result;
     struct SingleFrameAnimation animation = sHeadhunterAttackTipFrameAnim;
     s32 x, y;
     if (owner->state == 2)
@@ -2807,7 +2808,7 @@ void HeadhunterAttackTip_Update(struct EwramData_EntityData *head)
     Anim_Start(head, (struct AnimScript *)&animation, 2, 1);
     Anim_Update(head);
     ObjAffine_SetBiased(ANGLE(head), 0x10000, 0x10000, head->flipX, head->flipY, head->affineIndex);
-    Hit_CheckWithPlayerSharedHistory(bounds, head, owner);
+    Hit_CheckWithPlayerSharedHistory(&result, head, owner);
 }
 
 /* Create whip segment `index` of ten. */
@@ -2866,7 +2867,7 @@ void HeadhunterAttackSegment_Update(struct EwramData_EntityData *segment)
     struct EwramData_EntityData *owner = ENTITY_OWNER(segment);
     struct EwramData_EntityData *parent = segment->ext.headhunterWhipSegment.tip;
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
-    s32 bounds[4];
+    struct HitResult result;
     struct SingleFrameAnimation animation = sHeadhunterAttackSegmentFrameAnim;
     if (owner->state == 2 || parent->subState == 5)
     {
@@ -2879,7 +2880,7 @@ void HeadhunterAttackSegment_Update(struct EwramData_EntityData *segment)
     Anim_Start(segment, (struct AnimScript *)&animation, 2, 1);
     Anim_Update(segment);
     ObjAffine_SetBiased(parent->velX.whole, 0x10000, 0x10000, segment->flipX, segment->flipY, segment->affineIndex);
-    Hit_CheckWithPlayerSharedHistory(bounds, segment, owner);
+    Hit_CheckWithPlayerSharedHistory(&result, segment, owner);
 }
 
 /* Headhunter effect: follow the owner (unk_4F8) until the timer runs out. */

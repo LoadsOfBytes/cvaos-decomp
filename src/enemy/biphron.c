@@ -17,6 +17,7 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
 
 extern s32 Target_IsInRect(s32, s32, s32, s32);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
@@ -322,7 +323,7 @@ void BiphronFlame_Update(struct EwramData_EntityData *entity)
  */
 void BiphronShot_Update(struct EwramData_EntityData *entity)
 {
-    u8 collision[0x10];
+    struct HitResult result;
     s32 x = (s16)entity->posX.part16.integer;
 
     if (!(Entity_MoveWithCollisionDefault(entity, 0x40000, -0x200000) & 4)
@@ -333,7 +334,7 @@ void BiphronShot_Update(struct EwramData_EntityData *entity)
     }
     else
     {
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(&result, entity);
         if (!(entity->timer++ & 3))
         {
             BiphronShot_SpawnFlame(entity, 0, 0);

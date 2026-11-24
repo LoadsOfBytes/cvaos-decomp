@@ -19,6 +19,7 @@
 #include "palette.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "entity_hit.h"
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 
@@ -288,7 +289,7 @@ void EnemyChronomageCreate(struct EwramData_EntityData *entity)
 
 void EnemyChronomageUpdate(struct EwramData_EntityData *entity)
 {
-    u32 box[4];
+    struct HitResult result;
     s32 done;
     if (entity->state != 3) Enemy_UpdateHitFlash(entity);
     switch (entity->state)
@@ -326,7 +327,7 @@ alive:
         Chronomage_UpdateBestiaryPreview(entity);
         return;
     }
-    if (entity->state != 3) Hit_CheckWithPlayer((struct HitResult *)box, entity);
+    if (entity->state != 3) Hit_CheckWithPlayer(&result, entity);
     Anim_Update(entity);
 }
 

@@ -24,12 +24,13 @@
 #include "math_inline.h"
 #include "damage_numbers.h"
 #include "music.h"
+#include "entity_hit.h"
+#include "hit_shared_history.h"
 
 extern void *memcpy(void *dst, const void *src, unsigned long size);
 extern void *memset(void *dst, int value, unsigned long size);
 extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s16);
-extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
 
 void BigGolem_UpdateWalk(struct EwramData_EntityData *entity);
 void BigGolem_UpdateAttack(struct EwramData_EntityData *entity);
@@ -1586,7 +1587,7 @@ struct GolemBox { s8 x, y, w, h; };
  */
 void BigGolemPart_Update(struct EwramData_EntityData *entity)
 {
-    u8 hit[16];
+    struct HitResult result;
     u8 timers[14];
     s16 offsets[14];
     struct GolemBox box;
@@ -1671,7 +1672,7 @@ void BigGolemPart_Update(struct EwramData_EntityData *entity)
                     HitBox_SetBody(parent, &box);
                     entity->hit.flags &= 0xFB;
                     entity->hit.flags &= 0xFD;
-                    Hit_CheckWithPlayerSharedHistory(hit, entity, parent);
+                    Hit_CheckWithPlayerSharedHistory(&result, entity, parent);
                 }
                 else if (JOINT(entity) == 3)
                 {
@@ -1684,7 +1685,7 @@ void BigGolemPart_Update(struct EwramData_EntityData *entity)
                     HitBox_SetBody(parent, &box);
                     entity->hit.flags &= 0xFB;
                     entity->hit.flags &= 0xFD;
-                    Hit_CheckWithPlayerSharedHistory(hit, entity, parent);
+                    Hit_CheckWithPlayerSharedHistory(&result, entity, parent);
                 }
                 else if (JOINT(entity) == 5)
                 {
@@ -1697,7 +1698,7 @@ void BigGolemPart_Update(struct EwramData_EntityData *entity)
                     HitBox_SetBody(parent, &box);
                     entity->hit.flags &= 0xFB;
                     entity->hit.flags &= 0xFD;
-                    Hit_CheckWithPlayerSharedHistory(hit, entity, parent);
+                    Hit_CheckWithPlayerSharedHistory(&result, entity, parent);
                 }
                 else if (JOINT(entity) == 12)
                 {
@@ -1720,7 +1721,7 @@ void BigGolemPart_Update(struct EwramData_EntityData *entity)
                     HitBox_SetBody(entity, &box);
                     HitBox_SetBody(parent, &box);
                     entity->hit.flags &= 0xFD;
-                    Hit_CheckWithPlayerSharedHistory(hit, entity, parent);
+                    Hit_CheckWithPlayerSharedHistory(&result, entity, parent);
                 }
             }
             else
@@ -1985,7 +1986,7 @@ void BigGolemPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *
  */
 void BigGolemRock_Update(struct EwramData_EntityData *entity)
 {
-    u8 collision[0x10];
+    struct HitResult result;
     struct EwramData_EntityData *golem = ENTITY_OWNER(entity);
 
     if (entity->state == 0)
@@ -1994,7 +1995,7 @@ void BigGolemRock_Update(struct EwramData_EntityData *entity)
         if (EntityIsOutsideScreen(entity, 1))
             EntityDelete(entity);
         else
-            Hit_CheckWithPlayerSharedHistory(collision, entity, golem);
+            Hit_CheckWithPlayerSharedHistory(&result, entity, golem);
     }
 }
 

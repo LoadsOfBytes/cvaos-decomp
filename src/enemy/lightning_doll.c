@@ -18,6 +18,7 @@
 #include "hitbox.h"
 #include "damage_numbers.h"
 #include "player_soma.h"
+#include "entity_hit.h"
 
 extern void Sound_StopTracked(s32 id);
 extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
@@ -109,7 +110,7 @@ s32 LightningDoll_LoadGraphics(struct EwramData_EntityData *entity)
 
 void EnemyLightningDollUpdate(struct EwramData_EntityData *entity)
 {
-    u8 buffer[0x10];
+    struct HitResult result;
     if (entity->state == 2)
     {
         LightningDoll_UpdateState2Animation(entity);
@@ -119,7 +120,7 @@ void EnemyLightningDollUpdate(struct EwramData_EntityData *entity)
     if (Enemy_IsStunned(entity) && entity->state != 0xFF)
     {
         Sound_StopTracked(0x75);
-        Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
+        Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
@@ -141,7 +142,7 @@ void EnemyLightningDollUpdate(struct EwramData_EntityData *entity)
             else
                 Entity_UpdateBoxes(entity);
         }
-        Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
+        Hit_CheckWithPlayer(&result, entity);
     }
 }
 

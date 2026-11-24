@@ -16,6 +16,7 @@
 #include "math_anim.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "entity_hit.h"
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 extern void Entity_PlaceRelativeToCopy(struct EwramData_EntityData *, struct EwramData_EntityData *, s32, s32);
@@ -169,7 +170,7 @@ void HeadStackEffect_UpdateParticle(struct EwramData_EntityData *entity)
  */
 void HeadStackEffect_UpdateAttack(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
     struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
     struct EwramData_EntityData *child;
 
@@ -211,7 +212,7 @@ void HeadStackEffect_UpdateAttack(struct EwramData_EntityData *entity)
                 entity->hit.flags &= 0xFD;
         break;
     }
-    Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+    Hit_CheckWithPlayer(&result, entity);
     if (Anim_Update(entity) == 3 || owner->state == 2)
         entity->deleteRequested = 1;
 }
@@ -222,7 +223,7 @@ void HeadStackEffect_UpdateAttack(struct EwramData_EntityData *entity)
  */
 void HeadStackProjectile_Update(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
     s32 vx;
     u32 timer;
     struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
@@ -270,7 +271,7 @@ void HeadStackProjectile_Update(struct EwramData_EntityData *entity)
         EntityAccelerateAndMove(entity, 0x80000);
         break;
     }
-    Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+    Hit_CheckWithPlayer(&result, entity);
     Anim_Update(entity);
     if ((s16)entity->hp == 0)
     {
@@ -527,7 +528,7 @@ found:
  */
 void HeadStackSegment_Update(struct EwramData_EntityData *entity)
 {
-    u32 buf[4];
+    struct HitResult result;
     struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
 
     if (entity->state != 2)
@@ -539,7 +540,7 @@ void HeadStackSegment_Update(struct EwramData_EntityData *entity)
     if (Enemy_IsStunned(entity) != 0)
     {
         if (entity->state != 2)
-            Hit_CheckWithPlayer((struct HitResult *)buf, entity);
+            Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
@@ -568,7 +569,7 @@ void HeadStackSegment_Update(struct EwramData_EntityData *entity)
         return;
     }
     if (entity->state != 2)
-        Hit_CheckWithPlayer((struct HitResult *)buf, entity);
+        Hit_CheckWithPlayer(&result, entity);
     Anim_Update(entity);
 }
 

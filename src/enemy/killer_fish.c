@@ -19,6 +19,7 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
 
 extern s32 Collision_FindWaterSurfaceOffset(s32, s32);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
@@ -44,7 +45,7 @@ void KillerFishEffect_UpdateOscillating(struct EwramData_EntityData *);
 /* Dispatch Killer Fish states and refresh its frame-dependent collision data. */
 void EnemyKillerFishUpdate(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
     if (entity->state != 2)
     {
         if (EntityIsOutsideScreen(entity, 4)) return;
@@ -56,7 +57,7 @@ void EnemyKillerFishUpdate(struct EwramData_EntityData *entity)
     if (Enemy_IsStunned(entity))
     {
         if ((u8)(entity->state - 2) > 1)
-            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+            Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
@@ -77,7 +78,7 @@ void EnemyKillerFishUpdate(struct EwramData_EntityData *entity)
             Entity_UpdateBoxes(entity);
     }
     if ((u8)(entity->state - 2) > 1)
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(&result, entity);
 }
 
 /* Initialize Killer Fish, choosing its ground or submerged setup. */
@@ -500,7 +501,7 @@ void KillerFishSwarm_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *owner = ENTITY_CREATOR(entity);
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
-    u32 bounds[4];
+    struct HitResult result;
     s32 targetX, targetY, dx, dy, velocityX, velocityY;
     s32 distance;
 
@@ -519,7 +520,7 @@ void KillerFishSwarm_Update(struct EwramData_EntityData *entity)
     }
     if (entity->state != 2 && gEwramData->gameState.timeStopTimer)
     {
-        Hit_CheckWithPlayer((struct HitResult *)bounds, entity);
+        Hit_CheckWithPlayer(&result, entity);
         return;
     }
 restart:
@@ -589,7 +590,7 @@ restart:
                 entity->subState = 0;
             }
         }
-        Hit_CheckWithPlayer((struct HitResult *)bounds, entity);
+        Hit_CheckWithPlayer(&result, entity);
         break;
     case 2:
         entity->hidden = Entity_GetVisibilityPattern(entity->timer);
@@ -664,7 +665,7 @@ restart:
             }
             if (entity->timer > 5) entity->state = 4;
             if (entity->ext.killerFishSwarm.bitPlayer) entity->state = 4;
-            Hit_CheckWithPlayer((struct HitResult *)bounds, entity);
+            Hit_CheckWithPlayer(&result, entity);
             break;
         }
         break;

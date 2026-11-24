@@ -41,7 +41,7 @@ void ArachneBeam_DamagePlayerOnContact(struct EwramData_EntityData *);
 /* Arachne dispatch and screen-dependent sound and collision updates. */
 void EnemyArachneUpdate(struct EwramData_EntityData *entity)
 {
-    s32 bounds[4];
+    struct HitResult result;
     if(entity->state!=2)
     {
         if(EntityIsOutsideScreen(entity,4)) { Sound_StopTracked(0x82); return; }
@@ -54,7 +54,7 @@ void EnemyArachneUpdate(struct EwramData_EntityData *entity)
     if(entity->hitFlashTimer && entity->state!=3 && entity->state!=2)
     {
 collision:
-        Hit_CheckWithPlayer((struct HitResult *)bounds,entity);
+        Hit_CheckWithPlayer(&result,entity);
         return;
     }
     switch(entity->state)

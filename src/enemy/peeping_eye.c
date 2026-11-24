@@ -20,6 +20,7 @@
 #include "data/data_4F1444.h"
 #include "entity_inline.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
 
 /* Peeping Eye: main update, creation, movement and animation, the hit
  * reaction and its parts (eyeball, pupil and the chain of six links).
@@ -73,7 +74,7 @@ void PeepingEyeChainLink_Update(struct EwramData_EntityData *entity);
  * code and fall apart when killed. */
 void EnemyPeepingEyeUpdate(struct EwramData_EntityData *entity)
 {
-    u8 collision[48];
+    struct HitResult results[3]; /* only results[0] is written; the original reserved 48 bytes */
     struct SingleFrameAnimation animation = sPeepingEyeFrameAnim;
 
     ANIM_FLAGS(entity) = (u8)ANIM_FLAGS(entity) & 0xFE;
@@ -87,7 +88,7 @@ void EnemyPeepingEyeUpdate(struct EwramData_EntityData *entity)
     if (NOT_DYING(entity)) Enemy_UpdateHitFlash(entity);
     if (Entity_IsTimeStopped(entity) && NOT_DYING(entity))
     {
-        if (SPAWN_PARAM(entity) == 0) Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        if (SPAWN_PARAM(entity) == 0) Hit_CheckWithPlayer(results, entity);
         return;
     }
     switch (entity->state)
@@ -137,7 +138,7 @@ void EnemyPeepingEyeUpdate(struct EwramData_EntityData *entity)
     else
         Anim_Update(entity);
     if (NOT_DYING(entity) && SPAWN_PARAM(entity) == 0)
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(results, entity);
 }
 
 /* Create the Peeping Eye with its eyeball, pupil and a chain of six links

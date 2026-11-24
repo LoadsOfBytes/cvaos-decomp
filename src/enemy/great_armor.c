@@ -25,6 +25,8 @@
 #include "data/data_4F1444.h"
 #include "math_inline.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
+#include "hit_shared_history.h"
 
 /* Great Armor update. */
 void GreatArmor_UpdateWalk(struct EwramData_EntityData *);
@@ -44,7 +46,6 @@ struct ArmorBox {
 extern void *memcpy(void *dst, const void *src, unsigned long size);
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, struct EwramData_EntityData *other, u16 *hit, s32 inputDamage);
 extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
-extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
 
 u8 GreatArmor_LoadGraphics(struct EwramData_EntityData *entity);
 void GreatArmorPart_Update(struct EwramData_EntityData *entity);
@@ -70,7 +71,7 @@ void GreatArmorSlashEffect_Update(struct EwramData_EntityData *entity);
  * dust, free the parts), frozen (3); the second box follows part 4. */
 void EnemyGreatArmorUpdate(struct EwramData_EntityData *entity)
 {
-    u8 collision[48];
+    struct HitResult results[3]; /* only results[0] is written; the original reserved 48 bytes */
     struct ArmorBox box;
     s32 *parts; /* GreatArmorPart viewed as 10 words (needed for the addressing) */
 
@@ -123,7 +124,7 @@ boxes:
     {
         if (GUARD(entity)) entity->hit.flags |= 4;
         else entity->hit.flags &= ~4;
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(results, entity);
     }
     Entity_ClampXToRoom(entity, 1);
     if ((RandomNumberGenerator() & 0x7F) <= 3)
@@ -1167,7 +1168,7 @@ struct ArmorPartBox { s8 x, y, w, h; };
  */
 void GreatArmorPart_Update(struct EwramData_EntityData *entity)
 {
-    u8 hit[16];
+    struct HitResult result;
     u8 timers[14];
     s16 offsets[14];
     struct ArmorPartBox box;
@@ -1217,7 +1218,7 @@ void GreatArmorPart_Update(struct EwramData_EntityData *entity)
             if ((parent->ext.joint.hurtMask >> JOINT(entity)) & 1)
             {
                 if (JOINT(entity) == 0)
-                    Hit_CheckWithPlayer((struct HitResult *)hit, entity);
+                    Hit_CheckWithPlayer(&result, entity);
                 else if (JOINT(entity) == 12)
                 {
                     size = ((entity->timer & 3) + 1) * 14;
@@ -1248,7 +1249,7 @@ void GreatArmorPart_Update(struct EwramData_EntityData *entity)
                     HitBox_SetAttack(entity, &box);
                     entity->hit.flags &= 0xFD;
                     entity->hit.flags |= 4;
-                    Hit_CheckWithPlayerSharedHistory(hit, entity, parent);
+                    Hit_CheckWithPlayerSharedHistory(&result, entity, parent);
                 }
             }
             else
@@ -1355,7 +1356,7 @@ void GreatArmor_SpawnShockwave(struct EwramData_EntityData *owner, s32 dx, s32 d
  */
 void GreatArmorShockwave_Update(struct EwramData_EntityData *entity)
 {
-    s32 buffer[4];
+    struct HitResult result;
     s32 vx, vy;
     s32 oldX = (s16)entity->posX.part16.integer;
     if (!(Entity_MoveWithCollisionDefault(entity, 0x40000, -0x200000) & 4) || oldX == (s16)entity->posX.part16.integer || EntityIsOutsideScreen(entity, 6))
@@ -1363,7 +1364,7 @@ void GreatArmorShockwave_Update(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
+    Hit_CheckWithPlayer(&result, entity);
     if ((entity->timer++ & 7) == 0)
     {
         s32 variant;

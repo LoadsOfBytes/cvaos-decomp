@@ -18,6 +18,7 @@
 #include "data/data_118B48.h"
 #include "math_inline.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
 
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *,struct EwramData_EntityData *,u16 *,s32);
 
@@ -566,7 +567,7 @@ void Harpy_ThrowWavyFeather(struct EwramData_EntityData *owner,s32 kind)
 /* The projectile's travel angle oscillates over a 32-frame cycle. */
 void HarpyWavyFeather_Update(struct EwramData_EntityData *entity)
 {
-    s32 bounds[4];
+    struct HitResult result;
     s32 state=entity->state;
     switch(state)
     {
@@ -582,7 +583,7 @@ void HarpyWavyFeather_Update(struct EwramData_EntityData *entity)
             }
             EntitySetVelocityFromAngle(entity,entity->ext.harpyFeather.angle,0x20000);
             EntityMove(entity);
-            Hit_CheckWithPlayer((struct HitResult *)bounds,entity);
+            Hit_CheckWithPlayer(&result,entity);
             if(!EntityIsOutsideScreen(entity,1)) break;
         }
         case 1:
@@ -670,12 +671,12 @@ void Harpy_UpdateDeath(struct EwramData_EntityData *entity)
 }
 void HarpyFeather_Update(struct EwramData_EntityData *entity)
 {
-    s32 bounds[4];
+    struct HitResult result;
     switch(entity->state)
     {
         case 0:
             EntityMove(entity);
-            Hit_CheckWithPlayer((struct HitResult *)bounds,entity);
+            Hit_CheckWithPlayer(&result,entity);
             if(!EntityIsOutsideScreen(entity,1)) break;
         case 1:
             EntityDelete(entity);

@@ -34,6 +34,7 @@
 #include "hitbox.h"
 #include "damage_numbers.h"
 #include "red_souls_b.h"
+#include "entity_hit.h"
 
 extern s32 Entity_AngleToPoint(struct EwramData_EntityData *,s32,s32);
 extern s32 Player_GetZoneAroundX(s32,s32,s32);
@@ -360,7 +361,7 @@ struct EwramData_EntityData *Graham_CreateSceneProjectile(s32 xInput,s32 yInput,
  */
 void GrahamSceneProjectile_Update(struct EwramData_EntityData *entity)
 {
-    s32 bounds[4];
+    struct HitResult result;
     if(entity->state<=1)
     {
         if(entity->ext.grahamShot.homing)
@@ -384,7 +385,7 @@ void GrahamSceneProjectile_Update(struct EwramData_EntityData *entity)
         entity->posX.whole+=entity->velX.whole;
         entity->posY.whole+=entity->velY.whole;
     }
-    Hit_CheckWithPlayer((struct HitResult *)bounds,entity);
+    Hit_CheckWithPlayer(&result,entity);
     switch(entity->state)
     {
         case 0:

@@ -19,6 +19,7 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
 
 /* Triton movement (Triton_UpdateMove) and attack: fire the homing shot, or raise the spear and emit wave
  * particles until the spear comes back. */
@@ -329,7 +330,7 @@ struct EwramData_EntityData *Triton_CreateSpear(struct EwramData_EntityData *own
 void TritonSpear_Update(struct EwramData_EntityData *spear)
 {
     struct EwramData_EntityData *owner = spear->ext.tritonSpear.owner;
-    s32 bounds[4];
+    struct HitResult result;
     s8 offsets[32];
     struct SpriteBox box;
     s32 x, y;
@@ -555,7 +556,7 @@ restart:
         }
     }
     if (spear->state == 0 && !gEwramData->gameState.bestiaryPreview)
-        Hit_CheckWithPlayer((struct HitResult *)bounds, spear);
+        Hit_CheckWithPlayer(&result, spear);
     return;
 fail:
     EntityDelete(spear);
@@ -605,7 +606,7 @@ void Triton_SpawnHomingShot(struct EwramData_EntityData *owner, s32 x, s32 y)
  * frames. */
 void TritonHomingShot_Update(struct EwramData_EntityData *entity)
 {
-    s32 bounds[4];
+    struct HitResult result;
     if (entity->animScriptIndex == 7 && entity->animDone)
         Anim_StartIndexed(entity, 8, 0, 1);
     if (entity->timer > 49)
@@ -647,7 +648,7 @@ void TritonHomingShot_Update(struct EwramData_EntityData *entity)
     if (entity->timer++ > 179)
         EntityDelete(entity);
     else if (entity->timer & 1)
-        Hit_CheckWithPlayer((struct HitResult *)bounds, entity);
+        Hit_CheckWithPlayer(&result, entity);
 }
 
 /* Create the wave particle (TritonWaveParticle_Update) at the owner + (x, y), its

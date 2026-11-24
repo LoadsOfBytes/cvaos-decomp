@@ -30,6 +30,7 @@
 #include "player_level.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "hit_shared_history.h"
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 void DeathWeapon_DamagePlayerOnContact(struct EwramData_EntityData *);
@@ -39,7 +40,6 @@ void DeathWeapon_DamagePlayerOnContact(struct EwramData_EntityData *);
 #define FLAGS(e) (e->ext.death.flags)
 #define TO_PIXELS(d) ((d) < 0 ? -(-(d) >> 16) : (d) >> 16)
 
-extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
 extern void SoulPickup_SpawnFromEnemyDefinition(s32, s32, s32, s32);
 extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
 
@@ -56,7 +56,7 @@ void Death_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
  */
 void DeathWeapon_Update(struct EwramData_EntityData *entity)
 {
-    u8 box[16];
+    struct HitResult result;
     struct EwramData_EntityData *owner = &gEwramData->entityData[(u8)entity->ext.deathHelper.ownerIndex];
     struct ArmPose *pose = &sDeathWeaponArmPoses[(u8)owner->ext.death.dashStep];
     s32 dx, dy, angle;
@@ -292,7 +292,7 @@ void DeathWeapon_Update(struct EwramData_EntityData *entity)
         dy += Sin(angle) << 4;
     }
     HitBox_SetAttackRaw(entity, ((TO_PIXELS(dx) - 16) & 0xFF) + (((TO_PIXELS(dy) - 16) & 0xFF) << 8) + 0x20200000);
-    Hit_CheckWithPlayer((struct HitResult *)box, entity);
+    Hit_CheckWithPlayer(&result, entity);
 }
 
 /* Rotating one-shot effect. */
@@ -520,7 +520,7 @@ void DeathFloatingWeaponWindow_Update(struct EwramData_EntityData *entity)
  */
 void DeathFloatingWeaponHitBox_Update(struct EwramData_EntityData *entity)
 {
-    u32 buf[4];
+    struct HitResult result;
     struct EwramData_EntityData *owner = &gEwramData->entityData[(u8)entity->ext.deathHelper.ownerIndex];
 
     if ((s16)owner->hp <= 0)
@@ -539,7 +539,7 @@ void DeathFloatingWeaponHitBox_Update(struct EwramData_EntityData *entity)
         entity->posX.whole = owner->posX.whole;
         entity->posY.whole = owner->posY.whole;
         HitBox_SetBodyRaw(entity, *(s32 *)Hit_GetEntityBoxes(owner));
-        Hit_CheckWithPlayerSharedHistory(buf, entity, owner);
+        Hit_CheckWithPlayerSharedHistory(&result, entity, owner);
         break;
     }
 }
@@ -2098,7 +2098,7 @@ void DeathFloatingWeaponHitBox_OnHit(struct EwramData_EntityData *entity, s32 at
 
 void EnemyDeathUpdate(struct EwramData_EntityData *entity)
 {
-    u32 box[4];
+    struct HitResult result;
     switch (entity->state)
     {
     case 0: Death_UpdateIntro(entity); break;
@@ -2120,7 +2120,7 @@ void EnemyDeathUpdate(struct EwramData_EntityData *entity)
     if (!(entity->enemyFlags & 2))
     {
         Enemy_UpdateHitFlash(entity);
-        Hit_CheckWithPlayer((struct HitResult *)box, entity);
+        Hit_CheckWithPlayer(&result, entity);
     }
     Anim_Update(entity);
 }

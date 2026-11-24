@@ -15,13 +15,14 @@
 #include "math_anim.h"
 #include "data/data_4F1444.h"
 #include "hitbox.h"
+#include "entity_hit.h"
 
 
 void KyomaDemon_UpdateLurk(struct EwramData_EntityData *);
 
 void EnemyKyomaDemonUpdate(struct EwramData_EntityData *entity)
 {
-    u32 box[4];
+    struct HitResult result;
     struct BgLayerState *background = &gEwramData->bgInfo[1];
     u8 frame;
     if (entity->state != 2)
@@ -31,7 +32,7 @@ void EnemyKyomaDemonUpdate(struct EwramData_EntityData *entity)
     if (Enemy_IsStunned(entity))
     {
         if (entity->state != 2 && entity->ext.kyomaDemon.hidden == 0)
-            Hit_CheckWithPlayer((struct HitResult *)box, entity);
+            Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
@@ -45,7 +46,7 @@ void EnemyKyomaDemonUpdate(struct EwramData_EntityData *entity)
     Anim_Update(entity);
     if (frame != entity->animFrame) Entity_UpdateBoxes(entity);
     if (entity->state != 2 && entity->ext.kyomaDemon.hidden == 0)
-        Hit_CheckWithPlayer((struct HitResult *)box, entity);
+        Hit_CheckWithPlayer(&result, entity);
     entity->ext.kyomaDemon.roomX = entity->posX.whole + background->xPos.whole;
     entity->ext.kyomaDemon.roomY = entity->posY.whole + background->yPos.whole;
 }

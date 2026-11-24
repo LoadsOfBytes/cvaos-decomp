@@ -29,6 +29,7 @@
 #include "hitbox.h"
 #include "player_soma.h"
 #include "red_souls_b.h"
+#include "entity_hit.h"
 
 #define SET_MOSAIC(t)                                                        \
     {                                                                        \
@@ -1600,7 +1601,7 @@ struct EwramData_EntityData *EventScene03_SpawnSoulOrb(s32 x, s32 y, s32 variant
  */
 void EventScene03SoulOrb_Update(struct EwramData_EntityData *entity)
 {
-    u32 collision[4];
+    struct HitResult result;
     if (entity->state <= 1)
     {
         struct EwramData_EntityData *target = gEwramData->playerState.player;
@@ -1615,7 +1616,7 @@ void EventScene03SoulOrb_Update(struct EwramData_EntityData *entity)
         entity->posX.whole += entity->velX.whole;
         entity->posY.whole += entity->velY.whole;
     }
-    Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+    Hit_CheckWithPlayer(&result, entity);
     if ((entity->timer & 3) == 0)
     {
         s32 palette = entity->palette;

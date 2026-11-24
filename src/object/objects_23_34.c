@@ -22,6 +22,7 @@
 #include "data/data_4F1444.h"
 #include "damage_numbers.h"
 #include "obj_palette.h"
+#include "entity_hit.h"
 
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 
@@ -287,7 +288,7 @@ void Object25_UpdateState(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
     struct EwramData_EntityData *spawner = entity->ext.object25.spawner;
-    u32 hitInfo[4];
+    struct HitResult result;
 
     switch (entity->subState)
     {
@@ -348,7 +349,7 @@ void Object25_UpdateState(struct EwramData_EntityData *entity)
     }
     Anim_Update(entity);
     if (entity->subState == 1)
-        Hit_CheckWithPlayer((struct HitResult *)hitInfo, entity);
+        Hit_CheckWithPlayer(&result, entity);
 }
 
 /**
@@ -586,12 +587,12 @@ void Object28_UpdateState(struct EwramData_EntityData *entity)
  */
 void Object28Update(struct EwramData_EntityData *entity)
 {
-    u32 hitInfo[4];
+    struct HitResult result;
 
     if (entity->state == 0)
         Object28_UpdateState(entity);
     Anim_Update(entity);
-    Hit_CheckWithPlayer((struct HitResult *)hitInfo, entity);
+    Hit_CheckWithPlayer(&result, entity);
 }
 
 /**
@@ -726,12 +727,12 @@ void Object27_UpdateState(struct EwramData_EntityData *entity)
  */
 void Object27Update(struct EwramData_EntityData *entity)
 {
-    u32 hitInfo[4];
+    struct HitResult result;
 
     if (entity->state == 0)
         Object27_UpdateState(entity);
     Anim_Update(entity);
-    Hit_CheckWithPlayer((struct HitResult *)hitInfo, entity);
+    Hit_CheckWithPlayer(&result, entity);
 }
 
 /**
@@ -1685,7 +1686,7 @@ void Object32Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *player;
     s32 dx;
-    u32 hitInfo[4];
+    struct HitResult result;
 
     if (entity->state == 0)
         Object32_UpdateState(entity);
@@ -1701,7 +1702,7 @@ void Object32Update(struct EwramData_EntityData *entity)
         if (dy <= 0x1FFFFF)
             Player_QueueEntity(entity, 1);
     }
-    Hit_CheckWithPlayer((struct HitResult *)hitInfo, entity);
+    Hit_CheckWithPlayer(&result, entity);
 }
 
 /**

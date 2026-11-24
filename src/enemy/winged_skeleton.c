@@ -20,6 +20,7 @@
 #include "data/data_118B48.h"
 #include "math_inline.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
 
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 
@@ -48,7 +49,7 @@ void WingedSkeletonShot_DamagePlayerOnContact(struct EwramData_EntityData *entit
  */
 void EnemyWingedSkeletonUpdate(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
     struct EwramData_EntityData *parent;
     struct EwramData_EntityData *head;
     s32 x;
@@ -67,7 +68,7 @@ void EnemyWingedSkeletonUpdate(struct EwramData_EntityData *entity)
     if (Enemy_IsStunned(entity))
     {
         if (entity->state != 2)
-            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+            Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
@@ -495,7 +496,7 @@ void WingedSkeleton_ThrowShot(struct EwramData_EntityData *entity)
  */
 void WingedSkeletonShot_Update(struct EwramData_EntityData *entity)
 {
-    u32 contact[4];
+    struct HitResult result;
     u32 box0 = 0x0404FC00;
     u32 box1 = 0x0404F00C;
     u32 box2 = 0x0404E418;
@@ -541,7 +542,7 @@ void WingedSkeletonShot_Update(struct EwramData_EntityData *entity)
         break;
     }
     if (entity->state == 0)
-        Hit_CheckWithPlayer((struct HitResult *)contact, entity);
+        Hit_CheckWithPlayer(&result, entity);
     Anim_Update(entity);
 }
 

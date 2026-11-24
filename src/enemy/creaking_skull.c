@@ -27,6 +27,8 @@
 #include "data/data_4F1444.h"
 #include "damage_numbers.h"
 #include "music.h"
+#include "entity_hit.h"
+#include "hit_shared_history.h"
 
 void CreakingSkull_UpdateMovement(struct EwramData_EntityData *entity);
 void CreakingSkull_UpdateAttack(struct EwramData_EntityData *entity);
@@ -43,7 +45,6 @@ struct SkullBox {
 
 extern void *memcpy(void *dst, const void *src, unsigned long size);
 extern void BossRecoveryPickup_Spawn(s32 x, s32 y, s32 event, s32 delay, s32 special);
-extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 
 u8 CreakingSkull_LoadGraphics(struct EwramData_EntityData *entity);
@@ -1307,7 +1308,7 @@ struct SkullPartBox { s8 x, y, w, h; };
  */
 void CreakingSkullPart_Update(struct EwramData_EntityData *entity)
 {
-    u8 hit[16];
+    struct HitResult result;
     u8 timers[13];
     struct SkullBox box;
     struct EwramData_EntityData *parent = entity->ext.jointPart.owner;
@@ -1374,7 +1375,7 @@ void CreakingSkullPart_Update(struct EwramData_EntityData *entity)
                     HitBox_SetBody(entity, &box);
                     entity->hit.flags &= 0xFB;
                     entity->hit.flags &= 0xFD;
-                    Hit_CheckWithPlayerSharedHistory(hit, entity, parent);
+                    Hit_CheckWithPlayerSharedHistory(&result, entity, parent);
                 }
                 else if (JOINT(entity) == 1)
                 {
@@ -1396,7 +1397,7 @@ void CreakingSkullPart_Update(struct EwramData_EntityData *entity)
                     HitBox_SetAttack(entity, &box);
                     entity->hit.flags &= 0xFD;
                     entity->hit.flags &= 0xFB;
-                    Hit_CheckWithPlayerSharedHistory(hit, entity, parent);
+                    Hit_CheckWithPlayerSharedHistory(&result, entity, parent);
                 }
                 else if (JOINT(entity) == 2)
                 {
@@ -1418,7 +1419,7 @@ void CreakingSkullPart_Update(struct EwramData_EntityData *entity)
                     HitBox_SetAttack(entity, &box);
                     entity->hit.flags &= 0xFD;
                     entity->hit.flags |= 4;
-                    Hit_CheckWithPlayerSharedHistory(hit, entity, parent);
+                    Hit_CheckWithPlayerSharedHistory(&result, entity, parent);
                 }
             }
             else
@@ -1623,7 +1624,7 @@ void CreakingSkull_SpawnProjectile(struct EwramData_EntityData *owner, s32 x, s3
  */
 void CreakingSkullProjectile_Update(struct EwramData_EntityData *entity)
 {
-    u32 buffer[4];
+    struct HitResult result;
     s32 vy, k;
     s32 r;
     s32 a, b;
@@ -1641,7 +1642,7 @@ void CreakingSkullProjectile_Update(struct EwramData_EntityData *entity)
             break;
         }
         Anim_Update(entity);
-        Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
+        Hit_CheckWithPlayer(&result, entity);
         entity->timer++;
         if (entity->timer & 1)
             break;

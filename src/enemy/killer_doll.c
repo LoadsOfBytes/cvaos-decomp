@@ -17,6 +17,7 @@
 #include "entity_inline.h"
 #include "hitbox.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
 
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 hit, u16 *data, s32 kind);
 extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
@@ -624,7 +625,7 @@ void KillerDoll_ResolveMovementBounds(struct EwramData_EntityData *entity)
 
 void EnemyKillerDollUpdate(struct EwramData_EntityData *entity)
 {
-    u8 buffer[0x10];
+    struct HitResult result;
 
     if (entity->state == 2)
     {
@@ -634,7 +635,7 @@ void EnemyKillerDollUpdate(struct EwramData_EntityData *entity)
     Player_TrackEntity(entity);
     if (Enemy_IsStunned(entity) && entity->state != 0xFF)
     {
-        Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
+        Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
@@ -649,7 +650,7 @@ void EnemyKillerDollUpdate(struct EwramData_EntityData *entity)
     if (entity->state != 0xFF)
     {
         Entity_AnimateWithBoxes(entity);
-        Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
+        Hit_CheckWithPlayer(&result, entity);
     }
 }
 

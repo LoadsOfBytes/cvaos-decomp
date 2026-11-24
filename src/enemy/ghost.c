@@ -20,6 +20,7 @@
 #include "entity_inline.h"
 #include "math_inline.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
 
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
 
@@ -33,7 +34,7 @@ void Ghost_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDat
 /* Update a Ghost or its timed spawn controller. */
 void EnemyGhostUpdate(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
     if (entity->state != 3)
     {
         if (entity->state != 1)
@@ -57,7 +58,7 @@ void EnemyGhostUpdate(struct EwramData_EntityData *entity)
         entity->velX.whole = 0;
         if (entity->state != 1)
         {
-            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+            Hit_CheckWithPlayer(&result, entity);
             return;
         }
     }

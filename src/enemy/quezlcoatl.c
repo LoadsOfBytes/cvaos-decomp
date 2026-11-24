@@ -16,6 +16,7 @@
 #include "data/data_118B48.h"
 #include "damage_numbers.h"
 #include "entity_motion.h"
+#include "entity_hit.h"
 
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 
@@ -33,12 +34,12 @@ void QuezlcoatlPiece_Update(struct EwramData_EntityData *);
 /* Quezlcoatl dispatch and staged destruction of the parent entity. */
 void EnemyQuezlcoatlUpdate(struct EwramData_EntityData *entity)
 {
-    s32 bounds[4];
+    struct HitResult result;
     if(entity->state!=2 && Entity_IsInRect(entity,-16,0,272,176))
         Player_TrackEntity(entity);
     if(Enemy_IsStunned(entity))
     {
-        if(entity->state!=2) Hit_CheckWithPlayer((struct HitResult *)bounds,entity);
+        if(entity->state!=2) Hit_CheckWithPlayer(&result,entity);
         return;
     }
     switch(entity->state)
@@ -309,7 +310,7 @@ void QuezlcoatlSegment_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *owner=ENTITY_OWNER(entity);
     struct BgLayerState *camera=&gEwramData->bgInfo[1];
-    s32 bounds[4];
+    struct HitResult result;
     if(entity->state==0)
     {
         s8 *history;
@@ -341,7 +342,7 @@ void QuezlcoatlSegment_Update(struct EwramData_EntityData *entity)
             entity->ext.quezlcoatl.cameraX=camera->xPos.part16.integer;
             entity->ext.quezlcoatl.cameraY=camera->yPos.part16.integer;
         }
-        if(!(entity->timer&7) && !gEwramData->gameState.bestiaryPreview) Hit_CheckWithPlayer((struct HitResult *)bounds,entity);
+        if(!(entity->timer&7) && !gEwramData->gameState.bestiaryPreview) Hit_CheckWithPlayer(&result,entity);
         if(owner->state==2)
         {
             entity->state=1;

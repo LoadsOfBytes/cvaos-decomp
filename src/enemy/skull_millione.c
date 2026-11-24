@@ -20,6 +20,7 @@
 #include "effects.h"
 #include "data/data_118B48.h"
 #include "hitbox.h"
+#include "entity_hit.h"
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 extern void Entity_FaceTarget(struct EwramData_EntityData *);
@@ -399,13 +400,13 @@ s32 SkullMillioneFamily_Init(struct EwramData_EntityData *entity, u8 variant)
  */
 void SkullMillioneFamily_Update(struct EwramData_EntityData *entity)
 {
-    u32 box[4];
+    struct HitResult result;
     u32 outside = EntityIsOutsideScreen(entity, 4);
     outside = (entity->hidden = outside);
     if (!outside) Player_TrackEntity(entity);
     if (Enemy_IsStunned(entity))
     {
-        if (entity->state != 3) Hit_CheckWithPlayer((struct HitResult *)box, entity);
+        if (entity->state != 3) Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
@@ -422,7 +423,7 @@ void SkullMillioneFamily_Update(struct EwramData_EntityData *entity)
     }
     if (entity->state != 3)
     {
-        Hit_CheckWithPlayer((struct HitResult *)box, entity);
+        Hit_CheckWithPlayer(&result, entity);
         Entity_AnimateWithBoxes(entity);
     }
     Anim_Update(entity);

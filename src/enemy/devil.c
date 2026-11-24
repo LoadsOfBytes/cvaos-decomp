@@ -21,11 +21,12 @@
 #include "data/data_4F1444.h"
 #include "damage_numbers.h"
 #include "effects.h"
+#include "entity_hit.h"
+#include "hit_shared_history.h"
 
 extern void *memcpy(void *dst, const void *src, unsigned long size);
 extern s32 Target_IsInRect(s16, s16, s16, s16);
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
 
 void Devil_UpdateApproach(struct EwramData_EntityData *entity);
 void Devil_UpdateAttack(struct EwramData_EntityData *entity);
@@ -58,7 +59,7 @@ void Devil_OnDamaged(struct EwramData_EntityData *entity, s32 attacker, u16 *hit
  */
 void EnemyDevilUpdate(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
     u8 previous;
 
     if (entity->state != 2 && Entity_IsInRect(entity, -16, 0, 272, 176))
@@ -66,7 +67,7 @@ void EnemyDevilUpdate(struct EwramData_EntityData *entity)
     if (Enemy_IsStunned(entity))
     {
         if (entity->state != 2 && (s8)entity->ext.devil.intangible == 0)
-            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+            Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
@@ -89,7 +90,7 @@ void EnemyDevilUpdate(struct EwramData_EntityData *entity)
     if (previous != entity->animFrame)
         Entity_UpdateBoxes(entity);
     if (entity->state != 2 && (s8)entity->ext.devil.intangible == 0)
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(&result, entity);
 }
 
 /* Devil create: allocates the 8-joint skeleton and one part entity per joint. */
@@ -974,7 +975,7 @@ struct DevilBox {
  */
 void DevilPart_Update(struct EwramData_EntityData *entity)
 {
-    u8 hit[16];
+    struct HitResult result;
     u8 timers[8];
     struct DevilBox box;
     struct EwramData_EntityData *parent = entity->ext.jointPart.owner;
@@ -1047,7 +1048,7 @@ void DevilPart_Update(struct EwramData_EntityData *entity)
                 entity->hit.flags &= 0xFD;
                 entity->hit.flags &= 0xFB;
                 if ((s8)parent->ext.devil.intangible != 1)
-                    Hit_CheckWithPlayerSharedHistory(hit, entity, parent);
+                    Hit_CheckWithPlayerSharedHistory(&result, entity, parent);
             }
             else
             {
@@ -1132,7 +1133,7 @@ void DevilProjectile_Spawn(struct EwramData_EntityData *owner, s32 x, s32 y, s32
  * unk_504), then fall; delete off screen. */
 void DevilProjectile_Update(struct EwramData_EntityData *entity)
 {
-    u32 buffer[4];
+    struct HitResult result;
     struct EwramData_EntityData *owner = entity->ext.devilProjectile.owner;
     u32 box = 0x1818F4F4;
 
@@ -1164,7 +1165,7 @@ void DevilProjectile_Update(struct EwramData_EntityData *entity)
     else
     {
         Anim_Update(entity);
-        Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
+        Hit_CheckWithPlayer(&result, entity);
     }
 }
 

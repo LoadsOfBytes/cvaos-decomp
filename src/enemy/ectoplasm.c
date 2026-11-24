@@ -16,6 +16,7 @@
 #include "data/data_118B48.h"
 #include "hitbox.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
 
 extern s32 Target_IsInRect(s16, s16, s16, s16);
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
@@ -31,7 +32,7 @@ void EctoplasmParticle_Update(struct EwramData_EntityData *entity);
 
 void EnemyEctoplasmUpdate(struct EwramData_EntityData *entity)
 {
-    u32 box[4];
+    struct HitResult result;
     if (entity->state != 1)
     {
         if (EntityIsOutsideScreen(entity, 4)) return;
@@ -42,7 +43,7 @@ void EnemyEctoplasmUpdate(struct EwramData_EntityData *entity)
     if (entity->state != 1) Enemy_UpdateHitFlash(entity);
     if (Entity_IsTimeStopped(entity) && entity->state != 1)
     {
-        Hit_CheckWithPlayer((struct HitResult *)box, entity);
+        Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)

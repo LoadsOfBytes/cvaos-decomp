@@ -30,6 +30,7 @@
 #include "data/data_4F1444.h"
 #include "player_soma.h"
 #include "soul_pickup.h"
+#include "entity_hit.h"
 
 /* Chaos core creation. */
 /* allocation of 10 words in the Chaos core's unk_504 */
@@ -698,7 +699,7 @@ fail:
  */
 void ChaosOrb_Update(struct EwramData_EntityData *entity)
 {
-    u8 box[16];
+    struct HitResult result;
     struct EwramData_EntityData *core = entity->ext.chaosChild.link;
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
     struct ChaosData *data = (struct ChaosData *)core->ext.chaos.data.value;
@@ -831,7 +832,7 @@ void ChaosOrb_Update(struct EwramData_EntityData *entity)
             break;
         }
         Anim_Update(entity);
-        Hit_CheckWithPlayer((struct HitResult *)box, entity);
+        Hit_CheckWithPlayer(&result, entity);
         Enemy_UpdateHitFlash(entity);
     }
     else if (entity->state == 10)
@@ -1032,7 +1033,7 @@ void ChaosOrb_SpawnSeedShot(struct EwramData_EntityData *orb, s32 x, s32 y, s32 
  * target (enemyTarget) when its animation ends; it dies with the orb. */
 void ChaosSeedShot_Update(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
     struct EwramData_EntityData *orb = entity->ext.chaosChild.link;
     struct EwramData *ewram = gEwramData;
     struct BgLayerState *camera = &ewram->bgInfo[1];
@@ -1078,7 +1079,7 @@ void ChaosSeedShot_Update(struct EwramData_EntityData *entity)
             return;
         }
         if (REFLECTED(entity) == 0)
-            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+            Hit_CheckWithPlayer(&result, entity);
         Enemy_UpdateHitFlash(entity);
     }
 check:
@@ -1147,7 +1148,7 @@ void ChaosOrb_SpawnSpark(struct EwramData_EntityData *orb, s32 x, s32 y)
 /* Chaos soul grab: holds the player, who can mash buttons to break free. */
 void ChaosSpark_Update(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
     struct EwramData_EntityData *orb = entity->ext.chaosChild.link;
     struct EwramData *ewram = gEwramData;
     struct BgLayerState *camera = &ewram->bgInfo[1];
@@ -1218,7 +1219,7 @@ void ChaosSpark_Update(struct EwramData_EntityData *entity)
             OFFSET_Y(entity) = gEwramData->playerState.enemyTarget->posY.whole - entity->posY.whole;
             entity->spriteLayer = 9;
         }
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(&result, entity);
     }
     else if (state == 2)
     {
@@ -1358,7 +1359,7 @@ void ChaosOrb_SpawnSoulShot(struct EwramData_EntityData *orb, s32 x, s32 y)
  */
 void ChaosSoulShot_Update(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
     struct EwramData_EntityData *orb = entity->ext.chaosChild.link;
     struct EwramData *ewram = gEwramData;
     struct BgLayerState *camera = &ewram->bgInfo[1];
@@ -1432,7 +1433,7 @@ void ChaosSoulShot_Update(struct EwramData_EntityData *entity)
             entity->hp = 0;
         }
         else
-            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+            Hit_CheckWithPlayer(&result, entity);
     }
     else if (entity->state == 2)
     {
@@ -1763,14 +1764,14 @@ u8 Chaos_LoadGraphics(struct EwramData_EntityData *core)
  * Chaos_UpdateIdle, 3 Chaos_UpdateDefeat dying, 4 frozen). */
 void EnemyChaosUpdate(struct EwramData_EntityData *entity)
 {
-    u8 collision[48];
+    struct HitResult results[3]; /* only results[0] is written; the original reserved 48 bytes */
 
     if (entity->state != 3 && Entity_IsInRect(entity, -16, 0, 272, 176))
         Player_TrackEntity(entity);
     if (Enemy_IsStunned(entity))
     {
         if (entity->state != 3)
-            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+            Hit_CheckWithPlayer(results, entity);
         return;
     }
     switch (entity->state)
@@ -2229,7 +2230,7 @@ void Chaos2_CreatePart(struct EwramData_EntityData *core, s32 x, s32 y, s32 mirr
  * the core is gone or dying; broken parts smoke and blink out. */
 void Chaos2Part_Update(struct EwramData_EntityData *part)
 {
-    u8 collision[16];
+    struct HitResult result;
     struct EwramData_EntityData *core = part->ext.chaosChild.link;
 
     if (part->state == 0)
@@ -2238,7 +2239,7 @@ void Chaos2Part_Update(struct EwramData_EntityData *part)
             Enemy_UpdateHitFlash(part);
         if (part->animScriptIndex == 1 && (s16)FLASH(part)-- <= 0)
             Anim_StartIndexed(part, 0, 2, 1);
-        Hit_CheckWithPlayer((struct HitResult *)collision, part);
+        Hit_CheckWithPlayer(&result, part);
         if (core != NULL && core->updateFunc != NULL
             && core->enemyId == part->enemyId
             && core->state != 3)
@@ -2353,7 +2354,7 @@ struct ShotFrame {
  * frames or when the core is gone or dying. */
 void Chaos2Shot_Update(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
     struct EwramData_EntityData *core = entity->ext.chaosChild.link;
 
     if (entity->state == 0)
@@ -2372,7 +2373,7 @@ void Chaos2Shot_Update(struct EwramData_EntityData *entity)
     else if (entity->state == 1)
     {
         EntityMove(entity);
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(&result, entity);
         if (EntityIsOutsideScreen(entity, 1) || entity->timer++ > 0xEF)
         {
         delete:
@@ -2436,7 +2437,7 @@ void Chaos2_SummonPart(struct EwramData_EntityData *core, s32 x, s32 y, s32 vx, 
  * into sparks, state 10 blinks out. */
 void Chaos2SummonedPart_Update(struct EwramData_EntityData *part)
 {
-    u8 collision[16];
+    struct HitResult result;
     struct PlayerContactDamage fx;
     struct EwramData_EntityData *core = part->ext.chaosChild.link;
     struct EwramData **ewram = &gEwramData;
@@ -2445,7 +2446,7 @@ void Chaos2SummonedPart_Update(struct EwramData_EntityData *part)
     data->summoned = 1;
     if (part->state == 0)
     {
-        Hit_CheckWithPlayer((struct HitResult *)collision, part);
+        Hit_CheckWithPlayer(&result, part);
         if (core != NULL && core->updateFunc != NULL
             && core->enemyId == part->enemyId
             && core->state != 3)
@@ -2766,7 +2767,7 @@ void Chaos2SnakeHead_Update(struct EwramData_EntityData *e)
 {
     struct EwramData_EntityData *core = e->ext.chaosChild.link;
     u8 unused[0x20];
-    u8 collision[0x10];
+    struct HitResult result;
     u8 t8[8];
     u16 t0[5][2];
     u16 t1[8][2];
@@ -3108,7 +3109,7 @@ void Chaos2SnakeHead_Update(struct EwramData_EntityData *e)
                 trail[5] = ANGLE(e);
                 break;
             }
-            Hit_CheckWithPlayer((struct HitResult *)collision, e);
+            Hit_CheckWithPlayer(&result, e);
         }
         else
         {
@@ -3157,7 +3158,7 @@ void Chaos2SnakeHead_Update(struct EwramData_EntityData *e)
  * the rotation. When the head breaks (state 10) fall and blink out. */
 void Chaos2SnakeSegment_Update(struct EwramData_EntityData *seg)
 {
-    u8 collision[16];
+    struct HitResult result;
     struct EwramData_EntityData *head = seg->ext.chaosChild.link;
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
 
@@ -3226,7 +3227,7 @@ void Chaos2SnakeSegment_Update(struct EwramData_EntityData *seg)
                 seg->animFrame = 15;
         }
         if ((seg->timer & 7) == 0)
-            Hit_CheckWithPlayer((struct HitResult *)collision, seg);
+            Hit_CheckWithPlayer(&result, seg);
         if (head->state == 10)
         {
             seg->state = 1;
@@ -3329,10 +3330,10 @@ struct ChaosEffectGfx { s32 tiles; s32 palette; };
 /* Move, bounce within the screen during the first 100 frames, and expire. */
 void Chaos2SnakeShot_Update(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
     struct EwramData_EntityData *owner = entity->ext.chaosChild.link->ext.chaosChild.link;
     EntityMove(entity);
-    Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+    Hit_CheckWithPlayer(&result, entity);
     if (entity->timer < 100)
     {
         if ((u32)(entity->posX.whole - 0x80000) > 0xE00000)

@@ -15,6 +15,7 @@
 #include "data/data_118B48.h"
 #include "entity_util.h"
 #include "hitbox.h"
+#include "entity_hit.h"
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
@@ -290,7 +291,7 @@ void BlueCrowDeathPart_Update(struct EwramData_EntityData *entity)
  */
 void EnemyBlueCrowUpdate(struct EwramData_EntityData *entity)
 {
-    u32 collision[4];
+    struct HitResult result;
 
     if (entity->state == 3)
     {
@@ -305,13 +306,13 @@ void EnemyBlueCrowUpdate(struct EwramData_EntityData *entity)
         Player_TrackEntity(entity);
         if (Enemy_IsStunned(entity))
         {
-            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+            Hit_CheckWithPlayer(&result, entity);
         }
         else
         {
             BlueCrow_UpdateMovement(entity);
             Entity_AnimateWithBoxes(entity);
-            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+            Hit_CheckWithPlayer(&result, entity);
         }
     }
 }
@@ -612,7 +613,7 @@ void RedCrowDeathPart_Update(struct EwramData_EntityData *entity)
  */
 void EnemyRedCrowUpdate(struct EwramData_EntityData *entity)
 {
-    u32 collision[4];
+    struct HitResult result;
 
     if (entity->state == 3)
     {
@@ -627,13 +628,13 @@ void EnemyRedCrowUpdate(struct EwramData_EntityData *entity)
         Player_TrackEntity(entity);
         if (Enemy_IsStunned(entity))
         {
-            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+            Hit_CheckWithPlayer(&result, entity);
         }
         else
         {
             RedCrow_UpdateMovement(entity);
             Entity_AnimateWithBoxes(entity);
-            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+            Hit_CheckWithPlayer(&result, entity);
         }
     }
 }

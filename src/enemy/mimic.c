@@ -17,6 +17,7 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
 
 extern s32 Target_IsInRect(s16 x, s16 y, s32 w, s32 h);
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
@@ -33,7 +34,7 @@ void MimicTrigger_OnHit(struct EwramData_EntityData *, s32, u16 *);
 /* Mimic: dispatch state, refresh the box on frame changes and run collision. */
 void EnemyMimicUpdate(struct EwramData_EntityData *entity)
 {
-    u32 buffer[4];
+    struct HitResult result;
     union MimicAnimation animation = sMimicAnimation;
     u8 frame;
     entity->ext.mimic.flags = 0;
@@ -56,7 +57,7 @@ void EnemyMimicUpdate(struct EwramData_EntityData *entity)
     }
     else Anim_Update(entity);
     if (frame != entity->animFrame) Entity_UpdateBoxes(entity);
-    if (entity->state != 1 && !(entity->ext.mimic.flags & 1)) Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
+    if (entity->state != 1 && !(entity->ext.mimic.flags & 1)) Hit_CheckWithPlayer(&result, entity);
 }
 
 /* Mimic initialization, including the dormant and alternate room-start paths. */
@@ -232,12 +233,12 @@ void Mimic_SpawnTrigger(struct EwramData_EntityData *owner, s32 x, s32 y)
  */
 void MimicTrigger_Update(struct EwramData_EntityData *entity)
 {
-    u8 collision[0x10];
+    struct HitResult result;
 
     switch (entity->state)
     {
         case 0:
-            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+            Hit_CheckWithPlayer(&result, entity);
             break;
         case 1:
             entity->hidden = 1;

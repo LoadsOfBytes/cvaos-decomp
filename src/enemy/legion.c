@@ -28,6 +28,7 @@
 #include "data/data_4F1444.h"
 #include "math_inline.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
 
 extern s32 Entity_MoveWithFilteredBoxCollision(struct EwramData_EntityData *, s32, s32, s32, s32, s32, s32);
 extern s32 Entity_MoveWithBoxCollision(struct EwramData_EntityData *, s32, s32, s32, s32, s32, s32);
@@ -69,7 +70,7 @@ void LegionShot_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void EnemyLegionUpdate(struct EwramData_EntityData *entity)
 {
     /* Original scratch area is 0x30 bytes. */
-    u32 box[12];
+    struct HitResult results[3]; /* only results[0] is written; the original reserved 48 bytes */
     if (entity->state != 2)
     {
         if (Entity_IsInRect(entity, -16, 0, 0x110, 0xB0)) Player_TrackEntity(entity);
@@ -77,7 +78,7 @@ void EnemyLegionUpdate(struct EwramData_EntityData *entity)
     }
     if (Entity_IsTimeStopped(entity) && entity->state != 2)
     {
-        Hit_CheckWithPlayer((struct HitResult *)box, entity);
+        Hit_CheckWithPlayer(results, entity);
         return;
     }
     switch (entity->state)
@@ -93,7 +94,7 @@ void EnemyLegionUpdate(struct EwramData_EntityData *entity)
     }
     Anim_Update(entity);
     if (entity->state != 2 && !(entity->ext.legion.flags & 1))
-        Hit_CheckWithPlayer((struct HitResult *)box, entity);
+        Hit_CheckWithPlayer(results, entity);
 }
 
 struct LegionData {
@@ -1524,7 +1525,7 @@ fail:
 void LegionCorePart_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *owner = entity->ext.legionPart.owner;
-    u8 buffer[0x10];
+    struct HitResult result;
     u32 b0 = 0x1934FFE4, b1 = 0x1524ECF5;
     u32 b4 = 0x1932E8E6, b5 = 0x1521FFF7;
     u32 b2 = 0x1522EBE8, b3 = 0x1932FFE8;
@@ -1663,7 +1664,7 @@ void LegionCorePart_Update(struct EwramData_EntityData *entity)
         entity->posX.whole = owner->posX.whole + entity->ext.legionPart.offsetX;
         entity->posY.whole = owner->posY.whole + entity->ext.legionPart.offsetY;
         if (!(*((u8 *)gEwramData + 0x8E) & 0x40))
-            Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
+            Hit_CheckWithPlayer(&result, entity);
         Enemy_UpdateHitFlash(entity);
         if (owner->state == 2)
         {
@@ -2002,7 +2003,7 @@ void LegionDestructibleFragment_Update(struct EwramData_EntityData *entity)
     u32 cur;
     u32 res;
     s32 x;
-    u16 hitbox[8];
+    struct HitResult result;
     owner = entity->ext.legionPart.owner;
     bg = &gEwramData->bgInfo[1];
     do { /* FAKEMATCH: keeps the constant in a register (no move to its use in local-alloc) */
@@ -2060,7 +2061,7 @@ void LegionDestructibleFragment_Update(struct EwramData_EntityData *entity)
             } while (0);
         }
         Enemy_UpdateHitFlash(entity);
-        Hit_CheckWithPlayer((struct HitResult *)hitbox, entity);
+        Hit_CheckWithPlayer(&result, entity);
         if (owner && owner->updateFunc && owner->enemyId == entity->enemyId
             && owner->state != 2) {
             Anim_Update(entity);
@@ -2514,10 +2515,10 @@ s32 Legion_GetPathEdge(s32 x, s32 y, s32 size)
  */
 void LegionShot_Update(struct EwramData_EntityData *entity)
 {
-    u8 collision[0x10];
+    struct HitResult result;
 
     EntityMove(entity);
-    Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+    Hit_CheckWithPlayer(&result, entity);
     if (EntityIsOutsideScreen(entity, 1))
         EntityDelete(entity);
     else if (entity->timer++ >= 0xF0)

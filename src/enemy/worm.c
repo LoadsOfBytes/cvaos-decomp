@@ -20,9 +20,10 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
+#include "hit_shared_history.h"
 
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
 extern s32 Target_IsInRect(s16, s16, s16, s16);
 
 void Worm_SettleOnGround(struct EwramData_EntityData *);
@@ -280,7 +281,7 @@ void WormSegment_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *target = entity->ext.worm.previous;
     struct EwramData_EntityData *owner = entity->ext.worm.root;
-    u8 buf[0x10];
+    struct HitResult result;
     s32 angle = 0;
     s32 amp = 0;
 
@@ -292,7 +293,7 @@ void WormSegment_Update(struct EwramData_EntityData *entity)
             if (owner->state == 3)
                 return;
             Player_QueueEntity(entity, 0);
-            Hit_CheckWithPlayerSharedHistory(buf, entity, owner);
+            Hit_CheckWithPlayerSharedHistory(&result, entity, owner);
             return;
         }
         Player_QueueEntity(entity, 1);
@@ -386,7 +387,7 @@ void WormSegment_Update(struct EwramData_EntityData *entity)
         }
         ObjAffine_Set((u16)EntityAngleTo(entity, target) + angle, 0x10000, amp + 0x10000, entity->flipX, 0, entity->affineIndex);
         if (owner->state != 3)
-            Hit_CheckWithPlayerSharedHistory(buf, entity, owner);
+            Hit_CheckWithPlayerSharedHistory(&result, entity, owner);
         Anim_Update(entity);
     }
 }
@@ -432,7 +433,7 @@ s32 Worm_GetSlopeAngle(struct EwramData_EntityData *e)
 static inline struct EwramData_EntityData *CurV(struct EwramData *ew) { return *(struct EwramData_EntityData * volatile *)&ew->playerState.enemyTarget; }
 void Worm_Update(struct EwramData_EntityData *entity)
 {
-    u8 buffer[16];
+    struct HitResult result;
     s32 zero = 0;
     s32 angle = 0;
     u32 n;
@@ -446,7 +447,7 @@ void Worm_Update(struct EwramData_EntityData *entity)
             if (entity->state == 3)
                 return;
             Player_QueueEntity(entity, 0);
-            Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
+            Hit_CheckWithPlayer(&result, entity);
             return;
         }
         if (entity->state != 3)
@@ -523,7 +524,7 @@ void Worm_Update(struct EwramData_EntityData *entity)
     }
     if (entity->state != 3)
     {
-        Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
+        Hit_CheckWithPlayer(&result, entity);
         angle = Worm_GetSlopeAngle(entity);
         entity->accelY.whole = angle;
     }

@@ -28,6 +28,7 @@
 #include "entity_inline.h"
 #include "hitbox.h"
 #include "soul_pickup.h"
+#include "entity_hit.h"
 
 
 void BossRecoveryPickup_Draw(struct EwramData_EntityData *);
@@ -459,7 +460,7 @@ void BossRecoveryPickupParticle_Update(struct EwramData_EntityData *entity)
 void BossRecoveryPickup_Update(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *camera=&gEwramData->bgInfo[1];
-    s32 bounds[4];
+    struct HitResult result;
     switch(entity->state)
     {
         case 0:
@@ -547,7 +548,7 @@ void BossRecoveryPickup_Update(struct EwramData_EntityData *entity)
                     entity->posY.whole+=Sin((s16)PHASE(entity)/4)/4;
                 }
             }
-            { s32 collision=Hit_CheckWithPlayer((struct HitResult *)bounds,entity);
+            { s32 collision=Hit_CheckWithPlayer(&result,entity);
             collision=(u32)collision<<16;
             collision=(u32)collision>>16;
             collision=(u8)(collision & 1); if(collision)

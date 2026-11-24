@@ -17,6 +17,7 @@
 #include "data/data_118B48.h"
 #include "hitbox.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
 
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *,s32,u16 *,s32);
 extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
@@ -94,7 +95,7 @@ fail:
 #define TIMER(e) ((e)->ext.ghostDancer.timer)
 void EnemyGhostDancerUpdate(struct EwramData_EntityData *entity)
 {
-    s32 bounds[4];
+    struct HitResult result;
     if(entity->state==5)
     {
         GhostDancer_UpdateBestiaryPreview(entity);
@@ -139,7 +140,7 @@ void EnemyGhostDancerUpdate(struct EwramData_EntityData *entity)
     if(Enemy_IsStunned(entity))
     {
         if(entity->state!=3)
-            Hit_CheckWithPlayer((struct HitResult *)bounds,entity);
+            Hit_CheckWithPlayer(&result,entity);
         return;
     }
     switch(entity->state)
@@ -154,7 +155,7 @@ void EnemyGhostDancerUpdate(struct EwramData_EntityData *entity)
     }
     Entity_AnimateWithBoxes(entity);
     if(entity->state!=3)
-        Hit_CheckWithPlayer((struct HitResult *)bounds,entity);
+        Hit_CheckWithPlayer(&result,entity);
 }
 
 /* Alternate movement helper reacts to the player's distance and random pauses. */

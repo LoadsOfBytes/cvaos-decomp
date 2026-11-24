@@ -38,7 +38,7 @@ Measured on 2026-11-24 from the build output and source scans.
 | Structure fields named | 🔄 **96.5 %** (3,174 / 3,289 declared; 99.9 % of accesses) – most of the rest are the offset-named slots of the raw work-area view |
 | Entity work area as typed structures | 🔄 368 per-type structures; 24 lines and 6 macros still use the raw offset view |
 | Source files grouped into modules | 🔄 **95 %** – the 1,701 ROM-address files (`code_XXXXXXXX.c`) are 172 named files: 163 complete modules and 9 small files still split off only for build reasons (see *File layout*); no `code_XXXXXXXX` name left |
-| Declarations in headers | 🔄 each module's functions used by other files are declared in `include/<module>.h`; no implicit declarations; 27 functions keep caller-specific prototypes (352 local declarations); file-internal forward declarations in one block at the top of each file; ROM data declared in `include/data/` (18 tables still local; see *Known limitations*) |
+| Declarations in headers | 🔄 each module's functions used by other files are declared in `include/<module>.h`; no implicit declarations; 27 functions keep caller-specific prototypes (341 local declarations); file-internal forward declarations in one block at the top of each file; ROM data declared in `include/data/` (18 tables still local; see *Known limitations*) |
 | Code cleanup | 🔄 entity callbacks typed (`EntityFunc`), duplicated `static inline` helpers merged into shared headers; 87.8 % of functions use neither compiler tricks nor matching-only constructs such as `goto` (633 `goto` left) |
 | Hard-coded addresses | ✅ none for ROM data and RAM variables – every table, graphics, palette, map and room used from C is referenced by a symbol (223 data labels added); 28 lines still compute VRAM addresses with integer arithmetic |
 | Removing compiler tricks (`FAKEMATCH`) | 🔄 275 lines left in 73 of 181 C files |
@@ -97,9 +97,7 @@ name or comment describes the game correctly. Corrections are very welcome.
   prototype in the original code – and one shared prototype would change their
   code; a comment explains such a declaration where the reason is known. Callers
   that use their own view of a shared structure pass it with an explicit pointer
-  cast (e.g. `Hit_CheckWithPlayer((struct HitResult *)collision, entity)`, where
-  the caller keeps the raw stack buffer the original code used). ROM data used
-  from C is declared in `include/data/<data file>.h` (one
+  cast. ROM data used from C is declared in `include/data/<data file>.h` (one
   header per `asm/data/` file, in address order, together with the structures
   that describe the tables); 18 tables are still declared locally – 12 because
   different files read them through different types (e.g. `u8[]` vs. a

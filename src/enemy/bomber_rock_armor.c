@@ -16,6 +16,7 @@
 #include "effects.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "entity_hit.h"
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 extern void Entity_FaceTarget(struct EwramData_EntityData *entity, s32 unused1, u16 *unused2);
@@ -37,11 +38,11 @@ void BomberRockArmor_OnHit(struct EwramData_EntityData *entity, s32 attacker, u1
  */
 void BomberArmorBomb_Update(struct EwramData_EntityData *entity)
 {
-    u8 hit[0x10];
+    struct HitResult hit;
     struct EwramData_EntityData *trail;
     s32 result;
 
-    Hit_CheckWithPlayer((struct HitResult *)hit, entity);
+    Hit_CheckWithPlayer(&hit, entity);
     if (entity->state != 0)
     {
         if ((s16)entity->hp == 0 && entity->state != 3)
@@ -180,12 +181,12 @@ void RockArmorRockPiece_Update(struct EwramData_EntityData *entity)
  */
 void RockArmorRock_Update(struct EwramData_EntityData *entity)
 {
-    u8 hit[0x10];
+    struct HitResult result;
     s32 i;
     struct EwramData_EntityData *piece;
     s32 box;
 
-    Hit_CheckWithPlayer((struct HitResult *)hit, entity);
+    Hit_CheckWithPlayer(&result, entity);
     if (entity->state != 0)
     {
         if ((s16)entity->hp == 0 && entity->state != 2)
@@ -608,7 +609,7 @@ void EnemyBomberArmorUpdate(struct EwramData_EntityData *entity)
 
 void EnemyRockArmorUpdate(struct EwramData_EntityData *entity)
 {
-    u32 box[4];
+    struct HitResult result;
     if (Enemy_PreUpdate(entity)) return;
     switch (entity->state)
     {
@@ -623,6 +624,6 @@ void EnemyRockArmorUpdate(struct EwramData_EntityData *entity)
         break;
     case 3: Anim_Update(entity); return;
     }
-    if (entity->state != 2) Hit_CheckWithPlayer((struct HitResult *)box, entity);
+    if (entity->state != 2) Hit_CheckWithPlayer(&result, entity);
     Entity_AnimateWithBoxes(entity);
 }

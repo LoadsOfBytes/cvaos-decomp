@@ -21,6 +21,7 @@
 #include "hitbox.h"
 #include "damage_numbers.h"
 #include "sound.h"
+#include "entity_hit.h"
 
 extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
@@ -56,7 +57,7 @@ s32 Ukoback_LoadGraphics(struct EwramData_EntityData *entity);
  */
 void EnemyImpUpdate(struct EwramData_EntityData *entity)
 {
-    u32 collision[4];
+    struct HitResult result;
 
     if (entity->state == 4)
     {
@@ -66,7 +67,7 @@ void EnemyImpUpdate(struct EwramData_EntityData *entity)
     Player_TrackEntity(entity);
     if (Enemy_IsStunned(entity) && entity->state != 0xFF && entity->state != 3)
     {
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(&result, entity);
         return;
     }
     if (Target_GetX(entity) == entity->posX.whole
@@ -98,7 +99,7 @@ void EnemyImpUpdate(struct EwramData_EntityData *entity)
     Entity_AnimateWithBoxes(entity);
     if (entity->state == 0xFF || entity->state == 3)
         return;
-    Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+    Hit_CheckWithPlayer(&result, entity);
 }
 
 #define ABS(x) ((x) < 0 ? -(x) : (x))
@@ -707,7 +708,7 @@ void EnemyTinyDevilCreate(struct EwramData_EntityData *entity)
  */
 void EnemyTinyDevilUpdate(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
     s32 stunned;
 
     if (entity->state == 3)
@@ -725,7 +726,7 @@ void EnemyTinyDevilUpdate(struct EwramData_EntityData *entity)
     stunned = Enemy_IsStunned(entity);
     if (stunned)
     {
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(&result, entity);
         return;
     }
     if (Target_GetX(entity) == entity->posX.whole && Target_GetY(entity) == entity->posY.whole

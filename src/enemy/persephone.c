@@ -18,6 +18,7 @@
 #include "data/data_118B48.h"
 #include "damage_numbers.h"
 #include "entity_motion.h"
+#include "entity_hit.h"
 
 extern s32 Target_IsInRect(s16, s16, s16, s16);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
@@ -35,7 +36,7 @@ void PersephoneAttackBox_Update(struct EwramData_EntityData *);
 /* Dispatch Persephone's AI, death, reaction and display states. */
 void EnemyPersephoneUpdate(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
     if (entity->state != 2)
     {
         if (EntityIsOutsideScreen(entity, 4)) return;
@@ -48,7 +49,7 @@ void EnemyPersephoneUpdate(struct EwramData_EntityData *entity)
     if (entity->hitFlashTimer && entity->state != 3 && entity->state != 2)
     {
 collision_only:
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
@@ -542,8 +543,8 @@ void Persephone_SpawnAttackBox(struct EwramData_EntityData *parent, s32 x, s32 y
  */
 void PersephoneAttackBox_Update(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
-    Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+    struct HitResult result;
+    Hit_CheckWithPlayer(&result, entity);
     if (entity->ext.persephone.boxTime-- <= 0) EntityDelete(entity);
 }
 

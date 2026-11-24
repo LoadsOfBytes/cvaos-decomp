@@ -20,8 +20,9 @@
 #include "player_level.h"
 #include "data/data_118B48.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
+#include "hit_shared_history.h"
 
-extern void Hit_CheckWithPlayerSharedHistory(void *res, struct EwramData_EntityData *entity, struct EwramData_EntityData *owner);
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 
 s32 Gladiator_LoadGraphics(struct EwramData_EntityData *entity);
@@ -302,7 +303,7 @@ void Gladiator_OnDamaged(struct EwramData_EntityData *entity, s32 unused1, u16 *
  */
 void GladiatorBody_Update(struct EwramData_EntityData *entity)
 {
-    u8 box[0x10];
+    struct HitResult result;
     s16 dy[4];
     s16 dx[12];
     struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
@@ -370,7 +371,7 @@ void GladiatorBody_Update(struct EwramData_EntityData *entity)
         else
             Anim_Update(entity);
         if (owner->animScriptIndex == 0xC && !gEwramData->gameState.bestiaryPreview)
-            Hit_CheckWithPlayerSharedHistory(box, entity, owner);
+            Hit_CheckWithPlayerSharedHistory(&result, entity, owner);
         return;
     delete:
         EntityDelete(entity);
@@ -396,7 +397,7 @@ void GladiatorBody_Update(struct EwramData_EntityData *entity)
  */
 void GladiatorArm_Update(struct EwramData_EntityData *entity)
 {
-    u8 box[0x10];
+    struct HitResult result;
     s16 dy[4];
     s16 dx[12];
     struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
@@ -497,7 +498,7 @@ void GladiatorArm_Update(struct EwramData_EntityData *entity)
         else
             Anim_Update(entity);
         if (owner->animScriptIndex == 0xC && !gEwramData->gameState.bestiaryPreview)
-            Hit_CheckWithPlayerSharedHistory(box, entity, owner);
+            Hit_CheckWithPlayerSharedHistory(&result, entity, owner);
         return;
     delete:
         EntityDelete(entity);
@@ -658,7 +659,7 @@ void GladiatorArm_FireShot(struct EwramData_EntityData *entity, s32 dx, s32 dy, 
  */
 void GladiatorShot_Update(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
     s32 x, y;
     u32 d;
@@ -688,7 +689,7 @@ void GladiatorShot_Update(struct EwramData_EntityData *entity)
             return;
         }
         Anim_Update(entity);
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(&result, entity);
         break;
     case 1:
         ObjAffine_Free(entity->affineIndex);
@@ -704,7 +705,7 @@ void GladiatorShot_Update(struct EwramData_EntityData *entity)
             return;
         }
         Anim_Update(entity);
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(&result, entity);
         break;
     }
     d = -0x8000;
@@ -759,7 +760,7 @@ void GladiatorShot_CreateTip(struct EwramData_EntityData *owner)
 
 void GladiatorShotTip_Update(struct EwramData_EntityData *entity)
 {
-    u32 buffer[4];
+    struct HitResult result;
     struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
     if (owner != NULL && owner->updateFunc != NULL
         && owner->enemyId == 0x5D && entity->state == 0)
@@ -767,7 +768,7 @@ void GladiatorShotTip_Update(struct EwramData_EntityData *entity)
         s32 x, y;
         entity->hidden = owner->hidden;
         Anim_Update(entity);
-        Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
+        Hit_CheckWithPlayer(&result, entity);
         x = FixedMultiply(Sin((u16)owner->ext.gladiatorShot.angle + 0x4000), 0x80000);
         y = FixedMultiply(Sin((u16)owner->ext.gladiatorShot.angle), 0x80000);
         entity->posX.whole = x + owner->posX.whole;
@@ -955,7 +956,7 @@ void GladiatorPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 
 /* Gladiator: dispatch the AI (0), the death (1) and a frozen state (2). */
 void EnemyGladiatorUpdate(struct EwramData_EntityData *entity)
 {
-    u8 collision[48];
+    struct HitResult results[3]; /* only results[0] is written; the original reserved 48 bytes */
 
     if (entity->state != 1)
     {
@@ -964,7 +965,7 @@ void EnemyGladiatorUpdate(struct EwramData_EntityData *entity)
     }
     if (Entity_IsTimeStopped(entity) && entity->state != 1)
     {
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(results, entity);
         return;
     }
     switch (entity->state)

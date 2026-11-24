@@ -18,6 +18,7 @@
 #include "data/data_4F1444.h"
 #include "enemy_common.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
 
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 
@@ -246,7 +247,7 @@ void Tsuchinoko_SpawnDroplet(struct EwramData_EntityData *parent)
  */
 void TsuchinokoShot_Update(struct EwramData_EntityData *entity)
 {
-    u32 collision[4];
+    struct HitResult result;
 
     if (entity->state == 0)
     {
@@ -257,7 +258,7 @@ void TsuchinokoShot_Update(struct EwramData_EntityData *entity)
             return;
         }
     }
-    Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+    Hit_CheckWithPlayer(&result, entity);
     Anim_Update(entity);
 }
 
@@ -345,11 +346,11 @@ void Tsuchinoko_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 
 void EnemyTsuchinokoUpdate(struct EwramData_EntityData *entity)
 {
-    u32 box[4];
+    struct HitResult result;
     if (entity->state != 2) Enemy_UpdateHitFlash(entity);
     if (Entity_IsTimeStopped(entity) && entity->state != 2)
     {
-        Hit_CheckWithPlayer((struct HitResult *)box, entity);
+        Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)

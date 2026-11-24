@@ -16,6 +16,7 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
 
 extern s32 Target_IsInRect(s16 x, s16 y, s32 w, s32 h);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
@@ -313,7 +314,7 @@ struct HitRect8 {
  */
 void ZombieSoldierGrenade_Update(struct EwramData_EntityData *entity)
 {
-    u32 buffer[4];
+    struct HitResult result;
     struct HitRect8 rect = { -12, -12, 24, 24 };
     s32 res;
     s32 r, a, b;
@@ -407,7 +408,7 @@ void ZombieSoldierGrenade_Update(struct EwramData_EntityData *entity)
         if (entity->timer <= 0x12)
         {
         hit:
-            Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
+            Hit_CheckWithPlayer(&result, entity);
         }
         else
             entity->hit.flags |= 2;

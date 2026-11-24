@@ -20,6 +20,7 @@
 #include "damage_numbers.h"
 #include "effects.h"
 #include "entity_motion.h"
+#include "entity_hit.h"
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *,u8 *,void *,u8,void *);
 extern void Entity_FaceTarget(struct EwramData_EntityData *);
@@ -101,7 +102,7 @@ void EnemyAlastorCreate(struct EwramData_EntityData *entity)
 /* Alastor behavior dispatch and collision/animation refresh. */
 void EnemyAlastorUpdate(struct EwramData_EntityData *entity)
 {
-    u8 buffer[16];
+    struct HitResult result;
     s32 previous=entity->ext.alastor.angle;
     s32 facing=entity->flipX;
     if (entity->state==8)
@@ -121,7 +122,7 @@ void EnemyAlastorUpdate(struct EwramData_EntityData *entity)
             return;
         if (!(entity->ext.alastor.flags & 0x20) && entity->state!=0)
         {
-            Hit_CheckWithPlayer((struct HitResult *)buffer,entity);
+            Hit_CheckWithPlayer(&result,entity);
             return;
         }
     }
@@ -139,7 +140,7 @@ void EnemyAlastorUpdate(struct EwramData_EntityData *entity)
     if (entity->ext.alastor.angle!=previous || entity->flipX!=facing)
         Alastor_UpdateHitBoxes(entity);
     if (!(entity->ext.alastor.flags & 0x20))
-        Hit_CheckWithPlayer((struct HitResult *)buffer,entity);
+        Hit_CheckWithPlayer(&result,entity);
 }
 
 /* Alastor appearance and blink sequence. */

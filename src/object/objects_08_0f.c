@@ -22,6 +22,7 @@
 #include "data/data_0E5364.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "entity_hit.h"
 
 extern s32 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 extern void (*sObject0CTriggerFuncs[])(struct EwramData_EntityData *, struct Object0CTrigger *);
@@ -360,7 +361,7 @@ fail:
  */
 void Object08Update(struct EwramData_EntityData *entity)
 {
-    u16 hit[8];
+    struct HitResult result;
     struct EwramData_EntityData *child;
     s32 r;
     u16 x, y;
@@ -380,8 +381,8 @@ void Object08Update(struct EwramData_EntityData *entity)
     }
     if (entity->state != 0)
         return;
-    Hit_CheckWithPlayer((struct HitResult *)hit, entity);
-    if (!(hit[0] & 0x1A))
+    Hit_CheckWithPlayer(&result, entity);
+    if (!(result.flags & 0x1A))
         return;
     ObjGfx_Find(sCommonObjectGfx);
     child = EntityCreateInRange(0x49, 0xCF, BreakableBlock_SpawnDust);
@@ -719,7 +720,7 @@ remove:
  */
 void Object0DUpdate(struct EwramData_EntityData *entity)
 {
-    u16 box[8];
+    struct HitResult result;
     s32 angle;
     s32 impulse;
 
@@ -743,7 +744,7 @@ void Object0DUpdate(struct EwramData_EntityData *entity)
     else if (gEwramData->playerState.standingPlatform != entity)
         entity->subState = 0;
 hit:
-    if ((u16)Hit_CheckWithPlayer((struct HitResult *)box, entity) && (box[0] & 0x1A))
+    if ((u16)Hit_CheckWithPlayer(&result, entity) && (result.flags & 0x1A))
     {
         impulse = 0x100;
         PlaySong(0x112);

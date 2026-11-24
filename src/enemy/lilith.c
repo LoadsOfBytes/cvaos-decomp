@@ -18,6 +18,7 @@
 #include "data/data_118B48.h"
 #include "damage_numbers.h"
 #include "entity_motion.h"
+#include "entity_hit.h"
 
 extern s32 Target_IsInRect(s16, s16, s16, s16);
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
@@ -35,7 +36,7 @@ void LilithShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hi
 void EnemyLilithUpdate(struct EwramData_EntityData *entity)
 {
     /* Original reserves 0x30 bytes for this scratch area. */
-    u32 box[12];
+    struct HitResult results[3]; /* only results[0] is written; the original reserved 48 bytes */
     u8 frame;
     if (entity->state != 2)
     {
@@ -45,7 +46,7 @@ void EnemyLilithUpdate(struct EwramData_EntityData *entity)
     if (Enemy_IsStunned(entity))
     {
         if (entity->state != 2 && (s8)entity->ext.lilith.hidden == 0)
-            Hit_CheckWithPlayer((struct HitResult *)box, entity);
+            Hit_CheckWithPlayer(results, entity);
         return;
     }
     switch (entity->state)
@@ -59,7 +60,7 @@ void EnemyLilithUpdate(struct EwramData_EntityData *entity)
     Anim_Update(entity);
     if (frame != entity->animFrame) Entity_UpdateBoxes(entity);
     if (entity->state != 2 && (s8)entity->ext.lilith.hidden == 0)
-        Hit_CheckWithPlayer((struct HitResult *)box, entity);
+        Hit_CheckWithPlayer(results, entity);
 }
 
 void EnemyLilithCreate(struct EwramData_EntityData *entity)
@@ -491,7 +492,7 @@ void Lilith_SpawnShot(struct EwramData_EntityData *owner, s32 dx, s32 dy)
 
 void LilithShot_Update(struct EwramData_EntityData *entity)
 {
-    s32 buffer[4];
+    struct HitResult result;
     switch (entity->state)
     {
     case 0:
@@ -504,7 +505,7 @@ void LilithShot_Update(struct EwramData_EntityData *entity)
         }
         EntitySetVelocityFromAngle(entity, entity->ext.lilithShot.angle, 0x10000);
         EntityMove(entity);
-        Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
+        Hit_CheckWithPlayer(&result, entity);
         if (EntityIsOutsideScreen(entity, 1)) entity->deleteRequested = 1;
         break;
     case 1: entity->deleteRequested = 1; break;

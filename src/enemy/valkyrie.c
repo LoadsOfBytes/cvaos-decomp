@@ -19,6 +19,7 @@
 #include "data/data_118B48.h"
 #include "hitbox.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
 
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 
@@ -307,13 +308,13 @@ void Valkyrie_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 
 void EnemyValkyrieUpdate(struct EwramData_EntityData *entity)
 {
-    u32 box[4];
+    struct HitResult result;
     if (Entity_IsInRect(entity, -0x10, 0, 0x110, 0xB0))
         Player_TrackEntity(entity);
     if (Enemy_IsStunned(entity))
     {
         if (entity->state != 2)
-            Hit_CheckWithPlayer((struct HitResult *)box, entity);
+            Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)

@@ -21,6 +21,8 @@
 #include "data/data_4F1444.h"
 #include "math_inline.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
+#include "hit_shared_history.h"
 
 void Golem_UpdateMovement(struct EwramData_EntityData *entity);
 void Golem_UpdateAttack(struct EwramData_EntityData *entity);
@@ -38,7 +40,6 @@ struct GolemBox {
 extern void *memcpy(void *dst, const void *src, unsigned long size);
 extern s32 Target_IsInRect(s16, s16, s16, s16);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
 
 u8 Golem_LoadGraphics(struct EwramData_EntityData *entity);
 void GolemSegment_Update(struct EwramData_EntityData *entity);
@@ -1319,7 +1320,7 @@ struct SegmentBox {
  * out. */
 void GolemSegment_Update(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
     struct SegmentBox box;
     struct EwramData_EntityData *owner = entity->ext.jointPart.owner;
 
@@ -1390,7 +1391,7 @@ void GolemSegment_Update(struct EwramData_EntityData *entity)
             HitBox_SetBody(entity, &box);
             entity->hit.flags &= ~4;
             entity->hit.flags &= ~2;
-            Hit_CheckWithPlayerSharedHistory(collision, entity, owner);
+            Hit_CheckWithPlayerSharedHistory(&result, entity, owner);
         }
         else
         {
@@ -1471,7 +1472,7 @@ void Golem_ThrowDebris(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx,
  * into two; vanish off screen. */
 void GolemDebris_Update(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
     struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
     s32 hit, vx, vy;
 
@@ -1502,7 +1503,7 @@ void GolemDebris_Update(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    Hit_CheckWithPlayerSharedHistory(collision, entity, owner);
+    Hit_CheckWithPlayerSharedHistory(&result, entity, owner);
 }
 
 /* Clones of already decompiled functions, generated with

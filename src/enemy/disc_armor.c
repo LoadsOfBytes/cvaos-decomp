@@ -735,7 +735,7 @@ void EnemyDiscArmorCreate(struct EwramData_EntityData *entity)
 
 void EnemyDiscArmorUpdate(struct EwramData_EntityData *entity)
 {
-    u32 box[4];
+    struct HitResult result;
     s32 y = entity->ext.discArmorHand.offsetY;
     s32 x = (s16)entity->ext.discArmorHand.offsetX;
     if (entity->flipX) x = (u16)-x;
@@ -755,7 +755,7 @@ void EnemyDiscArmorUpdate(struct EwramData_EntityData *entity)
         break;
     case 3: Anim_Update(entity); return;
     }
-    if (entity->state != 2) Hit_CheckWithPlayer((struct HitResult *)box, entity);
+    if (entity->state != 2) Hit_CheckWithPlayer(&result, entity);
     Entity_AnimateWithBoxes(entity);
 }
 

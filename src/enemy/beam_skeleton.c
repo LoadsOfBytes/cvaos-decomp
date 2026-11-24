@@ -17,6 +17,7 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "entity_inline.h"
+#include "entity_hit.h"
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity,u8 *graphics,void *palette,u8 slot,void *sprite);
 extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
@@ -471,10 +472,10 @@ static inline void ResetBeam(struct EwramData_EntityData *entity)
  */
 void BeamSkeletonBeam_Update(struct EwramData_EntityData *entity)
 {
-    u8 buffer[16];
+    struct HitResult result;
     struct EwramData_EntityData *owner = &gEwramData->entityData[entity->ext.beamSkeletonBeam.ownerIndex];
     if ((u16)owner->ext.beamSkeleton.beamLevel > 0x400)
-        Hit_CheckWithPlayer((struct HitResult *)buffer,entity);
+        Hit_CheckWithPlayer(&result,entity);
     switch (entity->state)
     {
         case 0:

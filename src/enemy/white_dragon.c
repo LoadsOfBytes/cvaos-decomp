@@ -17,6 +17,7 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
 
 extern u16 ArcTan2(s32 x, s32 y);
 extern s32 Target_IsInRect(s16,s16,s16,s16);
@@ -46,7 +47,7 @@ void WhiteDragonPiece_Update(struct EwramData_EntityData *);
 /* White Dragon dispatch, collision gating and delayed death cleanup. */
 void EnemyWhiteDragonUpdate(struct EwramData_EntityData *entity)
 {
-    s32 bounds[4];
+    struct HitResult result;
     if(entity->state!=2)
     {
         if(Entity_IsInRect(entity,-16,0,272,176))
@@ -59,7 +60,7 @@ void EnemyWhiteDragonUpdate(struct EwramData_EntityData *entity)
     if(entity->hitFlashTimer && entity->state!=3 && entity->state!=2)
     {
 collision:
-        Hit_CheckWithPlayer((struct HitResult *)bounds,entity);
+        Hit_CheckWithPlayer(&result,entity);
         return;
     }
     switch(entity->state)
@@ -677,7 +678,7 @@ void WhiteDragon_SpawnBreath(struct EwramData_EntityData *owner)
 /* A projectile changes size, slows down and expires through five animation phases. */
 void WhiteDragonBreath_Update(struct EwramData_EntityData *entity)
 {
-    s32 bounds[4];
+    struct HitResult result;
     u32 box0,box1,box2;
     u8 *flags;
     u32 random;
@@ -735,7 +736,7 @@ set_boxes:
                 entity->animFrame++;
             }
 collision:
-            Hit_CheckWithPlayer((struct HitResult *)bounds,entity);
+            Hit_CheckWithPlayer(&result,entity);
             break;
         case 4:
             if(entity->timer++>3)

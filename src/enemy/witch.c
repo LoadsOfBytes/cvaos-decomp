@@ -20,6 +20,7 @@
 #include "data/data_118B48.h"
 #include "math_inline.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
 
 /* Witch homing motion and orbiting particle. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
@@ -191,7 +192,7 @@ void WitchSpell_Update(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *parent = &gEwramData->entityData[entity->ext.witchSpell.ownerIndex];
     struct EwramData_EntityData *child;
     struct BgLayerState *bg;
-    u32 box[4];
+    struct HitResult result;
     u16 affine;
     u16 offset;
     s32 timer;
@@ -261,7 +262,7 @@ remove:
         EntityDelete(entity);
         return;
     }
-    Hit_CheckWithPlayer((struct HitResult *)box, entity);
+    Hit_CheckWithPlayer(&result, entity);
     if (EntityIsOutsideScreen(entity, 3)) entity->state = 4;
     timer = entity->timer;
     timer++;
@@ -797,13 +798,13 @@ void EnemyWitchCreate(struct EwramData_EntityData *entity)
 
 void EnemyWitchUpdate(struct EwramData_EntityData *entity)
 {
-    u32 box[4];
+    struct HitResult result;
     u32 outside = EntityIsOutsideScreen(entity, 4);
     outside = (entity->hidden = outside);
     if (!outside) Player_TrackEntity(entity);
     if (Enemy_IsStunned(entity))
     {
-        if (entity->state != 3) Hit_CheckWithPlayer((struct HitResult *)box, entity);
+        if (entity->state != 3) Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
@@ -818,7 +819,7 @@ void EnemyWitchUpdate(struct EwramData_EntityData *entity)
         Anim_Update(entity);
         return;
     }
-    if (entity->state != 3) Hit_CheckWithPlayer((struct HitResult *)box, entity);
+    if (entity->state != 3) Hit_CheckWithPlayer(&result, entity);
     Entity_AnimateWithBoxes(entity);
 }
 

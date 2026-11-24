@@ -28,6 +28,7 @@
 #include "math_inline.h"
 #include "music.h"
 #include "pickup.h"
+#include "entity_hit.h"
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 extern s16 GetEntityRoomYPositionInteger(struct EwramData_EntityData *entity);
@@ -797,7 +798,7 @@ void Object18Create(struct EwramData_EntityData *entity)
  */
 void Object18Update(struct EwramData_EntityData *entity)
 {
-    u8 buffer[16];
+    struct HitResult result;
     u16 hit;
     s32 x;
     s32 y;
@@ -805,7 +806,7 @@ void Object18Update(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *e;
     const struct EntityTemplate *info;
 
-    hit = Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
+    hit = Hit_CheckWithPlayer(&result, entity);
     x = (s16)entity->posX.part16.integer;
     y = (s16)entity->posY.part16.integer - 8;
     if (!Entity_IsInRect(entity, -0x20, -0x20, 0x130, 0xE0))

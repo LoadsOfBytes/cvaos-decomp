@@ -26,6 +26,7 @@
 #include "data/data_0E5364.h"
 #include "data/data_118B48.h"
 #include "gba/memory.h"
+#include "entity_hit.h"
 
 /* Object 19: move along a timed path of steps, then despawn. */
 struct Object19Step
@@ -70,7 +71,7 @@ static inline s32 Object19NextStep(struct EwramData_EntityData *entity, s32 step
 
 void Object19Update(struct EwramData_EntityData *entity)
 {
-    u8 hit[0x10];
+    struct HitResult result;
 
     if (Entity_IsInRect(entity, -0x10, 0, 0x110, 0xB0) == 0)
     {
@@ -94,7 +95,7 @@ void Object19Update(struct EwramData_EntityData *entity)
         OBJ19_STEP(entity, 0);
         break;
     }
-    Hit_CheckWithPlayer((struct HitResult *)hit, entity);
+    Hit_CheckWithPlayer(&result, entity);
     ObjAffine_Set((s16)entity->ext.object19.angle, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
 }
 

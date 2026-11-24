@@ -25,6 +25,7 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "entity_hit.h"
 
 /* KillerMantle_UpdateHover (state 1 of the enemy created at 0x080BB70C); only matches without -f2003-patch
  * (NO_2003_PATCH_SRCS in ../Makefile). (Target_IsNearEntity test through an inline with two
@@ -419,7 +420,7 @@ void CockatriceFamilyPart_Update(struct EwramData_EntityData *entity)
  */
 void CockatriceFamilyAttack_Update(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
     struct EwramData_EntityData *parent = ENTITY_OWNER(entity);
     u16 slot;
     s32 scale;
@@ -463,7 +464,7 @@ void CockatriceFamilyAttack_Update(struct EwramData_EntityData *entity)
             else
                 entity->ext.cockatriceBeam.angle -= 8;
             if (entity->ext.cockatriceBeam.frame == 16)
-                Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+                Hit_CheckWithPlayer(&result, entity);
             if (entity->ext.cockatriceBeam.frame <= 31)
                 break;
         case 2:
@@ -785,7 +786,7 @@ void EnemyCockatriceCreate(struct EwramData_EntityData *entity)
  */
 void EnemyCockatriceUpdate(struct EwramData_EntityData *entity)
 {
-    u8 collision[0x10];
+    struct HitResult result;
 
     Entity_HideAboveY(entity, -0x20);
     if (entity->state != 2)
@@ -794,7 +795,7 @@ void EnemyCockatriceUpdate(struct EwramData_EntityData *entity)
             return;
         if (Enemy_IsStunned(entity))
         {
-            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+            Hit_CheckWithPlayer(&result, entity);
             return;
         }
     }
@@ -818,7 +819,7 @@ void EnemyCockatriceUpdate(struct EwramData_EntityData *entity)
             return;
     }
     if (entity->state != 2)
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(&result, entity);
     Anim_Update(entity);
 }
 
@@ -839,7 +840,7 @@ void EnemyBasiliskCreate(struct EwramData_EntityData *entity)
  */
 void EnemyBasiliskUpdate(struct EwramData_EntityData *entity)
 {
-    u8 collision[0x10];
+    struct HitResult result;
 
     Entity_HideAboveY(entity, -0x20);
     if (entity->state != 2)
@@ -848,7 +849,7 @@ void EnemyBasiliskUpdate(struct EwramData_EntityData *entity)
             return;
         if (Enemy_IsStunned(entity))
         {
-            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+            Hit_CheckWithPlayer(&result, entity);
             return;
         }
     }
@@ -872,7 +873,7 @@ void EnemyBasiliskUpdate(struct EwramData_EntityData *entity)
             return;
     }
     if (entity->state != 2)
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(&result, entity);
     Anim_Update(entity);
 }
 

@@ -19,6 +19,7 @@
 #include "data/data_118B48.h"
 #include "entity_motion.h"
 #include "effects.h"
+#include "entity_hit.h"
 
 extern s32 Target_IsInRect(s16, s16, s16, s16);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *,struct EwramData_EntityData *,u16 *,s32);
@@ -32,7 +33,7 @@ void WerejaguarDeathEffect_Update(struct EwramData_EntityData *);
 /* Werejaguar dispatch, collision handling and animation change notification. */
 void EnemyWerejaguarUpdate(struct EwramData_EntityData *entity)
 {
-    s32 bounds[12];
+    struct HitResult results[3]; /* only results[0] is written; the original reserved 48 bytes */
     if(entity->state!=2)
     {
         if(EntityIsOutsideScreen(entity,4)) return;
@@ -48,7 +49,7 @@ void EnemyWerejaguarUpdate(struct EwramData_EntityData *entity)
     if(entity->hitFlashTimer && entity->state!=3 && entity->state!=2)
     {
 collision:
-        Hit_CheckWithPlayer((struct HitResult *)bounds,entity);
+        Hit_CheckWithPlayer(results,entity);
         return;
     }
     switch(entity->state)
@@ -743,7 +744,7 @@ void EnemyWerejaguarCreate(struct EwramData_EntityData *entity)
 /* Werejaguar dispatch, collision handling and animation change notification. */
 void EnemyWeretigerUpdate(struct EwramData_EntityData *entity)
 {
-    s32 bounds[12];
+    struct HitResult results[3]; /* only results[0] is written; the original reserved 48 bytes */
     Player_TrackEntity(entity);
     if(EntityIsOutsideScreen(entity,4)) entity->hidden=1;
     else entity->hidden=0;
@@ -755,7 +756,7 @@ void EnemyWeretigerUpdate(struct EwramData_EntityData *entity)
     if(entity->hitFlashTimer && entity->state!=3 && entity->state!=2)
     {
 collision:
-        Hit_CheckWithPlayer((struct HitResult *)bounds,entity);
+        Hit_CheckWithPlayer(results,entity);
         return;
     }
     switch(entity->state)
@@ -772,7 +773,7 @@ collision:
         Anim_Update(entity);
         if(frame!=entity->animFrame) Entity_UpdateBoxes(entity);
     }
-    if(entity->state!=2) Hit_CheckWithPlayer((struct HitResult *)bounds,entity);
+    if(entity->state!=2) Hit_CheckWithPlayer(results,entity);
 }
 
 /* Clones of already decompiled functions, generated with

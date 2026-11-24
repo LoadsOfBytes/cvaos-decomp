@@ -22,6 +22,7 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
 
 extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
 extern void Entity_FaceTarget(struct EwramData_EntityData *);
@@ -426,7 +427,7 @@ static inline s32 IsBelow(struct EwramData_EntityData *entity)
  */
 void SkeletonProjectile_Update(struct EwramData_EntityData *entity)
 {
-    u32 box[4];
+    struct HitResult result;
     struct EwramData_EntityData *parent = &gEwramData->entityData[(u8)entity->ext.skeletonPiece.ownerIndex];
     u32 state;
     u8 flag;
@@ -486,7 +487,7 @@ void SkeletonProjectile_Update(struct EwramData_EntityData *entity)
         {
             if (Entity_IsTimeStopped(entity))
             {
-                Hit_CheckWithPlayer((struct HitResult *)box, entity);
+                Hit_CheckWithPlayer(&result, entity);
                 entity->affine = 0;
                 break;
             }
@@ -496,14 +497,14 @@ void SkeletonProjectile_Update(struct EwramData_EntityData *entity)
         state = entity->state;
         if (flag && (u8)state != 3 && (u8)state != 4)
         {
-            Hit_CheckWithPlayer((struct HitResult *)box, entity);
+            Hit_CheckWithPlayer(&result, entity);
             break;
         }
         entity->posX.whole += entity->velX.whole;
         entity->posY.whole += entity->velY.whole;
         entity->velY.whole += 0x1800;
         if ((u8)state != 3)
-            Hit_CheckWithPlayer((struct HitResult *)box, entity);
+            Hit_CheckWithPlayer(&result, entity);
         if (IsBelow(entity))
             entity->state = 4;
         break;

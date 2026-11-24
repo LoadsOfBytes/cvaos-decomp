@@ -29,6 +29,7 @@
 #include "palette.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "entity_hit.h"
 
 extern void SoulPickup_SpawnFromEnemyDefinition(s32, s32, s32, s32);
 extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
@@ -705,7 +706,7 @@ s32 BaloreHand_UpdateDive(struct EwramData_EntityData *entity)
 /* Balore hand's attached collision part: follows its angle and extension. */
 void BaloreHandHitBox_Update(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
     struct EwramData_EntityData *body = entity->ext.balorePart.body;
     struct EwramData_EntityData *hand = entity->ext.baloreHitBox.hand;
     u16 matrix;
@@ -771,7 +772,7 @@ void BaloreHandHitBox_Update(struct EwramData_EntityData *entity)
     entity->velX.whole = entity->posX.whole - entity->accelX.whole;
     entity->velY.whole = entity->posY.whole - entity->accelY.whole;
     if (HIT_FLAGS(entity) & 4) Player_QueueEntity(entity, 3);
-    Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+    Hit_CheckWithPlayer(&result, entity);
     ObjAffine_Set(hand->ext.baloreHand.armAngle, 0x10000, 0x10000, hand->flipX, 0, entity->affineIndex);
     if (entity->animScriptIndex != BALORE_HAND_ANIM(hand))
         Anim_StartIndexed(entity, BALORE_HAND_ANIM(hand), 2, 0);
@@ -1059,7 +1060,7 @@ void BaloreAffineEffect_Update(struct EwramData_EntityData *entity)
  */
 void BaloreSpark_Update(struct EwramData_EntityData *entity)
 {
-    u8 hit[0x10];
+    struct HitResult result;
     struct EwramData_EntityData *parent = entity->ext.balorePart.body;
     struct EwramData_EntityData *spark;
     u8 timer;
@@ -1087,7 +1088,7 @@ void BaloreSpark_Update(struct EwramData_EntityData *entity)
         entity->state = 2;
     case 2:
         EntityAccelerateAndMoveX(entity, 0x80000);
-        Hit_CheckWithPlayer((struct HitResult *)hit, entity);
+        Hit_CheckWithPlayer(&result, entity);
         if (entity->animStep == 3)
             entity->hit.flags &= ~2;
         else
@@ -1663,7 +1664,7 @@ void EnemyBaloreCreate(struct EwramData_EntityData *entity)
 
 void EnemyBaloreUpdate(struct EwramData_EntityData *entity)
 {
-    u32 box[4];
+    struct HitResult result;
     if (entity->state != 4) Enemy_UpdateHitFlash(entity);
     switch (entity->state)
     {
@@ -1686,7 +1687,7 @@ void EnemyBaloreUpdate(struct EwramData_EntityData *entity)
     }
     *(u16 *)&entity->ext.balore.flags &= 0xFFFE;
     if (entity->state != 4 && Entity_IsInRect(entity, -8, 0, 0x100, 0xB0))
-        Hit_CheckWithPlayer((struct HitResult *)box, entity);
+        Hit_CheckWithPlayer(&result, entity);
     Anim_StartIndexed(entity, sBaloreEyeAnimOffsets[(s8)entity->ext.balore.eyeAnim], 2, 0);
     Anim_Update(entity);
 }

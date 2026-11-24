@@ -20,6 +20,7 @@
 #include "skull_archer.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "entity_hit.h"
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 extern s32 Target_IsInRect(s16, s16, s32, s32);
@@ -79,7 +80,7 @@ static inline void BoxB(struct EwramData_EntityData *e, s32 box) { HitBox_SetBod
 void WaiterSkeletonThrownTray_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *parent = entity->ext.waiterTray.owner;
-    u16 box[8];
+    struct HitResult result;
     s16 offset[2];
     if (entity->state != 5 && (s16)entity->hp <= 0)
         entity->state = 5;
@@ -94,7 +95,7 @@ void WaiterSkeletonThrownTray_Update(struct EwramData_EntityData *entity)
         entity->hit.flags |= 2;
     }
     if (gEwramData->gameState.timeStopTimer && entity->state != 5) {
-        Hit_CheckWithPlayer((struct HitResult *)box, entity);
+        Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state) {
@@ -227,7 +228,7 @@ delete:
     }
     ObjAffine_Set(entity->ext.waiterTray.angle, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
     if (entity->state != 5)
-        Hit_CheckWithPlayer((struct HitResult *)box, entity);
+        Hit_CheckWithPlayer(&result, entity);
     Anim_Update(entity);
 }
 
@@ -534,7 +535,7 @@ void SkullArcherArrow_DamagePlayerOnContact(struct EwramData_EntityData *entity,
 void SkullArcherArrow_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *parent = entity->ext.skullArcherArrow.owner;
-    u8 collision[16];
+    struct HitResult result;
     if (entity->state != 2 && (s16)entity->hp <= 0)
         entity->state = 2;
     if (gEwramData->gameState.timeStopTimer != 0 && entity->state != 2)
@@ -550,7 +551,7 @@ void SkullArcherArrow_Update(struct EwramData_EntityData *entity)
             Entity_SetVelocityXFromFacing(entity, 0x30000);
             EntityMoveX(entity);
         collision:
-            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+            Hit_CheckWithPlayer(&result, entity);
             break;
         case 1:
             entity->posX.whole = parent->posX.whole + entity->accelX.whole;

@@ -23,6 +23,7 @@
 #include "pickup.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "entity_hit.h"
 
 extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
 extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *);
@@ -807,12 +808,12 @@ void PickupSource_Update(struct EwramData_EntityData *entity)
  */
 s32 Pickup_TrySpawnOnHit(struct EwramData_EntityData *entity, s32 offsetY, u8 kind, s32 amount)
 {
-    u8 collision[16];
+    struct HitResult result;
     s32 x = (s16)entity->posX.part16.integer;
     s32 y = (s16)entity->posY.part16.integer + offsetY;
     u16 touch;
 
-    touch = Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+    touch = Hit_CheckWithPlayer(&result, entity);
     if (touch & 0x1E)
     {
         if (gEwramData->playerStatus.currentCharacter != 0 && kind != 0)

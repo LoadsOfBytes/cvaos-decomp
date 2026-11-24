@@ -27,6 +27,7 @@
 #include "data/data_4F1444.h"
 #include "damage_numbers.h"
 #include "music.h"
+#include "entity_hit.h"
 
 extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *);
 extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
@@ -217,7 +218,7 @@ void MinotaurSwingTrail_Update(struct EwramData_EntityData *entity)
 /* Collision object attached to a rotating parent, at a radius of 16 pixels. */
 void MinotaurAxeHitBox_Update(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
     struct EwramData_EntityData *parent = ENTITY_OWNER(entity);
     if (entity->state != 0 && *(u8 *)&parent->ext != ENTITY_PARENT_INDEX(entity))
     {
@@ -241,7 +242,7 @@ void MinotaurAxeHitBox_Update(struct EwramData_EntityData *entity)
             entity->posX.whole = parent->posX.whole + dx;
             entity->posY.whole = parent->posY.whole + dy;
             if (parent->state == 1)
-                Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+                Hit_CheckWithPlayer(&result, entity);
         }
         break;
     }
@@ -693,7 +694,7 @@ void Minotaur_Init(struct EwramData_EntityData *entity, s32 variant)
 
 void Minotaur_Update(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
     Entity_HideAboveY(entity, -16);
     if (!EntityIsOutsideScreen(entity, 6))
         Player_TrackEntity(entity);
@@ -701,7 +702,7 @@ void Minotaur_Update(struct EwramData_EntityData *entity)
         Enemy_UpdateHitFlash(entity);
     if (Entity_IsTimeStopped(entity) && entity->state != 3)
     {
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
@@ -725,7 +726,7 @@ void Minotaur_Update(struct EwramData_EntityData *entity)
         return;
     }
     if (entity->state != 3)
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(&result, entity);
     entity->ext.minotaur.animStep = entity->animStep;
     Entity_AnimateWithBoxes(entity);
 }
@@ -803,12 +804,12 @@ void EnemyRedMinotaurUpdate(struct EwramData_EntityData *entity)
  */
 void AxeArmorAxe_Update(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
     u16 slot;
 
     if (entity->state != 0)
     {
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(&result, entity);
         if ((s16)entity->hp <= 0)
         {
             Effect_SpawnRandom(entity->posX.whole, entity->posY.whole, 0x80000, 0x80000, entity->spriteLayer - 1);

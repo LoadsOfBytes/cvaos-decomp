@@ -16,6 +16,7 @@
 #include "data/data_4F1444.h"
 #include "data/data_0E5364.h"
 #include "obj_palette.h"
+#include "entity_hit.h"
 
 extern void *memcpy(void *dst, const void *src, unsigned long size);
 extern s32 Entity_MoveWithBoxCollision(struct EwramData_EntityData *, s32, s32, s32, s32, s32, s32);
@@ -317,7 +318,7 @@ void Object22_SpawnFallingPart(struct EwramData_EntityData *owner)
 static inline void CopyBit(struct EwramData_EntityData *a, u32 b) { a->hidden = b; }
 void Object22FallingPart_Update(struct EwramData_EntityData *entity)
 {
-    u32 buffer[4];
+    struct HitResult result;
     struct EwramData_EntityData *owner = entity->ext.object22Part.owner;
     if (owner == NULL || owner->updateFunc == NULL || owner->enemyId != entity->enemyId)
         goto remove;
@@ -330,7 +331,7 @@ void Object22FallingPart_Update(struct EwramData_EntityData *entity)
             entity->posY.whole = owner->posY.whole;
             entity->state++;
         }
-        Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
+        Hit_CheckWithPlayer(&result, entity);
     }
     else if (entity->state == 1)
     {
@@ -352,14 +353,14 @@ void Object22FallingPart_Update(struct EwramData_EntityData *entity)
  */
 void Object22Update(struct EwramData_EntityData *entity)
 {
-    u8 collision[0x10];
+    struct HitResult result;
 
     if (!(entity->ext.object22.flags & 1))
         Player_QueueEntity(entity, 1);
     if (entity->state == 0)
         Object22_UpdateState(entity);
     Anim_Update(entity);
-    Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+    Hit_CheckWithPlayer(&result, entity);
 }
 
 /**
@@ -587,13 +588,13 @@ void Object29_UpdateMovement(struct EwramData_EntityData *entity)
  */
 void Object29Update(struct EwramData_EntityData *entity)
 {
-    u8 collision[0x10];
+    struct HitResult result;
 
     Player_QueueEntity(entity, 1);
     if (entity->state == 0)
         Object29_UpdateMovement(entity);
     Anim_Update(entity);
-    Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+    Hit_CheckWithPlayer(&result, entity);
 }
 
 /* Object29_LoadGraphics (object 0x29 graphics). */
@@ -791,13 +792,13 @@ void Object2A_UpdateMovement(struct EwramData_EntityData *entity)
  */
 void Object2AUpdate(struct EwramData_EntityData *entity)
 {
-    u8 collision[0x10];
+    struct HitResult result;
 
     Player_QueueEntity(entity, 1);
     if (entity->state == 0)
         Object2A_UpdateMovement(entity);
     Anim_Update(entity);
-    Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+    Hit_CheckWithPlayer(&result, entity);
 }
 
 /* Object2A_LoadGraphics (object 0x2A graphics). */

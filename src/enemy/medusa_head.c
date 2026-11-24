@@ -17,6 +17,7 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
 
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 
@@ -37,7 +38,7 @@ void MedusaHead_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hi
  */
 void EnemyMedusaHeadUpdate(struct EwramData_EntityData *entity)
 {
-    u8 collision[16];
+    struct HitResult result;
     struct EwramData_EntityData *parent;
     struct EwramData_EntityData *head;
     s32 x;
@@ -55,7 +56,7 @@ void EnemyMedusaHeadUpdate(struct EwramData_EntityData *entity)
     if (Enemy_IsStunned(entity))
     {
         if (entity->state != 2)
-            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+            Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)

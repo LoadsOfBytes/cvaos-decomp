@@ -20,6 +20,7 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "entity_inline.h"
+#include "entity_hit.h"
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 extern void Buer_SpawnChargeEffect(s32 x,s32 y,s32 index,s32 facing);
@@ -472,7 +473,7 @@ void Buer_MoveAndRotate(struct EwramData_EntityData *entity,s32 mode)
 
 void EnemyBuerUpdate(struct EwramData_EntityData *entity)
 {
-    u8 buffer[16];
+    struct HitResult result;
     if (entity->state == 4)
     {
         Buer_UpdateState4Rotation(entity);
@@ -486,7 +487,7 @@ void EnemyBuerUpdate(struct EwramData_EntityData *entity)
     Player_TrackEntity(entity);
     if (Enemy_IsStunned(entity))
     {
-        Hit_CheckWithPlayer((struct HitResult *)buffer,entity);
+        Hit_CheckWithPlayer(&result,entity);
         return;
     }
     switch (entity->state)
@@ -496,5 +497,5 @@ void EnemyBuerUpdate(struct EwramData_EntityData *entity)
         case 3: Buer_UpdateDeath(entity); break;
     }
     if (entity->state != 3)
-        Hit_CheckWithPlayer((struct HitResult *)buffer,entity);
+        Hit_CheckWithPlayer(&result,entity);
 }

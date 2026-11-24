@@ -14,6 +14,7 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "damage_numbers.h"
+#include "entity_hit.h"
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, u8, void *);
 extern s32 Collision_GetTileOnScreen(s32, s32);
@@ -72,7 +73,7 @@ void EnemyRipperCreate(struct EwramData_EntityData *entity)
  */
 void EnemyRipperUpdate(struct EwramData_EntityData *entity)
 {
-    u8 collision[0x10];
+    struct HitResult result;
 
     if (entity->state == 3)
     {
@@ -91,12 +92,12 @@ void EnemyRipperUpdate(struct EwramData_EntityData *entity)
         Enemy_UpdateHitFlash(entity);
     if (Entity_IsTimeStopped(entity) && entity->state != 0xFF)
     {
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(&result, entity);
         return;
     }
     if (entity->hitFlashTimer && entity->state != 2 && entity->state != 0xFF)
     {
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
@@ -110,7 +111,7 @@ void EnemyRipperUpdate(struct EwramData_EntityData *entity)
     }
     Entity_AnimateWithBoxes(entity);
     if (entity->state != 0xFF)
-        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer(&result, entity);
 }
 
 /* Hopping minion (sibling of Fleaman_UpdateMovement): jumps toward the player, flaps while airborne. */
@@ -396,7 +397,7 @@ struct EwramData_EntityData *Ripper_CreateProjectile(struct EwramData_EntityData
  */
 void RipperProjectile_Update(struct EwramData_EntityData *entity)
 {
-    u32 buf[4];
+    struct HitResult result;
     struct EwramData_EntityData *owner = entity->ext.ripperProjectile.owner;
 
     Enemy_UpdateHitFlash(entity);
@@ -406,7 +407,7 @@ void RipperProjectile_Update(struct EwramData_EntityData *entity)
             || entity->state == 6)
             goto run;
     }
-    Hit_CheckWithPlayer((struct HitResult *)buf, entity);
+    Hit_CheckWithPlayer(&result, entity);
     return;
 run:
     switch (entity->state)
@@ -466,7 +467,7 @@ run:
             entity->deleteRequested = 1;
         break;
     }
-    Hit_CheckWithPlayer((struct HitResult *)buf, entity);
+    Hit_CheckWithPlayer(&result, entity);
     if (!Entity_IsInRect(entity, -0x80, -0x40, 0x1F0, 0x120))
         entity->deleteRequested = 1;
 }

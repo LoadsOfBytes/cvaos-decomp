@@ -14,6 +14,12 @@
 #include "entity_hit.h"
 #include "data/data_0E1CD0.h"
 
+struct Rect16 { s16 left; s16 top; s16 right; s16 bottom; };
+
+/* Player attack / hurt rectangles in room pixels for this frame (IWRAM, linker.ld). */
+extern struct Rect16 gPlayerAttackRect;
+extern struct Rect16 gPlayerHurtRect;
+
 /**
  * @brief 41474 | Test whether the hitboxes of two entities overlap
  *
@@ -212,12 +218,6 @@ u32 HitBox_OverlapsHitRect(struct EwramData_EntityData *entity, struct SpriteBox
         return 1;
     return 0;
 }
-
-struct Rect16 { s16 left; s16 top; s16 right; s16 bottom; };
-
-/* Player attack / hurt rectangles in room pixels for this frame (IWRAM, linker.ld). */
-extern struct Rect16 gPlayerAttackRect;
-extern struct Rect16 gPlayerHurtRect;
 
 u32 HitBox_OverlapsRect(struct Rect16 *rect, struct EwramData_EntityData *entity, struct SpriteBox *box)
 {

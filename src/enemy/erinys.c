@@ -15,8 +15,6 @@
 #include "entity_motion.h"
 #include "hitbox.h"
 
-extern s32 Target_IsInRect(s16, s16, s32, s32);
-
 /* Forward this enemy variant to its shared implementation. */
 void EnemyErinysUpdate(struct EwramData_EntityData *entity)
 {
@@ -83,7 +81,7 @@ void Tsuchinoko_UpdateJump(struct EwramData_EntityData *entity)
     {
     case 0:
         entity->flipX = Entity_IsTargetRight(entity);
-        if (Target_IsInRect(entity->posX.part16.integer - 90, entity->posY.part16.integer - 100, 180, 200) || Enemy_IsDamaged(entity))
+        if (Target_IsInRect((s16)(entity->posX.part16.integer - 90), (s16)(entity->posY.part16.integer - 100), 180, 200) || Enemy_IsDamaged(entity))
         {
             entity->subState++;
             Anim_StartIndexed(entity, 1, 0, 0);
@@ -92,9 +90,9 @@ void Tsuchinoko_UpdateJump(struct EwramData_EntityData *entity)
     case 1:
         if (*(u16 *)&entity->animStep == 2)
         {
-            if (Target_IsInRect(entity->posX.part16.integer - 60, entity->posY.part16.integer - 100, 120, 200))
+            if (Target_IsInRect((s16)(entity->posX.part16.integer - 60), (s16)(entity->posY.part16.integer - 100), 120, 200))
                 entity->flipX = !Entity_IsTargetRight(entity);
-            else if (!Target_IsInRect(entity->posX.part16.integer - 100, entity->posY.part16.integer - 100, 200, 200))
+            else if (!Target_IsInRect((s16)(entity->posX.part16.integer - 100), (s16)(entity->posY.part16.integer - 100), 200, 200))
                 entity->flipX = Entity_IsTargetRight(entity);
             entity->subState++;
             entity->velY.whole = -0x18000;

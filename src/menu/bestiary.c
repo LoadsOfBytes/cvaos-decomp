@@ -28,9 +28,6 @@
 extern void *memcpy(void *dst, const void *src, unsigned long size);
 extern const u16 sEnemyNameTextIds[];
 
-/* tile as s32: the header u16 would add a zero extension of the argument */
-extern void HudMap_WriteTiles(s32 x, s32 y, s32 tile, s32 count);
-
 void BestiaryMenu_DrawEntry(struct EwramData_EntityData *page);
 s32 BestiaryMenu_SpawnEnemyPreview(struct EwramData_EntityData *menu);
 void BestiaryMenu_DrawDetailTitle(struct EwramData_EntityData *page);
@@ -69,8 +66,8 @@ void BestiaryMenu_UpdateDetailScreen(struct EwramData_EntityData *entity)
             Gfx_CopyResource(set, VRAM_BASE + 0xA000, 0);
             BgMap_Setup(1, &sBestiaryDetailBgMap, 0, 0);
             HudMap_ClearAll();
-            HudMap_WriteTiles(0x12, 8, 0x1320, 10);
-            HudMap_WriteTiles(0x12, 9, 0x1330, 10);
+            HudMap_WriteTilesWide(0x12, 8, 0x1320, 10);
+            HudMap_WriteTilesWide(0x12, 9, 0x1330, 10);
             Text_SetForegroundColor(1);
             entity->subState = 3;
             entity->stage++;
@@ -120,7 +117,6 @@ s32 BestiaryMenu_SpawnEnemyPreview(struct EwramData_EntityData *menu)
         template->createFunc(entity);
     }
 }
-
 
 /**
  * @brief Detail view input: left/right toggles between the enemy description and
@@ -432,9 +428,9 @@ void BestiaryMenu_DrawEntry(struct EwramData_EntityData *page)
     {
         HudMap_ClearTiles(0x18, 2, 3);
         tile = 0x309;
-        HudMap_WriteTiles(0x19, 1, tile + 0x90, 2);
+        HudMap_WriteTilesWide(0x19, 1, tile + 0x90, 2);
         tile += 0xA0;
-        HudMap_WriteTiles(0x19, 2, tile, 2);
+        HudMap_WriteTilesWide(0x19, 2, tile, 2);
     }
     else if (SoulInventory_GetSoulTotal(entry->soulType, entry->soulIndex - 1))
     {
@@ -443,8 +439,8 @@ void BestiaryMenu_DrawEntry(struct EwramData_EntityData *page)
             register s32 p_ asm("r2") = pal; /* FAKEMATCH: pinned register */
             tile = p_ + 8;
         }
-        HudMap_WriteTiles(sx, sy, tile + (k << 4), 3);
-        HudMap_WriteTiles(sx, sy + 1, tile += (k + 1) << 4, 3);
+        HudMap_WriteTilesWide(sx, sy, tile + (k << 4), 3);
+        HudMap_WriteTilesWide(sx, sy + 1, tile += (k + 1) << 4, 3);
     }
     else
     {
@@ -520,7 +516,7 @@ void BestiaryMenu_DrawDetailTitle(struct EwramData_EntityData *page)
     HudMap_ClearTiles(2, 0xC, 0x14);
     text = sEnemyNameTextIds[id];
     width = MenuText_Measure(text, 1);
-    HudMap_WriteTiles(2, 0xC, 0x1310, 0xC);
+    HudMap_WriteTilesWide(2, 0xC, 0x1310, 0xC);
     Text8_SetRegion(0x15, 8, 0x12, 1);
     Text8_ClearRegion();
     Text8_SetPixelCursor(0xB0 - width / 2, 8);
@@ -546,7 +542,7 @@ void BestiaryMenu_DrawDetailTitle(struct EwramData_EntityData *page)
             row = 0xA;
             break;
         }
-        HudMap_WriteTiles(2, 0xC, (u16)((row * 16 - 0x3000 + col) | 0x1300), 1);
+        HudMap_WriteTilesWide(2, 0xC, (u16)((row * 16 - 0x3000 + col) | 0x1300), 1);
     }
 }
 
@@ -566,9 +562,9 @@ s32 BestiaryMenu_DrawDescription(s32 id, s32 mode)
         total = SoulInventory_GetSoulTotal(entry->soulType, entry->soulIndex - 1);
     else
         total = 0;
-    HudMap_WriteTiles(3, 0xE, 0x1200, 0x19);
-    HudMap_WriteTiles(3, 0xF, 0x1220, 0x19);
-    HudMap_WriteTiles(3, 0x10, 0x1240, 0x19);
+    HudMap_WriteTilesWide(3, 0xE, 0x1200, 0x19);
+    HudMap_WriteTilesWide(3, 0xF, 0x1220, 0x19);
+    HudMap_WriteTilesWide(3, 0x10, 0x1240, 0x19);
     Text12_SetRegion(0, 0, 0x22, 2);
     if (total == 0 && mode == 1)
         mode = 0;
@@ -585,12 +581,12 @@ s32 BestiaryMenu_DrawDescription(s32 id, s32 mode)
     {
         if (mode == 0)
         {
-            HudMap_WriteTiles(0x1C, 0x10, 0x134E, 1);
+            HudMap_WriteTilesWide(0x1C, 0x10, 0x134E, 1);
             HudMap_ClearTiles(0x1C, 0xE, 1);
         }
         else
         {
-            HudMap_WriteTiles(0x1C, 0xE, 0x134D, 1);
+            HudMap_WriteTilesWide(0x1C, 0xE, 0x134D, 1);
             HudMap_ClearTiles(0x1C, 0x10, 1);
         }
     }
@@ -620,7 +616,6 @@ s32 BestiaryMenu_DrawDescription(s32 id, s32 mode)
  *   registers, which fixes the reload rotation of the whole function).
  * - the dead `odd = 14;` in the second tail loop adds one insn, so loop.c
  *   leaves the 0x10000 constant for its second pass (orrs before it). */
-
 
 static inline s32 IsSeen(s32 id)
 {
@@ -667,7 +662,7 @@ void BestiaryMenu_DrawList(struct EwramData_EntityData *page)
             k = n;
             do
             {
-                HudMap_WriteTiles((i & one) ? 0x14 : 6, y, (u16)t, 10);
+                HudMap_WriteTilesWide((i & one) ? 0x14 : 6, y, (u16)t, 10);
                 Text_SetForegroundColor(15);
                 i++;
                 if (!(i & one))
@@ -743,10 +738,10 @@ void BestiaryMenu_DrawList(struct EwramData_EntityData *page)
                 y += 2;
         }
         HudMap_PrintPaddedNumberInPalette(0xD, 0x11, (s8)(page->ext.menuList.top / 10) + 1, 2, 1);
-        HudMap_WriteTiles(0xE, 0x11, 0x139B, 1);
+        HudMap_WriteTilesWide(0xE, 0x11, 0x139B, 1);
         HudMap_PrintPaddedNumberInPalette(0x10, 0x11, (page->ext.menuList.count - 1) / 10 + 1, 2, 1);
-        HudMap_WriteTiles(2, 0x11, 0x174C, 1);
-        HudMap_WriteTiles(0x1C, 0x11, 0x134C, 1);
+        HudMap_WriteTilesWide(2, 0x11, 0x174C, 1);
+        HudMap_WriteTilesWide(0x1C, 0x11, 0x134C, 1);
         Text8_SetRegion(0, 0xF, 0x29, 1);
         Text8_SetPixelCursor(0x60, 0xF);
         Text8_PutChar(0x84);
@@ -755,10 +750,10 @@ void BestiaryMenu_DrawList(struct EwramData_EntityData *page)
         gEwramData->text8PixelX += 9;
         Text8_PutChar(0x86);
         Text8_PutChar(0x87);
-        HudMap_WriteTiles(3, 0x11, 0xF3EC, 1);
-        HudMap_WriteTiles(4, 0x11, 0xF3ED, 1);
-        HudMap_WriteTiles(0x1A, 0x11, 0xF3EE, 1);
-        HudMap_WriteTiles(0x1B, 0x11, 0xF3EF, 1);
+        HudMap_WriteTilesWide(3, 0x11, 0xF3EC, 1);
+        HudMap_WriteTilesWide(4, 0x11, 0xF3ED, 1);
+        HudMap_WriteTilesWide(0x1A, 0x11, 0xF3EE, 1);
+        HudMap_WriteTilesWide(0x1B, 0x11, 0xF3EF, 1);
     }
     z = i = 0;
     Text8_SetRegion(0x15, 0xE, 0x12, 1);
@@ -816,5 +811,5 @@ void BestiaryMenu_DrawAttributeIcon(s32 x, s32 y, s32 attribute)
 {
     const struct BestiaryAttributeIcon *icon = &sBestiaryAttributeIcons[attribute];
 
-    HudMap_WriteTiles(x, y, (u16)(icon->tileColumn - 0x2D00 + (icon->tileRow << 4)), 1);
+    HudMap_WriteTilesWide(x, y, (u16)(icon->tileColumn - 0x2D00 + (icon->tileRow << 4)), 1);
 }

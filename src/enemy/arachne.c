@@ -22,9 +22,6 @@
 #include "damage_numbers.h"
 #include "entity_motion.h"
 
-extern s32 Target_IsInRect(s16,s16,s16,s16);
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *,struct EwramData_EntityData *,u16 *,s32);
-
 void Arachne_UpdateWalk(struct EwramData_EntityData *);
 void Arachne_UpdateAttack(struct EwramData_EntityData *);
 void Arachne_UpdateRecoil(struct EwramData_EntityData *);
@@ -148,16 +145,16 @@ void Arachne_UpdateWalk(struct EwramData_EntityData *entity)
     {
     case 0:
         entity->flipX=Entity_IsTargetRight(entity);
-        if(Target_IsInRect(entity->posX.part16.integer-80,entity->posY.part16.integer-80,160,160) || Enemy_IsDamaged(entity))
+        if(Target_IsInRect((s16)(entity->posX.part16.integer-80),(s16)(entity->posY.part16.integer-80),160,160) || Enemy_IsDamaged(entity))
         {
             entity->subState=1; GAIT(entity)=1;
             entity->ext.arachne.walkPhase=state;
             entity->ext.arachne.walkSpeed=state;
             entity->velX.whole=state;
             entity->timer=state;
-            if(Target_IsInRect(entity->posX.part16.integer-60,entity->posY.part16.integer-80,120,160))
+            if(Target_IsInRect((s16)(entity->posX.part16.integer-60),(s16)(entity->posY.part16.integer-80),120,160))
             { GAIT(entity)=2; entity->subState=2; }
-            else if(Target_IsInRect(entity->posX.part16.integer-100,entity->posY.part16.integer-80,200,160)) goto vertical;
+            else if(Target_IsInRect((s16)(entity->posX.part16.integer-100),(s16)(entity->posY.part16.integer-80),200,160)) goto vertical;
             else { GAIT(entity)=1; entity->subState=1; }
         }
         break;
@@ -177,7 +174,7 @@ void Arachne_UpdateWalk(struct EwramData_EntityData *entity)
         if((u8)flipped) { if(entity->velX.whole>=0x8000)entity->accelX.whole=0; }
         else if(entity->velX.whole<=-0x8000)entity->accelX.whole=flipped;
         Entity_MoveWithCollision(entity,0x10000,-0x200000,0x80000,12);
-        target=Target_IsInRect(entity->posX.part16.integer-60,entity->posY.part16.integer-80,120,160);
+        target=Target_IsInRect((s16)(entity->posX.part16.integer-60),(s16)(entity->posY.part16.integer-80),120,160);
         if(target)
         { GAIT(entity)=2; entity->subState=2; entity->timer=0; entity->velY.whole=0x10000; goto acceleration; }
         if(Entity_ClampXToRoom(entity,1))
@@ -186,7 +183,7 @@ void Arachne_UpdateWalk(struct EwramData_EntityData *entity)
         else
         {
             random=RandomNumberGenerator()&31;
-            if(!random && Target_IsInRect(entity->posX.part16.integer-80,entity->posY.part16.integer-80,160,160))
+            if(!random && Target_IsInRect((s16)(entity->posX.part16.integer-80),(s16)(entity->posY.part16.integer-80),160,160))
             { GAIT(entity)=3; entity->state=1; entity->subState=random; entity->timer=random; }
         }
         break;
@@ -206,7 +203,7 @@ void Arachne_UpdateWalk(struct EwramData_EntityData *entity)
         if((u8)flipped) { if(entity->velX.whole<=-0x8000)entity->accelX.whole=0; }
         else if(entity->velX.whole>=0x8000)entity->accelX.whole=flipped;
         if((Entity_MoveWithCollision(entity,0x10000,-0x200000,0x80000,12)&3) ||
-            !Target_IsInRect(entity->posX.part16.integer-100,entity->posY.part16.integer-80,200,160) || Entity_ClampXToRoom(entity,1))
+            !Target_IsInRect((s16)(entity->posX.part16.integer-100),(s16)(entity->posY.part16.integer-80),200,160) || Entity_ClampXToRoom(entity,1))
         { GAIT(entity)=1; entity->subState=1; entity->timer=0;
 vertical:
             entity->velY.whole=0x10000;
@@ -217,7 +214,7 @@ acceleration:
         if(!WAIT(entity))
         {
             random=RandomNumberGenerator()&31;
-            if(!random && Target_IsInRect(entity->posX.part16.integer-80,entity->posY.part16.integer-80,160,160))
+            if(!random && Target_IsInRect((s16)(entity->posX.part16.integer-80),(s16)(entity->posY.part16.integer-80),160,160))
             { GAIT(entity)=3; entity->state=1; entity->subState=10; entity->timer=random; }
         }
         else WAIT(entity)--;
@@ -425,7 +422,7 @@ void Arachne_UpdateRecoil(struct EwramData_EntityData *entity)
         else if(entity->velX.whole>=0x20000) entity->accelX.whole=flipped;
         if(entity->animDone && entity->animScriptIndex==3) Anim_StartIndexed(entity,0,0,1);
         if((Entity_MoveWithCollision(entity,0x10000,-0x200000,0x80000,12)&3) ||
-           !Target_IsInRect(entity->posX.part16.integer-100,entity->posY.part16.integer-80,200,160) ||
+           !Target_IsInRect((s16)(entity->posX.part16.integer-100),(s16)(entity->posY.part16.integer-80),200,160) ||
            Entity_ClampXToRoom(entity,1))
         {
             entity->ext.arachne.gait=1;
@@ -465,7 +462,7 @@ void Arachne_OnHit(struct EwramData_EntityData *entity,struct EwramData_EntityDa
 {
     s32 power=Player_CalculateAttackPower(info[2]);
     struct EntityHit *attack=&attacker->hit;
-    s32 damage=Hit_ResolveDamage(entity,attacker,info,(s16)power);
+    s32 damage=Hit_ResolveDamage(entity,attacker,info,power);
     s32 zero;
     entity->hitFlashTimer=8;
     {

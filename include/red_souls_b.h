@@ -46,5 +46,9 @@ extern void SkillCockatriceDraw(struct EwramData_EntityData *entity);
 extern const struct RedSoulInfo *RedSoul_GetLastUsedInfo(void);
 extern const struct RedSoulInfo *RedSoul_GetInfo(u8 soul);
 extern u32 Entity_StepAngleTowardPoint(struct EwramData_EntityData *entity, s32 x, s32 y, s32 angle, s32 turn);
+extern u16 Entity_AngleToPoint(struct EwramData_EntityData *entity, s32 x, s32 y);
+/* The same function for callers that were compiled without a prototype
+ * (implicit int): result and arguments are not narrowed. */
+extern s32 Entity_AngleToPointWide(struct EwramData_EntityData *entity, s32 x, s32 y) asm("Entity_AngleToPoint");
 
 #endif /* RED_SOULS_B_H */

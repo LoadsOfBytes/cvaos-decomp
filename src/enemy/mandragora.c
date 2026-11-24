@@ -16,8 +16,6 @@
 #include "data/data_4F1444.h"
 #include "hitbox.h"
 
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *,u8 *,void *,u8,void *);
-
 void Mandragora_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 s32 Mandragora_CreateLinkedPart(struct EwramData_EntityData *);
 void MandragoraPart_Update(struct EwramData_EntityData *);

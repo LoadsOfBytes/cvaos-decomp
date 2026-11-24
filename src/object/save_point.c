@@ -25,7 +25,6 @@ struct PartInit
     s32 layer;
 };
 
-
 void SavePoint_UpdateOrbitLight(struct EwramData_EntityData *);
 void SaveSparkle_SpawnAround(struct EwramData_EntityData *entity, u16 width, u16 height);
 void SaveSparkle_Draw(struct EwramData_EntityData *entity);

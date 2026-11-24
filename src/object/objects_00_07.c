@@ -21,19 +21,11 @@
 #include "palette.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
-/* from bg_and_collision.h (not included: see the module notes) */
-extern void Collision_SetBlock(s32 arg0, s32 arg1);
-extern void Collision_ClearBlock(s32 arg0, s32 arg1);
+#include "entity_common.h"
+#include "bg_and_collision.h"
 
 /* Draw the entity twice with mirrored affine matrices (rotation from unk_4F8), restoring position, frame and flip. */
 struct AffineSlot16 { u16 slot:5; u16 rest:3; };
-
-extern s32 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
-
-/* Declared here with an int result: Warp_ActivateCurrentRoom uses the value without
- * re-extending it from s16 (see bg_and_collision.h for the real type). */
-extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
-extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *);
 
 void Door_Draw(struct EwramData_EntityData *entity);
 
@@ -115,7 +107,7 @@ void Gate_SetupGraphics(struct EwramData_EntityData *entity, s32 opened)
 
     entity->spriteLayer = 0x11;
     entity->flipX = (s16)entity->posX.part16.integer > 0x78 ? 1 : 0;
-    if (!Entity_LoadGraphics(entity, sGateGfx, sGatePalette, 0, sGateSpriteSheet))
+    if (!Entity_LoadGraphicsWide(entity, sGateGfx, sGatePalette, 0, sGateSpriteSheet))
         entity->basePalette = 5;
     entity->ext.gate.palette = entity->basePalette;
     pal = entity->ext.gate.palette;
@@ -1461,8 +1453,8 @@ void Warp_ActivateCurrentRoom(void)
     u32 y;
     s8 warp;
 
-    x = (u16)(gEwramData->gameState.roomMapXPos + (GetEntityRoomXPositionInteger(gEwramData->playerState.player) >> 8));
-    y = (u16)(gEwramData->gameState.roomMapYPos + (GetEntityRoomYPositionInteger(gEwramData->playerState.player) >> 8));
+    x = (u16)(gEwramData->gameState.roomMapXPos + (GetEntityRoomXPositionIntegerWide(gEwramData->playerState.player) >> 8));
+    y = (u16)(gEwramData->gameState.roomMapYPos + (GetEntityRoomYPositionIntegerWide(gEwramData->playerState.player) >> 8));
     warp = FindRoom(x, y);
     if (warp >= 0)
         gEwramData->gameState.activatedWarpFlags[warp >> 5] |= 1 << (warp & 0x1F);

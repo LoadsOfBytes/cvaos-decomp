@@ -9,7 +9,7 @@
 #include "objects_15_18.h"
 #include "objects_19_1c.h"
 #include "data/data_118B48.h"
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
+#include "entity_common.h"
 struct Object19Motion { s32 time, vx, vy; };
 
 extern struct Object19Motion sObject19Steps[];

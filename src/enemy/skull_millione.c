@@ -22,8 +22,6 @@
 #include "hitbox.h"
 #include "entity_hit.h"
 
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
-extern void Entity_FaceTarget(struct EwramData_EntityData *);
 extern s32 Target_GetVelocityX(void);
 
 void SkullMillioneFamily_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);

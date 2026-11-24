@@ -31,14 +31,10 @@
  * (NO_2003_PATCH_SRCS in ../Makefile). (Target_IsNearEntity test through an inline with two
  * returns, state 1 constant in a block variable). */
 
-
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 
-extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 
 // The offsets are passed sign-extended here (u16 in the definition).
-extern void Entity_PlaceRelativeToCopy(struct EwramData_EntityData *entity, struct EwramData_EntityData *anchor, s32 offsetX, s32 offsetY);
 void CockatriceFamilyAttack_Draw(struct EwramData_EntityData *entity);
 void CockatriceFamilyAttack_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 

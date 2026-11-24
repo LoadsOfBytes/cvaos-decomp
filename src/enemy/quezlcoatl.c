@@ -18,8 +18,6 @@
 #include "entity_motion.h"
 #include "entity_hit.h"
 
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-
 void Quezlcoatl_UpdateFly(struct EwramData_EntityData *);
 void Quezlcoatl_UpdatePreview(struct EwramData_EntityData *);
 void Quezlcoatl_SpawnDeathPiece(struct EwramData_EntityData *,s32,s32,s32);
@@ -277,7 +275,7 @@ void Quezlcoatl_UpdatePreview(struct EwramData_EntityData *entity)
  */
 void Quezlcoatl_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s32 damage = Hit_ResolveDamage(entity, (struct EwramData_EntityData *)attacker, hit, Player_CalculateAttackPower(hit[2]));
 
     entity->hitFlashTimer = 8;
     {

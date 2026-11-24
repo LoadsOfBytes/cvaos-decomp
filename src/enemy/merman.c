@@ -21,9 +21,6 @@
 #include "damage_numbers.h"
 #include "entity_hit.h"
 
-extern s32 Collision_FindWaterSurfaceOffset(s32, s32);
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
-
 void EnemyMermanCreate(struct EwramData_EntityData *);
 void Merman_UpdateMove(struct EwramData_EntityData *);
 void Merman_UpdateAttack(struct EwramData_EntityData *);
@@ -506,7 +503,7 @@ void Merman_UpdateAttack(struct EwramData_EntityData *entity)
 /* Apply a Merman hit and begin the falling death state when HP is exhausted. */
 void Merman_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
-    s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s32 damage = Hit_ResolveDamage(entity, attacker, hit, Player_CalculateAttackPower(hit[2]));
     u8 *flashTimer = &entity->hitFlashTimer;
     s32 zero = 0;
     *flashTimer = 8;

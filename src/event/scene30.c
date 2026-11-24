@@ -21,7 +21,8 @@
 #include "data/data_4F1444.h"
 #include "entity_common.h"
 
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *,u8 *,void *,u8,void *);
+struct OrbitPoint { u16 angle; u8 radiusX,radiusY; u16 scale; u16 padding; };
+extern struct OrbitPoint sEventScene30OrbitPoints[];
 
 /* Set up, play and fade the background transformation scene. */
 /**
@@ -745,8 +746,6 @@ void EventScene30OrbitRing_Update(struct EwramData_EntityData *entity)
 }
 
 /* Scatter twenty expanding orbit particles around a saved origin. */
-struct OrbitPoint { u16 angle; u8 radiusX,radiusY; u16 scale; u16 padding; };
-extern struct OrbitPoint sEventScene30OrbitPoints[];
 /**
  * @brief Spawn the twenty ring points of sEventScene30OrbitPoints
  * (EventScene30OrbitRing_Update) around (x, y).

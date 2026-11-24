@@ -22,9 +22,6 @@
 #include "data/data_4F1444.h"
 #include "entity_hit.h"
 
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern s32 Target_IsInRect(s16, s16, s32, s32);
-extern void Entity_FaceTarget(struct EwramData_EntityData *);
 
 void WaiterSkeletonThrownTray_DamagePlayerOnContact(struct EwramData_EntityData *);
 void WaiterSkeletonThrownTray_OnHit(struct EwramData_EntityData *);
@@ -298,7 +295,7 @@ void WaiterSkeleton_UpdateWalk(struct EwramData_EntityData *entity)
     {
     case 0:
         Entity_Walk(entity, speed, sWaiterSkeletonWalkProfile, 12);
-        if (Target_IsInRect(entity->posX.part16.integer - 100, entity->posY.part16.integer - 40, 200, 80))
+        if (Target_IsInRect((s16)(entity->posX.part16.integer - 100), (s16)(entity->posY.part16.integer - 40), 200, 80))
         {
             Anim_StartIndexed(entity, 4, 0, 1);
             if ((RandomNumberGenerator() & 3) != 0)
@@ -314,7 +311,7 @@ void WaiterSkeleton_UpdateWalk(struct EwramData_EntityData *entity)
     case 1:
         speed = 0x10000;
         Entity_Walk(entity, speed, sWaiterSkeletonWalkProfile, 12);
-        if (Target_IsInRect(entity->posX.part16.integer - 80, entity->posY.part16.integer - 40, 160, 80))
+        if (Target_IsInRect((s16)(entity->posX.part16.integer - 80), (s16)(entity->posY.part16.integer - 40), 160, 80))
         {
             Anim_StartIndexed(entity, 5, 0, 0);
             entity->subState = 2;

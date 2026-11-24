@@ -19,8 +19,6 @@
 #include "math_inline.h"
 #include "entity_hit.h"
 
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
-extern void Entity_FaceTarget(struct EwramData_EntityData *);
 
 /* Witch projectile setup, movement and spawn helper. */
 

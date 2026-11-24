@@ -28,18 +28,7 @@
 #include "damage_numbers.h"
 #include "music.h"
 #include "entity_hit.h"
-
-extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *);
-extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
-extern s16 Collision_GetPushLeft(s32 x, s32 y);
-extern s16 Collision_GetPushRight(s32 x, s32 y);
-extern s16 Collision_GetPushUp(s32 x, s32 y);
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern void Entity_FaceTarget(struct EwramData_EntityData *);
-
-/* This call site consumes the complete return register, as in the ROM. */
-extern s32 Collision_GetGroundOffset(s32, s32);
+#include "bg_and_collision.h"
 
 void MinotaurAxe_DamagePlayerOnContact(struct EwramData_EntityData *);
 void Minotaur_DamagePlayerOnContact(struct EwramData_EntityData *);
@@ -55,8 +44,8 @@ s32 Minotaur_CheckAttackChance(struct EwramData_EntityData *entity, s32 mask)
         return 0;
     if (Target_IsNearEntity(entity, 160, 120))
         return 1;
-    x = GetEntityRoomXPositionInteger(entity);
-    y = GetEntityRoomYPositionInteger(entity);
+    x = GetEntityRoomXPositionIntegerWide(entity);
+    y = GetEntityRoomYPositionIntegerWide(entity);
     if (entity->flipX)
         result = Collision_GetPushLeft((s16)x + 80, (s16)y);
     else
@@ -73,7 +62,7 @@ static inline s32 FragmentHitsGround(struct EwramData_EntityData *entity)
     x += (s16)bg->xPos.part16.integer;
     y = entity->posY.part16.integer;
     y += (s16)bg->yPos.part16.integer;
-    return Collision_GetGroundOffset(x, y + 4);
+    return Collision_GetGroundOffsetWide(x, y + 4);
 }
 void MinotaurAxePiece_Update(struct EwramData_EntityData *entity)
 {
@@ -113,7 +102,7 @@ void MinotaurAxePiece_Update(struct EwramData_EntityData *entity)
 void Minotaur_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     s32 damage = Player_CalculateAttackPower(hit[2]);
-    damage = Hit_ResolveDamage(entity, (s32)attacker, hit, (s16)damage);
+    damage = Hit_ResolveDamage(entity, attacker, hit, damage);
     entity->hitFlashTimer = 8;
     {
         u16 hp = entity->hp;
@@ -398,8 +387,8 @@ void MinotaurAxe_Update(struct EwramData_EntityData *entity)
         angle = SPIN(entity);
         if (entity->flipX)
             angle = -angle;
-        rx = GetEntityRoomXPositionInteger(entity);
-        ry = GetEntityRoomYPositionInteger(entity);
+        rx = GetEntityRoomXPositionIntegerWide(entity);
+        ry = GetEntityRoomYPositionIntegerWide(entity);
         angle -= 0x4000;
         dx = Sin(angle + 0x4000) << 4;
         dy = Sin(angle) << 4;

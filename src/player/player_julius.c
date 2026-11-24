@@ -25,7 +25,6 @@
 /* from graphics.h (not included: see the module notes) */
 #include "player_physics.h"
 
-
 void Julius_TryStartDiveAttack(struct EwramData_EntityData *entity);
 void Julius_UpdateVerticalMovement(struct EwramData_EntityData *entity);
 void Julius_UpdateVerticalMovement(struct EwramData_EntityData *entity);
@@ -33,7 +32,6 @@ void Julius_UpdateVerticalMovement(struct EwramData_EntityData *entity);
 
 /* Julius collision with the tile map, the carrying object and moving platforms.
  * Twin of the Soma version in player/player_soma.c. */
-
 
 static inline void SetJuliusAnimF(struct EwramData_EntityData *entity, u8 anim, s32 flag)
 {
@@ -1133,7 +1131,6 @@ void Julius_UpdateGrandCrossCast(struct EwramData_EntityData *entity)
 
 /* Julius main update: damage reactions, collision, whip input and state machine.
  * The helper boundaries and narrow temporaries preserve the original ROM. */
-
 
 static inline s32 TryBackdash(struct EwramData_EntityData *entity)
 {

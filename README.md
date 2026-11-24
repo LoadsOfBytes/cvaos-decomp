@@ -35,10 +35,10 @@ Measured on 2026-11-24 from the build output and source scans.
 | All ROM code (`.text`) from C | **97.06 %** (891,340 / 918,324 B) – the rest is platform code normally kept in assembly (`crt0`, `m4a` mixer, BIOS stubs, header) and libgcc/libc |
 | Functions named | ✅ **100 %** (3,842 / 3,842) |
 | Local variables and parameters named | ✅ **100 %** (15,727 / 15,727) |
-| Structure fields named | 🔄 **96.5 %** (3,174 / 3,289 declared; 99.9 % of accesses) – most of the rest are the offset-named slots of the raw work-area view |
+| Structure fields named | 🔄 **96.5 %** (3,163 / 3,278 declared; 99.9 % of accesses) – most of the rest are the offset-named slots of the raw work-area view |
 | Entity work area as typed structures | 🔄 368 per-type structures; 24 lines and 6 macros still use the raw offset view |
 | Source files grouped into modules | 🔄 **95 %** – the 1,701 ROM-address files (`code_XXXXXXXX.c`) are 172 named files: 163 complete modules and 9 small files still split off only for build reasons (see *File layout*); no `code_XXXXXXXX` name left |
-| Declarations in headers | 🔄 each module's functions used by other files are declared in `include/<module>.h`; no implicit declarations; 27 functions keep caller-specific prototypes (341 local declarations); file-internal forward declarations in one block at the top of each file; ROM data declared in `include/data/` (18 tables still local; see *Known limitations*) |
+| Declarations in headers | 🔄 each module's functions used by other files are declared in `include/<module>.h`; no implicit declarations; calls compiled without a prototype in the original use a declared `...Wide` alias (22 functions); 12 functions keep caller-specific prototypes (17 local declarations); file-internal forward declarations in one block at the top of each file; ROM data declared in `include/data/` (18 tables still local; see *Known limitations*) |
 | Code cleanup | 🔄 entity callbacks typed (`EntityFunc`), duplicated `static inline` helpers merged into shared headers; 87.8 % of functions use neither compiler tricks nor matching-only constructs such as `goto` (633 `goto` left) |
 | Hard-coded addresses | ✅ none for ROM data and RAM variables – every table, graphics, palette, map and room used from C is referenced by a symbol (223 data labels added); 28 lines still compute VRAM addresses with integer arithmetic |
 | Removing compiler tricks (`FAKEMATCH`) | 🔄 275 lines left in 73 of 181 C files |
@@ -89,13 +89,19 @@ name or comment describes the game correctly. Corrections are very welcome.
   built with the ARM compiler) are separate by design.
 - **Declarations** – a function used by other files is declared in the header of
   its module (`include/<module>.h`, e.g. `src/engine/entity_common.c` →
-  `include/entity_common.h`). Where a caller was compiled with a narrower type
-  than the definition, the call carries an explicit cast (e.g.
-  `Entity_ShowDamage(entity, (s16)damage, 0)`). 27 functions are still declared
-  locally by some callers, because those callers read the full return register or
-  pass unconverted arguments (e.g. `s32` vs `u16`) – probably calls without a
-  prototype in the original code – and one shared prototype would change their
-  code; a comment explains such a declaration where the reason is known. Callers
+  `include/entity_common.h`). Some original files evidently called a function
+  without a prototype (implicit `int`): they use the full return register and pass
+  unconverted arguments. The header keeps the definition's real types and, next
+  to them, declares a second name for the same symbol with `int`-wide types, e.g.
+  `extern s32 Entity_LoadGraphicsWide(...) asm("Entity_LoadGraphics");` – no code,
+  only another C prototype; those files call the `...Wide` name. 22 functions have
+  such an alias. Where the wide callers are the majority (e.g. `Target_IsInRect`),
+  the definition itself takes `s32` and narrows on entry (`u16 left = left_;`),
+  which the callee did anyway; a caller compiled with a narrower type then carries
+  an explicit cast (e.g. `Entity_ShowDamage(entity, (s16)damage, 0)`). 12
+  functions are still declared locally by some callers (17 declarations), mostly
+  with argument types that no header describes; a comment explains such a
+  declaration where the reason is known. Callers
   that use their own view of a shared structure pass it with an explicit pointer
   cast. ROM data used from C is declared in `include/data/<data file>.h` (one
   header per `asm/data/` file, in address order, together with the structures
@@ -109,8 +115,8 @@ name or comment describes the game correctly. Corrections are very welcome.
 - Merge the 9 build-separated files: needs C that matches without their compiler flags.
 - Finish the entity structures and name the remaining fields.
 - Reduce `FAKEMATCH` where a natural C variant can be found.
-- Declarations: the remaining 27 caller-specific prototypes (callers that read the
-  full return register or pass unconverted arguments).
+- Declarations: the remaining 12 caller-specific prototypes (17 local
+  declarations).
 - Readability: replace the remaining `goto`, register pins and magic numbers
   (constants for game flags, entity types, sound ids, hit flags).
 

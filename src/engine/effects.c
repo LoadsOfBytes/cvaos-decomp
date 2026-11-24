@@ -24,12 +24,7 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "entity_hit.h"
-
-extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
-extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *);
-
-/* from bg_and_collision.h (not included: see the module notes) */
-extern struct DmaQueueInfo* DmaQueue_IndirectCopy(u32 size, u32 *src, u32 *dst);
+#include "bg_and_collision.h"
 
 void Effect_DrawAtOffsetPair(struct EwramData_EntityData *);
 void Effect_DrawPlayerFlash(struct EwramData_EntityData *entity);
@@ -446,8 +441,8 @@ void Afterimage_Update(struct EwramData_EntityData *entity)
         history[i].frame = history[i - 1].frame;
         history[i].flip = history[i - 1].flip;
     }
-    history[0].x = GetEntityRoomXPositionInteger(owner);
-    history[0].y = GetEntityRoomYPositionInteger(owner);
+    history[0].x = GetEntityRoomXPositionIntegerWide(owner);
+    history[0].y = GetEntityRoomYPositionIntegerWide(owner);
     history[0].frame = owner->animFrame;
     history[0].flip = owner->flipX;
     entity->timer++;
@@ -513,8 +508,8 @@ struct EwramData_EntityData *Afterimage_Create(struct EwramData_EntityData *enti
     Sprite_Attach(e, anim2, gfx, entity->palette); }
     e->animFrame = entity->animFrame;
     e->spriteLayer = entity->spriteLayer + 1;
-    e->posX.part16.integer = (s16)GetEntityRoomXPositionInteger(entity);
-    e->posY.part16.integer = (s16)GetEntityRoomYPositionInteger(entity);
+    e->posX.part16.integer = (s16)GetEntityRoomXPositionIntegerWide(entity);
+    e->posY.part16.integer = (s16)GetEntityRoomYPositionIntegerWide(entity);
     e->ext.afterimage.owner = entity;
     e->ext.afterimage.delay = delay;
     if (count > 0x17)

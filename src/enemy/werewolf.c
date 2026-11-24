@@ -20,9 +20,6 @@
 #include "entity_motion.h"
 #include "entity_hit.h"
 
-extern s32 Target_IsInRect(s32, s32, s32, s32);
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-
 void Werewolf_UpdateWalk(struct EwramData_EntityData *);
 void Werewolf_UpdateAttack(struct EwramData_EntityData *);
 void Werewolf_UpdateRecoil(struct EwramData_EntityData *);
@@ -364,7 +361,7 @@ void Werewolf_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
 {
     s32 damage = Player_CalculateAttackPower(hitData[2]);
     struct EntityHit *hit = &attacker->hit;
-    damage = Hit_ResolveDamage(entity, (s32)attacker, hitData, (s16)damage);
+    damage = Hit_ResolveDamage(entity, attacker, hitData, damage);
     entity->hitFlashTimer = 8;
     {
         u16 hp = entity->hp;

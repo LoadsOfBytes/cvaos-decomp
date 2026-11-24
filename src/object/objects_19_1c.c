@@ -27,6 +27,7 @@
 #include "data/data_118B48.h"
 #include "gba/memory.h"
 #include "entity_hit.h"
+#include "entity_common.h"
 
 /* Object 19: move along a timed path of steps, then despawn. */
 struct Object19Step
@@ -37,8 +38,6 @@ struct Object19Step
 };
 
 extern const struct Object19Step sObject19Steps[4];
-extern s32 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
-extern s32 Bg_SetControlIfLevelAllows(s32 level, s32 reg, s32 value);
 
 static inline s32 Object19NextStep(struct EwramData_EntityData *entity, s32 step)
 {
@@ -129,7 +128,7 @@ void Object19_Draw(struct EwramData_EntityData *entity)
 
 void Object1BCreate(struct EwramData_EntityData *entity)
 {
-    if (!Entity_LoadGraphics(entity, sObject1BGfx, sUnk_08209FD8, 1, sObject1BSpriteSheet))
+    if (!Entity_LoadGraphicsWide(entity, sObject1BGfx, sUnk_08209FD8, 1, sObject1BSpriteSheet))
     {
         EntityDelete(entity);
         return;

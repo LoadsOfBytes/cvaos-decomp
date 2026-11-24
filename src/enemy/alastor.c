@@ -21,15 +21,8 @@
 #include "effects.h"
 #include "entity_motion.h"
 #include "entity_hit.h"
+#include "bg_and_collision.h"
 
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *,u8 *,void *,u8,void *);
-extern void Entity_FaceTarget(struct EwramData_EntityData *);
-extern s32 GetEntityRoomXPositionWhole(struct EwramData_EntityData *);
-extern s32 GetEntityRoomYPositionWhole(struct EwramData_EntityData *);
-extern s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *,s32,s32);
-extern s32 Collision_GetPushUp(s32,s32);
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *,s32,u16 *,s32);
-extern s32 Entity_IsInRect(struct EwramData_EntityData *entity, s16 left, s16 top, u16 width, u16 height);
 
 s32 Alastor_CreateLinkedPart(struct EwramData_EntityData *);
 void Alastor_OnHit(struct EwramData_EntityData *entity,s32 kind,u16 *hit);
@@ -646,8 +639,8 @@ void Alastor_UpdateAimedCharge(struct EwramData_EntityData *entity)
     struct BgLayerState *bg=&gEwramData->bgInfo[1];
     s32 targetX=Target_GetX(entity)+bg->xPos.whole;
     s32 targetY=Target_GetY(entity)+bg->yPos.whole-0x200000;
-    (void)ABS(targetX-GetEntityRoomXPositionWhole(entity));
-    (void)ABS(targetY-GetEntityRoomYPositionWhole(entity));
+    (void)ABS(targetX-GetEntityRoomXPositionWholeWide(entity));
+    (void)ABS(targetY-GetEntityRoomYPositionWholeWide(entity));
     switch(entity->subState)
     {
         case 0:
@@ -807,7 +800,7 @@ void Alastor_UpdateSpinningLeap(struct EwramData_EntityData *entity)
                         PlaySong(0x86);
                     if(entity->timer++>10)
                         entity->velY.whole+=entity->accelY.whole;
-                    if(Entity_IsOffsetOutsideRoom(entity,0,0) || (s16)Collision_GetPushUp(ToRoomX((s16)entity->posX.part16.integer),ToRoomY((s16)entity->posY.part16.integer)+8)!=0)
+                    if(Entity_IsOffsetOutsideRoom(entity,0,0) || (s16)Collision_GetPushUpWide(ToRoomX((s16)entity->posX.part16.integer),ToRoomY((s16)entity->posY.part16.integer)+8)!=0)
                     {
                         entity->subState++;
                         entity->stage=0;
@@ -964,7 +957,7 @@ void Alastor_UpdateDeath(struct EwramData_EntityData *entity)
  */
 void Alastor_OnHit(struct EwramData_EntityData *entity,s32 kind,u16 *hit)
 {
-    s32 damage=Hit_ResolveDamage(entity,kind,hit,(s16)Player_CalculateAttackPower(hit[2]));
+    s32 damage=Hit_ResolveDamageWide(entity,(struct EwramData_EntityData *)kind,hit,(s16)Player_CalculateAttackPower(hit[2]));
     {
         u16 hp=entity->hp;
         damage<<=16;
@@ -1191,7 +1184,7 @@ s32 Alastor_IsTargetInLowerBox(struct EwramData_EntityData *entity, u16 width, u
     u16 left = entity->posX.part16.integer - (width >> 1);
     u16 top = entity->posY.part16.integer + 0x28;
 
-    return Entity_IsInRect(target, left, top, width, height);
+    return Entity_IsInRect(target, (s16)left, (s16)top, (u16)width, (u16)height);
 }
 
 /**
@@ -1204,7 +1197,7 @@ s32 Alastor_IsTargetInUpperBox(struct EwramData_EntityData *entity, u16 width, u
     u16 left = entity->posX.part16.integer - (width >> 1);
     u16 top = entity->posY.part16.integer - height;
 
-    return Entity_IsInRect(target, left, top, width, height);
+    return Entity_IsInRect(target, (s16)left, (s16)top, (u16)width, (u16)height);
 }
 
 /**

@@ -19,9 +19,6 @@
 #include "entity_motion.h"
 #include "entity_hit.h"
 
-extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-
 void DeadCrusader_UpdateWalk(struct EwramData_EntityData *entity);
 void DeadCrusader_UpdateAttack(struct EwramData_EntityData *entity);
 u8 DeadCrusader_LoadGraphics(struct EwramData_EntityData *entity);
@@ -127,7 +124,7 @@ void DeadCrusader_UpdateWalk(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
     case 0:
-        if (Target_IsInRect(entity->posX.part16.integer - 0x5A, entity->posY.part16.integer - 0x30, 0xB4, 0x60) || Enemy_IsDamaged(entity))
+        if (Target_IsInRect((s16)(entity->posX.part16.integer - 0x5A), (s16)(entity->posY.part16.integer - 0x30), 0xB4, 0x60) || Enemy_IsDamaged(entity))
         {
             entity->subState++;
             Anim_StartIndexed(entity, 1, 0, 1);
@@ -162,7 +159,7 @@ void DeadCrusader_UpdateWalk(struct EwramData_EntityData *entity)
             entity->accelY.whole = 0x2800;
             break;
         }
-        found = Target_IsInRect(entity->posX.part16.integer - 0x28, entity->posY.part16.integer - 0x28, 0x50, 0x50);
+        found = Target_IsInRect((s16)(entity->posX.part16.integer - 0x28), (s16)(entity->posY.part16.integer - 0x28), 0x50, 0x50);
         if (found)
         {
             if ((RandomNumberGenerator() & 0x7F) <= 0x40)
@@ -219,7 +216,7 @@ void DeadCrusader_UpdateWalk(struct EwramData_EntityData *entity)
             entity->accelY.whole = 0x2800;
             break;
         }
-        if (!Target_IsInRect(entity->posX.part16.integer - 0x3C, entity->posY.part16.integer - 0x28, 0x78, 0x50) || entity->timer > 0x3B)
+        if (!Target_IsInRect((s16)(entity->posX.part16.integer - 0x3C), (s16)(entity->posY.part16.integer - 0x28), 0x78, 0x50) || entity->timer > 0x3B)
         {
             entity->flipX = Entity_IsTargetRight(entity);
             entity->subState = 1;
@@ -237,7 +234,7 @@ void DeadCrusader_UpdateWalk(struct EwramData_EntityData *entity)
             entity->accelY.whole = 0x2800;
             break;
         }
-        if (Target_IsInRect(entity->posX.part16.integer - 0x28, entity->posY.part16.integer - 0x28, 0x50, 0x50) && entity->timer > 0x3B
+        if (Target_IsInRect((s16)(entity->posX.part16.integer - 0x28), (s16)(entity->posY.part16.integer - 0x28), 0x50, 0x50) && entity->timer > 0x3B
             && (RandomNumberGenerator() & 0x7F) <= 0x40)
         {
             entity->state = 1;
@@ -353,11 +350,11 @@ void DeadCrusader_OnHit(struct EwramData_EntityData *entity, struct EwramData_En
     u16 damage = Player_CalculateAttackPower(hit[2]);
     if ((s8)entity->ext.deadCrusader.guarding != 0)
     {
-        Hit_ResolveDamage(entity, (s32)attacker, hit, 0);
+        Hit_ResolveDamage(entity, attacker, hit, 0);
         damage = 0;
         PlaySong(0x69);
     }
-    else damage = Hit_ResolveDamage(entity, (s32)attacker, hit, (s16)damage);
+    else damage = Hit_ResolveDamage(entity, attacker, hit, damage);
     entity->hitFlashTimer = 8;
     {
         u16 hp = entity->hp;

@@ -29,10 +29,7 @@
 #include "music.h"
 #include "pickup.h"
 #include "entity_hit.h"
-
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern s16 GetEntityRoomYPositionInteger(struct EwramData_EntityData *entity);
-extern s32 Collision_GetGroundOffset(s32 x, s32 y);
+#include "bg_and_collision.h"
 
 void Object17Follower_Update(struct EwramData_EntityData *);
 void Object17Effect_Update(struct EwramData_EntityData *);
@@ -702,7 +699,7 @@ void Object18Debris_Update(struct EwramData_EntityData *entity)
     EntityAccelerateAndMove(entity, 0x80000);
     x = (s16)entity->posX.part16.integer;
     bg = &gEwramData->bgInfo[1];
-    if (Collision_GetGroundOffset(x + (s16)bg->xPos.part16.integer,
+    if (Collision_GetGroundOffsetWide(x + (s16)bg->xPos.part16.integer,
                      (s16)entity->posY.part16.integer + (s16)bg->yPos.part16.integer))
     {
         struct EwramData_EntityData *effect = Effect_SpawnShared(entity->posX.whole, entity->posY.whole - 0x40000, 4, 6);
@@ -787,7 +784,6 @@ void Object18Create(struct EwramData_EntityData *entity)
     Entity_SnapToGround(entity);
     entity->scrollWithBg = 1;
 }
-
 
 /**
  * @brief 53968 | Breakable object (object 0x18): hidden off screen; when hit

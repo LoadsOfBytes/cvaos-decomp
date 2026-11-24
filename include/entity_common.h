@@ -86,5 +86,13 @@ extern void HitEffect_SpawnAtContact(s32 attacker, struct EwramData_EntityData *
 extern u32 Target_GetFlipX(struct EwramData_EntityData *entity);
 extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, void *onHurt);
 extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+extern s32 Target_IsInRect(s32 left_, s32 top_, s32 width_, s32 height_);
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
+/* The same function for callers that were compiled without a prototype
+ * (implicit int): result and arguments are not narrowed. */
+extern s32 Entity_LoadGraphicsWide(struct EwramData_EntityData *entity, u8 *resource, void *palette, s32 variant, void *sheet) asm("Entity_LoadGraphics");
+extern s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *entity, s32 offsetX_, s32 offsetY_);
+extern void Entity_PlaceRelativeToCopy(struct EwramData_EntityData *entity, struct EwramData_EntityData *anchor, s32 offsetX_, s32 offsetY_);
+extern s32 Collision_FindWaterSurfaceOffset(s32 x__, s32 y__);
 
 #endif /* ENTITY_COMMON_H */

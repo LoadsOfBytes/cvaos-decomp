@@ -19,9 +19,6 @@
 #include "damage_numbers.h"
 #include "entity_hit.h"
 
-extern s32 Target_IsInRect(s16 x, s16 y, s32 w, s32 h);
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-
 void Mimic_UpdateWait(struct EwramData_EntityData *);
 void Mimic_UpdatePreview(struct EwramData_EntityData *);
 u8 Mimic_LoadGraphics(struct EwramData_EntityData *);
@@ -139,7 +136,7 @@ void Mimic_UpdateWait(struct EwramData_EntityData *entity)
         entity->ext.mimic.flags |= 2;
         entity->ext.mimic.heldFrame = 0;
         entity->animFrame = 0;
-        if (Target_IsInRect(entity->posX.part16.integer - 0x10, entity->posY.part16.integer - 0x14, 0x20, 0x14))
+        if (Target_IsInRect((s16)(entity->posX.part16.integer - 0x10), (s16)(entity->posY.part16.integer - 0x14), 0x20, 0x14))
         {
             entity->ext.mimic.flags = 0;
             Anim_StartIndexed(entity, 0, 0, 0);
@@ -165,7 +162,7 @@ void Mimic_UpdateWait(struct EwramData_EntityData *entity)
 void Mimic_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     s32 damage = Player_CalculateAttackPower(hit[2]);
-    damage = Hit_ResolveDamage(entity, (s32)attacker, hit, (s16)damage);
+    damage = Hit_ResolveDamage(entity, attacker, hit, damage);
     entity->hitFlashTimer = 8;
     {
         u16 hp = entity->hp;

@@ -19,9 +19,6 @@
 #include "entity_motion.h"
 #include "entity_hit.h"
 
-extern s32 Target_IsInRect(s16, s16, s32, s32);
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s32);
-
 void Zombie_UpdateEmergingWalkingSinking(struct EwramData_EntityData *);
 void Zombie_UpdateStationaryAnimation(struct EwramData_EntityData *);
 void EnemyZombieCreate(struct EwramData_EntityData *);
@@ -275,7 +272,7 @@ void Zombie_UpdateEmergingWalkingSinking(struct EwramData_EntityData *entity)
         {
             s32 hit;
             if (entity->flipX)
-                hit = Target_IsInRect(entity->posX.part16.integer, (s16)(entity->posY.part16.integer - 32), 80, 64);
+                hit = Target_IsInRect((s16)entity->posX.part16.integer, (s16)(entity->posY.part16.integer - 32), 80, 64);
             else
                 hit = Target_IsInRect((s16)(entity->posX.part16.integer - 80), (s16)(entity->posY.part16.integer - 32), 80, 64);
             if (!hit) break;
@@ -358,7 +355,7 @@ static inline s32 Offset(s32 value, s32 delta)
 void Zombie_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     s32 damage = Player_CalculateAttackPower(hit[2]);
-    damage = Hit_ResolveDamage(entity, attacker, hit, (s16)damage);
+    damage = Hit_ResolveDamage(entity, attacker, hit, damage);
     entity->hitFlashTimer = 8;
     {
         u16 hp = entity->hp;

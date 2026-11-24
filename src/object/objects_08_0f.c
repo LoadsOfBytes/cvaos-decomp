@@ -23,18 +23,10 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "entity_hit.h"
+#include "bg_and_collision.h"
 
-extern s32 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 extern void (*sObject0CTriggerFuncs[])(struct EwramData_EntityData *, struct Object0CTrigger *);
 extern s32 Pickup_TrySpawnOnHit(struct EwramData_EntityData *, s32, s32, s32);
-
-/* from bg_and_collision.h (not included: see the module notes) */
-extern s16 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
-extern s16 GetEntityRoomYPositionInteger(struct EwramData_EntityData *entity);
-extern void Collision_SetBlock(s32 arg0, s32 arg1);
-extern void Collision_ClearBlock(s32 arg0, s32 arg1);
-/* Declared s16 in bg_and_collision.h; the caller here uses the full register. */
-extern s32 Collision_GetGroundOffset(s32, s32);
 
 void BreakableBlockDust_Update(struct EwramData_EntityData *entity);
 void Object0E_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker);
@@ -61,7 +53,7 @@ void DebrisPiece_Update(struct EwramData_EntityData *entity)
     {
         s32 x = (s16)entity->posX.part16.integer;
         struct BgLayerState *camera = &(*ewram)->bgInfo[1];
-        if ((u16)Collision_GetGroundOffset(x + (s16)camera->xPos.part16.integer,
+        if ((u16)Collision_GetGroundOffsetWide(x + (s16)camera->xPos.part16.integer,
                          (s16)entity->posY.part16.integer + (s16)camera->yPos.part16.integer + 4))
         {
             entity->animFrame = (RandomNumberGenerator() & 1) + 0x40;
@@ -98,7 +90,7 @@ void Object09Debris_Update(struct EwramData_EntityData *entity)
     {
         struct BreakableBlockVariant *kind = &sBreakableBlockVariants[entity->spawnParam0];
         struct BreakableBlockGraphics *graphics = &sBreakableBlockGraphics[kind->graphicsIndex];
-        if (!(u8)Entity_LoadGraphics(entity, graphics->graphics, graphics->palette, kind->paletteIndex, graphics->spriteSheet))
+        if (!Entity_LoadGraphics(entity, graphics->graphics, graphics->palette, kind->paletteIndex, graphics->spriteSheet))
         {
             EntityDelete(entity);
             return;
@@ -335,7 +327,7 @@ void Object08Create(struct EwramData_EntityData *entity)
     graphics = &sBreakableBlockGraphics[kind->graphicsIndex];
     entity->flipX = 0;
     entity->spriteLayer = kind->spriteLayer;
-    if (!(u8)Entity_LoadGraphics(entity, graphics->graphics, graphics->palette, kind->paletteIndex, graphics->spriteSheet))
+    if (!Entity_LoadGraphics(entity, graphics->graphics, graphics->palette, kind->paletteIndex, graphics->spriteSheet))
     {
 fail:
         EntityDelete(entity);
@@ -440,7 +432,7 @@ void Object09Create(struct EwramData_EntityData *entity)
     gfxDef = &sBreakableBlockGraphics[def->graphicsIndex];
     entity->flipX = 0;
     entity->spriteLayer = def->spriteLayer;
-    if (!(u8)Entity_LoadGraphics(entity, gfxDef->graphics, gfxDef->palette, (u8)def->paletteIndex, gfxDef->spriteSheet))
+    if (!Entity_LoadGraphics(entity, gfxDef->graphics, gfxDef->palette, def->paletteIndex, gfxDef->spriteSheet))
     {
         EntityDelete(entity);
         return;
@@ -689,7 +681,7 @@ void Object0CCreate(struct EwramData_EntityData *entity)
 void Object0DCreate(struct EwramData_EntityData *entity)
 {
     u16 slot;
-    if (!Entity_LoadGraphics(entity, sObject0DGfx, sObject0DPalette, 0, sObject0DSpriteSheet)) goto remove;
+    if (!Entity_LoadGraphicsWide(entity, sObject0DGfx, sObject0DPalette, 0, sObject0DSpriteSheet)) goto remove;
     slot = ObjAffine_Alloc(1);
     if ((s16)slot < 0)
     {
@@ -805,7 +797,7 @@ void Object0EPiece_Update(struct EwramData_EntityData *entity)
     EntityAccelerateAndMove(entity, 0x80000);
     x = (s16)entity->posX.part16.integer;
     bg = &gEwramData->bgInfo[1];
-    if (Collision_GetGroundOffset(x + (s16)bg->xPos.part16.integer,
+    if (Collision_GetGroundOffsetWide(x + (s16)bg->xPos.part16.integer,
                      (s16)entity->posY.part16.integer + (s16)bg->yPos.part16.integer))
     {
         struct EwramData_EntityData *effect = Effect_SpawnShared(entity->posX.whole, entity->posY.whole - 0x40000, 4, 6);
@@ -851,7 +843,7 @@ void Object0E_SpawnPieces(struct EwramData_EntityData *owner)
         struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, Object0EPiece_Update);
         if (!entity)
             return;
-        if (!(u8)Entity_LoadGraphics(entity, gfx->graphics, gfx->palette, (u8)info->palette, gfx->sprites))
+        if (!Entity_LoadGraphics(entity, gfx->graphics, gfx->palette, info->palette, gfx->sprites))
         {
             EntityDelete(entity);
             return;
@@ -899,7 +891,7 @@ void Object0ECreate(struct EwramData_EntityData *entity)
 {
     struct Object0EVariant *variant = &sObject0EVariants[entity->spawnParam0];
     struct Object0EGraphics *graphics = &sObject0EGraphics[variant->graphics];
-    if (!(u8)Entity_LoadGraphics(entity, graphics->graphics, graphics->palette, (u8)variant->palette, graphics->sprites))
+    if (!Entity_LoadGraphics(entity, graphics->graphics, graphics->palette, variant->palette, graphics->sprites))
     {
         EntityDelete(entity);
         return;

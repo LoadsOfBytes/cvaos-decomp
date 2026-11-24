@@ -19,9 +19,6 @@
 #include "entity_motion.h"
 #include "entity_hit.h"
 
-extern s32 Target_IsInRect(s32, s32, s32, s32);
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
-
 void Mudman_UpdateWalk(struct EwramData_EntityData *);
 void Mudman_UpdateAttack(struct EwramData_EntityData *);
 void Mudman_UpdateDeath(struct EwramData_EntityData *);
@@ -333,7 +330,7 @@ void Mudman_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
 {
     s32 power = Player_CalculateAttackPower(hit[2]);
     u8 *value554 = &attacker->hit.type;
-    s16 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)power);
+    s16 damage = Hit_ResolveDamage(entity, attacker, hit, power);
     s32 zero;
     entity->hitFlashTimer = 8;
     {

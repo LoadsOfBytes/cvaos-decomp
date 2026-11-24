@@ -14,6 +14,9 @@
 #define RESET_ALL        0xFF
 
 u16 ArcTan2(s16 x, s16 y);
+/* The same function for callers that were compiled with int arguments
+ * (implicit int / no prototype): the arguments are not narrowed. */
+extern u16 ArcTan2Wide(s32 x, s32 y) asm("ArcTan2");
 void BgAffineSet(struct BgAffineSrcData *src, struct BgAffineDstData *dest, s32 count);
 void CpuSet(const void *src, void *dest, u32 control);
 s32 Div(s32 num, s32 denom);

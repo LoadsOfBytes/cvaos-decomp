@@ -39,9 +39,9 @@ const u8 sUnk_080e2064[] = "obj_";
 static struct DebugDisplayTestState sDebugDisplayTestState;
 
 struct DebugDisplayTestCallbacks {
-    void *updateFunc; // func ptr
-    void *initFunc; // func ptr
-    void *exitFunc; // func ptr
+    void (*updateFunc)(struct DebugDisplayTestState *test);
+    void (*initFunc)(struct DebugDisplayTestState *test);
+    void (*exitFunc)(struct DebugDisplayTestState *test);
 }; /* size = 0xC */
 struct DebugDisplayTestCallbacks sDebugDisplayTestCallbacks[] = {
     [0] = {
@@ -84,7 +84,7 @@ s32 DebugDispTest_Run(s32 testIndex)
         case 0:
             DMA_FILL_32(3, 0, &sDebugDisplayTestState, sizeof(sDebugDisplayTestState));
             BgCmdBuffer_WriteString(2, 0x13, 0xF, "PUSH SELECT + B TO EXIT.");
-            ((void (*)(struct DebugDisplayTestState *)) def->initFunc)(&sDebugDisplayTestState);
+            def->initFunc(&sDebugDisplayTestState);
             DMA_COPY_16(3, &sDebugDispTestPalette, &gEwramData->bgPalette.base[0xF], 0x10);
             gEwramData->bgPalette.uploaded = 0;
             DebugTest_SetStage(1);
@@ -92,7 +92,7 @@ s32 DebugDispTest_Run(s32 testIndex)
 
         case 1:
             Entity_UpdateAll();
-            ((void (*)(struct DebugDisplayTestState *)) def->updateFunc)(&sDebugDisplayTestState);
+            def->updateFunc(&sDebugDisplayTestState);
             if ((gEwramData->inputData.heldInput & (4 | 2)) == (4 | 2))
             {
                 DebugTest_SetStage(2);
@@ -100,7 +100,7 @@ s32 DebugDispTest_Run(s32 testIndex)
             break;
 
         case 2:
-            ((void (*)(struct DebugDisplayTestState *)) def->exitFunc)(&sDebugDisplayTestState);
+            def->exitFunc(&sDebugDisplayTestState);
             DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
             done = 1;
             break;

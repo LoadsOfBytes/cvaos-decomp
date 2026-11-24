@@ -44,8 +44,6 @@ struct SkullBox {
 #define TO_PIXELS(d) ((d) < 0 ? -(-(d) >> 16) : (d) >> 16)
 
 extern void *memcpy(void *dst, const void *src, unsigned long size);
-extern void BossRecoveryPickup_Spawn(s32 x, s32 y, s32 event, s32 delay, s32 special);
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 
 u8 CreakingSkull_LoadGraphics(struct EwramData_EntityData *entity);
 void CreakingSkullPart_Update(struct EwramData_EntityData *entity);
@@ -1290,7 +1288,7 @@ void CreakingSkull_ApplyResolvedDamage(struct EwramData_EntityData *entity, s32 
         {
             Player_SetSelectedTarget(NULL);
             BossDefeatEffect_Spawn(entity->posX.whole, entity->posY.whole - 0x200000);
-            BossRecoveryPickup_Spawn((s16)entity->posX.part16.integer, 0x20, 0xB, 0x60, 0);
+            BossRecoveryPickup_SpawnWide((s16)entity->posX.part16.integer, 0x20, 0xB, 0x60, 0);
         }
     }
 }
@@ -1795,7 +1793,7 @@ void CreakingSkullPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, 
     skull->posX.whole = entity->posX.whole;
     skull->posY.whole = entity->posY.whole;
     damage = Player_CalculateAttackPower(hit[2]);
-    damage = Hit_ResolveDamage(entity->ext.jointPart.owner, attacker, hit, (s16)damage);
+    damage = Hit_ResolveDamage(entity->ext.jointPart.owner, (struct EwramData_EntityData *)attacker, hit, damage);
     skull->posX.whole = oldX;
     skull->posY.whole = oldY;
     Entity_ShowDamage(entity, (s16)damage, 0);
@@ -1902,7 +1900,7 @@ void CreakingSkull_DamagePlayerOnContact(struct EwramData_EntityData *entity)
  */
 void CreakingSkull_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    s16 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s16 damage = Hit_ResolveDamage(entity, (struct EwramData_EntityData *)attacker, hit, Player_CalculateAttackPower(hit[2]));
 
     Entity_ShowDamage(entity, (s16)damage, 0);
     CreakingSkull_ApplyResolvedDamage(entity, attacker, hit, (s16)damage);

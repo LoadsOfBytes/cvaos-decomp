@@ -30,17 +30,14 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "entity_hit.h"
+#include "boss_defeat.h"
 
-extern void SoulPickup_SpawnFromEnemyDefinition(s32, s32, s32, s32);
-extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
 
 /*
- * Two callers below were compiled against other prototypes than the ones in
- * syscalls.h / graphics.h: BaloreEye_Update passes ArcTan2 a full s32 x,
- * Balore_UpdateDeath calls ObjPalette_LoadRange with three arguments (the
- * slot is left in r3). Same symbols under a second name.
+ * Balore_UpdateDeath calls ObjPalette_LoadRange with three arguments (the slot
+ * is left in r3); the declaration in graphics.h has two. Same symbol under a
+ * second name. (BaloreEye_Update uses ArcTan2Wide from syscalls.h.)
  */
-extern u16 ArcTan2Wide(s32 x, s32 y) asm("ArcTan2");
 extern void ObjPalette_LoadRange3(s32 palette, u16 first, u16 count) asm("ObjPalette_LoadRange");
 
 void BaloreHandBHitBox_Update(struct EwramData_EntityData *entity);
@@ -1566,7 +1563,7 @@ s32 Balore_UpdateDeath(struct EwramData_EntityData *entity)
         if (entity->timer)
             goto dec;
         SoulPickup_SpawnFromEnemyDefinition((s16)entity->posX.part16.integer - 0x10, (s16)entity->posY.part16.integer, entity->enemyId, 6);
-        BossRecoveryPickup_Spawn((s16)entity->posX.part16.integer, 0x20, 6, 0x60, 1);
+        BossRecoveryPickup_SpawnWide((s16)entity->posX.part16.integer, 0x20, 6, 0x60, 1);
         return 1;
     dec:
         entity->timer--;

@@ -25,8 +25,6 @@
 #include "data/data_4F1444.h"
 #include "sound.h"
 
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, u8, void *);
-extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
 
 void DiscArmorRing_Draw(struct EwramData_EntityData *);
 void DiscArmorDisc_DamagePlayerOnContact(struct EwramData_EntityData *entity);

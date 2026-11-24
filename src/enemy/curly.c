@@ -17,10 +17,6 @@
 #include "entity_motion.h"
 #include "hitbox.h"
 
-extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s32 Collision_IsWalkBlocked(s32 x, s32 y);
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-
 u8 Curly_LoadGraphics(struct EwramData_EntityData *);
 void Curly_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void Curly_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
@@ -84,7 +80,7 @@ void Curly_UpdateWalk(struct EwramData_EntityData *entity)
                 else
                     entity->velX.whole = Entity_AdjustSpeedForSlope(entity, -0x8000);
                 if ((anim = entity->animStep) == 1
-                    && Target_IsInRect(entity->posX.part16.integer - 0x32, entity->posY.part16.integer - 0x40, 0x64, 0x46)
+                    && Target_IsInRect((s16)(entity->posX.part16.integer - 0x32), (s16)(entity->posY.part16.integer - 0x40), 0x64, 0x46)
                     && (RandomNumberGenerator() & 0x7F) <= 0x5F)
                 {
                     entity->state = anim;
@@ -130,7 +126,7 @@ void Curly_UpdateWalk(struct EwramData_EntityData *entity)
                 else
                     entity->velX.whole = Entity_AdjustSpeedForSlope(entity, -0x8000);
                 if ((anim = entity->animStep) == 1
-                    && Target_IsInRect(entity->posX.part16.integer - 0x32, entity->posY.part16.integer - 0x40, 0x64, 0x46)
+                    && Target_IsInRect((s16)(entity->posX.part16.integer - 0x32), (s16)(entity->posY.part16.integer - 0x40), 0x64, 0x46)
                     && (RandomNumberGenerator() & 0x7F) <= 0x5F)
                 {
                     entity->state = anim;
@@ -216,7 +212,7 @@ u8 Curly_LoadGraphics(struct EwramData_EntityData *entity)
 void Curly_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     s32 damage = Player_CalculateAttackPower(hit[2]);
-    damage = Hit_ResolveDamage(entity, (s32)attacker, hit, (s16)damage);
+    damage = Hit_ResolveDamage(entity, attacker, hit, damage);
     entity->hitFlashTimer = 8;
     {
         u16 hp = entity->hp;

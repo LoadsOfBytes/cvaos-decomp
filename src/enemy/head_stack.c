@@ -18,10 +18,6 @@
 #include "data/data_118B48.h"
 #include "entity_hit.h"
 
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern void Entity_PlaceRelativeToCopy(struct EwramData_EntityData *, struct EwramData_EntityData *, s32, s32);
-extern s32 Target_IsInRect(s16, s16, s16, s16);
-
 void HeadStackEffect_UpdateFallingPiece(struct EwramData_EntityData *);
 void HeadStackProjectile_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void HeadStackProjectile_ClearHealth(struct EwramData_EntityData *);
@@ -547,7 +543,7 @@ void HeadStackSegment_Update(struct EwramData_EntityData *entity)
     {
     case 0:
         if (entity->subState == 0
-            && Target_IsInRect(entity->posX.part16.integer - 0x50, entity->posY.part16.integer - 0x3C, 0xA0, 0x78))
+            && Target_IsInRect((s16)(entity->posX.part16.integer - 0x50), (s16)(entity->posY.part16.integer - 0x3C), 0xA0, 0x78))
         {
             entity->state = 1;
             entity->stage = 0;

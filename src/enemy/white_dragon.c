@@ -6,6 +6,7 @@
 #include "player_core.h"
 #include "entity_util.h"
 #include "structs/ewram.h"
+#include "syscalls.h"
 #include "structs/entity_render_flags.h"
 #include "graphics.h"
 #include "gameplay.h"
@@ -19,9 +20,6 @@
 #include "damage_numbers.h"
 #include "entity_hit.h"
 
-extern u16 ArcTan2(s32 x, s32 y);
-extern s32 Target_IsInRect(s16,s16,s16,s16);
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *,struct EwramData_EntityData *,u16 *,s32);
 
 void WhiteDragon_UpdateIdle(struct EwramData_EntityData *);
 void WhiteDragon_UpdateAttack(struct EwramData_EntityData *);
@@ -229,7 +227,7 @@ void WhiteDragon_UpdateIdle(struct EwramData_EntityData *entity)
         flipped=*(u8 *)(ENTITY_RENDER_FLAGS_ADDRESS(entity))&0x40;
         if((u8)flipped)
         {
-            if(Target_IsInRect(x+40,entity->posY.part16.integer-100,84,200))
+            if(Target_IsInRect((s16)(x+40),(s16)(entity->posY.part16.integer-100),84,200))
             {
                 entity->state=1;
                 entity->subState=timer;
@@ -239,7 +237,7 @@ void WhiteDragon_UpdateIdle(struct EwramData_EntityData *entity)
                 return;
             }
         }
-        else if(Target_IsInRect(x-124,entity->posY.part16.integer-100,84,200))
+        else if(Target_IsInRect((s16)(x-124),(s16)(entity->posY.part16.integer-100),84,200))
         {
             entity->state=1;
             entity->subState=flipped;
@@ -257,7 +255,7 @@ void WhiteDragon_UpdateIdle(struct EwramData_EntityData *entity)
         x=(s16)entity->posX.part16.integer; dy=(s16)entity->posY.part16.integer;
         if(entity->flipX)
         {
-            if(!Target_IsInRect(x,entity->posY.part16.integer-100,80,200)) return;
+            if(!Target_IsInRect((s16)x,(s16)(entity->posY.part16.integer-100),80,200)) return;
             entity->state=1;
             if(RandomNumberGenerator()&1) entity->subState=20;
             else entity->subState=10;
@@ -268,7 +266,7 @@ void WhiteDragon_UpdateIdle(struct EwramData_EntityData *entity)
         }
         else
         {
-            if(!Target_IsInRect(x-80,entity->posY.part16.integer-100,80,200)) return;
+            if(!Target_IsInRect((s16)(x-80),(s16)(entity->posY.part16.integer-100),80,200)) return;
             entity->state=1;
             if(RandomNumberGenerator()&1) entity->subState=20;
             else entity->subState=10;
@@ -278,7 +276,7 @@ void WhiteDragon_UpdateIdle(struct EwramData_EntityData *entity)
             dx=Target_GetPixelX(entity); { u16 px_; register u32 z_ asm("r3"); asm("" : "=r"(z_)); px_ = entity->posX.part16.integer; asm("" :: "r"(z_)); dx-=px_; } /* FAKEMATCH: fake-live register steers reload rotation */
         }
         dx<<=16; dx>>=16;
-        dy=Target_GetPixelY(entity)-({ u32 t_ = (u16)entity->posY.part16.integer+20; t_; }); dy<<=16; dy>>=16; entity->accelX.part16.integer=ArcTan2(dx,dy);
+        dy=Target_GetPixelY(entity)-({ u32 t_ = (u16)entity->posY.part16.integer+20; t_; }); dy<<=16; dy>>=16; entity->accelX.part16.integer=ArcTan2Wide(dx,dy);
     }
     else entity->ext.whiteDragon.shotTimer=RandomNumberGenerator()%30+30; }
 }
@@ -337,7 +335,7 @@ void WhiteDragon_UpdateAttack(register struct EwramData_EntityData *entity)
         { SWAY_PHASE(entity)+=320; changing++; }
         dx=entity->ext.whiteDragonAim.x-(entity->ext.whiteDragon.anchorX+(s16)entity->ext.whiteDragon.offsetX);
         dy=entity->ext.whiteDragonAim.y-(entity->ext.whiteDragon.anchorY+entity->ext.whiteDragon.offsetY);
-        target=ArcTan2((s16)dx,(s16)dy);
+        target=ArcTan2Wide((s16)dx,(s16)dy);
         if(entity->flipX)
         {
             angle=(u16)HEAD_ANGLE(entity);
@@ -393,7 +391,7 @@ aimed:
                 dx<<=16; dx>>=16;
                 dy=Target_GetPixelY(entity);
                 dy-=({ s32 t_=(u16)entity->posY.part16.integer; t_+=20; t_; });
-                angle=(u16)ArcTan2((s16)dx,(s16)dy);
+                angle=(u16)ArcTan2Wide((s16)dx,(s16)dy);
                 target=(u16)SHOT_ANGLE(entity);
                 if(angle<0x4000) angle+=0x10000;
                 if(target<0x4000) target+=0x10000;
@@ -569,7 +567,7 @@ void WhiteDragon_OnHit(struct EwramData_EntityData *entity,struct EwramData_Enti
 {
     s32 power=Player_CalculateAttackPower(info[2]);
     struct EntityHit *attack=&attacker->hit;
-    s32 damage=Hit_ResolveDamage(entity,attacker,info,(s16)power);
+    s32 damage=Hit_ResolveDamage(entity,attacker,info,power);
     s32 zero;
     entity->hitFlashTimer=8;
     {

@@ -29,8 +29,6 @@
 
 extern void *memcpy(void *dst, const void *src, unsigned long size);
 extern void *memset(void *dst, int value, unsigned long size);
-extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s16);
 
 void BigGolem_UpdateWalk(struct EwramData_EntityData *entity);
 void BigGolem_UpdateAttack(struct EwramData_EntityData *entity);
@@ -1540,7 +1538,7 @@ void BigGolem_OnDamaged(struct EwramData_EntityData *entity, s32 attacker, u16 *
         if (entity->spawnParam0 != 0)
         {
             BossDefeatEffect_Spawn(entity->posX.whole, entity->posY.whole - 0x200000);
-            BossRecoveryPickup_Spawn((s16)entity->posX.part16.integer, 32, 12, 96, 0);
+            BossRecoveryPickup_SpawnWide((s16)entity->posX.part16.integer, 32, 12, 96, 0);
             Player_SetSelectedTarget(NULL);
         }
     }
@@ -1957,7 +1955,7 @@ void BigGolemPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *
         parent->posX.whole = entity->posX.whole;
         parent->posY.whole = entity->posY.whole;
         Player_CalculateAttackPower(hit[2]);
-        Hit_ResolveDamage(parent, attacker, hit, 0);
+        Hit_ResolveDamage(parent, (struct EwramData_EntityData *)attacker, hit, 0);
         parent->posX.whole = x;
         parent->posY.whole = y;
         PlaySong(0x69);
@@ -1969,7 +1967,7 @@ void BigGolemPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *
         parent->posX.whole = entity->posX.whole;
         parent->posY.whole = entity->posY.whole;
         damage = Player_CalculateAttackPower(hit[2]);
-        damage = Hit_ResolveDamage(parent, attacker, hit, (s16)damage);
+        damage = Hit_ResolveDamage(parent, (struct EwramData_EntityData *)attacker, hit, damage);
         parent->posX.whole = x;
         parent->posY.whole = y;
         damage = (s16)damage;
@@ -2068,7 +2066,7 @@ void BigGolem_DamagePlayerOnContact(struct EwramData_EntityData *entity)
  */
 void BigGolem_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    s16 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s16 damage = Hit_ResolveDamage(entity, (struct EwramData_EntityData *)attacker, hit, Player_CalculateAttackPower(hit[2]));
 
     Entity_ShowDamage(entity, damage, 0);
     BigGolem_OnDamaged(entity, attacker, hit, damage);

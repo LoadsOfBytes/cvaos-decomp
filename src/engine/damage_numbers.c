@@ -10,7 +10,6 @@
 #include "data/data_118B48.h"
 #include "player_soma.h"
 
-
 void PlayerDamageIndicator_Update(struct EwramData_EntityData *);
 void NumberIndicator_Format(struct EwramData_EntityData *, s32);
 void NumberIndicator_Draw(struct EwramData_EntityData *);

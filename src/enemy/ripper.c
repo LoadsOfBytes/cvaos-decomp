@@ -15,16 +15,8 @@
 #include "data/data_118B48.h"
 #include "damage_numbers.h"
 #include "entity_hit.h"
-
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, u8, void *);
-extern s32 Collision_GetTileOnScreen(s32, s32);
-extern s16 Collision_GetPushDown(s32, s32);
-extern s16 Collision_GetPushLeft(s32, s32);
-extern s16 Collision_GetPushRight(s32, s32);
-extern s16 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
-extern s16 GetEntityRoomYPositionInteger(struct EwramData_EntityData *entity);
-extern s32 Entity_IsInRect(struct EwramData_EntityData *, s16, s16, u16, u16);
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
+#include "entity_motion.h"
+#include "bg_and_collision.h"
 
 void Ripper_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 void Ripper_UpdateMovement(struct EwramData_EntityData *entity);
@@ -166,7 +158,7 @@ void Ripper_UpdateMovement(struct EwramData_EntityData *entity)
         entity->posX.whole += entity->velX.whole;
         entity->posY.whole += entity->velY.whole;
         entity->velY.whole += entity->accelY.whole;
-        if (Collision_GetTileOnScreen((s16)entity->posX.part16.integer, (s16)entity->posY.part16.integer))
+        if (Collision_GetTileOnScreenWide((s16)entity->posX.part16.integer, (s16)entity->posY.part16.integer))
         {
             Entity_SnapToGround(entity);
             entity->subState++;
@@ -306,7 +298,7 @@ void Ripper_UpdateMovement(struct EwramData_EntityData *entity)
             if (d)
                 { u32 t = (u16)entity->posX.part16.integer; entity->posX.part16.integer = d + t; }
         }
-        if (Collision_GetTileOnScreen((s16)entity->posX.part16.integer, (s16)entity->posY.part16.integer))
+        if (Collision_GetTileOnScreenWide((s16)entity->posX.part16.integer, (s16)entity->posY.part16.integer))
         {
             if (entity->subState == 5)
             {
@@ -468,7 +460,7 @@ run:
         break;
     }
     Hit_CheckWithPlayer(&result, entity);
-    if (!Entity_IsInRect(entity, -0x80, -0x40, 0x1F0, 0x120))
+    if (!Entity_IsInRect(entity, (s16)(-0x80), (s16)(-0x40), 0x1F0, 0x120))
         entity->deleteRequested = 1;
 }
 
@@ -506,7 +498,7 @@ void RipperProjectile_DamagePlayerOnContact(struct EwramData_EntityData *entity)
  */
 void Ripper_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s32 damage = Hit_ResolveDamageWide(entity, (struct EwramData_EntityData *)attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
 
     entity->hitFlashTimer = 8;
     {

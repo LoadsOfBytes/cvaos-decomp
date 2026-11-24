@@ -21,8 +21,6 @@
 #include "data/data_4F1444.h"
 #include "entity_hit.h"
 
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
-
 void Chronomage_UpdateWait(struct EwramData_EntityData *);
 void Chronomage_UpdateCast(struct EwramData_EntityData *);
 void Chronomage_UpdateEscape(struct EwramData_EntityData *);

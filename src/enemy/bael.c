@@ -21,10 +21,7 @@
 #include "data/data_4F1444.h"
 #include "entity_inline.h"
 #include "entity_hit.h"
-
-extern s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY);
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *graphics, void *palette, u8 slot, void *sprite);
-extern s32 Collision_GetPushUp(s32 x,s32 y);
+#include "bg_and_collision.h"
 
 void Bael_CreateHead(struct EwramData_EntityData *entity);
 void Bael_DamagePlayerOnContact(struct EwramData_EntityData *entity);
@@ -195,8 +192,11 @@ void Buer_RestoreXAtProbe(struct EwramData_EntityData *entity, s32 savedX)
 /**
  * @brief Create a charge effect at pixel coordinates with the supplied animation index and inverted facing flag.
  */
-void Buer_SpawnChargeEffect(u16 x, u16 y, u8 kind, u32 flip)
+void Buer_SpawnChargeEffect(s32 x_, s32 y_, s32 kind_, u32 flip)
 {
+    u16 x = x_;
+    u16 y = y_;
+    u8 kind = kind_;
     struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, BuerChargeEffect_Update);
 
     if (child != NULL)
@@ -333,7 +333,7 @@ void Bael_UpdateActive(struct EwramData_EntityData *entity)
                 entity->stage=0;
                 break;
             }
-            if (!Collision_GetPushUp(ToRoomX((s16)entity->posX.part16.integer),ToRoomY((s16)entity->posY.part16.integer)+24))
+            if (!Collision_GetPushUpWide(ToRoomX((s16)entity->posX.part16.integer),ToRoomY((s16)entity->posY.part16.integer)+24))
                 break;
             if (Target_IsNearEntity(entity,192,48))
             {
@@ -355,7 +355,7 @@ void Bael_UpdateActive(struct EwramData_EntityData *entity)
                     s32 offset=col*7;
                     if (!part->flipX)
                         offset=-offset;
-                    if (Collision_GetPushUp(ToRoomX((s16)entity->posX.part16.integer)+offset,ToRoomY((s16)entity->posY.part16.integer)-rowOffset+12))
+                    if (Collision_GetPushUpWide(ToRoomX((s16)entity->posX.part16.integer)+offset,ToRoomY((s16)entity->posY.part16.integer)-rowOffset+12))
                     {
                         entity->subState=10;
                         entity->stage=zero;
@@ -401,7 +401,7 @@ void Bael_UpdateActive(struct EwramData_EntityData *entity)
                     entity->velY.whole+=entity->accelY.whole;
                     if (entity->velY.whole>0)
                     {
-                        s32 adjust=Collision_GetPushUp(ToRoomX((s16)entity->posX.part16.integer),ToRoomY((s16)entity->posY.part16.integer)+26);
+                        s32 adjust=Collision_GetPushUpWide(ToRoomX((s16)entity->posX.part16.integer),ToRoomY((s16)entity->posY.part16.integer)+26);
                         entity->posY.part16.integer+=adjust;
                         if (adjust)
                             entity->timer=0;
@@ -789,7 +789,7 @@ set_speed:
     entity->ext.wheel.angle += (s32)entity->ext.wheel.speed / 64;
     if (collision & 3)
     {
-        if (Collision_GetPushUp(ToRoomX((s16)entity->posX.part16.integer),ToRoomY((s16)entity->posY.part16.integer)+24))
+        if (Collision_GetPushUpWide(ToRoomX((s16)entity->posX.part16.integer),ToRoomY((s16)entity->posY.part16.integer)+24))
             entity->ext.wheel.speed = -(s32)entity->ext.wheel.speed / 2;
         else
             entity->ext.wheel.speed = 0;

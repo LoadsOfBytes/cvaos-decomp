@@ -23,8 +23,6 @@
 #include "entity_hit.h"
 #include "hit_shared_history.h"
 
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-
 s32 Gladiator_LoadGraphics(struct EwramData_EntityData *entity);
 void GladiatorBody_Update(struct EwramData_EntityData *entity);
 void GladiatorArm_Update(struct EwramData_EntityData *entity);
@@ -906,7 +904,7 @@ void Gladiator_DamagePlayerOnContact(struct EwramData_EntityData *entity)
  */
 void Gladiator_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    s16 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s16 damage = Hit_ResolveDamage(entity, (struct EwramData_EntityData *)attacker, hit, Player_CalculateAttackPower(hit[2]));
 
     Entity_ShowDamage(entity, (s16)damage, 0);
     Gladiator_OnDamaged(entity, attacker, hit, damage);
@@ -946,7 +944,7 @@ void GladiatorPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 
     gladiator->posX.whole = entity->posX.whole;
     gladiator->posY.whole = entity->posY.whole;
     attackPower = Player_CalculateAttackPower(hit[2]);
-    damage = Hit_ResolveDamage(ENTITY_OWNER(entity), attacker, hit, attackPower);
+    damage = Hit_ResolveDamage(ENTITY_OWNER(entity), (struct EwramData_EntityData *)attacker, hit, attackPower);
     gladiator->posX.whole = oldX;
     gladiator->posY.whole = oldY;
     Entity_ShowDamage(entity, (s16)damage, 0);

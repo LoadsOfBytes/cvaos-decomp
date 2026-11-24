@@ -32,7 +32,6 @@
 #include "data/data_4F1444.h"
 #include "hit_shared_history.h"
 
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 void DeathWeapon_DamagePlayerOnContact(struct EwramData_EntityData *);
 
 #define SPIN(e) (e->ext.deathWeapon.angle)
@@ -40,8 +39,6 @@ void DeathWeapon_DamagePlayerOnContact(struct EwramData_EntityData *);
 #define FLAGS(e) (e->ext.death.flags)
 #define TO_PIXELS(d) ((d) < 0 ? -(-(d) >> 16) : (d) >> 16)
 
-extern void SoulPickup_SpawnFromEnemyDefinition(s32, s32, s32, s32);
-extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
 
 void DeathFloatingWeaponHitBox_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 void DeathFloatingWeapon_OnHit(struct EwramData_EntityData *, s32, u16 *);
@@ -1015,7 +1012,7 @@ void DeathRewardEffect_Update(struct EwramData_EntityData *entity)
             break;
         }
         SoulPickup_SpawnFromEnemyDefinition((s16)entity->posX.part16.integer, (s16)entity->posY.part16.integer, 0x6B, 1);
-        BossRecoveryPickup_Spawn((s16)entity->posX.part16.integer, 0x20, 1, 0x60, 1);
+        BossRecoveryPickup_SpawnWide((s16)entity->posX.part16.integer, 0x20, 1, 0x60, 1);
         entity->state = 3;
         break;
     case 3:
@@ -2135,7 +2132,7 @@ void EvilButcherDeathParticle_Update(struct EwramData_EntityData *entity)
     {
     case 0:
         if (!Entity_LoadGraphics(entity, sEvilButcherGfx, sEvilButcherPalette,
-                         (u8)entity->spawnParam1, sEvilButcherSpriteSheet))
+                         entity->spawnParam1, sEvilButcherSpriteSheet))
         {
             EntityDelete(entity);
             return;

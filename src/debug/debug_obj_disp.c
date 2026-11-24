@@ -21,9 +21,9 @@
 static struct DebugObjTestState sDebugObjTestState;
 
 struct DebugObjTestCallbacks {
-    void *updateFunc; // func ptr
-    void *initFunc; // func ptr
-    void *exitFunc; // func ptr
+    void (*updateFunc)(struct DebugObjTestState *state);
+    void (*initFunc)(struct DebugObjTestState *state);
+    void (*exitFunc)(struct DebugObjTestState *state);
 }; /* size = 0xC */
 struct DebugObjTestCallbacks sDebugObjTestCallbacks[] = {
     [0] = {
@@ -50,12 +50,12 @@ s32 DebugObjDispTest_Run(s32 test)
         case 0:
             DMA_FILL_32(3, 0, &sDebugObjTestState, 0x8);
             BgCmdBuffer_WriteString(2, 0x13, 1, "PUSH SELECT + B TO EXIT.");
-            ((void (*)(struct DebugObjTestState *)) def->initFunc)(&sDebugObjTestState);
+            def->initFunc(&sDebugObjTestState);
             DebugTest_SetStage(1);
             break;
 
         case 1:
-            ((void (*)(struct DebugObjTestState *)) def->updateFunc)(&sDebugObjTestState);
+            def->updateFunc(&sDebugObjTestState);
             Entity_UpdateAll();
             if ((gEwramData->inputData.heldInput & (4 | 2)) == (4 | 2))
             {
@@ -64,7 +64,7 @@ s32 DebugObjDispTest_Run(s32 test)
             break;
 
         case 2:
-            ((void (*)(struct DebugObjTestState *)) def->exitFunc)(&sDebugObjTestState);
+            def->exitFunc(&sDebugObjTestState);
             DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
             done = 1;
             break;

@@ -44,8 +44,6 @@ struct ArmorBox {
 #define GUARD(e) (*(s8 *)&e->ext.greatArmor.guard)
 
 extern void *memcpy(void *dst, const void *src, unsigned long size);
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, struct EwramData_EntityData *other, u16 *hit, s32 inputDamage);
-extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
 
 u8 GreatArmor_LoadGraphics(struct EwramData_EntityData *entity);
 void GreatArmorPart_Update(struct EwramData_EntityData *entity);
@@ -1129,7 +1127,7 @@ u8 GreatArmor_LoadGraphics(struct EwramData_EntityData *entity)
 void GreatArmor_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     s32 damage = Player_CalculateAttackPower(hit[2]);
-    damage = Hit_ResolveDamage(entity, attacker, hit, (s16)damage);
+    damage = Hit_ResolveDamage(entity, attacker, hit, damage);
     entity->hitFlashTimer = 8;
     {
         u16 hp = entity->hp;
@@ -1150,7 +1148,7 @@ void GreatArmor_OnHit(struct EwramData_EntityData *entity, struct EwramData_Enti
         if (entity->spawnParam0 != 0)
         {
             BossDefeatEffect_Spawn(entity->posX.whole, entity->posY.whole - 0x200000);
-            BossRecoveryPickup_Spawn((s16)entity->posX.part16.integer, 0x20, entity->spawnParam0, 0x60, 0);
+            BossRecoveryPickup_SpawnWide((s16)entity->posX.part16.integer, 0x20, entity->spawnParam0, 0x60, 0);
             Player_SetSelectedTarget(NULL);
         }
     }

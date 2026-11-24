@@ -24,8 +24,7 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "entity_inline.h"
-
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
+#include "entity_common.h"
 
 void BossRushTimer_Update(struct EwramData_EntityData *entity);
 void Object12Variant2_Draw(struct EwramData_EntityData *entity);

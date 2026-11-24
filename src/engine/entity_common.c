@@ -27,10 +27,7 @@
 #include "obj_palette.h"
 #include "entity_hit.h"
 
-extern s32 Entity_IsInRect(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern void Entity_FaceTarget(struct EwramData_EntityData *);
 extern const u8 sEntityVisibilityPattern[];
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 extern void Hit_GetContactPoint(s32 a, struct EwramData_EntityData *b, s16 *outX, s16 *outY);
 
 void Effect_UpdateFallingFrameParticle(struct EwramData_EntityData *entity);
@@ -693,8 +690,13 @@ s32 Entity_IsTargetBelow(struct EwramData_EntityData *entity)
  * @brief 6CFFC | Whether enemyTarget exists and lies in the given rectangle
  * (see Entity_IsInRect).
  */
-s32 Target_IsInRect(u16 left, u16 top, u16 width, u16 height)
+s32 Target_IsInRect(s32 left_, s32 top_, s32 width_, s32 height_)
 {
+    u16 left = left_;
+    u16 top = top_;
+    u16 width = width_;
+    u16 height = height_;
+
     if (gEwramData->playerState.enemyTarget == NULL)
         return 0;
     return Entity_IsInRect(gEwramData->playerState.enemyTarget, (s16)left, (s16)top, (u16)width, (u16)height);
@@ -1630,8 +1632,10 @@ void Entity_AnimateWithBoxes(struct EwramData_EntityData *entity)
  * entity lies outside the room of background 1, in 8 px tiles (rooms of one
  * screen are 30 x 26 tiles, larger ones 32 tiles per screen).
  */
-s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *entity, u16 offsetX, u16 offsetY)
+s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *entity, s32 offsetX_, s32 offsetY_)
 {
+    u16 offsetX = offsetX_;
+    u16 offsetY = offsetY_;
     struct BgMapMetadata *metadata = gEwramData->bgInfo[1].pBgMetadata;
     s32 tile;
     s32 limit;
@@ -1827,7 +1831,7 @@ void Enemy_OnContactMask1(struct EwramData_EntityData *entity)
  */
 s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s32 damage = Hit_ResolveDamage(entity, (struct EwramData_EntityData *)attacker, hit, Player_CalculateAttackPower(hit[2]));
 
     entity->hitFlashTimer = 8;
     {
@@ -1903,8 +1907,10 @@ void Enemy_CheckHitPlayer(struct EwramData_EntityData *entity)
 /**
  * @brief Same as Entity_PlaceRelativeTo.
  */
-void Entity_PlaceRelativeToCopy(struct EwramData_EntityData *entity, struct EwramData_EntityData *anchor, u16 offsetX, u16 offsetY)
+void Entity_PlaceRelativeToCopy(struct EwramData_EntityData *entity, struct EwramData_EntityData *anchor, s32 offsetX_, s32 offsetY_)
 {
+    u16 offsetX = offsetX_;
+    u16 offsetY = offsetY_;
     s16 dx = offsetX;
     s16 dy = offsetY;
 
@@ -2070,8 +2076,10 @@ void TimedEntity_Update(struct EwramData_EntityData *entity)
  * of the first water surface tile (class 3), else 8. Used by water
  * enemies and the Killer Fish soul.
  */
-s32 Collision_FindWaterSurfaceOffset(s16 x_, s16 y_)
+s32 Collision_FindWaterSurfaceOffset(s32 x__, s32 y__)
 {
+    s16 x_ = x__;
+    s16 y_ = y__;
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
     u16 offset = 0;
     s32 i = 0;

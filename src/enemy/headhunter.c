@@ -38,10 +38,6 @@ void Headhunter_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hi
 
 #define KIND(e) (*(s8 *)&e->ext.headhunterChild.kind)
 
-extern void SoulPickup_SpawnFromEnemyDefinition(s32, s32, s32, s32);
-extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
-extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 
 void Headhunter_SpawnFallingPart(struct EwramData_EntityData *, s32, s32, s32);
 void Headhunter_SpawnWaveBurst(struct EwramData_EntityData *, s32, s32, s32);
@@ -225,7 +221,7 @@ delete:
     if (Entity_GetVisibilityPattern((e)->timer)) (e)->palette = 4;                   \
     else (e)->palette = (e)->basePalette;
 #define IN_BOX(e, dx, dy, w, h) \
-    Target_IsInRect((e)->posX.part16.integer - (dx), (e)->posY.part16.integer - (dy), (w), (h))
+    Target_IsInRect((s16)((e)->posX.part16.integer - (dx)), (s16)((e)->posY.part16.integer - (dy)), (s16)((w)), (s16)((h)))
 
 /* Headhunter AI (state subState, timers stage/timer): 0-1 intro and
  * first form, 2-12 jumping first form and hovering second form, 20-25
@@ -1348,7 +1344,7 @@ void Headhunter_UpdateDeath(struct EwramData_EntityData *entity)
         gUnk_03002CB0.dispCnt &= ~0x400;
         entity->subState++;
         SoulPickup_SpawnFromEnemyDefinition((s16)entity->posX.part16.integer, (s16)entity->posY.part16.integer, 0x6A, 4);
-        BossRecoveryPickup_Spawn((s16)entity->posX.part16.integer, 0x20, 4, 0x60, 1);
+        BossRecoveryPickup_SpawnWide((s16)entity->posX.part16.integer, 0x20, 4, 0x60, 1);
         break;
     case 4:
         break;
@@ -3079,7 +3075,7 @@ void HeadhunterAttackTip_OnHit(struct EwramData_EntityData *entity, s32 attacker
     headhunter->posX.whole = entity->posX.whole;
     headhunter->posY.whole = entity->posY.whole;
     attackPower = Player_CalculateAttackPower(hit[2]);
-    damage = Hit_ResolveDamage(ENTITY_OWNER(entity), attacker, hit, attackPower);
+    damage = Hit_ResolveDamage(ENTITY_OWNER(entity), (struct EwramData_EntityData *)attacker, hit, attackPower);
     headhunter->posX.whole = oldX;
     headhunter->posY.whole = oldY;
     Entity_ShowDamage(entity, (s16)damage, 0);
@@ -3127,7 +3123,7 @@ void HeadhunterAttackSegment_OnHit(struct EwramData_EntityData *entity, s32 atta
     headhunter->posX.whole = entity->posX.whole;
     headhunter->posY.whole = entity->posY.whole;
     attackPower = Player_CalculateAttackPower(hit[2]);
-    damage = Hit_ResolveDamage(ENTITY_OWNER(entity), attacker, hit, attackPower);
+    damage = Hit_ResolveDamage(ENTITY_OWNER(entity), (struct EwramData_EntityData *)attacker, hit, attackPower);
     headhunter->posX.whole = oldX;
     headhunter->posY.whole = oldY;
     Entity_ShowDamage(entity, (s16)damage, 0);
@@ -3164,7 +3160,7 @@ void Headhunter_DamagePlayerOnContact(struct EwramData_EntityData *entity)
  */
 void Headhunter_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    s16 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s16 damage = Hit_ResolveDamage(entity, (struct EwramData_EntityData *)attacker, hit, Player_CalculateAttackPower(hit[2]));
 
     Entity_ShowDamage(entity, (s16)damage, 0);
     Headhunter_ApplyResolvedDamage(entity, attacker, hit, damage);

@@ -32,7 +32,6 @@
 
 extern const s8 sEntityVisibilityPattern[40];
 
-s32 Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
 
 /* Accelerate/move both axes and resolve collision at four box corners, with
  * a tile-type exclusion: a corner whose tile flags satisfy (flags & 3) == 1
@@ -69,9 +68,12 @@ static inline s16 TruncatedSignedOffset(u16 v) { s32 x = (s16)v; return x; }
  * whose tile flags satisfy (flags & 3) == 1. Preserve cached room
  * coordinates, query-specific slope bits and narrowing order.
  */
-s32 Entity_MoveWithFilteredBoxCollision(struct EwramData_EntityData *entity, s32 landingVelocity,
-                u16 xOffset, u16 yOffset, u16 width, u16 height, s32 movement)
+s32 Entity_MoveWithFilteredBoxCollision(struct EwramData_EntityData *entity, s32 landingVelocity, s32 xOffset_, s32 yOffset_, s32 width_, s32 height_, s32 movement)
 {
+    u16 xOffset = xOffset_;
+    u16 yOffset = yOffset_;
+    u16 width = width_;
+    u16 height = height_;
     s32 corners[4];
     s32 x, y;
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
@@ -472,8 +474,10 @@ s32 Entity_ClampXToRoom(struct EwramData_EntityData *entity, s32 inset)
  * solid point with an empty / slope (0xC0) tile 7 px above, i.e. a step), 1 for
  * a wall or a ledge. Used by Curly_UpdateWalk to turn around.
  */
-s32 Collision_IsWalkBlocked(s16 x, s16 y)
+s32 Collision_IsWalkBlocked(s32 x_, s32 y_)
 {
+    s16 x = x_;
+    s16 y = y_;
     u8 tile;
     if (Collision_GetTile(x, y) == 0)
     {

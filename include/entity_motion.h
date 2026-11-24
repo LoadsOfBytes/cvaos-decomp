@@ -28,5 +28,6 @@ extern s32 Entity_MoveWithOptionalCeilingCollision(struct EwramData_EntityData *
 extern s32 Entity_MoveAndProbePointCollision(struct EwramData_EntityData *entity, s32 unused, s32 ceilingOffset, s32 checkCeiling);
 extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *entity, s32 landingVelocity, s32 ceilingOffset, s32 speedLimit, s16 wallOffset);
 extern u8 Angle_TurnTowards(u16 *angle, u16 step, u16 target);
+extern s32 Entity_IsInRect(struct EwramData_EntityData *entity, s32 left_, s32 top_, s32 width_, s32 height_);
 
 #endif /* ENTITY_MOTION_H */

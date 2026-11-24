@@ -118,8 +118,11 @@ extern void SkillKillerDollUse(struct EwramData_EntityData *entity);
 extern void SkillNemesisUse(struct EwramData_EntityData *entity);
 extern u8 RedSoul_FindFreeEntitySlot(void);
 
-extern s32 RandomSigned(s32 range);
+extern s32 RandomSigned(u32 range);
 extern void HomingSoulProjectile_OnPlayerContact(struct EwramData_EntityData *entity, struct EwramData_EntityData *unused); // defined with one parameter
-extern void Entity_PlaceRelativeTo(struct EwramData_EntityData *entity, struct EwramData_EntityData *anchor, s32 offsetX, s32 offsetY); // TODO: param_2/param_3 should be u16
+extern void Entity_PlaceRelativeTo(struct EwramData_EntityData *entity, struct EwramData_EntityData *anchor, u16 offsetX, u16 offsetY);
+/* The same function for callers that were compiled without a prototype
+ * (implicit int): the arguments are not narrowed. */
+extern void Entity_PlaceRelativeToWide(struct EwramData_EntityData *entity, struct EwramData_EntityData *anchor, s32 offsetX, s32 offsetY) asm("Entity_PlaceRelativeTo");
 
 #endif /* PLAYER_CORE_H */

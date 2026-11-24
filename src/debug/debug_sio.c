@@ -1,6 +1,6 @@
 #include "debug_sio.h"
 #include "core.h"
-// #include "bg_and_collision.h"
+#include "bg_and_collision.h"
 #include "in_game.h"
 #include "room_entities.h"
 #include "map_screen.h"
@@ -19,17 +19,14 @@
 #include "structs/main.h"
 #include "data/data_4F1444.h"
 
-/* Called with int arguments (the u16/u8 parameters in bg_and_collision.h would truncate them). */
-extern u16 *BgCmdBuffer_WriteString(s32 tileIndex, s32 rowOffset, s32 tileInfo, const u8 *string);
-
 extern int sprintf(char *, const char *, ...);
 
 static struct DebugSioTestState sDebugSioTestState;
 
 struct DebugSioTestCallbacks {
-    void *updateFunc; // func ptr
-    void *initFunc; // func ptr
-    void *exitFunc; // func ptr
+    s32 (*updateFunc)(struct DebugSioTestState *test);
+    void (*initFunc)(struct DebugSioTestState *test);
+    void (*exitFunc)(struct DebugSioTestState *test);
 }; /* size = 0xC */
 struct DebugSioTestCallbacks sDebugSioTestCallbacks[] = {
     [0] = {
@@ -61,8 +58,8 @@ s32 DebugSioTest_Run(s32 testIndex)
     {
         case 0:
             DMA_FILL_32(3, 0, &sDebugSioTestState, 0x24);
-            BgCmdBuffer_WriteString(2, 0x13, 1, "PUSH SELECT + B TO EXIT.");
-            ((void (*)(struct DebugSioTestState *)) def->initFunc)(&sDebugSioTestState);
+            BgCmdBuffer_WriteStringWide(2, 0x13, 1, "PUSH SELECT + B TO EXIT.");
+            def->initFunc(&sDebugSioTestState);
             DebugTest_SetStage(1);
             break;
 
@@ -71,7 +68,7 @@ s32 DebugSioTest_Run(s32 testIndex)
             {
                 DebugTest_SetStage(2);
             }
-            else if (((s32 (*)(struct DebugSioTestState *)) def->updateFunc)(&sDebugSioTestState) == 0)
+            else if (def->updateFunc(&sDebugSioTestState) == 0)
             {
                 DebugTest_SetStage(2);
             }
@@ -79,7 +76,7 @@ s32 DebugSioTest_Run(s32 testIndex)
             break;
 
         case 2:
-            ((void (*)(struct DebugSioTestState *)) def->exitFunc)(&sDebugSioTestState);
+            def->exitFunc(&sDebugSioTestState);
             Debug_ClearBgMaps();
             done = 1;
             break;
@@ -128,12 +125,12 @@ s32 DebugSioTest0_Update(struct DebugSioTestState *test)
             connected = (Link_IsConnected() != 0) && (Link_IsPeerActive() != 0);
             if (connected != 0)
             {
-                BgCmdBuffer_WriteString(2, 2, 1, "              ");
+                BgCmdBuffer_WriteStringWide(2, 2, 1, "              ");
                 test->stageOrTimer.stage = 3;
             }
             else
             {
-                BgCmdBuffer_WriteString(2, 2, 1, "Now Connect...");
+                BgCmdBuffer_WriteStringWide(2, 2, 1, "Now Connect...");
             }
             break;
 
@@ -198,7 +195,7 @@ s32 DebugSioTest1_Update(struct DebugSioTestState *test)
     {
         string = "   ";
     }
-    BgCmdBuffer_WriteString(0, 0, 1, string);
+    BgCmdBuffer_WriteStringWide(0, 0, 1, string);
 
     switch (test->state)
     {
@@ -275,20 +272,20 @@ s32 DebugSioTest1_UpdateTitle(struct DebugSioTestState *test)
             DMA_FILL_32(3, 0, VRAM_BASE + 0xF000, 0x800);
             DMA_FILL_32(3, 0, VRAM_BASE + 0xF800, 0x800);
 
-            BgCmdBuffer_WriteString(4,  1,  0, "*  ****     *  ***  ");
-            BgCmdBuffer_WriteString(4,  2,  0, " *   *      *       ");
-            BgCmdBuffer_WriteString(4,  3,  0, "   *****   * *******");
-            BgCmdBuffer_WriteString(4,  4,  0, "** * * *  **        ");
-            BgCmdBuffer_WriteString(4,  5,  0, " * *****  **  ***** ");
-            BgCmdBuffer_WriteString(4,  6,  0, "*  * * * * *        ");
-            BgCmdBuffer_WriteString(4,  7,  0, " * *****   *  ***** ");
-            BgCmdBuffer_WriteString(4,  8,  0, " * * * *   *        ");
-            BgCmdBuffer_WriteString(4,  9,  0, " * * * *   *  ***** ");
-            BgCmdBuffer_WriteString(4,  10, 0, "*          *  *   * ");
-            BgCmdBuffer_WriteString(4,  11, 0, " * * * *   *  ***** ");
-            BgCmdBuffer_WriteString(12, 14, 1, "START");
-            BgCmdBuffer_WriteString(12, 15, 1, "EXIT");
-            BgCmdBuffer_WriteString(11, 14, 2, ">");
+            BgCmdBuffer_WriteStringWide(4,  1,  0, "*  ****     *  ***  ");
+            BgCmdBuffer_WriteStringWide(4,  2,  0, " *   *      *       ");
+            BgCmdBuffer_WriteStringWide(4,  3,  0, "   *****   * *******");
+            BgCmdBuffer_WriteStringWide(4,  4,  0, "** * * *  **        ");
+            BgCmdBuffer_WriteStringWide(4,  5,  0, " * *****  **  ***** ");
+            BgCmdBuffer_WriteStringWide(4,  6,  0, "*  * * * * *        ");
+            BgCmdBuffer_WriteStringWide(4,  7,  0, " * *****   *  ***** ");
+            BgCmdBuffer_WriteStringWide(4,  8,  0, " * * * *   *        ");
+            BgCmdBuffer_WriteStringWide(4,  9,  0, " * * * *   *  ***** ");
+            BgCmdBuffer_WriteStringWide(4,  10, 0, "*          *  *   * ");
+            BgCmdBuffer_WriteStringWide(4,  11, 0, " * * * *   *  ***** ");
+            BgCmdBuffer_WriteStringWide(12, 14, 1, "START");
+            BgCmdBuffer_WriteStringWide(12, 15, 1, "EXIT");
+            BgCmdBuffer_WriteStringWide(11, 14, 2, ">");
 
             test->titleChoice = 0;
             test->subState = 1;
@@ -307,7 +304,7 @@ s32 DebugSioTest1_UpdateTitle(struct DebugSioTestState *test)
                 {
                     cursorRow = 0xF;
                 }
-                BgCmdBuffer_WriteString(0xB, cursorRow, 2, ">");
+                BgCmdBuffer_WriteStringWide(0xB, cursorRow, 2, ">");
                 
                 if (test->titleChoice == 1)
                 {
@@ -317,7 +314,7 @@ s32 DebugSioTest1_UpdateTitle(struct DebugSioTestState *test)
                 {
                     clearRow = 0xF;
                 }
-                BgCmdBuffer_WriteString(0xB, clearRow, 2, " ");
+                BgCmdBuffer_WriteStringWide(0xB, clearRow, 2, " ");
             }
 
             if (gEwramData->inputData.newInput & 1)
@@ -351,8 +348,8 @@ s32 DebugSioTest1_UpdateConnectCheck(struct DebugSioTestState *test)
     switch (test->subState)
     {
         case 0:
-            BgCmdBuffer_WriteString(4, 4, 1, "Connect Check");
-            BgCmdBuffer_WriteString(4, 7, 1, "Push B Button To Cancel");
+            BgCmdBuffer_WriteStringWide(4, 4, 1, "Connect Check");
+            BgCmdBuffer_WriteStringWide(4, 7, 1, "Push B Button To Cancel");
             test->subState = 1;
             break;
 
@@ -360,7 +357,7 @@ s32 DebugSioTest1_UpdateConnectCheck(struct DebugSioTestState *test)
             connected = (Link_IsConnected() != 0) && (Link_IsPeerActive() != 0);
             if (connected != 0)
             {
-                BgCmdBuffer_WriteString(4, 4, 1, "CONNECT OK   ");
+                BgCmdBuffer_WriteStringWide(4, 4, 1, "CONNECT OK   ");
                 test->stageOrTimer.timer = 0;
                 test->subState = 2;
             }
@@ -370,7 +367,7 @@ s32 DebugSioTest1_UpdateConnectCheck(struct DebugSioTestState *test)
             connected2 = (Link_IsConnected() != 0) && (Link_IsPeerActive() != 0);
             if (connected2 == 0)
             {
-                BgCmdBuffer_WriteString(4, 4, 1, "CONNECT ERROR");
+                BgCmdBuffer_WriteStringWide(4, 4, 1, "CONNECT ERROR");
                 test->subState = 1;
                 break;
             }
@@ -395,7 +392,7 @@ s32 DebugSioTest1_UpdateConnectCheck(struct DebugSioTestState *test)
     return result;
 }
 
-// extern u16* BgCmdBuffer_WriteString(u16 tileIndex, u16 rowOffset, u8 tileInfo, u8 *string); // implicit due to no u16
+// extern u16* BgCmdBuffer_WriteStringWide(u16 tileIndex, u16 rowOffset, u8 tileInfo, u8 *string); // implicit due to no u16
 
 /**
  * @brief Edit six bytes, exchange them over the link and show both sides;
@@ -413,8 +410,8 @@ s32 DebugSioTest1_UpdateMain(struct DebugSioTestState *test)
     switch (test->subState)
     {
         case 0:
-            BgCmdBuffer_WriteString(1, 1, 0, "SIO TEST MAIN");
-            BgCmdBuffer_WriteString(2, 19, 1, "PUSH SELECT BUTTON TO EXIT.");
+            BgCmdBuffer_WriteStringWide(1, 1, 0, "SIO TEST MAIN");
+            BgCmdBuffer_WriteStringWide(2, 19, 1, "PUSH SELECT BUTTON TO EXIT.");
 
             test->stageOrTimer.timer = 0;
             test->unk_5 = 0;
@@ -443,13 +440,13 @@ s32 DebugSioTest1_UpdateMain(struct DebugSioTestState *test)
 
             if (test->editIndex < 0)
             {
-                BgCmdBuffer_WriteString(2, 4, 1, "A To Exit. B To Main");
+                BgCmdBuffer_WriteStringWide(2, 4, 1, "A To Exit. B To Main");
                 test->subState = 2;
                 test->editIndex = 0;
             }
             else if (test->editIndex > 5)
             {
-                BgCmdBuffer_WriteString(2, 4, 1, "OK ? (A:OK, B:NG)");
+                BgCmdBuffer_WriteStringWide(2, 4, 1, "OK ? (A:OK, B:NG)");
                 test->subState = 3;
                 test->editIndex = 5;
             }
@@ -461,30 +458,30 @@ s32 DebugSioTest1_UpdateMain(struct DebugSioTestState *test)
             for (i = 0; i <= test->editIndex; i++)
             {
                 sprintf(subroutine_arg0, "0x%02x", test->sendBytes[i]);
-                BgCmdBuffer_WriteString(2, i + 8, 2, subroutine_arg0);
+                BgCmdBuffer_WriteStringWide(2, i + 8, 2, subroutine_arg0);
             }
 
             for (i = test->editIndex + 1; i < 6; i++)
             {
-                BgCmdBuffer_WriteString(2, i + 8, 2, "        ");
+                BgCmdBuffer_WriteStringWide(2, i + 8, 2, "        ");
             }
 
             for (i = 0; i < 6; i++)
             {
                 sprintf(subroutine_arg0, "0x%02x", test->receivedBytes[i]);
-                BgCmdBuffer_WriteString(0xA, i + 8, 3, subroutine_arg0);
+                BgCmdBuffer_WriteStringWide(0xA, i + 8, 3, subroutine_arg0);
             }
             break;
 
         case 2:
             if (gEwramData->inputData.newInput & 1)
             {
-                BgCmdBuffer_WriteString(2, 4, 1, "                              ");
+                BgCmdBuffer_WriteStringWide(2, 4, 1, "                              ");
                 test->subState = 8;
             }
             else if (gEwramData->inputData.newInput & 2)
             {
-                BgCmdBuffer_WriteString(2, 4, 1, "                              ");
+                BgCmdBuffer_WriteStringWide(2, 4, 1, "                              ");
                 test->subState = 1;
             }
             break;
@@ -492,12 +489,12 @@ s32 DebugSioTest1_UpdateMain(struct DebugSioTestState *test)
         case 3:
             if (gEwramData->inputData.newInput & 1)
             {
-                BgCmdBuffer_WriteString(2, 4, 1, "Please wait ...  ");
+                BgCmdBuffer_WriteStringWide(2, 4, 1, "Please wait ...  ");
                 test->subState = 4;
             }
             else if (gEwramData->inputData.newInput & 2)
             {
-                BgCmdBuffer_WriteString(2, 4, 1, "                 ");
+                BgCmdBuffer_WriteStringWide(2, 4, 1, "                 ");
                 test->subState = 1;
             }
             break;
@@ -514,23 +511,23 @@ s32 DebugSioTest1_UpdateMain(struct DebugSioTestState *test)
             break;
 
         case 5:
-            BgCmdBuffer_WriteString(2, 4, 1, "Now Sending      ");
+            BgCmdBuffer_WriteStringWide(2, 4, 1, "Now Sending      ");
             switch ((test->stageOrTimer.timer++ >> 4) & 3)
             {
                 case 0:
-                    BgCmdBuffer_WriteString(0xF, 4, 1, ".  ");
+                    BgCmdBuffer_WriteStringWide(0xF, 4, 1, ".  ");
                     break;
                 case 1:
-                    BgCmdBuffer_WriteString(0xF, 4, 1, ".. ");
+                    BgCmdBuffer_WriteStringWide(0xF, 4, 1, ".. ");
                     break;
                 case 2:
-                    BgCmdBuffer_WriteString(0xF, 4, 1, "...");
+                    BgCmdBuffer_WriteStringWide(0xF, 4, 1, "...");
                     break;
             }
 
             if (test->stageOrTimer.timer > 0xB4)
             {
-                BgCmdBuffer_WriteString(2, 4, 1, "Send End         ");
+                BgCmdBuffer_WriteStringWide(2, 4, 1, "Send End         ");
                 test->stageOrTimer.timer = 0;
                 test->subState = 6;
             }
@@ -539,7 +536,7 @@ s32 DebugSioTest1_UpdateMain(struct DebugSioTestState *test)
         case 6:
             if (test->stageOrTimer.timer++ > 0xB4)
             {
-                BgCmdBuffer_WriteString(2, 4, 1, "                 ");
+                BgCmdBuffer_WriteStringWide(2, 4, 1, "                 ");
                 test->subState = 0;
             }
             break;
@@ -561,7 +558,7 @@ s32 DebugSioTest1_UpdateMain(struct DebugSioTestState *test)
         connected = (Link_IsConnected() != 0) && (Link_IsPeerActive() != 0);
         if (connected == 0)
         {
-            BgCmdBuffer_WriteString(4, 9, 1, "SIO ERROR : NOT CONNECT !!");
+            BgCmdBuffer_WriteStringWide(4, 9, 1, "SIO ERROR : NOT CONNECT !!");
             test->unk_5 = 0;
             test->stageOrTimer.timer = 0;
             test->subState = 7;

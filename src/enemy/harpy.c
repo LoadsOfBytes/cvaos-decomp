@@ -20,8 +20,6 @@
 #include "damage_numbers.h"
 #include "entity_hit.h"
 
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *,struct EwramData_EntityData *,u16 *,s32);
-
 u8 Harpy_LoadGraphics(struct EwramData_EntityData *);
 void Harpy_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void Harpy_OnHit(struct EwramData_EntityData *entity,struct EwramData_EntityData *attacker,u16 *info);
@@ -358,7 +356,7 @@ void Harpy_UpdateRecoil(struct EwramData_EntityData *entity)
 void Harpy_OnHit(struct EwramData_EntityData *entity,struct EwramData_EntityData *attacker,u16 *info)
 {
     struct EntityHit *attack=&attacker->hit;
-    s32 damage=Hit_ResolveDamage(entity,attacker,info,(s16)Player_CalculateAttackPower(info[2]));
+    s32 damage=Hit_ResolveDamage(entity,attacker,info,Player_CalculateAttackPower(info[2]));
     s32 zero;
     entity->hitFlashTimer=8;
     {

@@ -24,7 +24,6 @@
 #include "data/data_118B48.h"
 #include "gba/memory.h"
 
-extern void HudMap_WriteTiles(s32 x, s32 y, s32 tile, s32 count);
 extern s32 MenuGrid_MoveCursor(struct EwramData_EntityData *page, s32 repeated);
 extern void *memcpy(void *dst, const void *src, unsigned long size);
 
@@ -55,8 +54,8 @@ void AbilityMenu_Open(struct EwramData_EntityData *page)
     AbilityMenu_PrintSelectedName(page);
     for (i = 0; i < page->ext.menuList.count >> 1; i++)
     {
-        HudMap_WriteTiles(3, i * 2 + 4, i * 0x20 + 0x3380, 10);
-        HudMap_WriteTiles(0x11, i * 2 + 4, i * 0x20 + 0x3390, 10);
+        HudMap_WriteTilesWide(3, i * 2 + 4, i * 0x20 + 0x3380, 10);
+        HudMap_WriteTilesWide(0x11, i * 2 + 4, i * 0x20 + 0x3390, 10);
     }
     for (i = 0; i < page->ext.menuList.count; i++)
     {
@@ -81,7 +80,6 @@ void AbilityMenu_Open(struct EwramData_EntityData *page)
     MenuPageTitle_Create((struct EwramData_EntityData *)((u8 *)gEwramData + 0xF34), 0x22);
     AbilityMenu_DrawMarkers(page);
 }
-
 
 /**
  * @brief 4BB40 | Ability soul page update: A toggles the selected ability
@@ -145,7 +143,7 @@ s32 AbilityMenu_Update(struct EwramData_EntityData *page)
         {
             x = (i & 1) ? 0x1B : 0xD;
             y = (i >> 1) * 2 + 4;
-            HudMap_WriteTiles(x, y, ((Player_HasAbility(i) >> i) << 4) + 0xB30E, 2);
+            HudMap_WriteTilesWide(x, y, ((Player_HasAbility(i) >> i) << 4) + 0xB30E, 2);
         }
     }
     return (new & 2) ? -1 : 0;
@@ -189,11 +187,10 @@ void AbilityMenu_DrawMarkers(struct EwramData_EntityData *entity)
 
             x = (i & 1) ? 0x1B : 0xD;
             y = (i >> 1) * 2 + 4;
-            HudMap_WriteTiles(x, y, ((Player_HasAbility(i) >> i) << 4) + 0xB30E, 2);
+            HudMap_WriteTilesWide(x, y, ((Player_HasAbility(i) >> i) << 4) + 0xB30E, 2);
         }
     }
 }
-
 
 /**
  * @brief 4BD38 | Menu save page: when saving is not possible show message
@@ -243,7 +240,6 @@ void SaveMenu_Open(struct EwramData_EntityData *page)
         MENU_CURSOR_Y(ent) = 0x89;
     }
 }
-
 
 /**
  * @brief 4BE0C | Menu save page update: A saves to the current slot
@@ -398,7 +394,7 @@ void ButtonConfigMenu_Open(struct EwramData_EntityData *menu)
     MenuPage_Reset(menu);
     menu->ext.buttonConfigPage.error = 3;
     for (j = 0; j <= 2; j++)
-        HudMap_WriteTiles(5, j + 0xF, j * 0x20 + 0x3200, 0x18);
+        HudMap_WriteTilesWide(5, j + 0xF, j * 0x20 + 0x3200, 0x18);
     Text12_SetRegion(0, 0, 0x20, 2);
     MenuText_ClearAndPrint(0x352);
     menu->ext.buttonConfigPage.error = 0;
@@ -577,8 +573,8 @@ void ButtonConfigMenu_Draw(struct EwramData_EntityData *page)
         count = 7;
         if (i == 1)
             count = 6;
-        HudMap_WriteTiles(6, i * 2 + 4, i * 0x10 + 0x3359, count);
-        HudMap_WriteTiles(0x12, i * 2 + 4, page->ext.buttonConfigPage.choices[sButtonConfigChoiceSlots[i]] * 3 + 0x32A0, 3);
+        HudMap_WriteTilesWide(6, i * 2 + 4, i * 0x10 + 0x3359, count);
+        HudMap_WriteTilesWide(0x12, i * 2 + 4, page->ext.buttonConfigPage.choices[sButtonConfigChoiceSlots[i]] * 3 + 0x32A0, 3);
     }
 }
 
@@ -615,7 +611,6 @@ void ButtonConfig_ResetDefaults(void)
     for (i = 0; i <= 3; i++)
         buttons[i] = sButtonConfigButtons[sButtonConfigDefaultChoices[i]];
 }
-
 
 /* Backup of the four palette slots inside the save buffer (0x1340C). */
 #define BACKUP_SLOT(i) (*(s32 *)((u8 *)gEwramData + 0x1340C + (i) * 4))
@@ -663,7 +658,6 @@ void BestiaryMenu_Open(struct EwramData_EntityData *page)
     page->ext.menuListU.count = 0x70;
     BestiaryMenu_Setup(page);
 }
-
 
 /**
  * @brief Bestiary page state machine (fades between the list,
@@ -766,11 +760,11 @@ void BestiaryMenu_Setup(struct EwramData_EntityData *page)
     BestiaryMenu_ReleaseResources();
     MenuCursor_LoadGraphics(&gEwramData->entityData[18]);
     Cursor_StartAnimation();
-    HudMap_WriteTiles(0xB, 3, 0xF3D0, 0xE);
-    HudMap_WriteTiles(0x11, 0xF, 0xF3E0, 4);
-    HudMap_WriteTiles(0x15, 0xF, 0x13E4, 1);
-    HudMap_WriteTiles(0x19, 0xF, 0x13E8, 1);
-    HudMap_WriteTiles(0x1B, 0xF, 0xF3EA, 1);
+    HudMap_WriteTilesWide(0xB, 3, 0xF3D0, 0xE);
+    HudMap_WriteTilesWide(0x11, 0xF, 0xF3E0, 4);
+    HudMap_WriteTilesWide(0x15, 0xF, 0x13E4, 1);
+    HudMap_WriteTilesWide(0x19, 0xF, 0x13E8, 1);
+    HudMap_WriteTilesWide(0x1B, 0xF, 0xF3EA, 1);
     Cursor_SetTilePosition((page->ext.menuList.cursor & 1) ? 0xF : 1, ((page->ext.menuList.cursor - page->ext.menuList.top) >> 1) * 2 + 5);
     {
         // writing through a pointer keeps the store order of the original

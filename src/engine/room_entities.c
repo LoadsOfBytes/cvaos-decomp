@@ -43,9 +43,7 @@
 #include "warp_room.h"
 #include "data/data_118B48.h"
 #include "structs/entity_template.h"
-extern void HudMap_WriteTiles(s32, s32, u16, s32);
-
-
+#include "menu_common.h"
 
 void (*sObjectCreateFuncs[56])(struct EwramData_EntityData *) = {
     [0] = Object00Create,

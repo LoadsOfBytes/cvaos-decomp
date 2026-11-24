@@ -19,7 +19,7 @@
 static struct NestedDebugMenuState sDebug2739MenuState;
 
 struct Debug2739TestDispatch {
-    void *runFunc;
+    s32 (*runFunc)(s32 testIndex);
     s32 testIndex;
 }; /* size = 0x8 */
 struct Debug2739TestDispatch sDebug2739TestDispatch[] = {
@@ -181,7 +181,7 @@ s32 GameModeDebug2739Update(void)
             /* fallthrough */
         case 3:
             entry = &sDebug2739TestDispatch[sDebug2739MenuState.selectionResult];
-            if (((s32 (*)(s32)) entry->runFunc)(entry->testIndex) != 0)
+            if (entry->runFunc(entry->testIndex) != 0)
             {
                 EntityFreeAll();
                 DMA_COPY_32(3, &sDebugPalette, PALRAM_BASE, sizeof(sDebugPalette));

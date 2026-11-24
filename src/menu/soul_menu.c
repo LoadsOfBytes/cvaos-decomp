@@ -25,7 +25,6 @@
 #include "data/data_118B48.h"
 #include "red_souls_b.h"
 
-extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
 extern s32 MenuGrid_MoveCursor(struct EwramData_EntityData *entity, u16 input);
 
 void CursorSprite_Update(struct EwramData_EntityData *);
@@ -35,6 +34,9 @@ void SoulMenu_PrintEquippedName(struct EwramData_EntityData *entity);
 void SoulMenu_ShowSelection(struct EwramData_EntityData *entity);
 void SoulMenu_CountList(struct EwramData_EntityData *entity, s32 kind);
 void SoulMenu_DrawCategoryIcon(struct EwramData_EntityData *entity);
+
+struct Tbl12 { u8 pad[4]; u8 value; s8 row; u8 pad2[6]; };
+extern const struct Tbl12 sBlueSoulInfo[];
 
 /* Page-title entity (slot 20) state machine (state at unk_508): state 1
  * places the entity at (0x35, 9) and moves to state 2; state 2 enables affine
@@ -1194,9 +1196,6 @@ void SoulMenu_EquipSelected(struct SoulMenu *menu)
     HudMap_DrawStatusConditionIcon(0x15, 8);
     SoulMenu_ClearStatPreview();
 }
-
-struct Tbl12 { u8 pad[4]; u8 value; s8 row; u8 pad2[6]; };
-extern const struct Tbl12 sBlueSoulInfo[];
 
 static inline void FillRow(u16 *dst, s32 tile)
 {

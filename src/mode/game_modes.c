@@ -47,11 +47,8 @@
 #include "data/data_118B48.h"
 #include "data/data_0E5364.h"
 #include "data/data_4F1444.h"
-
-/* Called with int arguments (the u16/u8 parameters in bg_and_collision.h would truncate them). */
-extern u16 *BgCmdBuffer_WriteString(s32 tileIndex, s32 rowOffset, s32 tileInfo, const u8 *string);
-extern void HBlankEffectSetup(s32 numEntries, s32 vcountSetting, s32 writeSize, void *destReg);
-extern void HudMap_WriteTiles(s32 x, s32 y, s32 tile, s32 count);
+#include "menu_common.h"
+#include "bg_and_collision.h"
 
 struct DebugMenuOptions {
     const u8 *text;
@@ -215,7 +212,6 @@ const u8 sDebugMenuSelectText[] = "Please select.\n";
 const u8 sDebugExitEmptyText[] = " ";
 const u8 sDebugExitCursorText[0x4] = ">";
 
-extern u32* GetRoomPointer(s32 area, s32 room);
 extern struct unk_08506B38 *sTextEntries[0xB4F];
 
 /**
@@ -237,7 +233,7 @@ s32 GameModeDebugUpdate(void)
     {
         case 0:
             DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
-            BgCmdBuffer_WriteString(1, 1, 0, sDebugMenuSelectText);
+            BgCmdBuffer_WriteStringWide(1, 1, 0, sDebugMenuSelectText);
             gEwramData->gameModeUpdateStage += 1;
             gEwramData->gameModeSubStage = 0; // gameModeSubStage is used as the current option here
             break;
@@ -283,7 +279,7 @@ s32 GameModeDebugUpdate(void)
 
                 for (option = 0; option < optionEnd; option++)
                 {
-                    BgCmdBuffer_WriteString(4, option + 3, (option == gEwramData->gameModeSubStage) ? 1 : 3, sDebugMenuOptions[option].text);
+                    BgCmdBuffer_WriteStringWide(4, option + 3, (option == gEwramData->gameModeSubStage) ? 1 : 3, sDebugMenuOptions[option].text);
                 }
             }
             break;
@@ -317,7 +313,7 @@ s32 GameModeDebugExitUpdate(void)
 
             for (option = 0; option < sDebugExitOptionsLength; option++)
             {
-                BgCmdBuffer_WriteString(5, option + 2, 0, sDebugExitOptions[option].text);
+                BgCmdBuffer_WriteStringWide(5, option + 2, 0, sDebugExitOptions[option].text);
             }
 
             gEwramData->gameModeUpdateStage += 1;
@@ -332,7 +328,7 @@ s32 GameModeDebugExitUpdate(void)
         case 2:
             if (gEwramData->inputData.newInput & KEY_UP)
             {
-                BgCmdBuffer_WriteString(4, gEwramData->gameModeSubStage + 2, 2, (u8 *) sDebugExitEmptyText);
+                BgCmdBuffer_WriteStringWide(4, gEwramData->gameModeSubStage + 2, 2, (u8 *) sDebugExitEmptyText);
                 if (--gEwramData->gameModeSubStage > sDebugExitOptionsLength)
                 {
                     gEwramData->gameModeSubStage = sDebugExitOptionsLength - 1;
@@ -340,14 +336,14 @@ s32 GameModeDebugExitUpdate(void)
             }
             else if (gEwramData->inputData.newInput & KEY_DOWN)
             {
-                BgCmdBuffer_WriteString(4, gEwramData->gameModeSubStage + 2, 2, (u8 *) sDebugExitEmptyText);
+                BgCmdBuffer_WriteStringWide(4, gEwramData->gameModeSubStage + 2, 2, (u8 *) sDebugExitEmptyText);
                 if (++gEwramData->gameModeSubStage >= sDebugExitOptionsLength)
                 {
                     gEwramData->gameModeSubStage = 0;
                 }
             }
 
-            BgCmdBuffer_WriteString(4, gEwramData->gameModeSubStage + 2, 2, (u8 *) sDebugExitCursorText);
+            BgCmdBuffer_WriteStringWide(4, gEwramData->gameModeSubStage + 2, 2, (u8 *) sDebugExitCursorText);
             if (gEwramData->inputData.newInput & KEY_A)
             {
                 // If entrance option picked
@@ -770,7 +766,7 @@ void TitleScreen_sub_08002F44(s32 arg0)
 
     hBlankBuf = gEwramData->hBlankEffect.hBlankBuffer[1 - gEwramData->hBlankEffect.currentBuffer];
     angle = gEwramData->frameCounter << 10;
-    HBlankEffectSetup(0, (s32)(SCREEN_SIZE_Y * 0.75f), 2, REG_BG1HOFS);
+    HBlankEffectSetupWide(0, (s32)(SCREEN_SIZE_Y * 0.75f), 2, REG_BG1HOFS);
     
     for (scanline = 0; scanline < (s32)(SCREEN_SIZE_Y * 0.75f); scanline++)
     {
@@ -2114,7 +2110,7 @@ void BgEffect_Bg2InterlacedWave(void)
     angle = gEwramData->frameCounter;
     angle <<= 0xA;
     vOfs = gDisplayRegisters.bgOfs[2].vOfs;
-    HBlankEffectSetup(0, SCREEN_SIZE_Y, 2, REG_BG2HOFS);
+    HBlankEffectSetupWide(0, SCREEN_SIZE_Y, 2, REG_BG2HOFS);
 
     for (scanline = 0, zeroIndex = 2; scanline < SCREEN_SIZE_Y; scanline++, zeroIndex += 3)
     {

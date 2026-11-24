@@ -23,13 +23,8 @@
 #include "shop_update.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "bg_and_collision.h"
 
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *,u8 *,void *,u8,void *);
-extern s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *,s32,s32);
-extern void Entity_FaceTarget(struct EwramData_EntityData *);
-
-/* This original call site consumes the sign-extended value in all of r0. */
-extern s32 Collision_GetPushUp(s32,s32);
 
 void Belmont_OnHit(struct EwramData_EntityData *entity,s32 kind,u16 *hit);
 void Belmont_UpdateBestiaryPreview(struct EwramData_EntityData *);
@@ -1132,7 +1127,7 @@ void Belmont_UpdatePoweredPhase(struct EwramData_EntityData *entity)
               s32 x=(s16)entity->posX.part16.integer;
               struct BgLayerState *camera=&gEwramData->bgInfo[1];
               x+=(s16)camera->xPos.part16.integer;
-              if(Collision_GetPushUp(x,(s16)entity->posY.part16.integer+(s16)camera->yPos.part16.integer))
+              if(Collision_GetPushUpWide(x,(s16)entity->posY.part16.integer+(s16)camera->yPos.part16.integer))
               {
                 Sound_StopTracked(251);
                 if(entity->animScriptIndex!=0)

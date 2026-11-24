@@ -48,8 +48,6 @@ struct RedSoulShotInfo {
 extern struct RedSoulShotInfo sUnk_084F12C8[];
 #define CONTEXT ((struct PlayerState *)((u8 *)gEwramData + OFFSET_OF(struct EwramData, playerState)))
 
-extern s32 Collision_FindWaterSurfaceOffset(s32, s32);
-
 static inline u8 Enable(u8 value) { return value | 4; }
 /* Student Witch soul projectile: fall, slide, wait after collision, then
  * release its active-soul slot. */
@@ -76,7 +74,7 @@ void SkillStudentWitchUse(struct EwramData_EntityData *entity)
             Anim_StartIndexed(entity, animation >> 16, 0, 1);
             entity->spriteLayer = 13;
             entity->drawFunc = Sprite_DrawEntity;
-            Entity_PlaceRelativeTo(entity, parent, 8, -26);
+            Entity_PlaceRelativeToWide(entity, parent, 8, -26);
             entity->accelY.whole = 0x2000;
             entity->velY.whole = 0;
             entity->scrollWithBg = 1;
@@ -247,7 +245,7 @@ void Skill_Skeleton_ZombieSoldier_RockArmor_WaiterSkeleton_GiantSkeleton_BomberA
         void *oam = t->spriteSheet;
         Skill_AttachGraphics(entity, palette, gfx, pal, oam);
     }
-        Entity_PlaceRelativeTo(entity, parent, 8, -0x1A);
+        Entity_PlaceRelativeToWide(entity, parent, 8, -0x1A);
         if (info->flags & 0x80)
         {
             u16 slot = ObjAffine_Alloc(0);
@@ -550,7 +548,7 @@ void SkillWingedSkeletonUse(struct EwramData_EntityData *entity)
             return;
         }
     }
-        Entity_PlaceRelativeTo(entity, entity->ext.redSoul.owner, 8, -0x1A);
+        Entity_PlaceRelativeToWide(entity, entity->ext.redSoul.owner, 8, -0x1A);
         entity->scrollWithBg = 1;
         entity->spriteLayer = 0xD;
         entity->state++;
@@ -677,7 +675,7 @@ void SkillSirenUse(struct EwramData_EntityData *entity)
         }
         PlaySong(sSkillSirenNotes[note]);
         entity->drawFunc = Sprite_DrawEntity;
-        Entity_PlaceRelativeTo(entity, entity->ext.redSoul.owner, 8, -0x1A);
+        Entity_PlaceRelativeToWide(entity, entity->ext.redSoul.owner, 8, -0x1A);
         entity->spriteLayer = 0xD;
         entity->scrollWithBg = 1;
         entity->velX.whole = 0x10000;
@@ -752,7 +750,7 @@ void SkillUneUse(struct EwramData_EntityData *entity)
     }
         Anim_StartIndexed(entity, 3, 0, 1);
         entity->drawFunc = Sprite_DrawEntity;
-        Entity_PlaceRelativeTo(entity, parent, 8, -0x1A);
+        Entity_PlaceRelativeToWide(entity, parent, 8, -0x1A);
         entity->ext.skillWalker.speed = 0xA000;
         entity->velY.whole = -0x18000;
         entity->accelY.whole = 0x2000;
@@ -913,7 +911,7 @@ void SkillRedMinotaurUse(struct EwramData_EntityData *entity)
         entity->affineIndex = slot;
         entity->affine = 1;
         entity->doubleSize = 1;
-        Entity_PlaceRelativeTo(entity, parent, 0, -0x1A);
+        Entity_PlaceRelativeToWide(entity, parent, 0, -0x1A);
         entity->scrollWithBg = 1;
         entity->state++;
         angle = 0x4000;
@@ -993,7 +991,7 @@ void SkillBatUse(struct EwramData_EntityData *entity)
         Anim_StartIndexed(entity, 0, 0, 0);
         entity->drawFunc = Sprite_DrawEntity;
         entity->spriteLayer = 0xD;
-        Entity_PlaceRelativeTo(entity, parent, 0, -0x1A);
+        Entity_PlaceRelativeToWide(entity, parent, 0, -0x1A);
         entity->scrollWithBg = 1;
         entity->state++;
         Hit_SetTimerOverride(1, 15);
@@ -1118,7 +1116,7 @@ void SkillMermanUse(struct EwramData_EntityData *entity)
         entity->spriteLayer = 0xD;
         entity->scrollWithBg = 1;
         Hit_SetTimerOverride(1, 30);
-        Entity_PlaceRelativeTo(entity, parent, 6, -0x1A);
+        Entity_PlaceRelativeToWide(entity, parent, 6, -0x1A);
         PlaySong(0xED);
         gEwramData->playerState.nbrActiveRedSoulEntities++;
         entity->state++;
@@ -1138,7 +1136,7 @@ void SkillMermanUse(struct EwramData_EntityData *entity)
             child->subState = i + 2;
         }
     case 1:
-        Entity_PlaceRelativeTo(entity, parent, 0, -0x1A);
+        Entity_PlaceRelativeToWide(entity, parent, 0, -0x1A);
         break;
     case 2:
         FreeRedSoul(entity);
@@ -1333,7 +1331,7 @@ void Skill_Werejaguar_Weretiger_Use(struct EwramData_EntityData *entity)
         PlaySong(0xEB);
         entity->state = 1;
     case 1:
-        Entity_PlaceRelativeTo(entity, parent, 0, 0);
+        Entity_PlaceRelativeToWide(entity, parent, 0, 0);
         if ((parent->ext.player.actionFlags & 0x180) == 0x100)
             break;
     case 2:
@@ -1384,7 +1382,7 @@ void SkillLightningDollUse(struct EwramData_EntityData *entity)
         Hit_Enable(entity, 5, 0, 0);
         entity->hit.flags |= 4;
         entity->flipY = RandomNumberGenerator() & 1;
-        Entity_PlaceRelativeTo(entity, parent, 0x10, -0x1C);
+        Entity_PlaceRelativeToWide(entity, parent, 0x10, -0x1C);
         entity->stage = parent->flipX;
         entity->timer = 0x10;
         gEwramData->playerState.nbrActiveRedSoulEntities++;
@@ -1398,7 +1396,7 @@ void SkillLightningDollUse(struct EwramData_EntityData *entity)
         if (entity->animStep > 3 && (s8)entity->timer >= 0)
             entity->timer += 8;
         if (entity->animStep <= 3 && (parent->ext.player.actionFlags & 0x100))
-            Entity_PlaceRelativeTo(entity, parent, 0x10, -0x1C);
+            Entity_PlaceRelativeToWide(entity, parent, 0x10, -0x1C);
         entity->flipX = entity->stage;
         HitBox_SetAttackRaw(entity, (entity->timer << 16) + 0x2000F000);
         if (entity->subState == 0 && entity->animStep == 8)
@@ -1453,7 +1451,7 @@ void SkillAltairUse(struct EwramData_EntityData *entity)
         entity->spriteLayer = 0xD;
         entity->drawFunc = Sprite_DrawEntity;
         Hit_SetTimerOverride(1, 30);
-        Entity_PlaceRelativeTo(entity, parent, 0x14, -0x1A);
+        Entity_PlaceRelativeToWide(entity, parent, 0x14, -0x1A);
         entity->flipX ^= 1;
         entity->velX.whole = -0x28000;
         if (entity->flipX)
@@ -1551,7 +1549,7 @@ void SkillKillerFishUse(struct EwramData_EntityData *entity)
         entity->spriteLayer = 0xD;
         entity->drawFunc = Sprite_DrawEntity;
         Hit_SetTimerOverride(1, 30);
-        Entity_PlaceRelativeTo(entity, parent, 0x14, -0xC);
+        Entity_PlaceRelativeToWide(entity, parent, 0x14, -0xC);
         entity->flipX ^= 1;
     {
         s32 vx = -0x28000;
@@ -1746,7 +1744,7 @@ void SkillNeedlesUse(struct EwramData_EntityData *entity)
         entity->spriteLayer = 0xD;
         entity->drawFunc = SkillNeedlesDraw;
         Hit_SetTimerOverride(1, 15);
-        Entity_PlaceRelativeTo(entity, parent, 0x14, -0x1A);
+        Entity_PlaceRelativeToWide(entity, parent, 0x14, -0x1A);
         entity->scrollWithBg = 1;
         Hit_Enable(entity, 5, SoulAttack_MarkHit, 0);
         HitBox_SetAttackRaw(entity, 0x1010F8F8);
@@ -1835,7 +1833,7 @@ void SkillDryadUse(struct EwramData_EntityData *entity)
         Hit_Enable(entity, 5, RedSoul_AnchorToHitTargetTimed, 0);
         HitBox_SetAttackRaw(entity, 0x0202FFFF);
         entity->hit.flags |= 4;
-        Entity_PlaceRelativeTo(entity, parent, 0x14, -0x1A);
+        Entity_PlaceRelativeToWide(entity, parent, 0x14, -0x1A);
         entity->velY.whole = -0x20000;
         entity->accelY.whole = 0x2000;
         entity->velX.whole = 0x10000;
@@ -1928,7 +1926,7 @@ void SkillWerewolfUse(struct EwramData_EntityData *entity)
         entity->drawFunc = Sprite_DrawEntity;
         entity->scrollWithBg = 1;
         gEwramData->playerState.nbrActiveRedSoulEntities++;
-        Entity_PlaceRelativeTo(entity, parent, 0x14, -0xA);
+        Entity_PlaceRelativeToWide(entity, parent, 0x14, -0xA);
         if (Entity_DropToFloor(entity) == 0)
         {
             gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
@@ -2022,7 +2020,7 @@ void SkillBiphronUse(struct EwramData_EntityData *entity)
     }
         entity->scrollWithBg = 1;
         gEwramData->playerState.nbrActiveRedSoulEntities++;
-        Entity_PlaceRelativeTo(entity, parent, 0x14, -0xA);
+        Entity_PlaceRelativeToWide(entity, parent, 0x14, -0xA);
         if (Entity_DropToFloor(entity) == 0)
         {
             gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
@@ -2214,7 +2212,7 @@ void SkillSkullArcherUse(struct EwramData_EntityData *entity)
         entity->drawFunc = Sprite_DrawEntity;
         entity->spriteLayer = 0xD;
         entity->scrollWithBg = 1;
-        Entity_PlaceRelativeTo(entity, parent, -0xC, -0x18);
+        Entity_PlaceRelativeToWide(entity, parent, -0xC, -0x18);
         Hit_SetTimerOverride(1, 10);
         gEwramData->playerState.nbrActiveRedSoulEntities++;
         entity->state++;
@@ -2223,7 +2221,7 @@ void SkillSkullArcherUse(struct EwramData_EntityData *entity)
         {
             struct EwramData_EntityData *child = RedSoul_CreateEntity(entity, SkillSkullArcherArrowUpdate);
             if (child != NULL)
-                Entity_PlaceRelativeTo(child, entity, 0, 0);
+                Entity_PlaceRelativeToWide(child, entity, 0, 0);
         }
         if (Anim_Update(entity) == 3)
             entity->state = 2;
@@ -2266,7 +2264,7 @@ void SkillArachneUse(struct EwramData_EntityData *entity)
         Anim_StartIndexed(entity, info->animation, 0, info->param);
         entity->drawFunc = Sprite_DrawEntity;
         entity->scrollWithBg = 1;
-        Entity_PlaceRelativeTo(entity, parent, 8, -0x1A);
+        Entity_PlaceRelativeToWide(entity, parent, 8, -0x1A);
     {
         s32 vx = info->velX;
         entity->velX.whole = vx;
@@ -2421,7 +2419,7 @@ void SkillFlameDemonUse(struct EwramData_EntityData *entity)
         Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         entity->scrollWithBg = 1;
-        Entity_PlaceRelativeTo(entity, parent, 8, -0x10);
+        Entity_PlaceRelativeToWide(entity, parent, 8, -0x10);
         Hit_SetTimerOverride(1, 4);
         gEwramData->playerState.nbrActiveRedSoulEntities++;
         entity->state++;
@@ -2436,7 +2434,7 @@ void SkillFlameDemonUse(struct EwramData_EntityData *entity)
             child = RedSoul_CreateEntity(entity, SkillFlameDemonProjectileUpdate);
             if (child == NULL)
                 break;
-            Entity_PlaceRelativeTo(child, entity, 0, 0);
+            Entity_PlaceRelativeToWide(child, entity, 0, 0);
             child->velX.whole = Sin(entity->velX.whole + 0x4000) << 1;
             child->velY.whole = Sin(entity->velX.whole) << 1;
             if (child->flipX)
@@ -2484,7 +2482,7 @@ void SkillCockatriceEffectUpdate(struct EwramData_EntityData *entity)
         entity->spriteLayer = 0xD;
         entity->state++;
     case 1:
-        Entity_PlaceRelativeTo(entity, owner, 0, 0);
+        Entity_PlaceRelativeToWide(entity, owner, 0, 0);
         if (Anim_Update(entity) == 3)
         {
             gEwramData->playerState.activeRedSoulEntities[entity->ext.redSoul.slot] = NULL;
@@ -2624,7 +2622,7 @@ void SkillFleamanUse(struct EwramData_EntityData *entity)
         entity->drawFunc = Sprite_DrawEntity;
         entity->spriteLayer = 0xD;
         entity->scrollWithBg = 1;
-        Entity_PlaceRelativeTo(entity, parent, 8, -0x1A);
+        Entity_PlaceRelativeToWide(entity, parent, 8, -0x1A);
         entity->accelY.whole = 0x2000;
         entity->flipX ^= 1;
         Hit_SetTimerOverride(1, 20);
@@ -2855,7 +2853,7 @@ void SkillTinyDevilUse(struct EwramData_EntityData *entity)
         Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         entity->scrollWithBg = 1;
-        Entity_PlaceRelativeTo(entity, parent, 8, -0x1A);
+        Entity_PlaceRelativeToWide(entity, parent, 8, -0x1A);
         Hit_SetTimerOverride(1, 20);
         gEwramData->playerState.nbrActiveRedSoulEntities++;
         PlaySong(0x1A3);
@@ -2917,7 +2915,7 @@ void SkillUkobackUse(struct EwramData_EntityData *entity)
         entity->drawFunc = Sprite_DrawEntity;
         entity->spriteLayer = 0xD;
         entity->scrollWithBg = 1;
-        Entity_PlaceRelativeTo(entity, parent, 8, -0x1A);
+        Entity_PlaceRelativeToWide(entity, parent, 8, -0x1A);
         Hit_SetTimerOverride(1, 20);
         Hit_Enable(entity, 5, SoulAttack_MarkHit, 0);
         HitBox_SetAttackRaw(entity, 0x1010F8F8);

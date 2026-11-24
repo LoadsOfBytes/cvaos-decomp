@@ -18,9 +18,6 @@
 #include "damage_numbers.h"
 #include "entity_hit.h"
 
-extern s32 Target_IsInRect(s16 x, s16 y, s32 w, s32 h);
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-
 void ZombieSoldier_UpdateWalk(struct EwramData_EntityData *entity);
 void ZombieSoldier_UpdateAttack(struct EwramData_EntityData *entity);
 void ZombieSoldier_SpawnPiece(struct EwramData_EntityData *entity, s32 x, s32 y, s32 vx, s32 vy, s32 frame);
@@ -128,7 +125,7 @@ void ZombieSoldier_UpdateWalk(struct EwramData_EntityData *entity)
     if ((entity->animStep == 1 || entity->animStep == 5) && entity->animTimer == 0)
     {
         entity->flipX = Entity_IsTargetRight(entity);
-        if (Target_IsInRect(entity->posX.part16.integer - 0x28, entity->posY.part16.integer - 0x40, 0x50, 0x46)
+        if (Target_IsInRect((s16)(entity->posX.part16.integer - 0x28), (s16)(entity->posY.part16.integer - 0x40), 0x50, 0x46)
             && (RandomNumberGenerator() & 0x7F) <= 0x3F)
         {
             entity->state = 1;
@@ -137,7 +134,7 @@ void ZombieSoldier_UpdateWalk(struct EwramData_EntityData *entity)
             return;
         }
         if ((RandomNumberGenerator() & 0x7F) <= 0x1F
-            && Target_IsInRect(entity->posX.part16.integer - 0x6E, entity->posY.part16.integer - 0x40, 0xDC, 0x46))
+            && Target_IsInRect((s16)(entity->posX.part16.integer - 0x6E), (s16)(entity->posY.part16.integer - 0x40), 0xDC, 0x46))
         {
             entity->state = 1;
             entity->subState = 10;
@@ -233,7 +230,7 @@ void ZombieSoldier_UpdateAttack(struct EwramData_EntityData *entity)
  */
 void ZombieSoldier_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s32 damage = Hit_ResolveDamage(entity, (struct EwramData_EntityData *)attacker, hit, Player_CalculateAttackPower(hit[2]));
 
     entity->hitFlashTimer = 8;
     {

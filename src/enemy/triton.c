@@ -20,18 +20,16 @@
 #include "data/data_118B48.h"
 #include "damage_numbers.h"
 #include "entity_hit.h"
+#include "enemy_common.h"
 
 /* Triton movement (Triton_UpdateMove) and attack: fire the homing shot, or raise the spear and emit wave
  * particles until the spear comes back. */
 
 void Triton_SpawnHomingShot(struct EwramData_EntityData *, s32, s32);
 void Triton_SpawnWaveParticle(struct EwramData_EntityData *, s32, s32);
-extern s32 Collision_FindWaterSurfaceOffset(s32, s32);
 #define NEXT_STATE(e) (e->ext.triton.nextState)
 #define ACCEL_X(e) ((e)->accelX.whole)
 #define ACCEL_Y(e) ((e)->accelY.whole)
-
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 
 void TritonSpear_Update(struct EwramData_EntityData *);
 void TritonSpear_DamagePlayerOnContact(struct EwramData_EntityData *);
@@ -250,7 +248,7 @@ void Triton_UpdateAttack(struct EwramData_EntityData *entity)
  */
 void Triton_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s32 damage = Hit_ResolveDamage(entity, (struct EwramData_EntityData *)attacker, hit, Player_CalculateAttackPower(hit[2]));
 
     entity->hitFlashTimer = 8;
     {

@@ -314,8 +314,13 @@ s32 Screen_MirrorFixedY(s32 y)
  * @brief 68AD4 | Whether the entity lies in the rectangle at (left,
  * top) of size (width, height) (16-bit wrap-around comparison).
  */
-s32 Entity_IsInRect(struct EwramData_EntityData *entity, u16 left, u16 top, u16 width, u16 height)
+s32 Entity_IsInRect(struct EwramData_EntityData *entity, s32 left_, s32 top_, s32 width_, s32 height_)
 {
+    u16 left = left_;
+    u16 top = top_;
+    u16 width = width_;
+    u16 height = height_;
+
     if ((u16)(entity->posX.part16.integer - left) <= width
         && (u16)(entity->posY.part16.integer - top) <= height)
         return 1;

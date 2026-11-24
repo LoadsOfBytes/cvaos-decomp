@@ -16,9 +16,7 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 
-extern void Entity_FaceTarget(struct EwramData_EntityData *);
 extern s32 __divsi3(s32, s32);
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 
 void KickerSkeleton_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 

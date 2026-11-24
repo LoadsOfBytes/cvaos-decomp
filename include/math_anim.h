@@ -59,5 +59,6 @@ extern void Bg_SyncPriorities(void);
 extern void Gfx_CopyResource(void *resource, void *dest, u16 queued);
 extern void Gfx_CopyResourceBlocks(void *resource, s32 destinationIndex, s32 sourceIndex, s32 blockCount);
 extern s32 Anim_StartIndexed(struct EwramData_EntityData *entity, u16 script, u8 mode, u8 flags);
+extern s32 Bg_SetControlIfLevelAllows(s32 level, s32 reg, s32 value_);
 
 #endif /* MATH_ANIM_H */

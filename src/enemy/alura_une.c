@@ -21,9 +21,6 @@
 #include "damage_numbers.h"
 #include "entity_hit.h"
 
-extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
-
 u8 AluraUne_LoadGraphics(struct EwramData_EntityData *);
 void AluraUne_DamagePlayerOnContact(struct EwramData_EntityData *);
 void AluraUne_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
@@ -77,7 +74,7 @@ void AluraUne_UpdateIdle(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
     case 0:
-        if (Target_IsInRect(entity->posX.part16.integer - 0x5A, entity->posY.part16.integer - 0x30, 0xB4, 0x60) || Enemy_IsDamaged(entity))
+        if (Target_IsInRect((s16)(entity->posX.part16.integer - 0x5A), (s16)(entity->posY.part16.integer - 0x30), 0xB4, 0x60) || Enemy_IsDamaged(entity))
         {
             if (!*(s8 *)&entity->ext.aluraUne.awake)
             {
@@ -473,7 +470,7 @@ void AluraUne_UpdatePreview(struct EwramData_EntityData *entity)
  */
 void AluraUne_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
-    u16 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    u16 damage = Hit_ResolveDamage(entity, attacker, hit, Player_CalculateAttackPower(hit[2]));
     entity->hitFlashTimer = 8;
     RandomNumberGenerator();
     if (entity->animScriptIndex == 0)

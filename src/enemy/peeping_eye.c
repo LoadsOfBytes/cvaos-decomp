@@ -26,8 +26,6 @@
  * reaction and its parts (eyeball, pupil and the chain of six links).
  * The whole range 0x08087DC0..0x08088D27 is now C. */
 
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
-extern s32 Target_IsInRect(s16, s16, s16, s16);
 struct EwramData_EntityData *EnemyPeepingEyeCreateEyeball(struct EwramData_EntityData *);
 struct EwramData_EntityData *PeepingEye_CreatePupil(struct EwramData_EntityData *);
 u8 PeepingEye_LoadGraphics(struct EwramData_EntityData *);
@@ -68,7 +66,6 @@ void PeepingEyeChainLink_Update(struct EwramData_EntityData *entity);
 #define LINK_ANGLE(e) (e->ext.peepingEyeLink.angle)
 #define LINK_LENGTH(e) (e->ext.peepingEyeLink.length)
 #define LINK_MAX_LENGTH(e) (*(s32 *)&e->ext.peepingEyeLink.maxLength)
-
 
 /* Peeping Eye: dispatch the states, draw the frame chosen by the movement
  * code and fall apart when killed. */
@@ -232,7 +229,7 @@ void PeepingEye_UpdateMove(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
     case 0:
-        if (Target_IsInRect(entity->posX.part16.integer - 90, entity->posY.part16.integer - 100, 180, 200)
+        if (Target_IsInRect((s16)(entity->posX.part16.integer - 90), (s16)(entity->posY.part16.integer - 100), 180, 200)
             || Enemy_IsDamaged(entity))
         {
             entity->subState++;
@@ -433,7 +430,7 @@ void PeepingEye_UpdatePreview(struct EwramData_EntityData *entity)
 
 void PeepingEye_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
-    s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s32 damage = Hit_ResolveDamage(entity, attacker, hit, Player_CalculateAttackPower(hit[2]));
     entity->hitFlashTimer = 8;
     {
         s32 hp = entity->hp;

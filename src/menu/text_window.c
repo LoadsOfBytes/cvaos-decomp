@@ -19,9 +19,9 @@
 #include "data/data_0E5364.h"
 #include "sound.h"
 #include "shop_update.h"
+#include "menu_common.h"
 
 extern void *memcpy(void *dst, const void *src, unsigned long size);
-extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
 
 s32 Text_PrintWithCommands(u8 *text, s32 initialOffset, s32 mode);
 

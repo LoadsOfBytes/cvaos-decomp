@@ -22,10 +22,6 @@
 #include "entity_inline.h"
 #include "entity_hit.h"
 
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
-extern void Buer_SpawnChargeEffect(s32 x,s32 y,s32 index,s32 facing);
-extern s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *entity,s32 x,s32 y);
-
 void Buer_CreateHead(struct EwramData_EntityData *);
 void Buer_UpdateCharge(struct EwramData_EntityData *entity);
 

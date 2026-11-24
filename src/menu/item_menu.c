@@ -25,17 +25,12 @@
  * armor/accessory slot unk_B - 1), A/B closes the list and redraws the page,
  * cursor moves refresh the item description. */
 
-
-
 struct ItemInfo { u16 name; };
 
 extern struct WeaponInfo sWeaponInfo[];
 extern const struct ArmorInfo sArmorInfo[];
 extern s32 MenuGrid_MoveCursor(void *page, s32 input);
 extern const struct ConsumableInfo sConsumableInfo[];
-
-/* Called with an int tile here (no u16 truncation in the original). */
-extern void HudMap_WriteTiles(s32 x, s32 y, s32 tile, s32 count);
 
 s32 EquipmentMenu_UpdateList(struct EwramData_EntityData *page)
 {
@@ -469,15 +464,15 @@ void ItemMenu_Open(struct EwramData_EntityData *entity)
     Text12_ClearRegion();
     for (i = 0, tile = 0x3200; i <= 2; i++)
     {
-        HudMap_WriteTiles(5, i + 0x10, tile, 0x18);
+        HudMap_WriteTilesWide(5, i + 0x10, tile, 0x18);
         tile += 0x20;
     }
     Text12_SetRegion(0, 0, 0x20, 2);
     for (i = 0, right = 0x3390, left = 0x3380; i <= 3; i++)
     {
         y = i + 11;
-        HudMap_WriteTiles(2, y, left, 10);
-        HudMap_WriteTiles(0x11, y, right, 10);
+        HudMap_WriteTilesWide(2, y, left, 10);
+        HudMap_WriteTilesWide(0x11, y, right, 10);
         right += 0x20;
         left += 0x20;
     }
@@ -504,7 +499,6 @@ void ItemMenu_Open(struct EwramData_EntityData *entity)
                  ((entity->ext.menuPageList.bytes[1] - entity->ext.menuPageList.bytes[2]) >> 1) + 11);
     Cursor_Draw();
 }
-
 
 static inline void ShowItemInfo(struct EwramData_EntityData *page)
 {

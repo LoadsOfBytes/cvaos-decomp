@@ -4,7 +4,6 @@
 #include "gba.h"
 #include "structs/ewram.h"
 
-
 /**
  * @brief Remove the selected sole-owned item and current equipped item from the four-entry list, compact entries and reinsert the current equipped item under the existing rules.
  */

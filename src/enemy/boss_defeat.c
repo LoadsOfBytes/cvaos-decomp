@@ -30,7 +30,6 @@
 #include "soul_pickup.h"
 #include "entity_hit.h"
 
-
 void BossRecoveryPickup_Draw(struct EwramData_EntityData *);
 
 /* BossDefeatParticle_Update (effect). */
@@ -744,8 +743,10 @@ void Chaos_SpawnDefeatEffect(s32 x, s32 y)
 /**
  * @brief For Soma under the existing mode guard, create the enemy-definition soul pickup and store its persistence flag and substate two.
  */
-void SoulPickup_SpawnFromEnemyDefinition(u16 x, u16 y, s32 enemyId, s32 spawnParam)
+void SoulPickup_SpawnFromEnemyDefinition(s32 x_, s32 y_, s32 enemyId, s32 spawnParam)
 {
+    u16 x = x_;
+    u16 y = y_;
     struct EntityTemplate *enemyDef = &sEnemyData[enemyId];
     u8 palette = enemyDef->soulType;
     u8 soulId = enemyDef->soulIndex;

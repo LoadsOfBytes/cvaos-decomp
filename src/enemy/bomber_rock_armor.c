@@ -17,12 +17,8 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "entity_hit.h"
+#include "bg_and_collision.h"
 
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern void Entity_FaceTarget(struct EwramData_EntityData *entity, s32 unused1, u16 *unused2);
-
-/* tested as a full word here (bg_and_collision.h declares it returning s16) */
-extern s32 Collision_GetGroundOffset(s32 x, s32 y);
 
 void BomberArmorBomb_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void ArmorProjectile_OnHit(struct EwramData_EntityData *entity);
@@ -152,7 +148,7 @@ void RockArmorRockPiece_Update(struct EwramData_EntityData *entity)
     case 1:
         x = (s16)entity->posX.part16.integer;
         bg = &gEwramData->bgInfo[1];
-        if (Collision_GetGroundOffset(x + (s16)bg->xPos.part16.integer,
+        if (Collision_GetGroundOffsetWide(x + (s16)bg->xPos.part16.integer,
                          (s16)entity->posY.part16.integer + (s16)bg->yPos.part16.integer + 4))
         {
             entity->velY.whole = -(entity->velY.whole >> 1);
@@ -492,7 +488,7 @@ void EnemyRockArmorCreate(struct EwramData_EntityData *entity)
  */
 void BomberRockArmor_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    Entity_FaceTarget(entity, attacker, hit);
+    Entity_FaceTarget(entity);
     if (Enemy_TakeDamage(entity, attacker, hit))
     {
         Enemy_DropRewards(entity);

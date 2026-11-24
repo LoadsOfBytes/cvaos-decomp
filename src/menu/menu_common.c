@@ -102,7 +102,6 @@ s32 MenuGrid_MoveCursor(struct MenuGrid *page, s32 input)
     return result;
 }
 
-
 /* Row writers at map column x: the constant part of the address
  * (VRAM + x * 2) is folded into one literal. */
 static inline void DrawTileRowAt(s32 x, s32 y, s32 tile, s32 count)

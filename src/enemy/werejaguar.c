@@ -21,9 +21,6 @@
 #include "effects.h"
 #include "entity_hit.h"
 
-extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *,struct EwramData_EntityData *,u16 *,s32);
-
 void Werejaguar_UpdateWalk(struct EwramData_EntityData *);
 void Werejaguar_UpdateAttack(struct EwramData_EntityData *);
 void Werejaguar_UpdateRecoil(struct EwramData_EntityData *);
@@ -107,7 +104,7 @@ void Werejaguar_UpdateWalk(struct EwramData_EntityData *entity)
         d = Entity_MoveWithCollision(entity, 0x20000, -0x200000, 0x80000, 8);
         if (!(d & 4))
             break;
-        if (Target_IsInRect(entity->posX.part16.integer - 0x50, entity->posY.part16.integer - 0x50, 0xA0, 0xA0) || Enemy_IsDamaged(entity))
+        if (Target_IsInRect((s16)(entity->posX.part16.integer - 0x50), (s16)(entity->posY.part16.integer - 0x50), 0xA0, 0xA0) || Enemy_IsDamaged(entity))
         {
             entity->subState = 1;
             Anim_StartIndexed(entity, 6, 0, 1);
@@ -134,7 +131,7 @@ void Werejaguar_UpdateWalk(struct EwramData_EntityData *entity)
         if (entity->animStep != 3)
             break;
         h = entity->enemyId == 0x4B ? 0x28 : 0x78;
-        if (Target_IsInRect(entity->posX.part16.integer - 0x3C, entity->posY.part16.integer - h, 0x78, h * 2))
+        if (Target_IsInRect((s16)(entity->posX.part16.integer - 0x3C), (s16)(entity->posY.part16.integer - h), 0x78, (s16)(h * 2)))
         {
             Anim_StartIndexed(entity, 0, 0, 1);
             entity->state = state;
@@ -264,7 +261,7 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
         }
         if (entity->enemyId != 0x54)
             break;
-        if (Target_IsInRect(entity->posX.part16.integer - 0x3C, entity->posY.part16.integer - 0x78, 0x78, 0x6E))
+        if (Target_IsInRect((s16)(entity->posX.part16.integer - 0x3C), (s16)(entity->posY.part16.integer - 0x78), 0x78, 0x6E))
         {
             Anim_StartIndexed(entity, 4, 0, 0);
             entity->subState = 10;
@@ -291,7 +288,7 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
     case 2:
         if (entity->timer++ <= 5)
             break;
-        r = Target_IsInRect(entity->posX.part16.integer - 0x14, entity->posY.part16.integer - 0x28, 0x28, 0x50);
+        r = Target_IsInRect((s16)(entity->posX.part16.integer - 0x14), (s16)(entity->posY.part16.integer - 0x28), 0x28, 0x50);
         if (r != 0)
         {
             if (Dist(entity) <= 0xC)
@@ -610,7 +607,7 @@ void Werejaguar_OnHit(struct EwramData_EntityData *entity,struct EwramData_Entit
 {
     s32 power=Player_CalculateAttackPower(info[2]);
     struct EntityHit *attack=&attacker->hit;
-    s32 damage=Hit_ResolveDamage(entity,attacker,info,(s16)power);
+    s32 damage=Hit_ResolveDamage(entity,attacker,info,power);
     s32 zero;
     entity->hitFlashTimer=8;
     {

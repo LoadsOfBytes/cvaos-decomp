@@ -29,11 +29,10 @@
 #include "data/data_0E5364.h"
 #include "data/data_118B48.h"
 #include "syscalls.h"
+#include "menu_common.h"
 
-extern void HudMap_WriteTiles(s32, s32, u16, s32);
 extern void (*const sEventSceneCreateFuncs[])(struct EwramData_EntityData *entity);
 extern u32 (*const sEventSceneUpdateFuncs[])(struct EwramData_EntityData *entity);
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 
 void ObjectTable_UpdateAnimation(struct EwramData_EntityData *entity);
 

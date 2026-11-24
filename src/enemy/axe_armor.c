@@ -16,8 +16,6 @@
 #include "sound.h"
 #include "effects.h"
 
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern void Entity_FaceTarget(struct EwramData_EntityData *entity, s32 unused1, u16 *unused2);
 
 void AxeArmor_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hitData);
 
@@ -208,7 +206,7 @@ void EnemyAxeArmorCreate(struct EwramData_EntityData *entity)
  */
 void AxeArmor_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hitData)
 {
-    Entity_FaceTarget(entity, attacker, hitData);
+    Entity_FaceTarget(entity);
     if (Enemy_TakeDamage(entity, attacker, hitData))
     {
         Enemy_DropRewards(entity);

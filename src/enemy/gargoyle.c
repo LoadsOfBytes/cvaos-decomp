@@ -19,8 +19,6 @@
 #include "damage_numbers.h"
 #include "entity_hit.h"
 
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-
 u8 Gargoyle_LoadGraphics(struct EwramData_EntityData *entity);
 void Gargoyle_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void Gargoyle_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
@@ -199,7 +197,7 @@ void Gargoyle_UpdateFly(struct EwramData_EntityData *entity)
 /* Gargoyle hit: flash, subtract HP; at 0 HP start falling (state 1). */
 void Gargoyle_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s32 damage = Hit_ResolveDamage(entity, (struct EwramData_EntityData *)attacker, hit, Player_CalculateAttackPower(hit[2]));
 
     entity->hitFlashTimer = 8;
     {

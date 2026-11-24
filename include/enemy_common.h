@@ -29,5 +29,12 @@ extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *entity);
 extern u8 Entity_IsTargetWithinRange(struct EwramData_EntityData *entity, u32 range);
 extern u16 Entity_GetTargetAngleAbove16(struct EwramData_EntityData *entity);
 extern s32 Entity_IsTargetInCenteredBox(struct EwramData_EntityData *entity, u16 width, u16 height);
+extern s32 Collision_IsWalkBlocked(s32 x_, s32 y_);
+extern s32 Entity_MoveWithFilteredBoxCollision(struct EwramData_EntityData *entity, s32 landingVelocity, s32 xOffset_, s32 yOffset_, s32 width_, s32 height_, s32 movement);
+extern s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, struct EwramData_EntityData *other, u16 *hit, s16 inputDamage);
+/* The same function for callers that were compiled without a prototype
+ * (implicit int): result and arguments are not narrowed. */
+extern s32 Hit_ResolveDamageWide(struct EwramData_EntityData *entity, struct EwramData_EntityData *other, u16 *hit, s32 inputDamage) asm("Hit_ResolveDamage");
+extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
 
 #endif /* ENEMY_COMMON_H */

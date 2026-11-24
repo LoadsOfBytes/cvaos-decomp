@@ -20,9 +20,6 @@
 #include "entity_motion.h"
 #include "entity_hit.h"
 
-extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
-
 void Persephone_UpdateWalk(struct EwramData_EntityData *);
 void Persephone_UpdateAttack(struct EwramData_EntityData *);
 void Persephone_UpdatePreview(struct EwramData_EntityData *);
@@ -119,7 +116,7 @@ void Persephone_UpdateWalk(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
     case 0:
-        if (Target_IsInRect(entity->posX.part16.integer - 0x78, entity->posY.part16.integer - 0x30, 0xF0, 0x60) || Enemy_IsDamaged(entity))
+        if (Target_IsInRect((s16)(entity->posX.part16.integer - 0x78), (s16)(entity->posY.part16.integer - 0x30), 0xF0, 0x60) || Enemy_IsDamaged(entity))
         {
             entity->subState++;
             entity->flipX = Entity_IsTargetRight(entity);
@@ -163,7 +160,7 @@ void Persephone_UpdateWalk(struct EwramData_EntityData *entity)
         }
         if (Entity_MoveWithCollision(entity, 0x10000, -0x200000, 0x80000, 8) & 4)
         {
-            if (Target_IsInRect(entity->posX.part16.integer - 0x28, entity->posY.part16.integer - 0x30, 0x50, 0x60))
+            if (Target_IsInRect((s16)(entity->posX.part16.integer - 0x28), (s16)(entity->posY.part16.integer - 0x30), 0x50, 0x60))
             {
                 entity->subState++;
                 Anim_StartIndexed(entity, 3, 0, 0);
@@ -190,7 +187,7 @@ void Persephone_UpdateWalk(struct EwramData_EntityData *entity)
             entity->velX.whole = -0x8000;
         speed = 0x10000;
         Entity_MoveWithCollision(entity, speed, -0x200000, 0x80000, 8);
-        found = Target_IsInRect(entity->posX.part16.integer - 0x28, entity->posY.part16.integer - 0x30, 0x50, 0x60);
+        found = Target_IsInRect((s16)(entity->posX.part16.integer - 0x28), (s16)(entity->posY.part16.integer - 0x30), 0x50, 0x60);
         if (found)
         {
             if (!(RandomNumberGenerator() & 1))
@@ -229,7 +226,7 @@ void Persephone_UpdateWalk(struct EwramData_EntityData *entity)
             entity->velX.whole = 0x8000;
         speed = 0x10000;
         Entity_MoveWithCollision(entity, speed, -0x200000, 0x80000, 8);
-        found2 = Target_IsInRect(entity->posX.part16.integer - 0x3C, entity->posY.part16.integer - 0x30, 0x78, 0x60);
+        found2 = Target_IsInRect((s16)(entity->posX.part16.integer - 0x3C), (s16)(entity->posY.part16.integer - 0x30), 0x78, 0x60);
         if (!found2)
         {
             entity->subState = 5;
@@ -246,7 +243,7 @@ void Persephone_UpdateWalk(struct EwramData_EntityData *entity)
             entity->accelY.whole = 0x2800;
             break;
         }
-        if (Target_IsInRect(entity->posX.part16.integer - 0x28, entity->posY.part16.integer - 0x30, 0x50, 0x60) && !(RandomNumberGenerator() & 1))
+        if (Target_IsInRect((s16)(entity->posX.part16.integer - 0x28), (s16)(entity->posY.part16.integer - 0x30), 0x50, 0x60) && !(RandomNumberGenerator() & 1))
         {
             entity->state = 1;
             entity->subState = 0;
@@ -341,7 +338,7 @@ void Persephone_UpdateAttack(struct EwramData_EntityData *entity)
             entity->velX.whole = 0x8000;
         speed3 = 0x10000;
         Entity_MoveWithCollision(entity, speed3, -0x200000, 0x80000, 8);
-        found = Target_IsInRect(entity->posX.part16.integer - 0x3C, entity->posY.part16.integer - 0x30, 0x78, 0x60);
+        found = Target_IsInRect((s16)(entity->posX.part16.integer - 0x3C), (s16)(entity->posY.part16.integer - 0x30), 0x78, 0x60);
         if (!found)
         {
             entity->state = found;
@@ -477,7 +474,7 @@ void Persephone_OnHit(struct EwramData_EntityData *entity, struct EwramData_Enti
 {
     s32 attack = Player_CalculateAttackPower(hit[2]);
     u8 *attackType = &attacker->hit.type;
-    s16 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)attack);
+    s16 damage = Hit_ResolveDamage(entity, attacker, hit, attack);
     s32 zero;
     entity->hitFlashTimer = 8;
     {

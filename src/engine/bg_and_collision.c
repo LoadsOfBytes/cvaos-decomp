@@ -85,7 +85,7 @@ void BgCmdBuffer_TransferToVram(void)
  * @param string Pointer to string
  * @return u16* Pointer to next data
  */
-u16* BgCmdBuffer_WriteString(u16 tileIndex, u16 rowOffset, u8 tileInfo, u8 *string)
+u16* BgCmdBuffer_WriteString(u16 tileIndex, u16 rowOffset, u8 tileInfo, const u8 *string)
 {
     u16 *end;
     u16 palNum;

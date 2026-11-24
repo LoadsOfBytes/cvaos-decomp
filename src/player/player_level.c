@@ -742,7 +742,7 @@ void JuliusCross_Update(struct EwramData_EntityData *entity)
             {
                 entity->affineIndex = affineIndex;
                 entity->affine = 1;
-                Entity_PlaceRelativeTo(entity, owner, 0x14, -0x1A);
+                Entity_PlaceRelativeToWide(entity, owner, 0x14, -0x1A);
                 if ((RandomNumberGenerator() & 0x3F) < 0x18)
                 {
                     PlaySong(0x1ED);
@@ -904,7 +904,7 @@ void JuliusHolyWater_Update(struct EwramData_EntityData *entity)
             entity->drawFunc = Sprite_DrawEntity;
             entity->spriteLayer = 0xD;
             Hit_SetTimerOverride(1, 0x14);
-            Entity_PlaceRelativeTo(entity, owner, 0x14, -0x1A);
+            Entity_PlaceRelativeToWide(entity, owner, 0x14, -0x1A);
             entity->velY.whole = -0x8000;
             entity->accelY.whole = 0x4000;
             entity->ext.subweapon.walkSpeed = tmp; // needed to match
@@ -1069,7 +1069,7 @@ void JuliusAxe_Update(struct EwramData_EntityData *entity)
             }
 
             Hit_SetTimerOverride(1, 0x3C);
-            Entity_PlaceRelativeTo(entity, owner, 6, -0x14);
+            Entity_PlaceRelativeToWide(entity, owner, 6, -0x14);
             PlaySong(0x1ECU);
             PlaySong(0xE3U);
             entity->scrollWithBg = 1;
@@ -1167,7 +1167,7 @@ void JuliusGrandCross_Update(struct EwramData_EntityData *entity)
             entity->state = 2;
             /* fallthrough */
         case 2:
-            Entity_PlaceRelativeTo(entity, owner, 0, 0);
+            Entity_PlaceRelativeToWide(entity, owner, 0, 0);
             if (entity->timer != 0)
             {
                 entity->timer -= 1;
@@ -1181,7 +1181,7 @@ void JuliusGrandCross_Update(struct EwramData_EntityData *entity)
             break;
 
         case 3:
-            Entity_PlaceRelativeTo(entity, owner, 0, 0);
+            Entity_PlaceRelativeToWide(entity, owner, 0, 0);
             if (entity->timer & 1)
             {
                 entity->flipX ^= 1; 

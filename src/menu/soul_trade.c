@@ -26,7 +26,6 @@
 #include "data/data_4F0B18.h"
 #include "data/data_0E5364.h"
 #include "data/data_118B48.h"
-extern void HudMap_WriteTiles(s32, s32, s32, s32);
 
 u32 sSoulTypeCounts[4] = {
     0x37, 0x18, 0x23, 0x8
@@ -415,11 +414,11 @@ s32 SoulTrade_DrawKindMenu(struct EwramData_EntityData *entity)
 
     Text8_SetRegion(0, 0x12, 0xE, 1);
     Text8_ClearRegion();
-    HudMap_WriteTiles(3, 7, 0xF240, 0xA);
+    HudMap_WriteTilesWide(3, 7, 0xF240, 0xA);
 
     Text8_SetRegion(0, 0x13, 0xE, 1);
     Text8_ClearRegion();
-    HudMap_WriteTiles(3, 0xC, 0xF260, 0xA);
+    HudMap_WriteTilesWide(3, 0xC, 0xF260, 0xA);
 }
 
 static inline s32 SoulTrade_FindSoulIndex(s32 soul)
@@ -506,11 +505,11 @@ s32 SoulTrade_HandleKindMenuInput(struct EwramData_EntityData *entity)
     {
         if (entity->ext.soulTrade.listKind != i)
         {
-            HudMap_WriteTiles(0x10, i + 4, i * 0x20 + 0xE0C0, 0xA);
+            HudMap_WriteTilesWide(0x10, i + 4, i * 0x20 + 0xE0C0, 0xA);
         }
         else
         {
-            HudMap_WriteTiles(0x10, i + 4, i * 0x20 + 0xF0C0, 0xA);
+            HudMap_WriteTilesWide(0x10, i + 4, i * 0x20 + 0xF0C0, 0xA);
         }
     }
     return 0;
@@ -533,7 +532,7 @@ void SoulTrade_OpenSoulList(struct EwramData_EntityData *entity)
     {
         Text8_SetRegion(0, i + 8, 0xE, 1);
         Text8_ClearRegion();
-        HudMap_WriteTiles(0x10, i + 4, i * 0x20 + 0xF100, 0xA);
+        HudMap_WriteTilesWide(0x10, i + 4, i * 0x20 + 0xF100, 0xA);
     }
     SoulTrade_DrawSoulList(entity->ext.soulTrade.listKind, entity->ext.soulTrade.listRow);
 }
@@ -551,7 +550,7 @@ void SoulTrade_DrawSoulList(s32 soulType, s32 first)
     baseEntry = soulType[sSoulNameTextBases];
     if (first > 0)
     {
-        HudMap_WriteTiles(0x1B, 4, 0xF24D, 1);
+        HudMap_WriteTilesWide(0x1B, 4, 0xF24D, 1);
     }
     else
     {
@@ -568,7 +567,7 @@ void SoulTrade_DrawSoulList(s32 soulType, s32 first)
 
     if (row == 9)
     {
-        HudMap_WriteTiles(0x1B, 0xB, 0xF24E, 1);
+        HudMap_WriteTilesWide(0x1B, 0xB, 0xF24E, 1);
     }
     else
     {
@@ -635,7 +634,7 @@ void SoulTrade_SetupMessageWindow(s32 choice)
 
     for (i = 0; i < 4; i++)
     {
-        HudMap_WriteTiles(3, i + 0xF, i * 0x20 + 0xF020, 0x17);
+        HudMap_WriteTilesWide(3, i + 0xF, i * 0x20 + 0xF020, 0x17);
     }
 
     Text12_Print(Text_GetLocalizedEntry(choice + 0x354), 0);
@@ -971,7 +970,7 @@ s32 GameModeSoulTradeMenu(void)
                 Text12_SetCursor(0, 1);
                 for (i = 0; i < 4; i++)
                 {
-                    HudMap_WriteTiles(3, i + 0xF, i * 0x20 + 0xF020, 0x17);
+                    HudMap_WriteTilesWide(3, i + 0xF, i * 0x20 + 0xF020, 0x17);
                 }
                 SoulTrade_DrawTextEntry(trade, 0x373);
                 gEwramData->gameModeTimer = 0x10;
@@ -1080,7 +1079,7 @@ s32 GameModeSoulTradeMenu(void)
             Text12_SetCursor(0, 1);
             for (k = 0; k < 4; k++)
             {
-                HudMap_WriteTiles(3, k + 0xF, k * 0x20 + 0xF020, 0x17);
+                HudMap_WriteTilesWide(3, k + 0xF, k * 0x20 + 0xF020, 0x17);
             }
             SoulTrade_DrawTextEntry(trade, 0x372);
             gEwramData->gameModeUpdateStage = 0x15;
@@ -1092,13 +1091,13 @@ s32 GameModeSoulTradeMenu(void)
             {
                 if (gEwramData->gameModeTimer & 0x10)
                 {
-                    HudMap_WriteTiles(0x1A, 0x11, 0xF22FU, 1);
-                    HudMap_WriteTiles(0x1A, 0x12, 0xF23FU, 1);
+                    HudMap_WriteTilesWide(0x1A, 0x11, 0xF22FU, 1);
+                    HudMap_WriteTilesWide(0x1A, 0x12, 0xF23FU, 1);
                 }
                 else
                 {
-                    HudMap_WriteTiles(0x1A, 0x11, 0xF22EU, 1);
-                    HudMap_WriteTiles(0x1A, 0x12, 0xF23EU, 1);
+                    HudMap_WriteTilesWide(0x1A, 0x11, 0xF22EU, 1);
+                    HudMap_WriteTilesWide(0x1A, 0x12, 0xF23EU, 1);
                 }
             }
             gEwramData->gameModeTimer += 1;
@@ -1556,7 +1555,7 @@ void SoulTrade_ClearMessageWindow(struct EwramData_EntityData *entity)
 
     for (i = 0; i < 4; i++)
     {
-        HudMap_WriteTiles(3, i + 0xF, i * 0x20 + 0xF020, 0x17);
+        HudMap_WriteTilesWide(3, i + 0xF, i * 0x20 + 0xF020, 0x17);
     }
 }
 

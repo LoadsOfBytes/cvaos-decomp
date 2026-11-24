@@ -17,9 +17,6 @@
 #include "entity_motion.h"
 #include "hitbox.h"
 
-extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-
 u8 SkeletonKnight_LoadGraphics(struct EwramData_EntityData *entity);
 void SkeletonKnight_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void SkeletonKnight_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
@@ -76,7 +73,7 @@ void SkeletonKnight_UpdateWalk(struct EwramData_EntityData *entity)
     switch (state)
     {
     case 0:
-        if (Target_IsInRect(entity->posX.part16.integer - 0x5A, entity->posY.part16.integer - 0x30, 0xB4, 0x60) || Enemy_IsDamaged(entity))
+        if (Target_IsInRect((s16)(entity->posX.part16.integer - 0x5A), (s16)(entity->posY.part16.integer - 0x30), 0xB4, 0x60) || Enemy_IsDamaged(entity))
         {
             entity->subState++;
             entity->timer = state;
@@ -99,7 +96,7 @@ void SkeletonKnight_UpdateWalk(struct EwramData_EntityData *entity)
         res = Entity_MoveWithCollision(entity, speed, -0x200000, 0x80000, 8);
         if (!(res & 4))
             break;
-        found = Target_IsInRect(entity->posX.part16.integer - 0x28, entity->posY.part16.integer - 0x28, 0x50, 0x50);
+        found = Target_IsInRect((s16)(entity->posX.part16.integer - 0x28), (s16)(entity->posY.part16.integer - 0x28), 0x50, 0x50);
         if (found)
         {
             if ((RandomNumberGenerator() & 0x7F) <= 0x40)
@@ -146,7 +143,7 @@ void SkeletonKnight_UpdateWalk(struct EwramData_EntityData *entity)
         res = Entity_MoveWithCollision(entity, speed2, -0x200000, 0x80000, 8);
         if (!(res & 4))
             break;
-        if (!Target_IsInRect(entity->posX.part16.integer - 0x3C, entity->posY.part16.integer - 0x28, 0x78, 0x50) || entity->timer > 0x3B)
+        if (!Target_IsInRect((s16)(entity->posX.part16.integer - 0x3C), (s16)(entity->posY.part16.integer - 0x28), 0x78, 0x50) || entity->timer > 0x3B)
         {
             entity->flipX = Entity_IsTargetRight(entity);
             entity->subState = 1;
@@ -164,7 +161,7 @@ void SkeletonKnight_UpdateWalk(struct EwramData_EntityData *entity)
             entity->accelY.whole = 0x2800;
             break;
         }
-        if (Target_IsInRect(entity->posX.part16.integer - 0x28, entity->posY.part16.integer - 0x28, 0x50, 0x50) && entity->timer > 0x3B
+        if (Target_IsInRect((s16)(entity->posX.part16.integer - 0x28), (s16)(entity->posY.part16.integer - 0x28), 0x50, 0x50) && entity->timer > 0x3B
             && (RandomNumberGenerator() & 0x7F) <= 0x40)
         {
             entity->state = 1;
@@ -236,7 +233,7 @@ void SkeletonKnight_UpdateAttack(struct EwramData_EntityData *entity)
  */
 void SkeletonKnight_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s32 damage = Hit_ResolveDamage(entity, (struct EwramData_EntityData *)attacker, hit, Player_CalculateAttackPower(hit[2]));
 
     entity->hitFlashTimer = 8;
     {

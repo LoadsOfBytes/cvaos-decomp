@@ -2,7 +2,6 @@
 #include "gba.h"
 #include "bestiary_cursor.h"
 
-
 /**
  * @brief 4C8A4 | Move the cursor of a two-column list with ten visible
  * rows: left/right toggles the column, up/down move by a row and scroll

@@ -21,9 +21,6 @@
 #include "entity_motion.h"
 #include "entity_hit.h"
 
-extern s32 Target_IsInRect(s16, s16, s32, s32);
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
-
 void Gorgon_UpdateWalk(struct EwramData_EntityData *);
 void Gorgon_UpdateAttack(struct EwramData_EntityData *);
 void Gorgon_SpawnDeathPieces(struct EwramData_EntityData *);
@@ -383,7 +380,7 @@ void Gorgon_UpdateAttack(struct EwramData_EntityData *entity)
  */
 void Gorgon_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
-    s16 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s16 damage = Hit_ResolveDamage(entity, attacker, hit, Player_CalculateAttackPower(hit[2]));
     s32 zero;
     entity->hitFlashTimer = 8;
     {

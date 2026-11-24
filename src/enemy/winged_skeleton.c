@@ -22,8 +22,6 @@
 #include "damage_numbers.h"
 #include "entity_hit.h"
 
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-
 void WingedSkeleton_UpdateFly(struct EwramData_EntityData *entity);
 void WingedSkeleton_UpdateAttack(struct EwramData_EntityData *entity);
 void WingedSkeleton_SpawnDeathPieces(struct EwramData_EntityData *entity);
@@ -424,7 +422,7 @@ void WingedSkeleton_UpdateAttack(struct EwramData_EntityData *entity)
  */
 void WingedSkeleton_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s32 damage = Hit_ResolveDamage(entity, (struct EwramData_EntityData *)attacker, hit, Player_CalculateAttackPower(hit[2]));
 
     entity->hitFlashTimer = 8;
     {

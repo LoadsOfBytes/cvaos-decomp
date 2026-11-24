@@ -17,7 +17,6 @@
 #include "hitbox.h"
 #include "entity_hit.h"
 
-
 void KyomaDemon_UpdateLurk(struct EwramData_EntityData *);
 
 void EnemyKyomaDemonUpdate(struct EwramData_EntityData *entity)

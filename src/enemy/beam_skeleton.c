@@ -18,12 +18,9 @@
 #include "data/data_4F1444.h"
 #include "entity_inline.h"
 #include "entity_hit.h"
+#include "bg_and_collision.h"
+#include "music.h"
 
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity,u8 *graphics,void *palette,u8 slot,void *sprite);
-extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
-extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
-extern void Sound_PlayTracked(s32 id);
-extern void Sound_StopTracked(s32 id);
 
 void BeamSkeleton_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 void BeamSkeleton_UpdateBestiaryPreview(struct EwramData_EntityData *entity);
@@ -83,7 +80,7 @@ void EnemyBeamSkeletonCreate(struct EwramData_EntityData *entity)
     entity->subState = display;
     Entity_EnableBoxes(entity,Enemy_OnContact, BeamSkeleton_OnHit);
     Entity_SnapToGround(entity);
-    x = GetEntityRoomXPositionInteger(entity);
+    x = GetEntityRoomXPositionIntegerWide(entity);
     entity->ext.beamSkeleton.homeX = x;
     entity->ext.beamSkeleton.patrolRight = x + 64;
     entity->ext.beamSkeleton.patrolLeft = x - 64;
@@ -136,15 +133,15 @@ void BeamSkeleton_UpdatePatrol(struct EwramData_EntityData *entity)
             break;
         case 1:
         {
-            u16 distance = entity->ext.beamSkeleton.homeX - GetEntityRoomXPositionInteger(entity);
+            u16 distance = entity->ext.beamSkeleton.homeX - GetEntityRoomXPositionIntegerWide(entity);
             if (entity->flipX)
             {
-                if ((s16)right < GetEntityRoomXPositionInteger(entity) || (s16)distance < -40)
+                if ((s16)right < GetEntityRoomXPositionIntegerWide(entity) || (s16)distance < -40)
                     entity->flipX = 0;
             }
             else
             {
-                if ((s16)left > GetEntityRoomXPositionInteger(entity) || (s16)distance > 40)
+                if ((s16)left > GetEntityRoomXPositionIntegerWide(entity) || (s16)distance > 40)
                     entity->flipX = 1;
             }
             if (Entity_Walk(entity,0x6000,sBeamSkeletonWalkProfile,12) & 3)

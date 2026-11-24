@@ -1509,7 +1509,7 @@ void WeaponGun_Update(struct EwramData_EntityData *entity)
             child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateGunCasing);
             if (child != NULL)
             {
-                Entity_PlaceRelativeTo(child, owner, 8U, entity->velY.part16.integer - 0x1A);
+                Entity_PlaceRelativeToWide(child, owner, 8U, entity->velY.part16.integer - 0x1A);
                 child->velX.whole = (RandomNumberGenerator() & 0x7FFF) - 0x10000;
                 child->velY.whole = -0x14000 - (RandomNumberGenerator() & 0x7FFF);
                 if (child->flipX)
@@ -3131,7 +3131,7 @@ void SkillValkyrieUse(struct EwramData_EntityData *entity)
             entity->spriteLayer = 0xD;
             entity->scrollWithBg = 1;
 
-            Entity_PlaceRelativeTo(entity, anchor, 0x14, -0x10);
+            Entity_PlaceRelativeToWide(entity, anchor, 0x14, -0x10);
             Hit_SetTimerOverride(1, 0x3C);
             gEwramData->playerState.nbrActiveRedSoulEntities += 1;
             Hit_Enable(entity, 5, NULL, 0);
@@ -3239,7 +3239,7 @@ void SkillKillerDollUse(struct EwramData_EntityData *entity)
             PlaySong(0xE5);
             gEwramData->playerState.nbrActiveRedSoulEntities += 1;
             gEwramData->playerState.enemyTarget = entity;
-            Entity_PlaceRelativeTo(entity, anchor, 8, -0x10);
+            Entity_PlaceRelativeToWide(entity, anchor, 8, -0x10);
             entity->velX.whole = 0x18000;
             if (entity->flipX)
             {
@@ -3411,7 +3411,7 @@ void SkillNemesisUse(struct EwramData_EntityData *entity)
         entity->subState += 1;
     }
 
-    Entity_PlaceRelativeTo(entity, anchor, 0, -8 - entity->subState);
+    Entity_PlaceRelativeToWide(entity, anchor, 0, -8 - entity->subState);
     Anim_Update(entity);
     entity->roomActive = 1;
 }

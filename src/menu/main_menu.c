@@ -28,8 +28,6 @@
 #include "data/data_0E5364.h"
 #include "data/data_118B48.h"
 
-extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
-
 // TODO: HudMap_WriteTiles is implicitly called in other files, except this one
 
 /**

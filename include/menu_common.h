@@ -29,5 +29,9 @@ extern void HudMap_ZeroTiles(s32 x, s32 y, s32 count);
 extern void MenuPage_SetMode(struct EwramData_EntityData *entity, u8 mode);
 extern s32 HudMap_PrintNumber(s32 x, s32 y, s32 value, s32 digits, s32 palette, s32 zeroPad);
 extern void Menu_DrawPlayTime(s32 x, s32 y, s32 palette, s32 frames);
+extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
+/* The same function for callers that were compiled without a prototype
+ * (implicit int): result and arguments are not narrowed. */
+extern void HudMap_WriteTilesWide(s32 x, s32 y, s32 tile, s32 count) asm("HudMap_WriteTiles");
 
 #endif /* MENU_COMMON_H */

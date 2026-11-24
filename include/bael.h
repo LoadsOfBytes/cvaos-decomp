@@ -16,5 +16,6 @@ extern void Buer_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *h
 extern s32 Buer_OffsetBySign(s32 value, s32 offset);
 extern s32 Buer_CheckCleanup(struct EwramData_EntityData *entity);
 extern void Buer_RestoreXAtProbe(struct EwramData_EntityData *entity, s32 savedX);
+extern void Buer_SpawnChargeEffect(s32 x_, s32 y_, s32 kind_, u32 flip);
 
 #endif /* BAEL_H */

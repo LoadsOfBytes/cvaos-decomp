@@ -40,7 +40,6 @@
 #include "data/data_0E5364.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
-extern void HudMap_WriteTiles(s32, s32, s32, s32);
 
 /*
  * Sound test menu (GameModeSoundTestMenu) keeps its state in the slots of
@@ -94,7 +93,7 @@ void SoundTestMenu_DrawScreen(s32 index)
 
     for (i = 0; i < 4; i++)
     {
-        HudMap_WriteTiles(3, i + 0xF, i * 0x20 + 0xF020, 0x15);
+        HudMap_WriteTilesWide(3, i + 0xF, i * 0x20 + 0xF020, 0x15);
     }
 
     Text12_Print(Text_GetLocalizedEntry(index), 0);
@@ -116,9 +115,9 @@ void SoundTestMenu_DrawScreen(s32 index)
     Text8_ClearRegion();
     Text8_Print((struct unk_08506B38 *) Text_GetLocalizedEntry(0x392), 0);
 
-    HudMap_WriteTiles(0xB, 6, 0xF100, 6);
-    HudMap_WriteTiles(0xB, 8, 0xF120, 6);
-    HudMap_WriteTiles(0xB, 0xA, 0xF140, 6);
+    HudMap_WriteTilesWide(0xB, 6, 0xF100, 6);
+    HudMap_WriteTilesWide(0xB, 8, 0xF120, 6);
+    HudMap_WriteTilesWide(0xB, 0xA, 0xF140, 6);
 }
 
 struct SoundTestCategoryRange {

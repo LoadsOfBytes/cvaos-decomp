@@ -23,10 +23,6 @@
 #include "sound.h"
 #include "entity_hit.h"
 
-extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern s32 Entity_IsInRect(struct EwramData_EntityData *entity, s16 left, s16 top, u16 width, u16 height);
 
 void Imp_UpdateState4Animation(struct EwramData_EntityData *entity);
 void Imp_UpdateFlight(struct EwramData_EntityData *entity);
@@ -615,7 +611,7 @@ void Imp_UpdateState4Animation(struct EwramData_EntityData *entity)
  */
 void Imp_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s32 damage = Hit_ResolveDamage(entity, (struct EwramData_EntityData *)attacker, hit, Player_CalculateAttackPower(hit[2]));
 
     {
         u16 hp = entity->hp;
@@ -721,7 +717,7 @@ void EnemyTinyDevilUpdate(struct EwramData_EntityData *entity)
         TinyDevil_UpdateDeath(entity);
         return;
     }
-    if (Entity_IsInRect(entity, -16, 0, 272, 176))
+    if (Entity_IsInRect(entity, (s16)(-16), 0, 272, 176))
         Player_TrackEntity(entity);
     stunned = Enemy_IsStunned(entity);
     if (stunned)

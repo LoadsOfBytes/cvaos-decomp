@@ -17,8 +17,6 @@
 #include "hitbox.h"
 #include "entity_hit.h"
 
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
 
 void BlueCrow_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 void BlueCrow_SpawnDeathParts(struct EwramData_EntityData *entity);

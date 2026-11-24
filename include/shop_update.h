@@ -15,5 +15,9 @@ extern void Interaction_End(struct EwramData_EntityData *entity, s32 deleteEntit
 extern s32 Entity_SetupFromObjectTable(struct EwramData_EntityData *entity, s32 kind);
 extern void Sound_Play(u16 song);
 extern u32 GameFlag_Is3ASet(void);
+extern s32 Player_GetZoneAroundX(u16 centerX, u16 innerWidth, u16 outerWidth);
+/* The same function for callers that were compiled without a prototype
+ * (implicit int): result and arguments are not narrowed. */
+extern s32 Player_GetZoneAroundXWide(s32 centerX, s32 innerWidth, s32 outerWidth) asm("Player_GetZoneAroundX");
 
 #endif /* SHOP_UPDATE_H */

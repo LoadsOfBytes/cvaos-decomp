@@ -22,7 +22,6 @@
 
 void PlaySong(u32 song);
 extern const struct ArmorInfo sArmorInfo[];
-extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
 extern const struct ConsumableInfo sConsumableInfo[];
 extern const struct WeaponInfo sWeaponInfo[];
 extern void *memset(void *dst, int value, unsigned long size);
@@ -652,7 +651,6 @@ void Shop_ShowConfirmWindow(void)
 
 /* Shop menu page setup (Shop_OpenList). The flag loop has its own index
  * (j) so it stays in a caller-saved register. */
-
 
 static inline u8 ShopMode(struct GameState *s) { return s->shopId; }
 static inline u8 *ShopFlags(struct GameState *s) { return s->shopRowQuantities; }

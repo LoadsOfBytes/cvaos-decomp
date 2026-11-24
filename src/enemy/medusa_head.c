@@ -19,8 +19,6 @@
 #include "damage_numbers.h"
 #include "entity_hit.h"
 
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-
 void MedusaHead_UpdateFly(struct EwramData_EntityData *entity);
 void MedusaHead_UpdateIdle(struct EwramData_EntityData *entity);
 void EnemyMedusaHeadCreate(struct EwramData_EntityData *entity);
@@ -206,7 +204,7 @@ void MedusaHead_UpdateFly(struct EwramData_EntityData *entity)
  */
 void MedusaHead_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s32 damage = Hit_ResolveDamage(entity, (struct EwramData_EntityData *)attacker, hit, Player_CalculateAttackPower(hit[2]));
 
     entity->hitFlashTimer = 8;
     {

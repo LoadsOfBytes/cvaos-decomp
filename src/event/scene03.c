@@ -37,8 +37,6 @@
         gDisplayRegisters.mosaic = v | (v << 4) | (v << 8) | (v << 12);      \
     }
 
-extern u32 Entity_AngleToPoint(struct EwramData_EntityData *, s32, s32);
-
 s32 EventScene03_Start(struct EwramData_EntityData *entity);
 s32 EventScene03_RunSequence(struct EwramData_EntityData *);
 s32 EventScene03_EndParts(struct EwramData_EntityData *);
@@ -1582,7 +1580,7 @@ struct EwramData_EntityData *EventScene03_SpawnSoulOrb(s32 x, s32 y, s32 variant
         if (mode == 0)
         {
             struct EwramData_EntityData *player = gEwramData->playerState.player;
-            entity->ext.event03Orb.heading = (Entity_AngleToPoint(entity, player->posX.whole, player->posY.whole - 0x80000) + 0x8000) & 0xFFFF;
+            entity->ext.event03Orb.heading = (Entity_AngleToPointWide(entity, player->posX.whole, player->posY.whole - 0x80000) + 0x8000) & 0xFFFF;
             entity->ext.event03Orb.turnRate = mode;
             entity->ext.event03Orb.speed = 0x30000;
         }
@@ -1673,7 +1671,7 @@ struct EwramData_EntityData *EventScene03_SpawnTargetOrb(s32 x, s32 y, s32 varia
         entity->scrollWithBg = 1;
         targetX = target->posX.whole;
         offset = ((RandomNumberGenerator() & 0x7F) << 12) + 0x80000;
-        entity->ext.event03Orb.heading = (Entity_AngleToPoint(entity, targetX, target->posY.whole - offset) + 0x8000) & 0xFFFF;
+        entity->ext.event03Orb.heading = (Entity_AngleToPointWide(entity, targetX, target->posY.whole - offset) + 0x8000) & 0xFFFF;
         entity->ext.event03Orb.turnRate = 0;
         entity->ext.event03Orb.speed = 0x30000;
         entity->enemyId = variant + 5;

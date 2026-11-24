@@ -22,10 +22,9 @@
 #include "data/data_4F1444.h"
 #include "data/data_118B48.h"
 #include "player_soma.h"
+#include "bg_and_collision.h"
 
 extern struct RoomDefinition sEndingRoomDefinition;
-extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
-extern s32 Collision_GetGroundOffset(s32 x, s32 y);
 
 s32 EventScene31Debris_Update(struct EwramData_EntityData *entity);
 
@@ -271,8 +270,8 @@ s32 EventScene01_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if (GetEntityRoomXPositionInteger(gEwramData->playerState.player) > 0x80
-            && GetEntityRoomXPositionInteger(gEwramData->playerState.player) <= 0x11F)
+        if (GetEntityRoomXPositionIntegerWide(gEwramData->playerState.player) > 0x80
+            && GetEntityRoomXPositionIntegerWide(gEwramData->playerState.player) <= 0x11F)
         {
             gEwramData->gameState.stateFlags |= 1;
             entity->state++;
@@ -476,7 +475,7 @@ s32 EventScene31FallingBlock_Update(struct EwramData_EntityData *entity)
         s32 hit;
 
         bg = &gEwramData->bgInfo[1];
-        hit = Collision_GetGroundOffset(x + (s16)bg->xPos.part16.integer,
+        hit = Collision_GetGroundOffsetWide(x + (s16)bg->xPos.part16.integer,
                            (s16)entity->posY.part16.integer + (s16)bg->yPos.part16.integer);
 
         if (hit)
@@ -857,7 +856,7 @@ s32 EventScene31Debris_Update(struct EwramData_EntityData *entity)
     s32 x = (s16)entity->posX.part16.integer;
 
     bg = &gEwramData->bgInfo[1];
-    if (Collision_GetGroundOffset(x + (s16)bg->xPos.part16.integer,
+    if (Collision_GetGroundOffsetWide(x + (s16)bg->xPos.part16.integer,
                      (s16)entity->posY.part16.integer + (s16)bg->yPos.part16.integer))
     {
         entity->deleteRequested = 1;

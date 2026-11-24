@@ -26,10 +26,15 @@ extern s32 (*gObjAffineGetFlipYFunc)(s32);
 extern u16 *(*gObjAllocManyFunc)(u32);
 extern void (*gObjAddToLayerFunc)(u16 *, u32);
 extern s32 (*gObjTilesGetTileFunc)(s32, s32, s32);
-extern void *gSpriteDrawAffineFunc;
-extern void *gSpriteDrawFunc;
+extern s32 (*gSpriteDrawAffineFunc)(struct EwramData_EntityData *entity);
+extern s32 (*gSpriteDrawFunc)(struct EwramData_EntityData *entity);
 extern u8 gSpriteDrawArmCode[];
 extern u8 gSpriteDrawAffineArmCode[];
+
+struct Matrix2_2 { s32 m[4]; };
+struct ObjEntry;
+extern void (*gObjAffineGetMatrixFunc)(struct Matrix2_2 *, s32);
+extern void (*gMatrixMultiplyVec2Func)(s32 *, struct Matrix2_2 *, s32 *);
 
 /* Upstream functions 0x08039340..0x0803981F from the previously unlinked
  * this file, now linked as matching C. */
@@ -225,10 +230,6 @@ void ObjGfx_DecompressSet(struct EwramData_unk19404 *set)
 }
 
 /* Draw one entity's sprite parts through an affine matrix (rotated/scaled OAM). */
-struct Matrix2_2 { s32 m[4]; };
-struct ObjEntry;
-extern void (*gObjAffineGetMatrixFunc)(struct Matrix2_2 *, s32);
-extern void (*gMatrixMultiplyVec2Func)(s32 *, struct Matrix2_2 *, s32 *);
 
 #define WHOLE(v) ((v) < 0 ? -(-(v) >> 16) : (v) >> 16)
 
@@ -494,8 +495,8 @@ void Sprite_Init(void)
     __Obj_InstallCallbacks_from_thumb();
     CPU_COPY_32(Sprite_DrawPartsArm, gSpriteDrawArmCode, 0x400);
     CPU_COPY_32(Sprite_DrawPartsAffineArm, gSpriteDrawAffineArmCode, 0x600);
-    gSpriteDrawFunc = gSpriteDrawArmCode;
-    gSpriteDrawAffineFunc = gSpriteDrawAffineArmCode;
+    gSpriteDrawFunc = (s32 (*)(struct EwramData_EntityData *))gSpriteDrawArmCode;
+    gSpriteDrawAffineFunc = (s32 (*)(struct EwramData_EntityData *))gSpriteDrawAffineArmCode;
 }
 
 static inline void* TileAddress(s32 offset)
@@ -972,11 +973,11 @@ s32 Sprite_Draw(struct EwramData_EntityData *entity)
 
     if (entity->affine)
     {
-        result = ((s32 (*)(struct EwramData_EntityData *)) gSpriteDrawAffineFunc)(entity);
+        result = gSpriteDrawAffineFunc(entity);
     }
     else
     {
-        result = ((s32 (*)(struct EwramData_EntityData *)) gSpriteDrawFunc)(entity);
+        result = gSpriteDrawFunc(entity);
     }
     return result;
 }

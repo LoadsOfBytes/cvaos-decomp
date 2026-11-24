@@ -22,8 +22,6 @@
 #include "damage_numbers.h"
 #include "entity_hit.h"
 
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
-
 void Ghost_UpdateFloat(struct EwramData_EntityData *);
 void Ghost_UpdatePreview(struct EwramData_EntityData *);
 void EnemyGhostCreate(struct EwramData_EntityData *);
@@ -263,7 +261,7 @@ void Ghost_DamagePlayerOnContact(struct EwramData_EntityData *entity, struct Ewr
  */
 void Ghost_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
-    s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s32 damage = Hit_ResolveDamage(entity, attacker, hit, Player_CalculateAttackPower(hit[2]));
     entity->hitFlashTimer = 8;
     {
         s32 hp = entity->hp;

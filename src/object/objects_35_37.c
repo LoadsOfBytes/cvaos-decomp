@@ -33,7 +33,6 @@ void Object35_SpawnChild(struct EwramData_EntityData *parent);
 /* Event flag param_1 of the bit array gameFlagsTail (gEwramData + 0x344). */
 #define OBJECT_FLAG(ewram, flag) ((ewram)->gameState.gameFlagsTail[(flag) >> 5] & (1 << ((flag) & 0x1F)))
 
-
 void Object35Child_Update(struct EwramData_EntityData *entity);
 void Object35_Draw(struct EwramData_EntityData *entity);
 u8 Object37_LoadGraphics(struct EwramData_EntityData *);

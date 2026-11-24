@@ -25,8 +25,6 @@
 #include "hit_shared_history.h"
 
 extern void *memcpy(void *dst, const void *src, unsigned long size);
-extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 
 void Devil_UpdateApproach(struct EwramData_EntityData *entity);
 void Devil_UpdateAttack(struct EwramData_EntityData *entity);
@@ -316,7 +314,7 @@ void Devil_UpdateApproach(struct EwramData_EntityData *entity)
     {
     case 0:
         entity->flipX = Entity_IsTargetRight(entity);
-        if (!Target_IsInRect(entity->posX.part16.integer - 0x50, entity->posY.part16.integer - 0x50, 0xA0, 0xA0)
+        if (!Target_IsInRect((s16)(entity->posX.part16.integer - 0x50), (s16)(entity->posY.part16.integer - 0x50), 0xA0, 0xA0)
             && !Enemy_IsDamaged(entity))
             break;
         entity->subState++;
@@ -410,7 +408,7 @@ void Devil_UpdateApproach(struct EwramData_EntityData *entity)
     case 10:
         entity->flipX = Entity_IsTargetRight(entity);
         entity->ext.devil.intangible = 1;
-        if (Target_IsInRect(entity->posX.part16.integer - 0x50, entity->posY.part16.integer - 0x50, 0xA0, 0xA0))
+        if (Target_IsInRect((s16)(entity->posX.part16.integer - 0x50), (s16)(entity->posY.part16.integer - 0x50), 0xA0, 0xA0))
         {
             entity->subState++;
             entity->timer = 0x28;
@@ -934,7 +932,7 @@ void DevilPart_OnHit(struct EwramData_EntityData *input, s32 source, u16 *collis
     owner->posX.whole = entity->posX.whole;
     owner->posY.whole = entity->posY.whole;
     power = Player_CalculateAttackPower(hit[2]);
-    damage = Hit_ResolveDamage(entity->ext.jointPart.owner, attacker, hit, power);
+    damage = Hit_ResolveDamage(entity->ext.jointPart.owner, (struct EwramData_EntityData *)attacker, hit, power);
     owner->posX.whole = oldX;
     owner->posY.whole = oldY;
     Entity_ShowDamage(entity, (s16)damage, 0);
@@ -1364,7 +1362,7 @@ void Devil_DamagePlayerOnContact(struct EwramData_EntityData *entity)
  */
 void Devil_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    s16 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s16 damage = Hit_ResolveDamage(entity, (struct EwramData_EntityData *)attacker, hit, Player_CalculateAttackPower(hit[2]));
 
     Entity_ShowDamage(entity, (s16)damage, 0);
     Devil_OnDamaged(entity, attacker, hit, damage);

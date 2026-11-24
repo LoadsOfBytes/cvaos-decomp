@@ -21,9 +21,6 @@
 #include "player_soma.h"
 #include "entity_hit.h"
 
-extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-
 void Succubus_UpdateWalk(struct EwramData_EntityData *entity);
 void Succubus_UpdateAttack(struct EwramData_EntityData *entity);
 u8 Succubus_LoadGraphics(struct EwramData_EntityData *);
@@ -146,13 +143,13 @@ void Succubus_UpdateWalk(struct EwramData_EntityData *entity)
     case 0:
         entity->flipX = Entity_IsTargetRight(entity);
         if (!*(s8 *)&entity->ext.succubus.seen
-            && Target_IsInRect(entity->posX.part16.integer - 0x5A, entity->posY.part16.integer - 0x40, 0xB4, 0x46))
+            && Target_IsInRect((s16)(entity->posX.part16.integer - 0x5A), (s16)(entity->posY.part16.integer - 0x40), 0xB4, 0x46))
         {
             entity->ext.succubus.seen = 1;
             PlaySong(0x1C7);
         }
         if (entity->ext.succubus.provoked == 1
-            || Target_IsInRect(entity->posX.part16.integer - 0x1E, entity->posY.part16.integer - 0x40, 0x3C, 0x46))
+            || Target_IsInRect((s16)(entity->posX.part16.integer - 0x1E), (s16)(entity->posY.part16.integer - 0x40), 0x3C, 0x46))
         {
             entity->subState++;
             Anim_StartIndexed(entity, 0, 0, 0);
@@ -181,7 +178,7 @@ void Succubus_UpdateWalk(struct EwramData_EntityData *entity)
                 entity->velX.whole = -0x6000;
         }
         if (entity->flipX == (s8)Target_GetFlipXOrOpposite(entity)
-            && Target_IsInRect(entity->posX.part16.integer - 0x32, entity->posY.part16.integer - 0x50, 0x64, 0xA0))
+            && Target_IsInRect((s16)(entity->posX.part16.integer - 0x32), (s16)(entity->posY.part16.integer - 0x50), 0x64, 0xA0))
         {
             land = Player_GetFocusedActionFlags() & 0x60;
             if (!land)
@@ -209,7 +206,7 @@ void Succubus_UpdateWalk(struct EwramData_EntityData *entity)
         }
         speed = 0x10000;
         Entity_MoveWithCollision(entity, speed, -0x200000, 0x40000, 8);
-        found = Target_IsInRect(entity->posX.part16.integer - 0x28, entity->posY.part16.integer - 0x50, 0x50, 0xA0);
+        found = Target_IsInRect((s16)(entity->posX.part16.integer - 0x28), (s16)(entity->posY.part16.integer - 0x50), 0x50, 0xA0);
         if (found)
         {
             if (!(RandomNumberGenerator() & 1))
@@ -244,7 +241,7 @@ void Succubus_UpdateWalk(struct EwramData_EntityData *entity)
                 entity->velX.whole = 0x6000;
         }
         if (entity->flipX == (s8)Target_GetFlipXOrOpposite(entity)
-            && Target_IsInRect(entity->posX.part16.integer - 0x32, entity->posY.part16.integer - 0x50, 0x64, 0xA0))
+            && Target_IsInRect((s16)(entity->posX.part16.integer - 0x32), (s16)(entity->posY.part16.integer - 0x50), 0x64, 0xA0))
         {
             land = Player_GetFocusedActionFlags() & 0x60;
             if (!land)
@@ -270,7 +267,7 @@ void Succubus_UpdateWalk(struct EwramData_EntityData *entity)
         }
         speed2 = 0x10000;
         Entity_MoveWithCollision(entity, speed2, -0x200000, 0x40000, 8);
-        found2 = Target_IsInRect(entity->posX.part16.integer - 0x46, entity->posY.part16.integer - 0x50, 0x8C, 0xA0);
+        found2 = Target_IsInRect((s16)(entity->posX.part16.integer - 0x46), (s16)(entity->posY.part16.integer - 0x50), 0x8C, 0xA0);
         if (!found2)
         {
             entity->subState = 2;
@@ -287,7 +284,7 @@ void Succubus_UpdateWalk(struct EwramData_EntityData *entity)
             entity->accelY.whole = 0x1800;
             break;
         }
-        if (Target_IsInRect(entity->posX.part16.integer - 0x28, entity->posY.part16.integer - 0x50, 0x50, 0xA0) && !(RandomNumberGenerator() & 1))
+        if (Target_IsInRect((s16)(entity->posX.part16.integer - 0x28), (s16)(entity->posY.part16.integer - 0x50), 0x50, 0xA0) && !(RandomNumberGenerator() & 1))
         {
             entity->state = 1;
             entity->subState = 0;
@@ -513,7 +510,7 @@ void Succubus_UpdateAttack(struct EwramData_EntityData *entity)
 void Succubus_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     s32 damage = Player_CalculateAttackPower(hit[2]);
-    damage = Hit_ResolveDamage(entity, (s32)attacker, hit, (s16)damage);
+    damage = Hit_ResolveDamage(entity, attacker, hit, damage);
     entity->hitFlashTimer = 8;
     entity->ext.succubus.provoked = 1;
     {

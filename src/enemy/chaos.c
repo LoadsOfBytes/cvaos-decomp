@@ -45,7 +45,6 @@ struct ChaosData {
     struct EwramData_EntityData *orbs[3];
 };
 
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
 extern void *memcpy(void *dst, const void *src, unsigned long size);
 
 s32 Chaos_StartSecondForm(struct EwramData_EntityData *);
@@ -403,7 +402,7 @@ void Chaos_UpdateDefeat(struct EwramData_EntityData *core)
 /* Core hit: lose HP; at 0 start dying (state 3, BossDefeatEffect_Spawn at the core). */
 void Chaos_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
-    s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s32 damage = Hit_ResolveDamage(entity, attacker, hit, Player_CalculateAttackPower(hit[2]));
 
     entity->hitFlashTimer = 8;
     {
@@ -914,7 +913,7 @@ struct HitBox {
 /* Orb hit: lose HP; at 0 switch to the breaking state 10. */
 void ChaosOrb_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
-    s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s32 damage = Hit_ResolveDamage(entity, attacker, hit, Player_CalculateAttackPower(hit[2]));
 
     entity->hitFlashTimer = 8;
     damage <<= 16;
@@ -1093,7 +1092,7 @@ void ChaosSeedShot_OnHit(struct EwramData_EntityData *entity, struct EwramData_E
     s32 dx, dy;
     u16 angle;
 
-    Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    Hit_ResolveDamage(entity, attacker, hit, Player_CalculateAttackPower(hit[2]));
     entity->hitFlashTimer = 8;
     REFLECTED(entity) = 1;
     dx = entity->posX.whole - attacker->posX.whole;
@@ -2132,7 +2131,7 @@ void Chaos2_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
     s32 damage;
     if (timer <= 255) entity->defense = timer;
     else entity->defense = 255;
-    damage = Hit_ResolveDamage(entity, attacker, savedHit, (s16)Player_CalculateAttackPower(hit[2]));
+    damage = Hit_ResolveDamage(entity, attacker, savedHit, Player_CalculateAttackPower(hit[2]));
     entity->hitFlashTimer = 8;
     entity->hp = SubtractDamage(entity->hp, damage);
     Entity_ShowDamage(entity, (s16)damage, 0);
@@ -2275,7 +2274,7 @@ void Chaos2Part_Update(struct EwramData_EntityData *part)
 void Chaos2Part_OnHit(struct EwramData_EntityData *part, struct EwramData_EntityData *attacker, u16 *hit)
 {
     struct EwramData_EntityData *core = part->ext.chaosChild.link;
-    s32 damage = Hit_ResolveDamage(part, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s32 damage = Hit_ResolveDamage(part, attacker, hit, Player_CalculateAttackPower(hit[2]));
     s32 zero;
 
     part->hitFlashTimer = 8;
@@ -2533,7 +2532,7 @@ void Chaos2SummonedPart_Update(struct EwramData_EntityData *part)
  * at 0 break (state 10). */
 void Chaos2SummonedPart_OnHit(struct EwramData_EntityData *part, struct EwramData_EntityData *attacker, u16 *hit)
 {
-    u16 damage = Hit_ResolveDamage(part, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    u16 damage = Hit_ResolveDamage(part, attacker, hit, Player_CalculateAttackPower(hit[2]));
     s32 dx, dy;
     u16 angle;
     s32 zero;

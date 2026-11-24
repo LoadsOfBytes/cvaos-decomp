@@ -24,11 +24,8 @@
 #include "obj_palette.h"
 #include "entity_hit.h"
 
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-
 /* Target_IsInRect (engine/entity_common.c) takes u16 there; the callers here pass
  * sign-extended values. */
-extern s32 Target_IsInRect(s16 left, s16 top, s16 width, s16 height);
 u8 Object26_LoadGraphics(struct EwramData_EntityData *entity);
 void Object26_UpdateState(struct EwramData_EntityData *entity);
 
@@ -358,7 +355,7 @@ void Object25_UpdateState(struct EwramData_EntityData *entity)
  */
 void Object25_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s32 damage = Hit_ResolveDamage(entity, (struct EwramData_EntityData *)attacker, hit, Player_CalculateAttackPower(hit[2]));
 
     entity->hitFlashTimer = 8;
     // (s16)damage, written so that agbcc sign-extends in place
@@ -471,7 +468,7 @@ void Object26_UpdateState(struct EwramData_EntityData *entity)
 {
     if (entity->subState != 0)
         return;
-    if (Target_IsInRect(entity->posX.part16.integer - 0x46, entity->posY.part16.integer - 0x64, 0x8C, 0xC8))
+    if (Target_IsInRect((s16)(entity->posX.part16.integer - 0x46), (s16)(entity->posY.part16.integer - 0x64), 0x8C, 0xC8))
     {
         entity->hidden = 1;
         entity->ext.object26.clock27++;
@@ -1114,7 +1111,7 @@ u8 Object2E_LoadGraphics(struct EwramData_EntityData *entity)
 void Object2E_UpdateState(struct EwramData_EntityData *entity)
 {
     if (entity->subState == 0
-        && Target_IsInRect(entity->posX.part16.integer - 0x20, entity->posY.part16.integer - 0x20, 0x40, 0x70))
+        && Target_IsInRect((s16)(entity->posX.part16.integer - 0x20), (s16)(entity->posY.part16.integer - 0x20), 0x40, 0x70))
     {
         entity->subState++;
         Object2E_SpawnPiece(entity, -0x50000, 0);

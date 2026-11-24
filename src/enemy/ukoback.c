@@ -21,9 +21,7 @@
 #include "damage_numbers.h"
 #include "sound.h"
 #include "entity_hit.h"
-
-extern s32 Entity_IsInRect(struct EwramData_EntityData *entity, s16 left, s16 top, u16 width, u16 height);
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
+#include "entity_motion.h"
 
 s32 Ukoback_SpawnFireball(struct EwramData_EntityData *entity);
 s32 Ukoback_SpawnDeathPiece(struct EwramData_EntityData *entity);
@@ -206,7 +204,7 @@ s32 UkobackFireball_Initialize(struct EwramData_EntityData *entity, struct Ewram
         ObjAffine_Set(0, entity->ext.ukobackFireball.scaleX, entity->ext.ukobackFireball.scaleY, 0, 0, entity->affineIndex);
         entity->affine = 1;
     }
-    if (Entity_IsInRect(entity, -128, -64, 496, 288))
+    if (Entity_IsInRect(entity, (s16)(-128), (s16)(-64), 496, 288))
         PlaySong(0x78);
     return result;
 }
@@ -418,7 +416,7 @@ void Ukoback_OnContact(struct EwramData_EntityData *entity)
  */
 void Ukoback_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s32 damage = Hit_ResolveDamage(entity, (struct EwramData_EntityData *)attacker, hit, Player_CalculateAttackPower(hit[2]));
 
     {
         u16 hp = entity->hp;

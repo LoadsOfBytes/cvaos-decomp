@@ -39,7 +39,6 @@ struct StolasBox {
 };
 
 extern void *memcpy(void *dst, const void *src, unsigned long size);
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 
 u8 Stolas_LoadGraphics(struct EwramData_EntityData *entity);
 void StolasPart_Update(struct EwramData_EntityData *entity);
@@ -1439,7 +1438,7 @@ void StolasPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hi
     stolas->posX.whole = entity->posX.whole;
     stolas->posY.whole = entity->posY.whole;
     damage = Player_CalculateAttackPower(hit[2]);
-    damage = Hit_ResolveDamage(entity->ext.jointPart.owner, attacker, hit, (s16)damage);
+    damage = Hit_ResolveDamage(entity->ext.jointPart.owner, (struct EwramData_EntityData *)attacker, hit, damage);
     stolas->posX.whole = oldX;
     stolas->posY.whole = oldY;
     Entity_ShowDamage(entity, (s16)damage, 0);
@@ -1509,7 +1508,7 @@ void Stolas_DamagePlayerOnContact(struct EwramData_EntityData *entity)
  */
 void Stolas_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    s16 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s16 damage = Hit_ResolveDamage(entity, (struct EwramData_EntityData *)attacker, hit, Player_CalculateAttackPower(hit[2]));
 
     Entity_ShowDamage(entity, (s16)damage, 0);
     Stolas_OnDamaged(entity, attacker, hit, (s16)damage);

@@ -20,8 +20,6 @@
 #include "damage_numbers.h"
 #include "entity_hit.h"
 
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-
 void Tsuchinoko_SpitShot(struct EwramData_EntityData *);
 void TsuchinokoShot_Update(struct EwramData_EntityData *);
 s32 TsuchinokoShot_LoadGraphics(struct EwramData_EntityData *, struct EwramData_EntityData *);
@@ -117,7 +115,7 @@ void Tsuchinoko_UpdateDeath(struct EwramData_EntityData *entity)
 void Tsuchinoko_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     s32 damage = Player_CalculateAttackPower(hit[2]);
-    damage = Hit_ResolveDamage(entity, (s32)attacker, hit, (s16)damage);
+    damage = Hit_ResolveDamage(entity, attacker, hit, damage);
     entity->hitFlashTimer = 8;
     {
         u16 hp = entity->hp;

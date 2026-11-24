@@ -35,12 +35,12 @@
 #include "data/data_4F1444.h"
 #include "structs/entity_template.h"
 #include "entity_hit.h"
-extern void HudMap_WriteTiles(s32, s32, u16, s32);
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
+#include "menu_common.h"
+#include "enemy_common.h"
 
 struct Debug1967MenuEntry {
     u8 *label; // pointer to string
-    void *handler; // func ptr
+    s32 (*handler)(void);
 }; /* size = 0x8 */
 struct Debug1967MenuEntry sDebug1967MenuEntries[] = {
     [0] = {
@@ -137,7 +137,7 @@ s32 GameModeDebug1967Update(void)
             break;
 
         case 3:
-            gameMode = ((s32 (*)(void))sDebug1967MenuEntries[gEwramData->gameModeSubStage].handler)();
+            gameMode = sDebug1967MenuEntries[gEwramData->gameModeSubStage].handler();
             break;
     }
 
@@ -329,7 +329,6 @@ s32 Debug1967_HandleEnemySelectInput(void)
 
     return 0;
 }
-
 
 // TODO: HudMap_WriteTiles is implicitly called in other files, it may be implicit here too
 
@@ -744,7 +743,7 @@ s32 DebugPlatform_GetCarryVelocity(struct EwramData_EntityData *entity)
 
 // TODO: function declarations
 // void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-// s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
+// s16 Hit_ResolveDamageWide(struct EwramData_EntityData *, s32, u16 *, s32);
 
 /**
  * @brief Take player attack damage; at zero HP start the falling death state
@@ -755,7 +754,7 @@ void DebugTestEnemy_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16
     s32 attackPower;
 
     attackPower = (s16) Player_CalculateAttackPower(hit[2]);
-    Hit_ResolveDamage(entity, attacker, hit, attackPower);
+    Hit_ResolveDamageWide(entity, (struct EwramData_EntityData *)attacker, hit, attackPower);
     entity->hitFlashTimer = 8;
 
     entity->hp -= attackPower;

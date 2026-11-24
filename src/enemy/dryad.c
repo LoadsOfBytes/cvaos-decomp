@@ -21,10 +21,6 @@
 #include "player_soma.h"
 #include "entity_hit.h"
 
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-extern s32 Target_IsInRect(s32, s32, s32, s32);
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
-
 void Dryad_ThrowSeed(struct EwramData_EntityData *);
 void DryadSeed_OnHit(struct EwramData_EntityData *);
 void Dryad_DamagePlayerOnContact(struct EwramData_EntityData *);
@@ -32,7 +28,7 @@ void Dryad_DamagePlayerOnContact(struct EwramData_EntityData *);
 void Dryad_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     s32 damage = Player_CalculateAttackPower(hit[2]);
-    damage = Hit_ResolveDamage(entity, (s32)attacker, hit, (s16)damage);
+    damage = Hit_ResolveDamage(entity, attacker, hit, damage);
     entity->hitFlashTimer = 8;
     {
         u16 hp = entity->hp;

@@ -14,14 +14,7 @@
 #include "hitbox.h"
 #include "damage_numbers.h"
 #include "entity_hit.h"
-
-extern s32 Collision_GetTileOnScreen(s32, s32);
-extern s16 Collision_GetPushDown(s32, s32);
-extern s16 Collision_GetPushLeft(s32, s32);
-extern s16 Collision_GetPushRight(s32, s32);
-extern s16 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
-extern s16 GetEntityRoomYPositionInteger(struct EwramData_EntityData *entity);
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
+#include "bg_and_collision.h"
 
 void Fleaman_UpdateMovement(struct EwramData_EntityData *entity);
 void Fleaman_UpdateDeath(struct EwramData_EntityData *entity);
@@ -128,7 +121,7 @@ void Fleaman_UpdateMovement(struct EwramData_EntityData *entity)
         entity->posX.whole += entity->velX.whole;
         entity->posY.whole += entity->velY.whole;
         entity->velY.whole += entity->accelY.whole;
-        if (Collision_GetTileOnScreen((s16)entity->posX.part16.integer, (s16)entity->posY.part16.integer))
+        if (Collision_GetTileOnScreenWide((s16)entity->posX.part16.integer, (s16)entity->posY.part16.integer))
         {
             Entity_SnapToGround(entity);
             entity->subState++;
@@ -247,7 +240,7 @@ void Fleaman_UpdateMovement(struct EwramData_EntityData *entity)
             if (d)
                 { u32 t = (u16)entity->posX.part16.integer; entity->posX.part16.integer = d + t; }
         }
-        if (Collision_GetTileOnScreen((s16)entity->posX.part16.integer, (s16)entity->posY.part16.integer))
+        if (Collision_GetTileOnScreenWide((s16)entity->posX.part16.integer, (s16)entity->posY.part16.integer))
         {
             if (entity->subState == 5)
             {
@@ -319,7 +312,7 @@ void Fleaman_DamagePlayerOnContact(struct EwramData_EntityData *entity)
  */
 void Fleaman_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s32 damage = Hit_ResolveDamageWide(entity, (struct EwramData_EntityData *)attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
 
     entity->hitFlashTimer = 8;
     {

@@ -17,8 +17,6 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
-
 void DeadWarrior_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 /* Dead Warrior charge, braking and death. */

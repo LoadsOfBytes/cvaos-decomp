@@ -21,9 +21,6 @@
 #include "damage_numbers.h"
 #include "hitbox.h"
 
-extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-
 void GiantGhost_UpdateMove(struct EwramData_EntityData *);
 void GiantGhost_UpdateAttack(struct EwramData_EntityData *);
 void GiantGhost_SpawnFragment(s32, s32, s32, s32, s32, s32);
@@ -208,7 +205,7 @@ void GiantGhost_UpdateMove(struct EwramData_EntityData *entity)
     case 0:
         entity->flipX = Entity_IsTargetRight(entity);
         x = RandomNumberGenerator() % 3;
-        if (x == 0 && Target_IsInRect(entity->posX.part16.integer - 0x50, entity->posY.part16.integer - 0x50, 0xA0, 0xA0))
+        if (x == 0 && Target_IsInRect((s16)(entity->posX.part16.integer - 0x50), (s16)(entity->posY.part16.integer - 0x50), 0xA0, 0xA0))
         {
             entity->state = 1;
             entity->subState = x;
@@ -442,7 +439,7 @@ void GiantGhost_OnHit(struct EwramData_EntityData *entity, struct EwramData_Enti
 {
     s32 damage = Player_CalculateAttackPower(hit[2]);
     s32 i;
-    damage = Hit_ResolveDamage(entity, (s32)other, hit, (s16)damage);
+    damage = Hit_ResolveDamage(entity, other, hit, damage);
     entity->hitFlashTimer = 8;
     {
         u16 hp = entity->hp;

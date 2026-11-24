@@ -1652,8 +1652,10 @@ void Gfx_CopyResourceBlocks(void *resource, s32 destinationIndex, s32 sourceInde
 /**
  * @brief Return zero when unk_A074_2 exceeds the supplied level; otherwise write the cached BG control entry selected by register offset and return one.
  */
-s32 Bg_SetControlIfLevelAllows(s32 level, s32 reg, u16 value)
+s32 Bg_SetControlIfLevelAllows(s32 level, s32 reg, s32 value_)
 {
+    u16 value = value_;
+
     if (gEwramData->bgControlMinWriteLevel > level)
         return 0;
 

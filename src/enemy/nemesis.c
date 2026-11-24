@@ -25,7 +25,6 @@
 
 /* Nemesis_UpdatePositioning: twin of Alastor_UpdateApproach (approach a point near the player and rock);
  * deeper vertical target (+48/16), palette call in state 0; matched. */
-extern void Entity_FaceTarget(struct EwramData_EntityData *);
 #define DX(e) ((s16)Entity_GetTargetDistanceX(e))
 #define DY(e) ((s16)Entity_GetTargetDistanceY(e))
 #define ABS(x) ((x)<0?-(x):(x))
@@ -34,7 +33,6 @@ extern void Entity_FaceTarget(struct EwramData_EntityData *);
 #define FLAGS(e) (e->ext.nemesis.flags)
 
 extern void *memcpy(void *, const void *, unsigned long);
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 
 void Nemesis_DeleteAfterimages(struct EwramData_EntityData *);
 void NemesisPartner_Update(struct EwramData_EntityData *);
@@ -579,7 +577,7 @@ void Nemesis_UpdateDeath(struct EwramData_EntityData *entity)
  */
 void Nemesis_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 *data)
 {
-    s32 damage = Hit_ResolveDamage(entity, hit, data, (s16)Player_CalculateAttackPower(data[2]));
+    s32 damage = Hit_ResolveDamage(entity, (struct EwramData_EntityData *)hit, data, Player_CalculateAttackPower(data[2]));
 
     /* hp read before the sign extension, as in Werewolf_OnHit */
     {

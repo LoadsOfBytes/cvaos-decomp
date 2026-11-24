@@ -34,12 +34,17 @@
 #include "data/data_0E5364.h"
 #include "shop_update.h"
 
-extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
-
 void PauseMenu_DrawPageList(void);
 void PauseMenu_Exit(void);
 void MenuCursor_DrawScrollArrows(struct EwramData_EntityData *entity);
 void Cursor_DrawWithOptionalBob(s32 bob);
+
+typedef s32 (*MenuPageFunc)(struct EwramData_EntityData *ent);
+
+struct SoulTypeIcons;
+
+extern const MenuPageFunc sPauseMenuPageOpenFuncs[];
+extern const MenuPageFunc sPauseMenuPageUpdateFuncs[];
 
 /* Menu text redraw and transient entity-byte reset helpers.
  * for source evidence. */
@@ -296,13 +301,6 @@ void PauseMenu_LoadGraphics(void)
  * (fade in/out, cursor over seven entries, page callbacks). The cursor read
  * through the inline CurSel() keeps the base and reloads the 0x25553 offset
  * as in the target. */
-
-typedef s32 (*MenuPageFunc)(struct EwramData_EntityData *ent);
-
-struct SoulTypeIcons;
-
-extern const MenuPageFunc sPauseMenuPageOpenFuncs[];
-extern const MenuPageFunc sPauseMenuPageUpdateFuncs[];
 
 static inline s32 CurSel(void)
 {

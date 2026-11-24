@@ -23,11 +23,8 @@
 #include "data/data_4F1444.h"
 #include "damage_numbers.h"
 #include "entity_hit.h"
+#include "bg_and_collision.h"
 
-extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
-extern void Entity_FaceTarget(struct EwramData_EntityData *);
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 
 void SkeletonProjectile_Update(struct EwramData_EntityData *);
 void Skeleton_SpawnDeathPieces(struct EwramData_EntityData *);
@@ -55,15 +52,15 @@ void Skeleton_UpdatePatrol(struct EwramData_EntityData *entity)
             break;
         case 1:
         {
-            u16 distance = entity->ext.skeleton.homeX - GetEntityRoomXPositionInteger(entity);
+            u16 distance = entity->ext.skeleton.homeX - GetEntityRoomXPositionIntegerWide(entity);
             if (entity->flipX)
             {
-                if ((s16)right < GetEntityRoomXPositionInteger(entity) || (s16)distance < -40)
+                if ((s16)right < GetEntityRoomXPositionIntegerWide(entity) || (s16)distance < -40)
                     entity->flipX = 0;
             }
             else
             {
-                if ((s16)left > GetEntityRoomXPositionInteger(entity) || (s16)distance > 40)
+                if ((s16)left > GetEntityRoomXPositionIntegerWide(entity) || (s16)distance > 40)
                     entity->flipX = 1;
             }
             if (Entity_Walk(entity,0x6000,sSkeletonWalkProfile,12) & 3)
@@ -812,7 +809,7 @@ void Skeleton_UpdateState5Animation(struct EwramData_EntityData *entity)
  */
 void Skeleton_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s32 damage = Hit_ResolveDamage(entity, (struct EwramData_EntityData *)attacker, hit, Player_CalculateAttackPower(hit[2]));
 
     u16 hp = entity->hp; // HP, loaded first
     damage <<= 16;

@@ -6,6 +6,7 @@
 #include "graphics.h"
 #include "entity_util.h"
 #include "structs/ewram.h"
+#include "syscalls.h"
 #include "music.h"
 #include "player_level.h"
 #include "sound.h"
@@ -24,10 +25,6 @@
 #include "entity_motion.h"
 #include "entity_hit.h"
 
-extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
-extern u16 ArcTan2(s32, s32);
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, struct EwramData_EntityData *other, u16 *hit, s32 inputDamage);
 
 void Manticore_UpdateWalk(struct EwramData_EntityData *entity);
 void Manticore_UpdateAttack(struct EwramData_EntityData *entity);
@@ -204,7 +201,7 @@ void Manticore_UpdateWalk(struct EwramData_EntityData *entity)
     {
     case 0:
         entity->flipX = Entity_IsTargetRight(entity);
-        if (Target_IsInRect(entity->posX.part16.integer - 0x78, entity->posY.part16.integer - 0x28, 0xF0, 0x50) || Enemy_IsDamaged(entity))
+        if (Target_IsInRect((s16)(entity->posX.part16.integer - 0x78), (s16)(entity->posY.part16.integer - 0x28), 0xF0, 0x50) || Enemy_IsDamaged(entity))
         {
             entity->subState++;
             Anim_Start(entity, &sManticoreWalkAnimScript, 0, 1);
@@ -247,7 +244,7 @@ void Manticore_UpdateWalk(struct EwramData_EntityData *entity)
                 dx = 0;
             else
                 dx = -0x40;
-            found = Target_IsInRect(entity->posX.part16.integer + dx, entity->posY.part16.integer - 0x3C, 0x40, 0x46);
+            found = Target_IsInRect((s16)(entity->posX.part16.integer + dx), (s16)(entity->posY.part16.integer - 0x3C), 0x40, 0x46);
             if (found)
             {
                 if ((RandomNumberGenerator() & 0xFF) <= 0x7F)
@@ -265,7 +262,7 @@ void Manticore_UpdateWalk(struct EwramData_EntityData *entity)
                     else
                         dx = -0x60;
                 } while (0);
-                if (Target_IsInRect(entity->posX.part16.integer + dx, entity->posY.part16.integer - 0x3C, 0x60, 0x46) && (RandomNumberGenerator() & 0xFF) <= 0x3F)
+                if (Target_IsInRect((s16)(entity->posX.part16.integer + dx), (s16)(entity->posY.part16.integer - 0x3C), 0x60, 0x46) && (RandomNumberGenerator() & 0xFF) <= 0x3F)
                 {
                     entity->state = 1;
                     do { /* FAKEMATCH: weights the refs of found (r4 before the 0x40 mask) */
@@ -280,7 +277,7 @@ void Manticore_UpdateWalk(struct EwramData_EntityData *entity)
                 else
                     dx = -0x80;
             } while (0);
-            if (Target_IsInRect(entity->posX.part16.integer + dx, entity->posY.part16.integer - 0x3C, 0x80, 0x46) && (RandomNumberGenerator() & 0xFF) <= 0x7F)
+            if (Target_IsInRect((s16)(entity->posX.part16.integer + dx), (s16)(entity->posY.part16.integer - 0x3C), 0x80, 0x46) && (RandomNumberGenerator() & 0xFF) <= 0x7F)
             {
                 entity->state = 1;
                 entity->subState = 10;
@@ -460,9 +457,9 @@ void Manticore_OnDamaged(struct EwramData_EntityData *entity, struct EwramData_E
         return;
     BossDefeatEffect_Spawn(entity->posX.whole, entity->posY.whole - 0x200000);
     if (gEwramData->gameState.bossRushMode)
-        BossRecoveryPickup_Spawn((s16)entity->posX.part16.integer, 0x20, 0xA, 0x60, 0);
+        BossRecoveryPickup_SpawnWide((s16)entity->posX.part16.integer, 0x20, 0xA, 0x60, 0);
     else
-        BossRecoveryPickup_Spawn((s16)(0x100 - bg->xPos.part16.integer), (s16)(0x350 - bg->yPos.part16.integer), 0xA, 0x60, 0);
+        BossRecoveryPickup_SpawnWide((s16)(0x100 - bg->xPos.part16.integer), (s16)(0x350 - bg->yPos.part16.integer), 0xA, 0x60, 0);
     Player_SetSelectedTarget(NULL);
 }
 
@@ -665,7 +662,7 @@ void ManticoreTailSegment_Update(struct EwramData_EntityData *entity)
     y = next->posY.whole - entity->posY.whole;
     x = ToPixels(x);
     y = ToPixels(y);
-    angle = (u16)ArcTan2(x, y);
+    angle = (u16)ArcTan2Wide(x, y);
     if (!entity->flipX) angle += 0x8000;
     ObjAffine_Set(angle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
     return;
@@ -1251,7 +1248,7 @@ void Manticore_DamagePlayerOnContact(struct EwramData_EntityData *entity)
  */
 void Manticore_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
-    s16 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s16 damage = Hit_ResolveDamage(entity, attacker, hit, Player_CalculateAttackPower(hit[2]));
 
     Entity_ShowDamage(entity, (s16)damage, 0);
     Manticore_OnDamaged(entity, attacker, hit, damage);

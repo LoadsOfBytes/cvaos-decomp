@@ -20,9 +20,6 @@
 #include "entity_motion.h"
 #include "entity_hit.h"
 
-extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-
 void Lilith_UpdateWalk(struct EwramData_EntityData *);
 void Lilith_UpdateAttack(struct EwramData_EntityData *);
 u8 Lilith_LoadGraphics(struct EwramData_EntityData *);
@@ -115,7 +112,7 @@ void Lilith_UpdateWalk(struct EwramData_EntityData *entity)
     {
     case 0:
         entity->flipX = Entity_IsTargetRight(entity);
-        if (Target_IsInRect(entity->posX.part16.integer - 0x32, entity->posY.part16.integer - 0x28, 0x64, 0x50))
+        if (Target_IsInRect((s16)(entity->posX.part16.integer - 0x32), (s16)(entity->posY.part16.integer - 0x28), 0x64, 0x50))
         {
             entity->subState++;
             Anim_StartIndexed(entity, 4, 0, 0);
@@ -139,7 +136,7 @@ void Lilith_UpdateWalk(struct EwramData_EntityData *entity)
             entity->timer = 0;
         }
         if (entity->flipX == (s8)Target_GetFlipXOrOpposite(entity)
-            && Target_IsInRect(entity->posX.part16.integer - 0x32, entity->posY.part16.integer - 0x28, 0x64, 0x50))
+            && Target_IsInRect((s16)(entity->posX.part16.integer - 0x32), (s16)(entity->posY.part16.integer - 0x28), 0x64, 0x50))
         {
             land = Player_GetFocusedActionFlags() & 0x60;
             if (!land)
@@ -172,7 +169,7 @@ void Lilith_UpdateWalk(struct EwramData_EntityData *entity)
             entity->accelX.whole = -0x800;
         speed = 0x10000;
         Entity_MoveWithCollision(entity, speed, -0x200000, 0x6000, 8);
-        found = Target_IsInRect(entity->posX.part16.integer - 0x28, entity->posY.part16.integer - 0x28, 0x50, 0x50);
+        found = Target_IsInRect((s16)(entity->posX.part16.integer - 0x28), (s16)(entity->posY.part16.integer - 0x28), 0x50, 0x50);
         if (found)
         {
             if (!(RandomNumberGenerator() & 1))
@@ -206,7 +203,7 @@ void Lilith_UpdateWalk(struct EwramData_EntityData *entity)
     case 3:
         entity->flipX = Entity_IsTargetRight(entity);
         if (entity->flipX == (s8)Target_GetFlipXOrOpposite(entity)
-            && Target_IsInRect(entity->posX.part16.integer - 0x32, entity->posY.part16.integer - 0x28, 0x64, 0x50))
+            && Target_IsInRect((s16)(entity->posX.part16.integer - 0x32), (s16)(entity->posY.part16.integer - 0x28), 0x64, 0x50))
         {
             land = Player_GetFocusedActionFlags() & 0x60;
             if (!land)
@@ -237,7 +234,7 @@ void Lilith_UpdateWalk(struct EwramData_EntityData *entity)
             entity->accelX.whole = 0x800;
         speed2 = 0x10000;
         Entity_MoveWithCollision(entity, speed2, -0x200000, 0x6000, 8);
-        found2 = Target_IsInRect(entity->posX.part16.integer - 0x46, entity->posY.part16.integer - 0x28, 0x8C, 0x50);
+        found2 = Target_IsInRect((s16)(entity->posX.part16.integer - 0x46), (s16)(entity->posY.part16.integer - 0x28), 0x8C, 0x50);
         if (!found2)
         {
             if (!(RandomNumberGenerator() & 1))
@@ -261,7 +258,7 @@ void Lilith_UpdateWalk(struct EwramData_EntityData *entity)
             entity->accelY.whole = 0x1800;
             break;
         }
-        if (Target_IsInRect(entity->posX.part16.integer - 0x28, entity->posY.part16.integer - 0x28, 0x50, 0x50) && !(RandomNumberGenerator() & 1))
+        if (Target_IsInRect((s16)(entity->posX.part16.integer - 0x28), (s16)(entity->posY.part16.integer - 0x28), 0x50, 0x50) && !(RandomNumberGenerator() & 1))
         {
             entity->state = 1;
             entity->subState = 0;
@@ -272,7 +269,7 @@ void Lilith_UpdateWalk(struct EwramData_EntityData *entity)
         {
             entity->ext.lilith.walkFrame = 0;
         far:
-            if (Target_IsInRect(entity->posX.part16.integer - 0xC8, entity->posY.part16.integer - 0x28, 0x190, 0x50))
+            if (Target_IsInRect((s16)(entity->posX.part16.integer - 0xC8), (s16)(entity->posY.part16.integer - 0x28), 0x190, 0x50))
             {
                 s32 r = RandomNumberGenerator() & 1;
                 if (!r)
@@ -427,7 +424,7 @@ void Lilith_UpdateAttack(struct EwramData_EntityData *entity)
 void Lilith_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     s32 damage = Player_CalculateAttackPower(hit[2]);
-    damage = Hit_ResolveDamage(entity, (s32)attacker, hit, (s16)damage);
+    damage = Hit_ResolveDamage(entity, attacker, hit, damage);
     entity->hitFlashTimer = 8;
     {
         u16 hp = entity->hp;

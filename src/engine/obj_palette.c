@@ -101,7 +101,6 @@ void SharedObjPalette_Release(void *palette, u8 variant)
     }
 }
 
-
 static inline s32 IsSolid(u8 t)
 {
     if (t & 8)

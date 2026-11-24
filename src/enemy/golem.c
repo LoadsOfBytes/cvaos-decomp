@@ -38,8 +38,6 @@ struct GolemBox {
 #define TO_PIXELS(d) ((d) < 0 ? -(-(d) >> 16) : (d) >> 16)
 
 extern void *memcpy(void *dst, const void *src, unsigned long size);
-extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 
 u8 Golem_LoadGraphics(struct EwramData_EntityData *entity);
 void GolemSegment_Update(struct EwramData_EntityData *entity);
@@ -376,7 +374,7 @@ void Golem_UpdateMovement(struct EwramData_EntityData *entity)
         entity->velY.whole = 0x10000;
         entity->accelY.whole = 0x2800;
         Entity_MoveWithCollisionDefault(entity, 0x10000, -0x300000);
-        if (!Target_IsInRect(entity->posX.part16.integer - 0x50, entity->posY.part16.integer - 0x50, 0xA0, 0xA0)
+        if (!Target_IsInRect((s16)(entity->posX.part16.integer - 0x50), (s16)(entity->posY.part16.integer - 0x50), 0xA0, 0xA0)
             && !Enemy_IsDamaged(entity))
             break;
         entity->subState = 2;
@@ -445,7 +443,7 @@ void Golem_UpdateMovement(struct EwramData_EntityData *entity)
         entity->velY.whole = 0x10000;
         entity->accelY.whole = 0x2800;
         Entity_MoveWithCollisionDefault(entity, 0x10000, -0x300000);
-        if (!Target_IsInRect(entity->posX.part16.integer - 0x50, entity->posY.part16.integer - 0x50, 0xA0, 0xA0)
+        if (!Target_IsInRect((s16)(entity->posX.part16.integer - 0x50), (s16)(entity->posY.part16.integer - 0x50), 0xA0, 0xA0)
             && !Enemy_IsDamaged(entity))
             break;
         entity->subState++;
@@ -525,7 +523,7 @@ void Golem_UpdateMovement(struct EwramData_EntityData *entity)
         entity->velY.whole = 0x10000;
         entity->accelY.whole = 0x2800;
         Entity_MoveWithCollisionDefault(entity, 0x10000, -0x300000);
-        if (Target_IsInRect(entity->posX.part16.integer - 0x50, entity->posY.part16.integer - 0x50, 0xA0, 0xA0)
+        if (Target_IsInRect((s16)(entity->posX.part16.integer - 0x50), (s16)(entity->posY.part16.integer - 0x50), 0xA0, 0xA0)
             || Enemy_IsDamaged(entity))
         {
             entity->subState = 2;
@@ -1235,7 +1233,7 @@ u8 Golem_LoadGraphics(struct EwramData_EntityData *entity)
  */
 void Golem_OnDamaged(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s32 damage = Hit_ResolveDamage(entity, (struct EwramData_EntityData *)attacker, hit, Player_CalculateAttackPower(hit[2]));
 
     entity->hitFlashTimer = 8;
     {

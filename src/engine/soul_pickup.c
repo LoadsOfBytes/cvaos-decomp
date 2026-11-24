@@ -25,20 +25,21 @@
 #include "data/data_4F1444.h"
 #include "math_inline.h"
 #include "red_souls_b.h"
+#include "bg_and_collision.h"
 
-extern u16 Entity_AngleToPoint(struct EwramData_EntityData *, s32, s32);
 extern struct WeaponInfo sWeaponInfo[]; // weapons, see player/player_core.c
 extern const struct ArmorInfo sArmorInfo[];
-
-/* Wall / floor probes; declared with s32 returns (the caller truncates). */
-extern s32 Collision_GetPushLeft(s32 x, s32 y);
-extern s32 Collision_GetPushRight(s32 x, s32 y);
-extern s32 Collision_GetPushUp(s32 x, s32 y);
-extern s32 Collision_GetPushDown(s32 x, s32 y);
 
 void SoulPickup_Update(struct EwramData_EntityData *);
 void SoulPickup_UpdateContainerAnimation(struct EwramData_EntityData *);
 void Effect_UpdateHomingOrb(struct EwramData_EntityData *);
+
+/* Usable item info (16-byte records). */
+struct ItemInfo {
+    u8 pad_0[0x10];
+};
+
+extern const struct ItemInfo sConsumableInfo[];
 
 /**
  * @brief Create an animated soul pickup with soul kind/id and collection callback; select homing initialization or state 0x63 from the supplied variant.
@@ -414,13 +415,6 @@ void Pickup_UpdateBouncing(struct EwramData_EntityData *e)
  * weapons (type 3), 0x5C..0x88 armor and accessories (type 4). */
 
 #define GOLD_MAX 999999
-
-/* Usable item info (16-byte records). */
-struct ItemInfo {
-    u8 pad_0[0x10];
-};
-
-extern const struct ItemInfo sConsumableInfo[];
 
 /**
  * @brief Return the indexed record for item, weapon or armor type 2..4, otherwise NULL; preserve unchecked per-type indices.

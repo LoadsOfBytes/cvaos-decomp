@@ -28,15 +28,15 @@
 #include "entity_hit.h"
 #include "hit_shared_history.h"
 
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
-
-// The offsets are passed sign-extended here (u16 in the definition).
-extern void Entity_PlaceRelativeToCopy(struct EwramData_EntityData *entity, struct EwramData_EntityData *anchor, s32 offsetX, s32 offsetY);
 
 void ManEaterProjectile_DamagePlayerOnContact(struct EwramData_EntityData *);
 void ManEaterProjectile_OnHit(struct EwramData_EntityData *);
+
+struct OrbitPoint {
+    u16 angle;
+    s16 radius;
+};
+extern const struct OrbitPoint sManEaterHeadOrbitPoints[];
 
 /* Man Eater part hit: propagate flags, subtract HP and notify parent.
  * The local r6 binding preserves the hit-data pointer before address calculation.
@@ -56,7 +56,7 @@ void ManEaterPart_OnHit(struct EwramData_EntityData *entity, struct EwramData_En
     {
         if (part->enemyFlags & 1) entity->enemyFlags |= 1;
         else part->enemyFlags |= 1;
-        do { damage = Hit_ResolveDamage(entity, (s32)attacker, hit, (s16)strength); } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
+        do { damage = Hit_ResolveDamage(entity, attacker, hit, strength); } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
         part->ext.manEater.headFlags |= 2;
         {
             u16 hp = part->hp;
@@ -387,12 +387,6 @@ struct Flip8 {
     u8 flipY:1;
 };
 
-struct OrbitPoint {
-    u16 angle;
-    s16 radius;
-};
-extern const struct OrbitPoint sManEaterHeadOrbitPoints[];
-
 void ManEaterHead_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *parent = &gEwramData->entityData[(u8)entity->ext.manEater.ownerIndex];
@@ -641,7 +635,7 @@ void EnemyManEaterUpdate(struct EwramData_EntityData *entity)
         {
             Player_SetSelectedTarget(NULL);
             BossDefeatEffect_Spawn(entity->posX.whole, entity->posY.whole - 0x200000);
-            BossRecoveryPickup_Spawn((s16)entity->posX.part16.integer, 0x20, 0xD, 0x60, 0);
+            BossRecoveryPickup_SpawnWide((s16)entity->posX.part16.integer, 0x20, 0xD, 0x60, 0);
         }
     }
     switch (entity->state)

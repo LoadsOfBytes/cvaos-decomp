@@ -12,12 +12,8 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "entity_inline.h"
+#include "bg_and_collision.h"
 
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, u8 *, void *, u8, void *);
-extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
-extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *);
-extern s32 Collision_GetPushDown(s32, s32);
-extern void Entity_FaceTarget(struct EwramData_EntityData *);
 
 void Bat_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hitData);
 s32 Bat_IsTargetBelow(struct EwramData_EntityData *, u16, u16);
@@ -52,8 +48,8 @@ void EnemyBatCreate(struct EwramData_EntityData *entity)
         py = y;
         do
         {
-            x = GetEntityRoomXPositionInteger(entity);
-            hit = Collision_GetPushDown(x, GetEntityRoomYPositionInteger(entity));
+            x = GetEntityRoomXPositionIntegerWide(entity);
+            hit = Collision_GetPushDownWide(x, GetEntityRoomYPositionIntegerWide(entity));
             if (hit == 0)
                 *py -= 8;
         } while (hit == 0);

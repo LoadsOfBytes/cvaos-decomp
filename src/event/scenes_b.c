@@ -29,13 +29,8 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "player_soma.h"
-
-extern s32 Entity_IsInRect(struct EwramData_EntityData *, s16, s16, u16, u16);
-extern s32 Player_GetZoneAroundX(s32 centerX, s32 innerWidth, s32 outerWidth);
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-
-/* Declared s16 in bg_and_collision.h; the caller here uses the full register. */
-extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
+#include "entity_motion.h"
+#include "bg_and_collision.h"
 
 s32 Player_GetZoneAroundXCopy(u16 centerX, u16 innerWidth, u16 outerWidth);
 s32 EventScene19_LoadGraphics(struct EwramData_EntityData *entity);
@@ -1408,7 +1403,7 @@ s32 EventScene11_Update(struct EwramData_EntityData *entity)
             break;
         case 2:
             g->textWindowPause = 1;
-            if (GetEntityRoomXPositionInteger(gEwramData->playerState.player) > 0xB6)
+            if (GetEntityRoomXPositionIntegerWide(gEwramData->playerState.player) > 0xB6)
             {
                 ret = 0x20;
                 break;
@@ -1874,7 +1869,7 @@ s32 EventScene16_Update(struct EwramData_EntityData *entity)
         entity->state++;
         /* fall through */
     case 1:
-        if (!Entity_IsInRect(gEwramData->playerState.player, entity->posX.part16.integer - 0x20, entity->posY.part16.integer - 0x20, 0x40, 0x40))
+        if (!Entity_IsInRect(gEwramData->playerState.player, (s16)(entity->posX.part16.integer - 0x20), (s16)(entity->posY.part16.integer - 0x20), 0x40, 0x40))
             break;
         if (!(new & 0x42))
             break;
@@ -2284,7 +2279,7 @@ s32 EventScene20_Update(struct EwramData_EntityData *entity)
             if (Player_GetFocusedActionFlags() & 0x1E)
                 break;
             FACE();
-            switch ((s8)Player_GetZoneAroundX((s16)entity->posX.part16.integer, 0x3C, 0x64))
+            switch ((s8)Player_GetZoneAroundXWide((s16)entity->posX.part16.integer, 0x3C, 0x64))
             {
             case 0:
                 goto set4;
@@ -2299,7 +2294,7 @@ s32 EventScene20_Update(struct EwramData_EntityData *entity)
         case 2:
         {
             s16 *px = (s16 *)&entity->posX.part16.integer;
-            if ((s8)Player_GetZoneAroundX(*px, 0x3C, 0x64) != 1)
+            if ((s8)Player_GetZoneAroundXWide(*px, 0x3C, 0x64) != 1)
                 goto set4;
             if (*px < (s16)gEwramData->playerState.player->posX.part16.integer)
                 ret = 0x20;
@@ -2311,13 +2306,13 @@ s32 EventScene20_Update(struct EwramData_EntityData *entity)
         {
             s32 x;
             FACE();
-            if ((s8)Player_GetZoneAroundX((s16)entity->posX.part16.integer, 0x3C, 0x64) != m1)
+            if ((s8)Player_GetZoneAroundXWide((s16)entity->posX.part16.integer, 0x3C, 0x64) != m1)
                 goto set4;
             if (gEwramData->bgInfo[1].pBgMetadata->widthCells != 1)
                 w = gEwramData->bgInfo[1].pBgMetadata->widthCells << 5;
             else
                 w = 0x1E;
-            x = GetEntityRoomXPositionInteger(entity) / 8;
+            x = GetEntityRoomXPositionIntegerWide(entity) / 8;
             if (x > (s32)(w >> 1))
                 ret = 0x20;
             else

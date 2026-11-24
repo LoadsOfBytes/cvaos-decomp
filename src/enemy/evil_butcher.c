@@ -20,10 +20,8 @@
 #include "effects.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "bg_and_collision.h"
 
-extern s32 Collision_GetGroundOffset(s32 x, s32 y);
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern void Entity_FaceTarget(struct EwramData_EntityData *);
 
 void EvilButcherProjectile_OnHit(struct EwramData_EntityData *);
 void EvilButcher_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
@@ -43,7 +41,7 @@ void EvilButcherProjectile_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if (!Entity_LoadGraphics(entity, (void *)sEvilButcherGfx, (void *)sEvilButcherPalette, (u8)entity->spawnParam1, (void *)sEvilButcherSpriteSheet))
+        if (!Entity_LoadGraphics(entity, (void *)sEvilButcherGfx, (void *)sEvilButcherPalette, entity->spawnParam1, (void *)sEvilButcherSpriteSheet))
             goto delete;
         entity->animFrame = 8;
         entity->spriteLayer = 0x13;
@@ -82,7 +80,7 @@ void EvilButcherProjectile_Update(struct EwramData_EntityData *entity)
         }
     {
         struct BgLayerState *camera;
-        if (!Collision_GetGroundOffset((s16)entity->posX.part16.integer + (s16)(camera = &gEwramData->bgInfo[1])->xPos.part16.integer + entity->ext.evilButcherProjectile.probeX,
+        if (!Collision_GetGroundOffsetWide((s16)entity->posX.part16.integer + (s16)(camera = &gEwramData->bgInfo[1])->xPos.part16.integer + entity->ext.evilButcherProjectile.probeX,
                           (s16)entity->posY.part16.integer + (s16)camera->yPos.part16.integer))
             break;
     }
@@ -151,7 +149,7 @@ void EvilButcherDebris_Update(struct EwramData_EntityData *entity)
             {
                 s32 x = (s16)entity->posX.part16.integer;
                 struct BgLayerState *camera = &gEwramData->bgInfo[1];
-                if (!Collision_GetGroundOffset(x + (s16)camera->xPos.part16.integer,
+                if (!Collision_GetGroundOffsetWide(x + (s16)camera->xPos.part16.integer,
                                   (s16)entity->posY.part16.integer + (s16)camera->yPos.part16.integer + 4))
                     break;
             }
@@ -323,7 +321,7 @@ s32 EvilButcher_UpdateDeath(struct EwramData_EntityData *entity)
 
 void EnemyEvilButcherCreate(struct EwramData_EntityData *entity)
 {
-    if (!Entity_LoadGraphics(entity, sEvilButcherGfx, sEvilButcherPalette, (u8)entity->spawnParam1, sEvilButcherSpriteSheet))
+    if (!Entity_LoadGraphics(entity, sEvilButcherGfx, sEvilButcherPalette, entity->spawnParam1, sEvilButcherSpriteSheet))
     {
         EntityDelete(entity);
         return;

@@ -18,10 +18,8 @@
 #include "hitbox.h"
 #include "damage_numbers.h"
 #include "entity_hit.h"
+#include "bg_and_collision.h"
 
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *,s32,u16 *,s32);
-extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, u8 *, void *, u8, void *);
 
 u8 GhostDancer_LoadGraphics(struct EwramData_EntityData *);
 void GhostDancer_DamagePlayerOnContact(struct EwramData_EntityData *entity);
@@ -301,7 +299,7 @@ void GhostDancer_UpdateDeath(struct EwramData_EntityData *entity)
  */
 void GhostDancer_OnHit(struct EwramData_EntityData *entity,s32 hit,u16 *info)
 {
-    s32 damage=Hit_ResolveDamage(entity,hit,info,(s16)Player_CalculateAttackPower(info[2]));
+    s32 damage=Hit_ResolveDamage(entity,(struct EwramData_EntityData *)hit,info,Player_CalculateAttackPower(info[2]));
     entity->hitFlashTimer=8;
     { u16 hp=entity->hp;
         damage=(u32)damage<<16;
@@ -399,7 +397,7 @@ void EnemySkeletonCreate(struct EwramData_EntityData *entity)
     Enemy_ResetFromTemplate(entity);
     Entity_EnableBoxes(entity, Enemy_OnContact, Skeleton_OnHit);
     Entity_SnapToGround(entity);
-    x = GetEntityRoomXPositionInteger(entity);
+    x = GetEntityRoomXPositionIntegerWide(entity);
     entity->ext.skeleton.homeX = x;
     entity->ext.skeleton.patrolRight = x + 0x20;
     entity->ext.skeleton.patrolLeft = x - 0x20;

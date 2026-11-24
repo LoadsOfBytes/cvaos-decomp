@@ -236,7 +236,6 @@ void Player_Create(s32 unused)
 
 /* Player collision with the tile map, the carrying object and moving platforms. */
 
-
 static inline void PlayerCollision(struct EwramData_EntityData *entity)
 {
     s32 flag = 0;

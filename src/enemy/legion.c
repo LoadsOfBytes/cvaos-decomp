@@ -30,11 +30,7 @@
 #include "damage_numbers.h"
 #include "entity_hit.h"
 
-extern s32 Entity_MoveWithFilteredBoxCollision(struct EwramData_EntityData *, s32, s32, s32, s32, s32, s32);
 extern s32 Entity_MoveWithBoxCollision(struct EwramData_EntityData *, s32, s32, s32, s32, s32, s32);
-extern void SoulPickup_SpawnFromEnemyDefinition(s32, s32, s32, s32);
-extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, struct EwramData_EntityData *other, u16 *hit, s16 inputDamage);
 
 void Legion_UpdateCircle(struct EwramData_EntityData *);
 void Legion_UpdateBounce(struct EwramData_EntityData *);
@@ -66,6 +62,23 @@ void LegionShellPart_Update(struct EwramData_EntityData *entity);
 void LegionShellPart_FireShot(struct EwramData_EntityData *owner, s32 dx, s32 dy, s32 unused, s32 angle);
 void LegionShot_Update(struct EwramData_EntityData *entity);
 void LegionShot_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+
+struct ShotFrame {
+    u16 frame;
+    u16 flags;
+};
+
+struct ShotFrames {
+    struct ShotFrame f[24];
+};
+
+struct ShotData {
+    s32 graphics;
+    u8 pad_4[0x24 - 4];
+    s32 palette;
+};
+
+extern const struct ShotFrames sLegionShotFrames;
 
 void EnemyLegionUpdate(struct EwramData_EntityData *entity)
 {
@@ -950,7 +963,7 @@ void Legion_UpdateDeath(struct EwramData_EntityData *entity)
         entity->subState++;
         entity->timer = 0x40;
         SoulPickup_SpawnFromEnemyDefinition((s16)entity->posX.part16.integer, (s16)entity->posY.part16.integer, 0x6C, 5);
-        BossRecoveryPickup_Spawn(0x100 - (s16)bg->xPos.part16.integer, 0x170 - (s16)bg->yPos.part16.integer, 5, 0x20, 1);
+        BossRecoveryPickup_SpawnWide(0x100 - (s16)bg->xPos.part16.integer, 0x170 - (s16)bg->yPos.part16.integer, 5, 0x20, 1);
         break;
     case 10:
         if (!(entity->timer & 3))
@@ -959,7 +972,7 @@ void Legion_UpdateDeath(struct EwramData_EntityData *entity)
         if ((s8)--entity->timer > 0)
             break;
         entity->subState++;
-        BossRecoveryPickup_Spawn(0x100 - (s16)bg->xPos.part16.integer, 0x170 - (s16)bg->yPos.part16.integer, 5, 0x20, 0);
+        BossRecoveryPickup_SpawnWide(0x100 - (s16)bg->xPos.part16.integer, 0x170 - (s16)bg->yPos.part16.integer, 5, 0x20, 0);
         break;
     case 6:
     case 11:
@@ -1171,7 +1184,7 @@ s32 Legion_LoadGraphics(struct EwramData_EntityData *entity)
 void Legion_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     s32 damage = Player_CalculateAttackPower(hit[2]);
-    damage = Hit_ResolveDamage(entity, attacker, hit, (s16)damage);
+    damage = Hit_ResolveDamage(entity, attacker, hit, damage);
     entity->hitFlashTimer = 8;
     {
         u16 hp = entity->hp;
@@ -2093,7 +2106,7 @@ void LegionDestructibleFragment_Update(struct EwramData_EntityData *entity)
 void LegionDestructibleFragment_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     s32 damage = Player_CalculateAttackPower(hit[2]);
-    damage = Hit_ResolveDamage(entity, attacker, hit, (s16)damage);
+    damage = Hit_ResolveDamage(entity, attacker, hit, damage);
     entity->hitFlashTimer = 8;
     damage = (s16)damage;
     Entity_ShowDamage(entity, (s16)damage, 0);
@@ -2320,23 +2333,6 @@ void LegionShellPart_Update(struct EwramData_EntityData *entity)
 /* Spawn a shot (LegionShot_Update) at the owner + (dx, dy) moving at speed 8 in
  * the given angle; graphics and palette come from the owner's parent data,
  * the frame and flip from a 24-entry table indexed by the angle. */
-
-struct ShotFrame {
-    u16 frame;
-    u16 flags;
-};
-
-struct ShotFrames {
-    struct ShotFrame f[24];
-};
-
-struct ShotData {
-    s32 graphics;
-    u8 pad_4[0x24 - 4];
-    s32 palette;
-};
-
-extern const struct ShotFrames sLegionShotFrames;
 
 void LegionShellPart_FireShot(struct EwramData_EntityData *owner, s32 dx, s32 dy, s32 unused, s32 angle)
 {

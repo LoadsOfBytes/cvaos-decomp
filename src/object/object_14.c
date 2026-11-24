@@ -18,17 +18,9 @@
 #include "data/data_0E5364.h"
 #include "data/data_118B48.h"
 #include "entity_motion.h"
+#include "bg_and_collision.h"
 
-extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *);
-extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern s32 Collision_GetPushLeftFiltered(s32, s32, s32);
-extern s32 Collision_GetGroundOffset(s32, s32);
-extern s32 Collision_IsPointSolid(s32 x, s32 y);
 extern void (*const sObject14VariantFuncs[])(struct EwramData_EntityData *entity);
-
-/* from bg_and_collision.h (not included: see the module notes) */
-extern s16 Collision_GetPushUpFiltered(s32 x, s32 y, s32 mode);
 
 void Object14Debris_Update(struct EwramData_EntityData *);
 void Object14_Draw(struct EwramData_EntityData *);
@@ -50,8 +42,8 @@ s32 Object14_MoveOnTerrain(struct EwramData_EntityData *entity, s32 mode)
     entity->posY.whole += entity->velY.whole;
     entity->velY.whole += entity->accelY.whole;
     Player_QueueEntity(entity, 7);
-    x = (s16)GetEntityRoomXPositionInteger(entity);
-    y = (s16)GetEntityRoomYPositionInteger(entity);
+    x = (s16)GetEntityRoomXPositionIntegerWide(entity);
+    y = (s16)GetEntityRoomYPositionIntegerWide(entity);
     if (entity->velY.whole == 0)
         off = 8;
     d = Collision_GetPushUpFiltered(x, y + off, mode);
@@ -150,8 +142,8 @@ void Object14Variant0_Update(struct EwramData_EntityData *entity)
         entity->affineIndex = slot;
         entity->affine = 1;
         entity->drawFunc = Object14_Draw;
-        entity->ext.object14.roomX = GetEntityRoomXPositionInteger(entity);
-        entity->ext.object14.roomY = GetEntityRoomYPositionInteger(entity);
+        entity->ext.object14.roomX = GetEntityRoomXPositionIntegerWide(entity);
+        entity->ext.object14.roomY = GetEntityRoomYPositionIntegerWide(entity);
         entity->ext.object14.prevX = entity->ext.object14.roomX;
         entity->ext.object14.prevY = entity->ext.object14.roomY;
         entity->velX.whole = 0x8000;
@@ -319,8 +311,8 @@ s16 Object14_MoveOnTerrainSolid(struct EwramData_EntityData *entity, s32 layer)
     entity->posY.whole += entity->velY.whole;
     entity->velY.whole += entity->accelY.whole;
     Player_QueueEntity(entity, 7);
-    x = (s16)GetEntityRoomXPositionInteger(entity);
-    y = (s16)GetEntityRoomYPositionInteger(entity) + 8;
+    x = (s16)GetEntityRoomXPositionIntegerWide(entity);
+    y = (s16)GetEntityRoomYPositionIntegerWide(entity) + 8;
     if (entity->velY.whole == 0)
         fall = 8;
     ground = Collision_GetPushUpFiltered((s16)x, (s16)y + (s16)fall, layer);
@@ -333,7 +325,7 @@ s16 Object14_MoveOnTerrainSolid(struct EwramData_EntityData *entity, s32 layer)
     dir = 8;
     if (entity->velX.whole < 0)
         dir *= -1;
-    y = (s16)GetEntityRoomYPositionInteger(entity) + 8;
+    y = (s16)GetEntityRoomYPositionIntegerWide(entity) + 8;
     for (off = 0, i = 0; i <= 1; i++)
     {
         s16 so = (s16)off;
@@ -379,8 +371,8 @@ void Object14Variant1_Update(struct EwramData_EntityData *entity)
         entity->affine = 1;
         entity->drawFunc = Object14_Draw;
         entity->animFrame = 2;
-        entity->ext.object14.roomX = GetEntityRoomXPositionInteger(entity);
-        entity->ext.object14.roomY = GetEntityRoomYPositionInteger(entity);
+        entity->ext.object14.roomX = GetEntityRoomXPositionIntegerWide(entity);
+        entity->ext.object14.roomY = GetEntityRoomYPositionIntegerWide(entity);
         entity->ext.object14.prevX = entity->ext.object14.roomX;
         entity->ext.object14.prevY = entity->ext.object14.roomY;
         Hit_Enable(entity, 8, 0, 0);
@@ -433,9 +425,9 @@ void Object14Variant1_Update(struct EwramData_EntityData *entity)
         entity->velY.whole += entity->accelY.whole;
         Player_QueueEntity(entity, 7);
         Angle_TurnTowards(&entity->ext.object14.angle, 0x80, 0xE000);
-        x = GetEntityRoomXPositionInteger(entity) + 26;
-        y = GetEntityRoomYPositionInteger(entity);
-        if (Collision_GetPushLeftFiltered(x, y, 0)) {
+        x = GetEntityRoomXPositionIntegerWide(entity) + 26;
+        y = GetEntityRoomYPositionIntegerWide(entity);
+        if (Collision_GetPushLeftFilteredWide(x, y, 0)) {
             Object14_SpawnDebris(entity);
             PlaySong(0xAC);
             ObjAffine_Free(entity->affineIndex);
@@ -503,8 +495,8 @@ void Object14Variant2_Update(struct EwramData_EntityData *entity)
         entity->spriteLayer = 0xC;
         entity->animFrame = 2;
         entity->drawFunc = Object14_Draw;
-        entity->ext.object14.roomX = (s16)GetEntityRoomXPositionInteger(entity);
-        entity->ext.object14.roomY = (s16)GetEntityRoomYPositionInteger(entity);
+        entity->ext.object14.roomX = (s16)GetEntityRoomXPositionIntegerWide(entity);
+        entity->ext.object14.roomY = (s16)GetEntityRoomYPositionIntegerWide(entity);
         entity->ext.object14.prevX = entity->ext.object14.roomX;
         entity->ext.object14.prevY = entity->ext.object14.roomY;
         Hit_Enable(entity, 8, NULL, 0);
@@ -527,7 +519,7 @@ void Object14Variant2_Update(struct EwramData_EntityData *entity)
         else
             x += 0x18;
         { u32 tmp_ = RoomY(entity) << 16; y = (s32)tmp_ >> 16; }
-        if (Collision_GetGroundOffset(x, y) && !Collision_IsPointSolid(x, y))
+        if (Collision_GetGroundOffsetWide(x, y) && !Collision_IsPointSolid(x, y))
             entity->velX.whole = -entity->velX.whole / 2;
         EntityDampVelocityX(entity, 0x50);
         EntityAccelerateAndMove(entity, 0x20000);
@@ -559,8 +551,8 @@ void Object14_Draw(struct EwramData_EntityData *entity)
     Sprite_DrawEntity(entity);
     entity->posX.whole = oldX;
     entity->posY.whole = oldY;
-    entity->ext.object14.prevX = (s16)GetEntityRoomXPositionInteger(entity);
-    entity->ext.object14.prevY = (s16)GetEntityRoomYPositionInteger(entity);
+    entity->ext.object14.prevX = (s16)GetEntityRoomXPositionIntegerWide(entity);
+    entity->ext.object14.prevY = (s16)GetEntityRoomYPositionIntegerWide(entity);
 }
 
 /**

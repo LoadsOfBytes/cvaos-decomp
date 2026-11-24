@@ -36,13 +36,8 @@
 #include "red_souls_b.h"
 #include "entity_hit.h"
 
-extern s32 Entity_AngleToPoint(struct EwramData_EntityData *,s32,s32);
-extern s32 Player_GetZoneAroundX(s32,s32,s32);
 extern u8 sEndingRoomDefinition[];
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, u8 *, void *, u8, void *);
-extern void Entity_FaceTarget(struct EwramData_EntityData *);
 extern void *memcpy(void *, const void *, unsigned long);
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
 
 s32 Graham_CreateSceneObject(struct EwramData_EntityData *,s32);
 struct EwramData_EntityData *Graham_CreateCombatBody(struct EwramData_EntityData *owner);
@@ -340,7 +335,7 @@ struct EwramData_EntityData *Graham_CreateSceneProjectile(s32 xInput,s32 yInput,
         targetY=gEwramData->playerState.player->posY.whole;
         targetY-=((RandomNumberGenerator()&0x7F)<<12);
         targetY-=0x80000;
-        effect->ext.grahamShot.angle=Entity_AngleToPoint(effect,targetX,targetY);
+        effect->ext.grahamShot.angle=Entity_AngleToPointWide(effect,targetX,targetY);
         effect->ext.grahamShot.angle=(effect->ext.grahamShot.angle+(RandomNumberGenerator()&0xFFFF))&0xFFFF;
         effect->ext.grahamShot.turn=turn;
         effect->ext.grahamShot.speed=0x30000;
@@ -3012,7 +3007,7 @@ void GrahamAttackEffect_Update(struct EwramData_EntityData *entity)
  */
 s32 GrahamPart_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s32 damage = Hit_ResolveDamageWide(entity, (struct EwramData_EntityData *)attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
     s32 oldX;
     s32 oldY;
 

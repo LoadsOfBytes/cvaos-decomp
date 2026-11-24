@@ -26,22 +26,25 @@
 #include "data/data_0E0B68.h"
 #include "data/data_4F0B18.h"
 #include "data/data_118B48.h"
+#include "player_core.h"
 
 extern void Hit_GetContactPoint(struct EwramData_EntityData *a, struct EwramData_EntityData *b, s16 *outX, s16 *outY);
-
-/* From player_core.h, which is not included: it declares
- * Entity_PlaceRelativeTo with the parameter types of its callers. */
-extern s32 Player_IsBossTargetLowHp(void);
-extern void Player_RecalculateAttackDefense(void);
-extern void Player_RestoreHP(s32 amount);
-extern void Player_RestoreMP(s32 amount);
-extern void Player_ClearStatusEffects(s32 mask);
-extern s32 RandomSigned(s32 range);
 
 void BlueSoulProjectile_IgnoreContact(void);
 void SkillWitchGiantGhostProjectileUpdate(struct EwramData_EntityData *entity);
 void BlueSoul_DrawAlternatingLayer(struct EwramData_EntityData *);
 void PersephoneSoul_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker);
+
+/* Blue soul info, indexed by equippedBlueSoul (as in this file). */
+struct BlueSoulInfo {
+    EntityFunc updateFunc;
+    u8 mpPerSecond;
+    u8 activationFlags;
+    u16 effectParam;
+    u32 effectValue; // e.g. the transformation form
+};
+
+extern const struct BlueSoulInfo sBlueSoulInfo[];
 
 static inline s8 FindFreeSoulSlot(void)
 {
@@ -106,17 +109,6 @@ void BlueSoul_ReleaseActiveResources(struct EwramData_EntityData *entity)
 
 /* BlueSoul_ShouldEnd; as
  * BlueSoul_CheckEndCondition (this file) plus BlueSoul_ReleaseActiveResources on ending. */
-
-/* Blue soul info, indexed by equippedBlueSoul (as in this file). */
-struct BlueSoulInfo {
-    void *updateFunc;
-    u8 mpPerSecond;
-    u8 activationFlags;
-    u16 effectParam;
-    u32 effectValue; // e.g. the transformation form
-};
-
-extern const struct BlueSoulInfo sBlueSoulInfo[];
 
 /**
  * @brief 2DE5C | Whether an active blue soul ends this frame: every unk_504
@@ -2758,10 +2750,6 @@ void SkillBigGolemUse(struct EwramData_EntityData *entity)
 }
 
 /* Blue and yellow soul helpers 0x08031D6C..0x08032443. */
-
-/* player_core.h declares Entity_PlaceRelativeTo with s32 offsets (its callers
- * pass them that way); the function itself truncates them to u16, so this
- * file does not include that header. */
 
 /* Blue soul info, indexed by equippedBlueSoul (12-byte records). */
 

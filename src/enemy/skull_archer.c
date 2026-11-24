@@ -14,8 +14,6 @@
 #include "waiter_skeleton.h"
 #include "data/data_118B48.h"
 
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, u8 *, void *, u8, void *);
-
 void SkullArcher_OnHit(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *);
 
 /* Enemy helpers decompiled from assembly. */

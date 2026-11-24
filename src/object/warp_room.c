@@ -28,13 +28,20 @@
 #include "player_soma.h"
 #include "entity_hit.h"
 
-
 void WarpRoom_UpdateGatePart(struct EwramData_EntityData *);
 void WarpRoom_ResetGatePart(struct EwramData_EntityData *);
 void WarpRoom_UpdateSideLight(struct EwramData_EntityData *);
 u8 Object21_LoadGraphics(struct EwramData_EntityData *entity);
 void Object21_OnPlayerContact(struct EwramData_EntityData *entity);
 s32 WarpRoom_LoadGraphics(struct EwramData_EntityData *entity);
+
+struct WarpLightPaletteStep
+{
+    u16 sourcePalette;
+    u16 unk_2;
+};
+
+extern const struct WarpLightPaletteStep sWarpLightPaletteSteps[12];
 
 /* WarpRoom_Update. */
 
@@ -461,14 +468,6 @@ s32 WarpRoom_CreateSideLights(struct EwramData_EntityData *owner)
     }
     return created;
 }
-
-struct WarpLightPaletteStep
-{
-    u16 sourcePalette;
-    u16 unk_2;
-};
-
-extern const struct WarpLightPaletteStep sWarpLightPaletteSteps[12];
 
 static inline s32 Rem(s32 a, s32 b) { return a % b; }
 #define FRAME(e) (*(s8 *)&(e)->ext.warpRoomSideLight.frame)

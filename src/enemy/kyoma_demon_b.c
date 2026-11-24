@@ -14,10 +14,9 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "damage_numbers.h"
+#include "enemy_common.h"
 
 #define FRAME(e) (*(u16 *)&(e)->animStep)
-
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 
 /**
  * @brief A04B0 | Enemy sub-state (file 0x080A02AC): animation 2 facing the
@@ -71,7 +70,7 @@ void KyomaDemon_UpdateAttack(struct EwramData_EntityData *entity)
 void KyomaDemon_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     s32 damage = Player_CalculateAttackPower(hit[2]);
-    damage = Hit_ResolveDamage(entity, (s32)attacker, hit, (s16)damage);
+    damage = Hit_ResolveDamage(entity, attacker, hit, damage);
     entity->hitFlashTimer = 8;
     {
         u16 hp = entity->hp;

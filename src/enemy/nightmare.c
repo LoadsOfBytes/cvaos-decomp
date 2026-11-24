@@ -20,8 +20,6 @@
 #include "data/data_4F1444.h"
 #include "entity_hit.h"
 
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
-
 void Nightmare_Draw(struct EwramData_EntityData *);
 void Nightmare_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 void Nightmare_UpdateRun(struct EwramData_EntityData *);

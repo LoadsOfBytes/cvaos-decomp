@@ -6,14 +6,23 @@
 #include "structs/main.h"
 
 void BgCmdBuffer_TransferToVram(void);
-extern u16* BgCmdBuffer_WriteString(u16 tileIndex, u16 rowOffset, u8 tileInfo, u8 *string);
+extern u16* BgCmdBuffer_WriteString(u16 tileIndex, u16 rowOffset, u8 tileInfo, const u8 *string);
+/* The same function for callers that were compiled without a prototype
+ * (implicit int): result and arguments are not narrowed. */
+extern u16* BgCmdBuffer_WriteStringWide(s32 tileIndex, s32 rowOffset, s32 tileInfo, const u8 *string) asm("BgCmdBuffer_WriteString");
 extern u16* BgCmdBuffer_WriteNumber(u16 tileIndex, u16 rowOffset, u8 palNum, s32 numChars, s32 value);
+/* The same function for callers that were compiled without a prototype
+ * (implicit int): the arguments are not narrowed. */
+extern u16 *BgCmdBuffer_WriteNumberWide(s32 tileIndex, s32 rowOffset, s32 palNum, s32 numChars, s32 value) asm("BgCmdBuffer_WriteNumber");
 u16* BgCmdBuffer_WriteString_Duplicate(u16 tileIndex, u16 rowOffset, u8 tileInfo, u8 *string);
 u16* BgCmdBuffer_WriteData(u8 bgCmd, u8 length, u8* src, u32 vramAddr);
 void DmaQueue_Process(void);
 struct DmaQueueInfo* DmaQueue_DirectCopy(u16 size, u32 *src, u32 *dst);
 struct DmaQueueInfo* DmaQueue_IndirectCopy(u32 size, u32 *src, u32 *dst);
 extern void HBlankEffectSetup(u8 numEntries, u8 vcountSetting, u8 writeSize, void *destReg);
+/* The same function for callers that were compiled without a prototype
+ * (implicit int): the arguments are not narrowed. */
+extern void HBlankEffectSetupWide(s32 numEntries, s32 vcountSetting, s32 writeSize, void *destReg) asm("HBlankEffectSetup");
 s32 CheckRoomTransition(s32 xOffset, s32 yOffset);
 s32 BgMap_GetBlockTileIndex(struct BgMapMetadata *metadata, u16 tileX, u16 tileY);
 s32 GetAreaFromMapPosition(s32 xOffset, s32 yOffset);
@@ -26,22 +35,49 @@ u8 Collision_GetTile(s32 arg0, s32 arg1);
 s16 Collision_GetSlopeHeight(u8 arg0, s16 arg1);
 u8 Collision_FilterTile(u8 tile, s16 mode);
 extern s16 Collision_GetPushDown(s32 x, s32 y);
+/* The same function for callers that were compiled without a prototype
+ * (implicit int): result and arguments are not narrowed. */
+extern s32 Collision_GetPushDownWide(s32 x, s32 y) asm("Collision_GetPushDown");
 s16 Collision_GetPushDownFiltered(s32 x, s32 y, s32 mode);
 extern s16 Collision_GetPushUp(s32 x, s32 y);
+/* The same function for callers that were compiled without a prototype
+ * (implicit int): result and arguments are not narrowed. */
+extern s32 Collision_GetPushUpWide(s32 x, s32 y) asm("Collision_GetPushUp");
 s16 Collision_GetPushUpFiltered(s32 x, s32 y, s32 mode);
 s32 Collision_IsPointSolid(s32 x, s32 y); // TODO: returns s32 or s16?
 u8 Collision_GetTileAtEntity(struct EwramData_EntityData *entity, s32 dx, s32 dy);
 extern u8 Collision_GetTileOnScreen(s32 x, s32 y);
+/* The same function for callers that were compiled without a prototype
+ * (implicit int): result and arguments are not narrowed. */
+extern s32 Collision_GetTileOnScreenWide(s32 x, s32 y) asm("Collision_GetTileOnScreen");
 extern s16 Collision_GetPushLeft(s32 x, s32 y);
+/* The same function for callers that were compiled without a prototype
+ * (implicit int): result and arguments are not narrowed. */
+extern s32 Collision_GetPushLeftWide(s32 x, s32 y) asm("Collision_GetPushLeft");
 extern s16 Collision_GetPushRight(s32 x, s32 y);
+/* The same function for callers that were compiled without a prototype
+ * (implicit int): result and arguments are not narrowed. */
+extern s32 Collision_GetPushRightWide(s32 x, s32 y) asm("Collision_GetPushRight");
 extern s16 Collision_GetGroundOffset(s32 x, s32 y);
+/* The same function for callers that were compiled without a prototype
+ * (implicit int): result and arguments are not narrowed. */
+extern s32 Collision_GetGroundOffsetWide(s32 x, s32 y) asm("Collision_GetGroundOffset");
 extern s16 Collision_GetPushLeftFiltered(s32 x, s32 y, s32 mode);
+/* The same function for callers that were compiled without a prototype
+ * (implicit int): result and arguments are not narrowed. */
+extern s32 Collision_GetPushLeftFilteredWide(s32 x, s32 y, s32 mode) asm("Collision_GetPushLeftFiltered");
 s16 Collision_GetPushRightFiltered(s32 x, s32 y, s32 mode);
 s16 Collision_GetGroundOffsetFiltered(s32 x, s32 y, s32 mode);
 extern s16 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
 extern s16 GetEntityRoomYPositionInteger(struct EwramData_EntityData *entity);
 extern u32 GetEntityRoomXPositionWhole(struct EwramData_EntityData *entity);
 extern u32 GetEntityRoomYPositionWhole(struct EwramData_EntityData *entity);
+/* The same functions for callers that were compiled without a prototype
+ * (implicit int). */
+extern s32 GetEntityRoomXPositionIntegerWide(struct EwramData_EntityData *entity) asm("GetEntityRoomXPositionInteger");
+extern s32 GetEntityRoomYPositionIntegerWide(struct EwramData_EntityData *entity) asm("GetEntityRoomYPositionInteger");
+extern s32 GetEntityRoomXPositionWholeWide(struct EwramData_EntityData *entity) asm("GetEntityRoomXPositionWhole");
+extern s32 GetEntityRoomYPositionWholeWide(struct EwramData_EntityData *entity) asm("GetEntityRoomYPositionWhole");
 void Collision_SetBlock(s32 arg0, s32 arg1);
 void Collision_ClearBlock(s32 arg0, s32 arg1);
 void Collision_ClearAllBlocks(void);

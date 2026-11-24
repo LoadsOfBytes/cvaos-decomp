@@ -20,7 +20,6 @@
 #include "data/data_4F1444.h"
 #include "entity_motion.h"
 
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 extern s32 __divsi3(s32, s32);
 
 void SlimeParticle_Update(struct EwramData_EntityData *);
@@ -46,7 +45,7 @@ void Slime_SpawnParticles(struct EwramData_EntityData *entity, s32 count, s32 vx
         child = EntityCreateInRange(0x49, 0xCF, SlimeParticle_Update);
         if (child != NULL)
         {
-            if (!Entity_LoadGraphics(child, sSlimeGfx, sSlimePalette, (u8)entity->spawnParam1, sSlimeSpriteSheet))
+            if (!Entity_LoadGraphics(child, sSlimeGfx, sSlimePalette, entity->spawnParam1, sSlimeSpriteSheet))
             {
                 EntityDelete(child);
                 return;
@@ -654,7 +653,7 @@ void EnemySlimeCreate(struct EwramData_EntityData *entity)
     u16 affine;
     s32 x;
     s32 height;
-    if (!Entity_LoadGraphics(entity, sSlimeGfx, sSlimePalette, (u8)entity->spawnParam1, sSlimeSpriteSheet)) goto remove;
+    if (!Entity_LoadGraphics(entity, sSlimeGfx, sSlimePalette, entity->spawnParam1, sSlimeSpriteSheet)) goto remove;
     affine = ObjAffine_Alloc(1);
     if ((s16)affine < 0)
     {

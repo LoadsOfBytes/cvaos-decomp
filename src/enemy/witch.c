@@ -23,7 +23,6 @@
 #include "entity_hit.h"
 
 /* Witch homing motion and orbiting particle. */
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 #define ABS_MOTION(v) ((v) < 0 ? -(v) : (v))
 
 extern void Witch_SpawnGroundProjectile(struct EwramData_EntityData *, s32, s32, s32);

@@ -23,9 +23,6 @@
 #include "entity_hit.h"
 #include "hit_shared_history.h"
 
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-extern s32 Target_IsInRect(s16, s16, s16, s16);
-
 void Worm_SettleOnGround(struct EwramData_EntityData *);
 void WormSegment_Update(struct EwramData_EntityData *);
 void Worm_Draw(struct EwramData_EntityData *);
@@ -40,7 +37,7 @@ void Worm_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData
 {
     struct EwramData_EntityData *parent = ENTITY_OWNER(entity);
     s32 damage = Player_CalculateAttackPower(hit[2]);
-    damage = Hit_ResolveDamage(entity, (s32)attacker, hit, (s16)damage);
+    damage = Hit_ResolveDamage(entity, attacker, hit, damage);
     parent->hitFlashTimer = 8;
     {
         u16 hp = parent->hp;
@@ -472,7 +469,7 @@ void Worm_Update(struct EwramData_EntityData *entity)
             entity->ext.worm.turnTimer=t_-1;
             break;
         } }
-        if (!Target_IsInRect(entity->posX.part16.integer - 0xA0, entity->posY.part16.integer - 0x3C, 0x140, 0x78))
+        if (!Target_IsInRect((s16)(entity->posX.part16.integer - 0xA0), (s16)(entity->posY.part16.integer - 0x3C), 0x140, 0x78))
             entity->ext.worm.crawlDir = RandomNumberGenerator() & 1;
         else if (!(ew = gEwramData)->playerState.enemyTarget)
             entity->ext.worm.crawlDir = RandomNumberGenerator() & 1;

@@ -18,19 +18,7 @@
 #include "hitbox.h"
 #include "damage_numbers.h"
 #include "entity_hit.h"
-
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 hit, u16 *data, s32 kind);
-extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
-extern s32 Collision_GetPushUp(s32 x, s32 y);
-extern s32 Collision_GetPushDown(s32 x, s32 y);
-extern s32 Collision_GetPushLeft(s32 x, s32 y);
-extern s32 Collision_GetPushRight(s32 x, s32 y);
-
-/* This caller tests the full return register (no u8 truncation). */
-extern s32 Collision_GetTileOnScreen(s32 x, s32 y);
-/* These callers use full return registers, without 16-bit truncation. */
-extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
-extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *entity);
+#include "bg_and_collision.h"
 
 s32 KillerDoll_LoadGraphics(struct EwramData_EntityData *entity);
 void KillerDoll_OnContact(struct EwramData_EntityData *entity);
@@ -294,7 +282,7 @@ void KillerDoll_UpdateActive(struct EwramData_EntityData *entity)
                     entity->velY.whole = 0;
                     entity->stage = 0;
                 case 1:
-                    if (Collision_GetTileOnScreen((s16)entity->posX.part16.integer, (s16)entity->posY.part16.integer) == 0)
+                    if (Collision_GetTileOnScreenWide((s16)entity->posX.part16.integer, (s16)entity->posY.part16.integer) == 0)
                         entity->posY.part16.integer++;
                     else
                     {
@@ -357,7 +345,7 @@ void KillerDoll_UpdateActive(struct EwramData_EntityData *entity)
  */
 void KillerDoll_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 *data)
 {
-    s32 damage = Hit_ResolveDamage(entity, hit, data, (s16)Player_CalculateAttackPower(data[2]));
+    s32 damage = Hit_ResolveDamage(entity, (struct EwramData_EntityData *)hit, data, Player_CalculateAttackPower(data[2]));
     u16 hp = entity->hp;
 
     damage = (damage << 16) >> 16;
@@ -489,7 +477,7 @@ void KillerDollPart_Update(struct EwramData_EntityData *entity)
             {
                 if (entity->velY.whole >= 0)
                 {
-                    correction = Collision_GetPushUp(ToRoomX((s16)entity->posX.part16.integer), ToRoomY((s16)entity->posY.part16.integer) - 15);
+                    correction = Collision_GetPushUpWide(ToRoomX((s16)entity->posX.part16.integer), ToRoomY((s16)entity->posY.part16.integer) - 15);
                     if (correction != 0)
                     {
                         PlaySong(0x153);
@@ -506,17 +494,17 @@ void KillerDollPart_Update(struct EwramData_EntityData *entity)
                 }
                 else
                 {
-                    correction = Collision_GetPushDown(ToRoomX((s16)entity->posX.part16.integer), ToRoomY((s16)entity->posY.part16.integer) - 32);
+                    correction = Collision_GetPushDownWide(ToRoomX((s16)entity->posX.part16.integer), ToRoomY((s16)entity->posY.part16.integer) - 32);
                     if (correction != 0)
                         entity->posY.part16.integer += correction;
                 }
                 if (entity->velX.whole > 0)
-                    correction = Collision_GetPushLeft(ToRoomX((s16)entity->posX.part16.integer) + 8, ToRoomY((s16)entity->posY.part16.integer) - 16);
+                    correction = Collision_GetPushLeftWide(ToRoomX((s16)entity->posX.part16.integer) + 8, ToRoomY((s16)entity->posY.part16.integer) - 16);
                 else
                 {
                     if (entity->velX.whole == 0)
                         goto timer;
-                    correction = Collision_GetPushRight(ToRoomX((s16)entity->posX.part16.integer) - 8, ToRoomY((s16)entity->posY.part16.integer) - 16);
+                    correction = Collision_GetPushRightWide(ToRoomX((s16)entity->posX.part16.integer) - 8, ToRoomY((s16)entity->posY.part16.integer) - 16);
                 }
                 if (correction != 0)
                 {
@@ -563,10 +551,10 @@ void KillerDoll_ResolveMovementBounds(struct EwramData_EntityData *entity)
     s32 correction;
     struct EwramData **state;
 
-    GetEntityRoomYPositionInteger(entity);
+    GetEntityRoomYPositionIntegerWide(entity);
     state = &gEwramData;
     size = ((u8 *)(*state)->bgInfo[1].pBgMetadata)[0];
-    tile = GetEntityRoomXPositionInteger(entity) / 8;
+    tile = GetEntityRoomXPositionIntegerWide(entity) / 8;
     limit = 30;
     if (size != 1)
         limit = size << 5;
@@ -579,10 +567,10 @@ void KillerDoll_ResolveMovementBounds(struct EwramData_EntityData *entity)
     else
     {
         if (entity->velX.whole >= 0)
-            correction = Collision_GetPushLeft(ToRoomX((s16)entity->posX.part16.integer) + 8,
+            correction = Collision_GetPushLeftWide(ToRoomX((s16)entity->posX.part16.integer) + 8,
                                      ToRoomY((s16)entity->posY.part16.integer) - 16);
         else
-            correction = Collision_GetPushRight(ToRoomX((s16)entity->posX.part16.integer) - 8,
+            correction = Collision_GetPushRightWide(ToRoomX((s16)entity->posX.part16.integer) - 8,
                                      ToRoomY((s16)entity->posY.part16.integer) - 16);
         if (correction != 0)
         {
@@ -592,10 +580,10 @@ void KillerDoll_ResolveMovementBounds(struct EwramData_EntityData *entity)
         }
     }
 
-    GetEntityRoomXPositionInteger(entity);
+    GetEntityRoomXPositionIntegerWide(entity);
     state = &gEwramData;
     size = ((u8 *)(*state)->bgInfo[1].pBgMetadata)[1];
-    tile = GetEntityRoomYPositionInteger(entity) / 8;
+    tile = GetEntityRoomYPositionIntegerWide(entity) / 8;
     limit = 26;
     if (size != 1)
         limit = size << 5;
@@ -607,10 +595,10 @@ void KillerDoll_ResolveMovementBounds(struct EwramData_EntityData *entity)
     else
     {
         if (entity->velY.whole >= 0)
-            correction = Collision_GetPushUp(ToRoomX((s16)entity->posX.part16.integer),
+            correction = Collision_GetPushUpWide(ToRoomX((s16)entity->posX.part16.integer),
                                      ToRoomY((s16)entity->posY.part16.integer) + 1);
         else
-            correction = Collision_GetPushDown(ToRoomX((s16)entity->posX.part16.integer),
+            correction = Collision_GetPushDownWide(ToRoomX((s16)entity->posX.part16.integer),
                                      ToRoomY((s16)entity->posY.part16.integer) - 32);
         if (correction != 0)
         {

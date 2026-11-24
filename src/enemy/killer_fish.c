@@ -21,10 +21,7 @@
 #include "damage_numbers.h"
 #include "entity_hit.h"
 
-extern s32 Collision_FindWaterSurfaceOffset(s32, s32);
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
 extern s32 Entity_MoveWithBoxCollision(struct EwramData_EntityData *, s32, s32, s32, s32, s32, s32);
-extern s32 Target_IsInRect(s16, s16, s16, s16);
 
 void KillerFish_UpdateSwimming(struct EwramData_EntityData *);
 void KillerFish_UpdateAttack(struct EwramData_EntityData *);
@@ -407,7 +404,7 @@ void KillerFish_UpdateDeath(struct EwramData_EntityData *entity)
 /* Apply a Killer Fish hit and select its death state when HP reaches zero. */
 void KillerFish_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
-    s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
+    s32 damage = Hit_ResolveDamage(entity, attacker, hit, Player_CalculateAttackPower(hit[2]));
     entity->hitFlashTimer = 8;
     {
         s32 hp = entity->hp;

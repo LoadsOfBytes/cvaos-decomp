@@ -93,11 +93,11 @@ void DiscArmorRing_Update(struct EwramData_EntityData *entity)
                 break;
             }
         }
-        goto delete;
+        EntityDelete(entity);
+        return;
     case 2:
         if (entity->affine)
             ObjAffine_Free(entity->affineIndex);
-    delete:
         EntityDelete(entity);
         return;
     }
@@ -229,7 +229,8 @@ void DiscArmorDisc_Update(struct EwramData_EntityData *entity)
                 ObjAffine_Free(entity->affineIndex);
             if (entity->ext.discArmorDisc.ring != NULL)
                 entity->ext.discArmorDisc.ring->state = 2;
-            goto delete;
+            EntityDelete(entity);
+            return;
         }
     }
 run:
@@ -244,10 +245,16 @@ run:
         u16 matrix;
 
         if (!Entity_LoadGraphics(entity, sDiscArmorGfx, sDiscArmorPalette, 0, sDiscArmorSpriteSheet))
-            goto delete;
+        {
+            EntityDelete(entity);
+            return;
+        }
         matrix = ObjAffine_Alloc(1);
         if ((s16)matrix < 0)
-            goto delete;
+        {
+            EntityDelete(entity);
+            return;
+        }
         Anim_StartIndexed(entity, 6, 0, 0);
         Anim_Update(entity);
         entity->affineIndex = matrix;
@@ -468,7 +475,11 @@ run:
             entity->ext.discArmorDisc.ring = NULL;
         }
         if (EntityIsOutsideScreen(entity, 4))
-            goto free_delete;
+        {
+            ObjAffine_Free(entity->affineIndex);
+            EntityDelete(entity);
+            return;
+        }
         res = Entity_Walk(entity, entity->ext.discArmorDisc.phase, sDiscArmorWalkProfile + 12, 2);
         if (res & 0x40)
             entity->ext.discArmorDisc.phase = entity->ext.discArmorDisc.phase > 0 ? entity->ext.discArmorDisc.phase - 0x2000 : entity->ext.discArmorDisc.phase + 0x2000;
@@ -503,9 +514,7 @@ run:
         entity->drawSkip = 1;
         if (entity->timer == 0)
         {
-        free_delete:
             ObjAffine_Free(entity->affineIndex);
-        delete:
             EntityDelete(entity);
             return;
         }

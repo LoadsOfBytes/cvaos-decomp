@@ -960,13 +960,15 @@ void Object2D_UpdateState(struct EwramData_EntityData *entity)
             if (dist < 0)
                 dist = -dist;
             if (dist > 0x4FFFFF)
-                goto out_of_range;
+            {
+                entity->subState = 10;
+                return;
+            }
             dist = dy;
             if (dist < 0)
                 dist = -dist;
             if (dist > 0x5FFFFF)
             {
-            out_of_range:
                 entity->subState = 10;
                 return;
             }

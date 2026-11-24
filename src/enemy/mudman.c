@@ -43,10 +43,13 @@ void EnemyMudmanUpdate(struct EwramData_EntityData *entity)
     if (EntityIsOutsideScreen(entity, 4)) entity->hidden = 1;
     else entity->hidden = 0;
     if (entity->state != 2) Enemy_UpdateHitFlash(entity);
-    if (Entity_IsTimeStopped(entity) && entity->state != 2) goto collision_only;
+    if (Entity_IsTimeStopped(entity) && entity->state != 2)
+    {
+        Hit_CheckWithPlayer(&result, entity);
+        return;
+    }
     if (entity->hitFlashTimer && entity->state != 3 && entity->state != 2)
     {
-collision_only:
         Hit_CheckWithPlayer(&result, entity);
         return;
     }
@@ -436,12 +439,17 @@ void MudmanShot_Update(struct EwramData_EntityData *entity)
     case 0:
     {
         s32 impact = Entity_MoveWithCollisionDefault(entity, 0x10000, -0x40000);
-        if (EntityIsOutsideScreen(entity, 1)) goto remove;
+        if (EntityIsOutsideScreen(entity, 1))
+        {
+            EntityDelete(entity);
+            return;
+        }
         if (impact & 12)
         {
             s32 vx = entity->velX.whole / 2;
             EmitDebris(entity, entity->posX.whole, entity->posY.whole, vx, -entity->velY.whole, 0);
-            goto remove;
+            EntityDelete(entity);
+            return;
         }
         if (impact & 3)
         {
@@ -454,7 +462,8 @@ void MudmanShot_Update(struct EwramData_EntityData *entity)
     }
     case 1:
         EmitDebris(entity, entity->posX.whole, entity->posY.whole, -entity->velX.whole / 2, 1, 0);
-        goto remove;
+        EntityDelete(entity);
+        return;
     case 2:
         switch (entity->subState)
         {
@@ -472,14 +481,17 @@ void MudmanShot_Update(struct EwramData_EntityData *entity)
                 entity->ext.mudmanShot.ownerX = parent->posX.whole + background->xPos.whole;
                 entity->ext.mudmanShot.ownerY = parent->posY.whole + background->yPos.whole;
             }
-            if (entity->animDone) goto remove;
+            if (entity->animDone)
+            {
+                EntityDelete(entity);
+                return;
+            }
             break;
         }
         }
         break;
     }
     goto finished;
-remove:
     EntityDelete(entity);
     return;
 finished:

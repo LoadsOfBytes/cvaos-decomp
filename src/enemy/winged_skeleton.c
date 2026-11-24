@@ -514,7 +514,10 @@ void WingedSkeletonShot_Update(struct EwramData_EntityData *entity)
             HitBox_SetAttack(entity, &box2);
         r = Entity_MoveWithPointCollision(entity, 0x10000, -0x20000);
         if (EntityIsOutsideScreen(entity, 1))
-            goto delete;
+        {
+            EntityDelete(entity);
+            return;
+        }
         if (r & 7)
         {
             entity->state = 1;
@@ -532,7 +535,6 @@ void WingedSkeletonShot_Update(struct EwramData_EntityData *entity)
             entity->hidden = Entity_GetVisibilityPattern(entity->timer);
             if ((s8)entity->timer <= 0)
             {
-            delete:
                 EntityDelete(entity);
                 return;
             }

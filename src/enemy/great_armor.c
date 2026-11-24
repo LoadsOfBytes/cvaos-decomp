@@ -80,31 +80,31 @@ void EnemyGreatArmorUpdate(struct EwramData_EntityData *entity)
         if (Entity_IsInRect(entity, -16, 0, 272, 176)) Player_TrackEntity(entity);
         if (entity->state != 2) Enemy_UpdateHitFlash(entity);
     }
-    if (Entity_IsTimeStopped(entity) && entity->state != 2)
-        goto boxes;
-    switch (entity->state)
+    if (!Entity_IsTimeStopped(entity) || entity->state == 2)
     {
-    case 0:
-        GreatArmor_UpdateWalk(entity);
-        break;
-    case 1:
-        GreatArmor_UpdateAttack(entity);
-        break;
-    case 2:
-        if (entity->timer >= 121 && entity->timer <= 214 && (entity->timer & 3) == 0)
+        switch (entity->state)
         {
-            s32 x = RandomNumberGenerator() % 0x280000 - 0x140000;
-            RandomNumberGenerator();
-            Effect_SpawnRisingParticle(entity->posX.whole + x, entity->posY.whole, entity->spriteLayer - 1, 1);
+        case 0:
+            GreatArmor_UpdateWalk(entity);
+            break;
+        case 1:
+            GreatArmor_UpdateAttack(entity);
+            break;
+        case 2:
+            if (entity->timer >= 121 && entity->timer <= 214 && (entity->timer & 3) == 0)
+            {
+                s32 x = RandomNumberGenerator() % 0x280000 - 0x140000;
+                RandomNumberGenerator();
+                Effect_SpawnRisingParticle(entity->posX.whole + x, entity->posY.whole, entity->spriteLayer - 1, 1);
+            }
+            if (--entity->timer <= 1) entity->deleteRequested = 1;
+            if (entity->deleteRequested && entity->ext.greatArmor.parts != NULL)
+                Heap_Free(entity->ext.greatArmor.parts);
+            return;
+        case 3:
+            return;
         }
-        if (--entity->timer <= 1) entity->deleteRequested = 1;
-        if (entity->deleteRequested && entity->ext.greatArmor.parts != NULL)
-            Heap_Free(entity->ext.greatArmor.parts);
-        return;
-    case 3:
-        return;
     }
-boxes:
     parts = (s32 *)entity->ext.greatArmor.parts;
     if (entity->flipX)
         box.x = -TO_PIXELS(parts[4 * 10 + 0]) - 8;

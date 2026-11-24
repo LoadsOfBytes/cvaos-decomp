@@ -183,7 +183,8 @@ void Nemesis_UpdateAttackSelection(struct EwramData_EntityData *entity)
                 SetState(part, 2);
                 entity->subState++;
             }
-            goto transform;
+            ObjAffine_Set(ANGLE(entity), 0x10000, 0x10000, 0, 0, entity->affineIndex);
+            break;
         case 1:
             if (part->state == 0)
                 entity->subState++;
@@ -194,14 +195,14 @@ void Nemesis_UpdateAttackSelection(struct EwramData_EntityData *entity)
                 target = 0x6800;
             if (Angle_TurnTowards(&ANGLE(entity), (u16)ABS(STEP(entity) << 4), (u16)target))
                 entity->subState++;
-            goto transform;
+            ObjAffine_Set(ANGLE(entity), 0x10000, 0x10000, 0, 0, entity->affineIndex);
+            break;
         case 3:
             target = 0x2800;
             if (!(entity->ext.nemesis.flags & 2))
                 target = 0xD800;
             if (Angle_TurnTowards(&ANGLE(entity), (u16)ABS(STEP(entity) << 4), (u16)target))
                 entity->subState++;
-transform:
             ObjAffine_Set(ANGLE(entity), 0x10000, 0x10000, 0, 0, entity->affineIndex);
             break;
         case 4:

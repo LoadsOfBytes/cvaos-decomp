@@ -216,7 +216,8 @@ void BaloreOverlay_Update(struct EwramData_EntityData *entity)
                 goto active;
             }
         }
-        goto delete;
+        EntityDelete(entity);
+        return;
     case 1:
     active:
         BaloreOverlay_UpdateSprite(entity);
@@ -226,7 +227,6 @@ void BaloreOverlay_Update(struct EwramData_EntityData *entity)
         break;
     case 2:
         ObjAffine_Free(entity->affineIndex);
-    delete:
         EntityDelete(entity);
         return;
     }
@@ -718,7 +718,11 @@ void BaloreHandHitBox_Update(struct EwramData_EntityData *entity)
     {
     case 0:
         matrix = ObjAffine_Alloc(1);
-        if ((s16)matrix < 0) goto delete;
+        if ((s16)matrix < 0)
+        {
+            EntityDelete(entity);
+            return;
+        }
         entity->affineIndex = matrix;
         entity->affine = 1;
         entity->spriteLayer = 0x19;
@@ -748,7 +752,6 @@ void BaloreHandHitBox_Update(struct EwramData_EntityData *entity)
         break;
     case 3:
         ObjAffine_Free(entity->affineIndex);
-    delete:
         EntityDelete(entity);
         return;
     }
@@ -817,7 +820,10 @@ void BaloreHand_Update(struct EwramData_EntityData *entity)
     case 0:
         matrix = ObjAffine_Alloc(1);
         if ((s16)matrix < 0)
-            goto delete;
+        {
+            EntityDelete(entity);
+            return;
+        }
         entity->affineIndex = matrix;
         entity->affine = 1;
         entity->spriteLayer = 0x1A;
@@ -938,7 +944,6 @@ void BaloreHand_Update(struct EwramData_EntityData *entity)
     case 10:
         Heap_Free(entity->ext.baloreHand.steer);
         ObjAffine_Free(entity->affineIndex);
-    delete:
         EntityDelete(entity);
         return;
     }
@@ -998,7 +1003,11 @@ void BaloreAffineEffect_Update(struct EwramData_EntityData *entity)
     {
     case 0:
         matrix = ObjAffine_Alloc(1);
-        if ((s16)matrix < 0) goto delete;
+        if ((s16)matrix < 0)
+        {
+            EntityDelete(entity);
+            return;
+        }
         entity->affineIndex = matrix;
         entity->affine = 1;
         entity->spriteLayer = 0x13;
@@ -1041,7 +1050,6 @@ void BaloreAffineEffect_Update(struct EwramData_EntityData *entity)
         }
     case 4:
         ObjAffine_Free(entity->affineIndex);
-    delete:
         EntityDelete(entity);
         return;
     }
@@ -1079,7 +1087,10 @@ void BaloreSpark_Update(struct EwramData_EntityData *entity)
     case 1:
         timer = entity->timer;
         if (timer != 0)
-            goto count;
+        {
+            entity->timer = timer - 1;
+            break;
+        }
         PlaySong(0x6E);
         entity->hidden = 0;
         entity->state = 2;
@@ -1115,7 +1126,6 @@ void BaloreSpark_Update(struct EwramData_EntityData *entity)
         timer = entity->timer;
         if (timer != 0)
         {
-    count:
             entity->timer = timer - 1;
             break;
         }
@@ -1168,7 +1178,10 @@ void BaloreEmitter_Update(struct EwramData_EntityData *entity)
     case 0:
         slot = ObjAffine_Alloc(1);
         if ((s16)slot < 0)
-            goto delete;
+        {
+            EntityDelete(entity);
+            return;
+        }
         entity->affineIndex = slot;
         entity->affine = 1;
         entity->spriteLayer = 0x14;
@@ -1227,7 +1240,6 @@ void BaloreEmitter_Update(struct EwramData_EntityData *entity)
     case 3:
         Sound_StopTracked(0x66);
         ObjAffine_Free(entity->affineIndex);
-    delete:
         EntityDelete(entity);
         return;
     }
@@ -1471,7 +1483,10 @@ s32 Balore_UpdateDeath(struct EwramData_EntityData *entity)
         entity->timer = 4;
     case 1:
         if (entity->timer)
-            goto dec;
+        {
+            entity->timer--;
+            break;
+        }
         if (!(gEwramData->gameState.stateFlags & 0x10))
         {
             BgPalette_StartColorFade(0x1F, 0x1F, 0x1F, 0, 0x10000, 0x20);
@@ -1483,7 +1498,10 @@ s32 Balore_UpdateDeath(struct EwramData_EntityData *entity)
         break;
     case 2:
         if (entity->timer)
-            goto dec;
+        {
+            entity->timer--;
+            break;
+        }
         entity->timer = 0x80;
         entity->subState = 3;
         
@@ -1503,7 +1521,10 @@ s32 Balore_UpdateDeath(struct EwramData_EntityData *entity)
             }
         }
         if (entity->timer)
-            goto dec;
+        {
+            entity->timer--;
+            break;
+        }
         entity->timer = 0x80;
         entity->subState = 4;
         break;
@@ -1553,7 +1574,10 @@ s32 Balore_UpdateDeath(struct EwramData_EntityData *entity)
         break;
     case 5:
         if (entity->timer)
-            goto dec;
+        {
+            entity->timer--;
+            break;
+        }
         PlaySong(0x7C);
         ScreenShake_Request(0, 0x20, 0, 7);
         entity->subState = 6;
@@ -1561,11 +1585,13 @@ s32 Balore_UpdateDeath(struct EwramData_EntityData *entity)
         break;
     case 6:
         if (entity->timer)
-            goto dec;
+        {
+            entity->timer--;
+            break;
+        }
         SoulPickup_SpawnFromEnemyDefinition((s16)entity->posX.part16.integer - 0x10, (s16)entity->posY.part16.integer, entity->enemyId, 6);
         BossRecoveryPickup_SpawnWide((s16)entity->posX.part16.integer, 0x20, 6, 0x60, 1);
         return 1;
-    dec:
         entity->timer--;
         break;
     }
@@ -1586,14 +1612,16 @@ void EnemyBaloreCreate(struct EwramData_EntityData *entity)
     if (entity->spawnParam0 != 0 && !gEwramData->gameState.bossRushMode)
     {
         if (gEwramData->gameState.bossEventFlags & 0x40)
-            goto delete;
+        {
+            EntityDelete(entity);
+            return;
+        }
         gEwramData->gameState.stateFlags |= 2;
         Balore_CreateIntro(entity);
         return;
     }
     if ((u8)Balore_LoadGraphics(entity) == 0)
     {
-    delete:
         EntityDelete(entity);
         return;
     }
@@ -1703,10 +1731,13 @@ void BaloreDebris_Update(struct EwramData_EntityData *entity)
         entity->state = 1;
     case 1:
         EntityAccelerateAndMove(entity, 0x80000);
-        if (entity->animFlags & 4) goto remove;
+        if (entity->animFlags & 4)
+        {
+            EntityDelete(entity);
+            return;
+        }
         break;
     case 2:
-remove:
         EntityDelete(entity);
         return;
     }
@@ -1757,7 +1788,10 @@ void BaloreIntroPiece_Update(struct EwramData_EntityData *entity)
     case 2:
         timer = entity->timer;
         if (timer != 0)
-            goto count;
+        {
+            entity->timer = timer - 1;
+            break;
+        }
         Anim_StartIndexed(entity, 2, 2, 1);
         entity->timer = 0x50;
         entity->state = 3;
@@ -1766,7 +1800,6 @@ void BaloreIntroPiece_Update(struct EwramData_EntityData *entity)
         timer = entity->timer;
         if (timer != 0)
         {
-    count:
             entity->timer = timer - 1;
             break;
         }
@@ -1898,7 +1931,11 @@ void BaloreHandBHitBox_Update(struct EwramData_EntityData *entity)
     {
     case 0:
         matrix = ObjAffine_Alloc(1);
-        if ((s16)matrix < 0) goto delete;
+        if ((s16)matrix < 0)
+        {
+            EntityDelete(entity);
+            return;
+        }
         entity->affineIndex = matrix;
         entity->affine = 1;
         entity->spriteLayer = hand->spriteLayer;
@@ -1957,7 +1994,6 @@ void BaloreHandBHitBox_Update(struct EwramData_EntityData *entity)
         break;
     case 4:
         if (entity->affine) ObjAffine_Free(entity->affineIndex);
-    delete:
         EntityDelete(entity);
         return;
     }
@@ -2013,7 +2049,11 @@ void BaloreHandB_Update(struct EwramData_EntityData *entity)
     {
     case 0:
         matrix = ObjAffine_Alloc(1);
-        if ((s16)matrix < 0) goto delete;
+        if ((s16)matrix < 0)
+        {
+            EntityDelete(entity);
+            return;
+        }
         entity->affineIndex = matrix;
         entity->affine = 1;
         entity->spriteLayer = 0x1A;
@@ -2074,7 +2114,6 @@ void BaloreHandB_Update(struct EwramData_EntityData *entity)
         break;
     case 5:
         if (entity->affine) ObjAffine_Free(entity->affineIndex);
-    delete:
         EntityDelete(entity);
         return;
     }

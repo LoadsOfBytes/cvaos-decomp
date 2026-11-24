@@ -93,42 +93,42 @@ void EnemyStolasUpdate(struct EwramData_EntityData *entity)
         if (entity->state != 2)
             Enemy_UpdateHitFlash(entity);
     }
-    if (Entity_IsTimeStopped(entity) && entity->state != 2)
-        goto boxes;
-    switch (entity->state)
+    if (!Entity_IsTimeStopped(entity) || entity->state == 2)
     {
-    case 0:
-        Stolas_UpdateMove(entity);
-        break;
-    case 1:
-        Stolas_UpdateAttack(entity);
-        break;
-    case 2:
-        if ((entity->timer & 3) == 0)
-            Effect_SpawnRandom(entity->posX.whole, entity->posY.whole - 0x260000, 0x100000, 0xC0000, entity->spriteLayer - 1);
-        if ((entity->timer & 7) == 0)
+        switch (entity->state)
         {
-            s32 vx = RandomNumberGenerator() % 0x60000 - 0x30000;
-            Stolas_SpawnDebris(entity, 0, -0x1D0000, vx, RandomNumberGenerator() % 0x60000 - 0x30000);
+        case 0:
+            Stolas_UpdateMove(entity);
+            break;
+        case 1:
+            Stolas_UpdateAttack(entity);
+            break;
+        case 2:
+            if ((entity->timer & 3) == 0)
+                Effect_SpawnRandom(entity->posX.whole, entity->posY.whole - 0x260000, 0x100000, 0xC0000, entity->spriteLayer - 1);
+            if ((entity->timer & 7) == 0)
+            {
+                s32 vx = RandomNumberGenerator() % 0x60000 - 0x30000;
+                Stolas_SpawnDebris(entity, 0, -0x1D0000, vx, RandomNumberGenerator() % 0x60000 - 0x30000);
+            }
+            entity->hidden = Entity_GetVisibilityPattern(entity->timer);
+            if ((s8)--entity->timer <= 0)
+                entity->deleteRequested = 1;
+            if (entity->deleteRequested && entity->ext.joint.parts != NULL)
+            {
+                /* Reuse the allocation variable after the loop. In agbcc this
+                 * also preserves the distinct base and cursor registers. */
+                parts = (s32 *)entity->ext.joint.parts;
+                Heap_Free(parts);
+            }
+            Anim_Update(entity);
+            return;
+        case 3:
+            Stolas_UpdatePreview(entity);
+            Anim_Update(entity);
+            return;
         }
-        entity->hidden = Entity_GetVisibilityPattern(entity->timer);
-        if ((s8)--entity->timer <= 0)
-            entity->deleteRequested = 1;
-        if (entity->deleteRequested && entity->ext.joint.parts != NULL)
-        {
-            /* Reuse the allocation variable after the loop. In agbcc this
-             * also preserves the distinct base and cursor registers. */
-            parts = (s32 *)entity->ext.joint.parts;
-            Heap_Free(parts);
-        }
-        Anim_Update(entity);
-        return;
-    case 3:
-        Stolas_UpdatePreview(entity);
-        Anim_Update(entity);
-        return;
     }
-boxes:
     box.x = 0;
     box.y = -0x48;
     box.w = 0x0A;
@@ -1056,7 +1056,10 @@ void Stolas_SpawnCastEffect(struct EwramData_EntityData *entity, s32 dx, s32 dy)
         return;
     tiles = ObjGfx_Find(sStolasGfx);
     if (tiles < 0)
-        goto delete;
+    {
+        EntityDelete(child);
+        return;
+    }
     Sprite_Attach(child, sStolasSpriteSheet, tiles, entity->basePalette);
     child->animFrame = 0xC;
     child->drawFunc = Sprite_DrawEntity;
@@ -1073,7 +1076,6 @@ void Stolas_SpawnCastEffect(struct EwramData_EntityData *entity, s32 dx, s32 dy)
     palette = ObjAffine_Alloc(1);
     if ((s16)palette < 0)
     {
-    delete:
         EntityDelete(child);
         return;
     }

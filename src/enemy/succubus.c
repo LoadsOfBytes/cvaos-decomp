@@ -418,32 +418,33 @@ void Succubus_UpdateAttack(struct EwramData_EntityData *entity)
         if (v > 0x2C)
         {
             entity->ext.succubus.drainTimer = 0;
-            if (({ s32 t = entity->ext.succubus.drainCount + 1; entity->ext.succubus.drainCount = t; (s8)t; }) > 4)
-                goto check;
+            if (({ s32 t = entity->ext.succubus.drainCount + 1; entity->ext.succubus.drainCount = t; (s8)t; }) <= 4)
             {
-                struct PlayerContactDamage effect;
-                effect.attack = entity->attack;
-                effect.attributes = 1;
-                effect.unused = 0;
-                effect.reaction = 0;
-                effect.sourceX = entity->posX.whole;
-                effect.sourceY = entity->posY.whole;
-                Player_ApplyContactDamage(&effect);
+                {
+                    struct PlayerContactDamage effect;
+                    effect.attack = entity->attack;
+                    effect.attributes = 1;
+                    effect.unused = 0;
+                    effect.reaction = 0;
+                    effect.sourceX = entity->posX.whole;
+                    effect.sourceY = entity->posY.whole;
+                    Player_ApplyContactDamage(&effect);
+                }
+                PlaySong(0x7B);
+                {
+                    register u32 z0_ asm("r0"); register u32 z2_ asm("r2"); u8 b_; register u32 k_ asm("r0"); /* FAKEMATCH: and result in r0 */
+                    asm("" : "=r"(z0_), "=r"(z2_)); /* FAKEMATCH: r0/r2 live across the flag load (reload rotation) */
+                    b_ = *(ENTITY_RENDER_FLAGS_ADDRESS(entity));
+                    asm("" :: "r"(z0_), "r"(z2_)); /* FAKEMATCH: r0/r2 live across the flag load (reload rotation) */
+                    k_ = 0x40;
+                    k_ &= b_;
+                    if (k_)
+                        dx = 0x10000;
+                    else
+                        dx = -0x10000;
+                }
+                entity->posX.whole += dx;
             }
-            PlaySong(0x7B);
-            {
-                register u32 z0_ asm("r0"); register u32 z2_ asm("r2"); u8 b_; register u32 k_ asm("r0"); /* FAKEMATCH: and result in r0 */
-                asm("" : "=r"(z0_), "=r"(z2_)); /* FAKEMATCH: r0/r2 live across the flag load (reload rotation) */
-                b_ = *(ENTITY_RENDER_FLAGS_ADDRESS(entity));
-                asm("" :: "r"(z0_), "r"(z2_)); /* FAKEMATCH: r0/r2 live across the flag load (reload rotation) */
-                k_ = 0x40;
-                k_ &= b_;
-                if (k_)
-                    dx = 0x10000;
-                else
-                    dx = -0x10000;
-            }
-            entity->posX.whole += dx;
         }
         else if (v == 10)
         {
@@ -453,7 +454,6 @@ void Succubus_UpdateAttack(struct EwramData_EntityData *entity)
                 dx = 0x10000;
             entity->posX.whole += dx;
         }
-    check:
         if ((gEwramData->inputData.playerNewInput & 0x3FF) && *(s8 *)&entity->ext.succubus.escapePresses <= 0x63)
             entity->ext.succubus.escapePresses++;
         if (Player_StartScriptedAnimation(0xE, 0, 0, 0) || *(s8 *)&entity->ext.succubus.drainCount > 4 || *(s8 *)&entity->ext.succubus.escapePresses > 0x1D)

@@ -364,7 +364,7 @@ void Object14Variant1_Update(struct EwramData_EntityData *entity)
     case 0: {
         s16 slot = ObjAffine_Alloc(1);
         if (slot < 0)
-            goto delete;
+            { EntityDelete(entity); return; }
         entity->hidden = 0;
         entity->spriteLayer = 12;
         entity->affineIndex = slot;
@@ -431,7 +431,6 @@ void Object14Variant1_Update(struct EwramData_EntityData *entity)
             Object14_SpawnDebris(entity);
             PlaySong(0xAC);
             ObjAffine_Free(entity->affineIndex);
-delete:
             EntityDelete(entity);
             return;
         }

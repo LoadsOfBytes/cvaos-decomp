@@ -1025,25 +1025,25 @@ void SoulMenu_DrawList(struct EwramData_EntityData *page, s32 slot)
             }
         }
     }
-    if (row > 7)
-        goto fill_end;
-fill:
-    {
-        s32 x;
-        s32 odd;
-        s32 half;
-
-        odd = row & 1;
-        x = odd ? 0x15 : 0;
-        half = row >> 1;
-        Text8_SetRegion(x, half + 0xC, 0xE, 1);
-        Text8_ClearRegion();
-        HudMap_ClearTilesLeft(odd ? 0x1B : 0xD, half + 0xA, 1);
-        do { row++; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
-    }
     if (row <= 7)
-        goto fill;
-fill_end:
+    {
+    fill:
+        {
+            s32 x;
+            s32 odd;
+            s32 half;
+
+            odd = row & 1;
+            x = odd ? 0x15 : 0;
+            half = row >> 1;
+            Text8_SetRegion(x, half + 0xC, 0xE, 1);
+            Text8_ClearRegion();
+            HudMap_ClearTilesLeft(odd ? 0x1B : 0xD, half + 0xA, 1);
+            do { row++; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
+        }
+        if (row <= 7)
+            goto fill;
+    }
     while (i < count)
     {
         if (SoulInventory_GetSoulTotal(type, i - 1) != 0)

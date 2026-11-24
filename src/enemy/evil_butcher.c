@@ -42,7 +42,10 @@ void EvilButcherProjectile_Update(struct EwramData_EntityData *entity)
     {
     case 0:
         if (!Entity_LoadGraphics(entity, (void *)sEvilButcherGfx, (void *)sEvilButcherPalette, entity->spawnParam1, (void *)sEvilButcherSpriteSheet))
-            goto delete;
+        {
+            EntityDelete(entity);
+            return;
+        }
         entity->animFrame = 8;
         entity->spriteLayer = 0x13;
         entity->scrollWithBg = 1;
@@ -87,7 +90,6 @@ void EvilButcherProjectile_Update(struct EwramData_EntityData *entity)
         slot = ObjAffine_Alloc(1);
         if ((s16)slot < 0)
         {
-        delete:
             EntityDelete(entity);
             return;
         }
@@ -124,10 +126,16 @@ void EvilButcherDebris_Update(struct EwramData_EntityData *entity)
     {
         case 0:
             if (!Entity_LoadGraphics(entity, sEvilButcherGfx, sEvilButcherPalette, entity->spawnParam1, sEvilButcherSpriteSheet))
-                goto delete;
+            {
+                EntityDelete(entity);
+                return;
+            }
             slot = ObjAffine_Alloc(1);
             if ((s16)slot < 0)
-                goto delete;
+            {
+                EntityDelete(entity);
+                return;
+            }
             entity->affineIndex = slot;
             entity->affine = 1;
             entity->doubleSize = 1;
@@ -171,7 +179,6 @@ void EvilButcherDebris_Update(struct EwramData_EntityData *entity)
         case 3:
             if (ENTITY_RENDER_FLAGS16(entity) & 0x101F)
                 ObjAffine_Free(entity->affineIndex);
-        delete:
             EntityDelete(entity);
             return;
     }

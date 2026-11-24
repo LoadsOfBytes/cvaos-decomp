@@ -437,12 +437,12 @@ s32 Entity_IsOutsideRoomMap(struct EwramData_EntityData *entity)
     s32 x = ((s16)entity->posX.part16.integer + (s16)background->xPos.part16.integer) / 8;
     s32 width = metadata->widthCells == 1 ? 30 : metadata->widthCells * 32;
     s32 y, height;
-    if (x < 0 || x >= width) goto outside;
+    if (x < 0 || x >= width)
+        return 1;
     y = (entity->posY.part16.integer + (s16)background->yPos.part16.integer) / 8;
     height = metadata->heightCells == 1 ? 26 : metadata->heightCells * 32;
-    if (y < 0 || y >= height) goto outside;
-    return 0;
-outside:
+    if (y >= 0 && y < height)
+        return 0;
     return 1;
 }
 
@@ -491,7 +491,7 @@ s32 Collision_IsWalkBlocked(s32 x_, s32 y_)
     {
         tile = Collision_GetTile(x, y - 7);
         if (tile == 0 || (tile & 0xC0))
-            goto empty;
+            return 0;
     }
     return 1;
 empty:

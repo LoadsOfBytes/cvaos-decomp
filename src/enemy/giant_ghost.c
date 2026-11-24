@@ -835,16 +835,16 @@ u8 GiantGhost_LoadGraphics(struct EwramData_EntityData *entity)
 {
     s32 graphics = ObjGfx_LoadResource(sGiantGhostGfx, 0);
     u8 result;
-    if (graphics < 0) goto failed;
-    entity->basePalette = ObjPalette_FindOrLoadVariant(sGiantGhostPalette, 0);
-    PaletteAnim_Start(sGiantGhostPalette, sGiantGhostPaletteAnim, entity->basePalette);
-    Sprite_Attach(entity, sGiantGhostSpriteSheet, graphics, entity->basePalette);
-    entity->drawFunc = Sprite_DrawEntity;
-    result = 1;
-    goto finished;
-failed:
-    result = 0;
-finished:
+    if (graphics >= 0)
+    {
+        entity->basePalette = ObjPalette_FindOrLoadVariant(sGiantGhostPalette, 0);
+        PaletteAnim_Start(sGiantGhostPalette, sGiantGhostPaletteAnim, entity->basePalette);
+        Sprite_Attach(entity, sGiantGhostSpriteSheet, graphics, entity->basePalette);
+        entity->drawFunc = Sprite_DrawEntity;
+        result = 1;
+    }
+    else
+        result = 0;
     return result;
 }
 

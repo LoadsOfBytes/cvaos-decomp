@@ -47,10 +47,13 @@ void EnemyArachneUpdate(struct EwramData_EntityData *entity)
     if(EntityIsOutsideScreen(entity,4)) entity->hidden=1;
     else entity->hidden=0;
     if(entity->state!=2) Enemy_UpdateHitFlash(entity);
-    if(Entity_IsTimeStopped(entity) && entity->state!=2) goto collision;
+    if(Entity_IsTimeStopped(entity) && entity->state!=2)
+    {
+        Hit_CheckWithPlayer(&result,entity);
+        return;
+    }
     if(entity->hitFlashTimer && entity->state!=3 && entity->state!=2)
     {
-collision:
         Hit_CheckWithPlayer(&result,entity);
         return;
     }
@@ -176,9 +179,9 @@ void Arachne_UpdateWalk(struct EwramData_EntityData *entity)
         Entity_MoveWithCollision(entity,0x10000,-0x200000,0x80000,12);
         target=Target_IsInRect((s16)(entity->posX.part16.integer-60),(s16)(entity->posY.part16.integer-80),120,160);
         if(target)
-        { GAIT(entity)=2; entity->subState=2; entity->timer=0; entity->velY.whole=0x10000; goto acceleration; }
+        { GAIT(entity)=2; entity->subState=2; entity->timer=0; entity->velY.whole=0x10000; entity->accelY.whole=0x2800; return; }
         if(Entity_ClampXToRoom(entity,1))
-        { GAIT(entity)=2; entity->subState=2; entity->timer=target; entity->velY.whole=0x10000; goto acceleration; }
+        { GAIT(entity)=2; entity->subState=2; entity->timer=target; entity->velY.whole=0x10000; entity->accelY.whole=0x2800; return; }
         if(WAIT(entity)) WAIT(entity)--;
         else
         {
@@ -207,7 +210,6 @@ void Arachne_UpdateWalk(struct EwramData_EntityData *entity)
         { GAIT(entity)=1; entity->subState=1; entity->timer=0;
 vertical:
             entity->velY.whole=0x10000;
-acceleration:
             entity->accelY.whole=0x2800;
             return;
         }

@@ -383,7 +383,10 @@ s32 EventScene05_Update(struct EwramData_EntityData *entity)
                 /* fall through */
             case 1:
                 if ((s16)entity->posX.part16.integer > 0xFF)
-                    goto next;
+                {
+                    entity->stage++;
+                    break;
+                }
                 entity->posX.whole += entity->velX.whole;
                 break;
             case 2:
@@ -873,7 +876,10 @@ void EventScene09_Init(struct EwramData_EntityData *self)
     }
     player->flipX = 1;
     if (!Entity_SetupFromObjectTable(entity, 2))
-        goto delete;
+    {
+        EntityDelete(entity);
+        return;
+    }
     Anim_StartIndexed(entity, 3, 0, 1);
     do { Anim_Update(entity); } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
     bg = &gEwramData->bgInfo[1];
@@ -883,7 +889,10 @@ void EventScene09_Init(struct EwramData_EntityData *self)
     entity->spriteLayer = gEwramData->playerState.player->spriteLayer - 1;
     entity->ext.event09.actor5 = Entity_CreateFromObjectTable(5);
     if (!entity->ext.event09.actor5)
-        goto delete;
+    {
+        EntityDelete(entity);
+        return;
+    }
     Anim_StartIndexed(entity->ext.event09.actor5, 5, 0, 0);
     Anim_Update(entity->ext.event09.actor5);
     entity->ext.event09.actor5->posX.part16.integer = entity->posX.part16.integer + 0x13;
@@ -893,7 +902,10 @@ void EventScene09_Init(struct EwramData_EntityData *self)
     entity->ext.event09.actor5->spriteLayer = entity->spriteLayer + 1;
     slot = ObjAffine_Alloc(1);
     if (slot < 0)
-        goto delete;
+    {
+        EntityDelete(entity);
+        return;
+    }
     entity->ext.event09.scaleX = 0x10000;
     entity->ext.event09.scaleY = 0x10000;
     entity->ext.event09.actor5->affineIndex = slot;
@@ -903,7 +915,6 @@ void EventScene09_Init(struct EwramData_EntityData *self)
     if (!entity->ext.event09.actor1)
     {
         EntityDelete(entity->ext.event09.actor5);
-    delete:
         EntityDelete(entity);
         return;
     }
@@ -1624,7 +1635,10 @@ s32 EventScene15_Update(struct EwramData_EntityData *entity)
         {
             u16 mark = x;
             if ((s8)Player_GetZoneAroundXCopy(mark, 0x3C, 0x21) != 1)
-                goto three;
+            {
+                entity->subState = 3;
+                break;
+            }
             {
                 s32 px = (s16)PLAYER->posX.part16.integer;
                 result = 0x10;
@@ -2295,7 +2309,10 @@ s32 EventScene20_Update(struct EwramData_EntityData *entity)
         {
             s16 *px = (s16 *)&entity->posX.part16.integer;
             if ((s8)Player_GetZoneAroundXWide(*px, 0x3C, 0x64) != 1)
-                goto set4;
+            {
+                entity->subState = 4;
+                break;
+            }
             if (*px < (s16)gEwramData->playerState.player->posX.part16.integer)
                 ret = 0x20;
             else
@@ -2307,7 +2324,10 @@ s32 EventScene20_Update(struct EwramData_EntityData *entity)
             s32 x;
             FACE();
             if ((s8)Player_GetZoneAroundXWide((s16)entity->posX.part16.integer, 0x3C, 0x64) != m1)
-                goto set4;
+            {
+                entity->subState = 4;
+                break;
+            }
             if (gEwramData->bgInfo[1].pBgMetadata->widthCells != 1)
                 w = gEwramData->bgInfo[1].pBgMetadata->widthCells << 5;
             else
@@ -2564,7 +2584,11 @@ void EventScene23_Init(struct EwramData_EntityData *entity)
     struct EwramData *ram;
     struct BgLayerState *background;
     if(!(gEwramData->gameState.stateFlags&0x2000)){entity->deleteRequested=1;return;}
-    if(!Entity_SetupFromObjectTable(entity,0))goto fail;
+    if(!Entity_SetupFromObjectTable(entity,0))
+    {
+        EntityDelete(entity);
+        return;
+    }
     Anim_StartIndexed(entity,0,0,1);Anim_Update(entity);
     ram=gEwramData;background=&ram->bgInfo[1];
     entity->posX.part16.integer=64-background->xPos.part16.integer;
@@ -2576,7 +2600,6 @@ void EventScene23_Init(struct EwramData_EntityData *entity)
     entity->ext.event23.actor=Entity_CreateFromObjectTable(1);
     if(!entity->ext.event23.actor)
     {
-fail:
         EntityDelete(entity);return;
     }
     entity->ext.event23.actor->posX.part16.integer=entity->posX.part16.integer+96;
@@ -2694,7 +2717,8 @@ s32 EventScene24_Update(struct EwramData_EntityData *entity)
         {
             EventScene24_Setup(entity);entity->state++;entity->stage=zero;entity->subState=zero;entity->timer=255;
         }
-        goto holdPlayer;
+        Player_StartScriptedAnimation(81,0,0,0);
+        break;
     case 1:
         if(--entity->timer==255)
         {
@@ -2704,7 +2728,8 @@ s32 EventScene24_Update(struct EwramData_EntityData *entity)
             else {TextWindow_Begin(39);entity->ext.event24.answer=zero;}
             entity->state++;entity->stage=0;entity->subState=0;
         }
-        goto holdPlayer;
+        Player_StartScriptedAnimation(81,0,0,0);
+        break;
     case 2:
         if(TextWindow_Update())
         {
@@ -2716,7 +2741,6 @@ s32 EventScene24_Update(struct EwramData_EntityData *entity)
         }
         else if(entity->subState==0)
         {
-holdPlayer:
             Player_StartScriptedAnimation(81,0,0,0);
             break;
         }

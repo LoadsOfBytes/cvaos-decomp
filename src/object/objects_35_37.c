@@ -517,14 +517,16 @@ void Object37Create(struct EwramData_EntityData *entity)
     s32 scale;
     s32 x, y;
     if (!Object37_LoadGraphics(entity))
-        goto fail;
+    {
+        EntityDelete(entity);
+        return;
+    }
     entity->animFrame = 1;
     entity->flipX = 0;
     entity->spriteLayer = 9;
     graphics = ObjAffine_Alloc(1);
     if ((s16)graphics < 0)
     {
-    fail:
         EntityDelete(entity);
         return;
     }

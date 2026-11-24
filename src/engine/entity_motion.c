@@ -67,7 +67,7 @@ u8 Angle_TurnTowards(u16 *angle, u16 step, u16 target)
     switch (AngleTurnDirection2(*angle, target))
     {
         case 0:
-            goto reached;
+            return 1;
         case 1:
             *angle += step;
             if (AngleTurnDirection2(*angle, target) == 1)
@@ -76,14 +76,13 @@ u8 Angle_TurnTowards(u16 *angle, u16 step, u16 target)
         case -1:
             *angle -= step;
             if (AngleTurnDirection2(*angle, target) == -1)
-                goto turning;
+                return 0;
             break;
         default:
-            goto turning;
+            return 0;
     }
     // overshot: snap to the target
     *angle = target;
-reached:
     return 1;
 turning:
     return 0;

@@ -836,7 +836,6 @@ void SkillGladiatorUse(struct EwramData_EntityData *entity)
                 }
             }
         }
-    roll:
         SKILL_GLADIATOR_ANGLE(entity) += -entity->ext.skillGladiator.speed / 64;
         if (result & 3)
         {
@@ -2035,11 +2034,13 @@ u32 Entity_StepAngleTowardPoint(struct EwramData_EntityData *entity, s32 x, s32 
     s32 delta = (u16)ArcTan2(dx, dy) - angle;
     if (delta > 0)
     {
-        if (delta <= 0x7FFF) goto add;
-        goto subtract;
+        if (delta > 0x7FFF)
+        {
+            angle -= turn;
+            return angle & 0xFFFF;
+        }
     }
     else if (delta >= -0x8000) goto subtract;
-add:
     angle += turn;
     return angle & 0xFFFF;
 subtract:

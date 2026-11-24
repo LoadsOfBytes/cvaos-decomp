@@ -19,11 +19,14 @@ void Object19Create(struct EwramData_EntityData *entity)
     u16 slot;
     struct Object19Motion *motion;
     s32 time;
-    if (!Entity_LoadGraphics(entity, sObject19Gfx, sObject19Palette, 0, sObject19SpriteSheet)) goto fail;
+    if (!Entity_LoadGraphics(entity, sObject19Gfx, sObject19Palette, 0, sObject19SpriteSheet))
+    {
+        EntityDelete(entity);
+        return;
+    }
     slot = ObjAffine_Alloc(1);
     if ((s16)slot < 0)
     {
-fail:
         EntityDelete(entity);
         return;
     }

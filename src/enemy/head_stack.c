@@ -379,7 +379,10 @@ void HeadStackSegment_UpdateAttack(struct EwramData_EntityData *entity)
         break;
     case 4:
         if (entity->timer != 0)
-            goto count;
+        {
+            entity->timer--;
+            break;
+        }
         {
             s32 t = Target_GetX(entity);
             s32 px = entity->posX.whole;
@@ -412,7 +415,6 @@ void HeadStackSegment_UpdateAttack(struct EwramData_EntityData *entity)
     case 6:
         if (entity->timer != 0)
         {
-        count:
             entity->timer--;
             break;
         }
@@ -592,7 +594,10 @@ void HeadStack_Create(struct EwramData_EntityData *entity, s32 type)
     struct EwramData_EntityData *child;
 
     if (!InitFromTable(entity, type))
-        goto delete;
+    {
+        EntityDelete(entity);
+        return;
+    }
     entity->drawFunc = NULL;
     if (!gEwramData->gameState.bestiaryPreview)
     {
@@ -670,7 +675,6 @@ test:
             child = &gEwramData->entityData[*slot];
             EntityDelete(child);
         }
-    delete:
         EntityDelete(entity);
         return;
     }

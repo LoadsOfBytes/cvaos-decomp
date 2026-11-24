@@ -149,7 +149,11 @@ void WitchSpellTrailParticle_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if (!Entity_LoadGraphics(entity, sWitchGfx, sWitchPalette, 0, sWitchSpriteSheet)) goto remove;
+        if (!Entity_LoadGraphics(entity, sWitchGfx, sWitchPalette, 0, sWitchSpriteSheet))
+        {
+            EntityDelete(entity);
+            return;
+        }
         Anim_StartIndexed(entity, 0xE, 0, 0);
         entity->spriteLayer = 3;
         entity->timer = 6;
@@ -158,7 +162,11 @@ void WitchSpellTrailParticle_Update(struct EwramData_EntityData *entity)
     case 1:
         EntityAccelerateAndMove(entity, 0x80000);
         timer = entity->timer;
-        if (timer != 0) goto countdown;
+        if (timer != 0)
+        {
+            entity->timer = timer - 1;
+            break;
+        }
         entity->drawSkip = 1;
         entity->timer = 4;
         entity->state++;
@@ -168,11 +176,9 @@ void WitchSpellTrailParticle_Update(struct EwramData_EntityData *entity)
         timer = entity->timer;
         if (timer == 0)
         {
-remove:
             EntityDelete(entity);
             return;
         }
-countdown:
         entity->timer = timer - 1;
         break;
     }
@@ -199,9 +205,17 @@ void WitchSpell_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if (!Entity_LoadGraphics(entity, sWitchGfx, sWitchPalette, 0, sWitchSpriteSheet)) goto remove;
+        if (!Entity_LoadGraphics(entity, sWitchGfx, sWitchPalette, 0, sWitchSpriteSheet))
+        {
+            EntityDelete(entity);
+            return;
+        }
         affine = ObjAffine_Alloc(1);
-        if ((s16)affine < 0) goto remove;
+        if ((s16)affine < 0)
+        {
+            EntityDelete(entity);
+            return;
+        }
         entity->affineIndex = affine;
         entity->affine = 1;
         entity->spriteLayer = 3;
@@ -257,7 +271,6 @@ void WitchSpell_Update(struct EwramData_EntityData *entity)
         break;
     case 4:
         ObjAffine_Free(entity->affineIndex);
-remove:
         EntityDelete(entity);
         return;
     }
@@ -313,7 +326,11 @@ void WitchCastEffect_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if (!Entity_LoadGraphics(entity, sWitchGfx, sWitchPalette, 0, sWitchSpriteSheet)) goto remove;
+        if (!Entity_LoadGraphics(entity, sWitchGfx, sWitchPalette, 0, sWitchSpriteSheet))
+        {
+            EntityDelete(entity);
+            return;
+        }
         entity->spriteLayer = 3;
         Anim_StartIndexed(entity, 5, 0, 1);
         entity->objMode = 1;
@@ -341,7 +358,6 @@ void WitchCastEffect_Update(struct EwramData_EntityData *entity)
         timer = entity->timer;
         if (timer == 0)
         {
-remove:
             EntityDelete(entity);
             return;
         }

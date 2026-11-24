@@ -74,16 +74,31 @@ u8 GhostDancer_LoadGraphics(struct EwramData_EntityData *entity)
     if(slot<0)
     {
         slot=ObjGfx_LoadResource(graphics,0);
-        if(slot<0) goto fail;
+        if(slot<0)
+        {
+            EntityDelete(entity);
+            return 0;
+        }
     }
     entity->basePalette=ObjPalette_FindOrLoadVariant(palette,(u8)entity->spawnParam0);
-    if(entity->basePalette==255) goto fail;
-    if(!Sprite_Attach(entity,animation,slot,entity->basePalette)) goto fail;
-    if(!Anim_StartIndexed(entity,0,0,1)) goto fail;
+    if(entity->basePalette==255)
+    {
+        EntityDelete(entity);
+        return 0;
+    }
+    if(!Sprite_Attach(entity,animation,slot,entity->basePalette))
+    {
+        EntityDelete(entity);
+        return 0;
+    }
+    if(!Anim_StartIndexed(entity,0,0,1))
+    {
+        EntityDelete(entity);
+        return 0;
+    }
     Anim_Update(entity);
     entity->drawFunc=Sprite_DrawEntity;
     return 1;
-fail:
     EntityDelete(entity);
     return 0;
 }
@@ -361,12 +376,14 @@ void EnemySkeletonCreate(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *child;
 
     if (!Entity_LoadGraphics(entity, graphics, palette, 0, sprite))
-        goto delete;
+    {
+        EntityDelete(entity);
+        return;
+    }
     entity->ext.skeleton.flags |= 1;
     zero = 0;
     if (Entity_CreateLinkedAndHide(entity, SkeletonLinkedPart_Update) == NULL)
     {
-    delete:
         EntityDelete(entity);
         return;
     }

@@ -99,10 +99,10 @@ void WaiterSkeletonThrownTray_Update(struct EwramData_EntityData *entity)
     case 0: {
         s16 slot;
         if (!Entity_LoadGraphics(entity, sWaiterSkeletonGfx, sSkeletonWaiterSkeletonPalette, 0, sWaiterSkeletonSpriteSheet))
-            goto delete;
+            { EntityDelete(entity); return; }
         slot = ObjAffine_Alloc(1);
         if (slot < 0)
-            goto delete;
+            { EntityDelete(entity); return; }
         entity->affineIndex = slot;
         entity->affine = 1;
         entity->scrollWithBg = 1;
@@ -214,12 +214,12 @@ void WaiterSkeletonThrownTray_Update(struct EwramData_EntityData *entity)
         EntityMoveY(entity);
         if (!EntityIsOutsideScreen(entity, 4))
             break;
-        goto release;
+        ObjAffine_Free(entity->affineIndex);
+        EntityDelete(entity);
+        return;
     case 5:
         Effect_SpawnRandom(entity->posX.whole, entity->posY.whole, 0xC0000, 0xC0000, entity->spriteLayer - 1);
-release:
         ObjAffine_Free(entity->affineIndex);
-delete:
         EntityDelete(entity);
         return;
     }
@@ -413,12 +413,11 @@ void EnemyWaiterSkeletonCreate(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *effect;
 
     if (!Entity_LoadGraphics(entity, sWaiterSkeletonGfx, sSkeletonWaiterSkeletonPalette, 0, sWaiterSkeletonSpriteSheet))
-        goto failed;
+        { EntityDelete(entity); return; }
     entity->ext.waiterSkeleton.flags |= 2;
     effect = Entity_CreateObject(WaiterSkeletonTray_Update);
     if (effect == NULL)
     {
-    failed:
         EntityDelete(entity);
         return;
     }
@@ -665,12 +664,10 @@ void SkullArcher_UpdatePatrol(struct EwramData_EntityData *entity)
                 entity->flipX ^= 1;
             }
             Entity_Walk(entity, 0x4000, sSkullArcherWalkProfile, 12);
-            if (entity->flipX && (s8)Entity_GetTargetDirection(entity) == 1)
-                goto close;
-            if (!entity->flipX && (s8)Entity_GetTargetDirection(entity) == -1)
-                goto close;
-            break;
-        close:
+            if (!entity->flipX || (s8)Entity_GetTargetDirection(entity) != 1) {
+                if (entity->flipX || (s8)Entity_GetTargetDirection(entity) != -1)
+                    break;
+            }
             if (Entity_GetTargetDistance(entity) <= 79)
                 entity->subState = 1;
             break;

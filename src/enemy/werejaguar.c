@@ -42,10 +42,13 @@ void EnemyWerejaguarUpdate(struct EwramData_EntityData *entity)
     entity->ext.werejaguar.manualAnim=0;
     entity->animFlags&=0xFD;
     if(entity->state!=2) Enemy_UpdateHitFlash(entity);
-    if(Entity_IsTimeStopped(entity) && entity->state!=2) goto collision;
+    if(Entity_IsTimeStopped(entity) && entity->state!=2)
+    {
+        Hit_CheckWithPlayer(results,entity);
+        return;
+    }
     if(entity->hitFlashTimer && entity->state!=3 && entity->state!=2)
     {
-collision:
         Hit_CheckWithPlayer(results,entity);
         return;
     }
@@ -271,7 +274,13 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
         entity->ext.werejaguar.manualAnim = 1;
         r = Entity_MoveWithCollision(entity, 0x40000, -0x200000, 0x80000, 8) & 4;
         if (!r)
-            goto fail;
+        {
+            entity->state = r;
+            entity->subState = r;
+            Anim_StartIndexed(entity, 0, 0, 1);
+            entity->ext.werejaguar.manualAnim = r;
+            break;
+        }
         if (entity->timer++ <= 0x13)
         {
             if (entity->timer <= 3)
@@ -420,7 +429,13 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
         entity->ext.werejaguar.manualAnim = 1;
         r = Entity_MoveWithCollision(entity, 0x40000, -0x200000, 0x80000, 8) & 4;
         if (!r)
-            goto fail;
+        {
+            entity->state = r;
+            entity->subState = r;
+            Anim_StartIndexed(entity, 0, 0, 1);
+            entity->ext.werejaguar.manualAnim = r;
+            break;
+        }
         if (entity->timer++ <= 0xB)
             break;
         entity->subState = 2;
@@ -749,10 +764,13 @@ void EnemyWeretigerUpdate(struct EwramData_EntityData *entity)
     entity->ext.werejaguar.manualAnim=0;
     entity->animFlags&=0xFD;
     if(entity->state!=2) Enemy_UpdateHitFlash(entity);
-    if(Entity_IsTimeStopped(entity) && entity->state!=2) goto collision;
+    if(Entity_IsTimeStopped(entity) && entity->state!=2)
+    {
+        Hit_CheckWithPlayer(results,entity);
+        return;
+    }
     if(entity->hitFlashTimer && entity->state!=3 && entity->state!=2)
     {
-collision:
         Hit_CheckWithPlayer(results,entity);
         return;
     }

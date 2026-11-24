@@ -350,7 +350,8 @@ void GladiatorBody_Update(struct EwramData_EntityData *entity)
             y = entity->posY.whole;
             entity->velX.whole = owner->velX.whole;
             Gladiator_SpawnFragments(entity, x, y);
-            goto delete;
+            EntityDelete(entity);
+            return;
         }
         if (owner->animScriptIndex == 0xC)
         {
@@ -443,7 +444,8 @@ void GladiatorArm_Update(struct EwramData_EntityData *entity)
             y = entity->posY.whole;
             entity->velX.whole = owner->velX.whole;
             Gladiator_SpawnFragments(entity, x, y);
-            goto delete;
+            EntityDelete(entity);
+            return;
         }
         if (!gEwramData->gameState.bestiaryPreview)
         {
@@ -610,7 +612,10 @@ void GladiatorArm_FireShot(struct EwramData_EntityData *entity, s32 dx, s32 dy, 
         return;
     tiles = ObjGfx_Find(sGladiatorGfx);
     if (tiles < 0)
-        goto delete;
+    {
+        EntityDelete(shot);
+        return;
+    }
     Sprite_Attach(shot, sGladiatorSpriteSheet, tiles, entity->basePalette);
     Anim_StartIndexed(shot, 0xE, 0, 0);
     Anim_Update(entity);
@@ -637,7 +642,6 @@ void GladiatorArm_FireShot(struct EwramData_EntityData *entity, s32 dx, s32 dy, 
     palette = ObjAffine_Alloc(1);
     if ((s16)palette < 0)
     {
-    delete:
         EntityDelete(shot);
         return;
     }

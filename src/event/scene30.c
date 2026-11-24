@@ -107,7 +107,11 @@ struct EwramData_EntityData *EventScene30_CreateEffectSprite(s32 affine)
     if(entity)
     {
         s32 slot=ObjGfx_LoadResource(sEventScene30Gfx,0);
-        if(slot<0)goto fail;
+        if(slot<0)
+        {
+            EntityDelete(entity);
+            return 0;
+        }
         entity->basePalette=14;
         Sprite_Attach(entity,sEventScene30SpriteSheet,slot,14);
         entity->drawFunc=Sprite_DrawEntity;
@@ -117,7 +121,6 @@ struct EwramData_EntityData *EventScene30_CreateEffectSprite(s32 affine)
             slot=ObjAffine_Alloc(1);
             if(slot<0)
             {
-fail:
                 EntityDelete(entity);return 0;
             }
             entity->affineIndex=slot;entity->affine=1;
@@ -981,7 +984,11 @@ void EventScene30_CreateCenterEffect(struct EwramData_EntityData *owner)
     if(effect)
     {
         s32 slot=ObjGfx_LoadResource(sEventScene30Gfx,0);
-        if(slot<0)goto fail;
+        if(slot<0)
+        {
+            EntityDelete(effect);
+            return;
+        }
         effect->basePalette=14;
         zero=0;
         Sprite_Attach(effect,sEventScene30SpriteSheet,slot,14);
@@ -991,7 +998,6 @@ void EventScene30_CreateCenterEffect(struct EwramData_EntityData *owner)
         slot=ObjAffine_Alloc(1);
         if(slot<0)
         {
-fail:
             EntityDelete(effect);
             return;
         }
@@ -1091,7 +1097,11 @@ void EventScene30_CreateHalo(struct EwramData_EntityData *owner)
     if(effect)
     {
         s32 slot=ObjGfx_LoadResource(sEventScene30Gfx,0);
-        if(slot<0)goto fail;
+        if(slot<0)
+        {
+            EntityDelete(effect);
+            return;
+        }
         effect->basePalette=14;
         zero=0;
         Sprite_Attach(effect,sEventScene30SpriteSheet,slot,14);
@@ -1101,7 +1111,6 @@ void EventScene30_CreateHalo(struct EwramData_EntityData *owner)
         slot=ObjAffine_Alloc(1);
         if(slot<0)
         {
-fail:
             EntityDelete(effect);
             return;
         }

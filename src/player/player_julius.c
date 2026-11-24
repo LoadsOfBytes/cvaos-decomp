@@ -374,20 +374,20 @@ static inline void PlayerCollision(struct EwramData_EntityData *entity)
         entity->posY.part16.fraction = 0;
         ew = &gEwramData;
         g = *ew;
-        if ((s32)entity > 1)
-            goto dup;
-        if (g->playerState.actionLockFlags & 8)
-            goto zero;
-        if ((s32)entity > 0)
-            goto next;
-        if (g->playerStatus.statusEffects & 4)
+        if ((s32)entity <= 1)
         {
-            entity->velY.whole = z;
-            entity->accelY.whole = z;
-            return;
+            if (g->playerState.actionLockFlags & 8)
+                goto zero;
+            if ((s32)entity > 0)
+                goto next;
+            if (g->playerStatus.statusEffects & 4)
+            {
+                entity->velY.whole = z;
+                entity->accelY.whole = z;
+                return;
+            }
+            goto cont;
         }
-        goto cont;
-    dup:
         if (g->playerState.actionLockFlags & 8)
             goto zero;
         goto next;
@@ -1272,50 +1272,53 @@ void Julius_Update(struct EwramData_EntityData *entity)
         }
         FLAGS(entity) &= ~0x200000;
         PlaySong(0x1E9);
-        goto collide;
-    }
-    if (gEwramData->playerState.hitReaction == 2)
-        goto collide;
-    entity->palette = 0;
-    gEwramData->playerState.actionLockFlags &= ~0x820;
-    if (gEwramData->playerState.hitReaction == 0 && !(FLAGS(entity) & 2))
-    {
-        entity->animScriptIndex |= none;
-        if (!(gEwramData->playerState.actionLockFlags & 0x800) && entity->animScriptIndex != 0xC)
-        {
-            Anim_StartIndexed(entity, 0xC, 1, 0);
-            entity->ext.player.requestedAnim = 0xFF;
-            FLAGS(entity) &= ~0x200000;
-        }
-        SetHitTimer(entity, 8, 50);
-        FLAGS(entity) |= 0x80;
-        entity->state = 0xC;
-        PlaySong(0x1EA);
     }
     else
     {
-        s32 accel;
+        if (gEwramData->playerState.hitReaction != 2)
+        {
+            entity->palette = 0;
+            gEwramData->playerState.actionLockFlags &= ~0x820;
+            if (gEwramData->playerState.hitReaction == 0 && !(FLAGS(entity) & 2))
+            {
+                entity->animScriptIndex |= none;
+                if (!(gEwramData->playerState.actionLockFlags & 0x800) && entity->animScriptIndex != 0xC)
+                {
+                    Anim_StartIndexed(entity, 0xC, 1, 0);
+                    entity->ext.player.requestedAnim = 0xFF;
+                    FLAGS(entity) &= ~0x200000;
+                }
+                SetHitTimer(entity, 8, 50);
+                FLAGS(entity) |= 0x80;
+                entity->state = 0xC;
+                PlaySong(0x1EA);
+            }
+            else
+            {
+                s32 accel;
 
-        if ((s32)gEwramData->playerState.hitSourceX > entity->posX.whole)
-        {
-            SetJuliusAnim(entity, 0xC);
-            entity->velX.whole = -0x18000;
-            accel = 0x200;
+                if ((s32)gEwramData->playerState.hitSourceX > entity->posX.whole)
+                {
+                    SetJuliusAnim(entity, 0xC);
+                    entity->velX.whole = -0x18000;
+                    accel = 0x200;
+                }
+                else
+                {
+                    SetJuliusAnim(entity, 0xC);
+                    entity->velX.whole = 0x18000;
+                    accel = -0x200;
+                }
+                entity->accelX.whole = accel;
+                entity->velY.whole = -0x28000;
+                entity->accelY.whole = -0x1000;
+                FLAGS(entity) |= 0x82;
+                entity->state = 0xD;
+                PlaySong(0x1EA);
+            }
+            FLAGS(entity) &= ~0x200000;
         }
-        else
-        {
-            SetJuliusAnim(entity, 0xC);
-            entity->velX.whole = 0x18000;
-            accel = -0x200;
-        }
-        entity->accelX.whole = accel;
-        entity->velY.whole = -0x28000;
-        entity->accelY.whole = -0x1000;
-        FLAGS(entity) |= 0x82;
-        entity->state = 0xD;
-        PlaySong(0x1EA);
     }
-    FLAGS(entity) &= ~0x200000;
 collide:
     Julius_ResolveWorldCollision(entity);
     gEwramData->playerState.cachedPlayerX = entity->posX.whole;

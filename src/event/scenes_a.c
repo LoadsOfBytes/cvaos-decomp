@@ -604,7 +604,7 @@ void EventScene31_Init(struct EwramData_EntityData *entity)
     s32 fill;
 
     if (Entity_SetupFromObjectTable(entity, 7) == 0)
-        goto fail;
+        { entity->deleteRequested = 1; return; }
     Anim_StartIndexed(entity, 0, 0, 1);
     Anim_Update(entity);
     {
@@ -619,7 +619,6 @@ void EventScene31_Init(struct EwramData_EntityData *entity)
     entity->ext.event31.blockHolder = child;
     if (child == NULL)
     {
-    fail:
         entity->deleteRequested = 1;
         return;
     }

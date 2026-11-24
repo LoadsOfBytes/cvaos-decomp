@@ -77,10 +77,16 @@ void DeathWeapon_Update(struct EwramData_EntityData *entity)
     {
         u16 slot;
         if (!Entity_LoadGraphics(entity, sDeathGfx, sDeathPalette, 1, sDeathSpriteSheet))
-            goto remove;
+        {
+            EntityDelete(entity);
+            return;
+        }
         slot = ObjAffine_Alloc(1);
         if ((s16)slot < 0)
-            goto remove;
+        {
+            EntityDelete(entity);
+            return;
+        }
         entity->affineIndex = slot;
         entity->affine = 1;
         entity->attack = owner->attack;
@@ -243,7 +249,6 @@ void DeathWeapon_Update(struct EwramData_EntityData *entity)
         {
     case 10:
             ObjAffine_Free(entity->affineIndex);
-        remove:
             EntityDelete(entity);
             return;
         }
@@ -323,7 +328,8 @@ void DeathWeaponTrail_Update(struct EwramData_EntityData *entity)
                 goto active;
             }
         }
-        goto delete;
+        EntityDelete(entity);
+        return;
     case 1:
     active:
         if (entity->timer == 8)
@@ -337,7 +343,6 @@ void DeathWeaponTrail_Update(struct EwramData_EntityData *entity)
         }
     case 2:
         ObjAffine_Free(entity->affineIndex);
-    delete:
         EntityDelete(entity);
         return;
     }
@@ -403,7 +408,10 @@ void DeathIntroEffect_Update(struct EwramData_EntityData *entity)
     {
         case 0:
             if (!Entity_LoadGraphics(entity, sDeathGfx, sDeathPalette, 2, sDeathSpriteSheet))
-                goto delete;
+            {
+                EntityDelete(entity);
+                return;
+            }
             entity->spriteLayer = 0x19;
             Anim_StartIndexed(entity, 0x18, 2, 1);
             entity->scrollWithBg = 0;
@@ -458,7 +466,6 @@ void DeathIntroEffect_Update(struct EwramData_EntityData *entity)
             }
             if (entity->timer == 0)
             {
-            delete:
                 EntityDelete(entity);
                 return;
             }
@@ -595,10 +602,16 @@ void DeathFloatingWeapon_Update(struct EwramData_EntityData *entity)
     {
         u16 slot;
         if (!Entity_LoadGraphics(entity, sDeathGfx, sDeathPalette, 0, sDeathSpriteSheet))
-            goto delete;
+        {
+            EntityDelete(entity);
+            return;
+        }
         slot = ObjAffine_Alloc(1);
         if ((s16)slot < 0)
-            goto delete;
+        {
+            EntityDelete(entity);
+            return;
+        }
         entity->enemyId = parent->enemyId;
         Enemy_ResetFromTemplate(entity);
         entity->hp = 0x7D0;
@@ -739,7 +752,6 @@ void DeathFloatingWeapon_Update(struct EwramData_EntityData *entity)
     }
     case 8:
         ObjAffine_Free(entity->affineIndex);
-    delete:
         EntityDelete(entity);
         return;
     }
@@ -811,10 +823,16 @@ void DeathBlade_Update(struct EwramData_EntityData *entity)
     {
     case 0:
         if (!Entity_LoadGraphics(entity, (void *)sDeathGfx, (void *)sDeathPalette, 0, (void *)sDeathSpriteSheet))
-            goto delete;
+        {
+            EntityDelete(entity);
+            return;
+        }
         slot = ObjAffine_Alloc(1);
         if ((s16)slot < 0)
-            goto delete;
+        {
+            EntityDelete(entity);
+            return;
+        }
         entity->attack = parent->attack * 7 / 10;
         entity->hp = 1;
         Hit_Enable(entity, 10, Enemy_OnContactMask1, DeathBlade_OnHit);
@@ -875,7 +893,6 @@ void DeathBlade_Update(struct EwramData_EntityData *entity)
         Effect_SpawnAt(entity->posX.whole, entity->posY.whole, entity->spriteLayer);
     case 4:
         ObjAffine_Free(entity->affineIndex);
-    delete:
         EntityDelete(entity);
         return;
     }
@@ -902,10 +919,16 @@ void DeathPillar_Update(struct EwramData_EntityData *entity)
     {
     case 0:
         if (!Entity_LoadGraphics(entity, (void *)sDeathGfx, (void *)sDeathPalette, 2, (void *)sDeathSpriteSheet))
-            goto delete;
+        {
+            EntityDelete(entity);
+            return;
+        }
         slot = ObjAffine_Alloc(1);
         if ((s16)slot < 0)
-            goto delete;
+        {
+            EntityDelete(entity);
+            return;
+        }
         entity->posX.whole = (*ew)->playerState.player->posX.whole;
         entity->posY.part16.integer = 0x90;
         entity->attack = parent->attack + (parent->attack >> 2);
@@ -951,7 +974,6 @@ void DeathPillar_Update(struct EwramData_EntityData *entity)
     case 3:
     destroy:
         ObjAffine_Free(entity->affineIndex);
-    delete:
         EntityDelete(entity);
         return;
     }
@@ -981,7 +1003,10 @@ void DeathRewardEffect_Update(struct EwramData_EntityData *entity)
     case 0:
         SharedObjPalette_Release((void *)sDeathPalette, 2);
         if (!Entity_LoadGraphics(entity, (void *)sDeathGfx, (void *)sDeathPalette, 3, (void *)sDeathSpriteSheet))
-            goto delete;
+        {
+            EntityDelete(entity);
+            return;
+        }
         slot = ObjAffine_Alloc(1);
         if ((s16)slot < 0)
             goto delete;
@@ -1077,10 +1102,16 @@ void DeathDebris_Update(struct EwramData_EntityData *entity)
     {
     case 0:
         if (!Entity_LoadGraphics(entity, (void *)sDeathGfx, (void *)sDeathPalette, 0, (void *)sDeathSpriteSheet))
-            goto delete;
+        {
+            EntityDelete(entity);
+            return;
+        }
         slot = ObjAffine_Alloc(1);
         if ((s16)slot < 0)
-            goto delete;
+        {
+            EntityDelete(entity);
+            return;
+        }
         entity->affineIndex = slot;
         entity->affine = 1;
         entity->spriteLayer = 0x13;
@@ -1119,7 +1150,6 @@ void DeathDebris_Update(struct EwramData_EntityData *entity)
         }
     case 3:
         ObjAffine_Free(entity->affineIndex);
-    delete:
         EntityDelete(entity);
         return;
     }
@@ -1873,7 +1903,10 @@ s32 Death_UpdateDeath(struct EwramData_EntityData *entity)
         entity->subState = 1;
     case 1:
         if (entity->timer != 0)
-            goto count;
+        {
+            entity->timer--;
+            break;
+        }
         if (!(gEwramData->gameState.stateFlags & 0x10))
         {
             BgPalette_StartColorFade(0x1F, 0x1F, 0x1F, 0, 0x10000, 0x10);
@@ -1905,7 +1938,6 @@ s32 Death_UpdateDeath(struct EwramData_EntityData *entity)
     case 2:
         if (entity->timer != 0)
         {
-        count:
             entity->timer--;
             break;
         }
@@ -1940,10 +1972,12 @@ void EnemyDeathCreate(struct EwramData_EntityData *entity)
 
     if (entity->spawnParam0 != 0 && !gEwramData->gameState.bossRushMode
         && (gEwramData->gameState.bossEventFlags & 2))
-        goto delete;
+    {
+        EntityDelete(entity);
+        return;
+    }
     if (!Entity_LoadGraphics(entity, sDeathGfx, sDeathPalette, 0, sDeathSpriteSheet))
     {
-    delete:
         EntityDelete(entity);
         return;
     }

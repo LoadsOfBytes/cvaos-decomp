@@ -121,9 +121,15 @@ void EnemyManticoreCreate(struct EwramData_EntityData *entity)
 
     if (entity->spawnParam0 != 0 && !gEwramData->gameState.bossRushMode
         && (gEwramData->gameState.bossEventFlags & 0x400))
-        goto delete;
+    {
+        EntityDelete(entity);
+        return;
+    }
     if ((u8)Manticore_LoadGraphics(entity) == 0)
-        goto delete;
+    {
+        EntityDelete(entity);
+        return;
+    }
     Anim_StartIndexed(entity, 0, 0, 1);
     Anim_Update(entity);
     Enemy_ResetFromTemplate(entity);
@@ -149,19 +155,24 @@ void EnemyManticoreCreate(struct EwramData_EntityData *entity)
     Entity_SnapToGround(entity);
     entity->ext.manticore.tailTip = Manticore_CreateTailTip(entity);
     if (entity->ext.manticore.tailTip == NULL)
-        goto delete;
+    {
+        EntityDelete(entity);
+        return;
+    }
     for (i = 0; i <= 5; i++)
     {
         seg[i] = Manticore_CreateTailSegment(entity, entity->ext.manticore.tailTip, 0, i);
         if (seg[i] == NULL)
-            goto delete;
+        {
+            EntityDelete(entity);
+            return;
+        }
     }
     for (i = 0; i <= 4; i++)
         seg[i]->ext.manticoreTail.link.next = seg[i + 1];
     seg[5]->ext.manticoreTail.link.next = entity->ext.manticore.tailTip;
     if (Manticore_CreateOverlay(entity) == 0)
     {
-    delete:
         EntityDelete(entity);
         return;
     }
@@ -239,7 +250,13 @@ void Manticore_UpdateWalk(struct EwramData_EntityData *entity)
         if ((res & 4) && *(u16 *)&entity->animStep == 10)
         {
             if (entity->flipX != Entity_IsTargetRight(entity))
-                goto turn;
+            {
+                entity->subState = 3;
+                Anim_StartIndexed(entity, 8, 0, 0);
+                entity->animDone = 0;
+                entity->timer = 0;
+                break;
+            }
             if (entity->flipX)
                 dx = 0;
             else
@@ -293,7 +310,6 @@ void Manticore_UpdateWalk(struct EwramData_EntityData *entity)
     case 2:
         if (entity->flipX != Entity_IsTargetRight(entity))
         {
-        turn:
             entity->subState = 3;
             Anim_StartIndexed(entity, 8, 0, 0);
             entity->animDone = 0;
@@ -1020,7 +1036,8 @@ void ManticoreShot_Update(struct EwramData_EntityData *entity)
         EntityAccelerateAndMove(entity, 0x80000);
         if (!EntityIsOutsideScreen(entity, 1))
             break;
-        goto delete;
+        EntityDelete(entity);
+        return;
     case 2:
         EntityAccelerateAndMove(entity, 0x80000);
         vx = entity->flipX ? 0x30000 : -0x30000;
@@ -1035,7 +1052,6 @@ void ManticoreShot_Update(struct EwramData_EntityData *entity)
             entity->hidden = 1;
         if (entity->timer > 5)
         {
-        delete:
             EntityDelete(entity);
             return;
         }

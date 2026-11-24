@@ -222,20 +222,21 @@ void Belmont_UpdateSceneBoundary(struct EwramData_EntityData *entity)
     u16 boundary=192-bg->xPos.part16.integer;
     {
         s32 state=entity->subState;
-        if(state==1) goto active;
-        if(state>1) return;
-        if(state!=0) return;
-            if(!Entity_LoadGraphics(entity,graphics,palette,0,sprite))
-            {
-                EntityDelete(entity);
-                return;
-            }
-            if(entity->animScriptIndex!=4)
-                Anim_StartIndexed(entity,4,1,0);
-            Anim_Update(entity);
-            entity->spriteLayer=17;
-            entity->subState++;
-active:
+        if(state!=1)
+        {
+            if(state>1) return;
+            if(state!=0) return;
+                if(!Entity_LoadGraphics(entity,graphics,palette,0,sprite))
+                {
+                    EntityDelete(entity);
+                    return;
+                }
+                if(entity->animScriptIndex!=4)
+                    Anim_StartIndexed(entity,4,1,0);
+                Anim_Update(entity);
+                entity->spriteLayer=17;
+                entity->subState++;
+        }
             if((s16)PLAYER->posX.part16.integer<(s16)boundary)
             {
                 struct EwramData_EntityData *object;

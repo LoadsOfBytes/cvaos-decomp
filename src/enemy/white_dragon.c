@@ -54,10 +54,12 @@ void EnemyWhiteDragonUpdate(struct EwramData_EntityData *entity)
             Enemy_UpdateHitFlash(entity);
     }
     if(Entity_IsTimeStopped(entity) && entity->state!=2)
-        goto collision;
+    {
+        Hit_CheckWithPlayer(&result,entity);
+        return;
+    }
     if(entity->hitFlashTimer && entity->state!=3 && entity->state!=2)
     {
-collision:
         Hit_CheckWithPlayer(&result,entity);
         return;
     }
@@ -111,10 +113,18 @@ void EnemyWhiteDragonCreate(struct EwramData_EntityData *entity)
     u16 *angularSpeed;
     u8 *palette;
     u8 demo;
-    if(!WhiteDragon_LoadGraphics(entity)) goto fail;
+    if(!WhiteDragon_LoadGraphics(entity))
+    {
+        EntityDelete(entity);
+        return;
+    }
     entity->animFrame=0;
     entity->ext.whiteDragon.history=(s32)Heap_Alloc(50);
-    if(!entity->ext.whiteDragon.history) goto fail;
+    if(!entity->ext.whiteDragon.history)
+    {
+        EntityDelete(entity);
+        return;
+    }
     Enemy_ResetFromTemplate(entity);
     entity->scrollWithBg=0;
     entity->ext.whiteDragon.offsetX=entity->posX.part16.integer;
@@ -144,7 +154,11 @@ void EnemyWhiteDragonCreate(struct EwramData_EntityData *entity)
     {
         struct EwramData_EntityData *part=Entity_CreateObject(WhiteDragonSegment_Update);
         s32 graphics;
-        if(!part) goto fail;
+        if(!part)
+        {
+            EntityDelete(entity);
+            return;
+        }
         part->spriteLayer=entity->spriteLayer+1;
         graphics=ObjGfx_Find(sQuezlcoatlWhiteDragonGfx);
         Sprite_Attach(part,sQuezlcoatlWhiteDragonSpriteSheet,graphics,*palette);
@@ -167,11 +181,13 @@ void EnemyWhiteDragonCreate(struct EwramData_EntityData *entity)
         StoreRate(0x400,angularSpeed);
         return;
     }
-    goto normal;
-fail:
+    Hit_Enable(entity,8,WhiteDragon_DamagePlayerOnContact, WhiteDragon_OnHit);
+    HitBox_SetBody(entity,&box);
+    HitBox_SetAttack(entity,&box);
+    entity->state=demo;
+    return;
     EntityDelete(entity);
     return;
-normal:
     Hit_Enable(entity,8,WhiteDragon_DamagePlayerOnContact, WhiteDragon_OnHit);
     HitBox_SetBody(entity,&box);
     HitBox_SetAttack(entity,&box);
@@ -697,7 +713,11 @@ void WhiteDragonBreath_Update(struct EwramData_EntityData *entity)
     {
         case 0:
             EntityMove(entity);
-            if(entity->timer++<=5) goto collision;
+            if(entity->timer++<=5)
+            {
+                Hit_CheckWithPlayer(&result,entity);
+                break;
+            }
             entity->state++;
             entity->timer=0;
             entity->animFrame++;
@@ -706,7 +726,11 @@ void WhiteDragonBreath_Update(struct EwramData_EntityData *entity)
             goto set_boxes;
         case 1:
             EntityMove(entity);
-            if(entity->timer++<=5) goto collision;
+            if(entity->timer++<=5)
+            {
+                Hit_CheckWithPlayer(&result,entity);
+                break;
+            }
             entity->state++;
             entity->timer=0;
             entity->spriteLayer++;
@@ -717,7 +741,11 @@ void WhiteDragonBreath_Update(struct EwramData_EntityData *entity)
             EntityDampVelocityX(entity,6);
             EntityDampVelocityY(entity,6);
             EntityMove(entity);
-            if(entity->timer++<=13) goto collision;
+            if(entity->timer++<=13)
+            {
+                Hit_CheckWithPlayer(&result,entity);
+                break;
+            }
             entity->state++;
             entity->timer=0;
             entity->animFrame++;
@@ -725,7 +753,8 @@ void WhiteDragonBreath_Update(struct EwramData_EntityData *entity)
 set_boxes:
             HitBox_SetBody(entity,box);
             HitBox_SetAttack(entity,box);
-            goto collision;
+            Hit_CheckWithPlayer(&result,entity);
+            break;
         case 3:
             if(entity->timer++>3)
             {
@@ -733,7 +762,6 @@ set_boxes:
                 entity->timer=0;
                 entity->animFrame++;
             }
-collision:
             Hit_CheckWithPlayer(&result,entity);
             break;
         case 4:

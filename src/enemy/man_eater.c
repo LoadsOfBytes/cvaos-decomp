@@ -125,7 +125,11 @@ void ManEaterProjectile_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if (!Entity_LoadGraphics(entity, sManEaterGfx, sManEaterPalette, 0, sManEaterSpriteSheet)) goto remove;
+        if (!Entity_LoadGraphics(entity, sManEaterGfx, sManEaterPalette, 0, sManEaterSpriteSheet))
+        {
+            EntityDelete(entity);
+            return;
+        }
         Anim_StartIndexed(entity, 5, 0, 0);
         entity->spriteLayer = 0x11;
         entity->scrollWithBg = 1;
@@ -157,7 +161,6 @@ void ManEaterProjectile_Update(struct EwramData_EntityData *entity)
         }
         break;
     case 2:
-remove:
         EntityDelete(entity);
         return;
     }
@@ -246,7 +249,8 @@ void ManEaterSegment_Update(struct EwramData_EntityData *entity)
             debris->flipY = RandomNumberGenerator() % 2;
         }
         PlaySong(0x70);
-        goto remove;
+        EntityDelete(entity);
+        return;
     }
     if (entity->state <= 2 && (head->ext.manEater.headFlags & 1))
     {
@@ -259,7 +263,6 @@ void ManEaterSegment_Update(struct EwramData_EntityData *entity)
     case 0:
         if (!Entity_LoadGraphics(entity, sManEaterGfx, sManEaterPalette, 0, sManEaterSpriteSheet))
         {
-remove:
             EntityDelete(entity);
             return;
         }
@@ -404,7 +407,10 @@ void ManEaterHead_Update(struct EwramData_EntityData *entity)
         if (entity->ext.manEater.headFlags & 4)
         {
             if (entity->subState == 0)
-                goto delete;
+            {
+                EntityDelete(entity);
+                return;
+            }
             entity->subState--;
         }
         else
@@ -417,13 +423,15 @@ void ManEaterHead_Update(struct EwramData_EntityData *entity)
     {
     case 0:
         if (!Entity_LoadGraphics(entity, sManEaterGfx, sManEaterPalette, 0, sManEaterSpriteSheet))
-            goto delete;
+        {
+            EntityDelete(entity);
+            return;
+        }
         Anim_StartIndexed(entity, 4, 0, 1);
         prev = entity;
         base = Entity_CreateObject(ManEaterChainAnchor_Update);
         if (base == NULL)
         {
-        delete:
             EntityDelete(entity);
             return;
         }
@@ -524,7 +532,11 @@ void ManEaterAttachedPart_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if (!Entity_LoadGraphics(entity, sManEaterGfx, sManEaterPalette, 0, sManEaterSpriteSheet)) goto remove;
+        if (!Entity_LoadGraphics(entity, sManEaterGfx, sManEaterPalette, 0, sManEaterSpriteSheet))
+        {
+            EntityDelete(entity);
+            return;
+        }
         entity->affineIndex = parent->affineIndex;
         entity->affine = 1;
         entity->animFrame = entry[0];
@@ -547,7 +559,6 @@ void ManEaterAttachedPart_Update(struct EwramData_EntityData *entity)
     case 3:
         entity->affineIndex = 0;
         entity->affine = 0;
-remove:
         EntityDelete(entity);
         return;
     }
@@ -577,12 +588,19 @@ void EnemyManEaterCreate(struct EwramData_EntityData *entity)
     u16 affine;
     s32 index;
     struct EwramData_EntityData *child;
-    if (entity->spawnParam0 != 0 && gEwramData->gameState.bossRushMode == 0 && (gEwramData->gameState.bossEventFlags & 0x2000)) goto remove;
-    if (!Entity_LoadGraphics(entity, sManEaterGfx, sManEaterPalette, 0, sManEaterSpriteSheet)) goto remove;
+    if (entity->spawnParam0 != 0 && gEwramData->gameState.bossRushMode == 0 && (gEwramData->gameState.bossEventFlags & 0x2000))
+    {
+        EntityDelete(entity);
+        return;
+    }
+    if (!Entity_LoadGraphics(entity, sManEaterGfx, sManEaterPalette, 0, sManEaterSpriteSheet))
+    {
+        EntityDelete(entity);
+        return;
+    }
     affine = ObjAffine_Alloc(1);
     if ((s16)affine < 0)
     {
-remove:
         EntityDelete(entity);
         return;
     }
@@ -808,10 +826,16 @@ void KillerMantlePart_Update(struct EwramData_EntityData *entity)
     {
         case 0:
             if (!Entity_LoadGraphics(entity, sKillerMantleGfx, sKillerMantlePalette, 0, sKillerMantleSpriteSheet))
-                goto delete;
+            {
+                EntityDelete(entity);
+                return;
+            }
             slot = ObjAffine_Alloc(1);
             if ((s16)slot < 0)
-                goto delete;
+            {
+                EntityDelete(entity);
+                return;
+            }
             entity->affineIndex = slot;
             entity->affine = 1;
             entity->animFrame = 0x12;
@@ -852,7 +876,6 @@ void KillerMantlePart_Update(struct EwramData_EntityData *entity)
             break;
         case 4:
             ObjAffine_Free(entity->affineIndex);
-        delete:
             EntityDelete(entity);
             return;
     }

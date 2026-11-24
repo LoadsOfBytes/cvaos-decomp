@@ -35,7 +35,11 @@ void WitchGroundProjectile_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if (!Entity_LoadGraphics(entity, sWitchGfx, sWitchPalette, 0, sWitchSpriteSheet)) goto remove;
+        if (!Entity_LoadGraphics(entity, sWitchGfx, sWitchPalette, 0, sWitchSpriteSheet))
+        {
+            EntityDelete(entity);
+            return;
+        }
         if (!(entity->subState & 1)) Anim_StartIndexed(entity, 0xB, 0, 1);
         else Anim_StartIndexed(entity, 6, 0, 1);
         entity->spriteLayer = 0x13;
@@ -65,11 +69,11 @@ void WitchGroundProjectile_Update(struct EwramData_EntityData *entity)
         break;
     case 2:
         Effect_SpawnShared(entity->posX.whole, entity->posY.whole, 0, 7);
-        goto remove;
+        EntityDelete(entity);
+        return;
     }
     if (EntityIsOutsideScreen(entity, 3))
     {
-remove:
         EntityDelete(entity);
         return;
     }

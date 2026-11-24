@@ -2259,10 +2259,11 @@ s32 MainMenu_UpdateNameEntry(struct EwramData_EntityData *entity)
                         index = 0;
                         cmpC = (u8*)&gEwramData->gameState.playerName;
                         goto t_; i_: index += 1; cmpC += 1; t_:
-                        if (index > 7) goto d_;
-                        if (*cmpC == sNameCodeNoUse[index]) goto i_;
-                        flagMatch = 0;
-                    d_:
+                        if (index <= 7)
+                        {
+                            if (*cmpC == sNameCodeNoUse[index]) goto i_;
+                            flagMatch = 0;
+                        }
                         secret = flagMatch;
                     sw_:
                         switch (secret)

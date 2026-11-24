@@ -1850,25 +1850,29 @@ void SkillDryadUse(struct EwramData_EntityData *entity)
         Anim_StartIndexed(entity, 0, 0, 0);
     case 2:
         link = entity->ext.redSoul.anchor;
-        if (link == NULL)
-            goto animate;
-        if (link->ext.redSoulAnchor.targetDead != 0)
-            goto stop;
-        target = link->ext.redSoulAnchor.target;
-        if (entity->ext.redSoul.anchorTimer == 0)
+        if (link != NULL)
         {
-            PlaySong(0xD5);
-            Player_RestoreHP(8);
+            if (link->ext.redSoulAnchor.targetDead != 0)
+            {
+                entity->state = 4;
+                break;
+            }
+            target = link->ext.redSoulAnchor.target;
+            if (entity->ext.redSoul.anchorTimer == 0)
+            {
+                PlaySong(0xD5);
+                Player_RestoreHP(8);
+            }
+            if (entity->ext.redSoul.anchorTimer++ <= 0x14)
+            {
+                if (!(target->hit.flags & 4))
+                    goto animate;
+                entity->state = 4;
+                break;
+            }
+            entity->state = 4;
+            break;
         }
-        if (entity->ext.redSoul.anchorTimer++ > 0x14)
-            goto stop;
-        if (!(target->hit.flags & 4))
-            goto animate;
-        entity->state = 4;
-        break;
-    stop:
-        entity->state = 4;
-        break;
     animate:
         r = Anim_Update(entity);
         if (r == 3)

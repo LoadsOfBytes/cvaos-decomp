@@ -515,7 +515,8 @@ void Slime_UpdateDetach(struct EwramData_EntityData *entity)
                 mask &= random;
                 entity->ext.slime.speed = -(baseSpeed + mask);
             }
-            goto randomY;
+            entity->velY.whole = RandomSigned(0x8000) - 0x10000;
+            break;
         case 3:
             {
                 u32 random = RandomNumberGenerator();
@@ -523,7 +524,6 @@ void Slime_UpdateDetach(struct EwramData_EntityData *entity)
                 mask &= random;
                 entity->ext.slime.speed = baseSpeed + mask;
             }
-randomY:
             entity->velY.whole = RandomSigned(0x8000) - 0x10000;
             break;
         }
@@ -653,11 +653,14 @@ void EnemySlimeCreate(struct EwramData_EntityData *entity)
     u16 affine;
     s32 x;
     s32 height;
-    if (!Entity_LoadGraphics(entity, sSlimeGfx, sSlimePalette, entity->spawnParam1, sSlimeSpriteSheet)) goto remove;
+    if (!Entity_LoadGraphics(entity, sSlimeGfx, sSlimePalette, entity->spawnParam1, sSlimeSpriteSheet))
+    {
+        EntityDelete(entity);
+        return;
+    }
     affine = ObjAffine_Alloc(1);
     if ((s16)affine < 0)
     {
-remove:
         EntityDelete(entity);
         return;
     }

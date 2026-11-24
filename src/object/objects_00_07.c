@@ -656,7 +656,10 @@ void Object03Update(struct EwramData_EntityData *entity)
         if (gEwramData->playerState.selectedTarget)
             break;
         if (!gEwramData->gameState.linkPlay)
-            goto open;
+        {
+            entity->state = 2;
+            break;
+        }
         if ((u32)((s16)entity->posX.part16.integer - (s16)gEwramData->playerState.player->posX.part16.integer + 0x18) <= 0x2F)
             SetPlayerInput(1, entity->flipX ? 0x20 : 0x10);
         if ((u32)((s16)entity->posX.part16.integer - (s16)gEwramData->playerState.player->posX.part16.integer + 0x13) > 0x26)
@@ -683,7 +686,6 @@ void Object03Update(struct EwramData_EntityData *entity)
             entity->timer--;
             break;
         }
-    open:
         entity->state = 2;
         break;
     case 2:
@@ -1007,7 +1009,10 @@ void Object06Update(struct EwramData_EntityData *entity)
         { u32 test = one;
           test &= flags;
         if (test)
-            goto open;
+        {
+            entity->state = 2;
+            break;
+        }
         }
         if (!BgPalette_GetPendingFades())
         {
@@ -1048,7 +1053,6 @@ void Object06Update(struct EwramData_EntityData *entity)
             entity->timer--;
             break;
         }
-    open:
         entity->state = 2;
         break;
     case 2:
@@ -1153,10 +1157,16 @@ void BgParticle_Update(struct EwramData_EntityData *entity)
         {
             gfx = ObjGfx_LoadResource((u8 *)sObject07ParallaxSpriteGfx, 0);
             if (gfx < 0)
-                goto fail;
+            {
+                entity->deleteRequested = 1;
+                return;
+            }
             pal = ObjPalette_FindOrLoad((void *)sObject07ParallaxSpritePalette);
             if (pal < 0)
-                goto fail;
+            {
+                entity->deleteRequested = 1;
+                return;
+            }
             Sprite_Attach(entity, (void *)sObject07ParallaxSpriteSpriteSheet, gfx, pal);
         }
         else if (entity->spawnParam0 == 2)
@@ -1164,7 +1174,6 @@ void BgParticle_Update(struct EwramData_EntityData *entity)
             gfx = ObjGfx_LoadResource((u8 *)sBgParticleGfx, 0);
             if (gfx < 0 || (pal = ObjPalette_FindOrLoad((void *)sObject2DObject2EPalette)) < 0)
             {
-            fail:
                 entity->deleteRequested = 1;
                 return;
             }

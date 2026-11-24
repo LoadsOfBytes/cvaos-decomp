@@ -148,12 +148,12 @@ void EnemyUneCreate(struct EwramData_EntityData *entity)
                 entity->ext.uneSpawner.count = 1;
                 child->ext.une.original = 1;
             }
-            goto end;
+            entity->accelY.whole = 0x2800;
+            return;
         }
     }
     entity->state = 0;
     entity->timer = 0x3C;
-end:
     entity->accelY.whole = 0x2800;
 }
 

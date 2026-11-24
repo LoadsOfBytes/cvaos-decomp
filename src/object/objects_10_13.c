@@ -114,15 +114,20 @@ void Object10Create(struct EwramData_EntityData *entity)
     {
     case 2:
         if (!Entity_LoadGraphics(entity, sObject10GfxLanguage2, sObject10Palette, 0, sObject10SpriteSheetLanguage2))
-            goto fail;
+        {
+            EntityDelete(entity);
+            return;
+        }
     case 3:
         if (!Entity_LoadGraphics(entity, sObject10GfxLanguage3, sObject10Palette, 0, sObject10SpriteSheetLanguage3))
-            goto fail;
+        {
+            EntityDelete(entity);
+            return;
+        }
         break;
     default:
         if (!Entity_LoadGraphics(entity, sObject10Gfx, sObject10Palette, 0, sObject10SpriteSheet))
         {
-        fail:
             EntityDelete(entity);
             return;
         }
@@ -413,7 +418,10 @@ void Object13Segment_Update(struct EwramData_EntityData *entity)
     {
     case 0:
         if (!Entity_LoadGraphics(entity, sObject13FamilyGfx, sUnk_08209FD8, 0, sObject13FamilySpriteSheet))
-            goto delete;
+        {
+            EntityDelete(entity);
+            return;
+        }
         Anim_StartIndexed(entity, 1, 0, 0);
         Anim_Update(entity);
         entity->spriteLayer = 3;
@@ -432,7 +440,6 @@ void Object13Segment_Update(struct EwramData_EntityData *entity)
         break;
     case 0xFF:
         ObjAffine_Free(entity->affineIndex);
-    delete:
         EntityDelete(entity);
         return;
     }

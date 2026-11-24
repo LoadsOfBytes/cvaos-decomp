@@ -516,7 +516,8 @@ void Object29_UpdateMovement(struct EwramData_EntityData *entity)
             }
             else { { s32 q_ = distance; asm("" : "+r"(q_)); /* FAKEMATCH: keep the test on distance */ if (distance < 0) q_ = distance + 0xFFFF; v = -((q_ >> 16) << 16) / 16; } k = -0x1000; add: entity->velY.whole = v + k; }
         }
-        goto move;
+        entity->ext.layerObject.y += entity->velY.whole;
+        break;
     }
     case 1:
         if ((s8)--entity->timer <= 0)
@@ -542,9 +543,8 @@ void Object29_UpdateMovement(struct EwramData_EntityData *entity)
             }
             if (distance > 0xFFFFF)
             {
-                if (entity->velY.whole > 0xFFFF)
-                    goto move;
-                entity->velY.whole += 0x800;
+                if (entity->velY.whole <= 0xFFFF)
+                    entity->velY.whole += 0x800;
             }
             else entity->velY.whole = ((distance / 0x10000) << 12) + 0x1000;
         }
@@ -555,13 +555,13 @@ void Object29_UpdateMovement(struct EwramData_EntityData *entity)
                 { u8 three = 3; entity->subState = three; entity->velY.whole = 0; }
             wait:
                 { register struct ObjectVariant *tbl asm("r1") = sObject29Variants; /* FAKEMATCH: table base in r1 */ entity->timer = tbl[entity->spawnParam1].delay; }
-                goto move;
+                entity->ext.layerObject.y += entity->velY.whole;
+                break;
             }
             if (distance > 0xFFFFF)
             {
-                if (entity->velY.whole <= -0x10000)
-                    goto move;
-                entity->velY.whole -= 0x800;
+                if (entity->velY.whole > -0x10000)
+                    entity->velY.whole -= 0x800;
             }
             else entity->velY.whole = -((distance / 0x10000) << 16) / 16 - 0x1000;
         }

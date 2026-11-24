@@ -119,10 +119,13 @@ void EnemyAltairUpdate(struct EwramData_EntityData *entity)
     }
     if (child->updateFunc == NULL) entity->ext.altair.carried = 0;
     if (entity->state != 2) Enemy_UpdateHitFlash(entity);
-    if (Entity_IsTimeStopped(entity) && entity->state != 2) goto hit;
+    if (Entity_IsTimeStopped(entity) && entity->state != 2)
+    {
+        Hit_CheckWithPlayer(&result, entity);
+        return;
+    }
     if (entity->hitFlashTimer != 0 && entity->state != 3 && entity->state != 2)
     {
-hit:
         Hit_CheckWithPlayer(&result, entity);
         return;
     }
@@ -497,7 +500,11 @@ u8 Altair_LoadGraphics(struct EwramData_EntityData *entity)
         if (graphics < 0) goto fail;
     }
     entity->basePalette = (s8)ObjPalette_FindOrLoad(palette);
-    if (entity->basePalette == 0xFF) goto fail;
+    if (entity->basePalette == 0xFF)
+    {
+        EntityDelete(saved);
+        return 0;
+    }
     Sprite_Attach(entity, sprite, graphics, entity->basePalette);
     Anim_StartIndexed(entity, 0, 0, 1);
     Anim_Update(entity);
@@ -652,23 +659,32 @@ u8 Fleaman_LoadGraphics(struct EwramData_EntityData *entity)
     {
         gfx = ObjGfx_LoadResource(graphics, 0);
         if (gfx < 0)
-            goto fail;
+        {
+            EntityDelete(entity);
+            return 0;
+        }
     }
     paletteIndex = (s8)ObjPalette_FindOrLoad(palette);
     if (paletteIndex == -1)
-        goto fail;
+    {
+        EntityDelete(entity);
+        return 0;
+    }
     entity->basePalette = paletteIndex;
     if (!Sprite_Attach(entity, sprite, gfx, entity->basePalette))
-        goto fail;
+    {
+        EntityDelete(entity);
+        return 0;
+    }
     if (!Anim_StartIndexed(entity, 0, 0, 1))
     {
         entity->ext.fleaman.anim = 0;
-        goto fail;
+        EntityDelete(entity);
+        return 0;
     }
     Anim_Update(entity);
     entity->drawFunc = Sprite_DrawEntity;
     return 1;
-fail:
     EntityDelete(entity);
     return 0;
 }

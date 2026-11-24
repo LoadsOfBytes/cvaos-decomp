@@ -68,32 +68,32 @@ void EnemyBigGolemUpdate(struct EwramData_EntityData *entity)
         if (entity->state != 2)
             Enemy_UpdateHitFlash(entity);
     }
-    if (Entity_IsTimeStopped(entity) && entity->state != 2)
-        goto idle;
-    switch (entity->state)
+    if (!Entity_IsTimeStopped(entity) || entity->state == 2)
     {
-    case 0:
-        BigGolem_UpdateWalk(entity);
-        break;
-    case 1:
-        BigGolem_UpdateAttack(entity);
-        break;
-    case 2:
-        if (entity->timer > 0x78 && entity->timer < 0xD7 && (entity->timer & 3) == 0)
+        switch (entity->state)
         {
-            s32 x = RandomNumberGenerator() % 0x280000 - 0x140000;
-            RandomNumberGenerator();
-            Effect_SpawnRisingParticle(entity->posX.whole + x, entity->posY.whole, entity->spriteLayer - 1, 1);
+        case 0:
+            BigGolem_UpdateWalk(entity);
+            break;
+        case 1:
+            BigGolem_UpdateAttack(entity);
+            break;
+        case 2:
+            if (entity->timer > 0x78 && entity->timer < 0xD7 && (entity->timer & 3) == 0)
+            {
+                s32 x = RandomNumberGenerator() % 0x280000 - 0x140000;
+                RandomNumberGenerator();
+                Effect_SpawnRisingParticle(entity->posX.whole + x, entity->posY.whole, entity->spriteLayer - 1, 1);
+            }
+            if ((u8)--entity->timer <= 1)
+                entity->deleteRequested = 1;
+            if (entity->deleteRequested && entity->ext.golem.parts != NULL)
+                Heap_Free(entity->ext.golem.parts);
+            return;
+        case 3:
+            return;
         }
-        if ((u8)--entity->timer <= 1)
-            entity->deleteRequested = 1;
-        if (entity->deleteRequested && entity->ext.golem.parts != NULL)
-            Heap_Free(entity->ext.golem.parts);
-        return;
-    case 3:
-        return;
     }
-idle:
     Entity_ClampXToRoom(entity, 1);
     if ((RandomNumberGenerator() & 0x7F) < 0x20)
         entity->ext.bigGolem.hit = 0;

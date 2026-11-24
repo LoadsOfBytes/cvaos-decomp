@@ -308,14 +308,17 @@ void EnemyTritonUpdate(struct EwramData_EntityData *entity)
 void EnemyTritonCreate(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *spear;
-    if (!Triton_LoadGraphics(entity)) goto fail;
+    if (!Triton_LoadGraphics(entity))
+    {
+        EntityDelete(entity);
+        return;
+    }
     Anim_StartIndexed(entity, 1, 0, 1);
     Anim_Update(entity);
     Enemy_ResetFromTemplate(entity);
     spear = Triton_CreateSpear(entity);
     if (!spear)
     {
-    fail:
         EntityDelete(entity);
         return;
     }

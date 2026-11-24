@@ -53,7 +53,10 @@ void BomberArmorBomb_Update(struct EwramData_EntityData *entity)
     {
     case 0:
         if (!Entity_LoadGraphics(entity, (void *)sBomberArmorRockArmorGfx, (void *)sBomberArmorRockArmorPalette, 0, (void *)sBomberArmorSpriteSheet))
-            goto delete;
+        {
+            EntityDelete(entity);
+            return;
+        }
         Anim_StartIndexed(entity, 3, 0, 1);
         entity->spriteLayer = 0x13;
         Hit_Enable(entity, 8, BomberArmorBomb_DamagePlayerOnContact, ArmorProjectile_OnHit);
@@ -101,11 +104,11 @@ void BomberArmorBomb_Update(struct EwramData_EntityData *entity)
         break;
     case 3:
         PlaySong(0x76);
-        goto delete;
+        EntityDelete(entity);
+        return;
     }
     if (EntityIsOutsideScreen(entity, 3))
     {
-    delete:
         EntityDelete(entity);
         return;
     }
@@ -194,7 +197,10 @@ void RockArmorRock_Update(struct EwramData_EntityData *entity)
     {
     case 0:
         if (!Entity_LoadGraphics(entity, (void *)sBomberArmorRockArmorGfx, (void *)sBomberArmorRockArmorPalette, 1, (void *)sRockArmorSpriteSheet))
-            goto delete;
+        {
+            EntityDelete(entity);
+            return;
+        }
         Anim_StartIndexed(entity, 3, 0, 1);
         Anim_Update(entity);
         entity->spriteLayer = 0x13;
@@ -228,7 +234,6 @@ void RockArmorRock_Update(struct EwramData_EntityData *entity)
             piece->spriteLayer = 0x12;
             piece->scrollWithBg = 1;
         }
-    delete:
         EntityDelete(entity);
         return;
     }
@@ -243,9 +248,11 @@ static inline s32 CanAttack(struct EwramData_EntityData *e, s32 range)
         goto facing;
     goto no;
 facing:
-    if (Entity_GetTargetDistance(e) > range) goto no;
-    result = 1;
-    goto end;
+    if (Entity_GetTargetDistance(e) <= range)
+    {
+        result = 1;
+        goto end;
+    }
 no:
     result = 0;
 end:

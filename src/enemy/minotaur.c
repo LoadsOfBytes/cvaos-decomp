@@ -149,10 +149,16 @@ void MinotaurSwingTrail_Update(struct EwramData_EntityData *entity)
     {
     case 0:
         if (!Entity_LoadGraphics(entity, (void *)sMinotaurGfx, (void *)sMinotaurPalette, 0, (void *)sMinotaurSpriteSheet))
-            goto delete;
+        {
+            EntityDelete(entity);
+            return;
+        }
         slot = ObjAffine_Alloc(1);
         if ((s16)slot < 0)
-            goto delete;
+        {
+            EntityDelete(entity);
+            return;
+        }
         entity->affineIndex = slot;
         entity->affine = 1;
         entity->scrollWithBg = 1;
@@ -162,7 +168,10 @@ void MinotaurSwingTrail_Update(struct EwramData_EntityData *entity)
         entity->state++;
     case 1:
         if (parent->animScriptIndex != 4)
-            goto hide;
+        {
+            entity->hidden = 1;
+            return;
+        }
         if ((u8)(parent->ext.minotaur.animStep - 4) > 1)
         {
             entity->timer = 0;
@@ -172,7 +181,6 @@ void MinotaurSwingTrail_Update(struct EwramData_EntityData *entity)
         }
         if (entity->timer > 6)
         {
-        hide:
             entity->hidden = 1;
             return;
         }
@@ -197,7 +205,6 @@ void MinotaurSwingTrail_Update(struct EwramData_EntityData *entity)
         break;
     case 2:
         ObjAffine_Free(entity->affineIndex);
-    delete:
         EntityDelete(entity);
         return;
     }
@@ -286,10 +293,16 @@ void MinotaurAxe_Update(struct EwramData_EntityData *entity)
     {
         u16 slot;
         if (!Entity_LoadGraphics(entity, sMinotaurGfx, sMinotaurPalette, 0, sMinotaurSpriteSheet))
-            goto remove;
+        {
+            EntityDelete(entity);
+            return;
+        }
         slot = ObjAffine_Alloc(1);
         if ((s16)slot < 0)
-            goto remove;
+        {
+            EntityDelete(entity);
+            return;
+        }
         if (!(((u8 *)gEwramData)[0x8E] & 0x40))
         {
             struct EwramData_EntityData *hitbox;
@@ -379,7 +392,8 @@ void MinotaurAxe_Update(struct EwramData_EntityData *entity)
         {
             if (DROPPED(entity) == 0)
                 parent->ext.minotaur.flags &= ~2;
-            goto lost;
+            entity->state = 6;
+            break;
         }
         angle = (u16)SPIN(entity);
         if ((u32)(angle - 0x9000) > 0x2000)
@@ -426,7 +440,10 @@ void MinotaurAxe_Update(struct EwramData_EntityData *entity)
     }
     case 5:
         if (EntityIsOutsideScreen(entity, 4))
-            goto lost;
+        {
+            entity->state = 6;
+            break;
+        }
         if (entity->timer == 0x20)
             entity->drawSkip = 1;
         if (entity->drawSkip && !(entity->timer & 3))
@@ -435,16 +452,15 @@ void MinotaurAxe_Update(struct EwramData_EntityData *entity)
             s32 y = entity->posY.whole + ({ s32 t = (RandomSigned(0x100) << 13) + 0x100000; t; });
             Effect_SpawnShared(x, y, RandomNumberGenerator() & 1, 8);
         }
-        if (entity->timer == 0)
-            goto lost;
-        entity->timer--;
-        break;
-    lost:
+        if (entity->timer != 0)
+        {
+            entity->timer--;
+            break;
+        }
         entity->state = 6;
         break;
     case 6:
         ObjAffine_Free(entity->affineIndex);
-    remove:
         EntityDelete(entity);
         return;
     }
@@ -645,18 +661,23 @@ void Minotaur_Init(struct EwramData_EntityData *entity, s32 variant)
 {
     struct EwramData_EntityData *child;
     if (!Entity_LoadGraphics(entity, sMinotaurGfx, sMinotaurPalette, variant, sMinotaurSpriteSheet))
-        goto fail;
+    {
+        EntityDelete(entity);
+        return;
+    }
     entity->ext.minotaur.variant = variant;
     Enemy_ResetFromTemplate(entity);
     entity->spriteLayer = 0x13;
     child = Entity_CreateObject(MinotaurAxe_Update);
     if (child == NULL)
-        goto fail;
+    {
+        EntityDelete(entity);
+        return;
+    }
     AttachChild(child, entity);
     child = Entity_CreateObject(MinotaurSwingTrail_Update);
     if (child == NULL)
     {
-    fail:
         EntityDelete(entity);
         return;
     }
@@ -813,10 +834,16 @@ void AxeArmorAxe_Update(struct EwramData_EntityData *entity)
     {
         case 0:
             if (!Entity_LoadGraphics(entity, sAxeArmorGfx, sAxeArmorPalette, 0, sAxeArmorSpriteSheet))
-                goto delete;
+            {
+                EntityDelete(entity);
+                return;
+            }
             slot = ObjAffine_Alloc(1);
             if ((s16)slot < 0)
-                goto delete;
+            {
+                EntityDelete(entity);
+                return;
+            }
             entity->affineIndex = slot;
             entity->affine = 1;
             Anim_StartIndexed(entity, 3, 0, 0);
@@ -849,7 +876,6 @@ void AxeArmorAxe_Update(struct EwramData_EntityData *entity)
             break;
         case 2:
             ObjAffine_Free(entity->affineIndex);
-        delete:
             EntityDelete(entity);
             return;
     }

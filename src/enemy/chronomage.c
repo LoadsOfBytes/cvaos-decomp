@@ -39,9 +39,17 @@ void ChronomageCastEffect_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if (!Entity_LoadGraphics(entity, sChronomageGfx, sChronomagePalette, 0, sChronomageSpriteSheet)) goto remove;
+        if (!Entity_LoadGraphics(entity, sChronomageGfx, sChronomagePalette, 0, sChronomageSpriteSheet))
+        {
+            EntityDelete(entity);
+            return;
+        }
         affine = ObjAffine_Alloc(1);
-        if ((s16)affine < 0) goto remove;
+        if ((s16)affine < 0)
+        {
+            EntityDelete(entity);
+            return;
+        }
         entity->affineIndex = affine;
         entity->affine = 1;
         entity->spriteLayer = 0x12;
@@ -70,7 +78,6 @@ void ChronomageCastEffect_Update(struct EwramData_EntityData *entity)
         /* fall through */
     case 4:
         if (entity->affine) ObjAffine_Free(entity->affineIndex);
-remove:
         EntityDelete(entity);
         return;
     }

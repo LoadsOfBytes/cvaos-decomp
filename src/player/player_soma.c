@@ -3192,15 +3192,14 @@ s16 Player_GetOverheadY(void)
     if (ew->playerStatus.soulStateFlags & 0x200)
     {
         y = (s16)ReadPlayer(ew)->posY.part16.integer - 0x10;
-        goto end;
+        return y;
     }
     if ((ReadPlayer(ew))->ext.player.actionFlags & 0x400)
     {
         y = (s16)ReadPlayer(ew)->posY.part16.integer - 0x16;
-        goto end;
     }
-    y = (s16)ReadPlayer(ew)->posY.part16.integer - 0x22;
-end:
+    else
+        y = (s16)ReadPlayer(ew)->posY.part16.integer - 0x22;
     return y;
 }
 

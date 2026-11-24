@@ -58,13 +58,16 @@ void Object15Orbiter_Update(struct EwramData_EntityData *entity)
 void Object15Create(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *child;
-    if (!Entity_LoadGraphics(entity, sObject15Gfx, sUnk_0820A1C4, 8, sObject15SpriteSheet)) goto fail;
+    if (!Entity_LoadGraphics(entity, sObject15Gfx, sUnk_0820A1C4, 8, sObject15SpriteSheet))
+    {
+        EntityDelete(entity);
+        return;
+    }
     entity->animFrame = 0;
     entity->spriteLayer = 31;
     child = EntityCreateInRange(0x1B, 0x48, Object15Orbiter_Update);
     if (child == NULL)
     {
-fail:
         EntityDelete(entity);
         return;
     }
@@ -400,7 +403,6 @@ void Object17Create(struct EwramData_EntityData *entity)
     {
         if (!Entity_LoadGraphics(e, sObject17Gfx, sUnk_08209FD8, 4, sObject17SpriteSheet))
         {
-        delete:
             EntityDelete(e);
             return;
         }
@@ -418,7 +420,10 @@ void Object17Create(struct EwramData_EntityData *entity)
         if (e == NULL)
             continue;
         if (!Entity_LoadGraphics(e, sObject17Gfx, sUnk_08209FD8, 4, sObject17SpriteSheet))
-            goto delete;
+        {
+            EntityDelete(e);
+            return;
+        }
         Anim_StartIndexed(e, 3, 0, 0);
         Anim_Update(e);
         ENTITY_OWNER(e) = entity;

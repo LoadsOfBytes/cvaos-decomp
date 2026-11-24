@@ -147,14 +147,26 @@ void EnemyPeepingEyeCreate(struct EwramData_EntityData *entity)
     s32 reverse;
     s32 i;
 
-    if (!PeepingEye_LoadGraphics(entity)) goto fail;
+    if (!PeepingEye_LoadGraphics(entity))
+    {
+        EntityDelete(entity);
+        return;
+    }
     Anim_StartIndexed(entity, 0, 0, 1);
     Anim_Update(entity);
     Enemy_ResetFromTemplate(entity);
     entity->spriteLayer = 3;
     if (SPAWN_PARAM(entity)) entity->spriteLayer = 0x1D;
-    if (!EnemyPeepingEyeCreateEyeball(entity)) goto fail;
-    if (!PeepingEye_CreatePupil(entity)) goto fail;
+    if (!EnemyPeepingEyeCreateEyeball(entity))
+    {
+        EntityDelete(entity);
+        return;
+    }
+    if (!PeepingEye_CreatePupil(entity))
+    {
+        EntityDelete(entity);
+        return;
+    }
     link = entity;
     reverse = RandomNumberGenerator() % 2;
     for (i = 0; i < 6; i++)
@@ -193,7 +205,6 @@ void EnemyPeepingEyeCreate(struct EwramData_EntityData *entity)
         }
         else
         {
-        fail:
             EntityDelete(entity);
             return;
         }

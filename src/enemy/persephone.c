@@ -42,10 +42,13 @@ void EnemyPersephoneUpdate(struct EwramData_EntityData *entity)
     if (EntityIsOutsideScreen(entity, 4)) entity->hidden = 1;
     else entity->hidden = 0;
     if (entity->state != 2) Enemy_UpdateHitFlash(entity);
-    if (Entity_IsTimeStopped(entity) && entity->state != 2) goto collision_only;
+    if (Entity_IsTimeStopped(entity) && entity->state != 2)
+    {
+        Hit_CheckWithPlayer(&result, entity);
+        return;
+    }
     if (entity->hitFlashTimer && entity->state != 3 && entity->state != 2)
     {
-collision_only:
         Hit_CheckWithPlayer(&result, entity);
         return;
     }
@@ -322,7 +325,8 @@ void Persephone_UpdateAttack(struct EwramData_EntityData *entity)
         {
             if (entity->timer > 1 || (s8)entity->ext.persephone.contactHit == 1)
                 goto land;
-            goto idle;
+            entity->subState = 0;
+            break;
         }
         if (*(u16 *)&entity->animStep == 3)
         {
@@ -344,7 +348,9 @@ void Persephone_UpdateAttack(struct EwramData_EntityData *entity)
             entity->state = found;
             entity->subState = 5;
             entity->timer = found;
-            goto move3;
+            entity->velY.whole = speed3;
+            entity->accelY.whole = 0x2800;
+            break;
         }
         r = Entity_ClampXToRoom(entity, 1);
         if (r)
@@ -352,14 +358,15 @@ void Persephone_UpdateAttack(struct EwramData_EntityData *entity)
             entity->state = 0;
             entity->subState = 5;
             do { entity->timer = 0; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
-            goto move3;
+            entity->velY.whole = speed3;
+            entity->accelY.whole = 0x2800;
+            break;
         }
         if (entity->timer++ <= 0x3B)
             break;
         entity->state = r;
         entity->subState = 6;
         entity->timer = r;
-    move3:
         entity->velY.whole = speed3;
         entity->accelY.whole = 0x2800;
         break;
@@ -396,7 +403,6 @@ void Persephone_UpdateAttack(struct EwramData_EntityData *entity)
                 Anim_StartIndexed(entity, 5, 0, 1);
                 break;
             }
-        idle:
             entity->subState = 0;
             break;
         }

@@ -322,14 +322,17 @@ void Object08Create(struct EwramData_EntityData *entity)
     struct BreakableBlockVariant *kind;
     struct BreakableBlockGraphics *graphics;
     u32 box;
-    if (entity->spawnParam1 != 0 && (gEwramData->gameState.gameFlagsTail[(entity->spawnParam1) >> 5] & (1 << ((entity->spawnParam1) & 31)))) goto fail;
+    if (entity->spawnParam1 != 0 && (gEwramData->gameState.gameFlagsTail[(entity->spawnParam1) >> 5] & (1 << ((entity->spawnParam1) & 31))))
+    {
+        EntityDelete(entity);
+        return;
+    }
     kind = &sBreakableBlockVariants[entity->spawnParam0];
     graphics = &sBreakableBlockGraphics[kind->graphicsIndex];
     entity->flipX = 0;
     entity->spriteLayer = kind->spriteLayer;
     if (!Entity_LoadGraphics(entity, graphics->graphics, graphics->palette, kind->paletteIndex, graphics->spriteSheet))
     {
-fail:
         EntityDelete(entity);
         return;
     }
@@ -681,11 +684,14 @@ void Object0CCreate(struct EwramData_EntityData *entity)
 void Object0DCreate(struct EwramData_EntityData *entity)
 {
     u16 slot;
-    if (!Entity_LoadGraphicsWide(entity, sObject0DGfx, sObject0DPalette, 0, sObject0DSpriteSheet)) goto remove;
+    if (!Entity_LoadGraphicsWide(entity, sObject0DGfx, sObject0DPalette, 0, sObject0DSpriteSheet))
+    {
+        EntityDelete(entity);
+        return;
+    }
     slot = ObjAffine_Alloc(1);
     if ((s16)slot < 0)
     {
-remove:
         EntityDelete(entity);
         return;
     }
@@ -723,19 +729,19 @@ void Object0DUpdate(struct EwramData_EntityData *entity)
     Player_QueueEntity(entity, 0);
     if (entity->subState == 0)
     {
-        if (gEwramData->playerState.standingPlatform != entity)
-            goto hit;
-        impulse = 0x100;
-        PlaySong(0x112);
-        if (gEwramData->playerState.player->posX.whole < entity->posX.whole)
-            impulse = -impulse;
-        entity->ext.object0D.speed = impulse;
-        entity->ext.object0D.amplitude = 0x100;
-        entity->subState = 1;
+        if (gEwramData->playerState.standingPlatform == entity)
+        {
+            impulse = 0x100;
+            PlaySong(0x112);
+            if (gEwramData->playerState.player->posX.whole < entity->posX.whole)
+                impulse = -impulse;
+            entity->ext.object0D.speed = impulse;
+            entity->ext.object0D.amplitude = 0x100;
+            entity->subState = 1;
+        }
     }
     else if (gEwramData->playerState.standingPlatform != entity)
         entity->subState = 0;
-hit:
     if ((u16)Hit_CheckWithPlayer(&result, entity) && (result.flags & 0x1A))
     {
         impulse = 0x100;

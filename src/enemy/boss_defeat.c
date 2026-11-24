@@ -127,7 +127,8 @@ void BossDefeatEffect_Update(struct EwramData_EntityData *entity)
                 }
                 entity->accelX.whole-=0x400;
                 timer=entity->timer;
-                goto tick;
+                entity->timer=timer-1;
+                break;
             }
             else
             {
@@ -214,7 +215,10 @@ void HeadhunterDefeatEffect_Update(struct EwramData_EntityData *entity)
         case 1:
             timer=entity->timer;
             if(timer!=0)
-                goto tick;
+            {
+                entity->timer=timer-1;
+                break;
+            }
             timer=96;
             goto advance;
         case 2:
@@ -242,7 +246,8 @@ void HeadhunterDefeatEffect_Update(struct EwramData_EntityData *entity)
                 }
                 entity->accelX.whole-=0x600;
                 timer=entity->timer;
-                goto tick;
+                entity->timer=timer-1;
+                break;
             }
             else
             {
@@ -259,11 +264,11 @@ advance:
             break;
         case 3:
             timer=entity->timer;
-            if(timer==0) goto finished;
-tick:
-            entity->timer=timer-1;
-            break;
-finished:
+            if(timer!=0)
+            {
+                entity->timer=timer-1;
+                break;
+            }
             RestoreEffectGraphics();
             EntityDelete(entity);
             return;
@@ -355,7 +360,8 @@ void ChaosDefeatEffect_Update(struct EwramData_EntityData *entity)
                 }
                 entity->accelX.whole-=0x600;
                 timer=entity->timer;
-                goto tick;
+                entity->timer=timer-1;
+                break;
             }
             else
             {

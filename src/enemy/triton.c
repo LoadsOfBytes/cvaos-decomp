@@ -68,7 +68,11 @@ void Triton_UpdateMove(struct EwramData_EntityData *entity)
         break;
     case 10:
         NEXT_STATE(entity) = 10;
-        if (entity->flipX != Entity_IsTargetRight(entity)) goto turn;
+        if (entity->flipX != Entity_IsTargetRight(entity))
+        {
+            entity->subState = 12;
+            break;
+        }
         range = 0x640000;
     check_range:
         if (Target_IsWithinDistance(entity, range) || Enemy_IsDamaged(entity)) entity->subState++;
@@ -76,7 +80,6 @@ void Triton_UpdateMove(struct EwramData_EntityData *entity)
     case 11:
         if (entity->flipX != Entity_IsTargetRight(entity))
         {
-        turn:
             entity->subState = 12;
             break;
         }

@@ -140,28 +140,29 @@ void EnemyLegionCreate(struct EwramData_EntityData *entity)
 
     if (entity->spawnParam0 != 0 && !gEwramData->gameState.bossRushMode
         && (gEwramData->gameState.bossEventFlags & 0x20))
-        goto delete;
+        { EntityDelete(entity); return; }
     entity->ext.legion.data.value = (s32)Heap_Alloc(0x1C);
     if (entity->ext.legion.data.value == 0)
-        goto delete;
+        { EntityDelete(entity); return; }
     if ((u8)Legion_LoadGraphics(entity) == 0)
     {
         if (entity->ext.legion.data.value != 0)
             Heap_Free((void *)entity->ext.legion.data.value);
-        goto delete;
+        EntityDelete(entity);
+        return;
     }
     Anim_Start(entity, (struct AnimScript *)sLegionAnimScript0, 2, 1);
     Anim_Update(entity);
     palette = ObjAffine_Alloc(1);
     if ((s16)palette < 0)
-        goto delete;
+        { EntityDelete(entity); return; }
     entity->affineIndex = palette;
     entity->affine = 1;
     ObjAffine_Set(0, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
     Enemy_ResetFromTemplate(entity);
     data = (struct LegionData *)entity->ext.legion.data.value;
     if (!Legion_CreateCorePart(entity, -0x180000, 0x180000, 2))
-        goto delete;
+        { EntityDelete(entity); return; }
     if (gEwramData->gameState.bestiaryPreview || entity->spawnParam0 == 0)
     {
         if (!Legion_CreateCorePart(entity, 0x170000, 0x180000, 10))
@@ -176,9 +177,9 @@ void EnemyLegionCreate(struct EwramData_EntityData *entity)
             goto delete;
     }
     if (!Legion_CreateCorePart(entity, 0x180000, -0x180000, 1))
-        goto delete;
+        { EntityDelete(entity); return; }
     if (!Legion_CreateCorePart(entity, -0x180000, -0x180000, 0))
-        goto delete;
+        { EntityDelete(entity); return; }
     frozen = *((u8 *)gEwramData + 0x8E) & 0x40;
     if (frozen)
     {
@@ -207,13 +208,13 @@ void EnemyLegionCreate(struct EwramData_EntityData *entity)
     }
     gEwramData->gameState.stateFlags |= 2;
     if (!Legion_CreateCorpse(entity, 0xA80000, 0x1BF0000, 2))
-        goto delete;
+        { EntityDelete(entity); return; }
     if (!Legion_CreateCorpse(entity, 0xD80000, 0x1BF0000, 0))
-        goto delete;
+        { EntityDelete(entity); return; }
     if (!Legion_CreateCorpse(entity, 0x1400000, 0x1BF0000, 1))
-        goto delete;
+        { EntityDelete(entity); return; }
     if (!Legion_CreateCorpse(entity, 0xBC0000, 0x1BF0000, 4))
-        goto delete;
+        { EntityDelete(entity); return; }
     if (!Legion_CreateCorpse(entity, 0x1190000, 0x1BF0000, 3))
     {
     delete:
@@ -1494,7 +1495,7 @@ struct EwramData_EntityData *Legion_CreateCorePart(struct EwramData_EntityData *
         if ((s16)palette < 0)
         {
             EntityDelete(part);
-            goto fail;
+            return NULL;
         }
         part->affineIndex = palette;
         part->affine = 1;
@@ -1645,7 +1646,8 @@ void LegionCorePart_Update(struct EwramData_EntityData *entity)
                         entity->animFrame = 3;
                         entity->posX.whole = owner->posX.whole + entity->ext.legionPart.offsetX;
                         entity->posY.whole = owner->posY.whole + entity->ext.legionPart.offsetY;
-                        goto draw;
+                        ObjAffine_SetBiased(0, entity->velX.whole, entity->velY.whole, entity->flipX, entity->flipY, entity->affineIndex);
+                        return;
                     }
                     break;
                 case 7:
@@ -1654,7 +1656,6 @@ void LegionCorePart_Update(struct EwramData_EntityData *entity)
             }
             entity->posX.whole = owner->posX.whole;
             entity->posY.whole = owner->posY.whole;
-        draw:
             ObjAffine_SetBiased(0, entity->velX.whole, entity->velY.whole, entity->flipX, entity->flipY, entity->affineIndex);
             return;
         }

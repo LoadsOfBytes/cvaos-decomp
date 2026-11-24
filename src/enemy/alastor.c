@@ -355,7 +355,8 @@ void Alastor_UpdateAttackSelection(struct EwramData_EntityData *entity)
                 part->subState=0;
                 entity->subState++;
             }
-            goto transform;
+            ObjAffine_Set(ANGLE(entity),0x10000,0x10000,entity->flipX,0,entity->affineIndex);
+            break;
         case 1:
             if(part->state==0)
                 entity->subState++;
@@ -371,14 +372,14 @@ void Alastor_UpdateAttackSelection(struct EwramData_EntityData *entity)
                 else
                     entity->subState++;
             }
-            goto transform;
+            ObjAffine_Set(ANGLE(entity),0x10000,0x10000,entity->flipX,0,entity->affineIndex);
+            break;
         case 3:
             target=0x4000;
             if(!(entity->ext.alastor.flags & 2))
                 target=0xC000;
             if(Angle_TurnTowards(&ANGLE(entity),(u16)ABS(STEP(entity)<<5),(u16)target))
                 entity->subState++;
-transform:
             ObjAffine_Set(ANGLE(entity),0x10000,0x10000,entity->flipX,0,entity->affineIndex);
             break;
         case 4:

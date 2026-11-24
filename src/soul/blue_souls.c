@@ -132,24 +132,26 @@ s32 BlueSoul_ShouldEnd(struct EwramData_EntityData *entity)
     if (rem == 0 && --ew->playerStatus.currentMP <= 0)
     {
         ew->playerStatus.currentMP = rem;
-        goto end;
+        BlueSoul_ReleaseActiveResources(entity);
+        return 1;
     }
     if (!(info->activationFlags & 2))
     {
-        if (gEwramData->inputData.playerHeldInput & gEwramData->playerStatus.guardianButton)
-            goto check;
-        goto end;
+        if (!(gEwramData->inputData.playerHeldInput & gEwramData->playerStatus.guardianButton))
+        {
+            BlueSoul_ReleaseActiveResources(entity);
+            return 1;
+        }
     }
     else if (entity->state != 0 && (gEwramData->inputData.playerNewInput & gEwramData->playerStatus.guardianButton))
         goto end;
-check:
     {
         u32 flags = gEwramData->gameState.stateFlags;
         if (flags & 0x100)
             goto keep;
         flags &= 1;
         if (!flags)
-            goto keep;
+            return 0;
     }
 end:
     BlueSoul_ReleaseActiveResources(entity);
@@ -721,11 +723,13 @@ void SkillGiantBatUse(struct EwramData_EntityData *entity)
     s32 a, s, c, vx, vy;
 
     if (BlueSoul_ShouldEnd(entity))
-        goto delete;
+    {
+        EntityDelete(entity);
+        return;
+    }
     if (PLAYER->ext.player.actionFlags & 0x010001A0)
     {
         BlueSoul_ReleaseActiveResources(entity);
-    delete:
         EntityDelete(entity);
         return;
     }
@@ -1014,7 +1018,11 @@ void SkillSkyFishUse(struct EwramData_EntityData *entity)
     {
     case 0:
         if (parent->ext.player.actionFlags & 0x82)
-            goto delete;
+        {
+            BlueSoul_ReleaseActiveResources(entity);
+            EntityDelete(entity);
+            return;
+        }
     {
         u8 *graphics = (u8 *)sSkillSkyFishGfx;
         u8 *palette = (u8 *)sSkillSkyFishPalette;
@@ -1375,7 +1383,11 @@ void SkillFinalGuardUse(struct EwramData_EntityData *entity)
             return;
         }
         if ((parent->ext.player.actionFlags & 0x1001A2) != 0x100000)
-            goto end;
+        {
+            BlueSoul_ReleaseActiveResources(entity);
+            EntityDelete(entity);
+            return;
+        }
     {
         u8 *graphics = sSkillFinalGuardGfx;
         u8 *palette = sSkillFinalGuardPalette;
@@ -1396,7 +1408,6 @@ void SkillFinalGuardUse(struct EwramData_EntityData *entity)
     default:
         if ((parent->ext.player.actionFlags & 0x1001A2) != 0x100000)
         {
-        end:
             BlueSoul_ReleaseActiveResources(entity);
             EntityDelete(entity);
             return;
@@ -1646,7 +1657,10 @@ void SkillDeathSickleUpdate(struct EwramData_EntityData *entity)
     case 0:
         slot = ObjAffine_Alloc(0);
         if ((s16)slot < 0)
-            goto end;
+        {
+            EndBlueSoul(entity);
+            return;
+        }
         entity->affineIndex = slot;
         entity->affine = 1;
     {
@@ -1716,7 +1730,6 @@ void SkillDeathSickleUpdate(struct EwramData_EntityData *entity)
         EntityAccelerateAndMove(entity, 0x80000);
         break;
     case 4:
-    end:
         EndBlueSoul(entity);
         return;
     }
@@ -1889,7 +1902,8 @@ void SkillCreakingSkullSegmentUpdate(struct EwramData_EntityData *entity)
         entity->ext.skillCreakingSkullSegment.unused = 0x200000;
         SKILL_CREAKING_SKULL_SEGMENT_ANGLE(entity) = angles[SKILL_CREAKING_SKULL_SEGMENT(entity)];
         entity->scrollWithBg = 1;
-        goto idle;
+        entity->state = 1;
+        break;
     case 2:
     {
         s16 delta;
@@ -1910,7 +1924,6 @@ void SkillCreakingSkullSegmentUpdate(struct EwramData_EntityData *entity)
             break;
         }
         SKILL_CREAKING_SKULL_SEGMENT_ANGLE(entity) = a;
-    idle:
         entity->state = 1;
         break;
     }
@@ -2062,7 +2075,12 @@ void SkillMedusaHeadUse(struct EwramData_EntityData *entity)
     s32 velocity;
     if (entity->state == 0)
     {
-        if ((parent->ext.player.actionFlags & 0x01008082) != 2) goto restore;
+        if ((parent->ext.player.actionFlags & 0x01008082) != 2)
+        {
+            BlueSoul_ReleaseActiveResources(entity);
+            EntityDelete(entity);
+            return;
+        }
         velocity = parent->velY.whole;
         entity->velY.whole = velocity;
         entity->accelY.whole = parent->accelY.whole;
@@ -2076,15 +2094,14 @@ void SkillMedusaHeadUse(struct EwramData_EntityData *entity)
     {
         parent->velY.whole = entity->velY.whole;
         parent->accelY.whole = entity->accelY.whole;
-        goto remove;
+        EntityDelete(entity);
+        return;
     }
     if ((parent->ext.player.actionFlags & 0x01008082) != 2)
     {
         parent->velY.whole = entity->velY.whole;
         parent->accelY.whole = entity->accelY.whole;
-restore:
         BlueSoul_ReleaseActiveResources(entity);
-remove:
         EntityDelete(entity);
         return;
     }

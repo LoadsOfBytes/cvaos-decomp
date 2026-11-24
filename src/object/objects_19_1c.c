@@ -542,7 +542,8 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
                 gEwramData->startPauseEnabled = 0;
                 entity->ext.savePoint.yesSelected = 1;
                 entity->subState = r;
-                goto next;
+                entity->state++;
+                break;
             }
             if (entity->timer == 3)
                 entity->subState = 0;
@@ -554,7 +555,8 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
         struct EwramData_EntityData *owner = OWNER(entity);
         ObjPalette_LoadRange(sSaveWarpRoomPalette, 4, 1, 0xE);
         owner->hidden = 0;
-        goto next;
+        entity->state++;
+        break;
     }
     case 2:
     {
@@ -592,11 +594,15 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
                     Text12_ClearRegion();
                     BgPalette_LoadRange(sSavePromptBgPalette, 0, 2, 0xD);
                     Text_SetBackgroundColor(2);
-                    goto reset;
+                    (*ew)->startPauseEnabled = 1;
+                    entity->timer = 0;
+                    entity->state = 0;
+                    break;
                 }
             }
             PlaySong(0xF0);
-            goto next;
+            entity->state++;
+            break;
         }
         if ((held & 0x10) && entity->ext.savePoint.yesSelected)
         {
@@ -619,7 +625,6 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
         owner->hidden = 1;
         Text12_ClearRegion();
     }
-    reset:
         (*ew)->startPauseEnabled = 1;
         entity->timer = 0;
         entity->state = 0;
@@ -642,7 +647,9 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
         }
         Bg_SetControlIfLevelAllows(3, 0x50, 0x3FBF);
         Bg_SetControlIfLevelAllows(3, 0x54, 0);
-        goto clear;
+        entity->timer = 0;
+        entity->state++;
+        break;
     }
     case 12:
         Bg_SetControlIfLevelAllows(3, 0x54, entity->timer >> 2);
@@ -653,9 +660,7 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
             entity->state++;
         }
         break;
-    clear:
         entity->timer = 0;
-    next:
         entity->state++;
         break;
     case 13:

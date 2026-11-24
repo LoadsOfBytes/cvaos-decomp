@@ -177,14 +177,17 @@ void Fleaman_UpdateMovement(struct EwramData_EntityData *entity)
             entity->velX.whole = 0x1A000;
             entity->velY.whole = -0x30000;
             entity->accelY.whole = 0x2800;
-            goto jump;
+            Anim_StartIndexed(entity, 3, 0, 1);
+            entity->ext.fleaman.anim = 3;
+            entity->animFlags |= 2;
+            st = 5;
+            break;
         case 11:
         case 12:
         case 13:
             entity->velX.whole = 0xD000;
             entity->velY.whole = -0x50000;
             entity->accelY.whole = 0x3C00;
-        jump:
             Anim_StartIndexed(entity, 3, 0, 1);
             entity->ext.fleaman.anim = 3;
             entity->animFlags |= 2;

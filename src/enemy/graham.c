@@ -525,12 +525,12 @@ void Graham_UpdateDefeatScene(struct EwramData_EntityData *entity)
                         {
 start_dialogue:
                             entity->stage++;
-                            goto mark_dialogue;
+                            FLAGS(entity)|=0x10;
+                            break;
                         }
                     }
                     entity->subState++;
                     entity->stage=inner;
-mark_dialogue:
                     FLAGS(entity)|=0x10;
                     break;
                 case 1:
@@ -1815,7 +1815,13 @@ void GrahamFirstForm_UpdateAttacks(struct EwramData_EntityData *entity)
             if(--entity->timer==255)
             {
                 remaining=entity->stage;
-                if(!remaining) goto finish_volley;
+                if(!remaining)
+                {
+                    entity->subState=8;
+                    entity->stage=remaining;
+                    entity->timer=32;
+                    break;
+                }
                 Graham_CreateShotPair(entity,0);
                 entity->timer=24;
                 entity->stage--;
@@ -1832,7 +1838,6 @@ void GrahamFirstForm_UpdateAttacks(struct EwramData_EntityData *entity)
                 remaining=entity->stage;
                 if(!remaining)
                 {
-finish_volley:
                     entity->subState=8;
                     entity->stage=remaining;
                     entity->timer=32;
@@ -2769,7 +2774,8 @@ void BossDefeat_EmitSweepParticlesUnused(struct EwramData_EntityData *entity)
                 }
                 entity->accelX.whole-=0x600;
                 timer=entity->timer;
-                goto tick;
+                entity->timer=timer-1;
+                break;
             }
             else
             {
@@ -2851,7 +2857,11 @@ void GrahamBreakup_Update(struct EwramData_EntityData *entity)
             entity->accelX.whole=0x20000;
             entity->state++;
         case 1:
-            if(entity->timer!=0) goto tick;
+            if(entity->timer!=0)
+            {
+                entity->timer--;
+                break;
+            }
             entity->timer=128;
             entity->state+=2;
             break;
@@ -2897,11 +2907,14 @@ void GrahamBreakup_Update(struct EwramData_EntityData *entity)
             break;
         }
         case 4:
-            if(entity->timer!=0) goto tick;
+            if(entity->timer!=0)
+            {
+                entity->timer--;
+                break;
+            }
             BossDefeat_RestoreEffectTiles();
             EntityDelete(entity);
             return;
-tick:
             entity->timer--;
             break;
     }

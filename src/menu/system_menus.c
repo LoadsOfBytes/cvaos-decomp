@@ -504,8 +504,8 @@ s32 ButtonConfigMenu_Update(struct EwramData_EntityData *page)
             MenuText_ClearAndPrint(0x353);
             page->ext.buttonConfigPage.error = 1;
             ret = 0;
-            goto end;
         }
+        else
         {
             s32 f = new & 4;
             choices = page->ext.buttonConfigPage.choices;
@@ -522,7 +522,6 @@ s32 ButtonConfigMenu_Update(struct EwramData_EntityData *page)
             }
         }
     }
-end:
     page->ext.buttonConfigPage.selection &= 3;
     choices[sButtonConfigChoiceSlots[page->ext.buttonConfigPage.selection]] &= 3;
     if (repeated || new)

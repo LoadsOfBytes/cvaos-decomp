@@ -592,15 +592,16 @@ void MermanShot_Update(struct EwramData_EntityData *entity)
     case 0:
         EntityMoveX(entity);
         if (!EntityIsOutsideScreen(entity, 1)) goto animate;
-        goto remove;
+        EntityDelete(entity);
+        return;
     case 1: break;
     case 2:
         Effect_SpawnRandom(entity->posX.whole, entity->posY.whole, 0xA0000, 0x40000, entity->spriteLayer);
         Effect_SpawnRandom(entity->posX.whole, entity->posY.whole, 0xA0000, 0x40000, entity->spriteLayer);
-        goto remove;
+        EntityDelete(entity);
+        return;
     }
     goto animate;
-remove:
     EntityDelete(entity);
     return;
 animate:

@@ -324,12 +324,15 @@ void ZombieSoldierGrenade_Update(struct EwramData_EntityData *entity)
         {
             entity->velY.whole = -entity->velY.whole;
             if (++entity->timer > 1)
-                goto land;
+            {
+                entity->state = 2;
+                PlaySong(0x76);
+                return;
+            }
             PlaySong(0x11B);
         }
         if (res & 8)
         {
-        land:
             entity->state = 2;
             PlaySong(0x76);
             return;
@@ -361,7 +364,8 @@ void ZombieSoldierGrenade_Update(struct EwramData_EntityData *entity)
         }
         if (entity->timer <= 6)
             return;
-        goto delete;
+        EntityDelete(entity);
+        return;
     }
     else if (entity->state == 2)
     {

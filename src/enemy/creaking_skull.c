@@ -86,27 +86,27 @@ void EnemyCreakingSkullUpdate(struct EwramData_EntityData *entity)
         if (entity->state != 2)
             Enemy_UpdateHitFlash(entity);
     }
-    if (Entity_IsTimeStopped(entity) && entity->state != 2)
-        goto boxes;
-    switch (entity->state)
+    if (!Entity_IsTimeStopped(entity) || entity->state == 2)
     {
-    case 0:
-        CreakingSkull_UpdateMovement(entity);
-        break;
-    case 1:
-        CreakingSkull_UpdateAttack(entity);
-        break;
-    case 2:
-        if ((s8)--entity->timer <= 0)
-            entity->deleteRequested = 1;
-        if (entity->deleteRequested && entity->ext.joint.parts != NULL)
-            Heap_Free(entity->ext.joint.parts);
-        return;
-    case 3:
-        CreakingSkull_UpdateBestiaryPreview(entity);
-        return;
+        switch (entity->state)
+        {
+        case 0:
+            CreakingSkull_UpdateMovement(entity);
+            break;
+        case 1:
+            CreakingSkull_UpdateAttack(entity);
+            break;
+        case 2:
+            if ((s8)--entity->timer <= 0)
+                entity->deleteRequested = 1;
+            if (entity->deleteRequested && entity->ext.joint.parts != NULL)
+                Heap_Free(entity->ext.joint.parts);
+            return;
+        case 3:
+            CreakingSkull_UpdateBestiaryPreview(entity);
+            return;
+        }
     }
-boxes:
     parts = (s32 *)entity->ext.joint.parts;
     if (entity->flipX)
         box.x = -TO_PIXELS(parts[5 * 12 + 0]) - 0x14;

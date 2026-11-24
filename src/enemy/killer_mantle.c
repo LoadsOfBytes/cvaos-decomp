@@ -366,10 +366,16 @@ void CockatriceFamilyPart_Update(struct EwramData_EntityData *entity)
     {
         case 0:
             if (!Entity_LoadGraphics(entity, sCockatriceFamilyGfx, sCockatriceFamilyPalette, parent->ext.cockatrice.paletteSlot, sCockatriceFamilySpriteSheet))
-                goto delete;
+            {
+                EntityDelete(entity);
+                return;
+            }
             slot = ObjAffine_Alloc(1);
             if ((s16)slot < 0)
-                goto delete;
+            {
+                EntityDelete(entity);
+                return;
+            }
             entity->affineIndex = slot;
             entity->affine = 1;
             entity->animFrame = 2;
@@ -391,7 +397,6 @@ void CockatriceFamilyPart_Update(struct EwramData_EntityData *entity)
             break;
         case 3:
             ObjAffine_Free(entity->affineIndex);
-        delete:
             EntityDelete(entity);
             return;
     }
@@ -426,13 +431,19 @@ void CockatriceFamilyAttack_Update(struct EwramData_EntityData *entity)
     {
         case 0:
             if (!Entity_LoadGraphics(entity, sCockatriceFamilyGfx, sCockatriceFamilyPalette, parent->ext.cockatrice.paletteSlot, sCockatriceFamilySpriteSheet))
-                goto delete;
+            {
+                EntityDelete(entity);
+                return;
+            }
             entity->animFrame = 1;
             entity->spriteLayer = parent->spriteLayer + 1;
             entity->drawFunc = CockatriceFamilyAttack_Draw;
             slot = ObjAffine_Alloc(1);
             if ((s16)slot < 0)
-                goto delete;
+            {
+                EntityDelete(entity);
+                return;
+            }
             entity->affineIndex = slot;
             entity->affine = 1;
             entity->ext.cockatriceBeam.length = 0x1000000;
@@ -466,7 +477,6 @@ void CockatriceFamilyAttack_Update(struct EwramData_EntityData *entity)
         case 2:
             Sound_StopTracked(0x65);
             ObjAffine_Free(entity->affineIndex);
-        delete:
             EntityDelete(entity);
             return;
     }
@@ -881,13 +891,15 @@ void DeathOverlay_Update(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *owner = &gEwramData->entityData[(u8)entity->ext.deathHelper.ownerIndex];
 
     if (owner->state == 7)
-        goto delete;
+    {
+        EntityDelete(entity);
+        return;
+    }
     switch (entity->state)
     {
     case 0:
         if (!Entity_LoadGraphics(entity, sDeathGfx, sDeathPalette, 0, sDeathSpriteSheet))
         {
-        delete:
             EntityDelete(entity);
             return;
         }

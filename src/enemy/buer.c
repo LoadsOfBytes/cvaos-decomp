@@ -125,7 +125,8 @@ void Buer_UpdateActive(struct EwramData_EntityData *entity)
                 entity->timer = zero;
                 if (!(RandomNumberGenerator() % 2))
                     entity->subState = 2;
-                goto restart;
+                entity->stage = zero;
+                return;
             }
             break;
         case 1:

@@ -1043,7 +1043,10 @@ struct EwramData_EntityData *TinyDevil_SpawnProjectile(struct EwramData_EntityDa
     if (child == NULL)
         return NULL;
     if (!Entity_LoadGraphics(child, graphics, palette, 1, sprite))
-        goto fail;
+    {
+        EntityDelete(child);
+        return NULL;
+    }
     child->scrollWithBg = 1;
     child->spriteLayer = entity->spriteLayer - 1;
     child->attack = entity->attack;
@@ -1063,7 +1066,6 @@ struct EwramData_EntityData *TinyDevil_SpawnProjectile(struct EwramData_EntityDa
     slot = ObjAffine_Alloc(1);
     if (slot < 0)
     {
-    fail:
         EntityDelete(child);
         return NULL;
     }

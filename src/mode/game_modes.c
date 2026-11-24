@@ -215,6 +215,9 @@ const u8 sDebugMenuSelectText[] = "Please select.\n";
 const u8 sDebugExitEmptyText[] = " ";
 const u8 sDebugExitCursorText[0x4] = ">";
 
+extern u32* GetRoomPointer(s32 area, s32 room);
+extern struct unk_08506B38 *sTextEntries[0xB4F];
+
 /**
  * @brief 2454 | Handle debug game mode
  * 
@@ -287,8 +290,6 @@ s32 GameModeDebugUpdate(void)
     }
     return gameMode;
 }
-
-extern u32* GetRoomPointer(s32 area, s32 room);
 
 /**
  * @brief 2588 | Handle exit debug game mode
@@ -609,8 +610,6 @@ s32 GameModeLicensedByNintendoUpdate(void)
 
     return gameMode;
 }
-
-extern struct unk_08506B38 *sTextEntries[0xB4F];
 
 /**
  * @brief 2C88 | Handle reset game mode
@@ -1329,7 +1328,7 @@ static inline TitleObject_LoadGraphics(u8 *ptr0, u8 *ptr1, struct EwramData_Enti
     {
         entity->basePalette = palette;
         Sprite_Attach(entity, ptr1, gfx, palette);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         loaded = entity->group = 1;
     }
     return loaded != none;
@@ -1349,7 +1348,7 @@ static inline TitleObject_LoadGraphicsAlt(u8 *ptr0, u8 *ptr1, struct EwramData_E
     {
         entity->basePalette = palette;
         Sprite_Attach(entity, ptr1, gfx, palette);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         loaded = entity->group = 1;
     }
     return loaded != 0;
@@ -1517,15 +1516,15 @@ void TitleScreen_CreateEffects(struct EwramData_EntityData *entity)
     ObjGfx_LoadResource((u8 *)&sTitleScreenGfx, 0);
     ObjGfx_LoadResource((u8 *)&sTitleFlashGfx, 0);
     ObjGfx_LoadResource((u8 *)&sTitleMenuGfx, 0);
-    entity->updateFunc = (u32 *) TitleScreenEffects_Update;
+    entity->updateFunc = TitleScreenEffects_Update;
     entity->group = 1;
-    child = EntityCreateInRange(0x49, 0xCF, (u32 *) TitleScreenSpiralSprite_Update);
+    child = EntityCreateInRange(0x49, 0xCF, TitleScreenSpiralSprite_Update);
     if (child != 0)
     {
         TitleScreenSpiralSprite_Init(child);
     }
 
-    for (i = 0; i < 0x22 && (child = EntityCreateInRange(0x49, 0xCF, (u32 *) TitleScreenParticle_Update)) != 0; i++)
+    for (i = 0; i < 0x22 && (child = EntityCreateInRange(0x49, 0xCF, TitleScreenParticle_Update)) != 0; i++)
     {
         child->posX.whole = (i * 0x3C3C3) + 0x380000 + (RandomSigned(0x10) << 0x10);
         child->posY.part16.integer = (RandomSigned(0x20) + 0x60);
@@ -1583,7 +1582,7 @@ void TitleScreen_SpawnFlash(s32 skipBlend, s32 scale, u16 spin)
     u8* tmp2;
     u8 loaded;
 
-    child = EntityCreateInRange(0x49, 0xCF, (u32 *) TitleScreenFlash_Update);
+    child = EntityCreateInRange(0x49, 0xCF, TitleScreenFlash_Update);
     if (child == 0)
         return;
 
@@ -1736,8 +1735,8 @@ void TitleScreenLogo_Create(struct EwramData_EntityData *entity)
     ObjPalette_LoadRange((u8 *)sTitleScreenLogoPalette, 3, 1, 5);
     ObjPalette_LoadRange((u8 *)sTitleScreenLogoPalette, 3, 1, 6);
     ObjPalette_LoadRange((u8 *)sTitleScreenLogoPalette, 3, 1, 7);
-    entity->updateFunc = (u32 *) TitleScreenLogo_Update;
-    entity->drawFunc = (u32 *) TitleScreenLogo_Draw;
+    entity->updateFunc = TitleScreenLogo_Update;
+    entity->drawFunc = TitleScreenLogo_Draw;
     entity->scrollWithBg = 1;
     entity->spriteLayer = 0x11;
     entity->ext.titleLogo.distance = 0x200000;
@@ -1955,8 +1954,8 @@ void TitleScreenMenu_Create(void)
     }
 
     menu->group = 0;
-    menu->updateFunc = (u32 *) TitleScreenMenu_Update;
-    menu->drawFunc = (u32 *) TitleScreenMenu_Draw;
+    menu->updateFunc = TitleScreenMenu_Update;
+    menu->drawFunc = TitleScreenMenu_Draw;
     menu->scrollWithBg = 1;
     menu->spriteLayer = 0x11;
     menu->posX.part16.integer = 0x78;
@@ -2020,8 +2019,8 @@ void TitleScreenFrame_Create(void)
     }
 
     frame->group = 0;
-    frame->updateFunc = (u32 *) EntityUpdateNothing;
-    frame->drawFunc = (u32 *) TitleScreenFrame_Draw;
+    frame->updateFunc = EntityUpdateNothing;
+    frame->drawFunc = TitleScreenFrame_Draw;
     frame->scrollWithBg = 1;
     frame->spriteLayer = 0x12;
     frame->posX.part16.integer = 0x78;

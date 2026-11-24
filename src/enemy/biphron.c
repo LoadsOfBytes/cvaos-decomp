@@ -16,15 +16,23 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "damage_numbers.h"
+
+extern s32 Target_IsInRect(s32, s32, s32, s32);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
+
+u8 Biphron_LoadGraphics(struct EwramData_EntityData *entity);
+void Biphron_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void Biphron_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+void Biphron_SpawnDebris(struct EwramData_EntityData *entity, s32 x, s32 y, s32 layer, s32 mode);
+void Biphron_ThrowShot(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY);
+void BiphronFlame_Update(struct EwramData_EntityData *entity);
+void BiphronShot_Update(struct EwramData_EntityData *entity);
+void BiphronShot_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
  *   EnemyBiphronCreate = EnemySkeletonKnightCreate */
-
-extern u8 Biphron_LoadGraphics(struct EwramData_EntityData *entity);
-extern void Biphron_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-void Biphron_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
 
 /**
  * @brief 99C5C | Same as EnemySkeletonKnightCreate.
@@ -45,17 +53,15 @@ void EnemyBiphronCreate(struct EwramData_EntityData *entity)
         return;
     }
     if (Anim_GetMaxBoxCount(entity) > 1)
-        Hit_EnableContact(entity, 8, Biphron_DamagePlayerOnContact, (s32)Biphron_OnHit);
+        Hit_EnableContact(entity, 8, Biphron_DamagePlayerOnContact, Biphron_OnHit);
     else
-        Hit_Enable(entity, 8, Biphron_DamagePlayerOnContact, (s32)Biphron_OnHit);
+        Hit_Enable(entity, 8, Biphron_DamagePlayerOnContact, Biphron_OnHit);
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
     entity->state = 0;
 }
 
 /* Walking motion with a delayed chance to begin the nearby-player action. */
-extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern s32 Target_IsInRect(s32, s32, s32, s32);
 void Biphron_UpdateWalk(struct EwramData_EntityData *entity)
 {
     switch (entity->subState)
@@ -88,8 +94,6 @@ void Biphron_UpdateWalk(struct EwramData_EntityData *entity)
         break;
     }
 }
-
-extern void Biphron_SpawnDebris(struct EwramData_EntityData *entity, s32 x, s32 y, s32 layer, s32 mode);
 
 #define FRAME(e) (*(u16 *)&(e)->animStep)
 
@@ -142,13 +146,6 @@ void Biphron_UpdateDeath(struct EwramData_EntityData *entity)
 /* animStep and animTimer read as one halfword (as in enemy/harpy.c). */
 #define FRAME_PAIR(e) (*(u16 *)&(e)->animStep)
 
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
-void Biphron_ThrowShot(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY);
-extern void BiphronFlame_Update(struct EwramData_EntityData *entity);
-extern void BiphronShot_Update(struct EwramData_EntityData *entity);
-void BiphronShot_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-
 /**
  * @brief 99ED8 | Attack: animation 1; at frame 4 spawn the projectile
  * (Biphron_ThrowShot) 0x1A px in front and play sound 0x78; when the
@@ -196,7 +193,7 @@ void Biphron_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
@@ -215,7 +212,7 @@ void Biphron_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
  */
 void Biphron_ThrowShot(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)BiphronShot_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, BiphronShot_Update);
     struct SpriteBox box = { -5, -14, 0x14, 0x0E };
     s32 gfx;
 
@@ -236,7 +233,7 @@ void Biphron_ThrowShot(struct EwramData_EntityData *entity, s32 offsetX, s32 off
         child->enemyId = entity->enemyId;
         child->attack = entity->attack;
         child->scrollWithBg = 1;
-        child->drawFunc = (u32 *)Sprite_DrawEntity;
+        child->drawFunc = Sprite_DrawEntity;
         child->flipX = entity->flipX;
         if (child->flipX)
             child->velX.whole = 0x20000;
@@ -253,7 +250,7 @@ void Biphron_ThrowShot(struct EwramData_EntityData *entity, s32 offsetX, s32 off
  */
 void BiphronShot_SpawnFlame(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)BiphronFlame_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, BiphronFlame_Update);
     s32 gfx;
 
     if (child != NULL)
@@ -270,7 +267,7 @@ void BiphronShot_SpawnFlame(struct EwramData_EntityData *entity, s32 offsetX, s3
         child->hit.flags |= 2;
         child->enemyId = entity->enemyId;
         child->scrollWithBg = 1;
-        child->drawFunc = (u32 *)Sprite_DrawEntity;
+        child->drawFunc = Sprite_DrawEntity;
         child->flipX = entity->flipX;
     }
 }
@@ -317,7 +314,6 @@ void BiphronFlame_Update(struct EwramData_EntityData *entity)
 }
 
 /* BiphronShot_Update (Biphron projectile update). */
-extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
 
 /**
  * @brief 9A29C | Projectile update: move (Entity_MoveWithCollisionDefault); delete when it
@@ -337,7 +333,7 @@ void BiphronShot_Update(struct EwramData_EntityData *entity)
     }
     else
     {
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         if (!(entity->timer++ & 3))
         {
             BiphronShot_SpawnFlame(entity, 0, 0);
@@ -368,7 +364,7 @@ void BiphronShot_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 
 void Biphron_SpawnDebris(struct EwramData_EntityData *parent, s32 x, s32 y, s32 layer, s32 mode)
 {
-    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateParticle);
+    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticle);
     if (effect != NULL)
     {
         s32 slot;
@@ -387,7 +383,7 @@ void Biphron_SpawnDebris(struct EwramData_EntityData *parent, s32 x, s32 y, s32 
         Anim_StartIndexed(effect, 4, 0, 0);
         Anim_Update(effect);
         effect->scrollWithBg = 1;
-        effect->drawFunc = (u32 *)Sprite_DrawEntity;
+        effect->drawFunc = Sprite_DrawEntity;
     }
 }
 
@@ -395,21 +391,6 @@ void Biphron_SpawnDebris(struct EwramData_EntityData *parent, s32 x, s32 y, s32 
  * a cloning script and checked byte for byte:
  *   Biphron_LoadGraphics = Object25_LoadGraphics
  *   Biphron_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
-
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
 
 /**
  * @brief 9A3D8 | Same as Object25_LoadGraphics.
@@ -422,7 +403,7 @@ u8 Biphron_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sBiphronPalette, 0);
     Sprite_Attach(entity, sBiphronSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 

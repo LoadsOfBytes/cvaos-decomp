@@ -14,10 +14,19 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "hitbox.h"
+#include "damage_numbers.h"
 
-extern void Une_UpdateGrow(struct EwramData_EntityData *entity);
-extern void Une_UpdateIdle(struct EwramData_EntityData *entity);
-extern s32 Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
+extern s32 Target_IsInRect(s16, s16, s16, s16);
+extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
+
+void Une_UpdateGrow(struct EwramData_EntityData *entity);
+void Une_UpdateIdle(struct EwramData_EntityData *entity);
+u8 Une_LoadGraphics(struct EwramData_EntityData *entity);
+void Une_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void Une_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
+void Une_SpawnDebris(s32, s32, s32, s32, s32);
+void UneDebris_Update(struct EwramData_EntityData *);
 
 /**
  * @brief 74130 | Une update: unless state 3 (waiting for its parent), the
@@ -49,7 +58,7 @@ void EnemyUneUpdate(struct EwramData_EntityData *entity)
     if (Enemy_IsStunned(entity))
     {
         if (entity->state != 2)
-            Hit_CheckWithPlayer(collision, entity);
+            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         return;
     }
     switch (entity->state)
@@ -83,11 +92,6 @@ void EnemyUneUpdate(struct EwramData_EntityData *entity)
     Entity_AnimateWithBoxes(entity);
     Enemy_CheckHitPlayer(entity);
 }
-
-u8 Une_LoadGraphics(struct EwramData_EntityData *entity);
-extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, void *onHurt);
-extern void Une_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-void Une_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 
 /**
  * @brief 7427C | Une create: deleted when Une_LoadGraphics fails; frozen time
@@ -126,7 +130,7 @@ void EnemyUneCreate(struct EwramData_EntityData *entity)
             entity->hidden = 1;
             entity->hit.flags |= 4;
             entity->hit.flags |= 2;
-            child = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
+            child = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
             if (child != NULL)
             {
                 child->posX.whole = entity->posX.whole;
@@ -136,7 +140,7 @@ void EnemyUneCreate(struct EwramData_EntityData *entity)
                 child->enemyId = entity->enemyId;
                 child->spawnParam0 = 0;
                 child->spawnParam1 = 0;
-                child->drawFunc = (u32 *)Sprite_DrawEntity;
+                child->drawFunc = Sprite_DrawEntity;
                 child->hp = sEnemyData[entity->enemyId].hp;
                 child->mp = sEnemyData[entity->enemyId].mp;
                 child->updateFunc = entity->updateFunc;
@@ -154,9 +158,6 @@ void EnemyUneCreate(struct EwramData_EntityData *entity)
 end:
     entity->accelY.whole = 0x2800;
 }
-
-extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern void Une_SpawnDebris(s32, s32, s32, s32, s32);
 
 /**
  * @brief 743B4 | Une spawner AI: falls/bounces until it lands (Entity_MoveWithPointCollision),
@@ -271,7 +272,7 @@ void Une_UpdateGrow(struct EwramData_EntityData *entity)
         if (entity->timer == 0xF)
         {
             parent = entity->ext.une.spawner;
-            child = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
+            child = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
             if (child != NULL)
             {
                 child->posX.whole = entity->posX.whole;
@@ -281,7 +282,7 @@ void Une_UpdateGrow(struct EwramData_EntityData *entity)
                 child->enemyId = entity->enemyId;
                 child->spawnParam0 = 0;
                 child->spawnParam1 = 0;
-                child->drawFunc = (u32 *)Sprite_DrawEntity;
+                child->drawFunc = Sprite_DrawEntity;
                 child->hp = sEnemyData[entity->enemyId].hp;
                 child->mp = sEnemyData[entity->enemyId].mp;
                 child->updateFunc = entity->updateFunc;
@@ -319,9 +320,6 @@ void Une_UpdateGrow(struct EwramData_EntityData *entity)
     }
 }
 
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-
 void Une_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     s32 damage = Player_CalculateAttackPower(hit[2]);
@@ -333,7 +331,7 @@ void Une_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData 
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
@@ -344,15 +342,13 @@ void Une_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData 
     }
 }
 
-extern void UneDebris_Update(struct EwramData_EntityData *);
-
 /**
  * @brief Spawn a debris particle (animation 4) at (x, y) moving with
  * (velocityX, velocityY) on layer.
  */
 void Une_SpawnDebris(s32 x, s32 y, s32 velocityX, s32 velocityY, s32 layer)
 {
-    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, (u32 *)UneDebris_Update);
+    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, UneDebris_Update);
     if (effect != NULL)
     {
         s32 slot;
@@ -367,7 +363,7 @@ void Une_SpawnDebris(s32 x, s32 y, s32 velocityX, s32 velocityY, s32 layer)
         Anim_StartIndexed(effect, 4, 0, 1);
         Anim_Update(effect);
         effect->scrollWithBg = 1;
-        effect->drawFunc = (u32 *)Sprite_DrawEntity;
+        effect->drawFunc = Sprite_DrawEntity;
     }
 }
 
@@ -390,8 +386,6 @@ void UneDebris_Update(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   Une_LoadGraphics = Object25_LoadGraphics */
 
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
 /**
  * @brief 74874 | Same as Object25_LoadGraphics.
  */
@@ -403,7 +397,7 @@ u8 Une_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sUnePalette, 0);
     Sprite_Attach(entity, sUneSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -424,19 +418,6 @@ void Une_UpdateIdle(struct EwramData_EntityData *entity)
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
  *   Une_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
-
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
 
 /**
  * @brief 748E4 | Same as Enemy_DamagePlayerOnContact.

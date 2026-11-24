@@ -14,12 +14,27 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "hitbox.h"
+#include "damage_numbers.h"
+#include "entity_motion.h"
+
+extern s32 Target_IsInRect(s16, s16, s32, s32);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s32);
+
+void Zombie_UpdateEmergingWalkingSinking(struct EwramData_EntityData *);
+void Zombie_UpdateStationaryAnimation(struct EwramData_EntityData *);
+void EnemyZombieCreate(struct EwramData_EntityData *);
+u8 Zombie_LoadGraphics(struct EwramData_EntityData *);
+void Zombie_DamagePlayerOnContact(struct EwramData_EntityData *);
+void Zombie_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
+void Zombie_SpawnFallingDebris(struct EwramData_EntityData *, s32, s32);
+void Zombie_SpawnTemporarySprite(struct EwramData_EntityData *, s32, s32);
+void Zombie_SpawnPiece(struct EwramData_EntityData *, s32, s32);
+void ZombiePiece_Update(struct EwramData_EntityData *);
+void ZombieDebris_Update(struct EwramData_EntityData *);
+void ZombieTemporarySprite_Update(struct EwramData_EntityData *);
 
 /* Update a Zombie or its controller that maintains a population of children. */
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void Zombie_UpdateEmergingWalkingSinking(struct EwramData_EntityData *);
-extern void Zombie_UpdateStationaryAnimation(struct EwramData_EntityData *);
-extern void EnemyZombieCreate(struct EwramData_EntityData *);
 void EnemyZombieUpdate(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
@@ -37,7 +52,7 @@ void EnemyZombieUpdate(struct EwramData_EntityData *entity)
     }
     if (Enemy_IsStunned(entity))
     {
-        if (entity->state != 1) Hit_CheckWithPlayer(collision, entity);
+        if (entity->state != 1) Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         return;
     }
     switch (entity->state)
@@ -63,7 +78,7 @@ void EnemyZombieUpdate(struct EwramData_EntityData *entity)
         if ((RandomNumberGenerator() & 31) == 0
             && (s32)entity->ext.zombieSpawner.childCount < entity->spawnParam0)
         {
-            struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
+            struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
             if (child)
             {
                 s32 distance;
@@ -79,7 +94,7 @@ void EnemyZombieUpdate(struct EwramData_EntityData *entity)
                 child->spawnIndex = 0;
                 child->enemyId = entity->enemyId;
                 child->spawnParam1 = 0;
-                child->drawFunc = (u32 *)Sprite_DrawEntity;
+                child->drawFunc = Sprite_DrawEntity;
                 child->hp = sEnemyData[entity->enemyId].hp;
                 child->mp = sEnemyData[entity->enemyId].mp;
                 child->updateFunc = entity->updateFunc;
@@ -103,11 +118,6 @@ void EnemyZombieUpdate(struct EwramData_EntityData *entity)
 }
 
 /* Initialize a Zombie or its hidden spawn controller. */
-extern u8 Zombie_LoadGraphics(struct EwramData_EntityData *);
-extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
-extern void Hit_Enable(struct EwramData_EntityData *, s32, void *, void *);
-extern void Zombie_DamagePlayerOnContact(struct EwramData_EntityData *);
-void Zombie_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 void EnemyZombieCreate(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *background = &gEwramData->bgInfo[1];
@@ -165,10 +175,6 @@ void EnemyZombieCreate(struct EwramData_EntityData *entity)
 /* Zombie_UpdateEmergingWalkingSinking: matched (timer accessed as a field, block-local hit for the two
    Target_IsInRect calls, u8 parameter of BeginSinking). */
 /* Zombie's emerging, walking and sinking states. */
-extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s16);
-extern s32 Target_IsInRect(s16, s16, s32, s32);
-extern void Zombie_SpawnFallingDebris(struct EwramData_EntityData *, s32, s32);
-extern void Zombie_SpawnTemporarySprite(struct EwramData_EntityData *, s32, s32);
 static inline void WalkVelocity(struct EwramData_EntityData *entity)
 {
     if (entity->flipX) entity->velX.whole = 0x20000;
@@ -335,11 +341,6 @@ void Zombie_UpdateStationaryAnimation(struct EwramData_EntityData *entity)
     }
 }
 
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s32);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s32, u8);
-
-extern void Zombie_SpawnPiece(struct EwramData_EntityData *, s32, s32);
-
 /* This inline step preserves the original order of the coordinate additions.
  * Combining it with the position expression changes constant reuse and registers. */
 static inline s32 Offset(s32 value, s32 delta)
@@ -392,9 +393,6 @@ void Zombie_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
 }
 
 /* Zombie debris and temporary effects. */
-extern void ZombiePiece_Update(struct EwramData_EntityData *);
-extern void ZombieDebris_Update(struct EwramData_EntityData *);
-extern void ZombieTemporarySprite_Update(struct EwramData_EntityData *);
 /**
  * @brief Create frame-13 debris at fixed-point x/y, inheriting facing, layer and palette; lifetime 30 ticks.
  */
@@ -414,7 +412,7 @@ void Zombie_SpawnFallingDebris(struct EwramData_EntityData *parent, s32 x, s32 y
         part->timer = 30;
         part->accelY.whole = 0xA00;
         part->scrollWithBg = 1;
-        part->drawFunc = (u32 *)Sprite_DrawEntity;
+        part->drawFunc = Sprite_DrawEntity;
     }
 }
 
@@ -425,7 +423,7 @@ void Zombie_SpawnFallingDebris(struct EwramData_EntityData *parent, s32 x, s32 y
  */
 void Zombie_SpawnPiece(struct EwramData_EntityData *parent, s32 x, s32 y)
 {
-    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, (u32 *)ZombiePiece_Update);
+    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, ZombiePiece_Update);
     if (part)
     {
         s32 graphics;
@@ -441,7 +439,7 @@ void Zombie_SpawnPiece(struct EwramData_EntityData *parent, s32 x, s32 y)
         part->velX.whole = (RandomNumberGenerator() & 0x1FFFF) - 0x10000;
         part->velY.whole = -0x10000 - (RandomNumberGenerator() & 0xFFFF);
         part->scrollWithBg = 1;
-        part->drawFunc = (u32 *)Sprite_DrawEntity;
+        part->drawFunc = Sprite_DrawEntity;
     }
 }
 
@@ -462,7 +460,7 @@ void ZombieDebris_Update(struct EwramData_EntityData *entity)
  */
 void Zombie_SpawnTemporarySprite(struct EwramData_EntityData *parent, s32 x, s32 y)
 {
-    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, (u32 *)ZombieTemporarySprite_Update);
+    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, ZombieTemporarySprite_Update);
     if (part)
     {
         s32 zero;
@@ -477,7 +475,7 @@ void Zombie_SpawnTemporarySprite(struct EwramData_EntityData *parent, s32 x, s32
         part->animFrame = zero;
         part->ext.zombieSprite.lifetime = 120;
         part->scrollWithBg = 1;
-        part->drawFunc = (u32 *)Sprite_DrawEntity;
+        part->drawFunc = Sprite_DrawEntity;
     }
 }
 
@@ -495,21 +493,6 @@ void ZombieTemporarySprite_Update(struct EwramData_EntityData *entity)
  *   ZombiePiece_Update = ZombieSoldierPiece_Update
  *   Zombie_LoadGraphics = Object25_LoadGraphics
  *   Zombie_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
-
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
 
 /**
  * @brief 7B3E4 | Same as ZombieSoldierPiece_Update.
@@ -532,7 +515,7 @@ u8 Zombie_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sZombiePalette, 0);
     Sprite_Attach(entity, sZombieSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 

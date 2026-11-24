@@ -24,11 +24,20 @@
 #include "data/data_118B48.h"
 #include "gba/memory.h"
 
-/* Ability soul page. */
+extern void HudMap_WriteTiles(s32 x, s32 y, s32 tile, s32 count);
+extern s32 MenuGrid_MoveCursor(struct EwramData_EntityData *page, s32 repeated);
+extern void *memcpy(void *dst, const void *src, unsigned long size);
 
 void AbilityMenu_PrintSelectedName(struct EwramData_EntityData *entity);
 void AbilityMenu_DrawMarkers(struct EwramData_EntityData *entity);
-extern void HudMap_WriteTiles(s32 x, s32 y, s32 tile, s32 count);
+void ButtonConfigMenu_Redraw(struct EwramData_EntityData *entity);
+void ButtonConfigMenu_DrawSprites(void *unusedMenu);
+void ButtonConfigMenu_DrawSprites(void *unusedMenu);
+void BestiaryMenu_Setup(struct EwramData_EntityData *page);
+void BestiaryMenu_Setup(struct EwramData_EntityData *page);
+void BestiaryMenu_UpdateList(struct EwramData_EntityData *page);
+
+/* Ability soul page. */
 
 /**
  * @brief 4BA18 | Open the ability soul page: frame, six rows of names
@@ -73,8 +82,6 @@ void AbilityMenu_Open(struct EwramData_EntityData *page)
     AbilityMenu_DrawMarkers(page);
 }
 
-
-extern s32 MenuGrid_MoveCursor(struct EwramData_EntityData *page, s32 repeated);
 
 /**
  * @brief 4BB40 | Ability soul page update: A toggles the selected ability
@@ -340,8 +347,6 @@ s32 SaveMenu_Update(struct EwramData_EntityData *page)
 }
 
 /* Open the button configuration page. */
-void ButtonConfigMenu_Redraw(struct EwramData_EntityData *entity);
-void ButtonConfigMenu_DrawSprites(void *unusedMenu);
 
 /**
  * @brief 4BF8C | Open the button configuration menu: find the choice index
@@ -409,8 +414,6 @@ struct Settings
     u8 pad_0[0x13C];
     u16 buttons[4];
 };
-
-void ButtonConfigMenu_DrawSprites(void *unusedMenu);
 
 /**
  * @brief 4C05C | Button configuration page update: B or start (0xA) confirm the
@@ -534,12 +537,6 @@ end:
     return ret;
 }
 
-static inline void MoveText(s32 n)
-{
-    gEwramData->text8ColumnPixelOffset += n;
-    gEwramData->text8PixelX += n;
-}
-
 /**
  * @brief 4C264 | Draw the button configuration page: the four action
  * labels (texts 0x80..0x87) and the button currently assigned to each.
@@ -624,10 +621,6 @@ void ButtonConfig_ResetDefaults(void)
 #define BACKUP_SLOT(i) (*(s32 *)((u8 *)gEwramData + 0x1340C + (i) * 4))
 #define BACKUP_VARIANT(i) ((u8 *)gEwramData + 0x13420 + (i) * 2)
 
-extern void *memcpy(void *dst, const void *src, unsigned long size);
-
-void BestiaryMenu_Setup(struct EwramData_EntityData *page);
-
 /**
  * @brief Open the bestiary page: back up the palette slots, load the page
  * graphics (per language) and reset the page state.
@@ -671,10 +664,6 @@ void BestiaryMenu_Open(struct EwramData_EntityData *page)
     BestiaryMenu_Setup(page);
 }
 
-
-void BestiaryMenu_Setup(struct EwramData_EntityData *page);
-
-void BestiaryMenu_UpdateList(struct EwramData_EntityData *page);
 
 /**
  * @brief Bestiary page state machine (fades between the list,

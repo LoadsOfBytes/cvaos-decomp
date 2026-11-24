@@ -16,16 +16,34 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "damage_numbers.h"
+
+extern u16 ArcTan2(s32 x, s32 y);
+extern s32 Target_IsInRect(s16,s16,s16,s16);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *,struct EwramData_EntityData *,u16 *,s32);
+
+void WhiteDragon_UpdateIdle(struct EwramData_EntityData *);
+void WhiteDragon_UpdateAttack(struct EwramData_EntityData *);
+void WhiteDragon_UpdateRecoil(struct EwramData_EntityData *);
+void WhiteDragon_UpdateDeath(struct EwramData_EntityData *);
+void WhiteDragon_SpawnDeathPiece(struct EwramData_EntityData *,s32,s32,s32);
+void WhiteDragon_SpawnSpark(struct EwramData_EntityData *,s32,s32,s32);
+u8 WhiteDragon_LoadGraphics(struct EwramData_EntityData *);
+void WhiteDragonSegment_Update(struct EwramData_EntityData *);
+void WhiteDragonSegment_Draw(struct EwramData_EntityData *);
+void WhiteDragon_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void WhiteDragon_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *info);
+void WhiteDragon_SpawnChargeParticle(struct EwramData_EntityData *,s32,s32);
+void WhiteDragon_SpawnBreath(struct EwramData_EntityData *);
+void WhiteDragonBreath_Update(struct EwramData_EntityData *);
+u8 WhiteDragonBreath_LoadGraphics(struct EwramData_EntityData *,struct EwramData_EntityData *);
+void WhiteDragonBreath_EnableHitBoxes(struct EwramData_EntityData *);
+void WhiteDragonBreath_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void WhiteDragonSpark_Update(struct EwramData_EntityData *);
+void WhiteDragonChargeParticle_Update(struct EwramData_EntityData *);
+void WhiteDragonPiece_Update(struct EwramData_EntityData *);
 
 /* White Dragon dispatch, collision gating and delayed death cleanup. */
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern void Hit_CheckWithPlayer(void *,struct EwramData_EntityData *);
-extern void WhiteDragon_UpdateIdle(struct EwramData_EntityData *);
-extern void WhiteDragon_UpdateAttack(struct EwramData_EntityData *);
-extern void WhiteDragon_UpdateRecoil(struct EwramData_EntityData *);
-extern void WhiteDragon_UpdateDeath(struct EwramData_EntityData *);
-extern void WhiteDragon_SpawnDeathPiece(struct EwramData_EntityData *,s32,s32,s32);
-extern void WhiteDragon_SpawnSpark(struct EwramData_EntityData *,s32,s32,s32);
 void EnemyWhiteDragonUpdate(struct EwramData_EntityData *entity)
 {
     s32 bounds[4];
@@ -41,7 +59,7 @@ void EnemyWhiteDragonUpdate(struct EwramData_EntityData *entity)
     if(entity->hitFlashTimer && entity->state!=3 && entity->state!=2)
     {
 collision:
-        Hit_CheckWithPlayer(bounds,entity);
+        Hit_CheckWithPlayer((struct HitResult *)bounds,entity);
         return;
     }
     switch(entity->state)
@@ -84,11 +102,6 @@ collision:
 }
 
 /* Allocate a 100-halfword motion history and link ten body segments. */
-extern u8 WhiteDragon_LoadGraphics(struct EwramData_EntityData *);
-extern void WhiteDragonSegment_Update(struct EwramData_EntityData *);
-extern void WhiteDragonSegment_Draw(struct EwramData_EntityData *);
-void WhiteDragon_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-void WhiteDragon_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *info);
 static inline void StoreRate(s32 value,u16 *destination) { *destination=value; }
 void EnemyWhiteDragonCreate(struct EwramData_EntityData *entity)
 {
@@ -139,7 +152,7 @@ void EnemyWhiteDragonCreate(struct EwramData_EntityData *entity)
         part->enemyId=entity->enemyId;
         part->basePalette=*palette;
         part->scrollWithBg=0;
-        part->drawFunc=(u32 *)WhiteDragonSegment_Draw;
+        part->drawFunc=WhiteDragonSegment_Draw;
         ENTITY_OWNER(part)=entity;
         part->ext.whiteDragonSegment.prev=previous;
         part->ext.whiteDragonSegment.index=index;
@@ -160,17 +173,13 @@ fail:
     EntityDelete(entity);
     return;
 normal:
-    Hit_Enable(entity,8,WhiteDragon_DamagePlayerOnContact,(s32)WhiteDragon_OnHit);
+    Hit_Enable(entity,8,WhiteDragon_DamagePlayerOnContact, WhiteDragon_OnHit);
     HitBox_SetBody(entity,&box);
     HitBox_SetAttack(entity,&box);
     entity->state=demo;
 }
 
 /* Idle oscillation, target detection and selection of the attack sequence. */
-extern u16 ArcTan2(s32 x, s32 y);
-extern s32 Target_IsInRect(s16,s16,s16,s16);
-extern s32 Target_GetPixelX(struct EwramData_EntityData *);
-extern s32 Target_GetPixelY(struct EwramData_EntityData *);
 /**
  * @brief Idle state (state 0, also the bestiary preview state 4): sway the head on
  * its neck path, record the position history for the neck segments and
@@ -275,8 +284,6 @@ void WhiteDragon_UpdateIdle(struct EwramData_EntityData *entity)
 
 /* Segmented boss head: aim at the target point while the body history shifts,
  * charge, then fire a straight (10-12) or sweeping (20-22) volley. */
-extern void WhiteDragon_SpawnChargeParticle(struct EwramData_EntityData *,s32,s32);
-extern void WhiteDragon_SpawnBreath(struct EwramData_EntityData *);
 
 #define RADIUS(e) ((e)->velY.part16.integer)
 #define SPIN_SPEED(e) ((e)->velY.part16.fraction)
@@ -557,8 +564,6 @@ void WhiteDragonSegment_Draw(struct EwramData_EntityData *entity)
 }
 
 /* Apply damage and choose full destruction or a short reaction to selected attacks. */
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *,struct EwramData_EntityData *,u16 *,s32);
-extern void Entity_ShowDamage(struct EwramData_EntityData *,s32,s32);
 void WhiteDragon_OnHit(struct EwramData_EntityData *entity,struct EwramData_EntityData *attacker,u16 *info)
 {
     s32 power=Player_CalculateAttackPower(info[2]);
@@ -635,16 +640,13 @@ void WhiteDragonSegment_Update(struct EwramData_EntityData *entity)
 }
 
 /* Spawn a projectile along the head's current direction. */
-extern void WhiteDragonBreath_Update(struct EwramData_EntityData *);
-extern u8 WhiteDragonBreath_LoadGraphics(struct EwramData_EntityData *,struct EwramData_EntityData *);
-extern void WhiteDragonBreath_EnableHitBoxes(struct EwramData_EntityData *);
 /**
  * @brief Spawn a breath fireball from the head in its aim direction (sound 0x77
  * at the caller).
  */
 void WhiteDragon_SpawnBreath(struct EwramData_EntityData *owner)
 {
-    struct EwramData_EntityData *projectile=EntityCreateInRange(0x1B,0x48,(u32 *)WhiteDragonBreath_Update);
+    struct EwramData_EntityData *projectile=EntityCreateInRange(0x1B,0x48,WhiteDragonBreath_Update);
     if(projectile)
     {
         s16 *direction;
@@ -733,7 +735,7 @@ set_boxes:
                 entity->animFrame++;
             }
 collision:
-            Hit_CheckWithPlayer(bounds,entity);
+            Hit_CheckWithPlayer((struct HitResult *)bounds,entity);
             break;
         case 4:
             if(entity->timer++>3)
@@ -743,7 +745,6 @@ collision:
 }
 
 /* WhiteDragonBreath_EnableHitBoxes (hit boxes). */
-extern void WhiteDragonBreath_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 
 /**
  * @brief 777B0 | Activate box slot 8 with WhiteDragonBreath_DamagePlayerOnContact and set both boxes to
@@ -762,7 +763,6 @@ void WhiteDragonBreath_EnableHitBoxes(struct EwramData_EntityData *entity)
 }
 
 /* Short lived sparks emitted by the linked body. */
-extern void WhiteDragonSpark_Update(struct EwramData_EntityData *);
 /**
  * @brief Spawn a short spark at (x, y) on layer, randomly flipped
  * (WhiteDragonSpark_Update, 9 frames).
@@ -770,7 +770,7 @@ extern void WhiteDragonSpark_Update(struct EwramData_EntityData *);
 void WhiteDragon_SpawnSpark(struct EwramData_EntityData *owner,s32 x,s32 y,s32 layer)
 {
     s32 graphics;
-    struct EwramData_EntityData *effect=EntityCreateInRange(0x49,0xCF,(u32 *)WhiteDragonSpark_Update);
+    struct EwramData_EntityData *effect=EntityCreateInRange(0x49,0xCF,WhiteDragonSpark_Update);
     if(effect)
     {
         effect->posX.whole=x;
@@ -786,12 +786,11 @@ void WhiteDragon_SpawnSpark(struct EwramData_EntityData *owner,s32 x,s32 y,s32 l
             effect->posX.part16.integer-=RandomNumberGenerator()%6;
         effect->posY.part16.integer+=RandomNumberGenerator()%6-3;
         effect->scrollWithBg=1;
-        effect->drawFunc=(u32 *)Sprite_DrawEntity;
+        effect->drawFunc=Sprite_DrawEntity;
     }
 }
 
 /* Create a spark that converges on a camera independent target. */
-extern void WhiteDragonChargeParticle_Update(struct EwramData_EntityData *);
 /**
  * @brief Spawn a charge particle near (x, y) that converges on the mouth over 8
  * frames before the breath (WhiteDragonChargeParticle_Update).
@@ -799,7 +798,7 @@ extern void WhiteDragonChargeParticle_Update(struct EwramData_EntityData *);
 void WhiteDragon_SpawnChargeParticle(struct EwramData_EntityData *owner,s32 x,s32 y)
 {
     s32 graphics;
-    struct EwramData_EntityData *effect=EntityCreateInRange(0x49,0xCF,(u32 *)WhiteDragonChargeParticle_Update);
+    struct EwramData_EntityData *effect=EntityCreateInRange(0x49,0xCF,WhiteDragonChargeParticle_Update);
     struct BgLayerState *camera=&gEwramData->bgInfo[1];
     if(effect)
     {
@@ -818,7 +817,7 @@ void WhiteDragon_SpawnChargeParticle(struct EwramData_EntityData *owner,s32 x,s3
         effect->ext.whiteDragonCharge.targetX=owner->posX.part16.integer+camera->xPos.part16.integer;
         effect->ext.whiteDragonCharge.targetY=owner->posY.part16.integer+camera->yPos.part16.integer;
         effect->scrollWithBg=1;
-        effect->drawFunc=(u32 *)Sprite_DrawEntity;
+        effect->drawFunc=Sprite_DrawEntity;
     }
 }
 
@@ -840,14 +839,13 @@ void WhiteDragonChargeParticle_Update(struct EwramData_EntityData *entity)
 }
 
 /* Falling debris released by a body segment. */
-extern void WhiteDragonPiece_Update(struct EwramData_EntityData *);
 /**
  * @brief Spawn a falling death piece (frame) at (x, y) facing like owner
  * (WhiteDragonPiece_Update).
  */
 void WhiteDragon_SpawnDeathPiece(struct EwramData_EntityData *owner,s32 x,s32 y,s32 frame)
 {
-    struct EwramData_EntityData *effect=EntityCreateInRange(0x49,0xCF,(u32 *)WhiteDragonPiece_Update);
+    struct EwramData_EntityData *effect=EntityCreateInRange(0x49,0xCF,WhiteDragonPiece_Update);
     if(effect)
     {
         s32 graphics;
@@ -864,12 +862,11 @@ void WhiteDragon_SpawnDeathPiece(struct EwramData_EntityData *owner,s32 x,s32 y,
         effect->accelY.whole=0x1000;
         effect->timer=44;
         effect->scrollWithBg=1;
-        effect->drawFunc=(u32 *)Sprite_DrawEntity;
+        effect->drawFunc=Sprite_DrawEntity;
     }
 }
 
 /* White Dragon helpers 0x08077B3C..0x08077CBB (graphics shared with Quezlcoatl). */
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 /**
  * @brief 77B3C | Give projectile the White Dragon / Quezlcoatl graphics (palette row of
@@ -883,7 +880,7 @@ u8 WhiteDragonBreath_LoadGraphics(struct EwramData_EntityData *entity, struct Ew
         return 0;
     Sprite_Attach(projectile, sQuezlcoatlWhiteDragonSpriteSheet, gfx, entity->basePalette);
     projectile->animFrame = 5;
-    projectile->drawFunc = (u32 *)Sprite_DrawEntity;
+    projectile->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -937,7 +934,7 @@ u8 WhiteDragon_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sQuezlcoatlWhiteDragonPalette, 0);
     Sprite_Attach(entity, sQuezlcoatlWhiteDragonSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)WhiteDragon_Draw;
+    entity->drawFunc = WhiteDragon_Draw;
     return 1;
 }
 

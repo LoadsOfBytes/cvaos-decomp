@@ -20,16 +20,15 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 
-/* Chronomage affine casting effect. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
-extern void Enemy_OnContact(struct EwramData_EntityData *);
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void Chronomage_UpdateWait(struct EwramData_EntityData *);
-extern void Chronomage_UpdateCast(struct EwramData_EntityData *);
-extern void Chronomage_UpdateEscape(struct EwramData_EntityData *);
-extern void Chronomage_UpdateBestiaryPreview(struct EwramData_EntityData *);
-extern void Chronomage_OnHit(struct EwramData_EntityData *);
+
+void Chronomage_UpdateWait(struct EwramData_EntityData *);
+void Chronomage_UpdateCast(struct EwramData_EntityData *);
+void Chronomage_UpdateEscape(struct EwramData_EntityData *);
+void Chronomage_UpdateBestiaryPreview(struct EwramData_EntityData *);
+void Chronomage_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+
+/* Chronomage affine casting effect. */
 
 /**
  * @brief Allocate an affine sprite, grow its scale, hold for 32 updates, then
@@ -171,7 +170,7 @@ menu:
     case 6:
         gEwramData->paletteInvert = 1;
         if (!(entity->animFlags & 4)) break;
-        effect = EntityCreateInRange(0x49, 0xCF, (u32 *)ChronomageCastEffect_Update);
+        effect = EntityCreateInRange(0x49, 0xCF, ChronomageCastEffect_Update);
         if (effect != NULL)
         {
             effect->posX.part16.integer = entity->posX.part16.integer;
@@ -276,7 +275,7 @@ void EnemyChronomageCreate(struct EwramData_EntityData *entity)
     if (gEwramData->gameState.bestiaryPreview) entity->state = 4;
     else
     {
-        Hit_Enable(entity, 8, Enemy_OnContact, (s32)Chronomage_OnHit);
+        Hit_Enable(entity, 8, Enemy_OnContact, Chronomage_OnHit);
         HitBox_SetBodyRaw(entity, 0x2008E0FC);
         HitBox_SetAttackRaw(entity, 0x2008E0FC);
         entity->hit.flags |= 4;
@@ -327,7 +326,7 @@ alive:
         Chronomage_UpdateBestiaryPreview(entity);
         return;
     }
-    if (entity->state != 3) Hit_CheckWithPlayer(box, entity);
+    if (entity->state != 3) Hit_CheckWithPlayer((struct HitResult *)box, entity);
     Anim_Update(entity);
 }
 
@@ -335,15 +334,13 @@ alive:
  * a cloning script and checked byte for byte:
  *   Chronomage_OnHit = SkullMillioneFamily_OnHit */
 
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
-
 /**
  * @brief Apply enemy damage; on defeat drop rewards, restore the palette
  * and enter death state 3 with the substate counters reset.
  */
-void Chronomage_OnHit(struct EwramData_EntityData *entity)
+void Chronomage_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    if (Enemy_TakeDamage(entity))
+    if (Enemy_TakeDamage(entity, attacker, hit))
     {
         Enemy_DropRewards(entity);
         entity->palette = entity->basePalette;

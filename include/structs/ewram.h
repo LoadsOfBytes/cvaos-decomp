@@ -2,6 +2,7 @@
 #define EWRAM_STRUCTS_H
 
 #include "types.h"
+#include "structs/entity_func.h"
 
 struct InputData {
     /* 0x00014 */ u16 heldInput;
@@ -846,8 +847,8 @@ union EntityWork {
  * common block 0x510..0x51F holds palette, spawn and enemy data.
  */
 struct EwramData_EntityData {
-    /* 0x004E4 */ u32 *updateFunc; // TODO: function signature
-    /* 0x004E8 */ u32 *drawFunc; // TODO: function signature
+    /* 0x004E4 */ EntityFunc updateFunc;
+    /* 0x004E8 */ EntityFunc drawFunc;
     /* 0x004EC */ u8 drawNext; /* next entity in the draw list */
     /* 0x004ED */ u8 drawPrev;
     /* 0x004EE */ u8 state; /* main state of the update function */

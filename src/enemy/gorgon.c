@@ -17,13 +17,24 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "damage_numbers.h"
+#include "entity_motion.h"
+
+extern s32 Target_IsInRect(s16, s16, s32, s32);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
+
+void Gorgon_UpdateWalk(struct EwramData_EntityData *);
+void Gorgon_UpdateAttack(struct EwramData_EntityData *);
+void Gorgon_SpawnDeathPieces(struct EwramData_EntityData *);
+u8 Gorgon_LoadGraphics(struct EwramData_EntityData *);
+void Gorgon_DamagePlayerOnContact(struct EwramData_EntityData *);
+void Gorgon_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
+void GorgonBreath_Spawn(struct EwramData_EntityData *, s32, s32, s32, s32);
+void GorgonBreath_Update(struct EwramData_EntityData *);
+void GorgonBreath_DamagePlayerOnContact(struct EwramData_EntityData *);
+void GorgonPiece_Update(struct EwramData_EntityData *);
 
 /* Dispatch Gorgon/Catoblepas states and support an overridden single frame. */
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern void Gorgon_UpdateWalk(struct EwramData_EntityData *);
-extern void Gorgon_UpdateAttack(struct EwramData_EntityData *);
-extern void Gorgon_SpawnDeathPieces(struct EwramData_EntityData *);
 void EnemyGorgonUpdate(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
@@ -43,7 +54,7 @@ void EnemyGorgonUpdate(struct EwramData_EntityData *entity)
         entity->velX.whole = 0;
         if (entity->state != 2)
         {
-            Hit_CheckWithPlayer(collision, entity);
+            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
             return;
         }
     }
@@ -91,10 +102,6 @@ void EnemyGorgonUpdate(struct EwramData_EntityData *entity)
 }
 
 /* Initialize the shared Gorgon/Catoblepas body and its collision callbacks. */
-extern u8 Gorgon_LoadGraphics(struct EwramData_EntityData *);
-extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
-extern void Gorgon_DamagePlayerOnContact(struct EwramData_EntityData *);
-void Gorgon_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 void EnemyGorgonCreate(struct EwramData_EntityData *entity)
 {
     if (!Gorgon_LoadGraphics(entity))
@@ -112,7 +119,7 @@ void EnemyGorgonCreate(struct EwramData_EntityData *entity)
         if (Anim_GetMaxBoxCount(entity) > 1)
             Hit_EnableContact(entity, 8, Gorgon_DamagePlayerOnContact, Gorgon_OnHit);
         else
-            Hit_Enable(entity, 8, Gorgon_DamagePlayerOnContact, (s32)Gorgon_OnHit);
+            Hit_Enable(entity, 8, Gorgon_DamagePlayerOnContact, Gorgon_OnHit);
         Entity_UpdateBoxes(entity);
         Entity_SnapToGround(entity);
         entity->state = 0;
@@ -120,8 +127,6 @@ void EnemyGorgonCreate(struct EwramData_EntityData *entity)
 }
 
 /* Ground activation, timed gait, turning and backward retreat. */
-extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s16);
-extern s32 Target_IsInRect(s16, s16, s32, s32);
 #define GAIT(e) (e->ext.gorgon.gait)
 #define FRAME(e) ((e)->ext.gorgon.forcedFrame)
 #define CLOCK(e) (e->ext.gorgon.clock)
@@ -298,7 +303,6 @@ void Gorgon_UpdateWalk(struct EwramData_EntityData *entity)
 }
 
 /* Sweep the attack direction while emitting effects on alternate frames. */
-extern void GorgonBreath_Spawn(struct EwramData_EntityData *, s32, s32, s32, s32);
 /**
  * @brief Attack state machine (state 1): play animation 2 and, from its first step
  * on, emit breath puffs (GorgonBreath_Spawn) for the attack duration, then
@@ -371,8 +375,6 @@ void Gorgon_UpdateAttack(struct EwramData_EntityData *entity)
 }
 
 /* Apply damage and signal a hit to the body's current behavior. */
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s32, s32);
 /**
  * @brief Hit: resolve the damage, flash (hitFlashTimer = 8), subtract it from the HP and
  * show it, mark the Gorgon as hit (unk_500 = 1); at HP <= 0 drop the
@@ -403,15 +405,13 @@ void Gorgon_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
 }
 
 /* Create a hit effect relative to the body with supplied initial velocity. */
-extern void GorgonBreath_Update(struct EwramData_EntityData *);
-extern void GorgonBreath_DamagePlayerOnContact(struct EwramData_EntityData *);
 /**
  * @brief Spawn a breath puff at offset (x, y) from parent moving with (vx, vy);
  * contact damage GorgonBreath_DamagePlayerOnContact (attribute 0x100).
  */
 void GorgonBreath_Spawn(struct EwramData_EntityData *parent, s32 x, s32 y, s32 vx, s32 vy)
 {
-    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, (u32 *)GorgonBreath_Update);
+    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, GorgonBreath_Update);
     struct SpriteBox box = {-4, -4, 8, 8};
     if (part)
     {
@@ -432,7 +432,7 @@ void GorgonBreath_Spawn(struct EwramData_EntityData *parent, s32 x, s32 y, s32 v
         part->attack = parent->attack;
         ENTITY_OWNER(part) = parent;
         part->scrollWithBg = 1;
-        part->drawFunc = (u32 *)Sprite_DrawEntity;
+        part->drawFunc = Sprite_DrawEntity;
         part->timer = 10;
     }
 }
@@ -466,12 +466,11 @@ void GorgonBreath_Update(struct EwramData_EntityData *entity)
     else
     {
         entity->hidden = Entity_GetVisibilityPattern(entity->timer);
-        if (entity->timer & 1) Hit_CheckWithPlayer(collision, entity);
+        if (entity->timer & 1) Hit_CheckWithPlayer((struct HitResult *)collision, entity);
     }
 }
 
 /* Release six pieces with distinct frames and randomized horizontal velocities. */
-extern void GorgonPiece_Update(struct EwramData_EntityData *);
 /**
  * @brief Spawn the six body pieces (frames 17..22) that drop away when the Gorgon
  * dies, with a random horizontal speed and lifetime 40..55 frames.
@@ -481,7 +480,7 @@ void Gorgon_SpawnDeathPieces(struct EwramData_EntityData *parent)
     s32 index;
     for (index = 5; index >= 0; index--)
     {
-        struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, (u32 *)GorgonPiece_Update);
+        struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, GorgonPiece_Update);
         if (part)
         {
             s32 graphics;
@@ -497,7 +496,7 @@ void Gorgon_SpawnDeathPieces(struct EwramData_EntityData *parent)
             part->animFrame = index + 17;
             part->flipX = parent->flipX;
             part->scrollWithBg = 1;
-            part->drawFunc = (u32 *)Sprite_DrawEntity;
+            part->drawFunc = Sprite_DrawEntity;
             lifetime = RandomNumberGenerator() & 15;
             part->timer = lifetime + 40;
         }
@@ -541,7 +540,6 @@ void GorgonPiece_Update(struct EwramData_EntityData *entity)
 }
 
 /* Gorgon and Catoblepas share graphics and select different palette variants. */
-extern s8 ObjPalette_FindOrLoadVariant(void *, u8);
 /**
  * @brief Load the Gorgon graphics with palette variant 0 for type 0x33, else 1;
  * return 0 when no graphics slot is free, else 1.
@@ -555,26 +553,13 @@ u8 Gorgon_LoadGraphics(struct EwramData_EntityData *entity)
     else
         entity->basePalette = ObjPalette_FindOrLoadVariant(sGorgonPalette, 1);
     Sprite_Attach(entity, sGorgonSpriteSheet, graphics, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
  *   Gorgon_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
-
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
 
 /**
  * @brief 89AB4 | Same as Enemy_DamagePlayerOnContact.

@@ -17,14 +17,34 @@
 #include "obj_palette.h"
 #include "ukoback.h"
 #include "data/data_118B48.h"
+#include "entity_inline.h"
+#include "hitbox.h"
+#include "damage_numbers.h"
+#include "sound.h"
+
+extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
+extern s32 Entity_IsInRect(struct EwramData_EntityData *entity, s16 left, s16 top, u16 width, u16 height);
+
+void Imp_UpdateState4Animation(struct EwramData_EntityData *entity);
+void Imp_UpdateFlight(struct EwramData_EntityData *entity);
+void Imp_UpdateAttack(struct EwramData_EntityData *entity);
+void Imp_UpdateGrab(struct EwramData_EntityData *entity);
+void Imp_UpdateDeath(struct EwramData_EntityData *entity);
+s32 Imp_SpawnDeathPiece(struct EwramData_EntityData *entity);
+void TinyDevil_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+void TinyDevil_UpdateState3Animation(struct EwramData_EntityData *entity);
+void TinyDevil_UpdateDeath(struct EwramData_EntityData *entity);
+void TinyDevil_UpdateFlight(struct EwramData_EntityData *entity);
+void TinyDevil_UpdateAttack(struct EwramData_EntityData *entity);
+s32 Entity_IsNearScreenEdge(struct EwramData_EntityData *entity, s32 margin);
+struct EwramData_EntityData *TinyDevil_SpawnProjectile(struct EwramData_EntityData *entity);
+void TinyDevilProjectile_Update(struct EwramData_EntityData *entity);
+void TinyDevilProjectile_OnContact(struct EwramData_EntityData *entity);
+s32 Ukoback_LoadGraphics(struct EwramData_EntityData *entity);
 
 /* Tiny Devil update and states from 0x080C47F8. */
-extern void Imp_UpdateState4Animation(struct EwramData_EntityData *entity);
-extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
-extern void Imp_UpdateFlight(struct EwramData_EntityData *entity);
-extern void Imp_UpdateAttack(struct EwramData_EntityData *entity);
-extern void Imp_UpdateGrab(struct EwramData_EntityData *entity);
-extern void Imp_UpdateDeath(struct EwramData_EntityData *entity);
 
 /**
  * @brief C47F8 | Tiny Devil update: state 4 only runs Imp_UpdateState4Animation.
@@ -46,7 +66,7 @@ void EnemyImpUpdate(struct EwramData_EntityData *entity)
     Player_TrackEntity(entity);
     if (Enemy_IsStunned(entity) && entity->state != 0xFF && entity->state != 3)
     {
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         return;
     }
     if (Target_GetX(entity) == entity->posX.whole
@@ -78,11 +98,8 @@ void EnemyImpUpdate(struct EwramData_EntityData *entity)
     Entity_AnimateWithBoxes(entity);
     if (entity->state == 0xFF || entity->state == 3)
         return;
-    Hit_CheckWithPlayer(collision, entity);
+    Hit_CheckWithPlayer((struct HitResult *)collision, entity);
 }
-
-extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *entity);
-extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
 
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 
@@ -344,12 +361,6 @@ void Imp_UpdateAttack(struct EwramData_EntityData *entity)
     entity->velY.whole += entity->accelY.whole;
 }
 
-/* Same as CheckUnk_53C_6 in player/player_core.c. */
-static inline s32 IsNotFlippedX(struct EwramData_EntityData *entity)
-{
-    return entity->flipX == 0;
-}
-
 /**
  * @brief Follow an offset from the target, alternate forced player input, and detach after enough qualifying new-input events; then return to flight.
  */
@@ -425,9 +436,6 @@ void Imp_UpdateGrab(struct EwramData_EntityData *entity)
     }
 }
 
-extern void PlaySong(u16 song);
-extern s32 Imp_SpawnDeathPiece(struct EwramData_EntityData *entity);
-
 /**
  * @brief Drop rewards, delete the grab indicator, spawn a falling piece and fall while running the fragment-death effect.
  */
@@ -489,8 +497,6 @@ void Imp_OnContact(struct EwramData_EntityData *entity)
     Player_ApplyContactDamage(&contactDamage);
 }
 
-extern s32 ObjPalette_FindOrLoad(void *palette);
-
 /**
  * @brief Initialize hidden, show animation 3 when activated and follow 40 pixels above the target; hide again when released.
  */
@@ -507,7 +513,7 @@ void ImpGrabIndicator_Update(struct EwramData_EntityData *entity)
             entity->scrollWithBg = 1;
             gfx = ObjGfx_Find(graphics);
             Sprite_Attach(entity, sprite, gfx, (s8)ObjPalette_FindOrLoad(palette));
-            entity->drawFunc = (u32 *)Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->hidden = 1;
             entity->state++;
             break;
@@ -546,7 +552,7 @@ void ImpDeathPiece_Update(struct EwramData_EntityData *entity)
             entity->scrollWithBg = 1;
             gfx = ObjGfx_Find(graphics);
             Sprite_Attach(entity, sprite, gfx, (s8)ObjPalette_FindOrLoad(palette));
-            entity->drawFunc = (u32 *)Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->animFrame = 0x15;
             entity->spriteLayer = 3;
             entity->posX.whole = other->posX.whole;
@@ -569,9 +575,6 @@ void ImpDeathPiece_Update(struct EwramData_EntityData *entity)
 
 /* Tiny Devil helpers 0x080C5200..0x080C52F3 (same template as the Ukoback
  * helpers in enemy/ukoback.c). */
-
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
 
 /**
  * @brief Clear velocity and acceleration, face the target and reset state 1 with zero stage and substate.
@@ -618,7 +621,7 @@ void Imp_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
         damage = (damage << 16) >> 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     entity->hitFlashTimer = 8;
     if ((s16)entity->hp <= 0)
     {
@@ -633,7 +636,7 @@ void Imp_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 s32 Imp_CreateGrabIndicator(struct EwramData_EntityData *entity)
 {
     s32 created = 0;
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)ImpGrabIndicator_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, ImpGrabIndicator_Update);
 
     if (child != NULL)
     {
@@ -649,7 +652,7 @@ s32 Imp_CreateGrabIndicator(struct EwramData_EntityData *entity)
 s32 Imp_SpawnDeathPiece(struct EwramData_EntityData *entity)
 {
     s32 created = 0;
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)ImpDeathPiece_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, ImpDeathPiece_Update);
 
     if (child != NULL)
     {
@@ -661,15 +664,6 @@ s32 Imp_SpawnDeathPiece(struct EwramData_EntityData *entity)
 
 /* Tiny Devil create and update from 0x080C52F4 (same graphics as the
  * enemy in this file). */
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, s32 onHurt);
-extern void Enemy_OnContact(struct EwramData_EntityData *entity);
-extern void TinyDevil_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern void TinyDevil_UpdateState3Animation(struct EwramData_EntityData *entity);
-extern void TinyDevil_UpdateDeath(struct EwramData_EntityData *entity);
-extern void TinyDevil_UpdateFlight(struct EwramData_EntityData *entity);
-extern void TinyDevil_UpdateAttack(struct EwramData_EntityData *entity);
-extern s32 Entity_IsInRect(struct EwramData_EntityData *entity, s16 left, s16 top, u16 width, u16 height);
 
 /* Graphics shared with the enemy in this file. */
 
@@ -701,7 +695,7 @@ void EnemyTinyDevilCreate(struct EwramData_EntityData *entity)
         entity->state = 3;
         return;
     }
-    Entity_EnableBoxes(entity, Enemy_OnContact, (s32)TinyDevil_OnHit);
+    Entity_EnableBoxes(entity, Enemy_OnContact, TinyDevil_OnHit);
 }
 
 /**
@@ -731,7 +725,7 @@ void EnemyTinyDevilUpdate(struct EwramData_EntityData *entity)
     stunned = Enemy_IsStunned(entity);
     if (stunned)
     {
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         return;
     }
     if (Target_GetX(entity) == entity->posX.whole && Target_GetY(entity) == entity->posY.whole
@@ -937,9 +931,6 @@ void TinyDevil_UpdateFlight(struct EwramData_EntityData *entity)
     entity->velY.whole += entity->accelY.whole;
 }
 
-extern s32 Entity_IsNearScreenEdge(struct EwramData_EntityData *entity, s32 margin);
-extern struct EwramData_EntityData *TinyDevil_SpawnProjectile(struct EwramData_EntityData *entity);
-
 /**
  * @brief Spring sideways and upward, abort near a screen edge or create a projectile after the delay, then return to flight.
  */
@@ -1033,11 +1024,6 @@ void TinyDevil_UpdateDeath(struct EwramData_EntityData *entity)
     Enemy_UpdateFragmentDeathWithSpread(entity, 7, 0x100000, 0xC0000);
 }
 
-extern s32 Hit_Enable(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
-extern s32 HitBox_SetAttackRaw(struct EwramData_EntityData *entity, s32 box);
-extern void TinyDevilProjectile_Update(struct EwramData_EntityData *entity);
-extern void TinyDevilProjectile_OnContact(struct EwramData_EntityData *entity);
-
 /* Integer part of a - b (16.16), rounded towards zero. */
 #define PIXEL_DIFF(a, b) ((a) - (b) < 0 ? -(((b) - (a)) >> 16) : ((a) - (b)) >> 16)
 
@@ -1049,7 +1035,7 @@ struct EwramData_EntityData *TinyDevil_SpawnProjectile(struct EwramData_EntityDa
     void *palette = sImpTinyDevilPalette;
     void *sprite = sImpTinyDevilSpriteSheet;
     u8 *graphics = sImpTinyDevilGfx;
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)TinyDevilProjectile_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, TinyDevilProjectile_Update);
     s32 targetX;
     s32 targetY;
     s32 slot;
@@ -1155,8 +1141,6 @@ void TinyDevil_UpdateState3Animation(struct EwramData_EntityData *entity)
 }
 
 /* Ukoback helpers and create from 0x080C5B40. */
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern s32 Ukoback_LoadGraphics(struct EwramData_EntityData *entity);
 
 /**
  * @brief Apply damage and reset to death state 0xFF on lethal damage.
@@ -1221,7 +1205,7 @@ void EnemyUkobackCreate(struct EwramData_EntityData *entity)
         entity->subState = 0;
         return;
     }
-    Entity_EnableBoxes(entity, Ukoback_OnContact, (s32)Ukoback_OnHit);
+    Entity_EnableBoxes(entity, Ukoback_OnContact, Ukoback_OnHit);
     entity->accelX.whole = 0;
     entity->velX.whole = 0;
     entity->accelY.whole = 0;
@@ -1235,7 +1219,6 @@ void EnemyUkobackCreate(struct EwramData_EntityData *entity)
 
 /* Graphics loader 0x080C5C58. It only matches without -f2003-patch (see
  * NO_2003_PATCH_SRCS in ../Makefile). */
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 /**
  * @brief Find or load graphics and palette, attach the sprite and start animation 0; return 0 on failure, 1 on success.
@@ -1263,6 +1246,6 @@ s32 Ukoback_LoadGraphics(struct EwramData_EntityData *entity)
     if (!Anim_StartIndexed(entity, 0, 0, 1))
         return 0;
     Anim_Update(entity);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }

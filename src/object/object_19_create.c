@@ -11,7 +11,9 @@
 #include "data/data_118B48.h"
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 struct Object19Motion { s32 time, vx, vy; };
+
 extern struct Object19Motion sObject19Steps[];
+
 void Object19Create(struct EwramData_EntityData *entity)
 {
     u16 slot;
@@ -25,11 +27,11 @@ fail:
         EntityDelete(entity);
         return;
     }
-    entity->drawFunc = (u32 *)Object19_Draw;
+    entity->drawFunc = Object19_Draw;
     entity->affineIndex = slot;
     entity->affine = 1;
     entity->spriteLayer = 10;
-    Hit_Enable(entity, 8, Object19_OnPlayerContact, (s32)Object19_OnHit);
+    Hit_Enable(entity, 8, Object19_OnPlayerContact, Object19_OnHit);
     HitBox_SetAttackRaw(entity, 0x0C0CFAFA);
     HitBox_SetBodyRaw(entity, 0x0C0CFAFA);
     entity->ext.object19.spin = 0x400;

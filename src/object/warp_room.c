@@ -24,9 +24,18 @@
 #include "obj_gfx.h"
 #include "palette.h"
 #include "data/data_118B48.h"
+#include "obj_palette.h"
+#include "player_soma.h"
+
+
+void WarpRoom_UpdateGatePart(struct EwramData_EntityData *);
+void WarpRoom_ResetGatePart(struct EwramData_EntityData *);
+void WarpRoom_UpdateSideLight(struct EwramData_EntityData *);
+u8 Object21_LoadGraphics(struct EwramData_EntityData *entity);
+void Object21_OnPlayerContact(struct EwramData_EntityData *entity);
+s32 WarpRoom_LoadGraphics(struct EwramData_EntityData *entity);
 
 /* WarpRoom_Update. */
-extern void Player_StartScriptedAnimation(s32, s32, s32, s32);
 
 /**
  * @brief Warp room (object 0x1F): on Up at the warp spot open the warp menu;
@@ -197,9 +206,6 @@ void WarpRoom_Update(struct EwramData_EntityData *e)
     }
 }
 
-extern void WarpRoom_UpdateGatePart(struct EwramData_EntityData *);
-extern void WarpRoom_ResetGatePart(struct EwramData_EntityData *);
-
 /**
  * @brief Create the nine gate part sprites (update WarpRoom_UpdateGatePart)
  * and reset each. Return 1 when any was created.
@@ -212,7 +218,7 @@ s32 WarpRoom_CreateGateParts(struct EwramData_EntityData *owner)
     ObjPalette_LoadRange(sWarpRoomPalette, 2, 1, 0xA);
     for (i = 0, i = created; i <= 8; i++)
     {
-        struct EwramData_EntityData *entity = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
+        struct EwramData_EntityData *entity = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
         if (entity != NULL)
         {
             created = 1;
@@ -229,9 +235,9 @@ s32 WarpRoom_CreateGateParts(struct EwramData_EntityData *owner)
                 entity->spriteLayer = 0x1D;
             if (i >= 5 && i <= 8)
                 entity->spriteLayer = 0x1E;
-            entity->updateFunc = (u32 *)WarpRoom_UpdateGatePart;
+            entity->updateFunc = WarpRoom_UpdateGatePart;
             entity->affineIndex = ObjAffine_Alloc(1);
-            entity->drawFunc = (u32 *)Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             WarpRoom_ResetGatePart(entity);
         }
     }
@@ -420,8 +426,6 @@ void WarpRoom_UpdateGatePart(struct EwramData_EntityData *entity)
     }
 }
 
-extern void WarpRoom_UpdateSideLight(struct EwramData_EntityData *);
-
 /**
  * @brief Create the two side light sprites (update WarpRoom_UpdateSideLight)
  * at x 0x54 and 0x9C. Return 1 when any was created.
@@ -434,7 +438,7 @@ s32 WarpRoom_CreateSideLights(struct EwramData_EntityData *owner)
     ObjPalette_LoadRange(sWarpRoomPalette, 4, 1, 0xB);
     for (i = 0, i = created; i <= 1; i++)
     {
-        struct EwramData_EntityData *entity = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
+        struct EwramData_EntityData *entity = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
         if (entity != NULL)
         {
             created = 1;
@@ -447,11 +451,11 @@ s32 WarpRoom_CreateSideLights(struct EwramData_EntityData *owner)
             entity->scrollWithBg = 1;
             entity->animFrame = 9;
             entity->spriteLayer = 0x15;
-            entity->updateFunc = (u32 *)WarpRoom_UpdateSideLight;
+            entity->updateFunc = WarpRoom_UpdateSideLight;
             ENTITY_PARENT_INDEX(entity) = ENTITY_INDEX(owner);
             entity->ext.warpRoomSideLight.frame = 0;
             entity->state = 0;
-            entity->drawFunc = (u32 *)Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
         }
     }
     return created;
@@ -565,7 +569,7 @@ void WarpRoomUnusedPart_Update(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *parent = entity->ext.warpRoomUnusedPart.parent;
     s32 limit;
 
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     switch (entity->state)
     {
     case 0:
@@ -652,9 +656,6 @@ void WarpRoomUnusedPart_Update(struct EwramData_EntityData *entity)
 }
 
 /* Objects 0x1F / 0x21 create, 0x080564F8..0x08056617. */
-extern u8 Object21_LoadGraphics(struct EwramData_EntityData *entity);
-extern void Object21_OnPlayerContact(struct EwramData_EntityData *entity);
-s32 WarpRoom_LoadGraphics(struct EwramData_EntityData *entity);
 
 /**
  * @brief 564F8 | Object 0x1F create.
@@ -685,7 +686,7 @@ s32 WarpRoom_LoadGraphics(struct EwramData_EntityData *entity)
         }
     }
     entity->ext.warpRoom.unusedGfx = gfx;
-    entity->updateFunc = (u32 *)WarpRoom_Update;
+    entity->updateFunc = WarpRoom_Update;
     return 1;
 }
 
@@ -791,9 +792,6 @@ void Object21_UpdateState(struct EwramData_EntityData *entity)
  *   Object21_LoadGraphics = Object32_LoadGraphics
  *   Object21_OnPlayerContact = DevilPart_DamagePlayerOnContact */
 
-extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
 /**
  * @brief 56784 | Same as Object28Update.
  */
@@ -804,7 +802,7 @@ void Object21Update(struct EwramData_EntityData *entity)
     if (entity->state == 0)
         Object21_UpdateState(entity);
     Anim_Update(entity);
-    Hit_CheckWithPlayer(collision, entity);
+    Hit_CheckWithPlayer((struct HitResult *)collision, entity);
 }
 
 /**
@@ -818,7 +816,7 @@ u8 Object21_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 1);
     Sprite_Attach(entity, sObject21Object23SpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 

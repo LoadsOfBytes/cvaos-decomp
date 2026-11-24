@@ -49,7 +49,7 @@ void PlayerEffectSetPart_Update(struct EwramData_EntityData *entity)
             if (entity->timer == 0)
             {
                 entity->state = 2;
-                entity->drawFunc = (u32 *) Sprite_DrawEntity;
+                entity->drawFunc = Sprite_DrawEntity;
             }
             else
             {
@@ -245,7 +245,7 @@ void Player_SpawnEffectSet(s32 set, s32 facing)
     remaining = sPlayerEffectSets[set].partCount;
     do
     {
-        child = EntityCreateInRange(0x49, 0xCF, (u32 *) PlayerEffectSetPart_Update);
+        child = EntityCreateInRange(0x49, 0xCF, PlayerEffectSetPart_Update);
         baseX = gEwramData->playerState.player->posX.whole;
         child->posX.whole = baseX + ((part->offsetX << 8) * dir);
 
@@ -319,7 +319,7 @@ void Effect_UpdatePlayerSurfaceEffect(struct EwramData_EntityData *entity)
         gfx = ObjGfx_Find((u8 *)sCommonObjectGfx);
         Sprite_Attach(entity, (u8 *)sCommonObjectSpriteSheet, gfx, 6);
         Anim_StartIndexed(entity, entity->ext.surfaceEffect.anim, 0, 0);
-        entity->drawFunc = (u32 *) Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->spriteLayer = 0xF;
         entity->scrollWithBg = 1;
         entity->state += 1;
@@ -345,7 +345,7 @@ void Effect_UpdateFallingDebris(struct EwramData_EntityData *entity)
         case 0:
             gfx = ObjGfx_Find((u8 *)sCommonObjectGfx);
             Sprite_Attach(entity, (u8 *)sCommonObjectSpriteSheet, gfx, 6);
-            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             frame = 0x40;
             entity->animFrame = frame;
             entity->flipX = RandomNumberGenerator() & 1;
@@ -396,7 +396,7 @@ void Player_SpawnSurfaceEffect(s32 kind)
 {
     struct EwramData_EntityData *child;
 
-    child = EntityCreateInRange(0x49, 0xCF, (u32 *) Effect_UpdatePlayerSurfaceEffect);
+    child = EntityCreateInRange(0x49, 0xCF, Effect_UpdatePlayerSurfaceEffect);
     if (child != NULL)
     {
         child->ext.surfaceEffect.anim = sPlayerSurfaceEffects[kind][0];
@@ -418,7 +418,7 @@ void Effect_SpawnDebrisBurst(struct EwramData_EntityData *entity)
 
     for (i = -2; i < 3; i++)
     {
-        child = EntityCreateInRange(0x49, 0xCF, (u32 *) Effect_UpdateFallingDebris);
+        child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateFallingDebris);
         if (child != NULL)
         {
             child->posX.whole = entity->posX.whole + (i << 0xF) + RandomSigned(0x8000);
@@ -505,10 +505,10 @@ void PushBlockGroup_Create(struct EwramData_EntityData *entity)
         paletteIndex = ObjPalette_FindOrLoad((void *)sPushBlockGroupPalette);
         for (i = 0; i < count; i++)
         {
-            child = EntityCreateInRange(0x49, 0xCF, (u32 *) PushBlock_Update);
+            child = EntityCreateInRange(0x49, 0xCF, PushBlock_Update);
             Sprite_Attach(child, (u8 *)sPushBlockGroupSpriteSheet, tileSlot, (s32) paletteIndex);
             child->animFrame = 0;
-            child->drawFunc = (u32 *) Sprite_DrawEntity;
+            child->drawFunc = Sprite_DrawEntity;
             child->scrollWithBg = 1;
 
             bg = &gEwramData->bgInfo[1];

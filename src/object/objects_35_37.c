@@ -23,6 +23,8 @@
 #include "text12.h"
 #include "data/data_0E5364.h"
 #include "data/data_118B48.h"
+#include "math_inline.h"
+#include "obj_palette.h"
 
 /* Object35Create (0x0805A18C). */
 u8 Object35_LoadGraphics(struct EwramData_EntityData *entity);
@@ -30,6 +32,13 @@ void Object35_SpawnChild(struct EwramData_EntityData *parent);
 
 /* Event flag param_1 of the bit array gameFlagsTail (gEwramData + 0x344). */
 #define OBJECT_FLAG(ewram, flag) ((ewram)->gameState.gameFlagsTail[(flag) >> 5] & (1 << ((flag) & 0x1F)))
+
+
+void Object35Child_Update(struct EwramData_EntityData *entity);
+void Object35_Draw(struct EwramData_EntityData *entity);
+u8 Object37_LoadGraphics(struct EwramData_EntityData *);
+void Object37_SpawnChild(struct EwramData_EntityData *);
+void Object37Child_Update(struct EwramData_EntityData *);
 
 /**
  * @brief 5A18C | Object 0x35 create (door?): variant != 0 is deleted when its
@@ -191,8 +200,6 @@ void Object35_UpdateState(struct EwramData_EntityData *entity)
     }
 }
 
-void Object35Child_Update(void);
-
 /**
  * @brief 5A50C | Spawn the child part of parent (slots 0x49..0xCF, update
  * Object35Child_Update): same position, one layer below, graphics sObject35Gfx
@@ -201,7 +208,7 @@ void Object35Child_Update(void);
  */
 void Object35_SpawnChild(struct EwramData_EntityData *parent)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)Object35Child_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Object35Child_Update);
     s32 gfx;
 
     if (child != NULL)
@@ -217,13 +224,11 @@ void Object35_SpawnChild(struct EwramData_EntityData *parent)
         child->hit.flags |= 2;
         child->ext.object35Child.owner = parent;
         child->scrollWithBg = 1;
-        child->drawFunc = (u32 *)Sprite_DrawEntity;
+        child->drawFunc = Sprite_DrawEntity;
     }
 }
 
 /* Objects 0x35 / 0x36 helpers 0x0805A590..0x0805A747. */
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-void Object35_Draw(struct EwramData_EntityData *entity);
 
 /**
  * @brief 5A590 | Object 0x35 update: Player_QueueEntity(.., 1) while spawnParam0 is 0,
@@ -242,7 +247,7 @@ void Object35Update(struct EwramData_EntityData *entity)
 /**
  * @brief 5A5BC | Nothing.
  */
-void Object35Child_Update(void)
+void Object35Child_Update(struct EwramData_EntityData *entity)
 {
 }
 
@@ -280,9 +285,9 @@ u8 Object35_LoadGraphics(struct EwramData_EntityData *entity)
     entity->basePalette = ObjPalette_FindOrLoadVariant(sObject35Palette, 0);
     Sprite_Attach(entity, sObject35SpriteSheet, gfx, entity->basePalette);
     if (entity->spawnParam0 != 0)
-        entity->drawFunc = (u32 *)Object35_Draw;
+        entity->drawFunc = Object35_Draw;
     else
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -490,9 +495,6 @@ s32 Object36_CeilingCorrection(struct EwramData_EntityData *entity)
     return 0;
 }
 
-extern u8 Object37_LoadGraphics(struct EwramData_EntityData *);
-extern void Object37_SpawnChild(struct EwramData_EntityData *);
-
 /* Keep the entity and room coordinate reads in their original order. */
 static inline s32 EntityRoomX(struct EwramData_EntityData *entity, struct EwramData **ram)
 {
@@ -506,13 +508,6 @@ static inline s32 EntityRoomY(struct EwramData_EntityData *entity, struct EwramD
     s32 y = (s16)entity->posY.part16.integer;
     struct BgLayerState *bg = &(*ram)->bgInfo[1];
     return y + (s16)bg->yPos.part16.integer;
-}
-
-static inline s32 Abs(s32 value)
-{
-    if (value < 0)
-        value = -value;
-    return value;
 }
 
 /* Initialize object 0x37, including its five collision probes. */
@@ -637,14 +632,12 @@ void Object37_UpdateState(struct EwramData_EntityData *entity)
     ObjAffine_Set(entity->ext.object37.angle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
 }
 
-extern void Object37Child_Update(struct EwramData_EntityData *);
-
 /**
  * @brief Create the child entity of object 0x37 (Object37Child_Update).
  */
 void Object37_SpawnChild(struct EwramData_EntityData *owner)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)Object37Child_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, Object37Child_Update);
     struct EwramData **ewram = &gEwramData;
     s32 graphics;
     u16 transform;
@@ -671,7 +664,7 @@ void Object37_SpawnChild(struct EwramData_EntityData *owner)
     ObjAffine_Set(0, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
     ENTITY_OWNER(entity) = owner;
     entity->scrollWithBg = 1;
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     if (Abs(entity->posX.whole - (*ewram)->playerState.player->posX.whole) < 0x300000)
     {
         entity->ext.object37Child.angle = -0x2000;
@@ -734,7 +727,7 @@ u8 Object37_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sObject37Palette, 0);
     Sprite_Attach(entity, sObject37SpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 

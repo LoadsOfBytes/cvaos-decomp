@@ -23,6 +23,12 @@
 #include "data/data_0E5364.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "entity_inline.h"
+
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
+
+void BossRushTimer_Update(struct EwramData_EntityData *entity);
+void Object12Variant2_Draw(struct EwramData_EntityData *entity);
 
 /* BossRushResult_Draw: matched (three block-local v instead of one variable set three times;
    literal constants, no helper variables). */
@@ -97,8 +103,6 @@ void BossRushResult_Draw(struct EwramData_EntityData *entity)
     }
 }
 
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-
 void Object10Create(struct EwramData_EntityData *entity)
 {
     u32 value;
@@ -145,10 +149,8 @@ found:
     entity->hidden = 1;
     entity->posX.part16.integer = 0x80;
     entity->posY.part16.integer = 0x50;
-    entity->drawFunc = (u32 *)BossRushResult_Draw;
+    entity->drawFunc = BossRushResult_Draw;
 }
-
-extern void ItemInventory_AddOneByGlobalId(u32 item);
 
 /**
  * @brief 511F0 | Object 0x10 (save point?): when stateFlags bit 10 is set,
@@ -203,8 +205,6 @@ void Object10Update(struct EwramData_EntityData *entity)
 }
 
 /* Objects 0x11 (timer in entity slot 26) and 0x12 (decorations). */
-void BossRushTimer_Update(struct EwramData_EntityData *entity);
-void Object12Variant2_Draw(struct EwramData_EntityData *entity);
 
 /**
  * @brief 512C4 | Object 0x11 create: replace entity slot 26 by a counter
@@ -213,7 +213,7 @@ void Object12Variant2_Draw(struct EwramData_EntityData *entity);
 void Object11Create(struct EwramData_EntityData *entity)
 {
     EntityDelete(&gEwramData->entityData[26]);
-    EntityCreateInRange(0x1A, 0x1A, (u32 *)BossRushTimer_Update)->roomActive = 1;
+    EntityCreateInRange(0x1A, 0x1A, BossRushTimer_Update)->roomActive = 1;
 }
 
 /**
@@ -334,7 +334,7 @@ void Object12Variant2_Update(struct EwramData_EntityData *entity)
 
             entity->posX.whole += mainBg->xPos.whole - farBg->xPos.whole;
         }
-        entity->drawFunc = (u32 *)Object12Variant2_Draw;
+        entity->drawFunc = Object12Variant2_Draw;
         entity->state++;
     }
     if (entity->spawnParam1 == 1)
@@ -445,7 +445,6 @@ void Object13Segment_Update(struct EwramData_EntityData *entity)
  * the copies after reload, but their reloads shift the reload register
  * rotation as in the target. */
 
-static inline s32 IsNotFlippedX(struct EwramData_EntityData *e) { return e->flipX == 0; }
 #define PL (gEwramData->playerState.player)
 #define PX ((s16)PL->posX.part16.integer)
 #define EX ((s16)entity->posX.part16.integer)
@@ -505,7 +504,7 @@ void Object13Tip_Update(struct EwramData_EntityData *entity)
         if (!Entity_IsInRect(entity, (s16)(player->posX.part16.integer - 0x50), (s16)(player->posY.part16.integer - 0x80), 0xA0, 0x100))
             break;
         Player_QueueEntity(entity, 3);
-        Hit_CheckWithPlayer(&res, (u8 *)entity);
+        Hit_CheckWithPlayer(&res, entity);
         if (!(res.flags & 2))
             break;
         v = other->velX.whole & 0xFFFF;
@@ -549,8 +548,8 @@ void Object13Create(struct EwramData_EntityData *entity)
     {
         u8 *data;
         struct EwramData_EntityData *child;
-        if (i != 10) child = EntityCreateInRange(0x49, 0xCF, (u32 *)Object13Segment_Update);
-        else child = EntityCreateInRange(0x49, 0xCF, (u32 *)Object13Tip_Update);
+        if (i != 10) child = EntityCreateInRange(0x49, 0xCF, Object13Segment_Update);
+        else child = EntityCreateInRange(0x49, 0xCF, Object13Tip_Update);
         if (child == NULL) { entity->state = 0xFF; break; }
         if (i != 10)
         {

@@ -4,6 +4,7 @@
 #include "palette.h"
 
 struct Matrix2;
+
 extern void (*gObjAffineGetMatrixFunc)(struct Matrix2 *, s32);
 extern s32 (*gObjAffineGetFlipXFunc)(s32);
 extern s32 (*gObjAffineGetFlipYFunc)(s32);

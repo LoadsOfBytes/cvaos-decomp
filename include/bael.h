@@ -12,7 +12,7 @@ extern void Buer_AllocateAffine(struct EwramData_EntityData *entity);
 extern void Buer_UpdateEntry(struct EwramData_EntityData *entity);
 extern void Buer_UpdateState4Rotation(struct EwramData_EntityData *entity);
 extern void Buer_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-extern void Buer_OnHit(struct EwramData_EntityData *entity);
+extern void Buer_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 extern s32 Buer_OffsetBySign(s32 value, s32 offset);
 extern s32 Buer_CheckCleanup(struct EwramData_EntityData *entity);
 extern void Buer_RestoreXAtProbe(struct EwramData_EntityData *entity, s32 savedX);

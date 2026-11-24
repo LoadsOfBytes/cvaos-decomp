@@ -227,14 +227,6 @@ static inline void SoulTrade_SetAcknowledge(s32 val_0, s32 val_1)
     soulIds[1] = val_1;
 }
 
-static inline void GameModeSoulTradeMenu_inline_0(u8 status)
-{
-    (&gEwramData->soulTradePackets[0])->packetTag = 0xD;
-    (&gEwramData->soulTradePackets[0])->handshakeFlags = status;
-    Link_QueueSendBytes((u8*)&gEwramData->soulTradePackets[0], 4);
-    Link_CopyReceivedBytes((u8*)&gEwramData->soulTradePackets[1], 4);
-}
-
 static inline void GameModeSoulTradeMenu_inline_1(struct EwramData_EntityData *menu, s32 entry)
 {
     s32 baseRow;
@@ -965,7 +957,7 @@ s32 GameModeSoulTradeMenu(void)
                 }
                 ObjPalette_LoadRange((u8 *)sMainMenuPalette, 6U, 1U, 0xDU);
                 Sprite_Attach(trade, (u8 *)sSaveMenuSpriteSheet0, gfx, 0xD);
-                trade->updateFunc = (u32 *) SoulTrade_DrawOfferIcons;
+                trade->updateFunc = SoulTrade_DrawOfferIcons;
                 DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
                 CursorSprite_Create(&gEwramData->entityData[3], 0xEU);
                 BgMap_Setup(1U, (struct BgMapMetadata *)sSoulTradeMenuBgMap2, 0U, 0U);

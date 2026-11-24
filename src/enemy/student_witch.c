@@ -16,11 +16,12 @@
 #include "effects.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "math_inline.h"
+
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
+extern void Entity_FaceTarget(struct EwramData_EntityData *);
 
 /* Witch projectile setup, movement and spawn helper. */
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
-extern void Enemy_OnContact(struct EwramData_EntityData *);
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 
 /**
  * @brief Shared ground projectile: accelerate along terrain, burst on an
@@ -39,7 +40,7 @@ void WitchGroundProjectile_Update(struct EwramData_EntityData *entity)
         if (!(entity->subState & 1)) Anim_StartIndexed(entity, 0xB, 0, 1);
         else Anim_StartIndexed(entity, 6, 0, 1);
         entity->spriteLayer = 0x13;
-        Hit_Enable(entity, 8, Enemy_OnContact, (s32)WitchGroundProjectile_OnHit);
+        Hit_Enable(entity, 8, Enemy_OnContact, WitchGroundProjectile_OnHit);
         HitBox_SetBodyRaw(entity, 0x1018F0F4);
         HitBox_SetAttackRaw(entity, 0x1018F0F4);
         entity->accelY.whole = 0x2000;
@@ -73,11 +74,9 @@ remove:
         EntityDelete(entity);
         return;
     }
-    if (entity->state != 2) Hit_CheckWithPlayer(box, entity);
+    if (entity->state != 2) Hit_CheckWithPlayer((struct HitResult *)box, entity);
     Anim_Update(entity);
 }
-
-static inline s32 Add16(s16 a, u16 b) { return a + b; }
 
 static inline void FollowParent(struct EwramData_EntityData *child, struct EwramData_EntityData *owner, u16 x_, u16 y_)
 {
@@ -107,7 +106,6 @@ void Witch_SpawnGroundProjectile(struct EwramData_EntityData *owner, u16 x, u16 
 }
 
 /* Student Witch ground movement, turning and attack choice. */
-extern s32 Target_IsNearEntity(struct EwramData_EntityData *, s32, s32);
 
 /**
  * @brief Walking state (0): vary speed by animation step, turn at obstacles
@@ -179,8 +177,6 @@ waiting:
 }
 
 /* Student Witch ground attack and airborne spell phases. */
-extern void Entity_FaceTarget(struct EwramData_EntityData *);
-extern void Afterimage_Create(struct EwramData_EntityData *, s32, s32, s32);
 
 /**
  * @brief Ground attack state (3): approach for up to 120 updates, play the
@@ -361,7 +357,6 @@ s32 StudentWitch_UpdateDeath(struct EwramData_EntityData *entity)
 }
 
 /* Witch and Student Witch initialisation and state dispatchers. */
-extern s32 Hit_EnableContact(struct EwramData_EntityData *, s32, void *, s32);
 
 void EnemyStudentWitchCreate(struct EwramData_EntityData *entity)
 {
@@ -377,7 +372,7 @@ void EnemyStudentWitchCreate(struct EwramData_EntityData *entity)
     if (gEwramData->gameState.bestiaryPreview) entity->state = 5;
     else
     {
-        Hit_EnableContact(entity, 8, Enemy_OnContact, (s32)StudentWitch_OnHit);
+        Hit_EnableContact(entity, 8, Enemy_OnContact, StudentWitch_OnHit);
         Entity_UpdateBoxes(entity);
         Entity_SnapToGround(entity);
         entity->posY.part16.integer++;
@@ -394,7 +389,7 @@ void EnemyStudentWitchUpdate(struct EwramData_EntityData *entity)
     if (!outside) Player_TrackEntity(entity);
     if (Enemy_IsStunned(entity))
     {
-        if (entity->state != 4) Hit_CheckWithPlayer(box, entity);
+        if (entity->state != 4) Hit_CheckWithPlayer((struct HitResult *)box, entity);
         return;
     }
     switch (entity->state)
@@ -409,6 +404,6 @@ void EnemyStudentWitchUpdate(struct EwramData_EntityData *entity)
         Anim_Update(entity);
         return;
     }
-    if (entity->state != 4) Hit_CheckWithPlayer(box, entity);
+    if (entity->state != 4) Hit_CheckWithPlayer((struct HitResult *)box, entity);
     Entity_AnimateWithBoxes(entity);
 }

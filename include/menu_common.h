@@ -27,5 +27,7 @@ extern void HudMap_DrawStatusConditionIcon(s32 x, s32 y);
 
 extern void HudMap_ZeroTiles(s32 x, s32 y, s32 count);
 extern void MenuPage_SetMode(struct EwramData_EntityData *entity, u8 mode);
+extern s32 HudMap_PrintNumber(s32 x, s32 y, s32 value, s32 digits, s32 palette, s32 zeroPad);
+extern void Menu_DrawPlayTime(s32 x, s32 y, s32 palette, s32 frames);
 
 #endif /* MENU_COMMON_H */

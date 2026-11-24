@@ -25,12 +25,20 @@
 #include "data/data_4F1444.h"
 #include "data/data_0E5364.h"
 
-/* BestiaryMenu_UpdateDetailScreen, BestiaryMenu_SpawnEnemyPreview. */
+extern void *memcpy(void *dst, const void *src, unsigned long size);
+extern const u16 sEnemyNameTextIds[];
+
 /* tile as s32: the header u16 would add a zero extension of the argument */
 extern void HudMap_WriteTiles(s32 x, s32 y, s32 tile, s32 count);
 
 void BestiaryMenu_DrawEntry(struct EwramData_EntityData *page);
 s32 BestiaryMenu_SpawnEnemyPreview(struct EwramData_EntityData *menu);
+void BestiaryMenu_DrawDetailTitle(struct EwramData_EntityData *page);
+s32 BestiaryMenu_DrawDescription(s32 id, s32 mode);
+void BestiaryMenu_PrintDrops(struct EwramData_EntityData *menu);
+void BestiaryMenu_DrawAttributeIcon(s32 x, s32 y, s32 type);
+
+/* BestiaryMenu_UpdateDetailScreen, BestiaryMenu_SpawnEnemyPreview. */
 
 /**
  * @brief 4C968 | Update of the bestiary detail screen for entity: state 0
@@ -113,9 +121,6 @@ s32 BestiaryMenu_SpawnEnemyPreview(struct EwramData_EntityData *menu)
     }
 }
 
-
-void BestiaryMenu_DrawDetailTitle(struct EwramData_EntityData *page);
-extern s32 BestiaryMenu_DrawDescription(s32 id, s32 mode);
 
 /**
  * @brief Detail view input: left/right toggles between the enemy description and
@@ -205,8 +210,6 @@ struct U16Box
 {
     u16 v;
 };
-
-extern void *memcpy(void *dst, const void *src, unsigned long size);
 
 /**
  * @brief 4CC14 | Release the menu slots (BestiaryMenu_ReleaseResources), clear bestiaryPreview and
@@ -325,10 +328,6 @@ s32 MenuText_Measure(s32 text, s32 mode)
 }
 
 /* Bestiary page: enemy number, HP/EXP, weak/resist icons and soul icon. */
-
-extern void HudMap_PrintNumber(s32 x, s32 y, s32 value, s32 digits, s32 color, s32 flag);
-void BestiaryMenu_PrintDrops(struct EwramData_EntityData *menu);
-extern void BestiaryMenu_DrawAttributeIcon(s32 x, s32 y, s32 type);
 
 /**
  * @brief Draw the enemy entry under the cursor: number, HP, EXP, drop names, detail
@@ -491,8 +490,6 @@ void BestiaryMenu_PrintDrops(struct EwramData_EntityData *menu)
         text = 10;
     Text8_Print(Text_GetLocalizedEntry(text), 0);
 }
-
-extern const u16 sEnemyNameTextIds[];
 
 /**
  * @brief 4D0D0 | Draw the title row of the bestiary detail view: soul name

@@ -217,7 +217,7 @@ struct Object12VariantDefinition {
     u8 spriteLayer; // layer (spriteLayer)
     u16 flags; // flags: 1 OBJ mode 1, 2 room coordinates, 4 no animation, 8 only near the screen
     u8 pad_12[2];
-    void (*updateFunc)(struct EwramData_EntityData *); // update, NULL for the plain animation
+    EntityFunc updateFunc; // update, NULL for the plain animation
 };
 
 struct ObjectVariant { u8 *graphics; void *palette; void *sprites; u8 animation; u8 paletteIndex; u16 delay; }; /* delay: frames at each end */

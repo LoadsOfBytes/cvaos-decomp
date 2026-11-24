@@ -4,6 +4,7 @@
 /* Data of asm/data/data_0E0B68.s used by C files. */
 
 #include "types.h"
+#include "structs/entity_func.h"
 
 struct StatusEffectApplication {
     u16 initialCounter;
@@ -35,7 +36,7 @@ struct BlueSoulForm {
 
 /* Yellow soul info, indexed by equippedYellowSoul (12-byte records). */
 struct YellowSoulInfo {
-    u32 *updateFunc; // update function of the soul entity (TODO: signature)
+    EntityFunc updateFunc; // update function of the soul entity
     u16 allowUnforcedRestart; // nonzero: may be started without param_1 (YellowSoul_Restart)
     u16 effectParam; // -> unk_4FE
     s32 effectValue; // -> unk_500 (effect value)

@@ -15,10 +15,22 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "damage_numbers.h"
 
-extern void ZombieSoldier_UpdateWalk(struct EwramData_EntityData *entity);
-extern void ZombieSoldier_UpdateAttack(struct EwramData_EntityData *entity);
-extern void ZombieSoldier_SpawnPiece(struct EwramData_EntityData *entity, s32 x, s32 y, s32 vx, s32 vy, s32 frame);
+extern s32 Target_IsInRect(s16 x, s16 y, s32 w, s32 h);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
+
+void ZombieSoldier_UpdateWalk(struct EwramData_EntityData *entity);
+void ZombieSoldier_UpdateAttack(struct EwramData_EntityData *entity);
+void ZombieSoldier_SpawnPiece(struct EwramData_EntityData *entity, s32 x, s32 y, s32 vx, s32 vy, s32 frame);
+u8 ZombieSoldier_LoadGraphics(struct EwramData_EntityData *entity);
+void ZombieSoldier_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void ZombieSoldier_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+void ZombieSoldier_ThrowGrenade(struct EwramData_EntityData *owner, s32 x, s32 y, s32 velX, s32 velY);
+void ZombieSoldierGrenade_Update(struct EwramData_EntityData *);
+void ZombieSoldierGrenade_DamagePlayerOnContact(struct EwramData_EntityData *);
+void ZombieSoldierGrenade_OnHit(struct EwramData_EntityData *, s32, u16 *);
+void ZombieSoldierPiece_Update(struct EwramData_EntityData *entity);
 
 /**
  * @brief 926F8 | Zombie Soldier update: skipped by Enemy_PreUpdate; states 0
@@ -73,11 +85,6 @@ void EnemyZombieSoldierUpdate(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   EnemyZombieSoldierCreate = EnemySkeletonKnightCreate */
 
-extern u8 ZombieSoldier_LoadGraphics(struct EwramData_EntityData *entity);
-extern void ZombieSoldier_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-void ZombieSoldier_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
-
 /**
  * @brief 92868 | Same as EnemySkeletonKnightCreate.
  */
@@ -97,16 +104,13 @@ void EnemyZombieSoldierCreate(struct EwramData_EntityData *entity)
         return;
     }
     if (Anim_GetMaxBoxCount(entity) > 1)
-        Hit_EnableContact(entity, 8, ZombieSoldier_DamagePlayerOnContact, (s32)ZombieSoldier_OnHit);
+        Hit_EnableContact(entity, 8, ZombieSoldier_DamagePlayerOnContact, ZombieSoldier_OnHit);
     else
-        Hit_Enable(entity, 8, ZombieSoldier_DamagePlayerOnContact, (s32)ZombieSoldier_OnHit);
+        Hit_Enable(entity, 8, ZombieSoldier_DamagePlayerOnContact, ZombieSoldier_OnHit);
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
     entity->state = 0;
 }
-
-extern s32 Target_IsInRect(s16 x, s16 y, s32 w, s32 h);
-extern void Entity_MoveWithCollision(struct EwramData_EntityData *entity, s32 landingVelocity, s32 ceilingOffset, s32 speedLimit, s32 wallOffset);
 
 /**
  * @brief 928FC | Zombie Soldier state 0 (walk): while on the ground
@@ -154,7 +158,6 @@ void ZombieSoldier_UpdateWalk(struct EwramData_EntityData *entity)
 /* ZombieSoldier_UpdateAttack: enemy attack states (throws ZombieSoldier_ThrowGrenade); matched. */
 /* Throw a projectile toward the player's horizontal position, then return
  * to the idle state when the animation ends. */
-extern void ZombieSoldier_ThrowGrenade(struct EwramData_EntityData *owner, s32 x, s32 y, s32 velX, s32 velY);
 
 /**
  * @brief Attack state machine (state 1): melee swing (sound 0x85) or, from
@@ -222,9 +225,6 @@ void ZombieSoldier_UpdateAttack(struct EwramData_EntityData *entity)
 /* ZombieSoldier_OnHit (hit with HP / death), generated with a template script from the
  * template of WingedSkeleton_OnHit and checked byte for byte. */
 
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
-
 /**
  * @brief 92B38 | Hit: flash (hitFlashTimer = 8), subtract the damage from the HP
  * and show it; at HP <= 0 die (Enemy_DropRewards, song 0x70, animation 3, palette into
@@ -243,7 +243,7 @@ void ZombieSoldier_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
@@ -259,10 +259,6 @@ void ZombieSoldier_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 
 /* Spawn the projectile ZombieSoldierGrenade_Update at the owner + (x, y) with the given
  * velocity, copying the owner's facing, palette and layer. */
 
-extern void ZombieSoldierGrenade_Update(struct EwramData_EntityData *);
-extern void ZombieSoldierGrenade_DamagePlayerOnContact(struct EwramData_EntityData *);
-extern void ZombieSoldierGrenade_OnHit(struct EwramData_EntityData *, s32, u16 *);
-
 /**
  * @brief Throw a grenade from owner + (x, y) with (velX, velY) under gravity;
  * contact ZombieSoldierGrenade_DamagePlayerOnContact, hit
@@ -270,7 +266,7 @@ extern void ZombieSoldierGrenade_OnHit(struct EwramData_EntityData *, s32, u16 *
  */
 void ZombieSoldier_ThrowGrenade(struct EwramData_EntityData *owner, s32 x, s32 y, s32 velX, s32 velY)
 {
-    struct EwramData_EntityData *shot = EntityCreateInRange(0x49, 0xCF, (u32 *)ZombieSoldierGrenade_Update);
+    struct EwramData_EntityData *shot = EntityCreateInRange(0x49, 0xCF, ZombieSoldierGrenade_Update);
     struct SpriteBox box = {-2, -2, 4, 4};
     if (shot != NULL)
     {
@@ -286,7 +282,7 @@ void ZombieSoldier_ThrowGrenade(struct EwramData_EntityData *owner, s32 x, s32 y
         shot->basePalette = owner->basePalette;
         Sprite_Attach(shot, sZombieSoldierSpriteSheet, graphics, shot->basePalette);
         shot->animFrame = 0x12;
-        Hit_Enable(shot, 8, ZombieSoldierGrenade_DamagePlayerOnContact, (s32)ZombieSoldierGrenade_OnHit);
+        Hit_Enable(shot, 8, ZombieSoldierGrenade_DamagePlayerOnContact, ZombieSoldierGrenade_OnHit);
         HitBox_SetAttack(shot, &box);
         HitBox_SetBody(shot, &box);
         shot->hit.flags &= ~4;
@@ -294,12 +290,10 @@ void ZombieSoldier_ThrowGrenade(struct EwramData_EntityData *owner, s32 x, s32 y
         shot->enemyId = owner->enemyId;
         shot->attack = owner->attack;
         shot->scrollWithBg = 1;
-        shot->drawFunc = (u32 *)Sprite_DrawEntity;
+        shot->drawFunc = Sprite_DrawEntity;
         shot->timer = 0;
     }
 }
-
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 
 struct HitRect8 {
     s32 x:8;
@@ -413,7 +407,7 @@ void ZombieSoldierGrenade_Update(struct EwramData_EntityData *entity)
         if (entity->timer <= 0x12)
         {
         hit:
-            Hit_CheckWithPlayer(buffer, entity);
+            Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
         }
         else
             entity->hit.flags |= 2;
@@ -424,14 +418,12 @@ void ZombieSoldierGrenade_Update(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   ZombieSoldier_SpawnPiece = ZombieOfficer_SpawnPiece */
 
-extern void ZombieSoldierPiece_Update(struct EwramData_EntityData *entity);
-
 /**
  * @brief 92FCC | Same as ZombieOfficer_SpawnPiece.
  */
 void ZombieSoldier_SpawnPiece(struct EwramData_EntityData *entity, s32 x, s32 y, s32 vx, s32 vy, s32 frame)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)ZombieSoldierPiece_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, ZombieSoldierPiece_Update);
 
     if (child != NULL)
     {
@@ -449,25 +441,11 @@ void ZombieSoldier_SpawnPiece(struct EwramData_EntityData *entity, s32 x, s32 y,
         child->velX.whole = vx;
         child->velY.whole = vy;
         child->scrollWithBg = 1;
-        child->drawFunc = (u32 *)Sprite_DrawEntity;
+        child->drawFunc = Sprite_DrawEntity;
     }
 }
 
 /* Zombie Soldier helpers 0x08093078..0x08093177. */
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
 
 /**
  * @brief 93078 | Fall (max 0x80000); delete below y unk_500.
@@ -525,7 +503,7 @@ u8 ZombieSoldier_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sZombieSoldierPalette, 0);
     Sprite_Attach(entity, sZombieSoldierSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 

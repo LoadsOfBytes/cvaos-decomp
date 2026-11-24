@@ -11,12 +11,21 @@
 #include "entity_common.h"
 #include "math_anim.h"
 #include "obj_palette.h"
+#include "hitbox.h"
+#include "damage_numbers.h"
+
+extern s32 Collision_GetTileOnScreen(s32, s32);
+extern s16 Collision_GetPushDown(s32, s32);
+extern s16 Collision_GetPushLeft(s32, s32);
+extern s16 Collision_GetPushRight(s32, s32);
+extern s16 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
+extern s16 GetEntityRoomYPositionInteger(struct EwramData_EntityData *entity);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
+
+void Fleaman_UpdateMovement(struct EwramData_EntityData *entity);
+void Fleaman_UpdateDeath(struct EwramData_EntityData *entity);
 
 /* EnemyFleamanUpdate. */
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
-extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
-extern void Fleaman_UpdateMovement(struct EwramData_EntityData *entity);
-extern void Fleaman_UpdateDeath(struct EwramData_EntityData *entity);
 
 /**
  * @brief C1F1C | Fleaman update. State 3: start the animation once, then
@@ -45,12 +54,12 @@ void EnemyFleamanUpdate(struct EwramData_EntityData *entity)
         Enemy_UpdateHitFlash(entity);
     if (Entity_IsTimeStopped(entity) && entity->state != 0xFF)
     {
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         return;
     }
     if (entity->hitFlashTimer && entity->state != 2 && entity->state != 0xFF)
     {
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         return;
     }
     switch (entity->state)
@@ -64,16 +73,8 @@ void EnemyFleamanUpdate(struct EwramData_EntityData *entity)
     }
     Entity_AnimateWithBoxes(entity);
     if (entity->state != 0xFF)
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
 }
-
-extern s32 Collision_GetTileOnScreen(s32, s32);
-extern s16 Collision_GetPushDown(s32, s32);
-extern s16 Collision_GetPushLeft(s32, s32);
-extern s16 Collision_GetPushRight(s32, s32);
-extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *);
-extern s16 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
-extern s16 GetEntityRoomYPositionInteger(struct EwramData_EntityData *entity);
 
 /**
  * @brief Alive state (1): handle carried release, landing and randomly
@@ -301,19 +302,6 @@ void Fleaman_UpdateDeath(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   Fleaman_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
-
 /**
  * @brief C242C | Same as Enemy_DamagePlayerOnContact.
  */
@@ -323,8 +311,6 @@ void Fleaman_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 }
 
 /* Fleaman damage callback, used by EnemyFleamanCreate. */
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
 
 /**
  * @brief Resolve and display damage with hit flash; subtract signed damage
@@ -343,7 +329,7 @@ void Fleaman_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     if ((s16)entity->hp <= 0)
     {
         entity->subState = 0;

@@ -19,23 +19,23 @@
 #include "text12.h"
 #include "data/data_4F1444.h"
 #include "menu_page.h"
+#include "math_inline.h"
 
 /* Equipment menu input handler: A equips the highlighted item (weapon or
  * armor/accessory slot unk_B - 1), A/B closes the list and redraws the page,
  * cursor moves refresh the item description. */
 
-extern void MenuItemIcon_SetHidden(u8 value);
 
 
 struct ItemInfo { u16 name; };
 
 extern struct WeaponInfo sWeaponInfo[];
 extern const struct ArmorInfo sArmorInfo[];
+extern s32 MenuGrid_MoveCursor(void *page, s32 input);
+extern const struct ConsumableInfo sConsumableInfo[];
 
 /* Called with an int tile here (no u16 truncation in the original). */
 extern void HudMap_WriteTiles(s32 x, s32 y, s32 tile, s32 count);
-
-extern s32 MenuGrid_MoveCursor(void *page, s32 input);
 
 s32 EquipmentMenu_UpdateList(struct EwramData_EntityData *page)
 {
@@ -262,9 +262,6 @@ void EquipmentList_InsertGlobalItem(s32 item)
     s32 index = Item_GetIndexByGlobalId(item);
     EquipmentList_Insert(type, index);
 }
-
-extern const struct ConsumableInfo sConsumableInfo[];
-static inline s32 Add16(s16 a, u16 b) { return a + b; }
 
 /* Apply selected consumable: HP/MP recovery, status cure or HP cost. */
 s32 ItemMenu_UseItem(struct PlayerStatus *stats, struct EwramData_EntityData *menu)

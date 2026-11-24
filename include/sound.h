@@ -9,7 +9,7 @@ void MPlayVolumeSet(u16 player, u16 step, u16 volume);
 void MPlayVolumeUpdate(void);
 void InitializeAudio(void);
 void AudioVSync(void);
-void PlaySong(u16 song);
+extern void PlaySong(u16 song);
 void ResetAudio(void);
 u16 GetPlayerUpdatedVolume(u16 player);
 

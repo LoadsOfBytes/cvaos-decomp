@@ -14,5 +14,6 @@ extern struct EwramData_EntityData *Entity_CreateFromObjectTable(s32 kind);
 extern void Interaction_End(struct EwramData_EntityData *entity, s32 deleteEntity);
 extern s32 Entity_SetupFromObjectTable(struct EwramData_EntityData *entity, s32 kind);
 extern void Sound_Play(u16 song);
+extern u32 GameFlag_Is3ASet(void);
 
 #endif /* SHOP_UPDATE_H */

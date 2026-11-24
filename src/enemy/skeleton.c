@@ -21,13 +21,20 @@
 #include "skeleton.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "damage_numbers.h"
+
+extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
+extern void Entity_FaceTarget(struct EwramData_EntityData *);
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
+extern s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
+
+void SkeletonProjectile_Update(struct EwramData_EntityData *);
+void Skeleton_SpawnDeathPieces(struct EwramData_EntityData *);
+void SkeletonProjectile_DamagePlayerOnContact(struct EwramData_EntityData *);
+s32 Imp_LoadGraphics(struct EwramData_EntityData *entity);
 
 /* Patrol and attack-state selection. */
 /* Keep -f2003-patch disabled: signed distance comparisons must retain asrs. */
-
-extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
-extern s32 Entity_ClampXToRoom(struct EwramData_EntityData *entity,s32 mode);
-extern s32 Target_IsNearEntity(struct EwramData_EntityData *entity,s32 width,s32 height);
 
 /**
  * @brief Patrol the stored room bounds; turn on obstacles and enter state 1 when the target is near.
@@ -75,10 +82,6 @@ void Skeleton_UpdatePatrol(struct EwramData_EntityData *entity)
         }
     }
 }
-
-extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *);
-extern void Entity_FaceTarget(struct EwramData_EntityData *);
-extern s32 Entity_IsTargetInCenteredBox(struct EwramData_EntityData *, s32, s32);
 
 /**
  * @brief Face the target, choose short walking intervals and select attack or idle states from proximity and random checks.
@@ -259,7 +262,7 @@ void Skeleton_UpdateAttackPreparation(struct EwramData_EntityData *entity)
         else
         {
             Anim_StartIndexed(entity, 6, 0, 0);
-            if (Entity_CreateLinkedAndHide(entity, (u32 *)SkeletonAttachedPart_Update) == NULL)
+            if (Entity_CreateLinkedAndHide(entity, SkeletonAttachedPart_Update) == NULL)
             {
                 EntityDelete(entity);
                 entity->state = 1;
@@ -282,7 +285,6 @@ void Skeleton_UpdateAttackPreparation(struct EwramData_EntityData *entity)
 }
 
 /* Attack phase spawning a projectile. */
-extern void SkeletonProjectile_Update(struct EwramData_EntityData *);
 
 /* attack flags: bit 3 alternate animation, bits 1/2 pending shots */
 #undef FLAGS
@@ -339,7 +341,6 @@ void Skeleton_UpdateThrow(struct EwramData_EntityData *entity)
 }
 
 /* Death sequence. */
-extern void Skeleton_SpawnDeathPieces(struct EwramData_EntityData *);
 
 /**
  * @brief Hide the entity, spawn death pieces and drop rewards; count down the byte timer, then free the affine slot and request deletion.
@@ -367,7 +368,6 @@ void Skeleton_UpdateDeath(struct EwramData_EntityData *entity)
 }
 
 /* Hit callback that knocks the entity away. */
-extern s8 Entity_GetTargetDirection(struct EwramData_EntityData *);
 
 /**
  * @brief Clear health and affine mode; fall or reverse vertical velocity and bounce sideways according to projectile variant.
@@ -391,7 +391,7 @@ void SkeletonProjectile_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 
     }
     else
     {
-        if (Entity_GetTargetDirection(entity) > 0)
+        if ((s8)Entity_GetTargetDirection(entity) > 0)
         {
             speed = entity->velX.whole;
             if (speed < 0)
@@ -413,9 +413,6 @@ void SkeletonProjectile_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 
 }
 
 /* SkeletonProjectile_Update: debris piece thrown by its parent entity (falls until off screen). */
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
-extern void SkeletonProjectile_DamagePlayerOnContact(struct EwramData_EntityData *);
 
 static inline s32 IsBelow(struct EwramData_EntityData *entity)
 {
@@ -440,11 +437,11 @@ void SkeletonProjectile_Update(struct EwramData_EntityData *entity)
         entity->scrollWithBg = 1;
         entity->basePalette = parent->basePalette;
         Sprite_Attach(entity, sSkeletonSpriteSheet, state = Sprite_GetTileSlot(parent), entity->basePalette);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->hp = 1;
         entity->mp = 1;
         entity->affineIndex = parent->ext.skeleton.affine;
-        Hit_Enable(entity, 0xA, SkeletonProjectile_DamagePlayerOnContact, (s32)SkeletonProjectile_OnHit);
+        Hit_Enable(entity, 0xA, SkeletonProjectile_DamagePlayerOnContact, SkeletonProjectile_OnHit);
         HitBox_SetBodyRaw(entity, 0x1010F8F8);
         HitBox_SetAttackRaw(entity, 0x0202FFFF);
         entity->attack = parent->attack;
@@ -489,7 +486,7 @@ void SkeletonProjectile_Update(struct EwramData_EntityData *entity)
         {
             if (Entity_IsTimeStopped(entity))
             {
-                Hit_CheckWithPlayer(box, entity);
+                Hit_CheckWithPlayer((struct HitResult *)box, entity);
                 entity->affine = 0;
                 break;
             }
@@ -499,14 +496,14 @@ void SkeletonProjectile_Update(struct EwramData_EntityData *entity)
         state = entity->state;
         if (flag && (u8)state != 3 && (u8)state != 4)
         {
-            Hit_CheckWithPlayer(box, entity);
+            Hit_CheckWithPlayer((struct HitResult *)box, entity);
             break;
         }
         entity->posX.whole += entity->velX.whole;
         entity->posY.whole += entity->velY.whole;
         entity->velY.whole += 0x1800;
         if ((u8)state != 3)
-            Hit_CheckWithPlayer(box, entity);
+            Hit_CheckWithPlayer((struct HitResult *)box, entity);
         if (IsBelow(entity))
             entity->state = 4;
         break;
@@ -532,7 +529,7 @@ void Skeleton_SpawnDeathPieces(struct EwramData_EntityData *owner)
         i = 1;
     for (; i <= 6; i++)
     {
-        child = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateSpriteDebris);
+        child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateSpriteDebris);
         if (child != NULL)
         {
             child->ext.skeletonPiece.ownerIndex = ENTITY_INDEX(owner);
@@ -542,7 +539,7 @@ void Skeleton_SpawnDeathPieces(struct EwramData_EntityData *owner)
             child->scrollWithBg = 1;
             graphics = Sprite_GetTileSlot(owner);
             Sprite_Attach(child, sSkeletonSpriteSheet, graphics, ObjPalette_FindOrLoad(sSkeletonWaiterSkeletonPalette));
-            child->drawFunc = (u32 *)Sprite_DrawEntity;
+            child->drawFunc = Sprite_DrawEntity;
             child->posX.whole = owner->posX.whole;
             child->posY.whole = owner->posY.whole;
             x = sSkeletonDeathPieceOffsets[child->ext.skeletonPiece.index][0];
@@ -553,7 +550,7 @@ void Skeleton_SpawnDeathPieces(struct EwramData_EntityData *owner)
             child->accelY.whole = 0x3000;
             child->timer = sSkeletonDeathPieceOffsets[child->ext.skeletonPiece.index][5];
             child->flipX = owner->flipX;
-            if (Entity_GetTargetDirection(owner) > 0)
+            if ((s8)Entity_GetTargetDirection(owner) > 0)
             {
                 child->velX.whole = -(child->velX.whole < 0 ? -child->velX.whole : child->velX.whole);
                 x = -(x < 0 ? -x : x);
@@ -587,7 +584,7 @@ void SkeletonDeathPiece_UpdateUnused(struct EwramData_EntityData *entity)
         graphics = Sprite_GetTileSlot(owner);
         Sprite_Attach(entity, sprite, graphics, ObjPalette_FindOrLoad(sSkeletonWaiterSkeletonPalette));
     }
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->posX.whole = owner->posX.whole;
         entity->posY.whole = owner->posY.whole;
         x = sSkeletonDeathPieceOffsets[entity->ext.skeletonPiece.index][0];
@@ -598,7 +595,7 @@ void SkeletonDeathPiece_UpdateUnused(struct EwramData_EntityData *entity)
         entity->velY.whole = -(sSkeletonDeathPieceOffsets[entity->ext.skeletonPiece.index][4] << 12) - 16;
         entity->timer = sSkeletonDeathPieceOffsets[entity->ext.skeletonPiece.index][5];
         entity->flipX = owner->flipX;
-        if (Entity_GetTargetDirection(owner) > 0)
+        if ((s8)Entity_GetTargetDirection(owner) > 0)
         {
             entity->velX.whole = -(entity->velX.whole < 0 ? -entity->velX.whole : entity->velX.whole);
             x = -(x < 0 ? -x : x);
@@ -623,7 +620,6 @@ void SkeletonDeathPiece_UpdateUnused(struct EwramData_EntityData *entity)
 }
 
 /* Attached part: mirrors its parent's flags, follows joint 0 / table point and switches animation. */
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 
 /**
  * @brief Follow the Skeleton owner at joint 0, then table-selected joints
@@ -792,8 +788,6 @@ void SkeletonAttachedPart_Update(struct EwramData_EntityData *entity)
 }
 
 /* Enemy helpers 0x080C45E8..0x080C467B. */
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
 
 /**
  * @brief Start animation 0, clear hidden and advance animation. The gameplay meaning of state 5 remains unresolved.
@@ -823,7 +817,7 @@ void Skeleton_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
     damage <<= 16;
     damage >>= 16;
     entity->hp = hp - damage;
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     entity->hitFlashTimer = 8;
     if ((s16)entity->hp <= 0)
     {
@@ -855,13 +849,11 @@ void SkeletonProjectile_DamagePlayerOnContact(struct EwramData_EntityData *entit
 }
 
 /* Tiny Devil spawn and create 0x080C46AC..0x080C4767. */
-extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, s32 onHurt);
-extern s32 Imp_LoadGraphics(struct EwramData_EntityData *entity);
 
 /**
  * @brief Create with the supplied update function, copy parent identity, attack and health fields, and hide the parent; NULL on allocation failure.
  */
-struct EwramData_EntityData *Entity_CreateLinkedAndHide(struct EwramData_EntityData *entity, u32 *updateFunc)
+struct EwramData_EntityData *Entity_CreateLinkedAndHide(struct EwramData_EntityData *entity, EntityFunc updateFunc)
 {
     struct EwramData_EntityData *child = Entity_CreateObject(updateFunc);
 
@@ -899,7 +891,7 @@ void EnemyImpCreate(struct EwramData_EntityData *entity)
         entity->subState = 0;
         return;
     }
-    Entity_EnableBoxes(entity, Imp_OnContact, (s32)Imp_OnHit);
+    Entity_EnableBoxes(entity, Imp_OnContact, Imp_OnHit);
     Imp_ResetFlight(entity);
     if (!Imp_CreateGrabIndicator(entity))
         entity->deleteRequested = 1;
@@ -907,7 +899,6 @@ void EnemyImpCreate(struct EwramData_EntityData *entity)
 
 /* Graphics loader 0x080C4768. It only matches without -f2003-patch (see
  * NO_2003_PATCH_SRCS in ../Makefile). */
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 /**
  * @brief Find or load graphics and palette, attach the sprite and start animation 0; return 0 on failure, 1 on success.
@@ -935,6 +926,6 @@ s32 Imp_LoadGraphics(struct EwramData_EntityData *entity)
     if (!Anim_StartIndexed(entity, 0, 0, 1))
         return 0;
     Anim_Update(entity);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }

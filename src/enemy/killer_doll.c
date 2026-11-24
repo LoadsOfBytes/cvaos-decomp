@@ -14,13 +14,34 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "entity_inline.h"
+#include "hitbox.h"
+#include "damage_numbers.h"
+
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 hit, u16 *data, s32 kind);
+extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
+extern s32 Collision_GetPushUp(s32 x, s32 y);
+extern s32 Collision_GetPushDown(s32 x, s32 y);
+extern s32 Collision_GetPushLeft(s32 x, s32 y);
+extern s32 Collision_GetPushRight(s32 x, s32 y);
+
+/* This caller tests the full return register (no u8 truncation). */
+extern s32 Collision_GetTileOnScreen(s32 x, s32 y);
+/* These callers use full return registers, without 16-bit truncation. */
+extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
+extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *entity);
+
+s32 KillerDoll_LoadGraphics(struct EwramData_EntityData *entity);
+void KillerDoll_OnContact(struct EwramData_EntityData *entity);
+void KillerDoll_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 *data);
+void KillerDoll_ResetActive(struct EwramData_EntityData *entity);
+void KillerDoll_SpawnDeathParts(struct EwramData_EntityData *entity);
+void KillerDoll_UpdateState2Animation(struct EwramData_EntityData *entity);
+void KillerDoll_UpdateActive(struct EwramData_EntityData *entity);
+void KillerDoll_UpdateDeath(struct EwramData_EntityData *entity);
+void KillerDoll_ResolveMovementBounds(struct EwramData_EntityData *entity);
 
 /* EnemyKillerDollCreate. */
-extern s32 KillerDoll_LoadGraphics(struct EwramData_EntityData *entity);
-extern void KillerDoll_OnContact(struct EwramData_EntityData *entity);
-void KillerDoll_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 *data);
-extern void KillerDoll_ResetActive(struct EwramData_EntityData *entity);
-extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, s32 onHurt);
 
 /**
  * @brief C7B9C | Killer Doll create: load the graphics (delete the enemy
@@ -46,13 +67,12 @@ void EnemyKillerDollCreate(struct EwramData_EntityData *entity)
         entity->subState = 0;
         return;
     }
-    Entity_EnableBoxes(entity, KillerDoll_OnContact, (s32)KillerDoll_OnHit);
+    Entity_EnableBoxes(entity, KillerDoll_OnContact, KillerDoll_OnHit);
     KillerDoll_ResetActive(entity);
 }
 
 /* Graphics loader 0x080C7C04. It only matches without -f2003-patch (see
  * NO_2003_PATCH_SRCS in ../Makefile). */
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 /**
  * @brief Find or load graphics and palette, attach the sprite and start animation 0; return 0 on failure, 1 on success.
@@ -80,20 +100,12 @@ s32 KillerDoll_LoadGraphics(struct EwramData_EntityData *entity)
     if (!Anim_StartIndexed(entity, 0, 0, 1))
         return 0;
     Anim_Update(entity);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
 /* Killer Doll: stop movement, resolve floor placement and initialize three
  * randomized timers. */
-
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 hit, u16 *data, s32 kind);
-extern void Entity_ShowDamage(struct EwramData_EntityData *entity, s16 damage, s32 flags);
-extern void KillerDoll_SpawnDeathParts(struct EwramData_EntityData *entity);
-extern void Hit_CheckWithPlayer(void *buffer, struct EwramData_EntityData *entity);
-extern void KillerDoll_UpdateState2Animation(struct EwramData_EntityData *entity);
-extern void KillerDoll_UpdateActive(struct EwramData_EntityData *entity);
-extern void KillerDoll_UpdateDeath(struct EwramData_EntityData *entity);
 
 /**
  * @brief Clear velocity and acceleration, snap to ground and enter state 1 with three randomized behavior countdowns.
@@ -117,14 +129,6 @@ void KillerDoll_ResetActive(struct EwramData_EntityData *entity)
 
 /* Killer Doll movement and attack state machine, reconstructed from the
  * original assembly. */
-
-extern u8 Entity_IsTargetWithinRange(struct EwramData_EntityData *entity, s32 range);
-extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
-extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *entity);
-extern u16 Entity_GetTargetAngleAbove16(struct EwramData_EntityData *entity);
-extern void KillerDoll_ResolveMovementBounds(struct EwramData_EntityData *entity);
-/* This caller tests the full return register (no u8 truncation). */
-extern s32 Collision_GetTileOnScreen(s32 x, s32 y);
 
 #define TIMER_X(e) (e->ext.killerDoll.lungeTimer)
 #define TIMER_Y(e) (e->ext.killerDoll.turnTimer)
@@ -357,7 +361,7 @@ void KillerDoll_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 *data)
 
     damage = (damage << 16) >> 16;
     entity->hp = hp - damage;
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     entity->hitFlashTimer = 8;
     if ((s16)entity->hp <= 0)
     {
@@ -391,7 +395,7 @@ void KillerDollPartEffect_Update(struct EwramData_EntityData *entity)
             Sprite_Attach(entity, sCommonObjectSpriteSheet, gfx, 7);
             Anim_StartIndexed(entity, 0, 0, 1);
             entity->scrollWithBg = 1;
-            entity->drawFunc = (u32 *)Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->state++;
             break;
         }
@@ -405,23 +409,6 @@ void KillerDollPartEffect_Update(struct EwramData_EntityData *entity)
 }
 
 /* Killer Doll body parts after death. */
-extern s8 ObjPalette_FindOrLoad(void *palette);
-extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *entity);
-extern s32 Collision_GetPushUp(s32 x, s32 y);
-extern s32 Collision_GetPushDown(s32 x, s32 y);
-extern s32 Collision_GetPushLeft(s32 x, s32 y);
-extern s32 Collision_GetPushRight(s32 x, s32 y);
-
-static inline s32 RoomX(s32 pos)
-{
-    struct BgLayerState *bg = &gEwramData->bgInfo[1];
-    return pos + (s16)bg->xPos.part16.integer;
-}
-static inline s32 RoomY(s32 pos)
-{
-    struct BgLayerState *bg = &gEwramData->bgInfo[1];
-    return pos + (s16)bg->yPos.part16.integer;
-}
 
 static inline s32 Hidden(struct EwramData_EntityData *e) { return 1 - e->hidden; }
 /**
@@ -446,7 +433,7 @@ void KillerDollPart_Update(struct EwramData_EntityData *entity)
             spriteData = sKillerDollSpriteSheet;
             graphics = Sprite_GetTileSlot(parent);
             Sprite_Attach(entity, spriteData, graphics, ObjPalette_FindOrLoad(sKillerDollLightningDollPalette));
-            entity->drawFunc = (u32 *)Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->posX.whole = parent->posX.whole;
             entity->posY.whole = parent->posY.whole;
             x = sKillerDollPartOffsets[(u8)entity->ext.dollPart.index][0];
@@ -465,7 +452,7 @@ void KillerDollPart_Update(struct EwramData_EntityData *entity)
                 entity->velX.whole = -ABS(entity->velX.whole);
                 x = -ABS(x);
             }
-            effect = EntityCreateInRange(0x49, 0xCF, (u32 *)KillerDollPartEffect_Update);
+            effect = EntityCreateInRange(0x49, 0xCF, KillerDollPartEffect_Update);
             if (effect != NULL)
             {
                 effect->posX.whole = entity->posX.whole;
@@ -501,7 +488,7 @@ void KillerDollPart_Update(struct EwramData_EntityData *entity)
             {
                 if (entity->velY.whole >= 0)
                 {
-                    correction = Collision_GetPushUp(RoomX((s16)entity->posX.part16.integer), RoomY((s16)entity->posY.part16.integer) - 15);
+                    correction = Collision_GetPushUp(ToRoomX((s16)entity->posX.part16.integer), ToRoomY((s16)entity->posY.part16.integer) - 15);
                     if (correction != 0)
                     {
                         PlaySong(0x153);
@@ -518,17 +505,17 @@ void KillerDollPart_Update(struct EwramData_EntityData *entity)
                 }
                 else
                 {
-                    correction = Collision_GetPushDown(RoomX((s16)entity->posX.part16.integer), RoomY((s16)entity->posY.part16.integer) - 32);
+                    correction = Collision_GetPushDown(ToRoomX((s16)entity->posX.part16.integer), ToRoomY((s16)entity->posY.part16.integer) - 32);
                     if (correction != 0)
                         entity->posY.part16.integer += correction;
                 }
                 if (entity->velX.whole > 0)
-                    correction = Collision_GetPushLeft(RoomX((s16)entity->posX.part16.integer) + 8, RoomY((s16)entity->posY.part16.integer) - 16);
+                    correction = Collision_GetPushLeft(ToRoomX((s16)entity->posX.part16.integer) + 8, ToRoomY((s16)entity->posY.part16.integer) - 16);
                 else
                 {
                     if (entity->velX.whole == 0)
                         goto timer;
-                    correction = Collision_GetPushRight(RoomX((s16)entity->posX.part16.integer) - 8, RoomY((s16)entity->posY.part16.integer) - 16);
+                    correction = Collision_GetPushRight(ToRoomX((s16)entity->posX.part16.integer) - 8, ToRoomY((s16)entity->posY.part16.integer) - 16);
                 }
                 if (correction != 0)
                 {
@@ -562,10 +549,6 @@ timer:
     }
 }
 
-/* These callers use full return registers, without 16-bit truncation. */
-extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
-extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *entity);
-
 /**
  * @brief Reverse velocity at room boundaries; apply directional tile corrections and stop the affected velocity component on collision.
  */
@@ -595,11 +578,11 @@ void KillerDoll_ResolveMovementBounds(struct EwramData_EntityData *entity)
     else
     {
         if (entity->velX.whole >= 0)
-            correction = Collision_GetPushLeft(RoomX((s16)entity->posX.part16.integer) + 8,
-                                     RoomY((s16)entity->posY.part16.integer) - 16);
+            correction = Collision_GetPushLeft(ToRoomX((s16)entity->posX.part16.integer) + 8,
+                                     ToRoomY((s16)entity->posY.part16.integer) - 16);
         else
-            correction = Collision_GetPushRight(RoomX((s16)entity->posX.part16.integer) - 8,
-                                     RoomY((s16)entity->posY.part16.integer) - 16);
+            correction = Collision_GetPushRight(ToRoomX((s16)entity->posX.part16.integer) - 8,
+                                     ToRoomY((s16)entity->posY.part16.integer) - 16);
         if (correction != 0)
         {
             entity->posX.part16.integer += correction;
@@ -623,11 +606,11 @@ void KillerDoll_ResolveMovementBounds(struct EwramData_EntityData *entity)
     else
     {
         if (entity->velY.whole >= 0)
-            correction = Collision_GetPushUp(RoomX((s16)entity->posX.part16.integer),
-                                     RoomY((s16)entity->posY.part16.integer) + 1);
+            correction = Collision_GetPushUp(ToRoomX((s16)entity->posX.part16.integer),
+                                     ToRoomY((s16)entity->posY.part16.integer) + 1);
         else
-            correction = Collision_GetPushDown(RoomX((s16)entity->posX.part16.integer),
-                                     RoomY((s16)entity->posY.part16.integer) - 32);
+            correction = Collision_GetPushDown(ToRoomX((s16)entity->posX.part16.integer),
+                                     ToRoomY((s16)entity->posY.part16.integer) - 32);
         if (correction != 0)
         {
             entity->posY.part16.integer += correction;
@@ -651,7 +634,7 @@ void EnemyKillerDollUpdate(struct EwramData_EntityData *entity)
     Player_TrackEntity(entity);
     if (Enemy_IsStunned(entity) && entity->state != 0xFF)
     {
-        Hit_CheckWithPlayer(buffer, entity);
+        Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
         return;
     }
     switch (entity->state)
@@ -666,7 +649,7 @@ void EnemyKillerDollUpdate(struct EwramData_EntityData *entity)
     if (entity->state != 0xFF)
     {
         Entity_AnimateWithBoxes(entity);
-        Hit_CheckWithPlayer(buffer, entity);
+        Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
     }
 }
 
@@ -695,19 +678,6 @@ void KillerDoll_UpdateDeath(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   KillerDoll_UpdateState2Animation = Ukoback_UpdateState1Animation
  *   KillerDoll_OnContact = Enemy_DamagePlayerOnContact */
-
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
 
 /**
  * @brief Start animation 0 once and then advance it. The gameplay purpose of state 2 remains unresolved.
@@ -741,7 +711,7 @@ void KillerDoll_SpawnDeathParts(struct EwramData_EntityData *entity)
     entity->hidden = 1;
     for (i = 0; i < 5; i++)
     {
-        struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)KillerDollPart_Update);
+        struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, KillerDollPart_Update);
 
         if (child != NULL)
         {

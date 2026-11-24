@@ -25,9 +25,18 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "structs/entity_template.h"
+#include "math_inline.h"
+#include "music.h"
+#include "pickup.h"
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-static inline s32 FixedMulFast(s32 a, s32 b) { return (a >> 8) * (b >> 8); }
+extern s16 GetEntityRoomYPositionInteger(struct EwramData_EntityData *entity);
+extern s32 Collision_GetGroundOffset(s32 x, s32 y);
+
+void Object17Follower_Update(struct EwramData_EntityData *);
+void Object17Effect_Update(struct EwramData_EntityData *);
+void Object18_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker);
+
 /**
  * @brief Sprite of object 0x15 placed around its owner at the owner angle
  * unk_4FC and radius unk_500.
@@ -54,7 +63,7 @@ void Object15Create(struct EwramData_EntityData *entity)
     if (!Entity_LoadGraphics(entity, sObject15Gfx, sUnk_0820A1C4, 8, sObject15SpriteSheet)) goto fail;
     entity->animFrame = 0;
     entity->spriteLayer = 31;
-    child = EntityCreateInRange(0x1B, 0x48, (u32 *)Object15Orbiter_Update);
+    child = EntityCreateInRange(0x1B, 0x48, Object15Orbiter_Update);
     if (child == NULL)
     {
 fail:
@@ -253,7 +262,7 @@ void Object16Update(struct EwramData_EntityData *entity)
     entity->timer++;
     if (entity->timer & 1)
     {
-        child = EntityCreateInRange(0x49, 0xCF, (u32 *)Object16Effect_Update);
+        child = EntityCreateInRange(0x49, 0xCF, Object16Effect_Update);
         if (child != NULL)
         {
             child->posX.whole = entity->posX.whole;
@@ -340,9 +349,6 @@ void Object17Overlay_Update(struct EwramData_EntityData *entity)
 }
 
 /* Object17Create: spawns the object and its child effects; matched. */
-extern s16 GetEntityRoomYPositionInteger(struct EwramData_EntityData *entity);
-extern void Object17Follower_Update(struct EwramData_EntityData *);
-extern void Object17Effect_Update(struct EwramData_EntityData *);
 
 static inline struct BgLayerState *Bg1(void)
 {
@@ -391,7 +397,7 @@ void Object17Create(struct EwramData_EntityData *entity)
     entity->posY.part16.integer = tbl[entity->subState] - bg->yPos.part16.integer;
     Player_RegisterSolidObject(entity, (void *)sObject17SolidCallbacks);
     entity->roomActive = 1;
-    e = EntityCreateInRange(0x49, 0xCF, (u32 *)Object17Follower_Update);
+    e = EntityCreateInRange(0x49, 0xCF, Object17Follower_Update);
     if (e != NULL)
     {
         if (!Entity_LoadGraphics(e, sObject17Gfx, sUnk_08209FD8, 4, sObject17SpriteSheet))
@@ -410,7 +416,7 @@ void Object17Create(struct EwramData_EntityData *entity)
     }
     for (i = 0; i <= 1; i++)
     {
-        e = EntityCreateInRange(0x49, 0xCF, (u32 *)Object17Overlay_Update);
+        e = EntityCreateInRange(0x49, 0xCF, Object17Overlay_Update);
         if (e == NULL)
             continue;
         if (!Entity_LoadGraphics(e, sObject17Gfx, sUnk_08209FD8, 4, sObject17SpriteSheet))
@@ -429,7 +435,7 @@ void Object17Create(struct EwramData_EntityData *entity)
     {
         for (j = 0; j <= 7; j++)
         {
-            e = EntityCreateInRange(0x49, 0xCF, (u32 *)Object17Effect_Update);
+            e = EntityCreateInRange(0x49, 0xCF, Object17Effect_Update);
             if (e == NULL)
                 break;
             e->scrollWithBg = 1;
@@ -449,8 +455,6 @@ void Object17Create(struct EwramData_EntityData *entity)
 
 /* Elevator movement and floor input. The r0 timer locals retain the original
  * load/copy sequence; case 1 keeps its zero copy across the sound call. */
-extern s32 Sound_PlayTracked(s32 song);
-extern s32 Sound_StopTracked(s32 song);
 
 static inline s32 AddBgY(s32 v)
 {
@@ -684,8 +688,6 @@ void Object17Follower_Update(struct EwramData_EntityData *entity)
  * a cloning script (constants adjusted where needed), checked byte for
  * byte. */
 
-extern s32 Collision_GetGroundOffset(s32 x, s32 y);
-
 /**
  * @brief Same as Object0EPiece_Update: slide, fall and burst with dust when
  * it lands.
@@ -743,7 +745,7 @@ void Object18_SpawnDebris(struct EwramData_EntityData *parent)
     frame = 1;
     for (i = 0; i <= 3; i++, frame++)
     {
-        entity = EntityCreateInRange(0x49, 0xCF, (u32 *)Object18Debris_Update);
+        entity = EntityCreateInRange(0x49, 0xCF, Object18Debris_Update);
         if (entity == NULL)
             return;
         if (!Entity_LoadGraphics(entity, sObject18Gfx, sObject18Palette, 0, sObject18SpriteSheet))
@@ -768,8 +770,6 @@ void Object18_SpawnDebris(struct EwramData_EntityData *parent)
     }
 }
 
-void Object18_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker);
-
 void Object18Create(struct EwramData_EntityData *entity)
 {
     if (!Entity_LoadGraphics(entity, sObject18Gfx, sObject18Palette, 0, sObject18SpriteSheet))
@@ -780,17 +780,13 @@ void Object18Create(struct EwramData_EntityData *entity)
     entity->spriteLayer = 0x14;
     Anim_StartIndexed(entity, 0, 0, 1);
     Anim_Update(entity);
-    Hit_Enable(entity, 0, NULL, (s32)Object18_OnHit);
+    Hit_Enable(entity, 0, NULL, Object18_OnHit);
     entity->hit.flags |= 2;
     HitBox_SetBodyRaw(entity, 0x1820E8F0);
     Entity_SnapToGround(entity);
     entity->scrollWithBg = 1;
 }
 
-
-extern s32 Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern struct EwramData_EntityData *Pickup_CreateGold(s32 x, s32 y, s32 index);
-extern struct EwramData_EntityData *Pickup_CreateMana(s32 x, s32 y, s32 large, s32 jump);
 
 /**
  * @brief 53968 | Breakable object (object 0x18): hidden off screen; when hit
@@ -809,7 +805,7 @@ void Object18Update(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *e;
     const struct EntityTemplate *info;
 
-    hit = Hit_CheckWithPlayer(buffer, entity);
+    hit = Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
     x = (s16)entity->posX.part16.integer;
     y = (s16)entity->posY.part16.integer - 8;
     if (!Entity_IsInRect(entity, -0x20, -0x20, 0x130, 0xE0))
@@ -839,7 +835,7 @@ void Object18Update(struct EwramData_EntityData *entity)
                 e = Pickup_CreateGold(x + RandomSigned(0x20), y - (RandomNumberGenerator() & 0xF), i / 2);
                 if (e == NULL)
                     break;
-                e->updateFunc = (u32 *)Pickup_UpdateBouncing;
+                e->updateFunc = Pickup_UpdateBouncing;
                 e->velX.whole = RandomSigned(0x100) << 10;
                 e->velY.whole = RandomSigned(0x8000) - 0x20000;
                 e->accelY.whole = 0x2000;
@@ -863,7 +859,7 @@ void Object18Update(struct EwramData_EntityData *entity)
         if (!(entity->timer & 3))
         {
             info = &sEnemyData[0x4A];
-            e = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
+            e = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
             if (e != NULL)
             {
                 e->posX.part16.integer = entity->posX.part16.integer + RandomSigned(0x20);

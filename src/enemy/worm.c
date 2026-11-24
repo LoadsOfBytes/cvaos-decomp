@@ -19,9 +19,17 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "damage_numbers.h"
 
 extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
+extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
+extern s32 Target_IsInRect(s16, s16, s16, s16);
+
+void Worm_SettleOnGround(struct EwramData_EntityData *);
+void WormSegment_Update(struct EwramData_EntityData *);
+void Worm_Draw(struct EwramData_EntityData *);
+void Worm_DamagePlayerOnContact(struct EwramData_EntityData *);
+void PoisonWorm_DamagePlayerOnContact(struct EwramData_EntityData *);
 
 /**
  * @brief Hit on the head or a segment: resolve the damage and apply it to the
@@ -39,7 +47,7 @@ void Worm_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData
         damage >>= 16;
         parent->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     if ((s16)parent->hp <= 0)
     {
         Enemy_DropRewards(parent);
@@ -54,12 +62,6 @@ void Worm_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData
 }
 
 /* Giant Worm / Poison Worm: create the root and four linked affine segments. */
-extern void Worm_SettleOnGround(struct EwramData_EntityData *);
-extern void WormSegment_Update(struct EwramData_EntityData *);
-extern void Worm_Draw(struct EwramData_EntityData *);
-extern s32 ObjPalette_FindOrLoadVariant(void *, s32);
-extern void Worm_DamagePlayerOnContact(struct EwramData_EntityData *);
-extern void PoisonWorm_DamagePlayerOnContact(struct EwramData_EntityData *);
 /**
  * @brief Shared create of Giant Worm (variant 0) and Poison Worm (variant 1):
  * graphics, affine head, body segments (WormSegment_Update), hit boxes
@@ -116,7 +118,7 @@ void Worm_Init(struct EwramData_EntityData *root, s32 variant)
     }
     }
     Enemy_ResetFromTemplate(root);
-    root->drawFunc = (u32 *)Worm_Draw;
+    root->drawFunc = Worm_Draw;
     tiles = ObjGfx_LoadResource(sWormGfx, 0);
     root->basePalette = ObjPalette_FindOrLoadVariant(sWormPalette, (u8)variant);
     Sprite_Attach(root, sWormSpriteSheet, tiles, root->basePalette);
@@ -134,7 +136,7 @@ void Worm_Init(struct EwramData_EntityData *root, s32 variant)
         return;
     }
     if (root->ext.worm.variant == 0)
-        Hit_Enable(root, 8, Worm_DamagePlayerOnContact, (s32)Worm_OnHit);
+        Hit_Enable(root, 8, Worm_DamagePlayerOnContact, Worm_OnHit);
     else
     {
         if (0)
@@ -144,7 +146,7 @@ void Worm_Init(struct EwramData_EntityData *root, s32 variant)
             root->state = 4;
             return;
         }
-        Hit_Enable(root, 8, PoisonWorm_DamagePlayerOnContact, (s32)Worm_OnHit);
+        Hit_Enable(root, 8, PoisonWorm_DamagePlayerOnContact, Worm_OnHit);
     }
     HitBox_SetBodyRaw(root, 0x1010F8F8);
     HitBox_SetAttackRaw(root, 0x1010F8F8);
@@ -271,7 +273,6 @@ void Worm_StepCrawl(struct EwramData_EntityData *entity, s32 direction, s32 dist
 }
 
 /* Thrown hand weapon of an enemy: follows the owner, flies off in an arc once released. */
-extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
 
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 
@@ -319,9 +320,9 @@ void WormSegment_Update(struct EwramData_EntityData *entity)
             break;
         }
         if (owner->ext.worm.variant == 0)
-            Hit_Enable(entity, 8, Worm_DamagePlayerOnContact, (s32)Worm_OnHit);
+            Hit_Enable(entity, 8, Worm_DamagePlayerOnContact, Worm_OnHit);
         else
-            Hit_Enable(entity, 8, PoisonWorm_DamagePlayerOnContact, (s32)Worm_OnHit);
+            Hit_Enable(entity, 8, PoisonWorm_DamagePlayerOnContact, Worm_OnHit);
         HitBox_SetBodyRaw(entity, 0x1010F8F8);
         HitBox_SetAttackRaw(entity, 0x1010F8F8);
         entity->state++;
@@ -427,11 +428,8 @@ s32 Worm_GetSlopeAngle(struct EwramData_EntityData *e)
 }
 
 /* Enemy update: counted hops with random/target-based facing, knockback fall and despawn states. */
-extern s32 Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern s32 Target_IsInRect(s16, s16, s16, s16);
 
 static inline struct EwramData_EntityData *CurV(struct EwramData *ew) { return *(struct EwramData_EntityData * volatile *)&ew->playerState.enemyTarget; }
-static inline struct EwramData_EntityData *Cur(struct EwramData *ew) { return ew->playerState.enemyTarget; }
 void Worm_Update(struct EwramData_EntityData *entity)
 {
     u8 buffer[16];
@@ -448,7 +446,7 @@ void Worm_Update(struct EwramData_EntityData *entity)
             if (entity->state == 3)
                 return;
             Player_QueueEntity(entity, 0);
-            Hit_CheckWithPlayer(buffer, entity);
+            Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
             return;
         }
         if (entity->state != 3)
@@ -525,7 +523,7 @@ void Worm_Update(struct EwramData_EntityData *entity)
     }
     if (entity->state != 3)
     {
-        Hit_CheckWithPlayer(buffer, entity);
+        Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
         angle = Worm_GetSlopeAngle(entity);
         entity->accelY.whole = angle;
     }
@@ -534,18 +532,6 @@ void Worm_Update(struct EwramData_EntityData *entity)
 }
 
 /* Giant Worm / Poison Worm helpers 0x080AE334..0x080AE3FB. */
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
 
 /**
  * @brief AE334 | Player_ApplyContactDamage with (attack, 0, 0, 0) at the entity position

@@ -75,6 +75,16 @@ extern void Sprite_GetPartOriginOffset(struct EwramData_EntityData *entity, s32 
 extern void EntityAccelerateY(struct EwramData_EntityData *entity, s32 maxSpeed);
 extern void EntityMoveY(struct EwramData_EntityData *entity);
 extern void Effect_SpawnRandom(s32 x, s32 y, s32 width, s32 height, s32 layer);
-extern struct EwramData_EntityData *Entity_CreateObject(void *updateFunc);
+extern struct EwramData_EntityData *Entity_CreateObject(EntityFunc updateFunc);
+extern void Enemy_OnContact(struct EwramData_EntityData *entity);
+extern s32 Target_IsNearEntity(struct EwramData_EntityData *entity, u16 width, u16 height);
+extern s32 Target_GetPixelX(struct EwramData_EntityData *entity);
+extern s32 Target_GetPixelY(struct EwramData_EntityData *entity);
+extern s32 Target_IsWithinDistance(struct EwramData_EntityData *entity, u32 maxDistance);
+extern u32 Entity_StepTowardPoint(struct EwramData_EntityData *entity, s32 x, s32 y, u8 shift);
+extern void HitEffect_SpawnAtContact(s32 attacker, struct EwramData_EntityData *entity, u16 type);
+extern u32 Target_GetFlipX(struct EwramData_EntityData *entity);
+extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, void *onHurt);
+extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 #endif /* ENTITY_COMMON_H */

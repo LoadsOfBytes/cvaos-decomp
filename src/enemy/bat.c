@@ -11,20 +11,18 @@
 #include "math_anim.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "entity_inline.h"
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, u8 *, void *, u8, void *);
 extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
 extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *);
 extern s32 Collision_GetPushDown(s32, s32);
-extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, void *);
-extern void Enemy_OnContact(struct EwramData_EntityData *);
+extern void Entity_FaceTarget(struct EwramData_EntityData *);
+
 void Bat_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hitData);
-static inline void SetState(struct EwramData_EntityData *entity, s8 value4F0, u8 state)
-{
-    entity->state = state;
-    entity->stage = value4F0;
-    entity->subState = 0;
-}
+s32 Bat_IsTargetBelow(struct EwramData_EntityData *, u16, u16);
+void Bat_UpdateState4Animation(struct EwramData_EntityData *);
+
 void EnemyBatCreate(struct EwramData_EntityData *entity)
 {
     u8 *palette = sBatPalette;
@@ -45,11 +43,11 @@ void EnemyBatCreate(struct EwramData_EntityData *entity)
     hit = *((u8 *)&gEwramData->gameState + 0x2E) & 0x40;
     if (hit > 0)
     {
-        SetState(entity, 0, 4);
+        Entity_SetStateAndStage(entity, 0, 4);
     }
     else
     {
-        SetState(entity, 0, 1);
+        Entity_SetStateAndStage(entity, 0, 1);
         y = &entity->posY.part16.integer;
         py = y;
         do
@@ -65,9 +63,6 @@ void EnemyBatCreate(struct EwramData_EntityData *entity)
 }
 
 /* Bat state machine, reconstructed from original ROM assembly. */
-extern void Entity_FaceTarget(struct EwramData_EntityData *);
-extern s32 Bat_IsTargetBelow(struct EwramData_EntityData *, u16, u16);
-extern void Bat_UpdateState4Animation(struct EwramData_EntityData *);
 
 /**
  * @brief Face the target; choose waiting animations until the target enters the lower detection rectangle.
@@ -247,7 +242,6 @@ void EnemyBatUpdate(struct EwramData_EntityData *entity)
 }
 
 /* Bat helpers 0x080AD6AC..0x080AD747. */
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 /**
  * @brief Start animation 1 once, then advance it. The gameplay meaning of state 4 is unresolved.

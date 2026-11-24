@@ -28,8 +28,9 @@
 #include "data/data_0E5364.h"
 #include "data/data_118B48.h"
 
-// TODO: HudMap_WriteTiles is implicitly called in other files, except this one
 extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
+
+// TODO: HudMap_WriteTiles is implicitly called in other files, except this one
 
 /**
  * @brief Unreferenced: enable window 0 over (x1..x2, y1..y2) with a pulsing
@@ -788,7 +789,7 @@ void MainMenu_InitEntity(struct EwramData_EntityData *entity)
     Anim_StartIndexed(entity, 0, 0, 1);
     Anim_Update(entity);
     entity->ext.mainMenu.baseFrame = entity->animFrame;
-    entity->drawFunc = (u32 *) MainMenu_Draw;
+    entity->drawFunc = MainMenu_Draw;
     header = gEwramData->saveHeaders;
 
     for (i = 0; i < 6; i++)
@@ -799,7 +800,7 @@ void MainMenu_InitEntity(struct EwramData_EntityData *entity)
             entity->ext.mainMenu.savedSlots |= 1 << i;
         }
     }
-    entity->updateFunc = (u32 *) EntityUpdateNothing;
+    entity->updateFunc = EntityUpdateNothing;
     entity->state = 1;
 }
 

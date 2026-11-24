@@ -8,5 +8,7 @@
 #include "structs/main.h"
 
 extern void Player_EquipItem(s32 category, s32 item);
+extern u8 Player_GetEquippedItem(s32 kind);
+extern s32 EquipmentMenu_UpdateList(struct EwramData_EntityData *page);
 
 #endif /* ITEM_MENU_H */

@@ -17,9 +17,17 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 
-/* Falling debris and the short-lived emitter that spawns it. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern void HeadStackEffect_UpdateFallingPiece(struct EwramData_EntityData *);
+extern void Entity_PlaceRelativeToCopy(struct EwramData_EntityData *, struct EwramData_EntityData *, s32, s32);
+extern s32 Target_IsInRect(s16, s16, s16, s16);
+
+void HeadStackEffect_UpdateFallingPiece(struct EwramData_EntityData *);
+void HeadStackProjectile_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void HeadStackProjectile_ClearHealth(struct EwramData_EntityData *);
+void HeadStackDebris_Update(struct EwramData_EntityData *entity);
+void HeadStackSegment_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+
+/* Falling debris and the short-lived emitter that spawns it. */
 /* Keep the table index as an inline parameter: agbcc then reproduces
  * the original base-plus-0x10 calculation instead of a relocated pointer. */
 static inline u8 LoadDebrisGraphics(struct EwramData_EntityData *e, struct HeadStackGraphics *base, s32 idx)
@@ -98,7 +106,7 @@ void HeadStackEffect_UpdateEmitter(struct EwramData_EntityData *entity)
         {
             if (!(entity->timer & 0xF))
             {
-                struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadStackEffect_UpdateFallingPiece);
+                struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, HeadStackEffect_UpdateFallingPiece);
                 if (effect != NULL)
                 {
                     effect->posX.part16.integer = entity->posX.part16.integer + RandomSigned(0x10);
@@ -156,9 +164,6 @@ void HeadStackEffect_UpdateParticle(struct EwramData_EntityData *entity)
     }
 }
 
-extern s32 Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
-extern void HeadStackProjectile_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-
 /**
  * @brief Play the owner variant attack animation, enable its attack box at step 4, and end with the animation or owner death.
  */
@@ -184,7 +189,7 @@ void HeadStackEffect_UpdateAttack(struct EwramData_EntityData *entity)
         entity->objMode = 1;
         if (owner->ext.headStack.type != 0)
         {
-            child = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadStackEffect_UpdateEmitter);
+            child = EntityCreateInRange(0x49, 0xCF, HeadStackEffect_UpdateEmitter);
             if (child != NULL)
             {
                 child->posX.part16.integer = entity->posX.part16.integer;
@@ -206,13 +211,10 @@ void HeadStackEffect_UpdateAttack(struct EwramData_EntityData *entity)
                 entity->hit.flags &= 0xFD;
         break;
     }
-    Hit_CheckWithPlayer(collision, entity);
+    Hit_CheckWithPlayer((struct HitResult *)collision, entity);
     if (Anim_Update(entity) == 3 || owner->state == 2)
         entity->deleteRequested = 1;
 }
-
-extern void Entity_PlaceRelativeToCopy(struct EwramData_EntityData *, struct EwramData_EntityData *, s32, s32);
-extern void HeadStackProjectile_ClearHealth(struct EwramData_EntityData *);
 
 /* Enemy projectile: emits trailing particles every eight frames. */
 /**
@@ -244,7 +246,7 @@ void HeadStackProjectile_Update(struct EwramData_EntityData *entity)
         if (entity->flipX) entity->velX.whole = -vx;
         PlaySong(0x7A);
         entity->hp = 1;
-        Hit_Enable(entity, 10, HeadStackProjectile_DamagePlayerOnContact, (s32)HeadStackProjectile_ClearHealth);
+        Hit_Enable(entity, 10, HeadStackProjectile_DamagePlayerOnContact, HeadStackProjectile_ClearHealth);
         HitBox_SetAttackRaw(entity, 0x0808FCFC);
         HitBox_SetBodyRaw(entity, 0x0808FCFC);
         entity->state++;
@@ -253,7 +255,7 @@ void HeadStackProjectile_Update(struct EwramData_EntityData *entity)
         entity->timer = timer;
         if ((timer & 7) == 0)
         {
-            child = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadStackEffect_UpdateParticle);
+            child = EntityCreateInRange(0x49, 0xCF, HeadStackEffect_UpdateParticle);
             if (child != NULL)
             {
                 child->posX.part16.integer = entity->posX.part16.integer + RandomSigned(4);
@@ -268,7 +270,7 @@ void HeadStackProjectile_Update(struct EwramData_EntityData *entity)
         EntityAccelerateAndMove(entity, 0x80000);
         break;
     }
-    Hit_CheckWithPlayer(collision, entity);
+    Hit_CheckWithPlayer((struct HitResult *)collision, entity);
     Anim_Update(entity);
     if ((s16)entity->hp == 0)
     {
@@ -313,7 +315,7 @@ void HeadStackSegment_UpdateAttack(struct EwramData_EntityData *entity)
     case 2:
         if (FRAME_PAIR(entity) == 2)
         {
-            spawned = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadStackEffect_UpdateAttack);
+            spawned = EntityCreateInRange(0x49, 0xCF, HeadStackEffect_UpdateAttack);
             if (spawned != NULL)
             {
                 u16 off = 0xFFFC;
@@ -341,7 +343,7 @@ void HeadStackSegment_UpdateAttack(struct EwramData_EntityData *entity)
             offset = dx * 2;
             for (i = 2; i >= 0; i--)
             {
-                spawned = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadStackEffect_UpdateParticle);
+                spawned = EntityCreateInRange(0x49, 0xCF, HeadStackEffect_UpdateParticle);
                 if (spawned != NULL)
                 {
                     spawned->posX.part16.integer = entity->posX.part16.integer + offset + RandomSigned(0x10);
@@ -364,7 +366,7 @@ void HeadStackSegment_UpdateAttack(struct EwramData_EntityData *entity)
     case 3:
         if (FRAME_PAIR(entity) == 2)
         {
-            spawned = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadStackProjectile_Update);
+            spawned = EntityCreateInRange(0x49, 0xCF, HeadStackProjectile_Update);
             if (spawned != NULL)
             {
                 spawned->scrollWithBg = 1;
@@ -424,8 +426,6 @@ void HeadStackSegment_UpdateAttack(struct EwramData_EntityData *entity)
     }
 }
 
-extern void HeadStackDebris_Update(struct EwramData_EntityData *entity);
-
 /**
  * @brief Spawn debris frames from the variant table, then hide for eight countdown ticks; return 1 when finished.
  */
@@ -441,7 +441,7 @@ s32 HeadStackSegment_UpdateDeath(struct EwramData_EntityData *entity)
         PlaySong(0x6B);
         for (i = info->lastDebrisFrame; i >= info->firstDebrisFrame; i--)
         {
-            piece = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadStackDebris_Update);
+            piece = EntityCreateInRange(0x49, 0xCF, HeadStackDebris_Update);
             if (piece != NULL)
             {
                 const struct HeadStackGraphics *t = &sUnk_081193DC[entity->ext.headStack.type];
@@ -521,7 +521,6 @@ found:
 }
 
 /* Update of a stacked column member. */
-extern s32 Target_IsInRect(s16, s16, s16, s16);
 
 /**
  * @brief Settle a stack segment and dispatch proximity wait, attack, death or animation-only state.
@@ -540,7 +539,7 @@ void HeadStackSegment_Update(struct EwramData_EntityData *entity)
     if (Enemy_IsStunned(entity) != 0)
     {
         if (entity->state != 2)
-            Hit_CheckWithPlayer(buf, entity);
+            Hit_CheckWithPlayer((struct HitResult *)buf, entity);
         return;
     }
     switch (entity->state)
@@ -569,13 +568,11 @@ void HeadStackSegment_Update(struct EwramData_EntityData *entity)
         return;
     }
     if (entity->state != 2)
-        Hit_CheckWithPlayer(buf, entity);
+        Hit_CheckWithPlayer((struct HitResult *)buf, entity);
     Anim_Update(entity);
 }
 
 /* HeadStack_Create: create a stack of child segments from table sUnk_081193DC; matched. */
-extern void Enemy_OnContact();
-void HeadStackSegment_OnHit(struct EwramData_EntityData *entity);
 
 struct Flags58 { u8 rest:6; u8 flipX:1; u8 flipY:1; } __attribute__((packed));
 
@@ -599,7 +596,7 @@ void HeadStack_Create(struct EwramData_EntityData *entity, s32 type)
 
     if (!InitFromTable(entity, type))
         goto delete;
-    entity->drawFunc = (u32 *)failed;
+    entity->drawFunc = NULL;
     if (!gEwramData->gameState.bestiaryPreview)
     {
         Entity_SnapToGround(entity);
@@ -652,7 +649,7 @@ body:
         else
         {
             child->state = 0;
-            Hit_Enable(child, 8, Enemy_OnContact, (s32)HeadStackSegment_OnHit);
+            Hit_Enable(child, 8, Enemy_OnContact, HeadStackSegment_OnHit);
             HitBox_SetAttackRaw(child, 0x141CECF2);
             HitBox_SetBodyRaw(child, 0x141CECF2);
         }
@@ -721,14 +718,13 @@ void HeadStack_Update(struct EwramData_EntityData *entity)
 }
 
 /* Bone Pillar / Fish Head helpers 0x080B3E70..0x080B3F4B. */
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
 
 /**
  * @brief Apply damage; on death drop rewards, restore the palette and enter state 2.
  */
-void HeadStackSegment_OnHit(struct EwramData_EntityData *entity)
+void HeadStackSegment_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    if (Enemy_TakeDamage(entity))
+    if (Enemy_TakeDamage(entity, attacker, hit))
     {
         Enemy_DropRewards(entity);
         entity->palette = entity->basePalette;

@@ -19,14 +19,26 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "damage_numbers.h"
+#include "entity_motion.h"
+
+extern s32 Target_IsInRect(s16,s16,s16,s16);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *,struct EwramData_EntityData *,u16 *,s32);
+
+void Arachne_UpdateWalk(struct EwramData_EntityData *);
+void Arachne_UpdateAttack(struct EwramData_EntityData *);
+void Arachne_UpdateRecoil(struct EwramData_EntityData *);
+void Arachne_UpdateDeath(struct EwramData_EntityData *);
+void Arachne_UpdatePreview(struct EwramData_EntityData *entity);
+u8 Arachne_LoadGraphics(struct EwramData_EntityData *entity);
+void ArachneLegs_Update(struct EwramData_EntityData *entity);
+void Arachne_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void Arachne_OnHit(struct EwramData_EntityData *entity,struct EwramData_EntityData *attacker,u16 *info);
+void Arachne_SpawnEffect(struct EwramData_EntityData *owner, s32 x, s32 y, s32 animation, s32 lifetime);
+void ArachneEffect_Update(struct EwramData_EntityData *);
+void ArachneBeam_DamagePlayerOnContact(struct EwramData_EntityData *);
 
 /* Arachne dispatch and screen-dependent sound and collision updates. */
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern void Arachne_UpdateWalk(struct EwramData_EntityData *);
-extern void Arachne_UpdateAttack(struct EwramData_EntityData *);
-extern void Arachne_UpdateRecoil(struct EwramData_EntityData *);
-extern void Arachne_UpdateDeath(struct EwramData_EntityData *);
-void Arachne_UpdatePreview(struct EwramData_EntityData *entity);
 void EnemyArachneUpdate(struct EwramData_EntityData *entity)
 {
     s32 bounds[4];
@@ -42,7 +54,7 @@ void EnemyArachneUpdate(struct EwramData_EntityData *entity)
     if(entity->hitFlashTimer && entity->state!=3 && entity->state!=2)
     {
 collision:
-        Hit_CheckWithPlayer((struct HitResult *)bounds,(u8 *)entity);
+        Hit_CheckWithPlayer((struct HitResult *)bounds,entity);
         return;
     }
     switch(entity->state)
@@ -56,12 +68,6 @@ collision:
     Entity_AnimateWithBoxes(entity);
     Enemy_CheckHitPlayer(entity);
 }
-
-u8 Arachne_LoadGraphics(struct EwramData_EntityData *entity);
-extern void ArachneLegs_Update(struct EwramData_EntityData *entity);
-extern void Arachne_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-void Arachne_OnHit(struct EwramData_EntityData *entity,struct EwramData_EntityData *attacker,u16 *info);
-extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
 
 /**
  * @brief 799FC | Arachne create: six legs Entity_CreateObject(ArachneLegs_Update) with
@@ -98,7 +104,7 @@ void EnemyArachneCreate(struct EwramData_EntityData *entity)
         leg->enemyId = entity->enemyId;
         leg->basePalette = entity->basePalette;
         leg->scrollWithBg = 0;
-        leg->drawFunc = (u32 *)Sprite_DrawEntity;
+        leg->drawFunc = Sprite_DrawEntity;
         ENTITY_OWNER(leg) = entity;
         leg->ext.arachne.legIndex = i;
         leg->posX.whole = entity->posX.whole;
@@ -119,16 +125,13 @@ void EnemyArachneCreate(struct EwramData_EntityData *entity)
         entity->ext.arachne.gait = 0;
         return;
     }
-    Hit_EnableContact(entity, 8, Arachne_DamagePlayerOnContact, (s32)Arachne_OnHit);
+    Hit_EnableContact(entity, 8, Arachne_DamagePlayerOnContact, Arachne_OnHit);
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
     entity->state = 0;
 }
 
 /* Idle gait and transitions between approaching, retreating and attacking. */
-extern s32 Target_IsInRect(s16,s16,s16,s16);
-extern s32 Entity_ClampXToRoom(struct EwramData_EntityData *,s32);
-extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *,s32,s32,s32,s32);
 #define GAIT(e) (e->ext.arachne.gait)
 #define WAIT(e) (e->ext.arachne.wait)
 /**
@@ -224,9 +227,6 @@ acceleration:
 }
 
 /* Arachne_UpdateAttack: breath attack (hover states 0 / 10, wind-up state 1, state 2 traces the breath projectile until it hits a wall). */
-extern void Arachne_SpawnEffect(struct EwramData_EntityData *owner, s32 x, s32 y, s32 animation, s32 lifetime);
-extern void ArachneEffect_Update(struct EwramData_EntityData *);
-extern void ArachneBeam_DamagePlayerOnContact(struct EwramData_EntityData *);
 
 #undef WAIT
 #define WAIT(e) ((e)->ext.arachne.wait)
@@ -302,7 +302,7 @@ void Arachne_UpdateAttack(struct EwramData_EntityData *entity)
             else
                 x -= 0xD0000;
         }
-        p = EntityCreateInRange(0x1B, 0x48, (u32 *)ArachneEffect_Update);
+        p = EntityCreateInRange(0x1B, 0x48, ArachneEffect_Update);
         if (p != NULL)
         {
             struct HitResult hit;
@@ -332,7 +332,7 @@ void Arachne_UpdateAttack(struct EwramData_EntityData *entity)
                 if (x < 0)
                     adx = -x;
                 if (adx <= 0x7FFFF && (u32)(y + 0x1FFFF) <= 0x21FFFE)
-                    Hit_CheckWithPlayer(&hit, (u8 *)p);
+                    Hit_CheckWithPlayer(&hit, p);
                 if (p->timer <= 3 && r == (p->timer & 3))
                 {
                     register u32 m asm("r5"); /* FAKEMATCH: pinned register */
@@ -455,8 +455,6 @@ void Arachne_UpdateDeath(struct EwramData_EntityData *entity)
 }
 
 /* Apply damage and choose full destruction or a short reaction to selected attacks. */
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *,struct EwramData_EntityData *,u16 *,s32);
-extern void Entity_ShowDamage(struct EwramData_EntityData *,s32,s32);
 /**
  * @brief Hit: resolve, flash, subtract and show the damage; at HP <= 0 stop sound
  * 0x82, drop the rewards and die (song 0x6E, animation 3, 90 frames,
@@ -600,7 +598,7 @@ fail:
  */
 void Arachne_SpawnEffect(struct EwramData_EntityData *owner,s32 x,s32 y,s32 animation,s32 lifetime)
 {
-    struct EwramData_EntityData *effect=EntityCreateInRange(0x49,0xCF,(u32 *)ArachneEffect_Update);
+    struct EwramData_EntityData *effect=EntityCreateInRange(0x49,0xCF,ArachneEffect_Update);
     if(effect)
     {
         s32 graphics;
@@ -613,25 +611,11 @@ void Arachne_SpawnEffect(struct EwramData_EntityData *owner,s32 x,s32 y,s32 anim
         else Anim_StartIndexed(effect,animation,0,0);
         effect->timer=lifetime;
         effect->scrollWithBg=1;
-        effect->drawFunc=(u32 *)Sprite_DrawEntity;
+        effect->drawFunc=Sprite_DrawEntity;
     }
 }
 
 /* Arachne helpers 0x0807A900..0x0807A9EB. */
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
 
 /**
  * @brief 7A900 | Animate; with timer == 0x80 delete once the animation
@@ -679,7 +663,7 @@ u8 Arachne_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sArachnePalette, 0);
     Sprite_Attach(entity, sArachneSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 

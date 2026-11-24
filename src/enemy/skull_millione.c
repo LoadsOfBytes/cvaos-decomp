@@ -19,6 +19,21 @@
 #include "obj_palette.h"
 #include "effects.h"
 #include "data/data_118B48.h"
+#include "hitbox.h"
+
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
+extern void Entity_FaceTarget(struct EwramData_EntityData *);
+extern s32 Target_GetVelocityX(void);
+
+void SkullMillioneFamily_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+void SkullMillioneFamily_UpdateAttack(struct EwramData_EntityData *);
+s32 SkullMillioneFamily_UpdateDeath(struct EwramData_EntityData *);
+s32 SkullMillioneFamily_CreatePart(struct EwramData_EntityData *);
+void SkullMillioneFamily_UpdateWait(struct EwramData_EntityData *);
+void SkullMillioneFamily_UpdateApproach(struct EwramData_EntityData *);
+s32 SkullMillioneFamily_CreatePart(struct EwramData_EntityData *);
+void SkullMillioneFamily_UpdateWait(struct EwramData_EntityData *);
+void SkullMillioneFamily_UpdateApproach(struct EwramData_EntityData *);
 
 /* Rotating attached part: follow the parent during animation 3, then fall
  * and release its affine slot when the parent dies. */
@@ -115,20 +130,6 @@ void SkullMillioneFamilyPart_Update(struct EwramData_EntityData *entity)
 
 /* Shared Skull Millione / Cagnazzo / Lubicant setup and movement. */
 #define BACKGROUND ((struct BgLayerState *)((u8 *)gEwramData + OFFSET_OF(struct EwramData, bgInfo[1])))
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
-extern s32 Hit_EnableContact(struct EwramData_EntityData *, s32, void *, s32);
-extern void SkullMillioneFamily_OnHit(struct EwramData_EntityData *);
-extern void Entity_FaceTarget(struct EwramData_EntityData *);
-extern s32 Target_IsNearEntity(struct EwramData_EntityData *, s32, s32);
-extern s32 Target_GetPixelX(struct EwramData_EntityData *);
-extern s32 Target_GetPixelY(struct EwramData_EntityData *);
-extern s32 Target_GetVelocityX(void);
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void SkullMillioneFamily_UpdateAttack(struct EwramData_EntityData *);
-extern s32 SkullMillioneFamily_UpdateDeath(struct EwramData_EntityData *);
-s32 SkullMillioneFamily_CreatePart(struct EwramData_EntityData *);
-void SkullMillioneFamily_UpdateWait(struct EwramData_EntityData *);
-void SkullMillioneFamily_UpdateApproach(struct EwramData_EntityData *);
 
 /**
  * @brief Create a hidden attached sprite with an affine slot and the selected
@@ -361,9 +362,6 @@ s32 SkullMillioneFamily_UpdateDeath(struct EwramData_EntityData *entity)
 }
 
 /* Shared Skull Millione / Cagnazzo / Lubicant setup and movement. */
-s32 SkullMillioneFamily_CreatePart(struct EwramData_EntityData *);
-void SkullMillioneFamily_UpdateWait(struct EwramData_EntityData *);
-void SkullMillioneFamily_UpdateApproach(struct EwramData_EntityData *);
 
 /**
  * @brief Initialize variant 0 (Skull Millione), 1 (Cagnazzo), or 2 (Lubicant).
@@ -386,7 +384,7 @@ s32 SkullMillioneFamily_Init(struct EwramData_EntityData *entity, u8 variant)
     }
     else
     {
-        Hit_EnableContact(entity, 8, SkullMillioneFamily_DamagePlayerOnContact, (s32)SkullMillioneFamily_OnHit);
+        Hit_EnableContact(entity, 8, SkullMillioneFamily_DamagePlayerOnContact, SkullMillioneFamily_OnHit);
         Entity_UpdateBoxes(entity);
         entity->scrollWithBg = 1;
         entity->state = 0;
@@ -407,7 +405,7 @@ void SkullMillioneFamily_Update(struct EwramData_EntityData *entity)
     if (!outside) Player_TrackEntity(entity);
     if (Enemy_IsStunned(entity))
     {
-        if (entity->state != 3) Hit_CheckWithPlayer(box, entity);
+        if (entity->state != 3) Hit_CheckWithPlayer((struct HitResult *)box, entity);
         return;
     }
     switch (entity->state)
@@ -424,22 +422,21 @@ void SkullMillioneFamily_Update(struct EwramData_EntityData *entity)
     }
     if (entity->state != 3)
     {
-        Hit_CheckWithPlayer(box, entity);
+        Hit_CheckWithPlayer((struct HitResult *)box, entity);
         Entity_AnimateWithBoxes(entity);
     }
     Anim_Update(entity);
 }
 
 /* Skull Millione / Cagnazzo / Lubicant helpers 0x080B8004..0x080B80BB. */
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
 
 /**
  * @brief Apply enemy damage; on defeat drop rewards, restore the palette
  * and enter death state 3 with the substate counters reset.
  */
-void SkullMillioneFamily_OnHit(struct EwramData_EntityData *entity)
+void SkullMillioneFamily_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    if (Enemy_TakeDamage(entity))
+    if (Enemy_TakeDamage(entity, attacker, hit))
     {
         Enemy_DropRewards(entity);
         entity->palette = entity->basePalette;

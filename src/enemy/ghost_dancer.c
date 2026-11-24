@@ -15,11 +15,19 @@
 #include "obj_palette.h"
 #include "skeleton.h"
 #include "data/data_118B48.h"
+#include "hitbox.h"
+#include "damage_numbers.h"
 
-extern u8 GhostDancer_LoadGraphics(struct EwramData_EntityData *);
-extern void GhostDancer_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-extern void GhostDancer_OnHit(struct EwramData_EntityData *entity,s32 hit,u16 *info);
-extern void Entity_EnableBoxes(struct EwramData_EntityData *,void *,void *);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *,s32,u16 *,s32);
+extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, u8 *, void *, u8, void *);
+
+u8 GhostDancer_LoadGraphics(struct EwramData_EntityData *);
+void GhostDancer_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void GhostDancer_OnHit(struct EwramData_EntityData *entity,s32 hit,u16 *info);
+void GhostDancer_UpdateBestiaryPreview(struct EwramData_EntityData *);
+void GhostDancer_UpdateMovement(struct EwramData_EntityData *);
+void GhostDancer_UpdateDeath(struct EwramData_EntityData *);
 
 void EnemyGhostDancerCreate(struct EwramData_EntityData *input)
 {
@@ -53,7 +61,6 @@ void EnemyGhostDancerCreate(struct EwramData_EntityData *input)
 }
 
 /* Ghost Dancer's renderer and initial visibility/collision state. */
-extern s32 ObjPalette_FindOrLoadVariant(void *,s32);
 /**
  * @brief Find or load graphics and the selected palette variant, attach
  * the sprite and start animation 0. Delete and return 0 on failure;
@@ -75,7 +82,7 @@ u8 GhostDancer_LoadGraphics(struct EwramData_EntityData *entity)
     if(!Sprite_Attach(entity,animation,slot,entity->basePalette)) goto fail;
     if(!Anim_StartIndexed(entity,0,0,1)) goto fail;
     Anim_Update(entity);
-    entity->drawFunc=(u32 *)Sprite_DrawEntity;
+    entity->drawFunc=Sprite_DrawEntity;
     return 1;
 fail:
     EntityDelete(entity);
@@ -83,10 +90,6 @@ fail:
 }
 
 /* Visibility flashes alternate around movement, damage and death processing. */
-extern void GhostDancer_UpdateBestiaryPreview(struct EwramData_EntityData *);
-extern void GhostDancer_UpdateMovement(struct EwramData_EntityData *);
-extern void GhostDancer_UpdateDeath(struct EwramData_EntityData *);
-extern void Hit_CheckWithPlayer(void *,struct EwramData_EntityData *);
 #define MODE(e) ((e)->ext.ghostDancer.mode)
 #define TIMER(e) ((e)->ext.ghostDancer.timer)
 void EnemyGhostDancerUpdate(struct EwramData_EntityData *entity)
@@ -136,7 +139,7 @@ void EnemyGhostDancerUpdate(struct EwramData_EntityData *entity)
     if(Enemy_IsStunned(entity))
     {
         if(entity->state!=3)
-            Hit_CheckWithPlayer(bounds,entity);
+            Hit_CheckWithPlayer((struct HitResult *)bounds,entity);
         return;
     }
     switch(entity->state)
@@ -151,11 +154,10 @@ void EnemyGhostDancerUpdate(struct EwramData_EntityData *entity)
     }
     Entity_AnimateWithBoxes(entity);
     if(entity->state!=3)
-        Hit_CheckWithPlayer(bounds,entity);
+        Hit_CheckWithPlayer((struct HitResult *)bounds,entity);
 }
 
 /* Alternate movement helper reacts to the player's distance and random pauses. */
-extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *);
 static inline s32 HorizontalDistance(struct EwramData_EntityData *entity)
 {
     s32 value=(s16)Entity_GetTargetDistanceX(entity);
@@ -292,8 +294,6 @@ void GhostDancer_UpdateDeath(struct EwramData_EntityData *entity)
 }
 
 /* Apply damage, flash the sprite, then enter the defeated animation. */
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *,s32,u16 *,s32);
-extern void Entity_ShowDamage(struct EwramData_EntityData *,s32,s32);
 /**
  * @brief Resolve and display damage with hit flash; on defeat drop rewards,
  * restore the palette, play the death sound and start death state 3.
@@ -323,19 +323,6 @@ void GhostDancer_OnHit(struct EwramData_EntityData *entity,s32 hit,u16 *info)
  *   GhostDancer_UpdateBestiaryPreview = Imp_UpdateState4Animation
  *   GhostDancer_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
-
 /**
  * @brief Bestiary state (5): start animation 0 once, then update it.
  */
@@ -362,11 +349,6 @@ void GhostDancer_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 }
 
 /* Skeleton enemy: graphics, child entity and patrol range around the spawn X. */
-extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
-
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, u8 *, void *, u8, void *);
-extern void Enemy_OnContact(struct EwramData_EntityData *entity);
-extern void Skeleton_OnHit(struct EwramData_EntityData *entity);
 
 void EnemySkeletonCreate(struct EwramData_EntityData *entity)
 {
@@ -383,7 +365,7 @@ void EnemySkeletonCreate(struct EwramData_EntityData *entity)
         goto delete;
     entity->ext.skeleton.flags |= 1;
     zero = 0;
-    if (Entity_CreateLinkedAndHide(entity, (u32 *)SkeletonLinkedPart_Update) == NULL)
+    if (Entity_CreateLinkedAndHide(entity, SkeletonLinkedPart_Update) == NULL)
     {
     delete:
         EntityDelete(entity);
@@ -420,7 +402,7 @@ void EnemySkeletonCreate(struct EwramData_EntityData *entity)
     entity->ext.skeleton.homeX = x;
     entity->ext.skeleton.patrolRight = x + 0x20;
     entity->ext.skeleton.patrolLeft = x - 0x20;
-    child = Entity_CreateLinkedAndHide(entity, (u32 *)SkeletonAttachedPart_Update);
+    child = Entity_CreateLinkedAndHide(entity, SkeletonAttachedPart_Update);
     if (child == NULL)
         return;
     child->hidden = 0;

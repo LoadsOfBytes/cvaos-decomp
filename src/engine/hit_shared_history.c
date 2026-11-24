@@ -15,7 +15,7 @@ u16 Hit_CheckWithPlayerSharedHistory(struct HitResult *res, struct EwramData_Ent
         entity->hit.hitBy[i] = owner->hit.hitBy[i];
         entity->hit.hitTimer[i] = owner->hit.hitTimer[i];
     }
-    hit = (u16)Hit_CheckWithPlayer(res, (u8 *)entity);
+    hit = (u16)Hit_CheckWithPlayer(res, entity);
     if (hit != 0)
     {
         for (i = 0; i <= 2; i++)

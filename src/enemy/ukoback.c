@@ -17,10 +17,23 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "math_inline.h"
+#include "damage_numbers.h"
+#include "sound.h"
+
+extern s32 Entity_IsInRect(struct EwramData_EntityData *entity, s16 left, s16 top, u16 width, u16 height);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
+
+s32 Ukoback_SpawnFireball(struct EwramData_EntityData *entity);
+s32 Ukoback_SpawnDeathPiece(struct EwramData_EntityData *entity);
+void UkobackFireball_OnContact(struct EwramData_EntityData *entity);
+void UkobackFireball_OnHit(struct EwramData_EntityData *entity);
+void UkobackSparkle_Update(struct EwramData_EntityData *entity);
+void Ukoback_UpdateState1Animation(struct EwramData_EntityData *entity);
+void Nemesis_UpdateAppearance(struct EwramData_EntityData *entity);
+s32 Nemesis_LoadGraphics(struct EwramData_EntityData *entity);
 
 /* Ukoback flight: room-edge and tile collision, facing and timer updates. */
-extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *entity);
-extern s32 Ukoback_SpawnFireball(struct EwramData_EntityData *entity);
 
 /* 1 when the tile coordinate lies outside a room of the given size in
  * screens (one screen: single tiles, otherwise 32 tiles per screen). */
@@ -118,14 +131,6 @@ void Ukoback_UpdateFlight(struct EwramData_EntityData *entity)
 }
 
 /* Ukoback functions from 0x080C5F10. */
-extern void PlaySong(u16 song);
-extern s32 Ukoback_SpawnDeathPiece(struct EwramData_EntityData *entity);
-extern s32 ObjPalette_FindOrLoad(void *palette);
-extern s32 Hit_Enable(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
-extern s32 HitBox_SetAttackRaw(struct EwramData_EntityData *entity, s32 box);
-extern s32 Entity_IsInRect(struct EwramData_EntityData *entity, s16 left, s16 top, u16 width, u16 height);
-extern void UkobackFireball_OnContact(struct EwramData_EntityData *entity);
-extern void UkobackFireball_OnHit(struct EwramData_EntityData *entity);
 
 /**
  * @brief Drop rewards, spawn a falling piece and fall while running the fragment-death effect; request deletion below Y 170.
@@ -183,10 +188,10 @@ s32 UkobackFireball_Initialize(struct EwramData_EntityData *entity, struct Ewram
     entity->accelY.whole = -0x100;
     gfx = ObjGfx_Find(graphics);
     Sprite_Attach(entity, sprite, gfx, (s8)ObjPalette_FindOrLoad(palette));
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     Anim_StartIndexed(entity, 1, 0, 1);
     Anim_Update(entity);
-    Hit_Enable(entity, 8, UkobackFireball_OnContact, (s32)UkobackFireball_OnHit);
+    Hit_Enable(entity, 8, UkobackFireball_OnContact, UkobackFireball_OnHit);
     HitBox_SetAttackRaw(entity, 0x0C08F6FC);
     HitBox_SetBodyRaw(entity, 0x0C08F6FC);
     slot = ObjAffine_Alloc(1);
@@ -205,8 +210,6 @@ s32 UkobackFireball_Initialize(struct EwramData_EntityData *entity, struct Ewram
     return result;
 }
 
-extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
-
 /**
  * @brief Check collisions and lifetime; dissolve by changing affine scales, then free the slot, decrement the owner fireball count and request deletion.
  */
@@ -218,7 +221,7 @@ void UkobackFireball_Update(struct EwramData_EntityData *entity)
     Player_TrackEntity(entity);
     if (Enemy_IsStunned(entity) && entity->state != 0xFF)
     {
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         return;
     }
     if (entity->state == 0xFF)
@@ -250,7 +253,7 @@ void UkobackFireball_Update(struct EwramData_EntityData *entity)
     if (entity->state != 0xFF)
     {
         Anim_Update(entity);
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
     }
 }
 
@@ -271,7 +274,7 @@ void UkobackDeathPiece_Update(struct EwramData_EntityData *entity)
             entity->scrollWithBg = 1;
             gfx = ObjGfx_Find(graphics);
             Sprite_Attach(entity, sprite, gfx, (s8)ObjPalette_FindOrLoad(palette));
-            entity->drawFunc = (u32 *)Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->animFrame = 10;
             entity->spriteLayer = other->spriteLayer + 1;
             entity->posX.whole = other->posX.whole;
@@ -292,21 +295,12 @@ void UkobackDeathPiece_Update(struct EwramData_EntityData *entity)
     entity->hidden = Entity_GetVisibilityPattern(entity->timer);
 }
 
-extern void UkobackSparkle_Update(struct EwramData_EntityData *entity);
-extern void Ukoback_UpdateState1Animation(struct EwramData_EntityData *entity);
-
-/* Random value in -range / 2 .. range / 2 - 1. */
-static inline s32 RandomOffset(s32 range)
-{
-    return RandomNumberGenerator() % range - range / 2;
-}
-
 /**
  * @brief Create a player-following sparkle with random offsets; initial Y deliberately uses player X minus 16 pixels, as in the original.
  */
 void Ukoback_SpawnContactSparkle(void)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)UkobackSparkle_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, UkobackSparkle_Update);
 
     if (child != NULL)
     {
@@ -337,7 +331,7 @@ void UkobackSparkle_Update(struct EwramData_EntityData *entity)
             Sprite_Attach(entity, sCommonObjectSpriteSheet, gfx, 7);
             Anim_StartIndexed(entity, 0, 0, 0);
             entity->scrollWithBg = 1;
-            entity->drawFunc = (u32 *)Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->state++;
             entity->animFlags |= 2;
             entity->hidden = 1;
@@ -378,7 +372,7 @@ void EnemyUkobackUpdate(struct EwramData_EntityData *entity)
     Player_TrackEntity(entity);
     if (Enemy_IsStunned(entity) && entity->state != 0xFF)
     {
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         return;
     }
     switch (entity->state)
@@ -396,21 +390,6 @@ void EnemyUkobackUpdate(struct EwramData_EntityData *entity)
 }
 
 /* Ukoback helpers 0x080C64E8..0x080C664B. */
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
-
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
 
 /**
  * @brief Start animation 0 once and then advance it. The gameplay purpose of state 1 remains unresolved.
@@ -445,7 +424,7 @@ void Ukoback_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
         damage = (damage << 16) >> 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     entity->hitFlashTimer = 8;
     if ((s16)entity->hp <= 0)
     {
@@ -460,7 +439,7 @@ void Ukoback_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 s32 Ukoback_SpawnFireball(struct EwramData_EntityData *entity)
 {
     s32 created = 0;
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)UkobackFireball_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, UkobackFireball_Update);
 
     if (child != NULL)
     {
@@ -508,7 +487,7 @@ void UkobackFireball_OnHit(struct EwramData_EntityData *entity)
 s32 Ukoback_SpawnDeathPiece(struct EwramData_EntityData *entity)
 {
     s32 created = 0;
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)UkobackDeathPiece_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, UkobackDeathPiece_Update);
 
     if (child != NULL)
     {
@@ -520,10 +499,6 @@ s32 Ukoback_SpawnDeathPiece(struct EwramData_EntityData *entity)
 
 /* Nemesis create and graphics loader 0x080C664C..0x080C67CB. The loader only matches without
  * -f2003-patch. */
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-extern void Nemesis_OnHit(struct EwramData_EntityData *entity);
-extern void Nemesis_UpdateAppearance(struct EwramData_EntityData *entity);
-s32 Nemesis_LoadGraphics(struct EwramData_EntityData *entity);
 
 /**
  * @brief C664C | Nemesis create: load the graphics (delete the enemy when
@@ -553,7 +528,7 @@ void EnemyNemesisCreate(struct EwramData_EntityData *entity)
     }
     if (!Nemesis_CreatePartner(entity))
         entity->deleteRequested = 1;
-    Hit_Enable(entity, 8, Nemesis_OnContact, (s32)Nemesis_OnHit);
+    Hit_Enable(entity, 8, Nemesis_OnContact, Nemesis_OnHit);
     HitBox_SetAttackRaw(entity, 0x080804FC);
     HitBox_SetBodyRaw(entity, 0x1010F8F8);
     entity->animFrame = 0;
@@ -594,11 +569,9 @@ s32 Nemesis_LoadGraphics(struct EwramData_EntityData *entity)
     entity->affineIndex = slot;
     entity->affine = 1;
     ObjAffine_Set(0, 0x10000, 0x10000, 0, 0, entity->affineIndex);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
-
-extern u8 Entity_IsTargetWithinRange(struct EwramData_EntityData *entity, s32 range);
 
 /**
  * @brief C67CC | Nemesis update: state 7 Nemesis_UpdateState7, 0xFF Nemesis_UpdateDeath.
@@ -627,7 +600,7 @@ void EnemyNemesisUpdate(struct EwramData_EntityData *entity)
             return;
         if (!(entity->ext.nemesis.flags & 0x20) && entity->state != 0)
         {
-            Hit_CheckWithPlayer(collision, entity);
+            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
             return;
         }
     }
@@ -656,7 +629,7 @@ void EnemyNemesisUpdate(struct EwramData_EntityData *entity)
             break;
     }
     if (!(entity->ext.nemesis.flags & 0x20))
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
 }
 
 /* (u8)(t % 3) != 0 (hidden on two of three frames), written so that agbcc

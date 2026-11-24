@@ -89,7 +89,7 @@ void DebugObjDispTestSprite_Update(struct EwramData_EntityData *entity)
                 ObjPalette_LoadRange((u8 *)sDebugJitterSpritePalette, 0, 1, 2);
                 Sprite_Attach(entity, (void *)sDebugJitterSpriteSheet, gfx, 2);
                 Anim_SelectScript(entity, 0, 1);
-                entity->drawFunc = (u32 *) Sprite_DrawEntity;
+                entity->drawFunc = Sprite_DrawEntity;
                 entity->posX.part16.integer = 0x96;
                 entity->posY.part16.integer = 0x50;
                 entity->scrollWithBg = 1;
@@ -116,8 +116,8 @@ void DebugObjDispTest_Update(struct DebugObjTestState *state)
  */
 void DebugObjDispTest_Init(struct DebugObjTestState *state)
 {
-    state->entities[0] = EntityCreate((u32*) &DebugObjDispTestDummy_Update);
-    state->entities[1] = EntityCreate((u32*) &DebugObjDispTestSprite_Update);
+    state->entities[0] = EntityCreate(DebugObjDispTestDummy_Update);
+    state->entities[1] = EntityCreate(DebugObjDispTestSprite_Update);
 }
 
 /**

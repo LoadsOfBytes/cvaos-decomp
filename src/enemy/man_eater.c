@@ -23,12 +23,23 @@
 #include "effects.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "damage_numbers.h"
+#include "entity_motion.h"
+
+extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
+extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
+extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
+
+// The offsets are passed sign-extended here (u16 in the definition).
+extern void Entity_PlaceRelativeToCopy(struct EwramData_EntityData *entity, struct EwramData_EntityData *anchor, s32 offsetX, s32 offsetY);
+
+void ManEaterProjectile_DamagePlayerOnContact(struct EwramData_EntityData *);
+void ManEaterProjectile_OnHit(struct EwramData_EntityData *);
 
 /* Man Eater part hit: propagate flags, subtract HP and notify parent.
  * The local r6 binding preserves the hit-data pointer before address calculation.
  * Matching does not establish the original source spelling. */
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
 
 /**
  * @brief Resolve damage against the linked head, propagate hit flags and
@@ -52,7 +63,7 @@ void ManEaterPart_OnHit(struct EwramData_EntityData *entity, struct EwramData_En
             damage >>= 16;
             part->hp = hp - damage;
         }
-        Entity_ShowDamage(entity, damage, 0);
+        Entity_ShowDamage(entity, (s16)damage, 0);
         if ((s16)part->hp <= 0)
         {
             struct EwramData_EntityData *parent = &gEwramData->entityData[(u8)part->ext.manEater.ownerIndex];
@@ -64,13 +75,6 @@ void ManEaterPart_OnHit(struct EwramData_EntityData *entity, struct EwramData_En
 }
 
 /* Man Eater projectile and effect controllers. */
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern s32 Entity_GetTargetAngleAbove16(struct EwramData_EntityData *);
-extern s32 Target_GetPixelX(struct EwramData_EntityData *);
-extern s32 Target_GetPixelY(struct EwramData_EntityData *);
-extern void ManEaterProjectile_DamagePlayerOnContact(struct EwramData_EntityData *);
-extern void ManEaterProjectile_OnHit(struct EwramData_EntityData *);
 
 /**
  * @brief Display frame 0x19 for a countdown, enabling drawSkip halfway
@@ -114,7 +118,7 @@ void ManEaterProjectile_Update(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *effect;
     if (entity->state != 0 && (s16)entity->hp != 0 && Entity_IsTimeStopped(entity))
     {
-        Hit_CheckWithPlayer(box, entity);
+        Hit_CheckWithPlayer((struct HitResult *)box, entity);
         return;
     }
     switch (entity->state)
@@ -125,7 +129,7 @@ void ManEaterProjectile_Update(struct EwramData_EntityData *entity)
         entity->spriteLayer = 0x11;
         entity->scrollWithBg = 1;
         entity->hp = 1;
-        Hit_Enable(entity, 0xA, ManEaterProjectile_DamagePlayerOnContact, (s32)ManEaterProjectile_OnHit);
+        Hit_Enable(entity, 0xA, ManEaterProjectile_DamagePlayerOnContact, ManEaterProjectile_OnHit);
         HitBox_SetBodyRaw(entity, 0x0C0CFAFA);
         HitBox_SetAttackRaw(entity, 0x0C0CFAFA);
         angle = (s16)Entity_GetTargetAngleAbove16(entity);
@@ -137,11 +141,11 @@ void ManEaterProjectile_Update(struct EwramData_EntityData *entity)
         /* fall through */
     case 1:
         EntityAccelerateAndMove(entity, 0x10000);
-        Hit_CheckWithPlayer(box, entity);
+        Hit_CheckWithPlayer((struct HitResult *)box, entity);
         if (EntityIsOutsideScreen(entity, 3)) entity->state = 2;
         if ((s16)entity->hp == 0)
         {
-            effect = EntityCreateInRange(0x49, 0xCF, (u32 *)ManEaterProjectileBurst_Update);
+            effect = EntityCreateInRange(0x49, 0xCF, ManEaterProjectileBurst_Update);
             if (effect != NULL)
             {
                 effect->posX.whole = entity->posX.whole;
@@ -218,8 +222,6 @@ void ManEaterChainAnchor_Update(struct EwramData_EntityData *entity)
 /* Man Eater body segment: follows the head chain, swings, and breaks apart.
  * (flipX through an s8 byte pointer, one
  * variable for the divisor and the swing amplitude). */
-extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
-extern void Enemy_OnContact(struct EwramData_EntityData *);
 
 #define INDEX(e) (e->ext.manEater.orbitSlot)
 #define SWING(e) (e->ext.manEater.angle)
@@ -289,7 +291,7 @@ remove:
             entity->hp += 1000;
         }
         entity->spriteLayer = 0x11;
-        Hit_Enable(entity, 8, Enemy_OnContact, (s32)ManEaterPart_OnHit);
+        Hit_Enable(entity, 8, Enemy_OnContact, ManEaterPart_OnHit);
         HitBox_SetBodyRaw(entity, 0x1010F8F8);
         HitBox_SetAttackRaw(entity, 0x1010F8F8);
         break;
@@ -376,8 +378,6 @@ remove:
 /* Man Eater head: spawns the body chain, steers towards the player, orbits.
  *: one function-level u16 (angle) holds both the
  * segment index and the ArcTan2 result, as in the original allocation. */
-extern s32 Target_IsNearEntity(struct EwramData_EntityData *entity, u16 width, u16 height);
-extern u8 Angle_TurnTowards(u16 *, s32, s32);
 
 struct Flip8 {
     u8 slot:5;
@@ -435,7 +435,7 @@ void ManEaterHead_Update(struct EwramData_EntityData *entity)
         entity->enemyId = parent->enemyId;
         Enemy_ResetFromTemplate(entity);
         entity->spriteLayer = 0x12;
-        Hit_Enable(entity, 8, Enemy_OnContact, (s32)ManEaterPart_OnHit);
+        Hit_Enable(entity, 8, Enemy_OnContact, ManEaterPart_OnHit);
         HitBox_SetBodyRaw(entity, 0x1010F8F8);
         HitBox_SetAttackRaw(entity, 0x1010F8F8);
         i = 0;
@@ -621,14 +621,6 @@ remove:
  * pointer with a u8 masked copy (keeps the mask before the address and the
  * global-allocation priority of entity/child as in the original). */
 
-extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
-extern s32 Entity_StepTowardPoint(struct EwramData_EntityData *, s32, s32, s32);
-
-static inline void SetFlipX(struct EwramData_EntityData *entity, u32 flipped)
-{
-    entity->flipX = flipped;
-}
-
 void EnemyManEaterUpdate(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *child;
@@ -700,7 +692,7 @@ void EnemyManEaterUpdate(struct EwramData_EntityData *entity)
     case 3:
         if (!(entity->timer & 3))
         {
-            child = EntityCreateInRange(0x49, 0xCF, (u32 *)ManEaterDebris_Update);
+            child = EntityCreateInRange(0x49, 0xCF, ManEaterDebris_Update);
             if (child != NULL)
             {
                 {
@@ -744,8 +736,6 @@ void EnemyManEaterUpdate(struct EwramData_EntityData *entity)
 }
 
 /* Man Eater projectile callbacks and Killer Mantle attached effects. */
-// The offsets are passed sign-extended here (u16 in the definition).
-extern void Entity_PlaceRelativeToCopy(struct EwramData_EntityData *entity, struct EwramData_EntityData *anchor, s32 offsetX, s32 offsetY);
 
 /**
  * @brief Apply stored contact damage with effect type 4 and zero flags,

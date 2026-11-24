@@ -11,6 +11,10 @@
 #include "palette.h"
 #include "pickup.h"
 #include "structs/entity_template.h"
+#include "soul_pickup.h"
+#include "effects.h"
+
+extern s32 Player_GetEquippedItem(s32 kind);
 
 /* Find or load a palette in the four shared object slots. */
 s8 ObjPalette_FindOrLoad(void *palette)
@@ -97,12 +101,6 @@ void SharedObjPalette_Release(void *palette, u8 variant)
     }
 }
 
-
-extern void Effect_CreatePlayerFlash(s32);
-extern s32 Player_GetEquippedItem(s32 kind);
-extern struct EwramData_EntityData *SoulPickup_Create(s32 x, s32 y, s32 palette, s32 soulId, s32 stationary);
-extern struct EwramData_EntityData *Pickup_CreateGold(s32 x, s32 y, s32 index);
-extern struct EwramData_EntityData *Pickup_CreateMana(s32 x, s32 y, s32 large, s32 jump);
 
 static inline s32 IsSolid(u8 t)
 {

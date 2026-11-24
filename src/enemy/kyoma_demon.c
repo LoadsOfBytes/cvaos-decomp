@@ -14,9 +14,10 @@
 #include "kyoma_demon_b.h"
 #include "math_anim.h"
 #include "data/data_4F1444.h"
+#include "hitbox.h"
 
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void KyomaDemon_UpdateLurk(struct EwramData_EntityData *);
+
+void KyomaDemon_UpdateLurk(struct EwramData_EntityData *);
 
 void EnemyKyomaDemonUpdate(struct EwramData_EntityData *entity)
 {
@@ -30,7 +31,7 @@ void EnemyKyomaDemonUpdate(struct EwramData_EntityData *entity)
     if (Enemy_IsStunned(entity))
     {
         if (entity->state != 2 && entity->ext.kyomaDemon.hidden == 0)
-            Hit_CheckWithPlayer(box, entity);
+            Hit_CheckWithPlayer((struct HitResult *)box, entity);
         return;
     }
     switch (entity->state)
@@ -44,13 +45,11 @@ void EnemyKyomaDemonUpdate(struct EwramData_EntityData *entity)
     Anim_Update(entity);
     if (frame != entity->animFrame) Entity_UpdateBoxes(entity);
     if (entity->state != 2 && entity->ext.kyomaDemon.hidden == 0)
-        Hit_CheckWithPlayer(box, entity);
+        Hit_CheckWithPlayer((struct HitResult *)box, entity);
     entity->ext.kyomaDemon.roomX = entity->posX.whole + background->xPos.whole;
     entity->ext.kyomaDemon.roomY = entity->posY.whole + background->yPos.whole;
 }
 
-extern s32 Hit_EnableContact(struct EwramData_EntityData *, s32, void *, s32);
-extern void KyomaDemon_OnHit(struct EwramData_EntityData *);
 void EnemyKyomaDemonCreate(struct EwramData_EntityData *entity)
 {
     struct EwramData **ewram = &gEwramData;
@@ -61,8 +60,8 @@ void EnemyKyomaDemonCreate(struct EwramData_EntityData *entity)
     Anim_Update(entity);
     Enemy_ResetFromTemplate(entity);
     if ((*ewram)->gameState.bestiaryPreview) { entity->state = 3; return; }
-    if (Anim_GetMaxBoxCount(entity) > 1) Hit_EnableContact(entity, 8, KyomaDemon_DamagePlayerOnContact, (s32)KyomaDemon_OnHit);
-    else Hit_Enable(entity, 8, KyomaDemon_DamagePlayerOnContact, (s32)KyomaDemon_OnHit);
+    if (Anim_GetMaxBoxCount(entity) > 1) Hit_EnableContact(entity, 8, KyomaDemon_DamagePlayerOnContact, KyomaDemon_OnHit);
+    else Hit_Enable(entity, 8, KyomaDemon_DamagePlayerOnContact, KyomaDemon_OnHit);
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
     entity->spriteLayer = 29;

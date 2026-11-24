@@ -21,16 +21,42 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "math_inline.h"
+#include "damage_numbers.h"
+#include "music.h"
+
+extern void *memcpy(void *dst, const void *src, unsigned long size);
+extern void *memset(void *dst, int value, unsigned long size);
+extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
+extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s16);
+extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
+
+void BigGolem_UpdateWalk(struct EwramData_EntityData *entity);
+void BigGolem_UpdateAttack(struct EwramData_EntityData *entity);
+u8 BigGolem_LoadGraphics(struct EwramData_EntityData *entity);
+void BigGolemPart_Update(struct EwramData_EntityData *entity);
+void BigGolemPart_OnContact(struct EwramData_EntityData *entity);
+void BigGolemPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+void BigGolem_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void BigGolem_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+void BigGolem_AttachPart(struct EwramData_EntityData *entity, s32 partIndex, s32 anchorIndex, s32 angleSpec, s32 length, s32 duration);
+void BigGolem_UpdateParts(struct EwramData_EntityData *entity, s8 *order);
+void BigGolem_ResetPartAngles(struct EwramData_EntityData *entity, s32 partIndex);
+void BigGolem_FaceTarget(struct EwramData_EntityData *entity);
+void BigGolem_AttachPartEased(struct EwramData_EntityData *entity, s32 partIndex, s32 anchorIndex, s32 angleSpec, s32 length, s32 duration);
+void BigGolem_RecenterOnParts(struct EwramData_EntityData *entity, s32 partIndex0, s32 partIndex1);
+void BigGolem_SetPartYOffset(struct EwramData_EntityData *entity, s32 partIndex, s32 offsetY);
+void BigGolem_SaveParts(struct EwramData_EntityData *entity);
+void BigGolem_RestoreParts(struct EwramData_EntityData *entity);
+void BigGolem_SpawnRock(struct EwramData_EntityData *parent, s32 x, s32 y, s32 vx, s32 vy);
+void BigGolemRock_Update(struct EwramData_EntityData *);
+void BigGolemRock_DamagePlayerOnContact(struct EwramData_EntityData *);
+void BigGolemRock_OnKilled(struct EwramData_EntityData *, s32, u16 *);
 
 /* Big Golem update (like EnemyGolemUpdate): screen/hit checks unless dying;
  * states 0 / 1 (BigGolem_UpdateWalk / BigGolem_UpdateAttack), 2 dying: dust every 4th frame
  * while timer is in 0x79..0xD6, then frees the parts; otherwise
  * Entity_ClampXToRoom and a 1-in-4 chance to clear unk_4FE. */
-
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
-extern s32 Entity_ClampXToRoom(struct EwramData_EntityData *entity, s32 inset);
-extern void BigGolem_UpdateWalk(struct EwramData_EntityData *entity);
-extern void BigGolem_UpdateAttack(struct EwramData_EntityData *entity);
 
 void EnemyBigGolemUpdate(struct EwramData_EntityData *entity)
 {
@@ -75,19 +101,6 @@ idle:
 }
 
 /* Big Golem create: allocates the 14-joint skeleton and one part entity per joint. */
-extern void *memcpy(void *dst, const void *src, unsigned long size);
-extern void *memset(void *dst, int value, unsigned long size);
-extern u8 BigGolem_LoadGraphics(struct EwramData_EntityData *entity);
-extern void BigGolemPart_Update(struct EwramData_EntityData *entity);
-extern void BigGolemPart_OnContact(struct EwramData_EntityData *entity);
-extern void BigGolemPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern void BigGolem_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-extern void BigGolem_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern void BigGolem_AttachPart(struct EwramData_EntityData *entity, s32 partIndex, s32 anchorIndex, s32 angleSpec, s32 length, s32 duration);
-extern void BigGolem_UpdateParts(struct EwramData_EntityData *entity, s8 *order);
-extern void BigGolem_ResetPartAngles(struct EwramData_EntityData *entity, s32 partIndex);
-extern void BigGolem_FaceTarget(struct EwramData_EntityData *entity);
-extern s32 Music_SetCurrent(s32 song);
 
 static inline s32 Angle(s32 angle)
 {
@@ -166,7 +179,7 @@ void EnemyBigGolemCreate(struct EwramData_EntityData *entity)
             part->scrollWithBg = 0;
             part->hidden = 0;
             part->attack = entity->attack;
-            part->drawFunc = (u32 *)Sprite_DrawEntity;
+            part->drawFunc = Sprite_DrawEntity;
             part->ext.jointPart.owner = entity;
             part->ext.jointPart.index = index;
             part->ext.jointPart.anchor = anchors[index];
@@ -187,7 +200,7 @@ void EnemyBigGolemCreate(struct EwramData_EntityData *entity)
                 ObjAffine_Set(0, 0x10000, 0x10000, part->flipX, part->flipY, part->affineIndex);
             }
             if (!gEwramData->gameState.bestiaryPreview)
-                Hit_Enable(part, 8, BigGolemPart_OnContact, (s32)BigGolemPart_OnHit);
+                Hit_Enable(part, 8, BigGolemPart_OnContact, BigGolemPart_OnHit);
         }
         else
         {
@@ -271,7 +284,7 @@ void EnemyBigGolemCreate(struct EwramData_EntityData *entity)
     BigGolem_ResetPartAngles(entity, 11);
     BigGolem_ResetPartAngles(entity, 12);
     BigGolem_ResetPartAngles(entity, 13);
-    Hit_Enable(entity, 8, BigGolem_DamagePlayerOnContact, (s32)BigGolem_OnHit);
+    Hit_Enable(entity, 8, BigGolem_DamagePlayerOnContact, BigGolem_OnHit);
     BigGolem_FaceTarget(entity);
     entity->ext.bigGolem.heading = entity->flipX;
     Entity_SnapToGround(entity);
@@ -287,18 +300,6 @@ void EnemyBigGolemCreate(struct EwramData_EntityData *entity)
 }
 
 /* Big Golem walk state machine (state == 0): shifts weight from foot to foot, stomps (dust, shake), turns at walls. */
-extern s32 Target_IsNearEntity(struct EwramData_EntityData *, s32, s32);
-extern s32 Target_GetPixelX(struct EwramData_EntityData *);
-extern void BigGolem_AttachPartEased(struct EwramData_EntityData *entity, s32 partIndex, s32 anchorIndex, s32 angleSpec, s32 length, s32 duration);
-extern void BigGolem_RecenterOnParts(struct EwramData_EntityData *entity, s32 partIndex0, s32 partIndex1);
-extern void BigGolem_SetPartYOffset(struct EwramData_EntityData *entity, s32 partIndex, s32 offsetY);
-
-static inline s32 ABS(s32 x)
-{
-    if (x < 0)
-        x = -x;
-    return x;
-}
 
 /* Joint A hangs off joint B at ANGLE and distance LEN, reached in timer frames. */
 #define J(A, B, ANGLE, LEN) BigGolem_AttachPart(entity, A, B, ANGLE, LEN, entity->timer)
@@ -391,7 +392,7 @@ static inline s32 ABS(s32 x)
         break;\
     }
 
-#define NEAR() (ABS((s16)Target_GetPixelX(entity) - (s16)entity->posX.part16.integer) <= 0x8B)
+#define NEAR() (Abs((s16)Target_GetPixelX(entity) - (s16)entity->posX.part16.integer) <= 0x8B)
 
 /* res = 0: walk on, res = 1: turn around. */
 #define WALL_CHECK()\
@@ -694,9 +695,6 @@ void BigGolem_UpdateWalk(struct EwramData_EntityData *entity)
 }
 
 /* Big Golem attack state machine (state == 1): punch (states 0-19, two variants) and rock throw (20-39). */
-extern void BigGolem_SaveParts(struct EwramData_EntityData *entity);
-extern void BigGolem_RestoreParts(struct EwramData_EntityData *entity);
-extern void BigGolem_SpawnRock(struct EwramData_EntityData *parent, s32 x, s32 y, s32 vx, s32 vy);
 
 /* Joint A hangs off joint B at ANGLE and distance LEN, reached in T frames (A*: eased). */
 #define A(A, B, ANGLE, LEN) BigGolem_AttachPartEased(entity, A, B, ANGLE, LEN, entity->timer)
@@ -1520,9 +1518,6 @@ void BigGolem_AttachPart(struct EwramData_EntityData *entity, s32 partIndex, s32
 }
 
 /* Big Golem damage and contact callbacks. */
-extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s16);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s32, s32);
 
 /* Flash and reduce the shared HP; end the boss encounter at zero HP. */
 void BigGolem_OnDamaged(struct EwramData_EntityData *entity, s32 attacker, u16 *hit, s32 damage)
@@ -1580,7 +1575,6 @@ void BigGolemPart_OnContact(struct EwramData_EntityData *entity)
 
 /* Big Golem part update: joint following, weapon collision and death motion. */
 struct GolemBox { s8 x, y, w, h; };
-extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
 #define JOINT(e) ((s8)e->ext.jointPart.index)
 #define FIX_INT(v) ((v) < 0 ? -(-(v) >> 16) : (v) >> 16)
 #define HAS_SPRITE(e) (JOINT(e) == 2 || JOINT(e) == 4 || JOINT(e) == 5 || JOINT(e) == 8 || JOINT(e) == 12 || JOINT(e) == 13)
@@ -1787,9 +1781,6 @@ void BigGolemPart_Update(struct EwramData_EntityData *entity)
 }
 
 /* Big Golem: falling projectile with a hit callback owned by the boss. */
-extern void BigGolemRock_Update(struct EwramData_EntityData *);
-extern void BigGolemRock_DamagePlayerOnContact(struct EwramData_EntityData *);
-extern void BigGolemRock_OnKilled(struct EwramData_EntityData *, s32, u16 *);
 /**
  * @brief Spawn a thrown rock at (x, y) with velocity (vx, vy): BigGolemRock_Update,
  * shared object graphics and a contact box (BigGolemRock_DamagePlayerOnContact);
@@ -1798,7 +1789,7 @@ extern void BigGolemRock_OnKilled(struct EwramData_EntityData *, s32, u16 *);
 void BigGolem_SpawnRock(struct EwramData_EntityData *parent, s32 x, s32 y, s32 vx, s32 vy)
 {
     u32 collision = 0x0808FCFC;
-    struct EwramData_EntityData *shot = EntityCreateInRange(0x1B, 0x48, (u32 *)BigGolemRock_Update);
+    struct EwramData_EntityData *shot = EntityCreateInRange(0x1B, 0x48, BigGolemRock_Update);
     if (shot != NULL)
     {
         s32 tiles = ObjGfx_Find(sCommonObjectGfx);
@@ -1809,8 +1800,8 @@ void BigGolem_SpawnRock(struct EwramData_EntityData *parent, s32 x, s32 y, s32 v
         }
         Sprite_Attach(shot, sCommonObjectSpriteSheet, tiles, 6);
         shot->animFrame = 0x42;
-        shot->drawFunc = (u32 *)Sprite_DrawEntity;
-        Hit_Enable(shot, 10, BigGolemRock_DamagePlayerOnContact, (s32)BigGolemRock_OnKilled);
+        shot->drawFunc = Sprite_DrawEntity;
+        Hit_Enable(shot, 10, BigGolemRock_DamagePlayerOnContact, BigGolemRock_OnKilled);
         HitBox_SetAttack(shot, &collision);
         HitBox_SetBody(shot, &collision);
         shot->hit.flags &= ~4;
@@ -2011,19 +2002,6 @@ void BigGolemRock_Update(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   BigGolemRock_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
-
 /**
  * @brief AD0F8 | Same as Enemy_DamagePlayerOnContact.
  */
@@ -2057,7 +2035,6 @@ void BigGolemRock_OnKilled(struct EwramData_EntityData *entity, s32 attacker, u1
     EntityDelete(entity);
 }
 
-extern s32 ObjPalette_FindOrLoadVariant(void *, s32);
 /* Big Golem graphics: allocate tiles and two palette variants. */
 u8 BigGolem_LoadGraphics(struct EwramData_EntityData *entity)
 {
@@ -2068,7 +2045,7 @@ u8 BigGolem_LoadGraphics(struct EwramData_EntityData *entity)
     entity->ext.bigGolem.palette1 = ObjPalette_FindOrLoadVariant(sBigGolemPalette, 1);
     entity->basePalette = entity->ext.bigGolem.palette0;
     Sprite_Attach(entity, sBigGolemSpriteSheet, tiles, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 

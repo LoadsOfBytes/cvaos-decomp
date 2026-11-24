@@ -14,7 +14,7 @@ void BgEffect_Bg2Perspective(void);
 void BgEffect_Bg2RotateAndPulse(s32 scrX, s32 scrY, s32 rotateSpeed);
 void Display_SaveState(void);
 void Display_RestoreState(void);
-void Bg_UpdateScrollModes(void);
+extern void Bg_UpdateScrollModes(void);
 void Hud_Init(void);
 void Hud_DrawGaugeFrames(void);
 void Hud_UpdateHpMpGauges(struct GameState *gameState);

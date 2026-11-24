@@ -14,11 +14,20 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "hitbox.h"
+#include "damage_numbers.h"
 
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void Ectoplasm_UpdateFloat(struct EwramData_EntityData *);
-extern void Ectoplasm_UpdatePreview(struct EwramData_EntityData *);
+extern s32 Target_IsInRect(s16, s16, s16, s16);
+extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
+
+void Ectoplasm_UpdateFloat(struct EwramData_EntityData *);
+void Ectoplasm_UpdatePreview(struct EwramData_EntityData *);
+u8 Ectoplasm_LoadGraphics(struct EwramData_EntityData *);
+void Ectoplasm_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void Ectoplasm_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
+void Ectoplasm_Draw(struct EwramData_EntityData *entity);
+void Ectoplasm_SpawnParticle(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY, s32 frame);
+void EctoplasmParticle_Update(struct EwramData_EntityData *entity);
 
 void EnemyEctoplasmUpdate(struct EwramData_EntityData *entity)
 {
@@ -33,7 +42,7 @@ void EnemyEctoplasmUpdate(struct EwramData_EntityData *entity)
     if (entity->state != 1) Enemy_UpdateHitFlash(entity);
     if (Entity_IsTimeStopped(entity) && entity->state != 1)
     {
-        Hit_CheckWithPlayer(box, entity);
+        Hit_CheckWithPlayer((struct HitResult *)box, entity);
         return;
     }
     switch (entity->state)
@@ -45,12 +54,6 @@ void EnemyEctoplasmUpdate(struct EwramData_EntityData *entity)
     Entity_AnimateWithBoxes(entity);
     Enemy_CheckHitPlayer(entity);
 }
-
-extern u8 Ectoplasm_LoadGraphics(struct EwramData_EntityData *);
-extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
-extern void Hit_Enable(struct EwramData_EntityData *, s32, void *, void *);
-void Ectoplasm_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-void Ectoplasm_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 
 void EnemyEctoplasmCreate(struct EwramData_EntityData *entity)
 {
@@ -85,7 +88,6 @@ void EnemyEctoplasmCreate(struct EwramData_EntityData *entity)
 }
 
 /* Flying enemy: approaches a random target near Target_GetX/Target_GetY and re-targets. */
-extern s32 Target_IsInRect(s16, s16, s16, s16);
 
 static inline void SetTarget(struct EwramData_EntityData *entity, struct BgLayerState *bg, s32 r, s32 dy)
 {
@@ -170,9 +172,6 @@ void Ectoplasm_UpdateFloat(struct EwramData_EntityData *entity)
     }
 }
 
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-
 void Ectoplasm_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     s32 damage = Player_CalculateAttackPower(hit[2]);
@@ -184,7 +183,7 @@ void Ectoplasm_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entit
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     {
         s32 dx = entity->posX.whole - attacker->posX.whole;
         s32 dy = entity->posY.whole - attacker->posY.whole;
@@ -219,11 +218,6 @@ void Ectoplasm_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entit
  *
  * Ectoplasm_UpdatePreview..EctoplasmParticle_Update decompiled locally. */
 
-void Ectoplasm_Draw(struct EwramData_EntityData *entity);
-void Ectoplasm_SpawnParticle(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY, s32 frame);
-void EctoplasmParticle_Update(struct EwramData_EntityData *entity);
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
 /**
  * @brief 999F0 | Same as Object25_LoadGraphics.
  */
@@ -235,7 +229,7 @@ u8 Ectoplasm_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sEctoplasmPalette, 0);
     Sprite_Attach(entity, sEctoplasmSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Ectoplasm_Draw;
+    entity->drawFunc = Ectoplasm_Draw;
     return 1;
 }
 
@@ -319,7 +313,7 @@ void Ectoplasm_SpawnParticle(struct EwramData_EntityData *entity, s32 offsetX, s
         child->velY.whole = -0x10000;
         child->accelY.whole = -0x400;
         child->scrollWithBg = 1;
-        child->drawFunc = (u32 *)Sprite_DrawEntity;
+        child->drawFunc = Sprite_DrawEntity;
     }
 }
 

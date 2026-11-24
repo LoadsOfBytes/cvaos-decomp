@@ -27,6 +27,12 @@
 #include "red_souls_b.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "math_inline.h"
+#include "damage_numbers.h"
+
+extern const s8 sEntityVisibilityPattern[40];
+
+s32 Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
 
 /* Accelerate/move both axes and resolve collision at four box corners, with
  * a tile-type exclusion: a corner whose tile flags satisfy (flags & 3) == 1
@@ -49,7 +55,6 @@
  * Matching code does not establish the original source spelling. */
 
 static inline s32 ReadTileFlags(s32 x, s32 y) { return Collision_GetTile(x, y); }
-static inline s32 SignExtendOffset(u16 value) { return (s16)value; }
 
 static inline s16 TruncatedSignedOffset(u16 v) { s32 x = (s16)v; return x; }
 #define ROOM_X ((s16)camera->xPos.part16.integer + (s16)entity->posX.part16.integer)
@@ -273,7 +278,6 @@ s32 Entity_AdjustSpeedForSlope(struct EwramData_EntityData *entity, s32 speed)
 }
 
 /* Common update gates and palette changes after an enemy takes damage. */
-s32 Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
 
 static inline s32 TemplateBlocksUpdate(struct EwramData_EntityData *entity)
 {
@@ -341,14 +345,9 @@ s32 Enemy_UpdateHitFlash(struct EwramData_EntityData *entity)
 }
 
 /* Emit a fading fragment every fourth tick and finish the source effect. */
-extern const s8 sEntityVisibilityPattern[40];
-static inline s32 RandomOffset(s32 range)
-{
-    return RandomNumberGenerator() % range - range / 2;
-}
 static inline void SpawnFragment(s32 x, s32 y, s32 frame)
 {
-    struct EwramData_EntityData *fragment = EntityCreateInRange(0x49, 0xCF, (u32 *)RisingEffect_Update);
+    struct EwramData_EntityData *fragment = EntityCreateInRange(0x49, 0xCF, RisingEffect_Update);
     if (fragment)
     {
         fragment->posX.whole = x;
@@ -680,7 +679,7 @@ void HitEffect_Update(struct EwramData_EntityData *entity)
         Sprite_Attach(entity, sCommonObjectSpriteSheet, graphics, entry->palette);
         Anim_StartIndexed(entity, entry->animation, 0, 0);
         entity->spriteLayer = 3;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->scrollWithBg = 1;
         entity->state++;
     }
@@ -762,8 +761,6 @@ void Hit_GetContactPoint(struct EwramData_EntityData *a, struct EwramData_Entity
    written parameter). */
 /* Resolve damage modifiers and create the shared hit effect. */
 
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-
 static inline void HighestEffect(u16 *out, u32 bits)
 {
     s32 mask = 0x20;
@@ -784,7 +781,7 @@ static inline void HighestEffect(u16 *out, u32 bits)
 
 static inline void SpawnHitSpark(s16 x, s16 y, u16 effect)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)HitEffect_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, HitEffect_Update);
 
     if (child != NULL)
     {
@@ -862,9 +859,9 @@ static inline u16 ResolveDamage(struct EwramData_EntityData *entity, s32 damage,
                 entity->mp = old;
                 delta = (s16)entity->hp - old;
                 if (delta >= 0)
-                    Entity_ShowDamage(entity, delta, 1);
+                    Entity_ShowDamage(entity, (s16)delta, 1);
                 else
-                    Entity_ShowDamage(entity, delta, 2);
+                    Entity_ShowDamage(entity, (s16)delta, 2);
             }
             if (ENEMY_STATUS(entity) & 0x40)
             {

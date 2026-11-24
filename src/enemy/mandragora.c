@@ -14,13 +14,22 @@
 #include "palette.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "hitbox.h"
+
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *,u8 *,void *,u8,void *);
+
+void Mandragora_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+s32 Mandragora_CreateLinkedPart(struct EwramData_EntityData *);
+void MandragoraPart_Update(struct EwramData_EntityData *);
+void MandragoraPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+s32 Mandragora_CreateTerminalPart(struct EwramData_EntityData *);
+void MandragoraTerminalPart_Update(struct EwramData_EntityData *);
+void Mandragora_SpawnDeathParts(struct EwramData_EntityData *);
+void Mandragora_RequestLinkedDeletion(struct EwramData_EntityData *);
+void MandragoraDeathPart_Update(struct EwramData_EntityData *entity);
+void Mandragora_UpdateBestiaryPreview(struct EwramData_EntityData *entity);
 
 /* Mandragora graphics, room setup and linked part. */
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *,u8 *,void *,u8,void *);
-extern void Entity_EnableBoxes(struct EwramData_EntityData *,void *,s32);
-extern void Enemy_OnContact(struct EwramData_EntityData *);
-extern void Mandragora_OnHit(struct EwramData_EntityData *);
-extern s32 Mandragora_CreateLinkedPart(struct EwramData_EntityData *);
 void EnemyMandragoraCreate(struct EwramData_EntityData *entity)
 {
     void *palette=sMandragoraPalette;
@@ -47,7 +56,7 @@ void EnemyMandragoraCreate(struct EwramData_EntityData *entity)
     entity->state=1;
     entity->stage=display;
     entity->subState=display;
-    Entity_EnableBoxes(entity,Enemy_OnContact,(s32)Mandragora_OnHit);
+    Entity_EnableBoxes(entity,Enemy_OnContact, Mandragora_OnHit);
     Entity_SnapToGround(entity);
     if(!Mandragora_CreateLinkedPart(entity))
     {
@@ -58,9 +67,6 @@ void EnemyMandragoraCreate(struct EwramData_EntityData *entity)
 }
 
 /* Mandragora linked part mirrors combat properties and shares graphics. */
-extern void MandragoraPart_Update(struct EwramData_EntityData *);
-extern void MandragoraPart_OnHit(struct EwramData_EntityData *);
-extern s32 Mandragora_CreateTerminalPart(struct EwramData_EntityData *);
 /**
  * @brief Create the intermediate part with copied combat properties and
  * shared graphics, link both slot indices and create its terminal part.
@@ -87,13 +93,13 @@ s32 Mandragora_CreateLinkedPart(struct EwramData_EntityData *entity)
         part->mp=entity->mp;
         part->attack=entity->attack;
         part->defense=entity->defense;
-        part->drawFunc=(u32 *)Sprite_DrawEntity;
+        part->drawFunc=Sprite_DrawEntity;
         sprite=sMandragoraSpriteSheet;
         graphics=Sprite_GetTileSlot(entity);
         Sprite_Attach(part,sprite,graphics,part->basePalette);
         Anim_StartIndexed(part,3,0,1);
         Anim_Update(part);
-        Entity_EnableBoxes(part,Enemy_OnContact,(s32)MandragoraPart_OnHit);
+        Entity_EnableBoxes(part,Enemy_OnContact, MandragoraPart_OnHit);
         if(Mandragora_CreateTerminalPart(part))
             return 1;
         EntityDelete(part);
@@ -203,9 +209,6 @@ countdown:
 }
 
 /* Mandragora linked part mirrors combat properties and shares graphics. */
-extern void MandragoraTerminalPart_Update(struct EwramData_EntityData *);
-extern void Hit_Enable(struct EwramData_EntityData *,s32,void *,s32);
-extern void HitBox_SetAttackRaw(struct EwramData_EntityData *,s32);
 /**
  * @brief Create the terminal part with shared graphics and copied combat
  * properties, store both slot links and configure its attack box.
@@ -231,7 +234,7 @@ s32 Mandragora_CreateTerminalPart(struct EwramData_EntityData *entity)
         part->attack=entity->attack;
         part->defense=entity->defense;
         part->scrollWithBg=1;
-        part->drawFunc=(u32 *)Sprite_DrawEntity;
+        part->drawFunc=Sprite_DrawEntity;
         part->roomActive=1;
         sprite=sMandragoraSpriteSheet;
         graphics=Sprite_GetTileSlot(entity);
@@ -247,7 +250,6 @@ s32 Mandragora_CreateTerminalPart(struct EwramData_EntityData *entity)
 
 /* MandragoraTerminalPart_Update. */
 /* Mandragora terminal part controls the scream's palette flashes. */
-static inline s32 Tick(struct EwramData_EntityData *e) { s32 timer=e->timer; if(timer) e->timer--; return timer; }
 /**
  * @brief Sequence the scream animation, BG/OBJ palette flashes, expanded
  * attack box and root owner flag 0x10. Reset when the intermediate
@@ -367,7 +369,6 @@ void MandragoraTerminalPart_Update(struct EwramData_EntityData *entity)
 }
 
 /* Mandragora proximity trigger, scream animation and linked-part timing. */
-extern s32 Target_IsNearEntity(struct EwramData_EntityData *,s32,s32);
 /**
  * @brief Waiting state (1): play animation 0, then select scream state 2
  * after the target enters the proximity box.
@@ -466,8 +467,6 @@ void Mandragora_UpdateScream(struct EwramData_EntityData *entity)
 }
 
 /* Mandragora death waits for its linked part and pending effects. */
-extern void Mandragora_SpawnDeathParts(struct EwramData_EntityData *);
-extern void Mandragora_RequestLinkedDeletion(struct EwramData_EntityData *);
 /**
  * @brief Death state (0xF0): hide, spawn five parts and wait for their live
  * count plus linked-part/palette state before requesting removal
@@ -505,8 +504,6 @@ wait_part:
 /* Mandragora 0x080CF804..0x080CFAAF. Mandragora_SpawnDeathParts / MandragoraDeathPart_Update / Mandragora_UpdateBestiaryPreview are machine-identical
  * copies of the Needles / Blue Crow functions (cloning script). */
 
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
-
 /* Same layout as sNeedlesDeathParts in enemy/beam_skeleton.c. */
 enum {
     NEEDLE_OFFSET_X,
@@ -516,8 +513,6 @@ enum {
     NEEDLE_VEL_Y,
     NEEDLE_TIMER
 };
-
-void MandragoraDeathPart_Update(struct EwramData_EntityData *entity);
 
 /**
  * @brief Spawn up to five table-configured sprite parts with mirrored
@@ -532,7 +527,7 @@ void Mandragora_SpawnDeathParts(struct EwramData_EntityData *entity)
 
     for (i = 0; i < 5; i++)
     {
-        child = EntityCreateInRange(0x49, 0xCF, (u32 *)MandragoraDeathPart_Update);
+        child = EntityCreateInRange(0x49, 0xCF, MandragoraDeathPart_Update);
         if (child == NULL)
             continue;
         needle = sMandragoraDeathParts[i];
@@ -543,7 +538,7 @@ void Mandragora_SpawnDeathParts(struct EwramData_EntityData *entity)
         child->flipX = entity->flipX;
         Sprite_Attach(child, sMandragoraSpriteSheet, Sprite_GetTileSlot(entity), child->basePalette);
         child->scrollWithBg = 1;
-        child->drawFunc = (u32 *)Sprite_DrawEntity;
+        child->drawFunc = Sprite_DrawEntity;
         child->posX.whole = entity->posX.whole;
         child->posY.whole = entity->posY.whole;
         offsetX = needle[NEEDLE_OFFSET_X];
@@ -583,8 +578,6 @@ void MandragoraDeathPart_Update(struct EwramData_EntityData *entity)
     }
 }
 
-void Mandragora_UpdateBestiaryPreview(struct EwramData_EntityData *entity);
-
 /**
  * @brief CF99C | Mandragora update: state 3 -> Mandragora_UpdateBestiaryPreview, state 0xF0 ->
  * Mandragora_UpdateDeath; otherwise (unless Enemy_PreUpdate intervenes while animation
@@ -620,9 +613,9 @@ void EnemyMandragoraUpdate(struct EwramData_EntityData *entity)
  * @brief Apply enemy damage to the intermediate part; on defeat enter
  * its state 0xF0 with substate counters reset.
  */
-void MandragoraPart_OnHit(struct EwramData_EntityData *entity)
+void MandragoraPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    if (Enemy_TakeDamage(entity))
+    if (Enemy_TakeDamage(entity, attacker, hit))
     {
         entity->state = 0xF0;
         entity->stage = 0;
@@ -648,9 +641,9 @@ void Mandragora_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
  * @brief Apply enemy damage to the root owner; on defeat enter death
  * state 0xF0 with substate counters reset.
  */
-void Mandragora_OnHit(struct EwramData_EntityData *entity)
+void Mandragora_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    if (Enemy_TakeDamage(entity))
+    if (Enemy_TakeDamage(entity, attacker, hit))
     {
         entity->state = 0xF0;
         entity->stage = 0;

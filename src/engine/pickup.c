@@ -20,6 +20,12 @@
 #include "soul_menu.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "entity_inline.h"
+
+extern u8 sConsumableInfo[], sWeaponInfo[], sArmorInfo[];
+
+void Pickup_UpdateDriftingMana(struct EwramData_EntityData *);
+void Pickup_Update(struct EwramData_EntityData *);
 
 static inline s32 Item_GetTypeByGlobalId(s32 globalId)
 {
@@ -101,15 +107,13 @@ void Player_RestoreMPPercent(s32 percent)
  * (palette 7), touch callback Pickup_Collect, box 0x0808FCFC passed by value
  * (x -4, y -4, w 8, h 8); large (frame 0x27, spawnParam1 15, update
  * Pickup_Update) or small (frame 0x28, spawnParam1 3); optionally thrown up. */
-extern void Pickup_UpdateDriftingMana(struct EwramData_EntityData *);
-extern void Pickup_Update(struct EwramData_EntityData *);
 
 /**
  * @brief Create a small or large MP pickup with the existing hit callback, frame, percentage and optional upward velocity; return NULL on allocation failure.
  */
 struct EwramData_EntityData *Pickup_CreateMana(s32 x, s32 y, s32 large, s32 jump)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)Pickup_UpdateDriftingMana);
+    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, Pickup_UpdateDriftingMana);
     s32 graphics;
 
     if (entity != NULL)
@@ -117,7 +121,7 @@ struct EwramData_EntityData *Pickup_CreateMana(s32 x, s32 y, s32 large, s32 jump
         entity->spriteLayer = 0x13;
         graphics = ObjGfx_Find(sCommonObjectGfx);
         Sprite_Attach(entity, sCommonObjectSpriteSheet, graphics, 7);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         Hit_Enable(entity, 0xB, Pickup_Collect, 0);
         entity->hit.flags |= 4;
         HitBox_SetAttackRaw(entity, 0x0808FCFC);
@@ -129,7 +133,7 @@ struct EwramData_EntityData *Pickup_CreateMana(s32 x, s32 y, s32 large, s32 jump
         {
             entity->animFrame = 0x27;
             entity->spawnParam1 = 0xF;
-            entity->updateFunc = (u32 *)Pickup_Update;
+            entity->updateFunc = Pickup_Update;
         }
         else
         {
@@ -146,8 +150,6 @@ struct EwramData_EntityData *Pickup_CreateMana(s32 x, s32 y, s32 large, s32 jump
  * then sway down (sine of timer) until the ground (Collision_GetPushUp) is hit,
  * wait 200 frames, blink 64 frames and disappear. */
 
-static inline s32 RoomX(s32 pos) { struct BgLayerState *bg = &gEwramData->bgInfo[1]; return pos + (s16)bg->xPos.part16.integer; }
-static inline s32 RoomY(s32 pos) { struct BgLayerState *bg = &gEwramData->bgInfo[1]; return pos + (s16)bg->yPos.part16.integer; }
 /**
  * @brief Check player contact, rise then drift down to the ground, wait 200 frames and request deletion after the final 64-frame draw-skip phase.
  */
@@ -156,7 +158,7 @@ void Pickup_UpdateDriftingMana(struct EwramData_EntityData *entity)
     struct HitResult res;
     s16 dy;
 
-    Hit_CheckWithPlayer(&res, (u8 *)entity);
+    Hit_CheckWithPlayer(&res, entity);
     switch (entity->state)
     {
     case 0:
@@ -175,7 +177,7 @@ void Pickup_UpdateDriftingMana(struct EwramData_EntityData *entity)
         entity->posX.whole += entity->velX.whole;
         entity->posY.whole += entity->velY.whole;
         entity->timer++;
-        dy = Collision_GetPushUp(RoomX((s16)entity->posX.part16.integer), RoomY((s16)entity->posY.part16.integer) + 4);
+        dy = Collision_GetPushUp(ToRoomX((s16)entity->posX.part16.integer), ToRoomY((s16)entity->posY.part16.integer) + 4);
         if (dy != 0)
         {
             entity->posY.whole -= dy;
@@ -213,13 +215,13 @@ void Pickup_Update(struct EwramData_EntityData *entity)
     struct HitResult res;
     s32 dy;
 
-    Hit_CheckWithPlayer(&res, (u8 *)entity);
+    Hit_CheckWithPlayer(&res, entity);
     if (entity->enemyId <= 4)
     {
         s32 x, y, h;
         entity->posY.whole += entity->velY.whole;
-        x = RoomX((s16)entity->posX.part16.integer);
-        y = RoomY((s16)entity->posY.part16.integer);
+        x = ToRoomX((s16)entity->posX.part16.integer);
+        y = ToRoomY((s16)entity->posY.part16.integer);
         h = entity->accelY.part16.integer;
         dy = (s16)Collision_GetPushUp(x, entity->enemyId <= 1 ? y + 8 + h : y + h);
         entity->velY.whole += 0x2000;
@@ -299,7 +301,7 @@ void Pickup_Update(struct EwramData_EntityData *entity)
  */
 struct EwramData_EntityData *Pickup_CreateGold(s32 x, s32 y, s32 index)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)Pickup_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, Pickup_Update);
     if (entity != NULL)
     {
         struct GoldDrop *info = &sGoldDrops[index];
@@ -307,7 +309,7 @@ struct EwramData_EntityData *Pickup_CreateGold(s32 x, s32 y, s32 index)
         entity->spriteLayer = 9;
         graphics = ObjGfx_Find(sCommonObjectGfx);
         Sprite_Attach(entity, sCommonObjectSpriteSheet, graphics, info->palette);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         if (info->animated)
         {
             entity->accelY.part16.integer = -8;
@@ -330,7 +332,6 @@ struct EwramData_EntityData *Pickup_CreateGold(s32 x, s32 y, s32 index)
 }
 
 struct ItemRecord { u16 name; u8 icon; s8 palette; };
-extern u8 sConsumableInfo[], sWeaponInfo[], sArmorInfo[];
 
 static inline void *LocalInfo(s32 type, s32 id)
 {
@@ -401,7 +402,7 @@ struct EwramData_EntityData *Pickup_CreateItem(s32 x, s32 y, s32 type, s32 id, s
     }
     else
     {
-        do { entity = EntityCreateInRange(0x49, 0xCF, (u32 *)Pickup_Update); } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
+        do { entity = EntityCreateInRange(0x49, 0xCF, Pickup_Update); } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
         if (!entity)
             goto done;
         if (type != 0xFF)
@@ -414,7 +415,7 @@ struct EwramData_EntityData *Pickup_CreateItem(s32 x, s32 y, s32 type, s32 id, s
         }
         entity->spriteLayer = 0x13;
         ItemIcon_AttachSprite(entity, ItemIconCache_Load(info->icon), info->palette);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         Hit_Enable(entity, 0xB, Pickup_Collect, 0);
         { struct EwramData_EntityData *e = entity; e->hit.flags |= 4; }
         HitBox_SetAttackRaw(entity, 0x1010F8F8);
@@ -432,31 +433,6 @@ done:
 
 /* Item / gold / soul pickup handler (Pickup_Collect). Needs -fno-cse-skip-blocks
  * (Makefile): the target reloads the inventory count after the 0x4EF test. */
-
-extern void Effect_SpawnAttachedAnimation(struct EwramData_EntityData *, u8, u8, s32, s32);
-
-static inline u8 *Inv(struct PlayerStatus *v, s32 t)
-{
-    switch (t)
-    {
-    case 2: return v->itemInventory;
-    case 3: return v->weaponInventory;
-    case 4: return v->armorInventory;
-    }
-    return v->itemInventory;
-}
-static inline u8 *InvSlot(struct PlayerStatus *v, s32 t, s32 i)
-{
-    switch (t)
-    {
-    case 2: return &v->itemInventory[i];
-    case 3: return &v->weaponInventory[i];
-    case 4: return &v->armorInventory[i];
-    }
-    return v->itemInventory;
-}
-static inline s32 CountA(struct PlayerStatus *v, s32 t, s32 i) { return Inv(v, t)[i]; }
-static inline s32 CountB(struct PlayerStatus *v, s32 t, s32 i) { return *InvSlot(v, t, i); }
 
 /**
  * @brief Apply the pickup type reward, inventory limits, messages, effects and persistence flags; retain the full-inventory path that cancels deletion.

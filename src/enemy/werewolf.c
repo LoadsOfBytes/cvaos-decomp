@@ -15,13 +15,24 @@
 #include "obj_palette.h"
 #include "werejaguar.h"
 #include "data/data_118B48.h"
+#include "hitbox.h"
+#include "damage_numbers.h"
+#include "entity_motion.h"
+
+extern s32 Target_IsInRect(s32, s32, s32, s32);
+extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
+
+void Werewolf_UpdateWalk(struct EwramData_EntityData *);
+void Werewolf_UpdateAttack(struct EwramData_EntityData *);
+void Werewolf_UpdateRecoil(struct EwramData_EntityData *);
+void Werewolf_SpawnShockwave(struct EwramData_EntityData *, s32);
+void WerewolfShockwave_Update(struct EwramData_EntityData *);
+u8 WerewolfShockwave_LoadGraphics(struct EwramData_EntityData *);
+void WerewolfShockwave_EnableHitBoxes(struct EwramData_EntityData *);
+u8 Werewolf_LoadGraphics(struct EwramData_EntityData *entity);
+void WerewolfShockwave_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 
 /* Werewolf update dispatcher and jump state. */
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void Werewolf_UpdateWalk(struct EwramData_EntityData *);
-extern void Werewolf_UpdateAttack(struct EwramData_EntityData *);
-extern void Werewolf_UpdateRecoil(struct EwramData_EntityData *);
 
 void EnemyWerewolfUpdate(struct EwramData_EntityData *entity)
 {
@@ -43,13 +54,13 @@ void EnemyWerewolfUpdate(struct EwramData_EntityData *entity)
     {
         if (entity->state != 2)
         {
-            Hit_CheckWithPlayer(box, entity);
+            Hit_CheckWithPlayer((struct HitResult *)box, entity);
             return;
         }
     }
     if (entity->hitFlashTimer != 0 && entity->state != 3 && entity->state != 2)
     {
-        Hit_CheckWithPlayer(box, entity);
+        Hit_CheckWithPlayer((struct HitResult *)box, entity);
         return;
     }
     switch (entity->state)
@@ -67,8 +78,6 @@ void EnemyWerewolfUpdate(struct EwramData_EntityData *entity)
 }
 
 /* Werewolf ground movement and transition into an attack. */
-extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern s32 Target_IsInRect(s32, s32, s32, s32);
 
 /**
  * @brief Walk state machine (state 0): land, face the target and wait until it is
@@ -136,7 +145,6 @@ void Werewolf_UpdateWalk(struct EwramData_EntityData *entity)
 }
 
 /* Werewolf attack phases, 0x0806F024..0x0806F41B. */
-extern void Werewolf_SpawnShockwave(struct EwramData_EntityData *, s32);
 
 /**
  * @brief Attack state machine (state 1): randomly a dash (sound 0x77) or a ground
@@ -345,8 +353,6 @@ void Werewolf_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 }
 
 /* Werewolf hit: HP, death state, and interrupting a close attack. */
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
 
 /**
  * @brief Hit: resolve, flash, subtract and show the damage; at HP <= 0 drop the
@@ -365,7 +371,7 @@ void Werewolf_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
@@ -386,9 +392,6 @@ void Werewolf_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
 }
 
 /* Spawn and position a Werewolf attack entity. */
-extern void WerewolfShockwave_Update(struct EwramData_EntityData *);
-extern u8 WerewolfShockwave_LoadGraphics(struct EwramData_EntityData *);
-extern void WerewolfShockwave_EnableHitBoxes(struct EwramData_EntityData *);
 
 /**
  * @brief Spawn a ground shockwave offset px in front of parent, snapped to the
@@ -396,7 +399,7 @@ extern void WerewolfShockwave_EnableHitBoxes(struct EwramData_EntityData *);
  */
 void Werewolf_SpawnShockwave(struct EwramData_EntityData *entity, s32 offsetX)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, (u32 *)WerewolfShockwave_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, WerewolfShockwave_Update);
     if (child != NULL)
     {
         if (!WerewolfShockwave_LoadGraphics(child))
@@ -420,11 +423,6 @@ void Werewolf_SpawnShockwave(struct EwramData_EntityData *entity, s32 offsetX)
 /* Werewolf helpers 0x0806F678..0x0806F817 (EnemyWerewolfCreate like
  * EnemyWerejaguarCreate without Hit_SetTimerOverride). */
 
-extern u8 Werewolf_LoadGraphics(struct EwramData_EntityData *entity);
-extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
-
-void WerewolfShockwave_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-
 /**
  * @brief 6F678 | Effect: states 0 / 1 go to 2; state 2 runs Hit_CheckWithPlayer
  * while animStep is 1..5 and animates until the end (state 3); state 3 sets
@@ -442,7 +440,7 @@ void WerewolfShockwave_Update(struct EwramData_EntityData *entity)
             break;
         case 2:
             if ((u8)(entity->animStep - 1) <= 4)
-                Hit_CheckWithPlayer(collision, entity);
+                Hit_CheckWithPlayer((struct HitResult *)collision, entity);
             if (Anim_Update(entity) == 3)
                 entity->state = 3;
             break;
@@ -465,7 +463,7 @@ u8 WerewolfShockwave_LoadGraphics(struct EwramData_EntityData *entity)
     Sprite_Attach(entity, sCommonObjectSpriteSheet, gfx, 7);
     Anim_StartIndexed(entity, 0xA, 0, 0);
     Anim_Update(entity);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -523,7 +521,7 @@ void EnemyWerewolfCreate(struct EwramData_EntityData *entity)
         entity->state = 4;
         return;
     }
-    Hit_EnableContact(entity, 8, Werewolf_DamagePlayerOnContact, (s32)Werewolf_OnHit);
+    Hit_EnableContact(entity, 8, Werewolf_DamagePlayerOnContact, Werewolf_OnHit);
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
     entity->state = 0;
@@ -532,8 +530,6 @@ void EnemyWerewolfCreate(struct EwramData_EntityData *entity)
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
  *   Werewolf_LoadGraphics = Object25_LoadGraphics */
-
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 /**
  * @brief 6F818 | Same as Object25_LoadGraphics.
@@ -546,6 +542,6 @@ u8 Werewolf_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sWerewolfPalette, 0);
     Sprite_Attach(entity, sWerewolfSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }

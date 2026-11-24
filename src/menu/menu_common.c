@@ -392,17 +392,6 @@ static inline u16 *MapAddr(s32 x, s32 y)
     s32 yo = y << 6;
     return (u16 *)(xo + ({ s32 t_ = yo + BG_MAP_VRAM; t_; }));
 }
-static inline u16 *MapAddr2(s32 x, s32 y)
-{
-    s32 xo = x << 1;
-    s32 yo = y << 6;
-    return (u16 *)(xo + (yo + BG_MAP_VRAM));
-}
-static inline u16 *MapAddr3(s32 x, s32 y)
-{
-    s32 yo = y << 6;
-    return (u16 *)((x << 1) + (yo + BG_MAP_VRAM));
-}
 static inline void DrawRow(s32 x, s32 y, s32 tile, s32 count)
 {
     u16 *map;
@@ -410,20 +399,6 @@ static inline void DrawRow(s32 x, s32 y, s32 tile, s32 count)
     s32 i;
 
     map = MapAddr(x, y);
-    for (i = 0; i < count; i++)
-    {
-        *map = t;
-        t++;
-        map++;
-    }
-}
-static inline void DrawRow2(s32 x, s32 y, s32 tile, s32 count)
-{
-    u16 *map;
-    u16 t = tile;
-    s32 i;
-
-    map = MapAddr2(x, y);
     for (i = 0; i < count; i++)
     {
         *map = t;

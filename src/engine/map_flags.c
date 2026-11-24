@@ -15,15 +15,15 @@
 #include "data/data_0E5364.h"
 #include "data/data_118B48.h"
 
-/* Called with int arguments (the u16/u8 parameters in bg_and_collision.h would truncate them). */
-extern u16 *BgCmdBuffer_WriteString(s32 tileIndex, s32 rowOffset, s32 tileInfo, const u8 *string);
-extern u16 *BgCmdBuffer_WriteNumber(s32 tileIndex, s32 rowOffset, s32 palNum, s32 numChars, s32 value);
-
 extern s32 GetRoomFromMapPosition(s32, s32);
 extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *);
 extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
 extern s32 GetAreaFromMapPosition(s32, s32);
 extern struct DmaQueueInfo *DmaQueue_IndirectCopy(u32, u32 *, u32 *);
+
+/* Called with int arguments (the u16/u8 parameters in bg_and_collision.h would truncate them). */
+extern u16 *BgCmdBuffer_WriteString(s32 tileIndex, s32 rowOffset, s32 tileInfo, const u8 *string);
+extern u16 *BgCmdBuffer_WriteNumber(s32 tileIndex, s32 rowOffset, s32 palNum, s32 numChars, s32 value);
 
 /**
  * @brief Count set visited-cell bits across the 64 by 40 map grid.
@@ -443,7 +443,7 @@ void ItemIconEntity_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
         case 0:
-            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->spriteLayer = 13;
             entity->ext.itemIcon.palette = 6;
             /* fallthrough */

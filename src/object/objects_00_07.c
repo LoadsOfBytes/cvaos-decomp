@@ -27,6 +27,16 @@ extern void Collision_ClearBlock(s32 arg0, s32 arg1);
 
 /* Draw the entity twice with mirrored affine matrices (rotation from unk_4F8), restoring position, frame and flip. */
 struct AffineSlot16 { u16 slot:5; u16 rest:3; };
+
+extern s32 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
+
+/* Declared here with an int result: Warp_ActivateCurrentRoom uses the value without
+ * re-extending it from s16 (see bg_and_collision.h for the real type). */
+extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
+extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *);
+
+void Door_Draw(struct EwramData_EntityData *entity);
+
 /**
  * @brief Draw the gate entity twice with mirrored affine matrices from its
  * opening angle unk_4F8 (0x4000 = fully open draws it flipped without
@@ -90,8 +100,6 @@ void Gate_Draw(struct EwramData_EntityData *e)
     e->flipX = savedFlip;
 }
 
-extern s32 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
-
 /**
  * @brief 4D8F0 | Graphics setup of object 0: layer 0x11, facing left when
  * right of x 0x78, sprite sGateGfx / palette sGatePalette /
@@ -126,7 +134,7 @@ void Gate_SetupGraphics(struct EwramData_EntityData *entity, s32 opened)
     entity->ext.gate.affine1 = ObjAffine_Alloc(1);
     entity->affineIndex = entity->ext.gate.affine0;
     entity->affine = 1;
-    entity->drawFunc = (u32 *)Gate_Draw;
+    entity->drawFunc = Gate_Draw;
 }
 
 /**
@@ -326,7 +334,6 @@ void Gate_UpdateFlagControlled(struct EwramData_EntityData *entity)
 }
 
 /* Helpers 0x0804DE60..0x0804DFAB. */
-void Door_Draw(struct EwramData_EntityData *entity);
 
 /* Event flag param_1 of the bit array gameFlagsTail (as in Object35Create). */
 #define OBJECT_FLAG(ewram, flag) ((ewram)->gameState.gameFlagsTail[(flag) >> 5] & (1 << ((flag) & 0x1F)))
@@ -391,7 +398,7 @@ void Door_SetupGraphics(struct EwramData_EntityData *entity)
     Sprite_Attach(entity, sCommonObjectSpriteSheet, gfx, 6);
     entity->animFrame = 0x3F;
     gUnk_03002CB0.dispCnt |= DCNT_WINOBJ;
-    entity->drawFunc = (u32 *)Door_Draw;
+    entity->drawFunc = Door_Draw;
 }
 
 /**
@@ -1174,7 +1181,7 @@ void BgParticle_Update(struct EwramData_EntityData *entity)
         Anim_StartIndexed(entity, entity->ext.bgParticle.kind, 0, 1);
         entity->animStep = RandomNumberGenerator() & 1;
         Anim_Update(entity);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->state++;
         break;
     case 1:
@@ -1240,7 +1247,7 @@ s32 BgParticle_SpawnAll(struct EwramData_EntityData *owner)
 
     for (i = 0; i < sBgParticleCounts[owner->spawnParam1]; i++)
     {
-                entity = EntityCreateInRange(0x49, 0xCF, (u32 *)BgParticle_Update);
+                entity = EntityCreateInRange(0x49, 0xCF, BgParticle_Update);
         if (!entity)
             continue;
         entity->ext.bgParticle.ownerIndex = ENTITY_INDEX(owner);
@@ -1306,7 +1313,7 @@ void Object07ParallaxSprite_Update(struct EwramData_EntityData *entity)
         Sprite_Attach(entity, sObject07ParallaxSpriteSpriteSheet, graphics, palette);
         entity->animFrame = entity->ext.object07.spriteFrame;
         entity->spriteLayer = 0x1E;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->objMode = 1;
         entity->state++;
     }
@@ -1341,7 +1348,7 @@ void Object07_SpawnParallaxSprites(struct EwramData_EntityData *entity)
 
     for (i = 0; i <= 3; i++)
     {
-        struct EwramData_EntityData *e = EntityCreateInRange(0x49, 0xCF, (u32 *)Object07ParallaxSprite_Update);
+        struct EwramData_EntityData *e = EntityCreateInRange(0x49, 0xCF, Object07ParallaxSprite_Update);
         if (e != NULL)
         {
             const u8 *entry;
@@ -1363,11 +1370,6 @@ void Object07_SpawnParallaxSprites(struct EwramData_EntityData *entity)
 
 /* Object 0x07 (room effects) and the room table sWarpRoomEntries,
  * 0x0804F690..0x0804F89F. */
-
-/* Declared here with an int result: Warp_ActivateCurrentRoom uses the value without
- * re-extending it from s16 (see bg_and_collision.h for the real type). */
-extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
-extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *);
 
 /**
  * @brief 4F690 | Step the palette animation of variant spawnParam1: frame

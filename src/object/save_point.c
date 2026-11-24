@@ -13,16 +13,24 @@
 #include "obj_gfx.h"
 #include "palette.h"
 #include "data/data_118B48.h"
+#include "entity_common.h"
 
-extern void SavePoint_UpdateAnimPart(struct EwramData_EntityData *);
+void SavePoint_UpdateAnimPart(struct EwramData_EntityData *);
 
 struct PartInit
 {
     s32 anim;
     s32 palette;
-    void *update;
+    EntityFunc update;
     s32 layer;
 };
+
+
+void SavePoint_UpdateOrbitLight(struct EwramData_EntityData *);
+void SaveSparkle_SpawnAround(struct EwramData_EntityData *entity, u16 width, u16 height);
+void SaveSparkle_Draw(struct EwramData_EntityData *entity);
+void SaveSparkle_Update(struct EwramData_EntityData *entity);
+void SaveSparkle_Create(s32 x, s32 y, s32 accelX, s32 accelY, s32 phase, u8 palette, struct EwramData_EntityData *entity);
 
 /**
  * @brief Spawn the save point part sprites 0 and 3 of the four-entry part
@@ -45,7 +53,7 @@ s32 SavePoint_SpawnAnimParts(struct EwramData_EntityData *parent)
     {
         if ((u32)(i - 1) <= 1)
             continue;
-        entity = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
+        entity = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
         if (entity == NULL)
             continue;
         entity->posX.whole = parent->posX.whole;
@@ -59,20 +67,18 @@ s32 SavePoint_SpawnAnimParts(struct EwramData_EntityData *parent)
                 entity->posX.part16.integer += 0x30;
         }
         entity->scrollWithBg = 1;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         Sprite_Attach(entity, sSaveWarpRoomSpriteSheet, parent->ext.savePoint.graphics, parts[i].palette);
         Anim_StartIndexed(entity, parts[i].anim, 0, 1);
         Anim_Update(entity);
         entity->spriteLayer = parts[i].layer;
-        entity->updateFunc = (u32 *)parts[i].update;
+        entity->updateFunc = parts[i].update;
         entity->ext.savePointPart.owner = parent;
         entity->timer = 4;
         created = 1;
     }
     return created;
 }
-
-extern void SavePoint_UpdateOrbitLight(struct EwramData_EntityData *);
 
 static inline void AssignPalette(struct EwramData_EntityData *e, struct EwramData_EntityData *owner) { e->affineIndex = owner->ext.savePoint.affine; }
 /**
@@ -93,17 +99,17 @@ s32 SavePoint_SpawnOrbitLights(struct EwramData_EntityData *parent)
     j = 0;
     for (i = 0; i <= 7; i++)
     {
-        entity = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
+        entity = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
         if (entity == NULL)
             continue;
         entity->posX.whole = parent->posX.whole;
         entity->posY.whole = parent->posY.whole;
         entity->scrollWithBg = 1;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         Sprite_Attach(entity, sSaveWarpRoomSpriteSheet, parent->ext.savePoint.graphics, parts[j].palette);
         Anim_StartIndexed(entity, parts[j].anim, 0, 1);
         entity->spriteLayer = parts[j].layer;
-        entity->updateFunc = (u32 *)parts[j].update;
+        entity->updateFunc = parts[j].update;
         entity->ext.savePointPart.owner = parent;
         entity->ext.savePointLight.index = i;
         entity->ext.savePointLight.radius = 0x80000;
@@ -166,9 +172,6 @@ void SavePoint_UpdateAnimPart(struct EwramData_EntityData *entity)
 }
 
 /* Orbiting child: spiral outward around a fixed point (state 0), then orbit and shrink around the owner (state 1). */
-extern s32 Target_GetPixelX(struct EwramData_EntityData *);
-extern s32 Target_GetPixelY(struct EwramData_EntityData *);
-void SaveSparkle_SpawnAround(struct EwramData_EntityData *entity, u16 width, u16 height);
 
 /**
  * @brief Spiral outwards, then orbit inwards onto the player; tell the owner
@@ -240,10 +243,6 @@ void SavePoint_UpdateOrbitLight(struct EwramData_EntityData *entity)
 }
 
 /* Particles 0x080552C4..0x080554BB. */
-extern void SaveSparkle_Draw(struct EwramData_EntityData *entity);
-void SaveSparkle_Update(struct EwramData_EntityData *entity);
-
-void SaveSparkle_Create(s32 x, s32 y, s32 accelX, s32 accelY, s32 phase, u8 palette, struct EwramData_EntityData *entity);
 
 /* The entity that spawned the sparkle, stored as a word. */
 #define SPARKLE_OWNER(e) ENTITY_WORD_518(e)
@@ -261,7 +260,7 @@ void SaveSparkle_Update(struct EwramData_EntityData *entity)
         case 0:
             gfx = ObjGfx_Find(sSaveWarpRoomGfx);
             Sprite_Attach(entity, sSaveWarpRoomSpriteSheet, gfx, entity->palette);
-            entity->drawFunc = (u32 *)SaveSparkle_Draw;
+            entity->drawFunc = SaveSparkle_Draw;
             Anim_StartIndexed(entity, 3, 0, 1);
             entity->timer = 0xC;
             entity->scrollWithBg = 1;
@@ -307,7 +306,7 @@ void SaveSparkle_SpawnAround(struct EwramData_EntityData *entity, u16 width, u16
  */
 void SaveSparkle_Create(s32 x, s32 y, s32 accelX, s32 accelY, s32 phase, u8 palette, struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)SaveSparkle_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, SaveSparkle_Update);
 
     if (child != NULL)
     {

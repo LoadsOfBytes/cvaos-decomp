@@ -21,6 +21,17 @@
 #include "data/data_4F1444.h"
 
 void PlaySong(u32 song);
+extern const struct ArmorInfo sArmorInfo[];
+extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
+extern const struct ConsumableInfo sConsumableInfo[];
+extern const struct WeaponInfo sWeaponInfo[];
+extern void *memset(void *dst, int value, unsigned long size);
+void PlaySong(u32 song);
+
+u32 Inventory_GetOwnedCount(s32 category, s32 index);
+u32 Inventory_GetOwnedCount(s32 category, s32 index);
+u32 Inventory_GetOwnedCount(s32 category, s32 index);
+u32 Inventory_GetOwnedCount(s32 category, s32 index);
 u32 Inventory_GetOwnedCount(s32 category, s32 index);
 
 /**
@@ -129,10 +140,6 @@ s32 Shop_HandleListInput(struct GameState *owner, struct EwramData_EntityData *m
     return ret;
 }
 
-extern const struct ArmorInfo sArmorInfo[];
-
-extern s32 HudMap_PrintNumber(s32 x, s32 y, s32 value, s32 digits, s32 color, s32 flag);
-
 /**
  * @brief Preview the stat changes of equipping weapon/armor/accessory id,
  * then restore the equipment and recompute the stats.
@@ -207,15 +214,10 @@ void Shop_PreviewEquipStats(void *unused, s32 type, s32 id)
 }
 
 /* Shop_DrawList. */
-u32 Inventory_GetOwnedCount(s32 category, s32 index);
-extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
 
 /* Shop stock entries (item type, id; type 0xFF = id via Item_GetInfoByGlobalId). */
 
 /* Item info records by type; only the name index at 0 is read here. */
-
-extern const struct ConsumableInfo sConsumableInfo[];
-extern const struct WeaponInfo sWeaponInfo[];
 
 /* Common start of WeaponInfo / ArmorInfo / ConsumableInfo as read by the shop
  * (Item_GetInfo / Item_GetInfoByGlobalId): name text id, price and the
@@ -380,9 +382,6 @@ void Shop_DrawList(struct GameState *owner, struct EwramData_EntityData *menu, s
     }
 }
 
-u32 Inventory_GetOwnedCount(s32 category, s32 index);
-extern void *memset(void *dst, int value, unsigned long size);
-
 struct SellList {
     u8 count;
     u8 items[0x87];
@@ -461,8 +460,6 @@ void Shop_BuildSellList(struct GameState *owner, void *unusedMenu, void *unusedS
  * index (records as in this file): lower the owned count (types 3/4
  * clear an equipped slot that drops to zero), add half price times the
  * quantity to the gold and refresh the row. */
-
-u32 Inventory_GetOwnedCount(s32 category, s32 index);
 
 /* Equipped armor and accessory ids of PlayerStatus read as one array. */
 struct EquippedArmorIds {
@@ -579,8 +576,6 @@ void Shop_BuyItem(struct GameState *owner, struct EwramData_EntityData *menu, st
 
 /* Shop_CanTrade; records as
  * in the Shop_BuyItem draft. */
-
-u32 Inventory_GetOwnedCount(s32 category, s32 index);
 
 /* Shop stock entries (item type, id; type 0xFF = id via Item_GetInfoByGlobalId). */
 
@@ -716,7 +711,6 @@ void Shop_OpenList(struct GameState *shop, struct EwramData_EntityData *page)
 }
 
 struct ShopList;
-void PlaySong(u32 song);
 
 #undef SELL_LIST
 #define SELL_LIST ((struct ShopList *)&gEwramData->sharedScratchBuffer[0x200])

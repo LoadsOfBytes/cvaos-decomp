@@ -18,5 +18,6 @@ extern void EventScene30PieceEmitter_Update(struct EwramData_EntityData *entity)
 extern void EventScene30_CreateCenterEffect(struct EwramData_EntityData *owner);
 extern void EventScene30_CreateHalo(struct EwramData_EntityData *owner);
 extern void EventScene30_StepPaletteTransition(struct EwramData_EntityData *entity);
+extern struct EwramData_EntityData *EventScene30_SpawnDriftFragment(s16 x,s16 y,s32 reverse,s32 alternate);
 
 #endif /* SCENE30_H */

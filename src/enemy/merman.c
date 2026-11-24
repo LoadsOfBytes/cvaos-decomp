@@ -18,12 +18,25 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "damage_numbers.h"
+
+extern s32 Collision_FindWaterSurfaceOffset(s32, s32);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
+
+void EnemyMermanCreate(struct EwramData_EntityData *);
+void Merman_UpdateMove(struct EwramData_EntityData *);
+void Merman_UpdateAttack(struct EwramData_EntityData *);
+u8 Merman_LoadGraphics(struct EwramData_EntityData *);
+void Enemy_DamagePlayerOnContact(struct EwramData_EntityData *);
+void Merman_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
+void Merman_SpawnShot(struct EwramData_EntityData *);
+void MermanShot_Update(struct EwramData_EntityData *);
+u8 MermanShot_LoadGraphics(struct EwramData_EntityData *, struct EwramData_EntityData *);
+void MermanShot_EnableHitBoxes(struct EwramData_EntityData *);
+void MermanShot_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void MermanShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 /* Dispatch Merman states, including the hidden instance's child spawning. */
-extern void EnemyMermanCreate(struct EwramData_EntityData *);
-extern void Merman_UpdateMove(struct EwramData_EntityData *);
-extern void Merman_UpdateAttack(struct EwramData_EntityData *);
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 void EnemyMermanUpdate(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *background = &gEwramData->bgInfo[1];
@@ -42,7 +55,7 @@ void EnemyMermanUpdate(struct EwramData_EntityData *entity)
     }
     if (Enemy_IsStunned(entity))
     {
-        if (entity->state != 2) Hit_CheckWithPlayer(collision, entity);
+        if (entity->state != 2) Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         return;
     }
     switch (entity->state)
@@ -71,7 +84,7 @@ void EnemyMermanUpdate(struct EwramData_EntityData *entity)
             s32 mode;
             if (zero != 0) return;
             if ((s32)entity->ext.mermanSpawner.childCount > 2) return;
-            child = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
+            child = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
             if (child == NULL) return;
             mode = entity->spawnParam0;
             if (mode != 1) return;
@@ -83,7 +96,7 @@ void EnemyMermanUpdate(struct EwramData_EntityData *entity)
             child->enemyId = entity->enemyId;
             child->spawnParam0 = mode;
             child->spawnParam1 = zero;
-            child->drawFunc = (u32 *)Sprite_DrawEntity;
+            child->drawFunc = Sprite_DrawEntity;
             child->hp = sEnemyData[entity->enemyId].hp;
             child->mp = sEnemyData[entity->enemyId].mp;
             child->updateFunc = entity->updateFunc;
@@ -101,10 +114,6 @@ void EnemyMermanUpdate(struct EwramData_EntityData *entity)
 }
 
 /* Initialize Merman's hidden, waiting or jumping entry mode. */
-extern u8 Merman_LoadGraphics(struct EwramData_EntityData *);
-extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, void *);
-extern void Enemy_DamagePlayerOnContact(struct EwramData_EntityData *);
-void Merman_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 void EnemyMermanCreate(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *background = &gEwramData->bgInfo[1];
@@ -163,10 +172,8 @@ void EnemyMermanCreate(struct EwramData_EntityData *entity)
 /* Merman movement and transitions between swimming, jumping and landing.
  * This reconstruction requires the source-specific -fno-gcse build rule.
  * A byte match establishes generated code, not the original compiler options. */
-extern s32 Target_GetPixelX(struct EwramData_EntityData *);
 /* Preserve the original caller's full-register argument arithmetic. The callee
  * consumes signed 16-bit coordinates; its implementation performs narrowing. */
-extern s32 Collision_FindWaterSurfaceOffset(s32, s32);
 #define LEAP_SPLASHED(e) (e->ext.merman.leapSplashed)
 #define SWIM_MODE(e) (*(s8 *)&e->ext.merman.swimMode)
 #define LAND_SPLASHED(e) (*(s8 *)&e->ext.merman.landSplashed)
@@ -431,7 +438,6 @@ restart:
 }
 
 /* Play the Merman attack, emit its projectile and restart movement. */
-extern void Merman_SpawnShot(struct EwramData_EntityData *);
 static inline void RestartJump(struct EwramData_EntityData *entity)
 {
     entity->state = 0;
@@ -497,8 +503,6 @@ void Merman_UpdateAttack(struct EwramData_EntityData *entity)
 }
 
 /* Apply a Merman hit and begin the falling death state when HP is exhausted. */
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s32, s32);
 void Merman_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
@@ -527,16 +531,13 @@ void Merman_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
 }
 
 /* Create a Merman projectile and inherit the parent's visual attributes. */
-extern void MermanShot_Update(struct EwramData_EntityData *);
-extern u8 MermanShot_LoadGraphics(struct EwramData_EntityData *, struct EwramData_EntityData *);
-extern void MermanShot_EnableHitBoxes(struct EwramData_EntityData *);
 /**
  * @brief Spawn the horizontal shot 5 px in front of and 24 px above parent at
  * 2 px per frame in its facing direction.
  */
 void Merman_SpawnShot(struct EwramData_EntityData *parent)
 {
-    struct EwramData_EntityData *projectile = EntityCreateInRange(0x1B, 0x48, (u32 *)MermanShot_Update);
+    struct EwramData_EntityData *projectile = EntityCreateInRange(0x1B, 0x48, MermanShot_Update);
     if (projectile)
     {
         if (!MermanShot_LoadGraphics(parent, projectile)) EntityDelete(projectile);
@@ -563,8 +564,6 @@ void Merman_SpawnShot(struct EwramData_EntityData *parent)
 }
 
 /* MermanShot_EnableHitBoxes (Merman hit boxes). */
-extern void MermanShot_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-void MermanShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 /**
  * @brief 7171C | Activate box slot 0xA with MermanShot_DamagePlayerOnContact / MermanShot_OnHit and
@@ -575,7 +574,7 @@ void MermanShot_EnableHitBoxes(struct EwramData_EntityData *entity)
 {
     u32 box = 0x0810FCF8;
 
-    Hit_Enable(entity, 0xA, MermanShot_DamagePlayerOnContact, (s32)MermanShot_OnHit);
+    Hit_Enable(entity, 0xA, MermanShot_DamagePlayerOnContact, MermanShot_OnHit);
     HitBox_SetBody(entity, &box);
     HitBox_SetAttack(entity, &box);
     entity->hit.flags &= ~2;
@@ -607,25 +606,11 @@ remove:
     EntityDelete(entity);
     return;
 animate:
-    Hit_CheckWithPlayer(collision, entity);
+    Hit_CheckWithPlayer((struct HitResult *)collision, entity);
     Anim_Update(entity);
 }
 
 /* Merman helpers 0x080717E0..0x08071903. */
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
 
 /**
  * @brief 717E0 | Give projectile Merman's graphics (palette row of entity),
@@ -640,7 +625,7 @@ u8 MermanShot_LoadGraphics(struct EwramData_EntityData *entity, struct EwramData
     Sprite_Attach(projectile, sMermanSpriteSheet, gfx, entity->basePalette);
     Anim_StartIndexed(projectile, 6, 0, 1);
     Anim_Update(projectile);
-    projectile->drawFunc = (u32 *)Sprite_DrawEntity;
+    projectile->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -686,7 +671,7 @@ u8 Merman_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sMermanPalette, 0);
     Sprite_Attach(entity, sMermanSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 

@@ -19,17 +19,17 @@
 #include "obj_gfx.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "entity_inline.h"
+
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
+extern void Buer_SpawnChargeEffect(s32 x,s32 y,s32 index,s32 facing);
+extern s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *entity,s32 x,s32 y);
+
+void Buer_CreateHead(struct EwramData_EntityData *);
+void Buer_UpdateCharge(struct EwramData_EntityData *entity);
 
 /* Buer: load graphics, create its linked parts and set initial collision
  * and movement state. */
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
-extern void Buer_CreateHead(struct EwramData_EntityData *);
-static inline void SetState(struct EwramData_EntityData *entity, s8 value4F0, u8 state)
-{
-    entity->state = state;
-    entity->stage = value4F0;
-    entity->subState = 0;
-}
 void EnemyBuerCreate(struct EwramData_EntityData *entity)
 {
     u8 *palette = sBaelBuerPalette;
@@ -46,17 +46,17 @@ void EnemyBuerCreate(struct EwramData_EntityData *entity)
     entity->scrollWithBg = 1;
     entity->ext.wheel.speed = 0x8000;
     entity->accelY.whole = 0x4000;
-    if (entity->spawnParam0 == 0) SetState(entity, 0, 1);
-    else SetState(entity, 0, 2);
+    if (entity->spawnParam0 == 0) Entity_SetStateAndStage(entity, 0, 1);
+    else Entity_SetStateAndStage(entity, 0, 2);
     Buer_CreateHead(entity);
     Buer_AllocateAffine(entity);
     if (gEwramData->gameState.bestiaryPreview)
     {
-        SetState(entity, 0, 4);
+        Entity_SetStateAndStage(entity, 0, 4);
     }
     else
     {
-        Hit_Enable(entity, 8, Buer_DamagePlayerOnContact, (s32)Buer_OnHit);
+        Hit_Enable(entity, 8, Buer_DamagePlayerOnContact, Buer_OnHit);
         HitBox_SetAttackRaw(entity, 0x2828ECEC);
         HitBox_SetBodyRaw(entity, 0x2828ECEC);
         Entity_SnapToGround(entity);
@@ -83,7 +83,7 @@ void Buer_CreateHead(struct EwramData_EntityData *entity)
         Sprite_Attach(child, sBaelBuerSpriteSheet, Sprite_GetTileSlot(entity), child->basePalette);
         child->animFrame = 1;
         child->scrollWithBg = 1;
-        child->drawFunc = (u32 *)Sprite_DrawEntity;
+        child->drawFunc = Sprite_DrawEntity;
         child->posX.whole = entity->posX.whole;
         child->posY.whole = entity->posY.whole;
         if ((s32)entity->ext.wheel.speed >= 0)
@@ -94,9 +94,6 @@ void Buer_CreateHead(struct EwramData_EntityData *entity)
 }
 
 /* Bael/Alastor part behaviour 0x080CBAEC; only matches without -f2003-patch. */
-extern s32 Target_IsNearEntity(struct EwramData_EntityData *entity, u16 width, u16 height);
-extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *entity);
-extern void Buer_UpdateCharge(struct EwramData_EntityData *entity);
 
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 
@@ -178,8 +175,6 @@ restart:
 }
 
 /* Buer accelerated charge, rotation, and sparks. */
-extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *entity);
-extern void Buer_SpawnChargeEffect(s32 x,s32 y,s32 index,s32 facing);
 #define SPEED(e) (e->ext.wheel.speed)
 #define ANGLE(e) (e->ext.wheel.angle)
 #define DIRECTION(e) (e->ext.wheel.direction)
@@ -402,7 +397,7 @@ void BuerChargeEffect_Update(struct EwramData_EntityData *entity)
             }
             entity->basePalette = 6;
             Sprite_Attach(entity, sBaelBuerSpriteSheet, gfx, 6);
-            entity->drawFunc = (u32 *)Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             Anim_StartIndexed(entity, entity->ext.wheel.effectAnim, 0, 0);
             entity->spriteLayer = 0x11;
             entity->scrollWithBg = 1;
@@ -417,8 +412,6 @@ void BuerChargeEffect_Update(struct EwramData_EntityData *entity)
 }
 
 /* Buer collision motion, rotation, and update dispatcher. */
-extern s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *entity,s32 x,s32 y);
-extern void Hit_CheckWithPlayer(void *buffer,struct EwramData_EntityData *entity);
 
 /**
  * @brief Walk with the selected collision mode, adjust speed from contact flags, rotate and update the linked head facing.
@@ -493,7 +486,7 @@ void EnemyBuerUpdate(struct EwramData_EntityData *entity)
     Player_TrackEntity(entity);
     if (Enemy_IsStunned(entity))
     {
-        Hit_CheckWithPlayer(buffer,entity);
+        Hit_CheckWithPlayer((struct HitResult *)buffer,entity);
         return;
     }
     switch (entity->state)
@@ -503,5 +496,5 @@ void EnemyBuerUpdate(struct EwramData_EntityData *entity)
         case 3: Buer_UpdateDeath(entity); break;
     }
     if (entity->state != 3)
-        Hit_CheckWithPlayer(buffer,entity);
+        Hit_CheckWithPlayer((struct HitResult *)buffer,entity);
 }

@@ -44,6 +44,6 @@ struct HitInfo
 
 #define HIT_INFO(e) ((struct HitInfo *)((u8 *)(e) + 0x70))
 
-u32 Hit_CheckWithPlayer(struct HitResult *res, u8 *b);
+u32 Hit_CheckWithPlayer(struct HitResult *res, struct EwramData_EntityData *entity);
 
 #endif

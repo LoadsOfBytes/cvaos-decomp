@@ -13,10 +13,20 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "damage_numbers.h"
+#include "entity_motion.h"
+#include "hitbox.h"
 
-extern void ZombieOfficer_UpdateWalk(struct EwramData_EntityData *entity);
-extern void ZombieOfficer_UpdateAttack(struct EwramData_EntityData *entity);
-extern void ZombieOfficer_SpawnPiece(struct EwramData_EntityData *entity, s32 x, s32 y, s32 vx, s32 vy, s32 frame);
+extern s32 Target_IsInRect(s32, s32, s32, s32);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
+
+void ZombieOfficer_UpdateWalk(struct EwramData_EntityData *entity);
+void ZombieOfficer_UpdateAttack(struct EwramData_EntityData *entity);
+void ZombieOfficer_SpawnPiece(struct EwramData_EntityData *entity, s32 x, s32 y, s32 vx, s32 vy, s32 frame);
+u8 ZombieOfficer_LoadGraphics(struct EwramData_EntityData *entity);
+void ZombieOfficer_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void ZombieOfficer_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+void ZombieOfficerPiece_Update(struct EwramData_EntityData *entity);
 
 /**
  * @brief 92174 | Zombie Officer update (as EnemyZombieSoldierUpdate):
@@ -78,11 +88,6 @@ void EnemyZombieOfficerUpdate(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   EnemyZombieOfficerCreate = EnemySkeletonKnightCreate */
 
-extern u8 ZombieOfficer_LoadGraphics(struct EwramData_EntityData *entity);
-extern void ZombieOfficer_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-void ZombieOfficer_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
-
 /**
  * @brief 92350 | Same as EnemySkeletonKnightCreate.
  */
@@ -102,17 +107,15 @@ void EnemyZombieOfficerCreate(struct EwramData_EntityData *entity)
         return;
     }
     if (Anim_GetMaxBoxCount(entity) > 1)
-        Hit_EnableContact(entity, 8, ZombieOfficer_DamagePlayerOnContact, (s32)ZombieOfficer_OnHit);
+        Hit_EnableContact(entity, 8, ZombieOfficer_DamagePlayerOnContact, ZombieOfficer_OnHit);
     else
-        Hit_Enable(entity, 8, ZombieOfficer_DamagePlayerOnContact, (s32)ZombieOfficer_OnHit);
+        Hit_Enable(entity, 8, ZombieOfficer_DamagePlayerOnContact, ZombieOfficer_OnHit);
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
     entity->state = 0;
 }
 
 /* Select an approach or attack on animation events, then apply movement. */
-extern s32 Target_IsInRect(s32, s32, s32, s32);
-extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s32);
 /**
  * @brief Walk state (state 0): on the step frames 3 / 7 face the target and attack
  * (state 1) when it is in the 100 x 70 box; otherwise keep walking.
@@ -177,9 +180,6 @@ void ZombieOfficer_UpdateAttack(struct EwramData_EntityData *entity)
 /* ZombieOfficer_OnHit (hit with HP / death), generated with a template script from the
  * template of WingedSkeleton_OnHit and checked byte for byte. */
 
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
-
 /**
  * @brief 9252C | Hit: flash (hitFlashTimer = 8), subtract the damage from the HP
  * and show it; at HP <= 0 die (Enemy_DropRewards, song 0x70, animation 2, palette into
@@ -198,7 +198,7 @@ void ZombieOfficer_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
@@ -212,7 +212,6 @@ void ZombieOfficer_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 
 }
 
 /* ZombieOfficer_SpawnPiece. */
-extern void ZombieOfficerPiece_Update(struct EwramData_EntityData *entity);
 
 /**
  * @brief 925B4 | Spawn a ZombieOfficerPiece_Update projectile at entity's position +
@@ -222,7 +221,7 @@ extern void ZombieOfficerPiece_Update(struct EwramData_EntityData *entity);
  */
 void ZombieOfficer_SpawnPiece(struct EwramData_EntityData *entity, s32 x, s32 y, s32 vx, s32 vy, s32 frame)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)ZombieOfficerPiece_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, ZombieOfficerPiece_Update);
 
     if (child != NULL)
     {
@@ -240,7 +239,7 @@ void ZombieOfficer_SpawnPiece(struct EwramData_EntityData *entity, s32 x, s32 y,
         child->velX.whole = vx;
         child->velY.whole = vy;
         child->scrollWithBg = 1;
-        child->drawFunc = (u32 *)Sprite_DrawEntity;
+        child->drawFunc = Sprite_DrawEntity;
     }
 }
 
@@ -249,21 +248,6 @@ void ZombieOfficer_SpawnPiece(struct EwramData_EntityData *entity, s32 x, s32 y,
  *   ZombieOfficerPiece_Update = ZombieSoldierPiece_Update
  *   ZombieOfficer_LoadGraphics = Object25_LoadGraphics
  *   ZombieOfficer_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
-
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
 
 /**
  * @brief 92660 | Same as ZombieSoldierPiece_Update.
@@ -286,7 +270,7 @@ u8 ZombieOfficer_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sZombieOfficerPalette, 0);
     Sprite_Attach(entity, sZombieOfficerSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 

@@ -19,11 +19,35 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "damage_numbers.h"
+#include "effects.h"
 
-extern void Devil_UpdateApproach(struct EwramData_EntityData *entity);
-extern void Devil_UpdateAttack(struct EwramData_EntityData *entity);
-extern void Devil_UpdateHover(struct EwramData_EntityData *entity);
-extern s32 Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
+extern void *memcpy(void *dst, const void *src, unsigned long size);
+extern s32 Target_IsInRect(s16, s16, s16, s16);
+extern s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
+extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
+
+void Devil_UpdateApproach(struct EwramData_EntityData *entity);
+void Devil_UpdateAttack(struct EwramData_EntityData *entity);
+void Devil_UpdateHover(struct EwramData_EntityData *entity);
+u8 Devil_LoadGraphics(struct EwramData_EntityData *entity);
+void DevilPart_Update(struct EwramData_EntityData *entity);
+void DevilPart_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void DevilPart_OnHit(struct EwramData_EntityData *input, s32 source, u16 *collision);
+void Devil_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void Devil_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+void DevilPart_Attach(struct EwramData_EntityData *entity, s32 partIndex, s32 anchorIndex, s32 angleSpec, s32 length);
+void Devil_UpdateAllParts(struct EwramData_EntityData *entity);
+void Devil_ResetPartAngles(struct EwramData_EntityData *entity, s32 partIndex);
+void Devil_SaveParts(struct EwramData_EntityData *);
+void Devil_RestoreParts(struct EwramData_EntityData *);
+void DevilChargeEffect_Spawn(struct EwramData_EntityData *owner, s32 dx, s32 dy, u8 timer);
+void DevilProjectile_Spawn(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx, s32 vy, u8 id);
+void Devil_Draw(struct EwramData_EntityData *entity);
+void DevilProjectile_Update(struct EwramData_EntityData *entity);
+void DevilProjectile_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void DevilChargeEffect_Update(struct EwramData_EntityData *);
+void Devil_OnDamaged(struct EwramData_EntityData *entity, s32 attacker, u16 *hit, s32 damage);
 
 /**
  * @brief 8F964 | Devil update (pattern of EnemyKillerFishUpdate): wake when
@@ -42,7 +66,7 @@ void EnemyDevilUpdate(struct EwramData_EntityData *entity)
     if (Enemy_IsStunned(entity))
     {
         if (entity->state != 2 && (s8)entity->ext.devil.intangible == 0)
-            Hit_CheckWithPlayer(collision, entity);
+            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         return;
     }
     switch (entity->state)
@@ -65,21 +89,10 @@ void EnemyDevilUpdate(struct EwramData_EntityData *entity)
     if (previous != entity->animFrame)
         Entity_UpdateBoxes(entity);
     if (entity->state != 2 && (s8)entity->ext.devil.intangible == 0)
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
 }
 
 /* Devil create: allocates the 8-joint skeleton and one part entity per joint. */
-extern void *memcpy(void *dst, const void *src, unsigned long size);
-extern u8 Devil_LoadGraphics(struct EwramData_EntityData *entity);
-extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
-extern void DevilPart_Update(struct EwramData_EntityData *entity);
-extern void DevilPart_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-extern void DevilPart_OnHit(struct EwramData_EntityData *input, s32 source, u16 *collision);
-extern void Devil_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-extern void Devil_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern void DevilPart_Attach(struct EwramData_EntityData *entity, s32 partIndex, s32 anchorIndex, s32 angleSpec, s32 length);
-extern void Devil_UpdateAllParts(struct EwramData_EntityData *entity);
-extern void Devil_ResetPartAngles(struct EwramData_EntityData *entity, s32 partIndex);
 
 void EnemyDevilCreate(struct EwramData_EntityData *entity)
 {
@@ -152,7 +165,7 @@ void EnemyDevilCreate(struct EwramData_EntityData *entity)
             part->scrollWithBg = 0;
             part->hidden = 0;
             part->attack = entity->attack;
-            part->drawFunc = (u32 *)Sprite_DrawEntity;
+            part->drawFunc = Sprite_DrawEntity;
             part->ext.jointPart.owner = entity;
             part->ext.jointPart.index = index;
             part->ext.jointPart.anchor = anchors[index];
@@ -177,7 +190,7 @@ void EnemyDevilCreate(struct EwramData_EntityData *entity)
                 ObjAffine_Set(0, 0x10000, 0x10000, part->flipX, part->flipY, part->affineIndex);
             }
             if (!gEwramData->gameState.bestiaryPreview)
-                Hit_EnableContact(part, 8, DevilPart_DamagePlayerOnContact, (s32)DevilPart_OnHit);
+                Hit_EnableContact(part, 8, DevilPart_DamagePlayerOnContact, DevilPart_OnHit);
         }
         else
         {
@@ -212,7 +225,7 @@ void EnemyDevilCreate(struct EwramData_EntityData *entity)
         entity->timer = 0;
         return;
     }
-    Hit_Enable(entity, 8, Devil_DamagePlayerOnContact, (s32)Devil_OnHit);
+    Hit_Enable(entity, 8, Devil_DamagePlayerOnContact, Devil_OnHit);
     entity->timer = 1;
     DevilPart_Attach(entity, 3, 2, 0x5000, 0xB0000);
     DevilPart_Attach(entity, 7, 6, -0x3000, 0xB0000);
@@ -228,9 +241,6 @@ void EnemyDevilCreate(struct EwramData_EntityData *entity)
 }
 
 /* Devil flight state machine; DEVIL_WINGS is a macro (an inline function loses constant CSE and gets cross-jumped). */
-extern void Devil_SaveParts(struct EwramData_EntityData *);
-extern void Devil_RestoreParts(struct EwramData_EntityData *);
-extern s32 Target_IsInRect(s16, s16, s16, s16);
 
 #define DEVIL_WINGS(entity) \
 { \
@@ -491,8 +501,6 @@ void Devil_UpdateApproach(struct EwramData_EntityData *entity)
 }
 
 /* Devil (08220A38 skeleton enemy) main state machine. */
-extern void DevilChargeEffect_Spawn(struct EwramData_EntityData *owner, s32 dx, s32 dy, u8 timer);
-extern void DevilProjectile_Spawn(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx, s32 vy, u8 id);
 
 static inline void DevilStep(struct EwramData_EntityData *entity)
 {
@@ -785,8 +793,6 @@ void Devil_UpdateHover(struct EwramData_EntityData *entity)
  * 0820A9A0 chosen by the type byte (0x30, 0x68, 0x48, 0x66 -> 2, 3, 0, 1;
  * other types keep basePalette) and draw with Devil_Draw; 0 when the graphics
  * are not loaded. */
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-extern void Devil_Draw(struct EwramData_EntityData *entity);
 
 /**
  * @brief Load the Devil graphics and the palette variant of its enemy ID (0x30,
@@ -807,7 +813,7 @@ u8 Devil_LoadGraphics(struct EwramData_EntityData *entity)
     else if (entity->enemyId == 0x66)
         entity->basePalette = ObjPalette_FindOrLoadVariant(sDevilPalette, 1);
     Sprite_Attach(entity, sDevilSpriteSheet, graphics, entity->basePalette);
-    entity->drawFunc = (u32 *)Devil_Draw;
+    entity->drawFunc = Devil_Draw;
     return 1;
 }
 
@@ -913,13 +919,6 @@ void DevilPart_Attach(struct EwramData_EntityData *entity, s32 partIndex, s32 an
         anglePart->targetSwingAngle = baseAngle + angleSpec;
 }
 
-/* DevilPart_OnHit, decompiled from the original assembly. The damage is kept
- * in an s16 variable (copied from r0 right after the call and sign-extended
- * in place at use); the new HP is tested on its own s32 value. */
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-
 /* Apply a hit to the Devil's owner at the struck part's position. */
 void DevilPart_OnHit(struct EwramData_EntityData *input, s32 source, u16 *collision)
 {
@@ -937,7 +936,7 @@ void DevilPart_OnHit(struct EwramData_EntityData *input, s32 source, u16 *collis
     damage = Hit_ResolveDamage(entity->ext.jointPart.owner, attacker, hit, power);
     owner->posX.whole = oldX;
     owner->posY.whole = oldY;
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     owner = entity->ext.jointPart.owner;
     owner->hitFlashTimer = 8;
     {
@@ -964,8 +963,6 @@ struct DevilBox {
     s8 width;
     s8 height;
 };
-
-extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
 
 #define JOINT(e) ((s8)e->ext.jointPart.index)
 #define FIX_INT(v) ((v) < 0 ? -(-(v) >> 16) : (v) >> 16)
@@ -1087,8 +1084,6 @@ void DevilPart_Update(struct EwramData_EntityData *entity)
 }
 
 /* Create a falling body part relative to its owner. */
-void DevilProjectile_Update(struct EwramData_EntityData *entity);
-void DevilProjectile_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 
 /**
  * @brief Spawn a projectile at offset (x, y) from owner with launch velocity
@@ -1098,7 +1093,7 @@ void DevilProjectile_DamagePlayerOnContact(struct EwramData_EntityData *entity);
  */
 void DevilProjectile_Spawn(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx, s32 vy, u8 timer)
 {
-    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, (u32 *)DevilProjectile_Update);
+    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, DevilProjectile_Update);
     struct SpriteBox box = {-5, -5, 10, 10};
     if (part)
     {
@@ -1125,14 +1120,11 @@ void DevilProjectile_Spawn(struct EwramData_EntityData *owner, s32 x, s32 y, s32
         part->attack = owner->attack;
         part->ext.devilProjectile.owner = owner;
         part->scrollWithBg = 0;
-        part->drawFunc = (u32 *)Sprite_DrawEntity;
+        part->drawFunc = Sprite_DrawEntity;
     }
 }
 
 /* Parts of the 081CC014 / 08220A38 enemy attached to their owner. */
-extern void Afterimage_Create(struct EwramData_EntityData *, s32, s32, s32);
-
-extern void DevilChargeEffect_Update(struct EwramData_EntityData *);
 
 /* Ride on the owner at (unk_4F8, unk_4FC) while the timer timer runs
  * (sound 0x12A and two flashes when it expires; for types 0x48 / 0x66 the
@@ -1172,7 +1164,7 @@ void DevilProjectile_Update(struct EwramData_EntityData *entity)
     else
     {
         Anim_Update(entity);
-        Hit_CheckWithPlayer(buffer, entity);
+        Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
     }
 }
 
@@ -1181,7 +1173,7 @@ void DevilProjectile_Update(struct EwramData_EntityData *entity)
  * attack; updated by DevilChargeEffect_Update. */
 void DevilChargeEffect_Spawn(struct EwramData_EntityData *owner, s32 dx, s32 dy, u8 timer)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)DevilChargeEffect_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, DevilChargeEffect_Update);
     s32 graphics;
 
     if (entity == NULL)
@@ -1201,28 +1193,13 @@ void DevilChargeEffect_Spawn(struct EwramData_EntityData *owner, s32 dx, s32 dy,
     entity->attack = owner->attack;
     entity->ext.devilCharge.owner = owner;
     entity->scrollWithBg = 0;
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
 }
 
 /* Devil helpers 0x08091ED8..0x08092173 (also used by Flame Demon, Arc Demon
  * and Demon Lord). */
 
 #define DEVIL_PART_COUNT 8
-
-void Devil_OnDamaged(struct EwramData_EntityData *entity, s32 attacker, u16 *hit, s32 damage);
-
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
 
 /**
  * @brief 91ED8 | Unless timer is 0, run Devil_UpdatePart on parts 0..7.
@@ -1388,7 +1365,7 @@ void Devil_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
     s16 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
 
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     Devil_OnDamaged(entity, attacker, hit, damage);
 }
 

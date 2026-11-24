@@ -18,10 +18,17 @@
 #include "obj_palette.h"
 #include "effects.h"
 #include "data/data_118B48.h"
+#include "math_inline.h"
+#include "damage_numbers.h"
 
 /* Witch homing motion and orbiting particle. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 #define ABS_MOTION(v) ((v) < 0 ? -(v) : (v))
+
+extern void Witch_SpawnGroundProjectile(struct EwramData_EntityData *, s32, s32, s32);
+
+void WitchSpell_DamagePlayerOnContact(struct EwramData_EntityData *);
+void Witch_OnHit(struct EwramData_EntityData *, s32, u16 *);
 
 /**
  * @brief Steer toward stored room coordinates with damping and bounded
@@ -111,7 +118,7 @@ void Witch_SpawnOrbitParticles(struct EwramData_EntityData *entity, u16 phase)
     struct EwramData_EntityData *child;
     for (;;)
     {
-        child = EntityCreateInRange(0x49, 0xCF, (u32 *)WitchOrbitParticle_Update);
+        child = EntityCreateInRange(0x49, 0xCF, WitchOrbitParticle_Update);
         if (child != NULL)
         {
             child->accelX.part16.integer = entity->posX.part16.integer;
@@ -173,8 +180,6 @@ countdown:
 }
 
 /* Witch affine spell projectile. */
-extern void WitchSpell_DamagePlayerOnContact(struct EwramData_EntityData *);
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 
 /**
  * @brief Allocate an affine spell sprite, grow it, steer toward a sampled
@@ -256,14 +261,14 @@ remove:
         EntityDelete(entity);
         return;
     }
-    Hit_CheckWithPlayer(box, entity);
+    Hit_CheckWithPlayer((struct HitResult *)box, entity);
     if (EntityIsOutsideScreen(entity, 3)) entity->state = 4;
     timer = entity->timer;
     timer++;
     entity->timer = timer;
     if (!(timer & 1))
     {
-        child = EntityCreateInRange(0x49, 0xCF, (u32 *)WitchSpellTrailParticle_Update);
+        child = EntityCreateInRange(0x49, 0xCF, WitchSpellTrailParticle_Update);
         if (child != NULL)
         {
             {
@@ -392,7 +397,7 @@ void WitchMovementParticle_Update(struct EwramData_EntityData *entity)
  */
 void Witch_SpawnMovementParticle(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)WitchMovementParticle_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, WitchMovementParticle_Update);
     u16 offset;
     s32 random;
     if (child != NULL)
@@ -425,9 +430,6 @@ void Witch_SpawnMovementParticle(struct EwramData_EntityData *entity)
 }
 
 /* Witch activation and attack selection. */
-extern s32 Target_IsNearEntity(struct EwramData_EntityData *entity, u16 width, u16 height);
-extern s32 Target_GetPixelX(struct EwramData_EntityData *);
-extern s16 Target_GetPixelY(struct EwramData_EntityData *);
 
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 
@@ -466,7 +468,7 @@ void Witch_UpdateWait(struct EwramData_EntityData *entity)
             left = 1;
         if (facing == left
             && (RandomNumberGenerator() & 2)
-            && ABS(Target_GetPixelY(entity) - ({ s32 t_ = entity->posY.part16.integer + 0x30; t_; })) < 0x20)
+            && ABS((s16)Target_GetPixelY(entity) - ({ s32 t_ = entity->posY.part16.integer + 0x30; t_; })) < 0x20)
         {
             entity->state = 2;
             entity->stage = 0;
@@ -484,21 +486,6 @@ void Witch_UpdateWait(struct EwramData_EntityData *entity)
 /* Witch_UpdateCast. */
 
 #undef ABS
-static inline s32 ABS(s32 x)
-{
-    if (x < 0)
-        x = -x;
-    return x;
-}
-static inline u8 Near(s32 dx, s32 dy)
-{
-    u8 r;
-    if (ABS(dx) <= 0x3FFFF && ABS(dy) <= 0x3FFFF)
-        r = 1;
-    else
-        r = 0;
-    return r;
-}
 #define ABSM(x) ((x) < 0 ? -(x) : (x))
 #define TIMER entity->ext.witchCast.timer
 #define STEER(f, d) \
@@ -655,7 +642,6 @@ void Witch_UpdateCast(struct EwramData_EntityData *entity)
 }
 
 /* Witch charge, guard and recovery sequence. */
-extern struct EwramData_EntityData *Afterimage_Create(struct EwramData_EntityData *entity, s32 delay, s32 count, s32 flags);
 
 /**
  * @brief Charge state (2): set guard/cast flags, spawn the attached effect,
@@ -748,8 +734,6 @@ void Witch_UpdateCharge(struct EwramData_EntityData *entity)
     }
 }
 
-extern void Witch_SpawnGroundProjectile(struct EwramData_EntityData *, s32, s32, s32);
-
 /**
  * @brief Death state (3): emit rising particles, spawn the ground projectile
  * in mode 1 and return nonzero for removal.
@@ -789,9 +773,6 @@ s32 Witch_UpdateDeath(struct EwramData_EntityData *entity)
 }
 
 /* Witch and Student Witch initialisation and state dispatchers. */
-extern void Enemy_OnContact(struct EwramData_EntityData *);
-extern void Witch_OnHit(struct EwramData_EntityData *, s32, u16 *);
-extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, void *);
 
 void EnemyWitchCreate(struct EwramData_EntityData *entity)
 {
@@ -822,7 +803,7 @@ void EnemyWitchUpdate(struct EwramData_EntityData *entity)
     if (!outside) Player_TrackEntity(entity);
     if (Enemy_IsStunned(entity))
     {
-        if (entity->state != 3) Hit_CheckWithPlayer(box, entity);
+        if (entity->state != 3) Hit_CheckWithPlayer((struct HitResult *)box, entity);
         return;
     }
     switch (entity->state)
@@ -837,7 +818,7 @@ void EnemyWitchUpdate(struct EwramData_EntityData *entity)
         Anim_Update(entity);
         return;
     }
-    if (entity->state != 3) Hit_CheckWithPlayer(box, entity);
+    if (entity->state != 3) Hit_CheckWithPlayer((struct HitResult *)box, entity);
     Entity_AnimateWithBoxes(entity);
 }
 
@@ -845,9 +826,6 @@ void EnemyWitchUpdate(struct EwramData_EntityData *entity)
  * a cloning script (constants adjusted where needed), checked byte for
  * byte.
  * Witch_OnHit and WitchGroundProjectile_OnHit decompiled locally. */
-
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
 
 /**
  * @brief Apply enemy damage; on defeat drop rewards, restore the palette

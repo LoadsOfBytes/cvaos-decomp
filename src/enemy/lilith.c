@@ -16,10 +16,21 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "damage_numbers.h"
+#include "entity_motion.h"
 
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void Lilith_UpdateWalk(struct EwramData_EntityData *);
-extern void Lilith_UpdateAttack(struct EwramData_EntityData *);
+extern s32 Target_IsInRect(s16, s16, s16, s16);
+extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
+
+void Lilith_UpdateWalk(struct EwramData_EntityData *);
+void Lilith_UpdateAttack(struct EwramData_EntityData *);
+u8 Lilith_LoadGraphics(struct EwramData_EntityData *);
+void Lilith_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void Lilith_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
+void Lilith_SpawnShot(struct EwramData_EntityData *, s32, s32);
+void LilithShot_Update(struct EwramData_EntityData *);
+void LilithShot_DamagePlayerOnContact(struct EwramData_EntityData *);
+void LilithShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 void EnemyLilithUpdate(struct EwramData_EntityData *entity)
 {
@@ -34,7 +45,7 @@ void EnemyLilithUpdate(struct EwramData_EntityData *entity)
     if (Enemy_IsStunned(entity))
     {
         if (entity->state != 2 && (s8)entity->ext.lilith.hidden == 0)
-            Hit_CheckWithPlayer(box, entity);
+            Hit_CheckWithPlayer((struct HitResult *)box, entity);
         return;
     }
     switch (entity->state)
@@ -48,13 +59,8 @@ void EnemyLilithUpdate(struct EwramData_EntityData *entity)
     Anim_Update(entity);
     if (frame != entity->animFrame) Entity_UpdateBoxes(entity);
     if (entity->state != 2 && (s8)entity->ext.lilith.hidden == 0)
-        Hit_CheckWithPlayer(box, entity);
+        Hit_CheckWithPlayer((struct HitResult *)box, entity);
 }
-
-extern u8 Lilith_LoadGraphics(struct EwramData_EntityData *);
-extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
-void Lilith_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-void Lilith_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 
 void EnemyLilithCreate(struct EwramData_EntityData *entity)
 {
@@ -76,7 +82,7 @@ void EnemyLilithCreate(struct EwramData_EntityData *entity)
     if (Anim_GetMaxBoxCount(entity) > 1)
         Hit_EnableContact(entity, 8, Lilith_DamagePlayerOnContact, Lilith_OnHit);
     else
-        Hit_Enable(entity, 8, Lilith_DamagePlayerOnContact, (s32)Lilith_OnHit);
+        Hit_Enable(entity, 8, Lilith_DamagePlayerOnContact, Lilith_OnHit);
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
     entity->state = 0;
@@ -85,11 +91,6 @@ void EnemyLilithCreate(struct EwramData_EntityData *entity)
     entity->velY.whole = 0x10000;
     entity->accelY.whole = 0x1800;
 }
-
-extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s32 Entity_ClampXToRoom(struct EwramData_EntityData *, s32);
-extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern struct EwramData_EntityData *Afterimage_Create(struct EwramData_EntityData *, s32, s32, s32);
 
 /**
  * @brief 948DC | Enemy AI like Succubus_UpdateWalk driven by acceleration: wakes
@@ -301,8 +302,6 @@ void Lilith_UpdateWalk(struct EwramData_EntityData *entity)
     }
 }
 
-extern void Lilith_SpawnShot(struct EwramData_EntityData *, s32, s32);
-
 /**
  * @brief 94D28 | Enemy attack AI (state != 0 branch), all states damp velX
  * and apply gravity (Entity_MoveWithCollision): states 0-2 lunge in animation 7 (dust
@@ -424,9 +423,6 @@ void Lilith_UpdateAttack(struct EwramData_EntityData *entity)
     }
 }
 
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-
 void Lilith_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     s32 damage = Player_CalculateAttackPower(hit[2]);
@@ -438,7 +434,7 @@ void Lilith_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
@@ -451,16 +447,13 @@ void Lilith_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
     }
 }
 
-extern void LilithShot_Update(struct EwramData_EntityData *);
-extern void LilithShot_DamagePlayerOnContact(struct EwramData_EntityData *);
-void LilithShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 /**
  * @brief Spawn the wavy shot at owner + (dx, dy), two layers below
  * (LilithShot_Update).
  */
 void Lilith_SpawnShot(struct EwramData_EntityData *owner, s32 dx, s32 dy)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)LilithShot_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, LilithShot_Update);
     u32 box = 0x0A0AFBFB;
     if (entity != NULL)
     {
@@ -472,7 +465,7 @@ void Lilith_SpawnShot(struct EwramData_EntityData *owner, s32 dx, s32 dy)
         entity->basePalette = owner->basePalette;
         Sprite_Attach(entity, sLilithSuccubusSpriteSheet, graphics, entity->basePalette);
         entity->animFrame = 0x36;
-        Hit_Enable(entity, 8, LilithShot_DamagePlayerOnContact, (s32)LilithShot_OnHit);
+        Hit_Enable(entity, 8, LilithShot_DamagePlayerOnContact, LilithShot_OnHit);
         HitBox_SetAttack(entity, &box);
         HitBox_SetBody(entity, &box);
         entity->hit.flags &= ~4;
@@ -480,7 +473,7 @@ void Lilith_SpawnShot(struct EwramData_EntityData *owner, s32 dx, s32 dy)
         entity->enemyId = owner->enemyId;
         entity->attack = owner->attack;
         entity->scrollWithBg = 1;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         if (owner->flipX)
         {
             entity->ext.lilithShot.angle = 0;
@@ -511,7 +504,7 @@ void LilithShot_Update(struct EwramData_EntityData *entity)
         }
         EntitySetVelocityFromAngle(entity, entity->ext.lilithShot.angle, 0x10000);
         EntityMove(entity);
-        Hit_CheckWithPlayer(buffer, entity);
+        Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
         if (EntityIsOutsideScreen(entity, 1)) entity->deleteRequested = 1;
         break;
     case 1: entity->deleteRequested = 1; break;
@@ -560,8 +553,6 @@ void LilithShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hi
  * a cloning script and checked byte for byte:
  *   Lilith_LoadGraphics = Object32_LoadGraphics */
 
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
 /**
  * @brief 952A0 | Same as Object32_LoadGraphics.
  */
@@ -573,7 +564,7 @@ u8 Lilith_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sLilithSuccubusPalette, 1);
     Sprite_Attach(entity, sLilithSuccubusSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 

@@ -16,12 +16,26 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "math_inline.h"
+#include "damage_numbers.h"
 
-/* Harpy setup randomizes its animation phase before enabling movement. */
-extern u8 Harpy_LoadGraphics(struct EwramData_EntityData *);
-extern void Hit_EnableContact(struct EwramData_EntityData *,s32,void *,void *);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *,struct EwramData_EntityData *,u16 *,s32);
+
+u8 Harpy_LoadGraphics(struct EwramData_EntityData *);
 void Harpy_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void Harpy_OnHit(struct EwramData_EntityData *entity,struct EwramData_EntityData *attacker,u16 *info);
+void Harpy_ThrowFeather(struct EwramData_EntityData *,s32);
+void Harpy_ThrowWavyFeather(struct EwramData_EntityData *,s32);
+void Harpy_SpawnDeathFeather(struct EwramData_EntityData *,s32,s32);
+void HarpyDeathFeather_Update(struct EwramData_EntityData *);
+void HarpyFeather_Update(struct EwramData_EntityData *);
+u8 HarpyFeather_LoadGraphics(struct EwramData_EntityData *,struct EwramData_EntityData *);
+void HarpyFeather_EnableHitBoxes(struct EwramData_EntityData *);
+void HarpyWavyFeather_Update(struct EwramData_EntityData *);
+void HarpyFeather_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void HarpyFeather_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+
+/* Harpy setup randomizes its animation phase before enabling movement. */
 void EnemyHarpyCreate(struct EwramData_EntityData *entity)
 {
     u8 demo;
@@ -50,8 +64,6 @@ void EnemyHarpyCreate(struct EwramData_EntityData *entity)
 }
 
 /* Ground waiting, animation-timed wingbeats and the transition into flight. */
-extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *);
-extern s32 Target_GetPixelY(struct EwramData_EntityData *);
 #define FRAME_PAIR(e) (*(u16 *)&(e)->animStep)
 static inline s32 TargetDistanceX(struct EwramData_EntityData *entity)
 {
@@ -172,14 +184,6 @@ void Harpy_UpdateApproach(struct EwramData_EntityData *entity)
 }
 
 /* Aerial approach, braking, volleys and the return to ordinary flight. */
-extern s32 Target_IsWithinDistance(struct EwramData_EntityData *,s32);
-extern void Harpy_ThrowFeather(struct EwramData_EntityData *,s32);
-extern void Harpy_ThrowWavyFeather(struct EwramData_EntityData *,s32);
-static inline s32 Magnitude(s32 value)
-{
-    if(value<0) value=-value;
-    return value;
-}
 /**
  * @brief Attack state machine (state 1): wind up (animation 2, sound 0x87), then
  * throw a fan of feathers - three straight ones (Harpy_ThrowFeather kinds
@@ -249,7 +253,7 @@ void Harpy_UpdateAttack(struct EwramData_EntityData *entity)
             EntityDampVelocityX(entity,8);
             EntityDampVelocityY(entity,8);
             EntityMove(entity);
-            if(Magnitude(entity->velX.whole)<=0x7FFF && Magnitude(entity->velY.whole)<=0x7FFF)
+            if(Abs(entity->velX.whole)<=0x7FFF && Abs(entity->velY.whole)<=0x7FFF)
             {
                 entity->state=0;
                 entity->subState=10;
@@ -350,9 +354,6 @@ void Harpy_UpdateRecoil(struct EwramData_EntityData *entity)
 }
 
 /* Lethal hits shed four effects; selected attack kinds force a recovery state. */
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *,struct EwramData_EntityData *,u16 *,s32);
-extern void Entity_ShowDamage(struct EwramData_EntityData *,s32,s32);
-extern void Harpy_SpawnDeathFeather(struct EwramData_EntityData *,s32,s32);
 void Harpy_OnHit(struct EwramData_EntityData *entity,struct EwramData_EntityData *attacker,u16 *info)
 {
     struct EntityHit *attack=&attacker->hit;
@@ -393,13 +394,12 @@ void Harpy_OnHit(struct EwramData_EntityData *entity,struct EwramData_EntityData
 }
 
 /* Defeat fragments inherit their owner's sprite palette and scatter randomly. */
-extern void HarpyDeathFeather_Update(struct EwramData_EntityData *);
 /**
  * @brief Spawn a loose feather at (x, y) with a random velocity (four on death).
  */
 void Harpy_SpawnDeathFeather(struct EwramData_EntityData *owner,s32 x,s32 y)
 {
-    struct EwramData_EntityData *fragment=EntityCreateInRange(0x49,0xCF,(u32 *)HarpyDeathFeather_Update);
+    struct EwramData_EntityData *fragment=EntityCreateInRange(0x49,0xCF,HarpyDeathFeather_Update);
     if(fragment)
     {
         s32 zero;
@@ -417,7 +417,7 @@ void Harpy_SpawnDeathFeather(struct EwramData_EntityData *owner,s32 x,s32 y)
         fragment->animFrame=8;
         fragment->flipX=RandomNumberGenerator()%2;
         fragment->scrollWithBg=1;
-        fragment->drawFunc=(u32 *)Sprite_DrawEntity;
+        fragment->drawFunc=Sprite_DrawEntity;
         fragment->timer=zero;
     }
 }
@@ -436,7 +436,7 @@ void HarpyDeathFeather_Update(struct EwramData_EntityData *entity)
             EntityDampVelocityX(entity,12);
             EntityDampVelocityY(entity,12);
             EntityMove(entity);
-            if(Magnitude(entity->velX.whole)<=0xFFF && Magnitude(entity->velY.whole)<=0xFFF)
+            if(Abs(entity->velX.whole)<=0xFFF && Abs(entity->velY.whole)<=0xFFF)
             {
                 entity->state++;
                 entity->animFrame=8;
@@ -454,12 +454,9 @@ void HarpyDeathFeather_Update(struct EwramData_EntityData *entity)
 }
 
 /* The caller selects one of five valid directions (0..4) for a spread shot. */
-extern void HarpyFeather_Update(struct EwramData_EntityData *);
-extern u8 HarpyFeather_LoadGraphics(struct EwramData_EntityData *,struct EwramData_EntityData *);
-extern void HarpyFeather_EnableHitBoxes(struct EwramData_EntityData *);
 void Harpy_ThrowFeather(struct EwramData_EntityData *owner,s32 kind)
 {
-    struct EwramData_EntityData *projectile=EntityCreateInRange(0x1B,0x48,(u32 *)HarpyFeather_Update);
+    struct EwramData_EntityData *projectile=EntityCreateInRange(0x1B,0x48,HarpyFeather_Update);
     if(projectile)
     {
         u32 angle;
@@ -516,10 +513,9 @@ void Harpy_ThrowFeather(struct EwramData_EntityData *owner,s32 kind)
 }
 
 /* The caller selects one of three valid directions (0..2) for a spread shot. */
-extern void HarpyWavyFeather_Update(struct EwramData_EntityData *);
 void Harpy_ThrowWavyFeather(struct EwramData_EntityData *owner,s32 kind)
 {
-    struct EwramData_EntityData *projectile=EntityCreateInRange(0x1B,0x48,(u32 *)HarpyWavyFeather_Update);
+    struct EwramData_EntityData *projectile=EntityCreateInRange(0x1B,0x48,HarpyWavyFeather_Update);
     if(projectile)
     {
         u32 angle;
@@ -568,7 +564,6 @@ void Harpy_ThrowWavyFeather(struct EwramData_EntityData *owner,s32 kind)
 }
 
 /* The projectile's travel angle oscillates over a 32-frame cycle. */
-extern void Hit_CheckWithPlayer(void *,struct EwramData_EntityData *);
 void HarpyWavyFeather_Update(struct EwramData_EntityData *entity)
 {
     s32 bounds[4];
@@ -587,7 +582,7 @@ void HarpyWavyFeather_Update(struct EwramData_EntityData *entity)
             }
             EntitySetVelocityFromAngle(entity,entity->ext.harpyFeather.angle,0x20000);
             EntityMove(entity);
-            Hit_CheckWithPlayer(bounds,entity);
+            Hit_CheckWithPlayer((struct HitResult *)bounds,entity);
             if(!EntityIsOutsideScreen(entity,1)) break;
         }
         case 1:
@@ -600,8 +595,6 @@ void HarpyWavyFeather_Update(struct EwramData_EntityData *entity)
 }
 
 /* HarpyFeather_EnableHitBoxes (hit boxes). */
-extern void HarpyFeather_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-void HarpyFeather_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 /**
  * @brief 76244 | Activate box slot 8 with HarpyFeather_DamagePlayerOnContact / HarpyFeather_OnHit and
@@ -612,7 +605,7 @@ void HarpyFeather_EnableHitBoxes(struct EwramData_EntityData *entity)
 {
     u32 box = 0x0606FDFD;
 
-    Hit_Enable(entity, 8, HarpyFeather_DamagePlayerOnContact, (s32)HarpyFeather_OnHit);
+    Hit_Enable(entity, 8, HarpyFeather_DamagePlayerOnContact, HarpyFeather_OnHit);
     HitBox_SetBody(entity, &box);
     HitBox_SetAttack(entity, &box);
     entity->hit.flags &= ~4;
@@ -620,7 +613,6 @@ void HarpyFeather_EnableHitBoxes(struct EwramData_EntityData *entity)
 }
 
 /* Harpy and Siren share graphics but select different palette variants. */
-extern s32 ObjPalette_FindOrLoadVariant(void *,s32);
 u8 Harpy_LoadGraphics(struct EwramData_EntityData *entity)
 {
     s32 graphics=ObjGfx_LoadResource(sHarpyGfx,0);
@@ -630,7 +622,7 @@ u8 Harpy_LoadGraphics(struct EwramData_EntityData *entity)
     else
         entity->basePalette=ObjPalette_FindOrLoadVariant(sHarpyPalette,1);
     Sprite_Attach(entity,sHarpySpriteSheet,graphics,entity->basePalette);
-    entity->drawFunc=(u32 *)Sprite_DrawEntity;
+    entity->drawFunc=Sprite_DrawEntity;
     return 1;
 }
 
@@ -683,7 +675,7 @@ void HarpyFeather_Update(struct EwramData_EntityData *entity)
     {
         case 0:
             EntityMove(entity);
-            Hit_CheckWithPlayer(bounds,entity);
+            Hit_CheckWithPlayer((struct HitResult *)bounds,entity);
             if(!EntityIsOutsideScreen(entity,1)) break;
         case 1:
             EntityDelete(entity);
@@ -710,7 +702,7 @@ u8 HarpyFeather_LoadGraphics(struct EwramData_EntityData *entity, struct EwramDa
     Sprite_Attach(projectile, sHarpySpriteSheet, gfx, entity->basePalette);
     Anim_StartIndexed(projectile, 5, 0, 1);
     Anim_Update(projectile);
-    projectile->drawFunc = (u32 *)Sprite_DrawEntity;
+    projectile->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 

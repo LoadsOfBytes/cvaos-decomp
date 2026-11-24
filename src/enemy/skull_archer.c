@@ -14,12 +14,11 @@
 #include "waiter_skeleton.h"
 #include "data/data_118B48.h"
 
-/* Enemy helpers decompiled from assembly. */
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *, s32, u16 *);
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, u8 *, void *, u8, void *);
-extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, s32);
-extern void Enemy_OnContact(struct EwramData_EntityData *);
-extern void SkullArcher_OnHit(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *);
+
+void SkullArcher_OnHit(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *);
+
+/* Enemy helpers decompiled from assembly. */
 
 /* Seven animated fragments when the archer dies. */
 void SkullArcher_SpawnDeathPieces(struct EwramData_EntityData *entity)
@@ -28,7 +27,7 @@ void SkullArcher_SpawnDeathPieces(struct EwramData_EntityData *entity)
     PlaySong(0x6B);
     for (i = 5; i <= 11; i++)
     {
-        struct EwramData_EntityData *fragment = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateSpriteDebris);
+        struct EwramData_EntityData *fragment = EntityCreateInRange(0x49, 0xCF, Effect_UpdateSpriteDebris);
         if (fragment != NULL)
         {
             s32 graphics;
@@ -41,7 +40,7 @@ void SkullArcher_SpawnDeathPieces(struct EwramData_EntityData *entity)
             graphics = ObjGfx_Find(sSkullArcherGfx);
             Sprite_Attach(fragment, sSkullArcherSpriteSheet, graphics, entity->basePalette);
             fragment->flipX = entity->flipX;
-            fragment->drawFunc = (u32 *)Sprite_DrawEntity;
+            fragment->drawFunc = Sprite_DrawEntity;
             fragment->scrollWithBg = 1;
             fragment->timer = (RandomNumberGenerator() & 15) + 40;
             Anim_StartIndexed(fragment, i, 0, 1);
@@ -65,7 +64,7 @@ void EnemySkullArcherCreate(struct EwramData_EntityData *entity)
         return;
     }
     Enemy_ResetFromTemplate(entity);
-    Entity_EnableBoxes(entity, Enemy_OnContact, (s32)SkullArcher_OnHit);
+    Entity_EnableBoxes(entity, Enemy_OnContact, SkullArcher_OnHit);
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
     entity->posY.part16.integer++;

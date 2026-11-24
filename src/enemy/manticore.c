@@ -20,10 +20,37 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "damage_numbers.h"
+#include "entity_motion.h"
 
-extern void Manticore_UpdateWalk(struct EwramData_EntityData *entity);
-extern void Manticore_UpdateAttack(struct EwramData_EntityData *entity);
-extern s32 Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
+extern s32 Target_IsInRect(s16, s16, s16, s16);
+extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
+extern u16 ArcTan2(s32, s32);
+extern s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, struct EwramData_EntityData *other, u16 *hit, s32 inputDamage);
+
+void Manticore_UpdateWalk(struct EwramData_EntityData *entity);
+void Manticore_UpdateAttack(struct EwramData_EntityData *entity);
+u8 Manticore_LoadGraphics(struct EwramData_EntityData *entity);
+struct EwramData_EntityData *Manticore_CreateTailTip(struct EwramData_EntityData *entity);
+struct EwramData_EntityData *Manticore_CreateTailSegment(struct EwramData_EntityData *entity, struct EwramData_EntityData *tail, s32 value, s32 index);
+struct EwramData_EntityData *Manticore_CreateOverlay(struct EwramData_EntityData *parent);
+void Manticore_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void Manticore_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
+void Manticore_SpawnShot(struct EwramData_EntityData *entity);
+void Manticore_SpawnShotFlash(struct EwramData_EntityData *entity);
+void ManticoreOverlay_Update(struct EwramData_EntityData *);
+void ManticoreTailTip_Update(struct EwramData_EntityData *);
+void ManticoreTail_EnableHitBoxes(struct EwramData_EntityData *);
+void ManticoreTail_UpdateSwing(struct EwramData_EntityData *);
+void ManticoreTailSegment_Update(struct EwramData_EntityData *);
+void ManticoreShot_Update(struct EwramData_EntityData *entity);
+s32 ManticoreShot_LoadGraphics(struct EwramData_EntityData *entity, struct EwramData_EntityData *shot);
+void ManticoreShot_EnableHitBoxes(struct EwramData_EntityData *entity);
+void ManticoreEffect_Update(struct EwramData_EntityData *);
+void ManticoreTail_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void ManticoreTail_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
+void ManticoreShot_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void ManticoreShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 /**
  * @brief 72768 | Manticore update (pattern of EnemyKillerFishUpdate): wake
@@ -46,8 +73,8 @@ void EnemyManticoreUpdate(struct EwramData_EntityData *entity)
     {
         if (entity->state != 2)
         {
-            Hit_CheckWithPlayer(collision, entity);
-            Hit_CheckWithPlayer(collision, entity->ext.manticore.tailTip);
+            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+            Hit_CheckWithPlayer((struct HitResult *)collision, entity->ext.manticore.tailTip);
         }
         return;
     }
@@ -75,18 +102,10 @@ void EnemyManticoreUpdate(struct EwramData_EntityData *entity)
     }
     if (entity->state != 2)
     {
-        Hit_CheckWithPlayer(collision, entity);
-        Hit_CheckWithPlayer(collision, entity->ext.manticore.tailTip);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity->ext.manticore.tailTip);
     }
 }
-
-u8 Manticore_LoadGraphics(struct EwramData_EntityData *entity);
-extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, void *onHurt);
-extern struct EwramData_EntityData *Manticore_CreateTailTip(struct EwramData_EntityData *entity);
-extern struct EwramData_EntityData *Manticore_CreateTailSegment(struct EwramData_EntityData *entity, struct EwramData_EntityData *tail, s32 value, s32 index);
-struct EwramData_EntityData *Manticore_CreateOverlay(struct EwramData_EntityData *parent);
-extern void Manticore_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-void Manticore_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 
 /**
  * @brief 72854 | Manticore create: the boss version (spawnParam0) is deleted
@@ -158,8 +177,6 @@ void EnemyManticoreCreate(struct EwramData_EntityData *entity)
 }
 
 /* Enemy walker update (Manticore_UpdateWalk): approach, turn and attack decisions. */
-extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s32);
 
 /* Walking step; one copy per animStep value so that every copy shares the 0x40
  * mask of the first flipX test (the copies are merged again by cross-jumping). */
@@ -318,8 +335,6 @@ void Manticore_UpdateWalk(struct EwramData_EntityData *entity)
 }
 
 /* Manticore_UpdateAttack: enemy attack sequence that spawns two projectiles on frame 14. */
-extern void Manticore_SpawnShot(struct EwramData_EntityData *entity);
-extern void Manticore_SpawnShotFlash(struct EwramData_EntityData *entity);
 
 #define FRAME_PAIR(e) (*(u16 *)&(e)->animStep)
 
@@ -417,8 +432,6 @@ void Manticore_UpdateAttack(struct EwramData_EntityData *entity)
     }
 }
 
-extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
-
 /**
  * @brief 72F40 | Enemy damage callback: subtract the damage from HP
  * (hp), flash (hitFlashTimer = 8); at 0 HP: Enemy_DropRewards, song 0x72, death
@@ -452,8 +465,6 @@ void Manticore_OnDamaged(struct EwramData_EntityData *entity, struct EwramData_E
     Player_SetSelectedTarget(NULL);
 }
 
-void ManticoreOverlay_Update(struct EwramData_EntityData *);
-
 /**
  * @brief Create the overlay sprite drawn three layers above the Manticore that
  * copies its animation frame (ManticoreOverlay_Update); return it or NULL.
@@ -471,7 +482,7 @@ struct EwramData_EntityData *Manticore_CreateOverlay(struct EwramData_EntityData
         Sprite_Attach(child, sManticoreOverlaySpriteSheet, slot, parent->basePalette);
         child->animFrame = parent->animFrame;
         child->scrollWithBg = 0;
-        child->drawFunc = (u32 *)Sprite_DrawEntity;
+        child->drawFunc = Sprite_DrawEntity;
         ENTITY_CREATOR(child) = parent;
         }
     else return NULL;
@@ -497,8 +508,6 @@ void ManticoreOverlay_Update(struct EwramData_EntityData *entity)
     else EntityDelete(entity);
 }
 
-extern void ManticoreTailTip_Update(struct EwramData_EntityData *);
-extern void ManticoreTail_EnableHitBoxes(struct EwramData_EntityData *);
 /**
  * @brief Create the tail tip of owner (affine sprite, contact damage through
  * ManticoreTail_EnableHitBoxes outside the bestiary preview); return it or
@@ -520,7 +529,7 @@ struct EwramData_EntityData *Manticore_CreateTailTip(struct EwramData_EntityData
         entity->enemyId = owner->enemyId;
         entity->hp = 1;
         entity->scrollWithBg = 0;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         ENTITY_OWNER(entity) = owner;
         entity->ext.manticoreTail.kind = 6;
         entity->ext.manticoreTail.link.value = 0x4000;
@@ -535,7 +544,6 @@ struct EwramData_EntityData *Manticore_CreateTailTip(struct EwramData_EntityData
     return NULL;
 }
 
-extern void ManticoreTail_UpdateSwing(struct EwramData_EntityData *);
 /**
  * @brief Tail tip update: anchor at the owner's back, swing through
  * ManticoreTail_UpdateSwing and update the affine matrix; delete when the
@@ -570,7 +578,6 @@ remove:
     EntityDelete(entity);
 }
 
-extern void ManticoreTailSegment_Update(struct EwramData_EntityData *);
 struct EwramData_EntityData *Manticore_CreateTailSegment(struct EwramData_EntityData *owner, struct EwramData_EntityData *part, s32 value, s32 kind)
 {
     struct EwramData_EntityData *entity = Entity_CreateObject(ManticoreTailSegment_Update);
@@ -590,7 +597,7 @@ struct EwramData_EntityData *Manticore_CreateTailSegment(struct EwramData_Entity
             entity->affine = 1;
             entity->enemyId = part->enemyId;
             entity->scrollWithBg = 0;
-            entity->drawFunc = (u32 *)Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             ENTITY_OWNER(entity) = owner;
             entity->ext.manticoreTail.anchor = part;
             entity->ext.manticoreTail.kind = kind;
@@ -602,7 +609,6 @@ struct EwramData_EntityData *Manticore_CreateTailSegment(struct EwramData_Entity
     return NULL;
 }
 
-extern u16 ArcTan2(s32, s32);
 #define KIND(e) ((u8)e->ext.manticoreTail.kind)
 #define DONE(e) (*(u8 *)&e->ext.manticoreTail.updated)
 #define NEXT(e) (e->ext.manticoreTail.link.next)
@@ -629,7 +635,7 @@ void ManticoreTailSegment_Update(struct EwramData_EntityData *entity)
     if (DONE(entity)) return;
     next = NEXT(entity);
     if (KIND(entity) != 5 && next->updateFunc != NULL)
-        ((void (*)(struct EwramData_EntityData *))next->updateFunc)(next);
+        next->updateFunc(next);
     DONE(entity) = 1;
     entity->posX.whole = owner->posX.whole;
     entity->posY.whole = owner->posY.whole;
@@ -946,10 +952,6 @@ tail:
     }
 }
 
-extern void ManticoreShot_Update(struct EwramData_EntityData *entity);
-extern s32 ManticoreShot_LoadGraphics(struct EwramData_EntityData *entity, struct EwramData_EntityData *shot);
-extern void ManticoreShot_EnableHitBoxes(struct EwramData_EntityData *entity);
-
 /**
  * @brief 73B54 | Create a shot ManticoreShot_Update of the Manticore code
  * (0x08073xxx): set up by ManticoreShot_LoadGraphics (deleted when that fails, but still
@@ -960,7 +962,7 @@ extern void ManticoreShot_EnableHitBoxes(struct EwramData_EntityData *entity);
  */
 void Manticore_SpawnShot(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *shot = EntityCreateInRange(0x1B, 0x48, (u32 *)ManticoreShot_Update);
+    struct EwramData_EntityData *shot = EntityCreateInRange(0x1B, 0x48, ManticoreShot_Update);
 
     if (shot == NULL)
         return;
@@ -1042,14 +1044,13 @@ void ManticoreShot_Update(struct EwramData_EntityData *entity)
         break;
     }
     if (entity->state != 2)
-        Hit_CheckWithPlayer(buffer, entity);
+        Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
     Anim_Update(entity);
 }
 
 /* Spawn an effect 31 px in front of and 15 px above the owner (graphics
  * 081CBF54 / 082145BC in the owner palette, animation 5), one priority
  * level above it; updated by ManticoreEffect_Update. */
-extern void ManticoreEffect_Update(struct EwramData_EntityData *);
 
 /**
  * @brief Spawn the muzzle flash 31 px in front of and 15 px above owner; it
@@ -1057,7 +1058,7 @@ extern void ManticoreEffect_Update(struct EwramData_EntityData *);
  */
 void Manticore_SpawnShotFlash(struct EwramData_EntityData *owner)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)ManticoreEffect_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, ManticoreEffect_Update);
     s32 graphics;
 
     if (entity == NULL)
@@ -1074,17 +1075,15 @@ void Manticore_SpawnShotFlash(struct EwramData_EntityData *owner)
     Anim_StartIndexed(entity, 5, 0, 0);
     Anim_Update(entity);
     entity->scrollWithBg = 1;
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     entity->timer = 0;
 }
 
 /* Box callbacks and hit-effect setup, 0x08073E58..0x08073EE7. */
-void ManticoreTail_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-extern void ManticoreTail_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 
 void ManticoreTail_EnableHitBoxes(struct EwramData_EntityData *entity)
 {
-    Hit_Enable(entity, 8, ManticoreTail_DamagePlayerOnContact, (s32)ManticoreTail_OnHit);
+    Hit_Enable(entity, 8, ManticoreTail_DamagePlayerOnContact, ManticoreTail_OnHit);
     HitBox_SetBodyRaw(entity, 0x0C0CFAFA); /* box {-6, -6, 12, 12} */
     HitBox_SetAttackRaw(entity, 0x0C0CFAFA);
     entity->hit.flags &= ~4;
@@ -1113,8 +1112,6 @@ void ManticoreTail_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 }
 
 /* ManticoreTail_OnHit (Manticore body part hit). */
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, struct EwramData_EntityData *other, u16 *hit, s32 inputDamage);
-extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
 
 /**
  * @brief 73EE8 | A part was hit: compute the damage for the parent
@@ -1135,15 +1132,11 @@ void ManticoreTail_OnHit(struct EwramData_EntityData *entity, struct EwramData_E
     damage = Hit_ResolveDamage(ENTITY_OWNER(entity), attacker, hit, attackPower);
     manticore->posX.whole = oldX;
     manticore->posY.whole = oldY;
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     Manticore_OnDamaged(ENTITY_OWNER(entity), attacker, hit, damage);
 }
 
 /* Manticore helpers 0x08073F54..0x0807412F. */
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-void ManticoreShot_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-void ManticoreShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 /**
  * @brief 73F54 | Give shot Manticore's graphics (palette row of entity),
@@ -1158,7 +1151,7 @@ s32 ManticoreShot_LoadGraphics(struct EwramData_EntityData *entity, struct Ewram
     Sprite_Attach(shot, sManticoreSpriteSheet, gfx, entity->basePalette);
     Anim_StartIndexed(shot, 6, 0, 0);
     Anim_Update(shot);
-    shot->drawFunc = (u32 *)Sprite_DrawEntity;
+    shot->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -1168,7 +1161,7 @@ s32 ManticoreShot_LoadGraphics(struct EwramData_EntityData *entity, struct Ewram
  */
 void ManticoreShot_EnableHitBoxes(struct EwramData_EntityData *entity)
 {
-    Hit_Enable(entity, 10, ManticoreShot_DamagePlayerOnContact, (s32)ManticoreShot_OnHit);
+    Hit_Enable(entity, 10, ManticoreShot_DamagePlayerOnContact, ManticoreShot_OnHit);
     HitBox_SetBodyRaw(entity, 0x1818F4F4);
     HitBox_SetAttackRaw(entity, 0x1818F4F4);
     entity->hit.flags |= 4;
@@ -1231,7 +1224,7 @@ u8 Manticore_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sManticorePalette, 0);
     Sprite_Attach(entity, sManticoreSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -1259,6 +1252,6 @@ void Manticore_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entit
 {
     s16 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
 
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     Manticore_OnDamaged(entity, attacker, hit, damage);
 }

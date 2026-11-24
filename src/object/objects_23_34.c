@@ -20,12 +20,60 @@
 #include "data/data_0E5364.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "damage_numbers.h"
+#include "obj_palette.h"
 
-/* Objects 0x23 and 0x24 0x080577FC..0x080579A3. */
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
+
+/* Target_IsInRect (engine/entity_common.c) takes u16 there; the callers here pass
+ * sign-extended values. */
+extern s32 Target_IsInRect(s16 left, s16 top, s16 width, s16 height);
+u8 Object26_LoadGraphics(struct EwramData_EntityData *entity);
+void Object26_UpdateState(struct EwramData_EntityData *entity);
 
 u8 Object23_LoadGraphics(struct EwramData_EntityData *entity);
 u8 Object24_LoadGraphics(struct EwramData_EntityData *entity);
+void Object25_UpdateState(struct EwramData_EntityData *entity);
+u8 Object25_LoadGraphics(struct EwramData_EntityData *entity);
+u8 Object28_LoadGraphics(struct EwramData_EntityData *entity);
+void Object28_UpdateState(struct EwramData_EntityData *entity);
+void Object28_OnPlayerContact(struct EwramData_EntityData *entity);
+void Object27_UpdateState(struct EwramData_EntityData *entity);
+void Object27_OnPlayerContact(struct EwramData_EntityData *entity);
+u8 Object27_LoadGraphics(struct EwramData_EntityData *entity);
+u8 Object2B_LoadGraphics(struct EwramData_EntityData *entity);
+void Object2CLayer_Update(struct EwramData_EntityData *entity);
+void Object2C_SetupLayer(struct EwramData_EntityData *entity);
+u8 Object2C_LoadGraphics(struct EwramData_EntityData *entity);
+u8 Object2D_LoadGraphics(struct EwramData_EntityData *entity);
+u8 Object2E_LoadGraphics(struct EwramData_EntityData *entity);
+void Object2E_UpdateState(struct EwramData_EntityData *entity);
+void Object2EPiece_Update(struct EwramData_EntityData *entity);
+void Object2E_SpawnRisingParticle(struct EwramData_EntityData *entity, s32 x, s32 y);
+u8 Object2F_LoadGraphics(struct EwramData_EntityData *entity);
+void Object2F_UpdateState(struct EwramData_EntityData *entity);
+void Object30Leaf_Update(struct EwramData_EntityData *entity);
+u8 Object30_LoadGraphics(struct EwramData_EntityData *entity);
+void Object30_UpdateState(struct EwramData_EntityData *entity);
+u8 Object31_LoadGraphics(struct EwramData_EntityData *entity);
+void Object31_UpdateState(struct EwramData_EntityData *entity);
+void Object31_SpawnDust(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY);
+u8 Object32_LoadGraphics(struct EwramData_EntityData *entity);
+void Object32_UpdateState(struct EwramData_EntityData *entity);
+void Object32_SpawnDebris(struct EwramData_EntityData *entity, s32 frame, s32 index);
+void Object32Debris_Update(struct EwramData_EntityData *entity);
+u8 Object33_LoadGraphics(struct EwramData_EntityData *entity);
+void Object33_SpawnFlyingSpark(struct EwramData_EntityData *entity);
+void Object33_SpawnFallingSpark(struct EwramData_EntityData *entity);
+void Object33FallingSpark_Update(struct EwramData_EntityData *entity);
+void Object33_UpdateState(struct EwramData_EntityData *entity);
+void Object33FlyingSpark_Update(struct EwramData_EntityData *entity);
+u8 Object34_LoadGraphics(struct EwramData_EntityData *entity);
+void Object34_SpawnPart(struct EwramData_EntityData *entity, s32 part);
+void Object34Part_Update(struct EwramData_EntityData *entity);
+void Object34Part_Draw(struct EwramData_EntityData *entity);
+
+/* Objects 0x23 and 0x24 0x080577FC..0x080579A3. */
 
 /**
  * @brief 577FC | Object 0x23 update: animate.
@@ -66,7 +114,7 @@ u8 Object23_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 3);
     Sprite_Attach(entity, sObject21Object23SpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -118,16 +166,13 @@ u8 Object24_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 7);
     Sprite_Attach(entity, sObject24SpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
 /* Object 0x25 (Object25Update / Object25Create). */
 
 /* Per variant (spawnParam0): spawn point list and its length. */
-
-void Object25_UpdateState(struct EwramData_EntityData *entity);
-u8 Object25_LoadGraphics(struct EwramData_EntityData *entity);
 
 /**
  * @brief 579A4 | Object 0x25 update: state 0 -> Object25_UpdateState; state 1 is a
@@ -157,7 +202,7 @@ void Object25Update(struct EwramData_EntityData *entity)
                 break;
             if ((s32)entity->ext.object25Spawner.childCount > 9)
                 break;
-            child = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
+            child = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
             if (child == NULL)
                 break;
             entity->ext.object25Spawner.childCount++;
@@ -171,7 +216,7 @@ void Object25Update(struct EwramData_EntityData *entity)
             child->enemyId = entity->enemyId;
             child->spawnParam1 = randomValue;
             child->spawnParam0 = entity->spawnParam0;
-            child->drawFunc = (u32 *)Sprite_DrawEntity;
+            child->drawFunc = Sprite_DrawEntity;
             child->updateFunc = entity->updateFunc;
             Object25Create(child);
             child->ext.object25.spawner = entity;
@@ -229,10 +274,6 @@ void Object25Create(struct EwramData_EntityData *entity)
 }
 
 /* Objects 0x25..0x28 0x08057BAC..0x08058507. */
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
-extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
 
 /* Animations of object 0x25 (Anim_Start). */
 
@@ -307,7 +348,7 @@ void Object25_UpdateState(struct EwramData_EntityData *entity)
     }
     Anim_Update(entity);
     if (entity->subState == 1)
-        Hit_CheckWithPlayer(hitInfo, entity);
+        Hit_CheckWithPlayer((struct HitResult *)hitInfo, entity);
 }
 
 /**
@@ -322,7 +363,7 @@ void Object25_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
     // (s16)damage, written so that agbcc sign-extends in place
     damage <<= 16;
     damage >>= 16;
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     entity->hp -= damage;
     if ((s16)entity->hp <= 0)
     {
@@ -346,15 +387,9 @@ u8 Object25_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sLegionObject25Palette, 0);
     Sprite_Attach(entity, sObject25SpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
-
-/* Target_IsInRect (engine/entity_common.c) takes u16 there; the callers here pass
- * sign-extended values. */
-extern s32 Target_IsInRect(s16 left, s16 top, s16 width, s16 height);
-u8 Object26_LoadGraphics(struct EwramData_EntityData *entity);
-void Object26_UpdateState(struct EwramData_EntityData *entity);
 
 /**
  * @brief 57E04 | Object 0x26 create: load the graphics (delete the object
@@ -381,7 +416,7 @@ void Object26Create(struct EwramData_EntityData *entity)
     entity->ext.object26.clock28 = 0x5A;
     entity->ext.object26.clock27 = 0x1E;
     entity->state = 0;
-    child = EntityCreateInRange(0x1B, 0x48, (u32 *)Object28Update);
+    child = EntityCreateInRange(0x1B, 0x48, Object28Update);
     if (child != NULL)
     {
         child->posX.part16.integer = entity->posX.part16.integer - 0x15;
@@ -389,7 +424,7 @@ void Object26Create(struct EwramData_EntityData *entity)
         Object28Create(child);
         ENTITY_OWNER(child) = entity;
     }
-    child = EntityCreateInRange(0x1B, 0x48, (u32 *)Object27Update);
+    child = EntityCreateInRange(0x1B, 0x48, Object27Update);
     if (child != NULL)
     {
         child->posX.part16.integer = entity->posX.part16.integer + 0x12;
@@ -422,7 +457,7 @@ u8 Object26_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 2);
     Sprite_Attach(entity, sObject13FamilySpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -446,10 +481,6 @@ void Object26_UpdateState(struct EwramData_EntityData *entity)
         entity->hidden = 1;
     }
 }
-
-u8 Object28_LoadGraphics(struct EwramData_EntityData *entity);
-void Object28_UpdateState(struct EwramData_EntityData *entity);
-void Object28_OnPlayerContact(struct EwramData_EntityData *entity);
 
 /**
  * @brief 57FA8 | Object 0x28 create: load the graphics, register the hit
@@ -560,7 +591,7 @@ void Object28Update(struct EwramData_EntityData *entity)
     if (entity->state == 0)
         Object28_UpdateState(entity);
     Anim_Update(entity);
-    Hit_CheckWithPlayer(hitInfo, entity);
+    Hit_CheckWithPlayer((struct HitResult *)hitInfo, entity);
 }
 
 /**
@@ -574,7 +605,7 @@ u8 Object28_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 2);
     Sprite_Attach(entity, sObject13FamilySpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -594,10 +625,6 @@ void Object28_OnPlayerContact(struct EwramData_EntityData *entity)
     contactDamage.sourceY = entity->posY.whole;
     Player_ApplyContactDamage(&contactDamage);
 }
-
-void Object27_UpdateState(struct EwramData_EntityData *entity);
-void Object27_OnPlayerContact(struct EwramData_EntityData *entity);
-u8 Object27_LoadGraphics(struct EwramData_EntityData *entity);
 
 /**
  * @brief 58258 | Object 0x27 create: same as Object28Create with animation 2.
@@ -704,7 +731,7 @@ void Object27Update(struct EwramData_EntityData *entity)
     if (entity->state == 0)
         Object27_UpdateState(entity);
     Anim_Update(entity);
-    Hit_CheckWithPlayer(hitInfo, entity);
+    Hit_CheckWithPlayer((struct HitResult *)hitInfo, entity);
 }
 
 /**
@@ -718,7 +745,7 @@ u8 Object27_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 2);
     Sprite_Attach(entity, sObject13FamilySpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -739,11 +766,6 @@ void Object27_OnPlayerContact(struct EwramData_EntityData *entity)
 }
 
 /* Objects 0x2B and 0x2C 0x08058508..0x0805872B. */
-
-u8 Object2B_LoadGraphics(struct EwramData_EntityData *entity);
-void Object2CLayer_Update(struct EwramData_EntityData *entity);
-void Object2C_SetupLayer(struct EwramData_EntityData *entity);
-u8 Object2C_LoadGraphics(struct EwramData_EntityData *entity);
 
 /**
  * @brief 58508 | Object 0x2B create: load the graphics (delete the object
@@ -785,7 +807,7 @@ u8 Object2B_LoadGraphics(struct EwramData_EntityData *entity)
     entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_0820A1C4, 1);
     PaletteAnim_Start(sUnk_0820A1C4, sObject2BPaletteAnim, entity->basePalette);
     Sprite_Attach(entity, sObject2BSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -801,12 +823,12 @@ void Object2CCreate(struct EwramData_EntityData *entity)
 
     for (i = 0, zero = 0; i <= 3; i++)
     {
-        child = EntityCreateInRange(0x49, 0xCF, (u32 *)Object2CLayer_Update);
+        child = EntityCreateInRange(0x49, 0xCF, Object2CLayer_Update);
         if (child == NULL)
             continue;
         child->spawnIndex = zero;
         child->enemyId = entity->enemyId;
-        child->drawFunc = (u32 *)Sprite_DrawEntity;
+        child->drawFunc = Sprite_DrawEntity;
         Object2C_SetupLayer(child);
         child->posX.whole = RandomNumberGenerator() & 0xFFFFFF;
         switch (i)
@@ -886,7 +908,7 @@ u8 Object2C_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_0820A1C4, 0);
     Sprite_Attach(entity, sObject2CSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -895,20 +917,6 @@ u8 Object2C_LoadGraphics(struct EwramData_EntityData *entity)
 
 /* Target_IsInRect (engine/entity_common.c) takes u16 there; the callers here pass
  * sign-extended values. */
-
-u8 Object2D_LoadGraphics(struct EwramData_EntityData *entity);
-u8 Object2E_LoadGraphics(struct EwramData_EntityData *entity);
-void Object2E_UpdateState(struct EwramData_EntityData *entity);
-void Object2EPiece_Update(struct EwramData_EntityData *entity);
-void Object2E_SpawnRisingParticle(struct EwramData_EntityData *entity, s32 x, s32 y);
-u8 Object2F_LoadGraphics(struct EwramData_EntityData *entity);
-void Object2F_UpdateState(struct EwramData_EntityData *entity);
-void Object30Leaf_Update(struct EwramData_EntityData *entity);
-u8 Object30_LoadGraphics(struct EwramData_EntityData *entity);
-void Object30_UpdateState(struct EwramData_EntityData *entity);
-u8 Object31_LoadGraphics(struct EwramData_EntityData *entity);
-void Object31_UpdateState(struct EwramData_EntityData *entity);
-void Object31_SpawnDust(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY);
 
 /**
  * @brief 5872C | Object 0x2D, state 0: substate 10 = idle animations 0 -> 1
@@ -1020,7 +1028,7 @@ u8 Object2D_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sObject2DObject2EPalette, 2);
     Sprite_Attach(entity, sObject2DSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -1031,7 +1039,7 @@ u8 Object2D_LoadGraphics(struct EwramData_EntityData *entity)
  */
 void Object2E_SpawnPiece(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)Object2EPiece_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Object2EPiece_Update);
     s32 gfx;
 
     if (child == NULL)
@@ -1049,7 +1057,7 @@ void Object2E_SpawnPiece(struct EwramData_EntityData *entity, s32 offsetX, s32 o
     child->hit.flags |= 2;
     child->flipX = RandomNumberGenerator() % 2;
     child->scrollWithBg = 1;
-    child->drawFunc = (u32 *)Sprite_DrawEntity;
+    child->drawFunc = Sprite_DrawEntity;
     Object2E_SpawnRisingParticle(child, child->posX.whole, child->posY.whole + 0x80000);
 }
 
@@ -1093,7 +1101,7 @@ u8 Object2E_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sObject2DObject2EPalette, 5);
     Sprite_Attach(entity, sObject2ESpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -1131,7 +1139,7 @@ void Object2EPiece_Update(struct EwramData_EntityData *entity)
  */
 void Object2E_SpawnRisingParticle(struct EwramData_EntityData *entity, s32 x, s32 y)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateParticle);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticle);
     s32 gfx;
 
     if (child == NULL)
@@ -1147,7 +1155,7 @@ void Object2E_SpawnRisingParticle(struct EwramData_EntityData *entity, s32 x, s3
     Anim_Start(child, (struct AnimScript *)sObject2EAnimScript, 0, 0);
     Anim_Update(child);
     child->scrollWithBg = 1;
-    child->drawFunc = (u32 *)Sprite_DrawEntity;
+    child->drawFunc = Sprite_DrawEntity;
 }
 
 /**
@@ -1200,7 +1208,7 @@ u8 Object2F_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_0820A1C4, 9);
     Sprite_Attach(entity, sObject2FFamilySpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -1225,7 +1233,7 @@ void Object2F_UpdateState(struct EwramData_EntityData *entity)
  */
 void Object30_SpawnFallingLeaf(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)Object30Leaf_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Object30Leaf_Update);
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
     s32 gfx;
     u16 affineIndex;
@@ -1262,7 +1270,7 @@ void Object30_SpawnFallingLeaf(struct EwramData_EntityData *entity)
     child->accelY.whole = (RandomNumberGenerator() & 0x3FF) - 0x200;
     child->ext.object30Leaf.scrollX = bg->xPos.whole;
     child->scrollWithBg = 0;
-    child->drawFunc = (u32 *)Sprite_DrawEntity;
+    child->drawFunc = Sprite_DrawEntity;
 }
 
 /**
@@ -1338,7 +1346,7 @@ u8 Object30_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_0820A1C4, 9);
     Sprite_Attach(entity, sObject2FFamilySpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -1503,7 +1511,7 @@ u8 Object31_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_0820A1C4, 9);
     Sprite_Attach(entity, sObject2FFamilySpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -1513,7 +1521,7 @@ u8 Object31_LoadGraphics(struct EwramData_EntityData *entity)
  */
 void Object31_SpawnDust(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateParticle);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticle);
     s32 gfx;
 
     if (child == NULL)
@@ -1528,25 +1536,10 @@ void Object31_SpawnDust(struct EwramData_EntityData *entity, s32 offsetX, s32 of
     Anim_StartIndexed(child, 5, 0, 0);
     Anim_Update(child);
     child->scrollWithBg = 0;
-    child->drawFunc = (u32 *)Sprite_DrawEntity;
+    child->drawFunc = Sprite_DrawEntity;
 }
 
 /* Objects 0x32..0x34 0x08059494..0x0805A18B. */
-
-u8 Object32_LoadGraphics(struct EwramData_EntityData *entity);
-void Object32_UpdateState(struct EwramData_EntityData *entity);
-void Object32_SpawnDebris(struct EwramData_EntityData *entity, s32 frame, s32 index);
-void Object32Debris_Update(struct EwramData_EntityData *entity);
-u8 Object33_LoadGraphics(struct EwramData_EntityData *entity);
-void Object33_SpawnFlyingSpark(struct EwramData_EntityData *entity);
-void Object33_SpawnFallingSpark(struct EwramData_EntityData *entity);
-void Object33FallingSpark_Update(struct EwramData_EntityData *entity);
-void Object33_UpdateState(struct EwramData_EntityData *entity);
-void Object33FlyingSpark_Update(struct EwramData_EntityData *entity);
-u8 Object34_LoadGraphics(struct EwramData_EntityData *entity);
-void Object34_SpawnPart(struct EwramData_EntityData *entity, s32 part);
-void Object34Part_Update(struct EwramData_EntityData *entity);
-void Object34Part_Draw(struct EwramData_EntityData *entity);
 
 /**
  * @brief 59494 | Object 0x32 create: load the graphics (delete the object
@@ -1661,7 +1654,7 @@ void Object32_UpdateState(struct EwramData_EntityData *entity)
  */
 void Object32_SpawnDebris(struct EwramData_EntityData *entity, s32 frame, s32 index)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)Object32Debris_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Object32Debris_Update);
     s32 gfx;
 
     if (child == NULL)
@@ -1681,7 +1674,7 @@ void Object32_SpawnDebris(struct EwramData_EntityData *entity, s32 frame, s32 in
     child->velY.whole = (RandomNumberGenerator() & 0x3FFF) + 0x4000;
     child->accelY.whole = 0x1800;
     child->scrollWithBg = 1;
-    child->drawFunc = (u32 *)Sprite_DrawEntity;
+    child->drawFunc = Sprite_DrawEntity;
 }
 
 /**
@@ -1708,7 +1701,7 @@ void Object32Update(struct EwramData_EntityData *entity)
         if (dy <= 0x1FFFFF)
             Player_QueueEntity(entity, 1);
     }
-    Hit_CheckWithPlayer(hitInfo, entity);
+    Hit_CheckWithPlayer((struct HitResult *)hitInfo, entity);
 }
 
 /**
@@ -1733,7 +1726,7 @@ u8 Object32_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sObject32Object34Palette, 1);
     Sprite_Attach(entity, sObject32SpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -1773,7 +1766,7 @@ void Object33Create(struct EwramData_EntityData *entity)
  */
 void Object33_SpawnFlyingSpark(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)Object33FlyingSpark_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Object33FlyingSpark_Update);
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
     s32 gfx;
 
@@ -1802,7 +1795,7 @@ void Object33_SpawnFlyingSpark(struct EwramData_EntityData *entity)
     child->accelY.whole = 0x2800;
     child->ext.raw.unk_4FC.whole = bg->xPos.whole;
     child->scrollWithBg = 1;
-    child->drawFunc = (u32 *)Sprite_DrawEntity;
+    child->drawFunc = Sprite_DrawEntity;
     child->timer = 0x32;
 }
 
@@ -1812,7 +1805,7 @@ void Object33_SpawnFlyingSpark(struct EwramData_EntityData *entity)
  */
 void Object33_SpawnFallingSpark(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)Object33FallingSpark_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Object33FallingSpark_Update);
     s32 gfx;
 
     if (child == NULL)
@@ -1832,7 +1825,7 @@ void Object33_SpawnFallingSpark(struct EwramData_EntityData *entity)
     child->velX.whole = RandomNumberGenerator() % 0xC000 - 0x6000;
     child->velY.whole = -0x4000 - RandomNumberGenerator() % 0x2000;
     child->scrollWithBg = 1;
-    child->drawFunc = (u32 *)Sprite_DrawEntity;
+    child->drawFunc = Sprite_DrawEntity;
     child->timer = 0x32;
 }
 
@@ -1870,7 +1863,7 @@ u8 Object33_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sObject33Palette, 0);
     Sprite_Attach(entity, sObject33SpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -2003,7 +1996,7 @@ void Object34_UpdateSwing(struct EwramData_EntityData *entity)
  */
 void Object34_SpawnPart(struct EwramData_EntityData *entity, s32 part)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)Object34Part_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Object34Part_Update);
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
     u32 box = 0x1C20F4F0;
     s32 gfx;
@@ -2054,7 +2047,7 @@ void Object34_SpawnPart(struct EwramData_EntityData *entity, s32 part)
     child->ext.object34Part.pivot = entity;
     child->ext.object34Part.index = part;
     child->scrollWithBg = 0;
-    child->drawFunc = (u32 *)Object34Part_Draw;
+    child->drawFunc = Object34Part_Draw;
 }
 
 /**
@@ -2138,7 +2131,7 @@ u8 Object34_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sObject32Object34Palette, 2);
     Sprite_Attach(entity, sObject34SpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 

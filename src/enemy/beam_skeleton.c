@@ -16,21 +16,32 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "entity_inline.h"
+
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity,u8 *graphics,void *palette,u8 slot,void *sprite);
+extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
+extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
+extern void Sound_PlayTracked(s32 id);
+extern void Sound_StopTracked(s32 id);
+
+void BeamSkeleton_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+void BeamSkeleton_UpdateBestiaryPreview(struct EwramData_EntityData *entity);
+void BeamSkeleton_UpdateDeath(struct EwramData_EntityData *entity);
+void BeamSkeleton_UpdateFire(struct EwramData_EntityData *entity);
+void BeamSkeleton_UpdatePatrol(struct EwramData_EntityData *entity);
+void BeamSkeleton_UpdateApproach(struct EwramData_EntityData *entity);
+void BeamSkeleton_UpdateIdle(struct EwramData_EntityData *entity);
+void BeamSkeleton_CreateBeam(struct EwramData_EntityData *entity);
+void BeamSkeletonBeamSprite_Update(struct EwramData_EntityData *entity);
+void BeamSkeletonBeam_Update(struct EwramData_EntityData *entity);
+void BeamSkeleton_SpawnDeathPieces(struct EwramData_EntityData *entity);
+void Needles_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+void NeedlesPart_Update(struct EwramData_EntityData *entity);
+void Needles_UpdateDeath(struct EwramData_EntityData *entity);
+void Needles_UpdateBestiaryPreview(struct EwramData_EntityData *entity);
 
 /* Beam Skeleton creation and update dispatcher. */
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity,u8 *graphics,void *palette,u8 slot,void *sprite);
-extern void Entity_EnableBoxes(struct EwramData_EntityData *entity,void *callback,s32 hitCallback);
-extern void Enemy_OnContact(struct EwramData_EntityData *entity);
-extern void BeamSkeleton_OnHit(struct EwramData_EntityData *entity);
-extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
-extern void BeamSkeleton_UpdateBestiaryPreview(struct EwramData_EntityData *entity);
-extern void BeamSkeleton_UpdateDeath(struct EwramData_EntityData *entity);
-extern void BeamSkeleton_UpdateFire(struct EwramData_EntityData *entity);
-extern void BeamSkeleton_UpdatePatrol(struct EwramData_EntityData *entity);
-extern void BeamSkeleton_UpdateApproach(struct EwramData_EntityData *entity);
-extern void BeamSkeleton_UpdateIdle(struct EwramData_EntityData *entity);
 
-static inline void SetAffine(struct EwramData_EntityData *e,s32 index) { e->affineIndex = index; }
 void EnemyBeamSkeletonCreate(struct EwramData_EntityData *entity)
 {
     void *palette = sBeamSkeletonPalette;
@@ -69,7 +80,7 @@ void EnemyBeamSkeletonCreate(struct EwramData_EntityData *entity)
     entity->state = display;
     entity->stage = display;
     entity->subState = display;
-    Entity_EnableBoxes(entity,Enemy_OnContact,(s32)BeamSkeleton_OnHit);
+    Entity_EnableBoxes(entity,Enemy_OnContact, BeamSkeleton_OnHit);
     Entity_SnapToGround(entity);
     x = GetEntityRoomXPositionInteger(entity);
     entity->ext.beamSkeleton.homeX = x;
@@ -104,8 +115,6 @@ void EnemyBeamSkeletonUpdate(struct EwramData_EntityData *entity)
 }
 
 /* Beam Skeleton patrol and selection of the attack state. */
-extern s32 Entity_ClampXToRoom(struct EwramData_EntityData *entity,s32 mode);
-extern s32 Target_IsNearEntity(struct EwramData_EntityData *entity,s32 width,s32 height);
 
 /**
  * @brief Patrol state (0): walk within the stored range, turn at terrain
@@ -156,9 +165,6 @@ void BeamSkeleton_UpdatePatrol(struct EwramData_EntityData *entity)
 }
 
 /* Beam Skeleton approach and attack selection. */
-extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *entity);
-extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
-extern s32 Entity_IsTargetInCenteredBox(struct EwramData_EntityData *entity,u16 width,u16 height);
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 
 /**
@@ -266,7 +272,6 @@ void BeamSkeleton_UpdateIdle(struct EwramData_EntityData *entity)
 }
 
 /* Beam Skeleton firing sequence and vertical affine scale. */
-extern void BeamSkeleton_CreateBeam(struct EwramData_EntityData *entity);
 #define ANIM(e,n,loop) do { if ((e)->animScriptIndex != (n)) Anim_StartIndexed((e),(n),0,(loop)); } while (0)
 #define SCALE(e) (*(u16 *)&(e)->ext.beamSkeleton.beamLevel)
 
@@ -374,11 +379,6 @@ void BeamSkeleton_UpdateFire(struct EwramData_EntityData *entity)
     }
 }
 
-extern void BeamSkeletonBeamSprite_Update(struct EwramData_EntityData *entity);
-extern void BeamSkeletonBeam_Update(struct EwramData_EntityData *entity);
-extern void Hit_Enable(struct EwramData_EntityData *entity,s32 mode,void *callback,s32 flags);
-extern void HitBox_SetAttackRaw(struct EwramData_EntityData *entity,s32 flags);
-
 /**
  * @brief Create a stationary beam sprite and moving contact entity using
  * the owner graphics and affine index. Preserve the distinct 1.5 and
@@ -386,7 +386,7 @@ extern void HitBox_SetAttackRaw(struct EwramData_EntityData *entity,s32 flags);
  */
 void BeamSkeleton_CreateBeam(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *beam = EntityCreateInRange(0x49,0xCF,(u32 *)BeamSkeletonBeamSprite_Update);
+    struct EwramData_EntityData *beam = EntityCreateInRange(0x49,0xCF,BeamSkeletonBeamSprite_Update);
     s32 i;
     if (beam != NULL)
     {
@@ -401,7 +401,7 @@ void BeamSkeleton_CreateBeam(struct EwramData_EntityData *entity)
         beam->posY.whole += entity->posY.whole;
         beam->ext.beamSkeletonBeam.ownerIndex = ENTITY_INDEX(entity);
         beam->scrollWithBg = 1;
-        beam->drawFunc = (u32 *)Sprite_DrawEntity;
+        beam->drawFunc = Sprite_DrawEntity;
         sprite = sBeamSkeletonSpriteSheet;
         graphics = Sprite_GetTileSlot(entity);
         Sprite_Attach(beam,sprite,graphics,ObjPalette_FindOrLoad(sBeamSkeletonPalette));
@@ -416,7 +416,7 @@ void BeamSkeleton_CreateBeam(struct EwramData_EntityData *entity)
     }
     for (i = 0; i < 1; i++)
     {
-        beam = EntityCreateInRange(0x49,0xCF,(u32 *)BeamSkeletonBeam_Update);
+        beam = EntityCreateInRange(0x49,0xCF,BeamSkeletonBeam_Update);
         if (beam != NULL)
         {
             s32 graphics;
@@ -429,7 +429,7 @@ void BeamSkeleton_CreateBeam(struct EwramData_EntityData *entity)
             beam->posY.whole += entity->posY.whole;
             beam->ext.beamSkeletonBeam.ownerIndex = ENTITY_INDEX(entity);
             beam->scrollWithBg = 1;
-            beam->drawFunc = (u32 *)Sprite_DrawEntity;
+            beam->drawFunc = Sprite_DrawEntity;
             graphics = Sprite_GetTileSlot(entity);
             Sprite_Attach(beam,sBeamSkeletonSpriteSheet,graphics,ObjPalette_FindOrLoad(sBeamSkeletonPalette));
             beam->animFrame = 22;
@@ -446,9 +446,6 @@ void BeamSkeleton_CreateBeam(struct EwramData_EntityData *entity)
 }
 
 /* Beam Skeleton moving beam and sound maintenance. */
-extern void Hit_CheckWithPlayer(void *buffer,struct EwramData_EntityData *entity);
-extern void Sound_PlayTracked(s32 id);
-extern void Sound_StopTracked(s32 id);
 
 static inline void ResetBeam(struct EwramData_EntityData *entity)
 {
@@ -477,7 +474,7 @@ void BeamSkeletonBeam_Update(struct EwramData_EntityData *entity)
     u8 buffer[16];
     struct EwramData_EntityData *owner = &gEwramData->entityData[entity->ext.beamSkeletonBeam.ownerIndex];
     if ((u16)owner->ext.beamSkeleton.beamLevel > 0x400)
-        Hit_CheckWithPlayer(buffer,entity);
+        Hit_CheckWithPlayer((struct HitResult *)buffer,entity);
     switch (entity->state)
     {
         case 0:
@@ -568,10 +565,7 @@ void BeamSkeletonBeamSprite_Update(struct EwramData_EntityData *entity)
 }
 
 /* Beam Skeleton: seven fragments on death. */
-extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *entity);
 #define INDEX(e) (e->ext.beamSkeletonPiece.index)
-
-extern void BeamSkeleton_SpawnDeathPieces(struct EwramData_EntityData *entity);
 
 /**
  * @brief Death state (0xFF): spawn the seven pieces once, drop rewards,
@@ -607,7 +601,7 @@ void BeamSkeleton_SpawnDeathPieces(struct EwramData_EntityData *entity)
     entity->hidden = 1;
     for (i = 0; i < 7; i++)
     {
-        struct EwramData_EntityData *part = EntityCreateInRange(0x49,0xCF,(u32 *)Effect_UpdateSpriteDebris);
+        struct EwramData_EntityData *part = EntityCreateInRange(0x49,0xCF,Effect_UpdateSpriteDebris);
         if (part != NULL)
         {
             s32 graphics;
@@ -619,7 +613,7 @@ void BeamSkeleton_SpawnDeathPieces(struct EwramData_EntityData *entity)
             part->scrollWithBg = 1;
             graphics = Sprite_GetTileSlot(entity);
             Sprite_Attach(part,sBeamSkeletonSpriteSheet,graphics,ObjPalette_FindOrLoad(sBeamSkeletonPalette));
-            part->drawFunc = (u32 *)Sprite_DrawEntity;
+            part->drawFunc = Sprite_DrawEntity;
             part->posX.whole = entity->posX.whole;
             part->posY.whole = entity->posY.whole;
             x = sBeamSkeletonDeathPieceOffsets[INDEX(part)][0];
@@ -664,7 +658,7 @@ void BeamSkeletonDeathPiece_UpdateUnused(struct EwramData_EntityData *entity)
             sprite = sBeamSkeletonSpriteSheet;
             graphics = Sprite_GetTileSlot(owner);
             Sprite_Attach(entity,sprite,graphics,ObjPalette_FindOrLoad(sBeamSkeletonPalette));
-            entity->drawFunc = (u32 *)Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->posX.whole = owner->posX.whole;
             entity->posY.whole = owner->posY.whole;
             x = sBeamSkeletonDeathPieceOffsets[INDEX(entity)][0];
@@ -725,16 +719,14 @@ void BeamSkeleton_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
 }
 
 /* Beam Skeleton hit callback and Needles create/idle behavior. */
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
-extern void Needles_OnHit(struct EwramData_EntityData *entity);
 
 /**
  * @brief Apply enemy damage; on defeat enter state 0xFF, immediately run
  * the death helper and play the death sound.
  */
-void BeamSkeleton_OnHit(struct EwramData_EntityData *entity)
+void BeamSkeleton_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    if (Enemy_TakeDamage(entity))
+    if (Enemy_TakeDamage(entity, attacker, hit))
     {
         entity->state = 0xFF;
         entity->stage = 0;
@@ -768,7 +760,7 @@ void EnemyNeedlesCreate(struct EwramData_EntityData *entity)
         entity->state = 3;
         return;
     }
-    Hit_Enable(entity,8,Enemy_OnContact,(s32)Needles_OnHit);
+    Hit_Enable(entity,8,Enemy_OnContact, Needles_OnHit);
     HitBox_SetAttackRaw(entity,0x1010F8F8);
     HitBox_SetBodyRaw(entity,0x1010F8F8);
     if (entity->spawnParam0 != 0)
@@ -839,10 +831,6 @@ enum {
     NEEDLE_TIMER
 };
 
-void NeedlesPart_Update(struct EwramData_EntityData *entity);
-void Needles_UpdateDeath(struct EwramData_EntityData *entity);
-void Needles_UpdateBestiaryPreview(struct EwramData_EntityData *entity);
-
 /**
  * @brief Spawn up to five table-configured needle parts with mirrored
  * velocity and offsets; count the live parts in the owner field.
@@ -856,7 +844,7 @@ void Needles_SpawnDeathParts(struct EwramData_EntityData *entity)
 
     for (i = 0; i < 5; i++)
     {
-        child = EntityCreateInRange(0x49, 0xCF, (u32 *)NeedlesPart_Update);
+        child = EntityCreateInRange(0x49, 0xCF, NeedlesPart_Update);
         if (child == NULL)
             continue;
         needle = sNeedlesDeathParts[i];
@@ -867,7 +855,7 @@ void Needles_SpawnDeathParts(struct EwramData_EntityData *entity)
         child->flipX = entity->flipX;
         Sprite_Attach(child, sNeedlesSpriteSheet, Sprite_GetTileSlot(entity), child->basePalette);
         child->scrollWithBg = 1;
-        child->drawFunc = (u32 *)Sprite_DrawEntity;
+        child->drawFunc = Sprite_DrawEntity;
         child->posX.whole = entity->posX.whole;
         child->posY.whole = entity->posY.whole;
         offsetX = needle[NEEDLE_OFFSET_X];
@@ -969,9 +957,9 @@ void Needles_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
  * @brief Apply enemy damage; on defeat enter death state 2 with substate
  * counters reset. Reward drops belong to the death helper.
  */
-void Needles_OnHit(struct EwramData_EntityData *entity)
+void Needles_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    if (Enemy_TakeDamage(entity))
+    if (Enemy_TakeDamage(entity, attacker, hit))
     {
         entity->state = 2;
         entity->stage = 0;

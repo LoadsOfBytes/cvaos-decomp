@@ -16,12 +16,16 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "damage_numbers.h"
 
-extern s32 Target_GetPixelX(struct EwramData_EntityData *entity);
-extern void MedusaHead_UpdateFly(struct EwramData_EntityData *entity);
-extern void MedusaHead_UpdateIdle(struct EwramData_EntityData *entity);
-extern void EnemyMedusaHeadCreate(struct EwramData_EntityData *entity);
-extern s32 Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
+
+void MedusaHead_UpdateFly(struct EwramData_EntityData *entity);
+void MedusaHead_UpdateIdle(struct EwramData_EntityData *entity);
+void EnemyMedusaHeadCreate(struct EwramData_EntityData *entity);
+s32 MedusaHead_LoadGraphics(struct EwramData_EntityData *entity);
+void MedusaHead_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void MedusaHead_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 /**
  * @brief 93714 | Medusa Head update: a head (states 0 / 1, MedusaHead_UpdateFly /
@@ -51,7 +55,7 @@ void EnemyMedusaHeadUpdate(struct EwramData_EntityData *entity)
     if (Enemy_IsStunned(entity))
     {
         if (entity->state != 2)
-            Hit_CheckWithPlayer(collision, entity);
+            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         return;
     }
     switch (entity->state)
@@ -76,7 +80,7 @@ void EnemyMedusaHeadUpdate(struct EwramData_EntityData *entity)
         entity->posX.whole = 0x780000;
         if ((RandomNumberGenerator() & 0x1F) == 0 && (s32)entity->ext.medusaHead.childCount < entity->spawnParam0)
         {
-            head = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
+            head = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
             if (head != NULL)
             {
                 entity->ext.medusaHead.childCount++;
@@ -92,7 +96,7 @@ void EnemyMedusaHeadUpdate(struct EwramData_EntityData *entity)
                 head->spawnIndex = 0;
                 head->enemyId = entity->enemyId;
                 head->spawnParam1 = entity->spawnParam1 & 1;
-                head->drawFunc = (u32 *)Sprite_DrawEntity;
+                head->drawFunc = Sprite_DrawEntity;
                 head->hp = sEnemyData[entity->enemyId].hp;
                 head->mp = sEnemyData[entity->enemyId].mp;
                 head->updateFunc = entity->updateFunc;
@@ -108,10 +112,6 @@ void EnemyMedusaHeadUpdate(struct EwramData_EntityData *entity)
     Anim_Update(entity);
     Enemy_CheckHitPlayer(entity);
 }
-
-extern s32 MedusaHead_LoadGraphics(struct EwramData_EntityData *entity);
-extern void MedusaHead_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-extern void MedusaHead_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 /**
  * @brief 938E8 | Medusa Head create: deleted when MedusaHead_LoadGraphics fails;
@@ -140,7 +140,7 @@ void EnemyMedusaHeadCreate(struct EwramData_EntityData *entity)
         return;
     }
     entity->spriteLayer = 3;
-    Hit_Enable(entity, 8, MedusaHead_DamagePlayerOnContact, (s32)MedusaHead_OnHit);
+    Hit_Enable(entity, 8, MedusaHead_DamagePlayerOnContact, MedusaHead_OnHit);
     HitBox_SetAttack(entity, &box);
     HitBox_SetBody(entity, &box);
     entity->hit.flags &= ~4;
@@ -198,10 +198,6 @@ void MedusaHead_UpdateFly(struct EwramData_EntityData *entity)
 /* MedusaHead_OnHit (hit with HP / death), generated with a template script from the
  * template of WingedSkeleton_OnHit and checked byte for byte. */
 
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
 /**
  * @brief 93AE0 | Hit: flash (hitFlashTimer = 8), subtract the damage from the HP
  * and show it; at HP <= 0 die (Enemy_DropRewards, song 0x72, animation 3, palette into
@@ -220,7 +216,7 @@ void MedusaHead_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hi
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
@@ -250,7 +246,7 @@ s32 MedusaHead_LoadGraphics(struct EwramData_EntityData *entity)
     else
         entity->basePalette = ObjPalette_FindOrLoadVariant(sMedusaHeadPalette, 0);
     Sprite_Attach(entity, sMedusaHeadSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 

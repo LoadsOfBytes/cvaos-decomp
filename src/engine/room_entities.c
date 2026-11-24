@@ -106,7 +106,7 @@ void (*sObjectCreateFuncs[56])(struct EwramData_EntityData *) = {
     [55] = Object37Create,
 };
 
-void (*sObjectUpdateFuncs[56])(struct EwramData_EntityData *) = {
+EntityFunc sObjectUpdateFuncs[56] = {
     [0] = Object00Update,
     [1] = Object01Update,
     [2] = Object02Update,
@@ -194,7 +194,7 @@ s32 RoomEntity_Spawn(struct RoomEntityRecord *record)
         return 0;
     }
 
-    child = EntityCreateInRange(0x1B, 0x48, (u32 *) EntityUpdateNothing);
+    child = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
     if (child != 0)
     {
         x = record->x << 0x10;
@@ -212,23 +212,23 @@ s32 RoomEntity_Spawn(struct RoomEntityRecord *record)
         child->spawnParam1 = record->spawnParam1;
         child->spawnIndex = record->spawnIndex;
         child->enemyId = record->entityId;
-        child->drawFunc = (u32*)Sprite_DrawEntity;
+        child->drawFunc = Sprite_DrawEntity;
         switch (record->kind)
         {
             case 1:
                 enemy = &sEnemyData[record->entityId];
                 child->hp = enemy->hp;
                 child->updateFunc = enemy->updateFunc;
-                ((void (*)(struct EwramData_EntityData *))enemy->createFunc)(child);
+                enemy->createFunc(child);
                 break;
 
             case 2:
-                child->updateFunc = (u32*)sObjectUpdateFuncs[record->entityId];
+                child->updateFunc = sObjectUpdateFuncs[record->entityId];
                 sObjectCreateFuncs[record->entityId](child);
                 break;
 
             case 3:
-                child->updateFunc = (u32*)PickupSource_Update;
+                child->updateFunc = PickupSource_Update;
                 PickupSource_Init((struct EwramData_EntityData *) child);
                 break;
 
@@ -576,7 +576,7 @@ void RoomEntity_PreloadEnemies(struct RoomEntityRecord *records)
             else
             {
                 entity->roomActive = 0;
-                ((void (*)(struct EwramData_EntityData *)) entity->updateFunc)(entity);
+                entity->updateFunc(entity);
                 EntityDelete(&gEwramData->entityData[0x1B + j]);
             }
         }
@@ -687,7 +687,7 @@ void Room_UnloadEntities(void)
                 entity->roomActive = 0;
                 if (i > 0x1A)
                 {
-                    ((void (*)(struct EwramData_EntityData *)) entity->updateFunc)(entity);
+                    entity->updateFunc(entity);
                     EntityDelete(entity);
                 }
             }

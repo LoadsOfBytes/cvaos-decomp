@@ -15,10 +15,18 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "hitbox.h"
+#include "damage_numbers.h"
 
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void SkyFish_UpdateFly(struct EwramData_EntityData *);
-extern void SkyFish_UpdateDeath(struct EwramData_EntityData *);
+extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
+
+void SkyFish_UpdateFly(struct EwramData_EntityData *);
+void SkyFish_UpdateDeath(struct EwramData_EntityData *);
+u8 SkyFish_LoadGraphics(struct EwramData_EntityData *);
+void SkyFish_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void SkyFish_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
+void SkyFish_SpawnTrail(struct EwramData_EntityData *, s32, s32, s32, s32);
+void SkyFish_SpawnRisingTrail(struct EwramData_EntityData *, s32, s32, s32, s32);
 
 void EnemySkyFishUpdate(struct EwramData_EntityData *entity)
 {
@@ -32,7 +40,7 @@ void EnemySkyFishUpdate(struct EwramData_EntityData *entity)
     if (Enemy_IsStunned(entity))
     {
         if (entity->state != 1 && entity->ext.skyFish.darting == 0)
-            Hit_CheckWithPlayer(box, entity);
+            Hit_CheckWithPlayer((struct HitResult *)box, entity);
         return;
     }
     switch (entity->state)
@@ -45,14 +53,8 @@ void EnemySkyFishUpdate(struct EwramData_EntityData *entity)
     Anim_Update(entity);
     if (frame != entity->animFrame) Entity_UpdateBoxes(entity);
     if (entity->state != 1 && entity->ext.skyFish.darting == 0)
-        Hit_CheckWithPlayer(box, entity);
+        Hit_CheckWithPlayer((struct HitResult *)box, entity);
 }
-
-extern u8 SkyFish_LoadGraphics(struct EwramData_EntityData *);
-extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
-extern void Hit_Enable(struct EwramData_EntityData *, s32, void *, void *);
-void SkyFish_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-void SkyFish_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 
 void EnemySkyFishCreate(struct EwramData_EntityData *entity)
 {
@@ -93,8 +95,6 @@ void EnemySkyFishCreate(struct EwramData_EntityData *entity)
 }
 
 /* Sky Fish: normal movement and death sequence. */
-extern void SkyFish_SpawnTrail(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern void SkyFish_SpawnRisingTrail(struct EwramData_EntityData *, s32, s32, s32, s32);
 
 /* Fast traversal; SkillChronomageUse sets and decrements the global 0x4BE
  * countdown. While active it switches this fish to a slower animation/movement
@@ -181,9 +181,6 @@ void SkyFish_UpdateDeath(struct EwramData_EntityData *entity)
         entity->deleteRequested = 1;
 }
 
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-
 void SkyFish_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     s32 damage = Player_CalculateAttackPower(hit[2]);
@@ -195,7 +192,7 @@ void SkyFish_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityD
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
@@ -210,7 +207,7 @@ void SkyFish_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityD
 /* Create a moving animated effect. Position arguments use 16.16 fixed point. */
 void SkyFish_SpawnTrail(struct EwramData_EntityData *parent, s32 x, s32 y, s32 priority, s32 param)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateParticle);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticle);
     if (child != NULL)
     {
         s32 tiles;
@@ -234,14 +231,14 @@ void SkyFish_SpawnTrail(struct EwramData_EntityData *parent, s32 x, s32 y, s32 p
         Anim_StartIndexed(child, 1, 0, 0);
         Anim_Update(child);
         child->scrollWithBg = 1;
-        child->drawFunc = (u32 *)Sprite_DrawEntity;
+        child->drawFunc = Sprite_DrawEntity;
     }
 }
 
 /* Companion effect with upward acceleration. */
 void SkyFish_SpawnRisingTrail(struct EwramData_EntityData *parent, s32 x, s32 y, s32 priority, s32 param)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateParticle);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticle);
     if (child != NULL)
     {
         s32 tiles;
@@ -261,7 +258,7 @@ void SkyFish_SpawnRisingTrail(struct EwramData_EntityData *parent, s32 x, s32 y,
         Anim_StartIndexed(child, 1, 0, 0);
         Anim_Update(child);
         child->scrollWithBg = 1;
-        child->drawFunc = (u32 *)Sprite_DrawEntity;
+        child->drawFunc = Sprite_DrawEntity;
     }
 }
 
@@ -269,21 +266,6 @@ void SkyFish_SpawnRisingTrail(struct EwramData_EntityData *parent, s32 x, s32 y,
  * a cloning script and checked byte for byte:
  *   SkyFish_LoadGraphics = Object25_LoadGraphics
  *   SkyFish_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
-
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
 
 /**
  * @brief A8194 | Same as Object25_LoadGraphics.
@@ -296,7 +278,7 @@ u8 SkyFish_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sSkyFishPalette, 0);
     Sprite_Attach(entity, sSkyFishSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 

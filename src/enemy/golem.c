@@ -19,11 +19,12 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "math_inline.h"
+#include "damage_numbers.h"
 
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
-extern void Golem_UpdateMovement(struct EwramData_EntityData *entity);
-extern void Golem_UpdateAttack(struct EwramData_EntityData *entity);
-extern void Golem_UpdateBestiaryPreview(struct EwramData_EntityData *entity);
+void Golem_UpdateMovement(struct EwramData_EntityData *entity);
+void Golem_UpdateAttack(struct EwramData_EntityData *entity);
+void Golem_UpdateBestiaryPreview(struct EwramData_EntityData *entity);
 
 struct GolemBox {
     s32 x:8;
@@ -33,6 +34,29 @@ struct GolemBox {
 };
 
 #define TO_PIXELS(d) ((d) < 0 ? -(-(d) >> 16) : (d) >> 16)
+
+extern void *memcpy(void *dst, const void *src, unsigned long size);
+extern s32 Target_IsInRect(s16, s16, s16, s16);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
+extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
+
+u8 Golem_LoadGraphics(struct EwramData_EntityData *entity);
+void GolemSegment_Update(struct EwramData_EntityData *entity);
+void GolemSegment_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void GolemSegment_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+void Golem_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void Golem_OnDamaged(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+void Golem_FaceTarget(struct EwramData_EntityData *entity);
+void Golem_UpdateAllParts(struct EwramData_EntityData *entity);
+void Golem_SpawnIdleEffect(struct EwramData_EntityData *, s32, s32);
+void Golem_AttachPart(struct EwramData_EntityData *, s32, s32, s32, s32);
+void Golem_UpdateParts(struct EwramData_EntityData *, s8 *);
+void Golem_ResetPartAngles(struct EwramData_EntityData *, s32);
+void Golem_ThrowDebris(struct EwramData_EntityData *, s32, s32, s32, s32);
+void GolemDebris_DamagePlayerOnContact(struct EwramData_EntityData *);
+void GolemDebris_OnKilled(struct EwramData_EntityData *, s32, u16 *);
+void GolemDebris_Update(struct EwramData_EntityData *entity);
+void GolemIdleEffect_Update(struct EwramData_EntityData *entity);
 
 /**
  * @brief 7E35C | Golem update (as EnemyGreatArmorUpdate): skipped off
@@ -97,14 +121,6 @@ boxes:
 }
 
 /* Golem create: allocates the 11-joint skeleton and one part entity per joint. */
-extern void *memcpy(void *dst, const void *src, unsigned long size);
-extern u8 Golem_LoadGraphics(struct EwramData_EntityData *entity);
-extern void GolemSegment_Update(struct EwramData_EntityData *entity);
-extern void GolemSegment_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-extern void GolemSegment_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern void Golem_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-extern void Golem_OnDamaged(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern void Golem_FaceTarget(struct EwramData_EntityData *entity);
 
 void EnemyGolemCreate(struct EwramData_EntityData *entity)
 {
@@ -174,7 +190,7 @@ void EnemyGolemCreate(struct EwramData_EntityData *entity)
         part->scrollWithBg = 0;
         part->hidden = 0;
         part->attack = entity->attack;
-        part->drawFunc = (u32 *)Sprite_DrawEntity;
+        part->drawFunc = Sprite_DrawEntity;
         part->ext.jointPart.owner = entity;
         part->ext.jointPart.index = index;
         part->ext.jointPart.anchor = anchors[index];
@@ -207,7 +223,7 @@ void EnemyGolemCreate(struct EwramData_EntityData *entity)
             ObjAffine_Set(0, 0x10000, 0x10000, part->flipX, part->flipY, part->affineIndex);
         }
         if (!gEwramData->gameState.bestiaryPreview)
-            Hit_Enable(part, 8, GolemSegment_DamagePlayerOnContact, (s32)GolemSegment_OnHit);
+            Hit_Enable(part, 8, GolemSegment_DamagePlayerOnContact, GolemSegment_OnHit);
         }
         else
         {
@@ -247,7 +263,7 @@ void EnemyGolemCreate(struct EwramData_EntityData *entity)
         entity->timer = 0;
         return;
     }
-    Hit_Enable(entity, 8, Golem_DamagePlayerOnContact, (s32)Golem_OnDamaged);
+    Hit_Enable(entity, 8, Golem_DamagePlayerOnContact, Golem_OnDamaged);
     Golem_FaceTarget(entity);
     Entity_SnapToGround(entity);
     entity->state = frozen;
@@ -276,17 +292,6 @@ void EnemyGolemCreate(struct EwramData_EntityData *entity)
 }
 
 /* Golem main state machine: hops towards the player (turning at walls), landing dust, attacks. */
-extern void Golem_UpdateAllParts(struct EwramData_EntityData *entity);
-extern void Golem_SpawnIdleEffect(struct EwramData_EntityData *, s32, s32);
-extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s32 Target_GetPixelX(struct EwramData_EntityData *);
-
-static inline s32 ABS(s32 x)
-{
-    if (x < 0)
-        x = -x;
-    return x;
-}
 
 #define GOLEM_HOP_SPEED(entity)\
     if ((entity)->flipX)\
@@ -301,13 +306,13 @@ static inline s32 ABS(s32 x)
     if ((s8)--entity->timer > 0)\
         break;\
     r = RandomNumberGenerator() & 3;\
-    if (r <= 1 && ABS((s16)Target_GetPixelX(entity) - (s16)entity->posX.part16.integer) <= 0x3B)\
+    if (r <= 1 && Abs((s16)Target_GetPixelX(entity) - (s16)entity->posX.part16.integer) <= 0x3B)\
     {\
         entity->state = 1;\
         entity->subState = 0;\
         break;\
     }\
-    if (r == 2 && ABS((s16)Target_GetPixelX(entity) - (s16)entity->posX.part16.integer) <= 0x77)\
+    if (r == 2 && Abs((s16)Target_GetPixelX(entity) - (s16)entity->posX.part16.integer) <= 0x77)\
     {\
         entity->state = 1;\
         entity->subState = 0x14;\
@@ -319,7 +324,7 @@ static inline s32 ABS(s32 x)
     Golem_FaceTarget(entity);\
     GOLEM_HOP_SPEED(entity)\
     dx = entity->flipX ? 0x20 : -0x20;\
-    if (ABS((s16)Target_GetPixelX(entity) - (s16)entity->posX.part16.integer) > 0x17\
+    if (Abs((s16)Target_GetPixelX(entity) - (s16)entity->posX.part16.integer) > 0x17\
         && !Tile_Classify(bg->xPos.part16.integer + entity->posX.part16.integer + dx,\
                          bg->yPos.part16.integer + entity->posY.part16.integer))\
         goto hop;\
@@ -554,10 +559,6 @@ void Golem_UpdateMovement(struct EwramData_EntityData *entity)
 
 /* Golem attack state machine (state == 1): overhead punches (states 0-17), ground smashes with rocks
    (20-35) and the repeated jab (40-56). */
-extern void Golem_AttachPart(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern void Golem_UpdateParts(struct EwramData_EntityData *, s8 *);
-extern void Golem_ResetPartAngles(struct EwramData_EntityData *, s32);
-extern void Golem_ThrowDebris(struct EwramData_EntityData *, s32, s32, s32, s32);
 
 #define STATE entity->subState
 #define TIMER entity->timer
@@ -1199,7 +1200,6 @@ void Golem_AttachPart(struct EwramData_EntityData *entity, s32 partIndex, s32 an
 }
 
 /* Load the shared Golem graphics and the palette for its enemy variant. */
-extern s8 ObjPalette_FindOrLoadVariant(void *, u8);
 /**
  * @brief Load the golem graphics (enemy 0x50 uses its own set) and palette variant
  * 0..3 for enemy IDs 0x35, 0x65, 0x22 and 0x50; attach the sprite set.
@@ -1220,15 +1220,12 @@ u8 Golem_LoadGraphics(struct EwramData_EntityData *entity)
     else if (entity->enemyId == 0x50)
         entity->basePalette = ObjPalette_FindOrLoadVariant(sGolemPalette, 3);
     Sprite_Attach(entity, sGolemSpriteSheet, graphics, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
 /* Golem_OnDamaged (hit with HP / death), generated with a template script from the
  * template of WingedSkeleton_OnHit and checked byte for byte. */
-
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
 
 /**
  * @brief 811CC | Hit: flash (hitFlashTimer = 8), subtract the damage from the HP
@@ -1248,7 +1245,7 @@ void Golem_OnDamaged(struct EwramData_EntityData *entity, s32 attacker, u16 *hit
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
@@ -1299,8 +1296,6 @@ void GolemSegment_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 
 /* Golem part update: follows its skeleton joint, maintains collision,
  * then falls and spins after the parent enters state 2. */
-
-extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
 
 struct SegmentBox {
     s8 x;
@@ -1433,9 +1428,6 @@ void GolemSegment_Update(struct EwramData_EntityData *entity)
 }
 
 /* Golem debris (816BC/817B0). */
-extern void GolemDebris_DamagePlayerOnContact(struct EwramData_EntityData *);
-extern void GolemDebris_OnKilled(struct EwramData_EntityData *, s32, u16 *);
-void GolemDebris_Update(struct EwramData_EntityData *entity);
 
 /* Throw a piece of debris from the owner at (x, y) with (vx, vy): it hurts
  * the player (box 0x0808FCFC = x -4, y -4, w 8, h 8) and can be destroyed
@@ -1443,7 +1435,7 @@ void GolemDebris_Update(struct EwramData_EntityData *entity);
 void Golem_ThrowDebris(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx, s32 vy)
 {
     u32 box = 0x0808FCFC;
-    struct EwramData_EntityData *debris = EntityCreateInRange(0x1B, 0x48, (u32 *)GolemDebris_Update);
+    struct EwramData_EntityData *debris = EntityCreateInRange(0x1B, 0x48, GolemDebris_Update);
     s32 graphics;
 
     if (debris == NULL)
@@ -1456,8 +1448,8 @@ void Golem_ThrowDebris(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx,
     }
     Sprite_Attach(debris, sCommonObjectSpriteSheet, graphics, 6);
     debris->animFrame = 0x42;
-    debris->drawFunc = (u32 *)Sprite_DrawEntity;
-    Hit_Enable(debris, 10, GolemDebris_DamagePlayerOnContact, (s32)GolemDebris_OnKilled);
+    debris->drawFunc = Sprite_DrawEntity;
+    Hit_Enable(debris, 10, GolemDebris_DamagePlayerOnContact, GolemDebris_OnKilled);
     HitBox_SetAttack(debris, &box);
     HitBox_SetBody(debris, &box);
     debris->hit.flags &= ~4;
@@ -1517,19 +1509,6 @@ void GolemDebris_Update(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   GolemDebris_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
-
 /**
  * @brief 818A4 | Same as Enemy_DamagePlayerOnContact.
  */
@@ -1578,8 +1557,6 @@ void Golem_UpdateAllParts(struct EwramData_EntityData *entity)
  * a cloning script (constants adjusted where needed), checked byte for
  * byte. */
 #define GREAT_ARMOR_PART_COUNT 14
-
-extern void GolemIdleEffect_Update(struct EwramData_EntityData *entity);
 
 /**
  * @brief 8199C | Like GreatArmor_UpdateParts, but 11 parts.
@@ -1634,7 +1611,7 @@ void Golem_SpawnIdleEffect(struct EwramData_EntityData *owner, s32 x, s32 y)
         Anim_Update(debris);
         debris->flipX = owner->flipX;
         debris->scrollWithBg = 1;
-        debris->drawFunc = (u32 *)Sprite_DrawEntity;
+        debris->drawFunc = Sprite_DrawEntity;
     }
 }
 

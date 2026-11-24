@@ -37,6 +37,10 @@
 #include "data/data_0E0B68.h"
 #include "data/data_118B48.h"
 #include "data/data_4F0B18.h"
+#include "soul_skill_inline.h"
+
+extern EntityFunc sWeaponAttackUpdateFuncs[];
+extern struct WeaponInfo sWeaponInfo[];
 
 /**
  * @brief Empty per-frame hook of debug mode 2229.
@@ -610,7 +614,7 @@ void PlayerStatusIcon_Update(struct EwramData_EntityData *entity)
         case 0:
             gfx = ObjGfx_Find(sCommonObjectGfx);
             Sprite_Attach(entity, sCommonObjectSpriteSheet, gfx, sPlayerStatusIconPalettes[(u16) entity->ext.statusIcon.index.value]);
-            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->animFrame = entity->ext.statusIcon.index.low + 0x59;
             entity->spriteLayer = 0xD;
             entity->scrollWithBg = 1;
@@ -941,7 +945,7 @@ void Player_SpawnStatusIcon(s32 statusIndex)
 
     if (gEwramData->playerStatus.statusEffectTimers[statusIndex] == 0)
     {
-        child = EntityCreateInRange(0x16, 0x19, (u32 *) PlayerStatusIcon_Update);
+        child = EntityCreateInRange(0x16, 0x19, PlayerStatusIcon_Update);
         if (child != NULL)
         {
             child->ext.statusIcon.index.value = statusIndex;
@@ -1076,7 +1080,7 @@ void WeaponMelee_Update(struct EwramData_EntityData *entity)
             {
                 PlaySong(sWeaponSwingSounds[RandomNumberGenerator() & 3]);
             }
-            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->timer = 0;
             entity->state += 1;
             if (owner->ext.player.actionFlags & 0x400)
@@ -1221,7 +1225,7 @@ void WeaponHeavy_Update(struct EwramData_EntityData *entity)
             {
                 PlaySong(sWeaponSwingSounds[RandomNumberGenerator() & 3]);
             }
-            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->ext.weapon.swingAngle = -0x3000;
             if (info->attackVariant == 0)
             {
@@ -1359,7 +1363,7 @@ void Effect_UpdateGunCasing(struct EwramData_EntityData *entity)
 
             gfx = ObjGfx_Find(sCommonObjectGfx);
             Sprite_Attach(entity, sCommonObjectSpriteSheet, gfx, 8);
-            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->animFrame = 0x35;
             entity->state = 1;
             entity->accelY.whole = 0x3000;
@@ -1482,7 +1486,7 @@ void WeaponGun_Update(struct EwramData_EntityData *entity)
             entity->hit.flags |= 4;
             Hit_SetTimerOverride(index, (s32) attackerInfo->hitTimer);
 
-            entity->drawFunc = (u32 *) WeaponGun_Draw;
+            entity->drawFunc = WeaponGun_Draw;
             entity->accelX.whole = 0x80000;
             if (entity->flipX)
             {
@@ -1502,7 +1506,7 @@ void WeaponGun_Update(struct EwramData_EntityData *entity)
                 entity->velY.part16.integer = 0x0;
             }
 
-            child = EntityCreateInRange(0x49, 0xCF, (u32 *) Effect_UpdateGunCasing);
+            child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateGunCasing);
             if (child != NULL)
             {
                 Entity_PlaceRelativeTo(child, owner, 8U, entity->velY.part16.integer - 0x1A);
@@ -1658,7 +1662,7 @@ void WeaponValmanway_Update(struct EwramData_EntityData *entity)
                 PlaySong(sWeaponSwingSounds[3 & RandomNumberGenerator()]);
             }
 
-            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             if (owner->ext.player.actionFlags & 0x400)
             {
                 entity->velY.part16.integer = 0xD;
@@ -1704,8 +1708,6 @@ void WeaponValmanway_Update(struct EwramData_EntityData *entity)
     }
 }
 
-extern void (*sWeaponAttackUpdateFuncs[])(struct EwramData_EntityData *);
-
 /**
  * @brief Create the attack entity for the attacker slot (unk_50C) from
  * sWeaponAttackUpdateFuncs indexed by the weapon type (info unk_8), store it in
@@ -1721,7 +1723,7 @@ struct EwramData_EntityData* Weapon_CreateAttackEntity(struct EwramData_EntityDa
         return 0;
     }
 
-    gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot] = EntityCreateInRange(2, 0x10, (u32 *) sWeaponAttackUpdateFuncs[attackerInfo->attackAnimKind]);
+    gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot] = EntityCreateInRange(2, 0x10, sWeaponAttackUpdateFuncs[attackerInfo->attackAnimKind]);
     if (gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot] != NULL)
     {
         gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot]->ext.weapon.owner = entity;
@@ -1798,7 +1800,7 @@ void JuliusWhipAttack_Update(struct EwramData_EntityData *entity)
  */
 struct EwramData_EntityData* Julius_CreateWhipAttackEntity(struct EwramData_EntityData *entity)
 {
-    gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot] = EntityCreateInRange(2, 0x10, (u32 *) JuliusWhipAttack_Update);
+    gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot] = EntityCreateInRange(2, 0x10, JuliusWhipAttack_Update);
 
     if (gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot] != NULL)
     {
@@ -1810,8 +1812,6 @@ struct EwramData_EntityData* Julius_CreateWhipAttackEntity(struct EwramData_Enti
 
     return gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot];
 }
-
-extern struct WeaponInfo sWeaponInfo[];
 
 static inline struct WeaponInfo *Weapon_GetInfoInline(s32 equippedWeapon)
 {
@@ -1977,7 +1977,7 @@ static inline s8 RedSoul_FindFreeSlot()
  * register it in the first free active red soul slot (owner, slot index,
  * count); NULL when no entity or list slot is free.
  */
-struct EwramData_EntityData* RedSoul_CreateEntity(struct EwramData_EntityData *owner, u32 *update)
+struct EwramData_EntityData* RedSoul_CreateEntity(struct EwramData_EntityData *owner, EntityFunc update)
 {
     struct EwramData_EntityData *entity;
     s8 slot;
@@ -2120,7 +2120,7 @@ void RedSoulTrail_Update(struct EwramData_EntityData *entity)
     curState = entity->state;
     if (curState == 0)
     {
-        entity->drawFunc = (u32*) Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->state += 1;
     }
 
@@ -2163,7 +2163,7 @@ struct EwramData_EntityData* RedSoul_CreateTrailCopy(struct EwramData_EntityData
     sheet = (gEwramData->spriteSlots[*spriteSlot].sheet);
     attachSheet = sheet;
 
-    trail = EntityCreateInRange(0x49, 0xCF, (u32 *) RedSoulTrail_Update);
+    trail = EntityCreateInRange(0x49, 0xCF, RedSoulTrail_Update);
     if (trail == NULL)
     {
         return NULL;
@@ -2271,13 +2271,6 @@ void RedSoulAnchor_Update(struct EwramData_EntityData *entity)
     follower->posY.part16.integer = target->posY.part16.integer + entity->accelY.part16.integer;
 }
 
-static inline void SkillLoadGraphicsInline(struct EwramData_EntityData *entity, u8 first, void *resource, void *palette, void *sheet)
-{
-    gEwramData->playerState.redSoulGfx = ObjGfx_LoadResource(resource, 0x10000);
-    ObjPalette_LoadRange(palette, first, 1, 2);
-    Sprite_Attach(entity, sheet, gEwramData->playerState.redSoulGfx, 2);
-}
-
 /**
  * @brief 23A70 | To document
  * 
@@ -2299,7 +2292,7 @@ void Skill_EvilButcher_Ripper_Use(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
         case 0:
-            SkillLoadGraphicsInline(entity, info->paletteIndex, info->graphics, info->palette, info->spriteSheet);
+            Skill_AttachGraphics(entity, info->paletteIndex, info->graphics, info->palette, info->spriteSheet);
             entity->animFrame = info->animFrame;
             if ((u16) entity->ext.redSoul.param == 0)
             {
@@ -2316,7 +2309,7 @@ void Skill_EvilButcher_Ripper_Use(struct EwramData_EntityData *entity)
                 EntityDelete(entity);
                 return;
             }
-            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->spriteLayer = 0xD;
             entity->affineIndex = affineIndex;
             entity->affine = 1;
@@ -2475,7 +2468,7 @@ void SkillBoomerangProjectileUpdate(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
         case 0:
-            SkillLoadGraphicsInline(entity, 0, sSkillGraphicsSets->graphics, sSkillGraphicsSets->palette, sSkillGraphicsSets->spriteSheet);
+            Skill_AttachGraphics(entity, 0, sSkillGraphicsSets->graphics, sSkillGraphicsSets->palette, sSkillGraphicsSets->spriteSheet);
             Anim_StartIndexed(entity, (u16) entity->ext.redSoul.param, 0, 1);
             if ((u16) entity->ext.redSoul.param == 0)
             {
@@ -2492,7 +2485,7 @@ void SkillBoomerangProjectileUpdate(struct EwramData_EntityData *entity)
                 EntityDelete(entity);
                 return;
             }
-            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->affineIndex = affineIndex;
             entity->affine = 1;
             owner = entity->ext.redSoul.owner;
@@ -2576,9 +2569,9 @@ void SkillAxeArmorTrailUpdate(struct EwramData_EntityData *entity)
                 return;
             }
 
-            SkillLoadGraphicsInline(entity, 0, sSkillGraphicsSets->graphics, sSkillGraphicsSets->palette, sSkillGraphicsSets->spriteSheet);
+            Skill_AttachGraphics(entity, 0, sSkillGraphicsSets->graphics, sSkillGraphicsSets->palette, sSkillGraphicsSets->spriteSheet);
             entity->animFrame = owner->ext.redSoul.param;
-            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->affineIndex = affineIndex;
             entity->affine = 1;
             entity->objMode = 1;
@@ -2634,7 +2627,7 @@ void SkillAxeArmorUse(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
         case 0:
-            SkillLoadGraphicsInline(entity, 0, sSkillGraphicsSets->graphics, sSkillGraphicsSets->palette, sSkillGraphicsSets->spriteSheet);
+            Skill_AttachGraphics(entity, 0, sSkillGraphicsSets->graphics, sSkillGraphicsSets->palette, sSkillGraphicsSets->spriteSheet);
             entity->animFrame = entity->ext.redSoul.param;
             if ((u16) entity->ext.redSoul.param == 0)
             {
@@ -2653,7 +2646,7 @@ void SkillAxeArmorUse(struct EwramData_EntityData *entity)
                 return;
             }
 
-            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->affineIndex = affineIndex;
             entity->affine = 1;
             owner = entity->ext.redSoul.owner;
@@ -2684,7 +2677,7 @@ void SkillAxeArmorUse(struct EwramData_EntityData *entity)
 
             for (i = 1; i < 3; i++)
             {
-                child = RedSoul_CreateEntity(entity, (u32 *) SkillAxeArmorTrailUpdate);
+                child = RedSoul_CreateEntity(entity, SkillAxeArmorTrailUpdate);
                 if (child != NULL)
                 {
                     child->posX.whole = entity->posX.whole;
@@ -2796,7 +2789,7 @@ void HomingSoulProjectile_Update(struct EwramData_EntityData *entity)
             /* Keep the table base distinct from its selected entry. */
             graphicsTable = sSkillGraphicsSets;
             graphicsEntry = &graphicsTable[4];
-            SkillLoadGraphicsInline(entity, 0, graphicsEntry->graphics, graphicsEntry->palette, graphicsEntry->spriteSheet);
+            Skill_AttachGraphics(entity, 0, graphicsEntry->graphics, graphicsEntry->palette, graphicsEntry->spriteSheet);
             Anim_StartIndexed(entity, entity->ext.redSoul.param, 0U, 1U);
             affineSlot = ObjAffine_Alloc(0);
             if ((affineSlot << 0x10) < 0)
@@ -2805,7 +2798,7 @@ void HomingSoulProjectile_Update(struct EwramData_EntityData *entity)
                 EntityDelete(entity);
                 return;
             }
-            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->affineIndex = affineSlot;
             entity->affine = 1;
             owner = entity->ext.redSoul.owner;
@@ -2977,9 +2970,9 @@ void SkillChronomageUse(struct EwramData_EntityData *entity)
 
             infos = sSkillGraphicsSets;
             info = &infos[1];
-            SkillLoadGraphicsInline(entity, 0, info->graphics, info->palette, info->spriteSheet);
+            Skill_AttachGraphics(entity, 0, info->graphics, info->palette, info->spriteSheet);
             Anim_StartIndexed(entity, 0U, 0U, 0U);
-            entity->drawFunc = (u32 *) Soul_DrawWithPaletteInvert;
+            entity->drawFunc = Soul_DrawWithPaletteInvert;
             entity->spriteLayer = 0xD;
             entity->affineIndex = affineIndex;
             entity->affine = 1;
@@ -3132,9 +3125,9 @@ void SkillValkyrieUse(struct EwramData_EntityData *entity)
         case 0:
             infos = sSkillGraphicsSets;
             info = &infos[2];
-            SkillLoadGraphicsInline(entity, 0, info->graphics, info->palette, info->spriteSheet);
+            Skill_AttachGraphics(entity, 0, info->graphics, info->palette, info->spriteSheet);
             Anim_StartIndexed(entity, 0, 0, 0);
-            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->spriteLayer = 0xD;
             entity->scrollWithBg = 1;
 
@@ -3237,9 +3230,9 @@ void SkillKillerDollUse(struct EwramData_EntityData *entity)
         case 0:
             infos = sSkillGraphicsSets;
             info = &infos[6];
-            SkillLoadGraphicsInline(entity, 0, info->graphics, info->palette, info->spriteSheet);
+            Skill_AttachGraphics(entity, 0, info->graphics, info->palette, info->spriteSheet);
             Anim_StartIndexed(entity, RandomNumberGenerator() & 1, 0U, 1U);
-            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->spriteLayer = 0xD;
             entity->scrollWithBg = 1;
 
@@ -3376,9 +3369,9 @@ void SkillNemesisUse(struct EwramData_EntityData *entity)
         case 0:
             infos = sSkillGraphicsSets;
             info = &infos[21];
-            SkillLoadGraphicsInline(entity, 0, info->graphics, info->palette, info->spriteSheet);
+            Skill_AttachGraphics(entity, 0, info->graphics, info->palette, info->spriteSheet);
             Anim_StartIndexed(entity, 2U, 0U, 1U);
-            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->spriteLayer = 0xF;
             entity->scrollWithBg = 1;
 

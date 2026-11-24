@@ -36,7 +36,8 @@ struct Object19Step
 };
 
 extern const struct Object19Step sObject19Steps[4];
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
+extern s32 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
+extern s32 Bg_SetControlIfLevelAllows(s32 level, s32 reg, s32 value);
 
 static inline s32 Object19NextStep(struct EwramData_EntityData *entity, s32 step)
 {
@@ -93,7 +94,7 @@ void Object19Update(struct EwramData_EntityData *entity)
         OBJ19_STEP(entity, 0);
         break;
     }
-    Hit_CheckWithPlayer(hit, entity);
+    Hit_CheckWithPlayer((struct HitResult *)hit, entity);
     ObjAffine_Set((s16)entity->ext.object19.angle, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
 }
 
@@ -124,8 +125,6 @@ void Object19_Draw(struct EwramData_EntityData *entity)
     entity->animFrame = 1;
     Sprite_Draw(entity);
 }
-
-extern s32 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
 
 void Object1BCreate(struct EwramData_EntityData *entity)
 {
@@ -448,8 +447,6 @@ end:
     return done;
 }
 
-extern void SavePoint_SpawnAnimParts(struct EwramData_EntityData *entity);
-
 /**
  * @brief 5464C | Object 0x1C init: Hud_CloseMessageWindow, Text_SetTileBuffer(VRAM
  * 0x06005000), graphics sSaveWarpRoomGfx (ObjGfx_Find or newly loaded,
@@ -485,15 +482,15 @@ void Object1CCreate(struct EwramData_EntityData *entity)
     entity->spriteLayer = 0x11;
     Entity_SnapToGround(entity);
     SavePoint_SpawnAnimParts(entity);
-    child = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
+    child = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
     if (child != NULL)
     {
         child->hidden = 1;
         child->spriteLayer = 3;
         SAVE_POINT_MARKERS_INDEX(entity) = ENTITY_INDEX(child);
         ENTITY_PARENT_INDEX(child) = ENTITY_INDEX(entity);
-        child->drawFunc = (u32 *)SavePoint_DrawPromptMarkers;
-        child->updateFunc = (u32 *)EntityUpdateNothing;
+        child->drawFunc = SavePoint_DrawPromptMarkers;
+        child->updateFunc = EntityUpdateNothing;
         Sprite_Attach(child, sSaveWarpRoomSpriteSheet, entity->ext.savePoint.graphics, 0xE);
     }
 }
@@ -503,8 +500,6 @@ void Object1CCreate(struct EwramData_EntityData *entity)
  * parameter: the original caller passes 0x10 - x without narrowing it to u16.
  * The state is read into a local before &gEwramData is copied into its own
  * register. */
-
-extern s32 Bg_SetControlIfLevelAllows(s32 level, s32 reg, s32 value);
 
 #define OWNER(e) (&(*ew)->entityData[ENTITY_BYTE_519((e))])
 

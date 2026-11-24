@@ -17,8 +17,11 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
+
+void DeadWarrior_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+
 /* Dead Warrior charge, braking and death. */
-extern s32 Target_IsNearEntity(struct EwramData_EntityData *, s32, s32);
 
 /**
  * @brief Alive state (0): walk using the stored speed, accelerate, then
@@ -131,11 +134,6 @@ s32 DeadWarrior_UpdateDeath(struct EwramData_EntityData *entity)
     return 0;
 }
 
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
-extern void Enemy_OnContact(struct EwramData_EntityData *);
-extern void DeadWarrior_OnHit(struct EwramData_EntityData *);
-extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, void *);
-
 void EnemyDeadWarriorCreate(struct EwramData_EntityData *entity)
 {
     if (!Entity_LoadGraphics(entity, sDeadWarriorGfx, sDeadWarriorPalette, 0, sDeadWarriorSpriteSheet))
@@ -165,15 +163,13 @@ void EnemyDeadWarriorCreate(struct EwramData_EntityData *entity)
  * a cloning script (constants adjusted where needed), checked byte for
  * byte. */
 
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
-
 /**
  * @brief Apply enemy damage; on defeat drop rewards, restore the palette
  * and enter death state 1 with the substate counters reset.
  */
-void DeadWarrior_OnHit(struct EwramData_EntityData *entity)
+void DeadWarrior_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    if (Enemy_TakeDamage(entity))
+    if (Enemy_TakeDamage(entity, attacker, hit))
     {
         Enemy_DropRewards(entity);
         entity->palette = entity->basePalette;

@@ -24,12 +24,40 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "data/data_0E5364.h"
+#include "math_inline.h"
+#include "player_core.h"
+#include "hitbox.h"
+#include "player_soma.h"
+#include "red_souls_b.h"
 
 #define SET_MOSAIC(t)                                                        \
     {                                                                        \
         v = (u32)((t) << 24) >> 26;                                              \
         gDisplayRegisters.mosaic = v | (v << 4) | (v << 8) | (v << 12);      \
     }
+
+extern u32 Entity_AngleToPoint(struct EwramData_EntityData *, s32, s32);
+
+s32 EventScene03_Start(struct EwramData_EntityData *entity);
+s32 EventScene03_RunSequence(struct EwramData_EntityData *);
+s32 EventScene03_EndParts(struct EwramData_EntityData *);
+void EventScene03MainPart_Update(struct EwramData_EntityData *entity);
+struct EwramData_EntityData *EventScene03_SpawnRisingPart(struct EwramData_EntityData *parent, s32 x, s32 y, s32 flags);
+struct EwramData_EntityData *EventScene03_SpawnFlyingPart(struct EwramData_EntityData *parent, s32 x, s32 y);
+struct EwramData_EntityData *EventScene03_SpawnSoulOrb(s32 x, s32 y, s32 variant, s32 index, s32 mode);
+void EventScene03_SpawnPartDebris(struct EwramData_EntityData *owner);
+void EventScene03UnusedPart_Update(struct EwramData_EntityData *);
+void EventScene03AttachedEffect_Update(struct EwramData_EntityData *);
+struct EwramData_EntityData *EventScene03_SpawnTargetOrb(s32 x, s32 y, s32 variant, s32 index, struct EwramData_EntityData *target);
+void EventScene03AttachedHelper_Update(struct EwramData_EntityData *);
+void EventScene03_SpawnUnusedPartDebris(struct EwramData_EntityData *);
+void EventScene03FlyingPart_Update(struct EwramData_EntityData *entity);
+void EventScene03RisingPart_Update(struct EwramData_EntityData *entity);
+void EventScene03Debris_Update(struct EwramData_EntityData *);
+void EventScene03SoulOrb_Update(struct EwramData_EntityData *);
+void EventScene03SoulOrb_OnPlayerContact(struct EwramData_EntityData *);
+void EventScene03TargetOrb_Update(struct EwramData_EntityData *);
+void EventScene03TargetOrb_OnContact(struct EwramData_EntityData *);
 
 /**
  * @brief Mosaic step of event scene 3: fade the mosaic in and out over its
@@ -152,7 +180,6 @@ s32 EventScene03_ScrollCamera(struct EwramData_EntityData *entity)
 }
 
 /* EventScene03_Init. */
-s32 EventScene03_Start(struct EwramData_EntityData *entity);
 
 /**
  * @brief Init of event scene variant 3 (Object 0x20 spawnParam0 = 3,
@@ -197,9 +224,6 @@ created:
 }
 
 /* EventScene03_Update: event script step (room event state machine); matched. */
-extern void Player_StartScriptedAnimation(s32, s32, s32, s32);
-extern s32 EventScene03_RunSequence(struct EwramData_EntityData *);
-extern s32 EventScene03_EndParts(struct EwramData_EntityData *);
 
 /**
  * @brief Update of event scene variant 3 (sEventSceneUpdateFuncs[3]); returns the player
@@ -334,8 +358,6 @@ s32 EventScene03_Update(struct EwramData_EntityData *entity)
 /* Scene start: place the player and the three helper entities at fixed room
  * positions (relative to the BG1 camera) and give each helper its animation. */
 
-void EventScene03MainPart_Update(struct EwramData_EntityData *entity);
-
 #define PLAYER (gEwramData->playerState.player)
 
 /* The camera X reads use block-local u16 copies; the 0x16F position is
@@ -379,14 +401,11 @@ s32 EventScene03_Start(struct EwramData_EntityData *entity)
     entity->ext.event03.actor8->posY.part16.integer = 0x268 - bg3->yPos.part16.integer;
     result = Anim_StartIndexed(entity->ext.event03.actor8, 4, 0, 1);
     ENTITY_PARENT_INDEX(entity->ext.event03.actor8) = ENTITY_INDEX(entity);
-    entity->ext.event03.actor8->updateFunc = (u32 *)EventScene03MainPart_Update;
+    entity->ext.event03.actor8->updateFunc = EventScene03MainPart_Update;
     return result;
 }
 
 /* EventScene03_SpawnPartsA, EventScene03_SpawnPartsB. */
-
-extern struct EwramData_EntityData *EventScene03_SpawnRisingPart(struct EwramData_EntityData *parent, s32 x, s32 y, s32 flags);
-extern struct EwramData_EntityData *EventScene03_SpawnFlyingPart(struct EwramData_EntityData *parent, s32 x, s32 y);
 
 /**
  * @brief 5D2C8 | Spawn the five effects of sEventScene03SpotsA (EventScene03_SpawnRisingPart at
@@ -449,9 +468,6 @@ void EventScene03_SpawnPartsB(struct EwramData_EntityData *entity)
  * Each step advance is written out (no shared label) so only the final
  * stage++ is cross-jumped; the decrement in step 5/3 goes through an s32
  * temporary; step 8 has an empty case 2. */
-
-extern struct EwramData_EntityData *EventScene03_SpawnSoulOrb(s32 x, s32 y, s32 variant, s32 index, s32 mode);
-extern void EventScene03_SpawnPartDebris(struct EwramData_EntityData *owner);
 
 #define STEP (*(u8 *)&entity->enemyStatus)
 
@@ -875,16 +891,13 @@ void EventScene03MainPart_Update(struct EwramData_EntityData *entity)
     Anim_Update(entity);
 }
 
-extern void EventScene03UnusedPart_Update(struct EwramData_EntityData *);
-extern void EventScene03AttachedEffect_Update(struct EwramData_EntityData *);
-
 /* Spawn an entity and an attached animated part in event slot group 9. */
 struct EwramData_EntityData *EventScene03_SpawnUnusedPart(struct EwramData_EntityData *owner, s32 x, s32 y, s32 flags)
 {
     struct EwramData_EntityData *entity = Entity_CreateFromObjectTable(9);
     struct EwramData_EntityData *part;
     s32 i, facing;
-    entity->updateFunc = (u32 *)EventScene03UnusedPart_Update;
+    entity->updateFunc = EventScene03UnusedPart_Update;
     entity->posX.part16.integer = x;
     entity->posY.part16.integer = y;
     ENTITY_PARENT_INDEX(entity) = ENTITY_INDEX(owner);
@@ -903,7 +916,7 @@ struct EwramData_EntityData *EventScene03_SpawnUnusedPart(struct EwramData_Entit
         facing = 1;
     entity->flipX = facing;
     part = Entity_CreateFromObjectTable(9);
-    part->updateFunc = (u32 *)EventScene03AttachedEffect_Update;
+    part->updateFunc = EventScene03AttachedEffect_Update;
     ENTITY_PARENT_INDEX(part) = ENTITY_INDEX(entity);
     part->posX.part16.integer = entity->posX.part16.integer;
     part->posY.part16.integer = entity->posY.part16.integer;
@@ -913,10 +926,6 @@ struct EwramData_EntityData *EventScene03_SpawnUnusedPart(struct EwramData_Entit
     part->enemyId = entity->enemyId;
     return entity;
 }
-
-struct EwramData_EntityData *EventScene03_SpawnTargetOrb(s32 x, s32 y, s32 variant, s32 index, struct EwramData_EntityData *target);
-extern void EventScene03AttachedHelper_Update(struct EwramData_EntityData *);
-extern void EventScene03_SpawnUnusedPartDebris(struct EwramData_EntityData *);
 
 /* Event part (EventScene03UnusedPart_Update, cf. EventScene03RisingPart_Update): wait for its owner, rise,
  * shake (optionally spawning a EventScene03AttachedHelper_Update helper), blink, then break apart. */
@@ -988,7 +997,7 @@ void EventScene03UnusedPart_Update(struct EwramData_EntityData *entity)
                 if (entity->ext.event03Part.flags & 16)
                 {
                     child = Entity_CreateFromObjectTable(9);
-                    child->updateFunc = (u32 *)EventScene03AttachedHelper_Update;
+                    child->updateFunc = EventScene03AttachedHelper_Update;
                     ENTITY_PARENT_INDEX(child) = ENTITY_INDEX(entity);
                     child->posX.part16.integer = entity->posX.part16.integer;
                     child->posY.part16.integer = entity->posY.part16.integer;
@@ -1133,7 +1142,6 @@ void EventScene03AttachedHelper_Update(struct EwramData_EntityData *entity)
 }
 
 /* EventScene03_SpawnFlyingPart. */
-void EventScene03FlyingPart_Update(struct EwramData_EntityData *entity);
 
 /**
  * @brief 5E260 | Spawn an effect entity (Entity_CreateFromObjectTable(8), update
@@ -1145,7 +1153,7 @@ struct EwramData_EntityData *EventScene03_SpawnFlyingPart(struct EwramData_Entit
     struct EwramData_EntityData *entity = Entity_CreateFromObjectTable(8);
     s32 flip;
 
-    entity->updateFunc = (u32 *)EventScene03FlyingPart_Update;
+    entity->updateFunc = EventScene03FlyingPart_Update;
     entity->posX.part16.integer = x;
     entity->posY.part16.integer = y;
     ENTITY_PARENT_INDEX(entity) = ENTITY_INDEX(parent);
@@ -1282,7 +1290,6 @@ void EventScene03FlyingPart_Update(struct EwramData_EntityData *entity)
 }
 
 /* EventScene03_SpawnRisingPart. */
-void EventScene03RisingPart_Update(struct EwramData_EntityData *entity);
 
 /**
  * @brief 5E528 | Spawn an effect entity (Entity_CreateFromObjectTable(10), update
@@ -1295,7 +1302,7 @@ struct EwramData_EntityData *EventScene03_SpawnRisingPart(struct EwramData_Entit
     struct EwramData_EntityData *entity = Entity_CreateFromObjectTable(10);
     s32 flip;
 
-    entity->updateFunc = (u32 *)EventScene03RisingPart_Update;
+    entity->updateFunc = EventScene03RisingPart_Update;
     entity->posX.part16.integer = x;
     entity->posY.part16.integer = y;
     Entity_SnapToGround(entity);
@@ -1460,8 +1467,6 @@ void EventScene03RisingPart_Update(struct EwramData_EntityData *entity)
     Anim_Update(entity);
 }
 
-extern void EventScene03Debris_Update(struct EwramData_EntityData *);
-
 /* Seven debris pieces using the owner's graphics and palette. */
 
 void EventScene03_SpawnUnusedPartDebris(struct EwramData_EntityData *owner)
@@ -1472,7 +1477,7 @@ void EventScene03_SpawnUnusedPartDebris(struct EwramData_EntityData *owner)
     const s8 *info;
     for (i = 6; i >= 0; offset += 6, i--)
     {
-        part = EntityCreateInRange(0x49, 0xCF, (u32 *)EventScene03Debris_Update);
+        part = EntityCreateInRange(0x49, 0xCF, EventScene03Debris_Update);
         if (part != NULL)
         {
             info = sEventScene03UnusedDebris + offset;
@@ -1483,7 +1488,7 @@ void EventScene03_SpawnUnusedPartDebris(struct EwramData_EntityData *owner)
             graphics = Sprite_GetTileSlot(owner);
             Sprite_Attach(part, sSkeletonSpriteSheet, graphics, part->basePalette);
             part->scrollWithBg = 1;
-            part->drawFunc = (u32 *)Sprite_DrawEntity;
+            part->drawFunc = Sprite_DrawEntity;
             part->posX.whole = owner->posX.whole;
             part->posY.whole = owner->posY.whole;
             x = info[0];
@@ -1519,7 +1524,7 @@ void EventScene03_SpawnPartDebris(struct EwramData_EntityData *owner)
     const s8 *info;
     for (i = 6; i >= 0; offset += 6, i--)
     {
-        part = EntityCreateInRange(0x49, 0xCF, (u32 *)EventScene03Debris_Update);
+        part = EntityCreateInRange(0x49, 0xCF, EventScene03Debris_Update);
         if (part != NULL)
         {
             info = sEventScene03Debris + offset;
@@ -1530,7 +1535,7 @@ void EventScene03_SpawnPartDebris(struct EwramData_EntityData *owner)
             graphics = Sprite_GetTileSlot(owner);
             Sprite_Attach(part, sWingedSkeletonSpriteSheet, graphics, part->basePalette);
             part->scrollWithBg = 1;
-            part->drawFunc = (u32 *)Sprite_DrawEntity;
+            part->drawFunc = Sprite_DrawEntity;
             part->posX.whole = owner->posX.whole;
             part->posY.whole = owner->posY.whole;
             x = info[0];
@@ -1550,16 +1555,13 @@ void EventScene03_SpawnPartDebris(struct EwramData_EntityData *owner)
     }
 }
 
-extern void EventScene03SoulOrb_Update(struct EwramData_EntityData *);
-extern void EventScene03SoulOrb_OnPlayerContact(struct EwramData_EntityData *);
-extern u32 Entity_AngleToPoint(struct EwramData_EntityData *, s32, s32);
 /**
  * @brief Spawn a soul orb (soul pickup palette of the variant) that homes in on
  * the player, or waits (mode != 0); its contact callback ends it.
  */
 struct EwramData_EntityData *EventScene03_SpawnSoulOrb(s32 x, s32 y, s32 variant, s32 index, s32 mode)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)EventScene03SoulOrb_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, EventScene03SoulOrb_Update);
     if (entity != NULL)
     {
         s32 graphics;
@@ -1569,7 +1571,7 @@ struct EwramData_EntityData *EventScene03_SpawnSoulOrb(s32 x, s32 y, s32 variant
         Anim_StartIndexed(entity, 6, 0, 1);
         Anim_Update(entity);
         entity->stage = 1;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         Hit_Enable(entity, 0xB, EventScene03SoulOrb_OnPlayerContact, 0);
         entity->hit.flags |= 4;
         HitBox_SetAttackRaw(entity, 0x0C0CFAFA);
@@ -1592,10 +1594,6 @@ struct EwramData_EntityData *EventScene03_SpawnSoulOrb(s32 x, s32 y, s32 variant
 }
 
 /* Homing projectile, including impact and its particle trail. */
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern s32 Entity_StepAngleTowardPoint(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern s32 RandomSigned(s32);
-static inline s32 FixedMulFast(s32 a, s32 b) { return (a >> 8) * (b >> 8); }
 /**
  * @brief Steer the soul orb towards the player with growing turn rate and speed
  * and leave a particle trail.
@@ -1617,7 +1615,7 @@ void EventScene03SoulOrb_Update(struct EwramData_EntityData *entity)
         entity->posX.whole += entity->velX.whole;
         entity->posY.whole += entity->velY.whole;
     }
-    Hit_CheckWithPlayer(collision, entity);
+    Hit_CheckWithPlayer((struct HitResult *)collision, entity);
     if ((entity->timer & 3) == 0)
     {
         s32 palette = entity->palette;
@@ -1648,16 +1646,13 @@ void EventScene03SoulOrb_Update(struct EwramData_EntityData *entity)
     if (entity->stage != 0) Anim_Update(entity);
 }
 
-extern void EventScene03TargetOrb_Update(struct EwramData_EntityData *);
-extern void EventScene03TargetOrb_OnContact(struct EwramData_EntityData *);
-
 /**
  * @brief Spawn an orb that homes in on the given target entity (deleted on
  * arrival with sound 0xBC).
  */
 struct EwramData_EntityData *EventScene03_SpawnTargetOrb(s32 x, s32 y, s32 variant, s32 index, struct EwramData_EntityData *target)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)EventScene03TargetOrb_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, EventScene03TargetOrb_Update);
     if (entity != NULL)
     {
         s32 graphics, targetX, offset;
@@ -1668,7 +1663,7 @@ struct EwramData_EntityData *EventScene03_SpawnTargetOrb(s32 x, s32 y, s32 varia
         Anim_StartIndexed(entity, 0x16, 0, 1);
         Anim_Update(entity);
         entity->stage = 1;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         Hit_Enable(entity, 0xB, EventScene03TargetOrb_OnContact, 0);
         entity->hit.flags |= 4;
         HitBox_SetAttackRaw(entity, 0x0C0CFAFA);
@@ -1746,7 +1741,6 @@ void EventScene03TargetOrb_Update(struct EwramData_EntityData *entity)
 }
 
 /* Related-entity animation and particle helpers, 0x0805F008..0x0805F11F. */
-extern struct EwramData_EntityData *Effect_SpawnAttachedAnimation(struct EwramData_EntityData *, s32, s32, s32, s32);
 
 /**
  * @brief Finish event scene 3: animation 5 on helper unk_4F8, animation 1 on

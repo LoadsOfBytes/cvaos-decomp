@@ -21,13 +21,17 @@
 #include "text_window.h"
 #include "data/data_4F1444.h"
 #include "data/data_118B48.h"
+#include "player_soma.h"
+
+extern struct RoomDefinition sEndingRoomDefinition;
+extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
+extern s32 Collision_GetGroundOffset(s32 x, s32 y);
+
+s32 EventScene31Debris_Update(struct EwramData_EntityData *entity);
 
 /* EventScene30_Update, decompiled from the original assembly. The second random
  * number has its own block variable and its offset is summed in a statement
  * expression before the player Y is added, as in the target. */
-
-extern void Player_StartScriptedAnimation(s32, s32, s32, s32);
-extern struct RoomDefinition sEndingRoomDefinition;
 
 /* Unresolved original return value: the assembly returns the incoming r9. */
 /**
@@ -254,7 +258,6 @@ s32 EventScene00_Update(struct EwramData_EntityData *entity)
 /* EventScene01_Update. */
 /* Declared with an int result as in object/objects_00_07.c: the original compares
  * the returned value without sign extension. */
-extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
 
 /**
  * @brief Update of event scene variant 1 (sEventSceneUpdateFuncs[1]); returns the player
@@ -421,9 +424,6 @@ s32 EventScene29_Update(struct EwramData_EntityData *entity)
 
 /* EventScene31_SpawnBlockDebris..sub_0805C49B. */
 
-extern s32 Collision_GetGroundOffset(s32 x, s32 y);
-s32 EventScene31Debris_Update(struct EwramData_EntityData *entity);
-
 /* Enter state s of entity (state) with both sub-states cleared. */
 #define SET_STATE(e, s)                     \
     {                                       \
@@ -455,7 +455,7 @@ s32 EventScene31_SpawnBlockDebris(s16 x, s16 y)
             entity->animFrame = info->frame;
             entity->timer = info->initialTimer;
             entity->accelY.whole = 0x2000;
-            entity->updateFunc = (u32 *)EventScene31Debris_Update;
+            entity->updateFunc = (EntityFunc)EventScene31Debris_Update;
         }
     }
 }
@@ -568,7 +568,7 @@ s32 EventScene31BlockHolder_Update(struct EwramData_EntityData *entity)
                     block->accelX.whole = 0x100;
                     block->accelY.whole = 0x1000;
                     block->animFrame = 3;
-                    block->updateFunc = (u32 *)EventScene31FallingBlock_Update;
+                    block->updateFunc = (EntityFunc)EventScene31FallingBlock_Update;
                 }
                 entity->animFrame = 2;
                 entity->stage++;
@@ -631,7 +631,7 @@ void EventScene31_Init(struct EwramData_EntityData *entity)
     }
     Anim_StartIndexed(entity->ext.event31.blockHolder, 0, 0, 1);
     Anim_Update(entity);
-    entity->ext.event31.blockHolder->updateFunc = (u32 *)EventScene31BlockHolder_Update;
+    entity->ext.event31.blockHolder->updateFunc = (EntityFunc)EventScene31BlockHolder_Update;
     gEwramData->playerState.player->hidden = 1;
     ewram = gEwramData;
     ewram->playerState.player->posX.part16.integer = 0xA0 - (bg = &ewram->bgInfo[1])->xPos.part16.integer;

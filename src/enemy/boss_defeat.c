@@ -25,6 +25,12 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "structs/entity_template.h"
+#include "entity_inline.h"
+#include "hitbox.h"
+#include "soul_pickup.h"
+
+
+void BossRecoveryPickup_Draw(struct EwramData_EntityData *);
 
 /* BossDefeatParticle_Update (effect). */
 
@@ -43,7 +49,7 @@ void BossDefeatParticle_Update(struct EwramData_EntityData *entity)
 
             Sprite_Attach(entity, sDefeatParticleSpriteSheet, gfx, 8);
             Anim_StartIndexed(entity, 0, 0, 0);
-            entity->drawFunc = (u32 *)Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->spriteLayer = 0x10;
             entity->objMode = 1;
             entity->state++;
@@ -57,10 +63,6 @@ void BossDefeatParticle_Update(struct EwramData_EntityData *entity)
 }
 
 /* Wider sweep variant restores the shared object graphics when it ends. */
-static inline s32 SweepWave(struct EwramData_EntityData *entity)
-{
-    return Sin(entity->timer*0xA00)*24;
-}
 static inline void RestoreEffectGraphics(void)
 {
     if(gEwramData->gameState.stateFlags & 8)
@@ -100,7 +102,7 @@ void BossDefeatEffect_Update(struct EwramData_EntityData *entity)
             {
                 if((entity->timer & 3)==0)
                 {
-                    struct EwramData_EntityData *particle=EntityCreateInRange(0x49,0xCF,(u32 *)BossDefeatParticle_Update);
+                    struct EwramData_EntityData *particle=EntityCreateInRange(0x49,0xCF,BossDefeatParticle_Update);
                     if(particle)
                     {
                         s32 random,width,centerX;
@@ -177,7 +179,7 @@ static inline void BossDefeat_LoadEffectTilesOnce(void)
  */
 void BossDefeatEffect_Spawn(s32 x, s32 y)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)BossDefeatEffect_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, BossDefeatEffect_Update);
 
     if (child == NULL)
         return;
@@ -220,7 +222,7 @@ void HeadhunterDefeatEffect_Update(struct EwramData_EntityData *entity)
             {
                 if((entity->timer & 3)==0)
                 {
-                    struct EwramData_EntityData *particle=EntityCreateInRange(0x49,0xCF,(u32 *)BossDefeatParticle_Update);
+                    struct EwramData_EntityData *particle=EntityCreateInRange(0x49,0xCF,BossDefeatParticle_Update);
                     if(particle)
                     {
                         u32 random;
@@ -289,7 +291,7 @@ void ChaosDefeatParticle_Update(struct EwramData_EntityData *entity)
 
             Sprite_Attach(entity, sDefeatParticleSpriteSheet, gfx, 8);
             Anim_StartIndexed(entity, 0, 0, 0);
-            entity->drawFunc = (u32 *)Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->spriteLayer = 0x19;
             entity->objMode = 1;
             entity->state++;
@@ -328,7 +330,7 @@ void ChaosDefeatEffect_Update(struct EwramData_EntityData *entity)
             {
                 if((entity->timer & 3)==0)
                 {
-                    struct EwramData_EntityData *particle=EntityCreateInRange(0x49,0xCF,(u32 *)ChaosDefeatParticle_Update);
+                    struct EwramData_EntityData *particle=EntityCreateInRange(0x49,0xCF,ChaosDefeatParticle_Update);
                     if(particle)
                     {
                         s32 random,width,centerX;
@@ -402,7 +404,7 @@ void BossRecoveryPickupParticle_Update(struct EwramData_EntityData *entity)
             s32 graphics=ObjGfx_Find(sCommonObjectGfx);
             Sprite_Attach(entity,sCommonObjectSpriteSheet,graphics,7);
             Anim_Start(entity,sRecoveryPickupParticleAnimScript,0,0);
-            entity->drawFunc=(u32 *)Sprite_DrawEntity;
+            entity->drawFunc=Sprite_DrawEntity;
             entity->spriteLayer=10;
             entity->scrollWithBg=1;
             entity->state++;
@@ -445,7 +447,6 @@ void BossRecoveryPickupParticle_Update(struct EwramData_EntityData *entity)
 }
 
 /* Seven scene stages: appear, spiral particles, fall, trigger and wait. */
-extern s32 Hit_CheckWithPlayer(void *,struct EwramData_EntityData *);
 #define PHASE(e) (e->ext.bossPickup.phase)
 #define LANDED(e) (e->ext.bossPickup.landed)
 #define SCALE(e) (*(s32 *)&e->ext.bossPickup.scale)
@@ -477,7 +478,7 @@ void BossRecoveryPickup_Update(struct EwramData_EntityData *entity)
             if(!(entity->timer & 1) && SCALE(entity)<=0x7FFF)
             {
                 u16 angle=RandomNumberGenerator();
-                struct EwramData_EntityData *particle=EntityCreateInRange(0x49,0xCF,(u32 *)BossRecoveryPickupParticle_Update);
+                struct EwramData_EntityData *particle=EntityCreateInRange(0x49,0xCF,BossRecoveryPickupParticle_Update);
                 if(particle)
                 {
                     particle->accelX.whole=entity->posX.whole+camera->xPos.whole;
@@ -546,7 +547,7 @@ void BossRecoveryPickup_Update(struct EwramData_EntityData *entity)
                     entity->posY.whole+=Sin((s16)PHASE(entity)/4)/4;
                 }
             }
-            { s32 collision=Hit_CheckWithPlayer(bounds,entity);
+            { s32 collision=Hit_CheckWithPlayer((struct HitResult *)bounds,entity);
             collision=(u32)collision<<16;
             collision=(u32)collision>>16;
             collision=(u8)(collision & 1); if(collision)
@@ -599,7 +600,6 @@ void BossRecoveryPickup_Update(struct EwramData_EntityData *entity)
 }
 
 /* Create a scene object and update the corresponding persistent event bit. */
-extern void BossRecoveryPickup_Draw(struct EwramData_EntityData *);
 /**
  * @brief Update the existing boss-event/music flags and create a hidden
  * delayed recovery pickup with affine scaling and a custom draw
@@ -617,7 +617,7 @@ void BossRecoveryPickup_Spawn(u16 x,u16 y,s32 event,s32 delay,s32 special)
         gEwramData->gameState.bossEventFlags|=1<<event;
         gEwramData->gameState.stateFlags&=~2;
     }
-    entity=EntityCreateInRange(0x49,0xCF,(u32 *)BossRecoveryPickup_Update);
+    entity=EntityCreateInRange(0x49,0xCF,BossRecoveryPickup_Update);
     if(entity)
     {
         u16 sprite=ObjAffine_Alloc(1);
@@ -633,7 +633,7 @@ void BossRecoveryPickup_Spawn(u16 x,u16 y,s32 event,s32 delay,s32 special)
             s32 graphics=ObjGfx_Find(sCommonObjectGfx);
             Sprite_Attach(entity,sCommonObjectSpriteSheet,graphics,7);
         }
-        entity->drawFunc=(u32 *)BossRecoveryPickup_Draw;
+        entity->drawFunc=BossRecoveryPickup_Draw;
         entity->animFrame=0x7C;
         entity->spriteLayer=10;
         entity->scrollWithBg=1;
@@ -704,7 +704,7 @@ void BossDefeat_RestoreEffectTiles(void)
  */
 void Headhunter_SpawnDefeatEffect(s32 x, s32 y)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadhunterDefeatEffect_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, HeadhunterDefeatEffect_Update);
 
     if (child == NULL)
         return;
@@ -727,7 +727,7 @@ void Headhunter_SpawnDefeatEffect(s32 x, s32 y)
  */
 void Chaos_SpawnDefeatEffect(s32 x, s32 y)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)ChaosDefeatEffect_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, ChaosDefeatEffect_Update);
 
     if (child == NULL)
         return;
@@ -740,8 +740,6 @@ void Chaos_SpawnDefeatEffect(s32 x, s32 y)
 
 /* SoulPickup_SpawnFromEnemyDefinition / BossRecoveryPickup_Draw. */
 
-extern struct EwramData_EntityData *SoulPickup_Create(s16 x, s16 y, s32 palette, s32 soulId, s32 stationary);
-
 /**
  * @brief For Soma under the existing mode guard, create the enemy-definition soul pickup and store its persistence flag and substate two.
  */
@@ -753,7 +751,7 @@ void SoulPickup_SpawnFromEnemyDefinition(u16 x, u16 y, s32 enemyId, s32 spawnPar
 
     if (gEwramData->gameState.bossRushMode == 0 && gEwramData->playerStatus.currentCharacter == 0)
     {
-        struct EwramData_EntityData *pickup = SoulPickup_Create(x, y, palette, soulId - 1, 0);
+        struct EwramData_EntityData *pickup = SoulPickup_Create((s16)x, (s16)y, palette, soulId - 1, 0);
 
         if (pickup != NULL)
         {

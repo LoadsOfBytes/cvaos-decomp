@@ -25,6 +25,17 @@
 #include "data/data_118B48.h"
 #include "red_souls_b.h"
 
+extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
+extern s32 MenuGrid_MoveCursor(struct EwramData_EntityData *entity, u16 input);
+
+void CursorSprite_Update(struct EwramData_EntityData *);
+void SoulMenu_ClearStatPreview(void);
+void SoulMenu_DrawList(struct EwramData_EntityData *page, s32 slot);
+void SoulMenu_PrintEquippedName(struct EwramData_EntityData *entity);
+void SoulMenu_ShowSelection(struct EwramData_EntityData *entity);
+void SoulMenu_CountList(struct EwramData_EntityData *entity, s32 kind);
+void SoulMenu_DrawCategoryIcon(struct EwramData_EntityData *entity);
+
 /* Page-title entity (slot 20) state machine (state at unk_508): state 1
  * places the entity at (0x35, 9) and moves to state 2; state 2 enables affine
  * slot ENTITY_HALF_510 on the first frame and grows the scale by 0x1000 per frame for
@@ -113,7 +124,7 @@ void MenuItemIcon_Show(s32 x, s32 y, s32 type, s32 item)
         }
         entity->ext.menu.gfxSlot = ItemIconCache_Load(info[2]);
         ItemIcon_AttachSprite(entity, entity->ext.menu.gfxSlot, (s8)info[3]);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->posX.part16.integer = x;
         entity->posY.part16.integer = y;
         entity->scrollWithBg = 1;
@@ -158,7 +169,7 @@ void MenuSlotIcon_Show(s32 x, s32 y, s32 type, s32 item, s32 slot)
         }
         entity->ext.menu.gfxSlot = ItemIconCache_Load(info[2]);
         ItemIcon_AttachSprite(entity, entity->ext.menu.gfxSlot, (s8)info[3]);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->posX.part16.integer = x;
         entity->posY.part16.integer = y;
         entity->scrollWithBg = 1;
@@ -359,7 +370,6 @@ void MenuSlotIcon_SetHidden(u8 value, s32 index)
     e[0xD0].hidden = v;
 }
 
-extern void CursorSprite_Update(struct EwramData_EntityData *);
 /**
  * @brief Delete the entity, load the language dependent cursor graphics and
  * palette, attach the cursor animation set and install CursorSprite_Update.
@@ -381,7 +391,7 @@ s32 CursorSprite_Create(struct EwramData_EntityData *entity, u16 palette)
         ObjPalette_LoadRange(sCursorSpritePalette, 1, 1, palette);
         Sprite_Attach(entity, sMenuSpriteSheet, graphics, palette);
         entity->animFrame = 0x1E;
-        entity->updateFunc = (u32 *)CursorSprite_Update;
+        entity->updateFunc = CursorSprite_Update;
         result = 1;
     }
     else result = 0;
@@ -391,8 +401,6 @@ s32 CursorSprite_Create(struct EwramData_EntityData *entity, u16 palette)
 /* Entity helpers 0x08048CF8..0x0804933B. */
 /* Language dependent graphics sets (English/other, French, German). */
 
-extern void SoulMenu_ClearStatPreview(void);
-extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
 /* Draw the three equipped soul names in the soul menu and highlight the cursor row. */
 struct SoulMenu
 {
@@ -407,15 +415,9 @@ struct SoulMenu
 void SoulMenu_DrawEquippedNames(struct SoulMenu *menu);
 /* Soul menu: list of souls of one type (red/blue/yellow) - none row, equipped, owned, empty fill. */
 
-void SoulMenu_DrawList(struct EwramData_EntityData *page, s32 slot);
-extern void SoulMenu_PrintEquippedName(struct EwramData_EntityData *entity);
 void SoulMenu_DrawEquippedSoulValue(struct SoulMenu *menu);
-extern s32 MenuGrid_MoveCursor(struct EwramData_EntityData *entity, u16 input);
-extern void SoulMenu_ShowSelection(struct EwramData_EntityData *entity);
-void SoulMenu_CountList(struct EwramData_EntityData *entity, s32 kind);
 void SoulMenu_DrawSelectedSoulValue(struct SoulMenu *menu);
 void SoulMenu_EquipSelected(struct SoulMenu *menu);
-extern void SoulMenu_DrawCategoryIcon(struct EwramData_EntityData *entity);
 
 /**
  * @brief 48CF8 | Delete entity and release the language dependent
@@ -1195,8 +1197,6 @@ void SoulMenu_EquipSelected(struct SoulMenu *menu)
 
 struct Tbl12 { u8 pad[4]; u8 value; s8 row; u8 pad2[6]; };
 extern const struct Tbl12 sBlueSoulInfo[];
-
-extern void HudMap_PrintNumber(s32 a, s32 b, s32 c, s32 d, s32 e, s32 f);
 
 static inline void FillRow(u16 *dst, s32 tile)
 {

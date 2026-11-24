@@ -16,14 +16,39 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "entity_inline.h"
+#include "damage_numbers.h"
+#include "effects.h"
+#include "entity_motion.h"
+
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *,u8 *,void *,u8,void *);
+extern void Entity_FaceTarget(struct EwramData_EntityData *);
+extern s32 GetEntityRoomXPositionWhole(struct EwramData_EntityData *);
+extern s32 GetEntityRoomYPositionWhole(struct EwramData_EntityData *);
+extern s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *,s32,s32);
+extern s32 Collision_GetPushUp(s32,s32);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *,s32,u16 *,s32);
+extern s32 Entity_IsInRect(struct EwramData_EntityData *entity, s16 left, s16 top, u16 width, u16 height);
+
+s32 Alastor_CreateLinkedPart(struct EwramData_EntityData *);
+void Alastor_OnHit(struct EwramData_EntityData *entity,s32 kind,u16 *hit);
+void Alastor_UpdateHitBoxes(struct EwramData_EntityData *);
+void Alastor_UpdateAppear(struct EwramData_EntityData *);
+void Alastor_UpdateBestiaryPreview(struct EwramData_EntityData *);
+void Alastor_UpdateDeath(struct EwramData_EntityData *);
+void Alastor_UpdateApproach(struct EwramData_EntityData *);
+void Alastor_UpdateAttackSelection(struct EwramData_EntityData *);
+void Alastor_UpdateRushAttack(struct EwramData_EntityData *);
+void Alastor_UpdatePatternAttack(struct EwramData_EntityData *);
+void Alastor_UpdateAimedCharge(struct EwramData_EntityData *);
+void Alastor_UpdateSpinningLeap(struct EwramData_EntityData *);
+void Alastor_UpdateRecoil(struct EwramData_EntityData *);
+s32 Alastor_IsTargetInUpperBox(struct EwramData_EntityData *,u16,u16);
+void AlastorAfterimage_Update(struct EwramData_EntityData *);
+s32 Alastor_IsTargetInLowerBox(struct EwramData_EntityData *,u16,u16);
+void AlastorPart_Update(struct EwramData_EntityData *);
 
 /* Alastor graphics, affine transform and callbacks. */
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *,u8 *,void *,u8,void *);
-extern s32 Alastor_CreateLinkedPart(struct EwramData_EntityData *);
-void Alastor_OnHit(struct EwramData_EntityData *entity,s32 kind,u16 *hit);
-extern void Alastor_UpdateHitBoxes(struct EwramData_EntityData *);
-extern void Alastor_UpdateAppear(struct EwramData_EntityData *);
-static inline void SetAffine(struct EwramData_EntityData *e,s32 index) { e->affineIndex=index; }
 void EnemyAlastorCreate(struct EwramData_EntityData *entity)
 {
     void *palette=sAlastorPalette;
@@ -64,7 +89,7 @@ void EnemyAlastorCreate(struct EwramData_EntityData *entity)
     ObjAffine_Set(0x10000,0x10000,0x10000,0,display,entity->affineIndex);
     if (!Alastor_CreateLinkedPart(entity))
         entity->deleteRequested=1;
-    Hit_Enable(entity,8,Enemy_OnContactMask1,(s32)Alastor_OnHit);
+    Hit_Enable(entity,8,Enemy_OnContactMask1, Alastor_OnHit);
     HitBox_SetBodyRaw(entity,0x1010F8F8);
     Alastor_UpdateHitBoxes(entity);
     entity->ext.alastor.attackSet=display;
@@ -74,17 +99,6 @@ void EnemyAlastorCreate(struct EwramData_EntityData *entity)
 }
 
 /* Alastor behavior dispatch and collision/animation refresh. */
-extern void Alastor_UpdateBestiaryPreview(struct EwramData_EntityData *);
-extern void Alastor_UpdateDeath(struct EwramData_EntityData *);
-extern u8 Entity_IsTargetWithinRange(struct EwramData_EntityData *,s32);
-extern void Hit_CheckWithPlayer(void *,struct EwramData_EntityData *);
-extern void Alastor_UpdateApproach(struct EwramData_EntityData *);
-extern void Alastor_UpdateAttackSelection(struct EwramData_EntityData *);
-extern void Alastor_UpdateRushAttack(struct EwramData_EntityData *);
-extern void Alastor_UpdatePatternAttack(struct EwramData_EntityData *);
-extern void Alastor_UpdateAimedCharge(struct EwramData_EntityData *);
-extern void Alastor_UpdateSpinningLeap(struct EwramData_EntityData *);
-extern void Alastor_UpdateRecoil(struct EwramData_EntityData *);
 void EnemyAlastorUpdate(struct EwramData_EntityData *entity)
 {
     u8 buffer[16];
@@ -107,7 +121,7 @@ void EnemyAlastorUpdate(struct EwramData_EntityData *entity)
             return;
         if (!(entity->ext.alastor.flags & 0x20) && entity->state!=0)
         {
-            Hit_CheckWithPlayer(buffer,entity);
+            Hit_CheckWithPlayer((struct HitResult *)buffer,entity);
             return;
         }
     }
@@ -125,11 +139,10 @@ void EnemyAlastorUpdate(struct EwramData_EntityData *entity)
     if (entity->ext.alastor.angle!=previous || entity->flipX!=facing)
         Alastor_UpdateHitBoxes(entity);
     if (!(entity->ext.alastor.flags & 0x20))
-        Hit_CheckWithPlayer(buffer,entity);
+        Hit_CheckWithPlayer((struct HitResult *)buffer,entity);
 }
 
 /* Alastor appearance and blink sequence. */
-extern void Entity_FaceTarget(struct EwramData_EntityData *);
 static inline u32 Blink(u32 timer) { return ((u32)-(u8)(timer%3))>>31; }
 /**
  * @brief Appearance state (0): hide the owner and linked part, wait for
@@ -205,15 +218,12 @@ void Alastor_UpdateAppear(struct EwramData_EntityData *entity)
 /* Alastor approaches a point near the player and rocks its blade.
  * for the matching notes (s8 reachedX, pinned r0
  * temporary, separate += in both branches, u32 phase). */
-extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *);
-extern u8 Angle_TurnTowards(s16 *,u16,u16);
 #define DX(e) ((s16)Entity_GetTargetDistanceX(e))
 #define DY(e) ((s16)Entity_GetTargetDistanceY(e))
 #define ABS(x) ((x)<0?-(x):(x))
 #define ANGLE(e) (e->ext.alastor.angle)
 #define PHASE(e) (e->ext.alastor.phase)
 #define FLAGS(e) (e->ext.alastor.flags)
-static inline s32 Both(s32 x,s32 y) { return (x&y)==1; }
 /**
  * @brief Approach state (1): move beside and above the target while
  * rocking the angle; enter attack selection state 2 on reaching both axes.
@@ -435,8 +445,6 @@ void Alastor_UpdateHitBoxes(struct EwramData_EntityData *entity)
 }
 
 /* Alastor horizontal rush, braking turn, rising slash and recovery. */
-extern s32 Alastor_IsTargetInUpperBox(struct EwramData_EntityData *,u16,u16);
-extern void Afterimage_Create(struct EwramData_EntityData *,s32,s32,s32);
 static inline u16 SubtractMargin(s32 distance,s32 margin) { return distance-margin; }
 static inline u16 Clamp(u16 d) { register u32 r_ asm("r1"); /* FAKEMATCH: result in r1 */ r_ = d; asm("" :: "r"(d)); /* FAKEMATCH: narrowed value in its own register */ if((s16)r_<0) r_ = 0; return r_; }
 /**
@@ -627,9 +635,6 @@ void Alastor_UpdatePatternAttack(struct EwramData_EntityData *entity)
 }
 
 /* Alastor wind-up and aimed charge. */
-extern s32 GetEntityRoomXPositionWhole(struct EwramData_EntityData *);
-extern s32 GetEntityRoomYPositionWhole(struct EwramData_EntityData *);
-extern s32 Entity_GetTargetAngleAbove16(struct EwramData_EntityData *);
 /**
  * @brief Attack state (5): spin during wind-up, aim velocity toward the
  * target, travel for the computed duration and return to approach.
@@ -691,7 +696,6 @@ void Alastor_UpdateAimedCharge(struct EwramData_EntityData *entity)
 }
 
 /* Spawn a translucent copy of Alastor with the current frame/angle. */
-extern void AlastorAfterimage_Update(struct EwramData_EntityData *);
 /**
  * @brief Create a translucent sprite copy at the current frame and pose
  * with a timer and owner link. Allocate its own affine slot and return
@@ -703,7 +707,7 @@ struct EwramData_EntityData *Alastor_CreateAfterimage(struct EwramData_EntityDat
     u8 *graphicsIndex=&entity->spriteSlot;
     struct SpriteSheet *source=gEwramData->spriteSlots[*graphicsIndex].sheet;
     struct SpriteSheet *sprite=source;
-    struct EwramData_EntityData *copy=EntityCreateInRange(0x49,0xCF,(u32 *)AlastorAfterimage_Update);
+    struct EwramData_EntityData *copy=EntityCreateInRange(0x49,0xCF,AlastorAfterimage_Update);
     s32 affine;
     if(!copy)
         return NULL;
@@ -722,7 +726,7 @@ struct EwramData_EntityData *Alastor_CreateAfterimage(struct EwramData_EntityDat
     copy->scrollWithBg=1;
     copy->objMode=1;
     copy->flipX=entity->flipX;
-    copy->drawFunc=(u32 *)Sprite_DrawEntity;
+    copy->drawFunc=Sprite_DrawEntity;
     copy->affine=entity->affine;
     if(copy->affine)
     {
@@ -735,11 +739,6 @@ struct EwramData_EntityData *Alastor_CreateAfterimage(struct EwramData_EntityDat
 }
 
 /* Alastor spinning leap, conditional dive, and recovery. */
-extern s32 Alastor_IsTargetInLowerBox(struct EwramData_EntityData *,u16,u16);
-extern s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *,s32,s32);
-extern s32 Collision_GetPushUp(s32,s32);
-static inline s32 RoomX(s32 pos) { struct BgLayerState *bg=&gEwramData->bgInfo[1]; return pos+(s16)bg->xPos.part16.integer; }
-static inline s32 RoomY(s32 pos) { struct BgLayerState *bg=&gEwramData->bgInfo[1]; return pos+(s16)bg->yPos.part16.integer; }
 static inline void Advance(struct EwramData_EntityData *e,s32 amount,u8 zero) { e->subState+=amount; e->stage=zero; }
 /**
  * @brief Attack state (6): spin through a leap while spawning copies,
@@ -807,7 +806,7 @@ void Alastor_UpdateSpinningLeap(struct EwramData_EntityData *entity)
                         PlaySong(0x86);
                     if(entity->timer++>10)
                         entity->velY.whole+=entity->accelY.whole;
-                    if(Entity_IsOffsetOutsideRoom(entity,0,0) || (s16)Collision_GetPushUp(RoomX((s16)entity->posX.part16.integer),RoomY((s16)entity->posY.part16.integer)+8)!=0)
+                    if(Entity_IsOffsetOutsideRoom(entity,0,0) || (s16)Collision_GetPushUp(ToRoomX((s16)entity->posX.part16.integer),ToRoomY((s16)entity->posY.part16.integer)+8)!=0)
                     {
                         entity->subState++;
                         entity->stage=0;
@@ -956,8 +955,6 @@ void Alastor_UpdateDeath(struct EwramData_EntityData *entity)
 }
 
 /* Alastor damage, stun counter and linked-part state. */
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *,s32,u16 *,s32);
-extern void Entity_ShowDamage(struct EwramData_EntityData *,s32,s32);
 #define PART(e) (&gEwramData->entityData[e->ext.alastorPart.index])
 /**
  * @brief Resolve/display damage and apply hit flash. Count surviving hits;
@@ -996,8 +993,6 @@ void Alastor_OnHit(struct EwramData_EntityData *entity,s32 kind,u16 *hit)
 }
 
 /* Alastor linked part, sharing the owner's graphics. */
-extern s8 ObjPalette_FindOrLoad(void *);
-extern void AlastorPart_Update(struct EwramData_EntityData *);
 /**
  * @brief Create a linked part using the owner graphics, store both slot
  * links and initialize its update. Return 1 on success, otherwise 0;
@@ -1008,8 +1003,8 @@ s32 Alastor_CreateLinkedPart(struct EwramData_EntityData *entity)
     void *palette=sAlastorPalette;
     void *sprite=sAlastorSpriteSheet;
     u8 *graphics=sAlastorGfx;
-    void (*update)(struct EwramData_EntityData *)=AlastorPart_Update;
-    struct EwramData_EntityData *part=EntityCreateInRange(0x49,0xCF,(u32 *)update);
+    EntityFunc update=AlastorPart_Update;
+    struct EwramData_EntityData *part=EntityCreateInRange(0x49,0xCF,update);
     if (part)
     {
         s32 graphic=ObjGfx_Find(graphics);
@@ -1021,7 +1016,7 @@ s32 Alastor_CreateLinkedPart(struct EwramData_EntityData *entity)
             ENTITY_PARENT_INDEX(part)=index;
             entity->ext.alastorPart.index=ENTITY_INDEX(part);
             part->objMode=1;
-            part->drawFunc=(u32 *)Sprite_DrawEntity;
+            part->drawFunc=Sprite_DrawEntity;
             part->scrollWithBg=1;
             part->spriteLayer=entity->spriteLayer+2;
             part->state=1;
@@ -1161,7 +1156,7 @@ void Effect_FollowParentHitBoxCopy(struct EwramData_EntityData *entity)
 
             Sprite_Attach(entity, sCommonObjectSpriteSheet, gfx, 7);
             Anim_StartIndexed(entity, 0, 0, 0);
-            entity->drawFunc = (u32 *)Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->state++;
         }
         case 1:
@@ -1172,7 +1167,6 @@ void Effect_FollowParentHitBoxCopy(struct EwramData_EntityData *entity)
 }
 
 /* Alastor bestiary preview, target-box tests and afterimage lifetime. */
-extern s32 Entity_IsInRect(struct EwramData_EntityData *entity, s16 left, s16 top, u16 width, u16 height);
 
 /**
  * @brief Bestiary state (8): move the displayed entity up 16 pixels once.

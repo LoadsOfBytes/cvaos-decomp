@@ -10,5 +10,6 @@
 extern void TextWindow_Close(void);
 extern void TextWindow_Begin(s32 textId);
 extern s32 TextWindow_Update(void);
+extern s32 TextWindow_AdjustOpening(s32 delta);
 
 #endif /* TEXT_WINDOW_H */

@@ -13,12 +13,18 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "damage_numbers.h"
+#include "entity_motion.h"
+#include "hitbox.h"
+
+extern s32 Target_IsInRect(s16, s16, s16, s16);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
+
+u8 SkeletonKnight_LoadGraphics(struct EwramData_EntityData *entity);
+void SkeletonKnight_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void SkeletonKnight_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 /* EnemySkeletonKnightCreate 0x0808EC64..0x0808ECF7. */
-extern u8 SkeletonKnight_LoadGraphics(struct EwramData_EntityData *entity);
-extern void SkeletonKnight_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-void SkeletonKnight_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
 
 /**
  * @brief 8EC64 | Skeleton Knight create: load the graphics (delete the
@@ -42,17 +48,13 @@ void EnemySkeletonKnightCreate(struct EwramData_EntityData *entity)
         return;
     }
     if (Anim_GetMaxBoxCount(entity) > 1)
-        Hit_EnableContact(entity, 8, SkeletonKnight_DamagePlayerOnContact, (s32)SkeletonKnight_OnHit);
+        Hit_EnableContact(entity, 8, SkeletonKnight_DamagePlayerOnContact, SkeletonKnight_OnHit);
     else
-        Hit_Enable(entity, 8, SkeletonKnight_DamagePlayerOnContact, (s32)SkeletonKnight_OnHit);
+        Hit_Enable(entity, 8, SkeletonKnight_DamagePlayerOnContact, SkeletonKnight_OnHit);
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
     entity->state = 0;
 }
-
-extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s32 Entity_ClampXToRoom(struct EwramData_EntityData *, s32);
-extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s32);
 
 /**
  * @brief 8ECF8 | Enemy walk AI like DeadCrusader_UpdateWalk without the crouch: wakes
@@ -227,9 +229,6 @@ void SkeletonKnight_UpdateAttack(struct EwramData_EntityData *entity)
 /* SkeletonKnight_OnHit (hit with HP / death), generated with a template script from the
  * template of WingedSkeleton_OnHit and checked byte for byte. */
 
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
-
 /**
  * @brief 8F0A4 | Hit: flash (hitFlashTimer = 8), subtract the damage from the HP
  * and show it; at HP <= 0 die (Enemy_DropRewards, song 0x72, palette into
@@ -248,7 +247,7 @@ void SkeletonKnight_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
@@ -265,21 +264,6 @@ void SkeletonKnight_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16
  *   SkeletonKnight_LoadGraphics = Object25_LoadGraphics
  *   SkeletonKnight_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
-
 /**
  * @brief 8F120 | Same as Object25_LoadGraphics.
  */
@@ -291,7 +275,7 @@ u8 SkeletonKnight_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sDeadCrusaderSkeletonKnightPalette, 0);
     Sprite_Attach(entity, sDeadCrusaderSkeletonKnightSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 

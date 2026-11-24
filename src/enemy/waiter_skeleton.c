@@ -21,8 +21,15 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 
-/* Attached animated effect: follows a sprite part while its owner's flag 2 is set. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
+extern s32 Target_IsInRect(s16, s16, s32, s32);
+extern void Entity_FaceTarget(struct EwramData_EntityData *);
+
+void WaiterSkeletonThrownTray_DamagePlayerOnContact(struct EwramData_EntityData *);
+void WaiterSkeletonThrownTray_OnHit(struct EwramData_EntityData *);
+void WaiterSkeleton_OnHit(struct EwramData_EntityData *, s32, u16 *);
+
+/* Attached animated effect: follows a sprite part while its owner's flag 2 is set. */
 void WaiterSkeletonTray_Update(struct EwramData_EntityData *entity)
 {
     u16 offset[2];
@@ -64,9 +71,6 @@ void WaiterSkeletonTray_Update(struct EwramData_EntityData *entity)
 }
 
 /* Parent-linked affine entity part: attachment, release, motion and deletion. */
-extern void WaiterSkeletonThrownTray_DamagePlayerOnContact(struct EwramData_EntityData *);
-extern void WaiterSkeletonThrownTray_OnHit(struct EwramData_EntityData *);
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 /* This halfword bitfield view preserves the original slot update access width. */
 
 static inline void BoxA(struct EwramData_EntityData *e, s32 box) { HitBox_SetAttackRaw(e, box); }
@@ -83,14 +87,14 @@ void WaiterSkeletonThrownTray_Update(struct EwramData_EntityData *entity)
         entity->hidden = 0;
         entity->spriteLayer = 19;
         entity->state = 3;
-        Hit_Enable(entity, 10, WaiterSkeletonThrownTray_DamagePlayerOnContact, (s32)WaiterSkeletonThrownTray_OnHit);
+        Hit_Enable(entity, 10, WaiterSkeletonThrownTray_DamagePlayerOnContact, WaiterSkeletonThrownTray_OnHit);
         BoxA(entity, 0x0808FCFC);
         BoxB(entity, 0x0808FCFC);
         entity->hit.flags &= 0xFB;
         entity->hit.flags |= 2;
     }
     if (gEwramData->gameState.timeStopTimer && entity->state != 5) {
-        Hit_CheckWithPlayer(box, entity);
+        Hit_CheckWithPlayer((struct HitResult *)box, entity);
         return;
     }
     switch (entity->state) {
@@ -147,7 +151,7 @@ void WaiterSkeletonThrownTray_Update(struct EwramData_EntityData *entity)
                 s32 vx;
                 entity->state = 4;
                 PlaySong(0x89);
-                Hit_Enable(entity, 10, WaiterSkeletonThrownTray_DamagePlayerOnContact, (s32)WaiterSkeletonThrownTray_OnHit);
+                Hit_Enable(entity, 10, WaiterSkeletonThrownTray_DamagePlayerOnContact, WaiterSkeletonThrownTray_OnHit);
                 BoxA(entity, 0x0808FCFC);
                 BoxB(entity, 0x0808FCFC);
                 entity->hit.flags &= 0xFB;
@@ -223,7 +227,7 @@ delete:
     }
     ObjAffine_Set(entity->ext.waiterTray.angle, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
     if (entity->state != 5)
-        Hit_CheckWithPlayer(box, entity);
+        Hit_CheckWithPlayer((struct HitResult *)box, entity);
     Anim_Update(entity);
 }
 
@@ -286,7 +290,6 @@ finishThrow:
 }
 
 /* Waiter Skeleton walking/approach states and breakup animation. */
-extern s32 Target_IsInRect(s16, s16, s32, s32);
 void WaiterSkeleton_UpdateWalk(struct EwramData_EntityData *entity)
 {
     s32 speed = 0x8000;
@@ -375,7 +378,7 @@ s32 WaiterSkeleton_SpawnDeathPieces(struct EwramData_EntityData *entity)
                 frame = 11;
             for (; frame <= 16; frame++)
             {
-                struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateSpriteDebris);
+                struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, Effect_UpdateSpriteDebris);
                 if (part != NULL)
                 {
                     s32 tiles;
@@ -388,7 +391,7 @@ s32 WaiterSkeleton_SpawnDeathPieces(struct EwramData_EntityData *entity)
                     tiles = ObjGfx_Find(sWaiterSkeletonGfx);
                     Sprite_Attach(part, sWaiterSkeletonSpriteSheet, tiles, entity->basePalette);
                     part->flipX = entity->flipX;
-                    part->drawFunc = (u32 *)Sprite_DrawEntity;
+                    part->drawFunc = Sprite_DrawEntity;
                     part->scrollWithBg = 1;
                     part->timer = (RandomNumberGenerator() & 15) + 40;
                     part->subState = 1;
@@ -407,9 +410,6 @@ s32 WaiterSkeleton_SpawnDeathPieces(struct EwramData_EntityData *entity)
 }
 
 /* Waiter Skeleton creation and attached sprite setup. */
-extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, void *);
-extern void Enemy_OnContact(struct EwramData_EntityData *);
-extern void WaiterSkeleton_OnHit(struct EwramData_EntityData *, s32, u16 *);
 void EnemyWaiterSkeletonCreate(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *effect;
@@ -445,8 +445,6 @@ void EnemyWaiterSkeletonCreate(struct EwramData_EntityData *entity)
     entity->state = 0;
 }
 
-extern void Entity_FaceTarget(struct EwramData_EntityData *);
-
 void EnemyWaiterSkeletonUpdate(struct EwramData_EntityData *entity)
 {
     if (Enemy_PreUpdate(entity)) return;
@@ -477,9 +475,6 @@ void EnemyWaiterSkeletonUpdate(struct EwramData_EntityData *entity)
 }
 
 /* Enemy helpers decompiled from assembly. */
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *, s32, u16 *);
-extern s32 Target_IsNearEntity(struct EwramData_EntityData *, u16, u16);
-extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *);
 
 void WaiterSkeleton_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
@@ -555,7 +550,7 @@ void SkullArcherArrow_Update(struct EwramData_EntityData *entity)
             Entity_SetVelocityXFromFacing(entity, 0x30000);
             EntityMoveX(entity);
         collision:
-            Hit_CheckWithPlayer(collision, entity);
+            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
             break;
         case 1:
             entity->posX.whole = parent->posX.whole + entity->accelX.whole;
@@ -612,14 +607,14 @@ void SkullArcher_UpdateShoot(struct EwramData_EntityData *entity)
                     Sprite_Attach(arrow, sSkullArcherSpriteSheet, graphics, entity->basePalette);
                     arrow->animFrame = 0x19;
                     arrow->flipX = entity->flipX;
-                    arrow->drawFunc = (u32 *)Sprite_DrawEntity;
+                    arrow->drawFunc = Sprite_DrawEntity;
                     arrow->spriteLayer = entity->spriteLayer;
                     arrow->posX.part16.integer = entity->posX.part16.integer;
                     arrow->posY.part16.integer = pattern[1] + entity->posY.part16.integer;
                     arrow->scrollWithBg = 1;
                     arrow->attack = entity->attack;
                     arrow->hp = 1;
-                    Hit_Enable(arrow, 10, SkullArcherArrow_DamagePlayerOnContact, (s32)SkullArcherArrow_OnHit);
+                    Hit_Enable(arrow, 10, SkullArcherArrow_DamagePlayerOnContact, SkullArcherArrow_OnHit);
                     HitBox_SetAttackRaw(arrow, 0x0202E8EE);
                     HitBox_SetBodyRaw(arrow, 0x0202E8EE);
                     arrow->hit.flags &= ~4;

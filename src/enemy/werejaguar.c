@@ -17,13 +17,19 @@
 #include "obj_palette.h"
 #include "werejaguar.h"
 #include "data/data_118B48.h"
+#include "entity_motion.h"
+#include "effects.h"
+
+extern s32 Target_IsInRect(s16, s16, s16, s16);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *,struct EwramData_EntityData *,u16 *,s32);
+
+void Werejaguar_UpdateWalk(struct EwramData_EntityData *);
+void Werejaguar_UpdateAttack(struct EwramData_EntityData *);
+void Werejaguar_UpdateRecoil(struct EwramData_EntityData *);
+void Werejaguar_SpawnDeathEffect(s32,s32,s32,s32);
+void WerejaguarDeathEffect_Update(struct EwramData_EntityData *);
 
 /* Werejaguar dispatch, collision handling and animation change notification. */
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern void Hit_CheckWithPlayer(void *,struct EwramData_EntityData *);
-extern void Werejaguar_UpdateWalk(struct EwramData_EntityData *);
-extern void Werejaguar_UpdateAttack(struct EwramData_EntityData *);
-extern void Werejaguar_UpdateRecoil(struct EwramData_EntityData *);
 void EnemyWerejaguarUpdate(struct EwramData_EntityData *entity)
 {
     s32 bounds[12];
@@ -42,7 +48,7 @@ void EnemyWerejaguarUpdate(struct EwramData_EntityData *entity)
     if(entity->hitFlashTimer && entity->state!=3 && entity->state!=2)
     {
 collision:
-        Hit_CheckWithPlayer(bounds,entity);
+        Hit_CheckWithPlayer((struct HitResult *)bounds,entity);
         return;
     }
     switch(entity->state)
@@ -62,13 +68,9 @@ collision:
     Enemy_CheckHitPlayer(entity);
 }
 
-extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern s16 Target_GetPixelX(struct EwramData_EntityData *entity);
-
 static inline s32 Dist(struct EwramData_EntityData *entity)
 {
-    s32 d = Target_GetPixelX(entity) - (s16)entity->posX.part16.integer;
+    s32 d = (s16)Target_GetPixelX(entity) - (s16)entity->posX.part16.integer;
     if (d < 0)
         d = -d;
     return d;
@@ -222,7 +224,6 @@ void Werejaguar_UpdateWalk(struct EwramData_EntityData *entity)
  * (ids 0x4B / 0x54), sibling of Werejaguar_UpdateWalk. The shared failure tail
  * (fail:) and the state 10 attack start sit where the original keeps their
  * cross-jumped copies; the hit test results use a function-level d. */
-extern void Afterimage_Create(struct EwramData_EntityData *, s32, s32, s32);
 
 #define HOP_FLAG (entity->ext.werejaguar.contactHit)
 #define ROLL (entity->ext.werejaguar.extraAttackChosen)
@@ -539,7 +540,6 @@ void Werejaguar_UpdateRecoil(struct EwramData_EntityData *entity)
 }
 
 /* Dying Werejaguar emits shrinking particles and flashes its palette. */
-extern void Werejaguar_SpawnDeathEffect(s32,s32,s32,s32);
 /**
  * @brief Death state (state 2, also used by the Werewolf): spiral effects every 4
  * frames (Werejaguar_SpawnDeathEffect), flash and request deletion when the
@@ -605,8 +605,6 @@ void Werejaguar_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 }
 
 /* Apply damage and choose full destruction or a short reaction to selected attacks. */
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *,struct EwramData_EntityData *,u16 *,s32);
-extern void Entity_ShowDamage(struct EwramData_EntityData *,s32,s32);
 void Werejaguar_OnHit(struct EwramData_EntityData *entity,struct EwramData_EntityData *attacker,u16 *info)
 {
     s32 power=Player_CalculateAttackPower(info[2]);
@@ -643,7 +641,6 @@ void Werejaguar_OnHit(struct EwramData_EntityData *entity,struct EwramData_Entit
 }
 
 /* Allocate a rising death particle and save its screen and camera origin. */
-extern void WerejaguarDeathEffect_Update(struct EwramData_EntityData *);
 #define FIXED_INTEGER(x) ((x)<0 ? -(-(x)>>16) : (x)>>16)
 /**
  * @brief Spawn a death effect at (x, y) on layer that circles from angle
@@ -651,7 +648,7 @@ extern void WerejaguarDeathEffect_Update(struct EwramData_EntityData *);
  */
 void Werejaguar_SpawnDeathEffect(s32 x,s32 y,s32 layer,s32 angle)
 {
-    struct EwramData_EntityData *effect=EntityCreateInRange(0x49,0xCF,(u32 *)WerejaguarDeathEffect_Update);
+    struct EwramData_EntityData *effect=EntityCreateInRange(0x49,0xCF,WerejaguarDeathEffect_Update);
     struct BgLayerState *camera=&gEwramData->bgInfo[1];
     if(effect)
     {
@@ -679,7 +676,7 @@ void WerejaguarDeathEffect_Update(struct EwramData_EntityData *entity)
             Sprite_Attach(entity,sCommonObjectSpriteSheet,graphics,7);
             Anim_StartIndexed(entity,0,0,0);
             entity->scrollWithBg=0;
-            entity->drawFunc=(u32 *)Sprite_DrawEntity;
+            entity->drawFunc=Sprite_DrawEntity;
             entity->state++;
             break;
         }
@@ -701,7 +698,6 @@ void WerejaguarDeathEffect_Update(struct EwramData_EntityData *entity)
 }
 
 /* Werejaguar and Weretiger share graphics and select different palette rows. */
-extern s32 ObjPalette_FindOrLoadVariant(void *,s32);
 u8 Werejaguar_LoadGraphics(struct EwramData_EntityData *entity)
 {
     s32 graphics=ObjGfx_LoadResource(sWerejaguarGfx,0);
@@ -711,12 +707,11 @@ u8 Werejaguar_LoadGraphics(struct EwramData_EntityData *entity)
     else
         entity->basePalette=ObjPalette_FindOrLoadVariant(sWerejaguarPalette,1);
     Sprite_Attach(entity,sWerejaguarSpriteSheet,graphics,entity->basePalette);
-    entity->drawFunc=(u32 *)Sprite_DrawEntity;
+    entity->drawFunc=Sprite_DrawEntity;
     return 1;
 }
 
 /* EnemyWerejaguarCreate. */
-extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
 
 /**
  * @brief 796F0 | Werejaguar create: load the graphics (delete the enemy
@@ -738,7 +733,7 @@ void EnemyWerejaguarCreate(struct EwramData_EntityData *entity)
         entity->state = 4;
         return;
     }
-    Hit_EnableContact(entity, 8, Werejaguar_DamagePlayerOnContact, (s32)Werejaguar_OnHit);
+    Hit_EnableContact(entity, 8, Werejaguar_DamagePlayerOnContact, Werejaguar_OnHit);
     Entity_UpdateBoxes(entity);
     Hit_SetTimerOverride(3, 6);
     Entity_SnapToGround(entity);
@@ -760,7 +755,7 @@ void EnemyWeretigerUpdate(struct EwramData_EntityData *entity)
     if(entity->hitFlashTimer && entity->state!=3 && entity->state!=2)
     {
 collision:
-        Hit_CheckWithPlayer(bounds,entity);
+        Hit_CheckWithPlayer((struct HitResult *)bounds,entity);
         return;
     }
     switch(entity->state)
@@ -777,7 +772,7 @@ collision:
         Anim_Update(entity);
         if(frame!=entity->animFrame) Entity_UpdateBoxes(entity);
     }
-    if(entity->state!=2) Hit_CheckWithPlayer(bounds,entity);
+    if(entity->state!=2) Hit_CheckWithPlayer((struct HitResult *)bounds,entity);
 }
 
 /* Clones of already decompiled functions, generated with
@@ -802,7 +797,7 @@ void EnemyWeretigerCreate(struct EwramData_EntityData *entity)
         entity->state = 4;
         return;
     }
-    Hit_EnableContact(entity, 8, Werejaguar_DamagePlayerOnContact, (s32)Werejaguar_OnHit);
+    Hit_EnableContact(entity, 8, Werejaguar_DamagePlayerOnContact, Werejaguar_OnHit);
     Entity_UpdateBoxes(entity);
     Hit_SetTimerOverride(3, 6);
     Entity_SnapToGround(entity);

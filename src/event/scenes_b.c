@@ -28,6 +28,18 @@
 #include "data/data_0E5364.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "player_soma.h"
+
+extern s32 Entity_IsInRect(struct EwramData_EntityData *, s16, s16, u16, u16);
+extern s32 Player_GetZoneAroundX(s32 centerX, s32 innerWidth, s32 outerWidth);
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
+
+/* Declared s16 in bg_and_collision.h; the caller here uses the full register. */
+extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
+
+s32 Player_GetZoneAroundXCopy(u16 centerX, u16 innerWidth, u16 outerWidth);
+s32 EventScene19_LoadGraphics(struct EwramData_EntityData *entity);
+void EventScene19_Finish(struct EwramData_EntityData *);
 
 /* EventScene04_Init, EventScene04_RunMusicScript. */
 
@@ -1353,9 +1365,6 @@ void EventScene11_Init(struct EwramData_EntityData *entity)
     ewram->gameState.stateFlags |= 1;
 }
 
-/* Declared s16 in bg_and_collision.h; the caller here uses the full register. */
-extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
-
 /**
  * @brief Update of event scene variant 11 (sEventSceneUpdateFuncs[11]); returns the
  * player input mask. Cutscene step object: shows conversation 0x16,
@@ -1565,9 +1574,6 @@ void EventScene15_Init(struct EwramData_EntityData *entity)
  * stack). The x mark is copied into a u16 local in sub-state 2 (keeps the
  * separate register copy), and the owner address is written as an integer
  * sum so the base comes first. */
-
-s32 Player_GetZoneAroundXCopy(u16 centerX, u16 innerWidth, u16 outerWidth);
-extern void Player_StartScriptedAnimation(s32, s32, s32, s32);
 
 struct Periods { s32 v[10]; };
 
@@ -1847,8 +1853,6 @@ void EventScene16_Init(struct EwramData_EntityData *entity)
     entity->enemyFlags |= 4;
 }
 
-extern s32 Entity_IsInRect(struct EwramData_EntityData *, s16, s16, u16, u16);
-
 /**
  * @brief Update of event scene variant 16 (sEventSceneUpdateFuncs[16]); returns the
  * player input mask. NPC object: when the player stands near it and
@@ -2054,7 +2058,6 @@ s32 EventScene18_Update(struct EwramData_EntityData *entity)
 }
 
 /* EventScene19_Init. */
-extern s32 EventScene19_LoadGraphics(struct EwramData_EntityData *entity);
 
 /**
  * @brief Init of event scene variant 19 (Object 0x20 spawnParam0 = 19,
@@ -2101,8 +2104,6 @@ visible:
     Anim_Update(entity);
     gEwramData->gameState.stateFlags |= 1;
 }
-
-extern void EventScene19_Finish(struct EwramData_EntityData *);
 
 /**
  * @brief Update of event scene variant 19 (sEventSceneUpdateFuncs[19]); returns the
@@ -2236,7 +2237,6 @@ s32 EventScene19_Update(struct EwramData_EntityData *entity)
 /* EventScene20_Update: event step (cutscene facing / approach checks); matched. */
 /* Declared s16 in bg_and_collision.h; the caller here uses the full register. */
 /* Declared with u16 parameters in object/shop_update.c; the caller passes s16 values unconverted. */
-extern s32 Player_GetZoneAroundX(s32 centerX, s32 innerWidth, s32 outerWidth);
 
 static inline s32 IsLeft(struct EwramData_EntityData *e)
 {
@@ -2360,7 +2360,6 @@ s32 EventScene20_Update(struct EwramData_EntityData *entity)
 }
 
 /* Event object helpers 0x08061FDC..0x080620E7. */
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 
 /**
  * @brief 61FDC | Load the graphics (layer 0x11); delete the entity and

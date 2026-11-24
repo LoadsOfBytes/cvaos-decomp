@@ -12,9 +12,16 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "player_core.h"
+#include "sound.h"
+#include "effects.h"
+
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
+extern void Entity_FaceTarget(struct EwramData_EntityData *entity, s32 unused1, u16 *unused2);
+
+void AxeArmor_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hitData);
 
 /* AxeArmor_UpdateAttack: Axe Armor attack substates (throws the axe AxeArmorAxe_Update); matched. */
-extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *entity);
 
 /**
  * @brief Choose a throw animation, create an axe on its event, then retreat or resume walking.
@@ -104,9 +111,6 @@ void AxeArmor_UpdateAttack(struct EwramData_EntityData *entity)
 }
 
 /* Axe Armor death. */
-extern void PlaySong(s32);
-extern s32 RandomSigned(s32);
-extern struct EwramData_EntityData *Effect_SpawnShared(s32, s32, s32, s32);
 
 /* State 0 starts animation 4 and an upward velocity; state 1 runs for at most
  * 32 frames, emitting rising debris on even frames and a sound plus a second
@@ -166,10 +170,6 @@ s32 AxeArmor_UpdateDeath(struct EwramData_EntityData *entity)
 }
 
 /* EnemyAxeArmorCreate. */
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, s32 onHurt);
-extern void Enemy_OnContact(struct EwramData_EntityData *entity);
-extern void AxeArmor_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hitData);
 
 /**
  * @brief B12C4 | Axe Armor create: load the graphics (delete the enemy
@@ -193,7 +193,7 @@ void EnemyAxeArmorCreate(struct EwramData_EntityData *entity)
         entity->state = 3;
         return;
     }
-    Entity_EnableBoxes(entity, Enemy_OnContact, (s32)AxeArmor_OnHit);
+    Entity_EnableBoxes(entity, Enemy_OnContact, AxeArmor_OnHit);
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
     entity->posY.part16.integer++;
@@ -202,8 +202,6 @@ void EnemyAxeArmorCreate(struct EwramData_EntityData *entity)
 }
 
 /* AxeArmor_OnHit. */
-extern void Entity_FaceTarget(struct EwramData_EntityData *entity, s32 unused1, u16 *unused2);
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 /**
  * @brief Face the target and apply damage; on death drop rewards, restore the palette and enter state 2.

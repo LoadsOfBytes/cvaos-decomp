@@ -17,12 +17,17 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 
-extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern void Effect_SpawnParticleTemplateList(s32 x, s32 y, s32 index);
+extern void Entity_FaceTarget(struct EwramData_EntityData *entity, s32 unused1, u16 *unused2);
+
+/* tested as a full word here (bg_and_collision.h declares it returning s16) */
+extern s32 Collision_GetGroundOffset(s32 x, s32 y);
+
 void BomberArmorBomb_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void ArmorProjectile_OnHit(struct EwramData_EntityData *entity);
-extern void BomberArmorBombTrail_Update(struct EwramData_EntityData *entity);
+void BomberArmorBombTrail_Update(struct EwramData_EntityData *entity);
+void RockArmorRock_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void BomberRockArmor_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 /**
  * @brief B243C | Bouncing boss projectile (like RockArmorRock_Update): arcs towards
@@ -36,7 +41,7 @@ void BomberArmorBomb_Update(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *trail;
     s32 result;
 
-    Hit_CheckWithPlayer(hit, entity);
+    Hit_CheckWithPlayer((struct HitResult *)hit, entity);
     if (entity->state != 0)
     {
         if ((s16)entity->hp == 0 && entity->state != 3)
@@ -54,7 +59,7 @@ void BomberArmorBomb_Update(struct EwramData_EntityData *entity)
             goto delete;
         Anim_StartIndexed(entity, 3, 0, 1);
         entity->spriteLayer = 0x13;
-        Hit_Enable(entity, 8, BomberArmorBomb_DamagePlayerOnContact, (s32)ArmorProjectile_OnHit);
+        Hit_Enable(entity, 8, BomberArmorBomb_DamagePlayerOnContact, ArmorProjectile_OnHit);
         HitBox_SetAttackRaw(entity, 0x3030E8E8);
         HitBox_SetBodyRaw(entity, 0x1010F8F8);
         entity->hit.flags |= 2;
@@ -70,7 +75,7 @@ void BomberArmorBomb_Update(struct EwramData_EntityData *entity)
     case 1:
         if ((entity->timer & 3) == 0)
         {
-            trail = EntityCreateInRange(0x49, 0xCF, (u32 *)BomberArmorBombTrail_Update);
+            trail = EntityCreateInRange(0x49, 0xCF, BomberArmorBombTrail_Update);
             if (trail != NULL)
             {
                 trail->posX.whole = entity->posX.whole;
@@ -109,9 +114,6 @@ void BomberArmorBomb_Update(struct EwramData_EntityData *entity)
     }
     Anim_Update(entity);
 }
-
-/* tested as a full word here (bg_and_collision.h declares it returning s16) */
-extern s32 Collision_GetGroundOffset(s32 x, s32 y);
 
 /**
  * @brief B264C | Debris piece (file 0x080B243C): graphics sBomberArmorRockArmorGfx /
@@ -170,8 +172,6 @@ void RockArmorRockPiece_Update(struct EwramData_EntityData *entity)
         entity->deleteRequested = 1;
 }
 
-void RockArmorRock_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-
 /**
  * @brief B2798 | Thrown boss projectile: load its graphics (deleted when
  * that fails), hit box 0x2020F0F0, arc towards the player via Entity_Walk;
@@ -185,7 +185,7 @@ void RockArmorRock_Update(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *piece;
     s32 box;
 
-    Hit_CheckWithPlayer(hit, entity);
+    Hit_CheckWithPlayer((struct HitResult *)hit, entity);
     if (entity->state != 0)
     {
         if ((s16)entity->hp == 0 && entity->state != 2)
@@ -201,7 +201,7 @@ void RockArmorRock_Update(struct EwramData_EntityData *entity)
         Anim_StartIndexed(entity, 3, 0, 1);
         Anim_Update(entity);
         entity->spriteLayer = 0x13;
-        Hit_Enable(entity, 10, RockArmorRock_DamagePlayerOnContact, (s32)ArmorProjectile_OnHit);
+        Hit_Enable(entity, 10, RockArmorRock_DamagePlayerOnContact, ArmorProjectile_OnHit);
         box = 0x2020F0F0;
         HitBox_SetAttackRaw(entity, box);
         HitBox_SetBodyRaw(entity, box);
@@ -222,7 +222,7 @@ void RockArmorRock_Update(struct EwramData_EntityData *entity)
         PlaySong(0x80);
         for (i = 0; i <= 7; i++)
         {
-            piece = EntityCreateInRange(0x49, 0xCF, (u32 *)RockArmorRockPiece_Update);
+            piece = EntityCreateInRange(0x49, 0xCF, RockArmorRockPiece_Update);
             if (piece == NULL)
                 break;
             piece->posX.whole = entity->posX.whole + RandomSigned(0x100000);
@@ -239,7 +239,6 @@ void RockArmorRock_Update(struct EwramData_EntityData *entity)
         EntityDelete(entity);
 }
 
-extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *);
 static inline s32 CanAttack(struct EwramData_EntityData *e, s32 range)
 {
     s32 result;
@@ -436,10 +435,6 @@ s32 BomberRockArmor_UpdateDeath(struct EwramData_EntityData *entity)
     return 0;
 }
 
-extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
-extern void Enemy_OnContact(void);
-void BomberRockArmor_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-
 void EnemyBomberArmorCreate(struct EwramData_EntityData *entity)
 {
     if (!Entity_LoadGraphics(entity, sBomberArmorRockArmorGfx, sBomberArmorRockArmorPalette, 0, sBomberArmorSpriteSheet))
@@ -490,9 +485,6 @@ void EnemyRockArmorCreate(struct EwramData_EntityData *entity)
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
  *   BomberRockArmor_OnHit = AxeArmor_OnHit */
-
-extern void Entity_FaceTarget(struct EwramData_EntityData *entity, s32 unused1, u16 *unused2);
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 /**
  * @brief B2F10 | Same as AxeArmor_OnHit.
@@ -631,6 +623,6 @@ void EnemyRockArmorUpdate(struct EwramData_EntityData *entity)
         break;
     case 3: Anim_Update(entity); return;
     }
-    if (entity->state != 2) Hit_CheckWithPlayer(box, entity);
+    if (entity->state != 2) Hit_CheckWithPlayer((struct HitResult *)box, entity);
     Entity_AnimateWithBoxes(entity);
 }

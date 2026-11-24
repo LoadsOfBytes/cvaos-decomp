@@ -21,6 +21,16 @@
 #include "data/data_0E1CD0.h"
 #include "data/data_118B48.h"
 
+extern s32 (*gObjAffineGetFlipXFunc)(s32);
+extern s32 (*gObjAffineGetFlipYFunc)(s32);
+extern u16 *(*gObjAllocManyFunc)(u32);
+extern void (*gObjAddToLayerFunc)(u16 *, u32);
+extern s32 (*gObjTilesGetTileFunc)(s32, s32, s32);
+extern void *gSpriteDrawAffineFunc;
+extern void *gSpriteDrawFunc;
+extern u8 gSpriteDrawArmCode[];
+extern u8 gSpriteDrawAffineArmCode[];
+
 /* Upstream functions 0x08039340..0x0803981F from the previously unlinked
  * this file, now linked as matching C. */
 
@@ -218,12 +228,7 @@ void ObjGfx_DecompressSet(struct EwramData_unk19404 *set)
 struct Matrix2_2 { s32 m[4]; };
 struct ObjEntry;
 extern void (*gObjAffineGetMatrixFunc)(struct Matrix2_2 *, s32);
-extern s32 (*gObjAffineGetFlipXFunc)(s32);
-extern s32 (*gObjAffineGetFlipYFunc)(s32);
-extern u16 *(*gObjAllocManyFunc)(u32);
-extern void (*gObjAddToLayerFunc)(u16 *, u32);
 extern void (*gMatrixMultiplyVec2Func)(s32 *, struct Matrix2_2 *, s32 *);
-extern s32 (*gObjTilesGetTileFunc)(s32, s32, s32);
 
 #define WHOLE(v) ((v) < 0 ? -(-(v) >> 16) : (v) >> 16)
 
@@ -453,11 +458,6 @@ s32 Sprite_DrawPartsAffine(struct EwramData_EntityData *entity)
 /* Upstream functions 0x08039DC0..0x0803ACDF from the previously unlinked
  * this file, now linked as matching C.
  * Sprite_DrawParts/Sprite_DrawPartsAffine (no upstream C yet) stay in asm/this file.s. */
-
-extern void *gSpriteDrawAffineFunc;
-extern void *gSpriteDrawFunc;
-extern u8 gSpriteDrawArmCode[];
-extern u8 gSpriteDrawAffineArmCode[];
 
 /**
  * @brief 39DC0 | Reset the graphics cache and all sprite slots

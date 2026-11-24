@@ -16,5 +16,7 @@ extern void Player_AddGold(s32 amount);
 extern u8* ItemInventory_GetCountPtr(s32 type, s32 index);
 
 extern void *Item_GetInfoByGlobalId(s32 id);
+extern struct EwramData_EntityData *SoulPickup_Create(s32 x, s32 y, s32 palette, s32 soulId, s32 stationary);
+extern struct EwramData_EntityData *Effect_CreateHomingOrb(struct EwramData_EntityData *owner, s32 x, s32 y, s32 dy, s32 palette);
 
 #endif /* SOUL_PICKUP_H */

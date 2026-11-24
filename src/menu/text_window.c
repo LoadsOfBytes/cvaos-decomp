@@ -17,10 +17,16 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "data/data_0E5364.h"
+#include "sound.h"
+#include "shop_update.h"
+
+extern void *memcpy(void *dst, const void *src, unsigned long size);
+extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
+
+s32 Text_PrintWithCommands(u8 *text, s32 initialOffset, s32 mode);
 
 /* Set up a language-dependent background: copy its map, load the given
  * tiles/palette and layer, and select palette 13 for every map entry. */
-extern void *memcpy(void *dst, const void *src, unsigned long size);
 
 static inline u8 *GfxData(void *data)
 {
@@ -155,11 +161,6 @@ void TextWindow_Begin(s32 textId)
     ram->gameState.textWindowPause = 0;
     ram->gameState.textCharacterDelay = 1;
 }
-
-extern s32 Text_PrintWithCommands(u8 *text, s32 initialOffset, s32 mode);
-extern u32 GameFlag_Is3ASet(void);
-extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
-extern void PlaySong(u16 song);
 
 /* Run the text commands until a character or a stop marker. */
 static inline s32 ScanText(u8 *commands, s32 offset)

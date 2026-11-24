@@ -15,14 +15,17 @@
 #include "obj_palette.h"
 #include "triton.h"
 #include "data/data_118B48.h"
+#include "hitbox.h"
+#include "damage_numbers.h"
+
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
+
+u8 Gargoyle_LoadGraphics(struct EwramData_EntityData *entity);
+void Gargoyle_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void Gargoyle_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 /* Decompiled locally from the original assembly (variant of an already
  * decompiled function). */
-
-extern u8 Gargoyle_LoadGraphics(struct EwramData_EntityData *entity);
-extern void Gargoyle_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-void Gargoyle_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
 
 /**
  * @brief 864A0 | Gargoyle create: like EnemyValkyrieCreate, but state 2 when
@@ -45,17 +48,14 @@ void EnemyGargoyleCreate(struct EwramData_EntityData *entity)
     }
     entity->spriteLayer = 3;
     if (Anim_GetMaxBoxCount(entity) > 1)
-        Hit_EnableContact(entity, 8, Gargoyle_DamagePlayerOnContact, (s32)Gargoyle_OnHit);
+        Hit_EnableContact(entity, 8, Gargoyle_DamagePlayerOnContact, Gargoyle_OnHit);
     else
-        Hit_Enable(entity, 8, Gargoyle_DamagePlayerOnContact, (s32)Gargoyle_OnHit);
+        Hit_Enable(entity, 8, Gargoyle_DamagePlayerOnContact, Gargoyle_OnHit);
     Entity_UpdateBoxes(entity);
     entity->state = 0;
 }
 
 /* Gargoyle: AI, hit reaction and graphics. */
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 #define ACCEL(e) ((e)->accelX.whole)
 #define MAX_SPEED(e) ((e)->accelY.whole)
 /* Gargoyle AI: fly towards a point 64 px above the target, swoop down,
@@ -207,7 +207,7 @@ void Gargoyle_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
@@ -232,7 +232,7 @@ u8 Gargoyle_LoadGraphics(struct EwramData_EntityData *entity)
     else
         entity->basePalette = ObjPalette_FindOrLoadVariant(sGargoylePalette, 1);
     Sprite_Attach(entity, sGargoyleSpriteSheet, graphics, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -240,23 +240,6 @@ u8 Gargoyle_LoadGraphics(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   Gargoyle_DamagePlayerOnContact = Enemy_DamagePlayerOnContact
  * Gargoyle/Triton update and creation. */
-
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern void Triton_OnHit(struct EwramData_EntityData *);
-
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
 
 /**
  * @brief 86964 | Same as Enemy_DamagePlayerOnContact.
@@ -294,7 +277,7 @@ void EnemyTritonUpdate(struct EwramData_EntityData *entity)
     if (entity->state != 2) Enemy_UpdateHitFlash(entity);
     if (Entity_IsTimeStopped(entity) && entity->state != 2)
     {
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         return;
     }
     switch (entity->state)
@@ -344,9 +327,9 @@ void EnemyTritonCreate(struct EwramData_EntityData *entity)
         return;
     }
     if (Anim_GetMaxBoxCount(entity) > 1)
-        Hit_EnableContact(entity, 8, Triton_DamagePlayerOnContact, (s32)Triton_OnHit);
+        Hit_EnableContact(entity, 8, Triton_DamagePlayerOnContact, Triton_OnHit);
     else
-        Hit_Enable(entity, 8, Triton_DamagePlayerOnContact, (s32)Triton_OnHit);
+        Hit_Enable(entity, 8, Triton_DamagePlayerOnContact, Triton_OnHit);
     Entity_UpdateBoxes(entity);
     entity->state = 0;
     Entity_SnapToGround(entity);

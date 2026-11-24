@@ -13,8 +13,11 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "damage_numbers.h"
 
 #define FRAME(e) (*(u16 *)&(e)->animStep)
+
+extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
 
 /**
  * @brief A04B0 | Enemy sub-state (file 0x080A02AC): animation 2 facing the
@@ -65,9 +68,6 @@ void KyomaDemon_UpdateAttack(struct EwramData_EntityData *entity)
     }
 }
 
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-
 void KyomaDemon_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     s32 damage = Player_CalculateAttackPower(hit[2]);
@@ -79,7 +79,7 @@ void KyomaDemon_OnHit(struct EwramData_EntityData *entity, struct EwramData_Enti
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
@@ -139,8 +139,6 @@ void KyomaDemon_Draw(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   KyomaDemon_LoadGraphics = Object25_LoadGraphics */
 
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
 /**
  * @brief A0744 | Same as Object25_LoadGraphics.
  */
@@ -152,7 +150,7 @@ u8 KyomaDemon_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sKyomaDemonPalette, 0);
     Sprite_Attach(entity, sKyomaDemonSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)KyomaDemon_Draw;
+    entity->drawFunc = KyomaDemon_Draw;
     return 1;
 }
 
@@ -174,19 +172,6 @@ void KyomaDemon_UpdateDeath(struct EwramData_EntityData *entity)
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
  *   KyomaDemon_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
-
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
 
 /**
  * @brief A07D0 | Same as Enemy_DamagePlayerOnContact.

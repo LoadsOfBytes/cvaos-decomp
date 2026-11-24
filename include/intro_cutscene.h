@@ -16,7 +16,7 @@ void IntroCutscene_UpdateShrinkingSprite(struct EwramData_EntityData *entity);
 void IntroCutscene_UpdateFloatingSprite(struct EwramData_EntityData *entity);
 s32 IntroCutsceneText_PrintNextLine(struct EwramData_EntityData *entity);
 void IntroCutscene_CreateEntities(struct EwramData_EntityData *entity);
-struct EwramData_EntityData* IntroCutscene_CreateSprite(u32 *updateFunc, u8 palette);
+struct EwramData_EntityData* IntroCutscene_CreateSprite(EntityFunc updateFunc, u8 palette);
 void IntroCutsceneText_Update(struct EwramData_EntityData *entity);
 
 #endif /* INTRO_CUTSCENE_H */

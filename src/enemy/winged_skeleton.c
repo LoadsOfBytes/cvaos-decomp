@@ -18,12 +18,24 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "math_inline.h"
+#include "damage_numbers.h"
 
-extern void WingedSkeleton_UpdateFly(struct EwramData_EntityData *entity);
-extern void WingedSkeleton_UpdateAttack(struct EwramData_EntityData *entity);
-extern void WingedSkeleton_SpawnDeathPieces(struct EwramData_EntityData *entity);
-extern void EnemyWingedSkeletonCreate(struct EwramData_EntityData *entity);
-extern s32 Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
+
+void WingedSkeleton_UpdateFly(struct EwramData_EntityData *entity);
+void WingedSkeleton_UpdateAttack(struct EwramData_EntityData *entity);
+void WingedSkeleton_SpawnDeathPieces(struct EwramData_EntityData *entity);
+void EnemyWingedSkeletonCreate(struct EwramData_EntityData *entity);
+u8 WingedSkeleton_LoadGraphics(struct EwramData_EntityData *);
+void WingedSkeleton_DamagePlayerOnContact(struct EwramData_EntityData *);
+void WingedSkeleton_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+void WingedSkeleton_ThrowShot(struct EwramData_EntityData *entity);
+void WingedSkeletonShot_Update(struct EwramData_EntityData *entity);
+s32 WingedSkeletonShot_LoadGraphics(struct EwramData_EntityData *entity, struct EwramData_EntityData *child);
+void WingedSkeletonShot_EnableHitBoxes(struct EwramData_EntityData *entity);
+void WingedSkeletonPiece_Update(struct EwramData_EntityData *);
+void WingedSkeletonShot_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 
 /**
  * @brief 74910 | Winged Skeleton update (as EnemyMedusaHeadUpdate): a
@@ -55,7 +67,7 @@ void EnemyWingedSkeletonUpdate(struct EwramData_EntityData *entity)
     if (Enemy_IsStunned(entity))
     {
         if (entity->state != 2)
-            Hit_CheckWithPlayer(collision, entity);
+            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         return;
     }
     switch (entity->state)
@@ -82,7 +94,7 @@ void EnemyWingedSkeletonUpdate(struct EwramData_EntityData *entity)
     case 3:
         if ((RandomNumberGenerator() & 0x1F) == 0 && (s32)entity->ext.wingedSkeletonSpawner.childCount < entity->spawnParam0)
         {
-            head = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
+            head = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
             if (head != NULL)
             {
                 entity->ext.wingedSkeletonSpawner.childCount++;
@@ -106,7 +118,7 @@ void EnemyWingedSkeletonUpdate(struct EwramData_EntityData *entity)
                 head->spawnIndex = 0;
                 head->enemyId = entity->enemyId;
                 head->spawnParam1 = 0;
-                head->drawFunc = (u32 *)Sprite_DrawEntity;
+                head->drawFunc = Sprite_DrawEntity;
                 head->hp = sEnemyData[entity->enemyId].hp;
                 head->mp = sEnemyData[entity->enemyId].mp;
                 head->updateFunc = entity->updateFunc;
@@ -123,9 +135,6 @@ void EnemyWingedSkeletonUpdate(struct EwramData_EntityData *entity)
     Enemy_CheckHitPlayer(entity);
 }
 
-extern u8 WingedSkeleton_LoadGraphics(struct EwramData_EntityData *);
-extern void WingedSkeleton_DamagePlayerOnContact(struct EwramData_EntityData *);
-void WingedSkeleton_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 void EnemyWingedSkeletonCreate(struct EwramData_EntityData *entity)
 {
     if (!WingedSkeleton_LoadGraphics(entity)) { EntityDelete(entity); return; }
@@ -134,7 +143,7 @@ void EnemyWingedSkeletonCreate(struct EwramData_EntityData *entity)
     Enemy_ResetFromTemplate(entity);
     if (gEwramData->gameState.bestiaryPreview) { entity->state = 4; return; }
     entity->spriteLayer = 3;
-    Hit_Enable(entity, 8, WingedSkeleton_DamagePlayerOnContact, (s32)WingedSkeleton_OnHit);
+    Hit_Enable(entity, 8, WingedSkeleton_DamagePlayerOnContact, WingedSkeleton_OnHit);
     Entity_UpdateBoxes(entity);
     if (entity->spawnParam1 != 0)
     {
@@ -153,16 +162,8 @@ void EnemyWingedSkeletonCreate(struct EwramData_EntityData *entity)
 }
 
 /* Patrolling enemy (Entity_GetTargetDistanceX/BDEC distance checks, Tile_Classify probe); per-copy pinned bg->xPos reads keep the three tracking copies distinct. */
-extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *);
-extern s16 Target_GetPixelX(struct EwramData_EntityData *);
 
 #define ANIM552 (*(u16 *)&entity->animStep)
-static inline s32 Abs(s32 v)
-{
-    if (v < 0)
-        v = -v;
-    return v;
-}
 
 #define ANIMATE()                                                                 \
     if (entity->animScriptIndex == 2)                                                     \
@@ -313,12 +314,12 @@ void WingedSkeleton_UpdateFly(struct EwramData_EntityData *entity)
         {
             if (entity->velX.whole > 0)
             {
-                if (Target_GetPixelX(entity) - (s16)entity->posX.part16.integer >= -0x10)
+                if ((s16)Target_GetPixelX(entity) - (s16)entity->posX.part16.integer >= -0x10)
                     goto track2;
             }
             else
             {
-                if (Target_GetPixelX(entity) - (s16)entity->posX.part16.integer <= 0x10)
+                if ((s16)Target_GetPixelX(entity) - (s16)entity->posX.part16.integer <= 0x10)
                     goto track2;
             }
             entity->subState = 3;
@@ -345,8 +346,6 @@ void WingedSkeleton_UpdateFly(struct EwramData_EntityData *entity)
         break;
     }
 }
-
-extern void WingedSkeleton_ThrowShot(struct EwramData_EntityData *entity);
 
 /**
  * @brief 75078 | Winged Skeleton attack sub-state machine (subState): animation 5
@@ -416,8 +415,6 @@ void WingedSkeleton_UpdateAttack(struct EwramData_EntityData *entity)
 }
 
 /* WingedSkeleton_OnHit (hit). */
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
 
 /**
  * @brief 751B4 | Hit: flash (hitFlashTimer = 8), subtract the damage from the HP
@@ -437,7 +434,7 @@ void WingedSkeleton_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
@@ -449,10 +446,6 @@ void WingedSkeleton_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16
     }
 }
 
-extern void WingedSkeletonShot_Update(struct EwramData_EntityData *entity);
-extern s32 WingedSkeletonShot_LoadGraphics(struct EwramData_EntityData *entity, struct EwramData_EntityData *child);
-extern void WingedSkeletonShot_EnableHitBoxes(struct EwramData_EntityData *entity);
-
 /**
  * @brief 75230 | Spawn a WingedSkeletonShot_Update projectile (Winged Skeleton graphics) from entity (its owner in
  * unk_4F4): graphics via WingedSkeletonShot_LoadGraphics (deleted if that fails, though setup
@@ -462,7 +455,7 @@ extern void WingedSkeletonShot_EnableHitBoxes(struct EwramData_EntityData *entit
  */
 void WingedSkeleton_ThrowShot(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, (u32 *)WingedSkeletonShot_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, WingedSkeletonShot_Update);
 
     if (child == NULL)
         return;
@@ -548,21 +541,20 @@ void WingedSkeletonShot_Update(struct EwramData_EntityData *entity)
         break;
     }
     if (entity->state == 0)
-        Hit_CheckWithPlayer(contact, entity);
+        Hit_CheckWithPlayer((struct HitResult *)contact, entity);
     Anim_Update(entity);
 }
 
 /* Burst of seven fragments (frames 0x24-0x2A) from the owner position with
  * random velocities, gravity 0x1800, the owner palette and facing, and a
  * lifetime of 40-43 frames (WingedSkeletonPiece_Update). */
-extern void WingedSkeletonPiece_Update(struct EwramData_EntityData *);
 
 void WingedSkeleton_SpawnDeathPieces(struct EwramData_EntityData *owner)
 {
     s32 i;
     for (i = 0; i <= 6; i++)
     {
-        struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, (u32 *)WingedSkeletonPiece_Update);
+        struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, WingedSkeletonPiece_Update);
         if (effect != NULL)
         {
             effect->posX.whole = owner->posX.whole;
@@ -575,29 +567,13 @@ void WingedSkeleton_SpawnDeathPieces(struct EwramData_EntityData *owner)
             effect->animFrame = i + 0x24;
             effect->flipX = owner->flipX;
             effect->scrollWithBg = 1;
-            effect->drawFunc = (u32 *)Sprite_DrawEntity;
+            effect->drawFunc = Sprite_DrawEntity;
             effect->timer = RandomNumberGenerator() % 4 + 0x28;
         }
     }
 }
 
 /* Winged Skeleton helpers 0x080754E0..0x0807565F. */
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-void WingedSkeletonShot_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
 
 /**
  * @brief 754E0 | Load the graphics of the Winged Skeleton; 0 when no slot is free.
@@ -610,7 +586,7 @@ u8 WingedSkeleton_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sWingedSkeletonPalette, 0);
     Sprite_Attach(entity, sWingedSkeletonSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -636,7 +612,7 @@ s32 WingedSkeletonShot_LoadGraphics(struct EwramData_EntityData *entity, struct 
     Sprite_Attach(child, sWingedSkeletonSpriteSheet, gfx, entity->basePalette);
     Anim_StartIndexed(child, 8, 0, 1);
     Anim_Update(child);
-    child->drawFunc = (u32 *)Sprite_DrawEntity;
+    child->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 

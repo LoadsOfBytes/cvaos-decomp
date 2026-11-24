@@ -17,12 +17,16 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "hitbox.h"
+#include "damage_numbers.h"
+
+extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
+
+u8 Valkyrie_LoadGraphics(struct EwramData_EntityData *entity);
+void Valkyrie_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void Valkyrie_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hitData);
 
 /* EnemyValkyrieCreate 0x0806E714..0x0806E7A7. */
-extern u8 Valkyrie_LoadGraphics(struct EwramData_EntityData *entity);
-extern void Valkyrie_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-void Valkyrie_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hitData);
-extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
 
 /**
  * @brief 6E714 | Valkyrie create: load the graphics (delete the
@@ -47,19 +51,14 @@ void EnemyValkyrieCreate(struct EwramData_EntityData *entity)
     }
     entity->spriteLayer = 3;
     if (Anim_GetMaxBoxCount(entity) > 1)
-        Hit_EnableContact(entity, 8, Valkyrie_DamagePlayerOnContact, (s32)Valkyrie_OnHit);
+        Hit_EnableContact(entity, 8, Valkyrie_DamagePlayerOnContact, Valkyrie_OnHit);
     else
-        Hit_Enable(entity, 8, Valkyrie_DamagePlayerOnContact, (s32)Valkyrie_OnHit);
+        Hit_Enable(entity, 8, Valkyrie_DamagePlayerOnContact, Valkyrie_OnHit);
     Entity_UpdateBoxes(entity);
     entity->state = 0;
 }
 
 /* Valkyrie idle / approach state. */
-extern s32 ObjPalette_FindOrLoadVariant(void *, s32);
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-
-extern s32 Target_IsWithinDistance(struct EwramData_EntityData *, s32);
 
 /**
  * @brief Approach state machine (state 0): face the target and wait until it is
@@ -242,9 +241,9 @@ u8 Valkyrie_LoadGraphics(struct EwramData_EntityData *entity)
     y = GetEntityRoomYPositionInteger(entity);
     room = GetRoomFromMapPosition((s16)x, (s16)y);
     if (GetAreaFromMapPosition((s16)x, (s16)y) == 4 && (u32)(room - 0xC) <= 1)
-        entity->drawFunc = (u32 *)Entity_DrawWithOffsetCopy;
+        entity->drawFunc = Entity_DrawWithOffsetCopy;
     else
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -264,7 +263,7 @@ void Valkyrie_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
@@ -286,7 +285,6 @@ void Valkyrie_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
 }
 
 /* Valkyrie hit effect: full strength during animation 1, frames 4..6. */
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 
 /**
  * @brief Contact: Player_ApplyContactDamage with half the attack, the full attack
@@ -315,7 +313,7 @@ void EnemyValkyrieUpdate(struct EwramData_EntityData *entity)
     if (Enemy_IsStunned(entity))
     {
         if (entity->state != 2)
-            Hit_CheckWithPlayer(box, entity);
+            Hit_CheckWithPlayer((struct HitResult *)box, entity);
         return;
     }
     switch (entity->state)

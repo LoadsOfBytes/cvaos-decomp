@@ -186,7 +186,7 @@ u32 RandomNumberGenerator2(void)
  * @param updateFunc Pointer to entity update function
  * @return struct EwramData_EntityData* Pointer to new entity
  */
-struct EwramData_EntityData* EntityCreate(u32 *updateFunc)
+struct EwramData_EntityData* EntityCreate(EntityFunc updateFunc)
 {
     struct EwramData_EntityData *newEntity;
     s32 slot;
@@ -237,7 +237,7 @@ void Entity_UpdateAll(void)
         {
             if (entity->updateFunc != NULL)
             {
-                ((void (*)(struct EwramData_EntityData *))entity->updateFunc)(entity);
+                entity->updateFunc(entity);
                 Hit_UpdateTimers(entity);
                 if (entity->deleteRequested)
                 {
@@ -257,7 +257,7 @@ void Entity_UpdateAll(void)
         {
             if (entity->drawFunc != NULL)
             {
-                ((void (*)(struct EwramData_EntityData *))entity->drawFunc)(entity);
+                entity->drawFunc(entity);
             }
         }
     }
@@ -319,7 +319,7 @@ void Entity_UpdateReserved(void)
     {
         if (entity->updateFunc != NULL)
         {
-            ((void (*)(struct EwramData_EntityData *))entity->updateFunc)(entity);
+            entity->updateFunc(entity);
             if (entity->deleteRequested)
             {
                 Sprite_Free(entity, 0);
@@ -337,7 +337,7 @@ void Entity_UpdateReserved(void)
         {
             if (entity->drawFunc != NULL && slot >= 0xD0)
             {
-                ((void (*)(struct EwramData_EntityData *))entity->drawFunc)(entity);
+                entity->drawFunc(entity);
             }
         }
     }
@@ -373,7 +373,7 @@ void EntityDeleteAll(void)
  * @param updateFunc Pointer to entity update function
  * @return struct EwramData_EntityData* Pointer to new entity
  */
-struct EwramData_EntityData *EntityCreateInRange(s32 minSlot, s32 maxSlot, u32 *updateFunc)
+struct EwramData_EntityData *EntityCreateInRange(s32 minSlot, s32 maxSlot, EntityFunc updateFunc)
 {
     struct EwramData_EntityData *newEntity;
     s32 slot;
@@ -470,7 +470,7 @@ s32 EntityDeleteGroup(u8 group)
  * @brief F38 | To document
  * 
  */
-void EntityUpdateNothing(void)
+void EntityUpdateNothing(struct EwramData_EntityData *entity)
 {
     return;
 }

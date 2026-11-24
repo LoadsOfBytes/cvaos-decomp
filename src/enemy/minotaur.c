@@ -25,15 +25,25 @@
 #include "effects.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "damage_numbers.h"
+#include "music.h"
+
 extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *);
 extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
-
 extern s16 Collision_GetPushLeft(s32 x, s32 y);
 extern s16 Collision_GetPushRight(s32 x, s32 y);
 extern s16 Collision_GetPushUp(s32 x, s32 y);
+extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
+extern void Entity_FaceTarget(struct EwramData_EntityData *);
+
+/* This call site consumes the complete return register, as in the ROM. */
+extern s32 Collision_GetGroundOffset(s32, s32);
+
+void MinotaurAxe_DamagePlayerOnContact(struct EwramData_EntityData *);
+void Minotaur_DamagePlayerOnContact(struct EwramData_EntityData *);
 
 /* Probabilistic gate followed by a direction-dependent room obstacle probe. */
-extern s32 Target_IsNearEntity(struct EwramData_EntityData *, s32, s32);
 
 s32 Minotaur_CheckAttackChance(struct EwramData_EntityData *entity, s32 mask)
 {
@@ -52,9 +62,6 @@ s32 Minotaur_CheckAttackChance(struct EwramData_EntityData *entity, s32 mask)
         result = Collision_GetPushRight((s16)x - 80, (s16)y);
     return (s16)result;
 }
-
-/* This call site consumes the complete return register, as in the ROM. */
-extern s32 Collision_GetGroundOffset(s32, s32);
 
 /* Ballistic fragment: bounce once against room geometry, then fall away. */
 static inline s32 FragmentHitsGround(struct EwramData_EntityData *entity)
@@ -102,9 +109,6 @@ void MinotaurAxePiece_Update(struct EwramData_EntityData *entity)
         entity->deleteRequested = 1;
 }
 
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-
 void Minotaur_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     s32 damage = Player_CalculateAttackPower(hit[2]);
@@ -116,7 +120,7 @@ void Minotaur_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     if ((s16)entity->hp < 100 && !(entity->ext.minotaur.flags & 1))
         entity->ext.minotaur.flags &= ~2;
     if ((s16)entity->hp <= 0)
@@ -134,8 +138,6 @@ void Minotaur_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
         }
     }
 }
-
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
 
 /**
  * @brief B0064 | Affine-rotated companion sprite of the parent (unk_4F8):
@@ -212,9 +214,6 @@ void MinotaurSwingTrail_Update(struct EwramData_EntityData *entity)
     ObjAffine_Set(rot, 0x14000 - (entity->timer << 11), 0x12000, entity->flipX, 1, entity->affineIndex);
 }
 
-extern void MinotaurAxe_DamagePlayerOnContact(struct EwramData_EntityData *);
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-
 /* Collision object attached to a rotating parent, at a radius of 16 pixels. */
 void MinotaurAxeHitBox_Update(struct EwramData_EntityData *entity)
 {
@@ -242,7 +241,7 @@ void MinotaurAxeHitBox_Update(struct EwramData_EntityData *entity)
             entity->posX.whole = parent->posX.whole + dx;
             entity->posY.whole = parent->posY.whole + dy;
             if (parent->state == 1)
-                Hit_CheckWithPlayer(collision, entity);
+                Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         }
         break;
     }
@@ -422,11 +421,11 @@ void MinotaurAxe_Update(struct EwramData_EntityData *entity)
             piece->flipX = RandomNumberGenerator() & 1;
             piece->spriteLayer = 0x11;
             piece->scrollWithBg = 1;
-            piece->drawFunc = (u32 *)Sprite_DrawEntity;
+            piece->drawFunc = Sprite_DrawEntity;
             i++;
         }
     test:
-        if (i <= 3 && (piece = EntityCreateInRange(0x49, 0xCF, (u32 *)MinotaurAxePiece_Update)) != NULL)
+        if (i <= 3 && (piece = EntityCreateInRange(0x49, 0xCF, MinotaurAxePiece_Update)) != NULL)
             goto loop;
         if (ENTITY_INDEX(parent) == ENTITY_PARENT_INDEX(entity))
             parent->ext.minotaur.flags &= ~2;
@@ -465,8 +464,6 @@ void MinotaurAxe_Update(struct EwramData_EntityData *entity)
     entity->ext.minotaurAxe.angle = angle;
     ObjAffine_Set(angle, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
 }
-
-extern void Entity_FaceTarget(struct EwramData_EntityData *);
 
 /* Minotaur idle: choose approach or attack using two distance windows. */
 void Minotaur_UpdateIdle(struct EwramData_EntityData *entity)
@@ -541,8 +538,6 @@ void Minotaur_UpdateApproach(struct EwramData_EntityData *entity)
         break;
     }
 }
-
-extern void Afterimage_Create(struct EwramData_EntityData *, s32, s32, s32);
 
 /* Minotaur attack: windup, decelerating charge, recovery or follow-up. */
 void Minotaur_UpdateAttack(struct EwramData_EntityData *entity)
@@ -644,8 +639,6 @@ decrementTimer:
  * and MinotaurSwingTrail_Update (any failure deletes the Minotaur), starts animation 1 and
  * either enters state 4 (bestiaryPreview set) or registers the hit/death callbacks
  * and enters state 0. */
-extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, s32 onHurt);
-extern void Minotaur_DamagePlayerOnContact(struct EwramData_EntityData *);
 
 /* Two child entities inherit the parent pointer, low unk_4F4 byte, attack
  * and the hp value of the Minotaur. */
@@ -686,7 +679,7 @@ void Minotaur_Init(struct EwramData_EntityData *entity, s32 variant)
         entity->state = 4;
         return;
     }
-    Entity_EnableBoxes(entity, Minotaur_DamagePlayerOnContact, (s32)Minotaur_OnHit);
+    Entity_EnableBoxes(entity, Minotaur_DamagePlayerOnContact, Minotaur_OnHit);
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
     entity->posY.part16.integer++;
@@ -697,8 +690,6 @@ void Minotaur_Init(struct EwramData_EntityData *entity, s32 variant)
 }
 
 /* Minotaur update: pause handling, state dispatch, contact and animation. */
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern void Music_SetCurrent(s32);
 
 void Minotaur_Update(struct EwramData_EntityData *entity)
 {
@@ -710,7 +701,7 @@ void Minotaur_Update(struct EwramData_EntityData *entity)
         Enemy_UpdateHitFlash(entity);
     if (Entity_IsTimeStopped(entity) && entity->state != 3)
     {
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         return;
     }
     switch (entity->state)
@@ -734,7 +725,7 @@ void Minotaur_Update(struct EwramData_EntityData *entity)
         return;
     }
     if (entity->state != 3)
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
     entity->ext.minotaur.animStep = entity->animStep;
     Entity_AnimateWithBoxes(entity);
 }
@@ -807,8 +798,6 @@ void EnemyRedMinotaurUpdate(struct EwramData_EntityData *entity)
 
 /* Axe Armor 0x080B0D5C..0x080B136F; only matches without -f2003-patch. */
 
-extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *entity);
-
 /**
  * @brief Initialize and update the spinning thrown axe; release its affine slot on destruction.
  */
@@ -819,7 +808,7 @@ void AxeArmorAxe_Update(struct EwramData_EntityData *entity)
 
     if (entity->state != 0)
     {
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         if ((s16)entity->hp <= 0)
         {
             Effect_SpawnRandom(entity->posX.whole, entity->posY.whole, 0x80000, 0x80000, entity->spriteLayer - 1);
@@ -861,7 +850,7 @@ void AxeArmorAxe_Update(struct EwramData_EntityData *entity)
             entity->state = 1;
             PlaySong(0x86);
             entity->hp = 1;
-            Hit_Enable(entity, 10, Enemy_OnContactMask1, (s32)AxeArmorAxe_ClearHealth);
+            Hit_Enable(entity, 10, Enemy_OnContactMask1, AxeArmorAxe_ClearHealth);
             HitBox_SetAttackRaw(entity, 0x1010F8F8);
             HitBox_SetBodyRaw(entity, 0x1010F8F8);
             break;

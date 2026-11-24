@@ -9,7 +9,13 @@
 #include "entity_motion.h"
 #include "math_anim.h"
 #include "oam.h"
+#include "math_inline.h"
+
 extern s32 ArcTan2(s32, s32);
+
+/* from syscalls.h (not included: see the module notes) */
+extern s32 Div(s32 num, s32 denom);
+extern u16 Sqrt(u32 num);
 
 /* Distance check and angle approach 0x08068688..0x08068787. Angle_TurnTowards only matches without
  * -f2003-patch (NO_2003_PATCH_SRCS in ../Makefile). */
@@ -83,9 +89,6 @@ turning:
     return 0;
 }
 
-/* from syscalls.h (not included: see the module notes) */
-extern s32 Div(s32 num, s32 denom);
-extern u16 Sqrt(u32 num);
 /* from entity_util.h (not included: see the module notes) */
 
 static inline s32 Sq(s32 v) { return v * v; }
@@ -718,16 +721,6 @@ s32 Entity_AimVelocityAtPointByDistance(struct EwramData_EntityData *entity, s32
 }
 
 /* Entity_AimVelocityAtPoint (steer toward a point). */
-/* Signed integer-pixel difference param_0 - param_1 (16.16 inputs). */
-static inline s32 AbsPx(s32 a, s32 b)
-{
-    s32 diff = a - b;
-
-    if (diff < 0)
-        return -((b - a) >> 16);
-    return diff >> 16;
-}
-
 /**
  * @brief 694B8 | Aim the velocity (speed speed) from the entity (screen
  * position + camera of background 1) at the world point (targetX,
@@ -742,16 +735,16 @@ s32 Entity_AimVelocityAtPoint(struct EwramData_EntityData *entity, s32 targetX, 
     s32 outY;
     u16 angle;
 
-    dx = AbsPx(targetX, bg->xPos.whole + entity->posX.whole);
-    dy = AbsPx(targetY, bg->yPos.whole + entity->posY.whole);
+    dx = PixelDiff(targetX, bg->xPos.whole + entity->posX.whole);
+    dy = PixelDiff(targetY, bg->yPos.whole + entity->posY.whole);
     angle = (u16)ArcTan2((s16)dx, (s16)dy);
     dx = Sin(angle + 0x4000);
     dy = Sin(angle);
     outX = FixedMultiply(dx, speed);
     outY = FixedMultiply(dy, speed);
-    dx = AbsPx(targetX, bg->xPos.whole + entity->posX.whole);
+    dx = PixelDiff(targetX, bg->xPos.whole + entity->posX.whole);
     dx = dx * dx;
-    dy = AbsPx(targetY, bg->yPos.whole + entity->posY.whole);
+    dy = PixelDiff(targetY, bg->yPos.whole + entity->posY.whole);
     dy = dy * dy;
     dx = Sqrt(dx + dy);
     entity->velX.whole = outX;
@@ -779,16 +772,16 @@ s32 Entity_AimAccelerationAtPoint(struct EwramData_EntityData *entity, s32 targe
     s32 outY;
     u16 angle;
 
-    dx = AbsPx(targetX, bg->xPos.whole + entity->posX.whole);
-    dy = AbsPx(targetY, bg->yPos.whole + entity->posY.whole);
+    dx = PixelDiff(targetX, bg->xPos.whole + entity->posX.whole);
+    dy = PixelDiff(targetY, bg->yPos.whole + entity->posY.whole);
     angle = (u16)ArcTan2((s16)dx, (s16)dy);
     dx = Sin(angle + 0x4000);
     dy = Sin(angle);
     outX = FixedMultiply(dx, speed);
     outY = FixedMultiply(dy, speed);
-    dx = AbsPx(targetX, bg->xPos.whole + entity->posX.whole);
+    dx = PixelDiff(targetX, bg->xPos.whole + entity->posX.whole);
     dx = dx * dx;
-    dy = AbsPx(targetY, bg->yPos.whole + entity->posY.whole);
+    dy = PixelDiff(targetY, bg->yPos.whole + entity->posY.whole);
     dy = dy * dy;
     dx = Sqrt(dx + dy);
     entity->accelX.whole = outX;

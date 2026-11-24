@@ -14,16 +14,39 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "entity_inline.h"
+#include "hitbox.h"
+#include "damage_numbers.h"
+#include "player_soma.h"
+
+extern void Sound_StopTracked(s32 id);
+extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
+extern s32 Collision_GetTileOnScreen(s32 x, s32 y);
+extern void Sound_PlayTracked(s32 id);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 hit, u16 *data, s32 kind);
+extern s32 Collision_GetPushUp(s32 x, s32 y);
+extern s32 Collision_GetPushDown(s32 x, s32 y);
+extern s32 Collision_GetPushLeft(s32 x, s32 y);
+extern s32 Collision_GetPushRight(s32 x, s32 y);
+
+/* These callers use full return registers, without 16-bit truncation. */
+extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
+extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *entity);
+
+s32 LightningDoll_LoadGraphics(struct EwramData_EntityData *entity);
+void LightningDoll_ResetActive(struct EwramData_EntityData *entity);
+void LightningDoll_OnContact(struct EwramData_EntityData *entity);
+void LightningDoll_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 *data);
+void LightningDoll_UpdateState2Animation(struct EwramData_EntityData *entity);
+void LightningDoll_UpdateActive(struct EwramData_EntityData *entity);
+void LightningDoll_UpdateDeath(struct EwramData_EntityData *entity);
+void LightningDoll_ResolveMovementBounds(struct EwramData_EntityData *entity);
+void LightningDoll_SpawnDeathParts(struct EwramData_EntityData *entity);
+void LightningDollPlayerEffect_Update(struct EwramData_EntityData *entity);
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
  *   EnemyLightningDollCreate = EnemyKillerDollCreate */
-
-extern s32 LightningDoll_LoadGraphics(struct EwramData_EntityData *entity);
-extern void LightningDoll_ResetActive(struct EwramData_EntityData *entity);
-extern void LightningDoll_OnContact(struct EwramData_EntityData *entity);
-void LightningDoll_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 *data);
-extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, s32 onHurt);
 
 /**
  * @brief C89B0 | Same as EnemyKillerDollCreate.
@@ -47,13 +70,12 @@ void EnemyLightningDollCreate(struct EwramData_EntityData *entity)
         entity->subState = 0;
         return;
     }
-    Entity_EnableBoxes(entity, LightningDoll_OnContact, (s32)LightningDoll_OnHit);
+    Entity_EnableBoxes(entity, LightningDoll_OnContact, LightningDoll_OnHit);
     LightningDoll_ResetActive(entity);
 }
 
 /* Graphics loader 0x080C8A18. It only matches without -f2003-patch (see
  * NO_2003_PATCH_SRCS in ../Makefile). */
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 /**
  * @brief Find or load graphics and palette, attach the sprite and start animation 0; return 0 on failure, 1 on success.
@@ -79,17 +101,11 @@ s32 LightningDoll_LoadGraphics(struct EwramData_EntityData *entity)
     if (!Anim_StartIndexed(entity, 0, 0, 1))
         return 0;
     Anim_Update(entity);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
 /* Lightning Doll helpers reconstructed from the original assembly. */
-extern void Hit_CheckWithPlayer(void *buffer, struct EwramData_EntityData *entity);
-extern void LightningDoll_UpdateState2Animation(struct EwramData_EntityData *entity);
-extern void LightningDoll_UpdateActive(struct EwramData_EntityData *entity);
-extern void LightningDoll_UpdateDeath(struct EwramData_EntityData *entity);
-extern void Sound_StopTracked(s32 id);
-extern void HitBox_SetAttackRaw(struct EwramData_EntityData *entity, s32 flags);
 
 void EnemyLightningDollUpdate(struct EwramData_EntityData *entity)
 {
@@ -103,7 +119,7 @@ void EnemyLightningDollUpdate(struct EwramData_EntityData *entity)
     if (Enemy_IsStunned(entity) && entity->state != 0xFF)
     {
         Sound_StopTracked(0x75);
-        Hit_CheckWithPlayer(buffer, entity);
+        Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
         return;
     }
     switch (entity->state)
@@ -125,19 +141,11 @@ void EnemyLightningDollUpdate(struct EwramData_EntityData *entity)
             else
                 Entity_UpdateBoxes(entity);
         }
-        Hit_CheckWithPlayer(buffer, entity);
+        Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
     }
 }
 
 /* Lightning Doll movement and electrical attack states. */
-extern u8 Entity_IsTargetWithinRange(struct EwramData_EntityData *entity, s32 range);
-extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
-extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *entity);
-extern u16 Entity_GetTargetAngleAbove16(struct EwramData_EntityData *entity);
-extern void LightningDoll_ResolveMovementBounds(struct EwramData_EntityData *entity);
-extern s32 Collision_GetTileOnScreen(s32 x, s32 y);
-extern s32 Target_IsNearEntity(struct EwramData_EntityData *entity, s32 width, s32 height);
-extern void Sound_PlayTracked(s32 id);
 
 #define TIMER_X(e) (e->ext.lightningDoll.attackTimer)
 #define TIMER_Y(e) (e->ext.lightningDoll.moveTimer)
@@ -332,9 +340,6 @@ void LightningDoll_UpdateActive(struct EwramData_EntityData *entity)
 }
 
 /* Lightning Doll helpers reconstructed from the original assembly. */
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 hit, u16 *data, s32 kind);
-extern void Entity_ShowDamage(struct EwramData_EntityData *entity, s16 damage, s32 flags);
-extern void LightningDoll_SpawnDeathParts(struct EwramData_EntityData *entity);
 
 /**
  * @brief Resolve damage and flash; on lethal damage stop sound 0x75, spawn counted body parts, drop rewards and wait for all parts to finish.
@@ -345,7 +350,7 @@ void LightningDoll_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 *data
     u16 hp = entity->hp;
     damage = (damage << 16) >> 16;
     entity->hp = hp - damage;
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     entity->hitFlashTimer = 8;
     if ((s16)entity->hp <= 0)
     {
@@ -380,7 +385,7 @@ void LightningDollPartEffect_Update(struct EwramData_EntityData *entity)
             Sprite_Attach(entity, sCommonObjectSpriteSheet, gfx, 7);
             Anim_StartIndexed(entity, 0, 0, 1);
             entity->scrollWithBg = 1;
-            entity->drawFunc = (u32 *)Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->state++;
             break;
         }
@@ -394,8 +399,6 @@ void LightningDollPartEffect_Update(struct EwramData_EntityData *entity)
 }
 
 /* Lightning Doll: electrical effect at the player's position. */
-extern void LightningDollPlayerEffect_Update(struct EwramData_EntityData *entity);
-extern s32 Player_GetOverheadY(void);
 
 #undef ANIM
 #undef ANIM
@@ -411,7 +414,7 @@ void LightningDoll_SpawnPlayerEffect(void)
     for (i = 0; i < 1; i++)
     {
         struct EwramData_EntityData *effect;
-        effect = EntityCreateInRange(0x49, 0xCF, (u32 *)LightningDollPlayerEffect_Update);
+        effect = EntityCreateInRange(0x49, 0xCF, LightningDollPlayerEffect_Update);
         if (effect != NULL)
         {
             effect->ext.lightningDoll.unusedEffectIndex = i;
@@ -437,7 +440,7 @@ void LightningDollPlayerEffect_Update(struct EwramData_EntityData *entity)
             Anim_StartIndexed(entity, 16, 0, 0);
             Anim_Update(entity);
             entity->scrollWithBg = 1;
-            entity->drawFunc = (u32 *)Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->flipX = RandomNumberGenerator() % 2;
             entity->timer = 0;
             entity->state++;
@@ -458,23 +461,6 @@ void LightningDollPlayerEffect_Update(struct EwramData_EntityData *entity)
 }
 
 /* Lightning Doll body parts after death. */
-extern s8 ObjPalette_FindOrLoad(void *palette);
-extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *entity);
-extern s32 Collision_GetPushUp(s32 x, s32 y);
-extern s32 Collision_GetPushDown(s32 x, s32 y);
-extern s32 Collision_GetPushLeft(s32 x, s32 y);
-extern s32 Collision_GetPushRight(s32 x, s32 y);
-
-static inline s32 RoomX(s32 pos)
-{
-    struct BgLayerState *bg = &gEwramData->bgInfo[1];
-    return pos + (s16)bg->xPos.part16.integer;
-}
-static inline s32 RoomY(s32 pos)
-{
-    struct BgLayerState *bg = &gEwramData->bgInfo[1];
-    return pos + (s16)bg->yPos.part16.integer;
-}
 
 static inline u16 Hidden(struct EwramData_EntityData *e) { return 1 - e->hidden; }
 /**
@@ -498,7 +484,7 @@ void LightningDollPart_Update(struct EwramData_EntityData *entity)
             spriteData = sLightningDollSpriteSheet;
             graphics = Sprite_GetTileSlot(parent);
             Sprite_Attach(entity, spriteData, graphics, ObjPalette_FindOrLoad(sKillerDollLightningDollPalette));
-            entity->drawFunc = (u32 *)Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->posX.whole = parent->posX.whole;
             entity->posY.whole = parent->posY.whole;
             x = sLightningDollPartOffsets[(u8)entity->ext.dollPart.index][0];
@@ -517,7 +503,7 @@ void LightningDollPart_Update(struct EwramData_EntityData *entity)
                 entity->velX.whole = -ABS(entity->velX.whole);
                 x = -ABS(x);
             }
-            effect = EntityCreateInRange(0x49, 0xCF, (u32 *)LightningDollPartEffect_Update);
+            effect = EntityCreateInRange(0x49, 0xCF, LightningDollPartEffect_Update);
             if (effect != NULL)
             {
                 effect->posX.whole = entity->posX.whole;
@@ -550,7 +536,7 @@ void LightningDollPart_Update(struct EwramData_EntityData *entity)
             {
                 if (entity->velY.whole >= 0)
                 {
-                    correction = Collision_GetPushUp(RoomX((s16)entity->posX.part16.integer), RoomY((s16)entity->posY.part16.integer) - 15);
+                    correction = Collision_GetPushUp(ToRoomX((s16)entity->posX.part16.integer), ToRoomY((s16)entity->posY.part16.integer) - 15);
                     if (correction != 0)
                     {
                         PlaySong(0x153);
@@ -567,17 +553,17 @@ void LightningDollPart_Update(struct EwramData_EntityData *entity)
                 }
                 else
                 {
-                    correction = Collision_GetPushDown(RoomX((s16)entity->posX.part16.integer), RoomY((s16)entity->posY.part16.integer) - 32);
+                    correction = Collision_GetPushDown(ToRoomX((s16)entity->posX.part16.integer), ToRoomY((s16)entity->posY.part16.integer) - 32);
                     if (correction != 0)
                         entity->posY.part16.integer += correction;
                 }
                 if (entity->velX.whole > 0)
-                    correction = Collision_GetPushLeft(RoomX((s16)entity->posX.part16.integer) + 8, RoomY((s16)entity->posY.part16.integer) - 16);
+                    correction = Collision_GetPushLeft(ToRoomX((s16)entity->posX.part16.integer) + 8, ToRoomY((s16)entity->posY.part16.integer) - 16);
                 else
                 {
                     if (entity->velX.whole == 0)
                         goto timer;
-                    correction = Collision_GetPushRight(RoomX((s16)entity->posX.part16.integer) - 8, RoomY((s16)entity->posY.part16.integer) - 16);
+                    correction = Collision_GetPushRight(ToRoomX((s16)entity->posX.part16.integer) - 8, ToRoomY((s16)entity->posY.part16.integer) - 16);
                 }
                 if (correction != 0)
                 {
@@ -668,9 +654,6 @@ void LightningDoll_UpdateState2Animation(struct EwramData_EntityData *entity)
 }
 
 /* Lightning Doll: reflect motion at room boundaries and tile collisions. */
-/* These callers use full return registers, without 16-bit truncation. */
-extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
-extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *entity);
 
 static inline s32 AtLimit(s32 a,s32 b) { return a >= b; }
 static inline s32 RoomLimit(s32 size,s32 base) { return size == 1 ? base : size << 5; }
@@ -704,14 +687,14 @@ void LightningDoll_ResolveMovementBounds(struct EwramData_EntityData *entity)
         if (entity->velX.whole >= 0)
         {
             position = (s16 *)&entity->posX.part16.integer;
-            correction = Collision_GetPushLeft(RoomX(*position) + 8,
-                                     RoomY((s16)entity->posY.part16.integer) - 16);
+            correction = Collision_GetPushLeft(ToRoomX(*position) + 8,
+                                     ToRoomY((s16)entity->posY.part16.integer) - 16);
         }
         else
         {
             position = (s16 *)&entity->posX.part16.integer;
-            correction = Collision_GetPushRight(RoomX(*position) - 8,
-                                     RoomY((s16)entity->posY.part16.integer) - 16);
+            correction = Collision_GetPushRight(ToRoomX(*position) - 8,
+                                     ToRoomY((s16)entity->posY.part16.integer) - 16);
         }
         if (correction != 0)
         {
@@ -735,17 +718,17 @@ void LightningDoll_ResolveMovementBounds(struct EwramData_EntityData *entity)
     {
         if (entity->velY.whole >= 0)
         {
-            s32 x = RoomX((s16)entity->posX.part16.integer);
+            s32 x = ToRoomX((s16)entity->posX.part16.integer);
             position = (s16 *)&entity->posY.part16.integer;
             correction = Collision_GetPushUp(x,
-                                     RoomY(*position) + 1);
+                                     ToRoomY(*position) + 1);
         }
         else
         {
-            s32 x = RoomX((s16)entity->posX.part16.integer);
+            s32 x = ToRoomX((s16)entity->posX.part16.integer);
             position = (s16 *)&entity->posY.part16.integer;
             correction = Collision_GetPushDown(x,
-                                     RoomY(*position) - 32);
+                                     ToRoomY(*position) - 32);
         }
         if (correction != 0)
         {
@@ -829,7 +812,7 @@ void LightningDoll_SpawnDeathParts(struct EwramData_EntityData *entity)
     entity->hidden = 1;
     for (i = 0; i < 5; i++)
     {
-        struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)LightningDollPart_Update);
+        struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, LightningDollPart_Update);
 
         if (child != NULL)
         {

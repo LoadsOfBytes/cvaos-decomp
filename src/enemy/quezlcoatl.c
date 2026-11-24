@@ -14,12 +14,23 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "damage_numbers.h"
+#include "entity_motion.h"
+
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
+
+void Quezlcoatl_UpdateFly(struct EwramData_EntityData *);
+void Quezlcoatl_UpdatePreview(struct EwramData_EntityData *);
+void Quezlcoatl_SpawnDeathPiece(struct EwramData_EntityData *,s32,s32,s32);
+u8 Quezlcoatl_LoadGraphics(struct EwramData_EntityData *);
+void QuezlcoatlSegment_Update(struct EwramData_EntityData *);
+void QuezlcoatlSegment_EnableHitBoxes(struct EwramData_EntityData *);
+void Quezlcoatl_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void Quezlcoatl_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+void QuezlcoatlSegment_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void QuezlcoatlPiece_Update(struct EwramData_EntityData *);
 
 /* Quezlcoatl dispatch and staged destruction of the parent entity. */
-extern void Hit_CheckWithPlayer(void *,struct EwramData_EntityData *);
-extern void Quezlcoatl_UpdateFly(struct EwramData_EntityData *);
-extern void Quezlcoatl_UpdatePreview(struct EwramData_EntityData *);
-extern void Quezlcoatl_SpawnDeathPiece(struct EwramData_EntityData *,s32,s32,s32);
 void EnemyQuezlcoatlUpdate(struct EwramData_EntityData *entity)
 {
     s32 bounds[4];
@@ -27,7 +38,7 @@ void EnemyQuezlcoatlUpdate(struct EwramData_EntityData *entity)
         Player_TrackEntity(entity);
     if(Enemy_IsStunned(entity))
     {
-        if(entity->state!=2) Hit_CheckWithPlayer(bounds,entity);
+        if(entity->state!=2) Hit_CheckWithPlayer((struct HitResult *)bounds,entity);
         return;
     }
     switch(entity->state)
@@ -64,11 +75,6 @@ void EnemyQuezlcoatlUpdate(struct EwramData_EntityData *entity)
 }
 
 /* Quetzalcoatl: allocate the displacement history and create fifteen following body segments. */
-extern u8 Quezlcoatl_LoadGraphics(struct EwramData_EntityData *);
-extern void QuezlcoatlSegment_Update(struct EwramData_EntityData *);
-extern void QuezlcoatlSegment_EnableHitBoxes(struct EwramData_EntityData *);
-void Quezlcoatl_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-void Quezlcoatl_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 void EnemyQuezlcoatlCreate(struct EwramData_EntityData *entity)
 {
@@ -111,7 +117,7 @@ void EnemyQuezlcoatlCreate(struct EwramData_EntityData *entity)
         part->enemyId = entity->enemyId;
         part->basePalette = entity->basePalette;
         part->scrollWithBg = 0;
-        part->drawFunc = (u32 *)Sprite_DrawEntity;
+        part->drawFunc = Sprite_DrawEntity;
         ENTITY_OWNER(part) = entity;
         part->ext.quezlcoatlSegment.index = index;
         part->timer = index;
@@ -140,7 +146,7 @@ void EnemyQuezlcoatlCreate(struct EwramData_EntityData *entity)
         entity->state = 3;
         return;
     }
-    Hit_Enable(entity, 8, Quezlcoatl_DamagePlayerOnContact, (s32)Quezlcoatl_OnHit);
+    Hit_Enable(entity, 8, Quezlcoatl_DamagePlayerOnContact, Quezlcoatl_OnHit);
     HitBox_SetBody(entity, &box);
     HitBox_SetAttack(entity, &box);
     entity->flipX = Entity_IsTargetRight(entity);
@@ -148,7 +154,6 @@ void EnemyQuezlcoatlCreate(struct EwramData_EntityData *entity)
 }
 
 /* Repeated leaps record motion for the body and turn at ledges. */
-extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *,s32,s32,s32,s32);
 /**
  * @brief Flight state machine (state 0): fly across the room toward the target,
  * turning at the room edges (spawnParam0 or 15 px margin) with a wave motion,
@@ -266,9 +271,6 @@ void Quezlcoatl_UpdatePreview(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   Quezlcoatl_OnHit = WingedSkeleton_OnHit */
 
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
-
 /**
  * @brief 7829C | Same as WingedSkeleton_OnHit.
  */
@@ -285,7 +287,7 @@ void Quezlcoatl_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hi
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
@@ -339,7 +341,7 @@ void QuezlcoatlSegment_Update(struct EwramData_EntityData *entity)
             entity->ext.quezlcoatl.cameraX=camera->xPos.part16.integer;
             entity->ext.quezlcoatl.cameraY=camera->yPos.part16.integer;
         }
-        if(!(entity->timer&7) && !gEwramData->gameState.bestiaryPreview) Hit_CheckWithPlayer(bounds,entity);
+        if(!(entity->timer&7) && !gEwramData->gameState.bestiaryPreview) Hit_CheckWithPlayer((struct HitResult *)bounds,entity);
         if(owner->state==2)
         {
             entity->state=1;
@@ -364,7 +366,6 @@ fail:
 }
 
 /* QuezlcoatlSegment_EnableHitBoxes (hit boxes). */
-extern void QuezlcoatlSegment_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 
 /**
  * @brief 78544 | Activate box slot 8 with QuezlcoatlSegment_DamagePlayerOnContact and set both boxes to
@@ -383,14 +384,13 @@ void QuezlcoatlSegment_EnableHitBoxes(struct EwramData_EntityData *entity)
 }
 
 /* Falling debris released by a body segment. */
-extern void QuezlcoatlPiece_Update(struct EwramData_EntityData *);
 /**
  * @brief Spawn a falling death piece (frame) at (x, y) with the owner's velocity
  * plus a random part (QuezlcoatlPiece_Update).
  */
 void Quezlcoatl_SpawnDeathPiece(struct EwramData_EntityData *owner,s32 x,s32 y,s32 frame)
 {
-    struct EwramData_EntityData *effect=EntityCreateInRange(0x49,0xCF,(u32 *)QuezlcoatlPiece_Update);
+    struct EwramData_EntityData *effect=EntityCreateInRange(0x49,0xCF,QuezlcoatlPiece_Update);
     if(effect)
     {
         s32 graphics;
@@ -407,7 +407,7 @@ void Quezlcoatl_SpawnDeathPiece(struct EwramData_EntityData *owner,s32 x,s32 y,s
         effect->accelY.whole=0x2000;
         effect->timer=RandomNumberGenerator()%4+60;
         effect->scrollWithBg=1;
-        effect->drawFunc=(u32 *)Sprite_DrawEntity;
+        effect->drawFunc=Sprite_DrawEntity;
     }
 }
 
@@ -431,21 +431,6 @@ void QuezlcoatlPiece_Update(struct EwramData_EntityData *entity)
  *   Quezlcoatl_DamagePlayerOnContact = Enemy_DamagePlayerOnContact
  *   QuezlcoatlSegment_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
-
 /**
  * @brief 786B0 | Same as Object32_LoadGraphics.
  */
@@ -457,7 +442,7 @@ u8 Quezlcoatl_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sQuezlcoatlWhiteDragonPalette, 1);
     Sprite_Attach(entity, sQuezlcoatlWhiteDragonSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 

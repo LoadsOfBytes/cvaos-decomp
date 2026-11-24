@@ -43,6 +43,14 @@
 #define SCALE_X(e) (e->ext.event30.scale)
 #define SCALE_Y(e) (e->ext.event30.scaleY)
 #define SWEEP(e) (e->ext.event30.sweep)
+
+extern struct RoomDefinition sEndingRoomDefinition;
+
+void EventScene27_PickConversation(struct EwramData_EntityData *entity);
+void EventScene27_SelectScript36(struct EwramData_EntityData *entity);
+void Conversation_Setup(s32 script, s32 group, s32 entry);
+void EventScene28_PickScript(struct EwramData_EntityData *entity);
+
 /**
  * @brief Unreferenced: H-blank BG2 affine zoom sequence in phases that also
  * spawns EventScene30 floating fragments.
@@ -165,7 +173,6 @@ void EventScene30_UpdateUnusedZoom(struct EwramData_EntityData *entity)
 }
 
 /* Load the transition's room metadata, backgrounds and initial palette. */
-extern struct RoomDefinition sEndingRoomDefinition;
 /**
  * @brief Unreferenced: load the graphics, palettes and BG layers (with their
  * initial scroll) of room sEndingRoomDefinition, the room the debug menu uses for
@@ -295,7 +302,6 @@ void BgEffect_Bg2PerspectiveCopy(void)
 }
 
 /* Event and particle helpers, decompiled from the original assembly. */
-extern u32 GameFlag_Is3ASet(void);
 
 /* End this entity unless event flag 0x4000 is set; otherwise advance the
  * event flags and play song 0x1000. */
@@ -577,8 +583,8 @@ void EventScene26_Init(struct EwramData_EntityData *entity)
             entity->ext.event26.actor->posX.part16.integer = entity->posX.part16.integer;
             entity->ext.event26.actor->posY.part16.integer = entity->posY.part16.integer;
             entity->ext.event26.actor->spriteLayer = entity->spriteLayer + 1;
-            entity->ext.event26.actor->drawFunc = (u32 *)EventScene26_DrawOffsetCopies;
-            entity->ext.event26.actor->updateFunc = (u32 *)EntityUpdateNothing;
+            entity->ext.event26.actor->drawFunc = EventScene26_DrawOffsetCopies;
+            entity->ext.event26.actor->updateFunc = EntityUpdateNothing;
         }
     }
 }
@@ -727,9 +733,6 @@ void EventScene27_Init(struct EwramData_EntityData *entity)
     }
 }
 
-extern void EventScene27_PickConversation(struct EwramData_EntityData *entity);
-extern void EventScene27_SelectScript36(struct EwramData_EntityData *entity);
-
 /**
  * @brief Update of event scene variant 27 (sEventSceneUpdateFuncs[27]); returns the
  * player input mask. Town character update (returns 0x10 while it walks
@@ -867,8 +870,6 @@ struct ConversationState {
     u16 group;
     u16 entry;
 };
-
-extern void Conversation_Setup(s32 script, s32 group, s32 entry);
 
 static inline void NextEntry(struct ConversationState *state, u8 *index, struct TalkTable *table, s32 group)
 {
@@ -1060,8 +1061,6 @@ s32 Conversation_LoadNextText(void)
 
 /* Conversation text setup, decompiled from assembly.
  * The temporary state occupies 0x138F4 in the shared 0x133F4 buffer. */
-
-void EventScene28_PickScript(struct EwramData_EntityData *entity);
 
 /**
  * @brief Store script, zero step, group and entry in the four-halfword conversation state in the shared buffer.

@@ -36,8 +36,6 @@
 #include "structs/entity_template.h"
 extern void HudMap_WriteTiles(s32, s32, u16, s32);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s32, s32);
 
 struct Debug1967MenuEntry {
     u8 *label; // pointer to string
@@ -69,6 +67,8 @@ const u8 sUnk_080E1F74[24] = {
     0x01, 0x00, 0x00, 0x00, 0xF1, 0x20, 0x02, 0x08, 0xB9, 0x57, 0x03, 0x08, 0xF1, 0x20, 0x02, 0x08, 
     0xF1, 0x20, 0x02, 0x08, 0x6D, 0x63, 0x03, 0x08, 
 };
+
+extern const u16 sEnemyNameTextIds[];
 
 /**
  * @brief 35930 | Handle debug 1967 game mode
@@ -175,7 +175,7 @@ void Debug1967_UpdateTestEnemySpawner(struct DebugEnemySpawnerState *spawner)
             {
                 if (spawner->spawnedEntities[i] == NULL)
                 {
-                    child = EntityCreateInRange(0x1B, 0x48, (u32*)&DebugTestEnemy_Update);
+                    child = EntityCreateInRange(0x1B, 0x48, DebugTestEnemy_Update);
                     if (child != NULL)
                     {
                         child->posX.part16.integer = 160 + i * 10;
@@ -243,8 +243,6 @@ s32 Debug1967_StartGame(void)
     ItemIconCache_InvalidateUpload();
     return -1;
 }
-
-extern const u16 sEnemyNameTextIds[];
 
 // TODO: very similar to GameModeSoundTestMenu_inlines
 // TODO: also clean all this mess up
@@ -412,7 +410,7 @@ s32 Debug1967_EnemyTest(void)
 
             for (i = 0; i < (&gEwramData->debugMenuWork)->spawnCount; i++)
             {
-                child = EntityCreateInRange(0x1B, 0x48, (u32 *) EntityUpdateNothing);
+                child = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
                 if (child == NULL)
                     continue;
 
@@ -435,11 +433,11 @@ s32 Debug1967_EnemyTest(void)
                 child->spawnParam1 = 0;
                 child->spawnIndex = 0;
                 child->enemyId = (&gEwramData->debugMenuWork)->selection;
-                child->drawFunc = (u32 *) Sprite_DrawEntity;
+                child->drawFunc = Sprite_DrawEntity;
                 enemy = &sEnemyData[(&gEwramData->debugMenuWork)->selection];
                 child->hp = enemy->hp;
-                child->updateFunc = (u32 *) enemy->updateFunc;
-                ((void (*)(struct EwramData_EntityData *)) enemy->createFunc)(child);
+                child->updateFunc = enemy->updateFunc;
+                enemy->createFunc(child);
             }
 
             (&gEwramData->debugMenuWork)->state = 4;
@@ -533,7 +531,7 @@ void Debug1967ObjTestViewer_Update(struct EwramData_EntityData *entity)
             gfx = ObjGfx_LoadResource((u8 *)sDebug1967Gfx, 0);
             ObjPalette_LoadRange((u8 *)sJuliusEntityPalette, 0, 1, 0xA);
             Sprite_Attach(entity, (void *)sJuliusSpriteSheet, gfx, 0xA);
-            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->subState = 0;
             Anim_StartIndexed(entity, 0, 1, 1);
             entity->state += 1;
@@ -705,7 +703,7 @@ s32 Debug1967_ObjTest(void)
     switch (gEwramData->debugMenuWork.state)
     {
         case 0:
-            child = EntityCreateInRange(0x1B, 0x48, (u32 *) Debug1967ObjTestViewer_Update);
+            child = EntityCreateInRange(0x1B, 0x48, Debug1967ObjTestViewer_Update);
             if (child != NULL)
             {
                 child->posX.part16.integer = 0x80;
@@ -799,7 +797,7 @@ s32 DebugTestEnemy_UpdateHitFlash(struct EwramData_EntityData *entity)
 }
 
 // TODO: function declarations
-// ? Hit_CheckWithPlayer(? *, struct EwramData_EntityData *);
+// ? Hit_CheckWithPlayer((struct HitResult *)(? *), (struct EwramData_EntityData *));
 // ? HitBox_SetBodyRaw(struct EwramData_EntityData *, s32);
 // ? Effect_SpawnRandom(s32, s32, s32, s32, s32);
 
@@ -814,7 +812,7 @@ void DebugTestEnemy_Update(struct EwramData_EntityData *entity)
 
     if (DebugTestEnemy_UpdateHitFlash(entity) != 0)
     {
-        Hit_CheckWithPlayer(&hitInfo, entity);
+        Hit_CheckWithPlayer((struct HitResult *)(&hitInfo), entity);
         return;
     }
 
@@ -828,12 +826,12 @@ void DebugTestEnemy_Update(struct EwramData_EntityData *entity)
             entity->state = 1;
             entity->scrollWithBg = 1;
 
-            Hit_Enable(entity, 9, &DebugTestEnemy_OnPlayerContact, (s32) DebugTestEnemy_OnHit);
+            Hit_Enable(entity, 9, &DebugTestEnemy_OnPlayerContact, DebugTestEnemy_OnHit);
             Hit_SetTimerOverride(3, 0xA);
             HitBox_SetBodyRaw(entity, 0x2014E0F6);
             HitBox_SetAttackRaw(entity, 0x2014E0F6);
 
-            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->hp = 0x64;
             entity->spriteLayer = 0x12;
             break;
@@ -883,7 +881,7 @@ void DebugTestEnemy_Update(struct EwramData_EntityData *entity)
 
     if (entity->state != 2)
     {
-        Hit_CheckWithPlayer(&hitInfo, entity);
+        Hit_CheckWithPlayer((struct HitResult *)(&hitInfo), entity);
     }
     Player_TrackEntity(entity);
     Anim_Update(entity);

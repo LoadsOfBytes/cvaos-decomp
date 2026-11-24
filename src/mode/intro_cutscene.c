@@ -431,7 +431,7 @@ void IntroCutscene_UpdateRisingSprite(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
         case 0:
-            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->spriteLayer = 0x16;
             Anim_StartIndexed(entity, 0, 0, 1);
             entity->posX.part16.integer = 0x78;
@@ -501,7 +501,7 @@ void IntroCutscene_UpdateDriftingSprite(struct EwramData_EntityData *entity)
     {
         case 0:
             entity->animFrame = entity->subState + 8;
-            entity->drawFunc = (u32 *) IntroCutscene_DrawMirrored;
+            entity->drawFunc = IntroCutscene_DrawMirrored;
             entity->objMode = 1;
             entity->spriteLayer = 0x19;
             entity->velY.whole = 0x1000;
@@ -586,7 +586,7 @@ void IntroCutscene_UpdateShrinkingSprite(struct EwramData_EntityData *entity)
                 break;
 
             PlaySong(SE_318);
-            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->state += 1;
             /* fallthrough */
         case 2:
@@ -634,7 +634,7 @@ void IntroCutscene_UpdateFloatingSprite(struct EwramData_EntityData *entity)
             entity->posX.part16.integer = 0xD2;
             entity->posY.part16.integer = 0x87;
             entity->ext.introSprite.scale = 0x10000;
-            entity->drawFunc = (u32 *) Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->spriteLayer = 0x16;
             Anim_StartIndexed(entity, 1, 0, 1);
             entity->state += 1;
@@ -746,33 +746,33 @@ void IntroCutscene_CreateEntities(struct EwramData_EntityData *entity)
     ObjPalette_LoadRange((u8 *)sIntroCutscenePalette, 0, 4, 0);
     Sprite_Attach(entity, (u8 *)sIntroCutsceneSpriteSheet, gfx, 0);
     entity->animFrame = 0;
-    entity->drawFunc = (u32 *) Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     entity->posX.part16.integer = 0x78;
     entity->posY.part16.integer = 0x50;
     entity->velY.whole = 0x1000;
     entity->spriteLayer = 0x1A;
     entity->objMode = 1;
-    entity->updateFunc = (u32 *) IntroCutsceneText_Update;
+    entity->updateFunc = IntroCutsceneText_Update;
     entity->hidden = 1;
     gDisplayRegisters.bgOfs[0].vOfs = entity->ext.introText.startScroll = -0xA4;
 
-    rising = EntityCreateInRange(0x49, 0xCF, (u32*)IntroCutscene_UpdateRisingSprite);
+    rising = EntityCreateInRange(0x49, 0xCF, IntroCutscene_UpdateRisingSprite);
     spriteGfx = ObjGfx_LoadResource((u8 *)sIntroCutsceneGfx4, 0);
     Sprite_Attach(rising, (u8 *)sIntroCutsceneSpriteSheet2, spriteGfx, 2);
 
-    shrinking = EntityCreateInRange(0x49, 0xCF, (u32*)IntroCutscene_UpdateShrinkingSprite);
+    shrinking = EntityCreateInRange(0x49, 0xCF, IntroCutscene_UpdateShrinkingSprite);
     spriteGfx = ObjGfx_LoadResource((u8 *)sIntroCutsceneGfx4, 0);
     Sprite_Attach(shrinking, (u8 *)sIntroCutsceneSpriteSheet2, spriteGfx, 3);
 
-    floating = EntityCreateInRange(0x49, 0xCF, (u32*)IntroCutscene_UpdateFloatingSprite);
+    floating = EntityCreateInRange(0x49, 0xCF, IntroCutscene_UpdateFloatingSprite);
     spriteGfx = ObjGfx_LoadResource((u8 *)sIntroCutsceneGfx4, 0);
     Sprite_Attach(floating, (u8 *)sIntroCutsceneSpriteSheet2, spriteGfx, 3);
 
-    drifting = EntityCreateInRange(0x49, 0xCF, (u32*)IntroCutscene_UpdateDriftingSprite);
+    drifting = EntityCreateInRange(0x49, 0xCF, IntroCutscene_UpdateDriftingSprite);
     spriteGfx = ObjGfx_LoadResource((u8 *)sIntroCutsceneGfx4, 0);
     Sprite_Attach(drifting, (u8 *)sIntroCutsceneSpriteSheet2, spriteGfx, 1);
 
-    drifting2 = EntityCreateInRange(0x49, 0xCF, (u32*)IntroCutscene_UpdateDriftingSprite);
+    drifting2 = EntityCreateInRange(0x49, 0xCF, IntroCutscene_UpdateDriftingSprite);
     spriteGfx = ObjGfx_LoadResource((u8 *)sIntroCutsceneGfx4, 0);
     Sprite_Attach(drifting2, (u8 *)sIntroCutsceneSpriteSheet2, spriteGfx, 1);
     drifting2->subState = 1;
@@ -782,7 +782,7 @@ void IntroCutscene_CreateEntities(struct EwramData_EntityData *entity)
  * @brief Unreferenced: create an intro sprite with the given update and
  * palette.
  */
-struct EwramData_EntityData* IntroCutscene_CreateSprite(u32 *updateFunc, u8 palette)
+struct EwramData_EntityData* IntroCutscene_CreateSprite(EntityFunc updateFunc, u8 palette)
 {
     // TODO: inlined function for 94AC?
     struct EwramData_EntityData *child;

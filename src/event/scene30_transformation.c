@@ -13,10 +13,9 @@
 #include "gba.h"
 #include "syscalls.h"
 #include <string.h>
+#include "sound.h"
 
 extern void EventScene30_SpawnOrbitRing(struct EwramData_EntityData *,s16,s16);
-extern void EventScene30_SpawnDriftFragment(s16,s16,s32,s32);
-extern void PlaySong(u16);
 #define PHASE(e) (e->ext.event30.phase)
 #define INIT(e) (e->ext.event30.phaseInit)
 #define ANGLE(e) (e->ext.event30.angle)
@@ -30,7 +29,7 @@ extern void PlaySong(u16);
 #define JITTER_Y(e) (EVENT30_JITTER_Y((e)))
 static inline void emitCenter(s16 x,s16 y,u32 index)
 {
-    u32 *callbacks[5]={(u32 *)EventScene30EmitterA_Update,(u32 *)EventScene30EmitterB_Update,(u32 *)EventScene30EmitterC_Update,(u32 *)EventScene30EmitterD_Update,(u32 *)EventScene30EmitterE_Update};
+    EntityFunc callbacks[5]={EventScene30EmitterA_Update,EventScene30EmitterB_Update,EventScene30EmitterC_Update,EventScene30EmitterD_Update,EventScene30EmitterE_Update};
     struct EwramData_EntityData *child=EntityCreateInRange(0x1B,0x48,callbacks[index]);
     if(child){child->posX.part16.integer=x;child->posY.part16.integer=y;}
 }
@@ -216,7 +215,7 @@ void EventScene30_UpdateTransformation(struct EwramData_EntityData *entity)
             }
             if(TIMER(entity)==96)
             {
-                struct EwramData_EntityData *child=EntityCreateInRange(0x1B,0x48,(u32 *)EventScene30PieceEmitter_Update);
+                struct EwramData_EntityData *child=EntityCreateInRange(0x1B,0x48,EventScene30PieceEmitter_Update);
                 if(child){child->posX.part16.integer=140;child->posY.part16.integer=50;child->timer=4;}
             }
             if((u16)(TIMER(entity)-112)<=8)

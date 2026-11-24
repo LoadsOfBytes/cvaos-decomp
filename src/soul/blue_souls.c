@@ -27,6 +27,8 @@
 #include "data/data_4F0B18.h"
 #include "data/data_118B48.h"
 
+extern void Hit_GetContactPoint(struct EwramData_EntityData *a, struct EwramData_EntityData *b, s16 *outX, s16 *outY);
+
 /* From player_core.h, which is not included: it declares
  * Entity_PlaceRelativeTo with the parameter types of its callers. */
 extern s32 Player_IsBossTargetLowHp(void);
@@ -35,6 +37,11 @@ extern void Player_RestoreHP(s32 amount);
 extern void Player_RestoreMP(s32 amount);
 extern void Player_ClearStatusEffects(s32 mask);
 extern s32 RandomSigned(s32 range);
+
+void BlueSoulProjectile_IgnoreContact(void);
+void SkillWitchGiantGhostProjectileUpdate(struct EwramData_EntityData *entity);
+void BlueSoul_DrawAlternatingLayer(struct EwramData_EntityData *);
+void PersephoneSoul_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker);
 
 static inline s8 FindFreeSoulSlot(void)
 {
@@ -349,7 +356,7 @@ void SkillFlyingArmorUse(struct EwramData_EntityData *entity)
     }
         Anim_StartIndexed(entity, 0, 0, 1);
         entity->spriteLayer = 13;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->scrollWithBg = 1;
         entity->state++;
     case 1:
@@ -454,7 +461,7 @@ void SkillCagnazzoUse(struct EwramData_EntityData *entity)
         Sprite_Attach(entity, oam, GRAPHICS_CONTEXT->blueSoulGfx, 3);
         Anim_StartIndexed(entity, 0, 0, 1);
         entity->spriteLayer = 0xF;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         {
             u16 n = 0xC;
             GRAPHICS_CONTEXT->skillBaseAttack = n;
@@ -499,7 +506,7 @@ void SkillBonePillarProjectileUpdate(struct EwramData_EntityData *entity)
             Sprite_Attach(entity, sSkillBonePillarProjectileSpriteSheet, gEwramData->playerState.blueSoulGfx, 3);
             Anim_StartIndexed(entity, 0, 0, 0);
             entity->spriteLayer = 0xD;
-            entity->drawFunc = (u32 *)Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             Hit_Enable(entity, 6, NULL, 0);
             HitBox_SetAttackRaw(entity, 0x1414F6F6);
             entity->hit.flags |= 4;
@@ -669,7 +676,7 @@ void SkillAluraUneUse(struct EwramData_EntityData *entity)
     }
         Anim_StartIndexed(entity, 0, 0, 1);
         entity->spriteLayer = 0xD;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->scrollWithBg = 1;
         slot = ObjAffine_Alloc(0);
         if ((s16)slot < 0)
@@ -793,7 +800,7 @@ void SkillDevilManticoreSparkUpdate(struct EwramData_EntityData *entity)
         Sprite_Attach(entity, sprite, GRAPHICS_CONTEXT->blueSoulGfx, 3);
         Anim_StartIndexed(entity, RandomNumberGenerator() & 3, 0, 0);
         entity->spriteLayer = 13;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->scrollWithBg = 1;
         entity->state++;
     }
@@ -847,7 +854,7 @@ void SkillBlueSoulForm2Update(struct EwramData_EntityData *entity)
         Sprite_Attach(entity, sprite, GRAPHICS_CONTEXT->blueSoulGfx, 3);
         Anim_StartIndexed(entity, 0, 0, 1);
         entity->spriteLayer = 14;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->scrollWithBg = 1;
         entity->state++;
     }
@@ -887,7 +894,7 @@ void PlayerAfterimage_Update(struct EwramData_EntityData *entity)
         struct PlayerState *p = &gEwramData->playerState;
         p->player->posX.part16.integer = entity->posX.part16.integer;
         p->player->posY.part16.integer = entity->posY.part16.integer;
-        ((void (*)(struct EwramData_EntityData *))p->player->drawFunc)(p->player);
+        p->player->drawFunc(p->player);
         gEwramData->playerState.player->posX.part16.integer = x;
         gEwramData->playerState.player->posY.part16.integer = y;
     }
@@ -1024,7 +1031,7 @@ void SkillSkyFishUse(struct EwramData_EntityData *entity)
     }
         Anim_StartIndexed(entity, 1, 0, 1);
         entity->spriteLayer = 0xF;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->scrollWithBg = 1;
         entity->timer = 0x10;
         entity->state = 1;
@@ -1132,7 +1139,7 @@ void SkillShadowKnightUse(struct EwramData_EntityData *entity)
         entity->affine = 1;
         entity->shrinkPartOffsets = 1;
         entity->spriteLayer = 0xF;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->scrollWithBg = 1;
         entity->state++;
         entity->timer = 0x20;
@@ -1182,8 +1189,6 @@ void SkillShadowKnightUse(struct EwramData_EntityData *entity)
     Anim_UpdateWithFrameAttackBox(entity);
 }
 
-void BlueSoulProjectile_IgnoreContact(void);
-
 /* Inlined BlueSoul_DeleteEntity (this file). */
 
 /* Blue soul projectile spawned with a contact child by SkillWitchGiantGhost_OnContact: moves by
@@ -1218,8 +1223,6 @@ void SkillWitchGiantGhostProjectileUpdate(struct EwramData_EntityData *entity)
 }
 
 /* SkillWitchGiantGhost_OnContact. */
-extern void Hit_GetContactPoint(struct EwramData_EntityData *a, struct EwramData_EntityData *b, s16 *outX, s16 *outY);
-void SkillWitchGiantGhostProjectileUpdate(struct EwramData_EntityData *entity);
 
 /**
  * @brief Contact callback of the Witch/Giant Ghost soul: spawn a
@@ -1247,8 +1250,6 @@ void SkillWitchGiantGhost_OnContact(struct EwramData_EntityData *entity, struct 
 }
 
 /* Same as BlueSoul_DeleteEntity: end a blue soul entity. */
-
-extern void BlueSoul_DrawAlternatingLayer(struct EwramData_EntityData *);
 
 /**
  * @brief 2F96C | Witch / Giant Ghost blue soul (unk_500 = 0 / 1, ends via
@@ -1293,7 +1294,7 @@ void Skill_Witch_GiantGhost_Use(struct EwramData_EntityData *entity)
             u8 *palette = (u8 *)sSkillWitchPalette;
             u8 *sprite = (u8 *)sSkillWitchSpriteSheet;
             LoadGfx(entity, 0, graphics, palette, sprite);
-            entity->drawFunc = (u32 *)Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->spriteLayer = 0xD;
             Anim_StartIndexed(entity, 0, 0, 1);
             HitBox_SetAttackRaw(entity, 0x2010E010);
@@ -1305,7 +1306,7 @@ void Skill_Witch_GiantGhost_Use(struct EwramData_EntityData *entity)
             u8 *palette = (u8 *)sSkillGiantGhostPalette;
             u8 *sprite = (u8 *)sSkillGiantGhostSpriteSheet;
             LoadGfx(entity, 0, graphics, palette, sprite);
-            entity->drawFunc = (u32 *)BlueSoul_DrawAlternatingLayer;
+            entity->drawFunc = BlueSoul_DrawAlternatingLayer;
             entity->spriteLayer = 0xE;
             Anim_StartIndexed(entity, 1, 0, 1);
             HitBox_SetAttackRaw(entity, 0x2830D8E8);
@@ -1391,7 +1392,7 @@ void SkillFinalGuardUse(struct EwramData_EntityData *entity)
     }
         Anim_StartIndexed(entity, 0, 0, 1);
         entity->spriteLayer = 0xD;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->scrollWithBg = 1;
         gEwramData->playerState.player->state = 10;
         Anim_StartIndexed(gEwramData->playerState.player, 0x35, 3, 1);
@@ -1441,7 +1442,7 @@ void SkillBuerOrbitUpdate(struct EwramData_EntityData *entity)
     }
         Anim_StartIndexed(entity, 0, 0, 1);
         entity->spriteLayer = 0xC;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->scrollWithBg = 1;
         Hit_Enable(entity, 6, 0, 0);
         HitBox_SetAttackRaw(entity, 0x1414F6F6);
@@ -1552,8 +1553,6 @@ void SkillBuerUse(struct EwramData_EntityData *entity)
 
 /* Same as BlueSoul_DeleteEntity: end a blue soul entity. */
 
-void PersephoneSoul_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker);
-
 /**
  * @brief 300A4 | Persephone blue soul (ends via BlueSoul_CheckEndCondition: song 0x9C
  * stopped, 16 frames, then BlueSoul_ReleaseActiveResources): graphics sSkillGiantGhostGfx / sSkillGiantGhostPalette
@@ -1588,7 +1587,7 @@ void SkillPersephoneUse(struct EwramData_EntityData *entity)
     }
         Anim_StartIndexed(entity, 0, 0, 1);
         entity->spriteLayer = 0xD;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         Hit_Enable(entity, 6, PersephoneSoul_OnHit, 0);
         entity->hit.flags |= 4;
         entity->hit.flags |= 2;
@@ -1626,7 +1625,6 @@ void SkillPersephoneUse(struct EwramData_EntityData *entity)
  * shifted bit in local-alloc, as in the target. */
 
 /* Same as BlueSoul_DeleteEntity: end a blue soul entity. */
-extern s32 Entity_StepAngleTowardPoint(struct EwramData_EntityData *, s32, s32, s32, s32);
 
 static inline void SetVelocity(struct EwramData_EntityData *entity)
 {
@@ -1667,7 +1665,7 @@ void SkillDeathSickleUpdate(struct EwramData_EntityData *entity)
     }
         Anim_StartIndexed(entity, 0, 0, 0);
         entity->spriteLayer = 0xF;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
     {
         s32 r = RandomNumberGenerator();
         s32 one;
@@ -1893,7 +1891,7 @@ void SkillCreakingSkullSegmentUpdate(struct EwramData_EntityData *entity)
         }
         entity->animFrame = sUnk_080E1AF8[SKILL_CREAKING_SKULL_SEGMENT(entity)];
         entity->spriteLayer = 0xF;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->affineIndex = matrix;
         entity->affine = 1;
         entity->ext.skillCreakingSkullSegment.unused = 0x200000;
@@ -2120,7 +2118,7 @@ void SkillCatoblepasProjectileUpdate(struct EwramData_EntityData *entity)
             Sprite_Attach(entity, sSkillCatoblepasProjectileSpriteSheet, gEwramData->playerState.blueSoulGfx, 3);
             Anim_StartIndexed(entity, 0, 0, 0);
             entity->spriteLayer = 0xD;
-            entity->drawFunc = (u32 *)Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             Hit_Enable(entity, 6, NULL, 0);
             HitBox_SetAttackRaw(entity, 0x1414F6F6);
             entity->hit.flags |= 4;
@@ -2219,8 +2217,6 @@ void SkillCatoblepasUse(struct EwramData_EntityData *entity)
     }
 }
 
-extern s32 Entity_StepTowardPoint(struct EwramData_EntityData *, s32, s32, s32);
-
 /**
  * @brief 310AC | Imp blue soul (familiar, ends via BlueSoul_CheckEndCondition): graphics
  * sSkillImpGfx / palette sSkillImpPalette / sprite sSkillImpSpriteSheet (slot 3), layer 0xF,
@@ -2260,7 +2256,7 @@ void SkillImpUse(struct EwramData_EntityData *entity)
     }
         Anim_StartIndexed(entity, 0, 0, 1);
         entity->spriteLayer = 0xF;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->scrollWithBg = 1;
         entity->flipX = parent->flipX;
         entity->posX.part16.integer = parent->posX.part16.integer;
@@ -2418,7 +2414,7 @@ struct EwramData_EntityData *BlueSoul_CreateAfterimage(struct EwramData_EntityDa
     s32 graphics = Sprite_GetTileSlot(owner);
     u8 *index = &owner->spriteSlot;
     struct SpriteSheet *sprite = gEwramData->spriteSlots[*index].sheet;
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)BlueSoulAfterimage_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, BlueSoulAfterimage_Update);
     if (entity != NULL)
     {
         if (sprite != NULL)
@@ -2479,7 +2475,7 @@ void SkillAlastorUse(struct EwramData_EntityData *entity)
     }
         entity->spriteLayer = 0xF;
         entity->animFrame = 0;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->scrollWithBg = 1;
         {
             u32 m;
@@ -2635,7 +2631,7 @@ void SkillGreatArmorUse(struct EwramData_EntityData *entity)
     }
         Anim_StartIndexed(entity, 1, 0, 1);
         entity->spriteLayer = 0xD;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->scrollWithBg = 1;
         entity->state++;
     case 1:
@@ -2703,7 +2699,7 @@ void SkillBigGolemUse(struct EwramData_EntityData *entity)
         entity->affine = 1;
         entity->shrinkPartOffsets = 1;
         entity->spriteLayer = 0xF;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->scrollWithBg = 1;
         entity->state++;
         entity->timer = 0x20;
@@ -2946,7 +2942,7 @@ void YellowSoul_Restart(u8 soul, s32 force)
         gEwramData->playerState.currentStats[1] >>= 2;
         gEwramData->playerState.currentStats[2] >>= 2;
     }
-    ((void (*)(struct EwramData_EntityData *))child->updateFunc)(child);
+    child->updateFunc(child);
 }
 
 /**

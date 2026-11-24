@@ -19,6 +19,9 @@
 #include "data/data_118B48.h"
 #include "data/data_0E5364.h"
 #include "data/data_4F1444.h"
+#include "entity_common.h"
+
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *,u8 *,void *,u8,void *);
 
 /* Set up, play and fade the background transformation scene. */
 /**
@@ -99,14 +102,14 @@ s32 EventScene30_PlayTransformation(struct EwramData_EntityData *entity)
  */
 struct EwramData_EntityData *EventScene30_CreateEffectSprite(s32 affine)
 {
-    struct EwramData_EntityData *entity=EntityCreateInRange(0x1B,0x48,(u32 *)EntityUpdateNothing);
+    struct EwramData_EntityData *entity=EntityCreateInRange(0x1B,0x48,EntityUpdateNothing);
     if(entity)
     {
         s32 slot=ObjGfx_LoadResource(sEventScene30Gfx,0);
         if(slot<0)goto fail;
         entity->basePalette=14;
         Sprite_Attach(entity,sEventScene30SpriteSheet,slot,14);
-        entity->drawFunc=(u32 *)Sprite_DrawEntity;
+        entity->drawFunc=Sprite_DrawEntity;
         if(affine)
         {
             entity->ext.event30Effect.scale=0x12000;
@@ -125,10 +128,9 @@ fail:
 }
 
 /* Delayed fragments spiral away, alternating their direction of rotation. */
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *,u8 *,void *,u8,void *);
 static inline void flashAt(s16 x,s16 y)
 {
-    struct EwramData_EntityData *effect=EntityCreateInRange(0x1B,0x48,(u32 *)EventScene30Flash_Update);
+    struct EwramData_EntityData *effect=EntityCreateInRange(0x1B,0x48,EventScene30Flash_Update);
     if(effect)
     {
         if(!Entity_LoadGraphics(effect,sEventScene30Gfx,sEventScene30Palette,0,sEventScene30SpriteSheet))EntityDelete(effect);
@@ -190,7 +192,7 @@ void EventScene30_SpawnOrbitFragments(struct EwramData_EntityData *owner)
         struct EwramData_EntityData *entity=EventScene30_CreateEffectSprite(1);
         if(entity)
         {
-            entity->updateFunc=(u32 *)EventScene30OrbitFragment_Update;
+            entity->updateFunc=EventScene30OrbitFragment_Update;
             entity->posX.part16.integer=owner->ext.event30.centerX+item->x;
             entity->posY.part16.integer=owner->ext.event30.centerY+item->y+32;
             entity->timer=item->delay;
@@ -204,7 +206,6 @@ void EventScene30_SpawnOrbitFragments(struct EwramData_EntityData *owner)
 }
 
 /* Falling, orbiting, delayed release, then shrinking flight. */
-extern s32 Entity_StepTowardPoint(struct EwramData_EntityData *,s32,s32,s32);
 /**
  * @brief Fall, then bob on a sine until the owner sets flag 2, then leave.
  */
@@ -271,7 +272,7 @@ void EventScene30_SpawnFloatingFragment(struct EwramData_EntityData *owner,s16 x
     if(entity)
     {
         u8 zero;
-        entity->updateFunc=(u32 *)EventScene30FloatingFragment_Update;
+        entity->updateFunc=EventScene30FloatingFragment_Update;
         ENTITY_PARENT_INDEX(entity)=ENTITY_INDEX(owner);
         zero=0;
         entity->ext.event30Effect.scale=0x12000;
@@ -297,7 +298,7 @@ struct EwramData_EntityData *EventScene30_SpawnDriftFragment(s16 x,s16 y,s32 rev
     struct FragmentFrames frames=sEventScene30FragmentFrames;
     if(effect)
     {
-        effect->updateFunc=(u32 *)EventScene30Effect_UpdateBallistic;
+        effect->updateFunc=EventScene30Effect_UpdateBallistic;
         effect->posX.part16.integer=x;
         effect->posY.part16.integer=y;
         effect->velX.whole=0x30000;
@@ -344,7 +345,7 @@ void EventScene30Spark_Update(struct EwramData_EntityData *entity)
 /* Initial flash followed by three delayed, randomly varied fragments. */
 static inline void flashAt2(s16 x,s16 y)
 {
-    struct EwramData_EntityData *effect=EntityCreateInRange(0x1B,0x48,(u32 *)EventScene30Flash_Update);
+    struct EwramData_EntityData *effect=EntityCreateInRange(0x1B,0x48,EventScene30Flash_Update);
     if(effect)
     {
         if(!Entity_LoadGraphics(effect,sEventScene30Gfx,sEventScene30Palette,0,sEventScene30SpriteSheet))EntityDelete(effect);
@@ -370,7 +371,7 @@ void EventScene30_SpawnSparkBurst(s16 x,s16 y)
         struct EwramData_EntityData *effect=EventScene30_CreateEffectSprite(0);
         if(effect)
         {
-            effect->updateFunc=(u32 *)EventScene30Spark_Update;
+            effect->updateFunc=EventScene30Spark_Update;
             effect->posX.part16.integer=(u16)((u16)x+4)-(RandomNumberGenerator()&mask);
             effect->posY.part16.integer=(u16)y+4-(RandomNumberGenerator()&mask);
             effect->velY.whole=0x14000-(RandomNumberGenerator()&0x7FFF);
@@ -388,7 +389,7 @@ void EventScene30_SpawnSparkBurst(s16 x,s16 y)
 /* Initial flash followed by three delayed, randomly varied fragments. */
 static inline void flashAt3(s16 x,s16 y,s32 animation)
 {
-    struct EwramData_EntityData *effect=EntityCreateInRange(0x1B,0x48,(u32 *)EventScene30Flash_Update);
+    struct EwramData_EntityData *effect=EntityCreateInRange(0x1B,0x48,EventScene30Flash_Update);
     if(effect)
     {
         if(!Entity_LoadGraphics(effect,sEventScene30Gfx,sEventScene30Palette,0,sEventScene30SpriteSheet))EntityDelete(effect);
@@ -414,7 +415,7 @@ void EventScene30_SpawnSparkBurstSmall(s16 x,s16 y)
         struct EwramData_EntityData *effect=EventScene30_CreateEffectSprite(0);
         if(effect)
         {
-            effect->updateFunc=(u32 *)EventScene30Spark_Update;
+            effect->updateFunc=EventScene30Spark_Update;
             effect->posX.part16.integer=(u16)((u16)x+4)-(RandomNumberGenerator()%8);
             effect->posY.part16.integer=(u16)y+4-(RandomNumberGenerator()%8);
             effect->velY.whole=0x14000-(RandomNumberGenerator()&0x7FFF);
@@ -432,7 +433,7 @@ void EventScene30_SpawnSparkBurstSmall(s16 x,s16 y)
 /* Play fifteen timed burst positions; the state selects the burst variant. */
 static inline void flashAt4(s16 x,s16 y,s32 animation)
 {
-    struct EwramData_EntityData *effect=EntityCreateInRange(0x1B,0x48,(u32 *)EventScene30Flash_Update);
+    struct EwramData_EntityData *effect=EntityCreateInRange(0x1B,0x48,EventScene30Flash_Update);
     if(effect)
     {
         if(!Entity_LoadGraphics(effect,sEventScene30Gfx,sEventScene30Palette,0,sEventScene30SpriteSheet))EntityDelete(effect);
@@ -628,7 +629,7 @@ void EventScene30EmitterE_Update(struct EwramData_EntityData *entity)
         s32 x=(s16)(step->x+entity->posX.part16.integer);
         s32 y=(s16)(step->y+(u16)entity->posY.part16.integer);
         u32 animation=RandomNumberGenerator()&3;
-        struct EwramData_EntityData *effect=EntityCreateInRange(0x1B,0x48,(u32 *)EventScene30Flash_Update);
+        struct EwramData_EntityData *effect=EntityCreateInRange(0x1B,0x48,EventScene30Flash_Update);
         if(effect)
         {
             if(!Entity_LoadGraphics(effect,sEventScene30Gfx,sEventScene30Palette,0,sEventScene30SpriteSheet))EntityDelete(effect);
@@ -670,7 +671,7 @@ void EventScene30PieceEmitter_Update(struct EwramData_EntityData *entity)
         if(effect)
         {
             s32 zero,xSpeed,ySpeed;
-            effect->updateFunc=(u32 *)EventScene30Effect_UpdateSpinning;
+            effect->updateFunc=EventScene30Effect_UpdateSpinning;
             effect->posX.part16.integer=(u16)(entity->posX.part16.integer+8)-(RandomNumberGenerator()%16);
             zero=0;
             effect->posY.part16.integer=(u16)entity->posY.part16.integer+8-(RandomNumberGenerator()%16);
@@ -766,7 +767,7 @@ void EventScene30_SpawnOrbitRing(struct EwramData_EntityData *owner,u16 x,u16 y)
             u8 *radiusX,*radiusY;
             Sin(point->angle+0x4000);
             Sin(point->angle);
-            effect->updateFunc=(u32 *)EventScene30OrbitRing_Update;
+            effect->updateFunc=EventScene30OrbitRing_Update;
             ENTITY_PARENT_INDEX(effect)=ENTITY_INDEX(owner);
             effect->ext.event30Ring.index=index;
             effect->ext.event30Ring.centerX=x;
@@ -821,7 +822,7 @@ void EventScene30PieceEmitterAlt_Update(struct EwramData_EntityData *entity)
         if(effect)
         {
             s32 zero,xSpeed,ySpeed,step;
-            effect->updateFunc=(u32 *)EventScene30Effect_UpdateSpinningKeepSlot;
+            effect->updateFunc=EventScene30Effect_UpdateSpinningKeepSlot;
             effect->posX.part16.integer=(u16)(entity->posX.part16.integer+8)-(RandomNumberGenerator()%16);
             zero=0;
             effect->posY.part16.integer=(u16)entity->posY.part16.integer+8-(RandomNumberGenerator()%16);
@@ -857,7 +858,7 @@ struct EwramData_EntityData *EventScene30_SpawnFastDriftFragment(u16 x, u16 y, s
     if (effect)
     {
         u32 zero;
-        effect->updateFunc = (u32 *)EventScene30Effect_UpdateBallistic;
+        effect->updateFunc = EventScene30Effect_UpdateBallistic;
         { u16 *px = &effect->posX.part16.integer; zero = 0; *px = x; }
         effect->posY.part16.integer = y;
         effect->velX.whole = 0x60000;
@@ -975,7 +976,7 @@ void EventScene30CenterEffect_Update(struct EwramData_EntityData *entity)
  */
 void EventScene30_CreateCenterEffect(struct EwramData_EntityData *owner)
 {
-    u32 *callback=(u32 *)EventScene30CenterEffect_Update;
+    EntityFunc callback=EventScene30CenterEffect_Update;
     struct EwramData_EntityData *effect=EntityCreateInRange(0x1B,0x48,callback);
     u8 zero;
     if(effect)
@@ -985,7 +986,7 @@ void EventScene30_CreateCenterEffect(struct EwramData_EntityData *owner)
         effect->basePalette=14;
         zero=0;
         Sprite_Attach(effect,sEventScene30SpriteSheet,slot,14);
-        effect->drawFunc=(u32 *)Sprite_DrawEntity;
+        effect->drawFunc=Sprite_DrawEntity;
         ENTITY_PARENT_INDEX(effect)=ENTITY_INDEX(owner);
         effect->ext.event30Effect.scale=0x1A000;
         slot=ObjAffine_Alloc(1);
@@ -1086,7 +1087,7 @@ void EventScene30Halo_Update(struct EwramData_EntityData *entity)
  */
 void EventScene30_CreateHalo(struct EwramData_EntityData *owner)
 {
-    struct EwramData_EntityData *effect=EntityCreateInRange(0x1B,0x48,(u32 *)EventScene30Halo_Update);
+    struct EwramData_EntityData *effect=EntityCreateInRange(0x1B,0x48,EventScene30Halo_Update);
     u8 zero;
     if(effect)
     {
@@ -1095,7 +1096,7 @@ void EventScene30_CreateHalo(struct EwramData_EntityData *owner)
         effect->basePalette=14;
         zero=0;
         Sprite_Attach(effect,sEventScene30SpriteSheet,slot,14);
-        effect->drawFunc=(u32 *)Sprite_DrawEntity;
+        effect->drawFunc=Sprite_DrawEntity;
         ENTITY_PARENT_INDEX(effect)=ENTITY_INDEX(owner);
         effect->ext.event30Effect.scale=0x1A000;
         slot=ObjAffine_Alloc(1);

@@ -22,12 +22,12 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "damage_numbers.h"
 
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
-extern void Stolas_UpdateMove(struct EwramData_EntityData *entity);
-extern void Stolas_UpdateAttack(struct EwramData_EntityData *entity);
-extern void Stolas_SpawnDebris(struct EwramData_EntityData *entity, s32 x, s32 y, s32 vx, s32 vy);
-extern void Stolas_UpdatePreview(struct EwramData_EntityData *entity);
+void Stolas_UpdateMove(struct EwramData_EntityData *entity);
+void Stolas_UpdateAttack(struct EwramData_EntityData *entity);
+void Stolas_SpawnDebris(struct EwramData_EntityData *entity, s32 x, s32 y, s32 vx, s32 vy);
+void Stolas_UpdatePreview(struct EwramData_EntityData *entity);
 
 struct StolasBox {
     s32 x:8;
@@ -35,6 +35,30 @@ struct StolasBox {
     u32 w:8;
     u32 h:8;
 };
+
+extern void *memcpy(void *dst, const void *src, unsigned long size);
+extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
+
+u8 Stolas_LoadGraphics(struct EwramData_EntityData *entity);
+void StolasPart_Update(struct EwramData_EntityData *entity);
+void Stolas_OnContact(struct EwramData_EntityData *entity);
+void StolasPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+void Stolas_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void Stolas_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+void Stolas_AttachJoint(struct EwramData_EntityData *entity, s32 partIndex, s32 anchorIndex, s32 angleSpec, s32 length);
+void Stolas_AttachJointSetAngle(struct EwramData_EntityData *entity, s32 partIndex, s32 anchorIndex, s32 angleSpec, s32 length);
+void Stolas_InterpolateJointsInOrder(struct EwramData_EntityData *entity, s8 *order);
+void Stolas_FaceTarget(struct EwramData_EntityData *entity);
+void Stolas_TurnAround(struct EwramData_EntityData *);
+void Stolas_SpawnCastEffect(struct EwramData_EntityData *, s32, s32);
+void Stolas_SpawnBeamSegment(struct EwramData_EntityData *, s32, s32);
+void Stolas_SpawnBeamImpact(struct EwramData_EntityData *, s32, s32);
+void StolasCastEffect_Update(struct EwramData_EntityData *entity);
+void StolasBeamSegment_Update(struct EwramData_EntityData *entity);
+void StolasBeamImpact_Update(struct EwramData_EntityData *entity);
+void StolasDebris_Update(struct EwramData_EntityData *entity);
+void Stolas_Draw(struct EwramData_EntityData *entity);
 
 void EnemyStolasUpdate(struct EwramData_EntityData *entity)
 {
@@ -123,17 +147,6 @@ boxes:
 }
 
 /* Stolas create: allocates the 6-joint skeleton and one part entity per joint. */
-extern void *memcpy(void *dst, const void *src, unsigned long size);
-extern u8 Stolas_LoadGraphics(struct EwramData_EntityData *entity);
-extern void StolasPart_Update(struct EwramData_EntityData *entity);
-extern void Stolas_OnContact(struct EwramData_EntityData *entity);
-extern void StolasPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern void Stolas_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-extern void Stolas_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern void Stolas_AttachJoint(struct EwramData_EntityData *entity, s32 partIndex, s32 anchorIndex, s32 angleSpec, s32 length);
-extern void Stolas_AttachJointSetAngle(struct EwramData_EntityData *entity, s32 partIndex, s32 anchorIndex, s32 angleSpec, s32 length);
-extern void Stolas_InterpolateJointsInOrder(struct EwramData_EntityData *entity, s8 *order);
-extern void Stolas_FaceTarget(struct EwramData_EntityData *entity);
 
 void EnemyStolasCreate(struct EwramData_EntityData *entity)
 {
@@ -188,7 +201,7 @@ void EnemyStolasCreate(struct EwramData_EntityData *entity)
             part->scrollWithBg = 0;
             part->hidden = 0;
             part->attack = entity->attack;
-            part->drawFunc = (u32 *)Sprite_DrawEntity;
+            part->drawFunc = Sprite_DrawEntity;
             part->ext.jointPart.owner = entity;
             part->ext.jointPart.index = index;
             part->ext.jointPart.anchor = anchors[index];
@@ -206,7 +219,7 @@ void EnemyStolasCreate(struct EwramData_EntityData *entity)
             part->affine = 1;
             ObjAffine_Set(0, 0x10000, 0x10000, part->flipX, part->flipY, part->affineIndex);
             if (!(*((u8 *)gEwramData + 0x8E) & 0x40))
-                Hit_Enable(part, 8, Stolas_OnContact, (s32)StolasPart_OnHit);
+                Hit_Enable(part, 8, Stolas_OnContact, StolasPart_OnHit);
             *(struct EwramData_EntityData **)parts[index].pad_2C = part;
         }
         else
@@ -251,7 +264,7 @@ void EnemyStolasCreate(struct EwramData_EntityData *entity)
         entity->ext.stolas.drawOffsetY = -29;
         return;
     }
-    Hit_Enable(entity, 8, Stolas_DamagePlayerOnContact, (s32)Stolas_OnHit);
+    Hit_Enable(entity, 8, Stolas_DamagePlayerOnContact, Stolas_OnHit);
     Stolas_FaceTarget(entity);
     Entity_SnapToGround(entity);
     entity->ext.stolas.drawOffsetX = frozen;
@@ -266,9 +279,6 @@ void EnemyStolasCreate(struct EwramData_EntityData *entity)
 }
 
 /* Stolas movement and transitions to attack states. */
-extern s32 Target_IsNearEntity(struct EwramData_EntityData *, s32, s32);
-extern void Stolas_TurnAround(struct EwramData_EntityData *);
-extern s32 Target_GetPixelX(struct EwramData_EntityData *);
 #define POSE(e) (e->ext.joint.pose)
 /**
  * @brief Movement state machine (state 0): face the target, wake when it is within
@@ -446,9 +456,6 @@ reset:
 }
 
 /* Stolas attack substates and return to the movement pose. */
-extern void Stolas_SpawnCastEffect(struct EwramData_EntityData *, s32, s32);
-extern void Stolas_SpawnBeamSegment(struct EwramData_EntityData *, s32, s32);
-extern void Stolas_SpawnBeamImpact(struct EwramData_EntityData *, s32, s32);
 /* Six 0x30-byte joints, then three child slots and their template IDs. */
 struct StolasParts {
     struct EntityJointPart joints[6];
@@ -499,7 +506,7 @@ void Stolas_UpdateAttack(struct EwramData_EntityData *entity)
         if (++entity->timer == 73) Stolas_SpawnBeamImpact(entity, DISTANCE(entity), 1);
         if (entity->timer == 112)
         {
-            child = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
+            child = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
             if (child != NULL)
             {
                 struct StolasParts *parts = (struct StolasParts *)entity->ext.joint.parts;
@@ -534,7 +541,7 @@ void Stolas_UpdateAttack(struct EwramData_EntityData *entity)
                 child->scrollWithBg = 1;
                 child->spawnIndex = 0;
                 child->enemyId = type;
-                child->drawFunc = (u32 *)Sprite_DrawEntity;
+                child->drawFunc = Sprite_DrawEntity;
                 {
                     struct EntityTemplate *template = &sEnemyData[type];
                     child->updateFunc = template->updateFunc;
@@ -915,8 +922,6 @@ struct StolasPartBox {
     s8 height;
 };
 
-extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
-
 #define JOINT(e) ((s8)e->ext.jointPart.index)
 #define FIX_INT(v) ((v) < 0 ? -(-(v) >> 16) : (v) >> 16)
 
@@ -1033,8 +1038,6 @@ void StolasPart_Update(struct EwramData_EntityData *entity)
     }
 }
 
-extern void StolasCastEffect_Update(struct EwramData_EntityData *entity);
-
 /**
  * @brief 9BD5C | Create an effect StolasCastEffect_Update of the owner (file
  * 0x0809B9D4) at (dx, dy) from it: graphics sStolasSpriteSheet / sStolasGfx
@@ -1045,7 +1048,7 @@ extern void StolasCastEffect_Update(struct EwramData_EntityData *entity);
  */
 void Stolas_SpawnCastEffect(struct EwramData_EntityData *entity, s32 dx, s32 dy)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, (u32 *)StolasCastEffect_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, StolasCastEffect_Update);
     s32 tiles;
     u16 palette;
 
@@ -1056,7 +1059,7 @@ void Stolas_SpawnCastEffect(struct EwramData_EntityData *entity, s32 dx, s32 dy)
         goto delete;
     Sprite_Attach(child, sStolasSpriteSheet, tiles, entity->basePalette);
     child->animFrame = 0xC;
-    child->drawFunc = (u32 *)Sprite_DrawEntity;
+    child->drawFunc = Sprite_DrawEntity;
     child->hit.flags |= 4;
     child->hit.flags |= 2;
     child->scrollWithBg = 1;
@@ -1125,7 +1128,6 @@ free:
 }
 
 /* Stolas_SpawnBeamSegment (Stolas hit box child). */
-extern void StolasBeamSegment_Update(struct EwramData_EntityData *entity);
 
 /**
  * @brief 9BF7C | Spawn a StolasBeamSegment_Update child (slots 0x1B..0x48) at
@@ -1136,7 +1138,7 @@ extern void StolasBeamSegment_Update(struct EwramData_EntityData *entity);
  */
 void Stolas_SpawnBeamSegment(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, (u32 *)StolasBeamSegment_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, StolasBeamSegment_Update);
     s32 gfx;
 
     if (child == NULL)
@@ -1149,7 +1151,7 @@ void Stolas_SpawnBeamSegment(struct EwramData_EntityData *entity, s32 offsetX, s
     }
     Sprite_Attach(child, sStolasSpriteSheet, gfx, entity->basePalette);
     child->animFrame = 0x1F;
-    child->drawFunc = (u32 *)Sprite_DrawEntity;
+    child->drawFunc = Sprite_DrawEntity;
     child->hit.flags |= 4;
     child->hit.flags |= 2;
     child->scrollWithBg = 1;
@@ -1197,7 +1199,6 @@ void StolasBeamSegment_Update(struct EwramData_EntityData *entity)
 }
 
 /* Stolas_SpawnBeamImpact (Stolas hit box child). */
-extern void StolasBeamImpact_Update(struct EwramData_EntityData *entity);
 
 /**
  * @brief 9C0C8 | Spawn a StolasBeamImpact_Update child (slots 0x1B..0x48) at
@@ -1208,7 +1209,7 @@ extern void StolasBeamImpact_Update(struct EwramData_EntityData *entity);
  */
 void Stolas_SpawnBeamImpact(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, (u32 *)StolasBeamImpact_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, StolasBeamImpact_Update);
     s32 gfx;
 
     if (child == NULL)
@@ -1221,7 +1222,7 @@ void Stolas_SpawnBeamImpact(struct EwramData_EntityData *entity, s32 offsetX, s3
     }
     Sprite_Attach(child, sStolasSpriteSheet, gfx, entity->basePalette);
     child->animFrame = 0x23;
-    child->drawFunc = (u32 *)Sprite_DrawEntity;
+    child->drawFunc = Sprite_DrawEntity;
     child->hit.flags |= 4;
     child->hit.flags |= 2;
     child->scrollWithBg = 1;
@@ -1271,7 +1272,6 @@ void StolasBeamImpact_Update(struct EwramData_EntityData *entity)
 }
 
 /* Stolas_SpawnDebris (Stolas projectile). */
-extern void StolasDebris_Update(struct EwramData_EntityData *entity);
 
 /**
  * @brief 9C224 | Spawn a StolasDebris_Update projectile (slots 0x1B..0x48) at
@@ -1282,7 +1282,7 @@ extern void StolasDebris_Update(struct EwramData_EntityData *entity);
  */
 void Stolas_SpawnDebris(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY, s32 velocityX, s32 velocityY)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, (u32 *)StolasDebris_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, StolasDebris_Update);
     s32 gfx;
 
     if (child == NULL)
@@ -1295,7 +1295,7 @@ void Stolas_SpawnDebris(struct EwramData_EntityData *entity, s32 offsetX, s32 of
     }
     Sprite_Attach(child, sStolasSpriteSheet, gfx, entity->basePalette);
     child->animFrame = 0x1E;
-    child->drawFunc = (u32 *)Sprite_DrawEntity;
+    child->drawFunc = Sprite_DrawEntity;
     child->hit.flags |= 4;
     child->hit.flags |= 2;
     child->scrollWithBg = 1;
@@ -1423,11 +1423,6 @@ void Stolas_OnContact(struct EwramData_EntityData *entity)
 }
 
 /* Stolas helpers 0x0809C41C..0x0809C5E7. */
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
-
-void Stolas_Draw(struct EwramData_EntityData *entity);
 
 /**
  * @brief 9C41C | Hit on a part: compute the damage at the part's position
@@ -1446,7 +1441,7 @@ void StolasPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hi
     damage = Hit_ResolveDamage(entity->ext.jointPart.owner, attacker, hit, (s16)damage);
     stolas->posX.whole = oldX;
     stolas->posY.whole = oldY;
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     Stolas_OnDamaged(entity->ext.jointPart.owner, attacker, hit, (s16)damage);
 }
 
@@ -1480,7 +1475,7 @@ u8 Stolas_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sStolasPalette, 0);
     Sprite_Attach(entity, sStolasSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Stolas_Draw;
+    entity->drawFunc = Stolas_Draw;
     return 1;
 }
 
@@ -1515,7 +1510,7 @@ void Stolas_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
     s16 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
 
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     Stolas_OnDamaged(entity, attacker, hit, (s16)damage);
 }
 

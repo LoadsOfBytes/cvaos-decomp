@@ -91,7 +91,7 @@ void DebugJitterSprite_Update(struct EwramData_EntityData *entity)
                 ObjPalette_LoadRange((u8 *)sDebugJitterSpritePalette, 0, 1, 2);
                 Sprite_Attach(entity, (void *)sDebugJitterSpriteSheet, gfx, 2);
                 Anim_SelectScript(entity, 0, 1);
-                entity->drawFunc = (u32 *) Sprite_DrawEntity;
+                entity->drawFunc = Sprite_DrawEntity;
                 entity->posX.part16.integer = 0x96;
                 entity->posY.part16.integer = 0x50;
                 entity->scrollWithBg = 1;

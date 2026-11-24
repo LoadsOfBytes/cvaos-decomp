@@ -9,9 +9,9 @@
 #include "bg_and_collision.h"
 #include "structs/ewram.h"
 #include "entity_common.h"
+#include "math_inline.h"
 
 static inline s32 SumCornerComponents(u16 entityPart, u16 cameraPart) { return entityPart + cameraPart; }
-static inline s32 SignExtendOffset(u16 value) { return (s16)value; }
 
 #define ROOM_X ((s16)camera->xPos.part16.integer + (s16)entity->posX.part16.integer)
 #define ROOM_Y ((s16)camera->yPos.part16.integer + (s16)entity->posY.part16.integer)

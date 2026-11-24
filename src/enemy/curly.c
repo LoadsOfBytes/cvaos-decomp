@@ -13,10 +13,15 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "damage_numbers.h"
+#include "entity_motion.h"
+#include "hitbox.h"
 
-extern u8 Curly_LoadGraphics(struct EwramData_EntityData *);
-extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
-extern void Hit_Enable(struct EwramData_EntityData *, s32, void *, void *);
+extern s32 Target_IsInRect(s16, s16, s16, s16);
+extern s32 Collision_IsWalkBlocked(s32 x, s32 y);
+extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
+
+u8 Curly_LoadGraphics(struct EwramData_EntityData *);
 void Curly_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void Curly_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 
@@ -45,10 +50,6 @@ void EnemyCurlyCreate(struct EwramData_EntityData *entity)
     entity->velY.whole = 0x10000;
     entity->accelY.whole = 0x2800;
 }
-
-extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern s32 Collision_IsWalkBlocked(s32 x, s32 y);
 
 /**
  * @brief 93218 | Patrol AI: walks at 0x8000 (Entity_AdjustSpeedForSlope) while the
@@ -193,8 +194,6 @@ void Curly_UpdateAttack(struct EwramData_EntityData *entity)
         PlaySong(0x85);
 }
 
-extern s32 ObjPalette_FindOrLoadVariant(void *, s32);
-
 u8 Curly_LoadGraphics(struct EwramData_EntityData *entity)
 {
     s32 slot = ObjGfx_LoadResource(sCurlyGfx, 0);
@@ -209,13 +208,10 @@ u8 Curly_LoadGraphics(struct EwramData_EntityData *entity)
     y = GetEntityRoomYPositionInteger(entity);
     room = GetRoomFromMapPosition((s16)x, (s16)y);
     if (GetAreaFromMapPosition((s16)x, (s16)y) == 4 && (u32)(room - 12) <= 1)
-        entity->drawFunc = (u32 *)Entity_DrawWithOffsetCopy;
-    else entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Entity_DrawWithOffsetCopy;
+    else entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
-
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
 
 void Curly_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
@@ -228,7 +224,7 @@ void Curly_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDat
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
@@ -244,19 +240,6 @@ void Curly_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDat
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
  *   Curly_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
-
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
 
 /**
  * @brief 93674 | Same as Enemy_DamagePlayerOnContact.

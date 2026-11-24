@@ -559,8 +559,8 @@ s32 GameModeGameOverUpdate(void)
                             break;
                     }
 
-                    textEntity->drawFunc = (u32 *) GameOverText_Draw;
-                    textEntity->updateFunc = (u32 *) EntityUpdateNothing;
+                    textEntity->drawFunc = GameOverText_Draw;
+                    textEntity->updateFunc = EntityUpdateNothing;
                 }
                 gEwramData->gameModeSubStage -= 1;
             }

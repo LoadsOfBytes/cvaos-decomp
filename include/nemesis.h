@@ -19,5 +19,6 @@ extern void Nemesis_SetAfterimagesHidden(struct EwramData_EntityData *entity, s3
 extern void Nemesis_UpdateState7(struct EwramData_EntityData *entity);
 extern void Nemesis_OnContact(struct EwramData_EntityData *entity);
 extern void Nemesis_CreateAfterimages(struct EwramData_EntityData *entity);
+extern void Nemesis_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 *data);
 
 #endif /* NEMESIS_H */

@@ -19,10 +19,27 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "entity_inline.h"
+
+extern s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY);
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *graphics, void *palette, u8 slot, void *sprite);
+extern s32 Collision_GetPushUp(s32 x,s32 y);
+
+void Bael_CreateHead(struct EwramData_EntityData *entity);
+void Bael_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void Bael_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+void BaelHead_Update(struct EwramData_EntityData *entity);
+s32 Bael_CheckCleanup(struct EwramData_EntityData *entity);
+void Bael_MoveAndRotate(struct EwramData_EntityData *entity,s32 mode);
+void Bael_UpdateCharge(struct EwramData_EntityData *entity);
+void Bael_RestoreXAtProbe(struct EwramData_EntityData *entity,s32 work);
+void Bael_SpawnChargeEffect(u16 x, u16 y, u8 kind, u32 flip);
+s32 Bael_OffsetBySign(s32 value,s32 step);
+void Bael_UpdateState4Rotation(struct EwramData_EntityData *entity);
+void Bael_UpdateEntry(struct EwramData_EntityData *entity);
+s32 Bael_CheckCleanup(struct EwramData_EntityData *entity);
 
 /* Bael-fight helper functions 0x080CC3C8..0x080CC623. */
-extern s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY);
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
 
 /**
  * @brief While state is 0, copy the linked body position. Death advances the state so the head can shake independently.
@@ -111,9 +128,9 @@ void Buer_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 /**
  * @brief Apply damage; on death drop rewards and enter state 3. A hit in state 2/substate 0 advances to substate 1.
  */
-void Buer_OnHit(struct EwramData_EntityData *entity)
+void Buer_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    if (Enemy_TakeDamage(entity))
+    if (Enemy_TakeDamage(entity, attacker, hit))
     {
         Enemy_DropRewards(entity);
         entity->state = 3;
@@ -179,7 +196,7 @@ void Buer_RestoreXAtProbe(struct EwramData_EntityData *entity, s32 savedX)
  */
 void Buer_SpawnChargeEffect(u16 x, u16 y, u8 kind, u32 flip)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)BuerChargeEffect_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, BuerChargeEffect_Update);
 
     if (child != NULL)
     {
@@ -191,13 +208,6 @@ void Buer_SpawnChargeEffect(u16 x, u16 y, u8 kind, u32 flip)
 }
 
 /* Bael creation: graphics shared with Buer, affine slot, hitbox and callbacks. */
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *graphics, void *palette, u8 slot, void *sprite);
-extern void Bael_CreateHead(struct EwramData_EntityData *entity);
-extern void Bael_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-extern void Bael_OnHit(struct EwramData_EntityData *entity);
-extern void Hit_Enable(struct EwramData_EntityData *entity, s32 mode, void *callback, s32 flags);
-extern void HitBox_SetAttackRaw(struct EwramData_EntityData *entity, s32 flags);
-static inline void SetAffine(struct EwramData_EntityData *e, s32 index) { e->affineIndex = index; }
 
 void EnemyBaelCreate(struct EwramData_EntityData *entity)
 {
@@ -248,7 +258,7 @@ void EnemyBaelCreate(struct EwramData_EntityData *entity)
         entity->subState = zero;
         return;
     }
-    Hit_Enable(entity, 8, Bael_DamagePlayerOnContact, (s32)Bael_OnHit);
+    Hit_Enable(entity, 8, Bael_DamagePlayerOnContact, Bael_OnHit);
     HitBox_SetAttackRaw(entity, 0x2828ECEC);
     HitBox_SetBodyRaw(entity, 0x2828ECEC);
     Entity_SnapToGround(entity);
@@ -258,8 +268,6 @@ void EnemyBaelCreate(struct EwramData_EntityData *entity)
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
  *   Bael_CreateHead = Buer_CreateHead */
-
-extern void BaelHead_Update(struct EwramData_EntityData *entity);
 
 /**
  * @brief Create the linked frame-1 head sharing graphics and palette; store mutual slot indices and face it according to movement speed.
@@ -278,7 +286,7 @@ void Bael_CreateHead(struct EwramData_EntityData *entity)
         Sprite_Attach(child, sBaelBuerSpriteSheet, Sprite_GetTileSlot(entity), child->basePalette);
         child->animFrame = 1;
         child->scrollWithBg = 1;
-        child->drawFunc = (u32 *)Sprite_DrawEntity;
+        child->drawFunc = Sprite_DrawEntity;
         child->posX.whole = entity->posX.whole;
         child->posY.whole = entity->posY.whole;
         if ((s32)entity->ext.wheel.speed >= 0)
@@ -292,17 +300,9 @@ void Bael_CreateHead(struct EwramData_EntityData *entity)
  * -f2003-patch (NO_2003_PATCH_SRCS in ../Makefile).:
  * direct posX/posY reads (loop keeps the addresses), rowOffset declared in the
  * inner loop body (hoisted by loop.c), literal zeros, ABS through an inline. */
-extern s32 Bael_CheckCleanup(struct EwramData_EntityData *entity);
-extern void Bael_MoveAndRotate(struct EwramData_EntityData *entity,s32 mode);
-extern s32 Target_IsNearEntity(struct EwramData_EntityData *entity,s32 x,s32 y);
-extern s8 Entity_GetTargetDirection(struct EwramData_EntityData *entity);
-extern s32 Collision_GetPushUp(s32 x,s32 y);
-extern void Bael_UpdateCharge(struct EwramData_EntityData *entity);
 #define SPEED(e) (e->ext.wheel.speed)
 #define ABS(x) ((x)<0?-(x):(x))
 static inline s32 AbsI(s32 x) { if (x<0) x=-x; return x; }
-static inline s32 RoomX(s32 pos) { struct BgLayerState *bg=&gEwramData->bgInfo[1]; return pos+(s16)bg->xPos.part16.integer; }
-static inline s32 RoomY(s32 pos) { struct BgLayerState *bg=&gEwramData->bgInfo[1]; return pos+(s16)bg->yPos.part16.integer; }
 
 /**
  * @brief Patrol, test obstacles and target proximity, and dispatch obstacle jumps, charge or timed facing changes.
@@ -332,12 +332,12 @@ void Bael_UpdateActive(struct EwramData_EntityData *entity)
                 entity->stage=0;
                 break;
             }
-            if (!Collision_GetPushUp(RoomX((s16)entity->posX.part16.integer),RoomY((s16)entity->posY.part16.integer)+24))
+            if (!Collision_GetPushUp(ToRoomX((s16)entity->posX.part16.integer),ToRoomY((s16)entity->posY.part16.integer)+24))
                 break;
             if (Target_IsNearEntity(entity,192,48))
             {
-                if ((!part->flipX && Entity_GetTargetDirection(entity)==-1) ||
-                    (part->flipX && Entity_GetTargetDirection(entity)==1))
+                if ((!part->flipX && (s8)Entity_GetTargetDirection(entity)==-1) ||
+                    (part->flipX && (s8)Entity_GetTargetDirection(entity)==1))
                 {
                     entity->subState=1;
                     entity->stage=0;
@@ -354,7 +354,7 @@ void Bael_UpdateActive(struct EwramData_EntityData *entity)
                     s32 offset=col*7;
                     if (!part->flipX)
                         offset=-offset;
-                    if (Collision_GetPushUp(RoomX((s16)entity->posX.part16.integer)+offset,RoomY((s16)entity->posY.part16.integer)-rowOffset+12))
+                    if (Collision_GetPushUp(ToRoomX((s16)entity->posX.part16.integer)+offset,ToRoomY((s16)entity->posY.part16.integer)-rowOffset+12))
                     {
                         entity->subState=10;
                         entity->stage=zero;
@@ -400,7 +400,7 @@ void Bael_UpdateActive(struct EwramData_EntityData *entity)
                     entity->velY.whole+=entity->accelY.whole;
                     if (entity->velY.whole>0)
                     {
-                        s32 adjust=Collision_GetPushUp(RoomX((s16)entity->posX.part16.integer),RoomY((s16)entity->posY.part16.integer)+26);
+                        s32 adjust=Collision_GetPushUp(ToRoomX((s16)entity->posX.part16.integer),ToRoomY((s16)entity->posY.part16.integer)+26);
                         entity->posY.part16.integer+=adjust;
                         if (adjust)
                             entity->timer=0;
@@ -459,10 +459,6 @@ void Bael_UpdateActive(struct EwramData_EntityData *entity)
 }
 
 /* Bael accelerated charge, rotation, and sparks. */
-extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *entity);
-extern void Bael_RestoreXAtProbe(struct EwramData_EntityData *entity,s32 work);
-void Bael_SpawnChargeEffect(u16 x, u16 y, u8 kind, u32 flip);
-extern s32 Bael_OffsetBySign(s32 value,s32 step);
 #define ANGLE(e) (e->ext.wheel.angle)
 #define DIRECTION(e) (e->ext.wheel.direction)
 
@@ -717,7 +713,7 @@ void BaelChargeEffect_Update(struct EwramData_EntityData *entity)
             }
             entity->basePalette = 6;
             Sprite_Attach(entity, sBaelBuerSpriteSheet, gfx, 6);
-            entity->drawFunc = (u32 *)Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             Anim_StartIndexed(entity, entity->ext.wheel.effectAnim, 0, 0);
             entity->spriteLayer = 0x11;
             entity->scrollWithBg = 1;
@@ -732,9 +728,6 @@ void BaelChargeEffect_Update(struct EwramData_EntityData *entity)
 }
 
 /* Bael collision motion, rotation, and update dispatcher. */
-extern void Bael_UpdateState4Rotation(struct EwramData_EntityData *entity);
-extern void Bael_UpdateEntry(struct EwramData_EntityData *entity);
-extern void Hit_CheckWithPlayer(void *buffer,struct EwramData_EntityData *entity);
 
 /**
  * @brief Walk, adjust signed speed from contacts, handle blocking probes, rotate and update the linked head facing.
@@ -795,7 +788,7 @@ set_speed:
     entity->ext.wheel.angle += (s32)entity->ext.wheel.speed / 64;
     if (collision & 3)
     {
-        if (Collision_GetPushUp(RoomX((s16)entity->posX.part16.integer),RoomY((s16)entity->posY.part16.integer)+24))
+        if (Collision_GetPushUp(ToRoomX((s16)entity->posX.part16.integer),ToRoomY((s16)entity->posY.part16.integer)+24))
             entity->ext.wheel.speed = -(s32)entity->ext.wheel.speed / 2;
         else
             entity->ext.wheel.speed = 0;
@@ -826,7 +819,7 @@ void EnemyBaelUpdate(struct EwramData_EntityData *entity)
     Player_TrackEntity(entity);
     if (Enemy_IsStunned(entity))
     {
-        Hit_CheckWithPlayer(buffer,entity);
+        Hit_CheckWithPlayer((struct HitResult *)buffer,entity);
         return;
     }
     switch (entity->state)
@@ -835,10 +828,8 @@ void EnemyBaelUpdate(struct EwramData_EntityData *entity)
         case 2: Bael_UpdateActive(entity); break;
         case 3: Bael_UpdateDeath(entity); break;
     }
-    Hit_CheckWithPlayer(buffer,entity);
+    Hit_CheckWithPlayer((struct HitResult *)buffer,entity);
 }
-
-s32 Bael_CheckCleanup(struct EwramData_EntityData *entity);
 
 /**
  * @brief While state is 0, copy the linked body position. Death advances the state so the head can shake independently.
@@ -910,9 +901,9 @@ void Bael_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 /**
  * @brief Apply damage; on death drop rewards and enter state 3. A hit in state 2/substate 0 advances to substate 1.
  */
-void Bael_OnHit(struct EwramData_EntityData *entity)
+void Bael_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    if (Enemy_TakeDamage(entity))
+    if (Enemy_TakeDamage(entity, attacker, hit))
     {
         Enemy_DropRewards(entity);
         entity->state = 3;
@@ -978,7 +969,7 @@ void Bael_RestoreXAtProbe(struct EwramData_EntityData *entity, s32 savedX)
  */
 void Bael_SpawnChargeEffect(u16 x, u16 y, u8 kind, u32 flip)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)BaelChargeEffect_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, BaelChargeEffect_Update);
 
     if (child != NULL)
     {

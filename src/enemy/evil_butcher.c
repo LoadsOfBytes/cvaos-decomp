@@ -22,9 +22,11 @@
 #include "data/data_4F1444.h"
 
 extern s32 Collision_GetGroundOffset(s32 x, s32 y);
-
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern void EvilButcherProjectile_OnHit(struct EwramData_EntityData *);
+extern void Entity_FaceTarget(struct EwramData_EntityData *);
+
+void EvilButcherProjectile_OnHit(struct EwramData_EntityData *);
+void EvilButcher_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 /* Thrown projectile: flies sideways until it is destroyed (burst) or hits a
  * wall, then bounces off spinning and falls out of the screen. */
@@ -35,7 +37,7 @@ void EvilButcherProjectile_Update(struct EwramData_EntityData *entity)
 
     if (entity->state != 0 && (s16)entity->hp != 0 && Entity_IsTimeStopped(entity))
     {
-        Hit_CheckWithPlayer(&res, (u8 *)entity);
+        Hit_CheckWithPlayer(&res, entity);
         return;
     }
     switch (entity->state)
@@ -63,13 +65,13 @@ void EvilButcherProjectile_Update(struct EwramData_EntityData *entity)
         PlaySong(0x89);
         entity->state = 1;
         entity->hp = 1;
-        Hit_Enable(entity, 10, Enemy_OnContactMask1, (s32)EvilButcherProjectile_OnHit);
+        Hit_Enable(entity, 10, Enemy_OnContactMask1, EvilButcherProjectile_OnHit);
         HitBox_SetAttackRaw(entity, 0x0810FCF8);
         HitBox_SetBodyRaw(entity, 0x0810FCF8);
         break;
     case 1:
         EntityAccelerateAndMove(entity, 0x80000);
-        Hit_CheckWithPlayer(&res, (u8 *)entity);
+        Hit_CheckWithPlayer(&res, entity);
         if (EntityIsOutsideScreen(entity, 3))
             entity->state = 3;
         if ((s16)entity->hp == 0)
@@ -179,8 +181,6 @@ void EvilButcherDebris_Update(struct EwramData_EntityData *entity)
 }
 
 /* Evil Butcher walking, throwing and death effects. */
-extern s32 Target_IsNearEntity(struct EwramData_EntityData *, s32, s32);
-extern void Entity_FaceTarget(struct EwramData_EntityData *);
 
 /**
  * @brief Walk state (0): vary speed by animation, turn after cycles or
@@ -275,7 +275,7 @@ s32 EvilButcher_UpdateDeath(struct EwramData_EntityData *entity)
     {
     case 0:
         PlaySong(0x1C1);
-        particle = EntityCreateInRange(0x49, 0xCF, (u32 *)EvilButcherDebris_Update);
+        particle = EntityCreateInRange(0x49, 0xCF, EvilButcherDebris_Update);
         if (particle != NULL)
         {
             offset = 0x120000;
@@ -299,7 +299,7 @@ s32 EvilButcher_UpdateDeath(struct EwramData_EntityData *entity)
             }
             else
             {
-                particle = EntityCreateInRange(0x49, 0xCF, (u32 *)EvilButcherDeathParticle_Update);
+                particle = EntityCreateInRange(0x49, 0xCF, EvilButcherDeathParticle_Update);
                 if (particle != NULL)
                 {
                     particle->posX.whole = entity->posX.whole + RandomSigned(0x80000);
@@ -320,10 +320,6 @@ s32 EvilButcher_UpdateDeath(struct EwramData_EntityData *entity)
     }
     return 0;
 }
-
-extern void Enemy_OnContact(struct EwramData_EntityData *);
-void EvilButcher_OnHit(struct EwramData_EntityData *entity);
-extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, void *);
 
 void EnemyEvilButcherCreate(struct EwramData_EntityData *entity)
 {
@@ -353,15 +349,13 @@ void EnemyEvilButcherCreate(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   EvilButcher_OnHit = HeadStackSegment_OnHit */
 
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
-
 /**
  * @brief Apply enemy damage; on defeat drop rewards, restore the palette
  * and enter death state 2 with substate counters reset.
  */
-void EvilButcher_OnHit(struct EwramData_EntityData *entity)
+void EvilButcher_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    if (Enemy_TakeDamage(entity))
+    if (Enemy_TakeDamage(entity, attacker, hit))
     {
         Enemy_DropRewards(entity);
         entity->palette = entity->basePalette;

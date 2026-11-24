@@ -14,11 +14,18 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "hitbox.h"
+#include "damage_numbers.h"
+#include "entity_motion.h"
 
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
-extern void DeadCrusader_UpdateWalk(struct EwramData_EntityData *entity);
-extern void DeadCrusader_UpdateAttack(struct EwramData_EntityData *entity);
-extern s32 Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
+extern s32 Target_IsInRect(s16, s16, s16, s16);
+extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
+
+void DeadCrusader_UpdateWalk(struct EwramData_EntityData *entity);
+void DeadCrusader_UpdateAttack(struct EwramData_EntityData *entity);
+u8 DeadCrusader_LoadGraphics(struct EwramData_EntityData *entity);
+void DeadCrusader_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void DeadCrusader_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 
 /**
  * @brief 8F1F4 | Dead Crusader update: clears ext.deadCrusader.guarding, wakes when on screen
@@ -47,7 +54,7 @@ void EnemyDeadCrusaderUpdate(struct EwramData_EntityData *entity)
         Enemy_UpdateHitFlash(entity);
     if (Entity_IsTimeStopped(entity) && entity->state != 2)
     {
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         return;
     }
     switch (entity->state)
@@ -73,11 +80,6 @@ void EnemyDeadCrusaderUpdate(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   EnemyDeadCrusaderCreate = EnemySkeletonKnightCreate */
 
-extern u8 DeadCrusader_LoadGraphics(struct EwramData_EntityData *entity);
-extern void DeadCrusader_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-void DeadCrusader_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
-extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
-
 /**
  * @brief 8F2D0 | Same as EnemySkeletonKnightCreate.
  */
@@ -97,17 +99,13 @@ void EnemyDeadCrusaderCreate(struct EwramData_EntityData *entity)
         return;
     }
     if (Anim_GetMaxBoxCount(entity) > 1)
-        Hit_EnableContact(entity, 8, DeadCrusader_DamagePlayerOnContact, (s32)DeadCrusader_OnHit);
+        Hit_EnableContact(entity, 8, DeadCrusader_DamagePlayerOnContact, DeadCrusader_OnHit);
     else
-        Hit_Enable(entity, 8, DeadCrusader_DamagePlayerOnContact, (s32)DeadCrusader_OnHit);
+        Hit_Enable(entity, 8, DeadCrusader_DamagePlayerOnContact, DeadCrusader_OnHit);
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
     entity->state = 0;
 }
-
-extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s32 Entity_ClampXToRoom(struct EwramData_EntityData *, s32);
-extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s32);
 
 /**
  * @brief 8F364 | Enemy walk AI like Persephone_UpdateWalk (subState): wakes on the
@@ -343,9 +341,6 @@ void DeadCrusader_UpdateAttack(struct EwramData_EntityData *entity)
     }
 }
 
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-
 /**
  * @brief Hit: while crouching behind the shield (ext.deadCrusader.guarding) take no damage (sound
  * 0x69), else resolve the damage; flash, subtract and show it; at HP <= 0
@@ -371,7 +366,7 @@ void DeadCrusader_OnHit(struct EwramData_EntityData *entity, struct EwramData_En
 
         entity->hp = hp - signedDamage;
     }
-    Entity_ShowDamage(entity, signedDamage, 0);
+    Entity_ShowDamage(entity, (s16)signedDamage, 0);
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
@@ -388,21 +383,6 @@ void DeadCrusader_OnHit(struct EwramData_EntityData *entity, struct EwramData_En
  *   DeadCrusader_LoadGraphics = Object32_LoadGraphics
  *   DeadCrusader_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
-
 /**
  * @brief 8F8EC | Same as Object32_LoadGraphics.
  */
@@ -414,7 +394,7 @@ u8 DeadCrusader_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sDeadCrusaderSkeletonKnightPalette, 1);
     Sprite_Attach(entity, sDeadCrusaderSkeletonKnightSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 

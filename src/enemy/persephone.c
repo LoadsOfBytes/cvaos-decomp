@@ -16,15 +16,23 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "damage_numbers.h"
+#include "entity_motion.h"
+
+extern s32 Target_IsInRect(s16, s16, s16, s16);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
+
+void Persephone_UpdateWalk(struct EwramData_EntityData *);
+void Persephone_UpdateAttack(struct EwramData_EntityData *);
+void Persephone_UpdatePreview(struct EwramData_EntityData *);
+void Persephone_UpdateKnockdown(struct EwramData_EntityData *);
+u8 Persephone_LoadGraphics(struct EwramData_EntityData *);
+void Persephone_DamagePlayerOnContact(struct EwramData_EntityData *);
+void Persephone_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
+void Persephone_SpawnAttackBox(struct EwramData_EntityData *, s32, s32);
+void PersephoneAttackBox_Update(struct EwramData_EntityData *);
 
 /* Dispatch Persephone's AI, death, reaction and display states. */
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern void Persephone_UpdateWalk(struct EwramData_EntityData *);
-extern void Persephone_UpdateAttack(struct EwramData_EntityData *);
-extern void Persephone_UpdatePreview(struct EwramData_EntityData *);
-extern void Persephone_UpdateKnockdown(struct EwramData_EntityData *);
-extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s32);
 void EnemyPersephoneUpdate(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
@@ -40,7 +48,7 @@ void EnemyPersephoneUpdate(struct EwramData_EntityData *entity)
     if (entity->hitFlashTimer && entity->state != 3 && entity->state != 2)
     {
 collision_only:
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         return;
     }
     switch (entity->state)
@@ -66,10 +74,6 @@ collision_only:
 }
 
 /* Initialize Persephone's graphics, collisions and initial facing. */
-extern u8 Persephone_LoadGraphics(struct EwramData_EntityData *);
-extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
-extern void Persephone_DamagePlayerOnContact(struct EwramData_EntityData *);
-void Persephone_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 void EnemyPersephoneCreate(struct EwramData_EntityData *entity)
 {
     if (!Persephone_LoadGraphics(entity))
@@ -88,16 +92,13 @@ void EnemyPersephoneCreate(struct EwramData_EntityData *entity)
     if (Anim_GetMaxBoxCount(entity) > 1)
         Hit_EnableContact(entity, 8, Persephone_DamagePlayerOnContact, Persephone_OnHit);
     else
-        Hit_Enable(entity, 8, Persephone_DamagePlayerOnContact, (s32)Persephone_OnHit);
+        Hit_Enable(entity, 8, Persephone_DamagePlayerOnContact, Persephone_OnHit);
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
     entity->flipX = Entity_IsTargetRight(entity);
     entity->state = 0;
     ENTITY_OWNER(entity) = entity;
 }
-
-extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s32 Entity_ClampXToRoom(struct EwramData_EntityData *, s32);
 
 /**
  * @brief 7B680 | Enemy walk/hop AI (subState): wake when the player is in a
@@ -255,8 +256,6 @@ void Persephone_UpdateWalk(struct EwramData_EntityData *entity)
 }
 
 /* Persephone_UpdateAttack: enemy behaviour states; matched. */
-extern s16 Entity_GetTargetDistanceX(struct EwramData_EntityData *);
-extern void Persephone_SpawnAttackBox(struct EwramData_EntityData *, s32, s32);
 
 /**
  * @brief Attack state machine (state 1): approach (animation 4, sound 0x1CA) and
@@ -280,7 +279,7 @@ void Persephone_UpdateAttack(struct EwramData_EntityData *entity)
         entity->subState++;
         entity->ext.persephone.contactHit = 0;
         entity->flipX = Entity_IsTargetRight(entity);
-        v = Entity_GetTargetDistanceX(entity);
+        v = (s16)Entity_GetTargetDistanceX(entity);
         if (v < 0)
             v = -v;
         if (v > 0x20 && !(RandomNumberGenerator() & 1))
@@ -294,7 +293,7 @@ void Persephone_UpdateAttack(struct EwramData_EntityData *entity)
             PlaySong(0x1CA);
             entity->subState++;
             entity->timer++;
-            v = Entity_GetTargetDistanceX(entity);
+            v = (s16)Entity_GetTargetDistanceX(entity);
             if (v < 0)
                 v = -v;
             if (v <= 7)
@@ -444,7 +443,6 @@ void Persephone_UpdatePreview(struct EwramData_EntityData *entity)
 }
 
 /* Load graphics and choose the drawing callback for the room. */
-extern s8 ObjPalette_FindOrLoadVariant(void *, u8);
 /**
  * @brief Load the Persephone graphics and palette; in area 4 rooms 12 / 13 draw
  * with Entity_DrawWithOffsetCopy instead of Sprite_DrawEntity. Return 0 when no
@@ -462,15 +460,13 @@ u8 Persephone_LoadGraphics(struct EwramData_EntityData *entity)
     y = GetEntityRoomYPositionInteger(entity);
     room = GetRoomFromMapPosition((s16)x, (s16)y);
     if (GetAreaFromMapPosition((s16)x, (s16)y) == 4 && (u32)(room - 12) <= 1)
-        entity->drawFunc = (u32 *)Entity_DrawWithOffsetCopy;
+        entity->drawFunc = Entity_DrawWithOffsetCopy;
     else
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
 /* Apply damage, choose death, or occasionally react to attack types 3 and 4. */
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s32, s32);
 /**
  * @brief Hit: resolve, flash, subtract and show the damage; at HP <= 0 drop the
  * rewards and die (song 0x1CC, 70 frames, state 2); a hit of type 3 / 4
@@ -510,14 +506,13 @@ void Persephone_OnHit(struct EwramData_EntityData *entity, struct EwramData_Enti
 }
 
 /* Create a short-lived attack box and advance its collision lifetime. */
-extern void PersephoneAttackBox_Update(struct EwramData_EntityData *);
 /**
  * @brief Spawn an invisible one-frame attack box {-20, -24, 12, 14} at (x, y)
  * facing like parent, with its attack.
  */
 void Persephone_SpawnAttackBox(struct EwramData_EntityData *parent, s32 x, s32 y)
 {
-    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, (u32 *)PersephoneAttackBox_Update);
+    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, PersephoneAttackBox_Update);
     struct SpriteBox box = {-20, -24, 12, 14};
     if (part)
     {
@@ -533,7 +528,7 @@ void Persephone_SpawnAttackBox(struct EwramData_EntityData *parent, s32 x, s32 y
         part->animFrame = 20;
         part->ext.persephone.boxTime = 1;
         part->scrollWithBg = 1;
-        part->drawFunc = (u32 *)Sprite_DrawEntity;
+        part->drawFunc = Sprite_DrawEntity;
         Hit_Enable(part, 8, Persephone_DamagePlayerOnContact, 0);
         HitBox_SetAttack(part, &box);
         part->hit.flags &= ~2;
@@ -548,7 +543,7 @@ void Persephone_SpawnAttackBox(struct EwramData_EntityData *parent, s32 x, s32 y
 void PersephoneAttackBox_Update(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
-    Hit_CheckWithPlayer(collision, entity);
+    Hit_CheckWithPlayer((struct HitResult *)collision, entity);
     if (entity->ext.persephone.boxTime-- <= 0) EntityDelete(entity);
 }
 

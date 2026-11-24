@@ -9,6 +9,9 @@
 #include "math_anim.h"
 #include "oam.h"
 
+// ARM routine copied to IWRAM (gObjBuildOamArm); only its address is used here.
+extern void Obj_BuildOamArm(void);
+
 /**
  * @brief 3DB6C | Clear the object buffer, the shadow OAM and all layers
  *
@@ -542,9 +545,6 @@ void ObjAffine_SetBiased(s32 angle, s32 scaleX, s32 scaleY, u16 flipX, u16 flipY
         gObjAffine[index].pd = -gObjAffine[index].pd;
     }
 }
-
-// ARM routine copied to IWRAM (gObjBuildOamArm); only its address is used here.
-extern void Obj_BuildOamArm(void);
 
 /**
  * @brief 3E438 | Initialise the object manager

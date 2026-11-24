@@ -162,7 +162,7 @@ void DebugLinkTest_Init(struct DebugDisplayTestState *test)
     InGame_LoadCommonObjectPalettes();
     InGame_LoadCommonObjectGraphics();
 
-    test->player = EntityCreate((u32 *) DebugLinkTestWalker_Update);
+    test->player = EntityCreate(DebugLinkTestWalker_Update);
     test->target.roomDefinition = (void*)sDebug4531Room;
     test->clearBgIndex = 1;
     Room_Load((struct RoomDefinition *)sDebug4531Room, 0, 0);
@@ -181,7 +181,7 @@ void DebugLinkTest_Init(struct DebugDisplayTestState *test)
  */
 void DebugHitTest_Init(struct DebugDisplayTestState *test)
 {
-    test->player = EntityCreate((u32 *) DebugHitTestCursor_Update);
+    test->player = EntityCreate(DebugHitTestCursor_Update);
     test->target.roomDefinition = (void *)sDebugHitTestRoom;
     test->clearBgIndex = 1;
     Room_Load((struct RoomDefinition *)sDebugHitTestRoom, 0, 0);

@@ -13,11 +13,25 @@
 #include "math_anim.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "damage_numbers.h"
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, u8, void *);
-extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, void *);
-extern void Enemy_OnContact(void);
+extern s32 Collision_GetTileOnScreen(s32, s32);
+extern s16 Collision_GetPushDown(s32, s32);
+extern s16 Collision_GetPushLeft(s32, s32);
+extern s16 Collision_GetPushRight(s32, s32);
+extern s16 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
+extern s16 GetEntityRoomYPositionInteger(struct EwramData_EntityData *entity);
+extern s32 Entity_IsInRect(struct EwramData_EntityData *, s16, s16, u16, u16);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
+
 void Ripper_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+void Ripper_UpdateMovement(struct EwramData_EntityData *entity);
+void Ripper_UpdateDeath(struct EwramData_EntityData *entity);
+struct EwramData_EntityData *Ripper_CreateProjectile(struct EwramData_EntityData *owner);
+void RipperProjectile_Update(struct EwramData_EntityData *);
+void RipperProjectile_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void RipperProjectile_OnHit(struct EwramData_EntityData *entity);
 
 void EnemyRipperCreate(struct EwramData_EntityData *entity)
 {
@@ -53,11 +67,6 @@ void EnemyRipperCreate(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   EnemyRipperUpdate = EnemyFleamanUpdate */
 
-extern void Ripper_UpdateMovement(struct EwramData_EntityData *entity);
-extern void Ripper_UpdateDeath(struct EwramData_EntityData *entity);
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
-extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
-
 /**
  * @brief C2558 | Same as EnemyFleamanUpdate.
  */
@@ -82,12 +91,12 @@ void EnemyRipperUpdate(struct EwramData_EntityData *entity)
         Enemy_UpdateHitFlash(entity);
     if (Entity_IsTimeStopped(entity) && entity->state != 0xFF)
     {
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         return;
     }
     if (entity->hitFlashTimer && entity->state != 2 && entity->state != 0xFF)
     {
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         return;
     }
     switch (entity->state)
@@ -101,18 +110,10 @@ void EnemyRipperUpdate(struct EwramData_EntityData *entity)
     }
     Entity_AnimateWithBoxes(entity);
     if (entity->state != 0xFF)
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
 }
 
 /* Hopping minion (sibling of Fleaman_UpdateMovement): jumps toward the player, flaps while airborne. */
-extern s32 Collision_GetTileOnScreen(s32, s32);
-extern s16 Collision_GetPushDown(s32, s32);
-extern s16 Collision_GetPushLeft(s32, s32);
-extern s16 Collision_GetPushRight(s32, s32);
-extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *);
-extern struct EwramData_EntityData *Ripper_CreateProjectile(struct EwramData_EntityData *owner);
-extern s16 GetEntityRoomXPositionInteger(struct EwramData_EntityData *entity);
-extern s16 GetEntityRoomYPositionInteger(struct EwramData_EntityData *entity);
 
 /**
  * @brief Alive state (1): handle carried release and random target-relative
@@ -357,9 +358,6 @@ void Ripper_UpdateDeath(struct EwramData_EntityData *entity)
 }
 
 /* Child projectile/hitbox creation. */
-extern void RipperProjectile_Update(struct EwramData_EntityData *);
-void RipperProjectile_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-void RipperProjectile_OnHit(struct EwramData_EntityData *entity);
 
 /**
  * @brief Create and initialize the thrown projectile with owner pointer,
@@ -372,7 +370,7 @@ struct EwramData_EntityData *Ripper_CreateProjectile(struct EwramData_EntityData
     u8 *gfx2 = sFleamanRipperPalette;
     u8 *gfx3 = sFleamanRipperSpriteSheet;
     u8 *gfx1 = sFleamanRipperGfx;
-    struct EwramData_EntityData *e = EntityCreateInRange(0x1B, 0x48, (u32 *)RipperProjectile_Update);
+    struct EwramData_EntityData *e = EntityCreateInRange(0x1B, 0x48, RipperProjectile_Update);
 
     if (e != NULL)
     {
@@ -382,7 +380,7 @@ struct EwramData_EntityData *Ripper_CreateProjectile(struct EwramData_EntityData
         e->attack = owner->attack - (owner->attack >> 3);
         e->scrollWithBg = 1;
         e->animFrame = 0xB;
-        Hit_Enable(e, 10, RipperProjectile_DamagePlayerOnContact, (s32)RipperProjectile_OnHit);
+        Hit_Enable(e, 10, RipperProjectile_DamagePlayerOnContact, RipperProjectile_OnHit);
         HitBox_SetAttackRaw(e, 0x0808FCFC);
         HitBox_SetBodyRaw(e, 0x0808FCFC);
         e->hit.flags &= ~4;
@@ -390,8 +388,6 @@ struct EwramData_EntityData *Ripper_CreateProjectile(struct EwramData_EntityData
     }
     return e;
 }
-
-extern s32 Entity_IsInRect(struct EwramData_EntityData *, s16, s16, u16, u16);
 
 /**
  * @brief Place the projectile relative to its owner and accelerate it
@@ -410,7 +406,7 @@ void RipperProjectile_Update(struct EwramData_EntityData *entity)
             || entity->state == 6)
             goto run;
     }
-    Hit_CheckWithPlayer(buf, entity);
+    Hit_CheckWithPlayer((struct HitResult *)buf, entity);
     return;
 run:
     switch (entity->state)
@@ -470,7 +466,7 @@ run:
             entity->deleteRequested = 1;
         break;
     }
-    Hit_CheckWithPlayer(buf, entity);
+    Hit_CheckWithPlayer((struct HitResult *)buf, entity);
     if (!Entity_IsInRect(entity, -0x80, -0x40, 0x1F0, 0x120))
         entity->deleteRequested = 1;
 }
@@ -503,9 +499,6 @@ void RipperProjectile_DamagePlayerOnContact(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   Ripper_OnHit = Fleaman_OnHit */
 
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
-
 /**
  * @brief Resolve and display damage with hit flash; subtract signed damage
  * from HP and begin the death helper immediately on defeat.
@@ -523,7 +516,7 @@ void Ripper_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     if ((s16)entity->hp <= 0)
     {
         entity->subState = 0;

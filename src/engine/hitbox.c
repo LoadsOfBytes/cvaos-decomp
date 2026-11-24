@@ -496,8 +496,9 @@ u32 Hit_CheckPair(struct HitResult *res, u8 *a, u8 *b)
  *
  * @return res->flags
  */
-u32 Hit_CheckWithPlayer(struct HitResult *res, u8 *b)
+u32 Hit_CheckWithPlayer(struct HitResult *res, struct EwramData_EntityData *entity)
 {
+    u8 *b = (u8 *)entity;
     struct HitInfo *pi;
     struct HitInfo *ib;
     struct HitInfo *ie;
@@ -800,7 +801,7 @@ void HitBox_ClearAll(void)
  * @param onHurt Callback when this entity is hit (a function address)
  * @return Always 1
  */
-s32 Hit_Enable(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt)
+s32 Hit_Enable(struct EwramData_EntityData *entity, s32 type, void *onHit, void *onHurt)
 {
     struct EntityHit *hit = &entity->hit;
 
@@ -815,7 +816,7 @@ s32 Hit_Enable(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 o
     hit->hitTimer[1] = 0;
     hit->hitTimer[0] = 0;
     hit->onHit = onHit;
-    hit->onHurt = (void *)onHurt;
+    hit->onHurt = onHurt;
     return 1;
 }
 
@@ -828,7 +829,7 @@ s32 Hit_Enable(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 o
  * @param onHurt Callback when this entity is hit (a function address)
  * @return Always 1
  */
-s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt)
+s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, void *onHurt)
 {
     struct EntityHit *hit = &entity->hit;
 
@@ -843,7 +844,7 @@ s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit
     hit->hitTimer[1] = 0;
     hit->hitTimer[0] = 0;
     hit->onHit = onHit;
-    hit->onHurt = (void *)onHurt;
+    hit->onHurt = onHurt;
     return 1;
 }
 
@@ -857,7 +858,7 @@ s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit
  * @param onHurt Callback when this entity is hit
  * @return Always 1
  */
-s32 Hit_EnableContactEx(struct EwramData_EntityData *entity, s32 type, s32 unused, void *onHit, s32 onHurt)
+s32 Hit_EnableContactEx(struct EwramData_EntityData *entity, s32 type, s32 unused, void *onHit, void *onHurt)
 {
     struct EntityHit *hit = &entity->hit;
 
@@ -872,7 +873,7 @@ s32 Hit_EnableContactEx(struct EwramData_EntityData *entity, s32 type, s32 unuse
     hit->hitTimer[1] = 0;
     hit->hitTimer[0] = 0;
     hit->onHit = onHit;
-    hit->onHurt = (void *)onHurt;
+    hit->onHurt = onHurt;
     return 1;
 }
 

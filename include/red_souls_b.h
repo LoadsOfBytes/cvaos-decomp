@@ -13,7 +13,7 @@
  * parameter passed to the entity (RedSoulWork.param).
  */
 struct RedSoulInfo {
-    /* 0x00 */ void *updateFunc; // TODO: function signature
+    /* 0x00 */ EntityFunc updateFunc;
     /* 0x04 */ u16 castAnimKind;
     /* 0x06 */ s16 mpCost;
     /* 0x08 */ u8 activeEntityLimit;
@@ -45,5 +45,6 @@ extern void SkillCockatriceDraw(struct EwramData_EntityData *entity);
 
 extern const struct RedSoulInfo *RedSoul_GetLastUsedInfo(void);
 extern const struct RedSoulInfo *RedSoul_GetInfo(u8 soul);
+extern u32 Entity_StepAngleTowardPoint(struct EwramData_EntityData *entity, s32 x, s32 y, s32 angle, s32 turn);
 
 #endif /* RED_SOULS_B_H */

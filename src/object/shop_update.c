@@ -28,9 +28,14 @@
 #include "data/data_4F1444.h"
 #include "data/data_0E5364.h"
 #include "data/data_118B48.h"
+#include "syscalls.h"
 
 extern void HudMap_WriteTiles(s32, s32, u16, s32);
-extern s32 Mod(s32, s32);
+extern void (*const sEventSceneCreateFuncs[])(struct EwramData_EntityData *entity);
+extern u32 (*const sEventSceneUpdateFuncs[])(struct EwramData_EntityData *entity);
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
+
+void ObjectTable_UpdateAnimation(struct EwramData_EntityData *entity);
 
 /* Shop screen entry, category selection and return to the room. */
 /**
@@ -192,11 +197,8 @@ s32 Shop_Update(struct GameState *context)
 }
 
 /* Object 0x20 0x0805B42C..0x0805B5E7. */
-extern void TextWindow_AdjustOpening(s32 delta);
 
 /* Create / update of the variants of object 0x20. */
-extern void (*const sEventSceneCreateFuncs[])(struct EwramData_EntityData *entity);
-extern u32 (*const sEventSceneUpdateFuncs[])(struct EwramData_EntityData *entity);
 
 /**
  * @brief 5B42C | Object 0x20 create. Deleted unless (HP > 0 or stateFlags bit
@@ -269,10 +271,6 @@ void Object20Update(struct EwramData_EntityData *entity)
 
 /* Small helpers 0x0805B5E8..0x0805B8F3 (player-relative checks, sound,
  * entity setup from the table sObjectTableGraphics). */
-
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-
-void ObjectTable_UpdateAnimation(struct EwramData_EntityData *entity);
 
 /**
  * @brief 5B5E8 | Create an entity running ObjectTable_UpdateAnimation, set up from entry

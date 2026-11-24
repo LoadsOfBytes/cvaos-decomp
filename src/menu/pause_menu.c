@@ -32,6 +32,14 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "data/data_0E5364.h"
+#include "shop_update.h"
+
+extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
+
+void PauseMenu_DrawPageList(void);
+void PauseMenu_Exit(void);
+void MenuCursor_DrawScrollArrows(struct EwramData_EntityData *entity);
+void Cursor_DrawWithOptionalBob(s32 bob);
 
 /* Menu text redraw and transient entity-byte reset helpers.
  * for source evidence. */
@@ -201,12 +209,6 @@ void PauseMenu_Enter(struct GameState *gameState)
     gEwramData->pauseMenuPage = 0;
 }
 
-extern void Menu_DrawPlayTime(s32 x, s32 y, s32 a, u32 value);
-extern void HudMap_PrintNumber(s32 x, s32 y, s32 value, s32 digits, s32 color, s32 flag);
-extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
-extern void PauseMenu_DrawPageList(void);
-extern void MenuItemIcon_SetHidden(s32 value);
-
 /**
  * @brief 47520 | Draw the status page of the menu: play time, level,
  * gold, experience and next level, plus the static frame tiles.
@@ -245,8 +247,6 @@ void PauseMenu_DrawStatusPage(struct GameState *gameState)
     PauseMenu_DrawPageList();
     MenuItemIcon_SetHidden(1);
 }
-
-extern s32 GameFlag_Is3ASet(void);
 
 /**
  * @brief 47684 | Load the menu background graphics for the current
@@ -299,21 +299,10 @@ void PauseMenu_LoadGraphics(void)
 
 typedef s32 (*MenuPageFunc)(struct EwramData_EntityData *ent);
 
-extern void PauseMenu_Exit(void);
 struct SoulTypeIcons;
 
 extern const MenuPageFunc sPauseMenuPageOpenFuncs[];
 extern const MenuPageFunc sPauseMenuPageUpdateFuncs[];
-
-static inline void DrawItem(s32 x, s32 y, s32 tile, s32 hl)
-{
-    tile += 0x300;
-    if (hl)
-        tile |= 0x3000;
-    else
-        tile |= 0x7000;
-    HudMap_WriteTiles(x, y, tile, 6);
-}
 
 static inline s32 CurSel(void)
 {
@@ -530,9 +519,6 @@ void PauseMenu_Exit(void)
 
 /* Menu helpers 0x08047C1C..0x08048107 (graphics state, page list, cursor
  * and scroll arrows). */
-
-void MenuCursor_DrawScrollArrows(struct EwramData_EntityData *entity);
-void Cursor_DrawWithOptionalBob(s32 bob);
 
 /**
  * @brief 47C1C | ObjAffine_SaveState, ObjGfx_SaveState, ItemIconCache_Save, Palette_SaveState.

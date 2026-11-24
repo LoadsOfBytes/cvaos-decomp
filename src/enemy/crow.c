@@ -13,12 +13,23 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "entity_util.h"
+#include "hitbox.h"
+
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
+extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
+
+void BlueCrow_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+void BlueCrow_SpawnDeathParts(struct EwramData_EntityData *entity);
+void BlueCrowDeathPart_Update(struct EwramData_EntityData *entity);
+void BlueCrow_UpdateBestiaryPreview(struct EwramData_EntityData *entity);
+void RedCrow_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+void RedCrow_SpawnDeathParts(struct EwramData_EntityData *entity);
+void RedCrowDeathPart_Update(struct EwramData_EntityData *entity);
+void RedCrow_UpdateBestiaryPreview(struct EwramData_EntityData *entity);
+void RedCrow_UpdateDeath(struct EwramData_EntityData *entity);
 
 /* EnemyBlueCrowCreate. */
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, s32 onHurt);
-extern void Enemy_OnContact(struct EwramData_EntityData *entity);
-extern void BlueCrow_OnHit(struct EwramData_EntityData *entity);
 
 /**
  * @brief C9A6C | Blue Crow create: load the graphics (delete the enemy when
@@ -48,12 +59,10 @@ void EnemyBlueCrowCreate(struct EwramData_EntityData *entity)
         entity->subState = 0;
         return;
     }
-    Entity_EnableBoxes(entity, Enemy_OnContact, (s32)BlueCrow_OnHit);
+    Entity_EnableBoxes(entity, Enemy_OnContact, BlueCrow_OnHit);
 }
 
 /* Blue Crow flight and attack states, reconstructed from the original ROM. */
-extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
-extern u8 Entity_IsTargetWithinRange(struct EwramData_EntityData *entity, s32 range);
 
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 #define ANIM(e,n,loop) do { if ((e)->animScriptIndex != (n)) Anim_StartIndexed((e),(n),0,(loop)); } while (0)
@@ -165,16 +174,7 @@ void BlueCrow_UpdateMovement(struct EwramData_EntityData *entity)
 /* Blue Crow 0x080C9D68..0x080CA04B. The Red Crow functions at 0x080CA308.. are machine-identical
  * copies (see this file). */
 
-/* entity_util.h declares s16 parameters; the callers here pass full ints. */
-extern void HitEffect_Spawn(s32 x, s32 y, s32 type);
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
-extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
-
 /* Graphics of the two feather (?) entities spawned by BlueCrow_SpawnDeathParts. */
-
-void BlueCrow_SpawnDeathParts(struct EwramData_EntityData *entity);
-void BlueCrowDeathPart_Update(struct EwramData_EntityData *entity);
-void BlueCrow_UpdateBestiaryPreview(struct EwramData_EntityData *entity);
 
 /**
  * @brief Death state (2): spawn two parts, drop rewards and fall with
@@ -220,7 +220,7 @@ void BlueCrow_SpawnDeathParts(struct EwramData_EntityData *entity)
 
     for (i = 0; i <= 1; i++)
     {
-        child = EntityCreateInRange(0x1B, 0x48, (u32 *)BlueCrowDeathPart_Update);
+        child = EntityCreateInRange(0x1B, 0x48, BlueCrowDeathPart_Update);
         if (child == NULL)
             continue;
         if (i == 0)
@@ -237,7 +237,7 @@ void BlueCrow_SpawnDeathParts(struct EwramData_EntityData *entity)
         child->scrollWithBg = 1;
         Sprite_Attach(child, sBlueCrowRedCrowSpriteSheet, ObjGfx_Find(sBlueCrowRedCrowGfx), entity->basePalette);
         child->animFrame = 8;
-        child->drawFunc = (u32 *)Sprite_DrawEntity;
+        child->drawFunc = Sprite_DrawEntity;
         child->spawnParam0 = i;
     }
 }
@@ -305,13 +305,13 @@ void EnemyBlueCrowUpdate(struct EwramData_EntityData *entity)
         Player_TrackEntity(entity);
         if (Enemy_IsStunned(entity))
         {
-            Hit_CheckWithPlayer(collision, entity);
+            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         }
         else
         {
             BlueCrow_UpdateMovement(entity);
             Entity_AnimateWithBoxes(entity);
-            Hit_CheckWithPlayer(collision, entity);
+            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         }
     }
 }
@@ -334,9 +334,9 @@ void BlueCrow_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
  * @brief Apply enemy damage; on defeat enter death state 2 with the
  * substate counters reset. The death helper owns reward drops.
  */
-void BlueCrow_OnHit(struct EwramData_EntityData *entity)
+void BlueCrow_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    if (Enemy_TakeDamage(entity))
+    if (Enemy_TakeDamage(entity, attacker, hit))
     {
         entity->state = 2;
         entity->stage = 0;
@@ -346,8 +346,6 @@ void BlueCrow_OnHit(struct EwramData_EntityData *entity)
 
 /* Decompiled locally from the original assembly (variant of an already
  * decompiled function). */
-
-extern void RedCrow_OnHit(struct EwramData_EntityData *entity);
 
 /**
  * @brief CA04C | Red Crow create: like EnemyBlueCrowCreate, but palette argument 1
@@ -376,7 +374,7 @@ void EnemyRedCrowCreate(struct EwramData_EntityData *entity)
         entity->subState = 0;
         return;
     }
-    Entity_EnableBoxes(entity, Enemy_OnContact, (s32)RedCrow_OnHit);
+    Entity_EnableBoxes(entity, Enemy_OnContact, RedCrow_OnHit);
 }
 
 /* Red Crow flight and attack states, reconstructed from the original ROM. */
@@ -502,11 +500,6 @@ void RedCrow_UpdateMovement(struct EwramData_EntityData *entity)
 /* Red Crow 0x080CA308..0x080CA5EB: machine-identical copies of the Blue Crow
  * functions in this file, generated with a cloning script. */
 
-void RedCrow_SpawnDeathParts(struct EwramData_EntityData *entity);
-void RedCrowDeathPart_Update(struct EwramData_EntityData *entity);
-void RedCrow_UpdateBestiaryPreview(struct EwramData_EntityData *entity);
-void RedCrow_UpdateDeath(struct EwramData_EntityData *entity);
-
 /**
  * @brief Death state (2): spawn two parts, drop rewards and fall with
  * hit/fragment effects. Restore the palette and update animation internally.
@@ -551,7 +544,7 @@ void RedCrow_SpawnDeathParts(struct EwramData_EntityData *entity)
 
     for (i = 0; i <= 1; i++)
     {
-        child = EntityCreateInRange(0x1B, 0x48, (u32 *)RedCrowDeathPart_Update);
+        child = EntityCreateInRange(0x1B, 0x48, RedCrowDeathPart_Update);
         if (child == NULL)
             continue;
         if (i == 0)
@@ -568,7 +561,7 @@ void RedCrow_SpawnDeathParts(struct EwramData_EntityData *entity)
         child->scrollWithBg = 1;
         Sprite_Attach(child, sBlueCrowRedCrowSpriteSheet, ObjGfx_Find(sBlueCrowRedCrowGfx), entity->basePalette);
         child->animFrame = 8;
-        child->drawFunc = (u32 *)Sprite_DrawEntity;
+        child->drawFunc = Sprite_DrawEntity;
         child->spawnParam0 = i;
     }
 }
@@ -634,13 +627,13 @@ void EnemyRedCrowUpdate(struct EwramData_EntityData *entity)
         Player_TrackEntity(entity);
         if (Enemy_IsStunned(entity))
         {
-            Hit_CheckWithPlayer(collision, entity);
+            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         }
         else
         {
             RedCrow_UpdateMovement(entity);
             Entity_AnimateWithBoxes(entity);
-            Hit_CheckWithPlayer(collision, entity);
+            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         }
     }
 }
@@ -663,9 +656,9 @@ void RedCrow_UpdateBestiaryPreview(struct EwramData_EntityData *entity)
  * @brief Apply enemy damage; on defeat enter death state 2 with the
  * substate counters reset. The death helper owns reward drops.
  */
-void RedCrow_OnHit(struct EwramData_EntityData *entity)
+void RedCrow_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    if (Enemy_TakeDamage(entity))
+    if (Enemy_TakeDamage(entity, attacker, hit))
     {
         entity->state = 2;
         entity->stage = 0;

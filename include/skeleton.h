@@ -16,6 +16,7 @@ extern void Skeleton_UpdateDeath(struct EwramData_EntityData *entity);
 extern void SkeletonLinkedPart_Update(struct EwramData_EntityData *entity);
 extern void SkeletonAttachedPart_Update(struct EwramData_EntityData *entity);
 extern void Skeleton_UpdateState5Animation(struct EwramData_EntityData *entity);
-extern struct EwramData_EntityData *Entity_CreateLinkedAndHide(struct EwramData_EntityData *entity, u32 *updateFunc);
+extern struct EwramData_EntityData *Entity_CreateLinkedAndHide(struct EwramData_EntityData *entity, EntityFunc updateFunc);
+extern void Skeleton_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 #endif /* SKELETON_H */

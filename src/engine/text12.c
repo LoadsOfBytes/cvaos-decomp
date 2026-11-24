@@ -7,11 +7,12 @@
 #include "data/data_4F1444.h"
 #include "data/data_0E1CD0.h"
 
+extern s32 gTextGlyphRows[];
+extern u32 sTextEntries[];
+
 /* Upstream file split 0x0803FEA4..0x08041433 from the previously unlinked
  * src/engine/obj_gfx.c, now linked as matching C.
  * gTextGlyphRows (IWRAM, named sUnk_03001A18 in the draft) is placed by linker.ld. */
-
-extern s32 gTextGlyphRows[];
 
 /**
  * @brief Convert the selected bitmap rows into twelve packed 4bpp scratch words using source-bit offset, width and foreground/background colors.
@@ -1200,8 +1201,6 @@ s32 MenuText_GetRangeLength(s32 index)
 {
     return sText8GlyphMetrics[index].width - sText8GlyphMetrics[index].sourceBitSkip;
 }
-
-extern u32 sTextEntries[];
 
 /**
  * @brief Return the indexed language-table entry with offsets 0, 0x3C4 or 0x788 according to language; retain the original unchecked indexing.

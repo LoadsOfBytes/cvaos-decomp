@@ -21,6 +21,21 @@
 #include "obj_gfx.h"
 #include "effects.h"
 #include "data/data_118B48.h"
+#include "math_inline.h"
+#include "hitbox.h"
+#include "damage_numbers.h"
+#include "obj_palette.h"
+
+extern s32 Entity_IsInRect(struct EwramData_EntityData *, s32, s32, s32, s32);
+extern void Entity_FaceTarget(struct EwramData_EntityData *);
+extern const u8 sEntityVisibilityPattern[];
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
+extern void Hit_GetContactPoint(s32 a, struct EwramData_EntityData *b, s16 *outX, s16 *outY);
+
+void Effect_UpdateFallingFrameParticle(struct EwramData_EntityData *entity);
+void Effect_UpdateStationaryAnimation(struct EwramData_EntityData *entity);
+void TimedEntity_Update(struct EwramData_EntityData *entity);
+
 /* from entity_util.h (not included: see the module notes) */
 
 /* Flipped offsets of sprite parts, decompiled from original assembly. */
@@ -104,7 +119,6 @@ void Sprite_GetPartOriginOffset(struct EwramData_EntityData *entity, s32 index, 
 }
 
 /* Debris motion, ground impact and particle emission. */
-extern s32 Entity_IsInRect(struct EwramData_EntityData *, s32, s32, s32, s32);
 
 /**
  * @brief Damp X by 79/80, accelerate and move the sprite debris.
@@ -229,8 +243,6 @@ void Effect_UpdateDebrisWithTileImpact(struct EwramData_EntityData *entity)
 
 /* Entity motion with tile collision; profile has count, top, bottom,
  * half-width, then count vertical sample offsets. */
-
-extern void Entity_FaceTarget(struct EwramData_EntityData *);
 
 /**
  * @brief Move using profile count/top/bottom/half-width and vertical
@@ -438,7 +450,6 @@ s32 Entity_Walk(struct EwramData_EntityData *entity, s32 speed, void *profile, s
 }
 
 /* Common pre-update entity culling and collision callback. */
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 
 s32 Enemy_PreUpdate(struct EwramData_EntityData *entity)
 {
@@ -455,7 +466,7 @@ s32 Enemy_PreUpdate(struct EwramData_EntityData *entity)
             Player_TrackEntity(entity);
         if (!Enemy_IsStunned(entity))
             return 0;
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
     }
     return 1;
 }
@@ -834,7 +845,7 @@ void Entity_ApplyFlipToSpriteBox(struct EwramData_EntityData *entity, struct Spr
  * @brief 6D244 | Activate the entity box slot with type 8, then call
  * Entity_UpdateBoxes.
  */
-void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, s32 onHurt)
+void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, void *onHurt)
 {
     Hit_Enable(entity, 8, onHit, onHurt);
     Entity_UpdateBoxes(entity);
@@ -892,7 +903,6 @@ s32 Entity_GetRoomPointDistance(struct EwramData_EntityData *entity, s32 x, s32 
 
 /* 0x28 signed bytes at ROM sEntityVisibilityPattern, copied by Entity_GetVisibilityPattern. Declared as
  * bytes: the original calls memcpy instead of an inline copy. */
-extern const u8 sEntityVisibilityPattern[];
 
 static inline void AccelerateX(struct EwramData_EntityData *entity, s32 maxSpeed)
 {
@@ -1099,7 +1109,7 @@ void Effect_SpawnAt(s32 x, s32 y, s32 layer)
 {
     struct EwramData_EntityData *child;
 
-    child = EntityCreateInRange(0x49, 0xCF, (u32 *)RisingEffect_Update);
+    child = EntityCreateInRange(0x49, 0xCF, RisingEffect_Update);
     if (child != NULL)
     {
         child->posX.whole = x;
@@ -1121,7 +1131,7 @@ void Effect_SpawnRandom(s32 x, s32 y, s32 width, s32 height, s32 layer)
     s32 dy = RandomNumberGenerator() % height - height / 2;
     s32 px = x + dx;
     s32 py = y + dy;
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)RisingEffect_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, RisingEffect_Update);
 
     if (entity != NULL)
     {
@@ -1138,7 +1148,7 @@ void Effect_SpawnRandom(s32 x, s32 y, s32 width, s32 height, s32 layer)
  */
 void Effect_SpawnParticleAnim0(s32 x, s32 y, s32 vx, s32 vy, s32 layer)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateParticle);
+    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticle);
     s32 gfx;
 
     if (entity != NULL)
@@ -1155,7 +1165,7 @@ void Effect_SpawnParticleAnim0(s32 x, s32 y, s32 vx, s32 vy, s32 layer)
         Anim_StartIndexed(entity, 0, 0, 0);
         Anim_Update(entity);
         entity->scrollWithBg = 1;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
     }
 }
 
@@ -1164,7 +1174,7 @@ void Effect_SpawnParticleAnim0(s32 x, s32 y, s32 vx, s32 vy, s32 layer)
  */
 void Effect_SpawnParticleAnim11(s32 x, s32 y, s32 vx, s32 vy, s32 layer)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateParticle);
+    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticle);
     s32 gfx;
 
     if (entity != NULL)
@@ -1182,7 +1192,7 @@ void Effect_SpawnParticleAnim11(s32 x, s32 y, s32 vx, s32 vy, s32 layer)
         Anim_StartIndexed(entity, 0x11, 0, 0);
         Anim_Update(entity);
         entity->scrollWithBg = 1;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
     }
 }
 
@@ -1193,7 +1203,7 @@ void Effect_SpawnParticleAnim11(s32 x, s32 y, s32 vx, s32 vy, s32 layer)
  */
 void Effect_SpawnTimedFrameParticle(s32 x, s32 y, s32 vx, s32 vy, s32 layer, s32 damping, s32 flags, s32 palette, s32 duration)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateTimedParticle);
+    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, Effect_UpdateTimedParticle);
     s32 gfx;
 
     if (entity != NULL)
@@ -1211,7 +1221,7 @@ void Effect_SpawnTimedFrameParticle(s32 x, s32 y, s32 vx, s32 vy, s32 layer, s32
         entity->animFrame = 0x35;
         entity->timer = duration;
         entity->scrollWithBg = 1;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
     }
 }
 
@@ -1221,7 +1231,7 @@ void Effect_SpawnTimedFrameParticle(s32 x, s32 y, s32 vx, s32 vy, s32 layer, s32
  */
 void Effect_SpawnRisingParticle(s32 x, s32 y, s32 layer, s32 mode)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateParticle);
+    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticle);
     s32 gfx;
 
     if (entity != NULL)
@@ -1245,7 +1255,7 @@ void Effect_SpawnRisingParticle(s32 x, s32 y, s32 layer, s32 mode)
         }
         Anim_Update(entity);
         entity->scrollWithBg = 1;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
     }
 }
 
@@ -1258,7 +1268,7 @@ void Effect_SpawnRisingParticle(s32 x, s32 y, s32 layer, s32 mode)
  */
 void Effect_SpawnFadingParticle(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32 variant)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateParticle);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticle);
     s32 gfx;
 
     if (child == NULL)
@@ -1278,7 +1288,7 @@ void Effect_SpawnFadingParticle(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32
         Anim_StartIndexed(child, 5, 0, 0);
     Anim_Update(child);
     child->scrollWithBg = 1;
-    child->drawFunc = (u32 *)Sprite_DrawEntity;
+    child->drawFunc = Sprite_DrawEntity;
 }
 
 /**
@@ -1287,7 +1297,7 @@ void Effect_SpawnFadingParticle(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32
  */
 void Effect_SpawnConfiguredParticle(s32 x, s32 y, s32 velX, s32 velY, s32 spriteLayer, s32 variant, s32 flags, s32 palette)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateParticle);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticle);
     s32 gfx;
 
     if (child == NULL)
@@ -1307,7 +1317,7 @@ void Effect_SpawnConfiguredParticle(s32 x, s32 y, s32 velX, s32 velY, s32 sprite
         Anim_StartIndexed(child, 5, 0, 0);
     Anim_Update(child);
     child->scrollWithBg = 1;
-    child->drawFunc = (u32 *)Sprite_DrawEntity;
+    child->drawFunc = Sprite_DrawEntity;
 }
 
 /**
@@ -1317,7 +1327,7 @@ void Effect_SpawnConfiguredParticle(s32 x, s32 y, s32 velX, s32 velY, s32 sprite
  */
 void Effect_SpawnParticleWithDamping(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32 variant, s32 damping, s32 flags, s32 palette)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateParticleWithDamping);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticleWithDamping);
     s32 gfx;
 
     if (child == NULL)
@@ -1338,7 +1348,7 @@ void Effect_SpawnParticleWithDamping(s32 x, s32 y, s32 velX, s32 velY, s32 layer
         Anim_StartIndexed(child, 5, 0, 0);
     Anim_Update(child);
     child->scrollWithBg = 1;
-    child->drawFunc = (u32 *)Sprite_DrawEntity;
+    child->drawFunc = Sprite_DrawEntity;
 }
 
 /**
@@ -1356,16 +1366,12 @@ void Effect_SpawnRisingParticleInBox(s32 x, s32 y, s32 width, s32 height, s32 la
  * a cloning script and checked byte for byte:
  *   Effect_SpawnFadingParticleCopy = Effect_SpawnFadingParticle */
 
-extern void Effect_UpdateFallingFrameParticle(struct EwramData_EntityData *entity);
-extern void Effect_UpdateStationaryAnimation(struct EwramData_EntityData *entity);
-extern void TimedEntity_Update(struct EwramData_EntityData *entity);
-
 /**
  * @brief Same as Effect_SpawnFadingParticle.
  */
 void Effect_SpawnFadingParticleCopy(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32 variant)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateRandomlyAnimatedParticle);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateRandomlyAnimatedParticle);
     s32 gfx;
 
     if (child == NULL)
@@ -1385,7 +1391,7 @@ void Effect_SpawnFadingParticleCopy(s32 x, s32 y, s32 velX, s32 velY, s32 layer,
         Anim_StartIndexed(child, 5, 0, 0);
     Anim_Update(child);
     child->scrollWithBg = 1;
-    child->drawFunc = (u32 *)Sprite_DrawEntity;
+    child->drawFunc = Sprite_DrawEntity;
 }
 
 /**
@@ -1394,7 +1400,7 @@ void Effect_SpawnFadingParticleCopy(s32 x, s32 y, s32 velX, s32 velY, s32 layer,
  */
 void Effect_SpawnParticleAnim12(s32 x, s32 y, s32 velX, s32 velY, s32 spriteLayer, s32 flags, s32 palette)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateParticle);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticle);
     s32 gfx;
 
     if (child == NULL)
@@ -1411,7 +1417,7 @@ void Effect_SpawnParticleAnim12(s32 x, s32 y, s32 velX, s32 velY, s32 spriteLaye
     Anim_StartIndexed(child, 0xC, 0, 0);
     Anim_Update(child);
     child->scrollWithBg = 1;
-    child->drawFunc = (u32 *)Sprite_DrawEntity;
+    child->drawFunc = Sprite_DrawEntity;
 }
 
 /**
@@ -1420,7 +1426,7 @@ void Effect_SpawnParticleAnim12(s32 x, s32 y, s32 velX, s32 velY, s32 spriteLaye
  */
 void Effect_SpawnFallingFrameParticle(s32 x, s32 y, s32 velX, s32 velY, s32 layer)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateFallingFrameParticle);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateFallingFrameParticle);
     s32 gfx;
 
     if (child == NULL)
@@ -1437,7 +1443,7 @@ void Effect_SpawnFallingFrameParticle(s32 x, s32 y, s32 velX, s32 velY, s32 laye
     Sprite_Attach(child, sCommonObjectSpriteSheet, gfx, 6);
     child->animFrame = 0x35;
     child->scrollWithBg = 1;
-    child->drawFunc = (u32 *)Sprite_DrawEntity;
+    child->drawFunc = Sprite_DrawEntity;
 }
 
 /**
@@ -1447,7 +1453,7 @@ void Effect_SpawnFallingFrameParticle(s32 x, s32 y, s32 velX, s32 velY, s32 laye
  */
 void Effect_SpawnStationaryAnimation(s32 x, s32 y, s32 layer)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateStationaryAnimation);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateStationaryAnimation);
     s32 gfx;
 
     if (child == NULL)
@@ -1459,7 +1465,7 @@ void Effect_SpawnStationaryAnimation(s32 x, s32 y, s32 layer)
     Sprite_Attach(child, sCommonObjectSpriteSheet, gfx, 6);
     Anim_StartIndexed(child, 0xA, 0, 0);
     child->scrollWithBg = 1;
-    child->drawFunc = (u32 *)Sprite_DrawEntity;
+    child->drawFunc = Sprite_DrawEntity;
 }
 
 /**
@@ -1469,7 +1475,7 @@ void Effect_SpawnStationaryAnimation(s32 x, s32 y, s32 layer)
  */
 void Effect_SpawnFallingPiece(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32 piece)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateTimedParticle);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateTimedParticle);
     s32 gfx;
 
     if (child == NULL)
@@ -1491,7 +1497,7 @@ void Effect_SpawnFallingPiece(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32 p
     else
         child->animFrame = 0x42;
     child->scrollWithBg = 1;
-    child->drawFunc = (u32 *)Sprite_DrawEntity;
+    child->drawFunc = Sprite_DrawEntity;
 }
 
 /**
@@ -1500,7 +1506,7 @@ void Effect_SpawnFallingPiece(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32 p
  */
 void Effect_SpawnParticleAnim13(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32 paletteOffset)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateParticle);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticle);
     s32 gfx;
 
     if (child == NULL)
@@ -1517,7 +1523,7 @@ void Effect_SpawnParticleAnim13(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32
     Anim_StartIndexed(child, 0xD, 0, 0);
     Anim_Update(child);
     child->scrollWithBg = 1;
-    child->drawFunc = (u32 *)Sprite_DrawEntity;
+    child->drawFunc = Sprite_DrawEntity;
 }
 
 /**
@@ -1527,7 +1533,7 @@ void Effect_SpawnParticleAnim13(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32
  */
 void Effect_SpawnTimedEntity(s32 x, s32 y, s32 unused2, s32 unused3, s32 unused4, s32 layer)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)TimedEntity_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, TimedEntity_Update);
 
     if (child == NULL)
         return;
@@ -1537,7 +1543,7 @@ void Effect_SpawnTimedEntity(s32 x, s32 y, s32 unused2, s32 unused3, s32 unused4
     child->hit.flags |= 4;
     child->hit.flags |= 2;
     child->scrollWithBg = 1;
-    child->drawFunc = (u32 *)Sprite_DrawEntity;
+    child->drawFunc = Sprite_DrawEntity;
 }
 
 /* Horizontal distance from the selected target, zero without a target. */
@@ -1642,7 +1648,6 @@ s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *entity, u16 offsetX,
 }
 
 /* Entity helpers 0x0806DFC8..0x0806E13F. */
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 /* Start of the 0x800-byte buffer at entityScratchBuffer (two halfwords; 0 and 0x1FF
  * after a reset). */
@@ -1672,7 +1677,7 @@ void Entity_OnPlayerContactDamage(struct EwramData_EntityData *entity)
  * @brief 6DFF8 | Create an entity with update function updateFunc in slots
  * 0x1B..0x48, or 0xD0..0xDF when unk_8E bit 6 is set.
  */
-struct EwramData_EntityData *Entity_CreateObject(void *updateFunc)
+struct EwramData_EntityData *Entity_CreateObject(EntityFunc updateFunc)
 {
     struct EwramData_EntityData *child;
 
@@ -1731,7 +1736,7 @@ u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *
         return 0;
     entity->basePalette = paletteIndex;
     Sprite_Attach(entity, sheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -1814,8 +1819,6 @@ void Enemy_OnContactMask1(struct EwramData_EntityData *entity)
 }
 
 /* Helpers 0x0806E218..0x0806E34F. */
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
 
 /**
  * @brief 6E218 | Common hit: flash (hitFlashTimer = 8), subtract the damage from
@@ -1834,7 +1837,7 @@ s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     if ((s16)entity->hp <= 0)
         return 1;
     return 0;
@@ -1889,7 +1892,7 @@ void Enemy_CheckHitPlayer(struct EwramData_EntityData *entity)
     u8 hitInfo[0x10];
 
     if (!(entity->enemyFlags & 2) && Entity_IsInRect(entity, -0x10, 0, 0x110, 0xB0))
-        Hit_CheckWithPlayer(hitInfo, entity);
+        Hit_CheckWithPlayer((struct HitResult *)hitInfo, entity);
 }
 
 /* Clones of already decompiled functions, generated with
@@ -1934,16 +1937,6 @@ u32 Target_GetFlipX(struct EwramData_EntityData *entity)
     return target->flipX;
 }
 
-/* Signed integer-pixel difference param_0 - param_1 (16.16 inputs). */
-static inline s32 AbsPx(s32 a, s32 b)
-{
-    s32 diff = a - b;
-
-    if (diff < 0)
-        return -((b - a) >> 16);
-    return diff >> 16;
-}
-
 /**
  * @brief Return integer-pixel Euclidean distance to the supplied local
  * fixed-point position as a fixed-point result. Preserve signed
@@ -1951,11 +1944,11 @@ static inline s32 AbsPx(s32 a, s32 b)
  */
 s32 Entity_DistanceToPoint(struct EwramData_EntityData *entity, s32 x, s32 y)
 {
-    s32 dx2 = AbsPx(x, entity->posX.whole);
+    s32 dx2 = PixelDiff(x, entity->posX.whole);
     s32 dy;
 
     dx2 = dx2 * dx2;
-    dy = AbsPx(y, entity->posY.whole);
+    dy = PixelDiff(y, entity->posY.whole);
     return Sqrt(dx2 + dy * dy) << 16;
 }
 
@@ -2024,7 +2017,7 @@ void RisingEffect_Update(struct EwramData_EntityData *entity)
             Sprite_Attach(entity, sCommonObjectSpriteSheet, gfx, 7);
             Anim_StartIndexed(entity, 0, 0, 0);
             entity->scrollWithBg = 1;
-            entity->drawFunc = (u32 *)Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->state++;
             break;
         }
@@ -2070,8 +2063,6 @@ void TimedEntity_Update(struct EwramData_EntityData *entity)
         EntityDelete(entity);
 }
 
-static inline s32 Add16(s16 a, u16 b) { return a + b; }
-
 /* Probe downwards in BG1 space, returning the first offset with tile type 3. */
 /**
  * @brief Probe up to 8 px downwards from a screen point and return the offset
@@ -2102,7 +2093,6 @@ s32 Collision_FindWaterSurfaceOffset(s16 x_, s16 y_)
 }
 
 /* HitEffect_Spawn / HitEffect_SpawnAtContact (effect spawners). */
-extern void Hit_GetContactPoint(s32 a, struct EwramData_EntityData *b, s16 *outX, s16 *outY);
 
 /**
  * @brief Spawn a hit effect (HitEffect_Update) at the pixel (x, y) with random
@@ -2111,7 +2101,7 @@ extern void Hit_GetContactPoint(s32 a, struct EwramData_EntityData *b, s16 *outX
  */
 void HitEffect_Spawn(u16 x, u16 y, u16 type)
 {
-    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, (u32 *)HitEffect_Update);
+    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, HitEffect_Update);
 
     if (effect != NULL)
     {
@@ -2127,7 +2117,7 @@ void HitEffect_Spawn(u16 x, u16 y, u16 type)
  * (the u16 parameters of HitEffect_Spawn would give ldrh instead of ldrsh). */
 static inline void SpawnHitEffect(s16 x, s16 y, u16 type)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)HitEffect_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, HitEffect_Update);
 
     if (child != NULL)
     {

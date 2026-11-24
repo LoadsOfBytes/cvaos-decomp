@@ -25,6 +25,8 @@
 #include "data/data_0E5364.h"
 #include "data/data_118B48.h"
 
+extern u16 sEnemyNameTextIds[];
+
 /**
  * @brief BG scroll mode 14: H-blank BG3 horizontal offsets scaled by the play
  * timer, decreasing down the top 80% of the screen and zero below.
@@ -1586,8 +1588,6 @@ void Hud_ShowSoulAcquiredMessage(s32 arg0, s32 arg1, s32 arg2)
     gameState->hudTextBufferIndex = 1 - gameState->hudTextBufferIndex;
     gameState->hudMessageId = arg0;
 }
-
-extern u16 sEnemyNameTextIds[];
 
 /**
  * @brief Once per enemy (flag unk_3E bit 0), dismiss the area-name banner

@@ -36,6 +36,20 @@ struct PlayerContactDamage {
 };
 extern void Player_ApplyContactDamage(struct PlayerContactDamage *contactDamage);
 
+/* Contact damage from an enemy body: attack of the entity, source at its position. */
+static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
+{
+    struct PlayerContactDamage contactDamage;
+
+    contactDamage.attack = entity->attack;
+    contactDamage.attributes = attributes;
+    contactDamage.unused = unused;
+    contactDamage.reaction = reaction;
+    contactDamage.sourceX = entity->posX.whole;
+    contactDamage.sourceY = entity->posY.whole;
+    Player_ApplyContactDamage(&contactDamage);
+}
+
 extern s32 Player_TrackEntity(struct EwramData_EntityData *entity);
 extern void Player_UpdateStatusAndRegen(struct EwramData_EntityData *entity);
 extern void Player_RecalculateAttackDefense(void);
@@ -86,7 +100,7 @@ extern s32 Weapon_KeepsAttackOnLanding(void);
 extern void WeaponAttack_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker); // TODO: param_0?
 extern void WeaponGun_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker);
 extern void WeaponGun_Draw(struct EwramData_EntityData *entity);
-extern struct EwramData_EntityData* RedSoul_CreateEntity(struct EwramData_EntityData *owner, u32 *update);
+extern struct EwramData_EntityData* RedSoul_CreateEntity(struct EwramData_EntityData *owner, EntityFunc update);
 extern void RedSoul_CancelAll(void);
 extern void RedSoulTrail_Update(struct EwramData_EntityData *entity);
 extern struct EwramData_EntityData* RedSoul_CreateTrailCopy(struct EwramData_EntityData *entity, u8 delay);

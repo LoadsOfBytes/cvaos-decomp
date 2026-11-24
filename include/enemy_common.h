@@ -22,5 +22,12 @@ extern void Enemy_UpdateFragmentDeathWithSpread(struct EwramData_EntityData *ent
 extern void Heap_Free(void *allocation);
 extern void *Heap_Alloc(u16 words);
 extern void Room_ResetTransientState(void);
+extern s32 Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
+extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *entity);
+extern s32 Entity_ClampXToRoom(struct EwramData_EntityData *entity, s32 inset);
+extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *entity);
+extern u8 Entity_IsTargetWithinRange(struct EwramData_EntityData *entity, u32 range);
+extern u16 Entity_GetTargetAngleAbove16(struct EwramData_EntityData *entity);
+extern s32 Entity_IsTargetInCenteredBox(struct EwramData_EntityData *entity, u16 width, u16 height);
 
 #endif /* ENEMY_COMMON_H */

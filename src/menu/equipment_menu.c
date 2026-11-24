@@ -21,9 +21,11 @@
 #include "sound.h"
 #include "data/data_4F1444.h"
 #include "menu_page.h"
+#include "item_menu.h"
 
 extern struct WeaponInfo sWeaponInfo[];
 extern const struct ArmorInfo sArmorInfo[];
+extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
 
 /**
  * @brief Print the equipped weapon, armor and accessory names (or the none text
@@ -76,8 +78,6 @@ loop:
 
 /* EquipmentMenu_ShowSlotDescription; slot switch as in
  * EquipmentMenu_DrawEquippedIcons. */
-
-extern void MenuItemIcon_SetHidden(u8 value);
 
 /* The six equipped ids of PlayerStatus read as one array (weapon, red, blue
  * and yellow soul, armor, accessory); the page entity's subState is the slot. */
@@ -187,8 +187,6 @@ void EquipmentMenu_DrawEquippedIcons(struct PlayerStatus *stats, void *unusedPag
     }
 }
 
-
-extern void HudMap_PrintNumber(s32 a, s32 b, s32 c, s32 d, s32 e, s32 f);
 
 /**
  * @brief Temporarily equip the highlighted item, refresh stats/yellow soul and draw stat values and comparison indicators, then restore equipment and recalculate.
@@ -575,8 +573,6 @@ void EquipmentMenu_CountList(struct PlayerStatus *stats, struct EwramData_Entity
 }
 
 
-extern void HudMap_WriteTiles(s32 x, s32 y, u16 tile, s32 count);
-
 /**
  * @brief 4A95C | Open the equipment page for slot unk_B (0 weapon,
  * 1 armor, 2 accessory): draw the frame and labels, the item list and the
@@ -628,8 +624,6 @@ void EquipmentMenu_Open(struct EwramData_EntityData *page)
     EquipmentMenu_ShowSlotDescription(stats, page);
 }
 
-
-extern void EquipmentMenu_UpdateList(struct EwramData_EntityData *page);
 
 /**
  * @brief 4AAF0 | Equipment page update: A opens the item list of the

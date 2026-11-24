@@ -23,20 +23,59 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "damage_numbers.h"
 
 /* Headhunter (entity type 0x6A): update. */
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern void Headhunter_UpdateMovement(struct EwramData_EntityData *);
-extern void Headhunter_UpdateAttack(struct EwramData_EntityData *);
-extern void Headhunter_UpdateDeath(struct EwramData_EntityData *);
-extern u8 Headhunter_LoadGraphics(struct EwramData_EntityData *);
-extern void HeadhunterTransformationPart_Update(struct EwramData_EntityData *);
-extern void Headhunter_DamagePlayerOnContact(struct EwramData_EntityData *);
+void Headhunter_UpdateMovement(struct EwramData_EntityData *);
+void Headhunter_UpdateAttack(struct EwramData_EntityData *);
+void Headhunter_UpdateDeath(struct EwramData_EntityData *);
+u8 Headhunter_LoadGraphics(struct EwramData_EntityData *);
+void HeadhunterTransformationPart_Update(struct EwramData_EntityData *);
+void Headhunter_DamagePlayerOnContact(struct EwramData_EntityData *);
 void Headhunter_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 #define KIND(e) (*(s8 *)&e->ext.headhunterChild.kind)
+
+extern void SoulPickup_SpawnFromEnemyDefinition(s32, s32, s32, s32);
+extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
+extern s32 Target_IsInRect(s16, s16, s16, s16);
+extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
+extern s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
+
+void Headhunter_SpawnFallingPart(struct EwramData_EntityData *, s32, s32, s32);
+void Headhunter_SpawnWaveBurst(struct EwramData_EntityData *, s32, s32, s32);
+void Headhunter_SpawnLightningBurst(struct EwramData_EntityData *, s32, s32, s32);
+void Headhunter_SpawnAttackFollower(struct EwramData_EntityData *, s32);
+void Headhunter_SpawnBurstShot(struct EwramData_EntityData *, s32, s32, s32, s32);
+void Headhunter_SpawnExtendingAttack(struct EwramData_EntityData *, s32, s32, s32);
+s32 Headhunter_UpdateIntro(struct EwramData_EntityData *entity);
+void HeadhunterTransformationArc_Update(struct EwramData_EntityData *entity);
+void Headhunter_SpawnLightningBurstFlicker(struct EwramData_EntityData *, s32, s32);
+void Headhunter_SpawnWave(struct EwramData_EntityData *, s32, s32, s32);
+void Headhunter_SpawnLightningBolt(struct EwramData_EntityData *, s32, s32);
+void Headhunter_SpawnOrbitingParticle(struct EwramData_EntityData *, struct EwramData_EntityData *, s32, s32, s32);
+void HeadhunterFallingPart_Update(struct EwramData_EntityData *entity);
+void HeadhunterWaveBurst_Update(struct EwramData_EntityData *entity);
+void HeadhunterLightningBurst_Update(struct EwramData_EntityData *entity);
+void HeadhunterLightningBurstFlicker_Update(struct EwramData_EntityData *);
+void HeadhunterWave_DamagePlayerOnContact(struct EwramData_EntityData *);
+void HeadhunterLightningImpact_DamagePlayerOnContact(struct EwramData_EntityData *);
+void HeadhunterLightningImpactFlicker_Update(struct EwramData_EntityData *);
+void HeadhunterWave_Update(struct EwramData_EntityData *entity);
+void HeadhunterLightningBolt_Update(struct EwramData_EntityData *entity);
+void Headhunter_SpawnLightningImpact(struct EwramData_EntityData *owner, struct EwramData_EntityData *source, s32 x, s32 y);
+void HeadhunterLightningImpact_Update(struct EwramData_EntityData *entity);
+void Headhunter_SpawnLightningImpactFlicker(struct EwramData_EntityData *owner, struct EwramData_EntityData *source, s32 x, s32 y);
+void HeadhunterAttackFollower_Update(struct EwramData_EntityData *);
+void HeadhunterBurstShot_DamagePlayerOnContact(struct EwramData_EntityData *);
+void HeadhunterAttackTip_DamagePlayerOnContact(struct EwramData_EntityData *);
+void HeadhunterAttackTip_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+void HeadhunterAttackSegment_DamagePlayerOnContact(struct EwramData_EntityData *);
+void HeadhunterAttackSegment_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+void HeadhunterBurstShot_Update(struct EwramData_EntityData *entity);
+void HeadhunterAttackTip_Update(struct EwramData_EntityData *head);
+struct EwramData_EntityData *Headhunter_CreateAttackSegment(struct EwramData_EntityData *owner, struct EwramData_EntityData *parent, s32 index);
+void HeadhunterAttackSegment_Update(struct EwramData_EntityData *segment);
 
 /* Headhunter: dispatch AI (0), attacks (1), defeat (2) and the frozen
  * defeated form (3); bit 1 of unk_4FE overrides the frame with unk_4FF,
@@ -56,7 +95,7 @@ void EnemyHeadhunterUpdate(struct EwramData_EntityData *entity)
     if (entity->state != 2) Enemy_UpdateHitFlash(entity);
     if (Entity_IsTimeStopped(entity) && entity->state != 2)
     {
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         return;
     }
     switch (entity->state)
@@ -83,7 +122,7 @@ void EnemyHeadhunterUpdate(struct EwramData_EntityData *entity)
         if (previous != *frame) Entity_UpdateBoxes(entity);
     }
     if (entity->state != 2 && !(entity->ext.headhunter.flags & 1))
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
 }
 
 /* Headhunter (entity type 0x6A): update and create. */
@@ -116,7 +155,7 @@ void EnemyHeadhunterCreate(struct EwramData_EntityData *entity)
     if (Anim_GetMaxBoxCount(entity) > 1)
         Hit_EnableContact(entity, 8, Headhunter_DamagePlayerOnContact, Headhunter_OnHit);
     else
-        Hit_Enable(entity, 8, Headhunter_DamagePlayerOnContact, (s32)Headhunter_OnHit);
+        Hit_Enable(entity, 8, Headhunter_DamagePlayerOnContact, Headhunter_OnHit);
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
     for (kind = 2; kind >= 0; kind--)
@@ -152,7 +191,7 @@ void EnemyHeadhunterCreate(struct EwramData_EntityData *entity)
         }
         part->enemyId = entity->enemyId;
         part->scrollWithBg = 1;
-        part->drawFunc = (u32 *)Sprite_DrawEntity;
+        part->drawFunc = Sprite_DrawEntity;
         part->flipX = entity->flipX;
         ENTITY_OWNER(part) = entity;
         KIND(part) = kind;
@@ -174,18 +213,6 @@ delete:
 
 /* Headhunter AI (81EBC), intro (82EA0), attack states (82FFC) and defeat
  * sequence (83860). */
-
-extern void Headhunter_SpawnFallingPart(struct EwramData_EntityData *, s32, s32, s32);
-extern void SoulPickup_SpawnFromEnemyDefinition(s32, s32, s32, s32);
-extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
-extern void Headhunter_SpawnWaveBurst(struct EwramData_EntityData *, s32, s32, s32);
-extern void Headhunter_SpawnLightningBurst(struct EwramData_EntityData *, s32, s32, s32);
-extern void Headhunter_SpawnAttackFollower(struct EwramData_EntityData *, s32);
-extern void Headhunter_SpawnBurstShot(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern void Headhunter_SpawnExtendingAttack(struct EwramData_EntityData *, s32, s32, s32);
-
-extern s32 Target_IsInRect(s16, s16, s16, s16);
-s32 Headhunter_UpdateIntro(struct EwramData_EntityData *entity);
 
 #define PHASE(e) (e->ext.headhunter.formPhase)
 #define FLAGS(e) (e->ext.headhunter.flags)
@@ -1330,8 +1357,6 @@ void Headhunter_UpdateDeath(struct EwramData_EntityData *entity)
 /* Headhunter: graphics loader (83A40), damage callback (83AC4), slash arcs
  * (83C1C/83EEC) and the transformation parts (83FD0). */
 
-extern s32 ObjPalette_FindOrLoadVariant(void *, s32);
-
 /* form of the Headhunter: defeat in phases 1 and 2 starts a transformation,
  * the parts of HeadhunterTransformationPart_Update wait for phases 1-3 */
 
@@ -1352,7 +1377,7 @@ u8 Headhunter_LoadGraphics(struct EwramData_EntityData *entity)
     entity->ext.headhunter.graphics = graphics;
     entity->basePalette = entity->ext.headhunter.palette0;
     Sprite_Attach(entity, sHeadhunterSpriteSheet, graphics, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -1423,8 +1448,6 @@ void Headhunter_ApplyResolvedDamage(struct EwramData_EntityData *entity, s32 unu
     }
 }
 
-void HeadhunterTransformationArc_Update(struct EwramData_EntityData *entity);
-
 #define ANGLE(e) ((e)->velX.whole)
 #define ANGLE_SPEED(e) ((e)->velY.whole)
 #define SCALE(e) ((e)->accelX.whole)
@@ -1440,7 +1463,7 @@ void HeadhunterTransformationArc_Update(struct EwramData_EntityData *entity);
 void Headhunter_SpawnTransformationArc(struct EwramData_EntityData *parent, struct EwramData_EntityData *owner, s32 x, s32 y,
                   s32 big, s32 timer, s32 kind, s32 dir)
 {
-    struct EwramData_EntityData *arc = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadhunterTransformationArc_Update);
+    struct EwramData_EntityData *arc = EntityCreateInRange(0x49, 0xCF, HeadhunterTransformationArc_Update);
     s32 graphics;
     u16 slot;
     if (arc == NULL) return;
@@ -1553,7 +1576,7 @@ void Headhunter_SpawnTransformationArc(struct EwramData_EntityData *parent, stru
     arc->ext.headhunterChild.owner = owner;
     KIND(arc) = kind;
     arc->scrollWithBg = 1;
-    arc->drawFunc = (u32 *)Sprite_DrawEntity;
+    arc->drawFunc = Sprite_DrawEntity;
 }
 
 /* Slash arc: swing and grow for 12 frames, fall after 60 frames (kinds 1
@@ -1836,13 +1859,6 @@ void HeadhunterTransformationPart_Update(struct EwramData_EntityData *entity)
  * affine bursts in four mirrored corners that launch the rolling waves
  * (84B20/84C7C) or the lightning (84DB8/84F14). */
 
-extern void Headhunter_SpawnLightningBurstFlicker(struct EwramData_EntityData *, s32, s32);
-extern void Headhunter_SpawnWave(struct EwramData_EntityData *, s32, s32, s32);
-extern void Headhunter_SpawnLightningBolt(struct EwramData_EntityData *, s32, s32);
-extern void Headhunter_SpawnOrbitingParticle(struct EwramData_EntityData *, struct EwramData_EntityData *, s32, s32, s32);
-void HeadhunterFallingPart_Update(struct EwramData_EntityData *entity);
-void HeadhunterWaveBurst_Update(struct EwramData_EntityData *entity);
-void HeadhunterLightningBurst_Update(struct EwramData_EntityData *entity);
 /* bit 0 of the owner's unk_4FE ends its effects (TODO: meaning) */
 #define OWNER_DONE(o) (o->ext.headhunter.flags & 1)
 #undef FRAME
@@ -1864,7 +1880,7 @@ void HeadhunterLightningBurst_Update(struct EwramData_EntityData *entity);
  */
 void Headhunter_SpawnFallingPart(struct EwramData_EntityData *owner, s32 x, s32 y, s32 kind)
 {
-    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadhunterFallingPart_Update);
+    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, HeadhunterFallingPart_Update);
     s32 graphics;
     u16 slot;
     if (part == NULL) return;
@@ -1903,7 +1919,7 @@ void Headhunter_SpawnFallingPart(struct EwramData_EntityData *owner, s32 x, s32 
     ENTITY_OWNER(part) = owner;
     KIND(part) = kind;
     part->scrollWithBg = 0;
-    part->drawFunc = (u32 *)Sprite_DrawEntity;
+    part->drawFunc = Sprite_DrawEntity;
 }
 
 /* Falling part: stick to the owner shedding sparks, then fall, bounce on
@@ -1986,7 +2002,7 @@ void HeadhunterFallingPart_Update(struct EwramData_EntityData *entity)
  */
 void Headhunter_SpawnWaveBurst(struct EwramData_EntityData *owner, s32 x, s32 y, s32 corner)
 {
-    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadhunterWaveBurst_Update);
+    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, HeadhunterWaveBurst_Update);
     s32 graphics;
     u16 slot;
     if (effect == NULL) return;
@@ -2033,7 +2049,7 @@ void Headhunter_SpawnWaveBurst(struct EwramData_EntityData *owner, s32 x, s32 y,
     effect->attack = owner->attack;
     ENTITY_OWNER(effect) = owner;
     effect->scrollWithBg = 1;
-    effect->drawFunc = (u32 *)Sprite_DrawEntity;
+    effect->drawFunc = Sprite_DrawEntity;
 }
 
 /* Wave burst: corner 0 launches two rolling waves at 58 frames and eight
@@ -2094,7 +2110,7 @@ void HeadhunterWaveBurst_Update(struct EwramData_EntityData *entity)
  */
 void Headhunter_SpawnLightningBurst(struct EwramData_EntityData *owner, s32 x, s32 y, s32 corner)
 {
-    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadhunterLightningBurst_Update);
+    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, HeadhunterLightningBurst_Update);
     s32 graphics;
     s32 zero;
     u16 slot;
@@ -2143,7 +2159,7 @@ void Headhunter_SpawnLightningBurst(struct EwramData_EntityData *owner, s32 x, s
     effect->attack = owner->attack;
     ENTITY_OWNER(effect) = owner;
     effect->scrollWithBg = 1;
-    effect->drawFunc = (u32 *)Sprite_DrawEntity;
+    effect->drawFunc = Sprite_DrawEntity;
 }
 
 /* Lightning burst: grow, corner 0 spawns the effect at 42 and three bolts
@@ -2209,15 +2225,6 @@ void HeadhunterLightningBurst_Update(struct EwramData_EntityData *entity)
 /* Headhunter attacks: rolling wave (850A0-8524C), lightning bolt with its
  * impact (8538C-855C8) and the flicker effect (85694). */
 
-extern void HeadhunterLightningBurstFlicker_Update(struct EwramData_EntityData *);
-extern void HeadhunterWave_DamagePlayerOnContact(struct EwramData_EntityData *);
-extern void HeadhunterLightningImpact_DamagePlayerOnContact(struct EwramData_EntityData *);
-extern void HeadhunterLightningImpactFlicker_Update(struct EwramData_EntityData *);
-void HeadhunterWave_Update(struct EwramData_EntityData *entity);
-void HeadhunterLightningBolt_Update(struct EwramData_EntityData *entity);
-void Headhunter_SpawnLightningImpact(struct EwramData_EntityData *owner, struct EwramData_EntityData *source, s32 x, s32 y);
-void HeadhunterLightningImpact_Update(struct EwramData_EntityData *entity);
-void Headhunter_SpawnLightningImpactFlicker(struct EwramData_EntityData *owner, struct EwramData_EntityData *source, s32 x, s32 y);
 /* bit 0 of the owner's unk_4FE ends its effects (TODO: meaning) */
 #define ACCEL(e) ((e)->accelX.whole)
 
@@ -2229,7 +2236,7 @@ void Headhunter_SpawnLightningImpactFlicker(struct EwramData_EntityData *owner, 
  */
 void Headhunter_SpawnLightningBurstFlicker(struct EwramData_EntityData *owner, s32 x, s32 y)
 {
-    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadhunterLightningBurstFlicker_Update);
+    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, HeadhunterLightningBurstFlicker_Update);
     if (effect != NULL)
     {
         s32 graphics;
@@ -2244,7 +2251,7 @@ void Headhunter_SpawnLightningBurstFlicker(struct EwramData_EntityData *owner, s
         effect->attack = owner->attack;
         ENTITY_OWNER(effect) = owner;
         effect->scrollWithBg = 1;
-        effect->drawFunc = (u32 *)Sprite_DrawEntity;
+        effect->drawFunc = Sprite_DrawEntity;
     }
 }
 
@@ -2257,7 +2264,7 @@ void Headhunter_SpawnLightningBurstFlicker(struct EwramData_EntityData *owner, s
  */
 void Headhunter_SpawnWave(struct EwramData_EntityData *owner, s32 x, s32 y, s32 direction)
 {
-    struct EwramData_EntityData *wave = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadhunterWave_Update);
+    struct EwramData_EntityData *wave = EntityCreateInRange(0x49, 0xCF, HeadhunterWave_Update);
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
     struct SpriteBox box = {-4, -4, 8, 8};
     if (wave != NULL)
@@ -2292,7 +2299,7 @@ void Headhunter_SpawnWave(struct EwramData_EntityData *owner, s32 x, s32 y, s32 
         wave->attack = owner->attack + (owner->attack >> 2);
         ENTITY_OWNER(wave) = owner;
         wave->scrollWithBg = 1;
-        wave->drawFunc = (u32 *)Sprite_DrawEntity;
+        wave->drawFunc = Sprite_DrawEntity;
     }
 }
 
@@ -2337,7 +2344,7 @@ void HeadhunterWave_Update(struct EwramData_EntityData *entity)
         EntityDelete(entity);
     else
     {
-        if (entity->timer <= 147) Hit_CheckWithPlayer(bounds, entity);
+        if (entity->timer <= 147) Hit_CheckWithPlayer((struct HitResult *)bounds, entity);
         if (OWNER_DONE(owner)) EntityDelete(entity);
     }
 }
@@ -2350,7 +2357,7 @@ void HeadhunterWave_Update(struct EwramData_EntityData *entity)
  */
 void Headhunter_SpawnLightningBolt(struct EwramData_EntityData *owner, s32 x, s32 y)
 {
-    struct EwramData_EntityData *bolt = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadhunterLightningBolt_Update);
+    struct EwramData_EntityData *bolt = EntityCreateInRange(0x49, 0xCF, HeadhunterLightningBolt_Update);
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
     if (bolt != NULL)
     {
@@ -2372,7 +2379,7 @@ void Headhunter_SpawnLightningBolt(struct EwramData_EntityData *owner, s32 x, s3
         bolt->attack = owner->attack;
         ENTITY_OWNER(bolt) = owner;
         bolt->scrollWithBg = 1;
-        bolt->drawFunc = (u32 *)Sprite_DrawEntity;
+        bolt->drawFunc = Sprite_DrawEntity;
     }
 }
 
@@ -2409,7 +2416,7 @@ void HeadhunterLightningBolt_Update(struct EwramData_EntityData *entity)
  */
 void Headhunter_SpawnLightningImpact(struct EwramData_EntityData *owner, struct EwramData_EntityData *source, s32 x, s32 y)
 {
-    struct EwramData_EntityData *impact = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadhunterLightningImpact_Update);
+    struct EwramData_EntityData *impact = EntityCreateInRange(0x49, 0xCF, HeadhunterLightningImpact_Update);
     struct SpriteBox box = {-2, -64, 4, 64};
     if (impact != NULL)
     {
@@ -2430,7 +2437,7 @@ void Headhunter_SpawnLightningImpact(struct EwramData_EntityData *owner, struct 
         ENTITY_OWNER(impact) = owner;
         impact->ext.headhunterEffect.source = source;
         impact->scrollWithBg = 1;
-        impact->drawFunc = (u32 *)Sprite_DrawEntity;
+        impact->drawFunc = Sprite_DrawEntity;
     }
 }
 
@@ -2469,7 +2476,7 @@ void HeadhunterLightningImpact_Update(struct EwramData_EntityData *entity)
         EntityDelete(entity);
     else
     {
-        if (entity->timer <= 32) Hit_CheckWithPlayer(bounds, entity);
+        if (entity->timer <= 32) Hit_CheckWithPlayer((struct HitResult *)bounds, entity);
         if (OWNER_DONE(owner)) EntityDelete(entity);
     }
 }
@@ -2481,7 +2488,7 @@ void HeadhunterLightningImpact_Update(struct EwramData_EntityData *entity)
  */
 void Headhunter_SpawnLightningImpactFlicker(struct EwramData_EntityData *owner, struct EwramData_EntityData *source, s32 x, s32 y)
 {
-    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadhunterLightningImpactFlicker_Update);
+    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, HeadhunterLightningImpactFlicker_Update);
     if (effect != NULL)
     {
         s32 graphics;
@@ -2498,7 +2505,7 @@ void Headhunter_SpawnLightningImpactFlicker(struct EwramData_EntityData *owner, 
         ENTITY_OWNER(effect) = owner;
         effect->ext.headhunterEffect.source = source;
         effect->scrollWithBg = 1;
-        effect->drawFunc = (u32 *)Sprite_DrawEntity;
+        effect->drawFunc = Sprite_DrawEntity;
     }
 }
 
@@ -2549,17 +2556,6 @@ void HeadhunterOrbitingParticle_Update(struct EwramData_EntityData *entity)
  * The affine tip extends and retracts along an angle with ten linked
  * segments. */
 
-extern void HeadhunterAttackFollower_Update(struct EwramData_EntityData *);
-extern void HeadhunterBurstShot_DamagePlayerOnContact(struct EwramData_EntityData *);
-extern void HeadhunterAttackTip_DamagePlayerOnContact(struct EwramData_EntityData *);
-void HeadhunterAttackTip_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern void HeadhunterAttackSegment_DamagePlayerOnContact(struct EwramData_EntityData *);
-void HeadhunterAttackSegment_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
-void HeadhunterBurstShot_Update(struct EwramData_EntityData *entity);
-void HeadhunterAttackTip_Update(struct EwramData_EntityData *head);
-struct EwramData_EntityData *Headhunter_CreateAttackSegment(struct EwramData_EntityData *owner, struct EwramData_EntityData *parent, s32 index);
-void HeadhunterAttackSegment_Update(struct EwramData_EntityData *segment);
 #define BASE_X(e) (e->ext.headhunterWhip.baseX) /* room coordinates */
 #define BASE_Y(e) (e->ext.headhunterWhip.baseY)
 #undef OFFSET_X
@@ -2576,7 +2572,7 @@ void HeadhunterAttackSegment_Update(struct EwramData_EntityData *segment);
  */
 void Headhunter_SpawnAttackFollower(struct EwramData_EntityData *owner, s32 timer)
 {
-    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadhunterAttackFollower_Update);
+    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, HeadhunterAttackFollower_Update);
     if (effect != NULL)
     {
         s32 graphics;
@@ -2590,7 +2586,7 @@ void Headhunter_SpawnAttackFollower(struct EwramData_EntityData *owner, s32 time
         effect->timer = timer;
         ENTITY_OWNER(effect) = owner;
         effect->scrollWithBg = 0;
-        effect->drawFunc = (u32 *)Sprite_DrawEntity;
+        effect->drawFunc = Sprite_DrawEntity;
     }
 }
 
@@ -2601,7 +2597,7 @@ void Headhunter_SpawnAttackFollower(struct EwramData_EntityData *owner, s32 time
  */
 void Headhunter_SpawnBurstShot(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx, s32 vy)
 {
-    struct EwramData_EntityData *shot = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadhunterBurstShot_Update);
+    struct EwramData_EntityData *shot = EntityCreateInRange(0x49, 0xCF, HeadhunterBurstShot_Update);
     struct SpriteBox box = {-4, -4, 8, 8};
     if (shot != NULL)
     {
@@ -2623,7 +2619,7 @@ void Headhunter_SpawnBurstShot(struct EwramData_EntityData *owner, s32 x, s32 y,
         shot->attack = owner->attack;
         ENTITY_OWNER(shot) = owner;
         shot->scrollWithBg = 1;
-        shot->drawFunc = (u32 *)Sprite_DrawEntity;
+        shot->drawFunc = Sprite_DrawEntity;
     }
 }
 
@@ -2659,7 +2655,7 @@ void HeadhunterBurstShot_Update(struct EwramData_EntityData *entity)
     if (entity->timer++ > 59)
         EntityDelete(entity);
     else
-        Hit_CheckWithPlayer(bounds, entity);
+        Hit_CheckWithPlayer((struct HitResult *)bounds, entity);
 }
 
 /* Create the whip head at the owner + (x, y) towards `angle`, with ten segments. */
@@ -2670,7 +2666,7 @@ void HeadhunterBurstShot_Update(struct EwramData_EntityData *entity)
  */
 void Headhunter_SpawnExtendingAttack(struct EwramData_EntityData *owner, s32 x, s32 y, s32 angle)
 {
-    struct EwramData_EntityData *head = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadhunterAttackTip_Update);
+    struct EwramData_EntityData *head = EntityCreateInRange(0x49, 0xCF, HeadhunterAttackTip_Update);
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
     struct SpriteBox box = {-1, -1, 3, 3};
     struct SingleFrameAnimation animation = sHeadhunterAttackTipFrameAnim;
@@ -2700,7 +2696,7 @@ void Headhunter_SpawnExtendingAttack(struct EwramData_EntityData *owner, s32 x, 
     head->affineIndex = slot;
     head->affine = 1;
     ObjAffine_SetBiased(0, 0x10000, 0x10000, head->flipX, head->flipY, head->affineIndex);
-    Hit_Enable(head, 8, HeadhunterAttackTip_DamagePlayerOnContact, (s32)HeadhunterAttackTip_OnHit);
+    Hit_Enable(head, 8, HeadhunterAttackTip_DamagePlayerOnContact, HeadhunterAttackTip_OnHit);
     HitBox_SetAttack(head, &box);
     HitBox_SetBody(head, &box);
     head->hit.flags &= ~4;
@@ -2708,7 +2704,7 @@ void Headhunter_SpawnExtendingAttack(struct EwramData_EntityData *owner, s32 x, 
     head->attack = owner->attack;
     ENTITY_OWNER(head) = owner;
     head->scrollWithBg = 0;
-    head->drawFunc = (u32 *)Sprite_DrawEntity;
+    head->drawFunc = Sprite_DrawEntity;
     for (i = 0; i < 10; i++)
     {
         if (!Headhunter_CreateAttackSegment(owner, head, i))
@@ -2822,7 +2818,7 @@ void HeadhunterAttackTip_Update(struct EwramData_EntityData *head)
  */
 struct EwramData_EntityData *Headhunter_CreateAttackSegment(struct EwramData_EntityData *owner, struct EwramData_EntityData *parent, s32 index)
 {
-    struct EwramData_EntityData *segment = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadhunterAttackSegment_Update);
+    struct EwramData_EntityData *segment = EntityCreateInRange(0x49, 0xCF, HeadhunterAttackSegment_Update);
     struct SpriteBox box = {-1, -1, 3, 3};
     struct SingleFrameAnimation animation = sHeadhunterAttackSegmentFrameAnim;
     u16 slot;
@@ -2845,7 +2841,7 @@ struct EwramData_EntityData *Headhunter_CreateAttackSegment(struct EwramData_Ent
     segment->affineIndex = slot;
     segment->affine = 1;
     ObjAffine_SetBiased(0, 0x10000, 0x10000, segment->flipX, segment->flipY, segment->affineIndex);
-    Hit_Enable(segment, 8, HeadhunterAttackSegment_DamagePlayerOnContact, (s32)HeadhunterAttackSegment_OnHit);
+    Hit_Enable(segment, 8, HeadhunterAttackSegment_DamagePlayerOnContact, HeadhunterAttackSegment_OnHit);
     HitBox_SetAttack(segment, &box);
     HitBox_SetBody(segment, &box);
     segment->hit.flags &= ~4;
@@ -2854,7 +2850,7 @@ struct EwramData_EntityData *Headhunter_CreateAttackSegment(struct EwramData_Ent
     ENTITY_OWNER(segment) = owner;
     segment->ext.headhunterWhipSegment.tip = parent;
     segment->scrollWithBg = 0;
-    segment->drawFunc = (u32 *)Sprite_DrawEntity;
+    segment->drawFunc = Sprite_DrawEntity;
     return segment;
     return NULL;
 }
@@ -2999,7 +2995,7 @@ void HeadhunterLightningImpactFlicker_Update(struct EwramData_EntityData *entity
 void Headhunter_SpawnOrbitingParticle(struct EwramData_EntityData *owner, struct EwramData_EntityData *source, s32 x, s32 y, s32 speed)
 {
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
-    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, (u32 *)HeadhunterOrbitingParticle_Update);
+    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, HeadhunterOrbitingParticle_Update);
     if (effect != NULL)
     {
         s32 graphics;
@@ -3019,7 +3015,7 @@ void Headhunter_SpawnOrbitingParticle(struct EwramData_EntityData *owner, struct
         ENTITY_OWNER(effect) = owner;
         effect->ext.headhunterEffect.source = source;
         effect->scrollWithBg = 0;
-        effect->drawFunc = (u32 *)Sprite_DrawEntity;
+        effect->drawFunc = Sprite_DrawEntity;
     }
 }
 
@@ -3066,9 +3062,6 @@ void HeadhunterAttackTip_DamagePlayerOnContact(struct EwramData_EntityData *enti
  * a cloning script and checked byte for byte:
  *   HeadhunterAttackTip_OnHit = ManticoreTail_OnHit */
 
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
-
 /**
  * @brief Temporarily resolve boss damage at the struck tip position,
  * restore boss coordinates, display the number on the tip and
@@ -3088,7 +3081,7 @@ void HeadhunterAttackTip_OnHit(struct EwramData_EntityData *entity, s32 attacker
     damage = Hit_ResolveDamage(ENTITY_OWNER(entity), attacker, hit, attackPower);
     headhunter->posX.whole = oldX;
     headhunter->posY.whole = oldY;
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     Headhunter_ApplyResolvedDamage(ENTITY_OWNER(entity), attacker, hit, damage);
 }
 
@@ -3136,7 +3129,7 @@ void HeadhunterAttackSegment_OnHit(struct EwramData_EntityData *entity, s32 atta
     damage = Hit_ResolveDamage(ENTITY_OWNER(entity), attacker, hit, attackPower);
     headhunter->posX.whole = oldX;
     headhunter->posY.whole = oldY;
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     Headhunter_ApplyResolvedDamage(ENTITY_OWNER(entity), attacker, hit, damage);
 }
 
@@ -3172,6 +3165,6 @@ void Headhunter_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hi
 {
     s16 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
 
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     Headhunter_ApplyResolvedDamage(entity, attacker, hit, damage);
 }

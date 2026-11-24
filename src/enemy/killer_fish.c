@@ -18,12 +18,30 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "damage_numbers.h"
+
+extern s32 Collision_FindWaterSurfaceOffset(s32, s32);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
+extern s32 Entity_MoveWithBoxCollision(struct EwramData_EntityData *, s32, s32, s32, s32, s32, s32);
+extern s32 Target_IsInRect(s16, s16, s16, s16);
+
+void KillerFish_UpdateSwimming(struct EwramData_EntityData *);
+void KillerFish_UpdateAttack(struct EwramData_EntityData *);
+void KillerFish_UpdateDeath(struct EwramData_EntityData *);
+u8 KillerFish_LoadGraphics(struct EwramData_EntityData *);
+void KillerFish_DamagePlayerOnContact(struct EwramData_EntityData *);
+void KillerFish_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
+void KillerFish_SpawnSwarmFish(struct EwramData_EntityData *);
+void KillerFish_SpawnOscillatingEffect(struct EwramData_EntityData *parent, s32 x, s32 y, s32 frame, s32 vx, s32 vy);
+void KillerFish_SpawnRisingSprite(struct EwramData_EntityData *, s32, s32, s32);
+void KillerFishSwarm_Update(struct EwramData_EntityData *);
+u8 KillerFishSwarm_LoadGraphics(struct EwramData_EntityData *, struct EwramData_EntityData *);
+void KillerFishSwarm_EnableHitBoxes(struct EwramData_EntityData *);
+void KillerFishSwarm_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void KillerFishSwarm_OnHit(struct EwramData_EntityData *entity, void *attacker, u16 *hit);
+void KillerFishEffect_UpdateOscillating(struct EwramData_EntityData *);
 
 /* Dispatch Killer Fish states and refresh its frame-dependent collision data. */
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void KillerFish_UpdateSwimming(struct EwramData_EntityData *);
-extern void KillerFish_UpdateAttack(struct EwramData_EntityData *);
-extern void KillerFish_UpdateDeath(struct EwramData_EntityData *);
 void EnemyKillerFishUpdate(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
@@ -38,7 +56,7 @@ void EnemyKillerFishUpdate(struct EwramData_EntityData *entity)
     if (Enemy_IsStunned(entity))
     {
         if ((u8)(entity->state - 2) > 1)
-            Hit_CheckWithPlayer(collision, entity);
+            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         return;
     }
     switch (entity->state)
@@ -59,15 +77,10 @@ void EnemyKillerFishUpdate(struct EwramData_EntityData *entity)
             Entity_UpdateBoxes(entity);
     }
     if ((u8)(entity->state - 2) > 1)
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
 }
 
 /* Initialize Killer Fish, choosing its ground or submerged setup. */
-extern u8 KillerFish_LoadGraphics(struct EwramData_EntityData *);
-extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, void *);
-extern void KillerFish_DamagePlayerOnContact(struct EwramData_EntityData *);
-void KillerFish_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
-extern void KillerFish_SpawnSwarmFish(struct EwramData_EntityData *);
 static inline void FillParts(struct EwramData_EntityData *entity)
 {
     s32 index;
@@ -105,12 +118,6 @@ void EnemyKillerFishCreate(struct EwramData_EntityData *entity)
         entity->state = 0;
     }
 }
-
-extern s32 Collision_FindWaterSurfaceOffset(s32, s32);
-extern void KillerFish_SpawnOscillatingEffect(struct EwramData_EntityData *parent, s32 x, s32 y, s32 frame, s32 vx, s32 vy);
-extern s32 Target_GetPixelX(struct EwramData_EntityData *entity);
-extern s32 Target_GetPixelY(struct EwramData_EntityData *entity);
-extern s32 Target_IsWithinDistance(struct EwramData_EntityData *, s32);
 
 static inline s16 BgX(s32 v, struct BgLayerState *bg)
 {
@@ -347,7 +354,6 @@ void KillerFish_UpdateAttack(struct EwramData_EntityData *entity)
 }
 
 /* Run Killer Fish's rising, floating and fading death sequence. */
-extern void KillerFish_SpawnRisingSprite(struct EwramData_EntityData *, s32, s32, s32);
 /**
  * @brief Invert the sprite, rise to the surface, oscillate and emit detached sprites; apply the visibility table before deletion.
  */
@@ -398,8 +404,6 @@ void KillerFish_UpdateDeath(struct EwramData_EntityData *entity)
 }
 
 /* Apply a Killer Fish hit and select its death state when HP reaches zero. */
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s32, s32);
 void KillerFish_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
@@ -425,9 +429,6 @@ void KillerFish_OnHit(struct EwramData_EntityData *entity, struct EwramData_Enti
 }
 
 /* Spawn and attach a Killer Fish part in the reserved enemy slots. */
-extern void KillerFishSwarm_Update(struct EwramData_EntityData *);
-extern u8 KillerFishSwarm_LoadGraphics(struct EwramData_EntityData *, struct EwramData_EntityData *);
-extern void KillerFishSwarm_EnableHitBoxes(struct EwramData_EntityData *);
 static inline void SetRelativePosition(struct EwramData_EntityData *parent, struct EwramData_EntityData *part, s16 x, s16 y)
 {
     if (parent->flipX)
@@ -443,7 +444,7 @@ static inline void SetRelativePosition(struct EwramData_EntityData *parent, stru
  */
 void KillerFish_SpawnSwarmFish(struct EwramData_EntityData *parent)
 {
-    struct EwramData_EntityData *part = EntityCreateInRange(0x1B, 0x48, (u32 *)KillerFishSwarm_Update);
+    struct EwramData_EntityData *part = EntityCreateInRange(0x1B, 0x48, KillerFishSwarm_Update);
     if (part)
     {
         if (!KillerFishSwarm_LoadGraphics(parent, part)) EntityDelete(part);
@@ -471,8 +472,6 @@ void KillerFish_SpawnSwarmFish(struct EwramData_EntityData *parent)
  *   the camera pointer's reload register (ldr rX, [sp]; ldrh rX, [rX, #6]).
  * - `distance` is reused for the collision flags of Entity_MoveWithBoxCollision; the longer
  *   live range moves it to r5 and velocityX to r4. */
-extern s32 Entity_MoveWithBoxCollision(struct EwramData_EntityData *, s32, s32, s32, s32, s32, s32);
-extern s32 Target_IsInRect(s16, s16, s16, s16);
 #define SCATTER(e) (e->ext.killerFishSwarm.scatter)
 #define OWNER_LOST(e) (*(s8 *)&e->ext.killerFishSwarm.ownerLost)
 #define STEER_TIMER(e) (e->ext.killerFishSwarm.steerTimer)
@@ -520,7 +519,7 @@ void KillerFishSwarm_Update(struct EwramData_EntityData *entity)
     }
     if (entity->state != 2 && gEwramData->gameState.timeStopTimer)
     {
-        Hit_CheckWithPlayer(bounds, entity);
+        Hit_CheckWithPlayer((struct HitResult *)bounds, entity);
         return;
     }
 restart:
@@ -590,7 +589,7 @@ restart:
                 entity->subState = 0;
             }
         }
-        Hit_CheckWithPlayer(bounds, entity);
+        Hit_CheckWithPlayer((struct HitResult *)bounds, entity);
         break;
     case 2:
         entity->hidden = Entity_GetVisibilityPattern(entity->timer);
@@ -665,7 +664,7 @@ restart:
             }
             if (entity->timer > 5) entity->state = 4;
             if (entity->ext.killerFishSwarm.bitPlayer) entity->state = 4;
-            Hit_CheckWithPlayer(bounds, entity);
+            Hit_CheckWithPlayer((struct HitResult *)bounds, entity);
             break;
         }
         break;
@@ -674,8 +673,6 @@ restart:
 }
 
 /* KillerFishSwarm_EnableHitBoxes (hit boxes). */
-extern void KillerFishSwarm_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-void KillerFishSwarm_OnHit(struct EwramData_EntityData *entity, void *attacker, u16 *hit);
 
 /**
  * @brief 70774 | Activate box slot 8 with KillerFishSwarm_DamagePlayerOnContact / KillerFishSwarm_OnHit and
@@ -686,7 +683,7 @@ void KillerFishSwarm_EnableHitBoxes(struct EwramData_EntityData *entity)
 {
     u32 box = 0x0808FCFC;
 
-    Hit_Enable(entity, 8, KillerFishSwarm_DamagePlayerOnContact, (s32)KillerFishSwarm_OnHit);
+    Hit_Enable(entity, 8, KillerFishSwarm_DamagePlayerOnContact, KillerFishSwarm_OnHit);
     HitBox_SetBody(entity, &box);
     HitBox_SetAttack(entity, &box);
     entity->hit.flags &= ~4;
@@ -694,13 +691,12 @@ void KillerFishSwarm_EnableHitBoxes(struct EwramData_EntityData *entity)
 }
 
 /* Create an oscillating Killer Fish effect with supplied position and velocity. */
-extern void KillerFishEffect_UpdateOscillating(struct EwramData_EntityData *);
 /**
  * @brief Create a sprite effect with supplied position, velocity and frame; reject it unless its initial tile classification is 3.
  */
 void KillerFish_SpawnOscillatingEffect(struct EwramData_EntityData *parent, s32 x, s32 y, s32 frame, s32 vx, s32 vy)
 {
-    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, (u32 *)KillerFishEffect_UpdateOscillating);
+    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, KillerFishEffect_UpdateOscillating);
     struct BgLayerState *background = &gEwramData->bgInfo[1];
     if (part)
     {
@@ -716,7 +712,7 @@ void KillerFish_SpawnOscillatingEffect(struct EwramData_EntityData *parent, s32 
         Sprite_Attach(part, sKillerFishSpriteSheet, graphics, parent->basePalette);
         part->animFrame = frame;
         part->scrollWithBg = 1;
-        part->drawFunc = (u32 *)Sprite_DrawEntity;
+        part->drawFunc = Sprite_DrawEntity;
         if (Tile_Classify((s16)(background->xPos.part16.integer + part->posX.part16.integer),
                           (s16)(background->yPos.part16.integer + part->posY.part16.integer)) != 3)
             EntityDelete(part);
@@ -788,7 +784,7 @@ u8 KillerFishSwarm_LoadGraphics(struct EwramData_EntityData *parent, struct Ewra
     Sprite_Attach(part, sKillerFishSpriteSheet, graphics, parent->basePalette);
     Anim_StartIndexed(part, 0, 0, 1);
     Anim_Update(part);
-    part->drawFunc = (u32 *)Sprite_DrawEntity;
+    part->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -829,7 +825,7 @@ void KillerFishSwarm_OnHit(struct EwramData_EntityData *entity, void *attacker, 
  */
 void KillerFish_SpawnRisingSprite(struct EwramData_EntityData *parent, s32 x, s32 y, s32 frame)
 {
-    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, (u32 *)KillerFishEffect_UpdateRising);
+    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, KillerFishEffect_UpdateRising);
     if (part)
     {
         s32 graphics;
@@ -841,7 +837,7 @@ void KillerFish_SpawnRisingSprite(struct EwramData_EntityData *parent, s32 x, s3
         Sprite_Attach(part, sKillerFishSpriteSheet, graphics, parent->basePalette);
         part->animFrame = frame;
         part->scrollWithBg = 1;
-        part->drawFunc = (u32 *)Sprite_DrawEntity;
+        part->drawFunc = Sprite_DrawEntity;
     }
 }
 
@@ -849,21 +845,6 @@ void KillerFish_SpawnRisingSprite(struct EwramData_EntityData *parent, s32 x, s3
  * a cloning script and checked byte for byte:
  *   KillerFish_LoadGraphics = Object25_LoadGraphics
  *   KillerFish_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
-
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
 
 /**
  * @brief 70AC4 | Same as Object25_LoadGraphics.
@@ -876,7 +857,7 @@ u8 KillerFish_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sKillerFishPalette, 0);
     Sprite_Attach(entity, sKillerFishSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 

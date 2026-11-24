@@ -32,18 +32,22 @@
 #include "data/data_4F1444.h"
 
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern void DeathWeapon_DamagePlayerOnContact(struct EwramData_EntityData *);
+void DeathWeapon_DamagePlayerOnContact(struct EwramData_EntityData *);
 
 #define SPIN(e) (e->ext.deathWeapon.angle)
 #define SPEED(e) (e->ext.deathWeapon.spin)
 #define FLAGS(e) (e->ext.death.flags)
 #define TO_PIXELS(d) ((d) < 0 ? -(-(d) >> 16) : (d) >> 16)
 
-static inline s32 Id(s32 v) { return v; }
-static inline s32 SparkOffset(s32 a, s32 k)
-{
-    return Sin(a) * 48 + RandomSigned(Id(k));
-}
+extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
+extern void SoulPickup_SpawnFromEnemyDefinition(s32, s32, s32, s32);
+extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
+
+void DeathFloatingWeaponHitBox_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+void DeathFloatingWeapon_OnHit(struct EwramData_EntityData *, s32, u16 *);
+void DeathBlade_OnHit(struct EwramData_EntityData *);
+void DeathPillar_DamagePlayerOnContact(struct EwramData_EntityData *);
+void Death_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 /**
  * @brief Affine weapon controller: follow owner poses, perform throw/return
@@ -288,7 +292,7 @@ void DeathWeapon_Update(struct EwramData_EntityData *entity)
         dy += Sin(angle) << 4;
     }
     HitBox_SetAttackRaw(entity, ((TO_PIXELS(dx) - 16) & 0xFF) + (((TO_PIXELS(dy) - 16) & 0xFF) << 8) + 0x20200000);
-    Hit_CheckWithPlayer((struct HitResult *)box, (u8 *)entity);
+    Hit_CheckWithPlayer((struct HitResult *)box, entity);
 }
 
 /* Rotating one-shot effect. */
@@ -492,7 +496,7 @@ void DeathFloatingWeaponWindow_Update(struct EwramData_EntityData *entity)
         Sprite_Attach(entity, sCommonObjectSpriteSheet, slot, 6);
         entity->spriteLayer = 0x12;
         entity->animFrame = 0x3F;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->objMode = 2;
         entity->posX.part16.integer = owner->posX.part16.integer + 0x20;
         entity->posY.part16.integer = owner->posY.part16.integer + 0x18;
@@ -505,8 +509,6 @@ void DeathFloatingWeaponWindow_Update(struct EwramData_EntityData *entity)
 }
 
 /* Hitbox entity bound to an owner slot. */
-extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
-void DeathFloatingWeaponHitBox_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 /**
  * @brief BD2D0 | Attached hitbox: the owner is entity slot unk_4F8 (byte).
@@ -529,7 +531,7 @@ void DeathFloatingWeaponHitBox_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        Hit_Enable(entity, 8, NULL, (s32)DeathFloatingWeaponHitBox_OnHit);
+        Hit_Enable(entity, 8, NULL, DeathFloatingWeaponHitBox_OnHit);
         entity->hit.flags |= 2;
         entity->state++;
         break;
@@ -544,9 +546,6 @@ void DeathFloatingWeaponHitBox_Update(struct EwramData_EntityData *entity)
 
 /* DeathFloatingWeapon_Update: matched (case 4 posY value pinned to r2 keeps r3 out of the spill
    register set; operand order of mul/and/or as in the target). */
-
-extern void DeathFloatingWeapon_OnHit(struct EwramData_EntityData *, s32, u16 *);
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
 
 #define MOVE_TO_A(x0, y0, tx, ty, shift, ANGLE)                                                         \
     {                                                                                    \
@@ -606,7 +605,7 @@ void DeathFloatingWeapon_Update(struct EwramData_EntityData *entity)
         entity->enemyId = parent->enemyId;
         Enemy_ResetFromTemplate(entity);
         entity->hp = 0x7D0;
-        Hit_Enable(entity, 8, Enemy_OnContactMask1, (s32)DeathFloatingWeapon_OnHit);
+        Hit_Enable(entity, 8, Enemy_OnContactMask1, DeathFloatingWeapon_OnHit);
         entity->affineIndex = slot;
         entity->affine = 1;
         entity->spriteLayer = 0x12;
@@ -788,7 +787,7 @@ void DeathFloatingWeapon_Update(struct EwramData_EntityData *entity)
     if (!(entity->enemyFlags & 2))
     {
         Enemy_UpdateHitFlash(entity);
-        Hit_CheckWithPlayer(&res, (u8 *)entity);
+        Hit_CheckWithPlayer(&res, entity);
         return;
     }
     PlaySong(0x6E);
@@ -800,13 +799,6 @@ void DeathFloatingWeapon_Update(struct EwramData_EntityData *entity)
 /* DeathBlade_Update, decompiled from the original assembly. The player position
  * is read through s32 statement expressions so it stays ldrsh, and dx is
  * narrowed to s16 before dy is computed. */
-
-extern void DeathBlade_OnHit(struct EwramData_EntityData *);
-
-static inline u16 AngleTo(s32 dx, s32 dy)
-{
-    s16 x = dx; return ArcTan2(x, dy);
-}
 
 /* Spinning blade appearing at a random spot in the upper screen and flying at
  * the player, accelerating, until it is hit or its parent finishes. */
@@ -828,7 +820,7 @@ void DeathBlade_Update(struct EwramData_EntityData *entity)
             goto delete;
         entity->attack = parent->attack * 7 / 10;
         entity->hp = 1;
-        Hit_Enable(entity, 10, Enemy_OnContactMask1, (s32)DeathBlade_OnHit);
+        Hit_Enable(entity, 10, Enemy_OnContactMask1, DeathBlade_OnHit);
         HitBox_SetBodyRaw(entity, 0x1010F8F8);
         HitBox_SetAttackRaw(entity, 0x1010F8F8);
         entity->hit.flags |= 2;
@@ -857,7 +849,7 @@ void DeathBlade_Update(struct EwramData_EntityData *entity)
             entity->state = 2;
             entity->hit.flags &= ~2;
         }
-        Hit_CheckWithPlayer(&res, (u8 *)entity);
+        Hit_CheckWithPlayer(&res, entity);
         if ((s16)entity->hp != 0)
             break;
         entity->state = 3;
@@ -876,7 +868,7 @@ void DeathBlade_Update(struct EwramData_EntityData *entity)
             entity->velY.whole = (s >> 8) * (r >> 8);
         }
         EntityAccelerateAndMove(entity, 0x80000);
-        Hit_CheckWithPlayer(&res, (u8 *)entity);
+        Hit_CheckWithPlayer(&res, entity);
         if ((s16)entity->hp == 0)
             entity->state = 3;
         if (parent->ext.death.flags & 1)
@@ -899,8 +891,6 @@ void DeathBlade_Update(struct EwramData_EntityData *entity)
     ObjAffine_Set((s16)angle, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
     Anim_Update(entity);
 }
-
-extern void DeathPillar_DamagePlayerOnContact(struct EwramData_EntityData *);
 
 /* Pillar rising under the player (x of the player, y 0x90): grows, then
  * shrinks along a sine while throwing debris; hits during frames 15..17. */
@@ -958,7 +948,7 @@ void DeathPillar_Update(struct EwramData_EntityData *entity)
         if (entity->timer == 0)
             goto destroy;
         if ((u8)(entity->timer - 0xF) <= 2)
-            Hit_CheckWithPlayer(&res, (u8 *)entity);
+            Hit_CheckWithPlayer(&res, entity);
         entity->timer--;
         break;
     case 3:
@@ -971,9 +961,6 @@ void DeathPillar_Update(struct EwramData_EntityData *entity)
     if (EntityIsOutsideScreen(entity, 3))
         entity->state = 3;
 }
-
-extern void SoulPickup_SpawnFromEnemyDefinition(s32, s32, s32, s32);
-extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
 
 static inline s32 FixedToInt(s32 v)
 {
@@ -1159,8 +1146,6 @@ void DeathDebris_Update(struct EwramData_EntityData *entity)
     ObjAffine_Set(entity->ext.deathDebris.rotation, entity->ext.deathDebris.scale, entity->ext.deathDebris.scale,
                  entity->flipX, 0, entity->affineIndex);
 }
-
-extern void Afterimage_Create(struct EwramData_EntityData *, s32, s32, s32);
 
 /* Move towards (tx, ty) (16.16) at a speed proportional to the distance;
  * velX/velY get the step taken. Returns the speed. */
@@ -1412,8 +1397,6 @@ static inline struct EwramData_EntityData *SpawnScythe(struct EwramData_EntityDa
     child->scrollWithBg = 1;
     return child;
 }
-
-static inline u32 AnimFrame(struct EwramData_EntityData *e) { return *(u16 *)&e->animStep; }
 
 /**
  * @brief Transition state (2): move toward the center position, animate
@@ -1861,7 +1844,7 @@ void Death_UpdateWallAttack(struct EwramData_EntityData *entity)
 }
 
 /* Death_UpdateDeath: boss death sequence (flash, debris parts); matched. */
-static inline struct EwramData_EntityData *SpawnPart(struct EwramData_EntityData *owner, u32 *func)
+static inline struct EwramData_EntityData *SpawnPart(struct EwramData_EntityData *owner, EntityFunc func)
 {
     struct EwramData_EntityData *c = Entity_CreateObject(func);
     if (c == NULL)
@@ -1904,7 +1887,7 @@ s32 Death_UpdateDeath(struct EwramData_EntityData *entity)
         px = &entity->posX.part16.integer;
         for (; i >= 0; i--)
         {
-            child = SpawnPart(entity, (u32 *)DeathDebris_Update);
+            child = SpawnPart(entity, DeathDebris_Update);
             if (child != NULL)
             {
                 child->scrollWithBg = 0;
@@ -1918,7 +1901,7 @@ s32 Death_UpdateDeath(struct EwramData_EntityData *entity)
             }
         }
         entity->subState = 2;
-        SpawnPart(entity, (u32 *)DeathRewardEffect_Update);
+        SpawnPart(entity, DeathRewardEffect_Update);
         flags->bit5 = 1;
         entity->timer = 0x10;
         break;
@@ -1941,10 +1924,6 @@ s32 Death_UpdateDeath(struct EwramData_EntityData *entity)
     }
     return 0;
 }
-
-extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
-extern void Enemy_OnContact(struct EwramData_EntityData *entity);
-extern void Death_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 /**
  * @brief BF2E8 | Death create: the boss version (spawnParam0) is deleted once
@@ -1988,7 +1967,7 @@ void EnemyDeathCreate(struct EwramData_EntityData *entity)
         entity->state = 8;
         return;
     }
-    Hit_EnableContact(entity, 8, Enemy_OnContact, (s32)Death_OnHit);
+    Hit_EnableContact(entity, 8, Enemy_OnContact, Death_OnHit);
     HitBox_SetBodyRaw(entity, 0x3230CEE8);
     HitBox_SetAttackRaw(entity, 0x3230CEE8);
     entity->hit.flags |= 4;
@@ -2025,7 +2004,6 @@ void EnemyDeathCreate(struct EwramData_EntityData *entity)
 }
 
 /* Death_OnHit (Death). */
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 /**
  * @brief Mark the boss hit flag, then apply enemy damage. On defeat drop
@@ -2142,7 +2120,7 @@ void EnemyDeathUpdate(struct EwramData_EntityData *entity)
     if (!(entity->enemyFlags & 2))
     {
         Enemy_UpdateHitFlash(entity);
-        Hit_CheckWithPlayer((struct HitResult *)box, (u8 *)entity);
+        Hit_CheckWithPlayer((struct HitResult *)box, entity);
     }
     Anim_Update(entity);
 }

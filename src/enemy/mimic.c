@@ -16,11 +16,21 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "damage_numbers.h"
+
+extern s32 Target_IsInRect(s16 x, s16 y, s32 w, s32 h);
+extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
+
+void Mimic_UpdateWait(struct EwramData_EntityData *);
+void Mimic_UpdatePreview(struct EwramData_EntityData *);
+u8 Mimic_LoadGraphics(struct EwramData_EntityData *);
+void Mimic_DamagePlayerOnContact(struct EwramData_EntityData *);
+void Mimic_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
+void Mimic_SpawnTrigger(struct EwramData_EntityData *, s32, s32);
+void MimicTrigger_Update(struct EwramData_EntityData *);
+void MimicTrigger_OnHit(struct EwramData_EntityData *, s32, u16 *);
 
 /* Mimic: dispatch state, refresh the box on frame changes and run collision. */
-extern void Mimic_UpdateWait(struct EwramData_EntityData *);
-extern void Mimic_UpdatePreview(struct EwramData_EntityData *);
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 void EnemyMimicUpdate(struct EwramData_EntityData *entity)
 {
     u32 buffer[4];
@@ -46,15 +56,10 @@ void EnemyMimicUpdate(struct EwramData_EntityData *entity)
     }
     else Anim_Update(entity);
     if (frame != entity->animFrame) Entity_UpdateBoxes(entity);
-    if (entity->state != 1 && !(entity->ext.mimic.flags & 1)) Hit_CheckWithPlayer(buffer, entity);
+    if (entity->state != 1 && !(entity->ext.mimic.flags & 1)) Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
 }
 
 /* Mimic initialization, including the dormant and alternate room-start paths. */
-extern u8 Mimic_LoadGraphics(struct EwramData_EntityData *);
-extern s32 Hit_EnableContact(struct EwramData_EntityData *, s32, void *, s32);
-extern void Mimic_DamagePlayerOnContact(struct EwramData_EntityData *);
-void Mimic_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
-extern void Mimic_SpawnTrigger(struct EwramData_EntityData *, s32, s32);
 void EnemyMimicCreate(struct EwramData_EntityData *entity)
 {
     u32 box = 0x0E10F2F8;
@@ -68,8 +73,8 @@ void EnemyMimicCreate(struct EwramData_EntityData *entity)
         Anim_Update(entity);
         return;
     }
-    if (Anim_GetMaxBoxCount(entity) > 1) Hit_EnableContact(entity, 8, Mimic_DamagePlayerOnContact, (s32)Mimic_OnHit);
-    else Hit_Enable(entity, 8, Mimic_DamagePlayerOnContact, (s32)Mimic_OnHit);
+    if (Anim_GetMaxBoxCount(entity) > 1) Hit_EnableContact(entity, 8, Mimic_DamagePlayerOnContact, Mimic_OnHit);
+    else Hit_Enable(entity, 8, Mimic_DamagePlayerOnContact, Mimic_OnHit);
     if (entity->spawnParam0 != 0)
     {
         entity->ext.mimic.flags |= 2;
@@ -94,8 +99,6 @@ void EnemyMimicCreate(struct EwramData_EntityData *entity)
         entity->subState = 0;
     }
 }
-
-extern s32 Target_IsInRect(s16 x, s16 y, s32 w, s32 h);
 
 /**
  * @brief 990D8 | Enemy sub-state machine (subState) with flags in unk_4FC:
@@ -158,9 +161,6 @@ void Mimic_UpdateWait(struct EwramData_EntityData *entity)
     }
 }
 
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-
 void Mimic_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     s32 damage = Player_CalculateAttackPower(hit[2]);
@@ -172,7 +172,7 @@ void Mimic_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDat
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
@@ -190,8 +190,6 @@ void Mimic_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDat
  * (palette 7, animation 3, priority 20), hurt box 0x100CF8FA (bytes x -6,
  * y -8, w 12, h 16; not an address), hit callback MimicTrigger_OnHit; it keeps the
  * owner (unk_500) and its type byte. */
-extern void MimicTrigger_Update(struct EwramData_EntityData *);
-extern void MimicTrigger_OnHit(struct EwramData_EntityData *, s32, u16 *);
 
 /**
  * @brief Spawn the decoy at owner + (x, y): an effect sprite (animation 3) drawn
@@ -200,7 +198,7 @@ extern void MimicTrigger_OnHit(struct EwramData_EntityData *, s32, u16 *);
  */
 void Mimic_SpawnTrigger(struct EwramData_EntityData *owner, s32 x, s32 y)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)MimicTrigger_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, MimicTrigger_Update);
     u32 box = 0x100CF8FA;
     s32 graphics;
 
@@ -213,14 +211,14 @@ void Mimic_SpawnTrigger(struct EwramData_EntityData *owner, s32 x, s32 y)
     Sprite_Attach(child, sCommonObjectSpriteSheet, graphics, 7);
     Anim_StartIndexed(child, 3, 0, 1);
     Anim_Update(child);
-    Hit_Enable(child, 8, NULL, (s32)MimicTrigger_OnHit);
+    Hit_Enable(child, 8, NULL, MimicTrigger_OnHit);
     HitBox_SetBody(child, &box);
     child->hit.flags &= ~4;
     child->hit.flags |= 2;
     child->ext.mimicTrigger.owner = owner;
     child->enemyId = owner->enemyId;
     child->scrollWithBg = 1;
-    child->drawFunc = (u32 *)PickupSource_Draw;
+    child->drawFunc = PickupSource_Draw;
 }
 
 /* MimicTrigger_Update and MimicTrigger_OnHit. */
@@ -239,7 +237,7 @@ void MimicTrigger_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
         case 0:
-            Hit_CheckWithPlayer(collision, entity);
+            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
             break;
         case 1:
             entity->hidden = 1;
@@ -274,8 +272,6 @@ void MimicTrigger_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *
  * before them reads state/subState of its parent as one u16 and stays
  * asm). */
 
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
 /**
  * @brief 99430 | Load the graphics (sMimicGfx), palette from
  * sMimicPalette for (u8)spawnParam1 and start animation set sMimicSpriteSheet;
@@ -290,7 +286,7 @@ u8 Mimic_LoadGraphics(struct EwramData_EntityData *entity)
 
     entity->basePalette = ObjPalette_FindOrLoadVariant(sMimicPalette, (u8)entity->spawnParam1);
     Sprite_Attach(entity, sMimicSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 

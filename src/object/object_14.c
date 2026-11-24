@@ -17,15 +17,25 @@
 #include "obj_gfx.h"
 #include "data/data_0E5364.h"
 #include "data/data_118B48.h"
+#include "entity_motion.h"
+
 extern s32 GetEntityRoomYPositionInteger(struct EwramData_EntityData *);
 extern s32 GetEntityRoomXPositionInteger(struct EwramData_EntityData *);
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
+extern s32 Collision_GetPushLeftFiltered(s32, s32, s32);
+extern s32 Collision_GetGroundOffset(s32, s32);
+extern s32 Collision_IsPointSolid(s32 x, s32 y);
+extern void (*const sObject14VariantFuncs[])(struct EwramData_EntityData *entity);
+
 /* from bg_and_collision.h (not included: see the module notes) */
 extern s16 Collision_GetPushUpFiltered(s32 x, s32 y, s32 mode);
+
+void Object14Debris_Update(struct EwramData_EntityData *);
+void Object14_Draw(struct EwramData_EntityData *);
 
 /* Move an entity, settle it on the floor and tilt it along the slope
  * (Object14_MoveOnTerrain). The do/while (0) around the posY update doubles the weight
  * of those references so global-alloc orders off > d > dx (r5, r6, r7). */
-extern u8 Angle_TurnTowards(u16 *angle, u16 step, u16 target);
 
 /**
  * @brief Move with velocity and gravity, snap onto the floor below and turn the
@@ -58,8 +68,6 @@ s32 Object14_MoveOnTerrain(struct EwramData_EntityData *entity, s32 mode)
 
 /* Spawns two debris pieces (animFrame = 3, mirrored) and four random ones (animFrame 4-5)
  * around the parent. */
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern void Object14Debris_Update(struct EwramData_EntityData *);
 
 /**
  * @brief Spawn the debris pieces (Object14Debris_Update) of object 0x14 around
@@ -72,7 +80,7 @@ void Object14_SpawnDebris(struct EwramData_EntityData *parent)
 
     for (i = 0; i <= 1; i++)
     {
-        entity = EntityCreateInRange(0x49, 0xCF, (u32 *)Object14Debris_Update);
+        entity = EntityCreateInRange(0x49, 0xCF, Object14Debris_Update);
         if (entity != NULL)
         {
             Entity_LoadGraphics(entity, sObject14Gfx, sObject14Palette, 0, sObject14SpriteSheet);
@@ -89,7 +97,7 @@ void Object14_SpawnDebris(struct EwramData_EntityData *parent)
     }
     for (i = 0; i < 4; i++)
     {
-        entity = EntityCreateInRange(0x49, 0xCF, (u32 *)Object14Debris_Update);
+        entity = EntityCreateInRange(0x49, 0xCF, Object14Debris_Update);
         if (entity != NULL)
         {
             Entity_LoadGraphics(entity, sObject14Gfx, sObject14Palette, 0, sObject14SpriteSheet);
@@ -108,7 +116,6 @@ void Object14_SpawnDebris(struct EwramData_EntityData *parent)
 }
 
 /* Entity with rise/fall states whose affine sprite is scaled and turned by the player distance. */
-extern void Object14_Draw(struct EwramData_EntityData *);
 static inline struct EwramData_EntityData *Player(struct EwramData **ew)
 {
     return (*ew)->playerState.player;
@@ -142,7 +149,7 @@ void Object14Variant0_Update(struct EwramData_EntityData *entity)
         entity->spriteLayer = 12;
         entity->affineIndex = slot;
         entity->affine = 1;
-        entity->drawFunc = (u32 *)Object14_Draw;
+        entity->drawFunc = Object14_Draw;
         entity->ext.object14.roomX = GetEntityRoomXPositionInteger(entity);
         entity->ext.object14.roomY = GetEntityRoomYPositionInteger(entity);
         entity->ext.object14.prevX = entity->ext.object14.roomX;
@@ -353,8 +360,6 @@ s16 Object14_MoveOnTerrainSolid(struct EwramData_EntityData *entity, s32 layer)
     return ground;
 }
 
-extern s32 Collision_GetPushLeftFiltered(s32, s32, s32);
-
 /**
  * @brief Update of object 0x14 variant 1 (sObject14VariantFuncs[1]): rolling affine
  * sprite with a body hit box, registered as solid object
@@ -372,7 +377,7 @@ void Object14Variant1_Update(struct EwramData_EntityData *entity)
         entity->spriteLayer = 12;
         entity->affineIndex = slot;
         entity->affine = 1;
-        entity->drawFunc = (u32 *)Object14_Draw;
+        entity->drawFunc = Object14_Draw;
         entity->animFrame = 2;
         entity->ext.object14.roomX = GetEntityRoomXPositionInteger(entity);
         entity->ext.object14.roomY = GetEntityRoomYPositionInteger(entity);
@@ -457,8 +462,6 @@ delete:
 }
 
 /* Object14Variant2_Update. */
-extern s32 Collision_GetGroundOffset(s32, s32);
-extern s32 Collision_IsPointSolid(s32 x, s32 y);
 
 static inline u16 RoomX(struct EwramData_EntityData *entity)
 {
@@ -499,7 +502,7 @@ void Object14Variant2_Update(struct EwramData_EntityData *entity)
         entity->hidden = 0;
         entity->spriteLayer = 0xC;
         entity->animFrame = 2;
-        entity->drawFunc = (u32 *)Object14_Draw;
+        entity->drawFunc = Object14_Draw;
         entity->ext.object14.roomX = (s16)GetEntityRoomXPositionInteger(entity);
         entity->ext.object14.roomY = (s16)GetEntityRoomYPositionInteger(entity);
         entity->ext.object14.prevX = entity->ext.object14.roomX;
@@ -540,7 +543,6 @@ void Object14Variant2_Update(struct EwramData_EntityData *entity)
 /* Object 0x14 and helpers 0x080527E4..0x080528DF. */
 
 /* Graphics of object 0x14 and its update functions by variant (spawnParam0). */
-extern void (*const sObject14VariantFuncs[])(struct EwramData_EntityData *entity);
 
 /**
  * @brief 527E4 | Draw at the room position in unk_500 / unk_502 (made

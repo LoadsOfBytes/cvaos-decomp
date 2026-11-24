@@ -16,10 +16,13 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 
-/* Kicker Skeleton leap, kick, landing and recovery. */
 extern void Entity_FaceTarget(struct EwramData_EntityData *);
-extern void Afterimage_Create(struct EwramData_EntityData *, s32, s32, s32);
 extern s32 __divsi3(s32, s32);
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
+
+void KickerSkeleton_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
+
+/* Kicker Skeleton leap, kick, landing and recovery. */
 
 /**
  * @brief Attack state (1): prepare, leap and dive-kick with afterimages,
@@ -137,7 +140,7 @@ s32 KickerSkeleton_UpdateDeath(struct EwramData_EntityData *entity)
     PlaySong(0x6B);
     for (frame = 0x1A; frame <= 0x20; frame++)
     {
-        fragment = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateSpriteDebris);
+        fragment = EntityCreateInRange(0x49, 0xCF, Effect_UpdateSpriteDebris);
         if (fragment == NULL) continue;
         fragment->posX.whole = entity->posX.whole;
         fragment->posY.whole = entity->posY.whole;
@@ -148,17 +151,13 @@ s32 KickerSkeleton_UpdateDeath(struct EwramData_EntityData *entity)
         graphics = ObjGfx_Find(sKickerSkeletonGfx);
         Sprite_Attach(fragment, sKickerSkeletonSpriteSheet, graphics, entity->basePalette);
         fragment->flipX = entity->flipX;
-        fragment->drawFunc = (u32 *)Sprite_DrawEntity;
+        fragment->drawFunc = Sprite_DrawEntity;
         fragment->scrollWithBg = 1;
         fragment->timer = (RandomNumberGenerator() & 0xF) + 0x28;
         fragment->animFrame = frame;
     }
     return 1;
 }
-
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
-void KickerSkeleton_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
-extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, void *);
 
 void EnemyKickerSkeletonCreate(struct EwramData_EntityData *entity)
 {
@@ -183,8 +182,6 @@ void EnemyKickerSkeletonCreate(struct EwramData_EntityData *entity)
         entity->state = 0;
     }
 }
-
-extern s32 Target_IsNearEntity(struct EwramData_EntityData *, s32, s32);
 
 void EnemyKickerSkeletonUpdate(struct EwramData_EntityData *entity)
 {
@@ -223,8 +220,6 @@ void EnemyKickerSkeletonUpdate(struct EwramData_EntityData *entity)
 /* KickerSkeleton_OnHit: variant of an already decompiled function, generated with
  * a cloning script (constants adjusted where needed), checked byte for
  * byte. */
-
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 /**
  * @brief Apply enemy damage; on defeat drop rewards, store the attacker-

@@ -26,13 +26,45 @@
 #include "palette.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "math_inline.h"
+#include "damage_numbers.h"
 
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void Legion_UpdateCircle(struct EwramData_EntityData *);
-extern void Legion_UpdateBounce(struct EwramData_EntityData *);
-extern void Legion_UpdateDeath(struct EwramData_EntityData *);
-extern void Legion_UpdatePreview(struct EwramData_EntityData *);
+extern s32 Entity_MoveWithFilteredBoxCollision(struct EwramData_EntityData *, s32, s32, s32, s32, s32, s32);
+extern s32 Entity_MoveWithBoxCollision(struct EwramData_EntityData *, s32, s32, s32, s32, s32, s32);
+extern void SoulPickup_SpawnFromEnemyDefinition(s32, s32, s32, s32);
+extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
+extern s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, struct EwramData_EntityData *other, u16 *hit, s16 inputDamage);
+
+void Legion_UpdateCircle(struct EwramData_EntityData *);
+void Legion_UpdateBounce(struct EwramData_EntityData *);
+void Legion_UpdateDeath(struct EwramData_EntityData *);
+void Legion_UpdatePreview(struct EwramData_EntityData *);
+s32 Legion_LoadGraphics(struct EwramData_EntityData *entity);
+struct EwramData_EntityData *Legion_CreateCorePart(struct EwramData_EntityData *entity, s32 x, s32 y, s32 kind);
+struct EwramData_EntityData *Legion_CreateCorpse(struct EwramData_EntityData *entity, s32 x, s32 y, s32 index);
+void Legion_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void Legion_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
+s32 Legion_UpdateIntro(struct EwramData_EntityData *entity);
+void Legion_SteerX(struct EwramData_EntityData *entity, s32 target);
+void Legion_SteerY(struct EwramData_EntityData *entity, s32 target);
+s32 Legion_GetPathEdge(s32 x, s32 y, s32 size);
+struct EwramData_EntityData *Legion_CreateShellPart(struct EwramData_EntityData *entity, s32 center, s32 kind);
+void Legion_SpawnDebris(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx, s32 vy, s32 frame);
+void LegionCorpse_Update(struct EwramData_EntityData *entity);
+struct EwramData_EntityData *LegionCorePart_CreateDetail(struct EwramData_EntityData *entity, s32 x, s32 y, s32 kind, s32 tiles);
+void LegionCorePart_Update(struct EwramData_EntityData *entity);
+void LegionCorePart_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
+void Legion_SpawnFragment(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx, s32 vy, s32 graphics);
+void Legion_SpawnDestructibleFragment(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx, s32 vy, s32 graphics);
+void LegionCoreDetail_Update(struct EwramData_EntityData *entity);
+void LegionFragment_Update(struct EwramData_EntityData *);
+void LegionDestructibleFragment_Update(struct EwramData_EntityData *);
+void LegionDestructibleFragment_DamagePlayerOnContact(struct EwramData_EntityData *);
+void LegionDestructibleFragment_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
+void LegionShellPart_Update(struct EwramData_EntityData *entity);
+void LegionShellPart_FireShot(struct EwramData_EntityData *owner, s32 dx, s32 dy, s32 unused, s32 angle);
+void LegionShot_Update(struct EwramData_EntityData *entity);
+void LegionShot_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 
 void EnemyLegionUpdate(struct EwramData_EntityData *entity)
 {
@@ -45,7 +77,7 @@ void EnemyLegionUpdate(struct EwramData_EntityData *entity)
     }
     if (Entity_IsTimeStopped(entity) && entity->state != 2)
     {
-        Hit_CheckWithPlayer(box, entity);
+        Hit_CheckWithPlayer((struct HitResult *)box, entity);
         return;
     }
     switch (entity->state)
@@ -61,7 +93,7 @@ void EnemyLegionUpdate(struct EwramData_EntityData *entity)
     }
     Anim_Update(entity);
     if (entity->state != 2 && !(entity->ext.legion.flags & 1))
-        Hit_CheckWithPlayer(box, entity);
+        Hit_CheckWithPlayer((struct HitResult *)box, entity);
 }
 
 struct LegionData {
@@ -73,12 +105,6 @@ struct LegionData {
     s32 bobPhase;
     s32 shellActionTimer;
 };
-
-extern s32 Legion_LoadGraphics(struct EwramData_EntityData *entity);
-extern struct EwramData_EntityData *Legion_CreateCorePart(struct EwramData_EntityData *entity, s32 x, s32 y, s32 kind);
-extern struct EwramData_EntityData *Legion_CreateCorpse(struct EwramData_EntityData *entity, s32 x, s32 y, s32 index);
-extern void Legion_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-extern void Legion_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 
 /**
  * @brief 9C6BC | Legion create: with spawnParam0 set it is deleted once beaten
@@ -145,7 +171,7 @@ void EnemyLegionCreate(struct EwramData_EntityData *entity)
         entity->state = 3;
         return;
     }
-    Hit_Enable(entity, 8, Legion_DamagePlayerOnContact, (s32)Legion_OnHit);
+    Hit_Enable(entity, 8, Legion_DamagePlayerOnContact, Legion_OnHit);
     HitBox_SetBody(entity, &box);
     HitBox_SetAttack(entity, &box);
     entity->hit.flags &= 0xFB;
@@ -211,11 +237,6 @@ struct LegionState {
     struct LegionShell shells[3];
 };
 
-extern s32 Legion_UpdateIntro(struct EwramData_EntityData *entity);
-extern void Legion_SteerX(struct EwramData_EntityData *entity, s32 target);
-extern void Legion_SteerY(struct EwramData_EntityData *entity, s32 target);
-extern s32 Legion_GetPathEdge(s32 x, s32 y, s32 size);
-extern struct EwramData_EntityData *Legion_CreateShellPart(struct EwramData_EntityData *entity, s32 center, s32 kind);
 #define DIR (*(u8 *)&entity->ext.legion.circleSide)
 
 void Legion_UpdateCircle(struct EwramData_EntityData *entity)
@@ -638,8 +659,6 @@ void Legion_UpdateCircle(struct EwramData_EntityData *entity)
 }
 
 /* Legion (state == 1): rises, bounces around the room, sinks back. */
-extern s32 Entity_MoveWithFilteredBoxCollision(struct EwramData_EntityData *, s32, s32, s32, s32, s32, s32);
-extern s32 Entity_MoveWithBoxCollision(struct EwramData_EntityData *, s32, s32, s32, s32, s32, s32);
 #define ANIM(P) Anim_Start(entity, (struct AnimScript *)(sLegionAnimScript0 + (P)), 2, 1)
 #define BOUNCE(R) \
     if ((R) & 0xF00) \
@@ -811,9 +830,6 @@ void Legion_UpdateBounce(struct EwramData_EntityData *entity)
    masks are not local-allocated; byte mask 0xFB, s16 coordinate arguments; one FAKEMATCH pin). */
 /* Legion core (state == 2): stops, falls, breaks apart and dies. */
 
-extern void Legion_SpawnDebris(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx, s32 vy, s32 frame);
-extern void SoulPickup_SpawnFromEnemyDefinition(s32, s32, s32, s32);
-extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
 #undef ANIM
 #define ANIM(P) Anim_Start(entity, (struct AnimScript *)(sLegionAnimScript0 + (P)), 2, 0)
 #define DEBRIS(F) \
@@ -1128,7 +1144,6 @@ s32 Legion_UpdateIntro(struct EwramData_EntityData *entity)
  * 0820AC4C (unk_504 / unk_505, the second also as basePalette) and record the
  * graphics slot and both variants in the shared data block at unk_4F8;
  * 0 when the graphics are not loaded. */
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 /**
  * @brief Load the Legion graphics and its two palettes (unk_504 / unk_505) and
@@ -1148,12 +1163,9 @@ s32 Legion_LoadGraphics(struct EwramData_EntityData *entity)
     data[8] = (s8)entity->ext.legion.animPalette;
     data[9] = (s8)entity->ext.legion.bodyPalette;
     Sprite_Attach(entity, sLegionSpriteSheet, graphics, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
-
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, struct EwramData_EntityData *other, u16 *hit, s16 inputDamage);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
 
 void Legion_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
@@ -1166,7 +1178,7 @@ void Legion_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     if ((s16)entity->hp <= 0)
     {
         entity->palette = entity->basePalette;
@@ -1177,8 +1189,6 @@ void Legion_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
         BossDefeatEffect_Spawn(entity->posX.whole, entity->posY.whole);
     }
 }
-
-extern void LegionCorpse_Update(struct EwramData_EntityData *entity);
 
 /**
  * @brief 9DF7C | Create a Legion shell part LegionCorpse_Update at room position
@@ -1193,7 +1203,7 @@ extern void LegionCorpse_Update(struct EwramData_EntityData *entity);
 struct EwramData_EntityData *Legion_CreateCorpse(struct EwramData_EntityData *entity, s32 x, s32 y, s32 index)
 {
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)LegionCorpse_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, LegionCorpse_Update);
     u32 *data = (u32 *)entity->ext.legion.data.value;
     u32 tiles, r;
 
@@ -1225,7 +1235,7 @@ struct EwramData_EntityData *Legion_CreateCorpse(struct EwramData_EntityData *en
     child->accelY.whole = 0x2800;
     child->hit.flags |= 4;
     child->hit.flags |= 2;
-    child->drawFunc = (u32 *)Sprite_DrawEntity;
+    child->drawFunc = Sprite_DrawEntity;
     if (index > 9)
     {
         child->state = 1;
@@ -1240,13 +1250,6 @@ struct EwramData_EntityData *Legion_CreateCorpse(struct EwramData_EntityData *en
 
 /* Legion corpse piece: wanders on the floor, then rises and swoops into a new shell part. */
 
-static inline s32 ABS(s32 x)
-{
-    if (x < 0)
-        x = -x;
-    return x;
-}
-
 #define TARGET_X entity->ext.legionCorpse.targetX
 #define TARGET_Y entity->ext.legionCorpse.targetY
 #define FRAME entity->ext.legionCorpse.frame
@@ -1254,14 +1257,14 @@ static inline s32 ABS(s32 x)
 #define APPROACH(V, T) \
     if (V > T) \
     { \
-        if (ABS(V - T) <= 0x3FFF) \
+        if (Abs(V - T) <= 0x3FFF) \
             V = T; \
         else \
             V -= 0x4000; \
     } \
     else \
     { \
-        if (ABS(V - T) <= 0x3FFF) \
+        if (Abs(V - T) <= 0x3FFF) \
             V = T; \
         else \
             V += 0x4000; \
@@ -1331,7 +1334,7 @@ void LegionCorpse_Update(struct EwramData_EntityData *entity)
     case 2:
         EntityDampVelocityY(entity, 0xC);
         EntityAccelerateAndMove(entity, 0x40000);
-        if (ABS(entity->velY.whole) > 0x8000)
+        if (Abs(entity->velY.whole) > 0x8000)
             break;
         entity->subState++;
         owner->ext.legion.introArrived++;
@@ -1420,10 +1423,6 @@ void LegionCorpse_Update(struct EwramData_EntityData *entity)
  * wrappers only weight references for global-alloc (kind r6, entity r7,
  * data r4); they do not change the code. */
 
-extern struct EwramData_EntityData *LegionCorePart_CreateDetail(struct EwramData_EntityData *entity, s32 x, s32 y, s32 kind, s32 tiles);
-extern void LegionCorePart_Update(struct EwramData_EntityData *entity);
-extern void LegionCorePart_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
-
 #define CORE(k) LegionCorePart_CreateDetail(part, -part->ext.legionPart.offsetX, -part->ext.legionPart.offsetY, k, *data)
 
 struct EwramData_EntityData *Legion_CreateCorePart(struct EwramData_EntityData *entity, s32 x, s32 y, s32 kind)
@@ -1502,20 +1501,19 @@ struct EwramData_EntityData *Legion_CreateCorePart(struct EwramData_EntityData *
     do { part->attack = entity->attack; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
     if (!(*((u8 *)gEwramData + 0x8E) & 0x40))
     {
-        Hit_Enable(part, 8, Legion_DamagePlayerOnContact, (s32)LegionCorePart_OnHit);
+        Hit_Enable(part, 8, Legion_DamagePlayerOnContact, LegionCorePart_OnHit);
         HitBox_SetBody(part, &box);
         HitBox_SetAttack(part, &box);
         part->hit.flags &= 0xFB;
         part->hit.flags &= 0xFD;
     }
-    part->drawFunc = (u32 *)Sprite_DrawEntity;
+    part->drawFunc = Sprite_DrawEntity;
     return part;
 fail:
     return NULL;
 }
 
 /* LegionCorePart_Update: owner-attached effect - follow the owner, animate through a table of sprite parts and spawn particles on timer ticks. */
-extern void Legion_SpawnFragment(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx, s32 vy, s32 graphics);
 
 #undef FRAME
 #define FRAME entity->ext.legionPart.kind
@@ -1665,7 +1663,7 @@ void LegionCorePart_Update(struct EwramData_EntityData *entity)
         entity->posX.whole = owner->posX.whole + entity->ext.legionPart.offsetX;
         entity->posY.whole = owner->posY.whole + entity->ext.legionPart.offsetY;
         if (!(*((u8 *)gEwramData + 0x8E) & 0x40))
-            Hit_CheckWithPlayer(buffer, entity);
+            Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
         Enemy_UpdateHitFlash(entity);
         if (owner->state == 2)
         {
@@ -1797,7 +1795,6 @@ void LegionCorePart_Update(struct EwramData_EntityData *entity)
 
 /* Take damage; on death start the death state, otherwise occasionally emit
  * a piece (at most four pieces counted by the owner). */
-extern void Legion_SpawnDestructibleFragment(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx, s32 vy, s32 graphics);
 
 /* The statement expressions keep (pos - 0x100000) as one sum: agbcc would
  * otherwise fold the constant into the random term. The 32-bit result of
@@ -1814,7 +1811,7 @@ void LegionCorePart_OnHit(struct EwramData_EntityData *entity, struct EwramData_
         s32 hp = entity->hp;
         s32 applied = (s16)damage;
         entity->hp = hp - applied;
-        Entity_ShowDamage(entity, applied, 0);
+        Entity_ShowDamage(entity, (s16)applied, 0);
     }
     if ((s16)entity->hp <= 0)
     {
@@ -1860,8 +1857,6 @@ void LegionCorePart_OnHit(struct EwramData_EntityData *entity, struct EwramData_
         }
     }
 }
-
-extern void LegionCoreDetail_Update(struct EwramData_EntityData *entity);
 
 /**
  * @brief 9F0D0 | Create a Legion core part LegionCoreDetail_Update (file 0x0809E0C0)
@@ -1916,7 +1911,7 @@ struct EwramData_EntityData *LegionCorePart_CreateDetail(struct EwramData_Entity
     part->flipX = 0;
     part->hit.flags |= 4;
     part->hit.flags |= 2;
-    part->drawFunc = (u32 *)Sprite_DrawEntity;
+    part->drawFunc = Sprite_DrawEntity;
     return part;
     }
     return NULL;
@@ -1925,14 +1920,10 @@ struct EwramData_EntityData *LegionCorePart_CreateDetail(struct EwramData_Entity
 /* Spawn a fragment at (x, y) with velocity (vx, vy), gravity 0x1000, a
  * random frame 0x2C-0x30 and random flips, in the owner palette (graphics
  * slot passed in, sprites 082258FC); lifetime 60, updated by LegionFragment_Update. */
-extern void LegionFragment_Update(struct EwramData_EntityData *);
-extern void LegionDestructibleFragment_Update(struct EwramData_EntityData *);
-extern void LegionDestructibleFragment_DamagePlayerOnContact(struct EwramData_EntityData *);
-extern void LegionDestructibleFragment_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 
 void Legion_SpawnFragment(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx, s32 vy, s32 graphics)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)LegionFragment_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, LegionFragment_Update);
     if (entity == NULL)
         return;
     entity->posX.whole = x;
@@ -1954,7 +1945,7 @@ void Legion_SpawnFragment(struct EwramData_EntityData *owner, s32 x, s32 y, s32 
     entity->timer = 0x3C;
     entity->hit.flags |= 4;
     entity->hit.flags |= 2;
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
 }
 
 /* Spawn a destructible fragment (HP 200, hit callbacks LegionDestructibleFragment_DamagePlayerOnContact /
@@ -1962,7 +1953,7 @@ void Legion_SpawnFragment(struct EwramData_EntityData *owner, s32 x, s32 y, s32 
  * palette from the owner unk_504, facing the direction of vx. */
 void Legion_SpawnDestructibleFragment(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx, s32 vy, s32 graphics)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)LegionDestructibleFragment_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, LegionDestructibleFragment_Update);
     if (entity == NULL)
         return;
     entity->posX.whole = x;
@@ -1987,10 +1978,10 @@ void Legion_SpawnDestructibleFragment(struct EwramData_EntityData *owner, s32 x,
     entity->attack = owner->attack;
     entity->hp = 200;
     entity->enemyFlags |= 1;
-    Hit_Enable(entity, 8, LegionDestructibleFragment_DamagePlayerOnContact, (s32)LegionDestructibleFragment_OnHit);
+    Hit_Enable(entity, 8, LegionDestructibleFragment_DamagePlayerOnContact, LegionDestructibleFragment_OnHit);
     entity->hit.flags |= 4;
     entity->hit.flags |= 2;
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
 }
 
 /* Destructible fragment update, reconstructed from 0x0809F410. */
@@ -2069,7 +2060,7 @@ void LegionDestructibleFragment_Update(struct EwramData_EntityData *entity)
             } while (0);
         }
         Enemy_UpdateHitFlash(entity);
-        Hit_CheckWithPlayer(hitbox, entity);
+        Hit_CheckWithPlayer((struct HitResult *)hitbox, entity);
         if (owner && owner->updateFunc && owner->enemyId == entity->enemyId
             && owner->state != 2) {
             Anim_Update(entity);
@@ -2104,7 +2095,7 @@ void LegionDestructibleFragment_OnHit(struct EwramData_EntityData *entity, struc
     damage = Hit_ResolveDamage(entity, attacker, hit, (s16)damage);
     entity->hitFlashTimer = 8;
     damage = (s16)damage;
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     entity->hp -= damage;
     if ((s16)entity->hp <= 0)
     {
@@ -2116,8 +2107,6 @@ void LegionDestructibleFragment_OnHit(struct EwramData_EntityData *entity, struc
         Anim_Start(entity, (struct AnimScript *)sUnk_08528340, 2, 1);
     }
 }
-
-extern void LegionShellPart_Update(struct EwramData_EntityData *entity);
 
 /**
  * @brief 9F764 | Create a Legion part LegionShellPart_Update at the owner: layer +1,
@@ -2161,13 +2150,12 @@ struct EwramData_EntityData *Legion_CreateShellPart(struct EwramData_EntityData 
         part->ext.legionShell.kind = kind;
         part->attack = entity->attack;
         part->scrollWithBg = 0;
-        part->drawFunc = (u32 *)Sprite_DrawEntity;
+        part->drawFunc = Sprite_DrawEntity;
     }
     return part;
 }
 
 /* Legion shell part: orbits the core at a radius set by the shell state, fires, falls off. */
-extern void LegionShellPart_FireShot(struct EwramData_EntityData *owner, s32 dx, s32 dy, s32 unused, s32 angle);
 
 #define KIND ((s8)entity->ext.legionShell.kind)
 #define ANGLE entity->ext.legionShell.angle
@@ -2332,9 +2320,6 @@ void LegionShellPart_Update(struct EwramData_EntityData *entity)
  * the given angle; graphics and palette come from the owner's parent data,
  * the frame and flip from a 24-entry table indexed by the angle. */
 
-extern void LegionShot_Update(struct EwramData_EntityData *entity);
-extern void LegionShot_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-
 struct ShotFrame {
     u16 frame;
     u16 flags;
@@ -2357,7 +2342,7 @@ void LegionShellPart_FireShot(struct EwramData_EntityData *owner, s32 dx, s32 dy
     s32 speed = 0x80000;
     u8 zero = 0;
     struct SpriteBox box = {-4, -4, 8, 8};
-    struct EwramData_EntityData *shot = EntityCreateInRange(0x49, 0xCF, (u32 *)LegionShot_Update);
+    struct EwramData_EntityData *shot = EntityCreateInRange(0x49, 0xCF, LegionShot_Update);
     struct ShotFrames frames = sLegionShotFrames;
     struct EwramData_EntityData *parent = owner->ext.legionPart.owner;
     struct ShotData *data = (struct ShotData *)parent->ext.legion.data.ptr;
@@ -2398,7 +2383,7 @@ void LegionShellPart_FireShot(struct EwramData_EntityData *owner, s32 dx, s32 dy
     shot->hit.flags |= 4;
     shot->hit.flags |= zero;
     shot->hit.flags &= ~2;
-    shot->drawFunc = (u32 *)Sprite_DrawEntity;
+    shot->drawFunc = Sprite_DrawEntity;
 }
 
 /* Spawn a falling fragment at (x, y) with velocity (vx, vy), gravity
@@ -2407,7 +2392,7 @@ void LegionShellPart_FireShot(struct EwramData_EntityData *owner, s32 dx, s32 dy
 
 void Legion_SpawnDebris(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx, s32 vy, s32 frame)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateTimedParticle);
+    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, Effect_UpdateTimedParticle);
     s32 *data = (s32 *)owner->ext.legion.data.ptr;
     s32 graphics;
 
@@ -2428,23 +2413,10 @@ void Legion_SpawnDebris(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx
     entity->animFrame = frame;
     entity->animMode = 2;
     entity->scrollWithBg = 1;
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
 }
 
 /* Entity helpers 0x0809FE4C..0x0809FF0F. */
-
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
 
 /**
  * @brief 9FE4C | Player_ApplyContactDamage with (attack, 0, 0, 0) at the entity position
@@ -2545,7 +2517,7 @@ void LegionShot_Update(struct EwramData_EntityData *entity)
     u8 collision[0x10];
 
     EntityMove(entity);
-    Hit_CheckWithPlayer(collision, entity);
+    Hit_CheckWithPlayer((struct HitResult *)collision, entity);
     if (EntityIsOutsideScreen(entity, 1))
         EntityDelete(entity);
     else if (entity->timer++ >= 0xF0)

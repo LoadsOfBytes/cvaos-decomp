@@ -15,14 +15,28 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "damage_numbers.h"
+#include "entity_motion.h"
+
+extern s32 Target_IsInRect(s32, s32, s32, s32);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
+
+void Mudman_UpdateWalk(struct EwramData_EntityData *);
+void Mudman_UpdateAttack(struct EwramData_EntityData *);
+void Mudman_UpdateDeath(struct EwramData_EntityData *);
+void Mudman_UpdateHurt(struct EwramData_EntityData *);
+void Mudman_ThrowShot(struct EwramData_EntityData *);
+void Mudman_SpawnPiece(struct EwramData_EntityData *, s32, s32, s32, s32);
+void MudmanShot_Update(struct EwramData_EntityData *);
+u8 MudmanShot_LoadGraphics(struct EwramData_EntityData *, struct EwramData_EntityData *);
+void MudmanShot_EnableHitBoxes(struct EwramData_EntityData *);
+void MudmanPiece_Update(struct EwramData_EntityData *);
+void MudmanShot_DamagePlayerOnContact(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
+void MudmanShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+u8 Mudman_LoadGraphics(struct EwramData_EntityData *);
+void Mudman_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 
 /* Dispatch Mudman states while preserving hit-flash and freeze update gates. */
-extern s32 Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void Mudman_UpdateWalk(struct EwramData_EntityData *);
-extern void Mudman_UpdateAttack(struct EwramData_EntityData *);
-extern void Mudman_UpdateDeath(struct EwramData_EntityData *);
-extern void Mudman_UpdateHurt(struct EwramData_EntityData *);
 void EnemyMudmanUpdate(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
@@ -35,7 +49,7 @@ void EnemyMudmanUpdate(struct EwramData_EntityData *entity)
     if (entity->hitFlashTimer && entity->state != 3 && entity->state != 2)
     {
 collision_only:
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         return;
     }
     switch (entity->state)
@@ -51,8 +65,6 @@ collision_only:
 }
 
 /* Detect a nearby target, emerge and alternate movement with attacks. */
-extern s32 Target_IsInRect(s32, s32, s32, s32);
-extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s16);
 static inline void Emerge(struct EwramData_EntityData *entity)
 {
     entity->subState++;
@@ -128,7 +140,6 @@ void Mudman_UpdateWalk(struct EwramData_EntityData *entity)
 }
 
 /* Run Mudman's attack animation and timed recovery. */
-extern void Mudman_ThrowShot(struct EwramData_EntityData *);
 /**
  * @brief Attack state machine (state 1): animation 3, from its second step
  * Mudman_ThrowShot with sound 0x85; then back to state 0.
@@ -166,7 +177,6 @@ void Mudman_UpdateAttack(struct EwramData_EntityData *entity)
 }
 
 /* Hit reaction: emit two pieces in the facing direction and recover on landing. */
-extern void Mudman_SpawnPiece(struct EwramData_EntityData *, s32, s32, s32, s32);
 
 /* The two velocity locals, offset registers and coordinate-read order preserve
  * agbcc's original allocation. They do not establish the original source form.
@@ -313,8 +323,6 @@ void Mudman_UpdateDeath(struct EwramData_EntityData *entity)
 }
 
 /* Apply Mudman damage and choose death or a hit-dependent reaction state. */
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s32, s32);
 /**
  * @brief Hit: resolve, flash, subtract and show the damage; at HP <= 0 drop the
  * rewards and die (song 0x70, animation 4, state 2); a hit of type 3 or 4
@@ -355,16 +363,13 @@ void Mudman_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
 }
 
 /* Create a Mudman projectile and inherit the parent's visual attributes. */
-extern void MudmanShot_Update(struct EwramData_EntityData *);
-extern u8 MudmanShot_LoadGraphics(struct EwramData_EntityData *, struct EwramData_EntityData *);
-extern void MudmanShot_EnableHitBoxes(struct EwramData_EntityData *);
 /**
  * @brief Spawn the mud shot 16 px in front of parent at 2 px per frame in its
  * facing direction.
  */
 void Mudman_ThrowShot(struct EwramData_EntityData *parent)
 {
-    struct EwramData_EntityData *projectile = EntityCreateInRange(0x1B, 0x48, (u32 *)MudmanShot_Update);
+    struct EwramData_EntityData *projectile = EntityCreateInRange(0x1B, 0x48, MudmanShot_Update);
     if (projectile)
     {
         if (!MudmanShot_LoadGraphics(parent, projectile)) EntityDelete(projectile);
@@ -394,10 +399,9 @@ void Mudman_ThrowShot(struct EwramData_EntityData *parent)
 }
 
 /* Handle projectile impacts, debris and attachment to a moving entity. */
-extern void MudmanPiece_Update(struct EwramData_EntityData *);
 static inline void EmitDebris(struct EwramData_EntityData *parent, s32 x, s32 y, s32 vx, s32 vy, s32 zero)
 {
-    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, (u32 *)MudmanPiece_Update);
+    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, MudmanPiece_Update);
     if (part)
     {
         s32 graphics;
@@ -414,7 +418,7 @@ static inline void EmitDebris(struct EwramData_EntityData *parent, s32 x, s32 y,
         if (vy > 0) part->flipY = 1;
         else part->flipY = 0;
         part->scrollWithBg = 1;
-        part->drawFunc = (u32 *)Sprite_DrawEntity;
+        part->drawFunc = Sprite_DrawEntity;
         part->timer = zero;
         asm(""); /* FAKEMATCH: keeps jump2 from cross-jumping the two inlined copies */
     }
@@ -481,13 +485,11 @@ remove:
     EntityDelete(entity);
     return;
 finished:
-    if (entity->state == 0) Hit_CheckWithPlayer(collision, entity);
+    if (entity->state == 0) Hit_CheckWithPlayer((struct HitResult *)collision, entity);
     Anim_Update(entity);
 }
 
 /* MudmanShot_EnableHitBoxes (hit boxes, same code as MermanShot_EnableHitBoxes). */
-void MudmanShot_DamagePlayerOnContact(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
-void MudmanShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 /**
  * @brief 72434 | Activate box slot 0xA with MudmanShot_DamagePlayerOnContact / MudmanShot_OnHit and set both
@@ -498,7 +500,7 @@ void MudmanShot_EnableHitBoxes(struct EwramData_EntityData *entity)
 {
     u32 box = 0x0808FCFC;
 
-    Hit_Enable(entity, 0xA, MudmanShot_DamagePlayerOnContact, (s32)MudmanShot_OnHit);
+    Hit_Enable(entity, 0xA, MudmanShot_DamagePlayerOnContact, MudmanShot_OnHit);
     HitBox_SetBody(entity, &box);
     HitBox_SetAttack(entity, &box);
     entity->hit.flags &= ~2;
@@ -541,7 +543,7 @@ void MudmanShot_DamagePlayerOnContact(struct EwramData_EntityData *entity, struc
  */
 void Mudman_SpawnPiece(struct EwramData_EntityData *parent, s32 x, s32 y, s32 vx, s32 vy)
 {
-    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, (u32 *)MudmanPiece_Update);
+    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, MudmanPiece_Update);
     if (part)
     {
         s32 graphics;
@@ -558,7 +560,7 @@ void Mudman_SpawnPiece(struct EwramData_EntityData *parent, s32 x, s32 y, s32 vx
         if (vy > 0) part->flipY = 1;
         else part->flipY = 0;
         part->scrollWithBg = 1;
-        part->drawFunc = (u32 *)Sprite_DrawEntity;
+        part->drawFunc = Sprite_DrawEntity;
         part->timer = 0;
     }
 }
@@ -593,7 +595,7 @@ u8 MudmanShot_LoadGraphics(struct EwramData_EntityData *entity, struct EwramData
     Sprite_Attach(projectile, sMudmanSpriteSheet, gfx, entity->basePalette);
     Anim_StartIndexed(projectile, 5, 0, 1);
     Anim_Update(projectile);
-    projectile->drawFunc = (u32 *)Sprite_DrawEntity;
+    projectile->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -611,9 +613,6 @@ void MudmanShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hi
 }
 
 /* Mudman begins its spawn animation or the display-mode idle animation. */
-extern u8 Mudman_LoadGraphics(struct EwramData_EntityData *);
-extern void Entity_EnableBoxes(struct EwramData_EntityData *,void *,void *);
-void Mudman_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void EnemyMudmanCreate(struct EwramData_EntityData *entity)
 {
     u8 demo;
@@ -645,21 +644,6 @@ void EnemyMudmanCreate(struct EwramData_EntityData *entity)
  *   Mudman_LoadGraphics = Object25_LoadGraphics
  *   Mudman_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
-
 /**
  * @brief 726F0 | Same as Object25_LoadGraphics.
  */
@@ -671,7 +655,7 @@ u8 Mudman_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sMudmanPalette, 0);
     Sprite_Attach(entity, sMudmanSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 

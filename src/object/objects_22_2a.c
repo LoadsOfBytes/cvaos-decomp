@@ -15,8 +15,22 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "data/data_0E5364.h"
+#include "obj_palette.h"
 
-extern u8 Object22_LoadGraphics(struct EwramData_EntityData *entity);
+extern void *memcpy(void *dst, const void *src, unsigned long size);
+extern s32 Entity_MoveWithBoxCollision(struct EwramData_EntityData *, s32, s32, s32, s32, s32, s32);
+extern u8 sWarpLightPaletteSteps[];
+
+u8 Object22_LoadGraphics(struct EwramData_EntityData *entity);
+void Object22_SpawnEffect(struct EwramData_EntityData *, s32, s32, u8);
+void Object22_SpawnFallingPart(struct EwramData_EntityData *);
+void Object22FallingPart_Update(struct EwramData_EntityData *);
+void Object22FallingPart_OnPlayerContact(struct EwramData_EntityData *);
+void Object22Effect_Update(struct EwramData_EntityData *entity);
+u8 Object29_LoadGraphics(struct EwramData_EntityData *);
+void Object29_Draw(struct EwramData_EntityData *entity);
+u8 Object2A_LoadGraphics(struct EwramData_EntityData *);
+void Object2A_Draw(struct EwramData_EntityData *entity);
 
 /**
  * @brief 56828 | Object 0x22 init: deleted unless Object22_LoadGraphics accepts it;
@@ -55,12 +69,6 @@ void Object22Create(struct EwramData_EntityData *entity)
 }
 
 /* Object22_UpdateState. */
-
-extern void *memcpy(void *dst, const void *src, unsigned long size);
-extern void Object22_SpawnEffect(struct EwramData_EntityData *, s32, s32, u8);
-extern void Object22_SpawnFallingPart(struct EwramData_EntityData *);
-extern s32 Entity_MoveWithBoxCollision(struct EwramData_EntityData *, s32, s32, s32, s32, s32, s32);
-extern u8 sWarpLightPaletteSteps[];
 
 /**
  * @brief Main behaviour of object 0x22, called by Object22Update.
@@ -273,13 +281,10 @@ void Object22_UpdateState(struct EwramData_EntityData *e)
 }
 
 /* Spawn the object 0x22's attached falling part. */
-extern void Object22FallingPart_Update(struct EwramData_EntityData *);
-extern void Object22FallingPart_OnPlayerContact(struct EwramData_EntityData *);
-extern s32 ObjPalette_FindOrLoadVariant(void *, s32);
 void Object22_SpawnFallingPart(struct EwramData_EntityData *owner)
 {
     struct SpriteBox box;
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)Object22FallingPart_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Object22FallingPart_Update);
     s32 graphics;
     if (child != NULL)
     {
@@ -304,12 +309,11 @@ void Object22_SpawnFallingPart(struct EwramData_EntityData *owner)
         child->enemyId = owner->enemyId;
         child->ext.object22Part.owner = owner;
         child->scrollWithBg = 1;
-        child->drawFunc = (u32 *)Sprite_DrawEntity;
+        child->drawFunc = Sprite_DrawEntity;
     }
 }
 
 /* Follow the owner's Y after falling onto it; remove if the owner is lost. */
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 static inline void CopyBit(struct EwramData_EntityData *a, u32 b) { a->hidden = b; }
 void Object22FallingPart_Update(struct EwramData_EntityData *entity)
 {
@@ -326,7 +330,7 @@ void Object22FallingPart_Update(struct EwramData_EntityData *entity)
             entity->posY.whole = owner->posY.whole;
             entity->state++;
         }
-        Hit_CheckWithPlayer(buffer, entity);
+        Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
     }
     else if (entity->state == 1)
     {
@@ -342,7 +346,6 @@ void Object22FallingPart_Update(struct EwramData_EntityData *entity)
 }
 
 /* Object 0x22 helpers 0x08056F14..0x08057003. */
-void Object22Effect_Update(struct EwramData_EntityData *entity);
 
 /**
  * @brief 56F14 | Object 0x22 update.
@@ -356,7 +359,7 @@ void Object22Update(struct EwramData_EntityData *entity)
     if (entity->state == 0)
         Object22_UpdateState(entity);
     Anim_Update(entity);
-    Hit_CheckWithPlayer(collision, entity);
+    Hit_CheckWithPlayer((struct HitResult *)collision, entity);
 }
 
 /**
@@ -365,7 +368,7 @@ void Object22Update(struct EwramData_EntityData *entity)
  */
 void Object22_SpawnEffect(struct EwramData_EntityData *entity, s32 dx, s32 dy, u8 duration)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)Object22Effect_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Object22Effect_Update);
     s32 gfx;
 
     if (child != NULL)
@@ -380,7 +383,7 @@ void Object22_SpawnEffect(struct EwramData_EntityData *entity, s32 dx, s32 dy, u
         Anim_Update(child);
         child->timer = duration;
         child->scrollWithBg = 1;
-        child->drawFunc = (u32 *)Sprite_DrawEntity;
+        child->drawFunc = Sprite_DrawEntity;
     }
 }
 
@@ -428,11 +431,10 @@ u8 Object22_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 2);
     Sprite_Attach(entity, sObject22SpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
-extern u8 Object29_LoadGraphics(struct EwramData_EntityData *);
 void Object29Create(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
@@ -591,11 +593,10 @@ void Object29Update(struct EwramData_EntityData *entity)
     if (entity->state == 0)
         Object29_UpdateMovement(entity);
     Anim_Update(entity);
-    Hit_CheckWithPlayer(collision, entity);
+    Hit_CheckWithPlayer((struct HitResult *)collision, entity);
 }
 
 /* Object29_LoadGraphics (object 0x29 graphics). */
-extern void Object29_Draw(struct EwramData_EntityData *entity);
 
 /* Graphics per variant (spawnParam1): gfx, palette, animation; unk_D is the
  * palette argument of ObjPalette_FindOrLoadVariant. */
@@ -613,7 +614,7 @@ u8 Object29_LoadGraphics(struct EwramData_EntityData *entity)
     entity->basePalette = ObjPalette_FindOrLoadVariant(sObject29Variants[entity->spawnParam1].palette,
                                                       sObject29Variants[entity->spawnParam1].paletteIndex);
     Sprite_Attach(entity, sObject29Variants[entity->spawnParam1].sprites, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Object29_Draw;
+    entity->drawFunc = Object29_Draw;
     return 1;
 }
 
@@ -636,7 +637,6 @@ void Object29_Draw(struct EwramData_EntityData *entity)
     entity->posY.whole = oldY;
 }
 
-extern u8 Object2A_LoadGraphics(struct EwramData_EntityData *);
 void Object2ACreate(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
@@ -797,11 +797,10 @@ void Object2AUpdate(struct EwramData_EntityData *entity)
     if (entity->state == 0)
         Object2A_UpdateMovement(entity);
     Anim_Update(entity);
-    Hit_CheckWithPlayer(collision, entity);
+    Hit_CheckWithPlayer((struct HitResult *)collision, entity);
 }
 
 /* Object2A_LoadGraphics (object 0x2A graphics). */
-extern void Object2A_Draw(struct EwramData_EntityData *entity);
 
 /* Graphics per variant (spawnParam1): gfx, palette, animation; unk_D is the
  * palette argument of ObjPalette_FindOrLoadVariant. */
@@ -819,7 +818,7 @@ u8 Object2A_LoadGraphics(struct EwramData_EntityData *entity)
     entity->basePalette = ObjPalette_FindOrLoadVariant(sObject2AVariants[entity->spawnParam1].palette,
                                                       sObject2AVariants[entity->spawnParam1].paletteIndex);
     Sprite_Attach(entity, sObject2AVariants[entity->spawnParam1].sprites, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Object2A_Draw;
+    entity->drawFunc = Object2A_Draw;
     return 1;
 }
 

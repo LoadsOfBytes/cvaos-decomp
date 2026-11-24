@@ -8,6 +8,15 @@
 #include "core.h"
 #include "obj_gfx.h"
 #include "data/data_118B48.h"
+#include "player_soma.h"
+
+
+void PlayerDamageIndicator_Update(struct EwramData_EntityData *);
+void NumberIndicator_Format(struct EwramData_EntityData *, s32);
+void NumberIndicator_Draw(struct EwramData_EntityData *);
+void EntityDamageIndicator_Update(struct EwramData_EntityData *);
+void NumberWatch_Update(struct EwramData_EntityData *);
+void NumberIndicator_DrawCentered(struct EwramData_EntityData *entity);
 
 /* Small accessors (2A54, 2A6C). */
 /* Set byte index of the table at EWRAM 0x1307C. */
@@ -26,10 +35,6 @@ struct EntityBoxes *Hit_GetEntityBoxes(struct EwramData_EntityData *entity)
 }
 
 /* Damage/status indicator; palette and vertical position depend on kind. */
-extern s32 Player_GetOverheadY(void);
-extern void PlayerDamageIndicator_Update(struct EwramData_EntityData *);
-extern void NumberIndicator_Format(struct EwramData_EntityData *, s32);
-extern void NumberIndicator_Draw(struct EwramData_EntityData *);
 
 /**
  * @brief Create the localized player damage/healing indicator with kind-dependent position and palette; value zero in kind 0 selects frame 0x58.
@@ -37,7 +42,7 @@ extern void NumberIndicator_Draw(struct EwramData_EntityData *);
 void Player_ShowDamage(s32 value, u8 kind)
 {
     s32 useFrame = 0;
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)PlayerDamageIndicator_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, PlayerDamageIndicator_Update);
     s32 graphics, palette;
     entity->state = kind;
     switch (gEwramData->gameState.language)
@@ -67,11 +72,11 @@ void Player_ShowDamage(s32 value, u8 kind)
     if (useFrame == 0)
     {
         NumberIndicator_Format(entity, value);
-        entity->drawFunc = (u32 *)NumberIndicator_Draw;
+        entity->drawFunc = NumberIndicator_Draw;
     }
     else
     {
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->animFrame = 0x58;
     }
     entity->spriteLayer = 2;
@@ -79,12 +84,11 @@ void Player_ShowDamage(s32 value, u8 kind)
 }
 
 /* Damage/status indicator; palette and vertical position depend on kind. */
-extern void EntityDamageIndicator_Update(struct EwramData_EntityData *);
 
 void Entity_ShowDamage(struct EwramData_EntityData *owner, s32 value, u8 kind)
 {
     s32 useFrame = 0;
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)EntityDamageIndicator_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, EntityDamageIndicator_Update);
     u8 *sprite;
     s32 graphics, palette;
     entity->state = kind;
@@ -117,11 +121,11 @@ void Entity_ShowDamage(struct EwramData_EntityData *owner, s32 value, u8 kind)
     if (useFrame == 0)
     {
         NumberIndicator_Format(entity, value);
-        entity->drawFunc = (u32 *)NumberIndicator_Draw;
+        entity->drawFunc = NumberIndicator_Draw;
     }
     else
     {
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->animFrame = 0x58;
     }
     entity->spriteLayer = 2;
@@ -307,14 +311,13 @@ void NumberIndicator_DrawCentered(struct EwramData_EntityData *entity)
  * shown value. Token-identical expansion.
  */
 #define NUMBER_WATCH_LAST(e) ENTITY_WORD_510(e)
-extern void NumberWatch_Update(struct EwramData_EntityData *);
 
 /**
  * @brief Create a numeric display at fixed-point x/y watching a signed 8-, 16- or default 32-bit memory value with the supplied palette.
  */
 struct EwramData_EntityData *NumberWatch_Create(void *value, s32 x, s32 y, u8 palette, u8 bits)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)NumberWatch_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, NumberWatch_Update);
     s32 graphics = ObjGfx_Find(sCommonObjectGfx);
     Sprite_Attach(entity, sCommonObjectSpriteSheet, graphics, (s8)palette);
     entity->posX.whole = x;
@@ -328,7 +331,7 @@ struct EwramData_EntityData *NumberWatch_Create(void *value, s32 x, s32 y, u8 pa
         NUMBER_WATCH_LAST(entity) = *(s32 *)value;
     entity->ext.numberIndicator.watchAddress = (s32)value;
     NumberIndicator_Format(entity, NUMBER_WATCH_LAST(entity));
-    entity->drawFunc = (u32 *)NumberIndicator_Draw;
+    entity->drawFunc = NumberIndicator_Draw;
     entity->spriteLayer = 2;
     return entity;
 }
@@ -386,7 +389,6 @@ void NumberIndicator_Draw(struct EwramData_EntityData *entity)
 
 /* HUD HP number: the smoothed HUD HP value last shown. Token-identical. */
 #define HUD_HP_SHOWN(e) ENTITY_WORD_510(e)
-void NumberIndicator_DrawCentered(struct EwramData_EntityData *entity);
 
 /**
  * @brief Set the existing entity flag and reformat the number when the smoothed HUD HP value changes.
@@ -408,7 +410,7 @@ void HudHPNumber_Update(struct EwramData_EntityData *entity)
  */
 void HudHPNumber_Create(void)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x16, 0x19, (u32 *)HudHPNumber_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(0x16, 0x19, HudHPNumber_Update);
     s32 gfx;
     s32 value;
 
@@ -417,7 +419,7 @@ void HudHPNumber_Create(void)
     value = gEwramData->gameState.hudHP;
     HUD_HP_SHOWN(entity) = value;
     NumberIndicator_Format(entity, value);
-    entity->drawFunc = (u32 *)NumberIndicator_DrawCentered;
+    entity->drawFunc = NumberIndicator_DrawCentered;
     entity->spriteLayer = 0;
     entity->posX.part16.integer = 0x12;
     entity->posY.part16.integer = 0xA;

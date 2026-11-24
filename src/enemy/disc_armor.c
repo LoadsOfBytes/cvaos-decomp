@@ -23,12 +23,18 @@
 #include "effects.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "sound.h"
 
-extern void PlaySong(s32);
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, u8, void *);
+extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
+
+void DiscArmorRing_Draw(struct EwramData_EntityData *);
+void DiscArmorDisc_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void DiscArmor_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+
 /* from sound.h (not included: see the module notes) */
 
 /* Disc Armor disc projectile (uses the Disc Armor graphics of EnemyDiscArmorCreate). */
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, u8, void *);
 
 /* State 0 loads graphics, starts the animation selected by unk_4F8 and sets
  * spriteLayer = 0x12 and scrollWithBg.  Every frame (including the first) it then
@@ -55,7 +61,6 @@ void DiscArmorSpark_Update(struct EwramData_EntityData *entity)
 }
 
 /* Disc Armor disc ring. */
-extern void DiscArmorRing_Draw(struct EwramData_EntityData *);
 
 /**
  * @brief B14B4 | Disc Armor disc ring effect.  State 0 loads the disc graphics,
@@ -79,7 +84,7 @@ void DiscArmorRing_Update(struct EwramData_EntityData *entity)
 
             if ((s16)matrix >= 0)
             {
-                entity->drawFunc = (u32 *)DiscArmorRing_Draw;
+                entity->drawFunc = DiscArmorRing_Draw;
                 entity->affineIndex = matrix;
                 entity->affine = 1;
                 entity->spriteLayer = 0x14;
@@ -154,8 +159,6 @@ s32 DiscArmorRing_Aim(struct EwramData_EntityData *disc, struct EwramData_Entity
 }
 
 /* Disc Armor thrown disc. */
-extern void Afterimage_Create(struct EwramData_EntityData *, s32, s32, s32);
-extern void DiscArmorDisc_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 
 #define ABS_DIFF(a, b) ((a) - (b) < 0 ? (b) - (a) : (a) - (b))
 
@@ -173,7 +176,7 @@ static inline void SpawnSpark(struct EwramData_EntityData *entity, u8 type)
     s32 x = (s16)entity->posX.part16.integer;
     s32 y = (s16)(entity->posY.part16.integer + 16);
     s32 flip = entity->flipX;
-    struct EwramData_EntityData *spark = EntityCreateInRange(0x49, 0xCF, (u32 *)DiscArmorSpark_Update);
+    struct EwramData_EntityData *spark = EntityCreateInRange(0x49, 0xCF, DiscArmorSpark_Update);
 
     if (spark != NULL)
     {
@@ -232,7 +235,7 @@ void DiscArmorDisc_Update(struct EwramData_EntityData *entity)
         }
     }
 run:
-    Hit_CheckWithPlayer(&hit, (u8 *)entity);
+    Hit_CheckWithPlayer(&hit, entity);
     if (gEwramData->gameState.timeStopTimer != 0)
         return;
 
@@ -525,8 +528,6 @@ run:
     ObjAffine_Set(entity->ext.discArmorDisc.angle, 0x10000, 0x10000, 0, 0, entity->affineIndex);
 }
 
-extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *entity);
-
 static inline s32 WalkSpeed(s32 frame, s32 base) { return (frame << 13) + base; }
 void DiscArmor_UpdateWalk(struct EwramData_EntityData *entity)
 {
@@ -592,7 +593,6 @@ void DiscArmor_UpdateWalk(struct EwramData_EntityData *entity)
 }
 
 /* Disc Armor throw. */
-extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
 
 /**
  * @brief B205C | Disc Armor throw (attack state).  State 0 faces the player,
@@ -709,10 +709,6 @@ s32 DiscArmor_UpdateDeath(struct EwramData_EntityData *entity)
     return 0;
 }
 
-extern void Entity_EnableBoxes(struct EwramData_EntityData *, void *, void *);
-extern void Enemy_OnContact(void);
-void DiscArmor_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-
 void EnemyDiscArmorCreate(struct EwramData_EntityData *entity)
 {
     if (!Entity_LoadGraphics(entity, sDiscArmorGfx, sDiscArmorPalette, 0, sDiscArmorSpriteSheet))
@@ -759,12 +755,11 @@ void EnemyDiscArmorUpdate(struct EwramData_EntityData *entity)
         break;
     case 3: Anim_Update(entity); return;
     }
-    if (entity->state != 2) Hit_CheckWithPlayer((struct HitResult *)box, (u8 *)entity);
+    if (entity->state != 2) Hit_CheckWithPlayer((struct HitResult *)box, entity);
     Entity_AnimateWithBoxes(entity);
 }
 
 /* DiscArmor_OnHit. */
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 /**
  * @brief B2370 | Hit: Entity_FaceTarget in state 0; when killed (Enemy_TakeDamage),

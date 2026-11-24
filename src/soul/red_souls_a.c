@@ -26,6 +26,8 @@
 #include "data/data_118B48.h"
 #include "data/data_4F0B18.h"
 #include "data/data_0E0B68.h"
+#include "math_inline.h"
+#include "soul_skill_inline.h"
 
 /* Red soul skill parameters (sUnk_084F12C8, 0x18 bytes, indexed by the
  * soul's parameter). */
@@ -45,6 +47,8 @@ struct RedSoulShotInfo {
 
 extern struct RedSoulShotInfo sUnk_084F12C8[];
 #define CONTEXT ((struct PlayerState *)((u8 *)gEwramData + OFFSET_OF(struct EwramData, playerState)))
+
+extern s32 Collision_FindWaterSurfaceOffset(s32, s32);
 
 static inline u8 Enable(u8 value) { return value | 4; }
 /* Student Witch soul projectile: fall, slide, wait after collision, then
@@ -71,7 +75,7 @@ void SkillStudentWitchUse(struct EwramData_EntityData *entity)
             animation = (u32)animation << 16;
             Anim_StartIndexed(entity, animation >> 16, 0, 1);
             entity->spriteLayer = 13;
-            entity->drawFunc = (u32 *)Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             Entity_PlaceRelativeTo(entity, parent, 8, -26);
             entity->accelY.whole = 0x2000;
             entity->velY.whole = 0;
@@ -134,13 +138,13 @@ void BoneSoul_SpawnShatterDebris(struct EwramData_EntityData *owner)
     s32 i;
     for (i = 0; i <= 3; i++)
     {
-        struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateBallisticDebris);
+        struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, Effect_UpdateBallisticDebris);
         s32 graphics, offset;
         if (entity == NULL)
             return;
         graphics = ObjGfx_Find(sCommonObjectGfx);
         Sprite_Attach(entity, sCommonObjectSpriteSheet, graphics, 6);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->spriteLayer = 0xD;
         entity->animFrame = (RandomNumberGenerator() & 1) + 0x40;
         offset = (RandomNumberGenerator() & 7) - 4;
@@ -185,13 +189,13 @@ struct EffectPoint { s16 x, y; };
 void BoneSoul_SpawnFlyingEffect(struct EwramData_EntityData *owner)
 {
     struct RedSoulShotInfo *info = &sUnk_084F12C8[(u16)owner->ext.redSoul.param];
-    struct EwramData_EntityData *entity = RedSoul_CreateEntity(owner, (u32 *)BoneSoulEffect_Update);
+    struct EwramData_EntityData *entity = RedSoul_CreateEntity(owner, BoneSoulEffect_Update);
     struct EffectPoint point;
     if (entity != NULL)
     {
         Sprite_GetPartCornerOffset(owner, 1, &point.x);
         Sprite_Attach(entity, sSkillGraphicsSets[info->graphicsIndex].spriteSheet, gEwramData->playerState.redSoulGfx, 2);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->spriteLayer = 13;
         entity->flipX = owner->flipX;
         entity->posX.part16.integer = owner->posX.part16.integer + point.x / 2;
@@ -204,51 +208,21 @@ void BoneSoul_SpawnFlyingEffect(struct EwramData_EntityData *owner)
 
 /* Skeleton-family red soul (bone throw and variants), driven by sUnk_084F12C8. */
 
-extern void Effect_SpawnParticleTemplateList(s16 x, s16 y, s32 index);
-
-static inline void SkillLoadGraphicsInline(struct EwramData_EntityData *entity, u8 paletteSlot, void *gfxSrc, void *palette, void *sheet)
-{
-    gEwramData->playerState.redSoulGfx = ObjGfx_LoadResource(gfxSrc, 0x10000);
-    ObjPalette_LoadRange(palette, paletteSlot, 1, 2);
-    Sprite_Attach(entity, sheet, gEwramData->playerState.redSoulGfx, 2);
-}
-
-static inline struct SoulGraphicsResources *GetSet(s32 index)
-{
-    return &sSkillGraphicsSets[index];
-}
-
-static inline void SetFrameBox(struct EwramData_EntityData *entity)
-{
-    u8 *spriteSlot = &entity->spriteSlot;
-    struct SpriteBox *boxes = gEwramData->spriteSlots[*spriteSlot].sheet->frames[entity->animFrame].boxes;
-
-    if (boxes != NULL)
-    {
-        entity->hit.flags &= ~2;
-        HitBox_SetAttack(entity, boxes);
-    }
-    else
-    {
-        entity->hit.flags |= 2;
-    }
-}
-
 static inline struct EwramData_EntityData *SpawnBone(s32 x, s32 y, u8 frame)
 {
-    struct EwramData_EntityData *bone = EntityCreateInRange(0x49, 0xCF, (u32 *)SoulBoneFragment_Update);
+    struct EwramData_EntityData *bone = EntityCreateInRange(0x49, 0xCF, SoulBoneFragment_Update);
 
     if (bone == NULL)
         return NULL;
     {
-        struct SoulGraphicsResources *t = GetSet(17);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(17);
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(bone, 0, gfx, pal, oam);
+        Skill_AttachGraphics(bone, 0, gfx, pal, oam);
     }
     bone->animFrame = frame;
-    bone->drawFunc = (u32 *)Sprite_DrawEntity;
+    bone->drawFunc = Sprite_DrawEntity;
     bone->spriteLayer = 0xD;
     bone->posX.whole = x;
     bone->posY.whole = y;
@@ -266,12 +240,12 @@ void Skill_Skeleton_ZombieSoldier_RockArmor_WaiterSkeleton_GiantSkeleton_BomberA
     {
     case 0:
     {
-        struct SoulGraphicsResources *t = GetSet(info->graphicsIndex);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(info->graphicsIndex);
         u8 palette = info->param;
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(entity, palette, gfx, pal, oam);
+        Skill_AttachGraphics(entity, palette, gfx, pal, oam);
     }
         Entity_PlaceRelativeTo(entity, parent, 8, -0x1A);
         if (info->flags & 0x80)
@@ -296,7 +270,7 @@ void Skill_Skeleton_ZombieSoldier_RockArmor_WaiterSkeleton_GiantSkeleton_BomberA
             Anim_StartIndexed(entity, info->animation, 0, 1);
         else
             entity->animFrame = info->frame;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->spriteLayer = 0xD;
     {
         s32 vx = info->velX;
@@ -317,7 +291,7 @@ void Skill_Skeleton_ZombieSoldier_RockArmor_WaiterSkeleton_GiantSkeleton_BomberA
             entity->timer = 0x50;
         }
         else if (info->flags & 0x200)
-            SetFrameBox(entity);
+            Skill_SetFrameHitBox(entity);
         else
             HitBox_SetAttackRaw(entity, 0x1010F8F8);
         entity->hit.flags |= 4;
@@ -415,15 +389,15 @@ void Skill_Skeleton_ZombieSoldier_RockArmor_WaiterSkeleton_GiantSkeleton_BomberA
                 s32 x = entity->posX.whole;
                 s32 y = entity->posY.whole;
 
-                fx = EntityCreateInRange(0x49, 0xCF, (u32 *)RedSoulEffect_UpdateAccelerated);
+                fx = EntityCreateInRange(0x49, 0xCF, RedSoulEffect_UpdateAccelerated);
                 if (fx != NULL)
                 {
                     {
-                        struct SoulGraphicsResources *t = GetSet(17);
+                        struct SoulGraphicsResources *t = SkillGraphics_GetSet(17);
                         void *gfx = t->graphics;
                         void *pal = t->palette;
                         void *oam = t->spriteSheet;
-                        SkillLoadGraphicsInline(fx, 0, gfx, pal, oam);
+                        Skill_AttachGraphics(fx, 0, gfx, pal, oam);
                     }
                     Anim_StartIndexed(fx, 2, 0, 0);
                     fx->spriteLayer = 0xD;
@@ -549,11 +523,11 @@ void SkillWingedSkeletonUse(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        struct SoulGraphicsResources *t = GetSet(0);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(0);
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+        Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         entity->animFrame = 0;
         slot = ObjAffine_Alloc(0);
@@ -563,11 +537,11 @@ void SkillWingedSkeletonUse(struct EwramData_EntityData *entity)
             EntityDelete(entity);
             return;
         }
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->affineIndex = slot;
         entity->affine = 1;
     {
-        struct EwramData_EntityData *child = RedSoul_CreateEntity(entity, (u32 *)SkillWingedSkeletonHitBoxUpdate);
+        struct EwramData_EntityData *child = RedSoul_CreateEntity(entity, SkillWingedSkeletonHitBoxUpdate);
         if (child == NULL)
         {
             ObjAffine_Free(entity->affineIndex);
@@ -681,28 +655,28 @@ void SkillSirenUse(struct EwramData_EntityData *entity)
         if ((u16)entity->ext.redSoul.param == 0)
         {
             {
-                struct SoulGraphicsResources *t = GetSet(0);
+                struct SoulGraphicsResources *t = SkillGraphics_GetSet(0);
                 void *gfx = t->graphics;
                 void *pal = t->palette;
                 void *oam = t->spriteSheet;
-                SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+                Skill_AttachGraphics(entity, 0, gfx, pal, oam);
             }
             entity->animFrame = note + 2;
         }
         else
         {
             {
-                struct SoulGraphicsResources *t = GetSet(7);
+                struct SoulGraphicsResources *t = SkillGraphics_GetSet(7);
                 void *gfx = t->graphics;
                 void *pal = t->palette;
                 void *oam = t->spriteSheet;
-                SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+                Skill_AttachGraphics(entity, 0, gfx, pal, oam);
             }
             entity->animFrame = note + 4;
             entity->accelX.whole = 0x800;
         }
         PlaySong(sSkillSirenNotes[note]);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         Entity_PlaceRelativeTo(entity, entity->ext.redSoul.owner, 8, -0x1A);
         entity->spriteLayer = 0xD;
         entity->scrollWithBg = 1;
@@ -770,14 +744,14 @@ void SkillUneUse(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        struct SoulGraphicsResources *t = GetSet(0);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(0);
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+        Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         Anim_StartIndexed(entity, 3, 0, 1);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         Entity_PlaceRelativeTo(entity, parent, 8, -0x1A);
         entity->ext.skillWalker.speed = 0xA000;
         entity->velY.whole = -0x18000;
@@ -796,7 +770,7 @@ void SkillUneUse(struct EwramData_EntityData *entity)
         if (!(result & 8))
             break;
         PlaySong(0xE0);
-        SetFrameBox(entity);
+        Skill_SetFrameHitBox(entity);
         entity->hit.flags &= ~2;
         entity->state = 2;
         entity->timer = 0x80;
@@ -811,7 +785,7 @@ void SkillUneUse(struct EwramData_EntityData *entity)
         }
         break;
     case 3:
-        SetFrameBox(entity);
+        Skill_SetFrameHitBox(entity);
         if (entity->animFlags & 4)
             entity->state = 4;
         break;
@@ -912,11 +886,11 @@ void SkillRedMinotaurUse(struct EwramData_EntityData *entity)
     case 0:
         zero = 0;
     {
-        struct SoulGraphicsResources *t = GetSet(5);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(5);
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+        Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         entity->animFrame = zero;
         slot = ObjAffine_Alloc(0);
@@ -926,7 +900,7 @@ void SkillRedMinotaurUse(struct EwramData_EntityData *entity)
             EntityDelete(entity);
             return;
         }
-        child = RedSoul_CreateEntity(entity, (u32 *)SkillRedMinotaurHitBoxUpdate);
+        child = RedSoul_CreateEntity(entity, SkillRedMinotaurHitBoxUpdate);
         if (child == NULL)
         {
             ObjAffine_Free(entity->affineIndex);
@@ -934,7 +908,7 @@ void SkillRedMinotaurUse(struct EwramData_EntityData *entity)
             EntityDelete(entity);
             return;
         }
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->spriteLayer = 0xD;
         entity->affineIndex = slot;
         entity->affine = 1;
@@ -1010,14 +984,14 @@ void SkillBatUse(struct EwramData_EntityData *entity)
     if (entity->state == 0)
     {
         {
-            struct SoulGraphicsResources *t = GetSet(3);
+            struct SoulGraphicsResources *t = SkillGraphics_GetSet(3);
             void *gfx = t->graphics;
             void *pal = t->palette;
             void *oam = t->spriteSheet;
-            SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+            Skill_AttachGraphics(entity, 0, gfx, pal, oam);
         }
         Anim_StartIndexed(entity, 0, 0, 0);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->spriteLayer = 0xD;
         Entity_PlaceRelativeTo(entity, parent, 0, -0x1A);
         entity->scrollWithBg = 1;
@@ -1037,7 +1011,7 @@ void SkillBatUse(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    SetFrameBox(entity);
+    Skill_SetFrameHitBox(entity);
 }
 
 /**
@@ -1054,14 +1028,14 @@ void SkillMermanProjectileUpdate(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        struct SoulGraphicsResources *t = GetSet(0);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(0);
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+        Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         Anim_StartIndexed(entity, 6, 0, 1);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->spriteLayer = 0xD;
         Hit_Enable(entity, 5, 0, 0);
         HitBox_SetAttackRaw(entity, 0x1010F8F8);
@@ -1074,7 +1048,7 @@ void SkillMermanProjectileUpdate(struct EwramData_EntityData *entity)
         {
             if (entity->timer == entity->subState)
             {
-                child = EntityCreateInRange(0x49, 0xCF, (u32 *)SkillMermanDropletUpdate);
+                child = EntityCreateInRange(0x49, 0xCF, SkillMermanDropletUpdate);
                 if (child != NULL)
                 {
                     child->scrollWithBg = 1;
@@ -1133,14 +1107,14 @@ void SkillMermanUse(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        struct SoulGraphicsResources *t = GetSet(0);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(0);
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+        Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         Anim_StartIndexed(entity, 0, 0, 0);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->spriteLayer = 0xD;
         entity->scrollWithBg = 1;
         Hit_SetTimerOverride(1, 30);
@@ -1150,7 +1124,7 @@ void SkillMermanUse(struct EwramData_EntityData *entity)
         entity->state++;
         for (i = 0; i <= 4; i++)
         {
-            child = RedSoul_CreateEntity(entity, (u32 *)SkillMermanProjectileUpdate);
+            child = RedSoul_CreateEntity(entity, SkillMermanProjectileUpdate);
             if (child == NULL)
                 continue;
             child->posX.whole = entity->posX.whole;
@@ -1192,11 +1166,11 @@ void SkillDiscArmorScaledSpriteUpdate(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        struct SoulGraphicsResources *t = GetSet(7);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(7);
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+        Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         slot = ObjAffine_Alloc(0);
         if ((s16)slot < 0)
@@ -1207,7 +1181,7 @@ void SkillDiscArmorScaledSpriteUpdate(struct EwramData_EntityData *entity)
             return;
         }
         entity->animFrame = 2;
-        entity->drawFunc = (u32 *)Entity_DrawWithVelocityCopies;
+        entity->drawFunc = Entity_DrawWithVelocityCopies;
         entity->spriteLayer = 0xD;
         entity->affineIndex = slot;
         entity->affine = 1;
@@ -1260,11 +1234,11 @@ void SkillDiscArmorUse(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        struct SoulGraphicsResources *t = GetSet(7);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(7);
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+        Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         entity->animFrame = 1;
         slot = ObjAffine_Alloc(0);
@@ -1275,7 +1249,7 @@ void SkillDiscArmorUse(struct EwramData_EntityData *entity)
             return;
         }
         entity->scrollWithBg = 1;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->spriteLayer = 0xD;
         entity->affineIndex = slot;
         entity->affine = 1;
@@ -1295,7 +1269,7 @@ void SkillDiscArmorUse(struct EwramData_EntityData *entity)
         entity->state = 1;
         PlaySong(0xD4);
         gEwramData->playerState.nbrActiveRedSoulEntities++;
-        RedSoul_CreateEntity(entity, (u32 *)SkillDiscArmorScaledSpriteUpdate);
+        RedSoul_CreateEntity(entity, SkillDiscArmorScaledSpriteUpdate);
     case 1:
         entity->accelX.whole = parent->posX.whole;
         entity->accelY.whole = parent->posY.whole - 0x180000;
@@ -1342,15 +1316,15 @@ void Skill_Werejaguar_Weretiger_Use(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        struct SoulGraphicsResources *t = GetSet(8);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(8);
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+        Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         Anim_StartIndexed(entity, entity->ext.redSoul.param, 0, 0);
         entity->spriteLayer = 0xE;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->scrollWithBg = 1;
         Hit_SetTimerOverride(1, 15);
         Hit_Enable(entity, 5, 0, 0);
@@ -1375,7 +1349,7 @@ void Skill_Werejaguar_Weretiger_Use(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    SetFrameBox(entity);
+    Skill_SetFrameHitBox(entity);
 }
 
 /**
@@ -1396,15 +1370,15 @@ void SkillLightningDollUse(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        struct SoulGraphicsResources *t = GetSet(9);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(9);
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+        Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         Anim_StartIndexed(entity, 0, 0, 0);
         entity->spriteLayer = 0xE;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->scrollWithBg = 1;
         Hit_SetTimerOverride(1, 10);
         Hit_Enable(entity, 5, 0, 0);
@@ -1469,15 +1443,15 @@ void SkillAltairUse(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        struct SoulGraphicsResources *t = GetSet(10);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(10);
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+        Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         Anim_StartIndexed(entity, 1, 0, 0);
         entity->spriteLayer = 0xD;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         Hit_SetTimerOverride(1, 30);
         Entity_PlaceRelativeTo(entity, parent, 0x14, -0x1A);
         entity->flipX ^= 1;
@@ -1532,8 +1506,6 @@ void SkillAltairUse(struct EwramData_EntityData *entity)
     Anim_Update(entity);
 }
 
-extern s32 Collision_FindWaterSurfaceOffset(s32, s32);
-
 static inline struct EwramData_EntityData *NearestTarget(struct EwramData_EntityData *entity)
 {
     u32 bestDistance = -1;
@@ -1569,15 +1541,15 @@ void SkillKillerFishUse(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        struct SoulGraphicsResources *t = GetSet(11);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(11);
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+        Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         Anim_StartIndexed(entity, 1, 0, 0);
         entity->spriteLayer = 0xD;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         Hit_SetTimerOverride(1, 30);
         Entity_PlaceRelativeTo(entity, parent, 0x14, -0xC);
         entity->flipX ^= 1;
@@ -1764,15 +1736,15 @@ void SkillNeedlesUse(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        struct SoulGraphicsResources *t = GetSet(12);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(12);
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+        Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         Anim_StartIndexed(entity, 0, 0, 1);
         entity->spriteLayer = 0xD;
-        entity->drawFunc = (u32 *)SkillNeedlesDraw;
+        entity->drawFunc = SkillNeedlesDraw;
         Hit_SetTimerOverride(1, 15);
         Entity_PlaceRelativeTo(entity, parent, 0x14, -0x1A);
         entity->scrollWithBg = 1;
@@ -1848,15 +1820,15 @@ void SkillDryadUse(struct EwramData_EntityData *entity)
     case 0:
         zero = 0;
     {
-        struct SoulGraphicsResources *t = GetSet(13);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(13);
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+        Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         entity->animFrame = zero;
         entity->spriteLayer = 0xD;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->scrollWithBg = 1;
         entity->roomActive = 1;
         Hit_SetTimerOverride(1, 20);
@@ -1945,15 +1917,15 @@ void SkillWerewolfUse(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        struct SoulGraphicsResources *t = GetSet(14);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(14);
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+        Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         Anim_StartIndexed(entity, 0, 0, 0);
         entity->spriteLayer = 0xD;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->scrollWithBg = 1;
         gEwramData->playerState.nbrActiveRedSoulEntities++;
         Entity_PlaceRelativeTo(entity, parent, 0x14, -0xA);
@@ -1978,7 +1950,7 @@ void SkillWerewolfUse(struct EwramData_EntityData *entity)
             EntityDelete(entity);
             break;
         }
-        SetFrameBox(entity);
+        Skill_SetFrameHitBox(entity);
         break;
     }
 }
@@ -2000,15 +1972,15 @@ void SkillBiphronAttackUpdate(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        struct SoulGraphicsResources *t = GetSet(15);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(15);
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+        Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         Anim_StartIndexed(entity, 0, 0, 0);
         entity->spriteLayer = 0xF;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         Hit_Enable(entity, 5, 0, 0);
         entity->hit.flags = (entity->hit.flags | 4) & ~2;
         PlaySong(0xD9);
@@ -2021,7 +1993,7 @@ void SkillBiphronAttackUpdate(struct EwramData_EntityData *entity)
             EntityDelete(entity);
             return;
         }
-        SetFrameBox(entity);
+        Skill_SetFrameHitBox(entity);
     }
 }
 
@@ -2042,11 +2014,11 @@ void SkillBiphronUse(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        struct SoulGraphicsResources *t = GetSet(15);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(15);
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+        Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         entity->scrollWithBg = 1;
         gEwramData->playerState.nbrActiveRedSoulEntities++;
@@ -2070,7 +2042,7 @@ void SkillBiphronUse(struct EwramData_EntityData *entity)
             entity->flipX ^= 1;
         if (!(entity->timer & 7))
         {
-            child = RedSoul_CreateEntity(entity, (u32 *)SkillBiphronAttackUpdate);
+            child = RedSoul_CreateEntity(entity, SkillBiphronAttackUpdate);
             if (child != NULL)
             {
                 child->posX.whole = entity->posX.whole;
@@ -2108,14 +2080,14 @@ void SkillBeamSkeletonUse(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        struct SoulGraphicsResources *t = GetSet(19);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(19);
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+        Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         Anim_StartIndexed(entity, 0, 0, 0);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->spriteLayer = 0xD;
         entity->scrollWithBg = 1;
         Hit_SetTimerOverride(1, 16);
@@ -2137,7 +2109,7 @@ void SkillBeamSkeletonUse(struct EwramData_EntityData *entity)
             Sound_PlayTracked(0xCE);
         if (Anim_Update(entity) == 3)
             entity->state = 2;
-        SetFrameBox(entity);
+        Skill_SetFrameHitBox(entity);
         break;
     case 2:
         Sound_StopTracked(0xCE);
@@ -2164,14 +2136,14 @@ void SkillSkullArcherArrowUpdate(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        struct SoulGraphicsResources *t = GetSet(18);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(18);
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+        Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         entity->animFrame = 1;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->spriteLayer = 0xD;
         Hit_Enable(entity, 5, RedSoul_AnchorToHitTarget, 0);
         HitBox_SetAttackRaw(entity, 0x0202FF08);
@@ -2232,14 +2204,14 @@ void SkillSkullArcherUse(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        struct SoulGraphicsResources *t = GetSet(18);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(18);
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+        Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         Anim_StartIndexed(entity, 0, 0, 0);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->spriteLayer = 0xD;
         entity->scrollWithBg = 1;
         Entity_PlaceRelativeTo(entity, parent, -0xC, -0x18);
@@ -2249,7 +2221,7 @@ void SkillSkullArcherUse(struct EwramData_EntityData *entity)
     case 1:
         if (*(u16 *)&entity->animStep == 0xE)
         {
-            struct EwramData_EntityData *child = RedSoul_CreateEntity(entity, (u32 *)SkillSkullArcherArrowUpdate);
+            struct EwramData_EntityData *child = RedSoul_CreateEntity(entity, SkillSkullArcherArrowUpdate);
             if (child != NULL)
                 Entity_PlaceRelativeTo(child, entity, 0, 0);
         }
@@ -2285,14 +2257,14 @@ void SkillArachneUse(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        struct SoulGraphicsResources *t = GetSet(info->graphicsIndex);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(info->graphicsIndex);
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+        Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         Anim_StartIndexed(entity, info->animation, 0, info->param);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->scrollWithBg = 1;
         Entity_PlaceRelativeTo(entity, parent, 8, -0x1A);
     {
@@ -2313,7 +2285,7 @@ void SkillArachneUse(struct EwramData_EntityData *entity)
     case 1:
         EntityAccelerateAndMove(entity, 0x80000);
         Anim_Update(entity);
-        SetFrameBox(entity);
+        Skill_SetFrameHitBox(entity);
         if (entity->ext.redSoul.anchor == NULL)
             break;
         if (!(info->flags & 0x100))
@@ -2384,7 +2356,7 @@ void SkillArachneUse(struct EwramData_EntityData *entity)
 }
 
 /* SkillFlameDemonProjectileUpdate; graphics
- * loading as SkillLoadGraphicsInline in src/player/player_core.c. */
+ * loading as Skill_LoadGraphics in src/player/player_core.c. */
 
 /**
  * @brief Child of SkillFlameDemonUse: projectile (graphics set 17,
@@ -2397,14 +2369,14 @@ void SkillFlameDemonProjectileUpdate(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        struct SoulGraphicsResources *t = GetSet(17);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(17);
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+        Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         Anim_StartIndexed(entity, 3, 0, 1);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->spriteLayer = 0xD;
         Hit_Enable(entity, 5, SoulAttack_MarkHit, 0);
         HitBox_SetAttackRaw(entity, 0x1010F8F8);
@@ -2442,11 +2414,11 @@ void SkillFlameDemonUse(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        struct SoulGraphicsResources *t = GetSet(17);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(17);
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+        Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         entity->scrollWithBg = 1;
         Entity_PlaceRelativeTo(entity, parent, 8, -0x10);
@@ -2461,7 +2433,7 @@ void SkillFlameDemonUse(struct EwramData_EntityData *entity)
         entity->velY.whole = 0x1000 / n;
         for (i = 0; i < n; i++)
         {
-            child = RedSoul_CreateEntity(entity, (u32 *)SkillFlameDemonProjectileUpdate);
+            child = RedSoul_CreateEntity(entity, SkillFlameDemonProjectileUpdate);
             if (child == NULL)
                 break;
             Entity_PlaceRelativeTo(child, entity, 0, 0);
@@ -2501,14 +2473,14 @@ void SkillCockatriceEffectUpdate(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        struct SoulGraphicsResources *t = GetSet(27);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(27);
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+        Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         Anim_StartIndexed(entity, 0, 0, 0);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->spriteLayer = 0xD;
         entity->state++;
     case 1:
@@ -2558,15 +2530,15 @@ void SkillCockatriceUse(struct EwramData_EntityData *entity)
         entity->affineIndex = slot;
         entity->affine = 1;
     {
-        struct SoulGraphicsResources *t = GetSet(27);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(27);
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+        Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         entity->scrollWithBg = 1;
         entity->animFrame = 1;
-        entity->drawFunc = (u32 *)SkillCockatriceDraw;
+        entity->drawFunc = SkillCockatriceDraw;
         entity->spriteLayer = 0xD;
         SKILL_COCKATRICE_ANGLE(entity) = 0x2800;
         SKILL_COCKATRICE_TURN(entity) = -0x40;
@@ -2586,7 +2558,7 @@ void SkillCockatriceUse(struct EwramData_EntityData *entity)
         Sound_PlayTracked(0xCD);
         entity->timer = 0x20;
         entity->state++;
-        RedSoul_CreateEntity(entity, (u32 *)SkillCockatriceEffectUpdate);
+        RedSoul_CreateEntity(entity, SkillCockatriceEffectUpdate);
     case 1:
         entity->ext.skillCockatrice.scaleY = Sin(entity->timer << 10);
         SKILL_COCKATRICE_ANGLE(entity) += SKILL_COCKATRICE_TURN(entity);
@@ -2643,13 +2615,13 @@ void SkillFleamanUse(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        struct SoulGraphicsResources *t = GetSet(20);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(20);
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+        Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->spriteLayer = 0xD;
         entity->scrollWithBg = 1;
         Entity_PlaceRelativeTo(entity, parent, 8, -0x1A);
@@ -2723,16 +2695,11 @@ void SkillFleamanUse(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    SetFrameBox(entity);
+    Skill_SetFrameHitBox(entity);
 }
 
 /* SkillTinyDevilUpdate: homing bat of SkillTinyDevilUse; matched.
  * Case 2 uses its own target variable (otherwise the case 1 one lives across calls). */
-
-static inline s32 FixedMul(s32 a, s32 b)
-{
-    return (a >> 8) * (b >> 8);
-}
 
 /* Homing bat of SkillTinyDevilUse: when the animation ends it targets
  * selectedTarget or a random non-empty entry of trackedEntities and turns towards it
@@ -2750,14 +2717,14 @@ void SkillTinyDevilUpdate(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        struct SoulGraphicsResources *set = GetSet(21);
+        struct SoulGraphicsResources *set = SkillGraphics_GetSet(21);
         void *gfx = set->graphics;
         void *pal = set->palette;
         void *oam = set->spriteSheet;
-        SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+        Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         Anim_StartIndexed(entity, 0, 0, 0);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->spriteLayer = 0xD;
         entity->state = 1;
     case 1:
@@ -2828,8 +2795,8 @@ void SkillTinyDevilUpdate(struct EwramData_EntityData *entity)
                 angle -= 0x100;
         }
         SKILL_TINY_DEVIL_HEADING(entity) = angle;
-        entity->velX.whole = FixedMul(Sin((s16)SKILL_TINY_DEVIL_HEADING(entity) + 0x4000), entity->ext.skillHoming.speed);
-        entity->velY.whole = FixedMul(Sin((s16)SKILL_TINY_DEVIL_HEADING(entity)), entity->ext.skillHoming.speed);
+        entity->velX.whole = FixedMulFast(Sin((s16)SKILL_TINY_DEVIL_HEADING(entity) + 0x4000), entity->ext.skillHoming.speed);
+        entity->velY.whole = FixedMulFast(Sin((s16)SKILL_TINY_DEVIL_HEADING(entity)), entity->ext.skillHoming.speed);
         EntityAccelerateAndMove(entity, 0x80000);
         timer = entity->timer - 1;
         entity->timer = timer;
@@ -2839,8 +2806,8 @@ void SkillTinyDevilUpdate(struct EwramData_EntityData *entity)
     case 3:
         if (entity->ext.skillHoming.speed <= 0x4FFFF)
             entity->ext.skillHoming.speed += 0x4000;
-        entity->velX.whole = FixedMul(Sin((s16)SKILL_TINY_DEVIL_HEADING(entity) + 0x4000), entity->ext.skillHoming.speed);
-        entity->velY.whole = FixedMul(Sin((s16)SKILL_TINY_DEVIL_HEADING(entity)), entity->ext.skillHoming.speed);
+        entity->velX.whole = FixedMulFast(Sin((s16)SKILL_TINY_DEVIL_HEADING(entity) + 0x4000), entity->ext.skillHoming.speed);
+        entity->velY.whole = FixedMulFast(Sin((s16)SKILL_TINY_DEVIL_HEADING(entity)), entity->ext.skillHoming.speed);
         EntityAccelerateAndMove(entity, 0x80000);
         break;
     case 4:
@@ -2881,11 +2848,11 @@ void SkillTinyDevilUse(struct EwramData_EntityData *entity)
     {
     case 0:
     {
-        struct SoulGraphicsResources *t = GetSet(21);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(21);
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+        Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         entity->scrollWithBg = 1;
         Entity_PlaceRelativeTo(entity, parent, 8, -0x1A);
@@ -2894,7 +2861,7 @@ void SkillTinyDevilUse(struct EwramData_EntityData *entity)
         PlaySong(0x1A3);
         for (i = 0, angle = 0; i <= 2; angle += 0x1800, i++)
         {
-            struct EwramData_EntityData *child = RedSoul_CreateEntity(entity, (u32 *)SkillTinyDevilUpdate);
+            struct EwramData_EntityData *child = RedSoul_CreateEntity(entity, SkillTinyDevilUpdate);
             s32 a;
             if (child == NULL)
                 break;
@@ -2940,14 +2907,14 @@ void SkillUkobackUse(struct EwramData_EntityData *entity)
         entity->affineIndex = slot;
         entity->affine = 1;
     {
-        struct SoulGraphicsResources *t = GetSet(22);
+        struct SoulGraphicsResources *t = SkillGraphics_GetSet(22);
         void *gfx = t->graphics;
         void *pal = t->palette;
         void *oam = t->spriteSheet;
-        SkillLoadGraphicsInline(entity, 0, gfx, pal, oam);
+        Skill_AttachGraphics(entity, 0, gfx, pal, oam);
     }
         Anim_StartIndexed(entity, 1, 0, 1);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->spriteLayer = 0xD;
         entity->scrollWithBg = 1;
         Entity_PlaceRelativeTo(entity, parent, 8, -0x1A);

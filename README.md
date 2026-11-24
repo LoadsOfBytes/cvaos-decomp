@@ -26,7 +26,7 @@ decompilation projects), rebuilds **byte for byte**:
 
 ## Status
 
-Measured on 2026-11-23 from the build output and source scans.
+Measured on 2026-11-24 from the build output and source scans.
 
 | Step | Progress |
 |---|---|
@@ -34,11 +34,12 @@ Measured on 2026-11-23 from the build output and source scans.
 | Game functions decompiled to C | ✅ **100 %** – only an 8-byte ARM/Thumb interworking stub has no C equivalent |
 | All ROM code (`.text`) from C | **97.06 %** (891,340 / 918,324 B) – the rest is platform code normally kept in assembly (`crt0`, `m4a` mixer, BIOS stubs, header) and libgcc/libc |
 | Functions named | ✅ **100 %** (3,842 / 3,842) |
-| Local variables and parameters named | ✅ **100 %** (16,255 / 16,255) |
-| Structure fields named | 🔄 **96.5 %** (3,173 / 3,288 declared; 99.9 % of accesses) – most of the rest are the offset-named slots of the raw work-area view |
-| Entity work area as typed structures | 🔄 368 per-type structures; 23 lines and 6 macros still use the raw offset view |
+| Local variables and parameters named | ✅ **100 %** (15,727 / 15,727) |
+| Structure fields named | 🔄 **96.5 %** (3,174 / 3,289 declared; 99.9 % of accesses) – most of the rest are the offset-named slots of the raw work-area view |
+| Entity work area as typed structures | 🔄 368 per-type structures; 24 lines and 6 macros still use the raw offset view |
 | Source files grouped into modules | 🔄 **95 %** – the 1,701 ROM-address files (`code_XXXXXXXX.c`) are 172 named files: 163 complete modules and 9 small files still split off only for build reasons (see *File layout*); no `code_XXXXXXXX` name left |
-| Declarations in headers | 🔄 each module's functions used by other files are declared in `include/<module>.h`; no implicit declarations; 111 functions keep caller-specific prototypes; ROM data declared in `include/data/` (18 tables still local; see *Known limitations*) |
+| Declarations in headers | 🔄 each module's functions used by other files are declared in `include/<module>.h`; no implicit declarations; 27 functions keep caller-specific prototypes (352 local declarations); file-internal forward declarations in one block at the top of each file; ROM data declared in `include/data/` (18 tables still local; see *Known limitations*) |
+| Code cleanup | 🔄 entity callbacks typed (`EntityFunc`), duplicated `static inline` helpers merged into shared headers; 87.8 % of functions use neither compiler tricks nor matching-only constructs such as `goto` (633 `goto` left) |
 | Hard-coded addresses | ✅ none for ROM data and RAM variables – every table, graphics, palette, map and room used from C is referenced by a symbol (223 data labels added); 28 lines still compute VRAM addresses with integer arithmetic |
 | Removing compiler tricks (`FAKEMATCH`) | 🔄 275 lines left in 73 of 181 C files |
 
@@ -72,7 +73,7 @@ name or comment describes the game correctly. Corrections are very welcome.
 - **Entity work area** – the per-entity area `0x4F4` … `0x50F` is a
   `union EntityWork` with one structure per entity type
   (`include/structs/entity_work.h`). The split is reconstructed from usage; a few
-  views that a nested union cannot express remain as accessor macros. 23 lines
+  views that a nested union cannot express remain as accessor macros. 24 lines
   still go through the raw offset view: generic helpers, entities whose type is
   not known yet, and blocks that extend past the work area.
 - **File layout** – sources live in `src/enemy/`, `src/object/`, `src/soul/`,
@@ -88,25 +89,32 @@ name or comment describes the game correctly. Corrections are very welcome.
   built with the ARM compiler) are separate by design.
 - **Declarations** – a function used by other files is declared in the header of
   its module (`include/<module>.h`, e.g. `src/engine/entity_common.c` →
-  `include/entity_common.h`). 111 functions are still declared locally by their
-  callers, because different callers were compiled with different parameter or
-  return types (e.g. `s32` vs `u16`), and one shared prototype would change their
+  `include/entity_common.h`). Where a caller was compiled with a narrower type
+  than the definition, the call carries an explicit cast (e.g.
+  `Entity_ShowDamage(entity, (s16)damage, 0)`). 27 functions are still declared
+  locally by some callers, because those callers read the full return register or
+  pass unconverted arguments (e.g. `s32` vs `u16`) – probably calls without a
+  prototype in the original code – and one shared prototype would change their
   code; a comment explains such a declaration where the reason is known. Callers
   that use their own view of a shared structure pass it with an explicit pointer
-  cast. ROM data used from C is declared in `include/data/<data file>.h` (one
+  cast (e.g. `Hit_CheckWithPlayer((struct HitResult *)collision, entity)`, where
+  the caller keeps the raw stack buffer the original code used). ROM data used
+  from C is declared in `include/data/<data file>.h` (one
   header per `asm/data/` file, in address order, together with the structures
   that describe the tables); 18 tables are still declared locally – 12 because
   different files read them through different types (e.g. `u8[]` vs. a
   structure), 6 because their element type is defined differently in different
-  C files. Forward declarations of file-internal functions are also still in
-  the C files.
+  C files.
 
 ## Planned work
 
 - Merge the 9 build-separated files: needs C that matches without their compiler flags.
 - Finish the entity structures and name the remaining fields.
 - Reduce `FAKEMATCH` where a natural C variant can be found.
-- Declarations: gather the forward declarations of file-internal functions.
+- Declarations: the remaining 27 caller-specific prototypes (callers that read the
+  full return register or pass unconverted arguments).
+- Readability: replace the remaining `goto`, register pins and magic numbers
+  (constants for game flags, entity types, sound ids, hit flags).
 
 ## Building
 
@@ -136,7 +144,7 @@ See also [INSTALL.md](INSTALL.md).
 | Path | Contents |
 |---|---|
 | `src/` | decompiled C (game, `m4a` sound engine, GBA library) |
-| `include/` | headers: structures, registers, constants; one header per module with the functions other files use; `include/data/` declares the ROM data |
+| `include/` | headers: structures, registers, constants; one header per module with the functions other files use; shared `static inline` helpers (`math_inline.h`, `entity_inline.h`, `player_physics.h`, …); `include/data/` declares the ROM data |
 | `asm/` | remaining assembly; `asm/data/` holds only `.incbin` references into your baserom |
 | `sound/` | song and music player tables (structure only) |
 | `tools/` | build tools (`preproc`, `gbafix`, data extractor) |

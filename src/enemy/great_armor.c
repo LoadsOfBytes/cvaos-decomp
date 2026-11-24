@@ -23,13 +23,12 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "math_inline.h"
+#include "damage_numbers.h"
 
 /* Great Armor update. */
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern s32 Entity_ClampXToRoom(struct EwramData_EntityData *, s32);
-extern void GreatArmor_UpdateWalk(struct EwramData_EntityData *);
-extern void GreatArmor_UpdateAttack(struct EwramData_EntityData *);
+void GreatArmor_UpdateWalk(struct EwramData_EntityData *);
+void GreatArmor_UpdateAttack(struct EwramData_EntityData *);
 
 struct ArmorBox {
     s32 x:8;
@@ -41,6 +40,31 @@ struct ArmorBox {
 #define TO_PIXELS(d) ((d) < 0 ? -(-(d) >> 16) : (d) >> 16)
 /* set by the AI when the shield arm (part 4) is up: makes box 2 harmless */
 #define GUARD(e) (*(s8 *)&e->ext.greatArmor.guard)
+
+extern void *memcpy(void *dst, const void *src, unsigned long size);
+extern s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, struct EwramData_EntityData *other, u16 *hit, s32 inputDamage);
+extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
+extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
+
+u8 GreatArmor_LoadGraphics(struct EwramData_EntityData *entity);
+void GreatArmorPart_Update(struct EwramData_EntityData *entity);
+void GreatArmorPart_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void GreatArmorPart_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
+void GreatArmor_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void GreatArmor_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
+void GreatArmor_AttachPartSetAngle(struct EwramData_EntityData *entity, s32 partIndex, s32 anchorIndex, s32 angleSpec, s32 length);
+void GreatArmor_UpdateParts(struct EwramData_EntityData *entity, s8 *order);
+void GreatArmor_ResetPartAngles(struct EwramData_EntityData *entity, s32 partIndex);
+void GreatArmor_FaceTarget(struct EwramData_EntityData *entity);
+void GreatArmor_SaveParts(struct EwramData_EntityData *);
+void GreatArmor_RestoreParts(struct EwramData_EntityData *);
+void GreatArmor_AttachPart(struct EwramData_EntityData *, s32, s32, s32, s32);
+void GreatArmor_SpawnShockwave(struct EwramData_EntityData *, s32, s32);
+void GreatArmorSlashEffect_Spawn(struct EwramData_EntityData *, s32, s32, s32, s32, s32);
+void GreatArmorShockwave_Update(struct EwramData_EntityData *);
+void GreatArmorShockwave_DamagePlayerOnContact(struct EwramData_EntityData *);
+void GreatArmor_SpawnParticle(s32, s32, s32, s32, s32);
+void GreatArmorSlashEffect_Update(struct EwramData_EntityData *entity);
 
 /* Great Armor: dispatch AI (0) / attacks (1), crumble when killed (2,
  * dust, free the parts), frozen (3); the second box follows part 4. */
@@ -99,7 +123,7 @@ boxes:
     {
         if (GUARD(entity)) entity->hit.flags |= 4;
         else entity->hit.flags &= ~4;
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
     }
     Entity_ClampXToRoom(entity, 1);
     if ((RandomNumberGenerator() & 0x7F) <= 3)
@@ -113,18 +137,6 @@ struct GreatArmorBox {
     s8 width;
     s8 height;
 };
-
-extern void *memcpy(void *dst, const void *src, unsigned long size);
-extern u8 GreatArmor_LoadGraphics(struct EwramData_EntityData *entity);
-extern void GreatArmorPart_Update(struct EwramData_EntityData *entity);
-extern void GreatArmorPart_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-extern void GreatArmorPart_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
-extern void GreatArmor_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-extern void GreatArmor_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
-extern void GreatArmor_AttachPartSetAngle(struct EwramData_EntityData *entity, s32 partIndex, s32 anchorIndex, s32 angleSpec, s32 length);
-extern void GreatArmor_UpdateParts(struct EwramData_EntityData *entity, s8 *order);
-extern void GreatArmor_ResetPartAngles(struct EwramData_EntityData *entity, s32 partIndex);
-extern void GreatArmor_FaceTarget(struct EwramData_EntityData *entity);
 
 void EnemyGreatArmorCreate(struct EwramData_EntityData *entity)
 {
@@ -200,7 +212,7 @@ void EnemyGreatArmorCreate(struct EwramData_EntityData *entity)
             part->scrollWithBg = 0;
             part->hidden = 0;
             part->attack = entity->attack;
-            part->drawFunc = (u32 *)Sprite_DrawEntity;
+            part->drawFunc = Sprite_DrawEntity;
             part->ext.jointPart.owner = entity;
             part->ext.jointPart.index = index;
             part->ext.jointPart.anchor = anchors[index];
@@ -221,7 +233,7 @@ void EnemyGreatArmorCreate(struct EwramData_EntityData *entity)
                 ObjAffine_Set(0, 0x10000, 0x10000, part->flipX, part->flipY, part->affineIndex);
             }
             if (!(*((u8 *)gEwramData + 0x8E) & 0x40))
-                Hit_Enable(part, 8, GreatArmorPart_DamagePlayerOnContact, (s32)GreatArmorPart_OnHit);
+                Hit_Enable(part, 8, GreatArmorPart_DamagePlayerOnContact, GreatArmorPart_OnHit);
             if (index == 0 && !(*((u8 *)gEwramData + 0x8E) & 0x40))
             {
                 box.x = -16;
@@ -277,7 +289,7 @@ void EnemyGreatArmorCreate(struct EwramData_EntityData *entity)
         entity->timer = 0;
         return;
     }
-    Hit_Enable(entity, 8, GreatArmor_DamagePlayerOnContact, (s32)GreatArmor_OnHit);
+    Hit_Enable(entity, 8, GreatArmor_DamagePlayerOnContact, GreatArmor_OnHit);
     GreatArmor_FaceTarget(entity);
     Entity_SnapToGround(entity);
     entity->state = frozen;
@@ -304,17 +316,6 @@ void EnemyGreatArmorCreate(struct EwramData_EntityData *entity)
 }
 
 /* Great Armor walk state machine (state == 0): steps with dust and shake, turns at ledges and walls, starts attacks. */
-extern void GreatArmor_SaveParts(struct EwramData_EntityData *);
-extern void GreatArmor_RestoreParts(struct EwramData_EntityData *);
-extern s32 Target_IsNearEntity(struct EwramData_EntityData *, s32, s32);
-extern s32 Target_GetPixelX(struct EwramData_EntityData *);
-
-static inline s32 ABS(s32 x)
-{
-    if (x < 0)
-        x = -x;
-    return x;
-}
 
 #define STATE entity->subState
 #define TIMER entity->timer
@@ -333,7 +334,7 @@ static inline s32 ABS(s32 x)
 #define VELX() if (entity->flipX) entity->velX.whole = 0x140000 / (TIMER * 2); else entity->velX.whole = -0x140000 / (TIMER * 2);
 #define LAND() entity->velY.whole = 0x10000; entity->accelY.whole = 0x2800;
 #define PROBE(D) Tile_Classify(camera->xPos.part16.integer + entity->posX.part16.integer + (D), camera->yPos.part16.integer + entity->posY.part16.integer)
-#define NEAR(N) (ABS((s16)Target_GetPixelX(entity) - (s16)entity->posX.part16.integer) <= (N))
+#define NEAR(N) (Abs((s16)Target_GetPixelX(entity) - (s16)entity->posX.part16.integer) <= (N))
 #define SHAKE() if (TIMER >= t1[VARIANT] - 10 && !(TIMER & 3)) ScreenShake_RequestOffset(0, 0, 1);
 #define ATTACK(S) { entity->state = 1; STATE = S; break; }
 #define RECOVER(S) TIMER = 1; STATE = S; entity->state = 0; GreatArmor_RestoreParts(entity);
@@ -563,9 +564,6 @@ void GreatArmor_UpdateWalk(struct EwramData_EntityData *entity)
 }
 
 /* Great Armor attack state machine. */
-extern void GreatArmor_AttachPart(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern void GreatArmor_SpawnShockwave(struct EwramData_EntityData *, s32, s32);
-extern void GreatArmorSlashEffect_Spawn(struct EwramData_EntityData *, s32, s32, s32, s32, s32);
 #define HIT entity->ext.greatArmor.attackHit
 #define STEP(T,F) TIMER = T; STATE++; FRAME = F;
 #define ARMS(A) \
@@ -1104,7 +1102,6 @@ void GreatArmor_AttachPart(struct EwramData_EntityData *entity, s32 partIndex, s
 /* Load the graphics 081CC004 / 0821F240 with the palette variant of
  * 0820A8F8 chosen by the type byte (0x3C, 0x67, 0x69 -> 0, 1, 2; other
  * types keep basePalette); 0 when the graphics are not loaded. */
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 u8 GreatArmor_LoadGraphics(struct EwramData_EntityData *entity)
 {
@@ -1118,14 +1115,9 @@ u8 GreatArmor_LoadGraphics(struct EwramData_EntityData *entity)
     else if (entity->enemyId == 0x69)
         entity->basePalette = ObjPalette_FindOrLoadVariant(sGreatArmorPalette, 2);
     Sprite_Attach(entity, sGreatArmorSpriteSheet, graphics, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
-
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *entity, struct EwramData_EntityData *other, u16 *hit, s32 inputDamage);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-
-extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
 
 /**
  * @brief Hit: resolve the damage, flash (hitFlashTimer = 8), subtract it from the HP and
@@ -1144,7 +1136,7 @@ void GreatArmor_OnHit(struct EwramData_EntityData *entity, struct EwramData_Enti
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     entity->ext.greatArmor.hitCount++;
     entity->ext.greatArmor.hit = 1;
     if ((s16)entity->hp <= 0)
@@ -1165,7 +1157,6 @@ void GreatArmor_OnHit(struct EwramData_EntityData *entity, struct EwramData_Enti
 
 /* Great Armor part update: joint following, weapon collision and death motion. */
 struct ArmorPartBox { s8 x, y, w, h; };
-extern void Hit_CheckWithPlayerSharedHistory(void *, struct EwramData_EntityData *, struct EwramData_EntityData *);
 #define JOINT(e) ((s8)e->ext.jointPart.index)
 #define FIX_INT(v) ((v) < 0 ? -(-(v) >> 16) : (v) >> 16)
 #define HAS_SPRITE(e) (JOINT(e) == 2 || JOINT(e) == 5 || JOINT(e) == 8 || JOINT(e) == 11 || JOINT(e) == 12 || JOINT(e) == 13)
@@ -1226,7 +1217,7 @@ void GreatArmorPart_Update(struct EwramData_EntityData *entity)
             if ((parent->ext.joint.hurtMask >> JOINT(entity)) & 1)
             {
                 if (JOINT(entity) == 0)
-                    Hit_CheckWithPlayer(hit, entity);
+                    Hit_CheckWithPlayer((struct HitResult *)hit, entity);
                 else if (JOINT(entity) == 12)
                 {
                     size = ((entity->timer & 3) + 1) * 14;
@@ -1320,8 +1311,6 @@ void GreatArmorPart_Update(struct EwramData_EntityData *entity)
     }
 }
 
-extern void GreatArmorShockwave_Update(struct EwramData_EntityData *);
-extern void GreatArmorShockwave_DamagePlayerOnContact(struct EwramData_EntityData *);
 /**
  * @brief Spawn a ground shockwave at offset (dx, dy) from owner, snapped to the
  * ground and moving 3.5 px per frame in the facing direction; contact damage
@@ -1330,7 +1319,7 @@ extern void GreatArmorShockwave_DamagePlayerOnContact(struct EwramData_EntityDat
  */
 void GreatArmor_SpawnShockwave(struct EwramData_EntityData *owner, s32 dx, s32 dy)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)GreatArmorShockwave_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, GreatArmorShockwave_Update);
     u32 box = 0x1008F0FC;
     if (entity != NULL)
     {
@@ -1350,7 +1339,7 @@ void GreatArmor_SpawnShockwave(struct EwramData_EntityData *owner, s32 dx, s32 d
         Entity_SnapToGround(entity);
         entity->attack = owner->attack;
         entity->scrollWithBg = 1;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->flipX = owner->flipX;
         if (entity->flipX) entity->velX.whole = 0x38000;
         else entity->velX.whole = -0x38000;
@@ -1359,7 +1348,6 @@ void GreatArmor_SpawnShockwave(struct EwramData_EntityData *owner, s32 dx, s32 d
     }
 }
 
-extern void GreatArmor_SpawnParticle(s32, s32, s32, s32, s32);
 /**
  * @brief Shockwave update: move along the ground and delete when it leaves the
  * ground, stops or leaves the screen; contact test, debris pieces with sound
@@ -1375,7 +1363,7 @@ void GreatArmorShockwave_Update(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    Hit_CheckWithPlayer(buffer, entity);
+    Hit_CheckWithPlayer((struct HitResult *)buffer, entity);
     if ((entity->timer++ & 7) == 0)
     {
         s32 variant;
@@ -1397,8 +1385,6 @@ void GreatArmorShockwave_Update(struct EwramData_EntityData *entity)
  * enemy/big_golem.c with 0x28-byte parts). */
 
 #define GREAT_ARMOR_PART_COUNT 14
-
-extern void GreatArmorSlashEffect_Update(struct EwramData_EntityData *entity);
 
 /**
  * @brief 8E94C | Unless timer is 0, run GreatArmor_UpdatePart on parts 0..13.
@@ -1492,7 +1478,7 @@ void GreatArmorShockwave_DamagePlayerOnContact(struct EwramData_EntityData *enti
  */
 void GreatArmor_SpawnParticle(s32 x, s32 y, s32 velocityX, s32 velocityY, s32 layer)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateParticle);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticle);
     s32 gfx;
 
     if (child == NULL)
@@ -1509,7 +1495,7 @@ void GreatArmor_SpawnParticle(s32 x, s32 y, s32 velocityX, s32 velocityY, s32 la
     Anim_StartIndexed(child, 0xF, 0, 0);
     Anim_Update(child);
     child->scrollWithBg = 1;
-    child->drawFunc = (u32 *)Sprite_DrawEntity;
+    child->drawFunc = Sprite_DrawEntity;
 }
 
 /**
@@ -1518,7 +1504,7 @@ void GreatArmor_SpawnParticle(s32 x, s32 y, s32 velocityX, s32 velocityY, s32 la
  */
 void GreatArmorSlashEffect_Spawn(struct EwramData_EntityData *entity, s32 x, s32 y, s32 velocityX, s32 velocityY, s32 layer)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, (u32 *)GreatArmorSlashEffect_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, GreatArmorSlashEffect_Update);
     struct GreatArmorPart *parts = entity->ext.greatArmor.parts;
     s32 gfx;
 
@@ -1540,24 +1526,11 @@ void GreatArmorSlashEffect_Spawn(struct EwramData_EntityData *entity, s32 x, s32
     Anim_Update(child);
     child->ext.greatArmorSlash.owner = entity;
     child->scrollWithBg = 0;
-    child->drawFunc = (u32 *)Sprite_DrawEntity;
+    child->drawFunc = Sprite_DrawEntity;
 }
 
 /* Great Armor helpers 0x0808EB3C..0x0808EC63 (Final Guard and Shadow Knight
  * use the Great Armor functions). */
-
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
 
 /**
  * @brief 8EB3C | Follow the parent (unk_500) at the offset of its part 12 plus

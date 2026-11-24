@@ -23,16 +23,29 @@
 #include "pickup.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "math_inline.h"
+#include "red_souls_b.h"
 
-extern void SoulPickup_Update(struct EwramData_EntityData *);
 extern u16 Entity_AngleToPoint(struct EwramData_EntityData *, s32, s32);
+extern struct WeaponInfo sWeaponInfo[]; // weapons, see player/player_core.c
+extern const struct ArmorInfo sArmorInfo[];
+
+/* Wall / floor probes; declared with s32 returns (the caller truncates). */
+extern s32 Collision_GetPushLeft(s32 x, s32 y);
+extern s32 Collision_GetPushRight(s32 x, s32 y);
+extern s32 Collision_GetPushUp(s32 x, s32 y);
+extern s32 Collision_GetPushDown(s32 x, s32 y);
+
+void SoulPickup_Update(struct EwramData_EntityData *);
+void SoulPickup_UpdateContainerAnimation(struct EwramData_EntityData *);
+void Effect_UpdateHomingOrb(struct EwramData_EntityData *);
 
 /**
  * @brief Create an animated soul pickup with soul kind/id and collection callback; select homing initialization or state 0x63 from the supplied variant.
  */
 struct EwramData_EntityData *SoulPickup_Create(s32 x, s32 y, s32 palette, s32 soulId, s32 stationary)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)SoulPickup_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, SoulPickup_Update);
     if (entity != NULL)
     {
         s32 graphics;
@@ -42,7 +55,7 @@ struct EwramData_EntityData *SoulPickup_Create(s32 x, s32 y, s32 palette, s32 so
         Anim_StartIndexed(entity, 6, 0, 1);
         Anim_Update(entity);
         entity->stage = 1;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         Hit_Enable(entity, 0xB, Pickup_Collect, 0);
         entity->hit.flags |= 4;
         HitBox_SetAttackRaw(entity, 0x1010F8F8);
@@ -71,9 +84,6 @@ struct EwramData_EntityData *SoulPickup_Create(s32 x, s32 y, s32 palette, s32 so
     return entity;
 }
 
-extern s32 Entity_StepAngleTowardPoint(struct EwramData_EntityData *, s32, s32, s32, s32);
-static inline s32 FixedMulFast(s32 a, s32 b) { return (a >> 8) * (b >> 8); }
-
 /**
  * @brief Home toward the point sixteen pixels above the player in states zero/one, check collection, emit a particle trail and expire under the existing timer states.
  */
@@ -95,7 +105,7 @@ void SoulPickup_Update(struct EwramData_EntityData *entity)
         entity->posX.whole += entity->velX.whole;
         entity->posY.whole += entity->velY.whole;
     }
-    Hit_CheckWithPlayer(&res, (u8 *)entity);
+    Hit_CheckWithPlayer(&res, entity);
     if ((entity->timer & 1) == 0)
     {
         s32 x = entity->posX.whole + RandomSigned(0x200000);
@@ -135,7 +145,7 @@ void SoulPickup_UpdateContainer(struct EwramData_EntityData *entity)
     u16 hit;
     struct EwramData_EntityData *other;
 
-    hit = Hit_CheckWithPlayer(&res, (u8 *)entity);
+    hit = Hit_CheckWithPlayer(&res, entity);
     switch (entity->state)
     {
     case 0:
@@ -185,13 +195,12 @@ void SoulPickup_UpdateContainer(struct EwramData_EntityData *entity)
     }
 }
 
-extern void SoulPickup_UpdateContainerAnimation(struct EwramData_EntityData *);
 /**
  * @brief Create the grounded soul container and optional colored animation child using the supplied soul kind/index; return NULL if the container allocation fails.
  */
 struct EwramData_EntityData *SoulPickup_CreateContainer(s32 x, s32 y, s32 variant, s32 index)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)SoulPickup_UpdateContainer);
+    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, SoulPickup_UpdateContainer);
     if (entity != NULL)
     {
         s32 graphics;
@@ -204,7 +213,7 @@ struct EwramData_EntityData *SoulPickup_CreateContainer(s32 x, s32 y, s32 varian
         Sprite_Attach(entity, sCommonObjectSpriteSheet, graphics, 8);
         Anim_StartIndexed(entity, 0x13, 0, 1);
         Anim_Update(entity);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         Hit_Enable(entity, 0, NULL, 0);
         entity->hit.flags |= 2;
         HitBox_SetBodyRaw(entity, 0x2010E0F8);
@@ -212,7 +221,7 @@ struct EwramData_EntityData *SoulPickup_CreateContainer(s32 x, s32 y, s32 varian
         entity->posY.part16.integer = y;
         Entity_SnapToGround(entity);
         entity->ext.soulContainer.palette = Soul_GetPickupPalette(variant);
-        child = EntityCreateInRange(0x49, 0xCF, (u32 *)SoulPickup_UpdateContainerAnimation);
+        child = EntityCreateInRange(0x49, 0xCF, SoulPickup_UpdateContainerAnimation);
         if (child != NULL)
         {
             child->scrollWithBg = 1;
@@ -223,21 +232,19 @@ struct EwramData_EntityData *SoulPickup_CreateContainer(s32 x, s32 y, s32 varian
             Sprite_Attach(child, sCommonObjectSpriteSheet, graphics, (u8)entity->ext.soulContainer.palette);
             Anim_StartIndexed(child, 0x12, 0, 1);
             Anim_Update(child);
-            child->drawFunc = (u32 *)Sprite_DrawEntity;
+            child->drawFunc = Sprite_DrawEntity;
             entity->ext.soulContainer.soul = child;
         }
     }
     return entity;
 }
 
-extern void Effect_UpdateHomingOrb(struct EwramData_EntityData *);
-
 /**
  * @brief Create a homing visual orb aimed toward the supplied owner and vertical offset with existing random initial angle; preserve the non-NULL owner assumption.
  */
 struct EwramData_EntityData *Effect_CreateHomingOrb(struct EwramData_EntityData *owner, s32 x, s32 y, s32 dy, s32 palette)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, (u32 *)Effect_UpdateHomingOrb);
+    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, Effect_UpdateHomingOrb);
     if (entity != NULL)
     {
         s32 graphics;
@@ -247,7 +254,7 @@ struct EwramData_EntityData *Effect_CreateHomingOrb(struct EwramData_EntityData 
         Anim_StartIndexed(entity, 6, 0, 1);
         Anim_Update(entity);
         entity->stage = 1;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->posX.part16.integer = x;
         entity->posY.part16.integer = y;
         entity->scrollWithBg = 1;
@@ -267,7 +274,6 @@ struct EwramData_EntityData *Effect_CreateHomingOrb(struct EwramData_EntityData 
 }
 
 /* Homing projectile, including impact and its particle trail. */
-extern void Effect_SpawnAttachedAnimation(struct EwramData_EntityData *, u8, u8, s32, s32);
 /**
  * @brief Home toward the stored target, emit a trail and expire by timer or proximity; on proximity attach an effect and play sound 0xBC.
  */
@@ -324,11 +330,6 @@ void Effect_UpdateHomingOrb(struct EwramData_EntityData *entity)
 }
 
 /* Bouncing object: collision with the room walls / floor. */
-/* Wall / floor probes; declared with s32 returns (the caller truncates). */
-extern s32 Collision_GetPushLeft(s32 x, s32 y);
-extern s32 Collision_GetPushRight(s32 x, s32 y);
-extern s32 Collision_GetPushUp(s32 x, s32 y);
-extern s32 Collision_GetPushDown(s32 x, s32 y);
 
 /**
  * @brief Check collection, move with acceleration, damp horizontal speed and bounce against room walls/floor while stopping at the ceiling; retain signed probe conversions.
@@ -342,7 +343,7 @@ void Pickup_UpdateBouncing(struct EwramData_EntityData *e)
     u16 y;
     struct BgLayerState *bg;
 
-    Hit_CheckWithPlayer(&res, (u8 *)e);
+    Hit_CheckWithPlayer(&res, e);
     EntityAccelerateAndMove(e, 0x40000);
     px = &e->posX.part16.integer;
     bg = &gEwramData->bgInfo[1];
@@ -420,8 +421,6 @@ struct ItemInfo {
 };
 
 extern const struct ItemInfo sConsumableInfo[];
-extern struct WeaponInfo sWeaponInfo[]; // weapons, see player/player_core.c
-extern const struct ArmorInfo sArmorInfo[];
 
 /**
  * @brief Return the indexed record for item, weapon or armor type 2..4, otherwise NULL; preserve unchecked per-type indices.

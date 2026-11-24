@@ -14,10 +14,20 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "hitbox.h"
+#include "damage_numbers.h"
+#include "entity_motion.h"
+#include "effects.h"
+#include "player_soma.h"
 
-extern void Succubus_UpdateWalk(struct EwramData_EntityData *entity);
-extern void Succubus_UpdateAttack(struct EwramData_EntityData *entity);
-extern s32 Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
+extern s32 Target_IsInRect(s16, s16, s16, s16);
+extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
+
+void Succubus_UpdateWalk(struct EwramData_EntityData *entity);
+void Succubus_UpdateAttack(struct EwramData_EntityData *entity);
+u8 Succubus_LoadGraphics(struct EwramData_EntityData *);
+void Succubus_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void Succubus_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 
 /**
  * @brief 93C34 | Succubus update (as EnemyDevilUpdate): skipped while off
@@ -45,7 +55,7 @@ void EnemySuccubusUpdate(struct EwramData_EntityData *entity)
     if (Enemy_IsStunned(entity))
     {
         if (entity->state != 2 && (s8)entity->ext.succubus.holding == 0)
-            Hit_CheckWithPlayer(collision, entity);
+            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         return;
     }
     switch (entity->state)
@@ -67,14 +77,8 @@ void EnemySuccubusUpdate(struct EwramData_EntityData *entity)
     if (previous != entity->animFrame)
         Entity_UpdateBoxes(entity);
     if (entity->state != 2 && (s8)entity->ext.succubus.holding == 0)
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
 }
-
-extern u8 Succubus_LoadGraphics(struct EwramData_EntityData *);
-extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
-extern void Hit_Enable(struct EwramData_EntityData *, s32, void *, void *);
-void Succubus_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-void Succubus_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 
 void EnemySuccubusCreate(struct EwramData_EntityData *entity)
 {
@@ -116,11 +120,6 @@ void EnemySuccubusCreate(struct EwramData_EntityData *entity)
     entity->velY.whole = 0x10000;
     entity->accelY.whole = 0x1800;
 }
-
-extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern s32 Entity_ClampXToRoom(struct EwramData_EntityData *, s32);
-extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s32);
-extern void Afterimage_Create(struct EwramData_EntityData *, s32, s32, s32);
 
 /**
  * @brief 93E04 | Enemy AI (subState): growls (song 0x1C7) once the player is
@@ -310,8 +309,6 @@ void Succubus_UpdateWalk(struct EwramData_EntityData *entity)
         break;
     }
 }
-
-extern s32 Player_StartScriptedAnimation(s32, s32, s32, s32);
 
 /**
  * @brief Attack state machine (state 1): dash at 3 px per frame (sound 0x1C6) in
@@ -508,9 +505,6 @@ void Succubus_UpdateAttack(struct EwramData_EntityData *entity)
     }
 }
 
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-
 /**
  * @brief Hit: resolve the damage, flash, wake it (unk_4FC = 1), subtract and show
  * the damage; at HP <= 0 drop the rewards and die (state 2).
@@ -527,7 +521,7 @@ void Succubus_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     if ((s8)entity->ext.succubus.intro != 0)
     {
         entity->ext.succubus.holding = 1;
@@ -551,8 +545,6 @@ void Succubus_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
  *   Succubus_LoadGraphics = Object25_LoadGraphics
  * plus Succubus_DamagePlayerOnContact (decompiled locally). */
 
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
 /**
  * @brief 946C4 | Same as Object25_LoadGraphics.
  */
@@ -564,7 +556,7 @@ u8 Succubus_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sLilithSuccubusPalette, 0);
     Sprite_Attach(entity, sLilithSuccubusSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 

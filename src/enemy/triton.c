@@ -18,18 +18,29 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "damage_numbers.h"
 
 /* Triton movement (Triton_UpdateMove) and attack: fire the homing shot, or raise the spear and emit wave
  * particles until the spear comes back. */
 
-extern s32 Entity_MoveWithCollision(struct EwramData_EntityData *, s32, s32, s32, s16);
-extern void Triton_SpawnHomingShot(struct EwramData_EntityData *, s32, s32);
-extern void Triton_SpawnWaveParticle(struct EwramData_EntityData *, s32, s32);
+void Triton_SpawnHomingShot(struct EwramData_EntityData *, s32, s32);
+void Triton_SpawnWaveParticle(struct EwramData_EntityData *, s32, s32);
 extern s32 Collision_FindWaterSurfaceOffset(s32, s32);
-extern s32 Target_IsWithinDistance(struct EwramData_EntityData *, s32);
 #define NEXT_STATE(e) (e->ext.triton.nextState)
 #define ACCEL_X(e) ((e)->accelX.whole)
 #define ACCEL_Y(e) ((e)->accelY.whole)
+
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
+
+void TritonSpear_Update(struct EwramData_EntityData *);
+void TritonSpear_DamagePlayerOnContact(struct EwramData_EntityData *);
+void TritonSpear_SpawnEffect(struct EwramData_EntityData *, s32, s32);
+void TritonHomingShot_DamagePlayerOnContact(struct EwramData_EntityData *);
+void TritonHomingShot_OnHit(struct EwramData_EntityData *);
+void TritonHomingShot_Update(struct EwramData_EntityData *entity);
+void TritonWaveParticle_Update(struct EwramData_EntityData *entity);
+void TritonEffect_Update(struct EwramData_EntityData *);
+
 /* Sink slowly in water (tile type 3), faster elsewhere. */
 /* Triton movement: wait for the target in range, walk/swim towards it,
  * turn around, and switch to the attack (state 1) when close enough. */
@@ -231,9 +242,6 @@ void Triton_UpdateAttack(struct EwramData_EntityData *entity)
 /* Triton_OnHit (hit with HP / death), generated with a template script from the
  * template of WingedSkeleton_OnHit and checked byte for byte. */
 
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *entity, s32 other, u16 *hit, s32 inputDamage);
-extern void Entity_ShowDamage(struct EwramData_EntityData *owner, s16 value, s32 kind);
-
 /**
  * @brief 87138 | Hit: flash (hitFlashTimer = 8), subtract the damage from the HP
  * and show it; at HP <= 0 die (Enemy_DropRewards, song 0x6d, animation 0, palette into
@@ -252,7 +260,7 @@ void Triton_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
@@ -266,8 +274,6 @@ void Triton_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 }
 
 /* Triton spear creation. */
-extern void TritonSpear_Update(struct EwramData_EntityData *);
-extern void TritonSpear_DamagePlayerOnContact(struct EwramData_EntityData *);
 #define PART_ANGLE(e) (e->ext.tritonSpear.angle)
 /* Create the Triton's spear (TritonSpear_Update) with its own affine slot,
  * hit box -3, -15, 6x6 and contact callback TritonSpear_DamagePlayerOnContact. */
@@ -312,13 +318,11 @@ struct EwramData_EntityData *Triton_CreateSpear(struct EwramData_EntityData *own
         }
         part->ext.tritonSpear.owner = owner;
         part->scrollWithBg = 0;
-        part->drawFunc = (u32 *)Sprite_DrawEntity;
+        part->drawFunc = Sprite_DrawEntity;
     }
     return part;
 }
 
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void TritonSpear_SpawnEffect(struct EwramData_EntityData *, s32, s32);
 #define PART_TARGET_ANGLE(e) ((e)->accelX.whole)
 #define PIXEL(v) ((v) < 0 ? -((-(v)) >> 16) : (v) >> 16)
 /* Triton spear update. Angle targets are derived from a point 24 pixels below the spear. */
@@ -551,17 +555,13 @@ restart:
         }
     }
     if (spear->state == 0 && !gEwramData->gameState.bestiaryPreview)
-        Hit_CheckWithPlayer(bounds, spear);
+        Hit_CheckWithPlayer((struct HitResult *)bounds, spear);
     return;
 fail:
     EntityDelete(spear);
 }
 
 /* Triton attacks: homing shot and wave particles. */
-extern void TritonHomingShot_DamagePlayerOnContact(struct EwramData_EntityData *);
-extern void TritonHomingShot_OnHit(struct EwramData_EntityData *);
-void TritonHomingShot_Update(struct EwramData_EntityData *entity);
-void TritonWaveParticle_Update(struct EwramData_EntityData *entity);
 #define SHOT_ACCEL(e) ((e)->accelX.whole)
 #define SHOT_MAX_SPEED(e) ((e)->accelY.whole)
 #define WAVE_ANGLE(e) (e->ext.tritonWave.angle)
@@ -571,7 +571,7 @@ void TritonWaveParticle_Update(struct EwramData_EntityData *entity);
  * towards the side the target is on. */
 void Triton_SpawnHomingShot(struct EwramData_EntityData *owner, s32 x, s32 y)
 {
-    struct EwramData_EntityData *shot = EntityCreateInRange(0x49, 0xCF, (u32 *)TritonHomingShot_Update);
+    struct EwramData_EntityData *shot = EntityCreateInRange(0x49, 0xCF, TritonHomingShot_Update);
     struct SpriteBox box = {-2, -2, 4, 4};
     if (shot != NULL)
     {
@@ -589,7 +589,7 @@ void Triton_SpawnHomingShot(struct EwramData_EntityData *owner, s32 x, s32 y)
         Sprite_Attach(shot, sTritonSpriteSheet, graphics, 7);
         Anim_StartIndexed(shot, 7, 0, 0);
         Anim_Update(shot);
-        Hit_Enable(shot, 8, TritonHomingShot_DamagePlayerOnContact, (s32)TritonHomingShot_OnHit);
+        Hit_Enable(shot, 8, TritonHomingShot_DamagePlayerOnContact, TritonHomingShot_OnHit);
         HitBox_SetAttack(shot, &box);
         HitBox_SetBody(shot, &box);
         shot->hit.flags &= ~4;
@@ -597,7 +597,7 @@ void Triton_SpawnHomingShot(struct EwramData_EntityData *owner, s32 x, s32 y)
         shot->attack = owner->attack * 3 / 4;
         shot->ext.tritonShot.owner = owner;
         shot->scrollWithBg = 1;
-        shot->drawFunc = (u32 *)Sprite_DrawEntity;
+        shot->drawFunc = Sprite_DrawEntity;
     }
 }
 /* Homing shot: after 50 frames accelerate towards the target (at most
@@ -647,14 +647,14 @@ void TritonHomingShot_Update(struct EwramData_EntityData *entity)
     if (entity->timer++ > 179)
         EntityDelete(entity);
     else if (entity->timer & 1)
-        Hit_CheckWithPlayer(bounds, entity);
+        Hit_CheckWithPlayer((struct HitResult *)bounds, entity);
 }
 
 /* Create the wave particle (TritonWaveParticle_Update) at the owner + (x, y), its
  * starting angle depending on the owner's facing. */
 void Triton_SpawnWaveParticle(struct EwramData_EntityData *owner, s32 x, s32 y)
 {
-    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, (u32 *)TritonWaveParticle_Update);
+    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, TritonWaveParticle_Update);
     if (effect != NULL)
     {
         s32 graphics;
@@ -667,7 +667,7 @@ void Triton_SpawnWaveParticle(struct EwramData_EntityData *owner, s32 x, s32 y)
         Anim_Update(effect);
         effect->flipX = 0;
         effect->scrollWithBg = 1;
-        effect->drawFunc = (u32 *)Sprite_DrawEntity;
+        effect->drawFunc = Sprite_DrawEntity;
         if (owner->flipX)
         {
             WAVE_ANGLE(effect) = 0x1F000;
@@ -709,8 +709,6 @@ void TritonWaveParticle_Update(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   TritonSpear_DamagePlayerOnContact = DevilPart_DamagePlayerOnContact */
 
-extern void TritonEffect_Update(struct EwramData_EntityData *);
-
 /**
  * @brief 87C24 | Same as DevilPart_DamagePlayerOnContact.
  */
@@ -750,7 +748,7 @@ void TritonHomingShot_OnHit(struct EwramData_EntityData *entity)
  * below, facing the same way. */
 void TritonSpear_SpawnEffect(struct EwramData_EntityData *owner, s32 x, s32 y)
 {
-    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, (u32 *)TritonEffect_Update);
+    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, TritonEffect_Update);
     if (effect != NULL)
     {
         s32 graphics;
@@ -763,7 +761,7 @@ void TritonSpear_SpawnEffect(struct EwramData_EntityData *owner, s32 x, s32 y)
         Anim_Update(effect);
         effect->flipX = owner->flipX;
         effect->scrollWithBg = 1;
-        effect->drawFunc = (u32 *)Sprite_DrawEntity;
+        effect->drawFunc = Sprite_DrawEntity;
     }
 }
 
@@ -772,21 +770,6 @@ void TritonSpear_SpawnEffect(struct EwramData_EntityData *owner, s32 x, s32 y)
  *   Triton_LoadGraphics = Object25_LoadGraphics
  *   Triton_DamagePlayerOnContact = Enemy_DamagePlayerOnContact
  *   TritonEffect_Update = GolemIdleEffect_Update */
-
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
 
 /**
  * @brief 87D24 | Same as Object25_LoadGraphics.
@@ -799,7 +782,7 @@ u8 Triton_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sTritonPalette, 0);
     Sprite_Attach(entity, sTritonSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 

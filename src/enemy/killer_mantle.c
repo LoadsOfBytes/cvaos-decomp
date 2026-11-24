@@ -30,12 +30,19 @@
  * (NO_2003_PATCH_SRCS in ../Makefile). (Target_IsNearEntity test through an inline with two
  * returns, state 1 constant in a block variable). */
 
-extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *entity);
-extern s32 Target_GetPixelX(struct EwramData_EntityData *entity);
-extern s32 Target_GetFlipX(struct EwramData_EntityData *entity);
-extern s32 Target_IsNearEntity(struct EwramData_EntityData *entity, u16 width, u16 height);
 
 #define ABS(x) ((x) < 0 ? -(x) : (x))
+
+extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
+extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
+
+// The offsets are passed sign-extended here (u16 in the definition).
+extern void Entity_PlaceRelativeToCopy(struct EwramData_EntityData *entity, struct EwramData_EntityData *anchor, s32 offsetX, s32 offsetY);
+void CockatriceFamilyAttack_Draw(struct EwramData_EntityData *entity);
+void CockatriceFamilyAttack_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+
+void KillerMantle_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+void CockatriceFamily_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 /**
  * @brief BB2D4 | Hover (state 1): sprite 1, then sprite 2 with a random
@@ -122,7 +129,6 @@ void KillerMantle_UpdateHover(struct EwramData_EntityData *entity)
 }
 
 /* KillerMantle_UpdateJumpAttack (state 2 of the enemy created at 0x080BB70C). */
-extern void Entity_FaceTarget(struct EwramData_EntityData *entity);
 
 /**
  * @brief BB518 | Jump attack (state 2): crouch (sprite 3, unk_4FE bit 0)
@@ -187,10 +193,6 @@ void KillerMantle_UpdateJumpAttack(struct EwramData_EntityData *entity)
 
 /* Death burst and create of the enemy at 0x080BB664..0x080BB7E3 (named
  * EnemyKillerMantleCreate upstream). */
-
-extern u8 Entity_LoadGraphics(struct EwramData_EntityData *entity, u8 *resource, void *palette, u8 variant, void *sheet);
-extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, s32 onHurt);
-void KillerMantle_OnHit(struct EwramData_EntityData *entity);
 
 /**
  * @brief BB664 | Death burst: sprite 6 and song 0x6D, then every fourth
@@ -258,7 +260,7 @@ void EnemyKillerMantleCreate(struct EwramData_EntityData *entity)
         entity->state = 4;
         return;
     }
-    Hit_EnableContact(entity, 8, Enemy_OnContactMask1, (s32)KillerMantle_OnHit);
+    Hit_EnableContact(entity, 8, Enemy_OnContactMask1, KillerMantle_OnHit);
     HitBox_SetBodyRaw(entity, 0x1010F8F8);
     HitBox_SetAttackRaw(entity, 0x1414F6EC);
     entity->hit.flags |= 2;
@@ -276,15 +278,13 @@ void EnemyKillerMantleCreate(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   KillerMantle_OnHit = SkullMillioneFamily_OnHit */
 
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
-
 /**
  * @brief Apply enemy damage; on defeat drop rewards, restore the palette
  * and enter death state 3 with the substate counters reset.
  */
-void KillerMantle_OnHit(struct EwramData_EntityData *entity)
+void KillerMantle_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    if (Enemy_TakeDamage(entity))
+    if (Enemy_TakeDamage(entity, attacker, hit))
     {
         Enemy_DropRewards(entity);
         entity->palette = entity->basePalette;
@@ -412,12 +412,6 @@ void CockatriceFamilyPart_Update(struct EwramData_EntityData *entity)
                  entity->affineIndex);
 }
 
-// The offsets are passed sign-extended here (u16 in the definition).
-extern void Entity_PlaceRelativeToCopy(struct EwramData_EntityData *entity, struct EwramData_EntityData *anchor, s32 offsetX, s32 offsetY);
-extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
-extern void CockatriceFamilyAttack_Draw(struct EwramData_EntityData *entity);
-extern void CockatriceFamilyAttack_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-
 /**
  * @brief Create the shared affine attack effect, play its tracked sound,
  * rotate and scale it for 32 updates and check player contact at update 16.
@@ -438,7 +432,7 @@ void CockatriceFamilyAttack_Update(struct EwramData_EntityData *entity)
                 goto delete;
             entity->animFrame = 1;
             entity->spriteLayer = parent->spriteLayer + 1;
-            entity->drawFunc = (u32 *)CockatriceFamilyAttack_Draw;
+            entity->drawFunc = CockatriceFamilyAttack_Draw;
             slot = ObjAffine_Alloc(1);
             if ((s16)slot < 0)
                 goto delete;
@@ -469,7 +463,7 @@ void CockatriceFamilyAttack_Update(struct EwramData_EntityData *entity)
             else
                 entity->ext.cockatriceBeam.angle -= 8;
             if (entity->ext.cockatriceBeam.frame == 16)
-                Hit_CheckWithPlayer(collision, entity);
+                Hit_CheckWithPlayer((struct HitResult *)collision, entity);
             if (entity->ext.cockatriceBeam.frame <= 31)
                 break;
         case 2:
@@ -622,9 +616,6 @@ void CockatriceFamily_UpdateAttack(struct EwramData_EntityData *entity)
 /* Shared Cockatrice/Basilisk death and creation.
  * Decompiled locally; patrol and attack helpers are now matching C. */
 
-extern void Enemy_OnContact(struct EwramData_EntityData *entity);
-extern void CockatriceFamily_OnHit(struct EwramData_EntityData *entity);
-
 /* Graphics of the Cockatrice/Basilisk (see this file). */
 
 /**
@@ -709,7 +700,7 @@ void CockatriceFamily_Create(struct EwramData_EntityData *entity, s32 paletteSlo
         entity->state = 3;
         return;
     }
-    Hit_Enable(entity, 8, Enemy_OnContact, (s32)CockatriceFamily_OnHit);
+    Hit_Enable(entity, 8, Enemy_OnContact, CockatriceFamily_OnHit);
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
     entity->posY.part16.integer++;
@@ -724,9 +715,9 @@ void CockatriceFamily_Create(struct EwramData_EntityData *entity, s32 paletteSlo
  * @brief Apply enemy damage; on defeat drop rewards, restore the palette
  * and enter death state 2 with substate counters reset.
  */
-void CockatriceFamily_OnHit(struct EwramData_EntityData *entity)
+void CockatriceFamily_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    if (Enemy_TakeDamage(entity))
+    if (Enemy_TakeDamage(entity, attacker, hit))
     {
         Enemy_DropRewards(entity);
         entity->palette = entity->basePalette;
@@ -803,7 +794,7 @@ void EnemyCockatriceUpdate(struct EwramData_EntityData *entity)
             return;
         if (Enemy_IsStunned(entity))
         {
-            Hit_CheckWithPlayer(collision, entity);
+            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
             return;
         }
     }
@@ -827,7 +818,7 @@ void EnemyCockatriceUpdate(struct EwramData_EntityData *entity)
             return;
     }
     if (entity->state != 2)
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
     Anim_Update(entity);
 }
 
@@ -857,7 +848,7 @@ void EnemyBasiliskUpdate(struct EwramData_EntityData *entity)
             return;
         if (Enemy_IsStunned(entity))
         {
-            Hit_CheckWithPlayer(collision, entity);
+            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
             return;
         }
     }
@@ -881,7 +872,7 @@ void EnemyBasiliskUpdate(struct EwramData_EntityData *entity)
             return;
     }
     if (entity->state != 2)
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
     Anim_Update(entity);
 }
 

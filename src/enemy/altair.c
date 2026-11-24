@@ -14,23 +14,32 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "hitbox.h"
+#include "damage_numbers.h"
+
+extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
+
+void Altair_UpdateFlight(struct EwramData_EntityData *);
+void Altair_UpdateDeath(struct EwramData_EntityData *);
+void Altair_UpdateSpawner(struct EwramData_EntityData *);
+s32 Altair_CreateCarriedEnemy(struct EwramData_EntityData *entity, u8 type, u16 spawnParam0, u16 spawnParam1);
+void Altair_UpdateBestiaryPreview(struct EwramData_EntityData *);
+void Altair_DamagePlayerOnContact(struct EwramData_EntityData *);
+u8 Altair_LoadGraphics(struct EwramData_EntityData *);
+void Altair_OnHit(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *);
+u8 Altair_LoadGraphics(struct EwramData_EntityData *);
+void Altair_OnHit(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *);
+struct EwramData_EntityData *Altair_CreateFeather(struct EwramData_EntityData *);
+void AltairFeather_SetPhase(struct EwramData_EntityData *entity, u8 phase);
+u8 Altair_LoadGraphics(struct EwramData_EntityData *);
+void Altair_OnHit(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *);
+s32 AltairFeather_SetupGraphics(struct EwramData_EntityData *entity);
+u8 AltairFeather_LoadGraphics(struct EwramData_EntityData *entity);
+u8 Fleaman_LoadGraphics(struct EwramData_EntityData *entity);
+
 /* from entity_util.h (not included: see the module notes) */
 
 /* Altair creation, update, graphics setup and hit response. */
-extern void Entity_EnableBoxes(struct EwramData_EntityData *entity, void *onHit, s32 onHurt);
-extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *);
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void Altair_UpdateFlight(struct EwramData_EntityData *);
-extern void Altair_UpdateDeath(struct EwramData_EntityData *);
-extern void Altair_UpdateSpawner(struct EwramData_EntityData *);
-s32 Altair_CreateCarriedEnemy(struct EwramData_EntityData *entity, u8 type, u16 spawnParam0, u16 spawnParam1);
-extern void Altair_UpdateBestiaryPreview(struct EwramData_EntityData *);
-extern void Altair_DamagePlayerOnContact(struct EwramData_EntityData *);
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-u8 Altair_LoadGraphics(struct EwramData_EntityData *);
-void Altair_OnHit(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *);
 
 void EnemyAltairCreate(struct EwramData_EntityData *entity)
 {
@@ -58,7 +67,7 @@ void EnemyAltairCreate(struct EwramData_EntityData *entity)
         entity->hit.flags |= 2;
         return;
     }
-    Entity_EnableBoxes(entity, Altair_DamagePlayerOnContact, (s32)Altair_OnHit);
+    Entity_EnableBoxes(entity, Altair_DamagePlayerOnContact, Altair_OnHit);
     if (entity->spawnParam0 == 2)
     {
         s32 x = -(u16)entity->velX.part16.integer;
@@ -93,11 +102,6 @@ void EnemyAltairCreate(struct EwramData_EntityData *entity)
 }
 
 /* Altair creation, update, graphics setup and hit response. */
-u8 Altair_LoadGraphics(struct EwramData_EntityData *);
-void Altair_OnHit(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *);
-
-extern struct EwramData_EntityData *Altair_CreateFeather(struct EwramData_EntityData *);
-void AltairFeather_SetPhase(struct EwramData_EntityData *entity, u8 phase);
 
 void EnemyAltairUpdate(struct EwramData_EntityData *entity)
 {
@@ -120,7 +124,7 @@ void EnemyAltairUpdate(struct EwramData_EntityData *entity)
     if (entity->hitFlashTimer != 0 && entity->state != 3 && entity->state != 2)
     {
 hit:
-        Hit_CheckWithPlayer(box, entity);
+        Hit_CheckWithPlayer((struct HitResult *)box, entity);
         return;
     }
     switch (entity->state)
@@ -129,7 +133,7 @@ hit:
     case 2: Altair_UpdateDeath(entity); break;
     }
     Entity_AnimateWithBoxes(entity);
-    if (entity->state != 2) Hit_CheckWithPlayer(box, entity);
+    if (entity->state != 2) Hit_CheckWithPlayer((struct HitResult *)box, entity);
     if (entity->deleteRequested)
     {
         parent = entity->ext.altair.spawner;
@@ -253,8 +257,6 @@ void Altair_UpdateFlight(struct EwramData_EntityData *entity)
 }
 
 /* Altair creation, update, graphics setup and hit response. */
-u8 Altair_LoadGraphics(struct EwramData_EntityData *);
-void Altair_OnHit(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *);
 
 /**
  * @brief Death state (2): terminate an attached child, create five feathers,
@@ -307,7 +309,7 @@ void Altair_UpdateSpawner(struct EwramData_EntityData *entity)
     u32 random = RandomNumberGenerator() & 0x3F;
     struct EwramData_EntityData *child;
     if (random != 0 || entity->ext.altair.spawnCount > 1) return;
-    child = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
+    child = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
     if (child != NULL)
     {
         child->posY.whole = entity->posY.whole;
@@ -316,7 +318,7 @@ void Altair_UpdateSpawner(struct EwramData_EntityData *entity)
         child->enemyId = entity->enemyId;
         child->spawnParam0 = ((u16)entity->ext.altair.spawnCount & 1) + 2;
         child->spawnParam1 = entity->spawnParam1;
-        child->drawFunc = (u32 *)Sprite_DrawEntity;
+        child->drawFunc = Sprite_DrawEntity;
         child->hp = sEnemyData[entity->enemyId].hp;
         child->mp = sEnemyData[entity->enemyId].mp;
         child->updateFunc = entity->updateFunc;
@@ -341,7 +343,7 @@ void Altair_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
@@ -365,7 +367,7 @@ void Altair_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
 s32 Altair_CreateCarriedEnemy(struct EwramData_EntityData *entity, u8 type, u16 spawnParam0, u16 spawnParam1)
 {
     u8 result = 0;
-    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
     entity->ext.altair.carried = child;
     if (child != NULL)
     {
@@ -382,7 +384,7 @@ s32 Altair_CreateCarriedEnemy(struct EwramData_EntityData *entity, u8 type, u16 
         child->spawnParam1 = spawnParam1;
         child->spawnIndex = entity->spawnIndex;
         child->enemyId = type;
-        child->drawFunc = (u32 *)Sprite_DrawEntity;
+        child->drawFunc = Sprite_DrawEntity;
         entry = (struct EntityTemplate *)(type * sizeof(*entry) + (u32)sEnemyData);
         child->hp = entry->hp;
         child->updateFunc = entry->updateFunc;
@@ -478,7 +480,6 @@ void AltairFeather_Update(struct EwramData_EntityData *entity)
     }
 }
 
-extern s32 ObjPalette_FindOrLoad(void *);
 /**
  * @brief Find or load Altair graphics and palette, attach the sprite and
  * start animation 0. Return 1 on success; delete and return 0 on the
@@ -501,7 +502,7 @@ u8 Altair_LoadGraphics(struct EwramData_EntityData *entity)
     Sprite_Attach(entity, sprite, graphics, entity->basePalette);
     Anim_StartIndexed(entity, 0, 0, 1);
     Anim_Update(entity);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 fail:
     EntityDelete(saved);
@@ -512,19 +513,6 @@ fail:
  * a cloning script and checked byte for byte:
  *   Altair_UpdateBestiaryPreview = Imp_UpdateState4Animation
  *   Altair_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
-
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
 
 /**
  * @brief Bestiary state (4): start animation 0 once, then update it.
@@ -552,9 +540,6 @@ void Altair_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 
 /* Fleaman helpers, create and graphics loader 0x080C1D38..0x080C1F1B. The loader
  * Fleaman_LoadGraphics only matches without -f2003-patch. */
-s32 AltairFeather_SetupGraphics(struct EwramData_EntityData *entity);
-u8 AltairFeather_LoadGraphics(struct EwramData_EntityData *entity);
-u8 Fleaman_LoadGraphics(struct EwramData_EntityData *entity);
 
 /**
  * @brief Allocate a feather, attach its graphics and store the owner pointer.
@@ -562,7 +547,7 @@ u8 Fleaman_LoadGraphics(struct EwramData_EntityData *entity);
  */
 struct EwramData_EntityData *Altair_CreateFeather(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, (u32 *)AltairFeather_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, AltairFeather_Update);
 
     if (child != NULL)
     {
@@ -601,7 +586,7 @@ u8 AltairFeather_LoadGraphics(struct EwramData_EntityData *entity)
             && Sprite_Attach(entity, sprite, tileSlot, entity->basePalette))
         {
             entity->animFrame = 9;
-            entity->drawFunc = (u32 *)Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             return 1;
         }
     }
@@ -646,7 +631,7 @@ void EnemyFleamanCreate(struct EwramData_EntityData *entity)
         entity->ext.fleaman.airborne = 1;
     else
         entity->ext.fleaman.airborne = 0;
-    Entity_EnableBoxes(entity, Fleaman_DamagePlayerOnContact, (s32)Fleaman_OnHit);
+    Entity_EnableBoxes(entity, Fleaman_DamagePlayerOnContact, Fleaman_OnHit);
     if ((u8)entity->ext.fleaman.airborne != 1)
         Entity_SnapToGround(entity);
 }
@@ -682,7 +667,7 @@ u8 Fleaman_LoadGraphics(struct EwramData_EntityData *entity)
         goto fail;
     }
     Anim_Update(entity);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 fail:
     EntityDelete(entity);

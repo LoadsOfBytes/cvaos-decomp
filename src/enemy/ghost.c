@@ -17,13 +17,20 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "entity_inline.h"
+#include "math_inline.h"
+#include "damage_numbers.h"
+
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
+
+void Ghost_UpdateFloat(struct EwramData_EntityData *);
+void Ghost_UpdatePreview(struct EwramData_EntityData *);
+void EnemyGhostCreate(struct EwramData_EntityData *);
+u8 Ghost_LoadGraphics(struct EwramData_EntityData *);
+void Ghost_DamagePlayerOnContact(struct EwramData_EntityData *entity, struct EwramData_EntityData *other);
+void Ghost_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 
 /* Update a Ghost or its timed spawn controller. */
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern void Ghost_UpdateFloat(struct EwramData_EntityData *);
-extern void Ghost_UpdatePreview(struct EwramData_EntityData *);
-extern void EnemyGhostCreate(struct EwramData_EntityData *);
 void EnemyGhostUpdate(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
@@ -50,7 +57,7 @@ void EnemyGhostUpdate(struct EwramData_EntityData *entity)
         entity->velX.whole = 0;
         if (entity->state != 1)
         {
-            Hit_CheckWithPlayer(collision, entity);
+            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
             return;
         }
     }
@@ -82,7 +89,7 @@ void EnemyGhostUpdate(struct EwramData_EntityData *entity)
         }
         if (spawn && entity->ext.ghostSpawner.childCount < entity->spawnParam0)
         {
-            struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, (u32 *)EntityUpdateNothing);
+            struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
             if (child)
             {
                 s32 distance;
@@ -103,7 +110,7 @@ void EnemyGhostUpdate(struct EwramData_EntityData *entity)
                 child->spawnIndex = 0;
                 child->enemyId = entity->enemyId;
                 child->spawnParam1 = 0;
-                child->drawFunc = (u32 *)Sprite_DrawEntity;
+                child->drawFunc = Sprite_DrawEntity;
                 child->hp = sEnemyData[entity->enemyId].hp;
                 child->mp = sEnemyData[entity->enemyId].mp;
                 child->updateFunc = entity->updateFunc;
@@ -119,10 +126,6 @@ void EnemyGhostUpdate(struct EwramData_EntityData *entity)
 }
 
 /* Initialize a Ghost, a hidden controller or the display-mode animation. */
-extern u8 Ghost_LoadGraphics(struct EwramData_EntityData *);
-extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
-void Ghost_DamagePlayerOnContact(struct EwramData_EntityData *entity, struct EwramData_EntityData *other);
-void Ghost_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 void EnemyGhostCreate(struct EwramData_EntityData *entity)
 {
     struct SpriteBox box = {-7, -7, 14, 14};
@@ -152,7 +155,7 @@ void EnemyGhostCreate(struct EwramData_EntityData *entity)
     if (Anim_GetMaxBoxCount(entity) > 1)
         Hit_EnableContact(entity, 8, Ghost_DamagePlayerOnContact, Ghost_OnHit);
     else
-        Hit_Enable(entity, 8, Ghost_DamagePlayerOnContact, (s32)Ghost_OnHit);
+        Hit_Enable(entity, 8, Ghost_DamagePlayerOnContact, Ghost_OnHit);
     HitBox_SetAttack(entity, &box);
     HitBox_SetBody(entity, &box);
     entity->hit.flags |= 2;
@@ -162,14 +165,9 @@ void EnemyGhostCreate(struct EwramData_EntityData *entity)
 }
 
 /* Appear, follow a target with damping, then choose a new outward direction. */
-static inline s32 Magnitude(s32 value)
-{
-    if (value < 0) return -value;
-    return value;
-}
 static inline s32 TargetOffsetY(struct EwramData_EntityData *entity, s32 x)
 {
-    if (Magnitude(x) < 0x600000)
+    if (Abs(x) < 0x600000)
     {
         s32 distance = Target_GetY(entity) - entity->posY.whole;
         s32 offset = entity->ext.ghost.aimOffsetY - 0x100000;
@@ -211,7 +209,7 @@ void Ghost_UpdateFloat(struct EwramData_EntityData *entity)
         EntityDampVelocityX(entity, 32);
         EntityDampVelocityY(entity, 32);
         EntityAccelerateAndMove(entity, 0x10000);
-        if (Magnitude(x) < 0x40000 && Magnitude(y) < 0x40000)
+        if (Abs(x) < 0x40000 && Abs(y) < 0x40000)
         {
             s32 pixelX, pixelY;
             s32 parameter;
@@ -240,28 +238,6 @@ void Ghost_UpdateFloat(struct EwramData_EntityData *entity)
 }
 
 /* Bounce away from contact or a hit, using the direction between entities. */
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s32, s32);
-static inline void Bounce(struct EwramData_EntityData *entity, struct EwramData_EntityData *other)
-{
-    s32 x = entity->posX.whole - other->posX.whole;
-    s32 y = entity->posY.whole - other->posY.whole;
-    s32 pixelX, pixelY;
-    u16 direction;
-    s32 parameter;
-    if (x < 0) pixelX = (s16)(-((-x) >> 16));
-    else pixelX = x >> 16;
-    if (y < 0) pixelY = (s16)(-((-y) >> 16));
-    else pixelY = y >> 16;
-    direction = ArcTan2(pixelX, pixelY);
-    parameter = direction;
-    x = Sin(parameter + 0x4000);
-    y = Sin(parameter);
-    /* The direction has been consumed; reuse the temporary for speed. */
-    parameter = 0x20000;
-    entity->velX.whole = FixedMultiply(x, parameter);
-    entity->velY.whole = FixedMultiply(y, parameter);
-}
 /**
  * @brief Contact: Player_ApplyContactDamage with (attack, 0, 0, 0), then bounce
  * off the other entity.
@@ -310,8 +286,6 @@ void Ghost_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDat
  * a cloning script and checked byte for byte:
  *   Ghost_LoadGraphics = Object25_LoadGraphics */
 
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-
 /**
  * @brief 8A1AC | Same as Object25_LoadGraphics.
  */
@@ -323,7 +297,7 @@ u8 Ghost_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sGhostPalette, 0);
     Sprite_Attach(entity, sGhostSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 

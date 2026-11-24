@@ -18,22 +18,20 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "entity_inline.h"
+#include "damage_numbers.h"
 
 /* Peeping Eye: main update, creation, movement and animation, the hit
  * reaction and its parts (eyeball, pupil and the chain of six links).
  * The whole range 0x08087DC0..0x08088D27 is now C. */
 
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s32, s32);
-extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
 extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
 extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern struct EwramData_EntityData *EnemyPeepingEyeCreateEyeball(struct EwramData_EntityData *);
-extern struct EwramData_EntityData *PeepingEye_CreatePupil(struct EwramData_EntityData *);
-extern u8 PeepingEye_LoadGraphics(struct EwramData_EntityData *);
-extern void PeepingEye_UpdateIdle(struct EwramData_EntityData *);
-extern void PeepingEye_DamagePlayerOnContact(struct EwramData_EntityData *);
+struct EwramData_EntityData *EnemyPeepingEyeCreateEyeball(struct EwramData_EntityData *);
+struct EwramData_EntityData *PeepingEye_CreatePupil(struct EwramData_EntityData *);
+u8 PeepingEye_LoadGraphics(struct EwramData_EntityData *);
+void PeepingEye_UpdateIdle(struct EwramData_EntityData *);
+void PeepingEye_DamagePlayerOnContact(struct EwramData_EntityData *);
 void PeepingEye_UpdateMove(struct EwramData_EntityData *entity);
 void PeepingEye_UpdatePreview(struct EwramData_EntityData *entity);
 void PeepingEye_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
@@ -70,6 +68,7 @@ void PeepingEyeChainLink_Update(struct EwramData_EntityData *entity);
 #define LINK_LENGTH(e) (e->ext.peepingEyeLink.length)
 #define LINK_MAX_LENGTH(e) (*(s32 *)&e->ext.peepingEyeLink.maxLength)
 
+
 /* Peeping Eye: dispatch the states, draw the frame chosen by the movement
  * code and fall apart when killed. */
 void EnemyPeepingEyeUpdate(struct EwramData_EntityData *entity)
@@ -88,7 +87,7 @@ void EnemyPeepingEyeUpdate(struct EwramData_EntityData *entity)
     if (NOT_DYING(entity)) Enemy_UpdateHitFlash(entity);
     if (Entity_IsTimeStopped(entity) && NOT_DYING(entity))
     {
-        if (SPAWN_PARAM(entity) == 0) Hit_CheckWithPlayer(collision, entity);
+        if (SPAWN_PARAM(entity) == 0) Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         return;
     }
     switch (entity->state)
@@ -138,7 +137,7 @@ void EnemyPeepingEyeUpdate(struct EwramData_EntityData *entity)
     else
         Anim_Update(entity);
     if (NOT_DYING(entity) && SPAWN_PARAM(entity) == 0)
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
 }
 
 /* Create the Peeping Eye with its eyeball, pupil and a chain of six links
@@ -210,7 +209,7 @@ void EnemyPeepingEyeCreate(struct EwramData_EntityData *entity)
     if (Anim_GetMaxBoxCount(entity) > 1)
         Hit_EnableContact(entity, 8, PeepingEye_DamagePlayerOnContact, PeepingEye_OnHit);
     else
-        Hit_Enable(entity, 8, PeepingEye_DamagePlayerOnContact, (s32)PeepingEye_OnHit);
+        Hit_Enable(entity, 8, PeepingEye_DamagePlayerOnContact, PeepingEye_OnHit);
     HitBox_SetAttack(entity, &box);
     HitBox_SetBody(entity, &box);
     entity->hit.flags &= ~4;
@@ -431,27 +430,6 @@ void PeepingEye_UpdatePreview(struct EwramData_EntityData *entity)
     }
 }
 
-/* Bounce away from a hit, using the direction between the entities. */
-static inline void Bounce(struct EwramData_EntityData *entity, struct EwramData_EntityData *other)
-{
-    s32 x = entity->posX.whole - other->posX.whole;
-    s32 y = entity->posY.whole - other->posY.whole;
-    s32 pixelX, pixelY;
-    u16 direction;
-    s32 parameter;
-    if (x < 0) pixelX = (s16)(-((-x) >> 16));
-    else pixelX = x >> 16;
-    if (y < 0) pixelY = (s16)(-((-y) >> 16));
-    else pixelY = y >> 16;
-    direction = ArcTan2(pixelX, pixelY);
-    parameter = direction;
-    x = Sin(parameter + 0x4000);
-    y = Sin(parameter);
-    /* The direction has been consumed; reuse the temporary for speed. */
-    parameter = 0x20000;
-    entity->velX.whole = FixedMultiply(x, parameter);
-    entity->velY.whole = FixedMultiply(y, parameter);
-}
 void PeepingEye_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     s32 damage = Hit_ResolveDamage(entity, attacker, hit, (s16)Player_CalculateAttackPower(hit[2]));
@@ -616,7 +594,7 @@ struct EwramData_EntityData *PeepingEye_CreateChainLink(struct EwramData_EntityD
         link->ext.peepingEyeLink.prevLink = previous;
         link->ext.peepingEyeLink.index = index; /* LINK_INDEX */
         link->scrollWithBg = 0;
-        link->drawFunc = (u32 *)Sprite_DrawEntity;
+        link->drawFunc = Sprite_DrawEntity;
     }
     return link;
 }
@@ -750,7 +728,7 @@ struct EwramData_EntityData *PeepingEye_CreatePupil(struct EwramData_EntityData 
         child->animFrame = 0x10;
         child->ext.peepingEye.owner = entity;
         child->scrollWithBg = 0;
-        child->drawFunc = (u32 *)Sprite_DrawEntity;
+        child->drawFunc = Sprite_DrawEntity;
     }
     return child;
 }
@@ -777,7 +755,7 @@ struct EwramData_EntityData *EnemyPeepingEyeCreateEyeball(struct EwramData_Entit
         child->animFrame = 0xF;
         child->ext.peepingEye.owner = entity;
         child->scrollWithBg = 0;
-        child->drawFunc = (u32 *)Sprite_DrawEntity;
+        child->drawFunc = Sprite_DrawEntity;
     }
     return child;
 }
@@ -785,8 +763,6 @@ struct EwramData_EntityData *EnemyPeepingEyeCreateEyeball(struct EwramData_Entit
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
  *   PeepingEye_LoadGraphics = Object25_LoadGraphics */
-
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 /**
  * @brief 88E08 | Same as Object25_LoadGraphics.
@@ -799,7 +775,7 @@ u8 PeepingEye_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sPeepingEyePalette, 0);
     Sprite_Attach(entity, sPeepingEyeSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -820,19 +796,6 @@ void PeepingEye_UpdateIdle(struct EwramData_EntityData *entity)
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
  *   PeepingEye_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
-
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
 
 /**
  * @brief 88E78 | Same as Enemy_DamagePlayerOnContact.

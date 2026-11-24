@@ -19,16 +19,14 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 
-/* Nightmare running, attack and death states. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *, void *, void *, s32, void *);
-extern void Enemy_OnContact(struct EwramData_EntityData *);
-extern s32 Hit_EnableContact(struct EwramData_EntityData *, s32, void *, s32);
-extern void Nightmare_Draw(struct EwramData_EntityData *);
-extern void Nightmare_OnHit(struct EwramData_EntityData *);
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
-extern struct EwramData_EntityData *Afterimage_Create(struct EwramData_EntityData *, s32, s32, s32);
-extern void Nightmare_UpdateRun(struct EwramData_EntityData *);
-extern s32 Nightmare_UpdateDeath(struct EwramData_EntityData *);
+
+void Nightmare_Draw(struct EwramData_EntityData *);
+void Nightmare_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+void Nightmare_UpdateRun(struct EwramData_EntityData *);
+s32 Nightmare_UpdateDeath(struct EwramData_EntityData *);
+
+/* Nightmare running, attack and death states. */
 
 /**
  * @brief Alive state (1): accelerate, brake with particles and reverse
@@ -176,16 +174,16 @@ void EnemyNightmareCreate(struct EwramData_EntityData *entity)
     }
     Anim_StartIndexed(entity, (u16)entity->spawnParam0, 0, 1);
     Anim_Update(entity);
-    entity->drawFunc = (u32 *)Nightmare_Draw;
+    entity->drawFunc = Nightmare_Draw;
     if (entity->spawnParam0 == 0)
     {
-        Hit_Enable(entity, 8, Enemy_OnContact, (s32)Nightmare_OnHit);
+        Hit_Enable(entity, 8, Enemy_OnContact, Nightmare_OnHit);
         HitBox_SetBodyRaw(entity, 0x1838E0F0);
         HitBox_SetAttackRaw(entity, 0x1838E0F0);
     }
     else
     {
-        Hit_EnableContact(entity, 8, Enemy_OnContact, (s32)Nightmare_OnHit);
+        Hit_EnableContact(entity, 8, Enemy_OnContact, Nightmare_OnHit);
         HitBox_SetBodyRaw(entity, 0x1838E0F0);
         HitBox_SetAttackRaw(entity, 0x2010C400);
     }
@@ -216,7 +214,7 @@ void EnemyNightmareUpdate(struct EwramData_EntityData *entity)
     if (Enemy_IsStunned(entity))
     {
         if (entity->state == 2) return;
-        Hit_CheckWithPlayer(box, entity);
+        Hit_CheckWithPlayer((struct HitResult *)box, entity);
         if (entity->spawnParam0 == 0) Player_QueueEntity(entity, 0);
         return;
     }
@@ -246,7 +244,7 @@ void EnemyNightmareUpdate(struct EwramData_EntityData *entity)
         Anim_Update(entity);
         return;
     }
-    if (entity->state != 2) Hit_CheckWithPlayer(box, entity);
+    if (entity->state != 2) Hit_CheckWithPlayer((struct HitResult *)box, entity);
     Anim_Update(entity);
 }
 
@@ -254,15 +252,13 @@ void EnemyNightmareUpdate(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   Nightmare_OnHit = HeadStackSegment_OnHit */
 
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity);
-
 /**
  * @brief Apply enemy damage; on defeat drop rewards, restore the palette
  * and enter death state 2 with the substate counters reset.
  */
-void Nightmare_OnHit(struct EwramData_EntityData *entity)
+void Nightmare_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    if (Enemy_TakeDamage(entity))
+    if (Enemy_TakeDamage(entity, attacker, hit))
     {
         Enemy_DropRewards(entity);
         entity->palette = entity->basePalette;

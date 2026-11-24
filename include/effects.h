@@ -14,6 +14,10 @@ extern void Entity_EndIfActive(struct EwramData_EntityData *entity);
 extern void PickupSource_Update(struct EwramData_EntityData* entity);
 extern void PickupSource_Init(struct EwramData_EntityData* entity);
 extern void PickupSource_Draw(struct EwramData_EntityData *entity);
-extern struct EwramData_EntityData* Effect_SpawnShared(s32 x, s32 y, s32 script, u32 palette);
+extern struct EwramData_EntityData *Effect_SpawnShared(s32 x, s32 y, s32 script, u32 palette);
+extern struct EwramData_EntityData *Afterimage_Create(struct EwramData_EntityData *entity, u16 delay, u8 count, s32 flags);
+extern void Effect_SpawnAttachedAnimation(struct EwramData_EntityData *parent, u8 anim, u8 palette, s32 offsetX, s32 offsetY);
+extern void Effect_SpawnParticleTemplateList(s16 x, s16 y, s32 index);
+extern struct EwramData_EntityData *Effect_CreatePlayerFlash(s32 kind);
 
 #endif /* EFFECTS_H */

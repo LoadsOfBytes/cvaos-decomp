@@ -24,11 +24,38 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 
-/* Belmont initialization distinguishes scene entry and combat entry. */
 extern u8 Entity_LoadGraphics(struct EwramData_EntityData *,u8 *,void *,u8,void *);
-extern void Entity_EnableBoxes(struct EwramData_EntityData *,void *,s32);
-extern void Enemy_OnContact(struct EwramData_EntityData *);
+extern s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *,s32,s32);
+extern void Entity_FaceTarget(struct EwramData_EntityData *);
+
+/* This original call site consumes the sign-extended value in all of r0. */
+extern s32 Collision_GetPushUp(s32,s32);
+
 void Belmont_OnHit(struct EwramData_EntityData *entity,s32 kind,u16 *hit);
+void Belmont_UpdateBestiaryPreview(struct EwramData_EntityData *);
+void Belmont_UpdateDefeat(struct EwramData_EntityData *);
+void Belmont_UpdateDodge(struct EwramData_EntityData *);
+void Belmont_UpdateHitReaction(struct EwramData_EntityData *);
+void Belmont_EnterCombat(struct EwramData_EntityData *);
+void Belmont_UpdateCombat(struct EwramData_EntityData *);
+void Belmont_UpdateMeleeAttack(struct EwramData_EntityData *);
+void Belmont_UpdateJumpAttack(struct EwramData_EntityData *);
+void Belmont_UpdateWaveAttack(struct EwramData_EntityData *);
+void Belmont_UpdateSubweaponAttack(struct EwramData_EntityData *);
+void Belmont_UpdateJumpSlide(struct EwramData_EntityData *);
+void Belmont_UpdatePoweredPhase(struct EwramData_EntityData *);
+struct EwramData_EntityData *Belmont_CreateMovementEffect(struct EwramData_EntityData *);
+struct EwramData_EntityData *Belmont_CreateSubweapon(struct EwramData_EntityData *,s32);
+s32 Belmont_CreateAttachedWeapon(struct EwramData_EntityData *);
+void BelmontMovementEffect_Update(struct EwramData_EntityData *);
+void BelmontAttachedWeapon_Update(struct EwramData_EntityData *);
+void BelmontSubweapon0_Update(struct EwramData_EntityData *);
+void BelmontSubweapon1_Update(struct EwramData_EntityData *);
+void BelmontSubweapon2_Update(struct EwramData_EntityData *);
+void BelmontSubweapon3_Update(struct EwramData_EntityData *);
+void FragmentSet_Update(struct EwramData_EntityData *);
+
+/* Belmont initialization distinguishes scene entry and combat entry. */
 void EnemyBelmontCreate(struct EwramData_EntityData *entity)
 {
     void *palette=sJuliusEntityPalette;
@@ -91,7 +118,7 @@ void EnemyBelmontCreate(struct EwramData_EntityData *entity)
     entity->ext.belmont.attackOff=display;
     entity->attack=display;
     Entity_SnapToGround(entity);
-    Entity_EnableBoxes(entity,Enemy_OnContact,(s32)Belmont_OnHit);
+    Entity_EnableBoxes(entity,Enemy_OnContact, Belmont_OnHit);
 }
 
 /* Spawn Belmont's scene object from a table and mark its event bit. */
@@ -105,7 +132,7 @@ void Belmont_CreateSceneObject(struct EwramData_EntityData *entity,s32 index)
     struct BelmontSceneObject *info=&sBelmontSceneObjects[index];
     if(entity->ext.belmont.flags & 0x10)
     {
-        struct EwramData_EntityData *object=EntityCreateInRange(0x1B,0x48,(u32 *)EntityUpdateNothing);
+        struct EwramData_EntityData *object=EntityCreateInRange(0x1B,0x48,EntityUpdateNothing);
         if(object)
         {
             s32 facing;
@@ -132,8 +159,8 @@ void Belmont_CreateSceneObject(struct EwramData_EntityData *entity,s32 index)
             object->spawnParam1=info->param2;
             object->spawnIndex=info->event;
             object->enemyId=info->kind;
-            object->drawFunc=(u32 *)Sprite_DrawEntity;
-            object->updateFunc=(u32 *)Object20Update;
+            object->drawFunc=Sprite_DrawEntity;
+            object->updateFunc=Object20Update;
             Object20Create(object);
             gEwramData->gameState.roomEntitySpawn.spawnedFlags[info->event>>5] |= 1 << (info->event & 31);
         }
@@ -235,19 +262,6 @@ active:
 }
 
 /* Belmont dispatch, hit flashing, collision and active hitbox gating. */
-extern void Belmont_UpdateBestiaryPreview(struct EwramData_EntityData *);
-extern void Belmont_UpdateDefeat(struct EwramData_EntityData *);
-extern void Belmont_UpdateDodge(struct EwramData_EntityData *);
-extern void Belmont_UpdateHitReaction(struct EwramData_EntityData *);
-extern void Belmont_EnterCombat(struct EwramData_EntityData *);
-extern void Belmont_UpdateCombat(struct EwramData_EntityData *);
-extern void Belmont_UpdateMeleeAttack(struct EwramData_EntityData *);
-extern void Belmont_UpdateJumpAttack(struct EwramData_EntityData *);
-extern void Belmont_UpdateWaveAttack(struct EwramData_EntityData *);
-extern void Belmont_UpdateSubweaponAttack(struct EwramData_EntityData *);
-extern void Belmont_UpdateJumpSlide(struct EwramData_EntityData *);
-extern void Belmont_UpdatePoweredPhase(struct EwramData_EntityData *);
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
 #define FLASH(e) ((e)->ext.belmont.flash)
 void EnemyBelmontUpdate(struct EwramData_EntityData *entity)
 {
@@ -292,8 +306,6 @@ void EnemyBelmontUpdate(struct EwramData_EntityData *entity)
 
 /* Belmont_UpdateCombat. */
 /* Belmont combat decisions: proximity, health phase, turns and attacks. */
-extern s32 Entity_IsOffsetOutsideRoom(struct EwramData_EntityData *,s32,s32);
-extern s32 Entity_IsTargetInCenteredBox(struct EwramData_EntityData *,s32,s32);
 #define FLAGS(e) ((e)->ext.belmont.flags)
 #define COOLDOWN(e) ((e)->ext.belmont.cooldown)
 /**
@@ -471,9 +483,6 @@ void Belmont_UpdateMeleeAttack(struct EwramData_EntityData *entity)
 }
 
 /* Belmont leap and airborne attack selection, with landing recovery. */
-extern s32 Entity_ClampXToRoom(struct EwramData_EntityData *,s32);
-extern void Afterimage_Create(struct EwramData_EntityData *,s32,s32,s32);
-extern struct EwramData_EntityData *Belmont_CreateMovementEffect(struct EwramData_EntityData *);
 /* Retain the facing test present in the original collision response. */
 #define STOP_HORIZONTAL(e) { \
     if((e)->flipX) \
@@ -872,7 +881,6 @@ void Belmont_UpdateWaveAttack(struct EwramData_EntityData *entity)
 }
 
 /* Belmont subweapon attack: telegraph, timed effects, throw, recovery. */
-extern struct EwramData_EntityData *Belmont_CreateSubweapon(struct EwramData_EntityData *,s32);
 /**
  * @brief Subweapon state (6): select a variant from target position,
  * telegraph with timed effects and spawn at frame 32 before recovery.
@@ -993,7 +1001,7 @@ void BelmontPowerParticle_Update(struct EwramData_EntityData *entity)
  */
 struct EwramData_EntityData *Belmont_CreatePowerParticle(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *effect=EntityCreateInRange(0x49,0xCF,(u32 *)BelmontPowerParticle_Update);
+    struct EwramData_EntityData *effect=EntityCreateInRange(0x49,0xCF,BelmontPowerParticle_Update);
     if(effect)
     {
         u32 random;
@@ -1017,15 +1025,12 @@ struct EwramData_EntityData *Belmont_CreatePowerParticle(struct EwramData_Entity
         effect->spriteLayer=entity->spriteLayer-1;
         effect->scrollWithBg=1;
         effect->timer=32;
-        effect->drawFunc=(u32 *)Sprite_DrawEntity;
+        effect->drawFunc=Sprite_DrawEntity;
     }
     return effect;
 }
 
 /* Belmont's powered sequence with its attached weapon and rising particles. */
-extern s32 Belmont_CreateAttachedWeapon(struct EwramData_EntityData *);
-/* This original call site consumes the sign-extended value in all of r0. */
-extern s32 Collision_GetPushUp(s32,s32);
 /**
  * @brief Powered state (8): create the attached weapon, sequence tracked
  * sounds and rising particles, then descend and clean up the weapon
@@ -1150,7 +1155,6 @@ void Belmont_UpdatePoweredPhase(struct EwramData_EntityData *entity)
 }
 
 /* Belmont backward dodge with timed flashing and collision handling. */
-extern void Entity_FaceTarget(struct EwramData_EntityData *);
 /**
  * @brief Dodge state (9): create afterimages, move backward relative to
  * facing with timed flashing and terrain bounds handling, then return
@@ -1383,14 +1387,13 @@ void Belmont_UpdateJumpSlide(struct EwramData_EntityData *entity)
 }
 
 /* Short visual effect attached to Belmont's current position. */
-extern void BelmontMovementEffect_Update(struct EwramData_EntityData *);
 /**
  * @brief Create an animation-4 visual effect slightly above the owner
  * using shared effect graphics. Return it or NULL on entity allocation failure.
  */
 struct EwramData_EntityData *Belmont_CreateMovementEffect(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *effect=EntityCreateInRange(0x49,0xCF,(u32 *)BelmontMovementEffect_Update);
+    struct EwramData_EntityData *effect=EntityCreateInRange(0x49,0xCF,BelmontMovementEffect_Update);
     if(effect)
     {
         s32 graphics=ObjGfx_Find(sCommonObjectGfx);
@@ -1401,7 +1404,7 @@ struct EwramData_EntityData *Belmont_CreateMovementEffect(struct EwramData_Entit
         effect->spriteLayer=entity->spriteLayer-1;
         effect->objMode=1;
         effect->scrollWithBg=1;
-        effect->drawFunc=(u32 *)Sprite_DrawEntity;
+        effect->drawFunc=Sprite_DrawEntity;
     }
     return effect;
 }
@@ -1666,7 +1669,6 @@ void Belmont_UpdateDefeat(struct EwramData_EntityData *entity)
 }
 
 /* Belmont hit response, defeat notification and repeated-hit stun. */
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *,s32,u16 *);
 /**
  * @brief Apply enemy damage, trigger the defeat reaction and reward drop
  * when reported, or count repeated hits toward a flashing stun reaction
@@ -1709,7 +1711,6 @@ void Belmont_OnHit(struct EwramData_EntityData *entity,s32 kind,u16 *hit)
 }
 
 /* Belmont attached weapon entity and its independent graphics slot. */
-extern void BelmontAttachedWeapon_Update(struct EwramData_EntityData *);
 /**
  * @brief Create the powered-phase attached weapon with its own graphics
  * setup, owner slot links and stored damage 75. Start hidden/inert;
@@ -1743,10 +1744,6 @@ s32 Belmont_CreateAttachedWeapon(struct EwramData_EntityData *entity)
 }
 
 /* Belmont subweapon factory. All callers supply variants 0 through 3. */
-extern void BelmontSubweapon0_Update(struct EwramData_EntityData *);
-extern void BelmontSubweapon1_Update(struct EwramData_EntityData *);
-extern void BelmontSubweapon2_Update(struct EwramData_EntityData *);
-extern void BelmontSubweapon3_Update(struct EwramData_EntityData *);
 /**
  * @brief Create subweapon variant 0 through 3 with its selected update
  * callback, graphics palette, owner link and spawn offset. Return the
@@ -1758,7 +1755,7 @@ struct EwramData_EntityData *Belmont_CreateSubweapon(struct EwramData_EntityData
     void *sprite=sBelmontSpriteSheet;
     u8 *graphics=sBelmontWeaponGfx;
     s32 slot=1;
-    void (*update)(struct EwramData_EntityData *);
+    EntityFunc update;
     struct EwramData_EntityData *weapon;
     switch(kind)
     {
@@ -2024,8 +2021,6 @@ void BelmontSubweapon3_Update(struct EwramData_EntityData *entity)
 }
 
 /* Five shared death fragments, their lifetime update, and a state helper. */
-extern s8 ObjPalette_FindOrLoadVariant(void *,s32);
-extern void FragmentSet_Update(struct EwramData_EntityData *);
 /**
  * @brief Unreferenced: spawn the five fragments of sFragmentSpecs
  * (FragmentSet_Update) from the entity, counting them in its unk_4F7.
@@ -2035,7 +2030,7 @@ void Entity_SpawnFragmentSet(struct EwramData_EntityData *entity)
     s32 i;
     for(i=0;i<5;i++)
     {
-        struct EwramData_EntityData *fragment=EntityCreateInRange(0x49,0xCF,(u32 *)FragmentSet_Update);
+        struct EwramData_EntityData *fragment=EntityCreateInRange(0x49,0xCF,FragmentSet_Update);
         struct FragmentSpec *spec;
         s32 graphics;
         s32 slot;
@@ -2052,7 +2047,7 @@ void Entity_SpawnFragmentSet(struct EwramData_EntityData *entity)
         slot=ObjPalette_FindOrLoadVariant(sMandragoraPalette,0);
         Sprite_Attach(fragment,sMandragoraSpriteSheet,graphics,slot);
         fragment->scrollWithBg=1;
-        fragment->drawFunc=(u32 *)Sprite_DrawEntity;
+        fragment->drawFunc=Sprite_DrawEntity;
         fragment->posX.whole=entity->posX.whole;
         fragment->posY.whole=entity->posY.whole;
         x=spec->x;

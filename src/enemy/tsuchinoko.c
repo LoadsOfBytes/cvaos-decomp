@@ -16,8 +16,18 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "enemy_common.h"
+#include "damage_numbers.h"
 
-extern void Tsuchinoko_SpitShot(struct EwramData_EntityData *);
+extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
+
+void Tsuchinoko_SpitShot(struct EwramData_EntityData *);
+void TsuchinokoShot_Update(struct EwramData_EntityData *);
+s32 TsuchinokoShot_LoadGraphics(struct EwramData_EntityData *, struct EwramData_EntityData *);
+void TsuchinokoShot_EnableHitBoxes(struct EwramData_EntityData *);
+void TsuchinokoShot_DamagePlayerOnContact(struct EwramData_EntityData *entity);
+void TsuchinokoShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+void TsuchinokoDroplet_Update(struct EwramData_EntityData *);
 
 /* Attack on animation event 3, then resume jumping when it finishes. */
 void Tsuchinoko_UpdateAttack(struct EwramData_EntityData *entity)
@@ -103,9 +113,6 @@ void Tsuchinoko_UpdateDeath(struct EwramData_EntityData *entity)
     }
 }
 
-extern s16 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
-
 void Tsuchinoko_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
     s32 damage = Player_CalculateAttackPower(hit[2]);
@@ -117,7 +124,7 @@ void Tsuchinoko_OnHit(struct EwramData_EntityData *entity, struct EwramData_Enti
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
@@ -131,16 +138,13 @@ void Tsuchinoko_OnHit(struct EwramData_EntityData *entity, struct EwramData_Enti
 }
 
 /* Tsuchinoko: create an arcing projectile sharing the parent's graphics. */
-extern void TsuchinokoShot_Update(struct EwramData_EntityData *);
-extern s32 TsuchinokoShot_LoadGraphics(struct EwramData_EntityData *, struct EwramData_EntityData *);
-extern void TsuchinokoShot_EnableHitBoxes(struct EwramData_EntityData *);
 /**
  * @brief Spit a falling shot from parent (TsuchinokoShot_Update, attribute 0x40
  * on contact).
  */
 void Tsuchinoko_SpitShot(struct EwramData_EntityData *parent)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, (u32 *)TsuchinokoShot_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, TsuchinokoShot_Update);
     if (child != NULL)
     {
         if ((u8)TsuchinokoShot_LoadGraphics(parent, child) == 0)
@@ -171,8 +175,6 @@ void Tsuchinoko_SpitShot(struct EwramData_EntityData *parent)
 }
 
 /* TsuchinokoShot_EnableHitBoxes (hit boxes, same code as MermanShot_EnableHitBoxes). */
-extern void TsuchinokoShot_DamagePlayerOnContact(struct EwramData_EntityData *entity);
-void TsuchinokoShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 /**
  * @brief A785C | Activate box slot 0xA with TsuchinokoShot_DamagePlayerOnContact / TsuchinokoShot_OnHit and set both
@@ -183,28 +185,27 @@ void TsuchinokoShot_EnableHitBoxes(struct EwramData_EntityData *entity)
 {
     u32 box = 0x0808FCFC;
 
-    Hit_Enable(entity, 0xA, TsuchinokoShot_DamagePlayerOnContact, (s32)TsuchinokoShot_OnHit);
+    Hit_Enable(entity, 0xA, TsuchinokoShot_DamagePlayerOnContact, TsuchinokoShot_OnHit);
     HitBox_SetBody(entity, &box);
     HitBox_SetAttack(entity, &box);
     entity->hit.flags &= ~2;
     entity->hit.flags &= ~4;
 }
 
-extern void TsuchinokoDroplet_Update(struct EwramData_EntityData *);
 static inline u8 LoadTsuchinokoGraphics(struct EwramData_EntityData *parent, struct EwramData_EntityData *child)
 {
     s32 tiles = ObjGfx_Find(sTsuchinokoGfx);
     if (tiles < 0)
         return 0;
     Sprite_Attach(child, sTsuchinokoSpriteSheet, tiles, parent->basePalette);
-    child->drawFunc = (u32 *)Sprite_DrawEntity;
+    child->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
 /* Create a randomly flipped falling effect with no contact callback. */
 void Tsuchinoko_SpawnDroplet(struct EwramData_EntityData *parent)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, (u32 *)TsuchinokoDroplet_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, TsuchinokoDroplet_Update);
     if (child != NULL)
     {
         s32 zero;
@@ -238,21 +239,6 @@ void Tsuchinoko_SpawnDroplet(struct EwramData_EntityData *parent)
 }
 
 /* Tsuchinoko helpers 0x080A79D8..0x080A7B53. */
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
-extern void Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
-
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
 
 /**
  * @brief A79D8 | Falling projectile with a hit box (Hit_CheckWithPlayer); deleted
@@ -271,7 +257,7 @@ void TsuchinokoShot_Update(struct EwramData_EntityData *entity)
             return;
         }
     }
-    Hit_CheckWithPlayer(collision, entity);
+    Hit_CheckWithPlayer((struct HitResult *)collision, entity);
     Anim_Update(entity);
 }
 
@@ -286,7 +272,7 @@ s32 TsuchinokoShot_LoadGraphics(struct EwramData_EntityData *entity, struct Ewra
     if (gfx < 0)
         return 0;
     Sprite_Attach(child, sTsuchinokoSpriteSheet, gfx, entity->basePalette);
-    child->drawFunc = (u32 *)Sprite_DrawEntity;
+    child->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -344,7 +330,7 @@ u8 Tsuchinoko_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sTsuchinokoPalette, 0);
     Sprite_Attach(entity, sTsuchinokoSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
@@ -357,15 +343,13 @@ void Tsuchinoko_DamagePlayerOnContact(struct EwramData_EntityData *entity)
     Entity_DamagePlayerOnContact(entity, 0, 0, 0);
 }
 
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-
 void EnemyTsuchinokoUpdate(struct EwramData_EntityData *entity)
 {
     u32 box[4];
     if (entity->state != 2) Enemy_UpdateHitFlash(entity);
     if (Entity_IsTimeStopped(entity) && entity->state != 2)
     {
-        Hit_CheckWithPlayer(box, entity);
+        Hit_CheckWithPlayer((struct HitResult *)box, entity);
         return;
     }
     switch (entity->state)

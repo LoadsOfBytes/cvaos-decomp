@@ -30,14 +30,8 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 
-extern u8 Angle_TurnTowards(u16 *, u16, u16);
-extern void Enemy_UpdateHitFlash(struct EwramData_EntityData *);
-extern s32 Enemy_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
-extern s32 Hit_CheckWithPlayer(void *res, struct EwramData_EntityData *b);
-extern void HitEffect_SpawnAtContact(s32 attacker, struct EwramData_EntityData *entity, s32 type);
 extern void SoulPickup_SpawnFromEnemyDefinition(s32, s32, s32, s32);
 extern void BossRecoveryPickup_Spawn(s32, s32, s32, s32, s32);
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 /*
  * Two callers below were compiled against other prototypes than the ones in
@@ -48,7 +42,6 @@ extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 extern u16 ArcTan2Wide(s32 x, s32 y) asm("ArcTan2");
 extern void ObjPalette_LoadRange3(s32 palette, u16 first, u16 count) asm("ObjPalette_LoadRange");
 
-/* Defined further down, used earlier. */
 void BaloreHandBHitBox_Update(struct EwramData_EntityData *entity);
 void BaloreHandB_Update(struct EwramData_EntityData *entity);
 void Balore_CreateIntro(struct EwramData_EntityData *entity);
@@ -134,7 +127,7 @@ s32 BaloreOverlay_SetupSprite(struct EwramData_EntityData *entity)
     b->parts = c;
     Sprite_Attach(entity, a, (s8)info[0x17], info[0x2C]);
     Anim_StartIndexed(entity, 0, 2, 1);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     Anim_Update(entity);
     return 0;
 }
@@ -270,7 +263,7 @@ void BaloreEye_Update(struct EwramData_EntityData *entity)
     {
     case 0:
         Sprite_Attach(entity, &sBaloreSpriteSheet, (s8)owner->ext.balore.gfx, owner->basePalette);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->spriteLayer = 0x1F;
         if (gEwramData->gameState.bestiaryPreview)
         {
@@ -317,7 +310,7 @@ void BalorePart_Update(struct EwramData_EntityData *entity)
     case 0:
         entity->flipX = 1;
         Sprite_Attach(entity, &sBaloreSpriteSheet, (s8)owner->ext.balore.gfx, owner->basePalette);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->spriteLayer = 0x1C;
         entity->ext.balorePart.anim = 0x1B;
         entity->state = 1;
@@ -386,7 +379,7 @@ void BaloreBodyPart_Update(struct EwramData_EntityData *entity)
     {
     case 0:
         Sprite_Attach(entity, &sBaloreSpriteSheet, (s8)owner->ext.balore.gfx, owner->basePalette);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->spriteLayer = 0x1C;
         entity->state = 1;
     case 1:
@@ -441,7 +434,7 @@ u8 Balore_LoadGraphics(struct EwramData_EntityData *entity)
     entity->ext.balore.gfx = slot;
     entity->basePalette = entity->ext.balore.palette;
     Sprite_Attach(entity, &sBaloreSpriteSheet, slot, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     entity->scrollWithBg = 1;
     return 1;
 }
@@ -734,8 +727,8 @@ void BaloreHandHitBox_Update(struct EwramData_EntityData *entity)
         Sprite_Attach(entity, &sBaloreSpriteSheet, (s8)body->ext.balore.gfx, hand->basePalette);
         Anim_StartIndexed(entity, 0x30, 2, 0);
         Anim_Update(entity);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
-        Hit_Enable(entity, 8, BaloreHandHitBox_DamagePlayerOnContact, (s32)BaloreHandHitBox_OnHit);
+        entity->drawFunc = Sprite_DrawEntity;
+        Hit_Enable(entity, 8, BaloreHandHitBox_DamagePlayerOnContact, BaloreHandHitBox_OnHit);
         HitBox_SetAttackRaw(entity, 0x2828ECEC);
         HitBox_SetBodyRaw(entity, 0x2828ECEC);
         entity->state = 1;
@@ -778,7 +771,7 @@ void BaloreHandHitBox_Update(struct EwramData_EntityData *entity)
     entity->velX.whole = entity->posX.whole - entity->accelX.whole;
     entity->velY.whole = entity->posY.whole - entity->accelY.whole;
     if (HIT_FLAGS(entity) & 4) Player_QueueEntity(entity, 3);
-    Hit_CheckWithPlayer(collision, entity);
+    Hit_CheckWithPlayer((struct HitResult *)collision, entity);
     ObjAffine_Set(hand->ext.baloreHand.armAngle, 0x10000, 0x10000, hand->flipX, 0, entity->affineIndex);
     if (entity->animScriptIndex != BALORE_HAND_ANIM(hand))
         Anim_StartIndexed(entity, BALORE_HAND_ANIM(hand), 2, 0);
@@ -835,7 +828,7 @@ void BaloreHand_Update(struct EwramData_EntityData *entity)
         Sprite_Attach(entity, &sBaloreSpriteSheet, (s8)body->ext.balore.gfx, entity->basePalette);
         Anim_StartIndexed(entity, 0x2D, 2, 0);
         Anim_Update(entity);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         ANIM(entity) = 0x30;
         entity->ext.baloreHand.armLength = 0x260000;
         entity->state = 1;
@@ -1013,7 +1006,7 @@ void BaloreAffineEffect_Update(struct EwramData_EntityData *entity)
         entity->spriteLayer = 0x13;
         entity->basePalette = ObjPalette_FindOrLoadVariant(sBalorePalette, 0x10);
         Sprite_Attach(entity, &sBaloreSpriteSheet, (s8)owner->ext.balore.gfx, entity->basePalette);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         Anim_StartIndexed(entity, 0x31, 2, 0);
         Anim_Update(entity);
         entity->drawSkip = 1;
@@ -1076,7 +1069,7 @@ void BaloreSpark_Update(struct EwramData_EntityData *entity)
     case 0:
         entity->basePalette = ObjPalette_FindOrLoadVariant((void *)sBalorePalette, 0x10);
         Sprite_Attach(entity, (void *)&sBaloreSpriteSheet, BALORE_GFX_BYTE(parent), entity->basePalette);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         Anim_StartIndexed(entity, 0x33, 2, 0);
         entity->spriteLayer = 0x13;
         Hit_Enable(entity, 8, BaloreSpark_DamagePlayerOnContact, 0);
@@ -1094,7 +1087,7 @@ void BaloreSpark_Update(struct EwramData_EntityData *entity)
         entity->state = 2;
     case 2:
         EntityAccelerateAndMoveX(entity, 0x80000);
-        Hit_CheckWithPlayer(hit, entity);
+        Hit_CheckWithPlayer((struct HitResult *)hit, entity);
         if (entity->animStep == 3)
             entity->hit.flags &= ~2;
         else
@@ -1183,7 +1176,7 @@ void BaloreEmitter_Update(struct EwramData_EntityData *entity)
         entity->spriteLayer = 0x14;
         entity->basePalette = ObjPalette_FindOrLoadVariant((void *)sBalorePalette, 0x10);
         Sprite_Attach(entity, (void *)&sBaloreSpriteSheet, BALORE_GFX_BYTE(parent), entity->basePalette);
-        entity->drawFunc = (u32 *)BaloreEmitter_Draw;
+        entity->drawFunc = BaloreEmitter_Draw;
         Anim_StartIndexed(entity, 0x32, 2, 0);
         Anim_Update(entity);
         entity->objMode = 1;
@@ -1395,7 +1388,7 @@ void Balore_UpdateAttack(struct EwramData_EntityData *entity)
     {
     case 0:
         {
-            register u32 *callback asm("r0") = (u32 *)BaloreAffineEffect_Update; /* FAKEMATCH: pinned register */
+            register EntityFunc callback asm("r0") = BaloreAffineEffect_Update; /* FAKEMATCH: pinned register */
             effect = Entity_CreateObject(callback);
         }
         if (effect != NULL)
@@ -1406,7 +1399,7 @@ void Balore_UpdateAttack(struct EwramData_EntityData *entity)
             effect->ext.balorePart.body = entity;
         }
         {
-            u32 *callback = (u32 *)BaloreAffineEffect_Update;
+            EntityFunc callback = BaloreAffineEffect_Update;
             effect = Entity_CreateObject(callback);
         }
         if (effect != NULL)
@@ -1652,7 +1645,7 @@ void EnemyBaloreCreate(struct EwramData_EntityData *entity)
             return;
         }
     }
-    Hit_Enable(entity, 8, NULL, (s32)Balore_OnHit);
+    Hit_Enable(entity, 8, NULL, Balore_OnHit);
     HitBox_SetBodyRaw(entity, 0x1010F010);
     {
         u32 flags = entity->hit.flags;
@@ -1693,7 +1686,7 @@ void EnemyBaloreUpdate(struct EwramData_EntityData *entity)
     }
     *(u16 *)&entity->ext.balore.flags &= 0xFFFE;
     if (entity->state != 4 && Entity_IsInRect(entity, -8, 0, 0x100, 0xB0))
-        Hit_CheckWithPlayer(box, entity);
+        Hit_CheckWithPlayer((struct HitResult *)box, entity);
     Anim_StartIndexed(entity, sBaloreEyeAnimOffsets[(s8)entity->ext.balore.eyeAnim], 2, 0);
     Anim_Update(entity);
 }
@@ -1708,7 +1701,7 @@ void BaloreDebris_Update(struct EwramData_EntityData *entity)
         Sprite_Attach(entity, sBaloreSpriteSheet2, (s8)parent->ext.balore.gfx,
                      parent->basePalette);
         Anim_StartIndexed(entity, entity->subState, 2, 0);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->state = 1;
     case 1:
         EntityAccelerateAndMove(entity, 0x80000);
@@ -1746,7 +1739,7 @@ void BaloreIntroPiece_Update(struct EwramData_EntityData *entity)
         Sprite_Attach(entity, (void *)sBaloreSpriteSheet2, BALORE_GFX_BYTE(parent), parent->basePalette);
         Anim_StartIndexed(entity, 1, 2, 1);
         entity->animTimer = RandomNumberGenerator() & 7;
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->spriteLayer = 9;
         entity->state = 1;
     case 1:
@@ -1825,7 +1818,7 @@ void BaloreIntroPart_Update(struct EwramData_EntityData *entity)
     case 0:
         Sprite_Attach(entity, (void *)sBaloreSpriteSheet2, BALORE_GFX_BYTE(parent), parent->basePalette);
         Anim_StartIndexed(entity, 3, 2, 0);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->spriteLayer = 0x1A;
         entity->state = 1;
         entity->timer = 0x10;
@@ -1913,7 +1906,7 @@ void BaloreHandBHitBox_Update(struct EwramData_EntityData *entity)
         entity->spriteLayer = hand->spriteLayer;
         Sprite_Attach(entity, sBaloreSpriteSheet2, (s8)body->ext.balore.gfx, hand->basePalette);
         Anim_StartIndexed(entity, 10, 2, 0);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         entity->state = 1;
         break;
     case 1:
@@ -1931,7 +1924,7 @@ void BaloreHandBHitBox_Update(struct EwramData_EntityData *entity)
                 struct EwramData_EntityData *spark;
                 x = (s16)(0xFFF8 + entity->posX.part16.integer + (RandomNumberGenerator() & 7));
                 y = (s16)(entity->posY.part16.integer - 22);
-                spark = EntityCreateInRange(0x49, 0xCF, (u32 *)BaloreDebris_Update);
+                spark = EntityCreateInRange(0x49, 0xCF, BaloreDebris_Update);
                 if (spark != NULL)
                 {
                     spark->ext.balorePart.body = body;
@@ -1949,7 +1942,7 @@ void BaloreHandBHitBox_Update(struct EwramData_EntityData *entity)
         {
             x = (s16)entity->posX.part16.integer;
             y = (s16)(entity->posY.part16.integer + 24);
-            child = EntityCreateInRange(0x49, 0xCF, (u32 *)BaloreDebris_Update);
+            child = EntityCreateInRange(0x49, 0xCF, BaloreDebris_Update);
             if (child != NULL)
             {
                 child->ext.balorePart.body = body;
@@ -2029,7 +2022,7 @@ void BaloreHandB_Update(struct EwramData_EntityData *entity)
         entity->basePalette = ObjPalette_FindOrLoadVariant(sBalorePalette, 15);
         Sprite_Attach(entity, sBaloreSpriteSheet2, (s8)body->ext.balore.gfx, entity->basePalette);
         Anim_StartIndexed(entity, 7, 2, 0);
-        entity->drawFunc = (u32 *)Sprite_DrawEntity;
+        entity->drawFunc = Sprite_DrawEntity;
         ANIM(entity) = 10;
         entity->ext.baloreHand.armLength = 0x260000;
         STEP(entity) = 0x80000;
@@ -2123,7 +2116,7 @@ void Balore_CreateIntro(struct EwramData_EntityData *entity)
     s32 i, offset;
     s16 *x;
 
-    entity->updateFunc = (u32 *)BaloreIntro_Update;
+    entity->updateFunc = BaloreIntro_Update;
     if (!LoadGfx(entity))
     {
         EntityDelete(entity);
@@ -2138,7 +2131,7 @@ void Balore_CreateIntro(struct EwramData_EntityData *entity)
     x = &entity->posX.part16.integer;
     for (offset = -0x80; i < 32; offset += 8, i++)
     {
-        e = EntityCreateInRange(0x49, 0xCF, (u32 *)BaloreIntroPiece_Update);
+        e = EntityCreateInRange(0x49, 0xCF, BaloreIntroPiece_Update);
         if (e == NULL)
             return;
         e->ext.balorePiece.owner = entity;
@@ -2203,7 +2196,7 @@ void BaloreIntro_Update(struct EwramData_EntityData *entity)
             entity->timer--;
             break;
         }
-        e = EntityCreateInRange(0x49, 0xCF, (u32 *)BaloreIntroPart_Update);
+        e = EntityCreateInRange(0x49, 0xCF, BaloreIntroPart_Update);
         if (e)
         {
             e->ext.balorePiece.owner = entity;

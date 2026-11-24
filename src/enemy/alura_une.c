@@ -18,12 +18,21 @@
 #include "obj_gfx.h"
 #include "obj_palette.h"
 #include "data/data_118B48.h"
+#include "damage_numbers.h"
+
+extern s32 Target_IsInRect(s16, s16, s16, s16);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
+
+u8 AluraUne_LoadGraphics(struct EwramData_EntityData *);
+void AluraUne_DamagePlayerOnContact(struct EwramData_EntityData *);
+void AluraUne_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
+void AluraUne_SpawnThorn(struct EwramData_EntityData *, s32, s32, s32);
+void AluraUne_SpawnRootWave(struct EwramData_EntityData *parent, s32 index, s32 facing);
+void AluraUneThorn_Update(struct EwramData_EntityData *);
+void AluraUneAttack_DamagePlayerOnContact(struct EwramData_EntityData *);
+void AluraUneRootWave_Update(struct EwramData_EntityData *);
 
 /* Initialize AluraUne's graphics, collisions and initial facing. */
-extern u8 AluraUne_LoadGraphics(struct EwramData_EntityData *);
-extern void Hit_EnableContact(struct EwramData_EntityData *, s32, void *, void *);
-extern void AluraUne_DamagePlayerOnContact(struct EwramData_EntityData *);
-void AluraUne_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 void EnemyAluraUneCreate(struct EwramData_EntityData *entity)
 {
     if (!AluraUne_LoadGraphics(entity))
@@ -42,15 +51,12 @@ void EnemyAluraUneCreate(struct EwramData_EntityData *entity)
     if (Anim_GetMaxBoxCount(entity) > 1)
         Hit_EnableContact(entity, 8, AluraUne_DamagePlayerOnContact, AluraUne_OnHit);
     else
-        Hit_Enable(entity, 8, AluraUne_DamagePlayerOnContact, (s32)AluraUne_OnHit);
+        Hit_Enable(entity, 8, AluraUne_DamagePlayerOnContact, AluraUne_OnHit);
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
     entity->state = 0;
     entity->flipX = Entity_IsTargetRight(entity);
 }
-
-extern s32 Target_IsInRect(s16, s16, s16, s16);
-extern void AluraUne_SpawnThorn(struct EwramData_EntityData *, s32, s32, s32);
 
 /**
  * @brief 7C150 | Boss AI (subState), always facing the player: wakes on the
@@ -223,7 +229,6 @@ void AluraUne_UpdateIdle(struct EwramData_EntityData *entity)
 }
 
 /* AluraUne_UpdateAttack: enemy behaviour state machine (14 states). */
-extern void AluraUne_SpawnRootWave(struct EwramData_EntityData *parent, s32 index, s32 facing);
 
 /**
  * @brief Attack state machine (state 1): animation 1, then rows of thorns at
@@ -460,8 +465,6 @@ void AluraUne_UpdatePreview(struct EwramData_EntityData *entity)
 }
 
 /* Apply damage only when the current animation permits it. */
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, struct EwramData_EntityData *, u16 *, s16);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s32, s32);
 /**
  * @brief Hit: no damage while closed (animation 0, sound 0x6A), else subtract and
  * show it; mark the hit (unk_505 = 1, cuts the idle wait short); at
@@ -497,15 +500,13 @@ void AluraUne_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
 }
 
 /* Create Alura Une's projectile with a timed or immediate activation. */
-extern void AluraUneThorn_Update(struct EwramData_EntityData *);
-extern void AluraUneAttack_DamagePlayerOnContact(struct EwramData_EntityData *);
 /**
  * @brief Spawn a thorn at xOffset from parent that rises from the floor after
  * delay frames (hit box {-2, -54, 4, 54}) and sinks again.
  */
 void AluraUne_SpawnThorn(struct EwramData_EntityData *parent, s32 xOffset, s32 delay, s32 type)
 {
-    struct EwramData_EntityData *projectile = EntityCreateInRange(0x1B, 0x48, (u32 *)AluraUneThorn_Update);
+    struct EwramData_EntityData *projectile = EntityCreateInRange(0x1B, 0x48, AluraUneThorn_Update);
     if (projectile)
     {
         s32 graphics = ObjGfx_Find(sAluraUneGfx);
@@ -516,7 +517,7 @@ void AluraUne_SpawnThorn(struct EwramData_EntityData *parent, s32 xOffset, s32 d
         }
         Sprite_Attach(projectile, sAluraUneSpriteSheet, graphics, parent->basePalette);
         Anim_StartIndexed(projectile, 12, 0, 0);
-        projectile->drawFunc = (u32 *)Sprite_DrawEntity;
+        projectile->drawFunc = Sprite_DrawEntity;
         Hit_Enable(projectile, 8, AluraUneAttack_DamagePlayerOnContact, 0);
         projectile->hit.flags |= 4;
         projectile->hit.flags |= 2;
@@ -546,7 +547,6 @@ void AluraUne_SpawnThorn(struct EwramData_EntityData *parent, s32 xOffset, s32 d
 }
 
 /* Activate a timed projectile and retain it only while its parent is alive. */
-extern void Hit_CheckWithPlayer(void *, struct EwramData_EntityData *);
 void AluraUneThorn_Update(struct EwramData_EntityData *entity)
 {
     u8 collision[16];
@@ -597,7 +597,7 @@ void AluraUneThorn_Update(struct EwramData_EntityData *entity)
         }
         break;
     case 3:
-        Hit_CheckWithPlayer(collision, entity);
+        Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         if (entity->timer++ >= entity->ext.aluraUneThorn.time)
         {
             entity->state++;
@@ -622,14 +622,13 @@ void AluraUneThorn_Update(struct EwramData_EntityData *entity)
 }
 
 /* Create one segment of Alura Une's attack on the selected side. */
-extern void AluraUneRootWave_Update(struct EwramData_EntityData *);
 /**
  * @brief Spawn a root wave (animation 9) moving along the floor in the facing
  * direction.
  */
 void AluraUne_SpawnRootWave(struct EwramData_EntityData *parent, s32 index, s32 facing)
 {
-    struct EwramData_EntityData *part = EntityCreateInRange(0x1B, 0x48, (u32 *)AluraUneRootWave_Update);
+    struct EwramData_EntityData *part = EntityCreateInRange(0x1B, 0x48, AluraUneRootWave_Update);
     if (part)
     {
         s32 graphics = ObjGfx_Find(sAluraUneGfx);
@@ -641,7 +640,7 @@ void AluraUne_SpawnRootWave(struct EwramData_EntityData *parent, s32 index, s32 
         Sprite_Attach(part, sAluraUneSpriteSheet, graphics, parent->basePalette);
         Anim_StartIndexed(part, 9, 0, 0);
         Anim_Update(part);
-        part->drawFunc = (u32 *)Sprite_DrawEntity;
+        part->drawFunc = Sprite_DrawEntity;
         Entity_UpdateBoxes(part);
         Hit_Enable(part, 8, AluraUneAttack_DamagePlayerOnContact, 0);
         part->hit.flags &= ~2;
@@ -659,7 +658,6 @@ void AluraUne_SpawnRootWave(struct EwramData_EntityData *parent, s32 index, s32 
 }
 
 /* Advance a six-step attack, turn at its midpoint and pause between steps. */
-static inline s32 Flipped(s32 facing) { return facing ^ 1; }
 /**
  * @brief Root wave update: after each animation (sound 0x80) jump 40 px further,
  * turning once after the third; delete after six.
@@ -691,7 +689,7 @@ void AluraUneRootWave_Update(struct EwramData_EntityData *entity)
         else
         {
             Entity_UpdateBoxes(entity);
-            Hit_CheckWithPlayer(collision, entity);
+            Hit_CheckWithPlayer((struct HitResult *)collision, entity);
         }
         break;
     case 1:
@@ -717,8 +715,6 @@ void AluraUneRootWave_Update(struct EwramData_EntityData *entity)
  *   AluraUneAttack_DamagePlayerOnContact = Object28_OnPlayerContact
  *   AluraUne_LoadGraphics = Object25_LoadGraphics
  *   AluraUne_DamagePlayerOnContact = Object28_OnPlayerContact */
-
-extern s32 ObjPalette_FindOrLoadVariant(void *palette, s32 variant);
 
 /**
  * @brief 7CEF0 | Same as Object28_OnPlayerContact.
@@ -747,7 +743,7 @@ u8 AluraUne_LoadGraphics(struct EwramData_EntityData *entity)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sAluraUnePalette, 0);
     Sprite_Attach(entity, sAluraUneSpriteSheet, gfx, entity->basePalette);
-    entity->drawFunc = (u32 *)Sprite_DrawEntity;
+    entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 

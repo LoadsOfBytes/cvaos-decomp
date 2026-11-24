@@ -19,19 +19,26 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "damage_numbers.h"
+#include "effects.h"
+#include "entity_motion.h"
 
 /* Nemesis_UpdatePositioning: twin of Alastor_UpdateApproach (approach a point near the player and rock);
  * deeper vertical target (+48/16), palette call in state 0; matched. */
-extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *);
 extern void Entity_FaceTarget(struct EwramData_EntityData *);
-extern u8 Angle_TurnTowards(u16 *angle, u16 step, u16 target);
 #define DX(e) ((s16)Entity_GetTargetDistanceX(e))
 #define DY(e) ((s16)Entity_GetTargetDistanceY(e))
 #define ABS(x) ((x)<0?-(x):(x))
 #define ANGLE(e) (e->ext.nemesis.angle)
 #define PHASE(e) (e->ext.nemesis.phase)
 #define FLAGS(e) (e->ext.nemesis.flags)
-static inline s32 Both(s32 x,s32 y) { return (x&y)==1; }
+
+extern void *memcpy(void *, const void *, unsigned long);
+extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
+
+void Nemesis_DeleteAfterimages(struct EwramData_EntityData *);
+void NemesisPartner_Update(struct EwramData_EntityData *);
+
 /**
  * @brief Turn and approach a point near the target, rock the affine angle and enter attack selection when both axis tolerances are reached.
  */
@@ -236,7 +243,6 @@ void Nemesis_UpdateRotatedBoxes(struct EwramData_EntityData *entity)
 }
 
 /* Turning attack: three passes, then return to the ordinary state. */
-extern void *memcpy(void *, const void *, unsigned long);
 
 #define LEFT(e) ((e)->ext.nemesis.attackStep)
 
@@ -386,7 +392,6 @@ void Nemesis_UpdateScriptedAttack(struct EwramData_EntityData *entity)
 }
 
 /* Lunge towards the target. */
-extern s32 Entity_GetTargetAngleAbove16(struct EwramData_EntityData *);
 
 /**
  * @brief Spin in place, aim toward the target, lunge for the computed timer and return to positioning; update rotation and boxes throughout.
@@ -532,7 +537,6 @@ void Nemesis_UpdatePartnerFlight(struct EwramData_EntityData *entity)
 }
 
 /* Falling-away death of a linked part. */
-extern void Nemesis_DeleteAfterimages(struct EwramData_EntityData *);
 
 /**
  * @brief Delete afterimages, fall and emit effects; free the affine slot and request deletion of self and partner at the Y or timer limit.
@@ -566,8 +570,6 @@ void Nemesis_UpdateDeath(struct EwramData_EntityData *entity)
 }
 
 /* Hit callback of a two-part enemy. */
-extern s32 Hit_ResolveDamage(struct EwramData_EntityData *, s32, u16 *, s32);
-extern void Entity_ShowDamage(struct EwramData_EntityData *, s16, s32);
 
 /* the partner entity, slot unk_4F6 (see Nemesis_CreatePartner) */
 #define LINKED(e) (*(gEwramData->entityData + e->ext.nemesis.partnerIndex))
@@ -586,7 +588,7 @@ void Nemesis_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 *data)
         damage >>= 16;
         entity->hp = hp - damage;
     }
-    Entity_ShowDamage(entity, damage, 0);
+    Entity_ShowDamage(entity, (s16)damage, 0);
     entity->hitFlashTimer = 8;
     if (entity->ext.nemesis.hitsBeforeReact != 0)
     {
@@ -617,15 +619,14 @@ done:
 }
 
 /* Linked child creation. */
-extern void NemesisPartner_Update(struct EwramData_EntityData *);
 
 /**
  * @brief Allocate and attach the linked partner, store mutual slot references and run its first update; return 0 if allocation or sprite attachment fails.
  */
 s32 Nemesis_CreatePartner(struct EwramData_EntityData *parent)
 {
-    void (*update)(struct EwramData_EntityData *) = NemesisPartner_Update;
-    struct EwramData_EntityData *e = EntityCreateInRange(0x49, 0xCF, (u32 *)update);
+    EntityFunc update = NemesisPartner_Update;
+    struct EwramData_EntityData *e = EntityCreateInRange(0x49, 0xCF, update);
 
     if (e == NULL)
         return 0;
@@ -634,7 +635,7 @@ s32 Nemesis_CreatePartner(struct EwramData_EntityData *parent)
     ENTITY_PARENT_INDEX(e) = ENTITY_INDEX(parent);
     parent->ext.nemesis.partnerIndex = ENTITY_INDEX(e);
     e->objMode = 1;
-    e->drawFunc = (u32 *)Sprite_DrawEntity;
+    e->drawFunc = Sprite_DrawEntity;
     e->scrollWithBg = 1;
     e->spriteLayer = parent->spriteLayer + 2;
     if (e->state != 1)
@@ -758,7 +759,7 @@ void Effect_FollowParentHitBox(struct EwramData_EntityData *entity)
 
             Sprite_Attach(entity, sCommonObjectSpriteSheet, gfx, 7);
             Anim_StartIndexed(entity, 0, 0, 0);
-            entity->drawFunc = (u32 *)Sprite_DrawEntity;
+            entity->drawFunc = Sprite_DrawEntity;
             entity->state++;
         }
         case 1:
@@ -822,19 +823,6 @@ void Nemesis_UpdateState7(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   Nemesis_OnContact = Enemy_DamagePlayerOnContact */
 
-static inline void Entity_DamagePlayerOnContact(struct EwramData_EntityData *entity, u16 attributes, u16 unused, u16 reaction)
-{
-    struct PlayerContactDamage contactDamage;
-
-    contactDamage.attack = entity->attack;
-    contactDamage.attributes = attributes;
-    contactDamage.unused = unused;
-    contactDamage.reaction = reaction;
-    contactDamage.sourceX = entity->posX.whole;
-    contactDamage.sourceY = entity->posY.whole;
-    Player_ApplyContactDamage(&contactDamage);
-}
-
 /**
  * @brief Submit the entity attack contact record with mode fields 0, 0, 0.
  */
@@ -844,7 +832,6 @@ void Nemesis_OnContact(struct EwramData_EntityData *entity)
 }
 
 /* Nemesis_CreateAfterimages. */
-extern struct EwramData_EntityData *Afterimage_Create(struct EwramData_EntityData *entity, s32 delay, s32 count, s32 flags);
 
 /**
  * @brief Create three afterimages with zero countdown, history indices 9, 12 and 6, and flag 2; store their slots.

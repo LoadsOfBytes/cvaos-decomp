@@ -88,7 +88,12 @@ name or comment describes the game correctly. Corrections are very welcome.
   not known yet, and blocks that extend past the work area.
 - **File layout** – sources live in `src/enemy/`, `src/object/`, `src/soul/`,
   `src/player/`, `src/engine/`, `src/menu/`, `src/mode/`, `src/event/` and
-  `src/debug/`, each file a consecutive ROM range in its original order. 9 small
+  `src/debug/`, each file a consecutive ROM range in its original order. File
+  names describe the content (`doors`, `breakables`, `area_props`,
+  `scenes_story`, `debug_event_menu` …); no file is named after an address or a
+  table index any more. A file holding several unrelated objects or scenes is
+  named after the main ones and lists the rest in its header comment – splitting
+  it would change the order of code in the ROM. 9 small
   files are still split off only for build reasons: 6 single functions that
   match only with an optimisation pass disabled (`palette_state`,
   `hit_shared_history`, `equipment_list_update`,

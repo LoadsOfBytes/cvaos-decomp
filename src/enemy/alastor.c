@@ -212,8 +212,8 @@ void Alastor_UpdateAppear(struct EwramData_EntityData *entity)
 /* Alastor approaches a point near the player and rocks its blade.
  * for the matching notes (s8 reachedX, pinned r0
  * temporary, separate += in both branches, u32 phase). */
-#define DX(e) ((s16)Entity_GetTargetDistanceX(e))
-#define DY(e) ((s16)Entity_GetTargetDistanceY(e))
+#define DX(e) (Entity_GetTargetDistanceX(e))
+#define DY(e) (Entity_GetTargetDistanceY(e))
 #define ABS(x) ((x)<0?-(x):(x))
 #define ANGLE(e) (e->ext.alastor.angle)
 #define PHASE(e) (e->ext.alastor.phase)

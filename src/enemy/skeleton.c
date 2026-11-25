@@ -96,12 +96,12 @@ void Skeleton_UpdateCombatMovement(struct EwramData_EntityData *entity)
     switch (state)
     {
     case 0:
-        d0 = (s16)Entity_GetTargetDistanceY(entity);
+        d0 = Entity_GetTargetDistanceY(entity);
         if (d0 < 0)
             d0 = -d0;
         if (d0 > 0x40)
         {
-            d = (s16)Entity_GetTargetDistanceX(entity);
+            d = Entity_GetTargetDistanceX(entity);
             if (d < 0)
                 d = -d;
             if (d > 0x200)
@@ -187,7 +187,7 @@ void Skeleton_UpdateCombatMovement(struct EwramData_EntityData *entity)
             entity->ext.skeleton.throwUrge++;
             if (RandomNumberGenerator() % 40 < entity->ext.skeleton.throwUrge)
             {
-                d2 = (s16)Entity_GetTargetDistanceX(entity);
+                d2 = Entity_GetTargetDistanceX(entity);
                 if (d2 < 0)
                     d2 = -d2;
                 if (d2 > 0x30)

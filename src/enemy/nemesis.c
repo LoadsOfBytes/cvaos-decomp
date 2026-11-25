@@ -25,8 +25,8 @@
 
 /* Nemesis_UpdatePositioning: twin of Alastor_UpdateApproach (approach a point near the player and rock);
  * deeper vertical target (+48/16), palette call in state 0; matched. */
-#define DX(e) ((s16)Entity_GetTargetDistanceX(e))
-#define DY(e) ((s16)Entity_GetTargetDistanceY(e))
+#define DX(e) (Entity_GetTargetDistanceX(e))
+#define DY(e) (Entity_GetTargetDistanceY(e))
 #define ABS(x) ((x)<0?-(x):(x))
 #define ANGLE(e) (e->ext.nemesis.angle)
 #define PHASE(e) (e->ext.nemesis.phase)

@@ -174,7 +174,7 @@ void EnemyGhostDancerUpdate(struct EwramData_EntityData *entity)
 /* Alternate movement helper reacts to the player's distance and random pauses. */
 static inline s32 HorizontalDistance(struct EwramData_EntityData *entity)
 {
-    s32 value=(s16)Entity_GetTargetDistanceX(entity);
+    s32 value=Entity_GetTargetDistanceX(entity);
     if(value<0) value=-value;
     return value;
 }
@@ -197,7 +197,7 @@ void GhostDancer_UpdateUnusedState(struct EwramData_EntityData *entity)
         case 1:
         {
             u8 *animation;
-            if((s16)Entity_GetTargetDistanceY(entity)<0 && (s16)Entity_GetTargetDistanceY(entity)>-160 && HorizontalDistance(entity)<=127)
+            if(Entity_GetTargetDistanceY(entity)<0 && Entity_GetTargetDistanceY(entity)>-160 && HorizontalDistance(entity)<=127)
             {
                 u32 frame=entity->animScriptIndex;
                 animation=&entity->animScriptIndex;
@@ -209,7 +209,7 @@ void GhostDancer_UpdateUnusedState(struct EwramData_EntityData *entity)
                 animation=&entity->animScriptIndex;
                 if(frame!=0) Anim_StartIndexed(entity,0,0,1);
             }
-            if((s16)Entity_GetTargetDistanceY(entity)<0 && (s16)Entity_GetTargetDistanceY(entity)>-160 && HorizontalDistance(entity)<=95)
+            if(Entity_GetTargetDistanceY(entity)<0 && Entity_GetTargetDistanceY(entity)>-160 && HorizontalDistance(entity)<=95)
             {
                 entity->state=2;
                 entity->subState=0;
@@ -248,7 +248,7 @@ void GhostDancer_UpdateMovement(struct EwramData_EntityData *entity)
             Anim_StartIndexed(entity,0,0,1);
             entity->velX.whole=state;
             entity->velY.whole=state;
-            if((s16)Entity_GetTargetDistanceX(entity)>0)
+            if(Entity_GetTargetDistanceX(entity)>0)
                 entity->flipX=0;
             else
                 entity->flipX=1;

@@ -1066,7 +1066,7 @@ s32 Entity_IsFacingTarget(struct EwramData_EntityData *entity)
 
 /* Signed pixel distance from the selected target. */
 
-s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *entity)
+s16 Entity_GetTargetDistanceX(struct EwramData_EntityData *entity)
 {
     u16 targetX;
     if (entity->enemyFlags & 4)
@@ -1100,7 +1100,7 @@ s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *entity)
 /**
  * @brief Return signed 16-bit pixel distance entity Y minus selected target Y; missing default target gives zero.
  */
-s32 Entity_GetTargetDistanceY(struct EwramData_EntityData *entity)
+s16 Entity_GetTargetDistanceY(struct EwramData_EntityData *entity)
 {
     u16 targetY;
     if (entity->enemyFlags & 4)

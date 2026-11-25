@@ -178,7 +178,7 @@ void Ripper_UpdateMovement(struct EwramData_EntityData *entity)
         break;
     case 4:
         entity->posX.whole += entity->velX.whole;
-        if ((s16)Entity_GetTargetDistanceX(entity) > 0)
+        if (Entity_GetTargetDistanceX(entity) > 0)
             entity->flipX = 0;
         else
             entity->flipX = 1;
@@ -214,7 +214,7 @@ void Ripper_UpdateMovement(struct EwramData_EntityData *entity)
         if (!entity->flipX)
             entity->velX.whole = -entity->velX.whole;
         {
-            s32 dist = (s16)Entity_GetTargetDistanceX(entity);
+            s32 dist = Entity_GetTargetDistanceX(entity);
             if (dist < 0)
                 dist = -dist;
             if (dist <= 0x3F)

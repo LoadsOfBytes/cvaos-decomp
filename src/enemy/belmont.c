@@ -888,7 +888,7 @@ void Belmont_UpdateSubweaponAttack(struct EwramData_EntityData *entity)
     {
         case 0:
             Anim_StartIndexed(entity,7,1,0);
-            if((s16)Entity_GetTargetDistanceY(entity)>16)
+            if(Entity_GetTargetDistanceY(entity)>16)
                 entity->stage=state;
             else if(Entity_IsTargetInCenteredBox(entity,160,32))
                 entity->stage=2;

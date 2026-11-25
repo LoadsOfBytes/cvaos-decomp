@@ -184,16 +184,16 @@ void KillerDoll_UpdateActive(struct EwramData_EntityData *entity)
                         Entity_FaceTarget(entity);
                         entity->flipX = 1 - entity->flipX;
                         entity->velX.whole = 0x4000;
-                        if ((s16)Entity_GetTargetDistanceX(entity) < 0)
+                        if (Entity_GetTargetDistanceX(entity) < 0)
                             entity->velX.whole = -entity->velX.whole;
                     }
                     else
                     {
                         entity->velX.whole = 0x8800;
                         entity->velY.whole = 0x8800;
-                        if ((s16)Entity_GetTargetDistanceX(entity) > 0)
+                        if (Entity_GetTargetDistanceX(entity) > 0)
                             entity->velX.whole = -entity->velX.whole;
-                        if ((s16)Entity_GetTargetDistanceY(entity) > 0)
+                        if (Entity_GetTargetDistanceY(entity) > 0)
                             entity->velY.whole = -entity->velY.whole;
                     }
                     ANIM(entity, 4, 1);
@@ -255,7 +255,7 @@ void KillerDoll_UpdateActive(struct EwramData_EntityData *entity)
                     break;
                 }
                 case 2:
-                    if (!entity->flipX || (s16)Entity_GetTargetDistanceX(entity) >= 0)
+                    if (!entity->flipX || Entity_GetTargetDistanceX(entity) >= 0)
                     {
                         entity->subState = 4;
                         entity->stage = 0;
@@ -324,8 +324,8 @@ void KillerDoll_UpdateActive(struct EwramData_EntityData *entity)
         }
         if ((s16)TIMER_X(entity) == 0)
         {
-            if ((entity->flipX && (s16)Entity_GetTargetDistanceX(entity) < 0) ||
-                (!entity->flipX && (s16)Entity_GetTargetDistanceX(entity) > 0))
+            if ((entity->flipX && Entity_GetTargetDistanceX(entity) < 0) ||
+                (!entity->flipX && Entity_GetTargetDistanceX(entity) > 0))
             {
                 if (Entity_IsTargetWithinRange(entity, 0x280000))
                 {

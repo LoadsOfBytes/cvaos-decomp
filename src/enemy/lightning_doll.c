@@ -188,16 +188,16 @@ void LightningDoll_UpdateActive(struct EwramData_EntityData *entity)
                         case 2:
                             entity->velX.whole = 0x8000;
                             entity->velY.whole = 0x8000;
-                            if ((s16)Entity_GetTargetDistanceX(entity) > 0)
+                            if (Entity_GetTargetDistanceX(entity) > 0)
                                 entity->velX.whole = -entity->velX.whole;
-                            if ((s16)Entity_GetTargetDistanceY(entity) > 0)
+                            if (Entity_GetTargetDistanceY(entity) > 0)
                                 entity->velY.whole = -entity->velY.whole;
                             TIMER_Y(entity) = RandomNumberGenerator() % 0x100 + 0x80;
                             break;
                         case 3:
                             entity->flipX = 1 - entity->flipX;
                             entity->velX.whole = 0x4000;
-                            if ((s16)Entity_GetTargetDistanceX(entity) < 0)
+                            if (Entity_GetTargetDistanceX(entity) < 0)
                                 entity->velX.whole = -entity->velX.whole;
                             TIMER_Y(entity) = RandomNumberGenerator() % 0x100 + 0x80;
                             break;
@@ -310,8 +310,8 @@ void LightningDoll_UpdateActive(struct EwramData_EntityData *entity)
         }
         if ((s16)TIMER_X(entity) == 0)
         {
-            if ((entity->flipX && (s16)Entity_GetTargetDistanceX(entity) < 0) ||
-                (!entity->flipX && (s16)Entity_GetTargetDistanceX(entity) > 0))
+            if ((entity->flipX && Entity_GetTargetDistanceX(entity) < 0) ||
+                (!entity->flipX && Entity_GetTargetDistanceX(entity) > 0))
             {
                 u32 chance;
                 if (Entity_IsTargetWithinRange(entity, 0x140000))

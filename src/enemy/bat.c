@@ -152,7 +152,7 @@ void Bat_UpdateFlight(struct EwramData_EntityData *entity)
             /* fall through */
         case 1:
             Anim_Update(entity);
-            distance = (s16)Entity_GetTargetDistanceY(entity);
+            distance = Entity_GetTargetDistanceY(entity);
             if (distance < 0) distance = -distance;
             if (distance <= 0x27)
             {

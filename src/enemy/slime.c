@@ -85,7 +85,7 @@ void Slime_SpawnParticles(struct EwramData_EntityData *entity, s32 count, s32 vx
  * flags. Return the signed correction for accepted terrain, otherwise zero;
  * the exact material interpretation of the tested flag combinations is unresolved.
  */
-s32 Slime_GetFloorCorrection(s32 x, s32 y)
+s16 Slime_GetFloorCorrection(s32 x, s32 y)
 {
     u16 height = Collision_GetPushUp(x, y);
     s32 flags = gUnk_03002CB0.collisionProbeFlags;
@@ -202,7 +202,7 @@ s32 Slime_UpdateSurfaceSupport(struct EwramData_EntityData *entity, u16 step)
     {
     case 0:
         {
-            s32 centerHeight = (s16)Slime_GetFloorCorrection(centerX, centerY + 0xB);
+            s32 centerHeight = Slime_GetFloorCorrection(centerX, centerY + 0xB);
             if (centerHeight != 0)
             {
                 s32 value = (u16)entity->posY.part16.integer;
@@ -213,9 +213,9 @@ s32 Slime_UpdateSurfaceSupport(struct EwramData_EntityData *entity, u16 step)
         }
         GetEntityRoomXPositionInteger(entity);
         GetEntityRoomYPositionInteger(entity);
-        height = (s16)Slime_GetFloorCorrection(entity->ext.slime.frontSupportX, entity->ext.slime.frontSupportY + 6);
+        height = Slime_GetFloorCorrection(entity->ext.slime.frontSupportX, entity->ext.slime.frontSupportY + 6);
         if (height != 0) entity->ext.slime.frontSupportY = (u32)((height + (u16)entity->ext.slime.frontSupportY) << 16) >> 16;
-        height = (s16)Slime_GetFloorCorrection(entity->ext.slime.backSupportX, entity->ext.slime.backSupportY + 6);
+        height = Slime_GetFloorCorrection(entity->ext.slime.backSupportX, entity->ext.slime.backSupportY + 6);
         if (height != 0) entity->ext.slime.backSupportY = (u32)((height + (u16)entity->ext.slime.backSupportY) << 16) >> 16;
         break;
     case 2:
@@ -454,7 +454,7 @@ void Slime_UpdateCrawl(struct EwramData_EntityData *entity)
             {
                 if ((s16)Collision_GetPushDown(SLIME_PROBE_X, SLIME_PROBE_Y)) Slime_BeginSurfaceTurn(entity, 2, 0, 0);
             }
-            else if ((s16)Slime_GetFloorCorrection(SLIME_PROBE_X, SLIME_PROBE_Y)) Slime_BeginSurfaceTurn(entity, 0, 0, 0);
+            else if (Slime_GetFloorCorrection(SLIME_PROBE_X, SLIME_PROBE_Y)) Slime_BeginSurfaceTurn(entity, 0, 0, 0);
         }
         break;
     case 3:
@@ -469,7 +469,7 @@ void Slime_UpdateCrawl(struct EwramData_EntityData *entity)
             if (entity->ext.slime.turnCooldown != 0) break;
             if (entity->ext.slime.speed > 0)
             {
-                if ((s16)Slime_GetFloorCorrection(SLIME_PROBE_X, SLIME_PROBE_Y)) Slime_BeginSurfaceTurn(entity, 0, 0, 0);
+                if (Slime_GetFloorCorrection(SLIME_PROBE_X, SLIME_PROBE_Y)) Slime_BeginSurfaceTurn(entity, 0, 0, 0);
             }
             else if ((s16)Collision_GetPushDown(SLIME_PROBE_X, SLIME_PROBE_Y)) Slime_BeginSurfaceTurn(entity, 2, 0, 0);
         }

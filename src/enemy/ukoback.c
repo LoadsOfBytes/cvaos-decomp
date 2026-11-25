@@ -66,9 +66,9 @@ void Ukoback_UpdateFlight(struct EwramData_EntityData *entity)
     {
         case 0:
             entity->velX.whole = entity->velY.whole = 0xC000;
-            if ((s16)Entity_GetTargetDistanceX(entity) > 0)
+            if (Entity_GetTargetDistanceX(entity) > 0)
                 entity->velX.whole = -entity->velX.whole;
-            if ((s16)Entity_GetTargetDistanceY(entity) < 0)
+            if (Entity_GetTargetDistanceY(entity) < 0)
                 entity->velY.whole = -entity->velY.whole;
             entity->subState++;
         case 1:

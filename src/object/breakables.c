@@ -742,7 +742,7 @@ void SwingingPlatformUpdate(struct EwramData_EntityData *entity)
     }
     else if (gEwramData->playerState.standingPlatform != entity)
         entity->subState = 0;
-    if ((u16)Hit_CheckWithPlayer(&result, entity) && (result.flags & 0x1A))
+    if (Hit_CheckWithPlayer(&result, entity) && (result.flags & 0x1A))
     {
         impulse = 0x100;
         PlaySong(0x112);

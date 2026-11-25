@@ -17,13 +17,19 @@ extern s32 Entity_IsOutsideRoomMap(struct EwramData_EntityData *entity);
 extern void Entity_UpdateBoxes(struct EwramData_EntityData *entity);
 extern void HitEffect_Update(struct EwramData_EntityData *entity);
 extern s32 Entity_IsFacingTarget(struct EwramData_EntityData *entity);
-extern s32 Entity_GetTargetDistanceY(struct EwramData_EntityData *entity);
+extern s16 Entity_GetTargetDistanceY(struct EwramData_EntityData *entity);
+/* The same function for callers that were compiled without a prototype
+ * (implicit int): the result is not narrowed. */
+extern s32 Entity_GetTargetDistanceYWide(struct EwramData_EntityData *entity) asm("Entity_GetTargetDistanceY");
 extern void Enemy_UpdateFragmentDeathWithSpread(struct EwramData_EntityData *entity, s32 interval, s32 width, s32 height);
 extern void Heap_Free(void *allocation);
 extern void *Heap_Alloc(u16 words);
 extern void Room_ResetTransientState(void);
 extern s32 Enemy_UpdateHitFlash(struct EwramData_EntityData *entity);
-extern s32 Entity_GetTargetDistanceX(struct EwramData_EntityData *entity);
+extern s16 Entity_GetTargetDistanceX(struct EwramData_EntityData *entity);
+/* The same function for callers that were compiled without a prototype
+ * (implicit int): the result is not narrowed. */
+extern s32 Entity_GetTargetDistanceXWide(struct EwramData_EntityData *entity) asm("Entity_GetTargetDistanceX");
 extern s32 Entity_ClampXToRoom(struct EwramData_EntityData *entity, s32 inset);
 extern s32 Entity_GetTargetDirection(struct EwramData_EntityData *entity);
 extern u8 Entity_IsTargetWithinRange(struct EwramData_EntityData *entity, u32 range);

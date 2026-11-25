@@ -105,8 +105,8 @@ void EnemyImpUpdate(struct EwramData_EntityData *entity)
  */
 void Imp_UpdateFlight(struct EwramData_EntityData *entity)
 {
-    s32 dx = (s16)Entity_GetTargetDistanceX(entity);
-    s32 dy = (s16)Entity_GetTargetDistanceY(entity);
+    s32 dx = Entity_GetTargetDistanceX(entity);
+    s32 dy = Entity_GetTargetDistanceY(entity);
 
     if (Target_GetX(entity) == entity->posX.whole && Target_GetY(entity) == entity->posY.whole)
     {
@@ -273,7 +273,7 @@ void Imp_UpdateAttack(struct EwramData_EntityData *entity)
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
     s32 targetX = Target_GetX(entity) + bg->xPos.whole;
     s32 targetY = Target_GetY(entity) + bg->yPos.whole - 0x200000;
-    s32 dx = (s16)Entity_GetTargetDistanceX(entity);
+    s32 dx = Entity_GetTargetDistanceX(entity);
 
     Entity_GetTargetDistanceY(entity);
     switch (entity->subState)
@@ -750,8 +750,8 @@ void EnemyTinyDevilUpdate(struct EwramData_EntityData *entity)
  */
 void TinyDevil_UpdateFlight(struct EwramData_EntityData *entity)
 {
-    s32 dx = (s16)Entity_GetTargetDistanceX(entity);
-    s32 dy = (s16)Entity_GetTargetDistanceY(entity);
+    s32 dx = Entity_GetTargetDistanceX(entity);
+    s32 dy = Entity_GetTargetDistanceY(entity);
 
     if (Target_GetX(entity) == entity->posX.whole && Target_GetY(entity) == entity->posY.whole)
     {
@@ -938,7 +938,7 @@ void TinyDevil_UpdateAttack(struct EwramData_EntityData *entity)
 
     Target_GetX(entity);
     Target_GetY(entity);
-    dx = (s16)Entity_GetTargetDistanceX(entity);
+    dx = Entity_GetTargetDistanceX(entity);
     Entity_GetTargetDistanceY(entity);
     switch (entity->subState)
     {
@@ -1052,7 +1052,7 @@ struct EwramData_EntityData *TinyDevil_SpawnProjectile(struct EwramData_EntityDa
     child->attack = entity->attack;
     child->posX.whole = entity->posX.whole;
     child->posY.whole = entity->posY.whole + 0x80000;
-    if ((s16)Entity_GetTargetDistanceX(child) < 0)
+    if (Entity_GetTargetDistanceX(child) < 0)
         child->posX.whole += 0x100000;
     else
         child->posX.whole -= 0x100000;

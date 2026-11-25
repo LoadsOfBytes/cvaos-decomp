@@ -82,7 +82,7 @@ void EnemyAltairCreate(struct EwramData_EntityData *entity)
         offset &= random;
         *position = offset + 0xFFF0 + *position;
     }
-    if ((s16)Entity_GetTargetDistanceX(entity) > 0) entity->flipX = 0;
+    if (Entity_GetTargetDistanceX(entity) > 0) entity->flipX = 0;
     else entity->flipX = 1;
     parent = entity->ext.altair.spawner;
     if (parent->ext.altairDrop.count <= 1 && parent != NULL)
@@ -176,7 +176,7 @@ void Altair_UpdateFlight(struct EwramData_EntityData *entity)
     case 1:
         entity->posX.whole += entity->velX.whole;
         if (child == NULL) break;
-        distance = (s16)Entity_GetTargetDistanceX(entity);
+        distance = Entity_GetTargetDistanceX(entity);
         child->posX.whole = entity->posX.whole;
         child->posY.whole = entity->posY.whole + 0x130000;
         child->flipX = entity->flipX;

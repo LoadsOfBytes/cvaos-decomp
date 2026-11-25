@@ -477,7 +477,7 @@ void Bael_UpdateCharge(struct EwramData_EntityData *entity)
     switch (work)
     {
         case 0:
-            if ((s16)Entity_GetTargetDistanceX(entity) > 0)
+            if (Entity_GetTargetDistanceX(entity) > 0)
                 DIRECTION(entity) = work;
             else
                 DIRECTION(entity) = 1;

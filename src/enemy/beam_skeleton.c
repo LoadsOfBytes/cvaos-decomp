@@ -176,7 +176,7 @@ void BeamSkeleton_UpdateApproach(struct EwramData_EntityData *entity)
     {
         case 0:
         {
-            s32 distance = (s16)Entity_GetTargetDistanceY(entity);
+            s32 distance = Entity_GetTargetDistanceY(entity);
             if (ABS(distance) > 32)
             {
                 entity->state = 0;
@@ -217,7 +217,7 @@ void BeamSkeleton_UpdateApproach(struct EwramData_EntityData *entity)
                 entity->ext.beamSkeleton.fireUrge++;
                 if (RandomNumberGenerator() % 40 < entity->ext.beamSkeleton.fireUrge)
                 {
-                    s32 distance = (s16)Entity_GetTargetDistanceX(entity);
+                    s32 distance = Entity_GetTargetDistanceX(entity);
                     if (ABS(distance) > 48)
                     {
                         entity->ext.beamSkeleton.fireUrge = 0;

@@ -141,7 +141,7 @@ void Fleaman_UpdateMovement(struct EwramData_EntityData *entity)
         break;
     case 4:
         entity->posX.whole += entity->velX.whole;
-        if ((s16)Entity_GetTargetDistanceX(entity) > 0)
+        if (Entity_GetTargetDistanceX(entity) > 0)
             entity->flipX = 0;
         else
             entity->flipX = 1;

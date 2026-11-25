@@ -66,7 +66,7 @@ void EnemyHarpyCreate(struct EwramData_EntityData *entity)
 #define FRAME_PAIR(e) (*(u16 *)&(e)->animStep)
 static inline s32 TargetDistanceX(struct EwramData_EntityData *entity)
 {
-    s32 distance=(s16)Entity_GetTargetDistanceX(entity);
+    s32 distance=Entity_GetTargetDistanceX(entity);
     if(distance<0) distance=-distance;
     return distance;
 }

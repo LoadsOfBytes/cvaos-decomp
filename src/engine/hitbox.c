@@ -496,7 +496,7 @@ u32 Hit_CheckPair(struct HitResult *res, u8 *a, u8 *b)
  *
  * @return res->flags
  */
-u32 Hit_CheckWithPlayer(struct HitResult *res, struct EwramData_EntityData *entity)
+u16 Hit_CheckWithPlayer(struct HitResult *res, struct EwramData_EntityData *entity)
 {
     u8 *b = (u8 *)entity;
     struct HitInfo *pi;

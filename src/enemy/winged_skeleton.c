@@ -179,21 +179,21 @@ void EnemyWingedSkeletonCreate(struct EwramData_EntityData *entity)
 #define TRACK0()                                                                   \
     {                                                                             \
         s32 a, b, t;                                                               \
-        if (Abs((s16)Entity_GetTargetDistanceY(entity)) <= 0x10)                                     \
+        if (Abs((s16)Entity_GetTargetDistanceYWide(entity)) <= 0x10)                                     \
             break;                                                                \
-        a = Entity_GetTargetDistanceX(entity);                                                 \
-        b = Entity_GetTargetDistanceY(entity);                                                 \
+        a = Entity_GetTargetDistanceXWide(entity);                                                 \
+        b = Entity_GetTargetDistanceYWide(entity);                                                 \
         t = Abs((s16)a) + 8; if (Abs(t - Abs((s16)b)) > 0x1F)                                    \
             break;                                                                \
         if (entity->flipX)                                                        \
         {                                                                         \
-            if ((s16)Entity_GetTargetDistanceX(entity) >= 0)                                        \
+            if ((s16)Entity_GetTargetDistanceXWide(entity) >= 0)                                        \
                 break;                                                            \
             if (Tile_Classify(bg->xPos.part16.integer + entity->posX.part16.integer + 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) entity->ext.wingedSkeleton.blocked = 1; \
         }                                                                         \
         else                                                                      \
         {                                                                         \
-            if ((s16)Entity_GetTargetDistanceX(entity) <= 0)                                        \
+            if ((s16)Entity_GetTargetDistanceXWide(entity) <= 0)                                        \
                 break;                                                            \
             if (Tile_Classify(bg->xPos.part16.integer + entity->posX.part16.integer - 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) entity->ext.wingedSkeleton.blocked = 1; \
         }                                                                         \
@@ -202,21 +202,21 @@ void EnemyWingedSkeletonCreate(struct EwramData_EntityData *entity)
 #define TRACK1()                                                                   \
     {                                                                             \
         s32 a, b, t;                                                               \
-        if (Abs((s16)Entity_GetTargetDistanceY(entity)) <= 0x10)                                     \
+        if (Abs((s16)Entity_GetTargetDistanceYWide(entity)) <= 0x10)                                     \
             break;                                                                \
-        a = Entity_GetTargetDistanceX(entity);                                                 \
-        b = Entity_GetTargetDistanceY(entity);                                                 \
+        a = Entity_GetTargetDistanceXWide(entity);                                                 \
+        b = Entity_GetTargetDistanceYWide(entity);                                                 \
         t = Abs((s16)a) + 8; if (Abs(t - Abs((s16)b)) > 0x1F)                                    \
             break;                                                                \
         if (entity->flipX)                                                        \
         {                                                                         \
-            if ((s16)Entity_GetTargetDistanceX(entity) >= 0)                                        \
+            if ((s16)Entity_GetTargetDistanceXWide(entity) >= 0)                                        \
                 break;                                                            \
             if (Tile_Classify(bg->xPos.part16.integer + entity->posX.part16.integer + 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) entity->ext.wingedSkeleton.blocked = 1; \
         }                                                                         \
         else                                                                      \
         {                                                                         \
-            if ((s16)Entity_GetTargetDistanceX(entity) <= 0)                                        \
+            if ((s16)Entity_GetTargetDistanceXWide(entity) <= 0)                                        \
                 break;                                                            \
             if (Tile_Classify(bg->xPos.part16.integer + entity->posX.part16.integer - 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) entity->ext.wingedSkeleton.blocked = 1; \
         }                                                                         \
@@ -225,21 +225,21 @@ void EnemyWingedSkeletonCreate(struct EwramData_EntityData *entity)
 #define TRACK2()                                                                   \
     {                                                                             \
         s32 a, b, t;                                                               \
-        if (Abs((s16)Entity_GetTargetDistanceY(entity)) <= 0x10)                                     \
+        if (Abs((s16)Entity_GetTargetDistanceYWide(entity)) <= 0x10)                                     \
             break;                                                                \
-        a = Entity_GetTargetDistanceX(entity);                                                 \
-        b = Entity_GetTargetDistanceY(entity);                                                 \
+        a = Entity_GetTargetDistanceXWide(entity);                                                 \
+        b = Entity_GetTargetDistanceYWide(entity);                                                 \
         t = Abs((s16)a) + 8; if (Abs(t - Abs((s16)b)) > 0x1F)                                    \
             break;                                                                \
         if (entity->flipX)                                                        \
         {                                                                         \
-            if ((s16)Entity_GetTargetDistanceX(entity) >= 0)                                        \
+            if ((s16)Entity_GetTargetDistanceXWide(entity) >= 0)                                        \
                 break;                                                            \
             if (Tile_Classify(bg->xPos.part16.integer + entity->posX.part16.integer + 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) entity->ext.wingedSkeleton.blocked = 1; \
         }                                                                         \
         else                                                                      \
         {                                                                         \
-            if ((s16)Entity_GetTargetDistanceX(entity) <= 0)                                        \
+            if ((s16)Entity_GetTargetDistanceXWide(entity) <= 0)                                        \
                 break;                                                            \
             if (Tile_Classify(bg->xPos.part16.integer + entity->posX.part16.integer - 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) entity->ext.wingedSkeleton.blocked = 1; \
         }                                                                         \
@@ -254,7 +254,7 @@ void EnemyWingedSkeletonCreate(struct EwramData_EntityData *entity)
         f = *(ENTITY_RENDER_FLAGS_ADDRESS(entity)) & 0x40;                                     \
         if (f)                                                                    \
         {                                                                         \
-            if ((s16)Entity_GetTargetDistanceX(entity) < 0)                                         \
+            if ((s16)Entity_GetTargetDistanceXWide(entity) < 0)                                         \
             {                                                                     \
                 entity->state = 1;                                              \
                 entity->subState = next;                                           \
@@ -264,7 +264,7 @@ void EnemyWingedSkeletonCreate(struct EwramData_EntityData *entity)
         }                                                                         \
         else                                                                      \
         {                                                                         \
-            if ((s16)Entity_GetTargetDistanceX(entity) > 0)                                         \
+            if ((s16)Entity_GetTargetDistanceXWide(entity) > 0)                                         \
             {                                                                     \
                 entity->state = 1;                                              \
                 entity->subState = next;                                           \
@@ -287,7 +287,7 @@ void WingedSkeleton_UpdateFly(struct EwramData_EntityData *entity)
     case 0:
         EntityMove(entity);
         ANIMATE()
-        if (ANIM552 == 0 && Abs((s16)Entity_GetTargetDistanceX(entity)) <= Abs((s16)Entity_GetTargetDistanceY(entity)) + 0x20)
+        if (ANIM552 == 0 && Abs((s16)Entity_GetTargetDistanceXWide(entity)) <= Abs((s16)Entity_GetTargetDistanceYWide(entity)) + 0x20)
         {
             entity->subState = 1;
             Anim_StartIndexed(entity, 3, 0, 0);

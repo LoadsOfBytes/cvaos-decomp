@@ -280,7 +280,7 @@ void Persephone_UpdateAttack(struct EwramData_EntityData *entity)
         entity->subState++;
         entity->ext.persephone.contactHit = 0;
         entity->flipX = Entity_IsTargetRight(entity);
-        v = (s16)Entity_GetTargetDistanceX(entity);
+        v = Entity_GetTargetDistanceX(entity);
         if (v < 0)
             v = -v;
         if (v > 0x20 && !(RandomNumberGenerator() & 1))
@@ -294,7 +294,7 @@ void Persephone_UpdateAttack(struct EwramData_EntityData *entity)
             PlaySong(0x1CA);
             entity->subState++;
             entity->timer++;
-            v = (s16)Entity_GetTargetDistanceX(entity);
+            v = Entity_GetTargetDistanceX(entity);
             if (v < 0)
                 v = -v;
             if (v <= 7)

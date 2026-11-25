@@ -22,7 +22,7 @@ extern void Hit_Disable(struct EwramData_EntityData *entity);
 extern s32 HitBox_SetAttack(struct EwramData_EntityData *entity, void *box);
 extern s32 HitBox_SetBody(struct EwramData_EntityData *entity, void *box);
 extern s32 HitBox_SetBodyRaw(struct EwramData_EntityData *entity, s32 box);
-extern u32 Hit_CheckWithPlayer(struct HitResult *res, struct EwramData_EntityData *entity);
+extern u16 Hit_CheckWithPlayer(struct HitResult *res, struct EwramData_EntityData *entity);
 extern s32 HitBox_SetAttackRaw(struct EwramData_EntityData *entity, s32 box);
 extern s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit, void *onHurt);
 extern s32 Hit_Enable(struct EwramData_EntityData *entity, s32 type, void *onHit, void *onHurt);

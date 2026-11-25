@@ -516,14 +516,8 @@ void Graham_UpdateDefeatScene(struct EwramData_EntityData *entity)
                         *flags|=0x20;
                         DMA_FILL_32(3,inner,(u8 *)VRAM_BASE+0x4000,0x2000);
                         *flags|=0x10000;
-                        if(FLAGS(entity)&8)
+                        if((FLAGS(entity)&8) ? Graham_CreateSceneObject(entity,3) : Graham_CreateSceneObject(entity,7))
                         {
-                            if(Graham_CreateSceneObject(entity,3))
-                                goto start_dialogue;
-                        }
-                        else if(Graham_CreateSceneObject(entity,7))
-                        {
-start_dialogue:
                             entity->stage++;
                             FLAGS(entity)|=0x10;
                             break;
@@ -1105,7 +1099,12 @@ void GrahamSidePart_Update(struct EwramData_EntityData *entity)
                     entity->timer = 0x80;
                     entity->stage++;
                 }
-                goto wait;
+                if (--entity->timer == 0xFF)
+                {
+                    entity->subState++;
+                    entity->stage = 0;
+                }
+                break;
             case 1:
             {
                 if (entity->ext.grahamPart.side)
@@ -1121,7 +1120,6 @@ void GrahamSidePart_Update(struct EwramData_EntityData *entity)
                 entity->stage = 0;
             }
             case 2:
-            wait:
                 if (--entity->timer == 0xFF)
                 {
                     entity->subState++;

@@ -2,8 +2,8 @@
 
 ![Matching](https://img.shields.io/badge/Matching-byte%20for%20byte%2C%20100%25%20C-brightgreen)
 ![Naming](https://img.shields.io/badge/Naming-functions%20100%25%20%C2%B7%20fields%2096.5%25-brightgreen)
-![Clean C](https://img.shields.io/badge/Clean%20C-92.0%25%20of%20functions-green)
-![FAKEMATCH](https://img.shields.io/badge/FAKEMATCH-275%20lines-orange)
+![Clean C](https://img.shields.io/badge/Clean%20C-92.5%25%20of%20functions-green)
+![FAKEMATCH](https://img.shields.io/badge/FAKEMATCH-272%20lines-orange)
 
 > **Read this first**
 >
@@ -23,7 +23,7 @@ decompilation projects), rebuilds **byte for byte**:
 
 ## Status
 
-Measured on 2026-11-24 from the build output and source scans.
+Measured on 2026-11-25 from the build output and source scans.
 
 | Step | Progress |
 |---|---|
@@ -31,14 +31,14 @@ Measured on 2026-11-24 from the build output and source scans.
 | Game functions decompiled to C | ✅ **100 %** – only an 8-byte ARM/Thumb interworking stub has no C equivalent |
 | All ROM code (`.text`) from C | **97.06 %** (891,340 / 918,324 B) – the rest is platform code normally kept in assembly (`crt0`, `m4a` mixer, BIOS stubs, header) and libgcc/libc |
 | Functions named | ✅ **100 %** (3,842 / 3,842) |
-| Local variables and parameters named | ✅ **100 %** (15,727 / 15,727) |
+| Local variables and parameters named | ✅ **100 %** (15,761 / 15,761) |
 | Structure fields named | 🔄 **96.5 %** (3,163 / 3,278 declared; 99.9 % of accesses) – most of the rest are the offset-named slots of the raw work-area view |
 | Entity work area as typed structures | 🔄 368 per-type structures; 24 lines and 6 macros still use the raw offset view |
 | Source files grouped into modules | 🔄 **95 %** – the 1,701 ROM-address files (`code_XXXXXXXX.c`) are 172 named files: 163 complete modules and 9 small files still split off only for build reasons (see *File layout*); no `code_XXXXXXXX` name left |
 | Declarations in headers | 🔄 each module's functions used by other files are declared in `include/<module>.h`; no implicit declarations; calls compiled without a prototype in the original use a declared `...Wide` alias (22 functions); 12 functions keep caller-specific prototypes (17 local declarations); file-internal forward declarations in one block at the top of each file; ROM data declared in `include/data/` (18 tables still local; see *Known limitations*) |
-| Code cleanup | 🔄 entity callbacks typed (`EntityFunc`), duplicated `static inline` helpers merged into shared headers, simple `goto` patterns rewritten as `if`/`else` or direct `return`; 92.0 % of functions use neither compiler tricks nor matching-only constructs such as `goto` (200 `goto` left) |
+| Code cleanup | 🔄 entity callbacks typed (`EntityFunc`), duplicated `static inline` helpers merged into shared headers, `goto` rewritten as structured `if`/`else`, `switch`, `while` or direct `return` where the compiler output stays identical (627 → 136); 92.5 % of functions use neither compiler tricks nor matching-only constructs such as `goto` (136 `goto` left) |
 | Hard-coded addresses | ✅ none for ROM data and RAM variables – every table, graphics, palette, map and room used from C is referenced by a symbol (223 data labels added); 28 lines still compute VRAM addresses with integer arithmetic |
-| Removing compiler tricks (`FAKEMATCH`) | 🔄 275 lines left in 73 of 181 C files |
+| Removing compiler tricks (`FAKEMATCH`) | 🔄 272 lines left in 73 of 181 C files |
 
 ## How this fork was made
 
@@ -56,7 +56,7 @@ name or comment describes the game correctly. Corrections are very welcome.
 
 ## Known limitations
 
-- **`FAKEMATCH`** – 275 lines force the compiler's output (`register ... asm("rN")`
+- **`FAKEMATCH`** – 272 lines force the compiler's output (`register ... asm("rN")`
   pins, empty `asm("")`, one-shot `do { } while (0)`, `volatile` reads, and 9 calls
   through a function-pointer cast that keep the argument / result types a merged
   part was originally compiled with). The original

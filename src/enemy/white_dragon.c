@@ -222,10 +222,7 @@ void WhiteDragon_UpdateIdle(struct EwramData_EntityData *entity)
     {
         angle=(u16)entity->velX.part16.integer;
         if(angle<0x8000) angle+=0x10000;
-        if(angle<0x10000) { angle+=64; if(angle<=0x10000) goto store1; }
-        else { angle-=64; if(angle>=0x10000) goto store1; }
-        angle=0x10000;
-    store1:;
+        if(angle<0x10000 ? (angle+=64)<=0x10000 : (angle-=64)>=0x10000) {} else angle=0x10000;
     }
     else
     {

@@ -393,15 +393,17 @@ void RipperProjectile_Update(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *owner = entity->ext.ripperProjectile.owner;
 
     Enemy_UpdateHitFlash(entity);
-    if (Entity_IsTimeStopped(entity) == 0 || entity->state == 5 || entity->state == 6)
+    if (Entity_IsTimeStopped(entity) != 0 && entity->state != 5 && entity->state != 6)
     {
-        if (entity->hitFlashTimer == 0 || entity->state == 2 || entity->state == 5
-            || entity->state == 6)
-            goto run;
+        Hit_CheckWithPlayer(&result, entity);
+        return;
     }
-    Hit_CheckWithPlayer(&result, entity);
-    return;
-run:
+    if (entity->hitFlashTimer != 0 && entity->state != 2 && entity->state != 5
+        && entity->state != 6)
+    {
+        Hit_CheckWithPlayer(&result, entity);
+        return;
+    }
     switch (entity->state)
     {
     case 0:

@@ -1635,26 +1635,22 @@ s32 EventScene15_Update(struct EwramData_EntityData *entity)
                 entity->subState = 2;
                 break;
             }
-            goto three;
+            entity->subState = 3;
+            break;
         case 2:
         {
             u16 mark = x;
-            if ((s8)Player_GetZoneAroundXCopy(mark, 0x3C, 0x21) != 1)
-            {
-                entity->subState = 3;
-                break;
-            }
+            if ((s8)Player_GetZoneAroundXCopy(mark, 0x3C, 0x21) == 1)
             {
                 s32 px = (s16)PLAYER->posX.part16.integer;
                 result = 0x10;
                 if (mark < px)
                     result = 0x20;
+                break;
             }
-        }
-            break;
-        three:
             entity->subState = 3;
             break;
+        }
         case 3:
             if (entity->stage == 0)
             {
@@ -2085,20 +2081,23 @@ void EventScene19_Init(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *bg;
 
-    if (GameFlag_GetMask(0x29) == 0)
+    if (GameFlag_GetMask(0x29) != 0)
+    {
+        entity->deleteRequested = 1;
+        return;
+    }
     {
         s32 x;
 
         bg = (struct BgLayerState *)gEwramData;
         x = (s16)((struct EwramData *)bg)->playerState.player->posX.part16.integer;
         bg = (struct BgLayerState *)((u32)bg + OFFSET_OF(struct EwramData, bgInfo[1]));
-        if (x + (s16)bg->xPos.part16.integer > 0x7F)
-            goto visible;
+        if (x + (s16)bg->xPos.part16.integer <= 0x7F)
+        {
+            entity->deleteRequested = 1;
+            return;
+        }
     }
-    entity->deleteRequested = 1;
-    return;
-
-visible:
     if (EventScene19_LoadGraphics(entity) == 0)
     {
         Interaction_End(entity, 1);
@@ -2301,7 +2300,8 @@ s32 EventScene20_Update(struct EwramData_EntityData *entity)
             switch ((s8)Player_GetZoneAroundXWide((s16)entity->posX.part16.integer, 0x3C, 0x64))
             {
             case 0:
-                goto set4;
+                entity->subState = 4;
+                break;
             case -1:
                 entity->subState = 3;
                 break;
@@ -2328,25 +2328,22 @@ s32 EventScene20_Update(struct EwramData_EntityData *entity)
         {
             s32 x;
             FACE();
-            if ((s8)Player_GetZoneAroundXWide((s16)entity->posX.part16.integer, 0x3C, 0x64) != m1)
+            if ((s8)Player_GetZoneAroundXWide((s16)entity->posX.part16.integer, 0x3C, 0x64) == m1)
             {
-                entity->subState = 4;
+                if (gEwramData->bgInfo[1].pBgMetadata->widthCells != 1)
+                    w = gEwramData->bgInfo[1].pBgMetadata->widthCells << 5;
+                else
+                    w = 0x1E;
+                x = GetEntityRoomXPositionIntegerWide(entity) / 8;
+                if (x > (s32)(w >> 1))
+                    ret = 0x20;
+                else
+                    ret = 0x10;
                 break;
             }
-            if (gEwramData->bgInfo[1].pBgMetadata->widthCells != 1)
-                w = gEwramData->bgInfo[1].pBgMetadata->widthCells << 5;
-            else
-                w = 0x1E;
-            x = GetEntityRoomXPositionIntegerWide(entity) / 8;
-            if (x > (s32)(w >> 1))
-                ret = 0x20;
-            else
-                ret = 0x10;
-            break;
-        }
-        set4:
             entity->subState = 4;
             break;
+        }
         case 4:
         {
             u8 z = entity->stage;
@@ -2500,17 +2497,17 @@ s32 EventScene22_Update(struct EwramData_EntityData *entity)
             register u32 *p asm("r1") = &gEwramData->gameState.stateFlags; /* FAKEMATCH: pinned register */
             *p |= 1;
         }
-        goto next;
+        entity->state++;
+        entity->stage = ret;
+        entity->subState = ret;
+        break;
     case 1:
         Display_SaveState();
         TextWindow_Begin(0x22);
         ew->gameState.textWindowPause = state;
-    next:
-        do { /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
-            entity->state++;
-            entity->stage = ret;
-            entity->subState = ret;
-        } while (0);
+        entity->state++;
+        entity->stage = ret;
+        entity->subState = ret;
         break;
     case 2:
         if (TextWindow_Update())
@@ -2547,16 +2544,16 @@ s32 EventScene22_Update(struct EwramData_EntityData *entity)
         case 2:
             if (EventScene22_Wait(entity, 0x40))
                 break;
-            goto clear;
+            do { /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
+                ew->gameState.textWindowPause = ret;
+            } while (0);
+            break;
         case 3:
             if (!EventScene22_Wait(entity, 0x40))
             {
                 Sound_StopTracked(0x2D);
                 Music_SetCurrent(0x24);
-            clear:
-                do { /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
-                    ew->gameState.textWindowPause = ret;
-                } while (0);
+                ew->gameState.textWindowPause = ret;
             }
             break;
         }

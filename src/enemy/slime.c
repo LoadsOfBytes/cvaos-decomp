@@ -92,10 +92,8 @@ s32 Slime_GetFloorCorrection(s32 x, s32 y)
     s32 valid = 0;
     s32 type;
     s32 result;
-    if (flags & 2) goto solid;
-    if (flags & 0xC0)
+    if ((flags & 2) ? 1 : (flags & 0xC0))
     {
-solid:
         if (flags & 8)
         {
             if (flags & 1) type = 2;

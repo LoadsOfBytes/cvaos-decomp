@@ -197,7 +197,16 @@ void Lilith_UpdateWalk(struct EwramData_EntityData *entity)
         if (entity->ext.lilith.walkFrame++ > 0x3B)
         {
             entity->ext.lilith.walkFrame = wall;
-            goto far;
+            if (Target_IsInRect((s16)(entity->posX.part16.integer - 0xC8), (s16)(entity->posY.part16.integer - 0x28), 0x190, 0x50))
+            {
+                s32 r = RandomNumberGenerator() & 1;
+                if (!r)
+                {
+                    entity->state = 1;
+                    entity->subState = 10;
+                    entity->timer = r;
+                }
+            }
         }
         break;
     case 3:
@@ -268,7 +277,6 @@ void Lilith_UpdateWalk(struct EwramData_EntityData *entity)
         if (entity->ext.lilith.walkFrame++ > 0x3B)
         {
             entity->ext.lilith.walkFrame = 0;
-        far:
             if (Target_IsInRect((s16)(entity->posX.part16.integer - 0xC8), (s16)(entity->posY.part16.integer - 0x28), 0x190, 0x50))
             {
                 s32 r = RandomNumberGenerator() & 1;

@@ -157,7 +157,7 @@ void Arachne_UpdateWalk(struct EwramData_EntityData *entity)
             entity->timer=state;
             if(Target_IsInRect((s16)(entity->posX.part16.integer-60),(s16)(entity->posY.part16.integer-80),120,160))
             { GAIT(entity)=2; entity->subState=2; }
-            else if(Target_IsInRect((s16)(entity->posX.part16.integer-100),(s16)(entity->posY.part16.integer-80),200,160)) goto vertical;
+            else if(Target_IsInRect((s16)(entity->posX.part16.integer-100),(s16)(entity->posY.part16.integer-80),200,160)) { entity->velY.whole=0x10000; entity->accelY.whole=0x2800; return; }
             else { GAIT(entity)=1; entity->subState=1; }
         }
         break;
@@ -208,7 +208,6 @@ void Arachne_UpdateWalk(struct EwramData_EntityData *entity)
         if((Entity_MoveWithCollision(entity,0x10000,-0x200000,0x80000,12)&3) ||
             !Target_IsInRect((s16)(entity->posX.part16.integer-100),(s16)(entity->posY.part16.integer-80),200,160) || Entity_ClampXToRoom(entity,1))
         { GAIT(entity)=1; entity->subState=1; entity->timer=0;
-vertical:
             entity->velY.whole=0x10000;
             entity->accelY.whole=0x2800;
             return;

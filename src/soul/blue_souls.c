@@ -144,20 +144,20 @@ s32 BlueSoul_ShouldEnd(struct EwramData_EntityData *entity)
         }
     }
     else if (entity->state != 0 && (gEwramData->inputData.playerNewInput & gEwramData->playerStatus.guardianButton))
-        goto end;
+    {
+        BlueSoul_ReleaseActiveResources(entity);
+        return 1;
+    }
     {
         u32 flags = gEwramData->gameState.stateFlags;
         if (flags & 0x100)
-            goto keep;
+            return 0;
         flags &= 1;
         if (!flags)
             return 0;
     }
-end:
     BlueSoul_ReleaseActiveResources(entity);
     return 1;
-keep:
-    return 0;
 }
 
 /* BlueSoul_CheckEndCondition. */
@@ -1077,22 +1077,20 @@ void SkillSkyFishUse(struct EwramData_EntityData *entity)
         entity->hidden = 1;
         break;
     case 5:
-        if (entity->timer == 0)
-            goto delete;
-        if (!(entity->timer & 7))
+        if (entity->timer != 0)
         {
-            s32 x = entity->posX.whole + (RandomSigned(0x10) << 16);
-            Effect_SpawnShared(x, entity->posY.whole + ((RandomSigned(0x10) - 0x10) << 16), 0x10, 8);
+            if (!(entity->timer & 7))
+            {
+                s32 x = entity->posX.whole + (RandomSigned(0x10) << 16);
+                Effect_SpawnShared(x, entity->posY.whole + ((RandomSigned(0x10) - 0x10) << 16), 0x10, 8);
+            }
+            entity->timer--;
+            break;
         }
-        entity->timer--;
-        break;
+        BlueSoul_ReleaseActiveResources(entity);
+        EntityDelete(entity);
+        return;
     }
-    goto end;
-delete:
-    BlueSoul_ReleaseActiveResources(entity);
-    EntityDelete(entity);
-    return;
-end:
     *str += entity->spawnParam1 >> 1;
     gEwramData->playerState.currentStats[3] += entity->spawnParam1;
     Player_RecalculateAttackDefense();

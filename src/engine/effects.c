@@ -425,10 +425,13 @@ void Afterimage_Update(struct EwramData_EntityData *entity)
         if (entity->ext.afterimage.delay)
             entity->ext.afterimage.delay--;
         else
-            goto destroy;
+        {
+            Heap_Free(entity->ext.afterimage.history.ptr);
+            EntityDelete(entity);
+            return;
+        }
         break;
     case 3:
-    destroy:
         Heap_Free(entity->ext.afterimage.history.ptr);
         EntityDelete(entity);
         return;

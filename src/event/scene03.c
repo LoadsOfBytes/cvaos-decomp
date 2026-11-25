@@ -194,25 +194,26 @@ void EventScene03_Init(struct EwramData_EntityData *entity)
     s32 done = GameFlag_GetMask(0x20);
     struct BgLayerState *bg;
 
-    if (done == 0)
+    if (done != 0)
     {
-        entity->ext.event03.actor0 = Entity_CreateFromObjectTable(0);
-        entity->ext.event03.actor1 = Entity_CreateFromObjectTable(1);
-        entity->ext.event03.actor8 = Entity_CreateFromObjectTable(8);
-        if (entity->ext.event03.actor0 != NULL && entity->ext.event03.actor1 != NULL
-            && entity->ext.event03.actor8 != NULL)
-            goto created;
+        entity->deleteRequested = 1;
+        return;
+    }
+    entity->ext.event03.actor0 = Entity_CreateFromObjectTable(0);
+    entity->ext.event03.actor1 = Entity_CreateFromObjectTable(1);
+    entity->ext.event03.actor8 = Entity_CreateFromObjectTable(8);
+    if (entity->ext.event03.actor0 == NULL || entity->ext.event03.actor1 == NULL
+        || entity->ext.event03.actor8 == NULL)
+    {
         if (entity->ext.event03.actor0 != NULL)
             EntityDelete(entity->ext.event03.actor0);
         if (entity->ext.event03.actor1 != NULL)
             EntityDelete(entity->ext.event03.actor1);
         if (entity->ext.event03.actor8 != NULL)
             EntityDelete(entity->ext.event03.actor8);
+        entity->deleteRequested = 1;
+        return;
     }
-    entity->deleteRequested = 1;
-    return;
-
-created:
     EventScene03_Start(entity);
     gEwramData->gameState.stateFlags |= 1;
     bg = &gEwramData->bgInfo[1];
@@ -294,15 +295,12 @@ s32 EventScene03_Update(struct EwramData_EntityData *entity)
             EventScene03_EndParts(entity);
             Interaction_End(entity, 0);
             GameFlag_Set(0x20);
-            {
-                u16 f = entity->ext.event03.progress;
-                s32 k = 4;
-                z = 0;
-                k |= f;
-                entity->ext.event03.progress = k;
-            }
+            entity->ext.event03.progress |= 4;
             Music_StartOverride(0x26);
-            goto set10;
+            entity->state = 0xA;
+            entity->stage = 0;
+            entity->subState = 0;
+            break;
         }
         ret = EventScene03_RunSequence(entity);
         break;
@@ -335,16 +333,17 @@ s32 EventScene03_Update(struct EwramData_EntityData *entity)
         other = entity->ext.event03.actor1;
         other->flipX = other->posX.whole < gEwramData->playerState.player->posX.whole;
         v = entity->state + 1;
-        goto set;
+        entity->state = v;
+        entity->stage = z;
+        entity->subState = z;
+        break;
     case 11:
         if (TextWindow_Update())
         {
             z = 0;
             entity->state = 0x80;
             Interaction_End(entity, 0);
-        set10:
             v = 0xA;
-        set:
             entity->state = v;
             entity->stage = z;
             entity->subState = z;

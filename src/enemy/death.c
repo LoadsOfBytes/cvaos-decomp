@@ -101,7 +101,7 @@ void DeathWeapon_Update(struct EwramData_EntityData *entity)
         if (entity->ext.deathWeapon.mirror)
         {
             entity->state = 8;
-            goto tail;
+            break;
         }
         entity->state = 1;
         entity->timer = 8;
@@ -112,12 +112,12 @@ void DeathWeapon_Update(struct EwramData_EntityData *entity)
         if (entity->timer)
         {
             if ((u8)--entity->timer > 3)
-                goto tail;
+                break;
             if (entity->timer & 1)
                 entity->palette = owner->palette;
             else
                 entity->palette = entity->basePalette;
-            goto tail;
+            break;
         }
         entity->timer = 4;
         entity->palette = owner->palette;
@@ -128,7 +128,8 @@ void DeathWeapon_Update(struct EwramData_EntityData *entity)
         { u16 v_ = owner->posY.part16.integer + pose->dy - entity->timer; register u16 *p_ asm("r3") = &entity->posY.part16.integer; *p_ = v_; } /* FAKEMATCH: pinned register */
         if ((t = entity->timer) != 0)
             goto count;
-        goto idle;
+        entity->state = 3;
+        break;
     case 3:
     {
         u32 flags = (u16)(FLAGS(owner) & 8);
@@ -150,7 +151,7 @@ void DeathWeapon_Update(struct EwramData_EntityData *entity)
                 entity->accelX.whole = -ax;
             }
             entity->state = 5;
-            goto tail;
+            break;
         }
         if (FLAGS(owner) & 0x10)
         {
@@ -158,7 +159,7 @@ void DeathWeapon_Update(struct EwramData_EntityData *entity)
             entity->hidden = 0;
             entity->state = 4;
             entity->stage = flags;
-            goto tail;
+            break;
         }
         entity->attack = 0x3C;
         entity->hidden = pose->flag;
@@ -176,7 +177,7 @@ void DeathWeapon_Update(struct EwramData_EntityData *entity)
         entity->posY.part16.integer = owner->posY.part16.integer + pose->dy;
         entity->spriteLayer = owner->spriteLayer + pose->layer;
         entity->flipX = owner->flipX;
-        goto tail;
+        break;
     }
     case 5:
         SPIN(entity) += SPEED(entity);
@@ -184,7 +185,7 @@ void DeathWeapon_Update(struct EwramData_EntityData *entity)
             PlaySong(0x135);
         if (FLAGS(owner) & 4)
             entity->state = 6;
-        goto tail;
+        break;
     case 6:
     {
         if (!(entity->subState & 0x1F))
@@ -197,11 +198,11 @@ void DeathWeapon_Update(struct EwramData_EntityData *entity)
         if (zero < 0)
             zero = entity->posX.whole - owner->posX.whole;
         if (zero > 0x1FFFF)
-            goto tail;
+            break;
         FLAGS(owner) &= ~0xC;
         entity->timer = 0x34;
         entity->state = 7;
-        goto tail;
+        break;
     }
     case 7:
         SPIN(entity) += SPEED(entity);
@@ -212,20 +213,20 @@ void DeathWeapon_Update(struct EwramData_EntityData *entity)
         entity->posX.part16.integer = owner->posX.part16.integer;
         { u16 v_ = owner->posY.part16.integer - 0x26; register u16 *p_ asm("r3") = &entity->posY.part16.integer; *p_ = v_; } /* FAKEMATCH: pinned register */
         if ((t = entity->timer) == 0)
-            goto idle;
+        {
+            entity->state = 3;
+            break;
+        }
     count:
         entity->timer = t - 1;
-        goto tail;
+        break;
     case 4:
         if (DeathWeapon_UpdateWallTraversal(entity, owner))
         {
             { u16 f_ = FLAGS(owner); register u32 m_ asm("r1") = 0xFFEF; m_ &= f_; FLAGS(owner) = m_; } /* FAKEMATCH: pinned register */
-            goto idle;
+            entity->state = 3;
         }
-        goto tail;
-    idle:
-        entity->state = 3;
-        goto tail;
+        break;
     case 9:
         SPIN(entity) += 0x790;
         EntityAccelerateAndMove(entity, 0x80000);
@@ -234,10 +235,15 @@ void DeathWeapon_Update(struct EwramData_EntityData *entity)
             entity->state = 10;
             Player_SetSelectedTarget(NULL);
         }
-        goto tail;
+        break;
+    case 10:
+        ObjAffine_Free(entity->affineIndex);
+        EntityDelete(entity);
+        return;
     case 8:
     default:
-    tail:
+        break;
+    }
     if ((zero = entity->ext.deathWeapon.mirror) == 0)
     {
         ObjAffine_Set(SPIN(entity), 0x10000, 0x10000, entity->flipX, zero, entity->affineIndex);
@@ -247,7 +253,6 @@ void DeathWeapon_Update(struct EwramData_EntityData *entity)
         owner = &gEwramData->entityData[entity->ext.deathWeapon.primaryIndex];
         if (owner->state == 10)
         {
-    case 10:
             ObjAffine_Free(entity->affineIndex);
             EntityDelete(entity);
             return;
@@ -260,7 +265,6 @@ void DeathWeapon_Update(struct EwramData_EntityData *entity)
         entity->posY.whole = owner->posY.whole;
         SPIN(entity) = -0x8000 + SPIN(owner);
         ObjAffine_Set(SPIN(entity), 0x10000, 0x10000, entity->flipX, zero, entity->affineIndex);
-    }
     }
     if (entity->hidden)
         return;

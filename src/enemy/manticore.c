@@ -896,6 +896,8 @@ void ManticoreTail_UpdateSwing(struct EwramData_EntityData *e)
                         else e->velX.whole = -((KIND(e) << 19) + 0xA0000);
                         e->posX.whole -= 0x80000;
                     }
+                    e->posY.whole -= 0x150000;
+                    e->flipX = owner->flipX == 0;
                 }
                 else if (owner->timer > 14)
                 {
@@ -913,11 +915,9 @@ void ManticoreTail_UpdateSwing(struct EwramData_EntityData *e)
                         else e->velX.whole = -((KIND(e) << 19) + 0xA0000);
                         e->posX.whole -= 0xC0000;
                     }
+                    e->posY.whole -= 0x150000;
+                    e->flipX = owner->flipX == 0;
                 }
-                else
-                    goto tail;
-                e->posY.whole -= 0x150000;
-                e->flipX = owner->flipX == 0;
             }
         }
     }
@@ -925,7 +925,6 @@ void ManticoreTail_UpdateSwing(struct EwramData_EntityData *e)
     {
         if (KIND(e) == 6) SETANGLE(e);
     }
-tail:
     if (KIND(e) == 6)
     {
         x = (VALUE(e) - 0x7000) / 4;

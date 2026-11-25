@@ -301,7 +301,21 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
         if (r != 0)
         {
             if (Dist(entity) <= 0xC)
-                goto close;
+            {
+                entity->timer = 0;
+                entity->subState = 6;
+                entity->ext.werejaguar.manualAnim = 1;
+                entity->animFrame = 0x10;
+                Entity_UpdateBoxes(entity);
+                entity->accelX.whole = 0;
+                entity->velY.whole = 0x40000;
+                entity->accelY.whole = 0x2800;
+                if (entity->flipX)
+                    entity->velX.whole = -0x20000;
+                else
+                    entity->velX.whole = 0x20000;
+                break;
+            }
             entity->subState = 3;
             if (entity->enemyId == 0x4B)
             {
@@ -325,7 +339,6 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
     case 3:
         if (Dist(entity) <= 0xC)
         {
-        close:
             entity->timer = 0;
             entity->subState = 6;
             entity->ext.werejaguar.manualAnim = 1;

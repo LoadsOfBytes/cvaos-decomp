@@ -494,11 +494,10 @@ void Object29_UpdateMovement(struct EwramData_EntityData *entity)
             }
             if (distance > 0xFFFFF)
             {
-                if (entity->velY.whole > 0xFFFF)
-                    goto move;
-                entity->velY.whole += 0x800;
+                if (entity->velY.whole <= 0xFFFF)
+                    entity->velY.whole += 0x800;
             }
-            else { v = (distance / 0x10000) << 12; k = 0x1000; goto add; }
+            else { v = (distance / 0x10000) << 12; k = 0x1000; entity->velY.whole = v + k; }
         }
         else
         {
@@ -510,11 +509,10 @@ void Object29_UpdateMovement(struct EwramData_EntityData *entity)
             }
             if (distance > 0xFFFFF)
             {
-                if (entity->velY.whole <= -0x10000)
-                    goto move;
-                entity->velY.whole -= 0x800;
+                if (entity->velY.whole > -0x10000)
+                    entity->velY.whole -= 0x800;
             }
-            else { { s32 q_ = distance; asm("" : "+r"(q_)); /* FAKEMATCH: keep the test on distance */ if (distance < 0) q_ = distance + 0xFFFF; v = -((q_ >> 16) << 16) / 16; } k = -0x1000; add: entity->velY.whole = v + k; }
+            else { { s32 q_ = distance; asm("" : "+r"(q_)); /* FAKEMATCH: keep the test on distance */ if (distance < 0) q_ = distance + 0xFFFF; v = -((q_ >> 16) << 16) / 16; } k = -0x1000; entity->velY.whole = v + k; }
         }
         entity->ext.layerObject.y += entity->velY.whole;
         break;
@@ -565,7 +563,6 @@ void Object29_UpdateMovement(struct EwramData_EntityData *entity)
             }
             else entity->velY.whole = -((distance / 0x10000) << 16) / 16 - 0x1000;
         }
-    move:
         entity->ext.layerObject.y += entity->velY.whole;
         break;
     }

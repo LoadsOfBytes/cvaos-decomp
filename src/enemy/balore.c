@@ -1868,25 +1868,25 @@ void BaloreIntroPart_Update(struct EwramData_EntityData *entity)
         PlaySong(0x102);
         break;
     case 2:
-        if (entity->timer == 0)
-            goto start_fall;
-        if (--entity->timer <= 0x20)
-            break;
-    cycle:
+        if (entity->timer != 0)
         {
-            u8 palette = parent->basePalette;
-            u8 value = sUnk_085287D6[(entity->timer >> 1) & 3];
-            u8 slot = palette - 10;
-            u8 *slots = gEwramData->gameState.sharedObjPaletteVariants;
-
-            if (slots[slot] != value)
+            if (--entity->timer <= 0x20)
+                break;
+        cycle:
             {
-                slots[slot] = value;
-                ObjPalette_LoadRange((u8 *)gEwramData->gameState.sharedObjPaletteSources[slot], value, 1, palette);
+                u8 palette = parent->basePalette;
+                u8 value = sUnk_085287D6[(entity->timer >> 1) & 3];
+                u8 slot = palette - 10;
+                u8 *slots = gEwramData->gameState.sharedObjPaletteVariants;
+    
+                if (slots[slot] != value)
+                {
+                    slots[slot] = value;
+                    ObjPalette_LoadRange((u8 *)gEwramData->gameState.sharedObjPaletteSources[slot], value, 1, palette);
+                }
             }
+            break;
         }
-        break;
-    start_fall:
         Anim_StartIndexed(entity, 0xE, 2, 1);
         entity->state = 3;
         entity->timer = 0;

@@ -380,7 +380,9 @@ void Golem_UpdateMovement(struct EwramData_EntityData *entity)
         entity->timer = hopTimes[entity->ext.golem.variant];
         entity->ext.joint.pose = 2;
         GOLEM_HOP_SPEED(entity)
-        goto hop;
+        entity->velY.whole = 0x10000;
+        entity->accelY.whole = 0x2800;
+        break;
     case 2:
         GOLEM_LAND(landTimes)
         PlaySong(0x7C);

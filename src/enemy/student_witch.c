@@ -144,7 +144,13 @@ void StudentWitch_UpdateWalk(struct EwramData_EntityData *entity)
         flags = Entity_Walk(entity, entity->ext.studentWitch.speed, sStudentWitchWalkProfile, 8);
         if (flags & 3) entity->flipX ^= 1;
         result = flags & 8;
-        if (result)
+        if (!result)
+        {
+            entity->state = 2;
+            entity->stage = result;
+            entity->subState = result;
+        }
+        else
         {
             if (*(u16 *)frame != 0) break;
             result = Target_IsNearEntity(entity, 0xA0, 0x3C);
@@ -158,22 +164,20 @@ void StudentWitch_UpdateWalk(struct EwramData_EntityData *entity)
                     entity->subState = 0;
                 }
                 else
-                    goto falling;
+                {
+                    entity->state = 2;
+                    entity->stage = result;
+                    entity->subState = result;
+                }
             }
-            else goto waiting;
-        }
-        else goto falling;
-        break;
-falling:
-        entity->state = 2;
-        entity->stage = result;
-        entity->subState = result;
-        break;
-waiting:
-        if (++entity->stage > 4)
-        {
-            entity->stage = result;
-            entity->flipX ^= 1;
+            else
+            {
+                if (++entity->stage > 4)
+                {
+                    entity->stage = result;
+                    entity->flipX ^= 1;
+                }
+            }
         }
         break;
     }

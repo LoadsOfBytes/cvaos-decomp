@@ -792,11 +792,10 @@ void SkillGladiatorUse(struct EwramData_EntityData *entity)
         {
             v = entity->ext.skillGladiator.speed;
             if (v > 0)
-                goto dec;
-            { register u32 z_ asm("r3"); asm("" : "=r"(z_)); /* FAKEMATCH: occupy r3 for reload rotation */
-            v += 0x1000;
-            asm("" :: "r"(z_)); } /* FAKEMATCH: occupy r3 for reload rotation */
-            goto store;
+                v -= 0x1000;
+            else
+                v += 0x1000;
+            entity->ext.skillGladiator.speed = v;
         }
         else if (result & 0x20)
         {
@@ -804,11 +803,7 @@ void SkillGladiatorUse(struct EwramData_EntityData *entity)
             if (v > 0)
                 v += 0x1000;
             else
-            {
-            dec:
                 v -= 0x1000;
-            }
-        store:
             entity->ext.skillGladiator.speed = v;
         }
         else
@@ -2032,19 +2027,10 @@ u32 Entity_StepAngleTowardPoint(struct EwramData_EntityData *entity, s32 x, s32 
     s32 dx = (s16)(INT_TOWARD_ZERO(x) - (s16)entity->posX.part16.integer);
     s32 dy = (s16)(INT_TOWARD_ZERO(y) - entity->posY.part16.integer);
     s32 delta = (u16)ArcTan2(dx, dy) - angle;
-    if (delta > 0)
-    {
-        if (delta > 0x7FFF)
-        {
-            angle -= turn;
-            return angle & 0xFFFF;
-        }
-    }
-    else if (delta >= -0x8000) goto subtract;
-    angle += turn;
-    return angle & 0xFFFF;
-subtract:
-    angle -= turn;
+    if (delta > 0 ? delta <= 0x7FFF : delta < -0x8000)
+        angle += turn;
+    else
+        angle -= turn;
     return angle & 0xFFFF;
 }
 

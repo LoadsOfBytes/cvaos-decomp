@@ -752,13 +752,11 @@ void ChaosOrb_Update(struct EwramData_EntityData *entity)
                 {
                     if (!(REQUEST(core) & 1))
                         break;
-                    if (x > 0x7FFFFF)
+                    if (x > 0x7FFFFF ? y <= 0xA00000 : y <= 0x700000)
                     {
-                        if (y <= 0xA00000)
-                            goto busy;
+                        BUSY(core) = 1;
+                        break;
                     }
-                    else if (y <= 0x700000)
-                        goto busy;
                     entity->subState = 10;
                     entity->stage = 0;
                 }
@@ -766,13 +764,11 @@ void ChaosOrb_Update(struct EwramData_EntityData *entity)
                 {
                     if (!(REQUEST(core) & 2))
                         break;
-                    if (x > 0x7FFFFF)
+                    if (x > 0x7FFFFF ? (u32)(y - 0x800001) > 0xFFFFE : y > 0x8FFFFF)
                     {
-                        if ((u32)(y - 0x800001) > 0xFFFFE)
-                            goto busy;
+                        BUSY(core) = 1;
+                        break;
                     }
-                    else if (y > 0x8FFFFF)
-                        goto busy;
                     entity->subState = 30;
                     entity->stage = 0;
                 }
@@ -854,7 +850,6 @@ void ChaosOrb_Update(struct EwramData_EntityData *entity)
                 {
                     entity->subState = 0;
                     entity->palette = entity->basePalette;
-                busy:
                     BUSY(core) = 1;
                 }
                 break;
@@ -1421,14 +1416,19 @@ void ChaosSoulShot_Update(struct EwramData_EntityData *entity)
                 Entity_AimVelocityAtPoint(entity, x, y, speed);
                 if (entity->flipX)
                 {
-                    if (entity->velX.whole >= 0) goto sound;
+                    if (entity->velX.whole < 0)
+                    {
+                        entity->velX.whole = state;
+                        if (entity->velY.whole <= 0x2FFFF)
+                            entity->velY.whole = speed;
+                    }
                 }
-                else if (entity->velX.whole <= 0)
-                    goto sound;
-                entity->velX.whole = state;
-                if (entity->velY.whole <= 0x2FFFF)
-                    entity->velY.whole = speed;
-            sound:
+                else if (entity->velX.whole > 0)
+                {
+                    entity->velX.whole = state;
+                    if (entity->velY.whole <= 0x2FFFF)
+                        entity->velY.whole = speed;
+                }
                 PlaySong(0x148);
                 return;
             }

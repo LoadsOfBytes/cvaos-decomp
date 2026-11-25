@@ -1804,7 +1804,8 @@ void HeadhunterTransformationPart_Update(struct EwramData_EntityData *entity)
                     owner->subState++;
                     Anim_StartIndexed(owner, 1, 2, 1);
                     Anim_Update(owner);
-                    goto delete;
+                    EntityDelete(entity);
+                    return;
                 case 1:
                     for (i = 0; i < 10; i++)
                         Effect_SpawnRisingParticleInBox(owner->posX.whole, owner->posY.whole - 0x100000, 0x200000, 0x200000, owner->spriteLayer - 1, 1);
@@ -1833,7 +1834,8 @@ void HeadhunterTransformationPart_Update(struct EwramData_EntityData *entity)
                     Anim_Update(owner);
                     owner->subState++;
                     owner->posY.whole += -0x130000;
-                    goto delete;
+                    EntityDelete(entity);
+                    return;
                 case 2:
                     if ((s8)--entity->timer > 0) break;
                     owner->basePalette = owner->ext.headhunter.palette2;
@@ -1842,14 +1844,14 @@ void HeadhunterTransformationPart_Update(struct EwramData_EntityData *entity)
                     Anim_Update(owner);
                     owner->subState++;
                     owner->posY.whole += 0xB0000;
-                    goto delete;
+                    EntityDelete(entity);
+                    return;
                 }
                 break;
             }
             Anim_Update(entity);
             return;
         }
-    delete:
         EntityDelete(entity);
     }
     else

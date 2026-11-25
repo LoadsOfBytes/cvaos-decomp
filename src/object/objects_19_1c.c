@@ -411,9 +411,11 @@ s32 SavePoint_StepPromptFade(struct EwramData_EntityData *entity)
             break;
         case 1:
             entity->ext.savePointPrompt.fade += 0x2000;
-            if ((s32)entity->ext.savePointPrompt.fade <= 0xFFFF) goto end;
-            entity->ext.savePointPrompt.fade = 0x10000;
-            entity->subState++;
+            if ((s32)entity->ext.savePointPrompt.fade > 0xFFFF)
+            {
+                entity->ext.savePointPrompt.fade = 0x10000;
+                entity->subState++;
+            }
             break;
         case 2:
             done = 1;
@@ -444,7 +446,6 @@ s32 SavePoint_StepPromptFade(struct EwramData_EntityData *entity)
         }
         break;
     }
-end:
     return done;
 }
 

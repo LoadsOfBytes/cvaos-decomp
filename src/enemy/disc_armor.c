@@ -203,27 +203,23 @@ void DiscArmorDisc_Update(struct EwramData_EntityData *entity)
     if (entity->state <= 5)
     {
         amp = DiscArmorRing_Aim(ring, entity, owner);
-        if (amp <= 0x600000)
+        if (amp > 0x600000 || (s16)owner->hp <= 0 || (ENEMY_STATUS(owner) & ENEMY_STATUS_PETRIFIED))
         {
-            if ((s16)owner->hp > 0 && !(ENEMY_STATUS(owner) & ENEMY_STATUS_PETRIFIED))
-                goto check;
+            if (amp > 0x600000)
+                owner->ext.discArmor.flags |= 2;
+            if (entity->flipX)
+                DISC_ARMOR_DISC_LAST_DX(entity) += -0x10000;
+            else
+                DISC_ARMOR_DISC_LAST_DX(entity) += 0x10000;
+            if (entity->state == 5)
+                DISC_ARMOR_DISC_LAST_DX(entity) = 0;
+            entity->state = 6;
+            entity->ext.discArmorDisc.phase = DISC_ARMOR_DISC_LAST_DX(entity);
+            entity->velY.whole = (s32)DISC_ARMOR_DISC_LAST_DY(entity);
+            entity->accelY.whole = 0x4000;
+            entity->accelX.whole = 0;
         }
-        else
-            owner->ext.discArmor.flags |= 2;
-        if (entity->flipX)
-            DISC_ARMOR_DISC_LAST_DX(entity) += -0x10000;
-        else
-            DISC_ARMOR_DISC_LAST_DX(entity) += 0x10000;
-        if (entity->state == 5)
-            DISC_ARMOR_DISC_LAST_DX(entity) = 0;
-        entity->state = 6;
-        entity->ext.discArmorDisc.phase = DISC_ARMOR_DISC_LAST_DX(entity);
-        entity->velY.whole = (s32)DISC_ARMOR_DISC_LAST_DY(entity);
-        entity->accelY.whole = 0x4000;
-        entity->accelX.whole = 0;
-        goto run;
-    check:
-        if (!(owner->ext.discArmor.flags & 1))
+        else if (!(owner->ext.discArmor.flags & 1))
         {
             if (entity->affine)
                 ObjAffine_Free(entity->affineIndex);
@@ -233,7 +229,6 @@ void DiscArmorDisc_Update(struct EwramData_EntityData *entity)
             return;
         }
     }
-run:
     Hit_CheckWithPlayer(&hit, entity);
     if (gEwramData->gameState.timeStopTimer != 0)
         return;

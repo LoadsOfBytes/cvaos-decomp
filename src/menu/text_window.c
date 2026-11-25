@@ -328,7 +328,6 @@ s32 TextWindow_Update(void)
                         break;
                     case 1:
                         event->insertedTextAddress = (u32)Text_GetLocalizedEntry(p[1]);
-                    restart:
                         offset = 0;
                         break;
                     case 2:
@@ -373,11 +372,14 @@ s32 TextWindow_Update(void)
                         else
                         {
                             s32 r = Conversation_LoadNextText();
-                            if (r != 0)
-                                goto restart;
-                            gDisplayRegisters.bldY = r;
-                            event->textWindowState = 5;
-                            cont = 0;
+                            if (r == 0)
+                            {
+                                gDisplayRegisters.bldY = r;
+                                event->textWindowState = 5;
+                                cont = 0;
+                                break;
+                            }
+                            offset = 0;
                         }
                         break;
                     default:

@@ -1183,9 +1183,8 @@ void Julius_Update(struct EwramData_EntityData *entity)
         y = GetEntityRoomYPositionInteger(entity) - 4;
         if ((FLAGS(entity) & 0x400) || (gEwramData->playerStatus.soulStateFlags & 0x200))
             count = 1;
-        if (count != 0)
+        while (count != 0)
         {
-        probe:
             {
                 s32 tx = x << 16;
                 s32 ty = (s16)y;
@@ -1196,13 +1195,10 @@ void Julius_Update(struct EwramData_EntityData *entity)
                 else
                     kind = 0xFF;
                 entity->ext.player.floorKind = kind;
-                if (kind == 0xFF)
-                {
-                    y = (u32)((y << 16) - 0x180000) >> 16;
-                    count--;
-                    if (count != 0)
-                        goto probe;
-                }
+                if (kind != 0xFF)
+                    break;
+                y = (u32)((y << 16) - 0x180000) >> 16;
+                count--;
             }
         }
     }

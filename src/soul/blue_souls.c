@@ -2658,12 +2658,9 @@ void SkillGreatArmorUse(struct EwramData_EntityData *entity)
         break;
     }
     stats += entity->ext.blueSoul.value;
-    { register s32 product asm("r0") = *stats * 0x133; /* FAKEMATCH: pinned register */
-      register s32 result asm("r1"); /* FAKEMATCH: pinned register */
-      if (product < 0) product += 255;
-      result = product >> 8;
-      { s16 *destination = stats;
-      *destination = result; } }
+    { s32 product = *stats * 0x133;
+      t = product / 256;
+      *stats = t; }
     Player_RecalculateAttackDefense();
 }
 

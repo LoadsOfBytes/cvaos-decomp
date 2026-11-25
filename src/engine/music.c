@@ -78,7 +78,7 @@ s32 Music_UpdateRoom(struct GameState *gameState)
 
     if (CheckRoomTransition(xOffset, yOffset) != 0)
     {
-        Music_SubmitCommandOnce(0x1040);
+        Music_SubmitCommandOnce(MUSIC_PLAYER_MUTE(0));
         gameState->currentSong = 0;
         return 0;
     }
@@ -113,13 +113,13 @@ s32 Music_UpdateRoom(struct GameState *gameState)
 
         if (gEwramData->specialRoomSong == 0)
         {
-            if (!(gEwramData->gameState.bossEventFlags & 0x20) && (area == 7) && (room == 0x22 || room == 0x23 || room == 0x24 || (room == 0x29) || (room == 0x10)))
+            if (!(gEwramData->gameState.bossEventFlags & BOSS_DEFEATED_LEGION) && (area == 7) && (room == 0x22 || room == 0x23 || room == 0x24 || (room == 0x29) || (room == 0x10)))
             {
                 song = 0x29;
                 gEwramData->specialRoomSong = 0x29;
             }
 
-            if ((gEwramData->specialRoomSong == 0) && (gEwramData->gameState.bossEventFlags & 4) && (area == 5) && ((room == 6) || (room == 0xE)))
+            if ((gEwramData->specialRoomSong == 0) && (gEwramData->gameState.bossEventFlags & BOSS_DEFEATED_JULIUS) && (area == 5) && ((room == 6) || (room == 0xE)))
             {
                 song = 0x25;
                 gEwramData->specialRoomSong = 0x25;
@@ -166,7 +166,7 @@ void Sound_ReplayTrackedWithVolume(void)
 
     if ((gEwramData->gameState.bossRushMode != 0) || ((GetSaveRoomFlagFromMapPosition(xOffset, yOffset) == 0) && (GetWarpRoomFlagFromMapPosition(xOffset, yOffset) == 0)))
     {
-        if (!(gEwramData->gameState.stateFlags & 0x40000))
+        if (!(gEwramData->gameState.stateFlags & STATE_MUSIC_COMMAND_SENT))
         {
             PlaySong(SONG_LOUD);
         }
@@ -201,7 +201,7 @@ void Sound_StopTrackedWithVolume(void)
 
     if ((gEwramData->gameState.bossRushMode != 0) || ((GetSaveRoomFlagFromMapPosition(xOffset, yOffset) == 0) && (GetWarpRoomFlagFromMapPosition(xOffset, yOffset) == 0)))
     {
-        if (!(gEwramData->gameState.stateFlags & 0x40000))
+        if (!(gEwramData->gameState.stateFlags & STATE_MUSIC_COMMAND_SENT))
         {
             PlaySong(SONG_QUIET);
         }
@@ -470,9 +470,9 @@ void Music_StopOverride(void)
  */
 void Music_SubmitCommandOnce(s32 song)
 {
-    if (!(gEwramData->gameState.stateFlags & 0x40000))
+    if (!(gEwramData->gameState.stateFlags & STATE_MUSIC_COMMAND_SENT))
     {
-        gEwramData->gameState.stateFlags |= 0x40000;
+        gEwramData->gameState.stateFlags |= STATE_MUSIC_COMMAND_SENT;
         PlaySong(song);
     }
 }
@@ -507,7 +507,7 @@ s32 GameModeGameOverUpdate(void)
             gEwramData->gameModeTimer = 0x20;
             gEwramData->gameModeUpdateStage += 1;
             gEwramData->gameModeSubStage = 0;
-            PlaySong(MUS_15);
+            PlaySong(MUS_GAME_OVER);
             break;
 
         case 1:
@@ -641,7 +641,7 @@ s32 GameModeCreditsUpdate(void)
     switch (gEwramData->gameModeUpdateStage)
     {
         case 0:
-            if (gEwramData->gameState.stateFlags & 0x4000)
+            if (gEwramData->gameState.stateFlags & STATE_ENDING_CHAOS)
             {
                 gUnk_03002CB0.dispCnt = DCNT_BG3 | DCNT_BG2 | DCNT_BG1;
             }
@@ -660,14 +660,14 @@ s32 GameModeCreditsUpdate(void)
             break;
 
         case 1:
-            PlaySong(MUS_26);
+            PlaySong(MUS_STAFF_ROLL);
             Gfx_CopyResource((u8 *)sCreditsGfx, VRAM_BASE, 0);
             Gfx_CopyResource((u8 *)sCreditsGfx2, VRAM_BASE + 0x2000, 0);
             Gfx_CopyResource((u8 *)sCreditsGfx3, VRAM_BASE + 0x4000, 0);
             BgPalette_LoadRange((u8 *)sCreditsBgPalette, 0, 8, 0);
             BgMap_Setup(1, (struct BgMapMetadata *)sCreditsBgMap4, 0, 0x50);
 
-            if (gEwramData->gameState.stateFlags & 0x4000)
+            if (gEwramData->gameState.stateFlags & STATE_ENDING_CHAOS)
             {
                 BgMap_Setup(2, (struct BgMapMetadata *)sCreditsBgMap, 0, 0x50);
                 BgMap_Setup(3, (struct BgMapMetadata *)sCreditsBgMap2, 0, 0x50);
@@ -691,7 +691,7 @@ s32 GameModeCreditsUpdate(void)
             BgMap_Scroll(1, 0, 0x8400);
             BgMap_Scroll(2, 0, 0x8400);
 
-            if (gEwramData->gameState.stateFlags & 0x4000)
+            if (gEwramData->gameState.stateFlags & STATE_ENDING_CHAOS)
             {
                 BgMap_Scroll(3, 0, 0x8400);
             }

@@ -38,6 +38,8 @@
 #include "data/data_118B48.h"
 #include "data/data_4F0B18.h"
 #include "soul_skill_inline.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 extern EntityFunc sWeaponAttackUpdateFuncs[];
 extern struct WeaponInfo sWeaponInfo[];
@@ -190,7 +192,7 @@ void Player_RestoreHPAndMP(void)
  */
 s32 Player_IsBossTargetLowHp(void)
 {
-    if (!(gEwramData->gameState.stateFlags & 2))
+    if (!(gEwramData->gameState.stateFlags & STATE_BOSS_FIGHT))
     {
         return 0;
     }
@@ -393,7 +395,7 @@ void Player_ApplyContactDamage(struct PlayerContactDamage *contactDamage)
     if (gEwramData->playerStatus.currentHP <= 0)
     {
         gEwramData->playerStatus.currentHP = blocked;
-        gEwramData->gameState.stateFlags |= 0x10;
+        gEwramData->gameState.stateFlags |= STATE_PLAYER_DEAD;
         Player_ClearStatusEffects(7);
         Game_SetMenusEnabled(0);
         gEwramData->paused = 0;
@@ -945,7 +947,7 @@ void Player_SpawnStatusIcon(s32 statusIndex)
 
     if (gEwramData->playerStatus.statusEffectTimers[statusIndex] == 0)
     {
-        child = EntityCreateInRange(0x16, 0x19, PlayerStatusIcon_Update);
+        child = EntityCreateInRange(ENTITY_SLOT_HUD_FIRST, ENTITY_SLOT_HUD_LAST, PlayerStatusIcon_Update);
         if (child != NULL)
         {
             child->ext.statusIcon.index.value = statusIndex;
@@ -1071,8 +1073,8 @@ void WeaponMelee_Update(struct EwramData_EntityData *entity)
                 index = 1;
             }
             Hit_Enable(entity, type, WeaponAttack_OnHit, 0);
-            entity->hit.flags |= 2;
-            entity->hit.flags |= 4;
+            entity->hit.flags |= HIT_NO_ATTACK;
+            entity->hit.flags |= HIT_NO_DAMAGE;
             Hit_SetTimerOverride(index, attackerInfo->hitTimer);
             ownerSlot = &entity->ext.weapon.owner->ext.raw.unk_50C;
             PlaySong(Weapon_GetAttackerInfo(ownerSlot->part8.unk_50C)->attackSound);
@@ -1106,7 +1108,7 @@ void WeaponMelee_Update(struct EwramData_EntityData *entity)
             {
                 if (!(gEwramData->gameState.linkPlay) && ((u8) entity->ext.weapon.id != gEwramData->playerStatus.equippedWeapon))
                 {
-                    entity->hit.flags |= 2;
+                    entity->hit.flags |= HIT_NO_ATTACK;
                 }
                 else if (frame != entity->animFrame)
                 {
@@ -1114,11 +1116,11 @@ void WeaponMelee_Update(struct EwramData_EntityData *entity)
                     if (gEwramData->spriteSlots[entity->spriteSlot].sheet->frames[entity->animFrame].boxCount)
                     {
                         HitBox_SetAttack(entity, gEwramData->spriteSlots[entity->spriteSlot].sheet->frames[entity->animFrame].boxes);
-                        entity->hit.flags &= ~2;
+                        entity->hit.flags &= ~HIT_NO_ATTACK;
                     }
                     else
                     {
-                        entity->hit.flags |= 2;
+                        entity->hit.flags |= HIT_NO_ATTACK;
                     }
                 }
             }
@@ -1216,8 +1218,8 @@ void WeaponHeavy_Update(struct EwramData_EntityData *entity)
                 index = 1;
             }
             Hit_Enable(entity, type, WeaponAttack_OnHit, 0);
-            entity->hit.flags |= 2;
-            entity->hit.flags |= 4;
+            entity->hit.flags |= HIT_NO_ATTACK;
+            entity->hit.flags |= HIT_NO_DAMAGE;
             Hit_SetTimerOverride(index, attackerInfo->hitTimer);
             ownerSlot = &entity->ext.weapon.owner->ext.raw.unk_50C;
             PlaySong(Weapon_GetAttackerInfo(ownerSlot->part8.unk_50C)->attackSound);
@@ -1286,7 +1288,7 @@ void WeaponHeavy_Update(struct EwramData_EntityData *entity)
             Anim_Update(entity);
             if (!(gEwramData->gameState.linkPlay) && ((u8) entity->ext.weapon.id != gEwramData->playerStatus.equippedWeapon))
             {
-                entity->hit.flags |= 2;
+                entity->hit.flags |= HIT_NO_ATTACK;
                 break;
             }
             if (entity->timer != entity->ext.weapon.endTime)
@@ -1297,11 +1299,11 @@ void WeaponHeavy_Update(struct EwramData_EntityData *entity)
                     if (gEwramData->spriteSlots[entity->spriteSlot].sheet->frames[entity->animFrame].boxCount)
                     {
                         HitBox_SetAttack(entity, gEwramData->spriteSlots[entity->spriteSlot].sheet->frames[entity->animFrame].boxes);
-                        entity->hit.flags &= ~2;
+                        entity->hit.flags &= ~HIT_NO_ATTACK;
                     }
                     else
                     {
-                        entity->hit.flags |= 2;
+                        entity->hit.flags |= HIT_NO_ATTACK;
                     }
                 }
                 break;
@@ -1482,8 +1484,8 @@ void WeaponGun_Update(struct EwramData_EntityData *entity)
             }
             Hit_Enable(entity, type, WeaponGun_OnHit, 0);
             WeaponGun_SetAttackBox(entity, 0x0810FCF8);
-            entity->hit.flags |= 2;
-            entity->hit.flags |= 4;
+            entity->hit.flags |= HIT_NO_ATTACK;
+            entity->hit.flags |= HIT_NO_DAMAGE;
             Hit_SetTimerOverride(index, (s32) attackerInfo->hitTimer);
 
             entity->drawFunc = WeaponGun_Draw;
@@ -1506,7 +1508,7 @@ void WeaponGun_Update(struct EwramData_EntityData *entity)
                 entity->velY.part16.integer = 0x0;
             }
 
-            child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateGunCasing);
+            child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateGunCasing);
             if (child != NULL)
             {
                 Entity_PlaceRelativeToWide(child, owner, 8U, entity->velY.part16.integer - 0x1A);
@@ -1534,7 +1536,7 @@ void WeaponGun_Update(struct EwramData_EntityData *entity)
             entity->timer += 1;
             if ((entity->ext.weaponGun.stopped == 0) && (entity->timer == 3))
             {
-                entity->hit.flags &= ~2;
+                entity->hit.flags &= ~HIT_NO_ATTACK;
             }
             if (entity->timer > 3)
             {
@@ -1564,7 +1566,7 @@ void WeaponGun_Update(struct EwramData_EntityData *entity)
             }
             else
             {
-                entity->hit.flags |= 2;
+                entity->hit.flags |= HIT_NO_ATTACK;
             }
             /* fallthrough */
         default:
@@ -1651,8 +1653,8 @@ void WeaponValmanway_Update(struct EwramData_EntityData *entity)
                 index = 1;
             }
             Hit_Enable(entity, type, WeaponAttack_OnHit, 0);
-            entity->hit.flags |= 2;
-            entity->hit.flags |= 4;
+            entity->hit.flags |= HIT_NO_ATTACK;
+            entity->hit.flags |= HIT_NO_DAMAGE;
             Hit_SetTimerOverride(index, attackerInfo->hitTimer);
 
             ownerSlot = &entity->ext.weapon.owner->ext.raw.unk_50C;
@@ -1685,7 +1687,7 @@ void WeaponValmanway_Update(struct EwramData_EntityData *entity)
     {
         if (!(gEwramData->gameState.linkPlay) && ((u8) entity->ext.weapon.id != gEwramData->playerStatus.equippedWeapon))
         {
-            entity->hit.flags |= 2;
+            entity->hit.flags |= HIT_NO_ATTACK;
         }
         else if (frame != entity->animFrame)
         {
@@ -1693,11 +1695,11 @@ void WeaponValmanway_Update(struct EwramData_EntityData *entity)
             if (gEwramData->spriteSlots[entity->spriteSlot].sheet->frames[entity->animFrame].boxCount)
             {
                 HitBox_SetAttack(entity, gEwramData->spriteSlots[entity->spriteSlot].sheet->frames[entity->animFrame].boxes);
-                entity->hit.flags &= ~2;
+                entity->hit.flags &= ~HIT_NO_ATTACK;
             }
             else
             {
-                entity->hit.flags |= 2;
+                entity->hit.flags |= HIT_NO_ATTACK;
             }
         }
     }
@@ -1723,7 +1725,7 @@ struct EwramData_EntityData* Weapon_CreateAttackEntity(struct EwramData_EntityDa
         return 0;
     }
 
-    gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot] = EntityCreateInRange(2, 0x10, sWeaponAttackUpdateFuncs[attackerInfo->attackAnimKind]);
+    gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot] = EntityCreateInRange(ENTITY_SLOT_WEAPON_FIRST, ENTITY_SLOT_WEAPON_LAST, sWeaponAttackUpdateFuncs[attackerInfo->attackAnimKind]);
     if (gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot] != NULL)
     {
         gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot]->ext.weapon.owner = entity;
@@ -1750,8 +1752,8 @@ void JuliusWhipAttack_Update(struct EwramData_EntityData *entity)
     {
         case 0:
             Hit_Enable(entity, 3, Player_MarkAttackContact, 0);
-            entity->hit.flags |= 2;
-            entity->hit.flags |= 4;
+            entity->hit.flags |= HIT_NO_ATTACK;
+            entity->hit.flags |= HIT_NO_DAMAGE;
             Hit_SetTimerOverride(0, 0x14);
             entity->timer = 0xA;
             entity->state += 1;
@@ -1784,11 +1786,11 @@ void JuliusWhipAttack_Update(struct EwramData_EntityData *entity)
             {
                 // Next 4-byte record (+4 bytes in the original); the draft predates unk_8 becoming a typed pointer.
                 HitBox_SetAttack(entity, gEwramData->spriteSlots[owner->spriteSlot].sheet->frames[owner->animFrame].boxes + 1);
-                entity->hit.flags &= ~2;
+                entity->hit.flags &= ~HIT_NO_ATTACK;
             }
             else
             {
-                entity->hit.flags |= 2;
+                entity->hit.flags |= HIT_NO_ATTACK;
             }
             break;
     }
@@ -1800,7 +1802,7 @@ void JuliusWhipAttack_Update(struct EwramData_EntityData *entity)
  */
 struct EwramData_EntityData* Julius_CreateWhipAttackEntity(struct EwramData_EntityData *entity)
 {
-    gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot] = EntityCreateInRange(2, 0x10, JuliusWhipAttack_Update);
+    gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot] = EntityCreateInRange(ENTITY_SLOT_WEAPON_FIRST, ENTITY_SLOT_WEAPON_LAST, JuliusWhipAttack_Update);
 
     if (gEwramData->playerState.weaponEntities[entity->ext.player.weaponSlot] != NULL)
     {
@@ -1927,7 +1929,7 @@ void WeaponAttack_OnHit(struct EwramData_EntityData *entity, struct EwramData_En
  */
 void WeaponGun_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker)
 {
-    entity->hit.flags |= 2;
+    entity->hit.flags |= HIT_NO_ATTACK;
     entity->ext.weaponGun.stopped = 1;
 
     if (!(gEwramData->gameState.linkPlay) || (attacker == gEwramData->playerState.selectedTarget))
@@ -1982,7 +1984,7 @@ struct EwramData_EntityData* RedSoul_CreateEntity(struct EwramData_EntityData *o
     struct EwramData_EntityData *entity;
     s8 slot;
 
-    entity = EntityCreateInRange(2, 0x10, update);
+    entity = EntityCreateInRange(ENTITY_SLOT_WEAPON_FIRST, ENTITY_SLOT_WEAPON_LAST, update);
     if (entity == NULL)
     {
         return NULL;
@@ -2040,9 +2042,9 @@ void RedSoul_CancelAll(void)
     if (gEwramData->gameState.timeStopTimer != 0)
     {
         gEwramData->gameState.timeStopTimer = 0;
-        if (!(gEwramData->gameState.stateFlags & 0x40000))
+        if (!(gEwramData->gameState.stateFlags & STATE_MUSIC_COMMAND_SENT))
         {
-            PlaySong(0x1038);
+            PlaySong(MUSIC_PLAYER_RESUME(0));
         }
         Sound_ResumeAndReplayTracked();
 
@@ -2163,7 +2165,7 @@ struct EwramData_EntityData* RedSoul_CreateTrailCopy(struct EwramData_EntityData
     sheet = (gEwramData->spriteSlots[*spriteSlot].sheet);
     attachSheet = sheet;
 
-    trail = EntityCreateInRange(0x49, 0xCF, RedSoulTrail_Update);
+    trail = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, RedSoulTrail_Update);
     if (trail == NULL)
     {
         return NULL;
@@ -2330,7 +2332,7 @@ void Skill_EvilButcher_Ripper_Use(struct EwramData_EntityData *entity)
             }
             Hit_Enable(entity, 5, RedSoul_AnchorToHitTargetTimed, 0);
             HitBox_SetAttackRaw(entity, 0x0202FFFF);
-            entity->hit.flags |= 4;
+            entity->hit.flags |= HIT_NO_DAMAGE;
             PlaySong(0xE6U);
             gEwramData->playerState.nbrActiveRedSoulEntities += 1;
             /* fallthrough */
@@ -2345,7 +2347,7 @@ void Skill_EvilButcher_Ripper_Use(struct EwramData_EntityData *entity)
                     {
                         entity->state = 4;
                     }
-                    else if ((target->hit.flags & 4) || ((u16) entity->ext.redSoul.param == 0))
+                    else if ((target->hit.flags & HIT_NO_DAMAGE) || ((u16) entity->ext.redSoul.param == 0))
                     {
                         entity->state = 4;
                     }
@@ -2354,7 +2356,7 @@ void Skill_EvilButcher_Ripper_Use(struct EwramData_EntityData *entity)
                         entity->timer -= 1;
                         if (entity->timer == 0)
                         {
-                            entity->hit.flags |= 2;
+                            entity->hit.flags |= HIT_NO_ATTACK;
                             entity->state = 3;
                             entity->timer = 15;
                         }
@@ -2384,7 +2386,7 @@ void Skill_EvilButcher_Ripper_Use(struct EwramData_EntityData *entity)
                 {
                     entity->posX.whole += push << 0x10;
                     entity->timer = 50;
-                    entity->hit.flags |= 2;
+                    entity->hit.flags |= HIT_NO_ATTACK;
                     if (info->unk_F == 0)
                     {
                         PlaySong(0x138);
@@ -2509,7 +2511,7 @@ void SkillBoomerangProjectileUpdate(struct EwramData_EntityData *entity)
             }
             Hit_Enable(entity, 5, NULL, 0);
             HitBox_SetAttackRaw(entity, 0x1414F6F6);
-            entity->hit.flags |= 4;
+            entity->hit.flags |= HIT_NO_DAMAGE;
             gEwramData->playerState.nbrActiveRedSoulEntities += 1;
             /* fallthrough */
         case 1:
@@ -2671,7 +2673,7 @@ void SkillAxeArmorUse(struct EwramData_EntityData *entity)
 
             Hit_Enable(entity, 5, NULL, 0);
             HitBox_SetAttackRaw(entity, 0x1414F6F6);
-            entity->hit.flags |= 4;
+            entity->hit.flags |= HIT_NO_DAMAGE;
             PlaySong(0xE3);
             gEwramData->playerState.nbrActiveRedSoulEntities += 1;
 
@@ -2980,7 +2982,7 @@ void SkillChronomageUse(struct EwramData_EntityData *entity)
 
             gEwramData->gameState.timeStopTimer = entity->ext.redSoul.param;
             gEwramData->playerState.nbrActiveRedSoulEntities += 1;
-            PlaySong(0x1030);
+            PlaySong(MUSIC_PLAYER_STOP(0));
             PlaySong(0x19D);
             PlaySong(0xEC);
             entity->state += 1;
@@ -3010,9 +3012,9 @@ void SkillChronomageUse(struct EwramData_EntityData *entity)
                 break;
             }
 
-            if (!(gEwramData->gameState.stateFlags & 0x40000))
+            if (!(gEwramData->gameState.stateFlags & STATE_MUSIC_COMMAND_SENT))
             {
-                PlaySong(0x1038);
+                PlaySong(MUSIC_PLAYER_RESUME(0));
             }
             Sound_ResumeAndReplayTracked();
 
@@ -3135,8 +3137,8 @@ void SkillValkyrieUse(struct EwramData_EntityData *entity)
             Hit_SetTimerOverride(1, 0x3C);
             gEwramData->playerState.nbrActiveRedSoulEntities += 1;
             Hit_Enable(entity, 5, NULL, 0);
-            entity->hit.flags |= 4;
-            entity->hit.flags &= ~2;
+            entity->hit.flags |= HIT_NO_DAMAGE;
+            entity->hit.flags &= ~HIT_NO_ATTACK;
             PlaySong(0x1AF);
             entity->state += 1;
             /* fallthrough */
@@ -3195,12 +3197,12 @@ void SkillValkyrieUse(struct EwramData_EntityData *entity)
     boxes = gEwramData->spriteSlots[entity->spriteSlot].sheet->frames[entity->animFrame].boxes;
     if (boxes != NULL)
     {
-        entity->hit.flags &= ~2;
+        entity->hit.flags &= ~HIT_NO_ATTACK;
         HitBox_SetAttack(entity, boxes);
     }
     else
     {
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_ATTACK;
     }
 }
 

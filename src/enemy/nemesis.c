@@ -22,6 +22,7 @@
 #include "damage_numbers.h"
 #include "effects.h"
 #include "entity_motion.h"
+#include "constants/songs.h"
 
 /* Nemesis_UpdatePositioning: twin of Alastor_UpdateApproach (approach a point near the player and rock);
  * deeper vertical target (+48/16), palette call in state 0; matched. */
@@ -274,7 +275,7 @@ void Nemesis_UpdateTurningAttack(struct EwramData_EntityData *entity)
         {
             entity->timer = 0;
             entity->subState++;
-            PlaySong(0x85);
+            PlaySong(SE_SWING);
             break;
         }
         entity->posX.whole += entity->velX.whole * 3;
@@ -343,7 +344,7 @@ void Nemesis_UpdateScriptedAttack(struct EwramData_EntityData *entity)
     case 0:
         STEP(entity) = 0;
         step = table;
-        PlaySong(0x85);
+        PlaySong(SE_SWING);
         entity->subState++;
     case 1:
         frames = entity->timer = step->frames;
@@ -371,7 +372,7 @@ void Nemesis_UpdateScriptedAttack(struct EwramData_EntityData *entity)
             else
                 entity->subState = 1;
             entity->timer = 0;
-            PlaySong(0x85);
+            PlaySong(SE_SWING);
         }
         break;
     case 5:
@@ -418,7 +419,7 @@ void Nemesis_UpdateSpinLunge(struct EwramData_EntityData *entity)
         entity->subState++;
     case 1:
         if (!(entity->timer % 16))
-            PlaySong(0x85);
+            PlaySong(SE_SWING);
         if (entity->timer++ > 0x40)
         {
             entity->ext.nemesis.turn = 0;
@@ -427,7 +428,7 @@ void Nemesis_UpdateSpinLunge(struct EwramData_EntityData *entity)
             entity->velY.whole = FixedMultiply(Sin(entity->ext.nemesis.angle + 0x4000), 0x20000);
             entity->timer = ABS((Target_GetX(entity) - entity->posX.whole) / entity->velX.whole);
             entity->subState++;
-            PlaySong(0x85);
+            PlaySong(SE_SWING);
         }
         break;
     case 2:
@@ -619,7 +620,7 @@ void Nemesis_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 *data)
 s32 Nemesis_CreatePartner(struct EwramData_EntityData *parent)
 {
     EntityFunc update = NemesisPartner_Update;
-    struct EwramData_EntityData *e = EntityCreateInRange(0x49, 0xCF, update);
+    struct EwramData_EntityData *e = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, update);
 
     if (e == NULL)
         return 0;

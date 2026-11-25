@@ -21,6 +21,8 @@
 #include "damage_numbers.h"
 #include "entity_hit.h"
 #include "enemy_common.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 /* Triton movement (Triton_UpdateMove) and attack: fire the homing shot, or raise the spear and emit wave
  * particles until the spear comes back. */
@@ -314,9 +316,9 @@ struct EwramData_EntityData *Triton_CreateSpear(struct EwramData_EntityData *own
             box.height = 6;
             HitBox_SetAttack(part, &box);
             /* an OR with a zero variable survives in the original */
-            part->hit.flags |= 4;
+            part->hit.flags |= HIT_NO_DAMAGE;
             part->hit.flags |= zero;
-            part->hit.flags &= ~2;
+            part->hit.flags &= ~HIT_NO_ATTACK;
             Hit_Enable(part, 8, TritonSpear_DamagePlayerOnContact, 0);
         }
         part->ext.tritonSpear.owner = owner;
@@ -481,7 +483,7 @@ void TritonSpear_Update(struct EwramData_EntityData *spear)
                         angle = 0x40000;
                         spear->velX.whole = FixedMultiply(x, angle);
                         spear->velY.whole = FixedMultiply(y, angle);
-                        PlaySong(0x85);
+                        PlaySong(SE_SWING);
                     }
                 }
                 break;
@@ -575,7 +577,7 @@ void TritonSpear_Update(struct EwramData_EntityData *spear)
  * towards the side the target is on. */
 void Triton_SpawnHomingShot(struct EwramData_EntityData *owner, s32 x, s32 y)
 {
-    struct EwramData_EntityData *shot = EntityCreateInRange(0x49, 0xCF, TritonHomingShot_Update);
+    struct EwramData_EntityData *shot = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, TritonHomingShot_Update);
     struct SpriteBox box = {-2, -2, 4, 4};
     if (shot != NULL)
     {
@@ -596,8 +598,8 @@ void Triton_SpawnHomingShot(struct EwramData_EntityData *owner, s32 x, s32 y)
         Hit_Enable(shot, 8, TritonHomingShot_DamagePlayerOnContact, TritonHomingShot_OnHit);
         HitBox_SetAttack(shot, &box);
         HitBox_SetBody(shot, &box);
-        shot->hit.flags &= ~4;
-        shot->hit.flags &= ~2;
+        shot->hit.flags &= ~HIT_NO_DAMAGE;
+        shot->hit.flags &= ~HIT_NO_ATTACK;
         shot->attack = owner->attack * 3 / 4;
         shot->ext.tritonShot.owner = owner;
         shot->scrollWithBg = 1;
@@ -658,7 +660,7 @@ void TritonHomingShot_Update(struct EwramData_EntityData *entity)
  * starting angle depending on the owner's facing. */
 void Triton_SpawnWaveParticle(struct EwramData_EntityData *owner, s32 x, s32 y)
 {
-    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, TritonWaveParticle_Update);
+    struct EwramData_EntityData *effect = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, TritonWaveParticle_Update);
     if (effect != NULL)
     {
         s32 graphics;
@@ -752,7 +754,7 @@ void TritonHomingShot_OnHit(struct EwramData_EntityData *entity)
  * below, facing the same way. */
 void TritonSpear_SpawnEffect(struct EwramData_EntityData *owner, s32 x, s32 y)
 {
-    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, TritonEffect_Update);
+    struct EwramData_EntityData *effect = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, TritonEffect_Update);
     if (effect != NULL)
     {
         s32 graphics;

@@ -27,6 +27,7 @@
 #include "data/data_4F0B18.h"
 #include "data/data_118B48.h"
 #include "player_core.h"
+#include "constants/hit_flags.h"
 
 extern void Hit_GetContactPoint(struct EwramData_EntityData *a, struct EwramData_EntityData *b, s16 *outX, s16 *outY);
 
@@ -67,7 +68,7 @@ struct EwramData_EntityData *BlueSoul_CreateEntity(struct EwramData_EntityData *
 fail:
         return NULL;
     }
-    entity = EntityCreateInRange(2, 16, update);
+    entity = EntityCreateInRange(ENTITY_SLOT_WEAPON_FIRST, ENTITY_SLOT_WEAPON_LAST, update);
     if (entity == NULL) goto fail;
     entity->ext.blueSoul.owner = owner;
     entity->ext.blueSoul.slot = slot;
@@ -150,9 +151,9 @@ s32 BlueSoul_ShouldEnd(struct EwramData_EntityData *entity)
     }
     {
         u32 flags = gEwramData->gameState.stateFlags;
-        if (flags & 0x100)
+        if (flags & STATE_DOOR_ACTIVE)
             return 0;
-        flags &= 1;
+        flags &= STATE_EVENT_RUNNING;
         if (!flags)
             return 0;
     }
@@ -189,9 +190,9 @@ s32 BlueSoul_CheckEndCondition(struct EwramData_EntityData *entity)
         return 1;
     {
         u32 flags = gEwramData->gameState.stateFlags;
-        if (!(flags & 0x100))
+        if (!(flags & STATE_DOOR_ACTIVE))
         {
-            flags &= 1;
+            flags &= STATE_EVENT_RUNNING;
             if (flags)
                 return 1;
         }
@@ -277,7 +278,7 @@ void Soma_HandleBlueSoulInput(struct EwramData_EntityData *entity)
         return;
     if (ew->playerStatus.currentMP < (ew->playerStatus.maxMP >> 7) + 1)
         return;
-    soul = EntityCreateInRange(2, 0x10, info->updateFunc);
+    soul = EntityCreateInRange(ENTITY_SLOT_WEAPON_FIRST, ENTITY_SLOT_WEAPON_LAST, info->updateFunc);
     if (soul == NULL)
         return;
     gEwramData->playerState.activeBlueSoulEntities[0] = soul;
@@ -307,10 +308,10 @@ void Anim_UpdateWithFrameAttackBox(struct EwramData_EntityData *entity)
         struct SpriteBox *box = graphics->frames[entity->animFrame].boxes;
         if (box != NULL)
         {
-            entity->hit.flags &= ~2;
+            entity->hit.flags &= ~HIT_NO_ATTACK;
             HitBox_SetAttack(entity, box);
         }
-        else entity->hit.flags |= 2;
+        else entity->hit.flags |= HIT_NO_ATTACK;
     }
 }
 
@@ -393,7 +394,7 @@ void SkillBlackPantherUse(struct EwramData_EntityData *entity)
         entity->scrollWithBg = 1;
         Hit_Enable(entity, 6, 0, 0);
         HitBox_SetAttackRaw(entity, 0x3030D8F4);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         Hit_SetTimerOverride(2, 0x3C);
         {
             u16 a = 8;
@@ -410,12 +411,12 @@ void SkillBlackPantherUse(struct EwramData_EntityData *entity)
                 entity->subState = 1;
                 PlaySong(0x9A);
             }
-            entity->hit.flags &= ~2;
+            entity->hit.flags &= ~HIT_NO_ATTACK;
         }
         else
         {
             entity->subState = 0;
-            entity->hit.flags |= 2;
+            entity->hit.flags |= HIT_NO_ATTACK;
         }
         FollowParent(entity, parent, 0, 0);
     }
@@ -465,7 +466,7 @@ void SkillCagnazzoUse(struct EwramData_EntityData *entity)
         entity->state++;
         Hit_Enable(entity, 6, 0, 0);
         HitBox_SetAttackRaw(entity, 0x1414050A);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         Hit_SetTimerOverride(2, 0x14);
         PlaySong(0x1AA);
     }
@@ -503,7 +504,7 @@ void SkillBonePillarProjectileUpdate(struct EwramData_EntityData *entity)
             entity->drawFunc = Sprite_DrawEntity;
             Hit_Enable(entity, 6, NULL, 0);
             HitBox_SetAttackRaw(entity, 0x1414F6F6);
-            entity->hit.flags |= 4;
+            entity->hit.flags |= HIT_NO_DAMAGE;
             entity->timer = 0x1A;
             entity->scrollWithBg = 1;
             entity->state++;
@@ -943,8 +944,8 @@ void Skill_Devil_Manticore_Curly_Use(struct EwramData_EntityData *entity)
             BlueSoul_CreateEntity(parent, form->func);
             Hit_Enable(entity, 6, 0, 0);
             HitBox_SetAttackRaw(entity, 0x4430C0E8);
-            entity->hit.flags |= 4;
-            entity->hit.flags &= ~2;
+            entity->hit.flags |= HIT_NO_DAMAGE;
+            entity->hit.flags &= ~HIT_NO_ATTACK;
             Hit_SetTimerOverride(2, 0xF);
             {
                 u16 a = form->baseAttack;
@@ -1142,8 +1143,8 @@ void SkillShadowKnightUse(struct EwramData_EntityData *entity)
         entity->state++;
         entity->timer = 0x20;
         Hit_Enable(entity, 6, 0, 0);
-        entity->hit.flags |= 4;
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_DAMAGE;
+        entity->hit.flags |= HIT_NO_ATTACK;
         Hit_SetTimerOverride(2, 0x3C);
         {
             u16 a = 0x23;
@@ -1202,7 +1203,7 @@ void SkillWitchGiantGhostProjectileUpdate(struct EwramData_EntityData *entity)
     case 0:
         Hit_Enable(entity, 6, BlueSoulProjectile_IgnoreContact, 0);
         HitBox_SetAttackRaw(entity, 0x0808FCFC);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         entity->scrollWithBg = 1;
         entity->state++;
         PlaySong(0x98);
@@ -1269,7 +1270,7 @@ void Skill_Witch_GiantGhost_Use(struct EwramData_EntityData *entity)
         if (entity->state < three && BlueSoul_CheckEndCondition(entity))
         {
             entity->state = three;
-            entity->hit.flags |= 2;
+            entity->hit.flags |= HIT_NO_ATTACK;
         }
     }
     switch (entity->state)
@@ -1284,8 +1285,8 @@ void Skill_Witch_GiantGhost_Use(struct EwramData_EntityData *entity)
         entity->scrollWithBg = 1;
         Hit_SetTimerOverride(2, 10);
         Hit_Enable(entity, 7, SkillWitchGiantGhost_OnContact, 0);
-        entity->hit.flags |= 2;
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_ATTACK;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         if (entity->ext.blueSoul.value == 0)
         {
             u8 *graphics = (u8 *)sSkillWitchGfx;
@@ -1328,7 +1329,7 @@ void Skill_Witch_GiantGhost_Use(struct EwramData_EntityData *entity)
         }
         entity->affine = 0;
         entity->state++;
-        entity->hit.flags &= ~2;
+        entity->hit.flags &= ~HIT_NO_ATTACK;
         break;
     case 3:
         entity->affine = 1;
@@ -1447,7 +1448,7 @@ void SkillBuerOrbitUpdate(struct EwramData_EntityData *entity)
         entity->scrollWithBg = 1;
         Hit_Enable(entity, 6, 0, 0);
         HitBox_SetAttackRaw(entity, 0x1414F6F6);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         entity->state++;
     case 1:
         x = RADIUS(parent) * Sin(SKILL_BUER_ANGLE(entity) + 0x4000);
@@ -1590,8 +1591,8 @@ void SkillPersephoneUse(struct EwramData_EntityData *entity)
         entity->spriteLayer = 0xD;
         entity->drawFunc = Sprite_DrawEntity;
         Hit_Enable(entity, 6, PersephoneSoul_OnHit, 0);
-        entity->hit.flags |= 4;
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_DAMAGE;
+        entity->hit.flags |= HIT_NO_ATTACK;
         Hit_SetTimerOverride(2, 0x14);
         {
             u16 a = 0xA;
@@ -1698,7 +1699,7 @@ void SkillDeathSickleUpdate(struct EwramData_EntityData *entity)
             entity->state = r;
         Hit_Enable(entity, 6, 0, 0);
         HitBox_SetAttackRaw(entity, 0x1010F8F8);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         entity->timer = 0x40;
         break;
     }
@@ -1812,16 +1813,16 @@ void SkillCreakingSkullHitBoxUpdate(struct EwramData_EntityData *entity)
     {
         Hit_Enable(entity, 6, 0, 0);
         HitBox_SetAttackRaw(entity, 0x2020F0F0);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         entity->state++;
         entity->scrollWithBg = 1;
     }
     if (SKILL_CREAKING_SKULL_FRAME(target) == 0)
     {
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_ATTACK;
         return;
     }
-    entity->hit.flags &= ~2;
+    entity->hit.flags &= ~HIT_NO_ATTACK;
     timer = entity->timer + 1;
     entity->timer = timer;
     if (timer & 1)
@@ -2128,7 +2129,7 @@ void SkillCatoblepasProjectileUpdate(struct EwramData_EntityData *entity)
             entity->drawFunc = Sprite_DrawEntity;
             Hit_Enable(entity, 6, NULL, 0);
             HitBox_SetAttackRaw(entity, 0x1414F6F6);
-            entity->hit.flags |= 4;
+            entity->hit.flags |= HIT_NO_DAMAGE;
             entity->timer = 0x1A;
             entity->scrollWithBg = 1;
             entity->state++;
@@ -2270,8 +2271,8 @@ void SkillImpUse(struct EwramData_EntityData *entity)
         entity->posY.part16.integer = parent->posY.part16.integer - 0x10;
         entity->velY.whole = -0x4000;
         Hit_Enable(entity, 6, 0, 0);
-        entity->hit.flags |= 4;
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_DAMAGE;
+        entity->hit.flags |= HIT_NO_ATTACK;
         Hit_SetTimerOverride(2, 0x3C);
         {
             u16 a = 0xF;
@@ -2421,7 +2422,7 @@ struct EwramData_EntityData *BlueSoul_CreateAfterimage(struct EwramData_EntityDa
     s32 graphics = Sprite_GetTileSlot(owner);
     u8 *index = &owner->spriteSlot;
     struct SpriteSheet *sprite = gEwramData->spriteSlots[*index].sheet;
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, BlueSoulAfterimage_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, BlueSoulAfterimage_Update);
     if (entity != NULL)
     {
         if (sprite != NULL)
@@ -2497,8 +2498,8 @@ void SkillAlastorUse(struct EwramData_EntityData *entity)
         }
         entity->flipX ^= 1;
         Hit_Enable(entity, 6, 0, 0);
-        entity->hit.flags |= 4;
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_DAMAGE;
+        entity->hit.flags |= HIT_NO_ATTACK;
         Hit_SetTimerOverride(2, 0x3C);
         {
             u16 a = 0x19;
@@ -2520,7 +2521,7 @@ void SkillAlastorUse(struct EwramData_EntityData *entity)
     case 2:
     {
         s32 a;
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_ATTACK;
         if ((RandomNumberGenerator() & 0x7F) == 0)
         {
             entity->state = 4;
@@ -2544,7 +2545,7 @@ void SkillAlastorUse(struct EwramData_EntityData *entity)
         break;
     }
     case 3:
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_ATTACK;
         if ((RandomNumberGenerator() & 0x7F) <= 1)
         {
             entity->state = 4;
@@ -2572,7 +2573,7 @@ void SkillAlastorUse(struct EwramData_EntityData *entity)
     {
         struct EwramData_EntityData *target;
         s32 timer;
-        entity->hit.flags &= ~2;
+        entity->hit.flags &= ~HIT_NO_ATTACK;
         target = SKILL_ALASTOR_TARGET(entity);
         timer = entity->timer - 1;
         entity->timer = timer;
@@ -2708,8 +2709,8 @@ void SkillBigGolemUse(struct EwramData_EntityData *entity)
         entity->state++;
         entity->timer = 0x20;
         Hit_Enable(entity, 6, 0, 0);
-        entity->hit.flags |= 4;
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_DAMAGE;
+        entity->hit.flags |= HIT_NO_ATTACK;
         Hit_SetTimerOverride(2, 0x3C);
         {
             u16 a = 0x1E;
@@ -2907,7 +2908,7 @@ void YellowSoul_CreateEquippedEntity(struct EwramData_EntityData *entity)
         return;
     if (yellowSoul->updateFunc == NULL || gEwramData->playerState.activeYellowSoulEntity != NULL)
         return;
-    child = EntityCreateInRange(0x11, 0x11, yellowSoul->updateFunc);
+    child = EntityCreateInRange(ENTITY_SLOT_PLAYER_ICON, ENTITY_SLOT_PLAYER_ICON, yellowSoul->updateFunc);
     ENTITY_OWNER(child) = entity;
     child->ext.yellowSoul.param = yellowSoul->effectParam;
     child->ext.yellowSoul.value = yellowSoul->effectValue;
@@ -2931,7 +2932,7 @@ void YellowSoul_Restart(u8 soul, s32 force)
     if (force == 0 && yellowSoul->allowUnforcedRestart == 0)
         return;
     StopYellowSoul();
-    child = EntityCreateInRange(0x11, 0x11, yellowSoul->updateFunc);
+    child = EntityCreateInRange(ENTITY_SLOT_PLAYER_ICON, ENTITY_SLOT_PLAYER_ICON, yellowSoul->updateFunc);
     child->ext.yellowSoul.owner = gEwramData->playerState.player;
     child->ext.yellowSoul.param = yellowSoul->effectParam;
     child->ext.yellowSoul.value = yellowSoul->effectValue;
@@ -2954,7 +2955,7 @@ void SkillGiantWormUse(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *player;
 
     entity->roomActive = 1;
-    if (gEwramData->gameState.stateFlags & 1)
+    if (gEwramData->gameState.stateFlags & STATE_EVENT_RUNNING)
         return;
     if (gEwramData->playerStatus.currentHP >= gEwramData->playerStatus.maxHP)
         return;

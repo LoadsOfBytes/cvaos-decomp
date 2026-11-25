@@ -18,6 +18,8 @@
 #include "data/data_4F1444.h"
 #include "entity_hit.h"
 #include "bg_and_collision.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 
 void BomberArmorBomb_DamagePlayerOnContact(struct EwramData_EntityData *entity);
@@ -62,7 +64,7 @@ void BomberArmorBomb_Update(struct EwramData_EntityData *entity)
         Hit_Enable(entity, 8, BomberArmorBomb_DamagePlayerOnContact, ArmorProjectile_OnHit);
         HitBox_SetAttackRaw(entity, 0x3030E8E8);
         HitBox_SetBodyRaw(entity, 0x1010F8F8);
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_ATTACK;
         entity->ext.bomberArmorBomb.speed = -0x2000 - (Entity_GetTargetDistance(entity) << 10);
         entity->posY.whole += -0x3A0000;
         if (entity->flipX)
@@ -75,7 +77,7 @@ void BomberArmorBomb_Update(struct EwramData_EntityData *entity)
     case 1:
         if ((entity->timer & 3) == 0)
         {
-            trail = EntityCreateInRange(0x49, 0xCF, BomberArmorBombTrail_Update);
+            trail = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, BomberArmorBombTrail_Update);
             if (trail != NULL)
             {
                 trail->posX.whole = entity->posX.whole;
@@ -98,12 +100,12 @@ void BomberArmorBomb_Update(struct EwramData_EntityData *entity)
             entity->timer--;
             break;
         }
-        entity->hit.flags &= ~2;
+        entity->hit.flags &= ~HIT_NO_ATTACK;
         Effect_SpawnParticleTemplateList((s16)entity->posX.part16.integer, (s16)entity->posY.part16.integer, 0);
         entity->state = 3;
         break;
     case 3:
-        PlaySong(0x76);
+        PlaySong(SE_PROJECTILE_IMPACT);
         EntityDelete(entity);
         return;
     }
@@ -225,7 +227,7 @@ void RockArmorRock_Update(struct EwramData_EntityData *entity)
         PlaySong(0x80);
         for (i = 0; i <= 7; i++)
         {
-            piece = EntityCreateInRange(0x49, 0xCF, RockArmorRockPiece_Update);
+            piece = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, RockArmorRockPiece_Update);
             if (piece == NULL)
                 break;
             piece->posX.whole = entity->posX.whole + RandomSigned(0x100000);

@@ -19,6 +19,8 @@
 #include "math_inline.h"
 #include "damage_numbers.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 u8 Harpy_LoadGraphics(struct EwramData_EntityData *);
 void Harpy_DamagePlayerOnContact(struct EwramData_EntityData *entity);
@@ -33,6 +35,15 @@ void HarpyFeather_EnableHitBoxes(struct EwramData_EntityData *);
 void HarpyWavyFeather_Update(struct EwramData_EntityData *);
 void HarpyFeather_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void HarpyFeather_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+
+/* States of Harpy (entity->state), named after the update function the dispatcher calls. */
+enum {
+    HARPY_STATE_APPROACH = 0,
+    HARPY_STATE_ATTACK = 1,
+    HARPY_STATE_DEATH = 2,
+    HARPY_STATE_RECOIL = 3,
+    HARPY_STATE_ANIM_ONLY = 4,
+};
 
 /* Harpy setup randomizes its animation phase before enabling movement. */
 void EnemyHarpyCreate(struct EwramData_EntityData *entity)
@@ -50,7 +61,7 @@ void EnemyHarpyCreate(struct EwramData_EntityData *entity)
     Enemy_ResetFromTemplate(entity);
     demo=*(u8 *)((u8 *)gEwramData+0x8E) & 0x40;
     if(demo)
-        entity->state=4;
+        entity->state = HARPY_STATE_ANIM_ONLY;
     else
     {
         entity->spriteLayer=3;
@@ -119,7 +130,7 @@ void Harpy_UpdateApproach(struct EwramData_EntityData *entity)
             if(entity->timer>1 && entity->velY.whole>0)
             {
                 entity->flipX=Entity_IsTargetRight(entity);
-                entity->state=1;
+                entity->state = HARPY_STATE_ATTACK;
                 entity->subState=0;
             }
             break;
@@ -201,7 +212,7 @@ void Harpy_UpdateAttack(struct EwramData_EntityData *entity)
             {
                 struct BgLayerState *camera;
                 Anim_StartIndexed(entity,2,0,0);
-                PlaySong(0x87);
+                PlaySong(SE_DASH);
                 entity->subState++;
                 camera=&gEwramData->bgInfo[1];
                 entity->ext.harpy.diveX=Target_GetX(entity)+camera->xPos.whole;
@@ -254,7 +265,7 @@ void Harpy_UpdateAttack(struct EwramData_EntityData *entity)
             EntityMove(entity);
             if(Abs(entity->velX.whole)<=0x7FFF && Abs(entity->velY.whole)<=0x7FFF)
             {
-                entity->state=0;
+                entity->state = HARPY_STATE_APPROACH;
                 entity->subState=10;
                 entity->stage=0;
                 Anim_StartIndexed(entity,0,0,1);
@@ -268,7 +279,7 @@ void Harpy_UpdateAttack(struct EwramData_EntityData *entity)
                     Harpy_ThrowFeather(entity,0);
                     Harpy_ThrowFeather(entity,2);
                     Harpy_ThrowFeather(entity,4);
-                    PlaySong(0x89);
+                    PlaySong(SE_THROW);
                     goto advance;
                 }
                 Harpy_ThrowWavyFeather(entity,0);
@@ -343,7 +354,7 @@ void Harpy_UpdateRecoil(struct EwramData_EntityData *entity)
             EntityMove(entity);
             if(entity->velY.whole>-0x2000)
             {
-                entity->state=0;
+                entity->state = HARPY_STATE_APPROACH;
                 entity->subState=10;
                 entity->stage=0;
                 Anim_StartIndexed(entity,0,0,1);
@@ -375,7 +386,7 @@ void Harpy_OnHit(struct EwramData_EntityData *entity,struct EwramData_EntityData
         Anim_StartIndexed(entity,3,0,1);
         entity->palette=entity->basePalette;
         entity->timer=40;
-        entity->state=2;
+        entity->state = HARPY_STATE_DEATH;
         entity->subState=zero;
         Harpy_SpawnDeathFeather(entity,entity->posX.whole,entity->posY.whole);
         Harpy_SpawnDeathFeather(entity,entity->posX.whole,entity->posY.whole);
@@ -387,7 +398,7 @@ void Harpy_OnHit(struct EwramData_EntityData *entity,struct EwramData_EntityData
         Anim_StartIndexed(entity,3,0,1);
         Anim_Update(entity);
         Entity_UpdateBoxes(entity);
-        entity->state=3;
+        entity->state = HARPY_STATE_RECOIL;
         entity->subState=zero;
     }
 }
@@ -398,7 +409,7 @@ void Harpy_OnHit(struct EwramData_EntityData *entity,struct EwramData_EntityData
  */
 void Harpy_SpawnDeathFeather(struct EwramData_EntityData *owner,s32 x,s32 y)
 {
-    struct EwramData_EntityData *fragment=EntityCreateInRange(0x49,0xCF,HarpyDeathFeather_Update);
+    struct EwramData_EntityData *fragment=EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST,HarpyDeathFeather_Update);
     if(fragment)
     {
         s32 zero;
@@ -455,7 +466,7 @@ void HarpyDeathFeather_Update(struct EwramData_EntityData *entity)
 /* The caller selects one of five valid directions (0..4) for a spread shot. */
 void Harpy_ThrowFeather(struct EwramData_EntityData *owner,s32 kind)
 {
-    struct EwramData_EntityData *projectile=EntityCreateInRange(0x1B,0x48,HarpyFeather_Update);
+    struct EwramData_EntityData *projectile=EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST,HarpyFeather_Update);
     if(projectile)
     {
         u32 angle;
@@ -514,7 +525,7 @@ void Harpy_ThrowFeather(struct EwramData_EntityData *owner,s32 kind)
 /* The caller selects one of three valid directions (0..2) for a spread shot. */
 void Harpy_ThrowWavyFeather(struct EwramData_EntityData *owner,s32 kind)
 {
-    struct EwramData_EntityData *projectile=EntityCreateInRange(0x1B,0x48,HarpyWavyFeather_Update);
+    struct EwramData_EntityData *projectile=EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST,HarpyWavyFeather_Update);
     if(projectile)
     {
         u32 angle;
@@ -607,8 +618,8 @@ void HarpyFeather_EnableHitBoxes(struct EwramData_EntityData *entity)
     Hit_Enable(entity, 8, HarpyFeather_DamagePlayerOnContact, HarpyFeather_OnHit);
     HitBox_SetBody(entity, &box);
     HitBox_SetAttack(entity, &box);
-    entity->hit.flags &= ~4;
-    entity->hit.flags &= ~2;
+    entity->hit.flags &= ~HIT_NO_DAMAGE;
+    entity->hit.flags &= ~HIT_NO_ATTACK;
 }
 
 /* Harpy and Siren share graphics but select different palette variants. */
@@ -742,11 +753,11 @@ void EnemyHarpyUpdate(struct EwramData_EntityData *entity)
     if(Enemy_PreUpdate(entity)) return;
     switch(entity->state)
     {
-        case 0: Harpy_UpdateApproach(entity); break;
-        case 1: Harpy_UpdateAttack(entity); break;
-        case 2: Harpy_UpdateDeath(entity); break;
-        case 3: Harpy_UpdateRecoil(entity); break;
-        case 4: Anim_Update(entity); return;
+        case HARPY_STATE_APPROACH: Harpy_UpdateApproach(entity); break;
+        case HARPY_STATE_ATTACK: Harpy_UpdateAttack(entity); break;
+        case HARPY_STATE_DEATH: Harpy_UpdateDeath(entity); break;
+        case HARPY_STATE_RECOIL: Harpy_UpdateRecoil(entity); break;
+        case HARPY_STATE_ANIM_ONLY: Anim_Update(entity); return;
     }
     Entity_AnimateWithBoxes(entity);
     Enemy_CheckHitPlayer(entity);

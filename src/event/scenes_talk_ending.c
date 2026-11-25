@@ -35,6 +35,7 @@
 #include "data/data_0E5364.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "constants/game_flags.h"
 
 /* Per-scanline affine transition driven by the owner's event phase. */
 #define PHASE(e) (e->ext.event30.phase)
@@ -311,14 +312,14 @@ void BgEffect_Bg2PerspectiveCopy(void)
  */
 void EventSceneEndingWakeUp_Init(struct EwramData_EntityData *entity)
 {
-    if (!(gEwramData->gameState.stateFlags & 0x4000))
+    if (!(gEwramData->gameState.stateFlags & STATE_ENDING_CHAOS))
         entity->deleteRequested = 1;
     else
     {
-        gEwramData->gameState.stateFlags |= 0x20;
-        gEwramData->gameState.stateFlags |= 0x10000;
+        gEwramData->gameState.stateFlags |= STATE_HUD_HIDDEN;
+        gEwramData->gameState.stateFlags |= STATE_ENDING_SEQUENCE;
         Hud_ClearGraphics();
-        PlaySong(0x1000);
+        PlaySong(AUDIO_STOP);
     }
 }
 
@@ -396,7 +397,7 @@ void EventSceneEndingEffect_UpdateSpinningKeepSlot(struct EwramData_EntityData *
         entity->deleteRequested = 1;
 }
 
-/* Event actor: skip when flag 0x2E is already set. Otherwise load its
+/* Event actor: skip when FLAG_MET_HAMMER is already set. Otherwise load its
  * graphics and position it relative to the background and player. */
 /**
  * @brief Init of event scene variant 25 (Object 0x20 spawnParam0 = 25,
@@ -409,7 +410,7 @@ void EventSceneMeetHammer_Init(struct EwramData_EntityData *entity)
     struct PlayerState *actors;
     s32 facing;
 
-    if (GameFlag_GetMask(0x2E))
+    if (GameFlag_GetMask(FLAG_MET_HAMMER))
         entity->deleteRequested = 1;
     else if (!Entity_SetupFromObjectTable(entity, 3))
         EntityDelete(entity);
@@ -427,7 +428,7 @@ void EventSceneMeetHammer_Init(struct EwramData_EntityData *entity)
             facing = 1;
         entity->flipX = facing;
         entity->spriteLayer = actors->player->spriteLayer - 1;
-        ewram->gameState.stateFlags |= 1;
+        ewram->gameState.stateFlags |= STATE_EVENT_RUNNING;
     }
 }
 
@@ -446,7 +447,7 @@ s32 EventSceneMeetHammer_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
         case 0:
-            Music_SetCurrent(0xD);
+            Music_SetCurrent(MUS_HAMMER_COMPANY);
             TextWindow_Begin(0x28);
             ewram->gameState.textWindowPause = 1;
             entity->state++;
@@ -499,7 +500,7 @@ s32 EventSceneMeetHammer_Update(struct EwramData_EntityData *entity)
                         case 1:
                             if ((s16)entity->posX.part16.integer > 255)
                             {
-                                Sound_Play(0x1040);
+                                Sound_Play(MUSIC_PLAYER_MUTE(0));
                                 event->textWindowPause = 0;
                                 entity->stage++;
                             }
@@ -522,7 +523,7 @@ s32 EventSceneMeetHammer_Update(struct EwramData_EntityData *entity)
             break;
         case 0x80:
             Music_UpdateRoom(event);
-            GameFlag_Set(0x2E);
+            GameFlag_Set(FLAG_MET_HAMMER);
             Interaction_End(entity, 1);
             break;
     }
@@ -538,9 +539,9 @@ void EventSceneHammerTalk_DrawOffsetCopies(struct EwramData_EntityData *entity)
     s32 count = 1;
     s32 i;
 
-    if (gEwramData->gameState.bossEventFlags & 0x10)
+    if (gEwramData->gameState.bossEventFlags & BOSS_DEFEATED_HEADHUNTER)
         count = 2;
-    if (gEwramData->gameState.bossEventFlags & 2)
+    if (gEwramData->gameState.bossEventFlags & BOSS_DEFEATED_DEATH)
         count++;
     for (i = 0; i < count; i++)
     {
@@ -564,7 +565,7 @@ void EventSceneHammerTalk_DrawOffsetCopies(struct EwramData_EntityData *entity)
  */
 void EventSceneHammerTalk_Init(struct EwramData_EntityData *entity)
 {
-    if (!GameFlag_GetMask(0x20) || !GameFlag_GetMask(0x2E) || !Entity_SetupFromObjectTable(entity, 3))
+    if (!GameFlag_GetMask(FLAG_PROLOGUE_DONE) || !GameFlag_GetMask(FLAG_MET_HAMMER) || !Entity_SetupFromObjectTable(entity, 3))
         entity->deleteRequested = 1;
     else
     {
@@ -604,7 +605,7 @@ s32 EventSceneHammerTalk_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
         case 0:
-            ewram->gameState.stateFlags &= ~0x200;
+            ewram->gameState.stateFlags &= ~STATE_HUD_MESSAGES_BLOCKED;
             entity->state++;
             entity->stage = 0;
             entity->subState = 0;
@@ -622,39 +623,39 @@ s32 EventSceneHammerTalk_Update(struct EwramData_EntityData *entity)
                 if (actors->player->velY.whole < 0)
                     actors->player->velY.whole = 0;
                 entity->ext.event26.textId = 0x2D;
-                if (GameFlag_Is3ASet())
+                if (GameFlag_IsSomaAwakened())
                 {
-                    if (!GameFlag_GetMask(0x32))
+                    if (!GameFlag_GetMask(FLAG_HAMMER_TALK_AWAKENED))
                     {
                         entity->ext.event26.textId = 0x2C;
-                        GameFlag_Set(0x32);
+                        GameFlag_Set(FLAG_HAMMER_TALK_AWAKENED);
                     }
                 }
-                else if (GameFlag_GetMask(0x26))
+                else if (GameFlag_GetMask(FLAG_YOKO_RESCUED))
                 {
-                    if (!GameFlag_GetMask(0x31))
+                    if (!GameFlag_GetMask(FLAG_HAMMER_TALK_RESCUE))
                     {
                         entity->ext.event26.textId = 0x2B;
-                        GameFlag_Set(0x31);
+                        GameFlag_Set(FLAG_HAMMER_TALK_RESCUE);
                     }
                 }
-                else if (GameFlag_GetMask(0x25))
+                else if (GameFlag_GetMask(FLAG_YOKO_PLANS_TRAP))
                 {
-                    if (!GameFlag_GetMask(0x30))
+                    if (!GameFlag_GetMask(FLAG_HAMMER_TALK_TRAP))
                     {
                         entity->ext.event26.textId = 0x2A;
-                        GameFlag_Set(0x30);
+                        GameFlag_Set(FLAG_HAMMER_TALK_TRAP);
                     }
                 }
-                else if (GameFlag_GetMask(0x2E))
+                else if (GameFlag_GetMask(FLAG_MET_HAMMER))
                 {
-                    if (!GameFlag_GetMask(0x2F))
+                    if (!GameFlag_GetMask(FLAG_HAMMER_TALK_MET))
                     {
                         entity->ext.event26.textId = 0x29;
-                        GameFlag_Set(0x2F);
+                        GameFlag_Set(FLAG_HAMMER_TALK_MET);
                     }
                 }
-                gEwramData->gameState.stateFlags |= 1;
+                gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
                 TextWindow_Begin(entity->ext.event26.textId);
                 facing = 0;
                 if (entity->posX.whole < gEwramData->playerState.player->posX.whole)
@@ -664,7 +665,7 @@ s32 EventSceneHammerTalk_Update(struct EwramData_EntityData *entity)
                 entity->stage = 0;
                 entity->subState = 0;
                 Sound_StopTracked(0x26);
-                Music_SetCurrent(0x1E);
+                Music_SetCurrent(MUS_HAMMER_COMPANY_2);
                 if (entity->animScriptIndex == 2)
                     Anim_StartIndexed(entity, 3, 0, 1);
             }
@@ -684,7 +685,7 @@ s32 EventSceneHammerTalk_Update(struct EwramData_EntityData *entity)
             u16 *song;
             struct EwramData *data;
             Interaction_End(entity, 0);
-            Sound_Play(0x1041);
+            Sound_Play(MUSIC_PLAYER_MUTE(1));
             data = gEwramData;
             song = &data->musicOverrideSong;
             *song = 0x26;
@@ -714,14 +715,14 @@ s32 Player_IsInteractionBlocked(void)
     return 1;
 }
 
-/* Load actor entry 0 after event flag 0x20, one layer above the player. */
+/* Load actor entry 0 after FLAG_PROLOGUE_DONE, one layer above the player. */
 /**
  * @brief Init of event scene variant 27 (Object 0x20 spawnParam0 = 27,
  * sEventSceneCreateFuncs[27]).
  */
 void EventSceneMinaTalk_Init(struct EwramData_EntityData *entity)
 {
-    if (!GameFlag_GetMask(0x20) || !Entity_SetupFromObjectTable(entity, 0))
+    if (!GameFlag_GetMask(FLAG_PROLOGUE_DONE) || !Entity_SetupFromObjectTable(entity, 0))
         entity->deleteRequested = 1;
     else
     {
@@ -752,7 +753,7 @@ s32 EventSceneMinaTalk_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        ewram->gameState.stateFlags &= ~0x200;
+        ewram->gameState.stateFlags &= ~STATE_HUD_MESSAGES_BLOCKED;
         Music_StartOverride(0x26);
         entity->state++;
         entity->stage = result;
@@ -765,7 +766,7 @@ s32 EventSceneMinaTalk_Update(struct EwramData_EntityData *entity)
             s32 facing;
             struct EwramData *data;
             struct PlayerState *actors;
-            gEwramData->gameState.stateFlags |= 0x200;
+            gEwramData->gameState.stateFlags |= STATE_HUD_MESSAGES_BLOCKED;
             actors = &gEwramData->playerState;
             actors->player->velX.whole = 0;
             actors->player->accelX.whole = 0;
@@ -777,7 +778,7 @@ s32 EventSceneMinaTalk_Update(struct EwramData_EntityData *entity)
                 PlaySong(0x1B6);
                 EventSceneMinaTalk_PickConversation(entity);
             }
-            else if (GameFlag_Is3ASet())
+            else if (GameFlag_IsSomaAwakened())
             {
                 Conversation_Reset();
                 entity->ext.event27.textId = 0x44;
@@ -790,13 +791,13 @@ s32 EventSceneMinaTalk_Update(struct EwramData_EntityData *entity)
                 facing = 1;
             entity->flipX = facing;
             entity->flipX = 1 - entity->flipX;
-            data->gameState.stateFlags |= 1;
+            data->gameState.stateFlags |= STATE_EVENT_RUNNING;
             TextWindow_Begin(entity->ext.event27.textId);
             entity->state++;
             entity->stage = 0;
             entity->subState = 0;
-            Music_SetCurrent(0x1D);
-            Sound_Play(0x1040);
+            Music_SetCurrent(MUS_PROLOGUE_2);
+            Sound_Play(MUSIC_PLAYER_MUTE(0));
         }
         break;
     case 2:
@@ -814,8 +815,8 @@ s32 EventSceneMinaTalk_Update(struct EwramData_EntityData *entity)
             *song = 0x26;
             data->gameState.currentSong = result;
             PlaySong(0x26);
-            Sound_Play(0x1041);
-            if (GameFlag_Is3ASet())
+            Sound_Play(MUSIC_PLAYER_MUTE(1));
+            if (GameFlag_IsSomaAwakened())
                 entity->state++;
             else
             {
@@ -880,18 +881,18 @@ static inline void NextEntry(struct ConversationState *state, u8 *index, struct 
 
 /**
  * @brief 66308 | Pick the conversation of a town character into unk_4F8:
- * story scripts first (flags 0x36/0x3B with three inventory items, 0x26,
+ * story scripts first (flags FLAG_MINA_TALK_AWAKENED/FLAG_MINA_TALK_ITEMS with three inventory items, FLAG_YOKO_RESCUED,
  * 0x2E, 0x21, 0x20 via GameFlag_GetMask / GameFlag_TestAndSet). Otherwise small talk
  * 0x45: group 0..6 by progress, entry from the 7 x 8 table sEventSceneMinaTalkTalkTable
  * cycling through the low nibble of pad_133E8[0] (restarted when the group
- * changes), skipping entries 7 / 9 while flags 0x39 / 0x3D are set.
+ * changes), skipping entries 7 / 9 while flags FLAG_WARP_ROOM_USED / FLAG_FLOATING_GARDEN_ROOM5 are set.
  */
 void EventSceneMinaTalk_PickConversation(struct EwramData_EntityData *entity)
 {
     entity->ext.event27.textId = 0;
-    if (GameFlag_Is3ASet())
+    if (GameFlag_IsSomaAwakened())
     {
-        if (!GameFlag_TestAndSet(0x36))
+        if (!GameFlag_TestAndSet(FLAG_MINA_TALK_AWAKENED))
             entity->ext.event27.textId = 0x43;
     }
     else
@@ -899,10 +900,10 @@ void EventSceneMinaTalk_PickConversation(struct EwramData_EntityData *entity)
         struct EwramData *ew = gEwramData;
         s32 done = 0;
 
-        if (!GameFlag_GetMask(0x3B) && ew->playerStatus.itemInventory[0x1A] && ew->playerStatus.itemInventory[0x1B]
+        if (!GameFlag_GetMask(FLAG_MINA_TALK_ITEMS) && ew->playerStatus.itemInventory[0x1A] && ew->playerStatus.itemInventory[0x1B]
             && ew->playerStatus.itemInventory[0x1C])
         {
-            GameFlag_Set(0x3B);
+            GameFlag_Set(FLAG_MINA_TALK_ITEMS);
             done = 1;
         }
         if (done)
@@ -914,9 +915,9 @@ void EventSceneMinaTalk_PickConversation(struct EwramData_EntityData *entity)
             state->group = 4;
             state->entry = 8;
         }
-        else if (GameFlag_GetMask(0x26))
+        else if (GameFlag_GetMask(FLAG_YOKO_RESCUED))
         {
-            if (!GameFlag_TestAndSet(0x35))
+            if (!GameFlag_TestAndSet(FLAG_MINA_TALK_RESCUE))
                 entity->ext.event27.textId = 0x30;
             else if (!(RandomNumberGenerator() & 1))
             {
@@ -924,21 +925,21 @@ void EventSceneMinaTalk_PickConversation(struct EwramData_EntityData *entity)
                 Conversation_Setup(0x31, 0, 0);
             }
         }
-        else if (GameFlag_GetMask(0x2E))
+        else if (GameFlag_GetMask(FLAG_MET_HAMMER))
         {
-            if (!GameFlag_TestAndSet(0x34))
+            if (!GameFlag_TestAndSet(FLAG_MINA_TALK_HAMMER))
                 entity->ext.event27.textId = 0x2F;
-            else if (!GameFlag_TestAndSet(0x37))
+            else if (!GameFlag_TestAndSet(FLAG_MINA_TALK_GRAHAM))
                 entity->ext.event27.textId = 0x53;
         }
-        else if (GameFlag_GetMask(0x21))
+        else if (GameFlag_GetMask(FLAG_MET_GRAHAM))
         {
-            if (!GameFlag_TestAndSet(0x37))
+            if (!GameFlag_TestAndSet(FLAG_MINA_TALK_GRAHAM))
                 entity->ext.event27.textId = 0x53;
         }
-        else if (GameFlag_GetMask(0x20))
+        else if (GameFlag_GetMask(FLAG_PROLOGUE_DONE))
         {
-            if (!GameFlag_TestAndSet(0x33))
+            if (!GameFlag_TestAndSet(FLAG_MINA_TALK_PROLOGUE))
                 entity->ext.event27.textId = 0x2E;
         }
     }
@@ -955,20 +956,20 @@ void EventSceneMinaTalk_PickConversation(struct EwramData_EntityData *entity)
         state->step = group;
         state->group = 4;
         state->entry = RandomNumberGenerator() % 9;
-        if (GameFlag_Is3ASet())
+        if (GameFlag_IsSomaAwakened())
         {
             group = 5;
             state->group = 6;
         }
-        else if (GameFlag_GetMask(0x21))
+        else if (GameFlag_GetMask(FLAG_MET_GRAHAM))
         {
-            if (!(gEwramData->gameState.bossEventFlags & 0x10))
+            if (!(gEwramData->gameState.bossEventFlags & BOSS_DEFEATED_HEADHUNTER))
                 group = 1;
-            else if (!GameFlag_GetMask(0x24))
+            else if (!GameFlag_GetMask(FLAG_GRAHAM_CLAIMS_DRACULA))
             {
-                if (GameFlag_GetMask(0x3C))
+                if (GameFlag_GetMask(FLAG_FLOATING_GARDEN_ROOM1))
                 {
-                    s32 r = GameFlag_GetMask(0x3D);
+                    s32 r = GameFlag_GetMask(FLAG_FLOATING_GARDEN_ROOM5);
                     group = 3;
                     if (!r)
                         group = 6;
@@ -979,9 +980,9 @@ void EventSceneMinaTalk_PickConversation(struct EwramData_EntityData *entity)
             else
             {
                 u16 flags = gEwramData->gameState.bossEventFlags;
-                if (flags & 2)
+                if (flags & BOSS_DEFEATED_DEATH)
                 {
-                    s32 m = 0x40;
+                    s32 m = BOSS_DEFEATED_BALORE;
                     m &= flags;
                     group = 4;
                     if (m)
@@ -994,14 +995,14 @@ void EventSceneMinaTalk_PickConversation(struct EwramData_EntityData *entity)
         if (group != last)
             save->pad_133E8[0] = group << 4;
         NextEntry(state, &save->pad_133E8[0], &table, group);
-        if (GameFlag_GetMask(0x39) && state->entry == 7)
+        if (GameFlag_GetMask(FLAG_WARP_ROOM_USED) && state->entry == 7)
         {
             do
             {
                 NextEntry(state, &save->pad_133E8[0], &table, group);
             } while (state->entry == 7);
         }
-        if (GameFlag_GetMask(0x3D) && state->entry == 9)
+        if (GameFlag_GetMask(FLAG_FLOATING_GARDEN_ROOM5) && state->entry == 9)
         {
             do
             {
@@ -1088,7 +1089,7 @@ void Conversation_Reset(void)
 
 /**
  * @brief Select conversation script 0x36 with group 1, 2 or 3 depending on
- * event flags 0x2E and 0x26.
+ * event flags FLAG_MET_HAMMER and FLAG_YOKO_RESCUED.
  */
 void EventSceneMinaTalk_SelectScript36(struct EwramData_EntityData *entity)
 {
@@ -1098,9 +1099,9 @@ void EventSceneMinaTalk_SelectScript36(struct EwramData_EntityData *entity)
     state->script = 0x36;
     state->step = zero;
     state->entry = zero;
-    if (GameFlag_GetMask(0x2E))
+    if (GameFlag_GetMask(FLAG_MET_HAMMER))
     {
-        if (GameFlag_GetMask(0x26))
+        if (GameFlag_GetMask(FLAG_YOKO_RESCUED))
             state->group = 3;
         else
             state->group = 2;
@@ -1123,7 +1124,7 @@ s32 EventSceneUnconsciousYoko_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
         case 0:
-            ewram->gameState.stateFlags &= ~0x200;
+            ewram->gameState.stateFlags &= ~STATE_HUD_MESSAGES_BLOCKED;
             entity->state++;
             entity->stage = 0;
             entity->subState = 0;
@@ -1140,7 +1141,7 @@ s32 EventSceneUnconsciousYoko_Update(struct EwramData_EntityData *entity)
                 if (actors->player->velY.whole < 0)
                     actors->player->velY.whole = 0;
                 EventSceneUnconsciousYoko_PickScript(entity);
-                gEwramData->gameState.stateFlags |= 1;
+                gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
                 TextWindow_Begin(entity->ext.event28.textId);
                 entity->state++;
                 entity->stage = 0;
@@ -1150,7 +1151,7 @@ s32 EventSceneUnconsciousYoko_Update(struct EwramData_EntityData *entity)
         case 2:
             if (TextWindow_Update())
             {
-                GameFlag_Set(0x38);
+                GameFlag_Set(FLAG_UNCONSCIOUS_YOKO);
                 Interaction_End(entity, 0);
                 entity->state = 0;
                 entity->stage = 0;
@@ -1165,7 +1166,7 @@ s32 EventSceneUnconsciousYoko_Update(struct EwramData_EntityData *entity)
 void EventSceneUnconsciousYoko_PickScript(struct EwramData_EntityData *entity)
 {
     entity->ext.event28.textId = 0;
-    if (GameFlag_Is3ASet() && (RandomNumberGenerator() & 15) <= 3)
+    if (GameFlag_IsSomaAwakened() && (RandomNumberGenerator() & 15) <= 3)
         entity->ext.event28.textId = 0x59;
     if (entity->ext.event28.textId == 0)
     {
@@ -1184,9 +1185,9 @@ void EventSceneUnconsciousYoko_PickScript(struct EwramData_EntityData *entity)
  */
 void EventSceneUnconsciousYoko_Init(struct EwramData_EntityData *entity)
 {
-    if (!GameFlag_GetMask(0x20))
+    if (!GameFlag_GetMask(FLAG_PROLOGUE_DONE))
         entity->deleteRequested = 1;
-    else if (!GameFlag_GetMask(0x26))
+    else if (!GameFlag_GetMask(FLAG_YOKO_RESCUED))
         entity->deleteRequested = 1;
     else if (!Entity_SetupFromObjectTable(entity, 2))
         EntityDelete(entity);

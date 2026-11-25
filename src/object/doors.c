@@ -23,6 +23,7 @@
 #include "data/data_4F1444.h"
 #include "entity_common.h"
 #include "bg_and_collision.h"
+#include "constants/songs.h"
 
 /* Draw the entity twice with mirrored affine matrices (rotation from unk_4F8), restoring position, frame and flip. */
 struct AffineSlot16 { u16 slot:5; u16 rest:3; };
@@ -149,7 +150,7 @@ void GateCreate(struct EwramData_EntityData *entity)
     found = Entity_IsInRect(entity, (s16)(player->posX.part16.integer - 0x14), player->posY.part16.integer, 0x28, 0x28);
     if (found)
     {
-        gEwramData->gameState.stateFlags |= 0x101;
+        gEwramData->gameState.stateFlags |= (STATE_EVENT_RUNNING | STATE_DOOR_ACTIVE);
         Game_SetMenusEnabled(0);
         entity->ext.gate.openAngle = 0x4000;
         entity->state = 10;
@@ -172,7 +173,7 @@ void GateCreate(struct EwramData_EntityData *entity)
  * once roomActive is clear (releases the player input, frees the two affine
  * slots unk_4FC / unk_4FD). State 0 waits for the player to stand in the
  * 0x28 x 2 box facing it (not while bit 9 of soulStateFlags or bit 28 of the
- * player's unk_4F4), takes the input (stateFlags |= 0x101, sound 0x115);
+ * player's unk_4F4), takes the input (stateFlags |= (STATE_EVENT_RUNNING | STATE_DOOR_ACTIVE), sound 0x115);
  * state 1 counts unk_4F8 up to 0x4000 and clears the gate tiles
  * (Collision_ClearBlock at three heights); state 2 walks the player through.
  * States 10/11 close it again behind the player (sound 0x114,
@@ -212,7 +213,7 @@ void GateUpdate(struct EwramData_EntityData *entity)
         if (gEwramData->playerState.player->ext.player.actionFlags & 0x10000000)
             break;
         SetPlayerInput(1, 0);
-        gEwramData->gameState.stateFlags |= 0x101;
+        gEwramData->gameState.stateFlags |= (STATE_EVENT_RUNNING | STATE_DOOR_ACTIVE);
         Game_SetMenusEnabled(0);
         PlaySong(0x115);
         entity->state++;
@@ -255,7 +256,7 @@ void GateUpdate(struct EwramData_EntityData *entity)
         if ((entity->ext.gate.openAngle += -0x1A0) > 0)
             break;
         entity->ext.gate.openAngle = 0;
-        gEwramData->gameState.stateFlags &= 0xFFFFFEFE;
+        gEwramData->gameState.stateFlags &= ~(STATE_EVENT_RUNNING | STATE_DOOR_ACTIVE);
         Game_SetMenusEnabled(1);
         x2 = (s16)entity->posX.part16.integer;
         bg = (struct BgLayerState *)gEwramData;
@@ -273,7 +274,7 @@ void GateUpdate(struct EwramData_EntityData *entity)
     }
     case 0x63:
         SetPlayerInput(1, 0);
-        gEwramData->gameState.stateFlags &= 0xFFFFFEFE;
+        gEwramData->gameState.stateFlags &= ~(STATE_EVENT_RUNNING | STATE_DOOR_ACTIVE);
         entity->deleteRequested = 1;
         ObjAffine_Free((u8)entity->ext.gate.affine0);
         ObjAffine_Free(entity->ext.gate.affine1);
@@ -514,7 +515,7 @@ void BossDoorUpdate(struct EwramData_EntityData *entity)
             y -= 0x28;
             Collision_ClearBlock(x, y);
             if (entity->ext.door.openHeight == 0 && Entity_IsInRect(entity, -0x10, 0, 0x110, 0xC0))
-                PlaySong(0x113);
+                PlaySong(SE_DOOR);
             if ((entity->ext.door.openHeight += 2) > 0x2F)
                 entity->ext.door.openHeight = 0x30;
             break;
@@ -535,7 +536,7 @@ void BossDoorUpdate(struct EwramData_EntityData *entity)
             break;
         }
         if (t == 0x30 && Entity_IsInRect(entity, -0x10, 0, 0x110, 0xC0))
-            PlaySong(0x113);
+            PlaySong(SE_DOOR);
         entity->ext.door.openHeight -= 2;
         break;
     }
@@ -581,7 +582,7 @@ void BossDoorUpdate(struct EwramData_EntityData *entity)
         Collision_SetBlock(x, y - 0x18);
         y -= 0x28;
         Collision_SetBlock(x, y);
-        PlaySong(0x113);
+        PlaySong(SE_DOOR);
         entity->state++;
         break;
     }
@@ -589,7 +590,7 @@ void BossDoorUpdate(struct EwramData_EntityData *entity)
         SetPlayerInput(1, 0);
         if (--entity->ext.door.openHeight != 0)
             break;
-        gEwramData->gameState.stateFlags &= 0xFFFFFEFE;
+        gEwramData->gameState.stateFlags &= ~(STATE_EVENT_RUNNING | STATE_DOOR_ACTIVE);
         gUnk_03002CB0.dispCnt &= 0x7FFF;
         if (entity->spawnParam0 > 1)
             entity->state = 0x63;
@@ -599,9 +600,9 @@ void BossDoorUpdate(struct EwramData_EntityData *entity)
     case 20:
         if ((gEwramData->gameState.bossEventFlags >> entity->spawnParam1) & 1)
         {
-            if (!(gEwramData->gameState.stateFlags & 0x400000))
-                Music_SubmitCommandOnce(0x1040);
-            PlaySong(0x113);
+            if (!(gEwramData->gameState.stateFlags & STATE_BOSS_DOOR_KEEPS_MUSIC))
+                Music_SubmitCommandOnce(MUSIC_PLAYER_MUTE(0));
+            PlaySong(SE_DOOR);
             entity->state++;
         }
         break;
@@ -700,11 +701,11 @@ void LinkPlayDoorUpdate(struct EwramData_EntityData *entity)
             Collision_ClearBlock(x, y - 8);
             Collision_ClearBlock(x, y - 0x18);
             Collision_ClearBlock(x, y - 0x28);
-            PlaySong(0x113);
+            PlaySong(SE_DOOR);
         }
         if (++entity->ext.door.openHeight > 0x2F)
         {
-            gEwramData->gameState.stateFlags &= 0xFFFFFEFE;
+            gEwramData->gameState.stateFlags &= ~(STATE_EVENT_RUNNING | STATE_DOOR_ACTIVE);
             if (gEwramData->gameState.linkPlay)
                 entity->state++;
         }
@@ -845,7 +846,7 @@ void OneWayBossDoorUpdate(struct EwramData_EntityData *entity)
             y -= 0x28;
             Collision_ClearBlock(x, y);
             if (entity->ext.door.openHeight == 0 && Entity_IsInRect(entity, -0x10, 0, 0x110, 0xC0))
-                PlaySong(0x113);
+                PlaySong(SE_DOOR);
             if ((entity->ext.door.openHeight += 2) > 0x2F)
                 entity->ext.door.openHeight = 0x30;
             break;
@@ -866,7 +867,7 @@ void OneWayBossDoorUpdate(struct EwramData_EntityData *entity)
             break;
         }
         if (t == 0x30 && Entity_IsInRect(entity, -0x10, 0, 0x110, 0xC0))
-            PlaySong(0x113);
+            PlaySong(SE_DOOR);
         entity->ext.door.openHeight -= 2;
         break;
     }
@@ -909,7 +910,7 @@ void OneWayBossDoorUpdate(struct EwramData_EntityData *entity)
         Collision_SetBlock(x, y - 0x18);
         y -= 0x28;
         Collision_SetBlock(x, y);
-        PlaySong(0x113);
+        PlaySong(SE_DOOR);
         entity->state++;
         break;
     }
@@ -917,7 +918,7 @@ void OneWayBossDoorUpdate(struct EwramData_EntityData *entity)
         SetPlayerInput(1, 0);
         if (--entity->ext.door.openHeight != 0)
             break;
-        gEwramData->gameState.stateFlags &= 0xFFFFFEFE;
+        gEwramData->gameState.stateFlags &= ~(STATE_EVENT_RUNNING | STATE_DOOR_ACTIVE);
         if (entity->spawnParam0 > 1)
             entity->state = 0x63;
         else
@@ -926,9 +927,9 @@ void OneWayBossDoorUpdate(struct EwramData_EntityData *entity)
     case 20:
         if ((gEwramData->gameState.bossEventFlags >> entity->spawnParam1) & 1)
         {
-            if (!(gEwramData->gameState.stateFlags & 0x400000))
-                Music_SubmitCommandOnce(0x1040);
-            PlaySong(0x113);
+            if (!(gEwramData->gameState.stateFlags & STATE_BOSS_DOOR_KEEPS_MUSIC))
+                Music_SubmitCommandOnce(MUSIC_PLAYER_MUTE(0));
+            PlaySong(SE_DOOR);
             entity->state++;
         }
         break;
@@ -956,7 +957,7 @@ void BarrierDoorCreate(struct EwramData_EntityData *entity)
     gDisplayRegisters.winOut_H = 0x2F;
     player = gEwramData->playerState.player;
     if (Entity_IsInRect(entity, (s16)(player->posX.part16.integer - 0x1C), player->posY.part16.integer, 0x38, 0x22)
-        || (flag = gEwramData->gameState.bossEventFlags & 4) != 0)
+        || (flag = gEwramData->gameState.bossEventFlags & BOSS_DEFEATED_JULIUS) != 0)
     {
         entity->ext.door.openHeight = 0x30;
         entity->state = 10;
@@ -1070,7 +1071,7 @@ void BarrierDoorUpdate(struct EwramData_EntityData *entity)
         }
         if (++entity->ext.door.openHeight > 0x2F)
         {
-            gEwramData->gameState.stateFlags &= 0xFFFFFEFE;
+            gEwramData->gameState.stateFlags &= ~(STATE_EVENT_RUNNING | STATE_DOOR_ACTIVE);
             if (gEwramData->gameState.linkPlay)
                 entity->state++;
         }
@@ -1117,7 +1118,7 @@ void ProximityDoorUpdate(struct EwramData_EntityData *entity)
     if ((u32)((s16)entity->posX.part16.integer - (s16)player->posX.part16.integer + 0x28) <= 0x4F)
     {
         if (entity->ext.door.openHeight == 0 && Entity_IsInRect(entity, -0x10, 0, 0x110, 0xC0))
-            PlaySong(0x113);
+            PlaySong(SE_DOOR);
         entity->ext.door.openHeight += 2;
         if (entity->ext.door.openHeight > 0x2F)
             entity->ext.door.openHeight = 0x30;
@@ -1125,7 +1126,7 @@ void ProximityDoorUpdate(struct EwramData_EntityData *entity)
     else
     {
         if (entity->ext.door.openHeight == 0x30 && Entity_IsInRect(entity, -0x10, 0, 0x110, 0xC0))
-            PlaySong(0x113);
+            PlaySong(SE_DOOR);
         if (entity->ext.door.openHeight <= 2)
             entity->ext.door.openHeight = 0;
         else
@@ -1248,7 +1249,7 @@ s32 BgParticle_SpawnAll(struct EwramData_EntityData *owner)
 
     for (i = 0; i < sBgParticleCounts[owner->spawnParam1]; i++)
     {
-                entity = EntityCreateInRange(0x49, 0xCF, BgParticle_Update);
+                entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, BgParticle_Update);
         if (!entity)
             continue;
         entity->ext.bgParticle.ownerIndex = ENTITY_INDEX(owner);
@@ -1349,7 +1350,7 @@ void RoomEffect_SpawnParallaxSprites(struct EwramData_EntityData *entity)
 
     for (i = 0; i <= 3; i++)
     {
-        struct EwramData_EntityData *e = EntityCreateInRange(0x49, 0xCF, RoomEffectParallaxSprite_Update);
+        struct EwramData_EntityData *e = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, RoomEffectParallaxSprite_Update);
         if (e != NULL)
         {
             const u8 *entry;
@@ -1410,7 +1411,7 @@ void RoomEffectCreate(struct EwramData_EntityData *entity)
             break;
         case 3:
             gEwramData->gameState.conveyorSpeed = 0;
-            gEwramData->gameState.stateFlags |= 0x800;
+            gEwramData->gameState.stateFlags |= STATE_ROOM_EFFECT;
             BgPalette_ApplyTintedGrayscale();
             break;
         case 4:

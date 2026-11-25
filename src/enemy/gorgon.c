@@ -20,6 +20,7 @@
 #include "damage_numbers.h"
 #include "entity_motion.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
 
 void Gorgon_UpdateWalk(struct EwramData_EntityData *);
 void Gorgon_UpdateAttack(struct EwramData_EntityData *);
@@ -31,6 +32,13 @@ void GorgonBreath_Spawn(struct EwramData_EntityData *, s32, s32, s32, s32);
 void GorgonBreath_Update(struct EwramData_EntityData *);
 void GorgonBreath_DamagePlayerOnContact(struct EwramData_EntityData *);
 void GorgonPiece_Update(struct EwramData_EntityData *);
+
+/* States of Gorgon (entity->state), named after the update function the dispatcher calls. */
+enum {
+    GORGON_STATE_WALK = 0,
+    GORGON_STATE_ATTACK = 1,
+    GORGON_STATE_ANIM_ONLY = 3,
+};
 
 /* Dispatch Gorgon/Catoblepas states and support an overridden single frame. */
 void EnemyGorgonUpdate(struct EwramData_EntityData *entity)
@@ -58,8 +66,8 @@ void EnemyGorgonUpdate(struct EwramData_EntityData *entity)
     }
     switch (entity->state)
     {
-    case 0: Gorgon_UpdateWalk(entity); break;
-    case 1: Gorgon_UpdateAttack(entity); break;
+    case GORGON_STATE_WALK: Gorgon_UpdateWalk(entity); break;
+    case GORGON_STATE_ATTACK: Gorgon_UpdateAttack(entity); break;
     case 2:
         if (entity->stage == 0)
         {
@@ -77,7 +85,7 @@ void EnemyGorgonUpdate(struct EwramData_EntityData *entity)
         if ((s8)--entity->timer <= 0) entity->deleteRequested = 1;
         Enemy_UpdateFragmentDeath(entity);
         break;
-    case 3:
+    case GORGON_STATE_ANIM_ONLY:
         Anim_Update(entity);
         return;
     }
@@ -111,7 +119,7 @@ void EnemyGorgonCreate(struct EwramData_EntityData *entity)
     Anim_Update(entity);
     Enemy_ResetFromTemplate(entity);
     entity->spriteLayer = 9;
-    if (gEwramData->gameState.bestiaryPreview) entity->state = 3;
+    if (gEwramData->gameState.bestiaryPreview) entity->state = GORGON_STATE_ANIM_ONLY;
     else
     {
         if (Anim_GetMaxBoxCount(entity) > 1)
@@ -120,7 +128,7 @@ void EnemyGorgonCreate(struct EwramData_EntityData *entity)
             Hit_Enable(entity, 8, Gorgon_DamagePlayerOnContact, Gorgon_OnHit);
         Entity_UpdateBoxes(entity);
         Entity_SnapToGround(entity);
-        entity->state = 0;
+        entity->state = GORGON_STATE_WALK;
     }
 }
 
@@ -196,7 +204,7 @@ void Gorgon_UpdateWalk(struct EwramData_EntityData *entity)
                              (s16)(entity->posY.part16.integer - 24), 80, 24)
                 && (u16)GORGON_FRAME_CLOCK(entity) == 0x805)
             {
-                entity->state = 1;
+                entity->state = GORGON_STATE_ATTACK;
                 entity->subState = 0;
                 entity->timer = 0;
                 entity->velX.whole = 0;
@@ -409,7 +417,7 @@ void Gorgon_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
  */
 void GorgonBreath_Spawn(struct EwramData_EntityData *parent, s32 x, s32 y, s32 vx, s32 vy)
 {
-    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, GorgonBreath_Update);
+    struct EwramData_EntityData *part = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, GorgonBreath_Update);
     struct SpriteBox box = {-4, -4, 8, 8};
     if (part)
     {
@@ -425,8 +433,8 @@ void GorgonBreath_Spawn(struct EwramData_EntityData *parent, s32 x, s32 y, s32 v
         part->ext.gorgon.forcedFrame = 25;
         Hit_Enable(part, 8, GorgonBreath_DamagePlayerOnContact, 0);
         HitBox_SetAttack(part, &box);
-        part->hit.flags |= 4;
-        part->hit.flags &= ~2;
+        part->hit.flags |= HIT_NO_DAMAGE;
+        part->hit.flags &= ~HIT_NO_ATTACK;
         part->attack = parent->attack;
         ENTITY_OWNER(part) = parent;
         part->scrollWithBg = 1;
@@ -478,7 +486,7 @@ void Gorgon_SpawnDeathPieces(struct EwramData_EntityData *parent)
     s32 index;
     for (index = 5; index >= 0; index--)
     {
-        struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, GorgonPiece_Update);
+        struct EwramData_EntityData *part = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, GorgonPiece_Update);
         if (part)
         {
             s32 graphics;

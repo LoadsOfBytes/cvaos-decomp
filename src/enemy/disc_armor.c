@@ -24,6 +24,8 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "sound.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 
 void DiscArmorRing_Draw(struct EwramData_EntityData *);
@@ -33,6 +35,13 @@ void DiscArmor_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit
 /* from sound.h (not included: see the module notes) */
 
 /* Disc Armor disc projectile (uses the Disc Armor graphics of EnemyDiscArmorCreate). */
+
+/* States of DiscArmor (entity->state), named after the update function the dispatcher calls. */
+enum {
+    DISC_ARMOR_STATE_WALK = 0,
+    DISC_ARMOR_STATE_THROW = 1,
+    DISC_ARMOR_STATE_ANIM_ONLY = 3,
+};
 
 /* State 0 loads graphics, starts the animation selected by unk_4F8 and sets
  * spriteLayer = 0x12 and scrollWithBg.  Every frame (including the first) it then
@@ -174,7 +183,7 @@ static inline void SpawnSpark(struct EwramData_EntityData *entity, u8 type)
     s32 x = (s16)entity->posX.part16.integer;
     s32 y = (s16)(entity->posY.part16.integer + 16);
     s32 flip = entity->flipX;
-    struct EwramData_EntityData *spark = EntityCreateInRange(0x49, 0xCF, DiscArmorSpark_Update);
+    struct EwramData_EntityData *spark = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, DiscArmorSpark_Update);
 
     if (spark != NULL)
     {
@@ -505,7 +514,7 @@ void DiscArmorDisc_Update(struct EwramData_EntityData *entity)
         break;
     }
     case 7:
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_ATTACK;
         entity->drawSkip = 1;
         if (entity->timer == 0)
         {
@@ -588,7 +597,7 @@ void DiscArmor_UpdateWalk(struct EwramData_EntityData *entity)
             if (!attack)
                 return;
         }
-        entity->state = 1;
+        entity->state = DISC_ARMOR_STATE_THROW;
         entity->stage = 0;
         entity->subState = 0;
     }
@@ -644,7 +653,7 @@ void DiscArmor_UpdateThrow(struct EwramData_EntityData *entity)
         if (entity->animFlags & 4)
         {
             entity->ext.discArmor.flags = 0;
-            entity->state = 0;
+            entity->state = DISC_ARMOR_STATE_WALK;
             entity->stage = 0;
             entity->subState = 0;
             Entity_FaceTarget(entity);
@@ -698,7 +707,7 @@ s32 DiscArmor_UpdateDeath(struct EwramData_EntityData *entity)
         }
         if ((entity->timer & 7) == 0)
         {
-            PlaySong(0x6E);
+            PlaySong(SE_ENEMY_DEATH);
             x = entity->posX.whole + (RandomSigned(16) << 16);
             y += RandomSigned(4) << 16;
             Effect_SpawnShared(x, y, 16, 7);
@@ -724,7 +733,7 @@ void EnemyDiscArmorCreate(struct EwramData_EntityData *entity)
     Anim_Update(entity);
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 3;
+        entity->state = DISC_ARMOR_STATE_ANIM_ONLY;
         return;
     }
     Entity_EnableBoxes(entity, Enemy_OnContact, DiscArmor_OnHit);
@@ -732,7 +741,7 @@ void EnemyDiscArmorCreate(struct EwramData_EntityData *entity)
     Entity_SnapToGround(entity);
     entity->posY.part16.integer++;
     entity->scrollWithBg = 1;
-    entity->state = 0;
+    entity->state = DISC_ARMOR_STATE_WALK;
 }
 
 void EnemyDiscArmorUpdate(struct EwramData_EntityData *entity)
@@ -746,8 +755,8 @@ void EnemyDiscArmorUpdate(struct EwramData_EntityData *entity)
     if (Enemy_PreUpdate(entity)) return;
     switch (entity->state)
     {
-    case 0: DiscArmor_UpdateWalk(entity); break;
-    case 1: DiscArmor_UpdateThrow(entity); break;
+    case DISC_ARMOR_STATE_WALK: DiscArmor_UpdateWalk(entity); break;
+    case DISC_ARMOR_STATE_THROW: DiscArmor_UpdateThrow(entity); break;
     case 2:
         if (DiscArmor_UpdateDeath(entity))
         {
@@ -755,7 +764,7 @@ void EnemyDiscArmorUpdate(struct EwramData_EntityData *entity)
             return;
         }
         break;
-    case 3: Anim_Update(entity); return;
+    case DISC_ARMOR_STATE_ANIM_ONLY: Anim_Update(entity); return;
     }
     if (entity->state != 2) Hit_CheckWithPlayer(&result, entity);
     Entity_AnimateWithBoxes(entity);
@@ -769,7 +778,7 @@ void EnemyDiscArmorUpdate(struct EwramData_EntityData *entity)
  */
 void DiscArmor_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
-    if (entity->state == 0)
+    if (entity->state == DISC_ARMOR_STATE_WALK)
         Entity_FaceTargetWide(entity, attacker, hit);
 
     if (Enemy_TakeDamage(entity, attacker, hit))

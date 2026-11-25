@@ -245,7 +245,7 @@ void Player_SpawnEffectSet(s32 set, s32 facing)
     remaining = sPlayerEffectSets[set].partCount;
     do
     {
-        child = EntityCreateInRange(0x49, 0xCF, PlayerEffectSetPart_Update);
+        child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, PlayerEffectSetPart_Update);
         baseX = gEwramData->playerState.player->posX.whole;
         child->posX.whole = baseX + ((part->offsetX << 8) * dir);
 
@@ -396,7 +396,7 @@ void Player_SpawnSurfaceEffect(s32 kind)
 {
     struct EwramData_EntityData *child;
 
-    child = EntityCreateInRange(0x49, 0xCF, Effect_UpdatePlayerSurfaceEffect);
+    child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdatePlayerSurfaceEffect);
     if (child != NULL)
     {
         child->ext.surfaceEffect.anim = sPlayerSurfaceEffects[kind][0];
@@ -418,7 +418,7 @@ void Effect_SpawnDebrisBurst(struct EwramData_EntityData *entity)
 
     for (i = -2; i < 3; i++)
     {
-        child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateFallingDebris);
+        child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateFallingDebris);
         if (child != NULL)
         {
             child->posX.whole = entity->posX.whole + (i << 0xF) + RandomSigned(0x8000);
@@ -505,7 +505,7 @@ void PushBlockGroup_Create(struct EwramData_EntityData *entity)
         paletteIndex = ObjPalette_FindOrLoad((void *)sPushBlockGroupPalette);
         for (i = 0; i < count; i++)
         {
-            child = EntityCreateInRange(0x49, 0xCF, PushBlock_Update);
+            child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, PushBlock_Update);
             Sprite_Attach(child, (u8 *)sPushBlockGroupSpriteSheet, tileSlot, (s32) paletteIndex);
             child->animFrame = 0;
             child->drawFunc = Sprite_DrawEntity;

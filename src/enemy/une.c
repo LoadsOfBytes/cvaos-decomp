@@ -17,6 +17,7 @@
 #include "hitbox.h"
 #include "damage_numbers.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
 
 void Une_UpdateGrow(struct EwramData_EntityData *entity);
 void Une_UpdateIdle(struct EwramData_EntityData *entity);
@@ -25,6 +26,13 @@ void Une_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void Une_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 void Une_SpawnDebris(s32, s32, s32, s32, s32);
 void UneDebris_Update(struct EwramData_EntityData *);
+
+/* States of Une (entity->state), named after the update function the dispatcher calls. */
+enum {
+    UNE_STATE_GROW = 0,
+    UNE_STATE_IDLE = 1,
+    UNE_STATE_ANIM_ONLY = 4,
+};
 
 /**
  * @brief 74130 | Une update: unless state 3 (waiting for its parent), the
@@ -61,10 +69,10 @@ void EnemyUneUpdate(struct EwramData_EntityData *entity)
     }
     switch (entity->state)
     {
-    case 0:
+    case UNE_STATE_GROW:
         Une_UpdateGrow(entity);
         break;
-    case 1:
+    case UNE_STATE_IDLE:
         Une_UpdateIdle(entity);
         break;
     case 2:
@@ -83,7 +91,7 @@ void EnemyUneUpdate(struct EwramData_EntityData *entity)
         if (entity->ext.uneSpawner.count == 0)
             entity->deleteRequested = 1;
         break;
-    case 4:
+    case UNE_STATE_ANIM_ONLY:
         Anim_Update(entity);
         return;
     }
@@ -113,7 +121,7 @@ void EnemyUneCreate(struct EwramData_EntityData *entity)
     Enemy_ResetFromTemplate(entity);
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 4;
+        entity->state = UNE_STATE_ANIM_ONLY;
         Anim_StartIndexed(entity, 3, 0, 1);
         Anim_Update(entity);
         return;
@@ -126,9 +134,9 @@ void EnemyUneCreate(struct EwramData_EntityData *entity)
         {
             entity->state = 3;
             entity->hidden = 1;
-            entity->hit.flags |= 4;
-            entity->hit.flags |= 2;
-            child = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
+            entity->hit.flags |= HIT_NO_DAMAGE;
+            entity->hit.flags |= HIT_NO_ATTACK;
+            child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, EntityUpdateNothing);
             if (child != NULL)
             {
                 child->posX.whole = entity->posX.whole;
@@ -152,7 +160,7 @@ void EnemyUneCreate(struct EwramData_EntityData *entity)
             return;
         }
     }
-    entity->state = 0;
+    entity->state = UNE_STATE_GROW;
     entity->timer = 0x3C;
     entity->accelY.whole = 0x2800;
 }
@@ -270,7 +278,7 @@ void Une_UpdateGrow(struct EwramData_EntityData *entity)
         if (entity->timer == 0xF)
         {
             parent = entity->ext.une.spawner;
-            child = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
+            child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, EntityUpdateNothing);
             if (child != NULL)
             {
                 child->posX.whole = entity->posX.whole;
@@ -346,7 +354,7 @@ void Une_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData 
  */
 void Une_SpawnDebris(s32 x, s32 y, s32 velocityX, s32 velocityY, s32 layer)
 {
-    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, UneDebris_Update);
+    struct EwramData_EntityData *effect = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, UneDebris_Update);
     if (effect != NULL)
     {
         s32 slot;

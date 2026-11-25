@@ -24,6 +24,7 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "data/data_0E5364.h"
+#include "constants/songs.h"
 
 extern void *memcpy(void *dst, const void *src, unsigned long size);
 extern const u16 sEnemyNameTextIds[];
@@ -157,13 +158,13 @@ void BestiaryMenu_UpdateDetail(struct EwramData_EntityData *page)
         {
             BestiaryMenu_DrawDetailTitle(page);
             BestiaryMenu_DrawDescription(page->ext.menuList.cursor, page->ext.menuList.descriptionMode);
-            PlaySong(0xF1);
+            PlaySong(SE_MENU_CURSOR);
         }
     }
     if (repeated & 0x110)
     {
         oldCursor = page->ext.menuList.cursor;
-        PlaySong(0xF1);
+        PlaySong(SE_MENU_CURSOR);
         do
         {
             if (page->ext.menuList.cursor + 1 < page->ext.menuList.count)
@@ -180,7 +181,7 @@ void BestiaryMenu_UpdateDetail(struct EwramData_EntityData *page)
     else if (repeated & 0x220)
     {
         oldCursor = page->ext.menuList.cursor;
-        PlaySong(0xF1);
+        PlaySong(SE_MENU_CURSOR);
         do
         {
             if (page->ext.menuList.cursor - 1 >= 0)
@@ -197,7 +198,7 @@ void BestiaryMenu_UpdateDetail(struct EwramData_EntityData *page)
     else if ((gEwramData->inputData.newInput & 2) && page->timer == 0)
     {
         gUnk_03002CB0.dispCnt |= 0x1000;
-        PlaySong(0xF0);
+        PlaySong(SE_MENU_BACK);
         page->subState = 6;
         page->stage = 0;
     }
@@ -262,7 +263,7 @@ void BestiaryMenu_ReleaseResources(void)
     for (bg = 9; bg <= 0x17; bg++)
         ObjAffine_Free(bg);
     ObjAffine_ResetAll();
-    entity = &gEwramData->entityData[208];
+    entity = &gEwramData->entityData[ENTITY_SLOT_RESERVED_FIRST];
     for (n = 0; n < 16; n++, entity++)
     {
         if (entity->updateFunc != NULL)

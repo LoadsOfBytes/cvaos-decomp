@@ -18,6 +18,7 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 #include "data/data_4F1444.h"
+#include "constants/songs.h"
 
 extern int sprintf(char *, const char *, ...);
 
@@ -112,7 +113,7 @@ s32 DebugSioTest0_Update(struct DebugSioTestState *test)
 
         case 1:
             gEwramData->startPauseEnabled = 1;
-            PlaySong(1);
+            PlaySong(MUS_CLOCK_TOWER);
             InGame_InitScene();
             Room_Load((struct RoomDefinition *)sDebugEventRoom12, 0, 0);
             Link_Start();

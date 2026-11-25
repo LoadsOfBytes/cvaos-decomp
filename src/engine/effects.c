@@ -25,6 +25,8 @@
 #include "data/data_4F1444.h"
 #include "entity_hit.h"
 #include "bg_and_collision.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 void Effect_DrawAtOffsetPair(struct EwramData_EntityData *);
 void Effect_DrawPlayerFlash(struct EwramData_EntityData *entity);
@@ -175,7 +177,7 @@ void Effect_DrawTimedParticle(struct EwramData_EntityData *entity)
 void Effect_SpawnPlayerOutwardParticle(u8 frame, u8 palette)
 {
     struct EwramData **ewram = &gEwramData;
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, EntityUpdateNothing);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, EntityUpdateNothing);
     s32 graphics, angle, vy;
 
     if (entity == NULL)
@@ -209,7 +211,7 @@ void Effect_SpawnPlayerOutwardParticle(u8 frame, u8 palette)
 void Effect_SpawnPlayerInwardParticle(u8 palette)
 {
     struct EwramData **ewram = &gEwramData;
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, EntityUpdateNothing);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, EntityUpdateNothing);
     s32 graphics, angle, c, s, vx, vy;
 
     if (entity == NULL)
@@ -295,7 +297,7 @@ void Effect_DrawPlayerFlash(struct EwramData_EntityData *entity)
     if (entity->timer > entity->ext.playerFlash.duration)
     {
         ObjAffine_Free(entity->affineIndex);
-        if (!(gEwramData->gameState.stateFlags & 0x100))
+        if (!(gEwramData->gameState.stateFlags & STATE_DOOR_ACTIVE))
             Game_SetMenusEnabled(1);
         gEwramData->paused = 0;
         entity->deleteRequested = 1;
@@ -318,7 +320,7 @@ void Effect_DrawPlayerFlash(struct EwramData_EntityData *entity)
 struct EwramData_EntityData *Effect_CreatePlayerFlash(s32 kind)
 {
     u8 *info = sPlayerFlashInfo[kind];
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x16, 0x19, EntityUpdateNothing);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_HUD_FIRST, ENTITY_SLOT_HUD_LAST, EntityUpdateNothing);
     s32 gfx;
 
     entity->spriteLayer = 1;
@@ -335,7 +337,7 @@ struct EwramData_EntityData *Effect_CreatePlayerFlash(s32 kind)
             entity->affineIndex = matrix;
         }
         entity->affine = 1;
-        PlaySong(0xBC);
+        PlaySong(SE_SOUL_ACQUIRED);
     }
     entity->ext.playerFlash.info = (s32)info;
     entity->ext.playerFlash.kind = kind;
@@ -348,7 +350,7 @@ static inline void CreateAttachedEffect(struct EwramData_EntityData *parent, u8 
     struct EwramData_EntityData *child;
     if (parent == NULL)
         return;
-    child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateAttachedAnimation);
+    child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateAttachedAnimation);
     if (child == NULL)
         return;
     child->ext.particleAttach.anim = animation;
@@ -500,7 +502,7 @@ struct EwramData_EntityData *Afterimage_Create(struct EwramData_EntityData *enti
     { register void *anim asm("r6"); /* FAKEMATCH: anim in r6 */
     { u8 *ix_ = &entity->spriteSlot; anim = gEwramData->spriteSlots[*ix_].sheet; }
     anim2 = anim;
-    e = EntityCreateInRange(0x49, 0xCF, Afterimage_Update);
+    e = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Afterimage_Update);
     if (e == NULL)
         return NULL;
     if (anim == NULL || (e->ext.afterimage.history.value = (s32)Heap_Alloc(0x31)) == 0)
@@ -554,7 +556,7 @@ void Effect_SpawnParticleTemplateList(s16 x, s16 y, s32 index)
     for (; info->palette != 0xFF; info++)
     {
         s32 graphics;
-        struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, Effect_UpdateDelayedParticle);
+        struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateDelayedParticle);
         if (entity == NULL) return;
         graphics = ObjGfx_Find(sCommonObjectGfx);
         Sprite_Attach(entity, sCommonObjectSpriteSheet, graphics, info->palette);
@@ -579,8 +581,8 @@ struct EwramData_EntityData *Effect_CreateFromTable(s32 x, s32 y, s32 ax, s32 ay
 {
     struct EwramData_EntityData *entity;
     struct Unk_085251A8 *info = &sUnk_085251A8[index];
-    if (info->anim == NULL) entity = EntityCreateInRange(0x49, 0xCF, Effect_UpdateTimedDoubleParticle);
-    else entity = EntityCreateInRange(0x49, 0xCF, Effect_UpdateTableAnimation);
+    if (info->anim == NULL) entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateTimedDoubleParticle);
+    else entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateTableAnimation);
     if (entity != NULL)
     {
         entity->spriteLayer = 12;
@@ -605,7 +607,7 @@ void Effect_SpawnAttachedAnimation(struct EwramData_EntityData *parent, u8 anim,
 
     if (parent == NULL)
         return;
-    child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateAttachedAnimation);
+    child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateAttachedAnimation);
     if (child == NULL)
         return;
     child->ext.particleAttach.anim = anim;
@@ -633,7 +635,7 @@ s32 SoulAcquisition_CreateEffect(s32 kind)
     s32 gfx;
     u8 *anim;
 
-    entity = EntityCreateInRange(0x16, 0x19, EntityUpdateNothing);
+    entity = EntityCreateInRange(ENTITY_SLOT_HUD_FIRST, ENTITY_SLOT_HUD_LAST, EntityUpdateNothing);
     gfx = ObjGfx_Find(sCommonObjectGfx);
     anim = sCommonObjectSpriteSheet;
     Sprite_Attach(entity, anim, gfx, Soul_GetPickupPalette(kind));
@@ -669,7 +671,7 @@ struct EwramData_EntityData *Effect_SpawnShared(s32 x, s32 y, s32 script, u32 pa
     struct EwramData_EntityData *entity;
     s32 gfx;
 
-    entity = EntityCreateInRange(0x49, 0xCF, Effect_UpdateSharedAnimation);
+    entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateSharedAnimation);
     if (entity != NULL)
     {
         gfx = ObjGfx_Find(sCommonObjectGfx);
@@ -706,7 +708,7 @@ struct EwramData_EntityData *Effect_CreateSharedFrame(s32 x, s32 y, s32 frame, u
     struct EwramData_EntityData *entity;
     s32 gfx;
 
-    entity = EntityCreateInRange(0x49, 0xCF, Effect_UpdateBoundedParticle);
+    entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateBoundedParticle);
     if (entity != NULL)
     {
         gfx = ObjGfx_Find(sCommonObjectGfx);
@@ -784,7 +786,7 @@ void PickupSource_Update(struct EwramData_EntityData *entity)
             entity->hidden = 0;
             if (Pickup_TrySpawnOnHit(entity, 0, entity->enemyId, entity->spawnParam1) != 0)
             {
-                PlaySong(0xA2);
+                PlaySong(SE_ITEM_DROP);
                 entity->hidden = 1;
                 entity->timer = 0x28;
                 entity->state++;
@@ -853,7 +855,7 @@ void PickupSource_Init(struct EwramData_EntityData *entity)
     Anim_StartIndexed(entity, 3, 0, 1);
     Anim_Update(entity);
     Hit_Enable(entity, 0, NULL, 0);
-    entity->hit.flags |= 2;
+    entity->hit.flags |= HIT_NO_ATTACK;
     HitBox_SetBodyRaw(entity, 0x140CF4FA);
     entity->drawFunc = PickupSource_Draw;
 }

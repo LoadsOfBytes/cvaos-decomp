@@ -17,6 +17,7 @@
 #include "data/data_0E5364.h"
 #include "obj_palette.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
 
 extern void *memcpy(void *dst, const void *src, unsigned long size);
 extern s32 Entity_MoveWithBoxCollision(struct EwramData_EntityData *, s32, s32, s32, s32, s32, s32);
@@ -53,8 +54,8 @@ void InputChallengePlatformCreate(struct EwramData_EntityData *entity)
     Hit_Enable(entity, 8, 0, 0);
     HitBox_SetBody(entity, &box);
     HitBox_SetAttack(entity, &box);
-    entity->hit.flags |= 4;
-    entity->hit.flags |= 2;
+    entity->hit.flags |= HIT_NO_DAMAGE;
+    entity->hit.flags |= HIT_NO_ATTACK;
     Anim_StartIndexed(entity, 3, 0, 1);
     Anim_Update(entity);
     {
@@ -285,7 +286,7 @@ void InputChallengePlatform_UpdateState(struct EwramData_EntityData *e)
 void InputChallengePlatform_SpawnFallingPart(struct EwramData_EntityData *owner)
 {
     struct SpriteBox box;
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, InputChallengePlatformFallingPart_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, InputChallengePlatformFallingPart_Update);
     s32 graphics;
     if (child != NULL)
     {
@@ -304,8 +305,8 @@ void InputChallengePlatform_SpawnFallingPart(struct EwramData_EntityData *owner)
         box.width = 6;
         box.height = 15;
         HitBox_SetAttack(child, &box);
-        child->hit.flags |= 4;
-        child->hit.flags &= ~2;
+        child->hit.flags |= HIT_NO_DAMAGE;
+        child->hit.flags &= ~HIT_NO_ATTACK;
         Hit_Enable(child, 8, InputChallengePlatformFallingPart_OnPlayerContact, 0);
         child->enemyId = owner->enemyId;
         child->ext.inputChallengePlatformPart.owner = owner;
@@ -369,7 +370,7 @@ void InputChallengePlatformUpdate(struct EwramData_EntityData *entity)
  */
 void InputChallengePlatform_SpawnEffect(struct EwramData_EntityData *entity, s32 dx, s32 dy, u8 duration)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, InputChallengePlatformEffect_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, InputChallengePlatformEffect_Update);
     s32 gfx;
 
     if (child != NULL)
@@ -444,8 +445,8 @@ void VerticalPlatformCreate(struct EwramData_EntityData *entity)
     Hit_Enable(entity, 8, NULL, 0);
     HitBox_SetBody(entity, &boxes.box[entity->spawnParam1]);
     HitBox_SetAttack(entity, &boxes.box[entity->spawnParam1]);
-    entity->hit.flags |= 4;
-    entity->hit.flags |= 2;
+    entity->hit.flags |= HIT_NO_DAMAGE;
+    entity->hit.flags |= HIT_NO_ATTACK;
     Anim_StartIndexed(entity, sVerticalPlatformVariants[entity->spawnParam1].animation, 0, 1);
     Anim_Update(entity);
     entity->spriteLayer = 18;
@@ -637,8 +638,8 @@ void HorizontalPlatformCreate(struct EwramData_EntityData *entity)
     Hit_Enable(entity, 8, NULL, 0);
     HitBox_SetBody(entity, &boxes.box[entity->spawnParam1]);
     HitBox_SetAttack(entity, &boxes.box[entity->spawnParam1]);
-    entity->hit.flags |= 4;
-    entity->hit.flags |= 2;
+    entity->hit.flags |= HIT_NO_DAMAGE;
+    entity->hit.flags |= HIT_NO_ATTACK;
     Anim_StartIndexed(entity, sHorizontalPlatformVariants[entity->spawnParam1].animation, 0, 1);
     Anim_Update(entity);
     entity->spriteLayer = 18;

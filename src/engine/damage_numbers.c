@@ -41,7 +41,7 @@ struct EntityBoxes *Hit_GetEntityBoxes(struct EwramData_EntityData *entity)
 void Player_ShowDamage(s32 value, u8 kind)
 {
     s32 useFrame = 0;
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, PlayerDamageIndicator_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, PlayerDamageIndicator_Update);
     s32 graphics, palette;
     entity->state = kind;
     switch (gEwramData->gameState.language)
@@ -87,7 +87,7 @@ void Player_ShowDamage(s32 value, u8 kind)
 void Entity_ShowDamage(struct EwramData_EntityData *owner, s32 value, u8 kind)
 {
     s32 useFrame = 0;
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, EntityDamageIndicator_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, EntityDamageIndicator_Update);
     u8 *sprite;
     s32 graphics, palette;
     entity->state = kind;
@@ -264,7 +264,7 @@ void NumberIndicator_DrawCentered(struct EwramData_EntityData *entity)
 {
     s32 savedX, i;
 
-    if (!(gEwramData->gameState.stateFlags & 0x20))
+    if (!(gEwramData->gameState.stateFlags & STATE_HUD_HIDDEN))
     {
         u8 *entries;
         u8 *output;
@@ -316,7 +316,7 @@ void NumberIndicator_DrawCentered(struct EwramData_EntityData *entity)
  */
 struct EwramData_EntityData *NumberWatch_Create(void *value, s32 x, s32 y, u8 palette, u8 bits)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, NumberWatch_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, NumberWatch_Update);
     s32 graphics = ObjGfx_Find(sCommonObjectGfx);
     Sprite_Attach(entity, sCommonObjectSpriteSheet, graphics, (s8)palette);
     entity->posX.whole = x;
@@ -409,7 +409,7 @@ void HudHPNumber_Update(struct EwramData_EntityData *entity)
  */
 void HudHPNumber_Create(void)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x16, 0x19, HudHPNumber_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_HUD_FIRST, ENTITY_SLOT_HUD_LAST, HudHPNumber_Update);
     s32 gfx;
     s32 value;
 

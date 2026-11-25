@@ -19,6 +19,8 @@
 #include "damage_numbers.h"
 #include "entity_motion.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 void Persephone_UpdateWalk(struct EwramData_EntityData *);
 void Persephone_UpdateAttack(struct EwramData_EntityData *);
@@ -29,6 +31,14 @@ void Persephone_DamagePlayerOnContact(struct EwramData_EntityData *);
 void Persephone_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 void Persephone_SpawnAttackBox(struct EwramData_EntityData *, s32, s32);
 void PersephoneAttackBox_Update(struct EwramData_EntityData *);
+
+/* States of Persephone (entity->state), named after the update function the dispatcher calls. */
+enum {
+    PERSEPHONE_STATE_WALK = 0,
+    PERSEPHONE_STATE_ATTACK = 1,
+    PERSEPHONE_STATE_KNOCKDOWN = 3,
+    PERSEPHONE_STATE_PREVIEW = 4,
+};
 
 /* Dispatch Persephone's AI, death, reaction and display states. */
 void EnemyPersephoneUpdate(struct EwramData_EntityData *entity)
@@ -54,8 +64,8 @@ void EnemyPersephoneUpdate(struct EwramData_EntityData *entity)
     }
     switch (entity->state)
     {
-    case 0: Persephone_UpdateWalk(entity); break;
-    case 1: Persephone_UpdateAttack(entity); break;
+    case PERSEPHONE_STATE_WALK: Persephone_UpdateWalk(entity); break;
+    case PERSEPHONE_STATE_ATTACK: Persephone_UpdateAttack(entity); break;
     case 2:
         entity->accelY.whole = 0x2800;
         entity->velX.whole = 0;
@@ -64,11 +74,11 @@ void EnemyPersephoneUpdate(struct EwramData_EntityData *entity)
         entity->hidden = Entity_GetVisibilityPattern(entity->timer);
         if ((s8)--entity->timer <= 0) entity->deleteRequested = 1;
         break;
-    case 4:
+    case PERSEPHONE_STATE_PREVIEW:
         Persephone_UpdatePreview(entity);
         Anim_Update(entity);
         return;
-    case 3: Persephone_UpdateKnockdown(entity); break;
+    case PERSEPHONE_STATE_KNOCKDOWN: Persephone_UpdateKnockdown(entity); break;
     }
     Entity_AnimateWithBoxes(entity);
     Enemy_CheckHitPlayer(entity);
@@ -87,7 +97,7 @@ void EnemyPersephoneCreate(struct EwramData_EntityData *entity)
     Enemy_ResetFromTemplate(entity);
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 4;
+        entity->state = PERSEPHONE_STATE_PREVIEW;
         return;
     }
     if (Anim_GetMaxBoxCount(entity) > 1)
@@ -97,7 +107,7 @@ void EnemyPersephoneCreate(struct EwramData_EntityData *entity)
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
     entity->flipX = Entity_IsTargetRight(entity);
-    entity->state = 0;
+    entity->state = PERSEPHONE_STATE_WALK;
     ENTITY_OWNER(entity) = entity;
 }
 
@@ -173,7 +183,7 @@ void Persephone_UpdateWalk(struct EwramData_EntityData *entity)
     case 3:
         if (entity->animDone)
         {
-            entity->state = 1;
+            entity->state = PERSEPHONE_STATE_ATTACK;
             entity->subState = 0;
             entity->timer = 0;
         }
@@ -195,7 +205,7 @@ void Persephone_UpdateWalk(struct EwramData_EntityData *entity)
         {
             if (!(RandomNumberGenerator() & 1))
             {
-                entity->state = 1;
+                entity->state = PERSEPHONE_STATE_ATTACK;
                 entity->subState = 0;
                 entity->timer = 0;
                 break;
@@ -248,7 +258,7 @@ void Persephone_UpdateWalk(struct EwramData_EntityData *entity)
         }
         if (Target_IsInRect((s16)(entity->posX.part16.integer - 0x28), (s16)(entity->posY.part16.integer - 0x30), 0x50, 0x60) && !(RandomNumberGenerator() & 1))
         {
-            entity->state = 1;
+            entity->state = PERSEPHONE_STATE_ATTACK;
             entity->subState = 0;
             entity->timer = 0;
         }
@@ -338,7 +348,7 @@ void Persephone_UpdateAttack(struct EwramData_EntityData *entity)
         if (*(u16 *)&entity->animStep == 3)
         {
             Persephone_SpawnAttackBox(entity, entity->posX.whole, entity->posY.whole);
-            PlaySong(0x85);
+            PlaySong(SE_SWING);
         }
         break;
     case 3:
@@ -362,7 +372,7 @@ void Persephone_UpdateAttack(struct EwramData_EntityData *entity)
         r = Entity_ClampXToRoom(entity, 1);
         if (r)
         {
-            entity->state = 0;
+            entity->state = PERSEPHONE_STATE_WALK;
             entity->subState = 5;
             do { entity->timer = 0; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
             entity->velY.whole = speed3;
@@ -415,7 +425,7 @@ void Persephone_UpdateAttack(struct EwramData_EntityData *entity)
         if (*(u16 *)&entity->animStep == 3)
         {
             Persephone_SpawnAttackBox(entity, entity->posX.whole, entity->posY.whole);
-            PlaySong(0x85);
+            PlaySong(SE_SWING);
         }
         break;
     }
@@ -509,7 +519,7 @@ void Persephone_OnHit(struct EwramData_EntityData *entity, struct EwramData_Enti
     else if ((u8)(*attackType - 3) <= 1 && (RandomNumberGenerator() & 255) <= 63)
     {
         Anim_StartIndexed(entity, 6, 0, 0);
-        entity->state = 3;
+        entity->state = PERSEPHONE_STATE_KNOCKDOWN;
         entity->subState = zero;
         entity->timer = zero;
     }
@@ -522,7 +532,7 @@ void Persephone_OnHit(struct EwramData_EntityData *entity, struct EwramData_Enti
  */
 void Persephone_SpawnAttackBox(struct EwramData_EntityData *parent, s32 x, s32 y)
 {
-    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, PersephoneAttackBox_Update);
+    struct EwramData_EntityData *part = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, PersephoneAttackBox_Update);
     struct SpriteBox box = {-20, -24, 12, 14};
     if (part)
     {
@@ -541,8 +551,8 @@ void Persephone_SpawnAttackBox(struct EwramData_EntityData *parent, s32 x, s32 y
         part->drawFunc = Sprite_DrawEntity;
         Hit_Enable(part, 8, Persephone_DamagePlayerOnContact, 0);
         HitBox_SetAttack(part, &box);
-        part->hit.flags &= ~2;
-        part->hit.flags |= 4;
+        part->hit.flags &= ~HIT_NO_ATTACK;
+        part->hit.flags |= HIT_NO_DAMAGE;
     }
 }
 

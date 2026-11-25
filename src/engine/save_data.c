@@ -17,6 +17,7 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 #include "data/data_4F0B18.h"
+#include "constants/game_flags.h"
 
 static inline void SaveData_StoreHeaderSummary(struct GameState *gameState)
 {
@@ -121,13 +122,13 @@ s32 SaveData_LoadSlotFromSram(s32 saveSlot)
 }
 
 const u32 sFlagsClearedAfterEnding[] = {
-    (1 << 5) | 12, (1 << 5) | 13, 0
+    FLAG_RETURNED_HOME, FLAG_ENDING_SEEN, 0
 };
 
 /**
  * @brief Reload the slot (or the default first save room when empty), keep
  * the current play time, restore HP/MP, apply the ending-specific flag
- * resets (afterClear: listed game flags; else flag 0x28 and bossEventFlags
+ * resets (afterClear: listed game flags; else FLAG_GRAHAM_BATTLE_STARTED and bossEventFlags
  * bit 0), refresh the summary and save. Return the SRAM error.
  */
 s32 SaveData_ResaveSlotAfterEnding(s32 saveSlot, s32 fullClear)
@@ -162,7 +163,7 @@ s32 SaveData_ResaveSlotAfterEnding(s32 saveSlot, s32 fullClear)
     if (fullClear != 0)
     {
         gameState->gameCleared = 1;
-        gEwramData->gameState.bossEventFlags &= ~0x80; // clear Chaos death flag?
+        gEwramData->gameState.bossEventFlags &= ~BOSS_DEFEATED_CHAOS; // clear Chaos death flag?
 
         for (i = 0; sFlagsClearedAfterEnding[i] != 0; i++)
         {
@@ -171,8 +172,8 @@ s32 SaveData_ResaveSlotAfterEnding(s32 saveSlot, s32 fullClear)
     }
     else
     {
-        gEwramData->gameState.bossEventFlags &= ~1; // clear Graham death flag?
-        GameFlag_Clear((1 << 5) | 8);
+        gEwramData->gameState.bossEventFlags &= ~BOSS_DEFEATED_GRAHAM; // clear Graham death flag?
+        GameFlag_Clear(FLAG_GRAHAM_BATTLE_STARTED);
     }
 
     SaveData_StoreHeaderSummary(&gEwramData->gameState);
@@ -425,8 +426,8 @@ s32 SaveData_GiveAwaySoul(s32 saveSlot, s32 soulType, s32 soulId)
 }
 
 /**
- * @brief Clear the progress block (preserving gameFlagsTail bits 0x100000 and
- * 0x200000), set game flag 0x3B, zero soul totals and visitedThisRun, clear
+ * @brief Clear the progress block (preserving FLAG_NAME_NOUSE and
+ * FLAG_NAME_NOSOUL), set FLAG_MINA_TALK_ITEMS, zero soul totals and visitedThisRun, clear
  * abilities, set level 1, restore HP/MP and unequip all souls.
  */
 void Game_ResetProgressForNewGame(void)
@@ -434,31 +435,31 @@ void Game_ResetProgressForNewGame(void)
     s32 j;
     s32 i;
     struct SoulKey *soul;
-    u32 keepFlag20;
-    u32 keepFlag21;
+    u32 keepNoUse;
+    u32 keepNoSoul;
 
     soul = sKeySouls;
 
-    if (gEwramData->gameState.gameFlagsTail[0] & 0x100000)
-        keepFlag20 = 1;
+    if (gEwramData->gameState.gameFlagsTail[GAME_FLAG_WORD(FLAG_NAME_NOUSE) - 2] & GAME_FLAG_BIT(FLAG_NAME_NOUSE))
+        keepNoUse = 1;
     else
-        keepFlag20 = 0;
+        keepNoUse = 0;
 
-    if (gEwramData->gameState.gameFlagsTail[0] & 0x200000)
-        keepFlag21 = 1;
+    if (gEwramData->gameState.gameFlagsTail[GAME_FLAG_WORD(FLAG_NAME_NOSOUL) - 2] & GAME_FLAG_BIT(FLAG_NAME_NOSOUL))
+        keepNoSoul = 1;
     else
-        keepFlag21 = 0;
+        keepNoSoul = 0;
 
     DMA_FILL_32(3, 0, &gEwramData->gameState.gameFlags, 0x44);
-    GameFlag_Set((1 << 5) | 0x1B);
+    GameFlag_Set(FLAG_MINA_TALK_ITEMS);
 
-    if (keepFlag20 != 0)
+    if (keepNoUse != 0)
     {
-        gEwramData->gameState.gameFlagsTail[0] |= 0x100000;
+        gEwramData->gameState.gameFlagsTail[GAME_FLAG_WORD(FLAG_NAME_NOUSE) - 2] |= GAME_FLAG_BIT(FLAG_NAME_NOUSE);
     }
-    if (keepFlag21 != 0)
+    if (keepNoSoul != 0)
     {
-        gEwramData->gameState.gameFlagsTail[0] |= 0x200000;
+        gEwramData->gameState.gameFlagsTail[GAME_FLAG_WORD(FLAG_NAME_NOSOUL) - 2] |= GAME_FLAG_BIT(FLAG_NAME_NOSOUL);
     }
 
     for (i = 0; i < 11; i++, soul += 1)

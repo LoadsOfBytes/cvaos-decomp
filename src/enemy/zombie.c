@@ -18,6 +18,8 @@
 #include "damage_numbers.h"
 #include "entity_motion.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 void Zombie_UpdateEmergingWalkingSinking(struct EwramData_EntityData *);
 void Zombie_UpdateStationaryAnimation(struct EwramData_EntityData *);
@@ -32,6 +34,13 @@ void ZombiePiece_Update(struct EwramData_EntityData *);
 void ZombieDebris_Update(struct EwramData_EntityData *);
 void ZombieTemporarySprite_Update(struct EwramData_EntityData *);
 
+/* States of Zombie (entity->state), named after the update function the dispatcher calls. */
+enum {
+    ZOMBIE_STATE_EMERGING_WALKING_SINKING = 0,
+    ZOMBIE_STATE_FRAGMENT_DEATH = 1,
+    ZOMBIE_STATE_STATIONARY_ANIMATION = 2,
+};
+
 /* Update a Zombie or its controller that maintains a population of children. */
 void EnemyZombieUpdate(struct EwramData_EntityData *entity)
 {
@@ -43,22 +52,22 @@ void EnemyZombieUpdate(struct EwramData_EntityData *entity)
         if (EntityIsOutsideScreen(entity, 4))
         {
             s32 zero = 0;
-            entity->state = 1;
+            entity->state = ZOMBIE_STATE_FRAGMENT_DEATH;
             entity->timer = 1;
             entity->hp = zero;
         }
     }
     if (Enemy_IsStunned(entity))
     {
-        if (entity->state != 1) Hit_CheckWithPlayer(&result, entity);
+        if (entity->state != ZOMBIE_STATE_FRAGMENT_DEATH) Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
     {
-    case 0:
+    case ZOMBIE_STATE_EMERGING_WALKING_SINKING:
         Zombie_UpdateEmergingWalkingSinking(entity);
         break;
-    case 1:
+    case ZOMBIE_STATE_FRAGMENT_DEATH:
         Enemy_UpdateFragmentDeath(entity);
         if (entity->deleteRequested)
         {
@@ -68,7 +77,7 @@ void EnemyZombieUpdate(struct EwramData_EntityData *entity)
                 controller->ext.zombieSpawner.childCount--;
         }
         break;
-    case 2:
+    case ZOMBIE_STATE_STATIONARY_ANIMATION:
         Zombie_UpdateStationaryAnimation(entity);
         Anim_Update(entity);
         return;
@@ -76,7 +85,7 @@ void EnemyZombieUpdate(struct EwramData_EntityData *entity)
         if ((RandomNumberGenerator() & 31) == 0
             && (s32)entity->ext.zombieSpawner.childCount < entity->spawnParam0)
         {
-            struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
+            struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, EntityUpdateNothing);
             if (child)
             {
                 s32 distance;
@@ -109,9 +118,9 @@ void EnemyZombieUpdate(struct EwramData_EntityData *entity)
         if (previous != *frame) Entity_UpdateBoxes(entity);
     }
     if (entity->state == 0 && (entity->subState == 0 || entity->subState == 3))
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_ATTACK;
     else
-        entity->hit.flags &= ~2;
+        entity->hit.flags &= ~HIT_NO_ATTACK;
     Enemy_CheckHitPlayer(entity);
 }
 
@@ -123,8 +132,8 @@ void EnemyZombieCreate(struct EwramData_EntityData *entity)
     {
         entity->state = 3;
         entity->hidden = 1;
-        entity->hit.flags |= 4;
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_DAMAGE;
+        entity->hit.flags |= HIT_NO_ATTACK;
         Entity_SnapToGround(entity);
         return;
     }
@@ -139,7 +148,7 @@ void EnemyZombieCreate(struct EwramData_EntityData *entity)
     if (gEwramData->gameState.bestiaryPreview)
     {
         Anim_StartIndexed(entity, 0, 0, 0);
-        entity->state = 2;
+        entity->state = ZOMBIE_STATE_STATIONARY_ANIMATION;
         return;
     }
     if (Anim_GetMaxBoxCount(entity) > 1)
@@ -157,13 +166,13 @@ void EnemyZombieCreate(struct EwramData_EntityData *entity)
         if (Collision_IsSlopeTile((s16)(background->xPos.part16.integer + entity->posX.part16.integer),
                          (s16)(background->yPos.part16.integer + entity->posY.part16.integer)))
         {
-            entity->state = 1;
+            entity->state = ZOMBIE_STATE_FRAGMENT_DEATH;
             entity->timer = 1;
             entity->hp = zero;
         }
         if (entity->posY.whole <= previousY - 0x80000)
         {
-            entity->state = 1;
+            entity->state = ZOMBIE_STATE_FRAGMENT_DEATH;
             entity->timer = 1;
             entity->hp = zero;
         }
@@ -293,7 +302,7 @@ void Zombie_UpdateEmergingWalkingSinking(struct EwramData_EntityData *entity)
         if (entity->animDone)
         {
             s32 zero = 0;
-            entity->state = 1;
+            entity->state = ZOMBIE_STATE_FRAGMENT_DEATH;
             entity->timer = 1;
             entity->hp = zero;
         }
@@ -367,11 +376,11 @@ void Zombie_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
-        PlaySong(0x70);
+        PlaySong(SE_ENEMY_DEATH_SOFT);
         Anim_StartIndexed(entity, 3, 0, 0);
         entity->palette = entity->basePalette;
         entity->timer = 0x28;
-        entity->state = 1;
+        entity->state = ZOMBIE_STATE_FRAGMENT_DEATH;
         entity->subState = 0;
         {
             s32 x = (RandomNumberGenerator() & 0x7FFFF) - 0x40000;
@@ -421,7 +430,7 @@ void Zombie_SpawnFallingDebris(struct EwramData_EntityData *parent, s32 x, s32 y
  */
 void Zombie_SpawnPiece(struct EwramData_EntityData *parent, s32 x, s32 y)
 {
-    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, ZombiePiece_Update);
+    struct EwramData_EntityData *part = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, ZombiePiece_Update);
     if (part)
     {
         s32 graphics;
@@ -458,7 +467,7 @@ void ZombieDebris_Update(struct EwramData_EntityData *entity)
  */
 void Zombie_SpawnTemporarySprite(struct EwramData_EntityData *parent, s32 x, s32 y)
 {
-    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, ZombieTemporarySprite_Update);
+    struct EwramData_EntityData *part = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, ZombieTemporarySprite_Update);
     if (part)
     {
         s32 zero;

@@ -21,6 +21,8 @@
 #include "math_inline.h"
 #include "damage_numbers.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 void Ghost_UpdateFloat(struct EwramData_EntityData *);
 void Ghost_UpdatePreview(struct EwramData_EntityData *);
@@ -29,13 +31,20 @@ u8 Ghost_LoadGraphics(struct EwramData_EntityData *);
 void Ghost_DamagePlayerOnContact(struct EwramData_EntityData *entity, struct EwramData_EntityData *other);
 void Ghost_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 
+/* States of Ghost (entity->state), named after the update function the dispatcher calls. */
+enum {
+    GHOST_STATE_FLOAT = 0,
+    GHOST_STATE_FRAGMENT_DEATH = 1,
+    GHOST_STATE_PREVIEW = 2,
+};
+
 /* Update a Ghost or its timed spawn controller. */
 void EnemyGhostUpdate(struct EwramData_EntityData *entity)
 {
     struct HitResult result;
     if (entity->state != 3)
     {
-        if (entity->state != 1)
+        if (entity->state != GHOST_STATE_FRAGMENT_DEATH)
         {
             if (EntityIsOutsideScreen(entity, 4)) return;
             if (Entity_IsInRect(entity, -16, 0, 272, 176)) Player_TrackEntity(entity);
@@ -43,18 +52,18 @@ void EnemyGhostUpdate(struct EwramData_EntityData *entity)
         if (EntityIsOutsideScreen(entity, 4))
         {
             s32 zero = 0;
-            entity->state = 1;
+            entity->state = GHOST_STATE_FRAGMENT_DEATH;
             entity->timer = 1;
             entity->hp = zero;
         }
     }
     if (EntityIsOutsideScreen(entity, 4)) entity->hidden = 1;
     else entity->hidden = 0;
-    if (entity->state != 1) Enemy_UpdateHitFlash(entity);
+    if (entity->state != GHOST_STATE_FRAGMENT_DEATH) Enemy_UpdateHitFlash(entity);
     if (Entity_IsTimeStopped(entity))
     {
         entity->velX.whole = 0;
-        if (entity->state != 1)
+        if (entity->state != GHOST_STATE_FRAGMENT_DEATH)
         {
             Hit_CheckWithPlayer(&result, entity);
             return;
@@ -62,8 +71,8 @@ void EnemyGhostUpdate(struct EwramData_EntityData *entity)
     }
     switch (entity->state)
     {
-    case 0: Ghost_UpdateFloat(entity); break;
-    case 1:
+    case GHOST_STATE_FLOAT: Ghost_UpdateFloat(entity); break;
+    case GHOST_STATE_FRAGMENT_DEATH:
         Enemy_UpdateFragmentDeath(entity);
         if (entity->deleteRequested)
         {
@@ -73,7 +82,7 @@ void EnemyGhostUpdate(struct EwramData_EntityData *entity)
                 controller->ext.ghostSpawner.childCount--;
         }
         break;
-    case 2:
+    case GHOST_STATE_PREVIEW:
         Ghost_UpdatePreview(entity);
         Anim_Update(entity);
         return;
@@ -88,7 +97,7 @@ void EnemyGhostUpdate(struct EwramData_EntityData *entity)
         }
         if (spawn && entity->ext.ghostSpawner.childCount < entity->spawnParam0)
         {
-            struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
+            struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, EntityUpdateNothing);
             if (child)
             {
                 s32 distance;
@@ -132,8 +141,8 @@ void EnemyGhostCreate(struct EwramData_EntityData *entity)
     {
         entity->state = 3;
         entity->hidden = 1;
-        entity->hit.flags |= 4;
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_DAMAGE;
+        entity->hit.flags |= HIT_NO_ATTACK;
         return;
     }
     if (!Ghost_LoadGraphics(entity))
@@ -146,7 +155,7 @@ void EnemyGhostCreate(struct EwramData_EntityData *entity)
     Enemy_ResetFromTemplate(entity);
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 2;
+        entity->state = GHOST_STATE_PREVIEW;
         entity->posY.whole -= 0x240000;
         return;
     }
@@ -157,9 +166,9 @@ void EnemyGhostCreate(struct EwramData_EntityData *entity)
         Hit_Enable(entity, 8, Ghost_DamagePlayerOnContact, Ghost_OnHit);
     HitBox_SetAttack(entity, &box);
     HitBox_SetBody(entity, &box);
-    entity->hit.flags |= 2;
-    entity->hit.flags |= 4;
-    entity->state = 0;
+    entity->hit.flags |= HIT_NO_ATTACK;
+    entity->hit.flags |= HIT_NO_DAMAGE;
+    entity->state = GHOST_STATE_FLOAT;
     entity->flipX = Entity_IsTargetRight(entity);
 }
 
@@ -188,8 +197,8 @@ void Ghost_UpdateFloat(struct EwramData_EntityData *entity)
         {
             entity->subState = 1;
             Anim_StartIndexed(entity, 1, 0, 1);
-            entity->hit.flags &= ~2;
-            entity->hit.flags &= ~4;
+            entity->hit.flags &= ~HIT_NO_ATTACK;
+            entity->hit.flags &= ~HIT_NO_DAMAGE;
             entity->ext.ghost.aimOffsetY = -(RandomNumberGenerator() & 0xFFFFF);
         }
         break;
@@ -273,10 +282,10 @@ void Ghost_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDat
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
-        PlaySong(0x6E);
+        PlaySong(SE_ENEMY_DEATH);
         entity->palette = entity->basePalette;
         entity->timer = 8;
-        entity->state = 1;
+        entity->state = GHOST_STATE_FRAGMENT_DEATH;
         entity->subState = 0;
     }
 }

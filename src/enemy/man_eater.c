@@ -27,6 +27,7 @@
 #include "entity_motion.h"
 #include "entity_hit.h"
 #include "hit_shared_history.h"
+#include "constants/songs.h"
 
 
 void ManEaterProjectile_DamagePlayerOnContact(struct EwramData_EntityData *);
@@ -150,7 +151,7 @@ void ManEaterProjectile_Update(struct EwramData_EntityData *entity)
         if (EntityIsOutsideScreen(entity, 3)) entity->state = 2;
         if ((s16)entity->hp == 0)
         {
-            effect = EntityCreateInRange(0x49, 0xCF, ManEaterProjectileBurst_Update);
+            effect = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, ManEaterProjectileBurst_Update);
             if (effect != NULL)
             {
                 effect->posX.whole = entity->posX.whole;
@@ -248,7 +249,7 @@ void ManEaterSegment_Update(struct EwramData_EntityData *entity)
             { s32 f = RandomNumberGenerator() % 2; s8 *p = (s8 *)debris + 0x58; s32 t = f << 6; *p = (*p & ~0x40) | t; }
             debris->flipY = RandomNumberGenerator() % 2;
         }
-        PlaySong(0x70);
+        PlaySong(SE_ENEMY_DEATH_SOFT);
         EntityDelete(entity);
         return;
     }
@@ -588,7 +589,7 @@ void EnemyManEaterCreate(struct EwramData_EntityData *entity)
     u16 affine;
     s32 index;
     struct EwramData_EntityData *child;
-    if (entity->spawnParam0 != 0 && gEwramData->gameState.bossRushMode == 0 && (gEwramData->gameState.bossEventFlags & 0x2000))
+    if (entity->spawnParam0 != 0 && gEwramData->gameState.bossRushMode == 0 && (gEwramData->gameState.bossEventFlags & BOSS_DEFEATED_MAN_EATER))
     {
         EntityDelete(entity);
         return;
@@ -625,7 +626,7 @@ void EnemyManEaterCreate(struct EwramData_EntityData *entity)
     if (gEwramData->gameState.bestiaryPreview) entity->state = 4;
     else if (entity->spawnParam0 != 0)
     {
-        Music_SetCurrent(0x10);
+        Music_SetCurrent(MUS_CONFRONTATION);
         Player_SetSelectedTarget(entity);
     }
 }
@@ -705,7 +706,7 @@ void EnemyManEaterUpdate(struct EwramData_EntityData *entity)
     case 3:
         if (!(entity->timer & 3))
         {
-            child = EntityCreateInRange(0x49, 0xCF, ManEaterDebris_Update);
+            child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, ManEaterDebris_Update);
             if (child != NULL)
             {
                 {

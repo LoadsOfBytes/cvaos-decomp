@@ -17,6 +17,8 @@
 #include "damage_numbers.h"
 #include "entity_motion.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 void Quezlcoatl_UpdateFly(struct EwramData_EntityData *);
 void Quezlcoatl_UpdatePreview(struct EwramData_EntityData *);
@@ -28,6 +30,12 @@ void Quezlcoatl_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void Quezlcoatl_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 void QuezlcoatlSegment_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void QuezlcoatlPiece_Update(struct EwramData_EntityData *);
+
+/* States of Quezlcoatl (entity->state), named after the update function the dispatcher calls. */
+enum {
+    QUEZLCOATL_STATE_FLY = 0,
+    QUEZLCOATL_STATE_PREVIEW = 3,
+};
 
 /* Quezlcoatl dispatch and staged destruction of the parent entity. */
 void EnemyQuezlcoatlUpdate(struct EwramData_EntityData *entity)
@@ -42,7 +50,7 @@ void EnemyQuezlcoatlUpdate(struct EwramData_EntityData *entity)
     }
     switch(entity->state)
     {
-        case 0: Quezlcoatl_UpdateFly(entity); break;
+        case QUEZLCOATL_STATE_FLY: Quezlcoatl_UpdateFly(entity); break;
         case 1: break;
         case 2:
             if(entity->subState==0)
@@ -68,7 +76,7 @@ void EnemyQuezlcoatlUpdate(struct EwramData_EntityData *entity)
             }
             else entity->deleteRequested=1;
             break;
-        case 3: Quezlcoatl_UpdatePreview(entity); return;
+        case QUEZLCOATL_STATE_PREVIEW: Quezlcoatl_UpdatePreview(entity); return;
     }
     Enemy_CheckHitPlayer(entity);
 }
@@ -142,7 +150,7 @@ void EnemyQuezlcoatlCreate(struct EwramData_EntityData *entity)
     demo = *(u8 *)((u8 *)gEwramData + 0x8E) & 0x40;
     if (demo)
     {
-        entity->state = 3;
+        entity->state = QUEZLCOATL_STATE_PREVIEW;
         return;
     }
     Hit_Enable(entity, 8, Quezlcoatl_DamagePlayerOnContact, Quezlcoatl_OnHit);
@@ -202,7 +210,7 @@ void Quezlcoatl_UpdateFly(struct EwramData_EntityData *entity)
                 entity->ext.quezlcoatl.bounceCount++;
                 entity->subState=1; entity->animFrame=12;
                 Effect_SpawnRisingParticle(entity->posX.whole,entity->posY.whole,entity->spriteLayer-1,1);
-                if(!EntityIsOutsideScreen(entity,6)) PlaySong(0x7C);
+                if(!EntityIsOutsideScreen(entity,6)) PlaySong(SE_HEAVY_STEP);
             }
             else
             {
@@ -379,8 +387,8 @@ void QuezlcoatlSegment_EnableHitBoxes(struct EwramData_EntityData *entity)
     Hit_Enable(entity, 8, QuezlcoatlSegment_DamagePlayerOnContact, 0);
     HitBox_SetBody(entity, &box);
     HitBox_SetAttack(entity, &box);
-    entity->hit.flags &= ~2;
-    entity->hit.flags |= 4;
+    entity->hit.flags &= ~HIT_NO_ATTACK;
+    entity->hit.flags |= HIT_NO_DAMAGE;
 }
 
 /* Falling debris released by a body segment. */
@@ -390,7 +398,7 @@ void QuezlcoatlSegment_EnableHitBoxes(struct EwramData_EntityData *entity)
  */
 void Quezlcoatl_SpawnDeathPiece(struct EwramData_EntityData *owner,s32 x,s32 y,s32 frame)
 {
-    struct EwramData_EntityData *effect=EntityCreateInRange(0x49,0xCF,QuezlcoatlPiece_Update);
+    struct EwramData_EntityData *effect=EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST,QuezlcoatlPiece_Update);
     if(effect)
     {
         s32 graphics;

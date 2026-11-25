@@ -23,6 +23,8 @@
 #include "damage_numbers.h"
 #include "entity_hit.h"
 #include "hit_shared_history.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 void Golem_UpdateMovement(struct EwramData_EntityData *entity);
 void Golem_UpdateAttack(struct EwramData_EntityData *entity);
@@ -57,6 +59,13 @@ void GolemDebris_OnKilled(struct EwramData_EntityData *, s32, u16 *);
 void GolemDebris_Update(struct EwramData_EntityData *entity);
 void GolemIdleEffect_Update(struct EwramData_EntityData *entity);
 
+/* States of Golem (entity->state), named after the update function the dispatcher calls. */
+enum {
+    GOLEM_STATE_MOVEMENT = 0,
+    GOLEM_STATE_ATTACK = 1,
+    GOLEM_STATE_BESTIARY_PREVIEW = 3,
+};
+
 /**
  * @brief 7E35C | Golem update (as EnemyGreatArmorUpdate): skipped off
  * screen unless dying; states 0 / 1 (Golem_UpdateMovement / Golem_UpdateAttack), 2
@@ -82,10 +91,10 @@ void EnemyGolemUpdate(struct EwramData_EntityData *entity)
     if (!Entity_IsTimeStopped(entity) || entity->state == 2) {
         switch (entity->state)
         {
-        case 0:
+        case GOLEM_STATE_MOVEMENT:
             Golem_UpdateMovement(entity);
             break;
-        case 1:
+        case GOLEM_STATE_ATTACK:
             Golem_UpdateAttack(entity);
             break;
         case 2:
@@ -100,7 +109,7 @@ void EnemyGolemUpdate(struct EwramData_EntityData *entity)
             if (entity->deleteRequested && entity->ext.golem.parts != NULL)
                 Heap_Free(entity->ext.golem.parts);
             break;
-        case 3:
+        case GOLEM_STATE_BESTIARY_PREVIEW:
             Golem_UpdateBestiaryPreview(entity);
             return;
         }
@@ -253,7 +262,7 @@ void EnemyGolemCreate(struct EwramData_EntityData *entity)
     frozen = *((u8 *)gEwramData + 0x8E) & 0x40;
     if (frozen)
     {
-        entity->state = 3;
+        entity->state = GOLEM_STATE_BESTIARY_PREVIEW;
         if (entity->enemyId == 0x50)
             entity->subState = 0x28;
         else
@@ -385,7 +394,7 @@ void Golem_UpdateMovement(struct EwramData_EntityData *entity)
         break;
     case 2:
         GOLEM_LAND(landTimes)
-        PlaySong(0x7C);
+        PlaySong(SE_HEAVY_STEP);
         entity->ext.joint.pose = 2;
         if (entity->flipX)
             dx = 0x80000;
@@ -398,7 +407,7 @@ void Golem_UpdateMovement(struct EwramData_EntityData *entity)
         GOLEM_WAIT(entity->subState++, 3, 10, 1)
     case 5:
         GOLEM_LAND(landTimes)
-        PlaySong(0x7C);
+        PlaySong(SE_HEAVY_STEP);
         entity->ext.joint.pose = 4;
         if (entity->flipX)
             dx = 0x80000;
@@ -416,7 +425,7 @@ void Golem_UpdateMovement(struct EwramData_EntityData *entity)
         break;
     case 8:
         GOLEM_LAND(landTimes)
-        PlaySong(0x7C);
+        PlaySong(SE_HEAVY_STEP);
         entity->ext.joint.pose = 2;
         dx = entity->flipX ? -0x60000 : 0x60000;
         Effect_SpawnRisingParticle(entity->posX.whole + dx, entity->posY.whole, entity->spriteLayer - 1, 1);
@@ -431,7 +440,7 @@ void Golem_UpdateMovement(struct EwramData_EntityData *entity)
         break;
     case 11:
         GOLEM_LAND(landTimes)
-        PlaySong(0x7C);
+        PlaySong(SE_HEAVY_STEP);
         entity->ext.joint.pose = 4;
         dx = entity->flipX ? -0x60000 : 0x60000;
         Effect_SpawnRisingParticle(entity->posX.whole + dx, entity->posY.whole, entity->spriteLayer - 1, 1);
@@ -652,7 +661,7 @@ void Golem_UpdateAttack(struct EwramData_EntityData *entity)
     case 3:
         UPDATE() COUNTDOWN() TIMER = 6; STATE++; FRAME = 13;
         J(3, 2, -0x3400, 0) J(4, 5, -0x1400, 0) J(2, 5, -0x1400, 0) J(9, 5, -0x2200, 0) J(10, 9, -0x4000, 0)
-        PlaySong(0x87);
+        PlaySong(SE_DASH);
         break;
     case 4:
         UPDATE() COUNTDOWN() TIMER = 6; STATE++; FRAME = 14;
@@ -686,7 +695,7 @@ void Golem_UpdateAttack(struct EwramData_EntityData *entity)
     case 12:
         UPDATE() COUNTDOWN() TIMER = 6; STATE++; FRAME = 18;
         J(3, 2, -0x4000, 0) J(4, 5, -0x1400, 0) J(2, 5, -0x2400, 0) J(9, 5, -0x1400, 0) J(10, 9, -0x2C00, 0)
-        PlaySong(0x87);
+        PlaySong(SE_DASH);
         break;
     case 13:
         UPDATE() COUNTDOWN() TIMER = 6; STATE++; FRAME = 19;
@@ -781,7 +790,7 @@ void Golem_UpdateAttack(struct EwramData_EntityData *entity)
         break;
     case 41:
         UPDATE() COUNTDOWN() TIMER = 12 - (s8)COUNT * 2; STATE++; FRAME = 26;
-        J(10, 9, 0x8000, 0) PlaySong(0x87);
+        J(10, 9, 0x8000, 0) PlaySong(SE_DASH);
         break;
     case 42:
         UPDATE() COUNTDOWN()
@@ -800,7 +809,7 @@ void Golem_UpdateAttack(struct EwramData_EntityData *entity)
         break;
     case 43:
         UPDATE() COUNTDOWN() TIMER = 3; STATE++; FRAME = 28;
-        J(9, 5, 0, 0) J(10, 9, 0, 0) PlaySong(0x87);
+        J(9, 5, 0, 0) J(10, 9, 0, 0) PlaySong(SE_DASH);
         break;
     case 44:
         UPDATE() COUNTDOWN() TIMER = 30; STATE++;
@@ -815,7 +824,7 @@ void Golem_UpdateAttack(struct EwramData_EntityData *entity)
         break;
     case 51:
         UPDATE() COUNTDOWN() TIMER = 12 - (s8)COUNT * 2; STATE++; FRAME = 30;
-        J(3, 2, 0x8000, 0) PlaySong(0x87);
+        J(3, 2, 0x8000, 0) PlaySong(SE_DASH);
         break;
     case 52:
         UPDATE() COUNTDOWN()
@@ -834,7 +843,7 @@ void Golem_UpdateAttack(struct EwramData_EntityData *entity)
         break;
     case 53:
         UPDATE() COUNTDOWN() TIMER = 3; STATE++; FRAME = 32;
-        J(2, 5, 0, 0) J(3, 2, 0, 0) PlaySong(0x87);
+        J(2, 5, 0, 0) J(3, 2, 0, 0) PlaySong(SE_DASH);
         break;
     case 54:
         UPDATE() COUNTDOWN() TIMER = 30; STATE++;
@@ -1388,14 +1397,14 @@ void GolemSegment_Update(struct EwramData_EntityData *entity)
             box.h = 8;
             HitBox_SetAttack(entity, &box);
             HitBox_SetBody(entity, &box);
-            entity->hit.flags &= ~4;
-            entity->hit.flags &= ~2;
+            entity->hit.flags &= ~HIT_NO_DAMAGE;
+            entity->hit.flags &= ~HIT_NO_ATTACK;
             Hit_CheckWithPlayerSharedHistory(&result, entity, owner);
         }
         else
         {
-            entity->hit.flags |= 4;
-            entity->hit.flags |= 2;
+            entity->hit.flags |= HIT_NO_DAMAGE;
+            entity->hit.flags |= HIT_NO_ATTACK;
         }
         if (HAS_AFFINE(PART(entity)))
             ObjAffine_Set(ANGLE(entity), 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
@@ -1435,7 +1444,7 @@ void GolemSegment_Update(struct EwramData_EntityData *entity)
 void Golem_ThrowDebris(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx, s32 vy)
 {
     u32 box = 0x0808FCFC;
-    struct EwramData_EntityData *debris = EntityCreateInRange(0x1B, 0x48, GolemDebris_Update);
+    struct EwramData_EntityData *debris = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, GolemDebris_Update);
     s32 graphics;
 
     if (debris == NULL)
@@ -1452,8 +1461,8 @@ void Golem_ThrowDebris(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx,
     Hit_Enable(debris, 10, GolemDebris_DamagePlayerOnContact, GolemDebris_OnKilled);
     HitBox_SetAttack(debris, &box);
     HitBox_SetBody(debris, &box);
-    debris->hit.flags &= ~4;
-    debris->hit.flags &= ~2;
+    debris->hit.flags &= ~HIT_NO_DAMAGE;
+    debris->hit.flags &= ~HIT_NO_ATTACK;
     debris->scrollWithBg = 1;
     debris->spriteLayer = owner->spriteLayer;
     ENTITY_OWNER(debris) = owner;

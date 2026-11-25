@@ -129,10 +129,10 @@ void TextWindow_Close(void)
     gUnk_03002CB0.dispCnt&=0x9FFF;
     gUnk_03002CB0.dispCnt&=0x1FFF;
     gDisplayRegisters.bldY=0;
-    if(gEwramData->gameState.stateFlags&0x10000)
+    if(gEwramData->gameState.stateFlags&STATE_ENDING_SEQUENCE)
     {DMA_FILL_32(3,0,(void *)(VRAM_BASE + 0xE000),0x800);}
     else
-    {Hud_Init();gEwramData->gameState.stateFlags&=~32;}
+    {Hud_Init();gEwramData->gameState.stateFlags&=~STATE_HUD_HIDDEN;}
     gEwramData->gameState.textWindowPause=255;
 }
 
@@ -144,7 +144,7 @@ void TextWindow_Begin(s32 textId)
 {
     struct EwramData *ram = gEwramData;
     gUnk_03002CB0.dispCnt &= 0xFEFF;
-    ram->gameState.stateFlags |= 0x21;
+    ram->gameState.stateFlags |= (STATE_EVENT_RUNNING | STATE_HUD_HIDDEN);
     Text_SetTileBuffer((void *)(VRAM_BASE + 0x4000));
     Text_SetBackgroundColor(0);
     Text12_SetRegion(0, 0, 31, 4);
@@ -399,7 +399,7 @@ s32 TextWindow_Update(void)
         {
             u8 i = event->pad_4CE[0];
             s32 x, y, y2;
-            if (GameFlag_Is3ASet() && !(gEwramData->gameState.stateFlags & 0x10000) && i == 0)
+            if (GameFlag_IsSomaAwakened() && !(gEwramData->gameState.stateFlags & STATE_ENDING_SEQUENCE) && i == 0)
                 i = 7;
             TextWindow_LoadBackground(sTextWindowGfx[i].tiles, sTextWindowGfx[i].palette, sTextWindowGfx[i].layer);
             gDisplayRegisters.bgOfs[0].hOfs = sTextWindowScrollOffsets[i * 2] << 3;

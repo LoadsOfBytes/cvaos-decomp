@@ -28,6 +28,7 @@
 #include "data/data_0E0B68.h"
 #include "math_inline.h"
 #include "soul_skill_inline.h"
+#include "constants/hit_flags.h"
 
 /* Red soul skill parameters (sUnk_084F12C8, 0x18 bytes, indexed by the
  * soul's parameter). */
@@ -136,7 +137,7 @@ void BoneSoul_SpawnShatterDebris(struct EwramData_EntityData *owner)
     s32 i;
     for (i = 0; i <= 3; i++)
     {
-        struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, Effect_UpdateBallisticDebris);
+        struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateBallisticDebris);
         s32 graphics, offset;
         if (entity == NULL)
             return;
@@ -208,7 +209,7 @@ void BoneSoul_SpawnFlyingEffect(struct EwramData_EntityData *owner)
 
 static inline struct EwramData_EntityData *SpawnBone(s32 x, s32 y, u8 frame)
 {
-    struct EwramData_EntityData *bone = EntityCreateInRange(0x49, 0xCF, SoulBoneFragment_Update);
+    struct EwramData_EntityData *bone = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, SoulBoneFragment_Update);
 
     if (bone == NULL)
         return NULL;
@@ -285,14 +286,14 @@ void Skill_Skeleton_ZombieSoldier_RockArmor_WaiterSkeleton_GiantSkeleton_BomberA
         if (info->flags & 0x60)
         {
             HitBox_SetAttackRaw(entity, 0x2838E2E4);
-            entity->hit.flags |= 2;
+            entity->hit.flags |= HIT_NO_ATTACK;
             entity->timer = 0x50;
         }
         else if (info->flags & 0x200)
             Skill_SetFrameHitBox(entity);
         else
             HitBox_SetAttackRaw(entity, 0x1010F8F8);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         Hit_SetTimerOverride(1, 0x1E);
         if (info->flags & 0x400)
         {
@@ -311,7 +312,7 @@ void Skill_Skeleton_ZombieSoldier_RockArmor_WaiterSkeleton_GiantSkeleton_BomberA
             if (--entity->timer == 0)
             {
                 Effect_SpawnParticleTemplateList(entity->posX.part16.integer, entity->posY.part16.integer, 0);
-                entity->hit.flags &= ~2;
+                entity->hit.flags &= ~HIT_NO_ATTACK;
                 entity->palette = 4;
                 entity->timer = 2;
                 entity->state = 2;
@@ -387,7 +388,7 @@ void Skill_Skeleton_ZombieSoldier_RockArmor_WaiterSkeleton_GiantSkeleton_BomberA
                 s32 x = entity->posX.whole;
                 s32 y = entity->posY.whole;
 
-                fx = EntityCreateInRange(0x49, 0xCF, RedSoulEffect_UpdateAccelerated);
+                fx = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, RedSoulEffect_UpdateAccelerated);
                 if (fx != NULL)
                 {
                     {
@@ -423,7 +424,7 @@ void Skill_Skeleton_ZombieSoldier_RockArmor_WaiterSkeleton_GiantSkeleton_BomberA
                     bone->posX.whole = entity->posX.whole;
                     bone->posY.whole = entity->posY.whole;
                 }
-                entity->hit.flags |= 2;
+                entity->hit.flags |= HIT_NO_ATTACK;
                 entity->hidden = 1;
                 entity->timer = 0x20;
                 entity->state = 4;
@@ -495,7 +496,7 @@ void SkillWingedSkeletonHitBoxUpdate(struct EwramData_EntityData *entity)
         Hit_SetTimerOverride(1, 20);
         Hit_Enable(entity, 5, NULL, 0);
         HitBox_SetAttackRaw(entity, 0x1010F8F8);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         entity->state = 1;
     }
     entity->posX.whole = owner->posX.whole + owner->ext.skillWingedSkeleton.tipX;
@@ -689,7 +690,7 @@ void SkillSirenUse(struct EwramData_EntityData *entity)
         Hit_SetTimerOverride(1, 10);
         Hit_Enable(entity, 5, SoulAttack_MarkHit, 0);
         HitBox_SetAttackRaw(entity, 0x0808FCFC);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         gEwramData->playerState.nbrActiveRedSoulEntities++;
         entity->ext.skillSiren.phase = RandomNumberGenerator();
         if ((u16)entity->ext.redSoul.param != 0)
@@ -758,8 +759,8 @@ void SkillUneUse(struct EwramData_EntityData *entity)
         entity->state++;
         Hit_SetTimerOverride(1, 20);
         Hit_Enable(entity, 5, SoulAttack_MarkHit, 0);
-        entity->hit.flags |= 4;
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_DAMAGE;
+        entity->hit.flags |= HIT_NO_ATTACK;
         gEwramData->playerState.nbrActiveRedSoulEntities++;
     case 1:
         result = Entity_Walk(entity, -entity->ext.skillWalker.speed, sSkillUneWalkProfile, 0);
@@ -769,7 +770,7 @@ void SkillUneUse(struct EwramData_EntityData *entity)
             break;
         PlaySong(0xE0);
         Skill_SetFrameHitBox(entity);
-        entity->hit.flags &= ~2;
+        entity->hit.flags &= ~HIT_NO_ATTACK;
         entity->state = 2;
         entity->timer = 0x80;
         break;
@@ -831,20 +832,20 @@ void SkillRedMinotaurHitBoxUpdate(struct EwramData_EntityData *entity)
         Hit_SetTimerOverride(1, 60);
         Hit_Enable(entity, 5, 0, 0);
         HitBox_SetAttackRaw(entity, 0x4040E0E0);
-        entity->hit.flags |= 2;
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_ATTACK;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         entity->state = 1;
         break;
     case 1:
         if (parent->state == 2)
         {
-            entity->hit.flags &= ~2;
+            entity->hit.flags &= ~HIT_NO_ATTACK;
             entity->state++;
         }
         break;
     case 2:
         if (parent->state == 3)
-            entity->hit.flags |= 2;
+            entity->hit.flags |= HIT_NO_ATTACK;
         break;
     }
     angle = SKILL_RED_MINOTAUR_ANGLE(parent);
@@ -996,8 +997,8 @@ void SkillBatUse(struct EwramData_EntityData *entity)
         entity->state++;
         Hit_SetTimerOverride(1, 15);
         Hit_Enable(entity, 5, 0, 0);
-        entity->hit.flags |= 4;
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_DAMAGE;
+        entity->hit.flags |= HIT_NO_ATTACK;
         PlaySong(0xE2);
         gEwramData->playerState.nbrActiveRedSoulEntities++;
     }
@@ -1037,7 +1038,7 @@ void SkillMermanProjectileUpdate(struct EwramData_EntityData *entity)
         entity->spriteLayer = 0xD;
         Hit_Enable(entity, 5, 0, 0);
         HitBox_SetAttackRaw(entity, 0x1010F8F8);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         entity->timer = 0x10;
         entity->state++;
     case 1:
@@ -1046,7 +1047,7 @@ void SkillMermanProjectileUpdate(struct EwramData_EntityData *entity)
         {
             if (entity->timer == entity->subState)
             {
-                child = EntityCreateInRange(0x49, 0xCF, SkillMermanDropletUpdate);
+                child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, SkillMermanDropletUpdate);
                 if (child != NULL)
                 {
                     child->scrollWithBg = 1;
@@ -1060,7 +1061,7 @@ void SkillMermanProjectileUpdate(struct EwramData_EntityData *entity)
             entity->timer--;
             break;
         }
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_ATTACK;
         entity->state = 2;
     case 2:
         EntityAccelerateAndMove(entity, 0x80000);
@@ -1262,7 +1263,7 @@ void SkillDiscArmorUse(struct EwramData_EntityData *entity)
         Hit_SetTimerOverride(1, 10);
         Hit_Enable(entity, 5, 0, 0);
         HitBox_SetAttackRaw(entity, 0x2020F0F0);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         entity->timer = 0x1A;
         entity->state = 1;
         PlaySong(0xD4);
@@ -1326,7 +1327,7 @@ void Skill_Werejaguar_Weretiger_Use(struct EwramData_EntityData *entity)
         entity->scrollWithBg = 1;
         Hit_SetTimerOverride(1, 15);
         Hit_Enable(entity, 5, 0, 0);
-        entity->hit.flags = (entity->hit.flags | 4) & ~2;
+        entity->hit.flags = (entity->hit.flags | HIT_NO_DAMAGE) & ~HIT_NO_ATTACK;
         gEwramData->playerState.nbrActiveRedSoulEntities++;
         PlaySong(0xEB);
         entity->state = 1;
@@ -1380,7 +1381,7 @@ void SkillLightningDollUse(struct EwramData_EntityData *entity)
         entity->scrollWithBg = 1;
         Hit_SetTimerOverride(1, 10);
         Hit_Enable(entity, 5, 0, 0);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         entity->flipY = RandomNumberGenerator() & 1;
         Entity_PlaceRelativeToWide(entity, parent, 0x10, -0x1C);
         entity->stage = parent->flipX;
@@ -1460,8 +1461,8 @@ void SkillAltairUse(struct EwramData_EntityData *entity)
         entity->state = 1;
         Hit_Enable(entity, 5, 0, 0);
         HitBox_SetAttackRaw(entity, 0x1020F8F0);
-        entity->hit.flags |= 4;
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_DAMAGE;
+        entity->hit.flags |= HIT_NO_ATTACK;
         gEwramData->playerState.nbrActiveRedSoulEntities++;
         PlaySong(0xD6);
     case 1:
@@ -1484,7 +1485,7 @@ void SkillAltairUse(struct EwramData_EntityData *entity)
             entity->palette = 2;
             Anim_StartIndexed(entity, 0, 0, 1);
             entity->state = 3;
-            entity->hit.flags &= ~2;
+            entity->hit.flags &= ~HIT_NO_ATTACK;
         }
         break;
     case 3:
@@ -1561,8 +1562,8 @@ void SkillKillerFishUse(struct EwramData_EntityData *entity)
         entity->state = 1;
         Hit_Enable(entity, 5, 0, 0);
         HitBox_SetAttackRaw(entity, 0x2030F0E8);
-        entity->hit.flags |= 4;
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_DAMAGE;
+        entity->hit.flags |= HIT_NO_ATTACK;
         PlaySong(0x19C);
         gEwramData->playerState.nbrActiveRedSoulEntities++;
     case 1:
@@ -1595,7 +1596,7 @@ void SkillKillerFishUse(struct EwramData_EntityData *entity)
                     entity->accelY.whole = entity->velY.whole / 128;
                 }
             }
-            entity->hit.flags &= ~2;
+            entity->hit.flags &= ~HIT_NO_ATTACK;
             entity->state = 3;
             PlaySong(0xDA);
         }
@@ -1748,7 +1749,7 @@ void SkillNeedlesUse(struct EwramData_EntityData *entity)
         entity->scrollWithBg = 1;
         Hit_Enable(entity, 5, SoulAttack_MarkHit, 0);
         HitBox_SetAttackRaw(entity, 0x1010F8F8);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         entity->timer = 0x80;
         gEwramData->playerState.nbrActiveRedSoulEntities++;
         PlaySong(0xE0);
@@ -1832,7 +1833,7 @@ void SkillDryadUse(struct EwramData_EntityData *entity)
         Hit_SetTimerOverride(1, 20);
         Hit_Enable(entity, 5, RedSoul_AnchorToHitTargetTimed, 0);
         HitBox_SetAttackRaw(entity, 0x0202FFFF);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         Entity_PlaceRelativeToWide(entity, parent, 0x14, -0x1A);
         entity->velY.whole = -0x20000;
         entity->accelY.whole = 0x2000;
@@ -1865,7 +1866,7 @@ void SkillDryadUse(struct EwramData_EntityData *entity)
             }
             if (entity->ext.redSoul.anchorTimer++ <= 0x14)
             {
-                if (target->hit.flags & 4)
+                if (target->hit.flags & HIT_NO_DAMAGE)
                 {
                     entity->state = 4;
                     break;
@@ -1943,7 +1944,7 @@ void SkillWerewolfUse(struct EwramData_EntityData *entity)
         }
         Hit_SetTimerOverride(1, 12);
         Hit_Enable(entity, 5, 0, 0);
-        entity->hit.flags = (entity->hit.flags | 4) & ~2;
+        entity->hit.flags = (entity->hit.flags | HIT_NO_DAMAGE) & ~HIT_NO_ATTACK;
         PlaySong(0xD9);
         entity->state = 1;
     case 1:
@@ -1987,7 +1988,7 @@ void SkillBiphronAttackUpdate(struct EwramData_EntityData *entity)
         entity->spriteLayer = 0xF;
         entity->drawFunc = Sprite_DrawEntity;
         Hit_Enable(entity, 5, 0, 0);
-        entity->hit.flags = (entity->hit.flags | 4) & ~2;
+        entity->hit.flags = (entity->hit.flags | HIT_NO_DAMAGE) & ~HIT_NO_ATTACK;
         PlaySong(0xD9);
         entity->state++;
     case 1:
@@ -2104,8 +2105,8 @@ void SkillBeamSkeletonUse(struct EwramData_EntityData *entity)
             entity->velX.part16.integer = -entity->velX.part16.integer;
         PlaySong(0x1A9);
         Hit_Enable(entity, 5, 0, 0);
-        entity->hit.flags |= 4;
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_DAMAGE;
+        entity->hit.flags |= HIT_NO_ATTACK;
         entity->state++;
     case 1:
         entity->posX.part16.integer = parent->posX.part16.integer + entity->velX.part16.integer;
@@ -2152,7 +2153,7 @@ void SkillSkullArcherArrowUpdate(struct EwramData_EntityData *entity)
         entity->spriteLayer = 0xD;
         Hit_Enable(entity, 5, RedSoul_AnchorToHitTarget, 0);
         HitBox_SetAttackRaw(entity, 0x0202FF08);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         entity->velX.whole = 0x60000;
         if (entity->flipX)
             entity->velX.whole = -entity->velX.whole;
@@ -2385,7 +2386,7 @@ void SkillFlameDemonProjectileUpdate(struct EwramData_EntityData *entity)
         entity->spriteLayer = 0xD;
         Hit_Enable(entity, 5, SoulAttack_MarkHit, 0);
         HitBox_SetAttackRaw(entity, 0x1010F8F8);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         entity->state++;
     case 1:
         EntityAccelerateAndMove(entity, 0x80000);
@@ -2558,7 +2559,7 @@ void SkillCockatriceUse(struct EwramData_EntityData *entity)
         entity->flipX = 0;
         Hit_SetTimerOverride(1, 60);
         Hit_Enable(entity, 5, 0, 0);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         gEwramData->playerState.nbrActiveRedSoulEntities++;
         Sound_PlayTracked(0xCD);
         entity->timer = 0x20;
@@ -2634,7 +2635,7 @@ void SkillFleamanUse(struct EwramData_EntityData *entity)
         entity->flipX ^= 1;
         Hit_SetTimerOverride(1, 20);
         Hit_Enable(entity, 5, 0, 0);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         entity->timer = 0xA0;
         gEwramData->playerState.nbrActiveRedSoulEntities++;
         PlaySong(0x19C);
@@ -2761,7 +2762,7 @@ void SkillTinyDevilUpdate(struct EwramData_EntityData *entity)
             entity->state = 3;
         Hit_Enable(entity, 5, SoulAttack_MarkHit, 0);
         HitBox_SetAttackRaw(entity, 0x1010F8F8);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         entity->timer = 0x40;
         child = RedSoul_CreateTrailCopy(entity, 7);
         if (child != NULL)
@@ -2926,7 +2927,7 @@ void SkillUkobackUse(struct EwramData_EntityData *entity)
         Hit_SetTimerOverride(1, 20);
         Hit_Enable(entity, 5, SoulAttack_MarkHit, 0);
         HitBox_SetAttackRaw(entity, 0x1010F8F8);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         entity->timer = 0xF0;
         PlaySong(0xDC);
         gEwramData->playerState.nbrActiveRedSoulEntities++;

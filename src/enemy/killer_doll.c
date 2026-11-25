@@ -19,6 +19,7 @@
 #include "damage_numbers.h"
 #include "entity_hit.h"
 #include "bg_and_collision.h"
+#include "constants/songs.h"
 
 s32 KillerDoll_LoadGraphics(struct EwramData_EntityData *entity);
 void KillerDoll_OnContact(struct EwramData_EntityData *entity);
@@ -31,6 +32,12 @@ void KillerDoll_UpdateDeath(struct EwramData_EntityData *entity);
 void KillerDoll_ResolveMovementBounds(struct EwramData_EntityData *entity);
 
 /* EnemyKillerDollCreate. */
+
+/* States of KillerDoll (entity->state), named after the update function the dispatcher calls. */
+enum {
+    KILLER_DOLL_STATE_ACTIVE = 1,
+    KILLER_DOLL_STATE_DEATH = 255,
+};
 
 /**
  * @brief C7B9C | Killer Doll create: load the graphics (delete the enemy
@@ -108,7 +115,7 @@ void KillerDoll_ResetActive(struct EwramData_EntityData *entity)
     entity->accelY.whole = zero;
     entity->velY.whole = zero;
     Entity_SnapToGround(entity);
-    entity->state = 1;
+    entity->state = KILLER_DOLL_STATE_ACTIVE;
     entity->stage = zero;
     entity->subState = zero;
     entity->ext.killerDoll.lungeTimer = (RandomNumberGenerator() % 0x800) + 0x80;
@@ -355,11 +362,11 @@ void KillerDoll_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 *data)
     if ((s16)entity->hp <= 0)
     {
         entity->subState = 0;
-        PlaySong(0x6E);
+        PlaySong(SE_ENEMY_DEATH);
         KillerDoll_SpawnDeathParts(entity);
         Enemy_DropRewards(entity);
         entity->palette = entity->basePalette;
-        entity->state = 0xFF;
+        entity->state = KILLER_DOLL_STATE_DEATH;
         entity->subState++;
         if (entity->ext.doll.deathPartCount == 0)
             entity->deleteRequested = 1;
@@ -441,7 +448,7 @@ void KillerDollPart_Update(struct EwramData_EntityData *entity)
                 entity->velX.whole = -ABS(entity->velX.whole);
                 x = -ABS(x);
             }
-            effect = EntityCreateInRange(0x49, 0xCF, KillerDollPartEffect_Update);
+            effect = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, KillerDollPartEffect_Update);
             if (effect != NULL)
             {
                 effect->posX.whole = entity->posX.whole;
@@ -625,21 +632,21 @@ void EnemyKillerDollUpdate(struct EwramData_EntityData *entity)
         return;
     }
     Player_TrackEntity(entity);
-    if (Enemy_IsStunned(entity) && entity->state != 0xFF)
+    if (Enemy_IsStunned(entity) && entity->state != KILLER_DOLL_STATE_DEATH)
     {
         Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
     {
-        case 1:
+        case KILLER_DOLL_STATE_ACTIVE:
             KillerDoll_UpdateActive(entity);
             break;
-        case 0xFF:
+        case KILLER_DOLL_STATE_DEATH:
             KillerDoll_UpdateDeath(entity);
             break;
     }
-    if (entity->state != 0xFF)
+    if (entity->state != KILLER_DOLL_STATE_DEATH)
     {
         Entity_AnimateWithBoxes(entity);
         Hit_CheckWithPlayer(&result, entity);
@@ -654,11 +661,11 @@ void KillerDoll_UpdateDeath(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
         case 0:
-            PlaySong(0x6E);
+            PlaySong(SE_ENEMY_DEATH);
             KillerDoll_SpawnDeathParts(entity);
             Enemy_DropRewards(entity);
             entity->palette = entity->basePalette;
-            entity->state = 0xFF;
+            entity->state = KILLER_DOLL_STATE_DEATH;
             entity->subState++;
         case 1:
             if (entity->ext.doll.deathPartCount == 0)
@@ -704,7 +711,7 @@ void KillerDoll_SpawnDeathParts(struct EwramData_EntityData *entity)
     entity->hidden = 1;
     for (i = 0; i < 5; i++)
     {
-        struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, KillerDollPart_Update);
+        struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, KillerDollPart_Update);
 
         if (child != NULL)
         {

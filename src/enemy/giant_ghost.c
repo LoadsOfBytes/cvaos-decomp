@@ -20,6 +20,7 @@
 #include "data/data_4F1444.h"
 #include "damage_numbers.h"
 #include "hitbox.h"
+#include "constants/songs.h"
 
 void GiantGhost_UpdateMove(struct EwramData_EntityData *);
 void GiantGhost_UpdateAttack(struct EwramData_EntityData *);
@@ -33,6 +34,13 @@ void GiantGhost_OnHit(struct EwramData_EntityData *entity, struct EwramData_Enti
 void GiantGhost_SpawnAuraTrail(struct EwramData_EntityData *, s32, s32);
 void GiantGhostAuraTrail_Update(struct EwramData_EntityData *);
 
+/* States of GiantGhost (entity->state), named after the update function the dispatcher calls. */
+enum {
+    GIANT_GHOST_STATE_MOVE = 0,
+    GIANT_GHOST_STATE_ATTACK = 1,
+    GIANT_GHOST_STATE_ANIM_ONLY = 3,
+};
+
 /* Dispatch Giant Ghost states and emit particles during its death fade. */
 void EnemyGiantGhostUpdate(struct EwramData_EntityData *entity)
 {
@@ -40,8 +48,8 @@ void EnemyGiantGhostUpdate(struct EwramData_EntityData *entity)
     if (Enemy_PreUpdate(entity)) return;
     switch (entity->state)
     {
-    case 0: GiantGhost_UpdateMove(entity); break;
-    case 1: GiantGhost_UpdateAttack(entity); break;
+    case GIANT_GHOST_STATE_MOVE: GiantGhost_UpdateMove(entity); break;
+    case GIANT_GHOST_STATE_ATTACK: GiantGhost_UpdateAttack(entity); break;
     case 2:
         entity->hidden = Entity_GetVisibilityPattern(entity->timer);
         if ((s8)--entity->timer <= 0) entity->deleteRequested = 1;
@@ -54,7 +62,7 @@ void EnemyGiantGhostUpdate(struct EwramData_EntityData *entity)
             GiantGhost_SpawnFragment(entity->posX.whole + x, entity->posY.whole + y, vx, 0, entity->spriteLayer - 1, type);
         }
         break;
-    case 3:
+    case GIANT_GHOST_STATE_ANIM_ONLY:
         Anim_Update(entity);
         return;
     }
@@ -155,7 +163,7 @@ void EnemyGiantGhostCreate(struct EwramData_EntityData *entity)
     }
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 3;
+        entity->state = GIANT_GHOST_STATE_ANIM_ONLY;
         return;
     }
     if (Anim_GetMaxBoxCount(entity) > 1)
@@ -163,7 +171,7 @@ void EnemyGiantGhostCreate(struct EwramData_EntityData *entity)
     else
         Hit_Enable(entity, 8, GiantGhost_DamagePlayerOnContact, GiantGhost_OnHit);
     Entity_UpdateBoxes(entity);
-    entity->state = 0;
+    entity->state = GIANT_GHOST_STATE_MOVE;
     GiantGhost_ResetAnimation(entity);
 }
 
@@ -207,7 +215,7 @@ void GiantGhost_UpdateMove(struct EwramData_EntityData *entity)
         x = RandomNumberGenerator() % 3;
         if (x == 0 && Target_IsInRect((s16)(entity->posX.part16.integer - 0x50), (s16)(entity->posY.part16.integer - 0x50), 0xA0, 0xA0))
         {
-            entity->state = 1;
+            entity->state = GIANT_GHOST_STATE_ATTACK;
             entity->subState = x;
             SPEED(entity) = x;
             Anim_StartIndexed(entity, 0, 0, 0);
@@ -390,7 +398,7 @@ void GiantGhost_UpdateAttack(struct EwramData_EntityData *entity)
         {
             entity->subState++;
             entity->timer = 0;
-            PlaySong(0x87);
+            PlaySong(SE_DASH);
             entity->ext.giantGhost.diveX = Target_GetX(entity) + bg->xPos.whole;
             entity->ext.giantGhost.diveY = Target_GetY(entity) + bg->yPos.whole - 0x100000;
             Anim_StartIndexed(entity, 3, 0, 0);
@@ -419,7 +427,7 @@ void GiantGhost_UpdateAttack(struct EwramData_EntityData *entity)
     case 6:
         if (entity->timer++ > 0x1D)
         {
-            entity->state = 0;
+            entity->state = GIANT_GHOST_STATE_MOVE;
             entity->subState = 0;
             entity->timer = 0;
             entity->ext.giantGhost.hitPlayer = 0;
@@ -800,7 +808,7 @@ void GiantGhostAuraTrail_Update(struct EwramData_EntityData *entity)
  */
 void GiantGhost_SpawnFragment(s32 x, s32 y, s32 vx, s32 vy, s32 priority, s32 type)
 {
-    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, Effect_UpdateTimedParticle);
+    struct EwramData_EntityData *part = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateTimedParticle);
     if (part)
     {
         s32 zero;

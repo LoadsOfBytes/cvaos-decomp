@@ -20,10 +20,20 @@
 #include "damage_numbers.h"
 #include "player_soma.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 void Dryad_ThrowSeed(struct EwramData_EntityData *);
 void DryadSeed_OnHit(struct EwramData_EntityData *);
 void Dryad_DamagePlayerOnContact(struct EwramData_EntityData *);
+
+/* States of Dryad (entity->state), named after the update function the dispatcher calls. */
+enum {
+    DRYAD_STATE_IDLE = 0,
+    DRYAD_STATE_ATTACK = 1,
+    DRYAD_STATE_DEATH = 3,
+    DRYAD_STATE_ANIM_ONLY = 4,
+};
 
 void Dryad_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit)
 {
@@ -45,7 +55,7 @@ void Dryad_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDat
         if (entity->spawnParam0 != 0) gEwramData->gameState.bossEventFlags |= 1;
         entity->palette = entity->basePalette;
         entity->timer = 0x28;
-        entity->state = 3;
+        entity->state = DRYAD_STATE_DEATH;
         entity->subState = 0;
         entity->stage = 0;
     }
@@ -67,7 +77,7 @@ void Dryad_UpdateIdle(struct EwramData_EntityData *entity)
         entity->flipX = Entity_IsTargetRight(entity);
         if (!(RandomNumberGenerator() & 3))
         {
-            entity->state = 1;
+            entity->state = DRYAD_STATE_ATTACK;
             entity->subState = 0;
             entity->stage = 0;
             Anim_StartIndexed(entity, 1, 0, 0);
@@ -122,7 +132,7 @@ void Dryad_UpdateAttack(struct EwramData_EntityData *entity)
         {
             if (--entity->timer <= 2)
             {
-                PlaySong(0x89);
+                PlaySong(SE_THROW);
                 Dryad_ThrowSeed(entity);
             }
         }
@@ -156,7 +166,7 @@ void Dryad_UpdateDeath(struct EwramData_EntityData *entity)
         if (entity->timer == 0x10) entity->drawSkip = 1;
         if (!(entity->timer & 7))
         {
-            PlaySong(0x6E);
+            PlaySong(SE_ENEMY_DEATH);
             Effect_SpawnRandom(entity->posX.whole, entity->posY.whole - 0x100000, 0x100000, 0x100000, entity->spriteLayer - 1);
         }
         if (--entity->timer == 0)
@@ -187,7 +197,7 @@ void DryadSeed_OnContact(struct EwramData_EntityData *entity, struct EwramData_E
         entity->accelX.part16.integer = entity->posX.part16.integer - attacker->posX.part16.integer;
         entity->accelY.part16.integer = entity->posY.part16.integer - attacker->posY.part16.integer;
         entity->ext.dryadSeed.unusedAttacker = attacker;
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
     }
 }
 
@@ -291,7 +301,7 @@ static inline s32 AddDryadY(u16 position, u16 offset)
  */
 void Dryad_ThrowSeed(struct EwramData_EntityData *parent)
 {
-    struct EwramData_EntityData *shot = EntityCreateInRange(0x1B, 0x48, DryadSeed_Update);
+    struct EwramData_EntityData *shot = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, DryadSeed_Update);
     if (shot != NULL)
     {
         u16 x, y;
@@ -329,7 +339,7 @@ void EnemyDryadCreate(struct EwramData_EntityData *entity)
     }
     Anim_StartIndexed(entity, 0, 0, 1);
     Anim_Update(entity);
-    if (gEwramData->gameState.bestiaryPreview) entity->state = 4;
+    if (gEwramData->gameState.bestiaryPreview) entity->state = DRYAD_STATE_ANIM_ONLY;
     else
     {
         Enemy_ResetFromTemplate(entity);
@@ -338,7 +348,7 @@ void EnemyDryadCreate(struct EwramData_EntityData *entity)
         Entity_SnapToGround(entity);
         entity->posY.part16.integer++;
         entity->scrollWithBg = 1;
-        entity->state = 0;
+        entity->state = DRYAD_STATE_IDLE;
     }
 }
 
@@ -376,18 +386,18 @@ void EnemyDryadUpdate(struct EwramData_EntityData *entity)
     if (Enemy_PreUpdate(entity)) return;
     switch (entity->state)
     {
-    case 0: Dryad_UpdateIdle(entity); break;
-    case 1: Dryad_UpdateAttack(entity); break;
+    case DRYAD_STATE_IDLE: Dryad_UpdateIdle(entity); break;
+    case DRYAD_STATE_ATTACK: Dryad_UpdateAttack(entity); break;
     case 2:
         if (entity->animFlags & 4)
         {
-            entity->state = 0;
+            entity->state = DRYAD_STATE_IDLE;
             entity->subState = 0;
             entity->stage = 0;
         }
         break;
-    case 3: Dryad_UpdateDeath(entity); break;
-    case 4:
+    case DRYAD_STATE_DEATH: Dryad_UpdateDeath(entity); break;
+    case DRYAD_STATE_ANIM_ONLY:
         Anim_Update(entity);
         return;
     }

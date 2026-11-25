@@ -15,11 +15,19 @@
 #include "player_core.h"
 #include "sound.h"
 #include "effects.h"
+#include "constants/songs.h"
 
 
 void AxeArmor_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hitData);
 
 /* AxeArmor_UpdateAttack: Axe Armor attack substates (throws the axe AxeArmorAxe_Update); matched. */
+
+/* States of AxeArmor (entity->state), named after the update function the dispatcher calls. */
+enum {
+    AXE_ARMOR_STATE_WALKING = 0,
+    AXE_ARMOR_STATE_ATTACK = 1,
+    AXE_ARMOR_STATE_ANIM_ONLY = 3,
+};
 
 /**
  * @brief Choose a throw animation, create an axe on its event, then retreat or resume walking.
@@ -100,7 +108,7 @@ void AxeArmor_UpdateAttack(struct EwramData_EntityData *entity)
             entity->subState = 0;
         break;
     case 3:
-        entity->state = 0;
+        entity->state = AXE_ARMOR_STATE_WALKING;
         entity->stage = 0;
         entity->subState = 0;
         Anim_StartIndexed(entity, 0, 0, 1);
@@ -156,7 +164,7 @@ s32 AxeArmor_UpdateDeath(struct EwramData_EntityData *entity)
         }
         if ((entity->timer & 7) == 0)
         {
-            PlaySong(0x6E);
+            PlaySong(SE_ENEMY_DEATH);
             x = entity->posX.whole + (RandomSigned(16) << 16);
             y += RandomSigned(4) << 16;
             Effect_SpawnShared(x, y, 16, 6);
@@ -188,7 +196,7 @@ void EnemyAxeArmorCreate(struct EwramData_EntityData *entity)
     Anim_Update(entity);
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 3;
+        entity->state = AXE_ARMOR_STATE_ANIM_ONLY;
         return;
     }
     Entity_EnableBoxes(entity, Enemy_OnContact, AxeArmor_OnHit);
@@ -196,7 +204,7 @@ void EnemyAxeArmorCreate(struct EwramData_EntityData *entity)
     Entity_SnapToGround(entity);
     entity->posY.part16.integer++;
     entity->scrollWithBg = 1;
-    entity->state = 0;
+    entity->state = AXE_ARMOR_STATE_WALKING;
 }
 
 /* AxeArmor_OnHit. */
@@ -239,10 +247,10 @@ void EnemyAxeArmorUpdate(struct EwramData_EntityData *entity)
         return;
     switch (entity->state)
     {
-        case 0:
+        case AXE_ARMOR_STATE_WALKING:
             AxeArmor_UpdateWalking(entity);
             break;
-        case 1:
+        case AXE_ARMOR_STATE_ATTACK:
             AxeArmor_UpdateAttack(entity);
             break;
         case 2:
@@ -252,7 +260,7 @@ void EnemyAxeArmorUpdate(struct EwramData_EntityData *entity)
                 return;
             }
             break;
-        case 3:
+        case AXE_ARMOR_STATE_ANIM_ONLY:
             Anim_Update(entity);
             return;
     }

@@ -16,6 +16,7 @@
 #include "effects.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "constants/songs.h"
 
 void DeadWarrior_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
@@ -118,7 +119,7 @@ s32 DeadWarrior_UpdateDeath(struct EwramData_EntityData *entity)
         }
         timer = entity->timer + 1;
         entity->timer = timer;
-        if (!(timer & 7)) PlaySong(0x6E);
+        if (!(timer & 7)) PlaySong(SE_ENEMY_DEATH);
         if (!(entity->timer & 3))
         {
             x = entity->posX.whole + (RandomSigned(0x10) << 16);

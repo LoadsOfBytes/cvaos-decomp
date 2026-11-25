@@ -30,7 +30,7 @@ extern void EventSceneEnding_SpawnOrbitRing(struct EwramData_EntityData *,s16,s1
 static inline void emitCenter(s16 x,s16 y,u32 index)
 {
     EntityFunc callbacks[5]={EventSceneEndingEmitterA_Update,EventSceneEndingEmitterB_Update,EventSceneEndingEmitterC_Update,EventSceneEndingEmitterD_Update,EventSceneEndingEmitterE_Update};
-    struct EwramData_EntityData *child=EntityCreateInRange(0x1B,0x48,callbacks[index]);
+    struct EwramData_EntityData *child=EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST,callbacks[index]);
     if(child){child->posX.part16.integer=x;child->posY.part16.integer=y;}
 }
 #define EMIT_CENTER(index) emitCenter(CENTER_X(entity),CENTER_Y(entity),index)
@@ -215,7 +215,7 @@ void EventSceneEnding_UpdateTransformation(struct EwramData_EntityData *entity)
             }
             if(TIMER(entity)==96)
             {
-                struct EwramData_EntityData *child=EntityCreateInRange(0x1B,0x48,EventSceneEndingPieceEmitter_Update);
+                struct EwramData_EntityData *child=EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST,EventSceneEndingPieceEmitter_Update);
                 if(child){child->posX.part16.integer=140;child->posY.part16.integer=50;child->timer=4;}
             }
             if((u16)(TIMER(entity)-112)<=8)

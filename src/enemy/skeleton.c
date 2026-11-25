@@ -24,6 +24,7 @@
 #include "damage_numbers.h"
 #include "entity_hit.h"
 #include "bg_and_collision.h"
+#include "constants/songs.h"
 
 
 void SkeletonProjectile_Update(struct EwramData_EntityData *);
@@ -471,7 +472,7 @@ void SkeletonProjectile_Update(struct EwramData_EntityData *entity)
         }
         else
         {
-            PlaySong(0x89);
+            PlaySong(SE_THROW);
             entity->animFrame = 0x1B;
         }
         entity->state = 2;
@@ -527,7 +528,7 @@ void Skeleton_SpawnDeathPieces(struct EwramData_EntityData *owner)
         i = 1;
     for (; i <= 6; i++)
     {
-        child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateSpriteDebris);
+        child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateSpriteDebris);
         if (child != NULL)
         {
             child->ext.skeletonPiece.ownerIndex = ENTITY_INDEX(owner);

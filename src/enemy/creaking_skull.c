@@ -29,6 +29,8 @@
 #include "music.h"
 #include "entity_hit.h"
 #include "hit_shared_history.h"
+#include "constants/songs.h"
+#include "constants/hit_flags.h"
 
 void CreakingSkull_UpdateMovement(struct EwramData_EntityData *entity);
 void CreakingSkull_UpdateAttack(struct EwramData_EntityData *entity);
@@ -63,6 +65,13 @@ void CreakingSkullProjectile_Update(struct EwramData_EntityData *);
 void CreakingSkullProjectile_DamagePlayerOnContact(struct EwramData_EntityData *);
 void CreakingSkullProjectile_OnHit(struct EwramData_EntityData *);
 
+/* States of CreakingSkull (entity->state), named after the update function the dispatcher calls. */
+enum {
+    CREAKING_SKULL_STATE_MOVEMENT = 0,
+    CREAKING_SKULL_STATE_ATTACK = 1,
+    CREAKING_SKULL_STATE_BESTIARY_PREVIEW = 3,
+};
+
 /**
  * @brief 95320 | Creaking Skull update (as EnemyGreatArmorUpdate): clears
  * unk_505, skipped off screen unless dying; states 0 / 1 (CreakingSkull_UpdateMovement /
@@ -90,10 +99,10 @@ void EnemyCreakingSkullUpdate(struct EwramData_EntityData *entity)
     {
         switch (entity->state)
         {
-        case 0:
+        case CREAKING_SKULL_STATE_MOVEMENT:
             CreakingSkull_UpdateMovement(entity);
             break;
-        case 1:
+        case CREAKING_SKULL_STATE_ATTACK:
             CreakingSkull_UpdateAttack(entity);
             break;
         case 2:
@@ -102,7 +111,7 @@ void EnemyCreakingSkullUpdate(struct EwramData_EntityData *entity)
             if (entity->deleteRequested && entity->ext.joint.parts != NULL)
                 Heap_Free(entity->ext.joint.parts);
             return;
-        case 3:
+        case CREAKING_SKULL_STATE_BESTIARY_PREVIEW:
             CreakingSkull_UpdateBestiaryPreview(entity);
             return;
         }
@@ -145,7 +154,7 @@ void EnemyCreakingSkullCreate(struct EwramData_EntityData *entity)
     memcpy(order, sCreakingSkullOrder, sizeof(order));
     memcpy(chain, sUnk_08119063, sizeof(chain));
 
-    if (entity->spawnParam0 != 0 && !(*ewram)->gameState.bossRushMode && ((*ewram)->gameState.bossEventFlags & 0x800))
+    if (entity->spawnParam0 != 0 && !(*ewram)->gameState.bossRushMode && ((*ewram)->gameState.bossEventFlags & BOSS_DEFEATED_CREAKING_SKULL))
     {
         EntityDelete(entity);
         return;
@@ -241,7 +250,7 @@ void EnemyCreakingSkullCreate(struct EwramData_EntityData *entity)
     frozen = (u8)(*((u8 *)gEwramData + 0x8E) & 0x40);
     if (frozen)
     {
-        entity->state = 3;
+        entity->state = CREAKING_SKULL_STATE_BESTIARY_PREVIEW;
         entity->subState = 0x14;
         entity->timer = 0;
         return;
@@ -264,8 +273,8 @@ void EnemyCreakingSkullCreate(struct EwramData_EntityData *entity)
     if (entity->spawnParam0 != 0)
     {
         Player_SetSelectedTarget(entity);
-        gEwramData->gameState.stateFlags |= 2;
-        Music_SetCurrent(0x11);
+        gEwramData->gameState.stateFlags |= STATE_BOSS_FIGHT;
+        Music_SetCurrent(MUS_FORMIDABLE_FOE);
     }
 }
 
@@ -421,7 +430,7 @@ void CreakingSkull_UpdateMovement(struct EwramData_EntityData *entity)
         UPDATE() FALL()
         if ((s8)--TIMER > 4) break;
         TIMER = times3[entity->ext.creakingSkull.variant]; PHASE++; SUBPHASE = 0; FRAME = 7;
-        PlaySong(0x7C);
+        PlaySong(SE_HEAVY_STEP);
         break;
     case 6:
         UPDATE() COUNTDOWN()
@@ -1373,8 +1382,8 @@ void CreakingSkullPart_Update(struct EwramData_EntityData *entity)
                     box.h = 32;
                     HitBox_SetAttack(entity, &box);
                     HitBox_SetBody(entity, &box);
-                    entity->hit.flags &= 0xFB;
-                    entity->hit.flags &= 0xFD;
+                    entity->hit.flags &= (u8)~HIT_NO_DAMAGE;
+                    entity->hit.flags &= (u8)~HIT_NO_ATTACK;
                     Hit_CheckWithPlayerSharedHistory(&result, entity, parent);
                 }
                 else if (JOINT(entity) == 1)
@@ -1395,8 +1404,8 @@ void CreakingSkullPart_Update(struct EwramData_EntityData *entity)
                     box.w = 6;
                     box.h = 6;
                     HitBox_SetAttack(entity, &box);
-                    entity->hit.flags &= 0xFD;
-                    entity->hit.flags &= 0xFB;
+                    entity->hit.flags &= (u8)~HIT_NO_ATTACK;
+                    entity->hit.flags &= (u8)~HIT_NO_DAMAGE;
                     Hit_CheckWithPlayerSharedHistory(&result, entity, parent);
                 }
                 else if (JOINT(entity) == 2)
@@ -1417,15 +1426,15 @@ void CreakingSkullPart_Update(struct EwramData_EntityData *entity)
                     box.w = 6;
                     box.h = 6;
                     HitBox_SetAttack(entity, &box);
-                    entity->hit.flags &= 0xFD;
-                    entity->hit.flags |= 4;
+                    entity->hit.flags &= (u8)~HIT_NO_ATTACK;
+                    entity->hit.flags |= HIT_NO_DAMAGE;
                     Hit_CheckWithPlayerSharedHistory(&result, entity, parent);
                 }
             }
             else
             {
-                entity->hit.flags |= 4;
-                entity->hit.flags |= 2;
+                entity->hit.flags |= HIT_NO_DAMAGE;
+                entity->hit.flags |= HIT_NO_ATTACK;
             }
             if (HAS_SPRITE(entity))
                 ObjAffine_Set(entity->velX.whole, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
@@ -1500,7 +1509,7 @@ void CreakingSkullPart_Update(struct EwramData_EntityData *entity)
             if (entity->stage == 0)
             {
                 entity->stage++;
-                PlaySong(0x7C);
+                PlaySong(SE_HEAVY_STEP);
             }
             if (entity->flipX)
             {
@@ -1586,7 +1595,7 @@ void CreakingSkull_SpawnProjectile(struct EwramData_EntityData *owner, s32 x, s3
         else particleX = (RandomNumberGenerator() & 0x7FFF) + i * 0x3000;
         Effect_SpawnParticleWithDamping(owner->posX.whole + x, owner->posY.whole + y, particleX, particleY, owner->spriteLayer - 1, 0, 20, 15, 6);
     }
-    entity = EntityCreateInRange(0x1B, 0x48, CreakingSkullProjectile_Update);
+    entity = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, CreakingSkullProjectile_Update);
     if (entity != NULL)
     {
         graphics = ObjGfx_Find(sCreakingSkullGfx);
@@ -1602,8 +1611,8 @@ void CreakingSkull_SpawnProjectile(struct EwramData_EntityData *owner, s32 x, s3
         Hit_Enable(entity, 10, CreakingSkullProjectile_DamagePlayerOnContact, CreakingSkullProjectile_OnHit);
         HitBox_SetAttack(entity, &box);
         HitBox_SetBody(entity, &box);
-        entity->hit.flags &= 0xFB;
-        entity->hit.flags &= 0xFD;
+        entity->hit.flags &= (u8)~HIT_NO_DAMAGE;
+        entity->hit.flags &= (u8)~HIT_NO_ATTACK;
         entity->scrollWithBg = 1;
         entity->spriteLayer = owner->spriteLayer - 1;
         ENTITY_OWNER(entity) = owner;
@@ -1813,7 +1822,7 @@ void CreakingSkullPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, 
 void CreakingSkull_SpawnGuidedEffect(struct EwramData_EntityData *entity, s32 lateTargetX, s32 lateTargetY, s32 earlyTargetX, s32 earlyTargetY, s32 x, s32 y)
 {
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, CreakingSkullGuidedEffect_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, CreakingSkullGuidedEffect_Update);
     s32 gfx;
 
     if (child == NULL)
@@ -1850,7 +1859,7 @@ void CreakingSkullProjectile_DamagePlayerOnContact(struct EwramData_EntityData *
     contactDamage.sourceY = entity->posY.whole;
     Player_ApplyContactDamage(&contactDamage);
     entity->state = 1;
-    PlaySong(0x76);
+    PlaySong(SE_PROJECTILE_IMPACT);
 }
 
 /**
@@ -1859,7 +1868,7 @@ void CreakingSkullProjectile_DamagePlayerOnContact(struct EwramData_EntityData *
 void CreakingSkullProjectile_OnHit(struct EwramData_EntityData *entity)
 {
     entity->state = 1;
-    PlaySong(0x76);
+    PlaySong(SE_PROJECTILE_IMPACT);
 }
 
 /**

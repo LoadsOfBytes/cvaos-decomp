@@ -24,6 +24,7 @@
 #include "text12.h"
 #include "data/data_118B48.h"
 #include "red_soul_skills_shared.h"
+#include "constants/songs.h"
 
 extern s32 MenuGrid_MoveCursor(struct EwramData_EntityData *entity, u16 input);
 
@@ -97,7 +98,7 @@ void MenuItemIcon_Show(s32 x, s32 y, s32 type, s32 item)
 
     if (entity->enemyId != 0)
     {
-        struct EwramData_EntityData *other = &gEwramData->entityData[208];
+        struct EwramData_EntityData *other = &gEwramData->entityData[ENTITY_SLOT_RESERVED_FIRST];
         s32 i;
 
         for (i = 0; i < 3; i++, other++)
@@ -337,7 +338,7 @@ void MenuItemIcon_SetHidden(u8 value)
  */
 void MenuSlotIcons_Draw(void)
 {
-    struct EwramData_EntityData *entity = &gEwramData->entityData[0xD0];
+    struct EwramData_EntityData *entity = &gEwramData->entityData[ENTITY_SLOT_RESERVED_FIRST];
     s32 i;
 
     for (i = 2; i >= 0; i--, entity++)
@@ -350,7 +351,7 @@ void MenuSlotIcons_Draw(void)
  */
 void MenuSlotIcons_Delete(void)
 {
-    struct EwramData_EntityData *entity = &gEwramData->entityData[0xD0];
+    struct EwramData_EntityData *entity = &gEwramData->entityData[ENTITY_SLOT_RESERVED_FIRST];
     s32 i;
 
     for (i = 2; i >= 0; i--, entity++)
@@ -532,7 +533,7 @@ s32 SoulMenu_Update(struct EwramData_EntityData *entity)
         case 1:
             if (pressed & KEY_A)
             {
-                PlaySong(0xF3);
+                PlaySong(SE_MENU_SELECT);
                 entity->subState++;
                 tmp = entity->ext.menuPage.cursor;
                 entity->ext.menuPage.cursor = entity->ext.menuPage.category;
@@ -551,7 +552,7 @@ s32 SoulMenu_Update(struct EwramData_EntityData *entity)
             }
             else if (pressed & KEY_B)
             {
-                PlaySong(0xF0);
+                PlaySong(SE_MENU_BACK);
                 entity->subState = 0xFF;
             }
             else if (repeated & (KEY_UP | KEY_DOWN))
@@ -579,7 +580,7 @@ s32 SoulMenu_Update(struct EwramData_EntityData *entity)
                 SoulMenu_DrawList(entity, entity->ext.menuPageList.bytes[1]);
                 SoulMenu_PrintEquippedName(entity);
                 SoulMenu_DrawEquippedSoulValue((struct SoulMenu *)entity);
-                PlaySong(0xF1);
+                PlaySong(SE_MENU_CURSOR);
             }
             break;
         case 2:
@@ -587,13 +588,13 @@ s32 SoulMenu_Update(struct EwramData_EntityData *entity)
             {
                 if (pressed & KEY_A)
                 {
-                    PlaySong(0xF4);
+                    PlaySong(SE_MENU_CONFIRM);
                     SoulMenu_EquipSelected((struct SoulMenu *)entity);
                     SoulMenu_DrawList(entity, entity->ext.menuPage.category);
                 }
                 else
                 {
-                    PlaySong(0xF0);
+                    PlaySong(SE_MENU_BACK);
                 }
                 entity->subState--;
                 entity->ext.menuPage.count = 3;
@@ -619,7 +620,7 @@ s32 SoulMenu_Update(struct EwramData_EntityData *entity)
 
                 if (MenuGrid_MoveCursor(entity, repeated) != 0 && row != entity->ext.menuPageList.bytes[1])
                 {
-                    PlaySong(0xF1);
+                    PlaySong(SE_MENU_CURSOR);
                     if (top != entity->ext.menuPageList.bytes[2])
                         SoulMenu_DrawList(entity, entity->ext.menuPage.category);
                     else

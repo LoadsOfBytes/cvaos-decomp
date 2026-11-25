@@ -15,6 +15,7 @@
 #include "data/data_4F1444.h"
 #include "damage_numbers.h"
 #include "enemy_common.h"
+#include "constants/songs.h"
 
 #define FRAME(e) (*(u16 *)&(e)->animStep)
 
@@ -42,7 +43,7 @@ void KyomaDemon_UpdateAttack(struct EwramData_EntityData *entity)
         break;
     case 1:
         if (FRAME(entity) == 4)
-            PlaySong(0x85);
+            PlaySong(SE_SWING);
         if (entity->animDone)
         {
             Anim_StartIndexed(entity, 3, 0, 0);

@@ -327,14 +327,14 @@ void InitializeAudio(void)
     }
 
     // Fill music players with silence
-    StartSong(MUS_46);
-    StartSong(MUS_47);
-    StartSong(MUS_48);
-    StartSong(MUS_49);
-    StartSong(MUS_50);
-    StartSong(MUS_51);
-    StartSong(MUS_52);
-    StartSong(MUS_53);
+    StartSong(MUS_SILENCE_PLAYER_0);
+    StartSong(MUS_SILENCE_PLAYER_1);
+    StartSong(MUS_SILENCE_PLAYER_2);
+    StartSong(MUS_SILENCE_PLAYER_3);
+    StartSong(MUS_SILENCE_PLAYER_4);
+    StartSong(MUS_SILENCE_PLAYER_5);
+    StartSong(MUS_SILENCE_PLAYER_6);
+    StartSong(MUS_SILENCE_PLAYER_7);
     m4aMPlayAllStop();
 }
 

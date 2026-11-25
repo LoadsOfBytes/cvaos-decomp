@@ -31,6 +31,8 @@
 #include "data/data_4F1444.h"
 #include "entity_hit.h"
 #include "boss_defeat.h"
+#include "constants/songs.h"
+#include "constants/hit_flags.h"
 
 
 /*
@@ -48,6 +50,14 @@ void Balore_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 void BaloreSpark_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void BaloreHandHitBox_OnHit(struct EwramData_EntityData *entity, s32 attacker);
 void BaloreEmitter_Draw(struct EwramData_EntityData *entity);
+
+/* States of Balore (entity->state), named after the update function the dispatcher calls. */
+enum {
+    BALORE_STATE_ENTER = 1,
+    BALORE_STATE_HOVER = 2,
+    BALORE_STATE_ATTACK = 3,
+    BALORE_STATE_ANIM_ONLY = 5,
+};
 
 /**
  * @brief B3F4C | Damage request at the entity's position: strength 90 / type 3
@@ -741,7 +751,7 @@ void BaloreHandHitBox_Update(struct EwramData_EntityData *entity)
     case 1:
         if (hand->state == 7)
         {
-            entity->hit.flags |= 2;
+            entity->hit.flags |= HIT_NO_ATTACK;
             entity->state = 2;
         }
         break;
@@ -749,7 +759,7 @@ void BaloreHandHitBox_Update(struct EwramData_EntityData *entity)
         state = hand->state;
         if (state == 1)
         {
-            entity->hit.flags &= 0xFD;
+            entity->hit.flags &= (u8)~HIT_NO_ATTACK;
             entity->state = state;
         }
         break;
@@ -1083,8 +1093,8 @@ void BaloreSpark_Update(struct EwramData_EntityData *entity)
         entity->spriteLayer = 0x13;
         Hit_Enable(entity, 8, BaloreSpark_DamagePlayerOnContact, 0);
         HitBox_SetAttackRaw(entity, 0x2810D8F8);
-        entity->hit.flags |= 2;
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_ATTACK;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         entity->hidden = 1;
         entity->state = 1;
     case 1:
@@ -1094,16 +1104,16 @@ void BaloreSpark_Update(struct EwramData_EntityData *entity)
             entity->timer = timer - 1;
             break;
         }
-        PlaySong(0x6E);
+        PlaySong(SE_ENEMY_DEATH);
         entity->hidden = 0;
         entity->state = 2;
     case 2:
         EntityAccelerateAndMoveX(entity, 0x80000);
         Hit_CheckWithPlayer(&result, entity);
         if (entity->animStep == 3)
-            entity->hit.flags &= ~2;
+            entity->hit.flags &= ~HIT_NO_ATTACK;
         else
-            entity->hit.flags |= 2;
+            entity->hit.flags |= HIT_NO_ATTACK;
         if (Anim_Update(entity) != 3)
             break;
         spark = Effect_SpawnShared(entity->posX.whole + RandomSigned(0x100000), entity->posY.whole + RandomSigned(0x40000) - 0x40000, 1, 7);
@@ -1315,8 +1325,8 @@ void Balore_UpdateEnter(struct EwramData_EntityData *entity)
         }
         else
         {
-            entity->hit.flags &= ~4;
-            entity->state = 2;
+            entity->hit.flags &= ~HIT_NO_DAMAGE;
+            entity->state = BALORE_STATE_HOVER;
             entity->subState = 0;
         }
         break;
@@ -1367,7 +1377,7 @@ void Balore_UpdateHover(struct EwramData_EntityData *entity)
             /* u16 view of the flags keeps the 0xFFDF mask */
             entity->ext.balore.flags = (u16)entity->ext.balore.flags & 0xFFDF;
             TILT(entity) = 4;
-            entity->state = 3;
+            entity->state = BALORE_STATE_ATTACK;
             entity->subState = 0;
         }
         break;
@@ -1477,7 +1487,7 @@ s32 Balore_UpdateDeath(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
     case 0:
-        if (!(gEwramData->gameState.stateFlags & 0x10))
+        if (!(gEwramData->gameState.stateFlags & STATE_PLAYER_DEAD))
         {
             BgPalette_StartColorFade(0x1F, 0x1F, 0x1F, 0x10000, 0, 4);
             ObjPalette_StartColorFade(0x1F, 0x1F, 0x1F, 0x10000, 0, 4);
@@ -1490,7 +1500,7 @@ s32 Balore_UpdateDeath(struct EwramData_EntityData *entity)
             entity->timer--;
             break;
         }
-        if (!(gEwramData->gameState.stateFlags & 0x10))
+        if (!(gEwramData->gameState.stateFlags & STATE_PLAYER_DEAD))
         {
             BgPalette_StartColorFade(0x1F, 0x1F, 0x1F, 0, 0x10000, 0x20);
             ObjPalette_StartColorFade(0x1F, 0x1F, 0x1F, 0, 0x10000, 0x20);
@@ -1581,7 +1591,7 @@ s32 Balore_UpdateDeath(struct EwramData_EntityData *entity)
             entity->timer--;
             break;
         }
-        PlaySong(0x7C);
+        PlaySong(SE_HEAVY_STEP);
         ScreenShake_Request(0, 0x20, 0, 7);
         entity->subState = 6;
         entity->timer = 0x20;
@@ -1614,12 +1624,12 @@ void EnemyBaloreCreate(struct EwramData_EntityData *entity)
 
     if (entity->spawnParam0 != 0 && !gEwramData->gameState.bossRushMode)
     {
-        if (gEwramData->gameState.bossEventFlags & 0x40)
+        if (gEwramData->gameState.bossEventFlags & BOSS_DEFEATED_BALORE)
         {
             EntityDelete(entity);
             return;
         }
-        gEwramData->gameState.stateFlags |= 2;
+        gEwramData->gameState.stateFlags |= STATE_BOSS_FIGHT;
         Balore_CreateIntro(entity);
         return;
     }
@@ -1670,7 +1680,7 @@ void EnemyBaloreCreate(struct EwramData_EntityData *entity)
         u32 mask = 0x40;
         if (mask &= flags)
         {
-            entity->state = 5;
+            entity->state = BALORE_STATE_ANIM_ONLY;
             return;
         }
     }
@@ -1687,7 +1697,7 @@ void EnemyBaloreCreate(struct EwramData_EntityData *entity)
         entity->hit.flags = mask;
     }
     Player_SetSelectedTarget(entity);
-    gEwramData->gameState.stateFlags |= 2;
+    gEwramData->gameState.stateFlags |= STATE_BOSS_FIGHT;
 }
 
 void EnemyBaloreUpdate(struct EwramData_EntityData *entity)
@@ -1697,14 +1707,14 @@ void EnemyBaloreUpdate(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        Music_SetCurrent(0x11);
-        entity->state = 1;
+        Music_SetCurrent(MUS_FORMIDABLE_FOE);
+        entity->state = BALORE_STATE_ENTER;
         entity->subState = 0;
         break;
-    case 1: Balore_UpdateEnter(entity); break;
-    case 2: Balore_UpdateHover(entity); break;
-    case 3: Balore_UpdateAttack(entity); break;
-    case 5: Anim_Update(entity); return;
+    case BALORE_STATE_ENTER: Balore_UpdateEnter(entity); break;
+    case BALORE_STATE_HOVER: Balore_UpdateHover(entity); break;
+    case BALORE_STATE_ATTACK: Balore_UpdateAttack(entity); break;
+    case BALORE_STATE_ANIM_ONLY: Anim_Update(entity); return;
     case 4:
         if (Balore_UpdateDeath(entity))
         {
@@ -1962,7 +1972,7 @@ void BaloreHandBHitBox_Update(struct EwramData_EntityData *entity)
                 struct EwramData_EntityData *spark;
                 x = (s16)(0xFFF8 + entity->posX.part16.integer + (RandomNumberGenerator() & 7));
                 y = (s16)(entity->posY.part16.integer - 22);
-                spark = EntityCreateInRange(0x49, 0xCF, BaloreDebris_Update);
+                spark = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, BaloreDebris_Update);
                 if (spark != NULL)
                 {
                     spark->ext.balorePart.body = body;
@@ -1980,7 +1990,7 @@ void BaloreHandBHitBox_Update(struct EwramData_EntityData *entity)
         {
             x = (s16)entity->posX.part16.integer;
             y = (s16)(entity->posY.part16.integer + 24);
-            child = EntityCreateInRange(0x49, 0xCF, BaloreDebris_Update);
+            child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, BaloreDebris_Update);
             if (child != NULL)
             {
                 child->ext.balorePart.body = body;
@@ -2077,7 +2087,7 @@ void BaloreHandB_Update(struct EwramData_EntityData *entity)
         }
         if (BaloreHand_SteerToPoint(entity, sBaloreHandBSteeringParams0))
         {
-            Music_SetCurrent(17);
+            Music_SetCurrent(MUS_FORMIDABLE_FOE);
             ANIM(entity) = 9;
             entity->timer = 8;
             entity->state = 2;
@@ -2171,7 +2181,7 @@ void Balore_CreateIntro(struct EwramData_EntityData *entity)
     x = &entity->posX.part16.integer;
     for (offset = -0x80; i < 32; offset += 8, i++)
     {
-        e = EntityCreateInRange(0x49, 0xCF, BaloreIntroPiece_Update);
+        e = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, BaloreIntroPiece_Update);
         if (e == NULL)
             return;
         e->ext.balorePiece.owner = entity;
@@ -2185,7 +2195,7 @@ void Balore_CreateIntro(struct EwramData_EntityData *entity)
 /**
  * @brief B6880 | Balore entrance cutscene: waits until the player is near
  * (Entity_DistanceToPoint distance <= 0xBFFFFF: takes the input, stateFlags bit 0, song
- * 0x1010), then closer (<= 0x3FFFFF, Music_SetCurrent(0x10)); after a 0xA0-frame
+ * 0x1010), then closer (<= 0x3FFFFF, Music_SetCurrent(MUS_CONFRONTATION)); after a 0xA0-frame
  * rumble (song 0xFF on frame 0x50) it spawns BaloreIntroPart_Update, waits, runs
  * Balore_CreateHand and a few timers, then releases the input, creates the real
  * Balore (EnemyBaloreUpdate / EnemyBaloreCreate) at its position and
@@ -2209,8 +2219,8 @@ void BaloreIntro_Update(struct EwramData_EntityData *entity)
         if (Entity_DistanceToPoint(entity, player->posX.whole, player->posY.whole) > 0xBFFFFF)
             break;
         entity->state = 2;
-        PlaySong(0x1010);
-        gEwramData->gameState.stateFlags |= 1;
+        PlaySong(SONG_MUTE);
+        gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
         Game_SetMenusEnabled(0);
         break;
     }
@@ -2220,7 +2230,7 @@ void BaloreIntro_Update(struct EwramData_EntityData *entity)
         if (Entity_DistanceToPoint(entity, player->posX.whole, player->posY.whole) > 0x3FFFFF)
             break;
         entity->state = 3;
-        Music_SetCurrent(0x10);
+        Music_SetCurrent(MUS_CONFRONTATION);
         break;
     }
     case 3:
@@ -2236,7 +2246,7 @@ void BaloreIntro_Update(struct EwramData_EntityData *entity)
             entity->timer--;
             break;
         }
-        e = EntityCreateInRange(0x49, 0xCF, BaloreIntroPart_Update);
+        e = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, BaloreIntroPart_Update);
         if (e)
         {
             e->ext.balorePiece.owner = entity;
@@ -2290,7 +2300,7 @@ void BaloreIntro_Update(struct EwramData_EntityData *entity)
         entity->state = 11;
         break;
     case 11:
-        gEwramData->gameState.stateFlags &= ~1;
+        gEwramData->gameState.stateFlags &= ~STATE_EVENT_RUNNING;
         Game_SetMenusEnabled(1);
         SharedObjPalette_ResetSlots();
         ObjGfx_Unload((s8)entity->ext.balore.gfx);
@@ -2308,7 +2318,7 @@ void BaloreIntro_Update(struct EwramData_EntityData *entity)
         return;
     }
     Anim_Update(entity);
-    if (gEwramData->gameState.stateFlags & 1)
+    if (gEwramData->gameState.stateFlags & STATE_EVENT_RUNNING)
     {
         input = 0;
         if (entity->state == 2)

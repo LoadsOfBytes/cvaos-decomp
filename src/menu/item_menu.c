@@ -20,6 +20,8 @@
 #include "data/data_4F1444.h"
 #include "menu_page.h"
 #include "math_inline.h"
+#include "constants/songs.h"
+#include "constants/game_flags.h"
 
 /* Equipment menu input handler: A equips the highlighted item (weapon or
  * armor/accessory slot unk_B - 1), A/B closes the list and redraws the page,
@@ -55,7 +57,7 @@ s32 EquipmentMenu_UpdateList(struct EwramData_EntityData *page)
     }
     if (new & 1)
     {
-        PlaySong(0xF4);
+        PlaySong(SE_MENU_CONFIRM);
         if (page->subState == 0)
         {
             if (stats->equippedWeapon != 0xFF)
@@ -89,11 +91,11 @@ s32 EquipmentMenu_UpdateList(struct EwramData_EntityData *page)
         if (new & 1)
         {
             EquipmentMenu_DrawEquippedIcons(stats, page);
-            PlaySong(0xF3);
+            PlaySong(SE_MENU_SELECT);
         }
         else
         {
-            PlaySong(0xF0);
+            PlaySong(SE_MENU_BACK);
         }
         Menu_DrawAttackDefense(0x16, 2);
         Menu_DrawCurrentStats(0x16, 5);
@@ -147,7 +149,7 @@ s32 EquipmentMenu_UpdateList(struct EwramData_EntityData *page)
             EquipmentMenu_DrawStatPreview(page);
         }
         Cursor_SetTilePosition((page->ext.menuList.cursor & 1) ? 0x10 : 2, ((page->ext.menuList.cursor - page->ext.menuList.top) >> 1) + 0xB);
-        PlaySong(0xF1);
+        PlaySong(SE_MENU_CURSOR);
     }
     Cursor_Draw();
     return 0;
@@ -265,7 +267,7 @@ s32 ItemMenu_UseItem(struct PlayerStatus *stats, struct EwramData_EntityData *me
     const struct ConsumableInfo *info;
     s32 effect;
     u16 amount, maxMP;
-    if ((gEwramData->gameState.gameFlagsTail[0] & 0x100000) || (u8)menu->ext.menuPage.item == 0xFF)
+    if ((gEwramData->gameState.gameFlagsTail[GAME_FLAG_WORD(FLAG_NAME_NOUSE) - 2] & GAME_FLAG_BIT(FLAG_NAME_NOUSE)) || (u8)menu->ext.menuPage.item == 0xFF)
         return 0;
     info = &sConsumableInfo[(u8)menu->ext.menuPage.item];
     effect = info->effect;
@@ -309,7 +311,7 @@ s32 ItemMenu_UseItem(struct PlayerStatus *stats, struct EwramData_EntityData *me
     if (effect == 3)
     {
         PlaySong(0x198);
-        PlaySong(0xEF);
+        PlaySong(SE_MENU_DENIED);
     }
     else PlaySong(0xF8);
     return changed;
@@ -564,7 +566,7 @@ s32 ItemMenu_Update(struct EwramData_EntityData *page)
         }
         else
         {
-            PlaySong(0xEF);
+            PlaySong(SE_MENU_DENIED);
         }
     }
     else
@@ -574,11 +576,11 @@ s32 ItemMenu_Update(struct EwramData_EntityData *page)
         {
             MenuItemIcon_Delete();
             MenuPageTitle_Delete(&gEwramData->entityData[20]);
-            PlaySong(0xF0);
+            PlaySong(SE_MENU_BACK);
             return -1;
         }
         if (moved)
-            PlaySong(0xF1);
+            PlaySong(SE_MENU_CURSOR);
     }
     if (moved)
     {

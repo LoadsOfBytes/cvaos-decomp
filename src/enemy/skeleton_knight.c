@@ -16,12 +16,21 @@
 #include "damage_numbers.h"
 #include "entity_motion.h"
 #include "hitbox.h"
+#include "constants/songs.h"
 
 u8 SkeletonKnight_LoadGraphics(struct EwramData_EntityData *entity);
 void SkeletonKnight_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void SkeletonKnight_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 /* EnemySkeletonKnightCreate 0x0808EC64..0x0808ECF7. */
+
+/* States of SkeletonKnight (entity->state), named after the update function the dispatcher calls. */
+enum {
+    SKELETON_KNIGHT_STATE_WALK = 0,
+    SKELETON_KNIGHT_STATE_ATTACK = 1,
+    SKELETON_KNIGHT_STATE_FRAGMENT_DEATH = 2,
+    SKELETON_KNIGHT_STATE_ANIM_ONLY = 3,
+};
 
 /**
  * @brief 8EC64 | Skeleton Knight create: load the graphics (delete the
@@ -41,7 +50,7 @@ void EnemySkeletonKnightCreate(struct EwramData_EntityData *entity)
     Enemy_ResetFromTemplate(entity);
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 3;
+        entity->state = SKELETON_KNIGHT_STATE_ANIM_ONLY;
         return;
     }
     if (Anim_GetMaxBoxCount(entity) > 1)
@@ -50,7 +59,7 @@ void EnemySkeletonKnightCreate(struct EwramData_EntityData *entity)
         Hit_Enable(entity, 8, SkeletonKnight_DamagePlayerOnContact, SkeletonKnight_OnHit);
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
-    entity->state = 0;
+    entity->state = SKELETON_KNIGHT_STATE_WALK;
 }
 
 /**
@@ -101,7 +110,7 @@ void SkeletonKnight_UpdateWalk(struct EwramData_EntityData *entity)
         {
             if ((RandomNumberGenerator() & 0x7F) <= 0x40)
             {
-                entity->state = 1;
+                entity->state = SKELETON_KNIGHT_STATE_ATTACK;
                 entity->subState = 0;
                 entity->timer = 0;
                 break;
@@ -164,7 +173,7 @@ void SkeletonKnight_UpdateWalk(struct EwramData_EntityData *entity)
         if (Target_IsInRect((s16)(entity->posX.part16.integer - 0x28), (s16)(entity->posY.part16.integer - 0x28), 0x50, 0x50) && entity->timer > 0x3B
             && (RandomNumberGenerator() & 0x7F) <= 0x40)
         {
-            entity->state = 1;
+            entity->state = SKELETON_KNIGHT_STATE_ATTACK;
             entity->subState = m;
             entity->timer = m;
         }
@@ -201,7 +210,7 @@ void SkeletonKnight_UpdateAttack(struct EwramData_EntityData *entity)
         break;
     case 2:
         if (entity->timer == 0xB)
-            PlaySong(0x85);
+            PlaySong(SE_SWING);
         if (entity->timer++ > 0x1D)
         {
             Anim_StartIndexed(entity, 4, 0, 0);
@@ -213,7 +222,7 @@ void SkeletonKnight_UpdateAttack(struct EwramData_EntityData *entity)
         if (entity->timer++ > 0x13)
         {
             Anim_StartIndexed(entity, 1, 0, 1);
-            entity->state = 0;
+            entity->state = SKELETON_KNIGHT_STATE_WALK;
             entity->subState = 1;
             entity->timer = 0;
             entity->velY.whole = 0x10000;
@@ -251,7 +260,7 @@ void SkeletonKnight_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16
         PlaySong(0x72);
         entity->palette = entity->basePalette;
         entity->timer = 0x28;
-        entity->state = 2;
+        entity->state = SKELETON_KNIGHT_STATE_FRAGMENT_DEATH;
         entity->subState = 0;
     }
 }
@@ -299,16 +308,16 @@ void EnemySkeletonKnightUpdate(struct EwramData_EntityData *entity)
         return;
     switch (entity->state)
     {
-        case 0:
+        case SKELETON_KNIGHT_STATE_WALK:
             SkeletonKnight_UpdateWalk(entity);
             break;
-        case 1:
+        case SKELETON_KNIGHT_STATE_ATTACK:
             SkeletonKnight_UpdateAttack(entity);
             break;
-        case 2:
+        case SKELETON_KNIGHT_STATE_FRAGMENT_DEATH:
             Enemy_UpdateFragmentDeath(entity);
             break;
-        case 3:
+        case SKELETON_KNIGHT_STATE_ANIM_ONLY:
             Anim_Update(entity);
             return;
     }

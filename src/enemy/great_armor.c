@@ -27,6 +27,8 @@
 #include "damage_numbers.h"
 #include "entity_hit.h"
 #include "hit_shared_history.h"
+#include "constants/songs.h"
+#include "constants/hit_flags.h"
 
 /* Great Armor update. */
 void GreatArmor_UpdateWalk(struct EwramData_EntityData *);
@@ -65,6 +67,12 @@ void GreatArmorShockwave_DamagePlayerOnContact(struct EwramData_EntityData *);
 void GreatArmor_SpawnParticle(s32, s32, s32, s32, s32);
 void GreatArmorSlashEffect_Update(struct EwramData_EntityData *entity);
 
+/* States of GreatArmor (entity->state), named after the update function the dispatcher calls. */
+enum {
+    GREAT_ARMOR_STATE_WALK = 0,
+    GREAT_ARMOR_STATE_ATTACK = 1,
+};
+
 /* Great Armor: dispatch AI (0) / attacks (1), crumble when killed (2,
  * dust, free the parts), frozen (3); the second box follows part 4. */
 void EnemyGreatArmorUpdate(struct EwramData_EntityData *entity)
@@ -84,10 +92,10 @@ void EnemyGreatArmorUpdate(struct EwramData_EntityData *entity)
     {
         switch (entity->state)
         {
-        case 0:
+        case GREAT_ARMOR_STATE_WALK:
             GreatArmor_UpdateWalk(entity);
             break;
-        case 1:
+        case GREAT_ARMOR_STATE_ATTACK:
             GreatArmor_UpdateAttack(entity);
             break;
         case 2:
@@ -120,8 +128,8 @@ void EnemyGreatArmorUpdate(struct EwramData_EntityData *entity)
     }
     if (entity->state != 2)
     {
-        if (GUARD(entity)) entity->hit.flags |= 4;
-        else entity->hit.flags &= ~4;
+        if (GUARD(entity)) entity->hit.flags |= HIT_NO_DAMAGE;
+        else entity->hit.flags &= ~HIT_NO_DAMAGE;
         Hit_CheckWithPlayer(results, entity);
     }
     Entity_ClampXToRoom(entity, 1);
@@ -241,8 +249,8 @@ void EnemyGreatArmorCreate(struct EwramData_EntityData *entity)
                 box.height = 54;
                 HitBox_SetAttack(part, &box);
                 HitBox_SetBody(part, &box);
-                part->hit.flags &= 0xFB;
-                part->hit.flags &= 0xFD;
+                part->hit.flags &= (u8)~HIT_NO_DAMAGE;
+                part->hit.flags &= (u8)~HIT_NO_ATTACK;
             }
         }
         else
@@ -296,9 +304,9 @@ void EnemyGreatArmorCreate(struct EwramData_EntityData *entity)
     entity->ext.joint.hurtMask = 0x1001;
     if (entity->spawnParam0 != 0)
     {
-        Music_SetCurrent(0x10);
+        Music_SetCurrent(MUS_CONFRONTATION);
         Player_SetSelectedTarget(entity);
-        gEwramData->gameState.stateFlags |= 2;
+        gEwramData->gameState.stateFlags |= STATE_BOSS_FIGHT;
     }
     switch (entity->enemyId)
     {
@@ -460,7 +468,7 @@ void GreatArmor_UpdateWalk(struct EwramData_EntityData *entity)
         break;
     case 2:
         UPDATE() GRAVITY() COUNTDOWN() TIMER = t1[VARIANT]; STATE++; FRAME = 3; POSE3(0)
-        STOMP(entity->flipX ? 0xA0000 : -0xA0000) PlaySong(0x7C);
+        STOMP(entity->flipX ? 0xA0000 : -0xA0000) PlaySong(SE_HEAVY_STEP);
         break;
     case 3:
         WALK_A(0x32, 2, -0x1000, STATE++, 4, 10, 2)
@@ -469,7 +477,7 @@ void GreatArmor_UpdateWalk(struct EwramData_EntityData *entity)
         break;
     case 5:
         UPDATE() GRAVITY() COUNTDOWN() TIMER = t1[VARIANT]; STATE++; FRAME = 5; POSE3(0)
-        STOMP(entity->flipX ? 0xA0000 : -0xA0000) PlaySong(0x7C);
+        STOMP(entity->flipX ? 0xA0000 : -0xA0000) PlaySong(SE_HEAVY_STEP);
         break;
     case 6:
         WALK_A(0x2F, 4, 0x1000, STATE = 1, 2, 7, 4)
@@ -478,7 +486,7 @@ void GreatArmor_UpdateWalk(struct EwramData_EntityData *entity)
         break;
     case 8:
         UPDATE() GRAVITY() COUNTDOWN() TIMER = t1[VARIANT]; STATE++; FRAME = 3;
-        STOMP(entity->flipX ? -0x80000 : 0x80000) POSE3(0) PlaySong(0x7C);
+        STOMP(entity->flipX ? -0x80000 : 0x80000) POSE3(0) PlaySong(SE_HEAVY_STEP);
         break;
     case 9:
         WALK_B(0x32, 2, -0x1000, 4, 4, 10, 2)
@@ -487,7 +495,7 @@ void GreatArmor_UpdateWalk(struct EwramData_EntityData *entity)
         break;
     case 11:
         UPDATE() GRAVITY() COUNTDOWN() TIMER = t1[VARIANT]; STATE++; FRAME = 5;
-        STOMP(entity->flipX ? -0x80000 : 0x80000) POSE3(0) PlaySong(0x7C);
+        STOMP(entity->flipX ? -0x80000 : 0x80000) POSE3(0) PlaySong(SE_HEAVY_STEP);
         break;
     case 12:
         WALK_B(0x2F, 4, 0x1000, 1, 2, 7, 4)
@@ -546,7 +554,7 @@ void GreatArmor_UpdateWalk(struct EwramData_EntityData *entity)
         break;
     case 48:
         UPDATE() GRAVITY() COUNTDOWN() if ((s8)entity->ext.greatArmor.hopTurns == 0) TIMER = 14; else TIMER = 30; STATE++; FRAME = 0x21;
-        STOMP(entity->flipX ? -0x80000 : 0x80000) POSE3(0) PlaySong(0x7C);
+        STOMP(entity->flipX ? -0x80000 : 0x80000) POSE3(0) PlaySong(SE_HEAVY_STEP);
         break;
     case 49:
         HOP_END(0x32, 0x20, -0x1000, 4, 4)
@@ -555,7 +563,7 @@ void GreatArmor_UpdateWalk(struct EwramData_EntityData *entity)
         break;
     case 51:
         UPDATE() GRAVITY() COUNTDOWN() if ((s8)entity->ext.greatArmor.hopTurns == 0) TIMER = 14; else TIMER = 30; STATE++; FRAME = 0x23;
-        STOMP(entity->flipX ? -0x80000 : 0x80000) POSE3(0) PlaySong(0x7C);
+        STOMP(entity->flipX ? -0x80000 : 0x80000) POSE3(0) PlaySong(SE_HEAVY_STEP);
         break;
     case 52:
         HOP_END(0x2F, 0x22, 0x1000, 1, 2)
@@ -799,14 +807,14 @@ void GreatArmor_UpdateAttack(struct EwramData_EntityData *entity)
         break;
     }
     case 41:
-        UPDATE() COUNTDOWN() FRAME = 25; STATE++; TIMER = t7[VARIANT]; GreatArmor_AttachPart(entity,12,13,0x16800,0x130000); ARMS(-0x200) PlaySong(0x75);
+        UPDATE() COUNTDOWN() FRAME = 25; STATE++; TIMER = t7[VARIANT]; GreatArmor_AttachPart(entity,12,13,0x16800,0x130000); ARMS(-0x200) PlaySong(SE_LIGHTNING);
         break;
 
     case 42:
         UPDATE() SPARKS() COUNTDOWN() TIMER = 4; STATE++; POSE(0,0)
         break;
     case 43:
-        UPDATE() SPARKS() COUNTDOWN() STEP(10,26) SLOW_POSE(0x16800,0x14000) PlaySong(0x85);
+        UPDATE() SPARKS() COUNTDOWN() STEP(10,26) SLOW_POSE(0x16800,0x14000) PlaySong(SE_SWING);
         break;
     case 44:
         UPDATE() COUNTDOWN() STEP(6,27) POSE(0,0) SHOCKWAVE()
@@ -827,14 +835,14 @@ void GreatArmor_UpdateAttack(struct EwramData_EntityData *entity)
         UPDATE() COUNTDOWN() RECOVER(3)
         break;
     case 51:
-        UPDATE() COUNTDOWN() FRAME = 29; STATE++; TIMER = t7[VARIANT]; GreatArmor_AttachPart(entity,12,13,0x16800,0x130000); ARMS(-0x200) PlaySong(0x75);
+        UPDATE() COUNTDOWN() FRAME = 29; STATE++; TIMER = t7[VARIANT]; GreatArmor_AttachPart(entity,12,13,0x16800,0x130000); ARMS(-0x200) PlaySong(SE_LIGHTNING);
         break;
 
     case 52:
         UPDATE() SPARKS() COUNTDOWN() TIMER = 4; STATE++; POSE(0,0)
         break;
     case 53:
-        UPDATE() SPARKS() COUNTDOWN() STEP(10,30) SLOW_POSE(0x16800,0x14000) PlaySong(0x85);
+        UPDATE() SPARKS() COUNTDOWN() STEP(10,30) SLOW_POSE(0x16800,0x14000) PlaySong(SE_SWING);
         break;
     case 54:
         UPDATE() COUNTDOWN() STEP(6,31) POSE(0,0) SHOCKWAVE()
@@ -1245,15 +1253,15 @@ void GreatArmorPart_Update(struct EwramData_EntityData *entity)
                         box.h = 8;
                     }
                     HitBox_SetAttack(entity, &box);
-                    entity->hit.flags &= 0xFD;
-                    entity->hit.flags |= 4;
+                    entity->hit.flags &= (u8)~HIT_NO_ATTACK;
+                    entity->hit.flags |= HIT_NO_DAMAGE;
                     Hit_CheckWithPlayerSharedHistory(&result, entity, parent);
                 }
             }
             else
             {
-                entity->hit.flags |= 4;
-                entity->hit.flags |= 2;
+                entity->hit.flags |= HIT_NO_DAMAGE;
+                entity->hit.flags |= HIT_NO_ATTACK;
             }
             if (HAS_SPRITE(entity))
                 ObjAffine_Set(entity->velX.whole, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
@@ -1299,7 +1307,7 @@ void GreatArmorPart_Update(struct EwramData_EntityData *entity)
         if (--entity->timer <= 1)
         {
             if (HAS_SPRITE(entity)) ObjAffine_Free(entity->affineIndex);
-            if (JOINT(entity) == 4) PlaySong(0x6E);
+            if (JOINT(entity) == 4) PlaySong(SE_ENEMY_DEATH);
             EntityDelete(entity);
         }
         else if (!entity->hidden)
@@ -1318,7 +1326,7 @@ void GreatArmorPart_Update(struct EwramData_EntityData *entity)
  */
 void GreatArmor_SpawnShockwave(struct EwramData_EntityData *owner, s32 dx, s32 dy)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, GreatArmorShockwave_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, GreatArmorShockwave_Update);
     u32 box = 0x1008F0FC;
     if (entity != NULL)
     {
@@ -1333,8 +1341,8 @@ void GreatArmor_SpawnShockwave(struct EwramData_EntityData *owner, s32 dx, s32 d
         entity->hidden = 0;
         Hit_Enable(entity, 8, GreatArmorShockwave_DamagePlayerOnContact, 0);
         HitBox_SetAttack(entity, &box);
-        entity->hit.flags |= 4;
-        entity->hit.flags &= ~2;
+        entity->hit.flags |= HIT_NO_DAMAGE;
+        entity->hit.flags &= ~HIT_NO_ATTACK;
         Entity_SnapToGround(entity);
         entity->attack = owner->attack;
         entity->scrollWithBg = 1;
@@ -1477,7 +1485,7 @@ void GreatArmorShockwave_DamagePlayerOnContact(struct EwramData_EntityData *enti
  */
 void GreatArmor_SpawnParticle(s32 x, s32 y, s32 velocityX, s32 velocityY, s32 layer)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticle);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateParticle);
     s32 gfx;
 
     if (child == NULL)
@@ -1503,7 +1511,7 @@ void GreatArmor_SpawnParticle(s32 x, s32 y, s32 velocityX, s32 velocityY, s32 la
  */
 void GreatArmorSlashEffect_Spawn(struct EwramData_EntityData *entity, s32 x, s32 y, s32 velocityX, s32 velocityY, s32 layer)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, GreatArmorSlashEffect_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, GreatArmorSlashEffect_Update);
     struct GreatArmorPart *parts = entity->ext.greatArmor.parts;
     s32 gfx;
 
@@ -1584,7 +1592,7 @@ void GreatArmorPart_OnHit(struct EwramData_EntityData *entity, struct EwramData_
     Player_CalculateAttackPower(hit[2]);
     Hit_ResolveDamage(entity, attacker, hit, 0);
     Entity_ShowDamage(entity, 0, 0);
-    PlaySong(0x69);
+    PlaySong(SE_METAL_HIT);
 }
 
 /**

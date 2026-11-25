@@ -21,6 +21,12 @@ void Fleaman_UpdateDeath(struct EwramData_EntityData *entity);
 
 /* EnemyFleamanUpdate. */
 
+/* States of Fleaman (entity->state), named after the update function the dispatcher calls. */
+enum {
+    FLEAMAN_STATE_MOVEMENT = 1,
+    FLEAMAN_STATE_DEATH = 255,
+};
+
 /**
  * @brief C1F1C | Fleaman update. State 3: start the animation once, then
  * only animate. Otherwise (Enemy_UpdateHitFlash unless state 0xFF) skip the state
@@ -44,29 +50,29 @@ void EnemyFleamanUpdate(struct EwramData_EntityData *entity)
         }
         return;
     }
-    if (entity->state != 0xFF)
+    if (entity->state != FLEAMAN_STATE_DEATH)
         Enemy_UpdateHitFlash(entity);
-    if (Entity_IsTimeStopped(entity) && entity->state != 0xFF)
+    if (Entity_IsTimeStopped(entity) && entity->state != FLEAMAN_STATE_DEATH)
     {
         Hit_CheckWithPlayer(&result, entity);
         return;
     }
-    if (entity->hitFlashTimer && entity->state != 2 && entity->state != 0xFF)
+    if (entity->hitFlashTimer && entity->state != 2 && entity->state != FLEAMAN_STATE_DEATH)
     {
         Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
     {
-        case 1:
+        case FLEAMAN_STATE_MOVEMENT:
             Fleaman_UpdateMovement(entity);
             break;
-        case 0xFF:
+        case FLEAMAN_STATE_DEATH:
             Fleaman_UpdateDeath(entity);
             break;
     }
     Entity_AnimateWithBoxes(entity);
-    if (entity->state != 0xFF)
+    if (entity->state != FLEAMAN_STATE_DEATH)
         Hit_CheckWithPlayer(&result, entity);
 }
 
@@ -275,7 +281,7 @@ void Fleaman_UpdateDeath(struct EwramData_EntityData *entity)
             entity->ext.fleaman.anim = 2;
             entity->palette = entity->basePalette;
             entity->timer = 0x32;
-            entity->state = 0xFF;
+            entity->state = FLEAMAN_STATE_DEATH;
             entity->velX.whole = 0;
             entity->accelX.whole = 0;
             entity->velY.whole = 0;

@@ -896,7 +896,7 @@ s32 GameModeInGameUpdate(void)
                     break;
     
                 case 4:
-                    if ((gEwramData->gameState.stateFlags & 1) && (gEwramData->playerStatus.currentCharacter == 0))
+                    if ((gEwramData->gameState.stateFlags & STATE_EVENT_RUNNING) && (gEwramData->playerStatus.currentCharacter == 0))
                     {
                         gEwramData->paused = 0;
                     }
@@ -1047,10 +1047,10 @@ s32 GameModeInGameUpdate(void)
                 gameState->subMode = 1;
                 
             }
-            else if (gEwramData->gameState.stateFlags & 0x20000)
+            else if (gEwramData->gameState.stateFlags & STATE_WARP_PENDING)
             {
                 gameState->subMode = 1;
-                gEwramData->gameState.stateFlags &= ~0x20000;
+                gEwramData->gameState.stateFlags &= ~STATE_WARP_PENDING;
             }
             else
             {
@@ -1424,11 +1424,11 @@ s32 InGame_UpdateDeath(void)
     UpdateInGameTimer();
     timerState->bgEffectFrameCounter += 1;
 
-    if (!(gEwramData->gameState.stateFlags & 0x20))
+    if (!(gEwramData->gameState.stateFlags & STATE_HUD_HIDDEN))
     {
         Hud_UpdateMessageWindow(timerState);
         Hud_UpdateHpMpGauges(timerState);
-        gEwramData->gameState.stateFlags &= ~0x2000000;
+        gEwramData->gameState.stateFlags &= ~STATE_MESSAGE_WINDOW_CLOSED;
     }
 
     switch (gameState->subModeStep)
@@ -1449,10 +1449,10 @@ s32 InGame_UpdateDeath(void)
             {
                 BgPalette_StopColorFade();
                 ObjPalette_StopColorFade();
-                if (gEwramData->gameState.stateFlags & 0x200000)
+                if (gEwramData->gameState.stateFlags & STATE_CHAOS_FIGHT)
                 {
                     gEwramData->startPauseEnabled = 0;
-                    gEwramData->gameState.stateFlags |= 0x800000;
+                    gEwramData->gameState.stateFlags |= STATE_ROOM_JUMP_NO_PAUSE;
                     RoomJump_SetDestination((void *)sDebugEventRoom17, 0, 0, 0, 0);
                     RoomJump_Begin(&gEwramData->gameState);
                     gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT;
@@ -1483,11 +1483,11 @@ s32 InGame_UpdateTimerAndHud(void)
     UpdateInGameTimer();
     gameState->bgEffectFrameCounter += 1;
 
-    if (!(gEwramData->gameState.stateFlags & 0x20))
+    if (!(gEwramData->gameState.stateFlags & STATE_HUD_HIDDEN))
     {
         Hud_UpdateMessageWindow(gameState);
         Hud_UpdateHpMpGauges(gameState);
-        gEwramData->gameState.stateFlags &= ~0x2000000;
+        gEwramData->gameState.stateFlags &= ~STATE_MESSAGE_WINDOW_CLOSED;
     }
 
     return 1;

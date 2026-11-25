@@ -35,6 +35,8 @@
 #include "damage_numbers.h"
 #include "red_soul_skills_shared.h"
 #include "entity_hit.h"
+#include "constants/songs.h"
+#include "constants/hit_flags.h"
 
 extern u8 sEndingRoomDefinition[];
 extern void *memcpy(void *, const void *, unsigned long);
@@ -83,7 +85,7 @@ s32 GrahamPart_TakeDamage(struct EwramData_EntityData *entity, s32 attacker, u16
 /* Graham encounter setup, including character/event dependent scene paths. */
 void EnemyGrahamCreate(struct EwramData_EntityData *entity)
 {
-    if(gEwramData->gameState.stateFlags & 0x10000)
+    if(gEwramData->gameState.stateFlags & STATE_ENDING_SEQUENCE)
     {
         entity->deleteRequested=1;
         return;
@@ -100,7 +102,7 @@ void EnemyGrahamCreate(struct EwramData_EntityData *entity)
             s32 zero;
             entity->ext.graham.flags|=0x80;
             zero=0;
-            if(gEwramData->gameState.bossEventFlags & 1)
+            if(gEwramData->gameState.bossEventFlags & BOSS_DEFEATED_GRAHAM)
             {
                 Graham_CreateSceneObject(entity,5);
                 entity->state=2;
@@ -119,7 +121,7 @@ void EnemyGrahamCreate(struct EwramData_EntityData *entity)
     {
         Game_SetMenusEnabled(1);
         Player_SetSelectedTarget(entity);
-        gEwramData->gameState.stateFlags|=2;
+        gEwramData->gameState.stateFlags|=STATE_BOSS_FIGHT;
     }
     Enemy_ResetFromTemplate(entity);
     entity->spriteLayer=20;
@@ -135,12 +137,12 @@ void EnemyGrahamCreate(struct EwramData_EntityData *entity)
         entity->subState=zero;
         return;
     }
-    if((gEwramData->gameState.bossEventFlags & 1) && gEwramData->gameState.bossRushMode==0)
+    if((gEwramData->gameState.bossEventFlags & BOSS_DEFEATED_GRAHAM) && gEwramData->gameState.bossRushMode==0)
     {
         EntityDelete(entity);
         return;
     }
-    Music_SetCurrent(19);
+    Music_SetCurrent(MUS_BATTLE_FOR_THE_THRONE);
     GrahamFirstForm_Create(entity);
     entity->state=3;
     entity->stage=0;
@@ -160,9 +162,9 @@ s32 Graham_CreateSceneObject(struct EwramData_EntityData *entity,s32 index)
     s32 facing;
     if(!(entity->ext.graham.flags & 0x80))
         return 0;
-    if(gEwramData->gameState.stateFlags & 0x10)
+    if(gEwramData->gameState.stateFlags & STATE_PLAYER_DEAD)
         return 0;
-    object=EntityCreateInRange(0x1B,0x48,EntityUpdateNothing);
+    object=EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST,EntityUpdateNothing);
     if(!object)
         return 0;
     entity->ext.grahamScene.objectIndex=ENTITY_INDEX(object);
@@ -227,7 +229,7 @@ void Graham_UpdateIntro(struct EwramData_EntityData *entity)
                 entity->stage++;
             break;
         case 2:
-            if(!(gEwramData->gameState.stateFlags & 0x100))
+            if(!(gEwramData->gameState.stateFlags & STATE_DOOR_ACTIVE))
             {
                 entity->hidden=1;
                 helper->deleteRequested=1;
@@ -244,7 +246,7 @@ void Graham_UpdateIntro(struct EwramData_EntityData *entity)
             else if(object->state==128)
             {
                 entity->spawnParam0=0;
-                gEwramData->gameState.stateFlags&=~0x40000;
+                gEwramData->gameState.stateFlags&=~STATE_MUSIC_COMMAND_SENT;
                 EnemyGrahamCreate(entity);
             }
             break;
@@ -294,7 +296,7 @@ struct EwramData_EntityData *Graham_CreateSceneProjectile(s32 xInput,s32 yInput,
 {
     u16 x=xInput;
     u16 y=yInput;
-    struct EwramData_EntityData *effect=EntityCreateInRange(0x49,0xCF,GrahamSceneProjectile_Update);
+    struct EwramData_EntityData *effect=EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST,GrahamSceneProjectile_Update);
     if(effect)
     {
         s32 zero;
@@ -313,13 +315,13 @@ struct EwramData_EntityData *Graham_CreateSceneProjectile(s32 xInput,s32 yInput,
         if(homing)
         {
             Hit_Enable(effect,11,GrahamSceneProjectile_OnContact,0);
-            effect->hit.flags|=4;
+            effect->hit.flags|=HIT_NO_DAMAGE;
             HitBox_SetAttackRaw(effect,0x0C0CFAFA);
         }
         else
         {
-            effect->hit.flags|=2;
-            effect->hit.flags|=4;
+            effect->hit.flags|=HIT_NO_ATTACK;
+            effect->hit.flags|=HIT_NO_DAMAGE;
         }
         {
         s32 turn;
@@ -501,7 +503,7 @@ void Graham_SpawnSceneProjectile(struct EwramData_EntityData *entity)
 void Graham_UpdateDefeatScene(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *object=&gEwramData->entityData[(u8)entity->ext.grahamScene.objectIndex];
-    if(gEwramData->gameState.stateFlags & 0x10) return;
+    if(gEwramData->gameState.stateFlags & STATE_PLAYER_DEAD) return;
     switch(entity->subState)
     {
         case 0:
@@ -555,7 +557,7 @@ void Graham_UpdateDefeatScene(struct EwramData_EntityData *entity)
                 entity->subState++;
                 entity->stage=0;
                 FLAGS(entity)|=0x40;
-                gEwramData->gameState.stateFlags&=~2;
+                gEwramData->gameState.stateFlags&=~STATE_BOSS_FIGHT;
             }
             break;
         case 3:
@@ -570,15 +572,15 @@ void Graham_UpdateDefeatScene(struct EwramData_EntityData *entity)
                 }
                 ObjGfx_Unload(ObjGfx_Find(graphics));
                 ObjGfx_Unload(ObjGfx_Find(sGrahamGfx3));
-                gEwramData->gameState.bossEventFlags|=1;
-                PlaySong(0x1010);
+                gEwramData->gameState.bossEventFlags|=BOSS_DEFEATED_GRAHAM;
+                PlaySong(SONG_MUTE);
                 entity->timer=64;
                 entity->stage++;
             }
             if(--entity->timer==255)
             {
                 FLAGS(entity)|=0x40;
-                gEwramData->gameState.stateFlags&=~2;
+                gEwramData->gameState.stateFlags&=~STATE_BOSS_FIGHT;
                 if(gEwramData->gameState.bossRushMode==0)
                 {
                     if(gEwramData->playerStatus.currentCharacter==1)
@@ -593,7 +595,7 @@ void Graham_UpdateDefeatScene(struct EwramData_EntityData *entity)
                             struct EwramData_EntityData *projectile=Graham_CreateSceneProjectile((s16)entity->posX.part16.integer,
                                                                      (s16)(entity->posY.part16.integer-16),1);
                             entity->ext.grahamScene.defeatProjectileIndex=ENTITY_INDEX(projectile);
-                            gEwramData->gameState.stateFlags&=~0x10000;
+                            gEwramData->gameState.stateFlags&=~STATE_ENDING_SEQUENCE;
                             entity->subState++;
                             entity->stage=0;
                         }
@@ -663,7 +665,7 @@ void Graham_UpdateDefeatScene(struct EwramData_EntityData *entity)
             if(entity->stage==0)
             {
                 Player_SetSelectedTarget(0);
-                gEwramData->gameState.stateFlags&=~2;
+                gEwramData->gameState.stateFlags&=~STATE_BOSS_FIGHT;
                 entity->stage++;
             }
             Game_SetMenusEnabled(1);
@@ -686,22 +688,22 @@ void Graham_UpdateDefeatScene(struct EwramData_EntityData *entity)
             else if(inner==1)
             {
                 if(entity->timer==100)
-                    PlaySong(0x1041);
+                    PlaySong(MUSIC_PLAYER_MUTE(1));
                 if(!BgPalette_GetPendingFades())
                     entity->stage++;
             }
             else if(inner==2)
             {
                 if(gEwramData->playerStatus.currentCharacter==0)
-                    gEwramData->gameState.stateFlags|=0x2000;
+                    gEwramData->gameState.stateFlags|=STATE_ENDING_GRAHAM;
                 else
-                    gEwramData->gameState.stateFlags|=0x8000;
+                    gEwramData->gameState.stateFlags|=STATE_ENDING_JULIUS;
                 gEwramData->startPauseEnabled=0;
-                gEwramData->gameState.stateFlags|=0x800000;
+                gEwramData->gameState.stateFlags|=STATE_ROOM_JUMP_NO_PAUSE;
                 RoomJump_SetDestination(sEndingRoomDefinition,0,0,0,0);
                 RoomJump_Begin(&gEwramData->gameState);
                 Player_SetSelectedTarget(0);
-                gEwramData->gameState.stateFlags&=~2;
+                gEwramData->gameState.stateFlags&=~STATE_BOSS_FIGHT;
                 gDisplayRegisters.bldCnt=0;
                 entity->stage++;
             }
@@ -791,7 +793,7 @@ struct EwramData_EntityData *Graham_CreateCombatBody(struct EwramData_EntityData
     else
     {
         Entity_EnableBoxes(e, NULL, GrahamCombatBody_OnHit);
-        e->hit.flags |= 2;
+        e->hit.flags |= HIT_NO_ATTACK;
         return e;
     }
 }
@@ -1028,7 +1030,7 @@ struct EwramData_EntityData *Graham_CreateSidePart(struct EwramData_EntityData *
     else
     {
         Entity_EnableBoxes(e, Enemy_OnContact, 0);
-        e->hit.flags |= 4;
+        e->hit.flags |= HIT_NO_DAMAGE;
         return e;
     }
 }
@@ -1253,7 +1255,7 @@ struct EwramData_EntityData *Graham_CreateAttacker(struct EwramData_EntityData *
     else
     {
         Entity_EnableBoxes(e, NULL, GrahamAttacker_OnHit);
-        e->hit.flags |= 2;
+        e->hit.flags |= HIT_NO_ATTACK;
         return e;
     }
 }
@@ -1387,7 +1389,7 @@ static inline void SpawnSpark(struct EwramData_EntityData *entity, s32 dx, s32 d
     y -= 0x460000;
     priority = pri - 1;
 
-    effect = EntityCreateInRange(0x49, 0xCF, GrahamDeathSpark_Update);
+    effect = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, GrahamDeathSpark_Update);
     if (effect != NULL)
     {
         effect->posX.whole = x;
@@ -1405,7 +1407,7 @@ static inline void SpawnSpark2(struct EwramData_EntityData *entity, s32 dx, s32 
     y -= 0x460000;
     priority = pri - 1;
 
-    effect = EntityCreateInRange(0x49, 0xCF, GrahamDeathSpark_Update);
+    effect = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, GrahamDeathSpark_Update);
     if (effect != NULL)
     {
         effect->posX.whole = x;
@@ -1448,7 +1450,7 @@ void GrahamAttacker_UpdateDeath(struct EwramData_EntityData *entity)
         {
         if (--entity->timer == 0xFF)
         {
-            PlaySong(0x6E);
+            PlaySong(SE_ENEMY_DEATH);
             SpawnSpark2(entity, positions[entity->stage][0], positions[entity->stage][1], entity->spriteLayer);
             Effect_SpawnRisingParticle(entity->posX.whole + (positions[entity->stage][0] << 16),
                 entity->posY.whole + ((positions[entity->stage][1] - 0x46) << 16), entity->spriteLayer - 1, 0);
@@ -1520,7 +1522,7 @@ struct EwramData_EntityData *GrahamAttacker_CreateAttackEffect(struct EwramData_
     Anim_StartIndexed(part, 4, 0, 1);
     Anim_Update(part);
     Entity_EnableBoxes(part, Entity_OnPlayerContactDamage, 0);
-    part->hit.flags |= 4;
+    part->hit.flags |= HIT_NO_DAMAGE;
     return part;
     }
     else
@@ -2202,7 +2204,7 @@ void GrahamSpreadProjectile_Update(struct EwramData_EntityData *entity)
     s32 state;
     if((s16)owner->hp<=0)
     {
-        entity->hit.flags|=2;
+        entity->hit.flags|=HIT_NO_ATTACK;
         entity->state=0xF0;
     }
     state=entity->state;
@@ -2298,7 +2300,7 @@ s32 Graham_CreateShotPair(struct EwramData_EntityData *owner, s32 low)
         }
         Anim_Update(*p);
         Entity_EnableBoxes(*p, Enemy_OnContact, 0);
-        (*p++)->hit.flags |= 4;
+        (*p++)->hit.flags |= HIT_NO_DAMAGE;
         i++;
     }
      if (!success)
@@ -2468,7 +2470,7 @@ s32 Graham_SpawnSpiralProjectiles(struct EwramData_EntityData *owner, s32 revers
         (*p)->hidden = 1;
         Anim_Update(*p);
         Entity_EnableBoxes(*p, Enemy_OnContact, 0);
-        (*p++)->hit.flags |= 4;
+        (*p++)->hit.flags |= HIT_NO_DAMAGE;
         i++;
     }
     if (!success)
@@ -2508,7 +2510,7 @@ void GrahamSpiralProjectile_Update(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *owner = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
     if (entity->state != 0xF0 && entity->state != 4 && owner->state == 5 && owner != NULL)
     {
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_ATTACK;
         STATE(entity, 4);
     }
     {
@@ -2653,7 +2655,7 @@ void BossDefeat_EmitParticleWavesUnused(struct EwramData_EntityData *entity)
                         {
                             struct EwramData_EntityData *effect;
                             if (row == 0 && side == 0) continue;
-                            effect = EntityCreateInRange(0x49, 0xCF, BossDefeatParticle_Update);
+                            effect = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, BossDefeatParticle_Update);
                             if (effect != NULL)
                             {
                                 effect->scrollWithBg = 1;
@@ -2692,7 +2694,7 @@ void BossDefeat_EmitParticleWavesUnused(struct EwramData_EntityData *entity)
                     {
                         struct EwramData_EntityData *effect;
                         if (row == 0 && side == 0) continue;
-                        effect = EntityCreateInRange(0x49, 0xCF, BossDefeatParticle_Update);
+                        effect = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, BossDefeatParticle_Update);
                         if (effect != NULL)
                         {
                             effect->scrollWithBg = 1;
@@ -2751,7 +2753,7 @@ void BossDefeat_EmitSweepParticlesUnused(struct EwramData_EntityData *entity)
             {
                 if((entity->timer & 3)==0)
                 {
-                    struct EwramData_EntityData *particle=EntityCreateInRange(0x49,0xCF,BossDefeatParticle_Update);
+                    struct EwramData_EntityData *particle=EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST,BossDefeatParticle_Update);
                     if(particle)
                     {
                         s32 random,width,centerX;
@@ -2781,7 +2783,7 @@ void BossDefeat_EmitSweepParticlesUnused(struct EwramData_EntityData *entity)
             }
             else
             {
-                if(!(gEwramData->gameState.stateFlags & 0x10))
+                if(!(gEwramData->gameState.stateFlags & STATE_PLAYER_DEAD))
                 {
                     BgPalette_StopColorFade();
                     ObjPalette_StopColorFade();
@@ -2885,7 +2887,7 @@ void GrahamBreakup_Update(struct EwramData_EntityData *entity)
                         {
                             if(row!=0 || mirror!=0)
                             {
-                                struct EwramData_EntityData *particle=EntityCreateInRange(0x49,0xCF,GrahamBreakupFragment_Update);
+                                struct EwramData_EntityData *particle=EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST,GrahamBreakupFragment_Update);
                                 if(particle)
                                 {
                                     particle->scrollWithBg=1;
@@ -3080,7 +3082,7 @@ s32 GrahamPart_UpdatePaletteSequence(struct EwramData_EntityData *entity,s32 kin
  */
 void Graham_SpawnBreakupEffect(s32 x, s32 y)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, GrahamBreakup_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, GrahamBreakup_Update);
 
     if (child != NULL)
     {
@@ -3113,7 +3115,7 @@ void GrahamSceneProjectile_OnContact(struct EwramData_EntityData *entity)
     offset = -0x100000;
     if (player != 0)
     {
-        effect = EntityCreateInRange(0x49, 0xCF, GrahamPlayerEffect_Update);
+        effect = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, GrahamPlayerEffect_Update);
         if (effect != 0)
         {
             effect->ext.particleAttach.anim = kind;

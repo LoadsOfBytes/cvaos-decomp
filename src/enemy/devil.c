@@ -23,6 +23,8 @@
 #include "effects.h"
 #include "entity_hit.h"
 #include "hit_shared_history.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 extern void *memcpy(void *dst, const void *src, unsigned long size);
 
@@ -48,6 +50,14 @@ void DevilProjectile_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void DevilChargeEffect_Update(struct EwramData_EntityData *);
 void Devil_OnDamaged(struct EwramData_EntityData *entity, s32 attacker, u16 *hit, s32 damage);
 
+/* States of Devil (entity->state), named after the update function the dispatcher calls. */
+enum {
+    DEVIL_STATE_APPROACH = 0,
+    DEVIL_STATE_ATTACK = 1,
+    DEVIL_STATE_FRAGMENT_DEATH = 2,
+    DEVIL_STATE_HOVER = 3,
+};
+
 /**
  * @brief 8F964 | Devil update (pattern of EnemyKillerFishUpdate): wake when
  * on screen, states 0 / 1 (Devil_UpdateApproach / Devil_UpdateAttack), 2 dying, 3
@@ -70,16 +80,16 @@ void EnemyDevilUpdate(struct EwramData_EntityData *entity)
     }
     switch (entity->state)
     {
-    case 0:
+    case DEVIL_STATE_APPROACH:
         Devil_UpdateApproach(entity);
         break;
-    case 1:
+    case DEVIL_STATE_ATTACK:
         Devil_UpdateAttack(entity);
         break;
-    case 2:
+    case DEVIL_STATE_FRAGMENT_DEATH:
         Enemy_UpdateFragmentDeath(entity);
         break;
-    case 3:
+    case DEVIL_STATE_HOVER:
         Devil_UpdateHover(entity);
         Anim_Update(entity);
         return;
@@ -219,7 +229,7 @@ void EnemyDevilCreate(struct EwramData_EntityData *entity)
     frozen = *((u8 *)gEwramData + 0x8E) & 0x40;
     if (frozen)
     {
-        entity->state = 3;
+        entity->state = DEVIL_STATE_HOVER;
         entity->subState = 0;
         entity->timer = 0;
         return;
@@ -347,7 +357,7 @@ void Devil_UpdateApproach(struct EwramData_EntityData *entity)
                             entity->ext.devil.targetY - bg->yPos.whole, entity->ext.devil.speed);
         if (done)
         {
-            entity->state = 1;
+            entity->state = DEVIL_STATE_ATTACK;
             entity->subState = 0;
         }
         else
@@ -362,7 +372,7 @@ void Devil_UpdateApproach(struct EwramData_EntityData *entity)
                     d = -d;
                 if (d <= 0xFFFFF)
                 {
-                    entity->state = 1;
+                    entity->state = DEVIL_STATE_ATTACK;
                     entity->subState = done;
                 }
             }
@@ -412,7 +422,7 @@ void Devil_UpdateApproach(struct EwramData_EntityData *entity)
         {
             entity->subState++;
             entity->timer = 0x28;
-            PlaySong(0x6E);
+            PlaySong(SE_ENEMY_DEATH);
         }
         break;
     case 11:
@@ -603,7 +613,7 @@ void Devil_UpdateAttack(struct EwramData_EntityData *entity)
             break;
         Devil_SaveParts(entity);
         entity->timer = 0x16;
-        entity->state = 0;
+        entity->state = DEVIL_STATE_APPROACH;
         entity->subState = 2;
         entity->stage = 0;
         entity->ext.joint.pose = 1;
@@ -704,7 +714,7 @@ void Devil_UpdateAttack(struct EwramData_EntityData *entity)
             break;
         Devil_SaveParts(entity);
         entity->timer = 0x16;
-        entity->state = 0;
+        entity->state = DEVIL_STATE_APPROACH;
         entity->subState = 1;
         entity->ext.joint.pose = 1;
         entity->ext.devil.speed = 0;
@@ -1043,15 +1053,15 @@ void DevilPart_Update(struct EwramData_EntityData *entity)
                     box.height = 12;
                 }
                 HitBox_SetAttack(entity, &box);
-                entity->hit.flags &= 0xFD;
-                entity->hit.flags &= 0xFB;
+                entity->hit.flags &= (u8)~HIT_NO_ATTACK;
+                entity->hit.flags &= (u8)~HIT_NO_DAMAGE;
                 if ((s8)parent->ext.devil.intangible != 1)
                     Hit_CheckWithPlayerSharedHistory(&result, entity, parent);
             }
             else
             {
-                entity->hit.flags |= 4;
-                entity->hit.flags |= 2;
+                entity->hit.flags |= HIT_NO_DAMAGE;
+                entity->hit.flags |= HIT_NO_ATTACK;
             }
             if (HAS_SPRITE(entity))
                 ObjAffine_Set(entity->velX.whole, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
@@ -1092,7 +1102,7 @@ void DevilPart_Update(struct EwramData_EntityData *entity)
  */
 void DevilProjectile_Spawn(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx, s32 vy, u8 timer)
 {
-    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, DevilProjectile_Update);
+    struct EwramData_EntityData *part = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, DevilProjectile_Update);
     struct SpriteBox box = {-5, -5, 10, 10};
     if (part)
     {
@@ -1111,8 +1121,8 @@ void DevilProjectile_Spawn(struct EwramData_EntityData *owner, s32 x, s32 y, s32
         Anim_Update(part);
         Hit_Enable(part, 8, DevilProjectile_DamagePlayerOnContact, 0);
         HitBox_SetAttack(part, &box);
-        part->hit.flags |= 4;
-        part->hit.flags &= ~2;
+        part->hit.flags |= HIT_NO_DAMAGE;
+        part->hit.flags &= ~HIT_NO_ATTACK;
         part->timer = timer;
         part->ext.devilProjectile.release = 0;
         part->enemyId = owner->enemyId;
@@ -1172,7 +1182,7 @@ void DevilProjectile_Update(struct EwramData_EntityData *entity)
  * attack; updated by DevilChargeEffect_Update. */
 void DevilChargeEffect_Spawn(struct EwramData_EntityData *owner, s32 dx, s32 dy, u8 timer)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, DevilChargeEffect_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, DevilChargeEffect_Update);
     s32 graphics;
 
     if (entity == NULL)
@@ -1185,8 +1195,8 @@ void DevilChargeEffect_Spawn(struct EwramData_EntityData *owner, s32 dx, s32 dy,
     graphics = ObjGfx_Find(sDevilGfx);
     entity->basePalette = owner->basePalette;
     Sprite_Attach(entity, sDevilSpriteSheet, graphics, entity->basePalette);
-    entity->hit.flags |= 4;
-    entity->hit.flags |= 2;
+    entity->hit.flags |= HIT_NO_DAMAGE;
+    entity->hit.flags |= HIT_NO_ATTACK;
     entity->timer = timer;
     entity->enemyId = owner->enemyId;
     entity->attack = owner->attack;
@@ -1382,7 +1392,7 @@ void Devil_OnDamaged(struct EwramData_EntityData *entity, s32 attacker, u16 *hit
         PlaySong(0x72);
         entity->palette = entity->basePalette;
         entity->timer = 0x28;
-        entity->state = 2;
+        entity->state = DEVIL_STATE_FRAGMENT_DEATH;
         entity->subState = 0;
     }
 }

@@ -18,6 +18,8 @@
 #include "damage_numbers.h"
 #include "entity_motion.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 void Mudman_UpdateWalk(struct EwramData_EntityData *);
 void Mudman_UpdateAttack(struct EwramData_EntityData *);
@@ -34,6 +36,15 @@ void MudmanShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hi
 u8 Mudman_LoadGraphics(struct EwramData_EntityData *);
 void Mudman_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 
+/* States of Mudman (entity->state), named after the update function the dispatcher calls. */
+enum {
+    MUDMAN_STATE_WALK = 0,
+    MUDMAN_STATE_ATTACK = 1,
+    MUDMAN_STATE_DEATH = 2,
+    MUDMAN_STATE_HURT = 3,
+    MUDMAN_STATE_ANIM_ONLY = 4,
+};
+
 /* Dispatch Mudman states while preserving hit-flash and freeze update gates. */
 void EnemyMudmanUpdate(struct EwramData_EntityData *entity)
 {
@@ -42,24 +53,24 @@ void EnemyMudmanUpdate(struct EwramData_EntityData *entity)
         Player_TrackEntity(entity);
     if (EntityIsOutsideScreen(entity, 4)) entity->hidden = 1;
     else entity->hidden = 0;
-    if (entity->state != 2) Enemy_UpdateHitFlash(entity);
-    if (Entity_IsTimeStopped(entity) && entity->state != 2)
+    if (entity->state != MUDMAN_STATE_DEATH) Enemy_UpdateHitFlash(entity);
+    if (Entity_IsTimeStopped(entity) && entity->state != MUDMAN_STATE_DEATH)
     {
         Hit_CheckWithPlayer(&result, entity);
         return;
     }
-    if (entity->hitFlashTimer && entity->state != 3 && entity->state != 2)
+    if (entity->hitFlashTimer && entity->state != 3 && entity->state != MUDMAN_STATE_DEATH)
     {
         Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
     {
-    case 0: Mudman_UpdateWalk(entity); break;
-    case 1: Mudman_UpdateAttack(entity); break;
-    case 2: Mudman_UpdateDeath(entity); break;
-    case 3: Mudman_UpdateHurt(entity); break;
-    case 4: Anim_Update(entity); return;
+    case MUDMAN_STATE_WALK: Mudman_UpdateWalk(entity); break;
+    case MUDMAN_STATE_ATTACK: Mudman_UpdateAttack(entity); break;
+    case MUDMAN_STATE_DEATH: Mudman_UpdateDeath(entity); break;
+    case MUDMAN_STATE_HURT: Mudman_UpdateHurt(entity); break;
+    case MUDMAN_STATE_ANIM_ONLY: Anim_Update(entity); return;
     }
     Entity_AnimateWithBoxes(entity);
     Enemy_CheckHitPlayer(entity);
@@ -124,7 +135,7 @@ void Mudman_UpdateWalk(struct EwramData_EntityData *entity)
             entity->flipX = Entity_IsTargetRight(entity);
             if ((RandomNumberGenerator() & 3) == 0)
             {
-                entity->state = 1;
+                entity->state = MUDMAN_STATE_ATTACK;
                 entity->subState = 0;
                 return;
             }
@@ -160,13 +171,13 @@ void Mudman_UpdateAttack(struct EwramData_EntityData *entity)
             entity->subState = substate + 1;
             entity->timer = 0;
             Mudman_ThrowShot(entity);
-            PlaySong(0x85);
+            PlaySong(SE_SWING);
         }
         break;
     case 2:
         if (entity->timer++ > 59)
         {
-            entity->state = 0;
+            entity->state = MUDMAN_STATE_WALK;
             Anim_StartIndexed(entity, 2, 0, 1);
             entity->animDone = 0;
             entity->timer = 100;
@@ -260,7 +271,7 @@ void Mudman_UpdateHurt(struct EwramData_EntityData *entity)
         case 1:
             if ((Entity_MoveWithCollision(entity, 0x40000, -0x200000, 0x80000, 8) & 4) && entity->animDone)
             {
-                entity->state = 0;
+                entity->state = MUDMAN_STATE_WALK;
                 entity->subState = 0;
                 Anim_StartIndexed(entity, 0, 0, 2);
             }
@@ -346,19 +357,19 @@ void Mudman_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
-        PlaySong(0x70);
+        PlaySong(SE_ENEMY_DEATH_SOFT);
         Anim_StartIndexed(entity, 4, 0, 0);
         entity->animDone = 0;
         entity->palette = entity->basePalette;
         entity->timer = 40;
-        entity->state = 2;
+        entity->state = MUDMAN_STATE_DEATH;
         entity->subState = zero;
     }
     else if ((u8)(*value554 - 3) <= 1)
     {
         Anim_StartIndexed(entity, 1, 0, 0);
         entity->animDone = 0;
-        entity->state = 3;
+        entity->state = MUDMAN_STATE_HURT;
         entity->subState = zero;
     }
 }
@@ -370,7 +381,7 @@ void Mudman_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
  */
 void Mudman_ThrowShot(struct EwramData_EntityData *parent)
 {
-    struct EwramData_EntityData *projectile = EntityCreateInRange(0x1B, 0x48, MudmanShot_Update);
+    struct EwramData_EntityData *projectile = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, MudmanShot_Update);
     if (projectile)
     {
         if (!MudmanShot_LoadGraphics(parent, projectile)) EntityDelete(projectile);
@@ -402,7 +413,7 @@ void Mudman_ThrowShot(struct EwramData_EntityData *parent)
 /* Handle projectile impacts, debris and attachment to a moving entity. */
 static inline void EmitDebris(struct EwramData_EntityData *parent, s32 x, s32 y, s32 vx, s32 vy, s32 zero)
 {
-    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, MudmanPiece_Update);
+    struct EwramData_EntityData *part = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, MudmanPiece_Update);
     if (part)
     {
         s32 graphics;
@@ -509,8 +520,8 @@ void MudmanShot_EnableHitBoxes(struct EwramData_EntityData *entity)
     Hit_Enable(entity, 0xA, MudmanShot_DamagePlayerOnContact, MudmanShot_OnHit);
     HitBox_SetBody(entity, &box);
     HitBox_SetAttack(entity, &box);
-    entity->hit.flags &= ~2;
-    entity->hit.flags &= ~4;
+    entity->hit.flags &= ~HIT_NO_ATTACK;
+    entity->hit.flags &= ~HIT_NO_DAMAGE;
 }
 
 /* Enter the special reaction state and remember the attacker's world position. */
@@ -549,7 +560,7 @@ void MudmanShot_DamagePlayerOnContact(struct EwramData_EntityData *entity, struc
  */
 void Mudman_SpawnPiece(struct EwramData_EntityData *parent, s32 x, s32 y, s32 vx, s32 vy)
 {
-    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, MudmanPiece_Update);
+    struct EwramData_EntityData *part = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, MudmanPiece_Update);
     if (part)
     {
         s32 graphics;
@@ -633,7 +644,7 @@ void EnemyMudmanCreate(struct EwramData_EntityData *entity)
     demo=*(u8 *)((u8 *)gEwramData+0x8E) & 0x40;
     if(demo)
     {
-        entity->state=4;
+        entity->state = MUDMAN_STATE_ANIM_ONLY;
         Anim_StartIndexed(entity,2,0,1);
         Anim_Update(entity);
     }

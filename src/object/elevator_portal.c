@@ -30,6 +30,8 @@
 #include "pickup.h"
 #include "entity_hit.h"
 #include "bg_and_collision.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 void ElevatorFollower_Update(struct EwramData_EntityData *);
 void ElevatorEffect_Update(struct EwramData_EntityData *);
@@ -65,7 +67,7 @@ void ChaoticRealmPortalCreate(struct EwramData_EntityData *entity)
     }
     entity->animFrame = 0;
     entity->spriteLayer = 31;
-    child = EntityCreateInRange(0x1B, 0x48, ChaoticRealmPortalOrbiter_Update);
+    child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, ChaoticRealmPortalOrbiter_Update);
     if (child == NULL)
     {
         EntityDelete(entity);
@@ -78,7 +80,7 @@ void ChaoticRealmPortalCreate(struct EwramData_EntityData *entity)
     if ((gEwramData->gameState.gameFlagsTail[1] & 0x0A000000) == 0x02000000)
     {
         entity->state = 4;
-        gEwramData->gameState.stateFlags |= 1;
+        gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
         Game_SetMenusEnabled(0);
         gEwramData->gameState.gameFlagsTail[1] |= 0x08000000;
     }
@@ -97,7 +99,7 @@ void ChaoticRealmPortalUpdate(struct EwramData_EntityData *entity)
         if (!(gEwramData->inputData.playerHeldInput & 0x40)) break;
         if (Player_IsBusy()) break;
         entity->state = 2;
-        gEwramData->gameState.stateFlags |= 1;
+        gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
         Game_SetMenusEnabled(0);
         SetPlayerInput(1, 0);
         break;
@@ -121,7 +123,7 @@ void ChaoticRealmPortalUpdate(struct EwramData_EntityData *entity)
         if (entity->spawnParam0 == 0) RoomJump_SetDestination(sChaoticRealmPortalDestinationRoom1, 0, 0, 0x78, 0x50);
         else RoomJump_SetDestination(sChaoticRealmPortalDestinationRoom0, 0, 0, 0x78, 0x50);
         RoomJump_Begin(&gEwramData->gameState);
-        gEwramData->gameState.stateFlags &= ~1;
+        gEwramData->gameState.stateFlags &= ~STATE_EVENT_RUNNING;
         BgPalette_StartColorFade(31, 31, 31, 0, 0x10000, 8);
         ObjPalette_StartColorFade(31, 31, 31, 0, 0x10000, 8);
         break;
@@ -202,9 +204,9 @@ void ChaoticRealmVortexUpdate(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if (gEwramData->gameState.stateFlags & 1)
+        if (gEwramData->gameState.stateFlags & STATE_EVENT_RUNNING)
         {
-            gEwramData->gameState.stateFlags |= 1;
+            gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
             Game_SetMenusEnabled(0);
             SetPlayerInput(1, 0);
             entity->state = 1;
@@ -251,10 +253,10 @@ void ChaoticRealmVortexUpdate(struct EwramData_EntityData *entity)
         break;
     case 4:
         SetPlayerInput(1, 0);
-        gEwramData->gameState.stateFlags &= ~1;
+        gEwramData->gameState.stateFlags &= ~STATE_EVENT_RUNNING;
         RoomJump_SetDestination((void *)sDebugExitOptionsRoom11, 0, 0, 0x78, 0x6F);
         RoomJump_Begin(&gEwramData->gameState);
-        gEwramData->gameState.stateFlags |= 0x800000;
+        gEwramData->gameState.stateFlags |= STATE_ROOM_JUMP_NO_PAUSE;
         break;
     }
     src.sx = entity->ext.chaoticRealmVortex.scale;
@@ -263,7 +265,7 @@ void ChaoticRealmVortexUpdate(struct EwramData_EntityData *entity)
     entity->timer++;
     if (entity->timer & 1)
     {
-        child = EntityCreateInRange(0x49, 0xCF, ChaoticRealmVortexEffect_Update);
+        child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, ChaoticRealmVortexEffect_Update);
         if (child != NULL)
         {
             child->posX.whole = entity->posX.whole;
@@ -398,7 +400,7 @@ void ElevatorCreate(struct EwramData_EntityData *entity)
     entity->posY.part16.integer = tbl[entity->subState] - bg->yPos.part16.integer;
     Player_RegisterSolidObject(entity, (void *)sElevatorSolidCallbacks);
     entity->roomActive = 1;
-    e = EntityCreateInRange(0x49, 0xCF, ElevatorFollower_Update);
+    e = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, ElevatorFollower_Update);
     if (e != NULL)
     {
         if (!Entity_LoadGraphics(e, sElevatorGfx, sUnk_08209FD8, 4, sElevatorSpriteSheet))
@@ -416,7 +418,7 @@ void ElevatorCreate(struct EwramData_EntityData *entity)
     }
     for (i = 0; i <= 1; i++)
     {
-        e = EntityCreateInRange(0x49, 0xCF, ElevatorOverlay_Update);
+        e = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, ElevatorOverlay_Update);
         if (e == NULL)
             continue;
         if (!Entity_LoadGraphics(e, sElevatorGfx, sUnk_08209FD8, 4, sElevatorSpriteSheet))
@@ -438,7 +440,7 @@ void ElevatorCreate(struct EwramData_EntityData *entity)
     {
         for (j = 0; j <= 7; j++)
         {
-            e = EntityCreateInRange(0x49, 0xCF, ElevatorEffect_Update);
+            e = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, ElevatorEffect_Update);
             if (e == NULL)
                 break;
             e->scrollWithBg = 1;
@@ -748,7 +750,7 @@ void BreakableCoinContainer_SpawnDebris(struct EwramData_EntityData *parent)
     frame = 1;
     for (i = 0; i <= 3; i++, frame++)
     {
-        entity = EntityCreateInRange(0x49, 0xCF, BreakableCoinContainerDebris_Update);
+        entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, BreakableCoinContainerDebris_Update);
         if (entity == NULL)
             return;
         if (!Entity_LoadGraphics(entity, sBreakableCoinContainerGfx, sBreakableCoinContainerPalette, 0, sBreakableCoinContainerSpriteSheet))
@@ -784,7 +786,7 @@ void BreakableCoinContainerCreate(struct EwramData_EntityData *entity)
     Anim_StartIndexed(entity, 0, 0, 1);
     Anim_Update(entity);
     Hit_Enable(entity, 0, NULL, BreakableCoinContainer_OnHit);
-    entity->hit.flags |= 2;
+    entity->hit.flags |= HIT_NO_ATTACK;
     HitBox_SetBodyRaw(entity, 0x1820E8F0);
     Entity_SnapToGround(entity);
     entity->scrollWithBg = 1;
@@ -826,7 +828,7 @@ void BreakableCoinContainerUpdate(struct EwramData_EntityData *entity)
             entity->state = 2;
             entity->timer = 0x20;
             BreakableCoinContainer_SpawnDebris(entity);
-            PlaySong(0xA2);
+            PlaySong(SE_ITEM_DROP);
             entity->hidden = 1;
             break;
         }
@@ -848,7 +850,7 @@ void BreakableCoinContainerUpdate(struct EwramData_EntityData *entity)
             Pickup_CreateMana(x, y, 1, 0);
         }
         BreakableCoinContainer_SpawnDebris(entity);
-        PlaySong(0xA2);
+        PlaySong(SE_ITEM_DROP);
         entity->hidden = 1;
         entity->timer = 0x28;
         entity->state++;
@@ -863,7 +865,7 @@ void BreakableCoinContainerUpdate(struct EwramData_EntityData *entity)
         if (!(entity->timer & 3))
         {
             info = &sEnemyData[0x4A];
-            e = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
+            e = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, EntityUpdateNothing);
             if (e != NULL)
             {
                 e->posX.part16.integer = entity->posX.part16.integer + RandomSigned(0x20);

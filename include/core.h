@@ -4,6 +4,7 @@
 #include "types.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
+#include "constants/entity_slots.h"
 
 u32 SetPlayerInput(s32 priority, s32 playerInputs);
 s32 Sin(s32 angle);

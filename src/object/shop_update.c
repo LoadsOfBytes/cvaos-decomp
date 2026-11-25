@@ -30,6 +30,8 @@
 #include "data/data_118B48.h"
 #include "syscalls.h"
 #include "menu_common.h"
+#include "constants/game_flags.h"
+#include "constants/songs.h"
 
 extern void (*const sEventSceneCreateFuncs[])(struct EwramData_EntityData *entity);
 extern u32 (*const sEventSceneUpdateFuncs[])(struct EwramData_EntityData *entity);
@@ -84,11 +86,11 @@ s32 Shop_Update(struct GameState *context)
     case 2:
         if (pressed & 3) {
             if ((pressed & 2) || menu->subState == 2) {
-                PlaySong(240);
+                PlaySong(SE_MENU_BACK);
                 context->subModeStep++;
             } else {
                 menu->ext.menuPage.cursor = 0;
-                PlaySong(244);
+                PlaySong(SE_MENU_CONFIRM);
                 context->subModeStep = 10;
             }
         } else if (repeated & 0xC0) {
@@ -100,7 +102,7 @@ s32 Shop_Update(struct GameState *context)
             menu->subState = Mod(next, 3);
             Text12_ClearRegion();
             Text12_PrintTwoLineEntryAt(menu->subState + 948, 2);
-            PlaySong(241);
+            PlaySong(SE_MENU_CURSOR);
         }
         break;
     case 3:
@@ -207,13 +209,13 @@ s32 Shop_Update(struct GameState *context)
  */
 void EventSceneControllerCreate(struct EwramData_EntityData *entity)
 {
-    if (gEwramData->playerStatus.currentHP <= 0 && !(gEwramData->gameState.stateFlags & 0x200000))
+    if (gEwramData->playerStatus.currentHP <= 0 && !(gEwramData->gameState.stateFlags & STATE_CHAOS_FIGHT))
     {
         EntityDelete(entity);
         return;
     }
     if (gEwramData->gameState.unk_8E_7
-        || (gEwramData->playerStatus.currentCharacter && !(gEwramData->gameState.stateFlags & 0x8000)))
+        || (gEwramData->playerStatus.currentCharacter && !(gEwramData->gameState.stateFlags & STATE_ENDING_JULIUS)))
     {
         EntityDelete(entity);
         return;
@@ -224,13 +226,13 @@ void EventSceneControllerCreate(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    gEwramData->gameState.stateFlags |= 0x200;
+    gEwramData->gameState.stateFlags |= STATE_HUD_MESSAGES_BLOCKED;
     Hud_CloseMessageWindow();
     RedSoul_CancelAll();
     BlueSoul_StopAll();
     Game_SetMenusEnabled(0);
     gEwramData->gameState.sceneController = entity;
-    if (gEwramData->gameState.stateFlags & 1)
+    if (gEwramData->gameState.stateFlags & STATE_EVENT_RUNNING)
         SetPlayerInput(1, 0);
     Conversation_Reset();
 }
@@ -244,7 +246,7 @@ void EventSceneControllerUpdate(struct EwramData_EntityData *entity)
     u32 playerInputs;
     struct EwramData *ewram = gEwramData;
 
-    if (ewram->gameState.stateFlags & 0x80)
+    if (ewram->gameState.stateFlags & STATE_AREA_NAME_SHOWN)
         ewram->hBlankEffect.requestStop = 1;
     if ((s8)entity->state < 0)
     {
@@ -252,12 +254,12 @@ void EventSceneControllerUpdate(struct EwramData_EntityData *entity)
             TextWindow_AdjustOpening(-3);
     }
     else if ((gEwramData->inputData.newInput & 8) && (ewram->gameState.systemFlags & 2)
-             && !(gEwramData->gameState.stateFlags & 0x10000))
+             && !(gEwramData->gameState.stateFlags & STATE_ENDING_SEQUENCE))
     {
         ewram->gameState.textWindowState = 5;
     }
     playerInputs = sEventSceneUpdateFuncs[entity->spawnParam0](entity);
-    if (gEwramData->gameState.stateFlags & 1)
+    if (gEwramData->gameState.stateFlags & STATE_EVENT_RUNNING)
     {
         SetPlayerInput(1, playerInputs);
         Game_SetMenusEnabled(0);
@@ -302,8 +304,8 @@ void Interaction_End(struct EwramData_EntityData *entity, s32 deleteEntity)
 {
     struct EwramData *ewram;
 
-    gEwramData->gameState.stateFlags &= ~1;
-    gEwramData->gameState.stateFlags &= ~0x200;
+    gEwramData->gameState.stateFlags &= ~STATE_EVENT_RUNNING;
+    gEwramData->gameState.stateFlags &= ~STATE_HUD_MESSAGES_BLOCKED;
     Game_SetMenusEnabled(1);
     entity->deleteRequested = deleteEntity;
     if ((s8)entity->state < 0)
@@ -323,7 +325,7 @@ s32 Interaction_BeginText(s32 textId)
     struct GameState *gameState = &gEwramData->gameState;
 
     gameState->subModeStep = 0;
-    gEwramData->gameState.stateFlags |= 1;
+    gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
     TextWindow_Begin(textId);
     Game_SetMenusEnabled(0);
     return 1;
@@ -336,7 +338,7 @@ s32 Interaction_EndAndMarkRecord(u8 *record)
 {
     s32 result;
 
-    gEwramData->gameState.stateFlags &= ~1;
+    gEwramData->gameState.stateFlags &= ~STATE_EVENT_RUNNING;
     result = Game_SetMenusEnabled(1);
     record[4] = 1;
     return result;
@@ -411,11 +413,11 @@ s32 Player_GetZoneAroundX(u16 centerX, u16 innerWidth, u16 outerWidth)
 }
 
 /**
- * @brief Return 1 when event flag 0x3A is set.
+ * @brief Return 1 when FLAG_SOMA_AWAKENED is set.
  */
-u32 GameFlag_Is3ASet(void)
+u32 GameFlag_IsSomaAwakened(void)
 {
-    s32 mask = GameFlag_GetMask(0x3A);
+    s32 mask = GameFlag_GetMask(FLAG_SOMA_AWAKENED);
 
     /* mask != 0, written out for the original negs/orrs/lsrs #31. */
     return (u32)(mask | -mask) >> 31;
@@ -431,17 +433,17 @@ void Sound_Play(u16 song)
 
 /**
  * @brief Init of event scene variant 30 (Object 0x20 spawnParam0 = 30,
- * sEventSceneCreateFuncs[30]). Set bits 0x80000, 0x20 and 1 of stateFlags, call
+ * sEventSceneCreateFuncs[30]). Set STATE_ENDING_SCENE, STATE_HUD_HIDDEN and STATE_EVENT_RUNNING, call
  * Hud_ClearGraphics, play song 0x1000 and place the player at (0x78,
  * 0x50) with zero velocity (integer parts) and 0x53C bit 5 set.
  */
 void EventSceneEnding_Init(void)
 {
-    gEwramData->gameState.stateFlags |= 0x80000;
-    gEwramData->gameState.stateFlags |= 0x20;
-    gEwramData->gameState.stateFlags |= 1;
+    gEwramData->gameState.stateFlags |= STATE_ENDING_SCENE;
+    gEwramData->gameState.stateFlags |= STATE_HUD_HIDDEN;
+    gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
     Hud_ClearGraphics();
-    PlaySong(0x1000);
+    PlaySong(AUDIO_STOP);
     gEwramData->playerState.player->posX.part16.integer = 0x78;
     gEwramData->playerState.player->posY.part16.integer = 0x50;
     gEwramData->playerState.player->velX.part16.integer = 0;

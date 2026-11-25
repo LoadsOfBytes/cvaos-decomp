@@ -24,6 +24,8 @@
 #include "data/data_118B48.h"
 /* from graphics.h (not included: see the module notes) */
 #include "player_physics.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 void Julius_TryStartDiveAttack(struct EwramData_EntityData *entity);
 void Julius_UpdateVerticalMovement(struct EwramData_EntityData *entity);
@@ -32,6 +34,15 @@ void Julius_UpdateVerticalMovement(struct EwramData_EntityData *entity);
 
 /* Julius collision with the tile map, the carrying object and moving platforms.
  * Twin of the Soma version in player/player_soma.c. */
+
+/* States of Julius (entity->state), named after the update function the dispatcher calls. */
+enum {
+    JULIUS_STATE_DIVE_ATTACK = 7,
+    JULIUS_STATE_GRAND_CROSS_CAST = 10,
+    JULIUS_STATE_ABILITY_DASH = 11,
+    JULIUS_STATE_KNOCKBACK = 13,
+    JULIUS_STATE_KNOCKBACK_FROM_IMPULSE = 14,
+};
 
 static inline void SetJuliusAnimF(struct EwramData_EntityData *entity, u8 anim, s32 flag)
 {
@@ -517,7 +528,7 @@ void Julius_TryStartDiveAttack(struct EwramData_EntityData *entity)
         return;
     if (!(ew->inputData.playerNewInput & ew->playerStatus.jumpButton))
         return;
-    entity->state = 7;
+    entity->state = JULIUS_STATE_DIVE_ATTACK;
     entity->velY.whole = 0x4E000;
     entity->accelY.whole = 0x2000;
     if ((key = ew->inputData.playerHeldInput & 0x20))
@@ -565,12 +576,12 @@ void Julius_UpdateDiveAttack(struct EwramData_EntityData *entity)
         u8 two = 2;
         entity->hit.type = two;
     }
-    entity->hit.flags &= ~2;
+    entity->hit.flags &= ~HIT_NO_ATTACK;
     if (entity->ext.player.actionFlags & 0x80000)
     {
         entity->ext.player.actionFlags = (entity->ext.player.actionFlags | 8) & ~4;
         entity->ext.player.requestedAnim = 3;
-        PlaySong(0xB9);
+        PlaySong(SE_PLAYER_JUMP);
         entity->velY.whole = -0x3C000;
         entity->accelY.whole = -0x2000;
         entity->state = 0;
@@ -623,7 +634,7 @@ void Soma_TryCastRedSoulUnused(struct EwramData_EntityData *entity)
     slot = RedSoul_FindFreeEntitySlot();
     if (slot < 0)
         return;
-    child = EntityCreateInRange(2, 0x10, info->updateFunc);
+    child = EntityCreateInRange(ENTITY_SLOT_WEAPON_FIRST, ENTITY_SLOT_WEAPON_LAST, info->updateFunc);
     if (child == NULL)
         return;
     gEwramData->playerStatus.currentMP -= info->mpCost;
@@ -685,7 +696,7 @@ void Julius_HandleJumpInput(struct EwramData_EntityData *entity)
     {
         if (!(flags & 4) && (gEwramData->inputData.playerNewInput & gEwramData->playerStatus.jumpButton))
         {
-            PlaySong(0xB9);
+            PlaySong(SE_PLAYER_JUMP);
             if (entity->ext.player.actionFlags & 2)
                 entity->ext.player.actionFlags |= 4;
             entity->ext.player.actionFlags = (entity->ext.player.actionFlags | 2) & 0xFFEFFBFF;
@@ -775,7 +786,7 @@ void Julius_UpdateVerticalMovement(struct EwramData_EntityData *entity)
             entity->posY.part16.integer += corr;
             if (entity->velY.whole <= -0x4F000 && (entity->ext.player.actionFlags & 0x10))
             {
-                PlaySong(0xB8);
+                PlaySong(SE_PLAYER_HEAD_BUMP);
                 entity->state = 0;
                 ScreenShake_Request(1, 0x10, 0, 7);
             }
@@ -978,7 +989,7 @@ void Julius_TryStartAbilityDash(struct EwramData_EntityData *entity)
 
     if (bits == 0 && (gEwramData->inputData.playerHeldInput & gEwramData->playerStatus.abilityButton))
     {
-        entity->state = 0xB;
+        entity->state = JULIUS_STATE_ABILITY_DASH;
         entity->subState = bits;
         entity->ext.player.requestedAnim = 0xFF;
         if (!(gEwramData->playerState.actionLockFlags & 0x800) && entity->animScriptIndex != 3)
@@ -1162,7 +1173,7 @@ void Julius_Update(struct EwramData_EntityData *entity)
         u8 one = 1;
         entity->hit.type = one;
     }
-    entity->hit.flags |= 2;
+    entity->hit.flags |= HIT_NO_ATTACK;
     gEwramData->playerState.standingPlatform = NULL;
     FLAGS(entity) &= ~0x240000;
     if (entity->animFlags & 4)
@@ -1284,7 +1295,7 @@ void Julius_Update(struct EwramData_EntityData *entity)
                     entity->velY.whole = -0x28000;
                     entity->accelY.whole = -0x1000;
                     FLAGS(entity) |= 0x82;
-                    entity->state = 0xD;
+                    entity->state = JULIUS_STATE_KNOCKBACK;
                     PlaySong(0x1EA);
                 }
                 FLAGS(entity) &= ~0x200000;
@@ -1539,7 +1550,7 @@ void Julius_Update(struct EwramData_EntityData *entity)
                 u8 four = 4;
                 entity->hit.type = four;
             }
-            entity->hit.flags &= ~2;
+            entity->hit.flags &= ~HIT_NO_ATTACK;
             abs = entity->velX.whole;
             if (abs < 0)
                 abs = -abs;
@@ -1557,10 +1568,10 @@ void Julius_Update(struct EwramData_EntityData *entity)
             Julius_UpdateVerticalMovement(entity);
             break;
         }
-        case 10:
+        case JULIUS_STATE_GRAND_CROSS_CAST:
             Julius_UpdateGrandCrossCast(entity);
             break;
-        case 11:
+        case JULIUS_STATE_ABILITY_DASH:
             Julius_UpdateAbilityDash(entity);
             Julius_HandleWhipAttackInput(entity);
             break;
@@ -1609,10 +1620,10 @@ void Julius_Update(struct EwramData_EntityData *entity)
                 u8 four = 4;
                 entity->hit.type = four;
             }
-            entity->hit.flags &= ~2;
+            entity->hit.flags &= ~HIT_NO_ATTACK;
             Julius_UpdateJumpControl(entity);
             break;
-        case 7:
+        case JULIUS_STATE_DIVE_ATTACK:
             Julius_UpdateDiveAttack(entity);
             Julius_UpdateVerticalMovement(entity);
             break;
@@ -1631,10 +1642,10 @@ void Julius_Update(struct EwramData_EntityData *entity)
             Julius_UpdateVerticalMovement(entity);
             break;
         }
-        case 13:
+        case JULIUS_STATE_KNOCKBACK:
             Julius_UpdateKnockback(entity);
             break;
-        case 14:
+        case JULIUS_STATE_KNOCKBACK_FROM_IMPULSE:
             Julius_UpdateKnockbackFromImpulse(entity);
             break;
         case 16:
@@ -1662,7 +1673,7 @@ void Julius_Update(struct EwramData_EntityData *entity)
         s->hitTimer[1] = 0;
         s->hitTimer[0] = 0;
     }
-    if (gEwramData->gameState.stateFlags & 1)
+    if (gEwramData->gameState.stateFlags & STATE_EVENT_RUNNING)
     {
         u8 two = 2;
 

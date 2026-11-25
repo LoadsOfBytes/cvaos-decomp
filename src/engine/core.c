@@ -233,7 +233,7 @@ void Entity_UpdateAll(void)
     if (gEwramData->paused == 0)
     {
         entity = &entityData[0];
-        for (slot = 0; slot < 0xD0; slot++, entity++)
+        for (slot = 0; slot < ENTITY_SLOT_RESERVED_FIRST; slot++, entity++)
         {
             if (entity->updateFunc != NULL)
             {
@@ -313,9 +313,9 @@ void Entity_UpdateReserved(void)
     s32 slot;
 
     entityData = gEwramData->entityData;
-    entity = &entityData[0xD0];
+    entity = &entityData[ENTITY_SLOT_RESERVED_FIRST];
 
-    for (slot = 0; slot < 0xE0 - 0xD0; slot++, entity++)
+    for (slot = 0; slot < ENTITY_SLOT_COUNT - ENTITY_SLOT_RESERVED_FIRST; slot++, entity++)
     {
         if (entity->updateFunc != NULL)
         {

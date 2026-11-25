@@ -27,6 +27,7 @@
 #include "text12.h"
 #include "data/data_0E5364.h"
 #include "data/data_118B48.h"
+#include "constants/game_flags.h"
 
 // TODO: HudMap_WriteTiles is implicitly called in other files, except this one
 
@@ -1186,7 +1187,7 @@ s32 MainMenu_UpdateGameStart(struct EwramData_EntityData *entity)
             {
                 backSlot -= 6;
             }
-            PlaySong(SE_240);
+            PlaySong(SE_MENU_BACK);
             MainMenu_ShowSlotInfo(entity, backSlot);
             entity->ext.mainMenu.confirmOpen = 0;
             entity->ext.mainMenu.confirmCursor = 0;
@@ -1225,7 +1226,7 @@ s32 MainMenu_UpdateGameStart(struct EwramData_EntityData *entity)
         if (entity->ext.mainMenu.confirmCursor != cursor)
         {
             entity->ext.mainMenu.confirmCursor = cursor;
-            PlaySong(SE_241);
+            PlaySong(SE_MENU_CURSOR);
         }
     }
     else
@@ -1346,7 +1347,7 @@ s32 MainMenu_UpdateGameStart(struct EwramData_EntityData *entity)
             {
                 shownSlot -= 6;
             }
-            PlaySong(SE_241);
+            PlaySong(SE_MENU_CURSOR);
             MainMenu_ShowSlotInfo(entity, shownSlot);
             entity->ext.mainMenu.blinkPhase = 1;
             entity->ext.mainMenu.blinkTimer = 0;
@@ -1355,7 +1356,7 @@ s32 MainMenu_UpdateGameStart(struct EwramData_EntityData *entity)
         {
             Text12_SetCursor(0, 1);
             MenuText_ClearAndPrint(0x385);
-            PlaySong(SE_243);
+            PlaySong(SE_MENU_SELECT);
         }
         if ((gEwramData->gameState.systemFlags & 1) && (entity->ext.mainMenu.slotEmpty != 0) && (entity->ext.mainMenu.cursor < 6))
         {
@@ -1455,7 +1456,7 @@ s32 MainMenu_UpdateDataCopy(struct EwramData_EntityData *entity)
         case 0:
             if (repeatedInput & KEY_A)
             {
-                PlaySong(SE_243);
+                PlaySong(SE_MENU_SELECT);
                 MenuText_ClearAndPrint(0x359);
                 if (cursor == entity->ext.mainMenu.copyDest)
                 {
@@ -1489,7 +1490,7 @@ s32 MainMenu_UpdateDataCopy(struct EwramData_EntityData *entity)
         case 1:
             if (repeatedInput & KEY_A)
             {
-                PlaySong(SE_243);
+                PlaySong(SE_MENU_SELECT);
                 MainMenu_PrintMessage(-1);
                 entity->ext.mainMenu.cursor = 1;
                 cursor = 1;
@@ -1505,7 +1506,7 @@ s32 MainMenu_UpdateDataCopy(struct EwramData_EntityData *entity)
             }
             else if (repeatedInput & KEY_B)
             {
-                PlaySong(SE_240);
+                PlaySong(SE_MENU_BACK);
                 MainMenu_PrintMessage(0x358);
                 cursor = entity->ext.mainMenu.cursor = entity->ext.mainMenu.copySource;
                 entity->stage -= 1;
@@ -1531,7 +1532,7 @@ s32 MainMenu_UpdateDataCopy(struct EwramData_EntityData *entity)
         case 2:
             if ((repeatedInput & KEY_A) && (cursor == 0))
             {
-                PlaySong(SE_244);
+                PlaySong(SE_MENU_CONFIRM);
                 SaveData_CopySlot(entity->ext.mainMenu.copySource, entity->ext.mainMenu.copyDest);
                 entity->ext.mainMenu.savedSlots |= 1 << entity->ext.mainMenu.copyDest;
                 MainMenu_PrintMessage(0x358);
@@ -1543,7 +1544,7 @@ s32 MainMenu_UpdateDataCopy(struct EwramData_EntityData *entity)
             }
             else if (repeatedInput & (KEY_A | KEY_B))
             {
-                PlaySong(SE_240);
+                PlaySong(SE_MENU_BACK);
                 MainMenu_PrintMessage(0x359);
                 cursor = entity->ext.mainMenu.cursor = entity->ext.mainMenu.copyDest;
                 entity->stage -= 1;
@@ -1558,7 +1559,7 @@ s32 MainMenu_UpdateDataCopy(struct EwramData_EntityData *entity)
     if (entity->ext.mainMenu.cursor != cursor)
     {
         entity->ext.mainMenu.cursor = cursor;
-        PlaySong(SE_241);
+        PlaySong(SE_MENU_CURSOR);
         if (entity->stage == 0)
         {
             entity->ext.mainMenu.copySource = cursor;
@@ -1614,11 +1615,11 @@ s32 MainMenu_UpdateDataDelete(struct EwramData_EntityData *entity)
             {
                 if (entity->ext.mainMenu.slotEmpty != 0)
                 {
-                    PlaySong(SE_239);
+                    PlaySong(SE_MENU_DENIED);
                 }
                 else
                 {
-                    PlaySong(SE_243);
+                    PlaySong(SE_MENU_SELECT);
                     MainMenu_PrintMessage(-1);
                     entity->ext.mainMenu.copySource = entity->ext.mainMenu.cursor;
                     entity->ext.mainMenu.cursor = 1;
@@ -1651,7 +1652,7 @@ s32 MainMenu_UpdateDataDelete(struct EwramData_EntityData *entity)
         case 1:
             if ((repeatedInput & KEY_A) && (cursor == 0))
             {
-                PlaySong(SE_244);
+                PlaySong(SE_MENU_CONFIRM);
                 if (!(entity->ext.mainMenu.copySource & 1))
                 {
                     SaveData_DeleteSlot(entity->ext.mainMenu.copySource);
@@ -1673,7 +1674,7 @@ s32 MainMenu_UpdateDataDelete(struct EwramData_EntityData *entity)
             }
             else if (repeatedInput & (KEY_A | KEY_B))
             {
-                PlaySong(SE_240);
+                PlaySong(SE_MENU_BACK);
                 MenuText_ClearAndPrint(0x35A);
                 cursor = entity->ext.mainMenu.cursor = entity->ext.mainMenu.copySource;
                 entity->stage -= 1;
@@ -1687,7 +1688,7 @@ s32 MainMenu_UpdateDataDelete(struct EwramData_EntityData *entity)
     if (entity->ext.mainMenu.cursor != cursor)
     {
         entity->ext.mainMenu.cursor = cursor;
-        PlaySong(SE_241);
+        PlaySong(SE_MENU_CURSOR);
         if (entity->stage == 0)
         {
             MainMenu_ShowSlotInfo(entity, entity->ext.mainMenu.cursor);
@@ -1944,7 +1945,7 @@ s32 SaveSelect_Update(struct EwramData_EntityData *entity)
 
         if (canLoad == 0)
         {
-            PlaySong(SE_239);
+            PlaySong(SE_MENU_DENIED);
         }
         else
         {
@@ -1954,7 +1955,7 @@ s32 SaveSelect_Update(struct EwramData_EntityData *entity)
             }
             gEwramData->gameState.currentSaveSlot = cursor;
             gEwramData->gameState.roomData = NULL;
-            PlaySong(SE_243);
+            PlaySong(SE_MENU_SELECT);
             result = 1;
         }
     }
@@ -1970,7 +1971,7 @@ s32 SaveSelect_Update(struct EwramData_EntityData *entity)
     if (entity->ext.mainMenu.cursor != cursor)
     {
         entity->ext.mainMenu.cursor = cursor;
-        PlaySong(SE_241);
+        PlaySong(SE_MENU_CURSOR);
         SaveSelect_ShowSlot(entity, entity->ext.mainMenu.cursor);
     }
     Entity_UpdateAll();
@@ -2125,7 +2126,7 @@ s32 MainMenu_UpdateNameEntry(struct EwramData_EntityData *entity)
     {
         if (key < 0x22)
         {
-            PlaySong(0xF3);
+            PlaySong(SE_MENU_SELECT);
             header->name[entity->ext.mainMenu.nameCursor] = key + 2;
             entity->ext.mainMenu.nameCursor += 1;
             if (entity->ext.mainMenu.nameCursor > 7)
@@ -2270,12 +2271,12 @@ s32 MainMenu_UpdateNameEntry(struct EwramData_EntityData *entity)
                         {
                             case 1:
                                 song = 0x1B5;
-                                gEwramData->gameState.gameFlags[2] |= 0x100000;
+                                gEwramData->gameState.gameFlags[GAME_FLAG_WORD(FLAG_NAME_NOUSE)] |= GAME_FLAG_BIT(FLAG_NAME_NOUSE);
                                 break;
 
                             case 2:
                                 song = 0x199;
-                                gEwramData->gameState.gameFlags[2] |= 0x200000;
+                                gEwramData->gameState.gameFlags[GAME_FLAG_WORD(FLAG_NAME_NOSOUL)] |= GAME_FLAG_BIT(FLAG_NAME_NOSOUL);
                                 break;
                         }
                     }
@@ -2311,7 +2312,7 @@ s32 MainMenu_UpdateNameEntry(struct EwramData_EntityData *entity)
             }
             if (delEmpty == 0)
             {
-                PlaySong(0xF0);
+                PlaySong(SE_MENU_BACK);
                 delShift = entity->ext.mainMenu.nameCursor + 1;
                 for (; delShift < 8; delShift++)
                 {
@@ -2353,7 +2354,7 @@ s32 MainMenu_UpdateNameEntry(struct EwramData_EntityData *entity)
             }
             else
             {
-                PlaySong(0xF0);
+                PlaySong(SE_MENU_BACK);
                 backShift = entity->ext.mainMenu.nameCursor + 1;
                 for (; backShift < 8; backShift++)
                 {
@@ -2368,7 +2369,7 @@ s32 MainMenu_UpdateNameEntry(struct EwramData_EntityData *entity)
     if (entity->ext.mainMenu.cursor != key)
     {
         entity->ext.mainMenu.cursor = key;
-        PlaySong(0xF1);
+        PlaySong(SE_MENU_CURSOR);
     }
     return result;
 }

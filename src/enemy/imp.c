@@ -22,6 +22,7 @@
 #include "damage_numbers.h"
 #include "sound.h"
 #include "entity_hit.h"
+#include "constants/songs.h"
 
 
 void Imp_UpdateState4Animation(struct EwramData_EntityData *entity);
@@ -43,6 +44,20 @@ s32 Ukoback_LoadGraphics(struct EwramData_EntityData *entity);
 
 /* Tiny Devil update and states from 0x080C47F8. */
 
+/* States of Imp (entity->state), named after the update function the dispatcher calls. */
+enum {
+    IMP_STATE_FLIGHT = 1,
+    IMP_STATE_ATTACK = 2,
+    IMP_STATE_GRAB = 3,
+    IMP_STATE_DEATH = 255,
+};
+
+/* States of TinyDevil (entity->state), named after the update function the dispatcher calls. */
+enum {
+    TINY_DEVIL_STATE_FLIGHT = 1,
+    TINY_DEVIL_STATE_ATTACK = 2,
+};
+
 /**
  * @brief C47F8 | Tiny Devil update: state 4 only runs Imp_UpdateState4Animation.
  * Otherwise Player_TrackEntity, then collision (Hit_CheckWithPlayer) and done when
@@ -61,39 +76,39 @@ void EnemyImpUpdate(struct EwramData_EntityData *entity)
         return;
     }
     Player_TrackEntity(entity);
-    if (Enemy_IsStunned(entity) && entity->state != 0xFF && entity->state != 3)
+    if (Enemy_IsStunned(entity) && entity->state != 0xFF && entity->state != IMP_STATE_GRAB)
     {
         Hit_CheckWithPlayer(&result, entity);
         return;
     }
     if (Target_GetX(entity) == entity->posX.whole
         && Target_GetY(entity) == entity->posY.whole
-        && entity->state == 2)
+        && entity->state == IMP_STATE_ATTACK)
     {
-        entity->state = 1;
+        entity->state = IMP_STATE_FLIGHT;
         entity->stage = 0;
         entity->subState = 0;
     }
     switch (entity->state)
     {
         case 0:
-        case 1:
+        case IMP_STATE_FLIGHT:
             Imp_UpdateFlight(entity);
             break;
-        case 2:
+        case IMP_STATE_ATTACK:
             Imp_UpdateAttack(entity);
             break;
-        case 3:
+        case IMP_STATE_GRAB:
             Imp_UpdateGrab(entity);
             break;
-        case 0xFF:
+        case IMP_STATE_DEATH:
             Imp_UpdateDeath(entity);
             break;
     }
-    if (entity->state == 0xFF)
+    if (entity->state == IMP_STATE_DEATH)
         return;
     Entity_AnimateWithBoxes(entity);
-    if (entity->state == 0xFF || entity->state == 3)
+    if (entity->state == 0xFF || entity->state == IMP_STATE_GRAB)
         return;
     Hit_CheckWithPlayer(&result, entity);
 }
@@ -253,7 +268,7 @@ void Imp_UpdateFlight(struct EwramData_EntityData *entity)
                 entity->accelX.whole = 0;
                 entity->velY.whole = 0;
                 entity->accelY.whole = 0;
-                entity->state = 2;
+                entity->state = IMP_STATE_ATTACK;
                 entity->stage = 0;
                 entity->subState = 0;
             }
@@ -346,7 +361,7 @@ void Imp_UpdateAttack(struct EwramData_EntityData *entity)
             if (entity->timer++ > 30)
             {
                 entity->timer = 0;
-                entity->state = 1;
+                entity->state = IMP_STATE_FLIGHT;
                 entity->stage = 0;
                 entity->subState = 0;
             }
@@ -426,7 +441,7 @@ void Imp_UpdateGrab(struct EwramData_EntityData *entity)
             entity->accelX.whole = 0;
             entity->velY.whole = 0;
             entity->accelY.whole = 0;
-            entity->state = 1;
+            entity->state = IMP_STATE_FLIGHT;
             entity->stage = 0;
             entity->subState = 0;
             break;
@@ -447,7 +462,7 @@ void Imp_UpdateDeath(struct EwramData_EntityData *entity)
             Enemy_DropRewards(entity);
             entity->palette = entity->basePalette;
             entity->timer = 50;
-            entity->state = 0xFF;
+            entity->state = IMP_STATE_DEATH;
             entity->subState++;
             entity->animFrame = 20;
             other->deleteRequested = 1;
@@ -482,11 +497,11 @@ void Imp_OnContact(struct EwramData_EntityData *entity)
     player = gEwramData->playerState.player;
     if (target->posX.whole != player->posX.whole)
         decoy = target->posY.whole != player->posY.whole;
-    if (entity->state == 3)
+    if (entity->state == IMP_STATE_GRAB)
         return;
     if (entity->state == 2 && !Entity_IsTimeStopped(entity) && !decoy)
     {
-        entity->state = 3;
+        entity->state = IMP_STATE_GRAB;
         entity->stage = 0;
         entity->subState = 0;
         return;
@@ -585,7 +600,7 @@ void Imp_ResetFlight(struct EwramData_EntityData *entity)
     entity->accelX.whole = zero;
     entity->accelY.whole = zero;
     Entity_FaceTarget(entity);
-    entity->state = 1;
+    entity->state = IMP_STATE_FLIGHT;
     entity->stage = zero;
     entity->subState = zero;
 }
@@ -633,7 +648,7 @@ void Imp_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 s32 Imp_CreateGrabIndicator(struct EwramData_EntityData *entity)
 {
     s32 created = 0;
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, ImpGrabIndicator_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, ImpGrabIndicator_Update);
 
     if (child != NULL)
     {
@@ -649,7 +664,7 @@ s32 Imp_CreateGrabIndicator(struct EwramData_EntityData *entity)
 s32 Imp_SpawnDeathPiece(struct EwramData_EntityData *entity)
 {
     s32 created = 0;
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, ImpDeathPiece_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, ImpDeathPiece_Update);
 
     if (child != NULL)
     {
@@ -684,7 +699,7 @@ void EnemyTinyDevilCreate(struct EwramData_EntityData *entity)
     Anim_Update(entity);
     Enemy_ResetFromTemplate(entity);
     entity->spriteLayer = 4;
-    entity->state = 1;
+    entity->state = TINY_DEVIL_STATE_FLIGHT;
     entity->stage = 0;
     entity->subState = 0;
     if (gEwramData->gameState.bestiaryPreview)
@@ -726,18 +741,18 @@ void EnemyTinyDevilUpdate(struct EwramData_EntityData *entity)
         return;
     }
     if (Target_GetX(entity) == entity->posX.whole && Target_GetY(entity) == entity->posY.whole
-        && entity->state == 2)
+        && entity->state == TINY_DEVIL_STATE_ATTACK)
     {
-        entity->state = 1;
+        entity->state = TINY_DEVIL_STATE_FLIGHT;
         entity->stage = stunned;
         entity->subState = stunned;
     }
     switch (entity->state)
     {
-        case 1:
+        case TINY_DEVIL_STATE_FLIGHT:
             TinyDevil_UpdateFlight(entity);
             break;
-        case 2:
+        case TINY_DEVIL_STATE_ATTACK:
             TinyDevil_UpdateAttack(entity);
             break;
     }
@@ -918,7 +933,7 @@ void TinyDevil_UpdateFlight(struct EwramData_EntityData *entity)
         entity->accelX.whole = 0;
         entity->velY.whole = 0;
         entity->accelY.whole = 0;
-        entity->state = 2;
+        entity->state = TINY_DEVIL_STATE_ATTACK;
         entity->stage = 0;
         entity->subState = 0;
     }
@@ -960,7 +975,7 @@ void TinyDevil_UpdateAttack(struct EwramData_EntityData *entity)
             atEdge = Entity_IsNearScreenEdge(entity, 8);
             if (atEdge)
             {
-                entity->state = 1;
+                entity->state = TINY_DEVIL_STATE_FLIGHT;
                 entity->stage = 0;
                 entity->subState = 0;
                 break;
@@ -982,7 +997,7 @@ void TinyDevil_UpdateAttack(struct EwramData_EntityData *entity)
             if (entity->timer++ > 80)
             {
                 entity->timer = 0;
-                entity->state = 1;
+                entity->state = TINY_DEVIL_STATE_FLIGHT;
                 entity->stage = 0;
                 entity->subState = 0;
             }
@@ -1032,7 +1047,7 @@ struct EwramData_EntityData *TinyDevil_SpawnProjectile(struct EwramData_EntityDa
     void *palette = sImpTinyDevilPalette;
     void *sprite = sImpTinyDevilSpriteSheet;
     u8 *graphics = sImpTinyDevilGfx;
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, TinyDevilProjectile_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, TinyDevilProjectile_Update);
     s32 targetX;
     s32 targetY;
     s32 slot;
@@ -1098,7 +1113,7 @@ void TinyDevilProjectile_Update(struct EwramData_EntityData *entity)
                     Anim_StartIndexed(entity, 6, 0, 0);
                     entity->affine = 1;
                     entity->state++;
-                    PlaySong(0x89);
+                    PlaySong(SE_THROW);
                 }
                 else
                 {

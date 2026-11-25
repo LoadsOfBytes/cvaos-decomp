@@ -38,6 +38,8 @@
 #include "data/data_118B48.h"
 #include "data/data_4F0B18.h"
 #include "player_physics.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 extern void (*sPlayerInitFuncs[])(struct EwramData_EntityData *);
 extern EntityFunc sPlayerUpdateFuncs[];
@@ -48,6 +50,16 @@ void Soma_UpdateVerticalMovement(struct EwramData_EntityData *entity);
 void Soma_UpdateVerticalMovement(struct EwramData_EntityData *entity);
 void Soma_UpdateVerticalMovement(struct EwramData_EntityData *entity);
 void Soma_UpdateVerticalMovement(struct EwramData_EntityData *entity);
+
+/* States of Soma (entity->state), named after the update function the dispatcher calls. */
+enum {
+    SOMA_STATE_DIVE_ATTACK = 7,
+    SOMA_STATE_BAT_FORM = 8,
+    SOMA_STATE_TRANSFORMATION_DASH = 9,
+    SOMA_STATE_KNOCKBACK = 13,
+    SOMA_STATE_KNOCKBACK_FROM_IMPULSE = 14,
+    SOMA_STATE_STATUS_REACTION = 15,
+};
 
 /**
  * @brief When currentLevel is zero, initialize equipment, inventory,
@@ -118,7 +130,7 @@ void Soma_InitEntity(struct EwramData_EntityData *entity)
     entity->drawFunc = Player_DrawWithOffset;
     Hit_Enable(entity, 1, Player_MarkAttackContact, 0);
     HitBox_SetBody(entity, &sSomaStandingBodyBox);
-    entity->hit.flags |= 2;
+    entity->hit.flags |= HIT_NO_ATTACK;
     gEwramData->playerStatus.soulStateFlags = 0;
 }
 
@@ -167,9 +179,9 @@ void Julius_InitEntity(struct EwramData_EntityData *entity)
     ObjGfx_LoadResource(sJuliusGfx, 0x10000);
     ObjPalette_LoadRange(sJuliusPalette, 0, 1, 2);
     ObjPalette_LoadRange(sJuliusPalette, 1, 1, 3);
-    EntityDelete(&gEwramData->entityData[0x11]);
+    EntityDelete(&gEwramData->entityData[ENTITY_SLOT_PLAYER_ICON]);
 
-    EntityCreateInRange(0x11, 0x11, Julius_UpdateSubweaponIcon);
+    EntityCreateInRange(ENTITY_SLOT_PLAYER_ICON, ENTITY_SLOT_PLAYER_ICON, Julius_UpdateSubweaponIcon);
     PLAYER_JULIUS_OVERLAY(entity) = Julius_CreateOverlaySprite();
     gEwramData->playerState.whipChain = Whip_CreateChain(0x01300000, 0, sJuliusGfx, PLAYER_JULIUS_OVERLAY(entity));
     Whip_DeactivateChain(gEwramData->playerState.whipChain);
@@ -203,7 +215,7 @@ void Player_Create(s32 unused)
     RedSoul_CancelAll();
     BlueSoul_StopAll();
 
-    player = EntityCreateInRange(0, 0, sPlayerUpdateFuncs[gEwramData->playerStatus.currentCharacter]);
+    player = EntityCreateInRange(ENTITY_SLOT_PLAYER, ENTITY_SLOT_PLAYER, sPlayerUpdateFuncs[gEwramData->playerStatus.currentCharacter]);
     sPlayerInitFuncs[gEwramData->playerStatus.currentCharacter](player);
     gEwramData->playerState.player = player;
     gEwramData->playerState.enemyTarget = player;
@@ -895,7 +907,7 @@ s32 Soma_TryCeilingImpact(struct EwramData_EntityData *entity)
 
     if (entity->velY.whole <= -0x4F000 && (entity->ext.player.actionFlags & 0x90) == 0x10)
     {
-        PlaySong(0xB8);
+        PlaySong(SE_PLAYER_HEAD_BUMP);
         Effect_SpawnDebrisBurst(entity);
         box = sSomaStandingBodyBox[0];
         if (!(gEwramData->playerState.actionLockFlags & 0x800) && entity->animScriptIndex != 0x25)
@@ -969,7 +981,7 @@ void Soma_TryStartDiveAttack(struct EwramData_EntityData *entity)
     if (!(ew->inputData.playerNewInput & ew->playerStatus.jumpButton))
         return;
     entity->hit.type = 2;
-    entity->state = 7;
+    entity->state = SOMA_STATE_DIVE_ATTACK;
     entity->velY.whole = 0x4E000;
     entity->accelY.whole = 0x2000;
     if ((key = ew->inputData.playerHeldInput & 0x20))
@@ -1026,14 +1038,14 @@ void Soma_UpdateDiveAttack(struct EwramData_EntityData *entity)
         entity->state = 0;
         return;
     }
-    entity->hit.flags &= ~2;
+    entity->hit.flags &= ~HIT_NO_ATTACK;
     if (entity->ext.player.actionFlags & 0x80000)
     {
         register s32 zero asm("r4"); /* FAKEMATCH: pinned register */
         entity->ext.player.actionFlags = (entity->ext.player.actionFlags | 8) & ~4;
         zero = 0;
         SetBox(entity, 0x14);
-        PlaySong(0xB9);
+        PlaySong(SE_PLAYER_JUMP);
         entity->velY.whole = -0x38000;
         entity->accelY.whole = -0x2000;
         entity->state = zero;
@@ -1353,7 +1365,7 @@ s32 Soma_TryAirJump(struct EwramData_EntityData *entity)
             box = sSomaAirborneBodyBox[0];
             entity->ext.player.requestedAnim = time;
             HitBox_SetBody(entity, &box);
-            PlaySong(0xB9);
+            PlaySong(SE_PLAYER_JUMP);
             entity->ext.player.actionFlags = (entity->ext.player.actionFlags | 4) & ~0x10;
             if (!(entity->ext.player.actionFlags & 0x400000))
             {
@@ -1427,7 +1439,7 @@ void Soma_HandleJumpInput(struct EwramData_EntityData *entity)
         {
             if (gEwramData->inputData.playerNewInput & gEwramData->playerStatus.jumpButton)
             {
-                PlaySong(0xB9);
+                PlaySong(SE_PLAYER_JUMP);
                 entity->ext.player.actionFlags = (entity->ext.player.actionFlags | 2) & ~0x100400;
                 entity->ext.player.airTime = 0x10;
                 entity->accelY.whole = zero;
@@ -1562,7 +1574,7 @@ void Soma_CastEquippedRedSoul(struct EwramData_EntityData *entity, s32 noAnim)
     slot = RedSoul_FindFreeEntitySlot();
     if (slot < 0)
         return;
-    soul = EntityCreateInRange(2, 0x10, info->updateFunc);
+    soul = EntityCreateInRange(ENTITY_SLOT_WEAPON_FIRST, ENTITY_SLOT_WEAPON_LAST, info->updateFunc);
     if (soul == NULL)
         return;
     gEwramData->playerStatus.currentMP -= info->mpCost;
@@ -1705,7 +1717,7 @@ void Soma_UpdateKnockback(struct EwramData_EntityData *entity)
     {
         entity->accelY.whole = 0;
         entity->ext.player.actionFlags = entity->ext.player.actionFlags & 0xFFEFFB7F;
-        PlaySong(0xB9);
+        PlaySong(SE_PLAYER_JUMP);
         entity->ext.player.actionFlags |= 6;
         entity->velY.whole = 0;
         entity->state = 0;
@@ -2233,7 +2245,7 @@ void Soma_StartDeath(struct EwramData_EntityData *entity)
     gEwramData->gameState.subMode = 2;
     gEwramData->gameState.subModeStep = 0;
     SetPlayerAnim(entity, 0x33);
-    entity->hit.flags |= 4;
+    entity->hit.flags |= HIT_NO_DAMAGE;
     BlueSoul_StopAll();
     entity->ext.player.actionFlags &= 0xEFFFFE9F;
     gEwramData->playerState.actionLockFlags |= 0xE;
@@ -2416,7 +2428,7 @@ void Soma_Update(struct EwramData_EntityData *entity)
         FLAGS(entity) |= 0x200000;
         FLAGS(entity) &= ~0x10000000;
     }
-    entity->hit.flags |= 2;
+    entity->hit.flags |= HIT_NO_ATTACK;
     Player_PruneTrackedEntities();
     entity->ext.player.drawOffsetY = 0;
     entity->ext.player.drawOffsetX = 0;
@@ -2481,10 +2493,10 @@ void Soma_Update(struct EwramData_EntityData *entity)
         }
         else if (gEwramData->playerStatus.statusEffects & 4)
         {
-            if (entity->state == 8)
+            if (entity->state == SOMA_STATE_BAT_FORM)
                 Soma_ResolveBatExitCollision(entity);
             entity->palette = 0;
-            entity->state = 0xF;
+            entity->state = SOMA_STATE_STATUS_REACTION;
             FLAGS(entity) |= 0x80;
             if (FLAGS(entity) & 2)
             {
@@ -2512,7 +2524,7 @@ void Soma_Update(struct EwramData_EntityData *entity)
             struct EwramData *ewram;
             struct EwramData_EntityData *player;
 
-            if (entity->state == 8)
+            if (entity->state == SOMA_STATE_BAT_FORM)
                 Soma_ResolveBatExitCollision(entity);
             ewram = gEwramData;
             ewram->playerState.actionLockFlags &= ~0x820;
@@ -2537,7 +2549,7 @@ void Soma_Update(struct EwramData_EntityData *entity)
             }
             else
             {
-                if (entity->state == 8)
+                if (entity->state == SOMA_STATE_BAT_FORM)
                     Soma_ResolveBatExitCollision(entity);
                 entity->palette = 0;
                 hurtData = gEwramData;
@@ -2590,7 +2602,7 @@ void Soma_Update(struct EwramData_EntityData *entity)
                     entity->velY.whole = -0x20000;
                     entity->accelY.whole = -0x1000;
                     FLAGS(entity) |= 0x82;
-                    entity->state = 0xD;
+                    entity->state = SOMA_STATE_KNOCKBACK;
                     PlaySong(0x195);
                 }
                 FLAGS(entity) &= ~0x200000;
@@ -2880,7 +2892,7 @@ void Soma_Update(struct EwramData_EntityData *entity)
                     *timerPtr = timer;
                 }
             }
-            entity->hit.flags &= ~2;
+            entity->hit.flags &= ~HIT_NO_ATTACK;
             abs = entity->velX.whole;
             if (abs < 0)
                 abs = -abs;
@@ -2957,7 +2969,7 @@ void Soma_Update(struct EwramData_EntityData *entity)
             if (FLAGS(entity) & 0x200000)
                 entity->state = 0;
             break;
-        case 7:
+        case SOMA_STATE_DIVE_ATTACK:
             Soma_UpdateDiveAttack(entity);
             Soma_UpdateVerticalMovement(entity);
             break;
@@ -2977,19 +2989,19 @@ void Soma_Update(struct EwramData_EntityData *entity)
             Soma_HandleBlueSoulInput(entity);
             break;
         }
-        case 13:
+        case SOMA_STATE_KNOCKBACK:
             Soma_UpdateKnockback(entity);
             break;
-        case 14:
+        case SOMA_STATE_KNOCKBACK_FROM_IMPULSE:
             Soma_UpdateKnockbackFromImpulse(entity);
             break;
-        case 15:
+        case SOMA_STATE_STATUS_REACTION:
             Soma_UpdateStatusReaction(entity);
             break;
-        case 8:
+        case SOMA_STATE_BAT_FORM:
             Soma_UpdateBatForm(entity);
             break;
-        case 9:
+        case SOMA_STATE_TRANSFORMATION_DASH:
             Soma_UpdateTransformationDash(entity);
             break;
         case 10:
@@ -3023,7 +3035,7 @@ void Soma_Update(struct EwramData_EntityData *entity)
         s->hitTimer[1] = 0;
         s->hitTimer[0] = 0;
     }
-    if (gEwramData->gameState.stateFlags & 1)
+    if (gEwramData->gameState.stateFlags & STATE_EVENT_RUNNING)
     {
         u8 two = 2;
         gEwramData->playerState.player->ext.player.invulnerableTimer = two;

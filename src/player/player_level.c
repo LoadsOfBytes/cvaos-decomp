@@ -33,6 +33,7 @@
 #include "data/data_118B48.h"
 #include "data/data_4F0B18.h"
 #include "debug_test_menu.h"
+#include "constants/hit_flags.h"
 
 static inline s32 Player_GetExperienceForLevelInline(s32 level)
 {
@@ -206,7 +207,7 @@ void LinkPartner_Create(void)
 {
     struct EwramData_EntityData *child;
 
-    child = EntityCreateInRange(0, 1, LinkPartner_Update);
+    child = EntityCreateInRange(ENTITY_SLOT_PLAYER, ENTITY_SLOT_LINK_PARTNER, LinkPartner_Update);
     gEwramData->playerState.blueSoulGfx = (u32) ObjGfx_LoadResource((u8 *)sUnk_080E1E1C, 0x10000);
     ObjPalette_LoadRange((u8 *)sSomaPalette, 6U, 1U, 3U);
     Sprite_Attach(child, (u8 *)sSomaSpriteSheet, (s32) gEwramData->playerState.blueSoulGfx, 3);
@@ -216,7 +217,7 @@ void LinkPartner_Create(void)
     gEwramData->playerState.linkFrameCounter = 0;
     gEwramData->playerState.enemyTarget = NULL;
     gEwramData->playerState.linkPartner = child;
-    child = EntityCreateInRange(0x11, 0x11, LinkPartnerMarker_Update);
+    child = EntityCreateInRange(ENTITY_SLOT_PLAYER_ICON, ENTITY_SLOT_PLAYER_ICON, LinkPartnerMarker_Update);
     gEwramData->playerState.linkTargetProxy = child;
     child->roomActive = 1;
 }
@@ -589,7 +590,7 @@ void Julius_UpdateSubweaponIcon(struct EwramData_EntityData *entity)
             break;
     }
 
-    if (gEwramData->gameState.stateFlags & 0x20)
+    if (gEwramData->gameState.stateFlags & STATE_HUD_HIDDEN)
     {
         entity->hidden = 1;
     }
@@ -662,7 +663,7 @@ void Julius_HandleSubweaponInput(struct EwramData_EntityData *entity)
         return;
     }
 
-    child = EntityCreateInRange(2, 0x10, info->updateFunc);
+    child = EntityCreateInRange(ENTITY_SLOT_WEAPON_FIRST, ENTITY_SLOT_WEAPON_LAST, info->updateFunc);
     if (child == NULL)
         return;
 
@@ -761,7 +762,7 @@ void JuliusCross_Update(struct EwramData_EntityData *entity)
 
                 Hit_Enable(entity, 5, NULL, 0);
                 HitBox_SetAttackRaw(entity, 0x1414F6F6);
-                entity->hit.flags |= 4;
+                entity->hit.flags |= HIT_NO_DAMAGE;
                 entity->scrollWithBg = 1;
                 entity->state = 2;
             }
@@ -842,7 +843,7 @@ void JuliusHolyWaterFlame_Update(struct EwramData_EntityData *entity)
             entity->spriteLayer = 0xD;
             entity->ext.subweapon.walkSpeed = 0x12000;
             Hit_Enable(entity, 5, NULL, 0);
-            entity->hit.flags |= 4;
+            entity->hit.flags |= HIT_NO_DAMAGE;
             entity->state += 1;
             /* fallthrough */
         case 1:
@@ -1003,7 +1004,7 @@ void JuliusAxeProjectile_Update(struct EwramData_EntityData *entity)
                 case 0:
                     Hit_Enable(entity, 5, NULL, 0);
                     HitBox_SetAttackRaw(entity, 0x1414F6F6);
-                    entity->hit.flags |= 4;
+                    entity->hit.flags |= HIT_NO_DAMAGE;
                     break;
                 case 2:
                     entity->drawSkip = 1;
@@ -1156,8 +1157,8 @@ void JuliusGrandCross_Update(struct EwramData_EntityData *entity)
             entity->doubleSize = entity->affine = 1;
 
             Hit_Enable(entity, 5, NULL, 0);
-            entity->hit.flags |= 4;
-            entity->hit.flags |= 2;
+            entity->hit.flags |= HIT_NO_DAMAGE;
+            entity->hit.flags |= HIT_NO_ATTACK;
             entity->ext.grandCross.scale = tmp;
             Sound_StopTracked(0xFA);
             Sound_PlayTracked(0xFB);
@@ -1200,7 +1201,7 @@ void JuliusGrandCross_Update(struct EwramData_EntityData *entity)
                     Effect_CreateFromTable(x, y, 0, RandomSigned(0x800) - 0x2000, 4, 6U);
                 }
 
-                entity->hit.flags &= ~2;
+                entity->hit.flags &= ~HIT_NO_ATTACK;
                 if (entity->timer & 1)
                 {
                     HitBox_SetAttackRaw(entity, 0x783088E8);
@@ -1216,7 +1217,7 @@ void JuliusGrandCross_Update(struct EwramData_EntityData *entity)
                 entity->timer -= 1;
                 break;
             }
-            entity->hit.flags |= 2;
+            entity->hit.flags |= HIT_NO_ATTACK;
             entity->state = 4;
             /* fallthrough */
         case 4:
@@ -1288,8 +1289,8 @@ void Whip_UpdateChainHitSegment(struct EwramData_EntityData *entity)
         case 0:
             Hit_Enable(entity, 6, NULL, 0);
             HitBox_SetAttackRaw(entity, 0x0404FEFE);
-            entity->hit.flags |= 4;
-            entity->hit.flags |= 2;
+            entity->hit.flags |= HIT_NO_DAMAGE;
+            entity->hit.flags |= HIT_NO_ATTACK;
             entity->state = 1;
             /* fallthrough */
         case 1:
@@ -1300,11 +1301,11 @@ void Whip_UpdateChainHitSegment(struct EwramData_EntityData *entity)
                 // TODO: what is going on here
                 entity->posX.whole = nodes[entity->ext.whipSegment.node].posX;
                 entity->posY.whole = nodes[entity->ext.whipSegment.node].posY;
-                entity->hit.flags &= ~2;
+                entity->hit.flags &= ~HIT_NO_ATTACK;
             }
             else
             {
-                entity->hit.flags |= 2;
+                entity->hit.flags |= HIT_NO_ATTACK;
             }
             break;
     }
@@ -1453,7 +1454,7 @@ struct EwramData_EntityData* Whip_CreateChain(s32 x, s32 y, u8 *resource, struct
     s32 i;
     s32 gfx;
 
-    chain = EntityCreateInRange(2, 0x10, Whip_UpdateChain);
+    chain = EntityCreateInRange(ENTITY_SLOT_WEAPON_FIRST, ENTITY_SLOT_WEAPON_LAST, Whip_UpdateChain);
     gEwramData->playerState.skillBaseAttack = 8;
     gEwramData->playerState.skillAttackAttributes = 0;
     Hit_SetTimerOverride(2, 0x14);
@@ -1499,7 +1500,7 @@ struct EwramData_EntityData* Julius_CreateOverlaySprite(void)
     struct EwramData_EntityData *child;
     s32 gfx;
 
-    child = EntityCreateInRange(2, 0x10, JuliusOverlay_Update);
+    child = EntityCreateInRange(ENTITY_SLOT_WEAPON_FIRST, ENTITY_SLOT_WEAPON_LAST, JuliusOverlay_Update);
     gfx = ObjGfx_Find((u8 *)sJuliusGfx);
     Sprite_Attach(child, (void *)sJuliusSpriteSheet2, gfx, 0);
     child->spriteLayer = 0xD;

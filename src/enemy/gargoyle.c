@@ -18,6 +18,7 @@
 #include "hitbox.h"
 #include "damage_numbers.h"
 #include "entity_hit.h"
+#include "constants/songs.h"
 
 u8 Gargoyle_LoadGraphics(struct EwramData_EntityData *entity);
 void Gargoyle_DamagePlayerOnContact(struct EwramData_EntityData *entity);
@@ -25,6 +26,13 @@ void Gargoyle_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 
 /* Decompiled locally from the original assembly (variant of an already
  * decompiled function). */
+
+/* States of Triton (entity->state), named after the update function the dispatcher calls. */
+enum {
+    TRITON_STATE_MOVE = 0,
+    TRITON_STATE_ATTACK = 1,
+    TRITON_STATE_ANIM_ONLY = 4,
+};
 
 /**
  * @brief 864A0 | Gargoyle create: like EnemyValkyrieCreate, but state 2 when
@@ -128,7 +136,7 @@ void Gargoyle_UpdateFly(struct EwramData_EntityData *entity)
             Anim_StartIndexed(entity, 1, 0, 0);
             ACCEL(entity) = entity->flipX ? 0xC00 : -0xC00;
             MAX_SPEED(entity) = 0x1800;
-            PlaySong(0x87);
+            PlaySong(SE_DASH);
         }
         break;
     case 3:
@@ -210,7 +218,7 @@ void Gargoyle_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
-        PlaySong(0x6E);
+        PlaySong(SE_ENEMY_DEATH);
         entity->palette = entity->basePalette;
         entity->timer = 0x28;
         entity->state = 1;
@@ -281,8 +289,8 @@ void EnemyTritonUpdate(struct EwramData_EntityData *entity)
     }
     switch (entity->state)
     {
-    case 0: Triton_UpdateMove(entity); break;
-    case 1: Triton_UpdateAttack(entity); break;
+    case TRITON_STATE_MOVE: Triton_UpdateMove(entity); break;
+    case TRITON_STATE_ATTACK: Triton_UpdateAttack(entity); break;
     case 2:
         entity->hidden = Entity_GetVisibilityPattern(entity->timer);
         if ((s8)--entity->timer <= 0)
@@ -296,7 +304,7 @@ void EnemyTritonUpdate(struct EwramData_EntityData *entity)
         entity->hidden = 1;
         if ((s8)--entity->timer <= 0) entity->deleteRequested = 1;
         break;
-    case 4:
+    case TRITON_STATE_ANIM_ONLY:
         Anim_Update(entity);
         return;
     }
@@ -325,7 +333,7 @@ void EnemyTritonCreate(struct EwramData_EntityData *entity)
     entity->ext.triton.spear = spear;
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 4;
+        entity->state = TRITON_STATE_ANIM_ONLY;
         return;
     }
     if (Anim_GetMaxBoxCount(entity) > 1)
@@ -333,7 +341,7 @@ void EnemyTritonCreate(struct EwramData_EntityData *entity)
     else
         Hit_Enable(entity, 8, Triton_DamagePlayerOnContact, Triton_OnHit);
     Entity_UpdateBoxes(entity);
-    entity->state = 0;
+    entity->state = TRITON_STATE_MOVE;
     Entity_SnapToGround(entity);
     entity->subState = 10;
 }

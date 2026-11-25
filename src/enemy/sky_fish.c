@@ -27,12 +27,19 @@ void SkyFish_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityD
 void SkyFish_SpawnTrail(struct EwramData_EntityData *, s32, s32, s32, s32);
 void SkyFish_SpawnRisingTrail(struct EwramData_EntityData *, s32, s32, s32, s32);
 
+/* States of SkyFish (entity->state), named after the update function the dispatcher calls. */
+enum {
+    SKY_FISH_STATE_FLY = 0,
+    SKY_FISH_STATE_DEATH = 1,
+    SKY_FISH_STATE_ANIM_ONLY = 2,
+};
+
 void EnemySkyFishUpdate(struct EwramData_EntityData *entity)
 {
     /* Original reserves 0x30 bytes for this scratch area. */
     struct HitResult results[3]; /* only results[0] is written; the original reserved 48 bytes */
     u8 frame;
-    if (entity->state != 1)
+    if (entity->state != SKY_FISH_STATE_DEATH)
     {
         if (Entity_IsInRect(entity, -16, 0, 0x110, 0xB0)) Player_TrackEntity(entity);
     }
@@ -44,9 +51,9 @@ void EnemySkyFishUpdate(struct EwramData_EntityData *entity)
     }
     switch (entity->state)
     {
-    case 0: SkyFish_UpdateFly(entity); break;
-    case 1: SkyFish_UpdateDeath(entity); break;
-    case 2: Anim_Update(entity); return;
+    case SKY_FISH_STATE_FLY: SkyFish_UpdateFly(entity); break;
+    case SKY_FISH_STATE_DEATH: SkyFish_UpdateDeath(entity); break;
+    case SKY_FISH_STATE_ANIM_ONLY: Anim_Update(entity); return;
     }
     frame = entity->animFrame;
     Anim_Update(entity);
@@ -68,7 +75,7 @@ void EnemySkyFishCreate(struct EwramData_EntityData *entity)
     Enemy_ResetFromTemplate(entity);
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 2;
+        entity->state = SKY_FISH_STATE_ANIM_ONLY;
         Anim_StartIndexed(entity, 0, 0, 1);
         Anim_Update(entity);
         return;
@@ -80,7 +87,7 @@ void EnemySkyFishCreate(struct EwramData_EntityData *entity)
         Hit_Enable(entity, 8, SkyFish_DamagePlayerOnContact, SkyFish_OnHit);
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
-    entity->state = 0;
+    entity->state = SKY_FISH_STATE_FLY;
     one = 1;
     entity->ext.skyFish.darting = one;
     {
@@ -198,7 +205,7 @@ void SkyFish_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityD
         Anim_Start(entity, &sSkyFishHitAnimScript, 0, 0);
         entity->palette = entity->basePalette;
         entity->timer = 0x40;
-        entity->state = 1;
+        entity->state = SKY_FISH_STATE_DEATH;
         entity->subState = 0;
     }
 }
@@ -206,7 +213,7 @@ void SkyFish_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityD
 /* Create a moving animated effect. Position arguments use 16.16 fixed point. */
 void SkyFish_SpawnTrail(struct EwramData_EntityData *parent, s32 x, s32 y, s32 priority, s32 param)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticle);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateParticle);
     if (child != NULL)
     {
         s32 tiles;
@@ -237,7 +244,7 @@ void SkyFish_SpawnTrail(struct EwramData_EntityData *parent, s32 x, s32 y, s32 p
 /* Companion effect with upward acceleration. */
 void SkyFish_SpawnRisingTrail(struct EwramData_EntityData *parent, s32 x, s32 y, s32 priority, s32 param)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticle);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateParticle);
     if (child != NULL)
     {
         s32 tiles;

@@ -19,6 +19,7 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "entity_motion.h"
+#include "constants/songs.h"
 
 extern s32 __divsi3(s32, s32);
 
@@ -28,6 +29,13 @@ void Slime_DamagePlayerOnContact(struct EwramData_EntityData *);
 void Slime_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 /* Slime particle creation with bounded entity allocation. */
+
+/* States of Slime (entity->state), named after the update function the dispatcher calls. */
+enum {
+    SLIME_STATE_CRAWL = 0,
+    SLIME_STATE_DETACH = 1,
+    SLIME_STATE_ANIM_ONLY = 3,
+};
 
 /**
  * @brief Spawn up to count slime particles with randomized position, frame
@@ -42,7 +50,7 @@ void Slime_SpawnParticles(struct EwramData_EntityData *entity, s32 count, s32 vx
     if (index >= count) return;
     do
     {
-        child = EntityCreateInRange(0x49, 0xCF, SlimeParticle_Update);
+        child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, SlimeParticle_Update);
         if (child != NULL)
         {
             if (!Entity_LoadGraphics(child, sSlimeGfx, sSlimePalette, entity->spawnParam1, sSlimeSpriteSheet))
@@ -333,7 +341,7 @@ void Slime_UpdateCrawl(struct EwramData_EntityData *entity)
         if ((s32)entity->ext.slime.scaleX <= 0xFFFF) entity->ext.slime.scaleX += 0x200;
         if (entity->ext.slime.turnCooldown == 0 && entity->stage != 0 && (RandomNumberGenerator() & 0xFF) <= 3 && Target_IsNearEntity(entity, 0x78, 0xB4))
         {
-            entity->state = 1;
+            entity->state = SLIME_STATE_DETACH;
             entity->subState = 0;
             return;
         }
@@ -562,7 +570,7 @@ void Slime_UpdateDetach(struct EwramData_EntityData *entity)
         if (entity->animFlags & 4)
         {
             Anim_StartIndexed(entity, 0, 0, 1);
-            entity->state = 0;
+            entity->state = SLIME_STATE_CRAWL;
             entity->subState = 0;
             entity->ext.slime.turnCooldown = 0;
         }
@@ -586,7 +594,7 @@ s32 Slime_UpdateDeath(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
     case 0:
-        PlaySong(0x70);
+        PlaySong(SE_ENEMY_DEATH_SOFT);
         Anim_StartIndexed(entity, 0, 0, 1);
         if (entity->ext.slime.flags & 4)
         {
@@ -672,7 +680,7 @@ void EnemySlimeCreate(struct EwramData_EntityData *entity)
     if (gEwramData->gameState.bestiaryPreview)
     {
         ObjAffine_Set(entity->ext.slime.angle, entity->ext.slime.scaleX, entity->ext.slime.scaleY, entity->flipX, 0, entity->affineIndex);
-        entity->state = 3;
+        entity->state = SLIME_STATE_ANIM_ONLY;
         return;
     }
     Hit_Enable(entity, 8, Slime_DamagePlayerOnContact, Slime_OnHit);
@@ -697,7 +705,7 @@ void EnemySlimeCreate(struct EwramData_EntityData *entity)
     }
     ObjAffine_Set(entity->ext.slime.angle, entity->ext.slime.scaleX, entity->ext.slime.scaleY, entity->flipX, 0, entity->affineIndex);
     entity->scrollWithBg = 1;
-    entity->state = 0;
+    entity->state = SLIME_STATE_CRAWL;
 }
 
 void EnemySlimeUpdate(struct EwramData_EntityData *entity)
@@ -705,8 +713,8 @@ void EnemySlimeUpdate(struct EwramData_EntityData *entity)
     if (Enemy_PreUpdate(entity)) return;
     switch (entity->state)
     {
-    case 0: Slime_UpdateCrawl(entity); break;
-    case 1: Slime_UpdateDetach(entity); break;
+    case SLIME_STATE_CRAWL: Slime_UpdateCrawl(entity); break;
+    case SLIME_STATE_DETACH: Slime_UpdateDetach(entity); break;
     case 2:
         if (Slime_UpdateDeath(entity))
         {
@@ -715,7 +723,7 @@ void EnemySlimeUpdate(struct EwramData_EntityData *entity)
             return;
         }
         break;
-    case 3:
+    case SLIME_STATE_ANIM_ONLY:
         Anim_Update(entity);
         return;
     }

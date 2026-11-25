@@ -31,6 +31,8 @@
 #include "player_soma.h"
 #include "soul_pickup.h"
 #include "entity_hit.h"
+#include "constants/songs.h"
+#include "constants/hit_flags.h"
 
 /* Chaos core creation. */
 /* allocation of 10 words in the Chaos core's unk_504 */
@@ -123,6 +125,23 @@ void Chaos2SpinningDebris_Update(struct EwramData_EntityData *entity);
 void Chaos2_UpdateIdle(struct EwramData_EntityData *entity);
 void Chaos2Shard_Update(struct EwramData_EntityData *entity);
 
+/* States of Chaos (entity->state), named after the update function the dispatcher calls. */
+enum {
+    CHAOS_STATE_INTRO = 0,
+    CHAOS_STATE_FIGHT = 1,
+    CHAOS_STATE_IDLE = 2,
+    CHAOS_STATE_DEFEAT = 3,
+    CHAOS_STATE_ANIM_ONLY = 4,
+};
+
+/* States of Chaos2 (entity->state), named after the update function the dispatcher calls. */
+enum {
+    CHAOS2_STATE_INTRO = 0,
+    CHAOS2_STATE_ATTACK = 1,
+    CHAOS2_STATE_IDLE = 2,
+    CHAOS2_STATE_DEFEAT = 3,
+};
+
 /* Create the Chaos core with its background, two rings and three orbs
  * (spawnParam1 set: the other form Chaos_StartSecondForm); after the fight only the
  * frozen state 4. */
@@ -138,7 +157,7 @@ void EnemyChaosCreate(struct EwramData_EntityData *core)
         return;
     }
     if (core->spawnParam0 != 0 && gEwramData->gameState.bossRushMode == 0
-        && (gEwramData->gameState.bossEventFlags & 0x80))
+        && (gEwramData->gameState.bossEventFlags & BOSS_DEFEATED_CHAOS))
     {
         EntityDelete(core);
         return;
@@ -195,21 +214,21 @@ void EnemyChaosCreate(struct EwramData_EntityData *core)
         Anim_Update(core);
         core->hidden = 1;
         Enemy_ResetFromTemplate(core);
-        core->hit.flags |= 4;
-        core->hit.flags |= 2;
+        core->hit.flags |= HIT_NO_DAMAGE;
+        core->hit.flags |= HIT_NO_ATTACK;
         core->state = 0;
         Player_SetSelectedTarget(core);
-        gEwramData->gameState.stateFlags |= 2;
-        gEwramData->gameState.stateFlags |= 1;
-        gEwramData->gameState.stateFlags |= 0x200000;
-        gEwramData->gameState.stateFlags |= 0x800000;
+        gEwramData->gameState.stateFlags |= STATE_BOSS_FIGHT;
+        gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
+        gEwramData->gameState.stateFlags |= STATE_CHAOS_FIGHT;
+        gEwramData->gameState.stateFlags |= STATE_ROOM_JUMP_NO_PAUSE;
         gEwramData->startPauseEnabled = 0;
         core->timer = 0;
         core->ext.chaos.unusedRandom = RandomNumberGenerator() % 64;
         core->ext.chaos.attackTimer0 = (RandomNumberGenerator() & 0x7F) + 60;
         core->ext.chaos.attackTimer1 = (RandomNumberGenerator() & 0x7F) + 120;
         core->ext.chaos.attackTimer2 = (RandomNumberGenerator() & 0x7F) + 60;
-        Music_SetCurrent(0x1F);
+        Music_SetCurrent(MUS_BATTLE_AGAINST_CHAOS);
         data->bgScale = 0xC0;
         data->bgRadius = 0x40000;
     }
@@ -334,7 +353,7 @@ void Chaos_UpdateIntro(struct EwramData_EntityData *core)
         }
         if (core->timer++ > 0xF9)
         {
-            gEwramData->gameState.stateFlags &= ~1;
+            gEwramData->gameState.stateFlags &= ~STATE_EVENT_RUNNING;
             gEwramData->startPauseEnabled = 1;
             core->state = 1;
             core->subState = 0;
@@ -367,7 +386,7 @@ void Chaos_UpdateDefeat(struct EwramData_EntityData *core)
         ROT_SPEED(core) = 0x80;
         ANGLE_SPEED(core) = 0x200;
         SCALE_SPEED(core) = 0;
-        gEwramData->gameState.stateFlags |= 1;
+        gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
         gEwramData->startPauseEnabled = 0;
         break;
     case 1:
@@ -408,7 +427,7 @@ void Chaos_UpdateDefeat(struct EwramData_EntityData *core)
         {
             BgPalette_StartColorFade(0, 0, 0, 0x10000, 0, 0xC0);
             ObjPalette_StartColorFade(0, 0, 0, 0x10000, 0, 0xD0);
-            PlaySong(0x1010);
+            PlaySong(SONG_MUTE);
             core->stage++;
         }
         if (core->stage == 1 && !ObjPalette_GetPendingFades())
@@ -417,7 +436,7 @@ void Chaos_UpdateDefeat(struct EwramData_EntityData *core)
             ObjPalette_StopColorFade();
             RoomJump_SetDestination(sChaosDestinationRoom, 0, 0, 0x50, 0xA0);
             RoomJump_Begin(&gEwramData->gameState);
-            gEwramData->gameState.stateFlags &= ~1;
+            gEwramData->gameState.stateFlags &= ~STATE_EVENT_RUNNING;
         }
         break;
     }
@@ -449,7 +468,7 @@ void Chaos_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDat
         Enemy_DropRewards(entity);
         entity->palette = entity->basePalette;
         entity->timer = 60;
-        entity->state = 3;
+        entity->state = CHAOS_STATE_DEFEAT;
         entity->subState = 0;
         BossDefeatEffect_Spawn(entity->posX.whole, entity->posY.whole);
     }
@@ -489,7 +508,7 @@ void ChaosBackground_Update(struct EwramData_EntityData *entity)
 /* Create the outer ring (frame 0) around (0x78, 0x50). */
 struct EwramData_EntityData *Chaos_CreateOuterRing(struct EwramData_EntityData *owner, u16 spin, u16 orbit, u16 radius)
 {
-    struct EwramData_EntityData *ring = EntityCreateInRange(0x49, 0xCF, ChaosOuterRing_Update);
+    struct EwramData_EntityData *ring = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, ChaosOuterRing_Update);
     struct ChaosData *data = (struct ChaosData *)owner->ext.chaos.data.value;
     s32 graphics;
     u16 slot;
@@ -519,8 +538,8 @@ struct EwramData_EntityData *Chaos_CreateOuterRing(struct EwramData_EntityData *
     ring->enemyId = owner->enemyId;
     ring->ext.chaosChild.link = owner;
     ring->scrollWithBg = 0;
-    ring->hit.flags |= 4;
-    ring->hit.flags |= 2;
+    ring->hit.flags |= HIT_NO_DAMAGE;
+    ring->hit.flags |= HIT_NO_ATTACK;
     ring->drawFunc = Sprite_DrawEntity;
     return ring;
 }
@@ -537,7 +556,7 @@ void ChaosOuterRing_Update(struct EwramData_EntityData *entity)
     {
         if (entity->state == 0)
         {
-            if (!(ewram->gameState.stateFlags & 1))
+            if (!(ewram->gameState.stateFlags & STATE_EVENT_RUNNING))
             {
                 SPIN(entity) += 0x70;
                 ORBIT(entity) += 0x1E0;
@@ -574,7 +593,7 @@ void ChaosOuterRing_Update(struct EwramData_EntityData *entity)
 /* Create the inner ring (frame 1). */
 struct EwramData_EntityData *Chaos_CreateInnerRing(struct EwramData_EntityData *owner, u16 spin, u16 orbit, u16 radius)
 {
-    struct EwramData_EntityData *ring = EntityCreateInRange(0x49, 0xCF, ChaosInnerRing_Update);
+    struct EwramData_EntityData *ring = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, ChaosInnerRing_Update);
     struct ChaosData *data = (struct ChaosData *)owner->ext.chaos.data.value;
     s32 graphics;
     u16 slot;
@@ -604,8 +623,8 @@ struct EwramData_EntityData *Chaos_CreateInnerRing(struct EwramData_EntityData *
     ring->enemyId = owner->enemyId;
     ring->ext.chaosChild.link = owner;
     ring->scrollWithBg = 0;
-    ring->hit.flags |= 4;
-    ring->hit.flags |= 2;
+    ring->hit.flags |= HIT_NO_DAMAGE;
+    ring->hit.flags |= HIT_NO_ATTACK;
     ring->drawFunc = Sprite_DrawEntity;
     return ring;
 }
@@ -621,7 +640,7 @@ void ChaosInnerRing_Update(struct EwramData_EntityData *entity)
     {
         if (entity->state == 0)
         {
-            if (!(ewram->gameState.stateFlags & 1))
+            if (!(ewram->gameState.stateFlags & STATE_EVENT_RUNNING))
             {
                 SPIN(entity) += 0x60;
                 ORBIT(entity) += 0x1C0;
@@ -660,7 +679,7 @@ void ChaosInnerRing_Update(struct EwramData_EntityData *entity)
 struct EwramData_EntityData *Chaos_CreateOrb(struct EwramData_EntityData *owner, u16 spin, s32 anim, s32 kind)
 {
     u32 box;
-    struct EwramData_EntityData *orb = EntityCreateInRange(0x49, 0xCF, ChaosOrb_Update);
+    struct EwramData_EntityData *orb = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, ChaosOrb_Update);
     struct ChaosData *data;
     s32 graphics;
 
@@ -688,8 +707,8 @@ struct EwramData_EntityData *Chaos_CreateOrb(struct EwramData_EntityData *owner,
         Hit_Enable(orb, 8, NULL, ChaosOrb_OnHit);
         HitBox_SetBody(orb, &box);
         HitBox_SetAttack(orb, &box);
-        orb->hit.flags &= ~4;
-        orb->hit.flags |= 2;
+        orb->hit.flags &= ~HIT_NO_DAMAGE;
+        orb->hit.flags |= HIT_NO_ATTACK;
         orb->drawFunc = Sprite_DrawEntity;
         switch (kind)
         {
@@ -826,7 +845,7 @@ void ChaosOrb_Update(struct EwramData_EntityData *entity)
                     ChaosOrb_SpawnSoulShot(entity, 0, 0);
                     entity->timer = 250;
                     entity->hidden = 1;
-                    entity->hit.flags |= 4;
+                    entity->hit.flags |= HIT_NO_DAMAGE;
                     entity->ext.chaosOrb.shotDone = 0;
                     break;
                 case 1:
@@ -835,7 +854,7 @@ void ChaosOrb_Update(struct EwramData_EntityData *entity)
                         entity->subState = 0;
                         BUSY(core) = 1;
                         entity->hidden = 0;
-                        entity->hit.flags &= ~4;
+                        entity->hit.flags &= ~HIT_NO_DAMAGE;
                         REQUEST(core) &= ~2;
                     }
                     break;
@@ -958,7 +977,7 @@ void ChaosOrb_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
 void ChaosOrb_CreateShellPiece(struct EwramData_EntityData *orb, s32 frame, s32 timer)
 {
     struct EwramData_EntityData *owner = orb->ext.chaosChild.link;
-    struct EwramData_EntityData *piece = EntityCreateInRange(0x49, 0xCF, ChaosShellPiece_Update);
+    struct EwramData_EntityData *piece = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, ChaosShellPiece_Update);
     struct ChaosData *data = (struct ChaosData *)owner->ext.chaos.data.value;
 
     if (piece != NULL)
@@ -1017,7 +1036,7 @@ void ChaosShellPiece_Update(struct EwramData_EntityData *entity)
 void ChaosOrb_SpawnSeedShot(struct EwramData_EntityData *orb, s32 x, s32 y, s32 delay)
 {
     struct EwramData_EntityData *owner = orb->ext.chaosChild.link;
-    struct EwramData_EntityData *shot = EntityCreateInRange(0x49, 0xCF, ChaosSeedShot_Update);
+    struct EwramData_EntityData *shot = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, ChaosSeedShot_Update);
     struct HitBox box = { -3, -3, 6, 10 };
     struct ChaosData *data = (struct ChaosData *)owner->ext.chaos.data.value;
     if (shot != NULL)
@@ -1037,8 +1056,8 @@ void ChaosOrb_SpawnSeedShot(struct EwramData_EntityData *orb, s32 x, s32 y, s32 
         Hit_Enable(shot, 8, ChaosSeedShot_DamagePlayerOnContact, ChaosSeedShot_OnHit);
         HitBox_SetBody(shot, &box);
         HitBox_SetAttack(shot, &box);
-        shot->hit.flags &= ~4;
-        shot->hit.flags &= ~2;
+        shot->hit.flags &= ~HIT_NO_DAMAGE;
+        shot->hit.flags &= ~HIT_NO_ATTACK;
         shot->enemyId = orb->enemyId;
         shot->ext.chaosChild.link = orb;
         shot->scrollWithBg = 0;
@@ -1133,7 +1152,7 @@ void ChaosOrb_SpawnSpark(struct EwramData_EntityData *orb, s32 x, s32 y)
 {
     u32 box;
     struct EwramData_EntityData *owner = orb->ext.chaosChild.link;
-    struct EwramData_EntityData *spark = EntityCreateInRange(0x49, 0xCF, ChaosSpark_Update);
+    struct EwramData_EntityData *spark = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, ChaosSpark_Update);
     struct ChaosData *data;
 
     box = 0x0404FEFE;
@@ -1154,8 +1173,8 @@ void ChaosOrb_SpawnSpark(struct EwramData_EntityData *orb, s32 x, s32 y)
         Anim_Update(spark);
         Hit_Enable(spark, 8, ChaosSpark_OnContact, 0);
         HitBox_SetAttack(spark, &box);
-        spark->hit.flags |= 4;
-        spark->hit.flags &= ~2;
+        spark->hit.flags |= HIT_NO_DAMAGE;
+        spark->hit.flags &= ~HIT_NO_ATTACK;
         spark->enemyId = orb->enemyId;
         spark->ext.chaosChild.link = orb;
         spark->scrollWithBg = 0;
@@ -1330,7 +1349,7 @@ void ChaosOrb_SpawnSoulShot(struct EwramData_EntityData *orb, s32 x, s32 y)
     u32 box;
     struct EwramData_EntityData *owner = orb->ext.chaosChild.link;
     struct EwramData **ewram = &gEwramData;
-    struct EwramData_EntityData *shot = EntityCreateInRange(0x49, 0xCF, ChaosSoulShot_Update);
+    struct EwramData_EntityData *shot = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, ChaosSoulShot_Update);
     struct ChaosData *data;
 
     box = 0x1A30F0E8;
@@ -1352,8 +1371,8 @@ void ChaosOrb_SpawnSoulShot(struct EwramData_EntityData *orb, s32 x, s32 y)
         Anim_Update(shot);
         Hit_Enable(shot, 8, ChaosSoulShot_DamagePlayerOnContact, 0);
         HitBox_SetAttack(shot, &box);
-        shot->hit.flags |= 4;
-        shot->hit.flags &= ~2;
+        shot->hit.flags |= HIT_NO_DAMAGE;
+        shot->hit.flags &= ~HIT_NO_ATTACK;
         shot->enemyId = orb->enemyId;
         shot->ext.chaosChild.link = orb;
         shot->scrollWithBg = 0;
@@ -1511,7 +1530,7 @@ void ChaosSoulShot_Update(struct EwramData_EntityData *entity)
 void Chaos_CreateMark(struct EwramData_EntityData *core, s32 kind)
 {
     struct EwramData **ewram = &gEwramData;
-    struct EwramData_EntityData *mark = EntityCreateInRange(0x49, 0xCF, ChaosMark_Update);
+    struct EwramData_EntityData *mark = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, ChaosMark_Update);
     struct MarkFrames frames;
     struct ChaosData *data;
 
@@ -1606,7 +1625,7 @@ void ChaosMark_Update(struct EwramData_EntityData *entity)
 /* Create the orb's halo (frame 0x13) for `timer` frames. */
 void ChaosOrb_CreateHalo(struct EwramData_EntityData *orb, s32 timer)
 {
-    struct EwramData_EntityData *halo = EntityCreateInRange(0x49, 0xCF, ChaosHalo_Update);
+    struct EwramData_EntityData *halo = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, ChaosHalo_Update);
     struct ChaosData *data = (struct ChaosData *)orb->ext.chaosChild.link->ext.chaos.data.value;
 
     if (halo != NULL)
@@ -1663,7 +1682,7 @@ void ChaosHalo_Update(struct EwramData_EntityData *entity)
 /* Create the aura of an orb (palette 6 + pal, random start frame). */
 struct EwramData_EntityData *ChaosOrb_CreateAura(struct EwramData_EntityData *orb, s32 pal, s32 kind, s32 timer)
 {
-    struct EwramData_EntityData *aura = EntityCreateInRange(0x49, 0xCF, ChaosAura_Update);
+    struct EwramData_EntityData *aura = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, ChaosAura_Update);
 
     if (aura != NULL)
     {
@@ -1683,8 +1702,8 @@ struct EwramData_EntityData *ChaosOrb_CreateAura(struct EwramData_EntityData *or
         aura->scrollWithBg = 0;
         KIND(aura) = kind;
         aura->timer = timer;
-        aura->hit.flags |= 4;
-        aura->hit.flags |= 2;
+        aura->hit.flags |= HIT_NO_DAMAGE;
+        aura->hit.flags |= HIT_NO_ATTACK;
         aura->drawFunc = Sprite_DrawEntity;
         return aura;
     }
@@ -1725,7 +1744,7 @@ void ChaosAura_Update(struct EwramData_EntityData *entity)
 /* Create the helper entity ChaosBackground_Update at the core. */
 struct EwramData_EntityData *Chaos_CreateBackground(struct EwramData_EntityData *core)
 {
-    struct EwramData_EntityData *helper = EntityCreateInRange(0x49, 0xCF, ChaosBackground_Update);
+    struct EwramData_EntityData *helper = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, ChaosBackground_Update);
 
     if (helper != NULL)
     {
@@ -1799,25 +1818,25 @@ void EnemyChaosUpdate(struct EwramData_EntityData *entity)
         Player_TrackEntity(entity);
     if (Enemy_IsStunned(entity))
     {
-        if (entity->state != 3)
+        if (entity->state != CHAOS_STATE_DEFEAT)
             Hit_CheckWithPlayer(results, entity);
         return;
     }
     switch (entity->state)
     {
-    case 0:
+    case CHAOS_STATE_INTRO:
         Chaos_UpdateIntro(entity);
         break;
-    case 1:
+    case CHAOS_STATE_FIGHT:
         Chaos_UpdateFight(entity);
         break;
-    case 2:
+    case CHAOS_STATE_IDLE:
         Chaos_UpdateIdle(entity);
         break;
-    case 3:
+    case CHAOS_STATE_DEFEAT:
         Chaos_UpdateDefeat(entity);
         break;
-    case 4:
+    case CHAOS_STATE_ANIM_ONLY:
         Anim_Update(entity);
         return;
     }
@@ -1874,23 +1893,23 @@ s32 Chaos_StartSecondForm(struct EwramData_EntityData *core)
             Enemy_ResetFromTemplate(core);
             Hit_Enable(core, 8, NULL, Chaos2_OnHit);
             HitBox_SetBody(core, &box);
-            core->hit.flags &= ~4;
-            core->hit.flags |= 2;
+            core->hit.flags &= ~HIT_NO_DAMAGE;
+            core->hit.flags |= HIT_NO_ATTACK;
             core->spriteLayer = 0x1A;
             core->hp = 3000;
             core->state = 0;
             Player_SetSelectedTarget(core);
-            gEwramData->gameState.stateFlags |= 2;
-            gEwramData->gameState.stateFlags |= 1;
-            gEwramData->gameState.stateFlags |= 0x200000;
-            gEwramData->gameState.stateFlags |= 0x800000;
+            gEwramData->gameState.stateFlags |= STATE_BOSS_FIGHT;
+            gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
+            gEwramData->gameState.stateFlags |= STATE_CHAOS_FIGHT;
+            gEwramData->gameState.stateFlags |= STATE_ROOM_JUMP_NO_PAUSE;
             gEwramData->startPauseEnabled = 0;
             core->timer = 0;
             data->timer = RandomNumberGenerator() % 128 + 60;
             core->ext.chaos2.partCount = 4;
             core->ext.chaos2.baseDefense = core->defense;
             Chaos2_CreateAffineEffect(core);
-            Music_SetCurrent(0x12);
+            Music_SetCurrent(MUS_FINAL_DECISIVE_BATTLE);
             return 0;
         }
         EntityDelete(core);
@@ -1988,7 +2007,7 @@ void Chaos2_UpdateAttack(struct EwramData_EntityData *core)
         core->subState = 0;
         core->timer = 0;
         data->timer = RandomNumberGenerator() % 128 + 180;
-        PlaySong(0x85);
+        PlaySong(SE_SWING);
         break;
     }
 }
@@ -2015,7 +2034,7 @@ void Chaos2_UpdateIntro(struct EwramData_EntityData *core)
         gEwramData->startPauseEnabled = 0;
         core->timer = 0;
         Chaos_StartPaletteSequence(core, (s32)sChaos2PaletteSequence1);
-        gEwramData->gameState.stateFlags |= 0x20;
+        gEwramData->gameState.stateFlags |= STATE_HUD_HIDDEN;
         break;
     case 1:
         gEwramData->startPauseEnabled = 0;
@@ -2049,7 +2068,7 @@ void Chaos2_UpdateIntro(struct EwramData_EntityData *core)
             Chaos2_CreatePart(core, 0xD80000, 0x280000, 1);
             Chaos2_CreatePart(core, 0x180000, 0x780000, 2);
             Chaos2_CreatePart(core, 0xD80000, 0x780000, 3);
-            gEwramData->gameState.stateFlags &= ~0x20;
+            gEwramData->gameState.stateFlags &= ~STATE_HUD_HIDDEN;
         }
         break;
     case 4:
@@ -2061,7 +2080,7 @@ void Chaos2_UpdateIntro(struct EwramData_EntityData *core)
             core->state = 1;
             core->subState = 0;
             core->stage = 0;
-            gEwramData->gameState.stateFlags &= ~1;
+            gEwramData->gameState.stateFlags &= ~STATE_EVENT_RUNNING;
             gEwramData->startPauseEnabled = 1;
             Chaos2_CreateSnake(core, 0, 0, 0);
         }
@@ -2074,7 +2093,7 @@ void Chaos2_UpdateIntro(struct EwramData_EntityData *core)
             core->state = 1;
             core->subState = 0;
             core->stage = 0;
-            gEwramData->gameState.stateFlags &= ~1;
+            gEwramData->gameState.stateFlags &= ~STATE_EVENT_RUNNING;
             gEwramData->startPauseEnabled = 1;
             Chaos2_CreateSnake(core, 0, 0, 0);
         }
@@ -2134,19 +2153,19 @@ void Chaos2_UpdateDefeat(struct EwramData_EntityData *entity)
             break;
         BgPalette_StartColorFade(0, 0, 0, 0x10000, 0, 0x3C);
         ObjPalette_StartColorFade(0, 0, 0, 0x10000, 0, 0x3C);
-        PlaySong(0x1010);
+        PlaySong(SONG_MUTE);
         entity->subState++;
         entity->timer = 0x3A;
         break;
     case 3:
         if (--entity->timer > 1)
             break;
-        gEwramData->gameState.bossEventFlags |= 0x80;
+        gEwramData->gameState.bossEventFlags |= BOSS_DEFEATED_CHAOS;
         Player_SetSelectedTarget(NULL);
-        gEwramData->gameState.stateFlags = (gEwramData->gameState.stateFlags & ~2) | 0x4000;
+        gEwramData->gameState.stateFlags = (gEwramData->gameState.stateFlags & ~STATE_BOSS_FIGHT) | STATE_ENDING_CHAOS;
         RoomJump_SetDestination((void *)sDebugEventRoom14, 0, 0, 0x80, 0x70);
         RoomJump_Begin(&gEwramData->gameState);
-        gEwramData->gameState.stateFlags = (gEwramData->gameState.stateFlags & ~1) | 0x800000;
+        gEwramData->gameState.stateFlags = (gEwramData->gameState.stateFlags & ~STATE_EVENT_RUNNING) | STATE_ROOM_JUMP_NO_PAUSE;
         gEwramData->startPauseEnabled = 0;
         break;
     }
@@ -2171,11 +2190,11 @@ void Chaos2_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
         entity->palette = entity->basePalette;
         entity->timer = 120;
         entity->ext.chaos2.defeatReady = 0;
-        entity->state = 3;
+        entity->state = CHAOS2_STATE_DEFEAT;
         entity->subState = 0;
         BossDefeatEffect_Spawn(entity->posX.whole, entity->posY.whole);
-        gEwramData->gameState.stateFlags &= ~1;
-        PlaySong(0x1010);
+        gEwramData->gameState.stateFlags &= ~STATE_EVENT_RUNNING;
+        PlaySong(SONG_MUTE);
         gEwramData->startPauseEnabled = 0;
     }
 }
@@ -2216,7 +2235,7 @@ void Chaos2_StepPaletteSequence(struct EwramData_EntityData *core)
  * by bits 0/1 of mirror. */
 void Chaos2_CreatePart(struct EwramData_EntityData *core, s32 x, s32 y, s32 mirror)
 {
-    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, Chaos2Part_Update);
+    struct EwramData_EntityData *part = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Chaos2Part_Update);
     struct HitBox box = { -8, -8, 16, 16 };
     struct Chaos2Data *data = (struct Chaos2Data *)core->ext.chaos.data.value;
     if (part != NULL)
@@ -2241,8 +2260,8 @@ void Chaos2_CreatePart(struct EwramData_EntityData *core, s32 x, s32 y, s32 mirr
         Hit_Enable(part, 8, Chaos2Part_DamagePlayerOnContact, Chaos2Part_OnHit);
         HitBox_SetBody(part, &box);
         HitBox_SetAttack(part, &box);
-        part->hit.flags &= ~4;
-        part->hit.flags &= ~2;
+        part->hit.flags &= ~HIT_NO_DAMAGE;
+        part->hit.flags &= ~HIT_NO_ATTACK;
         if (mirror & 1)
             part->flipX = 1;
         if (mirror & 2)
@@ -2317,7 +2336,7 @@ void Chaos2Part_OnHit(struct EwramData_EntityData *part, struct EwramData_Entity
     Anim_StartIndexed(part, 1, 2, 0);
     if ((s16)part->hp <= 0)
     {
-        PlaySong(0x6E);
+        PlaySong(SE_ENEMY_DEATH);
         part->palette = part->basePalette;
         part->timer = 40;
         part->hitFlashTimer = zero;
@@ -2333,7 +2352,7 @@ struct ChaosShotGfx { s32 tiles; s32 unused; s32 palette; };
 void Chaos2_SpawnShot(struct EwramData_EntityData *parent, s32 dx, s32 dy, s32 angle)
 {
     u32 collision = 0x0808FCFC;
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Chaos2Shot_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Chaos2Shot_Update);
     struct ChaosAngleFrames frames = sChaos2ShotAngleFrames;
     struct ChaosShotGfx *gfx = (struct ChaosShotGfx *)parent->ext.chaos.data.ptr;
     if (child != NULL)
@@ -2364,9 +2383,9 @@ void Chaos2_SpawnShot(struct EwramData_EntityData *parent, s32 dx, s32 dy, s32 a
         child->attack = 0x64;
         Hit_Enable(child, 8, Chaos2Shot_DamagePlayerOnContact, 0);
         HitBox_SetAttack(child, &collision);
-        child->hit.flags |= 4;
+        child->hit.flags |= HIT_NO_DAMAGE;
         child->hit.flags |= zero;
-        child->hit.flags &= ~2;
+        child->hit.flags &= ~HIT_NO_ATTACK;
         child->drawFunc = Sprite_DrawEntity;
         child->timer = 78;
     }
@@ -2422,7 +2441,7 @@ void Chaos2Shot_Update(struct EwramData_EntityData *entity)
  * (600 HP, box x -3, y -3, w 6, h 6, hit by Chaos2SummonedPart_OnContact / Chaos2SummonedPart_OnHit). */
 void Chaos2_SummonPart(struct EwramData_EntityData *core, s32 x, s32 y, s32 vx, s32 vy)
 {
-    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, Chaos2SummonedPart_Update);
+    struct EwramData_EntityData *part = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Chaos2SummonedPart_Update);
     struct HitBox box = { -3, -3, 6, 6 };
     struct Chaos2Data *data = (struct Chaos2Data *)core->ext.chaos.data.value;
 
@@ -2451,8 +2470,8 @@ void Chaos2_SummonPart(struct EwramData_EntityData *core, s32 x, s32 y, s32 vx, 
         Hit_SetTimerOverride(3, 2);
         HitBox_SetBody(part, &box);
         HitBox_SetAttack(part, &box);
-        part->hit.flags |= 4;
-        part->hit.flags |= 2;
+        part->hit.flags |= HIT_NO_DAMAGE;
+        part->hit.flags |= HIT_NO_ATTACK;
         part->drawFunc = Sprite_DrawEntity;
     }
 }
@@ -2500,8 +2519,8 @@ void Chaos2SummonedPart_Update(struct EwramData_EntityData *part)
                 && (part->velX.whole < 0 ? -part->velX.whole : part->velX.whole) <= 0x1FF)
             {
                 part->stage++;
-                part->hit.flags &= ~4;
-                part->hit.flags &= ~2;
+                part->hit.flags &= ~HIT_NO_DAMAGE;
+                part->hit.flags &= ~HIT_NO_ATTACK;
             }
             if (RandomNumberGenerator() % 16)
                 Anim_Update(part);
@@ -2599,7 +2618,7 @@ void Chaos2SummonedPart_OnHit(struct EwramData_EntityData *part, struct EwramDat
  * of radius 48 around the core, flying inwards and slowing down. */
 void Chaos2_SpawnSpark(struct EwramData_EntityData *core)
 {
-    struct EwramData_EntityData *spark = EntityCreateInRange(0x49, 0xCF, Chaos2Spark_Update);
+    struct EwramData_EntityData *spark = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Chaos2Spark_Update);
 
     if (spark != NULL)
     {
@@ -2611,8 +2630,8 @@ void Chaos2_SpawnSpark(struct EwramData_EntityData *core)
         graphics = ObjGfx_Find(sCommonObjectGfx);
         Sprite_Attach(spark, sCommonObjectSpriteSheet, graphics, 7);
         Anim_Start(spark, &sChaos2SparkAnimScript, 0, 0);
-        spark->hit.flags |= 4;
-        spark->hit.flags |= 2;
+        spark->hit.flags |= HIT_NO_DAMAGE;
+        spark->hit.flags |= HIT_NO_ATTACK;
         spark->drawFunc = Sprite_DrawEntity;
         spark->timer = 20;
         angle = (RandomNumberGenerator() % 256) << 8;
@@ -2645,7 +2664,7 @@ void Chaos2_CreateSnake(struct EwramData_EntityData *core, s32 x, s32 y, s32 unu
     u16 slot;
     s32 graphics;
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
-    struct EwramData_EntityData *head = EntityCreateInRange(0x49, 0xCF, Chaos2SnakeHead_Update);
+    struct EwramData_EntityData *head = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Chaos2SnakeHead_Update);
     struct HitBox box = { -8, -8, 16, 16 };
     struct Chaos2Data *data = (struct Chaos2Data *)core->ext.chaos.data.value;
 
@@ -2674,8 +2693,8 @@ void Chaos2_CreateSnake(struct EwramData_EntityData *core, s32 x, s32 y, s32 unu
         head->ext.chaosSnake.point = 4;
         Hit_Enable(head, 8, Chaos2SnakeHead_DamagePlayerOnContact, 0);
         HitBox_SetAttack(head, &box);
-        head->hit.flags |= 4;
-        head->hit.flags &= ~2;
+        head->hit.flags |= HIT_NO_DAMAGE;
+        head->hit.flags &= ~HIT_NO_ATTACK;
         head->drawFunc = Sprite_DrawEntity;
         head->flipX = 0;
         ANGLE(head) = 0x4000;
@@ -3032,8 +3051,8 @@ void Chaos2SnakeHead_Update(struct EwramData_EntityData *e)
                     {
                         e->subState = 1;
                         e->spriteLayer = 0x19;
-                        e->hit.flags |= 2;
-                        e->hit.flags |= 4;
+                        e->hit.flags |= HIT_NO_ATTACK;
+                        e->hit.flags |= HIT_NO_DAMAGE;
                         MODE(e) = 3;
                         PICK(e, r, pk1);
                     }
@@ -3043,23 +3062,23 @@ void Chaos2SnakeHead_Update(struct EwramData_EntityData *e)
                         if (POINT(e) <= 3 && (RandomNumberGenerator() & 0x7F) <= 0x20)
                         {
                             e->spriteLayer = 0x11;
-                            e->hit.flags &= ~2;
-                            e->hit.flags &= ~4;
+                            e->hit.flags &= ~HIT_NO_ATTACK;
+                            e->hit.flags &= ~HIT_NO_DAMAGE;
                             MODE(e) = 0;
                         }
                         else if ((RandomNumberGenerator() & 0x7F) <= 0x40)
                         {
                             e->spriteLayer = 0x11;
-                            e->hit.flags &= ~2;
-                            e->hit.flags &= ~4;
+                            e->hit.flags &= ~HIT_NO_ATTACK;
+                            e->hit.flags &= ~HIT_NO_DAMAGE;
                             MODE(e) = 1;
                             PICK(e, r, pk2);
                         }
                         else
                         {
                             e->spriteLayer = 0x11;
-                            e->hit.flags &= ~2;
-                            e->hit.flags &= ~4;
+                            e->hit.flags &= ~HIT_NO_ATTACK;
+                            e->hit.flags &= ~HIT_NO_DAMAGE;
                             MODE(e) = 2;
                             /* Same as PICK, written with gotos: the outer
                              * retry must jump straight to the inner test so
@@ -3210,13 +3229,13 @@ void Chaos2SnakeSegment_Update(struct EwramData_EntityData *seg)
         seg->posY.part16.integer += seg->velY.part16.integer;
         if ((seg->spriteLayer = TRAIL(trail, seg, TRAIL_PRIORITY) + 1) != 0x12)
         {
-            seg->hit.flags |= 2;
-            seg->hit.flags |= 4;
+            seg->hit.flags |= HIT_NO_ATTACK;
+            seg->hit.flags |= HIT_NO_DAMAGE;
         }
         else
         {
-            seg->hit.flags &= ~2;
-            seg->hit.flags &= ~4;
+            seg->hit.flags &= ~HIT_NO_ATTACK;
+            seg->hit.flags &= ~HIT_NO_DAMAGE;
         }
         seg->ext.chaosSnake.cameraX = bg->xPos.part16.integer;
         seg->ext.chaosSnake.cameraY = bg->yPos.part16.integer;
@@ -3299,8 +3318,8 @@ void Chaos2SnakeSegment_EnableHitBoxes(struct EwramData_EntityData *entity)
     Hit_Enable(entity, 8, Chaos2SnakeSegment_DamagePlayerOnContact, 0);
     HitBox_SetBody(entity, &box);
     HitBox_SetAttack(entity, &box);
-    entity->hit.flags &= ~2;
-    entity->hit.flags |= 4;
+    entity->hit.flags &= ~HIT_NO_ATTACK;
+    entity->hit.flags |= HIT_NO_DAMAGE;
 }
 
 /* Chaos second form: create a moving child from angle and shared graphics. */
@@ -3314,7 +3333,7 @@ void Chaos2SnakeHead_FireShot(struct EwramData_EntityData *parent, s32 angle)
 {
     /* Packed box: x=-4, y=-4, width=8, height=8. */
     u32 collision = 0x0808FCFC;
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Chaos2SnakeShot_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Chaos2SnakeShot_Update);
     struct ChaosChildGfx *gfx = (struct ChaosChildGfx *)parent->ext.chaosChild.link->ext.chaos.data.ptr;
     angle -= 0x1300;
     if (child != NULL)
@@ -3347,8 +3366,8 @@ void Chaos2SnakeHead_FireShot(struct EwramData_EntityData *parent, s32 angle)
         child->attack = 0x82;
         Hit_Enable(child, 8, Chaos2SnakeShot_DamagePlayerOnContact, 0);
         HitBox_SetAttack(child, &collision);
-        child->hit.flags |= 4;
-        child->hit.flags &= ~2;
+        child->hit.flags |= HIT_NO_DAMAGE;
+        child->hit.flags &= ~HIT_NO_ATTACK;
         child->drawFunc = Sprite_DrawEntity;
     }
 }
@@ -3387,7 +3406,7 @@ void Chaos2SnakeShot_Update(struct EwramData_EntityData *entity)
 /* Create an affine effect with initial transform parameters and a 60-frame timer. */
 void Chaos2_CreateAffineEffect(struct EwramData_EntityData *parent)
 {
-    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, Chaos2AffineEffect_Update);
+    struct EwramData_EntityData *effect = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Chaos2AffineEffect_Update);
     struct ChaosEffectGfx *gfx = (struct ChaosEffectGfx *)parent->ext.chaos.data.ptr;
     if (effect != NULL)
     {
@@ -3580,7 +3599,7 @@ void Chaos2AffineEffect_Update(struct EwramData_EntityData *entity)
 /* Copy graphics from the parent's owner and attach an animated effect. */
 void Chaos2_SpawnEffect(struct EwramData_EntityData *parent, s32 frame)
 {
-    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, Chaos2Effect_Update);
+    struct EwramData_EntityData *effect = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Chaos2Effect_Update);
     struct ChaosEffectGfx *gfx = (struct ChaosEffectGfx *)parent->ext.chaosChild.link->ext.chaos.data.ptr;
     if (effect != NULL)
     {
@@ -3603,7 +3622,7 @@ void Chaos2_SpawnEffect(struct EwramData_EntityData *parent, s32 frame)
 /* Attach an animated effect one layer above the parent. */
 void Chaos2_SpawnEffectAbove(struct EwramData_EntityData *parent, s32 frame)
 {
-    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, Chaos2Effect_Update);
+    struct EwramData_EntityData *effect = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Chaos2Effect_Update);
     struct ChaosEffectGfx *gfx = (struct ChaosEffectGfx *)parent->ext.chaos.data.ptr;
     if (effect != NULL)
     {
@@ -3626,7 +3645,7 @@ void Chaos2_SpawnEffectAbove(struct EwramData_EntityData *parent, s32 frame)
 /* Create a spinning projectile; delete it if no affine matrix is free. */
 void Chaos2_SpawnSpinningDebris(struct EwramData_EntityData *parent, s32 angle, s32 speed)
 {
-    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, Chaos2SpinningDebris_Update);
+    struct EwramData_EntityData *effect = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Chaos2SpinningDebris_Update);
     struct ChaosEffectGfx *gfx = (struct ChaosEffectGfx *)parent->ext.chaos.data.ptr;
     if (effect != NULL)
     {
@@ -3694,7 +3713,7 @@ void Chaos2SpinningDebris_Update(struct EwramData_EntityData *entity)
  */
 void Chaos2_SpawnShard(struct EwramData_EntityData *parent, s32 angle, s32 speed)
 {
-    struct EwramData_EntityData *shard = EntityCreateInRange(0x49, 0xCF, Chaos2Shard_Update);
+    struct EwramData_EntityData *shard = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Chaos2Shard_Update);
     struct ShardGfx *gfx = (struct ShardGfx *)parent->ext.chaos.data.ptr;
 
     if (shard != NULL)
@@ -3730,25 +3749,25 @@ void EnemyChaos2Update(struct EwramData_EntityData *entity)
 {
     u8 unused[0x30]; /* stack frame reserved by the original */
 
-    if (entity->state != 3)
+    if (entity->state != CHAOS2_STATE_DEFEAT)
     {
         if (Entity_IsInRect(entity, -0x10, 0, 0x110, 0xB0))
             Player_TrackEntity(entity);
-        if (entity->state != 3)
+        if (entity->state != CHAOS2_STATE_DEFEAT)
             Enemy_UpdateHitFlash(entity);
     }
     switch (entity->state)
     {
-        case 0:
+        case CHAOS2_STATE_INTRO:
             Chaos2_UpdateIntro(entity);
             break;
-        case 1:
+        case CHAOS2_STATE_ATTACK:
             Chaos2_UpdateAttack(entity);
             break;
-        case 2:
+        case CHAOS2_STATE_IDLE:
             Chaos2_UpdateIdle(entity);
             break;
-        case 3:
+        case CHAOS2_STATE_DEFEAT:
             Chaos2_UpdateDefeat(entity);
             break;
     }

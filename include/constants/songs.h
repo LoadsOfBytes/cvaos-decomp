@@ -35,42 +35,42 @@
 
 enum Songs {
     MUS_DUMMY,  // Silence
-    MUS_1,  // Clock Tower
-    MUS_2,  // Ruined Castle Corridor
-    MUS_3,  // Underground Reservoir
-    MUS_4,  // Demon Castle Top Floor
-    MUS_5,  // Dance Hall
-    MUS_6,  // Phantom Palace
-    MUS_7,  // Demon Castle Study
-    MUS_8,  // Chapel
-    MUS_9,  // Forgotten Garden
-    MUS_10, // The Purgatory Arena
-    MUS_11, // Sacred Cave
-    MUS_12, // Chaotic Realm
-    MUS_13, // Hammer Company
-    MUS_14, // Name Entry
-    MUS_15, // Game Over
-    MUS_16, // Confrontation
-    MUS_17, // A Formidable Foe Appears
-    MUS_18, // Final Decisive Battle
-    MUS_19, // Battle for the Throne
-    MUS_20, // Don't Wait Until Night
-    MUS_21, // Prologue ~ Mina's Theme
-    MUS_22, // Premonition
-    MUS_23, // Premonition (again?)
-    MUS_24, // Ending
-    MUS_25, // Premonition (again?) (again?)
-    MUS_26, // Staff Roll
-    MUS_27, // Black Sun
-    MUS_28, // Sacred Cave (again?)
-    MUS_29, // Prologue ~ Mina's Theme (again?)
-    MUS_30, // Hammer Company (again?)
-    MUS_31, // Battle Against Chaos
-    MUS_32, // Purification ~ Ending
-    MUS_33, // Fate of the Devil
-    MUS_34, // Fate of the Devil (again?)
-    MUS_35, // You're Not Alone
-    MUS_36, // You're Not Alone (again?)
+    MUS_CLOCK_TOWER,  // Clock Tower
+    MUS_RUINED_CASTLE_CORRIDOR,  // Ruined Castle Corridor
+    MUS_UNDERGROUND_RESERVOIR,  // Underground Reservoir
+    MUS_CASTLE_TOP_FLOOR,  // Demon Castle Top Floor
+    MUS_DANCE_HALL,  // Dance Hall
+    MUS_PHANTOM_PALACE,  // Phantom Palace
+    MUS_CASTLE_STUDY,  // Demon Castle Study
+    MUS_CHAPEL,  // Chapel
+    MUS_FORGOTTEN_GARDEN,  // Forgotten Garden
+    MUS_PURGATORY_ARENA, // The Purgatory Arena
+    MUS_SACRED_CAVE, // Sacred Cave
+    MUS_CHAOTIC_REALM, // Chaotic Realm
+    MUS_HAMMER_COMPANY, // Hammer Company
+    MUS_NAME_ENTRY, // Name Entry
+    MUS_GAME_OVER, // Game Over
+    MUS_CONFRONTATION, // Confrontation
+    MUS_FORMIDABLE_FOE, // A Formidable Foe Appears
+    MUS_FINAL_DECISIVE_BATTLE, // Final Decisive Battle
+    MUS_BATTLE_FOR_THE_THRONE, // Battle for the Throne
+    MUS_DONT_WAIT_UNTIL_NIGHT, // Don't Wait Until Night
+    MUS_PROLOGUE, // Prologue ~ Mina's Theme
+    MUS_PREMONITION, // Premonition
+    MUS_PREMONITION_2, // Premonition (again?)
+    MUS_ENDING, // Ending
+    MUS_PREMONITION_3, // Premonition (again?) (again?)
+    MUS_STAFF_ROLL, // Staff Roll
+    MUS_BLACK_SUN, // Black Sun
+    MUS_SACRED_CAVE_2, // Sacred Cave (again?)
+    MUS_PROLOGUE_2, // Prologue ~ Mina's Theme (again?)
+    MUS_HAMMER_COMPANY_2, // Hammer Company (again?)
+    MUS_BATTLE_AGAINST_CHAOS, // Battle Against Chaos
+    MUS_PURIFICATION_ENDING, // Purification ~ Ending
+    MUS_FATE_OF_THE_DEVIL, // Fate of the Devil
+    MUS_FATE_OF_THE_DEVIL_2, // Fate of the Devil (again?)
+    MUS_YOURE_NOT_ALONE, // You're Not Alone
+    MUS_YOURE_NOT_ALONE_2, // You're Not Alone (again?)
     MUS_37, // Outdoor/Ambient 1
     MUS_38, // Outdoor/Ambient 2
     MUS_39, // Outdoor/Ambient 3
@@ -82,40 +82,42 @@ enum Songs {
     MUS_45, // Outdoor/Ambient 9
     MUS_COUNT,
 
-    MUS_46 = MUS_COUNT, // Silence for Music Player 0
-    MUS_47, // Silence for Music Player 1
-    MUS_48, // Silence for Music Player 2
-    MUS_49, // Silence for Music Player 3
-    MUS_50, // Silence for Music Player 4
-    MUS_51, // Silence for Music Player 5
-    MUS_52, // Silence for Music Player 6
-    MUS_53, // Silence for Music Player 7
+    MUS_SILENCE_PLAYER_0 = MUS_COUNT, // Silence for Music Player 0
+    MUS_SILENCE_PLAYER_1, // Silence for Music Player 1
+    MUS_SILENCE_PLAYER_2, // Silence for Music Player 2
+    MUS_SILENCE_PLAYER_3, // Silence for Music Player 3
+    MUS_SILENCE_PLAYER_4, // Silence for Music Player 4
+    MUS_SILENCE_PLAYER_5, // Silence for Music Player 5
+    MUS_SILENCE_PLAYER_6, // Silence for Music Player 6
+    MUS_SILENCE_PLAYER_7, // Silence for Music Player 7
 
+    /* Sound effects. SE_<name> members are named after the role they have at every
+     * call site (not by listening); the others keep their decimal id. */
     SE_100 = 100,
     SE_101,
     SE_102,
     SE_103,
     SE_104,
-    SE_105,
+    SE_METAL_HIT,
     SE_106,
     SE_107,
     SE_108,
     SE_109,
-    SE_110,
+    SE_ENEMY_DEATH,
     SE_111,
-    SE_112,
+    SE_ENEMY_DEATH_SOFT,
     SE_113,
     SE_114,
     SE_115,
     SE_116,
-    SE_117,
-    SE_118,
+    SE_LIGHTNING,
+    SE_PROJECTILE_IMPACT,
     SE_119,
     SE_120,
     SE_121,
     SE_122,
     SE_123,
-    SE_124,
+    SE_HEAVY_STEP,
     SE_125,
     SE_126,
     SE_127,
@@ -124,11 +126,11 @@ enum Songs {
     SE_130,
     SE_131,
     SE_132,
-    SE_133,
+    SE_SWING,
     SE_134,
-    SE_135,
+    SE_DASH,
     SE_136,
-    SE_137,
+    SE_THROW,
     SE_138,
     SE_139,
     SE_140,
@@ -153,7 +155,7 @@ enum Songs {
     SE_159,
     SE_160,
     SE_161,
-    SE_162,
+    SE_ITEM_DROP,
     SE_163,
     SE_164,
     SE_165,
@@ -175,11 +177,11 @@ enum Songs {
     SE_181,
     SE_182,
     SE_183,
-    SE_184,
-    SE_185,
+    SE_PLAYER_HEAD_BUMP,
+    SE_PLAYER_JUMP,
     SE_186,
     SE_187,
-    SE_188,
+    SE_SOUL_ACQUIRED,
     SE_189,
     SE_190,
     SE_191,
@@ -230,12 +232,12 @@ enum Songs {
     SE_236,
     SE_237,
     SE_238,
-    SE_239,
-    SE_240,
-    SE_241,
+    SE_MENU_DENIED,
+    SE_MENU_BACK,
+    SE_MENU_CURSOR,
     SE_242,
-    SE_243,
-    SE_244,
+    SE_MENU_SELECT,
+    SE_MENU_CONFIRM,
     SE_245,
     SE_246,
     SE_247,
@@ -266,7 +268,7 @@ enum Songs {
     SE_272,
     SE_273,
     SE_274,
-    SE_275,
+    SE_DOOR,
     SE_276,
     SE_277,
     SE_278,

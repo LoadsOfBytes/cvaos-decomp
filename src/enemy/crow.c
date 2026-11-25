@@ -219,7 +219,7 @@ void BlueCrow_SpawnDeathParts(struct EwramData_EntityData *entity)
 
     for (i = 0; i <= 1; i++)
     {
-        child = EntityCreateInRange(0x1B, 0x48, BlueCrowDeathPart_Update);
+        child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, BlueCrowDeathPart_Update);
         if (child == NULL)
             continue;
         if (i == 0)
@@ -543,7 +543,7 @@ void RedCrow_SpawnDeathParts(struct EwramData_EntityData *entity)
 
     for (i = 0; i <= 1; i++)
     {
-        child = EntityCreateInRange(0x1B, 0x48, RedCrowDeathPart_Update);
+        child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, RedCrowDeathPart_Update);
         if (child == NULL)
             continue;
         if (i == 0)

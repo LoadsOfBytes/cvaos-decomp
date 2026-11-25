@@ -20,12 +20,21 @@
 #include "hitbox.h"
 #include "damage_numbers.h"
 #include "entity_hit.h"
+#include "constants/songs.h"
 
 u8 Valkyrie_LoadGraphics(struct EwramData_EntityData *entity);
 void Valkyrie_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void Valkyrie_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hitData);
 
 /* EnemyValkyrieCreate 0x0806E714..0x0806E7A7. */
+
+/* States of Valkyrie (entity->state), named after the update function the dispatcher calls. */
+enum {
+    VALKYRIE_STATE_APPROACH = 0,
+    VALKYRIE_STATE_ATTACK = 1,
+    VALKYRIE_STATE_RECOIL = 3,
+    VALKYRIE_STATE_ANIM_ONLY = 4,
+};
 
 /**
  * @brief 6E714 | Valkyrie create: load the graphics (delete the
@@ -45,7 +54,7 @@ void EnemyValkyrieCreate(struct EwramData_EntityData *entity)
     Enemy_ResetFromTemplate(entity);
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 4;
+        entity->state = VALKYRIE_STATE_ANIM_ONLY;
         return;
     }
     entity->spriteLayer = 3;
@@ -54,7 +63,7 @@ void EnemyValkyrieCreate(struct EwramData_EntityData *entity)
     else
         Hit_Enable(entity, 8, Valkyrie_DamagePlayerOnContact, Valkyrie_OnHit);
     Entity_UpdateBoxes(entity);
-    entity->state = 0;
+    entity->state = VALKYRIE_STATE_APPROACH;
 }
 
 /* Valkyrie idle / approach state. */
@@ -83,7 +92,7 @@ void Valkyrie_UpdateApproach(struct EwramData_EntityData *entity)
             x = Target_GetX(entity) + 0x400000;
         if (Entity_MoveTowardPoint(entity, x, Target_GetY(entity) - 0x300000, 0x20000))
         {
-            entity->state = 1;
+            entity->state = VALKYRIE_STATE_ATTACK;
             entity->subState = 0;
         }
         else
@@ -96,7 +105,7 @@ void Valkyrie_UpdateApproach(struct EwramData_EntityData *entity)
                 if (difference < 0) difference = -difference;
                 if (difference <= 0x3BFFFF)
                 {
-                    entity->state = 1;
+                    entity->state = VALKYRIE_STATE_ATTACK;
                     entity->subState = 0;
                 }
             }
@@ -140,7 +149,7 @@ void Valkyrie_UpdateAttack(struct EwramData_EntityData *entity)
         EntityAccelerateAndMove(entity, 0x30000);
         if (entity->animStep <= 2) break;
         entity->subState++;
-        PlaySong(0x87);
+        PlaySong(SE_DASH);
         if (entity->flipX) entity->velX.whole = 0x30000;
         else entity->velX.whole = -0x30000;
         entity->velY.whole = 0x28000;
@@ -187,7 +196,7 @@ void Valkyrie_UpdateAttack(struct EwramData_EntityData *entity)
         EntityAccelerateAndMove(entity, 0x30000);
         if (++entity->ext.valkyrie.attackFrame > 0x2F)
         {
-            entity->state = 0;
+            entity->state = VALKYRIE_STATE_APPROACH;
             entity->subState = 1;
         }
         break;
@@ -217,7 +226,7 @@ void Valkyrie_UpdateRecoil(struct EwramData_EntityData *entity)
             entity->flipX = Entity_IsTargetRight(entity);
         if (entity->velY.whole > -0x2000)
         {
-            entity->state = 0;
+            entity->state = VALKYRIE_STATE_APPROACH;
             entity->subState = 0;
         }
         break;
@@ -275,10 +284,10 @@ void Valkyrie_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
         entity->accelY.whole = 0x1000;
     }
     else if (entity->enemyId == 0x29
-             && (u8)(hit->type - 3) <= 1 && entity->state == 1)
+             && (u8)(hit->type - 3) <= 1 && entity->state == VALKYRIE_STATE_ATTACK)
     {
         Anim_StartIndexed(entity, 0, 0, 1);
-        entity->state = 3;
+        entity->state = VALKYRIE_STATE_RECOIL;
         entity->subState = 0;
     }
 }
@@ -317,15 +326,15 @@ void EnemyValkyrieUpdate(struct EwramData_EntityData *entity)
     }
     switch (entity->state)
     {
-    case 0: Valkyrie_UpdateApproach(entity); break;
-    case 1: Valkyrie_UpdateAttack(entity); break;
+    case VALKYRIE_STATE_APPROACH: Valkyrie_UpdateApproach(entity); break;
+    case VALKYRIE_STATE_ATTACK: Valkyrie_UpdateAttack(entity); break;
     case 2:
         EntityDampVelocityX(entity, 0xA);
         EntityAccelerateAndMove(entity, 0x30000);
         Enemy_UpdateFragmentDeath(entity);
         break;
-    case 3: Valkyrie_UpdateRecoil(entity); break;
-    case 4:
+    case VALKYRIE_STATE_RECOIL: Valkyrie_UpdateRecoil(entity); break;
+    case VALKYRIE_STATE_ANIM_ONLY:
         Anim_Update(entity);
         return;
     }

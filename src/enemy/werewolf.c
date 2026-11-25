@@ -19,6 +19,8 @@
 #include "damage_numbers.h"
 #include "entity_motion.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 void Werewolf_UpdateWalk(struct EwramData_EntityData *);
 void Werewolf_UpdateAttack(struct EwramData_EntityData *);
@@ -32,10 +34,19 @@ void WerewolfShockwave_DamagePlayerOnContact(struct EwramData_EntityData *entity
 
 /* Werewolf update dispatcher and jump state. */
 
+/* States of Werewolf (entity->state), named after the update function the dispatcher calls. */
+enum {
+    WEREWOLF_STATE_WALK = 0,
+    WEREWOLF_STATE_ATTACK = 1,
+    WEREWOLF_STATE_DEATH = 2,
+    WEREWOLF_STATE_RECOIL = 3,
+    WEREWOLF_STATE_ANIM_ONLY = 4,
+};
+
 void EnemyWerewolfUpdate(struct EwramData_EntityData *entity)
 {
     struct HitResult result;
-    if (entity->state != 2)
+    if (entity->state != WEREWOLF_STATE_DEATH)
     {
         if (EntityIsOutsideScreen(entity, 4))
             return;
@@ -46,28 +57,28 @@ void EnemyWerewolfUpdate(struct EwramData_EntityData *entity)
         entity->hidden = 1;
     else
         entity->hidden = 0;
-    if (entity->state != 2)
+    if (entity->state != WEREWOLF_STATE_DEATH)
         Enemy_UpdateHitFlash(entity);
     if (Entity_IsTimeStopped(entity))
     {
-        if (entity->state != 2)
+        if (entity->state != WEREWOLF_STATE_DEATH)
         {
             Hit_CheckWithPlayer(&result, entity);
             return;
         }
     }
-    if (entity->hitFlashTimer != 0 && entity->state != 3 && entity->state != 2)
+    if (entity->hitFlashTimer != 0 && entity->state != 3 && entity->state != WEREWOLF_STATE_DEATH)
     {
         Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
     {
-    case 0: Werewolf_UpdateWalk(entity); break;
-    case 1: Werewolf_UpdateAttack(entity); break;
-    case 2: Werejaguar_UpdateDeath(entity); break;
-    case 3: Werewolf_UpdateRecoil(entity); break;
-    case 4:
+    case WEREWOLF_STATE_WALK: Werewolf_UpdateWalk(entity); break;
+    case WEREWOLF_STATE_ATTACK: Werewolf_UpdateAttack(entity); break;
+    case WEREWOLF_STATE_DEATH: Werejaguar_UpdateDeath(entity); break;
+    case WEREWOLF_STATE_RECOIL: Werewolf_UpdateRecoil(entity); break;
+    case WEREWOLF_STATE_ANIM_ONLY:
         Anim_Update(entity);
         return;
     }
@@ -125,7 +136,7 @@ void Werewolf_UpdateWalk(struct EwramData_EntityData *entity)
                 if (Target_IsInRect((s16)(entity->posX.part16.integer - 0x3C),
                                 (s16)(entity->posY.part16.integer - 0x28), 0x78, 0x50))
                 {
-                    entity->state = 1;
+                    entity->state = WEREWOLF_STATE_ATTACK;
                     entity->subState = 0;
                     entity->velX.whole = 0;
                     entity->timer = 0;
@@ -203,7 +214,7 @@ void Werewolf_UpdateAttack(struct EwramData_EntityData *entity)
         {
             entity->ext.werewolf.dashHit = 0;
             Anim_StartIndexed(entity, 0, 0, 0);
-            entity->state = 3;
+            entity->state = WEREWOLF_STATE_RECOIL;
             entity->subState = 0;
             break;
         }
@@ -214,7 +225,7 @@ void Werewolf_UpdateAttack(struct EwramData_EntityData *entity)
             entity->velY.whole = 0x20000;
             entity->accelY.whole = 0x2800;
             Entity_MoveWithCollision(entity, 0x20000, -0x200000, 0x80000, 0xA);
-            entity->state = 0;
+            entity->state = WEREWOLF_STATE_WALK;
             entity->subState = 1;
             Anim_StartIndexed(entity, 1, 0, 1);
             break;
@@ -285,7 +296,7 @@ void Werewolf_UpdateAttack(struct EwramData_EntityData *entity)
         if (++entity->timer > 0x2C)
         {
             Anim_StartIndexed(entity, 1, 0, 1);
-            entity->state = 0;
+            entity->state = WEREWOLF_STATE_WALK;
             entity->subState = 1;
             entity->timer = 0;
         }
@@ -317,7 +328,7 @@ void Werewolf_UpdateRecoil(struct EwramData_EntityData *entity)
         if (Entity_MoveWithCollision(entity, 0x40000, -0x200000, 0x80000, 0xA) & 4)
         {
             entity->velX.whole = 0;
-            entity->state = 0;
+            entity->state = WEREWOLF_STATE_WALK;
             entity->subState = 1;
             Anim_StartIndexed(entity, 1, 0, 1);
         }
@@ -373,18 +384,18 @@ void Werewolf_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
-        PlaySong(0x6E);
+        PlaySong(SE_ENEMY_DEATH);
         Anim_StartIndexed(entity, 4, 0, 0);
         entity->palette = entity->basePalette;
         entity->timer = 0x28;
-        entity->state = 2;
+        entity->state = WEREWOLF_STATE_DEATH;
         entity->subState = 0;
     }
     else if (entity->state == 1 && (u8)(entity->subState - 1) <= 1
              && (u8)(hit->type - 3) <= 1)
     {
         Anim_StartIndexed(entity, 4, 0, 1);
-        entity->state = 3;
+        entity->state = WEREWOLF_STATE_RECOIL;
         entity->subState = 0;
     }
 }
@@ -397,7 +408,7 @@ void Werewolf_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
  */
 void Werewolf_SpawnShockwave(struct EwramData_EntityData *entity, s32 offsetX)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, WerewolfShockwave_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, WerewolfShockwave_Update);
     if (child != NULL)
     {
         if (!WerewolfShockwave_LoadGraphics(child))
@@ -473,8 +484,8 @@ void WerewolfShockwave_EnableHitBoxes(struct EwramData_EntityData *entity)
 {
     Hit_Enable(entity, 8, WerewolfShockwave_DamagePlayerOnContact, 0);
     HitBox_SetAttackRaw(entity, 0x1810E8F8);
-    entity->hit.flags &= ~2;
-    entity->hit.flags |= 4;
+    entity->hit.flags &= ~HIT_NO_ATTACK;
+    entity->hit.flags |= HIT_NO_DAMAGE;
 }
 
 /**
@@ -516,13 +527,13 @@ void EnemyWerewolfCreate(struct EwramData_EntityData *entity)
     Enemy_ResetFromTemplate(entity);
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 4;
+        entity->state = WEREWOLF_STATE_ANIM_ONLY;
         return;
     }
     Hit_EnableContact(entity, 8, Werewolf_DamagePlayerOnContact, Werewolf_OnHit);
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
-    entity->state = 0;
+    entity->state = WEREWOLF_STATE_WALK;
 }
 
 /* Clones of already decompiled functions, generated with

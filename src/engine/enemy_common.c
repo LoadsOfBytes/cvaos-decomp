@@ -29,6 +29,7 @@
 #include "data/data_4F1444.h"
 #include "math_inline.h"
 #include "damage_numbers.h"
+#include "constants/hit_flags.h"
 
 extern const s8 sEntityVisibilityPattern[40];
 
@@ -325,7 +326,7 @@ s32 Enemy_UpdateHitFlash(struct EwramData_EntityData *entity)
 /* Emit a fading fragment every fourth tick and finish the source effect. */
 static inline void SpawnFragment(s32 x, s32 y, s32 frame)
 {
-    struct EwramData_EntityData *fragment = EntityCreateInRange(0x49, 0xCF, RisingEffect_Update);
+    struct EwramData_EntityData *fragment = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, RisingEffect_Update);
     if (fragment)
     {
         fragment->posX.whole = x;
@@ -486,20 +487,20 @@ void Entity_UpdateBoxes(struct EwramData_EntityData *entity)
     switch (frame->boxCount)
     {
     case 1:
-        entity->hit.flags &= ~4;
-        entity->hit.flags &= ~2;
+        entity->hit.flags &= ~HIT_NO_DAMAGE;
+        entity->hit.flags &= ~HIT_NO_ATTACK;
         HitBox_SetBody(entity, boxes);
         HitBox_SetAttack(entity, boxes);
         break;
     case 2:
-        entity->hit.flags &= ~4;
-        entity->hit.flags &= ~2;
+        entity->hit.flags &= ~HIT_NO_DAMAGE;
+        entity->hit.flags &= ~HIT_NO_ATTACK;
         HitBox_SetBody(entity, boxes);
         HitBox_SetAttack(entity, (u8 *)boxes + 4);
         break;
     case 0:
-        entity->hit.flags |= 4;
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_DAMAGE;
+        entity->hit.flags |= HIT_NO_ATTACK;
         break;
     }
 }
@@ -761,7 +762,7 @@ static inline void HighestEffect(u16 *out, u32 bits)
 
 static inline void SpawnHitSpark(s16 x, s16 y, u16 effect)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, HitEffect_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, HitEffect_Update);
 
     if (child != NULL)
     {
@@ -1333,7 +1334,7 @@ void Room_ResetTransientState(void)
     s32 zero;
     gEwramData->gameState.conveyorSpeed = -0x8000;
     gEwramData->gameState.cachedPickupIcon = 0xFF;
-    gEwramData->gameState.stateFlags &= ~0x440800;
+    gEwramData->gameState.stateFlags &= ~(STATE_ROOM_EFFECT | STATE_MUSIC_COMMAND_SENT | STATE_BOSS_DOOR_KEEPS_MUSIC);
     Sound_ClearTracked();
     Music_StopOverride();
     if (!BgPalette_GetPendingFades())

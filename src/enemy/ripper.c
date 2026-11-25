@@ -17,6 +17,8 @@
 #include "entity_hit.h"
 #include "entity_motion.h"
 #include "bg_and_collision.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 void Ripper_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 void Ripper_UpdateMovement(struct EwramData_EntityData *entity);
@@ -25,6 +27,12 @@ struct EwramData_EntityData *Ripper_CreateProjectile(struct EwramData_EntityData
 void RipperProjectile_Update(struct EwramData_EntityData *);
 void RipperProjectile_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void RipperProjectile_OnHit(struct EwramData_EntityData *entity);
+
+/* States of Ripper (entity->state), named after the update function the dispatcher calls. */
+enum {
+    RIPPER_STATE_MOVEMENT = 1,
+    RIPPER_STATE_DEATH = 255,
+};
 
 void EnemyRipperCreate(struct EwramData_EntityData *entity)
 {
@@ -46,7 +54,7 @@ void EnemyRipperCreate(struct EwramData_EntityData *entity)
         entity->subState = 0;
         return;
     }
-    entity->state = 1;
+    entity->state = RIPPER_STATE_MOVEMENT;
     entity->stage = 0;
     entity->subState = 0;
     if ((entity->spawnParam0 & entity->spawnParam1) == 0xFF)
@@ -80,29 +88,29 @@ void EnemyRipperUpdate(struct EwramData_EntityData *entity)
         }
         return;
     }
-    if (entity->state != 0xFF)
+    if (entity->state != RIPPER_STATE_DEATH)
         Enemy_UpdateHitFlash(entity);
-    if (Entity_IsTimeStopped(entity) && entity->state != 0xFF)
+    if (Entity_IsTimeStopped(entity) && entity->state != RIPPER_STATE_DEATH)
     {
         Hit_CheckWithPlayer(&result, entity);
         return;
     }
-    if (entity->hitFlashTimer && entity->state != 2 && entity->state != 0xFF)
+    if (entity->hitFlashTimer && entity->state != 2 && entity->state != RIPPER_STATE_DEATH)
     {
         Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
     {
-        case 1:
+        case RIPPER_STATE_MOVEMENT:
             Ripper_UpdateMovement(entity);
             break;
-        case 0xFF:
+        case RIPPER_STATE_DEATH:
             Ripper_UpdateDeath(entity);
             break;
     }
     Entity_AnimateWithBoxes(entity);
-    if (entity->state != 0xFF)
+    if (entity->state != RIPPER_STATE_DEATH)
         Hit_CheckWithPlayer(&result, entity);
 }
 
@@ -330,7 +338,7 @@ void Ripper_UpdateDeath(struct EwramData_EntityData *entity)
             entity->ext.ripper.anim = 2;
             entity->palette = entity->basePalette;
             entity->timer = 0x32;
-            entity->state = 0xFF;
+            entity->state = RIPPER_STATE_DEATH;
             entity->velX.whole = 0;
             entity->accelX.whole = 0;
             entity->velY.whole = 0;
@@ -363,7 +371,7 @@ struct EwramData_EntityData *Ripper_CreateProjectile(struct EwramData_EntityData
     u8 *gfx2 = sFleamanRipperPalette;
     u8 *gfx3 = sFleamanRipperSpriteSheet;
     u8 *gfx1 = sFleamanRipperGfx;
-    struct EwramData_EntityData *e = EntityCreateInRange(0x1B, 0x48, RipperProjectile_Update);
+    struct EwramData_EntityData *e = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, RipperProjectile_Update);
 
     if (e != NULL)
     {
@@ -376,8 +384,8 @@ struct EwramData_EntityData *Ripper_CreateProjectile(struct EwramData_EntityData
         Hit_Enable(e, 10, RipperProjectile_DamagePlayerOnContact, RipperProjectile_OnHit);
         HitBox_SetAttackRaw(e, 0x0808FCFC);
         HitBox_SetBodyRaw(e, 0x0808FCFC);
-        e->hit.flags &= ~4;
-        e->hit.flags &= ~2;
+        e->hit.flags &= ~HIT_NO_DAMAGE;
+        e->hit.flags &= ~HIT_NO_ATTACK;
     }
     return e;
 }
@@ -428,7 +436,7 @@ void RipperProjectile_Update(struct EwramData_EntityData *entity)
             entity->velX.whole = -entity->velX.whole;
             entity->accelX.whole = -entity->accelX.whole;
         }
-        PlaySong(0x89);
+        PlaySong(SE_THROW);
         entity->state++;
     case 4:
         entity->velX.whole += entity->accelX.whole;
@@ -483,8 +491,8 @@ void RipperProjectile_DamagePlayerOnContact(struct EwramData_EntityData *entity)
     contactDamage.sourceY = entity->posY.whole;
     Player_ApplyContactDamage(&contactDamage);
     entity->hitFlashTimer = 8;
-    entity->hit.flags |= 4;
-    entity->hit.flags |= 2;
+    entity->hit.flags |= HIT_NO_DAMAGE;
+    entity->hit.flags |= HIT_NO_ATTACK;
     entity->state = 6;
     entity->stage = 0;
     entity->subState = 0;
@@ -531,8 +539,8 @@ void RipperProjectile_OnHit(struct EwramData_EntityData *entity)
     entity->hitFlashTimer=8;
     zero=0;
     PlaySong(0x13A);
-    entity->hit.flags|=4;
-    entity->hit.flags|=2;
+    entity->hit.flags|=HIT_NO_DAMAGE;
+    entity->hit.flags|=HIT_NO_ATTACK;
     entity->state=5;
     entity->stage=zero;
     entity->subState=zero;

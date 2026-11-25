@@ -463,6 +463,7 @@ struct EntityWorkRaw {
 }; /* size = 0x1C */
 
 #include "structs/entity_work.h"
+#include "constants/game_state_flags.h"
 
 union EntityWork {
     struct EntityWorkRaw raw;
@@ -1139,7 +1140,7 @@ struct GameState {
     /* 0x00364 */ u8 pad_364[0x378 - 0x364];
     /* 0x00378 */ u32 activatedWarpFlags[1]; // warp-table indices; selection uses bits 0..7
     /* 0x0037C */ u16 shownAreaNameFlags; // banners already shown, including area-name overrides 12..15
-    /* 0x0037E */ u16 bossEventFlags; // boss/recovery events; gates doors, respawns, music and scenes
+    /* 0x0037E */ u16 bossEventFlags; // defeated bosses BOSS_DEFEATED_* (constants/game_state_flags.h); gates doors, respawns, music and scenes
     /* 0x00380 */ u8 unk_380;
     /* 0x00381 */ u8 pad_381[0x3CC - 0x381];
     /* 0x003CC */ u32 *roomData; /* GetRoomPointer(currentArea, currentRoom) */
@@ -1177,9 +1178,7 @@ struct GameState {
     /* 0x00427 */ u8 cameraScrollMinPriority; // Camera_ScrollWithPriority rejects lower-priority callers
     /* 0x00428 */ u8 currentSaveSlot; // 0: File 1, 1: Quicksave 1, 2: File 2, 3: Quicksave 2, 4: File 3, 5: Quicksave 3
     /* 0x00429 */ u8 pad_429[0x42C - 0x429];
-    /* 0x0042C */ u32 stateFlags; /* runtime flags: bit 0 event running, 2 boss fight, 0x10 player dead,
-                                   * 0x20 HUD hidden, 0x80 banner, 0x200 HUD messages blocked,
-                                   * 0x01000000 large message window open, 0x02000000 window closed */
+    /* 0x0042C */ u32 stateFlags; /* runtime flags STATE_* (constants/game_state_flags.h) */
     /* 0x00430 */ u8 shopId; /* shop mode: which shop (Shop_UpdateList) */
     /* 0x00431 */ u8 shopRowQuantities[0x80]; /* shop mode: quantity chosen in each list row */
     /* 0x004B1 */ u8 pad_4B1[0x4BE - 0x4B1];

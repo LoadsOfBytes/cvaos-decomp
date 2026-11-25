@@ -21,6 +21,7 @@
 #include "player_soma.h"
 #include "main_menu.h"
 #include "data/data_4F1444.h"
+#include "constants/game_flags.h"
 extern struct RoomDefinition sEndingRoomDefinition; /* read as u8[] by graham.c */
 extern int sprintf(char *, const char *, ...);
 
@@ -99,19 +100,19 @@ s32 GameModeDebugEventMenuUpdate(void)
         case 19:
             if (gEwramData->debugEventMenuState == 12)
             {
-                gEwramData->gameState.bossEventFlags |= 1;
-                GameFlag_Set(0x3A);
+                gEwramData->gameState.bossEventFlags |= BOSS_DEFEATED_GRAHAM;
+                GameFlag_Set(FLAG_SOMA_AWAKENED);
             }
             else if (gEwramData->debugEventMenuState == 10)
             {
-                gEwramData->gameState.bossEventFlags |= 0x40;
+                gEwramData->gameState.bossEventFlags |= BOSS_DEFEATED_BALORE;
             }
             else if (gEwramData->debugEventMenuState == 19)
             {
-                GameFlag_Set(0x28);
+                GameFlag_Set(FLAG_GRAHAM_BATTLE_STARTED);
             }
 
-            GameFlag_Set(0x20);
+            GameFlag_Set(FLAG_PROLOGUE_DONE);
             gameMode = DebugEventMenu_RunEventGame();
             if (gEwramData->debugEventMenuState == 19 && gEwramData->debugEventMenuSubStage == 1)
             {
@@ -122,28 +123,28 @@ s32 GameModeDebugEventMenuUpdate(void)
             break;
 
         case 16:
-            gEwramData->gameState.stateFlags &= ~0x4000;
-            gEwramData->gameState.stateFlags &= ~0x8000;
-            gEwramData->gameState.stateFlags |= 0x2000;
+            gEwramData->gameState.stateFlags &= ~STATE_ENDING_CHAOS;
+            gEwramData->gameState.stateFlags &= ~STATE_ENDING_JULIUS;
+            gEwramData->gameState.stateFlags |= STATE_ENDING_GRAHAM;
             gameMode = DebugEventMenu_RunEventGame();
             break;
 
         case 17:
-            gEwramData->gameState.stateFlags &= ~0x2000;
-            gEwramData->gameState.stateFlags &= ~0x8000;
-            gEwramData->gameState.stateFlags |= 0x4000;
+            gEwramData->gameState.stateFlags &= ~STATE_ENDING_GRAHAM;
+            gEwramData->gameState.stateFlags &= ~STATE_ENDING_JULIUS;
+            gEwramData->gameState.stateFlags |= STATE_ENDING_CHAOS;
             gameMode = DebugEventMenu_RunEventGame();
             break;
 
         case 18:
-            gEwramData->gameState.stateFlags &= ~0x2000;
-            gEwramData->gameState.stateFlags &= ~0x4000;
-            gEwramData->gameState.stateFlags |= 0x8000;
+            gEwramData->gameState.stateFlags &= ~STATE_ENDING_GRAHAM;
+            gEwramData->gameState.stateFlags &= ~STATE_ENDING_CHAOS;
+            gEwramData->gameState.stateFlags |= STATE_ENDING_JULIUS;
             gameMode = DebugEventMenu_RunEventGame();
             break;
 
         case 20:
-            gEwramData->gameState.stateFlags |= 0x10000;
+            gEwramData->gameState.stateFlags |= STATE_ENDING_SEQUENCE;
             gameMode = DebugEventMenu_RunEventGame();
             break;
 
@@ -155,7 +156,7 @@ s32 GameModeDebugEventMenuUpdate(void)
             break;
     }
 
-    GameFlag_Set(0x20);
+    GameFlag_Set(FLAG_PROLOGUE_DONE);
     if (gEwramData->debugEventMenuSubStage == 1)
     {
         if (gEwramData->debugEventMenuState >= 3)
@@ -176,7 +177,7 @@ s32 GameModeDebugEventMenuUpdate(void)
 
             if (gEwramData->debugEventMenuState == 15)
             {
-                GameFlag_Set(0x26);
+                GameFlag_Set(FLAG_YOKO_RESCUED);
             }
         }
     }

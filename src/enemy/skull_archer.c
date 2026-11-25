@@ -18,6 +18,15 @@ void SkullArcher_OnHit(struct EwramData_EntityData *, struct EwramData_EntityDat
 
 /* Enemy helpers decompiled from assembly. */
 
+/* States of SkullArcher (entity->state), named after the update function the dispatcher calls. */
+enum {
+    SKULL_ARCHER_STATE_IDLE = 0,
+    SKULL_ARCHER_STATE_SHOOT = 1,
+    SKULL_ARCHER_STATE_PATROL = 2,
+    SKULL_ARCHER_STATE_SPAWN_DEATH_PIECES = 3,
+    SKULL_ARCHER_STATE_ANIM_ONLY = 4,
+};
+
 /* Seven animated fragments when the archer dies. */
 void SkullArcher_SpawnDeathPieces(struct EwramData_EntityData *entity)
 {
@@ -25,7 +34,7 @@ void SkullArcher_SpawnDeathPieces(struct EwramData_EntityData *entity)
     PlaySong(0x6B);
     for (i = 5; i <= 11; i++)
     {
-        struct EwramData_EntityData *fragment = EntityCreateInRange(0x49, 0xCF, Effect_UpdateSpriteDebris);
+        struct EwramData_EntityData *fragment = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateSpriteDebris);
         if (fragment != NULL)
         {
             s32 graphics;
@@ -58,7 +67,7 @@ void EnemySkullArcherCreate(struct EwramData_EntityData *entity)
     Anim_Update(entity);
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 4;
+        entity->state = SKULL_ARCHER_STATE_ANIM_ONLY;
         return;
     }
     Enemy_ResetFromTemplate(entity);
@@ -68,10 +77,10 @@ void EnemySkullArcherCreate(struct EwramData_EntityData *entity)
     entity->posY.part16.integer++;
     entity->scrollWithBg = 1;
     if (entity->spawnParam0 == 0)
-        entity->state = 0;
+        entity->state = SKULL_ARCHER_STATE_IDLE;
     else
     {
-        entity->state = 2;
+        entity->state = SKULL_ARCHER_STATE_PATROL;
         entity->stage = 0;
         entity->subState = 0;
         Anim_StartIndexed(entity, 1, 0, 1);
@@ -98,7 +107,7 @@ void SkullArcher_OnHit(struct EwramData_EntityData *entity, struct EwramData_Ent
                 entity->ext.skullArcher.hitSide = -speed;
         }
         entity->palette = entity->basePalette;
-        entity->state = 3;
+        entity->state = SKULL_ARCHER_STATE_SPAWN_DEATH_PIECES;
         entity->stage = 0;
         entity->subState = 0;
     }
@@ -114,11 +123,11 @@ void EnemySkullArcherUpdate(struct EwramData_EntityData *entity)
     if (Enemy_PreUpdate(entity)) return;
     switch (entity->state)
     {
-    case 0: SkullArcher_UpdateIdle(entity); break;
-    case 1: SkullArcher_UpdateShoot(entity); break;
-    case 2: SkullArcher_UpdatePatrol(entity); break;
-    case 3: SkullArcher_SpawnDeathPieces(entity); EntityDelete(entity); return;
-    case 4: Anim_Update(entity); return;
+    case SKULL_ARCHER_STATE_IDLE: SkullArcher_UpdateIdle(entity); break;
+    case SKULL_ARCHER_STATE_SHOOT: SkullArcher_UpdateShoot(entity); break;
+    case SKULL_ARCHER_STATE_PATROL: SkullArcher_UpdatePatrol(entity); break;
+    case SKULL_ARCHER_STATE_SPAWN_DEATH_PIECES: SkullArcher_SpawnDeathPieces(entity); EntityDelete(entity); return;
+    case SKULL_ARCHER_STATE_ANIM_ONLY: Anim_Update(entity); return;
     }
     Enemy_CheckHitPlayer(entity);
     Entity_AnimateWithBoxes(entity);

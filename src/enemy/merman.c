@@ -20,6 +20,8 @@
 #include "data/data_118B48.h"
 #include "damage_numbers.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 void EnemyMermanCreate(struct EwramData_EntityData *);
 void Merman_UpdateMove(struct EwramData_EntityData *);
@@ -33,6 +35,13 @@ u8 MermanShot_LoadGraphics(struct EwramData_EntityData *, struct EwramData_Entit
 void MermanShot_EnableHitBoxes(struct EwramData_EntityData *);
 void MermanShot_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void MermanShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+
+/* States of Merman (entity->state), named after the update function the dispatcher calls. */
+enum {
+    MERMAN_STATE_MOVE = 0,
+    MERMAN_STATE_ATTACK = 1,
+    MERMAN_STATE_ANIM_ONLY = 4,
+};
 
 /* Dispatch Merman states, including the hidden instance's child spawning. */
 void EnemyMermanUpdate(struct EwramData_EntityData *entity)
@@ -58,8 +67,8 @@ void EnemyMermanUpdate(struct EwramData_EntityData *entity)
     }
     switch (entity->state)
     {
-    case 0: Merman_UpdateMove(entity); break;
-    case 1: Merman_UpdateAttack(entity); break;
+    case MERMAN_STATE_MOVE: Merman_UpdateMove(entity); break;
+    case MERMAN_STATE_ATTACK: Merman_UpdateAttack(entity); break;
     case 2:
         {
             struct EwramData_EntityData *parent;
@@ -82,7 +91,7 @@ void EnemyMermanUpdate(struct EwramData_EntityData *entity)
             s32 mode;
             if (zero != 0) return;
             if ((s32)entity->ext.mermanSpawner.childCount > 2) return;
-            child = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
+            child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, EntityUpdateNothing);
             if (child == NULL) return;
             mode = entity->spawnParam0;
             if (mode != 1) return;
@@ -105,7 +114,7 @@ void EnemyMermanUpdate(struct EwramData_EntityData *entity)
             child->ext.merman.homeY = entity->ext.merman.homeY;
         }
         return;
-    case 4: Anim_Update(entity); return;
+    case MERMAN_STATE_ANIM_ONLY: Anim_Update(entity); return;
     }
     Entity_AnimateWithBoxes(entity);
     Enemy_CheckHitPlayer(entity);
@@ -125,7 +134,7 @@ void EnemyMermanCreate(struct EwramData_EntityData *entity)
     Enemy_ResetFromTemplate(entity);
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 4;
+        entity->state = MERMAN_STATE_ANIM_ONLY;
         return;
     }
     Entity_EnableBoxes(entity, Enemy_DamagePlayerOnContact, Merman_OnHit);
@@ -135,8 +144,8 @@ void EnemyMermanCreate(struct EwramData_EntityData *entity)
         {
             entity->state = 3;
             entity->hidden = 1;
-            entity->hit.flags |= 4;
-            entity->hit.flags |= 2;
+            entity->hit.flags |= HIT_NO_DAMAGE;
+            entity->hit.flags |= HIT_NO_ATTACK;
             entity->ext.merman.homeX = entity->posX.part16.integer + background->xPos.part16.integer;
             entity->ext.merman.homeY = entity->posY.part16.integer + background->yPos.part16.integer;
         }
@@ -377,7 +386,7 @@ restart:
             }
             else
             {
-                entity->state = 1;
+                entity->state = MERMAN_STATE_ATTACK;
                 entity->subState = 0;
             }
         }
@@ -425,7 +434,7 @@ restart:
             }
             else
             {
-                entity->state = 1;
+                entity->state = MERMAN_STATE_ATTACK;
                 entity->subState = 0;
             }
         }
@@ -516,7 +525,7 @@ void Merman_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
-        PlaySong(0x6E);
+        PlaySong(SE_ENEMY_DEATH);
         Anim_StartIndexed(entity, 1, 0, 1);
         entity->palette = entity->basePalette;
         entity->timer = 40;
@@ -535,7 +544,7 @@ void Merman_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
  */
 void Merman_SpawnShot(struct EwramData_EntityData *parent)
 {
-    struct EwramData_EntityData *projectile = EntityCreateInRange(0x1B, 0x48, MermanShot_Update);
+    struct EwramData_EntityData *projectile = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, MermanShot_Update);
     if (projectile)
     {
         if (!MermanShot_LoadGraphics(parent, projectile)) EntityDelete(projectile);
@@ -575,8 +584,8 @@ void MermanShot_EnableHitBoxes(struct EwramData_EntityData *entity)
     Hit_Enable(entity, 0xA, MermanShot_DamagePlayerOnContact, MermanShot_OnHit);
     HitBox_SetBody(entity, &box);
     HitBox_SetAttack(entity, &box);
-    entity->hit.flags &= ~2;
-    entity->hit.flags &= ~4;
+    entity->hit.flags &= ~HIT_NO_ATTACK;
+    entity->hit.flags &= ~HIT_NO_DAMAGE;
 }
 
 /* Move the projectile or emit its two fragments before deleting it. */

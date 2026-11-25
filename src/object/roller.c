@@ -19,6 +19,7 @@
 #include "data/data_118B48.h"
 #include "entity_motion.h"
 #include "bg_and_collision.h"
+#include "constants/hit_flags.h"
 
 extern void (*const sRollerVariantFuncs[])(struct EwramData_EntityData *entity);
 
@@ -72,7 +73,7 @@ void Roller_SpawnDebris(struct EwramData_EntityData *parent)
 
     for (i = 0; i <= 1; i++)
     {
-        entity = EntityCreateInRange(0x49, 0xCF, RollerDebris_Update);
+        entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, RollerDebris_Update);
         if (entity != NULL)
         {
             Entity_LoadGraphics(entity, sRollerGfx, sRollerPalette, 0, sRollerSpriteSheet);
@@ -89,7 +90,7 @@ void Roller_SpawnDebris(struct EwramData_EntityData *parent)
     }
     for (i = 0; i < 4; i++)
     {
-        entity = EntityCreateInRange(0x49, 0xCF, RollerDebris_Update);
+        entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, RollerDebris_Update);
         if (entity != NULL)
         {
             Entity_LoadGraphics(entity, sRollerGfx, sRollerPalette, 0, sRollerSpriteSheet);
@@ -149,8 +150,8 @@ void RollerVariant0_Update(struct EwramData_EntityData *entity)
         entity->velX.whole = 0x8000;
         Hit_Enable(entity, 8, 0, 0);
         HitBox_SetBodyRaw(entity, 0x103000E8);
-        entity->hit.flags |= 2;
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_ATTACK;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         entity->state = 1;
     }
     case 1:
@@ -377,8 +378,8 @@ void RollerVariant1_Update(struct EwramData_EntityData *entity)
         entity->ext.roller.prevY = entity->ext.roller.roomY;
         Hit_Enable(entity, 8, 0, 0);
         HitBox_SetBodyRaw(entity, 0x102EFEE8);
-        entity->hit.flags |= 2;
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_ATTACK;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         Player_RegisterSolidObject(entity, sRollerVariant1SolidCallbacks);
         entity->state = 1;
     }
@@ -500,8 +501,8 @@ void RollerVariant2_Update(struct EwramData_EntityData *entity)
         entity->ext.roller.prevY = entity->ext.roller.roomY;
         Hit_Enable(entity, 8, NULL, 0);
         HitBox_SetBodyRaw(entity, 0x103000E8);
-        entity->hit.flags |= 2;
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_ATTACK;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         if (RandomNumberGenerator() & 1)
             entity->ext.rollerSwing.angle = 0x8000;
         entity->ext.rollerSwing.speed = (RandomNumberGenerator() & 0x3F) + 0x40;

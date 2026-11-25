@@ -19,12 +19,20 @@
 
 void KyomaDemon_UpdateLurk(struct EwramData_EntityData *);
 
+/* States of KyomaDemon (entity->state), named after the update function the dispatcher calls. */
+enum {
+    KYOMA_DEMON_STATE_LURK = 0,
+    KYOMA_DEMON_STATE_ATTACK = 1,
+    KYOMA_DEMON_STATE_DEATH = 2,
+    KYOMA_DEMON_STATE_ANIM_ONLY = 3,
+};
+
 void EnemyKyomaDemonUpdate(struct EwramData_EntityData *entity)
 {
     struct HitResult result;
     struct BgLayerState *background = &gEwramData->bgInfo[1];
     u8 frame;
-    if (entity->state != 2)
+    if (entity->state != KYOMA_DEMON_STATE_DEATH)
     {
         if (Entity_IsInRect(entity, -16, 0, 0x110, 0xB0)) Player_TrackEntity(entity);
     }
@@ -36,10 +44,10 @@ void EnemyKyomaDemonUpdate(struct EwramData_EntityData *entity)
     }
     switch (entity->state)
     {
-    case 0: KyomaDemon_UpdateLurk(entity); break;
-    case 1: KyomaDemon_UpdateAttack(entity); break;
-    case 2: KyomaDemon_UpdateDeath(entity); break;
-    case 3: Anim_Update(entity); return;
+    case KYOMA_DEMON_STATE_LURK: KyomaDemon_UpdateLurk(entity); break;
+    case KYOMA_DEMON_STATE_ATTACK: KyomaDemon_UpdateAttack(entity); break;
+    case KYOMA_DEMON_STATE_DEATH: KyomaDemon_UpdateDeath(entity); break;
+    case KYOMA_DEMON_STATE_ANIM_ONLY: Anim_Update(entity); return;
     }
     frame = entity->animFrame;
     Anim_Update(entity);
@@ -59,13 +67,13 @@ void EnemyKyomaDemonCreate(struct EwramData_EntityData *entity)
     Anim_StartIndexed(entity, 1, 0, 1);
     Anim_Update(entity);
     Enemy_ResetFromTemplate(entity);
-    if ((*ewram)->gameState.bestiaryPreview) { entity->state = 3; return; }
+    if ((*ewram)->gameState.bestiaryPreview) { entity->state = KYOMA_DEMON_STATE_ANIM_ONLY; return; }
     if (Anim_GetMaxBoxCount(entity) > 1) Hit_EnableContact(entity, 8, KyomaDemon_DamagePlayerOnContact, KyomaDemon_OnHit);
     else Hit_Enable(entity, 8, KyomaDemon_DamagePlayerOnContact, KyomaDemon_OnHit);
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
     entity->spriteLayer = 29;
-    entity->state = 0;
+    entity->state = KYOMA_DEMON_STATE_LURK;
     entity->ext.kyomaDemon.hidden = 1;
     entity->scrollWithBg = 0;
     random = RandomNumberGenerator() % 32;
@@ -75,7 +83,7 @@ void EnemyKyomaDemonCreate(struct EwramData_EntityData *entity)
     entity->ext.kyomaDemon.homeY = entity->posY.part16.integer + camera->yPos.part16.integer;
     if (entity->spawnParam0 != 0)
     {
-        entity->state = 2;
+        entity->state = KYOMA_DEMON_STATE_DEATH;
         entity->subState = 1;
         entity->hidden = 1;
     }

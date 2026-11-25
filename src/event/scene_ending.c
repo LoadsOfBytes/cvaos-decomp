@@ -103,7 +103,7 @@ s32 EventSceneEnding_PlayTransformation(struct EwramData_EntityData *entity)
  */
 struct EwramData_EntityData *EventSceneEnding_CreateEffectSprite(s32 affine)
 {
-    struct EwramData_EntityData *entity=EntityCreateInRange(0x1B,0x48,EntityUpdateNothing);
+    struct EwramData_EntityData *entity=EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST,EntityUpdateNothing);
     if(entity)
     {
         s32 slot=ObjGfx_LoadResource(sEventSceneEndingGfx,0);
@@ -134,7 +134,7 @@ struct EwramData_EntityData *EventSceneEnding_CreateEffectSprite(s32 affine)
 /* Delayed fragments spiral away, alternating their direction of rotation. */
 static inline void flashAt(s16 x,s16 y)
 {
-    struct EwramData_EntityData *effect=EntityCreateInRange(0x1B,0x48,EventSceneEndingFlash_Update);
+    struct EwramData_EntityData *effect=EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST,EventSceneEndingFlash_Update);
     if(effect)
     {
         if(!Entity_LoadGraphics(effect,sEventSceneEndingGfx,sEventSceneEndingPalette,0,sEventSceneEndingSpriteSheet))EntityDelete(effect);
@@ -349,7 +349,7 @@ void EventSceneEndingSpark_Update(struct EwramData_EntityData *entity)
 /* Initial flash followed by three delayed, randomly varied fragments. */
 static inline void flashAt2(s16 x,s16 y)
 {
-    struct EwramData_EntityData *effect=EntityCreateInRange(0x1B,0x48,EventSceneEndingFlash_Update);
+    struct EwramData_EntityData *effect=EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST,EventSceneEndingFlash_Update);
     if(effect)
     {
         if(!Entity_LoadGraphics(effect,sEventSceneEndingGfx,sEventSceneEndingPalette,0,sEventSceneEndingSpriteSheet))EntityDelete(effect);
@@ -393,7 +393,7 @@ void EventSceneEnding_SpawnSparkBurst(s16 x,s16 y)
 /* Initial flash followed by three delayed, randomly varied fragments. */
 static inline void flashAt3(s16 x,s16 y,s32 animation)
 {
-    struct EwramData_EntityData *effect=EntityCreateInRange(0x1B,0x48,EventSceneEndingFlash_Update);
+    struct EwramData_EntityData *effect=EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST,EventSceneEndingFlash_Update);
     if(effect)
     {
         if(!Entity_LoadGraphics(effect,sEventSceneEndingGfx,sEventSceneEndingPalette,0,sEventSceneEndingSpriteSheet))EntityDelete(effect);
@@ -437,7 +437,7 @@ void EventSceneEnding_SpawnSparkBurstSmall(s16 x,s16 y)
 /* Play fifteen timed burst positions; the state selects the burst variant. */
 static inline void flashAt4(s16 x,s16 y,s32 animation)
 {
-    struct EwramData_EntityData *effect=EntityCreateInRange(0x1B,0x48,EventSceneEndingFlash_Update);
+    struct EwramData_EntityData *effect=EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST,EventSceneEndingFlash_Update);
     if(effect)
     {
         if(!Entity_LoadGraphics(effect,sEventSceneEndingGfx,sEventSceneEndingPalette,0,sEventSceneEndingSpriteSheet))EntityDelete(effect);
@@ -633,7 +633,7 @@ void EventSceneEndingEmitterE_Update(struct EwramData_EntityData *entity)
         s32 x=(s16)(step->x+entity->posX.part16.integer);
         s32 y=(s16)(step->y+(u16)entity->posY.part16.integer);
         u32 animation=RandomNumberGenerator()&3;
-        struct EwramData_EntityData *effect=EntityCreateInRange(0x1B,0x48,EventSceneEndingFlash_Update);
+        struct EwramData_EntityData *effect=EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST,EventSceneEndingFlash_Update);
         if(effect)
         {
             if(!Entity_LoadGraphics(effect,sEventSceneEndingGfx,sEventSceneEndingPalette,0,sEventSceneEndingSpriteSheet))EntityDelete(effect);
@@ -979,7 +979,7 @@ void EventSceneEndingCenterEffect_Update(struct EwramData_EntityData *entity)
 void EventSceneEnding_CreateCenterEffect(struct EwramData_EntityData *owner)
 {
     EntityFunc callback=EventSceneEndingCenterEffect_Update;
-    struct EwramData_EntityData *effect=EntityCreateInRange(0x1B,0x48,callback);
+    struct EwramData_EntityData *effect=EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST,callback);
     u8 zero;
     if(effect)
     {
@@ -1092,7 +1092,7 @@ void EventSceneEndingHalo_Update(struct EwramData_EntityData *entity)
  */
 void EventSceneEnding_CreateHalo(struct EwramData_EntityData *owner)
 {
-    struct EwramData_EntityData *effect=EntityCreateInRange(0x1B,0x48,EventSceneEndingHalo_Update);
+    struct EwramData_EntityData *effect=EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST,EventSceneEndingHalo_Update);
     u8 zero;
     if(effect)
     {

@@ -18,6 +18,7 @@
 #include "data/data_118B48.h"
 #include "damage_numbers.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
 
 void MedusaHead_UpdateFly(struct EwramData_EntityData *entity);
 void MedusaHead_UpdateIdle(struct EwramData_EntityData *entity);
@@ -25,6 +26,14 @@ void EnemyMedusaHeadCreate(struct EwramData_EntityData *entity);
 s32 MedusaHead_LoadGraphics(struct EwramData_EntityData *entity);
 void MedusaHead_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void MedusaHead_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+
+/* States of MedusaHead (entity->state), named after the update function the dispatcher calls. */
+enum {
+    MEDUSA_HEAD_STATE_FLY = 0,
+    MEDUSA_HEAD_STATE_IDLE = 1,
+    MEDUSA_HEAD_STATE_FRAGMENT_DEATH = 2,
+    MEDUSA_HEAD_STATE_ANIM_ONLY = 4,
+};
 
 /**
  * @brief 93714 | Medusa Head update: a head (states 0 / 1, MedusaHead_UpdateFly /
@@ -47,25 +56,25 @@ void EnemyMedusaHeadUpdate(struct EwramData_EntityData *entity)
             Player_TrackEntity(entity);
         if (EntityIsOutsideScreen(entity, 4))
         {
-            entity->state = 2;
+            entity->state = MEDUSA_HEAD_STATE_FRAGMENT_DEATH;
             entity->timer = 1;
         }
     }
     if (Enemy_IsStunned(entity))
     {
-        if (entity->state != 2)
+        if (entity->state != MEDUSA_HEAD_STATE_FRAGMENT_DEATH)
             Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
     {
-    case 0:
+    case MEDUSA_HEAD_STATE_FLY:
         MedusaHead_UpdateFly(entity);
         break;
-    case 1:
+    case MEDUSA_HEAD_STATE_IDLE:
         MedusaHead_UpdateIdle(entity);
         break;
-    case 2:
+    case MEDUSA_HEAD_STATE_FRAGMENT_DEATH:
         Enemy_UpdateFragmentDeath(entity);
         if (entity->deleteRequested)
         {
@@ -79,7 +88,7 @@ void EnemyMedusaHeadUpdate(struct EwramData_EntityData *entity)
         entity->posX.whole = 0x780000;
         if ((RandomNumberGenerator() & 0x1F) == 0 && (s32)entity->ext.medusaHead.childCount < entity->spawnParam0)
         {
-            head = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
+            head = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, EntityUpdateNothing);
             if (head != NULL)
             {
                 entity->ext.medusaHead.childCount++;
@@ -104,7 +113,7 @@ void EnemyMedusaHeadUpdate(struct EwramData_EntityData *entity)
             }
         }
         return;
-    case 4:
+    case MEDUSA_HEAD_STATE_ANIM_ONLY:
         Anim_Update(entity);
         return;
     }
@@ -135,24 +144,24 @@ void EnemyMedusaHeadCreate(struct EwramData_EntityData *entity)
     Enemy_ResetFromTemplate(entity);
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 4;
+        entity->state = MEDUSA_HEAD_STATE_ANIM_ONLY;
         return;
     }
     entity->spriteLayer = 3;
     Hit_Enable(entity, 8, MedusaHead_DamagePlayerOnContact, MedusaHead_OnHit);
     HitBox_SetAttack(entity, &box);
     HitBox_SetBody(entity, &box);
-    entity->hit.flags &= ~4;
-    entity->hit.flags &= ~2;
+    entity->hit.flags &= ~HIT_NO_DAMAGE;
+    entity->hit.flags &= ~HIT_NO_ATTACK;
     if ((s16)(entity->spawnParam1 & 2))
     {
         entity->state = 3;
         entity->hidden = 1;
-        entity->hit.flags |= 4;
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_DAMAGE;
+        entity->hit.flags |= HIT_NO_ATTACK;
         return;
     }
-    entity->state = 0;
+    entity->state = MEDUSA_HEAD_STATE_FLY;
     entity->flipX = Entity_IsTargetRight(entity);
     if (entity->flipX)
         entity->velX.whole = (RandomNumberGenerator() & 0x3FFF) + 0xC000;
@@ -223,7 +232,7 @@ void MedusaHead_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hi
         Anim_StartIndexed(entity, 3, 0, 0);
         entity->palette = entity->basePalette;
         entity->timer = 0x28;
-        entity->state = 2;
+        entity->state = MEDUSA_HEAD_STATE_FRAGMENT_DEATH;
         entity->subState = 0;
     }
 }

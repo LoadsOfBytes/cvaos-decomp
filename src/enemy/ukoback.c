@@ -34,6 +34,23 @@ s32 Nemesis_LoadGraphics(struct EwramData_EntityData *entity);
 
 /* Ukoback flight: room-edge and tile collision, facing and timer updates. */
 
+/* States of Ukoback (entity->state), named after the update function the dispatcher calls. */
+enum {
+    UKOBACK_STATE_FLIGHT = 0,
+    UKOBACK_STATE_DEATH = 255,
+};
+
+/* States of Nemesis (entity->state), named after the update function the dispatcher calls. */
+enum {
+    NEMESIS_STATE_APPEARANCE = 0,
+    NEMESIS_STATE_POSITIONING = 1,
+    NEMESIS_STATE_ATTACK_SELECTION = 2,
+    NEMESIS_STATE_TURNING_ATTACK = 3,
+    NEMESIS_STATE_SCRIPTED_ATTACK = 4,
+    NEMESIS_STATE_SPIN_LUNGE = 5,
+    NEMESIS_STATE_PARTNER_FLIGHT = 6,
+};
+
 /* 1 when the tile coordinate lies outside a room of the given size in
  * screens (one screen: single tiles, otherwise 32 tiles per screen). */
 static inline s32 IsTileOutsideRoom(s32 tile, u8 screens, s32 single)
@@ -143,7 +160,7 @@ void Ukoback_UpdateDeath(struct EwramData_EntityData *entity)
             Enemy_DropRewards(entity);
             entity->palette = entity->basePalette;
             entity->timer = 50;
-            entity->state = 0xFF;
+            entity->state = UKOBACK_STATE_DEATH;
             entity->subState++;
             entity->animFrame = 9;
             entity->velY.whole = 0x8000;
@@ -299,7 +316,7 @@ void UkobackDeathPiece_Update(struct EwramData_EntityData *entity)
  */
 void Ukoback_SpawnContactSparkle(void)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, UkobackSparkle_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, UkobackSparkle_Update);
 
     if (child != NULL)
     {
@@ -369,21 +386,21 @@ void EnemyUkobackUpdate(struct EwramData_EntityData *entity)
         return;
     }
     Player_TrackEntity(entity);
-    if (Enemy_IsStunned(entity) && entity->state != 0xFF)
+    if (Enemy_IsStunned(entity) && entity->state != UKOBACK_STATE_DEATH)
     {
         Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
     {
-        case 0:
+        case UKOBACK_STATE_FLIGHT:
             Ukoback_UpdateFlight(entity);
             break;
-        case 0xFF:
+        case UKOBACK_STATE_DEATH:
             Ukoback_UpdateDeath(entity);
             break;
     }
-    if (entity->state != 0xFF)
+    if (entity->state != UKOBACK_STATE_DEATH)
         Entity_AnimateWithBoxes(entity);
     Enemy_CheckHitPlayer(entity);
 }
@@ -438,7 +455,7 @@ void Ukoback_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 s32 Ukoback_SpawnFireball(struct EwramData_EntityData *entity)
 {
     s32 created = 0;
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, UkobackFireball_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, UkobackFireball_Update);
 
     if (child != NULL)
     {
@@ -486,7 +503,7 @@ void UkobackFireball_OnHit(struct EwramData_EntityData *entity)
 s32 Ukoback_SpawnDeathPiece(struct EwramData_EntityData *entity)
 {
     s32 created = 0;
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, UkobackDeathPiece_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, UkobackDeathPiece_Update);
 
     if (child != NULL)
     {
@@ -595,9 +612,9 @@ void EnemyNemesisUpdate(struct EwramData_EntityData *entity)
     Player_TrackEntity(entity);
     if (Enemy_IsStunned(entity))
     {
-        if (!Entity_IsTargetWithinRange(entity, 0x500000) && entity->state == 0)
+        if (!Entity_IsTargetWithinRange(entity, 0x500000) && entity->state == NEMESIS_STATE_APPEARANCE)
             return;
-        if (!(entity->ext.nemesis.flags & 0x20) && entity->state != 0)
+        if (!(entity->ext.nemesis.flags & 0x20) && entity->state != NEMESIS_STATE_APPEARANCE)
         {
             Hit_CheckWithPlayer(&result, entity);
             return;
@@ -605,25 +622,25 @@ void EnemyNemesisUpdate(struct EwramData_EntityData *entity)
     }
     switch (entity->state)
     {
-        case 0:
+        case NEMESIS_STATE_APPEARANCE:
             Nemesis_UpdateAppearance(entity);
             break;
-        case 1:
+        case NEMESIS_STATE_POSITIONING:
             Nemesis_UpdatePositioning(entity);
             break;
-        case 2:
+        case NEMESIS_STATE_ATTACK_SELECTION:
             Nemesis_UpdateAttackSelection(entity);
             break;
-        case 3:
+        case NEMESIS_STATE_TURNING_ATTACK:
             Nemesis_UpdateTurningAttack(entity);
             break;
-        case 4:
+        case NEMESIS_STATE_SCRIPTED_ATTACK:
             Nemesis_UpdateScriptedAttack(entity);
             break;
-        case 5:
+        case NEMESIS_STATE_SPIN_LUNGE:
             Nemesis_UpdateSpinLunge(entity);
             break;
-        case 6:
+        case NEMESIS_STATE_PARTNER_FLIGHT:
             Nemesis_UpdatePartnerFlight(entity);
             break;
     }
@@ -704,9 +721,9 @@ void Nemesis_UpdateAppearance(struct EwramData_EntityData *entity)
             if (entity->timer++ > 20)
             {
                 entity->timer = 0;
-                if (entity->state != 1)
+                if (entity->state != NEMESIS_STATE_POSITIONING)
                 {
-                    entity->state = 1;
+                    entity->state = NEMESIS_STATE_POSITIONING;
                     entity->stage = 0;
                     entity->subState = 0;
                 }

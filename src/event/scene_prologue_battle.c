@@ -30,6 +30,9 @@
 #include "player_soma.h"
 #include "red_soul_skills_shared.h"
 #include "entity_hit.h"
+#include "constants/game_flags.h"
+#include "constants/songs.h"
+#include "constants/hit_flags.h"
 
 #define SET_MOSAIC(t)                                                        \
     {                                                                        \
@@ -182,7 +185,7 @@ s32 EventScenePrologueBattle_ScrollCamera(struct EwramData_EntityData *entity)
 
 /**
  * @brief Init of event scene variant 3 (Object 0x20 spawnParam0 = 3,
- * sEventSceneCreateFuncs[3]). Create step of a scene object: unless flag 0x20 is
+ * sEventSceneCreateFuncs[3]). Create step of a scene object: unless FLAG_PROLOGUE_DONE is
  * set (GameFlag_GetMask), create its three helper entities
  * (Entity_CreateFromObjectTable kinds 0, 1 and 8) into
  * unk_4F8/unk_4FC/unk_500; if all exist start it (EventScenePrologueBattle_Start,
@@ -191,7 +194,7 @@ s32 EventScenePrologueBattle_ScrollCamera(struct EwramData_EntityData *entity)
  */
 void EventScenePrologueBattle_Init(struct EwramData_EntityData *entity)
 {
-    s32 done = GameFlag_GetMask(0x20);
+    s32 done = GameFlag_GetMask(FLAG_PROLOGUE_DONE);
     struct BgLayerState *bg;
 
     if (done != 0)
@@ -215,7 +218,7 @@ void EventScenePrologueBattle_Init(struct EwramData_EntityData *entity)
         return;
     }
     EventScenePrologueBattle_Start(entity);
-    gEwramData->gameState.stateFlags |= 1;
+    gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
     bg = &gEwramData->bgInfo[1];
     if ((s16)bg->xPos.part16.integer > 0x1F)
         EVENT_SCENE03_CAMERA_STEP(entity) = 5;
@@ -249,14 +252,14 @@ s32 EventScenePrologueBattle_Update(struct EwramData_EntityData *entity)
     case 0:
         if ((z = entity->stage) == 0)
         {
-            PlaySong(0x1000);
-            gEwramData->gameState.stateFlags |= 0x20;
+            PlaySong(AUDIO_STOP);
+            gEwramData->gameState.stateFlags |= STATE_HUD_HIDDEN;
             DMA_FILL_32(3, z, VRAM_BASE + 0x4000, 0x2000);
             entity->stage++;
         }
         if (!EventScenePrologueBattle_ScrollCamera(entity))
             break;
-        Music_SetCurrent(0x1C);
+        Music_SetCurrent(MUS_SACRED_CAVE_2);
         entity->state++;
         entity->stage = 0;
         entity->subState = 0;
@@ -294,7 +297,7 @@ s32 EventScenePrologueBattle_Update(struct EwramData_EntityData *entity)
             gEwramData->playerState.player->palette = 0;
             EventScenePrologueBattle_EndParts(entity);
             Interaction_End(entity, 0);
-            GameFlag_Set(0x20);
+            GameFlag_Set(FLAG_PROLOGUE_DONE);
             entity->ext.event03.progress |= 4;
             Music_StartOverride(0x26);
             entity->state = 0xA;
@@ -328,7 +331,7 @@ s32 EventScenePrologueBattle_Update(struct EwramData_EntityData *entity)
         player = ew->playerState.player;
         if (player->velY.whole < 0)
             player->velY.whole = z;
-        gEwramData->gameState.stateFlags |= 1;
+        gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
         TextWindow_Begin(convo);
         other = entity->ext.event03.actor1;
         other->flipX = other->posX.whole < gEwramData->playerState.player->posX.whole;
@@ -534,7 +537,7 @@ s32 EventScenePrologueBattle_RunSequence(struct EwramData_EntityData *entity)
         {
             entity->ext.event03.actor0->flipX = 0;
             entity->ext.event03.actor1->flipX = 1;
-            Music_SetCurrent(0x10);
+            Music_SetCurrent(MUS_CONFRONTATION);
             entity->stage++;
             break;
         }
@@ -680,7 +683,7 @@ s32 EventScenePrologueBattle_RunSequence(struct EwramData_EntityData *entity)
             if (entity->timer == 0x8F)
             {
                 Hud_EndEventTextLayer();
-                gEwramData->gameState.stateFlags &= ~0x200;
+                gEwramData->gameState.stateFlags &= ~STATE_HUD_MESSAGES_BLOCKED;
                 Hud_ShowSoulAcquiredMessage(0, 0, 1);
                 gUnk_03002CB0.dispCnt |= 0x100;
             }
@@ -689,7 +692,7 @@ s32 EventScenePrologueBattle_RunSequence(struct EwramData_EntityData *entity)
                 if (entity->timer == 0x8F)
                 {
                     PlaySong(0x197);
-                    Sound_Play(0x1040);
+                    Sound_Play(MUSIC_PLAYER_MUTE(0));
                     entity->stage++;
                 }
                 if (entity->timer & 1)
@@ -742,7 +745,7 @@ s32 EventScenePrologueBattle_RunSequence(struct EwramData_EntityData *entity)
         switch (entity->stage)
         {
         case 0:
-            Music_SetCurrent(0x17);
+            Music_SetCurrent(MUS_PREMONITION_2);
             save->textWindowPause = 1;
             entity->timer = 0x20;
             entity->stage++;
@@ -760,7 +763,7 @@ s32 EventScenePrologueBattle_RunSequence(struct EwramData_EntityData *entity)
     case 7:
         if (entity->stage == 0)
         {
-            Sound_Play(0x1041);
+            Sound_Play(MUSIC_PLAYER_MUTE(1));
             entity->stage++;
             break;
         }
@@ -1475,7 +1478,7 @@ void EventScenePrologueBattle_SpawnUnusedPartDebris(struct EwramData_EntityData 
     const s8 *info;
     for (i = 6; i >= 0; offset += 6, i--)
     {
-        part = EntityCreateInRange(0x49, 0xCF, EventScenePrologueBattleDebris_Update);
+        part = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, EventScenePrologueBattleDebris_Update);
         if (part != NULL)
         {
             info = sEventScenePrologueBattleUnusedDebris + offset;
@@ -1522,7 +1525,7 @@ void EventScenePrologueBattle_SpawnPartDebris(struct EwramData_EntityData *owner
     const s8 *info;
     for (i = 6; i >= 0; offset += 6, i--)
     {
-        part = EntityCreateInRange(0x49, 0xCF, EventScenePrologueBattleDebris_Update);
+        part = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, EventScenePrologueBattleDebris_Update);
         if (part != NULL)
         {
             info = sEventScenePrologueBattleDebris + offset;
@@ -1559,7 +1562,7 @@ void EventScenePrologueBattle_SpawnPartDebris(struct EwramData_EntityData *owner
  */
 struct EwramData_EntityData *EventScenePrologueBattle_SpawnSoulOrb(s32 x, s32 y, s32 variant, s32 index, s32 mode)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, EventScenePrologueBattleSoulOrb_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, EventScenePrologueBattleSoulOrb_Update);
     if (entity != NULL)
     {
         s32 graphics;
@@ -1571,7 +1574,7 @@ struct EwramData_EntityData *EventScenePrologueBattle_SpawnSoulOrb(s32 x, s32 y,
         entity->stage = 1;
         entity->drawFunc = Sprite_DrawEntity;
         Hit_Enable(entity, 0xB, EventScenePrologueBattleSoulOrb_OnPlayerContact, 0);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         HitBox_SetAttackRaw(entity, 0x0C0CFAFA);
         entity->posX.part16.integer = x;
         entity->posY.part16.integer = y;
@@ -1650,7 +1653,7 @@ void EventScenePrologueBattleSoulOrb_Update(struct EwramData_EntityData *entity)
  */
 struct EwramData_EntityData *EventScenePrologueBattle_SpawnTargetOrb(s32 x, s32 y, s32 variant, s32 index, struct EwramData_EntityData *target)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, EventScenePrologueBattleTargetOrb_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, EventScenePrologueBattleTargetOrb_Update);
     if (entity != NULL)
     {
         s32 graphics, targetX, offset;
@@ -1663,7 +1666,7 @@ struct EwramData_EntityData *EventScenePrologueBattle_SpawnTargetOrb(s32 x, s32 
         entity->stage = 1;
         entity->drawFunc = Sprite_DrawEntity;
         Hit_Enable(entity, 0xB, EventScenePrologueBattleTargetOrb_OnContact, 0);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         HitBox_SetAttackRaw(entity, 0x0C0CFAFA);
         entity->posX.part16.integer = x;
         entity->posY.part16.integer = y;
@@ -1705,7 +1708,7 @@ void EventScenePrologueBattleTargetOrb_Update(struct EwramData_EntityData *entit
     if (Entity_IsInRect(target, (s16)(entity->posX.part16.integer - 16), (s16)(entity->posY.part16.integer - 16), 32, 32))
     {
         entity->deleteRequested = 1;
-        PlaySong(0xBC);
+        PlaySong(SE_SOUL_ACQUIRED);
         return;
     }
     if ((entity->timer & 1) == 0)
@@ -1777,7 +1780,7 @@ void EventScenePrologueBattleSoulOrb_OnPlayerContact(struct EwramData_EntityData
 {
     entity->deleteRequested = 1;
     Effect_SpawnAttachedAnimation(gEwramData->playerState.player, 0xC, 6, 0, -0x100000);
-    PlaySong(0xBC);
+    PlaySong(SE_SOUL_ACQUIRED);
 }
 
 /**
@@ -1789,5 +1792,5 @@ void EventScenePrologueBattleTargetOrb_OnContact(struct EwramData_EntityData *en
     struct EwramData_EntityData *anchor = entity->ext.event03Orb.target;
     entity->deleteRequested = 1;
     Effect_SpawnAttachedAnimation(anchor, 0xC, 6, 0, -0x100000);
-    PlaySong(0xBC);
+    PlaySong(SE_SOUL_ACQUIRED);
 }

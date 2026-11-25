@@ -22,6 +22,7 @@
 #include "entity_motion.h"
 #include "entity_hit.h"
 #include "bg_and_collision.h"
+#include "constants/songs.h"
 
 
 s32 Alastor_CreateLinkedPart(struct EwramData_EntityData *);
@@ -41,6 +42,18 @@ s32 Alastor_IsTargetInUpperBox(struct EwramData_EntityData *,u16,u16);
 void AlastorAfterimage_Update(struct EwramData_EntityData *);
 s32 Alastor_IsTargetInLowerBox(struct EwramData_EntityData *,u16,u16);
 void AlastorPart_Update(struct EwramData_EntityData *);
+
+/* States of Alastor (entity->state), named after the update function the dispatcher calls. */
+enum {
+    ALASTOR_STATE_APPEAR = 0,
+    ALASTOR_STATE_APPROACH = 1,
+    ALASTOR_STATE_ATTACK_SELECTION = 2,
+    ALASTOR_STATE_RUSH_ATTACK = 3,
+    ALASTOR_STATE_PATTERN_ATTACK = 4,
+    ALASTOR_STATE_AIMED_CHARGE = 5,
+    ALASTOR_STATE_SPINNING_LEAP = 6,
+    ALASTOR_STATE_RECOIL = 7,
+};
 
 /* Alastor graphics, affine transform and callbacks. */
 void EnemyAlastorCreate(struct EwramData_EntityData *entity)
@@ -111,9 +124,9 @@ void EnemyAlastorUpdate(struct EwramData_EntityData *entity)
     Player_TrackEntity(entity);
     if (Enemy_IsStunned(entity))
     {
-        if (!Entity_IsTargetWithinRange(entity,0x500000) && entity->state==0)
+        if (!Entity_IsTargetWithinRange(entity,0x500000) && entity->state == ALASTOR_STATE_APPEAR)
             return;
-        if (!(entity->ext.alastor.flags & 0x20) && entity->state!=0)
+        if (!(entity->ext.alastor.flags & 0x20) && entity->state != ALASTOR_STATE_APPEAR)
         {
             Hit_CheckWithPlayer(&result,entity);
             return;
@@ -121,14 +134,14 @@ void EnemyAlastorUpdate(struct EwramData_EntityData *entity)
     }
     switch (entity->state)
     {
-        case 0: Alastor_UpdateAppear(entity); break;
-        case 1: Alastor_UpdateApproach(entity); break;
-        case 2: Alastor_UpdateAttackSelection(entity); break;
-        case 3: Alastor_UpdateRushAttack(entity); break;
-        case 4: Alastor_UpdatePatternAttack(entity); break;
-        case 5: Alastor_UpdateAimedCharge(entity); break;
-        case 6: Alastor_UpdateSpinningLeap(entity); break;
-        case 7: Alastor_UpdateRecoil(entity); break;
+        case ALASTOR_STATE_APPEAR: Alastor_UpdateAppear(entity); break;
+        case ALASTOR_STATE_APPROACH: Alastor_UpdateApproach(entity); break;
+        case ALASTOR_STATE_ATTACK_SELECTION: Alastor_UpdateAttackSelection(entity); break;
+        case ALASTOR_STATE_RUSH_ATTACK: Alastor_UpdateRushAttack(entity); break;
+        case ALASTOR_STATE_PATTERN_ATTACK: Alastor_UpdatePatternAttack(entity); break;
+        case ALASTOR_STATE_AIMED_CHARGE: Alastor_UpdateAimedCharge(entity); break;
+        case ALASTOR_STATE_SPINNING_LEAP: Alastor_UpdateSpinningLeap(entity); break;
+        case ALASTOR_STATE_RECOIL: Alastor_UpdateRecoil(entity); break;
     }
     if (entity->ext.alastor.angle!=previous || entity->flipX!=facing)
         Alastor_UpdateHitBoxes(entity);
@@ -201,7 +214,7 @@ void Alastor_UpdateAppear(struct EwramData_EntityData *entity)
             if(entity->timer++>20)
             {
                 entity->timer=0;
-                entity->state=1;
+                entity->state = ALASTOR_STATE_APPROACH;
                 entity->stage=0;
                 entity->subState=0;
             }
@@ -282,7 +295,7 @@ void Alastor_UpdateApproach(struct EwramData_EntityData *entity)
                 do { both=reachedY&reachedX; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
             if (both==1)
             {
-                entity->state=2;
+                entity->state = ALASTOR_STATE_ATTACK_SELECTION;
                 entity->stage=0;
                 entity->subState=0;
             }
@@ -336,7 +349,7 @@ void Alastor_UpdateAttackSelection(struct EwramData_EntityData *entity)
             }
             if(ATTACK(entity)==2)
             {
-                entity->state=5;
+                entity->state = ALASTOR_STATE_AIMED_CHARGE;
                 entity->stage=0;
                 entity->subState=0;
                 INDEX(entity)++;
@@ -394,10 +407,10 @@ void Alastor_UpdateAttackSelection(struct EwramData_EntityData *entity)
             }
             switch(ATTACK(entity))
             {
-                case 0: entity->state=3; entity->stage=state; entity->subState=state; break;
-                case 1: entity->state=4; entity->stage=state; entity->subState=state; break;
-                case 2: entity->state=5; entity->stage=state; entity->subState=state; break;
-                case 3: entity->state=6; entity->stage=state; entity->subState=state; break;
+                case 0: entity->state = ALASTOR_STATE_RUSH_ATTACK; entity->stage=state; entity->subState=state; break;
+                case 1: entity->state = ALASTOR_STATE_PATTERN_ATTACK; entity->stage=state; entity->subState=state; break;
+                case 2: entity->state = ALASTOR_STATE_AIMED_CHARGE; entity->stage=state; entity->subState=state; break;
+                case 3: entity->state = ALASTOR_STATE_SPINNING_LEAP; entity->stage=state; entity->subState=state; break;
             }
             INDEX(entity)++;
             break;
@@ -553,7 +566,7 @@ void Alastor_UpdateRushAttack(struct EwramData_EntityData *entity)
             else if(--entity->timer==0xFF)
             {
                 entity->timer=0;
-                entity->state=1;
+                entity->state = ALASTOR_STATE_APPROACH;
                 entity->stage=0;
                 entity->subState=0;
             }
@@ -620,7 +633,7 @@ void Alastor_UpdatePatternAttack(struct EwramData_EntityData *entity)
             if(entity->timer++>40)
             {
                 entity->timer=0;
-                entity->state=1;
+                entity->state = ALASTOR_STATE_APPROACH;
                 entity->stage=0;
                 entity->subState=0;
                 INDEX(entity)=0;
@@ -656,7 +669,7 @@ void Alastor_UpdateAimedCharge(struct EwramData_EntityData *entity)
             entity->subState++;
         case 1:
             if(((u32)entity->timer % 16)==0)
-                PlaySong(0x85);
+                PlaySong(SE_SWING);
             if(entity->timer++>64)
             {
                 STEP(entity)=0;
@@ -677,7 +690,7 @@ void Alastor_UpdateAimedCharge(struct EwramData_EntityData *entity)
             break;
         case 3:
         case 4:
-            entity->state=1;
+            entity->state = ALASTOR_STATE_APPROACH;
             entity->stage=0;
             entity->subState=0;
             break;
@@ -702,7 +715,7 @@ struct EwramData_EntityData *Alastor_CreateAfterimage(struct EwramData_EntityDat
     u8 *graphicsIndex=&entity->spriteSlot;
     struct SpriteSheet *source=gEwramData->spriteSlots[*graphicsIndex].sheet;
     struct SpriteSheet *sprite=source;
-    struct EwramData_EntityData *copy=EntityCreateInRange(0x49,0xCF,AlastorAfterimage_Update);
+    struct EwramData_EntityData *copy=EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST,AlastorAfterimage_Update);
     s32 affine;
     if(!copy)
         return NULL;
@@ -818,7 +831,7 @@ void Alastor_UpdateSpinningLeap(struct EwramData_EntityData *entity)
             else if(--entity->timer==0xFF)
             {
                 entity->timer=0;
-                entity->state=1;
+                entity->state = ALASTOR_STATE_APPROACH;
                 entity->stage=0;
                 entity->subState=0;
                 entity->ext.alastorPattern.step=0;
@@ -872,7 +885,7 @@ void Alastor_UpdateRecoil(struct EwramData_EntityData *entity)
                 if((s16)entity->hp<=0)
                     entity->state=0xFF;
                 else
-                    entity->state=1;
+                    entity->state = ALASTOR_STATE_APPROACH;
                 entity->stage=state;
                 entity->subState=state;
             }
@@ -895,7 +908,7 @@ void Alastor_UpdateDeath(struct EwramData_EntityData *entity)
     switch(state)
     {
         case 0:
-            PlaySong(0x6E);
+            PlaySong(SE_ENEMY_DEATH);
             entity->palette=entity->basePalette;
             entity->subState++;
             entity->stage=state;
@@ -979,7 +992,7 @@ void Alastor_OnHit(struct EwramData_EntityData *entity,s32 kind,u16 *hit)
         }
         PART(entity)->state=3;
         PART(entity)->subState=PART(entity)->stage=0;
-        entity->state=7;
+        entity->state = ALASTOR_STATE_RECOIL;
         entity->stage=0;
         entity->subState=0;
         entity->ext.alastor.hitsBeforeReact=3;
@@ -999,7 +1012,7 @@ s32 Alastor_CreateLinkedPart(struct EwramData_EntityData *entity)
     void *sprite=sAlastorSpriteSheet;
     u8 *graphics=sAlastorGfx;
     EntityFunc update=AlastorPart_Update;
-    struct EwramData_EntityData *part=EntityCreateInRange(0x49,0xCF,update);
+    struct EwramData_EntityData *part=EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST,update);
     if (part)
     {
         s32 graphic=ObjGfx_Find(graphics);

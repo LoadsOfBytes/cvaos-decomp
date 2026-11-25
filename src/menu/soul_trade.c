@@ -272,7 +272,7 @@ static inline void GameModeSoulTradeMenu_inline_1(struct EwramData_EntityData *m
 void SoulTrade_ResetOffers(struct EwramData_EntityData *entity)
 {
     struct SoulTradePacket* soulTradePackets;
-    PlaySong(SE_240);
+    PlaySong(SE_MENU_BACK);
     gEwramData->gameModeUpdateStage = 0xA;
     gEwramData->gameModeSubStage = 0;
 
@@ -455,7 +455,7 @@ s32 SoulTrade_HandleKindMenuInput(struct EwramData_EntityData *entity)
 
     if (gEwramData->inputData.repeatedInput & KEY_DOWN)
     {
-        PlaySong(SE_241);
+        PlaySong(SE_MENU_CURSOR);
         entity->ext.soulTrade.listKind += 1;
         if (entity->ext.soulTrade.listKind > 2)
         {
@@ -464,7 +464,7 @@ s32 SoulTrade_HandleKindMenuInput(struct EwramData_EntityData *entity)
     }
     else if (gEwramData->inputData.repeatedInput & KEY_UP)
     {
-        PlaySong(SE_241);
+        PlaySong(SE_MENU_CURSOR);
         entity->ext.soulTrade.listKind -= 1;
         if (entity->ext.soulTrade.listKind < 0)
         {
@@ -483,13 +483,13 @@ s32 SoulTrade_HandleKindMenuInput(struct EwramData_EntityData *entity)
             
             SoulTrade_ClearMessageWindow(entity);
             SoulTrade_OpenSoulList(entity);
-            PlaySong(SE_243);
+            PlaySong(SE_MENU_SELECT);
             return 1;
         }
     }
     else if (gEwramData->inputData.repeatedInput & KEY_B)
     {
-        PlaySong(SE_240);
+        PlaySong(SE_MENU_BACK);
         return -1;
     }
 
@@ -678,7 +678,7 @@ s32 SoulTrade_HandleSoulListInput(struct EwramData_EntityData *entity)
 
     if (prevSoul != entity->ext.soulTrade.selected.value)
     {
-        PlaySong(SE_241);
+        PlaySong(SE_MENU_CURSOR);
         GameModeSoulTradeMenu_inline_1(entity, baseEntry + entity->ext.soulTrade.selected.value);
     }
     if (scrolled != 0)
@@ -704,7 +704,7 @@ s32 SoulTrade_HandleSoulListInput(struct EwramData_EntityData *entity)
     else if (gEwramData->inputData.repeatedInput & KEY_B)
     {
         SoulTrade_DrawKindMenu(entity);
-        PlaySong(SE_240);
+        PlaySong(SE_MENU_BACK);
         return -1;
     }
     else if ((entity->ext.soulTrade.ownKind != 0) && (gEwramData->inputData.repeatedInput & KEY_SELECT))
@@ -764,7 +764,7 @@ s32 SoulTrade_UpdateSelection(struct EwramData_EntityData *entity)
         case 3:
             SoulTrade_SetOffer(entity->ext.soulTrade.ownKind, entity->ext.soulTrade.ownSoul);
             SoulTrade_SetAcknowledge(entity->ext.soulTrade.partnerKind, entity->ext.soulTrade.partnerSoul);
-            PlaySong(SE_243);
+            PlaySong(SE_MENU_SELECT);
             SoulTrade_UpdateOfferNames(entity);
             return 1;
     }

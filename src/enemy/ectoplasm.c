@@ -27,6 +27,12 @@ void Ectoplasm_Draw(struct EwramData_EntityData *entity);
 void Ectoplasm_SpawnParticle(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY, s32 frame);
 void EctoplasmParticle_Update(struct EwramData_EntityData *entity);
 
+/* States of Ectoplasm (entity->state), named after the update function the dispatcher calls. */
+enum {
+    ECTOPLASM_STATE_FLOAT = 0,
+    ECTOPLASM_STATE_PREVIEW = 2,
+};
+
 void EnemyEctoplasmUpdate(struct EwramData_EntityData *entity)
 {
     struct HitResult result;
@@ -45,9 +51,9 @@ void EnemyEctoplasmUpdate(struct EwramData_EntityData *entity)
     }
     switch (entity->state)
     {
-    case 0: Ectoplasm_UpdateFloat(entity); break;
+    case ECTOPLASM_STATE_FLOAT: Ectoplasm_UpdateFloat(entity); break;
     case 1: EntityAccelerateAndMove(entity, 0x40000); Enemy_UpdateFragmentDeath(entity); break;
-    case 2: Ectoplasm_UpdatePreview(entity); Anim_Update(entity); return;
+    case ECTOPLASM_STATE_PREVIEW: Ectoplasm_UpdatePreview(entity); Anim_Update(entity); return;
     }
     Entity_AnimateWithBoxes(entity);
     Enemy_CheckHitPlayer(entity);
@@ -69,7 +75,7 @@ void EnemyEctoplasmCreate(struct EwramData_EntityData *entity)
     {
         entity->ext.ectoplasm.pointX = entity->posX.whole + background->xPos.whole;
         entity->ext.ectoplasm.pointY = entity->posY.whole + background->yPos.whole;
-        entity->state = 2;
+        entity->state = ECTOPLASM_STATE_PREVIEW;
         return;
     }
     entity->spriteLayer = 3;
@@ -77,7 +83,7 @@ void EnemyEctoplasmCreate(struct EwramData_EntityData *entity)
         Hit_EnableContact(entity, 8, Ectoplasm_DamagePlayerOnContact, Ectoplasm_OnHit);
     else Hit_Enable(entity, 8, Ectoplasm_DamagePlayerOnContact, Ectoplasm_OnHit);
     Entity_UpdateBoxes(entity);
-    entity->state = 0;
+    entity->state = ECTOPLASM_STATE_FLOAT;
     entity->ext.ectoplasm.pointX = entity->posX.whole + background->xPos.whole;
     entity->ext.ectoplasm.pointY = entity->posY.whole + background->yPos.whole;
     entity->scrollWithBg = 1;

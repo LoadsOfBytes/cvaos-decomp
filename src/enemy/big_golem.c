@@ -26,6 +26,8 @@
 #include "music.h"
 #include "entity_hit.h"
 #include "hit_shared_history.h"
+#include "constants/songs.h"
+#include "constants/hit_flags.h"
 
 extern void *memcpy(void *dst, const void *src, unsigned long size);
 extern void *memset(void *dst, int value, unsigned long size);
@@ -57,6 +59,12 @@ void BigGolemRock_OnKilled(struct EwramData_EntityData *, s32, u16 *);
  * while timer is in 0x79..0xD6, then frees the parts; otherwise
  * Entity_ClampXToRoom and a 1-in-4 chance to clear unk_4FE. */
 
+/* States of BigGolem (entity->state), named after the update function the dispatcher calls. */
+enum {
+    BIG_GOLEM_STATE_WALK = 0,
+    BIG_GOLEM_STATE_ATTACK = 1,
+};
+
 void EnemyBigGolemUpdate(struct EwramData_EntityData *entity)
 {
     u8 unused[48];
@@ -72,10 +80,10 @@ void EnemyBigGolemUpdate(struct EwramData_EntityData *entity)
     {
         switch (entity->state)
         {
-        case 0:
+        case BIG_GOLEM_STATE_WALK:
             BigGolem_UpdateWalk(entity);
             break;
-        case 1:
+        case BIG_GOLEM_STATE_ATTACK:
             BigGolem_UpdateAttack(entity);
             break;
         case 2:
@@ -136,7 +144,7 @@ void EnemyBigGolemCreate(struct EwramData_EntityData *entity)
     altPalette[1] = 1;
     altPalette[2] = 1;
 
-    if (entity->spawnParam0 != 0 && !(*ewram)->gameState.bossRushMode && ((*ewram)->gameState.bossEventFlags & 0x1000))
+    if (entity->spawnParam0 != 0 && !(*ewram)->gameState.bossRushMode && ((*ewram)->gameState.bossEventFlags & BOSS_DEFEATED_BIG_GOLEM))
     {
         EntityDelete(entity);
         return;
@@ -292,9 +300,9 @@ void EnemyBigGolemCreate(struct EwramData_EntityData *entity)
     entity->ext.joint.hurtMask = 0x312C;
     if (entity->spawnParam0 != 0)
     {
-        Music_SetCurrent(0x10);
+        Music_SetCurrent(MUS_CONFRONTATION);
         Player_SetSelectedTarget(entity);
-        gEwramData->gameState.stateFlags |= 2;
+        gEwramData->gameState.stateFlags |= STATE_BOSS_FIGHT;
     }
 }
 
@@ -377,7 +385,7 @@ void EnemyBigGolemCreate(struct EwramData_EntityData *entity)
 
 #define STOMP_FX()\
     ScreenShake_RequestOffset(0, 1, 4);\
-    PlaySong(0x7C);
+    PlaySong(SE_HEAVY_STEP);
 
 #define SHAKE(ORDER)\
     BigGolem_UpdateParts(entity, ORDER);\
@@ -1530,7 +1538,7 @@ void BigGolem_OnDamaged(struct EwramData_EntityData *entity, s32 attacker, u16 *
     {
         Enemy_DropRewards(entity);
         Anim_StartIndexed(entity, 3, 0, 1);
-        PlaySong(0x6E);
+        PlaySong(SE_ENEMY_DEATH);
         entity->palette = entity->basePalette;
         entity->timer = 60;
         entity->state = 2;
@@ -1668,8 +1676,8 @@ void BigGolemPart_Update(struct EwramData_EntityData *entity)
                     HitBox_SetAttack(entity, &box);
                     HitBox_SetBody(entity, &box);
                     HitBox_SetBody(parent, &box);
-                    entity->hit.flags &= 0xFB;
-                    entity->hit.flags &= 0xFD;
+                    entity->hit.flags &= (u8)~HIT_NO_DAMAGE;
+                    entity->hit.flags &= (u8)~HIT_NO_ATTACK;
                     Hit_CheckWithPlayerSharedHistory(&result, entity, parent);
                 }
                 else if (JOINT(entity) == 3)
@@ -1681,8 +1689,8 @@ void BigGolemPart_Update(struct EwramData_EntityData *entity)
                     HitBox_SetAttack(entity, &box);
                     HitBox_SetBody(entity, &box);
                     HitBox_SetBody(parent, &box);
-                    entity->hit.flags &= 0xFB;
-                    entity->hit.flags &= 0xFD;
+                    entity->hit.flags &= (u8)~HIT_NO_DAMAGE;
+                    entity->hit.flags &= (u8)~HIT_NO_ATTACK;
                     Hit_CheckWithPlayerSharedHistory(&result, entity, parent);
                 }
                 else if (JOINT(entity) == 5)
@@ -1694,8 +1702,8 @@ void BigGolemPart_Update(struct EwramData_EntityData *entity)
                     HitBox_SetAttack(entity, &box);
                     HitBox_SetBody(entity, &box);
                     HitBox_SetBody(parent, &box);
-                    entity->hit.flags &= 0xFB;
-                    entity->hit.flags &= 0xFD;
+                    entity->hit.flags &= (u8)~HIT_NO_DAMAGE;
+                    entity->hit.flags &= (u8)~HIT_NO_ATTACK;
                     Hit_CheckWithPlayerSharedHistory(&result, entity, parent);
                 }
                 else if (JOINT(entity) == 12)
@@ -1718,14 +1726,14 @@ void BigGolemPart_Update(struct EwramData_EntityData *entity)
                     HitBox_SetAttack(entity, &box);
                     HitBox_SetBody(entity, &box);
                     HitBox_SetBody(parent, &box);
-                    entity->hit.flags &= 0xFD;
+                    entity->hit.flags &= (u8)~HIT_NO_ATTACK;
                     Hit_CheckWithPlayerSharedHistory(&result, entity, parent);
                 }
             }
             else
             {
-                entity->hit.flags |= 4;
-                entity->hit.flags |= 2;
+                entity->hit.flags |= HIT_NO_DAMAGE;
+                entity->hit.flags |= HIT_NO_ATTACK;
             }
             if (HAS_SPRITE(entity))
                 ObjAffine_Set(entity->velX.whole, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
@@ -1768,7 +1776,7 @@ void BigGolemPart_Update(struct EwramData_EntityData *entity)
         if (--entity->timer <= 1)
         {
             if (HAS_SPRITE(entity)) ObjAffine_Free(entity->affineIndex);
-            if (JOINT(entity) == 5) PlaySong(0x6E);
+            if (JOINT(entity) == 5) PlaySong(SE_ENEMY_DEATH);
             EntityDelete(entity);
         }
         else if (!entity->hidden)
@@ -1788,7 +1796,7 @@ void BigGolemPart_Update(struct EwramData_EntityData *entity)
 void BigGolem_SpawnRock(struct EwramData_EntityData *parent, s32 x, s32 y, s32 vx, s32 vy)
 {
     u32 collision = 0x0808FCFC;
-    struct EwramData_EntityData *shot = EntityCreateInRange(0x1B, 0x48, BigGolemRock_Update);
+    struct EwramData_EntityData *shot = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, BigGolemRock_Update);
     if (shot != NULL)
     {
         s32 tiles = ObjGfx_Find(sCommonObjectGfx);
@@ -1803,8 +1811,8 @@ void BigGolem_SpawnRock(struct EwramData_EntityData *parent, s32 x, s32 y, s32 v
         Hit_Enable(shot, 10, BigGolemRock_DamagePlayerOnContact, BigGolemRock_OnKilled);
         HitBox_SetAttack(shot, &collision);
         HitBox_SetBody(shot, &collision);
-        shot->hit.flags &= ~4;
-        shot->hit.flags &= ~2;
+        shot->hit.flags &= ~HIT_NO_DAMAGE;
+        shot->hit.flags &= ~HIT_NO_ATTACK;
         shot->scrollWithBg = 1;
         shot->spriteLayer = parent->spriteLayer + 1;
         ENTITY_OWNER(shot) = parent;
@@ -1958,7 +1966,7 @@ void BigGolemPart_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *
         Hit_ResolveDamage(parent, (struct EwramData_EntityData *)attacker, hit, 0);
         parent->posX.whole = x;
         parent->posY.whole = y;
-        PlaySong(0x69);
+        PlaySong(SE_METAL_HIT);
     }
     else
     {

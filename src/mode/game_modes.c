@@ -49,6 +49,7 @@
 #include "data/data_4F1444.h"
 #include "menu_common.h"
 #include "bg_and_collision.h"
+#include "constants/game_flags.h"
 
 struct DebugMenuOptions {
     const u8 *text;
@@ -416,7 +417,7 @@ s32 GameModeDebugExitUpdate(void)
 
             if (sDebugExitOptions[gEwramData->gameModeSubStage].roomDefinition != (u32*)sDebugEventRoom12)
             {
-                GameFlag_Set((1 << 5) | 0);
+                GameFlag_Set(FLAG_PROLOGUE_DONE);
             }
             break;
     }
@@ -987,7 +988,7 @@ s32 GameModeTitleScreenUpdate(void)
             break;
     
         case 1:
-            PlaySong(MUS_27);
+            PlaySong(MUS_BLACK_SUN);
             EntityDeleteAll();
             ObjTiles_Init();
             Obj_Init();
@@ -1518,13 +1519,13 @@ void TitleScreen_CreateEffects(struct EwramData_EntityData *entity)
     ObjGfx_LoadResource((u8 *)&sTitleMenuGfx, 0);
     entity->updateFunc = TitleScreenEffects_Update;
     entity->group = 1;
-    child = EntityCreateInRange(0x49, 0xCF, TitleScreenSpiralSprite_Update);
+    child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, TitleScreenSpiralSprite_Update);
     if (child != 0)
     {
         TitleScreenSpiralSprite_Init(child);
     }
 
-    for (i = 0; i < 0x22 && (child = EntityCreateInRange(0x49, 0xCF, TitleScreenParticle_Update)) != 0; i++)
+    for (i = 0; i < 0x22 && (child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, TitleScreenParticle_Update)) != 0; i++)
     {
         child->posX.whole = (i * 0x3C3C3) + 0x380000 + (RandomSigned(0x10) << 0x10);
         child->posY.part16.integer = (RandomSigned(0x20) + 0x60);
@@ -1582,7 +1583,7 @@ void TitleScreen_SpawnFlash(s32 skipBlend, s32 scale, u16 spin)
     u8* tmp2;
     u8 loaded;
 
-    child = EntityCreateInRange(0x49, 0xCF, TitleScreenFlash_Update);
+    child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, TitleScreenFlash_Update);
     if (child == 0)
         return;
 
@@ -2196,12 +2197,12 @@ s32 MainMenu_HandleChoiceInput(struct EwramData_EntityData *entity)
 
     if (repeatedInput & (KEY_START | KEY_A))
     {
-        PlaySong(SE_243);
+        PlaySong(SE_MENU_SELECT);
         result = 1;
     }
     else if (repeatedInput & KEY_B)
     {
-        PlaySong(SE_240);
+        PlaySong(SE_MENU_BACK);
         result = -1;
     }
 
@@ -2226,7 +2227,7 @@ s32 MainMenu_HandleChoiceInput(struct EwramData_EntityData *entity)
             {
                 entity->subState = 2;
             }
-            PlaySong(SE_241);
+            PlaySong(SE_MENU_CURSOR);
             Text12_ClearRegion();
             Text12_Print(Text_GetLocalizedEntry(entity->subState + 0x354), 0);
         }
@@ -2247,7 +2248,7 @@ void MainMenu_Close(struct EwramData_EntityData *entity)
     DMA_FILL_32(3, 0, VRAM_BASE + 0xF000, 0x800);
     DMA_FILL_32(3, 0, VRAM_BASE + 0xF800, 0x800);
     MainMenu_FreeEntity(entity);
-    PlaySong(STOP_SONG | MUS_14);
+    PlaySong(STOP_SONG | MUS_NAME_ENTRY);
     gEwramData->gameState.subMode = gEwramData->gameState.subModeStep = 0;
 }
 
@@ -2351,7 +2352,7 @@ s32 GameModeMainMenuUpdate(void)
             gUnk_03002CB0.dispCnt = DCNT_OBJ | DCNT_BG3 | DCNT_BG2 | DCNT_BG1 | DCNT_BG0;
             gDisplayRegisters.bldCnt = BLDCNT_SCREEN_SECOND_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT | BLDCNT_SCREEN_FIRST_TARGET;
             gDisplayRegisters.bldY = BLDY_MAX_VALUE;
-            PlaySong(MUS_14);
+            PlaySong(MUS_NAME_ENTRY);
             gEwramData->gameState.bossRushMode = 0;
             gEwramData->gameModeUpdateStage += 1;
             gEwramData->gameModeSubStage = 0;
@@ -2573,13 +2574,13 @@ s32 GameModeMainMenuUpdate(void)
     
             if (submenuResult == -1)
             {
-                PlaySong(SE_240);
+                PlaySong(SE_MENU_BACK);
                 gEwramData->gameModeUpdateStage = 0x46;
                 gEwramData->gameModeSubStage = 0;
             }
             else if (submenuResult == 1)
             {
-                PlaySong(SE_244);
+                PlaySong(SE_MENU_CONFIRM);
                 gUnk_03002CB0.dispCnt &= ~DCNT_BG2;
                 gDisplayRegisters.bldCnt |= (BLDCNT_OBJ_FIRST_TARGET_PIXEL | BLDCNT_BG1_FIRST_TARGET_PIXEL | BLDCNT_BG0_FIRST_TARGET_PIXEL);
                 gEwramData->gameModeUpdateStage += 1;
@@ -2587,7 +2588,7 @@ s32 GameModeMainMenuUpdate(void)
             }
             else if (submenuResult == -2)
             {
-                PlaySong(SE_244);
+                PlaySong(SE_MENU_CONFIRM);
                 gUnk_03002CB0.dispCnt &= ~DCNT_BG2;
                 gDisplayRegisters.bldCnt = BLDCNT_SCREEN_SECOND_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT | BLDCNT_SCREEN_FIRST_TARGET;
                 gEwramData->gameModeUpdateStage = 0x14;
@@ -2595,7 +2596,7 @@ s32 GameModeMainMenuUpdate(void)
             }
             else if (submenuResult == -3)
             {
-                PlaySong(SE_244);
+                PlaySong(SE_MENU_CONFIRM);
                 gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT;
                 gDisplayRegisters.winIn_H = (WIN1_ALL >> 8) & ~WIN0_BG1;
                 gDisplayRegisters.winIn_L = WIN0_ALL & ~WIN0_BG1;
@@ -2650,7 +2651,7 @@ s32 GameModeMainMenuUpdate(void)
             nameResult = MainMenu_UpdateNameEntry(menu);
             if (nameResult < 0)
             {
-                PlaySong(SE_240);
+                PlaySong(SE_MENU_BACK);
                 gEwramData->gameModeUpdateStage += 1;
                 gEwramData->gameModeSubStage = 0;
             }

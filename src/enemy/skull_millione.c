@@ -21,6 +21,7 @@
 #include "data/data_118B48.h"
 #include "hitbox.h"
 #include "entity_hit.h"
+#include "constants/songs.h"
 
 extern s32 Target_GetVelocityX(void);
 
@@ -36,6 +37,14 @@ void SkullMillioneFamily_UpdateApproach(struct EwramData_EntityData *);
 
 /* Rotating attached part: follow the parent during animation 3, then fall
  * and release its affine slot when the parent dies. */
+
+/* States of SkullMillioneFamily (entity->state), named after the update function the dispatcher calls. */
+enum {
+    SKULL_MILLIONE_FAMILY_STATE_WAIT = 0,
+    SKULL_MILLIONE_FAMILY_STATE_APPROACH = 1,
+    SKULL_MILLIONE_FAMILY_STATE_ATTACK = 2,
+    SKULL_MILLIONE_FAMILY_STATE_ANIM_ONLY = 4,
+};
 
 /**
  * @brief Follow the owner and rotate while its animation 3 is active.
@@ -182,7 +191,7 @@ void SkullMillioneFamily_UpdateWait(struct EwramData_EntityData *entity)
             if (Target_IsNearEntity(entity, 0xDC, 0xA0))
             {
                 Entity_FaceTarget(entity);
-                entity->state = 1;
+                entity->state = SKULL_MILLIONE_FAMILY_STATE_APPROACH;
                 entity->stage = 0;
                 entity->subState = 0;
                 if ((info->behaviorFlags & 1) && !(info->behaviorFlags & 2))
@@ -222,7 +231,7 @@ void SkullMillioneFamily_UpdateApproach(struct EwramData_EntityData *entity)
         EntityMove(entity);
         if (arrived)
         {
-            entity->state = 2;
+            entity->state = SKULL_MILLIONE_FAMILY_STATE_ATTACK;
             entity->stage = 0;
             entity->subState = 0;
         }
@@ -272,7 +281,7 @@ void SkullMillioneFamily_UpdateAttack(struct EwramData_EntityData *entity)
             entity->subState = 3;
             entity->velY.whole = info->diveSpeed;
             entity->accelY.whole = -0x2000;
-            PlaySong(0x87);
+            PlaySong(SE_DASH);
             if ((u8)entity->ext.skullMillione.variant == 1) PlaySong(0x1BA);
         }
         break;
@@ -290,7 +299,7 @@ void SkullMillioneFamily_UpdateAttack(struct EwramData_EntityData *entity)
         if (entity->velY.whole < 0)
         {
             entity->velY.whole = 0;
-            entity->state = 0;
+            entity->state = SKULL_MILLIONE_FAMILY_STATE_WAIT;
             entity->stage = 0;
             entity->subState = 0;
             Anim_StartIndexed(entity, 0, 0, 1);
@@ -378,7 +387,7 @@ s32 SkullMillioneFamily_Init(struct EwramData_EntityData *entity, u8 variant)
     entity->ext.skullMillione.variant = variant;
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 4;
+        entity->state = SKULL_MILLIONE_FAMILY_STATE_ANIM_ONLY;
         return 0;
     }
     else
@@ -386,7 +395,7 @@ s32 SkullMillioneFamily_Init(struct EwramData_EntityData *entity, u8 variant)
         Hit_EnableContact(entity, 8, SkullMillioneFamily_DamagePlayerOnContact, SkullMillioneFamily_OnHit);
         Entity_UpdateBoxes(entity);
         entity->scrollWithBg = 1;
-        entity->state = 0;
+        entity->state = SKULL_MILLIONE_FAMILY_STATE_WAIT;
         if ((info->behaviorFlags & 1) && !SkullMillioneFamily_CreatePart(entity)) return 1;
     }
     return 0;
@@ -409,13 +418,13 @@ void SkullMillioneFamily_Update(struct EwramData_EntityData *entity)
     }
     switch (entity->state)
     {
-    case 0: SkullMillioneFamily_UpdateWait(entity); break;
-    case 1: SkullMillioneFamily_UpdateApproach(entity); break;
-    case 2: SkullMillioneFamily_UpdateAttack(entity); break;
+    case SKULL_MILLIONE_FAMILY_STATE_WAIT: SkullMillioneFamily_UpdateWait(entity); break;
+    case SKULL_MILLIONE_FAMILY_STATE_APPROACH: SkullMillioneFamily_UpdateApproach(entity); break;
+    case SKULL_MILLIONE_FAMILY_STATE_ATTACK: SkullMillioneFamily_UpdateAttack(entity); break;
     case 3:
         if (SkullMillioneFamily_UpdateDeath(entity)) { EntityDelete(entity); return; }
         break;
-    case 4:
+    case SKULL_MILLIONE_FAMILY_STATE_ANIM_ONLY:
         Anim_Update(entity);
         return;
     }

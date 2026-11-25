@@ -19,6 +19,13 @@ void Bat_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hitData);
 s32 Bat_IsTargetBelow(struct EwramData_EntityData *, u16, u16);
 void Bat_UpdateState4Animation(struct EwramData_EntityData *);
 
+/* States of Bat (entity->state), named after the update function the dispatcher calls. */
+enum {
+    BAT_STATE_WAITING = 1,
+    BAT_STATE_FLIGHT = 2,
+    BAT_STATE_DEATH = 3,
+};
+
 void EnemyBatCreate(struct EwramData_EntityData *entity)
 {
     u8 *palette = sBatPalette;
@@ -70,7 +77,7 @@ void Bat_UpdateWaiting(struct EwramData_EntityData *entity)
     {
     case 0:
         if (entity->animScriptIndex != 0) Anim_StartIndexed(entity, 0, 0, 1);
-        entity->state = 1;
+        entity->state = BAT_STATE_WAITING;
         entity->stage = 0;
         entity->subState = 0;
         /* fall through */
@@ -79,7 +86,7 @@ void Bat_UpdateWaiting(struct EwramData_EntityData *entity)
         {
             if (Bat_IsTargetBelow(entity, 0xC0, 0x70))
             {
-                entity->state = 2;
+                entity->state = BAT_STATE_FLIGHT;
                 entity->stage = 0;
                 entity->subState = 0;
             }
@@ -223,14 +230,14 @@ void Bat_UpdateDeath(struct EwramData_EntityData *entity)
 void EnemyBatUpdate(struct EwramData_EntityData *entity)
 {
     if (entity->state == 4) Bat_UpdateState4Animation(entity);
-    else if (entity->state == 3) Bat_UpdateDeath(entity);
+    else if (entity->state == BAT_STATE_DEATH) Bat_UpdateDeath(entity);
     else if (!Enemy_PreUpdate(entity))
     {
         switch (entity->state)
         {
-        case 1: Bat_UpdateWaiting(entity); break;
-        case 2: Bat_UpdateFlight(entity); break;
-        case 3: Bat_UpdateDeath(entity); break;
+        case BAT_STATE_WAITING: Bat_UpdateWaiting(entity); break;
+        case BAT_STATE_FLIGHT: Bat_UpdateFlight(entity); break;
+        case BAT_STATE_DEATH: Bat_UpdateDeath(entity); break;
         }
         Entity_AnimateWithBoxes(entity);
         Enemy_CheckHitPlayer(entity);
@@ -264,7 +271,7 @@ void Bat_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hitData)
 {
     if (Enemy_TakeDamage(entity, attacker, hitData))
     {
-        entity->state = 3;
+        entity->state = BAT_STATE_DEATH;
         entity->stage = 0;
         entity->subState = 0;
     }

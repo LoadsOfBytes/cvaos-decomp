@@ -15,6 +15,7 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "hitbox.h"
+#include "constants/songs.h"
 
 void Mandragora_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 s32 Mandragora_CreateLinkedPart(struct EwramData_EntityData *);
@@ -26,6 +27,12 @@ void Mandragora_SpawnDeathParts(struct EwramData_EntityData *);
 void Mandragora_RequestLinkedDeletion(struct EwramData_EntityData *);
 void MandragoraDeathPart_Update(struct EwramData_EntityData *entity);
 void Mandragora_UpdateBestiaryPreview(struct EwramData_EntityData *entity);
+
+/* States of Mandragora (entity->state), named after the update function the dispatcher calls. */
+enum {
+    MANDRAGORA_STATE_WAIT = 1,
+    MANDRAGORA_STATE_SCREAM = 2,
+};
 
 /* Mandragora graphics, room setup and linked part. */
 void EnemyMandragoraCreate(struct EwramData_EntityData *entity)
@@ -51,7 +58,7 @@ void EnemyMandragoraCreate(struct EwramData_EntityData *entity)
     }
     entity->spriteLayer=17;
     Enemy_ResetFromTemplate(entity);
-    entity->state=1;
+    entity->state = MANDRAGORA_STATE_WAIT;
     entity->stage=display;
     entity->subState=display;
     Entity_EnableBoxes(entity,Enemy_OnContact, Mandragora_OnHit);
@@ -159,7 +166,7 @@ void MandragoraPart_Update(struct EwramData_EntityData *entity)
             }
             break;
         case 0xF0:
-            PlaySong(0x70);
+            PlaySong(SE_ENEMY_DEATH_SOFT);
             Enemy_DropRewards(owner);
             entity->state=0xF1;
             entity->stage=0;
@@ -519,7 +526,7 @@ void Mandragora_SpawnDeathParts(struct EwramData_EntityData *entity)
 
     for (i = 0; i < 5; i++)
     {
-        child = EntityCreateInRange(0x49, 0xCF, MandragoraDeathPart_Update);
+        child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, MandragoraDeathPart_Update);
         if (child == NULL)
             continue;
         needle = sMandragoraDeathParts[i];
@@ -589,10 +596,10 @@ void EnemyMandragoraUpdate(struct EwramData_EntityData *entity)
     {
         switch (entity->state)
         {
-            case 1:
+            case MANDRAGORA_STATE_WAIT:
                 Mandragora_UpdateWait(entity);
                 break;
-            case 2:
+            case MANDRAGORA_STATE_SCREAM:
                 Mandragora_UpdateScream(entity);
                 break;
         }

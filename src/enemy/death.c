@@ -31,6 +31,8 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "hit_shared_history.h"
+#include "constants/songs.h"
+#include "constants/hit_flags.h"
 
 void DeathWeapon_DamagePlayerOnContact(struct EwramData_EntityData *);
 
@@ -45,6 +47,18 @@ void DeathFloatingWeapon_OnHit(struct EwramData_EntityData *, s32, u16 *);
 void DeathBlade_OnHit(struct EwramData_EntityData *);
 void DeathPillar_DamagePlayerOnContact(struct EwramData_EntityData *);
 void Death_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+
+/* States of Death (entity->state), named after the update function the dispatcher calls. */
+enum {
+    DEATH_STATE_INTRO = 0,
+    DEATH_STATE_FIRST_PHASE = 1,
+    DEATH_STATE_WEAPON_TRANSITION = 2,
+    DEATH_STATE_HOVER = 3,
+    DEATH_STATE_DASH_ATTACK = 4,
+    DEATH_STATE_THROW_ATTACK = 5,
+    DEATH_STATE_WALL_ATTACK = 6,
+    DEATH_STATE_ANIM_ONLY = 8,
+};
 
 /**
  * @brief Affine weapon controller: follow owner poses, perform throw/return
@@ -95,7 +109,7 @@ void DeathWeapon_Update(struct EwramData_EntityData *entity)
         Anim_StartIndexed(entity, 0x11, 2, 0);
         Anim_Update(entity);
         Hit_Enable(entity, 8, DeathWeapon_DamagePlayerOnContact, 0);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         entity->attack = 0x3C;
         SPIN(entity) = 0x4000;
         if (entity->ext.deathWeapon.mirror)
@@ -540,7 +554,7 @@ void DeathFloatingWeaponHitBox_Update(struct EwramData_EntityData *entity)
     {
     case 0:
         Hit_Enable(entity, 8, NULL, DeathFloatingWeaponHitBox_OnHit);
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_ATTACK;
         entity->state++;
         break;
     case 1:
@@ -633,7 +647,7 @@ void DeathFloatingWeapon_Update(struct EwramData_EntityData *entity)
             entity->state = 1;
             entity->ext.deathWeapon.angle = 0x1000;
             SPAWN(DeathFloatingWeaponWindow_Update);
-            entity->hit.flags |= 4;
+            entity->hit.flags |= HIT_NO_DAMAGE;
         }
         else
         {
@@ -678,7 +692,7 @@ void DeathFloatingWeapon_Update(struct EwramData_EntityData *entity)
             entity->ext.deathFloatingWeapon.timer--;
             break;
         }
-        entity->hit.flags &= ~4;
+        entity->hit.flags &= ~HIT_NO_DAMAGE;
         entity->state = 4;
         break;
     }
@@ -803,7 +817,7 @@ void DeathFloatingWeapon_Update(struct EwramData_EntityData *entity)
         Hit_CheckWithPlayer(&res, entity);
         return;
     }
-    PlaySong(0x6E);
+    PlaySong(SE_ENEMY_DEATH);
     parent->ext.death.flags |= 1;
     entity->state = 7;
     entity->timer = 0;
@@ -842,7 +856,7 @@ void DeathBlade_Update(struct EwramData_EntityData *entity)
         Hit_Enable(entity, 10, Enemy_OnContactMask1, DeathBlade_OnHit);
         HitBox_SetBodyRaw(entity, 0x1010F8F8);
         HitBox_SetAttackRaw(entity, 0x1010F8F8);
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_ATTACK;
         entity->affineIndex = slot;
         entity->affine = 1;
         entity->spriteLayer = 0x11;
@@ -866,7 +880,7 @@ void DeathBlade_Update(struct EwramData_EntityData *entity)
         if (entity->animFlags & 4)
         {
             entity->state = 2;
-            entity->hit.flags &= ~2;
+            entity->hit.flags &= ~HIT_NO_ATTACK;
         }
         Hit_CheckWithPlayer(&res, entity);
         if ((s16)entity->hp != 0)
@@ -945,7 +959,7 @@ void DeathPillar_Update(struct EwramData_EntityData *entity)
         entity->ext.deathPillar.scaleX = 0x1000;
         Hit_Enable(entity, 8, DeathPillar_DamagePlayerOnContact, 0);
         HitBox_SetAttackRaw(entity, 0x800880FC);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         PlaySong(0x11F);
         entity->state = 1;
     case 1:
@@ -1207,11 +1221,11 @@ void Death_UpdateIntro(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
     case 0:
-        if (gEwramData->gameState.stateFlags & 1)
+        if (gEwramData->gameState.stateFlags & STATE_EVENT_RUNNING)
             break;
         entity->subState = 1;
     case 1:
-        gEwramData->gameState.stateFlags |= 1;
+        gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
         Game_SetMenusEnabled(0);
         if ((s16)(ew = gEwramData)->playerState.player->posX.part16.integer + (s16)((struct BgLayerState *)((u8 *)ew + 0xA094))->xPos.part16.integer > 0xC0)
             break;
@@ -1230,8 +1244,8 @@ void Death_UpdateIntro(struct EwramData_EntityData *entity)
         Afterimage_Create(entity, 0, 0x10, 0x31);
         Afterimage_Create(entity, 0, 8, 0x30);
         PlaySong(0x121);
-        Music_SetCurrent(0x10);
-        gEwramData->gameState.stateFlags &= ~1;
+        Music_SetCurrent(MUS_CONFRONTATION);
+        gEwramData->gameState.stateFlags &= ~STATE_EVENT_RUNNING;
         Game_SetMenusEnabled(1);
         break;
     case 3:
@@ -1242,7 +1256,7 @@ void Death_UpdateIntro(struct EwramData_EntityData *entity)
             entity->ext.deathFloatingWeapon.timer--;
             break;
         }
-        entity->state = 1;
+        entity->state = DEATH_STATE_FIRST_PHASE;
         entity->stage = 0;
         entity->subState = 0;
         break;
@@ -1496,10 +1510,10 @@ void Death_UpdateWeaponTransition(struct EwramData_EntityData *entity)
             if (entity->animFlags & 4)
             {
                 Anim_StartIndexed(entity, 7, 2, 1);
-                entity->state = 3;
+                entity->state = DEATH_STATE_HOVER;
                 entity->stage = 0;
                 entity->subState = 0;
-                entity->hit.flags &= ~4;
+                entity->hit.flags &= ~HIT_NO_DAMAGE;
             }
             break;
     }
@@ -1587,21 +1601,21 @@ void Death_UpdateHover(struct EwramData_EntityData *entity)
                 entity->ext.death.unusedChoice = r;
                 if (r <= 0x14)
                 {
-                    entity->state = 4;
+                    entity->state = DEATH_STATE_DASH_ATTACK;
                     entity->stage = ty;
                     entity->subState = ty;
                     break;
                 }
                 else if (r <= 0x29 && (s16)entity->posY.part16.integer > 0x60)
                 {
-                    entity->state = 6;
+                    entity->state = DEATH_STATE_WALL_ATTACK;
                     entity->stage = ty;
                     entity->subState = ty;
                     break;
                 }
                 else
                 {
-                    entity->state = 5;
+                    entity->state = DEATH_STATE_THROW_ATTACK;
                     entity->stage = 0;
                     entity->subState = 0;
                     break;
@@ -1704,7 +1718,7 @@ void Death_UpdateDashAttack(struct EwramData_EntityData *entity)
         entity->ext.death.dashStep = 3;
         Afterimage_Create(entity, 0, 0x10, 0x31);
         Afterimage_Create(entity, 0, 8, 0x30);
-        PlaySong(0x87);
+        PlaySong(SE_DASH);
         break;
     }
     case 2:
@@ -1732,7 +1746,7 @@ void Death_UpdateDashAttack(struct EwramData_EntityData *entity)
             break;
         case 6:
             if (entity->animTimer == 0)
-                PlaySong(0x85);
+                PlaySong(SE_SWING);
             entity->ext.death.dashStep = 5;
             break;
         }
@@ -1741,7 +1755,7 @@ void Death_UpdateDashAttack(struct EwramData_EntityData *entity)
             entity->flipX = 0;
             entity->ext.death.dashStep = 0;
             Anim_StartIndexed(entity, 7, 2, 1);
-            entity->state = 3;
+            entity->state = DEATH_STATE_HOVER;
             entity->stage = 0;
             entity->subState = 0;
         }
@@ -1835,7 +1849,7 @@ void Death_UpdateThrowAttack(struct EwramData_EntityData *entity)
         if (entity->animFlags & 4)
         {
             Anim_StartIndexed(entity, 7, 2, 1);
-            entity->state = 3;
+            entity->state = DEATH_STATE_HOVER;
             entity->stage = 0;
             entity->subState = 0;
         }
@@ -1866,7 +1880,7 @@ void Death_UpdateWallAttack(struct EwramData_EntityData *entity)
         if (!(entity->ext.death.flags & 0x10))
         {
             Anim_StartIndexed(entity, 7, 2, 1);
-            entity->state = 3;
+            entity->state = DEATH_STATE_HOVER;
             entity->stage = 0;
             entity->subState = 0;
         }
@@ -1911,7 +1925,7 @@ s32 Death_UpdateDeath(struct EwramData_EntityData *entity)
             entity->timer--;
             break;
         }
-        if (!(gEwramData->gameState.stateFlags & 0x10))
+        if (!(gEwramData->gameState.stateFlags & STATE_PLAYER_DEAD))
         {
             BgPalette_StartColorFade(0x1F, 0x1F, 0x1F, 0, 0x10000, 0x10);
             ObjPalette_StartColorFade(0x1F, 0x1F, 0x1F, 0x4000, 0x10000, 0x10);
@@ -1946,7 +1960,7 @@ s32 Death_UpdateDeath(struct EwramData_EntityData *entity)
             break;
         }
         entity->subState = 3;
-        if (!(gEwramData->gameState.stateFlags & 0x10))
+        if (!(gEwramData->gameState.stateFlags & STATE_PLAYER_DEAD))
         {
             BgPalette_StopColorFade();
             ObjPalette_StopColorFade();
@@ -1975,7 +1989,7 @@ void EnemyDeathCreate(struct EwramData_EntityData *entity)
     u8 frozen;
 
     if (entity->spawnParam0 != 0 && !gEwramData->gameState.bossRushMode
-        && (gEwramData->gameState.bossEventFlags & 2))
+        && (gEwramData->gameState.bossEventFlags & BOSS_DEFEATED_DEATH))
     {
         EntityDelete(entity);
         return;
@@ -1999,21 +2013,21 @@ void EnemyDeathCreate(struct EwramData_EntityData *entity)
     frozen = *((u8 *)gEwramData + 0x8E) & 0x40;
     if (frozen)
     {
-        entity->state = 8;
+        entity->state = DEATH_STATE_ANIM_ONLY;
         return;
     }
     Hit_EnableContact(entity, 8, Enemy_OnContact, Death_OnHit);
     HitBox_SetBodyRaw(entity, 0x3230CEE8);
     HitBox_SetAttackRaw(entity, 0x3230CEE8);
-    entity->hit.flags |= 4;
-    entity->hit.flags |= 2;
+    entity->hit.flags |= HIT_NO_DAMAGE;
+    entity->hit.flags |= HIT_NO_ATTACK;
     if (entity->spawnParam0 != 0)
     {
-        entity->state = 0;
+        entity->state = DEATH_STATE_INTRO;
         bg = &gEwramData->bgInfo[1];
         entity->posX.part16.integer = 0x80 - bg->xPos.part16.integer;
         entity->posY.part16.integer = 0x20 - bg->yPos.part16.integer;
-        PlaySong(0x1010);
+        PlaySong(SONG_MUTE);
         child = Entity_CreateObject(DeathIntroEffect_Update);
         if (child != NULL)
         {
@@ -2023,8 +2037,8 @@ void EnemyDeathCreate(struct EwramData_EntityData *entity)
     }
     else
     {
-        entity->state = 1;
-        Music_SetCurrent(0x10);
+        entity->state = DEATH_STATE_FIRST_PHASE;
+        Music_SetCurrent(MUS_CONFRONTATION);
     }
     entity->objMode = 1;
     entity->hp = 0x98C;
@@ -2035,7 +2049,7 @@ void EnemyDeathCreate(struct EwramData_EntityData *entity)
         child->scrollWithBg = 1;
     }
     Player_SetSelectedTarget(entity);
-    gEwramData->gameState.stateFlags |= 2;
+    gEwramData->gameState.stateFlags |= STATE_BOSS_FIGHT;
 }
 
 /* Death_OnHit (Death). */
@@ -2136,13 +2150,13 @@ void EnemyDeathUpdate(struct EwramData_EntityData *entity)
     struct HitResult result;
     switch (entity->state)
     {
-    case 0: Death_UpdateIntro(entity); break;
-    case 1: Death_UpdateFirstPhase(entity); break;
-    case 2: Death_UpdateWeaponTransition(entity); break;
-    case 3: Death_UpdateHover(entity); break;
-    case 4: Death_UpdateDashAttack(entity); break;
-    case 5: Death_UpdateThrowAttack(entity); break;
-    case 6: Death_UpdateWallAttack(entity); break;
+    case DEATH_STATE_INTRO: Death_UpdateIntro(entity); break;
+    case DEATH_STATE_FIRST_PHASE: Death_UpdateFirstPhase(entity); break;
+    case DEATH_STATE_WEAPON_TRANSITION: Death_UpdateWeaponTransition(entity); break;
+    case DEATH_STATE_HOVER: Death_UpdateHover(entity); break;
+    case DEATH_STATE_DASH_ATTACK: Death_UpdateDashAttack(entity); break;
+    case DEATH_STATE_THROW_ATTACK: Death_UpdateThrowAttack(entity); break;
+    case DEATH_STATE_WALL_ATTACK: Death_UpdateWallAttack(entity); break;
     case 7:
         if (Death_UpdateDeath(entity))
         {
@@ -2150,7 +2164,7 @@ void EnemyDeathUpdate(struct EwramData_EntityData *entity)
             return;
         }
         break;
-    case 8: Anim_Update(entity); return;
+    case DEATH_STATE_ANIM_ONLY: Anim_Update(entity); return;
     }
     if (!(entity->enemyFlags & 2))
     {

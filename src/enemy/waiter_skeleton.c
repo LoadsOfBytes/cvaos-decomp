@@ -21,11 +21,20 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 
 void WaiterSkeletonThrownTray_DamagePlayerOnContact(struct EwramData_EntityData *);
 void WaiterSkeletonThrownTray_OnHit(struct EwramData_EntityData *);
 void WaiterSkeleton_OnHit(struct EwramData_EntityData *, s32, u16 *);
+
+/* States of WaiterSkeleton (entity->state), named after the update function the dispatcher calls. */
+enum {
+    WAITER_SKELETON_STATE_THROW = 1,
+    WAITER_SKELETON_STATE_WALK = 2,
+    WAITER_SKELETON_STATE_ANIM_ONLY = 4,
+};
 
 /* Attached animated effect: follows a sprite part while its owner's flag 2 is set. */
 void WaiterSkeletonTray_Update(struct EwramData_EntityData *entity)
@@ -88,8 +97,8 @@ void WaiterSkeletonThrownTray_Update(struct EwramData_EntityData *entity)
         Hit_Enable(entity, 10, WaiterSkeletonThrownTray_DamagePlayerOnContact, WaiterSkeletonThrownTray_OnHit);
         BoxA(entity, 0x0808FCFC);
         BoxB(entity, 0x0808FCFC);
-        entity->hit.flags &= 0xFB;
-        entity->hit.flags |= 2;
+        entity->hit.flags &= (u8)~HIT_NO_DAMAGE;
+        entity->hit.flags |= HIT_NO_ATTACK;
     }
     if (gEwramData->gameState.timeStopTimer && entity->state != 5) {
         Hit_CheckWithPlayer(&result, entity);
@@ -148,11 +157,11 @@ void WaiterSkeletonThrownTray_Update(struct EwramData_EntityData *entity)
             if (parent->ext.waiterSkeleton.flags & 4) {
                 s32 vx;
                 entity->state = 4;
-                PlaySong(0x89);
+                PlaySong(SE_THROW);
                 Hit_Enable(entity, 10, WaiterSkeletonThrownTray_DamagePlayerOnContact, WaiterSkeletonThrownTray_OnHit);
                 BoxA(entity, 0x0808FCFC);
                 BoxB(entity, 0x0808FCFC);
-                entity->hit.flags &= 0xFB;
+                entity->hit.flags &= (u8)~HIT_NO_DAMAGE;
                 if (Target_GetX(entity) - entity->posX.whole < 0)
                     vx = -0x14000 - ((entity->posX.whole - Target_GetX(entity)) >> 6);
                 else
@@ -204,7 +213,7 @@ void WaiterSkeletonThrownTray_Update(struct EwramData_EntityData *entity)
             entity->velX.whole = -entity->velX.whole;
         entity->velY.whole = -0x28000;
         entity->accelY.whole = 0x2000;
-        PlaySong(0x89);
+        PlaySong(SE_THROW);
         entity->state = 4;
     case 4:
         entity->ext.waiterTray.angle += entity->velX.whole / 64;
@@ -260,7 +269,7 @@ void WaiterSkeleton_UpdateThrow(struct EwramData_EntityData *entity)
         if (entity->animFlags & 4)
         {
             Anim_StartIndexed(entity, 3, 0, 1);
-            entity->state = 2;
+            entity->state = WAITER_SKELETON_STATE_WALK;
             entity->stage = 0;
             entity->subState = 0;
         }
@@ -285,7 +294,7 @@ void WaiterSkeleton_UpdateThrow(struct EwramData_EntityData *entity)
         if (entity->animFlags & 4)
         {
             Anim_StartIndexed(entity, 3, 0, 1);
-            entity->state = 2;
+            entity->state = WAITER_SKELETON_STATE_WALK;
             entity->stage = 0;
             entity->subState = 0;
         }
@@ -382,7 +391,7 @@ s32 WaiterSkeleton_SpawnDeathPieces(struct EwramData_EntityData *entity)
                 frame = 11;
             for (; frame <= 16; frame++)
             {
-                struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, Effect_UpdateSpriteDebris);
+                struct EwramData_EntityData *part = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateSpriteDebris);
                 if (part != NULL)
                 {
                     s32 tiles;
@@ -435,7 +444,7 @@ void EnemyWaiterSkeletonCreate(struct EwramData_EntityData *entity)
     Anim_Update(entity);
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 4;
+        entity->state = WAITER_SKELETON_STATE_ANIM_ONLY;
         return;
     }
     Enemy_ResetFromTemplate(entity);
@@ -459,17 +468,17 @@ void EnemyWaiterSkeletonUpdate(struct EwramData_EntityData *entity)
             && Target_IsInRect((s16)(entity->posX.part16.integer - 0xA0),
                             (s16)(entity->posY.part16.integer - 0x28), 0x140, 0x50))
         {
-            entity->state = 1;
+            entity->state = WAITER_SKELETON_STATE_THROW;
             entity->stage = 0;
             entity->subState = 0;
         }
         break;
-    case 1: WaiterSkeleton_UpdateThrow(entity); break;
-    case 2: WaiterSkeleton_UpdateWalk(entity); break;
+    case WAITER_SKELETON_STATE_THROW: WaiterSkeleton_UpdateThrow(entity); break;
+    case WAITER_SKELETON_STATE_WALK: WaiterSkeleton_UpdateWalk(entity); break;
     case 3:
         if (WaiterSkeleton_SpawnDeathPieces(entity)) EntityDelete(entity);
         return;
-    case 4:
+    case WAITER_SKELETON_STATE_ANIM_ONLY:
         Anim_Update(entity);
         return;
     }
@@ -524,8 +533,8 @@ void SkullArcherArrow_DamagePlayerOnContact(struct EwramData_EntityData *entity,
     effect.sourceX = entity->posX.whole;
     effect.sourceY = entity->posY.whole;
     Player_ApplyContactDamage(&effect);
-    entity->hit.flags |= 2;
-    entity->hit.flags |= 4;
+    entity->hit.flags |= HIT_NO_ATTACK;
+    entity->hit.flags |= HIT_NO_DAMAGE;
     entity->ext.skullArcherArrow.owner = parent;
     entity->accelX.whole = entity->posX.whole - parent->posX.whole;
     entity->accelY.whole = entity->posY.whole - parent->posY.whole;
@@ -607,7 +616,7 @@ void SkullArcher_UpdateShoot(struct EwramData_EntityData *entity)
                 if (arrow != NULL)
                 {
                     s32 graphics;
-                    PlaySong(0x85);
+                    PlaySong(SE_SWING);
                     graphics = ObjGfx_Find(sSkullArcherGfx);
                     Sprite_Attach(arrow, sSkullArcherSpriteSheet, graphics, entity->basePalette);
                     arrow->animFrame = 0x19;
@@ -622,7 +631,7 @@ void SkullArcher_UpdateShoot(struct EwramData_EntityData *entity)
                     Hit_Enable(arrow, 10, SkullArcherArrow_DamagePlayerOnContact, SkullArcherArrow_OnHit);
                     HitBox_SetAttackRaw(arrow, 0x0202E8EE);
                     HitBox_SetBodyRaw(arrow, 0x0202E8EE);
-                    arrow->hit.flags &= ~4;
+                    arrow->hit.flags &= ~HIT_NO_DAMAGE;
                 }
                 pattern += 4;
                 entity->ext.skullArcher.pattern = (s32)pattern;

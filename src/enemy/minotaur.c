@@ -29,11 +29,21 @@
 #include "music.h"
 #include "entity_hit.h"
 #include "bg_and_collision.h"
+#include "constants/songs.h"
+#include "constants/hit_flags.h"
 
 void MinotaurAxe_DamagePlayerOnContact(struct EwramData_EntityData *);
 void Minotaur_DamagePlayerOnContact(struct EwramData_EntityData *);
 
 /* Probabilistic gate followed by a direction-dependent room obstacle probe. */
+
+/* States of Minotaur (entity->state), named after the update function the dispatcher calls. */
+enum {
+    MINOTAUR_STATE_APPROACH = 1,
+    MINOTAUR_STATE_ATTACK = 2,
+    MINOTAUR_STATE_DEATH = 3,
+    MINOTAUR_STATE_ANIM_ONLY = 4,
+};
 
 s32 Minotaur_CheckAttackChance(struct EwramData_EntityData *entity, s32 mask)
 {
@@ -118,13 +128,13 @@ void Minotaur_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
         Enemy_DropRewards(entity);
         entity->palette = entity->basePalette;
         entity->timer = 0x28;
-        entity->state = 3;
+        entity->state = MINOTAUR_STATE_DEATH;
         Anim_StartIndexed(entity, 7, 0, 0);
         entity->ext.minotaur.flags &= ~1;
         if (entity->spawnParam0 != 0)
         {
             Player_SetSelectedTarget(NULL);
-            gEwramData->gameState.bossEventFlags |= 0x100;
+            gEwramData->gameState.bossEventFlags |= BOSS_DEFEATED_MINOTAUR;
         }
     }
 }
@@ -226,7 +236,7 @@ void MinotaurAxeHitBox_Update(struct EwramData_EntityData *entity)
     case 0:
         Hit_Enable(entity, 8, MinotaurAxe_DamagePlayerOnContact, 0);
         HitBox_SetAttackRaw(entity, 0x1414F6F6);
-        entity->hit.flags = (entity->hit.flags & ~2) | 4;
+        entity->hit.flags = (entity->hit.flags & ~HIT_NO_ATTACK) | HIT_NO_DAMAGE;
         entity->state++;
         /* fall through */
     case 1:
@@ -284,7 +294,7 @@ void MinotaurAxe_Update(struct EwramData_EntityData *entity)
             && (parent->ext.minotaur.flags & 1))
         {
             entity->state = 1;
-            PlaySong(0x69);
+            PlaySong(SE_METAL_HIT);
         }
     }
     switch (entity->state)
@@ -429,7 +439,7 @@ void MinotaurAxe_Update(struct EwramData_EntityData *entity)
             i++;
         }
     test:
-        if (i <= 3 && (piece = EntityCreateInRange(0x49, 0xCF, MinotaurAxePiece_Update)) != NULL)
+        if (i <= 3 && (piece = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, MinotaurAxePiece_Update)) != NULL)
             goto loop;
         if (ENTITY_INDEX(parent) == ENTITY_PARENT_INDEX(entity))
             parent->ext.minotaur.flags &= ~2;
@@ -482,13 +492,13 @@ void Minotaur_UpdateIdle(struct EwramData_EntityData *entity)
         s32 result = Minotaur_CheckAttackChance(entity, 1);
         if (result == 0)
         {
-            entity->state = 2;
+            entity->state = MINOTAUR_STATE_ATTACK;
             entity->stage = result;
             entity->subState = result;
         }
         else if (entity->ext.minotaur.flags & 2)
         {
-            entity->state = 1;
+            entity->state = MINOTAUR_STATE_APPROACH;
             entity->stage = 0;
             entity->subState = 0;
         }
@@ -498,7 +508,7 @@ void Minotaur_UpdateIdle(struct EwramData_EntityData *entity)
         s32 result = Minotaur_CheckAttackChance(entity, 63);
         if (result == 0)
         {
-            entity->state = 2;
+            entity->state = MINOTAUR_STATE_ATTACK;
             entity->stage = result;
             entity->subState = result;
         }
@@ -689,7 +699,7 @@ void Minotaur_Init(struct EwramData_EntityData *entity, s32 variant)
     Anim_Update(entity);
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 4;
+        entity->state = MINOTAUR_STATE_ANIM_ONLY;
         return;
     }
     Entity_EnableBoxes(entity, Minotaur_DamagePlayerOnContact, Minotaur_OnHit);
@@ -710,9 +720,9 @@ void Minotaur_Update(struct EwramData_EntityData *entity)
     Entity_HideAboveY(entity, -16);
     if (!EntityIsOutsideScreen(entity, 6))
         Player_TrackEntity(entity);
-    if (entity->state != 3)
+    if (entity->state != MINOTAUR_STATE_DEATH)
         Enemy_UpdateHitFlash(entity);
-    if (Entity_IsTimeStopped(entity) && entity->state != 3)
+    if (Entity_IsTimeStopped(entity) && entity->state != MINOTAUR_STATE_DEATH)
     {
         Hit_CheckWithPlayer(&result, entity);
         return;
@@ -721,23 +731,23 @@ void Minotaur_Update(struct EwramData_EntityData *entity)
     {
     case 0:
         if (entity->spawnParam0 != 0 && !gEwramData->gameState.linkPlay)
-            Music_SetCurrent(16);
+            Music_SetCurrent(MUS_CONFRONTATION);
         Minotaur_UpdateIdle(entity);
         break;
-    case 1:
+    case MINOTAUR_STATE_APPROACH:
         Minotaur_UpdateApproach(entity);
         break;
-    case 2:
+    case MINOTAUR_STATE_ATTACK:
         Minotaur_UpdateAttack(entity);
         break;
-    case 3:
+    case MINOTAUR_STATE_DEATH:
         Werejaguar_UpdateDeath(entity);
         break;
-    case 4:
+    case MINOTAUR_STATE_ANIM_ONLY:
         Anim_Update(entity);
         return;
     }
-    if (entity->state != 3)
+    if (entity->state != MINOTAUR_STATE_DEATH)
         Hit_CheckWithPlayer(&result, entity);
     entity->ext.minotaur.animStep = entity->animStep;
     Entity_AnimateWithBoxes(entity);

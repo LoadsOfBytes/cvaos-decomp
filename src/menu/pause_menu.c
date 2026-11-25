@@ -33,6 +33,7 @@
 #include "data/data_4F1444.h"
 #include "data/data_0E5364.h"
 #include "shop_update.h"
+#include "constants/songs.h"
 
 void PauseMenu_DrawPageList(void);
 void PauseMenu_Exit(void);
@@ -183,7 +184,7 @@ void HudMap_FillTiles(s32 x, s32 y, u16 tile, s32 count)
  */
 void PauseMenu_Enter(struct GameState *gameState)
 {
-    if (gEwramData->gameState.stateFlags & 1)
+    if (gEwramData->gameState.stateFlags & STATE_EVENT_RUNNING)
         return;
     AreaName_Dismiss(gameState);
     Display_SaveState();
@@ -279,7 +280,7 @@ void PauseMenu_LoadGraphics(void)
         c = (void *)sLocalizedWindowGfxLanguage3;
         break;
     }
-    if (GameFlag_Is3ASet())
+    if (GameFlag_IsSomaAwakened())
     {
         BgPalette_Load((u8 *)sPauseMenuBgPalette);
         Gfx_CopyResource(b, (void *)VRAM_BASE, 0);
@@ -360,12 +361,12 @@ s32 PauseMenu_Update(struct GameState *gameState)
     case 3:
         if (repeated & 2)
         {
-            PlaySong(0xF0);
+            PlaySong(SE_MENU_BACK);
             gameState->subModeStep = 7;
         }
         else if (new & 1)
         {
-            PlaySong(0xF3);
+            PlaySong(SE_MENU_SELECT);
             if (gEwramData->pauseMenuPage == 4)
             {
                 gameState->subModeStep = 6;
@@ -378,7 +379,7 @@ s32 PauseMenu_Update(struct GameState *gameState)
         }
         else if (repeated & 0xC0)
         {
-            PlaySong(0xF1);
+            PlaySong(SE_MENU_CURSOR);
             if (repeated & 0x40)
             {
                 gEwramData->pauseMenuPage--;

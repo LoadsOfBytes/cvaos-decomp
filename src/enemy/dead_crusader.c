@@ -18,12 +18,21 @@
 #include "damage_numbers.h"
 #include "entity_motion.h"
 #include "entity_hit.h"
+#include "constants/songs.h"
 
 void DeadCrusader_UpdateWalk(struct EwramData_EntityData *entity);
 void DeadCrusader_UpdateAttack(struct EwramData_EntityData *entity);
 u8 DeadCrusader_LoadGraphics(struct EwramData_EntityData *entity);
 void DeadCrusader_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void DeadCrusader_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
+
+/* States of DeadCrusader (entity->state), named after the update function the dispatcher calls. */
+enum {
+    DEAD_CRUSADER_STATE_WALK = 0,
+    DEAD_CRUSADER_STATE_ATTACK = 1,
+    DEAD_CRUSADER_STATE_FRAGMENT_DEATH = 2,
+    DEAD_CRUSADER_STATE_ANIM_ONLY = 3,
+};
 
 /**
  * @brief 8F1F4 | Dead Crusader update: clears ext.deadCrusader.guarding, wakes when on screen
@@ -37,7 +46,7 @@ void EnemyDeadCrusaderUpdate(struct EwramData_EntityData *entity)
     struct HitResult result;
 
     entity->ext.deadCrusader.guarding = 0;
-    if (entity->state != 2)
+    if (entity->state != DEAD_CRUSADER_STATE_FRAGMENT_DEATH)
     {
         if (EntityIsOutsideScreen(entity, 4))
             return;
@@ -48,25 +57,25 @@ void EnemyDeadCrusaderUpdate(struct EwramData_EntityData *entity)
         entity->hidden = 1;
     else
         entity->hidden = 0;
-    if (entity->state != 2)
+    if (entity->state != DEAD_CRUSADER_STATE_FRAGMENT_DEATH)
         Enemy_UpdateHitFlash(entity);
-    if (Entity_IsTimeStopped(entity) && entity->state != 2)
+    if (Entity_IsTimeStopped(entity) && entity->state != DEAD_CRUSADER_STATE_FRAGMENT_DEATH)
     {
         Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
     {
-    case 0:
+    case DEAD_CRUSADER_STATE_WALK:
         DeadCrusader_UpdateWalk(entity);
         break;
-    case 1:
+    case DEAD_CRUSADER_STATE_ATTACK:
         DeadCrusader_UpdateAttack(entity);
         break;
-    case 2:
+    case DEAD_CRUSADER_STATE_FRAGMENT_DEATH:
         Enemy_UpdateFragmentDeath(entity);
         break;
-    case 3:
+    case DEAD_CRUSADER_STATE_ANIM_ONLY:
         Anim_Update(entity);
         return;
     }
@@ -93,7 +102,7 @@ void EnemyDeadCrusaderCreate(struct EwramData_EntityData *entity)
     Enemy_ResetFromTemplate(entity);
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 3;
+        entity->state = DEAD_CRUSADER_STATE_ANIM_ONLY;
         return;
     }
     if (Anim_GetMaxBoxCount(entity) > 1)
@@ -102,7 +111,7 @@ void EnemyDeadCrusaderCreate(struct EwramData_EntityData *entity)
         Hit_Enable(entity, 8, DeadCrusader_DamagePlayerOnContact, DeadCrusader_OnHit);
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
-    entity->state = 0;
+    entity->state = DEAD_CRUSADER_STATE_WALK;
 }
 
 /**
@@ -164,7 +173,7 @@ void DeadCrusader_UpdateWalk(struct EwramData_EntityData *entity)
         {
             if ((RandomNumberGenerator() & 0x7F) <= 0x40)
             {
-                entity->state = 1;
+                entity->state = DEAD_CRUSADER_STATE_ATTACK;
                 entity->subState = res;
                 entity->timer = res;
                 break;
@@ -237,7 +246,7 @@ void DeadCrusader_UpdateWalk(struct EwramData_EntityData *entity)
         if (Target_IsInRect((s16)(entity->posX.part16.integer - 0x28), (s16)(entity->posY.part16.integer - 0x28), 0x50, 0x50) && entity->timer > 0x3B
             && (RandomNumberGenerator() & 0x7F) <= 0x40)
         {
-            entity->state = 1;
+            entity->state = DEAD_CRUSADER_STATE_ATTACK;
             entity->subState = m;
             entity->timer = m;
         }
@@ -291,7 +300,7 @@ void DeadCrusader_UpdateAttack(struct EwramData_EntityData *entity)
         break;
     case 2:
         if (entity->timer == 0xB)
-            PlaySong(0x85);
+            PlaySong(SE_SWING);
         if (entity->timer++ > 0x1D)
         {
             Anim_StartIndexed(entity, 4, 0, 0);
@@ -303,7 +312,7 @@ void DeadCrusader_UpdateAttack(struct EwramData_EntityData *entity)
         if (entity->timer++ > 0x13)
         {
             Anim_StartIndexed(entity, 1, 0, 1);
-            entity->state = 0;
+            entity->state = DEAD_CRUSADER_STATE_WALK;
             entity->subState = 1;
             entity->timer = 0;
             entity->velY.whole = 0x10000;
@@ -314,7 +323,7 @@ void DeadCrusader_UpdateAttack(struct EwramData_EntityData *entity)
         break;
     case 5:
         if (entity->timer == 0xB)
-            PlaySong(0x85);
+            PlaySong(SE_SWING);
         if (entity->timer++ > 0xB)
         {
             Anim_StartIndexed(entity, 6, 0, 0);
@@ -329,7 +338,7 @@ void DeadCrusader_UpdateAttack(struct EwramData_EntityData *entity)
             if (entity->stage++ > 2)
             {
                 Anim_StartIndexed(entity, 1, 0, 1);
-                entity->state = 0;
+                entity->state = DEAD_CRUSADER_STATE_WALK;
                 entity->subState = 1;
                 entity->timer = 0;
                 entity->velY.whole = 0x10000;
@@ -358,7 +367,7 @@ void DeadCrusader_OnHit(struct EwramData_EntityData *entity, struct EwramData_En
     {
         Hit_ResolveDamage(entity, attacker, hit, 0);
         damage = 0;
-        PlaySong(0x69);
+        PlaySong(SE_METAL_HIT);
     }
     else damage = Hit_ResolveDamage(entity, attacker, hit, damage);
     entity->hitFlashTimer = 8;
@@ -377,7 +386,7 @@ void DeadCrusader_OnHit(struct EwramData_EntityData *entity, struct EwramData_En
         PlaySong(0x72);
         entity->palette = entity->basePalette;
         entity->timer = 0x28;
-        entity->state = 2;
+        entity->state = DEAD_CRUSADER_STATE_FRAGMENT_DEATH;
         entity->subState = 0;
     }
 }

@@ -20,6 +20,8 @@
 #include "entity_hit.h"
 #include "bg_and_collision.h"
 #include "music.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 
 void BeamSkeleton_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
@@ -39,6 +41,13 @@ void Needles_UpdateDeath(struct EwramData_EntityData *entity);
 void Needles_UpdateBestiaryPreview(struct EwramData_EntityData *entity);
 
 /* Beam Skeleton creation and update dispatcher. */
+
+/* States of BeamSkeleton (entity->state), named after the update function the dispatcher calls. */
+enum {
+    BEAM_SKELETON_STATE_PATROL = 0,
+    BEAM_SKELETON_STATE_APPROACH = 1,
+    BEAM_SKELETON_STATE_IDLE = 2,
+};
 
 void EnemyBeamSkeletonCreate(struct EwramData_EntityData *entity)
 {
@@ -103,9 +112,9 @@ void EnemyBeamSkeletonUpdate(struct EwramData_EntityData *entity)
         entity->ext.beamSkeleton.unusedDelay = RandomNumberGenerator() % 80 + 40;
         switch (entity->state)
         {
-            case 0: BeamSkeleton_UpdatePatrol(entity); break;
-            case 1: BeamSkeleton_UpdateApproach(entity); break;
-            case 2: BeamSkeleton_UpdateIdle(entity); break;
+            case BEAM_SKELETON_STATE_PATROL: BeamSkeleton_UpdatePatrol(entity); break;
+            case BEAM_SKELETON_STATE_APPROACH: BeamSkeleton_UpdateApproach(entity); break;
+            case BEAM_SKELETON_STATE_IDLE: BeamSkeleton_UpdateIdle(entity); break;
         }
         Entity_AnimateWithBoxes(entity);
         Enemy_CheckHitPlayer(entity);
@@ -153,7 +162,7 @@ void BeamSkeleton_UpdatePatrol(struct EwramData_EntityData *entity)
             if (Target_IsNearEntity(entity,192,128))
             {
                 entity->velX.whole = 0;
-                entity->state = 1;
+                entity->state = BEAM_SKELETON_STATE_APPROACH;
                 entity->stage = 0;
                 entity->subState = 0;
             }
@@ -179,7 +188,7 @@ void BeamSkeleton_UpdateApproach(struct EwramData_EntityData *entity)
             s32 distance = Entity_GetTargetDistanceY(entity);
             if (ABS(distance) > 32)
             {
-                entity->state = 0;
+                entity->state = BEAM_SKELETON_STATE_PATROL;
                 entity->stage = 0;
                 entity->subState = 0;
                 return;
@@ -223,7 +232,7 @@ void BeamSkeleton_UpdateApproach(struct EwramData_EntityData *entity)
                         entity->ext.beamSkeleton.fireUrge = 0;
                         if (RandomNumberGenerator() % 50 <= 14)
                         {
-                            entity->state = 2;
+                            entity->state = BEAM_SKELETON_STATE_IDLE;
                             entity->stage = 0;
                             entity->subState = 0;
                         }
@@ -261,7 +270,7 @@ void BeamSkeleton_UpdateIdle(struct EwramData_EntityData *entity)
         case 1:
             if (--entity->timer == 0)
             {
-                entity->state = 1;
+                entity->state = BEAM_SKELETON_STATE_APPROACH;
                 entity->stage = 0;
                 entity->subState = 0;
             }
@@ -369,7 +378,7 @@ void BeamSkeleton_UpdateFire(struct EwramData_EntityData *entity)
             entity->ext.beamSkeleton.firing &= 0xFE;
             if (--entity->timer == 0xFF)
             {
-                entity->state = 1;
+                entity->state = BEAM_SKELETON_STATE_APPROACH;
                 entity->stage = 0;
                 entity->subState = 0;
             }
@@ -384,7 +393,7 @@ void BeamSkeleton_UpdateFire(struct EwramData_EntityData *entity)
  */
 void BeamSkeleton_CreateBeam(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *beam = EntityCreateInRange(0x49,0xCF,BeamSkeletonBeamSprite_Update);
+    struct EwramData_EntityData *beam = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST,BeamSkeletonBeamSprite_Update);
     s32 i;
     if (beam != NULL)
     {
@@ -414,7 +423,7 @@ void BeamSkeleton_CreateBeam(struct EwramData_EntityData *entity)
     }
     for (i = 0; i < 1; i++)
     {
-        beam = EntityCreateInRange(0x49,0xCF,BeamSkeletonBeam_Update);
+        beam = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST,BeamSkeletonBeam_Update);
         if (beam != NULL)
         {
             s32 graphics;
@@ -437,7 +446,7 @@ void BeamSkeleton_CreateBeam(struct EwramData_EntityData *entity)
             beam->defense = entity->defense;
             Hit_Enable(beam,8,Enemy_OnContact,0);
             HitBox_SetAttackRaw(beam,0x0C08FAFC);
-            beam->hit.flags |= 4;
+            beam->hit.flags |= HIT_NO_DAMAGE;
             beam->timer = i;
         }
     }
@@ -515,7 +524,7 @@ void BeamSkeletonBeam_Update(struct EwramData_EntityData *entity)
     }
     else
     {
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_ATTACK;
         entity->affine = 1;
         ((u8 *)entity)[0x59] |= 0x80;
     }
@@ -599,7 +608,7 @@ void BeamSkeleton_SpawnDeathPieces(struct EwramData_EntityData *entity)
     entity->hidden = 1;
     for (i = 0; i < 7; i++)
     {
-        struct EwramData_EntityData *part = EntityCreateInRange(0x49,0xCF,Effect_UpdateSpriteDebris);
+        struct EwramData_EntityData *part = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST,Effect_UpdateSpriteDebris);
         if (part != NULL)
         {
             s32 graphics;
@@ -842,7 +851,7 @@ void Needles_SpawnDeathParts(struct EwramData_EntityData *entity)
 
     for (i = 0; i < 5; i++)
     {
-        child = EntityCreateInRange(0x49, 0xCF, NeedlesPart_Update);
+        child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, NeedlesPart_Update);
         if (child == NULL)
             continue;
         needle = sNeedlesDeathParts[i];
@@ -924,7 +933,7 @@ void Needles_UpdateDeath(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
         case 0:
-            PlaySong(0x70);
+            PlaySong(SE_ENEMY_DEATH_SOFT);
             entity->hidden = 1;
             Enemy_DropRewards(entity);
             entity->palette = entity->basePalette;

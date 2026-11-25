@@ -19,6 +19,8 @@
 #include "enemy_common.h"
 #include "damage_numbers.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 void Tsuchinoko_SpitShot(struct EwramData_EntityData *);
 void TsuchinokoShot_Update(struct EwramData_EntityData *);
@@ -27,6 +29,14 @@ void TsuchinokoShot_EnableHitBoxes(struct EwramData_EntityData *);
 void TsuchinokoShot_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void TsuchinokoShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 void TsuchinokoDroplet_Update(struct EwramData_EntityData *);
+
+/* States of Tsuchinoko (entity->state), named after the update function the dispatcher calls. */
+enum {
+    TSUCHINOKO_STATE_JUMP = 0,
+    TSUCHINOKO_STATE_ATTACK = 1,
+    TSUCHINOKO_STATE_DEATH = 2,
+    TSUCHINOKO_STATE_ANIM_ONLY = 3,
+};
 
 /* Attack on animation event 3, then resume jumping when it finishes. */
 void Tsuchinoko_UpdateAttack(struct EwramData_EntityData *entity)
@@ -42,11 +52,11 @@ void Tsuchinoko_UpdateAttack(struct EwramData_EntityData *entity)
         if (*(u16 *)&entity->animStep == 3)
         {
             Tsuchinoko_SpitShot(entity);
-            PlaySong(0x85);
+            PlaySong(SE_SWING);
         }
         if (entity->animDone)
         {
-            entity->state = 0;
+            entity->state = TSUCHINOKO_STATE_JUMP;
             entity->subState = 1;
             Anim_StartIndexed(entity, 1, 0, 0);
         }
@@ -127,11 +137,11 @@ void Tsuchinoko_OnHit(struct EwramData_EntityData *entity, struct EwramData_Enti
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
-        PlaySong(0x70);
+        PlaySong(SE_ENEMY_DEATH_SOFT);
         Anim_Start(entity, &sTsuchinokoHitAnimScript, 0, 0);
         entity->palette = entity->basePalette;
         entity->timer = 0x3C;
-        entity->state = 2;
+        entity->state = TSUCHINOKO_STATE_DEATH;
         entity->subState = 0;
     }
 }
@@ -143,7 +153,7 @@ void Tsuchinoko_OnHit(struct EwramData_EntityData *entity, struct EwramData_Enti
  */
 void Tsuchinoko_SpitShot(struct EwramData_EntityData *parent)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, TsuchinokoShot_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, TsuchinokoShot_Update);
     if (child != NULL)
     {
         if ((u8)TsuchinokoShot_LoadGraphics(parent, child) == 0)
@@ -187,8 +197,8 @@ void TsuchinokoShot_EnableHitBoxes(struct EwramData_EntityData *entity)
     Hit_Enable(entity, 0xA, TsuchinokoShot_DamagePlayerOnContact, TsuchinokoShot_OnHit);
     HitBox_SetBody(entity, &box);
     HitBox_SetAttack(entity, &box);
-    entity->hit.flags &= ~2;
-    entity->hit.flags &= ~4;
+    entity->hit.flags &= ~HIT_NO_ATTACK;
+    entity->hit.flags &= ~HIT_NO_DAMAGE;
 }
 
 static inline u8 LoadTsuchinokoGraphics(struct EwramData_EntityData *parent, struct EwramData_EntityData *child)
@@ -204,7 +214,7 @@ static inline u8 LoadTsuchinokoGraphics(struct EwramData_EntityData *parent, str
 /* Create a randomly flipped falling effect with no contact callback. */
 void Tsuchinoko_SpawnDroplet(struct EwramData_EntityData *parent)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, TsuchinokoDroplet_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, TsuchinokoDroplet_Update);
     if (child != NULL)
     {
         s32 zero;
@@ -345,18 +355,18 @@ void Tsuchinoko_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 void EnemyTsuchinokoUpdate(struct EwramData_EntityData *entity)
 {
     struct HitResult result;
-    if (entity->state != 2) Enemy_UpdateHitFlash(entity);
-    if (Entity_IsTimeStopped(entity) && entity->state != 2)
+    if (entity->state != TSUCHINOKO_STATE_DEATH) Enemy_UpdateHitFlash(entity);
+    if (Entity_IsTimeStopped(entity) && entity->state != TSUCHINOKO_STATE_DEATH)
     {
         Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
     {
-    case 0: Tsuchinoko_UpdateJump(entity); break;
-    case 1: Tsuchinoko_UpdateAttack(entity); break;
-    case 2: Tsuchinoko_UpdateDeath(entity); break;
-    case 3: Anim_Update(entity); return;
+    case TSUCHINOKO_STATE_JUMP: Tsuchinoko_UpdateJump(entity); break;
+    case TSUCHINOKO_STATE_ATTACK: Tsuchinoko_UpdateAttack(entity); break;
+    case TSUCHINOKO_STATE_DEATH: Tsuchinoko_UpdateDeath(entity); break;
+    case TSUCHINOKO_STATE_ANIM_ONLY: Anim_Update(entity); return;
     }
     Entity_AnimateWithBoxes(entity);
     Enemy_CheckHitPlayer(entity);

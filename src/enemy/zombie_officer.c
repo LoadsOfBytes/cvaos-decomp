@@ -16,6 +16,7 @@
 #include "damage_numbers.h"
 #include "entity_motion.h"
 #include "hitbox.h"
+#include "constants/songs.h"
 
 void ZombieOfficer_UpdateWalk(struct EwramData_EntityData *entity);
 void ZombieOfficer_UpdateAttack(struct EwramData_EntityData *entity);
@@ -24,6 +25,13 @@ u8 ZombieOfficer_LoadGraphics(struct EwramData_EntityData *entity);
 void ZombieOfficer_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void ZombieOfficer_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 void ZombieOfficerPiece_Update(struct EwramData_EntityData *entity);
+
+/* States of ZombieOfficer (entity->state), named after the update function the dispatcher calls. */
+enum {
+    ZOMBIE_OFFICER_STATE_WALK = 0,
+    ZOMBIE_OFFICER_STATE_ATTACK = 1,
+    ZOMBIE_OFFICER_STATE_ANIM_ONLY = 3,
+};
 
 /**
  * @brief 92174 | Zombie Officer update (as EnemyZombieSoldierUpdate):
@@ -40,10 +48,10 @@ void EnemyZombieOfficerUpdate(struct EwramData_EntityData *entity)
         return;
     switch (entity->state)
     {
-    case 0:
+    case ZOMBIE_OFFICER_STATE_WALK:
         ZombieOfficer_UpdateWalk(entity);
         break;
-    case 1:
+    case ZOMBIE_OFFICER_STATE_ATTACK:
         ZombieOfficer_UpdateAttack(entity);
         break;
     case 2:
@@ -73,7 +81,7 @@ void EnemyZombieOfficerUpdate(struct EwramData_EntityData *entity)
         }
         Enemy_UpdateFragmentDeath(entity);
         break;
-    case 3:
+    case ZOMBIE_OFFICER_STATE_ANIM_ONLY:
         Anim_Update(entity);
         return;
     }
@@ -100,7 +108,7 @@ void EnemyZombieOfficerCreate(struct EwramData_EntityData *entity)
     Enemy_ResetFromTemplate(entity);
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 3;
+        entity->state = ZOMBIE_OFFICER_STATE_ANIM_ONLY;
         return;
     }
     if (Anim_GetMaxBoxCount(entity) > 1)
@@ -109,7 +117,7 @@ void EnemyZombieOfficerCreate(struct EwramData_EntityData *entity)
         Hit_Enable(entity, 8, ZombieOfficer_DamagePlayerOnContact, ZombieOfficer_OnHit);
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
-    entity->state = 0;
+    entity->state = ZOMBIE_OFFICER_STATE_WALK;
 }
 
 /* Select an approach or attack on animation events, then apply movement. */
@@ -125,7 +133,7 @@ void ZombieOfficer_UpdateWalk(struct EwramData_EntityData *entity)
         entity->flipX = Entity_IsTargetRight(entity);
         if (Target_IsInRect((s16)(entity->posX.part16.integer - 50), (s16)(entity->posY.part16.integer - 64), 100, 70))
         {
-            entity->state = 1;
+            entity->state = ZOMBIE_OFFICER_STATE_ATTACK;
             entity->subState = 0;
             return;
         }
@@ -157,11 +165,11 @@ void ZombieOfficer_UpdateAttack(struct EwramData_EntityData *entity)
             break;
         case 1:
             if (FRAME_PAIR(entity) == 4)
-                PlaySong(0x85);
+                PlaySong(SE_SWING);
             if (entity->animDone)
             {
                 Anim_StartIndexed(entity, 0, 0, 1);
-                entity->state = 0;
+                entity->state = ZOMBIE_OFFICER_STATE_WALK;
                 entity->subState = 0;
                 if (entity->flipX)
                     entity->velX.whole = 0xA000;
@@ -199,7 +207,7 @@ void ZombieOfficer_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
-        PlaySong(0x70);
+        PlaySong(SE_ENEMY_DEATH_SOFT);
         Anim_StartIndexed(entity, 2, 0, 0);
         entity->palette = entity->basePalette;
         entity->timer = 0x28;
@@ -218,7 +226,7 @@ void ZombieOfficer_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 
  */
 void ZombieOfficer_SpawnPiece(struct EwramData_EntityData *entity, s32 x, s32 y, s32 vx, s32 vy, s32 frame)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, ZombieOfficerPiece_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, ZombieOfficerPiece_Update);
 
     if (child != NULL)
     {

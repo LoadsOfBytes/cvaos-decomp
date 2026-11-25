@@ -21,6 +21,8 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "entity_inline.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 extern u8 sConsumableInfo[], sWeaponInfo[], sArmorInfo[];
 
@@ -113,7 +115,7 @@ void Player_RestoreMPPercent(s32 percent)
  */
 struct EwramData_EntityData *Pickup_CreateMana(s32 x, s32 y, s32 large, s32 jump)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, Pickup_UpdateDriftingMana);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Pickup_UpdateDriftingMana);
     s32 graphics;
 
     if (entity != NULL)
@@ -123,7 +125,7 @@ struct EwramData_EntityData *Pickup_CreateMana(s32 x, s32 y, s32 large, s32 jump
         Sprite_Attach(entity, sCommonObjectSpriteSheet, graphics, 7);
         entity->drawFunc = Sprite_DrawEntity;
         Hit_Enable(entity, 0xB, Pickup_Collect, 0);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         HitBox_SetAttackRaw(entity, 0x0808FCFC);
         entity->posX.part16.integer = x;
         entity->posY.part16.integer = y;
@@ -301,7 +303,7 @@ void Pickup_Update(struct EwramData_EntityData *entity)
  */
 struct EwramData_EntityData *Pickup_CreateGold(s32 x, s32 y, s32 index)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, Pickup_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Pickup_Update);
     if (entity != NULL)
     {
         struct GoldDrop *info = &sGoldDrops[index];
@@ -320,7 +322,7 @@ struct EwramData_EntityData *Pickup_CreateGold(s32 x, s32 y, s32 index)
         else
             entity->animFrame = info->frame;
         Hit_Enable(entity, 0xB, Pickup_Collect, 0);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         HitBox_SetAttackRaw(entity, 0x1010F8F8);
         entity->posX.part16.integer = x;
         entity->posY.part16.integer = y;
@@ -402,7 +404,7 @@ struct EwramData_EntityData *Pickup_CreateItem(s32 x, s32 y, s32 type, s32 id, s
     }
     else
     {
-        do { entity = EntityCreateInRange(0x49, 0xCF, Pickup_Update); } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
+        do { entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Pickup_Update); } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
         if (!entity)
             goto done;
         if (type != 0xFF)
@@ -417,7 +419,7 @@ struct EwramData_EntityData *Pickup_CreateItem(s32 x, s32 y, s32 type, s32 id, s
         ItemIcon_AttachSprite(entity, ItemIconCache_Load(info->icon), info->palette);
         entity->drawFunc = Sprite_DrawEntity;
         Hit_Enable(entity, 0xB, Pickup_Collect, 0);
-        { struct EwramData_EntityData *e = entity; e->hit.flags |= 4; }
+        { struct EwramData_EntityData *e = entity; e->hit.flags |= HIT_NO_DAMAGE; }
         HitBox_SetAttackRaw(entity, 0x1010F8F8);
         entity->posX.part16.integer = x;
         entity->posY.part16.integer = y;
@@ -561,7 +563,7 @@ void Pickup_Collect(struct EwramData_EntityData *e)
         SoulInventory_AddCollectedTotal(1);
         Hud_ShowSoulAcquiredMessage(soul, kind, isNew);
         SoulList_Insert(kind, soul);
-        PlaySong(0xBC);
+        PlaySong(SE_SOUL_ACQUIRED);
         break;
     }
     }
@@ -576,10 +578,10 @@ void Pickup_Collect(struct EwramData_EntityData *e)
             else
             {
                 gEwramData->gameState.bossEventFlags |= 1 << e->spawnParam0;
-                gEwramData->gameState.stateFlags &= ~2;
+                gEwramData->gameState.stateFlags &= ~STATE_BOSS_FIGHT;
             }
         }
     }
     if (e->subState & 1)
-        gEwramData->gameState.stateFlags |= 0x400;
+        gEwramData->gameState.stateFlags |= STATE_BOSS_RUSH_CLEARED;
 }

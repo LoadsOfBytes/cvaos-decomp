@@ -673,7 +673,7 @@ void WarpMenu_HandleCursorInput(void)
 
     if (repeatedInput & (KEY_UP | KEY_LEFT))
     {
-        PlaySong(SE_241);
+        PlaySong(SE_MENU_CURSOR);
         do
         {
             if (--gEwramData->gameState.selectedWarpIndex < 0)
@@ -686,7 +686,7 @@ void WarpMenu_HandleCursorInput(void)
 
     if (repeatedInput & (KEY_DOWN | KEY_RIGHT))
     {
-        PlaySong(SE_241);
+        PlaySong(SE_MENU_CURSOR);
         do
         {
             if (++gEwramData->gameState.selectedWarpIndex > 7)
@@ -796,7 +796,7 @@ s32 WarpMenu_Update(struct GameState *gameState)
             Window1_SetCircle(markerX, y, radius);
             if (input & (KEY_B | KEY_SELECT))
             {
-                PlaySong(SE_240);
+                PlaySong(SE_MENU_BACK);
                 gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT;
                 gDisplayRegisters.winIn_H = 0;
                 gDisplayRegisters.bldY = 0;
@@ -806,7 +806,7 @@ s32 WarpMenu_Update(struct GameState *gameState)
             }
             else if (input & KEY_A)
             {
-                PlaySong(SE_244);
+                PlaySong(SE_MENU_CONFIRM);
                 RoomJump_SetDestination(warp->roomDefinition, 0, 0, 0x78, 0x80);
                 gDisplayRegisters.bldCnt = BLDCNT_SCREEN_FIRST_TARGET | BLDCNT_BRIGHTNESS_DECREASE_EFFECT;
                 gDisplayRegisters.winIn_H = 0;
@@ -968,11 +968,11 @@ s32 RoomJump_Update(struct GameState *gameState)
             /* fallthrough */
         case 2:
             room = gameState->currentRoomDefinition;
-            if (!(gEwramData->gameState.stateFlags & 0x800000))
+            if (!(gEwramData->gameState.stateFlags & STATE_ROOM_JUMP_NO_PAUSE))
             {
                 gEwramData->startPauseEnabled = 1;
             }
-            gEwramData->gameState.stateFlags &= ~0x800000;
+            gEwramData->gameState.stateFlags &= ~STATE_ROOM_JUMP_NO_PAUSE;
             gEwramData->paused = 0;
             gEwramData->bgControlMinWriteLevel = gEwramData->unusedWriteLevel = 0;
             gUnk_03002CB0.dispCnt = room->displayControl;

@@ -27,6 +27,9 @@
 #include "obj_palette.h"
 #include "player_soma.h"
 #include "entity_hit.h"
+#include "constants/game_flags.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 void WarpRoom_UpdateGatePart(struct EwramData_EntityData *);
 void WarpRoom_ResetGatePart(struct EwramData_EntityData *);
@@ -58,7 +61,7 @@ void WarpRoom_Update(struct EwramData_EntityData *e)
     switch (e->state)
     {
     case 0:
-        if (gEwramData->gameState.stateFlags & 0x40)
+        if (gEwramData->gameState.stateFlags & STATE_WARP_ACTIVE)
         {
             gUnk_03002CB0.dispCnt |= 0x2000;
             e->ext.warpRoom.windowBottom = 0x74;
@@ -72,7 +75,7 @@ void WarpRoom_Update(struct EwramData_EntityData *e)
         else
         {
             gUnk_03002CB0.dispCnt &= 0xDFFF;
-            gEwramData->gameState.stateFlags &= ~1;
+            gEwramData->gameState.stateFlags &= ~STATE_EVENT_RUNNING;
             e->state = 1;
             gEwramData->startPauseEnabled = 1;
         }
@@ -95,11 +98,11 @@ void WarpRoom_Update(struct EwramData_EntityData *e)
             s32 r = Player_IsBusy();
             if (r == 0)
             {
-                PlaySong(0xF3);
+                PlaySong(SE_MENU_SELECT);
                 BgPalette_StopColorFade();
                 ObjPalette_StopColorFade();
                 RedSoul_CancelAll();
-                gEwramData->gameState.stateFlags |= 0x20000;
+                gEwramData->gameState.stateFlags |= STATE_WARP_PENDING;
                 gEwramData->startPauseEnabled = 0;
                 e->timer = r;
                 e->subState = r;
@@ -124,7 +127,7 @@ void WarpRoom_Update(struct EwramData_EntityData *e)
         }
         if (gEwramData->gameState.currentRoomDefinition != gEwramData->gameState.roomJumpDestination)
         {
-            PlaySong(0x1010);
+            PlaySong(SONG_MUTE);
             PlaySong(0xF9);
             e->subState = 0;
             e->state++;
@@ -149,8 +152,8 @@ void WarpRoom_Update(struct EwramData_EntityData *e)
     case 4:
         if (e->timer++ > 0x3E)
         {
-            gEwramData->gameState.stateFlags |= 0x40;
-            GameFlag_Set(0x39);
+            gEwramData->gameState.stateFlags |= STATE_WARP_ACTIVE;
+            GameFlag_Set(FLAG_WARP_ROOM_USED);
             Room_ClearForTransition(gameState);
             DMA_FILL_32(3, 0, VRAM_BASE + 0xE800, 0x800);
             DMA_FILL_32(3, 0, VRAM_BASE + 0xF000, 0x800);
@@ -180,7 +183,7 @@ void WarpRoom_Update(struct EwramData_EntityData *e)
             ObjPalette_StopColorFade();
             e->state++;
             e->timer = 0;
-            gEwramData->gameState.stateFlags &= ~0x40;
+            gEwramData->gameState.stateFlags &= ~STATE_WARP_ACTIVE;
             Music_PlayAreaQuiet();
         }
         break;
@@ -226,7 +229,7 @@ s32 WarpRoom_CreateGateParts(struct EwramData_EntityData *owner)
     ObjPalette_LoadRange(sWarpRoomPalette, 2, 1, 0xA);
     for (i = 0, i = created; i <= 8; i++)
     {
-        struct EwramData_EntityData *entity = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
+        struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, EntityUpdateNothing);
         if (entity != NULL)
         {
             created = 1;
@@ -280,7 +283,7 @@ void WarpRoom_ResetGatePart(struct EwramData_EntityData *entity)
     STEP(entity) = 0x800;
     ObjAffine_Set(0, 0x10000, 0x10000, 0, 0, entity->affineIndex);
     entity->shrinkPartOffsets = 0;
-    if (!(gEwramData->gameState.stateFlags & 0x40))
+    if (!(gEwramData->gameState.stateFlags & STATE_WARP_ACTIVE))
         return;
     entity->timer = 0;
     do
@@ -428,7 +431,7 @@ void WarpRoom_UpdateGatePart(struct EwramData_EntityData *entity)
                 entity->state = 0;
                 parent->state++;
             }
-            gEwramData->gameState.stateFlags &= ~0x40;
+            gEwramData->gameState.stateFlags &= ~STATE_WARP_ACTIVE;
         }
         break;
     }
@@ -446,7 +449,7 @@ s32 WarpRoom_CreateSideLights(struct EwramData_EntityData *owner)
     ObjPalette_LoadRange(sWarpRoomPalette, 4, 1, 0xB);
     for (i = 0, i = created; i <= 1; i++)
     {
-        struct EwramData_EntityData *entity = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
+        struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, EntityUpdateNothing);
         if (entity != NULL)
         {
             created = 1;
@@ -534,7 +537,7 @@ void WarpRoom_UpdateFadeExit(struct EwramData_EntityData *entity)
         entity->ext.warpRoomFadeExit.fadeTimer = 0x80;
         break;
     case 1:
-        gEwramData->gameState.stateFlags |= 1;
+        gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
         SetPlayerInput(1, 0);
         t = entity->timer;
         if ((s8)entity->timer >= 0)
@@ -708,8 +711,8 @@ void CrusherCreate(struct EwramData_EntityData *entity)
     }
     Hit_Enable(entity, 8, Crusher_OnPlayerContact, 0);
     HitBox_SetAttack(entity, &box);
-    entity->hit.flags |= 4;
-    entity->hit.flags &= ~2;
+    entity->hit.flags |= HIT_NO_DAMAGE;
+    entity->hit.flags &= ~HIT_NO_ATTACK;
     Anim_StartIndexed(entity, 0, 0, 1);
     Anim_Update(entity);
     {

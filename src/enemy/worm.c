@@ -22,6 +22,7 @@
 #include "damage_numbers.h"
 #include "entity_hit.h"
 #include "hit_shared_history.h"
+#include "constants/songs.h"
 
 void Worm_SettleOnGround(struct EwramData_EntityData *);
 void WormSegment_Update(struct EwramData_EntityData *);
@@ -49,7 +50,7 @@ void Worm_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData
     if ((s16)parent->hp <= 0)
     {
         Enemy_DropRewards(parent);
-        PlaySong(0x70);
+        PlaySong(SE_ENEMY_DEATH_SOFT);
         parent->palette = parent->basePalette;
         parent->state = 3;
         parent->timer = 0x40;

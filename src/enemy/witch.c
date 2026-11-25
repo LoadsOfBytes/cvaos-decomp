@@ -21,6 +21,8 @@
 #include "math_inline.h"
 #include "damage_numbers.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 /* Witch homing motion and orbiting particle. */
 #define ABS_MOTION(v) ((v) < 0 ? -(v) : (v))
@@ -32,6 +34,14 @@ extern void Witch_SpawnOrbitParticlesSigned(struct EwramData_EntityData *entity,
 
 void WitchSpell_DamagePlayerOnContact(struct EwramData_EntityData *);
 void Witch_OnHit(struct EwramData_EntityData *, s32, u16 *);
+
+/* States of Witch (entity->state), named after the update function the dispatcher calls. */
+enum {
+    WITCH_STATE_WAIT = 0,
+    WITCH_STATE_CAST = 1,
+    WITCH_STATE_CHARGE = 2,
+    WITCH_STATE_ANIM_ONLY = 4,
+};
 
 /**
  * @brief Steer toward stored room coordinates with damping and bounded
@@ -121,7 +131,7 @@ void Witch_SpawnOrbitParticles(struct EwramData_EntityData *entity, u16 phase)
     struct EwramData_EntityData *child;
     for (;;)
     {
-        child = EntityCreateInRange(0x49, 0xCF, WitchOrbitParticle_Update);
+        child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, WitchOrbitParticle_Update);
         if (child != NULL)
         {
             child->accelX.part16.integer = entity->posX.part16.integer;
@@ -226,7 +236,7 @@ void WitchSpell_Update(struct EwramData_EntityData *entity)
         Hit_Enable(entity, 8, WitchSpell_DamagePlayerOnContact, 0);
         HitBox_SetBodyRaw(entity, 0x2020F0F0);
         HitBox_SetAttackRaw(entity, 0x2020F0F0);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         offset = 0xFFE0;
         entity->velX.whole = -0x18000;
         entity->ext.witchSpell.spin = 0xFD00;
@@ -284,7 +294,7 @@ void WitchSpell_Update(struct EwramData_EntityData *entity)
     entity->timer = timer;
     if (!(timer & 1))
     {
-        child = EntityCreateInRange(0x49, 0xCF, WitchSpellTrailParticle_Update);
+        child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, WitchSpellTrailParticle_Update);
         if (child != NULL)
         {
             {
@@ -416,7 +426,7 @@ void WitchMovementParticle_Update(struct EwramData_EntityData *entity)
  */
 void Witch_SpawnMovementParticle(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, WitchMovementParticle_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, WitchMovementParticle_Update);
     u16 offset;
     s32 random;
     if (child != NULL)
@@ -489,13 +499,13 @@ void Witch_UpdateWait(struct EwramData_EntityData *entity)
             && (RandomNumberGenerator() & 2)
             && ABS((s16)Target_GetPixelY(entity) - ({ s32 t_ = entity->posY.part16.integer + 0x30; t_; })) < 0x20)
         {
-            entity->state = 2;
+            entity->state = WITCH_STATE_CHARGE;
             entity->stage = 0;
             entity->subState = 0;
         }
         else
         {
-            entity->state = 1;
+            entity->state = WITCH_STATE_CAST;
             entity->stage = 0;
             entity->subState = 0;
         }
@@ -652,7 +662,7 @@ void Witch_UpdateCast(struct EwramData_EntityData *entity)
         if (entity->animFlags & 4)
         {
             Anim_StartIndexed(entity, 0, 0, 1);
-            entity->state = 0;
+            entity->state = WITCH_STATE_WAIT;
             entity->stage = 0;
             entity->subState = 0;
         }
@@ -746,7 +756,7 @@ void Witch_UpdateCharge(struct EwramData_EntityData *entity)
                 break;
             }
             Anim_StartIndexed(entity, 0, 0, 1);
-            entity->state = 0;
+            entity->state = WITCH_STATE_WAIT;
             entity->stage = 0;
             entity->subState = 0;
             break;
@@ -804,13 +814,13 @@ void EnemyWitchCreate(struct EwramData_EntityData *entity)
     entity->spriteLayer = 4;
     Anim_StartIndexed(entity, 0, 0, 1);
     Anim_Update(entity);
-    if (gEwramData->gameState.bestiaryPreview) entity->state = 4;
+    if (gEwramData->gameState.bestiaryPreview) entity->state = WITCH_STATE_ANIM_ONLY;
     else
     {
         Entity_EnableBoxes(entity, Enemy_OnContact, Witch_OnHit);
         Entity_UpdateBoxes(entity);
         entity->scrollWithBg = 1;
-        entity->state = 0;
+        entity->state = WITCH_STATE_WAIT;
     }
 }
 
@@ -827,13 +837,13 @@ void EnemyWitchUpdate(struct EwramData_EntityData *entity)
     }
     switch (entity->state)
     {
-    case 0: Witch_UpdateWait(entity); break;
-    case 1: Witch_UpdateCast(entity); break;
-    case 2: Witch_UpdateCharge(entity); break;
+    case WITCH_STATE_WAIT: Witch_UpdateWait(entity); break;
+    case WITCH_STATE_CAST: Witch_UpdateCast(entity); break;
+    case WITCH_STATE_CHARGE: Witch_UpdateCharge(entity); break;
     case 3:
         if (Witch_UpdateDeath(entity)) { EntityDelete(entity); return; }
         break;
-    case 4:
+    case WITCH_STATE_ANIM_ONLY:
         Anim_Update(entity);
         return;
     }
@@ -872,7 +882,7 @@ void Witch_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 
     if (invulnerable)
     {
-        PlaySong(0x69);
+        PlaySong(SE_METAL_HIT);
         Entity_ShowDamage(entity, 0, 0);
     }
     else if (Enemy_TakeDamage(entity, attacker, hit))

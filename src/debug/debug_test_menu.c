@@ -37,6 +37,7 @@
 #include "entity_hit.h"
 #include "menu_common.h"
 #include "enemy_common.h"
+#include "constants/songs.h"
 
 struct DebugTestMenuMenuEntry {
     u8 *label; // pointer to string
@@ -176,7 +177,7 @@ void DebugTestMenu_UpdateTestEnemySpawner(struct DebugEnemySpawnerState *spawner
             {
                 if (spawner->spawnedEntities[i] == NULL)
                 {
-                    child = EntityCreateInRange(0x1B, 0x48, DebugTestEnemy_Update);
+                    child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, DebugTestEnemy_Update);
                     if (child != NULL)
                     {
                         child->posX.part16.integer = 160 + i * 10;
@@ -410,7 +411,7 @@ s32 DebugTestMenu_EnemyTest(void)
 
             for (i = 0; i < (&gEwramData->debugMenuWork)->spawnCount; i++)
             {
-                child = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
+                child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, EntityUpdateNothing);
                 if (child == NULL)
                     continue;
 
@@ -685,7 +686,7 @@ s32 DebugTestMenu_SoundTest(void)
             }
             if (gEwramData->inputData.newInput & 2)
             {
-                PlaySong(0x1000);
+                PlaySong(AUDIO_STOP);
             }
             break;
     }
@@ -703,7 +704,7 @@ s32 DebugTestMenu_ObjTest(void)
     switch (gEwramData->debugMenuWork.state)
     {
         case 0:
-            child = EntityCreateInRange(0x1B, 0x48, DebugTestMenuObjTestViewer_Update);
+            child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, DebugTestMenuObjTestViewer_Update);
             if (child != NULL)
             {
                 child->posX.part16.integer = 0x80;

@@ -19,6 +19,8 @@
 #include "damage_numbers.h"
 #include "entity_motion.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 void Lilith_UpdateWalk(struct EwramData_EntityData *);
 void Lilith_UpdateAttack(struct EwramData_EntityData *);
@@ -30,12 +32,20 @@ void LilithShot_Update(struct EwramData_EntityData *);
 void LilithShot_DamagePlayerOnContact(struct EwramData_EntityData *);
 void LilithShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
+/* States of Lilith (entity->state), named after the update function the dispatcher calls. */
+enum {
+    LILITH_STATE_WALK = 0,
+    LILITH_STATE_ATTACK = 1,
+    LILITH_STATE_FRAGMENT_DEATH = 2,
+    LILITH_STATE_ANIM_ONLY = 3,
+};
+
 void EnemyLilithUpdate(struct EwramData_EntityData *entity)
 {
     /* Original reserves 0x30 bytes for this scratch area. */
     struct HitResult results[3]; /* only results[0] is written; the original reserved 48 bytes */
     u8 frame;
-    if (entity->state != 2)
+    if (entity->state != LILITH_STATE_FRAGMENT_DEATH)
     {
         if (EntityIsOutsideScreen(entity, 4)) return;
         if (Entity_IsInRect(entity, -16, 0, 0x110, 0xB0)) Player_TrackEntity(entity);
@@ -48,10 +58,10 @@ void EnemyLilithUpdate(struct EwramData_EntityData *entity)
     }
     switch (entity->state)
     {
-    case 0: Lilith_UpdateWalk(entity); break;
-    case 1: Lilith_UpdateAttack(entity); break;
-    case 2: Enemy_UpdateFragmentDeath(entity); break;
-    case 3: Anim_Update(entity); return;
+    case LILITH_STATE_WALK: Lilith_UpdateWalk(entity); break;
+    case LILITH_STATE_ATTACK: Lilith_UpdateAttack(entity); break;
+    case LILITH_STATE_FRAGMENT_DEATH: Enemy_UpdateFragmentDeath(entity); break;
+    case LILITH_STATE_ANIM_ONLY: Anim_Update(entity); return;
     }
     frame = entity->animFrame;
     Anim_Update(entity);
@@ -72,7 +82,7 @@ void EnemyLilithCreate(struct EwramData_EntityData *entity)
     Enemy_ResetFromTemplate(entity);
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 3;
+        entity->state = LILITH_STATE_ANIM_ONLY;
         Anim_StartIndexed(entity, 5, 0, 1);
         Anim_Update(entity);
         return;
@@ -83,7 +93,7 @@ void EnemyLilithCreate(struct EwramData_EntityData *entity)
         Hit_Enable(entity, 8, Lilith_DamagePlayerOnContact, Lilith_OnHit);
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
-    entity->state = 0;
+    entity->state = LILITH_STATE_WALK;
     entity->hidden = 1;
     entity->ext.lilith.hidden = 1;
     entity->velY.whole = 0x10000;
@@ -174,7 +184,7 @@ void Lilith_UpdateWalk(struct EwramData_EntityData *entity)
         {
             if (!(RandomNumberGenerator() & 1))
             {
-                entity->state = 1;
+                entity->state = LILITH_STATE_ATTACK;
                 entity->subState = 0;
                 entity->timer = 0;
                 break;
@@ -202,7 +212,7 @@ void Lilith_UpdateWalk(struct EwramData_EntityData *entity)
                 s32 r = RandomNumberGenerator() & 1;
                 if (!r)
                 {
-                    entity->state = 1;
+                    entity->state = LILITH_STATE_ATTACK;
                     entity->subState = 10;
                     entity->timer = r;
                 }
@@ -254,7 +264,7 @@ void Lilith_UpdateWalk(struct EwramData_EntityData *entity)
                 entity->accelY.whole = 0x1800;
                 break;
             }
-            entity->state = 1;
+            entity->state = LILITH_STATE_ATTACK;
             entity->subState = 10;
             entity->timer = found2;
             break;
@@ -269,7 +279,7 @@ void Lilith_UpdateWalk(struct EwramData_EntityData *entity)
         }
         if (Target_IsInRect((s16)(entity->posX.part16.integer - 0x28), (s16)(entity->posY.part16.integer - 0x28), 0x50, 0x50) && !(RandomNumberGenerator() & 1))
         {
-            entity->state = 1;
+            entity->state = LILITH_STATE_ATTACK;
             entity->subState = 0;
             entity->timer = 0;
             break;
@@ -282,7 +292,7 @@ void Lilith_UpdateWalk(struct EwramData_EntityData *entity)
                 s32 r = RandomNumberGenerator() & 1;
                 if (!r)
                 {
-                    entity->state = 1;
+                    entity->state = LILITH_STATE_ATTACK;
                     entity->subState = 10;
                     entity->timer = r;
                 }
@@ -341,7 +351,7 @@ void Lilith_UpdateAttack(struct EwramData_EntityData *entity)
         Afterimage_Create(entity, 0x38, 8, 0x10);
         Afterimage_Create(entity, 0x38, 4, 0x10);
         entity->ext.lilithLunge.hit = 0;
-        PlaySong(0x85);
+        PlaySong(SE_SWING);
         break;
     case 2:
         EntityDampVelocityX(entity, 0x18);
@@ -365,7 +375,7 @@ void Lilith_UpdateAttack(struct EwramData_EntityData *entity)
             entity->animTimer = 0;
             break;
         }
-        entity->state = 0;
+        entity->state = LILITH_STATE_WALK;
         entity->subState = 3;
         entity->timer = 0;
         entity->velX.whole = 0;
@@ -381,7 +391,7 @@ void Lilith_UpdateAttack(struct EwramData_EntityData *entity)
         Entity_ClampXToRoom(entity, 4);
         if (entity->timer++ > 0x1D)
         {
-            entity->state = 0;
+            entity->state = LILITH_STATE_WALK;
             entity->subState = 2;
             entity->timer = 0;
             entity->velX.whole = 0;
@@ -416,7 +426,7 @@ void Lilith_UpdateAttack(struct EwramData_EntityData *entity)
         if (entity->animDone)
         {
             entity->flipX = Entity_IsTargetRight(entity);
-            entity->state = 0;
+            entity->state = LILITH_STATE_WALK;
             entity->subState = 2;
             entity->timer = 0;
             entity->velX.whole = 0;
@@ -448,7 +458,7 @@ void Lilith_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
         Anim_StartIndexed(entity, 9, 0, 0);
         entity->palette = entity->basePalette;
         entity->timer = 0x28;
-        entity->state = 2;
+        entity->state = LILITH_STATE_FRAGMENT_DEATH;
         entity->subState = 0;
     }
 }
@@ -459,7 +469,7 @@ void Lilith_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
  */
 void Lilith_SpawnShot(struct EwramData_EntityData *owner, s32 dx, s32 dy)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, LilithShot_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, LilithShot_Update);
     u32 box = 0x0A0AFBFB;
     if (entity != NULL)
     {
@@ -474,8 +484,8 @@ void Lilith_SpawnShot(struct EwramData_EntityData *owner, s32 dx, s32 dy)
         Hit_Enable(entity, 8, LilithShot_DamagePlayerOnContact, LilithShot_OnHit);
         HitBox_SetAttack(entity, &box);
         HitBox_SetBody(entity, &box);
-        entity->hit.flags &= ~4;
-        entity->hit.flags &= ~2;
+        entity->hit.flags &= ~HIT_NO_DAMAGE;
+        entity->hit.flags &= ~HIT_NO_ATTACK;
         entity->enemyId = owner->enemyId;
         entity->attack = owner->attack;
         entity->scrollWithBg = 1;

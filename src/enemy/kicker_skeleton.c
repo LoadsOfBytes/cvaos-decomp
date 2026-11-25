@@ -15,6 +15,7 @@
 #include "effects.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "constants/songs.h"
 
 extern s32 __divsi3(s32, s32);
 
@@ -72,7 +73,7 @@ void KickerSkeleton_UpdateKick(struct EwramData_EntityData *entity)
         entity->ext.kickerSkeleton.speed = 0x28000;
         entity->velY.whole = 0x30000;
         entity->ext.kickerSkeleton.flags |= 1;
-        PlaySong(0x87);
+        PlaySong(SE_DASH);
         entity->subState = 5;
         break;
     case 5:
@@ -144,7 +145,7 @@ s32 KickerSkeleton_UpdateDeath(struct EwramData_EntityData *entity)
     PlaySong(0x6B);
     for (frame = 0x1A; frame <= 0x20; frame++)
     {
-        fragment = EntityCreateInRange(0x49, 0xCF, Effect_UpdateSpriteDebris);
+        fragment = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateSpriteDebris);
         if (fragment == NULL) continue;
         fragment->posX.whole = entity->posX.whole;
         fragment->posY.whole = entity->posY.whole;

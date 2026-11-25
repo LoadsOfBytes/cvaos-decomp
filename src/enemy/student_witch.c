@@ -18,9 +18,18 @@
 #include "data/data_4F1444.h"
 #include "math_inline.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
 
 
 /* Witch projectile setup, movement and spawn helper. */
+
+/* States of StudentWitch (entity->state), named after the update function the dispatcher calls. */
+enum {
+    STUDENT_WITCH_STATE_WALK = 0,
+    STUDENT_WITCH_STATE_AIR_ATTACK = 2,
+    STUDENT_WITCH_STATE_GROUND_ATTACK = 3,
+    STUDENT_WITCH_STATE_ANIM_ONLY = 5,
+};
 
 /**
  * @brief Shared ground projectile: accelerate along terrain, burst on an
@@ -48,7 +57,7 @@ void WitchGroundProjectile_Update(struct EwramData_EntityData *entity)
         HitBox_SetAttackRaw(entity, 0x1018F0F4);
         entity->accelY.whole = 0x2000;
         entity->velY.whole = 0;
-        if (entity->subState & 2) entity->hit.flags |= 2;
+        if (entity->subState & 2) entity->hit.flags |= HIT_NO_ATTACK;
         entity->hp = 1;
         entity->state = 1;
         /* fall through */
@@ -150,7 +159,7 @@ void StudentWitch_UpdateWalk(struct EwramData_EntityData *entity)
         result = flags & 8;
         if (!result)
         {
-            entity->state = 2;
+            entity->state = STUDENT_WITCH_STATE_AIR_ATTACK;
             entity->stage = result;
             entity->subState = result;
         }
@@ -163,13 +172,13 @@ void StudentWitch_UpdateWalk(struct EwramData_EntityData *entity)
                 result = RandomNumberGenerator() & 4;
                 if (result)
                 {
-                    entity->state = 3;
+                    entity->state = STUDENT_WITCH_STATE_GROUND_ATTACK;
                     entity->stage = 0;
                     entity->subState = 0;
                 }
                 else
                 {
-                    entity->state = 2;
+                    entity->state = STUDENT_WITCH_STATE_AIR_ATTACK;
                     entity->stage = result;
                     entity->subState = result;
                 }
@@ -218,7 +227,7 @@ void StudentWitch_UpdateGroundAttack(struct EwramData_EntityData *entity)
         Entity_Walk(entity, entity->ext.studentWitch.speed, sStudentWitchWalkProfile, 0xD);
         if (--entity->ext.studentWitch.timer <= 0)
         {
-            entity->state = 0;
+            entity->state = STUDENT_WITCH_STATE_WALK;
             entity->stage = 0;
             entity->subState = 0;
         }
@@ -249,7 +258,7 @@ void StudentWitch_UpdateGroundAttack(struct EwramData_EntityData *entity)
         /* fall through */
     case 3:
         Anim_StartIndexed(entity, 7, 0, 1);
-        entity->state = 0;
+        entity->state = STUDENT_WITCH_STATE_WALK;
         entity->stage = 0;
         entity->subState = 0;
         break;
@@ -322,7 +331,7 @@ void StudentWitch_UpdateAirAttack(struct EwramData_EntityData *entity)
         break;
     case 3:
         Anim_StartIndexed(entity, 7, 0, 1);
-        entity->state = 0;
+        entity->state = STUDENT_WITCH_STATE_WALK;
         entity->stage = 0;
         entity->subState = 0;
         break;
@@ -380,7 +389,7 @@ void EnemyStudentWitchCreate(struct EwramData_EntityData *entity)
     entity->spriteLayer = 0x13;
     Anim_StartIndexed(entity, 7, 0, 1);
     Anim_Update(entity);
-    if (gEwramData->gameState.bestiaryPreview) entity->state = 5;
+    if (gEwramData->gameState.bestiaryPreview) entity->state = STUDENT_WITCH_STATE_ANIM_ONLY;
     else
     {
         Hit_EnableContact(entity, 8, Enemy_OnContact, StudentWitch_OnHit);
@@ -388,7 +397,7 @@ void EnemyStudentWitchCreate(struct EwramData_EntityData *entity)
         Entity_SnapToGround(entity);
         entity->posY.part16.integer++;
         entity->scrollWithBg = 1;
-        entity->state = 0;
+        entity->state = STUDENT_WITCH_STATE_WALK;
     }
 }
 
@@ -405,13 +414,13 @@ void EnemyStudentWitchUpdate(struct EwramData_EntityData *entity)
     }
     switch (entity->state)
     {
-    case 0: StudentWitch_UpdateWalk(entity); break;
-    case 3: StudentWitch_UpdateGroundAttack(entity); break;
-    case 2: StudentWitch_UpdateAirAttack(entity); break;
+    case STUDENT_WITCH_STATE_WALK: StudentWitch_UpdateWalk(entity); break;
+    case STUDENT_WITCH_STATE_GROUND_ATTACK: StudentWitch_UpdateGroundAttack(entity); break;
+    case STUDENT_WITCH_STATE_AIR_ATTACK: StudentWitch_UpdateAirAttack(entity); break;
     case 4:
         if (StudentWitch_UpdateDeath(entity)) { EntityDelete(entity); return; }
         break;
-    case 5:
+    case STUDENT_WITCH_STATE_ANIM_ONLY:
         Anim_Update(entity);
         return;
     }

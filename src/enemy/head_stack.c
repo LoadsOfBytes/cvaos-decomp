@@ -17,6 +17,8 @@
 #include "obj_palette.h"
 #include "data/data_118B48.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 void HeadStackEffect_UpdateFallingPiece(struct EwramData_EntityData *);
 void HeadStackProjectile_DamagePlayerOnContact(struct EwramData_EntityData *entity);
@@ -103,7 +105,7 @@ void HeadStackEffect_UpdateEmitter(struct EwramData_EntityData *entity)
         {
             if (!(entity->timer & 0xF))
             {
-                struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, HeadStackEffect_UpdateFallingPiece);
+                struct EwramData_EntityData *effect = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, HeadStackEffect_UpdateFallingPiece);
                 if (effect != NULL)
                 {
                     effect->posX.part16.integer = entity->posX.part16.integer + RandomSigned(0x10);
@@ -186,7 +188,7 @@ void HeadStackEffect_UpdateAttack(struct EwramData_EntityData *entity)
         entity->objMode = 1;
         if (owner->ext.headStack.type != 0)
         {
-            child = EntityCreateInRange(0x49, 0xCF, HeadStackEffect_UpdateEmitter);
+            child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, HeadStackEffect_UpdateEmitter);
             if (child != NULL)
             {
                 child->posX.part16.integer = entity->posX.part16.integer;
@@ -197,15 +199,15 @@ void HeadStackEffect_UpdateAttack(struct EwramData_EntityData *entity)
         }
         Hit_Enable(entity, 8, HeadStackProjectile_DamagePlayerOnContact, 0);
         HitBox_SetAttackRaw(entity, 0x1032F8CE);
-        entity->hit.flags |= 2;
-        entity->hit.flags |= 4;
-        PlaySong(0x6E);
+        entity->hit.flags |= HIT_NO_ATTACK;
+        entity->hit.flags |= HIT_NO_DAMAGE;
+        PlaySong(SE_ENEMY_DEATH);
         entity->timer = 8;
         entity->state++;
     case 1:
         if (entity->animTimer == 0)
             if (entity->animStep == 4)
-                entity->hit.flags &= 0xFD;
+                entity->hit.flags &= (u8)~HIT_NO_ATTACK;
         break;
     }
     Hit_CheckWithPlayer(&result, entity);
@@ -252,7 +254,7 @@ void HeadStackProjectile_Update(struct EwramData_EntityData *entity)
         entity->timer = timer;
         if ((timer & 7) == 0)
         {
-            child = EntityCreateInRange(0x49, 0xCF, HeadStackEffect_UpdateParticle);
+            child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, HeadStackEffect_UpdateParticle);
             if (child != NULL)
             {
                 child->posX.part16.integer = entity->posX.part16.integer + RandomSigned(4);
@@ -312,7 +314,7 @@ void HeadStackSegment_UpdateAttack(struct EwramData_EntityData *entity)
     case 2:
         if (FRAME_PAIR(entity) == 2)
         {
-            spawned = EntityCreateInRange(0x49, 0xCF, HeadStackEffect_UpdateAttack);
+            spawned = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, HeadStackEffect_UpdateAttack);
             if (spawned != NULL)
             {
                 u16 off = 0xFFFC;
@@ -340,7 +342,7 @@ void HeadStackSegment_UpdateAttack(struct EwramData_EntityData *entity)
             offset = dx * 2;
             for (i = 2; i >= 0; i--)
             {
-                spawned = EntityCreateInRange(0x49, 0xCF, HeadStackEffect_UpdateParticle);
+                spawned = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, HeadStackEffect_UpdateParticle);
                 if (spawned != NULL)
                 {
                     spawned->posX.part16.integer = entity->posX.part16.integer + offset + RandomSigned(0x10);
@@ -363,7 +365,7 @@ void HeadStackSegment_UpdateAttack(struct EwramData_EntityData *entity)
     case 3:
         if (FRAME_PAIR(entity) == 2)
         {
-            spawned = EntityCreateInRange(0x49, 0xCF, HeadStackProjectile_Update);
+            spawned = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, HeadStackProjectile_Update);
             if (spawned != NULL)
             {
                 spawned->scrollWithBg = 1;
@@ -440,7 +442,7 @@ s32 HeadStackSegment_UpdateDeath(struct EwramData_EntityData *entity)
         PlaySong(0x6B);
         for (i = info->lastDebrisFrame; i >= info->firstDebrisFrame; i--)
         {
-            piece = EntityCreateInRange(0x49, 0xCF, HeadStackDebris_Update);
+            piece = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, HeadStackDebris_Update);
             if (piece != NULL)
             {
                 const struct HeadStackGraphics *t = &sUnk_081193DC[entity->ext.headStack.type];

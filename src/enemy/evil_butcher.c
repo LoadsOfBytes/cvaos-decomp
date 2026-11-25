@@ -21,10 +21,18 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "bg_and_collision.h"
+#include "constants/songs.h"
 
 
 void EvilButcherProjectile_OnHit(struct EwramData_EntityData *);
 void EvilButcher_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
+
+/* States of EvilButcher (entity->state), named after the update function the dispatcher calls. */
+enum {
+    EVIL_BUTCHER_STATE_WALK = 0,
+    EVIL_BUTCHER_STATE_THROW = 1,
+    EVIL_BUTCHER_STATE_ANIM_ONLY = 3,
+};
 
 /* Thrown projectile: flies sideways until it is destroyed (burst) or hits a
  * wall, then bounces off spinning and falls out of the screen. */
@@ -63,7 +71,7 @@ void EvilButcherProjectile_Update(struct EwramData_EntityData *entity)
             entity->ext.evilButcherProjectile.spin = -spin;
         }
     }
-        PlaySong(0x89);
+        PlaySong(SE_THROW);
         entity->state = 1;
         entity->hp = 1;
         Hit_Enable(entity, 10, Enemy_OnContactMask1, EvilButcherProjectile_OnHit);
@@ -200,7 +208,7 @@ void EvilButcher_UpdateWalk(struct EwramData_EntityData *entity)
     {
         if (Target_IsNearEntity(entity, 0xA0, 0x78))
         {
-            entity->state = 1;
+            entity->state = EVIL_BUTCHER_STATE_THROW;
             entity->stage = 0;
             entity->subState = 0;
             return;
@@ -258,7 +266,7 @@ void EvilButcher_UpdateThrow(struct EwramData_EntityData *entity)
         if (entity->animFlags & 4) entity->subState = 3;
         break;
     case 3:
-        entity->state = 0;
+        entity->state = EVIL_BUTCHER_STATE_WALK;
         entity->stage = 0;
         entity->subState = 0;
         Anim_StartIndexed(entity, 0, 0, 1);
@@ -280,7 +288,7 @@ s32 EvilButcher_UpdateDeath(struct EwramData_EntityData *entity)
     {
     case 0:
         PlaySong(0x1C1);
-        particle = EntityCreateInRange(0x49, 0xCF, EvilButcherDebris_Update);
+        particle = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, EvilButcherDebris_Update);
         if (particle != NULL)
         {
             offset = 0x120000;
@@ -304,7 +312,7 @@ s32 EvilButcher_UpdateDeath(struct EwramData_EntityData *entity)
             }
             else
             {
-                particle = EntityCreateInRange(0x49, 0xCF, EvilButcherDeathParticle_Update);
+                particle = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, EvilButcherDeathParticle_Update);
                 if (particle != NULL)
                 {
                     particle->posX.whole = entity->posX.whole + RandomSigned(0x80000);
@@ -338,7 +346,7 @@ void EnemyEvilButcherCreate(struct EwramData_EntityData *entity)
     Anim_StartIndexed(entity, 0, 0, 1);
     Anim_Update(entity);
     if (gEwramData->gameState.bestiaryPreview)
-        entity->state = 3;
+        entity->state = EVIL_BUTCHER_STATE_ANIM_ONLY;
     else
     {
         Entity_EnableBoxes(entity, Enemy_OnContact, EvilButcher_OnHit);
@@ -346,7 +354,7 @@ void EnemyEvilButcherCreate(struct EwramData_EntityData *entity)
         Entity_SnapToGround(entity);
         entity->posY.part16.integer++;
         entity->scrollWithBg = 1;
-        entity->state = 0;
+        entity->state = EVIL_BUTCHER_STATE_WALK;
     }
 }
 
@@ -383,8 +391,8 @@ void EnemyEvilButcherUpdate(struct EwramData_EntityData *entity)
     if (Enemy_PreUpdate(entity)) return;
     switch (entity->state)
     {
-    case 0: EvilButcher_UpdateWalk(entity); break;
-    case 1: EvilButcher_UpdateThrow(entity); break;
+    case EVIL_BUTCHER_STATE_WALK: EvilButcher_UpdateWalk(entity); break;
+    case EVIL_BUTCHER_STATE_THROW: EvilButcher_UpdateThrow(entity); break;
     case 2:
         if (EvilButcher_UpdateDeath(entity))
         {
@@ -392,7 +400,7 @@ void EnemyEvilButcherUpdate(struct EwramData_EntityData *entity)
             return;
         }
         break;
-    case 3:
+    case EVIL_BUTCHER_STATE_ANIM_ONLY:
         Anim_Update(entity);
         return;
     }

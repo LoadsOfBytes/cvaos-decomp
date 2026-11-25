@@ -29,6 +29,8 @@
 #include "hitbox.h"
 #include "soul_pickup.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 void BossRecoveryPickup_Draw(struct EwramData_EntityData *);
 
@@ -65,7 +67,7 @@ void BossDefeatParticle_Update(struct EwramData_EntityData *entity)
 /* Wider sweep variant restores the shared object graphics when it ends. */
 static inline void RestoreEffectGraphics(void)
 {
-    if(gEwramData->gameState.stateFlags & 8)
+    if(gEwramData->gameState.stateFlags & STATE_BOSS_DEFEAT_TILES)
     {
         u8 *graphics=sCommonObjectGfxTiles;
         s32 offset=ObjTiles_GetSlotTile((u8)ObjGfx_Find(graphics-4));
@@ -75,7 +77,7 @@ static inline void RestoreEffectGraphics(void)
         graphics+=0x200;
         second=(u32 *)((u8 *)VRAM_OBJ+0x400+offset);
         DmaQueue_IndirectCopy(0x200,(u32 *)graphics,second);
-        gEwramData->gameState.stateFlags&=~8;
+        gEwramData->gameState.stateFlags&=~STATE_BOSS_DEFEAT_TILES;
     }
 }
 /**
@@ -104,7 +106,7 @@ void BossDefeatEffect_Update(struct EwramData_EntityData *entity)
             {
                 if((entity->timer & 3)==0)
                 {
-                    struct EwramData_EntityData *particle=EntityCreateInRange(0x49,0xCF,BossDefeatParticle_Update);
+                    struct EwramData_EntityData *particle=EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST,BossDefeatParticle_Update);
                     if(particle)
                     {
                         s32 random,width,centerX;
@@ -134,7 +136,7 @@ void BossDefeatEffect_Update(struct EwramData_EntityData *entity)
             }
             else
             {
-                if(!(gEwramData->gameState.stateFlags & 0x10))
+                if(!(gEwramData->gameState.stateFlags & STATE_PLAYER_DEAD))
                 {
                     BgPalette_StopColorFade();
                     ObjPalette_StopColorFade();
@@ -162,7 +164,7 @@ finished:
 /* Same as BossDefeat_LoadEffectTiles. */
 static inline void BossDefeat_LoadEffectTilesOnce(void)
 {
-    if (!(gEwramData->gameState.stateFlags & 8))
+    if (!(gEwramData->gameState.stateFlags & STATE_BOSS_DEFEAT_TILES))
     {
         u8 *src = sDefeatEffectTiles;
         s32 tileOffset = ObjTiles_GetSlotTile((u8)ObjGfx_Find(sCommonObjectGfx)) * 32;
@@ -170,7 +172,7 @@ static inline void BossDefeat_LoadEffectTilesOnce(void)
         DmaQueue_IndirectCopy(0x200, (u32 *)src, (u32 *)(VRAM_BASE + 0x10000 + tileOffset));
         src += 0x200;
         DmaQueue_IndirectCopy(0x200, (u32 *)src, (u32 *)(VRAM_BASE + 0x10400 + tileOffset));
-        gEwramData->gameState.stateFlags |= 8;
+        gEwramData->gameState.stateFlags |= STATE_BOSS_DEFEAT_TILES;
     }
 }
 
@@ -181,11 +183,11 @@ static inline void BossDefeat_LoadEffectTilesOnce(void)
  */
 void BossDefeatEffect_Spawn(s32 x, s32 y)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, BossDefeatEffect_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, BossDefeatEffect_Update);
 
     if (child == NULL)
         return;
-    if (!(gEwramData->gameState.stateFlags & 0x10))
+    if (!(gEwramData->gameState.stateFlags & STATE_PLAYER_DEAD))
     {
         BgPalette_StartColorFade(0x1F, 0x1F, 0x1F, 0, 0x10000, 0x20);
         ObjPalette_StartColorFade(0x1F, 0x1F, 0x1F, 0x4000, 0x10000, 0x10);
@@ -229,7 +231,7 @@ void HeadhunterDefeatEffect_Update(struct EwramData_EntityData *entity)
             {
                 if((entity->timer & 3)==0)
                 {
-                    struct EwramData_EntityData *particle=EntityCreateInRange(0x49,0xCF,BossDefeatParticle_Update);
+                    struct EwramData_EntityData *particle=EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST,BossDefeatParticle_Update);
                     if(particle)
                     {
                         u32 random;
@@ -254,7 +256,7 @@ void HeadhunterDefeatEffect_Update(struct EwramData_EntityData *entity)
             }
             else
             {
-                if(!(gEwramData->gameState.stateFlags & 0x10))
+                if(!(gEwramData->gameState.stateFlags & STATE_PLAYER_DEAD))
                 {
                     BgPalette_StopColorFade();
                     ObjPalette_StopColorFade();
@@ -339,7 +341,7 @@ void ChaosDefeatEffect_Update(struct EwramData_EntityData *entity)
             {
                 if((entity->timer & 3)==0)
                 {
-                    struct EwramData_EntityData *particle=EntityCreateInRange(0x49,0xCF,ChaosDefeatParticle_Update);
+                    struct EwramData_EntityData *particle=EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST,ChaosDefeatParticle_Update);
                     if(particle)
                     {
                         s32 random,width,centerX;
@@ -369,7 +371,7 @@ void ChaosDefeatEffect_Update(struct EwramData_EntityData *entity)
             }
             else
             {
-                if(!(ewram->gameState.stateFlags & 0x10))
+                if(!(ewram->gameState.stateFlags & STATE_PLAYER_DEAD))
                 {
                     BgPalette_StopColorFade();
                     ObjPalette_StopColorFade();
@@ -487,7 +489,7 @@ void BossRecoveryPickup_Update(struct EwramData_EntityData *entity)
             if(!(entity->timer & 1) && SCALE(entity)<=0x7FFF)
             {
                 u16 angle=RandomNumberGenerator();
-                struct EwramData_EntityData *particle=EntityCreateInRange(0x49,0xCF,BossRecoveryPickupParticle_Update);
+                struct EwramData_EntityData *particle=EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST,BossRecoveryPickupParticle_Update);
                 if(particle)
                 {
                     particle->accelX.whole=entity->posX.whole+camera->xPos.whole;
@@ -506,7 +508,7 @@ void BossRecoveryPickup_Update(struct EwramData_EntityData *entity)
                 SCALE(entity)+=0x200;
             else
             {
-                entity->hit.flags&=~2;
+                entity->hit.flags&=~HIT_NO_ATTACK;
                 entity->state=3;
             }
             break;
@@ -583,7 +585,7 @@ void BossRecoveryPickup_Update(struct EwramData_EntityData *entity)
             if(EVENT(entity))
             {
                 gEwramData->gameState.bossEventFlags|=1<<EVENT(entity);
-                gEwramData->gameState.stateFlags&=~2;
+                gEwramData->gameState.stateFlags&=~STATE_BOSS_FIGHT;
             }
             break;
         }
@@ -618,15 +620,15 @@ void BossRecoveryPickup_Spawn(u16 x,u16 y,s32 event,s32 delay,s32 special)
 {
     struct EwramData_EntityData *entity;
     if(gEwramData->playerStatus.currentCharacter)
-        Music_SubmitCommandOnce(0x1040);
+        Music_SubmitCommandOnce(MUSIC_PLAYER_MUTE(0));
     if(gEwramData->gameState.bossRushMode)
         gEwramData->gameState.bossEventFlags|=1<<event;
     else if(!special && !gEwramData->playerStatus.currentCharacter)
     {
         gEwramData->gameState.bossEventFlags|=1<<event;
-        gEwramData->gameState.stateFlags&=~2;
+        gEwramData->gameState.stateFlags&=~STATE_BOSS_FIGHT;
     }
-    entity=EntityCreateInRange(0x49,0xCF,BossRecoveryPickup_Update);
+    entity=EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST,BossRecoveryPickup_Update);
     if(entity)
     {
         u16 sprite=ObjAffine_Alloc(1);
@@ -652,8 +654,8 @@ void BossRecoveryPickup_Spawn(u16 x,u16 y,s32 event,s32 delay,s32 special)
         entity->timer=delay;
         Hit_Enable(entity,11,0,0);
         HitBox_SetAttackRaw(entity,0x1010F8F8);
-        entity->hit.flags|=2;
-        entity->hit.flags|=4;
+        entity->hit.flags|=HIT_NO_ATTACK;
+        entity->hit.flags|=HIT_NO_DAMAGE;
         entity->hidden=1;
         if(!gEwramData->gameState.bossRushMode && gEwramData->playerStatus.currentCharacter)
             entity->spawnParam0=event;
@@ -671,7 +673,7 @@ void BossRecoveryPickup_Spawn(u16 x,u16 y,s32 event,s32 delay,s32 special)
  */
 void BossDefeat_LoadEffectTiles(void)
 {
-    if (!(gEwramData->gameState.stateFlags & 8))
+    if (!(gEwramData->gameState.stateFlags & STATE_BOSS_DEFEAT_TILES))
     {
         u8 *src = sDefeatEffectTiles;
         s32 tileOffset = ObjTiles_GetSlotTile((u8)ObjGfx_Find(sCommonObjectGfx)) * 32;
@@ -679,7 +681,7 @@ void BossDefeat_LoadEffectTiles(void)
         DmaQueue_IndirectCopy(0x200, (u32 *)src, (u32 *)(VRAM_BASE + 0x10000 + tileOffset));
         src += 0x200;
         DmaQueue_IndirectCopy(0x200, (u32 *)src, (u32 *)(VRAM_BASE + 0x10400 + tileOffset));
-        gEwramData->gameState.stateFlags |= 8;
+        gEwramData->gameState.stateFlags |= STATE_BOSS_DEFEAT_TILES;
     }
 }
 
@@ -689,7 +691,7 @@ void BossDefeat_LoadEffectTiles(void)
  */
 void BossDefeat_RestoreEffectTiles(void)
 {
-    if (gEwramData->gameState.stateFlags & 8)
+    if (gEwramData->gameState.stateFlags & STATE_BOSS_DEFEAT_TILES)
     {
         u8 *src = &sCommonObjectGfx[4];
         s32 tileOffset = ObjTiles_GetSlotTile((u8)ObjGfx_Find(src - 4)) * 32;
@@ -697,7 +699,7 @@ void BossDefeat_RestoreEffectTiles(void)
         DmaQueue_IndirectCopy(0x200, (u32 *)src, (u32 *)(VRAM_BASE + 0x10000 + tileOffset));
         src += 0x200;
         DmaQueue_IndirectCopy(0x200, (u32 *)src, (u32 *)(VRAM_BASE + 0x10400 + tileOffset));
-        gEwramData->gameState.stateFlags &= ~8;
+        gEwramData->gameState.stateFlags &= ~STATE_BOSS_DEFEAT_TILES;
     }
 }
 
@@ -713,7 +715,7 @@ void BossDefeat_RestoreEffectTiles(void)
  */
 void Headhunter_SpawnDefeatEffect(s32 x, s32 y)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, HeadhunterDefeatEffect_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, HeadhunterDefeatEffect_Update);
 
     if (child == NULL)
         return;
@@ -736,7 +738,7 @@ void Headhunter_SpawnDefeatEffect(s32 x, s32 y)
  */
 void Chaos_SpawnDefeatEffect(s32 x, s32 y)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, ChaosDefeatEffect_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, ChaosDefeatEffect_Update);
 
     if (child == NULL)
         return;

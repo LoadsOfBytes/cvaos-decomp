@@ -44,6 +44,7 @@
 #include "data/data_118B48.h"
 #include "structs/entity_template.h"
 #include "menu_common.h"
+#include "constants/game_flags.h"
 
 void (*sObjectCreateFuncs[56])(struct EwramData_EntityData *) = {
     [0] = GateCreate,
@@ -192,7 +193,7 @@ s32 RoomEntity_Spawn(struct RoomEntityRecord *record)
         return 0;
     }
 
-    child = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
+    child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, EntityUpdateNothing);
     if (child != 0)
     {
         x = record->x << 0x10;
@@ -558,8 +559,8 @@ void RoomEntity_PreloadEnemies(struct RoomEntityRecord *records)
         }
     }
 
-    entity = &gEwramData->entityData[0x1B];
-    for (j = 0; j < 0xB5; j++)
+    entity = &gEwramData->entityData[ENTITY_SLOT_OBJECT_FIRST];
+    for (j = 0; j < ENTITY_SLOT_RESERVED_FIRST - ENTITY_SLOT_OBJECT_FIRST; j++)
     {
         if (entity->updateFunc != NULL)
         {
@@ -569,13 +570,13 @@ void RoomEntity_PreloadEnemies(struct RoomEntityRecord *records)
                 {
                     ObjAffine_Free(entity->affineIndex);
                 }
-                EntityDelete(&gEwramData->entityData[0x1B + j]);
+                EntityDelete(&gEwramData->entityData[ENTITY_SLOT_OBJECT_FIRST + j]);
             }
             else
             {
                 entity->roomActive = 0;
                 entity->updateFunc(entity);
-                EntityDelete(&gEwramData->entityData[0x1B + j]);
+                EntityDelete(&gEwramData->entityData[ENTITY_SLOT_OBJECT_FIRST + j]);
             }
         }
         entity++;
@@ -623,7 +624,7 @@ void Room_Load(struct RoomDefinition *room, u16 cameraX, u16 cameraY)
         BgPalette_LoadRange((u8*)paletteLoad->resource, paletteLoad->sourceIndex, paletteLoad->count, paletteLoad->destinationIndex);
         paletteLoad += 1;
     }
-    if (gEwramData->gameState.stateFlags & 0x800)
+    if (gEwramData->gameState.stateFlags & STATE_ROOM_EFFECT)
     {
         BgPalette_ApplyTintedGrayscale();
     }
@@ -980,13 +981,13 @@ void AreaName_Show(struct GameState *gameState, s32 area)
  */
 s32 AreaName_Update(struct GameState *gameState)
 {
-    if (!(gEwramData->gameState.stateFlags & 0x80))
+    if (!(gEwramData->gameState.stateFlags & STATE_AREA_NAME_SHOWN))
     {
         return;
     }
 
     UpdateInGameTimer();
-    if ((gEwramData->gameState.stateFlags & 0x101) == 1)
+    if ((gEwramData->gameState.stateFlags & (STATE_EVENT_RUNNING | STATE_DOOR_ACTIVE)) == 1)
     {
         AreaName_Dismiss(gameState);
         return;
@@ -994,7 +995,7 @@ s32 AreaName_Update(struct GameState *gameState)
 
     if (gameState->areaNameState == 0)
     {
-        gEwramData->gameState.stateFlags |= 0x80;
+        gEwramData->gameState.stateFlags |= STATE_AREA_NAME_SHOWN;
         gUnk_03002CB0.dispCnt = gameState->currentRoomDefinition->displayControl;
         Game_SetMenusEnabled(0);
         gEwramData->paused = 1;
@@ -1045,7 +1046,7 @@ s32 AreaName_Update(struct GameState *gameState)
 
     else if (gameState->areaNameState == 4)
     {
-        gEwramData->gameState.stateFlags &= ~0x80;
+        gEwramData->gameState.stateFlags &= ~STATE_AREA_NAME_SHOWN;
         gEwramData->startPauseEnabled = 1;
         gEwramData->paused = 0;
         gameState->areaNameState = 0;
@@ -1083,14 +1084,14 @@ void AreaName_Hide(struct GameState *gameState)
     gDisplayRegisters.winOut_L = WIN0_ALL;
 }
 
-static inline void GameState_ClearFlag80()
+static inline void GameState_ClearAreaNameShown()
 {
-    gEwramData->gameState.stateFlags &= ~0x80;
+    gEwramData->gameState.stateFlags &= ~STATE_AREA_NAME_SHOWN;
 }
 
-static inline void GameState_SetFlag100000()
+static inline void GameState_SetRoomTransition()
 {
-    gEwramData->gameState.stateFlags |= 0x100000;
+    gEwramData->gameState.stateFlags |= STATE_ROOM_TRANSITION;
 }
 
 /**
@@ -1100,10 +1101,10 @@ static inline void GameState_SetFlag100000()
  */
 void RoomTransition_Begin(struct GameState *gameState)
 {
-    if (gEwramData->gameState.stateFlags & 0x80)
+    if (gEwramData->gameState.stateFlags & STATE_AREA_NAME_SHOWN)
     {
         AreaName_Hide(gameState);
-        GameState_ClearFlag80();
+        GameState_ClearAreaNameShown();
     }
     gameState->subMode = 3;
     gameState->subModeStep = 0;
@@ -1115,7 +1116,7 @@ void RoomTransition_Begin(struct GameState *gameState)
 
     gEwramData->startPauseEnabled = 0;
     gEwramData->paused = 1;
-    GameState_SetFlag100000();
+    GameState_SetRoomTransition();
 
     if (gEwramData->playerState.player->posY.part16.integer >= 0x31 && gEwramData->playerState.player->posY.part16.integer <= 0xCF)
     {
@@ -1292,7 +1293,7 @@ s32 RoomTransition_Update(struct GameState *gameState)
         {
             if ((AreaName_GetPendingArea(gameState) >= 0) && (AreaName_GetPendingArea(gameState) <= 0xC))
             {
-                gEwramData->gameState.stateFlags |= 0x80;
+                gEwramData->gameState.stateFlags |= STATE_AREA_NAME_SHOWN;
             }
 
             gUnk_03002CB0.dispCnt = gameState->currentRoomDefinition->displayControl;
@@ -1306,7 +1307,7 @@ s32 RoomTransition_Update(struct GameState *gameState)
             gEwramData->paused = 0;
             gameState->subModeStep += 1;
             Room_StoreEntryPosition(gameState);
-            gEwramData->gameState.stateFlags &= 0xFFEFFFFF;
+            gEwramData->gameState.stateFlags &= ~STATE_ROOM_TRANSITION;
 
             bgLayer = &gEwramData->bgInfo[1];
             xOffset = bgLayer->xPos.part8.integer1;
@@ -1314,11 +1315,11 @@ s32 RoomTransition_Update(struct GameState *gameState)
             area = GetAreaFromMapPosition(xOffset, yOffset);
             if ((GetRoomFromMapPosition(xOffset, yOffset) == 5) && (area == 5))
             {
-                GameFlag_Set((1 << 5) | 0x1D);
+                GameFlag_Set(FLAG_FLOATING_GARDEN_ROOM5);
             }
             else if ((GetRoomFromMapPosition(xOffset, yOffset) == 1) && (area == 5))
             {
-                GameFlag_Set((1 << 5) | 0x1C);
+                GameFlag_Set(FLAG_FLOATING_GARDEN_ROOM1);
             }
         }
     }
@@ -1470,7 +1471,7 @@ void Room_LoadPalettes(struct RoomDefinition *room)
         BgPalette_LoadRange((u8 *)load->resource, load->sourceIndex, load->count, load->destinationIndex);
         load += 1;
     }
-    if (gEwramData->gameState.stateFlags & 0x800)
+    if (gEwramData->gameState.stateFlags & STATE_ROOM_EFFECT)
     {
         BgPalette_ApplyTintedGrayscale();
     }
@@ -1482,11 +1483,11 @@ void Room_LoadPalettes(struct RoomDefinition *room)
 void AreaName_Dismiss(struct GameState *gameState)
 {
     // TODO: Inline for RoomTransition_Begin?
-    if (gEwramData->gameState.stateFlags & 0x80)
+    if (gEwramData->gameState.stateFlags & STATE_AREA_NAME_SHOWN)
     {
         AreaName_Hide(gameState);
-        // TODO: does this use GameState_ClearFlag80?
-        gEwramData->gameState.stateFlags &= ~0x80;
+        // TODO: does this use GameState_ClearAreaNameShown?
+        gEwramData->gameState.stateFlags &= ~STATE_AREA_NAME_SHOWN;
     }
 }
 

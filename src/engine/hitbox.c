@@ -13,6 +13,7 @@
 #include "structs/entity_boxes.h"
 #include "entity_hit.h"
 #include "data/data_0E1CD0.h"
+#include "constants/hit_flags.h"
 
 struct Rect16 { s16 left; s16 top; s16 right; s16 bottom; };
 
@@ -408,7 +409,7 @@ s32 HitBox_GetBoxes(struct SpriteBox *attack, struct SpriteBox *body, struct Ewr
     struct SpriteBox *src;
     struct EntityHit *hit = &entity->hit;
 
-    if (hit->flags & 1)
+    if (hit->flags & HIT_ACTIVE)
     {
         src = &gEntityBoxes[entity->hit.boxSlot].attack.box;
         attack->x = src->x;
@@ -445,7 +446,7 @@ u32 Hit_CheckPair(struct HitResult *res, u8 *a, u8 *b)
     res->typeA = 0;
     res->resB = 0;
     res->resA = 0;
-    if (!(ia->flags & 4) && !(ib->flags & 2)
+    if (!(ia->flags & HIT_NO_DAMAGE) && !(ib->flags & HIT_NO_ATTACK)
         && (type = ib->type, ia->hitBy[0] != type) && ia->hitBy[1] != type && ia->hitBy[2] != type
         && (ia->hitBy[0] == 0 || ia->hitBy[1] == 0 || ia->hitBy[2] == 0))
     {
@@ -457,7 +458,7 @@ u32 Hit_CheckPair(struct HitResult *res, u8 *a, u8 *b)
             res->resA = r;
         }
     }
-    if (!(ia->flags & 2) && !(ib->flags & 4)
+    if (!(ia->flags & HIT_NO_ATTACK) && !(ib->flags & HIT_NO_DAMAGE)
         && (type = ia->type, ib->hitBy[0] != type) && ib->hitBy[1] != type && ib->hitBy[2] != type
         && (ib->hitBy[0] == 0 || ib->hitBy[1] == 0 || ib->hitBy[2] == 0))
     {
@@ -522,7 +523,7 @@ u16 Hit_CheckWithPlayer(struct HitResult *res, struct EwramData_EntityData *enti
     res->typeB = 0;
     res->typeA = 0;
     res->resA = 0;
-    if (!(pi->flags & 4) && !(ib->flags & 2)
+    if (!(pi->flags & HIT_NO_DAMAGE) && !(ib->flags & HIT_NO_ATTACK)
         && (type0 = ib->type, pi->hitBy[0] != type0) && pi->hitBy[1] != type0 && pi->hitBy[2] != type0
         && (pi->hitBy[0] == 0 || pi->hitBy[1] == 0 || pi->hitBy[2] == 0))
     {
@@ -534,7 +535,7 @@ u16 Hit_CheckWithPlayer(struct HitResult *res, struct EwramData_EntityData *enti
             res->resA = r;
         }
     }
-    if (!(pi->flags & 2) && !(ib->flags & 4)
+    if (!(pi->flags & HIT_NO_ATTACK) && !(ib->flags & HIT_NO_DAMAGE)
         && (type1 = pi->type) > 1 && ib->hitBy[0] != type1 && ib->hitBy[1] != type1 && ib->hitBy[2] != type1
         && (ib->hitBy[0] == 0 || ib->hitBy[1] == 0 || ib->hitBy[2] == 0))
     {
@@ -551,12 +552,12 @@ u16 Hit_CheckWithPlayer(struct HitResult *res, struct EwramData_EntityData *enti
     }
     if (!(res->flags & 2))
     {
-        if (!(ib->flags & 4) && gEwramData->playerState.weaponEntities[0] != NULL)
+        if (!(ib->flags & HIT_NO_DAMAGE) && gEwramData->playerState.weaponEntities[0] != NULL)
         {
             e = (u8 *)gEwramData->playerState.weaponEntities[0];
             ie = INFO(e);
             hb0 = &gEntityBoxes[e[0x73]];
-            if (!(ie->flags & 2)
+            if (!(ie->flags & HIT_NO_ATTACK)
                 && (type2 = ie->type, ib->hitBy[0] != type2) && ib->hitBy[1] != type2 && ib->hitBy[2] != type2
                 && (ib->hitBy[0] == 0 || ib->hitBy[1] == 0 || ib->hitBy[2] == 0)
                 && Hit_Check(e, b))
@@ -571,7 +572,7 @@ u16 Hit_CheckWithPlayer(struct HitResult *res, struct EwramData_EntityData *enti
                     ib->onHurt(b, e, res);
             }
         }
-        if (!(res->flags & 2) && !(ib->flags & 4))
+        if (!(res->flags & 2) && !(ib->flags & HIT_NO_DAMAGE))
         {
             for (i = 0; i < 8; i++)
             {
@@ -580,7 +581,7 @@ u16 Hit_CheckWithPlayer(struct HitResult *res, struct EwramData_EntityData *enti
                     continue;
                 ie = INFO(e);
                 hb = &gEntityBoxes[e[0x73]];
-                if (ie->flags & 2)
+                if (ie->flags & HIT_NO_ATTACK)
                     continue;
                 type3 = ie->type;
                 if (ib->hitBy[0] == type3 || ib->hitBy[1] == type3 || ib->hitBy[2] == type3)
@@ -601,7 +602,7 @@ u16 Hit_CheckWithPlayer(struct HitResult *res, struct EwramData_EntityData *enti
             }
         }
     }
-    if (!(res->flags & 0xA) && !(ib->flags & 4))
+    if (!(res->flags & 0xA) && !(ib->flags & HIT_NO_DAMAGE))
     {
         for (i = 0; i < 8; i++)
         {
@@ -719,7 +720,7 @@ void Hit_UpdateTimers(struct EwramData_EntityData *entity)
 {
     struct EntityHit *hit = &entity->hit;
 
-    if (hit->flags & 1)
+    if (hit->flags & HIT_ACTIVE)
     {
         if (hit->hitTimer[0] != 0)
         {
@@ -807,7 +808,7 @@ s32 Hit_Enable(struct EwramData_EntityData *entity, s32 type, void *onHit, void 
 
     hit->type = type;
     hit->noContactDamage = 1;
-    hit->flags = 1;
+    hit->flags = HIT_ACTIVE;
     hit->boxSlot = EntityGetSlot(entity);
     hit->hitBy[2] = 0;
     hit->hitBy[1] = 0;
@@ -835,7 +836,7 @@ s32 Hit_EnableContact(struct EwramData_EntityData *entity, s32 type, void *onHit
 
     hit->type = type;
     hit->noContactDamage = 0;
-    hit->flags = 1;
+    hit->flags = HIT_ACTIVE;
     hit->boxSlot = EntityGetSlot(entity);
     hit->hitBy[2] = 0;
     hit->hitBy[1] = 0;
@@ -864,7 +865,7 @@ s32 Hit_EnableContactEx(struct EwramData_EntityData *entity, s32 type, s32 unuse
 
     hit->type = type;
     hit->noContactDamage = 0;
-    hit->flags = 1;
+    hit->flags = HIT_ACTIVE;
     hit->boxSlot = EntityGetSlot(entity);
     hit->hitBy[2] = 0;
     hit->hitBy[1] = 0;
@@ -910,7 +911,7 @@ s32 HitBox_SetAttack(struct EwramData_EntityData *entity, void *box)
 {
     struct EntityHit *hit = &entity->hit;
 
-    if (hit->flags & 1)
+    if (hit->flags & HIT_ACTIVE)
     {
         struct EntityBoxes *dst = &gEntityBoxes[entity->hit.boxSlot];
         struct SpriteBox *src = box;
@@ -936,7 +937,7 @@ s32 HitBox_SetAttackRaw(struct EwramData_EntityData *entity, s32 box)
 {
     struct EntityHit *hit = &entity->hit;
 
-    if (hit->flags & 1)
+    if (hit->flags & HIT_ACTIVE)
     {
         struct EntityBoxes *dst = &gEntityBoxes[entity->hit.boxSlot];
         dst->attack.raw = box;
@@ -956,7 +957,7 @@ s32 HitBox_SetBody(struct EwramData_EntityData *entity, void *box)
 {
     struct EntityHit *hit = &entity->hit;
 
-    if (hit->flags & 1)
+    if (hit->flags & HIT_ACTIVE)
     {
         struct SpriteBox *dst = &(gEntityBoxes + entity->hit.boxSlot)->body.box;
         struct SpriteBox *src = box;
@@ -981,7 +982,7 @@ s32 HitBox_SetBodyRaw(struct EwramData_EntityData *entity, s32 box)
 {
     struct EntityHit *hit = &entity->hit;
 
-    if (hit->flags & 1)
+    if (hit->flags & HIT_ACTIVE)
     {
         union EntityBox *dst = &(gEntityBoxes + entity->hit.boxSlot)->body;
 

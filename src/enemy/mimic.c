@@ -18,6 +18,7 @@
 #include "data/data_118B48.h"
 #include "damage_numbers.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
 
 void Mimic_UpdateWait(struct EwramData_EntityData *);
 void Mimic_UpdatePreview(struct EwramData_EntityData *);
@@ -27,6 +28,13 @@ void Mimic_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDat
 void Mimic_SpawnTrigger(struct EwramData_EntityData *, s32, s32);
 void MimicTrigger_Update(struct EwramData_EntityData *);
 void MimicTrigger_OnHit(struct EwramData_EntityData *, s32, u16 *);
+
+/* States of Mimic (entity->state), named after the update function the dispatcher calls. */
+enum {
+    MIMIC_STATE_WAIT = 0,
+    MIMIC_STATE_FRAGMENT_DEATH = 1,
+    MIMIC_STATE_PREVIEW = 2,
+};
 
 /* Mimic: dispatch state, refresh the box on frame changes and run collision. */
 void EnemyMimicUpdate(struct EwramData_EntityData *entity)
@@ -38,9 +46,9 @@ void EnemyMimicUpdate(struct EwramData_EntityData *entity)
     if (Enemy_PreUpdate(entity)) return;
     switch (entity->state)
     {
-    case 0: Mimic_UpdateWait(entity); break;
-    case 1: Enemy_UpdateFragmentDeath(entity); break;
-    case 2:
+    case MIMIC_STATE_WAIT: Mimic_UpdateWait(entity); break;
+    case MIMIC_STATE_FRAGMENT_DEATH: Enemy_UpdateFragmentDeath(entity); break;
+    case MIMIC_STATE_PREVIEW:
         Mimic_UpdatePreview(entity);
         Anim_Update(entity);
         return;
@@ -66,7 +74,7 @@ void EnemyMimicCreate(struct EwramData_EntityData *entity)
     entity->flipX = 0;
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 2;
+        entity->state = MIMIC_STATE_PREVIEW;
         Anim_StartIndexed(entity, 0, 0, 0);
         Anim_Update(entity);
         return;
@@ -80,9 +88,9 @@ void EnemyMimicCreate(struct EwramData_EntityData *entity)
         entity->animFrame = 0;
         HitBox_SetBody(entity, &box);
         HitBox_SetAttack(entity, &box);
-        entity->hit.flags &= ~4;
-        entity->hit.flags |= 2;
-        entity->state = 0;
+        entity->hit.flags &= ~HIT_NO_DAMAGE;
+        entity->hit.flags |= HIT_NO_ATTACK;
+        entity->state = MIMIC_STATE_WAIT;
         entity->subState = 3;
         Entity_SnapToGround(entity);
     }
@@ -93,7 +101,7 @@ void EnemyMimicCreate(struct EwramData_EntityData *entity)
         entity->hidden = 1;
         Mimic_SpawnTrigger(entity, 0, 0);
         Entity_UpdateBoxes(entity);
-        entity->state = 0;
+        entity->state = MIMIC_STATE_WAIT;
         entity->subState = 0;
     }
 }
@@ -128,8 +136,8 @@ void Mimic_UpdateWait(struct EwramData_EntityData *entity)
             entity->subState++;
             HitBox_SetBody(entity, &box);
             HitBox_SetAttack(entity, &box);
-            entity->hit.flags &= 0xFB;
-            entity->hit.flags |= 2;
+            entity->hit.flags &= (u8)~HIT_NO_DAMAGE;
+            entity->hit.flags |= HIT_NO_ATTACK;
         }
         break;
     case 3:
@@ -179,7 +187,7 @@ void Mimic_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDat
         else Anim_StartIndexed(entity, 2, 0, 0);
         entity->palette = entity->basePalette;
         entity->timer = 0x28;
-        entity->state = 1;
+        entity->state = MIMIC_STATE_FRAGMENT_DEATH;
         entity->subState = 0;
     }
 }
@@ -196,7 +204,7 @@ void Mimic_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDat
  */
 void Mimic_SpawnTrigger(struct EwramData_EntityData *owner, s32 x, s32 y)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, MimicTrigger_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, MimicTrigger_Update);
     u32 box = 0x100CF8FA;
     s32 graphics;
 
@@ -211,8 +219,8 @@ void Mimic_SpawnTrigger(struct EwramData_EntityData *owner, s32 x, s32 y)
     Anim_Update(child);
     Hit_Enable(child, 8, NULL, MimicTrigger_OnHit);
     HitBox_SetBody(child, &box);
-    child->hit.flags &= ~4;
-    child->hit.flags |= 2;
+    child->hit.flags &= ~HIT_NO_DAMAGE;
+    child->hit.flags |= HIT_NO_ATTACK;
     child->ext.mimicTrigger.owner = owner;
     child->enemyId = owner->enemyId;
     child->scrollWithBg = 1;

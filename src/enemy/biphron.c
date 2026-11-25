@@ -18,6 +18,8 @@
 #include "data/data_4F1444.h"
 #include "damage_numbers.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 u8 Biphron_LoadGraphics(struct EwramData_EntityData *entity);
 void Biphron_DamagePlayerOnContact(struct EwramData_EntityData *entity);
@@ -31,6 +33,14 @@ void BiphronShot_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
  *   EnemyBiphronCreate = EnemySkeletonKnightCreate */
+
+/* States of Biphron (entity->state), named after the update function the dispatcher calls. */
+enum {
+    BIPHRON_STATE_WALK = 0,
+    BIPHRON_STATE_ATTACK = 1,
+    BIPHRON_STATE_DEATH = 2,
+    BIPHRON_STATE_ANIM_ONLY = 3,
+};
 
 /**
  * @brief 99C5C | Same as EnemySkeletonKnightCreate.
@@ -47,7 +57,7 @@ void EnemyBiphronCreate(struct EwramData_EntityData *entity)
     Enemy_ResetFromTemplate(entity);
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 3;
+        entity->state = BIPHRON_STATE_ANIM_ONLY;
         return;
     }
     if (Anim_GetMaxBoxCount(entity) > 1)
@@ -56,7 +66,7 @@ void EnemyBiphronCreate(struct EwramData_EntityData *entity)
         Hit_Enable(entity, 8, Biphron_DamagePlayerOnContact, Biphron_OnHit);
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
-    entity->state = 0;
+    entity->state = BIPHRON_STATE_WALK;
 }
 
 /* Walking motion with a delayed chance to begin the nearby-player action. */
@@ -83,7 +93,7 @@ void Biphron_UpdateWalk(struct EwramData_EntityData *entity)
                 {
                     if ((RandomNumberGenerator() & 127) <= 47)
                     {
-                        entity->state = 1;
+                        entity->state = BIPHRON_STATE_ATTACK;
                         entity->subState = 0;
                     }
                 }
@@ -131,7 +141,7 @@ void Biphron_UpdateDeath(struct EwramData_EntityData *entity)
             x = x + entity->posX.whole + (RandomNumberGenerator() & 0xFFFFF) - 0x80000;
             y = entity->posY.whole - 0x80000;
             Biphron_SpawnDebris(entity, x, y, entity->spriteLayer - 1, 4);
-            PlaySong(0x6E);
+            PlaySong(SE_ENEMY_DEATH);
         }
         entity->hidden = Entity_GetVisibilityPattern(entity->timer);
         if ((s8)--entity->timer <= 0)
@@ -166,7 +176,7 @@ void Biphron_UpdateAttack(struct EwramData_EntityData *entity)
             if (entity->animDone)
             {
                 Anim_StartIndexed(entity, 0, 0, 1);
-                entity->state = 0;
+                entity->state = BIPHRON_STATE_WALK;
                 entity->subState = 0;
             }
             break;
@@ -198,7 +208,7 @@ void Biphron_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
         Anim_StartIndexed(entity, 3, 0, 0);
         entity->palette = entity->basePalette;
         entity->timer = 0;
-        entity->state = 2;
+        entity->state = BIPHRON_STATE_DEATH;
         entity->subState = 0;
     }
 }
@@ -210,7 +220,7 @@ void Biphron_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
  */
 void Biphron_ThrowShot(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, BiphronShot_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, BiphronShot_Update);
     struct SpriteBox box = { -5, -14, 0x14, 0x0E };
     s32 gfx;
 
@@ -225,8 +235,8 @@ void Biphron_ThrowShot(struct EwramData_EntityData *entity, s32 offsetX, s32 off
         child->hidden = 1;
         Hit_Enable(child, 8, BiphronShot_DamagePlayerOnContact, 0);
         HitBox_SetAttack(child, &box);
-        child->hit.flags |= 4;
-        child->hit.flags &= ~2;
+        child->hit.flags |= HIT_NO_DAMAGE;
+        child->hit.flags &= ~HIT_NO_ATTACK;
         Entity_SnapToGround(child);
         child->enemyId = entity->enemyId;
         child->attack = entity->attack;
@@ -248,7 +258,7 @@ void Biphron_ThrowShot(struct EwramData_EntityData *entity, s32 offsetX, s32 off
  */
 void BiphronShot_SpawnFlame(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, BiphronFlame_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, BiphronFlame_Update);
     s32 gfx;
 
     if (child != NULL)
@@ -261,8 +271,8 @@ void BiphronShot_SpawnFlame(struct EwramData_EntityData *entity, s32 offsetX, s3
         Sprite_Attach(child, sBiphronSpriteSheet, gfx, child->basePalette);
         Anim_Start(child, (struct AnimScript *)sBiphronShotAnimScript, 0, 0);
         Anim_Update(child);
-        child->hit.flags |= 4;
-        child->hit.flags |= 2;
+        child->hit.flags |= HIT_NO_DAMAGE;
+        child->hit.flags |= HIT_NO_ATTACK;
         child->enemyId = entity->enemyId;
         child->scrollWithBg = 1;
         child->drawFunc = Sprite_DrawEntity;
@@ -362,7 +372,7 @@ void BiphronShot_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 
 void Biphron_SpawnDebris(struct EwramData_EntityData *parent, s32 x, s32 y, s32 layer, s32 mode)
 {
-    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticle);
+    struct EwramData_EntityData *effect = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateParticle);
     if (effect != NULL)
     {
         s32 slot;
@@ -425,16 +435,16 @@ void EnemyBiphronUpdate(struct EwramData_EntityData *entity)
         return;
     switch (entity->state)
     {
-        case 0:
+        case BIPHRON_STATE_WALK:
             Biphron_UpdateWalk(entity);
             break;
-        case 1:
+        case BIPHRON_STATE_ATTACK:
             Biphron_UpdateAttack(entity);
             break;
-        case 2:
+        case BIPHRON_STATE_DEATH:
             Biphron_UpdateDeath(entity);
             break;
-        case 3:
+        case BIPHRON_STATE_ANIM_ONLY:
             Anim_Update(entity);
             return;
     }

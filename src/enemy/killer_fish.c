@@ -20,6 +20,7 @@
 #include "data/data_118B48.h"
 #include "damage_numbers.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
 
 extern s32 Entity_MoveWithBoxCollision(struct EwramData_EntityData *, s32, s32, s32, s32, s32, s32);
 
@@ -39,11 +40,20 @@ void KillerFishSwarm_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void KillerFishSwarm_OnHit(struct EwramData_EntityData *entity, void *attacker, u16 *hit);
 void KillerFishEffect_UpdateOscillating(struct EwramData_EntityData *);
 
+/* States of KillerFish (entity->state), named after the update function the dispatcher calls. */
+enum {
+    KILLER_FISH_STATE_SWIMMING = 0,
+    KILLER_FISH_STATE_ATTACK = 1,
+    KILLER_FISH_STATE_DEATH = 2,
+    KILLER_FISH_STATE_FRAGMENT_DEATH = 3,
+    KILLER_FISH_STATE_ANIM_ONLY = 5,
+};
+
 /* Dispatch Killer Fish states and refresh its frame-dependent collision data. */
 void EnemyKillerFishUpdate(struct EwramData_EntityData *entity)
 {
     struct HitResult result;
-    if (entity->state != 2)
+    if (entity->state != KILLER_FISH_STATE_DEATH)
     {
         if (EntityIsOutsideScreen(entity, 4)) return;
         if (Entity_IsInRect(entity, -16, 0, 272, 176))
@@ -59,12 +69,12 @@ void EnemyKillerFishUpdate(struct EwramData_EntityData *entity)
     }
     switch (entity->state)
     {
-    case 0: KillerFish_UpdateSwimming(entity); break;
-    case 1: KillerFish_UpdateAttack(entity); break;
-    case 2: KillerFish_UpdateDeath(entity); break;
-    case 3: Enemy_UpdateFragmentDeath(entity); break;
+    case KILLER_FISH_STATE_SWIMMING: KillerFish_UpdateSwimming(entity); break;
+    case KILLER_FISH_STATE_ATTACK: KillerFish_UpdateAttack(entity); break;
+    case KILLER_FISH_STATE_DEATH: KillerFish_UpdateDeath(entity); break;
+    case KILLER_FISH_STATE_FRAGMENT_DEATH: Enemy_UpdateFragmentDeath(entity); break;
     case 4: entity->deleteRequested = 1; return;
-    case 5: Anim_Update(entity); return;
+    case KILLER_FISH_STATE_ANIM_ONLY: Anim_Update(entity); return;
     }
     {
         u8 *frame = &entity->animFrame;
@@ -97,7 +107,7 @@ void EnemyKillerFishCreate(struct EwramData_EntityData *entity)
     Anim_Update(entity);
     Enemy_ResetFromTemplate(entity);
     if (gEwramData->gameState.bestiaryPreview)
-        entity->state = 5;
+        entity->state = KILLER_FISH_STATE_ANIM_ONLY;
     else
     {
         Entity_EnableBoxes(entity, KillerFish_DamagePlayerOnContact, KillerFish_OnHit);
@@ -113,7 +123,7 @@ void EnemyKillerFishCreate(struct EwramData_EntityData *entity)
         {
             FillParts(entity);
         }
-        entity->state = 0;
+        entity->state = KILLER_FISH_STATE_SWIMMING;
     }
 }
 
@@ -220,7 +230,7 @@ void KillerFish_UpdateSwimming(struct EwramData_EntityData *entity)
         {
             if (TileAt(entity, bg) == 3 && Target_IsWithinDistance(entity, 0x500000))
             {
-                entity->state = 1;
+                entity->state = KILLER_FISH_STATE_ATTACK;
                 entity->subState = 0;
             }
         }
@@ -325,7 +335,7 @@ void KillerFish_UpdateAttack(struct EwramData_EntityData *entity)
         CorrectSurface(entity, Entity_MoveAndCollide(entity, 0x80000, -0x70000, 1, 0x40000));
         if (entity->timer++ > 29)
         {
-            entity->state = 0;
+            entity->state = KILLER_FISH_STATE_SWIMMING;
             entity->subState = 0;
             Anim_StartIndexed(entity, 1, 0, 1);
         }
@@ -401,8 +411,8 @@ void KillerFish_OnHit(struct EwramData_EntityData *entity, struct EwramData_Enti
         Anim_Update(entity);
         entity->palette = entity->basePalette;
         entity->timer = 40;
-        if (entity->subState == 99) entity->state = 3;
-        else entity->state = 2;
+        if (entity->subState == 99) entity->state = KILLER_FISH_STATE_FRAGMENT_DEATH;
+        else entity->state = KILLER_FISH_STATE_DEATH;
         entity->subState = 0;
         entity->spawnIndex = 255;
     }
@@ -424,7 +434,7 @@ static inline void SetRelativePosition(struct EwramData_EntityData *parent, stru
  */
 void KillerFish_SpawnSwarmFish(struct EwramData_EntityData *parent)
 {
-    struct EwramData_EntityData *part = EntityCreateInRange(0x1B, 0x48, KillerFishSwarm_Update);
+    struct EwramData_EntityData *part = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, KillerFishSwarm_Update);
     if (part)
     {
         if (!KillerFishSwarm_LoadGraphics(parent, part)) EntityDelete(part);
@@ -665,8 +675,8 @@ void KillerFishSwarm_EnableHitBoxes(struct EwramData_EntityData *entity)
     Hit_Enable(entity, 8, KillerFishSwarm_DamagePlayerOnContact, KillerFishSwarm_OnHit);
     HitBox_SetBody(entity, &box);
     HitBox_SetAttack(entity, &box);
-    entity->hit.flags &= ~4;
-    entity->hit.flags &= ~2;
+    entity->hit.flags &= ~HIT_NO_DAMAGE;
+    entity->hit.flags &= ~HIT_NO_ATTACK;
 }
 
 /* Create an oscillating Killer Fish effect with supplied position and velocity. */
@@ -675,7 +685,7 @@ void KillerFishSwarm_EnableHitBoxes(struct EwramData_EntityData *entity)
  */
 void KillerFish_SpawnOscillatingEffect(struct EwramData_EntityData *parent, s32 x, s32 y, s32 frame, s32 vx, s32 vy)
 {
-    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, KillerFishEffect_UpdateOscillating);
+    struct EwramData_EntityData *part = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, KillerFishEffect_UpdateOscillating);
     struct BgLayerState *background = &gEwramData->bgInfo[1];
     if (part)
     {
@@ -804,7 +814,7 @@ void KillerFishSwarm_OnHit(struct EwramData_EntityData *entity, void *attacker, 
  */
 void KillerFish_SpawnRisingSprite(struct EwramData_EntityData *parent, s32 x, s32 y, s32 frame)
 {
-    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, KillerFishEffect_UpdateRising);
+    struct EwramData_EntityData *part = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, KillerFishEffect_UpdateRising);
     if (part)
     {
         s32 graphics;

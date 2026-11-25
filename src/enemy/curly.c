@@ -16,10 +16,19 @@
 #include "damage_numbers.h"
 #include "entity_motion.h"
 #include "hitbox.h"
+#include "constants/songs.h"
 
 u8 Curly_LoadGraphics(struct EwramData_EntityData *);
 void Curly_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void Curly_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
+
+/* States of Curly (entity->state), named after the update function the dispatcher calls. */
+enum {
+    CURLY_STATE_WALK = 0,
+    CURLY_STATE_ATTACK = 1,
+    CURLY_STATE_FRAGMENT_DEATH = 2,
+    CURLY_STATE_ANIM_ONLY = 3,
+};
 
 void EnemyCurlyCreate(struct EwramData_EntityData *entity)
 {
@@ -33,7 +42,7 @@ void EnemyCurlyCreate(struct EwramData_EntityData *entity)
     Enemy_ResetFromTemplate(entity);
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 3;
+        entity->state = CURLY_STATE_ANIM_ONLY;
         return;
     }
     if (Anim_GetMaxBoxCount(entity) > 1)
@@ -42,7 +51,7 @@ void EnemyCurlyCreate(struct EwramData_EntityData *entity)
         Hit_Enable(entity, 8, Curly_DamagePlayerOnContact, Curly_OnHit);
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
-    entity->state = 0;
+    entity->state = CURLY_STATE_WALK;
     entity->velY.whole = 0x10000;
     entity->accelY.whole = 0x2800;
 }
@@ -96,7 +105,7 @@ void Curly_UpdateWalk(struct EwramData_EntityData *entity)
             entity->velX.whole = 0;
         }
         if (*(u16 *)&entity->animStep == 4)
-            PlaySong(0x85);
+            PlaySong(SE_SWING);
         res = Entity_MoveWithCollision(entity, 0x10000, -0x200000, 0x80000, 8);
         if (!(res & 4))
             break;
@@ -142,7 +151,7 @@ void Curly_UpdateWalk(struct EwramData_EntityData *entity)
             entity->velX.whole = 0;
         }
         if (*(u16 *)&entity->animStep == 4)
-            PlaySong(0x85);
+            PlaySong(SE_SWING);
         Entity_MoveWithCollision(entity, 0x10000, -0x200000, 0x80000, 8);
         break;
     }
@@ -175,7 +184,7 @@ void Curly_UpdateAttack(struct EwramData_EntityData *entity)
     if (entity->animDone)
     {
         Anim_StartIndexed(entity, 0, 0, 1);
-        entity->state = 0;
+        entity->state = CURLY_STATE_WALK;
         entity->subState = 0;
         if (entity->flipX)
             entity->velX.whole = Entity_AdjustSpeedForSlope(entity, 0x8000);
@@ -187,7 +196,7 @@ void Curly_UpdateAttack(struct EwramData_EntityData *entity)
     }
     if (entity->animTimer == 0
         && (entity->animStep == 4 || entity->animStep == 7 || entity->animStep == 10 || entity->animStep == 13))
-        PlaySong(0x85);
+        PlaySong(SE_SWING);
 }
 
 u8 Curly_LoadGraphics(struct EwramData_EntityData *entity)
@@ -228,7 +237,7 @@ void Curly_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDat
         Anim_StartIndexed(entity, 2, 0, 0);
         entity->palette = entity->basePalette;
         entity->timer = 0x28;
-        entity->state = 2;
+        entity->state = CURLY_STATE_FRAGMENT_DEATH;
         entity->subState = 0;
     }
 }
@@ -260,16 +269,16 @@ void EnemyCurlyUpdate(struct EwramData_EntityData *entity)
         return;
     switch (entity->state)
     {
-        case 0:
+        case CURLY_STATE_WALK:
             Curly_UpdateWalk(entity);
             break;
-        case 1:
+        case CURLY_STATE_ATTACK:
             Curly_UpdateAttack(entity);
             break;
-        case 2:
+        case CURLY_STATE_FRAGMENT_DEATH:
             Enemy_UpdateFragmentDeath(entity);
             break;
-        case 3:
+        case CURLY_STATE_ANIM_ONLY:
             Anim_Update(entity);
             return;
     }

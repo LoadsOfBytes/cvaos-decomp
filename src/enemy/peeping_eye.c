@@ -21,6 +21,8 @@
 #include "entity_inline.h"
 #include "damage_numbers.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 /* Peeping Eye: main update, creation, movement and animation, the hit
  * reaction and its parts (eyeball, pupil and the chain of six links).
@@ -67,6 +69,13 @@ void PeepingEyeChainLink_Update(struct EwramData_EntityData *entity);
 #define LINK_LENGTH(e) (e->ext.peepingEyeLink.length)
 #define LINK_MAX_LENGTH(e) (*(s32 *)&e->ext.peepingEyeLink.maxLength)
 
+/* States of PeepingEye (entity->state), named after the update function the dispatcher calls. */
+enum {
+    PEEPING_EYE_STATE_MOVE = 0,
+    PEEPING_EYE_STATE_IDLE = 1,
+    PEEPING_EYE_STATE_PREVIEW = 4,
+};
+
 /* Peeping Eye: dispatch the states, draw the frame chosen by the movement
  * code and fall apart when killed. */
 void EnemyPeepingEyeUpdate(struct EwramData_EntityData *entity)
@@ -90,10 +99,10 @@ void EnemyPeepingEyeUpdate(struct EwramData_EntityData *entity)
     }
     switch (entity->state)
     {
-    case 0:
+    case PEEPING_EYE_STATE_MOVE:
         PeepingEye_UpdateMove(entity);
         break;
-    case 1:
+    case PEEPING_EYE_STATE_IDLE:
         PeepingEye_UpdateIdle(entity);
         break;
     case 2:
@@ -116,7 +125,7 @@ void EnemyPeepingEyeUpdate(struct EwramData_EntityData *entity)
         entity->hidden = 1;
         if (entity->timer++ > 2) entity->deleteRequested = 1;
         break;
-    case 4:
+    case PEEPING_EYE_STATE_PREVIEW:
         PeepingEye_UpdatePreview(entity);
         if (ANIM_FLAGS(entity) & 1)
         {
@@ -211,7 +220,7 @@ void EnemyPeepingEyeCreate(struct EwramData_EntityData *entity)
     }
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 4;
+        entity->state = PEEPING_EYE_STATE_PREVIEW;
         entity->posY.whole -= 0x300000;
         return;
     }
@@ -221,11 +230,11 @@ void EnemyPeepingEyeCreate(struct EwramData_EntityData *entity)
         Hit_Enable(entity, 8, PeepingEye_DamagePlayerOnContact, PeepingEye_OnHit);
     HitBox_SetAttack(entity, &box);
     HitBox_SetBody(entity, &box);
-    entity->hit.flags &= ~4;
-    entity->hit.flags &= ~2;
+    entity->hit.flags &= ~HIT_NO_DAMAGE;
+    entity->hit.flags &= ~HIT_NO_ATTACK;
     Entity_SnapToGround(entity);
     entity->posY.whole -= 0x80000;
-    entity->state = 0;
+    entity->state = PEEPING_EYE_STATE_MOVE;
 }
 
 /* Peeping Eye movement: wait for the player, open the eye, then keep
@@ -454,7 +463,7 @@ void PeepingEye_OnHit(struct EwramData_EntityData *entity, struct EwramData_Enti
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
-        PlaySong(0x6E);
+        PlaySong(SE_ENEMY_DEATH);
         entity->palette = entity->basePalette;
         entity->timer = 45;
         entity->state = 2;

@@ -26,6 +26,8 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 /* KillerMantle_UpdateHover (state 1 of the enemy created at 0x080BB70C); only matches without -f2003-patch
  * (NO_2003_PATCH_SRCS in ../Makefile). (Target_IsNearEntity test through an inline with two
@@ -51,6 +53,13 @@ void CockatriceFamily_OnHit(struct EwramData_EntityData *entity, s32 attacker, u
  * (faster towards the target and after a dodge).
  */
 static inline u32 InRange(struct EwramData_EntityData *e) { if (Target_IsNearEntity(e, 0xA0, 0x46)) return 1; return 0; }
+
+/* States of KillerMantle (entity->state), named after the update function the dispatcher calls. */
+enum {
+    KILLER_MANTLE_STATE_HOVER = 1,
+    KILLER_MANTLE_STATE_JUMP_ATTACK = 2,
+    KILLER_MANTLE_STATE_ANIM_ONLY = 4,
+};
 
 void KillerMantle_UpdateHover(struct EwramData_EntityData *entity)
 {
@@ -102,7 +111,7 @@ void KillerMantle_UpdateHover(struct EwramData_EntityData *entity)
                 break;
             if (InRange(entity) && entity->timer == 0)
             {
-                entity->state = 2;
+                entity->state = KILLER_MANTLE_STATE_JUMP_ATTACK;
                 entity->stage = 0;
                 entity->subState = 0;
                 break;
@@ -154,8 +163,8 @@ void KillerMantle_UpdateJumpAttack(struct EwramData_EntityData *entity)
             entity->velY.whole = RandomSigned(0x2000) - 0x1A000;
             entity->accelY.whole = 0x1000;
             entity->ext.killerMantle.speed = (RandomNumberGenerator() % 32 << 8) + 0x48000;
-            entity->hit.flags &= ~2;
-            PlaySong(0x89);
+            entity->hit.flags &= ~HIT_NO_ATTACK;
+            PlaySong(SE_THROW);
             break;
         case 2:
             if (entity->ext.killerMantle.speed > 0)
@@ -169,7 +178,7 @@ void KillerMantle_UpdateJumpAttack(struct EwramData_EntityData *entity)
                 child->scrollWithBg = 1;
                 ENTITY_OWNER(child) = entity;
             }
-            entity->hit.flags |= 2;
+            entity->hit.flags |= HIT_NO_ATTACK;
             entity->ext.killerMantle.flags &= ~1;
             entity->subState = 3;
             Anim_StartIndexed(entity, 5, 0, 0);
@@ -180,7 +189,7 @@ void KillerMantle_UpdateJumpAttack(struct EwramData_EntityData *entity)
             Entity_Walk(entity, entity->ext.killerMantle.speed, sKillerMantleWalkProfile, 0);
             if (entity->animFlags & 4)
             {
-                entity->state = 1;
+                entity->state = KILLER_MANTLE_STATE_HOVER;
                 entity->stage = 0;
                 entity->subState = 0;
             }
@@ -254,13 +263,13 @@ void EnemyKillerMantleCreate(struct EwramData_EntityData *entity)
     Anim_Update(entity);
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 4;
+        entity->state = KILLER_MANTLE_STATE_ANIM_ONLY;
         return;
     }
     Hit_EnableContact(entity, 8, Enemy_OnContactMask1, KillerMantle_OnHit);
     HitBox_SetBodyRaw(entity, 0x1010F8F8);
     HitBox_SetAttackRaw(entity, 0x1414F6EC);
-    entity->hit.flags |= 2;
+    entity->hit.flags |= HIT_NO_ATTACK;
     child = Entity_CreateObject(KillerMantlePart_Update);
     if (child != NULL)
     {
@@ -309,15 +318,15 @@ void EnemyKillerMantleUpdate(struct EwramData_EntityData *entity)
         case 0:
             if (Target_IsNearEntity(entity, 0xDC, 0xA0))
             {
-                entity->state = 1;
+                entity->state = KILLER_MANTLE_STATE_HOVER;
                 entity->stage = 0;
                 entity->subState = 0;
             }
             break;
-        case 1:
+        case KILLER_MANTLE_STATE_HOVER:
             KillerMantle_UpdateHover(entity);
             break;
-        case 2:
+        case KILLER_MANTLE_STATE_JUMP_ATTACK:
             KillerMantle_UpdateJumpAttack(entity);
             break;
         case 3:
@@ -327,7 +336,7 @@ void EnemyKillerMantleUpdate(struct EwramData_EntityData *entity)
                 return;
             }
             break;
-        case 4:
+        case KILLER_MANTLE_STATE_ANIM_ONLY:
             Anim_Update(entity);
             return;
     }
@@ -457,7 +466,7 @@ void CockatriceFamilyAttack_Update(struct EwramData_EntityData *entity)
             }
             Hit_Enable(entity, 8, CockatriceFamilyAttack_DamagePlayerOnContact, 0);
             HitBox_SetAttackRaw(entity, 0x10440CBC);
-            entity->hit.flags |= 4;
+            entity->hit.flags |= HIT_NO_DAMAGE;
             entity->objMode = 1;
             entity->state = 1;
             Sound_PlayTracked(0x65);
@@ -647,7 +656,7 @@ s32 CockatriceFamily_UpdateDeath(struct EwramData_EntityData *entity)
             entity->velY.whole -= 0x6000;
             entity->velX.whole += 0x3A00;
             if (!(entity->timer & 7))
-                PlaySong(0x6E);
+                PlaySong(SE_ENEMY_DEATH);
             if (!(entity->timer & 1))
             {
                 wave = Sin(entity->velX.whole + 0x4000);

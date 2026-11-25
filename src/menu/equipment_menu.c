@@ -22,6 +22,7 @@
 #include "data/data_4F1444.h"
 #include "menu_page.h"
 #include "item_menu.h"
+#include "constants/songs.h"
 
 extern struct WeaponInfo sWeaponInfo[];
 extern const struct ArmorInfo sArmorInfo[];
@@ -656,7 +657,7 @@ s32 EquipmentMenu_Update(struct EwramData_EntityData *page)
     }
     if (new & 2)
     {
-        PlaySong(0xF0);
+        PlaySong(SE_MENU_BACK);
         MenuPageTitle_Delete(&gEwramData->entityData[20]);
         MenuItemIcon_Delete();
         MenuSlotIcons_Delete();
@@ -664,7 +665,7 @@ s32 EquipmentMenu_Update(struct EwramData_EntityData *page)
     }
     else if (new & 1)
     {
-        PlaySong(0xF3);
+        PlaySong(SE_MENU_SELECT);
         page->state = 0xA;
         Text12_ClearRegion();
         if (page->ext.menuList.item != 0xFF)
@@ -694,7 +695,7 @@ s32 EquipmentMenu_Update(struct EwramData_EntityData *page)
     }
     else if (repeated & 0xC0)
     {
-        PlaySong(0xF1);
+        PlaySong(SE_MENU_CURSOR);
         page->ext.menuList.top = ret;
         page->ext.menuList.cursor = ret;
         page->ext.menuList.item = 0xFF;

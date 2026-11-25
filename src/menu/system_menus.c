@@ -23,6 +23,7 @@
 #include "data/data_0E5364.h"
 #include "data/data_118B48.h"
 #include "gba/memory.h"
+#include "constants/songs.h"
 
 extern s32 MenuGrid_MoveCursor(struct EwramData_EntityData *page, s32 repeated);
 extern void *memcpy(void *dst, const void *src, unsigned long size);
@@ -104,7 +105,7 @@ s32 AbilityMenu_Update(struct EwramData_EntityData *page)
     {
         if (SoulInventory_GetSoulTotal(3, page->ext.menuList.cursor))
         {
-            PlaySong(0xF4);
+            PlaySong(SE_MENU_CONFIRM);
             if (Player_HasAbility(page->ext.menuList.cursor))
                 Player_SetAbility(page->ext.menuList.cursor, 0);
             else
@@ -112,7 +113,7 @@ s32 AbilityMenu_Update(struct EwramData_EntityData *page)
         }
         else
         {
-            PlaySong(0xEF);
+            PlaySong(SE_MENU_DENIED);
         }
     }
     else
@@ -120,12 +121,12 @@ s32 AbilityMenu_Update(struct EwramData_EntityData *page)
         moved = MenuGrid_MoveCursor(page, repeated);
         if (new & 2)
         {
-            PlaySong(0xF0);
+            PlaySong(SE_MENU_BACK);
             MenuPageTitle_Delete(&gEwramData->entityData[20]);
         }
         if (moved)
         {
-            PlaySong(0xF1);
+            PlaySong(SE_MENU_CURSOR);
             if (SoulInventory_GetSoulTotal(3, page->ext.menuList.cursor))
                 text = page->ext.menuList.cursor + 0x257;
             else
@@ -210,19 +211,19 @@ void SaveMenu_Open(struct EwramData_EntityData *page)
     {
         MenuText_ClearAndPrint(0x360);
         page->state = 0xFF;
-        PlaySong(0xEF);
+        PlaySong(SE_MENU_DENIED);
     }
-    else if (gEwramData->gameState.stateFlags & 2)
+    else if (gEwramData->gameState.stateFlags & STATE_BOSS_FIGHT)
     {
         MenuText_ClearAndPrint(0x360);
         page->state = 0xFF;
-        PlaySong(0xEF);
+        PlaySong(SE_MENU_DENIED);
     }
     else if (slot->playTime == 0)
     {
         MenuText_ClearAndPrint(0x361);
         page->state = 0xFF;
-        PlaySong(0xEF);
+        PlaySong(SE_MENU_DENIED);
     }
     else
     {
@@ -275,19 +276,19 @@ s32 SaveMenu_Update(struct EwramData_EntityData *page)
                 if (SaveData_SaveSlotToSram(gEwramData->gameState.currentSaveSlot + 1) == 0)
                 {
                     msg += 5;
-                    PlaySong(0xF4);
+                    PlaySong(SE_MENU_CONFIRM);
                     page->state++;
                 }
                 else
                 {
-                    PlaySong(0xEF);
+                    PlaySong(SE_MENU_DENIED);
                     msg = 0x386;
                     page->state = 0xFF;
                 }
             }
             else
             {
-                PlaySong(0xF0);
+                PlaySong(SE_MENU_BACK);
                 page->state = 0xFF;
             }
             MenuText_ClearAndPrint(msg);
@@ -298,13 +299,13 @@ s32 SaveMenu_Update(struct EwramData_EntityData *page)
             page->ext.menuListU.cursor++;
             MENU_CURSOR_X(ent) = ((page->ext.menuListU.cursor & 1) * 4 + 8) * 12 + 5;
             MENU_CURSOR_Y(ent) = 0x89;
-            PlaySong(0xF1);
+            PlaySong(SE_MENU_CURSOR);
         }
         break;
     case 1:
         if (page->subState == 0)
         {
-            PlaySong(0x1010);
+            PlaySong(SONG_MUTE);
             gDisplayRegisters.bldY = ret;
             page->timer = 0;
             page->subState++;
@@ -461,7 +462,7 @@ s32 ButtonConfigMenu_Update(struct EwramData_EntityData *page)
             settings->buttons[i] = sButtonConfigButtons[choices[i]];
             if (settings->buttons[i] & used)
                 goto error;
-            PlaySong(0xF0);
+            PlaySong(SE_MENU_BACK);
             used |= settings->buttons[i];
         } while (++i <= 3);
         if (ret)
@@ -473,25 +474,25 @@ s32 ButtonConfigMenu_Update(struct EwramData_EntityData *page)
     }
     else if (repeated & 0x40)
     {
-        PlaySong(0xF1);
+        PlaySong(SE_MENU_CURSOR);
         page->ext.buttonConfigPage.selection--;
         choices = page->ext.buttonConfigPage.choices;
     }
     else if (repeated & 0x80)
     {
-        PlaySong(0xF1);
+        PlaySong(SE_MENU_CURSOR);
         page->ext.buttonConfigPage.selection++;
         choices = page->ext.buttonConfigPage.choices;
     }
     else if (repeated & 0x11)
     {
-        PlaySong(0xF4);
+        PlaySong(SE_MENU_CONFIRM);
         page->ext.buttonConfigPage.choices[sButtonConfigChoiceSlots[page->ext.buttonConfigPage.selection]]++;
         choices = page->ext.buttonConfigPage.choices;
     }
     else if (repeated & 0x20)
     {
-        PlaySong(0xF4);
+        PlaySong(SE_MENU_CONFIRM);
         page->ext.buttonConfigPage.choices[sButtonConfigChoiceSlots[page->ext.buttonConfigPage.selection]]--;
         choices = page->ext.buttonConfigPage.choices;
     }
@@ -500,7 +501,7 @@ s32 ButtonConfigMenu_Update(struct EwramData_EntityData *page)
         if (0)
         {
         error:
-            PlaySong(0xEF);
+            PlaySong(SE_MENU_DENIED);
             MenuText_ClearAndPrint(0x353);
             page->ext.buttonConfigPage.error = 1;
             ret = 0;
@@ -511,7 +512,7 @@ s32 ButtonConfigMenu_Update(struct EwramData_EntityData *page)
             choices = page->ext.buttonConfigPage.choices;
             if (f)
             {
-                PlaySong(0xF4);
+                PlaySong(SE_MENU_CONFIRM);
                 i = 0;
                 {
                     u8 *c = choices;
@@ -791,7 +792,7 @@ void BestiaryMenu_UpdateList(struct EwramData_EntityData *page)
     new = gEwramData->inputData.newInput;
     if (BestiaryMenu_MoveCursor(page, repeated) != 0)
     {
-        PlaySong(0xF1);
+        PlaySong(SE_MENU_CURSOR);
     }
     else if (repeated & 0x100)
     {
@@ -814,7 +815,7 @@ void BestiaryMenu_UpdateList(struct EwramData_EntityData *page)
             page->ext.menuList.cursor = 0;
             BestiaryMenu_DrawList(page);
         }
-        PlaySong(0xF1);
+        PlaySong(SE_MENU_CURSOR);
     }
     else if (repeated & 0x200)
     {
@@ -832,11 +833,11 @@ void BestiaryMenu_UpdateList(struct EwramData_EntityData *page)
             page->ext.menuList.cursor = page->ext.menuList.top = page->ext.menuList.count - 1 - (page->ext.menuList.count - 1) % 10;
             BestiaryMenu_DrawList(page);
         }
-        PlaySong(0xF1);
+        PlaySong(SE_MENU_CURSOR);
     }
     else if (new & 2)
     {
-        PlaySong(0xF0);
+        PlaySong(SE_MENU_BACK);
         page->subState = 0xFF;
         page->stage = 0;
     }
@@ -844,14 +845,14 @@ void BestiaryMenu_UpdateList(struct EwramData_EntityData *page)
     {
         if (Bestiary_IsEnemyDefeated(page->ext.menuList.cursor))
         {
-            PlaySong(0xF4);
+            PlaySong(SE_MENU_CONFIRM);
             gDisplayRegisters.bldY = 0;
             page->subState = 5;
             page->stage = 0;
         }
         else
         {
-            PlaySong(0xEF);
+            PlaySong(SE_MENU_DENIED);
         }
     }
     Cursor_SetTilePosition((page->ext.menuList.cursor & 1) ? 0xF : 1, ((page->ext.menuList.cursor - page->ext.menuList.top) >> 1) * 2 + 5);

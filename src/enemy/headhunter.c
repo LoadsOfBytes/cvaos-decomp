@@ -26,6 +26,9 @@
 #include "damage_numbers.h"
 #include "entity_hit.h"
 #include "hit_shared_history.h"
+#include "constants/songs.h"
+#include "constants/hit_flags.h"
+#include "constants/game_flags.h"
 
 /* Headhunter (entity type 0x6A): update. */
 void Headhunter_UpdateMovement(struct EwramData_EntityData *);
@@ -74,6 +77,14 @@ void HeadhunterAttackTip_Update(struct EwramData_EntityData *head);
 struct EwramData_EntityData *Headhunter_CreateAttackSegment(struct EwramData_EntityData *owner, struct EwramData_EntityData *parent, s32 index);
 void HeadhunterAttackSegment_Update(struct EwramData_EntityData *segment);
 
+/* States of Headhunter (entity->state), named after the update function the dispatcher calls. */
+enum {
+    HEADHUNTER_STATE_MOVEMENT = 0,
+    HEADHUNTER_STATE_ATTACK = 1,
+    HEADHUNTER_STATE_DEATH = 2,
+    HEADHUNTER_STATE_ANIM_ONLY = 3,
+};
+
 /* Headhunter: dispatch AI (0), attacks (1), defeat (2) and the frozen
  * defeated form (3); bit 1 of unk_4FE overrides the frame with unk_4FF,
  * bit 0 disables the contact damage. */
@@ -89,18 +100,18 @@ void EnemyHeadhunterUpdate(struct EwramData_EntityData *entity)
     if (entity->state != 2 && Entity_IsInRect(entity, -16, 0, 272, 176))
         Player_TrackEntity(entity);
     *(s8 *)&entity->ext.headhunter.flags &= ~3;
-    if (entity->state != 2) Enemy_UpdateHitFlash(entity);
-    if (Entity_IsTimeStopped(entity) && entity->state != 2)
+    if (entity->state != HEADHUNTER_STATE_DEATH) Enemy_UpdateHitFlash(entity);
+    if (Entity_IsTimeStopped(entity) && entity->state != HEADHUNTER_STATE_DEATH)
     {
         Hit_CheckWithPlayer(results, entity);
         return;
     }
     switch (entity->state)
     {
-    case 0: Headhunter_UpdateMovement(entity); break;
-    case 1: Headhunter_UpdateAttack(entity); break;
-    case 2: Headhunter_UpdateDeath(entity); break;
-    case 3:
+    case HEADHUNTER_STATE_MOVEMENT: Headhunter_UpdateMovement(entity); break;
+    case HEADHUNTER_STATE_ATTACK: Headhunter_UpdateAttack(entity); break;
+    case HEADHUNTER_STATE_DEATH: Headhunter_UpdateDeath(entity); break;
+    case HEADHUNTER_STATE_ANIM_ONLY:
         Anim_Update(entity);
         return;
     }
@@ -135,7 +146,7 @@ void EnemyHeadhunterCreate(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *part;
     s32 kind;
     if (entity->spawnParam0 == 0 || gEwramData->gameState.bossRushMode != 0
-        || !(gEwramData->gameState.bossEventFlags & 0x10))
+        || !(gEwramData->gameState.bossEventFlags & BOSS_DEFEATED_HEADHUNTER))
     {
         if (Headhunter_LoadGraphics(entity))
         {
@@ -143,7 +154,7 @@ void EnemyHeadhunterCreate(struct EwramData_EntityData *entity)
             if (gEwramData->gameState.bossRushMode) entity->attack += 20;
             if (gEwramData->gameState.bestiaryPreview)
             {
-                entity->state = 3;
+                entity->state = HEADHUNTER_STATE_ANIM_ONLY;
                 Anim_StartIndexed(entity, 9, 2, 1);
                 Anim_Update(entity);
                 entity->basePalette = entity->ext.headhunter.palette2;
@@ -195,7 +206,7 @@ void EnemyHeadhunterCreate(struct EwramData_EntityData *entity)
                 KIND(part) = kind;
                 Anim_Update(part);
             }
-            entity->state = 0;
+            entity->state = HEADHUNTER_STATE_MOVEMENT;
             Anim_StartIndexed(entity, 0x17, 2, 1);
             Anim_Update(entity);
             Player_SetSelectedTarget(entity);
@@ -203,7 +214,7 @@ void EnemyHeadhunterCreate(struct EwramData_EntityData *entity)
               u32 value = *flags;
               value |= 2;
               *flags = value; }
-            Music_SetCurrent(0x10);
+            Music_SetCurrent(MUS_CONFRONTATION);
             return;
         }
     }
@@ -295,7 +306,7 @@ void Headhunter_UpdateMovement(struct EwramData_EntityData *entity)
             found = IN_BOX(entity, 8, 40, 16, 80);
             if (!found && IN_BOX(entity, 40, 40, 80, 80))
             {
-                entity->state = 1;
+                entity->state = HEADHUNTER_STATE_ATTACK;
                 entity->subState = found;
                 entity->stage = found;
                 entity->timer = found;
@@ -409,7 +420,7 @@ void Headhunter_UpdateMovement(struct EwramData_EntityData *entity)
         {
             if (!(RandomNumberGenerator() & 1))
             {
-                entity->state = 1;
+                entity->state = HEADHUNTER_STATE_ATTACK;
                 entity->subState = 10;
                 break;
             }
@@ -618,7 +629,7 @@ void Headhunter_UpdateMovement(struct EwramData_EntityData *entity)
         }
         else
         {
-            entity->state = 1;
+            entity->state = HEADHUNTER_STATE_ATTACK;
             entity->subState = 30;
             entity->timer = 0;
         }
@@ -733,7 +744,7 @@ void Headhunter_UpdateMovement(struct EwramData_EntityData *entity)
         }
         else
         {
-            entity->state = 1;
+            entity->state = HEADHUNTER_STATE_ATTACK;
             entity->subState = 20;
             entity->timer = 0;
             FLAGS(entity) |= 2;
@@ -853,7 +864,7 @@ void Headhunter_UpdateMovement(struct EwramData_EntityData *entity)
         }
         else
         {
-            entity->state = 1;
+            entity->state = HEADHUNTER_STATE_ATTACK;
             entity->subState = 40;
             entity->timer = 0;
             FLAGS(entity) |= 2;
@@ -906,12 +917,12 @@ s32 Headhunter_UpdateIntro(struct EwramData_EntityData *entity)
         }
         break;
     case 1:
-        if (!(gEwramData->gameState.stateFlags & 1))
+        if (!(gEwramData->gameState.stateFlags & STATE_EVENT_RUNNING))
         {
             INTRO_STEP(entity)++;
-            gEwramData->gameState.stateFlags |= 1;
+            gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
             gEwramData->startPauseEnabled = 0;
-            gEwramData->gameState.stateFlags |= 2;
+            gEwramData->gameState.stateFlags |= STATE_BOSS_FIGHT;
         }
         break;
     case 2:
@@ -944,7 +955,7 @@ s32 Headhunter_UpdateIntro(struct EwramData_EntityData *entity)
         SetPlayerInput(2, 0);
         break;
     case 4:
-        gEwramData->gameState.stateFlags &= ~1;
+        gEwramData->gameState.stateFlags &= ~STATE_EVENT_RUNNING;
         gEwramData->startPauseEnabled = 1;
         return 1;
     }
@@ -984,7 +995,7 @@ void Headhunter_UpdateAttack(struct EwramData_EntityData *entity)
             entity->accelY.whole = 0x2800;
             if (entity->flipX) entity->velX.whole = 0x18000;
             else entity->velX.whole = -0x18000;
-            PlaySong(0x85);
+            PlaySong(SE_SWING);
         }
         if (ANIM_FRAME16(entity) == 4)
             entity->velX.whole = 0;
@@ -992,7 +1003,7 @@ void Headhunter_UpdateAttack(struct EwramData_EntityData *entity)
         Entity_MoveWithCollisionDefault(entity, 0x40000, -0x200000);
         if (entity->animDone || *(s8 *)&entity->ext.headhunter.hitReact)
         {
-            entity->state = 0;
+            entity->state = HEADHUNTER_STATE_MOVEMENT;
             entity->subState = 3;
             entity->timer = 60;
             Anim_StartIndexed(entity, 2, 2, 1);
@@ -1049,7 +1060,7 @@ void Headhunter_UpdateAttack(struct EwramData_EntityData *entity)
     case 14:
         if (entity->timer++ > 99)
         {
-            entity->state = 0;
+            entity->state = HEADHUNTER_STATE_MOVEMENT;
             entity->subState = 12;
             entity->velX.whole = 0;
             entity->velY.whole = 0;
@@ -1097,7 +1108,7 @@ void Headhunter_UpdateAttack(struct EwramData_EntityData *entity)
     case 23:
         if (entity->timer++ > 29)
         {
-            entity->state = 0;
+            entity->state = HEADHUNTER_STATE_MOVEMENT;
             entity->subState = 40;
             entity->timer = 0;
         }
@@ -1116,7 +1127,7 @@ void Headhunter_UpdateAttack(struct EwramData_EntityData *entity)
         }
         break;
     case 27:
-        entity->state = 0;
+        entity->state = HEADHUNTER_STATE_MOVEMENT;
         entity->subState = 40;
         entity->timer = 0;
         break;
@@ -1167,7 +1178,7 @@ void Headhunter_UpdateAttack(struct EwramData_EntityData *entity)
     case 33:
         if (entity->timer++ > 29)
         {
-            entity->state = 0;
+            entity->state = HEADHUNTER_STATE_MOVEMENT;
             entity->subState = 30;
             entity->timer = 0;
             entity->flipY = 1;
@@ -1196,7 +1207,7 @@ void Headhunter_UpdateAttack(struct EwramData_EntityData *entity)
         }
         break;
     case 37:
-        entity->state = 0;
+        entity->state = HEADHUNTER_STATE_MOVEMENT;
         entity->subState = 30;
         entity->timer = 0;
         entity->flipY = 1;
@@ -1248,7 +1259,7 @@ void Headhunter_UpdateAttack(struct EwramData_EntityData *entity)
     case 43:
         if (entity->timer++ > 29)
         {
-            entity->state = 0;
+            entity->state = HEADHUNTER_STATE_MOVEMENT;
             entity->subState = 50;
             entity->timer = 0;
         }
@@ -1275,7 +1286,7 @@ void Headhunter_UpdateAttack(struct EwramData_EntityData *entity)
         }
         break;
     case 47:
-        entity->state = 0;
+        entity->state = HEADHUNTER_STATE_MOVEMENT;
         entity->subState = 50;
         entity->timer = 0;
         break;
@@ -1338,10 +1349,10 @@ void Headhunter_UpdateDeath(struct EwramData_EntityData *entity)
         else
             gUnk_03002CB0.dispCnt |= 0x400;
         if ((entity->timer & 7) == 0)
-            PlaySong(0x76);
+            PlaySong(SE_PROJECTILE_IMPACT);
         if ((s8)entity->timer-- > 0)
             break;
-        gEwramData->gameState.gameFlagsTail[1] |= 0x40000;
+        gEwramData->gameState.gameFlagsTail[GAME_FLAG_WORD(FLAG_HEADHUNTER_ROOM_CLEARED) - 2] |= GAME_FLAG_BIT(FLAG_HEADHUNTER_ROOM_CLEARED);
         Player_SetSelectedTarget(0);
         entity->deleteRequested = 1;
         gUnk_03002CB0.dispCnt &= ~0x400;
@@ -1422,7 +1433,7 @@ void Headhunter_ApplyResolvedDamage(struct EwramData_EntityData *entity, s32 unu
             PlaySong(0x1C0);
             entity->palette = entity->basePalette;
             entity->timer = zero;
-            entity->state = 2;
+            entity->state = HEADHUNTER_STATE_DEATH;
             entity->subState = zero;
         }
     }
@@ -1463,7 +1474,7 @@ void Headhunter_ApplyResolvedDamage(struct EwramData_EntityData *entity, s32 unu
 void Headhunter_SpawnTransformationArc(struct EwramData_EntityData *parent, struct EwramData_EntityData *owner, s32 x, s32 y,
                   s32 big, s32 timer, s32 kind, s32 dir)
 {
-    struct EwramData_EntityData *arc = EntityCreateInRange(0x49, 0xCF, HeadhunterTransformationArc_Update);
+    struct EwramData_EntityData *arc = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, HeadhunterTransformationArc_Update);
     s32 graphics;
     u16 slot;
     if (arc == NULL) return;
@@ -1883,7 +1894,7 @@ void HeadhunterTransformationPart_Update(struct EwramData_EntityData *entity)
  */
 void Headhunter_SpawnFallingPart(struct EwramData_EntityData *owner, s32 x, s32 y, s32 kind)
 {
-    struct EwramData_EntityData *part = EntityCreateInRange(0x49, 0xCF, HeadhunterFallingPart_Update);
+    struct EwramData_EntityData *part = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, HeadhunterFallingPart_Update);
     s32 graphics;
     u16 slot;
     if (part == NULL) return;
@@ -2005,7 +2016,7 @@ void HeadhunterFallingPart_Update(struct EwramData_EntityData *entity)
  */
 void Headhunter_SpawnWaveBurst(struct EwramData_EntityData *owner, s32 x, s32 y, s32 corner)
 {
-    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, HeadhunterWaveBurst_Update);
+    struct EwramData_EntityData *effect = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, HeadhunterWaveBurst_Update);
     s32 graphics;
     u16 slot;
     if (effect == NULL) return;
@@ -2113,7 +2124,7 @@ void HeadhunterWaveBurst_Update(struct EwramData_EntityData *entity)
  */
 void Headhunter_SpawnLightningBurst(struct EwramData_EntityData *owner, s32 x, s32 y, s32 corner)
 {
-    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, HeadhunterLightningBurst_Update);
+    struct EwramData_EntityData *effect = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, HeadhunterLightningBurst_Update);
     s32 graphics;
     s32 zero;
     u16 slot;
@@ -2239,7 +2250,7 @@ void HeadhunterLightningBurst_Update(struct EwramData_EntityData *entity)
  */
 void Headhunter_SpawnLightningBurstFlicker(struct EwramData_EntityData *owner, s32 x, s32 y)
 {
-    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, HeadhunterLightningBurstFlicker_Update);
+    struct EwramData_EntityData *effect = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, HeadhunterLightningBurstFlicker_Update);
     if (effect != NULL)
     {
         s32 graphics;
@@ -2267,7 +2278,7 @@ void Headhunter_SpawnLightningBurstFlicker(struct EwramData_EntityData *owner, s
  */
 void Headhunter_SpawnWave(struct EwramData_EntityData *owner, s32 x, s32 y, s32 direction)
 {
-    struct EwramData_EntityData *wave = EntityCreateInRange(0x49, 0xCF, HeadhunterWave_Update);
+    struct EwramData_EntityData *wave = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, HeadhunterWave_Update);
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
     struct SpriteBox box = {-4, -4, 8, 8};
     if (wave != NULL)
@@ -2297,8 +2308,8 @@ void Headhunter_SpawnWave(struct EwramData_EntityData *owner, s32 x, s32 y, s32 
         FRAME(wave) = 0x26;
         Hit_Enable(wave, 8, HeadhunterWave_DamagePlayerOnContact, 0);
         HitBox_SetAttack(wave, &box);
-        wave->hit.flags |= 4;
-        wave->hit.flags &= ~2;
+        wave->hit.flags |= HIT_NO_DAMAGE;
+        wave->hit.flags &= ~HIT_NO_ATTACK;
         wave->attack = owner->attack + (owner->attack >> 2);
         ENTITY_OWNER(wave) = owner;
         wave->scrollWithBg = 1;
@@ -2360,7 +2371,7 @@ void HeadhunterWave_Update(struct EwramData_EntityData *entity)
  */
 void Headhunter_SpawnLightningBolt(struct EwramData_EntityData *owner, s32 x, s32 y)
 {
-    struct EwramData_EntityData *bolt = EntityCreateInRange(0x49, 0xCF, HeadhunterLightningBolt_Update);
+    struct EwramData_EntityData *bolt = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, HeadhunterLightningBolt_Update);
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
     if (bolt != NULL)
     {
@@ -2400,7 +2411,7 @@ void HeadhunterLightningBolt_Update(struct EwramData_EntityData *entity)
     if (entity->timer == 20)
     {
         Headhunter_SpawnLightningImpact(entity, owner, entity->posX.whole, 0xBF0000 - camera->yPos.whole);
-        PlaySong(0x75);
+        PlaySong(SE_LIGHTNING);
     }
     Anim_Start(entity, (struct AnimScript *)&animation, 2, 1);
     animation.frame = RandomNumberGenerator() % 2 + entity->ext.headhunterEffect.frame;
@@ -2419,7 +2430,7 @@ void HeadhunterLightningBolt_Update(struct EwramData_EntityData *entity)
  */
 void Headhunter_SpawnLightningImpact(struct EwramData_EntityData *owner, struct EwramData_EntityData *source, s32 x, s32 y)
 {
-    struct EwramData_EntityData *impact = EntityCreateInRange(0x49, 0xCF, HeadhunterLightningImpact_Update);
+    struct EwramData_EntityData *impact = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, HeadhunterLightningImpact_Update);
     struct SpriteBox box = {-2, -64, 4, 64};
     if (impact != NULL)
     {
@@ -2434,8 +2445,8 @@ void Headhunter_SpawnLightningImpact(struct EwramData_EntityData *owner, struct 
         impact->ext.headhunterEffect.frame = 0x1C;
         Hit_Enable(impact, 8, HeadhunterLightningImpact_DamagePlayerOnContact, 0);
         HitBox_SetAttack(impact, &box);
-        impact->hit.flags |= 2;
-        impact->hit.flags |= 4;
+        impact->hit.flags |= HIT_NO_ATTACK;
+        impact->hit.flags |= HIT_NO_DAMAGE;
         impact->attack = owner->attack + (owner->attack >> 2);
         ENTITY_OWNER(impact) = owner;
         impact->ext.headhunterEffect.source = source;
@@ -2463,7 +2474,7 @@ void HeadhunterLightningImpact_Update(struct EwramData_EntityData *entity)
     if (entity->timer == 8)
     {
         FRAME(entity)++;
-        entity->hit.flags &= ~2;
+        entity->hit.flags &= ~HIT_NO_ATTACK;
     }
     if (entity->timer == 9)
         Headhunter_SpawnLightningImpactFlicker(entity, owner, entity->posX.whole, entity->posY.whole);
@@ -2491,7 +2502,7 @@ void HeadhunterLightningImpact_Update(struct EwramData_EntityData *entity)
  */
 void Headhunter_SpawnLightningImpactFlicker(struct EwramData_EntityData *owner, struct EwramData_EntityData *source, s32 x, s32 y)
 {
-    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, HeadhunterLightningImpactFlicker_Update);
+    struct EwramData_EntityData *effect = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, HeadhunterLightningImpactFlicker_Update);
     if (effect != NULL)
     {
         s32 graphics;
@@ -2575,7 +2586,7 @@ void HeadhunterOrbitingParticle_Update(struct EwramData_EntityData *entity)
  */
 void Headhunter_SpawnAttackFollower(struct EwramData_EntityData *owner, s32 timer)
 {
-    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, HeadhunterAttackFollower_Update);
+    struct EwramData_EntityData *effect = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, HeadhunterAttackFollower_Update);
     if (effect != NULL)
     {
         s32 graphics;
@@ -2600,7 +2611,7 @@ void Headhunter_SpawnAttackFollower(struct EwramData_EntityData *owner, s32 time
  */
 void Headhunter_SpawnBurstShot(struct EwramData_EntityData *owner, s32 x, s32 y, s32 vx, s32 vy)
 {
-    struct EwramData_EntityData *shot = EntityCreateInRange(0x49, 0xCF, HeadhunterBurstShot_Update);
+    struct EwramData_EntityData *shot = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, HeadhunterBurstShot_Update);
     struct SpriteBox box = {-4, -4, 8, 8};
     if (shot != NULL)
     {
@@ -2617,8 +2628,8 @@ void Headhunter_SpawnBurstShot(struct EwramData_EntityData *owner, s32 x, s32 y,
         shot->ext.headhunterEffect.frame = 0x54;
         Hit_Enable(shot, 8, HeadhunterBurstShot_DamagePlayerOnContact, 0);
         HitBox_SetAttack(shot, &box);
-        shot->hit.flags |= 4;
-        shot->hit.flags &= ~2;
+        shot->hit.flags |= HIT_NO_DAMAGE;
+        shot->hit.flags &= ~HIT_NO_ATTACK;
         shot->attack = owner->attack;
         ENTITY_OWNER(shot) = owner;
         shot->scrollWithBg = 1;
@@ -2669,7 +2680,7 @@ void HeadhunterBurstShot_Update(struct EwramData_EntityData *entity)
  */
 void Headhunter_SpawnExtendingAttack(struct EwramData_EntityData *owner, s32 x, s32 y, s32 angle)
 {
-    struct EwramData_EntityData *head = EntityCreateInRange(0x49, 0xCF, HeadhunterAttackTip_Update);
+    struct EwramData_EntityData *head = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, HeadhunterAttackTip_Update);
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
     struct SpriteBox box = {-1, -1, 3, 3};
     struct SingleFrameAnimation animation = sHeadhunterAttackTipFrameAnim;
@@ -2702,8 +2713,8 @@ void Headhunter_SpawnExtendingAttack(struct EwramData_EntityData *owner, s32 x, 
     Hit_Enable(head, 8, HeadhunterAttackTip_DamagePlayerOnContact, HeadhunterAttackTip_OnHit);
     HitBox_SetAttack(head, &box);
     HitBox_SetBody(head, &box);
-    head->hit.flags &= ~4;
-    head->hit.flags &= ~2;
+    head->hit.flags &= ~HIT_NO_DAMAGE;
+    head->hit.flags &= ~HIT_NO_ATTACK;
     head->attack = owner->attack;
     ENTITY_OWNER(head) = owner;
     head->scrollWithBg = 0;
@@ -2747,7 +2758,7 @@ void HeadhunterAttackTip_Update(struct EwramData_EntityData *head)
         {
             head->subState++;
             head->timer = 0;
-            PlaySong(0x85);
+            PlaySong(SE_SWING);
         }
     }
     else if (head->subState == 1)
@@ -2821,7 +2832,7 @@ void HeadhunterAttackTip_Update(struct EwramData_EntityData *head)
  */
 struct EwramData_EntityData *Headhunter_CreateAttackSegment(struct EwramData_EntityData *owner, struct EwramData_EntityData *parent, s32 index)
 {
-    struct EwramData_EntityData *segment = EntityCreateInRange(0x49, 0xCF, HeadhunterAttackSegment_Update);
+    struct EwramData_EntityData *segment = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, HeadhunterAttackSegment_Update);
     struct SpriteBox box = {-1, -1, 3, 3};
     struct SingleFrameAnimation animation = sHeadhunterAttackSegmentFrameAnim;
     u16 slot;
@@ -2847,8 +2858,8 @@ struct EwramData_EntityData *Headhunter_CreateAttackSegment(struct EwramData_Ent
     Hit_Enable(segment, 8, HeadhunterAttackSegment_DamagePlayerOnContact, HeadhunterAttackSegment_OnHit);
     HitBox_SetAttack(segment, &box);
     HitBox_SetBody(segment, &box);
-    segment->hit.flags &= ~4;
-    segment->hit.flags &= ~2;
+    segment->hit.flags &= ~HIT_NO_DAMAGE;
+    segment->hit.flags &= ~HIT_NO_ATTACK;
     segment->attack = owner->attack;
     ENTITY_OWNER(segment) = owner;
     segment->ext.headhunterWhipSegment.tip = parent;
@@ -2998,7 +3009,7 @@ void HeadhunterLightningImpactFlicker_Update(struct EwramData_EntityData *entity
 void Headhunter_SpawnOrbitingParticle(struct EwramData_EntityData *owner, struct EwramData_EntityData *source, s32 x, s32 y, s32 speed)
 {
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
-    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, HeadhunterOrbitingParticle_Update);
+    struct EwramData_EntityData *effect = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, HeadhunterOrbitingParticle_Update);
     if (effect != NULL)
     {
         s32 graphics;

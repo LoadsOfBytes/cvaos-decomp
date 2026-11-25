@@ -24,6 +24,7 @@
 #include "text12.h"
 #include "data/data_0E5364.h"
 #include "data/data_118B48.h"
+#include "constants/game_flags.h"
 
 extern u16 sEnemyNameTextIds[];
 
@@ -495,7 +496,7 @@ void Bg_UpdateScrollModes(void)
                 break;
 
             case 10:
-                if ((gEwramData->gameState.gameFlagsTail[1] & 0x02000000) != 0)
+                if ((gEwramData->gameState.gameFlagsTail[GAME_FLAG_WORD(FLAG_JULIUS_ROOM_CLEARED) - 2] & GAME_FLAG_BIT(FLAG_JULIUS_ROOM_CLEARED)) != 0)
                 {
                     *vOfs -= 2;
                 }
@@ -532,7 +533,7 @@ void Bg_UpdateScrollModes(void)
                 break;
 
             case 19:
-                if (!(gEwramData->gameState.bossRushMode) && (gEwramData->gameState.gameFlagsTail[1] & 0x40000))
+                if (!(gEwramData->gameState.bossRushMode) && (gEwramData->gameState.gameFlagsTail[GAME_FLAG_WORD(FLAG_HEADHUNTER_ROOM_CLEARED) - 2] & GAME_FLAG_BIT(FLAG_HEADHUNTER_ROOM_CLEARED)))
                 {
                     gUnk_03002CB0.dispCnt &= ~DCNT_BG2;
                 }
@@ -568,7 +569,7 @@ void Bg_UpdateScrollModes(void)
                 break;
 
             case 21:
-                if (gEwramData->gameState.gameFlagsTail[1] & 0x02000000)
+                if (gEwramData->gameState.gameFlagsTail[GAME_FLAG_WORD(FLAG_JULIUS_ROOM_CLEARED) - 2] & GAME_FLAG_BIT(FLAG_JULIUS_ROOM_CLEARED))
                 {
                     src.texX = 0x8000;
                     src.texY = 0x8000;
@@ -1011,7 +1012,7 @@ void Hud_ShowEnemyName(s32 hudMessageId)
     width = textWidth;
     dst = (u16*)&gEwramData->sharedScratchBuffer;
 
-    if (gEwramData->gameState.stateFlags & 0x03000200)
+    if (gEwramData->gameState.stateFlags & (STATE_HUD_MESSAGES_BLOCKED | STATE_LARGE_WINDOW_OPEN | STATE_MESSAGE_WINDOW_CLOSED))
     {
         gameState->hudMessageRequest = 0;
         return;
@@ -1107,7 +1108,7 @@ void Hud_ShowPickupMessage(s32 hudMessageId)
     bufferIndex = gEwramData->gameState.hudTextBufferIndex;
     dst = (u16*)&gEwramData->sharedScratchBuffer;
     palette = 4;
-    if (gEwramData->gameState.stateFlags & 0x03000200)
+    if (gEwramData->gameState.stateFlags & (STATE_HUD_MESSAGES_BLOCKED | STATE_LARGE_WINDOW_OPEN | STATE_MESSAGE_WINDOW_CLOSED))
     {
         gEwramData->gameState.hudMessageRequest = 0;
         return;
@@ -1275,7 +1276,7 @@ static inline s32 Hud_IsWindowAreaFree()
 {
     s32 res;
     res = 1;
-    if ((gEwramData->gameState.stateFlags & 1) && (gEwramData->playerState.player->posY.part16.integer > 0x70))
+    if ((gEwramData->gameState.stateFlags & STATE_EVENT_RUNNING) && (gEwramData->playerState.player->posY.part16.integer > 0x70))
         res = 0;
     return res;
 }
@@ -1304,7 +1305,7 @@ void Hud_DrawWindowPrompt(void)
         row = 8;
     }
 
-    if (!(gEwramData->gameState.stateFlags & 0x01000000))
+    if (!(gEwramData->gameState.stateFlags & STATE_LARGE_WINDOW_OPEN))
     {
         tile = ((u16*)gEwramData->sharedScratchBuffer);
         *tile = 0xF228;
@@ -1353,7 +1354,7 @@ void Hud_ShowLargeSoulWindow(s32 soulType, s32 soulId)
     column = 0;
 
     index = 0x361;
-    gEwramData->gameState.stateFlags |= 0x01000000;
+    gEwramData->gameState.stateFlags |= STATE_LARGE_WINDOW_OPEN;
     BgPalette_LoadRange((u8 *)sSavePromptBgPalette, 7, 1, 0xF);
 
     if (soulId != 0)
@@ -1482,11 +1483,11 @@ void Hud_ShowSoulAcquiredMessage(s32 arg0, s32 arg1, s32 arg2)
             break;
     }
 
-    if (gEwramData->gameState.stateFlags & 0x200)
+    if (gEwramData->gameState.stateFlags & STATE_HUD_MESSAGES_BLOCKED)
     {
         return;
     }
-    if ((arg2 == 0) && (gEwramData->gameState.stateFlags & 0x02000000))
+    if ((arg2 == 0) && (gEwramData->gameState.stateFlags & STATE_MESSAGE_WINDOW_CLOSED))
     {
         return;
     }
@@ -1604,7 +1605,7 @@ void Hud_RequestEnemyName(struct EwramData_EntityData *enemy)
         AreaName_Dismiss(&gEwramData->gameState);
         hudMessageId = sEnemyNameTextIds[enemy->enemyId];
         gameState = &gEwramData->gameState;
-        if (!(gameState->stateFlags & 0x03000200))
+        if (!(gameState->stateFlags & (STATE_HUD_MESSAGES_BLOCKED | STATE_LARGE_WINDOW_OPEN | STATE_MESSAGE_WINDOW_CLOSED)))
         {
             gameState->hudMessageRequest = 2;
             gameState->hudMessageId = hudMessageId;
@@ -1629,9 +1630,9 @@ void Hud_CloseMessageWindow(void)
     gameState = &gEwramData->gameState;
     buffer = gEwramData->sharedScratchBuffer;
 
-    if (!(gEwramData->gameState.stateFlags & 0x02000000))
+    if (!(gEwramData->gameState.stateFlags & STATE_MESSAGE_WINDOW_CLOSED))
     {
-        gEwramData->gameState.stateFlags |= 0x02000000;
+        gEwramData->gameState.stateFlags |= STATE_MESSAGE_WINDOW_CLOSED;
         gEwramData->hBlankEffect.requestStop = 1;
 
         size = 0x26;
@@ -1650,7 +1651,7 @@ void Hud_CloseMessageWindow(void)
         DmaQueue_DirectCopy(rows * 64, (u32 *)buffer, (u32 *)(VRAM_BASE + 0xE000 + row * 0x40));
         gameState->hudMessageRequest = 0;
         gameState->hudMessageTimer = 0;
-        gEwramData->gameState.stateFlags &= ~0x01000000;
+        gEwramData->gameState.stateFlags &= ~STATE_LARGE_WINDOW_OPEN;
     }
 }
 
@@ -1912,7 +1913,7 @@ void Room_OnLoaded(struct GameState *gameState)
 }
 
 /**
- * @brief Unless messages are blocked (stateFlags & 0x03000200), request pickup
+ * @brief Unless messages are blocked (stateFlags & (STATE_HUD_MESSAGES_BLOCKED | STATE_LARGE_WINDOW_OPEN | STATE_MESSAGE_WINDOW_CLOSED)), request pickup
  * message text id for the message window (Pickup_Collect).
  */
 void Hud_RequestPickupMessage(s32 hudMessageId)
@@ -1920,7 +1921,7 @@ void Hud_RequestPickupMessage(s32 hudMessageId)
     struct GameState *gameState;
 
     gameState = &gEwramData->gameState;
-    if (!(gameState->stateFlags & 0x03000200))
+    if (!(gameState->stateFlags & (STATE_HUD_MESSAGES_BLOCKED | STATE_LARGE_WINDOW_OPEN | STATE_MESSAGE_WINDOW_CLOSED)))
     {
         gameState->hudMessageRequest = 1;
         gameState->hudMessageId = hudMessageId;
@@ -1973,7 +1974,7 @@ void Hud_EndEventTextLayer(void)
     gDisplayRegisters.bgOfs[0].vOfs = 6;
     Text_SetTileBuffer(VRAM_BASE + 0x5000);
     Gfx_CopyResource((u8 *)sHudGfx, VRAM_BASE + 0x4000, 0);
-    gEwramData->gameState.stateFlags &= ~0x200;
+    gEwramData->gameState.stateFlags &= ~STATE_HUD_MESSAGES_BLOCKED;
 }
 
 /**
@@ -1983,7 +1984,7 @@ void Hud_EndEventTextLayer(void)
 void Hud_BeginEventTextLayer(void)
 {
     gDisplayRegisters.bgCnt[0] = CREATE_BGCNT(1, 28, BGCNT_HIGH_PRIORITY, BGCNT_SIZE_256x256);
-    gEwramData->gameState.stateFlags |= 0x200;
+    gEwramData->gameState.stateFlags |= STATE_HUD_MESSAGES_BLOCKED;
     Text_SetTileBuffer(VRAM_BASE + 0x4000);
     Text_SetBackgroundColor(0);
     DMA_FILL_32(3, 0, VRAM_BASE + 0x4000, 0x2000);
@@ -2058,7 +2059,7 @@ s32 Hud_UseBottomWindow(void)
     // TODO: Hud_UseBottomWindow is the same as Hud_IsWindowAreaFree
     s32 res;
     res = 1;
-    if ((gEwramData->gameState.stateFlags & 1) && (gEwramData->playerState.player->posY.part16.integer > 0x70))
+    if ((gEwramData->gameState.stateFlags & STATE_EVENT_RUNNING) && (gEwramData->playerState.player->posY.part16.integer > 0x70))
         res = 0;
     return res;
 }

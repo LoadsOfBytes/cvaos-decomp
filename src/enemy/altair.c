@@ -17,6 +17,7 @@
 #include "hitbox.h"
 #include "damage_numbers.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
 
 void Altair_UpdateFlight(struct EwramData_EntityData *);
 void Altair_UpdateDeath(struct EwramData_EntityData *);
@@ -40,12 +41,18 @@ u8 Fleaman_LoadGraphics(struct EwramData_EntityData *entity);
 
 /* Altair creation, update, graphics setup and hit response. */
 
+/* States of Altair (entity->state), named after the update function the dispatcher calls. */
+enum {
+    ALTAIR_STATE_FLIGHT = 1,
+    ALTAIR_STATE_DEATH = 2,
+};
+
 void EnemyAltairCreate(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *parent;
     if (!Altair_LoadGraphics(entity)) return;
     entity->spriteLayer = 3;
-    entity->state = 1;
+    entity->state = ALTAIR_STATE_FLIGHT;
     entity->stage = 0;
     entity->subState = 0;
     Enemy_ResetFromTemplate(entity);
@@ -62,8 +69,8 @@ void EnemyAltairCreate(struct EwramData_EntityData *entity)
     {
         entity->state = 5;
         entity->hidden = 1;
-        entity->hit.flags |= 4;
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_DAMAGE;
+        entity->hit.flags |= HIT_NO_ATTACK;
         return;
     }
     Entity_EnableBoxes(entity, Altair_DamagePlayerOnContact, Altair_OnHit);
@@ -118,24 +125,24 @@ void EnemyAltairUpdate(struct EwramData_EntityData *entity)
         return;
     }
     if (child->updateFunc == NULL) entity->ext.altair.carried = 0;
-    if (entity->state != 2) Enemy_UpdateHitFlash(entity);
-    if (Entity_IsTimeStopped(entity) && entity->state != 2)
+    if (entity->state != ALTAIR_STATE_DEATH) Enemy_UpdateHitFlash(entity);
+    if (Entity_IsTimeStopped(entity) && entity->state != ALTAIR_STATE_DEATH)
     {
         Hit_CheckWithPlayer(&result, entity);
         return;
     }
-    if (entity->hitFlashTimer != 0 && entity->state != 3 && entity->state != 2)
+    if (entity->hitFlashTimer != 0 && entity->state != 3 && entity->state != ALTAIR_STATE_DEATH)
     {
         Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
     {
-    case 1: Altair_UpdateFlight(entity); break;
-    case 2: Altair_UpdateDeath(entity); break;
+    case ALTAIR_STATE_FLIGHT: Altair_UpdateFlight(entity); break;
+    case ALTAIR_STATE_DEATH: Altair_UpdateDeath(entity); break;
     }
     Entity_AnimateWithBoxes(entity);
-    if (entity->state != 2) Hit_CheckWithPlayer(&result, entity);
+    if (entity->state != ALTAIR_STATE_DEATH) Hit_CheckWithPlayer(&result, entity);
     if (entity->deleteRequested)
     {
         parent = entity->ext.altair.spawner;
@@ -311,7 +318,7 @@ void Altair_UpdateSpawner(struct EwramData_EntityData *entity)
     u32 random = RandomNumberGenerator() & 0x3F;
     struct EwramData_EntityData *child;
     if (random != 0 || entity->ext.altair.spawnCount > 1) return;
-    child = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
+    child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, EntityUpdateNothing);
     if (child != NULL)
     {
         child->posY.whole = entity->posY.whole;
@@ -351,7 +358,7 @@ void Altair_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
         Enemy_DropRewards(entity);
         entity->palette = entity->basePalette;
         entity->timer = 0x32;
-        entity->state = 2;
+        entity->state = ALTAIR_STATE_DEATH;
         entity->subState = 0;
         entity->velX.whole = 0;
         entity->accelX.whole = 0;
@@ -369,7 +376,7 @@ void Altair_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDa
 s32 Altair_CreateCarriedEnemy(struct EwramData_EntityData *entity, u8 type, u16 spawnParam0, u16 spawnParam1)
 {
     u8 result = 0;
-    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, EntityUpdateNothing);
     entity->ext.altair.carried = child;
     if (child != NULL)
     {
@@ -552,7 +559,7 @@ void Altair_DamagePlayerOnContact(struct EwramData_EntityData *entity)
  */
 struct EwramData_EntityData *Altair_CreateFeather(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, AltairFeather_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, AltairFeather_Update);
 
     if (child != NULL)
     {

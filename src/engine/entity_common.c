@@ -26,6 +26,7 @@
 #include "damage_numbers.h"
 #include "obj_palette.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
 
 extern const u8 sEntityVisibilityPattern[];
 extern void Hit_GetContactPoint(s32 a, struct EwramData_EntityData *b, s16 *outX, s16 *outY);
@@ -1112,7 +1113,7 @@ void Effect_SpawnAt(s32 x, s32 y, s32 layer)
 {
     struct EwramData_EntityData *child;
 
-    child = EntityCreateInRange(0x49, 0xCF, RisingEffect_Update);
+    child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, RisingEffect_Update);
     if (child != NULL)
     {
         child->posX.whole = x;
@@ -1134,7 +1135,7 @@ void Effect_SpawnRandom(s32 x, s32 y, s32 width, s32 height, s32 layer)
     s32 dy = RandomNumberGenerator() % height - height / 2;
     s32 px = x + dx;
     s32 py = y + dy;
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, RisingEffect_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, RisingEffect_Update);
 
     if (entity != NULL)
     {
@@ -1151,7 +1152,7 @@ void Effect_SpawnRandom(s32 x, s32 y, s32 width, s32 height, s32 layer)
  */
 void Effect_SpawnParticleAnim0(s32 x, s32 y, s32 vx, s32 vy, s32 layer)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticle);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateParticle);
     s32 gfx;
 
     if (entity != NULL)
@@ -1177,7 +1178,7 @@ void Effect_SpawnParticleAnim0(s32 x, s32 y, s32 vx, s32 vy, s32 layer)
  */
 void Effect_SpawnParticleAnim11(s32 x, s32 y, s32 vx, s32 vy, s32 layer)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticle);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateParticle);
     s32 gfx;
 
     if (entity != NULL)
@@ -1206,7 +1207,7 @@ void Effect_SpawnParticleAnim11(s32 x, s32 y, s32 vx, s32 vy, s32 layer)
  */
 void Effect_SpawnTimedFrameParticle(s32 x, s32 y, s32 vx, s32 vy, s32 layer, s32 damping, s32 flags, s32 palette, s32 duration)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, Effect_UpdateTimedParticle);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateTimedParticle);
     s32 gfx;
 
     if (entity != NULL)
@@ -1234,7 +1235,7 @@ void Effect_SpawnTimedFrameParticle(s32 x, s32 y, s32 vx, s32 vy, s32 layer, s32
  */
 void Effect_SpawnRisingParticle(s32 x, s32 y, s32 layer, s32 mode)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticle);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateParticle);
     s32 gfx;
 
     if (entity != NULL)
@@ -1271,7 +1272,7 @@ void Effect_SpawnRisingParticle(s32 x, s32 y, s32 layer, s32 mode)
  */
 void Effect_SpawnFadingParticle(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32 variant)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticle);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateParticle);
     s32 gfx;
 
     if (child == NULL)
@@ -1300,7 +1301,7 @@ void Effect_SpawnFadingParticle(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32
  */
 void Effect_SpawnConfiguredParticle(s32 x, s32 y, s32 velX, s32 velY, s32 spriteLayer, s32 variant, s32 flags, s32 palette)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticle);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateParticle);
     s32 gfx;
 
     if (child == NULL)
@@ -1330,7 +1331,7 @@ void Effect_SpawnConfiguredParticle(s32 x, s32 y, s32 velX, s32 velY, s32 sprite
  */
 void Effect_SpawnParticleWithDamping(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32 variant, s32 damping, s32 flags, s32 palette)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticleWithDamping);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateParticleWithDamping);
     s32 gfx;
 
     if (child == NULL)
@@ -1374,7 +1375,7 @@ void Effect_SpawnRisingParticleInBox(s32 x, s32 y, s32 width, s32 height, s32 la
  */
 void Effect_SpawnFadingParticleCopy(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32 variant)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateRandomlyAnimatedParticle);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateRandomlyAnimatedParticle);
     s32 gfx;
 
     if (child == NULL)
@@ -1403,7 +1404,7 @@ void Effect_SpawnFadingParticleCopy(s32 x, s32 y, s32 velX, s32 velY, s32 layer,
  */
 void Effect_SpawnParticleAnim12(s32 x, s32 y, s32 velX, s32 velY, s32 spriteLayer, s32 flags, s32 palette)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticle);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateParticle);
     s32 gfx;
 
     if (child == NULL)
@@ -1429,7 +1430,7 @@ void Effect_SpawnParticleAnim12(s32 x, s32 y, s32 velX, s32 velY, s32 spriteLaye
  */
 void Effect_SpawnFallingFrameParticle(s32 x, s32 y, s32 velX, s32 velY, s32 layer)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateFallingFrameParticle);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateFallingFrameParticle);
     s32 gfx;
 
     if (child == NULL)
@@ -1456,7 +1457,7 @@ void Effect_SpawnFallingFrameParticle(s32 x, s32 y, s32 velX, s32 velY, s32 laye
  */
 void Effect_SpawnStationaryAnimation(s32 x, s32 y, s32 layer)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateStationaryAnimation);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateStationaryAnimation);
     s32 gfx;
 
     if (child == NULL)
@@ -1478,7 +1479,7 @@ void Effect_SpawnStationaryAnimation(s32 x, s32 y, s32 layer)
  */
 void Effect_SpawnFallingPiece(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32 piece)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateTimedParticle);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateTimedParticle);
     s32 gfx;
 
     if (child == NULL)
@@ -1509,7 +1510,7 @@ void Effect_SpawnFallingPiece(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32 p
  */
 void Effect_SpawnParticleAnim13(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32 paletteOffset)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticle);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateParticle);
     s32 gfx;
 
     if (child == NULL)
@@ -1536,15 +1537,15 @@ void Effect_SpawnParticleAnim13(s32 x, s32 y, s32 velX, s32 velY, s32 layer, s32
  */
 void Effect_SpawnTimedEntity(s32 x, s32 y, s32 unused2, s32 unused3, s32 unused4, s32 layer)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, TimedEntity_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, TimedEntity_Update);
 
     if (child == NULL)
         return;
     child->posX.whole = x;
     child->posY.whole = y;
     child->spriteLayer = layer;
-    child->hit.flags |= 4;
-    child->hit.flags |= 2;
+    child->hit.flags |= HIT_NO_DAMAGE;
+    child->hit.flags |= HIT_NO_ATTACK;
     child->scrollWithBg = 1;
     child->drawFunc = Sprite_DrawEntity;
 }
@@ -1687,9 +1688,9 @@ struct EwramData_EntityData *Entity_CreateObject(EntityFunc updateFunc)
     struct EwramData_EntityData *child;
 
     if (!gEwramData->gameState.bestiaryPreview)
-        child = EntityCreateInRange(0x1B, 0x48, updateFunc);
+        child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, updateFunc);
     else
-        child = EntityCreateInRange(0xD0, 0xDF, updateFunc);
+        child = EntityCreateInRange(ENTITY_SLOT_RESERVED_FIRST, ENTITY_SLOT_RESERVED_LAST, updateFunc);
     return child;
 }
 
@@ -2110,7 +2111,7 @@ s32 Collision_FindWaterSurfaceOffset(s32 x__, s32 y__)
  */
 void HitEffect_Spawn(u16 x, u16 y, u16 type)
 {
-    struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, HitEffect_Update);
+    struct EwramData_EntityData *effect = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, HitEffect_Update);
 
     if (effect != NULL)
     {
@@ -2126,7 +2127,7 @@ void HitEffect_Spawn(u16 x, u16 y, u16 type)
  * (the u16 parameters of HitEffect_Spawn would give ldrh instead of ldrsh). */
 static inline void SpawnHitEffect(s16 x, s16 y, u16 type)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, HitEffect_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, HitEffect_Update);
 
     if (child != NULL)
     {

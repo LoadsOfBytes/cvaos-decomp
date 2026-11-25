@@ -52,7 +52,7 @@ s32 SavePoint_SpawnAnimParts(struct EwramData_EntityData *parent)
     {
         if ((u32)(i - 1) <= 1)
             continue;
-        entity = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
+        entity = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, EntityUpdateNothing);
         if (entity == NULL)
             continue;
         entity->posX.whole = parent->posX.whole;
@@ -98,7 +98,7 @@ s32 SavePoint_SpawnOrbitLights(struct EwramData_EntityData *parent)
     j = 0;
     for (i = 0; i <= 7; i++)
     {
-        entity = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
+        entity = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, EntityUpdateNothing);
         if (entity == NULL)
             continue;
         entity->posX.whole = parent->posX.whole;
@@ -305,7 +305,7 @@ void SaveSparkle_SpawnAround(struct EwramData_EntityData *entity, u16 width, u16
  */
 void SaveSparkle_Create(s32 x, s32 y, s32 accelX, s32 accelY, s32 phase, u8 palette, struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, SaveSparkle_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, SaveSparkle_Update);
 
     if (child != NULL)
     {

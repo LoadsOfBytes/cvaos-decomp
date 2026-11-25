@@ -19,6 +19,8 @@
 #include "data/data_118B48.h"
 #include "damage_numbers.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 
 void WhiteDragon_UpdateIdle(struct EwramData_EntityData *);
@@ -41,6 +43,14 @@ void WhiteDragonBreath_DamagePlayerOnContact(struct EwramData_EntityData *entity
 void WhiteDragonSpark_Update(struct EwramData_EntityData *);
 void WhiteDragonChargeParticle_Update(struct EwramData_EntityData *);
 void WhiteDragonPiece_Update(struct EwramData_EntityData *);
+
+/* States of WhiteDragon (entity->state), named after the update function the dispatcher calls. */
+enum {
+    WHITE_DRAGON_STATE_IDLE = 0,
+    WHITE_DRAGON_STATE_ATTACK = 1,
+    WHITE_DRAGON_STATE_RECOIL = 3,
+    WHITE_DRAGON_STATE_IDLE_4 = 4,
+};
 
 /* White Dragon dispatch, collision gating and delayed death cleanup. */
 void EnemyWhiteDragonUpdate(struct EwramData_EntityData *entity)
@@ -65,8 +75,8 @@ void EnemyWhiteDragonUpdate(struct EwramData_EntityData *entity)
     }
     switch(entity->state)
     {
-        case 0: WhiteDragon_UpdateIdle(entity); break;
-        case 1: WhiteDragon_UpdateAttack(entity); break;
+        case WHITE_DRAGON_STATE_IDLE: WhiteDragon_UpdateIdle(entity); break;
+        case WHITE_DRAGON_STATE_ATTACK: WhiteDragon_UpdateAttack(entity); break;
         case 2:
         {
             s32 phase=entity->subState;
@@ -96,8 +106,8 @@ void EnemyWhiteDragonUpdate(struct EwramData_EntityData *entity)
                 entity->deleteRequested=1;
             break;
         }
-        case 4: WhiteDragon_UpdateIdle(entity); return;
-        case 3: WhiteDragon_UpdateRecoil(entity); break;
+        case WHITE_DRAGON_STATE_IDLE_4: WhiteDragon_UpdateIdle(entity); return;
+        case WHITE_DRAGON_STATE_RECOIL: WhiteDragon_UpdateRecoil(entity); break;
     }
     Enemy_CheckHitPlayer(entity);
 }
@@ -177,7 +187,7 @@ void EnemyWhiteDragonCreate(struct EwramData_EntityData *entity)
     demo=*(u8 *)((u8 *)gEwramData+0x8E) & 0x40;
     if(demo)
     {
-        entity->state=4;
+        entity->state = WHITE_DRAGON_STATE_IDLE_4;
         StoreRate(0x400,angularSpeed);
         return;
     }
@@ -231,7 +241,7 @@ void WhiteDragon_UpdateIdle(struct EwramData_EntityData *entity)
         else { angle-=64; if(angle<0x8000) angle=0x8000; }
     }
     entity->velX.part16.integer=angle;
-    if(entity->state==4) return;
+    if(entity->state == WHITE_DRAGON_STATE_IDLE_4) return;
     { u16 t_ = entity->ext.whiteDragon.moveTimer; timer=(s16)entity->ext.whiteDragon.moveTimer;
     if((s16)timer) entity->ext.whiteDragon.moveTimer=t_-1;
     else if((RandomNumberGenerator()&255)<=64)
@@ -242,7 +252,7 @@ void WhiteDragon_UpdateIdle(struct EwramData_EntityData *entity)
         {
             if(Target_IsInRect((s16)(x+40),(s16)(entity->posY.part16.integer-100),84,200))
             {
-                entity->state=1;
+                entity->state = WHITE_DRAGON_STATE_ATTACK;
                 entity->subState=timer;
                 entity->timer=timer;
                 entity->ext.whiteDragonAim.x = camera->xPos.part16.integer + Target_GetPixelXShort(entity); /* FAKEMATCH: s16 alias, while dx in this function uses the s32 declaration */
@@ -252,7 +262,7 @@ void WhiteDragon_UpdateIdle(struct EwramData_EntityData *entity)
         }
         else if(Target_IsInRect((s16)(x-124),(s16)(entity->posY.part16.integer-100),84,200))
         {
-            entity->state=1;
+            entity->state = WHITE_DRAGON_STATE_ATTACK;
             entity->subState=flipped;
             entity->timer=flipped;
             entity->ext.whiteDragonAim.x = camera->xPos.part16.integer + Target_GetPixelXShort(entity); /* FAKEMATCH: s16 alias, while dx in this function uses the s32 declaration */
@@ -269,7 +279,7 @@ void WhiteDragon_UpdateIdle(struct EwramData_EntityData *entity)
         if(entity->flipX)
         {
             if(!Target_IsInRect((s16)x,(s16)(entity->posY.part16.integer-100),80,200)) return;
-            entity->state=1;
+            entity->state = WHITE_DRAGON_STATE_ATTACK;
             if(RandomNumberGenerator()&1) entity->subState=20;
             else entity->subState=10;
             entity->timer=0;
@@ -280,7 +290,7 @@ void WhiteDragon_UpdateIdle(struct EwramData_EntityData *entity)
         else
         {
             if(!Target_IsInRect((s16)(x-80),(s16)(entity->posY.part16.integer-100),80,200)) return;
-            entity->state=1;
+            entity->state = WHITE_DRAGON_STATE_ATTACK;
             if(RandomNumberGenerator()&1) entity->subState=20;
             else entity->subState=10;
             entity->timer=0;
@@ -370,14 +380,14 @@ void WhiteDragon_UpdateAttack(register struct EwramData_EntityData *entity)
         *(u16 *)&HEAD_ANGLE(entity)=angle;
         if(entity->timer<40) entity->timer++;
         else if(changing==0)
-        { entity->subState++; entity->timer=changing; PlaySong(0x87); }
+        { entity->subState++; entity->timer=changing; PlaySong(SE_DASH); }
         break;
     }
     case 1:
         if(RADIUS(entity)<100) RADIUS(entity)+=4;
         if(entity->timer++>39)
         {
-            entity->state=0; entity->subState=0;
+            entity->state = WHITE_DRAGON_STATE_IDLE; entity->subState=0;
             entity->ext.whiteDragon.moveTimer=RandomNumberGenerator()%60+60;
             entity->ext.whiteDragon.shotTimer=RandomNumberGenerator()%60;
             break;
@@ -419,7 +429,7 @@ void WhiteDragon_UpdateAttack(register struct EwramData_EntityData *entity)
     case 12: case 22:
         if(entity->timer++>59)
         {
-            entity->state=0; entity->subState=0; entity->animFrame=0;
+            entity->state = WHITE_DRAGON_STATE_IDLE; entity->subState=0; entity->animFrame=0;
             entity->ext.whiteDragon.moveTimer=RandomNumberGenerator()%60+60;
             entity->ext.whiteDragon.shotTimer=RandomNumberGenerator()%60;
         }
@@ -452,7 +462,7 @@ void WhiteDragon_UpdateRecoil(struct EwramData_EntityData *entity)
     }
     if(entity->timer++>29)
     {
-        entity->state=0;
+        entity->state = WHITE_DRAGON_STATE_IDLE;
         entity->subState=0;
         entity->timer=0;
         entity->animFrame=0;
@@ -522,7 +532,7 @@ void WhiteDragon_UpdateDeath(struct EwramData_EntityData *entity)
     }
     if(!(entity->timer&3))
         WhiteDragon_SpawnSpark(entity,entity->posX.whole,entity->posY.whole,entity->spriteLayer-1);
-    if(!(entity->timer&15)) PlaySong(0x6E);
+    if(!(entity->timer&15)) PlaySong(SE_ENEMY_DEATH);
     if((s8)--entity->timer<=0) entity->deleteRequested=1;
 }
 
@@ -597,7 +607,7 @@ void WhiteDragon_OnHit(struct EwramData_EntityData *entity,struct EwramData_Enti
     if((s16)entity->hp<=0)
     {
         Enemy_DropRewards(entity);
-        PlaySong(0x6E);
+        PlaySong(SE_ENEMY_DEATH);
         entity->palette=entity->basePalette;
         entity->timer=120;
         entity->state=2;
@@ -606,7 +616,7 @@ void WhiteDragon_OnHit(struct EwramData_EntityData *entity,struct EwramData_Enti
     }
     else if(entity->state==0 && (u8)(attack->type-3)<=1)
     {
-        entity->state=3;
+        entity->state = WHITE_DRAGON_STATE_RECOIL;
         entity->animFrame=1;
         entity->timer=zero;
     }
@@ -660,7 +670,7 @@ void WhiteDragonSegment_Update(struct EwramData_EntityData *entity)
  */
 void WhiteDragon_SpawnBreath(struct EwramData_EntityData *owner)
 {
-    struct EwramData_EntityData *projectile=EntityCreateInRange(0x1B,0x48,WhiteDragonBreath_Update);
+    struct EwramData_EntityData *projectile=EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST,WhiteDragonBreath_Update);
     if(projectile)
     {
         s16 *direction;
@@ -784,8 +794,8 @@ void WhiteDragonBreath_EnableHitBoxes(struct EwramData_EntityData *entity)
     Hit_Enable(entity, 8, WhiteDragonBreath_DamagePlayerOnContact, 0);
     HitBox_SetBody(entity, &box);
     HitBox_SetAttack(entity, &box);
-    entity->hit.flags &= ~2;
-    entity->hit.flags |= 4;
+    entity->hit.flags &= ~HIT_NO_ATTACK;
+    entity->hit.flags |= HIT_NO_DAMAGE;
 }
 
 /* Short lived sparks emitted by the linked body. */
@@ -796,7 +806,7 @@ void WhiteDragonBreath_EnableHitBoxes(struct EwramData_EntityData *entity)
 void WhiteDragon_SpawnSpark(struct EwramData_EntityData *owner,s32 x,s32 y,s32 layer)
 {
     s32 graphics;
-    struct EwramData_EntityData *effect=EntityCreateInRange(0x49,0xCF,WhiteDragonSpark_Update);
+    struct EwramData_EntityData *effect=EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST,WhiteDragonSpark_Update);
     if(effect)
     {
         effect->posX.whole=x;
@@ -824,7 +834,7 @@ void WhiteDragon_SpawnSpark(struct EwramData_EntityData *owner,s32 x,s32 y,s32 l
 void WhiteDragon_SpawnChargeParticle(struct EwramData_EntityData *owner,s32 x,s32 y)
 {
     s32 graphics;
-    struct EwramData_EntityData *effect=EntityCreateInRange(0x49,0xCF,WhiteDragonChargeParticle_Update);
+    struct EwramData_EntityData *effect=EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST,WhiteDragonChargeParticle_Update);
     struct BgLayerState *camera=&gEwramData->bgInfo[1];
     if(effect)
     {
@@ -871,7 +881,7 @@ void WhiteDragonChargeParticle_Update(struct EwramData_EntityData *entity)
  */
 void WhiteDragon_SpawnDeathPiece(struct EwramData_EntityData *owner,s32 x,s32 y,s32 frame)
 {
-    struct EwramData_EntityData *effect=EntityCreateInRange(0x49,0xCF,WhiteDragonPiece_Update);
+    struct EwramData_EntityData *effect=EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST,WhiteDragonPiece_Update);
     if(effect)
     {
         s32 graphics;

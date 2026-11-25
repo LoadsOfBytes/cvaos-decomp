@@ -26,6 +26,8 @@
 #include "math_inline.h"
 #include "red_soul_skills_shared.h"
 #include "bg_and_collision.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 extern struct WeaponInfo sWeaponInfo[]; // weapons, see player/player_core.c
 extern const struct ArmorInfo sArmorInfo[];
@@ -46,7 +48,7 @@ extern const struct ItemInfo sConsumableInfo[];
  */
 struct EwramData_EntityData *SoulPickup_Create(s32 x, s32 y, s32 palette, s32 soulId, s32 stationary)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, SoulPickup_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, SoulPickup_Update);
     if (entity != NULL)
     {
         s32 graphics;
@@ -58,7 +60,7 @@ struct EwramData_EntityData *SoulPickup_Create(s32 x, s32 y, s32 palette, s32 so
         entity->stage = 1;
         entity->drawFunc = Sprite_DrawEntity;
         Hit_Enable(entity, 0xB, Pickup_Collect, 0);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         HitBox_SetAttackRaw(entity, 0x1010F8F8);
         entity->posX.part16.integer = x;
         entity->posY.part16.integer = y;
@@ -174,7 +176,7 @@ void SoulPickup_UpdateContainer(struct EwramData_EntityData *entity)
                 entity->enemyId, entity->spawnParam1, 0);
             if (other != NULL)
             {
-                PlaySong(0xA2);
+                PlaySong(SE_ITEM_DROP);
                 other->spawnParam0 = entity->spawnParam0;
                 entity->state = 1;
                 entity->timer = 0x10;
@@ -201,7 +203,7 @@ void SoulPickup_UpdateContainer(struct EwramData_EntityData *entity)
  */
 struct EwramData_EntityData *SoulPickup_CreateContainer(s32 x, s32 y, s32 variant, s32 index)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, SoulPickup_UpdateContainer);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, SoulPickup_UpdateContainer);
     if (entity != NULL)
     {
         s32 graphics;
@@ -216,13 +218,13 @@ struct EwramData_EntityData *SoulPickup_CreateContainer(s32 x, s32 y, s32 varian
         Anim_Update(entity);
         entity->drawFunc = Sprite_DrawEntity;
         Hit_Enable(entity, 0, NULL, 0);
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_ATTACK;
         HitBox_SetBodyRaw(entity, 0x2010E0F8);
         entity->posX.part16.integer = x;
         entity->posY.part16.integer = y;
         Entity_SnapToGround(entity);
         entity->ext.soulContainer.palette = Soul_GetPickupPalette(variant);
-        child = EntityCreateInRange(0x49, 0xCF, SoulPickup_UpdateContainerAnimation);
+        child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, SoulPickup_UpdateContainerAnimation);
         if (child != NULL)
         {
             child->scrollWithBg = 1;
@@ -245,7 +247,7 @@ struct EwramData_EntityData *SoulPickup_CreateContainer(s32 x, s32 y, s32 varian
  */
 struct EwramData_EntityData *Effect_CreateHomingOrb(struct EwramData_EntityData *owner, s32 x, s32 y, s32 dy, s32 palette)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, Effect_UpdateHomingOrb);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateHomingOrb);
     if (entity != NULL)
     {
         s32 graphics;
@@ -325,7 +327,7 @@ void Effect_UpdateHomingOrb(struct EwramData_EntityData *entity)
     if (Entity_IsInRect(entity->ext.homingOrb.target, (s16)(entity->posX.part16.integer - 10), (s16)(entity->posY.part16.integer - 10), 20, 20))
     {
         Effect_SpawnAttachedAnimation(entity->ext.homingOrb.target, 12, 6, 0, entity->ext.homingOrb.targetDy);
-        PlaySong(0xBC);
+        PlaySong(SE_SOUL_ACQUIRED);
         entity->deleteRequested = 1;
     }
 }

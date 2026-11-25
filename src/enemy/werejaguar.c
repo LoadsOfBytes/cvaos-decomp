@@ -20,6 +20,7 @@
 #include "entity_motion.h"
 #include "effects.h"
 #include "entity_hit.h"
+#include "constants/songs.h"
 
 void Werejaguar_UpdateWalk(struct EwramData_EntityData *);
 void Werejaguar_UpdateAttack(struct EwramData_EntityData *);
@@ -27,11 +28,20 @@ void Werejaguar_UpdateRecoil(struct EwramData_EntityData *);
 void Werejaguar_SpawnDeathEffect(s32,s32,s32,s32);
 void WerejaguarDeathEffect_Update(struct EwramData_EntityData *);
 
+/* States of Werejaguar (entity->state), named after the update function the dispatcher calls. */
+enum {
+    WEREJAGUAR_STATE_WALK = 0,
+    WEREJAGUAR_STATE_ATTACK = 1,
+    WEREJAGUAR_STATE_DEATH = 2,
+    WEREJAGUAR_STATE_RECOIL = 3,
+    WEREJAGUAR_STATE_ANIM_ONLY = 4,
+};
+
 /* Werejaguar dispatch, collision handling and animation change notification. */
 void EnemyWerejaguarUpdate(struct EwramData_EntityData *entity)
 {
     struct HitResult results[3]; /* only results[0] is written; the original reserved 48 bytes */
-    if(entity->state!=2)
+    if(entity->state != WEREJAGUAR_STATE_DEATH)
     {
         if(EntityIsOutsideScreen(entity,4)) return;
         if(Entity_IsInRect(entity,-16,0,272,176)) Player_TrackEntity(entity);
@@ -41,24 +51,24 @@ void EnemyWerejaguarUpdate(struct EwramData_EntityData *entity)
     entity->ext.werejaguar.contactKind=0;
     entity->ext.werejaguar.manualAnim=0;
     entity->animFlags&=0xFD;
-    if(entity->state!=2) Enemy_UpdateHitFlash(entity);
-    if(Entity_IsTimeStopped(entity) && entity->state!=2)
+    if(entity->state != WEREJAGUAR_STATE_DEATH) Enemy_UpdateHitFlash(entity);
+    if(Entity_IsTimeStopped(entity) && entity->state != WEREJAGUAR_STATE_DEATH)
     {
         Hit_CheckWithPlayer(results,entity);
         return;
     }
-    if(entity->hitFlashTimer && entity->state!=3 && entity->state!=2)
+    if(entity->hitFlashTimer && entity->state!=3 && entity->state != WEREJAGUAR_STATE_DEATH)
     {
         Hit_CheckWithPlayer(results,entity);
         return;
     }
     switch(entity->state)
     {
-        case 0: Werejaguar_UpdateWalk(entity); break;
-        case 1: Werejaguar_UpdateAttack(entity); break;
-        case 2: Werejaguar_UpdateDeath(entity); break;
-        case 3: Werejaguar_UpdateRecoil(entity); break;
-        case 4: Anim_Update(entity); return;
+        case WEREJAGUAR_STATE_WALK: Werejaguar_UpdateWalk(entity); break;
+        case WEREJAGUAR_STATE_ATTACK: Werejaguar_UpdateAttack(entity); break;
+        case WEREJAGUAR_STATE_DEATH: Werejaguar_UpdateDeath(entity); break;
+        case WEREJAGUAR_STATE_RECOIL: Werejaguar_UpdateRecoil(entity); break;
+        case WEREJAGUAR_STATE_ANIM_ONLY: Anim_Update(entity); return;
     }
     if((s8)entity->ext.werejaguar.manualAnim==0)
     {
@@ -211,7 +221,7 @@ void Werejaguar_UpdateWalk(struct EwramData_EntityData *entity)
         break;
     case 3:
         if (!entity->animTimer && (entity->animStep == 1 || entity->animStep == 3))
-            PlaySong(0x85);
+            PlaySong(SE_SWING);
         if (entity->animDone)
         {
             Anim_StartIndexed(entity, 6, 0, 1);
@@ -390,13 +400,13 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
         }
         entity->ext.werejaguar.contactKind = 1;
         if (entity->animTimer == 0 && (entity->animStep == 1 || entity->animStep == 3 || entity->animStep == 5))
-            PlaySong(0x85);
+            PlaySong(SE_SWING);
         break;
     case 4:
         if (entity->animDone)
         {
             Anim_StartIndexed(entity, 6, 0, 1);
-            entity->state = 0;
+            entity->state = WEREJAGUAR_STATE_WALK;
             entity->subState = 1;
             break;
         }
@@ -405,7 +415,7 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
         else
             entity->ext.werejaguar.contactKind = 1;
         if (entity->animTimer == 0 && (entity->animStep == 1 || entity->animStep == 3 || entity->animStep == 5))
-            PlaySong(0x85);
+            PlaySong(SE_SWING);
         break;
     case 5:
         if (entity->timer++ > 7)
@@ -508,7 +518,7 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
         if (entity->timer++ <= 0x1D)
             break;
         Anim_StartIndexed(entity, 6, 0, 1);
-        entity->state = 0;
+        entity->state = WEREJAGUAR_STATE_WALK;
         entity->subState = 1;
         break;
     case 13:
@@ -651,17 +661,17 @@ void Werejaguar_OnHit(struct EwramData_EntityData *entity,struct EwramData_Entit
     if((s16)entity->hp<=0)
     {
         Enemy_DropRewards(entity);
-        PlaySong(0x6E);
+        PlaySong(SE_ENEMY_DEATH);
         Anim_StartIndexed(entity,5,0,0);
         entity->palette=entity->basePalette;
         entity->timer=40;
-        entity->state=2;
+        entity->state = WEREJAGUAR_STATE_DEATH;
         entity->subState=zero;
     }
     else if(entity->state==1 && entity->subState!=0 && (u8)(attack->type-3)<=1)
     {
         Anim_StartIndexed(entity,5,0,1);
-        entity->state=3;
+        entity->state = WEREJAGUAR_STATE_RECOIL;
         entity->subState=zero;
     }
 }
@@ -674,7 +684,7 @@ void Werejaguar_OnHit(struct EwramData_EntityData *entity,struct EwramData_Entit
  */
 void Werejaguar_SpawnDeathEffect(s32 x,s32 y,s32 layer,s32 angle)
 {
-    struct EwramData_EntityData *effect=EntityCreateInRange(0x49,0xCF,WerejaguarDeathEffect_Update);
+    struct EwramData_EntityData *effect=EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST,WerejaguarDeathEffect_Update);
     struct BgLayerState *camera=&gEwramData->bgInfo[1];
     if(effect)
     {
@@ -756,14 +766,14 @@ void EnemyWerejaguarCreate(struct EwramData_EntityData *entity)
     Enemy_ResetFromTemplate(entity);
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 4;
+        entity->state = WEREJAGUAR_STATE_ANIM_ONLY;
         return;
     }
     Hit_EnableContact(entity, 8, Werejaguar_DamagePlayerOnContact, Werejaguar_OnHit);
     Entity_UpdateBoxes(entity);
     Hit_SetTimerOverride(3, 6);
     Entity_SnapToGround(entity);
-    entity->state = 0;
+    entity->state = WEREJAGUAR_STATE_WALK;
 }
 
 /* Werejaguar dispatch, collision handling and animation change notification. */

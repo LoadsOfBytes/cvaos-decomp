@@ -28,6 +28,8 @@
 #include "gba/memory.h"
 #include "entity_hit.h"
 #include "entity_common.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 /* Object 19: move along a timed path of steps, then despawn. */
 struct SpinningBladeStep
@@ -108,7 +110,7 @@ void SpinningBlade_OnHit(struct EwramData_EntityData *entity)
 {
     s32 x;
 
-    PlaySong(0x69);
+    PlaySong(SE_METAL_HIT);
     x = (s16)entity->posX.part16.integer + RandomSigned(0x10);
     HitEffect_Spawn(x, (s16)entity->posY.part16.integer + RandomSigned(0x10), 0);
 }
@@ -138,8 +140,8 @@ void ConveyorSwitchCreate(struct EwramData_EntityData *entity)
     entity->spriteLayer = 3;
     Hit_Enable(entity, 11, NULL, 0);
     HitBox_SetBodyRaw(entity, 0x1010F0F8);
-    entity->hit.flags |= 2;
-    entity->hit.flags |= 4;
+    entity->hit.flags |= HIT_NO_ATTACK;
+    entity->hit.flags |= HIT_NO_DAMAGE;
     gEwramData->gameState.conveyorSpeed = -0x14000;
 }
 
@@ -484,7 +486,7 @@ void SavePointCreate(struct EwramData_EntityData *entity)
     entity->spriteLayer = 0x11;
     Entity_SnapToGround(entity);
     SavePoint_SpawnAnimParts(entity);
-    child = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
+    child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, EntityUpdateNothing);
     if (child != NULL)
     {
         child->hidden = 1;
@@ -527,18 +529,18 @@ void SavePointUpdate(struct EwramData_EntityData *entity)
                 entity->timer = sub;
                 break;
             }
-            gEwramData->gameState.stateFlags &= ~1;
+            gEwramData->gameState.stateFlags &= ~STATE_EVENT_RUNNING;
             break;
         }
         {
             s32 r = Player_IsBusy();
             if (r == 0)
             {
-                PlaySong(0xF3);
+                PlaySong(SE_MENU_SELECT);
                 BgPalette_StopColorFade();
                 ObjPalette_StopColorFade();
                 RedSoul_CancelAll();
-                gEwramData->gameState.stateFlags |= 1;
+                gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
                 SavePoint_ShowSavePrompt();
                 Player_RestoreHPAndMP();
                 gEwramData->startPauseEnabled = 0;
@@ -579,7 +581,7 @@ void SavePointUpdate(struct EwramData_EntityData *entity)
                     entity->timer = res;
                     entity->state = 0x14;
                     entity->ext.savePoint.flags |= 2;
-                    PlaySong(0xF3);
+                    PlaySong(SE_MENU_SELECT);
                     owner = OWNER(entity);
                     ObjPalette_LoadRange(sSavePointPalette, 5, 1, 0xE);
                     owner->hidden = 1;
@@ -589,7 +591,7 @@ void SavePointUpdate(struct EwramData_EntityData *entity)
                 else
                 {
                     struct EwramData_EntityData *owner;
-                    PlaySong(0xEF);
+                    PlaySong(SE_MENU_DENIED);
                     owner = OWNER(entity);
                     ObjPalette_LoadRange(sSavePointPalette, 5, 1, 0xE);
                     owner->hidden = 1;
@@ -602,13 +604,13 @@ void SavePointUpdate(struct EwramData_EntityData *entity)
                     break;
                 }
             }
-            PlaySong(0xF0);
+            PlaySong(SE_MENU_BACK);
             entity->state++;
             break;
         }
         if ((held & 0x10) && entity->ext.savePoint.yesSelected)
         {
-            PlaySong(0xF1);
+            PlaySong(SE_MENU_CURSOR);
             entity->ext.savePoint.yesSelected = ab;
             break;
         }
@@ -616,7 +618,7 @@ void SavePointUpdate(struct EwramData_EntityData *entity)
             break;
         if (entity->ext.savePoint.yesSelected)
             break;
-        PlaySong(0xF1);
+        PlaySong(SE_MENU_CURSOR);
         entity->ext.savePoint.yesSelected = 1;
         break;
     }
@@ -669,7 +671,7 @@ void SavePointUpdate(struct EwramData_EntityData *entity)
         Bg_SetControlIfLevelAllows(3, 0x54, 0x10 - entity->timer);
         if (entity->timer <= 0xF)
             break;
-        gEwramData->gameState.stateFlags &= ~1;
+        gEwramData->gameState.stateFlags &= ~STATE_EVENT_RUNNING;
         entity->state = 0x63;
         break;
     case 10:
@@ -732,7 +734,7 @@ void SavePointUpdate(struct EwramData_EntityData *entity)
         case 4:
             if (SAVE_POINT_LIGHTS_IN_DONE(entity) == 1)
             {
-                (*ew)->gameState.stateFlags &= ~1;
+                (*ew)->gameState.stateFlags &= ~STATE_EVENT_RUNNING;
                 Bg_SetControlIfLevelAllows(3, 0x54, 0);
                 entity->timer = 0;
                 entity->subState = 0;

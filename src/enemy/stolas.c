@@ -25,6 +25,8 @@
 #include "damage_numbers.h"
 #include "entity_hit.h"
 #include "hit_shared_history.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 void Stolas_UpdateMove(struct EwramData_EntityData *entity);
 void Stolas_UpdateAttack(struct EwramData_EntityData *entity);
@@ -59,6 +61,13 @@ void StolasBeamSegment_Update(struct EwramData_EntityData *entity);
 void StolasBeamImpact_Update(struct EwramData_EntityData *entity);
 void StolasDebris_Update(struct EwramData_EntityData *entity);
 void Stolas_Draw(struct EwramData_EntityData *entity);
+
+/* States of Stolas (entity->state), named after the update function the dispatcher calls. */
+enum {
+    STOLAS_STATE_MOVE = 0,
+    STOLAS_STATE_ATTACK = 1,
+    STOLAS_STATE_PREVIEW = 3,
+};
 
 void EnemyStolasUpdate(struct EwramData_EntityData *entity)
 {
@@ -97,10 +106,10 @@ void EnemyStolasUpdate(struct EwramData_EntityData *entity)
     {
         switch (entity->state)
         {
-        case 0:
+        case STOLAS_STATE_MOVE:
             Stolas_UpdateMove(entity);
             break;
-        case 1:
+        case STOLAS_STATE_ATTACK:
             Stolas_UpdateAttack(entity);
             break;
         case 2:
@@ -123,7 +132,7 @@ void EnemyStolasUpdate(struct EwramData_EntityData *entity)
             }
             Anim_Update(entity);
             return;
-        case 3:
+        case STOLAS_STATE_PREVIEW:
             Stolas_UpdatePreview(entity);
             Anim_Update(entity);
             return;
@@ -258,7 +267,7 @@ void EnemyStolasCreate(struct EwramData_EntityData *entity)
     frozen = *((u8 *)gEwramData + 0x8E) & 0x40;
     if (frozen)
     {
-        entity->state = 3;
+        entity->state = STOLAS_STATE_PREVIEW;
         entity->timer = 0;
         entity->ext.stolas.drawOffsetX = 0;
         entity->ext.stolas.drawOffsetY = -29;
@@ -274,7 +283,7 @@ void EnemyStolasCreate(struct EwramData_EntityData *entity)
         entity->spawnParam0 = 13;
     if (entity->spawnParam1 == 0)
         entity->spawnParam1 = 0x52;
-    entity->state = 0;
+    entity->state = STOLAS_STATE_MOVE;
     entity->subState = 0;
 }
 
@@ -420,7 +429,7 @@ void Stolas_UpdateMove(struct EwramData_EntityData *entity)
                     entity->ext.stolas.beamLength = distance;
                     if (distance >= 0 && (s16)entity->ext.stolas.freeSlots > 0)
                     {
-                        entity->state = 1;
+                        entity->state = STOLAS_STATE_ATTACK;
                         entity->subState = 0;
                         break;
                     }
@@ -431,7 +440,7 @@ void Stolas_UpdateMove(struct EwramData_EntityData *entity)
                     if (distance < 0) distance = -distance;
                     if (distance <= 31)
                     {
-                        entity->state = 1;
+                        entity->state = STOLAS_STATE_ATTACK;
                         entity->subState = 10;
                         break;
                     }
@@ -505,7 +514,7 @@ void Stolas_UpdateAttack(struct EwramData_EntityData *entity)
         if (++entity->timer == 73) Stolas_SpawnBeamImpact(entity, DISTANCE(entity), 1);
         if (entity->timer == 112)
         {
-            child = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
+            child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, EntityUpdateNothing);
             if (child != NULL)
             {
                 struct StolasParts *parts = (struct StolasParts *)entity->ext.joint.parts;
@@ -550,7 +559,7 @@ void Stolas_UpdateAttack(struct EwramData_EntityData *entity)
         }
         if (entity->animDone)
         {
-            entity->state = 0;
+            entity->state = STOLAS_STATE_MOVE;
             entity->timer = 36;
             entity->subState = 1;
             FLAGS(entity) = (u8)FLAGS(entity) & 0xFE;
@@ -619,7 +628,7 @@ void Stolas_UpdateAttack(struct EwramData_EntityData *entity)
         if ((s8)--entity->timer <= 0)
         {
             s32 one;
-            entity->state = 0;
+            entity->state = STOLAS_STATE_MOVE;
             /* Retain this local to order the state/timer stores as in ROM. */
             one = 1;
             entity->timer = 36;
@@ -895,7 +904,7 @@ void Stolas_OnDamaged(struct EwramData_EntityData *entity, s32 attacker, u16 *hi
         s32 offset;
         Enemy_DropRewards(entity);
         Anim_StartIndexed(entity, 3, 0, 1);
-        PlaySong(0x6E);
+        PlaySong(SE_ENEMY_DEATH);
         entity->palette = entity->basePalette;
         entity->timer = 60;
         entity->state = 2;
@@ -985,8 +994,8 @@ void StolasPart_Update(struct EwramData_EntityData *entity)
                     box.height = 24;
                     HitBox_SetAttack(entity, &box);
                     HitBox_SetBody(entity, &box);
-                    entity->hit.flags &= 0xFB;
-                    entity->hit.flags &= 0xFD;
+                    entity->hit.flags &= (u8)~HIT_NO_DAMAGE;
+                    entity->hit.flags &= (u8)~HIT_NO_ATTACK;
                     Hit_CheckWithPlayerSharedHistory(&result, entity, parent);
                 }
                 else if (JOINT(entity) == 2)
@@ -1007,15 +1016,15 @@ void StolasPart_Update(struct EwramData_EntityData *entity)
                     box.width = 8;
                     box.height = 8;
                     HitBox_SetAttack(entity, &box);
-                    entity->hit.flags &= 0xFD;
-                    entity->hit.flags &= 0xFB;
+                    entity->hit.flags &= (u8)~HIT_NO_ATTACK;
+                    entity->hit.flags &= (u8)~HIT_NO_DAMAGE;
                     Hit_CheckWithPlayerSharedHistory(&result, entity, parent);
                 }
             }
             else
             {
-                entity->hit.flags |= 4;
-                entity->hit.flags |= 2;
+                entity->hit.flags |= HIT_NO_DAMAGE;
+                entity->hit.flags |= HIT_NO_ATTACK;
             }
             ObjAffine_Set(entity->velX.whole, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
             return;
@@ -1047,7 +1056,7 @@ void StolasPart_Update(struct EwramData_EntityData *entity)
  */
 void Stolas_SpawnCastEffect(struct EwramData_EntityData *entity, s32 dx, s32 dy)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, StolasCastEffect_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, StolasCastEffect_Update);
     s32 tiles;
     u16 palette;
 
@@ -1062,8 +1071,8 @@ void Stolas_SpawnCastEffect(struct EwramData_EntityData *entity, s32 dx, s32 dy)
     Sprite_Attach(child, sStolasSpriteSheet, tiles, entity->basePalette);
     child->animFrame = 0xC;
     child->drawFunc = Sprite_DrawEntity;
-    child->hit.flags |= 4;
-    child->hit.flags |= 2;
+    child->hit.flags |= HIT_NO_DAMAGE;
+    child->hit.flags |= HIT_NO_ATTACK;
     child->scrollWithBg = 1;
     child->spriteLayer = entity->spriteLayer - 1;
     child->basePalette = entity->basePalette;
@@ -1139,7 +1148,7 @@ void StolasCastEffect_Update(struct EwramData_EntityData *entity)
  */
 void Stolas_SpawnBeamSegment(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, StolasBeamSegment_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, StolasBeamSegment_Update);
     s32 gfx;
 
     if (child == NULL)
@@ -1153,8 +1162,8 @@ void Stolas_SpawnBeamSegment(struct EwramData_EntityData *entity, s32 offsetX, s
     Sprite_Attach(child, sStolasSpriteSheet, gfx, entity->basePalette);
     child->animFrame = 0x1F;
     child->drawFunc = Sprite_DrawEntity;
-    child->hit.flags |= 4;
-    child->hit.flags |= 2;
+    child->hit.flags |= HIT_NO_DAMAGE;
+    child->hit.flags |= HIT_NO_ATTACK;
     child->scrollWithBg = 1;
     child->spriteLayer = 9;
     child->basePalette = entity->basePalette;
@@ -1210,7 +1219,7 @@ void StolasBeamSegment_Update(struct EwramData_EntityData *entity)
  */
 void Stolas_SpawnBeamImpact(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, StolasBeamImpact_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, StolasBeamImpact_Update);
     s32 gfx;
 
     if (child == NULL)
@@ -1224,8 +1233,8 @@ void Stolas_SpawnBeamImpact(struct EwramData_EntityData *entity, s32 offsetX, s3
     Sprite_Attach(child, sStolasSpriteSheet, gfx, entity->basePalette);
     child->animFrame = 0x23;
     child->drawFunc = Sprite_DrawEntity;
-    child->hit.flags |= 4;
-    child->hit.flags |= 2;
+    child->hit.flags |= HIT_NO_DAMAGE;
+    child->hit.flags |= HIT_NO_ATTACK;
     child->scrollWithBg = 1;
     child->spriteLayer = 0xA;
     child->basePalette = entity->basePalette;
@@ -1283,7 +1292,7 @@ void StolasBeamImpact_Update(struct EwramData_EntityData *entity)
  */
 void Stolas_SpawnDebris(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY, s32 velocityX, s32 velocityY)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, StolasDebris_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, StolasDebris_Update);
     s32 gfx;
 
     if (child == NULL)
@@ -1297,8 +1306,8 @@ void Stolas_SpawnDebris(struct EwramData_EntityData *entity, s32 offsetX, s32 of
     Sprite_Attach(child, sStolasSpriteSheet, gfx, entity->basePalette);
     child->animFrame = 0x1E;
     child->drawFunc = Sprite_DrawEntity;
-    child->hit.flags |= 4;
-    child->hit.flags |= 2;
+    child->hit.flags |= HIT_NO_DAMAGE;
+    child->hit.flags |= HIT_NO_ATTACK;
     child->scrollWithBg = 1;
     child->spriteLayer = entity->spriteLayer + 1;
     child->basePalette = entity->basePalette;

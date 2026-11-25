@@ -19,6 +19,7 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "entity_hit.h"
+#include "constants/songs.h"
 
 void Nightmare_Draw(struct EwramData_EntityData *);
 void Nightmare_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
@@ -132,7 +133,7 @@ s32 Nightmare_UpdateDeath(struct EwramData_EntityData *entity)
         timer = entity->timer;
         timer++;
         entity->timer = timer;
-        if (!(timer & 7)) PlaySong(0x6E);
+        if (!(timer & 7)) PlaySong(SE_ENEMY_DEATH);
         if (!(entity->timer & 3))
         {
             s32 offsetX = RandomSigned(0x10) << 16;

@@ -25,6 +25,8 @@
 #include "data/data_118B48.h"
 #include "math_inline.h"
 #include "obj_palette.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 /* FloorSwitchGateCreate (0x0805A18C). */
 u8 FloorSwitchGate_LoadGraphics(struct EwramData_EntityData *entity);
@@ -66,8 +68,8 @@ void FloorSwitchGateCreate(struct EwramData_EntityData *entity)
         HitBox_SetBody(entity, &box);
         HitBox_SetAttack(entity, &box);
     }
-    entity->hit.flags |= 4;
-    entity->hit.flags |= 2;
+    entity->hit.flags |= HIT_NO_DAMAGE;
+    entity->hit.flags |= HIT_NO_ATTACK;
     entity->spriteLayer = 0x12;
     if (entity->spawnParam0 == 0)
     {
@@ -160,7 +162,7 @@ void FloorSwitchGate_UpdateState(struct EwramData_EntityData *entity)
                 entity->subState++;
                 entity->velY.whole = 0x8000;
                 entity->timer = 0;
-                PlaySong(0x113);
+                PlaySong(SE_DOOR);
             }
             break;
         case 11:
@@ -207,7 +209,7 @@ void FloorSwitchGate_UpdateState(struct EwramData_EntityData *entity)
  */
 void FloorSwitchGate_SpawnChild(struct EwramData_EntityData *parent)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, FloorSwitchGateChild_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, FloorSwitchGateChild_Update);
     s32 gfx;
 
     if (child != NULL)
@@ -219,8 +221,8 @@ void FloorSwitchGate_SpawnChild(struct EwramData_EntityData *parent)
         child->basePalette = parent->basePalette;
         Sprite_Attach(child, sFloorSwitchGateSpriteSheet, gfx, child->basePalette);
         child->animFrame = 3;
-        child->hit.flags |= 4;
-        child->hit.flags |= 2;
+        child->hit.flags |= HIT_NO_DAMAGE;
+        child->hit.flags |= HIT_NO_ATTACK;
         child->ext.floorSwitchGateChild.owner = parent;
         child->scrollWithBg = 1;
         child->drawFunc = Sprite_DrawEntity;
@@ -318,8 +320,8 @@ void RotatingPlatformCreate(struct EwramData_EntityData *entity)
     s16 shapes[9][2];
 
     memcpy(shapes, sRotatingPlatformShapes, sizeof(shapes));
-    entity->hit.flags |= 4;
-    entity->hit.flags |= 2;
+    entity->hit.flags |= HIT_NO_DAMAGE;
+    entity->hit.flags |= HIT_NO_ATTACK;
     entity->hidden = 1;
     entity->ext.rotatingPlatform.radius = shapes[entity->spawnParam0][0] / 2;
     entity->ext.rotatingPlatform.spin = shapes[entity->spawnParam0][1];
@@ -534,8 +536,8 @@ void SwingDoorCreate(struct EwramData_EntityData *entity)
     entity->affine = 1;
     scale = 0x10000;
     ObjAffine_Set(0, scale, scale, entity->flipX, entity->flipY, entity->affineIndex);
-    entity->hit.flags |= 4;
-    entity->hit.flags |= 2;
+    entity->hit.flags |= HIT_NO_DAMAGE;
+    entity->hit.flags |= HIT_NO_ATTACK;
     entity->state = 0;
     x = entity->posX.whole - (*ewram)->playerState.player->posX.whole;
     if (Abs(x) < 0x300000)
@@ -588,7 +590,7 @@ void SwingDoor_UpdateState(struct EwramData_EntityData *entity)
         if (Abs(distance) >= 0x300000 && FlipMask(player))
         {
             entity->subState = 1;
-            PlaySong(0x113);
+            PlaySong(SE_DOOR);
         }
         break;
     case 1:
@@ -626,7 +628,7 @@ void SwingDoor_UpdateState(struct EwramData_EntityData *entity)
             Collision_SetBlock(x, y - 0x18);
             Collision_SetBlock(x, y - 0x28);
             Collision_SetBlock(x, y - 0x38);
-            PlaySong(0x113);
+            PlaySong(SE_DOOR);
         }
         break;
     }
@@ -638,7 +640,7 @@ void SwingDoor_UpdateState(struct EwramData_EntityData *entity)
  */
 void SwingDoor_SpawnChild(struct EwramData_EntityData *owner)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, SwingDoorChild_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, SwingDoorChild_Update);
     struct EwramData **ewram = &gEwramData;
     s32 graphics;
     u16 transform;
@@ -652,8 +654,8 @@ void SwingDoor_SpawnChild(struct EwramData_EntityData *owner)
     entity->basePalette = owner->basePalette;
     Sprite_Attach(entity, sSwingDoorSpriteSheet, graphics, entity->basePalette);
     entity->animFrame = 2;
-    entity->hit.flags |= 4;
-    entity->hit.flags |= 2;
+    entity->hit.flags |= HIT_NO_DAMAGE;
+    entity->hit.flags |= HIT_NO_ATTACK;
     transform = ObjAffine_Alloc(1);
     if ((s16)transform < 0)
     {

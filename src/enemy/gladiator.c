@@ -22,6 +22,8 @@
 #include "damage_numbers.h"
 #include "entity_hit.h"
 #include "hit_shared_history.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 s32 Gladiator_LoadGraphics(struct EwramData_EntityData *entity);
 void GladiatorBody_Update(struct EwramData_EntityData *entity);
@@ -41,6 +43,13 @@ void GladiatorShotTip_OnHit(struct EwramData_EntityData *, s32, u16 *);
 void GladiatorShotTip_Update(struct EwramData_EntityData *entity);
 void GladiatorFragment_Update(struct EwramData_EntityData *);
 void Gladiator_UpdateDeath(struct EwramData_EntityData *entity);
+
+/* States of Gladiator (entity->state), named after the update function the dispatcher calls. */
+enum {
+    GLADIATOR_STATE_CHARGE = 0,
+    GLADIATOR_STATE_DEATH = 1,
+    GLADIATOR_STATE_ANIM_ONLY = 2,
+};
 
 /**
  * @brief A07FC | Gladiator create: animation 12 and three parts
@@ -144,7 +153,7 @@ void EnemyGladiatorCreate(struct EwramData_EntityData *entity)
     }
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 2;
+        entity->state = GLADIATOR_STATE_ANIM_ONLY;
         return;
     }
     if (Anim_GetMaxBoxCount(entity) > 1)
@@ -153,7 +162,7 @@ void EnemyGladiatorCreate(struct EwramData_EntityData *entity)
         Hit_Enable(entity, 8, Gladiator_DamagePlayerOnContact, Gladiator_OnHit);
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
-    entity->state = 0;
+    entity->state = GLADIATOR_STATE_CHARGE;
 }
 
 /**
@@ -281,7 +290,7 @@ void Gladiator_OnDamaged(struct EwramData_EntityData *entity, s32 unused1, u16 *
         entity->ext.gladiator.flinch = 1;
         entity->palette = entity->basePalette;
         entity->timer = 0x3C;
-        entity->state = 1;
+        entity->state = GLADIATOR_STATE_DEATH;
         entity->subState = 0;
         entity->stage = 0;
         entity->accelX.whole = 0;
@@ -471,7 +480,7 @@ void GladiatorArm_Update(struct EwramData_EntityData *entity)
                         {
                             GladiatorArm_FireShot(entity, entity->flipX ? 0x80000 : -0x80000, -0x150000, 0, 0);
                             if (!EntityIsOutsideScreen(entity, 6))
-                                PlaySong(0x89);
+                                PlaySong(SE_THROW);
                         }
                     }
                     else if (entity->animScriptIndex == 3)
@@ -482,7 +491,7 @@ void GladiatorArm_Update(struct EwramData_EntityData *entity)
                         {
                             GladiatorArm_FireShot(entity, entity->flipX ? 0x80000 : -0x80000, -0x150000, 0, 0);
                             if (!EntityIsOutsideScreen(entity, 6))
-                                PlaySong(0x89);
+                                PlaySong(SE_THROW);
                         }
                     }
                 }
@@ -606,7 +615,7 @@ void GladiatorSpinner_Update(struct EwramData_EntityData *entity)
 void GladiatorArm_FireShot(struct EwramData_EntityData *entity, s32 dx, s32 dy, s32 vx, s32 vy)
 {
     u32 box = 0x0404FEFE;
-    struct EwramData_EntityData *shot = EntityCreateInRange(0x1B, 0x48, GladiatorShot_Update);
+    struct EwramData_EntityData *shot = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, GladiatorShot_Update);
     s32 tiles;
     u16 palette;
 
@@ -624,8 +633,8 @@ void GladiatorArm_FireShot(struct EwramData_EntityData *entity, s32 dx, s32 dy, 
     shot->drawFunc = Sprite_DrawEntity;
     Hit_Enable(shot, 8, NULL, GladiatorShot_OnHit);
     HitBox_SetBody(shot, &box);
-    shot->hit.flags &= 0xFB;
-    shot->hit.flags |= 2;
+    shot->hit.flags &= (u8)~HIT_NO_DAMAGE;
+    shot->hit.flags |= HIT_NO_ATTACK;
     shot->scrollWithBg = 1;
     shot->spriteLayer = entity->spriteLayer - 1;
     shot->basePalette = entity->basePalette;
@@ -729,7 +738,7 @@ void GladiatorShot_CreateTip(struct EwramData_EntityData *owner)
 {
     s32 mask = -3;
     u32 box = 0x0806FAFD;
-    struct EwramData_EntityData *child = EntityCreateInRange(0x1B, 0x48, GladiatorShotTip_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, GladiatorShotTip_Update);
     s32 graphics;
     s32 x, y;
 
@@ -748,8 +757,8 @@ void GladiatorShot_CreateTip(struct EwramData_EntityData *owner)
     Hit_Enable(child, 10, GladiatorShotTip_DamagePlayerOnContact, GladiatorShotTip_OnHit);
     HitBox_SetAttack(child, &box);
     HitBox_SetBody(child, &box);
-    child->hit.flags &= ~4;
-    child->hit.flags &= ~2;
+    child->hit.flags &= ~HIT_NO_DAMAGE;
+    child->hit.flags &= ~HIT_NO_ATTACK;
     mask &= *((u8 *)&child->accelY + 5); /* unk_53D: clear scrollWithBg */
     *((u8 *)&child->accelY + 5) = mask;
     child->spriteLayer = owner->spriteLayer - 1;
@@ -791,7 +800,7 @@ void Gladiator_SpawnFragments(struct EwramData_EntityData *entity, s32 x, s32 y)
     s32 i;
     for (i = 0; i <= 6; i++)
     {
-        struct EwramData_EntityData *effect = EntityCreateInRange(0x49, 0xCF, GladiatorFragment_Update);
+        struct EwramData_EntityData *effect = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, GladiatorFragment_Update);
         if (effect != NULL)
         {
             effect->posX.whole = x;
@@ -962,25 +971,25 @@ void EnemyGladiatorUpdate(struct EwramData_EntityData *entity)
 {
     struct HitResult results[3]; /* only results[0] is written; the original reserved 48 bytes */
 
-    if (entity->state != 1)
+    if (entity->state != GLADIATOR_STATE_DEATH)
     {
         if (Entity_IsInRect(entity, -16, 0, 272, 176)) Player_TrackEntity(entity);
-        if (entity->state != 1) Enemy_UpdateHitFlash(entity);
+        if (entity->state != GLADIATOR_STATE_DEATH) Enemy_UpdateHitFlash(entity);
     }
-    if (Entity_IsTimeStopped(entity) && entity->state != 1)
+    if (Entity_IsTimeStopped(entity) && entity->state != GLADIATOR_STATE_DEATH)
     {
         Hit_CheckWithPlayer(results, entity);
         return;
     }
     switch (entity->state)
     {
-    case 0:
+    case GLADIATOR_STATE_CHARGE:
         Gladiator_UpdateCharge(entity);
         break;
-    case 1:
+    case GLADIATOR_STATE_DEATH:
         Gladiator_UpdateDeath(entity);
         break;
-    case 2:
+    case GLADIATOR_STATE_ANIM_ONLY:
         Anim_Update(entity);
         return;
     }

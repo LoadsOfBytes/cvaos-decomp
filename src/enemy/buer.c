@@ -21,9 +21,18 @@
 #include "data/data_4F1444.h"
 #include "entity_inline.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 void Buer_CreateHead(struct EwramData_EntityData *);
 void Buer_UpdateCharge(struct EwramData_EntityData *entity);
+
+/* States of Buer (entity->state), named after the update function the dispatcher calls. */
+enum {
+    BUER_STATE_ENTRY = 1,
+    BUER_STATE_ACTIVE = 2,
+    BUER_STATE_DEATH = 3,
+};
 
 /* Buer: load graphics, create its linked parts and set initial collision
  * and movement state. */
@@ -289,8 +298,8 @@ void Buer_UpdateDeath(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
         case 0:
-            entity->hit.flags |= 2;
-            PlaySong(0x6E);
+            entity->hit.flags |= HIT_NO_ATTACK;
+            PlaySong(SE_ENEMY_DEATH);
             part->drawSkip = 1;
             part->palette = part->basePalette;
             part->state++;
@@ -354,7 +363,7 @@ void Buer_UpdateDeath(struct EwramData_EntityData *entity)
                 Effect_SpawnRandom(oldX,oldY,0x200000,0x200000,entity->spriteLayer-1);
                 timer = entity->timer;
                 if ((u8)(timer % 20) == 0 && timer > 28)
-                    PlaySong(0x6E);
+                    PlaySong(SE_ENEMY_DEATH);
             }
             Buer_MoveAndRotate(entity,1);
             if (--entity->timer == 0xFF)
@@ -367,7 +376,7 @@ void Buer_UpdateDeath(struct EwramData_EntityData *entity)
             memcpy(positions,sBuerPositions,sizeof(positions));
             for (i=0; i<8; i++)
                 Effect_SpawnAt(entity->posX.whole + (positions[i][0]<<16),entity->posY.whole + (positions[i][1]<<16) + 0x40000,entity->spriteLayer-1);
-            PlaySong(0x6E);
+            PlaySong(SE_ENEMY_DEATH);
             ObjAffine_Free(entity->affineIndex);
             entity->deleteRequested = 1;
             break;
@@ -476,7 +485,7 @@ void EnemyBuerUpdate(struct EwramData_EntityData *entity)
         Buer_UpdateState4Rotation(entity);
         return;
     }
-    if (entity->state == 3)
+    if (entity->state == BUER_STATE_DEATH)
     {
         Buer_UpdateDeath(entity);
         return;
@@ -489,10 +498,10 @@ void EnemyBuerUpdate(struct EwramData_EntityData *entity)
     }
     switch (entity->state)
     {
-        case 1: Buer_UpdateEntry(entity); break;
-        case 2: Buer_UpdateActive(entity); break;
-        case 3: Buer_UpdateDeath(entity); break;
+        case BUER_STATE_ENTRY: Buer_UpdateEntry(entity); break;
+        case BUER_STATE_ACTIVE: Buer_UpdateActive(entity); break;
+        case BUER_STATE_DEATH: Buer_UpdateDeath(entity); break;
     }
-    if (entity->state != 3)
+    if (entity->state != BUER_STATE_DEATH)
         Hit_CheckWithPlayer(&result,entity);
 }

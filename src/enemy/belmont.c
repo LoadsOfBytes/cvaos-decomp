@@ -24,6 +24,8 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "bg_and_collision.h"
+#include "constants/game_flags.h"
+#include "constants/hit_flags.h"
 
 
 void Belmont_OnHit(struct EwramData_EntityData *entity,s32 kind,u16 *hit);
@@ -50,6 +52,18 @@ void BelmontSubweapon2_Update(struct EwramData_EntityData *);
 void BelmontSubweapon3_Update(struct EwramData_EntityData *);
 void FragmentSet_Update(struct EwramData_EntityData *);
 
+/* States of Belmont (entity->state), named after the update function the dispatcher calls. */
+enum {
+    BELMONT_STATE_COMBAT = 2,
+    BELMONT_STATE_ENTER_COMBAT = 3,
+    BELMONT_STATE_JUMP_ATTACK = 4,
+    BELMONT_STATE_WAVE_ATTACK = 5,
+    BELMONT_STATE_SUBWEAPON_ATTACK = 6,
+    BELMONT_STATE_MELEE_ATTACK = 7,
+    BELMONT_STATE_POWERED_PHASE = 8,
+    BELMONT_STATE_JUMP_SLIDE = 10,
+};
+
 /* Belmont initialization distinguishes scene entry and combat entry. */
 void EnemyBelmontCreate(struct EwramData_EntityData *entity)
 {
@@ -66,7 +80,7 @@ void EnemyBelmontCreate(struct EwramData_EntityData *entity)
         {
             u16 completed;
             entity->ext.belmont.flags|=0x10;
-            completed=gEwramData->gameState.bossEventFlags & 4;
+            completed=gEwramData->gameState.bossEventFlags & BOSS_DEFEATED_JULIUS;
             if(completed)
             {
                 EntityDelete(entity);
@@ -83,7 +97,7 @@ void EnemyBelmontCreate(struct EwramData_EntityData *entity)
     {
         Game_SetMenusEnabled(1);
         Player_SetSelectedTarget(entity);
-        gEwramData->gameState.stateFlags|=2;
+        gEwramData->gameState.stateFlags|=STATE_BOSS_FIGHT;
     }
     if(!Entity_LoadGraphics(entity,graphics,palette,0,sprite))
     {
@@ -106,7 +120,7 @@ void EnemyBelmontCreate(struct EwramData_EntityData *entity)
         return;
     }
     Enemy_ResetFromTemplate(entity);
-    entity->state=3;
+    entity->state = BELMONT_STATE_ENTER_COMBAT;
     entity->stage=display;
     entity->subState=display;
     entity->ext.belmont.attack=entity->attack;
@@ -127,7 +141,7 @@ void Belmont_CreateSceneObject(struct EwramData_EntityData *entity,s32 index)
     struct BelmontSceneObject *info=&sBelmontSceneObjects[index];
     if(entity->ext.belmont.flags & 0x10)
     {
-        struct EwramData_EntityData *object=EntityCreateInRange(0x1B,0x48,EntityUpdateNothing);
+        struct EwramData_EntityData *object=EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST,EntityUpdateNothing);
         if(object)
         {
             s32 facing;
@@ -282,20 +296,20 @@ void EnemyBelmontUpdate(struct EwramData_EntityData *entity)
         entity->hidden=0;
     switch(entity->state)
     {
-        case 3: Belmont_EnterCombat(entity); break;
-        case 2: Belmont_UpdateCombat(entity); break;
-        case 7: Belmont_UpdateMeleeAttack(entity); break;
-        case 4: Belmont_UpdateJumpAttack(entity); break;
-        case 5: Belmont_UpdateWaveAttack(entity); break;
-        case 6: Belmont_UpdateSubweaponAttack(entity); break;
-        case 10: Belmont_UpdateJumpSlide(entity); break;
-        case 8: Belmont_UpdatePoweredPhase(entity); break;
+        case BELMONT_STATE_ENTER_COMBAT: Belmont_EnterCombat(entity); break;
+        case BELMONT_STATE_COMBAT: Belmont_UpdateCombat(entity); break;
+        case BELMONT_STATE_MELEE_ATTACK: Belmont_UpdateMeleeAttack(entity); break;
+        case BELMONT_STATE_JUMP_ATTACK: Belmont_UpdateJumpAttack(entity); break;
+        case BELMONT_STATE_WAVE_ATTACK: Belmont_UpdateWaveAttack(entity); break;
+        case BELMONT_STATE_SUBWEAPON_ATTACK: Belmont_UpdateSubweaponAttack(entity); break;
+        case BELMONT_STATE_JUMP_SLIDE: Belmont_UpdateJumpSlide(entity); break;
+        case BELMONT_STATE_POWERED_PHASE: Belmont_UpdatePoweredPhase(entity); break;
     }
     Entity_AnimateWithBoxes(entity);
     if(entity->attack==0)
-        entity->hit.flags|=2;
+        entity->hit.flags|=HIT_NO_ATTACK;
     else
-        entity->hit.flags&=0xFD;
+        entity->hit.flags&=(u8)~HIT_NO_ATTACK;
     if(entity->state!=11 && FLASH(entity)==0)
         Enemy_CheckHitPlayer(entity);
 }
@@ -338,8 +352,8 @@ void Belmont_UpdateCombat(struct EwramData_EntityData *entity)
                     return;
                 }
                 {
-u8 mask=FLAGS(entity)&8; if(mask==0){ entity->state=8; entity->stage=mask; entity->subState=mask; FLAGS(entity)|=8;
-                        gEwramData->gameState.stateFlags|=0x1000;
+u8 mask=FLAGS(entity)&8; if(mask==0){ entity->state = BELMONT_STATE_POWERED_PHASE; entity->stage=mask; entity->subState=mask; FLAGS(entity)|=8;
+                        gEwramData->gameState.stateFlags|=STATE_JULIUS_ARENA;
                         break;
                     }
                 }
@@ -349,9 +363,9 @@ u8 mask=FLAGS(entity)&8; if(mask==0){ entity->state=8; entity->stage=mask; entit
                 work=RandomNumberGenerator()%12;
                 if(work==0) { entity->state=9; entity->stage=work; entity->subState=work; return; }
                 work=RandomNumberGenerator()%8;
-                if(work==0) { entity->state=4; entity->stage=work; entity->subState=work; return; }
+                if(work==0) { entity->state = BELMONT_STATE_JUMP_ATTACK; entity->stage=work; entity->subState=work; return; }
                 work=RandomNumberGenerator()%4;
-                if(work==0) { entity->state=10; entity->stage=work; entity->subState=work; return; }
+                if(work==0) { entity->state = BELMONT_STATE_JUMP_SLIDE; entity->stage=work; entity->subState=work; return; }
             }
             if(entity->subState==1)
             {
@@ -373,14 +387,14 @@ u8 mask=FLAGS(entity)&8; if(mask==0){ entity->state=8; entity->stage=mask; entit
                     work=RandomNumberGenerator()%8;
                     if(work==0) { entity->state=9; entity->stage=work; entity->subState=work; return; }
                     work=RandomNumberGenerator()%6;
-                    if(work==0) { entity->state=4; entity->stage=work; entity->subState=work; return; }
+                    if(work==0) { entity->state = BELMONT_STATE_JUMP_ATTACK; entity->stage=work; entity->subState=work; return; }
                 }
                 work=RandomNumberGenerator()%10;
-                if(work==0) { entity->state=7; entity->stage=work; entity->subState=work; return; }
+                if(work==0) { entity->state = BELMONT_STATE_MELEE_ATTACK; entity->stage=work; entity->subState=work; return; }
                 work=RandomNumberGenerator()%50;
                 if(work==0)
                 {
-                    entity->state=10;
+                    entity->state = BELMONT_STATE_JUMP_SLIDE;
                     entity->stage=work;
                     entity->subState=work;
                     return;
@@ -388,7 +402,7 @@ u8 mask=FLAGS(entity)&8; if(mask==0){ entity->state=8; entity->stage=mask; entit
             }
             else if((Player_GetFocusedActionFlags()&2) && RandomNumberGenerator()%60==20)
             {
-                entity->state=4;
+                entity->state = BELMONT_STATE_JUMP_ATTACK;
                 entity->stage=nearby;
                 entity->subState=5;
                 break;
@@ -397,7 +411,7 @@ u8 mask=FLAGS(entity)&8; if(mask==0){ entity->state=8; entity->stage=mask; entit
             if((FLAGS(entity)&8) && Entity_IsTargetInCenteredBox(entity,256,128) && RandomNumberGenerator()%30==0 && (u16)COOLDOWN(entity)==0)
             {
                 COOLDOWN(entity)=RandomNumberGenerator()%4;
-                entity->state=6;
+                entity->state = BELMONT_STATE_SUBWEAPON_ATTACK;
                 entity->stage=0;
                 entity->subState=0;
             }
@@ -414,7 +428,7 @@ u8 mask=FLAGS(entity)&8; if(mask==0){ entity->state=8; entity->stage=mask; entit
             roll=RandomNumberGenerator()&3;
             if(roll==0 && Entity_IsTargetInCenteredBox(entity,32,256) && (Player_GetFocusedActionFlags()&4))
             {
-                entity->state=4;
+                entity->state = BELMONT_STATE_JUMP_ATTACK;
                 entity->stage=roll;
                 entity->subState=roll;
                 break;
@@ -468,7 +482,7 @@ void Belmont_UpdateMeleeAttack(struct EwramData_EntityData *entity)
                 entity->attack=0;
             if(entity->animDone)
             {
-                entity->state=2;
+                entity->state = BELMONT_STATE_COMBAT;
                 entity->stage=0;
                 entity->subState=0;
                 entity->attack=entity->ext.belmont.attackOff;
@@ -617,7 +631,7 @@ void Belmont_UpdateJumpAttack(struct EwramData_EntityData *entity)
                     }
                     if(--entity->timer==255)
                     {
-                        entity->state=2;
+                        entity->state = BELMONT_STATE_COMBAT;
                         entity->stage=0;
                         entity->subState=0;
                     }
@@ -762,7 +776,7 @@ void BelmontWaveProjectile_Update(struct EwramData_EntityData *entity)
             }
             break;
     }
-    entity->hit.flags|=4;
+    entity->hit.flags|=HIT_NO_DAMAGE;
     Enemy_CheckHitPlayer(entity);
 }
 
@@ -803,7 +817,7 @@ void Belmont_SpawnProjectileWave(struct EwramData_EntityData *entity)
         projectile->animFrame=projectile->basePalette;
         projectile->hidden=1;
         Entity_EnableBoxes(projectile,Enemy_OnContact,0);
-        projectile->hit.flags|=4;
+        projectile->hit.flags|=HIT_NO_DAMAGE;
         projectile->ext.belmont.attack=entity->ext.belmont.attack;
         projectile->attack=entity->ext.belmont.attack;
         }
@@ -868,7 +882,7 @@ void Belmont_UpdateWaveAttack(struct EwramData_EntityData *entity)
             }
             if(--entity->timer==0xFF)
             {
-                entity->state=2;
+                entity->state = BELMONT_STATE_COMBAT;
                 entity->stage=0;
                 entity->subState=0;
             }
@@ -943,7 +957,7 @@ void Belmont_UpdateSubweaponAttack(struct EwramData_EntityData *entity)
         case 3:
             if(entity->animDone)
             {
-                entity->state=2;
+                entity->state = BELMONT_STATE_COMBAT;
                 entity->stage=0;
                 entity->subState=0;
             }
@@ -997,7 +1011,7 @@ void BelmontPowerParticle_Update(struct EwramData_EntityData *entity)
  */
 struct EwramData_EntityData *Belmont_CreatePowerParticle(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *effect=EntityCreateInRange(0x49,0xCF,BelmontPowerParticle_Update);
+    struct EwramData_EntityData *effect=EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST,BelmontPowerParticle_Update);
     if(effect)
     {
         u32 random;
@@ -1042,7 +1056,7 @@ void Belmont_UpdatePoweredPhase(struct EwramData_EntityData *entity)
             entity->ext.belmont.powerStep++;
             if(!Belmont_CreateAttachedWeapon(entity))
             {
-                entity->state=2;
+                entity->state = BELMONT_STATE_COMBAT;
                 entity->stage=state;
                 entity->subState=state;
                 return;
@@ -1133,7 +1147,7 @@ void Belmont_UpdatePoweredPhase(struct EwramData_EntityData *entity)
                 Sound_StopTracked(251);
                 if(entity->animScriptIndex!=0)
                     Anim_StartIndexed(entity,0,1,1);
-                entity->state=2;
+                entity->state = BELMONT_STATE_COMBAT;
                 entity->stage=0;
                 entity->subState=0;
                 entity->ext.belmontWeapon.index=0;
@@ -1218,7 +1232,7 @@ void Belmont_UpdateDodge(struct EwramData_EntityData *entity)
             }
             if(--entity->timer==255)
             {
-                entity->state=2;
+                entity->state = BELMONT_STATE_COMBAT;
                 entity->stage=0;
                 entity->subState=0;
                 entity->objMode=0;
@@ -1373,7 +1387,7 @@ void Belmont_UpdateJumpSlide(struct EwramData_EntityData *entity)
             if(--entity->timer==255)
             {
                 *damage=entity->ext.belmont.attackOff;
-                entity->state=2;
+                entity->state = BELMONT_STATE_COMBAT;
                 entity->stage=0;
                 entity->subState=0;
             }
@@ -1389,7 +1403,7 @@ void Belmont_UpdateJumpSlide(struct EwramData_EntityData *entity)
  */
 struct EwramData_EntityData *Belmont_CreateMovementEffect(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *effect=EntityCreateInRange(0x49,0xCF,BelmontMovementEffect_Update);
+    struct EwramData_EntityData *effect=EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST,BelmontMovementEffect_Update);
     if(effect)
     {
         s32 graphics=ObjGfx_Find(sCommonObjectGfx);
@@ -1569,7 +1583,7 @@ void Belmont_UpdateHitReaction(struct EwramData_EntityData *entity)
                     entity->subState=0;
                     return;
                 }
-                entity->state=2;
+                entity->state = BELMONT_STATE_COMBAT;
                 entity->stage=0;
                 entity->subState=0;
                 return;
@@ -1641,19 +1655,19 @@ void Belmont_UpdateDefeat(struct EwramData_EntityData *entity)
                 struct EwramData_EntityData *object=&gEwramData->entityData[entity->ext.belmontScene.objectIndex];
                 if(object->updateFunc==0)
                 {
-                    GameFlag_Set(0x29);
-                    gEwramData->gameState.bossEventFlags|=4;
+                    GameFlag_Set(FLAG_JULIUS_BATTLE_STARTED);
+                    gEwramData->gameState.bossEventFlags|=BOSS_DEFEATED_JULIUS;
                     entity->subState++;
                     entity->stage=0;
-                    gEwramData->gameState.stateFlags&=~2;
+                    gEwramData->gameState.stateFlags&=~STATE_BOSS_FIGHT;
                     Player_SetSelectedTarget(0);
-                    gEwramData->gameState.stateFlags|=0x1000;
-                    gEwramData->gameState.gameFlagsTail[1]|=0x2000000;
+                    gEwramData->gameState.stateFlags|=STATE_JULIUS_ARENA;
+                    gEwramData->gameState.gameFlagsTail[GAME_FLAG_WORD(FLAG_JULIUS_ROOM_CLEARED) - 2] |= GAME_FLAG_BIT(FLAG_JULIUS_ROOM_CLEARED);
                 }
                 else if(object->state==127)
                 {
-                    gEwramData->gameState.stateFlags|=0x400000;
-                    gEwramData->gameState.bossEventFlags|=4;
+                    gEwramData->gameState.stateFlags|=STATE_BOSS_DOOR_KEEPS_MUSIC;
+                    gEwramData->gameState.bossEventFlags|=BOSS_DEFEATED_JULIUS;
                 }
             }
             break;
@@ -1794,7 +1808,7 @@ struct EwramData_EntityData *Belmont_CreateSubweapon(struct EwramData_EntityData
         weapon->posY.part16.integer-=6;
     }
     Entity_EnableBoxes(weapon,Enemy_OnContact,0);
-    weapon->hit.flags|=4;
+    weapon->hit.flags|=HIT_NO_DAMAGE;
     weapon->attack=85;
     return weapon;
 }
@@ -2011,7 +2025,7 @@ void BelmontSubweapon3_Update(struct EwramData_EntityData *entity)
     else
     {
         Entity_AnimateWithBoxes(entity);
-        entity->hit.flags|=4;
+        entity->hit.flags|=HIT_NO_DAMAGE;
         Enemy_CheckHitPlayer(entity);
     }
 }
@@ -2026,7 +2040,7 @@ void Entity_SpawnFragmentSet(struct EwramData_EntityData *entity)
     s32 i;
     for(i=0;i<5;i++)
     {
-        struct EwramData_EntityData *fragment=EntityCreateInRange(0x49,0xCF,FragmentSet_Update);
+        struct EwramData_EntityData *fragment=EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST,FragmentSet_Update);
         struct FragmentSpec *spec;
         s32 graphics;
         s32 slot;
@@ -2085,7 +2099,7 @@ void FragmentSet_Update(struct EwramData_EntityData *entity)
 void Belmont_EnterCombat(struct EwramData_EntityData *entity)
 {
     s32 zero=0;
-    entity->state=2;
+    entity->state = BELMONT_STATE_COMBAT;
     entity->stage=zero;
     entity->subState=zero;
 }

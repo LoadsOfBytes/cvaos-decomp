@@ -28,6 +28,21 @@ void GhostDancer_UpdateBestiaryPreview(struct EwramData_EntityData *);
 void GhostDancer_UpdateMovement(struct EwramData_EntityData *);
 void GhostDancer_UpdateDeath(struct EwramData_EntityData *);
 
+/* States of GhostDancer (entity->state), named after the update function the dispatcher calls. */
+enum {
+    GHOST_DANCER_STATE_MOVEMENT = 2,
+    GHOST_DANCER_STATE_DEATH = 3,
+};
+
+/* States of Skeleton (entity->state), named after the update function the dispatcher calls. */
+enum {
+    SKELETON_STATE_PATROL = 0,
+    SKELETON_STATE_COMBAT_MOVEMENT = 1,
+    SKELETON_STATE_IDLE = 2,
+    SKELETON_STATE_ATTACK_PREPARATION = 3,
+    SKELETON_STATE_THROW = 4,
+};
+
 void EnemyGhostDancerCreate(struct EwramData_EntityData *input)
 {
     /* agbcc otherwise assigns r4 to the zero kept across Enemy_ResetFromTemplate,
@@ -115,7 +130,7 @@ void EnemyGhostDancerUpdate(struct EwramData_EntityData *entity)
         return;
     }
     entity->hidden=EntityIsOutsideScreen(entity,4);
-    if(entity->state!=3)
+    if(entity->state != GHOST_DANCER_STATE_DEATH)
     {
         s32 mode=MODE(entity);
         switch(mode)
@@ -152,22 +167,22 @@ void EnemyGhostDancerUpdate(struct EwramData_EntityData *entity)
     }
     if(Enemy_IsStunned(entity))
     {
-        if(entity->state!=3)
+        if(entity->state != GHOST_DANCER_STATE_DEATH)
             Hit_CheckWithPlayer(&result,entity);
         return;
     }
     switch(entity->state)
     {
         case 1:
-        case 2:
+        case GHOST_DANCER_STATE_MOVEMENT:
             GhostDancer_UpdateMovement(entity);
             break;
-        case 3:
+        case GHOST_DANCER_STATE_DEATH:
             GhostDancer_UpdateDeath(entity);
             break;
     }
     Entity_AnimateWithBoxes(entity);
-    if(entity->state!=3)
+    if(entity->state != GHOST_DANCER_STATE_DEATH)
         Hit_CheckWithPlayer(&result,entity);
 }
 
@@ -211,7 +226,7 @@ void GhostDancer_UpdateUnusedState(struct EwramData_EntityData *entity)
             }
             if(Entity_GetTargetDistanceY(entity)<0 && Entity_GetTargetDistanceY(entity)>-160 && HorizontalDistance(entity)<=95)
             {
-                entity->state=2;
+                entity->state = GHOST_DANCER_STATE_MOVEMENT;
                 entity->subState=0;
                 break;
             }
@@ -297,7 +312,7 @@ void GhostDancer_UpdateDeath(struct EwramData_EntityData *entity)
             Anim_StartIndexed(entity,2,0,0);
             entity->palette=entity->basePalette;
             entity->objMode=1;
-            entity->state=3;
+            entity->state = GHOST_DANCER_STATE_DEATH;
             entity->subState++;
             entity->objMode=1;
         case 1:
@@ -325,7 +340,7 @@ void GhostDancer_OnHit(struct EwramData_EntityData *entity,s32 hit,u16 *info)
     {
         Enemy_DropRewards(entity);
         entity->palette=entity->basePalette;
-        entity->state=3;
+        entity->state = GHOST_DANCER_STATE_DEATH;
         entity->subState=0;
         PlaySong(0x6D);
         GhostDancer_UpdateDeath(entity);
@@ -424,9 +439,9 @@ void EnemySkeletonCreate(struct EwramData_EntityData *entity)
     child->hidden = 0;
     entity->ext.skeleton.flags |= 4;
     if (RandomNumberGenerator() & 1)
-        entity->state = 1;
+        entity->state = SKELETON_STATE_COMBAT_MOVEMENT;
     else
-        entity->state = 1;
+        entity->state = SKELETON_STATE_COMBAT_MOVEMENT;
     entity->stage = zero2;
     entity->subState = zero2;
 }
@@ -450,11 +465,11 @@ void EnemySkeletonUpdate(struct EwramData_EntityData *entity)
         entity->ext.skeleton.unusedDelay = RandomNumberGenerator() % 80 + 40;
         switch (entity->state)
         {
-        case 0: Skeleton_UpdatePatrol(entity); break;
-        case 1: Skeleton_UpdateCombatMovement(entity); break;
-        case 2: Skeleton_UpdateIdle(entity); break;
-        case 3: Skeleton_UpdateAttackPreparation(entity); break;
-        case 4: Skeleton_UpdateThrow(entity); break;
+        case SKELETON_STATE_PATROL: Skeleton_UpdatePatrol(entity); break;
+        case SKELETON_STATE_COMBAT_MOVEMENT: Skeleton_UpdateCombatMovement(entity); break;
+        case SKELETON_STATE_IDLE: Skeleton_UpdateIdle(entity); break;
+        case SKELETON_STATE_ATTACK_PREPARATION: Skeleton_UpdateAttackPreparation(entity); break;
+        case SKELETON_STATE_THROW: Skeleton_UpdateThrow(entity); break;
         }
         Entity_AnimateWithBoxes(entity);
         Enemy_CheckHitPlayer(entity);

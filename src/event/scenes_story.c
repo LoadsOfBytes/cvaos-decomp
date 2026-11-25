@@ -31,6 +31,8 @@
 #include "player_soma.h"
 #include "entity_motion.h"
 #include "bg_and_collision.h"
+#include "constants/game_flags.h"
+#include "constants/songs.h"
 
 s32 Player_GetZoneAroundXCopy(u16 centerX, u16 innerWidth, u16 outerWidth);
 s32 EventSceneJuliusBattleStart_LoadGraphics(struct EwramData_EntityData *entity);
@@ -41,7 +43,7 @@ void EventSceneJuliusBattleStart_Finish(struct EwramData_EntityData *);
 /**
  * @brief Init of event scene variant 4 (Object 0x20 spawnParam0 = 4,
  * sEventSceneCreateFuncs[4]). Create step of a scene object: deleted when flag
- * 0x21 is set or the player is right of x 0x80; else set up animation 0
+ * FLAG_MET_GRAHAM is set or the player is right of x 0x80; else set up animation 0
  * at room (0xA0, 0xC0) moving right (0xC000), facing right, and set
  * gameState.stateFlags bit 0.
  */
@@ -50,7 +52,7 @@ void EventSceneMeetGraham_Init(struct EwramData_EntityData *entity)
     struct EwramData *ewram;
     struct BgLayerState *bg;
 
-    if (GameFlag_GetMask(0x21) != 0 || (s16)gEwramData->playerState.player->posX.part16.integer > 0x80)
+    if (GameFlag_GetMask(FLAG_MET_GRAHAM) != 0 || (s16)gEwramData->playerState.player->posX.part16.integer > 0x80)
     {
         entity->deleteRequested = 1;
         return;
@@ -68,7 +70,7 @@ void EventSceneMeetGraham_Init(struct EwramData_EntityData *entity)
     entity->posY.part16.integer = 0xC0 - bg->yPos.part16.integer;
     entity->velX.whole = 0xC000;
     entity->flipX = 0;
-    ewram->gameState.stateFlags |= 1;
+    ewram->gameState.stateFlags |= STATE_EVENT_RUNNING;
 }
 
 #define STEP(e) ((e)->ext.event04.scriptStep)
@@ -76,7 +78,7 @@ void EventSceneMeetGraham_Init(struct EwramData_EntityData *entity)
 
 /**
  * @brief 5F1CC | Timed script: song 0x1010 and wait 0xA0 frames, then
- * Music_SetCurrent(0x16); again song 0x1010 and wait, then Music_UpdateRoom;
+ * Music_SetCurrent(MUS_PREMONITION); again song 0x1010 and wait, then Music_UpdateRoom;
  * returns 1 once finished.
  */
 s32 EventSceneMeetGraham_RunMusicScript(struct EwramData_EntityData *entity)
@@ -86,21 +88,21 @@ s32 EventSceneMeetGraham_RunMusicScript(struct EwramData_EntityData *entity)
     switch (STEP(entity))
     {
         case 0:
-            PlaySong(0x1010);
+            PlaySong(SONG_MUTE);
             TIMER(entity) = 0xA0;
             STEP(entity)++;
             break;
         case 1:
             if (--TIMER(entity) == 0xFF)
             {
-                Music_SetCurrent(0x16);
+                Music_SetCurrent(MUS_PREMONITION);
                 STEP(entity)++;
             }
             break;
         case 2:
             break;
         case 3:
-            PlaySong(0x1010);
+            PlaySong(SONG_MUTE);
             TIMER(entity) = 0xA0;
             STEP(entity)++;
             break;
@@ -144,7 +146,7 @@ s32 EventSceneMeetGraham_Update(struct EwramData_EntityData *entity)
     case 0:
         if (entity->subState == 0)
         {
-            Sound_Play(0x1040);
+            Sound_Play(MUSIC_PLAYER_MUTE(0));
             TextWindow_Begin(0xF);
             ew->gameState.textWindowPause = 1;
             entity->timer = 0x20;
@@ -186,7 +188,7 @@ s32 EventSceneMeetGraham_Update(struct EwramData_EntityData *entity)
                 ret = 0x10;
                 break;
             case 3:
-                Music_SetCurrent(0x16);
+                Music_SetCurrent(MUS_PREMONITION);
                 ew->gameState.textWindowPause = ret;
                 entity->subState = state;
                 entity->stage = ret;
@@ -222,7 +224,7 @@ s32 EventSceneMeetGraham_Update(struct EwramData_EntityData *entity)
             switch (entity->stage)
             {
             case 0:
-                Sound_Play(0x1040);
+                Sound_Play(MUSIC_PLAYER_MUTE(0));
                 ew->gameState.textWindowPause = state;
                 entity->flipX = 1;
                 if (entity->animScriptIndex != 1)
@@ -256,7 +258,7 @@ s32 EventSceneMeetGraham_Update(struct EwramData_EntityData *entity)
         break;
     case 0x80:
         Music_UpdateRoom(g);
-        GameFlag_Set(0x21);
+        GameFlag_Set(FLAG_MET_GRAHAM);
         Interaction_End(entity, 1);
         break;
     }
@@ -269,7 +271,7 @@ s32 EventSceneMeetGraham_Update(struct EwramData_EntityData *entity)
 
 /**
  * @brief Init of event scene variant 5 (Object 0x20 spawnParam0 = 5,
- * sEventSceneCreateFuncs[5]). Create step of a scene object: when flag 0x22 is
+ * sEventSceneCreateFuncs[5]). Create step of a scene object: when FLAG_MET_YOKO is
  * set Interaction_End(entity, 1); else animation 0 at room (0xA0, 0xA0)
  * facing right and gameState.stateFlags bit 0.
  */
@@ -278,7 +280,7 @@ void EventSceneMeetYoko_Init(struct EwramData_EntityData *entity)
     struct EwramData *ewram;
     struct BgLayerState *bg;
 
-    if (GameFlag_GetMask(0x22) != 0)
+    if (GameFlag_GetMask(FLAG_MET_YOKO) != 0)
     {
         Interaction_End(entity, 1);
         return;
@@ -295,7 +297,7 @@ void EventSceneMeetYoko_Init(struct EwramData_EntityData *entity)
     entity->posX.part16.integer = 0xA0 - bg->xPos.part16.integer;
     entity->posY.part16.integer = 0xA0 - bg->yPos.part16.integer;
     entity->flipX = 0;
-    ewram->gameState.stateFlags |= 1;
+    ewram->gameState.stateFlags |= STATE_EVENT_RUNNING;
 }
 
 /**
@@ -324,7 +326,7 @@ s32 EventSceneMeetYoko_Update(struct EwramData_EntityData *entity)
     case 0:
         if (entity->subState == 0)
         {
-            Sound_Play(0x1040);
+            Sound_Play(MUSIC_PLAYER_MUTE(0));
             TextWindow_Begin(0x10);
             ew->gameState.textWindowPause = 1;
             entity->timer = 0x20;
@@ -368,7 +370,7 @@ s32 EventSceneMeetYoko_Update(struct EwramData_EntityData *entity)
                 ret = 0x10;
                 break;
             case 3:
-                Music_SetCurrent(0x16);
+                Music_SetCurrent(MUS_PREMONITION);
                 ew->gameState.textWindowPause = ret;
                 break;
             }
@@ -377,7 +379,7 @@ s32 EventSceneMeetYoko_Update(struct EwramData_EntityData *entity)
             switch (entity->stage)
             {
             case 0:
-                Sound_Play(0x1040);
+                Sound_Play(MUSIC_PLAYER_MUTE(0));
                 ew->gameState.textWindowPause = step;
                 entity->velX.whole = 0x8000;
                 entity->flipX = 1 - (*ewp)->playerState.player->flipX;
@@ -404,7 +406,7 @@ s32 EventSceneMeetYoko_Update(struct EwramData_EntityData *entity)
         break;
     case 0x80:
         Music_UpdateRoom(g);
-        GameFlag_Set(0x22);
+        GameFlag_Set(FLAG_MET_YOKO);
         Interaction_End(entity, 1);
         break;
     }
@@ -417,7 +419,7 @@ s32 EventSceneMeetYoko_Update(struct EwramData_EntityData *entity)
 /**
  * @brief Init of event scene variant 6 (Object 0x20 spawnParam0 = 6,
  * sEventSceneCreateFuncs[6]). Create step of a scene object: deleted when flag
- * 0x23 is set; else animation 0 at room (0x50, 0xC0) facing left,
+ * FLAG_MET_J is set; else animation 0 at room (0x50, 0xC0) facing left,
  * gameState.stateFlags bit 0 and hBlankEffect.requestStop.
  */
 void EventSceneMeetJ_Init(struct EwramData_EntityData *entity)
@@ -425,7 +427,7 @@ void EventSceneMeetJ_Init(struct EwramData_EntityData *entity)
     struct EwramData *ewram;
     struct BgLayerState *bg;
 
-    if (GameFlag_GetMask(0x23) != 0)
+    if (GameFlag_GetMask(FLAG_MET_J) != 0)
     {
         entity->deleteRequested = 1;
         return;
@@ -442,7 +444,7 @@ void EventSceneMeetJ_Init(struct EwramData_EntityData *entity)
     entity->posX.part16.integer = 0x50 - bg->xPos.part16.integer;
     entity->posY.part16.integer = 0xC0 - bg->yPos.part16.integer;
     entity->flipX = 1;
-    ewram->gameState.stateFlags |= 1;
+    ewram->gameState.stateFlags |= STATE_EVENT_RUNNING;
     ewram->hBlankEffect.requestStop = 1;
 }
 
@@ -469,7 +471,7 @@ s32 EventSceneMeetJ_Update(struct EwramData_EntityData *entity)
     {
     case 0:
         DMA_FILL_32(3, ret, VRAM_BASE + 0x4000, 0x1000);
-        Sound_Play(0x1040);
+        Sound_Play(MUSIC_PLAYER_MUTE(0));
         TextWindow_Begin(0x11);
         ew->gameState.textWindowPause = 1;
         entity->state++;
@@ -512,7 +514,7 @@ s32 EventSceneMeetJ_Update(struct EwramData_EntityData *entity)
                 if (cx == 0
                     && (s16)gEwramData->playerState.player->posX.part16.integer == 0xAE - (s16)cam->xPos.part16.integer)
                 {
-                    Music_SetCurrent(0x16);
+                    Music_SetCurrent(MUS_PREMONITION);
                     g->textWindowPause = cx;
                     entity->stage++;
                     break;
@@ -525,7 +527,7 @@ s32 EventSceneMeetJ_Update(struct EwramData_EntityData *entity)
             switch (entity->stage)
             {
             case 0:
-                Sound_Play(0x1040);
+                Sound_Play(MUSIC_PLAYER_MUTE(0));
                 g->textWindowPause = step;
                 entity->flipX = 0;
                 if (entity->animScriptIndex != 1)
@@ -551,7 +553,7 @@ s32 EventSceneMeetJ_Update(struct EwramData_EntityData *entity)
     case 0x80:
         Music_UpdateRoom(g);
         (*ewp)->gameState.cameraScrollMinPriority = ret;
-        GameFlag_Set(0x23);
+        GameFlag_Set(FLAG_MET_J);
         Interaction_End(entity, 1);
         break;
     }
@@ -560,14 +562,14 @@ s32 EventSceneMeetJ_Update(struct EwramData_EntityData *entity)
     return ret;
 }
 
-/* Scene setup, flag 0x24: stop HBlank effect and place actor at (190,160). */
+/* Scene setup, FLAG_GRAHAM_CLAIMS_DRACULA: stop HBlank effect and place actor at (190,160). */
 /**
  * @brief Init of event scene variant 7 (Object 0x20 spawnParam0 = 7,
  * sEventSceneCreateFuncs[7]).
  */
 void EventSceneGrahamClaimsDracula_Init(struct EwramData_EntityData *entity)
 {
-    s32 flag = GameFlag_GetMask(0x24);
+    s32 flag = GameFlag_GetMask(FLAG_GRAHAM_CLAIMS_DRACULA);
     struct BgLayerState *bg;
     if (flag != 0 || (s16)gEwramData->playerState.player->posX.part16.integer <= 31)
     {
@@ -589,7 +591,7 @@ void EventSceneGrahamClaimsDracula_Init(struct EwramData_EntityData *entity)
     entity->flipX = 1;
     Entity_SnapToGround(entity);
     gEwramData->playerState.player->flipX = 1;
-    gEwramData->gameState.stateFlags |= 1;
+    gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
 }
 
 /**
@@ -617,7 +619,7 @@ s32 EventSceneGrahamClaimsDracula_Update(struct EwramData_EntityData *entity)
         player = ew->playerState.player;
         player->velY.whole = ret;
         player->velX.whole = ret;
-        Sound_Play(0x1040);
+        Sound_Play(MUSIC_PLAYER_MUTE(0));
         TextWindow_Begin(0x12);
         ew->gameState.textWindowPause = 1;
         entity->state++;
@@ -648,7 +650,7 @@ s32 EventSceneGrahamClaimsDracula_Update(struct EwramData_EntityData *entity)
                     Camera_ScrollWithPriority(1, -0x8000, 0);
                     break;
                 }
-                Music_SetCurrent(0x16);
+                Music_SetCurrent(MUS_PREMONITION);
                 g->textWindowPause = 0;
                 entity->stage++;
                 break;
@@ -687,7 +689,7 @@ s32 EventSceneGrahamClaimsDracula_Update(struct EwramData_EntityData *entity)
                 *flag = one;
                 Camera_ScrollWithPriority(one, 0x8000, 0);
             }
-            Sound_Play(0x1040);
+            Sound_Play(MUSIC_PLAYER_MUTE(0));
             if ((s16)gEwramData->playerState.player->posX.part16.integer == 0x78)
             {
                 *flag = 0;
@@ -701,7 +703,7 @@ s32 EventSceneGrahamClaimsDracula_Update(struct EwramData_EntityData *entity)
     case 0x80:
         ew->gameState.cameraScrollMinPriority = ret;
         Music_UpdateRoom(&(*ewp)->gameState);
-        GameFlag_Set(0x24);
+        GameFlag_Set(FLAG_GRAHAM_CLAIMS_DRACULA);
         Interaction_End(entity, 1);
         break;
     }
@@ -714,7 +716,7 @@ s32 EventSceneGrahamClaimsDracula_Update(struct EwramData_EntityData *entity)
 /**
  * @brief Init of event scene variant 8 (Object 0x20 spawnParam0 = 8,
  * sEventSceneCreateFuncs[8]). Create step of a scene object: deleted when flag
- * 0x25 is set; else animation 0 at room (0x50, 0xA0) facing left and
+ * FLAG_YOKO_PLANS_TRAP is set; else animation 0 at room (0x50, 0xA0) facing left and
  * gameState.stateFlags bit 0.
  */
 void EventSceneYokoPlansTrap_Init(struct EwramData_EntityData *entity)
@@ -722,7 +724,7 @@ void EventSceneYokoPlansTrap_Init(struct EwramData_EntityData *entity)
     struct EwramData *ewram;
     struct BgLayerState *bg;
 
-    if (GameFlag_GetMask(0x25) != 0)
+    if (GameFlag_GetMask(FLAG_YOKO_PLANS_TRAP) != 0)
     {
         entity->deleteRequested = 1;
         return;
@@ -739,7 +741,7 @@ void EventSceneYokoPlansTrap_Init(struct EwramData_EntityData *entity)
     entity->posX.part16.integer = 0x50 - bg->xPos.part16.integer;
     entity->posY.part16.integer = 0xA0 - bg->yPos.part16.integer;
     entity->flipX = 1;
-    ewram->gameState.stateFlags |= 1;
+    ewram->gameState.stateFlags |= STATE_EVENT_RUNNING;
 }
 
 /**
@@ -767,7 +769,7 @@ s32 EventSceneYokoPlansTrap_Update(struct EwramData_EntityData *entity)
     case 0:
         if (entity->subState == 0)
         {
-            Sound_Play(0x1040);
+            Sound_Play(MUSIC_PLAYER_MUTE(0));
             TextWindow_Begin(0x13);
             ew->gameState.textWindowPause = 1;
             entity->timer = 0x20;
@@ -801,7 +803,7 @@ s32 EventSceneYokoPlansTrap_Update(struct EwramData_EntityData *entity)
             case 2:
                 if ((s16)(*ewp)->playerState.player->posX.part16.integer <= 0xA0)
                 {
-                    Music_SetCurrent(0x16);
+                    Music_SetCurrent(MUS_PREMONITION);
                     ew->gameState.textWindowPause = ret;
                     (*ewp)->playerState.player->posX.part16.integer = 0xA0;
                     entity->stage++;
@@ -823,7 +825,7 @@ s32 EventSceneYokoPlansTrap_Update(struct EwramData_EntityData *entity)
             switch (entity->stage)
             {
             case 0:
-                Sound_Play(0x1040);
+                Sound_Play(MUSIC_PLAYER_MUTE(0));
                 ew->gameState.textWindowPause = state;
                 entity->velX.whole = -0x8000;
                 entity->flipX = 0;
@@ -849,7 +851,7 @@ s32 EventSceneYokoPlansTrap_Update(struct EwramData_EntityData *entity)
         break;
     case 0x80:
         Music_UpdateRoom(g);
-        GameFlag_Set(0x25);
+        GameFlag_Set(FLAG_YOKO_PLANS_TRAP);
         Interaction_End(entity, 1);
         goto end;
     }
@@ -873,7 +875,7 @@ void EventSceneRescueYoko_Init(struct EwramData_EntityData *self)
     struct BgLayerState *bg;
     s32 slot;
 
-    flag = GameFlag_GetMask(0x26);
+    flag = GameFlag_GetMask(FLAG_YOKO_RESCUED);
     if (flag || (player = gEwramData->playerState.player, (s16)player->posX.part16.integer <= 0x7F))
     {
         entity->deleteRequested = 1;
@@ -929,7 +931,7 @@ void EventSceneRescueYoko_Init(struct EwramData_EntityData *self)
     entity->ext.event09.actor1->posY.part16.integer = entity->posY.part16.integer;
     entity->ext.event09.actor1->velX.whole = -0x6000;
     entity->ext.event09.actor1->flipX = 0;
-    gEwramData->gameState.stateFlags |= 1;
+    gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
 }
 
 /* EventSceneRescueYoko_PlaceHelpers. */
@@ -976,7 +978,7 @@ s32 EventSceneRescueYoko_Update(struct EwramData_EntityData *entity)
             EventSceneRescueYoko_PlaceHelpers(entity);
             entity->state = 0x80;
             Interaction_End(entity, 0);
-            GameFlag_Set(0x26);
+            GameFlag_Set(FLAG_YOKO_RESCUED);
             return;
         }
         switch (*(vu8 *)&entity->subState) { /* volatile read (replaces a pinned register) */
@@ -1162,7 +1164,7 @@ s32 EventSceneRescueYoko_Update(struct EwramData_EntityData *entity)
 /**
  * @brief Init of event scene variant 10 (Object 0x20 spawnParam0 = 10,
  * sEventSceneCreateFuncs[10]). Set up a cutscene object: only when event flag
- * 0x27 is not set, bossEventFlags bit 6 is set and the player is left of x =
+ * FLAG_J_REGAINS_MEMORIES is not set, bossEventFlags bit 6 is set and the player is left of x =
  * 0x80; clears the HBlank buffer and faces the object towards the
  * player.
  */
@@ -1171,13 +1173,13 @@ void EventSceneJRegainsMemories_Init(struct EwramData_EntityData *entity)
     s32 r;
     struct BgLayerState *cam;
 
-    r = GameFlag_GetMask(0x27);
+    r = GameFlag_GetMask(FLAG_J_REGAINS_MEMORIES);
     if (r != 0)
     {
         entity->deleteRequested = 1;
         return;
     }
-    if (!(gEwramData->gameState.bossEventFlags & 0x40))
+    if (!(gEwramData->gameState.bossEventFlags & BOSS_DEFEATED_BALORE))
     {
         entity->deleteRequested = 1;
         return;
@@ -1220,7 +1222,7 @@ s32 EventSceneJRegainsMemories_Update(struct EwramData_EntityData *entity)
         if ((s16)ew->playerState.player->posX.part16.integer > 96) {
             ew->hBlankEffect.requestStop = 1;
             DMA_FILL_32(3, 0, gEwramData->hBlankEffect.hBlankBuffer, 0xA00);
-            gEwramData->gameState.stateFlags |= 0x200;
+            gEwramData->gameState.stateFlags |= STATE_HUD_MESSAGES_BLOCKED;
             Hud_CloseMessageWindow();
             RedSoul_CancelAll();
             BlueSoul_StopAll();
@@ -1230,10 +1232,10 @@ s32 EventSceneJRegainsMemories_Update(struct EwramData_EntityData *entity)
             entity->stage = 0;
             entity->subState = 0;
         } else
-            ew->gameState.stateFlags &= ~0x200;
+            ew->gameState.stateFlags &= ~STATE_HUD_MESSAGES_BLOCKED;
         break;
     case 1:
-        ew->gameState.stateFlags |= 1;
+        ew->gameState.stateFlags |= STATE_EVENT_RUNNING;
         TextWindow_Begin(21);
         ew->gameState.textWindowPause = 1;
         entity->state++;
@@ -1251,7 +1253,7 @@ s32 EventSceneJRegainsMemories_Update(struct EwramData_EntityData *entity)
                 entity->timer = 48;
             case 1:
                 if ((u8)--entity->timer == 0xFF) {
-                    Sound_Play(0x1040);
+                    Sound_Play(MUSIC_PLAYER_MUTE(0));
                     entity->stage++;
                 }
                 break;
@@ -1273,7 +1275,7 @@ s32 EventSceneJRegainsMemories_Update(struct EwramData_EntityData *entity)
                 if (((struct CameraXView *)&gEwramData->bgInfo[1])->x <= 137)
                     Camera_ScrollWithPriority(1, 0x8000, 0);
                 else {
-                    Music_SetCurrent(22);
+                    Music_SetCurrent(MUS_PREMONITION);
                     context->textWindowPause = 0;
                     entity->stage++;
                 }
@@ -1310,7 +1312,7 @@ s32 EventSceneJRegainsMemories_Update(struct EwramData_EntityData *entity)
         case 2:
             switch (entity->stage) {
             case 0:
-                Sound_Play(0x1040);
+                Sound_Play(MUSIC_PLAYER_MUTE(0));
                 context->textWindowPause = 1;
                 entity->velX.whole = 0x18000;
                 entity->flipX = 1;
@@ -1324,7 +1326,7 @@ s32 EventSceneJRegainsMemories_Update(struct EwramData_EntityData *entity)
                 if (entity->timer == 0) {
                     Camera_ScrollWithPriority(1, -0x8000, 0);
                     if ((s16)gEwramData->playerState.player->posX.part16.integer == 120) {
-                        Sound_Play(0x1040);
+                        Sound_Play(MUSIC_PLAYER_MUTE(0));
                         context->textWindowPause = 0;
                         context->textWindowState = 5;
                         entity->stage++;
@@ -1340,7 +1342,7 @@ s32 EventSceneJRegainsMemories_Update(struct EwramData_EntityData *entity)
         Music_UpdateRoom(context);
         gEwramData->gameState.cameraScrollMinPriority = 0;
         Interaction_End(entity, 1);
-        GameFlag_Set(0x27);
+        GameFlag_Set(FLAG_J_REGAINS_MEMORIES);
         break;
     }
     if (entity->state != 0x80)
@@ -1359,7 +1361,7 @@ void EventSceneGrahamBattleStart_Init(struct EwramData_EntityData *entity)
 {
     struct EwramData *ewram;
 
-    if (gEwramData->gameState.stateFlags & 0x10000)
+    if (gEwramData->gameState.stateFlags & STATE_ENDING_SEQUENCE)
     {
         entity->deleteRequested = 1;
         return;
@@ -1373,7 +1375,7 @@ void EventSceneGrahamBattleStart_Init(struct EwramData_EntityData *entity)
     Anim_Update(entity);
     ewram = gEwramData;
     entity->flipX = ewram->playerState.player->flipX;
-    ewram->gameState.stateFlags |= 1;
+    ewram->gameState.stateFlags |= STATE_EVENT_RUNNING;
 }
 
 /**
@@ -1381,7 +1383,7 @@ void EventSceneGrahamBattleStart_Init(struct EwramData_EntityData *entity)
  * player input mask. Cutscene step object: shows conversation 0x16,
  * toggles textWindowPause while it runs and returns 0x20 once the player walks
  * right of x = 0xB6; when the conversation ends (state 0x80) sets event
- * flag 0x28.
+ * FLAG_GRAHAM_BATTLE_STARTED.
  */
 s32 EventSceneGrahamBattleStart_Update(struct EwramData_EntityData *entity)
 {
@@ -1392,11 +1394,11 @@ s32 EventSceneGrahamBattleStart_Update(struct EwramData_EntityData *entity)
     ret = 0;
     ew = gEwramData;
     g = &ew->gameState;
-    ew->gameState.stateFlags |= 1;
+    ew->gameState.stateFlags |= STATE_EVENT_RUNNING;
     switch (entity->state)
     {
     case 0:
-        Sound_Play(0x1040);
+        Sound_Play(MUSIC_PLAYER_MUTE(0));
         TextWindow_Begin(0x16);
         ew->gameState.textWindowPause = 1;
         entity->state++;
@@ -1437,7 +1439,7 @@ s32 EventSceneGrahamBattleStart_Update(struct EwramData_EntityData *entity)
         }
         break;
     case 0x80:
-        GameFlag_Set(0x28);
+        GameFlag_Set(FLAG_GRAHAM_BATTLE_STARTED);
         Interaction_End(entity, 1);
         break;
     }
@@ -1472,7 +1474,7 @@ void EventSceneOpenPortal_Init(struct EwramData_EntityData *entity)
         entity->velX.whole = 0x4000;
         entity->flipX = 1;
     }
-    gEwramData->gameState.stateFlags |= 1;
+    gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
 }
 
 /**
@@ -1490,7 +1492,7 @@ s32 EventSceneOpenPortal_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        gEwramData->gameState.stateFlags |= 1;
+        gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
         TextWindow_Begin(0x19);
         entity->state++;
         break;
@@ -1545,7 +1547,7 @@ s32 EventSceneOpenPortal_Update(struct EwramData_EntityData *entity)
     case 0x80:
         ret = 0x40;
         TextWindow_Close();
-        gEwramData->gameState.stateFlags |= 1;
+        gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
         break;
     }
     if (entity->state != 0x80)
@@ -1577,7 +1579,7 @@ void EventSceneSomaAwakens_Init(struct EwramData_EntityData *entity)
     entity->posY.part16.integer = 0xA0 - bg->yPos.part16.integer;
     entity->hidden = 1;
     entity->flipX = 1;
-    ewram->gameState.stateFlags |= 1;
+    ewram->gameState.stateFlags |= STATE_EVENT_RUNNING;
 }
 
 /* EventSceneSomaAwakens_Update, decompiled from the original assembly: event scene with the
@@ -1742,7 +1744,7 @@ s32 EventSceneSomaAwakens_Update(struct EwramData_EntityData *entity)
                 break;
             case 2:
                 if (entity->timer == 0x20)
-                    Music_SetCurrent(0x21);
+                    Music_SetCurrent(MUS_FATE_OF_THE_DEVIL);
                 if ((u8)--entity->timer == 0xFF)
                 {
                     BgPalette_StopColorFade();
@@ -1809,10 +1811,10 @@ s32 EventSceneSomaAwakens_Update(struct EwramData_EntityData *entity)
         }
         break;
     case 0x80:
-        GameFlag_Set(0x3A);
+        GameFlag_Set(FLAG_SOMA_AWAKENED);
         ObjPalette_StopColorFade();
         BgPalette_StopColorFade();
-        Sound_Play(0x1040);
+        Sound_Play(MUSIC_PLAYER_MUTE(0));
         save->currentSong = result;
         Interaction_End(entity, 0);
         PLAYER->palette = 0;
@@ -1844,7 +1846,7 @@ void EventSceneArikadoChaosPath_Init(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *bg;
 
-    if (gEwramData->gameState.stateFlags & 0x10000)
+    if (gEwramData->gameState.stateFlags & STATE_ENDING_SEQUENCE)
     {
         entity->deleteRequested = 1;
         return;
@@ -1900,7 +1902,7 @@ s32 EventSceneArikadoChaosPath_Update(struct EwramData_EntityData *entity)
         else
             TextWindow_Begin(0x1D);
         entity->flipX = entity->posX.whole < gEwramData->playerState.player->posX.whole;
-        gEwramData->gameState.stateFlags |= 1;
+        gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
         entity->state++;
         break;
     case 2:
@@ -1942,7 +1944,7 @@ s32 Player_GetZoneAroundXCopy(u16 centerX, u16 innerWidth, u16 outerWidth)
  */
 void EventSceneGrahamSeesSomaPower_Init(void)
 {
-    gEwramData->gameState.stateFlags |= 1;
+    gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
 }
 
 /**
@@ -1972,7 +1974,7 @@ s32 EventSceneGrahamSeesSomaPower_Update(struct EwramData_EntityData *entity)
  */
 void EventSceneGrahamNotDracula_Init(void)
 {
-    gEwramData->gameState.stateFlags |= 1;
+    gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
 }
 
 /**
@@ -2017,7 +2019,7 @@ s32 EventSceneGrahamTransforms_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
         case 0:
-            gEwramData->gameState.stateFlags |= 1;
+            gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
             TextWindow_Begin(0x17);
             entity->state++;
             break;
@@ -2035,7 +2037,7 @@ s32 EventSceneGrahamTransforms_Update(struct EwramData_EntityData *entity)
  */
 void EventSceneGrahamLastWords_Init(void)
 {
-    gEwramData->gameState.stateFlags |= 1;
+    gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
 }
 
 /**
@@ -2049,7 +2051,7 @@ s32 EventSceneGrahamLastWords_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
         case 0:
-            gEwramData->gameState.stateFlags |= 1;
+            gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
             TextWindow_Begin(0x18);
             entity->state++;
             break;
@@ -2072,7 +2074,7 @@ s32 EventSceneGrahamLastWords_Update(struct EwramData_EntityData *entity)
 /**
  * @brief Init of event scene variant 19 (Object 0x20 spawnParam0 = 19,
  * sEventSceneCreateFuncs[19]). Create step of a scene object: deleted when flag
- * 0x29 is set or the player is left of room x 0x80; if EventSceneJuliusBattleStart_LoadGraphics
+ * FLAG_JULIUS_BATTLE_STARTED is set or the player is left of room x 0x80; if EventSceneJuliusBattleStart_LoadGraphics
  * fails mark the event and delete; else enter from room x 0x150 moving
  * left (-0x10000) with animation 1, stateFlags bit 0. The camera address is
  * added to the loaded gEwramData in place, hence the OFFSET_OF form.
@@ -2081,7 +2083,7 @@ void EventSceneJuliusBattleStart_Init(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *bg;
 
-    if (GameFlag_GetMask(0x29) != 0)
+    if (GameFlag_GetMask(FLAG_JULIUS_BATTLE_STARTED) != 0)
     {
         entity->deleteRequested = 1;
         return;
@@ -2115,7 +2117,7 @@ void EventSceneJuliusBattleStart_Init(struct EwramData_EntityData *entity)
     entity->hidden = 1;
     Anim_StartIndexed(entity, 1, 1, 1);
     Anim_Update(entity);
-    gEwramData->gameState.stateFlags |= 1;
+    gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
 }
 
 /**
@@ -2139,7 +2141,7 @@ s32 EventSceneJuliusBattleStart_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        Sound_Play(0x1040);
+        Sound_Play(MUSIC_PLAYER_MUTE(0));
         Sound_PlayTracked(0x2B);
         entity->state++;
         entity->stage = ret;
@@ -2150,7 +2152,7 @@ s32 EventSceneJuliusBattleStart_Update(struct EwramData_EntityData *entity)
         struct EwramData *w = gEwramData;
         struct BgLayerState *cam;
         s32 px;
-        w->gameState.stateFlags |= 1;
+        w->gameState.stateFlags |= STATE_EVENT_RUNNING;
         px = (s16)w->playerState.player->posX.part16.integer;
         cam = &w->bgInfo[1];
         if (px + (s16)cam->xPos.part16.integer <= 0xBF)
@@ -2174,10 +2176,10 @@ s32 EventSceneJuliusBattleStart_Update(struct EwramData_EntityData *entity)
     case 3:
         if (TextWindow_Update())
         {
-            GameFlag_Set(0x29);
+            GameFlag_Set(FLAG_JULIUS_BATTLE_STARTED);
             Sound_StopTracked(0x2B);
-            (*ewp)->gameState.stateFlags &= ~0x40000;
-            Music_SetCurrent(0x14);
+            (*ewp)->gameState.stateFlags &= ~STATE_MUSIC_COMMAND_SENT;
+            Music_SetCurrent(MUS_DONT_WAIT_UNTIL_NIGHT);
             entity->state = 0x80;
             break;
         }
@@ -2364,8 +2366,8 @@ s32 EventSceneJuliusBattleEnd_Update(struct EwramData_EntityData *entity)
         }
         break;
     case 0x7F:
-        GameFlag_Set(0x2A);
-        (*ewp)->gameState.stateFlags |= 0x400000;
+        GameFlag_Set(FLAG_JULIUS_BATTLE_ENDED);
+        (*ewp)->gameState.stateFlags |= STATE_BOSS_DOOR_KEEPS_MUSIC;
         if (--entity->timer == 0xFF)
             entity->state++;
         break;
@@ -2418,7 +2420,7 @@ void EventSceneJuliusBattleStart_Finish(struct EwramData_EntityData *entity)
  */
 void EventSceneJuliusBattleEnd_Init(void)
 {
-    gEwramData->gameState.stateFlags |= 1;
+    gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
     BgPalette_StopColorFade();
     ObjPalette_StopColorFade();
 }
@@ -2434,12 +2436,12 @@ void EventSceneJuliusBattleMusic_Init(struct EwramData_EntityData *entity)
 
 /**
  * @brief Update of event scene variant 21 (sEventSceneUpdateFuncs[21]); returns the
- * player input mask. Sound_Play(0x1040), Music_StartOverride(0x25), then
+ * player input mask. Sound_Play(MUSIC_PLAYER_MUTE(0)), Music_StartOverride(0x25), then
  * continue with Interaction_End(1).
  */
 s32 EventSceneJuliusBattleMusic_Update(struct EwramData_EntityData *entity)
 {
-    Sound_Play(0x1040);
+    Sound_Play(MUSIC_PLAYER_MUTE(0));
     Music_StartOverride(0x25);
     Interaction_End(entity, 1);
     return 0;
@@ -2488,7 +2490,7 @@ s32 EventSceneChaoticRealmMessages_Update(struct EwramData_EntityData *entity)
     {
     case 0:
         Music_StartOverride(0x2D);
-        if (GameFlag_GetMask(0x2B))
+        if (GameFlag_GetMask(FLAG_CHAOTIC_REALM_MESSAGES))
         {
             entity->deleteRequested = 1;
             goto end;
@@ -2513,10 +2515,10 @@ s32 EventSceneChaoticRealmMessages_Update(struct EwramData_EntityData *entity)
         if (TextWindow_Update())
         {
             entity->state = 0x80;
-            GameFlag_Set(0x2B);
+            GameFlag_Set(FLAG_CHAOTIC_REALM_MESSAGES);
             Interaction_End(entity, 1);
             Display_RestoreState();
-            Sound_Play(0x1041);
+            Sound_Play(MUSIC_PLAYER_MUTE(1));
             gEwramData->musicOverrideSong = 0x2D;
             PlaySong(0x2D);
             goto end;
@@ -2552,7 +2554,7 @@ s32 EventSceneChaoticRealmMessages_Update(struct EwramData_EntityData *entity)
             if (!EventSceneChaoticRealmMessages_Wait(entity, 0x40))
             {
                 Sound_StopTracked(0x2D);
-                Music_SetCurrent(0x24);
+                Music_SetCurrent(MUS_YOURE_NOT_ALONE_2);
                 ew->gameState.textWindowPause = ret;
             }
             break;
@@ -2573,7 +2575,7 @@ end:
  */
 void EventSceneChaoticRealmMessages_Init(void)
 {
-    gEwramData->gameState.stateFlags |= 1;
+    gEwramData->gameState.stateFlags |= STATE_EVENT_RUNNING;
 }
 
 /* Prepare the event actor, player and companion for the scene. */
@@ -2585,7 +2587,7 @@ void EventSceneReturnHome_Init(struct EwramData_EntityData *entity)
 {
     struct EwramData *ram;
     struct BgLayerState *background;
-    if(!(gEwramData->gameState.stateFlags&0x2000)){entity->deleteRequested=1;return;}
+    if(!(gEwramData->gameState.stateFlags&STATE_ENDING_GRAHAM)){entity->deleteRequested=1;return;}
     if(!Entity_SetupFromObjectTable(entity,0))
     {
         EntityDelete(entity);
@@ -2608,14 +2610,14 @@ void EventSceneReturnHome_Init(struct EwramData_EntityData *entity)
     entity->ext.event23.actor->posY.part16.integer=entity->posY.part16.integer+1;
     Anim_StartIndexed(entity->ext.event23.actor,1,0,1);
     entity->ext.event23.actor->flipX=0;
-    gEwramData->gameState.stateFlags|=1;
+    gEwramData->gameState.stateFlags|=STATE_EVENT_RUNNING;
     BgPalette_StartColorFade(31,31,31,0,0x10000,128);
     ObjPalette_StartColorFade(31,31,31,0,0x10000,128);
     DMA_FILL_32(3,0,(void *)(VRAM_BASE + 0x4000),0x2000);
     DMA_FILL_16(3,0,(void *)(VRAM_BASE + 0xE000),0x800);
-    gEwramData->gameState.stateFlags|=32;
-    gEwramData->gameState.stateFlags|=0x10000;
-    Music_SetCurrent(25);
+    gEwramData->gameState.stateFlags|=STATE_HUD_HIDDEN;
+    gEwramData->gameState.stateFlags|=STATE_ENDING_SEQUENCE;
+    Music_SetCurrent(MUS_PREMONITION_3);
 }
 
 /* Finish the event script, fade the scene and resume normal game state. */
@@ -2626,7 +2628,7 @@ void EventSceneReturnHome_Init(struct EwramData_EntityData *entity)
 s32 EventSceneReturnHome_Update(struct EwramData_EntityData *entity)
 {
     s32 zero=0;
-    gEwramData->gameState.stateFlags|=1;
+    gEwramData->gameState.stateFlags|=STATE_EVENT_RUNNING;
     Game_SetMenusEnabled(0);
     switch(entity->state)
     {
@@ -2635,8 +2637,8 @@ s32 EventSceneReturnHome_Update(struct EwramData_EntityData *entity)
         {
             DMA_FILL_32(3,zero,(void *)(VRAM_BASE + 0x4000),0x2000);
             DMA_FILL_16(3,zero,(void *)(VRAM_BASE + 0xE000),0x800);
-            gEwramData->gameState.stateFlags|=32;
-            gEwramData->gameState.stateFlags|=0x10000;
+            gEwramData->gameState.stateFlags|=STATE_HUD_HIDDEN;
+            gEwramData->gameState.stateFlags|=STATE_ENDING_SEQUENCE;
             entity->timer=128;entity->subState++;
         }
         if(--entity->timer==255)
@@ -2649,7 +2651,7 @@ s32 EventSceneReturnHome_Update(struct EwramData_EntityData *entity)
             BgPalette_StartColorFade(0,0,0,0x10000,zero,255);
             ObjPalette_StartColorFade(0,0,0,0x10000,zero,255);
             gUnk_03002CB0.dispCnt&=0xFEFF;
-            GameFlag_Set(44);Sound_Play(0x1040);
+            GameFlag_Set(FLAG_RETURNED_HOME);Sound_Play(MUSIC_PLAYER_MUTE(0));
         }
         break;
     case 2:
@@ -2662,7 +2664,7 @@ s32 EventSceneReturnHome_Update(struct EwramData_EntityData *entity)
         break;
     }
     Player_StartScriptedAnimation(0,0,0,0);
-    gEwramData->gameState.stateFlags|=32;
+    gEwramData->gameState.stateFlags|=STATE_HUD_HIDDEN;
     return zero;
 }
 
@@ -2686,11 +2688,11 @@ void EventSceneEndingWakeUp_Setup(struct EwramData_EntityData *entity)
     ram->playerState.player->posY.part16.integer=entity->posY.part16.integer;
     ram->playerState.player->flipX=0;
     }
-    gEwramData->gameState.stateFlags|=1;
-    gEwramData->gameState.stateFlags|=32;
+    gEwramData->gameState.stateFlags|=STATE_EVENT_RUNNING;
+    gEwramData->gameState.stateFlags|=STATE_HUD_HIDDEN;
     DMA_FILL_32(3,0,(void *)(VRAM_BASE + 0x4000),0x2000);
     DMA_FILL_16(3,0,(void *)(VRAM_BASE + 0xE000),0x800);
-    Music_SetCurrent(24);
+    Music_SetCurrent(MUS_ENDING);
 }
 
 /* Event actor: dialogue selection, fade and optional walk to the player. */
@@ -2739,7 +2741,7 @@ s32 EventSceneEndingWakeUp_Update(struct EwramData_EntityData *entity)
             BgPalette_StartColorFade(0,0,0,0x10000,zero,255);
             ObjPalette_StartColorFade(0,0,0,0x10000,zero,255);
             gUnk_03002CB0.dispCnt&=0xFEFF;
-            SaveData_RecordFullClear();Sound_Play(0x1040);
+            SaveData_RecordFullClear();Sound_Play(MUSIC_PLAYER_MUTE(0));
         }
         else if(entity->subState==0)
         {
@@ -2756,7 +2758,7 @@ s32 EventSceneEndingWakeUp_Update(struct EwramData_EntityData *entity)
     case 3:
         if(!BgPalette_GetPendingFades())
         {
-            TextWindow_Close();GameFlag_Set(45);gEwramData->gameState.subMode=10;
+            TextWindow_Close();GameFlag_Set(FLAG_ENDING_SEEN);gEwramData->gameState.subMode=10;
         }
         else if(entity->ext.event24.answer)
         {
@@ -2770,6 +2772,6 @@ s32 EventSceneEndingWakeUp_Update(struct EwramData_EntityData *entity)
         break;
     }
     if(entity->state)Anim_Update(entity);
-    gEwramData->gameState.stateFlags|=32;
+    gEwramData->gameState.stateFlags|=STATE_HUD_HIDDEN;
     return zero;
 }

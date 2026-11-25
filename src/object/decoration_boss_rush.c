@@ -25,6 +25,8 @@
 #include "data/data_4F1444.h"
 #include "entity_inline.h"
 #include "entity_common.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 void BossRushTimer_Update(struct EwramData_EntityData *entity);
 void RoomDecorationVariant2_Draw(struct EwramData_EntityData *entity);
@@ -44,7 +46,7 @@ void BossRushResult_Draw(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *t;
     u32 time;
     g = &gEwramData->gameState;
-    t = &gEwramData->entityData[26];
+    t = &gEwramData->entityData[ENTITY_SLOT_BOSS_RUSH_TIMER];
     time = t->ext.bossRushTimer.time;
     Game_SetMenusEnabled(0);
     if (entity->state == 3)
@@ -133,7 +135,7 @@ void BossRushResultCreate(struct EwramData_EntityData *entity)
         }
         break;
     }
-    child = &gEwramData->entityData[26];
+    child = &gEwramData->entityData[ENTITY_SLOT_BOSS_RUSH_TIMER];
     value = child->ext.bossRushTimer.time;
     for (reward = sBossRushRewards, i = 0; i <= 2; i++, reward++)
     {
@@ -173,7 +175,7 @@ void BossRushResultUpdate(struct EwramData_EntityData *entity)
     switch (state)
     {
     case 0:
-        if (gEwramData->gameState.stateFlags & 0x400)
+        if (gEwramData->gameState.stateFlags & STATE_BOSS_RUSH_CLEARED)
         {
             entity->timer = 0x80;
             entity->state = 1;
@@ -192,7 +194,7 @@ void BossRushResultUpdate(struct EwramData_EntityData *entity)
         ItemInventory_AddOneByGlobalId(entity->ext.bossRushResult.rewardItem);
         SaveData_UpdateSlotSummary(&gEwramData->gameState);
         {
-            struct EwramData_EntityData *slot26 = &gEwramData->entityData[26];
+            struct EwramData_EntityData *slot26 = &gEwramData->entityData[ENTITY_SLOT_BOSS_RUSH_TIMER];
             value = slot26->ext.bossRushTimer.time;
         }
         if (data->bestBossRushTimeFrames > value || data->bestBossRushTimeFrames == 0)
@@ -216,8 +218,8 @@ void BossRushResultUpdate(struct EwramData_EntityData *entity)
  */
 void BossRushTimerStarterCreate(struct EwramData_EntityData *entity)
 {
-    EntityDelete(&gEwramData->entityData[26]);
-    EntityCreateInRange(0x1A, 0x1A, BossRushTimer_Update)->roomActive = 1;
+    EntityDelete(&gEwramData->entityData[ENTITY_SLOT_BOSS_RUSH_TIMER]);
+    EntityCreateInRange(ENTITY_SLOT_BOSS_RUSH_TIMER, ENTITY_SLOT_BOSS_RUSH_TIMER, BossRushTimer_Update)->roomActive = 1;
 }
 
 /**
@@ -234,7 +236,7 @@ void BossRushTimerStarterUpdate(struct EwramData_EntityData *entity)
 void BossRushTimer_Update(struct EwramData_EntityData *entity)
 {
     entity->roomActive = 1;
-    if ((gEwramData->gameState.stateFlags & 2) && entity->ext.bossRushTimer.time <= 0x34BBD)
+    if ((gEwramData->gameState.stateFlags & STATE_BOSS_FIGHT) && entity->ext.bossRushTimer.time <= 0x34BBD)
         entity->ext.bossRushTimer.time++;
 }
 
@@ -494,7 +496,7 @@ void WreckingBallTip_Update(struct EwramData_EntityData *entity)
         Hit_Enable(entity, 8, 0, 0);
         HitBox_SetBodyRaw(entity, 0x2020F4F0);
         HitBox_SetAttackRaw(entity, 0x2020F4F0);
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_ATTACK;
         entity->state++;
     case 1:
         r = 0x60;
@@ -519,7 +521,7 @@ void WreckingBallTip_Update(struct EwramData_EntityData *entity)
         if ((res.flags & 2) && (s16)gEwramData->playerState.player->posY.part16.integer < (s16)entity->posY.part16.integer)
             break;
         HitEffect_Spawn((s16)entity->posX.part16.integer + RandomSigned(0x10), (s16)entity->posY.part16.integer + RandomSigned(0x10), 0);
-        PlaySong(0x69);
+        PlaySong(SE_METAL_HIT);
         if ((u32)(v - 0x4001) <= 0x7FFE)
             mode = 1;
         else if (other->accelX.whole != 0)
@@ -554,8 +556,8 @@ void WreckingBallCreate(struct EwramData_EntityData *entity)
     {
         u8 *data;
         struct EwramData_EntityData *child;
-        if (i != 10) child = EntityCreateInRange(0x49, 0xCF, WreckingBallSegment_Update);
-        else child = EntityCreateInRange(0x49, 0xCF, WreckingBallTip_Update);
+        if (i != 10) child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, WreckingBallSegment_Update);
+        else child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, WreckingBallTip_Update);
         if (child == NULL) { entity->state = 0xFF; break; }
         if (i != 10)
         {

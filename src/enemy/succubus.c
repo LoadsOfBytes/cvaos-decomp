@@ -27,6 +27,14 @@ u8 Succubus_LoadGraphics(struct EwramData_EntityData *);
 void Succubus_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void Succubus_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker, u16 *hit);
 
+/* States of Succubus (entity->state), named after the update function the dispatcher calls. */
+enum {
+    SUCCUBUS_STATE_WALK = 0,
+    SUCCUBUS_STATE_ATTACK = 1,
+    SUCCUBUS_STATE_FRAGMENT_DEATH = 2,
+    SUCCUBUS_STATE_ANIM_ONLY = 3,
+};
+
 /**
  * @brief 93C34 | Succubus update (as EnemyDevilUpdate): skipped while off
  * screen unless dying, hidden off screen (hidden), states 0 / 1
@@ -39,7 +47,7 @@ void EnemySuccubusUpdate(struct EwramData_EntityData *entity)
     struct HitResult result;
     u8 previous;
 
-    if (entity->state != 2)
+    if (entity->state != SUCCUBUS_STATE_FRAGMENT_DEATH)
     {
         if (EntityIsOutsideScreen(entity, 4))
             return;
@@ -58,16 +66,16 @@ void EnemySuccubusUpdate(struct EwramData_EntityData *entity)
     }
     switch (entity->state)
     {
-    case 0:
+    case SUCCUBUS_STATE_WALK:
         Succubus_UpdateWalk(entity);
         break;
-    case 1:
+    case SUCCUBUS_STATE_ATTACK:
         Succubus_UpdateAttack(entity);
         break;
-    case 2:
+    case SUCCUBUS_STATE_FRAGMENT_DEATH:
         Enemy_UpdateFragmentDeath(entity);
         break;
-    case 3:
+    case SUCCUBUS_STATE_ANIM_ONLY:
         Anim_Update(entity);
         return;
     }
@@ -90,7 +98,7 @@ void EnemySuccubusCreate(struct EwramData_EntityData *entity)
     Enemy_ResetFromTemplate(entity);
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 3;
+        entity->state = SUCCUBUS_STATE_ANIM_ONLY;
         Anim_StartIndexed(entity, 1, 0, 1);
         Anim_Update(entity);
         return;
@@ -104,7 +112,7 @@ void EnemySuccubusCreate(struct EwramData_EntityData *entity)
     entity->spriteLayer = 9;
     if (entity->spawnParam0 == 0)
     {
-        entity->state = 0;
+        entity->state = SUCCUBUS_STATE_WALK;
         entity->ext.succubus.intro = 1;
         entity->subState = 0;
     }
@@ -211,7 +219,7 @@ void Succubus_UpdateWalk(struct EwramData_EntityData *entity)
         {
             if (!(RandomNumberGenerator() & 1))
             {
-                entity->state = 1;
+                entity->state = SUCCUBUS_STATE_ATTACK;
                 entity->subState = 0;
                 entity->timer = 0;
                 break;
@@ -286,7 +294,7 @@ void Succubus_UpdateWalk(struct EwramData_EntityData *entity)
         }
         if (Target_IsInRect((s16)(entity->posX.part16.integer - 0x28), (s16)(entity->posY.part16.integer - 0x50), 0x50, 0xA0) && !(RandomNumberGenerator() & 1))
         {
-            entity->state = 1;
+            entity->state = SUCCUBUS_STATE_ATTACK;
             entity->subState = 0;
             entity->timer = 0;
         }
@@ -467,7 +475,7 @@ void Succubus_UpdateAttack(struct EwramData_EntityData *entity)
         if (entity->timer++ > 0x27)
         {
             Anim_StartIndexed(entity, 1, 0, 1);
-            entity->state = 0;
+            entity->state = SUCCUBUS_STATE_WALK;
             entity->subState = 2;
             entity->timer = 0;
             entity->velY.whole = speed2;
@@ -508,7 +516,7 @@ void Succubus_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
         Anim_StartIndexed(entity, 9, 0, 0);
         entity->palette = entity->basePalette;
         entity->timer = 0x28;
-        entity->state = 2;
+        entity->state = SUCCUBUS_STATE_FRAGMENT_DEATH;
         entity->subState = 0;
     }
 }

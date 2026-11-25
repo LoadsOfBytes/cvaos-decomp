@@ -29,6 +29,7 @@
 #include "data/data_4F0B18.h"
 #include "math_inline.h"
 #include "soul_skill_inline.h"
+#include "constants/hit_flags.h"
 /* from player_core.h (not included: see the module notes) */
 extern s32 Player_IsBossTargetLowHp(void);
 extern void Player_StartContactImmunity(u8 frames);
@@ -105,7 +106,7 @@ struct EwramData_EntityData *SkillGhost_CreateHistoryTrail(struct EwramData_Enti
     u8 *index = &owner->spriteSlot;
     struct SpriteSheet *sprite = gEwramData->spriteSlots[*index].sheet;
     struct SpriteSheet *s = sprite;
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, RedSoulHistoryTrail_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, RedSoulHistoryTrail_Update);
     struct Unk_0802A330 *trail;
     s32 i;
 
@@ -210,7 +211,7 @@ void SkillGhostSpiritUpdate(struct EwramData_EntityData *entity)
         }
         Hit_Enable(entity, 5, SoulAttack_MarkHit, 0);
         HitBox_SetAttackRaw(entity, 0x1010F8F8);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         entity->timer = 0x40;
         break;
     case 2:
@@ -409,9 +410,9 @@ void SkillNightmareUse(struct EwramData_EntityData *entity)
         Hit_Enable(entity, 5, 0, 0);
     {
         u8 zero = 0;
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         entity->hit.flags |= zero;
-        entity->hit.flags &= ~2;
+        entity->hit.flags &= ~HIT_NO_ATTACK;
     }
         PlaySong(0x19C);
         PlaySong(0xE1);
@@ -496,7 +497,7 @@ void SkillMandragoraUse(struct EwramData_EntityData *entity)
         Hit_SetTimerOverride(1, 60);
         Hit_Enable(entity, 5, 0, 0);
         HitBox_SetAttackRaw(entity, 0x7F7FC0C0);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         entity->scrollWithBg = 1;
         entity->objMode = 1;
         gEwramData->playerState.nbrActiveRedSoulEntities++;
@@ -535,7 +536,7 @@ void SkillMandragoraUse(struct EwramData_EntityData *entity)
             Anim_StartIndexed(entity, 1, 0, 1);
             entity->timer = 0x20;
             entity->state = 2;
-            entity->hit.flags |= 2;
+            entity->hit.flags |= HIT_NO_ATTACK;
         }
         break;
     case 2:
@@ -596,8 +597,8 @@ void SkillSkullMillioneSkullUpdate(struct EwramData_EntityData *entity)
         entity->spriteLayer = 0xD;
         entity->scrollWithBg = 1;
         Hit_Enable(entity, 5, 0, 0);
-        entity->hit.flags |= 4;
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_DAMAGE;
+        entity->hit.flags |= HIT_NO_ATTACK;
         entity->state++;
     case 1:
         if (Anim_Update(entity) == 3)
@@ -711,7 +712,7 @@ void SkillFishHeadUse(struct EwramData_EntityData *entity)
         Hit_SetTimerOverride(1, 20);
         Hit_Enable(entity, 5, SoulAttack_MarkHit, 0);
         HitBox_SetAttackRaw(entity, 0x0C0CFAFA);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         PlaySong(0xD8);
         gEwramData->playerState.nbrActiveRedSoulEntities++;
         entity->state++;
@@ -781,7 +782,7 @@ void SkillGladiatorUse(struct EwramData_EntityData *entity)
         Hit_SetTimerOverride(1, 30);
         Hit_Enable(entity, 5, 0, 0);
         HitBox_SetAttackRaw(entity, 0x2020F0F0);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         entity->state = 1;
         (*NbrActive(*ew))++;
     }
@@ -907,7 +908,7 @@ void SkillDurgaUse(struct EwramData_EntityData *entity)
             entity->velX.whole = -entity->velX.whole;
         Hit_SetTimerOverride(1, 30);
         Hit_Enable(entity, 5, 0, 0);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         entity->hit.flags |= zero;
         Skill_SetFrameHitBox(entity);
     }
@@ -954,8 +955,8 @@ void SkillKillerMantleUse(struct EwramData_EntityData *entity)
         entity->scrollWithBg = 1;
         Hit_SetTimerOverride(1, 20);
         Hit_Enable(entity, 5, 0, 0);
-        entity->hit.flags |= 4;
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_DAMAGE;
+        entity->hit.flags |= HIT_NO_ATTACK;
         PlaySong(0xD1);
         gEwramData->playerState.nbrActiveRedSoulEntities++;
         entity->state++;
@@ -1085,7 +1086,7 @@ void SkillFlameDemonUpdate(struct EwramData_EntityData *entity)
         entity->drawFunc = Sprite_DrawEntity;
         entity->spriteLayer = 0xD;
         Hit_Enable(entity, 5, 0, 0);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         entity->hit.flags |= zero;
         Skill_SetFrameHitBox(entity);
     }
@@ -1220,8 +1221,8 @@ void SkillLegionUse(struct EwramData_EntityData *entity)
         entity->scrollWithBg = 1;
         Hit_SetTimerOverride(1, 15);
         Hit_Enable(entity, 5, 0, 0);
-        entity->hit.flags |= 4;
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_DAMAGE;
+        entity->hit.flags |= HIT_NO_ATTACK;
         Entity_PlaceRelativeTo(entity, parent, 0, 0);
         entity->stage = parent->flipX;
         gEwramData->playerState.nbrActiveRedSoulEntities++;
@@ -1282,8 +1283,8 @@ void SkillBaloreUse(struct EwramData_EntityData *entity)
         entity->scrollWithBg = 1;
         Hit_SetTimerOverride(1, 60);
         Hit_Enable(entity, 5, 0, 0);
-        entity->hit.flags |= 4;
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_DAMAGE;
+        entity->hit.flags |= HIT_NO_ATTACK;
         gEwramData->playerState.nbrActiveRedSoulEntities++;
         if (Player_IsBossTargetLowHp())
             PlaySong(0x19F);
@@ -1356,8 +1357,8 @@ void SkillBlueCrowUse(struct EwramData_EntityData *entity)
         entity->flipX ^= 1;
         entity->timer = 0x32;
         Hit_Enable(entity, 5, 0, 0);
-        entity->hit.flags |= 4;
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_DAMAGE;
+        entity->hit.flags |= HIT_NO_ATTACK;
         PlaySong(0xEE);
         gEwramData->playerState.nbrActiveRedSoulEntities++;
         entity->state++;
@@ -1419,7 +1420,7 @@ void SkillManEaterUse(struct EwramData_EntityData *entity)
         Hit_SetTimerOverride(1, 20);
         Hit_Enable(entity, 5, SoulAttack_MarkHit, 0);
         HitBox_SetAttackRaw(entity, 0x0C0CFAFA);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         PlaySong(0x15E);
         gEwramData->playerState.nbrActiveRedSoulEntities++;
         entity->state++;
@@ -1534,7 +1535,7 @@ struct EwramData_EntityData *RedSoul_CreateHistoryTrail(struct EwramData_EntityD
     u8 *index = &owner->spriteSlot;
     struct SpriteSheet *tmp = gEwramData->spriteSlots[*index].sheet;
     struct SpriteSheet *sprite = tmp;
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, update);
     struct Unk_0802A330 *trail;
 
     if (entity == NULL)
@@ -1588,7 +1589,7 @@ void SkillHarpyProjectileUpdate(struct EwramData_EntityData *entity)
             entity->velX.whole = -entity->velX.whole;
         Hit_Enable(entity, 5, SoulAttack_MarkHit, 0);
         HitBox_SetAttackRaw(entity, 0x0202FFFF);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         entity->state = 1;
         RedSoul_CreateHistoryTrail(entity, RedSoulHistoryTrail_UpdateUnhide, SkillHarpyTrailDraw);
     case 1:
@@ -1860,7 +1861,7 @@ void SkillSlimeUse(struct EwramData_EntityData *entity)
         Hit_SetTimerOverride(1, 15);
         Hit_Enable(entity, 5, 0, 0);
         HitBox_SetAttackRaw(entity, 0x0808FCFC);
-        { u8 zero = 0; entity->hit.flags |= 4; entity->hit.flags |= zero; entity->hit.flags &= ~2; }
+        { u8 zero = 0; entity->hit.flags |= HIT_NO_DAMAGE; entity->hit.flags |= zero; entity->hit.flags &= ~HIT_NO_ATTACK; }
         entity->ext.skillSlime.timer = 0x100;
         entity->accelX.part16.integer = 4;
         entity->accelY.part16.integer = 4;
@@ -2117,12 +2118,12 @@ void Entity_SetAttackBoxFromFrame(struct EwramData_EntityData *entity)
 
     if (boxes != NULL)
     {
-        entity->hit.flags &= ~2;
+        entity->hit.flags &= ~HIT_NO_ATTACK;
         HitBox_SetAttack(entity, boxes);
     }
     else
     {
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_ATTACK;
     }
 }
 
@@ -2245,7 +2246,7 @@ void RedSoulEffect_UpdateAccelerated(struct EwramData_EntityData *entity)
  */
 struct EwramData_EntityData *Skill_SpawnAcceleratedEffect(s32 x, s32 y, s32 index, s32 animation)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, RedSoulEffect_UpdateAccelerated);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, RedSoulEffect_UpdateAccelerated);
     const struct SoulGraphicsResources *set;
     u8 *graphics;
     void *palette, *sprites;
@@ -2297,7 +2298,7 @@ void SoulBoneFragment_Update(struct EwramData_EntityData *entity)
  */
 struct EwramData_EntityData *Skill_SpawnBoneFragment(s32 x, s32 y, s32 index, s32 frame)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, SoulBoneFragment_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, SoulBoneFragment_Update);
     const struct SoulGraphicsResources *set;
     u8 *graphics;
     void *palette, *sprites;
@@ -2342,7 +2343,7 @@ void RedSoul_AnchorToHitTargetTimed(struct EwramData_EntityData *entity, struct 
 
     if (entity->ext.redSoul.anchor == NULL)
     {
-        child = EntityCreateInRange(0x49, 0xCF, RedSoulAnchor_Update);
+        child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, RedSoulAnchor_Update);
         if (child == NULL)
             return;
         entity->ext.redSoul.anchor = child;
@@ -2477,7 +2478,7 @@ void RedSoul_AnchorToHitTarget(struct EwramData_EntityData *entity, struct Ewram
 {
     if (entity->ext.redSoul.anchor == NULL)
     {
-        struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, RedSoulAnchor_Update);
+        struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, RedSoulAnchor_Update);
 
         if (child != NULL)
         {
@@ -2485,7 +2486,7 @@ void RedSoul_AnchorToHitTarget(struct EwramData_EntityData *entity, struct Ewram
             ENTITY_OWNER(child) = entity;
             child->ext.redSoulAnchor.target = target;
             ENTITY_INDEX(child) = ENTITY_INDEX(entity);
-            entity->hit.flags |= 2;
+            entity->hit.flags |= HIT_NO_ATTACK;
             child->accelX.whole = entity->posX.whole - target->posX.whole;
             child->accelY.whole = entity->posY.whole - target->posY.whole;
         }

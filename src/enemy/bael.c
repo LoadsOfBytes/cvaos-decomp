@@ -22,6 +22,8 @@
 #include "entity_inline.h"
 #include "entity_hit.h"
 #include "bg_and_collision.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 void Bael_CreateHead(struct EwramData_EntityData *entity);
 void Bael_DamagePlayerOnContact(struct EwramData_EntityData *entity);
@@ -41,6 +43,13 @@ void Bael_UpdateEntry(struct EwramData_EntityData *entity);
 s32 Bael_CheckCleanup(struct EwramData_EntityData *entity);
 
 /* Bael-fight helper functions 0x080CC3C8..0x080CC623. */
+
+/* States of Bael (entity->state), named after the update function the dispatcher calls. */
+enum {
+    BAEL_STATE_ENTRY = 1,
+    BAEL_STATE_ACTIVE = 2,
+    BAEL_STATE_DEATH = 3,
+};
 
 /**
  * @brief While state is 0, copy the linked body position. Death advances the state so the head can shake independently.
@@ -200,7 +209,7 @@ void Buer_SpawnChargeEffect(s32 x_, s32 y_, s32 kind_, u32 flip)
     u16 x = x_;
     u16 y = y_;
     u8 kind = kind_;
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, BuerChargeEffect_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, BuerChargeEffect_Update);
 
     if (child != NULL)
     {
@@ -235,9 +244,9 @@ void EnemyBaelCreate(struct EwramData_EntityData *entity)
     entity->ext.wheel.speed = 0x8000;
     entity->accelY.whole = 0x4000;
     if (entity->spawnParam0 == 0)
-        entity->state = 1;
+        entity->state = BAEL_STATE_ENTRY;
     else
-        entity->state = 2;
+        entity->state = BAEL_STATE_ACTIVE;
     entity->stage = zero;
     entity->subState = zero;
     Bael_CreateHead(entity);
@@ -609,8 +618,8 @@ void Bael_UpdateDeath(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
         case 0:
-            entity->hit.flags |= 2;
-            PlaySong(0x6E);
+            entity->hit.flags |= HIT_NO_ATTACK;
+            PlaySong(SE_ENEMY_DEATH);
             part->drawSkip = 1;
             part->palette = part->basePalette;
             part->state++;
@@ -674,7 +683,7 @@ void Bael_UpdateDeath(struct EwramData_EntityData *entity)
                 Effect_SpawnRandom(oldX,oldY,0x200000,0x200000,entity->spriteLayer-1);
                 timer = entity->timer;
                 if ((u8)(timer % 20) == 0 && timer > 28)
-                    PlaySong(0x6E);
+                    PlaySong(SE_ENEMY_DEATH);
             }
             Bael_MoveAndRotate(entity,1);
             if (--entity->timer == 0xFF)
@@ -687,7 +696,7 @@ void Bael_UpdateDeath(struct EwramData_EntityData *entity)
             memcpy(positions,sBaelPositions,sizeof(positions));
             for (i=0; i<8; i++)
                 Effect_SpawnAt(entity->posX.whole + (positions[i][0]<<16),entity->posY.whole + (positions[i][1]<<16) + 0x40000,entity->spriteLayer-1);
-            PlaySong(0x6E);
+            PlaySong(SE_ENEMY_DEATH);
             ObjAffine_Free(entity->affineIndex);
             entity->deleteRequested = 1;
             break;
@@ -814,7 +823,7 @@ void EnemyBaelUpdate(struct EwramData_EntityData *entity)
         Bael_UpdateState4Rotation(entity);
         return;
     }
-    if (entity->state == 3)
+    if (entity->state == BAEL_STATE_DEATH)
     {
         Bael_UpdateDeath(entity);
         return;
@@ -827,9 +836,9 @@ void EnemyBaelUpdate(struct EwramData_EntityData *entity)
     }
     switch (entity->state)
     {
-        case 1: Bael_UpdateEntry(entity); break;
-        case 2: Bael_UpdateActive(entity); break;
-        case 3: Bael_UpdateDeath(entity); break;
+        case BAEL_STATE_ENTRY: Bael_UpdateEntry(entity); break;
+        case BAEL_STATE_ACTIVE: Bael_UpdateActive(entity); break;
+        case BAEL_STATE_DEATH: Bael_UpdateDeath(entity); break;
     }
     Hit_CheckWithPlayer(&result,entity);
 }
@@ -860,7 +869,7 @@ void Bael_UpdateEntry(struct EwramData_EntityData *entity)
         Bael_MoveAndRotate(entity, 1);
         if (Entity_IsOffsetOutsideRoom(entity, 0, 0x5C))
         {
-            entity->state = 2;
+            entity->state = BAEL_STATE_ACTIVE;
             entity->stage = cleanedUp;
             entity->subState = cleanedUp;
         }
@@ -909,12 +918,12 @@ void Bael_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
     if (Enemy_TakeDamage(entity, attacker, hit))
     {
         Enemy_DropRewards(entity);
-        entity->state = 3;
+        entity->state = BAEL_STATE_DEATH;
         entity->stage = 0;
         entity->subState = 0;
     }
     // The original reads state and subState as one halfword here.
-    if (entity->state != 1 && *(u16 *)&entity->state == 2)
+    if (entity->state != 1 && *(u16 *)&entity->state == BAEL_STATE_ACTIVE)
     {
         entity->subState = 1;
         entity->stage = 0;
@@ -946,7 +955,7 @@ s32 Bael_CheckCleanup(struct EwramData_EntityData *entity)
         ObjAffine_Free(entity->affineIndex);
         EntityDelete(entity);
         EntityDelete(head);
-        entity->state = 3;
+        entity->state = BAEL_STATE_DEATH;
         entity->stage = deleted;
         entity->subState = deleted;
         deleted = 1;
@@ -972,7 +981,7 @@ void Bael_RestoreXAtProbe(struct EwramData_EntityData *entity, s32 savedX)
  */
 void Bael_SpawnChargeEffect(u16 x, u16 y, u8 kind, u32 flip)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, BaelChargeEffect_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, BaelChargeEffect_Update);
 
     if (child != NULL)
     {

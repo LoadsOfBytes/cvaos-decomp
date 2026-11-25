@@ -23,6 +23,7 @@
 #include "damage_numbers.h"
 #include "obj_palette.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
 
 /* Target_IsInRect (engine/entity_common.c) takes u16 there; the callers here pass
  * sign-extended values. */
@@ -200,7 +201,7 @@ void LegionWalkingCorpseUpdate(struct EwramData_EntityData *entity)
                 break;
             if ((s32)entity->ext.legionWalkingCorpseSpawner.childCount > 9)
                 break;
-            child = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
+            child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, EntityUpdateNothing);
             if (child == NULL)
                 break;
             entity->ext.legionWalkingCorpseSpawner.childCount++;
@@ -229,7 +230,7 @@ void LegionWalkingCorpseUpdate(struct EwramData_EntityData *entity)
  */
 void LegionWalkingCorpseCreate(struct EwramData_EntityData *entity)
 {
-    if (gEwramData->gameState.bossRushMode == 0 && (gEwramData->gameState.bossEventFlags & 0x20))
+    if (gEwramData->gameState.bossRushMode == 0 && (gEwramData->gameState.bossEventFlags & BOSS_DEFEATED_LEGION))
     {
         EntityDelete(entity);
         return;
@@ -239,8 +240,8 @@ void LegionWalkingCorpseCreate(struct EwramData_EntityData *entity)
         entity->state = 1;
         entity->hidden = 1;
         entity->timer = 0x78;
-        entity->hit.flags |= 4;
-        entity->hit.flags |= 2;
+        entity->hit.flags |= HIT_NO_DAMAGE;
+        entity->hit.flags |= HIT_NO_ATTACK;
         Entity_SnapToGround(entity);
         return;
     }
@@ -250,8 +251,8 @@ void LegionWalkingCorpseCreate(struct EwramData_EntityData *entity)
         return;
     }
     entity->flipX = 0;
-    entity->hit.flags |= 4;
-    entity->hit.flags |= 2;
+    entity->hit.flags |= HIT_NO_DAMAGE;
+    entity->hit.flags |= HIT_NO_ATTACK;
     Anim_Start(entity, (struct AnimScript *)sLegionWalkingCorpseAnimScript0, 0, 0);
     Anim_Update(entity);
     entity->enemyFlags |= 1;
@@ -403,8 +404,8 @@ void PopUpTrapCreate(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    entity->hit.flags |= 4;
-    entity->hit.flags |= 2;
+    entity->hit.flags |= HIT_NO_DAMAGE;
+    entity->hit.flags |= HIT_NO_ATTACK;
     Anim_StartIndexed(entity, 3, 0, 1);
     Anim_Update(entity);
     entity->spriteLayer = 0x12;
@@ -414,7 +415,7 @@ void PopUpTrapCreate(struct EwramData_EntityData *entity)
     entity->ext.popUpTrap.clock28 = 0x5A;
     entity->ext.popUpTrap.clock27 = 0x1E;
     entity->state = 0;
-    child = EntityCreateInRange(0x1B, 0x48, PopUpTrapSmallUpdate);
+    child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, PopUpTrapSmallUpdate);
     if (child != NULL)
     {
         child->posX.part16.integer = entity->posX.part16.integer - 0x15;
@@ -422,7 +423,7 @@ void PopUpTrapCreate(struct EwramData_EntityData *entity)
         PopUpTrapSmallCreate(child);
         ENTITY_OWNER(child) = entity;
     }
-    child = EntityCreateInRange(0x1B, 0x48, PopUpTrapLargeUpdate);
+    child = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, PopUpTrapLargeUpdate);
     if (child != NULL)
     {
         child->posX.part16.integer = entity->posX.part16.integer + 0x12;
@@ -497,8 +498,8 @@ void PopUpTrapSmallCreate(struct EwramData_EntityData *entity)
         return;
     }
     Hit_Enable(entity, 8, PopUpTrapSmall_OnPlayerContact, 0);
-    entity->hit.flags |= 4;
-    entity->hit.flags |= 2;
+    entity->hit.flags |= HIT_NO_DAMAGE;
+    entity->hit.flags |= HIT_NO_ATTACK;
     Anim_StartIndexed(entity, 4, 0, 1);
     Anim_Update(entity);
     // Same contact damage formula as in Player_ApplyContactDamage.
@@ -554,7 +555,7 @@ void PopUpTrapSmall_UpdateState(struct EwramData_EntityData *entity)
                 entity->subState++;
                 entity->timer = 0x1E;
                 HitBox_SetAttack(entity, &hitBox);
-                entity->hit.flags &= ~2;
+                entity->hit.flags &= ~HIT_NO_ATTACK;
             }
             ObjAffine_SetBiased(0, entity->velX.whole, entity->velX.whole, entity->flipX, entity->flipY, entity->affineIndex);
             break;
@@ -562,7 +563,7 @@ void PopUpTrapSmall_UpdateState(struct EwramData_EntityData *entity)
             if (entity->timer-- > 1)
                 break;
             entity->subState++;
-            entity->hit.flags |= 2;
+            entity->hit.flags |= HIT_NO_ATTACK;
             break;
         case 3:
             if (entity->velX.whole > 0xC000)
@@ -639,8 +640,8 @@ void PopUpTrapLargeCreate(struct EwramData_EntityData *entity)
         return;
     }
     Hit_Enable(entity, 8, PopUpTrapLarge_OnPlayerContact, 0);
-    entity->hit.flags |= 4;
-    entity->hit.flags |= 2;
+    entity->hit.flags |= HIT_NO_DAMAGE;
+    entity->hit.flags |= HIT_NO_ATTACK;
     Anim_StartIndexed(entity, 2, 0, 1);
     Anim_Update(entity);
     // Same contact damage formula as in Player_ApplyContactDamage.
@@ -694,7 +695,7 @@ void PopUpTrapLarge_UpdateState(struct EwramData_EntityData *entity)
                 entity->subState++;
                 entity->timer = 0x1E;
                 HitBox_SetAttack(entity, &hitBox);
-                entity->hit.flags &= ~2;
+                entity->hit.flags &= ~HIT_NO_ATTACK;
             }
             ObjAffine_SetBiased(0, entity->velX.whole, entity->velX.whole, entity->flipX, entity->flipY, entity->affineIndex);
             break;
@@ -702,7 +703,7 @@ void PopUpTrapLarge_UpdateState(struct EwramData_EntityData *entity)
             if (entity->timer-- > 1)
                 break;
             entity->subState++;
-            entity->hit.flags |= 2;
+            entity->hit.flags |= HIT_NO_ATTACK;
             break;
         case 3:
             if (entity->velX.whole > 0xC000)
@@ -821,7 +822,7 @@ void DriftingCloudsCreate(struct EwramData_EntityData *entity)
 
     for (i = 0, zero = 0; i <= 3; i++)
     {
-        child = EntityCreateInRange(0x49, 0xCF, DriftingCloudsLayer_Update);
+        child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, DriftingCloudsLayer_Update);
         if (child == NULL)
             continue;
         child->spawnIndex = zero;
@@ -888,8 +889,8 @@ void DriftingClouds_SetupLayer(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    entity->hit.flags |= 4;
-    entity->hit.flags |= 2;
+    entity->hit.flags |= HIT_NO_DAMAGE;
+    entity->hit.flags |= HIT_NO_ATTACK;
     entity->spriteLayer = 0x1D;
     entity->state = 0;
     entity->scrollWithBg = 0;
@@ -1039,7 +1040,7 @@ u8 ReactiveProp_LoadGraphics(struct EwramData_EntityData *entity)
  */
 void ProximityBurst_SpawnPiece(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, ProximityBurstPiece_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, ProximityBurstPiece_Update);
     s32 gfx;
 
     if (child == NULL)
@@ -1053,8 +1054,8 @@ void ProximityBurst_SpawnPiece(struct EwramData_EntityData *entity, s32 offsetX,
     Anim_StartIndexed(child, 0, 0, 1);
     Anim_Update(child);
     child->animTimer = RandomNumberGenerator() % 8;
-    child->hit.flags |= 4;
-    child->hit.flags |= 2;
+    child->hit.flags |= HIT_NO_DAMAGE;
+    child->hit.flags |= HIT_NO_ATTACK;
     child->flipX = RandomNumberGenerator() % 2;
     child->scrollWithBg = 1;
     child->drawFunc = Sprite_DrawEntity;
@@ -1139,7 +1140,7 @@ void ProximityBurstPiece_Update(struct EwramData_EntityData *entity)
  */
 void ProximityBurst_SpawnRisingParticle(struct EwramData_EntityData *entity, s32 x, s32 y)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticle);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateParticle);
     s32 gfx;
 
     if (child == NULL)
@@ -1170,7 +1171,7 @@ void JuliusArenaPropCreate(struct EwramData_EntityData *entity)
 
     memcpy(xs, sJuliusArenaPropXs, sizeof(xs));
     memcpy(ys, sJuliusArenaPropYs, sizeof(ys));
-    if (((*ewramRef)->gameState.bossEventFlags & 4) || !JuliusArenaProp_LoadGraphics(entity))
+    if (((*ewramRef)->gameState.bossEventFlags & BOSS_DEFEATED_JULIUS) || !JuliusArenaProp_LoadGraphics(entity))
     {
         EntityDelete(entity);
         return;
@@ -1219,7 +1220,7 @@ void JuliusArenaProp_UpdateState(struct EwramData_EntityData *entity)
 {
     struct EwramData *ewram = gEwramData;
 
-    if (entity->subState == 0 && (ewram->gameState.stateFlags & 0x1000))
+    if (entity->subState == 0 && (ewram->gameState.stateFlags & STATE_JULIUS_ARENA))
     {
         entity->subState = 1;
         entity->hidden = 0;
@@ -1233,7 +1234,7 @@ void JuliusArenaProp_UpdateState(struct EwramData_EntityData *entity)
  */
 void LeafSpawner_SpawnFallingLeaf(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, FallingLeaf_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, FallingLeaf_Update);
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
     s32 gfx;
     u16 affineIndex;
@@ -1258,8 +1259,8 @@ void LeafSpawner_SpawnFallingLeaf(struct EwramData_EntityData *entity)
     child->affineIndex = affineIndex;
     child->affine = 1;
     ObjAffine_Set(0, 0x10000, 0x10000, child->flipX, child->flipY, child->affineIndex);
-    child->hit.flags |= 4;
-    child->hit.flags |= 2;
+    child->hit.flags |= HIT_NO_DAMAGE;
+    child->hit.flags |= HIT_NO_ATTACK;
     child->flipX = RandomNumberGenerator() % 2;
     if (child->ext.fallingLeaf.kind == 0)
         child->velY.whole = 0xA000;
@@ -1361,7 +1362,7 @@ void LeafSpawner_UpdateState(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
         case 0:
-            if (ewram->gameState.stateFlags & 0x1000)
+            if (ewram->gameState.stateFlags & STATE_JULIUS_ARENA)
                 entity->subState = 1;
             break;
         case 1:
@@ -1391,7 +1392,7 @@ void JuliusArenaDebrisCreate(struct EwramData_EntityData *entity)
     memcpy(ys, sJuliusArenaDebrisYs, sizeof(ys));
     memcpy(anims, sJuliusArenaDebrisAnims, sizeof(anims));
     values = sUnk_08118674;
-    if (((*ewramRef)->gameState.bossEventFlags & 4) || !JuliusArenaDebris_LoadGraphics(entity))
+    if (((*ewramRef)->gameState.bossEventFlags & BOSS_DEFEATED_JULIUS) || !JuliusArenaDebris_LoadGraphics(entity))
     {
         EntityDelete(entity);
         return;
@@ -1430,7 +1431,7 @@ void JuliusArenaDebris_UpdateState(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
         case 0:
-            if (gEwramData->gameState.stateFlags & 0x1000)
+            if (gEwramData->gameState.stateFlags & STATE_JULIUS_ARENA)
                 entity->subState++;
             break;
         case 1:
@@ -1521,7 +1522,7 @@ u8 JuliusArenaDebris_LoadGraphics(struct EwramData_EntityData *entity)
  */
 void JuliusArenaDebris_SpawnDust(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticle);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, Effect_UpdateParticle);
     s32 gfx;
 
     if (child == NULL)
@@ -1561,8 +1562,8 @@ void CrumblingPlatformCreate(struct EwramData_EntityData *entity)
     Hit_Enable(entity, 8, NULL, 0);
     HitBox_SetBody(entity, &boxes.box[entity->spawnParam1]);
     HitBox_SetAttack(entity, &boxes.box[entity->spawnParam1]);
-    entity->hit.flags |= 4;
-    entity->hit.flags |= 2;
+    entity->hit.flags |= HIT_NO_DAMAGE;
+    entity->hit.flags |= HIT_NO_ATTACK;
     if (entity->spawnParam1 == 0)
         entity->animFrame = 0;
     else
@@ -1654,7 +1655,7 @@ void CrumblingPlatform_UpdateState(struct EwramData_EntityData *entity)
  */
 void CrumblingPlatform_SpawnDebris(struct EwramData_EntityData *entity, s32 frame, s32 index)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, CrumblingPlatformDebris_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, CrumblingPlatformDebris_Update);
     s32 gfx;
 
     if (child == NULL)
@@ -1666,8 +1667,8 @@ void CrumblingPlatform_SpawnDebris(struct EwramData_EntityData *entity, s32 fram
     child->basePalette = entity->basePalette;
     Sprite_Attach(child, sCrumblingPlatformSpriteSheet, gfx, child->basePalette);
     child->animFrame = frame;
-    child->hit.flags |= 4;
-    child->hit.flags |= 2;
+    child->hit.flags |= HIT_NO_DAMAGE;
+    child->hit.flags |= HIT_NO_ATTACK;
     child->flipX = RandomNumberGenerator() % 2;
     child->flipY = RandomNumberGenerator() % 2;
     child->velX.whole = (index << 13) - 0x4000;
@@ -1766,7 +1767,7 @@ void SparkEmitterCreate(struct EwramData_EntityData *entity)
  */
 void SparkEmitter_SpawnFlyingSpark(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, SparkEmitterFlyingSpark_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, SparkEmitterFlyingSpark_Update);
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
     s32 gfx;
 
@@ -1779,8 +1780,8 @@ void SparkEmitter_SpawnFlyingSpark(struct EwramData_EntityData *entity)
     child->basePalette = entity->basePalette;
     Sprite_Attach(child, sSparkEmitterSpriteSheet, gfx, child->basePalette);
     child->animFrame = RandomNumberGenerator() % 4 + 0xB;
-    child->hit.flags |= 4;
-    child->hit.flags |= 2;
+    child->hit.flags |= HIT_NO_DAMAGE;
+    child->hit.flags |= HIT_NO_ATTACK;
     child->flipX = RandomNumberGenerator() % 2;
     child->flipY = RandomNumberGenerator() % 2;
     child->objMode = 1;
@@ -1805,7 +1806,7 @@ void SparkEmitter_SpawnFlyingSpark(struct EwramData_EntityData *entity)
  */
 void SparkEmitter_SpawnFallingSpark(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, SparkEmitterFallingSpark_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, SparkEmitterFallingSpark_Update);
     s32 gfx;
 
     if (child == NULL)
@@ -1817,8 +1818,8 @@ void SparkEmitter_SpawnFallingSpark(struct EwramData_EntityData *entity)
     child->basePalette = entity->basePalette;
     Sprite_Attach(child, sSparkEmitterSpriteSheet, gfx, child->basePalette);
     child->animFrame = RandomNumberGenerator() % 5 + 6;
-    child->hit.flags |= 4;
-    child->hit.flags |= 2;
+    child->hit.flags |= HIT_NO_DAMAGE;
+    child->hit.flags |= HIT_NO_ATTACK;
     child->flipX = RandomNumberGenerator() % 2;
     child->flipY = RandomNumberGenerator() % 2;
     child->objMode = 1;
@@ -1913,8 +1914,8 @@ void PendulumPlatformCreate(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    entity->hit.flags |= 4;
-    entity->hit.flags |= 2;
+    entity->hit.flags |= HIT_NO_DAMAGE;
+    entity->hit.flags |= HIT_NO_ATTACK;
     entity->animFrame = 3;
     entity->spriteLayer = 0x12;
     entity->state = 0;
@@ -1996,7 +1997,7 @@ void PendulumPlatform_UpdateSwing(struct EwramData_EntityData *entity)
  */
 void PendulumPlatform_SpawnPart(struct EwramData_EntityData *entity, s32 part)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, PendulumPlatformPart_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, PendulumPlatformPart_Update);
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
     u32 box = 0x1C20F4F0;
     s32 gfx;
@@ -2024,8 +2025,8 @@ void PendulumPlatform_SpawnPart(struct EwramData_EntityData *entity, s32 part)
         HitBox_SetBody(child, &box);
         HitBox_SetAttack(child, &box);
     }
-    child->hit.flags |= 4;
-    child->hit.flags |= 2;
+    child->hit.flags |= HIT_NO_DAMAGE;
+    child->hit.flags |= HIT_NO_ATTACK;
     if (part != 2)
     {
         affineIndex = ObjAffine_Alloc(1);

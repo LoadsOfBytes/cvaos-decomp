@@ -31,6 +31,7 @@
 #include "data/data_0E5364.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
+#include "constants/game_flags.h"
 
 const u8 sBossRushStartItems[] = {
     0x3, 0x4, 0x5, 0x6, 0x17, 0x18, 0xFF,
@@ -78,12 +79,12 @@ s32 GameModeBossRushMenuUpdate(void)
             choice = SaveSelect_Update(entity);
             if (choice == -1)
             {
-                PlaySong(SE_240);
+                PlaySong(SE_MENU_BACK);
                 gameMode = GAME_MODE_TITLE_SCREEN;
             }
             else if (choice != 0)
             {
-                PlaySong(SE_244);
+                PlaySong(SE_MENU_CONFIRM);
                 gEwramData->gameModeUpdateStage = 4;
                 gEwramData->gameModeSubStage = 0;
             }
@@ -107,7 +108,7 @@ s32 GameModeBossRushMenuUpdate(void)
             gEwramData->gameModeSubStage = 0;
             gEwramData->gameState.difficultyMode = 1;
             gEwramData->gameState.shownAreaNameFlags = -1;
-            gEwramData->gameState.gameFlagsTail[1] &= ~0x40000;
+            gEwramData->gameState.gameFlagsTail[GAME_FLAG_WORD(FLAG_HEADHUNTER_ROOM_CLEARED) - 2] &= ~GAME_FLAG_BIT(FLAG_HEADHUNTER_ROOM_CLEARED);
             DMA_FILL_32(3, 0, gEwramData->playerStatus.itemInventory, 0x20);
             if (gEwramData->playerStatus.currentCharacter == 0)
             {
@@ -235,7 +236,7 @@ s32 GameModeIntroCutsceneUpdate(void)
             {
                 if (gEwramData->gameModeTimer == 0)
                 {
-                    PlaySong(MUS_21);
+                    PlaySong(MUS_PROLOGUE);
                 }
                 gEwramData->gameModeTimer += 1;
             }
@@ -756,23 +757,23 @@ void IntroCutscene_CreateEntities(struct EwramData_EntityData *entity)
     entity->hidden = 1;
     gDisplayRegisters.bgOfs[0].vOfs = entity->ext.introText.startScroll = -0xA4;
 
-    rising = EntityCreateInRange(0x49, 0xCF, IntroCutscene_UpdateRisingSprite);
+    rising = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, IntroCutscene_UpdateRisingSprite);
     spriteGfx = ObjGfx_LoadResource((u8 *)sIntroCutsceneGfx4, 0);
     Sprite_Attach(rising, (u8 *)sIntroCutsceneSpriteSheet2, spriteGfx, 2);
 
-    shrinking = EntityCreateInRange(0x49, 0xCF, IntroCutscene_UpdateShrinkingSprite);
+    shrinking = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, IntroCutscene_UpdateShrinkingSprite);
     spriteGfx = ObjGfx_LoadResource((u8 *)sIntroCutsceneGfx4, 0);
     Sprite_Attach(shrinking, (u8 *)sIntroCutsceneSpriteSheet2, spriteGfx, 3);
 
-    floating = EntityCreateInRange(0x49, 0xCF, IntroCutscene_UpdateFloatingSprite);
+    floating = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, IntroCutscene_UpdateFloatingSprite);
     spriteGfx = ObjGfx_LoadResource((u8 *)sIntroCutsceneGfx4, 0);
     Sprite_Attach(floating, (u8 *)sIntroCutsceneSpriteSheet2, spriteGfx, 3);
 
-    drifting = EntityCreateInRange(0x49, 0xCF, IntroCutscene_UpdateDriftingSprite);
+    drifting = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, IntroCutscene_UpdateDriftingSprite);
     spriteGfx = ObjGfx_LoadResource((u8 *)sIntroCutsceneGfx4, 0);
     Sprite_Attach(drifting, (u8 *)sIntroCutsceneSpriteSheet2, spriteGfx, 1);
 
-    drifting2 = EntityCreateInRange(0x49, 0xCF, IntroCutscene_UpdateDriftingSprite);
+    drifting2 = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, IntroCutscene_UpdateDriftingSprite);
     spriteGfx = ObjGfx_LoadResource((u8 *)sIntroCutsceneGfx4, 0);
     Sprite_Attach(drifting2, (u8 *)sIntroCutsceneSpriteSheet2, spriteGfx, 1);
     drifting2->subState = 1;
@@ -788,7 +789,7 @@ struct EwramData_EntityData* IntroCutscene_CreateSprite(EntityFunc updateFunc, u
     struct EwramData_EntityData *child;
     s32 gfx;
 
-    child = EntityCreateInRange(0x49, 0xCF, updateFunc);
+    child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, updateFunc);
     gfx = ObjGfx_LoadResource((u8 *)sIntroCutsceneGfx4, 0);
     Sprite_Attach(child, (u8 *)sIntroCutsceneSpriteSheet2, gfx, palette);
     return child;

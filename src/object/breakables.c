@@ -24,6 +24,8 @@
 #include "data/data_4F1444.h"
 #include "entity_hit.h"
 #include "bg_and_collision.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 extern void (*sTriggerZoneTriggerFuncs[])(struct EwramData_EntityData *, struct TriggerZoneTrigger *);
 extern s32 Pickup_TrySpawnOnHit(struct EwramData_EntityData *, s32, s32, s32);
@@ -126,7 +128,7 @@ void Debris_SpawnBurst(struct EwramData_EntityData *owner, s32 dy)
     {
         for (n = 3; n > 0; n--)
         {
-            piece = EntityCreateInRange(0x49, 0xCF, DebrisPiece_Update);
+            piece = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, DebrisPiece_Update);
             if (piece == NULL)
                 break;
             Sprite_Attach(piece, (void *)sCommonObjectSpriteSheet, graphics, palette);
@@ -163,7 +165,7 @@ void BreakableBlock_SpawnDust(struct EwramData_EntityData *entity)
     case 1:
         if ((entity->timer & 3) == 0)
         {
-            piece = EntityCreateInRange(0x49, 0xCF, BreakableBlockDust_Update);
+            piece = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, BreakableBlockDust_Update);
             if (piece != NULL)
             {
                 Sprite_Attach(piece, (void *)sCommonObjectSpriteSheet, entity->ext.breakableBlockDust.gfx, 6);
@@ -342,7 +344,7 @@ void BreakableBlockCreate(struct EwramData_EntityData *entity)
     BreakableBlock_SetCollision(entity);
     Hit_Enable(entity, 8, NULL, 0);
     HitBox_SetBodyRaw(entity, box);
-    entity->hit.flags |= 2;
+    entity->hit.flags |= HIT_NO_ATTACK;
     entity->hp = 3;
 }
 
@@ -380,7 +382,7 @@ void BreakableBlockUpdate(struct EwramData_EntityData *entity)
     if (!(result.flags & 0x1A))
         return;
     ObjGfx_Find(sCommonObjectGfx);
-    child = EntityCreateInRange(0x49, 0xCF, BreakableBlock_SpawnDust);
+    child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, BreakableBlock_SpawnDust);
     if (child != NULL)
     {
         child->ext.breakableBlock.kind = entity->ext.breakableBlock.kind;
@@ -486,7 +488,7 @@ void CrumblingWallUpdate(struct EwramData_EntityData *entity)
         {
             for (j = -3; j <= 3; j++)
             {
-                piece = EntityCreateInRange(0x49, 0xCF, CrumblingWallDebris_Update);
+                piece = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, CrumblingWallDebris_Update);
                 if (piece == NULL)
                     break;
                 piece->scrollWithBg = 1;
@@ -702,8 +704,8 @@ void SwingingPlatformCreate(struct EwramData_EntityData *entity)
     Anim_Update(entity);
     Hit_Enable(entity, 8, NULL, 0);
     HitBox_SetBodyRaw(entity, 0x122006F0);
-    entity->hit.flags |= 2;
-    entity->hit.flags &= 0xFB;
+    entity->hit.flags |= HIT_NO_ATTACK;
+    entity->hit.flags &= (u8)~HIT_NO_DAMAGE;
     entity->scrollWithBg = 1;
 }
 
@@ -847,7 +849,7 @@ void BreakableProp_SpawnPieces(struct EwramData_EntityData *owner)
     struct { s16 x, y; } pos;
     for (i = 0; i < info->pieceCount; i++, frame++)
     {
-        struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, BreakablePropPiece_Update);
+        struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, BreakablePropPiece_Update);
         if (!entity)
             return;
         if (!Entity_LoadGraphics(entity, gfx->graphics, gfx->palette, info->palette, gfx->sprites))
@@ -908,7 +910,7 @@ void BreakablePropCreate(struct EwramData_EntityData *entity)
     Anim_Update(entity);
     entity->drawFunc = BreakableProp_Draw;
     Hit_Enable(entity, 0, NULL, BreakableProp_OnHit);
-    entity->hit.flags |= 2;
+    entity->hit.flags |= HIT_NO_ATTACK;
     HitBox_SetBodyRaw(entity, variant->box);
     if (variant->skipGroundSnap == 0) Entity_SnapToGround(entity);
     entity->scrollWithBg = 1;
@@ -930,7 +932,7 @@ void BreakablePropUpdate(struct EwramData_EntityData *entity)
         if (Pickup_TrySpawnOnHit(entity, -20, entry[0], entry[1]))
         {
             BreakableProp_SpawnPieces(entity);
-            PlaySong(0xA2);
+            PlaySong(SE_ITEM_DROP);
             entity->hidden = 1;
             entity->timer = 0x28;
             entity->state++;
@@ -975,7 +977,7 @@ void CandleCreate(struct EwramData_EntityData *entity)
     Anim_StartIndexed(entity, 0xE, 0, 1);
     Anim_Update(entity);
     Hit_Enable(entity, 0, 0, 0);
-    entity->hit.flags |= 2;
+    entity->hit.flags |= HIT_NO_ATTACK;
     /* Packed box {-6, -8, 12, 8}, passed by value. */
     HitBox_SetBodyRaw(entity, 0x080CF8FA);
     entity->drawFunc = Candle_Draw;
@@ -997,7 +999,7 @@ void CandleUpdate(struct EwramData_EntityData *entity)
             entity->hidden = 0;
             if (Pickup_TrySpawnOnHit(entity, 0, entity->spawnParam0, entity->spawnParam1))
             {
-                PlaySong(0xA2);
+                PlaySong(SE_ITEM_DROP);
                 entity->hidden = 1;
                 entity->timer = 0x28;
                 entity->state++;

@@ -39,6 +39,7 @@ Measured on 2026-11-25 from the build output and source scans.
 | Declarations in headers | 🔄 each module's functions used by other files are declared in `include/<module>.h`; no implicit declarations; calls compiled without a prototype in the original use a declared `...Wide` alias (28 functions); functions whose code returns a halfword are declared with that result type (`Entity_GetTargetDistanceX` / `Y`, `Hit_CheckWithPlayer` …, 67 caller casts removed); 3 more aliases declare the real narrower type for the callers that used it (`Target_GetPixelXShort` / `YShort`, `Witch_SpawnOrbitParticlesSigned`); 12 functions keep caller-specific prototypes (17 local declarations); file-internal forward declarations in one block at the top of each file; ROM data declared in `include/data/` (18 tables still local; see *Known limitations*) |
 | Code cleanup | 🔄 entity callbacks typed (`EntityFunc`), duplicated `static inline` helpers merged into shared headers, `goto` rewritten as structured `if`/`else`, `switch`, `while` or direct `return` where the compiler output stays identical (627 → 133); 92.9 % of functions use neither compiler tricks nor matching-only constructs such as `goto` (133 `goto` left) |
 | Hard-coded addresses | ✅ none for ROM data and RAM variables – every table, graphics, palette, map and room used from C is referenced by a symbol (223 data labels added); 28 lines still compute VRAM addresses with integer arithmetic |
+| Magic numbers as named constants | ✅ story and conversation flags (`FLAG_MET_GRAHAM` …), all runtime state bits (`STATE_BOSS_FIGHT` …) and defeated-boss bits (`BOSS_DEFEATED_DEATH` …), hit flags (`HIT_NO_DAMAGE` …), entity slot ranges (`ENTITY_SLOT_EFFECT_FIRST` …), music tracks and audio commands, the states of 81 entities (`MANTICORE_STATE_WALK` …) and 19 sound effects whose role is the same at every call site (`SE_MENU_CURSOR`, `SE_DOOR` …); about 277 other sound effects keep their number (naming them needs listening) |
 | Removing compiler tricks (`FAKEMATCH`) | ⏸️ systematic pass finished: 217 lines left in 68 of 181 C files (272 → 217: natural rewrites that need no trick, block temporaries moved to function scope, calls through cast function pointers replaced by declared aliases); the rest has no known natural form (see Known limitations) |
 
 ## How this fork was made
@@ -136,8 +137,15 @@ name or comment describes the game correctly. Corrections are very welcome.
 - Reduce `FAKEMATCH` only opportunistically, when a new idea for a natural C variant appears.
 - Declarations: the remaining 12 caller-specific prototypes (17 local
   declarations).
-- Readability: replace the remaining `goto`, register pins and magic numbers
-  (constants for game flags, entity types, sound ids, hit flags).
+- Readability: replace the remaining `goto` and register pins. Magic numbers
+  are named for story/conversation flags (`constants/game_flags.h`), runtime
+  state and defeated-boss bits (`constants/game_state_flags.h`), hit flags
+  (`constants/hit_flags.h`), entity slot ranges (`constants/entity_slots.h`),
+  music tracks, audio commands and 19 sound effects whose role is clear from
+  every call site (`constants/songs.h`), and the states of 81 entities whose
+  dispatcher calls one update function per state (local `enum`s). Still
+  numeric: the other ~200 sound effects (they need listening to name) and
+  states without a dispatcher function.
 
 ## Building
 

@@ -24,6 +24,8 @@
 #include "damage_numbers.h"
 #include "entity_motion.h"
 #include "entity_hit.h"
+#include "constants/songs.h"
+#include "constants/hit_flags.h"
 
 
 void Manticore_UpdateWalk(struct EwramData_EntityData *entity);
@@ -50,6 +52,14 @@ void ManticoreTail_OnHit(struct EwramData_EntityData *entity, struct EwramData_E
 void ManticoreShot_DamagePlayerOnContact(struct EwramData_EntityData *entity);
 void ManticoreShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
+/* States of Manticore (entity->state), named after the update function the dispatcher calls. */
+enum {
+    MANTICORE_STATE_WALK = 0,
+    MANTICORE_STATE_ATTACK = 1,
+    MANTICORE_STATE_FRAGMENT_DEATH = 2,
+    MANTICORE_STATE_ANIM_ONLY = 3,
+};
+
 /**
  * @brief 72768 | Manticore update (pattern of EnemyKillerFishUpdate): wake
  * when on screen (Player_TrackEntity), hidden (hidden) more than 0x20 px above
@@ -69,7 +79,7 @@ void EnemyManticoreUpdate(struct EwramData_EntityData *entity)
         entity->hidden = 0;
     if (Enemy_IsStunned(entity))
     {
-        if (entity->state != 2)
+        if (entity->state != MANTICORE_STATE_FRAGMENT_DEATH)
         {
             Hit_CheckWithPlayer(results, entity);
             Hit_CheckWithPlayer(results, entity->ext.manticore.tailTip);
@@ -78,16 +88,16 @@ void EnemyManticoreUpdate(struct EwramData_EntityData *entity)
     }
     switch (entity->state)
     {
-    case 0:
+    case MANTICORE_STATE_WALK:
         Manticore_UpdateWalk(entity);
         break;
-    case 1:
+    case MANTICORE_STATE_ATTACK:
         Manticore_UpdateAttack(entity);
         break;
-    case 2:
+    case MANTICORE_STATE_FRAGMENT_DEATH:
         Enemy_UpdateFragmentDeath(entity);
         break;
-    case 3:
+    case MANTICORE_STATE_ANIM_ONLY:
         Anim_Update(entity);
         return;
     }
@@ -98,7 +108,7 @@ void EnemyManticoreUpdate(struct EwramData_EntityData *entity)
         if (previous != *frame)
             Entity_UpdateBoxes(entity);
     }
-    if (entity->state != 2)
+    if (entity->state != MANTICORE_STATE_FRAGMENT_DEATH)
     {
         Hit_CheckWithPlayer(results, entity);
         Hit_CheckWithPlayer(results, entity->ext.manticore.tailTip);
@@ -120,7 +130,7 @@ void EnemyManticoreCreate(struct EwramData_EntityData *entity)
     s32 i;
 
     if (entity->spawnParam0 != 0 && !gEwramData->gameState.bossRushMode
-        && (gEwramData->gameState.bossEventFlags & 0x400))
+        && (gEwramData->gameState.bossEventFlags & BOSS_DEFEATED_MANTICORE))
     {
         EntityDelete(entity);
         return;
@@ -148,7 +158,7 @@ void EnemyManticoreCreate(struct EwramData_EntityData *entity)
             seg[i]->ext.manticoreTail.link.next = seg[i + 1];
         seg[5]->ext.manticoreTail.link.next = entity->ext.manticore.tailTip;
         Manticore_CreateOverlay(entity);
-        entity->state = 3;
+        entity->state = MANTICORE_STATE_ANIM_ONLY;
         return;
     }
     Entity_EnableBoxes(entity, Manticore_DamagePlayerOnContact, Manticore_OnHit);
@@ -176,12 +186,12 @@ void EnemyManticoreCreate(struct EwramData_EntityData *entity)
         EntityDelete(entity);
         return;
     }
-    entity->state = 0;
+    entity->state = MANTICORE_STATE_WALK;
     if (entity->spawnParam0 != 0)
     {
-        Music_SetCurrent(0x10);
+        Music_SetCurrent(MUS_CONFRONTATION);
         Player_SetSelectedTarget(entity);
-        gEwramData->gameState.stateFlags |= 2;
+        gEwramData->gameState.stateFlags |= STATE_BOSS_FIGHT;
     }
 }
 
@@ -266,7 +276,7 @@ void Manticore_UpdateWalk(struct EwramData_EntityData *entity)
             {
                 if ((RandomNumberGenerator() & 0xFF) <= 0x7F)
                 {
-                    entity->state = 1;
+                    entity->state = MANTICORE_STATE_ATTACK;
                     entity->subState = 0;
                     break;
                 }
@@ -281,7 +291,7 @@ void Manticore_UpdateWalk(struct EwramData_EntityData *entity)
                 } while (0);
                 if (Target_IsInRect((s16)(entity->posX.part16.integer + dx), (s16)(entity->posY.part16.integer - 0x3C), 0x60, 0x46) && (RandomNumberGenerator() & 0xFF) <= 0x3F)
                 {
-                    entity->state = 1;
+                    entity->state = MANTICORE_STATE_ATTACK;
                     do { /* FAKEMATCH: weights the refs of found (r4 before the 0x40 mask) */
                         entity->subState = found;
                     } while (0);
@@ -296,7 +306,7 @@ void Manticore_UpdateWalk(struct EwramData_EntityData *entity)
             } while (0);
             if (Target_IsInRect((s16)(entity->posX.part16.integer + dx), (s16)(entity->posY.part16.integer - 0x3C), 0x80, 0x46) && (RandomNumberGenerator() & 0xFF) <= 0x7F)
             {
-                entity->state = 1;
+                entity->state = MANTICORE_STATE_ATTACK;
                 entity->subState = 10;
                 break;
             }
@@ -394,7 +404,7 @@ void Manticore_UpdateAttack(struct EwramData_EntityData *entity)
     case 4:
         if (entity->timer++ <= 0x1D)
             break;
-        entity->state = 0;
+        entity->state = MANTICORE_STATE_WALK;
         entity->subState = 2;
         Anim_StartIndexed(entity, 0, 0, 1);
         break;
@@ -439,7 +449,7 @@ void Manticore_UpdateAttack(struct EwramData_EntityData *entity)
     case 12:
         if (entity->timer++ <= 3)
             break;
-        entity->state = 0;
+        entity->state = MANTICORE_STATE_WALK;
         entity->subState = 2;
         Anim_StartIndexed(entity, 0, 0, 1);
         break;
@@ -467,7 +477,7 @@ void Manticore_OnDamaged(struct EwramData_EntityData *entity, struct EwramData_E
     Anim_StartIndexed(entity, 7, 0, 0);
     entity->palette = entity->basePalette;
     entity->timer = 0x28;
-    entity->state = 2;
+    entity->state = MANTICORE_STATE_FRAGMENT_DEATH;
     entity->subState = 0;
     if (entity->spawnParam0 == 0)
         return;
@@ -975,7 +985,7 @@ void ManticoreTail_UpdateSwing(struct EwramData_EntityData *e)
  */
 void Manticore_SpawnShot(struct EwramData_EntityData *entity)
 {
-    struct EwramData_EntityData *shot = EntityCreateInRange(0x1B, 0x48, ManticoreShot_Update);
+    struct EwramData_EntityData *shot = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, ManticoreShot_Update);
 
     if (shot == NULL)
         return;
@@ -1026,8 +1036,8 @@ void ManticoreShot_Update(struct EwramData_EntityData *entity)
         {
             entity->state++;
             Anim_StartIndexed(entity, 6, 0, 1);
-            entity->hit.flags &= ~4;
-            entity->hit.flags &= ~2;
+            entity->hit.flags &= ~HIT_NO_DAMAGE;
+            entity->hit.flags &= ~HIT_NO_ATTACK;
             entity->hidden = 0;
         }
         break;
@@ -1071,7 +1081,7 @@ void ManticoreShot_Update(struct EwramData_EntityData *entity)
  */
 void Manticore_SpawnShotFlash(struct EwramData_EntityData *owner)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, ManticoreEffect_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, ManticoreEffect_Update);
     s32 graphics;
 
     if (entity == NULL)
@@ -1099,8 +1109,8 @@ void ManticoreTail_EnableHitBoxes(struct EwramData_EntityData *entity)
     Hit_Enable(entity, 8, ManticoreTail_DamagePlayerOnContact, ManticoreTail_OnHit);
     HitBox_SetBodyRaw(entity, 0x0C0CFAFA); /* box {-6, -6, 12, 12} */
     HitBox_SetAttackRaw(entity, 0x0C0CFAFA);
-    entity->hit.flags &= ~4;
-    entity->hit.flags &= ~2;
+    entity->hit.flags &= ~HIT_NO_DAMAGE;
+    entity->hit.flags &= ~HIT_NO_ATTACK;
 }
 
 /**
@@ -1177,8 +1187,8 @@ void ManticoreShot_EnableHitBoxes(struct EwramData_EntityData *entity)
     Hit_Enable(entity, 10, ManticoreShot_DamagePlayerOnContact, ManticoreShot_OnHit);
     HitBox_SetBodyRaw(entity, 0x1818F4F4);
     HitBox_SetAttackRaw(entity, 0x1818F4F4);
-    entity->hit.flags |= 4;
-    entity->hit.flags |= 2;
+    entity->hit.flags |= HIT_NO_DAMAGE;
+    entity->hit.flags |= HIT_NO_ATTACK;
 }
 
 /**
@@ -1199,7 +1209,7 @@ void ManticoreShot_DamagePlayerOnContact(struct EwramData_EntityData *entity)
     entity->state = 2;
     entity->subState = 0;
     entity->timer = 0;
-    PlaySong(0x76);
+    PlaySong(SE_PROJECTILE_IMPACT);
 }
 
 /**
@@ -1211,7 +1221,7 @@ void ManticoreShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 
     entity->state = 2;
     entity->subState = 0;
     entity->timer = 0;
-    PlaySong(0x76);
+    PlaySong(SE_PROJECTILE_IMPACT);
 }
 
 /**

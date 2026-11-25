@@ -21,6 +21,7 @@
 #include "entity_hit.h"
 #include "bg_and_collision.h"
 #include "music.h"
+#include "constants/songs.h"
 
 s32 LightningDoll_LoadGraphics(struct EwramData_EntityData *entity);
 void LightningDoll_ResetActive(struct EwramData_EntityData *entity);
@@ -36,6 +37,12 @@ void LightningDollPlayerEffect_Update(struct EwramData_EntityData *entity);
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
  *   EnemyLightningDollCreate = EnemyKillerDollCreate */
+
+/* States of LightningDoll (entity->state), named after the update function the dispatcher calls. */
+enum {
+    LIGHTNING_DOLL_STATE_ACTIVE = 1,
+    LIGHTNING_DOLL_STATE_DEATH = 255,
+};
 
 /**
  * @brief C89B0 | Same as EnemyKillerDollCreate.
@@ -105,22 +112,22 @@ void EnemyLightningDollUpdate(struct EwramData_EntityData *entity)
         return;
     }
     Player_TrackEntity(entity);
-    if (Enemy_IsStunned(entity) && entity->state != 0xFF)
+    if (Enemy_IsStunned(entity) && entity->state != LIGHTNING_DOLL_STATE_DEATH)
     {
-        Sound_StopTracked(0x75);
+        Sound_StopTracked(SE_LIGHTNING);
         Hit_CheckWithPlayer(&result, entity);
         return;
     }
     switch (entity->state)
     {
-        case 1:
+        case LIGHTNING_DOLL_STATE_ACTIVE:
             LightningDoll_UpdateActive(entity);
             break;
-        case 0xFF:
+        case LIGHTNING_DOLL_STATE_DEATH:
             LightningDoll_UpdateDeath(entity);
             break;
     }
-    if (entity->state != 0xFF)
+    if (entity->state != LIGHTNING_DOLL_STATE_DEATH)
     {
         u8 frame = entity->animFrame;
         if (Anim_Update(entity) && frame != entity->animFrame)
@@ -242,7 +249,7 @@ void LightningDoll_UpdateActive(struct EwramData_EntityData *entity)
                     entity->velY.whole = 0;
                     entity->timer = RandomNumberGenerator() % 0x100 + 0x80;
                     entity->stage++;
-                    Sound_PlayTracked(0x75);
+                    Sound_PlayTracked(SE_LIGHTNING);
                 case 1:
                     if (entity->animDone)
                     {
@@ -252,12 +259,12 @@ void LightningDoll_UpdateActive(struct EwramData_EntityData *entity)
                     break;
                 case 2:
                     if ((entity->timer & 15) == 0 && entity->timer > 32)
-                        Sound_PlayTracked(0x75);
+                        Sound_PlayTracked(SE_LIGHTNING);
                     if ((s8)entity->timer-- == 0)
                         entity->stage++;
                     break;
                 case 3:
-                    Sound_StopTracked(0x75);
+                    Sound_StopTracked(SE_LIGHTNING);
                     entity->subState = 2;
                     entity->stage = 0;
                     TIMER_X(entity) = RandomNumberGenerator() % 0x20 + 0x10;
@@ -344,12 +351,12 @@ void LightningDoll_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 *data
     if ((s16)entity->hp <= 0)
     {
         entity->subState = 0;
-        Sound_StopTracked(0x75);
-        PlaySong(0x6E);
+        Sound_StopTracked(SE_LIGHTNING);
+        PlaySong(SE_ENEMY_DEATH);
         LightningDoll_SpawnDeathParts(entity);
         Enemy_DropRewards(entity);
         entity->palette = entity->basePalette;
-        entity->state = 0xFF;
+        entity->state = LIGHTNING_DOLL_STATE_DEATH;
         entity->subState++;
         if (entity->ext.doll.deathPartCount == 0)
             entity->deleteRequested = 1;
@@ -403,7 +410,7 @@ void LightningDoll_SpawnPlayerEffect(void)
     for (i = 0; i < 1; i++)
     {
         struct EwramData_EntityData *effect;
-        effect = EntityCreateInRange(0x49, 0xCF, LightningDollPlayerEffect_Update);
+        effect = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, LightningDollPlayerEffect_Update);
         if (effect != NULL)
         {
             effect->ext.lightningDoll.unusedEffectIndex = i;
@@ -492,7 +499,7 @@ void LightningDollPart_Update(struct EwramData_EntityData *entity)
                 entity->velX.whole = -ABS(entity->velX.whole);
                 x = -ABS(x);
             }
-            effect = EntityCreateInRange(0x49, 0xCF, LightningDollPartEffect_Update);
+            effect = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, LightningDollPartEffect_Update);
             if (effect != NULL)
             {
                 effect->posX.whole = entity->posX.whole;
@@ -744,7 +751,7 @@ void LightningDoll_ResetActive(struct EwramData_EntityData *entity)
     entity->accelY.whole = zero;
     entity->velY.whole = zero;
     Entity_SnapToGround(entity);
-    entity->state = 1;
+    entity->state = LIGHTNING_DOLL_STATE_ACTIVE;
     entity->stage = zero;
     entity->subState = zero;
     entity->ext.lightningDoll.attackTimer = RandomNumberGenerator() % 0x20 + 0x10;
@@ -760,12 +767,12 @@ void LightningDoll_UpdateDeath(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
         case 0:
-            Sound_StopTracked(0x75);
-            PlaySong(0x6E);
+            Sound_StopTracked(SE_LIGHTNING);
+            PlaySong(SE_ENEMY_DEATH);
             LightningDoll_SpawnDeathParts(entity);
             Enemy_DropRewards(entity);
             entity->palette = entity->basePalette;
-            entity->state = 0xFF;
+            entity->state = LIGHTNING_DOLL_STATE_DEATH;
             entity->subState++;
         case 1:
             if (entity->ext.doll.deathPartCount == 0)
@@ -805,7 +812,7 @@ void LightningDoll_SpawnDeathParts(struct EwramData_EntityData *entity)
     entity->hidden = 1;
     for (i = 0; i < 5; i++)
     {
-        struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, LightningDollPart_Update);
+        struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, LightningDollPart_Update);
 
         if (child != NULL)
         {

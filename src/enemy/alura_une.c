@@ -20,6 +20,8 @@
 #include "data/data_118B48.h"
 #include "damage_numbers.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 u8 AluraUne_LoadGraphics(struct EwramData_EntityData *);
 void AluraUne_DamagePlayerOnContact(struct EwramData_EntityData *);
@@ -29,6 +31,14 @@ void AluraUne_SpawnRootWave(struct EwramData_EntityData *parent, s32 index, s32 
 void AluraUneThorn_Update(struct EwramData_EntityData *);
 void AluraUneAttack_DamagePlayerOnContact(struct EwramData_EntityData *);
 void AluraUneRootWave_Update(struct EwramData_EntityData *);
+
+/* States of AluraUne (entity->state), named after the update function the dispatcher calls. */
+enum {
+    ALURA_UNE_STATE_IDLE = 0,
+    ALURA_UNE_STATE_ATTACK = 1,
+    ALURA_UNE_STATE_FRAGMENT_DEATH = 2,
+    ALURA_UNE_STATE_PREVIEW = 3,
+};
 
 /* Initialize AluraUne's graphics, collisions and initial facing. */
 void EnemyAluraUneCreate(struct EwramData_EntityData *entity)
@@ -43,7 +53,7 @@ void EnemyAluraUneCreate(struct EwramData_EntityData *entity)
     Enemy_ResetFromTemplate(entity);
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 3;
+        entity->state = ALURA_UNE_STATE_PREVIEW;
         return;
     }
     if (Anim_GetMaxBoxCount(entity) > 1)
@@ -52,7 +62,7 @@ void EnemyAluraUneCreate(struct EwramData_EntityData *entity)
         Hit_Enable(entity, 8, AluraUne_DamagePlayerOnContact, AluraUne_OnHit);
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
-    entity->state = 0;
+    entity->state = ALURA_UNE_STATE_IDLE;
     entity->flipX = Entity_IsTargetRight(entity);
 }
 
@@ -95,7 +105,7 @@ void AluraUne_UpdateIdle(struct EwramData_EntityData *entity)
             }
             else
             {
-                entity->state = 1;
+                entity->state = ALURA_UNE_STATE_ATTACK;
                 entity->subState = 10;
             }
         }
@@ -136,7 +146,7 @@ void AluraUne_UpdateIdle(struct EwramData_EntityData *entity)
         }
         else
         {
-            entity->state = 1;
+            entity->state = ALURA_UNE_STATE_ATTACK;
             entity->subState = 0xB;
             entity->animDone = 1;
         }
@@ -217,7 +227,7 @@ void AluraUne_UpdateIdle(struct EwramData_EntityData *entity)
         }
         if (entity->timer++ > 0x1D)
         {
-            entity->state = 0;
+            entity->state = ALURA_UNE_STATE_IDLE;
             entity->subState = 2;
             Anim_StartIndexed(entity, 3, 0, 0);
             Sound_StopTracked(0x105);
@@ -321,7 +331,7 @@ void AluraUne_UpdateAttack(struct EwramData_EntityData *entity)
         Sound_StopTracked(0x105);
         if (EntityIsOutsideScreen(entity, 4))
         {
-            entity->state = 0;
+            entity->state = ALURA_UNE_STATE_IDLE;
             entity->subState = 0;
             Anim_StartIndexed(entity, 0, 0, 1);
             break;
@@ -335,7 +345,7 @@ void AluraUne_UpdateAttack(struct EwramData_EntityData *entity)
         }
         else if (r == 1)
         {
-            entity->state = 0;
+            entity->state = ALURA_UNE_STATE_IDLE;
             entity->subState = 2;
             Anim_StartIndexed(entity, 3, 0, 0);
         }
@@ -356,7 +366,7 @@ void AluraUne_UpdateAttack(struct EwramData_EntityData *entity)
     case 6:
         if (entity->timer++ > 0x59)
         {
-            entity->state = 0;
+            entity->state = ALURA_UNE_STATE_IDLE;
             entity->subState = 0;
             entity->timer = 0;
         }
@@ -400,7 +410,7 @@ void AluraUne_UpdateAttack(struct EwramData_EntityData *entity)
         {
             if (EntityIsOutsideScreen(entity, 4))
             {
-                entity->state = 0;
+                entity->state = ALURA_UNE_STATE_IDLE;
                 entity->subState = 0;
                 Anim_StartIndexed(entity, 0, 0, 1);
                 break;
@@ -414,7 +424,7 @@ void AluraUne_UpdateAttack(struct EwramData_EntityData *entity)
             }
             else if (r == 1)
             {
-                entity->state = 0;
+                entity->state = ALURA_UNE_STATE_IDLE;
                 entity->subState = 2;
                 Anim_StartIndexed(entity, 3, 0, 0);
             }
@@ -489,10 +499,10 @@ void AluraUne_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
     {
         Sound_StopTracked(0x105);
         Enemy_DropRewards(entity);
-        PlaySong(0x6E);
+        PlaySong(SE_ENEMY_DEATH);
         entity->palette = entity->basePalette;
         entity->timer = 40;
-        entity->state = 2;
+        entity->state = ALURA_UNE_STATE_FRAGMENT_DEATH;
         entity->subState = 0;
     }
 }
@@ -504,7 +514,7 @@ void AluraUne_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
  */
 void AluraUne_SpawnThorn(struct EwramData_EntityData *parent, s32 xOffset, s32 delay, s32 type)
 {
-    struct EwramData_EntityData *projectile = EntityCreateInRange(0x1B, 0x48, AluraUneThorn_Update);
+    struct EwramData_EntityData *projectile = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, AluraUneThorn_Update);
     if (projectile)
     {
         s32 graphics = ObjGfx_Find(sAluraUneGfx);
@@ -517,8 +527,8 @@ void AluraUne_SpawnThorn(struct EwramData_EntityData *parent, s32 xOffset, s32 d
         Anim_StartIndexed(projectile, 12, 0, 0);
         projectile->drawFunc = Sprite_DrawEntity;
         Hit_Enable(projectile, 8, AluraUneAttack_DamagePlayerOnContact, 0);
-        projectile->hit.flags |= 4;
-        projectile->hit.flags |= 2;
+        projectile->hit.flags |= HIT_NO_DAMAGE;
+        projectile->hit.flags |= HIT_NO_ATTACK;
         projectile->scrollWithBg = 1;
         projectile->spriteLayer = parent->spriteLayer;
         projectile->hidden = 1;
@@ -590,8 +600,8 @@ void AluraUneThorn_Update(struct EwramData_EntityData *entity)
             Anim_StartIndexed(entity, 8, 0, 1);
             entity->timer = 0;
             HitBox_SetAttack(entity, &box);
-            entity->hit.flags &= ~2;
-            entity->hit.flags |= 4;
+            entity->hit.flags &= ~HIT_NO_ATTACK;
+            entity->hit.flags |= HIT_NO_DAMAGE;
         }
         break;
     case 3:
@@ -626,7 +636,7 @@ void AluraUneThorn_Update(struct EwramData_EntityData *entity)
  */
 void AluraUne_SpawnRootWave(struct EwramData_EntityData *parent, s32 index, s32 facing)
 {
-    struct EwramData_EntityData *part = EntityCreateInRange(0x1B, 0x48, AluraUneRootWave_Update);
+    struct EwramData_EntityData *part = EntityCreateInRange(ENTITY_SLOT_OBJECT_FIRST, ENTITY_SLOT_OBJECT_LAST, AluraUneRootWave_Update);
     if (part)
     {
         s32 graphics = ObjGfx_Find(sAluraUneGfx);
@@ -641,8 +651,8 @@ void AluraUne_SpawnRootWave(struct EwramData_EntityData *parent, s32 index, s32 
         part->drawFunc = Sprite_DrawEntity;
         Entity_UpdateBoxes(part);
         Hit_Enable(part, 8, AluraUneAttack_DamagePlayerOnContact, 0);
-        part->hit.flags &= ~2;
-        part->hit.flags |= 4;
+        part->hit.flags &= ~HIT_NO_ATTACK;
+        part->hit.flags |= HIT_NO_DAMAGE;
         part->scrollWithBg = 1;
         part->spriteLayer = parent->spriteLayer;
         ENTITY_OWNER(part) = parent;
@@ -677,7 +687,7 @@ void AluraUneRootWave_Update(struct EwramData_EntityData *entity)
             else entity->posX.part16.integer -= 40;
             entity->hidden = 1;
             entity->timer = 0;
-            entity->hit.flags |= 2;
+            entity->hit.flags |= HIT_NO_ATTACK;
             if (!parent || !parent->updateFunc || parent->enemyId != 0x4D || parent->state == 2)
             {
                 entity->deleteRequested = 1;
@@ -696,7 +706,7 @@ void AluraUneRootWave_Update(struct EwramData_EntityData *entity)
             Anim_StartIndexed(entity, 9, 0, 0);
             entity->hidden = 0;
             entity->state = 0;
-            entity->hit.flags &= ~2;
+            entity->hit.flags &= ~HIT_NO_ATTACK;
         }
         if (!parent || !parent->updateFunc || parent->enemyId != 0x4D || parent->state == 2)
         {
@@ -772,10 +782,10 @@ void EnemyAluraUneUpdate(struct EwramData_EntityData *entity)
     }
     switch (entity->state)
     {
-    case 0: AluraUne_UpdateIdle(entity); break;
-    case 1: AluraUne_UpdateAttack(entity); break;
-    case 2: Enemy_UpdateFragmentDeath(entity); break;
-    case 3:
+    case ALURA_UNE_STATE_IDLE: AluraUne_UpdateIdle(entity); break;
+    case ALURA_UNE_STATE_ATTACK: AluraUne_UpdateAttack(entity); break;
+    case ALURA_UNE_STATE_FRAGMENT_DEATH: Enemy_UpdateFragmentDeath(entity); break;
+    case ALURA_UNE_STATE_PREVIEW:
         AluraUne_UpdatePreview(entity);
         Anim_Update(entity);
         return;

@@ -20,6 +20,7 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
 
 void Chronomage_UpdateWait(struct EwramData_EntityData *);
 void Chronomage_UpdateCast(struct EwramData_EntityData *);
@@ -28,6 +29,14 @@ void Chronomage_UpdateBestiaryPreview(struct EwramData_EntityData *);
 void Chronomage_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit);
 
 /* Chronomage affine casting effect. */
+
+/* States of Chronomage (entity->state), named after the update function the dispatcher calls. */
+enum {
+    CHRONOMAGE_STATE_WAIT = 0,
+    CHRONOMAGE_STATE_CAST = 1,
+    CHRONOMAGE_STATE_ESCAPE = 2,
+    CHRONOMAGE_STATE_BESTIARY_PREVIEW = 4,
+};
 
 /**
  * @brief Allocate an affine sprite, grow its scale, hold for 32 updates, then
@@ -99,13 +108,13 @@ void Chronomage_UpdateWait(struct EwramData_EntityData *entity)
     else distance = playerX - (u16)entity->posX.part16.integer;
     if (gEwramData->gameState.timeStopTimer != 0)
     {
-        entity->state = 2;
+        entity->state = CHRONOMAGE_STATE_ESCAPE;
         entity->stage = 0;
         entity->subState = 0;
     }
     else if (distance <= 0x6F || (gEwramData->playerState.player->ext.player.actionFlags & 0x360))
     {
-        entity->state = 1;
+        entity->state = CHRONOMAGE_STATE_CAST;
         entity->stage = 0;
         entity->subState = 0;
     }
@@ -176,7 +185,7 @@ menu:
     case 6:
         gEwramData->paletteInvert = 1;
         if (!(entity->animFlags & 4)) break;
-        effect = EntityCreateInRange(0x49, 0xCF, ChronomageCastEffect_Update);
+        effect = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, ChronomageCastEffect_Update);
         if (effect != NULL)
         {
             effect->posX.part16.integer = entity->posX.part16.integer;
@@ -190,7 +199,7 @@ menu:
         if (entity->timer != 0) entity->timer--;
         else
         {
-            entity->state = 2;
+            entity->state = CHRONOMAGE_STATE_ESCAPE;
             entity->stage = 0;
             entity->subState = 0;
         }
@@ -210,7 +219,7 @@ void Chronomage_UpdateEscape(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
     case 0:
-        entity->hit.flags &= ~4;
+        entity->hit.flags &= ~HIT_NO_DAMAGE;
         Anim_StartIndexed(entity, 1, 0, 0);
         entity->subState = 1;
         /* fall through */
@@ -278,17 +287,17 @@ void EnemyChronomageCreate(struct EwramData_EntityData *entity)
     entity->spriteLayer = 0x13;
     Anim_StartIndexed(entity, 0, 0, 1);
     Anim_Update(entity);
-    if (gEwramData->gameState.bestiaryPreview) entity->state = 4;
+    if (gEwramData->gameState.bestiaryPreview) entity->state = CHRONOMAGE_STATE_BESTIARY_PREVIEW;
     else
     {
         Hit_Enable(entity, 8, Enemy_OnContact, Chronomage_OnHit);
         HitBox_SetBodyRaw(entity, 0x2008E0FC);
         HitBox_SetAttackRaw(entity, 0x2008E0FC);
-        entity->hit.flags |= 4;
+        entity->hit.flags |= HIT_NO_DAMAGE;
         Entity_SnapToGround(entity);
         entity->posY.part16.integer++;
         entity->scrollWithBg = 1;
-        entity->state = 0;
+        entity->state = CHRONOMAGE_STATE_WAIT;
     }
 }
 
@@ -299,9 +308,9 @@ void EnemyChronomageUpdate(struct EwramData_EntityData *entity)
     if (entity->state != 3) Enemy_UpdateHitFlash(entity);
     switch (entity->state)
     {
-    case 0: Chronomage_UpdateWait(entity); break;
-    case 1: Chronomage_UpdateCast(entity); break;
-    case 2: Chronomage_UpdateEscape(entity); break;
+    case CHRONOMAGE_STATE_WAIT: Chronomage_UpdateWait(entity); break;
+    case CHRONOMAGE_STATE_CAST: Chronomage_UpdateCast(entity); break;
+    case CHRONOMAGE_STATE_ESCAPE: Chronomage_UpdateEscape(entity); break;
     case 3:
         switch (entity->subState)
         {
@@ -328,7 +337,7 @@ alive:
             return;
         }
         break;
-    case 4:
+    case CHRONOMAGE_STATE_BESTIARY_PREVIEW:
         Chronomage_UpdateBestiaryPreview(entity);
         return;
     }

@@ -19,6 +19,7 @@
 #include "text12.h"
 #include "shop.h"
 #include "data/data_4F1444.h"
+#include "constants/songs.h"
 
 void PlaySong(u32 song);
 extern const struct ArmorInfo sArmorInfo[];
@@ -135,7 +136,7 @@ s32 Shop_HandleListInput(struct GameState *owner, struct EwramData_EntityData *m
     if (menu->ext.shopPage.scroll != top)
         ret = 3;
     if (ret != 0)
-        PlaySong(0xF1);
+        PlaySong(SE_MENU_CURSOR);
     return ret;
 }
 
@@ -687,9 +688,9 @@ void Shop_OpenList(struct GameState *shop, struct EwramData_EntityData *page)
     page->ext.menuListU.cursor = 0;
     mode = &shop->shopId;
     *mode = 0;
-    if (gEwramData->gameState.bossEventFlags & 0x10)
+    if (gEwramData->gameState.bossEventFlags & BOSS_DEFEATED_HEADHUNTER)
         *mode = 1;
-    if (gEwramData->gameState.bossEventFlags & 2)
+    if (gEwramData->gameState.bossEventFlags & BOSS_DEFEATED_DEATH)
         *mode = 2;
     if (page->state == 2)
     {
@@ -738,7 +739,7 @@ s32 Shop_UpdateList(struct GameState *owner, struct EwramData_EntityData *menu)
     {
         if (input & 2)
         {
-            PlaySong(0xF0);
+            PlaySong(SE_MENU_BACK);
             ret = 1;
         }
         else if (input & 1)
@@ -746,13 +747,13 @@ s32 Shop_UpdateList(struct GameState *owner, struct EwramData_EntityData *menu)
             if (Shop_CanTrade(owner, menu, stats, ShopItem(list->items, menu)))
             {
                 Shop_ShowConfirmWindow();
-                PlaySong(0xF3);
+                PlaySong(SE_MENU_SELECT);
                 menu->timer = 0;
                 menu->stage++;
             }
             else
             {
-                PlaySong(0xEF);
+                PlaySong(SE_MENU_DENIED);
             }
         }
         else
@@ -778,7 +779,7 @@ s32 Shop_UpdateList(struct GameState *owner, struct EwramData_EntityData *menu)
     }
     else if (input & 3)
     {
-        PlaySong(0xF0);
+        PlaySong(SE_MENU_BACK);
         gEwramData->hBlankEffect.requestStop = 1;
         gUnk_03002CB0.dispCnt &= ~0x2000;
         gUnk_03002CB0.dispCnt &= ~0x4000;
@@ -786,12 +787,12 @@ s32 Shop_UpdateList(struct GameState *owner, struct EwramData_EntityData *menu)
     }
     else if ((input & 0x10) && menu->timer == 0)
     {
-        PlaySong(0xF1);
+        PlaySong(SE_MENU_CURSOR);
         menu->timer++;
     }
     else if ((input & 0x20) && menu->timer != 0)
     {
-        PlaySong(0xF1);
+        PlaySong(SE_MENU_CURSOR);
         menu->timer = 0;
     }
     return ret;

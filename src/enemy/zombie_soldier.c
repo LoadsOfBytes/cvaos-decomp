@@ -17,6 +17,8 @@
 #include "data/data_118B48.h"
 #include "damage_numbers.h"
 #include "entity_hit.h"
+#include "constants/hit_flags.h"
+#include "constants/songs.h"
 
 void ZombieSoldier_UpdateWalk(struct EwramData_EntityData *entity);
 void ZombieSoldier_UpdateAttack(struct EwramData_EntityData *entity);
@@ -29,6 +31,13 @@ void ZombieSoldierGrenade_Update(struct EwramData_EntityData *);
 void ZombieSoldierGrenade_DamagePlayerOnContact(struct EwramData_EntityData *);
 void ZombieSoldierGrenade_OnHit(struct EwramData_EntityData *, s32, u16 *);
 void ZombieSoldierPiece_Update(struct EwramData_EntityData *entity);
+
+/* States of ZombieSoldier (entity->state), named after the update function the dispatcher calls. */
+enum {
+    ZOMBIE_SOLDIER_STATE_WALK = 0,
+    ZOMBIE_SOLDIER_STATE_ATTACK = 1,
+    ZOMBIE_SOLDIER_STATE_ANIM_ONLY = 3,
+};
 
 /**
  * @brief 926F8 | Zombie Soldier update: skipped by Enemy_PreUpdate; states 0
@@ -45,10 +54,10 @@ void EnemyZombieSoldierUpdate(struct EwramData_EntityData *entity)
         return;
     switch (entity->state)
     {
-    case 0:
+    case ZOMBIE_SOLDIER_STATE_WALK:
         ZombieSoldier_UpdateWalk(entity);
         break;
-    case 1:
+    case ZOMBIE_SOLDIER_STATE_ATTACK:
         ZombieSoldier_UpdateAttack(entity);
         break;
     case 2:
@@ -71,7 +80,7 @@ void EnemyZombieSoldierUpdate(struct EwramData_EntityData *entity)
         }
         Enemy_UpdateFragmentDeath(entity);
         break;
-    case 3:
+    case ZOMBIE_SOLDIER_STATE_ANIM_ONLY:
         Anim_Update(entity);
         return;
     }
@@ -98,7 +107,7 @@ void EnemyZombieSoldierCreate(struct EwramData_EntityData *entity)
     Enemy_ResetFromTemplate(entity);
     if (gEwramData->gameState.bestiaryPreview)
     {
-        entity->state = 3;
+        entity->state = ZOMBIE_SOLDIER_STATE_ANIM_ONLY;
         return;
     }
     if (Anim_GetMaxBoxCount(entity) > 1)
@@ -107,7 +116,7 @@ void EnemyZombieSoldierCreate(struct EwramData_EntityData *entity)
         Hit_Enable(entity, 8, ZombieSoldier_DamagePlayerOnContact, ZombieSoldier_OnHit);
     Entity_UpdateBoxes(entity);
     Entity_SnapToGround(entity);
-    entity->state = 0;
+    entity->state = ZOMBIE_SOLDIER_STATE_WALK;
 }
 
 /**
@@ -128,7 +137,7 @@ void ZombieSoldier_UpdateWalk(struct EwramData_EntityData *entity)
         if (Target_IsInRect((s16)(entity->posX.part16.integer - 0x28), (s16)(entity->posY.part16.integer - 0x40), 0x50, 0x46)
             && (RandomNumberGenerator() & 0x7F) <= 0x3F)
         {
-            entity->state = 1;
+            entity->state = ZOMBIE_SOLDIER_STATE_ATTACK;
             entity->subState = 0;
             Anim_StartIndexed(entity, 1, 0, 0);
             return;
@@ -136,7 +145,7 @@ void ZombieSoldier_UpdateWalk(struct EwramData_EntityData *entity)
         if ((RandomNumberGenerator() & 0x7F) <= 0x1F
             && Target_IsInRect((s16)(entity->posX.part16.integer - 0x6E), (s16)(entity->posY.part16.integer - 0x40), 0xDC, 0x46))
         {
-            entity->state = 1;
+            entity->state = ZOMBIE_SOLDIER_STATE_ATTACK;
             entity->subState = 10;
             Anim_StartIndexed(entity, 2, 0, 0);
             return;
@@ -173,11 +182,11 @@ void ZombieSoldier_UpdateAttack(struct EwramData_EntityData *entity)
             break;
         case 1:
             if (*(u16 *)&entity->animStep == 2)
-                PlaySong(0x85);
+                PlaySong(SE_SWING);
             if (entity->animDone)
             {
                 Anim_StartIndexed(entity, 0, 0, 1);
-                entity->state = 0;
+                entity->state = ZOMBIE_SOLDIER_STATE_WALK;
                 entity->subState = 0;
                 entity->velX.whole = 0;
                 entity->velY.whole = 0x10000;
@@ -210,7 +219,7 @@ void ZombieSoldier_UpdateAttack(struct EwramData_EntityData *entity)
             if (entity->animDone)
             {
                 Anim_StartIndexed(entity, 0, 0, 1);
-                entity->state = 0;
+                entity->state = ZOMBIE_SOLDIER_STATE_WALK;
                 entity->subState = 0;
                 entity->velX.whole = 0;
                 entity->velY.whole = 0x10000;
@@ -245,7 +254,7 @@ void ZombieSoldier_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 
     if ((s16)entity->hp <= 0)
     {
         Enemy_DropRewards(entity);
-        PlaySong(0x70);
+        PlaySong(SE_ENEMY_DEATH_SOFT);
         Anim_StartIndexed(entity, 3, 0, 0);
         entity->palette = entity->basePalette;
         entity->timer = 0x28;
@@ -264,7 +273,7 @@ void ZombieSoldier_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 
  */
 void ZombieSoldier_ThrowGrenade(struct EwramData_EntityData *owner, s32 x, s32 y, s32 velX, s32 velY)
 {
-    struct EwramData_EntityData *shot = EntityCreateInRange(0x49, 0xCF, ZombieSoldierGrenade_Update);
+    struct EwramData_EntityData *shot = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, ZombieSoldierGrenade_Update);
     struct SpriteBox box = {-2, -2, 4, 4};
     if (shot != NULL)
     {
@@ -283,8 +292,8 @@ void ZombieSoldier_ThrowGrenade(struct EwramData_EntityData *owner, s32 x, s32 y
         Hit_Enable(shot, 8, ZombieSoldierGrenade_DamagePlayerOnContact, ZombieSoldierGrenade_OnHit);
         HitBox_SetAttack(shot, &box);
         HitBox_SetBody(shot, &box);
-        shot->hit.flags &= ~4;
-        shot->hit.flags &= ~2;
+        shot->hit.flags &= ~HIT_NO_DAMAGE;
+        shot->hit.flags &= ~HIT_NO_ATTACK;
         shot->enemyId = owner->enemyId;
         shot->attack = owner->attack;
         shot->scrollWithBg = 1;
@@ -326,7 +335,7 @@ void ZombieSoldierGrenade_Update(struct EwramData_EntityData *entity)
             if (++entity->timer > 1)
             {
                 entity->state = 2;
-                PlaySong(0x76);
+                PlaySong(SE_PROJECTILE_IMPACT);
                 return;
             }
             PlaySong(0x11B);
@@ -334,7 +343,7 @@ void ZombieSoldierGrenade_Update(struct EwramData_EntityData *entity)
         if (res & 8)
         {
             entity->state = 2;
-            PlaySong(0x76);
+            PlaySong(SE_PROJECTILE_IMPACT);
             return;
         }
         if (EntityIsOutsideScreen(entity, 2))
@@ -399,7 +408,7 @@ void ZombieSoldierGrenade_Update(struct EwramData_EntityData *entity)
             rect.w = (rect.x < 0 ? -rect.x : rect.x) * 2;
             rect.h = (rect.y < 0 ? -rect.y : rect.y) * 2;
             HitBox_SetAttack(entity, &rect);
-            entity->hit.flags |= 4;
+            entity->hit.flags |= HIT_NO_DAMAGE;
         }
         if (entity->timer > 0x17)
         {
@@ -412,7 +421,7 @@ void ZombieSoldierGrenade_Update(struct EwramData_EntityData *entity)
             Hit_CheckWithPlayer(&result, entity);
         }
         else
-            entity->hit.flags |= 2;
+            entity->hit.flags |= HIT_NO_ATTACK;
     }
 }
 
@@ -425,7 +434,7 @@ void ZombieSoldierGrenade_Update(struct EwramData_EntityData *entity)
  */
 void ZombieSoldier_SpawnPiece(struct EwramData_EntityData *entity, s32 x, s32 y, s32 vx, s32 vy, s32 frame)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, ZombieSoldierPiece_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(ENTITY_SLOT_EFFECT_FIRST, ENTITY_SLOT_EFFECT_LAST, ZombieSoldierPiece_Update);
 
     if (child != NULL)
     {
@@ -478,7 +487,7 @@ void ZombieSoldierGrenade_DamagePlayerOnContact(struct EwramData_EntityData *ent
     {
         entity->state = 1;
         entity->timer = 0;
-        PlaySong(0x76);
+        PlaySong(SE_PROJECTILE_IMPACT);
     }
 }
 
@@ -488,7 +497,7 @@ void ZombieSoldierGrenade_DamagePlayerOnContact(struct EwramData_EntityData *ent
 void ZombieSoldierGrenade_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
     Player_CalculateAttackPower(hit[2]);
-    PlaySong(0x76);
+    PlaySong(SE_PROJECTILE_IMPACT);
     entity->state = 1;
     entity->subState = 0;
     entity->timer = 0;

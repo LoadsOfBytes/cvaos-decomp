@@ -1,6 +1,6 @@
 /*
  * Witch: states, orbit particles, attacks.
- * The attack part calls Witch_SpawnOrbitParticles with an s16 phase (cast marked at the call).
+ * The attack part calls Witch_SpawnOrbitParticles with an s16 phase (alias Witch_SpawnOrbitParticlesSigned).
  */
 #include "witch.h"
 #include "core.h"
@@ -26,6 +26,9 @@
 #define ABS_MOTION(v) ((v) < 0 ? -(v) : (v))
 
 extern void Witch_SpawnGroundProjectile(struct EwramData_EntityData *, s32, s32, s32);
+
+/* The same function declared with an s16 phase (the attack part sign-extends it). */
+extern void Witch_SpawnOrbitParticlesSigned(struct EwramData_EntityData *entity, s16 phase) asm("Witch_SpawnOrbitParticles");
 
 void WitchSpell_DamagePlayerOnContact(struct EwramData_EntityData *);
 void Witch_OnHit(struct EwramData_EntityData *, s32, u16 *);
@@ -633,7 +636,7 @@ void Witch_UpdateCast(struct EwramData_EntityData *entity)
         if (entity->timer != 0)
         {
         if (entity->timer > 0x30)
-            ((void (*)(struct EwramData_EntityData *, s16))Witch_SpawnOrbitParticles)(entity, ((entity->timer << 10) + (RandomNumberGenerator() & 0xF)) << 4); /* FAKEMATCH: s16 argument */
+            Witch_SpawnOrbitParticlesSigned(entity, ((entity->timer << 10) + (RandomNumberGenerator() & 0xF)) << 4);
         if (entity->timer == 0x20)
         {
             SPAWN(WitchSpell_Update);

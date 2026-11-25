@@ -1,6 +1,6 @@
 /*
  * Witch ground projectile and Student Witch.
- * Student Witch calls Witch_SpawnGroundProjectile with s32 arguments (cast marked at the call).
+ * Student Witch calls Witch_SpawnGroundProjectile without a prototype (alias Witch_SpawnGroundProjectileWide).
  */
 #include "core.h"
 #include "sound.h"
@@ -90,6 +90,10 @@ static inline void FollowParent(struct EwramData_EntityData *child, struct Ewram
     child->posX.part16.integer = Add16(x, owner->posX.part16.integer);
     child->posY.part16.integer = (s32)y + owner->posY.part16.integer;
 }
+
+/* The same function for callers that were compiled without a prototype
+ * (implicit int): the arguments are not narrowed. */
+extern void Witch_SpawnGroundProjectileWide(struct EwramData_EntityData *owner, s32 x, s32 y, s32 state) asm("Witch_SpawnGroundProjectile");
 
 /* Spawn an attached effect at a mirrored offset, with half the owner value. */
 /**
@@ -305,7 +309,7 @@ void StudentWitch_UpdateAirAttack(struct EwramData_EntityData *entity)
         {
             PlaySong(0x1CB);
             PlaySong(0x81);
-            ((void (*)(struct EwramData_EntityData *, s32, s32, s32))Witch_SpawnGroundProjectile)(entity, -0xC, -0x14, 0); /* FAKEMATCH: s32 arguments */
+            Witch_SpawnGroundProjectileWide(entity, -0xC, -0x14, 0);
             entity->stage = 1;
         }
         if (entity->animFlags & 4)
@@ -357,7 +361,7 @@ s32 StudentWitch_UpdateDeath(struct EwramData_EntityData *entity)
         else entity->subState = 2;
         break;
     case 2:
-        ((void (*)(struct EwramData_EntityData *, s32, s32, s32))Witch_SpawnGroundProjectile)(entity, 0, -0x10, 2); /* FAKEMATCH: s32 arguments */
+        Witch_SpawnGroundProjectileWide(entity, 0, -0x10, 2);
         return 1;
     }
     return 0;

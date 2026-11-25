@@ -436,17 +436,11 @@ void EnemySkeletonCreate(struct EwramData_EntityData *entity)
 
 void EnemySkeletonUpdate(struct EwramData_EntityData *entity)
 {
-    { s32 step;
-    { register s32 delta asm("r1"); /* FAKEMATCH: pinned register */
     if (!entity->flipX)
-        delta = -0x708;
+        entity->ext.skeleton.spinAngle += -0x708;
     else
-        delta = 0x708;
-    step = delta; }
-    { register u32 old asm("r1") = (u16)entity->ext.skeleton.spinAngle; /* FAKEMATCH: pinned register */
-    step += old; }
-    entity->ext.skeleton.spinAngle = step; }
-    { register s32 z asm("r1") = 0; ObjAffine_Set(entity->ext.skeleton.spinAngle, 0x10000, 0x10000, 0, z, (u16)entity->ext.skeleton.affine); } /* FAKEMATCH: pinned register */
+        entity->ext.skeleton.spinAngle += 0x708;
+    ObjAffine_Set(entity->ext.skeleton.spinAngle, 0x10000, 0x10000, 0, 0, entity->ext.skeleton.affine);
     if (entity->state == 5)
         Skeleton_UpdateState5Animation(entity);
     else if (entity->state == 0xFF)

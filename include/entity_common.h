@@ -21,6 +21,9 @@ extern s32 Entity_IsTargetRight(struct EwramData_EntityData *entity);
 extern s32 Entity_IsTargetBelow(struct EwramData_EntityData *entity);
 extern s16 Entity_GetTargetDistance(struct EwramData_EntityData *entity);
 extern s32 Tile_Classify(s16 x, s16 y);
+/* The same function for callers that were compiled without a prototype
+ * (implicit int): the arguments are not narrowed. */
+extern s32 Tile_ClassifyWide(s32 x, s32 y) asm("Tile_Classify");
 extern s32 Collision_IsSlopeTile(s16 x, s16 y);
 extern s32 EntityIsOutsideScreen(struct EwramData_EntityData *entity, s32 margin);
 extern s32 Entity_GetHorizontalRoomEdge(struct EwramData_EntityData *entity, s32 margin);
@@ -80,6 +83,10 @@ extern void Enemy_OnContact(struct EwramData_EntityData *entity);
 extern s32 Target_IsNearEntity(struct EwramData_EntityData *entity, u16 width, u16 height);
 extern s32 Target_GetPixelX(struct EwramData_EntityData *entity);
 extern s32 Target_GetPixelY(struct EwramData_EntityData *entity);
+/* The same functions declared with their real s16 result: a sum with an s16
+ * field is then done in 16 bits (callers in white_dragon.c and killer_fish.c). */
+extern s16 Target_GetPixelXShort(struct EwramData_EntityData *entity) asm("Target_GetPixelX");
+extern s16 Target_GetPixelYShort(struct EwramData_EntityData *entity) asm("Target_GetPixelY");
 extern s32 Target_IsWithinDistance(struct EwramData_EntityData *entity, u32 maxDistance);
 extern u32 Entity_StepTowardPoint(struct EwramData_EntityData *entity, s32 x, s32 y, u8 shift);
 extern void HitEffect_SpawnAtContact(s32 attacker, struct EwramData_EntityData *entity, u16 type);

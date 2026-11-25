@@ -245,8 +245,8 @@ void WhiteDragon_UpdateIdle(struct EwramData_EntityData *entity)
                 entity->state=1;
                 entity->subState=timer;
                 entity->timer=timer;
-                { s32 v_ = Target_GetPixelX(entity); { u32 b_ = camera->xPos.part16.integer; v_ += b_; } entity->ext.whiteDragonAim.x = v_; }
-                { s32 v_ = Target_GetPixelY(entity); { register u32 b_ asm("r7") = camera->yPos.part16.integer; v_ += b_; } entity->ext.whiteDragonAim.y = v_ - 20; } /* FAKEMATCH: pinned register */
+                entity->ext.whiteDragonAim.x = camera->xPos.part16.integer + Target_GetPixelXShort(entity); /* FAKEMATCH: s16 alias, while dx in this function uses the s32 declaration */
+                entity->ext.whiteDragonAim.y = camera->yPos.part16.integer + Target_GetPixelYShort(entity) - 20; /* FAKEMATCH: s16 alias, while dx in this function uses the s32 declaration */
                 return;
             }
         }
@@ -255,14 +255,14 @@ void WhiteDragon_UpdateIdle(struct EwramData_EntityData *entity)
             entity->state=1;
             entity->subState=flipped;
             entity->timer=flipped;
-            { s32 v_ = Target_GetPixelX(entity); { register u32 b_ asm("r2") = camera->xPos.part16.integer; v_ += b_; } entity->ext.whiteDragonAim.x = v_; } /* FAKEMATCH: pinned register */
-            { s32 v_ = Target_GetPixelY(entity); { register u32 b_ asm("r7") = camera->yPos.part16.integer; v_ += b_; } entity->ext.whiteDragonAim.y = v_ - 20; } /* FAKEMATCH: pinned register */
+            entity->ext.whiteDragonAim.x = camera->xPos.part16.integer + Target_GetPixelXShort(entity); /* FAKEMATCH: s16 alias, while dx in this function uses the s32 declaration */
+            entity->ext.whiteDragonAim.y = camera->yPos.part16.integer + Target_GetPixelYShort(entity) - 20; /* FAKEMATCH: s16 alias, while dx in this function uses the s32 declaration */
             return;
         }
     }
     else entity->ext.whiteDragon.moveTimer=RandomNumberGenerator()%30;
     }
-    { register u32 z_ asm("r2"); asm("" : "=r"(z_)); if(entity->ext.whiteDragon.shotTimer) { asm("" :: "r"(z_)); entity->ext.whiteDragon.shotTimer--; } /* FAKEMATCH: fake-live register steers reload rotation */
+    if(entity->ext.whiteDragon.shotTimer) entity->ext.whiteDragon.shotTimer--;
     else if((RandomNumberGenerator()&255)<=64)
     {
         x=(s16)entity->posX.part16.integer; dy=(s16)entity->posY.part16.integer;
@@ -273,9 +273,9 @@ void WhiteDragon_UpdateIdle(struct EwramData_EntityData *entity)
             if(RandomNumberGenerator()&1) entity->subState=20;
             else entity->subState=10;
             entity->timer=0;
-            { s32 v_ = Target_GetPixelX(entity); { u32 b_ = camera->xPos.part16.integer; v_ += b_; } entity->ext.whiteDragonAim.x = v_; }
-            { s32 v_ = Target_GetPixelY(entity); { register u32 b_ asm("r7") = camera->yPos.part16.integer; v_ += b_; } entity->ext.whiteDragonAim.y = v_ - 20; } /* FAKEMATCH: pinned register */
-            dx=Target_GetPixelX(entity); { u16 px_; register u32 z_ asm("r1"); asm("" : "=r"(z_)); px_ = entity->posX.part16.integer; asm("" :: "r"(z_)); dx-=px_; } /* FAKEMATCH: fake-live register steers reload rotation */
+            entity->ext.whiteDragonAim.x = camera->xPos.part16.integer + Target_GetPixelXShort(entity); /* FAKEMATCH: s16 alias, while dx in this function uses the s32 declaration */
+            entity->ext.whiteDragonAim.y = camera->yPos.part16.integer + Target_GetPixelYShort(entity) - 20; /* FAKEMATCH: s16 alias, while dx in this function uses the s32 declaration */
+            dx=Target_GetPixelX(entity); dx-=entity->posX.part16.integer;
         }
         else
         {
@@ -284,14 +284,14 @@ void WhiteDragon_UpdateIdle(struct EwramData_EntityData *entity)
             if(RandomNumberGenerator()&1) entity->subState=20;
             else entity->subState=10;
             entity->timer=0;
-            { s32 v_ = Target_GetPixelX(entity); { register u32 b_ asm("r3") = camera->xPos.part16.integer; v_ += b_; } entity->ext.whiteDragonAim.x = v_; } /* FAKEMATCH: pinned register */
-            { s32 v_ = Target_GetPixelY(entity); { register u32 b_ asm("r7") = camera->yPos.part16.integer; v_ += b_; } entity->ext.whiteDragonAim.y = v_ - 20; } /* FAKEMATCH: pinned register */
-            dx=Target_GetPixelX(entity); { u16 px_; register u32 z_ asm("r3"); asm("" : "=r"(z_)); px_ = entity->posX.part16.integer; asm("" :: "r"(z_)); dx-=px_; } /* FAKEMATCH: fake-live register steers reload rotation */
+            entity->ext.whiteDragonAim.x = camera->xPos.part16.integer + Target_GetPixelXShort(entity); /* FAKEMATCH: s16 alias, while dx in this function uses the s32 declaration */
+            entity->ext.whiteDragonAim.y = camera->yPos.part16.integer + Target_GetPixelYShort(entity) - 20; /* FAKEMATCH: s16 alias, while dx in this function uses the s32 declaration */
+            dx=Target_GetPixelX(entity); dx-=entity->posX.part16.integer;
         }
         dx<<=16; dx>>=16;
         dy=Target_GetPixelY(entity)-({ u32 t_ = (u16)entity->posY.part16.integer+20; t_; }); dy<<=16; dy>>=16; entity->accelX.part16.integer=ArcTan2Wide(dx,dy);
     }
-    else entity->ext.whiteDragon.shotTimer=RandomNumberGenerator()%30+30; }
+    else entity->ext.whiteDragon.shotTimer=RandomNumberGenerator()%30+30;
 }
 
 /* Segmented boss head: aim at the target point while the body history shifts,

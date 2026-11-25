@@ -1,6 +1,6 @@
 /*
  * Killer Fish: body, attack, death, spawning of the swarm fish; the swarm fish, effects and rising sprites.
- * The swarm part called Target_GetPixelX/Y with an s16 result (cast marked at the macros ROOM_X / ROOM_Y).
+ * Room coordinates of the target use the s16 view Target_GetPixelXShort/YShort (entity_common.h).
  */
 #include "graphics.h"
 #include "entity_util.h"
@@ -117,23 +117,11 @@ void EnemyKillerFishCreate(struct EwramData_EntityData *entity)
     }
 }
 
-static inline s16 BgX(s32 v, struct BgLayerState *bg)
-{
-    v += bg->xPos.part16.integer;
-    return v;
-}
-
-static inline s16 BgY(s32 v, struct BgLayerState *bg)
-{
-    /* the original loads bgY into the (dying) bg register */
-    { register u32 y asm("r6") = bg->yPos.part16.integer; v += y; } /* FAKEMATCH: pinned register */
-    return v;
-}
 
 static inline s32 TileAt(struct EwramData_EntityData *entity, struct BgLayerState *bg)
 {
-    s16 x = BgX(Target_GetPixelX(entity), bg);
-    return Tile_Classify(x, BgY(Target_GetPixelY(entity), bg));
+    s16 x = bg->xPos.part16.integer + Target_GetPixelXShort(entity);
+    return Tile_Classify(x, (s16)(bg->yPos.part16.integer + Target_GetPixelYShort(entity)));
 }
 
 /**
@@ -262,16 +250,14 @@ void KillerFish_UpdateAttack(struct EwramData_EntityData *entity)
     case 0:
         {
             s32 targetX;
-            u32 random;
             entity->flipX = Entity_IsTargetRight(entity);
             entity->velX.whole = 0;
             entity->accelX.whole = 0;
             entity->velY.whole = 0;
             entity->accelY.whole = 0;
             entity->timer = 0;
-            targetX = Target_GetPixelX(entity);
-            { s32 t_ = targetX + ({ register u32 bx_ asm("r2") = background->xPos.part16.integer; bx_; }) + (RandomNumberGenerator() & 7); entity->ext.killerFish.attackX = t_ - 4; } /* FAKEMATCH: pinned register */
-            entity->ext.killerFish.attackY = BgY(Target_GetPixelY(entity), background) - 16;
+            entity->ext.killerFish.attackX = background->xPos.part16.integer + Target_GetPixelXShort(entity) + (RandomNumberGenerator() % 8) - 4;
+            entity->ext.killerFish.attackY = background->yPos.part16.integer + Target_GetPixelYShort(entity) - 16;
             entity->subState++;
         }
         break;
@@ -289,12 +275,9 @@ void KillerFish_UpdateAttack(struct EwramData_EntityData *entity)
             s32 index;
             entity->timer = 0;
             entity->subState++;
-            /* FAKEMATCH: r2 looks live over `index = 0`, so its reload takes r0 like the original */
-            { register u32 z_ asm("r2"); asm("" : "=r"(z_)); index = 0; asm("" :: "r"(z_)); } /* FAKEMATCH: pinned register + empty asm */
-            for (; index < 4; index++)
+            for (index = 0; index < 4; index++)
             {
                 s32 x, y, vx, vy;
-                u32 random;
                 if (entity->flipX)
                 {
                     x = entity->posX.whole - 0xA0000;
@@ -305,9 +288,8 @@ void KillerFish_UpdateAttack(struct EwramData_EntityData *entity)
                     x = entity->posX.whole + 0xA0000;
                     vx = (RandomNumberGenerator() & 0xFFFF) + 0x30000;
                 }
-                random = RandomNumberGenerator();
-                { s32 t_ = x - 0x20000; y = 0x3FFFF; x = t_ + (random & y); }
-                do { do { do { y = entity->posY.whole - (RandomNumberGenerator() & y); } while (0); } while (0); } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
+                x += (RandomNumberGenerator() & 0x3FFFF) - 0x20000;
+                y = entity->posY.whole - (RandomNumberGenerator() & 0x3FFFF);
                 if (index == 0)
                 {
                     vy = -0x6000 - (RandomNumberGenerator() & 0x1FFF);
@@ -463,8 +445,7 @@ void KillerFish_SpawnSwarmFish(struct EwramData_EntityData *parent)
 /* Killer Fish part: follow its owner, steer toward targets and handle reactions.
  *
  * Compiler-sensitive constructs:
- * - Target_GetPixelX/Target_GetPixelY return s16 pixel coordinates (their bodies end
- *   in a halfword); with the halfword call value as a register and the camera
+ * - Target_GetPixelXShort/YShort (the s16 view of Target_GetPixelX/Y): with the halfword call value as a register and the camera
  *   field first, the truncated sum is done in HImode and combine folds the
  *   camera load into a (subreg:SI (mem:HI)) operand, so reload loads it into
  *   the camera pointer's reload register (ldr rX, [sp]; ldrh rX, [rX, #6]).
@@ -473,8 +454,8 @@ void KillerFish_SpawnSwarmFish(struct EwramData_EntityData *parent)
 #define SCATTER(e) (e->ext.killerFishSwarm.scatter)
 #define OWNER_LOST(e) (*(s8 *)&e->ext.killerFishSwarm.ownerLost)
 #define STEER_TIMER(e) (e->ext.killerFishSwarm.steerTimer)
-#define ROOM_X(e) ((s16)(camera->xPos.part16.integer + ((s16 (*)(struct EwramData_EntityData *))Target_GetPixelX)(e))) /* FAKEMATCH: s16 result as in the swarm part */
-#define ROOM_Y(e) ((s16)(camera->yPos.part16.integer + ((s16 (*)(struct EwramData_EntityData *))Target_GetPixelY)(e))) /* FAKEMATCH: s16 result as in the swarm part */
+#define ROOM_X(e) ((s16)(camera->xPos.part16.integer + Target_GetPixelXShort(e)))
+#define ROOM_Y(e) ((s16)(camera->yPos.part16.integer + Target_GetPixelYShort(e)))
 
 static inline s32 DeltaPixels(s32 target, s32 base)
 {

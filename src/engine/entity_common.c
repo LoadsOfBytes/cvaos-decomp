@@ -2089,7 +2089,7 @@ s32 Collision_FindWaterSurfaceOffset(s32 x__, s32 y__)
         s32 px = (s16)Add16(x, bg->xPos.part16.integer);
         s32 py = Add16(y, bg->yPos.part16.integer);
         s32 n = (s16)offset;
-        switch (((s32 (*)(s32, s32))Tile_Classify)(px, (s16)(n + py))) /* FAKEMATCH: s32 arguments */
+        switch (Tile_ClassifyWide(px, (s16)(n + py)))
         {
         case 2:
             break;

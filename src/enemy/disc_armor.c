@@ -1,6 +1,6 @@
 /*
  * Disc Armor: sparks, ring and disc, walk, throw, death, create, update, hits, ring drawing and disc contact damage.
- * Built without -f2003-patch (DiscArmor_UpdateWalk needs it off; the rest compiles the same either way). DiscArmor_OnHit passes two unused arguments to Entity_FaceTarget (cast marked at the call).
+ * Built without -f2003-patch (DiscArmor_UpdateWalk needs it off; the rest compiles the same either way). DiscArmor_OnHit passes two unused arguments to Entity_FaceTarget (alias Entity_FaceTargetWide).
  */
 #include "core.h"
 #include "disc_armor_entity.h"
@@ -770,7 +770,7 @@ void EnemyDiscArmorUpdate(struct EwramData_EntityData *entity)
 void DiscArmor_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
     if (entity->state == 0)
-        ((void (*)(struct EwramData_EntityData *, s32, u16 *))Entity_FaceTarget)(entity, attacker, hit); /* FAKEMATCH: called with two unused arguments */
+        Entity_FaceTargetWide(entity, attacker, hit);
 
     if (Enemy_TakeDamage(entity, attacker, hit))
     {

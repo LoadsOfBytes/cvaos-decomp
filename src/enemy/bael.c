@@ -1,6 +1,6 @@
 /*
  * Buer head states, Bael create, head, active / charge / death states, charge effect, movement and the Bael head helpers.
- * Built without -f2003-patch (Bael_UpdateActive needs it off; the rest compiles the same either way). The charge state calls Bael_SpawnChargeEffect with s32 arguments (cast marked at the call).
+ * Built without -f2003-patch (Bael_UpdateActive needs it off; the rest compiles the same either way). The charge state calls Bael_SpawnChargeEffect without a prototype (alias Bael_SpawnChargeEffectWide).
  */
 #include "core.h"
 #include "player_core.h"
@@ -32,6 +32,9 @@ void Bael_MoveAndRotate(struct EwramData_EntityData *entity,s32 mode);
 void Bael_UpdateCharge(struct EwramData_EntityData *entity);
 void Bael_RestoreXAtProbe(struct EwramData_EntityData *entity,s32 work);
 void Bael_SpawnChargeEffect(u16 x, u16 y, u8 kind, u32 flip);
+/* The same function for callers that were compiled without a prototype
+ * (implicit int): the arguments are not narrowed. */
+extern void Bael_SpawnChargeEffectWide(s32 x, s32 y, s32 kind, s32 flip) asm("Bael_SpawnChargeEffect");
 s32 Bael_OffsetBySign(s32 value,s32 step);
 void Bael_UpdateState4Rotation(struct EwramData_EntityData *entity);
 void Bael_UpdateEntry(struct EwramData_EntityData *entity);
@@ -533,8 +536,8 @@ void Bael_UpdateCharge(struct EwramData_EntityData *entity)
                 x = (s16 *)&entity->posX.part16.integer;
                 initialX = *x;
                 y = &entity->posY.part16.integer;
-                ((void (*)(s32, s32, s32, s32))Bael_SpawnChargeEffect)(initialX,(s16)(*y+24),0,DIRECTION(entity)==0); /* FAKEMATCH: s32 arguments */
-                ((void (*)(s32, s32, s32, s32))Bael_SpawnChargeEffect)(*x,(s16)(*y+24),1,DIRECTION(entity)==0); /* FAKEMATCH: s32 arguments */
+                Bael_SpawnChargeEffectWide(initialX,(s16)(*y+24),0,DIRECTION(entity)==0);
+                Bael_SpawnChargeEffectWide(*x,(s16)(*y+24),1,DIRECTION(entity)==0);
             }
             if (--entity->timer == 0xFF)
             {

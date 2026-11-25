@@ -24,7 +24,7 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "palette.h"
-#include "red_souls_b.h"
+#include "red_soul_skills_shared.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "math_inline.h"

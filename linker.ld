@@ -104,8 +104,8 @@ SECTIONS {
         src/player/player_soma.o(.text);
         src/player/player_julius.o(.text);
         src/player/player_core.o(.text);
-        src/soul/red_souls_a.o(.text);
-        src/soul/red_souls_b.o(.text);
+        src/soul/red_soul_skills.o(.text);
+        src/soul/red_soul_skills_shared.o(.text);
         src/soul/blue_souls.o(.text);
         src/player/soul_inventory.o(.text);
         src/player/player_effects.o(.text);
@@ -142,25 +142,25 @@ SECTIONS {
         src/menu/system_menus.o(.text);
         src/menu/bestiary_cursor.o(.text);
         src/menu/bestiary.o(.text);
-        src/object/objects_00_07.o(.text);
-        src/object/objects_08_0f.o(.text);
-        src/object/objects_10_13.o(.text);
-        src/object/object_14.o(.text);
-        src/object/objects_15_18.o(.text);
-        src/object/object_19_create.o(.text);
-        src/object/objects_19_1c.o(.text);
+        src/object/doors.o(.text);
+        src/object/breakables.o(.text);
+        src/object/decoration_boss_rush.o(.text);
+        src/object/roller.o(.text);
+        src/object/elevator_portal.o(.text);
+        src/object/spinning_blade_create.o(.text);
+        src/object/save_point_prompt.o(.text);
         src/object/save_point.o(.text);
         src/object/warp_room.o(.text);
-        src/object/objects_22_2a.o(.text);
-        src/object/objects_23_34.o(.text);
-        src/object/objects_35_37.o(.text);
+        src/object/platforms.o(.text);
+        src/object/area_props.o(.text);
+        src/object/switch_doors.o(.text);
         src/object/shop_update.o(.text);
-        src/event/scenes_a.o(.text);
-        src/event/scene03.o(.text);
-        src/event/scenes_b.o(.text);
-        src/event/scene30.o(.text);
-        src/event/scene30_transformation.o(.text);
-        src/event/scenes_c.o(.text);
+        src/event/scenes_opening_julius.o(.text);
+        src/event/scene_prologue_battle.o(.text);
+        src/event/scenes_story.o(.text);
+        src/event/scene_ending.o(.text);
+        src/event/scene_ending_transformation.o(.text);
+        src/event/scenes_talk_ending.o(.text);
         src/menu/shop.o(.text);
         src/menu/text_window.o(.text);
         src/engine/obj_palette.o(.text);
@@ -209,7 +209,7 @@ SECTIONS {
         src/enemy/stolas.o(.text);
         src/enemy/legion.o(.text);
         src/enemy/kyoma_demon.o(.text);
-        src/enemy/kyoma_demon_b.o(.text);
+        src/enemy/kyoma_demon_attack.o(.text);
         src/enemy/gladiator.o(.text);
         src/enemy/chaos.o(.text);
         src/enemy/erinys.o(.text);
@@ -317,7 +317,7 @@ SECTIONS {
     } >rom
 
     .rodata : ALIGN(4) {
-        src/data/data_0E0334.o(.rodata);
+        src/data/interrupt_table.o(.rodata);
         src/engine/core.o(.rodata);
         src/engine/sram.o(.rodata);
         src/engine/bg_and_collision.o(.rodata);
@@ -343,9 +343,9 @@ SECTIONS {
         src/debug/debug_obj_disp.o(.rodata);
         src/debug/debug_event_menu.o(.rodata);
         asm/data/data_0E1CD0.o(.rodata);
-        src/data/data_0E3464.o(.rodata);
+        src/data/debug_font.o(.rodata);
         asm/data/data_0E5364.o(.rodata);
-        src/event/scene30_transformation.o(.rodata);
+        src/event/scene_ending_transformation.o(.rodata);
         asm/data/data_118B48.o(.rodata);
         src/agb_multi_sio_sync.o(.rodata);
         src/agb_sram.o(.rodata);

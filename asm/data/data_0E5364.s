@@ -427,4 +427,4 @@ sEventSceneEndingEmitterDSteps: @ 0x08118ABC
 sEventSceneEndingEmitterESequence: @ 0x08118B0C
     .incbin "cvaos_us_baserom.gba", 0x118B0C, 0x28
 
-    @ 0x08118B34: callback table, .rodata of src/event/scene30_transformation.c
+    @ 0x08118B34: callback table, .rodata of src/event/scene_ending_transformation.c

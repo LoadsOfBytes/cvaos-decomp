@@ -33,7 +33,7 @@
 #include "entity_inline.h"
 #include "hitbox.h"
 #include "damage_numbers.h"
-#include "red_souls_b.h"
+#include "red_soul_skills_shared.h"
 #include "entity_hit.h"
 
 extern u8 sEndingRoomDefinition[];

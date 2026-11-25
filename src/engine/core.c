@@ -2,8 +2,8 @@
 #include "gba.h"
 #include "macros.h"
 
-#include "data/data_0E0334.h"
-#include "data/data_0E3464.h"
+#include "data/interrupt_table.h"
+#include "data/debug_font.h"
 
 #include "structs/agb_sram.h"
 #include "structs/ewram.h"

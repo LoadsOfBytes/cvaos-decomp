@@ -4,7 +4,7 @@
 /* Data of asm/data/data_4F1444.s used by C files. */
 
 #include "types.h"
-#include "objects_00_07.h"
+#include "doors.h"
 #include "structs/ewram.h"
 
 /* Flight parameters, e.g. sBaloreHandSteeringParams1 (BaloreHand_FadeIn). */

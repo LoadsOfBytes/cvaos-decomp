@@ -12,7 +12,7 @@
 #include "math_anim.h"
 #include "obj_gfx.h"
 #include "palette.h"
-#include "scenes_c.h"
+#include "scenes_talk_ending.h"
 #include "text12.h"
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"

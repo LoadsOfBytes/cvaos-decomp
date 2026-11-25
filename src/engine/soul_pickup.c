@@ -24,7 +24,7 @@
 #include "data/data_118B48.h"
 #include "data/data_4F1444.h"
 #include "math_inline.h"
-#include "red_souls_b.h"
+#include "red_soul_skills_shared.h"
 #include "bg_and_collision.h"
 
 extern struct WeaponInfo sWeaponInfo[]; // weapons, see player/player_core.c

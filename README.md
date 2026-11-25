@@ -92,9 +92,9 @@ name or comment describes the game correctly. Corrections are very welcome.
   files are still split off only for build reasons: 6 single functions that
   match only with an optimisation pass disabled (`palette_state`,
   `hit_shared_history`, `equipment_list_update`,
-  `bestiary_cursor`, `object_19_create`, `box_collision`) – the
-  flag would change their neighbours' code; `scene30_transformation` (own data
-  section); `kyoma_demon_b` and `tsuchinoko`, cut off from their family because
+  `bestiary_cursor`, `spinning_blade_create`, `box_collision`) – the
+  flag would change their neighbours' code; `scene_ending_transformation` (own data
+  section); `kyoma_demon_attack` and `tsuchinoko`, cut off from their family because
   the family's flag changes their code. The 4 ARM units (`*_arm.c`, IWRAM code
   built with the ARM compiler) are separate by design.
 - **Declarations** – a function used by other files is declared in the header of

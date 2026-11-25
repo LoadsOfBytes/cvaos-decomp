@@ -167,7 +167,7 @@ src/agb_print.s: CFLAGS = -Werror -O0 -mthumb-interwork -fhex-asm
 # sub_080C4768).
 NO_2003_PATCH_SRCS := src/menu/pause_menu.s src/engine/entity_motion.s src/enemy/waiter_skeleton.s src/enemy/minotaur.s src/enemy/imp.s \
                       src/enemy/ukoback.s src/enemy/killer_doll.s src/enemy/lightning_doll.s src/enemy/buer.s src/enemy/beam_skeleton.s src/enemy/ghost_dancer.s src/enemy/disc_armor.s src/enemy/skeleton.s \
-                      src/event/scene30_transformation.s src/enemy/killer_mantle.s src/soul/blue_souls.s src/enemy/bael.s
+                      src/event/scene_ending_transformation.s src/enemy/killer_mantle.s src/soul/blue_souls.s src/enemy/bael.s
 $(NO_2003_PATCH_SRCS): CFLAGS = -Werror -O2 -mthumb-interwork -fhex-asm
 
 
@@ -184,7 +184,7 @@ src/enemy/merman.s: CFLAGS += -fno-gcse
 src/enemy/kyoma_demon.s: CFLAGS += -fno-cse-follow-jumps
 
 # Object19Create: cse must not carry equivalences around skipped blocks.
-src/object/object_19_create.s: CFLAGS += -fno-cse-skip-blocks
+src/object/spinning_blade_create.s: CFLAGS += -fno-cse-skip-blocks
 
 # sub_080441F8 (pickup handler): the inventory count is reloaded after the
 # 0x4EF test instead of reusing it around the skipped block.

@@ -12,14 +12,14 @@
 #include "constants/main.h"
 #include "constants/songs.h"
 
-#include "data/data_0E0334.h"
-#include "data/data_0E3464.h"
+#include "data/interrupt_table.h"
+#include "data/debug_font.h"
 
 #include "structs/agb_sram.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
 #include "math_anim.h"
-#include "objects_00_07.h"
+#include "doors.h"
 #include "palette.h"
 #include "palette_state.h"
 #include "in_game.h"

@@ -20,7 +20,7 @@
 #include "macros.h"
 #include "syscalls.h"
 
-#include "data/data_0E3464.h"
+#include "data/debug_font.h"
 
 #include "constants/main.h"
 

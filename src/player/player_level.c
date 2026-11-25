@@ -12,8 +12,8 @@
 
 #include "constants/main.h"
 
-#include "data/data_0E0334.h"
-#include "data/data_0E3464.h"
+#include "data/interrupt_table.h"
+#include "data/debug_font.h"
 
 #include "structs/agb_sram.h"
 #include "structs/ewram.h"
@@ -26,7 +26,7 @@
 #include "oam.h"
 #include "obj_gfx.h"
 #include "palette.h"
-#include "red_souls_b.h"
+#include "red_soul_skills_shared.h"
 #include "music.h"
 #include "blue_souls.h"
 #include "data/data_0E0B68.h"

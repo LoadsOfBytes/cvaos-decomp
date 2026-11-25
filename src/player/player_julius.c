@@ -19,7 +19,7 @@
 #include "obj_gfx.h"
 #include "palette.h"
 #include "player_soma.h"
-#include "red_souls_b.h"
+#include "red_soul_skills_shared.h"
 #include "data/data_0E0B68.h"
 #include "data/data_118B48.h"
 /* from graphics.h (not included: see the module notes) */

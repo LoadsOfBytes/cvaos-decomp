@@ -1967,7 +1967,7 @@ static inline s32 Square(s32 v)
     return v * v;
 }
 
-/* Inlined Entity_AngleToPoint (src/soul/red_souls_b.c). */
+/* Inlined Entity_AngleToPoint (src/soul/red_soul_skills_shared.c). */
 static inline u16 AngleToPoint(struct EwramData_EntityData *entity, s32 x, s32 y)
 {
     return ArcTan2(INT_TOWARD_ZERO(x) - (s16)entity->posX.part16.integer,

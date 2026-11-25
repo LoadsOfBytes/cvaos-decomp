@@ -2760,7 +2760,7 @@ struct HeadhunterPartWork {
  * their radius) and the vertical scale, the screen centre, the step timer
  * the effects watch (e.g. 263, 255, 160, 0), the horizontal jitter (read as
  * an s8; the vertical jitter is the byte above it, EVENT30_JITTER_Y in
- * event_scene30.h) and the texture y (high byte) of the split halves of the
+ * event_scene_ending.h) and the texture y (high byte) of the split halves of the
  * unused zoom.
  */
 struct Event30Work {
@@ -3626,7 +3626,7 @@ struct InputChallengePlatformPartWork {
 };
 
 /* Object 0x07 (BG decoration): the palette-animation variant clears frame
- * and tick (BG_PALETTE_ANIM_*, TU object/objects_00_07.c) as one word; its parallax
+ * and tick (BG_PALETTE_ANIM_*, TU object/doors.c) as one word; its parallax
  * sprites keep their frame.
  */
 struct RoomEffectWork {

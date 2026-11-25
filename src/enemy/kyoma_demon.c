@@ -1,5 +1,5 @@
 /*
- * Kyoma Demon: update, create and the lurk state (attack, hits, drawing, death: kyoma_demon_b.c).
+ * Kyoma Demon: update, create and the lurk state (attack, hits, drawing, death: kyoma_demon_attack.c).
  * Built with -fno-cse-follow-jumps (KyomaDemon_UpdateLurk needs it; update / create compile the same either way).
  */
 #include "core.h"
@@ -11,7 +11,7 @@
 #include "structs/entity_render_flags.h"
 #include "enemy_common.h"
 #include "entity_common.h"
-#include "kyoma_demon_b.h"
+#include "kyoma_demon_attack.h"
 #include "math_anim.h"
 #include "data/data_4F1444.h"
 #include "hitbox.h"

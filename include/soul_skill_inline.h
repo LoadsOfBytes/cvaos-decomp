@@ -1,7 +1,7 @@
 #ifndef SOUL_SKILL_INLINE_H
 #define SOUL_SKILL_INLINE_H
 
-/* Helpers shared by the red soul skill entities (soul/red_souls_a.c, soul/red_souls_b.c). */
+/* Helpers shared by the red soul skill entities (soul/red_soul_skills.c, soul/red_soul_skills_shared.c). */
 
 #include "types.h"
 #include "structs/ewram.h"

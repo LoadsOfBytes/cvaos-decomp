@@ -23,7 +23,7 @@
 #include "soul_pickup.h"
 #include "text12.h"
 #include "data/data_118B48.h"
-#include "red_souls_b.h"
+#include "red_soul_skills_shared.h"
 
 extern s32 MenuGrid_MoveCursor(struct EwramData_EntityData *entity, u16 input);
 

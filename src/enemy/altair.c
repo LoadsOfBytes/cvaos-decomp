@@ -495,22 +495,21 @@ u8 Altair_LoadGraphics(struct EwramData_EntityData *entity)
     s32 graphics = ObjGfx_Find(graphicsData);
     struct EwramData_EntityData *saved = entity;
     if (graphics < 0)
-    {
         graphics = ObjGfx_LoadResource(graphicsData, 0);
-        if (graphics < 0) goto fail;
-    }
-    entity->basePalette = (s8)ObjPalette_FindOrLoad(palette);
-    if (entity->basePalette == 0xFF)
+    if (graphics >= 0)
     {
-        EntityDelete(saved);
-        return 0;
+        entity->basePalette = (s8)ObjPalette_FindOrLoad(palette);
+        if (entity->basePalette == 0xFF)
+        {
+            EntityDelete(saved);
+            return 0;
+        }
+        Sprite_Attach(entity, sprite, graphics, entity->basePalette);
+        Anim_StartIndexed(entity, 0, 0, 1);
+        Anim_Update(entity);
+        entity->drawFunc = Sprite_DrawEntity;
+        return 1;
     }
-    Sprite_Attach(entity, sprite, graphics, entity->basePalette);
-    Anim_StartIndexed(entity, 0, 0, 1);
-    Anim_Update(entity);
-    entity->drawFunc = Sprite_DrawEntity;
-    return 1;
-fail:
     EntityDelete(saved);
     return 0;
 }

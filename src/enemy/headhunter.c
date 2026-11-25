@@ -134,76 +134,79 @@ void EnemyHeadhunterCreate(struct EwramData_EntityData *entity)
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
     struct EwramData_EntityData *part;
     s32 kind;
-    if (entity->spawnParam0 != 0 && gEwramData->gameState.bossRushMode == 0
-        && (gEwramData->gameState.bossEventFlags & 0x10))
-        goto delete;
-    if (!Headhunter_LoadGraphics(entity)) goto delete;
-    Enemy_ResetFromTemplate(entity);
-    if (gEwramData->gameState.bossRushMode) entity->attack += 20;
-    if (gEwramData->gameState.bestiaryPreview)
+    if (entity->spawnParam0 == 0 || gEwramData->gameState.bossRushMode != 0
+        || !(gEwramData->gameState.bossEventFlags & 0x10))
     {
-        entity->state = 3;
-        Anim_StartIndexed(entity, 9, 2, 1);
-        Anim_Update(entity);
-        entity->basePalette = entity->ext.headhunter.palette2;
-        entity->palette = entity->basePalette;
-        return;
-    }
-    if (Anim_GetMaxBoxCount(entity) > 1)
-        Hit_EnableContact(entity, 8, Headhunter_DamagePlayerOnContact, Headhunter_OnHit);
-    else
-        Hit_Enable(entity, 8, Headhunter_DamagePlayerOnContact, Headhunter_OnHit);
-    Entity_UpdateBoxes(entity);
-    Entity_SnapToGround(entity);
-    for (kind = 2; kind >= 0; kind--)
-    {
-        s32 graphics;
-        part = Entity_CreateObject(HeadhunterTransformationPart_Update);
-        if (part == NULL) goto delete;
-        part->spriteLayer = entity->spriteLayer + 1;
-        graphics = entity->ext.headhunter.graphics;
-        switch (kind)
+        if (Headhunter_LoadGraphics(entity))
         {
-        case 0:
-            Sprite_Attach(part, sHeadhunterSpriteSheet, graphics, *(s8 *)&entity->ext.headhunter.palette0);
-            part->basePalette = entity->ext.headhunter.palette0;
-            Anim_Start(part, &sHeadhunterAnimScript0, 2, 1);
-            part->posX.part16.integer = 0xF0 - camera->xPos.part16.integer;
-            part->posY.part16.integer = 0x7C - camera->yPos.part16.integer;
-            break;
-        case 1:
-            Sprite_Attach(part, sHeadhunterSpriteSheet, graphics, *(s8 *)&entity->ext.headhunter.palette1);
-            part->basePalette = entity->ext.headhunter.palette1;
-            Anim_Start(part, &sHeadhunterAnimScript1, 2, 1);
-            part->posX.part16.integer = 0x110 - camera->xPos.part16.integer;
-            part->posY.part16.integer = 0x80 - camera->yPos.part16.integer;
-            break;
-        case 2:
-            Sprite_Attach(part, sHeadhunterSpriteSheet, graphics, *(s8 *)&entity->ext.headhunter.palette2);
-            part->basePalette = entity->ext.headhunter.palette2;
-            Anim_Start(part, &sHeadhunterAnimScript2, 2, 1);
-            part->posX.part16.integer = 0x100 - camera->xPos.part16.integer;
-            part->posY.part16.integer = 0x60 - camera->yPos.part16.integer;
-            break;
+            Enemy_ResetFromTemplate(entity);
+            if (gEwramData->gameState.bossRushMode) entity->attack += 20;
+            if (gEwramData->gameState.bestiaryPreview)
+            {
+                entity->state = 3;
+                Anim_StartIndexed(entity, 9, 2, 1);
+                Anim_Update(entity);
+                entity->basePalette = entity->ext.headhunter.palette2;
+                entity->palette = entity->basePalette;
+                return;
+            }
+            if (Anim_GetMaxBoxCount(entity) > 1)
+                Hit_EnableContact(entity, 8, Headhunter_DamagePlayerOnContact, Headhunter_OnHit);
+            else
+                Hit_Enable(entity, 8, Headhunter_DamagePlayerOnContact, Headhunter_OnHit);
+            Entity_UpdateBoxes(entity);
+            Entity_SnapToGround(entity);
+            for (kind = 2; kind >= 0; kind--)
+            {
+                s32 graphics;
+                part = Entity_CreateObject(HeadhunterTransformationPart_Update);
+                if (part == NULL) goto delete;
+                part->spriteLayer = entity->spriteLayer + 1;
+                graphics = entity->ext.headhunter.graphics;
+                switch (kind)
+                {
+                case 0:
+                    Sprite_Attach(part, sHeadhunterSpriteSheet, graphics, *(s8 *)&entity->ext.headhunter.palette0);
+                    part->basePalette = entity->ext.headhunter.palette0;
+                    Anim_Start(part, &sHeadhunterAnimScript0, 2, 1);
+                    part->posX.part16.integer = 0xF0 - camera->xPos.part16.integer;
+                    part->posY.part16.integer = 0x7C - camera->yPos.part16.integer;
+                    break;
+                case 1:
+                    Sprite_Attach(part, sHeadhunterSpriteSheet, graphics, *(s8 *)&entity->ext.headhunter.palette1);
+                    part->basePalette = entity->ext.headhunter.palette1;
+                    Anim_Start(part, &sHeadhunterAnimScript1, 2, 1);
+                    part->posX.part16.integer = 0x110 - camera->xPos.part16.integer;
+                    part->posY.part16.integer = 0x80 - camera->yPos.part16.integer;
+                    break;
+                case 2:
+                    Sprite_Attach(part, sHeadhunterSpriteSheet, graphics, *(s8 *)&entity->ext.headhunter.palette2);
+                    part->basePalette = entity->ext.headhunter.palette2;
+                    Anim_Start(part, &sHeadhunterAnimScript2, 2, 1);
+                    part->posX.part16.integer = 0x100 - camera->xPos.part16.integer;
+                    part->posY.part16.integer = 0x60 - camera->yPos.part16.integer;
+                    break;
+                }
+                part->enemyId = entity->enemyId;
+                part->scrollWithBg = 1;
+                part->drawFunc = Sprite_DrawEntity;
+                part->flipX = entity->flipX;
+                ENTITY_OWNER(part) = entity;
+                KIND(part) = kind;
+                Anim_Update(part);
+            }
+            entity->state = 0;
+            Anim_StartIndexed(entity, 0x17, 2, 1);
+            Anim_Update(entity);
+            Player_SetSelectedTarget(entity);
+            { register u32 *flags asm("r2") = &gEwramData->gameState.stateFlags; /* FAKEMATCH: pinned register */
+              u32 value = *flags;
+              value |= 2;
+              *flags = value; }
+            Music_SetCurrent(0x10);
+            return;
         }
-        part->enemyId = entity->enemyId;
-        part->scrollWithBg = 1;
-        part->drawFunc = Sprite_DrawEntity;
-        part->flipX = entity->flipX;
-        ENTITY_OWNER(part) = entity;
-        KIND(part) = kind;
-        Anim_Update(part);
     }
-    entity->state = 0;
-    Anim_StartIndexed(entity, 0x17, 2, 1);
-    Anim_Update(entity);
-    Player_SetSelectedTarget(entity);
-    { register u32 *flags asm("r2") = &gEwramData->gameState.stateFlags; /* FAKEMATCH: pinned register */
-      u32 value = *flags;
-      value |= 2;
-      *flags = value; }
-    Music_SetCurrent(0x10);
-    return;
 delete:
     EntityDelete(entity);
 }
@@ -1646,205 +1649,206 @@ void HeadhunterTransformationPart_Update(struct EwramData_EntityData *entity)
     s32 unused[4]; /* only reserves 16 bytes of stack like the original */
     if (entity->state == 0)
     {
-        if (owner == NULL || owner->updateFunc == NULL || owner->enemyId != 0x6A)
-            goto delete;
-        switch (entity->subState)
+        if (owner != NULL && owner->updateFunc != NULL && owner->enemyId == 0x6A)
         {
-        case 0:
-            switch (KIND(entity))
+            switch (entity->subState)
             {
             case 0:
-                if (PHASE(owner) == 1)
-                {
-                    entity->subState++;
-                    COUNT(entity) = 0;
-                    entity->timer = 0;
-                    entity->flipX = owner->flipX;
-                    entity->spriteLayer -= 2;
-                }
-                break;
-            case 1:
-                if (PHASE(owner) == 2)
-                {
-                    entity->subState++;
-                    COUNT(entity) = 0;
-                    entity->timer = 0;
-                    entity->flipX = owner->flipX;
-                    entity->spriteLayer -= 2;
-                }
-                break;
-            case 2:
-                if (PHASE(owner) == 3)
-                {
-                    entity->subState++;
-                    COUNT(entity) = 0;
-                    entity->timer = 0;
-                    entity->flipX = owner->flipX;
-                    entity->spriteLayer -= 2;
-                }
-                break;
-            }
-            break;
-        case 1:
-            entity->subState++;
-        case 2:
-            TARGET_X(entity) = owner->posX.whole + camera->xPos.whole
-                + (RandomModuloAtLeast((2 - COUNT(entity)) << 19, (2 - COUNT(entity)) << 18) - ((2 - COUNT(entity)) << 18));
-            TARGET_Y(entity) = owner->posY.whole + camera->yPos.whole - ((2 - COUNT(entity)) * 0x14 + 0x28) * 0x10000;
-            entity->subState++;
-        case 3:
-        {
-            s32 velX;
-            u8 changed;
-            SYNC_PALETTE(entity, owner);
-            Entity_AimAccelerationAtPoint(entity, TARGET_X(entity), TARGET_Y(entity), 0x2000);
-            entity->velY.whole = entity->accelY.whole << 3;
-            entity->accelY.whole = 0;
-            velX = entity->velX.whole;
-            EntityAccelerateAndMove(entity, 0x10000);
-            changed = ((entity->velX.whole & 0x80000000) ^ (velX & 0x80000000)) != 0;
-            if (changed)
-            {
-                if (++COUNT(entity) <= 1)
-                    entity->subState--;
-                else
-                {
-                    entity->subState++;
-                    entity->stage = 0;
-                }
-            }
-            break;
-        }
-        case 4:
-            SYNC_PALETTE(entity, owner);
-            if (entity->stage == 0)
-            {
-                s32 x;
-                entity->stage++;
-                TARGET_X(entity) = x = owner->posX.whole + camera->xPos.whole;
                 switch (KIND(entity))
                 {
                 case 0:
-                    TARGET_Y(entity) = owner->posY.whole + camera->yPos.whole - 0x340000;
-                    if (owner->flipX) TARGET_X(entity) = x + 0x20000;
-                    else TARGET_X(entity) = x - 0x20000;
+                    if (PHASE(owner) == 1)
+                    {
+                        entity->subState++;
+                        COUNT(entity) = 0;
+                        entity->timer = 0;
+                        entity->flipX = owner->flipX;
+                        entity->spriteLayer -= 2;
+                    }
                     break;
                 case 1:
-                    TARGET_Y(entity) = owner->posY.whole + camera->yPos.whole - 0x2A0000;
-                    if (owner->flipX) TARGET_X(entity) = x + 0x120000;
-                    else TARGET_X(entity) = x - 0x120000;
+                    if (PHASE(owner) == 2)
+                    {
+                        entity->subState++;
+                        COUNT(entity) = 0;
+                        entity->timer = 0;
+                        entity->flipX = owner->flipX;
+                        entity->spriteLayer -= 2;
+                    }
                     break;
                 case 2:
-                    TARGET_Y(entity) = owner->posY.whole + camera->yPos.whole - 0x280000;
-                    if (owner->flipX) TARGET_X(entity) = x + 0x100000;
-                    else TARGET_X(entity) = x - 0x100000;
+                    if (PHASE(owner) == 3)
+                    {
+                        entity->subState++;
+                        COUNT(entity) = 0;
+                        entity->timer = 0;
+                        entity->flipX = owner->flipX;
+                        entity->spriteLayer -= 2;
+                    }
                     break;
                 }
-            }
-            if (Entity_AimVelocityAtPointByDistance(entity, TARGET_X(entity), TARGET_Y(entity), 0x8000))
-            {
-                entity->subState++;
-                entity->timer = 0;
-                return;
-            }
-            EntityAccelerateAndMove(entity, 0x10000);
-            break;
-        case 5:
-        {
-            SYNC_PALETTE(entity, owner);
-            entity->timer++;
-            switch (KIND(entity))
-            {
-            case 0:
-                if (entity->timer == 2) Headhunter_SpawnTransformationArc(entity, owner, -0x50000, -0x200000, 0, entity->timer, 0, 0);
-                else if (entity->timer == 5) Headhunter_SpawnTransformationArc(entity, owner, 0x30000, -0x220000, 0, entity->timer, 0, 1);
-                else if (entity->timer == 20) Headhunter_SpawnTransformationArc(entity, owner, -0x90000, -0x1C0000, 1, entity->timer, 0, 0);
-                else if (entity->timer == 28) Headhunter_SpawnTransformationArc(entity, owner, 0x70000, -0x1B0000, 1, entity->timer, 0, 1);
-                else if (entity->timer == 90) entity->subState++;
-                if (entity->timer > 59) entity->posY.whole += 0x4000;
                 break;
             case 1:
-                if (entity->timer == 2) Headhunter_SpawnTransformationArc(entity, owner, -0xD0000, -0x1C0000, 0, entity->timer, 1, 0);
-                else if (entity->timer == 5) Headhunter_SpawnTransformationArc(entity, owner, -0xA0000, -0x1E0000, 0, entity->timer, 1, 1);
-                else if (entity->timer == 20) Headhunter_SpawnTransformationArc(entity, owner, -0xF0000, -0x160000, 1, entity->timer, 1, 0);
-                else if (entity->timer == 28) Headhunter_SpawnTransformationArc(entity, owner, 0, -0x180000, 1, entity->timer, 1, 1);
-                else if (entity->timer == 90) entity->subState++;
-                if (entity->timer > 59)
-                {
-                    entity->posY.whole += 0x4000;
-                    if (entity->flipX) entity->posX.whole += -0x2000;
-                    else entity->posX.whole += 0x2000;
-                }
-                break;
+                entity->subState++;
             case 2:
-                if (entity->timer == 2) Headhunter_SpawnTransformationArc(entity, owner, -0xB0000, -0x140000, 0, entity->timer, 2, 0);
-                else if (entity->timer == 5) Headhunter_SpawnTransformationArc(entity, owner, -0x80000, -0x160000, 0, entity->timer, 2, 1);
-                else if (entity->timer == 20) Headhunter_SpawnTransformationArc(entity, owner, -0xF0000, -0x100000, 1, entity->timer, 2, 0);
-                else if (entity->timer == 28) Headhunter_SpawnTransformationArc(entity, owner, 0x10000, -0x110000, 1, entity->timer, 2, 1);
-                else if (entity->timer == 90) entity->subState++;
-                if (entity->timer > 59)
+                TARGET_X(entity) = owner->posX.whole + camera->xPos.whole
+                    + (RandomModuloAtLeast((2 - COUNT(entity)) << 19, (2 - COUNT(entity)) << 18) - ((2 - COUNT(entity)) << 18));
+                TARGET_Y(entity) = owner->posY.whole + camera->yPos.whole - ((2 - COUNT(entity)) * 0x14 + 0x28) * 0x10000;
+                entity->subState++;
+            case 3:
+            {
+                s32 velX;
+                u8 changed;
+                SYNC_PALETTE(entity, owner);
+                Entity_AimAccelerationAtPoint(entity, TARGET_X(entity), TARGET_Y(entity), 0x2000);
+                entity->velY.whole = entity->accelY.whole << 3;
+                entity->accelY.whole = 0;
+                velX = entity->velX.whole;
+                EntityAccelerateAndMove(entity, 0x10000);
+                changed = ((entity->velX.whole & 0x80000000) ^ (velX & 0x80000000)) != 0;
+                if (changed)
                 {
-                    entity->posY.whole += 0x4000;
-                    if (entity->flipX) entity->posX.whole += -0x2000;
-                    else entity->posX.whole += 0x2000;
+                    if (++COUNT(entity) <= 1)
+                        entity->subState--;
+                    else
+                    {
+                        entity->subState++;
+                        entity->stage = 0;
+                    }
                 }
                 break;
             }
-            break;
-        }
-        case 6:
-            SYNC_PALETTE(entity, owner);
-            PlaySong(0x11D);
-            switch (KIND(entity))
-            {
-            case 0:
-                owner->subState++;
-                Anim_StartIndexed(owner, 1, 2, 1);
-                Anim_Update(owner);
-                goto delete;
-            case 1:
-                for (i = 0; i < 10; i++)
-                    Effect_SpawnRisingParticleInBox(owner->posX.whole, owner->posY.whole - 0x100000, 0x200000, 0x200000, owner->spriteLayer - 1, 1);
-                entity->timer = 5;
-                entity->subState++;
+            case 4:
+                SYNC_PALETTE(entity, owner);
+                if (entity->stage == 0)
+                {
+                    s32 x;
+                    entity->stage++;
+                    TARGET_X(entity) = x = owner->posX.whole + camera->xPos.whole;
+                    switch (KIND(entity))
+                    {
+                    case 0:
+                        TARGET_Y(entity) = owner->posY.whole + camera->yPos.whole - 0x340000;
+                        if (owner->flipX) TARGET_X(entity) = x + 0x20000;
+                        else TARGET_X(entity) = x - 0x20000;
+                        break;
+                    case 1:
+                        TARGET_Y(entity) = owner->posY.whole + camera->yPos.whole - 0x2A0000;
+                        if (owner->flipX) TARGET_X(entity) = x + 0x120000;
+                        else TARGET_X(entity) = x - 0x120000;
+                        break;
+                    case 2:
+                        TARGET_Y(entity) = owner->posY.whole + camera->yPos.whole - 0x280000;
+                        if (owner->flipX) TARGET_X(entity) = x + 0x100000;
+                        else TARGET_X(entity) = x - 0x100000;
+                        break;
+                    }
+                }
+                if (Entity_AimVelocityAtPointByDistance(entity, TARGET_X(entity), TARGET_Y(entity), 0x8000))
+                {
+                    entity->subState++;
+                    entity->timer = 0;
+                    return;
+                }
+                EntityAccelerateAndMove(entity, 0x10000);
                 break;
-            case 2:
-                for (i = 0; i < 10; i++)
-                    Effect_SpawnRisingParticleInBox(owner->posX.whole, owner->posY.whole - 0x80000, 0x200000, 0x200000, owner->spriteLayer - 1, 1);
-                entity->timer = 5;
-                entity->subState++;
+            case 5:
+            {
+                SYNC_PALETTE(entity, owner);
+                entity->timer++;
+                switch (KIND(entity))
+                {
+                case 0:
+                    if (entity->timer == 2) Headhunter_SpawnTransformationArc(entity, owner, -0x50000, -0x200000, 0, entity->timer, 0, 0);
+                    else if (entity->timer == 5) Headhunter_SpawnTransformationArc(entity, owner, 0x30000, -0x220000, 0, entity->timer, 0, 1);
+                    else if (entity->timer == 20) Headhunter_SpawnTransformationArc(entity, owner, -0x90000, -0x1C0000, 1, entity->timer, 0, 0);
+                    else if (entity->timer == 28) Headhunter_SpawnTransformationArc(entity, owner, 0x70000, -0x1B0000, 1, entity->timer, 0, 1);
+                    else if (entity->timer == 90) entity->subState++;
+                    if (entity->timer > 59) entity->posY.whole += 0x4000;
+                    break;
+                case 1:
+                    if (entity->timer == 2) Headhunter_SpawnTransformationArc(entity, owner, -0xD0000, -0x1C0000, 0, entity->timer, 1, 0);
+                    else if (entity->timer == 5) Headhunter_SpawnTransformationArc(entity, owner, -0xA0000, -0x1E0000, 0, entity->timer, 1, 1);
+                    else if (entity->timer == 20) Headhunter_SpawnTransformationArc(entity, owner, -0xF0000, -0x160000, 1, entity->timer, 1, 0);
+                    else if (entity->timer == 28) Headhunter_SpawnTransformationArc(entity, owner, 0, -0x180000, 1, entity->timer, 1, 1);
+                    else if (entity->timer == 90) entity->subState++;
+                    if (entity->timer > 59)
+                    {
+                        entity->posY.whole += 0x4000;
+                        if (entity->flipX) entity->posX.whole += -0x2000;
+                        else entity->posX.whole += 0x2000;
+                    }
+                    break;
+                case 2:
+                    if (entity->timer == 2) Headhunter_SpawnTransformationArc(entity, owner, -0xB0000, -0x140000, 0, entity->timer, 2, 0);
+                    else if (entity->timer == 5) Headhunter_SpawnTransformationArc(entity, owner, -0x80000, -0x160000, 0, entity->timer, 2, 1);
+                    else if (entity->timer == 20) Headhunter_SpawnTransformationArc(entity, owner, -0xF0000, -0x100000, 1, entity->timer, 2, 0);
+                    else if (entity->timer == 28) Headhunter_SpawnTransformationArc(entity, owner, 0x10000, -0x110000, 1, entity->timer, 2, 1);
+                    else if (entity->timer == 90) entity->subState++;
+                    if (entity->timer > 59)
+                    {
+                        entity->posY.whole += 0x4000;
+                        if (entity->flipX) entity->posX.whole += -0x2000;
+                        else entity->posX.whole += 0x2000;
+                    }
+                    break;
+                }
                 break;
             }
-            break;
-        case 7:
-            SYNC_PALETTE(entity, owner);
-            switch (KIND(entity))
-            {
-            case 0:
+            case 6:
+                SYNC_PALETTE(entity, owner);
+                PlaySong(0x11D);
+                switch (KIND(entity))
+                {
+                case 0:
+                    owner->subState++;
+                    Anim_StartIndexed(owner, 1, 2, 1);
+                    Anim_Update(owner);
+                    goto delete;
+                case 1:
+                    for (i = 0; i < 10; i++)
+                        Effect_SpawnRisingParticleInBox(owner->posX.whole, owner->posY.whole - 0x100000, 0x200000, 0x200000, owner->spriteLayer - 1, 1);
+                    entity->timer = 5;
+                    entity->subState++;
+                    break;
+                case 2:
+                    for (i = 0; i < 10; i++)
+                        Effect_SpawnRisingParticleInBox(owner->posX.whole, owner->posY.whole - 0x80000, 0x200000, 0x200000, owner->spriteLayer - 1, 1);
+                    entity->timer = 5;
+                    entity->subState++;
+                    break;
+                }
                 break;
-            case 1:
-                if ((s8)--entity->timer > 0) break;
-                owner->basePalette = owner->ext.headhunter.palette1;
-                owner->palette = owner->basePalette;
-                Anim_StartIndexed(owner, 5, 2, 0);
-                Anim_Update(owner);
-                owner->subState++;
-                owner->posY.whole += -0x130000;
-                goto delete;
-            case 2:
-                if ((s8)--entity->timer > 0) break;
-                owner->basePalette = owner->ext.headhunter.palette2;
-                owner->palette = owner->basePalette;
-                Anim_StartIndexed(owner, 9, 2, 1);
-                Anim_Update(owner);
-                owner->subState++;
-                owner->posY.whole += 0xB0000;
-                goto delete;
+            case 7:
+                SYNC_PALETTE(entity, owner);
+                switch (KIND(entity))
+                {
+                case 0:
+                    break;
+                case 1:
+                    if ((s8)--entity->timer > 0) break;
+                    owner->basePalette = owner->ext.headhunter.palette1;
+                    owner->palette = owner->basePalette;
+                    Anim_StartIndexed(owner, 5, 2, 0);
+                    Anim_Update(owner);
+                    owner->subState++;
+                    owner->posY.whole += -0x130000;
+                    goto delete;
+                case 2:
+                    if ((s8)--entity->timer > 0) break;
+                    owner->basePalette = owner->ext.headhunter.palette2;
+                    owner->palette = owner->basePalette;
+                    Anim_StartIndexed(owner, 9, 2, 1);
+                    Anim_Update(owner);
+                    owner->subState++;
+                    owner->posY.whole += 0xB0000;
+                    goto delete;
+                }
+                break;
             }
-            break;
+            Anim_Update(entity);
+            return;
         }
-        Anim_Update(entity);
-        return;
     delete:
         EntityDelete(entity);
     }

@@ -358,17 +358,18 @@ void WhiteDragon_UpdateAttack(register struct EwramData_EntityData *entity)
             if(angle<0x8000) angle+=0x10000;
             if(target<0x8000) target+=0x10000;
             if(angle<target)
-            { changing++; angle+=128; if(angle>target) angle=target; goto aimed; }
+            { changing++; angle+=128; if(angle>target) angle=target; }
+            else if(angle>target)
+            { changing++; angle-=128; if(angle<target) angle=target; }
         }
         else
         {
             angle=(u16)HEAD_ANGLE(entity);
             if(angle<target)
-            { changing++; angle+=128; if(angle>target) angle=target; goto aimed; }
+            { changing++; angle+=128; if(angle>target) angle=target; }
+            else if(angle>target)
+            { changing++; angle-=128; if(angle<target) angle=target; }
         }
-        if(angle>target)
-        { changing++; angle-=128; if(angle<target) angle=target; }
-aimed:
         *(u16 *)&HEAD_ANGLE(entity)=angle;
         if(entity->timer<40) entity->timer++;
         else if(changing==0)
@@ -380,7 +381,9 @@ aimed:
         if(entity->timer++>39)
         {
             entity->state=0; entity->subState=0;
-            goto cooldown;
+            entity->ext.whiteDragon.moveTimer=RandomNumberGenerator()%60+60;
+            entity->ext.whiteDragon.shotTimer=RandomNumberGenerator()%60;
+            break;
         }
         break;
     case 10: case 20:
@@ -420,7 +423,6 @@ aimed:
         if(entity->timer++>59)
         {
             entity->state=0; entity->subState=0; entity->animFrame=0;
- cooldown:
             entity->ext.whiteDragon.moveTimer=RandomNumberGenerator()%60+60;
             entity->ext.whiteDragon.shotTimer=RandomNumberGenerator()%60;
         }

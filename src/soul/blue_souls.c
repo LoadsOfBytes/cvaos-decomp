@@ -1085,7 +1085,7 @@ void SkillSkyFishUse(struct EwramData_EntityData *entity)
             Effect_SpawnShared(x, entity->posY.whole + ((RandomSigned(0x10) - 0x10) << 16), 0x10, 8);
         }
         entity->timer--;
-        goto end;
+        break;
     }
     goto end;
 delete:

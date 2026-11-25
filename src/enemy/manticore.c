@@ -566,28 +566,28 @@ struct EwramData_EntityData *Manticore_CreateTailTip(struct EwramData_EntityData
 void ManticoreTailTip_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
-    if (owner == NULL || owner->updateFunc == NULL || owner->enemyId != 0x36)
-        goto remove;
-    entity->posX.whole = owner->posX.whole;
-    entity->posY.whole = owner->posY.whole;
-    if (owner->flipX)
+    if (owner != NULL && owner->updateFunc != NULL && owner->enemyId == 0x36)
     {
-        entity->velX.whole = -(((u8)entity->ext.manticoreTail.kind << 19) + 0xC0000);
-        entity->posX.whole -= 0xC0000;
+        entity->posX.whole = owner->posX.whole;
+        entity->posY.whole = owner->posY.whole;
+        if (owner->flipX)
+        {
+            entity->velX.whole = -(((u8)entity->ext.manticoreTail.kind << 19) + 0xC0000);
+            entity->posX.whole -= 0xC0000;
+        }
+        else
+        {
+            entity->velX.whole = ((u8)entity->ext.manticoreTail.kind << 19) + 0xC0000;
+            entity->posX.whole += 0xC0000;
+        }
+        entity->posY.whole -= 0xE0000;
+        entity->flipX = owner->flipX == 0;
+        entity->hidden = owner->hidden;
+        ManticoreTail_UpdateSwing(entity);
+        entity->palette = owner->palette;
+        ObjAffine_Set(entity->velY.whole, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
+        return;
     }
-    else
-    {
-        entity->velX.whole = ((u8)entity->ext.manticoreTail.kind << 19) + 0xC0000;
-        entity->posX.whole += 0xC0000;
-    }
-    entity->posY.whole -= 0xE0000;
-    entity->flipX = owner->flipX == 0;
-    entity->hidden = owner->hidden;
-    ManticoreTail_UpdateSwing(entity);
-    entity->palette = owner->palette;
-    ObjAffine_Set(entity->velY.whole, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
-    return;
-remove:
     ObjAffine_Free(entity->affineIndex);
     EntityDelete(entity);
 }
@@ -634,55 +634,55 @@ void ManticoreTailSegment_Update(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
     struct EwramData_EntityData *next;
     s32 zero, i, x, y, angle;
-    if (owner == NULL || owner->updateFunc == NULL || owner->enemyId != 0x36)
-        goto remove;
-    if (KIND(entity) == 0)
+    if (owner != NULL && owner->updateFunc != NULL && owner->enemyId == 0x36)
     {
-        next = entity;
-        zero = 0;
-        for (i = 5; i >= 0; i--)
+        if (KIND(entity) == 0)
         {
-            DONE(next) = zero;
-            next = NEXT(next);
+            next = entity;
+            zero = 0;
+            for (i = 5; i >= 0; i--)
+            {
+                DONE(next) = zero;
+                next = NEXT(next);
+            }
         }
-    }
-    if (DONE(entity)) return;
-    next = NEXT(entity);
-    if (KIND(entity) != 5 && next->updateFunc != NULL)
-        next->updateFunc(next);
-    DONE(entity) = 1;
-    entity->posX.whole = owner->posX.whole;
-    entity->posY.whole = owner->posY.whole;
-    if (owner->flipX)
-    {
-        if (KIND(entity) == 0)
-            entity->velX.whole = -((KIND(entity) << 19) + 0x60000);
+        if (DONE(entity)) return;
+        next = NEXT(entity);
+        if (KIND(entity) != 5 && next->updateFunc != NULL)
+            next->updateFunc(next);
+        DONE(entity) = 1;
+        entity->posX.whole = owner->posX.whole;
+        entity->posY.whole = owner->posY.whole;
+        if (owner->flipX)
+        {
+            if (KIND(entity) == 0)
+                entity->velX.whole = -((KIND(entity) << 19) + 0x60000);
+            else
+                entity->velX.whole = -((KIND(entity) << 19) + 0xA0000);
+            entity->posX.whole -= 0xC0000;
+        }
         else
-            entity->velX.whole = -((KIND(entity) << 19) + 0xA0000);
-        entity->posX.whole -= 0xC0000;
+        {
+            if (KIND(entity) == 0)
+                entity->velX.whole = (KIND(entity) << 19) + 0x60000;
+            else
+                entity->velX.whole = (KIND(entity) << 19) + 0xA0000;
+            entity->posX.whole += 0xC0000;
+        }
+        entity->posY.whole -= 0x150000;
+        entity->flipX = owner->flipX;
+        entity->hidden = owner->hidden;
+        ManticoreTail_UpdateSwing(entity);
+        entity->palette = owner->palette;
+        x = next->posX.whole - entity->posX.whole;
+        y = next->posY.whole - entity->posY.whole;
+        x = ToPixels(x);
+        y = ToPixels(y);
+        angle = (u16)ArcTan2Wide(x, y);
+        if (!entity->flipX) angle += 0x8000;
+        ObjAffine_Set(angle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
+        return;
     }
-    else
-    {
-        if (KIND(entity) == 0)
-            entity->velX.whole = (KIND(entity) << 19) + 0x60000;
-        else
-            entity->velX.whole = (KIND(entity) << 19) + 0xA0000;
-        entity->posX.whole += 0xC0000;
-    }
-    entity->posY.whole -= 0x150000;
-    entity->flipX = owner->flipX;
-    entity->hidden = owner->hidden;
-    ManticoreTail_UpdateSwing(entity);
-    entity->palette = owner->palette;
-    x = next->posX.whole - entity->posX.whole;
-    y = next->posY.whole - entity->posY.whole;
-    x = ToPixels(x);
-    y = ToPixels(y);
-    angle = (u16)ArcTan2Wide(x, y);
-    if (!entity->flipX) angle += 0x8000;
-    ObjAffine_Set(angle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
-    return;
-remove:
     ObjAffine_Free(entity->affineIndex);
     EntityDelete(entity);
 }

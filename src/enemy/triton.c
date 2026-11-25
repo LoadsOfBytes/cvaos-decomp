@@ -56,8 +56,8 @@ void Triton_UpdateMove(struct EwramData_EntityData *entity)
         flags = Entity_MoveAndCollide(entity, 0x1C0000, -0x1B0000, 0, 0x40000);
         if (!(flags & 0x80))
             entity->posY.part16.integer += Collision_FindWaterSurfaceOffset((s16)entity->posX.part16.integer, (s16)entity->posY.part16.integer - 27);
-        range = 0x5A0000;
-        goto check_range;
+        if (Target_IsWithinDistance(entity, 0x5A0000) || Enemy_IsDamaged(entity)) entity->subState++;
+        break;
     case 1:
         entity->flipX = Entity_IsTargetRight(entity);
         if (entity->flipX) ACCEL_X(entity) = 0x400;
@@ -74,7 +74,6 @@ void Triton_UpdateMove(struct EwramData_EntityData *entity)
             break;
         }
         range = 0x640000;
-    check_range:
         if (Target_IsWithinDistance(entity, range) || Enemy_IsDamaged(entity)) entity->subState++;
         break;
     case 11:
@@ -172,7 +171,10 @@ void Triton_UpdateAttack(struct EwramData_EntityData *entity)
         break;
     case 2:
         Entity_MoveWithCollision(entity, 0x10000, 0, 0x8000, 32);
-        goto finish;
+        entity->state = 0;
+        entity->subState = NEXT_STATE(entity);
+        entity->timer = 0;
+        break;
     case 10:
         EntityDampVelocityX(entity, 0x20);
         EntityDampVelocityY(entity, 0x20);
@@ -232,7 +234,6 @@ void Triton_UpdateAttack(struct EwramData_EntityData *entity)
         if (entity->animDone)
         {
             Anim_StartIndexed(entity, 1, 0, 1);
-        finish:
             entity->state = 0;
             entity->subState = NEXT_STATE(entity);
             entity->timer = 0;
@@ -339,227 +340,228 @@ void TritonSpear_Update(struct EwramData_EntityData *spear)
 
     memcpy(offsets, sTritonSpearOffsets, sizeof(offsets));
     if (!owner) return;
-    if (!owner->updateFunc || owner->enemyId != 0x43) goto fail;
-    if (spear->state == 0 && owner->state == 2)
+    if (owner->updateFunc && owner->enemyId == 0x43)
     {
-        spear->state = 1;
-        spear->scrollWithBg = 1;
-        spear->timer = 41;
-    }
-restart:
-    if (spear->state == 0)
-    {
-        switch (spear->subState)
+        if (spear->state == 0 && owner->state == 2)
         {
-        case 0:
-        {
-            s32 ownerX = owner->posX.whole;
-            spear->posX.whole = ownerX;
-            spear->posY.whole = owner->posY.whole + (offsets[owner->animFrame] << 16);
-            if (owner->flipX)
-            {
-                if (owner->animFrame == 13) spear->posX.whole = ownerX + 0xC0000;
-                else spear->posX.whole = ownerX + 0x140000;
-            }
-            else
-            {
-                if (owner->animFrame == 13) spear->posX.whole = ownerX - 0xB0000;
-                else spear->posX.whole = ownerX - 0x130000;
-            }
-            if (*(u8 *)&owner->ext.triton.thrust)
-            {
-                spear->subState = 1;
-                spear->timer = 0;
-                spear->scrollWithBg = 1;
-            }
-            break;
+            spear->state = 1;
+            spear->scrollWithBg = 1;
+            spear->timer = 41;
         }
-        case 1:
-            if (!Entity_IsTimeStopped(owner))
+    restart:
+        if (spear->state == 0)
+        {
+            switch (spear->subState)
             {
-                spear->posY.whole -= 0x18000;
-                if (spear->posY.whole <= 0x200000)
-                {
-                    spear->subState++;
-                    spear->timer = 0;
-                    PlaySong(0x86);
-                }
-            }
-            break;
-        case 2:
-            if (!Entity_IsTimeStopped(owner))
-            {
-                if (owner->flipX)
-                {
-                    PART_ANGLE(spear) -= 0x1000;
-                    if (PART_ANGLE(spear) <= 0xC000)
-                    {
-                        PlaySong(0x86);
-                        PART_ANGLE(spear) += 0x10000;
-                        if (++spear->timer > 2)
-                        {
-                            spear->subState++;
-                            spear->timer = 0;
-                            x = Target_GetX(spear) - spear->posX.whole;
-                            {
-                                s32 target = Target_GetY(spear);
-                                s32 base = spear->posY.whole + 0x180000;
-                                y = target - base;
-                            }
-                            angle = (u16)ArcTan2(x < 0 ? (s16)(-((-x) >> 16)) : x >> 16,
-                                                 y < 0 ? (s16)(-((-y) >> 16)) : y >> 16);
-                            PART_TARGET_ANGLE(spear) = angle + 0x10000;
-                        }
-                    }
-                }
-                else
-                {
-                    PART_ANGLE(spear) += 0x1000;
-                    if (PART_ANGLE(spear) > 0x2BFFF)
-                    {
-                        PlaySong(0x86);
-                        PART_ANGLE(spear) -= 0x10000;
-                        if (++spear->timer > 2)
-                        {
-                            spear->subState++;
-                            spear->timer = 0;
-                            x = Target_GetX(spear) - spear->posX.whole;
-                            {
-                                s32 target = Target_GetY(spear);
-                                s32 base = spear->posY.whole + 0x180000;
-                                y = target - base;
-                            }
-                            angle = (u16)ArcTan2(x < 0 ? (s16)(-((-x) >> 16)) : x >> 16,
-                                                 y < 0 ? (s16)(-((-y) >> 16)) : y >> 16);
-                            PART_TARGET_ANGLE(spear) = angle + 0x20000;
-                        }
-                    }
-                }
-            }
-            break;
-        case 3:
-            if (!Entity_IsTimeStopped(owner))
-            {
-                if (owner->flipX)
-                {
-                    PART_ANGLE(spear) -= 0x1000;
-                    if (PART_ANGLE(spear) <= PART_TARGET_ANGLE(spear)) { PART_ANGLE(spear) = PART_TARGET_ANGLE(spear); spear->subState++; }
-                }
-                else
-                {
-                    PART_ANGLE(spear) += 0x1000;
-                    if (PART_ANGLE(spear) >= PART_TARGET_ANGLE(spear))
-                    {
-
-                        PART_ANGLE(spear) = PART_TARGET_ANGLE(spear);
-                        spear->subState++;
-                    }
-                }
-            }
-            break;
-        case 4:
-            if (!Entity_IsTimeStopped(owner))
-            {
-                if (++spear->timer == 11)
-                {
-                    angle = PART_ANGLE(spear);
-                    x = Sin(angle + 0x4000);
-                    y = Sin(angle);
-                    angle = 0xB0000;
-                    x = FixedMultiply(x, angle);
-                    y = FixedMultiply(y, angle);
-                    TritonSpear_SpawnEffect(spear, x, y);
-                }
-                if (spear->timer > 59)
-                {
-                    spear->subState++;
-                    angle = PART_ANGLE(spear);
-                    x = Sin(angle + 0x4000);
-                    y = Sin(angle);
-                    angle = 0x40000;
-                    spear->velX.whole = FixedMultiply(x, angle);
-                    spear->velY.whole = FixedMultiply(y, angle);
-                    PlaySong(0x85);
-                }
-            }
-            break;
-        case 5:
-            if (!Entity_IsTimeStopped(owner))
-            {
-                EntityMove(spear);
-                if (EntityIsOutsideScreen(spear, 2))
-                {
-                    s32 ownerX;
-                    spear->subState++;
-                    ownerX = owner->posX.whole;
-                    spear->posX.whole = ownerX;
-                    if (owner->flipX) spear->posX.whole = ownerX + 0x140000;
-                    else spear->posX.whole = ownerX - 0x130000;
-                    spear->posY.whole = 0xF00000;
-                    PART_ANGLE(spear) = 0x1C000;
-                }
-            }
-            break;
-        case 6:
-            if (!Entity_IsTimeStopped(owner))
+            case 0:
             {
                 s32 ownerX = owner->posX.whole;
                 spear->posX.whole = ownerX;
-                spear->posX.whole = ownerX + (owner->flipX ? 0x140000 : -0x130000);
-                spear->posY.whole -= 0x18000;
-                if (owner->posY.whole - 0x300000 >= spear->posY.whole)
+                spear->posY.whole = owner->posY.whole + (offsets[owner->animFrame] << 16);
+                if (owner->flipX)
                 {
-                    /* Keep the shared zero to reproduce the original stores. */
-                    s32 zero = 0;
-                    *(u8 *)&spear->ext.triton.thrust = 1;
-                    *(u8 *)&owner->ext.triton.thrust = zero;
-                    spear->subState = zero;
-                    spear->scrollWithBg = 0;
-                    goto restart;
+                    if (owner->animFrame == 13) spear->posX.whole = ownerX + 0xC0000;
+                    else spear->posX.whole = ownerX + 0x140000;
                 }
+                else
+                {
+                    if (owner->animFrame == 13) spear->posX.whole = ownerX - 0xB0000;
+                    else spear->posX.whole = ownerX - 0x130000;
+                }
+                if (*(u8 *)&owner->ext.triton.thrust)
+                {
+                    spear->subState = 1;
+                    spear->timer = 0;
+                    spear->scrollWithBg = 1;
+                }
+                break;
             }
-            break;
+            case 1:
+                if (!Entity_IsTimeStopped(owner))
+                {
+                    spear->posY.whole -= 0x18000;
+                    if (spear->posY.whole <= 0x200000)
+                    {
+                        spear->subState++;
+                        spear->timer = 0;
+                        PlaySong(0x86);
+                    }
+                }
+                break;
+            case 2:
+                if (!Entity_IsTimeStopped(owner))
+                {
+                    if (owner->flipX)
+                    {
+                        PART_ANGLE(spear) -= 0x1000;
+                        if (PART_ANGLE(spear) <= 0xC000)
+                        {
+                            PlaySong(0x86);
+                            PART_ANGLE(spear) += 0x10000;
+                            if (++spear->timer > 2)
+                            {
+                                spear->subState++;
+                                spear->timer = 0;
+                                x = Target_GetX(spear) - spear->posX.whole;
+                                {
+                                    s32 target = Target_GetY(spear);
+                                    s32 base = spear->posY.whole + 0x180000;
+                                    y = target - base;
+                                }
+                                angle = (u16)ArcTan2(x < 0 ? (s16)(-((-x) >> 16)) : x >> 16,
+                                                     y < 0 ? (s16)(-((-y) >> 16)) : y >> 16);
+                                PART_TARGET_ANGLE(spear) = angle + 0x10000;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        PART_ANGLE(spear) += 0x1000;
+                        if (PART_ANGLE(spear) > 0x2BFFF)
+                        {
+                            PlaySong(0x86);
+                            PART_ANGLE(spear) -= 0x10000;
+                            if (++spear->timer > 2)
+                            {
+                                spear->subState++;
+                                spear->timer = 0;
+                                x = Target_GetX(spear) - spear->posX.whole;
+                                {
+                                    s32 target = Target_GetY(spear);
+                                    s32 base = spear->posY.whole + 0x180000;
+                                    y = target - base;
+                                }
+                                angle = (u16)ArcTan2(x < 0 ? (s16)(-((-x) >> 16)) : x >> 16,
+                                                     y < 0 ? (s16)(-((-y) >> 16)) : y >> 16);
+                                PART_TARGET_ANGLE(spear) = angle + 0x20000;
+                            }
+                        }
+                    }
+                }
+                break;
+            case 3:
+                if (!Entity_IsTimeStopped(owner))
+                {
+                    if (owner->flipX)
+                    {
+                        PART_ANGLE(spear) -= 0x1000;
+                        if (PART_ANGLE(spear) <= PART_TARGET_ANGLE(spear)) { PART_ANGLE(spear) = PART_TARGET_ANGLE(spear); spear->subState++; }
+                    }
+                    else
+                    {
+                        PART_ANGLE(spear) += 0x1000;
+                        if (PART_ANGLE(spear) >= PART_TARGET_ANGLE(spear))
+                        {
+
+                            PART_ANGLE(spear) = PART_TARGET_ANGLE(spear);
+                            spear->subState++;
+                        }
+                    }
+                }
+                break;
+            case 4:
+                if (!Entity_IsTimeStopped(owner))
+                {
+                    if (++spear->timer == 11)
+                    {
+                        angle = PART_ANGLE(spear);
+                        x = Sin(angle + 0x4000);
+                        y = Sin(angle);
+                        angle = 0xB0000;
+                        x = FixedMultiply(x, angle);
+                        y = FixedMultiply(y, angle);
+                        TritonSpear_SpawnEffect(spear, x, y);
+                    }
+                    if (spear->timer > 59)
+                    {
+                        spear->subState++;
+                        angle = PART_ANGLE(spear);
+                        x = Sin(angle + 0x4000);
+                        y = Sin(angle);
+                        angle = 0x40000;
+                        spear->velX.whole = FixedMultiply(x, angle);
+                        spear->velY.whole = FixedMultiply(y, angle);
+                        PlaySong(0x85);
+                    }
+                }
+                break;
+            case 5:
+                if (!Entity_IsTimeStopped(owner))
+                {
+                    EntityMove(spear);
+                    if (EntityIsOutsideScreen(spear, 2))
+                    {
+                        s32 ownerX;
+                        spear->subState++;
+                        ownerX = owner->posX.whole;
+                        spear->posX.whole = ownerX;
+                        if (owner->flipX) spear->posX.whole = ownerX + 0x140000;
+                        else spear->posX.whole = ownerX - 0x130000;
+                        spear->posY.whole = 0xF00000;
+                        PART_ANGLE(spear) = 0x1C000;
+                    }
+                }
+                break;
+            case 6:
+                if (!Entity_IsTimeStopped(owner))
+                {
+                    s32 ownerX = owner->posX.whole;
+                    spear->posX.whole = ownerX;
+                    spear->posX.whole = ownerX + (owner->flipX ? 0x140000 : -0x130000);
+                    spear->posY.whole -= 0x18000;
+                    if (owner->posY.whole - 0x300000 >= spear->posY.whole)
+                    {
+                        /* Keep the shared zero to reproduce the original stores. */
+                        s32 zero = 0;
+                        *(u8 *)&spear->ext.triton.thrust = 1;
+                        *(u8 *)&owner->ext.triton.thrust = zero;
+                        spear->subState = zero;
+                        spear->scrollWithBg = 0;
+                        goto restart;
+                    }
+                }
+                break;
+            }
         }
-    }
-    angle = PART_ANGLE(spear);
-    x = Sin(angle + 0x4000);
-    y = Sin(angle);
-    angle = 0xC0000;
-    x = FixedMultiply(x, angle);
-    y = FixedMultiply(y, angle);
-    if (!gEwramData->gameState.bestiaryPreview)
-    {
-        box.x = PIXEL(x) - 3;
-        box.y = PIXEL(y) - 3;
-        box.width = 6;
-        box.height = 6;
-        HitBox_SetAttack(spear, &box);
-    }
-    /* Reuse angle here: a separate expression changes agbcc register allocation. */
-    angle = PART_ANGLE(spear) - 0xC000;
-    ObjAffine_SetBiased(angle, 0x10000, 0x10000, spear->flipX, spear->flipY, spear->affineIndex);
-    if (spear->state == 1)
-    {
-        spear->hidden = Entity_GetVisibilityPattern(spear->timer--);
-        if (owner->state == 3)
+        angle = PART_ANGLE(spear);
+        x = Sin(angle + 0x4000);
+        y = Sin(angle);
+        angle = 0xC0000;
+        x = FixedMultiply(x, angle);
+        y = FixedMultiply(y, angle);
+        if (!gEwramData->gameState.bestiaryPreview)
         {
-            spear->state = 2;
-            spear->timer = 4;
+            box.x = PIXEL(x) - 3;
+            box.y = PIXEL(y) - 3;
+            box.width = 6;
+            box.height = 6;
+            HitBox_SetAttack(spear, &box);
         }
-    }
-    if (spear->state == 2)
-    {
-        if ((s8)spear->timer-- == 0)
+        /* Reuse angle here: a separate expression changes agbcc register allocation. */
+        angle = PART_ANGLE(spear) - 0xC000;
+        ObjAffine_SetBiased(angle, 0x10000, 0x10000, spear->flipX, spear->flipY, spear->affineIndex);
+        if (spear->state == 1)
         {
-            Effect_SpawnAt(spear->posX.whole, spear->posY.whole, spear->spriteLayer - 1);
-            spear->deleteRequested = 1;
-            ObjAffine_Free(spear->affineIndex);
+            spear->hidden = Entity_GetVisibilityPattern(spear->timer--);
+            if (owner->state == 3)
+            {
+                spear->state = 2;
+                spear->timer = 4;
+            }
         }
+        if (spear->state == 2)
+        {
+            if ((s8)spear->timer-- == 0)
+            {
+                Effect_SpawnAt(spear->posX.whole, spear->posY.whole, spear->spriteLayer - 1);
+                spear->deleteRequested = 1;
+                ObjAffine_Free(spear->affineIndex);
+            }
+        }
+        if (spear->state == 0 && !gEwramData->gameState.bestiaryPreview)
+            Hit_CheckWithPlayer(&result, spear);
+        return;
     }
-    if (spear->state == 0 && !gEwramData->gameState.bestiaryPreview)
-        Hit_CheckWithPlayer(&result, spear);
-    return;
-fail:
     EntityDelete(spear);
 }
 

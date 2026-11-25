@@ -595,8 +595,12 @@ s32 BaloreHand_UpdateSwipe(struct EwramData_EntityData *entity)
         }
         break;
     case 2:
-        params = sBaloreHandSwipeParams;
-        goto move;
+        if (BaloreHand_SteerToPoint(entity, sBaloreHandSwipeParams))
+        {
+            UNK_51C(entity)->flags &= 0xFE;
+            return 1;
+        }
+        break;
     case 3:
         if (entity->timer != 0)
         {
@@ -604,7 +608,6 @@ s32 BaloreHand_UpdateSwipe(struct EwramData_EntityData *entity)
             UNK_51C(entity)->animationIndex = (*(volatile u8 *)&entity->timer >> 4) + 0x2E; /* FAKEMATCH: volatile read forces the reload of the original */
         }
         params = sBaloreHandSteeringParams3;
-    move:
         if (BaloreHand_SteerToPoint(entity, params))
         {
             UNK_51C(entity)->flags &= 0xFE;

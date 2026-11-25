@@ -518,65 +518,66 @@ void ArachneLegs_Update(struct EwramData_EntityData *entity)
     memcpy(frames,sArachneLegsFrames,36);
     if(entity->state==0)
     {
-        if(!owner || !owner->updateFunc || owner->enemyId!=23) goto fail;
-        entity->hidden=owner->hidden;
-        entity->palette=owner->palette;
-        entity->flipX=owner->flipX;
-        entity->posX.part16.integer=owner->posX.part16.integer;
-        entity->posY.part16.integer=owner->posY.part16.integer;
-        if(entity->flipX) entity->posX.part16.integer-=entity->velX.part16.integer;
-        else entity->posX.part16.integer+=entity->velX.part16.integer;
-        gait=GAIT(owner);
-        ownerGait=(s8 *)&owner->ext.arachne.gait;
-        switch(gait)
+        if(owner && owner->updateFunc && owner->enemyId==23)
         {
-        case 0:
-            entity->animFrame=21;
-            entity->subState=0;
-            current=*ownerGait; GAIT(entity)=current;
-            break;
-        case 1:
-            step=FIXED_INTEGER((s32)owner->ext.arachne.walkPhase);
-            index=(s8 *)&entity->ext.arachne.legIndex;
-            step-=(*index/2)*7;
-            if(GAIT(entity)==2) entity->subState=1;
-            if(entity->subState==0)
+            entity->hidden=owner->hidden;
+            entity->palette=owner->palette;
+            entity->flipX=owner->flipX;
+            entity->posX.part16.integer=owner->posX.part16.integer;
+            entity->posY.part16.integer=owner->posY.part16.integer;
+            if(entity->flipX) entity->posX.part16.integer-=entity->velX.part16.integer;
+            else entity->posX.part16.integer+=entity->velX.part16.integer;
+            gait=GAIT(owner);
+            ownerGait=(s8 *)&owner->ext.arachne.gait;
+            switch(gait)
             {
-                if(step>=0) { entity->subState=1; current=*ownerGait; GAIT(entity)=current; }
-                else step=0;
+            case 0:
+                entity->animFrame=21;
+                entity->subState=0;
+                current=*ownerGait; GAIT(entity)=current;
+                break;
+            case 1:
+                step=FIXED_INTEGER((s32)owner->ext.arachne.walkPhase);
+                index=(s8 *)&entity->ext.arachne.legIndex;
+                step-=(*index/2)*7;
+                if(GAIT(entity)==2) entity->subState=1;
+                if(entity->subState==0)
+                {
+                    if(step>=0) { entity->subState=1; current=*ownerGait; GAIT(entity)=current; }
+                    else step=0;
+                }
+                else if(step<0) step+=36;
+                entity->animFrame=frames[step];
+                current=*ownerGait; GAIT(entity)=current;
+                break;
+            case 2:
+                step=FIXED_INTEGER((s32)owner->ext.arachne.walkPhase);
+                index=(s8 *)&entity->ext.arachne.legIndex;
+                step-=(*index/2)*7;
+                if(GAIT(entity)==1) entity->subState=1;
+                if(entity->subState==0)
+                {
+                    if((u32)(step-1)>21) step=0;
+                    else entity->subState=1;
+                }
+                if(step<0) step+=36;
+                entity->animFrame=frames[step];
+                current=*ownerGait; GAIT(entity)=current;
+                break;
+            case 3:
+                step=FIXED_INTEGER((s32)owner->ext.arachne.walkPhase);
+                index=(s8 *)&entity->ext.arachne.legIndex;
+                step-=(*index/2)*7;
+                if(step<0)step+=36;
+                entity->animFrame=frames[step];
+                current=*ownerGait; GAIT(entity)=current;
+                break;
             }
-            else if(step<0) step+=36;
-            entity->animFrame=frames[step];
-            current=*ownerGait; GAIT(entity)=current;
-            break;
-        case 2:
-            step=FIXED_INTEGER((s32)owner->ext.arachne.walkPhase);
             index=(s8 *)&entity->ext.arachne.legIndex;
-            step-=(*index/2)*7;
-            if(GAIT(entity)==1) entity->subState=1;
-            if(entity->subState==0)
-            {
-                if((u32)(step-1)>21) step=0;
-                else entity->subState=1;
-            }
-            if(step<0) step+=36;
-            entity->animFrame=frames[step];
-            current=*ownerGait; GAIT(entity)=current;
-            break;
-        case 3:
-            step=FIXED_INTEGER((s32)owner->ext.arachne.walkPhase);
-            index=(s8 *)&entity->ext.arachne.legIndex;
-            step-=(*index/2)*7;
-            if(step<0)step+=36;
-            entity->animFrame=frames[step];
-            current=*ownerGait; GAIT(entity)=current;
-            break;
+            if(*index&1) entity->animFrame+=4;
+            if(owner->state==2) { entity->state=1; entity->subState=0; entity->timer=90; }
+            return;
         }
-        index=(s8 *)&entity->ext.arachne.legIndex;
-        if(*index&1) entity->animFrame+=4;
-        if(owner->state==2) { entity->state=1; entity->subState=0; entity->timer=90; }
-        return;
-fail:
         EntityDelete(entity);
     }
     else

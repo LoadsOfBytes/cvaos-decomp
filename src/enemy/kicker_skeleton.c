@@ -93,7 +93,14 @@ void KickerSkeleton_UpdateKick(struct EwramData_EntityData *entity)
             value *= speed;
             entity->ext.kickerSkeleton.speed = __divsi3(value, 32);
         }
-        if ((s32)entity->ext.kickerSkeleton.speed <= 0x7FFF) goto finished;
+        if ((s32)entity->ext.kickerSkeleton.speed <= 0x7FFF)
+        {
+            Anim_StartIndexed(entity, 0, 0, 1);
+            entity->state = 0;
+            entity->stage = 0;
+            entity->subState = 0;
+            break;
+        }
         if (!(flags & 8)) break;
         if (flags & 3) entity->ext.kickerSkeleton.speed = 0;
         if ((s32)entity->ext.kickerSkeleton.speed <= 0xBFFF) break;
@@ -113,7 +120,6 @@ void KickerSkeleton_UpdateKick(struct EwramData_EntityData *entity)
         flags = Entity_Walk(entity, entity->ext.kickerSkeleton.speed, sKickerSkeletonWalkProfile, 0);
         if (flags & 8)
         {
-finished:
             Anim_StartIndexed(entity, 0, 0, 1);
             entity->state = 0;
             entity->stage = 0;

@@ -760,12 +760,9 @@ void SkeletonAttachedPart_Update(struct EwramData_EntityData *entity)
         {
             if (entity->hidden)
                 entity->hidden = 0;
-            else
-                goto check;
         }
         if (!entity->hidden)
         {
-        check:
             if (parent->hidden)
                 entity->deleteRequested = 1;
         }

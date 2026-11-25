@@ -1691,19 +1691,11 @@ void Soma_UpdateKnockback(struct EwramData_EntityData *entity)
     old = entity->velX.whole;
     new = old + entity->accelX.whole;
     entity->velX.whole = new;
-    if (old < 0)
-        goto check_pos;
-    if (new < 0)
-        goto clear;
-    if (old > 0)
-        goto done;
-check_pos:
-    if (new <= 0)
-        goto done;
-clear:
-    entity->velX.whole = 0;
-    entity->accelX.whole = 0;
-done:
+    if ((old >= 0 && new < 0) || (old <= 0 && new > 0))
+    {
+        entity->velX.whole = 0;
+        entity->accelX.whole = 0;
+    }
     if (!(entity->ext.player.actionFlags & 2) || (hit && (entity->ext.player.actionFlags & 0x200000)))
     {
         entity->ext.player.actionFlags = entity->ext.player.actionFlags & 0xFFFEFF7F;
@@ -1765,19 +1757,11 @@ void Soma_UpdateKnockbackFromImpulse(struct EwramData_EntityData *entity)
     old = entity->velX.whole;
     new = old + entity->accelX.whole;
     entity->velX.whole = new;
-    if (old < 0)
-        goto check_pos;
-    if (new < 0)
-        goto clear;
-    if (old > 0)
-        goto done;
-check_pos:
-    if (new <= 0)
-        goto done;
-clear:
-    entity->velX.whole = 0;
-    entity->accelX.whole = 0;
-done:
+    if ((old >= 0 && new < 0) || (old <= 0 && new > 0))
+    {
+        entity->velX.whole = 0;
+        entity->accelX.whole = 0;
+    }
     if (!(entity->ext.player.actionFlags & 2) || (hit && (entity->ext.player.actionFlags & 0x200000)))
     {
         entity->ext.player.actionFlags &= 0xFFFEFF7F;
@@ -1899,19 +1883,11 @@ void Soma_HandleBatFlightInput(struct EwramData_EntityData *entity)
     old = entity->velX.whole;
     new = old + entity->accelX.whole;
     entity->velX.whole = new;
-    if (old < 0)
-        goto check_x;
-    if (new < 0)
-        goto clear_x;
-    if (old > 0)
-        goto done_x;
-check_x:
-    if (new <= 0)
-        goto done_x;
-clear_x:
-    entity->velX.whole = 0;
-    entity->accelX.whole = 0;
-done_x:
+    if ((old >= 0 && new < 0) || (old <= 0 && new > 0))
+    {
+        entity->velX.whole = 0;
+        entity->accelX.whole = 0;
+    }
     if ((key2 = gEwramData->inputData.playerHeldInput & 0x40))
     {
         entity->velY.whole = -0x20000;
@@ -1927,19 +1903,11 @@ done_x:
     old = entity->velY.whole;
     new = old + entity->accelY.whole;
     entity->velY.whole = new;
-    if (old < 0)
-        goto check_y;
-    if (new < 0)
-        goto clear_y;
-    if (old > 0)
-        goto done_y;
-check_y:
-    if (new <= 0)
-        goto done_y;
-clear_y:
-    entity->velY.whole = 0;
-    entity->accelY.whole = 0;
-done_y:
+    if ((old >= 0 && new < 0) || (old <= 0 && new > 0))
+    {
+        entity->velY.whole = 0;
+        entity->accelY.whole = 0;
+    }
     if ((u16)entity->ext.player.requestedAnim == 0xFF)
     {
         if (!(gEwramData->inputData.playerHeldInput & 0xF0))
@@ -2043,19 +2011,11 @@ void Soma_UpdateBatForm(struct EwramData_EntityData *entity)
         old = entity->velX.whole;
         new = old + entity->accelX.whole;
         entity->velX.whole = new;
-        if (old < 0)
-            goto check_x;
-        if (new < 0)
-            goto clear_x;
-        if (old > 0)
-            goto done_x;
-    check_x:
-        if (new <= 0)
-            goto done_x;
-    clear_x:
-        entity->velX.whole = 0;
-        entity->accelX.whole = 0;
-    done_x:
+        if ((old >= 0 && new < 0) || (old <= 0 && new > 0))
+        {
+            entity->velX.whole = 0;
+            entity->accelX.whole = 0;
+        }
         entity->velY.whole = 0;
         entity->accelY.whole = 0;
         entity->ext.player.wallProbes = (u32)sSomaWallProbesBat;
@@ -2229,19 +2189,11 @@ void Soma_UpdateTransformationDash(struct EwramData_EntityData *entity)
         old = entity->velX.whole;
         new = old + entity->accelX.whole;
         entity->velX.whole = new;
-        if (old < 0)
-            goto check_x;
-        if (new < 0)
-            goto clear_x;
-        if (old > 0)
-            goto done_x;
-    check_x:
-        if (new <= 0)
-            goto done_x;
-    clear_x:
-        entity->velX.whole = 0;
-        entity->accelX.whole = 0;
-    done_x:
+        if ((old >= 0 && new < 0) || (old <= 0 && new > 0))
+        {
+            entity->velX.whole = 0;
+            entity->accelX.whole = 0;
+        }
         if (!(FLAGS(entity) & 0x200000))
         {
             {
@@ -2317,35 +2269,19 @@ void Player_UpdateDeath(struct EwramData_EntityData *entity)
     entity->accelX.whole = accel;
     new = old + accel;
     entity->velX.whole = new;
-    if (old < 0)
-        goto check_pos_x;
-    if (new < 0)
-        goto clear_x;
-    if (old > 0)
-        goto done_x;
-check_pos_x:
-    if (new <= 0)
-        goto done_x;
-clear_x:
-    entity->velX.whole = 0;
-    entity->accelX.whole = 0;
-done_x:
+    if ((old >= 0 && new < 0) || (old <= 0 && new > 0))
+    {
+        entity->velX.whole = 0;
+        entity->accelX.whole = 0;
+    }
     old = entity->velY.whole;
     new = old + entity->accelY.whole;
     entity->velY.whole = new;
-    if (old < 0)
-        goto check_pos_y;
-    if (new < 0)
-        goto clear_y;
-    if (old > 0)
-        goto done_y;
-check_pos_y:
-    if (new <= 0)
-        goto done_y;
-clear_y:
-    entity->velY.whole = 0;
-    entity->accelY.whole = 0;
-done_y:
+    if ((old >= 0 && new < 0) || (old <= 0 && new > 0))
+    {
+        entity->velY.whole = 0;
+        entity->accelY.whole = 0;
+    }
     if (!entity->hidden)
     {
         s32 timer = entity->timer + 1;
@@ -2536,131 +2472,131 @@ void Soma_Update(struct EwramData_EntityData *entity)
     }
     none = -1;
     entity->ext.player.floorKind = 0xFF;
-    if (gEwramData->playerState.pendingHitDamage == 0)
-        goto collide;
-    if (gEwramData->playerStatus.currentHP <= 0)
+    if (gEwramData->playerState.pendingHitDamage != 0)
     {
-        gEwramData->playerState.actionLockFlags &= ~0x820;
-        Soma_StartDeath(entity);
-        goto collide;
-    }
-    if (gEwramData->playerStatus.statusEffects & 4)
-    {
-        if (entity->state == 8)
-            Soma_ResolveBatExitCollision(entity);
-        entity->palette = 0;
-        entity->state = 0xF;
-        FLAGS(entity) |= 0x80;
-        if (FLAGS(entity) & 2)
+        if (gEwramData->playerStatus.currentHP <= 0)
         {
-            s32 accel;
-
-            if ((s32)gEwramData->playerState.hitSourceX > entity->posX.whole)
+            gEwramData->playerState.actionLockFlags &= ~0x820;
+            Soma_StartDeath(entity);
+        }
+        else if (gEwramData->playerStatus.statusEffects & 4)
+        {
+            if (entity->state == 8)
+                Soma_ResolveBatExitCollision(entity);
+            entity->palette = 0;
+            entity->state = 0xF;
+            FLAGS(entity) |= 0x80;
+            if (FLAGS(entity) & 2)
             {
-                entity->velX.whole = -0x18000;
-                accel = 0x200;
+                s32 accel;
+
+                if ((s32)gEwramData->playerState.hitSourceX > entity->posX.whole)
+                {
+                    entity->velX.whole = -0x18000;
+                    accel = 0x200;
+                }
+                else
+                {
+                    entity->velX.whole = 0x18000;
+                    accel = -0x200;
+                }
+                entity->accelX.whole = accel;
+                entity->velY.whole = -0x20000;
+                entity->accelY.whole = -0x1000;
+                FLAGS(entity) |= 2;
+            }
+            FLAGS(entity) &= ~0x200000;
+        }
+        else if (gEwramData->playerState.hitReaction == 3)
+        {
+            struct EwramData *ewram;
+            struct EwramData_EntityData *player;
+
+            if (entity->state == 8)
+                Soma_ResolveBatExitCollision(entity);
+            ewram = gEwramData;
+            ewram->playerState.actionLockFlags &= ~0x820;
+            ewram->playerState.player->velX.whole = ewram->playerState.knockbackVelocityX;
+            ewram->playerState.player->velY.whole = ewram->playerState.knockbackVelocityY;
+            player = ewram->playerState.player;
+            player->accelX.whole = (player->velX.whole < 0) ? 0x1000 : -0x1000;
+            {
+                u8 state = 0xE;
+                FLAGS(entity) |= 0x82;
+                entity->state = state;
+            }
+            FLAGS(entity) &= ~0x200000;
+            PlaySong(0x196);
+            entity->palette = 0;
+        }
+        else if (gEwramData->playerState.hitReaction != 2)
+        {
+            if ((gEwramData->playerStatus.soulStateFlags & 0x20200) == 0x20000)
+            {
+                SetHitTimer(entity, 8, 30);
             }
             else
             {
-                entity->velX.whole = 0x18000;
-                accel = -0x200;
+                if (entity->state == 8)
+                    Soma_ResolveBatExitCollision(entity);
+                entity->palette = 0;
+                hurtData = gEwramData;
+                hurtFlags = &hurtData->playerState.actionLockFlags;
+                hurtData->playerState.actionLockFlags &= ~0x820;
+                if (GetDamageType(hurtData) == 0 && !(FLAGS(entity) & 2))
+                {
+                    none |= entity->animScriptIndex;
+                    entity->animScriptIndex = none;
+                    if (!(FLAGS(entity) & 0x400))
+                    {
+                        if ((!entity->flipX && GetHitX(hurtData) > entity->posX.whole)
+                            || (entity->flipX && GetHitX(hurtData) < entity->posX.whole))
+                            SetPlayerAnimBox(entity, 0xE, sSomaStandingBodyBox, 0);
+                        else
+                            SetPlayerAnimBox(entity, 0x10, sSomaStandingBodyBox, 0);
+                    }
+                    else
+                    {
+                        SetPlayerAnimBoxFlags(entity, 0xF, sSomaCrouchBodyBoxes, 0, hurtFlags);
+                    }
+                    SetHitTimer(entity, 8, 50);
+                    FLAGS(entity) |= 0x80;
+                    entity->state = 0xC;
+                    PlaySong(0x19B);
+                }
+                else
+                {
+                    s32 accel;
+
+                    if ((s32)gEwramData->playerState.hitSourceX > entity->posX.whole)
+                    {
+                        if (!entity->flipX)
+                            SetPlayerAnimBox(entity, 0x11, sSomaStandingBodyBox, 0);
+                        else
+                            SetPlayerAnimBox(entity, 0x10, sSomaStandingBodyBox, 0);
+                        entity->velX.whole = -0x18000;
+                        accel = 0x200;
+                    }
+                    else
+                    {
+                        if (entity->flipX)
+                            SetPlayerAnimBox(entity, 0x11, sSomaStandingBodyBox, 0);
+                        else
+                            SetPlayerAnimBox(entity, 0x10, sSomaStandingBodyBox, 0);
+                        entity->velX.whole = 0x18000;
+                        accel = -0x200;
+                    }
+                    entity->accelX.whole = accel;
+                    entity->velY.whole = -0x20000;
+                    entity->accelY.whole = -0x1000;
+                    FLAGS(entity) |= 0x82;
+                    entity->state = 0xD;
+                    PlaySong(0x195);
+                }
+                FLAGS(entity) &= ~0x200000;
             }
-            entity->accelX.whole = accel;
-            entity->velY.whole = -0x20000;
-            entity->accelY.whole = -0x1000;
-            FLAGS(entity) |= 2;
         }
-        goto knocked;
     }
-    if (gEwramData->playerState.hitReaction == 3)
-    {
-        struct EwramData *ewram;
-        struct EwramData_EntityData *player;
-
-        if (entity->state == 8)
-            Soma_ResolveBatExitCollision(entity);
-        ewram = gEwramData;
-        ewram->playerState.actionLockFlags &= ~0x820;
-        ewram->playerState.player->velX.whole = ewram->playerState.knockbackVelocityX;
-        ewram->playerState.player->velY.whole = ewram->playerState.knockbackVelocityY;
-        player = ewram->playerState.player;
-        player->accelX.whole = (player->velX.whole < 0) ? 0x1000 : -0x1000;
-        {
-            u8 state = 0xE;
-            FLAGS(entity) |= 0x82;
-            entity->state = state;
-        }
-        FLAGS(entity) &= ~0x200000;
-        PlaySong(0x196);
-        entity->palette = 0;
-        goto collide;
-    }
-    if (gEwramData->playerState.hitReaction == 2)
-        goto collide;
-    if ((gEwramData->playerStatus.soulStateFlags & 0x20200) == 0x20000)
-    {
-        SetHitTimer(entity, 8, 30);
-        goto collide;
-    }
-    if (entity->state == 8)
-        Soma_ResolveBatExitCollision(entity);
-    entity->palette = 0;
-    hurtData = gEwramData;
-    hurtFlags = &hurtData->playerState.actionLockFlags;
-    hurtData->playerState.actionLockFlags &= ~0x820;
-    if (GetDamageType(hurtData) == 0 && !(FLAGS(entity) & 2))
-    {
-        none |= entity->animScriptIndex;
-        entity->animScriptIndex = none;
-        if (!(FLAGS(entity) & 0x400))
-        {
-            if ((!entity->flipX && GetHitX(hurtData) > entity->posX.whole)
-                || (entity->flipX && GetHitX(hurtData) < entity->posX.whole))
-                SetPlayerAnimBox(entity, 0xE, sSomaStandingBodyBox, 0);
-            else
-                SetPlayerAnimBox(entity, 0x10, sSomaStandingBodyBox, 0);
-        }
-        else
-        {
-            SetPlayerAnimBoxFlags(entity, 0xF, sSomaCrouchBodyBoxes, 0, hurtFlags);
-        }
-        SetHitTimer(entity, 8, 50);
-        FLAGS(entity) |= 0x80;
-        entity->state = 0xC;
-        PlaySong(0x19B);
-    }
-    else
-    {
-        s32 accel;
-
-        if ((s32)gEwramData->playerState.hitSourceX > entity->posX.whole)
-        {
-            if (!entity->flipX)
-                SetPlayerAnimBox(entity, 0x11, sSomaStandingBodyBox, 0);
-            else
-                SetPlayerAnimBox(entity, 0x10, sSomaStandingBodyBox, 0);
-            entity->velX.whole = -0x18000;
-            accel = 0x200;
-        }
-        else
-        {
-            if (entity->flipX)
-                SetPlayerAnimBox(entity, 0x11, sSomaStandingBodyBox, 0);
-            else
-                SetPlayerAnimBox(entity, 0x10, sSomaStandingBodyBox, 0);
-            entity->velX.whole = 0x18000;
-            accel = -0x200;
-        }
-        entity->accelX.whole = accel;
-        entity->velY.whole = -0x20000;
-        entity->accelY.whole = -0x1000;
-        FLAGS(entity) |= 0x82;
-        entity->state = 0xD;
-        PlaySong(0x195);
-    }
-knocked:
-    FLAGS(entity) &= ~0x200000;
-collide:
     if (!(gEwramData->playerState.actionLockFlags & 1))
         Soma_ResolveWorldCollision(entity);
     gEwramData->playerState.actionLockFlags &= ~1;

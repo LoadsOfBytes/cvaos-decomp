@@ -140,11 +140,8 @@ void MandragoraPart_Update(struct EwramData_EntityData *entity)
                 entity->subState=0;
                 entity->hidden=0;
                 PlaySong(0x83);
-                goto activate;
             }
-            goto countdown;
         case 2:
-activate:
             if(entity->subState==0)
             {
                 tip->state=1;
@@ -154,7 +151,6 @@ activate:
                 entity->stage=0;
                 entity->timer=32;
             }
-countdown:
             if(--entity->timer==0xFF)
             {
                 entity->state=0xF1;
@@ -480,9 +476,8 @@ void Mandragora_UpdateDeath(struct EwramData_EntityData *entity)
             entity->palette=entity->basePalette;
             Mandragora_SpawnDeathParts(entity);
             entity->subState++;
-            if(FLAGS(entity)&2)
-                goto wait_part;
-            PlaySong(0x6B);
+            if(!(FLAGS(entity)&2))
+                PlaySong(0x6B);
         case 1:
             if(!(FLAGS(entity)&2))
             {
@@ -491,7 +486,6 @@ void Mandragora_UpdateDeath(struct EwramData_EntityData *entity)
             }
             else
             {
-wait_part:
                 if(part->hidden && !(FLAGS(entity)&0x10) && entity->ext.mandragoraDeath.parts==0)
                     Mandragora_RequestLinkedDeletion(entity);
             }

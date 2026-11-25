@@ -547,20 +547,24 @@ void LightningDollPart_Update(struct EwramData_EntityData *entity)
                         entity->posY.part16.integer += correction;
                 }
                 if (entity->velX.whole > 0)
+                {
                     correction = Collision_GetPushLeftWide(ToRoomX((s16)entity->posX.part16.integer) + 8, ToRoomY((s16)entity->posY.part16.integer) - 16);
-                else
-                {
-                    if (entity->velX.whole == 0)
-                        goto timer;
-                    correction = Collision_GetPushRightWide(ToRoomX((s16)entity->posX.part16.integer) - 8, ToRoomY((s16)entity->posY.part16.integer) - 16);
+                    if (correction != 0)
+                    {
+                        entity->posX.part16.integer += correction;
+                        entity->velX.whole = 0;
+                    }
                 }
-                if (correction != 0)
+                else if (entity->velX.whole != 0)
                 {
-                    entity->posX.part16.integer += correction;
-                    entity->velX.whole = 0;
+                    correction = Collision_GetPushRightWide(ToRoomX((s16)entity->posX.part16.integer) - 8, ToRoomY((s16)entity->posY.part16.integer) - 16);
+                    if (correction != 0)
+                    {
+                        entity->posX.part16.integer += correction;
+                        entity->velX.whole = 0;
+                    }
                 }
             }
-timer:
             if ((entity->timer & 1) && entity->timer < 0x40)
                 entity->hidden = Hidden(entity);
             done = 0;

@@ -333,8 +333,7 @@ void Slime_UpdateCrawl(struct EwramData_EntityData *entity)
         entity->ext.slime.speed = 0x4000;
         if (entity->flipX) entity->ext.slime.speed = -entity->ext.slime.speed;
         if ((s32)entity->ext.slime.scaleX <= 0xFFFF) entity->ext.slime.scaleX += 0x200;
-        if (entity->ext.slime.turnCooldown != 0) goto countdown;
-        if (entity->stage != 0 && (RandomNumberGenerator() & 0xFF) <= 3 && Target_IsNearEntity(entity, 0x78, 0xB4))
+        if (entity->ext.slime.turnCooldown == 0 && entity->stage != 0 && (RandomNumberGenerator() & 0xFF) <= 3 && Target_IsNearEntity(entity, 0x78, 0xB4))
         {
             entity->state = 1;
             entity->subState = 0;
@@ -372,7 +371,6 @@ void Slime_UpdateCrawl(struct EwramData_EntityData *entity)
     }
     if (entity->ext.slime.turnCooldown != 0)
     {
-countdown:
         entity->ext.slime.turnCooldown--;
     }
     EntityMoveX(entity);
@@ -537,7 +535,8 @@ void Slime_UpdateDetach(struct EwramData_EntityData *entity)
         {
             Slime_SpawnParticles(entity, 3, 0, -0x20000);
             entity->stage = 0;
-            goto landed;
+            entity->subState = 3;
+            break;
         }
         if (flags & 1)
         {
@@ -550,7 +549,6 @@ void Slime_UpdateDetach(struct EwramData_EntityData *entity)
         {
             Slime_SpawnParticles(entity, 3, -0x10000, -0x18000);
             entity->stage = 1;
-landed:
             entity->subState = 3;
         }
         break;

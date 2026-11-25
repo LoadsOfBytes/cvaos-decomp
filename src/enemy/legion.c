@@ -1448,83 +1448,82 @@ struct EwramData_EntityData *Legion_CreateCorePart(struct EwramData_EntityData *
     u16 palette;
     s32 tiles;
 
-    if (part == NULL)
-        goto fail;
-    part->ext.legionPart.offsetX = x;
-    part->ext.legionPart.offsetY = y;
-    part->posX.whole = entity->posX.whole + x;
-    part->posY.whole = entity->posY.whole + y;
-    do { do { part->ext.legionPart.kind = kind; } while (0); } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
-    if ((u8)kind == 3)
-    {
-        part->posX.whole = entity->posX.whole;
-        part->posY.whole = entity->posY.whole;
-    }
-    part->spriteLayer = entity->spriteLayer - 2;
-    do { do { tiles = *data; } while (0); } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
-    part->ext.legionPart.tiles = tiles;
-    part->basePalette = entity->ext.legion.animPalette;
-    Sprite_Attach(part, sLegionSpriteSheet, tiles, part->basePalette);
-    do { part->enemyId = entity->enemyId; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
-    switch (kind)
-    {
-    case 0:
-        part->animFrame = 0;
-        CORE(0);
-        CORE(1);
-        CORE(2);
-        break;
-    case 1:
-        part->animFrame = 1;
-        CORE(0);
-        CORE(2);
-        CORE(3);
-        break;
-    case 2:
-        part->animFrame = 2;
-        CORE(1);
-        CORE(4);
-        break;
-    case 3:
-        part->animFrame = 0x36;
-        part->velX.whole = 0xC000;
-        part->velY.whole = 0xC000;
-        CORE(3);
-        CORE(4);
-        palette = ObjAffine_Alloc(1);
-        if ((s16)palette < 0)
+    if (part != NULL) {
+        part->ext.legionPart.offsetX = x;
+        part->ext.legionPart.offsetY = y;
+        part->posX.whole = entity->posX.whole + x;
+        part->posY.whole = entity->posY.whole + y;
+        do { do { part->ext.legionPart.kind = kind; } while (0); } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
+        if ((u8)kind == 3)
         {
-            EntityDelete(part);
-            return NULL;
+            part->posX.whole = entity->posX.whole;
+            part->posY.whole = entity->posY.whole;
         }
-        part->affineIndex = palette;
-        part->affine = 1;
-        ObjAffine_SetBiased(0, part->velX.whole, part->velY.whole, part->flipX, part->flipY, part->affineIndex);
-        break;
-    case 10:
-        part->animFrame = 3;
-        CORE(3);
-        CORE(4);
-        break;
-    }
-    part->animMode = 2;
+        part->spriteLayer = entity->spriteLayer - 2;
+        do { do { tiles = *data; } while (0); } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
+        part->ext.legionPart.tiles = tiles;
+        part->basePalette = entity->ext.legion.animPalette;
+        Sprite_Attach(part, sLegionSpriteSheet, tiles, part->basePalette);
+        do { part->enemyId = entity->enemyId; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
+        switch (kind)
+        {
+        case 0:
+            part->animFrame = 0;
+            CORE(0);
+            CORE(1);
+            CORE(2);
+            break;
+        case 1:
+            part->animFrame = 1;
+            CORE(0);
+            CORE(2);
+            CORE(3);
+            break;
+        case 2:
+            part->animFrame = 2;
+            CORE(1);
+            CORE(4);
+            break;
+        case 3:
+            part->animFrame = 0x36;
+            part->velX.whole = 0xC000;
+            part->velY.whole = 0xC000;
+            CORE(3);
+            CORE(4);
+            palette = ObjAffine_Alloc(1);
+            if ((s16)palette < 0)
+            {
+                EntityDelete(part);
+                return NULL;
+            }
+            part->affineIndex = palette;
+            part->affine = 1;
+            ObjAffine_SetBiased(0, part->velX.whole, part->velY.whole, part->flipX, part->flipY, part->affineIndex);
+            break;
+        case 10:
+            part->animFrame = 3;
+            CORE(3);
+            CORE(4);
+            break;
+        }
+        part->animMode = 2;
 
-    do { part->ext.legionPart.owner = entity; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
-    part->scrollWithBg = 0;
-    part->flipX = 0;
-    do { part->hp = entity->hp; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
-    do { part->attack = entity->attack; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
-    if (!(*((u8 *)gEwramData + 0x8E) & 0x40))
-    {
-        Hit_Enable(part, 8, Legion_DamagePlayerOnContact, LegionCorePart_OnHit);
-        HitBox_SetBody(part, &box);
-        HitBox_SetAttack(part, &box);
-        part->hit.flags &= 0xFB;
-        part->hit.flags &= 0xFD;
+        do { part->ext.legionPart.owner = entity; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
+        part->scrollWithBg = 0;
+        part->flipX = 0;
+        do { part->hp = entity->hp; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
+        do { part->attack = entity->attack; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
+        if (!(*((u8 *)gEwramData + 0x8E) & 0x40))
+        {
+            Hit_Enable(part, 8, Legion_DamagePlayerOnContact, LegionCorePart_OnHit);
+            HitBox_SetBody(part, &box);
+            HitBox_SetAttack(part, &box);
+            part->hit.flags &= 0xFB;
+            part->hit.flags &= 0xFD;
+        }
+        part->drawFunc = Sprite_DrawEntity;
+        return part;
     }
-    part->drawFunc = Sprite_DrawEntity;
-    return part;
-fail:
     return NULL;
 }
 

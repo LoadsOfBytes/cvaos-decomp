@@ -502,16 +502,16 @@ void Werejaguar_UpdateAttack(struct EwramData_EntityData *entity)
         zero = 0;
         entity->ext.werejaguar.manualAnim = 1;
         r = Entity_MoveWithCollision(entity, 0x40000, -0x200000, 0x80000, 8) & 4;
-        if (!r)
-            goto fail;
-        if (entity->timer++ <= 3)
+        if (r)
+        {
+            if (entity->timer++ <= 3)
+                break;
+            entity->subState = 5;
+            entity->timer = zero;
+            Anim_StartIndexed(entity, 0, 0, 0);
+            entity->ext.werejaguar.manualAnim = zero;
             break;
-        entity->subState = 5;
-        entity->timer = zero;
-        Anim_StartIndexed(entity, 0, 0, 0);
-        entity->ext.werejaguar.manualAnim = zero;
-        break;
-    fail:
+        }
         entity->state = r;
         entity->subState = r;
         Anim_StartIndexed(entity, 0, 0, 1);

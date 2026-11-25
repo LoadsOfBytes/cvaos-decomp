@@ -485,37 +485,38 @@ void GiantGhostAura_Update(struct EwramData_EntityData *entity)
     if (entity->state == 0)
     {
         s32 pulse;
-        if (!parent || !parent->updateFunc || parent->enemyId != 0x13) goto remove;
-        entity->hidden = parent->hidden;
-        entity->palette = parent->palette;
-        entity->flipX = parent->flipX;
-        if (!Enemy_IsStunnedNoFlash(parent))
+        if (parent && parent->updateFunc && parent->enemyId == 0x13)
         {
-            entity->ext.giantGhostAura.phase += 0x400;
-            Anim_Update(entity);
-            entity->timer++;
-            if ((entity->timer & 3) == 0)
+            entity->hidden = parent->hidden;
+            entity->palette = parent->palette;
+            entity->flipX = parent->flipX;
+            if (!Enemy_IsStunnedNoFlash(parent))
             {
-                s32 x = (RandomNumberGenerator() & 0x7FFFF) - 0x40000;
-                s32 y = (RandomNumberGenerator() & 0x7FFFF) - 0x40000;
-                GiantGhost_SpawnAuraTrail(entity, entity->posX.whole + x, entity->posY.whole + y);
+                entity->ext.giantGhostAura.phase += 0x400;
+                Anim_Update(entity);
+                entity->timer++;
+                if ((entity->timer & 3) == 0)
+                {
+                    s32 x = (RandomNumberGenerator() & 0x7FFFF) - 0x40000;
+                    s32 y = (RandomNumberGenerator() & 0x7FFFF) - 0x40000;
+                    GiantGhost_SpawnAuraTrail(entity, entity->posX.whole + x, entity->posY.whole + y);
+                }
             }
+            if (entity->flipX) entity->posX.part16.integer = parent->posX.part16.integer - 4;
+            else entity->posX.part16.integer = parent->posX.part16.integer + 4;
+            entity->posY.part16.integer = parent->posY.part16.integer - 18;
+            pulse = Sin(entity->ext.giantGhostAura.phase) / 16;
+            entity->velX.whole = pulse + 0x1B000;
+            entity->velY.whole = pulse + 0x1D000;
+            ObjAffine_SetBiased(0, entity->velX.whole, entity->velY.whole, entity->flipX, entity->flipY, entity->affineIndex);
+            if (parent->state == 2)
+            {
+                entity->state = 1;
+                entity->subState = 0;
+                entity->timer = 110;
+            }
+            return;
         }
-        if (entity->flipX) entity->posX.part16.integer = parent->posX.part16.integer - 4;
-        else entity->posX.part16.integer = parent->posX.part16.integer + 4;
-        entity->posY.part16.integer = parent->posY.part16.integer - 18;
-        pulse = Sin(entity->ext.giantGhostAura.phase) / 16;
-        entity->velX.whole = pulse + 0x1B000;
-        entity->velY.whole = pulse + 0x1D000;
-        ObjAffine_SetBiased(0, entity->velX.whole, entity->velY.whole, entity->flipX, entity->flipY, entity->affineIndex);
-        if (parent->state == 2)
-        {
-            entity->state = 1;
-            entity->subState = 0;
-            entity->timer = 110;
-        }
-        return;
-remove:
         ObjAffine_Free(entity->affineIndex);
         EntityDelete(entity);
     }
@@ -565,75 +566,75 @@ void GiantGhostHandA_Update(struct EwramData_EntityData *entity)
 
     if (entity->state == 0)
     {
-        if (!parent || !parent->updateFunc || parent->enemyId != 0x13)
-            goto remove;
-        entity->hidden = parent->hidden;
-        entity->palette = parent->palette;
-        entity->flipX = parent->flipX;
-        if (gEwramData->gameState.bestiaryPreview)
+        if (parent && parent->updateFunc && parent->enemyId == 0x13)
         {
-            if (entity->ext.giantGhostHand.swayDir)
+            entity->hidden = parent->hidden;
+            entity->palette = parent->palette;
+            entity->flipX = parent->flipX;
+            if (gEwramData->gameState.bestiaryPreview)
             {
-                entity->ext.giantGhostHand.pointX -= 0x10000;
-                entity->ext.giantGhostHand.pointY -= 0x10000;
-                if ((s8)++entity->ext.giantGhostHand.swayFrame > 0x3B)
+                if (entity->ext.giantGhostHand.swayDir)
                 {
-                    entity->ext.giantGhostHand.swayFrame = 0;
-                    entity->ext.giantGhostHand.swayDir ^= 1;
+                    entity->ext.giantGhostHand.pointX -= 0x10000;
+                    entity->ext.giantGhostHand.pointY -= 0x10000;
+                    if ((s8)++entity->ext.giantGhostHand.swayFrame > 0x3B)
+                    {
+                        entity->ext.giantGhostHand.swayFrame = 0;
+                        entity->ext.giantGhostHand.swayDir ^= 1;
+                    }
                 }
-            }
-            else
-            {
-                entity->ext.giantGhostHand.pointX += 0x10000;
-                entity->ext.giantGhostHand.pointY += 0x10000;
-                if ((s8)++entity->ext.giantGhostHand.swayFrame > 0x3B)
+                else
                 {
-                    entity->ext.giantGhostHand.swayFrame = 0;
-                    entity->ext.giantGhostHand.swayDir ^= 1;
+                    entity->ext.giantGhostHand.pointX += 0x10000;
+                    entity->ext.giantGhostHand.pointY += 0x10000;
+                    if ((s8)++entity->ext.giantGhostHand.swayFrame > 0x3B)
+                    {
+                        entity->ext.giantGhostHand.swayFrame = 0;
+                        entity->ext.giantGhostHand.swayDir ^= 1;
+                    }
                 }
-            }
-            x = parent->posX.whole - 0x10000;
-            y = parent->posY.whole - 0x1E0000;
-            x = entity->ext.giantGhostHand.pointX - x;
-            y = entity->ext.giantGhostHand.pointY - y;
-            angle = ArcTan2(FIXED_TO_INT(x), FIXED_TO_INT(y));
-            x = Sin(angle + 0x4000);
-            y = Sin(angle);
-            entity->velX.whole = x * 3;
-            entity->velY.whole = y * 2;
-            if (entity->flipX)
-                entity->velX.whole = x * 3 - 0x10000;
-            else
-                entity->velX.whole = x * 3 + 0x10000;
-        }
-        else if (!Enemy_IsStunnedNoFlash(parent))
-        {
-            if (entity->flipX)
-                x = parent->posX.whole + 0x10000;
-            else
                 x = parent->posX.whole - 0x10000;
-            y = parent->posY.whole - 0x10000;
-            x = Target_GetX(entity) - x;
-            y = Target_GetY(entity) - y;
-            angle = ArcTan2(FIXED_TO_INT(x), FIXED_TO_INT(y));
-            x = Sin(angle + 0x4000);
-            y = Sin(angle);
-            entity->velX.whole = x * 3;
-            entity->velY.whole = y * 2;
-            if (entity->flipX)
-                entity->velX.whole = x * 3 - 0x10000;
-            else
-                entity->velX.whole = x * 3 + 0x10000;
+                y = parent->posY.whole - 0x1E0000;
+                x = entity->ext.giantGhostHand.pointX - x;
+                y = entity->ext.giantGhostHand.pointY - y;
+                angle = ArcTan2(FIXED_TO_INT(x), FIXED_TO_INT(y));
+                x = Sin(angle + 0x4000);
+                y = Sin(angle);
+                entity->velX.whole = x * 3;
+                entity->velY.whole = y * 2;
+                if (entity->flipX)
+                    entity->velX.whole = x * 3 - 0x10000;
+                else
+                    entity->velX.whole = x * 3 + 0x10000;
+            }
+            else if (!Enemy_IsStunnedNoFlash(parent))
+            {
+                if (entity->flipX)
+                    x = parent->posX.whole + 0x10000;
+                else
+                    x = parent->posX.whole - 0x10000;
+                y = parent->posY.whole - 0x10000;
+                x = Target_GetX(entity) - x;
+                y = Target_GetY(entity) - y;
+                angle = ArcTan2(FIXED_TO_INT(x), FIXED_TO_INT(y));
+                x = Sin(angle + 0x4000);
+                y = Sin(angle);
+                entity->velX.whole = x * 3;
+                entity->velY.whole = y * 2;
+                if (entity->flipX)
+                    entity->velX.whole = x * 3 - 0x10000;
+                else
+                    entity->velX.whole = x * 3 + 0x10000;
+            }
+            entity->posX.whole = parent->posX.whole + entity->velX.whole;
+            entity->posY.whole = parent->posY.whole + entity->velY.whole;
+            if (parent->state == 2)
+            {
+                entity->state = 1;
+                entity->deleteRequested = 1;
+            }
+            return;
         }
-        entity->posX.whole = parent->posX.whole + entity->velX.whole;
-        entity->posY.whole = parent->posY.whole + entity->velY.whole;
-        if (parent->state == 2)
-        {
-            entity->state = 1;
-            entity->deleteRequested = 1;
-        }
-        return;
-    remove:
         EntityDelete(entity);
         return;
     }
@@ -657,75 +658,75 @@ void GiantGhostHandB_Update(struct EwramData_EntityData *entity)
 
     if (entity->state == 0)
     {
-        if (!parent || !parent->updateFunc || parent->enemyId != 0x13)
-            goto remove;
-        entity->hidden = parent->hidden;
-        entity->palette = parent->palette;
-        entity->flipX = parent->flipX;
-        if (gEwramData->gameState.bestiaryPreview)
+        if (parent && parent->updateFunc && parent->enemyId == 0x13)
         {
-            if (entity->ext.giantGhostHand.swayDir)
+            entity->hidden = parent->hidden;
+            entity->palette = parent->palette;
+            entity->flipX = parent->flipX;
+            if (gEwramData->gameState.bestiaryPreview)
             {
-                entity->ext.giantGhostHand.pointX -= 0x10000;
-                entity->ext.giantGhostHand.pointY -= 0x10000;
-                if ((s8)++entity->ext.giantGhostHand.swayFrame > 0x3B)
+                if (entity->ext.giantGhostHand.swayDir)
                 {
-                    entity->ext.giantGhostHand.swayFrame = 0;
-                    entity->ext.giantGhostHand.swayDir ^= 1;
+                    entity->ext.giantGhostHand.pointX -= 0x10000;
+                    entity->ext.giantGhostHand.pointY -= 0x10000;
+                    if ((s8)++entity->ext.giantGhostHand.swayFrame > 0x3B)
+                    {
+                        entity->ext.giantGhostHand.swayFrame = 0;
+                        entity->ext.giantGhostHand.swayDir ^= 1;
+                    }
                 }
-            }
-            else
-            {
-                entity->ext.giantGhostHand.pointX += 0x10000;
-                entity->ext.giantGhostHand.pointY += 0x10000;
-                if ((s8)++entity->ext.giantGhostHand.swayFrame > 0x3B)
+                else
                 {
-                    entity->ext.giantGhostHand.swayFrame = 0;
-                    entity->ext.giantGhostHand.swayDir ^= 1;
+                    entity->ext.giantGhostHand.pointX += 0x10000;
+                    entity->ext.giantGhostHand.pointY += 0x10000;
+                    if ((s8)++entity->ext.giantGhostHand.swayFrame > 0x3B)
+                    {
+                        entity->ext.giantGhostHand.swayFrame = 0;
+                        entity->ext.giantGhostHand.swayDir ^= 1;
+                    }
                 }
-            }
-            x = parent->posX.whole - 0x40000;
-            y = parent->posY.whole - 0x240000;
-            x = entity->ext.giantGhostHand.pointX - x;
-            y = entity->ext.giantGhostHand.pointY - y;
-            angle = ArcTan2(FIXED_TO_INT(x), FIXED_TO_INT(y));
-            x = Sin(angle + 0x4000);
-            y = Sin(angle);
-            entity->velX.whole = x * 2;
-            entity->velY.whole = y * 2;
-            if (entity->flipX)
-                entity->velX.whole = x * 2 - 0x10000;
-            else
-                entity->velX.whole = x * 2 + 0x10000;
-        }
-        else if (!Enemy_IsStunnedNoFlash(parent))
-        {
-            if (entity->flipX)
-                x = parent->posX.whole + 0x40000;
-            else
                 x = parent->posX.whole - 0x40000;
-            y = parent->posY.whole - 0x40000;
-            x = Target_GetX(entity) - x;
-            y = Target_GetY(entity) - y;
-            angle = ArcTan2(FIXED_TO_INT(x), FIXED_TO_INT(y));
-            x = Sin(angle + 0x4000);
-            y = Sin(angle);
-            entity->velX.whole = x * 2;
-            entity->velY.whole = y * 2;
-            if (entity->flipX)
-                entity->velX.whole = x * 2 - 0x10000;
-            else
-                entity->velX.whole = x * 2 + 0x10000;
+                y = parent->posY.whole - 0x240000;
+                x = entity->ext.giantGhostHand.pointX - x;
+                y = entity->ext.giantGhostHand.pointY - y;
+                angle = ArcTan2(FIXED_TO_INT(x), FIXED_TO_INT(y));
+                x = Sin(angle + 0x4000);
+                y = Sin(angle);
+                entity->velX.whole = x * 2;
+                entity->velY.whole = y * 2;
+                if (entity->flipX)
+                    entity->velX.whole = x * 2 - 0x10000;
+                else
+                    entity->velX.whole = x * 2 + 0x10000;
+            }
+            else if (!Enemy_IsStunnedNoFlash(parent))
+            {
+                if (entity->flipX)
+                    x = parent->posX.whole + 0x40000;
+                else
+                    x = parent->posX.whole - 0x40000;
+                y = parent->posY.whole - 0x40000;
+                x = Target_GetX(entity) - x;
+                y = Target_GetY(entity) - y;
+                angle = ArcTan2(FIXED_TO_INT(x), FIXED_TO_INT(y));
+                x = Sin(angle + 0x4000);
+                y = Sin(angle);
+                entity->velX.whole = x * 2;
+                entity->velY.whole = y * 2;
+                if (entity->flipX)
+                    entity->velX.whole = x * 2 - 0x10000;
+                else
+                    entity->velX.whole = x * 2 + 0x10000;
+            }
+            entity->posX.whole = parent->posX.whole + entity->velX.whole;
+            entity->posY.whole = parent->posY.whole + entity->velY.whole;
+            if (parent->state == 2)
+            {
+                entity->state = 1;
+                entity->deleteRequested = 1;
+            }
+            return;
         }
-        entity->posX.whole = parent->posX.whole + entity->velX.whole;
-        entity->posY.whole = parent->posY.whole + entity->velY.whole;
-        if (parent->state == 2)
-        {
-            entity->state = 1;
-            entity->deleteRequested = 1;
-        }
-        return;
-    remove:
         EntityDelete(entity);
         return;
     }

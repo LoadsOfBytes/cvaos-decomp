@@ -106,35 +106,35 @@ void EnemyQuezlcoatlCreate(struct EwramData_EntityData *entity)
         struct EwramData_EntityData *part = Entity_CreateObject(QuezlcoatlSegment_Update);
         s32 graphics;
 
-        if (!part)
-            goto fail;
-        part->spriteLayer = entity->spriteLayer + 1;
-        graphics = ObjGfx_Find(sQuezlcoatlWhiteDragonGfx);
-        Sprite_Attach(part, sQuezlcoatlWhiteDragonSpriteSheet, graphics, entity->basePalette);
-        if (!gEwramData->gameState.bestiaryPreview)
-            QuezlcoatlSegment_EnableHitBoxes(part);
-        part->enemyId = entity->enemyId;
-        part->basePalette = entity->basePalette;
-        part->scrollWithBg = 0;
-        part->drawFunc = Sprite_DrawEntity;
-        ENTITY_OWNER(part) = entity;
-        part->ext.quezlcoatlSegment.index = index;
-        part->timer = index;
-        part->attack = entity->attack;
-        part->ext.quezlcoatl.cameraX = entity->ext.quezlcoatl.cameraX;
-        part->ext.quezlcoatl.cameraY = entity->ext.quezlcoatl.cameraY;
-        part->posX.whole = entity->posX.whole;
-        part->posY.whole = entity->posY.whole - 0x40000;
-        if (index <= 5)
-            part->animFrame = 3;
-        else if (index <= 9)
-            part->animFrame = 15;
-        else if (index <= 13)
-            part->animFrame = 16;
-        else if (index <= 14)
-            part->animFrame = 17;
-        continue;
-    fail:
+        if (part)
+        {
+            part->spriteLayer = entity->spriteLayer + 1;
+            graphics = ObjGfx_Find(sQuezlcoatlWhiteDragonGfx);
+            Sprite_Attach(part, sQuezlcoatlWhiteDragonSpriteSheet, graphics, entity->basePalette);
+            if (!gEwramData->gameState.bestiaryPreview)
+                QuezlcoatlSegment_EnableHitBoxes(part);
+            part->enemyId = entity->enemyId;
+            part->basePalette = entity->basePalette;
+            part->scrollWithBg = 0;
+            part->drawFunc = Sprite_DrawEntity;
+            ENTITY_OWNER(part) = entity;
+            part->ext.quezlcoatlSegment.index = index;
+            part->timer = index;
+            part->attack = entity->attack;
+            part->ext.quezlcoatl.cameraX = entity->ext.quezlcoatl.cameraX;
+            part->ext.quezlcoatl.cameraY = entity->ext.quezlcoatl.cameraY;
+            part->posX.whole = entity->posX.whole;
+            part->posY.whole = entity->posY.whole - 0x40000;
+            if (index <= 5)
+                part->animFrame = 3;
+            else if (index <= 9)
+                part->animFrame = 15;
+            else if (index <= 13)
+                part->animFrame = 16;
+            else if (index <= 14)
+                part->animFrame = 17;
+            continue;
+        }
         /* the two failures above are separate copies; jump2 cross-jumps them into this one */
         EntityDelete(entity);
         return;
@@ -312,47 +312,48 @@ void QuezlcoatlSegment_Update(struct EwramData_EntityData *entity)
     if(entity->state==0)
     {
         s8 *history;
-        if(!owner || !owner->updateFunc || owner->enemyId!=26) goto fail;
-        history=(s8 *)owner->ext.quezlcoatl.history;
-        entity->hidden=owner->hidden;
-        entity->palette=owner->palette;
-        entity->timer++;
-        if(!Enemy_IsStunnedNoFlash(owner))
+        if(owner && owner->updateFunc && owner->enemyId==26)
         {
-            entity->velX.part16.integer=history[SEGMENT(entity)*8+8]+(entity->ext.quezlcoatl.cameraX-camera->xPos.part16.integer);
-            entity->velY.part16.integer=history[SEGMENT(entity)*8+9]+(entity->ext.quezlcoatl.cameraY-camera->yPos.part16.integer);
-            entity->posX.part16.integer+=entity->velX.part16.integer;
-            entity->posY.part16.integer+=entity->velY.part16.integer;
-            entity->ext.quezlcoatl.cameraX=camera->xPos.part16.integer;
-            entity->ext.quezlcoatl.cameraY=camera->yPos.part16.integer;
-            if(history[SEGMENT(entity)*8]>0) entity->flipX=1;
-            else if(history[SEGMENT(entity)*8]<0) entity->flipX=0;
-            if(SEGMENT(entity)<=5)
+            history=(s8 *)owner->ext.quezlcoatl.history;
+            entity->hidden=owner->hidden;
+            entity->palette=owner->palette;
+            entity->timer++;
+            if(!Enemy_IsStunnedNoFlash(owner))
             {
-                if(entity->timer&8) entity->animFrame=4;
-                else entity->animFrame=3;
+                entity->velX.part16.integer=history[SEGMENT(entity)*8+8]+(entity->ext.quezlcoatl.cameraX-camera->xPos.part16.integer);
+                entity->velY.part16.integer=history[SEGMENT(entity)*8+9]+(entity->ext.quezlcoatl.cameraY-camera->yPos.part16.integer);
+                entity->posX.part16.integer+=entity->velX.part16.integer;
+                entity->posY.part16.integer+=entity->velY.part16.integer;
+                entity->ext.quezlcoatl.cameraX=camera->xPos.part16.integer;
+                entity->ext.quezlcoatl.cameraY=camera->yPos.part16.integer;
+                if(history[SEGMENT(entity)*8]>0) entity->flipX=1;
+                else if(history[SEGMENT(entity)*8]<0) entity->flipX=0;
+                if(SEGMENT(entity)<=5)
+                {
+                    if(entity->timer&8) entity->animFrame=4;
+                    else entity->animFrame=3;
+                }
             }
+            else
+            {
+                entity->posX.part16.integer+=entity->ext.quezlcoatl.cameraX-camera->xPos.part16.integer;
+                entity->posY.part16.integer+=entity->ext.quezlcoatl.cameraY-camera->yPos.part16.integer;
+                entity->ext.quezlcoatl.cameraX=camera->xPos.part16.integer;
+                entity->ext.quezlcoatl.cameraY=camera->yPos.part16.integer;
+            }
+            if(!(entity->timer&7) && !gEwramData->gameState.bestiaryPreview) Hit_CheckWithPlayer(&result,entity);
+            if(owner->state==2)
+            {
+                entity->state=1;
+                entity->subState=0;
+                entity->accelX.whole=0;
+                entity->accelY.whole=0x2000;
+                entity->timer=RandomNumberGenerator()%4+60;
+                entity->velX.part16.integer=history[SEGMENT(entity)*8+8];
+                entity->velY.part16.integer=history[SEGMENT(entity)*8+9];
+            }
+            return;
         }
-        else
-        {
-            entity->posX.part16.integer+=entity->ext.quezlcoatl.cameraX-camera->xPos.part16.integer;
-            entity->posY.part16.integer+=entity->ext.quezlcoatl.cameraY-camera->yPos.part16.integer;
-            entity->ext.quezlcoatl.cameraX=camera->xPos.part16.integer;
-            entity->ext.quezlcoatl.cameraY=camera->yPos.part16.integer;
-        }
-        if(!(entity->timer&7) && !gEwramData->gameState.bestiaryPreview) Hit_CheckWithPlayer(&result,entity);
-        if(owner->state==2)
-        {
-            entity->state=1;
-            entity->subState=0;
-            entity->accelX.whole=0;
-            entity->accelY.whole=0x2000;
-            entity->timer=RandomNumberGenerator()%4+60;
-            entity->velX.part16.integer=history[SEGMENT(entity)*8+8];
-            entity->velY.part16.integer=history[SEGMENT(entity)*8+9];
-        }
-        return;
-fail:
         EntityDelete(entity);
     }
     else

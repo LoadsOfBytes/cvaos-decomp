@@ -79,33 +79,32 @@ void EnemyGolemUpdate(struct EwramData_EntityData *entity)
         if (entity->state != 2)
             Enemy_UpdateHitFlash(entity);
     }
-    if (Entity_IsTimeStopped(entity) && entity->state != 2)
-        goto boxes;
-    switch (entity->state)
-    {
-    case 0:
-        Golem_UpdateMovement(entity);
-        break;
-    case 1:
-        Golem_UpdateAttack(entity);
-        break;
-    case 2:
-        if ((entity->timer & 3) == 0)
+    if (!Entity_IsTimeStopped(entity) || entity->state == 2) {
+        switch (entity->state)
         {
-            s32 x = RandomNumberGenerator() % 0x280000 - 0x140000;
-            RandomNumberGenerator();
-            Effect_SpawnRisingParticle(entity->posX.whole + x, entity->posY.whole, entity->spriteLayer - 1, 1);
+        case 0:
+            Golem_UpdateMovement(entity);
+            break;
+        case 1:
+            Golem_UpdateAttack(entity);
+            break;
+        case 2:
+            if ((entity->timer & 3) == 0)
+            {
+                s32 x = RandomNumberGenerator() % 0x280000 - 0x140000;
+                RandomNumberGenerator();
+                Effect_SpawnRisingParticle(entity->posX.whole + x, entity->posY.whole, entity->spriteLayer - 1, 1);
+            }
+            if ((s8)--entity->timer <= 0)
+                entity->deleteRequested = 1;
+            if (entity->deleteRequested && entity->ext.golem.parts != NULL)
+                Heap_Free(entity->ext.golem.parts);
+            break;
+        case 3:
+            Golem_UpdateBestiaryPreview(entity);
+            return;
         }
-        if ((s8)--entity->timer <= 0)
-            entity->deleteRequested = 1;
-        if (entity->deleteRequested && entity->ext.golem.parts != NULL)
-            Heap_Free(entity->ext.golem.parts);
-        break;
-    case 3:
-        Golem_UpdateBestiaryPreview(entity);
-        return;
     }
-boxes:
     parts = (s32 *)entity->ext.golem.parts;
     if (entity->flipX)
         box.x = -TO_PIXELS(parts[4 * 8 + 0]) - 8;

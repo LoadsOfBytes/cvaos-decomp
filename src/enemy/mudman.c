@@ -491,10 +491,6 @@ void MudmanShot_Update(struct EwramData_EntityData *entity)
         }
         break;
     }
-    goto finished;
-    EntityDelete(entity);
-    return;
-finished:
     if (entity->state == 0) Hit_CheckWithPlayer(&result, entity);
     Anim_Update(entity);
 }

@@ -755,22 +755,23 @@ void Object0DUpdate(struct EwramData_EntityData *entity)
     if (angle > 0)
     {
         entity->ext.object0D.speed -= 0x10;
-        if ((s32)(entity->ext.object0D.angle = angle + entity->ext.object0D.speed) > 0)
-            goto clamp;
-        goto slow;
+        if ((s32)(entity->ext.object0D.angle = angle + entity->ext.object0D.speed) <= 0)
+        {
+            if (entity->ext.object0D.amplitude != 0)
+                entity->ext.object0D.amplitude -= 0x20;
+        }
     }
     else if (angle < 0)
     {
         entity->ext.object0D.speed += 0x10;
-        if ((s32)(entity->ext.object0D.angle = angle + entity->ext.object0D.speed) < 0)
-            goto clamp;
-    slow:
-        if (entity->ext.object0D.amplitude != 0)
-            entity->ext.object0D.amplitude -= 0x20;
+        if ((s32)(entity->ext.object0D.angle = angle + entity->ext.object0D.speed) >= 0)
+        {
+            if (entity->ext.object0D.amplitude != 0)
+                entity->ext.object0D.amplitude -= 0x20;
+        }
     }
     else
         entity->ext.object0D.angle = angle + entity->ext.object0D.speed;
-clamp:
     {
         s32 v = entity->ext.object0D.speed;
         s32 lim = entity->ext.object0D.amplitude;

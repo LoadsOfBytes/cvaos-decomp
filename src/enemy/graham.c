@@ -1845,17 +1845,19 @@ void GrahamFirstForm_UpdateAttacks(struct EwramData_EntityData *entity)
                 }
                 if(entity->ext.grahamTurn.volleySide)
                 {
-                    if(remaining==2) goto shot_one;
-                    Graham_CreateShotPair(entity,0);
-                    goto shot_done;
+                    if(remaining!=2)
+                    {
+                        Graham_CreateShotPair(entity,0);
+                        entity->timer=48;
+                        entity->stage--;
+                        break;
+                    }
+                    Graham_CreateShotPair(entity,1);
                 }
-                if(remaining==2) goto shot_zero;
-shot_one:
-                Graham_CreateShotPair(entity,1);
-                goto shot_done;
-shot_zero:
-                Graham_CreateShotPair(entity,0);
-shot_done:
+                else if(remaining!=2)
+                    Graham_CreateShotPair(entity,1);
+                else
+                    Graham_CreateShotPair(entity,0);
                 entity->timer=48;
                 entity->stage--;
             }
@@ -2743,7 +2745,9 @@ void BossDefeat_EmitSweepParticlesUnused(struct EwramData_EntityData *entity)
             timer=entity->timer;
             if(timer!=0)
                 goto tick;
-            goto advance;
+            entity->timer=64;
+            entity->state++;
+            break;
         case 2:
             if(entity->timer!=0)
             {
@@ -2784,7 +2788,6 @@ void BossDefeat_EmitSweepParticlesUnused(struct EwramData_EntityData *entity)
                     BgPalette_StopColorFade();
                     ObjPalette_StopColorFade();
                 }
-advance:
                 entity->timer=64;
                 entity->state++;
             }

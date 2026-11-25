@@ -1290,17 +1290,14 @@ void SoulMenu_DrawSelectedSoulValue(struct SoulMenu *menu)
         return;
     if (menu->type == 2)
         return;
-    if (menu->type == 0)
-        goto case0;
-    if (menu->type == 1)
-        goto case1;
-    goto tail;
-case0:
+    switch (menu->type)
+    {
+    case 0:
         value = sSomaRedSoulInfo[menu->selected].mpCost;
         FillRow((u16 *)(VRAM_BASE + 0xE442), 0x33AB);
         HudMap_ClearTiles(1, 0x12, 4);
-    goto tail;
-case1:
+        break;
+    case 1:
         value = sBlueSoulInfo[menu->selected].value;
         row = sBlueSoulInfo[menu->selected].row >> 1;
         FillRow((u16 *)(VRAM_BASE + 0xE442), 0x33BB);
@@ -1315,7 +1312,8 @@ case1:
                 tile++;
             }
         }
-tail:
+        break;
+    }
     HudMap_PrintNumber(4, 0x10, value, 3, 3, 0);
 }
 

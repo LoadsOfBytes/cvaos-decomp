@@ -475,7 +475,13 @@ void Pickup_Collect(struct EwramData_EntityData *e)
         c = inv->itemInventory[id];
         items = inv->itemInventory;
         if (c > 8 && !(e->subState & 2))
-            goto full;
+        {
+            if (e->ext.pickup.delay == 0)
+                PlaySong(0x13B);
+            e->ext.pickup.delay = 0x20;
+            e->deleteRequested = 0;
+            return;
+        }
         if (items[id] < 9)
             items[id] += 1;
         Hud_RequestPickupMessage(sItemNameTextIds[*info]);
@@ -494,7 +500,13 @@ void Pickup_Collect(struct EwramData_EntityData *e)
         c = inv->weaponInventory[id];
         items = inv->weaponInventory;
         if (c > 8 && !(e->subState & 2))
-            goto full;
+        {
+            if (e->ext.pickup.delay == 0)
+                PlaySong(0x13B);
+            e->ext.pickup.delay = 0x20;
+            e->deleteRequested = 0;
+            return;
+        }
         if (items[id] < 9)
             items[id] += 1;
         Hud_RequestPickupMessage(sItemNameTextIds[*info]);
@@ -515,7 +527,6 @@ void Pickup_Collect(struct EwramData_EntityData *e)
         items = inv->armorInventory;
         if (c > 8 && !(e->subState & 2))
         {
-        full:
             if (e->ext.pickup.delay == 0)
                 PlaySong(0x13B);
             e->ext.pickup.delay = 0x20;

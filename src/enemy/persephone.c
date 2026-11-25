@@ -324,7 +324,14 @@ void Persephone_UpdateAttack(struct EwramData_EntityData *entity)
         if ((res & 4) && entity->animDone)
         {
             if (entity->timer > 1 || (s8)entity->ext.persephone.contactHit == 1)
-                goto land;
+            {
+                entity->subState = 3;
+                entity->timer = 0;
+                entity->velY.whole = speed;
+                entity->accelY.whole = 0x2800;
+                Anim_StartIndexed(entity, 5, 0, 1);
+                break;
+            }
             entity->subState = 0;
             break;
         }
@@ -395,7 +402,6 @@ void Persephone_UpdateAttack(struct EwramData_EntityData *entity)
         {
             if (entity->timer > 1 || (s8)entity->ext.persephone.contactHit == 1)
             {
-            land:
                 entity->subState = 3;
                 entity->timer = 0;
                 entity->velY.whole = speed;

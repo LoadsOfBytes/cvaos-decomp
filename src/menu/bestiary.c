@@ -171,7 +171,11 @@ void BestiaryMenu_UpdateDetail(struct EwramData_EntityData *page)
             else
                 page->ext.menuList.cursor = 0;
         } while (!Bestiary_IsEnemyDefeated(page->ext.menuList.cursor));
-        goto moved;
+        if (page->ext.menuList.cursor != oldCursor)
+        {
+            page->subState = 2;
+            gUnk_03002CB0.dispCnt &= 0xEFFF;
+        }
     }
     else if (repeated & 0x220)
     {
@@ -184,7 +188,6 @@ void BestiaryMenu_UpdateDetail(struct EwramData_EntityData *page)
             else
                 page->ext.menuList.cursor = page->ext.menuList.count - 1;
         } while (!Bestiary_IsEnemyDefeated(page->ext.menuList.cursor));
-    moved:
         if (page->ext.menuList.cursor != oldCursor)
         {
             page->subState = 2;

@@ -257,7 +257,14 @@ void WaiterSkeleton_UpdateThrow(struct EwramData_EntityData *entity)
         break;
     case 2:
         entity->ext.waiterSkeleton.flags &= ~2;
-        goto finishThrow;
+        if (entity->animFlags & 4)
+        {
+            Anim_StartIndexed(entity, 3, 0, 1);
+            entity->state = 2;
+            entity->stage = 0;
+            entity->subState = 0;
+        }
+        break;
     case 3:
         {
             struct EwramData_EntityData *child = Entity_CreateObject(WaiterSkeletonThrownTray_Update);
@@ -275,7 +282,6 @@ void WaiterSkeleton_UpdateThrow(struct EwramData_EntityData *entity)
         }
         break;
     case 4:
-finishThrow:
         if (entity->animFlags & 4)
         {
             Anim_StartIndexed(entity, 3, 0, 1);
@@ -535,7 +541,10 @@ void SkullArcherArrow_Update(struct EwramData_EntityData *entity)
     if (entity->state != 2 && (s16)entity->hp <= 0)
         entity->state = 2;
     if (gEwramData->gameState.timeStopTimer != 0 && entity->state != 2)
-        goto collision;
+        {
+        Hit_CheckWithPlayer(&result, entity);
+        return;
+    }
     if (EntityIsOutsideScreen(entity, 4))
     {
         EntityDelete(entity);
@@ -546,7 +555,6 @@ void SkullArcherArrow_Update(struct EwramData_EntityData *entity)
         case 0:
             Entity_SetVelocityXFromFacing(entity, 0x30000);
             EntityMoveX(entity);
-        collision:
             Hit_CheckWithPlayer(&result, entity);
             break;
         case 1:

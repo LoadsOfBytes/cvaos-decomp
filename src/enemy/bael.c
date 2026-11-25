@@ -758,7 +758,7 @@ void Bael_MoveAndRotate(struct EwramData_EntityData *entity,s32 mode)
                 adjusted = speed - 0x666;
             else
                 adjusted = speed + 0x666;
-            goto set_speed;
+            entity->ext.wheel.speed = adjusted;
         }
         else if (collision & 0x20)
         {
@@ -767,7 +767,7 @@ void Bael_MoveAndRotate(struct EwramData_EntityData *entity,s32 mode)
                 adjusted = speed + 0x666;
             else
                 adjusted = speed - 0x666;
-            goto set_speed;
+            entity->ext.wheel.speed = adjusted;
         }
         else if ((speed = entity->ext.wheel.speed) >= 0)
         {
@@ -775,7 +775,6 @@ void Bael_MoveAndRotate(struct EwramData_EntityData *entity,s32 mode)
             if ((s32)entity->ext.wheel.speed <= 0x6FFF)
             {
                 adjusted = 0x7000;
-set_speed:
                 entity->ext.wheel.speed = adjusted;
             }
         }

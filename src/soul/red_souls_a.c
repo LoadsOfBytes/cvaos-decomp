@@ -1865,15 +1865,18 @@ void SkillDryadUse(struct EwramData_EntityData *entity)
             }
             if (entity->ext.redSoul.anchorTimer++ <= 0x14)
             {
-                if (!(target->hit.flags & 4))
-                    goto animate;
+                if (target->hit.flags & 4)
+                {
+                    entity->state = 4;
+                    break;
+                }
+            }
+            else
+            {
                 entity->state = 4;
                 break;
             }
-            entity->state = 4;
-            break;
         }
-    animate:
         r = Anim_Update(entity);
         if (r == 3)
         {

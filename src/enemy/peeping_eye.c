@@ -471,64 +471,65 @@ void PeepingEyePupil_Update(struct EwramData_EntityData *entity)
     s32 bounds[4];
     if (entity->state == 0)
     {
-        if (!owner || !owner->updateFunc || owner->enemyId != 6) goto fail;
-        entity->hidden = owner->hidden;
-        entity->palette = owner->palette;
-        entity->flipX = owner->flipX;
-        if (gEwramData->gameState.bestiaryPreview)
+        if (owner && owner->updateFunc && owner->enemyId == 6)
         {
-            entity->posX.whole = owner->posX.whole;
-            entity->posY.whole = owner->posY.whole;
-        }
-        else if (owner->ext.peepingEyeBody.animFlags & 2)
-        {
-            s32 x = owner->posX.whole + 0x10000;
-            /* y holds the owner Y first, later the distance on each axis */
-            s32 y = owner->posY.whole;
-            s32 pixelX, pixelY, delta;
-            s32 dy;
-            u16 direction;
-            x = Target_GetX(entity) - x;
+            entity->hidden = owner->hidden;
+            entity->palette = owner->palette;
+            entity->flipX = owner->flipX;
+            if (gEwramData->gameState.bestiaryPreview)
             {
-                s32 target = Target_GetY(entity);
-                y += 0x170000;
-                dy = target - y;
+                entity->posX.whole = owner->posX.whole;
+                entity->posY.whole = owner->posY.whole;
             }
-            if (x < 0) pixelX = (s16)(-((-x) >> 16));
-            else pixelX = x >> 16;
-            if (dy < 0) pixelY = (s16)(-((-dy) >> 16));
-            else pixelY = dy >> 16;
-            direction = ArcTan2(pixelX, pixelY);
-            x = Sin(direction + 0x4000);
-            dy = Sin(direction);
-            x *= 3;
-            dy *= 3;
-            delta = entity->velX.whole - x;
-            y = delta;
-            if (y < 0) y = -delta;
-            if (y <= 0x3FFF)
-                entity->velX.whole = x;
-            else
-                entity->velX.whole += delta > 0 ? -0x4000 : 0x4000;
-            delta = entity->velY.whole - dy;
-            y = delta;
-            if (y < 0) y = -delta;
-            if (y <= 0x3FFF)
-                entity->velY.whole = dy;
-            else if (delta > 0)
-                entity->velY.whole += -0x4000;
-            else
-                entity->velY.whole += 0x4000;
+            else if (owner->ext.peepingEyeBody.animFlags & 2)
+            {
+                s32 x = owner->posX.whole + 0x10000;
+                /* y holds the owner Y first, later the distance on each axis */
+                s32 y = owner->posY.whole;
+                s32 pixelX, pixelY, delta;
+                s32 dy;
+                u16 direction;
+                x = Target_GetX(entity) - x;
+                {
+                    s32 target = Target_GetY(entity);
+                    y += 0x170000;
+                    dy = target - y;
+                }
+                if (x < 0) pixelX = (s16)(-((-x) >> 16));
+                else pixelX = x >> 16;
+                if (dy < 0) pixelY = (s16)(-((-dy) >> 16));
+                else pixelY = dy >> 16;
+                direction = ArcTan2(pixelX, pixelY);
+                x = Sin(direction + 0x4000);
+                dy = Sin(direction);
+                x *= 3;
+                dy *= 3;
+                delta = entity->velX.whole - x;
+                y = delta;
+                if (y < 0) y = -delta;
+                if (y <= 0x3FFF)
+                    entity->velX.whole = x;
+                else
+                    entity->velX.whole += delta > 0 ? -0x4000 : 0x4000;
+                delta = entity->velY.whole - dy;
+                y = delta;
+                if (y < 0) y = -delta;
+                if (y <= 0x3FFF)
+                    entity->velY.whole = dy;
+                else if (delta > 0)
+                    entity->velY.whole += -0x4000;
+                else
+                    entity->velY.whole += 0x4000;
+            }
+            entity->posX.whole = owner->posX.whole + entity->velX.whole;
+            entity->posY.whole = owner->posY.whole + entity->velY.whole;
+            if (owner->state == 2)
+            {
+                entity->state = 1;
+                entity->deleteRequested = 1;
+            }
+            return;
         }
-        entity->posX.whole = owner->posX.whole + entity->velX.whole;
-        entity->posY.whole = owner->posY.whole + entity->velY.whole;
-        if (owner->state == 2)
-        {
-            entity->state = 1;
-            entity->deleteRequested = 1;
-        }
-        return;
-    fail:
         EntityDelete(entity);
         return;
     }
@@ -542,28 +543,29 @@ void PeepingEyeEyeball_Update(struct EwramData_EntityData *entity)
     s32 bounds[4];
     if (entity->state == 0)
     {
-        if (!owner || !owner->updateFunc || owner->enemyId != 6) goto fail;
-        entity->hidden = owner->hidden;
-        entity->palette = owner->palette;
-        /* Both branches are identical; the compiler merges them but keeps
-         * the bestiaryPreview test, as in the original. */
-        if (!gEwramData->gameState.bestiaryPreview)
+        if (owner && owner->updateFunc && owner->enemyId == 6)
         {
-            entity->posX.whole = owner->posX.whole;
-            entity->posY.whole = owner->posY.whole;
+            entity->hidden = owner->hidden;
+            entity->palette = owner->palette;
+            /* Both branches are identical; the compiler merges them but keeps
+             * the bestiaryPreview test, as in the original. */
+            if (!gEwramData->gameState.bestiaryPreview)
+            {
+                entity->posX.whole = owner->posX.whole;
+                entity->posY.whole = owner->posY.whole;
+            }
+            else
+            {
+                entity->posX.whole = owner->posX.whole;
+                entity->posY.whole = owner->posY.whole;
+            }
+            if (owner->state == 2)
+            {
+                entity->state = 1;
+                entity->deleteRequested = 1;
+            }
+            return;
         }
-        else
-        {
-            entity->posX.whole = owner->posX.whole;
-            entity->posY.whole = owner->posY.whole;
-        }
-        if (owner->state == 2)
-        {
-            entity->state = 1;
-            entity->deleteRequested = 1;
-        }
-        return;
-    fail:
         EntityDelete(entity);
         return;
     }
@@ -619,98 +621,99 @@ void PeepingEyeChainLink_Update(struct EwramData_EntityData *entity)
     s32 x, y;
     s32 bounds[4];
 
-    if (!owner || !owner->updateFunc || owner->enemyId != 6) goto fail;
-    entity->palette = owner->palette;
-    if (!Enemy_IsStunnedNoFlash(owner))
+    if (owner && owner->updateFunc && owner->enemyId == 6)
     {
-        switch (entity->subState)
+        entity->palette = owner->palette;
+        if (!Enemy_IsStunnedNoFlash(owner))
         {
-        case 0:
-            if (owner->ext.peepingEyeBody.animFlags & 2) entity->subState = 1;
-            break;
-        case 1:
-            LINK_ANGLE(entity) += 500;
-            if (LINK_ANGLE(entity) > 0x7800)
+            switch (entity->subState)
             {
-                LINK_ANGLE(entity) = 0x7800;
-                entity->subState++;
+            case 0:
+                if (owner->ext.peepingEyeBody.animFlags & 2) entity->subState = 1;
+                break;
+            case 1:
+                LINK_ANGLE(entity) += 500;
+                if (LINK_ANGLE(entity) > 0x7800)
+                {
+                    LINK_ANGLE(entity) = 0x7800;
+                    entity->subState++;
+                }
+                break;
+            case 2:
+                LINK_ANGLE(entity) -= 500;
+                if (LINK_ANGLE(entity) < 0x800)
+                {
+                    LINK_ANGLE(entity) = 0x800;
+                    entity->subState--;
+                }
+                break;
             }
-            break;
-        case 2:
-            LINK_ANGLE(entity) -= 500;
-            if (LINK_ANGLE(entity) < 0x800)
+            if (owner->ext.peepingEyeBody.animFlags & 2)
             {
-                LINK_ANGLE(entity) = 0x800;
-                entity->subState--;
+                entity->hidden = 0;
+                if (LINK_LENGTH(entity) < LINK_MAX_LENGTH(entity))
+                {
+                    LINK_LENGTH(entity) += LINK_MAX_LENGTH(entity) / 64;
+                    if (LINK_LENGTH(entity) >= LINK_MAX_LENGTH(entity))
+                        LINK_LENGTH(entity) = LINK_MAX_LENGTH(entity);
+                }
             }
-            break;
+            else
+                entity->hidden = 1;
         }
-        if (owner->ext.peepingEyeBody.animFlags & 2)
+        if (LINK_INDEX(entity) == 0)
+            angle = LINK_ANGLE(entity) - (LINK_ANGLE(entity) - 0x4000) / 4;
+        else if (LINK_INDEX(entity) == 1)
+            angle = LINK_ANGLE(entity);
+        else
+            angle = LINK_ANGLE(entity) + (LINK_ANGLE(entity) - 0x4000) / 4;
+        x = Sin(angle + 0x4000);
+        x = FixedMultiply(x, LINK_LENGTH(entity));
+        y = Sin(angle);
+        y = FixedMultiply(y, LINK_LENGTH(entity));
+        entity->posX.whole = previous->posX.whole + x;
+        entity->posY.whole = previous->posY.whole + y;
+        if (LINK_INDEX(entity) == 5)
+            ObjAffine_SetBiased(LINK_ANGLE(entity) + (LINK_ANGLE(entity) - 0x4000) / 2, 0x10000, 0x10000,
+                         entity->flipX, entity->flipY, entity->affineIndex);
+        if (entity->state == 0 && owner->state == 2)
+        {
+            entity->state = 1;
+            entity->scrollWithBg = 1;
+            entity->hidden = 0;
+        }
+        if (entity->state == 1)
         {
             entity->hidden = 0;
-            if (LINK_LENGTH(entity) < LINK_MAX_LENGTH(entity))
+            if ((s8)LINK_TIMER(entity)-- == 0)
             {
-                LINK_LENGTH(entity) += LINK_MAX_LENGTH(entity) / 64;
-                if (LINK_LENGTH(entity) >= LINK_MAX_LENGTH(entity))
-                    LINK_LENGTH(entity) = LINK_MAX_LENGTH(entity);
+                Effect_SpawnAt(entity->posX.whole, entity->posY.whole + 0x40000, entity->spriteLayer - 1);
+                entity->state++;
+                LINK_TIMER(entity) = 4;
             }
         }
-        else
+        if (entity->state == 2)
+        {
+            entity->hidden = 0;
+            if ((s8)LINK_TIMER(entity)-- == 0)
+            {
+                Effect_SpawnAt(entity->posX.whole, entity->posY.whole + 0x40000, entity->spriteLayer - 1);
+                entity->state++;
+                entity->hidden = 1;
+            }
+        }
+        if (entity->state == 3)
+        {
             entity->hidden = 1;
-    }
-    if (LINK_INDEX(entity) == 0)
-        angle = LINK_ANGLE(entity) - (LINK_ANGLE(entity) - 0x4000) / 4;
-    else if (LINK_INDEX(entity) == 1)
-        angle = LINK_ANGLE(entity);
-    else
-        angle = LINK_ANGLE(entity) + (LINK_ANGLE(entity) - 0x4000) / 4;
-    x = Sin(angle + 0x4000);
-    x = FixedMultiply(x, LINK_LENGTH(entity));
-    y = Sin(angle);
-    y = FixedMultiply(y, LINK_LENGTH(entity));
-    entity->posX.whole = previous->posX.whole + x;
-    entity->posY.whole = previous->posY.whole + y;
-    if (LINK_INDEX(entity) == 5)
-        ObjAffine_SetBiased(LINK_ANGLE(entity) + (LINK_ANGLE(entity) - 0x4000) / 2, 0x10000, 0x10000,
-                     entity->flipX, entity->flipY, entity->affineIndex);
-    if (entity->state == 0 && owner->state == 2)
-    {
-        entity->state = 1;
-        entity->scrollWithBg = 1;
-        entity->hidden = 0;
-    }
-    if (entity->state == 1)
-    {
-        entity->hidden = 0;
-        if ((s8)LINK_TIMER(entity)-- == 0)
-        {
-            Effect_SpawnAt(entity->posX.whole, entity->posY.whole + 0x40000, entity->spriteLayer - 1);
-            entity->state++;
-            LINK_TIMER(entity) = 4;
+            if (owner->state == 3)
+            {
+                entity->deleteRequested = 1;
+                if (LINK_INDEX(entity) == 5) ObjAffine_Free(entity->affineIndex);
+            }
         }
+        if (!entity->hidden && EntityIsOutsideScreen(entity, 1)) entity->hidden = 1;
+        return;
     }
-    if (entity->state == 2)
-    {
-        entity->hidden = 0;
-        if ((s8)LINK_TIMER(entity)-- == 0)
-        {
-            Effect_SpawnAt(entity->posX.whole, entity->posY.whole + 0x40000, entity->spriteLayer - 1);
-            entity->state++;
-            entity->hidden = 1;
-        }
-    }
-    if (entity->state == 3)
-    {
-        entity->hidden = 1;
-        if (owner->state == 3)
-        {
-            entity->deleteRequested = 1;
-            if (LINK_INDEX(entity) == 5) ObjAffine_Free(entity->affineIndex);
-        }
-    }
-    if (!entity->hidden && EntityIsOutsideScreen(entity, 1)) entity->hidden = 1;
-    return;
-fail:
     EntityDelete(entity);
 }
 

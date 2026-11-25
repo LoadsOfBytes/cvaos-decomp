@@ -244,18 +244,11 @@ void RockArmorRock_Update(struct EwramData_EntityData *entity)
 static inline s32 CanAttack(struct EwramData_EntityData *e, s32 range)
 {
     s32 result;
-    if ((e->flipX && (s8)Entity_GetTargetDirection(e) >= 0) || (!e->flipX && (s8)Entity_GetTargetDirection(e) <= 0))
-        goto facing;
-    goto no;
-facing:
-    if (Entity_GetTargetDistance(e) <= range)
-    {
+    if (((e->flipX && (s8)Entity_GetTargetDirection(e) >= 0) || (!e->flipX && (s8)Entity_GetTargetDirection(e) <= 0))
+        && Entity_GetTargetDistance(e) <= range)
         result = 1;
-        goto end;
-    }
-no:
-    result = 0;
-end:
+    else
+        result = 0;
     return result;
 }
 

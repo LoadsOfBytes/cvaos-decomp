@@ -339,7 +339,8 @@ void ZombieSoldierGrenade_Update(struct EwramData_EntityData *entity)
         }
         if (EntityIsOutsideScreen(entity, 2))
             goto delete;
-        goto hit;
+        Hit_CheckWithPlayer(&result, entity);
+        return;
     }
     else if (entity->state == 1)
     {
@@ -408,7 +409,6 @@ void ZombieSoldierGrenade_Update(struct EwramData_EntityData *entity)
         }
         if (entity->timer <= 0x12)
         {
-        hit:
             Hit_CheckWithPlayer(&result, entity);
         }
         else

@@ -96,7 +96,9 @@ void BossDefeatEffect_Update(struct EwramData_EntityData *entity)
             timer=entity->timer;
             if(timer!=0)
                 goto tick;
-            goto advance;
+            entity->timer=64;
+            entity->state++;
+            break;
         case 2:
             if(entity->timer!=0)
             {
@@ -137,7 +139,6 @@ void BossDefeatEffect_Update(struct EwramData_EntityData *entity)
                     BgPalette_StopColorFade();
                     ObjPalette_StopColorFade();
                 }
-advance:
                 entity->timer=64;
                 entity->state++;
             }
@@ -220,7 +221,9 @@ void HeadhunterDefeatEffect_Update(struct EwramData_EntityData *entity)
                 break;
             }
             timer=96;
-            goto advance;
+            entity->timer=timer;
+            entity->state++;
+            break;
         case 2:
             if(entity->timer!=0)
             {
@@ -257,7 +260,6 @@ void HeadhunterDefeatEffect_Update(struct EwramData_EntityData *entity)
                     ObjPalette_StopColorFade();
                 }
                 timer=64;
-advance:
                 entity->timer=timer;
                 entity->state++;
             }
@@ -329,7 +331,9 @@ void ChaosDefeatEffect_Update(struct EwramData_EntityData *entity)
             timer=entity->timer;
             if(timer!=0)
                 goto tick;
-            goto advance;
+            entity->timer=64;
+            entity->state++;
+            break;
         case 2:
             if(entity->timer!=0)
             {
@@ -370,7 +374,6 @@ void ChaosDefeatEffect_Update(struct EwramData_EntityData *entity)
                     BgPalette_StopColorFade();
                     ObjPalette_StopColorFade();
                 }
-advance:
                 entity->timer=64;
                 entity->state++;
             }

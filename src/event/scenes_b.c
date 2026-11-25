@@ -172,14 +172,16 @@ s32 EventScene04_Update(struct EwramData_EntityData *entity)
             case 1:
                 if (--entity->timer != 0xFF)
                     break;
-                goto next;
+                entity->stage++;
+                break;
             case 2:
                 player = (*ewp)->playerState.player;
                 if ((s16)player->posX.part16.integer > 0x56)
                 {
                     player->flipX = 0;
                     (*ewp)->playerState.player->posX.part16.integer = 0x57;
-                    goto next;
+                    entity->stage++;
+                    break;
                 }
                 ret = 0x10;
                 break;
@@ -197,7 +199,9 @@ s32 EventScene04_Update(struct EwramData_EntityData *entity)
             case 0:
                 entity->ext.event04.animPos = ret;
                 v = 0xFF;
-                goto set;
+                entity->timer = v;
+                entity->stage++;
+                break;
             case 1:
                 if (--entity->timer == 0xFF)
                 {
@@ -229,9 +233,7 @@ s32 EventScene04_Update(struct EwramData_EntityData *entity)
                 if ((s16)entity->posX.part16.integer > 0xFF)
                 {
                     v = 0x10;
-                set:
                     entity->timer = v;
-                next:
                     entity->stage++;
                 }
                 else
@@ -350,7 +352,8 @@ s32 EventScene05_Update(struct EwramData_EntityData *entity)
             case 1:
                 if (--entity->timer != 0xFF)
                     break;
-                goto next;
+                entity->stage++;
+                break;
             case 2:
                 player = (*ewp)->playerState.player;
                 {
@@ -358,7 +361,8 @@ s32 EventScene05_Update(struct EwramData_EntityData *entity)
                     if ((s16)*px > 0x4F)
                     {
                         *px = 0x50;
-                        goto next;
+                        entity->stage++;
+                        break;
                     }
                 }
                 ret = 0x10;
@@ -392,7 +396,6 @@ s32 EventScene05_Update(struct EwramData_EntityData *entity)
             case 2:
                 ew->gameState.textWindowPause = ret;
                 ew->gameState.textWindowState = 5;
-            next:
                 entity->stage++;
                 break;
             }
@@ -511,7 +514,8 @@ s32 EventScene06_Update(struct EwramData_EntityData *entity)
                 {
                     Music_SetCurrent(0x16);
                     g->textWindowPause = cx;
-                    goto next;
+                    entity->stage++;
+                    break;
                 }
                 break;
             }
@@ -537,7 +541,6 @@ s32 EventScene06_Update(struct EwramData_EntityData *entity)
                 {
                     g->textWindowPause = 0;
                     g->textWindowState = 5;
-                next:
                     entity->stage++;
                 }
                 break;
@@ -647,7 +650,8 @@ s32 EventScene07_Update(struct EwramData_EntityData *entity)
                 }
                 Music_SetCurrent(0x16);
                 g->textWindowPause = 0;
-                goto next;
+                entity->stage++;
+                break;
             }
             }
             break;
@@ -688,7 +692,6 @@ s32 EventScene07_Update(struct EwramData_EntityData *entity)
             {
                 *flag = 0;
                 g->textWindowState = 5;
-            next:
                 entity->stage++;
             }
             break;
@@ -793,14 +796,16 @@ s32 EventScene08_Update(struct EwramData_EntityData *entity)
             case 1:
                 if (--entity->timer != 0xFF)
                     break;
-                goto next;
+                entity->stage++;
+                break;
             case 2:
                 if ((s16)(*ewp)->playerState.player->posX.part16.integer <= 0xA0)
                 {
                     Music_SetCurrent(0x16);
                     ew->gameState.textWindowPause = ret;
                     (*ewp)->playerState.player->posX.part16.integer = 0xA0;
-                    goto next;
+                    entity->stage++;
+                    break;
                 }
                 ret = 0x20;
                 break;
@@ -810,7 +815,8 @@ s32 EventScene08_Update(struct EwramData_EntityData *entity)
             if (entity->stage == 0)
             {
                 PlaySong(0x1B7);
-                goto next;
+                entity->stage++;
+                break;
             }
             break;
         case 2:
@@ -830,7 +836,6 @@ s32 EventScene08_Update(struct EwramData_EntityData *entity)
                 {
                     g->textWindowPause = 0;
                     g->textWindowState = 5;
-                next:
                     entity->stage++;
                 }
                 else

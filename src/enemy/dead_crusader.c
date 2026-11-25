@@ -300,9 +300,16 @@ void DeadCrusader_UpdateAttack(struct EwramData_EntityData *entity)
         }
         break;
     case 3:
-        if (entity->timer++ <= 0x13)
-            break;
-        goto done;
+        if (entity->timer++ > 0x13)
+        {
+            Anim_StartIndexed(entity, 1, 0, 1);
+            entity->state = 0;
+            entity->subState = 1;
+            entity->timer = 0;
+            entity->velY.whole = 0x10000;
+            entity->accelY.whole = 0x2800;
+        }
+        break;
     case 4:
         break;
     case 5:
@@ -321,7 +328,6 @@ void DeadCrusader_UpdateAttack(struct EwramData_EntityData *entity)
         {
             if (entity->stage++ > 2)
             {
-            done:
                 Anim_StartIndexed(entity, 1, 0, 1);
                 entity->state = 0;
                 entity->subState = 1;

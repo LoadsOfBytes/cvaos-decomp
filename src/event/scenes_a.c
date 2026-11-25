@@ -210,7 +210,8 @@ s32 EventScene00_Update(struct EwramData_EntityData *entity)
             break;
         case 2:
             Anim_StartIndexed(entity, 2, 2, 0);
-            goto next;
+            entity->subState++;
+            break;
         case 3:
             if (entity->animDone)
             {
@@ -229,7 +230,6 @@ s32 EventScene00_Update(struct EwramData_EntityData *entity)
                 ret = 0x200;
             if (entity->velX.whole > -0x1000)
             {
-            next:
                 entity->subState++;
             }
             break;

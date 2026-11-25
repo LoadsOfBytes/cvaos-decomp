@@ -407,11 +407,14 @@ s32 SavePoint_StepPromptFade(struct EwramData_EntityData *entity)
             entity->hidden = 0;
             entity->ext.savePointPrompt.fade = 0;
             ObjPalette_LoadRange(sSaveWarpRoomPalette, 5, 1, 14);
-            goto advance;
+            entity->subState++;
+            break;
         case 1:
             entity->ext.savePointPrompt.fade += 0x2000;
             if ((s32)entity->ext.savePointPrompt.fade <= 0xFFFF) goto end;
-            goto full;
+            entity->ext.savePointPrompt.fade = 0x10000;
+            entity->subState++;
+            break;
         case 2:
             done = 1;
             break;
@@ -422,9 +425,7 @@ s32 SavePoint_StepPromptFade(struct EwramData_EntityData *entity)
         {
         case 0:
             entity->hidden = 0;
-        full:
             entity->ext.savePointPrompt.fade = 0x10000;
-        advance:
             entity->subState++;
             break;
         case 1:
@@ -668,7 +669,8 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
         if (entity->timer <= 0xF)
             break;
         gEwramData->gameState.stateFlags &= ~1;
-        goto done;
+        entity->state = 0x63;
+        break;
     case 10:
     case 20:
         if (SAVE_POINT_SAVE_DONE(entity) != 1)
@@ -733,7 +735,6 @@ void Object1CUpdate(struct EwramData_EntityData *entity)
                 Bg_SetControlIfLevelAllows(3, 0x54, 0);
                 entity->timer = 0;
                 entity->subState = 0;
-            done:
                 entity->state = 0x63;
             }
             break;

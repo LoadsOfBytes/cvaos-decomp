@@ -385,7 +385,7 @@ void Stolas_UpdateMove(struct EwramData_EntityData *entity)
                 if (Entity_GetHorizontalRoomEdge(entity, 20) == 2)
                 {
                     Stolas_TurnAround(entity);
-                    goto reset;
+                    changed = 1;
                 }
             }
             else if (Entity_GetHorizontalRoomEdge(entity, 20) == 1)
@@ -437,7 +437,6 @@ void Stolas_UpdateMove(struct EwramData_EntityData *entity)
                     }
                 }
             }
-reset:
             entity->timer = 36;
             entity->subState = 1;
             Anim_StartIndexed(entity, 1, 0, 0);
@@ -1097,34 +1096,34 @@ void StolasCastEffect_Update(struct EwramData_EntityData *entity)
     u8 unused[16];
     struct EwramData_EntityData *owner = entity->ext.stolasEffect.owner;
 
-    if (owner == NULL || owner->updateFunc == NULL || owner->enemyId != 0x61)
-        goto free;
-    if (entity->state == 0)
+    if (owner != NULL && owner->updateFunc != NULL && owner->enemyId == 0x61)
     {
-        if (owner->palette == 4)
-            entity->palette = 4;
-        else
-            entity->palette = entity->basePalette;
-        if (entity->timer > 0xE)
+        if (entity->state == 0)
         {
-            if (entity->flipX)
+            if (owner->palette == 4)
+                entity->palette = 4;
+            else
+                entity->palette = entity->basePalette;
+            if (entity->timer > 0xE)
             {
-                if (entity->ext.stolasEffect.castAngle <= 0xFFFF)
-                    entity->ext.stolasEffect.castAngle += 0x800;
+                if (entity->flipX)
+                {
+                    if (entity->ext.stolasEffect.castAngle <= 0xFFFF)
+                        entity->ext.stolasEffect.castAngle += 0x800;
+                }
+                else if (entity->ext.stolasEffect.castAngle > -0x10000)
+                    entity->ext.stolasEffect.castAngle += -0x800;
             }
-            else if (entity->ext.stolasEffect.castAngle > -0x10000)
-                entity->ext.stolasEffect.castAngle += -0x800;
+            if (entity->timer++ > 0x3B || owner->state == 2)
+            {
+                ObjAffine_Free(entity->affineIndex);
+                EntityDelete(entity);
+                return;
+            }
         }
-        if (entity->timer++ > 0x3B || owner->state == 2)
-        {
-            ObjAffine_Free(entity->affineIndex);
-            EntityDelete(entity);
-            return;
-        }
+        ObjAffine_Set(entity->ext.stolasEffect.castAngle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
+        return;
     }
-    ObjAffine_Set(entity->ext.stolasEffect.castAngle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
-    return;
-free:
     ObjAffine_Free(entity->affineIndex);
     EntityDelete(entity);
 }

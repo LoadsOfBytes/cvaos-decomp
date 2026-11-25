@@ -299,7 +299,12 @@ void WormSegment_Update(struct EwramData_EntityData *entity)
     {
     case 0:
         if (owner->ext.worm.aggressive != 0)
-            goto delete;
+        {
+            if (ENTITY_RENDER_FLAGS16(entity) & 0x101F)
+                ObjAffine_Free(entity->affineIndex);
+            EntityDelete(entity);
+            return;
+        }
         {
             s32 tiles = ObjGfx_LoadResource(sWormGfx, 0);
             Sprite_Attach(entity, sWormSpriteSheet, tiles, owner->basePalette);
@@ -357,7 +362,6 @@ void WormSegment_Update(struct EwramData_EntityData *entity)
             break;
         }
     case 3:
-    delete:
         if (ENTITY_RENDER_FLAGS16(entity) & 0x101F)
             ObjAffine_Free(entity->affineIndex);
         EntityDelete(entity);

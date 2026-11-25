@@ -589,30 +589,24 @@ void Nemesis_OnHit(struct EwramData_EntityData *entity, s32 hit, u16 *data)
     }
     Entity_ShowDamage(entity, (s16)damage, 0);
     entity->hitFlashTimer = 8;
-    if (entity->ext.nemesis.hitsBeforeReact != 0)
+    if (entity->ext.nemesis.hitsBeforeReact != 0 && (s16)entity->hp > 0)
+        entity->ext.nemesis.hitsBeforeReact--;
+    else
     {
-        if ((s16)entity->hp > 0)
+        if ((s16)entity->hp <= 0)
         {
-            entity->ext.nemesis.hitsBeforeReact--;
-            goto done;
+            Enemy_DropRewards(entity);
+            PlaySong(0x1C3);
         }
-        goto dead;
+        if (LINKED(entity).state != 3)
+        {
+            LINKED(entity).state = 3;
+            LINKED(entity).subState = LINKED(entity).stage = 0;
+        }
+        entity->state = 6;
+        entity->subState = 0;
+        entity->ext.nemesis.hitsBeforeReact = 3;
     }
-    if ((s16)entity->hp <= 0)
-    {
-    dead:
-        Enemy_DropRewards(entity);
-        PlaySong(0x1C3);
-    }
-    if (LINKED(entity).state != 3)
-    {
-        LINKED(entity).state = 3;
-        LINKED(entity).subState = LINKED(entity).stage = 0;
-    }
-    entity->state = 6;
-    entity->subState = 0;
-    entity->ext.nemesis.hitsBeforeReact = 3;
-done:
     entity->hidden = 0;
     Nemesis_SetAfterimagesHidden(entity, 0);
 }

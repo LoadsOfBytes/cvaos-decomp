@@ -55,7 +55,7 @@ void EquipmentMenu_PrintEquippedNames(void)
     Text8_Print(Text_GetLocalizedEntry(text), 0);
     i = 1;
     items = &ew->playerStatus.equippedArmor;
-loop:
+    do
     {
         text = 0x34F;
         j = i - 1;
@@ -70,9 +70,7 @@ loop:
         if (odd)
             Text8_SetPixelCursor(0x80, 9);
         Text8_Print(Text_GetLocalizedEntry(text), 0);
-    }
-    if (++i <= 2)
-        goto loop;
+    } while (++i <= 2);
 }
 
 /* EquipmentMenu_ShowSlotDescription; slot switch as in

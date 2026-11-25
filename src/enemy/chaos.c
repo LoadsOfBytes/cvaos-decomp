@@ -134,29 +134,60 @@ void EnemyChaosCreate(struct EwramData_EntityData *core)
     {
         if (Chaos_StartSecondForm(core) == 0)
             return;
-        goto delete;
+        EntityDelete(core);
+        return;
     }
     if (core->spawnParam0 != 0 && gEwramData->gameState.bossRushMode == 0
         && (gEwramData->gameState.bossEventFlags & 0x80))
-        goto delete;
+    {
+        EntityDelete(core);
+        return;
+    }
     data = Heap_Alloc(10);
     core->ext.chaos.data.value = (s32)data;
-    if (data == NULL) goto delete;
-    if (!Chaos_LoadGraphics(core)) goto delete;
+    if (data == NULL)
+    {
+        EntityDelete(core);
+        return;
+    }
+    if (!Chaos_LoadGraphics(core))
+    {
+        EntityDelete(core);
+        return;
+    }
     {
         if (gEwramData->gameState.bestiaryPreview)
         {
             core->state = 4;
             return;
         }
-        if (Chaos_CreateBackground(core) == NULL) goto delete;
-        if (Chaos_CreateInnerRing(core, 0x4000, 0x8000, 2) == NULL) goto delete;
-        if (Chaos_CreateOuterRing(core, 0, 0x4000, 3) == NULL) goto delete;
-        if ((data->orbs[0] = Chaos_CreateOrb(core, 0x4000, 0, 0)) == NULL) goto delete;
-        if ((data->orbs[1] = Chaos_CreateOrb(core, 0x8500, 0, 1)) == NULL) goto delete;
+        if (Chaos_CreateBackground(core) == NULL)
+        {
+            EntityDelete(core);
+            return;
+        }
+        if (Chaos_CreateInnerRing(core, 0x4000, 0x8000, 2) == NULL)
+        {
+            EntityDelete(core);
+            return;
+        }
+        if (Chaos_CreateOuterRing(core, 0, 0x4000, 3) == NULL)
+        {
+            EntityDelete(core);
+            return;
+        }
+        if ((data->orbs[0] = Chaos_CreateOrb(core, 0x4000, 0, 0)) == NULL)
+        {
+            EntityDelete(core);
+            return;
+        }
+        if ((data->orbs[1] = Chaos_CreateOrb(core, 0x8500, 0, 1)) == NULL)
+        {
+            EntityDelete(core);
+            return;
+        }
         if ((data->orbs[2] = Chaos_CreateOrb(core, 0xFB00, 0, 2)) == NULL)
         {
-        delete:
             EntityDelete(core);
             return;
         }
@@ -502,41 +533,40 @@ void ChaosOuterRing_Update(struct EwramData_EntityData *entity)
     struct EwramData *ewram = gEwramData;
     s32 x, y;
 
-    if (owner == NULL || owner->updateFunc == NULL
-        || owner->enemyId != entity->enemyId)
-        goto delete;
-    if (entity->state == 0)
+    if (owner != NULL && owner->updateFunc != NULL && owner->enemyId == entity->enemyId)
     {
-        if (!(ewram->gameState.stateFlags & 1))
+        if (entity->state == 0)
+        {
+            if (!(ewram->gameState.stateFlags & 1))
+            {
+                SPIN(entity) += 0x70;
+                ORBIT(entity) += 0x1E0;
+            }
+            if (owner->state == 3)
+            {
+                entity->state++;
+                entity->timer = 60;
+            }
+        }
+        else if (entity->state == 1)
         {
             SPIN(entity) += 0x70;
             ORBIT(entity) += 0x1E0;
+            entity->hidden = Entity_GetVisibilityPattern(entity->timer);
+            if ((s8)--entity->timer <= 0)
+            {
+                ObjAffine_Free(entity->affineIndex);
+                EntityDelete(entity);
+                return;
+            }
         }
-        if (owner->state == 3)
-        {
-            entity->state++;
-            entity->timer = 60;
-        }
+        x = Sin(ORBIT(entity) + ORBIT_BASE(entity) + 0x4000) * RADIUS(entity);
+        y = Sin(ORBIT(entity) + ORBIT_BASE(entity)) * RADIUS(entity);
+        entity->posX.whole = (CENTER_X(entity) << 16) + x;
+        entity->posY.whole = (CENTER_Y(entity) << 16) + y;
+        ObjAffine_Set(SPIN(entity) + SPIN_BASE(entity), 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
+        return;
     }
-    else if (entity->state == 1)
-    {
-        SPIN(entity) += 0x70;
-        ORBIT(entity) += 0x1E0;
-        entity->hidden = Entity_GetVisibilityPattern(entity->timer);
-        if ((s8)--entity->timer <= 0)
-        {
-            ObjAffine_Free(entity->affineIndex);
-            EntityDelete(entity);
-            return;
-        }
-    }
-    x = Sin(ORBIT(entity) + ORBIT_BASE(entity) + 0x4000) * RADIUS(entity);
-    y = Sin(ORBIT(entity) + ORBIT_BASE(entity)) * RADIUS(entity);
-    entity->posX.whole = (CENTER_X(entity) << 16) + x;
-    entity->posY.whole = (CENTER_Y(entity) << 16) + y;
-    ObjAffine_Set(SPIN(entity) + SPIN_BASE(entity), 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
-    return;
-delete:
     ObjAffine_Free(entity->affineIndex);
     EntityDelete(entity);
 }
@@ -587,41 +617,40 @@ void ChaosInnerRing_Update(struct EwramData_EntityData *entity)
     struct EwramData *ewram = gEwramData;
     s32 x, y;
 
-    if (owner == NULL || owner->updateFunc == NULL
-        || owner->enemyId != entity->enemyId)
-        goto delete;
-    if (entity->state == 0)
+    if (owner != NULL && owner->updateFunc != NULL && owner->enemyId == entity->enemyId)
     {
-        if (!(ewram->gameState.stateFlags & 1))
+        if (entity->state == 0)
+        {
+            if (!(ewram->gameState.stateFlags & 1))
+            {
+                SPIN(entity) += 0x60;
+                ORBIT(entity) += 0x1C0;
+            }
+            if (owner->state == 3)
+            {
+                entity->state++;
+                entity->timer = 60;
+            }
+        }
+        else if (entity->state == 1)
         {
             SPIN(entity) += 0x60;
             ORBIT(entity) += 0x1C0;
+            entity->hidden = Entity_GetVisibilityPattern(entity->timer);
+            if ((s8)--entity->timer <= 0)
+            {
+                ObjAffine_Free(entity->affineIndex);
+                EntityDelete(entity);
+                return;
+            }
         }
-        if (owner->state == 3)
-        {
-            entity->state++;
-            entity->timer = 60;
-        }
+        x = Sin(ORBIT(entity) + ORBIT_BASE(entity) + 0x4000) * RADIUS(entity);
+        y = Sin(ORBIT(entity) + ORBIT_BASE(entity)) * RADIUS(entity);
+        entity->posX.whole = (CENTER_X(entity) << 16) + x;
+        entity->posY.whole = (CENTER_Y(entity) << 16) + y;
+        ObjAffine_Set(-(SPIN(entity) + SPIN_BASE(entity)), 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
+        return;
     }
-    else if (entity->state == 1)
-    {
-        SPIN(entity) += 0x60;
-        ORBIT(entity) += 0x1C0;
-        entity->hidden = Entity_GetVisibilityPattern(entity->timer);
-        if ((s8)--entity->timer <= 0)
-        {
-            ObjAffine_Free(entity->affineIndex);
-            EntityDelete(entity);
-            return;
-        }
-    }
-    x = Sin(ORBIT(entity) + ORBIT_BASE(entity) + 0x4000) * RADIUS(entity);
-    y = Sin(ORBIT(entity) + ORBIT_BASE(entity)) * RADIUS(entity);
-    entity->posX.whole = (CENTER_X(entity) << 16) + x;
-    entity->posY.whole = (CENTER_Y(entity) << 16) + y;
-    ObjAffine_Set(-(SPIN(entity) + SPIN_BASE(entity)), 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
-    return;
-delete:
     ObjAffine_Free(entity->affineIndex);
     EntityDelete(entity);
 }
@@ -637,46 +666,46 @@ struct EwramData_EntityData *Chaos_CreateOrb(struct EwramData_EntityData *owner,
 
     box = 0x350ADFFB;
     data = (struct ChaosData *)owner->ext.chaos.data.value;
-    if (orb == NULL)
-        goto fail;
-    orb->posX.part16.integer = 0xFF80;
-    orb->posY.part16.integer = 0xFF80;
-    CENTER_X(orb) = 0x78;
-    CENTER_Y(orb) = 0x50;
-    orb->spriteLayer = 0x12;
-    graphics = data->graphics;
-    orb->basePalette = data->palette;
-    Sprite_Attach(orb, sChaosSpriteSheet, graphics, orb->basePalette);
-    Anim_StartIndexed(orb, anim, 2, 0);
-    Anim_Update(orb);
-    SPIN_BASE(orb) = spin;
-    orb->enemyId = owner->enemyId;
-    orb->ext.chaosChild.link = owner;
-    orb->scrollWithBg = 0;
-    orb->ext.chaosOrb.kind = kind;
-    orb->attack = 0x50;
-    orb->hp = 3000;
-    Hit_Enable(orb, 8, NULL, ChaosOrb_OnHit);
-    HitBox_SetBody(orb, &box);
-    HitBox_SetAttack(orb, &box);
-    orb->hit.flags &= ~4;
-    orb->hit.flags |= 2;
-    orb->drawFunc = Sprite_DrawEntity;
-    switch (kind)
+    if (orb != NULL)
     {
-    case 0:
-        ChaosOrb_CreateAura(orb, 1, 0, 0xDC);
-        break;
-    case 1:
-        ChaosOrb_CreateAura(orb, 0, 1, 0xDC);
-        break;
-    case 2:
-        ChaosOrb_CreateAura(orb, 2, 2, 0xDC);
-        break;
+        orb->posX.part16.integer = 0xFF80;
+        orb->posY.part16.integer = 0xFF80;
+        CENTER_X(orb) = 0x78;
+        CENTER_Y(orb) = 0x50;
+        orb->spriteLayer = 0x12;
+        graphics = data->graphics;
+        orb->basePalette = data->palette;
+        Sprite_Attach(orb, sChaosSpriteSheet, graphics, orb->basePalette);
+        Anim_StartIndexed(orb, anim, 2, 0);
+        Anim_Update(orb);
+        SPIN_BASE(orb) = spin;
+        orb->enemyId = owner->enemyId;
+        orb->ext.chaosChild.link = owner;
+        orb->scrollWithBg = 0;
+        orb->ext.chaosOrb.kind = kind;
+        orb->attack = 0x50;
+        orb->hp = 3000;
+        Hit_Enable(orb, 8, NULL, ChaosOrb_OnHit);
+        HitBox_SetBody(orb, &box);
+        HitBox_SetAttack(orb, &box);
+        orb->hit.flags &= ~4;
+        orb->hit.flags |= 2;
+        orb->drawFunc = Sprite_DrawEntity;
+        switch (kind)
+        {
+        case 0:
+            ChaosOrb_CreateAura(orb, 1, 0, 0xDC);
+            break;
+        case 1:
+            ChaosOrb_CreateAura(orb, 0, 1, 0xDC);
+            break;
+        case 2:
+            ChaosOrb_CreateAura(orb, 2, 2, 0xDC);
+            break;
+        }
+        ChaosOrb_CreateHalo(orb, 0xDC);
+        return orb;
     }
-    ChaosOrb_CreateHalo(orb, 0xDC);
-    return orb;
-fail:
     return NULL;
 }
 
@@ -704,195 +733,195 @@ void ChaosOrb_Update(struct EwramData_EntityData *entity)
     struct ChaosData *data = (struct ChaosData *)core->ext.chaos.data.value;
     s32 x, y, limit;
 
-    if (core == NULL || core->updateFunc == NULL || core->enemyId != entity->enemyId)
-        goto fail;
-    if (entity->state == 0)
+    if (core != NULL && core->updateFunc != NULL && core->enemyId == entity->enemyId)
     {
-        x = (Sin(data->bgAngle + 0x4000) >> 14) + OFS_X(entity) + 2;
-        y = (Sin(data->bgAngle) >> 14) + OFS_Y(entity) - 12;
-        entity->posX.whole = Sin(0x4000 - (data->bgRotation + (u16)entity->ext.chaosOrb.angle)) * 60;
-        entity->posY.whole = Sin(-(data->bgRotation + (u16)entity->ext.chaosOrb.angle)) * 60;
-        entity->posX.part16.integer += x;
-        entity->posY.part16.integer += y;
-        x = entity->posX.whole + bg->xPos.whole;
-        y = entity->posY.whole + bg->yPos.whole;
-        switch (entity->subState)
+        if (entity->state == 0)
         {
-        case 0:
-            if (KIND(entity) == 0)
+            x = (Sin(data->bgAngle + 0x4000) >> 14) + OFS_X(entity) + 2;
+            y = (Sin(data->bgAngle) >> 14) + OFS_Y(entity) - 12;
+            entity->posX.whole = Sin(0x4000 - (data->bgRotation + (u16)entity->ext.chaosOrb.angle)) * 60;
+            entity->posY.whole = Sin(-(data->bgRotation + (u16)entity->ext.chaosOrb.angle)) * 60;
+            entity->posX.part16.integer += x;
+            entity->posY.part16.integer += y;
+            x = entity->posX.whole + bg->xPos.whole;
+            y = entity->posY.whole + bg->yPos.whole;
+            switch (entity->subState)
             {
-                if (!(REQUEST(core) & 1))
-                    break;
-                if (x > 0x7FFFFF)
+            case 0:
+                if (KIND(entity) == 0)
                 {
-                    if (y <= 0xA00000)
+                    if (!(REQUEST(core) & 1))
+                        break;
+                    if (x > 0x7FFFFF)
+                    {
+                        if (y <= 0xA00000)
+                            goto busy;
+                    }
+                    else if (y <= 0x700000)
                         goto busy;
+                    entity->subState = 10;
+                    entity->stage = 0;
                 }
-                else if (y <= 0x700000)
-                    goto busy;
-                entity->subState = 10;
-                entity->stage = 0;
-            }
-            else if (KIND(entity) == 1)
-            {
-                if (!(REQUEST(core) & 2))
-                    break;
-                if (x > 0x7FFFFF)
+                else if (KIND(entity) == 1)
                 {
-                    if ((u32)(y - 0x800001) > 0xFFFFE)
+                    if (!(REQUEST(core) & 2))
+                        break;
+                    if (x > 0x7FFFFF)
+                    {
+                        if ((u32)(y - 0x800001) > 0xFFFFE)
+                            goto busy;
+                    }
+                    else if (y > 0x8FFFFF)
                         goto busy;
+                    entity->subState = 30;
+                    entity->stage = 0;
                 }
-                else if (y > 0x8FFFFF)
-                    goto busy;
-                entity->subState = 30;
-                entity->stage = 0;
-            }
-            else if (KIND(entity) == 2)
-            {
-                if (!(REQUEST(core) & 4))
+                else if (KIND(entity) == 2)
+                {
+                    if (!(REQUEST(core) & 4))
+                        break;
+                    entity->subState = 20;
+                    entity->stage = 0;
+                }
+                break;
+            case 10:
+                switch (entity->stage)
+                {
+                case 0:
+                    entity->stage = 1;
+                    ChaosOrb_SpawnSeedShot(entity, 0, -0x300000, 20);
+                    ChaosOrb_SpawnSeedShot(entity, -0x200000, -0x140000, 50);
+                    ChaosOrb_SpawnSeedShot(entity, 0x200000, -0x140000, 80);
+                    entity->timer = 100;
                     break;
-                entity->subState = 20;
-                entity->stage = 0;
-            }
-            break;
-        case 10:
-            switch (entity->stage)
-            {
-            case 0:
-                entity->stage = 1;
-                ChaosOrb_SpawnSeedShot(entity, 0, -0x300000, 20);
-                ChaosOrb_SpawnSeedShot(entity, -0x200000, -0x140000, 50);
-                ChaosOrb_SpawnSeedShot(entity, 0x200000, -0x140000, 80);
-                entity->timer = 100;
+                case 1:
+                    if ((s8)--entity->timer <= 0)
+                    {
+                        entity->subState = 0;
+                        BUSY(core) = 1;
+                        REQUEST(core) &= ~1;
+                    }
+                    break;
+                }
                 break;
-            case 1:
-                if ((s8)--entity->timer <= 0)
+            case 20:
+                switch (entity->stage)
+                {
+                case 0:
+                    entity->stage = 1;
+                    ChaosOrb_SpawnSpark(entity, 0, 0);
+                    entity->timer = 250;
+                    break;
+                case 1:
+                    if (--entity->timer <= 1)
+                    {
+                        entity->subState = 0;
+                        BUSY(core) = 1;
+                        REQUEST(core) &= ~4;
+                    }
+                    break;
+                }
+                break;
+            case 30:
+                switch (entity->stage)
+                {
+                case 0:
+                    entity->stage = 1;
+                    ChaosOrb_SpawnSoulShot(entity, 0, 0);
+                    entity->timer = 250;
+                    entity->hidden = 1;
+                    entity->hit.flags |= 4;
+                    entity->ext.chaosOrb.shotDone = 0;
+                    break;
+                case 1:
+                    if (entity->ext.chaosOrb.shotDone)
+                    {
+                        entity->subState = 0;
+                        BUSY(core) = 1;
+                        entity->hidden = 0;
+                        entity->hit.flags &= ~4;
+                        REQUEST(core) &= ~2;
+                    }
+                    break;
+                }
+                break;
+            case 40:
+                if (Entity_GetVisibilityPattern(entity->timer--) == 1)
+                    entity->palette = 4;
+                else
+                    entity->palette = entity->basePalette;
+                if (entity->timer == 0)
                 {
                     entity->subState = 0;
+                    entity->palette = entity->basePalette;
+                busy:
                     BUSY(core) = 1;
-                    REQUEST(core) &= ~1;
                 }
                 break;
             }
-            break;
-        case 20:
-            switch (entity->stage)
-            {
-            case 0:
-                entity->stage = 1;
-                ChaosOrb_SpawnSpark(entity, 0, 0);
-                entity->timer = 250;
-                break;
-            case 1:
-                if (--entity->timer <= 1)
-                {
-                    entity->subState = 0;
-                    BUSY(core) = 1;
-                    REQUEST(core) &= ~4;
-                }
-                break;
-            }
-            break;
-        case 30:
-            switch (entity->stage)
-            {
-            case 0:
-                entity->stage = 1;
-                ChaosOrb_SpawnSoulShot(entity, 0, 0);
-                entity->timer = 250;
-                entity->hidden = 1;
-                entity->hit.flags |= 4;
-                entity->ext.chaosOrb.shotDone = 0;
-                break;
-            case 1:
-                if (entity->ext.chaosOrb.shotDone)
-                {
-                    entity->subState = 0;
-                    BUSY(core) = 1;
-                    entity->hidden = 0;
-                    entity->hit.flags &= ~4;
-                    REQUEST(core) &= ~2;
-                }
-                break;
-            }
-            break;
-        case 40:
-            if (Entity_GetVisibilityPattern(entity->timer--) == 1)
-                entity->palette = 4;
-            else
-                entity->palette = entity->basePalette;
-            if (entity->timer == 0)
-            {
-                entity->subState = 0;
-                entity->palette = entity->basePalette;
-            busy:
-                BUSY(core) = 1;
-            }
-            break;
+            Anim_Update(entity);
+            Hit_CheckWithPlayer(&result, entity);
+            Enemy_UpdateHitFlash(entity);
         }
-        Anim_Update(entity);
-        Hit_CheckWithPlayer(&result, entity);
-        Enemy_UpdateHitFlash(entity);
-    }
-    else if (entity->state == 10)
-    {
-        x = (Sin(data->bgAngle + 0x4000) >> 14) + OFS_X(entity) + 2;
-        y = (Sin(data->bgAngle) >> 14) + OFS_Y(entity) - 12;
-        entity->posX.whole = Sin(0x4000 - (data->bgRotation + (u16)entity->ext.chaosOrb.angle)) * 60;
-        entity->posY.whole = Sin(-(data->bgRotation + (u16)entity->ext.chaosOrb.angle)) * 60;
-        entity->posX.part16.integer += x;
-        entity->posY.part16.integer += y;
-        if (entity->subState == 0)
+        else if (entity->state == 10)
         {
-            entity->subState++;
-            entity->hidden = 1;
-            entity->timer = 120;
-            ChaosOrb_CreateShellPiece(entity, 0, 20);
-            ChaosOrb_CreateShellPiece(entity, 1, 32);
-            ChaosOrb_CreateShellPiece(entity, 2, 44);
-            PlaySong(0x71);
-            switch (KIND(entity))
+            x = (Sin(data->bgAngle + 0x4000) >> 14) + OFS_X(entity) + 2;
+            y = (Sin(data->bgAngle) >> 14) + OFS_Y(entity) - 12;
+            entity->posX.whole = Sin(0x4000 - (data->bgRotation + (u16)entity->ext.chaosOrb.angle)) * 60;
+            entity->posY.whole = Sin(-(data->bgRotation + (u16)entity->ext.chaosOrb.angle)) * 60;
+            entity->posX.part16.integer += x;
+            entity->posY.part16.integer += y;
+            if (entity->subState == 0)
             {
-            case 0:
-                core->ext.chaos.brokenOrbs |= 1;
-                break;
-            case 1:
-                core->ext.chaos.brokenOrbs |= 2;
-                break;
-            case 2:
-                core->ext.chaos.brokenOrbs |= 4;
-                break;
-            }
-        }
-        else if (entity->subState == 1)
-        {
-            if (entity->timer > 0x50 && !(entity->timer & 7))
-                Effect_CreateHomingOrb(gEwramData->playerState.player, (s16)entity->posX.part16.integer,
-                             (s16)entity->posY.part16.integer, -0x100000, KIND(entity));
-            if ((s8)--entity->timer <= 0)
                 entity->subState++;
-        }
-        else if (entity->subState == 2)
-        {
-            switch (KIND(entity))
+                entity->hidden = 1;
+                entity->timer = 120;
+                ChaosOrb_CreateShellPiece(entity, 0, 20);
+                ChaosOrb_CreateShellPiece(entity, 1, 32);
+                ChaosOrb_CreateShellPiece(entity, 2, 44);
+                PlaySong(0x71);
+                switch (KIND(entity))
+                {
+                case 0:
+                    core->ext.chaos.brokenOrbs |= 1;
+                    break;
+                case 1:
+                    core->ext.chaos.brokenOrbs |= 2;
+                    break;
+                case 2:
+                    core->ext.chaos.brokenOrbs |= 4;
+                    break;
+                }
+            }
+            else if (entity->subState == 1)
             {
-            case 0:
-                entity->deleteRequested = 1;
-                gEwramData->playerState.actionLockFlags &= ~0x100;
-                break;
-            case 1:
-                entity->deleteRequested = 1;
-                gEwramData->playerState.actionLockFlags &= ~0x200;
-                break;
-            case 2:
-                entity->deleteRequested = 1;
-                gEwramData->playerState.actionLockFlags &= ~0x400;
-                break;
+                if (entity->timer > 0x50 && !(entity->timer & 7))
+                    Effect_CreateHomingOrb(gEwramData->playerState.player, (s16)entity->posX.part16.integer,
+                                 (s16)entity->posY.part16.integer, -0x100000, KIND(entity));
+                if ((s8)--entity->timer <= 0)
+                    entity->subState++;
+            }
+            else if (entity->subState == 2)
+            {
+                switch (KIND(entity))
+                {
+                case 0:
+                    entity->deleteRequested = 1;
+                    gEwramData->playerState.actionLockFlags &= ~0x100;
+                    break;
+                case 1:
+                    entity->deleteRequested = 1;
+                    gEwramData->playerState.actionLockFlags &= ~0x200;
+                    break;
+                case 2:
+                    entity->deleteRequested = 1;
+                    gEwramData->playerState.actionLockFlags &= ~0x400;
+                    break;
+                }
             }
         }
+        return;
     }
-    return;
-fail:
     entity->state = 10;
     entity->subState = 2;
 }
@@ -1039,33 +1068,33 @@ void ChaosSeedShot_Update(struct EwramData_EntityData *entity)
 
     if (entity->state == 0)
     {
-        if (orb == NULL || orb->updateFunc == NULL
-            || orb->enemyId != entity->enemyId)
-            goto check;
-        if (entity->stage == 0)
+        if (orb != NULL && orb->updateFunc != NULL && orb->enemyId == entity->enemyId)
         {
-            if ((s8)--entity->timer <= 0)
+            if (entity->stage == 0)
             {
-                entity->hidden = 0;
-                entity->stage++;
-                Anim_StartIndexed(entity, 4, 2, 0);
-                PlaySong(0x144);
+                if ((s8)--entity->timer <= 0)
+                {
+                    entity->hidden = 0;
+                    entity->stage++;
+                    Anim_StartIndexed(entity, 4, 2, 0);
+                    PlaySong(0x144);
+                }
             }
+            else if (entity->stage == 1 && entity->animDone)
+            {
+                struct EwramData_EntityData *target;
+                entity->state++;
+                target = ewram->playerState.enemyTarget;
+                Entity_AimVelocityAtPoint(entity, target->posX.whole + camera->xPos.whole,
+                             target->posY.whole + camera->yPos.whole - 0x100000, 0x20000);
+                Anim_StartIndexed(entity, 5, 2, 1);
+                REFLECTED(entity) = 0;
+                PlaySong(0x143);
+            }
+            entity->posX.whole = orb->posX.whole + OFFSET_X(entity);
+            entity->posY.whole = orb->posY.whole + OFFSET_Y(entity);
+            Anim_Update(entity);
         }
-        else if (entity->stage == 1 && entity->animDone)
-        {
-            struct EwramData_EntityData *target;
-            entity->state++;
-            target = ewram->playerState.enemyTarget;
-            Entity_AimVelocityAtPoint(entity, target->posX.whole + camera->xPos.whole,
-                         target->posY.whole + camera->yPos.whole - 0x100000, 0x20000);
-            Anim_StartIndexed(entity, 5, 2, 1);
-            REFLECTED(entity) = 0;
-            PlaySong(0x143);
-        }
-        entity->posX.whole = orb->posX.whole + OFFSET_X(entity);
-        entity->posY.whole = orb->posY.whole + OFFSET_Y(entity);
-        Anim_Update(entity);
     }
     else if (entity->state == 1)
     {
@@ -1081,7 +1110,6 @@ void ChaosSeedShot_Update(struct EwramData_EntityData *entity)
             Hit_CheckWithPlayer(&result, entity);
         Enemy_UpdateHitFlash(entity);
     }
-check:
     if (orb->state == 10)
         EntityDelete(entity);
 }
@@ -1157,41 +1185,41 @@ void ChaosSpark_Update(struct EwramData_EntityData *entity)
 
     if (state == 0)
     {
-        if (orb == NULL || orb->updateFunc == NULL
-            || orb->enemyId != entity->enemyId)
-            goto check;
-        if (entity->stage == 0)
+        if (orb != NULL && orb->updateFunc != NULL && orb->enemyId == entity->enemyId)
         {
-            if (SPREAD(entity) != 0)
+            if (entity->stage == 0)
             {
-                SPREAD(entity) -= 0x40000;
-                if (SPREAD(entity) <= 0)
+                if (SPREAD(entity) != 0)
                 {
-                    SPREAD(entity) = state;
-                    entity->stage++;
-                    entity->timer = 30;
-                    PlaySong(0x141);
+                    SPREAD(entity) -= 0x40000;
+                    if (SPREAD(entity) <= 0)
+                    {
+                        SPREAD(entity) = state;
+                        entity->stage++;
+                        entity->timer = 30;
+                        PlaySong(0x141);
+                    }
                 }
             }
-        }
-        else if (entity->stage == 1)
-        {
-            if ((s8)entity->timer-- <= 0)
+            else if (entity->stage == 1)
             {
-                entity->stage = state;
-                entity->state = 1;
-                entity->timer = 0x78;
-                target = ewram->playerState.enemyTarget;
-                x = target->posX.whole + camera->xPos.whole;
-                y = target->posY.whole + camera->yPos.whole - 0x100000;
-                Entity_AimVelocityAtPoint(entity, x, y, 0x4000);
-                entity->ext.chaosShot.grabbed = state;
-                return;
+                if ((s8)entity->timer-- <= 0)
+                {
+                    entity->stage = state;
+                    entity->state = 1;
+                    entity->timer = 0x78;
+                    target = ewram->playerState.enemyTarget;
+                    x = target->posX.whole + camera->xPos.whole;
+                    y = target->posY.whole + camera->yPos.whole - 0x100000;
+                    Entity_AimVelocityAtPoint(entity, x, y, 0x4000);
+                    entity->ext.chaosShot.grabbed = state;
+                    return;
+                }
             }
+            entity->posX.whole = orb->posX.whole + OFFSET_X(entity);
+            entity->posY.whole = orb->posY.whole + OFFSET_Y(entity);
+            Anim_Update(entity);
         }
-        entity->posX.whole = orb->posX.whole + OFFSET_X(entity);
-        entity->posY.whole = orb->posY.whole + OFFSET_Y(entity);
-        Anim_Update(entity);
     }
     else if (state == 1)
     {
@@ -1207,7 +1235,10 @@ void ChaosSpark_Update(struct EwramData_EntityData *entity)
         EntityAccelerateAndMove(entity, 0x30000);
         Anim_Update(entity);
         if (EntityIsOutsideScreen(entity, 4))
-            goto delete;
+        {
+            EntityDelete(entity);
+            return;
+        }
         if (entity->ext.chaosShot.grabbed == 1)
         {
             entity->state = 2;
@@ -1246,28 +1277,23 @@ void ChaosSpark_Update(struct EwramData_EntityData *entity)
         if (SPREAD(entity) <= 0x40000)
             SPREAD(entity) += 0x10000;
         /* Released when time runs out or after 20 mashed inputs. */
-        if ((u8)--entity->timer <= 1)
-            goto release;
-        if (MASH(entity) <= 19)
-            goto check;
-        goto release;
+        if ((u8)--entity->timer <= 1 || MASH(entity) > 19)
+        {
+            entity->state = 3;
+            return;
+        }
     }
     else if (state == 3)
     {
         if (SPREAD(entity) > 0x1000000)
         {
-        delete:
             EntityDelete(entity);
             return;
         }
         SPREAD(entity) += 0x60000;
     }
-check:
     if (orb->state == 10)
-    {
-    release:
         entity->state = 3;
-    }
 }
 
 /* Chaos spark drawing (392C) and the soul shot creation (39DC). */
@@ -1610,7 +1636,10 @@ void ChaosHalo_Update(struct EwramData_EntityData *entity)
 
     if (orb == NULL || orb->updateFunc == NULL
         || orb->enemyId != entity->enemyId)
-        goto hide;
+    {
+        entity->deleteRequested = 1;
+        return;
+    }
     entity->posX.whole = orb->posX.whole;
     entity->posY.whole = orb->posY.whole + 0x40000;
     if (entity->state == 0)
@@ -1626,7 +1655,6 @@ void ChaosHalo_Update(struct EwramData_EntityData *entity)
     entity->hidden = orb->hidden;
     if (orb->state != 10)
         return;
-hide:
     entity->deleteRequested = 1;
 }
 
@@ -1670,7 +1698,10 @@ void ChaosAura_Update(struct EwramData_EntityData *entity)
 
     if (orb == NULL || orb->updateFunc == NULL
         || orb->enemyId != entity->enemyId)
-        goto hide;
+    {
+        entity->deleteRequested = 1;
+        return;
+    }
     entity->posX.whole = orb->posX.whole;
     entity->posY.whole = orb->posY.whole + 0x40000;
     if (entity->state == 0)
@@ -1688,7 +1719,6 @@ void ChaosAura_Update(struct EwramData_EntityData *entity)
         Anim_Update(entity);
     if (orb->state != 10)
         return;
-hide:
     entity->deleteRequested = 1;
 }
 
@@ -2367,7 +2397,8 @@ void Chaos2Shot_Update(struct EwramData_EntityData *entity)
             && core->enemyId == entity->enemyId
             && core->state != 3)
             return;
-        goto delete;
+        EntityDelete(entity);
+        return;
     }
     else if (entity->state == 1)
     {
@@ -2375,7 +2406,6 @@ void Chaos2Shot_Update(struct EwramData_EntityData *entity)
         Hit_CheckWithPlayer(&result, entity);
         if (EntityIsOutsideScreen(entity, 1) || entity->timer++ > 0xEF)
         {
-        delete:
             EntityDelete(entity);
             return;
         }
@@ -2672,42 +2702,42 @@ void Chaos2_CreateSnake(struct EwramData_EntityData *core, s32 x, s32 y, s32 unu
         do
         {
             seg = Entity_CreateObject(Chaos2SnakeSegment_Update);
-            if (seg == NULL)
-                goto fail;
-            seg->spriteLayer = head->spriteLayer + 1;
-            Sprite_Attach(seg, sChaos2SpriteSheet, data->graphics, head->basePalette);
-            Chaos2SnakeSegment_EnableHitBoxes(seg);
-            seg->enemyId = head->enemyId;
-            seg->basePalette = head->basePalette;
-            seg->scrollWithBg = 0;
-            seg->spriteLayer = head->spriteLayer + 1;
-            seg->drawFunc = Sprite_DrawEntity;
-            seg->ext.chaosChild.link = head;
-            INDEX(seg) = i;
-            seg->timer = i;
-            seg->attack = head->attack;
-            seg->ext.chaosSnake.cameraX = head->ext.chaosSnake.cameraX;
-            seg->ext.chaosSnake.cameraY = head->ext.chaosSnake.cameraY;
-            seg->posX.whole = head->posX.whole;
-            seg->posY.whole = head->posY.whole;
-            seg->animFrame = 0xE;
-            seg->animMode = 2;
-            if (i == 7)
+            if (seg != NULL)
             {
-                seg->animFrame = 5;
-                slot = ObjAffine_Alloc(1);
-                if ((s16)slot < 0)
+                seg->spriteLayer = head->spriteLayer + 1;
+                Sprite_Attach(seg, sChaos2SpriteSheet, data->graphics, head->basePalette);
+                Chaos2SnakeSegment_EnableHitBoxes(seg);
+                seg->enemyId = head->enemyId;
+                seg->basePalette = head->basePalette;
+                seg->scrollWithBg = 0;
+                seg->spriteLayer = head->spriteLayer + 1;
+                seg->drawFunc = Sprite_DrawEntity;
+                seg->ext.chaosChild.link = head;
+                INDEX(seg) = i;
+                seg->timer = i;
+                seg->attack = head->attack;
+                seg->ext.chaosSnake.cameraX = head->ext.chaosSnake.cameraX;
+                seg->ext.chaosSnake.cameraY = head->ext.chaosSnake.cameraY;
+                seg->posX.whole = head->posX.whole;
+                seg->posY.whole = head->posY.whole;
+                seg->animFrame = 0xE;
+                seg->animMode = 2;
+                if (i == 7)
                 {
-                    /* loop.c moves this block before the loop */
-                    EntityDelete(seg);
-                    return;
+                    seg->animFrame = 5;
+                    slot = ObjAffine_Alloc(1);
+                    if ((s16)slot < 0)
+                    {
+                        /* loop.c moves this block before the loop */
+                        EntityDelete(seg);
+                        return;
+                    }
+                    seg->affineIndex = slot;
+                    seg->affine = 1;
+                    ObjAffine_Set((u16)ANGLE(seg) - 0x8000, 0xC000, 0xC000, seg->flipX, seg->flipY, seg->affineIndex);
                 }
-                seg->affineIndex = slot;
-                seg->affine = 1;
-                ObjAffine_Set((u16)ANGLE(seg) - 0x8000, 0xC000, 0xC000, seg->flipX, seg->flipY, seg->affineIndex);
+                continue;
             }
-            continue;
-        fail:
             /* the two earlier failures are separate copies; jump2
                cross-jumps them into this block */
             EntityDelete(head);

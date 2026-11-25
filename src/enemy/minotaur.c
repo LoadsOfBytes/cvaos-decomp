@@ -585,7 +585,10 @@ void Minotaur_UpdateAttack(struct EwramData_EntityData *entity)
             Afterimage_Create(entity, 40, 6, 0);
         }
         else
-            goto decrementTimer;
+        {
+            entity->timer = remaining - 1;
+            break;
+        }
         break;
     case 3:
         Entity_Walk(entity, 0x34000 - entity->timer * 0x1400, sMinotaurWalkProfile, 12);
@@ -613,7 +616,6 @@ void Minotaur_UpdateAttack(struct EwramData_EntityData *entity)
             timer = (u8)remaining;
             if (timer != 0)
             {
-decrementTimer:
                 entity->timer = remaining - 1;
             }
             else

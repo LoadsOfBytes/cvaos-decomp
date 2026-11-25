@@ -1538,11 +1538,14 @@ void CreakingSkullGuidedEffect_Update(struct EwramData_EntityData *entity)
         dx = entity->ext.creakingSkullGuide.earlyX - dx;
         dy = entity->posY.whole + bg->yPos.whole;
         dy = entity->ext.creakingSkullGuide.earlyY - dy;
-        if (t == 1)
-            goto move;
-        n = entity->timer;
-        n--;
-        n *= 2;
+        if (t != 1)
+        {
+            n = entity->timer;
+            n--;
+            n *= 2;
+            dx /= n;
+            dy /= n;
+        }
     }
     else
     {
@@ -1551,14 +1554,14 @@ void CreakingSkullGuidedEffect_Update(struct EwramData_EntityData *entity)
         dx = entity->ext.creakingSkullGuide.lateX - dx;
         dy = entity->posY.whole + bg->yPos.whole;
         dy = entity->ext.creakingSkullGuide.lateY - dy;
-        if (entity->timer == 1)
-            goto move;
-        n = entity->timer;
-        n--;
+        if (entity->timer != 1)
+        {
+            n = entity->timer;
+            n--;
+            dx /= n;
+            dy /= n;
+        }
     }
-    dx /= n;
-    dy /= n;
-move:
     entity->posX.whole += dx;
     entity->posY.whole += dy;
 }

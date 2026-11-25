@@ -313,20 +313,22 @@ void WingedSkeleton_UpdateFly(struct EwramData_EntityData *entity)
         {
             if (entity->velX.whole > 0)
             {
-                if ((s16)Target_GetPixelX(entity) - (s16)entity->posX.part16.integer >= -0x10)
-                    goto track2;
+                if ((s16)Target_GetPixelX(entity) - (s16)entity->posX.part16.integer < -0x10)
+                {
+                    entity->subState = 3;
+                    Anim_StartIndexed(entity, 2, 0, 1);
+                    entity->animDone = 0;
+                    break;
+                }
             }
-            else
+            else if ((s16)Target_GetPixelX(entity) - (s16)entity->posX.part16.integer > 0x10)
             {
-                if ((s16)Target_GetPixelX(entity) - (s16)entity->posX.part16.integer <= 0x10)
-                    goto track2;
+                entity->subState = 3;
+                Anim_StartIndexed(entity, 2, 0, 1);
+                entity->animDone = 0;
+                break;
             }
-            entity->subState = 3;
-            Anim_StartIndexed(entity, 2, 0, 1);
-            entity->animDone = 0;
-            break;
         }
-    track2:
         if (entity->ext.wingedSkeleton.blocked == 0)
             TRACK1()
         else

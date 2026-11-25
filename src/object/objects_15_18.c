@@ -856,7 +856,9 @@ void Object18Update(struct EwramData_EntityData *entity)
     case 1:
         if (entity->timer > 0x1E && !(entity->timer & 3))
             Effect_SpawnRandom(entity->posX.whole, entity->posY.whole - 0x100000, 0x80000, 0x100000, entity->spriteLayer - 1);
-        goto dec;
+        if (--entity->timer == 0xFF)
+            entity->deleteRequested = 1;
+        break;
     case 2:
         if (!(entity->timer & 3))
         {
@@ -877,7 +879,6 @@ void Object18Update(struct EwramData_EntityData *entity)
                 info->createFunc(e);
             }
         }
-    dec:
         if (--entity->timer == 0xFF)
             entity->deleteRequested = 1;
         break;

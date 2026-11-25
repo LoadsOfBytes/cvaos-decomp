@@ -1,11 +1,8 @@
 # Castlevania: Aria of Sorrow – matching decompilation (unofficial AI-assisted fork)
 
-![ROM match](https://img.shields.io/badge/ROM%20match-byte%20for%20byte-brightgreen)
-![Game functions in C](https://img.shields.io/badge/Game%20functions%20in%20C-100%25-brightgreen)
-![ROM code from C](https://img.shields.io/badge/ROM%20code%20from%20C-97.06%25-green)
-![Names](https://img.shields.io/badge/Names-100%25-brightgreen)
-![Fields named](https://img.shields.io/badge/Fields%20named-96.5%25-green)
-![Files grouped into modules](https://img.shields.io/badge/Files%20grouped%20into%20modules-95%25-green)
+![Matching](https://img.shields.io/badge/Matching-byte%20for%20byte%2C%20100%25%20C-brightgreen)
+![Naming](https://img.shields.io/badge/Naming-functions%20100%25%20%C2%B7%20fields%2096.5%25-brightgreen)
+![Clean C](https://img.shields.io/badge/Clean%20C-92.0%25%20of%20functions-green)
 ![FAKEMATCH](https://img.shields.io/badge/FAKEMATCH-275%20lines-orange)
 
 > **Read this first**

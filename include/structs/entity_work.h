@@ -424,7 +424,7 @@ struct HarpyFeatherWork {
 struct LilithWork {
     /* 0x4F4 */ u8 pad_4F4[0x4FC - 0x4F4];
     /* 0x4FC */ s8 walkFrame;
-    /* 0x4FD */ u8 dodgeChecked;
+    /* 0x4FD */ s8 dodgeChecked;
     /* 0x4FE */ u8 pad_4FE[0x4FF - 0x4FE];
     /* 0x4FF */ u8 hidden;
 };
@@ -1243,15 +1243,15 @@ struct AlastorPatternWork {
 struct SuccubusWork {
     /* 0x4F4 */ u8 pad_4F4[0x4FC - 0x4F4];
     /* 0x4FC */ s8 provoked;
-    /* 0x4FD */ u8 dodgeChecked;
+    /* 0x4FD */ s8 dodgeChecked;
     /* 0x4FE */ u8 intro;
     /* 0x4FF */ u8 holding;
     /* 0x500 */ u8 lunging;
     /* 0x501 */ s8 grabbed;
-    /* 0x502 */ u8 escapePresses;
-    /* 0x503 */ u8 drainCount;
-    /* 0x504 */ u8 drainTimer;
-    /* 0x505 */ u8 seen;
+    /* 0x502 */ s8 escapePresses;
+    /* 0x503 */ s8 drainCount;
+    /* 0x504 */ s8 drainTimer;
+    /* 0x505 */ s8 seen;
 };
 
 /* Werejaguar work slots: - manual anim: nonzero = the attack code steps the

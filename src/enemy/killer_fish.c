@@ -271,7 +271,7 @@ void KillerFish_UpdateAttack(struct EwramData_EntityData *entity)
             entity->timer = 0;
             targetX = Target_GetPixelX(entity);
             { s32 t_ = targetX + ({ register u32 bx_ asm("r2") = background->xPos.part16.integer; bx_; }) + (RandomNumberGenerator() & 7); entity->ext.killerFish.attackX = t_ - 4; } /* FAKEMATCH: pinned register */
-            { s32 v_ = Target_GetPixelY(entity); { register u32 by_ asm("r6") = background->yPos.part16.integer; v_ += by_; } entity->ext.killerFish.attackY = v_ - 16; } /* FAKEMATCH: pinned register */
+            entity->ext.killerFish.attackY = BgY(Target_GetPixelY(entity), background) - 16;
             entity->subState++;
         }
         break;

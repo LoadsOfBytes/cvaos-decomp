@@ -189,13 +189,13 @@ void EnemyWingedSkeletonCreate(struct EwramData_EntityData *entity)
         {                                                                         \
             if ((s16)Entity_GetTargetDistanceX(entity) >= 0)                                        \
                 break;                                                            \
-            if (Tile_Classify(({ s32 t_ = entity->posX.part16.integer + ({ register u32 b_ asm("r2") = bg->xPos.part16.integer; b_; }); t_; }) + 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) entity->ext.wingedSkeleton.blocked = 1; /* FAKEMATCH: pinned register */ \
+            if (Tile_Classify(bg->xPos.part16.integer + entity->posX.part16.integer + 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) entity->ext.wingedSkeleton.blocked = 1; \
         }                                                                         \
         else                                                                      \
         {                                                                         \
             if ((s16)Entity_GetTargetDistanceX(entity) <= 0)                                        \
                 break;                                                            \
-            if (Tile_Classify(({ s32 t_ = entity->posX.part16.integer + (bg->xPos.part16.integer); t_; }) - 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) entity->ext.wingedSkeleton.blocked = 1; \
+            if (Tile_Classify(bg->xPos.part16.integer + entity->posX.part16.integer - 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) entity->ext.wingedSkeleton.blocked = 1; \
         }                                                                         \
     }
 
@@ -212,13 +212,13 @@ void EnemyWingedSkeletonCreate(struct EwramData_EntityData *entity)
         {                                                                         \
             if ((s16)Entity_GetTargetDistanceX(entity) >= 0)                                        \
                 break;                                                            \
-            if (Tile_Classify(({ s32 t_ = entity->posX.part16.integer + (bg->xPos.part16.integer); t_; }) + 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) entity->ext.wingedSkeleton.blocked = 1; \
+            if (Tile_Classify(bg->xPos.part16.integer + entity->posX.part16.integer + 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) entity->ext.wingedSkeleton.blocked = 1; \
         }                                                                         \
         else                                                                      \
         {                                                                         \
             if ((s16)Entity_GetTargetDistanceX(entity) <= 0)                                        \
                 break;                                                            \
-            if (Tile_Classify(({ s32 t_ = entity->posX.part16.integer + ({ register u32 b_ asm("r2") = bg->xPos.part16.integer; b_; }); t_; }) - 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) entity->ext.wingedSkeleton.blocked = 1; /* FAKEMATCH: pinned register */ \
+            if (Tile_Classify(bg->xPos.part16.integer + entity->posX.part16.integer - 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) entity->ext.wingedSkeleton.blocked = 1; \
         }                                                                         \
     }
 
@@ -235,13 +235,13 @@ void EnemyWingedSkeletonCreate(struct EwramData_EntityData *entity)
         {                                                                         \
             if ((s16)Entity_GetTargetDistanceX(entity) >= 0)                                        \
                 break;                                                            \
-            if (Tile_Classify(({ s32 t_ = entity->posX.part16.integer + (bg->xPos.part16.integer); t_; }) + 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) entity->ext.wingedSkeleton.blocked = 1; \
+            if (Tile_Classify(bg->xPos.part16.integer + entity->posX.part16.integer + 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) entity->ext.wingedSkeleton.blocked = 1; \
         }                                                                         \
         else                                                                      \
         {                                                                         \
             if ((s16)Entity_GetTargetDistanceX(entity) <= 0)                                        \
                 break;                                                            \
-            if (Tile_Classify(({ s32 t_ = entity->posX.part16.integer + ({ register u32 b_ asm("r2") = bg->xPos.part16.integer; b_; }); t_; }) - 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) entity->ext.wingedSkeleton.blocked = 1; /* FAKEMATCH: pinned register */ \
+            if (Tile_Classify(bg->xPos.part16.integer + entity->posX.part16.integer - 0x15, bg->yPos.part16.integer + entity->posY.part16.integer - 9) != 2) entity->ext.wingedSkeleton.blocked = 1; \
         }                                                                         \
     }
 

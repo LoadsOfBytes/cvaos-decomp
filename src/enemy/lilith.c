@@ -143,7 +143,7 @@ void Lilith_UpdateWalk(struct EwramData_EntityData *entity)
             {
                 entity->ext.lilith.dodgeChecked = land;
             }
-            else if (!*(s8 *)&entity->ext.lilith.dodgeChecked)
+            else if (!entity->ext.lilith.dodgeChecked)
             {
                 if (!(RandomNumberGenerator() & 1))
                 {
@@ -219,7 +219,7 @@ void Lilith_UpdateWalk(struct EwramData_EntityData *entity)
             {
                 entity->ext.lilith.dodgeChecked = land;
             }
-            else if (!*(s8 *)&entity->ext.lilith.dodgeChecked)
+            else if (!entity->ext.lilith.dodgeChecked)
             {
                 if (!(RandomNumberGenerator() & 1))
                 {

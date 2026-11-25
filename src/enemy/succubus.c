@@ -142,7 +142,7 @@ void Succubus_UpdateWalk(struct EwramData_EntityData *entity)
     {
     case 0:
         entity->flipX = Entity_IsTargetRight(entity);
-        if (!*(s8 *)&entity->ext.succubus.seen
+        if (!entity->ext.succubus.seen
             && Target_IsInRect((s16)(entity->posX.part16.integer - 0x5A), (s16)(entity->posY.part16.integer - 0x40), 0xB4, 0x46))
         {
             entity->ext.succubus.seen = 1;
@@ -185,7 +185,7 @@ void Succubus_UpdateWalk(struct EwramData_EntityData *entity)
             {
                 entity->ext.succubus.dodgeChecked = land;
             }
-            else if (!*(s8 *)&entity->ext.succubus.dodgeChecked)
+            else if (!entity->ext.succubus.dodgeChecked)
             {
                 if (!(RandomNumberGenerator() & 1))
                 {
@@ -248,7 +248,7 @@ void Succubus_UpdateWalk(struct EwramData_EntityData *entity)
             {
                 entity->ext.succubus.dodgeChecked = land;
             }
-            else if (!*(s8 *)&entity->ext.succubus.dodgeChecked)
+            else if (!entity->ext.succubus.dodgeChecked)
             {
                 if (!(RandomNumberGenerator() & 1))
                 {
@@ -361,7 +361,7 @@ void Succubus_UpdateAttack(struct EwramData_EntityData *entity)
         speed = 0x10000;
         Entity_MoveWithCollision(entity, speed, -0x200000, 0x40000, 8);
         Entity_ClampXToRoom(entity, 4);
-        hit = *(s8 *)&entity->ext.succubus.grabbed;
+        hit = entity->ext.succubus.grabbed;
         if (hit)
         {
             entity->subState = 10;
@@ -386,39 +386,30 @@ void Succubus_UpdateAttack(struct EwramData_EntityData *entity)
         break;
     case 10:
     {
-        u8 t; register u32 z_ asm("r0"); /* FAKEMATCH: r0 live across the test */
         entity->flipX = Entity_IsTargetRight(entity);
         gEwramData->playerState.enemyTarget->flipX = entity->flipX;
-        t = entity->timer;
-        if (({ asm("" : "=r"(z_)); /* FAKEMATCH: r0 live across the test */ t; }))
+        if (entity->timer)
         {
             struct EwramData_EntityData *player;
-            s32 y, ex, ey; register s32 n asm("r8"); /* FAKEMATCH: divisor in r8 */
-            {
-                u8 b_ = *(ENTITY_RENDER_FLAGS_ADDRESS(entity)); u32 k_;
-                asm("" :: "r"(z_)); /* FAKEMATCH: r0 live across the test */
-                k_ = 0x40;
-                k_ &= b_;
-                if (k_)
-                    dx = -0xC0000;
-                else
-                    dx = 0xC0000;
-            }
+            s32 y;
+            if (entity->flipX)
+                dx = -0xC0000;
+            else
+                dx = 0xC0000;
             player = gEwramData->playerState.player;
-            dx = player->posX.whole + dx - (ex = entity->posX.whole);
-            y = player->posY.whole; y -= (ey = entity->posY.whole);
-            n = *(volatile u8 *)&entity->timer; /* FAKEMATCH: volatile read forces the reload of the original */
-            dx /= n;
-            y /= n;
-            entity->posX.whole = ex + dx;
-            entity->posY.whole = ey + y;
-            entity->timer = t - 1;
+            dx = player->posX.whole + dx - entity->posX.whole;
+            y = player->posY.whole - entity->posY.whole;
+            dx /= entity->timer;
+            y /= entity->timer;
+            entity->posX.whole += dx;
+            entity->posY.whole += y;
+            entity->timer--;
         }
-        v = ({ s32 t = entity->ext.succubus.drainTimer + 1; entity->ext.succubus.drainTimer = t; (s8)t; });
+        v = ++entity->ext.succubus.drainTimer;
         if (v > 0x2C)
         {
             entity->ext.succubus.drainTimer = 0;
-            if (({ s32 t = entity->ext.succubus.drainCount + 1; entity->ext.succubus.drainCount = t; (s8)t; }) <= 4)
+            if (++entity->ext.succubus.drainCount <= 4)
             {
                 {
                     struct PlayerContactDamage effect;
@@ -431,18 +422,10 @@ void Succubus_UpdateAttack(struct EwramData_EntityData *entity)
                     Player_ApplyContactDamage(&effect);
                 }
                 PlaySong(0x7B);
-                {
-                    register u32 z0_ asm("r0"); register u32 z2_ asm("r2"); u8 b_; register u32 k_ asm("r0"); /* FAKEMATCH: and result in r0 */
-                    asm("" : "=r"(z0_), "=r"(z2_)); /* FAKEMATCH: r0/r2 live across the flag load (reload rotation) */
-                    b_ = *(ENTITY_RENDER_FLAGS_ADDRESS(entity));
-                    asm("" :: "r"(z0_), "r"(z2_)); /* FAKEMATCH: r0/r2 live across the flag load (reload rotation) */
-                    k_ = 0x40;
-                    k_ &= b_;
-                    if (k_)
-                        dx = 0x10000;
-                    else
-                        dx = -0x10000;
-                }
+                if (entity->flipX)
+                    dx = 0x10000;
+                else
+                    dx = -0x10000;
                 entity->posX.whole += dx;
             }
         }
@@ -454,23 +437,15 @@ void Succubus_UpdateAttack(struct EwramData_EntityData *entity)
                 dx = 0x10000;
             entity->posX.whole += dx;
         }
-        if ((gEwramData->inputData.playerNewInput & 0x3FF) && *(s8 *)&entity->ext.succubus.escapePresses <= 0x63)
+        if ((gEwramData->inputData.playerNewInput & 0x3FF) && entity->ext.succubus.escapePresses <= 0x63)
             entity->ext.succubus.escapePresses++;
-        if (Player_StartScriptedAnimation(0xE, 0, 0, 0) || *(s8 *)&entity->ext.succubus.drainCount > 4 || *(s8 *)&entity->ext.succubus.escapePresses > 0x1D)
+        if (Player_StartScriptedAnimation(0xE, 0, 0, 0) || entity->ext.succubus.drainCount > 4 || entity->ext.succubus.escapePresses > 0x1D)
         {
             Anim_StartIndexed(entity, 3, 0, 0);
-            {
-                register u32 z0_ asm("r0"); register u32 z2_ asm("r2"); u8 b_; register u32 k_ asm("r0"); /* FAKEMATCH: and result in r0 */
-                asm("" : "=r"(z0_), "=r"(z2_)); /* FAKEMATCH: r0/r2 live across the flag load (reload rotation) */
-                b_ = *(ENTITY_RENDER_FLAGS_ADDRESS(entity));
-                asm("" :: "r"(z0_), "r"(z2_)); /* FAKEMATCH: r0/r2 live across the flag load (reload rotation) */
-                k_ = 0x40;
-                k_ &= b_;
-                if (k_)
-                    entity->velX.whole = -0x28000;
-                else
-                    entity->velX.whole = 0x28000;
-            }
+            if (entity->flipX)
+                entity->velX.whole = -0x28000;
+            else
+                entity->velX.whole = 0x28000;
             entity->accelX.whole = 0;
             entity->velY.whole = 0x10000;
             entity->accelY.whole = 0x1800;

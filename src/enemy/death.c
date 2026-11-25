@@ -223,7 +223,7 @@ void DeathWeapon_Update(struct EwramData_EntityData *entity)
     case 4:
         if (DeathWeapon_UpdateWallTraversal(entity, owner))
         {
-            { u16 f_ = FLAGS(owner); register u32 m_ asm("r1") = 0xFFEF; m_ &= f_; FLAGS(owner) = m_; } /* FAKEMATCH: pinned register */
+            FLAGS(owner) &= ~0x10;
             entity->state = 3;
         }
         break;

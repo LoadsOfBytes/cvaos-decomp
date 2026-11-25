@@ -145,11 +145,11 @@ s32 GameModeBossRushMenuUpdate(void)
 }
 
 /**
- * @brief 89D0 | Handle empty game mode
+ * @brief 89D0 | Empty game mode 9
  * 
  * @return s32 Game mode, -1 is no change, -2 is next game mode, else the specified game mode
  */
-s32 GameModeUnk9Update(void)
+s32 GameModeEmpty9Update(void)
 {
     return GAME_MODE_SAME_MODE;
 }

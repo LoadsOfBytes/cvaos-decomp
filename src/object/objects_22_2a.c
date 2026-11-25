@@ -22,30 +22,30 @@ extern void *memcpy(void *dst, const void *src, unsigned long size);
 extern s32 Entity_MoveWithBoxCollision(struct EwramData_EntityData *, s32, s32, s32, s32, s32, s32);
 extern u8 sWarpLightPaletteSteps[];
 
-u8 Object22_LoadGraphics(struct EwramData_EntityData *entity);
-void Object22_SpawnEffect(struct EwramData_EntityData *, s32, s32, u8);
-void Object22_SpawnFallingPart(struct EwramData_EntityData *);
-void Object22FallingPart_Update(struct EwramData_EntityData *);
-void Object22FallingPart_OnPlayerContact(struct EwramData_EntityData *);
-void Object22Effect_Update(struct EwramData_EntityData *entity);
+u8 InputChallengePlatform_LoadGraphics(struct EwramData_EntityData *entity);
+void InputChallengePlatform_SpawnEffect(struct EwramData_EntityData *, s32, s32, u8);
+void InputChallengePlatform_SpawnFallingPart(struct EwramData_EntityData *);
+void InputChallengePlatformFallingPart_Update(struct EwramData_EntityData *);
+void InputChallengePlatformFallingPart_OnPlayerContact(struct EwramData_EntityData *);
+void InputChallengePlatformEffect_Update(struct EwramData_EntityData *entity);
 u8 VerticalPlatform_LoadGraphics(struct EwramData_EntityData *);
 void VerticalPlatform_Draw(struct EwramData_EntityData *entity);
 u8 HorizontalPlatform_LoadGraphics(struct EwramData_EntityData *);
 void HorizontalPlatform_Draw(struct EwramData_EntityData *entity);
 
 /**
- * @brief 56828 | Object 0x22 init: deleted unless Object22_LoadGraphics accepts it;
+ * @brief 56828 | Object 0x22 init: deleted unless InputChallengePlatform_LoadGraphics accepts it;
  * box 0x0C20FFF0 in slot 8 (HitBox_SetBody / HitBox_SetAttack, disabled),
  * animation 3, layer 0x12, attack = equipmentDefenseBonus / 2 + equipmentDefenseBonus / 4 +
  * maxHP / 16, fixed screen position (0x40, 0x9D) and gravity 0x2800.
  */
-void Object22Create(struct EwramData_EntityData *entity)
+void InputChallengePlatformCreate(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
     u8 state = 0; /* the original keeps this zero in its own register */
     u32 box = 0x0C20FFF0;
 
-    if (!Object22_LoadGraphics(entity))
+    if (!InputChallengePlatform_LoadGraphics(entity))
     {
         EntityDelete(entity);
         return;
@@ -69,12 +69,12 @@ void Object22Create(struct EwramData_EntityData *entity)
     entity->accelY.whole = 0x2800;
 }
 
-/* Object22_UpdateState. */
+/* InputChallengePlatform_UpdateState. */
 
 /**
- * @brief Main behaviour of object 0x22, called by Object22Update.
+ * @brief Main behaviour of object 0x22, called by InputChallengePlatformUpdate.
  */
-void Object22_UpdateState(struct EwramData_EntityData *e)
+void InputChallengePlatform_UpdateState(struct EwramData_EntityData *e)
 {
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
     u8 durations[5];
@@ -93,7 +93,7 @@ void Object22_UpdateState(struct EwramData_EntityData *e)
             if (e->timer++ > 0x3B)
             {
                 e->subState++;
-                e->ext.object22.level = 1;
+                e->ext.inputChallengePlatform.level = 1;
                 e->timer = 0;
                 e->velX.whole = 0x10000;
             }
@@ -106,7 +106,7 @@ void Object22_UpdateState(struct EwramData_EntityData *e)
         if (gEwramData->playerState.standingPlatform != e)
         {
             e->posY.part16.integer = 0x9D - bg->yPos.part16.integer;
-            if (++e->ext.object22.emptyTimer > 0x3B)
+            if (++e->ext.inputChallengePlatform.emptyTimer > 0x3B)
             {
                 e->stage = 0;
                 e->subState = 4;
@@ -117,11 +117,11 @@ void Object22_UpdateState(struct EwramData_EntityData *e)
         else
         {
             e->posY.part16.integer = 0x9E - bg->yPos.part16.integer;
-            e->ext.object22.emptyTimer = 0;
+            e->ext.inputChallengePlatform.emptyTimer = 0;
         }
-        if ((s16)e->posX.part16.integer + (s16)bg->xPos.part16.integer >= sObject22LevelThresholds[e->ext.object22.level])
+        if ((s16)e->posX.part16.integer + (s16)bg->xPos.part16.integer >= sInputChallengePlatformLevelThresholds[e->ext.inputChallengePlatform.level])
         {
-            e->posX.part16.integer = sObject22LevelThresholds[e->ext.object22.level] - bg->xPos.part16.integer;
+            e->posX.part16.integer = sInputChallengePlatformLevelThresholds[e->ext.inputChallengePlatform.level] - bg->xPos.part16.integer;
             e->velX.whole = 0;
             e->subState++;
             e->stage = 0;
@@ -129,11 +129,11 @@ void Object22_UpdateState(struct EwramData_EntityData *e)
         }
         break;
     case 2:
-        { u8 **pt = sObject22LevelPatterns; s32 i = e->ext.object22.level - 1; pat = pt[i]; }
+        { u8 **pt = sInputChallengePlatformLevelPatterns; s32 i = e->ext.inputChallengePlatform.level - 1; pat = pt[i]; }
         if (gEwramData->playerState.standingPlatform != e)
         {
             e->posY.part16.integer = 0x9D - bg->yPos.part16.integer;
-            if (++e->ext.object22.emptyTimer > 0x3B)
+            if (++e->ext.inputChallengePlatform.emptyTimer > 0x3B)
             {
                 e->stage = 0;
                 e->subState = 4;
@@ -144,7 +144,7 @@ void Object22_UpdateState(struct EwramData_EntityData *e)
         else
         {
             e->posY.part16.integer = 0x9E - bg->yPos.part16.integer;
-            e->ext.object22.emptyTimer = 0;
+            e->ext.inputChallengePlatform.emptyTimer = 0;
         }
         switch (e->stage)
         {
@@ -158,7 +158,7 @@ void Object22_UpdateState(struct EwramData_EntityData *e)
         case 1:
         {
             s32 dx, dy;
-            u8 key = pat[e->ext.object22.step + 1];
+            u8 key = pat[e->ext.inputChallengePlatform.step + 1];
             if (key == 0x40)
             {
                 dx = 0;
@@ -179,41 +179,41 @@ void Object22_UpdateState(struct EwramData_EntityData *e)
                 dx = -0x60000;
                 dy = 0x720000;
             }
-            { const s16 *tbl = sObject22LevelThresholds; dx += tbl[e->ext.object22.level] << 16; }
+            { const s16 *tbl = sInputChallengePlatformLevelThresholds; dx += tbl[e->ext.inputChallengePlatform.level] << 16; }
             dx -= bg->xPos.whole;
             dy -= bg->yPos.whole;
-            Object22_SpawnEffect(e, dx, dy, durations[e->ext.object22.level - 1]);
+            InputChallengePlatform_SpawnEffect(e, dx, dy, durations[e->ext.inputChallengePlatform.level - 1]);
             e->stage++;
             e->timer = 0;
-            e->ext.object22.hit = 0;
+            e->ext.inputChallengePlatform.hit = 0;
             PlaySong(0x15B);
             break;
         }
         case 2:
-            if (++e->timer <= durations[e->ext.object22.level - 1] && e->ext.object22.hit == 0)
+            if (++e->timer <= durations[e->ext.inputChallengePlatform.level - 1] && e->ext.inputChallengePlatform.hit == 0)
             {
                 u16 in = gEwramData->inputData.playerNewInput;
-                if (pat[e->ext.object22.step + 1] & in)
+                if (pat[e->ext.inputChallengePlatform.step + 1] & in)
                 {
-                    e->ext.object22.hit = 1;
+                    e->ext.inputChallengePlatform.hit = 1;
                     PlaySong(0x15A);
                 }
                 else if (in & 0xF0)
                 {
-                    e->ext.object22.hit = 2;
-                    e->timer = durations[e->ext.object22.level - 1];
+                    e->ext.inputChallengePlatform.hit = 2;
+                    e->timer = durations[e->ext.inputChallengePlatform.level - 1];
                     PlaySong(0x15A);
                 }
             }
-            if (e->timer >= durations[e->ext.object22.level - 1] + 0x1E)
+            if (e->timer >= durations[e->ext.inputChallengePlatform.level - 1] + 0x1E)
             {
-                if (e->ext.object22.hit == 1)
+                if (e->ext.inputChallengePlatform.hit == 1)
                 {
                     e->timer = 0;
-                    e->ext.object22.step++;
-                    if (e->ext.object22.step >= pat[0])
+                    e->ext.inputChallengePlatform.step++;
+                    if (e->ext.inputChallengePlatform.step >= pat[0])
                     {
-                        e->ext.object22.step = 0;
+                        e->ext.inputChallengePlatform.step = 0;
                         e->stage = 0;
                         e->subState++;
                     }
@@ -237,7 +237,7 @@ void Object22_UpdateState(struct EwramData_EntityData *e)
             e->posY.part16.integer = 0x9D - bg->yPos.part16.integer;
         if (e->timer++ << 24)
         {
-            if (++e->ext.object22.level > 5)
+            if (++e->ext.inputChallengePlatform.level > 5)
             {
                 e->subState = 10;
                 e->timer = 0;
@@ -256,12 +256,12 @@ void Object22_UpdateState(struct EwramData_EntityData *e)
             e->stage++;
             e->velX.whole = 0;
             e->accelX.whole = 0;
-            Object22_SpawnFallingPart(e);
+            InputChallengePlatform_SpawnFallingPart(e);
             PlaySong(0x15C);
         }
         if ((s8)--e->timer <= 0)
         {
-            e->ext.object22.flags |= 1;
+            e->ext.inputChallengePlatform.flags |= 1;
             e->timer = 0x28;
             e->subState++;
         }
@@ -282,10 +282,10 @@ void Object22_UpdateState(struct EwramData_EntityData *e)
 }
 
 /* Spawn the object 0x22's attached falling part. */
-void Object22_SpawnFallingPart(struct EwramData_EntityData *owner)
+void InputChallengePlatform_SpawnFallingPart(struct EwramData_EntityData *owner)
 {
     struct SpriteBox box;
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Object22FallingPart_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, InputChallengePlatformFallingPart_Update);
     s32 graphics;
     if (child != NULL)
     {
@@ -293,9 +293,9 @@ void Object22_SpawnFallingPart(struct EwramData_EntityData *owner)
         child->posY.whole = 0;
         child->velY.whole = 0x60000;
         child->spriteLayer = owner->spriteLayer + 1;
-        graphics = ObjGfx_Find(sObject22Gfx);
+        graphics = ObjGfx_Find(sInputChallengePlatformGfx);
         child->basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 1);
-        Sprite_Attach(child, sObject22SpriteSheet, graphics, child->basePalette);
+        Sprite_Attach(child, sInputChallengePlatformSpriteSheet, graphics, child->basePalette);
         Anim_StartIndexed(child, 4, 0, 0);
         Anim_Update(child);
         child->attack = owner->attack;
@@ -306,9 +306,9 @@ void Object22_SpawnFallingPart(struct EwramData_EntityData *owner)
         HitBox_SetAttack(child, &box);
         child->hit.flags |= 4;
         child->hit.flags &= ~2;
-        Hit_Enable(child, 8, Object22FallingPart_OnPlayerContact, 0);
+        Hit_Enable(child, 8, InputChallengePlatformFallingPart_OnPlayerContact, 0);
         child->enemyId = owner->enemyId;
-        child->ext.object22Part.owner = owner;
+        child->ext.inputChallengePlatformPart.owner = owner;
         child->scrollWithBg = 1;
         child->drawFunc = Sprite_DrawEntity;
     }
@@ -316,10 +316,10 @@ void Object22_SpawnFallingPart(struct EwramData_EntityData *owner)
 
 /* Follow the owner's Y after falling onto it; remove if the owner is lost. */
 static inline void CopyBit(struct EwramData_EntityData *a, u32 b) { a->hidden = b; }
-void Object22FallingPart_Update(struct EwramData_EntityData *entity)
+void InputChallengePlatformFallingPart_Update(struct EwramData_EntityData *entity)
 {
     struct HitResult result;
-    struct EwramData_EntityData *owner = entity->ext.object22Part.owner;
+    struct EwramData_EntityData *owner = entity->ext.inputChallengePlatformPart.owner;
     if (owner == NULL || owner->updateFunc == NULL || owner->enemyId != entity->enemyId)
         goto remove;
     if (entity->state == 0)
@@ -351,25 +351,25 @@ void Object22FallingPart_Update(struct EwramData_EntityData *entity)
 /**
  * @brief 56F14 | Object 0x22 update.
  */
-void Object22Update(struct EwramData_EntityData *entity)
+void InputChallengePlatformUpdate(struct EwramData_EntityData *entity)
 {
     struct HitResult result;
 
-    if (!(entity->ext.object22.flags & 1))
+    if (!(entity->ext.inputChallengePlatform.flags & 1))
         Player_QueueEntity(entity, 1);
     if (entity->state == 0)
-        Object22_UpdateState(entity);
+        InputChallengePlatform_UpdateState(entity);
     Anim_Update(entity);
     Hit_CheckWithPlayer(&result, entity);
 }
 
 /**
- * @brief 56F50 | Spawn a short-lived effect (animation 2 of sObject22SpriteSheet)
+ * @brief 56F50 | Spawn a short-lived effect (animation 2 of sInputChallengePlatformSpriteSheet)
  * at (dx, dy) lasting param_3 frames.
  */
-void Object22_SpawnEffect(struct EwramData_EntityData *entity, s32 dx, s32 dy, u8 duration)
+void InputChallengePlatform_SpawnEffect(struct EwramData_EntityData *entity, s32 dx, s32 dy, u8 duration)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Object22Effect_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, InputChallengePlatformEffect_Update);
     s32 gfx;
 
     if (child != NULL)
@@ -377,9 +377,9 @@ void Object22_SpawnEffect(struct EwramData_EntityData *entity, s32 dx, s32 dy, u
         child->posX.whole = dx;
         child->posY.whole = dy;
         child->spriteLayer = entity->spriteLayer;
-        gfx = ObjGfx_Find(sObject22Gfx);
+        gfx = ObjGfx_Find(sInputChallengePlatformGfx);
         child->basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 1);
-        Sprite_Attach(child, sObject22SpriteSheet, gfx, child->basePalette);
+        Sprite_Attach(child, sInputChallengePlatformSpriteSheet, gfx, child->basePalette);
         Anim_StartIndexed(child, 2, 0, 0);
         Anim_Update(child);
         child->timer = duration;
@@ -391,20 +391,20 @@ void Object22_SpawnEffect(struct EwramData_EntityData *entity, s32 dx, s32 dy, u
 /**
  * @brief 56FE8 | Effect update: delete when the timer timer runs out.
  */
-void Object22Effect_Update(struct EwramData_EntityData *entity)
+void InputChallengePlatformEffect_Update(struct EwramData_EntityData *entity)
 {
     if ((s8)--entity->timer <= 0)
         EntityDelete(entity);
 }
 
-/* Object22FallingPart_OnPlayerContact: variant of an already decompiled function, generated with
+/* InputChallengePlatformFallingPart_OnPlayerContact: variant of an already decompiled function, generated with
  * a cloning script (constants adjusted where needed), checked byte for
  * byte. */
 
 /**
  * @brief 57004 | Like GreatArmorShockwave_DamagePlayerOnContact, but unk_2 = 1.
  */
-void Object22FallingPart_OnPlayerContact(struct EwramData_EntityData *entity)
+void InputChallengePlatformFallingPart_OnPlayerContact(struct EwramData_EntityData *entity)
 {
     struct PlayerContactDamage contactDamage;
 
@@ -419,19 +419,19 @@ void Object22FallingPart_OnPlayerContact(struct EwramData_EntityData *entity)
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   Object22_LoadGraphics = Object26_LoadGraphics */
+ *   InputChallengePlatform_LoadGraphics = PopUpTrap_LoadGraphics */
 
 /**
- * @brief 57034 | Same as Object26_LoadGraphics.
+ * @brief 57034 | Same as PopUpTrap_LoadGraphics.
  */
-u8 Object22_LoadGraphics(struct EwramData_EntityData *entity)
+u8 InputChallengePlatform_LoadGraphics(struct EwramData_EntityData *entity)
 {
-    s32 gfx = ObjGfx_LoadResource(sObject22Gfx, 0);
+    s32 gfx = ObjGfx_LoadResource(sInputChallengePlatformGfx, 0);
 
     if (gfx < 0)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 2);
-    Sprite_Attach(entity, sObject22SpriteSheet, gfx, entity->basePalette);
+    Sprite_Attach(entity, sInputChallengePlatformSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }

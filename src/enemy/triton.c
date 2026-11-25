@@ -771,12 +771,12 @@ void TritonSpear_SpawnEffect(struct EwramData_EntityData *owner, s32 x, s32 y)
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   Triton_LoadGraphics = Object25_LoadGraphics
+ *   Triton_LoadGraphics = LegionWalkingCorpse_LoadGraphics
  *   Triton_DamagePlayerOnContact = Enemy_DamagePlayerOnContact
  *   TritonEffect_Update = GolemIdleEffect_Update */
 
 /**
- * @brief 87D24 | Same as Object25_LoadGraphics.
+ * @brief 87D24 | Same as LegionWalkingCorpse_LoadGraphics.
  */
 u8 Triton_LoadGraphics(struct EwramData_EntityData *entity)
 {

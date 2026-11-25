@@ -327,7 +327,7 @@ void Gate_UpdateFlagControlled(struct EwramData_EntityData *entity)
 
 /* Helpers 0x0804DE60..0x0804DFAB. */
 
-/* Event flag param_1 of the bit array gameFlagsTail (as in Object35Create). */
+/* Event flag param_1 of the bit array gameFlagsTail (as in FloorSwitchGateCreate). */
 #define OBJECT_FLAG(ewram, flag) ((ewram)->gameState.gameFlagsTail[(flag) >> 5] & (1 << ((flag) & 0x1F)))
 
 /**
@@ -394,7 +394,7 @@ void Door_SetupGraphics(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief 4DFAC | Object 2 init (door, as Object06Create): deleted when
+ * @brief 4DFAC | Object 2 init (door, as BarrierDoorCreate): deleted when
  * spawnParam0 <= 1 and bit spawnParam1 of bossEventFlags is set; Door_SetupGraphics, window
  * outside 0x3F / 0x2F, variant 7 uses palette 9 (unk_4FF, palette). When
  * the player is inside the 0x38 x 0x22 area 0x1C px to its left: unk_4F8 =
@@ -476,7 +476,7 @@ void BossDoorCreate(struct EwramData_EntityData *entity)
 #define BG &gEwramData->bgInfo[1]
 
 /**
- * @brief 4E0F8 | Shutter door (object 0x02): like Object04Update, but
+ * @brief 4E0F8 | Shutter door (object 0x02): like OneWayBossDoorUpdate, but
  * variant 7 throws sparks (Effect_SpawnShared) every fourth frame while closed,
  * state 10 closes once the player is out of the 0x38 x 0x22 box and state 11
  * also clears bit 15 of DISPCNT.
@@ -724,7 +724,7 @@ void LinkPlayDoorUpdate(struct EwramData_EntityData *entity)
  * the player when moving towards the room centre; otherwise mark three
  * tiles above it and pick the state from spawnParam0.
  */
-void Object04Create(struct EwramData_EntityData *entity)
+void OneWayBossDoorCreate(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *player;
     struct EwramData_EntityData **pp;
@@ -821,7 +821,7 @@ static inline s32 IsBeside(struct EwramData_EntityData *entity)
  * player and go to 0x63 / 0x14 (spawnParam0); state 20 waits for its boss flag
  * (bit spawnParam1 of bossEventFlags, map reveal 0x1040) and state 21 opens it for good.
  */
-void Object04Update(struct EwramData_EntityData *entity)
+void OneWayBossDoorUpdate(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *player = gEwramData->playerState.player;
 
@@ -943,7 +943,7 @@ void Object04Update(struct EwramData_EntityData *entity)
  * above it (Collision_SetBlock), reset unk_4F8 and pick the state from spawnParam0
  * (1: 0x14, 3: 0x63, else 0).
  */
-void Object06Create(struct EwramData_EntityData *entity)
+void BarrierDoorCreate(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *player;
     struct BgLayerState *bg;
@@ -988,7 +988,7 @@ void Object06Create(struct EwramData_EntityData *entity)
 /* Door transition and effects. Explicit register locals retain agbcc output;
  * they do not establish the original source spelling. */
 
-void Object06Update(struct EwramData_EntityData *entity)
+void BarrierDoorUpdate(struct EwramData_EntityData *entity)
 {
     struct EwramData *ew;
     struct EwramData_EntityData *p2;
@@ -1172,7 +1172,7 @@ void BgParticle_Update(struct EwramData_EntityData *entity)
         else if (entity->spawnParam0 == 2)
         {
             gfx = ObjGfx_LoadResource((u8 *)sBgParticleGfx, 0);
-            if (gfx < 0 || (pal = ObjPalette_FindOrLoad((void *)sObject2DObject2EPalette)) < 0)
+            if (gfx < 0 || (pal = ObjPalette_FindOrLoad((void *)sTopFloorPropPalette)) < 0)
             {
                 entity->deleteRequested = 1;
                 return;

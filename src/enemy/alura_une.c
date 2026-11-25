@@ -710,12 +710,12 @@ void AluraUneRootWave_Update(struct EwramData_EntityData *entity)
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   AluraUneAttack_DamagePlayerOnContact = Object28_OnPlayerContact
- *   AluraUne_LoadGraphics = Object25_LoadGraphics
- *   AluraUne_DamagePlayerOnContact = Object28_OnPlayerContact */
+ *   AluraUneAttack_DamagePlayerOnContact = PopUpTrapSmall_OnPlayerContact
+ *   AluraUne_LoadGraphics = LegionWalkingCorpse_LoadGraphics
+ *   AluraUne_DamagePlayerOnContact = PopUpTrapSmall_OnPlayerContact */
 
 /**
- * @brief 7CEF0 | Same as Object28_OnPlayerContact.
+ * @brief 7CEF0 | Same as PopUpTrapSmall_OnPlayerContact.
  */
 void AluraUneAttack_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 {
@@ -731,7 +731,7 @@ void AluraUneAttack_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief 7CF20 | Same as Object25_LoadGraphics.
+ * @brief 7CF20 | Same as LegionWalkingCorpse_LoadGraphics.
  */
 u8 AluraUne_LoadGraphics(struct EwramData_EntityData *entity)
 {
@@ -746,7 +746,7 @@ u8 AluraUne_LoadGraphics(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief 7CF6C | Same as Object28_OnPlayerContact.
+ * @brief 7CF6C | Same as PopUpTrapSmall_OnPlayerContact.
  */
 void AluraUne_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 {

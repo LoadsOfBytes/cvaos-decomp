@@ -647,11 +647,11 @@ void EnemyMudmanCreate(struct EwramData_EntityData *entity)
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   Mudman_LoadGraphics = Object25_LoadGraphics
+ *   Mudman_LoadGraphics = LegionWalkingCorpse_LoadGraphics
  *   Mudman_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
 /**
- * @brief 726F0 | Same as Object25_LoadGraphics.
+ * @brief 726F0 | Same as LegionWalkingCorpse_LoadGraphics.
  */
 u8 Mudman_LoadGraphics(struct EwramData_EntityData *entity)
 {

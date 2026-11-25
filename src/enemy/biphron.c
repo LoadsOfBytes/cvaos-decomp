@@ -387,11 +387,11 @@ void Biphron_SpawnDebris(struct EwramData_EntityData *parent, s32 x, s32 y, s32 
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   Biphron_LoadGraphics = Object25_LoadGraphics
+ *   Biphron_LoadGraphics = LegionWalkingCorpse_LoadGraphics
  *   Biphron_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
 /**
- * @brief 9A3D8 | Same as Object25_LoadGraphics.
+ * @brief 9A3D8 | Same as LegionWalkingCorpse_LoadGraphics.
  */
 u8 Biphron_LoadGraphics(struct EwramData_EntityData *entity)
 {

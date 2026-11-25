@@ -1,11 +1,11 @@
-#ifndef DEBUG_2229_H
-#define DEBUG_2229_H
+#ifndef DEBUG_ROOM_H
+#define DEBUG_ROOM_H
 
 #include "types.h"
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-s32 GameModeDebug2229Update(void);
+s32 GameModeDebugRoomUpdate(void);
 void DebugJitterSprite_Update(struct EwramData_EntityData *entity);
 
-#endif /* DEBUG_2229_H */
+#endif /* DEBUG_ROOM_H */

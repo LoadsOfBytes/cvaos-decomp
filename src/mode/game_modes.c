@@ -13,7 +13,7 @@
 #include "soul_inventory.h"
 #include "player_effects.h"
 #include "player_level.h"
-#include "debug_1967.h"
+#include "debug_test_menu.h"
 #include "graphics.h"
 #include "gameplay.h"
 #include "entity_util.h"
@@ -70,19 +70,19 @@ struct DebugMenuOptions sDebugMenuOptions[] = {
     },
     [3] = {
         .text = "1967",
-        .gameMode = GAME_MODE_DEBUG_1967
+        .gameMode = GAME_MODE_DEBUG_TEST_MENU
     },
     [4] = {
         .text = "2229",
-        .gameMode = GAME_MODE_DEBUG_2229
+        .gameMode = GAME_MODE_DEBUG_ROOM
     },
     [5] = {
         .text = "2739",
-        .gameMode = GAME_MODE_DEBUG_2739
+        .gameMode = GAME_MODE_DEBUG_NESTED_MENU
     },
     [6] = {
         .text = "4531",
-        .gameMode = GAME_MODE_DEBUG_4531
+        .gameMode = GAME_MODE_DEBUG_EVENT_MENU
     },
     [7] = {
         .text = "Staff Roll",
@@ -183,7 +183,7 @@ struct DebugExitOptions sDebugExitOptions[] = {
     [13] = {
         .gameMode = GAME_MODE_BOSS_RUSH_MENU,
         .saveFile = 0,
-        .roomDefinition = (u32*)sDebug4531Room2,
+        .roomDefinition = (u32*)sDebugEventMenuRoom2,
         .text = " Boss Rush 2P"
     },
     [14] = {
@@ -2602,7 +2602,7 @@ s32 GameModeMainMenuUpdate(void)
                 gDisplayRegisters.winOut_L = WIN0_ALL;
                 gameState = &gEwramData->gameState;
                 ButtonConfig_ResetDefaults();
-                gameState->currentRoomDefinition = (struct RoomDefinition *)sDebug4531Room;
+                gameState->currentRoomDefinition = (struct RoomDefinition *)sDebugEventMenuRoom;
                 gEwramData->gameModeUpdateStage = 0x1E;
                 gEwramData->gameModeSubStage = 0;
             }
@@ -2678,7 +2678,7 @@ s32 GameModeMainMenuUpdate(void)
                     gDisplayRegisters.winOut_L = WIN0_ALL;
                     nameGameState = &gEwramData->gameState;
                     ButtonConfig_ResetDefaults();
-                    nameGameState->currentRoomDefinition = (struct RoomDefinition *)sDebug4531Room;
+                    nameGameState->currentRoomDefinition = (struct RoomDefinition *)sDebugEventMenuRoom;
                     gEwramData->gameModeUpdateStage = 0x1E;
                     gEwramData->gameModeSubStage = 0;
                 }

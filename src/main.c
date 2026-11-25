@@ -8,10 +8,10 @@
 #include "in_game.h"
 #include "save_data.h"
 #include "music.h"
-#include "debug_1967.h"
-#include "debug_2229.h"
+#include "debug_test_menu.h"
+#include "debug_room.h"
 #include "debug_menu.h"
-#include "debug_4531.h"
+#include "debug_event_menu.h"
 #include "sound.h"
 #include "agb_sram.h"
 #include "agb_multi_sio_sync.h"
@@ -222,8 +222,8 @@ void GameModeUpdate(void)
             gameMode = GameModeMainMenuUpdate();
             break;
 
-        case GAME_MODE_UNK_3:
-            gameMode = GameModeUnk3Update();
+        case GAME_MODE_EMPTY_3:
+            gameMode = GameModeEmpty3Update();
             break;
 
         case GAME_MODE_IN_GAME:
@@ -234,8 +234,8 @@ void GameModeUpdate(void)
             gameMode = GameModeBossRushMenuUpdate();
             break;
 
-        case GAME_MODE_UNK_9:
-            gameMode = GameModeUnk9Update();
+        case GAME_MODE_EMPTY_9:
+            gameMode = GameModeEmpty9Update();
             break;
 
         case GAME_MODE_GAME_OVER:
@@ -274,20 +274,20 @@ void GameModeUpdate(void)
             gameMode = GameModeDebugExitUpdate();
             break;
 
-        case GAME_MODE_DEBUG_1967:
-            gameMode = GameModeDebug1967Update();
+        case GAME_MODE_DEBUG_TEST_MENU:
+            gameMode = GameModeDebugTestMenuUpdate();
             break;
 
-        case GAME_MODE_DEBUG_2229:
-            gameMode = GameModeDebug2229Update();
+        case GAME_MODE_DEBUG_ROOM:
+            gameMode = GameModeDebugRoomUpdate();
             break;
 
-        case GAME_MODE_DEBUG_2739:
-            gameMode = GameModeDebug2739Update();
+        case GAME_MODE_DEBUG_NESTED_MENU:
+            gameMode = GameModeDebugNestedMenuUpdate();
             break;
 
-        case GAME_MODE_DEBUG_4531:
-            gameMode = GameModeDebug4531Update();
+        case GAME_MODE_DEBUG_EVENT_MENU:
+            gameMode = GameModeDebugEventMenuUpdate();
             break;
 
         case GAME_MODE_UNK_F:

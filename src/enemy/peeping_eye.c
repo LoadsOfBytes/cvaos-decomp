@@ -774,10 +774,10 @@ struct EwramData_EntityData *EnemyPeepingEyeCreateEyeball(struct EwramData_Entit
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   PeepingEye_LoadGraphics = Object25_LoadGraphics */
+ *   PeepingEye_LoadGraphics = LegionWalkingCorpse_LoadGraphics */
 
 /**
- * @brief 88E08 | Same as Object25_LoadGraphics.
+ * @brief 88E08 | Same as LegionWalkingCorpse_LoadGraphics.
  */
 u8 PeepingEye_LoadGraphics(struct EwramData_EntityData *entity)
 {

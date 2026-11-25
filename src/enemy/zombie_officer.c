@@ -243,7 +243,7 @@ void ZombieOfficer_SpawnPiece(struct EwramData_EntityData *entity, s32 x, s32 y,
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
  *   ZombieOfficerPiece_Update = ZombieSoldierPiece_Update
- *   ZombieOfficer_LoadGraphics = Object25_LoadGraphics
+ *   ZombieOfficer_LoadGraphics = LegionWalkingCorpse_LoadGraphics
  *   ZombieOfficer_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
 /**
@@ -257,7 +257,7 @@ void ZombieOfficerPiece_Update(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief 92680 | Same as Object25_LoadGraphics.
+ * @brief 92680 | Same as LegionWalkingCorpse_LoadGraphics.
  */
 u8 ZombieOfficer_LoadGraphics(struct EwramData_EntityData *entity)
 {

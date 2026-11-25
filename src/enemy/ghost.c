@@ -283,10 +283,10 @@ void Ghost_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityDat
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   Ghost_LoadGraphics = Object25_LoadGraphics */
+ *   Ghost_LoadGraphics = LegionWalkingCorpse_LoadGraphics */
 
 /**
- * @brief 8A1AC | Same as Object25_LoadGraphics.
+ * @brief 8A1AC | Same as LegionWalkingCorpse_LoadGraphics.
  */
 u8 Ghost_LoadGraphics(struct EwramData_EntityData *entity)
 {

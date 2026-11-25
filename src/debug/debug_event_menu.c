@@ -1,4 +1,4 @@
-#include "debug_4531.h"
+#include "debug_event_menu.h"
 #include "bg_and_collision.h"
 #include "in_game.h"
 // #include "bg_effects.h" // TODO: Bg_UpdateScrollModes implicitly called with arguments (it should have none)
@@ -24,7 +24,7 @@
 extern struct RoomDefinition sEndingRoomDefinition; /* read as u8[] by graham.c */
 extern int sprintf(char *, const char *, ...);
 
-const u16 sDebug4531Palette[] = {
+const u16 sDebugEventMenuPalette[] = {
     0x7FFF, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
     0x7FFF, 0x001F, 0x001F, 0x001F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
     0x7FFF, 0x03E0, 0x03E0, 0x03E0, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
@@ -32,11 +32,11 @@ const u16 sDebug4531Palette[] = {
 };
 
 /**
- * @brief 38A38 | Handle debug 4531 game mode
+ * @brief 38A38 | Debug event menu (debug menu entry "4531", "DEBUG MODE --usr04531--"): pick and start an event scene
  * 
  * @return s32 Game mode, -1 is no change, -2 is next game mode, else the specified game mode
  */
-s32 GameModeDebug4531Update(void)
+s32 GameModeDebugEventMenuUpdate(void)
 {
     s32 gameMode;
     struct PlayerStatus *playerStatus;
@@ -64,23 +64,23 @@ s32 GameModeDebug4531Update(void)
     };
 
     gameMode = GAME_MODE_SAME_MODE;
-    if (gEwramData->debug4531State == 0)
+    if (gEwramData->debugEventMenuState == 0)
     {
-        gEwramData->debug4531State = 1;
+        gEwramData->debugEventMenuState = 1;
     }
 
-    switch (gEwramData->debug4531State)
+    switch (gEwramData->debugEventMenuState)
     {
         case 1:
-            gEwramData->debug4531State = Debug4531_UpdateEventMenu();
-            if (gEwramData->debug4531State != 1)
+            gEwramData->debugEventMenuState = DebugEventMenu_UpdateEventMenu();
+            if (gEwramData->debugEventMenuState != 1)
             {
-                gEwramData->debug4531SubStage = 0;
+                gEwramData->debugEventMenuSubStage = 0;
             }
             break;
 
         case 2:
-            gameMode = Debug4531_SelectSaveSlot();
+            gameMode = DebugEventMenu_SelectSaveSlot();
             break;
 
         case 3:
@@ -97,23 +97,23 @@ s32 GameModeDebug4531Update(void)
         case 14:
         case 15:
         case 19:
-            if (gEwramData->debug4531State == 12)
+            if (gEwramData->debugEventMenuState == 12)
             {
                 gEwramData->gameState.bossEventFlags |= 1;
                 GameFlag_Set(0x3A);
             }
-            else if (gEwramData->debug4531State == 10)
+            else if (gEwramData->debugEventMenuState == 10)
             {
                 gEwramData->gameState.bossEventFlags |= 0x40;
             }
-            else if (gEwramData->debug4531State == 19)
+            else if (gEwramData->debugEventMenuState == 19)
             {
                 GameFlag_Set(0x28);
             }
 
             GameFlag_Set(0x20);
-            gameMode = Debug4531_RunEventGame();
-            if (gEwramData->debug4531State == 19 && gEwramData->debug4531SubStage == 1)
+            gameMode = DebugEventMenu_RunEventGame();
+            if (gEwramData->debugEventMenuState == 19 && gEwramData->debugEventMenuSubStage == 1)
             {
                 gEwramData->playerStatus.equippedRedSoul = 0x2C;
                 gEwramData->playerStatus.equippedBlueSoul = 2;
@@ -125,45 +125,45 @@ s32 GameModeDebug4531Update(void)
             gEwramData->gameState.stateFlags &= ~0x4000;
             gEwramData->gameState.stateFlags &= ~0x8000;
             gEwramData->gameState.stateFlags |= 0x2000;
-            gameMode = Debug4531_RunEventGame();
+            gameMode = DebugEventMenu_RunEventGame();
             break;
 
         case 17:
             gEwramData->gameState.stateFlags &= ~0x2000;
             gEwramData->gameState.stateFlags &= ~0x8000;
             gEwramData->gameState.stateFlags |= 0x4000;
-            gameMode = Debug4531_RunEventGame();
+            gameMode = DebugEventMenu_RunEventGame();
             break;
 
         case 18:
             gEwramData->gameState.stateFlags &= ~0x2000;
             gEwramData->gameState.stateFlags &= ~0x4000;
             gEwramData->gameState.stateFlags |= 0x8000;
-            gameMode = Debug4531_RunEventGame();
+            gameMode = DebugEventMenu_RunEventGame();
             break;
 
         case 20:
             gEwramData->gameState.stateFlags |= 0x10000;
-            gameMode = Debug4531_RunEventGame();
+            gameMode = DebugEventMenu_RunEventGame();
             break;
 
         case 21:
-            gEwramData->debug4531State = 0;
-            gEwramData->debug4531SubStage = 0;
-            gEwramData->debug4531State = 0;
+            gEwramData->debugEventMenuState = 0;
+            gEwramData->debugEventMenuSubStage = 0;
+            gEwramData->debugEventMenuState = 0;
             gameMode = GAME_MODE_DEBUG;
             break;
     }
 
     GameFlag_Set(0x20);
-    if (gEwramData->debug4531SubStage == 1)
+    if (gEwramData->debugEventMenuSubStage == 1)
     {
-        if (gEwramData->debug4531State >= 3)
+        if (gEwramData->debugEventMenuState >= 3)
         {
-            gEwramData->gameState.currentRoomDefinition = subroutine_arg0[gEwramData->debug4531State - 3];
+            gEwramData->gameState.currentRoomDefinition = subroutine_arg0[gEwramData->debugEventMenuState - 3];
 
             playerStatus = &gEwramData->playerStatus;
-            if (gEwramData->debug4531State == 19)
+            if (gEwramData->debugEventMenuState == 19)
             {
                 Player_SetLevel(0x63);
             }
@@ -174,23 +174,23 @@ s32 GameModeDebug4531Update(void)
             playerStatus->currentHP = playerStatus->maxHP;
             playerStatus->currentMP = playerStatus->maxMP;
 
-            if (gEwramData->debug4531State == 15)
+            if (gEwramData->debugEventMenuState == 15)
             {
                 GameFlag_Set(0x26);
             }
         }
     }
 
-    if (gEwramData->debug4531State == 1)
+    if (gEwramData->debugEventMenuState == 1)
     {
         if (gEwramData->inputData.newInput & (4 | 2))
         {
-            gEwramData->debug4531State = 21;
+            gEwramData->debugEventMenuState = 21;
         }
 
         if (gEwramData->inputData.newInput & 8)
         {
-            gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)sDebug4531Room;
+            gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)sDebugEventMenuRoom;
             return 4;
         }
     }
@@ -207,7 +207,7 @@ struct DebugEventMenuEntry {
  * @brief Draw the paged "DEBUG MODE --usr04531--" event list, move the cursor
  * and return the chosen event state on A (1 while choosing).
  */
-s32 Debug4531_UpdateEventMenu(void)
+s32 DebugEventMenu_UpdateEventMenu(void)
 {
     s32 pageStart;
     s32 prevPageStart;
@@ -295,11 +295,11 @@ s32 Debug4531_UpdateEventMenu(void)
     input = gEwramData->inputData.repeatedInput;
     ret = 1;
 
-    DMA_COPY_16(3, &sDebug4531Palette, PALRAM_BASE, 0x80);
+    DMA_COPY_16(3, &sDebugEventMenuPalette, PALRAM_BASE, 0x80);
     BgCmdBuffer_WriteString(1, 1, 1, "DEBUG MODE --usr04531--"); // "DEBUG MODE --usr04531--"
 
     prevPageStart = ((u32*)&gEwramData->debugMenuWork)[0];
-    pageStart = (gEwramData->debug4531SubStage / 17) * 17;
+    pageStart = (gEwramData->debugEventMenuSubStage / 17) * 17;
     ((u32*)&gEwramData->debugMenuWork)[0] = pageStart;
     if (prevPageStart != pageStart)
     {
@@ -319,52 +319,52 @@ s32 Debug4531_UpdateEventMenu(void)
     if (gEwramData->inputData.newInput & 1)
     {
         DMA_FILL_32(3, 0, VRAM_BASE + 0xE000, 0x800);
-        ret =  subroutine_arg0[gEwramData->debug4531SubStage].eventState;
+        ret =  subroutine_arg0[gEwramData->debugEventMenuSubStage].eventState;
         return ret;
     }
 
     if (input & 0x40)
     {
-        if ((gEwramData->debug4531SubStage % 17) != 0)
+        if ((gEwramData->debugEventMenuSubStage % 17) != 0)
         {
-            gEwramData->debug4531SubStage -= 1;
+            gEwramData->debugEventMenuSubStage -= 1;
         }
         else
         {
-            gEwramData->debug4531SubStage = ((u32*)&gEwramData->debugMenuWork)[1] - 1;
+            gEwramData->debugEventMenuSubStage = ((u32*)&gEwramData->debugMenuWork)[1] - 1;
         }
     }
     else if (input & 0x80)
     {
-        if ((((gEwramData->debug4531SubStage + 1) % 17) == 0) || ((gEwramData->debug4531SubStage + 1) >= ((s32*)&gEwramData->debugMenuWork)[1]))
+        if ((((gEwramData->debugEventMenuSubStage + 1) % 17) == 0) || ((gEwramData->debugEventMenuSubStage + 1) >= ((s32*)&gEwramData->debugMenuWork)[1]))
         {
-            gEwramData->debug4531SubStage = ((u32*)&gEwramData->debugMenuWork)[0];
+            gEwramData->debugEventMenuSubStage = ((u32*)&gEwramData->debugMenuWork)[0];
         }
         else
         {
-            gEwramData->debug4531SubStage += 1;
+            gEwramData->debugEventMenuSubStage += 1;
         }
     }
     else if (input & 0x100)
     {
-        if ((gEwramData->debug4531SubStage + 0x11) < index)
+        if ((gEwramData->debugEventMenuSubStage + 0x11) < index)
         {
-            gEwramData->debug4531SubStage += 0x11;
+            gEwramData->debugEventMenuSubStage += 0x11;
         }
         else
         {
-            gEwramData->debug4531SubStage = index - 1;
+            gEwramData->debugEventMenuSubStage = index - 1;
         }
     }
     else if (input & 0x200)
     {
-        if (gEwramData->debug4531SubStage > 0x11)
+        if (gEwramData->debugEventMenuSubStage > 0x11)
         {
-            gEwramData->debug4531SubStage -= 0x11;
+            gEwramData->debugEventMenuSubStage -= 0x11;
         }
         else
         {
-            gEwramData->debug4531SubStage = 0;
+            gEwramData->debugEventMenuSubStage = 0;
         }
     }
 
@@ -372,7 +372,7 @@ s32 Debug4531_UpdateEventMenu(void)
     row = 0;
     for (; index < (s32) (((u32*)&gEwramData->debugMenuWork)[0] + ((u32*)&gEwramData->debugMenuWork)[2]); )
     {
-        BgCmdBuffer_WriteString(4, 2 + row, (index == gEwramData->debug4531SubStage) ? 1 : 3, subroutine_arg0[index].label);
+        BgCmdBuffer_WriteString(4, 2 + row, (index == gEwramData->debugEventMenuSubStage) ? 1 : 3, subroutine_arg0[index].label);
         index++;
         row++;
     }
@@ -392,7 +392,7 @@ s32 sUnk_084F159C[] = {
  * GameModeInGameUpdate with the debug HP/MP/position overlay and the
  * L+R level-up cheat.
  */
-s32 Debug4531_RunEventGame(void)
+s32 DebugEventMenu_RunEventGame(void)
 {
     s32 j;
     s32 i;
@@ -408,7 +408,7 @@ s32 Debug4531_RunEventGame(void)
     player = gEwramData->playerState.player;
     result = -1;
 
-    switch (gEwramData->debug4531SubStage)
+    switch (gEwramData->debugEventMenuSubStage)
     {
         case 0:
             gameState->subMode = 0;
@@ -457,15 +457,15 @@ s32 Debug4531_RunEventGame(void)
 
             Player_ClearEquipmentAndSoulLists();
             gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)sDebugEventRoom9;
-            gEwramData->debug4531SubStage = 1;
+            gEwramData->debugEventMenuSubStage = 1;
             break;
 
         case 1:
-            gEwramData->debug4531SubStage = 2;
+            gEwramData->debugEventMenuSubStage = 2;
             break;
 
         case 2:
-            if ((gameState->subMode != 6) && (gEwramData->debug4531Flags & 4))
+            if ((gameState->subMode != 6) && (gEwramData->debugEventMenuFlags & 4))
             {
                 DMA_COPY_32(3, &sDebugPalette, PALRAM_BASE + 0x160, 0x40);
                 roomX = GetEntityRoomXPositionInteger(gEwramData->playerState.player);
@@ -481,7 +481,7 @@ s32 Debug4531_RunEventGame(void)
                 }
             }
 
-            if (gEwramData->debug4531Flags & 2)
+            if (gEwramData->debugEventMenuFlags & 2)
             {
                 playerStatus->equippedRedSoul = 0x37;
                 playerStatus->equippedBlueSoul = 3;
@@ -491,19 +491,19 @@ s32 Debug4531_RunEventGame(void)
                 Player_ApplyEarnedLevels(playerStatus);
                 playerStatus->currentHP = playerStatus->maxHP;
                 playerStatus->currentMP = playerStatus->maxMP;
-                gEwramData->debug4531Flags &= ~0x2;
+                gEwramData->debugEventMenuFlags &= ~0x2;
             }
 
             result = GameModeInGameUpdate();
             if (((gEwramData->inputData.heldInput & 0x300) == 0x300) && ((gEwramData->inputData.newInput & 0x8) == 0x8))
             {
-                if (gEwramData->debug4531Flags & 4)
+                if (gEwramData->debugEventMenuFlags & 4)
                 {
-                    gEwramData->debug4531Flags &= ~4;
+                    gEwramData->debugEventMenuFlags &= ~4;
                 }
                 else
                 {
-                    gEwramData->debug4531Flags |= 4;
+                    gEwramData->debugEventMenuFlags |= 4;
                 }
             }
 
@@ -511,7 +511,7 @@ s32 Debug4531_RunEventGame(void)
             {
                 if (gEwramData->paused)
                 {
-                    gEwramData->debug4531Flags |= 2;
+                    gEwramData->debugEventMenuFlags |= 2;
                 }
             }
             break;
@@ -521,10 +521,10 @@ s32 Debug4531_RunEventGame(void)
 }
 
 /**
- * @brief Debug mode 4531 state 2: open the save select screen; on a choice
- * start the game at room sDebug4531Room2 (return 4), on cancel return 0.
+ * @brief Debug event menu state 2: open the save select screen; on a choice
+ * start the game at room sDebugEventMenuRoom2 (return 4), on cancel return 0.
  */
-s32 Debug4531_SelectSaveSlot(void)
+s32 DebugEventMenu_SelectSaveSlot(void)
 {
     s32 result;
     struct EwramData_EntityData *entity;
@@ -532,11 +532,11 @@ s32 Debug4531_SelectSaveSlot(void)
     entity = &gEwramData->entityData[0x12];
     result = -1;
 
-    switch (gEwramData->debug4531SubStage)
+    switch (gEwramData->debugEventMenuSubStage)
     {
         case 0:
             SaveSelect_Open(entity);
-            gEwramData->debug4531SubStage += 1;
+            gEwramData->debugEventMenuSubStage += 1;
             break;
 
         case 1:
@@ -551,14 +551,14 @@ s32 Debug4531_SelectSaveSlot(void)
                     break;
 
                 case 1:
-                    gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)sDebug4531Room2;
+                    gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)sDebugEventMenuRoom2;
                     result = 4;
                     break;
             }
 
             if (result != -1)
             {
-                gEwramData->debug4531SubStage = 0;
+                gEwramData->debugEventMenuSubStage = 0;
                 SaveSelect_Close(entity);
             }
             break;

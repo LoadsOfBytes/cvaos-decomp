@@ -7,12 +7,12 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-extern void Object35Create(struct EwramData_EntityData *entity);
-extern void Object35Update(struct EwramData_EntityData *entity);
+extern void FloorSwitchGateCreate(struct EwramData_EntityData *entity);
+extern void FloorSwitchGateUpdate(struct EwramData_EntityData *entity);
 extern void RotatingPlatformUpdate(struct EwramData_EntityData *entity);
 extern void RotatingPlatformCreate(struct EwramData_EntityData *entity);
-extern void Object37Create(struct EwramData_EntityData *entity);
-extern void Object37Update(struct EwramData_EntityData *entity);
+extern void SwingDoorCreate(struct EwramData_EntityData *entity);
+extern void SwingDoorUpdate(struct EwramData_EntityData *entity);
 extern void Shop_SetupBackgrounds(void);
 extern void Shop_Open(void);
 

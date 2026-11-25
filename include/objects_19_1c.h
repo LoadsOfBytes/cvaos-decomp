@@ -7,13 +7,13 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-extern void Object19Update(struct EwramData_EntityData *entity);
-extern void Object19_OnHit(struct EwramData_EntityData *entity);
-extern void Object19_Draw(struct EwramData_EntityData *entity);
-extern void Object1BCreate(struct EwramData_EntityData *entity);
-extern void Object1BUpdate(struct EwramData_EntityData *entity);
-extern void Object1ACreate(struct EwramData_EntityData *entity);
-extern void Object1AUpdate(struct EwramData_EntityData *entity);
+extern void SpinningBladeUpdate(struct EwramData_EntityData *entity);
+extern void SpinningBlade_OnHit(struct EwramData_EntityData *entity);
+extern void SpinningBlade_Draw(struct EwramData_EntityData *entity);
+extern void ConveyorSwitchCreate(struct EwramData_EntityData *entity);
+extern void ConveyorSwitchUpdate(struct EwramData_EntityData *entity);
+extern void EmptyObject1ACreate(struct EwramData_EntityData *entity);
+extern void EmptyObject1AUpdate(struct EwramData_EntityData *entity);
 extern void SavePointCreate(struct EwramData_EntityData *entity);
 extern void SavePointUpdate(struct EwramData_EntityData *entity);
 

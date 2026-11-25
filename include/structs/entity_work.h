@@ -1402,11 +1402,11 @@ struct CockatriceBeamWork {
     /* 0x50C */ s32 stepX;
 };
 
-/* Event scene 3 controller (sEventSceneCreateFuncs[3], EventScene03_*): -
+/* Event scene 3 controller (sEventSceneCreateFuncs[3], EventScenePrologueBattle_*): -
  * actor 0 / 1 / 8: the helper entities created from the object table
  * (Entity_CreateFromObjectTable kinds 0, 1 and 8); actor 0 is placed next to
  * the player, actor 1 walks in and plays the attack animation, actor 8
- * becomes EventScene03MainPart_Update and finally turns into soul orbs and
+ * becomes EventScenePrologueBattleMainPart_Update and finally turns into soul orbs and
  * debris; - progress: sequence bits read by the parts through their parent
  * index: 8 = parts start moving, 0x10 = actor 1 attack started, 2 = its
  * animation finished, 4 = scene over (parts end).
@@ -1419,7 +1419,7 @@ struct Event03Work {
     /* 0x504 */ s16 progress;
 };
 
-/* Homing orbs (EventScene03_SpawnSoulOrb / _SpawnTargetOrb and their
+/* Homing orbs (EventScenePrologueBattle_SpawnSoulOrb / _SpawnTargetOrb and their
  * updates): heading angle, turn rate (grows by 42 up to 0x4000; the soul orb
  * starts with its mode), 16.16 speed (grows to 0x80000) and the target
  * entity of the target orb.
@@ -1432,7 +1432,7 @@ struct Event03OrbWork {
     /* 0x508 */ struct EwramData_EntityData *target;
 };
 
-/* Parts (EventScene03_Spawn*Part, *Part_Update): spawn flags (bit 1 hidden,
+/* Parts (EventScenePrologueBattle_Spawn*Part, *Part_Update): spawn flags (bit 1 hidden,
  * 4 / 8 / 0x10 variant choices), entity index of the linked part and the
  * wave phase of the floating motion.
  */
@@ -3388,10 +3388,10 @@ struct SwingingPlatformWork {
     /* 0x504 */ s32 amplitude;
 };
 
-/* Object 0x16 (affine zoom-out cutscene object, Object16Update): zoom timer
+/* Object 0x16 (affine zoom-out cutscene object, ChaoticRealmVortexUpdate): zoom timer
  * (0x100 frames), BG affine scale, rotation angle and its accelerating step.
  */
-struct Object16Work {
+struct ChaoticRealmVortexWork {
     /* 0x4F4 */ u8 pad_4F4[0x4F8 - 0x4F4];
     /* 0x4F8 */ s32 timer;
     /* 0x4FC */ u8 pad_4FC[0x500 - 0x4FC];
@@ -3400,19 +3400,19 @@ struct Object16Work {
     /* 0x508 */ s32 spin;
 };
 
-/* Object 0x37 (Object37_*): affine angle (0..0x3000) and the closed flag (1
+/* Object 0x37 (SwingDoor_*): affine angle (0..0x3000) and the closed flag (1
  * while its collision blocks are set).
  */
-struct Object37Work {
+struct SwingDoorWork {
     /* 0x4F4 */ u8 pad_4F4[0x4FC - 0x4F4];
     /* 0x4FC */ u32 angle;
     /* 0x500 */ s32 closed;
 };
 
-/* Object 0x37 child (Object37Child_Update): affine angle, turns between 0
+/* Object 0x37 child (SwingDoorChild_Update): affine angle, turns between 0
  * and -0x2000.
  */
-struct Object37ChildWork {
+struct SwingDoorChildWork {
     /* 0x4F4 */ u8 pad_4F4[0x4FC - 0x4F4];
     /* 0x4FC */ u32 angle;
 };
@@ -3444,10 +3444,10 @@ struct RollerSwingWork {
     /* 0x50A */ s16 speed;
 };
 
-/* Object 0x31 (Object31_UpdateState): start delay, then an affine angle
+/* Object 0x31 (JuliusArenaDebris_UpdateState): start delay, then an affine angle
  * turning with a speed that accelerates by the step (4) up to 0x60.
  */
-struct Object31Work {
+struct JuliusArenaDebrisWork {
     /* 0x4F4 */ u8 pad_4F4[0x4F8 - 0x4F4];
     /* 0x4F8 */ s32 delay;
     /* 0x4FC */ u32 angle;
@@ -3455,11 +3455,11 @@ struct Object31Work {
     /* 0x504 */ s32 step;
 };
 
-/* Object 0x35 (floor switch, Object35_*): 16.16 home position (its integer
+/* Object 0x35 (floor switch, FloorSwitchGate_*): 16.16 home position (its integer
  * halves are also read directly, OBJECT35_HOME_PIXEL_X / _Y), frames the
  * player has stood on it, and the pressed flag (drawn 0x30 px lower).
  */
-struct Object35Work {
+struct FloorSwitchGateWork {
     /* 0x4F4 */ s32 homeX;
     /* 0x4F8 */ s32 homeY;
     /* 0x4FC */ u32 standFrames;
@@ -3467,7 +3467,7 @@ struct Object35Work {
 };
 
 /* Object 0x35 child: the floor switch. */
-struct Object35ChildWork {
+struct FloorSwitchGateChildWork {
     /* 0x4F4 */ u8 pad_4F4[0x504 - 0x4F4];
     /* 0x504 */ struct EwramData_EntityData *owner;
 };
@@ -3493,21 +3493,21 @@ struct FallingLeafWork {
     /* 0x4FC */ u32 scrollX;
 };
 
-/* Object 0x19 (Object19Create / Object19Update): affine angle and its step,
- * time left in the current path step of sObject19Steps (16.16 frames; the
+/* Object 0x19 (SpinningBladeCreate / SpinningBladeUpdate): affine angle and its step,
+ * time left in the current path step of sSpinningBladeSteps (16.16 frames; the
  * first step starts at half its time).
  */
-struct Object19Work {
+struct SpinningBladeWork {
     /* 0x4F4 */ u8 pad_4F4[0x4F8 - 0x4F4];
     /* 0x4F8 */ u16 angle;
     /* 0x4FA */ s16 spin;
     /* 0x4FC */ u32 stepTime;
 };
 
-/* Object 0x15 (Object15Update, its orbiters read the owner): orbit angle
+/* Object 0x15 (ChaoticRealmPortalUpdate, its orbiters read the owner): orbit angle
  * (+0x40 per frame) and the 16.16 orbit radius (shrinks from 0x100000).
  */
-struct Object15Work {
+struct ChaoticRealmPortalWork {
     /* 0x4F4 */ u8 pad_4F4[0x4FC - 0x4F4];
     /* 0x4FC */ s16 angle;
     /* 0x4FE */ u8 pad_4FE[0x500 - 0x4FE];
@@ -3529,23 +3529,23 @@ struct BreakableBlockDustWork {
     /* 0x4FC */ u32 gfx;
 };
 
-/* Object 0x1B (conveyor, Object1BUpdate): scroll position and the colour of
+/* Object 0x1B (conveyor, ConveyorSwitchUpdate): scroll position and the colour of
  * the current frame.
  */
-struct Object1BWork {
+struct ConveyorSwitchWork {
     /* 0x4F4 */ u8 pad_4F4[0x4F8 - 0x4F4];
     /* 0x4F8 */ s32 scroll;
     /* 0x4FC */ s8 color;
 };
 
-/* Object 0x25 spawner (Object25Update): live children. */
-struct Object25SpawnerWork {
+/* Object 0x25 spawner (LegionWalkingCorpseUpdate): live children. */
+struct LegionWalkingCorpseSpawnerWork {
     /* 0x4F4 */ u8 pad_4F4[0x4FC - 0x4F4];
     /* 0x4FC */ u32 childCount;
 };
 
 /* Object 0x25 children: the spawner (decremented when the child is deleted). */
-struct Object25Work {
+struct LegionWalkingCorpseWork {
     /* 0x4F4 */ u8 pad_4F4[0x500 - 0x4F4];
     /* 0x500 */ struct EwramData_EntityData *spawner;
 };
@@ -3569,12 +3569,12 @@ struct WarpRoomWork {
     /* 0x4FC */ s16 unusedGfx;
 };
 
-/* Object 0x26 (Object26Create / _UpdateState): frame clocks of its two
+/* Object 0x26 (PopUpTrapCreate / _UpdateState): frame clocks of its two
  * traps, counted while the target is in its area; object 0x27 fires when the
  * first reaches 0x78 (starts at 0x1E), object 0x28 when the second does
  * (starts at 0x5A); each trap resets its clock.
  */
-struct Object26Work {
+struct PopUpTrapWork {
     /* 0x4F4 */ u8 pad_4F4[0x4FC - 0x4F4];
     /* 0x4FC */ s16 clock27;
     /* 0x4FE */ s16 clock28;
@@ -3606,10 +3606,10 @@ struct SaveWarpRoomWallWork {
 };
 
 /* Object 0x22 (platform carrying the player along its levels,
- * Object22_UpdateState): frames without the player on it (returns after 60)
+ * InputChallengePlatform_UpdateState): frames without the player on it (returns after 60)
  * and the flag byte (bit 0: no longer queued as a platform).
  */
-struct Object22Work {
+struct InputChallengePlatformWork {
     /* 0x4F4 */ u8 pad_4F4[0x500 - 0x4F4];
     /* 0x500 */ u8 emptyTimer;
     /* 0x501 */ u8 pad_501[0x504 - 0x501];
@@ -3620,7 +3620,7 @@ struct Object22Work {
 };
 
 /* Object 0x22 falling part: the platform. */
-struct Object22PartWork {
+struct InputChallengePlatformPartWork {
     /* 0x4F4 */ u8 pad_4F4[0x4FC - 0x4F4];
     /* 0x4FC */ struct EwramData_EntityData *owner;
 };

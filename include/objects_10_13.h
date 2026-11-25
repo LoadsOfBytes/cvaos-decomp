@@ -13,7 +13,7 @@ extern void BossRushTimerStarterCreate(struct EwramData_EntityData *entity);
 extern void BossRushTimerStarterUpdate(struct EwramData_EntityData *entity);
 extern void RoomDecorationCreate(struct EwramData_EntityData *entity);
 extern void RoomDecorationUpdate(struct EwramData_EntityData *entity);
-extern void Object13Create(struct EwramData_EntityData *entity);
-extern void Object13Update(struct EwramData_EntityData *entity);
+extern void WreckingBallCreate(struct EwramData_EntityData *entity);
+extern void WreckingBallUpdate(struct EwramData_EntityData *entity);
 
 #endif /* OBJECTS_10_13_H */

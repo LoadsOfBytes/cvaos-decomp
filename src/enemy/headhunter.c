@@ -2906,7 +2906,7 @@ void HeadhunterAttackFollower_Update(struct EwramData_EntityData *entity)
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   HeadhunterWave_DamagePlayerOnContact = Object28_OnPlayerContact */
+ *   HeadhunterWave_DamagePlayerOnContact = PopUpTrapSmall_OnPlayerContact */
 
 /**
  * @brief Apply stored wave damage with effect type 0 and flags 1.
@@ -3025,7 +3025,7 @@ void Headhunter_SpawnOrbitingParticle(struct EwramData_EntityData *owner, struct
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
  *   HeadhunterBurstShot_DamagePlayerOnContact = PoisonWorm_DamagePlayerOnContact
- *   HeadhunterAttackTip_DamagePlayerOnContact = Object28_OnPlayerContact */
+ *   HeadhunterAttackTip_DamagePlayerOnContact = PopUpTrapSmall_OnPlayerContact */
 
 /**
  * @brief Apply stored burst-shot damage with effect type 0x40
@@ -3090,7 +3090,7 @@ void HeadhunterAttackTip_OnHit(struct EwramData_EntityData *entity, s32 attacker
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   HeadhunterAttackSegment_DamagePlayerOnContact = Object28_OnPlayerContact */
+ *   HeadhunterAttackSegment_DamagePlayerOnContact = PopUpTrapSmall_OnPlayerContact */
 
 /**
  * @brief Apply stored attack-segment damage with effect type 0

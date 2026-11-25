@@ -1,4 +1,4 @@
-#include "debug_2229.h"
+#include "debug_room.h"
 #include "core.h"
 #include "in_game.h"
 #include "room_entities.h"
@@ -22,23 +22,23 @@
 #include "data/data_4F1444.h"
 
 /**
- * @brief 36670 | Handle debug 2229 game mode
+ * @brief 36670 | Debug room (debug menu entry "2229"): play in sDebugRoom with room transitions
  * 
  * @return s32 Game mode, -1 is no change, -2 is next game mode, else the specified game mode
  */
-s32 GameModeDebug2229Update(void)
+s32 GameModeDebugRoomUpdate(void)
 {
     switch (gEwramData->gameModeSubStage)
     {
         case 0:
             gEwramData->gameModeSubStage = 1;
-            gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)sDebug2229Room;
+            gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)sDebugRoomRoom;
             InGame_InitScene();
             ScreenShake_Clear();
             break;
 
         case 1:
-            Debug2229_FrameHook();
+            DebugRoom_FrameHook();
             if (Room_IsPlayerInside(gEwramData->playerState.player) == 0)
             {
                 RoomTransition_Begin(&gEwramData->gameState);

@@ -19,7 +19,7 @@ s16 PushBlockGroup_WallRightCorrection(struct EwramData_EntityData *entity, s16 
 s16 PushBlockGroup_WallLeftCorrection(struct EwramData_EntityData *entity, s16 x, s16 y);
 void PushBlockGroup_DeleteIfOffscreen(struct EwramData_EntityData *entity);
 void PushBlockGroup_Delete(struct EwramData_EntityData *entity);
-void Object01Create(struct EwramData_EntityData *entity);
-void Object01Update(struct EwramData_EntityData *entity);
+void PushBlockGroupCreate(struct EwramData_EntityData *entity);
+void PushBlockGroupUpdate(struct EwramData_EntityData *entity);
 
 #endif /* PLAYER_EFFECTS_H */

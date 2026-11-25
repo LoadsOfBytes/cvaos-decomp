@@ -16,13 +16,13 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-static struct NestedDebugMenuState sDebug2739MenuState;
+static struct NestedDebugMenuState sDebugNestedMenuMenuState;
 
-struct Debug2739TestDispatch {
+struct DebugNestedMenuTestDispatch {
     s32 (*runFunc)(s32 testIndex);
     s32 testIndex;
 }; /* size = 0x8 */
-struct Debug2739TestDispatch sDebug2739TestDispatch[] = {
+struct DebugNestedMenuTestDispatch sDebugNestedMenuTestDispatch[] = {
     [0] = {
         .runFunc = DebugObjDispTest_Run,
         .testIndex = 0
@@ -138,28 +138,28 @@ struct NestedDebugMenuEntry sNestedDebugMenuEntries[] = {
 };
 
 /**
- * @brief 3681C | Handle debug 2739 game mode
+ * @brief 3681C | Nested debug test menu (debug menu entry "2739"): BG, OBJ and ETC tests
  * 
  * @return s32 Game mode, -1 is no change, -2 is next game mode, else the specified game mode
  */
-s32 GameModeDebug2739Update(void)
+s32 GameModeDebugNestedMenuUpdate(void)
 {
     s32 gameMode;
-    struct Debug2739TestDispatch *entry;
+    struct DebugNestedMenuTestDispatch *entry;
 
     gameMode = GAME_MODE_SAME_MODE;
 
     switch (gEwramData->gameModeSubStage)
     {
         case 0:
-            DMA_FILL_32(3, 0, &sDebug2739MenuState, sizeof(sDebug2739MenuState));
-            DebugMenu_Init(&sDebug2739MenuState, sNestedDebugMenuEntries);
+            DMA_FILL_32(3, 0, &sDebugNestedMenuMenuState, sizeof(sDebugNestedMenuMenuState));
+            DebugMenu_Init(&sDebugNestedMenuMenuState, sNestedDebugMenuEntries);
             gEwramData->gameModeSubStage = 1;
             break;
 
         case 1:
-            sDebug2739MenuState.selectionResult = DebugMenu_Update(&sDebug2739MenuState, 4, 4);
-            switch (sDebug2739MenuState.selectionResult)
+            sDebugNestedMenuMenuState.selectionResult = DebugMenu_Update(&sDebugNestedMenuMenuState, 4, 4);
+            switch (sDebugNestedMenuMenuState.selectionResult)
             {
                 case 6:
                     gEwramData->gameModeSubStage = 4;
@@ -180,12 +180,12 @@ s32 GameModeDebug2739Update(void)
             gEwramData->gameModeSubStage = 3;
             /* fallthrough */
         case 3:
-            entry = &sDebug2739TestDispatch[sDebug2739MenuState.selectionResult];
+            entry = &sDebugNestedMenuTestDispatch[sDebugNestedMenuMenuState.selectionResult];
             if (entry->runFunc(entry->testIndex) != 0)
             {
                 EntityFreeAll();
                 DMA_COPY_32(3, &sDebugPalette, PALRAM_BASE, sizeof(sDebugPalette));
-                sDebug2739MenuState.testStage = 0;
+                sDebugNestedMenuMenuState.testStage = 0;
                 gEwramData->gameModeSubStage = 1;
             }
             break;
@@ -209,7 +209,7 @@ s32 GameModeDebug2739Update(void)
  */
 s32 DebugTest_GetStage(void)
 {
-    return sDebug2739MenuState.testStage;
+    return sDebugNestedMenuMenuState.testStage;
 }
 
 /**
@@ -217,7 +217,7 @@ s32 DebugTest_GetStage(void)
  */
 void DebugTest_SetStage(u8 stage)
 {
-    sDebug2739MenuState.testStage = stage;
+    sDebugNestedMenuMenuState.testStage = stage;
 }
 
 /**

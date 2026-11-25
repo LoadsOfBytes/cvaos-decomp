@@ -481,7 +481,7 @@ const struct SolidObjectCallbackStorage sPushBlockSolidCallbacks = {
 };
 
 /**
- * @brief Object01 creation: register the group as the player solid object
+ * @brief PushBlockGroup creation: register the group as the player solid object
  * and, for a valid variant (spawnParam0), create its 1 or 3 blocks at
  * the table room positions, storing their slots in unk_4F8.
  */
@@ -1089,7 +1089,7 @@ void PushBlockGroup_Delete(struct EwramData_EntityData *entity)
  * 
  * @param entity To document
  */
-void Object01Create(struct EwramData_EntityData *entity)
+void PushBlockGroupCreate(struct EwramData_EntityData *entity)
 {
     PushBlockGroup_Create(entity);
 }
@@ -1099,7 +1099,7 @@ void Object01Create(struct EwramData_EntityData *entity)
  * 
  * @param entity To document
  */
-void Object01Update(struct EwramData_EntityData *entity)
+void PushBlockGroupUpdate(struct EwramData_EntityData *entity)
 {
     if (!(entity->roomActive))
     {

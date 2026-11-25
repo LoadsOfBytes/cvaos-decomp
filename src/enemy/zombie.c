@@ -489,7 +489,7 @@ void ZombieTemporarySprite_Update(struct EwramData_EntityData *entity)
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
  *   ZombiePiece_Update = ZombieSoldierPiece_Update
- *   Zombie_LoadGraphics = Object25_LoadGraphics
+ *   Zombie_LoadGraphics = LegionWalkingCorpse_LoadGraphics
  *   Zombie_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
 /**
@@ -503,7 +503,7 @@ void ZombiePiece_Update(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief 7B404 | Same as Object25_LoadGraphics.
+ * @brief 7B404 | Same as LegionWalkingCorpse_LoadGraphics.
  */
 u8 Zombie_LoadGraphics(struct EwramData_EntityData *entity)
 {

@@ -37,32 +37,32 @@
         gDisplayRegisters.mosaic = v | (v << 4) | (v << 8) | (v << 12);      \
     }
 
-s32 EventScene03_Start(struct EwramData_EntityData *entity);
-s32 EventScene03_RunSequence(struct EwramData_EntityData *);
-s32 EventScene03_EndParts(struct EwramData_EntityData *);
-void EventScene03MainPart_Update(struct EwramData_EntityData *entity);
-struct EwramData_EntityData *EventScene03_SpawnRisingPart(struct EwramData_EntityData *parent, s32 x, s32 y, s32 flags);
-struct EwramData_EntityData *EventScene03_SpawnFlyingPart(struct EwramData_EntityData *parent, s32 x, s32 y);
-struct EwramData_EntityData *EventScene03_SpawnSoulOrb(s32 x, s32 y, s32 variant, s32 index, s32 mode);
-void EventScene03_SpawnPartDebris(struct EwramData_EntityData *owner);
-void EventScene03UnusedPart_Update(struct EwramData_EntityData *);
-void EventScene03AttachedEffect_Update(struct EwramData_EntityData *);
-struct EwramData_EntityData *EventScene03_SpawnTargetOrb(s32 x, s32 y, s32 variant, s32 index, struct EwramData_EntityData *target);
-void EventScene03AttachedHelper_Update(struct EwramData_EntityData *);
-void EventScene03_SpawnUnusedPartDebris(struct EwramData_EntityData *);
-void EventScene03FlyingPart_Update(struct EwramData_EntityData *entity);
-void EventScene03RisingPart_Update(struct EwramData_EntityData *entity);
-void EventScene03Debris_Update(struct EwramData_EntityData *);
-void EventScene03SoulOrb_Update(struct EwramData_EntityData *);
-void EventScene03SoulOrb_OnPlayerContact(struct EwramData_EntityData *);
-void EventScene03TargetOrb_Update(struct EwramData_EntityData *);
-void EventScene03TargetOrb_OnContact(struct EwramData_EntityData *);
+s32 EventScenePrologueBattle_Start(struct EwramData_EntityData *entity);
+s32 EventScenePrologueBattle_RunSequence(struct EwramData_EntityData *);
+s32 EventScenePrologueBattle_EndParts(struct EwramData_EntityData *);
+void EventScenePrologueBattleMainPart_Update(struct EwramData_EntityData *entity);
+struct EwramData_EntityData *EventScenePrologueBattle_SpawnRisingPart(struct EwramData_EntityData *parent, s32 x, s32 y, s32 flags);
+struct EwramData_EntityData *EventScenePrologueBattle_SpawnFlyingPart(struct EwramData_EntityData *parent, s32 x, s32 y);
+struct EwramData_EntityData *EventScenePrologueBattle_SpawnSoulOrb(s32 x, s32 y, s32 variant, s32 index, s32 mode);
+void EventScenePrologueBattle_SpawnPartDebris(struct EwramData_EntityData *owner);
+void EventScenePrologueBattleUnusedPart_Update(struct EwramData_EntityData *);
+void EventScenePrologueBattleAttachedEffect_Update(struct EwramData_EntityData *);
+struct EwramData_EntityData *EventScenePrologueBattle_SpawnTargetOrb(s32 x, s32 y, s32 variant, s32 index, struct EwramData_EntityData *target);
+void EventScenePrologueBattleAttachedHelper_Update(struct EwramData_EntityData *);
+void EventScenePrologueBattle_SpawnUnusedPartDebris(struct EwramData_EntityData *);
+void EventScenePrologueBattleFlyingPart_Update(struct EwramData_EntityData *entity);
+void EventScenePrologueBattleRisingPart_Update(struct EwramData_EntityData *entity);
+void EventScenePrologueBattleDebris_Update(struct EwramData_EntityData *);
+void EventScenePrologueBattleSoulOrb_Update(struct EwramData_EntityData *);
+void EventScenePrologueBattleSoulOrb_OnPlayerContact(struct EwramData_EntityData *);
+void EventScenePrologueBattleTargetOrb_Update(struct EwramData_EntityData *);
+void EventScenePrologueBattleTargetOrb_OnContact(struct EwramData_EntityData *);
 
 /**
  * @brief Mosaic step of event scene 3: fade the mosaic in and out over its
  * sub-states; return 0 when finished.
  */
-s32 EventScene03_UpdateMosaic(struct EwramData_EntityData *entity)
+s32 EventScenePrologueBattle_UpdateMosaic(struct EwramData_EntityData *entity)
 {
     s32 ret = 1;
     s32 t;
@@ -131,7 +131,7 @@ s32 EventScene03_UpdateMosaic(struct EwramData_EntityData *entity)
  * @brief Scroll the camera for camera step EVENT_SCENE03_CAMERA_STEP of event scene 3 until its
  * target x is reached; return 1 then.
  */
-s32 EventScene03_ScrollCamera(struct EwramData_EntityData *entity)
+s32 EventScenePrologueBattle_ScrollCamera(struct EwramData_EntityData *entity)
 {
     s32 done = 0;
     struct BgLayerState *bg;
@@ -178,18 +178,18 @@ s32 EventScene03_ScrollCamera(struct EwramData_EntityData *entity)
     return done;
 }
 
-/* EventScene03_Init. */
+/* EventScenePrologueBattle_Init. */
 
 /**
  * @brief Init of event scene variant 3 (Object 0x20 spawnParam0 = 3,
  * sEventSceneCreateFuncs[3]). Create step of a scene object: unless flag 0x20 is
  * set (GameFlag_GetMask), create its three helper entities
  * (Entity_CreateFromObjectTable kinds 0, 1 and 8) into
- * unk_4F8/unk_4FC/unk_500; if all exist start it (EventScene03_Start,
+ * unk_4F8/unk_4FC/unk_500; if all exist start it (EventScenePrologueBattle_Start,
  * gameState.stateFlags bit 0, byte 0x51C = 5 when the camera x is past 0x1F),
  * else delete the ones created and itself.
  */
-void EventScene03_Init(struct EwramData_EntityData *entity)
+void EventScenePrologueBattle_Init(struct EwramData_EntityData *entity)
 {
     s32 done = GameFlag_GetMask(0x20);
     struct BgLayerState *bg;
@@ -214,7 +214,7 @@ void EventScene03_Init(struct EwramData_EntityData *entity)
         entity->deleteRequested = 1;
         return;
     }
-    EventScene03_Start(entity);
+    EventScenePrologueBattle_Start(entity);
     gEwramData->gameState.stateFlags |= 1;
     bg = &gEwramData->bgInfo[1];
     if ((s16)bg->xPos.part16.integer > 0x1F)
@@ -223,13 +223,13 @@ void EventScene03_Init(struct EwramData_EntityData *entity)
         EVENT_SCENE03_CAMERA_STEP(entity) = done;
 }
 
-/* EventScene03_Update: event script step (room event state machine); matched. */
+/* EventScenePrologueBattle_Update: event script step (room event state machine); matched. */
 
 /**
  * @brief Update of event scene variant 3 (sEventSceneUpdateFuncs[3]); returns the player
  * input mask.
  */
-s32 EventScene03_Update(struct EwramData_EntityData *entity)
+s32 EventScenePrologueBattle_Update(struct EwramData_EntityData *entity)
 {
     s32 ret;
     s32 found;
@@ -254,7 +254,7 @@ s32 EventScene03_Update(struct EwramData_EntityData *entity)
             DMA_FILL_32(3, z, VRAM_BASE + 0x4000, 0x2000);
             entity->stage++;
         }
-        if (!EventScene03_ScrollCamera(entity))
+        if (!EventScenePrologueBattle_ScrollCamera(entity))
             break;
         Music_SetCurrent(0x1C);
         entity->state++;
@@ -264,7 +264,7 @@ s32 EventScene03_Update(struct EwramData_EntityData *entity)
     case 1:
         if (entity->stage == 0)
         {
-            if (!EventScene03_UpdateMosaic(entity))
+            if (!EventScenePrologueBattle_UpdateMosaic(entity))
             {
                 gUnk_03002CB0.dispCnt &= 0xDFFF;
                 entity->stage++;
@@ -292,7 +292,7 @@ s32 EventScene03_Update(struct EwramData_EntityData *entity)
             } while (0);
             gEwramData->gameState.cameraScrollMinPriority = 0;
             gEwramData->playerState.player->palette = 0;
-            EventScene03_EndParts(entity);
+            EventScenePrologueBattle_EndParts(entity);
             Interaction_End(entity, 0);
             GameFlag_Set(0x20);
             entity->ext.event03.progress |= 4;
@@ -302,7 +302,7 @@ s32 EventScene03_Update(struct EwramData_EntityData *entity)
             entity->subState = 0;
             break;
         }
-        ret = EventScene03_RunSequence(entity);
+        ret = EventScenePrologueBattle_RunSequence(entity);
         break;
     case 10:
         if (Entity_IsInRect(gEwramData->playerState.player, (s16)(entity->ext.event03.actor1->posX.part16.integer - 0x20), (s16)(entity->ext.event03.actor1->posY.part16.integer - 0x20), 0x40, (u16)(sz = 0x40)))
@@ -361,7 +361,7 @@ s32 EventScene03_Update(struct EwramData_EntityData *entity)
 /* The camera X reads use block-local u16 copies; the 0x16F position is
  * derived from the 0x119 literal register by CSE. The result of the last
  * animation call stays live in r0, so it is returned. */
-s32 EventScene03_Start(struct EwramData_EntityData *entity)
+s32 EventScenePrologueBattle_Start(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *bg1, *bg2, *bg3;
     s32 result;
@@ -399,69 +399,69 @@ s32 EventScene03_Start(struct EwramData_EntityData *entity)
     entity->ext.event03.actor8->posY.part16.integer = 0x268 - bg3->yPos.part16.integer;
     result = Anim_StartIndexed(entity->ext.event03.actor8, 4, 0, 1);
     ENTITY_PARENT_INDEX(entity->ext.event03.actor8) = ENTITY_INDEX(entity);
-    entity->ext.event03.actor8->updateFunc = EventScene03MainPart_Update;
+    entity->ext.event03.actor8->updateFunc = EventScenePrologueBattleMainPart_Update;
     return result;
 }
 
-/* EventScene03_SpawnPartsA, EventScene03_SpawnPartsB. */
+/* EventScenePrologueBattle_SpawnPartsA, EventScenePrologueBattle_SpawnPartsB. */
 
 /**
- * @brief 5D2C8 | Spawn the five effects of sEventScene03SpotsA (EventScene03_SpawnRisingPart at
- * room (x + 0x20, 0x29F), attack = index) and one EventScene03_SpawnFlyingPart effect at
+ * @brief 5D2C8 | Spawn the five effects of sEventScenePrologueBattleSpotsA (EventScenePrologueBattle_SpawnRisingPart at
+ * room (x + 0x20, 0x29F), attack = index) and one EventScenePrologueBattle_SpawnFlyingPart effect at
  * room (0x14F, 0x288), all relative to the camera bgInfo[1].
  */
-void EventScene03_SpawnPartsA(struct EwramData_EntityData *entity)
+void EventScenePrologueBattle_SpawnPartsA(struct EwramData_EntityData *entity)
 {
     struct Unk_081187AC spots[5];
     s32 i;
 
-    memcpy(spots, sEventScene03SpotsA, sizeof(spots));
+    memcpy(spots, sEventScenePrologueBattleSpotsA, sizeof(spots));
     for (i = 0; i <= 4; i++)
     {
         struct BgLayerState *bg = &gEwramData->bgInfo[1];
 
-        EventScene03_SpawnRisingPart(entity, spots[i].x - (s16)bg->xPos.part16.integer + 0x20,
+        EventScenePrologueBattle_SpawnRisingPart(entity, spots[i].x - (s16)bg->xPos.part16.integer + 0x20,
                      0x29F - (s16)bg->yPos.part16.integer, spots[i].flags)->attack = i;
     }
     {
         struct BgLayerState *bg = &gEwramData->bgInfo[1];
 
-        EventScene03_SpawnFlyingPart(entity, 0x14F - (s16)bg->xPos.part16.integer, 0x288 - (s16)bg->yPos.part16.integer);
+        EventScenePrologueBattle_SpawnFlyingPart(entity, 0x14F - (s16)bg->xPos.part16.integer, 0x288 - (s16)bg->yPos.part16.integer);
     }
 }
 
 /**
- * @brief 5D35C | As EventScene03_SpawnPartsA with the two spots of sEventScene03SpotsB
- * relative to the player's x (attack = 5 + index) and two EventScene03_SpawnFlyingPart
+ * @brief 5D35C | As EventScenePrologueBattle_SpawnPartsA with the two spots of sEventScenePrologueBattleSpotsB
+ * relative to the player's x (attack = 5 + index) and two EventScenePrologueBattle_SpawnFlyingPart
  * effects at room (0x7C, 0x290) and (0xC4, 0x280).
  */
-void EventScene03_SpawnPartsB(struct EwramData_EntityData *entity)
+void EventScenePrologueBattle_SpawnPartsB(struct EwramData_EntityData *entity)
 {
     struct Unk_081187AC spots[2];
     s32 i;
 
-    memcpy(spots, sEventScene03SpotsB, sizeof(spots));
+    memcpy(spots, sEventScenePrologueBattleSpotsB, sizeof(spots));
     for (i = 0; i <= 1; i++)
     {
         struct BgLayerState *bg;
         s32 x = (s16)gEwramData->playerState.player->posX.part16.integer + spots[i].x;
 
         bg = &gEwramData->bgInfo[1];
-        EventScene03_SpawnRisingPart(entity, x, 0x29F - (s16)bg->yPos.part16.integer, spots[i].flags)->attack = i + 5;
+        EventScenePrologueBattle_SpawnRisingPart(entity, x, 0x29F - (s16)bg->yPos.part16.integer, spots[i].flags)->attack = i + 5;
     }
     {
         struct BgLayerState *bg = &gEwramData->bgInfo[1];
 
-        EventScene03_SpawnFlyingPart(entity, 0x7C - (s16)bg->xPos.part16.integer, 0x290 - (s16)bg->yPos.part16.integer);
+        EventScenePrologueBattle_SpawnFlyingPart(entity, 0x7C - (s16)bg->xPos.part16.integer, 0x290 - (s16)bg->yPos.part16.integer);
     }
     {
         struct BgLayerState *bg = &gEwramData->bgInfo[1];
 
-        EventScene03_SpawnFlyingPart(entity, 0xC4 - (s16)bg->xPos.part16.integer, 0x280 - (s16)bg->yPos.part16.integer);
+        EventScenePrologueBattle_SpawnFlyingPart(entity, 0xC4 - (s16)bg->xPos.part16.integer, 0x280 - (s16)bg->yPos.part16.integer);
     }
 }
 
-/* EventScene03_RunSequence, decompiled from the original assembly: event script with
+/* EventScenePrologueBattle_RunSequence, decompiled from the original assembly: event script with
  * nine steps (subState) and sub-steps (stage); returns flags 2 / 0x80.
  * Each step advance is written out (no shared label) so only the final
  * stage++ is cross-jumped; the decrement in step 5/3 goes through an s32
@@ -470,11 +470,11 @@ void EventScene03_SpawnPartsB(struct EwramData_EntityData *entity)
 #define STEP (*(u8 *)&entity->enemyStatus)
 
 /**
- * @brief Main sequence of event scene 3 (EventScene03_Update): camera steps,
+ * @brief Main sequence of event scene 3 (EventScenePrologueBattle_Update): camera steps,
  * part spawns, the soul orbs and the finishing debris; returns the
  * player input mask.
  */
-s32 EventScene03_RunSequence(struct EwramData_EntityData *entity)
+s32 EventScenePrologueBattle_RunSequence(struct EwramData_EntityData *entity)
 {
     s32 result = 0;
     struct GameState *save = &gEwramData->gameState;
@@ -514,7 +514,7 @@ s32 EventScene03_RunSequence(struct EwramData_EntityData *entity)
             STEP = 1;
         }
         case 1:
-            if (EventScene03_ScrollCamera(entity))
+            if (EventScenePrologueBattle_ScrollCamera(entity))
             {
                 entity->stage++;
                 entity->timer = 0x10;
@@ -543,14 +543,14 @@ s32 EventScene03_RunSequence(struct EwramData_EntityData *entity)
         switch (entity->stage)
         {
         case 0:
-            EventScene03_SpawnPartsA(entity);
+            EventScenePrologueBattle_SpawnPartsA(entity);
             entity->ext.event03.progress |= 8;
             save->textWindowPause = 1;
             entity->stage++;
             STEP = 2;
             break;
         case 1:
-            if (EventScene03_ScrollCamera(entity))
+            if (EventScenePrologueBattle_ScrollCamera(entity))
             {
                 entity->timer = 0x20;
                 entity->stage++;
@@ -565,7 +565,7 @@ s32 EventScene03_RunSequence(struct EwramData_EntityData *entity)
         {
             struct EwramData_EntityData *p;
             struct EwramData_EntityData *q;
-            EventScene03_SpawnPartsB(entity);
+            EventScenePrologueBattle_SpawnPartsB(entity);
             p = entity->ext.event03.actor0;
             if (p->animScriptIndex != 5)
                 Anim_StartIndexed(p, 5, 0, 0);
@@ -594,7 +594,7 @@ s32 EventScene03_RunSequence(struct EwramData_EntityData *entity)
             STEP = 3;
             break;
         case 1:
-            if (EventScene03_ScrollCamera(entity))
+            if (EventScenePrologueBattle_ScrollCamera(entity))
             {
                 entity->timer = 0;
                 entity->stage++;
@@ -669,11 +669,11 @@ s32 EventScene03_RunSequence(struct EwramData_EntityData *entity)
             if (entity->timer == 0xD0)
             {
                 struct EwramData_EntityData *o;
-                EventScene03_SpawnSoulOrb((s16)entity->ext.event03.actor8->posX.part16.integer, (s16)entity->ext.event03.actor8->posY.part16.integer, 0, 0, 0);
+                EventScenePrologueBattle_SpawnSoulOrb((s16)entity->ext.event03.actor8->posX.part16.integer, (s16)entity->ext.event03.actor8->posY.part16.integer, 0, 0, 0);
                 entity->ext.event03.actor8->hidden = 1;
                 o = entity->ext.event03.actor8;
                 Effect_SpawnAt(o->posX.whole, o->posY.whole, o->spriteLayer - 1);
-                EventScene03_SpawnPartDebris(entity->ext.event03.actor8);
+                EventScenePrologueBattle_SpawnPartDebris(entity->ext.event03.actor8);
                 PlaySong(0x6B);
                 gUnk_03002CB0.dispCnt &= 0xFEFF;
             }
@@ -774,7 +774,7 @@ s32 EventScene03_RunSequence(struct EwramData_EntityData *entity)
             entity->stage++;
             break;
         case 1:
-            if (EventScene03_ScrollCamera(entity))
+            if (EventScenePrologueBattle_ScrollCamera(entity))
             {
                 save->textWindowPause = 0;
                 save->textWindowState = 5;
@@ -791,12 +791,12 @@ s32 EventScene03_RunSequence(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief 5DAA0 | Event part like EventScene03RisingPart_Update: bob up and down after the
+ * @brief 5DAA0 | Event part like EventScenePrologueBattleRisingPart_Update: bob up and down after the
  * owner sets flag 8, then (flag 0x10) wait 0x60 frames and walk left until
  * room x 0xCA; owner flag 4 makes it vanish (state 4 bursts with sound 0x6B
- * and debris via EventScene03_SpawnPartDebris).
+ * and debris via EventScenePrologueBattle_SpawnPartDebris).
  */
-void EventScene03MainPart_Update(struct EwramData_EntityData *entity)
+void EventScenePrologueBattleMainPart_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *owner = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
     s32 wave;
@@ -875,7 +875,7 @@ void EventScene03MainPart_Update(struct EwramData_EntityData *entity)
             {
                 PlaySong(0x6B);
                 Effect_SpawnAt(entity->posX.whole, entity->posY.whole, entity->spriteLayer - 1);
-                EventScene03_SpawnPartDebris(entity);
+                EventScenePrologueBattle_SpawnPartDebris(entity);
             }
             entity->state = 5;
             entity->stage = 0;
@@ -890,12 +890,12 @@ void EventScene03MainPart_Update(struct EwramData_EntityData *entity)
 }
 
 /* Spawn an entity and an attached animated part in event slot group 9. */
-struct EwramData_EntityData *EventScene03_SpawnUnusedPart(struct EwramData_EntityData *owner, s32 x, s32 y, s32 flags)
+struct EwramData_EntityData *EventScenePrologueBattle_SpawnUnusedPart(struct EwramData_EntityData *owner, s32 x, s32 y, s32 flags)
 {
     struct EwramData_EntityData *entity = Entity_CreateFromObjectTable(9);
     struct EwramData_EntityData *part;
     s32 i, facing;
-    entity->updateFunc = EventScene03UnusedPart_Update;
+    entity->updateFunc = EventScenePrologueBattleUnusedPart_Update;
     entity->posX.part16.integer = x;
     entity->posY.part16.integer = y;
     ENTITY_PARENT_INDEX(entity) = ENTITY_INDEX(owner);
@@ -914,7 +914,7 @@ struct EwramData_EntityData *EventScene03_SpawnUnusedPart(struct EwramData_Entit
         facing = 1;
     entity->flipX = facing;
     part = Entity_CreateFromObjectTable(9);
-    part->updateFunc = EventScene03AttachedEffect_Update;
+    part->updateFunc = EventScenePrologueBattleAttachedEffect_Update;
     ENTITY_PARENT_INDEX(part) = ENTITY_INDEX(entity);
     part->posX.part16.integer = entity->posX.part16.integer;
     part->posY.part16.integer = entity->posY.part16.integer;
@@ -925,9 +925,9 @@ struct EwramData_EntityData *EventScene03_SpawnUnusedPart(struct EwramData_Entit
     return entity;
 }
 
-/* Event part (EventScene03UnusedPart_Update, cf. EventScene03RisingPart_Update): wait for its owner, rise,
- * shake (optionally spawning a EventScene03AttachedHelper_Update helper), blink, then break apart. */
-void EventScene03UnusedPart_Update(struct EwramData_EntityData *entity)
+/* Event part (EventScenePrologueBattleUnusedPart_Update, cf. EventScenePrologueBattleRisingPart_Update): wait for its owner, rise,
+ * shake (optionally spawning a EventScenePrologueBattleAttachedHelper_Update helper), blink, then break apart. */
+void EventScenePrologueBattleUnusedPart_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *owner = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
     struct EwramData_EntityData *other = &gEwramData->entityData[entity->ext.event03Part.linkIndex];
@@ -995,7 +995,7 @@ void EventScene03UnusedPart_Update(struct EwramData_EntityData *entity)
                 if (entity->ext.event03Part.flags & 16)
                 {
                     child = Entity_CreateFromObjectTable(9);
-                    child->updateFunc = EventScene03AttachedHelper_Update;
+                    child->updateFunc = EventScenePrologueBattleAttachedHelper_Update;
                     ENTITY_PARENT_INDEX(child) = ENTITY_INDEX(entity);
                     child->posX.part16.integer = entity->posX.part16.integer;
                     child->posY.part16.integer = entity->posY.part16.integer;
@@ -1061,9 +1061,9 @@ void EventScene03UnusedPart_Update(struct EwramData_EntityData *entity)
                 {
                     PlaySong(0x6B);
                     Effect_SpawnAt(entity->posX.whole, entity->posY.whole, entity->spriteLayer - 1);
-                    EventScene03_SpawnUnusedPartDebris(entity);
+                    EventScenePrologueBattle_SpawnUnusedPartDebris(entity);
                 }
-                EventScene03_SpawnTargetOrb((s16)entity->posX.part16.integer, (s16)entity->posY.part16.integer - 32, 0, 0, (struct EwramData_EntityData *)owner->ext.raw.unk_4FC.whole);
+                EventScenePrologueBattle_SpawnTargetOrb((s16)entity->posX.part16.integer, (s16)entity->posY.part16.integer - 32, 0, 0, (struct EwramData_EntityData *)owner->ext.raw.unk_4FC.whole);
                 entity->state = 4;
                 entity->stage = 0;
                 entity->subState = 0;
@@ -1079,7 +1079,7 @@ void EventScene03UnusedPart_Update(struct EwramData_EntityData *entity)
     Anim_Update(entity);
 }
 
-/* EventScene03AttachedEffect_Update. */
+/* EventScenePrologueBattleAttachedEffect_Update. */
 
 /**
  * @brief 5E0D0 | Keep an attached effect on body part 0 of its parent
@@ -1087,7 +1087,7 @@ void EventScene03UnusedPart_Update(struct EwramData_EntityData *entity)
  * palette; deleted (deleteRequested) once the parent slot holds another object
  * (enemyId differs).
  */
-void EventScene03AttachedEffect_Update(struct EwramData_EntityData *entity)
+void EventScenePrologueBattleAttachedEffect_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *parent = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
     struct { s16 x; s16 y; } point;
@@ -1105,9 +1105,9 @@ void EventScene03AttachedEffect_Update(struct EwramData_EntityData *entity)
     entity->palette = parent->palette;
 }
 
-/* Child entity that follows its parent with an offset (EventScene03AttachedHelper_Update).
+/* Child entity that follows its parent with an offset (EventScenePrologueBattleAttachedHelper_Update).
  * The do/while (0) adds weight to entity so global-alloc gives it r5. */
-/* Like EventScene03AttachedEffect_Update, but with an extra (+-8, -8) offset mirrored by the
+/* Like EventScenePrologueBattleAttachedEffect_Update, but with an extra (+-8, -8) offset mirrored by the
  * parent's facing. */
 
 /**
@@ -1115,7 +1115,7 @@ void EventScene03AttachedEffect_Update(struct EwramData_EntityData *entity)
  * with the parent palette; delete it when the parent slot holds another
  * object.
  */
-void EventScene03AttachedHelper_Update(struct EwramData_EntityData *entity)
+void EventScenePrologueBattleAttachedHelper_Update(struct EwramData_EntityData *entity)
 {
     struct { s16 x; s16 y; } point;
     s32 dx, dy;
@@ -1139,19 +1139,19 @@ void EventScene03AttachedHelper_Update(struct EwramData_EntityData *entity)
     entity->palette = parent->palette;
 }
 
-/* EventScene03_SpawnFlyingPart. */
+/* EventScenePrologueBattle_SpawnFlyingPart. */
 
 /**
  * @brief 5E260 | Spawn an effect entity (Entity_CreateFromObjectTable(8), update
- * EventScene03FlyingPart_Update) at (x, y) with parent's unk_4F4 in unk_4F5, a random phase
+ * EventScenePrologueBattleFlyingPart_Update) at (x, y) with parent's unk_4F4 in unk_4F5, a random phase
  * in unk_50A, animation 4, facing the player.
  */
-struct EwramData_EntityData *EventScene03_SpawnFlyingPart(struct EwramData_EntityData *parent, s32 x, s32 y)
+struct EwramData_EntityData *EventScenePrologueBattle_SpawnFlyingPart(struct EwramData_EntityData *parent, s32 x, s32 y)
 {
     struct EwramData_EntityData *entity = Entity_CreateFromObjectTable(8);
     s32 flip;
 
-    entity->updateFunc = EventScene03FlyingPart_Update;
+    entity->updateFunc = EventScenePrologueBattleFlyingPart_Update;
     entity->posX.part16.integer = x;
     entity->posY.part16.integer = y;
     ENTITY_PARENT_INDEX(entity) = ENTITY_INDEX(parent);
@@ -1165,13 +1165,13 @@ struct EwramData_EntityData *EventScene03_SpawnFlyingPart(struct EwramData_Entit
 }
 
 /**
- * @brief 5E2D8 | Event part like EventScene03MainPart_Update: bobs (sine on unk_50A) while
+ * @brief 5E2D8 | Event part like EventScenePrologueBattleMainPart_Update: bobs (sine on unk_50A) while
  * in states 0-2, advances on owner flags 8 / 2, in state 3 flies along a
  * sine path (velX doubled, velY / 3) facing its direction; state 4 blinks
  * the palette (palette) and bursts at random (Rng % 7 == attack) with
- * sound 0x6B and debris via EventScene03_SpawnPartDebris. Owner flag 4 makes it vanish.
+ * sound 0x6B and debris via EventScenePrologueBattle_SpawnPartDebris. Owner flag 4 makes it vanish.
  */
-void EventScene03FlyingPart_Update(struct EwramData_EntityData *entity)
+void EventScenePrologueBattleFlyingPart_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *owner = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
     s32 wave;
@@ -1271,7 +1271,7 @@ void EventScene03FlyingPart_Update(struct EwramData_EntityData *entity)
                 {
                     PlaySong(0x6B);
                     Effect_SpawnAt(entity->posX.whole, entity->posY.whole, entity->spriteLayer - 1);
-                    EventScene03_SpawnPartDebris(entity);
+                    EventScenePrologueBattle_SpawnPartDebris(entity);
                 }
                 entity->state = 5;
                 entity->stage = 0;
@@ -1287,20 +1287,20 @@ void EventScene03FlyingPart_Update(struct EwramData_EntityData *entity)
     Anim_Update(entity);
 }
 
-/* EventScene03_SpawnRisingPart. */
+/* EventScenePrologueBattle_SpawnRisingPart. */
 
 /**
  * @brief 5E528 | Spawn an effect entity (Entity_CreateFromObjectTable(10), update
- * EventScene03RisingPart_Update) at (x, y) with parent's unk_4F4 in unk_4F5 and flags in
+ * EventScenePrologueBattleRisingPart_Update) at (x, y) with parent's unk_4F4 in unk_4F5 and flags in
  * unk_4F7; flag 4 moves it 8 px down (16 steps of 0x8000) into layer
  * 0x17. Animation 0, facing the player.
  */
-struct EwramData_EntityData *EventScene03_SpawnRisingPart(struct EwramData_EntityData *parent, s32 x, s32 y, s32 flags)
+struct EwramData_EntityData *EventScenePrologueBattle_SpawnRisingPart(struct EwramData_EntityData *parent, s32 x, s32 y, s32 flags)
 {
     struct EwramData_EntityData *entity = Entity_CreateFromObjectTable(10);
     s32 flip;
 
-    entity->updateFunc = EventScene03RisingPart_Update;
+    entity->updateFunc = EventScenePrologueBattleRisingPart_Update;
     entity->posX.part16.integer = x;
     entity->posY.part16.integer = y;
     Entity_SnapToGround(entity);
@@ -1324,7 +1324,7 @@ struct EwramData_EntityData *EventScene03_SpawnRisingPart(struct EwramData_Entit
 }
 
 /* Event part: wait for its owner, rise, blink, then emit debris. */
-void EventScene03RisingPart_Update(struct EwramData_EntityData *entity)
+void EventScenePrologueBattleRisingPart_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *owner = &gEwramData->entityData[ENTITY_PARENT_INDEX(entity)];
     if ((u16)owner->ext.event03.progress & 4)
@@ -1450,7 +1450,7 @@ void EventScene03RisingPart_Update(struct EwramData_EntityData *entity)
                     PlaySong(0x6B);
                     Effect_SpawnAt(entity->posX.whole, entity->posY.whole, entity->spriteLayer - 1);
                 }
-                EventScene03_SpawnTargetOrb((s16)entity->posX.part16.integer, entity->posY.part16.integer - 32, 0, 0, (struct EwramData_EntityData *)owner->ext.raw.unk_4FC.whole);
+                EventScenePrologueBattle_SpawnTargetOrb((s16)entity->posX.part16.integer, entity->posY.part16.integer - 32, 0, 0, (struct EwramData_EntityData *)owner->ext.raw.unk_4FC.whole);
                 entity->state = 4;
                 entity->stage = 0;
                 entity->subState = 0;
@@ -1467,7 +1467,7 @@ void EventScene03RisingPart_Update(struct EwramData_EntityData *entity)
 
 /* Seven debris pieces using the owner's graphics and palette. */
 
-void EventScene03_SpawnUnusedPartDebris(struct EwramData_EntityData *owner)
+void EventScenePrologueBattle_SpawnUnusedPartDebris(struct EwramData_EntityData *owner)
 {
     s32 offset = 0;
     s32 i, x, graphics;
@@ -1475,10 +1475,10 @@ void EventScene03_SpawnUnusedPartDebris(struct EwramData_EntityData *owner)
     const s8 *info;
     for (i = 6; i >= 0; offset += 6, i--)
     {
-        part = EntityCreateInRange(0x49, 0xCF, EventScene03Debris_Update);
+        part = EntityCreateInRange(0x49, 0xCF, EventScenePrologueBattleDebris_Update);
         if (part != NULL)
         {
-            info = sEventScene03UnusedDebris + offset;
+            info = sEventScenePrologueBattleUnusedDebris + offset;
             ENTITY_PARENT_INDEX(part) = ENTITY_INDEX(owner);
             part->spriteLayer = owner->spriteLayer;
             part->basePalette = owner->basePalette;
@@ -1514,7 +1514,7 @@ void EventScene03_SpawnUnusedPartDebris(struct EwramData_EntityData *owner)
 }
 
 /* Seven debris pieces using the owner's graphics and palette. */
-void EventScene03_SpawnPartDebris(struct EwramData_EntityData *owner)
+void EventScenePrologueBattle_SpawnPartDebris(struct EwramData_EntityData *owner)
 {
     s32 offset = 0;
     s32 i, x, vx, graphics;
@@ -1522,10 +1522,10 @@ void EventScene03_SpawnPartDebris(struct EwramData_EntityData *owner)
     const s8 *info;
     for (i = 6; i >= 0; offset += 6, i--)
     {
-        part = EntityCreateInRange(0x49, 0xCF, EventScene03Debris_Update);
+        part = EntityCreateInRange(0x49, 0xCF, EventScenePrologueBattleDebris_Update);
         if (part != NULL)
         {
-            info = sEventScene03Debris + offset;
+            info = sEventScenePrologueBattleDebris + offset;
             ENTITY_PARENT_INDEX(part) = ENTITY_INDEX(owner);
             part->spriteLayer = owner->spriteLayer;
             part->basePalette = owner->basePalette;
@@ -1557,9 +1557,9 @@ void EventScene03_SpawnPartDebris(struct EwramData_EntityData *owner)
  * @brief Spawn a soul orb (soul pickup palette of the variant) that homes in on
  * the player, or waits (mode != 0); its contact callback ends it.
  */
-struct EwramData_EntityData *EventScene03_SpawnSoulOrb(s32 x, s32 y, s32 variant, s32 index, s32 mode)
+struct EwramData_EntityData *EventScenePrologueBattle_SpawnSoulOrb(s32 x, s32 y, s32 variant, s32 index, s32 mode)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, EventScene03SoulOrb_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, EventScenePrologueBattleSoulOrb_Update);
     if (entity != NULL)
     {
         s32 graphics;
@@ -1570,7 +1570,7 @@ struct EwramData_EntityData *EventScene03_SpawnSoulOrb(s32 x, s32 y, s32 variant
         Anim_Update(entity);
         entity->stage = 1;
         entity->drawFunc = Sprite_DrawEntity;
-        Hit_Enable(entity, 0xB, EventScene03SoulOrb_OnPlayerContact, 0);
+        Hit_Enable(entity, 0xB, EventScenePrologueBattleSoulOrb_OnPlayerContact, 0);
         entity->hit.flags |= 4;
         HitBox_SetAttackRaw(entity, 0x0C0CFAFA);
         entity->posX.part16.integer = x;
@@ -1596,7 +1596,7 @@ struct EwramData_EntityData *EventScene03_SpawnSoulOrb(s32 x, s32 y, s32 variant
  * @brief Steer the soul orb towards the player with growing turn rate and speed
  * and leave a particle trail.
  */
-void EventScene03SoulOrb_Update(struct EwramData_EntityData *entity)
+void EventScenePrologueBattleSoulOrb_Update(struct EwramData_EntityData *entity)
 {
     struct HitResult result;
     if (entity->state <= 1)
@@ -1648,9 +1648,9 @@ void EventScene03SoulOrb_Update(struct EwramData_EntityData *entity)
  * @brief Spawn an orb that homes in on the given target entity (deleted on
  * arrival with sound 0xBC).
  */
-struct EwramData_EntityData *EventScene03_SpawnTargetOrb(s32 x, s32 y, s32 variant, s32 index, struct EwramData_EntityData *target)
+struct EwramData_EntityData *EventScenePrologueBattle_SpawnTargetOrb(s32 x, s32 y, s32 variant, s32 index, struct EwramData_EntityData *target)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, EventScene03TargetOrb_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, EventScenePrologueBattleTargetOrb_Update);
     if (entity != NULL)
     {
         s32 graphics, targetX, offset;
@@ -1662,7 +1662,7 @@ struct EwramData_EntityData *EventScene03_SpawnTargetOrb(s32 x, s32 y, s32 varia
         Anim_Update(entity);
         entity->stage = 1;
         entity->drawFunc = Sprite_DrawEntity;
-        Hit_Enable(entity, 0xB, EventScene03TargetOrb_OnContact, 0);
+        Hit_Enable(entity, 0xB, EventScenePrologueBattleTargetOrb_OnContact, 0);
         entity->hit.flags |= 4;
         HitBox_SetAttackRaw(entity, 0x0C0CFAFA);
         entity->posX.part16.integer = x;
@@ -1685,7 +1685,7 @@ struct EwramData_EntityData *EventScene03_SpawnTargetOrb(s32 x, s32 y, s32 varia
  * @brief Steer the orb towards its target with growing turn rate and speed;
  * delete it with sound 0xBC when it reaches the target.
  */
-void EventScene03TargetOrb_Update(struct EwramData_EntityData *entity)
+void EventScenePrologueBattleTargetOrb_Update(struct EwramData_EntityData *entity)
 {
     u32 unused[4]; /* The original reserves 16 unused stack bytes. */
     struct EwramData_EntityData *target = entity->ext.event03Orb.target;
@@ -1744,7 +1744,7 @@ void EventScene03TargetOrb_Update(struct EwramData_EntityData *entity)
  * @brief Finish event scene 3: animation 5 on helper unk_4F8, animation 1 on
  * helper unk_4FC and delete helper unk_500.
  */
-s32 EventScene03_EndParts(struct EwramData_EntityData *entity)
+s32 EventScenePrologueBattle_EndParts(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *actor = entity->ext.event03.actor0;
     s32 result;
@@ -1756,7 +1756,7 @@ s32 EventScene03_EndParts(struct EwramData_EntityData *entity)
 }
 
 /* Same ballistic particle update as MandragoraDeathPart_Update, without a parent count. */
-void EventScene03Debris_Update(struct EwramData_EntityData *entity)
+void EventScenePrologueBattleDebris_Update(struct EwramData_EntityData *entity)
 {
     if (!Entity_IsInRect(entity, -0x80, -0x40, 0x1F0, 0x120)
         || (u8)--entity->timer == 0xFF || entity->posY.part16.integer > 0xAA)
@@ -1773,7 +1773,7 @@ void EventScene03Debris_Update(struct EwramData_EntityData *entity)
  * @brief Delete the soul orb, show the absorb animation on the player and play
  * sound 0xBC.
  */
-void EventScene03SoulOrb_OnPlayerContact(struct EwramData_EntityData *entity)
+void EventScenePrologueBattleSoulOrb_OnPlayerContact(struct EwramData_EntityData *entity)
 {
     entity->deleteRequested = 1;
     Effect_SpawnAttachedAnimation(gEwramData->playerState.player, 0xC, 6, 0, -0x100000);
@@ -1784,7 +1784,7 @@ void EventScene03SoulOrb_OnPlayerContact(struct EwramData_EntityData *entity)
  * @brief Delete the orb, show the absorb animation on its target and play sound
  * 0xBC.
  */
-void EventScene03TargetOrb_OnContact(struct EwramData_EntityData *entity)
+void EventScenePrologueBattleTargetOrb_OnContact(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *anchor = entity->ext.event03Orb.target;
     entity->deleteRequested = 1;

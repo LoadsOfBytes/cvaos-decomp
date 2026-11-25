@@ -6,7 +6,7 @@
 #include "structs/main.h"
 #include "structs/equipment_stats.h"
 
-extern void Debug2229_FrameHook(void);
+extern void DebugRoom_FrameHook(void);
 extern void Player_MarkAttackContact(void); // TODO: Unused param_0 and param_1, both struct EwramData_EntityData *
 extern void Player_SetVelocityWithBraking(s32 velocityX, s32 velocityY);
 extern void Player_SetKnockbackVelocity(s32 vx, s32 vy);

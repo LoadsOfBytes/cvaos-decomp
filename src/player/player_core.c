@@ -45,7 +45,7 @@ extern struct WeaponInfo sWeaponInfo[];
 /**
  * @brief Empty per-frame hook of debug mode 2229.
  */
-void Debug2229_FrameHook(void)
+void DebugRoom_FrameHook(void)
 {
     return;
 }

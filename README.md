@@ -1,7 +1,7 @@
 # Castlevania: Aria of Sorrow – matching decompilation (unofficial AI-assisted fork)
 
 ![Matching](https://img.shields.io/badge/Matching-byte%20for%20byte%2C%20100%25%20C-brightgreen)
-![Naming](https://img.shields.io/badge/Naming-functions%2095.3%25%20descriptive%20%C2%B7%20fields%2096.5%25-green)
+![Naming](https://img.shields.io/badge/Naming-functions%2099.9%25%20descriptive%20%C2%B7%20fields%2096.5%25-green)
 ![Clean C](https://img.shields.io/badge/Clean%20C-92.6%25%20of%20functions-green)
 ![FAKEMATCH](https://img.shields.io/badge/FAKEMATCH-241%20lines-orange)
 
@@ -31,7 +31,7 @@ Measured on 2026-11-25 from the build output and source scans.
 | Game functions decompiled to C | ✅ **100 %** – only an 8-byte ARM/Thumb interworking stub has no C equivalent |
 | All ROM code (`.text`) from C | **97.06 %** (891,340 / 918,324 B) – the rest is platform code normally kept in assembly (`crt0`, `m4a` mixer, BIOS stubs, header) and libgcc/libc |
 | Functions with a name instead of an address | ✅ **100 %** (3,417 / 3,417 C functions) |
-| Functions with a descriptive name | 🔄 **95.3 %** (3,257 / 3,417 C functions) – 160 names say what a function does but not what it belongs to, only a table index: 103 room-object functions `ObjectXX…` (index in the room-object table), 35 event-scene functions `EventSceneNN…`, 18 numbered debug / unknown game modes (`GameModeDebug1967Update`, `GameModeUnk3Update` …), 4 particle spawners named by animation number (see *Known limitations*). Identified so far: 31 of the 56 room-object types (doors, candles, breakable blocks, moving / crumbling / pendulum platforms, elevator, save point, warp room, …) and 27 of the 32 event scenes, named after their dialogue (`EventSceneMeetYoko`, `EventSceneGrahamBattleStart`, `EventSceneEnding` …) |
+| Functions with a descriptive name | 🔄 **99.9 %** (3,413 / 3,417 C functions) – only 4 particle spawners are still named by the animation number they play (`Effect_SpawnParticleAnim11` …, see *Known limitations*). All 56 room-object types (doors, candles, breakable blocks, moving / crumbling / pendulum platforms, elevator, save point, wrecking ball, Legion's walking corpses, the Chaotic Realm portal, …; two types are empty), all 32 event scenes (named after their dialogue: `EventSceneMeetYoko`, `EventSceneGrahamBattleStart`, `EventSceneJuliusModeEnding` …) and the debug modes (`GameModeDebugEventMenuUpdate`; the debug menu labels them only `4531`, `2739`, `2229`, `1967`) have descriptive names |
 | Local variables and parameters named | ✅ **100 %** (15,753 / 15,753) |
 | Structure fields named | 🔄 **96.5 %** (3,163 / 3,278 declared; 99.9 % of accesses) – most of the rest are the offset-named slots of the raw work-area view |
 | Entity work area as typed structures | 🔄 368 per-type structures; 24 lines and 6 macros still use the raw offset view |
@@ -68,11 +68,9 @@ name or comment describes the game correctly. Corrections are very welcome.
   engine and libgcc (`_080D86D6`, `Loop1` …) and treated every name without a
   `sub_` prefix as named. The current numbers cover only the 3,417 functions
   compiled from C and count a name as descriptive only when it says what the
-  function or its object is. 160 names still fall short: `Object22Update` or
-  `Object2E_SpawnPiece` describe the behaviour, but `22` / `2E` is just the index
-  in the room-object table – which object of the game it is has not been
-  identified yet; the same holds for the remaining `EventSceneNN…` and the
-  numbered debug modes. Room objects are identified from the rooms that place
+  function or its object is. Only 4 names still fall short
+  (`Effect_SpawnParticleAnim0/11/12/13`: the number is the animation in the
+  shared effect graphics, which has not been looked at). Room objects are identified from the rooms that place
   them (read from the room tables of the ROM) together with their documented
   behaviour, event scenes from the dialogue text they open and the room that
   places them; such names are inferred, not confirmed by the developers. Unidentified names are
@@ -126,8 +124,6 @@ name or comment describes the game correctly. Corrections are very welcome.
 
 - Merge the 9 build-separated files: needs C that matches without their compiler flags.
 - Finish the entity structures and name the remaining fields.
-- Identify the room objects and event scenes (`ObjectXX`, `EventSceneNN`) from the
-  rooms that spawn them and the graphics they load, and give them descriptive names.
 - Reduce `FAKEMATCH` where a natural C variant can be found.
 - Declarations: the remaining 12 caller-specific prototypes (17 local
   declarations).

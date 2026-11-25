@@ -5,7 +5,7 @@
  * Room objects keep their work slots in ext.object<NN> / ext.warpRoom /
  * ext.warpGate / ext.bossRushTimer (include/structs/entity_work.h).
  * Object 0x35 (floor switch) also reads the integer halves of its 16.16 home
- * position (ext.object35.homeX / homeY, room pixels) directly.
+ * position (ext.floorSwitchGate.homeX / homeY, room pixels) directly.
  * The macros expand to the original member chains without added parentheses
  * (token-identical preprocessed code); use them with a plain base expression.
  */

@@ -136,10 +136,10 @@ void KyomaDemon_Draw(struct EwramData_EntityData *entity)
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   KyomaDemon_LoadGraphics = Object25_LoadGraphics */
+ *   KyomaDemon_LoadGraphics = LegionWalkingCorpse_LoadGraphics */
 
 /**
- * @brief A0744 | Same as Object25_LoadGraphics.
+ * @brief A0744 | Same as LegionWalkingCorpse_LoadGraphics.
  */
 u8 KyomaDemon_LoadGraphics(struct EwramData_EntityData *entity)
 {

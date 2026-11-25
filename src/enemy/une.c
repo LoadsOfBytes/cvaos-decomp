@@ -382,10 +382,10 @@ void UneDebris_Update(struct EwramData_EntityData *entity)
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   Une_LoadGraphics = Object25_LoadGraphics */
+ *   Une_LoadGraphics = LegionWalkingCorpse_LoadGraphics */
 
 /**
- * @brief 74874 | Same as Object25_LoadGraphics.
+ * @brief 74874 | Same as LegionWalkingCorpse_LoadGraphics.
  */
 u8 Une_LoadGraphics(struct EwramData_EntityData *entity)
 {

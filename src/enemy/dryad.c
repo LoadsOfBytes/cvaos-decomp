@@ -345,7 +345,7 @@ void EnemyDryadCreate(struct EwramData_EntityData *entity)
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
  *   Dryad_DamagePlayerOnContact = Minotaur_DamagePlayerOnContact
- *   DryadSeed_OnHit = EventScene21_Init */
+ *   DryadSeed_OnHit = EventSceneJuliusBattleMusic_Init */
 
 /**
  * @brief AEB50 | Same as Minotaur_DamagePlayerOnContact.
@@ -364,7 +364,7 @@ void Dryad_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief AEB80 | Same as EventScene21_Init.
+ * @brief AEB80 | Same as EventSceneJuliusBattleMusic_Init.
  */
 void DryadSeed_OnHit(struct EwramData_EntityData *entity)
 {

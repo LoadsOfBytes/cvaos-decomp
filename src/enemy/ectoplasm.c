@@ -212,12 +212,12 @@ void Ectoplasm_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entit
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   Ectoplasm_LoadGraphics = Object25_LoadGraphics
+ *   Ectoplasm_LoadGraphics = LegionWalkingCorpse_LoadGraphics
  *
  * Ectoplasm_UpdatePreview..EctoplasmParticle_Update decompiled locally. */
 
 /**
- * @brief 999F0 | Same as Object25_LoadGraphics.
+ * @brief 999F0 | Same as LegionWalkingCorpse_LoadGraphics.
  */
 u8 Ectoplasm_LoadGraphics(struct EwramData_EntityData *entity)
 {

@@ -258,11 +258,11 @@ void SkeletonKnight_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   SkeletonKnight_LoadGraphics = Object25_LoadGraphics
+ *   SkeletonKnight_LoadGraphics = LegionWalkingCorpse_LoadGraphics
  *   SkeletonKnight_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
 /**
- * @brief 8F120 | Same as Object25_LoadGraphics.
+ * @brief 8F120 | Same as LegionWalkingCorpse_LoadGraphics.
  */
 u8 SkeletonKnight_LoadGraphics(struct EwramData_EntityData *entity)
 {

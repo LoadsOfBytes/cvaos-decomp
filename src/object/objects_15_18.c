@@ -39,33 +39,33 @@ void BreakableCoinContainer_OnHit(struct EwramData_EntityData *entity, struct Ew
  * @brief Sprite of object 0x15 placed around its owner at the owner angle
  * unk_4FC and radius unk_500.
  */
-void Object15Orbiter_Update(struct EwramData_EntityData *entity)
+void ChaoticRealmPortalOrbiter_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
     if (entity->state == 0)
     {
-        if (!Entity_LoadGraphics(entity, sObject15Gfx, sUnk_0820A1C4, 8, sObject15SpriteSheet)) { EntityDelete(entity); return; }
+        if (!Entity_LoadGraphics(entity, sChaoticRealmPortalGfx, sUnk_0820A1C4, 8, sChaoticRealmPortalSpriteSheet)) { EntityDelete(entity); return; }
         entity->animFrame = 1;
         entity->spriteLayer = 31;
         entity->state = 1;
     }
-    entity->velX.whole = FixedMulFast(Sin(owner->ext.object15.angle + 0x4000), owner->ext.object15.radius);
-    entity->velY.whole = FixedMulFast(Sin(owner->ext.object15.angle), owner->ext.object15.radius);
+    entity->velX.whole = FixedMulFast(Sin(owner->ext.chaoticRealmPortal.angle + 0x4000), owner->ext.chaoticRealmPortal.radius);
+    entity->velY.whole = FixedMulFast(Sin(owner->ext.chaoticRealmPortal.angle), owner->ext.chaoticRealmPortal.radius);
     entity->posX.whole = owner->posX.whole + entity->velX.whole;
     entity->posY.whole = owner->posY.whole + entity->velY.whole;
 }
 
-void Object15Create(struct EwramData_EntityData *entity)
+void ChaoticRealmPortalCreate(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *child;
-    if (!Entity_LoadGraphics(entity, sObject15Gfx, sUnk_0820A1C4, 8, sObject15SpriteSheet))
+    if (!Entity_LoadGraphics(entity, sChaoticRealmPortalGfx, sUnk_0820A1C4, 8, sChaoticRealmPortalSpriteSheet))
     {
         EntityDelete(entity);
         return;
     }
     entity->animFrame = 0;
     entity->spriteLayer = 31;
-    child = EntityCreateInRange(0x1B, 0x48, Object15Orbiter_Update);
+    child = EntityCreateInRange(0x1B, 0x48, ChaoticRealmPortalOrbiter_Update);
     if (child == NULL)
     {
         EntityDelete(entity);
@@ -73,8 +73,8 @@ void Object15Create(struct EwramData_EntityData *entity)
     }
     child->scrollWithBg = 1;
     ENTITY_OWNER(child) = entity;
-    entity->ext.object15.angle = 0x6000;
-    entity->ext.object15.radius = 0x200000;
+    entity->ext.chaoticRealmPortal.angle = 0x6000;
+    entity->ext.chaoticRealmPortal.radius = 0x200000;
     if ((gEwramData->gameState.gameFlagsTail[1] & 0x0A000000) == 0x02000000)
     {
         entity->state = 4;
@@ -88,7 +88,7 @@ void Object15Create(struct EwramData_EntityData *entity)
 /* Object 15 interaction: capture player input, animate, show one of two
  * messages, switch UI state and restore the palette transition. */
 static inline struct EwramData_EntityData *Player(struct EwramData *e) { return e->playerState.player; }
-void Object15Update(struct EwramData_EntityData *entity)
+void ChaoticRealmPortalUpdate(struct EwramData_EntityData *entity)
 {
     switch (entity->state)
     {
@@ -102,24 +102,24 @@ void Object15Update(struct EwramData_EntityData *entity)
         SetPlayerInput(1, 0);
         break;
     case 2:
-        if (entity->ext.object15.radius > 0x90000) SetPlayerInput(1, 0);
+        if (entity->ext.chaoticRealmPortal.radius > 0x90000) SetPlayerInput(1, 0);
         else SetPlayerInput(1, gEwramData->playerStatus.jumpButton);
-        entity->ext.object15.angle += 0x40;
-        if (entity->ext.object15.radius != 0)
+        entity->ext.chaoticRealmPortal.angle += 0x40;
+        if (entity->ext.chaoticRealmPortal.radius != 0)
         {
-            if (entity->ext.object15.radius == 0x100000)
+            if (entity->ext.chaoticRealmPortal.radius == 0x100000)
             {
                 BgPalette_StartColorFade(31, 7, 7, 0x10000, 0, 64);
                 ObjPalette_StartColorFade(31, 7, 7, 0x10000, 0, 64);
             }
-            entity->ext.object15.radius -= 0x4000;
+            entity->ext.chaoticRealmPortal.radius -= 0x4000;
         }
         else entity->state = 3;
         break;
     case 3:
         SetPlayerInput(1, gEwramData->playerStatus.jumpButton);
-        if (entity->spawnParam0 == 0) RoomJump_SetDestination(sObject15DestinationRoom1, 0, 0, 0x78, 0x50);
-        else RoomJump_SetDestination(sObject15DestinationRoom0, 0, 0, 0x78, 0x50);
+        if (entity->spawnParam0 == 0) RoomJump_SetDestination(sChaoticRealmPortalDestinationRoom1, 0, 0, 0x78, 0x50);
+        else RoomJump_SetDestination(sChaoticRealmPortalDestinationRoom0, 0, 0, 0x78, 0x50);
         RoomJump_Begin(&gEwramData->gameState);
         gEwramData->gameState.stateFlags &= ~1;
         BgPalette_StartColorFade(31, 31, 31, 0, 0x10000, 8);
@@ -145,7 +145,7 @@ void Object15Update(struct EwramData_EntityData *entity)
  * @brief One-shot effect of object 0x16: play its animation, then delete after
  * 8 frames.
  */
-void Object16Effect_Update(struct EwramData_EntityData *entity)
+void ChaoticRealmVortexEffect_Update(struct EwramData_EntityData *entity)
 {
     switch (entity->state)
     {
@@ -153,11 +153,11 @@ void Object16Effect_Update(struct EwramData_EntityData *entity)
     {
         struct AnimScript *anim;
         s32 variant;
-        if (!Entity_LoadGraphics(entity, sObject16Gfx, sObject16Palette, 0, sObject16SpriteSheet))
+        if (!Entity_LoadGraphics(entity, sChaoticRealmVortexGfx, sChaoticRealmVortexPalette, 0, sChaoticRealmVortexSpriteSheet))
         { EntityDelete(entity); return; }
         variant = entity->subState;
-        anim = sObject16EffectAnimScript;
-        if (variant == 0) anim = sObject16EffectAnimScriptVariant0;
+        anim = sChaoticRealmVortexEffectAnimScript;
+        if (variant == 0) anim = sChaoticRealmVortexEffectAnimScriptVariant0;
         Anim_Start(entity, anim, 0, 0);
         entity->spriteLayer = 0x11 - entity->subState;
         entity->scrollWithBg = 1;
@@ -180,11 +180,11 @@ void Object16Effect_Update(struct EwramData_EntityData *entity)
     EntityAccelerateAndMove(entity, 0x80000);
 }
 
-/* Object16Update: affine zoom-out cutscene object with rising dust particles; matched. */
+/* ChaoticRealmVortexUpdate: affine zoom-out cutscene object with rising dust particles; matched. */
 
 static inline struct EwramData_EntityData *Player2(void) { return gEwramData->playerState.player; }
 
-void Object16Update(struct EwramData_EntityData *entity)
+void ChaoticRealmVortexUpdate(struct EwramData_EntityData *entity)
 {
     struct BgAffineSrcData src;
     struct EwramData_EntityData *child;
@@ -197,8 +197,8 @@ void Object16Update(struct EwramData_EntityData *entity)
     src.texY = 0x8000;
     src.scrX = 0x80;
     src.scrY = 0x50;
-    src.alpha = entity->ext.object16.angle;
-    entity->ext.object16.angle += entity->ext.object16.spin;
+    src.alpha = entity->ext.chaoticRealmVortex.angle;
+    entity->ext.chaoticRealmVortex.angle += entity->ext.chaoticRealmVortex.spin;
     switch (entity->state)
     {
     case 0:
@@ -228,15 +228,15 @@ void Object16Update(struct EwramData_EntityData *entity)
         break;
     case 3:
         SetPlayerInput(1, 0);
-        if (entity->ext.object16.timer > 0)
+        if (entity->ext.chaoticRealmVortex.timer > 0)
         {
-            entity->ext.object16.scale = 0x1000 - Sin((entity->ext.object16.timer << 6) + 0x4000) / 16;
-            entity->ext.object16.timer--;
-            entity->ext.object16.spin += 2;
-            if (entity->ext.object16.timer == 0x40)
+            entity->ext.chaoticRealmVortex.scale = 0x1000 - Sin((entity->ext.chaoticRealmVortex.timer << 6) + 0x4000) / 16;
+            entity->ext.chaoticRealmVortex.timer--;
+            entity->ext.chaoticRealmVortex.spin += 2;
+            if (entity->ext.chaoticRealmVortex.timer == 0x40)
             {
                 PlaySong(0x1AE);
-                t = entity->ext.object16.timer;
+                t = entity->ext.chaoticRealmVortex.timer;
                 if (t == 0x40)
                 {
                     BgPalette_StartColorFade(0x1F, 0x1F, 0x1F, 0x10000, 0, t);
@@ -257,13 +257,13 @@ void Object16Update(struct EwramData_EntityData *entity)
         gEwramData->gameState.stateFlags |= 0x800000;
         break;
     }
-    src.sx = entity->ext.object16.scale;
-    src.sy = entity->ext.object16.scale;
+    src.sx = entity->ext.chaoticRealmVortex.scale;
+    src.sy = entity->ext.chaoticRealmVortex.scale;
     BgAffineSet(&src, (struct BgAffineDstData *)&gDisplayRegisters.bg2PA, 1);
     entity->timer++;
     if (entity->timer & 1)
     {
-        child = EntityCreateInRange(0x49, 0xCF, Object16Effect_Update);
+        child = EntityCreateInRange(0x49, 0xCF, ChaoticRealmVortexEffect_Update);
         if (child != NULL)
         {
             child->posX.whole = entity->posX.whole;
@@ -292,23 +292,23 @@ void Object16Update(struct EwramData_EntityData *entity)
 
 /**
  * @brief 52F6C | Object 0x16 create: load the graphics, palette
- * sObject16PaletteAnim, layer 0x12, unk_500 = 0xF00, unk_504 = 0, unk_508 = 0x40,
+ * sChaoticRealmVortexPaletteAnim, layer 0x12, unk_500 = 0xF00, unk_504 = 0, unk_508 = 0x40,
  * unk_4F8 = 0x100.
  */
-void Object16Create(struct EwramData_EntityData *entity)
+void ChaoticRealmVortexCreate(struct EwramData_EntityData *entity)
 {
-    if (!Entity_LoadGraphics(entity, sObject16Gfx, sObject16Palette, 0, sObject16SpriteSheet))
+    if (!Entity_LoadGraphics(entity, sChaoticRealmVortexGfx, sChaoticRealmVortexPalette, 0, sChaoticRealmVortexSpriteSheet))
     {
         EntityDelete(entity);
         return;
     }
-    PaletteAnim_Start(sObject16Palette, sObject16PaletteAnim, entity->basePalette);
+    PaletteAnim_Start(sChaoticRealmVortexPalette, sChaoticRealmVortexPaletteAnim, entity->basePalette);
     entity->animFrame = 0;
     entity->spriteLayer = 0x12;
-    entity->ext.object16.scale = 0xF00;
-    entity->ext.object16.angle = 0;
-    entity->ext.object16.spin = 0x40;
-    entity->ext.object16.timer = 0x100;
+    entity->ext.chaoticRealmVortex.scale = 0xF00;
+    entity->ext.chaoticRealmVortex.angle = 0;
+    entity->ext.chaoticRealmVortex.spin = 0x40;
+    entity->ext.chaoticRealmVortex.timer = 0x100;
 }
 
 /**
@@ -889,7 +889,7 @@ void BreakableCoinContainerUpdate(struct EwramData_EntityData *entity)
  * a cloning script and checked byte for byte:
  *   BreakableCoinContainer_OnHit = BreakableProp_OnHit
  *
- * Object19_OnPlayerContact decompiled locally. */
+ * SpinningBlade_OnPlayerContact decompiled locally. */
 
 /**
  * @brief Hit callback of object 0x18: set velX to +1/-1 away from the attacker.
@@ -907,7 +907,7 @@ void BreakableCoinContainer_OnHit(struct EwramData_EntityData *entity, struct Ew
  * @brief Player contact callback of object 0x19: contact damage of 2/3 of the
  * strength-based value used by CrusherCreate, at the entity position.
  */
-void Object19_OnPlayerContact(struct EwramData_EntityData *entity)
+void SpinningBlade_OnPlayerContact(struct EwramData_EntityData *entity)
 {
     struct PlayerContactDamage contactDamage;
     s32 power;

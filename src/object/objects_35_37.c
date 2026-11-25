@@ -26,18 +26,18 @@
 #include "math_inline.h"
 #include "obj_palette.h"
 
-/* Object35Create (0x0805A18C). */
-u8 Object35_LoadGraphics(struct EwramData_EntityData *entity);
-void Object35_SpawnChild(struct EwramData_EntityData *parent);
+/* FloorSwitchGateCreate (0x0805A18C). */
+u8 FloorSwitchGate_LoadGraphics(struct EwramData_EntityData *entity);
+void FloorSwitchGate_SpawnChild(struct EwramData_EntityData *parent);
 
 /* Event flag param_1 of the bit array gameFlagsTail (gEwramData + 0x344). */
 #define OBJECT_FLAG(ewram, flag) ((ewram)->gameState.gameFlagsTail[(flag) >> 5] & (1 << ((flag) & 0x1F)))
 
-void Object35Child_Update(struct EwramData_EntityData *entity);
-void Object35_Draw(struct EwramData_EntityData *entity);
-u8 Object37_LoadGraphics(struct EwramData_EntityData *);
-void Object37_SpawnChild(struct EwramData_EntityData *);
-void Object37Child_Update(struct EwramData_EntityData *);
+void FloorSwitchGateChild_Update(struct EwramData_EntityData *entity);
+void FloorSwitchGate_Draw(struct EwramData_EntityData *entity);
+u8 SwingDoor_LoadGraphics(struct EwramData_EntityData *);
+void SwingDoor_SpawnChild(struct EwramData_EntityData *);
+void SwingDoorChild_Update(struct EwramData_EntityData *);
 
 /**
  * @brief 5A18C | Object 0x35 create (door?): variant != 0 is deleted when its
@@ -46,7 +46,7 @@ void Object37Child_Update(struct EwramData_EntityData *);
  * (winOut 0x3F / 0x2F) and three Collision_SetBlock calls at its screen
  * position.
  */
-void Object35Create(struct EwramData_EntityData *entity)
+void FloorSwitchGateCreate(struct EwramData_EntityData *entity)
 {
     struct EwramData *ewram = gEwramData;
     u32 box = 0x0C10E8F8;
@@ -55,7 +55,7 @@ void Object35Create(struct EwramData_EntityData *entity)
 
     if ((entity->spawnParam0 != 0
             && OBJECT_FLAG(ewram, entity->spawnParam1))
-        || !Object35_LoadGraphics(entity))
+        || !FloorSwitchGate_LoadGraphics(entity))
     {
         EntityDelete(entity);
         return;
@@ -72,7 +72,7 @@ void Object35Create(struct EwramData_EntityData *entity)
     if (entity->spawnParam0 == 0)
     {
         entity->animFrame = 2;
-        Object35_SpawnChild(entity);
+        FloorSwitchGate_SpawnChild(entity);
     }
     else
     {
@@ -106,11 +106,11 @@ void Object35Create(struct EwramData_EntityData *entity)
     }
     entity->scrollWithBg = 1;
     entity->flipX = 0;
-    entity->ext.object35.homeX = entity->posX.whole;
-    entity->ext.object35.homeY = entity->posY.whole;
+    entity->ext.floorSwitchGate.homeX = entity->posX.whole;
+    entity->ext.floorSwitchGate.homeY = entity->posY.whole;
 }
 
-/* Object35_UpdateState, Object35_SpawnChild. */
+/* FloorSwitchGate_UpdateState, FloorSwitchGate_SpawnChild. */
 
 #define FLAG(e) ((e)->spawnParam1)
 
@@ -122,7 +122,7 @@ void Object35Create(struct EwramData_EntityData *entity)
  * dust particles every 8 frames, after 0x60 frames refresh the three map
  * tiles above; 12: OBJ window off.
  */
-void Object35_UpdateState(struct EwramData_EntityData *entity)
+void FloorSwitchGate_UpdateState(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
 
@@ -131,7 +131,7 @@ void Object35_UpdateState(struct EwramData_EntityData *entity)
         case 0:
             if (gEwramData->playerState.standingPlatform == entity)
             {
-                if ((s32)++entity->ext.object35.standFrames > 7)
+                if ((s32)++entity->ext.floorSwitchGate.standFrames > 7)
                 {
                     entity->subState++;
                     entity->velY.whole = 0;
@@ -142,7 +142,7 @@ void Object35_UpdateState(struct EwramData_EntityData *entity)
             }
             else
             {
-                entity->ext.object35.standFrames = 0;
+                entity->ext.floorSwitchGate.standFrames = 0;
             }
             break;
         case 1:
@@ -151,7 +151,7 @@ void Object35_UpdateState(struct EwramData_EntityData *entity)
             if (entity->timer++ > 4)
             {
                 entity->subState++;
-                entity->ext.object35.pressed = 0;
+                entity->ext.floorSwitchGate.pressed = 0;
             }
             break;
         case 10:
@@ -169,14 +169,14 @@ void Object35_UpdateState(struct EwramData_EntityData *entity)
 
             EntityMoveY(entity);
             gUnk_03002CB0.dispCnt |= 0x8000;
-            entity->ext.object35.pressed = 1;
+            entity->ext.floorSwitchGate.pressed = 1;
             phase = entity->timer & 7;
             if (phase == 0)
             {
                 s32 vx = (RandomNumberGenerator() & 0x7FFF) - 0x4000;
                 s32 vy = -0x8000 - (RandomNumberGenerator() & 0x7FFF);
 
-                Effect_SpawnParticleWithDamping(entity->ext.object35.homeX, entity->ext.object35.homeY, vx, vy,
+                Effect_SpawnParticleWithDamping(entity->ext.floorSwitchGate.homeX, entity->ext.floorSwitchGate.homeY, vx, vy,
                              entity->spriteLayer - 1, phase, 0x20, 0xF, 6);
             }
             if (entity->timer++ > 0x5F)
@@ -201,13 +201,13 @@ void Object35_UpdateState(struct EwramData_EntityData *entity)
 
 /**
  * @brief 5A50C | Spawn the child part of parent (slots 0x49..0xCF, update
- * Object35Child_Update): same position, one layer below, graphics sObject35Gfx
- * with palette sObject35SpriteSheet and parent's palette slot, frame 3, linked
+ * FloorSwitchGateChild_Update): same position, one layer below, graphics sFloorSwitchGateGfx
+ * with palette sFloorSwitchGateSpriteSheet and parent's palette slot, frame 3, linked
  * to parent through unk_504.
  */
-void Object35_SpawnChild(struct EwramData_EntityData *parent)
+void FloorSwitchGate_SpawnChild(struct EwramData_EntityData *parent)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Object35Child_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, FloorSwitchGateChild_Update);
     s32 gfx;
 
     if (child != NULL)
@@ -215,13 +215,13 @@ void Object35_SpawnChild(struct EwramData_EntityData *parent)
         child->posX.whole = parent->posX.whole;
         child->posY.whole = parent->posY.whole;
         child->spriteLayer = parent->spriteLayer - 1;
-        gfx = ObjGfx_Find(sObject35Gfx);
+        gfx = ObjGfx_Find(sFloorSwitchGateGfx);
         child->basePalette = parent->basePalette;
-        Sprite_Attach(child, sObject35SpriteSheet, gfx, child->basePalette);
+        Sprite_Attach(child, sFloorSwitchGateSpriteSheet, gfx, child->basePalette);
         child->animFrame = 3;
         child->hit.flags |= 4;
         child->hit.flags |= 2;
-        child->ext.object35Child.owner = parent;
+        child->ext.floorSwitchGateChild.owner = parent;
         child->scrollWithBg = 1;
         child->drawFunc = Sprite_DrawEntity;
     }
@@ -231,22 +231,22 @@ void Object35_SpawnChild(struct EwramData_EntityData *parent)
 
 /**
  * @brief 5A590 | Object 0x35 update: Player_QueueEntity(.., 1) while spawnParam0 is 0,
- * Object35_UpdateState in state 0.
+ * FloorSwitchGate_UpdateState in state 0.
  */
-void Object35Update(struct EwramData_EntityData *entity)
+void FloorSwitchGateUpdate(struct EwramData_EntityData *entity)
 {
     u8 hitInfo[0x10];
 
     if (entity->spawnParam0 == 0)
         Player_QueueEntity(entity, 1);
     if (entity->state == 0)
-        Object35_UpdateState(entity);
+        FloorSwitchGate_UpdateState(entity);
 }
 
 /**
  * @brief 5A5BC | Nothing.
  */
-void Object35Child_Update(struct EwramData_EntityData *entity)
+void FloorSwitchGateChild_Update(struct EwramData_EntityData *entity)
 {
 }
 
@@ -254,15 +254,15 @@ void Object35Child_Update(struct EwramData_EntityData *entity)
  * @brief 5A5C0 | Draw; when unk_500 is set first draw a copy as OBJ window
  * (0x53E mode 2) at y = unk_4F8 + 0x30.
  */
-void Object35_Draw(struct EwramData_EntityData *entity)
+void FloorSwitchGate_Draw(struct EwramData_EntityData *entity)
 {
     s32 oldY = entity->posY.whole;
 
-    if (entity->ext.object35.pressed != 0)
+    if (entity->ext.floorSwitchGate.pressed != 0)
     {
         entity->objMode = 2;
         gUnk_03002CB0.dispCnt |= DCNT_WINOBJ;
-        entity->posY.whole = entity->ext.object35.homeY + 0x300000;
+        entity->posY.whole = entity->ext.floorSwitchGate.homeY + 0x300000;
         Sprite_Draw(entity);
         entity->objMode = 0;
     }
@@ -271,20 +271,20 @@ void Object35_Draw(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief 5A618 | Load the graphics (sObject35Gfx), palette and animation
- * set sObject35SpriteSheet; drawFunc Object35_Draw when spawnParam0 is set.
+ * @brief 5A618 | Load the graphics (sFloorSwitchGateGfx), palette and animation
+ * set sFloorSwitchGateSpriteSheet; drawFunc FloorSwitchGate_Draw when spawnParam0 is set.
  */
-u8 Object35_LoadGraphics(struct EwramData_EntityData *entity)
+u8 FloorSwitchGate_LoadGraphics(struct EwramData_EntityData *entity)
 {
-    s32 gfx = ObjGfx_LoadResource(sObject35Gfx, 0);
+    s32 gfx = ObjGfx_LoadResource(sFloorSwitchGateGfx, 0);
 
     if (gfx < 0)
         return 0;
 
-    entity->basePalette = ObjPalette_FindOrLoadVariant(sObject35Palette, 0);
-    Sprite_Attach(entity, sObject35SpriteSheet, gfx, entity->basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sFloorSwitchGatePalette, 0);
+    Sprite_Attach(entity, sFloorSwitchGateSpriteSheet, gfx, entity->basePalette);
     if (entity->spawnParam0 != 0)
-        entity->drawFunc = Object35_Draw;
+        entity->drawFunc = FloorSwitchGate_Draw;
     else
         entity->drawFunc = Sprite_DrawEntity;
     return 1;
@@ -510,13 +510,13 @@ static inline s32 EntityRoomY(struct EwramData_EntityData *entity, struct EwramD
 }
 
 /* Initialize object 0x37, including its five collision probes. */
-void Object37Create(struct EwramData_EntityData *entity)
+void SwingDoorCreate(struct EwramData_EntityData *entity)
 {
     struct EwramData **ewram = &gEwramData;
     u16 graphics;
     s32 scale;
     s32 x, y;
-    if (!Object37_LoadGraphics(entity))
+    if (!SwingDoor_LoadGraphics(entity))
     {
         EntityDelete(entity);
         return;
@@ -540,14 +540,14 @@ void Object37Create(struct EwramData_EntityData *entity)
     x = entity->posX.whole - (*ewram)->playerState.player->posX.whole;
     if (Abs(x) < 0x300000)
     {
-        entity->ext.object37.angle = 0x3000;
+        entity->ext.swingDoor.angle = 0x3000;
         entity->subState = 1;
         ObjAffine_Set(0x3000, scale, scale, entity->flipX, entity->flipY, entity->affineIndex);
-        entity->ext.object37.closed = 0;
+        entity->ext.swingDoor.closed = 0;
     }
     else
     {
-        entity->ext.object37.closed = 1;
+        entity->ext.swingDoor.closed = 1;
         x = EntityRoomX(entity, ewram);
         y = EntityRoomY(entity, ewram);
         x -= 0x10;
@@ -557,7 +557,7 @@ void Object37Create(struct EwramData_EntityData *entity)
         Collision_SetBlock(x, y - 0x28);
         Collision_SetBlock(x, y - 0x38);
     }
-    Object37_SpawnChild(entity);
+    SwingDoor_SpawnChild(entity);
 }
 
 /* Keep the entity and room coordinate reads in their original order. */
@@ -569,9 +569,9 @@ static inline u8 FlipMask(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief Main behaviour of object 0x37, called by Object37Update.
+ * @brief Main behaviour of object 0x37, called by SwingDoorUpdate.
  */
-void Object37_UpdateState(struct EwramData_EntityData *entity)
+void SwingDoor_UpdateState(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *player = gEwramData->playerState.player;
     s32 distance = entity->posX.whole - player->posX.whole;
@@ -579,11 +579,11 @@ void Object37_UpdateState(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
     case 0:
-        if ((s32)entity->ext.object37.angle > 0)
+        if ((s32)entity->ext.swingDoor.angle > 0)
         {
-            entity->ext.object37.angle -= 0x100;
-            if ((s32)entity->ext.object37.angle < 0)
-                entity->ext.object37.angle = 0;
+            entity->ext.swingDoor.angle -= 0x100;
+            if ((s32)entity->ext.swingDoor.angle < 0)
+                entity->ext.swingDoor.angle = 0;
         }
         if (Abs(distance) >= 0x300000 && FlipMask(player))
         {
@@ -592,15 +592,15 @@ void Object37_UpdateState(struct EwramData_EntityData *entity)
         }
         break;
     case 1:
-        if ((s32)entity->ext.object37.angle < 0x3000)
+        if ((s32)entity->ext.swingDoor.angle < 0x3000)
         {
-            entity->ext.object37.angle += 0x100;
-            if ((s32)entity->ext.object37.angle > 0x3000)
-                entity->ext.object37.angle = 0x3000;
+            entity->ext.swingDoor.angle += 0x100;
+            if ((s32)entity->ext.swingDoor.angle > 0x3000)
+                entity->ext.swingDoor.angle = 0x3000;
         }
-        else if (entity->ext.object37.closed != 0)
+        else if (entity->ext.swingDoor.closed != 0)
         {
-            entity->ext.object37.closed = 0;
+            entity->ext.swingDoor.closed = 0;
             x = EntityRoomX(entity, &gEwramData);
             y = EntityRoomY(entity, &gEwramData);
             x -= 0x10;
@@ -613,7 +613,7 @@ void Object37_UpdateState(struct EwramData_EntityData *entity)
         if (Abs(distance) >= 0x300000 && !FlipMask(player))
         {
             entity->subState = 0;
-            entity->ext.object37.closed = 1;
+            entity->ext.swingDoor.closed = 1;
 {
                 s32 px = (s16)entity->posX.part16.integer;
                 struct BgLayerState *bg = &gEwramData->bgInfo[1];
@@ -630,15 +630,15 @@ void Object37_UpdateState(struct EwramData_EntityData *entity)
         }
         break;
     }
-    ObjAffine_Set(entity->ext.object37.angle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
+    ObjAffine_Set(entity->ext.swingDoor.angle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
 }
 
 /**
- * @brief Create the child entity of object 0x37 (Object37Child_Update).
+ * @brief Create the child entity of object 0x37 (SwingDoorChild_Update).
  */
-void Object37_SpawnChild(struct EwramData_EntityData *owner)
+void SwingDoor_SpawnChild(struct EwramData_EntityData *owner)
 {
-    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, Object37Child_Update);
+    struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, SwingDoorChild_Update);
     struct EwramData **ewram = &gEwramData;
     s32 graphics;
     u16 transform;
@@ -648,9 +648,9 @@ void Object37_SpawnChild(struct EwramData_EntityData *owner)
     entity->posX.whole = owner->posX.whole;
     entity->posY.whole = owner->posY.whole;
     entity->spriteLayer = owner->spriteLayer + 1;
-    graphics = ObjGfx_Find(sObject37Gfx);
+    graphics = ObjGfx_Find(sSwingDoorGfx);
     entity->basePalette = owner->basePalette;
-    Sprite_Attach(entity, sObject37SpriteSheet, graphics, entity->basePalette);
+    Sprite_Attach(entity, sSwingDoorSpriteSheet, graphics, entity->basePalette);
     entity->animFrame = 2;
     entity->hit.flags |= 4;
     entity->hit.flags |= 2;
@@ -668,7 +668,7 @@ void Object37_SpawnChild(struct EwramData_EntityData *owner)
     entity->drawFunc = Sprite_DrawEntity;
     if (Abs(entity->posX.whole - (*ewram)->playerState.player->posX.whole) < 0x300000)
     {
-        entity->ext.object37Child.angle = -0x2000;
+        entity->ext.swingDoorChild.angle = -0x2000;
         entity->subState = 1;
         ObjAffine_Set(-0x2000, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
     }
@@ -681,53 +681,53 @@ void Object37_SpawnChild(struct EwramData_EntityData *owner)
  * 0 (subState 0) or -0x2000 (subState 1) by 0xAA per frame and use it as the
  * rotation of ObjAffine_Set.
  */
-void Object37Child_Update(struct EwramData_EntityData *entity)
+void SwingDoorChild_Update(struct EwramData_EntityData *entity)
 {
     entity->subState = ENTITY_OWNER(entity)->subState;
     switch (entity->subState)
     {
         case 0:
-            if ((s32)entity->ext.object37Child.angle < 0)
+            if ((s32)entity->ext.swingDoorChild.angle < 0)
             {
-                entity->ext.object37Child.angle += 0xAA;
-                if ((s32)entity->ext.object37Child.angle > 0)
-                    entity->ext.object37Child.angle = 0;
+                entity->ext.swingDoorChild.angle += 0xAA;
+                if ((s32)entity->ext.swingDoorChild.angle > 0)
+                    entity->ext.swingDoorChild.angle = 0;
             }
             break;
         case 1:
-            if ((s32)entity->ext.object37Child.angle > -0x2000)
+            if ((s32)entity->ext.swingDoorChild.angle > -0x2000)
             {
-                entity->ext.object37Child.angle -= 0xAA;
-                if ((s32)entity->ext.object37Child.angle < -0x2000)
-                    entity->ext.object37Child.angle = -0x2000;
+                entity->ext.swingDoorChild.angle -= 0xAA;
+                if ((s32)entity->ext.swingDoorChild.angle < -0x2000)
+                    entity->ext.swingDoorChild.angle = -0x2000;
             }
             break;
     }
-    ObjAffine_Set(entity->ext.object37Child.angle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
+    ObjAffine_Set(entity->ext.swingDoorChild.angle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
 }
 
 /**
  * @brief 5AE00 | Object 0x37 update.
  */
-void Object37Update(struct EwramData_EntityData *entity)
+void SwingDoorUpdate(struct EwramData_EntityData *entity)
 {
     u32 collision[4];
 
     if (entity->state == 0)
-        Object37_UpdateState(entity);
+        SwingDoor_UpdateState(entity);
 }
 
 /**
  * @brief 5AE18 | Load the graphics of object 0x37; 0 when no slot is free.
  */
-u8 Object37_LoadGraphics(struct EwramData_EntityData *entity)
+u8 SwingDoor_LoadGraphics(struct EwramData_EntityData *entity)
 {
-    s32 gfx = ObjGfx_LoadResource(sObject37Gfx, 0);
+    s32 gfx = ObjGfx_LoadResource(sSwingDoorGfx, 0);
 
     if (gfx < 0)
         return 0;
-    entity->basePalette = ObjPalette_FindOrLoadVariant(sObject37Palette, 0);
-    Sprite_Attach(entity, sObject37SpriteSheet, gfx, entity->basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sSwingDoorPalette, 0);
+    Sprite_Attach(entity, sSwingDoorSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }

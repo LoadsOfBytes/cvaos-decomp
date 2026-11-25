@@ -533,8 +533,8 @@ sWarpRoomPalette: @ 0x08119E14
 sEventSceneEndingTransformationPalette: @ 0x08119FDC
     .incbin "cvaos_us_baserom.gba", 0x119FDC, 0x2A88
 
-    .global sObject1BBgPalette
-sObject1BBgPalette: @ 0x0811CA64
+    .global sConveyorSwitchBgPalette
+sConveyorSwitchBgPalette: @ 0x0811CA64
     .incbin "cvaos_us_baserom.gba", 0x11CA64, 0x41378
 
     .global sEventSceneEndingTransformationBg2Map
@@ -665,20 +665,20 @@ sRoomEffectParallaxSpriteGfx: @ 0x081CBE5C
 sSwingingPlatformGfx: @ 0x081CBE74
     .incbin "cvaos_us_baserom.gba", 0x1CBE74, 0x8
 
-    .global sObject13FamilyGfx
-sObject13FamilyGfx: @ 0x081CBE7C
+    .global sArenaTrapGfx
+sArenaTrapGfx: @ 0x081CBE7C
     .incbin "cvaos_us_baserom.gba", 0x1CBE7C, 0x8
 
-    .global sObject1BGfx
-sObject1BGfx: @ 0x081CBE84
+    .global sConveyorSwitchGfx
+sConveyorSwitchGfx: @ 0x081CBE84
     .incbin "cvaos_us_baserom.gba", 0x1CBE84, 0x8
 
-    .global sObject22Gfx
-sObject22Gfx: @ 0x081CBE8C
+    .global sInputChallengePlatformGfx
+sInputChallengePlatformGfx: @ 0x081CBE8C
     .incbin "cvaos_us_baserom.gba", 0x1CBE8C, 0x8
 
-    .global sCrusherObject23Gfx
-sCrusherObject23Gfx: @ 0x081CBE94
+    .global sCrusherArenaPropGfx
+sCrusherArenaPropGfx: @ 0x081CBE94
     .incbin "cvaos_us_baserom.gba", 0x1CBE94, 0x8
 
     .global sElevatorGfx
@@ -693,28 +693,28 @@ sRollerGfx: @ 0x081CBEA4
 sBgParticleGfx: @ 0x081CBEB4
     .incbin "cvaos_us_baserom.gba", 0x1CBEB4, 0x1CBEBC - 0x1CBEB4
 
-    .global sObject2DGfx
-sObject2DGfx: @ 0x081CBEBC
+    .global sReactivePropGfx
+sReactivePropGfx: @ 0x081CBEBC
     .incbin "cvaos_us_baserom.gba", 0x1CBEBC, 0x10
 
-    .global sObject2EGfx
-sObject2EGfx: @ 0x081CBECC
+    .global sProximityBurstGfx
+sProximityBurstGfx: @ 0x081CBECC
     .incbin "cvaos_us_baserom.gba", 0x1CBECC, 0x8
 
-    .global sObject2CGfx
-sObject2CGfx: @ 0x081CBED4
+    .global sDriftingCloudsGfx
+sDriftingCloudsGfx: @ 0x081CBED4
     .incbin "cvaos_us_baserom.gba", 0x1CBED4, 0x8
 
-    .global sObject2BGfx
-sObject2BGfx: @ 0x081CBEDC
+    .global sGardenAnimatedPropGfx
+sGardenAnimatedPropGfx: @ 0x081CBEDC
     .incbin "cvaos_us_baserom.gba", 0x1CBEDC, 0x8
 
-    .global sObject15Gfx
-sObject15Gfx: @ 0x081CBEE4
+    .global sChaoticRealmPortalGfx
+sChaoticRealmPortalGfx: @ 0x081CBEE4
     .incbin "cvaos_us_baserom.gba", 0x1CBEE4, 0x8
 
-    .global sObject2FFamilyGfx
-sObject2FFamilyGfx: @ 0x081CBEEC
+    .global sGardenPropGfx
+sGardenPropGfx: @ 0x081CBEEC
     .incbin "cvaos_us_baserom.gba", 0x1CBEEC, 0x10
 
     .global sSparkEmitterGfx
@@ -729,8 +729,8 @@ sCrumblingPlatformGfx: @ 0x081CBF0C
 sPendulumPlatformGfx: @ 0x081CBF14
     .incbin "cvaos_us_baserom.gba", 0x1CBF14, 0x8
 
-    .global sObject35Gfx
-sObject35Gfx: @ 0x081CBF1C
+    .global sFloorSwitchGateGfx
+sFloorSwitchGateGfx: @ 0x081CBF1C
     .incbin "cvaos_us_baserom.gba", 0x1CBF1C, 0x1CBF24 - 0x1CBF1C
 
     .global sDebugJitterSpriteGfx
@@ -885,8 +885,8 @@ sBiphronGfx: @ 0x081CC05C
 sStolasGfx: @ 0x081CC064
     .incbin "cvaos_us_baserom.gba", 0x1CC064, 0x18
 
-    .global sObject25Gfx
-sObject25Gfx: @ 0x081CC07C
+    .global sLegionWalkingCorpseGfx
+sLegionWalkingCorpseGfx: @ 0x081CC07C
     .incbin "cvaos_us_baserom.gba", 0x1CC07C, 0x28
 
     .global sKyomaDemonGfx
@@ -1185,8 +1185,8 @@ sUnk_08209FD8: @ 0x08209FD8
 sRollerPalette: @ 0x0820A0DC
     .incbin "cvaos_us_baserom.gba", 0x20A0DC, 0x24
 
-    .global sObject2DObject2EPalette
-sObject2DObject2EPalette: @ 0x0820A100
+    .global sTopFloorPropPalette
+sTopFloorPropPalette: @ 0x0820A100
     .incbin "cvaos_us_baserom.gba", 0x20A100, 0xC4
 
     .global sUnk_0820A1C4
@@ -1201,8 +1201,8 @@ sSparkEmitterPalette: @ 0x0820A32C
 sClockTowerPlatformPalette: @ 0x0820A350
     .incbin "cvaos_us_baserom.gba", 0x20A350, 0x64
 
-    .global sObject35Palette
-sObject35Palette: @ 0x0820A3B4
+    .global sFloorSwitchGatePalette
+sFloorSwitchGatePalette: @ 0x0820A3B4
     .incbin "cvaos_us_baserom.gba", 0x20A3B4, 0x20A3D8 - 0x20A3B4
 
     .global sDebugJitterSpritePalette
@@ -1357,8 +1357,8 @@ sBiphronPalette: @ 0x0820AC04
 sStolasPalette: @ 0x0820AC28
     .incbin "cvaos_us_baserom.gba", 0x20AC28, 0x24
 
-    .global sLegionObject25Palette
-sLegionObject25Palette: @ 0x0820AC4C
+    .global sLegionWalkingCorpsePalette
+sLegionWalkingCorpsePalette: @ 0x0820AC4C
     .incbin "cvaos_us_baserom.gba", 0x20AC4C, 0x124
 
     .global sChaosPalette
@@ -1665,20 +1665,20 @@ sRoomEffectParallaxSpriteSpriteSheet: @ 0x0820FE44
 sSwingingPlatformSpriteSheet: @ 0x0821017C
     .incbin "cvaos_us_baserom.gba", 0x21017C, 0xE8
 
-    .global sObject13FamilySpriteSheet
-sObject13FamilySpriteSheet: @ 0x08210264
+    .global sArenaTrapSpriteSheet
+sArenaTrapSpriteSheet: @ 0x08210264
     .incbin "cvaos_us_baserom.gba", 0x210264, 0xB4
 
-    .global sObject1BSpriteSheet
-sObject1BSpriteSheet: @ 0x08210318
+    .global sConveyorSwitchSpriteSheet
+sConveyorSwitchSpriteSheet: @ 0x08210318
     .incbin "cvaos_us_baserom.gba", 0x210318, 0xDC
 
-    .global sObject22SpriteSheet
-sObject22SpriteSheet: @ 0x082103F4
+    .global sInputChallengePlatformSpriteSheet
+sInputChallengePlatformSpriteSheet: @ 0x082103F4
     .incbin "cvaos_us_baserom.gba", 0x2103F4, 0x3F8
 
-    .global sCrusherObject23SpriteSheet
-sCrusherObject23SpriteSheet: @ 0x082107EC
+    .global sCrusherArenaPropSpriteSheet
+sCrusherArenaPropSpriteSheet: @ 0x082107EC
     .incbin "cvaos_us_baserom.gba", 0x2107EC, 0x2A4
 
     .global sElevatorSpriteSheet
@@ -1693,28 +1693,28 @@ sRollerSpriteSheet: @ 0x08210B60
 sBgParticleSpriteSheet: @ 0x08210DB0
     .incbin "cvaos_us_baserom.gba", 0x210DB0, 0x2111F4 - 0x210DB0
 
-    .global sObject2DSpriteSheet
-sObject2DSpriteSheet: @ 0x082111F4
+    .global sReactivePropSpriteSheet
+sReactivePropSpriteSheet: @ 0x082111F4
     .incbin "cvaos_us_baserom.gba", 0x2111F4, 0x188
 
-    .global sObject2ESpriteSheet
-sObject2ESpriteSheet: @ 0x0821137C
+    .global sProximityBurstSpriteSheet
+sProximityBurstSpriteSheet: @ 0x0821137C
     .incbin "cvaos_us_baserom.gba", 0x21137C, 0xE8
 
-    .global sObject2CSpriteSheet
-sObject2CSpriteSheet: @ 0x08211464
+    .global sDriftingCloudsSpriteSheet
+sDriftingCloudsSpriteSheet: @ 0x08211464
     .incbin "cvaos_us_baserom.gba", 0x211464, 0xE8
 
-    .global sObject2BSpriteSheet
-sObject2BSpriteSheet: @ 0x0821154C
+    .global sGardenAnimatedPropSpriteSheet
+sGardenAnimatedPropSpriteSheet: @ 0x0821154C
     .incbin "cvaos_us_baserom.gba", 0x21154C, 0xAC
 
-    .global sObject15SpriteSheet
-sObject15SpriteSheet: @ 0x082115F8
+    .global sChaoticRealmPortalSpriteSheet
+sChaoticRealmPortalSpriteSheet: @ 0x082115F8
     .incbin "cvaos_us_baserom.gba", 0x2115F8, 0x24C
 
-    .global sObject2FFamilySpriteSheet
-sObject2FFamilySpriteSheet: @ 0x08211844
+    .global sGardenPropSpriteSheet
+sGardenPropSpriteSheet: @ 0x08211844
     .incbin "cvaos_us_baserom.gba", 0x211844, 0x46C
 
     .global sSparkEmitterSpriteSheet
@@ -1729,8 +1729,8 @@ sPendulumPlatformSpriteSheet: @ 0x08211DC4
 sCrumblingPlatformSpriteSheet: @ 0x08211F08
     .incbin "cvaos_us_baserom.gba", 0x211F08, 0xA8
 
-    .global sObject35SpriteSheet
-sObject35SpriteSheet: @ 0x08211FB0
+    .global sFloorSwitchGateSpriteSheet
+sFloorSwitchGateSpriteSheet: @ 0x08211FB0
     .incbin "cvaos_us_baserom.gba", 0x211FB0, 0x2121F0 - 0x211FB0
 
     .global sDebugJitterSpriteSheet
@@ -1893,8 +1893,8 @@ sStolasSpriteSheet: @ 0x08225224
 sLegionSpriteSheet: @ 0x082258FC
     .incbin "cvaos_us_baserom.gba", 0x2258FC, 0x10C
 
-    .global sObject25SpriteSheet
-sObject25SpriteSheet: @ 0x08225A08
+    .global sLegionWalkingCorpseSpriteSheet
+sLegionWalkingCorpseSpriteSheet: @ 0x08225A08
     .incbin "cvaos_us_baserom.gba", 0x225A08, 0x4F0
 
     .global sChaosSpriteSheet
@@ -2181,20 +2181,20 @@ sWarpRoomSpriteSheet: @ 0x08257BD8
 sSaveMenuSpriteSheet2: @ 0x08259120
     .incbin "cvaos_us_baserom.gba", 0x259120, 0x259130 - 0x259120
 
-    .global sObject37Gfx
-sObject37Gfx: @ 0x08259130
+    .global sSwingDoorGfx
+sSwingDoorGfx: @ 0x08259130
     .incbin "cvaos_us_baserom.gba", 0x259130, 0x8
 
-    .global sObject37Palette
-sObject37Palette: @ 0x08259138
+    .global sSwingDoorPalette
+sSwingDoorPalette: @ 0x08259138
     .incbin "cvaos_us_baserom.gba", 0x259138, 0x84
 
-    .global sObject37SpriteSheet
-sObject37SpriteSheet: @ 0x082591BC
+    .global sSwingDoorSpriteSheet
+sSwingDoorSpriteSheet: @ 0x082591BC
     .incbin "cvaos_us_baserom.gba", 0x2591BC, 0x50
 
-    .global sObject24Gfx
-sObject24Gfx: @ 0x0825920C
+    .global sFlickeringFlameGfx
+sFlickeringFlameGfx: @ 0x0825920C
     .incbin "cvaos_us_baserom.gba", 0x25920C, 0x8
 
     .global sKickerSkeletonGfx
@@ -2213,8 +2213,8 @@ sKickerSkeletonPalette: @ 0x0825C320
 sGameOverPalette: @ 0x0825C368
     .incbin "cvaos_us_baserom.gba", 0x25C368, 0x25CED0 - 0x25C368
 
-    .global sObject24SpriteSheet
-sObject24SpriteSheet: @ 0x0825CED0
+    .global sFlickeringFlameSpriteSheet
+sFlickeringFlameSpriteSheet: @ 0x0825CED0
     .incbin "cvaos_us_baserom.gba", 0x25CED0, 0xB88
 
     .global sKickerSkeletonSpriteSheet
@@ -2225,24 +2225,24 @@ sKickerSkeletonSpriteSheet: @ 0x0825DA58
 sGameOverSpriteSheet: @ 0x0825E06C
     .incbin "cvaos_us_baserom.gba", 0x25E06C, 0x25E084 - 0x25E06C
 
-    .global sObject16Gfx
-sObject16Gfx: @ 0x0825E084
+    .global sChaoticRealmVortexGfx
+sChaoticRealmVortexGfx: @ 0x0825E084
     .incbin "cvaos_us_baserom.gba", 0x25E084, 0x8
 
     .global sSkillFlyingArmorGfx
 sSkillFlyingArmorGfx: @ 0x0825E08C
     .incbin "cvaos_us_baserom.gba", 0x25E08C, 0x804
 
-    .global sObject16Palette
-sObject16Palette: @ 0x0825E890
+    .global sChaoticRealmVortexPalette
+sChaoticRealmVortexPalette: @ 0x0825E890
     .incbin "cvaos_us_baserom.gba", 0x25E890, 0x84
 
     .global sSkillFlyingArmorPalette
 sSkillFlyingArmorPalette: @ 0x0825E914
     .incbin "cvaos_us_baserom.gba", 0x25E914, 0x15C
 
-    .global sObject16SpriteSheet
-sObject16SpriteSheet: @ 0x0825EA70
+    .global sChaoticRealmVortexSpriteSheet
+sChaoticRealmVortexSpriteSheet: @ 0x0825EA70
     .incbin "cvaos_us_baserom.gba", 0x25EA70, 0x54
 
     .global sSkillFlyingArmorSpriteSheet
@@ -2259,8 +2259,8 @@ sTitleMenuGfx: @ 0x0825EAD4
 sBreakableCoinContainerGfx: @ 0x0825EAF4
     .incbin "cvaos_us_baserom.gba", 0x25EAF4, 0x8
 
-    .global sObject19Gfx
-sObject19Gfx: @ 0x0825EAFC
+    .global sSpinningBladeGfx
+sSpinningBladeGfx: @ 0x0825EAFC
     .incbin "cvaos_us_baserom.gba", 0x25EAFC, 0x8
 
     .global sBigGolemGfx
@@ -2343,8 +2343,8 @@ sPauseMenuBgGfxFlag3A: @ 0x08264398
 sBreakableCoinContainerPalette: @ 0x082663E4
     .incbin "cvaos_us_baserom.gba", 0x2663E4, 0x24
 
-    .global sObject19Palette
-sObject19Palette: @ 0x08266408
+    .global sSpinningBladePalette
+sSpinningBladePalette: @ 0x08266408
     .incbin "cvaos_us_baserom.gba", 0x266408, 0x24
 
     .global sBigGolemPalette
@@ -2381,8 +2381,8 @@ sTitleMenuSpriteSheet: @ 0x0826693C
 sBreakableCoinContainerSpriteSheet: @ 0x08266C00
     .incbin "cvaos_us_baserom.gba", 0x266C00, 0x50
 
-    .global sObject19SpriteSheet
-sObject19SpriteSheet: @ 0x08266C50
+    .global sSpinningBladeSpriteSheet
+sSpinningBladeSpriteSheet: @ 0x08266C50
     .incbin "cvaos_us_baserom.gba", 0x266C50, 0x1B8
 
     .global sBigGolemSpriteSheet

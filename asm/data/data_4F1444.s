@@ -65,8 +65,8 @@ sAreaRoomTables: @ 0x0850EF08
 sDebugHitTestRoom: @ 0x0850EF9C
     .incbin "cvaos_us_baserom.gba", 0x50EF9C, 0x50F01C - 0x50EF9C
 
-    .global sDebug4531Room
-sDebug4531Room: @ 0x0850F01C
+    .global sDebugEventMenuRoom
+sDebugEventMenuRoom: @ 0x0850F01C
     .incbin "cvaos_us_baserom.gba", 0x50F01C, 0x50F15C - 0x50F01C
 
     .global sDebugEventRoom12
@@ -117,12 +117,12 @@ sDebugExitOptionsRoom4: @ 0x08516768
 sDebugEventRoom9: @ 0x08517790
     .incbin "cvaos_us_baserom.gba", 0x517790, 0x517B70 - 0x517790
 
-    .global sObject15DestinationRoom0
-sObject15DestinationRoom0: @ 0x08517B70
+    .global sChaoticRealmPortalDestinationRoom0
+sChaoticRealmPortalDestinationRoom0: @ 0x08517B70
     .incbin "cvaos_us_baserom.gba", 0x517B70, 0x518710 - 0x517B70
 
-    .global sDebug2229Room
-sDebug2229Room: @ 0x08518710
+    .global sDebugRoomRoom
+sDebugRoomRoom: @ 0x08518710
     .incbin "cvaos_us_baserom.gba", 0x518710, 0x518B70 - 0x518710
 
     .global sDebugEventRoom5
@@ -189,8 +189,8 @@ sEndingRoomDefinition: @ 0x08522C54
 sDebugExitOptionsRoom10: @ 0x08523064
     .incbin "cvaos_us_baserom.gba", 0x523064, 0x52320C - 0x523064
 
-    .global sObject15DestinationRoom1
-sObject15DestinationRoom1: @ 0x0852320C
+    .global sChaoticRealmPortalDestinationRoom1
+sChaoticRealmPortalDestinationRoom1: @ 0x0852320C
     .incbin "cvaos_us_baserom.gba", 0x52320C, 0x52362C - 0x52320C
 
     .global sDebugEventRoom14
@@ -201,12 +201,12 @@ sDebugEventRoom14: @ 0x0852362C
 sDebugEventRoom17: @ 0x085236A4
     .incbin "cvaos_us_baserom.gba", 0x5236A4, 0x524020 - 0x5236A4
 
-    .global sDebug4531Room2
-sDebug4531Room2: @ 0x08524020
+    .global sDebugEventMenuRoom2
+sDebugEventMenuRoom2: @ 0x08524020
     .incbin "cvaos_us_baserom.gba", 0x524020, 0x5241E0 - 0x524020
 
-    .global sDebug1967Room
-sDebug1967Room: @ 0x085241E0
+    .global sDebugTestMenuRoom
+sDebugTestMenuRoom: @ 0x085241E0
     .incbin "cvaos_us_baserom.gba", 0x5241E0, 0x5247B4 - 0x5241E0
 
     .global sBossRushMenuRoom
@@ -345,28 +345,28 @@ sRoomDecorationVariants: @ 0x085263A8
 sRollerVariantFuncs: @ 0x08526408
     .incbin "cvaos_us_baserom.gba", 0x526408, 0xC
 
-    .global sObject16PaletteAnim
-sObject16PaletteAnim: @ 0x08526414
+    .global sChaoticRealmVortexPaletteAnim
+sChaoticRealmVortexPaletteAnim: @ 0x08526414
     .incbin "cvaos_us_baserom.gba", 0x526414, 0x34
 
-    .global sObject16EffectAnimScriptVariant0
-sObject16EffectAnimScriptVariant0: @ 0x08526448
+    .global sChaoticRealmVortexEffectAnimScriptVariant0
+sChaoticRealmVortexEffectAnimScriptVariant0: @ 0x08526448
     .incbin "cvaos_us_baserom.gba", 0x526448, 0x14
 
-    .global sObject16EffectAnimScript
-sObject16EffectAnimScript: @ 0x0852645C
+    .global sChaoticRealmVortexEffectAnimScript
+sChaoticRealmVortexEffectAnimScript: @ 0x0852645C
     .incbin "cvaos_us_baserom.gba", 0x52645C, 0x10
 
-    .global sObject19Steps
-sObject19Steps: @ 0x0852646C
+    .global sSpinningBladeSteps
+sSpinningBladeSteps: @ 0x0852646C
     .incbin "cvaos_us_baserom.gba", 0x52646C, 0x30
 
-    .global sObject22LevelThresholds
-sObject22LevelThresholds: @ 0x0852649C
+    .global sInputChallengePlatformLevelThresholds
+sInputChallengePlatformLevelThresholds: @ 0x0852649C
     .incbin "cvaos_us_baserom.gba", 0x52649C, 0x20
 
-    .global sObject22LevelPatterns
-sObject22LevelPatterns: @ 0x085264BC
+    .global sInputChallengePlatformLevelPatterns
+sInputChallengePlatformLevelPatterns: @ 0x085264BC
     .incbin "cvaos_us_baserom.gba", 0x5264BC, 0x14
 
     .global sVerticalPlatformVariants
@@ -377,32 +377,32 @@ sVerticalPlatformVariants: @ 0x085264D0
 sHorizontalPlatformVariants: @ 0x08526510
     .incbin "cvaos_us_baserom.gba", 0x526510, 0x40
 
-    .global sObject25AnimScript0
-sObject25AnimScript0: @ 0x08526550
+    .global sLegionWalkingCorpseAnimScript0
+sLegionWalkingCorpseAnimScript0: @ 0x08526550
     .incbin "cvaos_us_baserom.gba", 0x526550, 0x14
 
-    .global sObject25AnimScript1
-sObject25AnimScript1: @ 0x08526564
+    .global sLegionWalkingCorpseAnimScript1
+sLegionWalkingCorpseAnimScript1: @ 0x08526564
     .incbin "cvaos_us_baserom.gba", 0x526564, 0x1C
 
-    .global sObject25AnimScript2
-sObject25AnimScript2: @ 0x08526580
+    .global sLegionWalkingCorpseAnimScript2
+sLegionWalkingCorpseAnimScript2: @ 0x08526580
     .incbin "cvaos_us_baserom.gba", 0x526580, 0x78
 
-    .global sObject25Points
-sObject25Points: @ 0x085265F8
+    .global sLegionWalkingCorpsePoints
+sLegionWalkingCorpsePoints: @ 0x085265F8
     .incbin "cvaos_us_baserom.gba", 0x5265F8, 0x10
 
-    .global sObject25PointIndices
-sObject25PointIndices: @ 0x08526608
+    .global sLegionWalkingCorpsePointIndices
+sLegionWalkingCorpsePointIndices: @ 0x08526608
     .incbin "cvaos_us_baserom.gba", 0x526608, 0x10
 
-    .global sObject2BPaletteAnim
-sObject2BPaletteAnim: @ 0x08526618
+    .global sGardenAnimatedPropPaletteAnim
+sGardenAnimatedPropPaletteAnim: @ 0x08526618
     .incbin "cvaos_us_baserom.gba", 0x526618, 0x18
 
-    .global sObject2EAnimScript
-sObject2EAnimScript: @ 0x08526630
+    .global sProximityBurstAnimScript
+sProximityBurstAnimScript: @ 0x08526630
     .incbin "cvaos_us_baserom.gba", 0x526630, 0x10
 
     .global sShopBgMaps
@@ -425,12 +425,12 @@ sEventSceneJuliusKeepsPromiseDebrisDefinitions: @ 0x08526758
 sEventSceneJuliusKeepsPromisePaletteSteps: @ 0x085267B8
     .incbin "cvaos_us_baserom.gba", 0x5267B8, 0x20
 
-    .global sEventScene03UnusedDebris
-sEventScene03UnusedDebris: @ 0x085267D8
+    .global sEventScenePrologueBattleUnusedDebris
+sEventScenePrologueBattleUnusedDebris: @ 0x085267D8
     .incbin "cvaos_us_baserom.gba", 0x5267D8, 0x2A
 
-    .global sEventScene03Debris
-sEventScene03Debris: @ 0x08526802
+    .global sEventScenePrologueBattleDebris
+sEventScenePrologueBattleDebris: @ 0x08526802
     .incbin "cvaos_us_baserom.gba", 0x526802, 0x2A
 
     .global sUnk_0852682C

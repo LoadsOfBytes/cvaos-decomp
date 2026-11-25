@@ -7,6 +7,6 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-extern void Object19Create(struct EwramData_EntityData *entity);
+extern void SpinningBladeCreate(struct EwramData_EntityData *entity);
 
 #endif /* OBJECT_19_CREATE_H */

@@ -5,7 +5,7 @@
 
 #include "types.h"
 
-/* Spawn spots of EventScene03_SpawnPartsA: room x and flags for EventScene03_SpawnRisingPart. */
+/* Spawn spots of EventScenePrologueBattle_SpawnPartsA: room x and flags for EventScenePrologueBattle_SpawnRisingPart. */
 struct Unk_081187AC {
     s32 x;
     s32 flags;
@@ -31,7 +31,7 @@ struct Unk_08118510
 struct FourBoxes { u32 box[4]; };
 
 /* Object 0x31 per variant (spawnParam0): start x, start y, animation, unk_4F8. */
-struct Object31Words {
+struct JuliusArenaDebrisWords {
     s32 v[4];
 };
 
@@ -120,23 +120,23 @@ extern const s16 sElevatorFloorY[];
 extern u8 sElevatorSolidCallbacks[];
 extern const u16 sElevatorXs[];
 extern const u16 sElevatorYs[];
-extern u16 sObject1BColors[];
+extern u16 sConveyorSwitchColors[];
 extern struct FourBoxes sVerticalPlatformBoxes;
 extern struct FourBoxes sHorizontalPlatformBoxes;
 /* Start x / y of object 0x2F per variant (spawnParam0). */
-extern const u16 sObject2FXs[3];
-extern const u16 sObject2FYs[3];
-extern const u16 sObject31Xs[4];
-extern const u16 sObject31Ys[4];
-extern const u16 sObject31Anims[4];
-extern const struct Object31Words sUnk_08118674;
+extern const u16 sJuliusArenaPropXs[3];
+extern const u16 sJuliusArenaPropYs[3];
+extern const u16 sJuliusArenaDebrisXs[4];
+extern const u16 sJuliusArenaDebrisYs[4];
+extern const u16 sJuliusArenaDebrisAnims[4];
+extern const struct JuliusArenaDebrisWords sUnk_08118674;
 extern const struct CrumblingPlatformBoxes sCrumblingPlatformBoxes;
 extern u8 sRotatingPlatformSolidCallbacks[];
 /* Object 0x36 per variant: { rotation speed * 2 / scale step, rotation speed }. */
 extern const s16 sRotatingPlatformShapes[9][2];
 extern struct ObjectTableGraphics sObjectTableGraphics[12];
-extern const struct Unk_081187AC sEventScene03SpotsA[5];
-extern const struct Unk_081187AC sEventScene03SpotsB[2];
+extern const struct Unk_081187AC sEventScenePrologueBattleSpotsA[5];
+extern const struct Unk_081187AC sEventScenePrologueBattleSpotsB[2];
 extern u8 sEventSceneSomaAwakensPeriods[];
 extern u8 sEventSceneJuliusBattleStartGfx[];
 extern struct FragmentFrames sEventSceneEndingFragmentFrames;

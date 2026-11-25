@@ -515,11 +515,11 @@ void Succubus_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   Succubus_LoadGraphics = Object25_LoadGraphics
+ *   Succubus_LoadGraphics = LegionWalkingCorpse_LoadGraphics
  * plus Succubus_DamagePlayerOnContact (decompiled locally). */
 
 /**
- * @brief 946C4 | Same as Object25_LoadGraphics.
+ * @brief 946C4 | Same as LegionWalkingCorpse_LoadGraphics.
  */
 u8 Succubus_LoadGraphics(struct EwramData_EntityData *entity)
 {

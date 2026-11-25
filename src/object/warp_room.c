@@ -788,12 +788,12 @@ void Crusher_UpdateState(struct EwramData_EntityData *entity)
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   CrusherUpdate = Object28Update
+ *   CrusherUpdate = PopUpTrapSmallUpdate
  *   Crusher_LoadGraphics = CrumblingPlatform_LoadGraphics
  *   Crusher_OnPlayerContact = DevilPart_DamagePlayerOnContact */
 
 /**
- * @brief 56784 | Same as Object28Update.
+ * @brief 56784 | Same as PopUpTrapSmallUpdate.
  */
 void CrusherUpdate(struct EwramData_EntityData *entity)
 {
@@ -810,12 +810,12 @@ void CrusherUpdate(struct EwramData_EntityData *entity)
  */
 u8 Crusher_LoadGraphics(struct EwramData_EntityData *entity)
 {
-    s32 gfx = ObjGfx_LoadResource(sCrusherObject23Gfx, 0);
+    s32 gfx = ObjGfx_LoadResource(sCrusherArenaPropGfx, 0);
 
     if (gfx < 0)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 1);
-    Sprite_Attach(entity, sCrusherObject23SpriteSheet, gfx, entity->basePalette);
+    Sprite_Attach(entity, sCrusherArenaPropSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }

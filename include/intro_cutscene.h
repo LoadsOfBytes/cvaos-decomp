@@ -6,7 +6,7 @@
 #include "structs/main.h"
 
 s32 GameModeBossRushMenuUpdate(void);
-s32 GameModeUnk9Update(void);
+s32 GameModeEmpty9Update(void);
 s32 GameModeIntroCutsceneUpdate(void);
 void Game_SetStartPosition(s32 arg0);
 void IntroCutscene_UpdateRisingSprite(struct EwramData_EntityData *entity);

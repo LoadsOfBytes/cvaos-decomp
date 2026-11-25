@@ -385,11 +385,11 @@ void RoomDecorationUpdate(struct EwramData_EntityData *entity)
         Anim_Update(entity);
 }
 
-/* Object13ArmView segment object: copies the angle of entity[hitFlashTimer], places itself
+/* WreckingBallArmView segment object: copies the angle of entity[hitFlashTimer], places itself
  * at half the (cos, sin) * 8 offset from its parent (unk_4FC) and keeps the
  * full offset for the next segment; rotated via ObjAffine_Set. */
 
-struct Object13ArmView
+struct WreckingBallArmView
 {
     void *parent;
     s32 angle;
@@ -399,25 +399,25 @@ struct Object13ArmView
     u8 segmentIndex;
     u8 ownerSlot;
 };
-#define ARM(e) ((struct Object13ArmView *)&((struct EwramData_EntityData *)(e))->ext.raw.unk_4FC)
+#define ARM(e) ((struct WreckingBallArmView *)&((struct EwramData_EntityData *)(e))->ext.raw.unk_4FC)
 
 /**
  * @brief One of the ten affine segments of object 0x13, linked to the previous
  * part.
  */
-void Object13Segment_Update(struct EwramData_EntityData *entity)
+void WreckingBallSegment_Update(struct EwramData_EntityData *entity)
 {
-    struct Object13ArmView *self = ARM(entity);
-    struct Object13ArmView *p = self->parent;
+    struct WreckingBallArmView *self = ARM(entity);
+    struct WreckingBallArmView *p = self->parent;
     struct EwramData_EntityData *other = &gEwramData->entityData[self->ownerSlot];
-    struct Object13ArmView *a = ARM(other);
+    struct WreckingBallArmView *a = ARM(other);
 
     if (other->state == 0xFF)
         entity->state = 0xFF;
     switch (entity->state)
     {
     case 0:
-        if (!Entity_LoadGraphics(entity, sObject13FamilyGfx, sUnk_08209FD8, 0, sObject13FamilySpriteSheet))
+        if (!Entity_LoadGraphics(entity, sArenaTrapGfx, sUnk_08209FD8, 0, sArenaTrapSpriteSheet))
         {
             EntityDelete(entity);
             return;
@@ -429,7 +429,7 @@ void Object13Segment_Update(struct EwramData_EntityData *entity)
     case 1:
         self->angle = a->angle;
         {
-        struct Object13ArmView *a2 = ARM(entity), *p2 = ARM(p);
+        struct WreckingBallArmView *a2 = ARM(entity), *p2 = ARM(p);
         a2->y = Sin(a2->angle + 0x4000) << 3;
         a2->x = Sin(a2->angle + 0x8000) << 3;
         entity->posX.whole = (a2->x >> 1) + p2->x;
@@ -446,7 +446,7 @@ void Object13Segment_Update(struct EwramData_EntityData *entity)
     ObjAffine_Set(self->angle, 0x10000, 0x10000, 0, 0, entity->affineIndex);
 }
 
-/* Object13Tip_Update, decompiled from the original assembly. The mode-0 branch
+/* WreckingBallTip_Update, decompiled from the original assembly. The mode-0 branch
  * repeats the "+= 0x300" body instead of jumping to it: cross-jumping merges
  * the copies after reload, but their reloads shift the reload register
  * rotation as in the target. */
@@ -454,9 +454,9 @@ void Object13Segment_Update(struct EwramData_EntityData *entity)
 #define PL (gEwramData->playerState.player)
 #define PX ((s16)PL->posX.part16.integer)
 #define EX ((s16)entity->posX.part16.integer)
-static inline void ArmPlace(struct EwramData_EntityData *entity, struct Object13ArmView *p)
+static inline void ArmPlace(struct EwramData_EntityData *entity, struct WreckingBallArmView *p)
 {
-    struct Object13ArmView *a2 = ARM(entity), *p2 = ARM(p);
+    struct WreckingBallArmView *a2 = ARM(entity), *p2 = ARM(p);
     a2->y = Sin(a2->angle + 0x4000) << 5;
     a2->x = Sin(a2->angle + 0x8000) << 5;
     entity->posX.whole = (a2->x >> 1) + p2->x;
@@ -468,12 +468,12 @@ static inline void ArmPlace(struct EwramData_EntityData *entity, struct Object13
  * @brief Last part of object 0x13: has a hit box, checks player hits with a
  * hit effect and sound 0x69, queued for the player while near.
  */
-void Object13Tip_Update(struct EwramData_EntityData *entity)
+void WreckingBallTip_Update(struct EwramData_EntityData *entity)
 {
-    struct Object13ArmView *self = ARM(entity);
-    struct Object13ArmView *p = self->parent;
+    struct WreckingBallArmView *self = ARM(entity);
+    struct WreckingBallArmView *p = self->parent;
     struct EwramData_EntityData *other = &gEwramData->entityData[self->ownerSlot];
-    struct Object13ArmView *a = ARM(other);
+    struct WreckingBallArmView *a = ARM(other);
     struct EwramData_EntityData *player;
     struct HitResult res;
     s32 tx, ty, v, mode, r;
@@ -483,7 +483,7 @@ void Object13Tip_Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        if (!Entity_LoadGraphics(entity, sObject13FamilyGfx, sUnk_08209FD8, 0, sObject13FamilySpriteSheet))
+        if (!Entity_LoadGraphics(entity, sArenaTrapGfx, sUnk_08209FD8, 0, sArenaTrapSpriteSheet))
         {
             EntityDelete(entity);
             break;
@@ -541,11 +541,11 @@ void Object13Tip_Update(struct EwramData_EntityData *entity)
     }
 }
 
-void Object13Create(struct EwramData_EntityData *entity)
+void WreckingBallCreate(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *previous;
     s32 i;
-    if (!Entity_LoadGraphics(entity, sObject13FamilyGfx, sUnk_08209FD8, 0, sObject13FamilySpriteSheet)) { EntityDelete(entity); return; }
+    if (!Entity_LoadGraphics(entity, sArenaTrapGfx, sUnk_08209FD8, 0, sArenaTrapSpriteSheet)) { EntityDelete(entity); return; }
     entity->drawFunc = NULL;
     entity->hidden = 1;
     entity->scrollWithBg = 1;
@@ -554,8 +554,8 @@ void Object13Create(struct EwramData_EntityData *entity)
     {
         u8 *data;
         struct EwramData_EntityData *child;
-        if (i != 10) child = EntityCreateInRange(0x49, 0xCF, Object13Segment_Update);
-        else child = EntityCreateInRange(0x49, 0xCF, Object13Tip_Update);
+        if (i != 10) child = EntityCreateInRange(0x49, 0xCF, WreckingBallSegment_Update);
+        else child = EntityCreateInRange(0x49, 0xCF, WreckingBallTip_Update);
         if (child == NULL) { entity->state = 0xFF; break; }
         if (i != 10)
         {
@@ -577,8 +577,8 @@ void Object13Create(struct EwramData_EntityData *entity)
 
 }
 
-/* Object13Update. */
-void Object13Update(struct EwramData_EntityData *entity)
+/* WreckingBallUpdate. */
+void WreckingBallUpdate(struct EwramData_EntityData *entity)
 {
     s32 *data = (s32 *)&entity->ext.raw.unk_4FC;
     if (entity->state == 0xFF)

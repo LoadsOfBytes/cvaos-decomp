@@ -1,4 +1,4 @@
-#include "debug_1967.h"
+#include "debug_test_menu.h"
 #include "core.h"
 #include "bg_and_collision.h"
 #include "room_entities.h"
@@ -38,26 +38,26 @@
 #include "menu_common.h"
 #include "enemy_common.h"
 
-struct Debug1967MenuEntry {
+struct DebugTestMenuMenuEntry {
     u8 *label; // pointer to string
     s32 (*handler)(void);
 }; /* size = 0x8 */
-struct Debug1967MenuEntry sDebug1967MenuEntries[] = {
+struct DebugTestMenuMenuEntry sDebugTestMenuMenuEntries[] = {
     [0] = {
         .label = "ENEMY",
-        .handler = Debug1967_EnemyTest
+        .handler = DebugTestMenu_EnemyTest
     },
     [1] = {
         .label = "SDTEST",
-        .handler = Debug1967_SoundTest
+        .handler = DebugTestMenu_SoundTest
     },
     [2] = {
         .label = "START",
-        .handler = Debug1967_StartGame
+        .handler = DebugTestMenu_StartGame
     },
     [3] = {
         .label = "OBJTEST",
-        .handler = Debug1967_ObjTest
+        .handler = DebugTestMenu_ObjTest
     }
 };
 
@@ -72,18 +72,18 @@ const u8 sUnk_080E1F74[24] = {
 extern const u16 sEnemyNameTextIds[];
 
 /**
- * @brief 35930 | Handle debug 1967 game mode
+ * @brief 35930 | Debug test menu (debug menu entry "1967"): ENEMY / SDTEST / START / OBJTEST
  * 
  * @return s32 Game mode, -1 is no change, -2 is next game mode, else the specified game mode
  */
-s32 GameModeDebug1967Update(void)
+s32 GameModeDebugTestMenuUpdate(void)
 {
     s32 gameMode;
-    struct Debug1967MenuEntry *option;
+    struct DebugTestMenuMenuEntry *option;
     u32 i;
 
     gameMode = GAME_MODE_SAME_MODE;
-    option = sDebug1967MenuEntries;
+    option = sDebugTestMenuMenuEntries;
 
     switch (gEwramData->gameModeUpdateStage)
     {
@@ -137,7 +137,7 @@ s32 GameModeDebug1967Update(void)
             break;
 
         case 3:
-            gameMode = sDebug1967MenuEntries[gEwramData->gameModeSubStage].handler();
+            gameMode = sDebugTestMenuMenuEntries[gEwramData->gameModeSubStage].handler();
             break;
     }
 
@@ -150,7 +150,7 @@ const u8 pad_080e1f92[] = {0,0};
  * @brief Unreferenced: every 100 calls create a DebugTestEnemy entity in the
  * first free of five slots, forgetting slots whose entity was freed.
  */
-void Debug1967_UpdateTestEnemySpawner(struct DebugEnemySpawnerState *spawner)
+void DebugTestMenu_UpdateTestEnemySpawner(struct DebugEnemySpawnerState *spawner)
 {
     s32 i;
     struct EwramData_EntityData *child;
@@ -199,7 +199,7 @@ void Debug1967_UpdateTestEnemySpawner(struct DebugEnemySpawnerState *spawner)
  * @brief START entry: load room sDebugEventRoom10 with level 99 and fixed souls and
  * equipment, then run entities, HUD and room transitions.
  */
-s32 Debug1967_StartGame(void)
+s32 DebugTestMenu_StartGame(void)
 {
     switch ((&gEwramData->debugMenuWork)->state)
     {
@@ -247,7 +247,7 @@ s32 Debug1967_StartGame(void)
 
 // TODO: very similar to GameModeSoundTestMenu_inlines
 // TODO: also clean all this mess up
-static inline void Debug1967_WrapEnemyValue(s32 value, s32 max, s16 *dst, s32 wrapTo)
+static inline void DebugTestMenu_WrapEnemyValue(s32 value, s32 max, s16 *dst, s32 wrapTo)
 {
     if (value > max)
     {
@@ -259,7 +259,7 @@ static inline void Debug1967_WrapEnemyValue(s32 value, s32 max, s16 *dst, s32 wr
     }
 }
 
-static inline s32 Debug1967_AdjustEnemySelection(s16 *value)
+static inline s32 DebugTestMenu_AdjustEnemySelection(s16 *value)
 {
     s32 zero;
     s32 max;
@@ -292,7 +292,7 @@ static inline s32 Debug1967_AdjustEnemySelection(s16 *value)
         *value -= 10;
     }
 
-    Debug1967_WrapEnemyValue(*value, max, value, zero);
+    DebugTestMenu_WrapEnemyValue(*value, max, value, zero);
     return var;
 }
 
@@ -301,12 +301,12 @@ static inline s32 Debug1967_AdjustEnemySelection(s16 *value)
  * reprint its name, and on A or B choose 1 or 5 enemies; return 1 on a
  * choice.
  */
-s32 Debug1967_HandleEnemySelectInput(void)
+s32 DebugTestMenu_HandleEnemySelectInput(void)
 {
     u8 pad[0x40];
     s16 prevEnemy;
 
-    prevEnemy = Debug1967_AdjustEnemySelection(&(&gEwramData->debugMenuWork)->selection);
+    prevEnemy = DebugTestMenu_AdjustEnemySelection(&(&gEwramData->debugMenuWork)->selection);
 
     if (prevEnemy != (&gEwramData->debugMenuWork)->selection)
     {
@@ -337,7 +337,7 @@ s32 Debug1967_HandleEnemySelectInput(void)
  * with a levelled player and spawn the chosen number of that enemy;
  * L+R returns to the selection.
  */
-s32 Debug1967_EnemyTest(void)
+s32 DebugTestMenu_EnemyTest(void)
 {
     u8 pad[0x40];
     s32 flip;
@@ -366,14 +366,14 @@ s32 Debug1967_EnemyTest(void)
             (&gEwramData->debugMenuWork)->state = 1;
             /* fallthrough */
         case 1:
-            if (Debug1967_HandleEnemySelectInput() == 0)
+            if (DebugTestMenu_HandleEnemySelectInput() == 0)
             {
                 break;
             }
 
             (&gEwramData->debugMenuWork)->state = 2;
         case 2:
-            gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)sDebug1967Room;
+            gEwramData->gameState.currentRoomDefinition = (struct RoomDefinition *)sDebugTestMenuRoom;
             playerStatus->currentLevel = 0;
             InGame_InitScene();
             (&gEwramData->debugMenuWork)->state = 3;
@@ -512,7 +512,7 @@ s32 Debug1967_EnemyTest(void)
 }
 
 // TODO: proper struct
-const u8 sDebug1967Gfx[] = {
+const u8 sDebugTestMenuGfx[] = {
     0x02, 0x04, 0x02, 0x01, 0xA4, 0x42, 0x1F, 0x08, 0xA8, 0x52, 0x1F, 0x08, 0xAC, 0x62, 0x1F, 0x08, 
     0xB0, 0x72, 0x1F, 0x08, 
 };
@@ -521,14 +521,14 @@ const u8 sDebug1967Gfx[] = {
  * @brief OBJTEST viewer entity: show the sprite at sJuliusSpriteSheet and step its
  * animation index with Up/Down.
  */
-void Debug1967ObjTestViewer_Update(struct EwramData_EntityData *entity)
+void DebugTestMenuObjTestViewer_Update(struct EwramData_EntityData *entity)
 {
     s32 gfx;
 
     switch (entity->state)
     {
         case 0:
-            gfx = ObjGfx_LoadResource((u8 *)sDebug1967Gfx, 0);
+            gfx = ObjGfx_LoadResource((u8 *)sDebugTestMenuGfx, 0);
             ObjPalette_LoadRange((u8 *)sJuliusEntityPalette, 0, 1, 0xA);
             Sprite_Attach(entity, (void *)sJuliusSpriteSheet, gfx, 0xA);
             entity->drawFunc = Sprite_DrawEntity;
@@ -579,7 +579,7 @@ const struct DebugSoundCategory sDebugSoundCategories[] = {
     }
 };
 
-static inline void Debug1967_WrapToRange(s32 value, s32 max, s16 *dst, s32 min)
+static inline void DebugTestMenu_WrapToRange(s32 value, s32 max, s16 *dst, s32 min)
 {
     if (value > max)
     {
@@ -591,7 +591,7 @@ static inline void Debug1967_WrapToRange(s32 value, s32 max, s16 *dst, s32 min)
     }
 }
 
-static inline void Debug1967_WrapValue(s32 value, s32 max, s16 *dst, s32 wrapTo)
+static inline void DebugTestMenu_WrapValue(s32 value, s32 max, s16 *dst, s32 wrapTo)
 {
     if (value > max)
     {
@@ -603,7 +603,7 @@ static inline void Debug1967_WrapValue(s32 value, s32 max, s16 *dst, s32 wrapTo)
     }
 }
 
-static inline void Debug1967_AdjustSoundId(const struct DebugSoundCategory *entry, u32 rightKey, s16 *value)
+static inline void DebugTestMenu_AdjustSoundId(const struct DebugSoundCategory *entry, u32 rightKey, s16 *value)
 {
     s32 min;
     s32 max;
@@ -629,10 +629,10 @@ static inline void Debug1967_AdjustSoundId(const struct DebugSoundCategory *entr
         *value -= 10;
     }
 
-    Debug1967_WrapToRange(*value, max, value, min);
+    DebugTestMenu_WrapToRange(*value, max, value, min);
 }
 
-static inline void Debug1967_AdjustSoundCategory(u32 upKey, s16 *value)
+static inline void DebugTestMenu_AdjustSoundCategory(u32 upKey, s16 *value)
 {
     s32 zero;
     s32 max;
@@ -651,14 +651,14 @@ static inline void Debug1967_AdjustSoundCategory(u32 upKey, s16 *value)
         *value -= 1;
     }
 
-    Debug1967_WrapValue(*value, max, value, zero);
+    DebugTestMenu_WrapValue(*value, max, value, zero);
 }
 
 /**
  * @brief SDTEST entry: pick BGM/EFF1/VOICE with Up/Down, change the id within
  * the category range, A plays it and B stops audio.
  */
-s32 Debug1967_SoundTest(void)
+s32 DebugTestMenu_SoundTest(void)
 {
     u8 pad[0x40];
     s32 i;
@@ -675,10 +675,10 @@ s32 Debug1967_SoundTest(void)
             }
             /* fallthrough */
         case 1:
-            Debug1967_AdjustSoundCategory(0x80, &(&gEwramData->debugMenuWork)->selection);
+            DebugTestMenu_AdjustSoundCategory(0x80, &(&gEwramData->debugMenuWork)->selection);
             selected = (&gEwramData->debugMenuWork)->selection;
             entries = sDebugSoundCategories;
-            Debug1967_AdjustSoundId(&entries[selected], 0x10, &(&gEwramData->debugMenuWork)->entryValues[(&gEwramData->debugMenuWork)->selection]);
+            DebugTestMenu_AdjustSoundId(&entries[selected], 0x10, &(&gEwramData->debugMenuWork)->entryValues[(&gEwramData->debugMenuWork)->selection]);
             if (gEwramData->inputData.newInput & 1)
             {
                 PlaySong((&gEwramData->debugMenuWork)->entryValues[(&gEwramData->debugMenuWork)->selection]);
@@ -695,7 +695,7 @@ s32 Debug1967_SoundTest(void)
 /**
  * @brief OBJTEST entry: create the viewer entity and update entities.
  */
-s32 Debug1967_ObjTest(void)
+s32 DebugTestMenu_ObjTest(void)
 {
     u8 pad[0x40];
     struct EwramData_EntityData *child;
@@ -703,7 +703,7 @@ s32 Debug1967_ObjTest(void)
     switch (gEwramData->debugMenuWork.state)
     {
         case 0:
-            child = EntityCreateInRange(0x1B, 0x48, Debug1967ObjTestViewer_Update);
+            child = EntityCreateInRange(0x1B, 0x48, DebugTestMenuObjTestViewer_Update);
             if (child != NULL)
             {
                 child->posX.part16.integer = 0x80;
@@ -722,7 +722,7 @@ s32 Debug1967_ObjTest(void)
 /**
  * @brief Unreferenced empty function.
  */
-void Debug1967_UnusedStub(void)
+void DebugTestMenu_UnusedStub(void)
 {
     return;
 }

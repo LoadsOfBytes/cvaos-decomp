@@ -152,7 +152,7 @@ void DebugBgDispTest_Update(struct DebugDisplayTestState *test)
 }
 
 /**
- * @brief Load the object graphics and room sDebug4531Room and create the
+ * @brief Load the object graphics and room sDebugEventMenuRoom and create the
  * DebugLinkTestWalker player stand-in.
  */
 void DebugLinkTest_Init(struct DebugDisplayTestState *test)
@@ -163,9 +163,9 @@ void DebugLinkTest_Init(struct DebugDisplayTestState *test)
     InGame_LoadCommonObjectGraphics();
 
     test->player = EntityCreate(DebugLinkTestWalker_Update);
-    test->target.roomDefinition = (void*)sDebug4531Room;
+    test->target.roomDefinition = (void*)sDebugEventMenuRoom;
     test->clearBgIndex = 1;
-    Room_Load((struct RoomDefinition *)sDebug4531Room, 0, 0);
+    Room_Load((struct RoomDefinition *)sDebugEventMenuRoom, 0, 0);
     gEwramData->playerState.player = test->player;
     gEwramData->playerState.unk_131EA = 0x100;
     gEwramData->playerState.unk_131EC = 0x100;

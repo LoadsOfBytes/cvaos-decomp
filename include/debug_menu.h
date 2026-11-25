@@ -19,7 +19,7 @@ struct NestedDebugMenuState {
     u8 testStage;
     u8 pad_11[0x14 - 0x11];
 }; /* size = 0x14 */
-s32 GameModeDebug2739Update(void);
+s32 GameModeDebugNestedMenuUpdate(void);
 s32 DebugTest_GetStage(void);
 void DebugTest_SetStage(u8 stage);
 s32 DebugMenu_Update(struct NestedDebugMenuState *menu, u16 tileIndex, u16 rowOffset);

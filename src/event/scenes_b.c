@@ -2427,7 +2427,7 @@ void EventSceneJuliusBattleEnd_Init(void)
  * @brief Init of event scene variant 21 (Object 0x20 spawnParam0 = 21,
  * sEventSceneCreateFuncs[21]). End the entity (0x53D bit 3).
  */
-void EventScene21_Init(struct EwramData_EntityData *entity)
+void EventSceneJuliusBattleMusic_Init(struct EwramData_EntityData *entity)
 {
     entity->deleteRequested = 1;
 }
@@ -2437,7 +2437,7 @@ void EventScene21_Init(struct EwramData_EntityData *entity)
  * player input mask. Sound_Play(0x1040), Music_StartOverride(0x25), then
  * continue with Interaction_End(1).
  */
-s32 EventScene21_Update(struct EwramData_EntityData *entity)
+s32 EventSceneJuliusBattleMusic_Update(struct EwramData_EntityData *entity)
 {
     Sound_Play(0x1040);
     Music_StartOverride(0x25);

@@ -7,8 +7,8 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-extern void Object22Create(struct EwramData_EntityData *entity);
-extern void Object22Update(struct EwramData_EntityData *entity);
+extern void InputChallengePlatformCreate(struct EwramData_EntityData *entity);
+extern void InputChallengePlatformUpdate(struct EwramData_EntityData *entity);
 extern void VerticalPlatformCreate(struct EwramData_EntityData *entity);
 extern void VerticalPlatformUpdate(struct EwramData_EntityData *entity);
 extern void HorizontalPlatformCreate(struct EwramData_EntityData *entity);

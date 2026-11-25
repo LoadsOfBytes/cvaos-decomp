@@ -885,12 +885,12 @@ s32 Gladiator_LoadGraphics(struct EwramData_EntityData *entity)
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   Gladiator_DamagePlayerOnContact = Object28_OnPlayerContact
+ *   Gladiator_DamagePlayerOnContact = PopUpTrapSmall_OnPlayerContact
  *   Gladiator_OnHit = Manticore_OnHit
- *   GladiatorPart_DamagePlayerOnContact = Object28_OnPlayerContact */
+ *   GladiatorPart_DamagePlayerOnContact = PopUpTrapSmall_OnPlayerContact */
 
 /**
- * @brief A1C50 | Same as Object28_OnPlayerContact.
+ * @brief A1C50 | Same as PopUpTrapSmall_OnPlayerContact.
  */
 void Gladiator_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 {
@@ -917,7 +917,7 @@ void Gladiator_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit
 }
 
 /**
- * @brief A1CC8 | Same as Object28_OnPlayerContact.
+ * @brief A1CC8 | Same as PopUpTrapSmall_OnPlayerContact.
  */
 void GladiatorPart_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 {

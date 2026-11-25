@@ -254,7 +254,7 @@ s32 EventSceneOpening_Update(struct EwramData_EntityData *entity)
     return ret;
 }
 
-/* EventScene01_Update. */
+/* EventSceneUnusedOpening_Update. */
 /* Declared with an int result as in object/objects_00_07.c: the original compares
  * the returned value without sign extension. */
 
@@ -265,7 +265,7 @@ s32 EventSceneOpening_Update(struct EwramData_EntityData *entity)
  * for TextWindow_Update and finish via Interaction_End(entity, 1).
  * States 0x80/0x81 hide BG0 and show it again on finishing.
  */
-s32 EventScene01_Update(struct EwramData_EntityData *entity)
+s32 EventSceneUnusedOpening_Update(struct EwramData_EntityData *entity)
 {
     switch (entity->state)
     {
@@ -311,7 +311,7 @@ void EventSceneOpening_Init(void)
  * @brief Init of event scene variant 1 (Object 0x20 spawnParam0 = 1,
  * sEventSceneCreateFuncs[1]).
  */
-void EventScene01_Init(void)
+void EventSceneUnusedOpening_Init(void)
 {
 }
 
@@ -322,7 +322,7 @@ void EventScene01_Init(void)
  * px to its right, set stateFlags bit 0, fade palettes and clear BG VRAM,
  * hide BG0.
  */
-void EventScene29_Init(struct EwramData_EntityData *entity)
+void EventSceneJuliusModeEnding_Init(struct EwramData_EntityData *entity)
 {
     struct EwramData *ewram;
     struct BgLayerState *bg;
@@ -356,7 +356,7 @@ void EventScene29_Init(struct EwramData_EntityData *entity)
  * VRAM and show BG0, count down 0xFF frames, fade to black, then save
  * (slot currentSaveSlot) and switch to game mode 0xA. Always returns 0.
  */
-s32 EventScene29_Update(struct EwramData_EntityData *entity)
+s32 EventSceneJuliusModeEnding_Update(struct EwramData_EntityData *entity)
 {
     s32 ret = 0;
 
@@ -872,7 +872,7 @@ s32 EventSceneJuliusKeepsPromiseDebris_Update(struct EwramData_EntityData *entit
  * @brief Init of event scene variant 2 (Object 0x20 spawnParam0 = 2,
  * sEventSceneCreateFuncs[2]).
  */
-void EventScene02_Init(struct EwramData_EntityData *entity)
+void EventSceneEmpty_Init(struct EwramData_EntityData *entity)
 {
 }
 
@@ -880,6 +880,6 @@ void EventScene02_Init(struct EwramData_EntityData *entity)
  * @brief Update of event scene variant 2 (sEventSceneUpdateFuncs[2]); returns the player
  * input mask.
  */
-void EventScene02_Update(struct EwramData_EntityData *entity)
+void EventSceneEmpty_Update(struct EwramData_EntityData *entity)
 {
 }

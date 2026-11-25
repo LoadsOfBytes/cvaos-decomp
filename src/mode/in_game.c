@@ -1223,11 +1223,11 @@ s32 Game_SetMenusEnabled(s32 enabled)
 }
 
 /**
- * @brief C5D4 | Handle unk_3 (empty) game mode
+ * @brief C5D4 | Empty game mode 3
  * 
  * @return s32 Game mode, -1 is no change, -2 is next game mode, else the specified game mode
  */
-s32 GameModeUnk3Update(void)
+s32 GameModeEmpty3Update(void)
 {
     return;
 }

@@ -1083,7 +1083,7 @@ s32 Legion_UpdateIntro(struct EwramData_EntityData *entity)
             POSE = 5;
         }
         if (entity->stage == 5 && (u8)CYCLE > 4) {
-            PaletteAnim_Start(sLegionObject25Palette, sLegionPaletteAnim0, (s8)entity->ext.legion.animPalette);
+            PaletteAnim_Start(sLegionWalkingCorpsePalette, sLegionPaletteAnim0, (s8)entity->ext.legion.animPalette);
             entity->stage++;
             entity->timer = 0;
         }
@@ -1124,7 +1124,7 @@ s32 Legion_UpdateIntro(struct EwramData_EntityData *entity)
         if ((u8)CYCLE != 0) {
             STAGE++;
             entity->timer = 0;
-            PaletteAnim_Start(sLegionObject25Palette, sLegionPaletteAnim1, (s8)entity->ext.legion.animPalette);
+            PaletteAnim_Start(sLegionWalkingCorpsePalette, sLegionPaletteAnim1, (s8)entity->ext.legion.animPalette);
         }
         break;
     case 8:
@@ -1172,8 +1172,8 @@ s32 Legion_LoadGraphics(struct EwramData_EntityData *entity)
     graphics = ObjGfx_LoadResource(sLegionGfx, 0);
     if (graphics < 0)
         return 0;
-    entity->ext.legion.animPalette = ObjPalette_FindOrLoadVariant(sLegionObject25Palette, 0);
-    entity->basePalette = entity->ext.legion.bodyPalette = ObjPalette_FindOrLoadVariant(sLegionObject25Palette, 1);
+    entity->ext.legion.animPalette = ObjPalette_FindOrLoadVariant(sLegionWalkingCorpsePalette, 0);
+    entity->basePalette = entity->ext.legion.bodyPalette = ObjPalette_FindOrLoadVariant(sLegionWalkingCorpsePalette, 1);
     data[0] = graphics;
     data[8] = (s8)entity->ext.legion.animPalette;
     data[9] = (s8)entity->ext.legion.bodyPalette;
@@ -2543,7 +2543,7 @@ void Legion_UpdatePreview(struct EwramData_EntityData *entity)
 {
     if (entity->subState == 0)
     {
-        PaletteAnim_Start(sLegionObject25Palette, sLegionPaletteAnim1, (s8)entity->ext.legion.animPalette);
+        PaletteAnim_Start(sLegionWalkingCorpsePalette, sLegionPaletteAnim1, (s8)entity->ext.legion.animPalette);
         entity->subState++;
     }
     entity->velX.whole += 0x200;
@@ -2552,10 +2552,10 @@ void Legion_UpdatePreview(struct EwramData_EntityData *entity)
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   Legion_DamagePlayerOnContact = Object28_OnPlayerContact */
+ *   Legion_DamagePlayerOnContact = PopUpTrapSmall_OnPlayerContact */
 
 /**
- * @brief A00AC | Same as Object28_OnPlayerContact.
+ * @brief A00AC | Same as PopUpTrapSmall_OnPlayerContact.
  */
 void Legion_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 {

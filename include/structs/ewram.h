@@ -267,7 +267,7 @@ struct EwramData_unk508_16 {
 }; 
 
 union EwramData_unk508 {
-    struct EwramData_EntityData *unk_508_entity; // EventScene03TargetOrb_OnContact effect target
+    struct EwramData_EntityData *unk_508_entity; // EventScenePrologueBattleTargetOrb_OnContact effect target
     s32 whole;
     struct EwramData_unk508_16 part16;
     struct EwramData_unk508_8 part8;
@@ -744,30 +744,30 @@ union EntityWork {
     struct SkillGrowScaleWork skillGrowScale;
     struct SkillCatoblepasWork skillCatoblepas;
     struct SwingingPlatformWork swingingPlatform;
-    struct Object16Work object16;
-    struct Object37Work object37;
-    struct Object37ChildWork object37Child;
+    struct ChaoticRealmVortexWork chaoticRealmVortex;
+    struct SwingDoorWork swingDoor;
+    struct SwingDoorChildWork swingDoorChild;
     struct RollerWork roller;
     struct RollerSwingWork rollerSwing;
-    struct Object31Work object31;
-    struct Object35Work object35;
-    struct Object35ChildWork object35Child;
+    struct JuliusArenaDebrisWork juliusArenaDebris;
+    struct FloorSwitchGateWork floorSwitchGate;
+    struct FloorSwitchGateChildWork floorSwitchGateChild;
     struct RotatingPlatformWork rotatingPlatform;
     struct FallingLeafWork fallingLeaf;
-    struct Object19Work object19;
-    struct Object15Work object15;
+    struct SpinningBladeWork spinningBlade;
+    struct ChaoticRealmPortalWork chaoticRealmPortal;
     struct BreakableBlockWork breakableBlock;
     struct BreakableBlockDustWork breakableBlockDust;
-    struct Object1BWork object1B;
-    struct Object25SpawnerWork object25Spawner;
-    struct Object25Work object25;
+    struct ConveyorSwitchWork conveyorSwitch;
+    struct LegionWalkingCorpseSpawnerWork legionWalkingCorpseSpawner;
+    struct LegionWalkingCorpseWork legionWalkingCorpse;
     struct ElevatorWork elevator;
     struct WarpRoomWork warpRoom;
-    struct Object26Work object26;
+    struct PopUpTrapWork popUpTrap;
     struct WarpGateWork warpGate;
     struct SaveWarpRoomWallWork saveWarpRoomWall;
-    struct Object22Work object22;
-    struct Object22PartWork object22Part;
+    struct InputChallengePlatformWork inputChallengePlatform;
+    struct InputChallengePlatformPartWork inputChallengePlatformPart;
     struct RoomEffectWork roomEffect;
     struct CrumblingWallWork crumblingWall;
     struct BossRushResultWork bossRushResult;
@@ -1133,7 +1133,7 @@ struct GameState {
     /* 0x00338 */ s16 savedPlayerX;
     /* 0x0033A */ s16 savedPlayerY;
     /* 0x0033C */ u32 gameFlags[2]; // start of the 256-bit flag array of GameFlag_Set/_Clear/_TestAndSet (continues into gameFlagsTail)
-    /* 0x00344 */ u32 gameFlagsTail[6]; // flag words 2..7, indexed directly by Object35Create
+    /* 0x00344 */ u32 gameFlagsTail[6]; // flag words 2..7, indexed directly by FloorSwitchGateCreate
     /* 0x0035C */ u8 pad_35C[0x360 - 0x35C];
     /* 0x00360 */ u32 collectedPickupFlags[1]; // room pickup bits; original one-element declaration retained
     /* 0x00364 */ u8 pad_364[0x378 - 0x364];
@@ -1753,9 +1753,9 @@ struct EwramData {
     /* 0x254CE */ u16 specialRoomSong;
     /* 0x254D0 */ struct DebugMenuWork debugMenuWork;
     /* 0x254E0 */ u8 pad_254E0[0x25550 - 0x254E0];
-    /* 0x25550 */ u8 debug4531State;
-    /* 0x25551 */ u8 debug4531SubStage;
-    /* 0x25552 */ u8 debug4531Flags;
+    /* 0x25550 */ u8 debugEventMenuState;
+    /* 0x25551 */ u8 debugEventMenuSubStage;
+    /* 0x25552 */ u8 debugEventMenuFlags;
     /* 0x25553 */ s8 pauseMenuPage; // highlighted row 0..6 of the list drawn by PauseMenu_DrawPageList
 }; /* size = 0x25554 */
 

@@ -824,7 +824,7 @@ void Skeleton_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   SkeletonProjectile_DamagePlayerOnContact = Object28_OnPlayerContact */
+ *   SkeletonProjectile_DamagePlayerOnContact = PopUpTrapSmall_OnPlayerContact */
 
 /**
  * @brief Apply the Skeleton projectile damage with effect type 0 and

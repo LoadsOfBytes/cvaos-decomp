@@ -7,14 +7,14 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-extern void Object15Create(struct EwramData_EntityData *entity);
-extern void Object15Update(struct EwramData_EntityData *entity);
-extern void Object16Update(struct EwramData_EntityData *entity);
-extern void Object16Create(struct EwramData_EntityData *entity);
+extern void ChaoticRealmPortalCreate(struct EwramData_EntityData *entity);
+extern void ChaoticRealmPortalUpdate(struct EwramData_EntityData *entity);
+extern void ChaoticRealmVortexUpdate(struct EwramData_EntityData *entity);
+extern void ChaoticRealmVortexCreate(struct EwramData_EntityData *entity);
 extern void ElevatorCreate(struct EwramData_EntityData *entity);
 extern void ElevatorUpdate(struct EwramData_EntityData *entity);
 extern void BreakableCoinContainerCreate(struct EwramData_EntityData *entity);
 extern void BreakableCoinContainerUpdate(struct EwramData_EntityData *entity);
-extern void Object19_OnPlayerContact(struct EwramData_EntityData *entity);
+extern void SpinningBlade_OnPlayerContact(struct EwramData_EntityData *entity);
 
 #endif /* OBJECTS_15_18_H */

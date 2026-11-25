@@ -323,8 +323,8 @@ sElevatorXs: @ 0x081185B0
 sElevatorYs: @ 0x081185B4
     .incbin "cvaos_us_baserom.gba", 0x1185B4, 0x14
 
-    .global sObject1BColors
-sObject1BColors: @ 0x081185C8
+    .global sConveyorSwitchColors
+sConveyorSwitchColors: @ 0x081185C8
     .incbin "cvaos_us_baserom.gba", 0x1185C8, 0x30
 
     .global sWarpLightPaletteSteps
@@ -339,24 +339,24 @@ sVerticalPlatformBoxes: @ 0x08118630
 sHorizontalPlatformBoxes: @ 0x08118640
     .incbin "cvaos_us_baserom.gba", 0x118640, 0x10
 
-    .global sObject2FXs
-sObject2FXs: @ 0x08118650
+    .global sJuliusArenaPropXs
+sJuliusArenaPropXs: @ 0x08118650
     .incbin "cvaos_us_baserom.gba", 0x118650, 0x6
 
-    .global sObject2FYs
-sObject2FYs: @ 0x08118656
+    .global sJuliusArenaPropYs
+sJuliusArenaPropYs: @ 0x08118656
     .incbin "cvaos_us_baserom.gba", 0x118656, 0x6
 
-    .global sObject31Xs
-sObject31Xs: @ 0x0811865C
+    .global sJuliusArenaDebrisXs
+sJuliusArenaDebrisXs: @ 0x0811865C
     .incbin "cvaos_us_baserom.gba", 0x11865C, 0x8
 
-    .global sObject31Ys
-sObject31Ys: @ 0x08118664
+    .global sJuliusArenaDebrisYs
+sJuliusArenaDebrisYs: @ 0x08118664
     .incbin "cvaos_us_baserom.gba", 0x118664, 0x8
 
-    .global sObject31Anims
-sObject31Anims: @ 0x0811866C
+    .global sJuliusArenaDebrisAnims
+sJuliusArenaDebrisAnims: @ 0x0811866C
     .incbin "cvaos_us_baserom.gba", 0x11866C, 0x8
 
     .global sUnk_08118674
@@ -379,12 +379,12 @@ sRotatingPlatformShapes: @ 0x081186A4
 sObjectTableGraphics: @ 0x081186DC
     .incbin "cvaos_us_baserom.gba", 0x1186DC, 0xD0
 
-    .global sEventScene03SpotsA
-sEventScene03SpotsA: @ 0x081187AC
+    .global sEventScenePrologueBattleSpotsA
+sEventScenePrologueBattleSpotsA: @ 0x081187AC
     .incbin "cvaos_us_baserom.gba", 0x1187AC, 0x28
 
-    .global sEventScene03SpotsB
-sEventScene03SpotsB: @ 0x081187D4
+    .global sEventScenePrologueBattleSpotsB
+sEventScenePrologueBattleSpotsB: @ 0x081187D4
     .incbin "cvaos_us_baserom.gba", 0x1187D4, 0x1188E4 - 0x1187D4
 
     .global sEventSceneSomaAwakensPeriods

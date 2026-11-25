@@ -303,10 +303,10 @@ void Mimic_UpdatePreview(struct EwramData_EntityData *entity)
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   Mimic_DamagePlayerOnContact = Object28_OnPlayerContact */
+ *   Mimic_DamagePlayerOnContact = PopUpTrapSmall_OnPlayerContact */
 
 /**
- * @brief 994B0 | Same as Object28_OnPlayerContact.
+ * @brief 994B0 | Same as PopUpTrapSmall_OnPlayerContact.
  */
 void Mimic_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 {

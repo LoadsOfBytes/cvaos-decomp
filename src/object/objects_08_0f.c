@@ -412,7 +412,7 @@ void BreakableBlockUpdate(struct EwramData_EntityData *entity)
 /* Per variant (see also this file): graphics set, palette, frame,
  * area offset / size, layer and mode. */
 
-/* Event flag param_1 of the bit array gameFlagsTail (as in Object35Create). */
+/* Event flag param_1 of the bit array gameFlagsTail (as in FloorSwitchGateCreate). */
 #define OBJECT_FLAG(ewram, flag) ((ewram)->gameState.gameFlagsTail[(flag) >> 5] & (1 << ((flag) & 0x1F)))
 
 /**

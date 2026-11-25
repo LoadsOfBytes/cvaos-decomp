@@ -26,36 +26,36 @@
 
 /* Target_IsInRect (engine/entity_common.c) takes u16 there; the callers here pass
  * sign-extended values. */
-u8 Object26_LoadGraphics(struct EwramData_EntityData *entity);
-void Object26_UpdateState(struct EwramData_EntityData *entity);
+u8 PopUpTrap_LoadGraphics(struct EwramData_EntityData *entity);
+void PopUpTrap_UpdateState(struct EwramData_EntityData *entity);
 
-u8 Object23_LoadGraphics(struct EwramData_EntityData *entity);
-u8 Object24_LoadGraphics(struct EwramData_EntityData *entity);
-void Object25_UpdateState(struct EwramData_EntityData *entity);
-u8 Object25_LoadGraphics(struct EwramData_EntityData *entity);
-u8 Object28_LoadGraphics(struct EwramData_EntityData *entity);
-void Object28_UpdateState(struct EwramData_EntityData *entity);
-void Object28_OnPlayerContact(struct EwramData_EntityData *entity);
-void Object27_UpdateState(struct EwramData_EntityData *entity);
-void Object27_OnPlayerContact(struct EwramData_EntityData *entity);
-u8 Object27_LoadGraphics(struct EwramData_EntityData *entity);
-u8 Object2B_LoadGraphics(struct EwramData_EntityData *entity);
-void Object2CLayer_Update(struct EwramData_EntityData *entity);
-void Object2C_SetupLayer(struct EwramData_EntityData *entity);
-u8 Object2C_LoadGraphics(struct EwramData_EntityData *entity);
-u8 Object2D_LoadGraphics(struct EwramData_EntityData *entity);
-u8 Object2E_LoadGraphics(struct EwramData_EntityData *entity);
-void Object2E_UpdateState(struct EwramData_EntityData *entity);
-void Object2EPiece_Update(struct EwramData_EntityData *entity);
-void Object2E_SpawnRisingParticle(struct EwramData_EntityData *entity, s32 x, s32 y);
-u8 Object2F_LoadGraphics(struct EwramData_EntityData *entity);
-void Object2F_UpdateState(struct EwramData_EntityData *entity);
+u8 ArenaAnimatedProp_LoadGraphics(struct EwramData_EntityData *entity);
+u8 FlickeringFlame_LoadGraphics(struct EwramData_EntityData *entity);
+void LegionWalkingCorpse_UpdateState(struct EwramData_EntityData *entity);
+u8 LegionWalkingCorpse_LoadGraphics(struct EwramData_EntityData *entity);
+u8 PopUpTrapSmall_LoadGraphics(struct EwramData_EntityData *entity);
+void PopUpTrapSmall_UpdateState(struct EwramData_EntityData *entity);
+void PopUpTrapSmall_OnPlayerContact(struct EwramData_EntityData *entity);
+void PopUpTrapLarge_UpdateState(struct EwramData_EntityData *entity);
+void PopUpTrapLarge_OnPlayerContact(struct EwramData_EntityData *entity);
+u8 PopUpTrapLarge_LoadGraphics(struct EwramData_EntityData *entity);
+u8 GardenAnimatedProp_LoadGraphics(struct EwramData_EntityData *entity);
+void DriftingCloudsLayer_Update(struct EwramData_EntityData *entity);
+void DriftingClouds_SetupLayer(struct EwramData_EntityData *entity);
+u8 DriftingClouds_LoadGraphics(struct EwramData_EntityData *entity);
+u8 ReactiveProp_LoadGraphics(struct EwramData_EntityData *entity);
+u8 ProximityBurst_LoadGraphics(struct EwramData_EntityData *entity);
+void ProximityBurst_UpdateState(struct EwramData_EntityData *entity);
+void ProximityBurstPiece_Update(struct EwramData_EntityData *entity);
+void ProximityBurst_SpawnRisingParticle(struct EwramData_EntityData *entity, s32 x, s32 y);
+u8 JuliusArenaProp_LoadGraphics(struct EwramData_EntityData *entity);
+void JuliusArenaProp_UpdateState(struct EwramData_EntityData *entity);
 void FallingLeaf_Update(struct EwramData_EntityData *entity);
 u8 LeafSpawner_LoadGraphics(struct EwramData_EntityData *entity);
 void LeafSpawner_UpdateState(struct EwramData_EntityData *entity);
-u8 Object31_LoadGraphics(struct EwramData_EntityData *entity);
-void Object31_UpdateState(struct EwramData_EntityData *entity);
-void Object31_SpawnDust(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY);
+u8 JuliusArenaDebris_LoadGraphics(struct EwramData_EntityData *entity);
+void JuliusArenaDebris_UpdateState(struct EwramData_EntityData *entity);
+void JuliusArenaDebris_SpawnDust(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY);
 u8 CrumblingPlatform_LoadGraphics(struct EwramData_EntityData *entity);
 void CrumblingPlatform_UpdateState(struct EwramData_EntityData *entity);
 void CrumblingPlatform_SpawnDebris(struct EwramData_EntityData *entity, s32 frame, s32 index);
@@ -76,7 +76,7 @@ void PendulumPlatformPart_Draw(struct EwramData_EntityData *entity);
 /**
  * @brief 577FC | Object 0x23 update: animate.
  */
-void Object23Update(struct EwramData_EntityData *entity)
+void ArenaAnimatedPropUpdate(struct EwramData_EntityData *entity)
 {
     u32 collision[4];
 
@@ -87,9 +87,9 @@ void Object23Update(struct EwramData_EntityData *entity)
  * @brief 5780C | Object 0x23 create: load the graphics (delete the object
  * when that fails), set animation 1 and layer 0x14.
  */
-void Object23Create(struct EwramData_EntityData *entity)
+void ArenaAnimatedPropCreate(struct EwramData_EntityData *entity)
 {
-    if (!Object23_LoadGraphics(entity))
+    if (!ArenaAnimatedProp_LoadGraphics(entity))
     {
         EntityDelete(entity);
         return;
@@ -104,14 +104,14 @@ void Object23Create(struct EwramData_EntityData *entity)
 /**
  * @brief 57858 | Load the graphics of object 0x23; 0 when no slot is free.
  */
-u8 Object23_LoadGraphics(struct EwramData_EntityData *entity)
+u8 ArenaAnimatedProp_LoadGraphics(struct EwramData_EntityData *entity)
 {
-    s32 gfx = ObjGfx_LoadResource(sCrusherObject23Gfx, 0);
+    s32 gfx = ObjGfx_LoadResource(sCrusherArenaPropGfx, 0);
 
     if (gfx < 0)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 3);
-    Sprite_Attach(entity, sCrusherObject23SpriteSheet, gfx, entity->basePalette);
+    Sprite_Attach(entity, sCrusherArenaPropSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
@@ -121,9 +121,9 @@ u8 Object23_LoadGraphics(struct EwramData_EntityData *entity)
  * when that fails), set animation 2 with random animTimer (0..15) and
  * animStep (0..2), layer 0x13.
  */
-void Object24Create(struct EwramData_EntityData *entity)
+void FlickeringFlameCreate(struct EwramData_EntityData *entity)
 {
-    if (!Object24_LoadGraphics(entity))
+    if (!FlickeringFlame_LoadGraphics(entity))
     {
         EntityDelete(entity);
         return;
@@ -141,7 +141,7 @@ void Object24Create(struct EwramData_EntityData *entity)
  * @brief 5790C | Object 0x24 update: animate on 7 of 8 frames at random and
  * toggle 0x53C bit 5 every frame (flicker).
  */
-void Object24Update(struct EwramData_EntityData *entity)
+void FlickeringFlameUpdate(struct EwramData_EntityData *entity)
 {
     u32 collision[4];
 
@@ -156,32 +156,32 @@ void Object24Update(struct EwramData_EntityData *entity)
 /**
  * @brief 57958 | Load the graphics of object 0x24; 0 when no slot is free.
  */
-u8 Object24_LoadGraphics(struct EwramData_EntityData *entity)
+u8 FlickeringFlame_LoadGraphics(struct EwramData_EntityData *entity)
 {
-    s32 gfx = ObjGfx_LoadResource(sObject24Gfx, 0);
+    s32 gfx = ObjGfx_LoadResource(sFlickeringFlameGfx, 0);
 
     if (gfx < 0)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 7);
-    Sprite_Attach(entity, sObject24SpriteSheet, gfx, entity->basePalette);
+    Sprite_Attach(entity, sFlickeringFlameSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
-/* Object 0x25 (Object25Update / Object25Create). */
+/* Object 0x25 (LegionWalkingCorpseUpdate / LegionWalkingCorpseCreate). */
 
 /* Per variant (spawnParam0): spawn point list and its length. */
 
 /**
- * @brief 579A4 | Object 0x25 update: state 0 -> Object25_UpdateState; state 1 is a
+ * @brief 579A4 | Object 0x25 update: state 0 -> LegionWalkingCorpse_UpdateState; state 1 is a
  * spawner that every 0x78 frames (50 %) creates up to 10 copies of itself
  * at a random point of its variant's list (screen relative to BG 1).
  */
-void Object25Update(struct EwramData_EntityData *entity)
+void LegionWalkingCorpseUpdate(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
     struct EwramData_EntityData *child;
-    const struct Object25Point *points;
+    const struct LegionWalkingCorpsePoint *points;
     u32 randomValue;
     u32 pointIndex;
     u32 collision[4];
@@ -189,7 +189,7 @@ void Object25Update(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
         case 0:
-            Object25_UpdateState(entity);
+            LegionWalkingCorpse_UpdateState(entity);
             break;
         case 1:
             if (entity->timer++ < 0x78)
@@ -198,14 +198,14 @@ void Object25Update(struct EwramData_EntityData *entity)
             randomValue = RandomNumberGenerator() % 2;
             if (randomValue != 0)
                 break;
-            if ((s32)entity->ext.object25Spawner.childCount > 9)
+            if ((s32)entity->ext.legionWalkingCorpseSpawner.childCount > 9)
                 break;
             child = EntityCreateInRange(0x1B, 0x48, EntityUpdateNothing);
             if (child == NULL)
                 break;
-            entity->ext.object25Spawner.childCount++;
-            points = sObject25Points[entity->spawnParam0];
-            pointIndex = sObject25PointIndices[entity->spawnParam0];
+            entity->ext.legionWalkingCorpseSpawner.childCount++;
+            points = sLegionWalkingCorpsePoints[entity->spawnParam0];
+            pointIndex = sLegionWalkingCorpsePointIndices[entity->spawnParam0];
             pointIndex = RandomNumberGenerator() % pointIndex;
             child->posX.whole = points[pointIndex].x - bg->xPos.whole;
             child->posY.whole = points[pointIndex].y - bg->yPos.whole;
@@ -216,8 +216,8 @@ void Object25Update(struct EwramData_EntityData *entity)
             child->spawnParam0 = entity->spawnParam0;
             child->drawFunc = Sprite_DrawEntity;
             child->updateFunc = entity->updateFunc;
-            Object25Create(child);
-            child->ext.object25.spawner = entity;
+            LegionWalkingCorpseCreate(child);
+            child->ext.legionWalkingCorpse.spawner = entity;
             break;
     }
 }
@@ -227,7 +227,7 @@ void Object25Update(struct EwramData_EntityData *entity)
  * spawner (state 1); otherwise load graphics and set up; spawnParam1 == 2
  * starts moving at once. Deleted when bossRushMode == 0 and bossEventFlags bit 5.
  */
-void Object25Create(struct EwramData_EntityData *entity)
+void LegionWalkingCorpseCreate(struct EwramData_EntityData *entity)
 {
     if (gEwramData->gameState.bossRushMode == 0 && (gEwramData->gameState.bossEventFlags & 0x20))
     {
@@ -244,7 +244,7 @@ void Object25Create(struct EwramData_EntityData *entity)
         Entity_SnapToGround(entity);
         return;
     }
-    if (!Object25_LoadGraphics(entity))
+    if (!LegionWalkingCorpse_LoadGraphics(entity))
     {
         EntityDelete(entity);
         return;
@@ -252,7 +252,7 @@ void Object25Create(struct EwramData_EntityData *entity)
     entity->flipX = 0;
     entity->hit.flags |= 4;
     entity->hit.flags |= 2;
-    Anim_Start(entity, (struct AnimScript *)sObject25AnimScript0, 0, 0);
+    Anim_Start(entity, (struct AnimScript *)sLegionWalkingCorpseAnimScript0, 0, 0);
     Anim_Update(entity);
     entity->enemyFlags |= 1;
     entity->attack = 0x28;
@@ -263,7 +263,7 @@ void Object25Create(struct EwramData_EntityData *entity)
     if (entity->spawnParam1 == 2)
     {
         entity->subState = 1;
-        Anim_Start(entity, (struct AnimScript *)sObject25AnimScript1, 0, 1);
+        Anim_Start(entity, (struct AnimScript *)sLegionWalkingCorpseAnimScript1, 0, 1);
         Anim_Update(entity);
         entity->velX.whole = 0x4000;
         entity->velY.whole = 0x40000;
@@ -281,10 +281,10 @@ void Object25Create(struct EwramData_EntityData *entity)
  * substate 10 blinks with Effect_SpawnRandom effects and finally ends the object,
  * decrementing the spawner's counter (unk_500 -> unk_4FC).
  */
-void Object25_UpdateState(struct EwramData_EntityData *entity)
+void LegionWalkingCorpse_UpdateState(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
-    struct EwramData_EntityData *spawner = entity->ext.object25.spawner;
+    struct EwramData_EntityData *spawner = entity->ext.legionWalkingCorpse.spawner;
     struct HitResult result;
 
     switch (entity->subState)
@@ -293,7 +293,7 @@ void Object25_UpdateState(struct EwramData_EntityData *entity)
             if (!entity->animDone)
                 break;
             entity->subState = 1;
-            Anim_Start(entity, (struct AnimScript *)sObject25AnimScript1, 0, 1);
+            Anim_Start(entity, (struct AnimScript *)sLegionWalkingCorpseAnimScript1, 0, 1);
             entity->velX.whole = 0x4000;
             entity->velY.whole = 0x40000;
             entity->spriteLayer--;
@@ -340,8 +340,8 @@ void Object25_UpdateState(struct EwramData_EntityData *entity)
             if ((s8)--entity->timer > 0)
                 break;
             entity->deleteRequested = 1;
-            if (spawner != NULL && spawner->updateFunc != NULL && spawner->ext.object25Spawner.childCount != 0)
-                spawner->ext.object25Spawner.childCount--;
+            if (spawner != NULL && spawner->updateFunc != NULL && spawner->ext.legionWalkingCorpseSpawner.childCount != 0)
+                spawner->ext.legionWalkingCorpseSpawner.childCount--;
             return;
     }
     Anim_Update(entity);
@@ -351,9 +351,9 @@ void Object25_UpdateState(struct EwramData_EntityData *entity)
 
 /**
  * @brief 57D38 | Object 0x25 hit: apply the damage of hit to the HP in
- * hp; at 0 switch to substate 10 (dying) with animation sObject25AnimScript2.
+ * hp; at 0 switch to substate 10 (dying) with animation sLegionWalkingCorpseAnimScript2.
  */
-void Object25_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
+void LegionWalkingCorpse_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
 {
     s32 damage = Hit_ResolveDamage(entity, (struct EwramData_EntityData *)attacker, hit, Player_CalculateAttackPower(hit[2]));
 
@@ -369,7 +369,7 @@ void Object25_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
         entity->timer = 0x28;
         entity->hitFlashTimer = 0;
         entity->subState = 10;
-        Anim_Start(entity, (struct AnimScript *)sObject25AnimScript2, 2, 1);
+        Anim_Start(entity, (struct AnimScript *)sLegionWalkingCorpseAnimScript2, 2, 1);
     }
 }
 
@@ -377,14 +377,14 @@ void Object25_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hit)
  * @brief 57DB8 | Load the graphics of object 0x25; 0 when no slot is free.
  * The same code exists 28 times in the ROM with other data.
  */
-u8 Object25_LoadGraphics(struct EwramData_EntityData *entity)
+u8 LegionWalkingCorpse_LoadGraphics(struct EwramData_EntityData *entity)
 {
-    s32 gfx = ObjGfx_LoadResource(sObject25Gfx, 0);
+    s32 gfx = ObjGfx_LoadResource(sLegionWalkingCorpseGfx, 0);
 
     if (gfx < 0)
         return 0;
-    entity->basePalette = ObjPalette_FindOrLoadVariant(sLegionObject25Palette, 0);
-    Sprite_Attach(entity, sObject25SpriteSheet, gfx, entity->basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sLegionWalkingCorpsePalette, 0);
+    Sprite_Attach(entity, sLegionWalkingCorpseSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
@@ -394,11 +394,11 @@ u8 Object25_LoadGraphics(struct EwramData_EntityData *entity)
  * when that fails), set up and spawn objects 0x28 (-0x15, +0x44) and 0x27
  * (+0x12, +0x2C) linked back through their unk_4F8.
  */
-void Object26Create(struct EwramData_EntityData *entity)
+void PopUpTrapCreate(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *child;
 
-    if (!Object26_LoadGraphics(entity))
+    if (!PopUpTrap_LoadGraphics(entity))
     {
         EntityDelete(entity);
         return;
@@ -411,23 +411,23 @@ void Object26Create(struct EwramData_EntityData *entity)
     entity->flipX = 0;
     entity->scrollWithBg = 1;
     entity->hidden = 1;
-    entity->ext.object26.clock28 = 0x5A;
-    entity->ext.object26.clock27 = 0x1E;
+    entity->ext.popUpTrap.clock28 = 0x5A;
+    entity->ext.popUpTrap.clock27 = 0x1E;
     entity->state = 0;
-    child = EntityCreateInRange(0x1B, 0x48, Object28Update);
+    child = EntityCreateInRange(0x1B, 0x48, PopUpTrapSmallUpdate);
     if (child != NULL)
     {
         child->posX.part16.integer = entity->posX.part16.integer - 0x15;
         child->posY.part16.integer = entity->posY.part16.integer + 0x44;
-        Object28Create(child);
+        PopUpTrapSmallCreate(child);
         ENTITY_OWNER(child) = entity;
     }
-    child = EntityCreateInRange(0x1B, 0x48, Object27Update);
+    child = EntityCreateInRange(0x1B, 0x48, PopUpTrapLargeUpdate);
     if (child != NULL)
     {
         child->posX.part16.integer = entity->posX.part16.integer + 0x12;
         child->posY.part16.integer = entity->posY.part16.integer + 0x2C;
-        Object27Create(child);
+        PopUpTrapLargeCreate(child);
         ENTITY_OWNER(child) = entity;
     }
 }
@@ -435,26 +435,26 @@ void Object26Create(struct EwramData_EntityData *entity)
 /**
  * @brief 57EE0 | Object 0x26 update.
  */
-void Object26Update(struct EwramData_EntityData *entity)
+void PopUpTrapUpdate(struct EwramData_EntityData *entity)
 {
     u32 collision[4];
 
     if (entity->state == 0)
-        Object26_UpdateState(entity);
+        PopUpTrap_UpdateState(entity);
     Anim_Update(entity);
 }
 
 /**
  * @brief 57F00 | Load the graphics of object 0x26; 0 when no slot is free.
  */
-u8 Object26_LoadGraphics(struct EwramData_EntityData *entity)
+u8 PopUpTrap_LoadGraphics(struct EwramData_EntityData *entity)
 {
-    s32 gfx = ObjGfx_LoadResource(sObject13FamilyGfx, 0);
+    s32 gfx = ObjGfx_LoadResource(sArenaTrapGfx, 0);
 
     if (gfx < 0)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 2);
-    Sprite_Attach(entity, sObject13FamilySpriteSheet, gfx, entity->basePalette);
+    Sprite_Attach(entity, sArenaTrapSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
@@ -464,15 +464,15 @@ u8 Object26_LoadGraphics(struct EwramData_EntityData *entity)
  * (x-0x46, y-0x64, 0x8C x 0xC8) count up unk_4FC / unk_4FE; 0x53C bit 5
  * is set either way.
  */
-void Object26_UpdateState(struct EwramData_EntityData *entity)
+void PopUpTrap_UpdateState(struct EwramData_EntityData *entity)
 {
     if (entity->subState != 0)
         return;
     if (Target_IsInRect((s16)(entity->posX.part16.integer - 0x46), (s16)(entity->posY.part16.integer - 0x64), 0x8C, 0xC8))
     {
         entity->hidden = 1;
-        entity->ext.object26.clock27++;
-        entity->ext.object26.clock28++;
+        entity->ext.popUpTrap.clock27++;
+        entity->ext.popUpTrap.clock28++;
     }
     else
     {
@@ -482,21 +482,21 @@ void Object26_UpdateState(struct EwramData_EntityData *entity)
 
 /**
  * @brief 57FA8 | Object 0x28 create: load the graphics, register the hit
- * box (Object28_OnPlayerContact on contact), damage from the player's stats, allocate
+ * box (PopUpTrapSmall_OnPlayerContact on contact), damage from the player's stats, allocate
  * an affine slot (delete the object when anything fails).
  */
-void Object28Create(struct EwramData_EntityData *entity)
+void PopUpTrapSmallCreate(struct EwramData_EntityData *entity)
 {
     struct EwramData **ewramRef = &gEwramData;
     u16 affineIndex;
     u16 attack;
 
-    if (!Object28_LoadGraphics(entity))
+    if (!PopUpTrapSmall_LoadGraphics(entity))
     {
         EntityDelete(entity);
         return;
     }
-    Hit_Enable(entity, 8, Object28_OnPlayerContact, 0);
+    Hit_Enable(entity, 8, PopUpTrapSmall_OnPlayerContact, 0);
     entity->hit.flags |= 4;
     entity->hit.flags |= 2;
     Anim_StartIndexed(entity, 4, 0, 1);
@@ -527,7 +527,7 @@ void Object28Create(struct EwramData_EntityData *entity)
  * 0xC000 to 0x10000, stay with an active hit box for 30 frames, shrink back
  * and hide again.
  */
-void Object28_UpdateState(struct EwramData_EntityData *entity)
+void PopUpTrapSmall_UpdateState(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *controller = ENTITY_OWNER(entity);
     s32 zero = 0;
@@ -536,9 +536,9 @@ void Object28_UpdateState(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
         case 0:
-            if (controller->ext.object26.clock28 < 0x78)
+            if (controller->ext.popUpTrap.clock28 < 0x78)
                 break;
-            controller->ext.object26.clock28 = zero;
+            controller->ext.popUpTrap.clock28 = zero;
             entity->subState++;
             entity->hidden = 0;
             entity->velX.whole = 0xC000;
@@ -582,27 +582,27 @@ void Object28_UpdateState(struct EwramData_EntityData *entity)
 /**
  * @brief 581B4 | Object 0x28 update.
  */
-void Object28Update(struct EwramData_EntityData *entity)
+void PopUpTrapSmallUpdate(struct EwramData_EntityData *entity)
 {
     struct HitResult result;
 
     if (entity->state == 0)
-        Object28_UpdateState(entity);
+        PopUpTrapSmall_UpdateState(entity);
     Anim_Update(entity);
     Hit_CheckWithPlayer(&result, entity);
 }
 
 /**
- * @brief 581DC | Same as Object26_LoadGraphics.
+ * @brief 581DC | Same as PopUpTrap_LoadGraphics.
  */
-u8 Object28_LoadGraphics(struct EwramData_EntityData *entity)
+u8 PopUpTrapSmall_LoadGraphics(struct EwramData_EntityData *entity)
 {
-    s32 gfx = ObjGfx_LoadResource(sObject13FamilyGfx, 0);
+    s32 gfx = ObjGfx_LoadResource(sArenaTrapGfx, 0);
 
     if (gfx < 0)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 2);
-    Sprite_Attach(entity, sObject13FamilySpriteSheet, gfx, entity->basePalette);
+    Sprite_Attach(entity, sArenaTrapSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
@@ -611,7 +611,7 @@ u8 Object28_LoadGraphics(struct EwramData_EntityData *entity)
  * @brief 58228 | Contact callback: Player_ApplyContactDamage with (attack, 0, 0, 1) at
  * the object position.
  */
-void Object28_OnPlayerContact(struct EwramData_EntityData *entity)
+void PopUpTrapSmall_OnPlayerContact(struct EwramData_EntityData *entity)
 {
     struct PlayerContactDamage contactDamage;
 
@@ -625,20 +625,20 @@ void Object28_OnPlayerContact(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief 58258 | Object 0x27 create: same as Object28Create with animation 2.
+ * @brief 58258 | Object 0x27 create: same as PopUpTrapSmallCreate with animation 2.
  */
-void Object27Create(struct EwramData_EntityData *entity)
+void PopUpTrapLargeCreate(struct EwramData_EntityData *entity)
 {
     struct EwramData **ewramRef = &gEwramData;
     u16 affineIndex;
     u16 attack;
 
-    if (!Object27_LoadGraphics(entity))
+    if (!PopUpTrapLarge_LoadGraphics(entity))
     {
         EntityDelete(entity);
         return;
     }
-    Hit_Enable(entity, 8, Object27_OnPlayerContact, 0);
+    Hit_Enable(entity, 8, PopUpTrapLarge_OnPlayerContact, 0);
     entity->hit.flags |= 4;
     entity->hit.flags |= 2;
     Anim_StartIndexed(entity, 2, 0, 1);
@@ -664,10 +664,10 @@ void Object27Create(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief 58344 | Object 0x27, state 0: same as Object28_UpdateState with the parent
+ * @brief 58344 | Object 0x27, state 0: same as PopUpTrapSmall_UpdateState with the parent
  * counter unk_4FC and a bigger hit box.
  */
-void Object27_UpdateState(struct EwramData_EntityData *entity)
+void PopUpTrapLarge_UpdateState(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *controller = ENTITY_OWNER(entity);
     s32 zero = 0;
@@ -676,9 +676,9 @@ void Object27_UpdateState(struct EwramData_EntityData *entity)
     switch (entity->subState)
     {
         case 0:
-            if (controller->ext.object26.clock27 < 0x78)
+            if (controller->ext.popUpTrap.clock27 < 0x78)
                 break;
-            controller->ext.object26.clock27 = zero;
+            controller->ext.popUpTrap.clock27 = zero;
             entity->subState++;
             entity->hidden = 0;
             entity->velX.whole = 0xC000;
@@ -722,35 +722,35 @@ void Object27_UpdateState(struct EwramData_EntityData *entity)
 /**
  * @brief 58464 | Object 0x27 update.
  */
-void Object27Update(struct EwramData_EntityData *entity)
+void PopUpTrapLargeUpdate(struct EwramData_EntityData *entity)
 {
     struct HitResult result;
 
     if (entity->state == 0)
-        Object27_UpdateState(entity);
+        PopUpTrapLarge_UpdateState(entity);
     Anim_Update(entity);
     Hit_CheckWithPlayer(&result, entity);
 }
 
 /**
- * @brief 5848C | Same as Object26_LoadGraphics.
+ * @brief 5848C | Same as PopUpTrap_LoadGraphics.
  */
-u8 Object27_LoadGraphics(struct EwramData_EntityData *entity)
+u8 PopUpTrapLarge_LoadGraphics(struct EwramData_EntityData *entity)
 {
-    s32 gfx = ObjGfx_LoadResource(sObject13FamilyGfx, 0);
+    s32 gfx = ObjGfx_LoadResource(sArenaTrapGfx, 0);
 
     if (gfx < 0)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 2);
-    Sprite_Attach(entity, sObject13FamilySpriteSheet, gfx, entity->basePalette);
+    Sprite_Attach(entity, sArenaTrapSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
 /**
- * @brief 584D8 | Same as Object28_OnPlayerContact.
+ * @brief 584D8 | Same as PopUpTrapSmall_OnPlayerContact.
  */
-void Object27_OnPlayerContact(struct EwramData_EntityData *entity)
+void PopUpTrapLarge_OnPlayerContact(struct EwramData_EntityData *entity)
 {
     struct PlayerContactDamage contactDamage;
 
@@ -769,9 +769,9 @@ void Object27_OnPlayerContact(struct EwramData_EntityData *entity)
  * @brief 58508 | Object 0x2B create: load the graphics (delete the object
  * when that fails), animation 1, layer 0x12.
  */
-void Object2BCreate(struct EwramData_EntityData *entity)
+void GardenAnimatedPropCreate(struct EwramData_EntityData *entity)
 {
-    if (!Object2B_LoadGraphics(entity))
+    if (!GardenAnimatedProp_LoadGraphics(entity))
     {
         EntityDelete(entity);
         return;
@@ -785,7 +785,7 @@ void Object2BCreate(struct EwramData_EntityData *entity)
 /**
  * @brief 58544 | Object 0x2B update: animate.
  */
-void Object2BUpdate(struct EwramData_EntityData *entity)
+void GardenAnimatedPropUpdate(struct EwramData_EntityData *entity)
 {
     u32 collision[4];
 
@@ -794,26 +794,26 @@ void Object2BUpdate(struct EwramData_EntityData *entity)
 
 /**
  * @brief 58554 | Load the graphics of object 0x2B (with palette data
- * sObject2BPaletteAnim); 0 when no slot is free.
+ * sGardenAnimatedPropPaletteAnim); 0 when no slot is free.
  */
-u8 Object2B_LoadGraphics(struct EwramData_EntityData *entity)
+u8 GardenAnimatedProp_LoadGraphics(struct EwramData_EntityData *entity)
 {
-    s32 gfx = ObjGfx_LoadResource(sObject2BGfx, 0);
+    s32 gfx = ObjGfx_LoadResource(sGardenAnimatedPropGfx, 0);
 
     if (gfx < 0)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_0820A1C4, 1);
-    PaletteAnim_Start(sUnk_0820A1C4, sObject2BPaletteAnim, entity->basePalette);
-    Sprite_Attach(entity, sObject2BSpriteSheet, gfx, entity->basePalette);
+    PaletteAnim_Start(sUnk_0820A1C4, sGardenAnimatedPropPaletteAnim, entity->basePalette);
+    Sprite_Attach(entity, sGardenAnimatedPropSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
 /**
- * @brief 585B0 | Object 0x2C create: spawn four Object2CLayer_Update layers at a
+ * @brief 585B0 | Object 0x2C create: spawn four DriftingCloudsLayer_Update layers at a
  * random x, y 0x1E/0x3E/0x56/0x66, moving right with speeds 0x4000..0x1000.
  */
-void Object2CCreate(struct EwramData_EntityData *entity)
+void DriftingCloudsCreate(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *child;
     s32 i;
@@ -821,13 +821,13 @@ void Object2CCreate(struct EwramData_EntityData *entity)
 
     for (i = 0, zero = 0; i <= 3; i++)
     {
-        child = EntityCreateInRange(0x49, 0xCF, Object2CLayer_Update);
+        child = EntityCreateInRange(0x49, 0xCF, DriftingCloudsLayer_Update);
         if (child == NULL)
             continue;
         child->spawnIndex = zero;
         child->enemyId = entity->enemyId;
         child->drawFunc = Sprite_DrawEntity;
-        Object2C_SetupLayer(child);
+        DriftingClouds_SetupLayer(child);
         child->posX.whole = RandomNumberGenerator() & 0xFFFFFF;
         switch (i)
         {
@@ -858,7 +858,7 @@ void Object2CCreate(struct EwramData_EntityData *entity)
 /**
  * @brief 58664 | Object 0x2C update: nothing.
  */
-void Object2CUpdate(struct EwramData_EntityData *entity)
+void DriftingCloudsUpdate(struct EwramData_EntityData *entity)
 {
     u32 collision[4];
 }
@@ -867,7 +867,7 @@ void Object2CUpdate(struct EwramData_EntityData *entity)
  * @brief 5866C | Object 0x2C layer: move right and wrap to x -0x3C after
  * leaving the screen.
  */
-void Object2CLayer_Update(struct EwramData_EntityData *entity)
+void DriftingCloudsLayer_Update(struct EwramData_EntityData *entity)
 {
     if (entity->subState == 0)
     {
@@ -881,9 +881,9 @@ void Object2CLayer_Update(struct EwramData_EntityData *entity)
  * @brief 5869C | Set up an object 0x2C layer: load the graphics (delete it
  * when that fails), layer 0x1D.
  */
-void Object2C_SetupLayer(struct EwramData_EntityData *entity)
+void DriftingClouds_SetupLayer(struct EwramData_EntityData *entity)
 {
-    if (!Object2C_LoadGraphics(entity))
+    if (!DriftingClouds_LoadGraphics(entity))
     {
         EntityDelete(entity);
         return;
@@ -898,14 +898,14 @@ void Object2C_SetupLayer(struct EwramData_EntityData *entity)
 /**
  * @brief 586E0 | Load the graphics of object 0x2C; 0 when no slot is free.
  */
-u8 Object2C_LoadGraphics(struct EwramData_EntityData *entity)
+u8 DriftingClouds_LoadGraphics(struct EwramData_EntityData *entity)
 {
-    s32 gfx = ObjGfx_LoadResource(sObject2CGfx, 0);
+    s32 gfx = ObjGfx_LoadResource(sDriftingCloudsGfx, 0);
 
     if (gfx < 0)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_0820A1C4, 0);
-    Sprite_Attach(entity, sObject2CSpriteSheet, gfx, entity->basePalette);
+    Sprite_Attach(entity, sDriftingCloudsSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
@@ -923,7 +923,7 @@ u8 Object2C_LoadGraphics(struct EwramData_EntityData *entity)
  * 2 -> 4, 1 -> 3, and back to 10 when the player leaves. Hidden while
  * outside the screen.
  */
-void Object2D_UpdateState(struct EwramData_EntityData *entity)
+void ReactiveProp_UpdateState(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *player = PLAYER_ENTITY;
     s32 dx = player->posX.whole - entity->posX.whole;
@@ -989,9 +989,9 @@ void Object2D_UpdateState(struct EwramData_EntityData *entity)
  * @brief 588EC | Object 0x2D create: load the graphics (delete the object
  * when that fails), animation 2, start in substate 10.
  */
-void Object2DCreate(struct EwramData_EntityData *entity)
+void ReactivePropCreate(struct EwramData_EntityData *entity)
 {
-    if (!Object2D_LoadGraphics(entity))
+    if (!ReactiveProp_LoadGraphics(entity))
     {
         EntityDelete(entity);
         return;
@@ -1008,38 +1008,38 @@ void Object2DCreate(struct EwramData_EntityData *entity)
 /**
  * @brief 58938 | Object 0x2D update.
  */
-void Object2DUpdate(struct EwramData_EntityData *entity)
+void ReactivePropUpdate(struct EwramData_EntityData *entity)
 {
     u32 collision[4];
 
     if (entity->state == 0)
-        Object2D_UpdateState(entity);
+        ReactiveProp_UpdateState(entity);
     Anim_Update(entity);
 }
 
 /**
  * @brief 58958 | Load the graphics of object 0x2D; 0 when no slot is free.
  */
-u8 Object2D_LoadGraphics(struct EwramData_EntityData *entity)
+u8 ReactiveProp_LoadGraphics(struct EwramData_EntityData *entity)
 {
-    s32 gfx = ObjGfx_LoadResource(sObject2DGfx, 0);
+    s32 gfx = ObjGfx_LoadResource(sReactivePropGfx, 0);
 
     if (gfx < 0)
         return 0;
-    entity->basePalette = ObjPalette_FindOrLoadVariant(sObject2DObject2EPalette, 2);
-    Sprite_Attach(entity, sObject2DSpriteSheet, gfx, entity->basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sTopFloorPropPalette, 2);
+    Sprite_Attach(entity, sReactivePropSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
 
 /**
- * @brief 589A4 | Spawn a Object2EPiece_Update piece of object 0x2E at offset
- * (offsetX, offsetY) with random frame and facing, plus a Object2E_SpawnRisingParticle
+ * @brief 589A4 | Spawn a ProximityBurstPiece_Update piece of object 0x2E at offset
+ * (offsetX, offsetY) with random frame and facing, plus a ProximityBurst_SpawnRisingParticle
  * effect 8 px below it.
  */
-void Object2E_SpawnPiece(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY)
+void ProximityBurst_SpawnPiece(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY)
 {
-    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Object2EPiece_Update);
+    struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, ProximityBurstPiece_Update);
     s32 gfx;
 
     if (child == NULL)
@@ -1047,9 +1047,9 @@ void Object2E_SpawnPiece(struct EwramData_EntityData *entity, s32 offsetX, s32 o
     child->posX.whole = entity->posX.whole + offsetX;
     child->posY.whole = entity->posY.whole + offsetY;
     child->spriteLayer = entity->spriteLayer;
-    gfx = ObjGfx_Find(sObject2EGfx);
+    gfx = ObjGfx_Find(sProximityBurstGfx);
     child->basePalette = entity->basePalette;
-    Sprite_Attach(child, sObject2ESpriteSheet, gfx, child->basePalette);
+    Sprite_Attach(child, sProximityBurstSpriteSheet, gfx, child->basePalette);
     Anim_StartIndexed(child, 0, 0, 1);
     Anim_Update(child);
     child->animTimer = RandomNumberGenerator() % 8;
@@ -1058,16 +1058,16 @@ void Object2E_SpawnPiece(struct EwramData_EntityData *entity, s32 offsetX, s32 o
     child->flipX = RandomNumberGenerator() % 2;
     child->scrollWithBg = 1;
     child->drawFunc = Sprite_DrawEntity;
-    Object2E_SpawnRisingParticle(child, child->posX.whole, child->posY.whole + 0x80000);
+    ProximityBurst_SpawnRisingParticle(child, child->posX.whole, child->posY.whole + 0x80000);
 }
 
 /**
  * @brief 58A70 | Object 0x2E create: load the graphics (delete the object
  * when that fails), hidden (0x53C bit 5) until triggered.
  */
-void Object2ECreate(struct EwramData_EntityData *entity)
+void ProximityBurstCreate(struct EwramData_EntityData *entity)
 {
-    if (!Object2E_LoadGraphics(entity))
+    if (!ProximityBurst_LoadGraphics(entity))
     {
         EntityDelete(entity);
         return;
@@ -1082,25 +1082,25 @@ void Object2ECreate(struct EwramData_EntityData *entity)
 /**
  * @brief 58AB8 | Object 0x2E update.
  */
-void Object2EUpdate(struct EwramData_EntityData *entity)
+void ProximityBurstUpdate(struct EwramData_EntityData *entity)
 {
     u32 collision[4];
 
     if (entity->state == 0)
-        Object2E_UpdateState(entity);
+        ProximityBurst_UpdateState(entity);
 }
 
 /**
  * @brief 58AD0 | Load the graphics of object 0x2E; 0 when no slot is free.
  */
-u8 Object2E_LoadGraphics(struct EwramData_EntityData *entity)
+u8 ProximityBurst_LoadGraphics(struct EwramData_EntityData *entity)
 {
-    s32 gfx = ObjGfx_LoadResource(sObject2EGfx, 0);
+    s32 gfx = ObjGfx_LoadResource(sProximityBurstGfx, 0);
 
     if (gfx < 0)
         return 0;
-    entity->basePalette = ObjPalette_FindOrLoadVariant(sObject2DObject2EPalette, 5);
-    Sprite_Attach(entity, sObject2ESpriteSheet, gfx, entity->basePalette);
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sTopFloorPropPalette, 5);
+    Sprite_Attach(entity, sProximityBurstSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
@@ -1110,15 +1110,15 @@ u8 Object2E_LoadGraphics(struct EwramData_EntityData *entity)
  * 0x40 x 0x70) is entered, spawn three pieces (left, above, right) and
  * play sound 0x78.
  */
-void Object2E_UpdateState(struct EwramData_EntityData *entity)
+void ProximityBurst_UpdateState(struct EwramData_EntityData *entity)
 {
     if (entity->subState == 0
         && Target_IsInRect((s16)(entity->posX.part16.integer - 0x20), (s16)(entity->posY.part16.integer - 0x20), 0x40, 0x70))
     {
         entity->subState++;
-        Object2E_SpawnPiece(entity, -0x50000, 0);
-        Object2E_SpawnPiece(entity, 0, -0x60000);
-        Object2E_SpawnPiece(entity, 0x50000, 0);
+        ProximityBurst_SpawnPiece(entity, -0x50000, 0);
+        ProximityBurst_SpawnPiece(entity, 0, -0x60000);
+        ProximityBurst_SpawnPiece(entity, 0x50000, 0);
         PlaySong(0x78);
     }
 }
@@ -1126,7 +1126,7 @@ void Object2E_UpdateState(struct EwramData_EntityData *entity)
 /**
  * @brief 58B84 | Object 0x2E piece update: animate.
  */
-void Object2EPiece_Update(struct EwramData_EntityData *entity)
+void ProximityBurstPiece_Update(struct EwramData_EntityData *entity)
 {
     u32 collision[4];
 
@@ -1137,7 +1137,7 @@ void Object2EPiece_Update(struct EwramData_EntityData *entity)
  * @brief 58B94 | Spawn a rising Effect_UpdateParticle effect at (x, y)
  * one layer below the entity.
  */
-void Object2E_SpawnRisingParticle(struct EwramData_EntityData *entity, s32 x, s32 y)
+void ProximityBurst_SpawnRisingParticle(struct EwramData_EntityData *entity, s32 x, s32 y)
 {
     struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticle);
     s32 gfx;
@@ -1152,7 +1152,7 @@ void Object2E_SpawnRisingParticle(struct EwramData_EntityData *entity, s32 x, s3
     child->ext.particle.flags = 2;
     gfx = ObjGfx_Find(sCommonObjectGfx);
     Sprite_Attach(child, sCommonObjectSpriteSheet, gfx, 7);
-    Anim_Start(child, (struct AnimScript *)sObject2EAnimScript, 0, 0);
+    Anim_Start(child, (struct AnimScript *)sProximityBurstAnimScript, 0, 0);
     Anim_Update(child);
     child->scrollWithBg = 1;
     child->drawFunc = Sprite_DrawEntity;
@@ -1162,15 +1162,15 @@ void Object2E_SpawnRisingParticle(struct EwramData_EntityData *entity, s32 x, s3
  * @brief 58C1C | Object 0x2F create: deleted when bossEventFlags bit 2 is set or
  * the graphics fail; random frame, start position by variant (spawnParam0).
  */
-void Object2FCreate(struct EwramData_EntityData *entity)
+void JuliusArenaPropCreate(struct EwramData_EntityData *entity)
 {
     struct EwramData **ewramRef = &gEwramData;
     u16 xs[3];
     u16 ys[3];
 
-    memcpy(xs, sObject2FXs, sizeof(xs));
-    memcpy(ys, sObject2FYs, sizeof(ys));
-    if (((*ewramRef)->gameState.bossEventFlags & 4) || !Object2F_LoadGraphics(entity))
+    memcpy(xs, sJuliusArenaPropXs, sizeof(xs));
+    memcpy(ys, sJuliusArenaPropYs, sizeof(ys));
+    if (((*ewramRef)->gameState.bossEventFlags & 4) || !JuliusArenaProp_LoadGraphics(entity))
     {
         EntityDelete(entity);
         return;
@@ -1188,26 +1188,26 @@ void Object2FCreate(struct EwramData_EntityData *entity)
 /**
  * @brief 58CD8 | Object 0x2F update.
  */
-void Object2FUpdate(struct EwramData_EntityData *entity)
+void JuliusArenaPropUpdate(struct EwramData_EntityData *entity)
 {
     u32 collision[4];
 
     if (entity->state == 0)
-        Object2F_UpdateState(entity);
+        JuliusArenaProp_UpdateState(entity);
     Anim_Update(entity);
 }
 
 /**
  * @brief 58CF8 | Load the graphics of object 0x2F; 0 when no slot is free.
  */
-u8 Object2F_LoadGraphics(struct EwramData_EntityData *entity)
+u8 JuliusArenaProp_LoadGraphics(struct EwramData_EntityData *entity)
 {
-    s32 gfx = ObjGfx_LoadResource(sObject2FFamilyGfx, 0);
+    s32 gfx = ObjGfx_LoadResource(sGardenPropGfx, 0);
 
     if (gfx < 0)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_0820A1C4, 9);
-    Sprite_Attach(entity, sObject2FFamilySpriteSheet, gfx, entity->basePalette);
+    Sprite_Attach(entity, sGardenPropSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
@@ -1215,7 +1215,7 @@ u8 Object2F_LoadGraphics(struct EwramData_EntityData *entity)
 /**
  * @brief 58D44 | Object 0x2F, state 0: appear once stateFlags bit 12 is set.
  */
-void Object2F_UpdateState(struct EwramData_EntityData *entity)
+void JuliusArenaProp_UpdateState(struct EwramData_EntityData *entity)
 {
     struct EwramData *ewram = gEwramData;
 
@@ -1244,9 +1244,9 @@ void LeafSpawner_SpawnFallingLeaf(struct EwramData_EntityData *entity)
     child->posY.whole = 0;
     child->ext.fallingLeaf.kind = RandomNumberGenerator() % 3;
     child->spriteLayer = entity->spriteLayer;
-    gfx = ObjGfx_Find(sObject2FFamilyGfx);
+    gfx = ObjGfx_Find(sGardenPropGfx);
     child->basePalette = entity->basePalette;
-    Sprite_Attach(child, sObject2FFamilySpriteSheet, gfx, child->basePalette);
+    Sprite_Attach(child, sGardenPropSpriteSheet, gfx, child->basePalette);
     Anim_StartIndexed(child, child->ext.fallingLeaf.kind + 2, 0, 1);
     Anim_Update(child);
     affineIndex = ObjAffine_Alloc(1);
@@ -1336,16 +1336,16 @@ void LeafSpawnerUpdate(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief 58FE8 | Same as Object2F_LoadGraphics.
+ * @brief 58FE8 | Same as JuliusArenaProp_LoadGraphics.
  */
 u8 LeafSpawner_LoadGraphics(struct EwramData_EntityData *entity)
 {
-    s32 gfx = ObjGfx_LoadResource(sObject2FFamilyGfx, 0);
+    s32 gfx = ObjGfx_LoadResource(sGardenPropGfx, 0);
 
     if (gfx < 0)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_0820A1C4, 9);
-    Sprite_Attach(entity, sObject2FFamilySpriteSheet, gfx, entity->basePalette);
+    Sprite_Attach(entity, sGardenPropSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
@@ -1378,20 +1378,20 @@ void LeafSpawner_UpdateState(struct EwramData_EntityData *entity)
  * the graphics fail; position, animation and unk_4F8 by variant (spawnParam0);
  * variants 0 and 2 get an affine slot.
  */
-void Object31Create(struct EwramData_EntityData *entity)
+void JuliusArenaDebrisCreate(struct EwramData_EntityData *entity)
 {
     struct EwramData **ewramRef = &gEwramData;
     u16 xs[4];
     u16 ys[4];
     u16 anims[4];
-    struct Object31Words values;
+    struct JuliusArenaDebrisWords values;
     u16 affineIndex;
 
-    memcpy(xs, sObject31Xs, sizeof(xs));
-    memcpy(ys, sObject31Ys, sizeof(ys));
-    memcpy(anims, sObject31Anims, sizeof(anims));
+    memcpy(xs, sJuliusArenaDebrisXs, sizeof(xs));
+    memcpy(ys, sJuliusArenaDebrisYs, sizeof(ys));
+    memcpy(anims, sJuliusArenaDebrisAnims, sizeof(anims));
     values = sUnk_08118674;
-    if (((*ewramRef)->gameState.bossEventFlags & 4) || !Object31_LoadGraphics(entity))
+    if (((*ewramRef)->gameState.bossEventFlags & 4) || !JuliusArenaDebris_LoadGraphics(entity))
     {
         EntityDelete(entity);
         return;
@@ -1416,7 +1416,7 @@ void Object31Create(struct EwramData_EntityData *entity)
     }
     entity->posX.part16.integer = xs[entity->spawnParam0];
     entity->posY.part16.integer = ys[entity->spawnParam0];
-    entity->ext.object31.delay = values.v[entity->spawnParam0];
+    entity->ext.juliusArenaDebris.delay = values.v[entity->spawnParam0];
 }
 
 /**
@@ -1425,7 +1425,7 @@ void Object31Create(struct EwramData_EntityData *entity)
  * sideways with a dust effect and fall spinning (affine angle in unk_4FC,
  * spin speed unk_500 up to 0x60); deleted after leaving the screen.
  */
-void Object31_UpdateState(struct EwramData_EntityData *entity)
+void JuliusArenaDebris_UpdateState(struct EwramData_EntityData *entity)
 {
     switch (entity->subState)
     {
@@ -1434,18 +1434,18 @@ void Object31_UpdateState(struct EwramData_EntityData *entity)
                 entity->subState++;
             break;
         case 1:
-            if (--entity->ext.object31.delay > 0)
+            if (--entity->ext.juliusArenaDebris.delay > 0)
                 break;
             if (entity->spawnParam0 == 0 || entity->spawnParam0 == 2)
             {
                 entity->subState = 10;
-                entity->ext.object31.angle = 0;
-                entity->ext.object31.speed = 0;
-                entity->ext.object31.step = 4;
+                entity->ext.juliusArenaDebris.angle = 0;
+                entity->ext.juliusArenaDebris.speed = 0;
+                entity->ext.juliusArenaDebris.step = 4;
                 entity->accelX.whole = 0x400;
                 entity->accelY.whole = 0x200;
                 entity->timer = 0x3C;
-                Object31_SpawnDust(entity, 0, 0xA0000);
+                JuliusArenaDebris_SpawnDust(entity, 0, 0xA0000);
             }
             else
             {
@@ -1473,11 +1473,11 @@ void Object31_UpdateState(struct EwramData_EntityData *entity)
             entity->accelY.whole = 0x400;
             break;
         case 11:
-            entity->ext.object31.speed += entity->ext.object31.step;
-            if (entity->ext.object31.speed > 0x5F)
-                entity->ext.object31.speed = 0x60;
-            entity->ext.object31.angle += entity->ext.object31.speed;
-            ObjAffine_Set(entity->ext.object31.angle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
+            entity->ext.juliusArenaDebris.speed += entity->ext.juliusArenaDebris.step;
+            if (entity->ext.juliusArenaDebris.speed > 0x5F)
+                entity->ext.juliusArenaDebris.speed = 0x60;
+            entity->ext.juliusArenaDebris.angle += entity->ext.juliusArenaDebris.speed;
+            ObjAffine_Set(entity->ext.juliusArenaDebris.angle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
             EntityMoveX(entity);
             EntityAccelerateAndMoveY(entity, 0x10000);
             if (EntityIsOutsideScreen(entity, 3))
@@ -1485,32 +1485,32 @@ void Object31_UpdateState(struct EwramData_EntityData *entity)
             break;
     }
     if (entity->spawnParam0 == 0 || entity->spawnParam0 == 2)
-        ObjAffine_Set(entity->ext.object31.angle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
+        ObjAffine_Set(entity->ext.juliusArenaDebris.angle, 0x10000, 0x10000, entity->flipX, entity->flipY, entity->affineIndex);
     Anim_Update(entity);
 }
 
 /**
  * @brief 593A8 | Object 0x31 update.
  */
-void Object31Update(struct EwramData_EntityData *entity)
+void JuliusArenaDebrisUpdate(struct EwramData_EntityData *entity)
 {
     u32 collision[4];
 
     if (entity->state == 0)
-        Object31_UpdateState(entity);
+        JuliusArenaDebris_UpdateState(entity);
 }
 
 /**
- * @brief 593C0 | Same as Object2F_LoadGraphics.
+ * @brief 593C0 | Same as JuliusArenaProp_LoadGraphics.
  */
-u8 Object31_LoadGraphics(struct EwramData_EntityData *entity)
+u8 JuliusArenaDebris_LoadGraphics(struct EwramData_EntityData *entity)
 {
-    s32 gfx = ObjGfx_LoadResource(sObject2FFamilyGfx, 0);
+    s32 gfx = ObjGfx_LoadResource(sGardenPropGfx, 0);
 
     if (gfx < 0)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_0820A1C4, 9);
-    Sprite_Attach(entity, sObject2FFamilySpriteSheet, gfx, entity->basePalette);
+    Sprite_Attach(entity, sGardenPropSpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
@@ -1519,7 +1519,7 @@ u8 Object31_LoadGraphics(struct EwramData_EntityData *entity)
  * @brief 5940C | Spawn a Effect_UpdateParticle dust effect (animation 5) at offset
  * (offsetX, offsetY), one layer below the entity.
  */
-void Object31_SpawnDust(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY)
+void JuliusArenaDebris_SpawnDust(struct EwramData_EntityData *entity, s32 offsetX, s32 offsetY)
 {
     struct EwramData_EntityData *child = EntityCreateInRange(0x49, 0xCF, Effect_UpdateParticle);
     s32 gfx;
@@ -1531,8 +1531,8 @@ void Object31_SpawnDust(struct EwramData_EntityData *entity, s32 offsetX, s32 of
     child->spriteLayer = entity->spriteLayer - 1;
     child->timer = 0;
     child->ext.particle.flags = 0;
-    gfx = ObjGfx_Find(sObject2FFamilyGfx);
-    Sprite_Attach(child, sObject2FFamilySpriteSheet, gfx, entity->basePalette);
+    gfx = ObjGfx_Find(sGardenPropGfx);
+    Sprite_Attach(child, sGardenPropSpriteSheet, gfx, entity->basePalette);
     Anim_StartIndexed(child, 5, 0, 0);
     Anim_Update(child);
     child->scrollWithBg = 0;

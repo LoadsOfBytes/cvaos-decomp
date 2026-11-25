@@ -223,7 +223,7 @@ struct RoomDecorationVariantDefinition {
 struct ObjectVariant { u8 *graphics; void *palette; void *sprites; u8 animation; u8 paletteIndex; u16 delay; }; /* delay: frames at each end */
 
 /* A spawn point of object 0x25 (16.16 world coordinates). */
-struct Object25Point {
+struct LegionWalkingCorpsePoint {
     s32 x;
     s32 y;
 };
@@ -237,7 +237,7 @@ extern u8 sText12Font[][14]; // TODO: array or struct?
 extern u32 *sTransitionRooms[]; // transition rooms list
 extern u32 **sAreaRoomTables[]; // List of room pointers
 extern u8 sDebugHitTestRoom[];
-extern u8 sDebug4531Room[];
+extern u8 sDebugEventMenuRoom[];
 extern u8 sDebugEventRoom12[];
 extern u8 sDebugEventRoom3[];
 extern u8 sDebugEventRoom1[];
@@ -250,8 +250,8 @@ extern u8 sChronomageDestinationRoom[];
 extern u8 sDebugExitOptionsRoom16[];
 extern u8 sDebugExitOptionsRoom4[];
 extern u8 sDebugEventRoom9[];
-extern u8 sObject15DestinationRoom0[];
-extern u8 sDebug2229Room[];
+extern u8 sChaoticRealmPortalDestinationRoom0[];
+extern u8 sDebugRoomRoom[];
 extern u8 sDebugEventRoom5[];
 extern u8 sDebugExitOptionsRoom6[];
 extern u8 sDebugEventRoom4[];
@@ -267,11 +267,11 @@ extern u8 sDebugEventRoom10[];
 extern u8 sDebugExitOptionsRoom11[];
 extern u8 sChaosDestinationRoom[];
 extern u8 sDebugExitOptionsRoom10[];
-extern u8 sObject15DestinationRoom1[];
+extern u8 sChaoticRealmPortalDestinationRoom1[];
 extern u8 sDebugEventRoom14[];
 extern u8 sDebugEventRoom17[];
-extern u8 sDebug4531Room2[];
-extern u8 sDebug1967Room[];
+extern u8 sDebugEventMenuRoom2[];
+extern u8 sDebugTestMenuRoom[];
 extern u8 sBossRushMenuRoom[];
 extern u8 sDebugExitOptionsRoom12[];
 extern struct GoldDrop sGoldDrops[];
@@ -303,25 +303,25 @@ extern struct BreakablePropVariant sBreakablePropVariants[];
 extern u8 sUnk_08526370[][4];
 extern struct BossRushReward sBossRushRewards[];
 extern const struct RoomDecorationVariantDefinition sRoomDecorationVariants[];
-extern u8 sObject16PaletteAnim[];
-extern struct AnimScript sObject16EffectAnimScriptVariant0[];
-extern struct AnimScript sObject16EffectAnimScript[];
-extern const s16 sObject22LevelThresholds[];
-extern u8 *sObject22LevelPatterns[];
+extern u8 sChaoticRealmVortexPaletteAnim[];
+extern struct AnimScript sChaoticRealmVortexEffectAnimScriptVariant0[];
+extern struct AnimScript sChaoticRealmVortexEffectAnimScript[];
+extern const s16 sInputChallengePlatformLevelThresholds[];
+extern u8 *sInputChallengePlatformLevelPatterns[];
 extern struct ObjectVariant sVerticalPlatformVariants[];
 extern struct ObjectVariant sHorizontalPlatformVariants[];
-extern u8 sObject25AnimScript0[];
-extern u8 sObject25AnimScript1[];
-extern u8 sObject25AnimScript2[];
-extern const struct Object25Point *const sObject25Points[];
-extern const u32 sObject25PointIndices[];
-extern u8 sObject2BPaletteAnim[];
-extern u8 sObject2EAnimScript[];
+extern u8 sLegionWalkingCorpseAnimScript0[];
+extern u8 sLegionWalkingCorpseAnimScript1[];
+extern u8 sLegionWalkingCorpseAnimScript2[];
+extern const struct LegionWalkingCorpsePoint *const sLegionWalkingCorpsePoints[];
+extern const u32 sLegionWalkingCorpsePointIndices[];
+extern u8 sGardenAnimatedPropPaletteAnim[];
+extern u8 sProximityBurstAnimScript[];
 extern struct BgMapMetadata *sShopBgMaps[];
 extern const struct EventSceneJuliusKeepsPromiseDebrisDefinition sEventSceneJuliusKeepsPromiseDebrisDefinitions[];
 extern const struct EventSceneJuliusKeepsPromisePaletteStep sEventSceneJuliusKeepsPromisePaletteSteps[];
-extern const s8 sEventScene03UnusedDebris[];
-extern const s8 sEventScene03Debris[];
+extern const s8 sEventScenePrologueBattleUnusedDebris[];
+extern const s8 sEventScenePrologueBattleDebris[];
 extern const u8 sUnk_0852682C[];
 extern struct ParticleFrames sEventSceneEndingParticleFrames;
 extern struct TimedFragment sEventSceneEndingTimedFragments[9];

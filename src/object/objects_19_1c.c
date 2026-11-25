@@ -30,27 +30,27 @@
 #include "entity_common.h"
 
 /* Object 19: move along a timed path of steps, then despawn. */
-struct Object19Step
+struct SpinningBladeStep
 {
     s32 time;
     s32 velX;
     s32 velY;
 };
 
-extern const struct Object19Step sObject19Steps[4];
+extern const struct SpinningBladeStep sSpinningBladeSteps[4];
 
-static inline s32 Object19NextStep(struct EwramData_EntityData *entity, s32 step)
+static inline s32 SpinningBladeNextStep(struct EwramData_EntityData *entity, s32 step)
 {
-    const struct Object19Step *next;
+    const struct SpinningBladeStep *next;
     s32 time;
 
     entity->state = step;
-    next = &sObject19Steps[step];
+    next = &sSpinningBladeSteps[step];
     entity->velX.whole = next->velX;
     entity->velY.whole = next->velY;
     if (entity->spawnParam1 != 0)
         entity->velX.whole = -entity->velX.whole;
-    time = sObject19Steps[step].time;
+    time = sSpinningBladeSteps[step].time;
     if (time == 0)
         time = entity->spawnParam0 << 16;
     return time;
@@ -61,14 +61,14 @@ static inline s32 Object19NextStep(struct EwramData_EntityData *entity, s32 step
         s32 time_;                                                         \
         entity->posX.whole += entity->velX.whole;                          \
         entity->posY.whole += entity->velY.whole;                          \
-        if ((s32)entity->ext.object19.stepTime > 0)                      \
-            { time_ = entity->ext.object19.stepTime - 0x10000; asm(""); } /* FAKEMATCH: empty asm keeps jump2 from cross-jumping the copies */ \
+        if ((s32)entity->ext.spinningBlade.stepTime > 0)                      \
+            { time_ = entity->ext.spinningBlade.stepTime - 0x10000; asm(""); } /* FAKEMATCH: empty asm keeps jump2 from cross-jumping the copies */ \
         else                                                               \
-            time_ = Object19NextStep(entity, step);                        \
-        entity->ext.object19.stepTime = time_;                           \
+            time_ = SpinningBladeNextStep(entity, step);                        \
+        entity->ext.spinningBlade.stepTime = time_;                           \
     }
 
-void Object19Update(struct EwramData_EntityData *entity)
+void SpinningBladeUpdate(struct EwramData_EntityData *entity)
 {
     struct HitResult result;
 
@@ -78,7 +78,7 @@ void Object19Update(struct EwramData_EntityData *entity)
         return;
     }
     entity->hidden = 0;
-    entity->ext.object19.angle += entity->ext.object19.spin;
+    entity->ext.spinningBlade.angle += entity->ext.spinningBlade.spin;
     switch (entity->state)
     {
     case 0:
@@ -95,7 +95,7 @@ void Object19Update(struct EwramData_EntityData *entity)
         break;
     }
     Hit_CheckWithPlayer(&result, entity);
-    ObjAffine_Set((s16)entity->ext.object19.angle, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
+    ObjAffine_Set((s16)entity->ext.spinningBlade.angle, 0x10000, 0x10000, entity->flipX, 0, entity->affineIndex);
 }
 
 /* Object 0x19 helpers 0x08053EC4..0x08053F33. */
@@ -104,7 +104,7 @@ void Object19Update(struct EwramData_EntityData *entity)
  * @brief Hit callback of object 0x19: sound 0x69 and a hit effect at a random
  * spot (0..15 px) from the entity.
  */
-void Object19_OnHit(struct EwramData_EntityData *entity)
+void SpinningBlade_OnHit(struct EwramData_EntityData *entity)
 {
     s32 x;
 
@@ -116,7 +116,7 @@ void Object19_OnHit(struct EwramData_EntityData *entity)
 /**
  * @brief Draw frame 0 without and frame 1 with bit 4 of 0x53D.
  */
-void Object19_Draw(struct EwramData_EntityData *entity)
+void SpinningBlade_Draw(struct EwramData_EntityData *entity)
 {
     entity->affine = 0;
     entity->animFrame = 0;
@@ -126,9 +126,9 @@ void Object19_Draw(struct EwramData_EntityData *entity)
     Sprite_Draw(entity);
 }
 
-void Object1BCreate(struct EwramData_EntityData *entity)
+void ConveyorSwitchCreate(struct EwramData_EntityData *entity)
 {
-    if (!Entity_LoadGraphicsWide(entity, sObject1BGfx, sUnk_08209FD8, 1, sObject1BSpriteSheet))
+    if (!Entity_LoadGraphicsWide(entity, sConveyorSwitchGfx, sUnk_08209FD8, 1, sConveyorSwitchSpriteSheet))
     {
         EntityDelete(entity);
         return;
@@ -143,7 +143,7 @@ void Object1BCreate(struct EwramData_EntityData *entity)
     gEwramData->gameState.conveyorSpeed = -0x14000;
 }
 
-void Object1BUpdate(struct EwramData_EntityData *entity)
+void ConveyorSwitchUpdate(struct EwramData_EntityData *entity)
 {
     s32 index;
     u16 color;
@@ -165,25 +165,25 @@ void Object1BUpdate(struct EwramData_EntityData *entity)
         if (gEwramData->gameState.conveyorSpeed < 0x14000) gEwramData->gameState.conveyorSpeed += 0x1000;
         break;
     }
-    entity->ext.object1B.scroll += gEwramData->gameState.conveyorSpeed;
-    colors = sObject1BColors;
-    index = ((entity->ext.object1B.scroll / 8) >> 16) % 3;
+    entity->ext.conveyorSwitch.scroll += gEwramData->gameState.conveyorSpeed;
+    colors = sConveyorSwitchColors;
+    index = ((entity->ext.conveyorSwitch.scroll / 8) >> 16) % 3;
     if (index < 0) index = -index;
     color = colors[index];
-    if ((u8)entity->ext.object1B.color != color)
+    if ((u8)entity->ext.conveyorSwitch.color != color)
     {
-        entity->ext.object1B.color = color;
-        BgPalette_LoadRange(sObject1BBgPalette, color, 1, 8);
+        entity->ext.conveyorSwitch.color = color;
+        BgPalette_LoadRange(sConveyorSwitchBgPalette, color, 1, 8);
     }
     Anim_Update(entity);
 }
 
 /* Object 0x1A has no create or update behavior. */
-void Object1ACreate(struct EwramData_EntityData *entity)
+void EmptyObject1ACreate(struct EwramData_EntityData *entity)
 {
 }
 
-void Object1AUpdate(struct EwramData_EntityData *entity)
+void EmptyObject1AUpdate(struct EwramData_EntityData *entity)
 {
 }
 

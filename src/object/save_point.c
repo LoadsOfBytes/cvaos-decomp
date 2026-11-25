@@ -470,16 +470,16 @@ void SaveWarpRoomWall_DrawPulsingOverlay(struct EwramData_EntityData *entity)
     entity->animFrame = frame;
 }
 
-void Object1ECreate(struct EwramData_EntityData *entity)
+void EmptyObject1ECreate(struct EwramData_EntityData *entity)
 {
 }
 
-void Object1EUpdate(struct EwramData_EntityData *entity)
+void EmptyObject1EUpdate(struct EwramData_EntityData *entity)
 {
 }
 
-/* Unreferenced: advance the animation (next to the empty Object1E callbacks). */
-void Object1E_AnimUpdate(struct EwramData_EntityData *entity)
+/* Unreferenced: advance the animation (next to the empty EmptyObject1E callbacks). */
+void EmptyObject1E_AnimUpdate(struct EwramData_EntityData *entity)
 {
     Anim_Update(entity);
 }

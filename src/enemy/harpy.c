@@ -627,10 +627,10 @@ u8 Harpy_LoadGraphics(struct EwramData_EntityData *entity)
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   Harpy_DamagePlayerOnContact = Object28_OnPlayerContact */
+ *   Harpy_DamagePlayerOnContact = PopUpTrapSmall_OnPlayerContact */
 
 /**
- * @brief 762F0 | Same as Object28_OnPlayerContact.
+ * @brief 762F0 | Same as PopUpTrapSmall_OnPlayerContact.
  */
 void Harpy_DamagePlayerOnContact(struct EwramData_EntityData *entity)
 {

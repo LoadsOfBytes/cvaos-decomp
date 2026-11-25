@@ -1,7 +1,7 @@
 # Castlevania: Aria of Sorrow – matching decompilation (unofficial AI-assisted fork)
 
 ![Matching](https://img.shields.io/badge/Matching-byte%20for%20byte%2C%20100%25%20C-brightgreen)
-![Naming](https://img.shields.io/badge/Naming-functions%20100%25%20%C2%B7%20fields%2096.5%25-brightgreen)
+![Naming](https://img.shields.io/badge/Naming-functions%2088.4%25%20descriptive%20%C2%B7%20fields%2096.5%25-green)
 ![Clean C](https://img.shields.io/badge/Clean%20C-92.6%25%20of%20functions-green)
 ![FAKEMATCH](https://img.shields.io/badge/FAKEMATCH-241%20lines-orange)
 
@@ -30,7 +30,8 @@ Measured on 2026-11-25 from the build output and source scans.
 | ROM rebuilds byte for byte | ✅ **done** |
 | Game functions decompiled to C | ✅ **100 %** – only an 8-byte ARM/Thumb interworking stub has no C equivalent |
 | All ROM code (`.text`) from C | **97.06 %** (891,340 / 918,324 B) – the rest is platform code normally kept in assembly (`crt0`, `m4a` mixer, BIOS stubs, header) and libgcc/libc |
-| Functions named | ✅ **100 %** (3,842 / 3,842) |
+| Functions with a name instead of an address | 🔄 **99.9 %** (3,414 / 3,417 C functions) – 3 title-screen helpers still carry their ROM address (`TitleScreen_sub_08002F44` …) |
+| Functions with a descriptive name | 🔄 **88.4 %** (3,020 / 3,417 C functions) – 397 names say what a function does but not what it belongs to, only a table index: 236 room-object functions `ObjectXX…` (index in the room-object table), 136 event-scene functions `EventSceneNN…`, 18 numbered debug / unknown game modes (`GameModeDebug1967Update`, `GameModeUnk3Update` …), 4 particle spawners named by animation number, plus the 3 address names (see *Known limitations*) |
 | Local variables and parameters named | ✅ **100 %** (15,753 / 15,753) |
 | Structure fields named | 🔄 **96.5 %** (3,163 / 3,278 declared; 99.9 % of accesses) – most of the rest are the offset-named slots of the raw work-area view |
 | Entity work area as typed structures | 🔄 368 per-type structures; 24 lines and 6 macros still use the raw offset view |
@@ -62,6 +63,17 @@ name or comment describes the game correctly. Corrections are very welcome.
   part was originally compiled with). The original
   code did not contain them; each is marked `/* FAKEMATCH: reason */` and was tested
   to be necessary.
+- **Placeholder names** – earlier versions of this README reported "functions
+  named 100 % (3,842 / 3,842)". That count included assembly labels of the sound
+  engine and libgcc (`_080D86D6`, `Loop1` …) and treated every name without a
+  `sub_` prefix as named. The current numbers cover only the 3,417 functions
+  compiled from C and count a name as descriptive only when it says what the
+  function or its object is. 397 names still fall short: `Object29Update` or
+  `Object32_SpawnDebris` describe the behaviour, but `29` / `32` is just the index
+  in the room-object table – which object of the game (breakable wall, platform,
+  …) it is has not been identified yet; the same holds for `EventSceneNN…` and
+  the numbered debug modes. Such names are kept until the object is identified,
+  because a wrong name is worse than a number.
 - **Matching-driven style** – some functions use `goto`, odd temporaries or casts to
   reproduce the original instruction order. Where the original code read the same
   bytes both signed and unsigned, two structures describe them (e.g. `MenuListWork` /
@@ -111,6 +123,8 @@ name or comment describes the game correctly. Corrections are very welcome.
 
 - Merge the 9 build-separated files: needs C that matches without their compiler flags.
 - Finish the entity structures and name the remaining fields.
+- Identify the room objects and event scenes (`ObjectXX`, `EventSceneNN`) from the
+  rooms that spawn them and the graphics they load, and give them descriptive names.
 - Reduce `FAKEMATCH` where a natural C variant can be found.
 - Declarations: the remaining 12 caller-specific prototypes (17 local
   declarations).

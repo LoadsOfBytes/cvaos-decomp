@@ -293,16 +293,16 @@ void EnemyCreakingSkullCreate(struct EwramData_EntityData *entity)
     if (distance < 0) distance = -distance;
 #define TERRAIN() Tile_Classify(camera->xPos.part16.integer + entity->posX.part16.integer + offset, camera->yPos.part16.integer + entity->posY.part16.integer)
 /* The extra RNG call is present in the ROM even though its result is unused.
- * Explicit x/vy and arithmetic temporaries preserve agbcc register allocation. */
+ * The debris offset and velocities are function-level variables (offset, vx, vy). */
 #define DEBRIS(REVERSE) \
     if (!(TIMER & 15)) \
     { \
-        register s32 x asm("r4"); s32 vx; register s32 vy asm("r6"); s32 zero; /* FAKEMATCH: pinned register */ \
-        if (entity->flipX) { x = -0x230000; if (REVERSE) vx = -0x4000 - (RandomNumberGenerator() & 0x3FFF); else vx = (RandomNumberGenerator() & 0x3FFF) + 0x4000; } \
-        else { x = 0x230000; if (REVERSE) vx = (RandomNumberGenerator() & 0x3FFF) + 0x4000; else vx = -0x4000 - (RandomNumberGenerator() & 0x3FFF); } \
-        { register u32 r asm("r1") = RandomNumberGenerator() & 0x3FFF; register s32 k asm("r0") = -0x4000; vy = k - r; } /* FAKEMATCH: pinned register */ \
+        s32 zero;\
+        if (entity->flipX) { offset = -0x230000; if (REVERSE) vx = -0x4000 - (RandomNumberGenerator() & 0x3FFF); else vx = (RandomNumberGenerator() & 0x3FFF) + 0x4000; } \
+        else { offset = 0x230000; if (REVERSE) vx = (RandomNumberGenerator() & 0x3FFF) + 0x4000; else vx = -0x4000 - (RandomNumberGenerator() & 0x3FFF); } \
+        vy = -0x4000 - (RandomNumberGenerator() & 0x3FFF);\
         RandomNumberGenerator(); zero = 0; \
-        Effect_SpawnParticleWithDamping(entity->posX.whole + x, entity->posY.whole, vx, vy, entity->spriteLayer - 1, zero, 0x10, 0xF, 6); \
+        Effect_SpawnParticleWithDamping(entity->posX.whole + offset, entity->posY.whole, vx, vy, entity->spriteLayer - 1, zero, 0x10, 0xF, 6); \
     } \
     if (!(TIMER & 7)) { if (TIMER & 8) PlaySong(0x118); else if ((RandomNumberGenerator() & 0x7F) <= 0x3F) PlaySong(0x118); }
 /* Keep gravity outside the pose macro: duplicating it inside PROBES changes
@@ -344,6 +344,7 @@ void CreakingSkull_UpdateMovement(struct EwramData_EntityData *entity)
     s8 chain[13];
     u8 unused[2];
     s32 distance, offset, direction;
+    s32 vx, vy;
     memcpy(times0, sCreakingSkullTimes0, 2);
     memcpy(times1, sCreakingSkullTimes1, 2);
     memcpy(times2, sCreakingSkullTimes2, 2);
@@ -658,7 +659,7 @@ void CreakingSkull_UpdateMovement(struct EwramData_EntityData *entity)
             bx = step + RandomNumberGenerator() % 0x280000 + -0xC0000;\
             x1 = entity->posX.whole + 0xF0000;\
         }\
-        { register s32 py asm("r0") = entity->posY.whole; y0 = py + -0x2B0000; } /* FAKEMATCH: pinned register */ \
+        by = entity->posY.whole; y0 = by + -0x2B0000;\
         y1 = y0 - (RandomNumberGenerator() & 0x1FFFFF) + -0x80000;\
         vy = entity->posY.whole + -0x2F0000;\
         CreakingSkull_SpawnGuidedEffect(entity, step, y0, x1, vy, bx, y1);\
@@ -673,7 +674,7 @@ void CreakingSkull_UpdateMovement(struct EwramData_EntityData *entity)
             bx = RandomNumberGenerator() % 0x60000 + entity->posX.whole + 0x1D0000;\
         else\
             bx = RandomNumberGenerator() % 0x60000 + entity->posX.whole + -0x230000;\
-        { register s32 by asm("r0") = RandomNumberGenerator() % 0x60000 + entity->posY.whole; Effect_SpawnParticleAnim11(bx, by + -0x1F0000, 0, 0, entity->spriteLayer - 1); } /* FAKEMATCH: pinned register */ \
+        by = RandomNumberGenerator() % 0x60000 + entity->posY.whole; Effect_SpawnParticleAnim11(bx, by + -0x1F0000, 0, 0, entity->spriteLayer - 1);\
     }\
     if (!(entity->timer & 7))\
         PlaySong(SONG);\
@@ -721,6 +722,7 @@ void CreakingSkull_UpdateAttack(struct EwramData_EntityData *entity)
     s32 vx, vy;
     register s32 bx asm("r9"); /* FAKEMATCH: pinned register */
     s32 zero;
+    s32 by;
 
     memcpy(swingTimes, sCreakingSkullSwingTimes, sizeof(swingTimes));
     memcpy(armTimes, sCreakingSkullArmTimes, sizeof(armTimes));

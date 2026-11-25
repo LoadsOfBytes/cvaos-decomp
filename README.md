@@ -3,7 +3,7 @@
 ![Matching](https://img.shields.io/badge/Matching-byte%20for%20byte%2C%20100%25%20C-brightgreen)
 ![Naming](https://img.shields.io/badge/Naming-functions%2099.9%25%20descriptive%20%C2%B7%20fields%2096.5%25-green)
 ![Clean C](https://img.shields.io/badge/Clean%20C-92.9%25%20of%20functions-green)
-![FAKEMATCH](https://img.shields.io/badge/FAKEMATCH-223%20lines-orange)
+![FAKEMATCH](https://img.shields.io/badge/FAKEMATCH-219%20lines-orange)
 
 > **Read this first**
 >
@@ -39,7 +39,7 @@ Measured on 2026-11-25 from the build output and source scans.
 | Declarations in headers | 🔄 each module's functions used by other files are declared in `include/<module>.h`; no implicit declarations; calls compiled without a prototype in the original use a declared `...Wide` alias (28 functions); functions whose code returns a halfword are declared with that result type (`Entity_GetTargetDistanceX` / `Y`, `Hit_CheckWithPlayer` …, 67 caller casts removed); 3 more aliases declare the real narrower type for the callers that used it (`Target_GetPixelXShort` / `YShort`, `Witch_SpawnOrbitParticlesSigned`); 12 functions keep caller-specific prototypes (17 local declarations); file-internal forward declarations in one block at the top of each file; ROM data declared in `include/data/` (18 tables still local; see *Known limitations*) |
 | Code cleanup | 🔄 entity callbacks typed (`EntityFunc`), duplicated `static inline` helpers merged into shared headers, `goto` rewritten as structured `if`/`else`, `switch`, `while` or direct `return` where the compiler output stays identical (627 → 133); 92.9 % of functions use neither compiler tricks nor matching-only constructs such as `goto` (133 `goto` left) |
 | Hard-coded addresses | ✅ none for ROM data and RAM variables – every table, graphics, palette, map and room used from C is referenced by a symbol (223 data labels added); 28 lines still compute VRAM addresses with integer arithmetic |
-| Removing compiler tricks (`FAKEMATCH`) | 🔄 223 lines left in 68 of 181 C files (272 → 223: natural rewrites that need no trick; calls through cast function pointers replaced by declared aliases) |
+| Removing compiler tricks (`FAKEMATCH`) | 🔄 219 lines left in 68 of 181 C files (272 → 219: natural rewrites that need no trick; calls through cast function pointers replaced by declared aliases) |
 
 ## How this fork was made
 
@@ -57,7 +57,7 @@ name or comment describes the game correctly. Corrections are very welcome.
 
 ## Known limitations
 
-- **`FAKEMATCH`** – 223 lines force the compiler's output (`register ... asm("rN")`
+- **`FAKEMATCH`** – 219 lines force the compiler's output (`register ... asm("rN")`
   pins, empty `asm("")`, one-shot `do { } while (0)` and `volatile` reads). The original
   code did not contain them; each is marked `/* FAKEMATCH: reason */` and was tested
   to be necessary.

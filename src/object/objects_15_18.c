@@ -31,9 +31,9 @@
 #include "entity_hit.h"
 #include "bg_and_collision.h"
 
-void Object17Follower_Update(struct EwramData_EntityData *);
-void Object17Effect_Update(struct EwramData_EntityData *);
-void Object18_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker);
+void ElevatorFollower_Update(struct EwramData_EntityData *);
+void ElevatorEffect_Update(struct EwramData_EntityData *);
+void BreakableCoinContainer_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker);
 
 /**
  * @brief Sprite of object 0x15 placed around its owner at the owner angle
@@ -315,7 +315,7 @@ void Object16Create(struct EwramData_EntityData *entity)
  * @brief Follow the parent and mirror its states: show with animation 2 when
  * it enters state 1, animation 3 at state 3, hide again at state 0.
  */
-void Object17Overlay_Update(struct EwramData_EntityData *entity)
+void ElevatorOverlay_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *owner = ENTITY_OWNER(entity);
 
@@ -349,14 +349,14 @@ void Object17Overlay_Update(struct EwramData_EntityData *entity)
     Anim_Update(entity);
 }
 
-/* Object17Create: spawns the object and its child effects; matched. */
+/* ElevatorCreate: spawns the object and its child effects; matched. */
 
 static inline struct BgLayerState *Bg1(void)
 {
     return &gEwramData->bgInfo[1];
 }
 
-void Object17Create(struct EwramData_EntityData *entity)
+void ElevatorCreate(struct EwramData_EntityData *entity)
 {
     s32 i;
     s32 j;
@@ -366,7 +366,7 @@ void Object17Create(struct EwramData_EntityData *entity)
     struct EwramData_EntityData *e;
     struct BgLayerState *bg;
 
-    if (!Entity_LoadGraphics(entity, sObject17Gfx, sUnk_08209FD8, 4, sObject17SpriteSheet))
+    if (!Entity_LoadGraphics(entity, sElevatorGfx, sUnk_08209FD8, 4, sElevatorSpriteSheet))
     {
         EntityDelete(entity);
         return;
@@ -376,16 +376,16 @@ void Object17Create(struct EwramData_EntityData *entity)
     Anim_Update(entity);
     t = GetEntityRoomYPositionInteger(gEwramData->playerState.player) << 16;
     i = 0;
-    if (sUnk_08118590[0] + 0x20 >= ({ py = (u32)t >> 16; t >> 16; }))
+    if (sElevatorFloorY[0] + 0x20 >= ({ py = (u32)t >> 16; t >> 16; }))
     {
         entity->subState = i;
-        do { tbl = sUnk_08118590; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
+        do { tbl = sElevatorFloorY; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
     }
     else
     {
     next:
         i++;
-        do { tbl = sUnk_08118590; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
+        do { tbl = sElevatorFloorY; } while (0); /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
         if (i <= 2)
         {
             if (tbl[i] + 0x20 < (s16)py)
@@ -396,12 +396,12 @@ void Object17Create(struct EwramData_EntityData *entity)
     bg = &gEwramData->bgInfo[1];
     entity->posX.part16.integer = 0x78 - bg->xPos.part16.integer;
     entity->posY.part16.integer = tbl[entity->subState] - bg->yPos.part16.integer;
-    Player_RegisterSolidObject(entity, (void *)sObject17SolidCallbacks);
+    Player_RegisterSolidObject(entity, (void *)sElevatorSolidCallbacks);
     entity->roomActive = 1;
-    e = EntityCreateInRange(0x49, 0xCF, Object17Follower_Update);
+    e = EntityCreateInRange(0x49, 0xCF, ElevatorFollower_Update);
     if (e != NULL)
     {
-        if (!Entity_LoadGraphics(e, sObject17Gfx, sUnk_08209FD8, 4, sObject17SpriteSheet))
+        if (!Entity_LoadGraphics(e, sElevatorGfx, sUnk_08209FD8, 4, sElevatorSpriteSheet))
         {
             EntityDelete(e);
             return;
@@ -416,10 +416,10 @@ void Object17Create(struct EwramData_EntityData *entity)
     }
     for (i = 0; i <= 1; i++)
     {
-        e = EntityCreateInRange(0x49, 0xCF, Object17Overlay_Update);
+        e = EntityCreateInRange(0x49, 0xCF, ElevatorOverlay_Update);
         if (e == NULL)
             continue;
-        if (!Entity_LoadGraphics(e, sObject17Gfx, sUnk_08209FD8, 4, sObject17SpriteSheet))
+        if (!Entity_LoadGraphics(e, sElevatorGfx, sUnk_08209FD8, 4, sElevatorSpriteSheet))
         {
             EntityDelete(e);
             return;
@@ -438,16 +438,16 @@ void Object17Create(struct EwramData_EntityData *entity)
     {
         for (j = 0; j <= 7; j++)
         {
-            e = EntityCreateInRange(0x49, 0xCF, Object17Effect_Update);
+            e = EntityCreateInRange(0x49, 0xCF, ElevatorEffect_Update);
             if (e == NULL)
                 break;
             e->scrollWithBg = 1;
             {
-                const u16 *tx = sObject17Xs;
+                const u16 *tx = sElevatorXs;
                 e->posX.part16.integer = tx[i] - ({ Bg1(); })->xPos.part16.integer;
             }
             {
-                const u16 *ty = sObject17Ys;
+                const u16 *ty = sElevatorYs;
                 e->posY.part16.integer = ty[j] - ({ Bg1(); })->yPos.part16.integer;
             }
             e->flipX = i;
@@ -465,7 +465,7 @@ static inline s32 AddBgY(s32 v)
     return v + bg->yPos.whole;
 }
 
-void Object17Update(struct EwramData_EntityData *entity)
+void ElevatorUpdate(struct EwramData_EntityData *entity)
 {
     s32 y;
     u16 yi;
@@ -487,20 +487,20 @@ void Object17Update(struct EwramData_EntityData *entity)
     case 0:
         if (Player_IsBusy())
         {
-            entity->ext.object17.holdFrames = 0;
+            entity->ext.elevator.holdFrames = 0;
             break;
         }
         player = gEwramData->playerState.player;
         if (!Entity_IsInRect(entity, (s16)(player->posX.part16.integer - 0x20), (s16)(player->posY.part16.integer - 0x20), 0x40, 0x10))
         {
-            entity->ext.object17.holdFrames = 0;
+            entity->ext.elevator.holdFrames = 0;
             break;
         }
         if (gEwramData->inputData.playerHeldInput & 0xC0)
-            entity->ext.object17.holdFrames++;
+            entity->ext.elevator.holdFrames++;
         else
-            entity->ext.object17.holdFrames = 0;
-        if ((u8)entity->ext.object17.holdFrames <= 2)
+            entity->ext.elevator.holdFrames = 0;
+        if ((u8)entity->ext.elevator.holdFrames <= 2)
             break;
         if ((gEwramData->inputData.playerHeldInput & 0x80) && entity->subState <= 1)
         {
@@ -541,7 +541,7 @@ void Object17Update(struct EwramData_EntityData *entity)
                 entity->velY.whole += 0x1000;
             y = AddBgY(entity->posY.whole + entity->velY.whole);
             yi = y < 0 ? -(-y >> 16) : y >> 16;
-            if ((s16)yi < sUnk_08118590[entity->subState])
+            if ((s16)yi < sElevatorFloorY[entity->subState])
                 break;
         }
         else
@@ -550,14 +550,14 @@ void Object17Update(struct EwramData_EntityData *entity)
                 entity->velY.whole -= 0x1000;
             y = AddBgY(entity->posY.whole + entity->velY.whole);
             yi = y < 0 ? -(-y >> 16) : y >> 16;
-            if ((s16)yi > sUnk_08118590[entity->subState])
+            if ((s16)yi > sElevatorFloorY[entity->subState])
                 break;
         }
         Sound_StopTracked(0x116);
         PlaySong(0x117);
         ScreenShake_Request(0, 0x10, 0, 7);
         {
-            const s16 *tbl = sUnk_08118590;
+            const s16 *tbl = sElevatorFloorY;
             struct BgLayerState *bg2;
             s32 fy = tbl[entity->subState];
             bg2 = &gEwramData->bgInfo[1];
@@ -579,14 +579,14 @@ void Object17Update(struct EwramData_EntityData *entity)
     Anim_Update(entity);
 }
 
-/* Object17_CeilingCorrection, Object17_FloorCorrection. */
+/* Elevator_CeilingCorrection, Elevator_FloorCorrection. */
 /**
  * @brief 53540 | Whether the point (x, y) lies on top of entity (within
  * -0x40..0x40 horizontally of its screen position and up to 0x10 below
  * its top edge y - 0x18, using the integer part of velY): the depth below
  * the edge, else 0.
  */
-s32 Object17_CeilingCorrection(struct EwramData_EntityData *entity, s16 x, s16 y)
+s32 Elevator_CeilingCorrection(struct EwramData_EntityData *entity, s16 x, s16 y)
 {
     struct BgLayerState *bg;
     s32 sx = x;
@@ -607,10 +607,10 @@ s32 Object17_CeilingCorrection(struct EwramData_EntityData *entity, s16 x, s16 y
 }
 
 /**
- * @brief 535A0 | As Object17_CeilingCorrection with the next 16.16 y position (posY +
+ * @brief 535A0 | As Elevator_CeilingCorrection with the next 16.16 y position (posY +
  * velY + camera) and the edge 0x1F above it; returns minus the offset.
  */
-s32 Object17_FloorCorrection(struct EwramData_EntityData *entity, s16 x, s16 y)
+s32 Elevator_FloorCorrection(struct EwramData_EntityData *entity, s16 x, s16 y)
 {
     struct BgLayerState *bg;
     s32 sx = x;
@@ -637,19 +637,19 @@ s32 Object17_FloorCorrection(struct EwramData_EntityData *entity, s16 x, s16 y)
 /* Object effect helpers decompiled from assembly. */
 
 /**
- * @brief Wall-left correction slot of the object 0x17 solid table (sObject17SolidCallbacks):
+ * @brief Wall-left correction slot of the object 0x17 solid table (sElevatorSolidCallbacks):
  * none, return 0.
  */
-s32 Object17_WallLeftCorrection(void)
+s32 Elevator_WallLeftCorrection(void)
 {
     return 0;
 }
 
 /**
  * @brief Wall-right correction slot of the object 0x17 solid table
- * (sObject17SolidCallbacks): none, return 0.
+ * (sElevatorSolidCallbacks): none, return 0.
  */
-s32 Object17_WallRightCorrection(void)
+s32 Elevator_WallRightCorrection(void)
 {
     return 0;
 }
@@ -659,11 +659,11 @@ s32 Object17_WallRightCorrection(void)
  * @brief Load the effect once (animation subState), then advance it every
  * update.
  */
-void Object17Effect_Update(struct EwramData_EntityData *entity)
+void ElevatorEffect_Update(struct EwramData_EntityData *entity)
 {
     if (entity->state == 0)
     {
-        if (!(u8)Entity_LoadGraphics(entity, sObject17Gfx, sUnk_08209FD8, 4, sObject17SpriteSheet))
+        if (!(u8)Entity_LoadGraphics(entity, sElevatorGfx, sUnk_08209FD8, 4, sElevatorSpriteSheet))
         {
             EntityDelete(entity);
             return;
@@ -679,7 +679,7 @@ void Object17Effect_Update(struct EwramData_EntityData *entity)
 /**
  * @brief Follow the entity in unk_4F8 and advance the animation.
  */
-void Object17Follower_Update(struct EwramData_EntityData *entity)
+void ElevatorFollower_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *parent = ENTITY_OWNER(entity);
     entity->posX.whole = parent->posX.whole;
@@ -687,15 +687,15 @@ void Object17Follower_Update(struct EwramData_EntityData *entity)
     Anim_Update(entity);
 }
 
-/* Object18Debris_Update: variant of an already decompiled function, generated with
+/* BreakableCoinContainerDebris_Update: variant of an already decompiled function, generated with
  * a cloning script (constants adjusted where needed), checked byte for
  * byte. */
 
 /**
- * @brief Same as Object0EPiece_Update: slide, fall and burst with dust when
+ * @brief Same as BreakablePropPiece_Update: slide, fall and burst with dust when
  * it lands.
  */
-void Object18Debris_Update(struct EwramData_EntityData *entity)
+void BreakableCoinContainerDebris_Update(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *bg;
     s32 x;
@@ -734,10 +734,10 @@ void Object18Debris_Update(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief Spawn the four debris pieces (frames 1..4, Object18Debris_Update) of
+ * @brief Spawn the four debris pieces (frames 1..4, BreakableCoinContainerDebris_Update) of
  * the parent at its part offsets, flung with a share of its speed.
  */
-void Object18_SpawnDebris(struct EwramData_EntityData *parent)
+void BreakableCoinContainer_SpawnDebris(struct EwramData_EntityData *parent)
 {
     struct EwramData_EntityData *entity;
     s32 frame;
@@ -748,10 +748,10 @@ void Object18_SpawnDebris(struct EwramData_EntityData *parent)
     frame = 1;
     for (i = 0; i <= 3; i++, frame++)
     {
-        entity = EntityCreateInRange(0x49, 0xCF, Object18Debris_Update);
+        entity = EntityCreateInRange(0x49, 0xCF, BreakableCoinContainerDebris_Update);
         if (entity == NULL)
             return;
-        if (!Entity_LoadGraphics(entity, sObject18Gfx, sObject18Palette, 0, sObject18SpriteSheet))
+        if (!Entity_LoadGraphics(entity, sBreakableCoinContainerGfx, sBreakableCoinContainerPalette, 0, sBreakableCoinContainerSpriteSheet))
         {
             EntityDelete(entity);
             return;
@@ -773,9 +773,9 @@ void Object18_SpawnDebris(struct EwramData_EntityData *parent)
     }
 }
 
-void Object18Create(struct EwramData_EntityData *entity)
+void BreakableCoinContainerCreate(struct EwramData_EntityData *entity)
 {
-    if (!Entity_LoadGraphics(entity, sObject18Gfx, sObject18Palette, 0, sObject18SpriteSheet))
+    if (!Entity_LoadGraphics(entity, sBreakableCoinContainerGfx, sBreakableCoinContainerPalette, 0, sBreakableCoinContainerSpriteSheet))
     {
         EntityDelete(entity);
         return;
@@ -783,7 +783,7 @@ void Object18Create(struct EwramData_EntityData *entity)
     entity->spriteLayer = 0x14;
     Anim_StartIndexed(entity, 0, 0, 1);
     Anim_Update(entity);
-    Hit_Enable(entity, 0, NULL, Object18_OnHit);
+    Hit_Enable(entity, 0, NULL, BreakableCoinContainer_OnHit);
     entity->hit.flags |= 2;
     HitBox_SetBodyRaw(entity, 0x1820E8F0);
     Entity_SnapToGround(entity);
@@ -792,12 +792,12 @@ void Object18Create(struct EwramData_EntityData *entity)
 
 /**
  * @brief 53968 | Breakable object (object 0x18): hidden off screen; when hit
- * (Hit_CheckWithPlayer flags 0x1E) it breaks (Object18_SpawnDebris, sound 0xA2) and drops
+ * (Hit_CheckWithPlayer flags 0x1E) it breaks (BreakableCoinContainer_SpawnDebris, sound 0xA2) and drops
  * up to eight coins (Pickup_CreateGold, Soma only; Julius gets Pickup_CreateMana), then
  * smokes for 40 frames; with spawnParam0 set it instead releases enemy 0x4A
  * (sEnemyData[0x4A]) every 4th frame for 32 frames.
  */
-void Object18Update(struct EwramData_EntityData *entity)
+void BreakableCoinContainerUpdate(struct EwramData_EntityData *entity)
 {
     struct HitResult result;
     u16 hit;
@@ -825,7 +825,7 @@ void Object18Update(struct EwramData_EntityData *entity)
         {
             entity->state = 2;
             entity->timer = 0x20;
-            Object18_SpawnDebris(entity);
+            BreakableCoinContainer_SpawnDebris(entity);
             PlaySong(0xA2);
             entity->hidden = 1;
             break;
@@ -847,7 +847,7 @@ void Object18Update(struct EwramData_EntityData *entity)
         {
             Pickup_CreateMana(x, y, 1, 0);
         }
-        Object18_SpawnDebris(entity);
+        BreakableCoinContainer_SpawnDebris(entity);
         PlaySong(0xA2);
         entity->hidden = 1;
         entity->timer = 0x28;
@@ -887,14 +887,14 @@ void Object18Update(struct EwramData_EntityData *entity)
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   Object18_OnHit = Object0E_OnHit
+ *   BreakableCoinContainer_OnHit = BreakableProp_OnHit
  *
  * Object19_OnPlayerContact decompiled locally. */
 
 /**
  * @brief Hit callback of object 0x18: set velX to +1/-1 away from the attacker.
  */
-void Object18_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker)
+void BreakableCoinContainer_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker)
 {
     s32 speed = 1;
 
@@ -905,7 +905,7 @@ void Object18_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
 
 /**
  * @brief Player contact callback of object 0x19: contact damage of 2/3 of the
- * strength-based value used by Object21Create, at the entity position.
+ * strength-based value used by CrusherCreate, at the entity position.
  */
 void Object19_OnPlayerContact(struct EwramData_EntityData *entity)
 {

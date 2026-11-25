@@ -189,8 +189,8 @@ s32 Graham_CreateSceneObject(struct EwramData_EntityData *entity,s32 index)
     object->spawnIndex=index;
     object->enemyId=32;
     object->drawFunc=Sprite_DrawEntity;
-    object->updateFunc=Object20Update;
-    Object20Create(object);
+    object->updateFunc=EventSceneControllerUpdate;
+    EventSceneControllerCreate(object);
     gEwramData->gameState.roomEntitySpawn.spawnedFlags[index>>5] |= 1 << (index & 31);
     return 1;
 }

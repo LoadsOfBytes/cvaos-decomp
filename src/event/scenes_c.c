@@ -46,16 +46,16 @@
 
 extern struct RoomDefinition sEndingRoomDefinition;
 
-void EventScene27_PickConversation(struct EwramData_EntityData *entity);
-void EventScene27_SelectScript36(struct EwramData_EntityData *entity);
+void EventSceneMinaTalk_PickConversation(struct EwramData_EntityData *entity);
+void EventSceneMinaTalk_SelectScript36(struct EwramData_EntityData *entity);
 void Conversation_Setup(s32 script, s32 group, s32 entry);
-void EventScene28_PickScript(struct EwramData_EntityData *entity);
+void EventSceneUnconsciousYoko_PickScript(struct EwramData_EntityData *entity);
 
 /**
  * @brief Unreferenced: H-blank BG2 affine zoom sequence in phases that also
- * spawns EventScene30 floating fragments.
+ * spawns EventSceneEnding floating fragments.
  */
-void EventScene30_UpdateUnusedZoom(struct EwramData_EntityData *entity)
+void EventSceneEnding_UpdateUnusedZoom(struct EwramData_EntityData *entity)
 {
     struct BgAffineDstData *out=(struct BgAffineDstData *)&gEwramData->hBlankEffect.hBlankBuffer[1-gEwramData->hBlankEffect.currentBuffer];
     s32 dx=0;
@@ -92,12 +92,12 @@ void EventScene30_UpdateUnusedZoom(struct EwramData_EntityData *entity)
         {SWEEP(entity)=0;PHASE(entity)++;entity->timer=0;}
         break;
     case 3:
-        BgPalette_LoadRange(sEventScene30TransformationPalette,0,1,0);
+        BgPalette_LoadRange(sEventSceneEndingTransformationPalette,0,1,0);
         if((u8)(entity->timer%24)==0)
         {
             s32 x=(s16)((u16)(CENTER_X(entity)+24)-RandomNumberGenerator()%48-16);
             u32 randY=RandomNumberGenerator(); s32 y=(u16)CENTER_Y(entity); y=(s16)(y-(randY%128)+48);
-            EventScene30_SpawnFloatingFragment(entity,x,y,0);
+            EventSceneEnding_SpawnFloatingFragment(entity,x,y,0);
         }
         dx=2-(RandomNumberGenerator()&3);
         dy=2-(RandomNumberGenerator()&3);
@@ -141,7 +141,7 @@ void EventScene30_UpdateUnusedZoom(struct EwramData_EntityData *entity)
         entity->ext.event30.timer++;
         break;
     case 5:
-        BgPalette_LoadRange(sEventScene30TransformationPalette,8,1,0);
+        BgPalette_LoadRange(sEventSceneEndingTransformationPalette,8,1,0);
         for(line=0;line<160;line++)
         {
             src.texX=0x8000;src.texY=0x8000;
@@ -155,8 +155,8 @@ void EventScene30_UpdateUnusedZoom(struct EwramData_EntityData *entity)
         {SWEEP(entity)=0;entity->timer=0;PHASE(entity)=8;}
         break;
     case 8:
-        BgPalette_LoadRange(sEventScene30TransformationPalette,9,1,0);
-        ObjPalette_LoadRange(sEventScene30Palette,1,1,entity->basePalette);
+        BgPalette_LoadRange(sEventSceneEndingTransformationPalette,9,1,0);
+        ObjPalette_LoadRange(sEventSceneEndingPalette,1,1,entity->basePalette);
         for(line=0;line<160;line++)
         {
             src.texX=0x8000;src.texY=0x8000;
@@ -309,7 +309,7 @@ void BgEffect_Bg2PerspectiveCopy(void)
  * @brief Init of event scene variant 24 (Object 0x20 spawnParam0 = 24,
  * sEventSceneCreateFuncs[24]).
  */
-void EventScene24_Init(struct EwramData_EntityData *entity)
+void EventSceneEndingWakeUp_Init(struct EwramData_EntityData *entity)
 {
     if (!(gEwramData->gameState.stateFlags & 0x4000))
         entity->deleteRequested = 1;
@@ -323,9 +323,9 @@ void EventScene24_Init(struct EwramData_EntityData *entity)
 }
 
 /* Upload a frame selected by unk_6, advancing once every two counts. */
-void EventScene30_UploadFrame(void)
+void EventSceneEnding_UploadFrame(void)
 {
-    struct ParticleFrames *frames = &sEventScene30ParticleFrames;
+    struct ParticleFrames *frames = &sEventSceneEndingParticleFrames;
     s32 index = (gEwramData->gameModeCounter >> 1) % frames->count;
     struct ParticleFrame *frame = &frames->frames[index];
     BgPalette_LoadRange(frame->data, frame->size,
@@ -335,7 +335,7 @@ void EventScene30_UploadFrame(void)
 /**
  * @brief Delete the flash at the end of its animation.
  */
-void EventScene30Flash_Update(struct EwramData_EntityData *entity)
+void EventSceneEndingFlash_Update(struct EwramData_EntityData *entity)
 {
     if (entity->animDone)
         entity->deleteRequested = 1;
@@ -347,7 +347,7 @@ void EventScene30Flash_Update(struct EwramData_EntityData *entity)
 /**
  * @brief Integrate velocity and acceleration, then discard outside the box.
  */
-void EventScene30Effect_UpdateBallistic(struct EwramData_EntityData *entity)
+void EventSceneEndingEffect_UpdateBallistic(struct EwramData_EntityData *entity)
 {
     entity->posX.whole += entity->velX.whole;
     entity->posY.whole += entity->velY.whole;
@@ -363,7 +363,7 @@ void EventScene30Effect_UpdateBallistic(struct EwramData_EntityData *entity)
  * @brief Integrate velocity and acceleration, spin the affine transform and
  * free the affine slot when leaving the box.
  */
-void EventScene30Effect_UpdateSpinning(struct EwramData_EntityData *entity)
+void EventSceneEndingEffect_UpdateSpinning(struct EwramData_EntityData *entity)
 {
     entity->posX.whole += entity->velX.whole;
     entity->posY.whole += entity->velY.whole;
@@ -383,7 +383,7 @@ void EventScene30Effect_UpdateSpinning(struct EwramData_EntityData *entity)
 /**
  * @brief Same transform update, with the affine slot retained on exit.
  */
-void EventScene30Effect_UpdateSpinningKeepSlot(struct EwramData_EntityData *entity)
+void EventSceneEndingEffect_UpdateSpinningKeepSlot(struct EwramData_EntityData *entity)
 {
     entity->posX.whole += entity->velX.whole;
     entity->posY.whole += entity->velY.whole;
@@ -402,7 +402,7 @@ void EventScene30Effect_UpdateSpinningKeepSlot(struct EwramData_EntityData *enti
  * @brief Init of event scene variant 25 (Object 0x20 spawnParam0 = 25,
  * sEventSceneCreateFuncs[25]).
  */
-void EventScene25_Init(struct EwramData_EntityData *entity)
+void EventSceneMeetHammer_Init(struct EwramData_EntityData *entity)
 {
     struct EwramData *ewram;
     struct BgLayerState *background;
@@ -437,7 +437,7 @@ void EventScene25_Init(struct EwramData_EntityData *entity)
  * @brief Update of event scene variant 25 (sEventSceneUpdateFuncs[25]); returns the
  * player input mask.
  */
-s32 EventScene25_Update(struct EwramData_EntityData *entity)
+s32 EventSceneMeetHammer_Update(struct EwramData_EntityData *entity)
 {
     s32 input = 0;
     struct EwramData *ewram = gEwramData;
@@ -532,7 +532,7 @@ s32 EventScene25_Update(struct EwramData_EntityData *entity)
 }
 
 /* Draw horizontally offset copies, restoring the original position. */
-void EventScene26_DrawOffsetCopies(struct EwramData_EntityData *entity)
+void EventSceneHammerTalk_DrawOffsetCopies(struct EwramData_EntityData *entity)
 {
     s16 x = entity->posX.part16.integer;
     s32 count = 1;
@@ -562,7 +562,7 @@ void EventScene26_DrawOffsetCopies(struct EwramData_EntityData *entity)
  * @brief Init of event scene variant 26 (Object 0x20 spawnParam0 = 26,
  * sEventSceneCreateFuncs[26]).
  */
-void EventScene26_Init(struct EwramData_EntityData *entity)
+void EventSceneHammerTalk_Init(struct EwramData_EntityData *entity)
 {
     if (!GameFlag_GetMask(0x20) || !GameFlag_GetMask(0x2E) || !Entity_SetupFromObjectTable(entity, 3))
         entity->deleteRequested = 1;
@@ -583,7 +583,7 @@ void EventScene26_Init(struct EwramData_EntityData *entity)
             entity->ext.event26.actor->posX.part16.integer = entity->posX.part16.integer;
             entity->ext.event26.actor->posY.part16.integer = entity->posY.part16.integer;
             entity->ext.event26.actor->spriteLayer = entity->spriteLayer + 1;
-            entity->ext.event26.actor->drawFunc = EventScene26_DrawOffsetCopies;
+            entity->ext.event26.actor->drawFunc = EventSceneHammerTalk_DrawOffsetCopies;
             entity->ext.event26.actor->updateFunc = EntityUpdateNothing;
         }
     }
@@ -595,7 +595,7 @@ void EventScene26_Init(struct EwramData_EntityData *entity)
  * @brief Update of event scene variant 26 (sEventSceneUpdateFuncs[26]); returns the
  * player input mask.
  */
-s32 EventScene26_Update(struct EwramData_EntityData *entity)
+s32 EventSceneHammerTalk_Update(struct EwramData_EntityData *entity)
 {
     s32 result = 0;
     struct EwramData *ewram = gEwramData;
@@ -719,7 +719,7 @@ s32 Player_IsInteractionBlocked(void)
  * @brief Init of event scene variant 27 (Object 0x20 spawnParam0 = 27,
  * sEventSceneCreateFuncs[27]).
  */
-void EventScene27_Init(struct EwramData_EntityData *entity)
+void EventSceneMinaTalk_Init(struct EwramData_EntityData *entity)
 {
     if (!GameFlag_GetMask(0x20) || !Entity_SetupFromObjectTable(entity, 0))
         entity->deleteRequested = 1;
@@ -737,13 +737,13 @@ void EventScene27_Init(struct EwramData_EntityData *entity)
  * @brief Update of event scene variant 27 (sEventSceneUpdateFuncs[27]); returns the
  * player input mask. Town character update (returns 0x10 while it walks
  * away): waits for the player to press up/talk inside its 0x30 x 0x40
- * box, stops the player, picks the conversation (EventScene27_PickConversation, the
- * Hammer branch with unk_4FC set, or 0x44 / EventScene27_SelectScript36), faces away
+ * box, stops the player, picks the conversation (EventSceneMinaTalk_PickConversation, the
+ * Hammer branch with unk_4FC set, or 0x44 / EventSceneMinaTalk_SelectScript36), faces away
  * from the player and runs it (TextWindow_Begin); after the text
  * (TextWindow_Update) restores the area music 0x26 and either returns to
  * waiting or (state 3) walks off until it is 0x30 px past the player.
  */
-s32 EventScene27_Update(struct EwramData_EntityData *entity)
+s32 EventSceneMinaTalk_Update(struct EwramData_EntityData *entity)
 {
     s32 result = 0;
     struct EwramData *ewram = gEwramData;
@@ -775,7 +775,7 @@ s32 EventScene27_Update(struct EwramData_EntityData *entity)
             {
                 Player_RestoreHPAndMP();
                 PlaySong(0x1B6);
-                EventScene27_PickConversation(entity);
+                EventSceneMinaTalk_PickConversation(entity);
             }
             else if (GameFlag_Is3ASet())
             {
@@ -783,7 +783,7 @@ s32 EventScene27_Update(struct EwramData_EntityData *entity)
                 entity->ext.event27.textId = 0x44;
             }
             else
-                EventScene27_SelectScript36(entity);
+                EventSceneMinaTalk_SelectScript36(entity);
             facing = 0;
             data = gEwramData;
             if (entity->posX.whole < data->playerState.player->posX.whole)
@@ -882,11 +882,11 @@ static inline void NextEntry(struct ConversationState *state, u8 *index, struct 
  * @brief 66308 | Pick the conversation of a town character into unk_4F8:
  * story scripts first (flags 0x36/0x3B with three inventory items, 0x26,
  * 0x2E, 0x21, 0x20 via GameFlag_GetMask / GameFlag_TestAndSet). Otherwise small talk
- * 0x45: group 0..6 by progress, entry from the 7 x 8 table sEventScene27TalkTable
+ * 0x45: group 0..6 by progress, entry from the 7 x 8 table sEventSceneMinaTalkTalkTable
  * cycling through the low nibble of pad_133E8[0] (restarted when the group
  * changes), skipping entries 7 / 9 while flags 0x39 / 0x3D are set.
  */
-void EventScene27_PickConversation(struct EwramData_EntityData *entity)
+void EventSceneMinaTalk_PickConversation(struct EwramData_EntityData *entity)
 {
     entity->ext.event27.textId = 0;
     if (GameFlag_Is3ASet())
@@ -946,7 +946,7 @@ void EventScene27_PickConversation(struct EwramData_EntityData *entity)
     {
         struct PlayerStatus *save = &gEwramData->playerStatus;
         s32 group = 0;
-        struct TalkTable table = sEventScene27TalkTable;
+        struct TalkTable table = sEventSceneMinaTalkTalkTable;
         s32 last = save->pad_133E8[0] >> 4;
         struct ConversationState *state = (struct ConversationState *)&gEwramData->sharedScratchBuffer[0x500];
 
@@ -1090,7 +1090,7 @@ void Conversation_Reset(void)
  * @brief Select conversation script 0x36 with group 1, 2 or 3 depending on
  * event flags 0x2E and 0x26.
  */
-void EventScene27_SelectScript36(struct EwramData_EntityData *entity)
+void EventSceneMinaTalk_SelectScript36(struct EwramData_EntityData *entity)
 {
     struct ConversationState *state = (struct ConversationState *)&gEwramData->sharedScratchBuffer[0x500];
     s32 zero = 0;
@@ -1114,7 +1114,7 @@ void EventScene27_SelectScript36(struct EwramData_EntityData *entity)
  * @brief Update of event scene variant 28 (sEventSceneUpdateFuncs[28]); returns the
  * player input mask.
  */
-s32 EventScene28_Update(struct EwramData_EntityData *entity)
+s32 EventSceneUnconsciousYoko_Update(struct EwramData_EntityData *entity)
 {
     s32 result = 0;
     struct EwramData *ewram = gEwramData;
@@ -1139,7 +1139,7 @@ s32 EventScene28_Update(struct EwramData_EntityData *entity)
                 actors->player->accelX.whole = 0;
                 if (actors->player->velY.whole < 0)
                     actors->player->velY.whole = 0;
-                EventScene28_PickScript(entity);
+                EventSceneUnconsciousYoko_PickScript(entity);
                 gEwramData->gameState.stateFlags |= 1;
                 TextWindow_Begin(entity->ext.event28.textId);
                 entity->state++;
@@ -1162,7 +1162,7 @@ s32 EventScene28_Update(struct EwramData_EntityData *entity)
 }
 
 /* Occasionally select script 0x59, otherwise initialize script 0x54. */
-void EventScene28_PickScript(struct EwramData_EntityData *entity)
+void EventSceneUnconsciousYoko_PickScript(struct EwramData_EntityData *entity)
 {
     entity->ext.event28.textId = 0;
     if (GameFlag_Is3ASet() && (RandomNumberGenerator() & 15) <= 3)
@@ -1182,7 +1182,7 @@ void EventScene28_PickScript(struct EwramData_EntityData *entity)
  * @brief Init of event scene variant 28 (Object 0x20 spawnParam0 = 28,
  * sEventSceneCreateFuncs[28]).
  */
-void EventScene28_Init(struct EwramData_EntityData *entity)
+void EventSceneUnconsciousYoko_Init(struct EwramData_EntityData *entity)
 {
     if (!GameFlag_GetMask(0x20))
         entity->deleteRequested = 1;

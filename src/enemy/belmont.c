@@ -155,8 +155,8 @@ void Belmont_CreateSceneObject(struct EwramData_EntityData *entity,s32 index)
             object->spawnIndex=info->event;
             object->enemyId=info->kind;
             object->drawFunc=Sprite_DrawEntity;
-            object->updateFunc=Object20Update;
-            Object20Create(object);
+            object->updateFunc=EventSceneControllerUpdate;
+            EventSceneControllerCreate(object);
             gEwramData->gameState.roomEntitySpawn.spawnedFlags[info->event>>5] |= 1 << (info->event & 31);
         }
     }

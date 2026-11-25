@@ -25,12 +25,12 @@
 #include "entity_hit.h"
 #include "bg_and_collision.h"
 
-extern void (*sObject0CTriggerFuncs[])(struct EwramData_EntityData *, struct Object0CTrigger *);
+extern void (*sTriggerZoneTriggerFuncs[])(struct EwramData_EntityData *, struct TriggerZoneTrigger *);
 extern s32 Pickup_TrySpawnOnHit(struct EwramData_EntityData *, s32, s32, s32);
 
 void BreakableBlockDust_Update(struct EwramData_EntityData *entity);
-void Object0E_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker);
-void Object0F_Draw(struct EwramData_EntityData *entity);
+void BreakableProp_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker);
+void Candle_Draw(struct EwramData_EntityData *entity);
 
 /**
  * @brief Burst debris piece: start with a random velocity away from the player,
@@ -82,7 +82,7 @@ void DebrisPiece_Update(struct EwramData_EntityData *entity)
  * @brief Object 0x09 debris piece: load the graphics of its kind from
  * sBreakableBlockVariants, fly ballistically and delete off screen.
  */
-void Object09Debris_Update(struct EwramData_EntityData *entity)
+void CrumblingWallDebris_Update(struct EwramData_EntityData *entity)
 {
     switch (entity->state)
     {
@@ -157,7 +157,7 @@ void BreakableBlock_SpawnDust(struct EwramData_EntityData *entity)
     switch (entity->state)
     {
     case 0:
-        entity->ext.object08Dust.gfx = ObjGfx_Find((u8 *)sCommonObjectGfx);
+        entity->ext.breakableBlockDust.gfx = ObjGfx_Find((u8 *)sCommonObjectGfx);
         entity->timer = 0x20;
         entity->state++;
     case 1:
@@ -166,11 +166,11 @@ void BreakableBlock_SpawnDust(struct EwramData_EntityData *entity)
             piece = EntityCreateInRange(0x49, 0xCF, BreakableBlockDust_Update);
             if (piece != NULL)
             {
-                Sprite_Attach(piece, (void *)sCommonObjectSpriteSheet, entity->ext.object08Dust.gfx, 6);
+                Sprite_Attach(piece, (void *)sCommonObjectSpriteSheet, entity->ext.breakableBlockDust.gfx, 6);
                 Anim_StartIndexed(piece, 5, 0, 0);
                 Anim_Update(piece);
                 piece->spriteLayer = entity->spriteLayer;
-                switch ((u8)entity->ext.object08.kind)
+                switch ((u8)entity->ext.breakableBlock.kind)
                 {
                 case 1:
                 case 2:
@@ -217,7 +217,7 @@ void BreakableBlock_SetCollision(struct EwramData_EntityData *entity)
     s32 i;
     s32 j;
 
-    switch ((u8)entity->ext.object08.kind)
+    switch ((u8)entity->ext.breakableBlock.kind)
     {
         case 2:
             offsetX -= 0x10;
@@ -275,7 +275,7 @@ void BreakableBlock_ClearCollision(struct EwramData_EntityData *entity)
     s32 i;
     s32 j;
 
-    switch ((u8)entity->ext.object08.kind)
+    switch ((u8)entity->ext.breakableBlock.kind)
     {
         case 2:
             offsetX -= 0x10;
@@ -317,7 +317,7 @@ void BreakableBlock_ClearCollision(struct EwramData_EntityData *entity)
 }
 
 /* Object 08: persistent flag, per-kind graphics and a centred hit box. */
-void Object08Create(struct EwramData_EntityData *entity)
+void BreakableBlockCreate(struct EwramData_EntityData *entity)
 {
     struct BreakableBlockVariant *kind;
     struct BreakableBlockGraphics *graphics;
@@ -338,7 +338,7 @@ void Object08Create(struct EwramData_EntityData *entity)
     }
     entity->animFrame = kind->animFrame;
     box = ((-kind->collisionWidth / 2) & 255) + (((-kind->collisionHeight / 2) & 255) << 8) + (kind->collisionWidth << 16) + (kind->collisionHeight << 24);
-    entity->ext.object08.kind = kind->collisionMode;
+    entity->ext.breakableBlock.kind = kind->collisionMode;
     BreakableBlock_SetCollision(entity);
     Hit_Enable(entity, 8, NULL, 0);
     HitBox_SetBodyRaw(entity, box);
@@ -354,7 +354,7 @@ void Object08Create(struct EwramData_EntityData *entity)
  * 0xAB, BreakableBlock_ClearCollision), sets its flag in gameFlagsTail, updates the map
  * (GameFlag_FindRoomCoordinate / GameFlag_Set) and finishes it.
  */
-void Object08Update(struct EwramData_EntityData *entity)
+void BreakableBlockUpdate(struct EwramData_EntityData *entity)
 {
     struct HitResult result;
     struct EwramData_EntityData *child;
@@ -383,7 +383,7 @@ void Object08Update(struct EwramData_EntityData *entity)
     child = EntityCreateInRange(0x49, 0xCF, BreakableBlock_SpawnDust);
     if (child != NULL)
     {
-        child->ext.object08.kind = entity->ext.object08.kind;
+        child->ext.breakableBlock.kind = entity->ext.breakableBlock.kind;
         child->spriteLayer = entity->spriteLayer - 1;
         child->posX.part16.integer = entity->posX.part16.integer;
         child->posY.part16.integer = entity->posY.part16.integer;
@@ -401,13 +401,13 @@ void Object08Update(struct EwramData_EntityData *entity)
     gEwramData->gameState.gameFlagsTail[entity->spawnParam1 >> 5] |= 1 << (entity->spawnParam1 & 0x1F);
     x = GetEntityRoomXPositionInteger(entity);
     y = GetEntityRoomYPositionInteger(entity);
-    r = GameFlag_FindRoomCoordinate((s16)x, (s16)y, (u8)entity->ext.object08.kind);
+    r = GameFlag_FindRoomCoordinate((s16)x, (s16)y, (u8)entity->ext.breakableBlock.kind);
     if (r >= 0)
         GameFlag_Set(r);
     entity->deleteRequested = 1;
 }
 
-/* Object09Create (breakable block). */
+/* CrumblingWallCreate (breakable block). */
 
 /* Per variant (see also this file): graphics set, palette, frame,
  * area offset / size, layer and mode. */
@@ -420,7 +420,7 @@ void Object08Update(struct EwramData_EntityData *entity)
  * the graphics cannot be loaded; otherwise frame / mode from its variant
  * and BreakableBlock_SetCollision.
  */
-void Object09Create(struct EwramData_EntityData *entity)
+void CrumblingWallCreate(struct EwramData_EntityData *entity)
 {
     struct EwramData *ewram = gEwramData;
     struct BreakableBlockVariant *def;
@@ -441,7 +441,7 @@ void Object09Create(struct EwramData_EntityData *entity)
         return;
     }
     entity->animFrame = def->animFrame;
-    entity->ext.object09.collisionMode = def->collisionMode;
+    entity->ext.crumblingWall.collisionMode = def->collisionMode;
     BreakableBlock_SetCollision(entity);
 }
 
@@ -450,11 +450,11 @@ void Object09Create(struct EwramData_EntityData *entity)
  * gameFlagsTail) is set: dust Effect_SpawnShared every 16th frame while Player_TestSoulStateFlags
  * holds; when the room entry sBreakableBlockVariants[spawnParam0].collisionMode is set it just
  * opens (Debris_SpawnBurst(0)), otherwise up to 3 x 7 debris pieces
- * Object09Debris_Update scatter over the wall and it opens 32 px up; then song
+ * CrumblingWallDebris_Update scatter over the wall and it opens 32 px up; then song
  * 0xAB, BreakableBlock_ClearCollision, the map update (GameFlag_FindRoomCoordinate / GameFlag_Set) and it
  * finishes.
  */
-void Object09Update(struct EwramData_EntityData *entity)
+void CrumblingWallUpdate(struct EwramData_EntityData *entity)
 {
     u8 unused[16];
     struct EwramData_EntityData *dust;
@@ -486,7 +486,7 @@ void Object09Update(struct EwramData_EntityData *entity)
         {
             for (j = -3; j <= 3; j++)
             {
-                piece = EntityCreateInRange(0x49, 0xCF, Object09Debris_Update);
+                piece = EntityCreateInRange(0x49, 0xCF, CrumblingWallDebris_Update);
                 if (piece == NULL)
                     break;
                 piece->scrollWithBg = 1;
@@ -501,7 +501,7 @@ void Object09Update(struct EwramData_EntityData *entity)
     BreakableBlock_ClearCollision(entity);
     x = GetEntityRoomXPositionInteger(entity);
     y = GetEntityRoomYPositionInteger(entity);
-    r = GameFlag_FindRoomCoordinate((s16)x, (s16)y, (u8)entity->ext.object09.collisionMode);
+    r = GameFlag_FindRoomCoordinate((s16)x, (s16)y, (u8)entity->ext.crumblingWall.collisionMode);
     if (r >= 0)
         GameFlag_Set(r);
     entity->deleteRequested = 1;
@@ -527,7 +527,7 @@ void BreakableBlockDust_Update(struct EwramData_EntityData *entity)
 }
 
 /* Conditional creation from the common entity template table. */
-void Object0ACreate(struct EwramData_EntityData *entity)
+void BossFlagEnemySpawnerCreate(struct EwramData_EntityData *entity)
 {
     if (((gEwramData->gameState.bossEventFlags >> entity->spawnParam1) & 1) == 0)
         EntityDelete(entity);
@@ -544,11 +544,11 @@ void Object0ACreate(struct EwramData_EntityData *entity)
     }
 }
 
-void Object0AUpdate(struct EwramData_EntityData *entity)
+void BossFlagEnemySpawnerUpdate(struct EwramData_EntityData *entity)
 {
 }
 
-void Object0BCreate(struct EwramData_EntityData *entity)
+void GameFlagEnemySpawnerCreate(struct EwramData_EntityData *entity)
 {
     if (!GameFlag_GetMask(entity->spawnParam1))
         EntityDelete(entity);
@@ -565,11 +565,11 @@ void Object0BCreate(struct EwramData_EntityData *entity)
     }
 }
 
-void Object0BUpdate(struct EwramData_EntityData *entity)
+void GameFlagEnemySpawnerUpdate(struct EwramData_EntityData *entity)
 {
 }
 
-/* Object0C_LaunchPlayerTrigger, decompiled from the original assembly. The store to
+/* TriggerZone_LaunchPlayerTrigger, decompiled from the original assembly. The store to
  * hitSourceX goes through a pointer type: with strict aliasing it may alias
  * the player pointer, which is then reloaded as in the target. */
 /* Object 0x0C: rectangular interaction regions with a callback table. */
@@ -580,7 +580,7 @@ void Object0BUpdate(struct EwramData_EntityData *entity)
  * player motion (hitReaction.. fields) with speed 0x30000 left (value 0) or
  * right, copying that speed to the entity velX.
  */
-void Object0C_LaunchPlayerTrigger(struct EwramData_EntityData *entity, struct Object0CTrigger *trigger)
+void TriggerZone_LaunchPlayerTrigger(struct EwramData_EntityData *entity, struct TriggerZoneTrigger *trigger)
 {
     s32 speed = 0x30000;
     struct EwramData *ewram = gEwramData;
@@ -613,7 +613,7 @@ void Object0C_LaunchPlayerTrigger(struct EwramData_EntityData *entity, struct Ob
 }
 
 /* Object 0x0C: rectangular interaction regions with a callback table. */
-static inline s32 TriggerContainsPoint(s16 x, s16 y, struct Object0CTrigger *trigger)
+static inline s32 TriggerContainsPoint(s16 x, s16 y, struct TriggerZoneTrigger *trigger)
 {
     if (x < trigger->x)
         return 0;
@@ -626,16 +626,16 @@ static inline s32 TriggerContainsPoint(s16 x, s16 y, struct Object0CTrigger *tri
     return 1;
 }
 
-void Object0CUpdate(struct EwramData_EntityData *entity)
+void TriggerZoneUpdate(struct EwramData_EntityData *entity)
 {
-    struct Object0CTrigger *trigger = sObject0CTriggerLists[entity->spawnParam0];
+    struct TriggerZoneTrigger *trigger = sTriggerZoneTriggerLists[entity->spawnParam0];
     u16 x = GetEntityRoomXPositionInteger(gEwramData->playerState.player);
     u16 y = GetEntityRoomYPositionInteger(gEwramData->playerState.player);
     entity->velX.whole = 0;
     while (trigger->type != 3)
     {
         if (TriggerContainsPoint(x, y, trigger))
-            sObject0CTriggerFuncs[trigger->type](entity, trigger);
+            sTriggerZoneTriggerFuncs[trigger->type](entity, trigger);
         trigger++;
     }
     if (!entity->roomActive)
@@ -649,7 +649,7 @@ void Object0CUpdate(struct EwramData_EntityData *entity)
 
 /* Copy the second word of the supplied data to velX when the player's
  * unk_4F4 flag 0x400000 is active. */
-void Object0C_ApplyTriggerVelocity(struct EwramData_EntityData *entity, s32 *data)
+void TriggerZone_ApplyTriggerVelocity(struct EwramData_EntityData *entity, s32 *data)
 {
     if (gEwramData->playerState.player->ext.player.actionFlags & 0x400000)
         entity->velX.whole = data[1];
@@ -659,7 +659,7 @@ void Object0C_ApplyTriggerVelocity(struct EwramData_EntityData *entity, s32 *dat
  * @brief Trigger type 1: when the player has flag 0x400000 in unk_4F4, also set
  * flag 0x4000000.
  */
-void Object0C_SetPlayerTriggerFlag(void)
+void TriggerZone_SetPlayerTriggerFlag(void)
 {
     struct EwramData_EntityData *player = gEwramData->playerState.player;
     if (player->ext.player.actionFlags & 0x400000)
@@ -667,24 +667,24 @@ void Object0C_SetPlayerTriggerFlag(void)
 }
 
 /**
- * @brief Carry callback (slot 5) of the object 0x0C solid table sObject0CSolidCallbacks:
+ * @brief Carry callback (slot 5) of the object 0x0C solid table sTriggerZoneSolidCallbacks:
  * return its x velocity.
  */
-s32 Object0C_GetCarryVelocity(struct EwramData_EntityData *entity)
+s32 TriggerZone_GetCarryVelocity(struct EwramData_EntityData *entity)
 {
     return entity->velX.whole;
 }
 
-void Object0CCreate(struct EwramData_EntityData *entity)
+void TriggerZoneCreate(struct EwramData_EntityData *entity)
 {
-    Player_RegisterSolidObject(entity, sObject0CSolidCallbacks);
+    Player_RegisterSolidObject(entity, sTriggerZoneSolidCallbacks);
     entity->roomActive = 1;
 }
 
-void Object0DCreate(struct EwramData_EntityData *entity)
+void SwingingPlatformCreate(struct EwramData_EntityData *entity)
 {
     u16 slot;
-    if (!Entity_LoadGraphicsWide(entity, sObject0DGfx, sObject0DPalette, 0, sObject0DSpriteSheet))
+    if (!Entity_LoadGraphicsWide(entity, sSwingingPlatformGfx, sSwingingPlatformPalette, 0, sSwingingPlatformSpriteSheet))
     {
         EntityDelete(entity);
         return;
@@ -716,7 +716,7 @@ void Object0DCreate(struct EwramData_EntityData *entity)
  * zero crossing; speed and angle (+-0x1000) are clamped and drawn with
  * ObjAffine_Set.
  */
-void Object0DUpdate(struct EwramData_EntityData *entity)
+void SwingingPlatformUpdate(struct EwramData_EntityData *entity)
 {
     struct HitResult result;
     s32 angle;
@@ -735,8 +735,8 @@ void Object0DUpdate(struct EwramData_EntityData *entity)
             PlaySong(0x112);
             if (gEwramData->playerState.player->posX.whole < entity->posX.whole)
                 impulse = -impulse;
-            entity->ext.object0D.speed = impulse;
-            entity->ext.object0D.amplitude = 0x100;
+            entity->ext.swingingPlatform.speed = impulse;
+            entity->ext.swingingPlatform.amplitude = 0x100;
             entity->subState = 1;
         }
     }
@@ -748,46 +748,46 @@ void Object0DUpdate(struct EwramData_EntityData *entity)
         PlaySong(0x112);
         if (gEwramData->playerState.player->posX.whole < entity->posX.whole)
             impulse = -impulse;
-        entity->ext.object0D.speed = impulse;
-        entity->ext.object0D.amplitude = 0x100;
+        entity->ext.swingingPlatform.speed = impulse;
+        entity->ext.swingingPlatform.amplitude = 0x100;
     }
-    angle = entity->ext.object0D.angle;
+    angle = entity->ext.swingingPlatform.angle;
     if (angle > 0)
     {
-        entity->ext.object0D.speed -= 0x10;
-        if ((s32)(entity->ext.object0D.angle = angle + entity->ext.object0D.speed) <= 0)
+        entity->ext.swingingPlatform.speed -= 0x10;
+        if ((s32)(entity->ext.swingingPlatform.angle = angle + entity->ext.swingingPlatform.speed) <= 0)
         {
-            if (entity->ext.object0D.amplitude != 0)
-                entity->ext.object0D.amplitude -= 0x20;
+            if (entity->ext.swingingPlatform.amplitude != 0)
+                entity->ext.swingingPlatform.amplitude -= 0x20;
         }
     }
     else if (angle < 0)
     {
-        entity->ext.object0D.speed += 0x10;
-        if ((s32)(entity->ext.object0D.angle = angle + entity->ext.object0D.speed) >= 0)
+        entity->ext.swingingPlatform.speed += 0x10;
+        if ((s32)(entity->ext.swingingPlatform.angle = angle + entity->ext.swingingPlatform.speed) >= 0)
         {
-            if (entity->ext.object0D.amplitude != 0)
-                entity->ext.object0D.amplitude -= 0x20;
+            if (entity->ext.swingingPlatform.amplitude != 0)
+                entity->ext.swingingPlatform.amplitude -= 0x20;
         }
     }
     else
-        entity->ext.object0D.angle = angle + entity->ext.object0D.speed;
+        entity->ext.swingingPlatform.angle = angle + entity->ext.swingingPlatform.speed;
     {
-        s32 v = entity->ext.object0D.speed;
-        s32 lim = entity->ext.object0D.amplitude;
+        s32 v = entity->ext.swingingPlatform.speed;
+        s32 lim = entity->ext.swingingPlatform.amplitude;
         if (v > lim || v < (lim = -lim))
-            entity->ext.object0D.speed = lim;
+            entity->ext.swingingPlatform.speed = lim;
     }
     {
-        if ((s32)entity->ext.object0D.angle > 0x1000)
-            entity->ext.object0D.angle = 0x1000;
-        else if ((s32)entity->ext.object0D.angle < -0x1000)
-            entity->ext.object0D.angle = -0x1000;
+        if ((s32)entity->ext.swingingPlatform.angle > 0x1000)
+            entity->ext.swingingPlatform.angle = 0x1000;
+        else if ((s32)entity->ext.swingingPlatform.angle < -0x1000)
+            entity->ext.swingingPlatform.angle = -0x1000;
     }
-    ObjAffine_Set(entity->ext.object0D.angle, 0x10000, 0x10000, 0, 0, entity->affineIndex);
+    ObjAffine_Set(entity->ext.swingingPlatform.angle, 0x10000, 0x10000, 0, 0, entity->affineIndex);
 }
 
-/* Object0EPiece_Update (falling object hitting the ground). */
+/* BreakablePropPiece_Update (falling object hitting the ground). */
 
 /**
  * @brief 50920 | Fall; on hitting solid ground (Collision_GetGroundOffset) spawn a
@@ -795,7 +795,7 @@ void Object0DUpdate(struct EwramData_EntityData *entity)
  * or 0x159 at random and finish (0x53D bit 3); also finish when far off
  * screen.
  */
-void Object0EPiece_Update(struct EwramData_EntityData *entity)
+void BreakablePropPiece_Update(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *bg;
     s32 x;
@@ -834,20 +834,20 @@ void Object0EPiece_Update(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief Spawn the variant's count of falling pieces (Object0EPiece_Update) with
+ * @brief Spawn the variant's count of falling pieces (BreakablePropPiece_Update) with
  * consecutive frames, loading their graphics; stop when no entity slot or
  * graphics are available.
  */
-void Object0E_SpawnPieces(struct EwramData_EntityData *owner)
+void BreakableProp_SpawnPieces(struct EwramData_EntityData *owner)
 {
-    const struct Object0EVariant *info = &sObject0EVariants[owner->spawnParam0];
-    const struct Object0EGraphics *gfx = &sObject0EGraphics[info->graphics];
+    const struct BreakablePropVariant *info = &sBreakablePropVariants[owner->spawnParam0];
+    const struct BreakablePropGraphics *gfx = &sBreakablePropGraphics[info->graphics];
     s32 frame = info->firstPieceFrame;
     s32 i;
     struct { s16 x, y; } pos;
     for (i = 0; i < info->pieceCount; i++, frame++)
     {
-        struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, Object0EPiece_Update);
+        struct EwramData_EntityData *entity = EntityCreateInRange(0x49, 0xCF, BreakablePropPiece_Update);
         if (!entity)
             return;
         if (!Entity_LoadGraphics(entity, gfx->graphics, gfx->palette, info->palette, gfx->sprites))
@@ -876,11 +876,11 @@ void Object0E_SpawnPieces(struct EwramData_EntityData *owner)
  * @brief Unless hidden, animate and draw one pixel lower; every other two frames
  * also draw the variant's overlay frame when it has one.
  */
-void Object0E_Draw(struct EwramData_EntityData *entity)
+void BreakableProp_Draw(struct EwramData_EntityData *entity)
 {
-    struct Object0EVariant *info;
+    struct BreakablePropVariant *info;
     if (entity->hidden) return;
-    info = &sObject0EVariants[entity->spawnParam0];
+    info = &sBreakablePropVariants[entity->spawnParam0];
     Anim_Update(entity);
     entity->posY.part16.integer++;
     Sprite_Draw(entity);
@@ -894,10 +894,10 @@ void Object0E_Draw(struct EwramData_EntityData *entity)
     }
 }
 
-void Object0ECreate(struct EwramData_EntityData *entity)
+void BreakablePropCreate(struct EwramData_EntityData *entity)
 {
-    struct Object0EVariant *variant = &sObject0EVariants[entity->spawnParam0];
-    struct Object0EGraphics *graphics = &sObject0EGraphics[variant->graphics];
+    struct BreakablePropVariant *variant = &sBreakablePropVariants[entity->spawnParam0];
+    struct BreakablePropGraphics *graphics = &sBreakablePropGraphics[variant->graphics];
     if (!Entity_LoadGraphics(entity, graphics->graphics, graphics->palette, variant->palette, graphics->sprites))
     {
         EntityDelete(entity);
@@ -906,15 +906,15 @@ void Object0ECreate(struct EwramData_EntityData *entity)
     entity->spriteLayer = 0x14;
     Anim_StartIndexed(entity, variant->animation, 0, 1);
     Anim_Update(entity);
-    entity->drawFunc = Object0E_Draw;
-    Hit_Enable(entity, 0, NULL, Object0E_OnHit);
+    entity->drawFunc = BreakableProp_Draw;
+    Hit_Enable(entity, 0, NULL, BreakableProp_OnHit);
     entity->hit.flags |= 2;
     HitBox_SetBodyRaw(entity, variant->box);
     if (variant->skipGroundSnap == 0) Entity_SnapToGround(entity);
     entity->scrollWithBg = 1;
 }
 
-void Object0EUpdate(struct EwramData_EntityData *entity)
+void BreakablePropUpdate(struct EwramData_EntityData *entity)
 {
     u8 *entry;
     if (!Entity_IsInRect(entity, -0x20, -0x20, 0x130, 0x120))
@@ -929,7 +929,7 @@ void Object0EUpdate(struct EwramData_EntityData *entity)
         entry = sUnk_08526370[entity->spawnParam1];
         if (Pickup_TrySpawnOnHit(entity, -20, entry[0], entry[1]))
         {
-            Object0E_SpawnPieces(entity);
+            BreakableProp_SpawnPieces(entity);
             PlaySong(0xA2);
             entity->hidden = 1;
             entity->timer = 0x28;
@@ -944,11 +944,11 @@ void Object0EUpdate(struct EwramData_EntityData *entity)
     }
 }
 
-/* Object0E_OnHit. */
+/* BreakableProp_OnHit. */
 /**
  * @brief 50D98 | velX = 1, or -1 when entity is left of attacker.
  */
-void Object0E_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker)
+void BreakableProp_OnHit(struct EwramData_EntityData *entity, struct EwramData_EntityData *attacker)
 {
     s32 speed = 1;
 
@@ -961,7 +961,7 @@ void Object0E_OnHit(struct EwramData_EntityData *entity, struct EwramData_Entity
 
 /* Select palette from the high byte of the placement parameter (default 7),
  * retain its low byte, and install drawing/collision data. */
-void Object0FCreate(struct EwramData_EntityData *entity)
+void CandleCreate(struct EwramData_EntityData *entity)
 {
     s32 palette = (u16)entity->spawnParam0 >> 8;
     s32 graphics;
@@ -978,12 +978,12 @@ void Object0FCreate(struct EwramData_EntityData *entity)
     entity->hit.flags |= 2;
     /* Packed box {-6, -8, 12, 8}, passed by value. */
     HitBox_SetBodyRaw(entity, 0x080CF8FA);
-    entity->drawFunc = Object0F_Draw;
+    entity->drawFunc = Candle_Draw;
 }
 
 /* Activation starts a 40-frame countdown, with particles during its first
  * ten frames. The object is marked for removal when the counter wraps. */
-void Object0FUpdate(struct EwramData_EntityData *entity)
+void CandleUpdate(struct EwramData_EntityData *entity)
 {
     s32 x;
     s32 y;
@@ -1017,11 +1017,11 @@ void Object0FUpdate(struct EwramData_EntityData *entity)
     }
 }
 
-/* Object0F_Draw (same code as SaveSelect_Open). */
+/* Candle_Draw (same code as SaveSelect_Open). */
 /**
  * @brief 50F08 | Animate, then Sprite_Draw.
  */
-void Object0F_Draw(struct EwramData_EntityData *entity)
+void Candle_Draw(struct EwramData_EntityData *entity)
 {
     Anim_Update(entity);
     Sprite_Draw(entity);

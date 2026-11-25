@@ -33,10 +33,10 @@
 #include "bg_and_collision.h"
 
 s32 Player_GetZoneAroundXCopy(u16 centerX, u16 innerWidth, u16 outerWidth);
-s32 EventScene19_LoadGraphics(struct EwramData_EntityData *entity);
-void EventScene19_Finish(struct EwramData_EntityData *);
+s32 EventSceneJuliusBattleStart_LoadGraphics(struct EwramData_EntityData *entity);
+void EventSceneJuliusBattleStart_Finish(struct EwramData_EntityData *);
 
-/* EventScene04_Init, EventScene04_RunMusicScript. */
+/* EventSceneMeetGraham_Init, EventSceneMeetGraham_RunMusicScript. */
 
 /**
  * @brief Init of event scene variant 4 (Object 0x20 spawnParam0 = 4,
@@ -45,7 +45,7 @@ void EventScene19_Finish(struct EwramData_EntityData *);
  * at room (0xA0, 0xC0) moving right (0xC000), facing right, and set
  * gameState.stateFlags bit 0.
  */
-void EventScene04_Init(struct EwramData_EntityData *entity)
+void EventSceneMeetGraham_Init(struct EwramData_EntityData *entity)
 {
     struct EwramData *ewram;
     struct BgLayerState *bg;
@@ -79,7 +79,7 @@ void EventScene04_Init(struct EwramData_EntityData *entity)
  * Music_SetCurrent(0x16); again song 0x1010 and wait, then Music_UpdateRoom;
  * returns 1 once finished.
  */
-s32 EventScene04_RunMusicScript(struct EwramData_EntityData *entity)
+s32 EventSceneMeetGraham_RunMusicScript(struct EwramData_EntityData *entity)
 {
     s32 done = 0;
 
@@ -125,7 +125,7 @@ s32 EventScene04_RunMusicScript(struct EwramData_EntityData *entity)
  * sUnk_0852682C, then walks off to the right and sets unk_414 to 5; on
  * the end of the conversation sets event 0x21.
  */
-s32 EventScene04_Update(struct EwramData_EntityData *entity)
+s32 EventSceneMeetGraham_Update(struct EwramData_EntityData *entity)
 {
     s32 ret;
     struct EwramData **ewp;
@@ -265,7 +265,7 @@ s32 EventScene04_Update(struct EwramData_EntityData *entity)
     return ret;
 }
 
-/* EventScene05_Init. */
+/* EventSceneMeetYoko_Init. */
 
 /**
  * @brief Init of event scene variant 5 (Object 0x20 spawnParam0 = 5,
@@ -273,7 +273,7 @@ s32 EventScene04_Update(struct EwramData_EntityData *entity)
  * set Interaction_End(entity, 1); else animation 0 at room (0xA0, 0xA0)
  * facing right and gameState.stateFlags bit 0.
  */
-void EventScene05_Init(struct EwramData_EntityData *entity)
+void EventSceneMeetYoko_Init(struct EwramData_EntityData *entity)
 {
     struct EwramData *ewram;
     struct BgLayerState *bg;
@@ -305,7 +305,7 @@ void EventScene05_Init(struct EwramData_EntityData *entity)
  * right and sets unk_414 to 5; on the end of the conversation sets event
  * 0x22.
  */
-s32 EventScene05_Update(struct EwramData_EntityData *entity)
+s32 EventSceneMeetYoko_Update(struct EwramData_EntityData *entity)
 {
     s32 ret;
     struct EwramData **ewp;
@@ -413,14 +413,14 @@ s32 EventScene05_Update(struct EwramData_EntityData *entity)
     return ret;
 }
 
-/* EventScene06_Init. */
+/* EventSceneMeetJ_Init. */
 /**
  * @brief Init of event scene variant 6 (Object 0x20 spawnParam0 = 6,
  * sEventSceneCreateFuncs[6]). Create step of a scene object: deleted when flag
  * 0x23 is set; else animation 0 at room (0x50, 0xC0) facing left,
  * gameState.stateFlags bit 0 and hBlankEffect.requestStop.
  */
-void EventScene06_Init(struct EwramData_EntityData *entity)
+void EventSceneMeetJ_Init(struct EwramData_EntityData *entity)
 {
     struct EwramData *ewram;
     struct BgLayerState *bg;
@@ -453,7 +453,7 @@ void EventScene06_Init(struct EwramData_EntityData *entity)
  * 0xAE (returns 0x20 meanwhile), then walks off to the left and sets
  * unk_414 to 5; on the end of the conversation sets event 0x23.
  */
-s32 EventScene06_Update(struct EwramData_EntityData *entity)
+s32 EventSceneMeetJ_Update(struct EwramData_EntityData *entity)
 {
     s32 ret;
     struct EwramData **ewp;
@@ -565,7 +565,7 @@ s32 EventScene06_Update(struct EwramData_EntityData *entity)
  * @brief Init of event scene variant 7 (Object 0x20 spawnParam0 = 7,
  * sEventSceneCreateFuncs[7]).
  */
-void EventScene07_Init(struct EwramData_EntityData *entity)
+void EventSceneGrahamClaimsDracula_Init(struct EwramData_EntityData *entity)
 {
     s32 flag = GameFlag_GetMask(0x24);
     struct BgLayerState *bg;
@@ -598,7 +598,7 @@ void EventScene07_Init(struct EwramData_EntityData *entity)
  * scrolls the camera, walks off to the left and finally sets unk_414 to
  * 5; on the end of the conversation sets event 0x24.
  */
-s32 EventScene07_Update(struct EwramData_EntityData *entity)
+s32 EventSceneGrahamClaimsDracula_Update(struct EwramData_EntityData *entity)
 {
     s32 ret;
     struct EwramData **ewp;
@@ -710,14 +710,14 @@ s32 EventScene07_Update(struct EwramData_EntityData *entity)
     return ret;
 }
 
-/* EventScene08_Init. */
+/* EventSceneYokoPlansTrap_Init. */
 /**
  * @brief Init of event scene variant 8 (Object 0x20 spawnParam0 = 8,
  * sEventSceneCreateFuncs[8]). Create step of a scene object: deleted when flag
  * 0x25 is set; else animation 0 at room (0x50, 0xA0) facing left and
  * gameState.stateFlags bit 0.
  */
-void EventScene08_Init(struct EwramData_EntityData *entity)
+void EventSceneYokoPlansTrap_Init(struct EwramData_EntityData *entity)
 {
     struct EwramData *ewram;
     struct BgLayerState *bg;
@@ -745,12 +745,12 @@ void EventScene08_Init(struct EwramData_EntityData *entity)
 /**
  * @brief Update of event scene variant 8 (sEventSceneUpdateFuncs[8]); returns the player
  * input mask. Cutscene object for conversation 0x13 (sibling of
- * EventScene05_Update): keeps the player at x <= 0xA0 (returns 0x20
+ * EventSceneMeetYoko_Update): keeps the player at x <= 0xA0 (returns 0x20
  * meanwhile), plays song 0x1B7, walks off to the left; on the end of the
  * conversation sets event 0x25 (and returns without a value, as the
  * original).
  */
-s32 EventScene08_Update(struct EwramData_EntityData *entity)
+s32 EventSceneYokoPlansTrap_Update(struct EwramData_EntityData *entity)
 {
     s32 ret;
     struct EwramData **ewp;
@@ -858,14 +858,14 @@ s32 EventScene08_Update(struct EwramData_EntityData *entity)
 end:
 }
 
-/* Cutscene setup with two helper entities (EventScene09_Init). The do/while (0)
+/* Cutscene setup with two helper entities (EventSceneRescueYoko_Init). The do/while (0)
  * around Anim_Update(entity) gives entity 32 refs so it gets r4. */
 
 /**
  * @brief Init of event scene variant 9 (Object 0x20 spawnParam0 = 9,
  * sEventSceneCreateFuncs[9]).
  */
-void EventScene09_Init(struct EwramData_EntityData *self)
+void EventSceneRescueYoko_Init(struct EwramData_EntityData *self)
 {
     struct EwramData_EntityData *entity = self;
     s32 flag;
@@ -932,13 +932,13 @@ void EventScene09_Init(struct EwramData_EntityData *self)
     gEwramData->gameState.stateFlags |= 1;
 }
 
-/* EventScene09_PlaceHelpers. */
+/* EventSceneRescueYoko_PlaceHelpers. */
 /**
  * @brief 601D4 | Scene step: face left one layer above the player with
  * frame 0x12, end helper unk_4F8 (deleteRequested) and put helper unk_4FC 0x60
  * px to the right with animation 1.
  */
-s32 EventScene09_PlaceHelpers(struct EwramData_EntityData *entity)
+s32 EventSceneRescueYoko_PlaceHelpers(struct EwramData_EntityData *entity)
 {
     entity->flipX = 1;
     entity->spriteLayer = gEwramData->playerState.player->spriteLayer + 1;
@@ -956,7 +956,7 @@ s32 EventScene09_PlaceHelpers(struct EwramData_EntityData *entity)
  * @brief Update of event scene variant 9 (sEventSceneUpdateFuncs[9]); returns the player
  * input mask.
  */
-s32 EventScene09_Update(struct EwramData_EntityData *entity)
+s32 EventSceneRescueYoko_Update(struct EwramData_EntityData *entity)
 {
     s32 input = 0;
     struct GameState *context;
@@ -973,7 +973,7 @@ s32 EventScene09_Update(struct EwramData_EntityData *entity)
         entity->state++;
     case 1:
         if (TextWindow_Update()) {
-            EventScene09_PlaceHelpers(entity);
+            EventSceneRescueYoko_PlaceHelpers(entity);
             entity->state = 0x80;
             Interaction_End(entity, 0);
             GameFlag_Set(0x26);
@@ -1166,7 +1166,7 @@ s32 EventScene09_Update(struct EwramData_EntityData *entity)
  * 0x80; clears the HBlank buffer and faces the object towards the
  * player.
  */
-void EventScene10_Init(struct EwramData_EntityData *entity)
+void EventSceneJRegainsMemories_Init(struct EwramData_EntityData *entity)
 {
     s32 r;
     struct BgLayerState *cam;
@@ -1210,7 +1210,7 @@ struct CameraXView { u8 pad[6]; s16 x; };
  * @brief Update of event scene variant 10 (sEventSceneUpdateFuncs[10]); returns the
  * player input mask.
  */
-s32 EventScene10_Update(struct EwramData_EntityData *entity)
+s32 EventSceneJRegainsMemories_Update(struct EwramData_EntityData *entity)
 {
     s32 input = 0;
     struct EwramData *ew = gEwramData;
@@ -1348,14 +1348,14 @@ s32 EventScene10_Update(struct EwramData_EntityData *entity)
     return input;
 }
 
-/* EventScene11_Init. */
+/* EventSceneGrahamBattleStart_Init. */
 /**
  * @brief Init of event scene variant 11 (Object 0x20 spawnParam0 = 11,
  * sEventSceneCreateFuncs[11]). Create step of a scene object: deleted once
  * stateFlags bit 16 is set; else animation 0 facing like the player,
  * stateFlags bit 0.
  */
-void EventScene11_Init(struct EwramData_EntityData *entity)
+void EventSceneGrahamBattleStart_Init(struct EwramData_EntityData *entity)
 {
     struct EwramData *ewram;
 
@@ -1383,7 +1383,7 @@ void EventScene11_Init(struct EwramData_EntityData *entity)
  * right of x = 0xB6; when the conversation ends (state 0x80) sets event
  * flag 0x28.
  */
-s32 EventScene11_Update(struct EwramData_EntityData *entity)
+s32 EventSceneGrahamBattleStart_Update(struct EwramData_EntityData *entity)
 {
     s32 ret;
     struct EwramData *ew;
@@ -1446,14 +1446,14 @@ s32 EventScene11_Update(struct EwramData_EntityData *entity)
     return ret;
 }
 
-/* EventScene12_Init. */
+/* EventSceneOpenPortal_Init. */
 /**
  * @brief Init of event scene variant 12 (Object 0x20 spawnParam0 = 12,
  * sEventSceneCreateFuncs[12]). Create step: animation 1 entering from x -16 at
  * room y 0xA0, moving right (0x4000), facing left; always sets stateFlags
  * bit 0.
  */
-void EventScene12_Init(struct EwramData_EntityData *entity)
+void EventSceneOpenPortal_Init(struct EwramData_EntityData *entity)
 {
     if (Entity_SetupFromObjectTable(entity, 1) == 0)
     {
@@ -1481,7 +1481,7 @@ void EventScene12_Init(struct EwramData_EntityData *entity)
  * in until x > 7, turns the player around and toggles textWindowPause; returns
  * 0x40 from step 3 on and after the conversation ends.
  */
-s32 EventScene12_Update(struct EwramData_EntityData *entity)
+s32 EventSceneOpenPortal_Update(struct EwramData_EntityData *entity)
 {
     s32 ret;
     u8 step;
@@ -1553,13 +1553,13 @@ s32 EventScene12_Update(struct EwramData_EntityData *entity)
     return ret;
 }
 
-/* EventScene15_Init. */
+/* EventSceneSomaAwakens_Init. */
 /**
  * @brief Init of event scene variant 15 (Object 0x20 spawnParam0 = 15,
  * sEventSceneCreateFuncs[15]). Create step: animation 0 at room (0, 0xA0) with
  * hidden and facing left, stateFlags bit 0.
  */
-void EventScene15_Init(struct EwramData_EntityData *entity)
+void EventSceneSomaAwakens_Init(struct EwramData_EntityData *entity)
 {
     struct EwramData *ewram;
     struct BgLayerState *bg;
@@ -1580,8 +1580,8 @@ void EventScene15_Init(struct EwramData_EntityData *entity)
     ewram->gameState.stateFlags |= 1;
 }
 
-/* EventScene15_Update, decompiled from the original assembly: event scene with the
- * flashing player (palette fades, periods table at sEventScene15Periods copied to the
+/* EventSceneSomaAwakens_Update, decompiled from the original assembly: event scene with the
+ * flashing player (palette fades, periods table at sEventSceneSomaAwakensPeriods copied to the
  * stack). The x mark is copied into a u16 local in sub-state 2 (keeps the
  * separate register copy), and the owner address is written as an integer
  * sum so the base comes first. */
@@ -1595,9 +1595,9 @@ struct Periods { s32 v[10]; };
  * @brief Update of event scene variant 15 (sEventSceneUpdateFuncs[15]); returns the
  * player input mask.
  */
-s32 EventScene15_Update(struct EwramData_EntityData *entity)
+s32 EventSceneSomaAwakens_Update(struct EwramData_EntityData *entity)
 {
-    struct Periods periods = *(struct Periods *)sEventScene15Periods;
+    struct Periods periods = *(struct Periods *)sEventSceneSomaAwakensPeriods;
     s32 result = 0;
     struct EwramData *ew = gEwramData;
     struct GameState *save = &ew->gameState;
@@ -1834,13 +1834,13 @@ s32 EventScene15_Update(struct EwramData_EntityData *entity)
     return result;
 }
 
-/* EventScene16_Init. */
+/* EventSceneArikadoChaosPath_Init. */
 /**
  * @brief Init of event scene variant 16 (Object 0x20 spawnParam0 = 16,
  * sEventSceneCreateFuncs[16]). Create step: deleted once stateFlags bit 16 is set;
  * else animation 4 at room (0x50, 0xC0) facing left with enemyFlags bit 2.
  */
-void EventScene16_Init(struct EwramData_EntityData *entity)
+void EventSceneArikadoChaosPath_Init(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *bg;
 
@@ -1869,7 +1869,7 @@ void EventScene16_Init(struct EwramData_EntityData *entity)
  * presses up / A while no conversation runs, stops the player and starts
  * conversation 0x1D (0x1E after the fourth time), facing the player.
  */
-s32 EventScene16_Update(struct EwramData_EntityData *entity)
+s32 EventSceneArikadoChaosPath_Update(struct EwramData_EntityData *entity)
 {
     s32 ret;
     u16 new;
@@ -1940,7 +1940,7 @@ s32 Player_GetZoneAroundXCopy(u16 centerX, u16 innerWidth, u16 outerWidth)
  * @brief Init of event scene variant 13 (Object 0x20 spawnParam0 = 13,
  * sEventSceneCreateFuncs[13]). Set stateFlags bit 0.
  */
-void EventScene13_Init(void)
+void EventSceneGrahamSeesSomaPower_Init(void)
 {
     gEwramData->gameState.stateFlags |= 1;
 }
@@ -1950,7 +1950,7 @@ void EventScene13_Init(void)
  * player input mask. Event step: start script 0x1A, then once it
  * finished (TextWindow_Update) call Interaction_End(1).
  */
-s32 EventScene13_Update(struct EwramData_EntityData *entity)
+s32 EventSceneGrahamSeesSomaPower_Update(struct EwramData_EntityData *entity)
 {
     switch (entity->state)
     {
@@ -1968,9 +1968,9 @@ s32 EventScene13_Update(struct EwramData_EntityData *entity)
 
 /**
  * @brief Init of event scene variant 14 (Object 0x20 spawnParam0 = 14,
- * sEventSceneCreateFuncs[14]). Same as EventScene13_Init.
+ * sEventSceneCreateFuncs[14]). Same as EventSceneGrahamSeesSomaPower_Init.
  */
-void EventScene14_Init(void)
+void EventSceneGrahamNotDracula_Init(void)
 {
     gEwramData->gameState.stateFlags |= 1;
 }
@@ -1980,7 +1980,7 @@ void EventScene14_Init(void)
  * player input mask. Event step: start script 0x1B, then once it
  * finished call TextWindow_Close and end (0x53D bit 3).
  */
-s32 EventScene14_Update(struct EwramData_EntityData *entity)
+s32 EventSceneGrahamNotDracula_Update(struct EwramData_EntityData *entity)
 {
     switch (entity->state)
     {
@@ -2003,7 +2003,7 @@ s32 EventScene14_Update(struct EwramData_EntityData *entity)
  * @brief Init of event scene variant 17 (Object 0x20 spawnParam0 = 17,
  * sEventSceneCreateFuncs[17]). Nothing.
  */
-void EventScene17_Init(void)
+void EventSceneGrahamTransforms_Init(void)
 {
 }
 
@@ -2012,7 +2012,7 @@ void EventScene17_Init(void)
  * player input mask. Event step: set stateFlags bit 0 and start script
  * 0x17, then once it finished call Interaction_End(1).
  */
-s32 EventScene17_Update(struct EwramData_EntityData *entity)
+s32 EventSceneGrahamTransforms_Update(struct EwramData_EntityData *entity)
 {
     switch (entity->state)
     {
@@ -2031,9 +2031,9 @@ s32 EventScene17_Update(struct EwramData_EntityData *entity)
 
 /**
  * @brief Init of event scene variant 18 (Object 0x20 spawnParam0 = 18,
- * sEventSceneCreateFuncs[18]). Same as EventScene13_Init.
+ * sEventSceneCreateFuncs[18]). Same as EventSceneGrahamSeesSomaPower_Init.
  */
-void EventScene18_Init(void)
+void EventSceneGrahamLastWords_Init(void)
 {
     gEwramData->gameState.stateFlags |= 1;
 }
@@ -2044,7 +2044,7 @@ void EventScene18_Init(void)
  * 0x18; when it finished call TextWindow_Close and end; state 0x80 calls
  * Interaction_End(1).
  */
-s32 EventScene18_Update(struct EwramData_EntityData *entity)
+s32 EventSceneGrahamLastWords_Update(struct EwramData_EntityData *entity)
 {
     switch (entity->state)
     {
@@ -2067,17 +2067,17 @@ s32 EventScene18_Update(struct EwramData_EntityData *entity)
     return 0;
 }
 
-/* EventScene19_Init. */
+/* EventSceneJuliusBattleStart_Init. */
 
 /**
  * @brief Init of event scene variant 19 (Object 0x20 spawnParam0 = 19,
  * sEventSceneCreateFuncs[19]). Create step of a scene object: deleted when flag
- * 0x29 is set or the player is left of room x 0x80; if EventScene19_LoadGraphics
+ * 0x29 is set or the player is left of room x 0x80; if EventSceneJuliusBattleStart_LoadGraphics
  * fails mark the event and delete; else enter from room x 0x150 moving
  * left (-0x10000) with animation 1, stateFlags bit 0. The camera address is
  * added to the loaded gEwramData in place, hence the OFFSET_OF form.
  */
-void EventScene19_Init(struct EwramData_EntityData *entity)
+void EventSceneJuliusBattleStart_Init(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *bg;
 
@@ -2098,7 +2098,7 @@ void EventScene19_Init(struct EwramData_EntityData *entity)
             return;
         }
     }
-    if (EventScene19_LoadGraphics(entity) == 0)
+    if (EventSceneJuliusBattleStart_LoadGraphics(entity) == 0)
     {
         Interaction_End(entity, 1);
         EntityDelete(entity);
@@ -2125,7 +2125,7 @@ void EventScene19_Init(struct EwramData_EntityData *entity)
  * while the camera scrolls; on the end of the conversation sets event
  * 0x29.
  */
-s32 EventScene19_Update(struct EwramData_EntityData *entity)
+s32 EventSceneJuliusBattleStart_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData **ewp;
     struct EwramData *ew;
@@ -2241,13 +2241,13 @@ s32 EventScene19_Update(struct EwramData_EntityData *entity)
         break;
     case 0x80:
         ew->gameState.cameraScrollMinPriority = ret;
-        EventScene19_Finish(entity);
+        EventSceneJuliusBattleStart_Finish(entity);
         break;
     }
     return ret;
 }
 
-/* EventScene20_Update: event step (cutscene facing / approach checks); matched. */
+/* EventSceneJuliusBattleEnd_Update: event step (cutscene facing / approach checks); matched. */
 /* Declared s16 in bg_and_collision.h; the caller here uses the full register. */
 /* Declared with u16 parameters in object/shop_update.c; the caller passes s16 values unconverted. */
 
@@ -2262,7 +2262,7 @@ static inline s32 IsLeft(struct EwramData_EntityData *e)
  * @brief Update of event scene variant 20 (sEventSceneUpdateFuncs[20]); returns the
  * player input mask.
  */
-s32 EventScene20_Update(struct EwramData_EntityData *entity)
+s32 EventSceneJuliusBattleEnd_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData **ewp;
     struct EwramData *ew;
@@ -2382,13 +2382,13 @@ s32 EventScene20_Update(struct EwramData_EntityData *entity)
  * @brief 61FDC | Load the graphics (layer 0x11); delete the entity and
  * return 0 when that fails.
  */
-s32 EventScene19_LoadGraphics(struct EwramData_EntityData *entity)
+s32 EventSceneJuliusBattleStart_LoadGraphics(struct EwramData_EntityData *entity)
 {
     s32 result;
     u8 *palette = sJuliusEntityPalette;
     u8 *sheet = sJuliusSpriteSheet;
 
-    if (Entity_LoadGraphics(entity, sEventScene19Gfx, palette, 0, sheet))
+    if (Entity_LoadGraphics(entity, sEventSceneJuliusBattleStartGfx, palette, 0, sheet))
     {
         entity->spriteLayer = 0x11;
         result = 1;
@@ -2402,12 +2402,12 @@ s32 EventScene19_LoadGraphics(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief 62020 | Release the graphics slot of sEventScene19Gfx and continue
+ * @brief 62020 | Release the graphics slot of sEventSceneJuliusBattleStartGfx and continue
  * with Interaction_End(1).
  */
-void EventScene19_Finish(struct EwramData_EntityData *entity)
+void EventSceneJuliusBattleStart_Finish(struct EwramData_EntityData *entity)
 {
-    ObjGfx_Unload(ObjGfx_Find(sEventScene19Gfx));
+    ObjGfx_Unload(ObjGfx_Find(sEventSceneJuliusBattleStartGfx));
     Interaction_End(entity, 1);
 }
 
@@ -2416,7 +2416,7 @@ void EventScene19_Finish(struct EwramData_EntityData *entity)
  * sEventSceneCreateFuncs[20]). Set stateFlags bit 0, BgPalette_StopColorFade and
  * ObjPalette_StopColorFade.
  */
-void EventScene20_Init(void)
+void EventSceneJuliusBattleEnd_Init(void)
 {
     gEwramData->gameState.stateFlags |= 1;
     BgPalette_StopColorFade();
@@ -2449,7 +2449,7 @@ s32 EventScene21_Update(struct EwramData_EntityData *entity)
  * @brief 62098 | Event wait step: first time set textWindowPause and start a
  * duration frame timer; returns 1 while waiting, 0 once done (stage 2).
  */
-s32 EventScene22_Wait(struct EwramData_EntityData *entity, s32 duration)
+s32 EventSceneChaoticRealmMessages_Wait(struct EwramData_EntityData *entity, s32 duration)
 {
     struct EwramData *ewram = gEwramData;
     s32 waiting = 1;
@@ -2472,12 +2472,12 @@ s32 EventScene22_Wait(struct EwramData_EntityData *entity, s32 duration)
     return waiting;
 }
 
-/* EventScene22_Update: event step (scene with player walk-in); matched. */
+/* EventSceneChaoticRealmMessages_Update: event step (scene with player walk-in); matched. */
 /**
  * @brief Update of event scene variant 22 (sEventSceneUpdateFuncs[22]); returns the
  * player input mask.
  */
-s32 EventScene22_Update(struct EwramData_EntityData *entity)
+s32 EventSceneChaoticRealmMessages_Update(struct EwramData_EntityData *entity)
 {
     s32 ret = 0;
     struct EwramData *ew = gEwramData;
@@ -2524,7 +2524,7 @@ s32 EventScene22_Update(struct EwramData_EntityData *entity)
         switch (entity->subState)
         {
         case 0:
-            if (!EventScene22_Wait(entity, 0x40))
+            if (!EventSceneChaoticRealmMessages_Wait(entity, 0x40))
             {
                 entity->subState++;
                 entity->stage = ret;
@@ -2542,14 +2542,14 @@ s32 EventScene22_Update(struct EwramData_EntityData *entity)
             entity->stage = 0;
             break;
         case 2:
-            if (EventScene22_Wait(entity, 0x40))
+            if (EventSceneChaoticRealmMessages_Wait(entity, 0x40))
                 break;
             do { /* FAKEMATCH: do/while(0) only raises the register-allocation weight */
                 ew->gameState.textWindowPause = ret;
             } while (0);
             break;
         case 3:
-            if (!EventScene22_Wait(entity, 0x40))
+            if (!EventSceneChaoticRealmMessages_Wait(entity, 0x40))
             {
                 Sound_StopTracked(0x2D);
                 Music_SetCurrent(0x24);
@@ -2565,13 +2565,13 @@ end:
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   EventScene22_Init = EventScene13_Init */
+ *   EventSceneChaoticRealmMessages_Init = EventSceneGrahamSeesSomaPower_Init */
 
 /**
  * @brief Init of event scene variant 22 (Object 0x20 spawnParam0 = 22,
- * sEventSceneCreateFuncs[22]). Same as EventScene13_Init.
+ * sEventSceneCreateFuncs[22]). Same as EventSceneGrahamSeesSomaPower_Init.
  */
-void EventScene22_Init(void)
+void EventSceneChaoticRealmMessages_Init(void)
 {
     gEwramData->gameState.stateFlags |= 1;
 }
@@ -2581,7 +2581,7 @@ void EventScene22_Init(void)
  * @brief Init of event scene variant 23 (Object 0x20 spawnParam0 = 23,
  * sEventSceneCreateFuncs[23]).
  */
-void EventScene23_Init(struct EwramData_EntityData *entity)
+void EventSceneReturnHome_Init(struct EwramData_EntityData *entity)
 {
     struct EwramData *ram;
     struct BgLayerState *background;
@@ -2623,7 +2623,7 @@ void EventScene23_Init(struct EwramData_EntityData *entity)
  * @brief Update of event scene variant 23 (sEventSceneUpdateFuncs[23]); returns the
  * player input mask.
  */
-s32 EventScene23_Update(struct EwramData_EntityData *entity)
+s32 EventSceneReturnHome_Update(struct EwramData_EntityData *entity)
 {
     s32 zero=0;
     gEwramData->gameState.stateFlags|=1;
@@ -2672,7 +2672,7 @@ s32 EventScene23_Update(struct EwramData_EntityData *entity)
  * with the player 24 px to its right, set stateFlags bits 0 and 0x20, clear
  * the HUD graphics and map, play song 24.
  */
-void EventScene24_Setup(struct EwramData_EntityData *entity)
+void EventSceneEndingWakeUp_Setup(struct EwramData_EntityData *entity)
 {
     if(!Entity_SetupFromObjectTable(entity,0)){EntityDelete(entity);return;}
     Anim_StartIndexed(entity,4,0,1);Anim_Update(entity);
@@ -2698,7 +2698,7 @@ void EventScene24_Setup(struct EwramData_EntityData *entity)
  * @brief Update of event scene variant 24 (sEventSceneUpdateFuncs[24]); returns the
  * player input mask.
  */
-s32 EventScene24_Update(struct EwramData_EntityData *entity)
+s32 EventSceneEndingWakeUp_Update(struct EwramData_EntityData *entity)
 {
     s32 zero=0;
     s32 stage=entity->state;
@@ -2717,7 +2717,7 @@ s32 EventScene24_Update(struct EwramData_EntityData *entity)
         }
         else
         {
-            EventScene24_Setup(entity);entity->state++;entity->stage=zero;entity->subState=zero;entity->timer=255;
+            EventSceneEndingWakeUp_Setup(entity);entity->state++;entity->stage=zero;entity->subState=zero;entity->timer=255;
         }
         Player_StartScriptedAnimation(81,0,0,0);
         break;

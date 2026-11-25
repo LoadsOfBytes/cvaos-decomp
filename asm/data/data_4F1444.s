@@ -313,36 +313,36 @@ sBreakableBlockGraphics: @ 0x08526004
 sBreakableBlockVariants: @ 0x08526064
     .incbin "cvaos_us_baserom.gba", 0x526064, 0x198
 
-    .global sObject0CTriggerLists
-sObject0CTriggerLists: @ 0x085261FC
+    .global sTriggerZoneTriggerLists
+sTriggerZoneTriggerLists: @ 0x085261FC
     .incbin "cvaos_us_baserom.gba", 0x5261FC, 0xC
 
-    .global sObject0CTriggerFuncs
-sObject0CTriggerFuncs: @ 0x08526208
+    .global sTriggerZoneTriggerFuncs
+sTriggerZoneTriggerFuncs: @ 0x08526208
     .incbin "cvaos_us_baserom.gba", 0x526208, 0xC
 
-    .global sObject0EGraphics
-sObject0EGraphics: @ 0x08526214
+    .global sBreakablePropGraphics
+sBreakablePropGraphics: @ 0x08526214
     .incbin "cvaos_us_baserom.gba", 0x526214, 0xA8
 
-    .global sObject0EVariants
-sObject0EVariants: @ 0x085262BC
+    .global sBreakablePropVariants
+sBreakablePropVariants: @ 0x085262BC
     .incbin "cvaos_us_baserom.gba", 0x5262BC, 0xB4
 
     .global sUnk_08526370
 sUnk_08526370: @ 0x08526370
     .incbin "cvaos_us_baserom.gba", 0x526370, 0x20
 
-    .global sObject10Rewards
-sObject10Rewards: @ 0x08526390
+    .global sBossRushRewards
+sBossRushRewards: @ 0x08526390
     .incbin "cvaos_us_baserom.gba", 0x526390, 0x18
 
-    .global sObject12Variants
-sObject12Variants: @ 0x085263A8
+    .global sRoomDecorationVariants
+sRoomDecorationVariants: @ 0x085263A8
     .incbin "cvaos_us_baserom.gba", 0x5263A8, 0x60
 
-    .global sObject14VariantFuncs
-sObject14VariantFuncs: @ 0x08526408
+    .global sRollerVariantFuncs
+sRollerVariantFuncs: @ 0x08526408
     .incbin "cvaos_us_baserom.gba", 0x526408, 0xC
 
     .global sObject16PaletteAnim
@@ -369,12 +369,12 @@ sObject22LevelThresholds: @ 0x0852649C
 sObject22LevelPatterns: @ 0x085264BC
     .incbin "cvaos_us_baserom.gba", 0x5264BC, 0x14
 
-    .global sObject29Variants
-sObject29Variants: @ 0x085264D0
+    .global sVerticalPlatformVariants
+sVerticalPlatformVariants: @ 0x085264D0
     .incbin "cvaos_us_baserom.gba", 0x5264D0, 0x40
 
-    .global sObject2AVariants
-sObject2AVariants: @ 0x08526510
+    .global sHorizontalPlatformVariants
+sHorizontalPlatformVariants: @ 0x08526510
     .incbin "cvaos_us_baserom.gba", 0x526510, 0x40
 
     .global sObject25AnimScript0
@@ -417,12 +417,12 @@ sEventSceneCreateFuncs: @ 0x08526658
 sEventSceneUpdateFuncs: @ 0x085266D8
     .incbin "cvaos_us_baserom.gba", 0x5266D8, 0x80
 
-    .global sEventScene31DebrisDefinitions
-sEventScene31DebrisDefinitions: @ 0x08526758
+    .global sEventSceneJuliusKeepsPromiseDebrisDefinitions
+sEventSceneJuliusKeepsPromiseDebrisDefinitions: @ 0x08526758
     .incbin "cvaos_us_baserom.gba", 0x526758, 0x60
 
-    .global sEventScene31PaletteSteps
-sEventScene31PaletteSteps: @ 0x085267B8
+    .global sEventSceneJuliusKeepsPromisePaletteSteps
+sEventSceneJuliusKeepsPromisePaletteSteps: @ 0x085267B8
     .incbin "cvaos_us_baserom.gba", 0x5267B8, 0x20
 
     .global sEventScene03UnusedDebris
@@ -437,16 +437,16 @@ sEventScene03Debris: @ 0x08526802
 sUnk_0852682C: @ 0x0852682C
     .incbin "cvaos_us_baserom.gba", 0x52682C, 0x7C
 
-    .global sEventScene30ParticleFrames
-sEventScene30ParticleFrames: @ 0x085268A8
+    .global sEventSceneEndingParticleFrames
+sEventSceneEndingParticleFrames: @ 0x085268A8
     .incbin "cvaos_us_baserom.gba", 0x5268A8, 0x10
 
-    .global sEventScene30TimedFragments
-sEventScene30TimedFragments: @ 0x085268B8
+    .global sEventSceneEndingTimedFragments
+sEventSceneEndingTimedFragments: @ 0x085268B8
     .incbin "cvaos_us_baserom.gba", 0x5268B8, 0x6C
 
-    .global sEventScene30PaletteTransitions
-sEventScene30PaletteTransitions: @ 0x08526924
+    .global sEventSceneEndingPaletteTransitions
+sEventSceneEndingPaletteTransitions: @ 0x08526924
     .incbin "cvaos_us_baserom.gba", 0x526924, 0xB8
 
     .global sConversationTextTable

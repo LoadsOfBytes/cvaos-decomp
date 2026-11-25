@@ -26,9 +26,9 @@
 
 extern struct RoomDefinition sEndingRoomDefinition;
 
-s32 EventScene31Debris_Update(struct EwramData_EntityData *entity);
+s32 EventSceneJuliusKeepsPromiseDebris_Update(struct EwramData_EntityData *entity);
 
-/* EventScene30_Update, decompiled from the original assembly. The second random
+/* EventSceneEnding_Update, decompiled from the original assembly. The second random
  * number has its own block variable and its offset is summed in a statement
  * expression before the player Y is added, as in the target. */
 
@@ -37,7 +37,7 @@ s32 EventScene31Debris_Update(struct EwramData_EntityData *entity);
  * @brief Update of event scene variant 30 (sEventSceneUpdateFuncs[30]); returns the
  * player input mask.
  */
-s32 EventScene30_Update(struct EwramData_EntityData *entity)
+s32 EventSceneEnding_Update(struct EwramData_EntityData *entity)
 {
     s32 result;
     switch (entity->state) {
@@ -58,7 +58,7 @@ s32 EventScene30_Update(struct EwramData_EntityData *entity)
     case 1:
         if (entity->stage == 0)
             entity->stage++;
-        if (EventScene30_PlayTransformation(entity)) {
+        if (EventSceneEnding_PlayTransformation(entity)) {
             entity->ext.event30Driver.floatPhase = 0;
             gEwramData->playerState.player->hidden = 0;
             Music_SetCurrent(32);
@@ -171,7 +171,7 @@ s32 EventScene30_Update(struct EwramData_EntityData *entity)
  * to the right, returns 0x200 / 0x10 while moving). The two volatile
  * reads of subState reproduce the original's reloads.
  */
-s32 EventScene00_Update(struct EwramData_EntityData *entity)
+s32 EventSceneOpening_Update(struct EwramData_EntityData *entity)
 {
     struct EwramData **ewp;
     struct EwramData_EntityData *player;
@@ -301,7 +301,7 @@ s32 EventScene01_Update(struct EwramData_EntityData *entity)
  * @brief Init of event scene variant 0 (Object 0x20 spawnParam0 = 0,
  * sEventSceneCreateFuncs[0]).
  */
-void EventScene00_Init(void)
+void EventSceneOpening_Init(void)
 {
     gEwramData->gameState.stateFlags |= 1;
     TextWindow_Begin(0xC);
@@ -421,7 +421,7 @@ s32 EventScene29_Update(struct EwramData_EntityData *entity)
     return ret;
 }
 
-/* EventScene31_SpawnBlockDebris..sub_0805C49B. */
+/* EventSceneJuliusKeepsPromise_SpawnBlockDebris..sub_0805C49B. */
 
 /* Enter state s of entity (state) with both sub-states cleared. */
 #define SET_STATE(e, s)                     \
@@ -432,13 +432,13 @@ s32 EventScene29_Update(struct EwramData_EntityData *entity)
     }
 
 /**
- * @brief 5C218 | Spawn the 12 debris pieces of sEventScene31DebrisDefinitions around
+ * @brief 5C218 | Spawn the 12 debris pieces of sEventSceneJuliusKeepsPromiseDebrisDefinitions around
  * (x, y): offset, velocity (y up), frame and gravity 0x2000, updated by
- * EventScene31Debris_Update.
+ * EventSceneJuliusKeepsPromiseDebris_Update.
  */
-s32 EventScene31_SpawnBlockDebris(s16 x, s16 y)
+s32 EventSceneJuliusKeepsPromise_SpawnBlockDebris(s16 x, s16 y)
 {
-    const struct EventScene31DebrisDefinition *info = sEventScene31DebrisDefinitions;
+    const struct EventSceneJuliusKeepsPromiseDebrisDefinition *info = sEventSceneJuliusKeepsPromiseDebrisDefinitions;
     s32 i;
 
     for (i = 0; i < 12; i++, info++)
@@ -454,7 +454,7 @@ s32 EventScene31_SpawnBlockDebris(s16 x, s16 y)
             entity->animFrame = info->frame;
             entity->timer = info->initialTimer;
             entity->accelY.whole = 0x2000;
-            entity->updateFunc = (EntityFunc)EventScene31Debris_Update;
+            entity->updateFunc = (EntityFunc)EventSceneJuliusKeepsPromiseDebris_Update;
         }
     }
 }
@@ -462,9 +462,9 @@ s32 EventScene31_SpawnBlockDebris(s16 x, s16 y)
 /**
  * @brief 5C284 | Update of a falling block: move with acceleration until
  * it hits the terrain (Collision_GetGroundOffset at its map position), then burst into
- * debris (EventScene31_SpawnBlockDebris, song 0xAA) and switch to frame 8.
+ * debris (EventSceneJuliusKeepsPromise_SpawnBlockDebris, song 0xAA) and switch to frame 8.
  */
-s32 EventScene31FallingBlock_Update(struct EwramData_EntityData *entity)
+s32 EventSceneJuliusKeepsPromiseFallingBlock_Update(struct EwramData_EntityData *entity)
 {
     u8 state = entity->state;
 
@@ -480,7 +480,7 @@ s32 EventScene31FallingBlock_Update(struct EwramData_EntityData *entity)
 
         if (hit)
         {
-            EventScene31_SpawnBlockDebris(entity->posX.part16.integer, entity->posY.part16.integer - 2);
+            EventSceneJuliusKeepsPromise_SpawnBlockDebris(entity->posX.part16.integer, entity->posY.part16.integer - 2);
             PlaySong(0xAA);
             entity->state++;
             entity->stage = state;
@@ -504,13 +504,13 @@ s32 EventScene31FallingBlock_Update(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief 5C328 | Step the four-step palette animation sEventScene31PaletteSteps of
+ * @brief 5C328 | Step the four-step palette animation sEventSceneJuliusKeepsPromisePaletteSteps of
  * entity (ext.event31.paletteTick / _STEP): returns 0 after the last step,
  * else 1.
  */
-s32 EventScene31_StepPaletteAnim(struct EwramData_EntityData *entity)
+s32 EventSceneJuliusKeepsPromise_StepPaletteAnim(struct EwramData_EntityData *entity)
 {
-    const struct EventScene31PaletteStep *anim = &sEventScene31PaletteSteps[entity->ext.event31.paletteStep];
+    const struct EventSceneJuliusKeepsPromisePaletteStep *anim = &sEventSceneJuliusKeepsPromisePaletteSteps[entity->ext.event31.paletteStep];
 
     if (entity->ext.event31.paletteTick++ > anim->duration)
     {
@@ -521,7 +521,7 @@ s32 EventScene31_StepPaletteAnim(struct EwramData_EntityData *entity)
             entity->ext.event31.paletteStep = 0;
             return 0;
         }
-        anim = &sEventScene31PaletteSteps[entity->ext.event31.paletteStep];
+        anim = &sEventSceneJuliusKeepsPromisePaletteSteps[entity->ext.event31.paletteStep];
         ObjPalette_StartBlend(0, (u16 *)anim->palette, anim->sourcePalette, 0x10000, 0, anim->duration);
     }
     return 1;
@@ -529,11 +529,11 @@ s32 EventScene31_StepPaletteAnim(struct EwramData_EntityData *entity)
 
 /**
  * @brief 5C39C | Update of the block holder: state 1 waits for animDone,
- * state 2 drops the block (EventScene31FallingBlock_Update) and waits 0x20 frames, state 3
- * runs the palette animation (EventScene31_StepPaletteAnim), then state 0x80. States 0
+ * state 2 drops the block (EventSceneJuliusKeepsPromiseFallingBlock_Update) and waits 0x20 frames, state 3
+ * runs the palette animation (EventSceneJuliusKeepsPromise_StepPaletteAnim), then state 0x80. States 0
  * and 1 run Anim_Update while idle.
  */
-s32 EventScene31BlockHolder_Update(struct EwramData_EntityData *entity)
+s32 EventSceneJuliusKeepsPromiseBlockHolder_Update(struct EwramData_EntityData *entity)
 {
     switch (entity->state)
     {
@@ -567,7 +567,7 @@ s32 EventScene31BlockHolder_Update(struct EwramData_EntityData *entity)
                     block->accelX.whole = 0x100;
                     block->accelY.whole = 0x1000;
                     block->animFrame = 3;
-                    block->updateFunc = (EntityFunc)EventScene31FallingBlock_Update;
+                    block->updateFunc = (EntityFunc)EventSceneJuliusKeepsPromiseFallingBlock_Update;
                 }
                 entity->animFrame = 2;
                 entity->stage++;
@@ -583,7 +583,7 @@ s32 EventScene31BlockHolder_Update(struct EwramData_EntityData *entity)
                 entity->ext.event31.paletteStep = 0;
                 entity->stage++;
             }
-            if (EventScene31_StepPaletteAnim(entity) == 0)
+            if (EventSceneJuliusKeepsPromise_StepPaletteAnim(entity) == 0)
                 SET_STATE(entity, 0x80)
             break;
     }
@@ -592,10 +592,10 @@ s32 EventScene31BlockHolder_Update(struct EwramData_EntityData *entity)
 /**
  * @brief 5C49C | Scene setup (needs Entity_SetupFromObjectTable(entity, 7)): place the
  * object at room (0xFF, 0xBF) facing left, create helper 0xB at (0x78, 0xB0)
- * with update EventScene31BlockHolder_Update, move the player to (0xA0, 0xBF), set stateFlags
+ * with update EventSceneJuliusKeepsPromiseBlockHolder_Update, move the player to (0xA0, 0xBF), set stateFlags
  * bits 0 and 16, fade palettes, clear BG VRAM and hide BG0.
  */
-void EventScene31_Init(struct EwramData_EntityData *entity)
+void EventSceneJuliusKeepsPromise_Init(struct EwramData_EntityData *entity)
 {
     struct EwramData *ewram;
     struct BgLayerState *bg;
@@ -629,7 +629,7 @@ void EventScene31_Init(struct EwramData_EntityData *entity)
     }
     Anim_StartIndexed(entity->ext.event31.blockHolder, 0, 0, 1);
     Anim_Update(entity);
-    entity->ext.event31.blockHolder->updateFunc = (EntityFunc)EventScene31BlockHolder_Update;
+    entity->ext.event31.blockHolder->updateFunc = (EntityFunc)EventSceneJuliusKeepsPromiseBlockHolder_Update;
     gEwramData->playerState.player->hidden = 1;
     ewram = gEwramData;
     ewram->playerState.player->posX.part16.integer = 0xA0 - (bg = &ewram->bgInfo[1])->xPos.part16.integer;
@@ -655,7 +655,7 @@ struct SignedCamera { void *metadata; u16 xFraction; s16 x; u16 yFraction; s16 y
  * entry); returns the player input mask. Scene
  * sequence; animation and transition semantics are not fully identified.
  */
-s32 EventScene31_Update(struct EwramData_EntityData *entity)
+s32 EventSceneJuliusKeepsPromise_Update(struct EwramData_EntityData *entity)
 {
     switch (entity->state) {
     case 0:
@@ -844,12 +844,12 @@ s32 EventScene31_Update(struct EwramData_EntityData *entity)
     return 0;
 }
 
-/* EventScene31Debris_Update. */
+/* EventSceneJuliusKeepsPromiseDebris_Update. */
 /**
  * @brief 5CB08 | Update of a debris piece: fall with gravity accelY until
  * it touches the terrain, then set deleteRequested.
  */
-s32 EventScene31Debris_Update(struct EwramData_EntityData *entity)
+s32 EventSceneJuliusKeepsPromiseDebris_Update(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *bg;
     s32 x = (s16)entity->posX.part16.integer;

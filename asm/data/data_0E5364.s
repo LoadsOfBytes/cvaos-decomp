@@ -287,40 +287,40 @@ sHudMapPalettes: @ 0x08118444
 sUnk_08118510: @ 0x08118510
     .incbin "cvaos_us_baserom.gba", 0x118510, 0x10
 
-    .global sObject0CSolidCallbacks
-sObject0CSolidCallbacks: @ 0x08118520
+    .global sTriggerZoneSolidCallbacks
+sTriggerZoneSolidCallbacks: @ 0x08118520
     .incbin "cvaos_us_baserom.gba", 0x118520, 0x1C
 
-    .global sObject12Variant0AnimScript0
-sObject12Variant0AnimScript0: @ 0x0811853C
+    .global sRoomDecorationVariant0AnimScript0
+sRoomDecorationVariant0AnimScript0: @ 0x0811853C
     .incbin "cvaos_us_baserom.gba", 0x11853C, 0x8
 
-    .global sObject12Variant0AnimScript1
-sObject12Variant0AnimScript1: @ 0x08118544
+    .global sRoomDecorationVariant0AnimScript1
+sRoomDecorationVariant0AnimScript1: @ 0x08118544
     .incbin "cvaos_us_baserom.gba", 0x118544, 0x14
 
-    .global sObject12Variant0AnimScript2
-sObject12Variant0AnimScript2: @ 0x08118558
+    .global sRoomDecorationVariant0AnimScript2
+sRoomDecorationVariant0AnimScript2: @ 0x08118558
     .incbin "cvaos_us_baserom.gba", 0x118558, 0x20
 
-    .global sObject14Variant1SolidCallbacks
-sObject14Variant1SolidCallbacks: @ 0x08118578
+    .global sRollerVariant1SolidCallbacks
+sRollerVariant1SolidCallbacks: @ 0x08118578
     .incbin "cvaos_us_baserom.gba", 0x118578, 0x18
 
-    .global sUnk_08118590
-sUnk_08118590: @ 0x08118590
+    .global sElevatorFloorY
+sElevatorFloorY: @ 0x08118590
     .incbin "cvaos_us_baserom.gba", 0x118590, 0x118598 - 0x118590
 
-    .global sObject17SolidCallbacks
-sObject17SolidCallbacks: @ 0x08118598
+    .global sElevatorSolidCallbacks
+sElevatorSolidCallbacks: @ 0x08118598
     .incbin "cvaos_us_baserom.gba", 0x118598, 0x1185B0 - 0x118598
 
-    .global sObject17Xs
-sObject17Xs: @ 0x081185B0
+    .global sElevatorXs
+sElevatorXs: @ 0x081185B0
     .incbin "cvaos_us_baserom.gba", 0x1185B0, 0x4
 
-    .global sObject17Ys
-sObject17Ys: @ 0x081185B4
+    .global sElevatorYs
+sElevatorYs: @ 0x081185B4
     .incbin "cvaos_us_baserom.gba", 0x1185B4, 0x14
 
     .global sObject1BColors
@@ -331,12 +331,12 @@ sObject1BColors: @ 0x081185C8
 sWarpLightPaletteSteps: @ 0x081185F8
     .incbin "cvaos_us_baserom.gba", 0x1185F8, 0x38
 
-    .global sObject29Boxes
-sObject29Boxes: @ 0x08118630
+    .global sVerticalPlatformBoxes
+sVerticalPlatformBoxes: @ 0x08118630
     .incbin "cvaos_us_baserom.gba", 0x118630, 0x10
 
-    .global sObject2ABoxes
-sObject2ABoxes: @ 0x08118640
+    .global sHorizontalPlatformBoxes
+sHorizontalPlatformBoxes: @ 0x08118640
     .incbin "cvaos_us_baserom.gba", 0x118640, 0x10
 
     .global sObject2FXs
@@ -363,16 +363,16 @@ sObject31Anims: @ 0x0811866C
 sUnk_08118674: @ 0x08118674
     .incbin "cvaos_us_baserom.gba", 0x118674, 0x10
 
-    .global sObject32Boxes
-sObject32Boxes: @ 0x08118684
+    .global sCrumblingPlatformBoxes
+sCrumblingPlatformBoxes: @ 0x08118684
     .incbin "cvaos_us_baserom.gba", 0x118684, 0x8
 
-    .global sObject36SolidCallbacks
-sObject36SolidCallbacks: @ 0x0811868C
+    .global sRotatingPlatformSolidCallbacks
+sRotatingPlatformSolidCallbacks: @ 0x0811868C
     .incbin "cvaos_us_baserom.gba", 0x11868C, 0x18
 
-    .global sObject36Shapes
-sObject36Shapes: @ 0x081186A4
+    .global sRotatingPlatformShapes
+sRotatingPlatformShapes: @ 0x081186A4
     .incbin "cvaos_us_baserom.gba", 0x1186A4, 0x38
 
     .global sObjectTableGraphics
@@ -387,44 +387,44 @@ sEventScene03SpotsA: @ 0x081187AC
 sEventScene03SpotsB: @ 0x081187D4
     .incbin "cvaos_us_baserom.gba", 0x1187D4, 0x1188E4 - 0x1187D4
 
-    .global sEventScene15Periods
-sEventScene15Periods: @ 0x081188E4
+    .global sEventSceneSomaAwakensPeriods
+sEventSceneSomaAwakensPeriods: @ 0x081188E4
     .incbin "cvaos_us_baserom.gba", 0x1188E4, 0x11892C - 0x1188E4
 
-    .global sEventScene19Gfx
-sEventScene19Gfx: @ 0x0811892C
+    .global sEventSceneJuliusBattleStartGfx
+sEventSceneJuliusBattleStartGfx: @ 0x0811892C
     .incbin "cvaos_us_baserom.gba", 0x11892C, 0x74
 
-    .global sEventScene30FragmentFrames
-sEventScene30FragmentFrames: @ 0x081189A0
+    .global sEventSceneEndingFragmentFrames
+sEventSceneEndingFragmentFrames: @ 0x081189A0
     .incbin "cvaos_us_baserom.gba", 0x1189A0, 0xC
 
-    .global sEventScene30BurstFrames
-sEventScene30BurstFrames: @ 0x081189AC
+    .global sEventSceneEndingBurstFrames
+sEventSceneEndingBurstFrames: @ 0x081189AC
     .incbin "cvaos_us_baserom.gba", 0x1189AC, 0xC
 
-    .global sEventScene30BurstAnimations
-sEventScene30BurstAnimations: @ 0x081189B8
+    .global sEventSceneEndingBurstAnimations
+sEventSceneEndingBurstAnimations: @ 0x081189B8
     .incbin "cvaos_us_baserom.gba", 0x1189B8, 0x14
 
-    .global sEventScene30BurstPositions
-sEventScene30BurstPositions: @ 0x081189CC
+    .global sEventSceneEndingBurstPositions
+sEventSceneEndingBurstPositions: @ 0x081189CC
     .incbin "cvaos_us_baserom.gba", 0x1189CC, 0x78
 
-    .global sEventScene30EmitterBSteps
-sEventScene30EmitterBSteps: @ 0x08118A44
+    .global sEventSceneEndingEmitterBSteps
+sEventSceneEndingEmitterBSteps: @ 0x08118A44
     .incbin "cvaos_us_baserom.gba", 0x118A44, 0x50
 
-    .global sEventScene30EmitterCSequence
-sEventScene30EmitterCSequence: @ 0x08118A94
+    .global sEventSceneEndingEmitterCSequence
+sEventSceneEndingEmitterCSequence: @ 0x08118A94
     .incbin "cvaos_us_baserom.gba", 0x118A94, 0x28
 
-    .global sEventScene30EmitterDSteps
-sEventScene30EmitterDSteps: @ 0x08118ABC
+    .global sEventSceneEndingEmitterDSteps
+sEventSceneEndingEmitterDSteps: @ 0x08118ABC
     .incbin "cvaos_us_baserom.gba", 0x118ABC, 0x50
 
-    .global sEventScene30EmitterESequence
-sEventScene30EmitterESequence: @ 0x08118B0C
+    .global sEventSceneEndingEmitterESequence
+sEventSceneEndingEmitterESequence: @ 0x08118B0C
     .incbin "cvaos_us_baserom.gba", 0x118B0C, 0x28
 
     @ 0x08118B34: callback table, .rodata of src/event/scene30_transformation.c

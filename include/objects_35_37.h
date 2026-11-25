@@ -9,8 +9,8 @@
 
 extern void Object35Create(struct EwramData_EntityData *entity);
 extern void Object35Update(struct EwramData_EntityData *entity);
-extern void Object36Update(struct EwramData_EntityData *entity);
-extern void Object36Create(struct EwramData_EntityData *entity);
+extern void RotatingPlatformUpdate(struct EwramData_EntityData *entity);
+extern void RotatingPlatformCreate(struct EwramData_EntityData *entity);
 extern void Object37Create(struct EwramData_EntityData *entity);
 extern void Object37Update(struct EwramData_EntityData *entity);
 extern void Shop_SetupBackgrounds(void);

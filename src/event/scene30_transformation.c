@@ -3,7 +3,7 @@
 #include "palette.h"
 #include "scene30.h"
 #include "data/data_118B48.h"
-/* EventScene30_UpdateTransformation: multi-phase scene transition with per-scanline affine distortion.
+/* EventSceneEnding_UpdateTransformation: multi-phase scene transition with per-scanline affine distortion.
    Built without -f2003-patch; the callback table of emitCenter is this file's
    .rodata and is linked at 0x08118B34. */
 #include "core.h"
@@ -15,7 +15,7 @@
 #include <string.h>
 #include "sound.h"
 
-extern void EventScene30_SpawnOrbitRing(struct EwramData_EntityData *,s16,s16);
+extern void EventSceneEnding_SpawnOrbitRing(struct EwramData_EntityData *,s16,s16);
 #define PHASE(e) (e->ext.event30.phase)
 #define INIT(e) (e->ext.event30.phaseInit)
 #define ANGLE(e) (e->ext.event30.angle)
@@ -29,7 +29,7 @@ extern void EventScene30_SpawnOrbitRing(struct EwramData_EntityData *,s16,s16);
 #define JITTER_Y(e) (EVENT30_JITTER_Y((e)))
 static inline void emitCenter(s16 x,s16 y,u32 index)
 {
-    EntityFunc callbacks[5]={EventScene30EmitterA_Update,EventScene30EmitterB_Update,EventScene30EmitterC_Update,EventScene30EmitterD_Update,EventScene30EmitterE_Update};
+    EntityFunc callbacks[5]={EventSceneEndingEmitterA_Update,EventSceneEndingEmitterB_Update,EventSceneEndingEmitterC_Update,EventSceneEndingEmitterD_Update,EventSceneEndingEmitterE_Update};
     struct EwramData_EntityData *child=EntityCreateInRange(0x1B,0x48,callbacks[index]);
     if(child){child->posX.part16.integer=x;child->posY.part16.integer=y;}
 }
@@ -46,7 +46,7 @@ static inline void emitCenter(s16 x,s16 y,u32 index)
         BgAffineSet(&src,out,1);out++; \
     } \
 } while(0)
-void EventScene30_UpdateTransformation(struct EwramData_EntityData *entity)
+void EventSceneEnding_UpdateTransformation(struct EwramData_EntityData *entity)
 {
     struct BgAffineDstData *out=(struct BgAffineDstData *)&gEwramData->hBlankEffect.hBlankBuffer[1-gEwramData->hBlankEffect.currentBuffer];
     s32 displacement=0;
@@ -63,7 +63,7 @@ void EventScene30_UpdateTransformation(struct EwramData_EntityData *entity)
             SCALE_X(entity)=176;SCALE_Y(entity)=176;ANGLE(entity)=0;
             entity->posX.part16.integer=CENTER_X(entity);
             entity->posY.part16.integer=CENTER_Y(entity);
-            ObjPalette_LoadRange(sEventScene30TransformationPalette,0,1,14);
+            ObjPalette_LoadRange(sEventSceneEndingTransformationPalette,0,1,14);
             entity->basePalette=14;
             TIMER(entity)=16;INIT(entity)++;
         }
@@ -76,7 +76,7 @@ void EventScene30_UpdateTransformation(struct EwramData_EntityData *entity)
         if(INIT(entity)==0)
         {
             TIMER(entity)=670;INIT(entity)++;
-            EventScene30_CreateCenterEffect(entity);EventScene30_CreateHalo(entity);entity->timer=1;
+            EventSceneEnding_CreateCenterEffect(entity);EventSceneEnding_CreateHalo(entity);entity->timer=1;
         }
         if(TIMER(entity)>255)
         {
@@ -194,7 +194,7 @@ void EventScene30_UpdateTransformation(struct EwramData_EntityData *entity)
                 struct EwramData_EntityData *child=&gEwramData->entityData[slot];
                 if(child->group==1){ObjAffine_Free(child->affineIndex);EntityDelete(child);}
             }
-            EventScene30_SpawnOrbitRing(entity,CENTER_X(entity),CENTER_Y(entity));
+            EventSceneEnding_SpawnOrbitRing(entity,CENTER_X(entity),CENTER_Y(entity));
         }
         if(TIMER(entity)<160)
         {
@@ -203,37 +203,37 @@ void EventScene30_UpdateTransformation(struct EwramData_EntityData *entity)
             if((s16)(TIMER(entity)%10)==0 && TIMER(entity)<80)
             {
                 s32 x,y;
-                EventScene30_SpawnDriftFragment((s32)TIMER(entity)/10-((RandomNumberGenerator()&15)-136),38-(RandomNumberGenerator()&15),0,0);
+                EventSceneEnding_SpawnDriftFragment((s32)TIMER(entity)/10-((RandomNumberGenerator()&15)-136),38-(RandomNumberGenerator()&15),0,0);
                 x=(s16)(128-(RandomNumberGenerator()&31)-TIMER(entity)/10);
                 y=(s16)(146-(RandomNumberGenerator()&31));
-                EventScene30_SpawnDriftFragment(x,y,1,0);
+                EventSceneEnding_SpawnDriftFragment(x,y,1,0);
             }
             if((u16)(TIMER(entity)-72)<=16)
             {
                 s32 x=(s16)(178-(RandomNumberGenerator()&15));
-                s32 y=(s16)(128-(RandomNumberGenerator()&15));EventScene30_SpawnDriftFragment(x,y,1,0);
+                s32 y=(s16)(128-(RandomNumberGenerator()&15));EventSceneEnding_SpawnDriftFragment(x,y,1,0);
             }
             if(TIMER(entity)==96)
             {
-                struct EwramData_EntityData *child=EntityCreateInRange(0x1B,0x48,EventScene30PieceEmitter_Update);
+                struct EwramData_EntityData *child=EntityCreateInRange(0x1B,0x48,EventSceneEndingPieceEmitter_Update);
                 if(child){child->posX.part16.integer=140;child->posY.part16.integer=50;child->timer=4;}
             }
             if((u16)(TIMER(entity)-112)<=8)
             {
                 s32 x=(s16)(158-(RandomNumberGenerator()%16));
-                s32 y=(s16)(112-(RandomNumberGenerator()%8));EventScene30_SpawnDriftFragment(x,y,1,0);
+                s32 y=(s16)(112-(RandomNumberGenerator()%8));EventSceneEnding_SpawnDriftFragment(x,y,1,0);
             }
             if((u16)(TIMER(entity)-128)<=16 && (RandomNumberGenerator()&1)==0)
             {
                 s32 x=(s16)(72-(RandomNumberGenerator()&7));
-                s32 y=(s16)(78-(RandomNumberGenerator()&7));EventScene30_SpawnDriftFragment(x,y,0,0);
+                s32 y=(s16)(78-(RandomNumberGenerator()&7));EventSceneEnding_SpawnDriftFragment(x,y,0,0);
             }
             if((TIMER(entity)&3)==0 && TIMER(entity)>112 && TIMER(entity)<152)
             {
                 s32 x,y;
-                EventScene30_SpawnDriftFragment((s32)TIMER(entity)/10-((RandomNumberGenerator()&15)-136),78-(RandomNumberGenerator()&15),0,0);
+                EventSceneEnding_SpawnDriftFragment((s32)TIMER(entity)/10-((RandomNumberGenerator()&15)-136),78-(RandomNumberGenerator()&15),0,0);
                 x=(s16)(120-(RandomNumberGenerator()&15)-TIMER(entity)/10);
-                y=(s16)(98-(RandomNumberGenerator()&15));EventScene30_SpawnDriftFragment(x,y,1,0);
+                y=(s16)(98-(RandomNumberGenerator()&15));EventSceneEnding_SpawnDriftFragment(x,y,1,0);
             }
         }
         else
@@ -251,7 +251,7 @@ void EventScene30_UpdateTransformation(struct EwramData_EntityData *entity)
             if((u16)SCALE_X(entity)+128<=16383)SCALE_X(entity)+=128;else SCALE_X(entity)=16384;
             if((u16)SCALE_Y(entity)!=0)SCALE_Y(entity)-=4;
         }
-        TIMER(entity)++;EventScene30_StepPaletteTransition(entity);
+        TIMER(entity)++;EventSceneEnding_StepPaletteTransition(entity);
         break;
     }
     case 6:

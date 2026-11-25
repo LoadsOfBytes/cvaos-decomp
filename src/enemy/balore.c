@@ -417,7 +417,7 @@ void BaloreBodyPart_Update(struct EwramData_EntityData *entity)
  * failure), sprite set sBalorePalette variant 7 (0 with the bestiaryPreview mode
  * flag) into unk_4F8 byte 0 and basePalette, slot into unk_4FB, registers
  * sBaloreSpriteSheet with Sprite_Attach, draw callback Sprite_DrawEntity, scrollWithBg.
- * Same shape as Object21_LoadGraphics.
+ * Same shape as Crusher_LoadGraphics.
  */
 u8 Balore_LoadGraphics(struct EwramData_EntityData *entity)
 {

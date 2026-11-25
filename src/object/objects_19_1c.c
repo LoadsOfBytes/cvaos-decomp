@@ -458,7 +458,7 @@ s32 SavePoint_StepPromptFade(struct EwramData_EntityData *entity)
  * entity (layer 3, hidden, drawn by SavePoint_DrawPromptMarkers with sprite
  * sSaveWarpRoomSpriteSheet) whose unk_4F4 byte is kept in byte 1 of hp.
  */
-void Object1CCreate(struct EwramData_EntityData *entity)
+void SavePointCreate(struct EwramData_EntityData *entity)
 {
     u8 *gfx = sSaveWarpRoomGfx;
     u8 *pal = sSaveWarpRoomPalette;
@@ -497,7 +497,7 @@ void Object1CCreate(struct EwramData_EntityData *entity)
     }
 }
 
-/* Object1CUpdate, decompiled from the original assembly (save point / save
+/* SavePointUpdate, decompiled from the original assembly (save point / save
  * room object 0x1C). Bg_SetControlIfLevelAllows is declared here with an s32 third
  * parameter: the original caller passes 0x10 - x without narrowing it to u16.
  * The state is read into a local before &gEwramData is copied into its own
@@ -505,7 +505,7 @@ void Object1CCreate(struct EwramData_EntityData *entity)
 
 #define OWNER(e) (&(*ew)->entityData[ENTITY_BYTE_519((e))])
 
-void Object1CUpdate(struct EwramData_EntityData *entity)
+void SavePointUpdate(struct EwramData_EntityData *entity)
 {
     struct EwramData **ew;
     u8 state;

@@ -7,9 +7,9 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-extern void Object1FUpdate(struct EwramData_EntityData *entity);
-extern void Object1FCreate(struct EwramData_EntityData *entity);
-extern void Object21Create(struct EwramData_EntityData *entity);
-extern void Object21Update(struct EwramData_EntityData *entity);
+extern void WarpRoom_UpdateFadeExit(struct EwramData_EntityData *entity);
+extern void WarpRoomCreate(struct EwramData_EntityData *entity);
+extern void CrusherCreate(struct EwramData_EntityData *entity);
+extern void CrusherUpdate(struct EwramData_EntityData *entity);
 
 #endif /* WARP_ROOM_H */

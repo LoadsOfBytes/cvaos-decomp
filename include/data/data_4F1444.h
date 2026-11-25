@@ -76,8 +76,8 @@ struct TimedFragment {u32 frame;s16 x,y;u8 delay;u8 pad[3];};
 
 struct PaletteTransition { void *data; u16 count,duration; };
 
-/* Debris piece of EventScene31_SpawnBlockDebris (8-byte records, 12 pieces). */
-struct EventScene31DebrisDefinition {
+/* Debris piece of EventSceneJuliusKeepsPromise_SpawnBlockDebris (8-byte records, 12 pieces). */
+struct EventSceneJuliusKeepsPromiseDebrisDefinition {
     u8 frame;
     s8 dx;
     s8 dy;
@@ -87,8 +87,8 @@ struct EventScene31DebrisDefinition {
     u8 pad_6[2];
 };
 
-/* Palette animation step of EventScene31_StepPaletteAnim (4 steps). */
-struct EventScene31PaletteStep {
+/* Palette animation step of EventSceneJuliusKeepsPromise_StepPaletteAnim (4 steps). */
+struct EventSceneJuliusKeepsPromisePaletteStep {
     u8 *palette;
     u16 sourcePalette;
     u16 duration;
@@ -173,7 +173,7 @@ struct BreakableBlockGraphics {
     void *spriteSheet; // animation set
 };
 
-struct Object0CTrigger {
+struct TriggerZoneTrigger {
     u16 type;
     u16 unk_2;
     s32 value;
@@ -183,31 +183,31 @@ struct Object0CTrigger {
     u16 height;
 };
 
-struct Object0EGraphics {
+struct BreakablePropGraphics {
     void *graphics;
     void *palette;
     void *sprites;
 };
 
-struct Object0EVariant {
+struct BreakablePropVariant {
     u8 graphics;
     u8 palette;
     u8 animation;
-    u8 firstPieceFrame; // Object0E_SpawnPieces
+    u8 firstPieceFrame; // BreakableProp_SpawnPieces
     u8 pieceCount;
-    u8 overlayFrame; // drawn every other two frames when nonzero (Object0E_Draw)
+    u8 overlayFrame; // drawn every other two frames when nonzero (BreakableProp_Draw)
     u16 skipGroundSnap;
     u32 box;
 };
 
-struct Object10Reward
+struct BossRushReward
 {
     u32 maxValue;
     s32 item;
 };
 
 /* Object 0x12 variants (spawnParam0). */
-struct Object12VariantDefinition {
+struct RoomDecorationVariantDefinition {
     void *graphics; // graphics
     void *palette; // palette
     void *spriteSheet; // animation set
@@ -297,19 +297,19 @@ extern struct BgPaletteCycle sBgPaletteCycles[];
 extern struct WarpRoomEntry sWarpRoomEntries[];
 extern struct BreakableBlockGraphics sBreakableBlockGraphics[];
 extern struct BreakableBlockVariant sBreakableBlockVariants[];
-extern struct Object0CTrigger *sObject0CTriggerLists[];
-extern struct Object0EGraphics sObject0EGraphics[];
-extern struct Object0EVariant sObject0EVariants[];
+extern struct TriggerZoneTrigger *sTriggerZoneTriggerLists[];
+extern struct BreakablePropGraphics sBreakablePropGraphics[];
+extern struct BreakablePropVariant sBreakablePropVariants[];
 extern u8 sUnk_08526370[][4];
-extern struct Object10Reward sObject10Rewards[];
-extern const struct Object12VariantDefinition sObject12Variants[];
+extern struct BossRushReward sBossRushRewards[];
+extern const struct RoomDecorationVariantDefinition sRoomDecorationVariants[];
 extern u8 sObject16PaletteAnim[];
 extern struct AnimScript sObject16EffectAnimScriptVariant0[];
 extern struct AnimScript sObject16EffectAnimScript[];
 extern const s16 sObject22LevelThresholds[];
 extern u8 *sObject22LevelPatterns[];
-extern struct ObjectVariant sObject29Variants[];
-extern struct ObjectVariant sObject2AVariants[];
+extern struct ObjectVariant sVerticalPlatformVariants[];
+extern struct ObjectVariant sHorizontalPlatformVariants[];
 extern u8 sObject25AnimScript0[];
 extern u8 sObject25AnimScript1[];
 extern u8 sObject25AnimScript2[];
@@ -318,14 +318,14 @@ extern const u32 sObject25PointIndices[];
 extern u8 sObject2BPaletteAnim[];
 extern u8 sObject2EAnimScript[];
 extern struct BgMapMetadata *sShopBgMaps[];
-extern const struct EventScene31DebrisDefinition sEventScene31DebrisDefinitions[];
-extern const struct EventScene31PaletteStep sEventScene31PaletteSteps[];
+extern const struct EventSceneJuliusKeepsPromiseDebrisDefinition sEventSceneJuliusKeepsPromiseDebrisDefinitions[];
+extern const struct EventSceneJuliusKeepsPromisePaletteStep sEventSceneJuliusKeepsPromisePaletteSteps[];
 extern const s8 sEventScene03UnusedDebris[];
 extern const s8 sEventScene03Debris[];
 extern const u8 sUnk_0852682C[];
-extern struct ParticleFrames sEventScene30ParticleFrames;
-extern struct TimedFragment sEventScene30TimedFragments[9];
-extern struct PaletteTransition sEventScene30PaletteTransitions[];
+extern struct ParticleFrames sEventSceneEndingParticleFrames;
+extern struct TimedFragment sEventSceneEndingTimedFragments[9];
+extern struct PaletteTransition sEventSceneEndingPaletteTransitions[];
 extern struct ConversationTextTable sConversationTextTable;
 extern const struct ShopStockEntry sShopStock[];
 extern struct ShopList *const sShopLists[];

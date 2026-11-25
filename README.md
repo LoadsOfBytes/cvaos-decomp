@@ -1,7 +1,7 @@
 # Castlevania: Aria of Sorrow – matching decompilation (unofficial AI-assisted fork)
 
 ![Matching](https://img.shields.io/badge/Matching-byte%20for%20byte%2C%20100%25%20C-brightgreen)
-![Naming](https://img.shields.io/badge/Naming-functions%2088.4%25%20descriptive%20%C2%B7%20fields%2096.5%25-green)
+![Naming](https://img.shields.io/badge/Naming-functions%2095.3%25%20descriptive%20%C2%B7%20fields%2096.5%25-green)
 ![Clean C](https://img.shields.io/badge/Clean%20C-92.6%25%20of%20functions-green)
 ![FAKEMATCH](https://img.shields.io/badge/FAKEMATCH-241%20lines-orange)
 
@@ -30,8 +30,8 @@ Measured on 2026-11-25 from the build output and source scans.
 | ROM rebuilds byte for byte | ✅ **done** |
 | Game functions decompiled to C | ✅ **100 %** – only an 8-byte ARM/Thumb interworking stub has no C equivalent |
 | All ROM code (`.text`) from C | **97.06 %** (891,340 / 918,324 B) – the rest is platform code normally kept in assembly (`crt0`, `m4a` mixer, BIOS stubs, header) and libgcc/libc |
-| Functions with a name instead of an address | 🔄 **99.9 %** (3,414 / 3,417 C functions) – 3 title-screen helpers still carry their ROM address (`TitleScreen_sub_08002F44` …) |
-| Functions with a descriptive name | 🔄 **88.4 %** (3,020 / 3,417 C functions) – 397 names say what a function does but not what it belongs to, only a table index: 236 room-object functions `ObjectXX…` (index in the room-object table), 136 event-scene functions `EventSceneNN…`, 18 numbered debug / unknown game modes (`GameModeDebug1967Update`, `GameModeUnk3Update` …), 4 particle spawners named by animation number, plus the 3 address names (see *Known limitations*) |
+| Functions with a name instead of an address | ✅ **100 %** (3,417 / 3,417 C functions) |
+| Functions with a descriptive name | 🔄 **95.3 %** (3,257 / 3,417 C functions) – 160 names say what a function does but not what it belongs to, only a table index: 103 room-object functions `ObjectXX…` (index in the room-object table), 35 event-scene functions `EventSceneNN…`, 18 numbered debug / unknown game modes (`GameModeDebug1967Update`, `GameModeUnk3Update` …), 4 particle spawners named by animation number (see *Known limitations*). Identified so far: 31 of the 56 room-object types (doors, candles, breakable blocks, moving / crumbling / pendulum platforms, elevator, save point, warp room, …) and 27 of the 32 event scenes, named after their dialogue (`EventSceneMeetYoko`, `EventSceneGrahamBattleStart`, `EventSceneEnding` …) |
 | Local variables and parameters named | ✅ **100 %** (15,753 / 15,753) |
 | Structure fields named | 🔄 **96.5 %** (3,163 / 3,278 declared; 99.9 % of accesses) – most of the rest are the offset-named slots of the raw work-area view |
 | Entity work area as typed structures | 🔄 368 per-type structures; 24 lines and 6 macros still use the raw offset view |
@@ -68,12 +68,15 @@ name or comment describes the game correctly. Corrections are very welcome.
   engine and libgcc (`_080D86D6`, `Loop1` …) and treated every name without a
   `sub_` prefix as named. The current numbers cover only the 3,417 functions
   compiled from C and count a name as descriptive only when it says what the
-  function or its object is. 397 names still fall short: `Object29Update` or
-  `Object32_SpawnDebris` describe the behaviour, but `29` / `32` is just the index
-  in the room-object table – which object of the game (breakable wall, platform,
-  …) it is has not been identified yet; the same holds for `EventSceneNN…` and
-  the numbered debug modes. Such names are kept until the object is identified,
-  because a wrong name is worse than a number.
+  function or its object is. 160 names still fall short: `Object22Update` or
+  `Object2E_SpawnPiece` describe the behaviour, but `22` / `2E` is just the index
+  in the room-object table – which object of the game it is has not been
+  identified yet; the same holds for the remaining `EventSceneNN…` and the
+  numbered debug modes. Room objects are identified from the rooms that place
+  them (read from the room tables of the ROM) together with their documented
+  behaviour, event scenes from the dialogue text they open and the room that
+  places them; such names are inferred, not confirmed by the developers. Unidentified names are
+  kept as numbers, because a wrong name is worse than a number.
 - **Matching-driven style** – some functions use `goto`, odd temporaries or casts to
   reproduce the original instruction order. Where the original code read the same
   bytes both signed and unsigned, two structures describe them (e.g. `MenuListWork` /

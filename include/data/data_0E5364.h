@@ -36,7 +36,7 @@ struct Object31Words {
 };
 
 /* Two hit boxes of object 0x32 (by spawnParam1). */
-struct Object32Boxes {
+struct CrumblingPlatformBoxes {
     u32 box[2];
 };
 
@@ -111,18 +111,18 @@ extern u8 sTextBgPalette[];
 extern const s32 sHudMapTiles[3];
 extern const s32 sHudMapPalettes[3];
 extern const struct Unk_08118510 sUnk_08118510;
-extern u8 sObject0CSolidCallbacks[];
-extern u8 sObject12Variant0AnimScript0[];
-extern u8 sObject12Variant0AnimScript1[];
-extern u8 sObject12Variant0AnimScript2[];
-extern u8 sObject14Variant1SolidCallbacks[];
-extern const s16 sUnk_08118590[];
-extern u8 sObject17SolidCallbacks[];
-extern const u16 sObject17Xs[];
-extern const u16 sObject17Ys[];
+extern u8 sTriggerZoneSolidCallbacks[];
+extern u8 sRoomDecorationVariant0AnimScript0[];
+extern u8 sRoomDecorationVariant0AnimScript1[];
+extern u8 sRoomDecorationVariant0AnimScript2[];
+extern u8 sRollerVariant1SolidCallbacks[];
+extern const s16 sElevatorFloorY[];
+extern u8 sElevatorSolidCallbacks[];
+extern const u16 sElevatorXs[];
+extern const u16 sElevatorYs[];
 extern u16 sObject1BColors[];
-extern struct FourBoxes sObject29Boxes;
-extern struct FourBoxes sObject2ABoxes;
+extern struct FourBoxes sVerticalPlatformBoxes;
+extern struct FourBoxes sHorizontalPlatformBoxes;
 /* Start x / y of object 0x2F per variant (spawnParam0). */
 extern const u16 sObject2FXs[3];
 extern const u16 sObject2FYs[3];
@@ -130,22 +130,22 @@ extern const u16 sObject31Xs[4];
 extern const u16 sObject31Ys[4];
 extern const u16 sObject31Anims[4];
 extern const struct Object31Words sUnk_08118674;
-extern const struct Object32Boxes sObject32Boxes;
-extern u8 sObject36SolidCallbacks[];
+extern const struct CrumblingPlatformBoxes sCrumblingPlatformBoxes;
+extern u8 sRotatingPlatformSolidCallbacks[];
 /* Object 0x36 per variant: { rotation speed * 2 / scale step, rotation speed }. */
-extern const s16 sObject36Shapes[9][2];
+extern const s16 sRotatingPlatformShapes[9][2];
 extern struct ObjectTableGraphics sObjectTableGraphics[12];
 extern const struct Unk_081187AC sEventScene03SpotsA[5];
 extern const struct Unk_081187AC sEventScene03SpotsB[2];
-extern u8 sEventScene15Periods[];
-extern u8 sEventScene19Gfx[];
-extern struct FragmentFrames sEventScene30FragmentFrames;
-extern struct BurstFrames sEventScene30BurstFrames;
-extern struct BurstAnimations sEventScene30BurstAnimations;
-extern struct BurstPosition sEventScene30BurstPositions[15];
-extern struct EffectStep sEventScene30EmitterBSteps[];
-extern struct EffectSequence sEventScene30EmitterCSequence;
-extern struct EffectStep sEventScene30EmitterDSteps[];
-extern struct EffectSequence sEventScene30EmitterESequence;
+extern u8 sEventSceneSomaAwakensPeriods[];
+extern u8 sEventSceneJuliusBattleStartGfx[];
+extern struct FragmentFrames sEventSceneEndingFragmentFrames;
+extern struct BurstFrames sEventSceneEndingBurstFrames;
+extern struct BurstAnimations sEventSceneEndingBurstAnimations;
+extern struct BurstPosition sEventSceneEndingBurstPositions[15];
+extern struct EffectStep sEventSceneEndingEmitterBSteps[];
+extern struct EffectSequence sEventSceneEndingEmitterCSequence;
+extern struct EffectStep sEventSceneEndingEmitterDSteps[];
+extern struct EffectSequence sEventSceneEndingEmitterESequence;
 
 #endif /* DATA_0E5364_H */

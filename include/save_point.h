@@ -8,8 +8,8 @@
 #include "structs/main.h"
 
 extern s32 SavePoint_SpawnOrbitLights(struct EwramData_EntityData *parent);
-extern void Object1DCreate(struct EwramData_EntityData *entity);
-extern void Object1DUpdate(struct EwramData_EntityData *entity);
+extern void SaveWarpRoomWallCreate(struct EwramData_EntityData *entity);
+extern void SaveWarpRoomWallUpdate(struct EwramData_EntityData *entity);
 extern void Object1ECreate(struct EwramData_EntityData *entity);
 extern void Object1EUpdate(struct EwramData_EntityData *entity);
 extern s32 SavePoint_SpawnAnimParts(struct EwramData_EntityData *parent);

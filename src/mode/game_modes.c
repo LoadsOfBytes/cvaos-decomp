@@ -752,11 +752,13 @@ s32 GameModeResetUpdate(void)
 }
 
 /**
- * @brief 2F44 | To document
- * 
- * @param arg0 To document
+ * @brief 2F44 | Fill the back H-blank buffer with BG1 horizontal offsets
+ * for the top 3/4 of the screen: a sine wave of the given amplitude that
+ * advances with the frame counter, odd lines mirrored (logo ripple; 0 = flat).
+ *
+ * @param amplitude Wave amplitude (16.16 scale of Sin >> 8)
  */
-void TitleScreen_sub_08002F44(s32 arg0)
+void TitleScreen_SetLogoWave(s32 amplitude)
 {
     s16 *hBlankBuf;
     s32 angle;
@@ -770,13 +772,13 @@ void TitleScreen_sub_08002F44(s32 arg0)
     
     for (scanline = 0; scanline < (s32)(SCREEN_SIZE_Y * 0.75f); scanline++)
     {
-        if ((arg0 * (Sin(angle) >> 8)) < 0)
+        if ((amplitude * (Sin(angle) >> 8)) < 0)
         {
-            offset = -(-(arg0 * (Sin(angle) >> 8)) >> 0x10);
+            offset = -(-(amplitude * (Sin(angle) >> 8)) >> 0x10);
         }
         else
         {
-            offset = (arg0 * (Sin(angle) >> 8)) >> 0x10;
+            offset = (amplitude * (Sin(angle) >> 8)) >> 0x10;
         }
 
         value = offset;
@@ -862,10 +864,11 @@ struct TitlePaletteBlendStep sTitlePaletteBlendSteps[12] = {
 };
 
 /**
- * @brief 2FF8 | To document
- * 
+ * @brief 2FF8 | Title palette cycle: after the current step's duration load
+ * its palette and start the blend towards the next entry of
+ * sTitlePaletteBlendSteps (wrapping), timer and step kept in the logo entity.
  */
-void TitleScreen_sub_08002FF8(void)
+void TitleScreen_StepPaletteCycle(void)
 {
     struct EwramData_EntityData *unk_4E4;
     struct TitlePaletteBlendStep *step;
@@ -890,10 +893,11 @@ void TitleScreen_sub_08002FF8(void)
 }
 
 /**
- * @brief 3080 | To document
- * 
+ * @brief 3080 | Leave the title screen: stop the H-blank effect and palette
+ * blend, free the logo graphics, delete all entities, reset the sprite,
+ * palette, text and hit-box systems, clear two BG maps and set all BGCNTs.
  */
-void TitleScreen_sub_08003080(void)
+void TitleScreen_Shutdown(void)
 {
     gEwramData->hBlankEffect.requestStop = 1;
     BgPalette_StopBlend(0);
@@ -940,7 +944,7 @@ static inline void TitleScreenSetAffine_inline(s16 scale)
 /* Per-frame update of the title logo (palette cycling). */
 static inline void TitleScreenStep(struct EwramData_EntityData *logo)
 {
-    TitleScreen_sub_08002FF8();
+    TitleScreen_StepPaletteCycle();
 }
 // Title screen game mode (upstream fakematch https://decomp.me/scratch/s3HhS)
 s32 GameModeTitleScreenUpdate(void)
@@ -1146,7 +1150,7 @@ s32 GameModeTitleScreenUpdate(void)
                 }
                 fade = logo->ext.titleLogo.waveAmplitude / 1280;
                 gDisplayRegisters.bldAlpha = C_16_2_8(fade, BLDALPHA_MAX_VALUE - fade);
-                TitleScreen_sub_08002F44(logo->ext.titleLogo.waveAmplitude);
+                TitleScreen_SetLogoWave(logo->ext.titleLogo.waveAmplitude);
             }
             else
             {
@@ -1214,7 +1218,7 @@ s32 GameModeTitleScreenUpdate(void)
             if (gDisplayRegisters.bldY == BLDY_MAX_VALUE)
             {
                 gameMode = sTitleScreenNextGameMode[menu->ext.titleMenu.cursor + menu->ext.titleMenu.first];
-                TitleScreen_sub_08003080();
+                TitleScreen_Shutdown();
                 gDisplayRegisters.bldY = BLDY_MAX_VALUE;
                 gEwramData->gameModeUpdateStage = 0;
                 if (gEwramData->gameModeCounter != 0)
@@ -1241,7 +1245,7 @@ s32 GameModeTitleScreenUpdate(void)
         tmp2 = C_16_2_8(0, BLDALPHA_MAX_VALUE);
         gDisplayRegisters.bldAlpha = tmp2;
 
-        TitleScreen_sub_08002F44(0);
+        TitleScreen_SetLogoWave(0);
         EntityDeleteGroup(1);
         logo->hidden = 1;
         logo->objMode = 0;

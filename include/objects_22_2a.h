@@ -9,9 +9,9 @@
 
 extern void Object22Create(struct EwramData_EntityData *entity);
 extern void Object22Update(struct EwramData_EntityData *entity);
-extern void Object29Create(struct EwramData_EntityData *entity);
-extern void Object29Update(struct EwramData_EntityData *entity);
-extern void Object2ACreate(struct EwramData_EntityData *entity);
-extern void Object2AUpdate(struct EwramData_EntityData *entity);
+extern void VerticalPlatformCreate(struct EwramData_EntityData *entity);
+extern void VerticalPlatformUpdate(struct EwramData_EntityData *entity);
+extern void HorizontalPlatformCreate(struct EwramData_EntityData *entity);
+extern void HorizontalPlatformUpdate(struct EwramData_EntityData *entity);
 
 #endif /* OBJECTS_22_2A_H */

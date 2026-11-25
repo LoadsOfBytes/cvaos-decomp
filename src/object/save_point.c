@@ -360,7 +360,7 @@ static inline s32 ExitSum(void)
     return sum;
 }
 
-void Object1DCreate(struct EwramData_EntityData *entity)
+void SaveWarpRoomWallCreate(struct EwramData_EntityData *entity)
 {
     u8 *gfx, *palette, *sprite;
     s32 layer, graphics, sum, i;
@@ -393,12 +393,12 @@ void Object1DCreate(struct EwramData_EntityData *entity)
         if (sum == 1)
         {
             entity->posX.part16.integer -= 0xD0;
-            entity->ext.object1D.exitRight = 1;
+            entity->ext.saveWarpRoomWall.exitRight = 1;
             entity->flipX = 0;
         }
         else if (sum == -1)
         {
-            entity->ext.object1D.exitRight = 0;
+            entity->ext.saveWarpRoomWall.exitRight = 0;
             entity->flipX = 1;
         }
         else if (sum == 0)
@@ -414,14 +414,14 @@ void Object1DCreate(struct EwramData_EntityData *entity)
         {
             entity->posX.part16.integer = 0x10;
             entity->posY.part16.integer = 0x70;
-            entity->ext.object1D.exitRight = 1;
+            entity->ext.saveWarpRoomWall.exitRight = 1;
             entity->flipX = 0;
         }
         else if (sum == -1)
         {
             entity->posX.part16.integer = 0xE0;
             entity->posY.part16.integer = 0x70;
-            entity->ext.object1D.exitRight = 0;
+            entity->ext.saveWarpRoomWall.exitRight = 0;
             entity->flipX = 1;
         }
         else if (sum == 0)
@@ -443,14 +443,14 @@ void Object1DCreate(struct EwramData_EntityData *entity)
 }
 
 /* Object 0x1D has no per-frame update. */
-void Object1DUpdate(struct EwramData_EntityData *entity)
+void SaveWarpRoomWallUpdate(struct EwramData_EntityData *entity)
 {
 }
 
-/* Unreferenced draw routine next to Object1DUpdate (warp room): draw the
+/* Unreferenced draw routine next to SaveWarpRoomWallUpdate (warp room): draw the
  * object, then on alternating frame pairs a pulsing affine copy (frame 6) 28 px
  * above it. */
-void Object1D_DrawPulsingOverlay(struct EwramData_EntityData *entity)
+void SaveWarpRoomWall_DrawPulsingOverlay(struct EwramData_EntityData *entity)
 {
     u8 frame = entity->animFrame;
     entity->affine = 0;
@@ -459,7 +459,7 @@ void Object1D_DrawPulsingOverlay(struct EwramData_EntityData *entity)
     if (gEwramData->frameCounter & 2)
     {
         s32 scale = (Sin(gEwramData->frameCounter << 11) >> 3) + 0xE000;
-        ObjAffine_Set(0, scale, scale, 0, 0, (u8)entity->ext.object1D.affineSlot);
+        ObjAffine_Set(0, scale, scale, 0, 0, (u8)entity->ext.saveWarpRoomWall.affineSlot);
         entity->objMode = 1;
         entity->posY.part16.integer -= 28;
         entity->animFrame = 6;

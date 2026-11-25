@@ -384,11 +384,11 @@ void DeadCrusader_OnHit(struct EwramData_EntityData *entity, struct EwramData_En
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   DeadCrusader_LoadGraphics = Object32_LoadGraphics
+ *   DeadCrusader_LoadGraphics = CrumblingPlatform_LoadGraphics
  *   DeadCrusader_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
 /**
- * @brief 8F8EC | Same as Object32_LoadGraphics.
+ * @brief 8F8EC | Same as CrumblingPlatform_LoadGraphics.
  */
 u8 DeadCrusader_LoadGraphics(struct EwramData_EntityData *entity)
 {

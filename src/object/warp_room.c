@@ -31,8 +31,8 @@
 void WarpRoom_UpdateGatePart(struct EwramData_EntityData *);
 void WarpRoom_ResetGatePart(struct EwramData_EntityData *);
 void WarpRoom_UpdateSideLight(struct EwramData_EntityData *);
-u8 Object21_LoadGraphics(struct EwramData_EntityData *entity);
-void Object21_OnPlayerContact(struct EwramData_EntityData *entity);
+u8 Crusher_LoadGraphics(struct EwramData_EntityData *entity);
+void Crusher_OnPlayerContact(struct EwramData_EntityData *entity);
 s32 WarpRoom_LoadGraphics(struct EwramData_EntityData *entity);
 
 struct WarpLightPaletteStep
@@ -513,7 +513,7 @@ void WarpRoom_UpdateSideLight(struct EwramData_EntityData *entity)
     }
 }
 
-void Object1FUpdate(struct EwramData_EntityData *entity)
+void WarpRoom_UpdateFadeExit(struct EwramData_EntityData *entity)
 {
     struct GameState *g = &gEwramData->gameState;
     struct EwramData_EntityData *player = gEwramData->playerState.player;
@@ -531,7 +531,7 @@ void Object1FUpdate(struct EwramData_EntityData *entity)
         Game_SetMenusEnabled(0);
         player->objMode = 1;
         gDisplayRegisters.bldAlpha = 0x10;
-        entity->ext.object1F.fadeTimer = 0x80;
+        entity->ext.warpRoomFadeExit.fadeTimer = 0x80;
         break;
     case 1:
         gEwramData->gameState.stateFlags |= 1;
@@ -548,7 +548,7 @@ void Object1FUpdate(struct EwramData_EntityData *entity)
             gDisplayRegisters.bldAlpha = 0x808;
         }
         gDisplayRegisters.bldAlpha = (0x10 - (entity->timer >> 3)) | ((entity->timer >> 3) << 8);
-        if (--entity->ext.object1F.fadeTimer != 0xFFFF)
+        if (--entity->ext.warpRoomFadeExit.fadeTimer != 0xFFFF)
             return;
         RoomFadeTransition_Begin(g);
         break;
@@ -660,7 +660,7 @@ void WarpRoomUnusedPart_Update(struct EwramData_EntityData *entity)
 /**
  * @brief 564F8 | Object 0x1F create.
  */
-void Object1FCreate(struct EwramData_EntityData *entity)
+void WarpRoomCreate(struct EwramData_EntityData *entity)
 {
     WarpRoom_LoadGraphics(entity);
     WarpRoom_CreateGateParts(entity);
@@ -691,22 +691,22 @@ s32 WarpRoom_LoadGraphics(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief 56550 | Object 0x21 create: hitbox with callback Object21_OnPlayerContact,
+ * @brief 56550 | Object 0x21 create: hitbox with callback Crusher_OnPlayerContact,
  * strength attack from the player stats (equipmentDefenseBonus * 3 / 4 + maxHP / 16),
  * fixed room position (0x40, 0x18).
  */
-void Object21Create(struct EwramData_EntityData *entity)
+void CrusherCreate(struct EwramData_EntityData *entity)
 {
     struct EwramData **ewramRef = &gEwramData;
     struct BgLayerState *bg = &(*ewramRef)->bgInfo[1];
     struct SpriteBox box = { -30, 41, 0x3C, 0x14 };
 
-    if (!Object21_LoadGraphics(entity))
+    if (!Crusher_LoadGraphics(entity))
     {
         EntityDelete(entity);
         return;
     }
-    Hit_Enable(entity, 8, Object21_OnPlayerContact, 0);
+    Hit_Enable(entity, 8, Crusher_OnPlayerContact, 0);
     HitBox_SetAttack(entity, &box);
     entity->hit.flags |= 4;
     entity->hit.flags &= ~2;
@@ -726,9 +726,9 @@ void Object21Create(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief Main behaviour of object 0x21, called by Object21Update.
+ * @brief Main behaviour of object 0x21, called by CrusherUpdate.
  */
-void Object21_UpdateState(struct EwramData_EntityData *entity)
+void Crusher_UpdateState(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *bg = &gEwramData->bgInfo[1];
     switch (entity->subState)
@@ -788,34 +788,34 @@ void Object21_UpdateState(struct EwramData_EntityData *entity)
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   Object21Update = Object28Update
- *   Object21_LoadGraphics = Object32_LoadGraphics
- *   Object21_OnPlayerContact = DevilPart_DamagePlayerOnContact */
+ *   CrusherUpdate = Object28Update
+ *   Crusher_LoadGraphics = CrumblingPlatform_LoadGraphics
+ *   Crusher_OnPlayerContact = DevilPart_DamagePlayerOnContact */
 
 /**
  * @brief 56784 | Same as Object28Update.
  */
-void Object21Update(struct EwramData_EntityData *entity)
+void CrusherUpdate(struct EwramData_EntityData *entity)
 {
     struct HitResult result;
 
     if (entity->state == 0)
-        Object21_UpdateState(entity);
+        Crusher_UpdateState(entity);
     Anim_Update(entity);
     Hit_CheckWithPlayer(&result, entity);
 }
 
 /**
- * @brief 567AC | Same as Object32_LoadGraphics.
+ * @brief 567AC | Same as CrumblingPlatform_LoadGraphics.
  */
-u8 Object21_LoadGraphics(struct EwramData_EntityData *entity)
+u8 Crusher_LoadGraphics(struct EwramData_EntityData *entity)
 {
-    s32 gfx = ObjGfx_LoadResource(sObject21Object23Gfx, 0);
+    s32 gfx = ObjGfx_LoadResource(sCrusherObject23Gfx, 0);
 
     if (gfx < 0)
         return 0;
     entity->basePalette = ObjPalette_FindOrLoadVariant(sUnk_08209FD8, 1);
-    Sprite_Attach(entity, sObject21Object23SpriteSheet, gfx, entity->basePalette);
+    Sprite_Attach(entity, sCrusherObject23SpriteSheet, gfx, entity->basePalette);
     entity->drawFunc = Sprite_DrawEntity;
     return 1;
 }
@@ -823,7 +823,7 @@ u8 Object21_LoadGraphics(struct EwramData_EntityData *entity)
 /**
  * @brief 567F8 | Same as DevilPart_DamagePlayerOnContact.
  */
-void Object21_OnPlayerContact(struct EwramData_EntityData *entity)
+void Crusher_OnPlayerContact(struct EwramData_EntityData *entity)
 {
     struct PlayerContactDamage contactDamage;
 

@@ -66,7 +66,7 @@ struct EwramData_unk4FC_16 {
 }; 
 
 union EwramData_unk4FC {
-    struct EwramData_EntityData *unk_4FC_entity; // child effect (EventScene26_Init)
+    struct EwramData_EntityData *unk_4FC_entity; // child effect (EventSceneHammerTalk_Init)
     u32 whole; // TODO: Player_Create stores a pointer here
     struct EwramData_unk4FC_16 part16;
     struct EwramData_unk4FC_8 part8;
@@ -743,36 +743,36 @@ union EntityWork {
     struct SkillKyomaDemonWaitWork skillKyomaDemonWait;
     struct SkillGrowScaleWork skillGrowScale;
     struct SkillCatoblepasWork skillCatoblepas;
-    struct Object0DWork object0D;
+    struct SwingingPlatformWork swingingPlatform;
     struct Object16Work object16;
     struct Object37Work object37;
     struct Object37ChildWork object37Child;
-    struct Object14Work object14;
-    struct Object14SwingWork object14Swing;
+    struct RollerWork roller;
+    struct RollerSwingWork rollerSwing;
     struct Object31Work object31;
     struct Object35Work object35;
     struct Object35ChildWork object35Child;
-    struct Object36Work object36;
-    struct Object30LeafWork object30Leaf;
+    struct RotatingPlatformWork rotatingPlatform;
+    struct FallingLeafWork fallingLeaf;
     struct Object19Work object19;
     struct Object15Work object15;
-    struct Object08Work object08;
-    struct Object08DustWork object08Dust;
+    struct BreakableBlockWork breakableBlock;
+    struct BreakableBlockDustWork breakableBlockDust;
     struct Object1BWork object1B;
     struct Object25SpawnerWork object25Spawner;
     struct Object25Work object25;
-    struct Object17Work object17;
+    struct ElevatorWork elevator;
     struct WarpRoomWork warpRoom;
     struct Object26Work object26;
     struct WarpGateWork warpGate;
-    struct Object1DWork object1D;
+    struct SaveWarpRoomWallWork saveWarpRoomWall;
     struct Object22Work object22;
     struct Object22PartWork object22Part;
-    struct Object07Work object07;
-    struct Object09Work object09;
-    struct Object10Work object10;
+    struct RoomEffectWork roomEffect;
+    struct CrumblingWallWork crumblingWall;
+    struct BossRushResultWork bossRushResult;
     struct BossRushTimerWork bossRushTimer;
-    struct Object1FWork object1F;
+    struct WarpRoomFadeExitWork warpRoomFadeExit;
     struct TitleMenuWork titleMenu;
     struct MainMenuWork mainMenu;
     struct TitleLogoWork titleLogo;
@@ -799,8 +799,8 @@ union EntityWork {
     struct SubweaponWork subweapon;
     struct SubweaponUnusedWork subweaponUnused;
     struct GrandCrossWork grandCross;
-    struct Object34Work object34;
-    struct Object34PartWork object34Part;
+    struct PendulumPlatformWork pendulumPlatform;
+    struct PendulumPlatformPartWork pendulumPlatformPart;
     struct Event04Work event04;
     struct AnimViewerWork animViewer;
     struct SpriteDebrisWork spriteDebris;
@@ -869,7 +869,7 @@ struct EwramData_EntityData {
     /* 0x00518 */ u16 hp; /* enemy HP (sEnemyData[enemyId].hp); other entity types reuse it (e.g. an angle) */
     /* 0x0051A */ u8 enemyId; /* index into sEnemyData, copied from the owner to its parts */
     /* 0x0051B */ u8 spawnIndex; /* RoomEntityRecord.spawnIndex, copied to parts/projectiles; some types reuse it (tile, event) */
-    /* 0x0051C */ s32 enemyStatus; /* enemies: status word in the low half (ENEMY_STATUS, enemy_status.h); other types reuse it (bytes, an affine angle accumulator in EventScene30Effect_UpdateSpinning) */
+    /* 0x0051C */ s32 enemyStatus; /* enemies: status word in the low half (ENEMY_STATUS, enemy_status.h); other types reuse it (bytes, an affine angle accumulator in EventSceneEndingEffect_UpdateSpinning) */
     /* 0x00520 */ u8 attack; /* contact attack strength, passed to Player_ApplyContactDamage */
     /* 0x00521 */ u8 defense; // active damage-mitigation byte used by Hit_ResolveDamage, not padding
     /* 0x00522 */ u8 enemyFlags; /* bit 0: HUD name consumed/suppressed; bit 1: skips drops/collision; bit 2: force player target */
@@ -1125,7 +1125,7 @@ struct GameState {
     /* 0x000A6 */ u16 saveMapCompletionTenths; /* Map_GetCompletionTenths at save time */
     /* 0x000A8 */ u32 saveGold; /* playerStatus.currentGold at save time */
     /* 0x000AC */ u32 inGameTimer;
-    /* 0x000B0 */ u32 bestBossRushTimeFrames; // replaced by entity 26 unk_4F8 when 0 or larger (Object10Update)
+    /* 0x000B0 */ u32 bestBossRushTimeFrames; // replaced by entity 26 unk_4F8 when 0 or larger (BossRushResultUpdate)
     /* 0x000B4 */struct MapCellBits mapCells[2][40];
     /* Resume position, stored when saving and used by the load (Room_LoadAtCamera). */
     /* 0x00334 */ u16 savedCameraX;
@@ -1160,7 +1160,7 @@ struct GameState {
     /* 0x0040A */ s16 hudMaxMP;
     /* 0x0040C */ u8 *conversationText; // conversation text (Conversation_LoadNextText)
     /* 0x00410 */ u32 insertedTextAddress; // pointer bits for command 1's nested stream; retain u32 storage
-    /* 0x00414 */ u8 textWindowState:4; // set to 5 by Object20Update (newInput bit 3)
+    /* 0x00414 */ u8 textWindowState:4; // set to 5 by EventSceneControllerUpdate (newInput bit 3)
     /* 0x00414 */ u8 textWindowLabelId:4;
     /* 0x00415 */ u8 textCharacterTimer; // active countdown in textWindowState 4; not padding
     /* 0x00416 */ u8 textCharacterDelay; // delay reloaded after a character; zero enables fast text
@@ -1168,7 +1168,7 @@ struct GameState {
     /* 0x00418 */ u16 conversationTextOffset; // offset in the main command stream (past its two-byte header)
     /* 0x0041A */ u8 insertedTextOffset; // nested-stream offset; retain its original narrower type
     /* 0x0041B */ u8 textWindowOpening; // stored amount; TextWindow_AdjustOpening clamps only a local copy
-    /* 0x0041C */ struct EwramData_EntityData *sceneController; // set to the object by Object20Create
+    /* 0x0041C */ struct EwramData_EntityData *sceneController; // set to the object by EventSceneControllerCreate
     /* 0x00420 */ u16 hudMessageId; // request text ID; the soul-acquired path also stores its soul ID
     /* 0x00422 */ u8 hudMessageTimer; // close the HUD message when this countdown reaches zero
     /* 0x00423 */ u8 hudMessageRequest; // 0 none, 1 pickup text, 2 enemy name, 3 close

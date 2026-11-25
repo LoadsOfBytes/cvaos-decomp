@@ -7,11 +7,11 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-extern void EventScene30_UploadFrame(void);
-extern void EventScene30Flash_Update(struct EwramData_EntityData *entity);
-extern void EventScene30Effect_UpdateBallistic(struct EwramData_EntityData *entity);
-extern void EventScene30Effect_UpdateSpinning(struct EwramData_EntityData *entity);
-extern void EventScene30Effect_UpdateSpinningKeepSlot(struct EwramData_EntityData *entity);
+extern void EventSceneEnding_UploadFrame(void);
+extern void EventSceneEndingFlash_Update(struct EwramData_EntityData *entity);
+extern void EventSceneEndingEffect_UpdateBallistic(struct EwramData_EntityData *entity);
+extern void EventSceneEndingEffect_UpdateSpinning(struct EwramData_EntityData *entity);
+extern void EventSceneEndingEffect_UpdateSpinningKeepSlot(struct EwramData_EntityData *entity);
 extern s32 Conversation_LoadNextText(void);
 extern void Conversation_Reset(void);
 

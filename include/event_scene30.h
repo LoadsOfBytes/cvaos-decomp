@@ -15,7 +15,7 @@
  */
 #define EVENT30_JITTER_Y(e) e->ext.raw.unk_508.part8.unk_50B
 #define EVENT30_EFFECT_ANGLE(e) e->enemyStatus
-/* Palette transition (EventScene30_StepPaletteTransition): frame counter of
+/* Palette transition (EventSceneEnding_StepPaletteTransition): frame counter of
  * the current step and the step index 0..6 (byte 0 of hp). */
 #define EVENT30_PALETTE_TIMER(e) ENTITY_HALF_51A(e)
 #define EVENT30_PALETTE_STEP(e) ENTITY_BYTE_518(e)

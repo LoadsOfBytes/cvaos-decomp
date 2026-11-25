@@ -7,6 +7,6 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-extern void EventScene30_UpdateTransformation(struct EwramData_EntityData *entity);
+extern void EventSceneEnding_UpdateTransformation(struct EwramData_EntityData *entity);
 
 #endif /* SCENE30_TRANSFORMATION_H */

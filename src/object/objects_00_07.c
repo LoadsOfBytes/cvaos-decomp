@@ -137,7 +137,7 @@ void Gate_SetupGraphics(struct EwramData_EntityData *entity, s32 opened)
  * mark three tiles (Collision_SetBlock) 8 / 0x18 / 0x28 px above its room
  * position and reset unk_4F8 and the state.
  */
-void Object00Create(struct EwramData_EntityData *entity)
+void GateCreate(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *player;
     s32 found;
@@ -178,7 +178,7 @@ void Object00Create(struct EwramData_EntityData *entity)
  * States 10/11 close it again behind the player (sound 0x114,
  * Collision_SetBlock) and return to state 0.
  */
-void Object00Update(struct EwramData_EntityData *entity)
+void GateUpdate(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *player;
     struct BgLayerState *bg;
@@ -402,7 +402,7 @@ void Door_SetupGraphics(struct EwramData_EntityData *entity)
  * (velX, accelX) when moving towards the room centre (x 0x78); otherwise
  * mark three tiles above it and pick the state from spawnParam0.
  */
-void Object02Create(struct EwramData_EntityData *entity)
+void BossDoorCreate(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *player;
     struct EwramData_EntityData **pp;
@@ -481,7 +481,7 @@ void Object02Create(struct EwramData_EntityData *entity)
  * state 10 closes once the player is out of the 0x38 x 0x22 box and state 11
  * also clears bit 15 of DISPCNT.
  */
-void Object02Update(struct EwramData_EntityData *entity)
+void BossDoorUpdate(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *player = gEwramData->playerState.player;
 
@@ -609,7 +609,7 @@ void Object02Update(struct EwramData_EntityData *entity)
 }
 
 /* Initialize object 0x03's window mask, three vertical tile positions and variant state. */
-void Object03Create(struct EwramData_EntityData *entity)
+void LinkPlayDoorCreate(struct EwramData_EntityData *entity)
 {
     s32 x, y;
     struct BgLayerState *bg;
@@ -641,7 +641,7 @@ void Object03Create(struct EwramData_EntityData *entity)
  * clears the door tiles (Collision_ClearBlock at three heights, sound 0x113), clears
  * stateFlags bits 0 and 8 after 48 frames and keeps the player walking (state 3).
  */
-void Object03Update(struct EwramData_EntityData *entity)
+void LinkPlayDoorUpdate(struct EwramData_EntityData *entity)
 {
     struct EwramData *ew;
     struct EwramData_EntityData *p2;
@@ -716,7 +716,7 @@ void Object03Update(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief 4E770 | Object 4 init (one-way door, as Object02Create): deleted
+ * @brief 4E770 | Object 4 init (one-way door, as BossDoorCreate): deleted
  * when spawnParam0 <= 1 and bit spawnParam1 of bossEventFlags is set; Door_SetupGraphics, window
  * outside 0x3F / 0x2F. The player counts as passing when at most 0x18 px
  * right of it (unk_4FE == 0) or at most 0x18 px left of it (otherwise):
@@ -936,7 +936,7 @@ void Object04Update(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief 4EC3C | Object 6 init (as Object00Create): Door_SetupGraphics, palette
+ * @brief 4EC3C | Object 6 init (as GateCreate): Door_SetupGraphics, palette
  * palette = 5, window outside 0x3F / 0x2F; when the player is inside the
  * 0x38 x 0x22 area 0x1C px to its left or bossEventFlags bit 2 is set, set unk_4F8
  * to 0x30, state 10 and clear player input; otherwise mark three tiles
@@ -1087,7 +1087,7 @@ void Object06Update(struct EwramData_EntityData *entity)
  * 0x7D, palette 7, window outside 0x3F / 0x2F; start open (unk_4F8 = 0x30)
  * when the player is already in front of it.
  */
-void Object05Create(struct EwramData_EntityData *entity)
+void ProximityDoorCreate(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *player;
 
@@ -1106,7 +1106,7 @@ void Object05Create(struct EwramData_EntityData *entity)
  * to 0x30 in steps of 2) while the player is within 0x28 px horizontally,
  * closes otherwise, with sound 0x113 when it starts moving on screen.
  */
-void Object05Update(struct EwramData_EntityData *entity)
+void ProximityDoorUpdate(struct EwramData_EntityData *entity)
 {
     struct EwramData_EntityData *player = gEwramData->playerState.player;
 
@@ -1155,19 +1155,19 @@ void BgParticle_Update(struct EwramData_EntityData *entity)
     case 0:
         if (entity->spawnParam0 == 0)
         {
-            gfx = ObjGfx_LoadResource((u8 *)sObject07ParallaxSpriteGfx, 0);
+            gfx = ObjGfx_LoadResource((u8 *)sRoomEffectParallaxSpriteGfx, 0);
             if (gfx < 0)
             {
                 entity->deleteRequested = 1;
                 return;
             }
-            pal = ObjPalette_FindOrLoad((void *)sObject07ParallaxSpritePalette);
+            pal = ObjPalette_FindOrLoad((void *)sRoomEffectParallaxSpritePalette);
             if (pal < 0)
             {
                 entity->deleteRequested = 1;
                 return;
             }
-            Sprite_Attach(entity, (void *)sObject07ParallaxSpriteSpriteSheet, gfx, pal);
+            Sprite_Attach(entity, (void *)sRoomEffectParallaxSpriteSpriteSheet, gfx, pal);
         }
         else if (entity->spawnParam0 == 2)
         {
@@ -1298,21 +1298,21 @@ s32 BgParticle_SpawnAll(struct EwramData_EntityData *owner)
  * @brief Load the semi-transparent background sprite, then drift with its
  * velocity and 1/12 of the camera motion (parallax).
  */
-void Object07ParallaxSprite_Update(struct EwramData_EntityData *entity)
+void RoomEffectParallaxSprite_Update(struct EwramData_EntityData *entity)
 {
     switch (entity->state)
     {
     case 0:
     {
-        s32 graphics = ObjGfx_LoadResource(sObject07ParallaxSpriteGfx, 0);
+        s32 graphics = ObjGfx_LoadResource(sRoomEffectParallaxSpriteGfx, 0);
         s32 palette;
-        if (graphics < 0 || (palette = (s8)ObjPalette_FindOrLoad(sObject07ParallaxSpritePalette)) < 0)
+        if (graphics < 0 || (palette = (s8)ObjPalette_FindOrLoad(sRoomEffectParallaxSpritePalette)) < 0)
         {
             entity->deleteRequested = 1;
             break;
         }
-        Sprite_Attach(entity, sObject07ParallaxSpriteSpriteSheet, graphics, palette);
-        entity->animFrame = entity->ext.object07.spriteFrame;
+        Sprite_Attach(entity, sRoomEffectParallaxSpriteSpriteSheet, graphics, palette);
+        entity->animFrame = entity->ext.roomEffect.spriteFrame;
         entity->spriteLayer = 0x1E;
         entity->drawFunc = Sprite_DrawEntity;
         entity->objMode = 1;
@@ -1334,7 +1334,7 @@ void Object07ParallaxSprite_Update(struct EwramData_EntityData *entity)
     }
 }
 
-/* Object07_SpawnParallaxSprites. */
+/* RoomEffect_SpawnParallaxSprites. */
 struct Offset16 { u16 x, y; };
 
 /**
@@ -1342,20 +1342,20 @@ struct Offset16 { u16 x, y; };
  * sUnk_085255DC, placed by the camera position scaled with the room
  * size plus the variant offset.
  */
-void Object07_SpawnParallaxSprites(struct EwramData_EntityData *entity)
+void RoomEffect_SpawnParallaxSprites(struct EwramData_EntityData *entity)
 {
     struct BgMapMetadata *meta = gEwramData->bgInfo[1].pBgMetadata;
     s32 i;
 
     for (i = 0; i <= 3; i++)
     {
-        struct EwramData_EntityData *e = EntityCreateInRange(0x49, 0xCF, Object07ParallaxSprite_Update);
+        struct EwramData_EntityData *e = EntityCreateInRange(0x49, 0xCF, RoomEffectParallaxSprite_Update);
         if (e != NULL)
         {
             const u8 *entry;
             struct BgLayerState *cam;
             { const u8 *tbl = sUnk_085255DC; entry = tbl + i * 4; }
-            e->ext.object07.spriteFrame = entry[2];
+            e->ext.roomEffect.spriteFrame = entry[2];
             {
                 s32 x = entry[0] + 0x50;
                 cam = &gEwramData->bgInfo[1];
@@ -1394,16 +1394,16 @@ s32 BgPaletteAnim_Step(struct EwramData_EntityData *entity)
 /**
  * @brief 4F6E4 | Object 0x07 create, by type spawnParam0.
  */
-void Object07Create(struct EwramData_EntityData *entity)
+void RoomEffectCreate(struct EwramData_EntityData *entity)
 {
     switch (entity->spawnParam0)
     {
         case 0:
             BgParticle_SpawnAll(entity);
-            Object07_SpawnParallaxSprites(entity);
+            RoomEffect_SpawnParallaxSprites(entity);
             break;
         case 1:
-            entity->ext.object07.paletteAnim = 0;
+            entity->ext.roomEffect.paletteAnim = 0;
             break;
         case 2:
             BgParticle_SpawnAll(entity);
@@ -1424,7 +1424,7 @@ void Object07Create(struct EwramData_EntityData *entity)
  * @brief 4F770 | Object 0x07 update: type 1 palette animation, types 0 and
  * 2 keep bldCnt at 0xE40.
  */
-void Object07Update(struct EwramData_EntityData *entity)
+void RoomEffectUpdate(struct EwramData_EntityData *entity)
 {
     switch (entity->spawnParam0)
     {

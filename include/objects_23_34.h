@@ -29,15 +29,15 @@ extern void Object2ECreate(struct EwramData_EntityData *entity);
 extern void Object2EUpdate(struct EwramData_EntityData *entity);
 extern void Object2FCreate(struct EwramData_EntityData *entity);
 extern void Object2FUpdate(struct EwramData_EntityData *entity);
-extern void Object30Create(struct EwramData_EntityData *entity);
-extern void Object30Update(struct EwramData_EntityData *entity);
+extern void LeafSpawnerCreate(struct EwramData_EntityData *entity);
+extern void LeafSpawnerUpdate(struct EwramData_EntityData *entity);
 extern void Object31Create(struct EwramData_EntityData *entity);
 extern void Object31Update(struct EwramData_EntityData *entity);
-extern void Object32Create(struct EwramData_EntityData *entity);
-extern void Object32Update(struct EwramData_EntityData *entity);
-extern void Object33Create(struct EwramData_EntityData *entity);
-extern void Object33Update(struct EwramData_EntityData *entity);
-extern void Object34Create(struct EwramData_EntityData *entity);
-extern void Object34Update(struct EwramData_EntityData *entity);
+extern void CrumblingPlatformCreate(struct EwramData_EntityData *entity);
+extern void CrumblingPlatformUpdate(struct EwramData_EntityData *entity);
+extern void SparkEmitterCreate(struct EwramData_EntityData *entity);
+extern void SparkEmitterUpdate(struct EwramData_EntityData *entity);
+extern void PendulumPlatformCreate(struct EwramData_EntityData *entity);
+extern void PendulumPlatformUpdate(struct EwramData_EntityData *entity);
 
 #endif /* OBJECTS_23_34_H */

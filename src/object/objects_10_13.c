@@ -27,7 +27,7 @@
 #include "entity_common.h"
 
 void BossRushTimer_Update(struct EwramData_EntityData *entity);
-void Object12Variant2_Draw(struct EwramData_EntityData *entity);
+void RoomDecorationVariant2_Draw(struct EwramData_EntityData *entity);
 
 /* BossRushResult_Draw: matched (three block-local v instead of one variable set three times;
    literal constants, no helper variables). */
@@ -102,10 +102,10 @@ void BossRushResult_Draw(struct EwramData_EntityData *entity)
     }
 }
 
-void Object10Create(struct EwramData_EntityData *entity)
+void BossRushResultCreate(struct EwramData_EntityData *entity)
 {
     u32 value;
-    struct Object10Reward *reward;
+    struct BossRushReward *reward;
     s32 i;
     s32 item;
     struct EwramData_EntityData *child;
@@ -113,20 +113,20 @@ void Object10Create(struct EwramData_EntityData *entity)
     switch (gEwramData->gameState.language)
     {
     case 2:
-        if (!Entity_LoadGraphics(entity, sObject10GfxLanguage2, sObject10Palette, 0, sObject10SpriteSheetLanguage2))
+        if (!Entity_LoadGraphics(entity, sBossRushResultGfxLanguage2, sBossRushResultPalette, 0, sBossRushResultSpriteSheetLanguage2))
         {
             EntityDelete(entity);
             return;
         }
     case 3:
-        if (!Entity_LoadGraphics(entity, sObject10GfxLanguage3, sObject10Palette, 0, sObject10SpriteSheetLanguage3))
+        if (!Entity_LoadGraphics(entity, sBossRushResultGfxLanguage3, sBossRushResultPalette, 0, sBossRushResultSpriteSheetLanguage3))
         {
             EntityDelete(entity);
             return;
         }
         break;
     default:
-        if (!Entity_LoadGraphics(entity, sObject10Gfx, sObject10Palette, 0, sObject10SpriteSheet))
+        if (!Entity_LoadGraphics(entity, sBossRushResultGfx, sBossRushResultPalette, 0, sBossRushResultSpriteSheet))
         {
             EntityDelete(entity);
             return;
@@ -135,7 +135,7 @@ void Object10Create(struct EwramData_EntityData *entity)
     }
     child = &gEwramData->entityData[26];
     value = child->ext.bossRushTimer.time;
-    for (reward = sObject10Rewards, i = 0; i <= 2; i++, reward++)
+    for (reward = sBossRushRewards, i = 0; i <= 2; i++, reward++)
     {
         if (value <= reward->maxValue && *ItemInventory_GetCountPtr(Item_GetTypeByGlobalId(reward->item), Item_GetIndexByGlobalId(reward->item)) == 0)
         {
@@ -145,7 +145,7 @@ void Object10Create(struct EwramData_EntityData *entity)
     }
     item = 1;
 found:
-    entity->ext.object10.rewardItem = item;
+    entity->ext.bossRushResult.rewardItem = item;
     child = Pickup_CreateItem(entity->posX.part16.integer, (u16)entity->posY.part16.integer, 0xFF, item, 1);
     if (child != NULL)
         child->subState = 1;
@@ -164,7 +164,7 @@ found:
  * larger, and write the slot back (SaveData_SaveSlotToSram); finally set
  * subMode = 2, subModeStep = 0 (state 3).
  */
-void Object10Update(struct EwramData_EntityData *entity)
+void BossRushResultUpdate(struct EwramData_EntityData *entity)
 {
     struct GameState *data = &gEwramData->gameState;
     u8 state = entity->state;
@@ -189,7 +189,7 @@ void Object10Update(struct EwramData_EntityData *entity)
         }
         entity->state = 2;
         SaveData_LoadSlotFromSram(gEwramData->gameState.currentSaveSlot);
-        ItemInventory_AddOneByGlobalId(entity->ext.object10.rewardItem);
+        ItemInventory_AddOneByGlobalId(entity->ext.bossRushResult.rewardItem);
         SaveData_UpdateSlotSummary(&gEwramData->gameState);
         {
             struct EwramData_EntityData *slot26 = &gEwramData->entityData[26];
@@ -214,7 +214,7 @@ void Object10Update(struct EwramData_EntityData *entity)
  * @brief 512C4 | Object 0x11 create: replace entity slot 26 by a counter
  * entity (update BossRushTimer_Update).
  */
-void Object11Create(struct EwramData_EntityData *entity)
+void BossRushTimerStarterCreate(struct EwramData_EntityData *entity)
 {
     EntityDelete(&gEwramData->entityData[26]);
     EntityCreateInRange(0x1A, 0x1A, BossRushTimer_Update)->roomActive = 1;
@@ -223,7 +223,7 @@ void Object11Create(struct EwramData_EntityData *entity)
 /**
  * @brief 512F8 | Object 0x11 update: nothing.
  */
-void Object11Update(struct EwramData_EntityData *entity)
+void BossRushTimerStarterUpdate(struct EwramData_EntityData *entity)
 {
 }
 
@@ -239,16 +239,16 @@ void BossRushTimer_Update(struct EwramData_EntityData *entity)
 }
 
 /**
- * @brief Update of object 0x12 variant 0 (sObject12Variants[0].updateFunc): idle
- * animation cycle sObject12Variant0AnimScript0, sObject12Variant0AnimScript1, sObject12Variant0AnimScript2 with
+ * @brief Update of object 0x12 variant 0 (sRoomDecorationVariants[0].updateFunc): idle
+ * animation cycle sRoomDecorationVariant0AnimScript0, sRoomDecorationVariant0AnimScript1, sRoomDecorationVariant0AnimScript2 with
  * random waits.
  */
-void Object12Variant0_Update(struct EwramData_EntityData *entity)
+void RoomDecorationVariant0_Update(struct EwramData_EntityData *entity)
 {
     switch (entity->state)
     {
         case 0:
-            Anim_Start(entity, (struct AnimScript *)sObject12Variant0AnimScript0, 0, 0);
+            Anim_Start(entity, (struct AnimScript *)sRoomDecorationVariant0AnimScript0, 0, 0);
             entity->timer = (RandomNumberGenerator() & 0x7F) + 8;
             entity->state++;
         case 1:
@@ -257,7 +257,7 @@ void Object12Variant0_Update(struct EwramData_EntityData *entity)
                 entity->timer--;
                 break;
             }
-            Anim_Start(entity, (struct AnimScript *)sObject12Variant0AnimScript1, 0, 0);
+            Anim_Start(entity, (struct AnimScript *)sRoomDecorationVariant0AnimScript1, 0, 0);
             entity->state++;
             break;
         case 2:
@@ -273,7 +273,7 @@ void Object12Variant0_Update(struct EwramData_EntityData *entity)
                 entity->timer--;
                 break;
             }
-            Anim_Start(entity, (struct AnimScript *)sObject12Variant0AnimScript2, 0, 0);
+            Anim_Start(entity, (struct AnimScript *)sRoomDecorationVariant0AnimScript2, 0, 0);
             entity->state++;
             break;
         case 4:
@@ -288,9 +288,9 @@ void Object12Variant0_Update(struct EwramData_EntityData *entity)
  * @brief 5140C | Object 0x12 create: load the graphics of variant spawnParam0,
  * start its animation, layer, and convert room coordinates (flag 2).
  */
-void Object12Create(struct EwramData_EntityData *entity)
+void RoomDecorationCreate(struct EwramData_EntityData *entity)
 {
-    const struct Object12VariantDefinition *def = &sObject12Variants[entity->spawnParam0];
+    const struct RoomDecorationVariantDefinition *def = &sRoomDecorationVariants[entity->spawnParam0];
 
     if (!Entity_LoadGraphics(entity, def->graphics, def->palette, def->paletteIndex, def->spriteSheet))
     {
@@ -324,9 +324,9 @@ void Object12Create(struct EwramData_EntityData *entity)
 
 /**
  * @brief 514D8 | Variant with spawnParam1 == 1 scrolls with background 3
- * instead of background 1; set drawFunc Object12Variant2_Draw on the first frame.
+ * instead of background 1; set drawFunc RoomDecorationVariant2_Draw on the first frame.
  */
-void Object12Variant2_Update(struct EwramData_EntityData *entity)
+void RoomDecorationVariant2_Update(struct EwramData_EntityData *entity)
 {
     if (entity->state == 0)
     {
@@ -338,7 +338,7 @@ void Object12Variant2_Update(struct EwramData_EntityData *entity)
 
             entity->posX.whole += mainBg->xPos.whole - farBg->xPos.whole;
         }
-        entity->drawFunc = Object12Variant2_Draw;
+        entity->drawFunc = RoomDecorationVariant2_Draw;
         entity->state++;
     }
     if (entity->spawnParam1 == 1)
@@ -354,7 +354,7 @@ void Object12Variant2_Update(struct EwramData_EntityData *entity)
  * @brief 5153C | Draw frames 0..3 (0 and 1 only while not above the
  * screen), toggling the OBJ mode bit every frame.
  */
-void Object12Variant2_Draw(struct EwramData_EntityData *entity)
+void RoomDecorationVariant2_Draw(struct EwramData_EntityData *entity)
 {
     s32 i;
 
@@ -373,9 +373,9 @@ void Object12Variant2_Draw(struct EwramData_EntityData *entity)
  * @brief 5158C | Object 0x12 update: (only near the screen for flag 8) run
  * the variant's update or the plain animation.
  */
-void Object12Update(struct EwramData_EntityData *entity)
+void RoomDecorationUpdate(struct EwramData_EntityData *entity)
 {
-    const struct Object12VariantDefinition *def = &sObject12Variants[entity->spawnParam0];
+    const struct RoomDecorationVariantDefinition *def = &sRoomDecorationVariants[entity->spawnParam0];
 
     if ((def->flags & 8) && !Entity_IsInRect(entity, -0x80, -0x40, 0x1F0, 0x120))
         return;

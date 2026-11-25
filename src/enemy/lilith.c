@@ -557,10 +557,10 @@ void LilithShot_OnHit(struct EwramData_EntityData *entity, s32 attacker, u16 *hi
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   Lilith_LoadGraphics = Object32_LoadGraphics */
+ *   Lilith_LoadGraphics = CrumblingPlatform_LoadGraphics */
 
 /**
- * @brief 952A0 | Same as Object32_LoadGraphics.
+ * @brief 952A0 | Same as CrumblingPlatform_LoadGraphics.
  */
 u8 Lilith_LoadGraphics(struct EwramData_EntityData *entity)
 {

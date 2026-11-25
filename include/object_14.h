@@ -7,7 +7,7 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-extern void Object14Create(struct EwramData_EntityData *entity);
-extern void Object14Update(struct EwramData_EntityData *entity);
+extern void RollerCreate(struct EwramData_EntityData *entity);
+extern void RollerUpdate(struct EwramData_EntityData *entity);
 
 #endif /* OBJECT_14_H */

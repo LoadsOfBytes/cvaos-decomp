@@ -427,12 +427,12 @@ void QuezlcoatlPiece_Update(struct EwramData_EntityData *entity)
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   Quezlcoatl_LoadGraphics = Object32_LoadGraphics
+ *   Quezlcoatl_LoadGraphics = CrumblingPlatform_LoadGraphics
  *   Quezlcoatl_DamagePlayerOnContact = Enemy_DamagePlayerOnContact
  *   QuezlcoatlSegment_DamagePlayerOnContact = Enemy_DamagePlayerOnContact */
 
 /**
- * @brief 786B0 | Same as Object32_LoadGraphics.
+ * @brief 786B0 | Same as CrumblingPlatform_LoadGraphics.
  */
 u8 Quezlcoatl_LoadGraphics(struct EwramData_EntityData *entity)
 {

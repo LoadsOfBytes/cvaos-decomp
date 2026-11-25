@@ -823,7 +823,7 @@ struct BossPickupParticleWork {
  * 0x34 parts) keep their position in layer coordinates (screen position +
  * bgInfo[1] scroll) and derive posX / posY from it every frame; the screen
  * position is also saved for their draw functions. Shuttle platforms (0x29
- * vertical, 0x2A horizontal; Object32Create fills the same fields) move
+ * vertical, 0x2A horizontal; CrumblingPlatformCreate fills the same fields) move
  * between the start and the end coordinate (spawnParam0 << 16); shuttleDir
  * toggles at each end (initially 1 when the start lies beyond the end).
  */
@@ -2426,7 +2426,7 @@ struct WhiteDragonChargeWork {
     /* 0x4FA */ s16 targetY;
 };
 
-/* Event scene 23 (EventScene23_Init): the actor created from object table
+/* Event scene 23 (EventSceneReturnHome_Init): the actor created from object table
  * kind 1.
  */
 struct Event23Work {
@@ -2434,14 +2434,14 @@ struct Event23Work {
     /* 0x4F8 */ struct EwramData_EntityData *actor;
 };
 
-/* Event scene 24 (EventScene24_Update): the answer of the yes / no question. */
+/* Event scene 24 (EventSceneEndingWakeUp_Update): the answer of the yes / no question. */
 struct Event24Work {
     /* 0x4F4 */ u8 pad_4F4[0x4F7 - 0x4F4];
     /* 0x4F7 */ u8 answer;
 };
 
-/* Event scene 26 (EventScene26_*): the actor created from object table kind
- * 3 (drawn with EventScene26_DrawOffsetCopies) and the text id it shows.
+/* Event scene 26 (EventSceneHammerTalk_*): the actor created from object table kind
+ * 3 (drawn with EventSceneHammerTalk_DrawOffsetCopies) and the text id it shows.
  */
 struct Event26Work {
     /* 0x4F4 */ u8 pad_4F4[0x4F8 - 0x4F4];
@@ -2449,7 +2449,7 @@ struct Event26Work {
     /* 0x4FC */ struct EwramData_EntityData *actor;
 };
 
-/* Event scene 27 (town character, EventScene27_*): text id of the picked
+/* Event scene 27 (town character, EventSceneMinaTalk_*): text id of the picked
  * conversation and the heal flag (restores HP / MP on the next talk).
  */
 struct Event27Work {
@@ -2459,15 +2459,15 @@ struct Event27Work {
     /* 0x4FC */ u8 heal;
 };
 
-/* Event scene 28 (EventScene28_*): text id of the picked script. */
+/* Event scene 28 (EventSceneUnconsciousYoko_*): text id of the picked script. */
 struct Event28Work {
     /* 0x4F4 */ u8 pad_4F4[0x4F8 - 0x4F4];
     /* 0x4F8 */ s32 textId;
 };
 
-/* Event scene 31 (EventScene31_*): the block holder entity it created,
+/* Event scene 31 (EventSceneJuliusKeepsPromise_*): the block holder entity it created,
  * frames shown of the current palette step and the step 0..3
- * (EventScene31_StepPaletteAnim).
+ * (EventSceneJuliusKeepsPromise_StepPaletteAnim).
  */
 struct Event31Work {
     /* 0x4F4 */ u8 pad_4F4[0x4F8 - 0x4F4];
@@ -2752,8 +2752,8 @@ struct HeadhunterPartWork {
 };
 
 /* Event scene 30 transformation controller
- * (EventScene30_UpdateTransformation and the unreferenced
- * EventScene30_UpdateUnusedZoom; TU aliases CENTER_X / CENTER_Y / SCALE_X /
+ * (EventSceneEnding_UpdateTransformation and the unreferenced
+ * EventSceneEnding_UpdateUnusedZoom; TU aliases CENTER_X / CENTER_Y / SCALE_X /
  * TIMER / JITTER_Y / PHASE / INIT / ANGLE / SCALE_Y / SWEEP): BG2 affine
  * angle (high byte), phase and its first-frame flag, the scanline sweep
  * counter of the split zoom, the scale (the halo and centre effect use it as
@@ -2792,8 +2792,8 @@ struct Event30EffectWork {
     /* 0x50A */ s16 spin;
 };
 
-/* Event scene 30 orbit ring effect (EventScene30_SpawnOrbitRing,
- * EventScene30OrbitRing_Update): index of its spawn point, orbit centre,
+/* Event scene 30 orbit ring effect (EventSceneEnding_SpawnOrbitRing,
+ * EventSceneEndingOrbitRing_Update): index of its spawn point, orbit centre,
  * orbit angle, ring size (from the spawn point's scale), x / y orbit radius
  * and the outward spread counter.
  */
@@ -2810,7 +2810,7 @@ struct Event30RingWork {
     /* 0x50E */ s16 spread;
 };
 
-/* Event scene 30 fragments (EventScene30_SpawnOrbitFragments,
+/* Event scene 30 fragments (EventSceneEnding_SpawnOrbitFragments,
  * *Fragment_Update): orbit direction (index & 1), fragment index and sway /
  * orbit phase.
  */
@@ -2821,7 +2821,7 @@ struct Event30FragmentWork {
     /* 0x4FC */ s16 phase;
 };
 
-/* Event scene 30 driver (EventScene30_Update): phase of the player's
+/* Event scene 30 driver (EventSceneEnding_Update): phase of the player's
  * floating sway during the transformation (Sin of it is passed to the
  * scripted animation).
  */
@@ -2933,7 +2933,7 @@ struct BaloreEmitterWork {
     /* 0x50C */ s32 stepX;
 };
 
-/* Save point (Object 0x1C, Object1CCreate / Object1CUpdate): yes selected =
+/* Save point (Object 0x1C, SavePointCreate / SavePointUpdate): yes selected =
  * cursor of the save prompt (1 = Yes; A saves only then); affine slot of the
  * growing / shrinking sprite and its scale; graphics = ObjGfx slot of
  * sSaveWarpRoomSpriteSheet, shared with its parts; frame base = first sprite
@@ -3377,11 +3377,11 @@ struct SkillCatoblepasWork {
     /* 0x50A */ s16 shotIndex;
 };
 
-/* Object 0x0D (swinging object hanging from the ceiling, Object0DUpdate):
+/* Object 0x0D (swinging object hanging from the ceiling, SwingingPlatformUpdate):
  * affine angle (clamped to +-0x1000), angular speed and the swing amplitude
  * (0x100 after an impulse, loses 0x20 per swing).
  */
-struct Object0DWork {
+struct SwingingPlatformWork {
     /* 0x4F4 */ u8 pad_4F4[0x4FC - 0x4F4];
     /* 0x4FC */ u32 angle;
     /* 0x500 */ s32 speed;
@@ -3417,12 +3417,12 @@ struct Object37ChildWork {
     /* 0x4FC */ u32 angle;
 };
 
-/* Object 0x14 (rolling affine sprite, Object14Variant0/1/2_Update): flags
+/* Object 0x14 (rolling affine sprite, RollerVariant0/1/2_Update): flags
  * (variant 1 is pushed by the player: bit 0, set by
- * Object14_WallLeft/RightCorrection), room pixel position and the position
+ * Roller_WallLeft/RightCorrection), room pixel position and the position
  * of the previous frame, affine angle; variant 0 also grows its scale.
  */
-struct Object14Work {
+struct RollerWork {
     /* 0x4F4 */ u8 pad_4F4[0x4F8 - 0x4F4];
     /* 0x4F8 */ u16 flags;
     /* 0x4FA */ u8 pad_4FA[0x4FC - 0x4FA];
@@ -3435,10 +3435,10 @@ struct Object14Work {
     /* 0x508 */ s32 scale;
 };
 
-/* Object 0x14 variant 2 (Object14Variant2_Update; room / previous position
- * in ext.object14): swing angle and its random speed.
+/* Object 0x14 variant 2 (RollerVariant2_Update; room / previous position
+ * in ext.roller): swing angle and its random speed.
  */
-struct Object14SwingWork {
+struct RollerSwingWork {
     /* 0x4F4 */ u8 pad_4F4[0x508 - 0x4F4];
     /* 0x508 */ s16 angle;
     /* 0x50A */ s16 speed;
@@ -3475,7 +3475,7 @@ struct Object35ChildWork {
 /* Object 0x36 (rotating BG-affine platform, Object36*): rotation angle,
  * radius (half the shape width), the angle step and the BG affine scale.
  */
-struct Object36Work {
+struct RotatingPlatformWork {
     /* 0x4F4 */ u8 pad_4F4[0x4F8 - 0x4F4];
     /* 0x4F8 */ s32 angle;
     /* 0x4FC */ s16 radius;
@@ -3483,11 +3483,11 @@ struct Object36Work {
     /* 0x500 */ s16 scale;
 };
 
-/* Object 0x30 falling leaf (Object30_SpawnFallingLeaf, Object30Leaf_Update):
+/* Object 0x30 falling leaf (LeafSpawner_SpawnFallingLeaf, FallingLeaf_Update):
  * kind 0..2 (animation, fall speed, parallax) and the BG 1 x scroll of the
  * previous frame (for the parallax).
  */
-struct Object30LeafWork {
+struct FallingLeafWork {
     /* 0x4F4 */ u8 pad_4F4[0x4F8 - 0x4F4];
     /* 0x4F8 */ s32 kind;
     /* 0x4FC */ u32 scrollX;
@@ -3514,17 +3514,17 @@ struct Object15Work {
     /* 0x500 */ s32 radius;
 };
 
-/* Object 0x08 (breakable block, Object08Update) and its dust child
+/* Object 0x08 (breakable block, BreakableBlockUpdate) and its dust child
  * (BreakableBlock_SpawnDust): block kind / orientation byte (copied to the
  * child, selects the room flag and the dust spread).
  */
-struct Object08Work {
+struct BreakableBlockWork {
     /* 0x4F4 */ u8 pad_4F4[0x4F8 - 0x4F4];
     /* 0x4F8 */ s8 kind;
 };
 
 /* Object 0x08 dust child: the dust ObjGfx slot. */
-struct Object08DustWork {
+struct BreakableBlockDustWork {
     /* 0x4F4 */ u8 pad_4F4[0x4FC - 0x4F4];
     /* 0x4FC */ u32 gfx;
 };
@@ -3550,10 +3550,10 @@ struct Object25Work {
     /* 0x500 */ struct EwramData_EntityData *spawner;
 };
 
-/* Elevator (object 0x17, Object17Update): frames up / down has been held on
+/* Elevator (object 0x17, ElevatorUpdate): frames up / down has been held on
  * it (starts moving after 3).
  */
-struct Object17Work {
+struct ElevatorWork {
     /* 0x4F4 */ u8 pad_4F4[0x4FC - 0x4F4];
     /* 0x4FC */ s8 holdFrames;
 };
@@ -3595,14 +3595,14 @@ struct WarpGateWork {
     /* 0x506 */ s16 step;
 };
 
-/* Object 0x1D (warp room side wall, Object1DCreate): side of the room exit
+/* Object 0x1D (warp room side wall, SaveWarpRoomWallCreate): side of the room exit
  * (1 when the exit directions of the room sum to +1, i.e. not flipped).
  */
-struct Object1DWork {
+struct SaveWarpRoomWallWork {
     /* 0x4F4 */ u8 pad_4F4[0x4F8 - 0x4F4];
     /* 0x4F8 */ s8 exitRight;
     /* 0x4F9 */ u8 pad_4F9[0x4FC - 0x4F9];
-    /* 0x4FC */ s8 affineSlot; /* Object1D_DrawPulsingOverlay */
+    /* 0x4FC */ s8 affineSlot; /* SaveWarpRoomWall_DrawPulsingOverlay */
 };
 
 /* Object 0x22 (platform carrying the player along its levels,
@@ -3629,7 +3629,7 @@ struct Object22PartWork {
  * and tick (BG_PALETTE_ANIM_*, TU object/objects_00_07.c) as one word; its parallax
  * sprites keep their frame.
  */
-struct Object07Work {
+struct RoomEffectWork {
     /* 0x4F4 */ s32 paletteAnim;
     /* 0x4F8 */ u8 pad_4F8[0x4FC - 0x4F8];
     /* 0x4FC */ s8 spriteFrame;
@@ -3638,13 +3638,13 @@ struct Object07Work {
 /* Object 0x09: collision mode of its definition (passed to
  * GameFlag_FindRoomCoordinate).
  */
-struct Object09Work {
+struct CrumblingWallWork {
     /* 0x4F4 */ u8 pad_4F4[0x4F8 - 0x4F4];
     /* 0x4F8 */ s8 collisionMode;
 };
 
 /* Object 0x10 (Boss Rush reward): the item given (chosen from the time). */
-struct Object10Work {
+struct BossRushResultWork {
     /* 0x4F4 */ u8 pad_4F4[0x4FC - 0x4F4];
     /* 0x4FC */ u32 rewardItem;
 };
@@ -3658,7 +3658,7 @@ struct BossRushTimerWork {
 };
 
 /* Object 0x1F (exit with a fade): frames until the room transition. */
-struct Object1FWork {
+struct WarpRoomFadeExitWork {
     /* 0x4F4 */ u8 pad_4F4[0x4F8 - 0x4F4];
     /* 0x4F8 */ u16 fadeTimer;
 };
@@ -3715,13 +3715,13 @@ struct MainMenuWork {
 };
 
 /* Title logo entity (entityData[0x12], TitleScreenLogo_*): background
- * palette blend timer (sTitlePaletteBlendSteps, TitleScreen_sub_08002FF8),
+ * palette blend timer (sTitlePaletteBlendSteps, TitleScreen_StepPaletteCycle),
  * flags (1 = the approach is nearly done, start the palette fade-in; 2 =
  * fade-in done), the zoom step that shrinks the BG2 scale to 0x118 - step
  * after the approach (counts to 0x40), the approach distance that
  * GameModeTitleScreenUpdate reduces to 0 while the scale grows (0x108 -
  * distance / 0x8000), the amplitude of the BG1 h-blank wave
- * (TitleScreen_sub_08002F44) that fades out at the end of the intro, the
+ * (TitleScreen_SetLogoWave) that fades out at the end of the intro, the
  * palette blend step and the wobble phase of the idle scale.
  */
 struct TitleLogoWork {
@@ -4012,7 +4012,7 @@ struct GrandCrossWork {
 /* Object 0x34 (swinging platform): swing angle, angular speed (+-0x100) and
  * the acceleration applied at the turning points (spawnParam1).
  */
-struct Object34Work {
+struct PendulumPlatformWork {
     /* 0x4F4 */ u8 pad_4F4[0x4FC - 0x4F4];
     /* 0x4FC */ s16 angle;
     /* 0x4FE */ s16 speed;
@@ -4022,7 +4022,7 @@ struct Object34Work {
 /* Object 0x34 parts (0, 1 chain links, 2 the platform): their index and the
  * pivot entity.
  */
-struct Object34PartWork {
+struct PendulumPlatformPartWork {
     /* 0x4F4 */ u8 pad_4F4[0x502 - 0x4F4];
     /* 0x502 */ u8 index;
     /* 0x503 */ u8 pad_503[0x504 - 0x503];
@@ -4031,7 +4031,7 @@ struct Object34PartWork {
 
 /* Event scene 04 actor: position in the animation list sUnk_0852682C (0xFF
  * ends it; also read through the byte view), step and timer of
- * EventScene04_RunMusicScript (the step is set to 4 when its text starts).
+ * EventSceneMeetGraham_RunMusicScript (the step is set to 4 when its text starts).
  */
 struct Event04Work {
     /* 0x4F4 */ u8 pad_4F4[0x4F8 - 0x4F4];
@@ -4156,7 +4156,7 @@ struct SoulSelectorWork {
 
 /* BG palette animation (BgPaletteAnim_Step): current frame of the cycle and
  * the frames shown of it (object 0x07 clears both as one word,
- * ext.object07.paletteAnim).
+ * ext.roomEffect.paletteAnim).
  */
 struct BgPaletteAnimWork {
     /* 0x4F4 */ s16 frame;

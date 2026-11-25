@@ -294,7 +294,7 @@ u8 Object35_LoadGraphics(struct EwramData_EntityData *entity)
  * @brief 5A678 | Object 0x36 update: rotate BG2 (angle unk_4F8, scale
  * unk_500) around the entity position, then advance the angle by unk_4FE.
  */
-void Object36Update(struct EwramData_EntityData *entity)
+void RotatingPlatformUpdate(struct EwramData_EntityData *entity)
 {
     struct BgAffineSrcData affineSrc;
 
@@ -302,32 +302,32 @@ void Object36Update(struct EwramData_EntityData *entity)
     affineSrc.texY = 0x8000;
     affineSrc.scrX = entity->posX.part16.integer;
     affineSrc.scrY = entity->posY.part16.integer;
-    affineSrc.sx = entity->ext.object36.scale;
-    affineSrc.sy = entity->ext.object36.scale;
-    affineSrc.alpha = entity->ext.object36.angle;
+    affineSrc.sx = entity->ext.rotatingPlatform.scale;
+    affineSrc.sy = entity->ext.rotatingPlatform.scale;
+    affineSrc.alpha = entity->ext.rotatingPlatform.angle;
     BgAffineSet(&affineSrc, (struct BgAffineDstData *)&gDisplayRegisters.bg2PA, 1);
-    entity->ext.object36.angle += entity->ext.object36.spin;
+    entity->ext.rotatingPlatform.angle += entity->ext.rotatingPlatform.spin;
 }
 
 /**
  * @brief 5A6C8 | Object 0x36 create: rotation speed and scale from the
- * sObject36Shapes entry selected by spawnParam0, then Player_RegisterSolidObject.
+ * sRotatingPlatformShapes entry selected by spawnParam0, then Player_RegisterSolidObject.
  */
-void Object36Create(struct EwramData_EntityData *entity)
+void RotatingPlatformCreate(struct EwramData_EntityData *entity)
 {
     s16 shapes[9][2];
 
-    memcpy(shapes, sObject36Shapes, sizeof(shapes));
+    memcpy(shapes, sRotatingPlatformShapes, sizeof(shapes));
     entity->hit.flags |= 4;
     entity->hit.flags |= 2;
     entity->hidden = 1;
-    entity->ext.object36.radius = shapes[entity->spawnParam0][0] / 2;
-    entity->ext.object36.spin = shapes[entity->spawnParam0][1];
-    entity->ext.object36.scale = 0x200 - shapes[entity->spawnParam0][0] * 2;
-    Player_RegisterSolidObject(entity, sObject36SolidCallbacks);
+    entity->ext.rotatingPlatform.radius = shapes[entity->spawnParam0][0] / 2;
+    entity->ext.rotatingPlatform.spin = shapes[entity->spawnParam0][1];
+    entity->ext.rotatingPlatform.scale = 0x200 - shapes[entity->spawnParam0][0] * 2;
+    Player_RegisterSolidObject(entity, sRotatingPlatformSolidCallbacks);
 }
 
-/* Object36_FloorCorrection: landing depth of a point on top of a round object; matched. */
+/* RotatingPlatform_FloorCorrection: landing depth of a point on top of a round object; matched. */
 #define TO_PIXELS(d) ((d) < 0 ? -(-(d) >> 16) : (d) >> 16)
 static inline s32 ToPixels(s32 x) { return TO_PIXELS(x); }
 
@@ -335,7 +335,7 @@ static inline s32 ToPixels(s32 x) { return TO_PIXELS(x); }
  * @brief Floor correction slot of the object 0x36 solid table: return the
  * push-up depth when the point is on the rotating surface, else 0.
  */
-s16 Object36_FloorCorrection(struct EwramData_EntityData *entity, u16 tx, u16 ty)
+s16 RotatingPlatform_FloorCorrection(struct EwramData_EntityData *entity, u16 tx, u16 ty)
 {
     struct BgLayerState *cam;
     s32 ex;
@@ -375,7 +375,7 @@ s16 Object36_FloorCorrection(struct EwramData_EntityData *entity, u16 tx, u16 ty
     dy = ey - sy;
     if (dx < 0)
         dx = -dx;
-    r = (s16)entity->ext.object36.radius;
+    r = (s16)entity->ext.rotatingPlatform.radius;
     if (dx > r - 6)
         return 0;
     if (dist < r - 8)
@@ -402,7 +402,7 @@ s16 Object36_FloorCorrection(struct EwramData_EntityData *entity, u16 tx, u16 ty
  * @brief Wall-right correction slot of the object 0x36 solid table: none,
  * return 0.
  */
-s32 Object36_WallRightCorrection(struct EwramData_EntityData *entity)
+s32 RotatingPlatform_WallRightCorrection(struct EwramData_EntityData *entity)
 {
     return 0;
 }
@@ -411,12 +411,12 @@ s32 Object36_WallRightCorrection(struct EwramData_EntityData *entity)
  * @brief Wall-left correction slot of the object 0x36 solid table: none, return
  * 0.
  */
-s32 Object36_WallLeftCorrection(struct EwramData_EntityData *entity)
+s32 RotatingPlatform_WallLeftCorrection(struct EwramData_EntityData *entity)
 {
     return 0;
 }
 
-/* Object36_GetCarryVelocity: bounce vector of a round object against a point; matched. */
+/* RotatingPlatform_GetCarryVelocity: bounce vector of a round object against a point; matched. */
 static inline u16 Distance(s32 x, s32 y, s32 tx, s32 ty)
 {
     x -= tx;
@@ -433,7 +433,7 @@ static inline u16 Distance(s32 x, s32 y, s32 tx, s32 ty)
  * @brief Carry callback slot of the object 0x36 solid table: return the carry
  * value for a point on the surface, else 0.
  */
-s32 Object36_GetCarryVelocity(struct EwramData_EntityData *entity, u16 tx, u16 ty)
+s32 RotatingPlatform_GetCarryVelocity(struct EwramData_EntityData *entity, u16 tx, u16 ty)
 {
     struct BgLayerState *cam;
     s32 ex;
@@ -461,7 +461,7 @@ s32 Object36_GetCarryVelocity(struct EwramData_EntityData *entity, u16 tx, u16 t
     sx = (s16)tx;
     {
         u16 dist = Distance(ex, ey, sx, sy);
-        s32 radius = (s16)entity->ext.object36.radius + 6;
+        s32 radius = (s16)entity->ext.rotatingPlatform.radius + 6;
         dy = ey - sy;
         if (dist >= radius)
             return 0;
@@ -472,13 +472,13 @@ s32 Object36_GetCarryVelocity(struct EwramData_EntityData *entity, u16 tx, u16 t
         register s32 dx asm("r1") = ex - sx; /* FAKEMATCH: pinned register */
         a = ArcTan2(dx, dy);
     }
-    b = a - entity->ext.object36.spin;
+    b = a - entity->ext.rotatingPlatform.spin;
     r = Sin(a + 0x4000);
-    r *= (s16)entity->ext.object36.radius;
+    r *= (s16)entity->ext.rotatingPlatform.radius;
     {
         s32 second2 = Sin(b + 0x4000);
         {
-            register s32 rad asm("r0") = (s16)entity->ext.object36.radius; /* FAKEMATCH: pinned register */
+            register s32 rad asm("r0") = (s16)entity->ext.rotatingPlatform.radius; /* FAKEMATCH: pinned register */
             second2 *= rad;
         }
         return r - second2;
@@ -486,10 +486,10 @@ s32 Object36_GetCarryVelocity(struct EwramData_EntityData *entity, u16 tx, u16 t
 }
 
 /**
- * @brief Ceiling correction slot of the object 0x36 solid table sObject36SolidCallbacks:
+ * @brief Ceiling correction slot of the object 0x36 solid table sRotatingPlatformSolidCallbacks:
  * none, return 0.
  */
-s32 Object36_CeilingCorrection(struct EwramData_EntityData *entity)
+s32 RotatingPlatform_CeilingCorrection(struct EwramData_EntityData *entity)
 {
     return 0;
 }

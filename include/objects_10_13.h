@@ -7,12 +7,12 @@
 #include "structs/ewram.h"
 #include "structs/main.h"
 
-extern void Object10Create(struct EwramData_EntityData *entity);
-extern void Object10Update(struct EwramData_EntityData *entity);
-extern void Object11Create(struct EwramData_EntityData *entity);
-extern void Object11Update(struct EwramData_EntityData *entity);
-extern void Object12Create(struct EwramData_EntityData *entity);
-extern void Object12Update(struct EwramData_EntityData *entity);
+extern void BossRushResultCreate(struct EwramData_EntityData *entity);
+extern void BossRushResultUpdate(struct EwramData_EntityData *entity);
+extern void BossRushTimerStarterCreate(struct EwramData_EntityData *entity);
+extern void BossRushTimerStarterUpdate(struct EwramData_EntityData *entity);
+extern void RoomDecorationCreate(struct EwramData_EntityData *entity);
+extern void RoomDecorationUpdate(struct EwramData_EntityData *entity);
 extern void Object13Create(struct EwramData_EntityData *entity);
 extern void Object13Update(struct EwramData_EntityData *entity);
 

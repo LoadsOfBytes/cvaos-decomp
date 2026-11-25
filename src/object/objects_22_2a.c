@@ -28,10 +28,10 @@ void Object22_SpawnFallingPart(struct EwramData_EntityData *);
 void Object22FallingPart_Update(struct EwramData_EntityData *);
 void Object22FallingPart_OnPlayerContact(struct EwramData_EntityData *);
 void Object22Effect_Update(struct EwramData_EntityData *entity);
-u8 Object29_LoadGraphics(struct EwramData_EntityData *);
-void Object29_Draw(struct EwramData_EntityData *entity);
-u8 Object2A_LoadGraphics(struct EwramData_EntityData *);
-void Object2A_Draw(struct EwramData_EntityData *entity);
+u8 VerticalPlatform_LoadGraphics(struct EwramData_EntityData *);
+void VerticalPlatform_Draw(struct EwramData_EntityData *entity);
+u8 HorizontalPlatform_LoadGraphics(struct EwramData_EntityData *);
+void HorizontalPlatform_Draw(struct EwramData_EntityData *entity);
 
 /**
  * @brief 56828 | Object 0x22 init: deleted unless Object22_LoadGraphics accepts it;
@@ -436,17 +436,17 @@ u8 Object22_LoadGraphics(struct EwramData_EntityData *entity)
     return 1;
 }
 
-void Object29Create(struct EwramData_EntityData *entity)
+void VerticalPlatformCreate(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
-    struct FourBoxes boxes = sObject29Boxes;
-    if (!Object29_LoadGraphics(entity)) { EntityDelete(entity); return; }
+    struct FourBoxes boxes = sVerticalPlatformBoxes;
+    if (!VerticalPlatform_LoadGraphics(entity)) { EntityDelete(entity); return; }
     Hit_Enable(entity, 8, NULL, 0);
     HitBox_SetBody(entity, &boxes.box[entity->spawnParam1]);
     HitBox_SetAttack(entity, &boxes.box[entity->spawnParam1]);
     entity->hit.flags |= 4;
     entity->hit.flags |= 2;
-    Anim_StartIndexed(entity, sObject29Variants[entity->spawnParam1].animation, 0, 1);
+    Anim_StartIndexed(entity, sVerticalPlatformVariants[entity->spawnParam1].animation, 0, 1);
     Anim_Update(entity);
     entity->spriteLayer = 18;
     entity->state = 0;
@@ -464,7 +464,7 @@ void Object29Create(struct EwramData_EntityData *entity)
 /* Vertical platform: accelerate between two room-space endpoints,
  * slow near each endpoint and wait for the per-variant delay. */
 #define DIRECTION(e) (e->ext.layerObject.shuttleDir)
-void Object29_UpdateMovement(struct EwramData_EntityData *entity)
+void VerticalPlatform_UpdateMovement(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
     s32 target, y, dist;
@@ -485,7 +485,7 @@ void Object29_UpdateMovement(struct EwramData_EntityData *entity)
             {
                 entity->subState++;
                 entity->velY.whole = 0;
-                entity->timer = sObject29Variants[entity->spawnParam1].delay;
+                entity->timer = sVerticalPlatformVariants[entity->spawnParam1].delay;
             }
             else if (dist > 0xFFFFF)
             {
@@ -501,7 +501,7 @@ void Object29_UpdateMovement(struct EwramData_EntityData *entity)
             {
                 entity->subState++;
                 entity->velY.whole = 0;
-                entity->timer = sObject29Variants[entity->spawnParam1].delay;
+                entity->timer = sVerticalPlatformVariants[entity->spawnParam1].delay;
             }
             else if (dist > 0xFFFFF)
             {
@@ -532,7 +532,7 @@ void Object29_UpdateMovement(struct EwramData_EntityData *entity)
             {
                 entity->subState++;
                 entity->velY.whole = 0;
-                entity->timer = sObject29Variants[entity->spawnParam1].delay;
+                entity->timer = sVerticalPlatformVariants[entity->spawnParam1].delay;
             }
             else if (dist > 0xFFFFF)
             {
@@ -548,7 +548,7 @@ void Object29_UpdateMovement(struct EwramData_EntityData *entity)
             {
                 entity->subState++;
                 entity->velY.whole = 0;
-                entity->timer = sObject29Variants[entity->spawnParam1].delay;
+                entity->timer = sVerticalPlatformVariants[entity->spawnParam1].delay;
             }
             else if (dist > 0xFFFFF)
             {
@@ -572,52 +572,52 @@ void Object29_UpdateMovement(struct EwramData_EntityData *entity)
     entity->posY.whole = entity->ext.layerObject.y - camera->yPos.whole;
 }
 
-/* Object29Update. */
+/* VerticalPlatformUpdate. */
 /**
  * @brief 57380 | Object 0x29 update: Player_QueueEntity(entity, 1), state 0
- * Object29_UpdateMovement, animate and Hit_CheckWithPlayer.
+ * VerticalPlatform_UpdateMovement, animate and Hit_CheckWithPlayer.
  */
-void Object29Update(struct EwramData_EntityData *entity)
+void VerticalPlatformUpdate(struct EwramData_EntityData *entity)
 {
     struct HitResult result;
 
     Player_QueueEntity(entity, 1);
     if (entity->state == 0)
-        Object29_UpdateMovement(entity);
+        VerticalPlatform_UpdateMovement(entity);
     Anim_Update(entity);
     Hit_CheckWithPlayer(&result, entity);
 }
 
-/* Object29_LoadGraphics (object 0x29 graphics). */
+/* VerticalPlatform_LoadGraphics (object 0x29 graphics). */
 
 /* Graphics per variant (spawnParam1): gfx, palette, animation; unk_D is the
  * palette argument of ObjPalette_FindOrLoadVariant. */
 
 /**
- * @brief 573B0 | Load the graphics of variant spawnParam1 from sObject29Variants
- * and draw with Object29_Draw; 0 when no slot is free.
+ * @brief 573B0 | Load the graphics of variant spawnParam1 from sVerticalPlatformVariants
+ * and draw with VerticalPlatform_Draw; 0 when no slot is free.
  */
-u8 Object29_LoadGraphics(struct EwramData_EntityData *entity)
+u8 VerticalPlatform_LoadGraphics(struct EwramData_EntityData *entity)
 {
-    s32 gfx = ObjGfx_LoadResource(sObject29Variants[entity->spawnParam1].graphics, 0);
+    s32 gfx = ObjGfx_LoadResource(sVerticalPlatformVariants[entity->spawnParam1].graphics, 0);
 
     if (gfx < 0)
         return 0;
-    entity->basePalette = ObjPalette_FindOrLoadVariant(sObject29Variants[entity->spawnParam1].palette,
-                                                      sObject29Variants[entity->spawnParam1].paletteIndex);
-    Sprite_Attach(entity, sObject29Variants[entity->spawnParam1].sprites, gfx, entity->basePalette);
-    entity->drawFunc = Object29_Draw;
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sVerticalPlatformVariants[entity->spawnParam1].palette,
+                                                      sVerticalPlatformVariants[entity->spawnParam1].paletteIndex);
+    Sprite_Attach(entity, sVerticalPlatformVariants[entity->spawnParam1].sprites, gfx, entity->basePalette);
+    entity->drawFunc = VerticalPlatform_Draw;
     return 1;
 }
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   Object29_Draw = Object34Part_Draw */
+ *   VerticalPlatform_Draw = PendulumPlatformPart_Draw */
 
 /**
- * @brief 57418 | Same as Object34Part_Draw.
+ * @brief 57418 | Same as PendulumPlatformPart_Draw.
  */
-void Object29_Draw(struct EwramData_EntityData *entity)
+void VerticalPlatform_Draw(struct EwramData_EntityData *entity)
 {
     s32 oldX = entity->posX.whole;
     s32 oldY = entity->posY.whole;
@@ -629,17 +629,17 @@ void Object29_Draw(struct EwramData_EntityData *entity)
     entity->posY.whole = oldY;
 }
 
-void Object2ACreate(struct EwramData_EntityData *entity)
+void HorizontalPlatformCreate(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
-    struct FourBoxes boxes = sObject2ABoxes;
-    if (!Object2A_LoadGraphics(entity)) { EntityDelete(entity); return; }
+    struct FourBoxes boxes = sHorizontalPlatformBoxes;
+    if (!HorizontalPlatform_LoadGraphics(entity)) { EntityDelete(entity); return; }
     Hit_Enable(entity, 8, NULL, 0);
     HitBox_SetBody(entity, &boxes.box[entity->spawnParam1]);
     HitBox_SetAttack(entity, &boxes.box[entity->spawnParam1]);
     entity->hit.flags |= 4;
     entity->hit.flags |= 2;
-    Anim_StartIndexed(entity, sObject2AVariants[entity->spawnParam1].animation, 0, 1);
+    Anim_StartIndexed(entity, sHorizontalPlatformVariants[entity->spawnParam1].animation, 0, 1);
     Anim_Update(entity);
     entity->spriteLayer = 18;
     entity->state = 0;
@@ -654,9 +654,9 @@ void Object2ACreate(struct EwramData_EntityData *entity)
     else entity->ext.layerObject.shuttleDir = 0;
 }
 
-/* Object2A_UpdateMovement: horizontal moving platform; matched. */
+/* HorizontalPlatform_UpdateMovement: horizontal moving platform; matched. */
 
-void Object2A_UpdateMovement(struct EwramData_EntityData *entity)
+void HorizontalPlatform_UpdateMovement(struct EwramData_EntityData *entity)
 {
     struct BgLayerState *camera = &gEwramData->bgInfo[1];
     s32 target, x, dist, vel, vel2;
@@ -677,7 +677,7 @@ void Object2A_UpdateMovement(struct EwramData_EntityData *entity)
             {
                 entity->subState++;
                 entity->velX.whole = 0;
-                entity->timer = sObject2AVariants[entity->spawnParam1].delay;
+                entity->timer = sHorizontalPlatformVariants[entity->spawnParam1].delay;
                 break;
             }
             if (dist > 0xFFFFF)
@@ -695,7 +695,7 @@ void Object2A_UpdateMovement(struct EwramData_EntityData *entity)
             {
                 entity->subState++;
                 entity->velX.whole = 0;
-                entity->timer = sObject2AVariants[entity->spawnParam1].delay;
+                entity->timer = sHorizontalPlatformVariants[entity->spawnParam1].delay;
                 break;
             }
             if (dist > 0xFFFFF)
@@ -728,7 +728,7 @@ void Object2A_UpdateMovement(struct EwramData_EntityData *entity)
             {
                 entity->subState++;
                 entity->velX.whole = 0;
-                entity->timer = sObject2AVariants[entity->spawnParam1].delay;
+                entity->timer = sHorizontalPlatformVariants[entity->spawnParam1].delay;
                 break;
             }
             if (dist > 0xFFFFF)
@@ -746,7 +746,7 @@ void Object2A_UpdateMovement(struct EwramData_EntityData *entity)
             {
                 entity->subState++;
                 entity->velX.whole = 0;
-                entity->timer = sObject2AVariants[entity->spawnParam1].delay;
+                entity->timer = sHorizontalPlatformVariants[entity->spawnParam1].delay;
                 break;
             }
             if (dist > 0xFFFFF)
@@ -776,52 +776,52 @@ void Object2A_UpdateMovement(struct EwramData_EntityData *entity)
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   Object2AUpdate = Object29Update */
+ *   HorizontalPlatformUpdate = VerticalPlatformUpdate */
 
 /**
- * @brief 57744 | Same as Object29Update.
+ * @brief 57744 | Same as VerticalPlatformUpdate.
  */
-void Object2AUpdate(struct EwramData_EntityData *entity)
+void HorizontalPlatformUpdate(struct EwramData_EntityData *entity)
 {
     struct HitResult result;
 
     Player_QueueEntity(entity, 1);
     if (entity->state == 0)
-        Object2A_UpdateMovement(entity);
+        HorizontalPlatform_UpdateMovement(entity);
     Anim_Update(entity);
     Hit_CheckWithPlayer(&result, entity);
 }
 
-/* Object2A_LoadGraphics (object 0x2A graphics). */
+/* HorizontalPlatform_LoadGraphics (object 0x2A graphics). */
 
 /* Graphics per variant (spawnParam1): gfx, palette, animation; unk_D is the
  * palette argument of ObjPalette_FindOrLoadVariant. */
 
 /**
- * @brief 57774 | Load the graphics of variant spawnParam1 from sObject2AVariants
- * and draw with Object2A_Draw; 0 when no slot is free.
+ * @brief 57774 | Load the graphics of variant spawnParam1 from sHorizontalPlatformVariants
+ * and draw with HorizontalPlatform_Draw; 0 when no slot is free.
  */
-u8 Object2A_LoadGraphics(struct EwramData_EntityData *entity)
+u8 HorizontalPlatform_LoadGraphics(struct EwramData_EntityData *entity)
 {
-    s32 gfx = ObjGfx_LoadResource(sObject2AVariants[entity->spawnParam1].graphics, 0);
+    s32 gfx = ObjGfx_LoadResource(sHorizontalPlatformVariants[entity->spawnParam1].graphics, 0);
 
     if (gfx < 0)
         return 0;
-    entity->basePalette = ObjPalette_FindOrLoadVariant(sObject2AVariants[entity->spawnParam1].palette,
-                                                      sObject2AVariants[entity->spawnParam1].paletteIndex);
-    Sprite_Attach(entity, sObject2AVariants[entity->spawnParam1].sprites, gfx, entity->basePalette);
-    entity->drawFunc = Object2A_Draw;
+    entity->basePalette = ObjPalette_FindOrLoadVariant(sHorizontalPlatformVariants[entity->spawnParam1].palette,
+                                                      sHorizontalPlatformVariants[entity->spawnParam1].paletteIndex);
+    Sprite_Attach(entity, sHorizontalPlatformVariants[entity->spawnParam1].sprites, gfx, entity->basePalette);
+    entity->drawFunc = HorizontalPlatform_Draw;
     return 1;
 }
 
 /* Clones of already decompiled functions, generated with
  * a cloning script and checked byte for byte:
- *   Object2A_Draw = Object34Part_Draw */
+ *   HorizontalPlatform_Draw = PendulumPlatformPart_Draw */
 
 /**
- * @brief 577DC | Same as Object34Part_Draw.
+ * @brief 577DC | Same as PendulumPlatformPart_Draw.
  */
-void Object2A_Draw(struct EwramData_EntityData *entity)
+void HorizontalPlatform_Draw(struct EwramData_EntityData *entity)
 {
     s32 oldX = entity->posX.whole;
     s32 oldY = entity->posY.whole;

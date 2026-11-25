@@ -205,7 +205,7 @@ s32 Shop_Update(struct GameState *context)
  * of its variant, then (unless 0x53D bit 3 is set) sets stateFlags bit 0x200,
  * stores itself in sceneController and releases the player input.
  */
-void Object20Create(struct EwramData_EntityData *entity)
+void EventSceneControllerCreate(struct EwramData_EntityData *entity)
 {
     if (gEwramData->playerStatus.currentHP <= 0 && !(gEwramData->gameState.stateFlags & 0x200000))
     {
@@ -239,7 +239,7 @@ void Object20Create(struct EwramData_EntityData *entity)
  * @brief 5B510 | Object 0x20 update: run the update of its variant and feed
  * its result to SetPlayerInput while stateFlags bit 0 is set.
  */
-void Object20Update(struct EwramData_EntityData *entity)
+void EventSceneControllerUpdate(struct EwramData_EntityData *entity)
 {
     u32 playerInputs;
     struct EwramData *ewram = gEwramData;
@@ -435,7 +435,7 @@ void Sound_Play(u16 song)
  * Hud_ClearGraphics, play song 0x1000 and place the player at (0x78,
  * 0x50) with zero velocity (integer parts) and 0x53C bit 5 set.
  */
-void EventScene30_Init(void)
+void EventSceneEnding_Init(void)
 {
     gEwramData->gameState.stateFlags |= 0x80000;
     gEwramData->gameState.stateFlags |= 0x20;

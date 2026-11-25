@@ -14,7 +14,7 @@ extern void Object1BCreate(struct EwramData_EntityData *entity);
 extern void Object1BUpdate(struct EwramData_EntityData *entity);
 extern void Object1ACreate(struct EwramData_EntityData *entity);
 extern void Object1AUpdate(struct EwramData_EntityData *entity);
-extern void Object1CCreate(struct EwramData_EntityData *entity);
-extern void Object1CUpdate(struct EwramData_EntityData *entity);
+extern void SavePointCreate(struct EwramData_EntityData *entity);
+extern void SavePointUpdate(struct EwramData_EntityData *entity);
 
 #endif /* OBJECTS_19_1C_H */
